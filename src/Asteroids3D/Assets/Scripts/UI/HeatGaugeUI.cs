@@ -4,10 +4,6 @@ using Combat.Weapons.Conditions;
 
 namespace UI
 {
-    /// <summary>
-    /// Heat readout widget: a vertical fill bar with an overheat flash. One is generated per
-    /// heat-carrying weapon by <see cref="WeaponReadoutBuilder"/>.
-    /// </summary>
     public sealed class HeatGaugeUI : MonoBehaviour
     {
         [Header("References")]

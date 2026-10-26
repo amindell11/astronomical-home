@@ -5,25 +5,17 @@ using Ships.Command;
 using UnityEngine;
 using Combat.Weapons.Conditions;
 
-namespace UI
+namespace UI.Weapons
 {
     /// <summary>
-    /// Generates the weapon HUD from the equipped loadout: one <see cref="WeaponReadoutPanel"/>
-    /// per slot, filled with one widget per readout the weapon exposes (heat gauge, ammo
-    /// counter, lock spinner), in display order. Consumes only the <see cref="IWeaponReadouts"/>
-    /// read surface — the HUD's shape follows the loadout and never touches sim objects.
+    /// Binds every weapon readout for HUD audio and builds corner panels for charge and lock.
+    /// Heat and ammunition are drawn beside the aim point by <see cref="AimCrosshair"/>.
     /// </summary>
     public sealed class WeaponReadoutBuilder : MonoBehaviour
     {
         [Header("Prefabs")]
         [Tooltip("Panel instantiated per equipped weapon slot.")]
         [SerializeField] internal WeaponReadoutPanel panelPrefab;
-
-        [Tooltip("Widget instantiated per heat readout.")]
-        [SerializeField] internal HeatGaugeUI heatWidgetPrefab;
-
-        [Tooltip("Widget instantiated per ammo readout.")]
-        [SerializeField] internal AmmoCounterUI ammoWidgetPrefab;
 
         [Tooltip("Widget instantiated per charge readout.")]
         [SerializeField] internal ChargeGaugeUI chargeWidgetPrefab;
@@ -51,7 +43,6 @@ namespace UI
         internal IReadOnlyList<WeaponReadoutPanel> Panels => panels;
         internal IReadOnlyList<BoundReadout> Built => built;
 
-        /// <summary>Rebuilds the readout panels for the given loadout; null or unarmed clears the HUD.</summary>
         public void Build(IWeaponReadouts weapons)
         {
             Clear();
@@ -62,7 +53,6 @@ namespace UI
                 BuildPanel(weapons, slots[i]);
         }
 
-        /// <summary>The first built readout of the given type, in slot order, or null.</summary>
         public T FirstReadout<T>() where T : class
         {
             foreach (var readout in built)
@@ -75,13 +65,21 @@ namespace UI
         {
             if (!panelPrefab) return;
 
-            var panel = Instantiate(panelPrefab, transform);
-            panel.Initialize(weapons.DisplayName(slot));
-            panels.Add(panel);
-
+            WeaponReadoutPanel panel = null;
             var readouts = weapons.Readouts(slot);
             for (var i = 0; i < readouts.Count; i++)
             {
+                if (readouts[i] is IHeatReadout or IAmmoReadout)
+                {
+                    built.Add(new BoundReadout(slot, readouts[i], null));
+                    continue;
+                }
+                if (!panel)
+                {
+                    panel = Instantiate(panelPrefab, transform);
+                    panel.Initialize(weapons.DisplayName(slot));
+                    panels.Add(panel);
+                }
                 var widget = CreateWidget(readouts[i], panel.Container);
                 if (widget)
                     built.Add(new BoundReadout(slot, readouts[i], widget));
@@ -92,16 +90,6 @@ namespace UI
         {
             switch (readout)
             {
-                case IHeatReadout heat when heatWidgetPrefab:
-                    var gauge = Instantiate(heatWidgetPrefab, container);
-                    gauge.Initialize(heat);
-                    return gauge;
-
-                case IAmmoReadout ammo when ammoWidgetPrefab:
-                    var counter = Instantiate(ammoWidgetPrefab, container);
-                    counter.Initialize(ammo);
-                    return counter;
-
                 case IChargeReadout charge when chargeWidgetPrefab:
                     var chargeGauge = Instantiate(chargeWidgetPrefab, container);
                     chargeGauge.Initialize(charge);

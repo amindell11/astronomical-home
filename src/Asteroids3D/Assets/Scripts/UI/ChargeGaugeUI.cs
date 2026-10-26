@@ -6,7 +6,7 @@ namespace UI
 {
     /// <summary>
     /// Charge readout widget: a fill bar tracking a charge weapon's held charge. One is
-    /// generated per charge-carrying weapon by <see cref="WeaponReadoutBuilder"/>.
+    /// generated per charge-carrying weapon by <see cref="Weapons.WeaponReadoutBuilder"/>.
     /// </summary>
     public sealed class ChargeGaugeUI : MonoBehaviour
     {

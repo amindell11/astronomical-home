@@ -5,8 +5,7 @@ namespace UI
 {
     /// <summary>
     /// One weapon's block of the HUD: the weapon's display name above a stack of readout
-    /// widgets. <see cref="WeaponReadoutBuilder"/> generates one per equipped slot and fills
-    /// <see cref="Container"/> with that weapon's widgets.
+    /// widgets. <see cref="Weapons.WeaponReadoutBuilder"/> creates these for charge and lock feedback.
     /// </summary>
     public sealed class WeaponReadoutPanel : MonoBehaviour
     {

@@ -213,10 +213,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   panelPrefab: {fileID: 1000000000000000004, guid: 0dc0c17087e64875889e4cdf2ddec38f,
     type: 3}
-  heatWidgetPrefab: {fileID: 2000000000000000005, guid: afc299ddd0d54674a4eae21912a38d21,
-    type: 3}
-  ammoWidgetPrefab: {fileID: 3000000000000000003, guid: bc07a76686e24c4c9786272a65936004,
-    type: 3}
   chargeWidgetPrefab: {fileID: 5000000000000000005, guid: c2172d916a3343c79dfae300066b0390,
     type: 3}
   lockWidgetPrefab: {fileID: 4000000000000000003, guid: bb293538c99d4c40a374865356c5b172,

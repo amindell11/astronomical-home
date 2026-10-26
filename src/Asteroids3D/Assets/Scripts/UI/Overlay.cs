@@ -3,6 +3,7 @@ using UnityEngine;
 using UI.Audio;
 using UI.Markers;
 using UI.PlayerState;
+using UI.Weapons;
 using Combat.Weapons.Conditions;
 using Substrate.Services.Objectives;
 
@@ -25,6 +26,8 @@ namespace UI
         private WeaponReadoutBuilder readoutBuilder;
         private RunTallyReadout tallyReadout;
         private ChargeTargetMarkers chargeMarkers;
+        private AimCrosshair crosshair;
+        private bool visible = true;
 
         public MinimapObjectiveMarker ObjectiveMarker { get; private set; }
         public RectTransform MinimapRect => minimapRect;
@@ -43,6 +46,7 @@ namespace UI
             readoutBuilder = GetComponentInChildren<WeaponReadoutBuilder>(true);
             ObjectiveMarker = GetComponentInChildren<MinimapObjectiveMarker>(true);
             chargeMarkers = GetComponentInChildren<ChargeTargetMarkers>(true);
+            crosshair = AimCrosshair.Create(transform);
         }
 
         public void SetCanvasWorldCamera(Camera uicam)
@@ -59,17 +63,20 @@ namespace UI
         /// </summary>
         public void SetVisible(bool visible)
         {
+            this.visible = visible;
             if (visible) SetOpacity(1f);
             foreach (var c in canvases)
                 c.enabled = visible;
             if (chargeMarkers)
                 chargeMarkers.SetVisible(visible);
+            crosshair.gameObject.SetActive(visible && visibility.alpha > 0f);
         }
 
         public void SetOpacity(float opacity)
         {
             visibility.alpha = opacity;
             if (chargeMarkers) chargeMarkers.SetVisible(opacity > 0f);
+            crosshair.gameObject.SetActive(visible && opacity > 0f);
         }
 
         public void Initialize(in HudBinding binding)
@@ -88,6 +95,7 @@ namespace UI
 
             if (readoutBuilder)
                 readoutBuilder.Build(binding.Weapons);
+            crosshair.Initialize(binding.Weapons);
 
             if (chargeMarkers)
                 chargeMarkers.Initialize(binding.Weapons);
