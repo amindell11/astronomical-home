@@ -65,6 +65,7 @@ namespace Ships.Movement
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
             rb.maxLinearVelocity = speedCap = settings.maxSpeed;
+            rb.maxAngularVelocity = settings.maxYawRate * Mathf.Deg2Rad;
             currentCommand = default;
         }
 
@@ -78,7 +79,9 @@ namespace Ships.Movement
             ApplySpeedCap(Time.fixedDeltaTime);
             var outs = Forces.ComputeOutputs(kinematics, currentCommand, settings, keystone.SpeedScale);
             var thrust = currentCommand.thrust > 0f ? outs.thrust * keystone.ThrustScale : outs.thrust;
-            ApplyForces(thrust, outs.strafe, effect.Impulse, outs.yawTorque, outs.bank);
+            var maneuverability = keystone.ManeuverabilityScale;
+            rb.maxAngularVelocity = settings.maxYawRate * maneuverability * Mathf.Deg2Rad;
+            ApplyForces(thrust, outs.strafe * maneuverability, effect.Impulse, outs.yawTorque * maneuverability, outs.bank);
             ConstrainRotation();
         }
 

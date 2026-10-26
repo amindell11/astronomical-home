@@ -90,8 +90,9 @@ namespace Ships
         public ShipId Id { get; private set; }
         public int DecisionSeed { get; private set; }
         public Collider[] Colliders {get; private set;}
-        /// <summary>The motion model as it stands this step: the base model with any keystone scaling applied.</summary>
-        public Dynamics Dynamics => Keystone ? baseDynamics.Scaled(Keystone.SpeedScale, Keystone.ThrustScale) : baseDynamics;
+        public Dynamics Dynamics => Keystone
+            ? baseDynamics.Scaled(Keystone.SpeedScale, Keystone.ThrustScale, Keystone.ManeuverabilityScale)
+            : baseDynamics;
 
         private Dynamics baseDynamics;
         public Transform TargetPoint => transform;
@@ -107,7 +108,7 @@ namespace Ships
         public float BoostCooldownRemaining => Keystone ? Keystone.CooldownRemaining : 0f;
         public float BoostCooldownPct => Keystone ? Keystone.CooldownPct : 0f;
         public float MaxSpeed => Stats != null ? Stats.maxSpeed : 0f;
-        public float MaxYawRate => Stats != null ? Stats.maxYawRate : 0f;
+        public float MaxYawRate => Stats != null ? Stats.maxYawRate * (Keystone ? Keystone.ManeuverabilityScale : 1f) : 0f;
         public IReadOnlyList<ITrackingMissile> TrackingMissiles => Lock.Trackers;
 
         /// <summary>Collision radius derived from collider bounds in <see cref="Initialize"/>; 1 until then.</summary>
