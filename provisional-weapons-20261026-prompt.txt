@@ -1,0 +1,10 @@
+Use case: compositing. Combine these TWO existing weapon-icon concept sheets into ONE provisional seven-icon sheet. This is an assembly pass only, NOT a redesign or another style exploration.
+
+INPUT 1: the full seven-icon sheet. Its TOP ROW has the four provisionally selected symbols: LASERS, TURBO LASERS, CHARGE LASERS, RAILGUN. Copy exactly those four symbols with their original geometry, line weight, spacing within each symbol and labels.
+INPUT 2: the three-icon row with the recognizable missile silhouette plus an exhaust dash, the four staggered diagonal Rippers slashes, and the three-part angular Concussion ring. Copy exactly those THREE symbols with their labels. This is the selected new bottom row.
+
+OUTPUT: a clean landscape seven-icon sheet with FOUR evenly spaced icons across the top and THREE centered below, at consistent optical scale. Uniform deep navy background, ivory icons, small subordinate clean narrow sans-serif labels. Exactly these labels once each: top "LASERS", "TURBO LASERS", "CHARGE LASERS", "RAILGUN"; bottom "MISSILES", "RIPPERS", "CONCUSSION". Plenty of open space, no frames, no dividing lines, no titles, no other text.
+
+PRESERVE ALL SEVEN CHOSEN DESIGNS. In particular: Lasers two unequal solid diagonal strokes; Turbo Lasers three unequal solid diagonal strokes; Charge Lasers a single diagonal line divided into three unequal segments; Railgun one long diagonal beam with two short side guide pieces. Missile is a recognizable spare silhouette with a detached exhaust mark, NOT the abstract kinked path. Rippers exactly four staggered parallel slashes of varied length, NOT a horizontal slug row or three-bar stack. Concussion the original three-part broken faceted circular ring from INPUT 2, NOT an X or diamond or wireless arcs.
+
+Do not refine shapes during assembly. The user wants the chosen set together before doing refinement passes. Preserve the moderate angular stroke weight of the source symbols, don't make them hairline, don't add decoration, texture, lighting, shadows, gradients, outlines or glow. Straight-on flat image, clean presentation.
