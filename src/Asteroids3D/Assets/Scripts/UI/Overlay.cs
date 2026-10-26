@@ -28,6 +28,7 @@ namespace UI
 
         public MinimapObjectiveMarker ObjectiveMarker { get; private set; }
         public RectTransform MinimapRect => minimapRect;
+        public Camera WorldCamera => canvases[0].worldCamera;
 
         private void Awake()
         {

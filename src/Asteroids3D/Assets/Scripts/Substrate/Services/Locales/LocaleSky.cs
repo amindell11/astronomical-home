@@ -6,7 +6,7 @@ namespace Substrate.Services.Locales
     /// <summary>
     /// A locale scene's sky root. Each child renderer is one sky layer on the <c>Sky</c> Unity
     /// layer, which only the flight and hangar cameras' culling masks include; the root enables its sky layers
-    /// only while its scene is the active scene, so inactive loaded locales draw nothing.
+    /// while its scene is active. A locale backdrop pair temporarily selects each sky for offscreen rendering.
     /// A sky layer's look lives on its material. Design: arc #678.
     /// </summary>
     [DisallowMultipleComponent]
@@ -26,11 +26,12 @@ namespace Substrate.Services.Locales
 
         private void OnActiveSceneChanged(Scene previous, Scene active) => Show(active);
 
-        private void Show(Scene active)
+        internal void SetVisible(bool visible)
         {
-            var visible = gameObject.scene == active;
             foreach (var layer in layers)
                 layer.enabled = visible;
         }
+
+        private void Show(Scene active) => SetVisible(gameObject.scene == active);
     }
 }

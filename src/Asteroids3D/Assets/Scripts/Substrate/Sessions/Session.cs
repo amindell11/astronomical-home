@@ -49,6 +49,13 @@ namespace Substrate.Sessions
 
         public Sector ActiveSector { get; private set; }
 
+        public IEnumerator PrepareTravelBackdrop(string destination, Transform parent, Action<LocaleBackdropPair> ready)
+        {
+            Require(Phase.Loaded, nameof(PrepareTravelBackdrop));
+            if (!presentation) throw new InvalidOperationException("Travel presentation requires a visible session.");
+            return locale.PrepareBackdrop(destination, parent, ready);
+        }
+
         public Session(SessionProfile profile, Transform root, UnitService units, ObjectiveService objectives)
         {
             this.profile = profile ?? throw new ArgumentNullException(nameof(profile));
