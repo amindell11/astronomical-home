@@ -3,6 +3,7 @@ using Combat.Targeting;
 using Movement;
 using NUnit.Framework;
 using Ships;
+using Ships.Command;
 using Ships.Presentation;
 using Tests.PlayMode.Common;
 using UI;
