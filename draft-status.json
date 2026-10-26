@@ -1,0 +1,9 @@
+{
+  "status": "uncompiled draft preserved for the interactive-travel follow-up, not included in PR 1180",
+  "sourceBase": "f2a5eae33cb9cb88402faf56e4b8408b467b833d",
+  "tuningCheckpointCommit": "381e65285",
+  "integrationRequired": "SectorJumpSequence must expose internal float LocaleBlendAt(float progress) returning Mathf.Clamp01(localeBlend.Evaluate(progress)); the draft passage calls it.",
+  "behavior": ["Shortest turn from actual heading to the jump gate heading", "Continuous speed and distance through an indefinite midpoint hold", "Locale blending starts only after Continue", "HUD fade duration included in the passage endpoint"],
+  "notImplemented": ["GameHost-backed Playtest setup and restart", "Physical protected departure", "Crowded jump-gate fixture and F prompt", "Extraction screen handoff", "Sector transfer and momentum-bearing arrival"],
+  "tests": "Six source cases written, not yet executed"
+}
