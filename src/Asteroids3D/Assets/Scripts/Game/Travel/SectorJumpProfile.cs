@@ -14,6 +14,14 @@ namespace Game.Travel
         public AnimationCurve speed = new(new Keyframe(0, 0), new Keyframe(0.22f, 1),
             new Keyframe(0.62f, 1), new Keyframe(1, 0));
 
+        [Header("Flight handoff")]
+        [Tooltip("World distance covered while accelerating out of the jump gate.")]
+        [Min(0f)] public float departureDistance = 45f;
+        [Tooltip("Arrival speed as a fraction of the ship's normal maximum speed.")]
+        [Range(0f, 1f)] public float arrivalSpeedFraction = 0.35f;
+        [Tooltip("Seconds used to blend between the visible world and hyperspace.")]
+        [Min(0.01f)] public float worldBlendDuration = 0.4f;
+
         [Header("Background")]
         [Tooltip("0 keeps the softened treatment; 1 shows the moving locale directly.")]
         [Range(0f, 1f)] public float rawBackgroundBlend = 0.35f;

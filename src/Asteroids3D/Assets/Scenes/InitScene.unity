@@ -195,9 +195,10 @@ MonoBehaviour:
     type: 3}
   hangarOffer: {fileID: 11400000, guid: cda2f130a4534c5d92dce80e24036813, type: 2}
   recapFeel: {fileID: 11400000, guid: a4963326513141e3bf43fabd747f3bf5, type: 2}
+  jumpFeel: {fileID: 11400000, guid: 6377cb25349f79540a7c1a7ef65df3db, type: 2}
+  jumpShader: {fileID: 4800000, guid: 180b0e0f31f61dc44b388c8f1b818895, type: 3}
   deathBehavior: 2
   killHullRestore: 0.25
-  recapHoldSeconds: 8
 --- !u!114 &217078675
 MonoBehaviour:
   m_ObjectHideFlags: 0

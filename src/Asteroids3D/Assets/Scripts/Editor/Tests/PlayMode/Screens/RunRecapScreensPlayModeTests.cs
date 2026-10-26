@@ -8,6 +8,7 @@ using NUnit.Framework;
 using UI.Recap;
 using UI.Screens;
 using Ships;
+using Tests.PlayMode.Common;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -87,8 +88,9 @@ namespace Tests.PlayMode.Screens
             Assert.AreEqual("3:42", TextAt("Recap/Time").text);
             Assert.IsNull(screen.transform.Find("Panels/Recap/Scoreboard"));
             Assert.IsNull(screen.transform.Find("OutcomeIntro"));
-            Assert.AreEqual(1f, screen.transform.Find("Panels/Recap").GetComponent<CanvasGroup>().alpha,
-                "the sector card shows at once");
+            Assert.That(screen.transform.Find("Panels/Recap").GetComponent<CanvasGroup>().alpha, Is.LessThan(1f),
+                "the sector card fades in");
+            yield return new WaitForSecondsRealtime(feel.BreakdownInSeconds + .1f);
             screen.transform.Find("Panels/Recap/Continue").GetComponent<Button>().onClick.Invoke();
             Assert.IsTrue(screen.Continued);
         }
@@ -224,11 +226,11 @@ namespace Tests.PlayMode.Screens
             runner.StartCoroutine(ShowCard());
             yield return null;
             screen = playbackOwner.transform.GetChild(0).GetComponent<RunRecapScreen>();
-            yield return new WaitForSecondsRealtime(.1f);
+            yield return new WaitForSecondsRealtime(feel.BreakdownInSeconds + .1f);
             Assert.AreEqual(.65f, Time.timeScale);
             Assert.AreEqual(0, completed, "cruise waits for the real card's Continue");
             screen.transform.Find("Panels/Recap/Continue").GetComponent<Button>().OnSubmit(null);
-            yield return null;
+            yield return new WaitForSecondsRealtime(feel.BreakdownOutSeconds + .1f);
             yield return null;
             Assert.AreEqual(1, completed);
             Assert.IsFalse(screen, "completion destroys the owned screen");
@@ -252,7 +254,8 @@ namespace Tests.PlayMode.Screens
             }
             var actionsBefore = InputSystem.ListEnabledActions().Count;
             runner.StartCoroutine(ShowCard());
-            yield return new WaitForSecondsRealtime(feel.HudFadeSeconds + feel.BannerInSeconds + .1f);
+            yield return AsyncAssert.WaitUntil(() => InputSystem.ListEnabledActions().Count > actionsBefore,
+                5f, "the banner is listening for input");
             screen = playbackOwner.transform.GetChild(0).GetComponent<RunRecapScreen>();
             Assert.Greater(InputSystem.ListEnabledActions().Count, actionsBefore, "the banner is listening for input");
             cancelled = true;
