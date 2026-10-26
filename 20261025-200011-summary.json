@@ -1,0 +1,85 @@
+{
+  "generatedAt": "2026-10-25T20:00:40.5869947-07:00",
+  "projectPath": "D:\\amind\\git\\agent-5\\src\\Asteroids3D",
+  "unityPath": "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+  "mode": "PlayMode",
+  "selection": {
+    "scopeType": "Workspace",
+    "scopeName": "",
+    "scopeResolved": false,
+    "testFilter": "RestartAndModeSwitch_ReleaseRecapInputAndInspectionLocaleOwnership",
+    "testCategory": "",
+    "excludeCategory": "",
+    "categoryFilter": "",
+    "assemblyNames": "",
+    "orderedTestListFile": "",
+    "rerunFailedFrom": "",
+    "auto": null,
+    "withGraphics": false,
+    "captureScenario": ""
+  },
+  "status": "failed",
+  "totals": {
+    "total": 1,
+    "passed": 0,
+    "failed": 1,
+    "skipped": 0,
+    "durationSec": 7.57
+  },
+  "runs": [
+    {
+      "platform": "PlayMode",
+      "xmlPath": "",
+      "logPath": "",
+      "unityExitCode": 0,
+      "status": "failed",
+      "total": 1,
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "durationSec": 7.57,
+      "failures": [
+        {
+          "name": "RestartAndModeSwitch_ReleaseRecapInputAndInspectionLocaleOwnership",
+          "fullName": "Tests.PlayMode.Preview.PreviewPlayModeTests.RestartAndModeSwitch_ReleaseRecapInputAndInspectionLocaleOwnership",
+          "durationSec": 7.4654904,
+          "message": "Expected: same as <SectorJumpTuning(Clone) (Game.Travel.SectorJumpProfile)> But was: <SectorJumpTuning (Game.Travel.SectorJumpProfile)>",
+          "topStack": "at Tests.PlayMode.Preview.PreviewPlayModeTests+<RestartAndModeSwitch_ReleaseRecapInputAndInspectionLocaleOwnership>d__11.MoveNext () [0x0057b] in D:\\amind\\git\\agent-5\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\PlayMode\\Preview\\PreviewPlayM..."
+        }
+      ],
+      "truncatedFailures": 0,
+      "selection": {
+        "scopeType": "Workspace",
+        "scopeName": "",
+        "scopeResolved": false,
+        "testFilter": "RestartAndModeSwitch_ReleaseRecapInputAndInspectionLocaleOwnership",
+        "testCategory": "",
+        "excludeCategory": "",
+        "categoryFilter": "",
+        "assemblyNames": "",
+        "orderedTestListFile": "",
+        "rerunFailedFrom": "",
+        "auto": null,
+        "withGraphics": false,
+        "captureScenario": ""
+      }
+    }
+  ],
+  "wallTiming": {
+    "elapsedSec": 29.58,
+    "startupToFirstTestSec": null,
+    "executionSec": null,
+    "remainingSec": null,
+    "unavailableReason": "resident-editor transport has no cold-process timestamps"
+  },
+  "coverage": {
+    "verdict": "partial",
+    "reason": "transport=routed (warm-editor run; merge-grade proof requires a cold-process run)"
+  },
+  "memory": {
+    "processes": [],
+    "unavailableReason": "resident-editor transport launches no process to sample"
+  },
+  "transport": "routed",
+  "editorPid": 27236
+}
