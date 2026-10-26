@@ -14,6 +14,7 @@ namespace UI
     {
         [Header("Minimap")]
         [SerializeField] private RectTransform minimapRect;
+        [SerializeField] private AimCrosshair crosshair;
 
         private Canvas[] canvases;
         private CanvasGroup visibility;
@@ -26,7 +27,7 @@ namespace UI
         private WeaponReadoutBuilder readoutBuilder;
         private RunTallyReadout tallyReadout;
         private ChargeTargetMarkers chargeMarkers;
-        private AimCrosshair crosshair;
+        private Camera gameplayCamera;
         private bool visible = true;
 
         public MinimapObjectiveMarker ObjectiveMarker { get; private set; }
@@ -46,13 +47,13 @@ namespace UI
             readoutBuilder = GetComponentInChildren<WeaponReadoutBuilder>(true);
             ObjectiveMarker = GetComponentInChildren<MinimapObjectiveMarker>(true);
             chargeMarkers = GetComponentInChildren<ChargeTargetMarkers>(true);
-            crosshair = AimCrosshair.Create(transform);
         }
 
-        public void SetCanvasWorldCamera(Camera uicam)
+        public void ConfigureCameras(Camera uiCamera, Camera gameplayCamera)
         {
             // GetComponentsInChildren returns self first; RequireComponent guarantees a root canvas.
-            canvases[0].worldCamera = uicam;
+            canvases[0].worldCamera = uiCamera;
+            this.gameplayCamera = gameplayCamera;
         }
 
         /// <summary>
@@ -95,7 +96,7 @@ namespace UI
 
             if (readoutBuilder)
                 readoutBuilder.Build(binding.Weapons);
-            crosshair.Initialize(binding.Weapons);
+            crosshair.Initialize(binding.Status, binding.Weapons, gameplayCamera);
 
             if (chargeMarkers)
                 chargeMarkers.Initialize(binding.Weapons);

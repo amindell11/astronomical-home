@@ -5,12 +5,16 @@ using Combat.Weapons;
 using Combat.Weapons.Conditions;
 using NUnit.Framework;
 using Ships.Command;
+using Tests.Common;
 using UI.Weapons;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace Tests.PlayMode.Crosshairs
 {
@@ -38,6 +42,9 @@ namespace Tests.PlayMode.Crosshairs
         }
 
         private GameObject root;
+        private GameObject shipRoot;
+        private Camera gameplayCamera;
+        private StubShipStatus ship;
         private AimCrosshair crosshair;
         private Mouse mouse;
         private Ammo ammo;
@@ -51,42 +58,60 @@ namespace Tests.PlayMode.Crosshairs
             mouse = InputSystem.AddDevice<Mouse>();
             root = new GameObject("Crosshair test", typeof(RectTransform), typeof(Canvas));
             root.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
+            gameplayCamera = new GameObject("Gameplay camera", typeof(Camera)).GetComponent<Camera>();
+            gameplayCamera.enabled = false;
+            gameplayCamera.orthographic = true;
+            gameplayCamera.orthographicSize = 10f;
+            gameplayCamera.transform.position = new Vector3(0f, 0f, -10f);
+            shipRoot = new GameObject("Player ship");
+            shipRoot.transform.position = new Vector3(2f, -1f, 0f);
+            ship = new StubShipStatus { transform = shipRoot.transform };
             ammo = new Ammo();
-            crosshair = AimCrosshair.Create(root.transform);
-            crosshair.Initialize(new WeaponSources(ammo));
+#if UNITY_EDITOR
+            var prefab = AssetDatabase.LoadAssetAtPath<AimCrosshair>("Assets/Prefabs/UI/Crosshair/AimCrosshair.prefab");
+            crosshair = Object.Instantiate(prefab, root.transform);
+            crosshair.Initialize(ship, new WeaponSources(ammo), gameplayCamera);
             crosshair.gameObject.SetActive(true);
+#else
+            Assert.Ignore("Requires the authored crosshair prefab.");
+#endif
         }
 
         public override void TearDown()
         {
             Object.DestroyImmediate(root);
+            Object.DestroyImmediate(shipRoot);
+            if (gameplayCamera) Object.DestroyImmediate(gameplayCamera.gameObject);
             Cursor.visible = cursorWasVisible;
             base.TearDown();
         }
 
-        private Mesh Draw()
+        private void Draw()
         {
             crosshair.SendMessage("LateUpdate");
             Canvas.ForceUpdateCanvases();
-            crosshair.Rebuild(CanvasUpdate.PreRender);
-            return Object.Instantiate(crosshair.canvasRenderer.GetMesh());
         }
+
+        private Image ImageAt(string path) => crosshair.transform.Find(path).GetComponent<Image>();
+        private bool Visible(string name) => crosshair.transform.Find(name).gameObject.activeSelf;
 
         [Test]
         public void TriggerReadouts_AreIndependent_AndRebindClearsTheirSources()
         {
-            using var idle = new MeshLease(Draw());
-            Assert.That(idle.Value.bounds.min.x, Is.GreaterThan(-12f));
+            Draw();
+            Assert.IsFalse(Visible("PrimaryResources"));
+            Assert.IsFalse(Visible("SecondaryResources"));
             Press(mouse.leftButton);
-            using var primary = new MeshLease(Draw());
-            Assert.That(primary.Value.bounds.min.x, Is.LessThan(-18f));
-            Assert.That(primary.Value.bounds.max.x, Is.LessThan(12f));
+            Draw();
+            Assert.IsTrue(Visible("PrimaryResources"));
+            Assert.IsFalse(Visible("SecondaryResources"));
             Press(mouse.rightButton);
-            using var both = new MeshLease(Draw());
-            Assert.That(both.Value.bounds.max.x, Is.GreaterThan(18f));
-            crosshair.Initialize(null);
-            using var unarmed = new MeshLease(Draw());
-            Assert.That(unarmed.Value.bounds.size.x, Is.EqualTo(idle.Value.bounds.size.x).Within(.01f));
+            Draw();
+            Assert.IsTrue(Visible("SecondaryResources"));
+            crosshair.Initialize(ship, null, gameplayCamera);
+            Draw();
+            Assert.IsFalse(Visible("PrimaryResources"));
+            Assert.IsFalse(Visible("SecondaryResources"));
         }
 
         [UnityTest]
@@ -95,55 +120,100 @@ namespace Tests.PlayMode.Crosshairs
             Assert.IsFalse(Cursor.visible);
             Press(mouse.rightButton);
             yield return null;
-            using var held = new MeshLease(Draw());
-            Assert.That(held.Value.bounds.max.x, Is.GreaterThan(18f));
+            Draw();
+            Assert.IsTrue(Visible("SecondaryResources"));
             Release(mouse.rightButton);
             yield return null;
-            using var released = new MeshLease(Draw());
-            Assert.That(released.Value.bounds.max.x, Is.GreaterThan(18f));
+            Draw();
+            Assert.IsTrue(Visible("SecondaryResources"));
             yield return new WaitForSecondsRealtime(.45f);
-            using var idle = new MeshLease(Draw());
-            Assert.That(idle.Value.bounds.max.x, Is.LessThan(12f));
+            Draw();
+            Assert.IsFalse(Visible("SecondaryResources"));
             crosshair.gameObject.SetActive(false);
             Assert.IsTrue(Cursor.visible);
             crosshair.gameObject.SetActive(true);
-            using var reenabled = new MeshLease(Draw());
-            Assert.That(reenabled.Value.bounds.max.x, Is.LessThan(12f));
+            Draw();
+            Assert.IsFalse(Visible("SecondaryResources"));
         }
 
         [Test]
-        public void ReloadProgress_AddsAnArc_AndEmptyAmmoChangesTheResourceInk()
+        public void ReloadProgress_UsesItsOwnArc_AndEmptyAmmoKeepsTheSpentRoundVisible()
         {
             Press(mouse.rightButton);
-            using var ready = new MeshLease(Draw());
-            var readyColors = ready.Value.colors32;
+            Draw();
+            var round = ImageAt("SecondaryResources/Round0");
+            var spentInk = ImageAt("SecondaryResources/Round1").color;
+            Assert.That(round.color, Is.Not.EqualTo(spentInk));
             ammo.AmmoCount = 0;
-            using var empty = new MeshLease(Draw());
-            Assert.That(empty.Value.colors32, Is.Not.EqualTo(readyColors));
+            Draw();
+            Assert.That(round.color, Is.EqualTo(spentInk));
+            Assert.IsTrue(round.isActiveAndEnabled);
             ammo.IsReloading = true;
-            using var reload = new MeshLease(Draw());
-            Assert.That(reload.Value.bounds.max.x, Is.GreaterThan(ready.Value.bounds.max.x + 4f));
+            Draw();
+            var reload = ImageAt("SecondaryResources/ReloadFill");
+            Assert.IsTrue(reload.isActiveAndEnabled);
+            Assert.That(reload.fillAmount, Is.EqualTo(115f / 720f).Within(.001f));
         }
 
         [Test]
-        public void AimPoint_TracksTheMouse_AtFixedPixelSizeUnderCanvasScaling()
+        public void Pointer_FollowsShipToAimDirection_WhileItsTipAndCircleStayOnAim()
         {
-            var canvas = root.GetComponent<Canvas>();
-            canvas.scaleFactor = 2f;
-            var aim = new Vector2(Screen.width * .4f, Screen.height * .6f);
+            var aim = (Vector2)gameplayCamera.WorldToScreenPoint(shipRoot.transform.position) + new Vector2(100f, 30f);
             Set(mouse.position, aim);
-            using var mesh = new MeshLease(Draw());
-            var actual = RectTransformUtility.WorldToScreenPoint(null, crosshair.rectTransform.TransformPoint(Vector3.zero));
-            Assert.That(Vector2.Distance(actual, aim), Is.LessThan(.1f));
-            Assert.That(crosshair.rectTransform.localScale.x * canvas.scaleFactor, Is.EqualTo(1f));
-            Assert.That(mesh.Value.vertices, Has.Some.EqualTo(Vector3.zero));
+            Draw();
+            AssertPointer(aim);
+            shipRoot.transform.position += Vector3.up * 3f;
+            gameplayCamera.transform.SetPositionAndRotation(new Vector3(1f, 3f, -10f), Quaternion.Euler(0f, 0f, 25f));
+            Draw();
+            AssertPointer(aim);
+            Assert.That(ImageAt("Circle").rectTransform.localRotation, Is.EqualTo(Quaternion.identity));
         }
 
-        private sealed class MeshLease : IDisposable
+        private void AssertPointer(Vector2 aim)
         {
-            public Mesh Value { get; }
-            public MeshLease(Mesh value) => Value = value;
-            public void Dispose() => Object.DestroyImmediate(Value);
+            var pointer = ImageAt("Pointer").rectTransform;
+            var tip = RectTransformUtility.WorldToScreenPoint(null, pointer.TransformPoint(Vector3.zero));
+            var expected = (aim - (Vector2)gameplayCamera.WorldToScreenPoint(shipRoot.transform.position)).normalized;
+            Assert.That(Vector2.Distance(tip, aim), Is.LessThan(.1f));
+            Assert.That(Vector2.Dot(pointer.up, expected), Is.GreaterThan(.999f));
+        }
+
+        [Test]
+        public void AimPoint_StaysAccurate_WhenTheArtworkScalesWithTheHud()
+        {
+            var canvas = root.GetComponent<Canvas>();
+            var aim = new Vector2(Screen.width * .4f, Screen.height * .6f);
+            Set(mouse.position, aim);
+            Draw();
+            var circle = ImageAt("Circle").rectTransform;
+            var before = RectTransformUtility.WorldToScreenPoint(null, circle.TransformPoint(Vector3.right * 10f)) - aim;
+            canvas.scaleFactor = 2f;
+            Draw();
+            var after = RectTransformUtility.WorldToScreenPoint(null, circle.TransformPoint(Vector3.right * 10f)) - aim;
+            Assert.That(after.magnitude, Is.EqualTo(before.magnitude * 2f).Within(.1f));
+            AssertPointer(aim);
+        }
+
+        [Test]
+        public void ImportedSprites_KeepTheArtboardPivot_AndSourceSilhouettes()
+        {
+            var circle = ImageAt("Circle").sprite;
+            var pointer = ImageAt("Pointer").sprite;
+            Assert.That(circle.rect.size, Is.EqualTo(new Vector2(256f, 256f)));
+            Assert.That(pointer.pivot, Is.EqualTo(new Vector2(128f, 128f)));
+#if UNITY_EDITOR
+            var decoded = new Texture2D(2, 2);
+            try
+            {
+                decoded.LoadImage(System.IO.File.ReadAllBytes(AssetDatabase.GetAssetPath(circle)));
+                Assert.That(decoded.GetPixel(128, 128).a, Is.EqualTo(0f));
+                Assert.That(decoded.GetPixel(128, 172).a, Is.GreaterThan(.9f));
+                decoded.LoadImage(System.IO.File.ReadAllBytes(AssetDatabase.GetAssetPath(pointer)));
+                Assert.That(decoded.GetPixel(128, 110).a, Is.GreaterThan(.9f));
+                Assert.That(decoded.GetPixel(128, 145).a, Is.EqualTo(0f));
+            }
+            finally { Object.DestroyImmediate(decoded); }
+#endif
         }
     }
 }
