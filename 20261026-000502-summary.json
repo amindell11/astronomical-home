@@ -1,0 +1,87 @@
+{
+    "generatedAt":  "2026-10-26T00:05:29.1823507-07:00",
+    "projectPath":  "D:\\amind\\git\\agent-5\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "EditMode",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "scopeResolved":  false,
+                      "testFilter":  "FirstPlayModeEntry_RespondsToFlightInputWithoutRestart",
+                      "testCategory":  "",
+                      "excludeCategory":  "",
+                      "categoryFilter":  "",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  "",
+                      "auto":  null,
+                      "withGraphics":  false,
+                      "captureScenario":  ""
+                  },
+    "status":  "failed",
+    "totals":  {
+                   "total":  1,
+                   "passed":  0,
+                   "failed":  1,
+                   "skipped":  0,
+                   "durationSec":  5.35
+               },
+    "runs":  [
+                 {
+                     "platform":  "EditMode",
+                     "xmlPath":  "",
+                     "logPath":  "",
+                     "unityExitCode":  0,
+                     "status":  "failed",
+                     "total":  1,
+                     "passed":  0,
+                     "failed":  1,
+                     "skipped":  0,
+                     "durationSec":  5.35,
+                     "failures":  [
+                                      {
+                                          "name":  "FirstPlayModeEntry_RespondsToFlightInputWithoutRestart",
+                                          "fullName":  "Tests.EditMode.Bootstrap.PreviewHostBootstrapEditModeTests.FirstPlayModeEntry_RespondsToFlightInputWithoutRestart",
+                                          "durationSec":  14.5204707,
+                                          "message":  "key=1, action=0, active=True, scale=1, paused=False, focus=False, window=GameView, velocity=(0.00, 0.00, 0.00) Expected: greater than 0.0f But was: 0.0f",
+                                          "topStack":  "at Tests.EditMode.Bootstrap.PreviewHostBootstrapEditModeTests+\u003cFirstPlayModeEntry_RespondsToFlightInputWithoutRestart\u003ed__2.MoveNext () [0x00255] in D:\\amind\\git\\agent-5\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode\\Bootstrap\\PreviewH..."
+                                      }
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "scopeType":  "Workspace",
+                                       "scopeName":  "",
+                                       "scopeResolved":  false,
+                                       "testFilter":  "FirstPlayModeEntry_RespondsToFlightInputWithoutRestart",
+                                       "testCategory":  "",
+                                       "excludeCategory":  "",
+                                       "categoryFilter":  "",
+                                       "assemblyNames":  "",
+                                       "orderedTestListFile":  "",
+                                       "rerunFailedFrom":  "",
+                                       "auto":  null,
+                                       "withGraphics":  false,
+                                       "captureScenario":  ""
+                                   }
+                 }
+             ],
+    "wallTiming":  {
+                       "elapsedSec":  26.617,
+                       "startupToFirstTestSec":  null,
+                       "executionSec":  null,
+                       "remainingSec":  null,
+                       "unavailableReason":  "resident-editor transport has no cold-process timestamps"
+                   },
+    "coverage":  {
+                     "verdict":  "partial",
+                     "reason":  "transport=routed (warm-editor run; merge-grade proof requires a cold-process run)"
+                 },
+    "memory":  {
+                   "processes":  [
+
+                                 ],
+                   "unavailableReason":  "resident-editor transport launches no process to sample"
+               },
+    "transport":  "routed",
+    "editorPid":  32984
+}

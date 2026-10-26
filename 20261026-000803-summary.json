@@ -1,0 +1,87 @@
+{
+    "generatedAt":  "2026-10-26T00:08:25.9497228-07:00",
+    "projectPath":  "D:\\amind\\git\\agent-5\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "PlayMode",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "scopeResolved":  false,
+                      "testFilter":  "Inspection_ArrivalSpeedChangesTheVisibleCoast",
+                      "testCategory":  "",
+                      "excludeCategory":  "",
+                      "categoryFilter":  "",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  "",
+                      "auto":  null,
+                      "withGraphics":  false,
+                      "captureScenario":  ""
+                  },
+    "status":  "failed",
+    "totals":  {
+                   "total":  1,
+                   "passed":  0,
+                   "failed":  1,
+                   "skipped":  0,
+                   "durationSec":  2.88
+               },
+    "runs":  [
+                 {
+                     "platform":  "PlayMode",
+                     "xmlPath":  "",
+                     "logPath":  "",
+                     "unityExitCode":  0,
+                     "status":  "failed",
+                     "total":  1,
+                     "passed":  0,
+                     "failed":  1,
+                     "skipped":  0,
+                     "durationSec":  2.88,
+                     "failures":  [
+                                      {
+                                          "name":  "Inspection_ArrivalSpeedChangesTheVisibleCoast",
+                                          "fullName":  "Tests.PlayMode.Preview.CrowdedJumpPlayModeTests.Inspection_ArrivalSpeedChangesTheVisibleCoast",
+                                          "durationSec":  2.8021188,
+                                          "message":  "Inspection must show the arrival speed selected in the feel profile Expected: greater than 0.100000001f But was: 0.0f",
+                                          "topStack":  "at Tests.PlayMode.Preview.CrowdedJumpPlayModeTests+\u003cInspection_ArrivalSpeedChangesTheVisibleCoast\u003ed__10.MoveNext () [0x001d0] in D:\\amind\\git\\agent-5\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\PlayMode\\Preview\\CrowdedJumpPlayModeTests.cs:1..."
+                                      }
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "scopeType":  "Workspace",
+                                       "scopeName":  "",
+                                       "scopeResolved":  false,
+                                       "testFilter":  "Inspection_ArrivalSpeedChangesTheVisibleCoast",
+                                       "testCategory":  "",
+                                       "excludeCategory":  "",
+                                       "categoryFilter":  "",
+                                       "assemblyNames":  "",
+                                       "orderedTestListFile":  "",
+                                       "rerunFailedFrom":  "",
+                                       "auto":  null,
+                                       "withGraphics":  false,
+                                       "captureScenario":  ""
+                                   }
+                 }
+             ],
+    "wallTiming":  {
+                       "elapsedSec":  22.824,
+                       "startupToFirstTestSec":  null,
+                       "executionSec":  null,
+                       "remainingSec":  null,
+                       "unavailableReason":  "resident-editor transport has no cold-process timestamps"
+                   },
+    "coverage":  {
+                     "verdict":  "partial",
+                     "reason":  "transport=routed (warm-editor run; merge-grade proof requires a cold-process run)"
+                 },
+    "memory":  {
+                   "processes":  [
+
+                                 ],
+                   "unavailableReason":  "resident-editor transport launches no process to sample"
+               },
+    "transport":  "routed",
+    "editorPid":  32984
+}

@@ -6,6 +6,8 @@ using System.Linq;
 using System.Reflection;
 using Capture.Recording;
 using Capture.Views;
+using Combat.Projectiles;
+using Damage;
 using Game;
 using Game.Preview;
 using Game.Travel;
@@ -37,6 +39,11 @@ public sealed class CrowdedJumpProofScenario : CaptureScenario
         PlayerRig rig = null;
         SectorJumpFlight jump = null;
         var phase = 0;
+        RunRecapScreen recap = null;
+        Cameras.ObserverCam observer = null;
+        var trackedMissiles = new Dictionary<Missile, Action<Vector3, IDamageable>>();
+        var protectedHits = 0;
+        var otherHits = 0;
         try
         {
             using (var view = (IDisposable)Capture.GetType().GetMethod("PrepareHud1280x720").Invoke(Capture, null))
@@ -44,6 +51,8 @@ public sealed class CrowdedJumpProofScenario : CaptureScenario
                        1280, 720, measurements: new Dictionary<string, Func<double>>
                        {
                            ["phase"] = () => phase,
+                           ["recap_alpha"] = () => recap ? recap.GetComponentInChildren<CanvasGroup>().alpha : 0,
+                           ["camera_size"] = () => observer ? observer.Cam.orthographicSize : 0,
                            ["jump_active"] = () => jump ? 1 : 0,
                            ["jump_speed"] = () => jump ? jump.State.Speed : 0,
                            ["jump_distance"] = () => jump ? jump.State.Distance : 0,
@@ -55,6 +64,9 @@ public sealed class CrowdedJumpProofScenario : CaptureScenario
                                _ => 0
                            },
                            ["ship_speed"] = () => rig && rig.Player ? rig.Player.Body.linearVelocity.magnitude : 0,
+                           ["missiles_observed"] = () => trackedMissiles.Count,
+                           ["protected_missile_hits"] = () => protectedHits,
+                           ["other_missile_hits"] = () => otherHits,
                            ["ship_velocity_x"] = () => rig && rig.Player ? rig.Player.Body.linearVelocity.x : 0,
                            ["ship_velocity_y"] = () => rig && rig.Player ? rig.Player.Body.linearVelocity.y : 0
                        })))
@@ -76,6 +88,7 @@ public sealed class CrowdedJumpProofScenario : CaptureScenario
                 }, 45f, "crowded Playtest flight loaded");
 
                 var game = host.Playtest;
+                observer = game.GetComponentInChildren<Cameras.ObserverCam>();
                 var player = rig.Player;
                 var zone = game.ActiveSector.GetComponentInChildren<ExtractionZone>();
                 Assert.That(game.GetComponent<UnitService>().ActiveRegistry.ActiveShips.Count(ship => ship != player),
@@ -98,9 +111,20 @@ public sealed class CrowdedJumpProofScenario : CaptureScenario
                 Assert.That(player.Colliders.Any(collider => collider.enabled), Is.False);
                 input.Release(keyboard.fKey);
                 InputSystem.Update();
-                RunRecapScreen recap = null;
+                recap = null;
                 yield return AsyncAssert.WaitUntil(() =>
                 {
+                    foreach (var missile in UnityEngine.Object.FindObjectsByType<Missile>(FindObjectsSortMode.None))
+                    {
+                        if (trackedMissiles.ContainsKey(missile)) continue;
+                        Action<Vector3, IDamageable> onHit = (_, target) =>
+                        {
+                            if (game.Jump && ReferenceEquals(target, player.Damage)) protectedHits++;
+                            else otherHits++;
+                        };
+                        trackedMissiles.Add(missile, onHit);
+                        missile.Hit += onHit;
+                    }
                     recap = game.GetComponentInChildren<RunRecapScreen>();
                     return jump.Holding && recap;
                 }, 30f, "hyperspace extraction recap opened");
@@ -111,8 +135,8 @@ public sealed class CrowdedJumpProofScenario : CaptureScenario
                 yield return new WaitForSecondsRealtime(2f);
                 Assert.That(jump.Holding, Is.True);
                 Assert.That(jump.State.Distance, Is.GreaterThan(heldDistance));
-                Assert.That(jump.State.LocaleBlend, Is.Zero);
-                Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("Locale_3"));
+                Assert.That(jump.State.LocaleBlend, Is.EqualTo(1f));
+                Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("Locale_1"));
 
                 phase = 4;
                 var button = recap.GetComponentInChildren<Button>();
@@ -145,11 +169,14 @@ public sealed class CrowdedJumpProofScenario : CaptureScenario
                     "restored controls brake the arrival momentum");
                 Result = recording.Finish();
                 Assert.That(Result.FrameCount, Is.GreaterThan(10));
+                Assert.That(protectedHits, Is.Zero, "pursuers cannot hit the ghosted ship");
             }
             yield return host.Shutdown();
         }
         finally
         {
+            foreach (var entry in trackedMissiles)
+                if (entry.Key) entry.Key.Hit -= entry.Value;
             if (host) UnityEngine.Object.DestroyImmediate(host.gameObject);
             input.TearDown();
         }

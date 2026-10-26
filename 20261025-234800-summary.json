@@ -1,0 +1,124 @@
+{
+    "generatedAt":  "2026-10-25T23:48:52.1220829-07:00",
+    "projectPath":  "D:\\amind\\git\\agent-5\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "Both",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "scopeResolved":  false,
+                      "testFilter":  "SectorJumpPassageEditModeTests|CrowdedJumpPlayModeTests",
+                      "testCategory":  "",
+                      "excludeCategory":  "",
+                      "categoryFilter":  "",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  "",
+                      "auto":  null,
+                      "withGraphics":  false,
+                      "captureScenario":  ""
+                  },
+    "status":  "failed",
+    "totals":  {
+                   "total":  12,
+                   "passed":  10,
+                   "failed":  2,
+                   "skipped":  0,
+                   "durationSec":  18.3
+               },
+    "runs":  [
+                 {
+                     "platform":  "EditMode",
+                     "xmlPath":  "",
+                     "logPath":  "",
+                     "unityExitCode":  0,
+                     "status":  "failed",
+                     "total":  7,
+                     "passed":  6,
+                     "failed":  1,
+                     "skipped":  0,
+                     "durationSec":  0.41,
+                     "failures":  [
+                                      {
+                                          "name":  "LocaleBlend_ProgressesDuringTravelBeforeTheRecapHold",
+                                          "fullName":  "Tests.EditMode.Travel.SectorJumpPassageEditModeTests.LocaleBlend_ProgressesDuringTravelBeforeTheRecapHold",
+                                          "durationSec":  0.0042958,
+                                          "message":  "Expected: in range (0.2,0.8) But was: 0.0f",
+                                          "topStack":  "at Tests.EditMode.Travel.SectorJumpPassageEditModeTests.LocaleBlend_ProgressesDuringTravelBeforeTheRecapHold () [0x0004c] in D:\\amind\\git\\agent-5\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode\\Travel\\SectorJumpPassageEditModeTests.cs:..."
+                                      }
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "scopeType":  "Workspace",
+                                       "scopeName":  "",
+                                       "scopeResolved":  false,
+                                       "testFilter":  "SectorJumpPassageEditModeTests|CrowdedJumpPlayModeTests",
+                                       "testCategory":  "",
+                                       "excludeCategory":  "",
+                                       "categoryFilter":  "",
+                                       "assemblyNames":  "",
+                                       "orderedTestListFile":  "",
+                                       "rerunFailedFrom":  "",
+                                       "auto":  null,
+                                       "withGraphics":  false,
+                                       "captureScenario":  ""
+                                   }
+                 },
+                 {
+                     "platform":  "PlayMode",
+                     "xmlPath":  "",
+                     "logPath":  "",
+                     "unityExitCode":  0,
+                     "status":  "failed",
+                     "total":  5,
+                     "passed":  4,
+                     "failed":  1,
+                     "skipped":  0,
+                     "durationSec":  17.89,
+                     "failures":  [
+                                      {
+                                          "name":  "Motion_KeepsDriftingThroughCharge_AndArrivesMovingBeforeControlReturns",
+                                          "fullName":  "Tests.PlayMode.Preview.CrowdedJumpPlayModeTests.Motion_KeepsDriftingThroughCharge_AndArrivesMovingBeforeControlReturns",
+                                          "durationSec":  3.5376481,
+                                          "message":  "commit discarded incoming velocity; drift stopped before charging finished; arrival is stationary before control returns; control return changed velocity abruptly Expected: \u003cempty\u003e But was: \u003c \"commit discarded incoming velocity\", \"drift sto...",
+                                          "topStack":  "at Tests.PlayMode.Preview.CrowdedJumpPlayModeTests+\u003cMotion_KeepsDriftingThroughCharge_AndArrivesMovingBeforeControlReturns\u003ed__10.MoveNext () [0x00313] in D:\\amind\\git\\agent-5\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\PlayMode\\Preview\\Crow..."
+                                      }
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "scopeType":  "Workspace",
+                                       "scopeName":  "",
+                                       "scopeResolved":  false,
+                                       "testFilter":  "SectorJumpPassageEditModeTests|CrowdedJumpPlayModeTests",
+                                       "testCategory":  "",
+                                       "excludeCategory":  "",
+                                       "categoryFilter":  "",
+                                       "assemblyNames":  "",
+                                       "orderedTestListFile":  "",
+                                       "rerunFailedFrom":  "",
+                                       "auto":  null,
+                                       "withGraphics":  false,
+                                       "captureScenario":  ""
+                                   }
+                 }
+             ],
+    "wallTiming":  {
+                       "elapsedSec":  52.079,
+                       "startupToFirstTestSec":  null,
+                       "executionSec":  null,
+                       "remainingSec":  null,
+                       "unavailableReason":  "resident-editor transport has no cold-process timestamps"
+                   },
+    "coverage":  {
+                     "verdict":  "partial",
+                     "reason":  "transport=routed (warm-editor run; merge-grade proof requires a cold-process run)"
+                 },
+    "memory":  {
+                   "processes":  [
+
+                                 ],
+                   "unavailableReason":  "resident-editor transport launches no process to sample"
+               },
+    "transport":  "routed",
+    "editorPid":  4600
+}

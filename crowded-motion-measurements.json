@@ -1,0 +1,23 @@
+{
+  "productCommit": "d5d3b3b7b0d519ce2a19faada0611ae3a40f1001",
+  "sourceFrames": 85,
+  "localeBlend5To90PercentSeconds": 2.076038293650795,
+  "firstVisibleRecapLocaleBlend": 0.9603325724601746,
+  "arrivalSpeedSamples": [
+    28.0,
+    27.757034301757812,
+    26.526535034179688,
+    23.976621627807617,
+    20.433372497558594,
+    16.559173583984375,
+    14.980772972106934
+  ],
+  "lastProtectedSpeed": 14.980772972106934,
+  "firstPlayerControlledSpeed": 14.72800064086914,
+  "cameraSizeAtBothSides": 10.0,
+  "observedMissiles": 4.0,
+  "protectedPlayerMissileHits": 0,
+  "otherMissileHits": 2.0,
+  "verdict": "passed",
+  "limits": "Captured frame cadence is not normal gameplay frame rate. Missile result covers this recorded run and the focused crossing test, not every possible detonation."
+}

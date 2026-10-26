@@ -1,0 +1,112 @@
+{
+    "generatedAt":  "2026-10-26T00:10:19.3735231-07:00",
+    "projectPath":  "D:\\amind\\git\\agent-5\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "Both",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "scopeResolved":  false,
+                      "testFilter":  "SectorJumpPassageEditModeTests|SectorJumpSequenceEditModeTests|CrowdedJumpPlayModeTests|PreviewPlayModeTests",
+                      "testCategory":  "",
+                      "excludeCategory":  "",
+                      "categoryFilter":  "",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  "",
+                      "auto":  null,
+                      "withGraphics":  false,
+                      "captureScenario":  ""
+                  },
+    "status":  "passed",
+    "totals":  {
+                   "total":  21,
+                   "passed":  21,
+                   "failed":  0,
+                   "skipped":  0,
+                   "durationSec":  31.58
+               },
+    "runs":  [
+                 {
+                     "platform":  "EditMode",
+                     "xmlPath":  "",
+                     "logPath":  "",
+                     "unityExitCode":  0,
+                     "status":  "passed",
+                     "total":  13,
+                     "passed":  13,
+                     "failed":  0,
+                     "skipped":  0,
+                     "durationSec":  0.09,
+                     "failures":  [
+
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "scopeType":  "Workspace",
+                                       "scopeName":  "",
+                                       "scopeResolved":  false,
+                                       "testFilter":  "SectorJumpPassageEditModeTests|SectorJumpSequenceEditModeTests|CrowdedJumpPlayModeTests|PreviewPlayModeTests",
+                                       "testCategory":  "",
+                                       "excludeCategory":  "",
+                                       "categoryFilter":  "",
+                                       "assemblyNames":  "",
+                                       "orderedTestListFile":  "",
+                                       "rerunFailedFrom":  "",
+                                       "auto":  null,
+                                       "withGraphics":  false,
+                                       "captureScenario":  ""
+                                   }
+                 },
+                 {
+                     "platform":  "PlayMode",
+                     "xmlPath":  "",
+                     "logPath":  "",
+                     "unityExitCode":  0,
+                     "status":  "passed",
+                     "total":  8,
+                     "passed":  8,
+                     "failed":  0,
+                     "skipped":  0,
+                     "durationSec":  31.49,
+                     "failures":  [
+
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "scopeType":  "Workspace",
+                                       "scopeName":  "",
+                                       "scopeResolved":  false,
+                                       "testFilter":  "SectorJumpPassageEditModeTests|SectorJumpSequenceEditModeTests|CrowdedJumpPlayModeTests|PreviewPlayModeTests",
+                                       "testCategory":  "",
+                                       "excludeCategory":  "",
+                                       "categoryFilter":  "",
+                                       "assemblyNames":  "",
+                                       "orderedTestListFile":  "",
+                                       "rerunFailedFrom":  "",
+                                       "auto":  null,
+                                       "withGraphics":  false,
+                                       "captureScenario":  ""
+                                   }
+                 }
+             ],
+    "wallTiming":  {
+                       "elapsedSec":  81.882,
+                       "startupToFirstTestSec":  null,
+                       "executionSec":  null,
+                       "remainingSec":  null,
+                       "unavailableReason":  "resident-editor transport has no cold-process timestamps"
+                   },
+    "coverage":  {
+                     "verdict":  "partial",
+                     "reason":  "transport=routed (warm-editor run; merge-grade proof requires a cold-process run)"
+                 },
+    "memory":  {
+                   "processes":  [
+
+                                 ],
+                   "unavailableReason":  "resident-editor transport launches no process to sample"
+               },
+    "transport":  "routed",
+    "editorPid":  32984
+}

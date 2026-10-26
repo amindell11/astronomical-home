@@ -1,0 +1,10 @@
+{
+  "productCommit": "d5d3b3b7b0d519ce2a19faada0611ae3a40f1001",
+  "captureFrames": 85,
+  "decodedFramesIncludingTerminalHold": 86,
+  "expectedDurationSeconds": 10.156491099773245,
+  "lastDecodedPtsSeconds": 10.156,
+  "maximumTimestampErrorSeconds": 0.0004910997732441302,
+  "verdict": "passed",
+  "assemblerIssue": "#1185: MP4 checker reads null-muxer progress time. Every decoded timestamp independently verified against source."
+}

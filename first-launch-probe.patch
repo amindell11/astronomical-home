@@ -1,0 +1,73 @@
+diff --git a/src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/Bootstrap/PreviewHostBootstrapEditModeTests.cs b/src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/Bootstrap/PreviewHostBootstrapEditModeTests.cs
+index de28acc7f..235cf7de1 100644
+--- a/src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/Bootstrap/PreviewHostBootstrapEditModeTests.cs
++++ b/src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/Bootstrap/PreviewHostBootstrapEditModeTests.cs
+@@ -1,6 +1,14 @@
++using System.Collections;
++using System.Linq;
++using Game;
+ using Game.Preview;
+ using NUnit.Framework;
++using UnityEditor;
++using UnityEditor.SceneManagement;
+ using UnityEngine;
++using UnityEngine.InputSystem;
++using UnityEngine.InputSystem.LowLevel;
++using UnityEngine.TestTools;
+ 
+ namespace Tests.EditMode.Bootstrap
+ {
+@@ -9,12 +17,51 @@ public class PreviewHostBootstrapEditModeTests
+     {
+         private PreviewHost host;
+ 
+-        [TearDown]
+-        public void TearDown()
++        [UnityTearDown]
++        public IEnumerator TearDown()
+         {
++            if (EditorApplication.isPlaying)
++            {
++                host = Object.FindFirstObjectByType<PreviewHost>();
++                if (host) yield return host.Shutdown();
++                yield return new ExitPlayMode();
++                host = Object.FindFirstObjectByType<PreviewHost>();
++            }
+             if (host) Object.DestroyImmediate(host.gameObject);
+         }
+ 
++        [UnityTest, Category("RequiresGraphics")]
++        public IEnumerator FirstPlayModeEntry_RespondsToFlightInputWithoutRestart()
++        {
++            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
++            host = PreviewHostBootstrap.BuildHost(PreviewSubjectKind.SectorJump, PreviewMode.Playtest,
++                PreviewPlaytestSetup.CrowdedJumpGate);
++            yield return new EnterPlayMode();
++            host = Object.FindFirstObjectByType<PreviewHost>();
++            var deadline = Time.realtimeSinceStartup + 30f;
++            PlayerRig rig = null;
++            while (Time.realtimeSinceStartup < deadline)
++            {
++                rig = host.Playtest ? host.Playtest.GetComponentInChildren<PlayerRig>() : null;
++                if (rig && rig.Player && rig.Player.gameObject.activeInHierarchy && rig.Tally.SecondsSurvived > 0f)
++                    break;
++                yield return null;
++            }
++            Assert.That(rig && rig.Player && rig.Player.gameObject.activeInHierarchy, Is.True);
++            Assert.That(InputSystem.ListEnabledActions().Count(action => action.name == "Thrust"), Is.EqualTo(1));
++            var player = rig.Player;
++            var start = player.Body.position;
++            InputSystem.QueueStateEvent(Keyboard.current, new KeyboardState(Key.W));
++            yield return new WaitForSecondsRealtime(.25f);
++            InputSystem.QueueStateEvent(Keyboard.current, new KeyboardState());
++            var thrust = InputSystem.ListEnabledActions().First(action => action.name == "Thrust").ReadValue<float>();
++            Assert.That(player.Movement.CurrentCommand.thrust, Is.GreaterThan(0f),
++                $"key={Keyboard.current.wKey.ReadValue()}, action={thrust}, " +
++                $"active={player.gameObject.activeInHierarchy}, scale={Time.timeScale}, paused={EditorApplication.isPaused}, " +
++                $"focus={Application.isFocused}, window={EditorWindow.focusedWindow?.GetType().Name}, velocity={player.Body.linearVelocity}");
++            Assert.That(Vector3.Distance(start, player.Body.position), Is.GreaterThan(.05f));
++        }
++
+         [TestCase(PreviewMode.Inspection)]
+         [TestCase(PreviewMode.Playtest)]
+         public void BuildHost_AssignsModeAndTheRigCameraSectorAndFeel(PreviewMode mode)
