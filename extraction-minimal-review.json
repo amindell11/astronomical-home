@@ -1,0 +1,13 @@
+{
+  "kind": "Interactive visual mockup, not a new Unity capture",
+  "scope": "Brief EXTRACTION OPEN flag, then matching screen and minimap icons without persistent extraction text",
+  "flagSeconds": 1.55,
+  "retreatSeconds": 0.6,
+  "retreatStartSeconds": 1.45,
+  "backdrop": "Previously captured extraction-baseline.png; JPEG encoding for inline size",
+  "minimap": "Schematic",
+  "verified": "Browser replay: flag opacity 1 at opening and 0 after retreat; two glyphs rendered; no script errors; 328px layout has no horizontal overflow",
+  "unity": "Blocked: local editor admission refused, 1.2 GB commit headroom against 7 GB requirement; remote alastor unreachable",
+  "runtimeScratch": "Prepared but not compiled or executed this revision",
+  "productionChanges": "None"
+}
