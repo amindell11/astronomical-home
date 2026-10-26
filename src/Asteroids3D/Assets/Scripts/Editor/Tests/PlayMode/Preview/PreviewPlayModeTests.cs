@@ -33,6 +33,8 @@ namespace Tests.PlayMode.Preview
         private Keyboard keyboard;
         private Mouse mouse;
         private PlayerRig rig;
+        private SectorJumpProfile selectedJump;
+        private RecapFeelProfile selectedRecap;
 
         public override void SetUp()
         {
@@ -52,6 +54,8 @@ namespace Tests.PlayMode.Preview
                 Object.Destroy(host.gameObject);
             }
             if (template) Object.Destroy(template);
+            if (selectedJump) Object.Destroy(selectedJump);
+            if (selectedRecap) Object.Destroy(selectedRecap);
             yield return null;
             input.TearDown();
         }
@@ -151,13 +155,27 @@ namespace Tests.PlayMode.Preview
             yield return null;
             Assert.That(((SectorJumpPreviewSubject)host.Subject).State, Is.EqualTo(state));
 
+            selectedJump = Object.Instantiate((SectorJumpProfile)host.Subject.Knobs);
+            host.Subject.Knobs = selectedJump;
+            host.SelectSubject(PreviewSubjectKind.RunRecap);
+            yield return AsyncAssert.WaitUntil(() => host.IsReady, 30f, "recap inspection composes");
+            selectedRecap = Object.Instantiate((RecapFeelProfile)host.Subject.Knobs);
+            host.Subject.Knobs = selectedRecap;
+            host.SelectSubject(PreviewSubjectKind.SectorJump);
+            yield return AsyncAssert.WaitUntil(() => host.IsReady, 30f, "jump inspection returns");
+            Assert.That(host.Subject.Knobs, Is.SameAs(selectedJump));
+
             host.SelectMode(PreviewMode.Playtest);
             yield return WaitForFlight();
+            Assert.That(host.RecapFeel, Is.SameAs(selectedRecap));
             Assert.That(SceneManager.GetSceneByName("Locale_1").isLoaded, Is.False);
             Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("Locale_3"));
             Assert.That(Time.timeScale, Is.EqualTo(1f));
             Assert.That(Object.FindObjectsByType<GameHost>(FindObjectsSortMode.None).Length, Is.EqualTo(1));
             Assert.That(InputSystem.ListEnabledActions().Count(action => action.name == "Thrust"), Is.EqualTo(1));
+            host.SelectMode(PreviewMode.Inspection);
+            yield return AsyncAssert.WaitUntil(() => host.IsReady, 30f, "inspection returns after playtest");
+            Assert.That(host.Subject.Knobs, Is.SameAs(selectedJump));
         }
 
         private IEnumerator WaitForFlight() => AsyncAssert.WaitUntil(() =>

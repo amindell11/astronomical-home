@@ -172,8 +172,7 @@ namespace Game.Preview
             if (!Enum.IsDefined(typeof(PreviewSubjectKind), kind))
                 throw new ArgumentOutOfRangeException(nameof(kind));
             if (composing) throw new InvalidOperationException("The preview is still composing.");
-            Subject.Dispose();
-            Subject = null;
+            DisposeSubject();
             subjectKind = kind;
             Transport.Playing = false;
             Transport.Restart();
@@ -242,9 +241,7 @@ namespace Game.Preview
             }
             if (session != null)
             {
-                if (subjectKind == PreviewSubjectKind.RunRecap) recapFeel = (RecapFeelProfile)Subject.Knobs;
-                Subject.Dispose();
-                Subject = null;
+                DisposeSubject();
                 SetSimulationFrozen(false);
                 rig.Teardown();
                 yield return session.Teardown();
@@ -264,6 +261,14 @@ namespace Game.Preview
 
         private void AddCameraSubject(Ship ship) => observer.AddSecondarySubject(ship.transform);
         private void RemoveCameraSubject(Ship ship) => observer.RemoveSecondarySubject(ship.transform);
+
+        private void DisposeSubject()
+        {
+            if (subjectKind == PreviewSubjectKind.RunRecap) recapFeel = (RecapFeelProfile)Subject.Knobs;
+            else jumpFeel = (SectorJumpProfile)Subject.Knobs;
+            Subject.Dispose();
+            Subject = null;
+        }
 
         private static void RequireMode(PreviewMode selected)
         {
