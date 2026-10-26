@@ -9,9 +9,8 @@ namespace UI.PlayerState
 {
     /// <summary>
     /// Ship-space status bar: a horizontal fill tracking one damage resource (shield or health),
-    /// pinned at a fixed game-plane offset above the ship. Scaffolding stand-in for the parked
-    /// status rings (stashed on task/player-state). Bound per ship via <see cref="IShipVisual"/>;
-    /// fill seeds from the bound resource so the bar reads correctly before the first damage event.
+    /// pinned at a fixed game-plane offset above the ship. Low hull pulses the fill without changing
+    /// its quantity. Bound per ship via <see cref="IShipVisual"/> and seeded before the first damage event.
     /// </summary>
     public class StatusBarUI : MonoBehaviour, IShipVisual
     {
@@ -29,16 +28,25 @@ namespace UI.PlayerState
         [Tooltip("Offset from the ship center in game-plane units.")]
         [SerializeField] Vector2 planeOffset = new Vector2(0f, 2f);
 
+        [SerializeField, Range(0f, 1f)] private float lowHullThreshold = 0.25f;
+        [SerializeField, Min(0.1f)] private float lowHullPulsePeriod = 1.4f;
+
         private Resource source;
         private bool subscribed;
         private LockChannel enemyLock;
         private Graphic[] graphics;
         private bool hidden;
+        private Color fillColor;
+        private float pulseTime;
 
-        private void Awake() => graphics = GetComponentsInChildren<Graphic>(true);
+        private void Awake()
+        {
+            graphics = GetComponentsInChildren<Graphic>(true);
+            if (fill) fillColor = fill.color;
+        }
 
         internal TrackedResource Tracked { get => tracked; set => tracked = value; }
-        internal Image Fill { get => fill; set => fill = value; }
+        internal Image Fill { get => fill; set { fill = value; if (fill) fillColor = fill.color; } }
 
         public void Bind(in ShipView view)
         {
@@ -59,6 +67,8 @@ namespace UI.PlayerState
         void OnDisable()
         {
             Unsubscribe();
+            pulseTime = 0f;
+            if (fill) fill.color = fillColor;
         }
 
         private void Subscribe()
@@ -82,15 +92,26 @@ namespace UI.PlayerState
             if (label) label.text = Mathf.CeilToInt(source.CurrentValue).ToString();
         }
 
-        // The rig canvas rotates with the ship; re-pin the bar plane-aligned above it every frame.
+        // Counter the rig rotation so bars stay aligned to the game plane.
         void LateUpdate()
         {
             transform.rotation = GamePlane.Rotation;
             transform.position = transform.parent.position + GamePlane.Rotation * (Vector3)planeOffset;
             Hide(enemyLock is { IsConcealed: true });
+            if (!fill || source == null) return;
+            if (tracked == TrackedResource.Health && source.Pct > 0f && source.Pct <= lowHullThreshold)
+            {
+                pulseTime += Time.deltaTime;
+                var pulse = (1f - Mathf.Cos(2f * Mathf.PI * pulseTime / lowHullPulsePeriod)) * 0.5f;
+                fill.color = new Color(Mathf.Lerp(0.73f, 0.98f, pulse), Mathf.Lerp(0.24f, 0.41f, pulse),
+                    Mathf.Lerp(0.26f, 0.41f, pulse), fillColor.a);
+                return;
+            }
+            pulseTime = 0f;
+            fill.color = fillColor;
         }
 
-        // An enemy's bars hide while its ship is concealed, so the player loses what the AI loses.
+        // Concealment hides bars alongside the ship.
         private void Hide(bool hide)
         {
             if (hide == hidden) return;

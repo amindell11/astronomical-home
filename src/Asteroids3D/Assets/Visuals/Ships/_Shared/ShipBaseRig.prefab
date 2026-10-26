@@ -13,6 +13,8 @@ GameObject:
   - component: {fileID: 4924019626341795963}
   - component: {fileID: 3329361744963321735}
   - component: {fileID: 7485980348268028267}
+  - component: {fileID: 5959759570422215558}
+  - component: {fileID: 1734589579081384251}
   m_Layer: 7
   m_Name: ShipBaseRig
   m_TagString: Ship
@@ -48,19 +50,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 579888702181409527}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b6f133f9d6e4e194784b99b55e3d0dc2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hull: {fileID: 0}
-  smoke: {fileID: 1180387568437145565}
-  sparksPrefab: {fileID: 0}
-  flashColor: {r: 1, g: 0, b: 0, a: 1}
-  flashTime: 0.15
-  explosionPrefab: {fileID: 3624727767247666335, guid: b87929575dffb6c49b64ff8ec3faa5d7,
-    type: 3}
-  collisionExplosionPrefab: {fileID: 0}
+  flashColor: {r: 1, g: 0.65, b: 0.32, a: 1}
+  flashTime: 0.36
 --- !u!114 &4924019626341795963
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -113,6 +109,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7cb166732e4c2845b6132ea3a42234f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  silhouette: []
 --- !u!114 &7485980348268028267
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -128,6 +125,39 @@ MonoBehaviour:
   hull: {fileID: 314116195773112417}
   debrisPrefab: {fileID: 0}
   poseSources: []
+--- !u!114 &5959759570422215558
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 579888702181409527}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b03a9b68ab8d4ba48ae705b503e9f5f6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hull: {fileID: 0}
+  smoke: {fileID: 1180387568437145565}
+  sparksPrefab: {fileID: 0}
+  explosionPrefab: {fileID: 3624727767247666335, guid: b87929575dffb6c49b64ff8ec3faa5d7,
+    type: 3}
+  collisionExplosionPrefab: {fileID: 0}
+--- !u!114 &1734589579081384251
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 579888702181409527}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c155a6d57fc95474c953d4e0e3ef05ed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  material: {fileID: 2100000, guid: 1c4dc83321dac584f8706afb9ba4fdf6, type: 2}
+  color: {r: 0.4, g: 0.86, b: 0.91, a: 1}
+  fullHold: 1
 --- !u!1 &925614821042537757
 GameObject:
   m_ObjectHideFlags: 0
@@ -10285,6 +10315,8 @@ MonoBehaviour:
   fill: {fileID: 5900000000000000004}
   label: {fileID: 5900000000000000008}
   planeOffset: {x: 0, y: 2.1}
+  lowHullThreshold: 0.25
+  lowHullPulsePeriod: 1.4
 --- !u!1 &5900000000000000001
 GameObject:
   m_ObjectHideFlags: 0
@@ -20721,6 +20753,8 @@ MonoBehaviour:
   fill: {fileID: 5900000000000000014}
   label: {fileID: 5900000000000000018}
   planeOffset: {x: 0, y: 1.7}
+  lowHullThreshold: 0.25
+  lowHullPulsePeriod: 1.4
 --- !u!1 &8892690803579613850
 GameObject:
   m_ObjectHideFlags: 0
