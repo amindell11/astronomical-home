@@ -1,0 +1,63 @@
+{
+  "success": true,
+  "command": "command run_script",
+  "data": {
+    "command": "run_script",
+    "parameters": {
+      "file": "D:/amind/git/agent-3/scratch/capacity/ProductionCapacityCapture.cs",
+      "entry": "ProductionCapacityCapture.Inspect"
+    },
+    "result": {
+      "diagnostics": [],
+      "compileMs": 41,
+      "executeMs": 3,
+      "assemblyName": "PipelineRunScript_ProductionCapacityCapture_cb0b257f4dc741b6afb4327fd88b3758",
+      "success": true,
+      "result": [
+        {
+          "value": "12/50",
+          "width": 64,
+          "height": 6.400055,
+          "layer": 10
+        },
+        {
+          "value": "24/65",
+          "width": 64,
+          "height": 6.399994,
+          "layer": 10
+        },
+        {
+          "value": "12/32",
+          "width": 64,
+          "height": 6.399994,
+          "layer": 10
+        },
+        {
+          "value": "75/150",
+          "width": 63.9998779,
+          "height": 6.399994,
+          "layer": 10
+        },
+        {
+          "value": "200/400",
+          "width": 63.9998779,
+          "height": 6.400055,
+          "layer": 10
+        },
+        {
+          "value": "24/80",
+          "width": 64,
+          "height": 6.399994,
+          "layer": 10
+        }
+      ]
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7801,
+      "projectPath": "D:\\amind\\git\\agent-3\\src\\Asteroids3D"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}
