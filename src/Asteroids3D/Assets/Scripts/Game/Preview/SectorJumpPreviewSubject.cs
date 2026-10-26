@@ -14,14 +14,20 @@ namespace Game.Preview
         };
         private readonly SectorJumpPresentation presentation;
         private readonly Action release;
+        private readonly Vector3 origin;
+        private readonly float shipMaxSpeed;
         private SectorJumpProfile profile;
         private SectorJumpSequence sequence;
+        private SectorJumpMotion motion;
         private int revision = -1;
 
-        public SectorJumpPreviewSubject(SectorJumpProfile profile, SectorJumpPresentation presentation, Action release)
+        public SectorJumpPreviewSubject(SectorJumpProfile profile, SectorJumpPresentation presentation,
+            Vector3 origin, float shipMaxSpeed, Action release)
         {
             this.presentation = presentation;
             this.release = release;
+            this.origin = origin;
+            this.shipMaxSpeed = shipMaxSpeed;
             Knobs = profile;
         }
 
@@ -56,11 +62,16 @@ namespace Game.Preview
             if (revision != profile.Revision)
             {
                 sequence = new SectorJumpSequence(profile);
+                motion = new SectorJumpMotion(profile, shipMaxSpeed);
                 revision = profile.Revision;
             }
             var heading = Fixture == 1 ? 0f : Fixture == 2 ? 90f : -35f;
             State = sequence.StateAt(seconds, heading);
-            presentation.Apply(profile, State, Fixture == 4 ? 417 : 1099, Fixture == 3);
+            var exitStarts = profile.turnDuration + profile.chargeDuration + profile.travelDuration -
+                profile.worldBlendDuration;
+            var coast = motion.ArrivalDistanceAt(seconds - exitStarts);
+            presentation.Apply(profile, State, Fixture == 4 ? 417 : 1099, Fixture == 3,
+                origin + new Vector3(State.JumpDirection.x, State.JumpDirection.y, 0f) * coast);
         }
 
         public void Dispose() => release();

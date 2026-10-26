@@ -237,7 +237,8 @@ namespace Game.Preview
             yield return session.PrepareTravelBackdrop("Locale_1", transform, pair => backdrop = pair);
             var presentation = SectorJumpPresentation.Create(ui, rig.Player, rig.Overlay,
                 session.Units.ActiveRegistry.ActiveShips, observer, backdrop, jumpShader);
-            Subject = new SectorJumpPreviewSubject(jumpFeel, presentation, () =>
+            Subject = new SectorJumpPreviewSubject(jumpFeel, presentation,
+                rig.Player.transform.position, rig.Player.MaxSpeed, () =>
             {
                 DestroyImmediate(presentation.gameObject);
                 DestroyImmediate(backdrop.gameObject);

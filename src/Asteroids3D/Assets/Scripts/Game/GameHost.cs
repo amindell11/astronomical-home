@@ -324,7 +324,7 @@ namespace Game
             if (!shutdownRequested)
             {
                 jump.BindBackdrop(ui, backdrop);
-                while (!jump.Holding && !shutdownRequested) yield return null;
+                while ((!jump.Holding || jump.State.LocaleBlend < .9f) && !shutdownRequested) yield return null;
             }
             Coroutine recap = null;
             var destinationReady = false;
@@ -334,7 +334,11 @@ namespace Game
                 recap = StartCoroutine(RecapPlayback.RunScreen(new RecapOutcomeSequence(recapFeel, context), ui,
                     cancelled: () => shutdownRequested,
                     ready: () => destinationReady && jump.State.LocaleBlend >= 1f,
-                    onContinue: () => jump.ResumeArrival()));
+                    onContinue: () =>
+                    {
+                        jump.ResumeArrival();
+                        RestoreRecapClock();
+                    }));
             }
             if (!shutdownRequested)
             {

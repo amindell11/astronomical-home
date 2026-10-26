@@ -21,6 +21,7 @@ namespace Game.Travel
         private ObserverCam observer;
         private SectorJumpProfile profile;
         private SectorJumpPassage passage;
+        private SectorJumpMotion motion;
         private SectorJumpPresentation presentation;
         private Shader shader;
         private bool commanderEnabled;
@@ -28,6 +29,8 @@ namespace Game.Travel
         private bool observerEnabled;
         private bool[] colliderEnabled;
         private RigidbodyInterpolation interpolation;
+        private float linearDamping;
+        private float speedLimit;
         private Vector3 startPosition;
         private Vector3 startVelocity;
         private Vector3 startCamera;
@@ -71,6 +74,7 @@ namespace Game.Travel
             var startingHeading = Vector3.SignedAngle(GamePlane.Forward,
                 Vector3.ProjectOnPlane(ship.transform.up, GamePlane.Normal), GamePlane.Normal);
             passage = new SectorJumpPassage(profile, startingHeading, heading);
+            motion = new SectorJumpMotion(profile, ship.MaxSpeed);
             startPosition = ship.Body.position;
             startVelocity = ship.Body.linearVelocity;
             startCamera = observer.transform.position;
@@ -78,6 +82,8 @@ namespace Game.Travel
             movementEnabled = ship.Movement.enabled;
             observerEnabled = observer.enabled;
             interpolation = ship.Body.interpolation;
+            linearDamping = ship.Body.linearDamping;
+            speedLimit = ship.Body.maxLinearVelocity;
             priorInvulnerability = ship.Damage.IsInvulnerable ? ship.Damage.InvulTimeLeft : 0f;
             committedAt = Time.time;
             colliderEnabled = new bool[ship.Colliders.Length];
@@ -93,7 +99,8 @@ namespace Game.Travel
             ship.Commander.enabled = false;
             ship.Movement.enabled = false;
             ship.Body.interpolation = RigidbodyInterpolation.None;
-            ship.Body.linearVelocity = Vector3.zero;
+            ship.Body.linearDamping = 0f;
+            ship.Body.maxLinearVelocity = Mathf.Max(speedLimit, motion.DepartureSpeedLimit);
             ship.Body.angularVelocity = Vector3.zero;
             foreach (var collider in ship.Colliders) collider.enabled = false;
             ship.Damage.SetInvulnerability(float.PositiveInfinity);
@@ -120,6 +127,15 @@ namespace Game.Travel
             if (!Holding) throw new InvalidOperationException("Arrival requires the hyperspace hold.");
             resumed = true;
             arrivalPosition = ship.Body.position;
+            ship.Body.linearVelocity = GamePlane.PlaneDirToWorld(State.JumpDirection) * motion.ArrivalSpeedAt(0f);
+        }
+
+        private void FixedUpdate()
+        {
+            var direction = GamePlane.PlaneDirToWorld(State.JumpDirection);
+            ship.Body.linearVelocity = resumed
+                ? direction * motion.ArrivalSpeedAt(elapsed - passage.ExitStartsAt(held))
+                : transferred ? Vector3.zero : motion.DepartureVelocity(elapsed, startVelocity, direction);
         }
 
         private void LateUpdate()
@@ -130,24 +146,9 @@ namespace Game.Travel
             if (!resumed) held = Mathf.Max(0f, elapsed - passage.HoldStartsAt);
             State = passage.StateAt(elapsed, held);
             var sequenceTime = elapsed - held;
-            Vector3 position;
-            if (transferred)
-            {
-                position = arrivalPosition + GamePlane.PlaneDirToWorld(State.JumpDirection) *
-                    (ArrivalSpeed * Mathf.Max(0f, elapsed - passage.ExitStartsAt(held)));
-            }
-            else
-            {
-                var u = Mathf.Clamp01(elapsed / profile.turnDuration);
-                var drift = profile.turnDuration * (u - u * u + u * u * u / 3f);
-                var departureFraction = SectorJumpProfile.Ease((sequenceTime - departure) /
-                    Mathf.Max(profile.worldBlendDuration, 0.01f));
-                position = startPosition + startVelocity * drift +
-                    GamePlane.PlaneDirToWorld(State.JumpDirection) * (profile.departureDistance * departureFraction);
-            }
+            var position = ship.Body.position;
             var rotation = GamePlane.Rotation * Quaternion.AngleAxis(State.HeadingDegrees, Vector3.forward);
             ship.transform.SetPositionAndRotation(position, rotation);
-            ship.Body.position = position;
             ship.Body.rotation = rotation;
             var cameraPosition = new Vector3(position.x, position.y, startCamera.z);
             observer.transform.position = resumed ? cameraPosition :
@@ -159,8 +160,9 @@ namespace Game.Travel
             var blend = SectorJumpProfile.Ease((sequenceTime - departure) / profile.worldBlendDuration) *
                 (1f - SectorJumpProfile.Ease(passage.ExitProgress(elapsed, held)));
             presentation.SetWorldBlend(blend);
+            var coast = resumed ? position - arrivalPosition : Vector3.zero;
             presentation.Apply(profile, State, 1099, false,
-                Vector3.Lerp(startPosition, arrivalPosition, State.LocaleBlend));
+                Vector3.Lerp(startPosition, arrivalPosition, State.LocaleBlend) + coast);
         }
 
         public void Release(bool arrived)
@@ -175,8 +177,9 @@ namespace Game.Travel
                 for (var i = 0; i < colliderEnabled.Length; i++)
                     ship.Colliders[i].enabled = colliderEnabled[i];
                 ship.Body.interpolation = interpolation;
-                ship.Body.linearVelocity = arrived
-                    ? GamePlane.PlaneDirToWorld(State.JumpDirection) * ArrivalSpeed : Vector3.zero;
+                ship.Body.linearDamping = linearDamping;
+                ship.Body.maxLinearVelocity = speedLimit;
+                if (!arrived) ship.Body.linearVelocity = Vector3.zero;
                 ship.Body.angularVelocity = Vector3.zero;
                 ship.Damage.SetInvulnerability(Mathf.Max(0f, priorInvulnerability - (Time.time - committedAt)));
                 ship.Movement.enabled = movementEnabled;

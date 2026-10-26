@@ -14,6 +14,8 @@ namespace Game.Travel
         private readonly float exitDuration;
         private readonly float remainingTravel;
         private readonly float arrival;
+        private readonly float departure;
+        private readonly float travelDuration;
 
         public float HoldStartsAt { get; }
 
@@ -31,6 +33,8 @@ namespace Game.Travel
             exitDuration = profile.worldBlendDuration;
             remainingTravel = profile.travelDuration * 0.5f;
             arrival = profile.turnDuration + profile.chargeDuration + profile.travelDuration;
+            departure = profile.turnDuration + profile.chargeDuration;
+            travelDuration = profile.travelDuration;
         }
 
         public float DurationWithHold(float holdSeconds) =>
@@ -52,7 +56,7 @@ namespace Game.Travel
             var state = sequence.StateAt(sequenceTime, headingDelta);
             var distance = (time <= HoldStartsAt ? state.Distance : holdDistance +
                 (state.Distance - holdDistance) * exitDuration / remainingTravel) + held * holdSpeed;
-            var blend = sequence.LocaleBlendAt(Mathf.Clamp01((time - HoldStartsAt) / exitDuration));
+            var blend = sequence.LocaleBlendAt(Mathf.Clamp01((time - departure) / travelDuration));
             return new SectorJumpState(time, state.TravelProgress, distance / tripDistance,
                 state.Speed, distance, startingHeading + state.HeadingDegrees, jumpDirection,
                 blend, state.Charge, state.HudAlpha, state.ShipBlurStrength, state.ShipBlurLength);

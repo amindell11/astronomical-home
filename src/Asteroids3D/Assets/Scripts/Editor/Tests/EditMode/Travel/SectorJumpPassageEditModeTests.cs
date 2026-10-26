@@ -26,6 +26,18 @@ namespace Tests.EditMode.Travel
         public void TearDown() => Object.DestroyImmediate(profile);
 
         [Test]
+        public void LocaleBlend_ProgressesOverTheAuthoredTravelDuration()
+        {
+            var passage = new SectorJumpPassage(profile, 0f, 0f);
+            var departure = profile.turnDuration + profile.chargeDuration;
+            var middle = passage.StateAt(departure + profile.travelDuration * .5f, 0f);
+            Assert.That(middle.LocaleBlend, Is.InRange(.2f, .8f));
+            const float hold = 5f;
+            var completed = passage.StateAt(departure + profile.travelDuration, hold);
+            Assert.That(completed.LocaleBlend, Is.EqualTo(1f));
+        }
+
+        [Test]
         public void HoldEdges_KeepSpeedAndDistanceContinuous()
         {
             var passage = new SectorJumpPassage(profile, 40f, 90f);

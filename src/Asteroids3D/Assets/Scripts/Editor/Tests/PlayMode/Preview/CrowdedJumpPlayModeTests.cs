@@ -68,7 +68,7 @@ namespace Tests.PlayMode.Preview
         [UnityTest]
         public IEnumerator FreshPressCommitsImmediately_AndIncomingShotAndRockPassThrough()
         {
-            BuildPreview(turnSeconds: 1f);
+            BuildPreview(turnSeconds: 3f);
             yield return WaitForFlight();
             var player = rig.Player;
             var zone = host.Playtest.ActiveSector.GetComponentInChildren<ExtractionZone>();
@@ -115,6 +115,19 @@ namespace Tests.PlayMode.Preview
             Assert.That(hitPlayer, Is.False);
             Object.Destroy(shot.gameObject);
 
+            var missile = Object.Instantiate(TestAssets.Load<Missile>("Assets/Prefabs/Weapons/Projectiles/MissileProjectile.prefab"),
+                crossing - Vector3.right * 8f, Quaternion.LookRotation(GamePlane.Normal, Vector3.right));
+            extras.Add(missile.gameObject);
+            missile.Initialize(enemy);
+            missile.SetTarget(player);
+            missile.Launch(Vector3.right, crossing);
+            var missileHitPlayer = false;
+            missile.Hit += (_, target) => missileHitPlayer |= ReferenceEquals(target, player.Damage);
+            yield return AsyncAssert.WaitUntil(() => missileHitPlayer || missile.transform.position.x > crossing.x + 3f,
+                2f, "the missile crosses the protected ship", useFixedUpdate: true);
+            Assert.That(missileHitPlayer, Is.False, "the missile must not detonate against the protected ship");
+            Object.Destroy(missile.gameObject);
+
             var rock = host.Playtest.ActiveSector.GetComponentInChildren<AsteroidController>();
             Assert.That(rock.SimpleCollider.enabled, Is.True, "the obstruction remains physically solid");
             rock.transform.position = crossing - Vector3.right * 10f;
@@ -127,6 +140,71 @@ namespace Tests.PlayMode.Preview
             Assert.That(player.Damage.Shield.CurrentValue, Is.GreaterThanOrEqualTo(shield));
             Assert.That(Vector3.Distance(player.Body.position, crossing), Is.LessThan(.1f),
                 "the passing asteroid cannot shove the turning ship");
+        }
+
+        [UnityTest]
+        public IEnumerator Inspection_ArrivalSpeedChangesTheVisibleCoast()
+        {
+            BuildPreview();
+            yield return WaitForFlight();
+            host.SelectMode(PreviewMode.Inspection);
+            yield return AsyncAssert.WaitUntil(() => host.IsReady, 30f, "jump inspection composes");
+            host.Transport.Playing = false;
+            var camera = host.GetComponentsInChildren<Camera>().Single(item => item.name == "Jump sky camera");
+            var subject = host.Subject;
+            var arrival = feel.turnDuration + feel.chargeDuration + feel.travelDuration;
+            feel.arrivalSpeedFraction = 0f;
+            subject.Knobs = feel;
+            subject.Show(0, arrival + feel.settleDuration - .1f);
+            var slowStart = camera.transform.position;
+            subject.Show(0, arrival + feel.settleDuration);
+            var slowDistance = Vector3.Distance(slowStart, camera.transform.position);
+            feel.arrivalSpeedFraction = 1f;
+            subject.Knobs = feel;
+            subject.Show(0, arrival + feel.settleDuration - .1f);
+            var fastStart = camera.transform.position;
+            subject.Show(0, arrival + feel.settleDuration);
+            var fastDistance = Vector3.Distance(fastStart, camera.transform.position);
+            Assert.That(fastDistance, Is.GreaterThan(slowDistance + .1f),
+                "Inspection must show the arrival speed selected in the feel profile");
+        }
+
+        [UnityTest]
+        public IEnumerator Motion_KeepsDriftingThroughCharge_AndArrivesMovingBeforeControlReturns()
+        {
+            BuildPreview(turnSeconds: .15f);
+            feel.chargeDuration = 1f;
+            feel.worldBlendDuration = .5f;
+            feel.settleDuration = .6f;
+            feel.arrivalSpeedFraction = .5f;
+            yield return WaitForFlight();
+            var player = rig.Player;
+            var incoming = Vector3.down * 6f;
+            player.Body.linearVelocity = incoming;
+            PressJump();
+            var committedVelocity = player.Body.linearVelocity;
+            yield return new WaitForSecondsRealtime(.3f);
+            var duringCharge = player.Body.position;
+            yield return new WaitForSecondsRealtime(.15f);
+            var chargeDrift = Vector3.Dot(player.Body.position - duringCharge, incoming.normalized);
+            yield return WaitForHold();
+            yield return ClickContinue(host.Playtest.GetComponentInChildren<RunRecapScreen>());
+            yield return new WaitForSecondsRealtime(.3f);
+            var arrivalVelocity = player.Body.linearVelocity.magnitude;
+            var protectedArrival = !player.Commander.enabled;
+            var lastVelocity = arrivalVelocity;
+            while (host.Playtest.Jump)
+            {
+                lastVelocity = player.Body.linearVelocity.magnitude;
+                yield return null;
+            }
+            var failures = new List<string>();
+            if (Vector3.Distance(committedVelocity, incoming) > .1f) failures.Add("commit discarded incoming velocity");
+            if (chargeDrift <= .1f) failures.Add("drift stopped before charging finished");
+            if (!protectedArrival || arrivalVelocity < 1f) failures.Add("arrival is stationary before control returns");
+            if (Mathf.Abs(player.Body.linearVelocity.magnitude - lastVelocity) > .5f)
+                failures.Add("control return changed velocity abruptly");
+            Assert.That(failures, Is.Empty, string.Join("; ", failures));
         }
 
         [UnityTest]
@@ -325,6 +403,7 @@ namespace Tests.PlayMode.Preview
             root.SetActive(false);
             host = root.AddComponent<PreviewHost>();
             host.mode = PreviewMode.Playtest;
+            host.subjectKind = PreviewSubjectKind.SectorJump;
             host.playtestSetup = PreviewPlaytestSetup.CrowdedJumpGate;
             host.sessionProfile = profile;
             host.jumpPlaytestProfile = profile;
