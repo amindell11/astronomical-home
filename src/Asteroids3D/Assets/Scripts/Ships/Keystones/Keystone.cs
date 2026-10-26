@@ -42,9 +42,9 @@ namespace Ships.Keystones
         /// <summary>The kit attacks along the heading the navigator flies, so an aim servo must not yaw the ship.</summary>
         public virtual bool FliesNavigatorHeading => false;
 
-        /// <summary>Multipliers on the ship's speed cap and forward thrust this step; 1 leaves them alone.</summary>
         public virtual float SpeedScale => 1f;
         public virtual float ThrustScale => 1f;
+        public virtual float ManeuverabilityScale => 1f;
 
         /// <summary>The largest scales the kit ever reports, so anything sized once at spawn covers them.</summary>
         public virtual float PeakSpeedScale => 1f;
