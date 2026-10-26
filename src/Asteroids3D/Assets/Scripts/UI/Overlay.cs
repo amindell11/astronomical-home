@@ -69,19 +69,15 @@ namespace UI
                 chargeMarkers.SetVisible(visible);
         }
 
-        public void SetOpacity(float opacity)
+        public void SetOpacity(float opacity, float? shipOpacity = null)
         {
             visibility.alpha = opacity;
             if (chargeMarkers) chargeMarkers.SetVisible(opacity > 0f);
+            if (shipStatus) shipStatus.SetOpacity(shipOpacity ?? opacity);
         }
 
         public void BindShips(SubscribedSet<Ship> ships, Camera worldCamera) =>
             shipStatus = ShipStatusOverlay.Create(canvases[0], ships, worldCamera);
-
-        public void SetShipHudOpacity(float opacity)
-        {
-            if (shipStatus) shipStatus.SetOpacity(opacity);
-        }
 
         private void OnDestroy()
         {

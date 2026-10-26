@@ -118,14 +118,19 @@ namespace Tests.PlayMode.PlayerState
             yield return null;
             Assert.AreEqual(1f, visibility.alpha, "Player bars remain readable while concealed");
             ship.Lock.Reveal();
+            mainHud.SetOpacity(.35f);
+            Assert.AreEqual(.35f, overlay.GetComponent<CanvasGroup>().alpha, .001f,
+                "Travel fades and restores every HUD canvas through the same call");
+            mainHud.SetOpacity(1f);
+            Assert.AreEqual(1f, overlay.GetComponent<CanvasGroup>().alpha);
             mainHud.SetVisible(false);
-            mainHud.SetOpacity(0f);
+            mainHud.SetOpacity(0f, 1f);
             Assert.IsTrue(overlay.GetComponent<Canvas>().enabled);
             Assert.AreEqual(1f, overlay.GetComponent<CanvasGroup>().alpha);
-            mainHud.SetShipHudOpacity(.35f);
+            mainHud.SetOpacity(0f, .35f);
             yield return null;
             Assert.AreEqual(.35f, overlay.GetComponent<CanvasGroup>().alpha, .001f);
-            mainHud.SetShipHudOpacity(1f);
+            mainHud.SetOpacity(0f, 1f);
 
             for (var cycle = 0; cycle < 3; cycle++)
             {
