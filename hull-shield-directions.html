@@ -2,34 +2,23 @@
   <div class="viz-controls">
     <label class="form-label">Event
       <select class="form-select" id="hs-event">
-        <option value="break">Shield breaks</option><option value="shield">Shield hit</option>
-        <option value="hull">Hull hit</option><option value="critical">Low hull</option>
-        <option value="recharge">Shield recovering</option><option value="return">Shield returns</option>
+        <option value="return">Shield returns</option><option value="critical">Low hull</option>
+        <option value="recharge">Shield recovering</option><option value="break">Shield breaks</option>
+        <option value="shield">Shield hit</option><option value="hull">Hull hit</option>
         <option value="bypass">Shield bypass</option><option value="guard">Guard Dash</option>
       </select>
     </label>
     <button class="btn" id="hs-play" type="button">Replay event</button>
-    <span class="text-small" id="hs-time" aria-live="polite">Held at 0.16 s</span>
+    <span class="text-small" id="hs-time">Paused · 0.60 s</span>
   </div>
-  <div class="viz-carousel" aria-label="Hull and shield feedback directions">
-    <section data-variant="Restrained combination" aria-label="Restrained combination">
-      <div class="hs-scene" data-style="hybrid"><canvas role="img" aria-label="Concept combat view with a local shield break and a quiet empty shield marker"></canvas></div>
-    </section>
-    <section data-variant="Effects at the ship" aria-label="Effects at the ship" hidden>
-      <div class="hs-scene" data-style="ship"><canvas role="img" aria-label="Concept combat view with a continuous shield shell, a larger break and hull smoke"></canvas></div>
-    </section>
-    <section data-variant="Accents beside the bars" aria-label="Accents beside the bars" hidden>
-      <div class="hs-scene" data-style="bars"><canvas role="img" aria-label="Concept combat view with event words and changes on the existing bars"></canvas></div>
-    </section>
-    <section data-variant="Existing bars only" aria-label="Existing bars only" hidden>
-      <div class="hs-scene" data-style="baseline"><canvas role="img" aria-label="Schematic of current immediate bar updates without restored hull or shield effects"></canvas></div>
-    </section>
-  </div>
+  <div class="hs-scene" aria-label="Restrained combination"><canvas role="img" aria-label="Shield return circle around the player ship"></canvas></div>
+  <label class="form-label" for="hs-scrub">Animation time · <output id="hs-scrub-value" class="tabular-nums">0.60 / 4.50 s</output></label>
+  <input class="form-range" id="hs-scrub" type="range" min="0" max="4.5" step="0.01" value="0.6">
   <div class="viz-row text-small"><span id="hs-detail" aria-live="polite"></span></div>
-  <div class="text-small">Motion sketch · 1280 × 720 scene · schematic ships · not Unity footage</div>
+  <div class="text-small">Restrained combination · motion sketch · not Unity footage</div>
 </div>
 <style>
-#hs-directions .hs-scene {width:100%;aspect-ratio:16/9;background:#070d20;overflow:hidden;color-scheme:dark;}
+#hs-directions .hs-scene {width:100%;aspect-ratio:16/9;background:#070d20;overflow:hidden;color-scheme:dark;margin-bottom:12px;}
 #hs-directions canvas {display:block;width:100%;height:100%;}
 #hs-directions .viz-controls {margin-bottom:12px;}
 #hs-directions .viz-row {margin:12px 0 6px;}
@@ -41,29 +30,41 @@
   const button = root.querySelector('#hs-play');
   const clock = root.querySelector('#hs-time');
   const detail = root.querySelector('#hs-detail');
+  const scrub = root.querySelector('#hs-scrub');
+  const scrubValue = root.querySelector('#hs-scrub-value');
   const views = [...root.querySelectorAll('.hs-scene')];
   const palette = {shield:'#66dce9', hull:'#a8d9b5', hurt:'#ffc78a', ink:'#070c18', white:'#f5efdc'};
-  const state = {event:'break', time:0.16, crowded:true, shipSize:76};
+  const state = {event:'return', time:0.6, crowded:true, shipSize:76, returnHold:1, hullPulse:1.4};
+  const duration=4.5, onset=0.12;
+  const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
+  const clamp=v=>Math.min(1,Math.max(0,v));
+  const ease=v=>{const p=clamp(v);return p*p*(3-2*p);};
   let animation=0;
   const descriptions = {
-    break:'Shield 25 → 0; hull unchanged. Only the restrained combination keeps a quiet shield-down marker.',
-    shield:'Shield 70 → 48; hull unchanged. Hull damage and Guard Dash cues stay quiet.',
-    hull:'Shield empty; hull 65 → 42. A short warm response belongs to hull damage.',
-    critical:'Hull held at 16 of 65. Compare persistent smoke, a small warning mark, and a written warning.',
-    recharge:'Shield 10 → 26. A moving accent marks actual recovery, not the waiting period.',
-    return:'Shield 0 → 1. This marks recovery beginning, not full protection.',
-    bypass:'Shield stays at 50; hull 65 → 42. No shield impact or break cue.',
-    guard:'Existing white Guard Dash tell has priority. No damage cue for a blocked hit.'
+    break:'A brief shield break, then quiet. No persistent shield warning.',
+    shield:'Localized shield response. Hull stays quiet.',
+    hull:'A short warm hull response. No extra impact burst.',
+    critical:'Only the remaining hull fill pulses red. Its length and number stay unchanged.',
+    recharge:'A travelling arc shows actual recovery. No extra bar accent.',
+    return:'The circle closes, holds briefly, then settles into the recovery arc. It does not mean full capacity.',
+    bypass:'Hull response only. Shield stays unchanged.',
+    guard:'White Guard Dash has priority. Blocked hits add no damage cue.'
   };
   function restore(snapshot) {
     const s=snapshot?.modelContent;
-    if(s && descriptions[s.event]) state.event=s.event;
-    if(typeof snapshot?.privateContent?.crowded==='boolean') state.crowded=snapshot.privateContent.crowded;
+    if(s?.revision!==2)return;
+    if(descriptions[s.event]) state.event=s.event;
+    const p=snapshot.privateContent;
+    if(typeof p?.crowded==='boolean') state.crowded=p.crowded;
+    if(Number.isFinite(p?.returnHold))state.returnHold=Math.max(0.4,Math.min(1.6,p.returnHold));
+    if(Number.isFinite(p?.hullPulse))state.hullPulse=Math.max(0.9,Math.min(2.2,p.hullPulse));
+    state.time=state.event==='return'?0.6:0.24;
     picker.value=state.event;
   }
   restore(window.openai?.widgetState);
+  picker.value=state.event;
   function save() {
-    window.openai?.setWidgetState?.({modelContent:{event:state.event},privateContent:{crowded:state.crowded}})?.catch(()=>{});
+    window.openai?.setWidgetState?.({modelContent:{revision:2,direction:'Restrained combination',event:state.event},privateContent:{crowded:state.crowded,returnHold:state.returnHold,hullPulse:state.hullPulse}})?.catch(()=>{});
   }
   function line(c, points, color, width=2, alpha=1) {
     c.save();c.globalAlpha=alpha;c.strokeStyle=color;c.lineWidth=width;c.lineCap='round';c.beginPath();
@@ -99,96 +100,105 @@
     line(c,[[-9,27],[-4,31]],'#a6f3e7',4);line(c,[[5,29],[10,25]],'#a6f3e7',4);c.restore();
   }
   function numbers(event,t) {
-    const changed=t>=0.08;
+    const changed=t>=onset;
     if(event==='shield') return {s:changed?48:70,h:65,oldS:70};
     if(event==='break') return {s:changed?0:25,h:65,oldS:25};
     if(event==='hull') return {s:0,h:changed?42:65,oldH:65};
     if(event==='critical') return {s:0,h:16};
-    if(event==='recharge') return {s:Math.min(26,10+t*6),h:42};
-    if(event==='return') return {s:t<0.08?0:1,h:42};
+    if(event==='recharge') return {s:Math.min(37,10+t*6),h:42};
+    if(event==='return') return {s:changed?1+(t-onset)*6:0,h:42};
     if(event==='bypass') return {s:50,h:changed?42:65,oldH:65};
     return {s:50,h:65};
   }
-  function bars(c,x,y,v,style,event,t,player) {
+  function bars(c,x,y,v,event,t,player) {
     const w=130,h=10;
     c.fillStyle='#071020dd';c.fillRect(x-4,y-4,174,32);
     c.fillStyle='#3c4148';c.fillRect(x,y,w,h);c.fillRect(x,y+13,w,h);
-    if(style==='bars' && t<0.8) {
-      c.fillStyle='#dfe8e780';if(v.oldS)c.fillRect(x,y,w*v.oldS/100,h);if(v.oldH)c.fillRect(x,y+13,w*v.oldH/65,h);
-    }
     c.fillStyle=palette.shield;c.fillRect(x,y,w*v.s/100,h);
-    c.fillStyle=palette.hull;c.fillRect(x,y+13,w*v.h/65,h);
+    c.save();
+    if(event==='critical'&&player) {
+      const pulse=reducedMotion.matches?0.7:(1-Math.cos(2*Math.PI*t/state.hullPulse))/2;
+      c.fillStyle=`rgb(${Math.round(186+65*pulse)},${Math.round(61+44*pulse)},${Math.round(66+39*pulse)})`;
+      c.shadowColor=`rgba(250,82,86,${0.18+0.3*pulse})`;c.shadowBlur=2+5*pulse;
+    } else c.fillStyle=palette.hull;
+    c.fillRect(x,y+13,w*v.h/65,h);c.restore();
     c.fillStyle='#f0f2ee';c.font='17px Arial';c.fillText(Math.ceil(v.s),x+w+7,y+10);c.fillText(Math.ceil(v.h),x+w+7,y+23);
-    if(style==='baseline'||style==='ship') return;
-    if(style==='hybrid') {
-      if(v.s===0) line(c,[[x-9,y-3],[x-14,y-3],[x-14,y+10],[x-9,y+10]],palette.shield,2);
-      if(event==='critical') line(c,[[x-8,y+13],[x-15,y+13],[x-15,y+25],[x-8,y+25]],palette.hurt,3);
-      if(event==='recharge') {let p=(t%1.2)/1.2;line(c,[[x+w*p,y-2],[x+w*p+7,y-2]],palette.shield,3);}
-    }
-    if(style==='bars'&&player) {
-      const labels={break:'SHIELD DOWN',shield:'SHIELD HIT',hull:'HULL HIT',critical:'HULL CRITICAL',recharge:'RECHARGING',return:'SHIELD ONLINE',bypass:'HULL HIT',guard:'GUARD'};
-      c.font='17px Arial';c.fillStyle=event==='critical'||event==='hull'||event==='bypass'?palette.hurt:palette.shield;
-      if(t<1.6||['break','critical','recharge','return'].includes(event)) c.fillText(labels[event],x,y-13);
-    }
   }
-  function impact(c,x,y,event,t,style) {
-    if(style==='baseline'||style==='bars'||event==='guard')return;
+  function recovery(c,x,y,r,t,alpha=1) {
+    const head=-Math.PI/2+t*2.3;
+    for(let i=0;i<12;i++)arc(c,x,y,r,head-0.12*(i+1),head-0.12*i,palette.shield,2.4,alpha*(1-i/12)*0.82);
+    arc(c,x,y,r,head-0.1,head+0.02,'#d4fbff',2.6,alpha*0.9);
+  }
+  function impact(c,x,y,event,t) {
+    if(event==='guard')return;
+    t-=onset;
+    if(t<0)return;
     const shieldHit=['break','shield'].includes(event),hullHit=['hull','bypass'].includes(event);
-    const pulse=Math.max(0,1-t/0.52),r=state.shipSize*0.67;
-    if(style==='ship'&&numbers(event,t).s>0) arc(c,x,y,r,0,Math.PI*2,palette.shield,2,0.33);
+    const pulse=ease(t/0.035)*(1-ease((t-0.06)/0.42)),r=state.shipSize*0.67;
     if(shieldHit&&t<0.52) {
       arc(c,x,y,r+t*9,-2.1,-0.6,palette.shield,4,pulse);
       arc(c,x,y,r+6+t*12,-1.9,-0.8,palette.white,1,pulse*0.75);
     }
     if(event==='break'&&t<0.7) {
-      const strength=Math.max(0,1-t/0.7),big=style==='ship'?46:16;
-      for(let i=0;i<6;i++){let a=i*1.047;arc(c,x,y,r+t*big,a+0.12,a+0.68,palette.shield,style==='ship'?3:2,strength);}
+      const strength=ease(t/0.04)*(1-ease((t-0.06)/0.55));
+      for(let i=0;i<6;i++){let a=i*1.047+t*0.12;arc(c,x,y,r+15*ease(t/0.65),a+0.12+t*0.12,a+0.68,palette.shield,2,strength);}
     }
     if(hullHit&&t<0.5) {
       c.save();c.translate(x,y);c.rotate(-0.2);c.scale(state.shipSize/76,state.shipSize/76);c.globalAlpha=pulse;
       polygon(c,[[-7,-36],[-18,-4],[-32,21],[-29,32],[-12,25],[-8,34],[8,34],[12,25],[29,32],[32,21],[18,-4],[7,-36],[0,-41]],'#00000000',palette.hurt,3);
       c.restore();
     }
-    if(event==='critical'&&style==='ship') {
-      for(let i=0;i<6;i++){let drift=(t*15+i*12)%78;c.fillStyle=`rgba(127,119,122,${(1-drift/90)*0.46})`;c.beginPath();c.arc(x-7+Math.sin(i)*8,y+25+drift,8+drift*0.13,0,7);c.fill();}
-    }
-    if(['recharge','return'].includes(event)) {
-      const a=event==='recharge'?t*2:-1.7;
-      arc(c,x,y,r,a,a+0.9,palette.shield,2,event==='return'?Math.max(0,1-t/1.4):0.75);
-      if(style==='ship') arc(c,x,y,r+6,a+Math.PI,a+Math.PI+0.9,palette.shield,2,0.7);
+    if(event==='recharge')recovery(c,x,y,r,t,ease(t/0.18));
+    if(event==='return') {
+      const close=ease(t/0.24),fade=ease((t-0.24-state.returnHold)/0.38);
+      const radius=r+7*(1-close)+3*fade,alpha=(1-fade)*ease(t/0.06);
+      if(alpha>0) {
+        arc(c,x,y,radius,-Math.PI/2,-Math.PI/2+Math.PI*close,palette.shield,2.4,alpha*0.8);
+        arc(c,x,y,radius,-Math.PI/2-Math.PI*close,-Math.PI/2,palette.shield,2.4,alpha*0.8);
+        const a=-Math.PI/2+Math.PI*close;
+        if(close<1)arc(c,x,y,radius,a-0.12,a,'#e4fcff',3,alpha);
+      }
+      recovery(c,x,y,r,t,ease((t-0.2)/0.25));
     }
   }
   function renderView(view) {
-    const canvas=view.querySelector('canvas'),c=canvas.getContext('2d'),style=view.dataset.style;
+    const canvas=view.querySelector('canvas'),c=canvas.getContext('2d');
     if(canvas.width!==1280){canvas.width=1280;canvas.height=720;}
     background(c);
     const x=640,y=385,t=state.time,event=state.event;
     if(state.crowded) {
       for(const [sx,sy,size,rot] of [[360,320,62,0.8],[900,295,69,-0.8],[925,580,56,-2.1],[450,535,58,2.4]]) {
-        ship(c,sx,sy,size,rot,1);bars(c,sx-65,sy-72,{s:64,h:44},style,event,t,false);
+        ship(c,sx,sy,size,rot,1);bars(c,sx-65,sy-72,{s:64,h:44},event,t,false);
       }
       line(c,[[825,263],[810,276]],'#ffe0a4',3);line(c,[[792,295],[777,308]],'#ffe0a4',3);
       line(c,[[390,370],[404,385]],'#9be6f4',3);line(c,[[421,402],[435,416]],'#9be6f4',3);
       line(c,[[846,525],[831,518]],'#ffe0a4',3);
     }
     ship(c,x,y,state.shipSize,-0.2,0,event==='guard');
-    impact(c,x,y,event,t,style);
-    bars(c,x-65,y-83,numbers(event,t),style,event,t,true);
+    impact(c,x,y,event,t);
+    bars(c,x-65,y-83,numbers(event,t),event,t,true);
     c.fillStyle='#bac7d6';c.font='18px Arial';c.fillText('PLAYER',x-33,y+state.shipSize*0.8+26);
-    canvas.setAttribute('aria-label',`${view.parentElement.dataset.variant}: ${descriptions[event]}`);
+    canvas.setAttribute('aria-label',`Restrained combination: ${descriptions[event]}`);
   }
-  function render(){views.forEach(renderView);detail.textContent=descriptions[state.event];}
-  function stop(){if(animation)cancelAnimationFrame(animation);animation=0;button.textContent='Replay event';}
-  picker.addEventListener('change',()=>{stop();state.event=picker.value;state.time=0.16;clock.textContent='Held at 0.16 s';render();save();});
+  function render(){
+    views.forEach(renderView);detail.textContent=descriptions[state.event];
+    scrub.value=state.time;scrubValue.textContent=`${state.time.toFixed(2)} / ${duration.toFixed(2)} s`;
+    clock.textContent=`${animation?'Playing':'Paused'} · ${state.time.toFixed(2)} s`;
+  }
+  function stop(){if(animation)cancelAnimationFrame(animation);animation=0;button.textContent=reducedMotion.matches?'Step through event':'Replay event';}
+  picker.addEventListener('change',()=>{stop();state.event=picker.value;state.time=state.event==='return'?0.6:0.24;render();save();});
+  scrub.addEventListener('input',()=>{stop();state.time=Number(scrub.value);render();});
   button.addEventListener('click',()=>{
-    if(animation){stop();clock.textContent=`Held at ${state.time.toFixed(2)} s`;return;}
-    if(matchMedia('(prefers-reduced-motion: reduce)').matches){state.time=state.time<1?2.5:0.16;clock.textContent=`Held at ${state.time.toFixed(2)} s`;render();return;}
-    const start=performance.now();button.textContent='Pause';clock.textContent='Playing once';
-    function tick(now){state.time=Math.min(2.5,(now-start)/1000);render();if(state.time<2.5){animation=requestAnimationFrame(tick);}else{stop();clock.textContent='Held at 2.50 s';}}
+    if(animation){stop();render();return;}
+    if(reducedMotion.matches){state.time=state.time<duration?Math.min(duration,state.time+0.5):0;render();return;}
+    const start=performance.now();button.textContent='Pause';
+    function tick(now){state.time=Math.min(duration,(now-start)/1000);if(state.time<duration){animation=requestAnimationFrame(tick);}else stop();render();}
     animation=requestAnimationFrame(tick);
   });
-  window.addEventListener('openai:set_globals',e=>{restore(e.detail?.globals?.widgetState);render();});
+  window.addEventListener('openai:set_globals',e=>{stop();restore(e.detail?.globals?.widgetState);render();});
+  reducedMotion.addEventListener('change',()=>{stop();render();});
+  stop();
   render();
-  if(globalThis.Tweak){const tweak=new Tweak({container:root,onChange:()=>{render();save();}});tweak.addToggle(state,'crowded',{label:'Nearby ships and fire'});tweak.addSlider(state,'shipSize',{label:'Player ship size in the 1280 px scene',min:48,max:100,unit:'px'});}
+  if(globalThis.Tweak){const tweak=new Tweak({container:root,onChange:()=>{render();save();}});tweak.addToggle(state,'crowded',{label:'Nearby ships and fire'});tweak.addSlider(state,'returnHold',{label:'Full return circle hold',min:0.4,max:1.6,step:0.1,unit:'s'});tweak.addSlider(state,'hullPulse',{label:'Low hull pulse period',min:0.9,max:2.2,step:0.1,unit:'s'});}
 })();
 </script>
