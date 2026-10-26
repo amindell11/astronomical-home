@@ -431,7 +431,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   zone: {fileID: 692747694324094379}
-  gateHeading: 70
   asteroids: {fileID: 2051119539161312432}
   rockPlacements:
   - {fileID: 2173595629820568044}

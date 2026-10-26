@@ -13,6 +13,9 @@ namespace Objectives
     public class ExtractionZone : MonoBehaviour, IExtractionZone
     {
         [SerializeField] private float blockDistance = 20f;
+        [SerializeField] private float departureHeading = 70f;
+
+        public float DepartureHeading => departureHeading;
 
         [Tooltip("Optional hostile whose proximity blocks extraction while the zone is armed (observation-only binding).")]
         [SerializeField] private Transform blocker;
@@ -45,5 +48,7 @@ namespace Objectives
         private void OnTriggerEnter(Collider other) => occupancy.Enter(other);
 
         private void OnTriggerExit(Collider other) => occupancy.Exit(other);
+
+        private void OnDisable() => occupancy.Clear();
     }
 }

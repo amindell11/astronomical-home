@@ -7,6 +7,8 @@ namespace Utils
     {
         private readonly Dictionary<Rigidbody, HashSet<Collider>> occupants = new();
 
+        public void Clear() => occupants.Clear();
+
         // Unity fires no OnTriggerExit for a collider disabled/destroyed inside the trigger — prune stale colliders on read.
         public bool Contains(Rigidbody body)
         {

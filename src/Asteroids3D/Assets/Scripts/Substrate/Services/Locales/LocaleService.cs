@@ -32,8 +32,8 @@ namespace Substrate.Services.Locales
             if (backdropUnload != null) yield return backdropUnload;
             backdropUnload = null;
             var from = SceneManager.GetSceneByName(loadedLocaleName);
-            if (!from.isLoaded || destination == loadedLocaleName)
-                throw new InvalidOperationException("A backdrop requires two distinct locales and a loaded departure.");
+            if (!from.isLoaded)
+                throw new InvalidOperationException("A backdrop requires a loaded departure locale.");
             var to = SceneManager.GetSceneByName(destination);
             var ownsDestination = !to.isLoaded;
             if (ownsDestination)
@@ -47,7 +47,7 @@ namespace Substrate.Services.Locales
             {
                 backdrop = null;
                 backdropDestination = null;
-                if (loadedLocaleName == destination)
+                if (from != to && loadedLocaleName == destination)
                     backdropUnload = SceneManager.UnloadSceneAsync(from);
                 else if (ownsDestination && to.isLoaded)
                     backdropUnload = SceneManager.UnloadSceneAsync(to);

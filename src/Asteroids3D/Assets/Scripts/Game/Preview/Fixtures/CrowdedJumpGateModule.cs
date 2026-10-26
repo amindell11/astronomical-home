@@ -8,25 +8,20 @@ using Substrate.Sectors;
 using Substrate.Sectors.Elements;
 using Substrate.Services.Objectives;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace Game.Preview.Fixtures
 {
     /// <summary>
-    /// The crowded Playtest departure: real rocks surround an extraction zone, and a fresh F press
-    /// commits synchronously so GameHost protects the player before another simulation step.
-    /// Normal sector extraction does not use this fixture.
+    /// Real rocks surround a Playtest extraction zone using the same commitment state as production sectors.
     /// </summary>
     public sealed class CrowdedJumpGateModule : SectorModule
     {
         [SerializeField] internal ExtractionZone zone;
-        [SerializeField] internal float gateHeading = 70f;
         [SerializeField] internal AsteroidSpawner asteroids;
         [SerializeField] internal Transform[] rockPlacements;
 
-        private InputAction jump;
+        private ExtractionJumpState extraction;
         private SpineObjectiveHandle objective;
-        private bool committed;
 
         public override IEnumerator Setup(SectorBuildContext ctx)
         {
@@ -34,20 +29,18 @@ namespace Game.Preview.Fixtures
                 throw new InvalidOperationException("The crowded jump fixture requires its zone and rock placements.");
             if (!ctx.Hero)
                 throw new InvalidOperationException("The crowded jump fixture requires a player.");
-            committed = false;
             asteroids.SetPresentation(ctx.PresentationEnabled);
             zone.BindPlayer(ctx.Hero.Body);
             zone.Arm();
+            extraction = new ExtractionJumpState(zone,
+                () => RequestSectorEnd(SectorResult.Extracted(zone.DepartureHeading)));
             objective = ctx.Objectives.SetSpineObjective(
                 new MissionDefinition("jump", new Dictionary<string, string> { ["jump"] = "departed" }),
                 new Dictionary<string, Func<ObjectiveState>>
                 {
-                    ["jump"] = () => new JumpState(this),
+                    ["jump"] = () => extraction,
                     ["departed"] = () => new CompletedState()
                 }, zone.transform);
-            jump = new InputAction("Jump", InputActionType.Button, "<Keyboard>/f");
-            jump.performed += Commit;
-            jump.Enable();
             yield break;
         }
 
@@ -67,14 +60,6 @@ namespace Game.Preview.Fixtures
             }
         }
 
-        private void Commit(InputAction.CallbackContext context)
-        {
-            if (committed || !zone.IsPlayerInZone) return;
-            committed = true;
-            jump.Disable();
-            RequestSectorEnd(SectorResult.Extracted(gateHeading));
-        }
-
         public override IEnumerator Teardown(SectorBuildContext ctx)
         {
             ReleaseInput();
@@ -86,21 +71,11 @@ namespace Game.Preview.Fixtures
 
         private void ReleaseInput()
         {
-            jump?.Dispose();
-            jump = null;
+            extraction?.Dispose();
+            extraction = null;
         }
 
         private void OnDestroy() => ReleaseInput();
 
-        private sealed class JumpState : ObjectiveState
-        {
-            private readonly CrowdedJumpGateModule owner;
-            public JumpState(CrowdedJumpGateModule owner) => this.owner = owner;
-            public override ObjectiveType StateType => ObjectiveType.ExtractionChallenge;
-            public override bool IsComplete => owner.committed;
-            public override string StatusLine => owner.zone.IsPlayerInZone
-                ? "PRESS F TO JUMP" : "REACH THE JUMP GATE";
-            public override void Tick(float deltaTime) { }
-        }
     }
 }

@@ -45,8 +45,8 @@ namespace Substrate.Services.Locales
             var target = camera.targetTexture;
             try
             {
-                outgoing.SetVisible(true);
                 incoming.SetVisible(false);
+                outgoing.SetVisible(true);
                 outgoingLighting.Apply();
                 camera.targetTexture = from;
                 camera.Render();

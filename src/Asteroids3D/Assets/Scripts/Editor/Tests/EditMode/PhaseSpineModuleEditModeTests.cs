@@ -94,7 +94,7 @@ namespace Tests.EditMode
             Assert.AreEqual(ObjectiveType.ExtractionChallenge, svc.SpineState, "The minimap marker shows targets in this state.");
             Assert.IsTrue(zone.gameObject.activeSelf);
             Assert.AreEqual(zone.transform, svc.SpineTarget);
-            Assert.AreEqual("EXTRACT    REACH THE STATION", svc.SpineTracker.CurrentStatusLine);
+            Assert.AreEqual("REACH THE JUMP GATE", svc.SpineTracker.CurrentStatusLine);
         }
 
         [Test]

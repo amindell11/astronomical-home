@@ -25,6 +25,7 @@ namespace Substrate.Sectors.Elements
         private SpineObjectiveHandle spine;
         private SectorEventBus bus;
         private Vector3? keyHome;
+        private ExtractionJumpState extraction;
 
         public override IEnumerator Setup(SectorBuildContext ctx)
         {
@@ -40,6 +41,8 @@ namespace Substrate.Sectors.Elements
             var playerBody = ctx.Hero ? ctx.Hero.Body : null;
             keyPickup.Initialize(playerBody);
             extractionZone.BindPlayer(playerBody);
+            extraction = new ExtractionJumpState(extractionZone,
+                () => RequestSectorEnd(SectorResult.Extracted(extractionZone.DepartureHeading)));
 
             keyHome ??= keyPickup.transform.position;
             keyPickup.SpawnKey(keyHome.Value);
@@ -57,9 +60,8 @@ namespace Substrate.Sectors.Elements
             {
                 [StepExplore] = () => new ExploreState(keyPickup),
                 [StepKeyAcquired] = () => new KeyAcquiredState(),
-                [StepReadyToExtract] = () => new ExtractionChallengeState(extractionZone),
-                [StepCompleted] = () => new CompletedState(
-                    onEnter: () => RequestSectorEnd(SectorResult.Extracted())),
+                [StepReadyToExtract] = () => extraction,
+                [StepCompleted] = () => new CompletedState(),
                 [StepFailed] = () => new FailedState(
                     onEnter: () => RequestSectorEnd(SectorResult.Failed("spine_failed")))
             };
@@ -80,6 +82,8 @@ namespace Substrate.Sectors.Elements
 
         private void Unbind(bool closeSpine)
         {
+            extraction?.Dispose();
+            extraction = null;
             if (objectives == null) return;
             objectives.OnSpineStepChanged -= HandleSpineStepChanged;
             if (closeSpine) spine?.Close();
