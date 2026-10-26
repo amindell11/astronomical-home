@@ -123,6 +123,17 @@ namespace Tests.PlayMode.Presentation
         }
 
         [UnityTest]
+        public IEnumerator RingSize_RemainsRelativeToHull_WhenBindingScaledShips()
+        {
+            yield return null;
+            var originalSize = ring.rectTransform.sizeDelta;
+            ship.transform.localScale *= 2f;
+            ring.GetComponent<ShieldUI>().Bind(new ShipView(ship.transform, ship.Damage, null, null, true));
+            Assert.That(Vector2.Distance(ring.rectTransform.sizeDelta, originalSize), Is.LessThan(0.001f),
+                "The parent scales both hull and ring; binding must not apply that scale twice.");
+        }
+
+        [UnityTest]
         public IEnumerator HeldKeystoneColor_WinsOverDamage_AndReleaseRestoresEverySurface()
         {
             yield return null;

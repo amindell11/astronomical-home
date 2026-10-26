@@ -8,6 +8,7 @@ Shader "UI/ShieldGlow"
         _GlowIntensity ("Tip Glow", Range(0,1)) = 0.12
         [HideInInspector] _ArcLength ("Arc Length", Float) = 6.283185
         [HideInInspector] _TipStrength ("Tip Strength", Float) = 0
+        [HideInInspector] _RingRotation ("Ring Rotation", Float) = 0
     }
     SubShader
     {
@@ -26,19 +27,17 @@ Shader "UI/ShieldGlow"
             {
                 float4 pos:SV_POSITION;
                 float2 uv:TEXCOORD0;
-                float2 direction:TEXCOORD1;
                 float4 color:COLOR;
             };
 
             fixed4 _Color;
-            float _Thickness, _Softness, _GlowIntensity, _ArcLength, _TipStrength;
+            float _Thickness, _Softness, _GlowIntensity, _ArcLength, _TipStrength, _RingRotation;
 
             v2f vert (appdata v)
             {
                 v2f o;
                 o.pos = UnityObjectToClipPos(v.vertex);
                 o.uv = v.uv * 2 - 1;
-                o.direction = mul((float3x3)unity_ObjectToWorld, float3(o.uv,0)).xy;
                 o.color = v.color;
                 return o;
             }
@@ -46,7 +45,7 @@ Shader "UI/ShieldGlow"
             fixed4 frag (v2f i) : SV_Target
             {
                 float r = length(i.uv);
-                float angle = atan2(i.direction.y,i.direction.x);
+                float angle = atan2(i.uv.y,i.uv.x)+_RingRotation;
                 float along = fmod(atan2(i.uv.y,i.uv.x) + 4.712389,6.283185);
                 float endDistance = min(along,abs(_ArcLength-along));
                 float open = step(_ArcLength,6.282);

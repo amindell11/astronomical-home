@@ -16,6 +16,7 @@ namespace UI.PlayerState
 
         private static readonly int ArcLength = Shader.PropertyToID("_ArcLength");
         private static readonly int TipStrength = Shader.PropertyToID("_TipStrength");
+        private static readonly int RingRotation = Shader.PropertyToID("_RingRotation");
         private IDamageEvents source;
         private ShipVisualRig rig;
         private Transform root;
@@ -46,6 +47,7 @@ namespace UI.PlayerState
             source = view.Damage ?? throw new ArgumentException("Shield ring requires damage resources.");
             root = view.Root;
             enemyLock = view.IsPlayer ? null : view.Lock;
+            transform.SetPositionAndRotation(root.position - Vector3.forward * 0.05f, GamePlane.Rotation);
             var radius = 0f;
             foreach (var surface in rig.Silhouette)
             {
@@ -54,7 +56,7 @@ namespace UI.PlayerState
                 {
                     var corner = bounds.center + Vector3.Scale(bounds.extents,
                         new Vector3((i & 1) == 0 ? -1 : 1, (i & 2) == 0 ? -1 : 1, (i & 4) == 0 ? -1 : 1));
-                    var offset = surface.transform.TransformPoint(corner) - root.position;
+                    var offset = transform.InverseTransformVector(surface.transform.TransformPoint(corner) - root.position);
                     radius = Mathf.Max(radius, new Vector2(offset.x, offset.y).magnitude);
                 }
             }
@@ -165,6 +167,7 @@ namespace UI.PlayerState
             ring.color = new Color(1f, 1f, 1f, alpha);
             material.SetFloat(ArcLength, fill * Mathf.PI * 2f);
             material.SetFloat(TipStrength, tips);
+            material.SetFloat(RingRotation, start - Mathf.PI * 0.5f);
             ring.enabled = alpha > 0f && fill > 0f;
         }
 
