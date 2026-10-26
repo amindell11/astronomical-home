@@ -117,10 +117,8 @@ public sealed class MinimalExtractionView : MonoBehaviour
 
     private static void Badge(Transform parent, float size)
     {
-        var border = Box("Exit diamond", parent, Vector2.zero, Vector2.one*size*.7071f,Gold);
-        border.localEulerAngles = new Vector3(0,0,45);
-        var fill = Box("Contrast backing", parent, Vector2.zero, Vector2.one*(size-5)*.7071f,Dark);
-        fill.localEulerAngles = new Vector3(0,0,45);
+        var diamond = Box("Exit diamond", parent, Vector2.zero, Vector2.one*size*.7071f,Color.yellow);
+        diamond.localEulerAngles = new Vector3(0,0,45);
     }
 
     private static Text Label(Transform parent, string value, int size, Vector2 position, Vector2 dimensions)

@@ -16,7 +16,7 @@ public static class MinimalExtractionReveal
 
     private static IEnumerator Record()
     {
-        const string root = "D:/amind/git/agent-3/scratch/capture";
+        const string root = "D:/amind/git/agent-6/scratch/extraction-marker";
         var comparison = GameObject.Find("Extraction comparison");
         var view = System.Array.Find(comparison.GetComponents<MonoBehaviour>(), component => component.GetType().Name == "MinimalExtractionView");
         var age = view.GetType().GetField("RevealAge");
