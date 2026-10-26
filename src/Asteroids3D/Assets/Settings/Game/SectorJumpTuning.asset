@@ -58,6 +58,9 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  departureDistance: 45
+  arrivalSpeedFraction: 0.35
+  worldBlendDuration: 0.4
   rawBackgroundBlend: 0.169
   skyTravelDistance: 800
   streakDensity: 39

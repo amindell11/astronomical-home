@@ -5,6 +5,7 @@ using Cameras;
 using Damage;
 using Game.Audio;
 using Game.Runs;
+using Game.Travel;
 using Substrate;
 using Substrate.Presentation;
 using Substrate.Sectors;
@@ -19,6 +20,7 @@ using UnityEngine.InputSystem.UI;
 using Ships.Registry;
 using Substrate.Services.Units;
 using Substrate.Services.Objectives;
+using Substrate.Services.Locales;
 
 namespace Game
 {
@@ -28,6 +30,7 @@ namespace Game
     /// Hull carries between sectors. Death frames the explosion while surviving ships keep moving.
     /// Presentation is read once alongside the session's snapshot.
     /// Shutdown finishes the current setup operation, releases input waits, then tears down the owned world.
+    /// An optional jump profile enables protected travel with extraction UI held in hyperspace.
     /// The hangar, recap and restart stand in for Home Base and player progress.
     /// https://github.com/amindell11/astronomical-home/issues/295#issuecomment-5787867584
     /// </summary>
@@ -80,6 +83,10 @@ namespace Game
                  "this same asset. Required whenever presentation is on.")]
         [SerializeField] internal RecapFeelProfile recapFeel;
 
+        [Header("Sector travel")]
+        [SerializeField] internal SectorJumpProfile jumpFeel;
+        [SerializeField] internal Shader jumpShader;
+
         [Header("Death Policy")]
         [Tooltip("What happens when the player ship dies. RestartSector ends the run (run record, death " +
                  "recap) and starts a new one from the hangar; None does nothing.")]
@@ -101,6 +108,8 @@ namespace Game
         private float? recapTimeScale;
         private bool shutdownRequested;
         private bool shutdownComplete;
+        private int activeSectorIndex;
+        private SectorJumpFlight jump;
 
         private UnitService unitService;
         private ObjectiveService objectiveService;
@@ -117,6 +126,7 @@ namespace Game
         private Transform arena;
 
         public Sector ActiveSector => session?.ActiveSector;
+        public SectorJumpFlight Jump => jump;
 
         private void Awake()
         {
@@ -140,6 +150,8 @@ namespace Game
             var presentation = sessionProfile.presentation;
             if (presentation && !recapFeel)
                 throw new InvalidOperationException("GameHost presents but has no recap feel profile assigned.");
+            if (presentation && jumpFeel && !jumpShader)
+                throw new InvalidOperationException("GameHost enables jump travel but has no jump shader assigned.");
             session = new Session(sessionProfile, arena, unitService, objectiveService);
             if (presentation)
                 BuildEventSystem(ui);
@@ -171,6 +183,14 @@ namespace Game
             }
 
             yield return PlayRuns(presentation);
+
+            if (jump)
+            {
+                jump.Release(false);
+                Destroy(jump.gameObject);
+                jump = null;
+                yield return null;
+            }
 
             if (rigInstance)
             {
@@ -212,16 +232,18 @@ namespace Game
                 string playerLoadoutStatHash = null;
                 var hull = 1f;
                 var index = 0;
+                var transferred = false;
                 while (true)
                 {
-                    SetSplashVisible(true);
-                    sectorEnded = false;
-                    if (rigInstance) rigInstance.Spawns.BeginSector();
-                    yield return session.LoadSector(index, rigInstance ? rigInstance.Player : null, _ =>
+                    if (!transferred)
                     {
-                        sectorEndTime = Time.time;
-                        sectorEnded = true;
-                    });
+                        SetSplashVisible(true);
+                        sectorEnded = false;
+                        activeSectorIndex = index;
+                        if (rigInstance) rigInstance.Spawns.BeginSector();
+                        yield return session.LoadSector(index, rigInstance ? rigInstance.Player : null, OnSectorComplete);
+                    }
+                    transferred = false;
                     if (shutdownRequested) yield break;
                     if (index == 0)
                         playerLoadoutStatHash = rigInstance ? BeginRun() : null;
@@ -244,13 +266,24 @@ namespace Game
                         rigInstance.Spawns.EndSector(sectorEndTime);
                         SetMusic(GameMusic.State.Recap);
                         if (presentation)
-                            yield return RunRecap(RecapOutcomeContext.Extraction(
+                        {
+                            var extraction = RecapOutcomeContext.Extraction(
                                 rigInstance.Spawns.KilledShips(currentSector: true), index + 1,
-                                Mathf.Max(0f, sectorEndTime - sectorStartTime)));
+                                Mathf.Max(0f, sectorEndTime - sectorStartTime));
+                            if (jump)
+                            {
+                                yield return RunJump(extraction, index + 1, hull);
+                                transferred = true;
+                            }
+                            else yield return RunRecap(extraction);
+                        }
                     }
                     if (shutdownRequested) yield break;
-                    SetSplashVisible(true);
-                    yield return session.UnloadSector();
+                    if (!transferred)
+                    {
+                        SetSplashVisible(true);
+                        yield return session.UnloadSector();
+                    }
                     if (shutdownRequested) yield break;
                     index++;
                 }
@@ -269,6 +302,55 @@ namespace Game
                 yield return session.UnloadSector();
                 if (rigInstance) rigInstance.Park();
             }
+        }
+
+        private void OnSectorComplete(SectorResult result)
+        {
+            sectorEndTime = Time.time;
+            sectorEnded = true;
+            if (!jumpFeel || !sessionProfile.presentation || !rigInstance ||
+                activeSectorIndex == sessionProfile.sectors.Length - 1) return;
+            if (!result.Success || !result.DepartureHeading.HasValue)
+                throw new InvalidOperationException("Jump-enabled extraction needs a successful result with a departure heading.");
+            jump = SectorJumpFlight.Begin(transform, rigInstance, session.Units, observer, jumpFeel,
+                jumpShader, result.DepartureHeading.Value);
+        }
+
+        private IEnumerator RunJump(RecapOutcomeContext context, int destination, float hull)
+        {
+            LocaleBackdropPair backdrop = null;
+            yield return session.PrepareTravelBackdrop(sessionProfile.sectors[destination].config.Locale.SceneName,
+                transform, pair => backdrop = pair);
+            if (!shutdownRequested)
+            {
+                jump.BindBackdrop(ui, backdrop);
+                while (!jump.Holding && !shutdownRequested) yield return null;
+            }
+            if (!shutdownRequested)
+            {
+                PauseRecapClock();
+                yield return RecapPlayback.RunScreen(new RecapOutcomeSequence(recapFeel, context), ui,
+                    cancelled: () => shutdownRequested);
+            }
+            if (!shutdownRequested)
+            {
+                sectorEnded = false;
+                activeSectorIndex = destination;
+                rigInstance.Spawns.BeginSector();
+                yield return session.TransferSector(destination, rigInstance.Player, OnSectorComplete);
+                rigInstance.Player.Damage.Health.SetFraction(hull);
+            }
+            if (!shutdownRequested)
+            {
+                jump.ResumeArrival();
+                while (!jump.Complete && !shutdownRequested) yield return null;
+            }
+            jump.Release(!shutdownRequested);
+            Destroy(jump.gameObject);
+            jump = null;
+            Destroy(backdrop.gameObject);
+            RestoreRecapClock();
+            yield return null;
         }
 
         private Transform NewRoot(string name)

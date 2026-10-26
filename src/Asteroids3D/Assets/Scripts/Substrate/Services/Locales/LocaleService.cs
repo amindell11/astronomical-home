@@ -9,8 +9,8 @@ namespace Substrate.Services.Locales
     /// Locale switching for one session, held privately by it rather than exposed beside its services:
     /// swap the active (lighting) scene to a sector's authored locale before its content builds, return
     /// to the idle locale — the one shown while no sector is loaded — whenever the sector unloads, and
-    /// hand the boot scene back when the session tears down. It also lends a loaded destination
-    /// to a backdrop pair without switching the active scene. The session skips these steps headless.
+    /// hand the boot scene back when the session tears down. A travel backdrop retains both skies
+    /// across the transfer, releasing the unused locale afterward. The session skips these steps headless.
     /// </summary>
     public class LocaleService
     {
@@ -19,6 +19,7 @@ namespace Substrate.Services.Locales
         private string loadedLocaleName;
         private LocaleBackdropPair backdrop;
         private AsyncOperation backdropUnload;
+        private string backdropDestination;
 
         public LocaleService(string idleLocaleName = null)
         {
@@ -41,21 +42,27 @@ namespace Substrate.Services.Locales
             var root = new GameObject("Locale backdrop pair");
             root.transform.SetParent(parent, false);
             backdrop = root.AddComponent<LocaleBackdropPair>();
+            backdropDestination = destination;
             backdrop.Initialize(from, to, () =>
             {
                 backdrop = null;
-                if (ownsDestination && to.isLoaded) backdropUnload = SceneManager.UnloadSceneAsync(to);
+                backdropDestination = null;
+                if (loadedLocaleName == destination)
+                    backdropUnload = SceneManager.UnloadSceneAsync(from);
+                else if (ownsDestination && to.isLoaded)
+                    backdropUnload = SceneManager.UnloadSceneAsync(to);
             });
             ready(backdrop);
         }
 
-        /// <summary>Make the named scene the active (lighting) scene, additively loading it and unloading the prior locale; no-op when empty or already applied.</summary>
         public IEnumerator ApplyLocaleAsync(string localeSceneName)
         {
             if (string.IsNullOrWhiteSpace(localeSceneName) || loadedLocaleName == localeSceneName)
                 yield break;
 
-            if (!string.IsNullOrEmpty(loadedLocaleName))
+            if (backdrop && localeSceneName != backdropDestination)
+                throw new InvalidOperationException("A held travel backdrop can only transfer to its destination.");
+            if (!backdrop && !string.IsNullOrEmpty(loadedLocaleName))
                 yield return UnloadSceneAsync(loadedLocaleName);
 
             var scene = SceneManager.GetSceneByName(localeSceneName);

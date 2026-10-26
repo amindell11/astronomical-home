@@ -33,32 +33,40 @@ namespace Game.Travel
         private bool commanderEnabled;
         private Vector3 observerPosition;
         private int[] hullLayers;
+        private bool ownsPose;
+        private float worldBlend = 1f;
+        private float hullDiameter;
 
         public static SectorJumpPresentation Create(Transform parent, Ship ship, Overlay overlay,
-            IEnumerable<Ship> ships, ObserverCam observer, LocaleBackdropPair backdrop, Shader shader)
+            IEnumerable<Ship> ships, ObserverCam observer, LocaleBackdropPair backdrop, Shader shader,
+            bool ownsPose = true)
         {
             var root = new GameObject("Sector jump presentation");
             root.transform.SetParent(parent, false);
             var presentation = root.AddComponent<SectorJumpPresentation>();
-            presentation.Initialize(ship, overlay, ships, observer, backdrop, shader);
+            presentation.Initialize(ship, overlay, ships, observer, backdrop, shader, ownsPose);
             return presentation;
         }
 
         private void Initialize(Ship player, Overlay playerOverlay, IEnumerable<Ship> activeShips,
-            ObserverCam playerObserver, LocaleBackdropPair skies, Shader shader)
+            ObserverCam playerObserver, LocaleBackdropPair skies, Shader shader, bool controlsPose)
         {
             ship = player;
             overlay = playerOverlay;
             ships = activeShips;
             observer = playerObserver;
             backdrop = skies;
+            ownsPose = controlsPose;
             observerEnabled = observer.enabled;
             commanderEnabled = ship.Commander.enabled;
             observerPosition = observer.transform.position;
-            observer.enabled = false;
-            ship.Commander.enabled = false;
-            observer.transform.position = new Vector3(ship.transform.position.x, ship.transform.position.y,
-                observerPosition.z);
+            if (ownsPose)
+            {
+                observer.enabled = false;
+                ship.Commander.enabled = false;
+                observer.transform.position = new Vector3(ship.transform.position.x, ship.transform.position.y,
+                    observerPosition.z);
+            }
             hullLayers = new int[ship.VisualRig.Silhouette.Count];
             skyCamera = NewCamera("Jump sky camera", 1 << LayerIds.Sky);
             hullCamera = NewCamera("Jump hull camera", 1 << LayerMask.NameToLayer("ShipPreview"));
@@ -115,25 +123,39 @@ namespace Game.Travel
             return target;
         }
 
-        public void Apply(SectorJumpProfile profile, SectorJumpState state, int seed, bool reverseLocales)
+        public void Apply(SectorJumpProfile profile, SectorJumpState state, int seed, bool reverseLocales,
+            Vector3? skyOrigin = null)
         {
             Resize();
             var aspect = (float)composed.width / composed.height;
-            var origin = ship.transform.position;
+            var origin = skyOrigin ?? ship.transform.position;
             var offset = state.JumpDirection * (state.TravelFraction * profile.skyTravelDistance);
             skyCamera.transform.position = new Vector3(origin.x + offset.x, origin.y + offset.y, -10f);
             skyCamera.aspect = aspect;
+            skyCamera.orthographicSize = Mathf.Lerp(observer.Cam.orthographicSize, 12f, worldBlend);
             backdrop.Render(skyCamera, outgoing, incoming);
             RenderHull();
             material.SetTexture("_FromSky", reverseLocales ? incoming : outgoing);
             material.SetTexture("_ToSky", reverseLocales ? outgoing : incoming);
             SectorJumpShader.Apply(material, profile, state, aspect, composed.height, seed);
+            if (!ownsPose)
+            {
+                var framing = material.GetVector("_Ship");
+                framing.x = Mathf.Lerp(hullDiameter / (observer.Cam.orthographicSize * 2f), framing.x, worldBlend);
+                material.SetVector("_Ship", framing);
+            }
             var previous = RenderTexture.active;
             try { Graphics.Blit(null, composed, material); }
             finally { RenderTexture.active = previous; }
             overlay.SetOpacity(state.HudAlpha);
             foreach (var active in ships)
                 if (active && active.VisualRig) active.VisualRig.SetHudOpacity(state.HudAlpha);
+        }
+
+        public void SetWorldBlend(float blend)
+        {
+            worldBlend = Mathf.Clamp01(blend);
+            image.color = new Color(1f, 1f, 1f, worldBlend);
         }
 
         private void Resize()
@@ -183,6 +205,7 @@ namespace Game.Travel
                 hullCamera.transform.rotation = ship.transform.rotation;
                 hullCamera.transform.position = pose.MultiplyPoint3x4(bounds.center - Vector3.forward * 20f);
                 hullCamera.orthographicSize = Mathf.Max(bounds.extents.x, bounds.extents.y) * 1.12f;
+                hullDiameter = hullCamera.orthographicSize * 2f;
                 hullCamera.aspect = 1f;
                 hullCamera.targetTexture = hull;
                 hullCamera.Render();
@@ -197,12 +220,12 @@ namespace Game.Travel
 
         private void OnDestroy()
         {
-            if (observer)
+            if (ownsPose && observer)
             {
                 observer.enabled = observerEnabled;
                 observer.transform.position = observerPosition;
             }
-            if (ship) ship.Commander.enabled = commanderEnabled;
+            if (ownsPose && ship) ship.Commander.enabled = commanderEnabled;
             if (overlay) overlay.SetOpacity(1f);
             if (ships != null)
                 foreach (var active in ships)

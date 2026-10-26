@@ -20,6 +20,7 @@ namespace Game.Preview
 {
     public enum PreviewSubjectKind { RunRecap, SectorJump }
     public enum PreviewMode { Inspection, Playtest }
+    public enum PreviewPlaytestSetup { Combat, CrowdedJumpGate }
 
     /// <summary>
     /// Inspection owns a session and presentation subject driven by a transport; Playtest owns a
@@ -32,6 +33,7 @@ namespace Game.Preview
     public sealed class PreviewHost : MonoBehaviour
     {
         [SerializeField] internal SessionProfile sessionProfile;
+        [SerializeField] internal SessionProfile jumpPlaytestProfile;
         [SerializeField] internal PlayerRig playerRigPrefab;
         [SerializeField] internal ObserverCam observerCamPrefab;
         [SerializeField] internal RecapFeelProfile recapFeel;
@@ -39,6 +41,7 @@ namespace Game.Preview
         [SerializeField] internal Shader jumpShader;
         [SerializeField] internal PreviewSubjectKind subjectKind;
         [SerializeField] internal PreviewMode mode;
+        [SerializeField] internal PreviewPlaytestSetup playtestSetup;
 
         private UnitService unitService;
         private ObjectiveService objectiveService;
@@ -62,8 +65,10 @@ namespace Game.Preview
         public ObserverCam Observer => observer;
         public PreviewSubjectKind SubjectKind => subjectKind;
         public PreviewMode Mode => mode;
+        public PreviewPlaytestSetup PlaytestSetup => playtestSetup;
         public GameHost Playtest => playtest;
         public RecapFeelProfile RecapFeel => recapFeel;
+        public SectorJumpProfile JumpFeel => jumpFeel;
         public bool IsReplacing => replacing || closing;
         public bool IsReady => !composing && !IsReplacing &&
             (mode == PreviewMode.Inspection ? Subject != null : playtest && playtest.ActiveSector);
@@ -73,6 +78,7 @@ namespace Game.Preview
             unitService = GetComponent<UnitService>();
             objectiveService = GetComponent<ObjectiveService>();
             RequireMode(mode);
+            RequirePlaytestSetup(playtestSetup);
             if (!sessionProfile.presentation)
                 throw new InvalidOperationException("The preview host requires presentation to be enabled.");
             DontDestroyOnLoad(gameObject);
@@ -118,10 +124,16 @@ namespace Game.Preview
             var root = new GameObject("Preview Playtest");
             root.SetActive(false);
             playtest = root.AddComponent<GameHost>();
-            playtest.sessionProfile = sessionProfile;
+            playtest.sessionProfile = playtestSetup == PreviewPlaytestSetup.CrowdedJumpGate
+                ? jumpPlaytestProfile : sessionProfile;
             playtest.playerRig = playerRigPrefab;
             playtest.observerCamPrefab = observerCamPrefab;
             playtest.recapFeel = recapFeel;
+            if (playtestSetup == PreviewPlaytestSetup.CrowdedJumpGate)
+            {
+                playtest.jumpFeel = jumpFeel;
+                playtest.jumpShader = jumpShader;
+            }
             playtest.runRecordPath = Path.Combine(ResultsRoot.Folder("preview"),
                 Guid.NewGuid().ToString("N"), RunRecordStore.FileName);
             root.SetActive(true);
@@ -138,6 +150,18 @@ namespace Game.Preview
 
         public void RestartPlaytest() => RestartPlaytest(recapFeel);
 
+        public void SelectPlaytestSetup(PreviewPlaytestSetup selected)
+        {
+            RequireAvailable();
+            if (mode != PreviewMode.Playtest)
+                throw new InvalidOperationException("Setup selection requires Playtest mode.");
+            RequirePlaytestSetup(selected);
+            if (selected == playtestSetup)
+                throw new InvalidOperationException("That Playtest setup is already selected.");
+            playtestSetup = selected;
+            BeginReplacement();
+        }
+
         public void RestartPlaytest(RecapFeelProfile feel)
         {
             RequireAvailable();
@@ -145,6 +169,16 @@ namespace Game.Preview
                 throw new InvalidOperationException("Restart Playtest requires Playtest mode.");
             if (!feel) throw new ArgumentNullException(nameof(feel));
             recapFeel = feel;
+            BeginReplacement();
+        }
+
+        public void RestartPlaytest(SectorJumpProfile feel)
+        {
+            RequireAvailable();
+            if (mode != PreviewMode.Playtest || playtestSetup != PreviewPlaytestSetup.CrowdedJumpGate)
+                throw new InvalidOperationException("Jump profile selection requires the crowded jump Playtest setup.");
+            if (!feel) throw new ArgumentNullException(nameof(feel));
+            jumpFeel = feel;
             BeginReplacement();
         }
 
@@ -274,6 +308,15 @@ namespace Game.Preview
         {
             if (!Enum.IsDefined(typeof(PreviewMode), selected))
                 throw new ArgumentOutOfRangeException(nameof(selected));
+        }
+
+        private void RequirePlaytestSetup(PreviewPlaytestSetup selected)
+        {
+            if (!Enum.IsDefined(typeof(PreviewPlaytestSetup), selected))
+                throw new ArgumentOutOfRangeException(nameof(selected));
+            if (selected == PreviewPlaytestSetup.CrowdedJumpGate &&
+                (jumpPlaytestProfile == null || !jumpPlaytestProfile.presentation || !jumpFeel || !jumpShader))
+                throw new InvalidOperationException("The crowded jump setup requires its visible session and jump assets.");
         }
 
         private void RequireAvailable()
