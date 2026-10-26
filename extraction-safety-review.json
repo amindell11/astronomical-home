@@ -1,0 +1,28 @@
+{
+  "issue": 1117,
+  "stage": "Visual redesign for owner review; production implementation pending",
+  "baseCommit": "19f13c291c24dc59c5b547e8c31104dc6b32f7c8",
+  "rejectedTreatment": "Solid yellow diamond reads as a hazard sign. Shape and colour are no longer requirements.",
+  "retainedConstraints": ["Brief opening message", "Minimal persistent text", "Matching screen and minimap cues"],
+  "concepts": {
+    "open-berth": "Open off-white arch with mint approach lights; opening faces the player; recommended direction",
+    "beacon": "White centre light with interrupted curved signal strokes; quieter abstract alternative"
+  },
+  "capture": {
+    "source": "Unity GameViewEpisodeCapture, 1280x720; runtime scratch components only",
+    "states": ["opening", "travel", "arrival"],
+    "openingMessage": "Extraction open",
+    "scene": "Paused combat playtest with staged extraction target",
+    "openingAndTravelCameraOrthographicSize": 18,
+    "arrivalCameraOrthographicSize": 60,
+    "arrivalFraming": "Wider camera to show the existing station; proposed cue is overlaid at its destination",
+    "limits": ["Stills do not validate timing in motion", "No new zoom behaviour proposed", "Station prefab and extraction rules unchanged"]
+  },
+  "reviewChecks": {
+    "allSixImagesLoaded": true,
+    "allSixStateButtons": "passed",
+    "carouselNavigation": "passed",
+    "browserScriptErrors": 0,
+    "viewport360HorizontalOverflow": false
+  }
+}
