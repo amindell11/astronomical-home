@@ -163,6 +163,8 @@ namespace Tests.PlayMode.Bootstrap
             var units = hostGo.GetComponent<UnitService>();
             var enemy = units.SpawnShip(TestAssets.LoadCrimsonPrefab(), null, 1,
                 rig.Player.transform.position + GamePlane.Right * 50f, GamePlane.Rotation, null);
+            observer.SetManualZoom(12f);
+            yield return new WaitForSecondsRealtime(.5f);
             var deathPosition = rig.Player.transform.position;
             observer.transform.position = deathPosition + GamePlane.Right * 30f - GamePlane.Normal * 10f;
             var initialZoom = observer.Cam.orthographicSize;
@@ -214,6 +216,7 @@ namespace Tests.PlayMode.Bootstrap
                     "the next run starts");
                 Assert.AreEqual(1f, Time.timeScale);
                 Assert.IsTrue(observer.enabled);
+                Assert.AreEqual(12f, observer.ManualZoom);
                 Assert.AreEqual(1f, rig.Overlay.GetComponent<CanvasGroup>().alpha);
                 Assert.IsTrue(rig.Overlay.GetComponent<Canvas>().enabled);
             }

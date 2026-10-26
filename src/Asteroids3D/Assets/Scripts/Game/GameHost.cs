@@ -16,7 +16,6 @@ using UI.Recap;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
-using UI.Screens;
 using Ships.Registry;
 using Substrate.Services.Units;
 using Substrate.Services.Objectives;
@@ -371,7 +370,7 @@ namespace Game
                 : RecapOutcomeContext.Victory(kills, index + 1, count, board);
         }
 
-        // The sequence decides what shows and when play freezes; the host owns clock, screen, restore.
+        // The host restores clock and world presentation after playback.
         private IEnumerator RunRecap(RecapOutcomeContext context)
         {
             var sequence = new RecapOutcomeSequence(recapFeel, context);

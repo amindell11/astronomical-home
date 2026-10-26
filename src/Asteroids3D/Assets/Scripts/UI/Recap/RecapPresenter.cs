@@ -27,18 +27,14 @@ namespace UI.Recap
             this.overlay = overlay;
             this.ships = ships ?? Array.Empty<Ship>();
             this.observer = observer;
-            cameraWasEnabled = observer && observer.enabled;
+            cameraWasEnabled = observer.enabled;
             deathPoint = context.Outcome == RecapOutcome.Defeat ? context.DeathPoint : null;
-            if (!observer) return;
             deathZoom = observer.Cam.orthographicSize;
             previousCenter = observer.ManualCenter;
             previousZoom = observer.ManualZoom;
         }
 
-        public void Apply(RecapState state)
-        {
-            ApplyWorld(state.HudAlpha, state.ShipHudAlpha, state.CameraHeld);
-        }
+        public void Apply(RecapState state) => ApplyWorld(state.HudAlpha, state.ShipHudAlpha, state.CameraHeld);
 
         public void Restore() => ApplyWorld(1f, 1f, false);
 
