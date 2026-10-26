@@ -74,6 +74,7 @@ namespace UI.Weapons
                     built.Add(new BoundReadout(slot, readouts[i], null));
                     continue;
                 }
+                if (readouts[i] is not IChargeReadout and not ILockStateSource) continue;
                 if (!panel)
                 {
                     panel = Instantiate(panelPrefab, transform);

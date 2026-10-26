@@ -138,6 +138,19 @@ namespace Tests.PlayMode
         }
 
         [Test]
+        public void ConcussionLoadout_DoesNotLeaveAnEmptyCornerPanel()
+        {
+            var controller = CreateController(
+                LoadWeaponPrefab<Grenades>("Assets/Prefabs/Weapons/Grenades.prefab"), null);
+            var builder = CreateBuilder();
+
+            builder.Build(controller.ReadoutContext);
+
+            Assert.IsEmpty(builder.Panels);
+            Assert.IsNotNull(builder.FirstReadout<IAmmoReadout>());
+        }
+
+        [Test]
         public void DisplayName_FallsBackToPrefabName()
         {
             var controller = CreateController(
