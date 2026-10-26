@@ -9,6 +9,7 @@ Shader "UI/ShieldGlow"
         [HideInInspector] _ArcLength ("Arc Length", Float) = 6.283185
         [HideInInspector] _TipStrength ("Tip Strength", Float) = 0
         [HideInInspector] _RingRotation ("Ring Rotation", Float) = 0
+        [HideInInspector] _Trail ("Recovery Trail", Float) = 0
     }
     SubShader
     {
@@ -31,7 +32,7 @@ Shader "UI/ShieldGlow"
             };
 
             fixed4 _Color;
-            float _Thickness, _Softness, _GlowIntensity, _ArcLength, _TipStrength, _RingRotation;
+            float _Thickness, _Softness, _GlowIntensity, _ArcLength, _TipStrength, _RingRotation, _Trail;
 
             v2f vert (appdata v)
             {
@@ -57,12 +58,14 @@ Shader "UI/ShieldGlow"
                 float aa = max(fwidth(r),_Softness);
                 float core = 1-smoothstep(width-aa*0.5,width+aa*0.5,distance);
                 float key = 1-smoothstep(width+0.008,width+0.008+aa,distance);
-                float tip = (1-smoothstep(0.02,0.09,endDistance))*_TipStrength*open;
+                float tipDistance = lerp(endDistance,abs(_ArcLength-along),_Trail);
+                float tip = (1-smoothstep(0.02,0.09,tipDistance))*_TipStrength*open;
                 float glow = (1-smoothstep(width,width+0.035,distance))*tip*_GlowIntensity;
                 float light = 0.5+0.5*cos(angle-2.35);
                 float3 tint = lerp(_Color.rgb*0.72,lerp(_Color.rgb,float3(0.82,0.88,0.83),0.6),light);
                 tint = lerp(tint,float3(0.9,0.94,0.86),tip*0.8);
                 float alpha = max(core*0.88,max(key*0.3,glow));
+                alpha *= lerp(1,saturate(along/max(_ArcLength,0.001)),_Trail);
                 float3 rgb = lerp(float3(0.04,0.12,0.17),tint,core);
                 return float4(rgb,alpha*_Color.a)*i.color;
             }

@@ -87,8 +87,14 @@ namespace Tests.PlayMode.Presentation
             yield return null;
             yield return null;
             Assert.That(ring.enabled, Is.True);
-            Assert.That(ring.fillAmount, Is.EqualTo(ship.Damage.Shield.Pct).Within(0.001f));
-            Assert.That(ring.fillAmount, Is.LessThan(1f), "Refilling must still be an open arc.");
+            Assert.That(ring.fillAmount, Is.LessThan(0.3f), "Recovery uses a short orbiting arc.");
+            var recoveryFill = ring.fillAmount;
+            var recoveryRotation = ring.transform.rotation;
+            yield return new WaitForSeconds(0.2f);
+            Assert.That(Quaternion.Angle(ring.transform.rotation, recoveryRotation), Is.GreaterThan(10f));
+            ship.Damage.Shield.Update(0.25f);
+            yield return null;
+            Assert.That(ring.fillAmount, Is.EqualTo(recoveryFill), "The arc must orbit rather than fill with capacity.");
             var ringSize = ring.rectTransform.sizeDelta;
             ship.Damage.TakeDamage(Hit(10f, true));
             yield return new WaitForSeconds(0.08f);

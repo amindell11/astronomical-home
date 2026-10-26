@@ -17,6 +17,7 @@ namespace UI.PlayerState
         private static readonly int ArcLength = Shader.PropertyToID("_ArcLength");
         private static readonly int TipStrength = Shader.PropertyToID("_TipStrength");
         private static readonly int RingRotation = Shader.PropertyToID("_RingRotation");
+        private static readonly int Trail = Shader.PropertyToID("_Trail");
         private IDamageEvents source;
         private ShipVisualRig rig;
         private Transform root;
@@ -28,6 +29,8 @@ namespace UI.PlayerState
         private float hitAge = float.PositiveInfinity;
         private float breakAge = float.PositiveInfinity;
         private float fullAge = float.PositiveInfinity;
+        private float recoveryAngle;
+        private float recoveryAge;
 
         private void Awake()
         {
@@ -103,6 +106,8 @@ namespace UI.PlayerState
         private void Clear()
         {
             hitAge = breakAge = fullAge = float.PositiveInfinity;
+            recoveryAngle = -Mathf.PI * 0.5f;
+            recoveryAge = 0f;
             if (ring) ring.enabled = false;
         }
 
@@ -133,6 +138,7 @@ namespace UI.PlayerState
             hitAge += Time.deltaTime;
             breakAge += Time.deltaTime;
             fullAge += Time.deltaTime;
+            if (!source.Shield.IsRegenerating) recoveryAge = 0f;
             ring.enabled = false;
             if (enemyLock is { IsConcealed: true }) return;
 
@@ -150,8 +156,9 @@ namespace UI.PlayerState
             }
             else if (source.Shield.IsRegenerating)
             {
-                var fill = source.Shield.Pct;
-                Draw(fill, hitAngle + Mathf.PI * (1f - fill), 1f, 1f - Smooth((fill - 0.92f) / 0.08f));
+                recoveryAge += Time.deltaTime;
+                recoveryAngle += Time.deltaTime * 2.3f;
+                Draw(1.4f / (Mathf.PI * 2f), recoveryAngle - 1.4f, Smooth(recoveryAge / 0.18f), 1f, true);
             }
             else if (fullAge < fullHold + 0.38f)
             {
@@ -159,7 +166,7 @@ namespace UI.PlayerState
             }
         }
 
-        private void Draw(float fill, float start, float alpha, float tips)
+        private void Draw(float fill, float start, float alpha, float tips, bool trail = false)
         {
             transform.SetPositionAndRotation(root.position - Vector3.forward * 0.05f,
                 GamePlane.Rotation * Quaternion.AngleAxis(start * Mathf.Rad2Deg - 90f, Vector3.forward));
@@ -168,6 +175,7 @@ namespace UI.PlayerState
             material.SetFloat(ArcLength, fill * Mathf.PI * 2f);
             material.SetFloat(TipStrength, tips);
             material.SetFloat(RingRotation, start - Mathf.PI * 0.5f);
+            material.SetFloat(Trail, trail ? 1f : 0f);
             ring.enabled = alpha > 0f && fill > 0f;
         }
 
