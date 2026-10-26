@@ -19,3 +19,11 @@ The existing recap-response.gif and recap-response.mp4 on this evidence branch s
 ## Quality review
 
 The combined review found no correctness, scoped simplification or Unity-convention issues. It removed one redundant GameHost comment. ReSharper passed on 302284d86 with no blocking Unity findings on changed lines and 97 report-only findings elsewhere in touched files. The subsequent source change deletes only that comment.
+
+## Input lifetime follow-up
+
+The combined resident-editor run in agent-5, 20261025-194952, failed the death test with InputManager.AddStateChangeMonitor IndexOutOfRangeException. InputTestFixture.Setup reset the input system after the host had created real controls, and its local finally restored the system before those controls were destroyed. The fixture now surrounds the host and world lifetime through the existing per-test SetUp/TearDown. Keyboard creation also precedes game boot.
+
+All four production-flow tests passed together with graphics in agent-4 run 20261025-195252. The source fix is test-only commit f9b5b4f17d27ae08075a5a29f266594c2a03699a. The narrow quality review found no issues. The original resident-editor scenario is being rechecked by the Playtest work.
+
+The ReSharper ratchet passed again on f9b5b4f17 with no blocking findings and 97 report-only findings outside changed lines.

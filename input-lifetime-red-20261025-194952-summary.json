@@ -1,0 +1,85 @@
+{
+  "generatedAt": "2026-10-25T19:50:19.8172222-07:00",
+  "projectPath": "D:\\amind\\git\\agent-5\\src\\Asteroids3D",
+  "unityPath": "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+  "mode": "PlayMode",
+  "selection": {
+    "scopeType": "Workspace",
+    "scopeName": "",
+    "scopeResolved": false,
+    "testFilter": "MultiSectorRunPlayModeTests",
+    "testCategory": "",
+    "excludeCategory": "",
+    "categoryFilter": "",
+    "assemblyNames": "",
+    "orderedTestListFile": "",
+    "rerunFailedFrom": "",
+    "auto": null,
+    "withGraphics": false,
+    "captureScenario": ""
+  },
+  "status": "failed",
+  "totals": {
+    "total": 4,
+    "passed": 3,
+    "failed": 1,
+    "skipped": 0,
+    "durationSec": 6.62
+  },
+  "runs": [
+    {
+      "platform": "PlayMode",
+      "xmlPath": "",
+      "logPath": "",
+      "unityExitCode": 0,
+      "status": "failed",
+      "total": 4,
+      "passed": 3,
+      "failed": 1,
+      "skipped": 0,
+      "durationSec": 6.62,
+      "failures": [
+        {
+          "name": "Death_CentersTheCameraAndKeepsShipsFlying_ThenRestoresTheNextRun",
+          "fullName": "Tests.PlayMode.Bootstrap.MultiSectorRunPlayModeTests.Death_CentersTheCameraAndKeepsShipsFlying_ThenRestoresTheNextRun",
+          "durationSec": 5.9005354,
+          "message": "Unhandled log message: '[Exception] IndexOutOfRangeException: Index was outside the bounds of the array.'. Use UnityEngine.TestTools.LogAssert.Expect",
+          "topStack": "UnityEngine.InputSystem.InputManager.AddStateChangeMonitor (UnityEngine.InputSystem.InputControl control, UnityEngine.InputSystem.LowLevel.IInputStateChangeMonitor monitor, System.Int64 monitorIndex, System.UInt32 groupIndex) (at ./Library/..."
+        }
+      ],
+      "truncatedFailures": 0,
+      "selection": {
+        "scopeType": "Workspace",
+        "scopeName": "",
+        "scopeResolved": false,
+        "testFilter": "MultiSectorRunPlayModeTests",
+        "testCategory": "",
+        "excludeCategory": "",
+        "categoryFilter": "",
+        "assemblyNames": "",
+        "orderedTestListFile": "",
+        "rerunFailedFrom": "",
+        "auto": null,
+        "withGraphics": false,
+        "captureScenario": ""
+      }
+    }
+  ],
+  "wallTiming": {
+    "elapsedSec": 27.281,
+    "startupToFirstTestSec": null,
+    "executionSec": null,
+    "remainingSec": null,
+    "unavailableReason": "resident-editor transport has no cold-process timestamps"
+  },
+  "coverage": {
+    "verdict": "partial",
+    "reason": "transport=routed (warm-editor run; merge-grade proof requires a cold-process run)"
+  },
+  "memory": {
+    "processes": [],
+    "unavailableReason": "resident-editor transport launches no process to sample"
+  },
+  "transport": "routed",
+  "editorPid": 63568
+}
