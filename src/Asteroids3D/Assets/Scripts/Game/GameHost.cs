@@ -370,7 +370,6 @@ namespace Game
                 : RecapOutcomeContext.Victory(kills, index + 1, count, board);
         }
 
-        // The host restores clock and world presentation after playback.
         private IEnumerator RunRecap(RecapOutcomeContext context)
         {
             var sequence = new RecapOutcomeSequence(recapFeel, context);
