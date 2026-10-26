@@ -1,0 +1,526 @@
+{
+  "baseCommit": "19f13c291c24dc59c5b547e8c31104dc6b32f7c8",
+  "unity": "6000.1.8f1",
+  "quality": "Performant",
+  "scenario": "Paused Preview Host Playtest, staged ship positions and resource values, runtime-only UGUI comparison",
+  "states": [
+    {
+      "capture": "absolute-depleted",
+      "state": {
+        "scaling": "fixed",
+        "treatment": "absolute",
+        "depleted": true,
+        "zoom": 17,
+        "width": 1280,
+        "height": 720,
+        "ships": [
+          {
+            "name": "Capacity player",
+            "position": "(-14.00, -65.00, 0.00)",
+            "hull": 24,
+            "hullMax": 65,
+            "shield": 12,
+            "shieldMax": 32
+          },
+          {
+            "name": "Capacity light enemy",
+            "position": "(0.00, -54.00, 0.00)",
+            "hull": 24,
+            "hullMax": 80,
+            "shield": 12,
+            "shieldMax": 50
+          },
+          {
+            "name": "Capacity heavy enemy",
+            "position": "(15.00, -62.00, 0.00)",
+            "hull": 200,
+            "hullMax": 400,
+            "shield": 75,
+            "shieldMax": 150
+          }
+        ]
+      }
+    },
+    {
+      "capture": "absolute-full",
+      "state": {
+        "scaling": "fixed",
+        "treatment": "absolute",
+        "depleted": false,
+        "zoom": 17,
+        "width": 1280,
+        "height": 720,
+        "ships": [
+          {
+            "name": "Capacity player",
+            "position": "(-14.00, -65.00, 0.00)",
+            "hull": 65,
+            "hullMax": 65,
+            "shield": 32,
+            "shieldMax": 32
+          },
+          {
+            "name": "Capacity light enemy",
+            "position": "(0.00, -54.00, 0.00)",
+            "hull": 80,
+            "hullMax": 80,
+            "shield": 50,
+            "shieldMax": 50
+          },
+          {
+            "name": "Capacity heavy enemy",
+            "position": "(15.00, -62.00, 0.00)",
+            "hull": 400,
+            "hullMax": 400,
+            "shield": 150,
+            "shieldMax": 150
+          }
+        ]
+      }
+    },
+    {
+      "capture": "bounded-12",
+      "state": {
+        "scaling": "bounded",
+        "treatment": "graduated",
+        "depleted": true,
+        "zoom": 12,
+        "width": 1280,
+        "height": 720,
+        "ships": [
+          {
+            "name": "Capacity player",
+            "position": "(-14.00, -65.00, 0.00)",
+            "hull": 24,
+            "hullMax": 65,
+            "shield": 12,
+            "shieldMax": 32
+          },
+          {
+            "name": "Capacity light enemy",
+            "position": "(0.00, -54.00, 0.00)",
+            "hull": 24,
+            "hullMax": 80,
+            "shield": 12,
+            "shieldMax": 50
+          },
+          {
+            "name": "Capacity heavy enemy",
+            "position": "(15.00, -62.00, 0.00)",
+            "hull": 200,
+            "hullMax": 400,
+            "shield": 75,
+            "shieldMax": 150
+          }
+        ]
+      }
+    },
+    {
+      "capture": "bounded-28",
+      "state": {
+        "scaling": "bounded",
+        "treatment": "graduated",
+        "depleted": true,
+        "zoom": 28,
+        "width": 1280,
+        "height": 720,
+        "ships": [
+          {
+            "name": "Capacity player",
+            "position": "(-14.00, -65.00, 0.00)",
+            "hull": 24,
+            "hullMax": 65,
+            "shield": 12,
+            "shieldMax": 32
+          },
+          {
+            "name": "Capacity light enemy",
+            "position": "(0.00, -54.00, 0.00)",
+            "hull": 24,
+            "hullMax": 80,
+            "shield": 12,
+            "shieldMax": 50
+          },
+          {
+            "name": "Capacity heavy enemy",
+            "position": "(15.00, -62.00, 0.00)",
+            "hull": 200,
+            "hullMax": 400,
+            "shield": 75,
+            "shieldMax": 150
+          }
+        ]
+      }
+    },
+    {
+      "capture": "fixed-12",
+      "state": {
+        "scaling": "fixed",
+        "treatment": "graduated",
+        "depleted": true,
+        "zoom": 12,
+        "width": 1280,
+        "height": 720,
+        "ships": [
+          {
+            "name": "Capacity player",
+            "position": "(-14.00, -65.00, 0.00)",
+            "hull": 24,
+            "hullMax": 65,
+            "shield": 12,
+            "shieldMax": 32
+          },
+          {
+            "name": "Capacity light enemy",
+            "position": "(0.00, -54.00, 0.00)",
+            "hull": 24,
+            "hullMax": 80,
+            "shield": 12,
+            "shieldMax": 50
+          },
+          {
+            "name": "Capacity heavy enemy",
+            "position": "(15.00, -62.00, 0.00)",
+            "hull": 200,
+            "hullMax": 400,
+            "shield": 75,
+            "shieldMax": 150
+          }
+        ]
+      }
+    },
+    {
+      "capture": "fixed-28",
+      "state": {
+        "scaling": "fixed",
+        "treatment": "graduated",
+        "depleted": true,
+        "zoom": 28,
+        "width": 1280,
+        "height": 720,
+        "ships": [
+          {
+            "name": "Capacity player",
+            "position": "(-14.00, -65.00, 0.00)",
+            "hull": 24,
+            "hullMax": 65,
+            "shield": 12,
+            "shieldMax": 32
+          },
+          {
+            "name": "Capacity light enemy",
+            "position": "(0.00, -54.00, 0.00)",
+            "hull": 24,
+            "hullMax": 80,
+            "shield": 12,
+            "shieldMax": 50
+          },
+          {
+            "name": "Capacity heavy enemy",
+            "position": "(15.00, -62.00, 0.00)",
+            "hull": 200,
+            "hullMax": 400,
+            "shield": 75,
+            "shieldMax": 150
+          }
+        ]
+      }
+    },
+    {
+      "capture": "graduated-depleted",
+      "state": {
+        "scaling": "fixed",
+        "treatment": "graduated",
+        "depleted": true,
+        "zoom": 17,
+        "width": 1280,
+        "height": 720,
+        "ships": [
+          {
+            "name": "Capacity player",
+            "position": "(-14.00, -65.00, 0.00)",
+            "hull": 24,
+            "hullMax": 65,
+            "shield": 12,
+            "shieldMax": 32
+          },
+          {
+            "name": "Capacity light enemy",
+            "position": "(0.00, -54.00, 0.00)",
+            "hull": 24,
+            "hullMax": 80,
+            "shield": 12,
+            "shieldMax": 50
+          },
+          {
+            "name": "Capacity heavy enemy",
+            "position": "(15.00, -62.00, 0.00)",
+            "hull": 200,
+            "hullMax": 400,
+            "shield": 75,
+            "shieldMax": 150
+          }
+        ]
+      }
+    },
+    {
+      "capture": "graduated-full",
+      "state": {
+        "scaling": "fixed",
+        "treatment": "graduated",
+        "depleted": false,
+        "zoom": 17,
+        "width": 1280,
+        "height": 720,
+        "ships": [
+          {
+            "name": "Capacity player",
+            "position": "(-14.00, -65.00, 0.00)",
+            "hull": 65,
+            "hullMax": 65,
+            "shield": 32,
+            "shieldMax": 32
+          },
+          {
+            "name": "Capacity light enemy",
+            "position": "(0.00, -54.00, 0.00)",
+            "hull": 80,
+            "hullMax": 80,
+            "shield": 50,
+            "shieldMax": 50
+          },
+          {
+            "name": "Capacity heavy enemy",
+            "position": "(15.00, -62.00, 0.00)",
+            "hull": 400,
+            "hullMax": 400,
+            "shield": 150,
+            "shieldMax": 150
+          }
+        ]
+      }
+    },
+    {
+      "capture": "native-12",
+      "state": {
+        "scaling": "native",
+        "treatment": "graduated",
+        "depleted": true,
+        "zoom": 12,
+        "width": 1280,
+        "height": 720,
+        "ships": [
+          {
+            "name": "Capacity player",
+            "position": "(-14.00, -65.00, 0.00)",
+            "hull": 24,
+            "hullMax": 65,
+            "shield": 12,
+            "shieldMax": 32
+          },
+          {
+            "name": "Capacity light enemy",
+            "position": "(0.00, -54.00, 0.00)",
+            "hull": 24,
+            "hullMax": 80,
+            "shield": 12,
+            "shieldMax": 50
+          },
+          {
+            "name": "Capacity heavy enemy",
+            "position": "(15.00, -62.00, 0.00)",
+            "hull": 200,
+            "hullMax": 400,
+            "shield": 75,
+            "shieldMax": 150
+          }
+        ]
+      }
+    },
+    {
+      "capture": "native-28",
+      "state": {
+        "scaling": "native",
+        "treatment": "graduated",
+        "depleted": true,
+        "zoom": 28,
+        "width": 1280,
+        "height": 720,
+        "ships": [
+          {
+            "name": "Capacity player",
+            "position": "(-14.00, -65.00, 0.00)",
+            "hull": 24,
+            "hullMax": 65,
+            "shield": 12,
+            "shieldMax": 32
+          },
+          {
+            "name": "Capacity light enemy",
+            "position": "(0.00, -54.00, 0.00)",
+            "hull": 24,
+            "hullMax": 80,
+            "shield": 12,
+            "shieldMax": 50
+          },
+          {
+            "name": "Capacity heavy enemy",
+            "position": "(15.00, -62.00, 0.00)",
+            "hull": 200,
+            "hullMax": 400,
+            "shield": 75,
+            "shieldMax": 150
+          }
+        ]
+      }
+    },
+    {
+      "capture": "numeric-depleted",
+      "state": {
+        "scaling": "fixed",
+        "treatment": "numeric",
+        "depleted": true,
+        "zoom": 17,
+        "width": 1280,
+        "height": 720,
+        "ships": [
+          {
+            "name": "Capacity player",
+            "position": "(-14.00, -65.00, 0.00)",
+            "hull": 24,
+            "hullMax": 65,
+            "shield": 12,
+            "shieldMax": 32
+          },
+          {
+            "name": "Capacity light enemy",
+            "position": "(0.00, -54.00, 0.00)",
+            "hull": 24,
+            "hullMax": 80,
+            "shield": 12,
+            "shieldMax": 50
+          },
+          {
+            "name": "Capacity heavy enemy",
+            "position": "(15.00, -62.00, 0.00)",
+            "hull": 200,
+            "hullMax": 400,
+            "shield": 75,
+            "shieldMax": 150
+          }
+        ]
+      }
+    },
+    {
+      "capture": "numeric-full",
+      "state": {
+        "scaling": "fixed",
+        "treatment": "numeric",
+        "depleted": false,
+        "zoom": 17,
+        "width": 1280,
+        "height": 720,
+        "ships": [
+          {
+            "name": "Capacity player",
+            "position": "(-14.00, -65.00, 0.00)",
+            "hull": 65,
+            "hullMax": 65,
+            "shield": 32,
+            "shieldMax": 32
+          },
+          {
+            "name": "Capacity light enemy",
+            "position": "(0.00, -54.00, 0.00)",
+            "hull": 80,
+            "hullMax": 80,
+            "shield": 50,
+            "shieldMax": 50
+          },
+          {
+            "name": "Capacity heavy enemy",
+            "position": "(15.00, -62.00, 0.00)",
+            "hull": 400,
+            "hullMax": 400,
+            "shield": 150,
+            "shieldMax": 150
+          }
+        ]
+      }
+    },
+    {
+      "capture": "world-12",
+      "state": {
+        "scaling": "world",
+        "treatment": "graduated",
+        "depleted": true,
+        "zoom": 12,
+        "width": 1280,
+        "height": 720,
+        "ships": [
+          {
+            "name": "Capacity player",
+            "position": "(-14.00, -65.00, 0.00)",
+            "hull": 24,
+            "hullMax": 65,
+            "shield": 12,
+            "shieldMax": 32
+          },
+          {
+            "name": "Capacity light enemy",
+            "position": "(0.00, -54.00, 0.00)",
+            "hull": 24,
+            "hullMax": 80,
+            "shield": 12,
+            "shieldMax": 50
+          },
+          {
+            "name": "Capacity heavy enemy",
+            "position": "(15.00, -62.00, 0.00)",
+            "hull": 200,
+            "hullMax": 400,
+            "shield": 75,
+            "shieldMax": 150
+          }
+        ]
+      }
+    },
+    {
+      "capture": "world-28",
+      "state": {
+        "scaling": "world",
+        "treatment": "graduated",
+        "depleted": true,
+        "zoom": 28,
+        "width": 1280,
+        "height": 720,
+        "ships": [
+          {
+            "name": "Capacity player",
+            "position": "(-14.00, -65.00, 0.00)",
+            "hull": 24,
+            "hullMax": 65,
+            "shield": 12,
+            "shieldMax": 32
+          },
+          {
+            "name": "Capacity light enemy",
+            "position": "(0.00, -54.00, 0.00)",
+            "hull": 24,
+            "hullMax": 80,
+            "shield": 12,
+            "shieldMax": 50
+          },
+          {
+            "name": "Capacity heavy enemy",
+            "position": "(15.00, -62.00, 0.00)",
+            "hull": 200,
+            "hullMax": 400,
+            "shield": 75,
+            "shieldMax": 150
+          }
+        ]
+      }
+    }
+  ]
+}
