@@ -1,0 +1,87 @@
+{
+    "generatedAt":  "2026-10-25T20:53:21.3078972-07:00",
+    "projectPath":  "D:\\amind\\git\\agent-5\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "PlayMode",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "scopeResolved":  false,
+                      "testFilter":  "CrowdedJumpPlayModeTests|GameHostShutdownPlayModeTests|MultiSectorRunPlayModeTests|LocalePlayModeTests|SessionLocaleRoundTripPlayModeTests",
+                      "testCategory":  "",
+                      "excludeCategory":  "",
+                      "categoryFilter":  "",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  "",
+                      "auto":  null,
+                      "withGraphics":  false,
+                      "captureScenario":  ""
+                  },
+    "status":  "failed",
+    "totals":  {
+                   "total":  19,
+                   "passed":  18,
+                   "failed":  1,
+                   "skipped":  0,
+                   "durationSec":  26.22
+               },
+    "runs":  [
+                 {
+                     "platform":  "PlayMode",
+                     "xmlPath":  "",
+                     "logPath":  "",
+                     "unityExitCode":  0,
+                     "status":  "failed",
+                     "total":  19,
+                     "passed":  18,
+                     "failed":  1,
+                     "skipped":  0,
+                     "durationSec":  26.22,
+                     "failures":  [
+                                      {
+                                          "name":  "Death_CentersTheCameraAndKeepsShipsFlying_ThenRestoresTheNextRun",
+                                          "fullName":  "Tests.PlayMode.Bootstrap.MultiSectorRunPlayModeTests.Death_CentersTheCameraAndKeepsShipsFlying_ThenRestoresTheNextRun",
+                                          "durationSec":  5.8463771,
+                                          "message":  "death framing works without active subjects Expected: less than 0.100000001f But was: 0.331541687f",
+                                          "topStack":  "at Tests.PlayMode.Bootstrap.MultiSectorRunPlayModeTests+\u003cDeath_CentersTheCameraAndKeepsShipsFlying_ThenRestoresTheNextRun\u003ed__18.MoveNext () [0x005fb] in D:\\amind\\git\\agent-5\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\PlayMode\\Bootstrap\\Mul..."
+                                      }
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "scopeType":  "Workspace",
+                                       "scopeName":  "",
+                                       "scopeResolved":  false,
+                                       "testFilter":  "CrowdedJumpPlayModeTests|GameHostShutdownPlayModeTests|MultiSectorRunPlayModeTests|LocalePlayModeTests|SessionLocaleRoundTripPlayModeTests",
+                                       "testCategory":  "",
+                                       "excludeCategory":  "",
+                                       "categoryFilter":  "",
+                                       "assemblyNames":  "",
+                                       "orderedTestListFile":  "",
+                                       "rerunFailedFrom":  "",
+                                       "auto":  null,
+                                       "withGraphics":  false,
+                                       "captureScenario":  ""
+                                   }
+                 }
+             ],
+    "wallTiming":  {
+                       "elapsedSec":  99.415,
+                       "startupToFirstTestSec":  null,
+                       "executionSec":  null,
+                       "remainingSec":  null,
+                       "unavailableReason":  "resident-editor transport has no cold-process timestamps"
+                   },
+    "coverage":  {
+                     "verdict":  "partial",
+                     "reason":  "transport=routed (warm-editor run; merge-grade proof requires a cold-process run)"
+                 },
+    "memory":  {
+                   "processes":  [
+
+                                 ],
+                   "unavailableReason":  "resident-editor transport launches no process to sample"
+               },
+    "transport":  "routed",
+    "editorPid":  66692
+}
