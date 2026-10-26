@@ -1,0 +1,42 @@
+{
+  "version": "2026-10-26-proposed-v1",
+  "status": "Proposed canonical UI palette, awaiting owner review. No game files changed.",
+  "colors": {
+    "void": "#080D17", "canvas": "#0B1322", "panel": "#111D2D", "raised": "#1A2A40", "hover": "#1C2D43", "pressed": "#0E1828",
+    "track": "#1D2D43", "divider": "#33465E", "line": "#70829D", "text": "#F1EEE5", "secondary": "#ADB9CB", "muted": "#899CB6", "disabled": "#55667F", "focus": "#D8E5F5",
+    "hull": "#92D3AB", "shield": "#7BB7EB", "ability": "#BAADE7", "warning": "#F0B56C", "danger": "#FF5A45", "objective": "#E7CC86",
+    "player": "#1AFFD9", "ally": "#8ED8C4", "asteroid": "#C0C5CE", "map": "#08101E", "rim": "#FFFFFF"
+  },
+  "opacity": {"screenScrim":0.72,"panel":0.94,"tooltip":0.98,"minimap":0.85,"damageTrail":0.35,"disabled":1},
+  "geometry": {"dividerPx":1,"controlOutlinePx":1.5,"focusOutlinePx":2,"minimapRimPx":3,"barHeightPx":5,"cornerCutPx":0,"spacingUnitPx":4,"preferredIconPx":24,"iconMinimumReviewPx":16},
+  "typography": {
+    "recommended": {"label":"Barlow Semi Condensed","labelWeight":500,"body":"Inter","bodyWeight":400,"numbers":"Inter","features":["tnum","zero"]},
+    "alternative": {"label":"Rajdhani","labelWeight":500,"body":"Inter","bodyWeight":400,"numbers":"Inter","features":["tnum","zero"]},
+    "sizesPx": {"microLabel":12,"body":14,"control":14,"section":18,"screenTitle":28,"readout":14},
+    "case": "Uppercase only for short labels and controls. Sentence case for descriptions and messages."
+  },
+  "rules": [
+    "Use opaque foregrounds. Control translucency through backings, never essential text.",
+    "Use square panels and controls. Keep angled ends in weapon glyphs and marker shapes; reserve circles for the minimap and radial indicators.",
+    "Keep hull and shield identities stable across player, ally and enemy. Put allegiance on marker shape and name, not resource fills.",
+    "Show current/max capacity in the study. Graduations remain an open choice under issue 1189.",
+    "Reserve coral for hostility, critical danger, negative changes and failure. Pair it with shape or text.",
+    "Pair warnings and objectives with distinct labels and marker shapes even though both are warm colors.",
+    "Use ivory for selected controls and weapon identities. Do not assign a separate decorative color to every weapon.",
+    "Keep minimap hues visible. No white bloom on player, enemy or asteroid markers.",
+    "Keep fixed ivory/coral/mint map precedents from PR 1002; ally and extraction marker shapes remain proposals.",
+    "Preserve green success and red loss outcomes from PR 1065.",
+    "Damage flashes must not be the sole cue. Respect reduced-motion preferences and avoid continuous flashing."
+  ],
+  "sources": [
+    "https://github.com/amindell11/astronomical-home/issues/684",
+    "https://github.com/amindell11/astronomical-home/issues/997#issuecomment-6411552858",
+    "https://github.com/amindell11/astronomical-home/pull/1002",
+    "https://github.com/amindell11/astronomical-home/pull/1065",
+    "https://github.com/amindell11/astronomical-home/issues/1189",
+    "https://github.com/jpt/barlow",
+    "https://github.com/google/fonts/blob/main/ofl/rajdhani/METADATA.pb",
+    "https://rsms.me/inter/",
+    "https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html"
+  ]
+}
