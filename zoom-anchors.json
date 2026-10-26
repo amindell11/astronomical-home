@@ -1,0 +1,56 @@
+{
+  "success": true,
+  "command": "command eval_file",
+  "data": {
+    "command": "eval_file",
+    "parameters": {
+      "file": "D:/amind/git/agent-3/scratch/capacity/clean-scene.cs"
+    },
+    "result": {
+      "output": null,
+      "diagnostics": [],
+      "success": true,
+      "result": {
+        "width": 1280,
+        "height": 720,
+        "orthographicSize": 34,
+        "ships": [
+          {
+            "name": "Capacity player",
+            "x": 491.7647,
+            "y": 400.2353,
+            "hullMax": 65,
+            "shieldMax": 32,
+            "hull": 24,
+            "shield": 12
+          },
+          {
+            "name": "Capacity light enemy",
+            "x": 640,
+            "y": 281.891144,
+            "hullMax": 80,
+            "shieldMax": 50,
+            "hull": 24,
+            "shield": 12
+          },
+          {
+            "name": "Capacity heavy enemy",
+            "x": 798.823547,
+            "y": 300.378021,
+            "hullMax": 400,
+            "shieldMax": 150,
+            "hull": 200,
+            "shield": 75
+          }
+        ]
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7801,
+      "projectPath": "D:\\amind\\git\\agent-3\\src\\Asteroids3D"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

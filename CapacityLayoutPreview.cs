@@ -50,8 +50,8 @@ public static class CapacityLayoutPreview
             else foreach (var renderer in ship.GetComponentsInChildren<MeshRenderer>()) top = Mathf.Max(top, camera.WorldToScreenPoint(renderer.bounds.max).y);
             var panel = Rect(ship.name, canvas.transform, new Vector2(point.x, top + 12), Vector2.zero);
             panel.localScale = Vector3.one * scale;
-            Row(panel, font, "S", ship.Damage.Shield, new Color(0f, .8f, 1f), 18, treatment);
-            Row(panel, font, "H", ship.Damage.Health, new Color(.22f, 1f, .15f), 0, treatment);
+            Row(panel, font, ship.Damage.Shield, new Color(0f, .8f, 1f), 18, treatment);
+            Row(panel, font, ship.Damage.Health, new Color(.22f, 1f, .15f), 0, treatment);
         }
         Canvas.ForceUpdateCanvases();
         return State(ships, scaling, treatment, depleted, zoom);
@@ -93,11 +93,11 @@ public static class CapacityLayoutPreview
         shadow.effectDistance = new Vector2(1, -1);
     }
 
-    private static void Row(Transform panel, Font font, string label, Resource resource, Color color, float y, string treatment)
+    private static void Row(Transform panel, Font font, Resource resource, Color color, float y, string treatment)
     {
         var width = treatment == "absolute" ? resource.MaxValue * .32f : 80f;
         const float left = -40f;
-        Label(label, panel, font, new Vector2(left - 16, y), 14, color);
+
         Block("Track", panel, new Vector2(left - 1, y), new Vector2(width + 2, 10), new Color(.02f, .04f, .08f, .92f));
         Block("Empty", panel, new Vector2(left, y), new Vector2(width, 8), new Color(.1f, .18f, .24f, 1));
         Block("Remaining", panel, new Vector2(left, y), new Vector2(width * resource.Pct, 8), color);
@@ -117,4 +117,5 @@ public static class CapacityLayoutPreview
             shield = s.Damage.Shield.CurrentValue, shieldMax = s.Damage.Shield.MaxValue }).ToArray()
     };
 }
+
 
