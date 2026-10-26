@@ -58,4 +58,3 @@ namespace Tests.EditMode.Ships
         }
     }
 }
-

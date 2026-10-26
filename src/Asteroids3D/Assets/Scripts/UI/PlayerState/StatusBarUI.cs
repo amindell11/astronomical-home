@@ -111,7 +111,6 @@ namespace UI.PlayerState
             fill.color = fillColor;
         }
 
-        // Concealment hides bars alongside the ship.
         private void Hide(bool hide)
         {
             if (hide == hidden) return;
