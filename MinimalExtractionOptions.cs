@@ -91,7 +91,7 @@ public sealed class MinimalExtractionView : MonoBehaviour
         var point = world.WorldToViewportPoint(target.position);
         var projected = new Vector2(point.x * 1280, point.y * 720);
         var direction = projected - new Vector2(640,360);
-        var limit = Mathf.Min(540f / Mathf.Max(.001f, Mathf.Abs(direction.x)), 215f / Mathf.Max(.001f, Mathf.Abs(direction.y)));
+        var limit = Mathf.Min(540f / Mathf.Max(.001f, Mathf.Abs(direction.x)), (direction.y < 0 ? 270f : 215f) / Mathf.Max(.001f, Mathf.Abs(direction.y)));
         var offscreen = limit < 1;
         var location = offscreen ? new Vector2(640,360) + direction * limit : projected;
         if (offscreen && location.x > 1020 && location.y > 450)
