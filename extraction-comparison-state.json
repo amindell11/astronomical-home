@@ -1,0 +1,20 @@
+{
+  "commit": "19f13c291c24dc59c5b547e8c31104dc6b32f7c8",
+  "unity": "6000.1.8f1",
+  "quality": "High Fidelity",
+  "capturedWidth": 1280,
+  "capturedHeight": 720,
+  "step": "extract",
+  "state": "ExtractionChallenge",
+  "target": "(138.21, 58.26, 0.00)",
+  "player": "(-0.01, 0.00, 0.00)",
+  "playerActive": true,
+  "distance": 150.0,
+  "camera": "(-4.00, -1.00, -50.00)",
+  "zoom": 18.0,
+  "nativeMarkerRect": "2 x 2 UI units",
+  "candidateMinimapSymbol": "26 pixels at 1280 x 720; 22-pixel inset reserves arrow space",
+  "mainPointer": "32-pixel symbol with direction and distance; only candidate B",
+  "sceneSetup": "Production PreviewHost Playtest, TrialSector, protected player, shortened phase clock, paused combat, fixed camera for comparison",
+  "changes": "Runtime scratch UI only. No production code, prefab or extraction lifecycle edits."
+}

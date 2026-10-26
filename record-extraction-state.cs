@@ -1,0 +1,8 @@
+var host = UnityEngine.Object.FindFirstObjectByType<Game.Preview.PreviewHost>();
+var rig = host.Playtest.GetComponentInChildren<Game.PlayerRig>();
+var objectives = host.Playtest.GetComponent<Substrate.Services.Objectives.ObjectiveService>();
+var camera = host.Playtest.GetComponentInChildren<Cameras.ObserverCam>();
+var report = new { commit = "19f13c291c24dc59c5b547e8c31104dc6b32f7c8", unity = UnityEngine.Application.unityVersion, quality = UnityEngine.QualitySettings.names[UnityEngine.QualitySettings.GetQualityLevel()], capturedWidth = 1280, capturedHeight = 720, step = objectives.SpineStep, state = objectives.SpineState.ToString(), target = objectives.SpineTarget.position.ToString(), player = rig.Player.transform.position.ToString(), playerActive = rig.Player.gameObject.activeInHierarchy, distance = UnityEngine.Vector3.Distance(rig.Player.transform.position,objectives.SpineTarget.position), camera = camera.transform.position.ToString(), zoom = camera.Cam.orthographicSize, nativeMarkerRect = "2 x 2 UI units", candidateMinimapSymbol = "26 pixels at 1280 x 720; 22-pixel inset reserves arrow space", mainPointer = "32-pixel symbol with direction and distance; only candidate B", sceneSetup = "Production PreviewHost Playtest, TrialSector, protected player, shortened phase clock, paused combat, fixed camera for comparison", changes = "Runtime scratch UI only. No production code, prefab or extraction lifecycle edits." };
+var json = Newtonsoft.Json.JsonConvert.SerializeObject(report, Newtonsoft.Json.Formatting.Indented);
+System.IO.File.WriteAllText("D:/amind/git/agent-3/scratch/capture/extraction-comparison-state.json",json);
+return json;
