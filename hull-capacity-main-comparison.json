@@ -1,0 +1,53 @@
+{
+  "pr": 1193,
+  "prHead": "252f97b7269223e4e652578cc3cad237be3d13f0",
+  "mainHead": "1c3ce29c99f734d58743c27a83f14ed81b029ec1",
+  "invocation": "unity_test_agent.ps1 -Mode Both -ScopeType Workspace",
+  "prSummary": "20261026-035311-summary.json",
+  "mainSummary": "20261026-040203-summary.json",
+  "sameFailureNamesAndMessages": true,
+  "failures": [
+    {
+      "name": "PhasesRunOut_ZoneAppearsAway_AndFreshPressExtracts",
+      "fullName": "Tests.PlayMode.PhaseSpinePlayModeTests.PhasesRunOut_ZoneAppearsAway_AndFreshPressExtracts",
+      "durationSec": 0.042755,
+      "message": "System.ArgumentNullException : Value cannot be null. Parameter name: source",
+      "topStack": "at (wrapper managed-to-native) Unity.Collections.LowLevel.Unsafe.UnsafeUtility.MemCpy(void*,void*,long)"
+    },
+    {
+      "name": "ActivateWithBlankToken_LogsError_AndChaserStaysDormant",
+      "fullName": "Tests.PlayMode.SectorSpineDemoPlayModeTests.ActivateWithBlankToken_LogsError_AndChaserStaysDormant",
+      "durationSec": 0.015939,
+      "message": "System.ArgumentNullException : Value cannot be null. Parameter name: source",
+      "topStack": "at (wrapper managed-to-native) Unity.Collections.LowLevel.Unsafe.UnsafeUtility.MemCpy(void*,void*,long)"
+    },
+    {
+      "name": "ChaserWithinBlockDistance_BlocksExtraction_UntilChaserLeaves",
+      "fullName": "Tests.PlayMode.SectorSpineDemoPlayModeTests.ChaserWithinBlockDistance_BlocksExtraction_UntilChaserLeaves",
+      "durationSec": 0.014612,
+      "message": "System.ArgumentNullException : Value cannot be null. Parameter name: source",
+      "topStack": "at (wrapper managed-to-native) Unity.Collections.LowLevel.Unsafe.UnsafeUtility.MemCpy(void*,void*,long)"
+    },
+    {
+      "name": "KeyThenGate_AdvancesSpine_ActivatesChaser_AndExtracts",
+      "fullName": "Tests.PlayMode.SectorSpineDemoPlayModeTests.KeyThenGate_AdvancesSpine_ActivatesChaser_AndExtracts",
+      "durationSec": 0.012332,
+      "message": "System.ArgumentNullException : Value cannot be null. Parameter name: source",
+      "topStack": "at (wrapper managed-to-native) Unity.Collections.LowLevel.Unsafe.UnsafeUtility.MemCpy(void*,void*,long)"
+    },
+    {
+      "name": "MissingChallengeRule_ZoneStaysUnarmed_AndExtractionNeverCompletes",
+      "fullName": "Tests.PlayMode.SectorSpineDemoPlayModeTests.MissingChallengeRule_ZoneStaysUnarmed_AndExtractionNeverCompletes",
+      "durationSec": 0.013959,
+      "message": "System.ArgumentNullException : Value cannot be null. Parameter name: source",
+      "topStack": "at (wrapper managed-to-native) Unity.Collections.LowLevel.Unsafe.UnsafeUtility.MemCpy(void*,void*,long)"
+    },
+    {
+      "name": "RuleWithNullZone_LogsError_AndExtractionStaysGated",
+      "fullName": "Tests.PlayMode.SectorSpineDemoPlayModeTests.RuleWithNullZone_LogsError_AndExtractionStaysGated",
+      "durationSec": 0.012786,
+      "message": "System.ArgumentNullException : Value cannot be null. Parameter name: source",
+      "topStack": "at (wrapper managed-to-native) Unity.Collections.LowLevel.Unsafe.UnsafeUtility.MemCpy(void*,void*,long)"
+    }
+  ]
+}
