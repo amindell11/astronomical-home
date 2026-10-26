@@ -56,7 +56,7 @@ public static class CaptureBuiltCrosshair
         InputSystem.onAfterUpdate += stageInput;
         var capture = ScriptableObject.CreateInstance<GameViewEpisodeCapture>();
         var rows = new List<object>();
-        var names = new[] { "built-idle", "built-primary", "built-secondary", "built-both", "built-reloading", "built-overheated" };
+        var names = new[] { "svg-idle", "svg-primary", "svg-secondary", "svg-both", "svg-reloading", "svg-overheated", "svg-1080p" };
         var flags = BindingFlags.NonPublic | BindingFlags.Instance;
         try
         {
@@ -68,7 +68,9 @@ public static class CaptureBuiltCrosshair
                     for (var i = 0; i < (index == 5 ? 20 : 6); i++) heat.ProcessFire();
                     rounds.Reset();rounds.ProcessFire();
                     if (index == 4) { rounds.ProcessFire();rounds.Tick(rounds.ReloadTime * .5f); }
-                    var state = new MouseState { position = new Vector2(880f, 430f) };
+                    var width = index == 6 ? 1920 : 1280;
+                    var height = index == 6 ? 1080 : 720;
+                    var state = new MouseState { position = index == 6 ? new Vector2(600f, 700f) : new Vector2(880f, 430f) };
                     if (index == 1 || index >= 3) state = state.WithButton(MouseButton.Left);
                     if (index == 2 || index >= 3) state = state.WithButton(MouseButton.Right);
                     stagedMouse = new MouseState { position = state.position };
@@ -78,7 +80,7 @@ public static class CaptureBuiltCrosshair
                     stagedMouse = state;
                     InputSystem.QueueStateEvent(mouse, state);InputSystem.Update();
                     using (var recording = capture.Prepare(new CaptureRequest(Root, names[index],
-                        File.ReadAllText(Root + "/capture-commit.txt").Trim(), 1280, 720)))
+                        File.ReadAllText(Root + "/capture-commit.txt").Trim(), width, height)))
                     {
                         yield return recording.Ready;
                         stagedMouse = new MouseState { position = Vector2.zero };
@@ -90,14 +92,14 @@ public static class CaptureBuiltCrosshair
                         for (var frame = 0; frame < 5; frame++) { InputSystem.QueueStateEvent(mouse, state); yield return null; }
                         rows.Add(new { name = names[index], heat = heat.HeatPct, heat.Overheated,
                             rounds.AmmoCount, rounds.MaxAmmo, rounds.IsReloading, rounds.ReloadProgress,
-                            primary = typeof(AimCrosshair).GetField("primaryVisible", flags).GetValue(crosshair),
-                            secondary = typeof(AimCrosshair).GetField("secondaryVisible", flags).GetValue(crosshair),
+                            primary = crosshair.transform.Find("PrimaryResources").gameObject.activeSelf,
+                            secondary = crosshair.transform.Find("SecondaryResources").gameObject.activeSelf,
                             rawAim = crosshairControls.Flight.AimPoint.ReadValue<Vector2>().ToString(),
                             deviceAim = mouse.position.ReadValue().ToString(),
                             aimPhase = crosshairControls.Flight.AimPoint.phase.ToString(),
                             aimEnabled = crosshairControls.Flight.AimPoint.enabled,
                             aim = RectTransformUtility.WorldToScreenPoint(rig.Overlay.WorldCamera, crosshair.transform.position).ToString(),
-                            canvasScale = crosshair.canvas.rootCanvas.scaleFactor,
+                            canvasScale = crosshair.GetComponentInParent<Canvas>().rootCanvas.scaleFactor,
                             markerScale = crosshair.transform.localScale.x,
                             cursorVisible = Cursor.visible });
                         var result = recording.Finish();
@@ -106,7 +108,7 @@ public static class CaptureBuiltCrosshair
                     }
                 }
             }
-            File.WriteAllText(Root + "/built-state.json", Newtonsoft.Json.JsonConvert.SerializeObject(rows));
+            File.WriteAllText(Root + "/svg-state.json", Newtonsoft.Json.JsonConvert.SerializeObject(rows));
         }
         finally
         {
