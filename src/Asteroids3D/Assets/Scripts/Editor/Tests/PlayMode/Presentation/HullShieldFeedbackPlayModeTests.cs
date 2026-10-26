@@ -10,6 +10,7 @@ using Tests.PlayMode.Common;
 using UI.PlayerState;
 using UnityEngine;
 using UnityEngine.TestTools;
+using UnityEngine.UI;
 
 namespace Tests.PlayMode.Presentation
 {
@@ -18,7 +19,7 @@ namespace Tests.PlayMode.Presentation
     {
         private Ship ship;
         private HullVisuals hull;
-        private LineRenderer[] strokes;
+        private Image ring;
         private Renderer[] surfaces;
 
         [SetUp]
@@ -31,7 +32,7 @@ namespace Tests.PlayMode.Presentation
             ship.Damage.Health.Configure(100f);
             ship.Damage.Shield.Configure(100f, 20f, 1f);
             hull = ship.GetComponentInChildren<HullVisuals>();
-            strokes = ship.GetComponentInChildren<ShieldVisuals>().GetComponentsInChildren<LineRenderer>();
+            ring = ship.GetComponentInChildren<ShieldUI>().GetComponent<Image>();
             surfaces = ship.GetComponentInChildren<ShipVisualRig>().Silhouette.ToArray();
         }
 
@@ -48,14 +49,15 @@ namespace Tests.PlayMode.Presentation
             yield return null;
             ship.Damage.TakeDamage(Hit(20f));
             yield return new WaitForSeconds(0.08f);
-            Assert.That(strokes.Count(s => s.enabled), Is.EqualTo(1));
+            Assert.That(ring.enabled, Is.True);
+            Assert.That(ring.fillAmount, Is.LessThan(0.3f), "An absorbed hit stays localized.");
             Assert.That(FlashStrength(), Is.Zero);
 
             ship.ResetShip();
             yield return null;
             ship.Damage.TakeDamage(Hit(20f, true));
             yield return new WaitForSeconds(0.08f);
-            Assert.That(strokes.Any(s => s.enabled), Is.False, "Bypass damage must leave shields quiet.");
+            Assert.That(ring.enabled, Is.False, "Bypass damage must leave shields quiet.");
             Assert.That(FlashStrength(), Is.GreaterThan(0f));
             Assert.That(ship.Damage.Shield.CurrentValue, Is.EqualTo(100f));
 
@@ -63,10 +65,14 @@ namespace Tests.PlayMode.Presentation
             yield return null;
             ship.Damage.TakeDamage(Hit(120f));
             yield return new WaitForSeconds(0.08f);
-            Assert.That(strokes.Count(s => s.enabled), Is.GreaterThan(1), "A break fragments the circle.");
+            Assert.That(ring.enabled, Is.True);
+            var brokenFill = ring.fillAmount;
+            Assert.That(brokenFill, Is.InRange(0f, 1f));
+            yield return new WaitForSeconds(0.12f);
+            Assert.That(ring.fillAmount, Is.LessThan(brokenFill), "The tear opens around the original ring.");
             Assert.That(FlashStrength(), Is.GreaterThan(0f));
             yield return new WaitForSeconds(0.8f);
-            Assert.That(strokes.Any(s => s.enabled), Is.False, "Empty shields have no persistent mark.");
+            Assert.That(ring.enabled, Is.False, "Empty shields have no persistent mark.");
             Assert.That(FlashStrength(), Is.Zero);
         }
 
@@ -76,27 +82,31 @@ namespace Tests.PlayMode.Presentation
             yield return null;
             ship.Damage.TakeDamage(Hit(80f));
             yield return new WaitForSeconds(0.7f);
-            Assert.That(strokes.Any(s => s.enabled), Is.False);
+            Assert.That(ring.enabled, Is.False);
             ship.Damage.Shield.Update(1f);
             yield return null;
             yield return null;
-            Assert.That(strokes[0].enabled, Is.True);
-            Assert.That(EndpointGap(), Is.GreaterThan(0.1f), "Refilling must still be an open arc.");
+            Assert.That(ring.enabled, Is.True);
+            Assert.That(ring.fillAmount, Is.EqualTo(ship.Damage.Shield.Pct).Within(0.001f));
+            Assert.That(ring.fillAmount, Is.LessThan(1f), "Refilling must still be an open arc.");
+            var ringSize = ring.rectTransform.sizeDelta;
             ship.Damage.TakeDamage(Hit(10f, true));
             yield return new WaitForSeconds(0.08f);
-            Assert.That(strokes[0].enabled, Is.True, "Bypass hits do not interrupt shield recovery.");
+            Assert.That(ring.enabled, Is.True, "Bypass hits do not interrupt shield recovery.");
 
             ship.Damage.TakeDamage(Hit(10f));
             yield return new WaitForSeconds(0.7f);
-            Assert.That(strokes.Any(s => s.enabled), Is.False, "Absorbed hits restart the recharge delay.");
+            Assert.That(ring.enabled, Is.False, "Absorbed hits restart the recharge delay.");
             ship.Damage.Shield.Update(4f);
             yield return new WaitForSeconds(0.35f);
-            Assert.That(strokes[0].enabled, Is.True);
-            Assert.That(EndpointGap(), Is.LessThan(0.001f), "Full capacity closes the circle.");
-            yield return new WaitForSeconds(0.65f);
-            Assert.That(strokes[0].enabled, Is.True, "The full circle holds long enough to read.");
+            Assert.That(ring.enabled, Is.True);
+            Assert.That(ring.fillAmount, Is.EqualTo(1f), "Full capacity closes the circle.");
+            Assert.That(ring.rectTransform.sizeDelta, Is.EqualTo(ringSize));
+            yield return new WaitForSeconds(0.5f);
+            Assert.That(ring.enabled, Is.True, "The full circle holds long enough to read.");
+            Assert.That(ring.color.a, Is.EqualTo(1f));
             yield return new WaitForSeconds(0.8f);
-            Assert.That(strokes.Any(s => s.enabled), Is.False);
+            Assert.That(ring.enabled, Is.False);
         }
 
         [UnityTest]
@@ -108,7 +118,7 @@ namespace Tests.PlayMode.Presentation
             ship.ResetShip();
             yield return null;
             yield return null;
-            Assert.That(strokes.Any(s => s.enabled), Is.False);
+            Assert.That(ring.enabled, Is.False);
             Assert.That(FlashStrength(), Is.Zero);
         }
 
@@ -153,9 +163,6 @@ namespace Tests.PlayMode.Presentation
 
         private static DamageInfo Hit(float amount, bool bypass = false) =>
             new(amount, DamageKind.Laser, ShipId.Invalid, 1f, Vector3.left, Vector3.right, bypass);
-
-        private float EndpointGap() => Vector3.Distance(strokes[0].GetPosition(0),
-            strokes[0].GetPosition(strokes[0].positionCount - 1));
 
         private float FlashStrength()
         {

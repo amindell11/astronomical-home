@@ -2,17 +2,17 @@ Shader "UI/ShieldGlow"
 {
     Properties
     {
-        [HDR]_Color      ("Tint",        Color) = (0,1,1,1)
-        _Thickness  ("Ring Width",  Range(0,1)) = 0.15
-        _Softness   ("Edge Soft",   Range(0,0.5)) = 0.05
-        _GlowPower  ("Fresnel Pow", Range(1,8)) = 3
-        _GlowIntensity ("Glow Intensity", Range(0,10)) = 2
-        [HDR]_EmissionColor ("Emission Color", Color) = (0,0,0,0)
+        _Color ("Tint", Color) = (0.51,0.75,0.76,1)
+        _Thickness ("Ring Width", Range(0.005,0.1)) = 0.02
+        _Softness ("Edge Softness", Range(0.001,0.02)) = 0.004
+        _GlowIntensity ("Tip Glow", Range(0,1)) = 0.12
+        [HideInInspector] _ArcLength ("Arc Length", Float) = 6.283185
+        [HideInInspector] _TipStrength ("Tip Strength", Float) = 0
     }
     SubShader
     {
         Tags { "RenderType"="Transparent" "Queue"="Transparent" }
-        Blend One One           // additive
+        Blend SrcAlpha OneMinusSrcAlpha
         Cull Off ZWrite Off
         Pass
         {
@@ -21,31 +21,51 @@ Shader "UI/ShieldGlow"
             #pragma fragment frag
             #include "UnityCG.cginc"
 
-            struct appdata { float4 vertex:POSITION; float2 uv:TEXCOORD0; };
-            struct v2f     { float4 pos:SV_POSITION; float2 uv:TEXCOORD0; };
+            struct appdata { float4 vertex:POSITION; float2 uv:TEXCOORD0; float4 color:COLOR; };
+            struct v2f
+            {
+                float4 pos:SV_POSITION;
+                float2 uv:TEXCOORD0;
+                float2 direction:TEXCOORD1;
+                float4 color:COLOR;
+            };
 
             fixed4 _Color;
-            float  _Thickness, _Softness, _GlowPower, _GlowIntensity;
-            fixed4 _EmissionColor;
+            float _Thickness, _Softness, _GlowIntensity, _ArcLength, _TipStrength;
 
             v2f vert (appdata v)
             {
                 v2f o;
                 o.pos = UnityObjectToClipPos(v.vertex);
-                o.uv  = v.uv * 2 - 1;          // map to -1..1
+                o.uv = v.uv * 2 - 1;
+                o.direction = mul((float3x3)unity_ObjectToWorld, float3(o.uv,0)).xy;
+                o.color = v.color;
                 return o;
             }
 
             fixed4 frag (v2f i) : SV_Target
             {
-                float r = length(i.uv);        // radial distance
-                float edge = 1 - smoothstep(_Thickness, _Thickness + _Softness, abs(r - 1 + _Thickness));
-                // Fresnel-ish: fade by view-angle modulated radius
-                float fres = pow(1 - saturate(r), _GlowPower);
-                fixed4 shieldCol = _Color * edge * fres * _GlowIntensity;
-                // Add emission so bloom can pick up bright HDR values
-                shieldCol.rgb += _EmissionColor.rgb * edge * fres; // scale emission by same mask
-                return shieldCol;
+                float r = length(i.uv);
+                float angle = atan2(i.direction.y,i.direction.x);
+                float along = fmod(atan2(i.uv.y,i.uv.x) + 4.712389,6.283185);
+                float endDistance = min(along,abs(_ArcLength-along));
+                float open = step(_ArcLength,6.282);
+                float taper = lerp(1,0.25+0.75*smoothstep(0,0.12,endDistance),open);
+                float weight = 0.86+0.13*cos(angle*3)+0.09*sin(angle*7);
+                float center = 0.9+0.002*sin(angle*3)+0.0013*sin(angle*7);
+                float distance = abs(r-center);
+                float width = _Thickness*weight*taper;
+                float aa = max(fwidth(r),_Softness);
+                float core = 1-smoothstep(width-aa*0.5,width+aa*0.5,distance);
+                float key = 1-smoothstep(width+0.008,width+0.008+aa,distance);
+                float tip = (1-smoothstep(0.02,0.09,endDistance))*_TipStrength*open;
+                float glow = (1-smoothstep(width,width+0.035,distance))*tip*_GlowIntensity;
+                float light = 0.5+0.5*cos(angle-2.35);
+                float3 tint = lerp(_Color.rgb*0.72,lerp(_Color.rgb,float3(0.82,0.88,0.83),0.6),light);
+                tint = lerp(tint,float3(0.9,0.94,0.86),tip*0.8);
+                float alpha = max(core*0.88,max(key*0.3,glow));
+                float3 rgb = lerp(float3(0.04,0.12,0.17),tint,core);
+                return float4(rgb,alpha*_Color.a)*i.color;
             }
             ENDCG
         }
