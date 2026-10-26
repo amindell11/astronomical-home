@@ -89,6 +89,8 @@ namespace Substrate.Services.Locales
         /// <summary>Restore the boot scene as active and unload the applied locale, if any.</summary>
         public IEnumerator UnloadLocaleAsync()
         {
+            if (backdropUnload != null) yield return backdropUnload;
+            backdropUnload = null;
             if (string.IsNullOrEmpty(loadedLocaleName))
                 yield break;
 

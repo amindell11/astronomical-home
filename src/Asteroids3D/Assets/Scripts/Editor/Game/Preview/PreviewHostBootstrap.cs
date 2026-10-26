@@ -10,9 +10,8 @@ using UnityEngine;
 namespace Game.Preview
 {
     /// <summary>
-    /// Edit-mode entry the control panel calls to get a preview host: a <see cref="PreviewHost"/> in a
-    /// new empty scene over the game's first sector, given the rig, camera, sector and feel assets
-    /// InitScene serializes, then play. The presentation-on sibling of <see cref="PresentationOffBootstrap"/>.
+    /// Builds the preview host in an empty scene with the game's first sector and presentation assets.
+    /// The chosen mode is assigned before activation, so Playtest never composes an inspection session.
     /// </summary>
     public static class PreviewHostBootstrap
     {
@@ -23,18 +22,22 @@ namespace Game.Preview
         internal const string RecapFeelPath = "Assets/Settings/UI/RecapFeel.asset";
 
         /// <summary>False when the user kept an unsaved scene open instead.</summary>
-        public static bool EnterPlayMode(PreviewSubjectKind subject = PreviewSubjectKind.RunRecap)
+        public static bool EnterPlayMode(PreviewSubjectKind subject = PreviewSubjectKind.RunRecap,
+            PreviewMode mode = PreviewMode.Inspection)
         {
             if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return false;
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-            BuildHost(subject);
+            BuildHost(subject, mode);
             EditorApplication.EnterPlaymode();
             return true;
         }
 
-        internal static PreviewHost BuildHost(PreviewSubjectKind subject = PreviewSubjectKind.RunRecap)
+        internal static PreviewHost BuildHost(PreviewSubjectKind subject = PreviewSubjectKind.RunRecap,
+            PreviewMode mode = PreviewMode.Inspection)
         {
-            var host = new GameObject("PreviewHost").AddComponent<PreviewHost>();
+            var root = new GameObject("PreviewHost");
+            root.SetActive(false);
+            var host = root.AddComponent<PreviewHost>();
             host.sessionProfile = new SessionProfile
             {
                 sectors = new[]
@@ -53,6 +56,8 @@ namespace Game.Preview
             host.jumpFeel = AssetDatabase.LoadAssetAtPath<SectorJumpProfile>("Assets/Settings/Game/SectorJumpTuning.asset");
             host.jumpShader = Shader.Find("Astronomical/Travel/SectorJump");
             host.subjectKind = subject;
+            host.mode = mode;
+            root.SetActive(true);
             return host;
         }
     }

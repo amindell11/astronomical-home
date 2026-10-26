@@ -27,6 +27,7 @@ namespace Game
     /// Owns the player rig, viewport, UI, music, run records and clock; the session composes, loads and unloads.
     /// Hull carries between sectors. Death frames the explosion while surviving ships keep moving.
     /// Presentation is read once alongside the session's snapshot.
+    /// Shutdown finishes the current setup operation, releases input waits, then tears down the owned world.
     /// The hangar, recap and restart stand in for Home Base and player progress.
     /// https://github.com/amindell11/astronomical-home/issues/295#issuecomment-5787867584
     /// </summary>
@@ -88,7 +89,6 @@ namespace Game
         [Tooltip("Fraction of max hull restored to the player on each kill the run tally counts.")]
         [SerializeField, Range(0f, 1f)] private float killHullRestore = 0.25f;
 
-        // Test seams, set before the host activates: null → the default store path and the real source.
         internal string runRecordPath;
         internal BuildIdentitySource buildIdentity;
 
@@ -99,6 +99,8 @@ namespace Game
         private bool sectorEnded;
         private float sectorEndTime;
         private float? recapTimeScale;
+        private bool shutdownRequested;
+        private bool shutdownComplete;
 
         private UnitService unitService;
         private ObjectiveService objectiveService;
@@ -168,7 +170,33 @@ namespace Game
                 rigInstance.Tally.Killed += RefillPlayerHull;
             }
 
-            while (true)
+            yield return PlayRuns(presentation);
+
+            if (rigInstance)
+            {
+                rigInstance.Tally.Killed -= RefillPlayerHull;
+                rigInstance.Teardown();
+            }
+            RestoreRecapClock();
+            yield return session.Teardown();
+            if (rigInstance) Destroy(rigInstance.gameObject);
+            if (music) Destroy(music.gameObject);
+            Destroy(ui.gameObject);
+            Destroy(viewport.gameObject);
+            Destroy(arena.gameObject);
+            yield return null;
+            shutdownComplete = true;
+        }
+
+        public IEnumerator Shutdown()
+        {
+            shutdownRequested = true;
+            while (!shutdownComplete) yield return null;
+        }
+
+        private IEnumerator PlayRuns(bool presentation)
+        {
+            while (!shutdownRequested)
             {
                 SetSplashVisible(false);
                 if (rigInstance)
@@ -178,6 +206,7 @@ namespace Game
                     yield return RunHangar(rigInstance, presentation, ui);
                     SetHangarViewVisible(false);
                 }
+                if (shutdownRequested) yield break;
 
                 playerDied = false;
                 string playerLoadoutStatHash = null;
@@ -193,6 +222,7 @@ namespace Game
                         sectorEndTime = Time.time;
                         sectorEnded = true;
                     });
+                    if (shutdownRequested) yield break;
                     if (index == 0)
                         playerLoadoutStatHash = rigInstance ? BeginRun() : null;
                     else if (rigInstance)
@@ -201,9 +231,9 @@ namespace Game
                     if (music) music.EnterSector(session.ActiveSector);
                     var sectorStartTime = Time.time;
 
-                    // Run-end signals latch, so one arriving mid-load or mid-recap never cuts that step short.
-                    while (!playerDied && !sectorEnded)
+                    while (!playerDied && !sectorEnded && !shutdownRequested)
                         yield return null;
+                    if (shutdownRequested) yield break;
 
                     if (playerDied || index == sessionProfile.sectors.Length - 1) break;
 
@@ -218,8 +248,10 @@ namespace Game
                                 rigInstance.Spawns.KilledShips(currentSector: true), index + 1,
                                 Mathf.Max(0f, sectorEndTime - sectorStartTime)));
                     }
+                    if (shutdownRequested) yield break;
                     SetSplashVisible(true);
                     yield return session.UnloadSector();
+                    if (shutdownRequested) yield break;
                     index++;
                 }
 
@@ -231,6 +263,7 @@ namespace Game
                     if (presentation)
                         yield return RunRecap(OutcomeContext(board, index));
                 }
+                if (shutdownRequested) yield break;
 
                 SetSplashVisible(true);
                 yield return session.UnloadSector();
@@ -355,9 +388,9 @@ namespace Game
             var launched = false;
             screen.Show(hangarOffer, rig.Loadout, () => launched = true);
 
-            yield return new WaitUntil(() => launched);
+            yield return new WaitUntil(() => launched || shutdownRequested);
 
-            rig.ApplyLoadout();
+            if (!shutdownRequested) rig.ApplyLoadout();
             Destroy(screen.gameObject);
         }
 
@@ -381,7 +414,7 @@ namespace Game
                     {
                         presenter.Apply(state);
                         SetRecapClock(state.SimulationFrozen);
-                    });
+                    }, () => shutdownRequested);
             }
             finally
             {
