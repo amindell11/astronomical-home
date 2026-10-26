@@ -145,8 +145,9 @@
       for(let i=0;i<6;i++){let a=i*1.047;arc(c,x,y,r+t*big,a+0.12,a+0.68,palette.shield,style==='ship'?3:2,strength);}
     }
     if(hullHit&&t<0.5) {
-      for(let i=0;i<5;i++){let a=-2.2+i*0.35,l=9+t*55;line(c,[[x+Math.cos(a)*26,y-24+Math.sin(a)*10],[x+Math.cos(a)*l,y-24+Math.sin(a)*l]],palette.hurt,2,pulse);}
-      arc(c,x,y,27,-2.3,-0.7,palette.hurt,3,pulse);
+      c.save();c.translate(x,y);c.rotate(-0.2);c.scale(state.shipSize/76,state.shipSize/76);c.globalAlpha=pulse;
+      polygon(c,[[-7,-36],[-18,-4],[-32,21],[-29,32],[-12,25],[-8,34],[8,34],[12,25],[29,32],[32,21],[18,-4],[7,-36],[0,-41]],'#00000000',palette.hurt,3);
+      c.restore();
     }
     if(event==='critical'&&style==='ship') {
       for(let i=0;i<6;i++){let drift=(t*15+i*12)%78;c.fillStyle=`rgba(127,119,122,${(1-drift/90)*0.46})`;c.beginPath();c.arc(x-7+Math.sin(i)*8,y+25+drift,8+drift*0.13,0,7);c.fill();}
