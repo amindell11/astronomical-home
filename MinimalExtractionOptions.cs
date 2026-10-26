@@ -46,9 +46,7 @@ public sealed class MinimalExtractionView : MonoBehaviour
     private Camera world;
     private Camera map;
     private RectTransform mini;
-    private RectTransform miniArrow;
     private RectTransform pointer;
-    private RectTransform pointerArrow;
     private RectTransform reveal;
     private CanvasGroup revealOpacity;
     public float RevealAge = -1f;
@@ -58,12 +56,8 @@ public sealed class MinimalExtractionView : MonoBehaviour
         rig = player; objectives = service; world = camera; map = minimap;
         mini = Root("Minimap exit", transform);
         Badge(mini, 26);
-        miniArrow = Root("Minimap direction", mini);
-        Chevron(miniArrow, new Vector2(0, 19), 6);
         pointer = Root("Main view direction", transform);
         Badge(pointer, 32);
-        pointerArrow = Root("Direction", pointer);
-        Chevron(pointerArrow, new Vector2(0, 27), 8);
         reveal = Root("Opening reveal", transform);
         Box("Reveal backing", reveal, Vector2.zero, new Vector2(230, 36), Dark);
         Label(reveal, "EXTRACTION OPEN", 18, Vector2.zero, new Vector2(226, 32));
@@ -86,8 +80,6 @@ public sealed class MinimalExtractionView : MonoBehaviour
         var vp = map.WorldToViewportPoint(target.position);
         var delta = new Vector2(vp.x - .5f, vp.y - .5f) * radius * 2;
         mini.anchoredPosition = center + Vector2.ClampMagnitude(delta, radius - 22);
-        miniArrow.localEulerAngles = new Vector3(0,0,Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg - 90);
-        miniArrow.gameObject.SetActive(delta.magnitude > radius - 22);
         var point = world.WorldToViewportPoint(target.position);
         var projected = new Vector2(point.x * 1280, point.y * 720);
         var direction = projected - new Vector2(640,360);
@@ -98,8 +90,6 @@ public sealed class MinimalExtractionView : MonoBehaviour
             location.y = 450;
         var retreat = RevealAge < 0 ? 1f : Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((RevealAge - 1.45f) / .6f));
         pointer.anchoredPosition = Vector2.Lerp(new Vector2(503,625), location, retreat);
-        pointerArrow.localEulerAngles = new Vector3(0,0,Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90);
-        pointerArrow.gameObject.SetActive(offscreen && retreat > .5f);
         reveal.anchoredPosition = new Vector2(640, 625);
         reveal.gameObject.SetActive(RevealAge >= 0 && RevealAge < 1.55f);
         revealOpacity.alpha = Mathf.Min(Mathf.Clamp01(RevealAge/.15f),Mathf.Clamp01((1.55f-RevealAge)/.3f));
@@ -125,31 +115,12 @@ public sealed class MinimalExtractionView : MonoBehaviour
         return rect;
     }
 
-    private static void Line(Transform parent, Vector2 a, Vector2 b, float width, Color color)
-    {
-        var d = b-a;
-        var rect = Box("Stroke", parent, (a+b)*.5f, new Vector2(d.magnitude,width),color);
-        rect.localEulerAngles = new Vector3(0,0,Mathf.Atan2(d.y,d.x)*Mathf.Rad2Deg);
-    }
-
     private static void Badge(Transform parent, float size)
     {
         var border = Box("Exit diamond", parent, Vector2.zero, Vector2.one*size*.7071f,Gold);
         border.localEulerAngles = new Vector3(0,0,45);
         var fill = Box("Contrast backing", parent, Vector2.zero, Vector2.one*(size-5)*.7071f,Dark);
         fill.localEulerAngles = new Vector3(0,0,45);
-        Line(parent,new Vector2(-4,-5),new Vector2(-4,5),2,Gold);
-        Line(parent,new Vector2(-4,5),new Vector2(1,5),2,Gold);
-        Line(parent,new Vector2(-4,-5),new Vector2(1,-5),2,Gold);
-        Line(parent,new Vector2(-1,0),new Vector2(7,0),2,Color.white);
-        Line(parent,new Vector2(4,-3),new Vector2(7,0),2,Color.white);
-        Line(parent,new Vector2(4,3),new Vector2(7,0),2,Color.white);
-    }
-
-    private static void Chevron(Transform parent, Vector2 tip, float size)
-    {
-        Line(parent,tip+new Vector2(-size,-size),tip,3,Gold);
-        Line(parent,tip+new Vector2(size,-size),tip,3,Gold);
     }
 
     private static Text Label(Transform parent, string value, int size, Vector2 position, Vector2 dimensions)

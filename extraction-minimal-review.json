@@ -1,14 +1,12 @@
 {
   "kind": "Actual Unity Game View capture of runtime-only visual prototype",
-  "scope": "Brief EXTRACTION OPEN flag, then matching screen and minimap icons without persistent extraction text",
+  "revision": "Plain gold diamond outlines on screen and minimap; inner exit glyphs and all chevrons removed",
   "flagSeconds": 1.55,
   "retreatSeconds": 0.6,
   "retreatStartSeconds": 1.45,
   "gameView": "1280 x 720, High Fidelity",
   "scene": "TrialSector Playtest, protected player, shortened phase clock, paused simulation, fixed observer",
   "verified": "Scratch C# compiled and ran; opening and settled screenshots inspected; GIF duration and source colour readback passed",
-  "captureLimits": "16 acquired frames over 3.672099 seconds. Paused combat scene; timing and UI proof, not a game performance test.",
-  "productionChanges": "None",
-  "designAdjustment": "Bottom icon limit moved below shield bar after observed overlap",
-  "earlierMemoryBlock": "Resolved when other editors closed. Remote fallback was not used."
+  "captureLimits": "32 acquired frames over 3.589778 seconds. Paused combat scene; timing and UI proof, not a game performance test.",
+  "productionChanges": "None"
 }
