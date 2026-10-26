@@ -1,0 +1,87 @@
+{
+    "generatedAt":  "2026-10-26T00:56:13.3914364-07:00",
+    "projectPath":  "D:\\amind\\git\\agent-5\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "PlayMode",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "scopeResolved":  false,
+                      "testFilter":  "PhasesRunOut_ZoneAppearsAway_AndFreshPressExtracts|ProductionJump_LaunchesNormally|TriggerVolumeActivationPlayModeTests",
+                      "testCategory":  "",
+                      "excludeCategory":  "",
+                      "categoryFilter":  "",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  "",
+                      "auto":  null,
+                      "withGraphics":  false,
+                      "captureScenario":  ""
+                  },
+    "status":  "failed",
+    "totals":  {
+                   "total":  11,
+                   "passed":  10,
+                   "failed":  1,
+                   "skipped":  0,
+                   "durationSec":  35.27
+               },
+    "runs":  [
+                 {
+                     "platform":  "PlayMode",
+                     "xmlPath":  "",
+                     "logPath":  "",
+                     "unityExitCode":  0,
+                     "status":  "failed",
+                     "total":  11,
+                     "passed":  10,
+                     "failed":  1,
+                     "skipped":  0,
+                     "durationSec":  35.27,
+                     "failures":  [
+                                      {
+                                          "name":  "ProductionJump_LaunchesNormally_HoldsRecap_ArrivesMoving_ThenWinsWithoutAnotherJump",
+                                          "fullName":  "Tests.PlayMode.Bootstrap.MultiSectorRunPlayModeTests.ProductionJump_LaunchesNormally_HoldsRecap_ArrivesMoving_ThenWinsWithoutAnotherJump",
+                                          "durationSec":  32.3484793,
+                                          "message":  "Unhandled log message: \u0027[Exception] InvalidOperationException: A backdrop requires two distinct locales and a loaded departure.\u0027. Use UnityEngine.TestTools.LogAssert.Expect",
+                                          "topStack":  "Substrate.Services.Locales.LocaleService+\u003cPrepareBackdrop\u003ed__7.MoveNext () (at Assets/Scripts/Substrate/Services/Locales/LocaleService.cs:56)"
+                                      }
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "scopeType":  "Workspace",
+                                       "scopeName":  "",
+                                       "scopeResolved":  false,
+                                       "testFilter":  "PhasesRunOut_ZoneAppearsAway_AndFreshPressExtracts|ProductionJump_LaunchesNormally|TriggerVolumeActivationPlayModeTests",
+                                       "testCategory":  "",
+                                       "excludeCategory":  "",
+                                       "categoryFilter":  "",
+                                       "assemblyNames":  "",
+                                       "orderedTestListFile":  "",
+                                       "rerunFailedFrom":  "",
+                                       "auto":  null,
+                                       "withGraphics":  false,
+                                       "captureScenario":  ""
+                                   }
+                 }
+             ],
+    "wallTiming":  {
+                       "elapsedSec":  92.69,
+                       "startupToFirstTestSec":  null,
+                       "executionSec":  null,
+                       "remainingSec":  null,
+                       "unavailableReason":  "resident-editor transport has no cold-process timestamps"
+                   },
+    "coverage":  {
+                     "verdict":  "partial",
+                     "reason":  "transport=routed (warm-editor run; merge-grade proof requires a cold-process run)"
+                 },
+    "memory":  {
+                   "processes":  [
+
+                                 ],
+                   "unavailableReason":  "resident-editor transport launches no process to sample"
+               },
+    "transport":  "routed",
+    "editorPid":  23336
+}

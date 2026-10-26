@@ -1,0 +1,94 @@
+{
+    "generatedAt":  "2026-10-26T00:50:49.9007202-07:00",
+    "projectPath":  "D:\\amind\\git\\agent-5\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "PlayMode",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "scopeResolved":  false,
+                      "testFilter":  "PhaseSpinePlayModeTests|MultiSectorRunPlayModeTests",
+                      "testCategory":  "",
+                      "excludeCategory":  "",
+                      "categoryFilter":  "",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  "",
+                      "auto":  null,
+                      "withGraphics":  false,
+                      "captureScenario":  ""
+                  },
+    "status":  "failed",
+    "totals":  {
+                   "total":  6,
+                   "passed":  4,
+                   "failed":  2,
+                   "skipped":  0,
+                   "durationSec":  10.48
+               },
+    "runs":  [
+                 {
+                     "platform":  "PlayMode",
+                     "xmlPath":  "",
+                     "logPath":  "",
+                     "unityExitCode":  0,
+                     "status":  "failed",
+                     "total":  6,
+                     "passed":  4,
+                     "failed":  2,
+                     "skipped":  0,
+                     "durationSec":  10.48,
+                     "failures":  [
+                                      {
+                                          "name":  "PhasesRunOut_ZoneAppearsAway_AndFreshPressExtracts",
+                                          "fullName":  "Tests.PlayMode.PhaseSpinePlayModeTests.PhasesRunOut_ZoneAppearsAway_AndFreshPressExtracts",
+                                          "durationSec":  1.3539841,
+                                          "message":  "The relocated zone has settled outside the player. Expected: False But was: True",
+                                          "topStack":  "at Tests.PlayMode.PhaseSpinePlayModeTests+\u003cPhasesRunOut_ZoneAppearsAway_AndFreshPressExtracts\u003ed__11.MoveNext () [0x0033e] in D:\\amind\\git\\agent-5\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\PlayMode\\PhaseSpinePlayModeTests.cs:125"
+                                      },
+                                      {
+                                          "name":  "ProductionJump_LaunchesNormally_HoldsRecap_ArrivesMoving_ThenWinsWithoutAnotherJump",
+                                          "fullName":  "Tests.PlayMode.Bootstrap.MultiSectorRunPlayModeTests.ProductionJump_LaunchesNormally_HoldsRecap_ArrivesMoving_ThenWinsWithoutAnotherJump",
+                                          "durationSec":  0.5883761,
+                                          "message":  "Expected: True But was: False",
+                                          "topStack":  "at Tests.PlayMode.Bootstrap.MultiSectorRunPlayModeTests+\u003cEnterProductionZone\u003ed__17.MoveNext () [0x00133] in D:\\amind\\git\\agent-5\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\PlayMode\\Bootstrap\\MultiSectorRunPlayModeTests.cs:214"
+                                      }
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "scopeType":  "Workspace",
+                                       "scopeName":  "",
+                                       "scopeResolved":  false,
+                                       "testFilter":  "PhaseSpinePlayModeTests|MultiSectorRunPlayModeTests",
+                                       "testCategory":  "",
+                                       "excludeCategory":  "",
+                                       "categoryFilter":  "",
+                                       "assemblyNames":  "",
+                                       "orderedTestListFile":  "",
+                                       "rerunFailedFrom":  "",
+                                       "auto":  null,
+                                       "withGraphics":  false,
+                                       "captureScenario":  ""
+                                   }
+                 }
+             ],
+    "wallTiming":  {
+                       "elapsedSec":  57.396,
+                       "startupToFirstTestSec":  null,
+                       "executionSec":  null,
+                       "remainingSec":  null,
+                       "unavailableReason":  "resident-editor transport has no cold-process timestamps"
+                   },
+    "coverage":  {
+                     "verdict":  "partial",
+                     "reason":  "transport=routed (warm-editor run; merge-grade proof requires a cold-process run)"
+                 },
+    "memory":  {
+                   "processes":  [
+
+                                 ],
+                   "unavailableReason":  "resident-editor transport launches no process to sample"
+               },
+    "transport":  "routed",
+    "editorPid":  23336
+}

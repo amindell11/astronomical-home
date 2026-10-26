@@ -1,0 +1,557 @@
+Assets/Scripts/Asteroids/Fragnetics/AsteroidFragSettings.cs
+Assets/Visuals/Ships/Crimson/Breakup/Lower Outer swept fin right.asset
+Assets/Scripts/AI/Gunnery/AimSettings.cs
+Assets/Visuals/Ships/Nightshade/Breakup/Nightshade Plum.mat
+Assets/Visuals/Ships/Valis/Canopy/jade-iris.mat
+Assets/Scripts/Combat/Projectiles/Audio/GrenadeDetonationAudio.cs
+Assets/Visuals/Vfx/Particles/Textures/ExplosionEmission.tif
+Assets/Visuals/Ships/Nightshade/Materials/Contour.mat
+Assets/Scripts/Combat/Projectiles/Audio/LaserAudio.cs
+Assets/Settings/Ships/Engines/Nightshade_Engine.asset
+Assets/Scripts/Substrate/Sectors/Sector.cs
+Assets/Visuals/Vfx/WeaponExplosions/Materials/MineDisc.mat
+Assets/Scripts/Cameras/ObserverCamInputHandler.cs
+Assets/Visuals/Ships/Crimson/Breakup/Engine left.asset
+Assets/Visuals/Ships/Vanguard/Breakup/Pieces/Tails/Tail fin right.asset
+Assets/Visuals/Environment/Stations/Station/Station.mat
+Packages/com.unity.render-pipelines.universal/Runtime/Overrides/ShadowsMidtonesHighlights.cs
+Assets/Visuals/Locales/Sky/Locales/Locale_3/Background.mat
+Assets/Scripts/Combat/Weapons/Arsenal/Grenades.cs
+Assets/Visuals/Ships/Bulwark/Paint/Shadow.png
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape05/Asteroid5Normal.png
+Assets/Visuals/Vfx/Particles/Materials/ExplosionDistortion.mat
+Assets/Scripts/UI/MatchOrthoSize.cs
+Assets/Settings/Rendering/HighRes.asset
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape09/Asteroid9.fbx
+Assets/Scripts/UI/LoadingSplash.cs
+Packages/com.unity.render-pipelines.core/Runtime/Volume/VolumeProfile.cs
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape07/Asteroid7.fbx
+Packages/com.unity.ugui/Runtime/UGUI/UI/Core/Image.cs
+Assets/Scripts/Combat/Projectiles/Visual/ConcussionWaveVisual.cs
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape05/Asteroid5Paint.mat
+Assets/Visuals/Ships/Vanguard/Paint/Ink.png
+Assets/Visuals/Ships/Crimson/Breakup/Upper Aft swept fin right.asset
+Assets/Visuals/Ships/Bulwark/Paint/DetailEmission.png
+Assets/Prefabs/Weapons/Grenades.prefab
+Assets/Scripts/AI/Scout.cs
+Assets/Visuals/Ui/Hud/heatBar3.png
+Assets/Scripts/Substrate/Services/Objectives/ObjectiveService.cs
+Assets/Scripts/AI/Navigation/MPC/MpcSettings.cs
+Assets/Visuals/Vfx/WeaponExplosions/Materials/MineIgnition.mat
+Packages/com.unity.render-pipelines.universal/Runtime/Overrides/FilmGrain.cs
+Assets/Scripts/Asteroids/Fields/UpdatingAsteroidField.cs
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape06/Asteroid6Paint.mat
+Assets/Scripts/UI/Overlay.cs
+Packages/com.unity.render-pipelines.universal/Runtime/Overrides/MotionBlur.cs
+Assets/Visuals/Environment/Asteroids/DrawnField/AsteroidBrushAlbedo.png
+Assets/Visuals/Ships/Crimson/Breakup/Upper Forward fin left.asset
+Assets/Visuals/Locales/Sky/Locales/Locale_3/CloseNebula.mat
+Assets/Visuals/Environment/Asteroids/Shapes/Models/Asteroid7.fbx
+Assets/Visuals/Ships/Valis/Materials/Contour.mat
+Assets/Scripts/UI/WeaponReadoutPanel.cs
+Packages/com.unity.ugui/Runtime/UGUI/UI/Core/Layout/CanvasScaler.cs
+Assets/Visuals/Ships/Crimson/Breakup/Crimson burst.anim
+Assets/Visuals/Ships/Valis/Canopy/Valis reflections.png
+Assets/Scripts/Combat/Weapons/Audio/ChargeWeaponAudio.cs
+Assets/Scripts/Asteroids/Visual/DrawnAsteroidAppearance.cs
+Assets/Prefabs/UI/Readouts/HeatGauge.prefab
+Assets/Visuals/Ships/Vanguard/Breakup/Pieces/Wings/Wing root left.asset
+Assets/Scripts/Ships/Keystones/KeystoneFlash.cs
+Assets/Scripts/Utils/PooledVFX.cs
+Assets/Settings/UI/RecapFeel.asset
+Assets/Visuals/Ships/Valis/Materials/jade-iris/Graphite.mat
+Assets/Scripts/Objectives/ExtractionZone.cs
+Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Bone.mat
+Assets/Prefabs/Weapons/TurboLasers.prefab
+Assets/Scripts/Ships/Keystones/StealthVeil.cs
+Assets/Visuals/Locales/Flat/Generated/illustrated-blue-final.CloseNebula.mat
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape02/Asteroid2.fbx
+Assets/Scripts/Asteroids/Fields/AsteroidFieldSettings.cs
+Assets/Prefabs/Keystones/Valis_Overdrive.prefab
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape01/Asteroid1.fbx
+Assets/Visuals/Ships/Vanguard/Breakup/Pieces/Tails/Sparrow tail left.asset
+Assets/Visuals/Ships/Nightshade/Paint/Shadow.png
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape09/Asteroid9Paint.mat
+Assets/Visuals/Locales/Sky/Locales/Locale_3/ReflectionCubemap.asset
+Assets/Visuals/Ships/Crimson/Breakup/Upper Aft swept fin left.asset
+Assets/Prefabs/UI/Readouts/ChargeGauge.prefab
+Assets/Settings/Ships/Engines/Bulwark_Engine.asset
+Assets/Prefabs/Weapons/Lasers.prefab
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape01/Asteroid1Drawing.fbx
+Assets/Visuals/Ships/Nightshade/Breakup/Nightshade Edge.mat
+Assets/Visuals/Ships/Crimson/Crimson.fbx
+Assets/Visuals/Ui/LockOnReticle/lockOnReticle.controller
+Assets/Scripts/Asteroids/Fragnetics/Fragger.cs
+Packages/com.unity.ugui/Runtime/UGUI/UI/Core/VertexModifiers/Outline.cs
+Assets/Visuals/Vfx/Weapons/MissileFire.mat
+Assets/Prefabs/Keystones/Vanguard_Dash.prefab
+Assets/Visuals/Ships/Valis/Breakup/Pieces/Forward outrigger left.asset
+Assets/Scripts/UI/MeshMirror.cs
+Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Midnight.mat
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape10/Asteroid10Paint.mat
+Assets/Scripts/UI/ChargeGaugeUI.cs
+Assets/Scripts/UI/Markers/ChargeTargetMarkers.cs
+Assets/Visuals/Vfx/WeaponExplosions/Prefabs/MissileExplosion.prefab
+Assets/Prefabs/Keystones/Bulwark_Dash.prefab
+Assets/Visuals/Ships/Bulwark/Bulwark.fbx
+Assets/Visuals/Ships/Nightshade/Breakup/NightshadeBreakup.fbx
+Assets/Prefabs/Weapons/ChargeLasers.prefab
+Assets/Scripts/Substrate/Sectors/Elements/Phases/PhaseSpineModule.cs
+Packages/com.unity.render-pipelines.universal/Runtime/Overrides/Bloom.cs
+Assets/Visuals/Ships/Nightshade/Breakup/Nightshade Midnight.mat
+Packages/com.unity.render-pipelines.universal/Runtime/Overrides/Tonemapping.cs
+Assets/Scripts/Ships/Keystones/Kits/Stealth.cs
+Assets/Visuals/Ui/Minimap/UI_Minimap_Objective.mat
+Assets/Visuals/Ships/Vanguard/Breakup/Pieces/Nacelles/Nacelle right.asset
+Assets/Visuals/Ships/_Shared/ShipMaterial Variant.mat
+Assets/Prefabs/Particles/ExplosionVFX.prefab
+Assets/Visuals/Vfx/WeaponExplosions/Textures/MineIgnition.png
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape04/Asteroid4Paint.mat
+Assets/Visuals/Vfx/Particles/Materials/Embers.mat
+Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Glass.mat
+Assets/Visuals/Ships/Valis/Breakup/Pieces/Aft prong left.asset
+Assets/Visuals/Ships/Crimson/Breakup/Upper Outer swept fin left.asset
+Assets/Settings/Asteroids/BigFieldSettings.asset
+Packages/com.unity.ugui/Runtime/UGUI/UI/Core/Layout/LayoutElement.cs
+Packages/com.unity.render-pipelines.universal/Runtime/Overrides/PaniniProjection.cs
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape02/Asteroid2Paint.mat
+Packages/com.unity.render-pipelines.universal/Runtime/Overrides/ChromaticAberration.cs
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape08/Asteroid8Paint.mat
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape02/Asteroid2Normal.png
+Assets/Visuals/Ships/Crimson/Ship_2 collider.asset
+Assets/Visuals/Ships/Crimson/Hull paint.mat
+Assets/Prefabs/UI/Readouts/LockReadout.prefab
+Assets/Scripts/Combat/Weapons/Conditions/Rounds.cs
+Assets/Visuals/Ships/Crimson/Breakup/Upper Outer swept fin right.asset
+Assets/Settings/Ships/Shields/Nightshade_Shield.asset
+Assets/Visuals/Ships/Crimson/Breakup/Engine right.asset
+Assets/Visuals/Ships/_Shared/ShipBaseRig.prefab
+Assets/Visuals/Vfx/LayeredExplosion/Textures/Spark.png
+Assets/Visuals/Vfx/LayeredExplosion/Materials/DrawnExplosion.shader
+Assets/Visuals/Ships/Nightshade/Paint/Light.png
+Assets/Scripts/Game/Travel/SectorJumpProfile.cs
+Packages/com.unity.ugui/Runtime/UGUI/UI/Core/Layout/VerticalLayoutGroup.cs
+Assets/Visuals/Ui/Minimap/MinimapDisc.png
+Assets/Visuals/Locales/Sky/SkyTriangle.asset
+Assets/Visuals/Ships/Bulwark/Canopy/Bulwark reflections.png
+Assets/Visuals/Ships/Vanguard/Paint/RegionWeights0.png
+Assets/Visuals/Ships/Bulwark/Paint/Light.png
+Assets/Scripts/Audio/ListenerPlaneAnchor.cs
+Assets/Visuals/Ships/Crimson/Paint/RegionWeights1.png
+Assets/Visuals/Locales/Sky/Locales/Locale_3/Atmosphere.asset
+Assets/Scripts/Substrate/Sectors/SectorSettings.cs
+Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark EdgeCoat.mat
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape06/Asteroid6Normal.png
+Assets/Visuals/Ships/Crimson/Paint/RegionWeights2.png
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape05/Asteroid5Drawing.fbx
+Assets/Scripts/Ships/Audio/ShipDamageAudio.cs
+Assets/Visuals/Environment/Stations/Station/Station_Color.png
+Assets/Visuals/Ships/Nightshade/Breakup/Nightshade Violet.mat
+Assets/Visuals/Locales/Flat/Generated/illustrated-blue-final.FarNebula.mat
+Assets/Visuals/Ships/Bulwark/Breakup/BulwarkBreakup.prefab
+Assets/Visuals/Ships/_Shared/BouncyShip.physicMaterial
+Assets/Scripts/Ships/Visuals/MinimapShipMarker.cs
+Assets/Visuals/Ships/Nightshade/Breakup/NightshadeBreakup.prefab
+Packages/com.unity.ugui/Runtime/UGUI/UI/Core/Layout/HorizontalLayoutGroup.cs
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape10/Asteroid10Normal.png
+Assets/Prefabs/UI/LoadingSplash.prefab
+Assets/Visuals/Ships/Valis/Breakup/Pieces/Fuselage and canopy.asset
+Assets/Visuals/Ships/Crimson/Breakup/Wing left.asset
+Assets/Visuals/Ships/Vanguard/Paint/Shadow.png
+Assets/Scripts/Cameras/ObserverCam.cs
+Assets/Visuals/Ships/Vanguard/Materials/Engine glow.mat
+Assets/Scripts/Combat/Weapons/Conditions/Cooldown.cs
+Assets/Visuals/Ships/Vanguard/Breakup/Vanguard burst.anim
+Assets/Visuals/Vfx/LayeredExplosion/Textures/Smoke.png
+Assets/Visuals/Ships/Bulwark/Paint/Ink.png
+Assets/Scenes/Locales/Locale_3.unity
+Assets/Visuals/Locales/Sky/StarFieldMaterial.mat
+Assets/Scripts/Asteroids/Spawning/AsteroidSpawner.cs
+Assets/Visuals/Ships/Crimson/Breakup/Debris paint.mat
+Packages/com.unity.render-pipelines.universal/Editor/AssetVersion.cs
+Packages/com.fmod.fmod-for-unity.v204/src/StudioListener.cs
+Assets/Visuals/Vfx/LayeredExplosion/Prefabs/LayeredAsteroidExplosion.prefab
+Assets/Visuals/Ships/Crimson/Paint/Light.png
+Assets/Visuals/Ui/LockOnReticle/reticleFlash.anim
+Packages/com.unity.render-pipelines.universal/Runtime/Overrides/LensDistortion.cs
+Assets/Visuals/Vfx/LayeredExplosion/Materials/Spark.mat
+Packages/com.unity.render-pipelines.universal/Shaders/ComplexLit.shader
+Assets/Visuals/Vfx/WeaponExplosions/Textures/MineDisc.png
+Packages/com.unity.render-pipelines.universal/Runtime/Overrides/ScreenSpaceLensFlare.cs
+Assets/Settings/Ships/Engines/Crimson_Engine.asset
+Assets/Visuals/Ships/Valis/Materials/jade-iris/Lavender.mat
+Assets/Prefabs/UI/UIOverlay.prefab
+Assets/Visuals/Environment/Asteroids/Shapes/Textures/AsteroidB_Dark_MetallicSmoothness.png
+Assets/Visuals/Ships/Vanguard/Materials/vanguard/Structure.mat
+Assets/Prefabs/Sectors/TrialSector.prefab
+Assets/Visuals/Ships/Vanguard/Materials/vanguard/HullPrimary.mat
+Assets/Visuals/Vfx/Weapons/Laser Variant.mat
+Assets/Visuals/Environment/Asteroids/Shapes/Models/Asteroid2.fbx
+Assets/Visuals/Ships/_Shared/ShipBodyBumper.physicMaterial
+Assets/Prefabs/Objectives/Station Extraction Zone.prefab
+Assets/Scripts/Game/Audio/GameMusic.cs
+Assets/Prefabs/UI/HangarScreen.prefab
+Assets/Settings/Ships/Shields/Bulwark_Shield.asset
+Assets/Scripts/Ships/Visuals/Breakup/ShipBreakupVisual.cs
+Assets/Visuals/Environment/Asteroids/Shapes/Textures/AsteroidB_Dark_AO.png
+Assets/Scripts/Combat/Weapons/Arsenal/Rippers.cs
+Assets/Visuals/Ui/Hud/missileFire.png
+Packages/com.unity.render-pipelines.universal/Runtime/Overrides/DepthOfField.cs
+Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesUnlit.shader
+Assets/Scripts/Substrate/Sectors/Elements/StartPointMarker.cs
+Assets/Prefabs/Weapons/Projectiles/Laser.prefab
+Assets/Prefabs/Sectors/TrialSector3.prefab
+Assets/Prefabs/Weapons/Projectiles/RipperSlug.prefab
+Assets/Visuals/Ships/Vanguard/Breakup/Pieces/Wings/Wing right.asset
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape08/Asteroid8.fbx
+Assets/Visuals/Ui/Hud/missileNoFire.png
+Assets/Visuals/Vfx/LaserBolt/Shaders/CrackleFlipbook.shader
+Assets/Settings/Ships/Engines/Default_Engine.asset
+Assets/Visuals/Ships/Valis/Canopy/jade-iris debris.mat
+Assets/Visuals/Ships/Nightshade/Paint/Ink.png
+Assets/Visuals/Ships/Vanguard/Breakup/Pieces/Tails/Tail fin left.asset
+Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Glass.mat
+Assets/Visuals/Ships/Crimson/Paint/Shadow.png
+Assets/Scripts/Combat/Projectiles/Laser.cs
+Packages/com.unity.render-pipelines.universal/Shaders/Lit.shader
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape03/Asteroid3Normal.png
+Assets/Scripts/Ships/Ship.cs
+Assets/Visuals/Vfx/WeaponExplosions/Materials/Missile.mat
+Assets/Prefabs/Sectors/TrialSector2.prefab
+Assets/Prefabs/Keystones/Crimson_Blink.prefab
+Assets/Scripts/Combat/Weapons/Arsenal/Missiles.cs
+Assets/Visuals/Ui/Hud/circle.png
+Packages/com.unity.render-pipelines.universal/Runtime/Overrides/ChannelMixer.cs
+Packages/com.unity.render-pipelines.universal/Shaders/Unlit.shader
+Assets/Visuals/Ships/Valis/Paint/Ink.png
+Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Plum.mat
+Assets/Scripts/AI/Gunner.cs
+Assets/Visuals/Ships/Vanguard/Breakup/Pieces/Tails/Wing fin left.asset
+Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Guard Plum.mat
+Assets/Scripts/Ships/Keystones/Kits/RamDash.cs
+Assets/Scripts/UI/LockOnIndicator.cs
+Assets/Visuals/Locales/Sky/Nebula.shader
+Assets/Visuals/Vfx/Particles/Textures/Debris.png
+Assets/Scripts/UI/AmmoCounterUI.cs
+Assets/Visuals/Vfx/LayeredExplosion/Materials/Core.mat
+Assets/Prefabs/Cameras/Main Camera.prefab
+Assets/Visuals/Ships/Valis/Meshes/Valis collider.asset
+Assets/Visuals/Shaders/DrawnSurface.shader
+Assets/Prefabs/Ships/Vanguard.prefab
+Assets/Scripts/UI/GlowingUIController.cs
+Assets/Scripts/Ships/Visuals/Wings/WingVisuals.cs
+Assets/Visuals/Ships/Vanguard/Breakup/Materials/Debris blue core.mat
+Assets/Prefabs/Ships/Nightshade.prefab
+Assets/Visuals/Ships/Valis/Materials/jade-iris/Ivory.mat
+Assets/Visuals/Vfx/LaserBolt/Materials/LaserBolt.mat
+Assets/Visuals/Ships/Vanguard/Breakup/Pieces/Tails/Wing fin right.asset
+Assets/Visuals/Ships/Crimson/Breakup/Wing right.asset
+Assets/Scripts/UI/Hangar/OptionCycler.cs
+Assets/Visuals/Ui/Minimap/Minimap.renderTexture
+Assets/Prefabs/Weapons/Rippers.prefab
+Assets/Visuals/Ships/Vanguard/Materials/EngineEmissionMask.asset
+Assets/Prefabs/Weapons/Projectiles/ConcussionWave.prefab
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape04/Asteroid4Drawing.fbx
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape09/Asteroid9Normal.png
+Assets/Visuals/Environment/Asteroids/Shapes/Textures/AsteroidB_Dark_AlbedoTransparency.png
+Assets/Visuals/Vfx/WeaponExplosions/Materials/PaintedBurst.shader
+Assets/Visuals/Ui/Hud/UI_MissileAmmo.mat
+Assets/Prefabs/UI/Readouts/WeaponReadoutPanel.prefab
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape07/Asteroid7Drawing.fbx
+Assets/Scripts/Combat/Projectiles/ConcussionWave.cs
+Packages/com.unity.render-pipelines.universal/Runtime/Overrides/LiftGammaGain.cs
+Assets/Visuals/Environment/Asteroids/Shapes/Textures/AsteroidA_Dark_AO.png
+Assets/Scripts/Ships/Keystones/Kits/GuardDash.cs
+Assets/Scripts/UI/Audio/UILaserAudio.cs
+Assets/Visuals/Environment/Asteroids/Shapes/Textures/AsteroidB_Dark_Normal.png
+Assets/Visuals/Environment/Asteroids/Shapes/Models/Asteroid8.fbx
+Packages/com.unity.render-pipelines.universal/Runtime/Overrides/WhiteBalance.cs
+Assets/Scripts/UI/HeatGaugeUI.cs
+Assets/Prefabs/Particles/SmokeTrail.prefab
+Assets/Visuals/Ui/LockOnReticle/reticleIdle.anim
+Assets/Visuals/Ships/Vanguard/Materials/Structural ink.mat
+Assets/Visuals/Ships/Nightshade/Canopy/Canopy.mat
+Packages/com.unity.ugui/Runtime/UGUI/UI/Core/GraphicRaycaster.cs
+Assets/Scripts/Combat/Weapons/Conditions/Heat.cs
+Assets/Scripts/Ships/Keystones/Kits/Blink.cs
+Assets/Visuals/Vfx/Particles/beam1.png
+Assets/Visuals/Ships/Valis/Breakup/Valis burst.anim
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape02/Asteroid2Drawing.fbx
+Assets/Scripts/UI/LockReadoutUI.cs
+Assets/Scripts/Ships/Loadout/EngineModule.cs
+Assets/Visuals/Ships/Vanguard/Breakup/Materials/Debris paint.mat
+Assets/Visuals/Vfx/Weapons/Missile.mat
+Assets/Settings/Ships/TrialEnemyLoadout.asset
+Assets/Prefabs/Cameras/UI Cam.prefab
+Assets/Prefabs/Weapons/Railgun.prefab
+Assets/Visuals/Vfx/WeaponExplosions/Materials/SeismicDisc.shader
+Assets/Scripts/UI/Audio/UIMissileWarningAudio.cs
+Assets/Visuals/Ships/Crimson/Breakup/CrimsonBreakup.prefab
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape01/Asteroid1Paint.mat
+Assets/Visuals/Ships/Vanguard/Breakup/Pieces/Armor/Armor right.asset
+Assets/Visuals/Vfx/LayeredExplosion/Materials/AsteroidContour.mat
+Assets/Visuals/Ships/Valis/Paint/Accent emission.png
+Assets/Visuals/Ships/_Shared/ShipMaterial.mat
+Assets/Scripts/Game/Player/PlayerCommander.cs
+Assets/Visuals/Ships/Bulwark/Breakup/BulwarkBreakup.fbx
+Assets/Settings/Asteroids/FragSettings.asset
+Assets/Visuals/Environment/Asteroids/Shapes/Models/Asteroid9.fbx
+Assets/Scripts/Asteroids/AsteroidController.cs
+Assets/Visuals/Environment/Asteroids/Shapes/Materials/AsteroidDarkB.mat
+Assets/Visuals/Environment/Asteroids/Shapes/Textures/Asteroid_Tiled_AlbedoTransparency.png
+Assets/Visuals/Ships/Valis/Breakup/Pieces/Lower inner spar right.asset
+Assets/Scripts/AI/Navigator.cs
+Assets/Visuals/Ships/Crimson/Paint/Ink.png
+Assets/Scenes/InitScene.unity
+Assets/Scripts/Asteroids/Audio/AsteroidAudio.cs
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape09/Asteroid9Drawing.fbx
+Assets/Visuals/Locales/Flat/Generated/illustrated-blue-final.mat
+Packages/com.unity.render-pipelines.core/Runtime/Volume/Volume.cs
+Assets/Visuals/Ships/_Shared/ThrusFlame_Purple.mat
+Assets/Visuals/Ships/Valis/Breakup/ValisBreakup.prefab
+Assets/Scripts/Game/GameHost.cs
+Assets/Visuals/Ships/Crimson/Breakup/Armor left.asset
+Assets/Visuals/Ships/Crimson/Paint/RegionWeights0.png
+Assets/Visuals/Ships/_Shared/ThrusFlame_Blue.mat
+Assets/Settings/AI/Aim/AimSettings_AIPilot.asset
+Assets/Visuals/Ships/Nightshade/Nightshade.fbx
+Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Flap.mat
+Assets/Scripts/Audio/ListenerPanPoint.cs
+Assets/Visuals/Ships/Valis/Breakup/Pieces/Lower blade right.asset
+Assets/Scripts/Cameras/DriftCam.cs
+Assets/Scripts/Combat/Weapons/Arsenal/Lasers.cs
+Assets/Prefabs/Pilots/ArchetypePilot.prefab
+Assets/Visuals/Ships/Crimson/Breakup/Upper Forward fin right.asset
+Assets/Scripts/Combat/Targeting/LockOnSensor.cs
+Assets/Visuals/Ships/Valis/Materials/jade-iris/Edge.mat
+Assets/Scripts/UI/MinimapObjectiveMarker.cs
+Assets/Visuals/Ships/Vanguard/Paint/RegionWeights1.png
+Assets/Prefabs/Ships/Valis.prefab
+Assets/Visuals/Vfx/LayeredExplosion/Prefabs/FragmentingDrawnAsteroid.prefab
+Assets/Prefabs/UI/UILockOnIndicator.prefab
+Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Metal.mat
+Assets/Prefabs/Cameras/Minimap Cam.prefab
+Assets/Visuals/Ships/Vanguard/Breakup/Pieces/Tails/Sparrow tail right.asset
+Assets/Visuals/Vfx/Particles/Textures/ramp01.png
+Assets/Visuals/Ships/Vanguard/Breakup/Pieces/Wings/Wing root right.asset
+Assets/Visuals/Ships/Valis/Materials/jade-iris/Engine.mat
+Assets/Visuals/Ships/Vanguard/Breakup/VanguardBreakup.prefab
+Assets/Visuals/Environment/Asteroids/Shapes/Models/Asteroid4.fbx
+Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Armor Charcoal.mat
+Assets/Visuals/Vfx/Particles/Textures/SmokePuff01.tif
+Assets/Scripts/UI/WeaponReadoutBuilder.cs
+Assets/Visuals/Ships/_Shared/ThrusFlame_Red.mat
+Assets/Visuals/Environment/Asteroids/DrawnField/FieldGraphite.mat
+Assets/Visuals/Locales/Sky/Locales/Locale_3/DistantStars.mat
+Assets/Scripts/Ships/Loadout/ShieldModule.cs
+Assets/Visuals/Vfx/LaserBolt/Textures/LaserBolt_Flipbook.png
+Assets/Prefabs/Ships/ShipBase.prefab
+Assets/Visuals/Ui/LockOnReticle/reticleLockedPose.anim
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape07/Asteroid7Paint.mat
+Assets/Scripts/RL/Opponents/ArchetypeBrain.cs
+Assets/Visuals/Ships/_Shared/ShipMaterial_Metal.png
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape06/Asteroid6Drawing.fbx
+Assets/Prefabs/Weapons/Projectiles/ChargeBolt.prefab
+Assets/Visuals/Ships/Valis/Breakup/Pieces/Engine spine.asset
+Assets/Visuals/Ships/Vanguard/Paint/Emission.png
+Packages/com.unity.render-pipelines.universal/Runtime/Overrides/Vignette.cs
+Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat
+Packages/com.unity.render-pipelines.universal/Runtime/Overrides/ColorAdjustments.cs
+Assets/Scripts/Combat/Projectiles/Visual/MissileVisual.cs
+Assets/Visuals/Ships/Vanguard/Breakup/Pieces/Wings/Wing left.asset
+Assets/Visuals/Vfx/Particles/Textures/Explosion.tif
+Assets/Scripts/Movement/KinematicsPoller.cs
+Assets/Scripts/Ships/Damage/DamageController.cs
+Assets/Prefabs/UI/Readouts/AmmoCounter.prefab
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape03/Asteroid3Paint.mat
+Assets/Scripts/Asteroids/AsteroidDamage.cs
+Assets/Visuals/Ships/_Shared/Illustrated/Ship_1 collider.asset
+Assets/Visuals/Ui/UI_GlowFill.shader
+Assets/Prefabs/Weapons/Projectiles/GrenadeCharge.prefab
+Assets/Visuals/Ships/Bulwark/Breakup/Bulwark burst.anim
+Assets/Visuals/Locales/Sky/ForegroundNebulaMaterial.mat
+Assets/Visuals/Shaders/DrawnContour.shader
+Assets/Visuals/Ships/_Shared/Illustrated/Ship contour.mat
+Assets/Scripts/UI/PlayerState/BoostGaugeUI.cs
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape06/Asteroid6.fbx
+Assets/Scripts/Asteroids/Spawning/AsteroidSpawnSettings.cs
+Assets/Visuals/Ships/Vanguard/Breakup/Materials/Debris contour.mat
+Assets/Visuals/Vfx/Particles/ParticlesLight.prefab
+Assets/Visuals/Environment/Asteroids/Shapes/Textures/Asteroid_Tiled_Normal.png
+Assets/Settings/Ships/PlayerLoadout.asset
+Assets/Prefabs/Ships/Crimson.prefab
+Assets/Visuals/Environment/Stations/Station/Station_MetallicRoughnessG.png
+Assets/Scripts/Ships/Weapons/WeaponsController.cs
+Assets/Visuals/Ui/Minimap/UI_Minimap_Rim.mat
+Assets/Visuals/Environment/Asteroids/Shapes/Models/Asteroid6.fbx
+Assets/Visuals/Vfx/LayeredExplosion/Textures/Core.png
+Assets/Visuals/Ships/Vanguard/Breakup/Materials/Debris ink.mat
+Assets/Visuals/Ships/Vanguard/Vanguard.fbx
+Assets/Scripts/Combat/Weapons/Arsenal/ChargeLasers.cs
+Assets/Scripts/Ships/Loadout/ItemSubset.cs
+Assets/Scripts/Combat/Weapons/Audio/LaserFireAudio.cs
+Assets/Visuals/Environment/Stations/Station/p162Spaceship004.obj
+Packages/com.unity.render-pipelines.universal/Runtime/Overrides/ColorCurves.cs
+Assets/Scripts/UI/Hangar/HangarScreen.cs
+Assets/Visuals/Ships/Crimson/Breakup/Armor right.asset
+Packages/com.fmod.fmod-for-unity.v204/src/StudioEventEmitter.cs
+Assets/Visuals/Vfx/Particles/Materials/Explosion.mat
+Assets/Visuals/Ships/Valis/Breakup/Pieces/Lower blade left.asset
+Assets/Prefabs/Audio/GameMusic.prefab
+Assets/Settings/Ships/Shields/Light_Shield.asset
+Assets/Visuals/Ships/Vanguard/Paint/RegionWeights2.png
+Assets/Prefabs/Pilots/AggressorPilot.prefab
+Assets/Visuals/Ships/Crimson/Breakup/Lower Forward fin right.asset
+Assets/Prefabs/Pilots/PlayerPilot.prefab
+Assets/Visuals/Vfx/LaserBolt/Textures/LaserBolt_Glow.png
+Assets/Scripts/UI/Audio/UIBoostAudio.cs
+Assets/Visuals/Vfx/Particles/Materials/DebrisParticle.mat
+Assets/Visuals/Vfx/Particles/beam1Gs.png
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape08/Asteroid8Drawing.fbx
+Assets/Visuals/Locales/Flat/FlatBackground.shader
+Assets/Visuals/Ships/_Shared/ShipMaterial_Texture.png
+Assets/Scripts/AI/AICommander.cs
+Assets/Scripts/Substrate/Sectors/Elements/AsteroidFieldSpawner.cs
+Assets/Visuals/Environment/Stations/Station/Station_Normal.png
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape04/Asteroid4.fbx
+Assets/Visuals/Ships/Valis/Breakup/Pieces/Upper wing right.asset
+Packages/com.unity.ugui/Runtime/UGUI/UI/Core/Text.cs
+Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Structure.mat
+Assets/Visuals/Ships/Valis/Materials/jade-iris/Cool gray.mat
+Assets/Settings/AI/MPC/MpcSettings_AgentPilot.asset
+Assets/Visuals/Ui/Minimap/Minimap_Source.mat
+Assets/Scenes/MainGameScene/UI Volume Profile.asset
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape10/Asteroid10Drawing.fbx
+Assets/Scripts/Ships/Presentation/ShipVisualRig.cs
+Assets/Visuals/Ships/Vanguard/Breakup/Pieces/Nacelles/Nacelle left.asset
+Assets/Visuals/Ships/Nightshade/Breakup/Contour.mat
+Assets/Visuals/Environment/Asteroids/Shapes/Materials/AsteroidDarkA.mat
+Assets/Scripts/Ships/Audio/EngineAudio.cs
+Assets/Prefabs/Weapons/Projectiles/MissileProjectile.prefab
+Assets/Visuals/Locales/Sky/Locales/Locale_3/StarField.mat
+Assets/Visuals/Ships/Valis/Meshes/Valis hull.asset
+Assets/Scripts/Combat/Weapons/Audio/RailgunImpactAudio.cs
+Assets/Prefabs/Structures/Station.prefab
+Assets/Visuals/Environment/Asteroids/Shapes/Textures/AsteroidA_Dark_Normal.png
+Assets/Visuals/Ships/Vanguard/Materials/Canopy.mat
+Assets/Visuals/Vfx/LayeredExplosion/Materials/SparkBurn.shader
+Assets/Visuals/Ships/Bulwark/Paint/RegionWeights0.png
+Assets/Visuals/Ships/Crimson/Canopy/Crimson reflections.png
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape03/Asteroid3.fbx
+Assets/Scripts/Combat/Projectiles/Visual/ProjectileHitVfx.cs
+Assets/Visuals/Ships/Valis/Breakup/Pieces/Upper wing left.asset
+Assets/Visuals/Environment/Asteroids/Shapes/Textures/AsteroidA_Dark_MetallicSmoothness.png
+Assets/Visuals/Vfx/LayeredExplosion/Materials/Smoke.mat
+Assets/Prefabs/MiscObjects/PlayerRig.prefab
+Assets/Visuals/Locales/Sky/StarField.shader
+Assets/Visuals/Ships/Valis/Paint/Shadow.png
+Assets/Visuals/Ships/Nightshade/Canopy/Nightshade reflections.png
+Assets/Visuals/Environment/Stations/Station/Station_Emission.png
+Assets/Visuals/Vfx/WeaponExplosions/Prefabs/MineIgnition.prefab
+Assets/Scripts/Combat/Projectiles/Visual/MissileTrackingTint.cs
+Assets/Scenes/Lighting.prefab
+Assets/Scripts/Substrate/Services/Locales/CloudBankTile.cs
+Assets/Visuals/Ships/Valis/Breakup/Pieces/Aft prong right.asset
+Assets/Prefabs/Ships/Bulwark.prefab
+Assets/Scripts/Combat/Weapons/Audio/WeaponFireAudio.cs
+Assets/Scripts/UI/PlayerState/StatusBarUI.cs
+Assets/Visuals/Ui/Splash/asteroidsSplash.png
+Assets/Visuals/Ships/_Shared/ShipMaterial_Emission.png
+Assets/Visuals/Ships/Vanguard/Paint/RegionWeights3.png
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape07/Asteroid7Normal.png
+Assets/Scripts/Game/PlayerRig.cs
+Assets/Visuals/Locales/Flat/Generated/illustrated-blue-final.exr
+Assets/Settings/Ships/Engines/Valis_Engine.asset
+Assets/Visuals/Environment/Asteroids/Rock3D.physicMaterial
+Assets/Scripts/Combat/Projectiles/Audio/MissileAudio.cs
+Assets/Visuals/Environment/Asteroids/Shapes/Models/Asteroid3.fbx
+Assets/Scripts/Combat/Projectiles/Grenade.cs
+Assets/Visuals/Vfx/Particles/Textures/Ramp03.png
+Assets/Scripts/UI/Billboard.cs
+Assets/Scripts/Asteroids/Visual/AsteroidVisual.cs
+Assets/Scripts/Combat/Weapons/Arsenal/Railguns.cs
+Assets/Scripts/Ships/Movement/MovementController.cs
+Packages/com.unity.ugui/Runtime/UGUI/UI/Core/Mask.cs
+Assets/Visuals/Ships/Valis/Breakup/Pieces/Upper spar left.asset
+Assets/Visuals/Ships/Nightshade/Paint/Emission.png
+Assets/Visuals/Environment/Asteroids/Shapes/Models/Asteroid5.fbx
+Packages/com.unity.ugui/Runtime/UGUI/UI/Core/RawImage.cs
+Assets/Visuals/Ships/Nightshade/Breakup/Nightshade burst.anim
+Assets/Visuals/Vfx/WeaponExplosions/Textures/Missile.png
+Assets/Prefabs/Pilots/OrbiterPilot.prefab
+Assets/Visuals/Ships/Crimson/Canopy/Canopy.mat
+Assets/Visuals/Ui/Hud/square.png
+Packages/com.unity.ugui/Runtime/UGUI/UI/Core/Button.cs
+Assets/Visuals/Ui/LockOnReticle/lockOnReticle.png
+Assets/Visuals/Ships/Vanguard/Materials/vanguard/HullAccent.mat
+Assets/Visuals/Shaders/DrawnCanopy.shader
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape03/Asteroid3Drawing.fbx
+Assets/Settings/Ships/Shields/Default_Shield.asset
+Assets/Visuals/Environment/Asteroids/Shapes/Textures/AsteroidA_Dark_Albedo.png
+Assets/Scripts/Ships/Visuals/ThrusterVisuals.cs
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape05/Asteroid5.fbx
+Assets/Visuals/Ships/Valis/Breakup/Pieces/Upper spar right.asset
+Assets/Scripts/UI/Recap/RecapFeelProfile.cs
+Assets/Prefabs/Cameras/Hangar Camera.prefab
+Assets/Visuals/Vfx/Particles/Materials/SmokeDark.mat
+Assets/Visuals/Environment/Asteroids/Shapes/Models/Asteroid1.fbx
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape04/Asteroid4Normal.png
+Assets/Visuals/Environment/Asteroids/Shapes/Models/Asteroid10.fbx
+Assets/Scripts/Combat/Projectiles/Missile.cs
+Assets/Settings/Game/SurvivalTrialConfig.asset
+Assets/Scripts/Utils/LockLocalTransform.cs
+Assets/Scripts/Combat/Weapons/RailBeamVisual.cs
+Assets/Visuals/Environment/Stations/Station/Station_AO.png
+Assets/Prefabs/Weapons/Projectiles/TurboLaser.prefab
+Assets/Scripts/Substrate/Services/Units/UnitService.cs
+Assets/Prefabs/Weapons/Missiles.prefab
+Assets/Settings/Asteroids/SpawnSettings.asset
+Assets/Visuals/Ships/Valis/Breakup/Pieces/Forward outrigger right.asset
+Assets/Scripts/Combat/Weapons/Conditions/ChargeTime.cs
+Assets/Scripts/Ships/Visuals/HullVisuals.cs
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape10/Asteroid10.fbx
+Packages/com.unity.render-pipelines.core/Editor/Icons/MipLevels/d_Volume@256.png
+Assets/Settings/Ships/Engines/Vanguard_Engine.asset
+Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Edge.mat
+Assets/Visuals/Locales/Sky/Locales/Locale_3/FarNebula.mat
+Assets/Visuals/Travel/SectorJump.shader
+Assets/Scripts/Combat/Projectiles/Visual/LaserVisual.cs
+Assets/Settings/Game/SectorJumpTuning.asset
+Assets/Scripts/Ships/Visuals/Breakup/ShipBreakupDebris.cs
+Packages/com.unity.render-pipelines.universal/Runtime/UniversalAdditionalLightData.cs
+Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Recess.mat
+Assets/Visuals/Ships/_Shared/rocket_flame_flipbook_2.png
+Assets/Visuals/Ships/Vanguard/Breakup/Pieces/Armor/Armor left.asset
+Assets/Visuals/Ships/Nightshade/Breakup/Nightshade Recess.mat
+Assets/Visuals/Ships/Valis/Paint/Light.png
+Assets/Scripts/Substrate/Services/Locales/LocaleSky.cs
+Packages/com.unity.render-pipelines.universal/Runtime/Overrides/SplitToning.cs
+Assets/Visuals/Vfx/Weapons/Laser.mat
+Assets/Prefabs/Pilots/KiterPilot.prefab
+Packages/com.unity.render-pipelines.universal/Runtime/UniversalAdditionalCameraData.cs
+Assets/Visuals/Ui/Minimap/MinimapRing.png
+Assets/Visuals/Ships/Crimson/Breakup/Debris contour.mat
+Assets/Visuals/Ships/Crimson/Breakup/Lower Aft swept fin right.asset
+Assets/Visuals/Ships/Crimson/Breakup/Lower Aft swept fin left.asset
+Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Violet.mat
+Assets/Visuals/Vfx/Particles/Textures/shockwave.tif
+Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLit.shader
+Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolumesOptions.cs
+Assets/Visuals/Ships/Vanguard/Paint/Light.png
+Assets/Visuals/Ships/_Shared/dirt.png
+Assets/Prefabs/Keystones/Nightshade_Stealth.prefab
+Assets/Scripts/UI/Audio/UILockOnAudio.cs
+Assets/Visuals/Ships/Nightshade/Breakup/Nightshade Glass.mat
+Packages/com.unity.render-pipelines.universal/Runtime/Overrides/ColorLookup.cs
+Assets/Scripts/Substrate/Sectors/Elements/WaveDirector.cs
+Assets/Scripts/UI/Audio/UIHealthAudio.cs
+Assets/Scripts/Ships/Keystones/Kits/Overdrive.cs
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape08/Asteroid8Normal.png
+Assets/Visuals/Ships/Bulwark/Materials/Contour.mat
+Assets/Scripts/Combat/Weapons/Audio/RipperFireAudio.cs
+Assets/Visuals/Ships/Crimson/Breakup/Lower Outer swept fin left.asset
+Assets/Prefabs/Asteroid/AsteroidController.prefab
+Assets/Visuals/Locales/Sky/NebulaMaterial.mat
+Assets/Visuals/Ships/Crimson/Breakup/Lower Forward fin left.asset
+Assets/Visuals/Environment/Asteroids/DrawnField/Shape01/Asteroid1Normal.png
+Assets/Visuals/Ships/Valis/Breakup/Pieces/Lower inner spar left.asset
