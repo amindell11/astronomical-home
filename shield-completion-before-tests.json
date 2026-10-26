@@ -1,0 +1,85 @@
+{
+  "generatedAt": "2026-10-26T09:12:14.4232963-07:00",
+  "projectPath": "D:\\amind\\git\\agent-3\\src\\Asteroids3D",
+  "unityPath": "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+  "mode": "PlayMode",
+  "selection": {
+    "scopeType": "Workspace",
+    "scopeName": "",
+    "scopeResolved": false,
+    "testFilter": "HullShieldFeedbackPlayModeTests",
+    "testCategory": "",
+    "excludeCategory": "RequiresGraphics",
+    "categoryFilter": "!RequiresGraphics",
+    "assemblyNames": "",
+    "orderedTestListFile": "",
+    "rerunFailedFrom": "",
+    "auto": null,
+    "withGraphics": false,
+    "captureScenario": ""
+  },
+  "status": "failed",
+  "totals": {
+    "total": 6,
+    "passed": 5,
+    "failed": 1,
+    "skipped": 0,
+    "durationSec": 5.98
+  },
+  "runs": [
+    {
+      "platform": "PlayMode",
+      "xmlPath": "",
+      "logPath": "",
+      "unityExitCode": 0,
+      "status": "failed",
+      "total": 6,
+      "passed": 5,
+      "failed": 1,
+      "skipped": 0,
+      "durationSec": 5.98,
+      "failures": [
+        {
+          "name": "RecoveryArc_ClosesOnlyAtFull_ThenDisappears",
+          "fullName": "Tests.PlayMode.Presentation.HullShieldFeedbackPlayModeTests.RecoveryArc_ClosesOnlyAtFull_ThenDisappears",
+          "durationSec": 1.9729416,
+          "message": "Full recharge must extend the moving arc, not replace it with a circle. Expected: in range (0.2228169,0.3228169) But was: 1.0f",
+          "topStack": "at Tests.PlayMode.Presentation.HullShieldFeedbackPlayModeTests+<RecoveryArc_ClosesOnlyAtFull_ThenDisappears>d__7.MoveNext () [0x003a3] in D:\\amind\\git\\agent-3\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\PlayMode\\Presentation\\HullShieldFeedb..."
+        }
+      ],
+      "truncatedFailures": 0,
+      "selection": {
+        "scopeType": "Workspace",
+        "scopeName": "",
+        "scopeResolved": false,
+        "testFilter": "HullShieldFeedbackPlayModeTests",
+        "testCategory": "",
+        "excludeCategory": "RequiresGraphics",
+        "categoryFilter": "!RequiresGraphics",
+        "assemblyNames": "",
+        "orderedTestListFile": "",
+        "rerunFailedFrom": "",
+        "auto": null,
+        "withGraphics": false,
+        "captureScenario": ""
+      }
+    }
+  ],
+  "wallTiming": {
+    "elapsedSec": 28.158,
+    "startupToFirstTestSec": null,
+    "executionSec": null,
+    "remainingSec": null,
+    "unavailableReason": "resident-editor transport has no cold-process timestamps"
+  },
+  "coverage": {
+    "verdict": "partial",
+    "reason": "transport=routed (warm-editor run; merge-grade proof requires a cold-process run)"
+  },
+  "memory": {
+    "processes": [],
+    "unavailableReason": "resident-editor transport launches no process to sample"
+  },
+  "transport": "routed",
+  "editorPid": 33144
+}
