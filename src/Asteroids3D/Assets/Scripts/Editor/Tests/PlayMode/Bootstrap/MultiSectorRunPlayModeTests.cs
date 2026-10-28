@@ -21,6 +21,7 @@ using Substrate.Services.Units;
 using UI.Recap;
 using UI.Screens;
 using Tests.PlayMode.Common;
+using Tests.PlayMode.Common.SimulatedInput;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -43,7 +44,7 @@ namespace Tests.PlayMode.Bootstrap
         private const string RecapFeelPath = "Assets/Settings/UI/RecapFeel.asset";
         private const float StepTimeoutSec = 30f;
 
-        private readonly InputTestFixture input = new();
+        private readonly PlayModeInputTestFixture input = new();
         private GameObject hostGo;
         private GameHost host;
         private GameObject[] templates;
