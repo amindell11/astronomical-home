@@ -177,6 +177,34 @@ namespace Tests.PlayMode.Weapons
             Assert.AreEqual(0f, railgun.Charge.ChargePct, "The release drops the charge.");
         }
 
+        [UnityTest]
+        public IEnumerator Railgun_OnSolution_BuildsNoChargeUntilTheCooldownEnds()
+        {
+            var railgun = InstantiateWeapon<Railguns>(RailgunPrefabPath);
+            var cooldown = railgun.GetComponent<Cooldown>();
+            var shots = 0;
+            railgun.OnFire += () => shots++;
+
+            for (var i = 0; i < MaxSteps && shots == 0; i++)
+            {
+                Step(railgun, Target(0f));
+                yield return new WaitForFixedUpdate();
+            }
+            Assert.AreEqual(1, shots, "On solution the plan charges and fires.");
+
+            var recoverySteps = 0;
+            for (; recoverySteps < MaxSteps && !cooldown.CanFire(); recoverySteps++)
+            {
+                Assert.IsTrue(Step(railgun, Target(0f)), "On solution the plan holds the trigger through the cooldown.");
+                Assert.AreEqual(0f, railgun.Charge.ChargePct, "No charge builds while the cooldown runs.");
+                yield return new WaitForFixedUpdate();
+            }
+            Assert.Greater(recoverySteps, 0, "The shot started the cooldown.");
+
+            Step(railgun, Target(0f));
+            Assert.Greater(railgun.Charge.ChargePct, 0f, "The charge starts once the cooldown ends.");
+        }
+
         [TestCase(TurboLasersPrefabPath, true, TestName = "TurboLasers_VentToColdBeforeFiringAgain")]
         [TestCase(LasersPrefabPath, false, TestName = "Lasers_FireAgainOnceTheNextShotFits")]
         public void HeatWeapon_AtTheOverheatBrink_HoldsFireUntilItsVentPoint(string path, bool ventsToCold)

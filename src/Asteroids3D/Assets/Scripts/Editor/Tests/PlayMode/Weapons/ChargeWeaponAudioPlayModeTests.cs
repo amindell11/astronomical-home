@@ -65,6 +65,8 @@ namespace Tests.PlayMode.Weapons
             Assert.AreEqual(charge.SpentCharge, spentCharge, 1e-4f, "Charge holds the spent charge through the release");
 
             description.releaseAllInstances();
+            // Skip the cooldown, which holds off the railgun's next charge-up.
+            weapon.GetComponent<Cooldown>().Reset();
             yield return Flush();
             Hold(weapon, 2);
             yield return Flush();
