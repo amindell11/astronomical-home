@@ -75,8 +75,6 @@ namespace Tests.EditMode.Rendering.Illustrated
                     Assert.That(material.GetFloat("_SpecularStrength"), Is.Zero);
                 }
             }
-            Assert.That(new SerializedObject(rigs[0].GetComponent<HullDamageEffects>()).FindProperty("hull").objectReferenceValue,
-                Is.EqualTo(hull.Single(r => r.name == "Nightshade")));
         }
 
         [TestCase(Vanguard)]

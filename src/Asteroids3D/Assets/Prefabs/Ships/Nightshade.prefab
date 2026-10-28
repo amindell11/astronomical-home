@@ -525,11 +525,6 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: ae340693c4de6fe47bd87544945e603c, type: 2}
     - target: {fileID: 5222839046371122320, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
-      propertyPath: hull
-      value: 
-      objectReference: {fileID: 1740611963405572408}
-    - target: {fileID: 5222839046371122320, guid: 6c5c44eda9b86054ba44bc3f0f758310,
-        type: 3}
       propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}

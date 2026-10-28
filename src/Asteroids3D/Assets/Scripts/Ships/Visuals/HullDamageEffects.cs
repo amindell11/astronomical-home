@@ -9,7 +9,6 @@ namespace Ships.Visuals
 {
     public sealed class HullDamageEffects : MonoBehaviour, IShipVisual
     {
-        [SerializeField] private Renderer hull;
         [SerializeField] private ParticleSystem smoke;
         [SerializeField] private PooledVFX sparksPrefab;
         [SerializeField] private GameObject explosionPrefab;
@@ -17,14 +16,11 @@ namespace Ships.Visuals
 
         private IDamageEvents source;
         private bool subscribed;
-        private MaterialPropertyBlock block;
         private PooledVFX pooledExplosion;
         private PooledVFX pooledCollisionExplosion;
-        private static readonly int DetailScale = Shader.PropertyToID("_DetailAlbedoMapScale");
 
         private void Awake()
         {
-            block = new MaterialPropertyBlock();
             if (explosionPrefab) pooledExplosion = explosionPrefab.GetComponent<PooledVFX>();
             if (collisionExplosionPrefab) pooledCollisionExplosion = collisionExplosionPrefab.GetComponent<PooledVFX>();
         }
@@ -69,12 +65,6 @@ namespace Ships.Visuals
         private void ApplyHealth()
         {
             if (source == null) return;
-            if (hull)
-            {
-                hull.GetPropertyBlock(block);
-                block.SetFloat(DetailScale, Mathf.Lerp(2f, 0f, source.Health.Pct));
-                hull.SetPropertyBlock(block);
-            }
             if (smoke) smoke.gameObject.SetActive(source.Health.Pct < 0.5f);
         }
 

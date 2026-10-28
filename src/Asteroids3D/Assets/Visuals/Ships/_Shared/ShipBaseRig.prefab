@@ -136,7 +136,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b03a9b68ab8d4ba48ae705b503e9f5f6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hull: {fileID: 0}
   smoke: {fileID: 1180387568437145565}
   sparksPrefab: {fileID: 0}
   explosionPrefab: {fileID: 3624727767247666335, guid: b87929575dffb6c49b64ff8ec3faa5d7,
