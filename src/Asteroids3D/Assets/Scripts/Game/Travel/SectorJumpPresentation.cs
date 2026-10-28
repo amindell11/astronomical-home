@@ -16,6 +16,8 @@ namespace Game.Travel
     /// </summary>
     public sealed class SectorJumpPresentation : MonoBehaviour
     {
+        public const int StreakSeed = 1099;
+
         private Ship ship;
         private Overlay overlay;
         private IEnumerable<Ship> ships;
