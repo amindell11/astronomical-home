@@ -89,6 +89,9 @@
 		</relationship>
 	</object>
 	<object class="EventMixerMaster" id="{5bfbc018-9648-4221-a023-58a812ecc4a6}">
+		<property name="maxInstances">
+			<value>1</value>
+		</property>
 		<relationship name="effectChain">
 			<destination>{5f3189ae-5fb6-4752-b1ec-e6cbe7c7ca80}</destination>
 		</relationship>
