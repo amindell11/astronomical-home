@@ -33,6 +33,7 @@ namespace UI.PlayerState
         private void Awake()
         {
             rect = GetComponent<RectTransform>();
+            rect.anchorMin = rect.anchorMax = Vector2.zero;
             visibility = GetComponent<CanvasGroup>();
             visibility.blocksRaycasts = false;
             visibility.interactable = false;
@@ -64,9 +65,8 @@ namespace UI.PlayerState
                     new Vector3(bounds.center.x, bounds.max.y, bounds.center.z)).y);
             }
             point.y = top + 12f;
-            RectTransformUtility.ScreenPointToLocalPointInRectangle((RectTransform)canvas.transform,
-                point, canvas.worldCamera, out var position);
-            rect.anchoredPosition = position;
+            // Screen pixels, not the canvas transform: that trails the moving camera until after LateUpdate.
+            rect.anchoredPosition = point / canvas.scaleFactor;
             rect.localScale = Vector3.one * Mathf.Clamp(17f / worldCamera.orthographicSize, .8f, 1.15f);
         }
     }
