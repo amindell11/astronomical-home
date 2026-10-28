@@ -35,12 +35,10 @@ namespace Combat.Projectiles
         private float radiusScale = 1f;
 
         public float Radius => radius;
-        public float MaxRadius => maxRadius;
-        public float MaxDamage => maxDamage;
 
-        // This detonation's reach and centre damage: the authored numbers under the shooter's weapon mods.
-        private float Reach => maxRadius * radiusScale;
-        private float Yield => maxDamage * damageScale;
+        // This detonation's reach and centre damage under the shooter's weapon mods; a prefab asset reads them unscaled.
+        public float MaxRadius => maxRadius * radiusScale;
+        public float MaxDamage => maxDamage * damageScale;
 
         private void Awake()
         {
@@ -72,7 +70,7 @@ namespace Combat.Projectiles
             radius += expandSpeed * Time.fixedDeltaTime;
             Sweep();
 
-            if (radius >= Reach)
+            if (radius >= MaxRadius)
                 ReturnToPoolImmediate();
         }
 
@@ -85,8 +83,8 @@ namespace Combat.Projectiles
 
         private void Sweep()
         {
-            var damageFalloff = Falloff(radius, Reach, damageFalloffPower);
-            var impulseFalloff = Falloff(radius, Reach, impulseFalloffPower);
+            var damageFalloff = Falloff(radius, MaxRadius, damageFalloffPower);
+            var impulseFalloff = Falloff(radius, MaxRadius, impulseFalloffPower);
 
             // Already-swept inner colliders would crowd a fixed-size result and starve newly reached outer targets — regrow until the query fits.
             var buffer = PhysicsBuffers.GetColliderBuffer(64);
@@ -109,7 +107,7 @@ namespace Combat.Projectiles
                 var hitPoint = buffer[i].ClosestPoint(transform.position);
                 var outward = OutwardDirection(hitPoint, target.gameObject.transform.position);
                 Push(buffer[i].attachedRigidbody, outward, hitPoint, impulseFalloff);
-                target.TakeDamage(new DamageInfo(Yield * damageFalloff, DamageKind.ConcussionWave, attackerId,
+                target.TakeDamage(new DamageInfo(MaxDamage * damageFalloff, DamageKind.ConcussionWave, attackerId,
                     waveMass, outward * expandSpeed, hitPoint));
             }
         }

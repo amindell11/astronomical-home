@@ -86,7 +86,7 @@ namespace UI.Screens
             // Translucent so the HUD's phase line still reads; a raycast target so clicks stop here.
             dim.gameObject.AddComponent<Image>().color = Dim;
 
-            Label(Centered(transform, "Title", 600f, 48f, 160f), "MOD PICK", 40, Paint, TextAnchor.MiddleCenter);
+            Label(Centered(transform, "Title", 600f, 48f, 160f), "WEAPON MOD PICK", 40, Paint, TextAnchor.MiddleCenter);
             Label(Centered(transform, "Hint", 600f, 20f, 122f), "ONE KEY PICKS   ·   SPACE SKIPS", 12, Muted,
                 TextAnchor.MiddleCenter);
 
