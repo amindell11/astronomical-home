@@ -1,0 +1,22 @@
+{
+  "commit": "74967104227835671c97ea9e5365853950aa21a5",
+  "hudTests": {
+    "passed": 18,
+    "result": "final-hud-tests.json"
+  },
+  "graphicsGameplayTest": {
+    "passed": 1,
+    "result": "final-gameplay-test.json"
+  },
+  "staticAnalysis": {
+    "result": "final-static-summary.json",
+    "reportOnly": 15,
+    "blockingFindings": 0,
+    "solutionReady": true
+  },
+  "capture": {
+    "lastSuccessfulCommit": "55c43ceabaf3dd4b1b1dccbfe94b1b33e4c089ea",
+    "finalAttempt": "Two fresh interactive editors stalled after opening Locale_3 before a new capture could start. Pipeline commands timed out. Window capture returned black and activation failed. Graphics-enabled production gameplay test passed. Root cause remains unconfirmed.",
+    "evidenceCommit": "d0e42a20e6168087000d02e4552aea9469c7066b"
+  }
+}
