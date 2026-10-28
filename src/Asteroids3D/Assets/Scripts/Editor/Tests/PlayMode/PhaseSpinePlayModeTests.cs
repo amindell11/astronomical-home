@@ -13,15 +13,13 @@ using Substrate.Services;
 using Substrate.Services.Objectives;
 using Substrate.Services.Units;
 using Tests.PlayMode.Common;
-using Tests.PlayMode.Common.SimulatedInput;
 using UnityEngine;
 using UnityEngine.TestTools;
-using UnityEngine.InputSystem;
 using Object = UnityEngine.Object;
 
 namespace Tests.PlayMode
 {
-    /// <summary>A phased sector end to end: the director's phases run out, the extraction zone appears at its distance from the player, and a fresh F press inside ends the sector extracted.</summary>
+    /// <summary>A phased sector end to end: the director's phases run out, the extraction zone appears at its distance from the hero, and a non-player hero's jump request inside ends the sector extracted.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class PhaseSpinePlayModeTests : PlayModeWorldFixture
@@ -30,18 +28,12 @@ namespace Tests.PlayMode
 
         private UnitService _unitService;
         private ObjectiveService _objectives;
-        private PlayModeInputTestFixture input;
-        private Keyboard keyboard;
         private readonly List<GameObject> _created = new();
 
         [SetUp]
         public override void SetUp()
         {
             base.SetUp();
-            input = new PlayModeInputTestFixture();
-            input.Setup();
-            keyboard = InputSystem.AddDevice<Keyboard>();
-
             var unitServiceGO = TrackGO(new GameObject("UnitService"));
             _unitService = unitServiceGO.AddComponent<UnitService>();
 
@@ -60,7 +52,6 @@ namespace Tests.PlayMode
                 if (go != null) Object.DestroyImmediate(go);
             _created.Clear();
 
-            input.TearDown();
             base.TearDown();
         }
 
@@ -79,9 +70,10 @@ namespace Tests.PlayMode
 
         [UnityTest]
         [Timeout(600000)]
-        public IEnumerator PhasesRunOut_ZoneAppearsAway_AndFreshPressExtracts()
+        public IEnumerator PhasesRunOut_ZoneAppearsAway_AndARequestInsideExtracts()
         {
             var player = SpawnKinematicShip(Vector2.zero);
+            var pilot = JumpTestCommander.Fly(player);
             var template = SpawnKinematicShip(new Vector2(500f, 500f));
             template.gameObject.SetActive(false);
 
@@ -124,20 +116,17 @@ namespace Tests.PlayMode
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
             Assert.IsFalse(zone.IsPlayerInZone, "The relocated zone has settled outside the player.");
-            input.Press(keyboard.fKey);
-            InputSystem.Update();
+            pilot.RequestJump();
+            Assert.IsFalse(got.HasValue, "A request outside the zone must not extract.");
             ShipTestFactory.MoveKinematicShip(player, zone.transform.position);
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
-            Assert.IsFalse(got.HasValue, "Entering while F is held must not extract.");
+            Assert.IsFalse(got.HasValue, "Entering after a dropped request must not extract.");
             Assert.AreEqual("PRESS F TO JUMP", _objectives.SpineTracker.CurrentStatusLine);
-            input.Release(keyboard.fKey);
-            InputSystem.Update();
-            input.Press(keyboard.fKey);
-            InputSystem.Update();
+            pilot.RequestJump();
 
-            Assert.IsTrue(got.HasValue, "Fresh F must end the sector in the input callback.");
-            Assert.IsTrue(got.Value.Success, "F in the eligible zone ends the sector extracted.");
+            Assert.IsTrue(got.HasValue, "A request inside must end the sector on the spot.");
+            Assert.IsTrue(got.Value.Success, "A request in the eligible zone ends the sector extracted.");
             Assert.AreEqual(zone.DepartureHeading, got.Value.DepartureHeading);
 
             yield return sector.Teardown();

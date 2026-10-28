@@ -12,7 +12,7 @@ namespace Game.Travel
     /// <summary>
     /// Applies a jump state to live locale skies, the ship's hull and the actual HUD.
     /// Its render targets belong to the presentation, so previews and gameplay use the same renderer.
-    /// The caller owns simulation time and destination loading.
+    /// The caller owns simulation time, destination loading, the world blend and the ship and camera pose.
     /// </summary>
     public sealed class SectorJumpPresentation : MonoBehaviour
     {
@@ -32,44 +32,28 @@ namespace Game.Travel
         private RenderTexture composed;
         private Material material;
         private RawImage image;
-        private bool observerEnabled;
-        private bool commanderEnabled;
-        private Vector3 observerPosition;
         private int[] hullLayers;
-        private bool ownsPose;
         private float worldBlend = 1f;
         private float hullDiameter;
 
         public static SectorJumpPresentation Create(Transform parent, Ship ship, Overlay overlay,
-            IEnumerable<Ship> ships, ObserverCam observer, LocaleBackdropPair backdrop, Shader shader,
-            bool ownsPose = true)
+            IEnumerable<Ship> ships, ObserverCam observer, LocaleBackdropPair backdrop, Shader shader)
         {
             var root = new GameObject("Sector jump presentation");
             root.transform.SetParent(parent, false);
             var presentation = root.AddComponent<SectorJumpPresentation>();
-            presentation.Initialize(ship, overlay, ships, observer, backdrop, shader, ownsPose);
+            presentation.Initialize(ship, overlay, ships, observer, backdrop, shader);
             return presentation;
         }
 
         private void Initialize(Ship player, Overlay playerOverlay, IEnumerable<Ship> activeShips,
-            ObserverCam playerObserver, LocaleBackdropPair skies, Shader shader, bool controlsPose)
+            ObserverCam playerObserver, LocaleBackdropPair skies, Shader shader)
         {
             ship = player;
             overlay = playerOverlay;
             ships = activeShips;
             observer = playerObserver;
             backdrop = skies;
-            ownsPose = controlsPose;
-            observerEnabled = observer.enabled;
-            commanderEnabled = ship.Commander.enabled;
-            observerPosition = observer.transform.position;
-            if (ownsPose)
-            {
-                observer.enabled = false;
-                ship.Commander.enabled = false;
-                observer.transform.position = new Vector3(ship.transform.position.x, ship.transform.position.y,
-                    observerPosition.z);
-            }
             hullLayers = new int[ship.VisualRig.Silhouette.Count];
             skyCamera = NewCamera("Jump sky camera", 1 << LayerIds.Sky);
             hullCamera = NewCamera("Jump hull camera", 1 << LayerMask.NameToLayer("ShipPreview"));
@@ -145,12 +129,9 @@ namespace Game.Travel
             material.SetTexture("_FromSky", reverseLocales ? incoming : outgoing);
             material.SetTexture("_ToSky", reverseLocales ? outgoing : incoming);
             SectorJumpShader.Apply(material, profile, state, aspect, composed.height, seed);
-            if (!ownsPose)
-            {
-                var framing = material.GetVector("_Ship");
-                framing.x = Mathf.Lerp(hullDiameter / (observer.Cam.orthographicSize * 2f), framing.x, worldBlend);
-                material.SetVector("_Ship", framing);
-            }
+            var framing = material.GetVector("_Ship");
+            framing.x = Mathf.Lerp(hullDiameter / (observer.Cam.orthographicSize * 2f), framing.x, worldBlend);
+            material.SetVector("_Ship", framing);
             var previous = RenderTexture.active;
             try { Graphics.Blit(null, composed, material); }
             finally { RenderTexture.active = previous; }
@@ -226,12 +207,6 @@ namespace Game.Travel
 
         private void OnDestroy()
         {
-            if (ownsPose && observer)
-            {
-                observer.enabled = observerEnabled;
-                observer.transform.position = observerPosition;
-            }
-            if (ownsPose && ship) ship.Commander.enabled = commanderEnabled;
             if (overlay) overlay.SetOpacity(1f);
             if (ships != null)
                 foreach (var active in ships)

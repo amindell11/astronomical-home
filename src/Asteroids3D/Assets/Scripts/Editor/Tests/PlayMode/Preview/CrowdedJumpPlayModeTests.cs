@@ -153,21 +153,62 @@ namespace Tests.PlayMode.Preview
             host.Transport.Playing = false;
             var camera = host.GetComponentsInChildren<Camera>().Single(item => item.name == "Jump sky camera");
             var subject = host.Subject;
-            var arrival = feel.turnDuration + feel.chargeDuration + feel.travelDuration;
+            var settled = feel.worldBlendDuration + feel.settleDuration;
             feel.arrivalSpeedFraction = 0f;
             subject.Knobs = feel;
-            subject.Show(0, arrival + feel.settleDuration - .1f);
+            subject.Show(1, settled - .1f, 0f);
             var slowStart = camera.transform.position;
-            subject.Show(0, arrival + feel.settleDuration);
+            subject.Show(1, settled, 0f);
             var slowDistance = Vector3.Distance(slowStart, camera.transform.position);
             feel.arrivalSpeedFraction = 1f;
             subject.Knobs = feel;
-            subject.Show(0, arrival + feel.settleDuration - .1f);
+            subject.Show(1, settled - .1f, 0f);
             var fastStart = camera.transform.position;
-            subject.Show(0, arrival + feel.settleDuration);
+            subject.Show(1, settled, 0f);
             var fastDistance = Vector3.Distance(fastStart, camera.transform.position);
             Assert.That(fastDistance, Is.GreaterThan(slowDistance + .1f),
                 "Inspection must show the arrival speed selected in the feel profile");
+        }
+
+        [UnityTest]
+        public IEnumerator Inspection_PlaysTheGamesJumpStates_ForTheGamesHold()
+        {
+            BuildPreview();
+            yield return WaitForFlight();
+            var game = host.Playtest;
+            PressJump();
+            var flight = game.Jump;
+            var played = new List<SectorJumpState>();
+            IEnumerator Record()
+            {
+                while (flight)
+                {
+                    played.Add(flight.State);
+                    yield return null;
+                }
+            }
+            host.StartCoroutine(Record());
+            yield return WaitForHold();
+            yield return ClickContinue(game.GetComponentInChildren<RunRecapScreen>());
+            yield return AsyncAssert.WaitUntil(() => !flight, 30f, "travel finishes after Continue");
+
+            host.SelectMode(PreviewMode.Inspection);
+            yield return AsyncAssert.WaitUntil(() => host.IsReady, 30f, "jump inspection composes");
+            host.Transport.Playing = false;
+            var subject = (SectorJumpPreviewSubject)host.Subject;
+            var holdStarts = subject.Span(0).Seconds;
+            // Every held state repeats the hold's travel progress; the last one is the frame before Continue.
+            var holding = played.First(state => state.Seconds >= holdStarts).TravelProgress;
+            var resume = played.Last(state => state.Seconds >= holdStarts && state.TravelProgress == holding).Seconds;
+            host.Transport.HoldSeconds = resume - holdStarts;
+            Assert.That(host.Transport.HoldSeconds, Is.GreaterThan(0f), "the game held in hyperspace");
+            foreach (var expected in played)
+            {
+                if (expected.Seconds <= resume) host.Transport.Scrub(0, expected.Seconds);
+                else host.Transport.Scrub(1, expected.Seconds - resume);
+                yield return null;
+                AssertSameTimeline(expected, subject.State);
+            }
         }
 
         [UnityTest]
@@ -333,6 +374,23 @@ namespace Tests.PlayMode.Preview
             Assert.That(Object.FindObjectsByType<SectorJumpFlight>(FindObjectsSortMode.None), Is.Empty);
             Assert.That(InputSystem.ListEnabledActions().Count(action =>
                 action.name is "Jump" or "Continue" or "Thrust"), Is.Zero);
+        }
+
+        // Headings are left out: the game's come from the gate, Inspection's from its fixture.
+        private static void AssertSameTimeline(SectorJumpState expected, SectorJumpState shown)
+        {
+            const float tolerance = 1e-4f;
+            var at = $"at {expected.Seconds:F3}s";
+            Assert.That(shown.Seconds, Is.EqualTo(expected.Seconds).Within(tolerance), at);
+            Assert.That(shown.TravelProgress, Is.EqualTo(expected.TravelProgress).Within(tolerance), at);
+            Assert.That(shown.TravelFraction, Is.EqualTo(expected.TravelFraction).Within(tolerance), at);
+            Assert.That(shown.Speed, Is.EqualTo(expected.Speed).Within(tolerance), at);
+            Assert.That(shown.Distance, Is.EqualTo(expected.Distance).Within(tolerance), at);
+            Assert.That(shown.LocaleBlend, Is.EqualTo(expected.LocaleBlend).Within(tolerance), at);
+            Assert.That(shown.Charge, Is.EqualTo(expected.Charge).Within(tolerance), at);
+            Assert.That(shown.HudAlpha, Is.EqualTo(expected.HudAlpha).Within(tolerance), at);
+            Assert.That(shown.ShipBlurStrength, Is.EqualTo(expected.ShipBlurStrength).Within(tolerance), at);
+            Assert.That(shown.ShipBlurLength, Is.EqualTo(expected.ShipBlurLength).Within(tolerance), at);
         }
 
         private static void AssertProtected(Ship player)

@@ -28,7 +28,7 @@ namespace Game.Preview
         // Shown before advancing, so a span's staged moment starts before speed can skip past it.
         public void Tick(float unscaledDelta, IPreviewSubject subject)
         {
-            subject.Show(Span, Seconds);
+            subject.Show(Span, Seconds, HoldSeconds);
             if (Playing) Advance(unscaledDelta * Speed, subject);
         }
 
@@ -36,7 +36,7 @@ namespace Game.Preview
         {
             Seconds += delta;
             var length = Length(subject.Span(Span));
-            if (Seconds < length || subject.Busy) return;
+            if (Seconds < length) return;
             if (Span + 1 < subject.SpanCount) Scrub(Span + 1, 0f);
             else if (Loop) Restart();
             else

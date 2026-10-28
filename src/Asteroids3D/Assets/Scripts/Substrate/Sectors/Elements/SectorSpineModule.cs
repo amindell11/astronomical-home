@@ -41,7 +41,7 @@ namespace Substrate.Sectors.Elements
             var playerBody = ctx.Hero ? ctx.Hero.Body : null;
             keyPickup.Initialize(playerBody);
             extractionZone.BindPlayer(playerBody);
-            extraction = new ExtractionJumpState(extractionZone,
+            extraction = new ExtractionJumpState(extractionZone, ctx.Hero,
                 () => RequestSectorEnd(SectorResult.Extracted(extractionZone.DepartureHeading)));
 
             keyHome ??= keyPickup.transform.position;
