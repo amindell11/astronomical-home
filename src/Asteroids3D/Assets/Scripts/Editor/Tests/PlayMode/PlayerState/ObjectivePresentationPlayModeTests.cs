@@ -76,8 +76,13 @@ namespace Tests.PlayMode.PlayerState
             camera.transform.position = new Vector3(0, 0, -50);
             camera.orthographic = true;
             camera.orthographicSize = 18;
+            canvas.renderMode = RenderMode.ScreenSpaceCamera;
+            canvas.worldCamera = camera;
+            canvas.planeDistance = 1;
             var minimap = (RectTransform)Child("Minimap").transform;
             minimap.SetParent(canvas.transform, false);
+            minimap.anchorMin = minimap.anchorMax = Vector2.one;
+            minimap.anchoredPosition = new Vector2(-120, -120);
             minimap.sizeDelta = new Vector2(200, 200);
             var icon = Child("Legacy objective").AddComponent<Image>();
             var markers = Child("Markers").AddComponent<ObjectiveMarkers>();
@@ -99,6 +104,12 @@ namespace Tests.PlayMode.PlayerState
             Assert.AreEqual(Vector3.one, screen.rectTransform.localScale);
             Assert.Less(map.rectTransform.rect.width, screen.rectTransform.rect.width);
             Assert.AreEqual(Quaternion.identity, map.rectTransform.localRotation);
+            var mapPosition = map.rectTransform.anchoredPosition;
+            camera.transform.position += new Vector3(10, 7, 0);
+            target.position += new Vector3(10, 7, 0);
+            yield return null;
+            Assert.That(Vector2.Distance(mapPosition, map.rectTransform.anchoredPosition), Is.LessThan(.1f),
+                "Moving the camera and destination together cannot shift the icon inside the minimap");
             Object.Destroy(target.gameObject);
             yield return null;
             yield return null;

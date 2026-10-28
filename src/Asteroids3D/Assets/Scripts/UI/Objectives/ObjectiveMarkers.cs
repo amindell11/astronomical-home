@@ -47,7 +47,7 @@ namespace UI.Objectives
             var generic = (state == ObjectiveType.Explore || state == ObjectiveType.KeyAcquired) && target;
             screenBerth.enabled = minimapBerth.enabled = extraction;
             icon.enabled = generic;
-            if (!target) return;
+            if (!extraction && !generic) return;
 
             var mapPoint = minimapCamera.WorldToViewportPoint(target.position);
             var mapOffset = new Vector2(mapPoint.x - .5f, mapPoint.y - .5f);
@@ -61,13 +61,14 @@ namespace UI.Objectives
             if (!extraction) return;
 
             minimapRect.GetWorldCorners(corners);
-            var lower = RectTransformUtility.WorldToScreenPoint(canvas.worldCamera, corners[0]);
-            var upper = RectTransformUtility.WorldToScreenPoint(canvas.worldCamera, corners[2]);
+            var canvasRect = (RectTransform)canvas.transform;
+            var lower = (Vector2)canvasRect.InverseTransformPoint(corners[0]) - canvasRect.rect.min;
+            var upper = (Vector2)canvasRect.InverseTransformPoint(corners[2]) - canvasRect.rect.min;
             var mapBounds = Rect.MinMaxRect(lower.x, lower.y, upper.x, upper.y);
             var radius = Mathf.Min(mapBounds.width, mapBounds.height) * .5f;
-            var inset = (minimapBerth.rectTransform.rect.width * .5f + 1f) * canvas.scaleFactor;
+            var inset = minimapBerth.rectTransform.rect.width * .5f + 1f;
             minimapBerth.rectTransform.anchoredPosition = (mapBounds.center +
-                Vector2.ClampMagnitude(mapOffset * radius * 2f, radius - inset)) / canvas.scaleFactor;
+                Vector2.ClampMagnitude(mapOffset * radius * 2f, radius - inset));
 
             var projected = worldCamera.WorldToScreenPoint(target.position);
             screenBerth.enabled = projected.z > 0f;
@@ -76,8 +77,8 @@ namespace UI.Objectives
             var safe = Rect.MinMaxRect(viewport.xMin + padding, viewport.yMin + padding,
                 viewport.xMax - padding, viewport.yMax - 70f * canvas.scaleFactor);
             var location = ClampToEdge(projected, viewport.center, safe);
-            if (!safe.Contains(projected) && mapBounds.Contains(location))
-                location.y = mapBounds.yMin - padding;
+            if (!safe.Contains(projected) && mapBounds.Contains(location / canvas.scaleFactor))
+                location.y = mapBounds.yMin * canvas.scaleFactor - padding;
             screenBerth.rectTransform.anchoredPosition = location / canvas.scaleFactor;
             var direction = (Vector2)projected - viewport.center;
             screenBerth.rectTransform.localEulerAngles = new Vector3(0, 0,
