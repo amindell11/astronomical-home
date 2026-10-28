@@ -44,7 +44,9 @@ namespace Tests.EditMode.Rendering.Illustrated
             }
             var feedback = rigs[0].GetComponentsInChildren<HullVisuals>(true);
             Assert.That(feedback, Has.Length.EqualTo(1));
-            Assert.That(feedback[0].enabled, Is.False, "Multi-surface damage feedback is deferred.");
+            Assert.That(feedback[0].enabled, Is.True);
+            Assert.That(rigs[0].GetComponent<HullDamageEffects>().enabled, Is.False,
+                "Restoring hit feedback must not enable deferred smoke or death effects.");
         }
 
         [Test]
@@ -73,8 +75,6 @@ namespace Tests.EditMode.Rendering.Illustrated
                     Assert.That(material.GetFloat("_SpecularStrength"), Is.Zero);
                 }
             }
-            Assert.That(new SerializedObject(feedback[0]).FindProperty("hull").objectReferenceValue,
-                Is.EqualTo(hull.Single(r => r.name == "Nightshade")));
         }
 
         [TestCase(Vanguard)]

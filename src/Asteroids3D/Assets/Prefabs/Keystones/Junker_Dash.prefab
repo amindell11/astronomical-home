@@ -44,5 +44,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09bc9df99c834f3c99dc84ba43a961ee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cooldown: 7
-  impulse: 13000
+  cooldown: 5
+  impulse: 15000

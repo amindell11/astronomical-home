@@ -398,18 +398,8 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2769356930778123145, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
-      propertyPath: hull
-      value: 
-      objectReference: {fileID: 1740611963405572408}
-    - target: {fileID: 2769356930778123145, guid: 6c5c44eda9b86054ba44bc3f0f758310,
-        type: 3}
       propertyPath: m_Enabled
       value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2769356930778123145, guid: 6c5c44eda9b86054ba44bc3f0f758310,
-        type: 3}
-      propertyPath: explosionPrefab
-      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 2781440978256499436, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
@@ -533,6 +523,16 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[6]'
       value: 
       objectReference: {fileID: 2100000, guid: ae340693c4de6fe47bd87544945e603c, type: 2}
+    - target: {fileID: 5222839046371122320, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5222839046371122320, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: explosionPrefab
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 5495579178143933876, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_Mesh
@@ -616,24 +616,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7184882482910536223, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
-      propertyPath: maxHealth
-      value: 85
-      objectReference: {fileID: 0}
-    - target: {fileID: 7184882482910536223, guid: 6c5c44eda9b86054ba44bc3f0f758310,
-        type: 3}
       propertyPath: engine
       value: 
-      objectReference: {fileID: 11400000, guid: ff5d94223b064b2e944b2ff08d25c3e4, type: 2}
-    - target: {fileID: 7184882482910536223, guid: 6c5c44eda9b86054ba44bc3f0f758310,
-        type: 3}
-      propertyPath: keystone
-      value: 
-      objectReference: {fileID: 5512903418735166201, guid: a80b5c5a9a734c9b9e87bfc9d0cf0c1f, type: 3}
+      objectReference: {fileID: 11400000, guid: ff5d94223b064b2e944b2ff08d25c3e4,
+        type: 2}
     - target: {fileID: 7184882482910536223, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: shield
       value: 
-      objectReference: {fileID: 11400000, guid: 023994e7134f495aa5c87427e4dcd986, type: 2}
+      objectReference: {fileID: 11400000, guid: 023994e7134f495aa5c87427e4dcd986,
+        type: 2}
+    - target: {fileID: 7184882482910536223, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: keystone
+      value: 
+      objectReference: {fileID: 5512903418735166201, guid: a80b5c5a9a734c9b9e87bfc9d0cf0c1f,
+        type: 3}
+    - target: {fileID: 7184882482910536223, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: maxHealth
+      value: 85
+      objectReference: {fileID: 0}
     - target: {fileID: 7604545048589130545, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_ImplicitTensor
