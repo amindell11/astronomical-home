@@ -32,7 +32,7 @@ namespace Game.Preview.Fixtures
             asteroids.SetPresentation(ctx.PresentationEnabled);
             zone.BindPlayer(ctx.Hero.Body);
             zone.Arm();
-            extraction = new ExtractionJumpState(zone,
+            extraction = new ExtractionJumpState(zone, ctx.Hero,
                 () => RequestSectorEnd(SectorResult.Extracted(zone.DepartureHeading)));
             objective = ctx.Objectives.SetSpineObjective(
                 new MissionDefinition("jump", new Dictionary<string, string> { ["jump"] = "departed" }),
@@ -62,20 +62,20 @@ namespace Game.Preview.Fixtures
 
         public override IEnumerator Teardown(SectorBuildContext ctx)
         {
-            ReleaseInput();
+            ReleaseExtraction();
             zone.Disarm();
             objective.Close();
             asteroids.DespawnAll();
             yield break;
         }
 
-        private void ReleaseInput()
+        private void ReleaseExtraction()
         {
             extraction?.Dispose();
             extraction = null;
         }
 
-        private void OnDestroy() => ReleaseInput();
+        private void OnDestroy() => ReleaseExtraction();
 
     }
 }

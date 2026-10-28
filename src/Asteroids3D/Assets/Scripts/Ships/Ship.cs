@@ -22,7 +22,7 @@ namespace Ships
     [RequireComponent(typeof(MovementController))]
     [RequireComponent(typeof(DamageController))]
     [DefaultExecutionOrder(-90)]
-    public class Ship : MonoBehaviour, ITargetable, IShipStatus, IShooter
+    public class Ship : MonoBehaviour, ITargetable, IShipStatus, IShooter, IJumpDrive
     {
         [Header("Chassis")]
         [Tooltip("Ship mass (kg). Drives momentum and the physics inertia tensor.")]
@@ -97,10 +97,12 @@ namespace Ships
         private Dynamics baseDynamics;
         public Transform TargetPoint => transform;
         public LockChannel Lock { get; } = new LockChannel();
+        public event Action JumpRequested;
         public Vector3 Velocity => Movement ? Movement.Kinematics.WorldVel : Vector3.zero;
         public Rigidbody Body => Rigidbody;
 
         Transform IShipStatus.Transform => transform;
+        void IJumpDrive.RequestJump() => JumpRequested?.Invoke();
         public Kinematics Kinematics => Movement ? Movement.Kinematics : default;
         public float HealthPct => Damage ? Damage.Health.Pct : 1f;
         public float ShieldPct => Damage ? Damage.Shield.Pct : 1f;
@@ -259,8 +261,8 @@ namespace Ships
 
         private ShipControl BuildShipControl() =>
             Weapons
-                ? new(this, Movement, new SeedScope(DecisionSeed), Weapons.Context, Weapons.Arm(projectiles), Keystone)
-                : new(this, Movement, new SeedScope(DecisionSeed), keystone: Keystone);
+                ? new(this, Movement, new SeedScope(DecisionSeed), Weapons.Context, Weapons.Arm(projectiles), Keystone, this)
+                : new(this, Movement, new SeedScope(DecisionSeed), keystone: Keystone, jump: this);
 
         private void SetCommander(Commander commander)
         {
