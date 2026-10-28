@@ -14,6 +14,14 @@ namespace Game.Travel
         public AnimationCurve speed = new(new Keyframe(0, 0), new Keyframe(0.22f, 1),
             new Keyframe(0.62f, 1), new Keyframe(1, 0));
 
+        [Header("Flight handoff")]
+        [Tooltip("World distance covered while accelerating out of the jump gate.")]
+        [Min(0f)] public float departureDistance = 45f;
+        [Tooltip("Arrival speed as a fraction of the ship's normal maximum speed.")]
+        [Range(0f, 1f)] public float arrivalSpeedFraction = 0.35f;
+        [Tooltip("Seconds used to blend between the visible world and hyperspace.")]
+        [Min(0.01f)] public float worldBlendDuration = 0.4f;
+
         [Header("Background")]
         [Tooltip("0 keeps the softened treatment; 1 shows the moving locale directly.")]
         [Range(0f, 1f)] public float rawBackgroundBlend = 0.35f;
@@ -33,7 +41,10 @@ namespace Game.Travel
         [Range(0f, 4f)] public float nebulaStretch = 0.8f;
         [Range(0f, 0.4f)] public float nebulaSoftness = 0.12f;
         [Range(0f, 0.2f)] public float nebulaDrift = 0.035f;
-        public AnimationCurve localeBlend = AnimationCurve.EaseInOut(0.2f, 0, 0.85f, 1);
+        [Tooltip("Travel progress at which the destination locale starts to fade in.")]
+        [Range(0f, 1f)] public float localeBlendStart = 0.2f;
+        [Tooltip("Travel progress at which the destination locale is fully shown. A start at or past it cuts here.")]
+        [Range(0f, 1f)] public float localeBlendEnd = 0.85f;
 
         [Header("Ship blur, driven by speed")]
         [Range(0f, 2f)] public float shipBlurStrength = 0.75f;

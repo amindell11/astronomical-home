@@ -83,7 +83,7 @@ namespace Tests.PlayMode.Presentation
             Assert.IsTrue(damageAudio.isActiveAndEnabled, "a presenting ship's damage audio hears its hits and death");
             Assert.IsTrue(beam.enabled, "the mounted beam visual listens for shots");
             Assert.IsFalse(beam.GetComponent<LineRenderer>().enabled,
-                "the beam owns its line against the sweep: only a shot lights it");
+                "the beam owns its line against the sweep: only a charge or a shot lights it");
         }
 
         // Re-equip mid-life is the moment the seam must reach a ship's swapped-in mounts.

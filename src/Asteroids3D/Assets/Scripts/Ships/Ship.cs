@@ -22,7 +22,7 @@ namespace Ships
     [RequireComponent(typeof(MovementController))]
     [RequireComponent(typeof(DamageController))]
     [DefaultExecutionOrder(-90)]
-    public class Ship : MonoBehaviour, ITargetable, IShipStatus, IShooter
+    public class Ship : MonoBehaviour, ITargetable, IShipStatus, IShooter, IJumpDrive
     {
         [Header("Chassis")]
         [Tooltip("Ship mass (kg). Drives momentum and the physics inertia tensor.")]
@@ -90,16 +90,19 @@ namespace Ships
         public ShipId Id { get; private set; }
         public int DecisionSeed { get; private set; }
         public Collider[] Colliders {get; private set;}
-        /// <summary>The motion model as it stands this step: the base model with any keystone scaling applied.</summary>
-        public Dynamics Dynamics => Keystone ? baseDynamics.Scaled(Keystone.SpeedScale, Keystone.ThrustScale) : baseDynamics;
+        public Dynamics Dynamics => Keystone
+            ? baseDynamics.Scaled(Keystone.SpeedScale, Keystone.ThrustScale, Keystone.ManeuverabilityScale)
+            : baseDynamics;
 
         private Dynamics baseDynamics;
         public Transform TargetPoint => transform;
         public LockChannel Lock { get; } = new LockChannel();
+        public event Action JumpRequested;
         public Vector3 Velocity => Movement ? Movement.Kinematics.WorldVel : Vector3.zero;
         public Rigidbody Body => Rigidbody;
 
         Transform IShipStatus.Transform => transform;
+        void IJumpDrive.RequestJump() => JumpRequested?.Invoke();
         public Kinematics Kinematics => Movement ? Movement.Kinematics : default;
         public float HealthPct => Damage ? Damage.Health.Pct : 1f;
         public float ShieldPct => Damage ? Damage.Shield.Pct : 1f;
@@ -107,7 +110,7 @@ namespace Ships
         public float BoostCooldownRemaining => Keystone ? Keystone.CooldownRemaining : 0f;
         public float BoostCooldownPct => Keystone ? Keystone.CooldownPct : 0f;
         public float MaxSpeed => Stats != null ? Stats.maxSpeed : 0f;
-        public float MaxYawRate => Stats != null ? Stats.maxYawRate : 0f;
+        public float MaxYawRate => Stats != null ? Stats.maxYawRate * (Keystone ? Keystone.ManeuverabilityScale : 1f) : 0f;
         public IReadOnlyList<ITrackingMissile> TrackingMissiles => Lock.Trackers;
 
         /// <summary>Collision radius derived from collider bounds in <see cref="Initialize"/>; 1 until then.</summary>
@@ -258,8 +261,8 @@ namespace Ships
 
         private ShipControl BuildShipControl() =>
             Weapons
-                ? new(this, Movement, new SeedScope(DecisionSeed), Weapons.Context, Weapons.Arm(projectiles), Keystone)
-                : new(this, Movement, new SeedScope(DecisionSeed), keystone: Keystone);
+                ? new(this, Movement, new SeedScope(DecisionSeed), Weapons.Context, Weapons.Arm(projectiles), Keystone, jump: this)
+                : new(this, Movement, new SeedScope(DecisionSeed), keystone: Keystone, jump: this);
 
         private void SetCommander(Commander commander)
         {

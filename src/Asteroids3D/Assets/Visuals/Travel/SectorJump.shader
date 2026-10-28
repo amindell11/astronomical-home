@@ -5,6 +5,7 @@ Shader "Astronomical/Travel/SectorJump"
         _FromSky("Outgoing locale", 2D) = "black" {}
         _ToSky("Incoming locale", 2D) = "black" {}
         _ShipImage("Ship", 2D) = "black" {}
+        _ShipImageTo("Ship in destination lighting", 2D) = "black" {}
     }
     SubShader
     {
@@ -17,7 +18,7 @@ Shader "Astronomical/Travel/SectorJump"
             #pragma fragment Frag
             #pragma target 3.5
             #include "UnityCG.cginc"
-            sampler2D _FromSky, _ToSky, _ShipImage;
+            sampler2D _FromSky, _ToSky, _ShipImage, _ShipImageTo;
             float4 _Direction, _Motion, _Streaks, _Nebula, _Ship, _Exhaust;
             float4 _StreakColor, _ExhaustColor, _StreakDistribution;
             float _RawBackgroundBlend;
@@ -45,7 +46,8 @@ Shader "Astronomical/Travel/SectorJump"
                 float2 local = float2(dot(p, float2(_Direction.z, _Direction.w)),
                     dot(p, float2(-_Direction.w, _Direction.z))) / _Ship.x + 0.5;
                 float inside = step(0, local.x) * step(local.x, 1) * step(0, local.y) * step(local.y, 1);
-                return tex2D(_ShipImage, saturate(local)) * inside;
+                return lerp(tex2D(_ShipImage, saturate(local)),
+                    tex2D(_ShipImageTo, saturate(local)), _Motion.z) * inside;
             }
 
             float4 Frag(v2f_img input) : SV_Target

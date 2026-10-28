@@ -236,9 +236,9 @@ namespace Tests.EditMode.Ships
             var overdrive = catalog.Chassis.Single(c => c.name == "Valis").KeystonePrefab as Overdrive;
             Assert.That(overdrive, Is.Not.Null, "Valis's kit is Overdrive");
             Assert.That(overdrive.name, Is.EqualTo("Valis_Overdrive"));
-            Assert.That(overdrive.Cooldown, Is.EqualTo(8f));
-            Assert.That(overdrive.Window, Is.EqualTo(3f));
-            Assert.That(overdrive.PeakSpeedScale, Is.EqualTo(1.35f));
+            Assert.That(overdrive.Cooldown, Is.EqualTo(9f));
+            Assert.That(overdrive.Window, Is.EqualTo(5f));
+            Assert.That(overdrive.PeakSpeedScale, Is.EqualTo(1.5f));
             Assert.That(overdrive.PeakThrustScale, Is.EqualTo(1.5f));
             Assert.That(overdrive.GetComponent<KeystoneFlash>(), Is.Not.Null, "the kit carries its tell");
         }
@@ -252,6 +252,7 @@ namespace Tests.EditMode.Ships
             so.FindProperty("window").floatValue = 3f;
             so.FindProperty("speedScale").floatValue = 1.35f;
             so.FindProperty("thrustScale").floatValue = 1.5f;
+            so.FindProperty("maneuverabilityScale").floatValue = 1.5f;
             so.FindProperty("sightSaturation").floatValue = 0.8f;
             so.ApplyModifiedPropertiesWithoutUndo();
             return kit;
@@ -264,11 +265,13 @@ namespace Tests.EditMode.Ships
             var slow = new Kinematics(Vector2.zero, new Vector2(0f, 20f), 0f, 0f, 0f);
             var fast = new Kinematics(Vector2.zero, new Vector2(0f, 35f), 0f, 0f, 0f);
             Assert.That(kit.SpeedScale, Is.EqualTo(1f));
+            Assert.That(kit.ManeuverabilityScale, Is.EqualTo(1f));
 
             Assert.That(kit.Step(in slow, 1f, Dt, out var activated, 32f).Impulse, Is.EqualTo(Vector2.zero), "no impulse");
             Assert.That(activated, Is.True);
             Assert.That(kit.SpeedScale, Is.EqualTo(1.35f));
             Assert.That(kit.ThrustScale, Is.EqualTo(1.5f));
+            Assert.That(kit.ManeuverabilityScale, Is.EqualTo(1.5f));
             Assert.That(kit.PaidActivations, Is.EqualTo(0), "under the base cap pays nothing");
 
             kit.Step(in fast, 0f, Dt, out _, 32f);
@@ -277,6 +280,7 @@ namespace Tests.EditMode.Ships
             while (kit.Active) kit.Step(in slow, 0f, Dt, out _, 32f);
             Assert.That(kit.SpeedScale, Is.EqualTo(1f));
             Assert.That(kit.ThrustScale, Is.EqualTo(1f));
+            Assert.That(kit.ManeuverabilityScale, Is.EqualTo(1f));
         }
 
         [Test]
@@ -299,7 +303,7 @@ namespace Tests.EditMode.Ships
             Assert.That(blink, Is.Not.Null, "Crimson's kit is Blink");
             Assert.That(blink.name, Is.EqualTo("Crimson_Blink"));
             Assert.That(blink.Range, Is.EqualTo(12f));
-            Assert.That(blink.Cooldown, Is.EqualTo(6f));
+            Assert.That(blink.Cooldown, Is.EqualTo(4f));
             Assert.That(blink.GetComponent<KeystoneFlash>(), Is.Not.Null, "the kit carries its tell");
         }
 
@@ -349,8 +353,8 @@ namespace Tests.EditMode.Ships
         }
 
         [TestCase("Vanguard", 9000f, 5f)]
-        [TestCase("Bulwark", 13500f, 7f)]
-        [TestCase("Junker_1", 13000f, 7f)]
+        [TestCase("Bulwark", 15000f, 5f)]
+        [TestCase("Junker_1", 15000f, 5f)]
         public void Chassis_CarriesItsOwnDash(string chassis, float impulse, float cooldown)
         {
             var catalog = AssetDatabase.LoadAssetAtPath<ItemCatalog>(ItemCatalog.AssetPath);

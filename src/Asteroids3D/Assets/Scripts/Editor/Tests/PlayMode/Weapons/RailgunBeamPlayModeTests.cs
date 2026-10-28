@@ -145,6 +145,27 @@ namespace Tests.PlayMode.Weapons
         }
 
         [Test]
+        public void FirstStrikePoint_IsWhereASurvivorEndsTheShot()
+        {
+            CreateSoak(Aim * 5f);
+            CreateSoak(Aim * 10f);
+            Physics.SyncTransforms();
+            var predicted = railgun.FirstStrikePoint();
+
+            Fire();
+
+            Assert.Less(Vector3.Distance(predicted, beamEnd), 0.001f, "the aim line ends where the shot stops");
+        }
+
+        [Test]
+        public void FirstStrikePoint_OnAClearPath_IsFullRange()
+        {
+            Physics.SyncTransforms();
+
+            Assert.Less(Vector3.Distance(railgun.FirstStrikePoint(), Aim * railgun.BeamRange), 0.001f);
+        }
+
+        [Test]
         public void InvulnerableShip_BlocksTheTargetBehind()
         {
             var ship = CreateShip(Aim * 5f, health: 10f, shield: 0f);

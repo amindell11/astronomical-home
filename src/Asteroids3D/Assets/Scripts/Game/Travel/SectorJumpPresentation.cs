@@ -12,10 +12,12 @@ namespace Game.Travel
     /// <summary>
     /// Applies a jump state to live locale skies, the ship's hull and the actual HUD.
     /// Its render targets belong to the presentation, so previews and gameplay use the same renderer.
-    /// The caller owns simulation time and destination loading.
+    /// The caller owns simulation time, destination loading, the world blend and the ship and camera pose.
     /// </summary>
     public sealed class SectorJumpPresentation : MonoBehaviour
     {
+        public const int StreakSeed = 1099;
+
         private Ship ship;
         private Overlay overlay;
         private IEnumerable<Ship> ships;
@@ -26,13 +28,13 @@ namespace Game.Travel
         private RenderTexture outgoing;
         private RenderTexture incoming;
         private RenderTexture hull;
+        private RenderTexture incomingHull;
         private RenderTexture composed;
         private Material material;
         private RawImage image;
-        private bool observerEnabled;
-        private bool commanderEnabled;
-        private Vector3 observerPosition;
         private int[] hullLayers;
+        private float worldBlend = 1f;
+        private float hullDiameter;
 
         public static SectorJumpPresentation Create(Transform parent, Ship ship, Overlay overlay,
             IEnumerable<Ship> ships, ObserverCam observer, LocaleBackdropPair backdrop, Shader shader)
@@ -52,20 +54,15 @@ namespace Game.Travel
             ships = activeShips;
             observer = playerObserver;
             backdrop = skies;
-            observerEnabled = observer.enabled;
-            commanderEnabled = ship.Commander.enabled;
-            observerPosition = observer.transform.position;
-            observer.enabled = false;
-            ship.Commander.enabled = false;
-            observer.transform.position = new Vector3(ship.transform.position.x, ship.transform.position.y,
-                observerPosition.z);
             hullLayers = new int[ship.VisualRig.Silhouette.Count];
             skyCamera = NewCamera("Jump sky camera", 1 << LayerIds.Sky);
             hullCamera = NewCamera("Jump hull camera", 1 << LayerMask.NameToLayer("ShipPreview"));
             hullCamera.backgroundColor = Color.clear;
             hull = Target("Jump live hull", 512, 512);
+            incomingHull = Target("Jump incoming hull", 512, 512);
             material = new Material(shader);
             material.SetTexture("_ShipImage", hull);
+            material.SetTexture("_ShipImageTo", incomingHull);
             var canvas = NewCanvas();
             image = new GameObject("Jump image", typeof(RectTransform)).AddComponent<RawImage>();
             image.gameObject.layer = overlay.gameObject.layer;
@@ -115,25 +112,38 @@ namespace Game.Travel
             return target;
         }
 
-        public void Apply(SectorJumpProfile profile, SectorJumpState state, int seed, bool reverseLocales)
+        public void Apply(SectorJumpProfile profile, SectorJumpState state, int seed, bool reverseLocales,
+            Vector3? skyOrigin = null)
         {
             Resize();
             var aspect = (float)composed.width / composed.height;
-            var origin = ship.transform.position;
+            var origin = skyOrigin ?? ship.transform.position;
             var offset = state.JumpDirection * (state.TravelFraction * profile.skyTravelDistance);
             skyCamera.transform.position = new Vector3(origin.x + offset.x, origin.y + offset.y, -10f);
             skyCamera.aspect = aspect;
+            skyCamera.orthographicSize = Mathf.Lerp(observer.Cam.orthographicSize, 12f, worldBlend);
             backdrop.Render(skyCamera, outgoing, incoming);
             RenderHull();
+            material.SetTexture("_ShipImage", reverseLocales ? incomingHull : hull);
+            material.SetTexture("_ShipImageTo", reverseLocales ? hull : incomingHull);
             material.SetTexture("_FromSky", reverseLocales ? incoming : outgoing);
             material.SetTexture("_ToSky", reverseLocales ? outgoing : incoming);
             SectorJumpShader.Apply(material, profile, state, aspect, composed.height, seed);
+            var framing = material.GetVector("_Ship");
+            framing.x = Mathf.Lerp(hullDiameter / (observer.Cam.orthographicSize * 2f), framing.x, worldBlend);
+            material.SetVector("_Ship", framing);
             var previous = RenderTexture.active;
             try { Graphics.Blit(null, composed, material); }
             finally { RenderTexture.active = previous; }
             overlay.SetOpacity(state.HudAlpha);
             foreach (var active in ships)
                 if (active && active.VisualRig) active.VisualRig.SetHudOpacity(state.HudAlpha);
+        }
+
+        public void SetWorldBlend(float blend)
+        {
+            worldBlend = Mathf.Clamp01(blend);
+            image.color = new Color(1f, 1f, 1f, worldBlend);
         }
 
         private void Resize()
@@ -183,9 +193,9 @@ namespace Game.Travel
                 hullCamera.transform.rotation = ship.transform.rotation;
                 hullCamera.transform.position = pose.MultiplyPoint3x4(bounds.center - Vector3.forward * 20f);
                 hullCamera.orthographicSize = Mathf.Max(bounds.extents.x, bounds.extents.y) * 1.12f;
+                hullDiameter = hullCamera.orthographicSize * 2f;
                 hullCamera.aspect = 1f;
-                hullCamera.targetTexture = hull;
-                hullCamera.Render();
+                backdrop.Render(hullCamera, hull, incomingHull);
             }
             finally
             {
@@ -197,12 +207,6 @@ namespace Game.Travel
 
         private void OnDestroy()
         {
-            if (observer)
-            {
-                observer.enabled = observerEnabled;
-                observer.transform.position = observerPosition;
-            }
-            if (ship) ship.Commander.enabled = commanderEnabled;
             if (overlay) overlay.SetOpacity(1f);
             if (ships != null)
                 foreach (var active in ships)
@@ -210,6 +214,7 @@ namespace Game.Travel
             Release(outgoing);
             Release(incoming);
             Release(hull);
+            Release(incomingHull);
             Release(composed);
             if (material) Destroy(material);
         }

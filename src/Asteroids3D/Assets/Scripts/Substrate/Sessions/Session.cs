@@ -140,15 +140,27 @@ namespace Substrate.Sessions
         public IEnumerator UnloadSector()
         {
             Require(Phase.Loaded, nameof(UnloadSector));
+            yield return UnloadContent();
+
+            if (presentation)
+                yield return locale.ApplyIdleLocaleAsync();
+        }
+
+        public IEnumerator TransferSector(int index, Ship hero, Action<SectorResult> onComplete)
+        {
+            Require(Phase.Loaded, nameof(TransferSector));
+            yield return UnloadContent();
+            yield return LoadSector(index, hero, onComplete);
+        }
+
+        private IEnumerator UnloadContent()
+        {
             // Drop any queued player/NPC revives so a pending respawn cannot fire into the torn-down sector.
             Units.CancelPendingRespawns();
             // Old-sector transients must not survive into the next sector (they live under the session root, not the sector).
             Projectiles.ReturnAllToPool();
 
             yield return DestroyActiveSector(runTeardown: true);
-
-            if (presentation)
-                yield return locale.ApplyIdleLocaleAsync();
 
             phase = Phase.Composed;
         }

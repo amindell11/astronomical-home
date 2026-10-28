@@ -18,6 +18,9 @@ This is designed to make **flee/extract meaningful** (not “kill everything”)
 ## Extraction rules
 - Sectors have **jump gates** that allow leaving the sector.
 - Extraction can be gated behind an **Extraction Challenge** (often triggered after completing the Sector Objective).
+- When eligible and inside the jump gate, press **F** to commit. The ship turns and charges while its momentum decays, then leaves enemies and projectiles behind.
+- Between sectors, the extracted recap holds in hyperspace. The destination blends in before Continue, which starts arrival with momentum.
+- Launching from the hangar into the first sector does not use hyperspace.
 
 ## Semi-open world
 - Sectors are fully open and explorable continuous spaces.

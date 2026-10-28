@@ -19,7 +19,7 @@ using Object = UnityEngine.Object;
 
 namespace Tests.PlayMode
 {
-    /// <summary>A phased sector end to end: the director's phases run out, the extraction zone appears at its distance from the player, and flying into it ends the sector extracted.</summary>
+    /// <summary>A phased sector end to end: the director's phases run out, the extraction zone appears at its distance from the hero, and a non-player hero's jump request inside ends the sector extracted.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class PhaseSpinePlayModeTests : PlayModeWorldFixture
@@ -34,7 +34,6 @@ namespace Tests.PlayMode
         public override void SetUp()
         {
             base.SetUp();
-
             var unitServiceGO = TrackGO(new GameObject("UnitService"));
             _unitService = unitServiceGO.AddComponent<UnitService>();
 
@@ -71,9 +70,10 @@ namespace Tests.PlayMode
 
         [UnityTest]
         [Timeout(600000)]
-        public IEnumerator PhasesRunOut_ZoneAppearsAway_AndReachingItExtracts()
+        public IEnumerator PhasesRunOut_ZoneAppearsAway_AndARequestInsideExtracts()
         {
             var player = SpawnKinematicShip(Vector2.zero);
+            var pilot = JumpTestCommander.Fly(player);
             var template = SpawnKinematicShip(new Vector2(500f, 500f));
             template.gameObject.SetActive(false);
 
@@ -113,13 +113,21 @@ namespace Tests.PlayMode
                 Vector2.Distance(GamePlane.WorldPointToPlane(zone.transform.position), Vector2.zero), 0.01f,
                 "The zone appears its distance from the player.");
 
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+            Assert.IsFalse(zone.IsPlayerInZone, "The relocated zone has settled outside the player.");
+            pilot.RequestJump();
+            Assert.IsFalse(got.HasValue, "A request outside the zone must not extract.");
             ShipTestFactory.MoveKinematicShip(player, zone.transform.position);
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
-            yield return WaitSeconds(() => got.HasValue, 2f);
+            Assert.IsFalse(got.HasValue, "Entering after a dropped request must not extract.");
+            Assert.AreEqual("PRESS F TO JUMP", _objectives.SpineTracker.CurrentStatusLine);
+            pilot.RequestJump();
 
-            Assert.IsTrue(got.HasValue, "Reaching the zone must end the sector.");
-            Assert.IsTrue(got.Value.Success, "Reaching the zone ends the sector extracted.");
+            Assert.IsTrue(got.HasValue, "A request inside must end the sector on the spot.");
+            Assert.IsTrue(got.Value.Success, "A request in the eligible zone ends the sector extracted.");
+            Assert.AreEqual(zone.DepartureHeading, got.Value.DepartureHeading);
 
             yield return sector.Teardown();
         }

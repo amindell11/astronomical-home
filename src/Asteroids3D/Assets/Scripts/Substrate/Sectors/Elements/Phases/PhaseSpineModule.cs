@@ -12,7 +12,7 @@ namespace Substrate.Sectors.Elements.Phases
     /// <summary>
     /// A sector spine over its wave director's sector phases: survive them, then reach
     /// the extraction zone, which stays hidden until the phases are done and then appears on a clear
-    /// point away from the hero. Reaching it ends the sector extracted. The director is held to
+    /// point away from the hero. The hero's jump request inside commits extraction. The director is held to
     /// observe its phase, never commanded. The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1051
     /// </summary>
     public class PhaseSpineModule : SectorModule
@@ -20,8 +20,6 @@ namespace Substrate.Sectors.Elements.Phases
         public const string StepSurvive = "survive";
         public const string StepExtract = "extract";
         public const string StepCompleted = "completed";
-
-        private const string ExtractLine = "EXTRACT    REACH THE STATION";
 
         [SerializeField] private WaveDirector director;
         [SerializeField] private ExtractionZone extractionZone;
@@ -37,6 +35,7 @@ namespace Substrate.Sectors.Elements.Phases
 
         private SpineObjectiveHandle spine;
         private Ship hero;
+        private ExtractionJumpState extraction;
 
         public SectorPhaseMark Phase => director.Phase;
 
@@ -49,6 +48,8 @@ namespace Substrate.Sectors.Elements.Phases
             hero = ctx.Hero;
             extractionZone.BindPlayer(hero ? hero.Body : null);
             extractionZone.gameObject.SetActive(false);
+            extraction = new ExtractionJumpState(extractionZone, hero,
+                () => RequestSectorEnd(SectorResult.Extracted(extractionZone.DepartureHeading)), OpenExtraction);
 
             var mission = new MissionDefinition(StepSurvive, new Dictionary<string, string>
             {
@@ -58,9 +59,8 @@ namespace Substrate.Sectors.Elements.Phases
             var builders = new Dictionary<string, Func<ObjectiveState>>
             {
                 [StepSurvive] = () => new SurviveState(director),
-                [StepExtract] = () => new ExtractionChallengeState(extractionZone, OpenExtraction, ExtractLine),
-                [StepCompleted] = () => new CompletedState(
-                    onEnter: () => RequestSectorEnd(SectorResult.Extracted()))
+                [StepExtract] = () => extraction,
+                [StepCompleted] = () => new CompletedState()
             };
             spine = ctx.Objectives.SetSpineObjective(mission, builders);
             yield break;
@@ -68,12 +68,21 @@ namespace Substrate.Sectors.Elements.Phases
 
         public override IEnumerator Teardown(SectorBuildContext ctx)
         {
+            ReleaseExtraction();
             if (extractionZone) extractionZone.Disarm();
             spine?.Close();
             spine = null;
             hero = null;
             yield break;
         }
+
+        private void ReleaseExtraction()
+        {
+            extraction?.Dispose();
+            extraction = null;
+        }
+
+        private void OnDestroy() => ReleaseExtraction();
 
         private void OpenExtraction()
         {

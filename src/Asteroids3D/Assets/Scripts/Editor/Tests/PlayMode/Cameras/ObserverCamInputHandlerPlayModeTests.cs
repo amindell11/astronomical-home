@@ -2,6 +2,7 @@ using System.Collections;
 using Cameras;
 using NUnit.Framework;
 using Tests.PlayMode.Common;
+using Tests.PlayMode.Common.SimulatedInput;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.TestTools;
@@ -9,7 +10,7 @@ using UnityEngine.TestTools;
 namespace Tests.PlayMode.Cameras
 {
     [Category("Camera")]
-    public class ObserverCamInputHandlerPlayModeTests : InputTestFixture
+    public class ObserverCamInputHandlerPlayModeTests : PlayModeInputTestFixture
     {
         private Keyboard keyboard;
         private ObserverCam cam;

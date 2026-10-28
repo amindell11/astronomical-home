@@ -7,6 +7,7 @@ using Movement;
 using Substrate;
 using UnityEngine;
 using Combat.Weapons.Conditions;
+using Combat.Weapons.Mods;
 using Substrate.Services.Projectiles;
 
 namespace Combat.Weapons.Arsenal
@@ -54,10 +55,14 @@ namespace Combat.Weapons.Arsenal
             if (!cooldown) cooldown = GetComponent<Cooldown>();
         }
 
+        public override bool Supports(WeaponModField field) =>
+            field == WeaponModField.BlastRadius || base.Supports(field);
+
         public override ProjectileBase Fire(Vector3 targetPoint, IProjectileService projectiles)
         {
             var charge = (Grenade)base.Fire(targetPoint, projectiles);
             if (!charge) return null;
+            charge.SetBlastRadiusScale(Mods.Factor(WeaponModField.BlastRadius));
             Track(charge);
             Launched?.Invoke(charge);
             return charge;

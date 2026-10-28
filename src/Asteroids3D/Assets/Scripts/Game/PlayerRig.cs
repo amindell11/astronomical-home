@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using Cameras;
+using Combat.Weapons.Mods;
 using Damage;
 using Substrate.Sectors;
 using Substrate.Sessions;
@@ -64,6 +65,9 @@ namespace Game
         /// <summary>Every other ship spawned this run and its fate; reset with the tally at the loadout step.</summary>
         public SpawnLog Spawns { get; } = new();
 
+        /// <summary>The weapon mods picked this run; cleared at the loadout step, in force on the player's mounts after every equip and pick.</summary>
+        public WeaponModStack Mods { get; } = new();
+
         /// <summary>The live HUD overlay this rig owns; null headless or before <see cref="Build"/>.</summary>
         public Overlay Overlay { get; private set; }
 
@@ -123,6 +127,7 @@ namespace Game
                 Overlay.ConfigureCameras(uiCam, observer.Cam);
                 Overlay.Initialize(BuildHudBinding());
                 Overlay.BindObjectives(objectives);
+                Overlay.BindShips(units.ActiveRegistry.ActiveShips, observer.Cam);
             }
 
             if (presentationEnabled && observer && minimapCamPrefab)
@@ -183,6 +188,7 @@ namespace Game
             Ledger.Clear();
             Tally.Reset();
             Spawns.Reset();
+            Mods.Clear();
 
             // The player is always parked here. Unpark it before applying so swapped-in weapon mounts
             // instantiate active and Awake-wire; the subsequent LoadSector repositions and resets it anyway.
@@ -192,11 +198,25 @@ namespace Game
                 RebuildPlayer(Loadout.Ship);
 
             Player.Reequip(Loadout.Shield, Loadout.PrimaryWeapon, Loadout.SecondaryWeapon);
+            if (Player.Weapons) Player.Weapons.SetMods(Mods);
 
             // Swapped-in weapon mounts carry world-facing parts (lock sensor) that the service
             // wired at spawn; ask it to re-wire (the player is never AI, so no field), then re-bind the HUD.
             units.WireShipDependencies(Player, field: null);
             RebindHud();
+        }
+
+        /// <summary>Adds a lull pick to the run and puts it in force on the mounts it fits.</summary>
+        public void PickMod(WeaponMod mod)
+        {
+            Mods.Add(mod);
+            if (Player && Player.Weapons) Player.Weapons.SetMods(Mods);
+        }
+
+        /// <summary>Silences or restores the player's controls while a screen holds the run with the ship live.</summary>
+        public void SetInputEnabled(bool enabled)
+        {
+            if (Player && Player.Commander) Player.Commander.enabled = enabled;
         }
 
         /// <summary>

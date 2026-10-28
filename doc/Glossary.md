@@ -88,6 +88,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **trainer** | ml-agents trainer runtime (`mlagents-learn`) · owned trainer runtime (takeover arc) · custom-trainer plugin seam · trainer config (`ppo_*.yaml`) · `RLTrainerConfigEditModeTests` | Always qualified. Bare "the trainer" is legal only in RL-run operational context (= the run's trainer-runtime process), never in a title. |
 | **tripwire** | eval tripwire (the scorecard subset watched as a collapse detector) · player-build tripwire (`PlayerBuildTripwireEditModeTests`) | Always qualified. |
 | **module** | deep module (design vocabulary, §2 → *design vocabulary*) · ship module (chassis/module/loadout) · `-ScopeType Module` (test scope) | Qualify: "deep module" / "ship module" / "Module scope". |
+| **mod** | weapon mod (§2 → *weapon mod*) · the colloquial short form of ship module | Bare "mod" = weapon mod inside the loot code (`Combat/Weapons/Mods/`, the lull pick) and in prose whose topic is weapon mods; a ship module is never shortened to "mod". In a title, qualify regardless. |
 | **bench** | benchmark run (bench run, bench config, ram-bench harness) · benched work (`bench/<topic>`, §2 → *benched*) | Bare "bench" = benchmark run. Set-aside work is always "benched". |
 | **layer** | sky layer (one drawn backdrop layer — background, far nebula, starfield, close nebula — a child renderer of a locale's `LocaleSky` root) · Unity layer (`LayerIds`; notably `Sky`, the render layer every sky layer sits on, which only the flight and hangar cameras' culling masks include) · starfield depth layer (inside `StarField.shader`) · paint mask (§2 → *Art pipeline*; never "paint layer") | Always qualified: "sky layer" vs "the `Sky` layer". |
 | **charge** | charge-up / spent charge (`ChargeTime`, the `Charge` parameter) · concussion charge (`Grenade`, `IChargeFlight`, the target marker) | Always qualified in prose: "charge-up", "spent charge", "concussion charge". |
@@ -200,6 +201,15 @@ Format: **term** — definition. *(authority)*
   child issue's owner, a worker); it rides the prompt that starts that session.
   A session's own long task compacts instead (re-ruled 2026-10-19; AGENTS.md →
   Session hygiene).
+- **chief of staff** — the session that owns one issue with child issues, such
+  as a roadmap over its arcs or an arc over its slices. Short form: **chief**.
+  A user-level skill outside this repo sets its rules, and #1040 carries the
+  why and the trial's 2026-10-28 verdict.
+  *(`~/.claude/skills/chief-of-staff/SKILL.md`; #1040)*
+- **DRI** — Directly Responsible Individual. Here the individual is a session,
+  the one answerable for carrying an issue's work through to the end. It
+  answers for follow-through only, because the user makes the decisions. A
+  *chief of staff* is the DRI for its issue. *(chief-of-staff skill; #1040)*
 - **slot / pool / lease** (workflow senses) — a pooled `agent-N` worktree / the
   pool machinery / the durable claim on a slot. *(agent_worktree_pool.sh)*
 - **held** (work) — slot work set aside while it waits on the user; mechanics
@@ -848,6 +858,16 @@ Format: **term** — definition. *(authority)*
   naming key, in order of containment: the hull's own stats / the swappable parts
   / the equipped set / the between-run screen where you change it / an option
   that trades rather than upgrades.
+- **weapon mod** — a run-scoped stat modifier on one field a carried weapon
+  already has (fire rate, damage, heat capacity, cooling, magazine, reload
+  speed, charge speed, blast radius), never a new behaviour. Mods ride the run,
+  not the weapon: a picked mod lands on every carried weapon it fits, stacks
+  with repeats, and one that fits nothing carried stays held and idle. The
+  authored prefab numbers never change, so enemies and the hangar read the
+  weapon unmodded. Not a ship module. *(WeaponMod, WeaponModStack, WeaponMods)*
+- **lull pick** — the time-stopped choice of one weapon mod from up to three,
+  or a skip, on the first frame of a sector phase lull; the lull's own seconds
+  run after it. *(LullPickScreen, GameHost)*
 - **keystone** — the locked ability in a ship's keystone slot, one kit per ship
   (`Keystone`; `Dash` today). Not a ship module: a kit prefab the ship
   instantiates, because a kit keeps per-ship runtime state (its cooldown clock,

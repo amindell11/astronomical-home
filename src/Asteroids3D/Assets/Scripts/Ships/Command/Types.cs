@@ -69,6 +69,15 @@ namespace Ships.Command
         void Fire(WeaponSlot slot, in WeaponCommand cmd);
     }
 
+    /// <summary>
+    /// The jump actuator: asks to leave the sector, one request per press, never a held state.
+    /// The sector decides whether a request commits (<see cref="Ship.JumpRequested"/>).
+    /// </summary>
+    public interface IJumpDrive
+    {
+        void RequestJump();
+    }
+
     // ── Read contexts ──
 
     /// <summary>
@@ -171,8 +180,12 @@ namespace Ships.Command
         /// <summary>The ship's keystone kit, whose sight and contact state an AI commander reads; null when the ship has none.</summary>
         public readonly Keystone Keystone;
 
+        /// <summary>Jump actuator; every ship supplies one.</summary>
+        public readonly IJumpDrive Jump;
+
         public ShipControl(IShipStatus ship, IPilot pilot, SeedScope decisionSeed,
-            IWeaponContext weapons = null, IWeapons weaponActuator = null, Keystone keystone = null)
+            IWeaponContext weapons = null, IWeapons weaponActuator = null, Keystone keystone = null,
+            IJumpDrive jump = null)
         {
             Ship = ship;
             Pilot = pilot;
@@ -180,6 +193,7 @@ namespace Ships.Command
             Weapons = weapons;
             WeaponActuator = weaponActuator;
             Keystone = keystone;
+            Jump = jump;
         }
 
         /// <summary>True when both the weapon context and actuator are present.</summary>

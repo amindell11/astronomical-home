@@ -105,13 +105,18 @@ namespace Tests.EditMode.Screens
         }
 
         [Test]
-        public void AnExtraction_IsTheCardAlone_WithShipBarsStillShowing()
+        public void AnExtraction_FadesTheCardInAndOut_WithShipBarsStillShowing()
         {
             var sequence = new RecapOutcomeSequence(feel, RecapOutcomeContext.Extraction(new[] { "Valis" }, 2, 222.8f));
-            Assert.AreEqual(1, sequence.SpanCount);
-            Assert.AreEqual(RecapPhase.Breakdown, sequence.Span(0).Phase);
-            Assert.AreEqual(RecapHold.Continue, sequence.Span(0).Hold);
-            var state = sequence.StateAt(0, 0f);
+            Assert.AreEqual(3, sequence.SpanCount);
+            Assert.AreEqual(RecapPhase.BreakdownIn, sequence.Span(0).Phase);
+            Assert.AreEqual(RecapHold.Continue, sequence.Span(1).Hold);
+            Assert.AreEqual(0f, sequence.StateAt(0, 0f).BreakdownAlpha);
+            Assert.AreEqual(.5f, sequence.StateAt(0, feel.BreakdownInSeconds * .5f).BreakdownAlpha);
+            Assert.AreEqual(.5f, sequence.StateAt(2, feel.BreakdownOutSeconds * .5f).BreakdownAlpha);
+            Assert.AreEqual(0f, sequence.StateAt(2, feel.BreakdownOutSeconds).BreakdownAlpha);
+            Assert.IsFalse(sequence.StateAt(2, 0f).BreakdownInteractable);
+            var state = sequence.StateAt(1, 0f);
             Assert.AreEqual(0f, state.HudAlpha, "the player's overlay hides");
             Assert.AreEqual(1f, state.ShipHudAlpha, "ship bars stay");
             Assert.IsFalse(state.CameraHeld, "the camera keeps following");

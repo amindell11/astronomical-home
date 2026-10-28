@@ -1,10 +1,22 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using Cameras;
 using Game.Travel;
+using Ships;
+using Substrate;
+using Substrate.Services.Locales;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Game.Preview
 {
+    /// <summary>
+    /// The sector jump as a preview subject: it plays the game's own <see cref="SectorJumpPassage"/>,
+    /// whose hyperspace hold lasts the transport's hold, through the game's presentation. Like the
+    /// game's flight it owns the ship and camera pose while composed; the simulation stays frozen, so
+    /// only the sky carries the arrival coast.
+    /// </summary>
     public sealed class SectorJumpPreviewSubject : IPreviewSubject
     {
         private static readonly string[] Names =
@@ -12,24 +24,38 @@ namespace Game.Preview
             "Blue to copper, diagonal", "Blue to copper, upward", "Blue to copper, left",
             "Copper to blue, diagonal", "Blue to copper, alternate stars"
         };
-        private readonly SectorJumpPresentation presentation;
-        private readonly Action release;
+        private const string Destination = "Locale_1";
+        private readonly Shader shader;
+        private readonly Action<SectorJumpProfile> selected;
         private SectorJumpProfile profile;
-        private SectorJumpSequence sequence;
+        private Ship ship;
+        private ObserverCam observer;
+        private Action<bool> freezeSimulation;
+        private LocaleBackdropPair backdrop;
+        private SectorJumpPresentation presentation;
+        private Vector3 origin;
+        private Vector3 startCamera;
+        private Quaternion startRotation;
+        private float startHeading;
+        private bool observerEnabled;
+        private bool commanderEnabled;
+        private SectorJumpPassage passage;
+        private SectorJumpMotion motion;
         private int revision = -1;
 
-        public SectorJumpPreviewSubject(SectorJumpProfile profile, SectorJumpPresentation presentation, Action release)
+        public SectorJumpPreviewSubject(SectorJumpProfile profile, Shader shader, Action<SectorJumpProfile> selected)
         {
-            this.presentation = presentation;
-            this.release = release;
-            Knobs = profile;
+            if (!profile || !shader)
+                throw new InvalidOperationException("The jump preview requires a feel profile and shader.");
+            this.profile = profile;
+            this.shader = shader;
+            this.selected = selected;
         }
 
         public string Name => "Sector jump";
         public IReadOnlyList<string> Fixtures => Names;
         public int Fixture { get; private set; }
-        public int SpanCount => 1;
-        public bool Busy => false;
+        public int SpanCount => 2;
         public SectorJumpState State { get; private set; }
 
         public ScriptableObject Knobs
@@ -37,32 +63,91 @@ namespace Game.Preview
             get => profile;
             set
             {
-                profile = value as SectorJumpProfile;
-                if (!profile) throw new ArgumentException("Sector jump requires a SectorJumpProfile.", nameof(value));
+                var next = value as SectorJumpProfile;
+                if (!next) throw new ArgumentException("Sector jump requires a SectorJumpProfile.", nameof(value));
+                profile = next;
+                selected(profile);
                 revision = -1;
             }
         }
 
-        public PreviewSpan Span(int index) => new("Jump", profile.Duration, false);
+        public IEnumerator Compose(PreviewWorld world)
+        {
+            ship = world.Rig.Player;
+            observer = world.Observer;
+            freezeSimulation = world.FreezeSimulation;
+            if (!ship.gameObject.activeInHierarchy)
+                world.Session.Units.RespawnShip(ship.Id, GamePlane.WorldPointToPlane(ship.transform.position), 0f);
+            freezeSimulation(true);
+            yield return world.Session.PrepareTravelBackdrop(Destination, world.Root, pair => backdrop = pair);
+            origin = ship.transform.position;
+            startRotation = ship.transform.rotation;
+            startHeading = Vector3.SignedAngle(GamePlane.Forward,
+                Vector3.ProjectOnPlane(ship.transform.up, GamePlane.Normal), GamePlane.Normal);
+            startCamera = observer.transform.position;
+            observerEnabled = observer.enabled;
+            commanderEnabled = ship.Commander.enabled;
+            observer.enabled = false;
+            ship.Commander.enabled = false;
+            presentation = SectorJumpPresentation.Create(world.Ui, ship, world.Rig.Overlay,
+                world.Session.Units.ActiveRegistry.ActiveShips, observer, backdrop, shader);
+        }
+
+        public PreviewSpan Span(int index)
+        {
+            var timeline = Passage();
+            return index switch
+            {
+                0 => new PreviewSpan("Departure", timeline.HoldStartsAt, true),
+                1 => new PreviewSpan("Arrival", timeline.DurationWithHold(0f) - timeline.HoldStartsAt, false),
+                _ => throw new ArgumentOutOfRangeException(nameof(index))
+            };
+        }
 
         public void SelectFixture(int index)
         {
             if (index < 0 || index >= Names.Length) throw new ArgumentOutOfRangeException(nameof(index));
             Fixture = index;
+            revision = -1;
         }
 
-        public void Show(int span, float seconds)
+        public void Show(int span, float seconds, float holdSeconds)
         {
-            if (revision != profile.Revision)
-            {
-                sequence = new SectorJumpSequence(profile);
-                revision = profile.Revision;
-            }
-            var heading = Fixture == 1 ? 0f : Fixture == 2 ? 90f : -35f;
-            State = sequence.StateAt(seconds, heading);
-            presentation.Apply(profile, State, Fixture == 4 ? 417 : 1099, Fixture == 3);
+            var timeline = Passage();
+            var exitStartsAt = timeline.ExitStartsAt(holdSeconds);
+            var elapsed = span == 0 ? seconds : exitStartsAt + seconds;
+            State = timeline.StateAt(elapsed, holdSeconds);
+            var rotation = GamePlane.Rotation * Quaternion.AngleAxis(State.HeadingDegrees, Vector3.forward);
+            ship.transform.rotation = rotation;
+            ship.Body.rotation = rotation;
+            observer.transform.position = Vector3.Lerp(startCamera, new Vector3(origin.x, origin.y, startCamera.z),
+                SectorJumpProfile.Ease(elapsed / profile.turnDuration));
+            presentation.SetWorldBlend(timeline.WorldBlendAt(elapsed, holdSeconds));
+            var coast = motion.ArrivalDistanceAt(elapsed - exitStartsAt);
+            presentation.Apply(profile, State, Fixture == 4 ? 417 : SectorJumpPresentation.StreakSeed, Fixture == 3,
+                origin + GamePlane.PlaneDirToWorld(State.JumpDirection) * coast);
         }
 
-        public void Dispose() => release();
+        private SectorJumpPassage Passage()
+        {
+            if (revision == profile.Revision) return passage;
+            var heading = Fixture == 1 ? 0f : Fixture == 2 ? 90f : -35f;
+            passage = new SectorJumpPassage(profile, startHeading, heading);
+            motion = new SectorJumpMotion(profile, ship.MaxSpeed);
+            revision = profile.Revision;
+            return passage;
+        }
+
+        public void Dispose()
+        {
+            Object.DestroyImmediate(presentation.gameObject);
+            Object.DestroyImmediate(backdrop.gameObject);
+            ship.transform.rotation = startRotation;
+            ship.Body.rotation = startRotation;
+            ship.Commander.enabled = commanderEnabled;
+            observer.transform.position = startCamera;
+            observer.enabled = observerEnabled;
+            freezeSimulation(false);
+        }
     }
 }

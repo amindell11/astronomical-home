@@ -4,6 +4,9 @@
 		<property name="name">
 			<value>Music</value>
 		</property>
+		<relationship name="modulators">
+			<destination>{ca79564a-8c3f-4a87-a008-4ef50369e530}</destination>
+		</relationship>
 		<relationship name="effectChain">
 			<destination>{ab7a68a3-b4c9-4a64-8fff-2e29d5b444d1}</destination>
 		</relationship>
@@ -14,11 +17,27 @@
 			<destination>{2fbb1511-ccb2-4fd2-9a27-eff30263dc28}</destination>
 		</relationship>
 	</object>
+	<object class="SidechainModulator" id="{ca79564a-8c3f-4a87-a008-4ef50369e530}">
+		<property name="nameOfPropertyBeingModulated">
+			<value>volume</value>
+		</property>
+		<property name="amount">
+			<value>4</value>
+		</property>
+		<property name="releaseTime">
+			<value>1000</value>
+		</property>
+		<relationship name="sidechains">
+			<destination>{b5f3ad7e-8ded-4a24-bceb-fac1f6230701}</destination>
+		</relationship>
+	</object>
 	<object class="MixerBusEffectChain" id="{ab7a68a3-b4c9-4a64-8fff-2e29d5b444d1}">
 		<relationship name="effects">
+			<destination>{ad8ced5d-48ca-433e-8d8e-d4ca610b3023}</destination>
 			<destination>{cadbfe17-1d25-4ed8-bbf4-a6284129662f}</destination>
 		</relationship>
 	</object>
 	<object class="MixerBusPanner" id="{53107c9e-dd33-4c8b-af2b-d3cc01b119e0}" />
+	<object class="ThreeEQEffect" id="{ad8ced5d-48ca-433e-8d8e-d4ca610b3023}" />
 	<object class="MixerBusFader" id="{cadbfe17-1d25-4ed8-bbf4-a6284129662f}" />
 </objects>

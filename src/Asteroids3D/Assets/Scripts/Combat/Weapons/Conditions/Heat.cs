@@ -1,6 +1,7 @@
 using Balance;
 using System;
 using Combat.Weapons;
+using Combat.Weapons.Mods;
 using UnityEngine;
 
 namespace Combat.Weapons.Conditions
@@ -39,10 +40,12 @@ namespace Combat.Weapons.Conditions
         public event Action<float, float> OnHeatChanged;
 
         public float CurrentHeat { get; private set; }
-        public float MaxHeat => maxHeat;
+        public float MaxHeat => mods.Apply(WeaponModField.HeatCapacity, maxHeat);
         public float HeatPerShot => heatPerShot;
-        public float HeatPct => maxHeat > 0f ? CurrentHeat / maxHeat : 0f;
+        public float HeatPct => MaxHeat > 0f ? CurrentHeat / MaxHeat : 0f;
         public bool Overheated { get; private set; }
+
+        private float CoolingRate => mods.Apply(WeaponModField.Cooling, coolingRate);
 
         private void Update() => Tick(Time.deltaTime);
 
@@ -65,8 +68,8 @@ namespace Combat.Weapons.Conditions
             if (clock < lastShotTime + delay + HalfStep) return;
 
             var previousHeat = CurrentHeat;
-            CurrentHeat -= coolingRate * dt;
-            if (CurrentHeat <= coolingRate * HalfStep) CurrentHeat = 0f;
+            CurrentHeat -= CoolingRate * dt;
+            if (CurrentHeat <= CoolingRate * HalfStep) CurrentHeat = 0f;
             PublishHeatChangedIfNeeded(previousHeat);
 
             // Full lockout by design: partial cooling never re-enables fire.
@@ -80,7 +83,7 @@ namespace Combat.Weapons.Conditions
             return !Overheated;
         }
 
-        private bool WouldBeOverheated(float heat) => heat >= maxHeat;
+        private bool WouldBeOverheated(float heat) => heat >= MaxHeat;
 
         public bool WouldOverheatOnNextShot(float extraHeatMargin = 0f)
         {
@@ -90,10 +93,10 @@ namespace Combat.Weapons.Conditions
         /// <summary>Null when cooling between shots keeps pace, so continuous fire never overheats.</summary>
         public int? ShotsToOverheat(float secondsBetweenShots)
         {
-            if (heatPerShot >= maxHeat) return 1;
-            var netHeatPerShot = heatPerShot - coolingRate * Mathf.Max(0f, secondsBetweenShots - coolDownDelay);
+            if (heatPerShot >= MaxHeat) return 1;
+            var netHeatPerShot = heatPerShot - CoolingRate * Mathf.Max(0f, secondsBetweenShots - coolDownDelay);
             if (netHeatPerShot <= 0f) return null;
-            return 1 + Mathf.CeilToInt((maxHeat - heatPerShot) / netHeatPerShot);
+            return 1 + Mathf.CeilToInt((MaxHeat - heatPerShot) / netHeatPerShot);
         }
 
         public override void ProcessFire()
@@ -101,7 +104,7 @@ namespace Combat.Weapons.Conditions
             var previousHeat = CurrentHeat;
             CurrentHeat += heatPerShot;
             lastShotTime = clock;
-            CurrentHeat = Mathf.Min(CurrentHeat, maxHeat);
+            CurrentHeat = Mathf.Min(CurrentHeat, MaxHeat);
             PublishHeatChangedIfNeeded(previousHeat);
 
             if (!WouldBeOverheated(CurrentHeat) || Overheated) return;
@@ -134,10 +137,13 @@ namespace Combat.Weapons.Conditions
             Reset();
         }
 
+        // The gauge rescales to the new capacity even though the heat itself did not move.
+        protected override void OnModsChanged() => OnHeatChanged?.Invoke(CurrentHeat, MaxHeat);
+
         private void PublishHeatChangedIfNeeded(float previousHeat)
         {
             if (Mathf.Approximately(previousHeat, CurrentHeat)) return;
-            OnHeatChanged?.Invoke(CurrentHeat, maxHeat);
+            OnHeatChanged?.Invoke(CurrentHeat, MaxHeat);
         }
     }
 }

@@ -362,7 +362,7 @@ namespace Tests.PlayMode
             yield return sector.Teardown();
             _unitService.Clear();
             got = null;
-            end.Fire(SectorResult.Extracted());
+            end.Fire(SectorResult.Extracted(0f));
             Assert.IsFalse(got.HasValue, "Module end signal must be unsubscribed after teardown.");
         }
 
