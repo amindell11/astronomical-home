@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="6" result="Failed(Child)" total="6" passed="4" failed="2" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-28 07:02:20Z" end-time="2026-10-28 07:02:20Z" duration="0.29298">
+  <test-suite type="TestSuite" id="1532" name="Astronomical" fullname="Astronomical" runstate="Runnable" testcasecount="398" result="Failed" site="Child" start-time="2026-10-28 07:02:20Z" end-time="2026-10-28 07:02:20Z" duration="0.292980" total="6" passed="4" failed="2" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1507" name="Tests.PlayMode.dll" fullname="D:/amind/git/agent-3/src/Asteroids3D/Library/ScriptAssemblies/Tests.PlayMode.dll" runstate="Runnable" testcasecount="394" result="Failed" site="Child" start-time="2026-10-28 07:02:20Z" end-time="2026-10-28 07:02:20Z" duration="0.254745" total="6" passed="4" failed="2" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="55004" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1508" name="Tests" fullname="Tests" runstate="Runnable" testcasecount="394" result="Failed" site="Child" start-time="2026-10-28 07:02:20Z" end-time="2026-10-28 07:02:20Z" duration="0.247441" total="6" passed="4" failed="2" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1509" name="PlayMode" fullname="Tests.PlayMode" runstate="Runnable" testcasecount="394" result="Failed" site="Child" start-time="2026-10-28 07:02:20Z" end-time="2026-10-28 07:02:20Z" duration="0.240951" total="6" passed="4" failed="2" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestFixture" id="1103" name="InputLifetimeProbePlayModeTests" fullname="Tests.PlayMode.InputLifetimeProbePlayModeTests" classname="Tests.PlayMode.InputLifetimeProbePlayModeTests" runstate="Runnable" testcasecount="6" result="Failed" site="Child" start-time="2026-10-28 07:02:20Z" end-time="2026-10-28 07:02:20Z" duration="0.228439" total="6" passed="4" failed="2" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-case id="1104" name="A_PressAfterFixedUpdate" fullname="Tests.PlayMode.InputLifetimeProbePlayModeTests.A_PressAfterFixedUpdate" methodname="A_PressAfterFixedUpdate" classname="Tests.PlayMode.InputLifetimeProbePlayModeTests" runstate="Runnable" seed="2115626787" result="Failed" label="Error" start-time="2026-10-28 07:02:20Z" end-time="2026-10-28 07:02:20Z" duration="0.131440" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <failure>
+                <message><![CDATA[System.ArgumentNullException : Value cannot be null.
+Parameter name: source]]></message>
+                <stack-trace><![CDATA[  at (wrapper managed-to-native) Unity.Collections.LowLevel.Unsafe.UnsafeUtility.MemCpy(void*,void*,long)
+  at UnityEngine.InputSystem.LowLevel.DeltaStateEvent.From (UnityEngine.InputSystem.InputControl control, UnityEngine.InputSystem.LowLevel.InputEventPtr& eventPtr, Unity.Collections.Allocator allocator) [0x000e5] in .\Library\PackageCache\com.unity.inputsystem@7fe8299111a7\InputSystem\Events\DeltaStateEvent.cs:99 
+  at UnityEngine.InputSystem.InputTestFixture.Set[TValue] (UnityEngine.InputSystem.InputControl`1[TValue] control, TValue state, System.Double time, System.Double timeOffset, System.Boolean queueEventOnly) [0x000a5] in .\Library\PackageCache\com.unity.inputsystem@7fe8299111a7\Tests\TestFixture\InputTestFixture.cs:577 
+  at UnityEngine.InputSystem.InputTestFixture.Press (UnityEngine.InputSystem.Controls.ButtonControl button, System.Double time, System.Double timeOffset, System.Boolean queueEventOnly) [0x00000] in .\Library\PackageCache\com.unity.inputsystem@7fe8299111a7\Tests\TestFixture\InputTestFixture.cs:461 
+  at Tests.PlayMode.InputLifetimeProbePlayModeTests.PressF (System.String where) [0x0000c] in D:\amind\git\agent-3\src\Asteroids3D\Assets\Scripts\Editor\Tests\PlayMode\InputLifetimeProbePlayModeTests.cs:70 
+  at Tests.PlayMode.InputLifetimeProbePlayModeTests+<A_PressAfterFixedUpdate>d__9.MoveNext () [0x00039] in D:\amind\git\agent-3\src\Asteroids3D\Assets\Scripts\Editor\Tests\PlayMode\InputLifetimeProbePlayModeTests.cs:79 
+  at UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0003a] in .\Library\PackageCache\com.unity.test-framework@7056e7f856e9\UnityEngine.TestRunner\NUnitExtensions\Attributes\TestEnumerator.cs:44 ]]></stack-trace>
+              </failure>
+              <output><![CDATA[[DEBUG-in1196] before-setup frame=10 fixed=False kbIndex=-1 curCount=0 cur==player=True cur==editor=True testPlayerCount=0 stack=0 none latest=Dynamic latestNonEditor=Dynamic mask=Dynamic, Editor
+[DEBUG-in1196] after-add frame=10 fixed=False kbIndex=0 curCount=1 cur==player=True cur==editor=False testPlayerCount=1 stack=1 savedDevices=0 savedPlayerCount=0 cur==savedPlayer=False cur==savedEditor=False latest=None latestNonEditor=None mask=Dynamic, Editor
+[DEBUG-in1196] A frame=99 fixed=True kbIndex=0 curCount=0 cur==player=False cur==editor=False testPlayerCount=1 stack=1 savedDevices=0 savedPlayerCount=0 cur==savedPlayer=True cur==savedEditor=True latest=Dynamic latestNonEditor=Dynamic mask=Dynamic, Editor
+]]></output>
+            </test-case>
+            <test-case id="1105" name="B_PressAfterNullFrame" fullname="Tests.PlayMode.InputLifetimeProbePlayModeTests.B_PressAfterNullFrame" methodname="B_PressAfterNullFrame" classname="Tests.PlayMode.InputLifetimeProbePlayModeTests" runstate="Runnable" seed="1899563896" result="Passed" start-time="2026-10-28 07:02:20Z" end-time="2026-10-28 07:02:20Z" duration="0.019404" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[[DEBUG-in1196] before-setup frame=99 fixed=False kbIndex=-1 curCount=0 cur==player=True cur==editor=True testPlayerCount=0 stack=0 none latest=Dynamic latestNonEditor=Dynamic mask=Dynamic, Editor
+[DEBUG-in1196] after-add frame=99 fixed=False kbIndex=0 curCount=1 cur==player=True cur==editor=False testPlayerCount=1 stack=1 savedDevices=0 savedPlayerCount=0 cur==savedPlayer=False cur==savedEditor=False latest=None latestNonEditor=None mask=Dynamic, Editor
+[DEBUG-in1196] B frame=102 fixed=False kbIndex=0 curCount=1 cur==player=True cur==editor=False testPlayerCount=1 stack=1 savedDevices=0 savedPlayerCount=0 cur==savedPlayer=False cur==savedEditor=False latest=Dynamic latestNonEditor=Dynamic mask=Dynamic, Editor
+[DEBUG-in1196] B-after-press frame=102 fixed=False kbIndex=0 curCount=1 cur==player=True cur==editor=False testPlayerCount=1 stack=1 savedDevices=0 savedPlayerCount=0 cur==savedPlayer=False cur==savedEditor=False latest=Dynamic latestNonEditor=Dynamic mask=Dynamic, Editor
+]]></output>
+            </test-case>
+            <test-case id="1106" name="C_PressAfterNullThenFixed" fullname="Tests.PlayMode.InputLifetimeProbePlayModeTests.C_PressAfterNullThenFixed" methodname="C_PressAfterNullThenFixed" classname="Tests.PlayMode.InputLifetimeProbePlayModeTests" runstate="Runnable" seed="1447907316" result="Failed" label="Error" start-time="2026-10-28 07:02:20Z" end-time="2026-10-28 07:02:20Z" duration="0.011952" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <failure>
+                <message><![CDATA[System.ArgumentNullException : Value cannot be null.
+Parameter name: source]]></message>
+                <stack-trace><![CDATA[  at (wrapper managed-to-native) Unity.Collections.LowLevel.Unsafe.UnsafeUtility.MemCpy(void*,void*,long)
+  at UnityEngine.InputSystem.LowLevel.DeltaStateEvent.From (UnityEngine.InputSystem.InputControl control, UnityEngine.InputSystem.LowLevel.InputEventPtr& eventPtr, Unity.Collections.Allocator allocator) [0x000e5] in .\Library\PackageCache\com.unity.inputsystem@7fe8299111a7\InputSystem\Events\DeltaStateEvent.cs:99 
+  at UnityEngine.InputSystem.InputTestFixture.Set[TValue] (UnityEngine.InputSystem.InputControl`1[TValue] control, TValue state, System.Double time, System.Double timeOffset, System.Boolean queueEventOnly) [0x000a5] in .\Library\PackageCache\com.unity.inputsystem@7fe8299111a7\Tests\TestFixture\InputTestFixture.cs:577 
+  at UnityEngine.InputSystem.InputTestFixture.Press (UnityEngine.InputSystem.Controls.ButtonControl button, System.Double time, System.Double timeOffset, System.Boolean queueEventOnly) [0x00000] in .\Library\PackageCache\com.unity.inputsystem@7fe8299111a7\Tests\TestFixture\InputTestFixture.cs:461 
+  at Tests.PlayMode.InputLifetimeProbePlayModeTests.PressF (System.String where) [0x0000c] in D:\amind\git\agent-3\src\Asteroids3D\Assets\Scripts\Editor\Tests\PlayMode\InputLifetimeProbePlayModeTests.cs:70 
+  at Tests.PlayMode.InputLifetimeProbePlayModeTests+<C_PressAfterNullThenFixed>d__11.MoveNext () [0x00076] in D:\amind\git\agent-3\src\Asteroids3D\Assets\Scripts\Editor\Tests\PlayMode\InputLifetimeProbePlayModeTests.cs:95 
+  at UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0003a] in .\Library\PackageCache\com.unity.test-framework@7056e7f856e9\UnityEngine.TestRunner\NUnitExtensions\Attributes\TestEnumerator.cs:44 ]]></stack-trace>
+              </failure>
+              <output><![CDATA[[DEBUG-in1196] before-setup frame=102 fixed=False kbIndex=-1 curCount=0 cur==player=True cur==editor=True testPlayerCount=0 stack=0 none latest=None latestNonEditor=None mask=Dynamic, Editor
+[DEBUG-in1196] after-add frame=102 fixed=False kbIndex=0 curCount=1 cur==player=True cur==editor=False testPlayerCount=1 stack=1 savedDevices=0 savedPlayerCount=0 cur==savedPlayer=False cur==savedEditor=False latest=None latestNonEditor=None mask=Dynamic, Editor
+[DEBUG-in1196] C frame=137 fixed=True kbIndex=0 curCount=0 cur==player=False cur==editor=False testPlayerCount=1 stack=1 savedDevices=0 savedPlayerCount=0 cur==savedPlayer=True cur==savedEditor=True latest=Dynamic latestNonEditor=Dynamic mask=Dynamic, Editor
+]]></output>
+            </test-case>
+            <test-case id="1107" name="D_PressImmediately" fullname="Tests.PlayMode.InputLifetimeProbePlayModeTests.D_PressImmediately" methodname="D_PressImmediately" classname="Tests.PlayMode.InputLifetimeProbePlayModeTests" runstate="Runnable" seed="1790584191" result="Passed" start-time="2026-10-28 07:02:20Z" end-time="2026-10-28 07:02:20Z" duration="0.008378" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[[DEBUG-in1196] before-setup frame=137 fixed=False kbIndex=-1 curCount=0 cur==player=True cur==editor=True testPlayerCount=0 stack=0 none latest=Dynamic latestNonEditor=Dynamic mask=Dynamic, Editor
+[DEBUG-in1196] after-add frame=137 fixed=False kbIndex=0 curCount=1 cur==player=True cur==editor=False testPlayerCount=1 stack=1 savedDevices=0 savedPlayerCount=0 cur==savedPlayer=False cur==savedEditor=False latest=None latestNonEditor=None mask=Dynamic, Editor
+[DEBUG-in1196] D frame=139 fixed=False kbIndex=0 curCount=1 cur==player=True cur==editor=False testPlayerCount=1 stack=1 savedDevices=0 savedPlayerCount=0 cur==savedPlayer=False cur==savedEditor=False latest=Dynamic latestNonEditor=Dynamic mask=Dynamic, Editor
+[DEBUG-in1196] D-after-press frame=139 fixed=False kbIndex=0 curCount=1 cur==player=True cur==editor=False testPlayerCount=1 stack=1 savedDevices=0 savedPlayerCount=0 cur==savedPlayer=False cur==savedEditor=False latest=Dynamic latestNonEditor=Dynamic mask=Dynamic, Editor
+]]></output>
+            </test-case>
+            <test-case id="1108" name="E_StripEditorMask_PressAfterFixedUpdate" fullname="Tests.PlayMode.InputLifetimeProbePlayModeTests.E_StripEditorMask_PressAfterFixedUpdate" methodname="E_StripEditorMask_PressAfterFixedUpdate" classname="Tests.PlayMode.InputLifetimeProbePlayModeTests" runstate="Runnable" seed="1966734258" result="Passed" start-time="2026-10-28 07:02:20Z" end-time="2026-10-28 07:02:20Z" duration="0.011631" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[[DEBUG-in1196] before-setup frame=140 fixed=False kbIndex=-1 curCount=0 cur==player=True cur==editor=True testPlayerCount=0 stack=0 none latest=None latestNonEditor=None mask=Dynamic, Editor
+[DEBUG-in1196] after-add frame=140 fixed=False kbIndex=0 curCount=1 cur==player=True cur==editor=False testPlayerCount=1 stack=1 savedDevices=0 savedPlayerCount=0 cur==savedPlayer=False cur==savedEditor=False latest=None latestNonEditor=None mask=Dynamic, Editor
+[DEBUG-in1196] E-stripped frame=142 fixed=False kbIndex=0 curCount=1 cur==player=True cur==editor=False testPlayerCount=1 stack=1 savedDevices=0 savedPlayerCount=0 cur==savedPlayer=False cur==savedEditor=False latest=Dynamic latestNonEditor=Dynamic mask=Dynamic
+[DEBUG-in1196] E frame=144 fixed=True kbIndex=0 curCount=1 cur==player=True cur==editor=False testPlayerCount=1 stack=1 savedDevices=0 savedPlayerCount=0 cur==savedPlayer=False cur==savedEditor=False latest=Dynamic latestNonEditor=Dynamic mask=Dynamic
+[DEBUG-in1196] E-after-press frame=144 fixed=True kbIndex=0 curCount=1 cur==player=True cur==editor=False testPlayerCount=1 stack=1 savedDevices=0 savedPlayerCount=0 cur==savedPlayer=False cur==savedEditor=False latest=Dynamic latestNonEditor=Dynamic mask=Dynamic
+]]></output>
+            </test-case>
+            <test-case id="1109" name="F_UnhookSavedLoopInit_PressAfterFixedUpdate" fullname="Tests.PlayMode.InputLifetimeProbePlayModeTests.F_UnhookSavedLoopInit_PressAfterFixedUpdate" methodname="F_UnhookSavedLoopInit_PressAfterFixedUpdate" classname="Tests.PlayMode.InputLifetimeProbePlayModeTests" runstate="Runnable" seed="1660029565" result="Passed" start-time="2026-10-28 07:02:20Z" end-time="2026-10-28 07:02:20Z" duration="0.019931" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[[DEBUG-in1196] before-setup frame=144 fixed=False kbIndex=-1 curCount=0 cur==player=True cur==editor=True testPlayerCount=0 stack=0 none latest=Dynamic latestNonEditor=Dynamic mask=Dynamic, Editor
+[DEBUG-in1196] after-add frame=144 fixed=False kbIndex=0 curCount=1 cur==player=True cur==editor=False testPlayerCount=1 stack=1 savedDevices=0 savedPlayerCount=0 cur==savedPlayer=False cur==savedEditor=False latest=None latestNonEditor=None mask=Dynamic, Editor
+[DEBUG-in1196] F hooked=True target=-977090816 mgr=-834913536
+[DEBUG-in1196] F frame=238 fixed=True kbIndex=0 curCount=1 cur==player=False cur==editor=True testPlayerCount=1 stack=1 savedDevices=0 savedPlayerCount=0 cur==savedPlayer=False cur==savedEditor=False latest=Editor latestNonEditor=Dynamic mask=Dynamic, Editor
+[DEBUG-in1196] F-after-press frame=238 fixed=True kbIndex=0 curCount=1 cur==player=True cur==editor=False testPlayerCount=1 stack=1 savedDevices=0 savedPlayerCount=0 cur==savedPlayer=False cur==savedEditor=False latest=Dynamic latestNonEditor=Dynamic mask=Dynamic, Editor
+Saving results to: C:/Users/amind/AppData/LocalLow/AryeGames/Astronomical\TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

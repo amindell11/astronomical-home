@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="8" result="Failed(Child)" total="8" passed="2" failed="6" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-28 06:55:02Z" end-time="2026-10-28 06:55:04Z" duration="2.4994364">
+  <test-suite type="TestSuite" id="1525" name="Astronomical" fullname="Astronomical" runstate="Runnable" testcasecount="392" result="Failed" site="Child" start-time="2026-10-28 06:55:02Z" end-time="2026-10-28 06:55:04Z" duration="2.499436" total="8" passed="2" failed="6" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1500" name="Tests.PlayMode.dll" fullname="D:/amind/git/agent-3/src/Asteroids3D/Library/ScriptAssemblies/Tests.PlayMode.dll" runstate="Runnable" testcasecount="388" result="Failed" site="Child" start-time="2026-10-28 06:55:02Z" end-time="2026-10-28 06:55:04Z" duration="2.446677" total="8" passed="2" failed="6" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="20944" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1501" name="Tests" fullname="Tests" runstate="Runnable" testcasecount="388" result="Failed" site="Child" start-time="2026-10-28 06:55:02Z" end-time="2026-10-28 06:55:04Z" duration="2.426036" total="8" passed="2" failed="6" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1502" name="PlayMode" fullname="Tests.PlayMode" runstate="Runnable" testcasecount="388" result="Failed" site="Child" start-time="2026-10-28 06:55:02Z" end-time="2026-10-28 06:55:04Z" duration="2.406984" total="8" passed="2" failed="6" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestFixture" id="1152" name="PhaseSpinePlayModeTests" fullname="Tests.PlayMode.PhaseSpinePlayModeTests" classname="Tests.PlayMode.PhaseSpinePlayModeTests" runstate="Runnable" testcasecount="1" result="Failed" site="Child" start-time="2026-10-28 06:55:02Z" end-time="2026-10-28 06:55:04Z" duration="1.603505" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Sectors" />
+            </properties>
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-case id="1153" name="PhasesRunOut_ZoneAppearsAway_AndFreshPressExtracts" fullname="Tests.PlayMode.PhaseSpinePlayModeTests.PhasesRunOut_ZoneAppearsAway_AndFreshPressExtracts" methodname="PhasesRunOut_ZoneAppearsAway_AndFreshPressExtracts" classname="Tests.PlayMode.PhaseSpinePlayModeTests" runstate="Runnable" seed="1898096137" result="Failed" label="Error" start-time="2026-10-28 06:55:02Z" end-time="2026-10-28 06:55:04Z" duration="1.525989" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="600000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <failure>
+                <message><![CDATA[System.ArgumentNullException : Value cannot be null.
+Parameter name: source]]></message>
+                <stack-trace><![CDATA[  at (wrapper managed-to-native) Unity.Collections.LowLevel.Unsafe.UnsafeUtility.MemCpy(void*,void*,long)
+  at UnityEngine.InputSystem.LowLevel.DeltaStateEvent.From (UnityEngine.InputSystem.InputControl control, UnityEngine.InputSystem.LowLevel.InputEventPtr& eventPtr, Unity.Collections.Allocator allocator) [0x000e5] in .\Library\PackageCache\com.unity.inputsystem@7fe8299111a7\InputSystem\Events\DeltaStateEvent.cs:99 
+  at UnityEngine.InputSystem.InputTestFixture.Set[TValue] (UnityEngine.InputSystem.InputControl`1[TValue] control, TValue state, System.Double time, System.Double timeOffset, System.Boolean queueEventOnly) [0x000a5] in .\Library\PackageCache\com.unity.inputsystem@7fe8299111a7\Tests\TestFixture\InputTestFixture.cs:577 
+  at UnityEngine.InputSystem.InputTestFixture.Press (UnityEngine.InputSystem.Controls.ButtonControl button, System.Double time, System.Double timeOffset, System.Boolean queueEventOnly) [0x00000] in .\Library\PackageCache\com.unity.inputsystem@7fe8299111a7\Tests\TestFixture\InputTestFixture.cs:461 
+  at Tests.PlayMode.PhaseSpinePlayModeTests+<PhasesRunOut_ZoneAppearsAway_AndFreshPressExtracts>d__11.MoveNext () [0x00358] in D:\amind\git\agent-3\src\Asteroids3D\Assets\Scripts\Editor\Tests\PlayMode\PhaseSpinePlayModeTests.cs:126 
+  at UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0003a] in .\Library\PackageCache\com.unity.test-framework@7056e7f856e9\UnityEngine.TestRunner\NUnitExtensions\Attributes\TestEnumerator.cs:44 ]]></stack-trace>
+              </failure>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1203" name="SectorSpineDemoPlayModeTests" fullname="Tests.PlayMode.SectorSpineDemoPlayModeTests" classname="Tests.PlayMode.SectorSpineDemoPlayModeTests" runstate="Runnable" testcasecount="7" result="Failed" site="Child" start-time="2026-10-28 06:55:04Z" end-time="2026-10-28 06:55:04Z" duration="0.754117" total="7" passed="2" failed="5" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Sectors" />
+            </properties>
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-case id="1209" name="ActivateWithBlankToken_LogsError_AndChaserStaysDormant" fullname="Tests.PlayMode.SectorSpineDemoPlayModeTests.ActivateWithBlankToken_LogsError_AndChaserStaysDormant" methodname="ActivateWithBlankToken_LogsError_AndChaserStaysDormant" classname="Tests.PlayMode.SectorSpineDemoPlayModeTests" runstate="Runnable" seed="316125966" result="Failed" label="Error" start-time="2026-10-28 06:55:04Z" end-time="2026-10-28 06:55:04Z" duration="0.157159" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="600000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <failure>
+                <message><![CDATA[System.ArgumentNullException : Value cannot be null.
+Parameter name: source]]></message>
+                <stack-trace><![CDATA[  at (wrapper managed-to-native) Unity.Collections.LowLevel.Unsafe.UnsafeUtility.MemCpy(void*,void*,long)
+  at UnityEngine.InputSystem.LowLevel.DeltaStateEvent.From (UnityEngine.InputSystem.InputControl control, UnityEngine.InputSystem.LowLevel.InputEventPtr& eventPtr, Unity.Collections.Allocator allocator) [0x000e5] in .\Library\PackageCache\com.unity.inputsystem@7fe8299111a7\InputSystem\Events\DeltaStateEvent.cs:99 
+  at UnityEngine.InputSystem.InputTestFixture.Set[TValue] (UnityEngine.InputSystem.InputControl`1[TValue] control, TValue state, System.Double time, System.Double timeOffset, System.Boolean queueEventOnly) [0x000a5] in .\Library\PackageCache\com.unity.inputsystem@7fe8299111a7\Tests\TestFixture\InputTestFixture.cs:577 
+  at UnityEngine.InputSystem.InputTestFixture.Release (UnityEngine.InputSystem.Controls.ButtonControl button, System.Double time, System.Double timeOffset, System.Boolean queueEventOnly) [0x00000] in .\Library\PackageCache\com.unity.inputsystem@7fe8299111a7\Tests\TestFixture\InputTestFixture.cs:467 
+  at Tests.PlayMode.SectorSpineDemoPlayModeTests.PressJump () [0x00000] in D:\amind\git\agent-3\src\Asteroids3D\Assets\Scripts\Editor\Tests\PlayMode\SectorSpineDemoPlayModeTests.cs:68 
+  at Tests.PlayMode.SectorSpineDemoPlayModeTests+<ActivateWithBlankToken_LogsError_AndChaserStaysDormant>d__19.MoveNext () [0x001cc] in D:\amind\git\agent-3\src\Asteroids3D\Assets\Scripts\Editor\Tests\PlayMode\SectorSpineDemoPlayModeTests.cs:331 
+  at UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0003a] in .\Library\PackageCache\com.unity.test-framework@7056e7f856e9\UnityEngine.TestRunner\NUnitExtensions\Attributes\TestEnumerator.cs:44 ]]></stack-trace>
+              </failure>
+              <output><![CDATA[ActivateOnToken on 'Kinematic Primitive Test Ship' has a blank token — module is inert.
+]]></output>
+            </test-case>
+            <test-case id="1206" name="ChaserWithinBlockDistance_BlocksExtraction_UntilChaserLeaves" fullname="Tests.PlayMode.SectorSpineDemoPlayModeTests.ChaserWithinBlockDistance_BlocksExtraction_UntilChaserLeaves" methodname="ChaserWithinBlockDistance_BlocksExtraction_UntilChaserLeaves" classname="Tests.PlayMode.SectorSpineDemoPlayModeTests" runstate="Runnable" seed="1543769026" result="Failed" label="Error" start-time="2026-10-28 06:55:04Z" end-time="2026-10-28 06:55:04Z" duration="0.116498" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="600000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <failure>
+                <message><![CDATA[System.ArgumentNullException : Value cannot be null.
+Parameter name: source]]></message>
+                <stack-trace><![CDATA[  at (wrapper managed-to-native) Unity.Collections.LowLevel.Unsafe.UnsafeUtility.MemCpy(void*,void*,long)
+  at UnityEngine.InputSystem.LowLevel.DeltaStateEvent.From (UnityEngine.InputSystem.InputControl control, UnityEngine.InputSystem.LowLevel.InputEventPtr& eventPtr, Unity.Collections.Allocator allocator) [0x000e5] in .\Library\PackageCache\com.unity.inputsystem@7fe8299111a7\InputSystem\Events\DeltaStateEvent.cs:99 
+  at UnityEngine.InputSystem.InputTestFixture.Set[TValue] (UnityEngine.InputSystem.InputControl`1[TValue] control, TValue state, System.Double time, System.Double timeOffset, System.Boolean queueEventOnly) [0x000a5] in .\Library\PackageCache\com.unity.inputsystem@7fe8299111a7\Tests\TestFixture\InputTestFixture.cs:577 
+  at UnityEngine.InputSystem.InputTestFixture.Release (UnityEngine.InputSystem.Controls.ButtonControl button, System.Double time, System.Double timeOffset, System.Boolean queueEventOnly) [0x00000] in .\Library\PackageCache\com.unity.inputsystem@7fe8299111a7\Tests\TestFixture\InputTestFixture.cs:467 
+  at Tests.PlayMode.SectorSpineDemoPlayModeTests.PressJump () [0x00000] in D:\amind\git\agent-3\src\Asteroids3D\Assets\Scripts\Editor\Tests\PlayMode\SectorSpineDemoPlayModeTests.cs:68 
+  at Tests.PlayMode.SectorSpineDemoPlayModeTests+<ChaserWithinBlockDistance_BlocksExtraction_UntilChaserLeaves>d__16.MoveNext () [0x001ea] in D:\amind\git\agent-3\src\Asteroids3D\Assets\Scripts\Editor\Tests\PlayMode\SectorSpineDemoPlayModeTests.cs:238 
+  at UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0003a] in .\Library\PackageCache\com.unity.test-framework@7056e7f856e9\UnityEngine.TestRunner\NUnitExtensions\Attributes\TestEnumerator.cs:44 ]]></stack-trace>
+              </failure>
+            </test-case>
+            <test-case id="1204" name="KeyThenGate_AdvancesSpine_ActivatesChaser_AndExtracts" fullname="Tests.PlayMode.SectorSpineDemoPlayModeTests.KeyThenGate_AdvancesSpine_ActivatesChaser_AndExtracts" methodname="KeyThenGate_AdvancesSpine_ActivatesChaser_AndExtracts" classname="Tests.PlayMode.SectorSpineDemoPlayModeTests" runstate="Runnable" seed="1030580622" result="Failed" label="Error" start-time="2026-10-28 06:55:04Z" end-time="2026-10-28 06:55:04Z" duration="0.100839" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="600000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <failure>
+                <message><![CDATA[System.ArgumentNullException : Value cannot be null.
+Parameter name: source]]></message>
+                <stack-trace><![CDATA[  at (wrapper managed-to-native) Unity.Collections.LowLevel.Unsafe.UnsafeUtility.MemCpy(void*,void*,long)
+  at UnityEngine.InputSystem.LowLevel.DeltaStateEvent.From (UnityEngine.InputSystem.InputControl control, UnityEngine.InputSystem.LowLevel.InputEventPtr& eventPtr, Unity.Collections.Allocator allocator) [0x000e5] in .\Library\PackageCache\com.unity.inputsystem@7fe8299111a7\InputSystem\Events\DeltaStateEvent.cs:99 
+  at UnityEngine.InputSystem.InputTestFixture.Set[TValue] (UnityEngine.InputSystem.InputControl`1[TValue] control, TValue state, System.Double time, System.Double timeOffset, System.Boolean queueEventOnly) [0x000a5] in .\Library\PackageCache\com.unity.inputsystem@7fe8299111a7\Tests\TestFixture\InputTestFixture.cs:577 
+  at UnityEngine.InputSystem.InputTestFixture.Release (UnityEngine.InputSystem.Controls.ButtonControl button, System.Double time, System.Double timeOffset, System.Boolean queueEventOnly) [0x00000] in .\Library\PackageCache\com.unity.inputsystem@7fe8299111a7\Tests\TestFixture\InputTestFixture.cs:467 
+  at Tests.PlayMode.SectorSpineDemoPlayModeTests.PressJump () [0x00000] in D:\amind\git\agent-3\src\Asteroids3D\Assets\Scripts\Editor\Tests\PlayMode\SectorSpineDemoPlayModeTests.cs:68 
+  at Tests.PlayMode.SectorSpineDemoPlayModeTests+<KeyThenGate_AdvancesSpine_ActivatesChaser_AndExtracts>d__14.MoveNext () [0x0028a] in D:\amind\git\agent-3\src\Asteroids3D\Assets\Scripts\Editor\Tests\PlayMode\SectorSpineDemoPlayModeTests.cs:173 
+  at UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0003a] in .\Library\PackageCache\com.unity.test-framework@7056e7f856e9\UnityEngine.TestRunner\NUnitExtensions\Attributes\TestEnumerator.cs:44 ]]></stack-trace>
+              </failure>
+            </test-case>
+            <test-case id="1207" name="MissingChallengeRule_ZoneStaysUnarmed_AndExtractionNeverCompletes" fullname="Tests.PlayMode.SectorSpineDemoPlayModeTests.MissingChallengeRule_ZoneStaysUnarmed_AndExtractionNeverCompletes" methodname="MissingChallengeRule_ZoneStaysUnarmed_AndExtractionNeverCompletes" classname="Tests.PlayMode.SectorSpineDemoPlayModeTests" runstate="Runnable" seed="1870973558" result="Failed" label="Error" start-time="2026-10-28 06:55:04Z" end-time="2026-10-28 06:55:04Z" duration="0.098251" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="600000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <failure>
+                <message><![CDATA[System.ArgumentNullException : Value cannot be null.
+Parameter name: source]]></message>
+                <stack-trace><![CDATA[  at (wrapper managed-to-native) Unity.Collections.LowLevel.Unsafe.UnsafeUtility.MemCpy(void*,void*,long)
+  at UnityEngine.InputSystem.LowLevel.DeltaStateEvent.From (UnityEngine.InputSystem.InputControl control, UnityEngine.InputSystem.LowLevel.InputEventPtr& eventPtr, Unity.Collections.Allocator allocator) [0x000e5] in .\Library\PackageCache\com.unity.inputsystem@7fe8299111a7\InputSystem\Events\DeltaStateEvent.cs:99 
+  at UnityEngine.InputSystem.InputTestFixture.Set[TValue] (UnityEngine.InputSystem.InputControl`1[TValue] control, TValue state, System.Double time, System.Double timeOffset, System.Boolean queueEventOnly) [0x000a5] in .\Library\PackageCache\com.unity.inputsystem@7fe8299111a7\Tests\TestFixture\InputTestFixture.cs:577 
+  at UnityEngine.InputSystem.InputTestFixture.Release (UnityEngine.InputSystem.Controls.ButtonControl button, System.Double time, System.Double timeOffset, System.Boolean queueEventOnly) [0x00000] in .\Library\PackageCache\com.unity.inputsystem@7fe8299111a7\Tests\TestFixture\InputTestFixture.cs:467 
+  at Tests.PlayMode.SectorSpineDemoPlayModeTests.PressJump () [0x00000] in D:\amind\git\agent-3\src\Asteroids3D\Assets\Scripts\Editor\Tests\PlayMode\SectorSpineDemoPlayModeTests.cs:68 
+  at Tests.PlayMode.SectorSpineDemoPlayModeTests+<MissingChallengeRule_ZoneStaysUnarmed_AndExtractionNeverCompletes>d__17.MoveNext () [0x001b0] in D:\amind\git\agent-3\src\Asteroids3D\Assets\Scripts\Editor\Tests\PlayMode\SectorSpineDemoPlayModeTests.cs:271 
+  at UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0003a] in .\Library\PackageCache\com.unity.test-framework@7056e7f856e9\UnityEngine.TestRunner\NUnitExtensions\Attributes\TestEnumerator.cs:44 ]]></stack-trace>
+              </failure>
+            </test-case>
+            <test-case id="1205" name="ParkedInGate_ThenKeyArrives_StillExtracts" fullname="Tests.PlayMode.SectorSpineDemoPlayModeTests.ParkedInGate_ThenKeyArrives_StillExtracts" methodname="ParkedInGate_ThenKeyArrives_StillExtracts" classname="Tests.PlayMode.SectorSpineDemoPlayModeTests" runstate="Runnable" seed="1145261981" result="Passed" start-time="2026-10-28 06:55:04Z" end-time="2026-10-28 06:55:04Z" duration="0.144672" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="600000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1208" name="RuleWithNullZone_LogsError_AndExtractionStaysGated" fullname="Tests.PlayMode.SectorSpineDemoPlayModeTests.RuleWithNullZone_LogsError_AndExtractionStaysGated" methodname="RuleWithNullZone_LogsError_AndExtractionStaysGated" classname="Tests.PlayMode.SectorSpineDemoPlayModeTests" runstate="Runnable" seed="475576351" result="Failed" label="Error" start-time="2026-10-28 06:55:04Z" end-time="2026-10-28 06:55:04Z" duration="0.092822" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="600000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <failure>
+                <message><![CDATA[System.ArgumentNullException : Value cannot be null.
+Parameter name: source]]></message>
+                <stack-trace><![CDATA[  at (wrapper managed-to-native) Unity.Collections.LowLevel.Unsafe.UnsafeUtility.MemCpy(void*,void*,long)
+  at UnityEngine.InputSystem.LowLevel.DeltaStateEvent.From (UnityEngine.InputSystem.InputControl control, UnityEngine.InputSystem.LowLevel.InputEventPtr& eventPtr, Unity.Collections.Allocator allocator) [0x000e5] in .\Library\PackageCache\com.unity.inputsystem@7fe8299111a7\InputSystem\Events\DeltaStateEvent.cs:99 
+  at UnityEngine.InputSystem.InputTestFixture.Set[TValue] (UnityEngine.InputSystem.InputControl`1[TValue] control, TValue state, System.Double time, System.Double timeOffset, System.Boolean queueEventOnly) [0x000a5] in .\Library\PackageCache\com.unity.inputsystem@7fe8299111a7\Tests\TestFixture\InputTestFixture.cs:577 
+  at UnityEngine.InputSystem.InputTestFixture.Release (UnityEngine.InputSystem.Controls.ButtonControl button, System.Double time, System.Double timeOffset, System.Boolean queueEventOnly) [0x00000] in .\Library\PackageCache\com.unity.inputsystem@7fe8299111a7\Tests\TestFixture\InputTestFixture.cs:467 
+  at Tests.PlayMode.SectorSpineDemoPlayModeTests.PressJump () [0x00000] in D:\amind\git\agent-3\src\Asteroids3D\Assets\Scripts\Editor\Tests\PlayMode\SectorSpineDemoPlayModeTests.cs:68 
+  at Tests.PlayMode.SectorSpineDemoPlayModeTests+<RuleWithNullZone_LogsError_AndExtractionStaysGated>d__18.MoveNext () [0x001cc] in D:\amind\git\agent-3\src\Asteroids3D\Assets\Scripts\Editor\Tests\PlayMode\SectorSpineDemoPlayModeTests.cs:301 
+  at UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0003a] in .\Library\PackageCache\com.unity.test-framework@7056e7f856e9\UnityEngine.TestRunner\NUnitExtensions\Attributes\TestEnumerator.cs:44 ]]></stack-trace>
+              </failure>
+              <output><![CDATA[ExtractionChallengeRule on 'Gate' is missing a fixture reference — rule is inert.
+]]></output>
+            </test-case>
+            <test-case id="1210" name="SpineModule_DestroyedWithoutTeardown_StopsReceivingStepEvents" fullname="Tests.PlayMode.SectorSpineDemoPlayModeTests.SpineModule_DestroyedWithoutTeardown_StopsReceivingStepEvents" methodname="SpineModule_DestroyedWithoutTeardown_StopsReceivingStepEvents" classname="Tests.PlayMode.SectorSpineDemoPlayModeTests" runstate="Runnable" seed="965952622" result="Passed" start-time="2026-10-28 06:55:04Z" end-time="2026-10-28 06:55:04Z" duration="0.031239" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="600000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Saving results to: C:/Users/amind/AppData/LocalLow/AryeGames/Astronomical\TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

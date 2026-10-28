@@ -1,0 +1,140 @@
+#if UNITY_EDITOR
+// [DEBUG-in1196] throwaway probe for #1196; delete before commit.
+using System.Collections;
+using System.Reflection;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
+using UnityEngine.TestTools;
+
+namespace Tests.PlayMode
+{
+    [TestFixture]
+    public class InputLifetimeProbePlayModeTests
+    {
+        private const BindingFlags S = BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public;
+        private const BindingFlags I = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
+
+        private InputTestFixture input;
+        private Keyboard keyboard;
+
+        [SetUp]
+        public void SetUp()
+        {
+            Diag("before-setup", null);
+            input = new InputTestFixture();
+            input.Setup();
+            keyboard = InputSystem.AddDevice<Keyboard>();
+            Diag("after-add", keyboard);
+        }
+
+        [TearDown]
+        public void TearDown() => input.TearDown();
+
+        private static object F(object o, string name) => o.GetType().GetField(name, I).GetValue(o);
+
+        private static void Diag(string where, Keyboard kb)
+        {
+            var asm = typeof(InputSystem).Assembly;
+            var cur = asm.GetType("UnityEngine.InputSystem.LowLevel.InputStateBuffers").GetField("s_CurrentBuffers", S).GetValue(null);
+            var mgr = typeof(InputSystem).GetField("s_Manager", S).GetValue(null);
+            var sb = F(mgr, "m_StateBuffers");
+            var player = F(sb, "m_PlayerStateBuffers");
+            var editor = F(sb, "m_EditorStateBuffers");
+            var stack = typeof(InputSystem).GetField("s_SavedStateStack", S).GetValue(null);
+            var stackCount = stack == null ? 0 : (int)stack.GetType().GetProperty("Count").GetValue(stack);
+            string saved = "none";
+            if (stackCount > 0)
+            {
+                var top = stack.GetType().GetMethod("Peek").Invoke(stack, null);
+                var savedMgr = F(top, "manager");
+                var savedSb = F(savedMgr, "m_StateBuffers");
+                var sp = F(savedSb, "m_PlayerStateBuffers");
+                var se = F(savedSb, "m_EditorStateBuffers");
+                saved = $"savedDevices={F(savedMgr, "m_DevicesCount")} savedPlayerCount={F(sp, "deviceCount")} cur==savedPlayer={cur.Equals(sp)} cur==savedEditor={cur.Equals(se)}";
+            }
+            var upd = asm.GetType("UnityEngine.InputSystem.LowLevel.InputUpdate");
+            var latest = upd.GetField("s_LatestUpdateType", S).GetValue(null);
+            var latestNonEditor = upd.GetField("s_LatestNonEditorUpdateType", S).GetValue(null);
+            var idx = kb == null ? -1 : (int)typeof(InputDevice).GetField("m_DeviceIndex", I).GetValue(kb);
+            Debug.Log($"[DEBUG-in1196] {where} frame={Time.frameCount} fixed={Time.inFixedTimeStep} kbIndex={idx} " +
+                $"curCount={F(cur, "deviceCount")} cur==player={cur.Equals(player)} cur==editor={cur.Equals(editor)} " +
+                $"testPlayerCount={F(player, "deviceCount")} stack={stackCount} {saved} latest={latest} latestNonEditor={latestNonEditor} " +
+                $"mask={F(mgr, "m_UpdateMask")}");
+        }
+
+        private void PressF(string where)
+        {
+            Diag(where, keyboard);
+            input.Press(keyboard.fKey);
+            InputSystem.Update();
+            Diag(where + "-after-press", keyboard);
+        }
+
+        [UnityTest]
+        public IEnumerator A_PressAfterFixedUpdate()
+        {
+            yield return new WaitForFixedUpdate();
+            PressF("A");
+        }
+
+        [UnityTest]
+        public IEnumerator B_PressAfterNullFrame()
+        {
+            yield return null;
+            PressF("B");
+        }
+
+        [UnityTest]
+        public IEnumerator C_PressAfterNullThenFixed()
+        {
+            yield return null;
+            yield return null;
+            yield return new WaitForFixedUpdate();
+            PressF("C");
+        }
+
+        [UnityTest]
+        public IEnumerator D_PressImmediately()
+        {
+            PressF("D");
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator E_StripEditorMask_PressAfterFixedUpdate()
+        {
+            var mgr = typeof(InputSystem).GetField("s_Manager", S).GetValue(null);
+            var maskField = mgr.GetType().GetField("m_UpdateMask", I);
+            var mask = (InputUpdateType)maskField.GetValue(mgr);
+            maskField.SetValue(mgr, mask & ~InputUpdateType.Editor);
+            Diag("E-stripped", keyboard);
+            yield return null;
+            yield return new WaitForFixedUpdate();
+            PressF("E");
+        }
+
+        [UnityTest]
+        public IEnumerator F_UnhookSavedLoopInit_PressAfterFixedUpdate()
+        {
+            var native = typeof(InputSystem).Assembly.GetType("UnityEngine.InputSystem.LowLevel.NativeInputRuntime");
+            var instance = native.GetField("instance", S).GetValue(null);
+            var prop = native.GetProperty("onPlayerLoopInitialization", I);
+            var saved = prop.GetValue(instance);
+            Debug.Log($"[DEBUG-in1196] F hooked={saved != null} target={(saved as System.Delegate)?.Target?.GetHashCode()} mgr={typeof(InputSystem).GetField("s_Manager", S).GetValue(null).GetHashCode()}");
+            prop.SetValue(instance, null);
+            try
+            {
+                yield return null;
+                yield return new WaitForFixedUpdate();
+                PressF("F");
+            }
+            finally
+            {
+                prop.SetValue(instance, saved);
+            }
+        }
+    }
+}
+#endif
