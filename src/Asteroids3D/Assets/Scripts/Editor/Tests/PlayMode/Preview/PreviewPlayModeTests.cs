@@ -12,6 +12,7 @@ using Substrate.Sectors.Elements;
 using Substrate.Services.Units;
 using Substrate.Sessions;
 using Tests.PlayMode.Common;
+using Tests.PlayMode.Common.SimulatedInput;
 using UI.Recap;
 using UI.Screens;
 using UnityEngine;
@@ -29,7 +30,7 @@ namespace Tests.PlayMode.Preview
     {
         private PreviewHost host;
         private GameObject template;
-        private InputTestFixture input;
+        private PlayModeInputTestFixture input;
         private Keyboard keyboard;
         private Mouse mouse;
         private PlayerRig rig;
@@ -39,7 +40,7 @@ namespace Tests.PlayMode.Preview
         public override void SetUp()
         {
             base.SetUp();
-            input = new InputTestFixture();
+            input = new PlayModeInputTestFixture();
             input.Setup();
             keyboard = InputSystem.AddDevice<Keyboard>();
             mouse = InputSystem.AddDevice<Mouse>();
