@@ -303,7 +303,7 @@ namespace Tests.EditMode.Ships
             Assert.That(blink, Is.Not.Null, "Crimson's kit is Blink");
             Assert.That(blink.name, Is.EqualTo("Crimson_Blink"));
             Assert.That(blink.Range, Is.EqualTo(12f));
-            Assert.That(blink.Cooldown, Is.EqualTo(6f));
+            Assert.That(blink.Cooldown, Is.EqualTo(4f));
             Assert.That(blink.GetComponent<KeystoneFlash>(), Is.Not.Null, "the kit carries its tell");
         }
 
@@ -353,8 +353,8 @@ namespace Tests.EditMode.Ships
         }
 
         [TestCase("Vanguard", 9000f, 5f)]
-        [TestCase("Bulwark", 13500f, 7f)]
-        [TestCase("Junker_1", 13000f, 7f)]
+        [TestCase("Bulwark", 15000f, 5f)]
+        [TestCase("Junker_1", 15000f, 5f)]
         public void Chassis_CarriesItsOwnDash(string chassis, float impulse, float cooldown)
         {
             var catalog = AssetDatabase.LoadAssetAtPath<ItemCatalog>(ItemCatalog.AssetPath);

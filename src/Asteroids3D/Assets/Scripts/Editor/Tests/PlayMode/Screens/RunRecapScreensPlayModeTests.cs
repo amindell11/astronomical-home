@@ -9,6 +9,7 @@ using UI.Recap;
 using UI.Screens;
 using Ships;
 using Tests.PlayMode.Common;
+using Tests.PlayMode.Common.SimulatedInput;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -19,7 +20,7 @@ using Object = UnityEngine.Object;
 namespace Tests.PlayMode.Screens
 {
     [Category("UI")]
-    public class RunRecapScreensPlayModeTests : InputTestFixture
+    public class RunRecapScreensPlayModeTests : PlayModeInputTestFixture
     {
         private const string FeelPath = "Assets/Settings/UI/RecapFeel.asset";
 
