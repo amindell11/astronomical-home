@@ -21,7 +21,6 @@ namespace Game.Travel
 
         public float Duration { get; }
 
-        // SmoothStep is the Hermite of AnimationCurve.EaseInOut's flat-tangent keys.
         public float LocaleBlendAt(float progress) => progress >= blendEnd ? 1f : progress <= blendStart ? 0f :
             Mathf.SmoothStep(0f, 1f, (progress - blendStart) / (blendEnd - blendStart));
 

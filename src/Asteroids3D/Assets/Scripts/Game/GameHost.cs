@@ -32,7 +32,7 @@ namespace Game
     /// Hull carries between sectors. Death frames the explosion while surviving ships keep moving.
     /// Presentation is read once alongside the session's snapshot.
     /// Shutdown finishes the current setup operation, releases input waits, then tears down the owned world.
-    /// A fault anywhere in the run is logged, and Shutdown rethrows it instead of tearing down.
+    /// A fault in the run's coroutine stack is logged, and Shutdown rethrows it instead of tearing down.
     /// An optional jump profile enables protected travel with extraction UI held in hyperspace.
     /// The hangar, recap and restart stand in for Home Base and player progress.
     /// https://github.com/amindell11/astronomical-home/issues/295#issuecomment-5787867584

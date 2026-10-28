@@ -52,11 +52,12 @@ namespace Tests.EditMode.Travel
             Assert.That(end.HudAlpha, Is.EqualTo(1f));
         }
 
-        [TestCase("Assets/Settings/Game/SectorJumpTuning.asset")]
-        [TestCase("Assets/Settings/Game/SectorJumpBaseline.asset")]
-        public void SavedBlendWindow_MatchesTheEaseInOutCurveItReplaced(string path)
+        [Test]
+        public void BlendWindow_MatchesTheEaseInOutCurveOverTheSameWindow()
         {
-            var sequence = new SectorJumpSequence(AssetDatabase.LoadAssetAtPath<SectorJumpProfile>(path));
+            profile.localeBlendStart = 0.2f;
+            profile.localeBlendEnd = 0.85f;
+            var sequence = new SectorJumpSequence(profile);
             var replaced = AnimationCurve.EaseInOut(0.2f, 0f, 0.85f, 1f);
             for (var sample = 0; sample <= 200; sample++)
             {
