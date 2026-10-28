@@ -3,221 +3,142 @@ using Damage;
 using Ships.Damage;
 using Ships.Presentation;
 using UnityEngine;
-using Utils;
-using Ships.Registry;
 
 namespace Ships.Visuals
 {
     /// <summary>
-    /// The hull's damage feedback (flash, sparks, smoke, death VFX) and the single owner of the hull
-    /// flash: <see cref="HoldFlash"/> holds every hull surface in a keystone tell's colour, and the
-    /// damage flash yields to it. The hold works while this component is disabled, as it is on the
-    /// illustrated hulls until their damage feedback returns.
+    /// Owns hull hit flashes and held keystone colors across the authored hull surfaces.
+    /// A held color takes priority over damage, including on hulls whose other damage effects are disabled.
     /// </summary>
-    public class HullVisuals : MonoBehaviour, IShipVisual
+    public sealed class HullVisuals : MonoBehaviour, IShipVisual
     {
-        [SerializeField] private Renderer hull;
-        [SerializeField] private ParticleSystem smoke;
-        [SerializeField] private PooledVFX sparksPrefab;
+        [SerializeField] private Color flashColor = new(1f, 0.65f, 0.32f);
+        [SerializeField, Min(0.07f)] private float flashTime = 0.36f;
 
-        [Header("Damage Flash")]
-        [SerializeField] private Color flashColor = UnityEngine.Color.white;
-        [SerializeField] private float flashTime = 0.15f;
-
-        [Header("Death VFX")]
-        [SerializeField]
-        private GameObject explosionPrefab;
-
-        [Tooltip("Death VFX when the killing blow was an asteroid collision. Null → explosionPrefab.")]
-        [SerializeField]
-        private GameObject collisionExplosionPrefab;
-
+        private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
+        private static readonly int DamageFlash = Shader.PropertyToID("_DamageFlash");
+        private static readonly int ContourColor = Shader.PropertyToID("_ContourColor");
+        private readonly List<Renderer> surfaces = new();
+        private readonly List<Color> surfaceColors = new();
+        private readonly List<Renderer> contours = new();
+        private readonly List<Color> contourColors = new();
+        private MaterialPropertyBlock block;
         private IDamageEvents source;
         private bool subscribed;
-
-        private MaterialPropertyBlock block;
-        private static readonly int Color = Shader.PropertyToID("_BaseColor");
-        private static readonly int DetailScale = Shader.PropertyToID("_DetailAlbedoMapScale");
-
-        private static readonly int DamageFlash = Shader.PropertyToID("_DamageFlash");
-        private bool supportsDamageFlash;
-        private Color baseColor;
-        private bool flashActive;
-        private float flashElapsed;
-        private PooledVFX pooledExplosion;
-        private PooledVFX pooledCollisionExplosion;
-
-        private readonly List<Renderer> surfaces = new();
-        private readonly List<Color> surfaceBase = new();
         private bool flashHeld;
+        private float elapsed = float.PositiveInfinity;
 
         private void Awake()
         {
             block = new MaterialPropertyBlock();
-            if (explosionPrefab) pooledExplosion = explosionPrefab.GetComponent<PooledVFX>();
-            if (collisionExplosionPrefab) pooledCollisionExplosion = collisionExplosionPrefab.GetComponent<PooledVFX>();
             var rig = GetComponentInParent<ShipVisualRig>(true);
-            if (rig) surfaces.AddRange(rig.Silhouette);
-            if (hull && !surfaces.Contains(hull)) surfaces.Add(hull);
+            surfaces.AddRange(rig.Silhouette);
             foreach (var surface in surfaces)
             {
                 surface.GetPropertyBlock(block);
-                surfaceBase.Add(block.HasColor(Color) ? block.GetColor(Color)
-                    : surface.sharedMaterial.HasProperty(Color) ? surface.sharedMaterial.GetColor(Color) : UnityEngine.Color.white);
+                surfaceColors.Add(block.HasColor(BaseColor) ? block.GetColor(BaseColor)
+                    : surface.sharedMaterial.GetColor(BaseColor));
             }
-            if (!hull) return;
-            supportsDamageFlash = hull.sharedMaterial.HasProperty(DamageFlash);
-            hull.GetPropertyBlock(block);
-            baseColor = !block.HasVector(Color) ? hull.sharedMaterial.GetColor(Color) : block.GetColor(Color);
+            foreach (var renderer in rig.GetComponentsInChildren<Renderer>(true))
+            {
+                if (!renderer.sharedMaterial || !renderer.sharedMaterial.HasProperty(ContourColor)) continue;
+                contours.Add(renderer);
+                renderer.GetPropertyBlock(block);
+                contourColors.Add(block.HasColor(ContourColor) ? block.GetColor(ContourColor)
+                    : renderer.sharedMaterial.GetColor(ContourColor));
+            }
         }
 
         public void Bind(in ShipView view)
         {
+            Unsubscribe();
             source = view.Damage;
-            if (isActiveAndEnabled)
-            {
-                Subscribe();
-                ApplyVisualStateFromHealth();
-            }
+            if (isActiveAndEnabled) Subscribe();
         }
 
-        private void OnEnable()
-        {
-            if (source == null) return;
-            Subscribe();
-            ApplyVisualStateFromHealth();
-        }
+        private void OnEnable() => Subscribe();
 
         private void OnDisable()
         {
             Unsubscribe();
-            flashActive = false;
+            ReleaseFlash();
         }
 
         private void Subscribe()
         {
             if (subscribed || source == null) return;
-            source.Health.OnValueChanged += OnHealthChanged;
-            source.OnDamaged += SpawnSparks;
             source.OnDamaged += TriggerFlash;
-            source.OnDeath += OnDeath;
+            source.Health.OnValueChanged += OnHealthChanged;
             subscribed = true;
         }
 
         private void Unsubscribe()
         {
-            if (!subscribed || source == null) return;
-            source.Health.OnValueChanged -= OnHealthChanged;
-            source.OnDamaged -= SpawnSparks;
+            if (!subscribed) return;
             source.OnDamaged -= TriggerFlash;
-            source.OnDeath -= OnDeath;
+            source.Health.OnValueChanged -= OnHealthChanged;
             subscribed = false;
-        }
-
-        private void OnDeath(ShipId _victimId, DamageInfo killingBlow)
-        {
-            var prefab = killingBlow.Kind == DamageKind.Collision && collisionExplosionPrefab
-                ? collisionExplosionPrefab
-                : explosionPrefab;
-            if (!prefab) return;
-            var pooled = prefab == collisionExplosionPrefab ? pooledCollisionExplosion : pooledExplosion;
-            if (pooled)
-                SimplePool<PooledVFX>.Get(pooled, transform.position, Quaternion.identity);
-            else
-                Instantiate(prefab, transform.position, Quaternion.identity);
         }
 
         private void OnHealthChanged(float current, float previous, float max)
         {
-            ApplyVisualStateFromHealth();
-        }
-
-        private void ApplyVisualStateFromHealth()
-        {
-            if (source == null) return;
-
-            var healthPct = source.Health.Pct;
-
-            if (hull)
-            {
-                hull.GetPropertyBlock(block);
-                var scale = Mathf.Lerp(2f, 0f, healthPct);
-                block.SetFloat(DetailScale, scale);
-                hull.SetPropertyBlock(block);
-            }
-
-            if (!smoke) return;
-            var showSmoke = healthPct < 0.5f;
-            if (smoke.gameObject.activeSelf != showSmoke)
-                smoke.gameObject.SetActive(showSmoke);
-        }
-
-        private void SpawnSparks(AppliedDamage damage)
-        {
-            var hit = damage.Info;
-            if (!sparksPrefab || hit.Amount <= 0f) return;
-
-            SimplePool<PooledVFX>.Get(sparksPrefab, hit.HitPoint, Quaternion.identity);
-        }
-
-        public void HoldFlash(Color color) => SetHold(true, color);
-
-        public void ReleaseFlash() => SetHold(false, default);
-
-        private void SetHold(bool held, Color color)
-        {
-            flashHeld = held;
-            flashActive = false;
-            for (var i = 0; i < surfaces.Count; i++)
-            {
-                var surface = surfaces[i];
-                if (!surface) continue;
-                surface.GetPropertyBlock(block);
-                block.SetColor(Color, held ? color : surfaceBase[i]);
-                block.SetFloat(DamageFlash, held ? 1f : 0f);
-                surface.SetPropertyBlock(block);
-            }
+            if (current < max || flashHeld) return;
+            elapsed = float.PositiveInfinity;
+            ApplyDamageFlash(0f);
         }
 
         private void TriggerFlash(AppliedDamage damage)
         {
-            var hit = damage.Info;
-            if (hit.Amount <= 0f || !hull || flashHeld) return;
-            flashActive = true;
-            flashElapsed = 0f;
-            ApplyFlashColor(0f);
+            if (damage.Hull <= 0f || flashHeld) return;
+            elapsed = 0f;
         }
 
         private void Update()
         {
-            if (!flashActive || !hull) return;
-
-            flashElapsed += Time.unscaledDeltaTime;
-            if (flashElapsed >= flashTime)
-            {
-                flashActive = false;
-                ApplyFlashColor(1f);
-                return;
-            }
-
-            ApplyFlashColor(flashElapsed / flashTime);
+            if (flashHeld || elapsed >= flashTime) return;
+            elapsed += Time.deltaTime;
+            var attack = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(elapsed / 0.035f));
+            var decay = 1f - Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((elapsed - 0.06f) / (flashTime - 0.06f)));
+            ApplyDamageFlash(attack * decay);
         }
 
-        private void ApplyFlashColor(float normalizedTime)
+        public void HoldFlash(Color color)
         {
-            var pb = block;
-            if (baseColor == default)
-            {
-                hull.GetPropertyBlock(pb);
-                baseColor = pb.GetColor(Color);
-            }
+            flashHeld = true;
+            elapsed = float.PositiveInfinity;
+            ApplyDamageFlash(0f);
+            for (var i = 0; i < surfaces.Count; i++) SetSurface(i, color, 1f);
+        }
 
-            var blend = normalizedTime <= 0.5f
-                ? normalizedTime * 2f
-                : 2f - normalizedTime * 2f;
-            pb.SetColor(Color, UnityEngine.Color.Lerp(baseColor, flashColor, blend));
-            if (supportsDamageFlash) pb.SetFloat(DamageFlash, blend);
-            hull.SetPropertyBlock(pb);
+        public void ReleaseFlash()
+        {
+            flashHeld = false;
+            elapsed = float.PositiveInfinity;
+            ApplyDamageFlash(0f);
+        }
+
+        private void ApplyDamageFlash(float strength)
+        {
+            for (var i = 0; i < surfaces.Count; i++)
+                SetSurface(i, Color.Lerp(surfaceColors[i], flashColor, strength * 0.25f), strength * 0.25f);
+            for (var i = 0; i < contours.Count; i++)
+            {
+                var contour = contours[i];
+                if (!contour) continue;
+                contour.GetPropertyBlock(block);
+                block.SetColor(ContourColor, Color.Lerp(contourColors[i], flashColor, strength));
+                contour.SetPropertyBlock(block);
+            }
+        }
+
+        private void SetSurface(int index, Color color, float strength)
+        {
+            var surface = surfaces[index];
+            if (!surface) return;
+            surface.GetPropertyBlock(block);
+            block.SetColor(BaseColor, color);
+            if (surface.sharedMaterial.HasProperty(DamageFlash)) block.SetFloat(DamageFlash, strength);
+            surface.SetPropertyBlock(block);
         }
     }
 }

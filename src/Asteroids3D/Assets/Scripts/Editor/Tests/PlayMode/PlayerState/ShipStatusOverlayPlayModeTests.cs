@@ -70,6 +70,36 @@ namespace Tests.PlayMode.PlayerState
         }
 
         [UnityTest]
+        public IEnumerator LowHull_PulsesOnlyTheHealthFill_AndResetRestoresIt()
+        {
+            var camera = new GameObject("Camera").AddComponent<Camera>();
+            camera.transform.SetParent(root.transform);
+            camera.orthographic = true;
+            var canvas = new GameObject("HUD").AddComponent<Canvas>();
+            canvas.transform.SetParent(root.transform);
+            ship = ShipTestFactory.CreateShip(TestAssets.Load<Ship>("Assets/Prefabs/Ships/Vanguard.prefab"),
+                null, Projectiles, team: 1);
+            var bars = ShipStatusIndicator.Create(canvas, camera, ship,
+                Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf")).GetComponentsInChildren<StatusBarUI>();
+            var shieldColor = FillEdge(bars[0]).color;
+            var healthColor = FillEdge(bars[1]).color;
+
+            ship.Damage.Health.SetFraction(.2f);
+            yield return null;
+            var first = FillEdge(bars[1]).color;
+            Assert.Greater(first.r, first.g, "Low hull turns the health fill red");
+            yield return new WaitForSeconds(.6f);
+            var later = FillEdge(bars[1]);
+            Assert.Greater(later.color.r, first.r + 25, "The fill pulses brighter");
+            Assert.AreEqual(-40f + 80f * .2f, later.position.x, .001f, "The pulse never changes the quantity");
+            Assert.AreEqual(shieldColor, FillEdge(bars[0]).color, "Shields never pulse");
+
+            ship.ResetShip();
+            yield return null;
+            Assert.AreEqual(healthColor, FillEdge(bars[1]).color);
+        }
+
+        [UnityTest]
         public IEnumerator Indicators_FollowZoomConcealmentResetFadeAndRegistryRemoval()
         {
             var camera = new GameObject("Camera").AddComponent<Camera>();
@@ -161,6 +191,17 @@ namespace Tests.PlayMode.PlayerState
             var cargoIndicator = overlay.GetComponentInChildren<ShipStatusIndicator>();
             Assert.AreEqual(1f, cargoIndicator.GetComponent<CanvasGroup>().alpha);
             Assert.AreEqual("400/400", cargoIndicator.GetComponentsInChildren<Text>()[1].text);
+        }
+
+        private static UIVertex FillEdge(StatusBarUI bar)
+        {
+            using var mesh = new VertexHelper();
+            typeof(StatusBarUI).GetMethod("OnPopulateMesh", BindingFlags.Instance | BindingFlags.NonPublic,
+                    null, new[] { typeof(VertexHelper) }, null)
+                .Invoke(bar, new object[] { mesh });
+            var vertex = new UIVertex();
+            mesh.PopulateUIVertex(ref vertex, 10);
+            return vertex;
         }
     }
 }

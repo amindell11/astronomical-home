@@ -25,7 +25,7 @@ namespace UI.PlayerState
             indicator.worldCamera = worldCamera;
             indicator.canvas = canvas;
             StatusBarUI.Create(root.transform, ship.Damage.Shield, font, new Color(0f, .8f, 1f), 18f);
-            StatusBarUI.Create(root.transform, ship.Damage.Health, font, new Color(.22f, 1f, .15f), 0f);
+            StatusBarUI.Create(root.transform, ship.Damage.Health, font, new Color(.22f, 1f, .15f), 0f, pulsesWhenLow: true);
             root.SetActive(true);
             return indicator;
         }
