@@ -1,0 +1,10 @@
+Production extraction berth evidence
+Code: bdcbcbcf4 (git rev-parse HEAD is recorded by capture-commit.txt).
+Actual production ObjectiveMarkers, BerthGraphic and ObjectiveStatusReadout rendered in Unity 6000.1.8f1, High Fidelity, 1280x720.
+The PreviewHost uses the game's rig, HUD and TrialSector. The player is protected, combat is frozen after six seconds, and the phase clock is advanced to open extraction. Destination positions are staged for a repeatable comparison; the station geometry is unchanged.
+Camera position: (-4, -1, -50). Far destination: (138.21, 58.26, 0); near destination: (8, 6, 0). Normal orthographic size: 18; wide size: 60.
+Opening: actual transient announcement captured after the extraction state opens.
+Travel: announcement has expired; only the two berth icons remain.
+Arrival and arrival-wide: same screen icon dimensions at both zoom levels; minimap glyph stays upright.
+These stills show actual HUD rendering in a controlled gameplay setup, not an uninterrupted playthrough. They do not claim to test every screen direction or resolution.
+Validation: 12 scoped EditMode/PlayMode tests passed, plus 2 routed graphics tests for extraction commit and sector handoff. ReSharper ratchet passed with zero blocking findings after refreshing its stale cache. Claude Opus 5.5 performed both the architecture consult and the combined quality review.
