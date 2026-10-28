@@ -104,6 +104,11 @@ namespace Tests.PlayMode.PlayerState
             var after = RectTransformUtility.WorldToScreenPoint(camera, indicator.transform.position);
             Assert.Greater(after.x, before.x);
             Assert.AreEqual(camera.WorldToScreenPoint(ship.transform.position).x, after.x, 1f);
+            camera.transform.position += Vector3.right * 5f;
+            yield return null;
+            var panned = RectTransformUtility.WorldToScreenPoint(camera, indicator.transform.position);
+            Assert.AreEqual(camera.WorldToScreenPoint(ship.transform.position).x, panned.x, 1f,
+                "A moving camera does not drag the bar off its ship");
             camera.orthographicSize = 34f;
             yield return null;
             Assert.AreEqual(.8f, indicator.transform.localScale.x, .001f);
