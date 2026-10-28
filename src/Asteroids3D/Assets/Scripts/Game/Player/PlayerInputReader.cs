@@ -15,12 +15,15 @@ namespace Game.Player
         public bool PrimaryFire => controls.Flight.PrimaryFire.IsPressed();
         public bool SecondaryFire => controls.Flight.SecondaryFire.IsPressed();
         public bool WantsToRotate => !controls.Flight.HoldHeading.IsPressed();
+        // Raised inside the input update, so a jump commits before the next physics step.
+        public event Action JumpPressed;
 
         private Func<Vector3, Vector3> screenToGamePlane;
 
         public PlayerInputReader(Func<Vector3, Vector3> screenToGamePlane)
         {
             SetScreenToGamePlane(screenToGamePlane);
+            controls.Flight.Jump.performed += _ => JumpPressed?.Invoke();
         }
 
         public void SetScreenToGamePlane(Func<Vector3, Vector3> projector)

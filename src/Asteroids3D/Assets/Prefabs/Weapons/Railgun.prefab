@@ -50,7 +50,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: edf82047f2d64a919057c88845dba2f7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fireRate: 1.5
+  fireRate: 1.7
 --- !u!114 &6448982411033854647
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -63,7 +63,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66a2ea484ed844bc8971ac8a1cb255ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  chargeTime: 1.1
+  chargeTime: 1.5
   minChargeToFire: 1
 --- !u!114 &-8301958025146036882
 MonoBehaviour:
@@ -215,6 +215,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fadeTime: 0.15
+  aimWidth: 0.5
+  aimOpacityAtStart: 0.15
+  aimOpacityAtFull: 0.6
 --- !u!114 &3893981710489989632
 MonoBehaviour:
   m_ObjectHideFlags: 0

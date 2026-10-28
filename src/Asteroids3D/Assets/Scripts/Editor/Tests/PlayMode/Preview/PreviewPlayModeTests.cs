@@ -1,6 +1,7 @@
 using System.Collections;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Cameras;
 using Game;
 using Game.Preview;
@@ -179,6 +180,57 @@ namespace Tests.PlayMode.Preview
             Assert.That(host.Subject.Knobs, Is.SameAs(selectedJump));
         }
 
+        [UnityTest]
+        public IEnumerator InspectionExtractionRecap_LeavesTheHudAndClockToTheJump()
+        {
+            BuildPreview(PreviewMode.Inspection, PreviewSubjectKind.RunRecap);
+            yield return AsyncAssert.WaitUntil(() => host.IsReady, 45f, "recap inspection composes");
+            host.Transport.Playing = false;
+            var recap = (RecapPreviewSubject)host.Subject;
+            var hud = host.GetComponentInChildren<PlayerRig>().Overlay.GetComponent<CanvasGroup>();
+            var extractions = Enumerable.Range(0, recap.Fixtures.Count)
+                .Where(fixture => recap.Fixtures[fixture].StartsWith("Extraction")).ToArray();
+            Assert.That(extractions, Is.Not.Empty);
+            foreach (var fixture in extractions)
+            {
+                recap.SelectFixture(fixture);
+                for (var span = 0; span < recap.SpanCount; span++)
+                {
+                    host.Transport.Scrub(span, host.Transport.Length(recap.Span(span)));
+                    yield return null;
+                    var at = $"{recap.Fixtures[fixture]}, {recap.Span(span).Name}";
+                    Assert.That(Time.timeScale, Is.EqualTo(1f), at);
+                    Assert.That(hud.alpha, Is.EqualTo(1f), at);
+                }
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator ComposeFault_FaultsTheHost_AndModeSwitchRestartAndShutdownRefuseInsteadOfWaiting()
+        {
+            LogAssert.Expect(LogType.Exception, new Regex("requires a feel profile and shader"));
+            BuildPreview(PreviewMode.Inspection, PreviewSubjectKind.SectorJump, jumpShader: false);
+            host.SelectMode(PreviewMode.Playtest);
+            yield return AsyncAssert.WaitUntil(() => host.Fault != null, 45f, "the subject's compose faults the host");
+            yield return null;
+            Assert.That(host.Fault, Is.TypeOf<System.InvalidOperationException>());
+            Assert.That(host.IsReady, Is.False);
+            Assert.That(host.Playtest, Is.Null, "the mode switch waiting on the compose stops at its fault");
+            Assert.Throws<System.InvalidOperationException>(() => host.SelectMode(PreviewMode.Inspection));
+            Assert.Throws<System.InvalidOperationException>(() => host.RestartPlaytest());
+            Assert.Throws<System.InvalidOperationException>(() => host.SelectSubject(PreviewSubjectKind.RunRecap));
+            var shutdown = host.Shutdown();
+            Assert.That(Assert.Catch(() => shutdown.MoveNext()), Is.SameAs(host.Fault));
+            // The faulted host never tears its session down, so its locale stays loaded.
+            var faulted = host.gameObject;
+            host = null;
+            faulted.GetComponent<UnitService>().Clear();
+            Object.Destroy(faulted);
+            yield return null;
+            if (SceneManager.GetSceneByName("Locale_3").isLoaded)
+                yield return SceneManager.UnloadSceneAsync("Locale_3");
+        }
+
         private IEnumerator WaitForFlight() => AsyncAssert.WaitUntil(() =>
         {
             if (!host.Playtest) return false;
@@ -202,7 +254,8 @@ namespace Tests.PlayMode.Preview
                 15f, "the real recap consumes the fresh press");
         }
 
-        private void BuildPreview()
+        private void BuildPreview(PreviewMode mode = PreviewMode.Playtest,
+            PreviewSubjectKind subject = PreviewSubjectKind.SectorJump, bool jumpShader = true)
         {
             template = new GameObject("Playtest selected setup");
             template.SetActive(false);
@@ -211,8 +264,8 @@ namespace Tests.PlayMode.Preview
             var root = new GameObject("Preview lifecycle test");
             root.SetActive(false);
             host = root.AddComponent<PreviewHost>();
-            host.mode = PreviewMode.Playtest;
-            host.subjectKind = PreviewSubjectKind.SectorJump;
+            host.mode = mode;
+            host.subjectKind = subject;
             host.sessionProfile = new SessionProfile
             {
                 sectors = new[]
@@ -228,7 +281,7 @@ namespace Tests.PlayMode.Preview
             host.observerCamPrefab = TestAssets.Load<ObserverCam>("Assets/Prefabs/Cameras/Main Camera.prefab");
             host.recapFeel = TestAssets.Load<RecapFeelProfile>("Assets/Settings/UI/RecapFeel.asset");
             host.jumpFeel = TestAssets.Load<SectorJumpProfile>("Assets/Settings/Game/SectorJumpTuning.asset");
-            host.jumpShader = Shader.Find("Astronomical/Travel/SectorJump");
+            host.jumpShader = jumpShader ? Shader.Find("Astronomical/Travel/SectorJump") : null;
             root.SetActive(true);
         }
     }

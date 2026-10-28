@@ -90,6 +90,9 @@
 		</relationship>
 	</object>
 	<object class="EventMixerMaster" id="{992c09ca-19f5-42b9-a6ed-0145538ce482}">
+		<property name="volume">
+			<value>-6</value>
+		</property>
 		<property name="maxInstances">
 			<value>8</value>
 		</property>

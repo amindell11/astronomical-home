@@ -12,7 +12,7 @@ namespace Substrate.Sectors.Elements.Phases
     /// <summary>
     /// A sector spine over its wave director's sector phases: survive them, then reach
     /// the extraction zone, which stays hidden until the phases are done and then appears on a clear
-    /// point away from the hero. Pressing F inside commits extraction. The director is held to
+    /// point away from the hero. The hero's jump request inside commits extraction. The director is held to
     /// observe its phase, never commanded. The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1051
     /// </summary>
     public class PhaseSpineModule : SectorModule
@@ -48,7 +48,7 @@ namespace Substrate.Sectors.Elements.Phases
             hero = ctx.Hero;
             extractionZone.BindPlayer(hero ? hero.Body : null);
             extractionZone.gameObject.SetActive(false);
-            extraction = new ExtractionJumpState(extractionZone,
+            extraction = new ExtractionJumpState(extractionZone, hero,
                 () => RequestSectorEnd(SectorResult.Extracted(extractionZone.DepartureHeading)), OpenExtraction);
 
             var mission = new MissionDefinition(StepSurvive, new Dictionary<string, string>
@@ -68,7 +68,7 @@ namespace Substrate.Sectors.Elements.Phases
 
         public override IEnumerator Teardown(SectorBuildContext ctx)
         {
-            ReleaseInput();
+            ReleaseExtraction();
             if (extractionZone) extractionZone.Disarm();
             spine?.Close();
             spine = null;
@@ -76,13 +76,13 @@ namespace Substrate.Sectors.Elements.Phases
             yield break;
         }
 
-        private void ReleaseInput()
+        private void ReleaseExtraction()
         {
             extraction?.Dispose();
             extraction = null;
         }
 
-        private void OnDestroy() => ReleaseInput();
+        private void OnDestroy() => ReleaseExtraction();
 
         private void OpenExtraction()
         {
