@@ -153,18 +153,40 @@ namespace Tests.PlayMode.Screens
             Assert.AreEqual(WeaponPickScreen.Skip, screen.Choice);
         }
 
+        private Button ButtonAt(string path) => screen.transform.Find(path).GetComponent<Button>();
+
         [UnityTest]
         public IEnumerator Click_ACardThenASlot_AnswersLikeTheKeys()
         {
             screen = Open();
             yield return null;
 
-            screen.transform.Find("Offers/Cards/Card2").GetComponent<Button>().onClick.Invoke();
+            var card = ButtonAt("Offers/Cards/Card2");
+            Assert.IsTrue(card.targetGraphic.raycastTarget, "the card's overlay takes the click");
+            Assert.AreEqual(Navigation.Mode.None, card.navigation.mode, "no gamepad focus to submit a card by accident");
+            card.onClick.Invoke();
             yield return null;
-            screen.transform.Find("Mount/Cards/Card1").GetComponent<Button>().onClick.Invoke();
+            ButtonAt("Mount/Cards/Card1").onClick.Invoke();
 
             Assert.AreEqual(1, screen.Choice);
             Assert.AreEqual(WeaponSlot.Primary, screen.Slot);
+        }
+
+        [UnityTest]
+        public IEnumerator Click_BackThenSkip_AnswersLikeSpace()
+        {
+            screen = Open();
+            yield return null;
+
+            ButtonAt("Offers/Cards/Card1").onClick.Invoke();
+            yield return null;
+            ButtonAt("Mount/Back").onClick.Invoke();
+            yield return null;
+            Assert.IsTrue(screen.transform.Find("Offers").gameObject.activeSelf, "back returns to the offers");
+            Assert.IsFalse(screen.Choice.HasValue);
+
+            ButtonAt("Offers/Skip").onClick.Invoke();
+            Assert.AreEqual(WeaponPickScreen.Skip, screen.Choice);
         }
     }
 }
