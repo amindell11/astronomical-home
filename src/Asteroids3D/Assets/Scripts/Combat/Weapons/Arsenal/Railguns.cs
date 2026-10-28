@@ -77,7 +77,8 @@ namespace Combat.Weapons.Arsenal
 
         public override void HandleTrigger(in WeaponCommand cmd, IProjectileService projectiles)
         {
-            if (Charge && Charge.HandleTrigger(cmd.held, Time.fixedDeltaTime))
+            // The cooldown is a recovery: no charge builds until it ends.
+            if (Charge && Charge.HandleTrigger(cmd.held && cooldown.CanFire(), Time.fixedDeltaTime))
                 Fire(cmd.targetPoint, projectiles);
         }
 
@@ -109,17 +110,44 @@ namespace Combat.Weapons.Arsenal
             Comparer<RaycastHit>.Create((a, b) => a.distance.CompareTo(b.distance));
         private static readonly HashSet<IDamageable> struck = new();
 
-        private void FireBeam()
+        /// <summary>Projected onto the beam's line; the full-range end on a clear path.</summary>
+        public Vector3 FirstStrikePoint()
         {
             var origin = FireOrigin;
             var direction = FireDirection;
-            var end = origin + direction * range;
+            var count = CastBeam(origin, direction);
+            var shooterBody = shooter?.Body;
+            for (var i = 0; i < count; i++)
+            {
+                if (shooterBody && beamHits[i].rigidbody == shooterBody) continue;
+                return OnBeamLine(origin, direction, StrikePoint(beamHits[i], origin));
+            }
+            return origin + direction * range;
+        }
 
+        private int CastBeam(Vector3 origin, Vector3 direction)
+        {
             // A full buffer may have dropped the nearest hits, so grow it and cast again.
             int count;
             while ((count = Physics.SphereCastNonAlloc(origin, beamRadius, direction, beamHits, range, hitMask)) == beamHits.Length)
                 beamHits = new RaycastHit[beamHits.Length * 2];
             Array.Sort(beamHits, 0, count, nearestFirst);
+            return count;
+        }
+
+        // A collider already overlapping the sphere at the origin reports distance 0 and a zero point.
+        private static Vector3 StrikePoint(in RaycastHit hit, Vector3 origin) =>
+            hit.distance > 0f ? hit.point : hit.collider.ClosestPoint(origin);
+
+        private static Vector3 OnBeamLine(Vector3 origin, Vector3 direction, Vector3 point) =>
+            origin + direction * Mathf.Max(0f, Vector3.Dot(point - origin, direction));
+
+        private void FireBeam()
+        {
+            var origin = FireOrigin;
+            var direction = FireDirection;
+            var end = origin + direction * range;
+            var count = CastBeam(origin, direction);
 
             // The beam starts inside the firing ship, so skip the shooter's own body.
             var shooterBody = shooter?.Body;
@@ -133,14 +161,13 @@ namespace Combat.Weapons.Arsenal
                 DamageableColliders.TryGet(hit.collider, out var damageable);
                 if (damageable != null && !struck.Add(damageable)) continue;
 
-                // A collider already overlapping the sphere at the origin reports distance 0 and a zero point.
-                var point = hit.distance > 0f ? hit.point : hit.collider.ClosestPoint(origin);
+                var point = StrikePoint(hit, origin);
                 remaining = damageable?.TakeDamage(new DamageInfo(remaining, DamageKind.Railgun, attackerId,
                     impactMass, direction * impactSpeed, point)) ?? 0f;
                 Hit?.Invoke(point, damageable);
                 if (remaining > 0f) continue;
 
-                end = origin + direction * Mathf.Max(0f, Vector3.Dot(point - origin, direction));
+                end = OnBeamLine(origin, direction, point);
                 break;
             }
 

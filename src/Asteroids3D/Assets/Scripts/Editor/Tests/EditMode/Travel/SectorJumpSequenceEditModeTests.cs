@@ -1,3 +1,4 @@
+using System.Reflection;
 using Game.Travel;
 using NUnit.Framework;
 using UnityEditor;
@@ -49,6 +50,42 @@ namespace Tests.EditMode.Travel
             Assert.That(end.JumpDirection.y, Is.EqualTo(-Mathf.Sqrt(0.5f)).Within(1e-6f));
             Assert.That(end.LocaleBlend, Is.EqualTo(1f));
             Assert.That(end.HudAlpha, Is.EqualTo(1f));
+        }
+
+        [Test]
+        public void BlendWindow_MatchesTheEaseInOutCurveOverTheSameWindow()
+        {
+            profile.localeBlendStart = 0.2f;
+            profile.localeBlendEnd = 0.85f;
+            var sequence = new SectorJumpSequence(profile);
+            var replaced = AnimationCurve.EaseInOut(0.2f, 0f, 0.85f, 1f);
+            for (var sample = 0; sample <= 200; sample++)
+            {
+                var progress = sample / 200f;
+                Assert.That(sequence.LocaleBlendAt(progress),
+                    Is.EqualTo(Mathf.Clamp01(replaced.Evaluate(progress))).Within(1e-5f), $"travel progress {progress}");
+            }
+        }
+
+        [Test]
+        public void EveryAuthorableWindow_FinishesTheBlendByFullTravel()
+        {
+            foreach (var knob in new[] { nameof(SectorJumpProfile.localeBlendStart), nameof(SectorJumpProfile.localeBlendEnd) })
+            {
+                var range = typeof(SectorJumpProfile).GetField(knob).GetCustomAttribute<UnityEngine.RangeAttribute>();
+                Assert.That(range.min, Is.Zero, knob);
+                Assert.That(range.max, Is.EqualTo(1f), knob);
+            }
+            for (var start = 0; start <= 20; start++)
+            for (var end = 0; end <= 20; end++)
+            {
+                profile.localeBlendStart = start / 20f;
+                profile.localeBlendEnd = end / 20f;
+                var sequence = new SectorJumpSequence(profile);
+                var window = $"window ({profile.localeBlendStart}, {profile.localeBlendEnd})";
+                Assert.That(sequence.LocaleBlendAt(profile.localeBlendEnd), Is.EqualTo(1f), window);
+                Assert.That(sequence.StateAt(sequence.Duration, 0f).LocaleBlend, Is.EqualTo(1f), window);
+            }
         }
 
         [Test]

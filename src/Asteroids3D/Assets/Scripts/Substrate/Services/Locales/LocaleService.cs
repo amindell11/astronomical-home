@@ -41,17 +41,27 @@ namespace Substrate.Services.Locales
             to = SceneManager.GetSceneByName(destination);
             var root = new GameObject("Locale backdrop pair");
             root.transform.SetParent(parent, false);
-            backdrop = root.AddComponent<LocaleBackdropPair>();
-            backdropDestination = destination;
-            backdrop.Initialize(from, to, () =>
+            var pair = root.AddComponent<LocaleBackdropPair>();
+            try
             {
-                backdrop = null;
-                backdropDestination = null;
-                if (from != to && loadedLocaleName == destination)
-                    backdropUnload = SceneManager.UnloadSceneAsync(from);
-                else if (ownsDestination && to.isLoaded)
-                    backdropUnload = SceneManager.UnloadSceneAsync(to);
-            });
+                pair.Initialize(from, to, () =>
+                {
+                    backdrop = null;
+                    backdropDestination = null;
+                    if (from != to && loadedLocaleName == destination)
+                        backdropUnload = SceneManager.UnloadSceneAsync(from);
+                    else if (ownsDestination && to.isLoaded)
+                        backdropUnload = SceneManager.UnloadSceneAsync(to);
+                });
+            }
+            catch
+            {
+                UnityEngine.Object.Destroy(root);
+                if (ownsDestination) backdropUnload = SceneManager.UnloadSceneAsync(to);
+                throw;
+            }
+            backdrop = pair;
+            backdropDestination = destination;
             ready(backdrop);
         }
 

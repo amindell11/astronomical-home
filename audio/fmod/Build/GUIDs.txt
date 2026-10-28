@@ -10,6 +10,9 @@
 {155ae6f8-838c-4aa4-9038-9c33d489d246} bus:/Music
 {b6cda0c2-7027-4991-bd43-4273b51b9f17} bus:/Reverb
 {57133508-ab15-4f89-848d-aab93f0763d7} bus:/World
+{3d9cae2f-9afa-4fac-ae41-9e8a7fc216c4} bus:/World/Environment
+{64947b8b-9e88-4656-9b34-44c3d22d13c1} bus:/World/Ships
+{dcb6a08b-56b2-4b7b-8db8-cbe6941c37a3} bus:/World/Weapons
 {12bde00b-506c-4cdd-9805-15582e95f52f} event:/HUD/BoostReady
 {ee19c7fc-82ab-4207-b43e-1446485422a5} event:/HUD/IncomingMissile
 {799ac7ce-f1b7-4fa6-9a9c-87de76e0b684} event:/HUD/LockOn/Locked

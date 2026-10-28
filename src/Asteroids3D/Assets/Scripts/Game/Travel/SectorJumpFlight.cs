@@ -161,7 +161,7 @@ namespace Game.Travel
                 (1f - SectorJumpProfile.Ease(passage.ExitProgress(elapsed, held)));
             presentation.SetWorldBlend(blend);
             var coast = resumed ? position - arrivalPosition : Vector3.zero;
-            presentation.Apply(profile, State, 1099, false,
+            presentation.Apply(profile, State, SectorJumpPresentation.StreakSeed, false,
                 Vector3.Lerp(startPosition, arrivalPosition, State.LocaleBlend) + coast);
         }
 

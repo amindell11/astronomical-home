@@ -10,15 +10,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8301958025146036882, guid: a17b4473baa216a4eba58800a76acfc3,
         type: 3}
+      propertyPath: ventTo
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8301958025146036882, guid: a17b4473baa216a4eba58800a76acfc3,
+        type: 3}
       propertyPath: projectilePrefab
       value: 
       objectReference: {fileID: 1964027203911021930, guid: 37a353b1f4bb0aa44bfa1ac7236f26f3,
         type: 3}
-    - target: {fileID: -8301958025146036882, guid: a17b4473baa216a4eba58800a76acfc3,
-        type: 3}
-      propertyPath: ventTo
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 345203746417710078, guid: a17b4473baa216a4eba58800a76acfc3,
         type: 3}
       propertyPath: m_Name
@@ -76,8 +76,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6448982411033854647, guid: a17b4473baa216a4eba58800a76acfc3,
         type: 3}
+      propertyPath: coolingRate
+      value: 35
+      objectReference: {fileID: 0}
+    - target: {fileID: 6448982411033854647, guid: a17b4473baa216a4eba58800a76acfc3,
+        type: 3}
       propertyPath: heatPerShot
       value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6448982411033854647, guid: a17b4473baa216a4eba58800a76acfc3,
+        type: 3}
+      propertyPath: coolDownDelay
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 6921260461533254185, guid: a17b4473baa216a4eba58800a76acfc3,
         type: 3}
@@ -107,6 +117,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8653804347652268947, guid: a17b4473baa216a4eba58800a76acfc3,
         type: 3}
+      propertyPath: fireEvent.Path
+      value: event:/Weapons/TurboLaser/Fire
+      objectReference: {fileID: 0}
+    - target: {fileID: 8653804347652268947, guid: a17b4473baa216a4eba58800a76acfc3,
+        type: 3}
       propertyPath: fireEvent.Guid.Data1
       value: 1321352135
       objectReference: {fileID: 0}
@@ -124,11 +139,6 @@ PrefabInstance:
         type: 3}
       propertyPath: fireEvent.Guid.Data4
       value: 1857970102
-      objectReference: {fileID: 0}
-    - target: {fileID: 8653804347652268947, guid: a17b4473baa216a4eba58800a76acfc3,
-        type: 3}
-      propertyPath: fireEvent.Path
-      value: event:/Weapons/TurboLaser/Fire
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 450251164351334703, guid: a17b4473baa216a4eba58800a76acfc3, type: 3}
