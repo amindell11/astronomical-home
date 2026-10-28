@@ -12,10 +12,9 @@ namespace Tests.PlayMode.Common.SimulatedInput
     /// updates off for a [UnityTest], then its own settings writes turn them back on, and an editor
     /// update lets the parked real InputManager point the global device state at its own buffers, so a
     /// FixedUpdate-phase device read sees the wrong state, or null in batch mode. The manager also
-    /// drops events stamped inside the editor's edit-to-play window, recorded on the editor's clock,
-    /// while simulated events run on the test runtime's clock from zero and can land inside it.
-    /// Root causes: https://github.com/amindell11/astronomical-home/issues/1196,
-    /// https://github.com/amindell11/astronomical-home/issues/1205
+    /// drops state events stamped inside the edit-to-play window, which the editor records on its own
+    /// clock; simulated events run on the test runtime's clock from zero, so they can land inside it.
+    /// Root cause: https://github.com/amindell11/astronomical-home/issues/1205
     /// </summary>
     public class PlayModeInputTestFixture : InputTestFixture
     {

@@ -29,7 +29,7 @@ namespace Tests.PlayMode.Common.SimulatedInput
         {
             var keyboard = InputSystem.AddDevice<Keyboard>();
 
-            // The editor stamped its edit-to-play window before this test, so its uptime bounds it.
+            // The edit-to-play window predates this test, so editor uptime bounds it.
             for (var time = 0d; time < EditorApplication.timeSinceStartup; time += .25)
             {
                 Press(keyboard.fKey, time);
