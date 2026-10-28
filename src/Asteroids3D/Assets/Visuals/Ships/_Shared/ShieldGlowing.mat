@@ -98,6 +98,7 @@ Material:
     - _AddPrecomputedVelocity: 0
     - _AlphaClip: 0
     - _AlphaToMask: 0
+    - _ArcLength: 6.2831855
     - _Blend: 0
     - _BlendModePreserveSpecular: 1
     - _BumpScale: 1
@@ -113,7 +114,7 @@ Material:
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
-    - _GlowIntensity: 0.68
+    - _GlowIntensity: 0.12
     - _GlowPower: 2.25
     - _Metallic: 0
     - _OcclusionStrength: 1
@@ -122,17 +123,18 @@ Material:
     - _ReceiveShadows: 1
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
-    - _Softness: 0.064
+    - _Softness: 0.004
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
     - _Surface: 0
-    - _Thickness: 0.13
+    - _Thickness: 0.02
+    - _TipStrength: 0
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
-    - _Color: {r: 0, g: 18.02988, b: 24.251463, a: 1}
+    - _Color: {r: 0.51, g: 0.75, b: 0.76, a: 1}
     - _EmissionColor: {r: 0, g: 0.8641286, b: 0.92215157, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []
