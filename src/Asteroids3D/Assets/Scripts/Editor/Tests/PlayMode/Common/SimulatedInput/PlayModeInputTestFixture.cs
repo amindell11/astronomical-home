@@ -11,8 +11,8 @@ namespace Tests.PlayMode.Common.SimulatedInput
     /// editor input updates off for a [UnityTest], then its own settings writes turn them back on.
     /// An editor update lets the parked real InputManager point the global device state at its own
     /// buffers until the next dynamic update, so a device read in the FixedUpdate phase sees the
-    /// wrong manager's state, or null in batch mode. Setup turns editor updates off again once the
-    /// base has finished writing settings. Root cause and probes:
+    /// wrong manager's state, or null in batch mode. Setup turns editor updates off for every test
+    /// once the base has finished writing settings. Root cause:
     /// https://github.com/amindell11/astronomical-home/issues/1196
     /// </summary>
     public class PlayModeInputTestFixture : InputTestFixture
