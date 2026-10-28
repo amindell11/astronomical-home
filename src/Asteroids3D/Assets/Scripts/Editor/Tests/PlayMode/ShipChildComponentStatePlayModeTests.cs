@@ -1,34 +1,20 @@
 using System.Collections;
-using System.Collections.Generic;
 using Combat.Targeting;
 using NUnit.Framework;
 using Ships;
-using Ships.Damage;
 using Tests.PlayMode.Common;
 using UI;
 using UnityEngine;
 using UnityEngine.TestTools;
-using UnityEngine.UI;
-using UI.PlayerState;
 
 namespace Tests.PlayMode
 {
-    /// <summary>Child components (LockOnIndicator, StatusBarUI, WeaponsController) come back active and functional — still firing, still event-subscribed — after death and reset, across repeated cycles.</summary>
     [Category("Ships")]
     public class ShipChildComponentStatePlayModeTests : PlayModeWorldFixture
     {
         private Ship testShip;
         private Ship combatShip;
         private Ship enemyShip;
-
-        // The rig carries one bar per tracked resource; fill assertions must pin the right one.
-        private StatusBarUI FindBar(StatusBarUI.TrackedResource tracked)
-        {
-            foreach (var bar in testShip.GetComponentsInChildren<StatusBarUI>(true))
-                if (bar.Tracked == tracked)
-                    return bar;
-            return null;
-        }
 
         [SetUp]
         public override void SetUp()
@@ -95,45 +81,6 @@ namespace Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator AfterShipReset_StatusBarUIRespondsToShieldDamage()
-        {
-            yield return null;
-
-            var shieldUI = FindBar(StatusBarUI.TrackedResource.Shield);
-            if (shieldUI == null)
-            {
-                Assert.Ignore("StatusBarUI not present on Vanguard prefab variant");
-                yield break;
-            }
-
-            TestDamage.Kill(testShip, enemyShip);
-            yield return null;
-
-            testShip.ResetShip();
-            yield return null;
-
-            shieldUI = FindBar(StatusBarUI.TrackedResource.Shield);
-            Assert.IsNotNull(shieldUI, "StatusBarUI should exist after reset");
-            Assert.IsTrue(shieldUI.enabled, "StatusBarUI component should be enabled after reset");
-
-            // Fill tracking the post-damage shield fraction proves StatusBarUI re-subscribed across death→reset, not merely that dispatch didn't throw.
-            var fill = shieldUI.Fill;
-            Assert.IsNotNull(fill, "StatusBarUI requires a fill Image to render");
-            var maxShield = testShip.Damage.Shield.MaxValue;
-
-            var shieldBefore = testShip.Damage.Shield.CurrentValue;
-            testShip.Damage.TakeDamage(new Damage.DamageInfo(
-                10f, Damage.DamageKind.Laser, enemyShip.Id, 1f, Vector3.zero, Vector3.zero));
-            yield return null;
-
-            var shieldAfter = testShip.Damage.Shield.CurrentValue;
-            Assert.Less(shieldAfter, shieldBefore,
-                "Shield should decrease after taking damage post-reset");
-            Assert.AreEqual(shieldAfter / maxShield, fill.fillAmount, 0.01f,
-                "StatusBarUI fill should track the current shield fraction after reset (event re-subscribed)");
-        }
-
-        [UnityTest]
         public IEnumerator AfterShipReset_LockOnIndicatorRespondsToLockEvents()
         {
             yield return null;
@@ -183,7 +130,6 @@ namespace Tests.PlayMode
             for (int cycle = 0; cycle < numCycles; cycle++)
             {
                 var weaponsController = combatShip.Weapons;
-                var shieldUI = testShip.GetComponentInChildren<StatusBarUI>(includeInactive: true);
                 var lockOnIndicator = testShip.GetComponentInChildren<LockOnIndicator>(includeInactive: true);
 
                 TestDamage.Kill(testShip, enemyShip);
@@ -204,12 +150,6 @@ namespace Tests.PlayMode
                     $"Cycle {cycle}: WeaponsController should be active");
                 Assert.IsNotNull(weaponsController.Primary,
                     $"Cycle {cycle}: Primary weapon should exist");
-
-                if (shieldUI != null)
-                {
-                    Assert.IsTrue(shieldUI.gameObject.activeInHierarchy,
-                        $"Cycle {cycle}: StatusBarUI should be active");
-                }
 
                 if (lockOnIndicator != null)
                 {

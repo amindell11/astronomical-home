@@ -174,29 +174,6 @@ namespace Tests.PlayMode.Presentation
             }
         }
 
-        [UnityTest]
-        public IEnumerator LowHull_PulsesOnlyTheFillColor_AndResetRestoresIt()
-        {
-            yield return null;
-            var bars = ship.GetComponentsInChildren<StatusBarUI>();
-            var health = bars.Single(b => b.Tracked == StatusBarUI.TrackedResource.Health).Fill;
-            var shield = bars.Single(b => b.Tracked == StatusBarUI.TrackedResource.Shield).Fill;
-            var healthColor = health.color;
-            var shieldColor = shield.color;
-            ship.Damage.TakeDamage(Hit(80f, true));
-            yield return new WaitForSeconds(0.1f);
-            var first = health.color;
-            Assert.That(health.fillAmount, Is.EqualTo(0.2f).Within(0.001f));
-            yield return new WaitForSeconds(0.6f);
-            Assert.That(health.color.r, Is.GreaterThan(first.r + 0.1f));
-            Assert.That(health.fillAmount, Is.EqualTo(0.2f).Within(0.001f));
-            Assert.That(shield.color, Is.EqualTo(shieldColor));
-            ship.ResetShip();
-            yield return null;
-            yield return null;
-            Assert.That(health.color, Is.EqualTo(healthColor));
-        }
-
         private static DamageInfo Hit(float amount, bool bypass = false) =>
             new(amount, DamageKind.Laser, ShipId.Invalid, 1f, Vector3.left, Vector3.right, bypass);
 

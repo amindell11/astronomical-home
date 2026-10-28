@@ -1,127 +1,115 @@
-using Combat.Targeting;
 using Ships.Damage;
-using Ships.Presentation;
 using UnityEngine;
 using UnityEngine.UI;
-using Substrate;
 
 namespace UI.PlayerState
 {
-    /// <summary>
-    /// Ship-space status bar: a horizontal fill tracking one damage resource (shield or health),
-    /// pinned at a fixed game-plane offset above the ship. Low hull pulses the fill without changing
-    /// its quantity. Bound per ship via <see cref="IShipVisual"/> and seeded before the first damage event.
-    /// </summary>
-    public class StatusBarUI : MonoBehaviour, IShipVisual
+    [RequireComponent(typeof(CanvasRenderer))]
+    public sealed class StatusBarUI : MaskableGraphic
     {
-        public enum TrackedResource { Shield, Health }
-
-        [Tooltip("Which damage resource this bar displays.")]
-        [SerializeField] TrackedResource tracked = TrackedResource.Shield;
-
-        [Tooltip("Fill image (child of this background).")]
-        [SerializeField] Image fill;
-
-        [Tooltip("Numeric readout beside the bar (current value, rounded up).")]
-        [SerializeField] Text label;
-
-        [Tooltip("Offset from the ship center in game-plane units.")]
-        [SerializeField] Vector2 planeOffset = new Vector2(0f, 2f);
-
-        [SerializeField, Range(0f, 1f)] private float lowHullThreshold = 0.25f;
-        [SerializeField, Min(0.1f)] private float lowHullPulsePeriod = 1.4f;
+        private const float LowThreshold = .25f;
+        private const float LowPulsePeriod = 1.4f;
 
         private Resource source;
-        private bool subscribed;
-        private LockChannel enemyLock;
-        private Graphic[] graphics;
-        private bool hidden;
-        private Color fillColor;
+        private Text label;
+        private bool pulsesWhenLow;
+        private bool pulsing;
         private float pulseTime;
 
-        private void Awake()
+        public static StatusBarUI Create(Transform parent, Resource resource, Font font, Color tint, float y,
+            bool pulsesWhenLow = false)
         {
-            graphics = GetComponentsInChildren<Graphic>(true);
-            if (fill) fillColor = fill.color;
+            var bar = new GameObject("Status bar", typeof(RectTransform)).AddComponent<StatusBarUI>();
+            bar.gameObject.layer = parent.gameObject.layer;
+            bar.transform.SetParent(parent, false);
+            bar.rectTransform.sizeDelta = new Vector2(80f, 8f);
+            bar.rectTransform.anchoredPosition = new Vector2(0f, y);
+            bar.color = tint;
+            bar.raycastTarget = false;
+            bar.source = resource;
+            bar.pulsesWhenLow = pulsesWhenLow;
+
+            bar.label = new GameObject("Current / capacity", typeof(RectTransform)).AddComponent<Text>();
+            bar.label.gameObject.layer = parent.gameObject.layer;
+            bar.label.transform.SetParent(bar.transform, false);
+            bar.label.rectTransform.pivot = new Vector2(0f, .5f);
+            bar.label.rectTransform.anchoredPosition = new Vector2(45f, 0f);
+            bar.label.rectTransform.sizeDelta = new Vector2(66f, 18f);
+            bar.label.font = font;
+            bar.label.fontSize = 12;
+            bar.label.fontStyle = FontStyle.Bold;
+            bar.label.alignment = TextAnchor.MiddleLeft;
+            bar.label.horizontalOverflow = HorizontalWrapMode.Overflow;
+            bar.label.verticalOverflow = VerticalWrapMode.Overflow;
+            bar.label.raycastTarget = false;
+            var shadow = bar.label.gameObject.AddComponent<Shadow>();
+            shadow.effectColor = new Color(0f, 0f, 0f, .95f);
+            shadow.effectDistance = new Vector2(1f, -1f);
+            if (bar.isActiveAndEnabled) resource.OnValueChanged += bar.OnResourceChanged;
+            bar.Refresh();
+            return bar;
         }
 
-        internal TrackedResource Tracked { get => tracked; set => tracked = value; }
-        internal Image Fill { get => fill; set { fill = value; if (fill) fillColor = fill.color; } }
-
-        public void Bind(in ShipView view)
+        protected override void OnEnable()
         {
-            source = view.Damage == null ? null
-                : tracked == TrackedResource.Shield ? view.Damage.Shield : view.Damage.Health;
-            enemyLock = view.IsPlayer ? null : view.Lock;
-            if (isActiveAndEnabled) Subscribe();
-            Refresh();
-        }
-
-        private void OnEnable()
-        {
+            base.OnEnable();
             if (source == null) return;
-            Subscribe();
+            source.OnValueChanged += OnResourceChanged;
             Refresh();
         }
 
-        void OnDisable()
+        protected override void OnDisable()
         {
-            Unsubscribe();
-            pulseTime = 0f;
-            if (fill) fill.color = fillColor;
+            if (source != null) source.OnValueChanged -= OnResourceChanged;
+            base.OnDisable();
         }
 
-        private void Subscribe()
+        private void Update()
         {
-            if (subscribed || source == null) return;
-            source.OnValueChanged += OnResourceChanged;
-            subscribed = true;
+            var low = pulsesWhenLow && source.Pct > 0f && source.Pct <= LowThreshold;
+            if (!low && !pulsing) return;
+            pulsing = low;
+            pulseTime = low ? pulseTime + Time.deltaTime : 0f;
+            SetVerticesDirty();
         }
 
-        private void Unsubscribe()
-        {
-            if (!subscribed || source == null) return;
-            source.OnValueChanged -= OnResourceChanged;
-            subscribed = false;
-        }
+        private void OnResourceChanged(float current, float previous, float max) => Refresh();
 
         private void Refresh()
         {
+            label.text = $"{Mathf.CeilToInt(source.CurrentValue)}/{Mathf.CeilToInt(source.MaxValue)}";
+            SetVerticesDirty();
+        }
+
+        protected override void OnPopulateMesh(VertexHelper mesh)
+        {
+            mesh.Clear();
             if (source == null) return;
-            if (fill) fill.fillAmount = source.Pct;
-            if (label) label.text = Mathf.CeilToInt(source.CurrentValue).ToString();
-        }
-
-        // Counter the rig rotation so bars stay aligned to the game plane.
-        void LateUpdate()
-        {
-            transform.rotation = GamePlane.Rotation;
-            transform.position = transform.parent.position + GamePlane.Rotation * (Vector3)planeOffset;
-            Hide(enemyLock is { IsConcealed: true });
-            if (!fill || source == null) return;
-            if (tracked == TrackedResource.Health && source.Pct > 0f && source.Pct <= lowHullThreshold)
+            Quad(mesh, -41f, 41f, 5f, new Color(.02f, .04f, .08f, .92f));
+            Quad(mesh, -40f, 40f, 4f, new Color(.1f, .18f, .24f, 1f));
+            var fill = color;
+            if (pulsing)
             {
-                pulseTime += Time.deltaTime;
-                var pulse = (1f - Mathf.Cos(2f * Mathf.PI * pulseTime / lowHullPulsePeriod)) * 0.5f;
-                fill.color = new Color(Mathf.Lerp(0.73f, 0.98f, pulse), Mathf.Lerp(0.24f, 0.41f, pulse),
-                    Mathf.Lerp(0.26f, 0.41f, pulse), fillColor.a);
-                return;
+                var pulse = (1f - Mathf.Cos(2f * Mathf.PI * pulseTime / LowPulsePeriod)) * .5f;
+                fill = Color.Lerp(new Color(.73f, .24f, .26f, color.a), new Color(.98f, .41f, .41f, color.a), pulse);
             }
-            pulseTime = 0f;
-            fill.color = fillColor;
+            Quad(mesh, -40f, -40f + 80f * source.Pct, 4f, fill);
+            for (var unit = 25; unit < source.MaxValue; unit += 25)
+            {
+                var x = -40f + 80f * unit / source.MaxValue;
+                Quad(mesh, x, x + (unit % 100 == 0 ? 2f : 1f), 4f, new Color(.01f, .025f, .045f, .92f));
+            }
         }
 
-        private void Hide(bool hide)
+        private static void Quad(VertexHelper mesh, float left, float right, float halfHeight, Color tint)
         {
-            if (hide == hidden) return;
-            hidden = hide;
-            foreach (var graphic in graphics)
-                if (graphic) graphic.enabled = !hide;
-        }
-
-        void OnResourceChanged(float current, float previous, float max)
-        {
-            Refresh();
+            var start = mesh.currentVertCount;
+            mesh.AddVert(new Vector3(left, -halfHeight), tint, Vector2.zero);
+            mesh.AddVert(new Vector3(left, halfHeight), tint, Vector2.zero);
+            mesh.AddVert(new Vector3(right, halfHeight), tint, Vector2.zero);
+            mesh.AddVert(new Vector3(right, -halfHeight), tint, Vector2.zero);
+            mesh.AddTriangle(start, start + 1, start + 2);
+            mesh.AddTriangle(start + 2, start + 3, start);
         }
     }
 }
