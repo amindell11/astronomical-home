@@ -13,7 +13,7 @@ namespace Substrate.Sectors
             DepartureHeading = departureHeading;
         }
 
-        public static SectorResult Extracted(float? departureHeading = null) => new(true, null, departureHeading);
+        public static SectorResult Extracted(float departureHeading) => new(true, null, departureHeading);
         public static SectorResult Failed(string reason) => new(false, reason, null);
     }
 }

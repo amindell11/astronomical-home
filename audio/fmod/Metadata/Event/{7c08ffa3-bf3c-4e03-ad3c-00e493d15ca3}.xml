@@ -53,7 +53,7 @@
 			<destination>{bd7f6117-0266-47ac-9434-7565afb4e6cf}</destination>
 		</relationship>
 		<relationship name="output">
-			<destination>{57133508-ab15-4f89-848d-aab93f0763d7}</destination>
+			<destination>{dcb6a08b-56b2-4b7b-8db8-cbe6941c37a3}</destination>
 		</relationship>
 	</object>
 	<object class="EventAutomatableProperties" id="{e4dac99e-2f25-4b64-b26e-e22ed037b670}">
@@ -76,6 +76,12 @@
 		</relationship>
 	</object>
 	<object class="EventMixerMaster" id="{d9774011-5aef-42db-ab49-47f470603db2}">
+		<property name="maxInstances">
+			<value>6</value>
+		</property>
+		<property name="instanceStealing">
+			<value>1</value>
+		</property>
 		<relationship name="effectChain">
 			<destination>{ed0578d6-c0e7-45e1-a214-37426cbf0c63}</destination>
 		</relationship>
