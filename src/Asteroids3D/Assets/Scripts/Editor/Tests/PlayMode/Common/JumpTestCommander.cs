@@ -4,12 +4,12 @@ using Utils;
 
 namespace Tests.PlayMode.Common
 {
-    /// <summary>A non-player hero's commander: raises its ship's jump request on cue, as an AI hero or a preview would.</summary>
+    /// <summary>A non-player hero's commander: raises its ship's jump request on cue.</summary>
     public sealed class JumpTestCommander : Commander
     {
         private IJumpDrive jump;
 
-        /// <summary>Flies a test ship whose own Initialize never runs, so the ship's jump drive is handed over here.</summary>
+        /// <summary>Factory test ships never run Ship.Initialize, so the jump drive is handed over here.</summary>
         public static JumpTestCommander Fly(Ship ship)
         {
             var commander = ship.gameObject.AddComponent<JumpTestCommander>();

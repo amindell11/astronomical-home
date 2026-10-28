@@ -2,8 +2,8 @@
 using System.Collections;
 using Game.Player;
 using NUnit.Framework;
-using Ships;
 using Ships.Command;
+using Tests.Common;
 using Tests.PlayMode.Common;
 using Tests.PlayMode.Common.SimulatedInput;
 using UnityEngine;
@@ -17,8 +17,19 @@ namespace Tests.PlayMode
     [Category("Core")]
     public class PlayerCommanderJumpPlayModeTests : PlayModeWorldFixture
     {
+        private sealed class IdlePilot : IPilot
+        {
+            public void Drive(in PilotCommand cmd) { }
+        }
+
+        private sealed class CountingJumpDrive : IJumpDrive
+        {
+            public int Requests;
+            public void RequestJump() => Requests++;
+        }
+
         private PlayModeInputTestFixture input;
-        private Ship ship;
+        private GameObject commanderGo;
 
         [SetUp]
         public override void SetUp()
@@ -31,7 +42,7 @@ namespace Tests.PlayMode
         [TearDown]
         public override void TearDown()
         {
-            DestroyTestObject(ship ? ship.gameObject : null);
+            DestroyTestObject(commanderGo);
             input.TearDown();
             base.TearDown();
         }
@@ -40,33 +51,33 @@ namespace Tests.PlayMode
         public IEnumerator EachFreshPress_RaisesOneRequest_AndADisabledCommanderRaisesNone()
         {
             var keyboard = InputSystem.AddDevice<Keyboard>();
-            ship = ShipTestFactory.CreateKinematicPrimitiveShipAt(Vector2.zero);
-            var commander = ship.gameObject.AddComponent<PlayerCommander>();
-            commander.Initialize(new ShipControl(ship, ship.Movement, new SeedScope(0), jump: ship));
-            var requests = 0;
-            ship.JumpRequested += () => requests++;
+            commanderGo = new GameObject("TestCommander");
+            var commander = commanderGo.AddComponent<PlayerCommander>();
+            var jump = new CountingJumpDrive();
+            commander.Initialize(new ShipControl(new StubShipStatus { transform = commanderGo.transform },
+                new IdlePilot(), new SeedScope(0), jump: jump));
             yield return null;
 
             input.Press(keyboard.fKey);
             InputSystem.Update();
-            Assert.AreEqual(1, requests, "a press raises its request inside the input update");
+            Assert.AreEqual(1, jump.Requests, "a press raises its request inside the input update");
 
             yield return null;
             yield return null;
-            Assert.AreEqual(1, requests, "holding F raises nothing more");
+            Assert.AreEqual(1, jump.Requests, "holding F raises nothing more");
 
             input.Release(keyboard.fKey);
             InputSystem.Update();
             input.Press(keyboard.fKey);
             InputSystem.Update();
-            Assert.AreEqual(2, requests, "a fresh press raises another");
+            Assert.AreEqual(2, jump.Requests, "a fresh press raises another");
 
             input.Release(keyboard.fKey);
             InputSystem.Update();
             commander.enabled = false;
             input.Press(keyboard.fKey);
             InputSystem.Update();
-            Assert.AreEqual(2, requests, "a disabled commander raises none");
+            Assert.AreEqual(2, jump.Requests, "a disabled commander raises none");
         }
     }
 }

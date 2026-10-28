@@ -4,7 +4,7 @@ using Ships;
 namespace Objectives.States
 {
     /// <summary>
-    /// Commits extraction on the hero's jump request while it is eligible, before another simulation step can damage it.
+    /// Commits extraction on the hero's jump request while the zone reports it eligible, before another simulation step can damage it.
     /// A request outside the zone is dropped, so flying in never commits on its own; with no hero nothing commits.
     /// The sector module owns disposal because closing an objective does not exit its current state.
     /// </summary>

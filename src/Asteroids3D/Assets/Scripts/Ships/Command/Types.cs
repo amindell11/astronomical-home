@@ -70,8 +70,8 @@ namespace Ships.Command
     }
 
     /// <summary>
-    /// The jump actuator: asks to leave the sector. A request is one press, not a held state, and
-    /// whether it commits is the sector's call (<see cref="Ship.JumpRequested"/>); any commander may raise one.
+    /// The jump actuator: asks to leave the sector, one request per press, never a held state.
+    /// The sector decides whether a request commits (<see cref="Ship.JumpRequested"/>).
     /// </summary>
     public interface IJumpDrive
     {

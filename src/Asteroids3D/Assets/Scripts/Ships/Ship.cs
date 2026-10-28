@@ -261,7 +261,7 @@ namespace Ships
 
         private ShipControl BuildShipControl() =>
             Weapons
-                ? new(this, Movement, new SeedScope(DecisionSeed), Weapons.Context, Weapons.Arm(projectiles), Keystone, this)
+                ? new(this, Movement, new SeedScope(DecisionSeed), Weapons.Context, Weapons.Arm(projectiles), Keystone, jump: this)
                 : new(this, Movement, new SeedScope(DecisionSeed), keystone: Keystone, jump: this);
 
         private void SetCommander(Commander commander)
