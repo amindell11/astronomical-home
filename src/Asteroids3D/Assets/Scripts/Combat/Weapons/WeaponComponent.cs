@@ -89,7 +89,10 @@ namespace Combat.Weapons
         {
             if (conditions == null) return null;
             foreach (var condition in conditions)
-                if (condition is T match) return match;
+            {
+                var match = condition as T;
+                if (match) return match;
+            }
             return null;
         }
 

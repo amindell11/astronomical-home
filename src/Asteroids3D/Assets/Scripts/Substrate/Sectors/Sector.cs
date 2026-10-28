@@ -52,7 +52,10 @@ namespace Substrate.Sectors
         public T Module<T>() where T : SectorModule
         {
             foreach (var module in modules)
-                if (module is T match) return match;
+            {
+                var match = module as T;
+                if (match) return match;
+            }
             return null;
         }
 
