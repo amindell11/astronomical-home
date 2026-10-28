@@ -1,0 +1,177 @@
+#if UNITY_EDITOR
+using System.Collections;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Reflection;
+using System.Text;
+using Cameras;
+using Game;
+using NUnit.Framework;
+using Ships;
+using Substrate;
+using Substrate.Sectors;
+using Substrate.Sessions;
+using Substrate.Services.Units;
+using Tests.PlayMode.Common;
+using UI.PlayerState;
+using UI.Recap;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.LowLevel;
+using UnityEngine.PlayerLoop;
+using UnityEngine.TestTools;
+
+namespace Tests.PlayMode.Probes
+{
+    // Scratch probe, never committed: per-frame pixel gap between a ship's top and its rendered bar.
+    [Category("UI")]
+    public class IndicatorJitterProbe : PlayModeWorldFixture
+    {
+        private const string OutDir =
+            "C:/Users/amind/AppData/Local/Temp/claude/D--amind-git-astronomical-home/32ef2d83-5776-47e2-b13a-26fd3c9a5d56/scratchpad";
+
+        private static readonly FieldInfo IndicatorShip =
+            typeof(ShipStatusIndicator).GetField("ship", BindingFlags.Instance | BindingFlags.NonPublic);
+
+        private static IndicatorJitterProbe active;
+        private GameObject hostGo;
+        private PlayerLoopSystem originalLoop;
+        private Camera worldCamera;
+        private Camera uiCamera;
+        private Vector3 lastCamera;
+        private bool sampling;
+        private readonly StringBuilder rows = new StringBuilder("frame,dt,ship,camDxPx,camDyPx,resX,resY\n");
+
+        public override void TearDown()
+        {
+            if (originalLoop.subSystemList != null) PlayerLoop.SetPlayerLoop(originalLoop);
+            active = null;
+            if (hostGo) hostGo.GetComponent<UnitService>().Clear();
+            DestroyTestObject(hostGo);
+            base.TearDown();
+        }
+
+        [UnityTest]
+        public IEnumerator MeasureIndicatorGap()
+        {
+            LogAssert.ignoreFailingMessages = true;
+            hostGo = new GameObject("ProbeHost");
+            hostGo.SetActive(false);
+            var host = hostGo.AddComponent<GameHost>();
+            host.sessionProfile = new SessionProfile
+            {
+                sectors = new[]
+                {
+                    new SectorEntry
+                    {
+                        prefab = AssetDatabase.LoadAssetAtPath<Sector>("Assets/Prefabs/Sectors/ArenaSector.prefab"),
+                        config = AssetDatabase.LoadAssetAtPath<SectorSettings>("Assets/Settings/Game/DefaultSectorConfig.asset")
+                    }
+                },
+                presentation = true
+            };
+            host.playerRig = AssetDatabase.LoadAssetAtPath<PlayerRig>("Assets/Prefabs/MiscObjects/PlayerRig.prefab");
+            host.observerCamPrefab = AssetDatabase.LoadAssetAtPath<ObserverCam>("Assets/Prefabs/Cameras/Main Camera.prefab");
+            host.recapFeel = AssetDatabase.LoadAssetAtPath<RecapFeelProfile>("Assets/Settings/UI/RecapFeel.asset");
+            hostGo.SetActive(true);
+
+            var deadline = Time.realtimeSinceStartup + 30f;
+            PlayerRig rig = null;
+            while (Time.realtimeSinceStartup < deadline)
+            {
+                rig = hostGo.GetComponentInChildren<PlayerRig>();
+                if (host.ActiveSector && rig && rig.Player && rig.Player.gameObject.activeInHierarchy &&
+                    Object.FindObjectsByType<ShipStatusIndicator>(FindObjectsSortMode.None).Length > 0)
+                    break;
+                yield return null;
+            }
+            Assert.IsTrue(rig && rig.Player, "player spawned");
+
+            var anyIndicator = Object.FindObjectsByType<ShipStatusIndicator>(FindObjectsSortMode.None)[0];
+            uiCamera = anyIndicator.GetComponentInParent<Canvas>().worldCamera;
+            worldCamera = Object.FindFirstObjectByType<ObserverCam>().Cam;
+            Assert.AreNotSame(worldCamera, uiCamera, "real stack: separate UI camera");
+            Assert.IsTrue(uiCamera.transform.IsChildOf(worldCamera.transform), "real stack: UI camera rides the follow cam");
+
+            for (var i = 0; i < 60; i++) yield return null;
+
+            originalLoop = PlayerLoop.GetCurrentPlayerLoop();
+            PlayerLoop.SetPlayerLoop(WithSampler(originalLoop));
+            active = this;
+            lastCamera = worldCamera.transform.position;
+            sampling = true;
+
+            var random = new System.Random(7);
+            var body = rig.Player.Rigidbody;
+            for (var frame = 0; frame < 900 && rig.Player && rig.Player.gameObject.activeInHierarchy; frame++)
+            {
+                var t = frame / 120f;
+                rig.Player.Damage.Health.SetFraction(1f);
+                rig.Player.Damage.Shield.SetFraction(1f);
+                body.linearVelocity =(GamePlane.Right * Mathf.Cos(t) + GamePlane.Forward * Mathf.Sin(t * 1.3f)) * 22f;
+                System.Threading.Thread.Sleep(random.Next(2, 16));
+                yield return null;
+            }
+            sampling = false;
+
+            Directory.CreateDirectory(OutDir);
+            var file = Path.Combine(OutDir, $"jitter-{System.DateTime.Now:HHmmss}.csv");
+            File.WriteAllText(file, rows.ToString());
+            Debug.Log($"JITTER_PROBE_CSV={file}");
+        }
+
+        private static PlayerLoopSystem WithSampler(PlayerLoopSystem loop)
+        {
+            for (var i = 0; i < loop.subSystemList.Length; i++)
+            {
+                if (loop.subSystemList[i].type != typeof(PostLateUpdate)) continue;
+                var post = loop.subSystemList[i];
+                var list = new List<PlayerLoopSystem>(post.subSystemList);
+                var at = list.FindIndex(s => s.type == typeof(PostLateUpdate.PlayerEmitCanvasGeometry));
+                Assert.GreaterOrEqual(at, 0, "PlayerEmitCanvasGeometry present");
+                list.Insert(at + 1, new PlayerLoopSystem { type = typeof(IndicatorJitterProbe), updateDelegate = Sample });
+                post.subSystemList = list.ToArray();
+                loop.subSystemList[i] = post;
+            }
+            return loop;
+        }
+
+        private static void Sample()
+        {
+            if (active == null || !active.sampling) return;
+            active.Record();
+        }
+
+        private void Record()
+        {
+            var pxPerUnit = worldCamera.pixelHeight / (2f * worldCamera.orthographicSize);
+            var cam = worldCamera.transform.position;
+            var camDx = Vector3.Dot(cam - lastCamera, worldCamera.transform.right) * pxPerUnit;
+            var camDy = Vector3.Dot(cam - lastCamera, worldCamera.transform.up) * pxPerUnit;
+            lastCamera = cam;
+
+            foreach (var indicator in Object.FindObjectsByType<ShipStatusIndicator>(FindObjectsSortMode.None))
+            {
+                var ship = (Ship)IndicatorShip.GetValue(indicator);
+                if (!ship || !ship.gameObject.activeInHierarchy || indicator.GetComponent<CanvasGroup>().alpha < 1f) continue;
+                var point = worldCamera.WorldToScreenPoint(ship.transform.position);
+                var top = point.y;
+                IReadOnlyList<Renderer> silhouette = ship.VisualRig && ship.VisualRig.Silhouette.Count > 0
+                    ? ship.VisualRig.Silhouette
+                    : ship.GetComponentsInChildren<MeshRenderer>(true);
+                foreach (var renderer in silhouette)
+                {
+                    var bounds = renderer.bounds;
+                    top = Mathf.Max(top, worldCamera.WorldToScreenPoint(
+                        new Vector3(bounds.center.x, bounds.max.y, bounds.center.z)).y);
+                }
+                var rendered = uiCamera.WorldToScreenPoint(indicator.transform.position);
+                rows.AppendFormat(CultureInfo.InvariantCulture, "{0},{1:F5},{2},{3:F3},{4:F3},{5:F3},{6:F3}\n",
+                    Time.frameCount, Time.unscaledDeltaTime, ship.CompareTag(TagNames.Player) ? "player" : ship.name,
+                    camDx, camDy, rendered.x - point.x, rendered.y - (top + 12f));
+            }
+        }
+    }
+}
+#endif
