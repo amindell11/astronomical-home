@@ -200,6 +200,15 @@ Format: **term** — definition. *(authority)*
   child issue's owner, a worker); it rides the prompt that starts that session.
   A session's own long task compacts instead (re-ruled 2026-10-19; AGENTS.md →
   Session hygiene).
+- **chief of staff** — the session that owns one issue with child issues, such
+  as a roadmap over its arcs or an arc over its slices. Short form: **chief**.
+  A user-level skill outside this repo sets its rules, and #1040 carries the
+  why and the trial's 2026-10-28 verdict.
+  *(`~/.claude/skills/chief-of-staff/SKILL.md`; #1040)*
+- **DRI** — Directly Responsible Individual. Here the individual is a session,
+  the one answerable for carrying an issue's work through to the end. It
+  answers for follow-through only, because the user makes the decisions. A
+  *chief of staff* is the DRI for its issue. *(chief-of-staff skill; #1040)*
 - **slot / pool / lease** (workflow senses) — a pooled `agent-N` worktree / the
   pool machinery / the durable claim on a slot. *(agent_worktree_pool.sh)*
 - **held** (work) — slot work set aside while it waits on the user; mechanics
