@@ -1,0 +1,684 @@
+Perform the required combined quality review for the approved compact extraction berth implementation (issue #1117). You are Claude Opus 5.5, the exact reviewer the user requested. Read only: do not edit, run commands, launch editors, or delegate. You may read repository files. Return only grounded findings that affect correctness or the approved scope, with paths/lines and a narrow remedy. No speculative bug hunting, new architecture, defensive guards, or broad hygiene sweeps. If none, say none. Review (a) correctness plus simplification/reuse/efficiency within scope, (b) comments in touched hunks only under AGENTS.md, and (c) touched Unity conventions. The required scope is a short Extraction open banner followed by icon-only travel, constant-size compact open berth on screen plus upright thick minimap glyph. The screen opening faces the player/viewport. No arrival-size expansion, yellow hazard icon, distance label, extraction mechanics or unrelated HUD changes. Keep the existing Press F to jump hint inside the zone. Prior architecture review accepted one ObjectiveMarkers owner, polling service state/target, tracker identity for announcement episodes, overlay-owned layout refs and world/minimap camera injection, MaskableGraphic glyphs, and source-owned travel text suppression. That architecture review is in scratch/extraction-marker/claude-opus55-architecture-review.txt. Screen-space HUD follows existing ShipStatusIndicator pixel/scaleFactor recipe to avoid late canvas transform update. Tests and live rendered captures are being checked separately; do not mistake scratch prototypes for production. Production diff follows.
+diff --git a/src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/ObjectiveChannelEditModeTests.cs b/src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/ObjectiveChannelEditModeTests.cs
+index a4d5fca35..1c9b60fac 100644
+--- a/src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/ObjectiveChannelEditModeTests.cs
++++ b/src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/ObjectiveChannelEditModeTests.cs
+@@ -4,7 +4,7 @@
+ using NUnit.Framework;
+ using Objectives;
+ using Objectives.States;
+-using UI;
++using UI.Objectives;
+ using UnityEditor;
+ using UnityEngine;
+ using UnityEngine.UI;
+@@ -77,15 +77,15 @@ public void Marker_Bind_ShowsATargetPublishedAfterBinding()
+             var minimap = NewGO("Minimap").AddComponent<RectTransform>();
+             minimap.sizeDelta = new Vector2(200f, 200f);
+             var icon = NewGO("Icon").AddComponent<Image>();
+-            var marker = NewGO("Marker").AddComponent<MinimapObjectiveMarker>();
++            var canvas = NewGO("HUD").AddComponent<Canvas>();
++            var marker = NewGO("Marker").AddComponent<ObjectiveMarkers>();
+             var serialized = new SerializedObject(marker);
+             serialized.FindProperty("icon").objectReferenceValue = icon;
+             serialized.ApplyModifiedPropertiesWithoutUndo();
+-            marker.Initialize(cam, minimap);
+-            var lateUpdate = typeof(MinimapObjectiveMarker)
++            marker.Initialize(svc, cam, cam, minimap, canvas);
++            var lateUpdate = typeof(ObjectiveMarkers)
+                 .GetMethod("LateUpdate", BindingFlags.Instance | BindingFlags.NonPublic);
+ 
+-            marker.BindObjectiveService(svc);
+             var target = NewGO("Target").transform;
+             target.position = new Vector3(0f, 25f, 0f);
+             handle.Target = target;
+diff --git a/src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/PhaseSpineModuleEditModeTests.cs b/src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/PhaseSpineModuleEditModeTests.cs
+index 6dd2ad93a..62c41dcd6 100644
+--- a/src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/PhaseSpineModuleEditModeTests.cs
++++ b/src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/PhaseSpineModuleEditModeTests.cs
+@@ -94,7 +94,7 @@ public void PhasesDone_OpensExtraction_ShowingArmingAndTargetingTheZone()
+             Assert.AreEqual(ObjectiveType.ExtractionChallenge, svc.SpineState, "The minimap marker shows targets in this state.");
+             Assert.IsTrue(zone.gameObject.activeSelf);
+             Assert.AreEqual(zone.transform, svc.SpineTarget);
+-            Assert.AreEqual("REACH THE JUMP GATE", svc.SpineTracker.CurrentStatusLine);
++            Assert.AreEqual(string.Empty, svc.SpineTracker.CurrentStatusLine);
+         }
+ 
+         [Test]
+diff --git a/src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/PlayerState/ObjectivePresentationPlayModeTests.cs b/src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/PlayerState/ObjectivePresentationPlayModeTests.cs
+new file mode 100644
+index 000000000..68f73859f
+--- /dev/null
++++ b/src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/PlayerState/ObjectivePresentationPlayModeTests.cs
+@@ -0,0 +1,116 @@
++using System;
++using System.Collections;
++using System.Collections.Generic;
++using System.Reflection;
++using NUnit.Framework;
++using Objectives;
++using Substrate.Services.Objectives;
++using UI.Objectives;
++using UI.PlayerState;
++using UnityEngine;
++using UnityEngine.TestTools;
++using UnityEngine.UI;
++using Object = UnityEngine.Object;
++
++namespace Tests.PlayMode.PlayerState
++{
++    [Category("UI")]
++    public class ObjectivePresentationPlayModeTests
++    {
++        private GameObject root;
++        private ObjectiveService service;
++        private Canvas canvas;
++
++        [SetUp]
++        public void SetUp()
++        {
++            root = new GameObject("Objective presentation");
++            service = root.AddComponent<ObjectiveService>();
++            canvas = Child("HUD").AddComponent<Canvas>();
++            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
++        }
++
++        [TearDown]
++        public void TearDown() => Object.DestroyImmediate(root);
++
++        private GameObject Child(string name)
++        {
++            var child = new GameObject(name, typeof(RectTransform));
++            child.transform.SetParent(root.transform, false);
++            return child;
++        }
++
++        private SpineObjectiveHandle Open(Transform target) => service.SetSpineObjective(
++            new MissionDefinition("extract", new Dictionary<string, string>()),
++            new Dictionary<string, Func<ObjectiveState>> { ["extract"] = () => new ExtractionState() }, target);
++
++        [UnityTest]
++        public IEnumerator Opening_FadesToStatus_AndReplaysForANewSectorOnly()
++        {
++            var readout = ObjectiveStatusReadout.Create(canvas.transform);
++            readout.Initialize(service);
++            var label = readout.GetComponentInChildren<Text>();
++            var target = Child("Destination").transform;
++            var handle = Open(target);
++            yield return null;
++            yield return new WaitForSecondsRealtime(.3f);
++            Assert.AreEqual("Extraction open", label.text);
++            Assert.AreEqual(1f, readout.GetComponent<CanvasGroup>().alpha, .01f);
++            yield return new WaitForSecondsRealtime(2.2f);
++            Assert.AreEqual("PRESS F TO JUMP", label.text, "Contextual interaction survives the announcement");
++            handle.Target = Child("Replacement destination").transform;
++            yield return null;
++            Assert.AreEqual("PRESS F TO JUMP", label.text, "Retargeting cannot replay the opening");
++            Open(target);
++            yield return null;
++            Assert.AreEqual("Extraction open", label.text, "A new sector opens without a blank frame between trackers");
++            service.ClearAll();
++            yield return null;
++            Assert.IsEmpty(label.text);
++        }
++
++        [UnityTest]
++        public IEnumerator Markers_StaySmallAcrossZoom_AndHideWhenTheTargetIsDestroyed()
++        {
++            var camera = Child("World camera").AddComponent<Camera>();
++            camera.transform.position = new Vector3(0, 0, -50);
++            camera.orthographic = true;
++            camera.orthographicSize = 18;
++            var minimap = (RectTransform)Child("Minimap").transform;
++            minimap.SetParent(canvas.transform, false);
++            minimap.sizeDelta = new Vector2(200, 200);
++            var icon = Child("Legacy objective").AddComponent<Image>();
++            var markers = Child("Markers").AddComponent<ObjectiveMarkers>();
++            typeof(ObjectiveMarkers).GetField("icon", BindingFlags.Instance | BindingFlags.NonPublic)
++                .SetValue(markers, icon);
++            markers.Initialize(service, camera, camera, minimap, canvas);
++            var target = Child("Destination").transform;
++            target.position = new Vector3(8, 6, 0);
++            Open(target);
++            yield return null;
++            var screen = canvas.transform.Find("Extraction direction").GetComponent<BerthGraphic>();
++            var map = canvas.transform.Find("Extraction minimap").GetComponent<BerthGraphic>();
++            Assert.IsTrue(screen.enabled && map.enabled);
++            Assert.IsFalse(icon.enabled);
++            var size = screen.rectTransform.rect.size;
++            camera.orthographicSize = 60;
++            yield return null;
++            Assert.AreEqual(size, screen.rectTransform.rect.size);
++            Assert.AreEqual(Vector3.one, screen.rectTransform.localScale);
++            Assert.Less(map.rectTransform.rect.width, screen.rectTransform.rect.width);
++            Assert.AreEqual(Quaternion.identity, map.rectTransform.localRotation);
++            Object.Destroy(target.gameObject);
++            yield return null;
++            yield return null;
++            Assert.IsFalse(screen.enabled || map.enabled || icon.enabled);
++        }
++
++        private sealed class ExtractionState : ObjectiveState
++        {
++            public override ObjectiveType StateType => ObjectiveType.ExtractionChallenge;
++            public override bool IsComplete => false;
++            public override string StatusLine => "PRESS F TO JUMP";
++            public override void Tick(float deltaTime) { }
++        }
++    }
++}
+diff --git a/src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/PlayerState/ObjectivePresentationPlayModeTests.cs.meta b/src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/PlayerState/ObjectivePresentationPlayModeTests.cs.meta
+new file mode 100644
+index 000000000..a0136b636
+--- /dev/null
++++ b/src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/PlayerState/ObjectivePresentationPlayModeTests.cs.meta
+@@ -0,0 +1,2 @@
++fileFormatVersion: 2
++guid: 7e951e5886b040b88e8667a68f5af25a
+diff --git a/src/Asteroids3D/Assets/Scripts/Game/PlayerRig.cs b/src/Asteroids3D/Assets/Scripts/Game/PlayerRig.cs
+index e41a1b0ae..eb6c05f21 100644
+--- a/src/Asteroids3D/Assets/Scripts/Game/PlayerRig.cs
++++ b/src/Asteroids3D/Assets/Scripts/Game/PlayerRig.cs
+@@ -119,6 +119,8 @@ public IEnumerator Build(IUnitService units, IObjectiveService objectives, bool
+             // HUD/UI-cam/minimap are presentation: a headless/RL run builds no Canvas.
+             if (presentationEnabled && observer && overlayPrefab && uiCamPrefab)
+             {
++                if (!minimapCamPrefab)
++                    throw new InvalidOperationException($"PlayerRig on '{name}' needs a minimap camera for its HUD.");
+                 var uiCam = Instantiate(uiCamPrefab, observer.transform);
+                 uiCam.GetUniversalAdditionalCameraData().renderType = CameraRenderType.Overlay;
+                 observer.Cam.GetUniversalAdditionalCameraData().cameraStack.Add(uiCam);
+@@ -126,15 +128,9 @@ public IEnumerator Build(IUnitService units, IObjectiveService objectives, bool
+                 Overlay = Instantiate(overlayPrefab, uiRoot);
+                 Overlay.SetCanvasWorldCamera(uiCam);
+                 Overlay.Initialize(BuildHudBinding());
+-                Overlay.BindObjectives(objectives);
+-                Overlay.BindShips(units.ActiveRegistry.ActiveShips, observer.Cam);
+-            }
+-
+-            if (presentationEnabled && observer && minimapCamPrefab)
+-            {
+                 var minimapCam = Instantiate(minimapCamPrefab, observer.transform);
+-                if (Overlay && Overlay.ObjectiveMarker && Overlay.MinimapRect)
+-                    Overlay.ObjectiveMarker.Initialize(minimapCam, Overlay.MinimapRect);
++                Overlay.BindObjectives(objectives, observer.Cam, minimapCam);
++                Overlay.BindShips(units.ActiveRegistry.ActiveShips, observer.Cam);
+             }
+ 
+             Park();
+diff --git a/src/Asteroids3D/Assets/Scripts/Objectives/States/ExtractionJumpState.cs b/src/Asteroids3D/Assets/Scripts/Objectives/States/ExtractionJumpState.cs
+index ae67fb17f..a49d9566a 100644
+--- a/src/Asteroids3D/Assets/Scripts/Objectives/States/ExtractionJumpState.cs
++++ b/src/Asteroids3D/Assets/Scripts/Objectives/States/ExtractionJumpState.cs
+@@ -24,7 +24,7 @@ public ExtractionJumpState(IExtractionZone zone, Ship hero, Action onCommit, Act
+ 
+         public override ObjectiveType StateType => ObjectiveType.ExtractionChallenge;
+         public override bool IsComplete => committed;
+-        public override string StatusLine => zone.IsPlayerInZone ? "PRESS F TO JUMP" : "REACH THE JUMP GATE";
++        public override string StatusLine => zone.IsPlayerInZone ? "PRESS F TO JUMP" : string.Empty;
+ 
+         public override void Enter()
+         {
+diff --git a/src/Asteroids3D/Assets/Scripts/UI/MinimapObjectiveMarker.cs b/src/Asteroids3D/Assets/Scripts/UI/MinimapObjectiveMarker.cs
+deleted file mode 100644
+index 0e9c15f01..000000000
+--- a/src/Asteroids3D/Assets/Scripts/UI/MinimapObjectiveMarker.cs
++++ /dev/null
+@@ -1,72 +0,0 @@
+-using Objectives;
+-using UnityEngine;
+-using UnityEngine.UI;
+-using Substrate.Services.Objectives;
+-
+-namespace UI
+-{
+-    /// <summary>Positions a UI icon over the round minimap to mark the spine objective's world position, pinned to the rim when off-map.</summary>
+-    public class MinimapObjectiveMarker : MonoBehaviour
+-    {
+-        [SerializeField] private Image icon;
+-        [SerializeField] private float pulseSpeed = 4f;
+-        [SerializeField] private float pulseScale = 0.15f;
+-        [SerializeField] private Color baseColor = Color.yellow;
+-
+-        private RectTransform minimapRect;
+-        private Camera minimapCam;
+-        private Transform target;
+-
+-        private IObjectiveService objectives;
+-
+-        public void Initialize(Camera cam, RectTransform minimap)
+-        {
+-            minimapCam = cam;
+-            minimapRect = minimap;
+-            if (icon) icon.enabled = false;
+-        }
+-
+-        public void BindObjectiveService(IObjectiveService service)
+-        {
+-            if (objectives != null) objectives.OnSpineTargetChanged -= OnSpineTargetChanged;
+-            objectives = service;
+-            if (objectives == null) return;
+-            objectives.OnSpineTargetChanged += OnSpineTargetChanged;
+-            OnSpineTargetChanged(objectives.SpineTarget);
+-        }
+-
+-        private void OnSpineTargetChanged(Transform t) => target = t;
+-
+-        private void OnDestroy()
+-        {
+-            if (objectives != null) objectives.OnSpineTargetChanged -= OnSpineTargetChanged;
+-        }
+-
+-        private static bool IsShowingState(ObjectiveType? state) =>
+-            state == ObjectiveType.Explore ||
+-            state == ObjectiveType.KeyAcquired ||
+-            state == ObjectiveType.ExtractionChallenge;
+-
+-        private void LateUpdate()
+-        {
+-            var effective = IsShowingState(objectives?.SpineState) ? target : null;
+-
+-            if (!effective || !minimapCam || !icon)
+-            {
+-                if (icon) icon.enabled = false;
+-                return;
+-            }
+-
+-            var vp = minimapCam.WorldToViewportPoint(effective.position);
+-            var offset = Vector2.ClampMagnitude(new Vector2(vp.x - 0.5f, vp.y - 0.5f), 0.5f);
+-
+-            icon.rectTransform.anchoredPosition = Vector2.Scale(offset, minimapRect.rect.size);
+-
+-            float t = Mathf.Sin(Time.time * pulseSpeed) * 0.5f + 0.5f;
+-            icon.color = Color.Lerp(baseColor, Color.white, t);
+-            icon.rectTransform.localScale = Vector3.one * (1f + pulseScale * Mathf.Sin(Time.time * pulseSpeed));
+-
+-            icon.enabled = true;
+-        }
+-    }
+-}
+diff --git a/src/Asteroids3D/Assets/Scripts/UI/Objectives.meta b/src/Asteroids3D/Assets/Scripts/UI/Objectives.meta
+new file mode 100644
+index 000000000..1967c9702
+--- /dev/null
++++ b/src/Asteroids3D/Assets/Scripts/UI/Objectives.meta
+@@ -0,0 +1,2 @@
++fileFormatVersion: 2
++guid: b8b45cecba1340628070fd8ab5d11726
+diff --git a/src/Asteroids3D/Assets/Scripts/UI/Objectives/BerthGraphic.cs b/src/Asteroids3D/Assets/Scripts/UI/Objectives/BerthGraphic.cs
+new file mode 100644
+index 000000000..07e36bb9c
+--- /dev/null
++++ b/src/Asteroids3D/Assets/Scripts/UI/Objectives/BerthGraphic.cs
+@@ -0,0 +1,94 @@
++using UnityEngine;
++using UnityEngine.UI;
++
++namespace UI.Objectives
++{
++    [RequireComponent(typeof(CanvasRenderer))]
++    public sealed class BerthGraphic : MaskableGraphic
++    {
++        private static readonly Color Ivory = new(.91f, .99f, .96f, 1f);
++        private static readonly Color Mint = new(.45f, .94f, .76f, 1f);
++        private static readonly Color Ink = new(.015f, .045f, .065f, .85f);
++        private bool minimap;
++
++        public static BerthGraphic Create(Transform parent, bool minimap)
++        {
++            var mark = new GameObject(minimap ? "Extraction minimap" : "Extraction direction",
++                typeof(RectTransform)).AddComponent<BerthGraphic>();
++            mark.gameObject.layer = parent.gameObject.layer;
++            mark.transform.SetParent(parent, false);
++            mark.rectTransform.anchorMin = mark.rectTransform.anchorMax = Vector2.zero;
++            mark.rectTransform.sizeDelta = Vector2.one * (minimap ? 13.75f : 37.125f);
++            mark.minimap = minimap;
++            mark.raycastTarget = false;
++            mark.enabled = false;
++            return mark;
++        }
++
++        protected override void OnPopulateMesh(VertexHelper mesh)
++        {
++            mesh.Clear();
++            var scale = rectTransform.rect.width / (minimap ? 22f : 54f);
++            if (minimap)
++            {
++                Disc(mesh, Vector2.zero, 11, new Color(Ink.r, Ink.g, Ink.b, .92f), scale);
++                Arch(mesh, 7, 5, 2.8f, scale);
++                Disc(mesh, new Vector2(0, -3), 2.1f, Mint, scale);
++                return;
++            }
++
++            Disc(mesh, Vector2.zero, 27, new Color(.015f, .055f, .065f, .28f), scale);
++            Arch(mesh, 14, 10, 2.4f, scale);
++            Disc(mesh, new Vector2(-14, -11), 2.5f, Mint, scale);
++            Disc(mesh, new Vector2(14, -11), 2.5f, Mint, scale);
++            Disc(mesh, new Vector2(0, -15), 2.1f, Mint, scale);
++            Disc(mesh, new Vector2(0, -24), 1.5f, new Color(Mint.r, Mint.g, Mint.b, .5f), scale);
++        }
++
++        private static void Arch(VertexHelper mesh, float radius, float leg, float width, float scale)
++        {
++            for (var pass = 0; pass < 2; pass++)
++            {
++                var tint = pass == 0 ? Ink : Ivory;
++                var thickness = pass == 0 ? width + 3f : width;
++                for (var i = 0; i < 32; i++)
++                {
++                    var a = i * Mathf.PI / 32;
++                    var b = (i + 1) * Mathf.PI / 32;
++                    Line(mesh, new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * radius,
++                        new Vector2(Mathf.Cos(b), Mathf.Sin(b)) * radius, thickness, tint, scale);
++                }
++                Line(mesh, new Vector2(-radius, 0), new Vector2(-radius, -leg), thickness, tint, scale);
++                Line(mesh, new Vector2(radius, 0), new Vector2(radius, -leg), thickness, tint, scale);
++            }
++        }
++
++        private static void Line(VertexHelper mesh, Vector2 a, Vector2 b, float width, Color tint, float scale)
++        {
++            var direction = (b - a).normalized;
++            var normal = new Vector2(-direction.y, direction.x) * (width * .5f);
++            a -= direction * .3f;
++            b += direction * .3f;
++            var start = mesh.currentVertCount;
++            mesh.AddVert((a - normal) * scale, tint, Vector2.zero);
++            mesh.AddVert((a + normal) * scale, tint, Vector2.zero);
++            mesh.AddVert((b + normal) * scale, tint, Vector2.zero);
++            mesh.AddVert((b - normal) * scale, tint, Vector2.zero);
++            mesh.AddTriangle(start, start + 1, start + 2);
++            mesh.AddTriangle(start, start + 2, start + 3);
++        }
++
++        private static void Disc(VertexHelper mesh, Vector2 center, float radius, Color tint, float scale)
++        {
++            var start = mesh.currentVertCount;
++            mesh.AddVert(center * scale, tint, Vector2.zero);
++            for (var i = 0; i <= 32; i++)
++            {
++                var angle = i * Mathf.PI * 2 / 32;
++                mesh.AddVert((center + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * radius) * scale,
++                    tint, Vector2.zero);
++                if (i > 0) mesh.AddTriangle(start, start + i, start + i + 1);
++            }
++        }
++    }
++}
+diff --git a/src/Asteroids3D/Assets/Scripts/UI/Objectives/BerthGraphic.cs.meta b/src/Asteroids3D/Assets/Scripts/UI/Objectives/BerthGraphic.cs.meta
+new file mode 100644
+index 000000000..18f1bf66d
+--- /dev/null
++++ b/src/Asteroids3D/Assets/Scripts/UI/Objectives/BerthGraphic.cs.meta
+@@ -0,0 +1,2 @@
++fileFormatVersion: 2
++guid: a242f0c7c3434077bc7f0a32e6905af8
+diff --git a/src/Asteroids3D/Assets/Scripts/UI/Objectives/ObjectiveMarkers.cs b/src/Asteroids3D/Assets/Scripts/UI/Objectives/ObjectiveMarkers.cs
+new file mode 100644
+index 000000000..8589a2040
+--- /dev/null
++++ b/src/Asteroids3D/Assets/Scripts/UI/Objectives/ObjectiveMarkers.cs
+@@ -0,0 +1,97 @@
++using System;
++using Objectives;
++using Substrate.Services.Objectives;
++using UnityEngine;
++using UnityEngine.UI;
++
++namespace UI.Objectives
++{
++    public sealed class ObjectiveMarkers : MonoBehaviour
++    {
++        [SerializeField] private Image icon;
++        [SerializeField] private float pulseSpeed = 4f;
++        [SerializeField] private float pulseScale = .15f;
++        [SerializeField] private Color baseColor = Color.yellow;
++
++        private readonly Vector3[] corners = new Vector3[4];
++        private IObjectiveService objectives;
++        private RectTransform minimapRect;
++        private Camera minimapCamera;
++        private Camera worldCamera;
++        private Canvas canvas;
++        private BerthGraphic screenBerth;
++        private BerthGraphic minimapBerth;
++
++        private void Awake() => enabled = false;
++
++        public void Initialize(IObjectiveService source, Camera world, Camera map, RectTransform minimap, Canvas hud)
++        {
++            if (source == null || !world || !map || !minimap || !hud || !icon)
++                throw new InvalidOperationException($"ObjectiveMarkers on '{name}' needs its objective source, cameras, minimap, canvas and icon.");
++            objectives = source;
++            worldCamera = world;
++            minimapCamera = map;
++            minimapRect = minimap;
++            canvas = hud;
++            screenBerth = BerthGraphic.Create(hud.transform, false);
++            minimapBerth = BerthGraphic.Create(hud.transform, true);
++            icon.enabled = false;
++            enabled = true;
++        }
++
++        private void LateUpdate()
++        {
++            var state = objectives.SpineState;
++            var target = objectives.SpineTarget;
++            var extraction = state == ObjectiveType.ExtractionChallenge && target;
++            var generic = (state == ObjectiveType.Explore || state == ObjectiveType.KeyAcquired) && target;
++            screenBerth.enabled = minimapBerth.enabled = extraction;
++            icon.enabled = generic;
++            if (!target) return;
++
++            var mapPoint = minimapCamera.WorldToViewportPoint(target.position);
++            var mapOffset = new Vector2(mapPoint.x - .5f, mapPoint.y - .5f);
++            if (generic)
++            {
++                icon.rectTransform.anchoredPosition = Vector2.Scale(Vector2.ClampMagnitude(mapOffset, .5f), minimapRect.rect.size);
++                var pulse = Mathf.Sin(Time.time * pulseSpeed);
++                icon.color = Color.Lerp(baseColor, Color.white, pulse * .5f + .5f);
++                icon.rectTransform.localScale = Vector3.one * (1f + pulseScale * pulse);
++            }
++            if (!extraction) return;
++
++            minimapRect.GetWorldCorners(corners);
++            var lower = RectTransformUtility.WorldToScreenPoint(canvas.worldCamera, corners[0]);
++            var upper = RectTransformUtility.WorldToScreenPoint(canvas.worldCamera, corners[2]);
++            var mapBounds = Rect.MinMaxRect(lower.x, lower.y, upper.x, upper.y);
++            var radius = Mathf.Min(mapBounds.width, mapBounds.height) * .5f;
++            var inset = (minimapBerth.rectTransform.rect.width * .5f + 1f) * canvas.scaleFactor;
++            minimapBerth.rectTransform.anchoredPosition = (mapBounds.center +
++                Vector2.ClampMagnitude(mapOffset * radius * 2f, radius - inset)) / canvas.scaleFactor;
++
++            var projected = worldCamera.WorldToScreenPoint(target.position);
++            screenBerth.enabled = projected.z > 0f;
++            var viewport = worldCamera.pixelRect;
++            var padding = 40f * canvas.scaleFactor;
++            var safe = Rect.MinMaxRect(viewport.xMin + padding, viewport.yMin + padding,
++                viewport.xMax - padding, viewport.yMax - 70f * canvas.scaleFactor);
++            var location = ClampToEdge(projected, viewport.center, safe);
++            if (!safe.Contains(projected) && mapBounds.Contains(location))
++                location.y = mapBounds.yMin - padding;
++            screenBerth.rectTransform.anchoredPosition = location / canvas.scaleFactor;
++            var direction = (Vector2)projected - viewport.center;
++            screenBerth.rectTransform.localEulerAngles = new Vector3(0, 0,
++                Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90f);
++        }
++
++        internal static Vector2 ClampToEdge(Vector2 point, Vector2 center, Rect bounds)
++        {
++            var direction = point - center;
++            var x = direction.x == 0f ? float.PositiveInfinity :
++                ((direction.x > 0f ? bounds.xMax : bounds.xMin) - center.x) / direction.x;
++            var y = direction.y == 0f ? float.PositiveInfinity :
++                ((direction.y > 0f ? bounds.yMax : bounds.yMin) - center.y) / direction.y;
++            return center + direction * Mathf.Min(1f, Mathf.Min(x, y));
++        }
++    }
++}
+diff --git a/src/Asteroids3D/Assets/Scripts/UI/MinimapObjectiveMarker.cs.meta b/src/Asteroids3D/Assets/Scripts/UI/Objectives/ObjectiveMarkers.cs.meta
+similarity index 100%
+rename from src/Asteroids3D/Assets/Scripts/UI/MinimapObjectiveMarker.cs.meta
+rename to src/Asteroids3D/Assets/Scripts/UI/Objectives/ObjectiveMarkers.cs.meta
+diff --git a/src/Asteroids3D/Assets/Scripts/UI/Overlay.cs b/src/Asteroids3D/Assets/Scripts/UI/Overlay.cs
+index 60899660e..c428897a4 100644
+--- a/src/Asteroids3D/Assets/Scripts/UI/Overlay.cs
++++ b/src/Asteroids3D/Assets/Scripts/UI/Overlay.cs
+@@ -7,6 +7,8 @@
+ using Substrate.Services.Objectives;
+ using Ships;
+ using Utils;
++using System;
++using UI.Objectives;
+ 
+ namespace UI
+ {
+@@ -28,9 +30,8 @@ public class Overlay : MonoBehaviour
+         private RunTallyReadout tallyReadout;
+         private ChargeTargetMarkers chargeMarkers;
+         private ShipStatusOverlay shipStatus;
++        private ObjectiveMarkers objectiveMarkers;
+ 
+-        public MinimapObjectiveMarker ObjectiveMarker { get; private set; }
+-        public RectTransform MinimapRect => minimapRect;
+         public Camera WorldCamera => canvases[0].worldCamera;
+ 
+         private void Awake()
+@@ -44,7 +45,7 @@ private void Awake()
+             missileWarningAudio = GetComponentInChildren<UIMissileWarningAudio>();
+             boostGauge = GetComponentInChildren<BoostGaugeUI>(true);
+             readoutBuilder = GetComponentInChildren<WeaponReadoutBuilder>(true);
+-            ObjectiveMarker = GetComponentInChildren<MinimapObjectiveMarker>(true);
++            objectiveMarkers = GetComponentInChildren<ObjectiveMarkers>(true);
+             chargeMarkers = GetComponentInChildren<ChargeTargetMarkers>(true);
+         }
+ 
+@@ -117,11 +118,11 @@ public void Initialize(in HudBinding binding)
+                 lockOnAudio.Initialize(readoutBuilder ? readoutBuilder.FirstReadout<ILockStateSource>() : null);
+         }
+ 
+-        public void BindObjectives(IObjectiveService objectives)
++        public void BindObjectives(IObjectiveService objectives, Camera worldCamera, Camera minimapCamera)
+         {
+-            if (ObjectiveMarker)
+-                ObjectiveMarker.BindObjectiveService(objectives);
+-
++            if (!objectiveMarkers || !minimapRect)
++                throw new InvalidOperationException($"Overlay on '{name}' needs its objective markers and minimap wired.");
++            objectiveMarkers.Initialize(objectives, worldCamera, minimapCamera, minimapRect, canvases[0]);
+             ObjectiveStatusReadout.Create(transform).Initialize(objectives);
+         }
+     }
+diff --git a/src/Asteroids3D/Assets/Scripts/UI/PlayerState/ObjectiveStatusReadout.cs b/src/Asteroids3D/Assets/Scripts/UI/PlayerState/ObjectiveStatusReadout.cs
+index ac7fcbf98..fc46401d2 100644
+--- a/src/Asteroids3D/Assets/Scripts/UI/PlayerState/ObjectiveStatusReadout.cs
++++ b/src/Asteroids3D/Assets/Scripts/UI/PlayerState/ObjectiveStatusReadout.cs
+@@ -1,14 +1,21 @@
++using System;
++using Objectives;
+ using Substrate.Services.Objectives;
+ using UnityEngine;
+ using UnityEngine.UI;
+ 
+ namespace UI.PlayerState
+ {
+-    [RequireComponent(typeof(Text))]
++    [RequireComponent(typeof(CanvasGroup))]
+     public sealed class ObjectiveStatusReadout : MonoBehaviour
+     {
+         private Text label;
++        private CanvasGroup group;
++        private Image plate;
++        private Image underline;
+         private IObjectiveService objectives;
++        private ObjectiveTracker announcedTracker;
++        private float openedAt;
+ 
+         public static ObjectiveStatusReadout Create(Transform parent)
+         {
+@@ -20,29 +27,78 @@ public static ObjectiveStatusReadout Create(Transform parent)
+             rect.anchoredPosition = new Vector2(0f, -40f);
+             rect.sizeDelta = new Vector2(420f, 28f);
+ 
+-            var text = go.AddComponent<Text>();
++            go.layer = parent.gameObject.layer;
++            var plate = CreateImage(go.transform, "Opening plate", new Vector2(125f, 20f),
++                new Color(.025f, .08f, .095f, .94f));
++            var underline = CreateImage(go.transform, "Opening underline", new Vector2(40f, .94f),
++                new Color(.45f, .94f, .76f, 1f));
++            underline.rectTransform.anchoredPosition = new Vector2(0, -20f);
++            var labelObject = new GameObject("Label", typeof(RectTransform));
++            labelObject.layer = go.layer;
++            labelObject.transform.SetParent(go.transform, false);
++            var text = labelObject.AddComponent<Text>();
++            text.rectTransform.anchorMin = text.rectTransform.anchorMax = new Vector2(.5f, 1f);
++            text.rectTransform.pivot = new Vector2(.5f, 1f);
+             text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+             text.fontSize = 18;
+             text.color = Color.white;
+             text.alignment = TextAnchor.UpperCenter;
+             text.raycastTarget = false;
+-            return go.AddComponent<ObjectiveStatusReadout>();
++            var readout = go.AddComponent<ObjectiveStatusReadout>();
++            readout.plate = plate;
++            readout.underline = underline;
++            return readout;
++        }
++
++        private static Image CreateImage(Transform parent, string name, Vector2 size, Color color)
++        {
++            var image = new GameObject(name, typeof(RectTransform)).AddComponent<Image>();
++            image.gameObject.layer = parent.gameObject.layer;
++            image.transform.SetParent(parent, false);
++            image.rectTransform.anchorMin = image.rectTransform.anchorMax = new Vector2(.5f, 1f);
++            image.rectTransform.pivot = new Vector2(.5f, 1f);
++            image.rectTransform.sizeDelta = size;
++            image.color = color;
++            image.raycastTarget = false;
++            return image;
+         }
+ 
+         private void Awake()
+         {
+-            label = GetComponent<Text>();
++            label = GetComponentInChildren<Text>();
++            group = GetComponent<CanvasGroup>();
++            enabled = false;
+         }
+ 
+         public void Initialize(IObjectiveService objectives)
+         {
+-            this.objectives = objectives;
++            this.objectives = objectives ?? throw new ArgumentNullException(nameof(objectives));
++            announcedTracker = null;
++            enabled = true;
+             Apply();
+         }
+ 
+-        private void Update() => Apply();
++        private void LateUpdate() => Apply();
+ 
+-        // Text's setter skips an unchanged string, so the per-frame poll costs one compare.
+-        private void Apply() => label.text = objectives.SpineTracker?.CurrentStatusLine ?? string.Empty;
++        private void Apply()
++        {
++            var tracker = objectives.SpineTracker;
++            var extraction = objectives.SpineState == ObjectiveType.ExtractionChallenge && objectives.SpineTarget;
++            if (!extraction) announcedTracker = null;
++            else if (tracker != announcedTracker)
++            {
++                announcedTracker = tracker;
++                openedAt = Time.unscaledTime;
++            }
++
++            var elapsed = Time.unscaledTime - openedAt;
++            var opening = extraction && elapsed < 2.05f;
++            plate.enabled = underline.enabled = opening;
++            group.alpha = opening ? Mathf.Clamp01(Mathf.Min(elapsed / .22f, (2.05f - elapsed) / .45f)) : 1f;
++            label.fontSize = opening ? 10 : 18;
++            label.alignment = opening ? TextAnchor.MiddleCenter : TextAnchor.UpperCenter;
++            label.rectTransform.sizeDelta = opening ? new Vector2(125f, 20f) : new Vector2(420f, 28f);
++            label.text = opening ? "Extraction open" : tracker?.CurrentStatusLine ?? string.Empty;
++        }
+     }
+ }

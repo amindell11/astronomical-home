@@ -1,0 +1,577 @@
+Scope statement
+
+Implement the user-approved compact open berth treatment for extraction in astronomical-home. Extraction opening gets a brief message, then icon-only screen and minimap cues. The screen icon points toward the extraction destination off-screen and stays the same compact size over the destination on-screen. The minimap uses the approved simplified upright arch with stronger strokes, one mint light and dark backing. No enlarged arrival ring. No extraction lifecycle, station geometry, camera zoom, other HUD or gameplay changes. Preserve existing non-extraction objective presentation. The user specifically requested Claude Opus 5.5 architecture assistance before production implementation.
+
+The approved visuals are in scratch/extraction-marker/compact-berth-*.png. ExtractionSafetyConcepts.cs is throwaway visual prototype code, not an architecture to port. It uses reflection, hardcoded 1280x720 positions and many child Images solely for review. Production must use actual RectTransforms, canvas scale and camera projection. The source tree is based on f65d7cfe1e3981fc349dfd5b3d640cf2e1de9807.
+
+Artifact: proposed implementation
+
+1. Extend the existing minimap marker's responsibility to the two objective markers. Move/rename UI.MinimapObjectiveMarker to UI.Objectives.ObjectiveMarkers with its .meta GUID preserved, and update its known callers and tests. Keep the serialized generic icon and its behaviour for Explore and KeyAcquired. For ExtractionChallenge, show the compact berth on screen and the simplified arch on the minimap. Hide all markers when the relevant target/state is absent.
+2. Give the markers their objective source, world camera, minimap camera, minimap RectTransform and root Canvas once during setup. PlayerRig already owns those objects. Adjust its existing HUD construction order and Overlay binding so the dependencies arrive together. No new service/interface, per-ship dependency, global/static state, command between peers, or mutation of objectives. The markers observe IObjectiveService.SpineState/SpineTarget; project a current snapshot in LateUpdate. Decide whether retaining the existing target-change subscription earns its complexity versus reading the existing property directly.
+3. Add a small UI.Objectives.BerthGraphic derived from MaskableGraphic to render the two approved silhouettes with one graphic per icon. Its only variant is normal versus minimap, both real consumers. Rebuild mesh only when geometry changes; rotate/position the RectTransforms per frame. This avoids copying the prototype's dozens of Image objects and avoids a new icon framework or asset-generation pipeline. Screen and minimap forms share the approved palette but have deliberately different detail levels. Any comparison with baked sprites should account for source/import ownership and editor authoring cost.
+4. Keep ObjectiveStatusReadout as the text owner. Preserve non-extraction status lines. While extraction is active, show 'Extraction open' for the approved roughly two-second opening interval with short fade, then empty text. Reset the interval on a new extraction episode, including target clear and subsequent extraction with the same state. Do not change ObjectiveState.StatusLine, because gameplay/other consumers still own their existing wording. Place the brief extraction banner away from the existing tally. A new target or new binding during an active extraction should produce one opening message, not restart every frame.
+5. New graphics remain children of the existing overlay, so canvas hiding and CanvasGroup fades work without a second visibility coordinator. Their ownership ends with the overlay. Validate required authored wiring at setup rather than absorbing broken wiring in update guards. A missing runtime target between sectors is an expected lifecycle state.
+6. Add focused tests for extraction-only appearance, retained non-extraction behaviour, message expiry and reset across sectors, and projected icon/clamp behaviour at different view sizes. Verify the actual production HUD in a coordinated Unity Editor, including normal and wide framing with constant screen icon size. Run the repository's required scoped tests and quality checks, then open a PR. No merge is authorized.
+
+Open design questions to settle before writing production code
+
+- Does extending the existing marker and keeping its text sibling separate provide clear ownership, or is a narrower alternative materially simpler?
+- What is the cleanest observation/transition rule given the actual order of ObjectiveService and ObjectiveTracker callbacks, target publication, and clearing during sector teardown?
+- Is a small MaskableGraphic appropriate here, or does the existing UI already have a fitting graphic/asset path that would reduce moving parts?
+
+Do not propose a generic objective-HUD framework, event bus changes, service wiring redesign, unrelated fixes, or a full HUD rebuild.
+
+Interaction detail pending owner answer: current ExtractionJumpState.StatusLine becomes 'PRESS F TO JUMP' while the player is inside the zone. The owner has been asked whether to keep this contextual input hint. The default recommendation is to retain it only inside the zone while travel remains icon-only. Treat this as a pending presentation choice, not authority to change extraction mechanics.
+
+
+Current source, verbatim
+
+src/Asteroids3D/Assets/Scripts/UI/MinimapObjectiveMarker.cs
+
+using Objectives;
+using UnityEngine;
+using UnityEngine.UI;
+using Substrate.Services.Objectives;
+
+namespace UI
+{
+    /// <summary>Positions a UI icon over the round minimap to mark the spine objective's world position, pinned to the rim when off-map.</summary>
+    public class MinimapObjectiveMarker : MonoBehaviour
+    {
+        [SerializeField] private Image icon;
+        [SerializeField] private float pulseSpeed = 4f;
+        [SerializeField] private float pulseScale = 0.15f;
+        [SerializeField] private Color baseColor = Color.yellow;
+
+        private RectTransform minimapRect;
+        private Camera minimapCam;
+        private Transform target;
+
+        private IObjectiveService objectives;
+
+        public void Initialize(Camera cam, RectTransform minimap)
+        {
+            minimapCam = cam;
+            minimapRect = minimap;
+            if (icon) icon.enabled = false;
+        }
+
+        public void BindObjectiveService(IObjectiveService service)
+        {
+            if (objectives != null) objectives.OnSpineTargetChanged -= OnSpineTargetChanged;
+            objectives = service;
+            if (objectives == null) return;
+            objectives.OnSpineTargetChanged += OnSpineTargetChanged;
+            OnSpineTargetChanged(objectives.SpineTarget);
+        }
+
+        private void OnSpineTargetChanged(Transform t) => target = t;
+
+        private void OnDestroy()
+        {
+            if (objectives != null) objectives.OnSpineTargetChanged -= OnSpineTargetChanged;
+        }
+
+        private static bool IsShowingState(ObjectiveType? state) =>
+            state == ObjectiveType.Explore ||
+            state == ObjectiveType.KeyAcquired ||
+            state == ObjectiveType.ExtractionChallenge;
+
+        private void LateUpdate()
+        {
+            var effective = IsShowingState(objectives?.SpineState) ? target : null;
+
+            if (!effective || !minimapCam || !icon)
+            {
+                if (icon) icon.enabled = false;
+                return;
+            }
+
+            var vp = minimapCam.WorldToViewportPoint(effective.position);
+            var offset = Vector2.ClampMagnitude(new Vector2(vp.x - 0.5f, vp.y - 0.5f), 0.5f);
+
+            icon.rectTransform.anchoredPosition = Vector2.Scale(offset, minimapRect.rect.size);
+
+            float t = Mathf.Sin(Time.time * pulseSpeed) * 0.5f + 0.5f;
+            icon.color = Color.Lerp(baseColor, Color.white, t);
+            icon.rectTransform.localScale = Vector3.one * (1f + pulseScale * Mathf.Sin(Time.time * pulseSpeed));
+
+            icon.enabled = true;
+        }
+    }
+}
+
+
+src/Asteroids3D/Assets/Scripts/UI/PlayerState/ObjectiveStatusReadout.cs
+
+using Substrate.Services.Objectives;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace UI.PlayerState
+{
+    [RequireComponent(typeof(Text))]
+    public sealed class ObjectiveStatusReadout : MonoBehaviour
+    {
+        private Text label;
+        private IObjectiveService objectives;
+
+        public static ObjectiveStatusReadout Create(Transform parent)
+        {
+            var go = new GameObject("ObjectiveStatusReadout", typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            var rect = (RectTransform)go.transform;
+            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 1f);
+            rect.pivot = new Vector2(0.5f, 1f);
+            rect.anchoredPosition = new Vector2(0f, -40f);
+            rect.sizeDelta = new Vector2(420f, 28f);
+
+            var text = go.AddComponent<Text>();
+            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            text.fontSize = 18;
+            text.color = Color.white;
+            text.alignment = TextAnchor.UpperCenter;
+            text.raycastTarget = false;
+            return go.AddComponent<ObjectiveStatusReadout>();
+        }
+
+        private void Awake()
+        {
+            label = GetComponent<Text>();
+        }
+
+        public void Initialize(IObjectiveService objectives)
+        {
+            this.objectives = objectives;
+            Apply();
+        }
+
+        private void Update() => Apply();
+
+        // Text's setter skips an unchanged string, so the per-frame poll costs one compare.
+        private void Apply() => label.text = objectives.SpineTracker?.CurrentStatusLine ?? string.Empty;
+    }
+}
+
+
+src/Asteroids3D/Assets/Scripts/UI/Overlay.cs
+
+using Combat.Targeting;
+using UnityEngine;
+using UI.Audio;
+using UI.Markers;
+using UI.PlayerState;
+using Combat.Weapons.Conditions;
+using Substrate.Services.Objectives;
+using Ships;
+using Utils;
+
+namespace UI
+{
+    [RequireComponent(typeof(Canvas))]
+    public class Overlay : MonoBehaviour
+    {
+        [Header("Minimap")]
+        [SerializeField] private RectTransform minimapRect;
+
+        private Canvas[] canvases;
+        private CanvasGroup visibility;
+        private UILockOnAudio lockOnAudio;
+        private UIHealthAudio healthAudio;
+        private UILaserAudio laserAudio;
+        private UIBoostAudio boostAudio;
+        private UIMissileWarningAudio missileWarningAudio;
+        private BoostGaugeUI boostGauge;
+        private WeaponReadoutBuilder readoutBuilder;
+        private RunTallyReadout tallyReadout;
+        private ChargeTargetMarkers chargeMarkers;
+        private ShipStatusOverlay shipStatus;
+
+        public MinimapObjectiveMarker ObjectiveMarker { get; private set; }
+        public RectTransform MinimapRect => minimapRect;
+        public Camera WorldCamera => canvases[0].worldCamera;
+
+        private void Awake()
+        {
+            canvases = GetComponentsInChildren<Canvas>(true);
+            visibility = gameObject.AddComponent<CanvasGroup>();
+            lockOnAudio = GetComponentInChildren<UILockOnAudio>();
+            healthAudio = GetComponentInChildren<UIHealthAudio>();
+            laserAudio = GetComponentInChildren<UILaserAudio>();
+            boostAudio = GetComponentInChildren<UIBoostAudio>();
+            missileWarningAudio = GetComponentInChildren<UIMissileWarningAudio>();
+            boostGauge = GetComponentInChildren<BoostGaugeUI>(true);
+            readoutBuilder = GetComponentInChildren<WeaponReadoutBuilder>(true);
+            ObjectiveMarker = GetComponentInChildren<MinimapObjectiveMarker>(true);
+            chargeMarkers = GetComponentInChildren<ChargeTargetMarkers>(true);
+        }
+
+        public void SetCanvasWorldCamera(Camera uicam)
+        {
+            // GetComponentsInChildren returns self first; RequireComponent guarantees a root canvas.
+            canvases[0].worldCamera = uicam;
+        }
+
+        /// <summary>
+        /// Toggles every canvas under the overlay, and the world-space charge markers — nested
+        /// canvases (minimap) keep rendering when only the root canvas is disabled, and disabling
+        /// GameObjects would break the HUD audio binders, which unsubscribe in OnDisable and never
+        /// resubscribe.
+        /// </summary>
+        public void SetVisible(bool visible)
+        {
+            if (visible) SetOpacity(1f);
+            foreach (var c in canvases)
+                c.enabled = visible;
+            if (chargeMarkers)
+                chargeMarkers.SetVisible(visible);
+        }
+
+        public void SetOpacity(float opacity, float? shipOpacity = null)
+        {
+            visibility.alpha = opacity;
+            if (chargeMarkers) chargeMarkers.SetVisible(opacity > 0f);
+            if (shipStatus) shipStatus.SetOpacity(shipOpacity ?? opacity);
+        }
+
+        public void BindShips(SubscribedSet<Ship> ships, Camera worldCamera) =>
+            shipStatus = ShipStatusOverlay.Create(canvases[0], ships, worldCamera);
+
+        private void OnDestroy()
+        {
+            if (shipStatus) Destroy(shipStatus.gameObject);
+        }
+
+        public void Initialize(in HudBinding binding)
+        {
+            if (healthAudio)
+                healthAudio.Initialize(binding.Damage);
+
+            if (boostGauge)
+                boostGauge.Initialize(binding.Status);
+
+            if (boostAudio)
+                boostAudio.Initialize(binding.Status);
+
+            if (missileWarningAudio)
+                missileWarningAudio.Initialize(binding.Status);
+
+            if (readoutBuilder)
+                readoutBuilder.Build(binding.Weapons);
+
+            if (chargeMarkers)
+                chargeMarkers.Initialize(binding.Weapons);
+
+            if (!tallyReadout)
+                tallyReadout = RunTallyReadout.Create(transform);
+            tallyReadout.Initialize(binding.Tally);
+
+            // Overheat and lock audio are single overlay-level channels; each follows the
+            // first weapon (in slot order) that exposes the matching readout.
+            if (laserAudio)
+                laserAudio.Initialize(readoutBuilder ? readoutBuilder.FirstReadout<IHeatReadout>() : null);
+
+            if (lockOnAudio)
+                lockOnAudio.Initialize(readoutBuilder ? readoutBuilder.FirstReadout<ILockStateSource>() : null);
+        }
+
+        public void BindObjectives(IObjectiveService objectives)
+        {
+            if (ObjectiveMarker)
+                ObjectiveMarker.BindObjectiveService(objectives);
+
+            ObjectiveStatusReadout.Create(transform).Initialize(objectives);
+        }
+    }
+}
+
+
+src/Asteroids3D/Assets/Scripts/Substrate/Services/Objectives/ObjectiveService.cs
+
+using System;
+using System.Collections.Generic;
+using Objectives;
+using UnityEngine;
+
+namespace Substrate.Services.Objectives
+{
+    /// <summary>Owns the spine tracker plus open local trackers and ticks them itself via Update.</summary>
+    public class ObjectiveService : MonoBehaviour, IObjectiveService
+    {
+        private readonly List<LocalObjectiveHandle> locals = new();
+        private readonly List<LocalObjectiveHandle> tickBuffer = new();
+        private SpineObjectiveHandle currentSpine;
+
+        public ObjectiveTracker SpineTracker { get; private set; }
+        public ObjectiveType? SpineState => SpineTracker?.CurrentState;
+        public string SpineStep => SpineTracker?.CurrentStep;
+        public Transform SpineTarget { get; private set; }
+        public IReadOnlyList<LocalObjectiveHandle> Locals => locals;
+
+        public event Action<ObjectiveType, ObjectiveType> OnSpineStateChanged;
+        public event Action<string> OnSpineStepChanged;
+        public event Action<Transform> OnSpineTargetChanged;
+
+        public SpineObjectiveHandle SetSpineObjective(
+            MissionDefinition mission,
+            IReadOnlyDictionary<string, Func<ObjectiveState>> builders,
+            Transform target = null)
+        {
+            CloseSpineCore();
+
+            SpineTracker = new ObjectiveTracker(mission, builders);
+            SpineTracker.OnStateChanged += ForwardSpineStateChanged;
+            SpineTracker.OnStepChanged += ForwardSpineStepChanged;
+            currentSpine = new SpineObjectiveHandle(this, SpineTracker);
+            SetSpineTargetCore(target);
+            OnSpineStepChanged?.Invoke(SpineTracker.CurrentStep);
+            return currentSpine;
+        }
+
+        internal bool IsCurrent(SpineObjectiveHandle handle) => currentSpine == handle;
+
+        internal void SetSpineTarget(SpineObjectiveHandle handle, Transform target)
+        {
+            if (IsCurrent(handle)) SetSpineTargetCore(target);
+        }
+
+        internal void CloseSpine(SpineObjectiveHandle handle)
+        {
+            if (IsCurrent(handle)) CloseSpineCore();
+        }
+
+        public LocalObjectiveHandle OpenLocal(
+            MissionDefinition mission,
+            IReadOnlyDictionary<string, Func<ObjectiveState>> builders,
+            Transform target = null)
+        {
+            var handle = new LocalObjectiveHandle(new ObjectiveTracker(mission, builders), target, CloseLocal);
+            locals.Add(handle);
+            return handle;
+        }
+
+        public void ClearAll()
+        {
+            while (locals.Count > 0)
+                locals[locals.Count - 1].Close();
+            CloseSpineCore();
+        }
+
+        private void Update() => Tick(Time.deltaTime);
+
+        // Locals tick over a snapshot so a handle opening or closing mid-tick cannot corrupt iteration.
+        internal void Tick(float deltaTime)
+        {
+            SpineTracker?.Tick(deltaTime);
+
+            tickBuffer.AddRange(locals);
+            foreach (var local in tickBuffer)
+            {
+                if (locals.Contains(local))
+                    local.Tracker.Tick(deltaTime);
+            }
+            tickBuffer.Clear();
+        }
+
+        private void SetSpineTargetCore(Transform target)
+        {
+            if (SpineTarget == target) return;
+            SpineTarget = target;
+            OnSpineTargetChanged?.Invoke(target);
+        }
+
+        private void CloseSpineCore()
+        {
+            if (SpineTracker != null)
+            {
+                SpineTracker.OnStateChanged -= ForwardSpineStateChanged;
+                SpineTracker.OnStepChanged -= ForwardSpineStepChanged;
+                SpineTracker = null;
+            }
+            currentSpine = null;
+            SetSpineTargetCore(null);
+        }
+
+        private void CloseLocal(LocalObjectiveHandle handle)
+        {
+            locals.Remove(handle);
+        }
+
+        private void ForwardSpineStateChanged(ObjectiveType from, ObjectiveType to)
+        {
+            OnSpineStateChanged?.Invoke(from, to);
+        }
+
+        private void ForwardSpineStepChanged(string step)
+        {
+            OnSpineStepChanged?.Invoke(step);
+        }
+    }
+}
+
+
+src/Asteroids3D/Assets/Scripts/Objectives/ObjectiveTracker.cs
+
+using System;
+using System.Collections.Generic;
+
+namespace Objectives
+{
+    /// <summary>Sequential objective state machine over string step IDs; callers supply per-step builder closures capturing their runtime refs.</summary>
+    public class ObjectiveTracker
+    {
+        private ObjectiveState current;
+        private string currentStep;
+        private readonly MissionDefinition mission;
+        private readonly IReadOnlyDictionary<string, Func<ObjectiveState>> builders;
+
+        /// <summary>Fires on every step transition — unlike <see cref="OnStateChanged"/>, which suppresses transitions between steps sharing an ObjectiveType.</summary>
+        public event Action<string> OnStepChanged;
+
+        public event Action<ObjectiveType, ObjectiveType> OnStateChanged;
+
+        public ObjectiveType CurrentState => current.StateType;
+
+        public string CurrentStep => currentStep;
+
+        public string CurrentStatusLine => current.StatusLine;
+
+        public ObjectiveTracker(
+            MissionDefinition mission,
+            IReadOnlyDictionary<string, Func<ObjectiveState>> builders)
+        {
+            this.mission = mission ?? throw new ArgumentNullException(nameof(mission));
+            this.builders = builders ?? throw new ArgumentNullException(nameof(builders));
+
+            currentStep = mission.InitialStep;
+            current = builders[currentStep]();
+            current.Enter();
+        }
+
+        /// <summary>Advances at most one step per call so UI/audio hooks see every intermediate state.</summary>
+        public void Tick(float deltaTime)
+        {
+            if (IsTerminal(current.StateType))
+                return;
+
+            if (mission.FailCriteria != null && mission.FailCriteria())
+            {
+                TransitionTo("failed");
+                return;
+            }
+
+            current.Tick(deltaTime);
+
+            if (current.IsComplete && mission.TryGetNext(currentStep, out var next))
+                TransitionTo(next);
+        }
+
+        /// <summary>Event-driven failure (e.g. player death); no-op in a terminal state.</summary>
+        public void Fail()
+        {
+            if (!IsTerminal(current.StateType))
+                TransitionTo("failed");
+        }
+
+        public void Restart()
+        {
+            TransitionTo(mission.InitialStep);
+        }
+
+        private void TransitionTo(string nextStep)
+        {
+            var previous = current.StateType;
+            current.Exit();
+            currentStep = nextStep;
+            current = builders[nextStep]();
+            current.Enter();
+
+            OnStepChanged?.Invoke(currentStep);
+            if (previous != current.StateType)
+                OnStateChanged?.Invoke(previous, current.StateType);
+        }
+
+        private static bool IsTerminal(ObjectiveType type) =>
+            type is ObjectiveType.Extracted or ObjectiveType.Failed or ObjectiveType.Completed;
+    }
+}
+
+
+src/Asteroids3D/Assets/Scripts/UI/Screens/RecapSectorMarker.cs
+
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace UI.Screens
+{
+    [RequireComponent(typeof(CanvasRenderer))]
+    internal sealed class RecapSectorMarker : MaskableGraphic
+    {
+        public bool Reached { get; set; }
+
+        protected override void OnPopulateMesh(VertexHelper mesh)
+        {
+            mesh.Clear();
+            var rect = rectTransform.rect;
+            var radius = Mathf.Min(rect.width, rect.height) * .5f;
+            const int segments = 40;
+            for (var i = 0; i < segments; i++)
+            {
+                if (Reached && i > 25) break;
+                var a = (i * 360f / segments + 20f) * Mathf.Deg2Rad;
+                var b = ((i + 1) * 360f / segments + 20f) * Mathf.Deg2Rad;
+                var start = new Vector2(Mathf.Cos(a), Mathf.Sin(a));
+                var end = new Vector2(Mathf.Cos(b), Mathf.Sin(b));
+                var inner = Reached ? radius - 1f : 0f;
+                var n = mesh.currentVertCount;
+                mesh.AddVert(rect.center + start * radius, color, Vector2.zero);
+                mesh.AddVert(rect.center + end * radius, color, Vector2.zero);
+                mesh.AddVert(rect.center + end * inner, color, Vector2.zero);
+                mesh.AddVert(rect.center + start * inner, color, Vector2.zero);
+                mesh.AddTriangle(n, n + 1, n + 2);
+                mesh.AddTriangle(n, n + 2, n + 3);
+            }
+        }
+    }
+}
+
+
+Design-values preamble
+
+## Fix ladder
+
+Chase every failure to its root cause before writing anything. Diagnosis sits upstream of this ladder: the `diagnosing-bugs` user skill governs the repro/feedback-loop discipline, and this repo's loop recipes live in `doc/Diagnosis_Loop_Cookbook.md`. Then classify it:
+
+**Operating error** — bad input at an untrusted boundary (user, file, network, serialized/inspector data): parse, don't validate. Check once at the boundary, convert to a trusted type, proceed on trust inside. Never a fallback default.
+
+**Programmer error** — our own code or wiring violates an invariant: climb this ladder. Enter it only for an observed failure or an explicit user pull. A speculative finding (review comment about a hypothetical, a "could happen") gets a written reply, not code; a real finding outside the current change's scope gets a deferral (tracker issue + reply), not folded in.
+
+1. **Unrepresentable.** Restructure so the mistake cannot compile or cannot be authored (types, Initialize-injection, sealed construction). Take this rung when the encoding is natural; don't contort the design to reach it.
+2. **Earliest deterministic failure.** Constructor/Initialize throw, `OnValidate`, bootstrap validation — this is the top rung that *exists* for anything the compiler can't see (serialized fields, scene data).
+3. **Cost gate.** If rungs 1–2 exceed the current change's scope, stop — present narrow vs structural with the trade-off and let the user pick fix-now or defer. Never downgrade silently.
+4. **Loud failure at use.** A throw that halts and names the violated invariant. Log-and-continue is not loud — it's a guard wearing a costume.
+5. **Guards** — a check that absorbs a bad state and keeps running: prohibited for programmer errors.
+
+One rung per fix. A structural fix does not also get guards or hypothetical-edge tests; if you believe a fix needs two rungs, that's a budget question — ask.
+
+When proposing any fix, name the root cause and the rung you chose; when narrow and structural diverge, present both.
+
+
+
+## Dependency & wiring philosophy
+
+Follow these when adding any new dependency; prefer zero new wiring over new seams:
+
+1. **Per-ship dependencies enter a component exactly once, through `Initialize(...)` parameters** (see `Scout.Initialize`, `Navigator.Initialize`) — never ad-hoc `Set<Thing>()` setters per feature; a new per-ship dependency extends the Initialize signature.
+2. **Keep knowledge at its abstraction level.** A composer (Scout, AICommander) only instantiates and sequences its parts; domain math and configuration (scan envelopes, cost shapes, query extents) live inside the part that uses them. A field that exists only to be forwarded downward belongs downward.
+3. **Do not thread world/session-scoped state through per-ship wiring** (Commander/UnitService pass-throughs, service-interface additions) just to hand it to a component. How world-scoped state should reach consumers is deliberately open — multiple arena instances per process are planned (RL training), so process-wide statics are equally suspect. Until that design lands: keep any such seam as narrow as possible — a value handed down on the call that needs it (`IUnitService.SpawnShip(…, IObstacleField field)` is the shape: sector-lifetime state passed at spawn, never parked on a session-lifetime object), mark it interim, don't copy it to new systems, and raise the question with the user rather than inventing a pattern.
+4. **The smell to catch mid-diff:** if wiring ONE new dependency touches bootstrap + a service interface + Commander/UnitService + the consuming component, stop and reclassify before pushing.
+5. **Refs bind and observe; signals cause.** A serialized/held reference exists to bind (Initialize-style identity/config injection) or observe (poll state, read a target) — never so one peer can command another at runtime. Runtime causation between peers rides an event / sector-bus token the actee subscribes to; command calls are legitimate only downward (owner→owned, caller→service) or during setup/teardown orchestration. The smell: a ref whose only use is telling its target to *do* something.
+6. **A new caller of a shared resource goes through that resource's coordinator, not around it.** When the coordinator's primitive doesn't fit the new caller, generalize the primitive (pass the specifics in) — do not build a parallel path beside it. Absorbing a second caller into the existing seam is consolidation, not the speculative abstraction scope-conservation cautions against; an approach that keeps knowledge of the shared resource's protocol out of the caller is the win, even when it means touching the shared tool. (Infra-layer sibling of #2, learned when RL drivers `Popen`ed Unity outside the access coordinator and orphaned owner leases.)
+   - **Corollary — outputs that become inputs.** When one tool's output becomes another tool's input (a file a launcher reads back, a path or format a second process depends on), that location/format is a contract the *producer* owns. A consumer that reconstructs where or how the producer wrote — re-deriving a path, re-parsing a layout it didn't author — is building a parallel path beside the owner. Hand the fact down the shared seam (tell the producer the path, or have it emit one) instead of reconstructing it downstream. (Learned when a training-gate design nearly had a Python launcher reconstruct the player's `persistentDataPath` rather than pass the output dir in.)
+
+
+
+solo-developer project; machinery must earn its place; simpler means fewer moving parts, not more elegant abstraction.
+
+Mode A design consult. Review only; do not write files, run commands, acquire worktrees, start editors, or implement changes. Read additional repo files if needed. Return: (1) Verdict on the proposed design against the supplied values, with reasons. (2) At most ONE alternative architecture, only if useful, with trade-offs and migration cost. (3) Mandatory simplification challenge: what can be deleted or collapsed, with fewer moving parts? (4) Passing correctness red flags capped at 3, each tagged observed-mechanism or hypothetical, with a concrete scenario. Cite exact file paths and lines for code claims. Distinguish required corrections from optional architectural preferences. Focus on state ordering, binding, visibility and ownership. Do not change the approved visuals. Return your complete review in the final response.

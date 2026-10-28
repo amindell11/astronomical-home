@@ -1,0 +1,100 @@
+# Design review: compact open berth for extraction
+
+**Verdict:** the overall shape is sound, but three corrections are needed before production code. One of them conflicts with a constraint in the scope, so the owner has to decide it.
+
+I only read files. Nothing was written or run, and the plan file wasn't created because this session has no write tool.
+
+## 1. Verdict against the design values
+
+**Sound as proposed:**
+- **One marker for both icons.** The screen icon and minimap icon read the same pair of values (`SpineState`, `SpineTarget`), so one component observing them is the fewest-parts option. Two components would mean two observers of the same state.
+- **Keeping the text separate.** `ObjectiveStatusReadout` stays the only owner of the status text. That ownership split is clean.
+- **Children of the overlay.** Hiding and fading come for free from `Overlay.SetVisible`/`SetOpacity` (`Overlay.cs:63-75`). No second visibility coordinator is needed.
+- **No new services, statics or commands.** The wiring rules are met.
+
+### Required corrections
+
+**R1 — The premise in item 4 is wrong (scope conflict, owner decides).**
+- Item 4 says `StatusLine` must not change because "gameplay/other consumers own the wording." In fact the only production reader of `CurrentStatusLine` is `ObjectiveStatusReadout.cs:46`. Every other hit is a test: `PhaseSpinePlayModeTests.cs:125`, `CrowdedJumpPlayModeTests.cs:88`, `PhaseSpineModuleEditModeTests.cs:73,78,97`.
+- As written, the readout would need an extraction branch that throws away the state's own text. If the owner keeps "PRESS F TO JUMP", the readout couldn't even tell when the player is in the zone without matching on the string.
+- **Recommendation:** make the one-line change at the source, `ExtractionJumpState.cs:27`:
+  - Keep the hint: `zone.IsPlayerInZone ? "PRESS F TO JUMP" : string.Empty`
+  - Drop the hint: `string.Empty`
+- Then the readout's rule is simply: show the banner during the opening window, otherwise show `CurrentStatusLine` as today. Either way, update the assertion at `PhaseSpineModuleEditModeTests.cs:97`.
+- This is a text change, not a lifecycle change. But it does contradict the scope as written, so it needs the owner's OK.
+
+**R2 — Route dependencies to where they're owned (wiring rule #2).**
+- `PlayerRig.cs:136-137` currently reaches through `Overlay.ObjectiveMarker` and `Overlay.MinimapRect` to give the overlay's own child the overlay's own rect. Item 2 would make that worse by also passing the root Canvas from PlayerRig.
+- **Shape:** in `PlayerRig.Build`, create `minimapCam` inside the overlay block, before binding objectives. Then call `Overlay.BindObjectives(objectives, observer.Cam, minimapCam)`.
+- Overlay passes its own `minimapRect` and `canvases[0]` to the marker. This copies the existing `BindShips(…, observer.Cam)` call at `PlayerRig.cs:130`.
+- The public `ObjectiveMarker` and `MinimapRect` properties are only used at `PlayerRig.cs:136-137`, so delete both.
+- **Failure handling (rung 2):** `BindObjectives` throws if the marker or minimap rect is missing. Build throws if the overlay is built without `minimapCamPrefab`. Today these cases silently degrade (`PlayerRig.cs:133`, `Overlay.cs:122`, `MinimapObjectiveMarker.cs:55`), and those `if (icon)` guards come out.
+- **Unknown:** I haven't checked whether every PlayerRig asset/scene has `minimapCamPrefab` assigned. The new throw would expose any that don't.
+
+**R3 — Use the existing projection recipe.**
+- `ShipStatusIndicator.cs:53-69` already projects world points onto this HUD:
+  - `worldCamera.WorldToScreenPoint`
+  - work in screen pixels
+  - `anchoredPosition = pixel / canvas.scaleFactor`, with anchors at (0,0)
+- For the berth: clamp in pixel space, then divide by the scale factor.
+- Don't copy line 70, which scales by `orthographicSize`. The berth must stay the same size at any zoom.
+- The camera moves in `Update` (`SmoothCamBase.cs:29`), so projecting in `LateUpdate` is correct.
+
+## Settling the open questions
+
+**Q1 — Ownership.** Extending the marker is the narrower option. Renaming it to `UI.Objectives.ObjectiveMarkers` is optional but cheap:
+- The prefab binds by GUID (`UIOverlay.prefab:406`).
+- Code callers are just Overlay, PlayerRig and one test.
+- Keep the serialized field name `icon` so no `FormerlySerializedAs` is needed.
+
+**Q2 — Observation and transition rule.**
+- **Drop the target subscription.** `SetSpineTargetCore` fires synchronously on every change (`ObjectiveService.cs:100-105`), so the cached `target` always equals `objectives.SpineTarget`. Reading the property directly removes the field, the handler, `OnDestroy`, and the subscribe-then-seed step.
+- **Callback order I traced:**
+  - `TransitionTo` assigns `current` *before* `Enter()` (`ObjectiveTracker.cs:76-80`).
+  - PhaseSpineModule's `OpenExtraction` therefore publishes the target while `SpineState` already reads ExtractionChallenge. `OnStepChanged` and then `OnStateChanged` fire after that.
+  - SectorSpineModule publishes its target inside `OnStepChanged` (`SectorSpineModule.cs:95-99`).
+  - CrowdedJumpGateModule installs straight into extraction with its target (`:37-43`), and `OnSpineStateChanged` never fires on install.
+- So anything keyed on `OnSpineStateChanged` misses the preview fixture and binding mid-extraction. Polling both values in `LateUpdate` handles all three modules.
+- **Banner episode rule:** poll, and key each episode on the `SpineTracker` instance:
+  - Extraction is active and the tracker differs from the stored episode tracker → store the tracker and record the open time.
+  - Extraction not active → clear the stored episode.
+- `SetSpineObjective` creates a new tracker every time (`ObjectiveService.cs:32`), so a new sector always counts as a new episode, even if the HUD never saw the null frame in between.
+- Don't key on the target: it adds a second axis, and no module changes the target mid-extraction.
+- **Ambiguity:** I read "a new target during active extraction should produce one opening message" as *at most one*. With the tracker key, a mid-extraction retarget produces no new message. Please confirm that reading.
+
+**Q3 — MaskableGraphic.** It's appropriate.
+- `RecapSectorMarker.cs` is the in-repo precedent.
+- A baked sprite would mean two textures, import settings, and an authoring path the owner would have to maintain.
+- One caveat: changing `Graphic.color` marks the vertices dirty. If anything pulses the way the current marker does (`MinimapObjectiveMarker.cs:66-68`), use `CanvasRenderer.SetAlpha` or scale instead. Otherwise "rebuild only when geometry changes" stops being true.
+
+## 2. Alternative architecture
+
+None proposed. With the corrections above, the design is already about as small as it gets. Any alternative would add parts.
+
+## 3. Simplification challenge
+
+What can be deleted or collapsed:
+- The target subscription, the `target` field, and `OnDestroy` in the marker.
+- `Overlay.ObjectiveMarker` and `Overlay.MinimapRect`. The two presentation blocks in PlayerRig become one.
+- The readout's "extraction → empty text" branch, if R1 is accepted.
+- **Banner placement work.** The readout already sits below the tally (`ObjectiveStatusReadout.cs:21` at -40 vs `RunTallyReadout.cs:26` at -12). The approved opening still shows the banner in exactly that spot, so "place it away from the tally" is already true.
+- **What the proposal leaves out:** the approved still has a dark plate and a mint rule behind the text. That needs one small child group (plate, rule and text under one fading CanvasGroup), shown only during the banner, so normal status lines stay unplated.
+- **Tests:** make the clamp/angle math a pure function over a pixel rect and test it at several view sizes, with no cameras. The editor check then covers the real canvas.
+
+## 4. Correctness red flags
+
+1. **Wrong camera (observed mechanism).** `Overlay.WorldCamera` (`Overlay.cs:34`) is actually the UI camera, set at `PlayerRig.cs:127`. `SectorJumpPresentation.cs:83` correctly uses it for a canvas.
+   - Scenario: someone "hands the markers the world camera" from that property. The berth is projected through the UI camera's prefab framing instead of the observer's zoom, so it drifts off the station and clamps at the wrong distances as zoom changes.
+   - Fix: pass `observer.Cam`.
+2. **Canvas lag (observed mechanism).** `ShipStatusIndicator.cs:68` records that the canvas transform trails the moving camera until after `LateUpdate`.
+   - Scenario: projecting with `RectTransformUtility.ScreenPointToLocalPointInRectangle` against the canvas rect and UI camera while the camera smooths (`SmoothCamBase.cs:52`). The on-screen berth trails the station by a frame of camera motion during flight.
+3. **Destroyed target on exit (observed mechanism).**
+   - `Session.Teardown` destroys the sector without running its teardown (`Session.cs:174`), yields (`:177`), and only then calls `ClearAll` (`:181`).
+   - In that window, `SpineTarget` holds a destroyed Transform while `SpineState` still reads ExtractionChallenge.
+   - Scenario: quitting during extraction. `SpineTarget?.position` or an `is null` check throws `MissingReferenceException` in `LateUpdate`.
+   - Fix: keep Unity's overloaded null check (`!target`), as `MinimapObjectiveMarker.cs:55` does today. This is the expected lifecycle state from item 5, not a guard.
+
+## Other unknowns
+
+- **HUD overlap.** In the approved travel still the edge berth sits under the minimap. The clamp could still land under the minimap or the top-left weapon readout at some angles. I'd check it in the editor before adding any avoidance logic.
+- **Icons on commit.** Committing the jump moves the tracker to Completed in the same tick (`ObjectiveTracker.cs:52-53`), so both icons disappear the moment F is pressed. That's probably what you want, but confirm it in the editor pass.

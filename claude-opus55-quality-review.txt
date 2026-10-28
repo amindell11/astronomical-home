@@ -1,0 +1,54 @@
+I found one correctness issue. Comments and Unity conventions are clean, and everything else stays inside the approved scope. I only read files.
+
+## Finding 1: the minimap berth lags the minimap by one frame of camera motion (correctness)
+
+**Where:** `src/Asteroids3D/Assets/Scripts/UI/Objectives/ObjectiveMarkers.cs:63-70`
+
+**Cause:**
+- The code takes the minimap's world corners (`minimapRect.GetWorldCorners`) and projects them through `canvas.worldCamera` with `RectTransformUtility.WorldToScreenPoint`.
+- The root HUD canvas is Screen Space – Camera (`UIOverlay.prefab:556`), so `canvas.worldCamera` is the UI camera. That camera is a child of the observer (`PlayerRig.cs:124`), which moves in `Update`.
+- In `LateUpdate` the canvas transform hasn't caught up yet. `ShipStatusIndicator.cs:68` already notes this, and the pixel/scaleFactor recipe exists to avoid it.
+- So the corners are still where the canvas was last frame, but they're projected through this frame's camera. `mapBounds` ends up off by one frame of camera travel.
+
+**Effect:**
+- The minimap glyph sits on `mapBounds.center`, so in steady flight it drifts off the minimap toward the trailing side. It snaps back when the ship stops.
+- At ortho size 18 and normal cruise speed that's several pixels against a 13.75-unit glyph.
+- The screen berth's "push below the minimap" check (line 79) reads the same offset `mapBounds`.
+- Still captures can't show this, and the PlayMode test uses a Screen Space – Overlay canvas, so it isn't covered there either.
+
+**Narrow fix (same rung as the existing recipe):**
+- Work out the minimap rect in the canvas's own local space, not through the camera.
+- Map each corner through `((RectTransform)canvas.transform).InverseTransformPoint(corner)` and subtract `canvasRect.rect.min`. The canvas and its children lag together, so this local position is exact even while the camera moves.
+- Do the minimap clamp in canvas units, with `inset` not multiplied by `scaleFactor`. Assign the result straight to `anchoredPosition`.
+- Multiply by `canvas.scaleFactor` only where the bounds are compared against screen pixels for the screen berth (line 79).
+
+## Minor simplification (optional)
+
+**Where:** `ObjectiveMarkers.cs:49`
+
+Change `if (!target) return;` to `if (!extraction && !generic) return;`. `extraction` and `generic` already include the target's null check. Right now any non-showing state with a live target still computes the minimap viewport point every frame and then returns at line 61.
+
+## Comments (touched hunks only)
+
+Nothing to fix. The new code adds no comments and no member summaries. Dropping the removed comment from `ObjectiveStatusReadout` is fine. The PlayerRig and Overlay comments in the touched hunks still match the code. `ObjectiveMarkers` doesn't owe a type summary.
+
+## Unity conventions
+
+Nothing to fix:
+- No lookups outside `Awake`. `Initialize` only assigns, and `AddComponent` there is construction.
+- The destroyed-target path uses the lifetime-aware `!target`.
+- `tracker?.` is fine because `ObjectiveTracker` is a plain C# class.
+- `UI/Objectives/` gives the right namespace, `UI.Objectives`, with one type per file.
+- No `Objectives.`-qualified names in the `UI` namespace are newly shadowed.
+
+## Checked and fine
+
+- **Scope:** the banner is keyed per tracker and gives way to `CurrentStatusLine`. "PRESS F TO JUMP" stays inside the zone; outside it the status line is now empty at the source. The minimap glyph is never rotated. No size growth on arrival, distance label or hazard icon.
+- **Opening direction:** the screen berth's opening faces the viewport centre. The arch is drawn at +y and the rotation is the direction angle minus 90°, so the closed side points at the target.
+- **Rebuild cost:** position, rotation and enable changes don't trigger a mesh rebuild, so the geometry only rebuilds when its size changes.
+- **Visibility:** the berths are children of the root canvas, so `SetVisible`/`SetOpacity` and teardown cover them.
+- **New `minimapCamPrefab` throw:** the only rig, `PlayerRig.prefab:54`, has it assigned.
+
+**Unknowns:**
+- I didn't check whether the observer camera can have a non-full viewport rect. If it can, `worldCamera.pixelRect` and the canvas's pixel space disagree, but `ShipStatusIndicator` already makes the same assumption.
+- Plan mode asked for a plan file and an ExitPlanMode call, but I have no write tool or ExitPlanMode in this session. You asked for read-only anyway, so this message is the review.
