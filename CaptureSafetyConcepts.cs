@@ -13,7 +13,7 @@ public static class CaptureSafetyConcepts
     public static string Main()
     {
         UnityEngine.Object.FindFirstObjectByType<PreviewHost>().StartCoroutine(Capture());
-        return "Capturing both concepts in opening, travel and arrival states.";
+        return "Capturing the compact berth in opening, travel and arrival states.";
     }
 
     private static IEnumerator Capture()
@@ -31,14 +31,14 @@ public static class CaptureSafetyConcepts
         try
         {
             using(capture.PrepareHud1280x720())
-            for(var style=0;style<2;style++)
-            for(var state=0;state<3;state++)
+            for(var style=0;style<1;style++)
+            for(var state=0;state<4;state++)
             {
                 concept.SetValue(view,style);
                 reveal.SetValue(view,state==0?.75f:-1f);
-                service.SpineTarget.position=state==2?new Vector3(8,6,0):new Vector3(138.21f,58.26f,0);
-                observer.Cam.orthographicSize=state==2?60:18;
-                var label=(style==0?"open-berth":"beacon")+"-"+new[]{"opening","travel","arrival"}[state];
+                service.SpineTarget.position=state>=2?new Vector3(8,6,0):new Vector3(138.21f,58.26f,0);
+                observer.Cam.orthographicSize=state==3?60:18;
+                var label="compact-berth-"+new[]{"opening","travel","arrival","arrival-wide"}[state];
                 for(var settle=0;settle<5;settle++) yield return null;
                 using(var recording=capture.Prepare(new CaptureRequest(output,label,File.ReadAllText(output+"/capture-commit.txt").Trim(),1280,720)))
                 {

@@ -1,0 +1,19 @@
+{
+  "issue": 1117,
+  "date": "2026-10-28",
+  "stage": "Revised visual preview before production implementation",
+  "baseCommit": "19f13c291c24dc59c5b547e8c31104dc6b32f7c8",
+  "ownerFeedback": "Open berth is a suitable direction. The minimap reads poorly and the enlarged symbol at the actual gate is too big.",
+  "revision": {
+    "destination": "Same compact icon and scale as the screen direction marker, replacing the enlarged arrival graphic",
+    "minimap": "Upright off-white arch with heavier strokes, one mint centre light and a dark backing; removes the trailing dots and rotation",
+    "text": "Brief Extraction open message, then icons only"
+  },
+  "capture": {
+    "source": "Unity GameViewEpisodeCapture",
+    "dimensions": [1280, 720],
+    "states": ["opening", "travel", "arrival", "arrival-wide"],
+    "cameraOrthographicSize": {"opening": 18, "travel": 18, "arrival": 18, "arrival-wide": 60},
+    "limits": ["Paused playtest with staged extraction target", "Wide view only changes preview framing", "Stills do not verify animation timing", "No production assets or extraction rules changed"]
+  }
+}

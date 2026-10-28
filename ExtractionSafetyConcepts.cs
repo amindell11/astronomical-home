@@ -50,7 +50,7 @@ public sealed class ExtractionSafetyConcepts : MonoBehaviour
         view.world = host.Playtest.GetComponentInChildren<ObserverCam>().Cam;
         view.map = (Camera)typeof(MinimapObjectiveMarker).GetField("minimapCam", flags).GetValue(marker);
         view.Build();
-        return "Open berth and beacon concepts built in the preview only.";
+        return "Compact open berth revision built in the preview only.";
     }
 
     private void Build()
@@ -62,7 +62,8 @@ public sealed class ExtractionSafetyConcepts : MonoBehaviour
             minimapIcons[i] = Root("Minimap "+i,transform);
             arrivals[i] = Root("Arrival "+i,transform);
             Symbol(pointers[i],i,1.1f);
-            Symbol(minimapIcons[i],i,.9f);
+            if(i==0) MinimapBerth(minimapIcons[i]);
+            else Symbol(minimapIcons[i],i,.9f);
             Arrival(arrivals[i],i);
         }
         reveal=Root("Opening message",transform);
@@ -104,8 +105,8 @@ public sealed class ExtractionSafetyConcepts : MonoBehaviour
             pointers[i].anchoredPosition=location;
             pointers[i].localEulerAngles=new Vector3(0,0,heading);
             minimapIcons[i].gameObject.SetActive(i==Concept);
-            minimapIcons[i].anchoredPosition=center+Vector2.ClampMagnitude(delta,radius-24);
-            minimapIcons[i].localEulerAngles=new Vector3(0,0,Mathf.Atan2(delta.y,delta.x)*Mathf.Rad2Deg-90);
+            minimapIcons[i].anchoredPosition=center+Vector2.ClampMagnitude(delta,radius-(i==0?12:24));
+            minimapIcons[i].localEulerAngles=i==0?Vector3.zero:new Vector3(0,0,Mathf.Atan2(delta.y,delta.x)*Mathf.Rad2Deg-90);
             arrivals[i].gameObject.SetActive(i==Concept&&!offscreen);
             arrivals[i].anchoredPosition=projected;
             arrivals[i].localEulerAngles=new Vector3(0,0,heading);
@@ -141,23 +142,16 @@ public sealed class ExtractionSafetyConcepts : MonoBehaviour
 
     private void Arrival(Transform parent,int style)
     {
-        Circle(parent,Vector2.zero,66,new Color(Mint.r,Mint.g,Mint.b,.035f));
-        if(style==0)
-        {
-            Arc(parent,52,-5,185,2.3f,new Color(Ivory.r,Ivory.g,Ivory.b,.85f));
-            Stroke(parent,new Vector2(-51,-4),new Vector2(-47,-27),2.3f,Ivory);
-            Stroke(parent,new Vector2(51,-4),new Vector2(47,-27),2.3f,Ivory);
-            Circle(parent,new Vector2(-47,-28),3,Mint);
-            Circle(parent,new Vector2(47,-28),3,Mint);
-            for(var j=0;j<3;j++) Circle(parent,new Vector2(0,-43-j*12),2.5f-j*.4f,new Color(Mint.r,Mint.g,Mint.b,1-j*.24f));
-        }
-        else
-        {
-            Arc(parent,52,12,168,1.6f,new Color(Ivory.r,Ivory.g,Ivory.b,.75f));
-            Arc(parent,52,205,335,2.2f,Mint);
-            Arc(parent,65,220,320,1.4f,new Color(Mint.r,Mint.g,Mint.b,.44f));
-            Circle(parent,new Vector2(0,62),3,Ivory);
-        }
+        Symbol(parent,style,1.1f);
+    }
+
+    private void MinimapBerth(Transform parent)
+    {
+        Circle(parent,Vector2.zero,11,new Color(.015f,.045f,.065f,.92f));
+        Arc(parent,7,0,180,2.8f,Ivory);
+        Stroke(parent,new Vector2(-7,0),new Vector2(-7,-5),2.8f,Ivory);
+        Stroke(parent,new Vector2(7,0),new Vector2(7,-5),2.8f,Ivory);
+        Circle(parent,new Vector2(0,-3),2.1f,Mint);
     }
 
     private void Circle(Transform parent,Vector2 position,float radius,Color color)
