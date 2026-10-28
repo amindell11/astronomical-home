@@ -478,7 +478,8 @@ function Get-ProcessStartTime {
 function Test-HolderAlive {
     param([int]$HolderProcessId, [object]$RecordedStartTime)
     $process = Get-Process -Id $HolderProcessId -ErrorAction SilentlyContinue
-    if ($null -eq $process) { return $false }
+    # A holder records its own start time, so one this user cannot read belongs to a stranger.
+    if ($null -eq $process -or $null -eq $process.StartTime) { return $false }
     $recorded = [string]$RecordedStartTime
     # Records written before holderStartTime existed carry no identity to check; reading them as
     # live keeps live leases safe across the migration, at the pid-recycling risk they already ran.
