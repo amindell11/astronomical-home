@@ -5,10 +5,15 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Cameras;
+using Combat.Weapons;
+using Combat.Weapons.Arsenal;
+using Combat.Weapons.Mods;
 using Game;
 using Game.Runs;
 using Game.Travel;
 using Objectives;
+using Ships.Command;
+using Ships.Loadout;
 using Substrate.Services.Objectives;
 using UI.Hangar;
 using NUnit.Framework;
@@ -32,8 +37,9 @@ using UnityEngine.UI;
 namespace Tests.PlayMode.Bootstrap
 {
     /// <summary>
-    /// A real host over two sectors checks run records, carried hull and the return to play.
-    /// Graphics cases cover recap timing, death effects, HUD visibility and camera restoration.
+    /// A real host over two sectors checks run records, carried hull, the mid-run weapon swap and the return
+    /// to play. Graphics cases cover recap timing, the weapon pick in hyperspace, death effects, HUD
+    /// visibility and camera restoration.
     /// </summary>
     [Category("Bootstrap")]
     public class MultiSectorRunPlayModeTests : PlayModeWorldFixture
@@ -98,6 +104,34 @@ namespace Tests.PlayMode.Bootstrap
 
             yield return WaitFor(() => InSector("SectorA"), "the next run starts at the first sector");
             Assert.AreEqual(1f, rig.Player.Damage.Health.Pct, 1e-3f, "a new run starts at full hull");
+        }
+
+        [UnityTest]
+        public IEnumerator SwapWeapon_MidRun_KeepsHullShieldAndClocks_AndRehandsTheRunsMods()
+        {
+            PlayerRig rig = null;
+            yield return BootToTheFirstSector(built => rig = built);
+            var railgun = AssetDatabase.LoadAssetAtPath<WeaponComponent>("Assets/Prefabs/Weapons/Railgun.prefab");
+            var hot = AssetDatabase.LoadAssetAtPath<WeaponMod>("Assets/Settings/Weapons/Mods/HotRounds.asset");
+            rig.PickMod(hot);
+            rig.Player.Damage.Health.SetFraction(.4f);
+            rig.Player.Damage.Shield.SetFraction(.3f);
+            var secondary = rig.Player.Weapons.Secondary;
+            var hangarPrimary = rig.Loadout.PrimaryWeapon;
+            var clockBefore = rig.Tally.SecondsSurvived;
+
+            rig.SwapWeapon(WeaponSlot.Primary, railgun);
+
+            Assert.AreSame(railgun, rig.Player.Weapons.PrimaryMountPrefab);
+            Assert.IsInstanceOf<Railguns>(rig.Player.Weapons.Primary);
+            Assert.AreSame(secondary, rig.Player.Weapons.Secondary, "the kept mount keeps its live instance");
+            Assert.AreEqual(1f + hot.Amount, rig.Player.Weapons.Primary.Mods.Factor(WeaponModField.Damage), 1e-5f,
+                "the run's mods ride onto the new mount");
+            Assert.AreEqual(.4f, rig.Player.Damage.Health.Pct, 1e-3f, "no hull refill");
+            Assert.AreEqual(.3f, rig.Player.Damage.Shield.Pct, 1e-3f, "no shield refill");
+            Assert.AreSame(hangarPrimary, rig.Loadout.PrimaryWeapon, "the hangar kit stays for the next run");
+            yield return null;
+            Assert.Greater(rig.Tally.SecondsSurvived, clockBefore, "the run clock runs on");
         }
 
         [UnityTest]
@@ -199,6 +233,45 @@ namespace Tests.PlayMode.Bootstrap
             var record = JsonUtility.FromJson<RunRecord>(File.ReadAllLines(recordPath)[0]);
             Assert.AreEqual(2, record.sectorsCleared);
             yield return host.Shutdown();
+        }
+
+        [UnityTest]
+        [Category("RequiresGraphics")]
+        public IEnumerator JumpTravel_WithAWeaponPool_PicksAfterTheRecap_AndArrivesWithTheSwap()
+        {
+            PlayerRig rig = null;
+            var pool = AssetDatabase.LoadAssetAtPath<ItemSubset>("Assets/Settings/Ships/PlayerLoadout.asset");
+            yield return BootToTheFirstSector(built => rig = built, presentation: true, jumpTravel: true,
+                hangarOffer: pool);
+            rig.Player.Damage.Health.SetFraction(.6f);
+            var secondary = rig.Player.Weapons.SecondaryMountPrefab;
+            var carried = new[] { rig.Player.Weapons.PrimaryMountPrefab, secondary };
+            host.ActiveSector.GetComponent<ExtractOnCueModule>().Extract();
+            yield return WaitFor(() => host.Jump && host.Jump.Holding && hostGo.GetComponentInChildren<RunRecapScreen>(),
+                "the extracted recap appears in hyperspace");
+            var button = hostGo.GetComponentInChildren<RunRecapScreen>().transform.Find("Panels/Recap/Continue")
+                .GetComponent<Button>();
+            yield return WaitFor(button.IsInteractable, "Continue waits for the destination");
+            button.onClick.Invoke();
+
+            yield return WaitFor(() => hostGo.GetComponentInChildren<WeaponPickScreen>(), "the weapon pick follows the recap");
+            var pick = hostGo.GetComponentInChildren<WeaponPickScreen>();
+            Assert.IsTrue(host.Jump.Holding, "arrival waits for the pick");
+            Assert.AreEqual(0f, Time.timeScale);
+            Assert.IsNull(pick.transform.Find("Ships"), "a sector with no wave director names no threat");
+            var offered = pick.transform.Find("Offers/Cards/Card1/Name").GetComponent<Text>().text;
+            pick.ChooseOffer(0);
+            pick.ChooseSlot(WeaponSlot.Primary);
+
+            yield return WaitFor(() => !host.Jump, "the pick resumes arrival");
+            var mounted = rig.Player.Weapons.PrimaryMountPrefab;
+            CollectionAssert.DoesNotContain(carried, mounted, "offers are weapons the player does not carry");
+            CollectionAssert.Contains(pool.weapons, mounted);
+            Assert.AreEqual(offered, mounted.DisplayName.ToUpperInvariant());
+            Assert.AreSame(secondary, rig.Player.Weapons.SecondaryMountPrefab);
+            Assert.AreEqual(.6f, rig.Player.Damage.Health.Pct, .02f, "hull carries across the swap");
+            Assert.AreEqual(1f, Time.timeScale);
+            Assert.IsFalse(hostGo.GetComponentInChildren<WeaponPickScreen>());
         }
 
         [UnityTest]
@@ -353,7 +426,7 @@ namespace Tests.PlayMode.Bootstrap
         }
 
         private IEnumerator BootToTheFirstSector(Action<PlayerRig> onBuilt, bool presentation = false,
-            bool productionJump = false, bool jumpTravel = false)
+            bool productionJump = false, bool jumpTravel = false, ItemSubset hangarOffer = null)
         {
             var config = AssetDatabase.LoadAssetAtPath<SectorSettings>(productionJump
                 ? "Assets/Settings/Game/SurvivalTrialConfig.asset" : SectorConfigPath);
@@ -380,6 +453,7 @@ namespace Tests.PlayMode.Bootstrap
             host.observerCamPrefab = AssetDatabase.LoadAssetAtPath<ObserverCam>(ObserverCamPrefabPath);
             host.recapFeel = AssetDatabase.LoadAssetAtPath<RecapFeelProfile>(RecapFeelPath);
             host.runRecordPath = recordPath;
+            host.hangarOffer = hangarOffer;
             host.buildIdentity = (out BuildIdentity identity, out string failure) =>
             {
                 identity = new BuildIdentity { commit = "test-commit" };

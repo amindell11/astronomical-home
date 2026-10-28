@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using Cameras;
+using Combat.Weapons;
 using Combat.Weapons.Mods;
 using Damage;
 using Substrate.Sectors;
@@ -211,6 +212,20 @@ namespace Game
         {
             Mods.Add(mod);
             if (Player && Player.Weapons) Player.Weapons.SetMods(Mods);
+        }
+
+        /// <summary>
+        /// Mounts a sector-break pick in <paramref name="slot"/> mid-run. Unlike <see cref="ApplyLoadout"/>
+        /// it goes straight to the mounts: hull, shield and the run clocks stay as they are, the hangar's
+        /// pending loadout keeps the next run's kit, and the controller re-hands the run's mods.
+        /// </summary>
+        public void SwapWeapon(WeaponSlot slot, WeaponComponent weapon)
+        {
+            var weapons = Player.Weapons;
+            weapons.Reequip(slot == WeaponSlot.Primary ? weapon : weapons.PrimaryMountPrefab,
+                slot == WeaponSlot.Secondary ? weapon : weapons.SecondaryMountPrefab);
+            units.WireShipDependencies(Player, field: null);
+            RebindHud();
         }
 
         /// <summary>Silences or restores the player's controls while a screen holds the run with the ship live.</summary>
