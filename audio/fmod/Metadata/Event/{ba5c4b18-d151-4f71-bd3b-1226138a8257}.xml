@@ -175,6 +175,9 @@
 		<property name="isCutoff">
 			<value>true</value>
 		</property>
+		<property name="looping">
+			<value>true</value>
+		</property>
 		<relationship name="audioFile">
 			<destination>{31c62c8d-ee5c-43e4-ba3f-e48bb50d23d8}</destination>
 		</relationship>
