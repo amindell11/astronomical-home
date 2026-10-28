@@ -16,11 +16,14 @@ namespace Game.Travel
         private readonly float hudFadeIn;
         private readonly float blurStrength;
         private readonly float blurLength;
-        private readonly AnimationCurve localeBlend;
+        private readonly float blendStart;
+        private readonly float blendEnd;
 
         public float Duration { get; }
 
-        public float LocaleBlendAt(float progress) => Mathf.Clamp01(localeBlend.Evaluate(progress));
+        // SmoothStep is the Hermite of AnimationCurve.EaseInOut's flat-tangent keys.
+        public float LocaleBlendAt(float progress) => progress >= blendEnd ? 1f : progress <= blendStart ? 0f :
+            Mathf.SmoothStep(0f, 1f, (progress - blendStart) / (blendEnd - blendStart));
 
         public SectorJumpSequence(SectorJumpProfile profile)
         {
@@ -39,11 +42,8 @@ namespace Game.Travel
             hudFadeIn = profile.hudFadeIn;
             blurStrength = profile.shipBlurStrength;
             blurLength = profile.shipBlurLength;
-            localeBlend = new AnimationCurve(profile.localeBlend.keys)
-            {
-                preWrapMode = profile.localeBlend.preWrapMode,
-                postWrapMode = profile.localeBlend.postWrapMode
-            };
+            blendStart = profile.localeBlendStart;
+            blendEnd = profile.localeBlendEnd;
 
             for (var index = 0; index <= Segments; index++)
             {
@@ -76,7 +76,7 @@ namespace Game.Travel
                 : SectorJumpProfile.Ease((time - arrival) / hudFadeIn);
             return new SectorJumpState(time, travel, distance / distances[Segments], speed, distance,
                 angle, new Vector2(-Mathf.Sin(direction), Mathf.Cos(direction)),
-                Mathf.Clamp01(localeBlend.Evaluate(travel)), charge, hudAlpha,
+                LocaleBlendAt(travel), charge, hudAlpha,
                 speed * blurStrength, speed * blurLength);
         }
     }

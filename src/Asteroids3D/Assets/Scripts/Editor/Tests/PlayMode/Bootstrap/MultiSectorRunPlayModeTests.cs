@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Cameras;
 using Game;
 using Game.Runs;
@@ -15,6 +16,7 @@ using Substrate;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
 using Substrate.Sessions;
+using Substrate.Services.Locales;
 using Substrate.Services.Units;
 using UI.Recap;
 using UI.Screens;
@@ -22,6 +24,7 @@ using Tests.PlayMode.Common;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 
@@ -197,6 +200,63 @@ namespace Tests.PlayMode.Bootstrap
             yield return host.Shutdown();
         }
 
+        [UnityTest]
+        [Category("RequiresGraphics")]
+        public IEnumerator FailedSectorWithJumpTravel_TakesTheRecapPathWithoutAJump()
+        {
+            PlayerRig rig = null;
+            yield return BootToTheFirstSector(built => rig = built, presentation: true, jumpTravel: true);
+            host.ActiveSector.GetComponent<ExtractOnCueModule>().Fail();
+            Assert.IsNull(host.Jump, "a failed result never starts a jump");
+            Assert.IsTrue(rig.Player.Commander.enabled);
+            yield return WaitFor(() => hostGo.GetComponentInChildren<RunRecapScreen>(), "the sector recap appears");
+            hostGo.GetComponentInChildren<RunRecapScreen>().transform.Find("Panels/Recap/Continue")
+                .GetComponent<Button>().onClick.Invoke();
+            yield return WaitFor(() => InSector("SectorB"), "the next sector loads after the recap");
+            Assert.IsNull(host.Jump);
+        }
+
+        [UnityTest]
+        [Category("RequiresGraphics")]
+        public IEnumerator JumpThatFaultsPartway_ReleasesTheShip_AndShutdownSurfacesTheFault()
+        {
+            PlayerRig rig = null;
+            yield return BootToTheFirstSector(built => rig = built, presentation: true, jumpTravel: true);
+            var destination = templates[1];
+            destination.GetComponent<Sector>().SetManifest(null, null,
+                new SectorModule[] { destination.AddComponent<ThrowingSetupModule>() });
+            var player = rig.Player;
+            var colliders = player.Colliders.Select(collider => collider.enabled).ToArray();
+            LogAssert.Expect(LogType.Exception, new Regex(Regex.Escape(ThrowingSetupModule.Fault.Message)));
+            host.ActiveSector.GetComponent<ExtractOnCueModule>().Extract();
+            Assert.IsNotNull(host.Jump, "extraction commits the jump");
+            ThrowingSetupModule fault = null;
+            yield return WaitFor(() =>
+            {
+                fault = host.ActiveSector ? host.ActiveSector.GetComponent<ThrowingSetupModule>() : null;
+                return fault && fault.Entered;
+            }, "the jump transfers into the destination's setup");
+            Assert.AreEqual(0f, Time.timeScale, "the hyperspace recap holds the clock");
+            Assert.IsTrue(hostGo.GetComponentInChildren<LocaleBackdropPair>(), "the backdrop is built");
+            Assert.IsFalse(player.Commander.enabled, "the jump owns the ship");
+            fault.AllowThrow = true;
+            yield return WaitFor(() => !host.Jump, "the destination setup faults and the jump exits");
+            yield return null;
+            Assert.IsTrue(player.Commander.enabled && player.Movement.enabled);
+            Assert.That(player.Colliders.Select(collider => collider.enabled), Is.EqualTo(colliders));
+            Assert.IsFalse(player.Damage.IsInvulnerable);
+            Assert.AreEqual(1f, Time.timeScale);
+            Assert.IsFalse(hostGo.GetComponentInChildren<LocaleBackdropPair>(), "the backdrop is destroyed");
+            Assert.IsFalse(hostGo.GetComponentInChildren<RunRecapScreen>(), "the hyperspace recap closes");
+            var shutdown = host.Shutdown();
+            Assert.That(Assert.Catch(() => shutdown.MoveNext()), Is.SameAs(ThrowingSetupModule.Fault));
+            // The faulted host never tears its session down, so its locale stays loaded.
+            hostGo.GetComponent<UnitService>().Clear();
+            DestroyTestObject(hostGo);
+            if (SceneManager.GetSceneByName("Locale_3").isLoaded)
+                yield return SceneManager.UnloadSceneAsync("Locale_3");
+        }
+
         private IEnumerator EnterProductionZone(PlayerRig rig)
         {
             var director = host.ActiveSector.GetComponentInChildren<WaveDirector>();
@@ -293,7 +353,7 @@ namespace Tests.PlayMode.Bootstrap
         }
 
         private IEnumerator BootToTheFirstSector(Action<PlayerRig> onBuilt, bool presentation = false,
-            bool productionJump = false)
+            bool productionJump = false, bool jumpTravel = false)
         {
             var config = AssetDatabase.LoadAssetAtPath<SectorSettings>(productionJump
                 ? "Assets/Settings/Game/SurvivalTrialConfig.asset" : SectorConfigPath);
@@ -326,12 +386,13 @@ namespace Tests.PlayMode.Bootstrap
                 failure = null;
                 return true;
             };
-            if (productionJump)
+            if (productionJump || jumpTravel)
             {
                 host.jumpFeel = AssetDatabase.LoadAssetAtPath<SectorJumpProfile>("Assets/Settings/Game/SectorJumpTuning.asset");
                 host.jumpShader = Shader.Find("Astronomical/Travel/SectorJump");
-                host.hangarScreenPrefab = AssetDatabase.LoadAssetAtPath<HangarScreen>("Assets/Prefabs/UI/HangarScreen.prefab");
             }
+            if (productionJump)
+                host.hangarScreenPrefab = AssetDatabase.LoadAssetAtPath<HangarScreen>("Assets/Prefabs/UI/HangarScreen.prefab");
             hostGo.SetActive(true);
             if (productionJump)
             {

@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Runtime.ExceptionServices;
 using Balance;
 using Cameras;
 using Damage;
@@ -21,6 +22,7 @@ using Ships.Registry;
 using Substrate.Services.Units;
 using Substrate.Services.Objectives;
 using Substrate.Services.Locales;
+using Utils.Coroutines;
 
 namespace Game
 {
@@ -30,6 +32,7 @@ namespace Game
     /// Hull carries between sectors. Death frames the explosion while surviving ships keep moving.
     /// Presentation is read once alongside the session's snapshot.
     /// Shutdown finishes the current setup operation, releases input waits, then tears down the owned world.
+    /// A fault anywhere in the run is logged, and Shutdown rethrows it instead of tearing down.
     /// An optional jump profile enables protected travel with extraction UI held in hyperspace.
     /// The hangar, recap and restart stand in for Home Base and player progress.
     /// https://github.com/amindell11/astronomical-home/issues/295#issuecomment-5787867584
@@ -110,6 +113,7 @@ namespace Game
         private bool shutdownComplete;
         private int activeSectorIndex;
         private SectorJumpFlight jump;
+        private ExceptionDispatchInfo fault;
 
         private UnitService unitService;
         private ObjectiveService objectiveService;
@@ -141,7 +145,11 @@ namespace Game
             runRecords = new RunRecordStore(runRecordPath);
 
             DontDestroyOnLoad(gameObject);
-            StartCoroutine(Run());
+            StartCoroutine(CatchingRoutine.Run(Run(), exception =>
+            {
+                fault = ExceptionDispatchInfo.Capture(exception);
+                Debug.LogException(exception, this);
+            }));
         }
 
         private IEnumerator Run()
@@ -211,7 +219,11 @@ namespace Game
         public IEnumerator Shutdown()
         {
             shutdownRequested = true;
-            while (!shutdownComplete) yield return null;
+            while (!shutdownComplete)
+            {
+                fault?.Throw();
+                yield return null;
+            }
         }
 
         private IEnumerator PlayRuns(bool presentation)
@@ -265,22 +277,17 @@ namespace Game
                         hull = rigInstance.Player.Damage.Health.Pct;
                         rigInstance.Spawns.EndSector(sectorEndTime);
                         SetMusic(GameMusic.State.Recap);
-                        if (presentation)
-                        {
-                            var extraction = RecapOutcomeContext.Extraction(
-                                rigInstance.Spawns.KilledShips(currentSector: true), index + 1,
-                                Mathf.Max(0f, sectorEndTime - sectorStartTime));
-                            if (jump)
-                            {
-                                yield return RunJump(extraction, index + 1, hull);
-                                transferred = true;
-                            }
-                            else yield return RunRecap(extraction);
-                        }
                     }
-                    if (shutdownRequested) yield break;
-                    if (!transferred)
+                    if (jump)
                     {
+                        yield return RunJump(ExtractionContext(index, sectorStartTime), index + 1, hull);
+                        transferred = true;
+                    }
+                    else
+                    {
+                        if (rigInstance && presentation)
+                            yield return RunRecap(ExtractionContext(index, sectorStartTime));
+                        if (shutdownRequested) yield break;
                         SetSplashVisible(true);
                         yield return session.UnloadSector();
                     }
@@ -308,10 +315,8 @@ namespace Game
         {
             sectorEndTime = Time.time;
             sectorEnded = true;
-            if (!jumpFeel || !sessionProfile.presentation || !rigInstance ||
+            if (!result.Success || !jumpFeel || !sessionProfile.presentation || !rigInstance ||
                 activeSectorIndex == sessionProfile.sectors.Length - 1) return;
-            if (!result.Success || !result.DepartureHeading.HasValue)
-                throw new InvalidOperationException("Jump-enabled extraction needs a successful result with a departure heading.");
             jump = SectorJumpFlight.Begin(transform, rigInstance, session.Units, observer, jumpFeel,
                 jumpShader, result.DepartureHeading.Value);
         }
@@ -319,46 +324,56 @@ namespace Game
         private IEnumerator RunJump(RecapOutcomeContext context, int destination, float hull)
         {
             LocaleBackdropPair backdrop = null;
-            yield return session.PrepareTravelBackdrop(sessionProfile.sectors[destination].config.Locale.SceneName,
-                transform, pair => backdrop = pair);
-            if (!shutdownRequested)
+            var arrived = false;
+            var exited = false;
+            try
             {
-                jump.BindBackdrop(ui, backdrop);
-                while ((!jump.Holding || jump.State.LocaleBlend < .9f) && !shutdownRequested) yield return null;
+                yield return session.PrepareTravelBackdrop(sessionProfile.sectors[destination].config.Locale.SceneName,
+                    transform, pair => backdrop = pair);
+                if (!shutdownRequested)
+                {
+                    jump.BindBackdrop(ui, backdrop);
+                    while ((!jump.Holding || jump.State.LocaleBlend < .9f) && !shutdownRequested) yield return null;
+                }
+                Coroutine recap = null;
+                var destinationReady = false;
+                if (!shutdownRequested)
+                {
+                    PauseRecapClock();
+                    recap = StartCoroutine(RecapPlayback.RunScreen(new RecapOutcomeSequence(recapFeel, context), ui,
+                        cancelled: () => shutdownRequested || exited,
+                        ready: () => destinationReady && jump.State.LocaleBlend >= 1f,
+                        onContinue: () =>
+                        {
+                            jump.ResumeArrival();
+                            RestoreRecapClock();
+                        }));
+                }
+                if (!shutdownRequested)
+                {
+                    sectorEnded = false;
+                    activeSectorIndex = destination;
+                    rigInstance.Spawns.BeginSector();
+                    yield return session.TransferSector(destination, rigInstance.Player, OnSectorComplete);
+                    rigInstance.Player.Damage.Health.SetFraction(hull);
+                    destinationReady = true;
+                }
+                if (recap != null) yield return recap;
+                if (!shutdownRequested)
+                {
+                    while (!jump.Complete && !shutdownRequested) yield return null;
+                }
+                arrived = !shutdownRequested;
             }
-            Coroutine recap = null;
-            var destinationReady = false;
-            if (!shutdownRequested)
+            finally
             {
-                PauseRecapClock();
-                recap = StartCoroutine(RecapPlayback.RunScreen(new RecapOutcomeSequence(recapFeel, context), ui,
-                    cancelled: () => shutdownRequested,
-                    ready: () => destinationReady && jump.State.LocaleBlend >= 1f,
-                    onContinue: () =>
-                    {
-                        jump.ResumeArrival();
-                        RestoreRecapClock();
-                    }));
+                exited = true;
+                jump.Release(arrived);
+                Destroy(jump.gameObject);
+                jump = null;
+                if (backdrop) Destroy(backdrop.gameObject);
+                RestoreRecapClock();
             }
-            if (!shutdownRequested)
-            {
-                sectorEnded = false;
-                activeSectorIndex = destination;
-                rigInstance.Spawns.BeginSector();
-                yield return session.TransferSector(destination, rigInstance.Player, OnSectorComplete);
-                rigInstance.Player.Damage.Health.SetFraction(hull);
-                destinationReady = true;
-            }
-            if (recap != null) yield return recap;
-            if (!shutdownRequested)
-            {
-                while (!jump.Complete && !shutdownRequested) yield return null;
-            }
-            jump.Release(!shutdownRequested);
-            Destroy(jump.gameObject);
-            jump = null;
-            Destroy(backdrop.gameObject);
-            RestoreRecapClock();
             yield return null;
         }
 
@@ -484,6 +499,10 @@ namespace Game
             if (!shutdownRequested) rig.ApplyLoadout();
             Destroy(screen.gameObject);
         }
+
+        private RecapOutcomeContext ExtractionContext(int index, float sectorStartTime) =>
+            RecapOutcomeContext.Extraction(rigInstance.Spawns.KilledShips(currentSector: true), index + 1,
+                Mathf.Max(0f, sectorEndTime - sectorStartTime));
 
         private RecapOutcomeContext OutcomeContext(Scoreboard board, int index)
         {
