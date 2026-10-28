@@ -33,6 +33,8 @@ namespace Ships.Weapons
         public WeaponComponent Primary { get; private set; }
         public WeaponComponent Secondary { get; private set; }
 
+        public bool EnginesCut => (Primary && Primary.CutsEngines) || (Secondary && Secondary.CutsEngines);
+
         /// <summary>The equipped weapon prefabs (the loadout's weapon modules; see ShipLoadout).</summary>
         public WeaponComponent PrimaryMountPrefab => primaryMount;
         public WeaponComponent SecondaryMountPrefab => secondaryMount;

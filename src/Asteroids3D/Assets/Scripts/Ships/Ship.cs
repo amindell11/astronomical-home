@@ -210,7 +210,7 @@ namespace Ships
             DecisionSeed = decisionSeed;
             this.projectiles = projectiles;
             Resolve();
-            Movement.Initialize(Stats, ()=>KinematicsPoller.Kinematics, Keystone);
+            Movement.Initialize(Stats, ()=>KinematicsPoller.Kinematics, Keystone, Weapons);
             Damage.Initialize(Keystone);
             Damage.OnBlocked += Keystone.NotifyBlocked;
             if (Weapons) Weapons.Fired += Keystone.NotifyFired;
