@@ -58,6 +58,7 @@ namespace Combat.Weapons.Arsenal
         [Stat, SerializeField] private Cooldown cooldown;
 
         public ChargeTime Charge => charge;
+        protected override WeaponCondition[] AuthoredConditions => new WeaponCondition[] { charge, cooldown };
         public float Damage => damage;
         public float BeamRange => range;
         public float BeamRadius => beamRadius;
