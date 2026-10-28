@@ -65,7 +65,7 @@ namespace Combat.Weapons
                 condition.SetMods(mods);
         }
 
-        // Serialized refs, not the Awake lookup, so a prefab asset judges fit as its live mount does.
+        // Serialized refs, not Awake's lookup, so a prefab asset judges fit like its mount.
         protected virtual WeaponCondition[] AuthoredConditions => Array.Empty<WeaponCondition>();
 
         /// <summary>Whether this weapon has the field a mod changes, prefab asset or live mount alike.</summary>

@@ -234,7 +234,7 @@ namespace UI.Screens
             button.onClick.AddListener(() => press());
         }
 
-        // One action per key for both steps; a press that changes the step does not repeat on the new one.
+        // One action per key across both steps, so a step-changing press never repeats.
         private void BindKeys()
         {
             for (var i = 0; i < Keys.Length; i++)

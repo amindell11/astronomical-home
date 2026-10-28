@@ -400,7 +400,7 @@ namespace Game
             yield return null;
         }
 
-        // Runs inside the hyperspace hold, so the clock is stopped and the jump owns the ship's controls.
+        // Inside the hyperspace hold: the clock is already stopped and the jump owns controls.
         private IEnumerator RunWeaponPick(int destination)
         {
             var weapons = rigInstance.Player.Weapons;

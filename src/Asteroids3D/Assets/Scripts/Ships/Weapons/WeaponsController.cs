@@ -53,7 +53,7 @@ namespace Ships.Weapons
             Sensor = FindMountSensor();
         }
 
-        /// <summary>Between-run mount swap (null = empty slot): unchanged slots keep their live instance, changed slots re-instantiate and the context refreshes in place so held references stay valid.</summary>
+        /// <summary>Mount swap (null = empty slot): unchanged slots keep their live instance, changed slots re-instantiate and the context refreshes in place so held references stay valid.</summary>
         public void Reequip(WeaponComponent newPrimary, WeaponComponent newSecondary)
         {
             var changed = false;

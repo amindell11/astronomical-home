@@ -53,7 +53,7 @@ namespace Tests.EditMode.Weapons
                 WeaponModField.Magazine => rounds,
                 WeaponModField.ReloadSpeed => rounds && rounds.ReloadTime > 0f,
                 WeaponModField.ChargeSpeed => weapon.GetComponent<ChargeTime>(),
-                WeaponModField.BlastRadius => weapon is Grenades,
+                WeaponModField.BlastRadius => weapon as Grenades,
                 _ => false,
             };
         }
