@@ -241,13 +241,12 @@ namespace Tests.PlayMode.Bootstrap
             Assert.IsFalse(player.Commander.enabled, "the jump owns the ship");
             fault.AllowThrow = true;
             yield return WaitFor(() => !host.Jump, "the destination setup faults and the jump exits");
-            yield return null;
+            yield return WaitFor(() => !hostGo.GetComponentInChildren<RunRecapScreen>(), "the hyperspace recap closes");
             Assert.IsTrue(player.Commander.enabled && player.Movement.enabled);
             Assert.That(player.Colliders.Select(collider => collider.enabled), Is.EqualTo(colliders));
             Assert.IsFalse(player.Damage.IsInvulnerable);
             Assert.AreEqual(1f, Time.timeScale);
             Assert.IsFalse(hostGo.GetComponentInChildren<LocaleBackdropPair>(), "the backdrop is destroyed");
-            Assert.IsFalse(hostGo.GetComponentInChildren<RunRecapScreen>(), "the hyperspace recap closes");
             var shutdown = host.Shutdown();
             Assert.That(Assert.Catch(() => shutdown.MoveNext()), Is.SameAs(ThrowingSetupModule.Fault));
             // The faulted host never tears its session down, so its locale stays loaded.
