@@ -71,7 +71,7 @@ namespace Tests.EditMode.Travel
         {
             foreach (var knob in new[] { nameof(SectorJumpProfile.localeBlendStart), nameof(SectorJumpProfile.localeBlendEnd) })
             {
-                var range = typeof(SectorJumpProfile).GetField(knob).GetCustomAttribute<RangeAttribute>();
+                var range = typeof(SectorJumpProfile).GetField(knob).GetCustomAttribute<UnityEngine.RangeAttribute>();
                 Assert.That(range.min, Is.Zero, knob);
                 Assert.That(range.max, Is.EqualTo(1f), knob);
             }
