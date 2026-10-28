@@ -10,6 +10,7 @@ using UnityEngine;
 using Substrate;
 using Substrate.Services.Projectiles;
 using Combat.Weapons.Conditions;
+using Combat.Weapons.Mods;
 
 namespace Combat.Weapons
 {
@@ -40,13 +41,56 @@ namespace Combat.Weapons
         
         public event Action OnFire;
 
+        /// <summary>The mods in force on this mount; the authored weapon until a controller hands some down.</summary>
+        public WeaponMods Mods { get; private set; } = WeaponMods.None;
+
         protected virtual void Awake()
-        {            
+        {
             shooter = GetComponentInParent<IShooter>();
             conditions = GetComponents<WeaponCondition>();
             if (!firePoint) firePoint = transform;
             foreach (var condition in conditions)
+            {
                 condition.Initialize(this);
+                condition.SetMods(Mods);
+            }
+        }
+
+        /// <summary>Puts <paramref name="mods"/> in force on this mount and its conditions; pre-Awake they are handed down in Awake.</summary>
+        public void SetMods(WeaponMods mods)
+        {
+            Mods = mods ?? throw new ArgumentNullException(nameof(mods));
+            if (conditions == null) return;
+            foreach (var condition in conditions)
+                condition.SetMods(mods);
+        }
+
+        /// <summary>Whether this weapon has the field a mod changes, judged on the live mount's conditions.</summary>
+        public virtual bool Supports(WeaponModField field) => field switch
+        {
+            WeaponModField.FireRate => Has<Cooldown>(),
+            WeaponModField.Damage => true,
+            WeaponModField.HeatCapacity or WeaponModField.Cooling => Has<Heat>(),
+            WeaponModField.Magazine => Has<Rounds>(),
+            WeaponModField.ReloadSpeed => Reloads(),
+            WeaponModField.ChargeSpeed => Has<ChargeTime>(),
+            _ => false,
+        };
+
+        private bool Reloads()
+        {
+            var rounds = Condition<Rounds>();
+            return rounds && rounds.ReloadTime > 0f;
+        }
+
+        private bool Has<T>() where T : WeaponCondition => Condition<T>();
+
+        private T Condition<T>() where T : WeaponCondition
+        {
+            if (conditions == null) return null;
+            foreach (var condition in conditions)
+                if (condition is T match) return match;
+            return null;
         }
 
         /// <summary>Fires one shot at <paramref name="targetPoint"/>. The live-projectile registry is a per-call capability, never stored — a call site without one in hand cannot compile.</summary>

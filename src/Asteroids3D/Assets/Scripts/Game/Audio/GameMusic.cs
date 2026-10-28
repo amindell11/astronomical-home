@@ -41,12 +41,7 @@ namespace Game.Audio
         /// <summary>Combat, with Phase following the sector's survive phases when it has them.</summary>
         public void EnterSector(Sector sector)
         {
-            phases = null;
-            foreach (var module in sector.Modules)
-            {
-                var spine = module as PhaseSpineModule;
-                if (spine) phases = spine;
-            }
+            phases = sector.Module<PhaseSpineModule>();
             Set(State.Combat);
         }
 

@@ -31,10 +31,16 @@ namespace Combat.Projectiles
         private float radius;
         private int hullLayers;
         private Ships.Registry.ShipId attackerId;
+        private float damageScale = 1f;
+        private float radiusScale = 1f;
 
         public float Radius => radius;
         public float MaxRadius => maxRadius;
         public float MaxDamage => maxDamage;
+
+        // This detonation's reach and centre damage: the authored numbers under the shooter's weapon mods.
+        private float Reach => maxRadius * radiusScale;
+        private float Yield => maxDamage * damageScale;
 
         private void Awake()
         {
@@ -49,10 +55,12 @@ namespace Combat.Projectiles
         /// <summary>Raised just before every pool return (spent frontier or flush), so trackers never hold a stale registration for an alive-but-pooled wave.</summary>
         public event Action Released;
 
-        /// <summary>Starts a sweep from this transform's position, attributing damage to <paramref name="attackerId"/>.</summary>
-        public void Begin(Ships.Registry.ShipId attackerId)
+        /// <summary>Starts a sweep from this transform's position, attributing damage to <paramref name="attackerId"/>, with the shooter's damage and reach multipliers.</summary>
+        public void Begin(Ships.Registry.ShipId attackerId, float damageScale = 1f, float radiusScale = 1f)
         {
             this.attackerId = attackerId;
+            this.damageScale = Mathf.Max(0f, damageScale);
+            this.radiusScale = Mathf.Max(0f, radiusScale);
             radius = 0f;
             resolved.Clear();
             swept.Clear();
@@ -64,7 +72,7 @@ namespace Combat.Projectiles
             radius += expandSpeed * Time.fixedDeltaTime;
             Sweep();
 
-            if (radius >= maxRadius)
+            if (radius >= Reach)
                 ReturnToPoolImmediate();
         }
 
@@ -77,8 +85,8 @@ namespace Combat.Projectiles
 
         private void Sweep()
         {
-            var damageFalloff = Falloff(radius, maxRadius, damageFalloffPower);
-            var impulseFalloff = Falloff(radius, maxRadius, impulseFalloffPower);
+            var damageFalloff = Falloff(radius, Reach, damageFalloffPower);
+            var impulseFalloff = Falloff(radius, Reach, impulseFalloffPower);
 
             // Already-swept inner colliders would crowd a fixed-size result and starve newly reached outer targets — regrow until the query fits.
             var buffer = PhysicsBuffers.GetColliderBuffer(64);
@@ -101,7 +109,7 @@ namespace Combat.Projectiles
                 var hitPoint = buffer[i].ClosestPoint(transform.position);
                 var outward = OutwardDirection(hitPoint, target.gameObject.transform.position);
                 Push(buffer[i].attachedRigidbody, outward, hitPoint, impulseFalloff);
-                target.TakeDamage(new DamageInfo(maxDamage * damageFalloff, DamageKind.ConcussionWave, attackerId,
+                target.TakeDamage(new DamageInfo(Yield * damageFalloff, DamageKind.ConcussionWave, attackerId,
                     waveMass, outward * expandSpeed, hitPoint));
             }
         }

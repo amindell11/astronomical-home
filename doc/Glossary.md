@@ -88,6 +88,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **trainer** | ml-agents trainer runtime (`mlagents-learn`) · owned trainer runtime (takeover arc) · custom-trainer plugin seam · trainer config (`ppo_*.yaml`) · `RLTrainerConfigEditModeTests` | Always qualified. Bare "the trainer" is legal only in RL-run operational context (= the run's trainer-runtime process), never in a title. |
 | **tripwire** | eval tripwire (the scorecard subset watched as a collapse detector) · player-build tripwire (`PlayerBuildTripwireEditModeTests`) | Always qualified. |
 | **module** | deep module (design vocabulary, §2 → *design vocabulary*) · ship module (chassis/module/loadout) · `-ScopeType Module` (test scope) | Qualify: "deep module" / "ship module" / "Module scope". |
+| **mod** | weapon mod (§2 → *weapon mod*) · the colloquial short form of ship module | Always "weapon mod"; a ship module is never shortened to "mod". |
 | **bench** | benchmark run (bench run, bench config, ram-bench harness) · benched work (`bench/<topic>`, §2 → *benched*) | Bare "bench" = benchmark run. Set-aside work is always "benched". |
 | **layer** | sky layer (one drawn backdrop layer — background, far nebula, starfield, close nebula — a child renderer of a locale's `LocaleSky` root) · Unity layer (`LayerIds`; notably `Sky`, the render layer every sky layer sits on, which only the flight and hangar cameras' culling masks include) · starfield depth layer (inside `StarField.shader`) · paint mask (§2 → *Art pipeline*; never "paint layer") | Always qualified: "sky layer" vs "the `Sky` layer". |
 | **charge** | charge-up / spent charge (`ChargeTime`, the `Charge` parameter) · concussion charge (`Grenade`, `IChargeFlight`, the target marker) | Always qualified in prose: "charge-up", "spent charge", "concussion charge". |
@@ -857,6 +858,16 @@ Format: **term** — definition. *(authority)*
   naming key, in order of containment: the hull's own stats / the swappable parts
   / the equipped set / the between-run screen where you change it / an option
   that trades rather than upgrades.
+- **weapon mod** — a run-scoped stat modifier on one field a carried weapon
+  already has (fire rate, damage, heat capacity, cooling, magazine, reload
+  speed, charge speed, blast radius), never a new behaviour. Mods ride the run,
+  not the weapon: a picked mod lands on every carried weapon it fits, stacks
+  with repeats, and one that fits nothing carried stays held and idle. The
+  authored prefab numbers never change, so enemies and the hangar read the
+  weapon unmodded. Not a ship module. *(WeaponMod, WeaponModStack, WeaponMods)*
+- **lull pick** — the time-stopped choice of one weapon mod from up to three,
+  or a skip, on the first frame of a sector phase lull; the lull's own seconds
+  run after it. *(LullPickScreen, GameHost)*
 - **keystone** — the locked ability in a ship's keystone slot, one kit per ship
   (`Keystone`; `Dash` today). Not a ship module: a kit prefab the ship
   instantiates, because a kit keeps per-ship runtime state (its cooldown clock,
