@@ -214,11 +214,7 @@ namespace Game
             if (Player && Player.Weapons) Player.Weapons.SetMods(Mods);
         }
 
-        /// <summary>
-        /// Mounts a sector-break pick in <paramref name="slot"/> mid-run. Unlike <see cref="ApplyLoadout"/>
-        /// it goes straight to the mounts: hull, shield and the run clocks stay as they are, the hangar's
-        /// pending loadout keeps the next run's kit, and the controller re-hands the run's mods.
-        /// </summary>
+        /// <summary>Mounts a sector-break pick mid-run; unlike <see cref="ApplyLoadout"/>, vitals, run clocks and hangar loadout stay.</summary>
         public void SwapWeapon(WeaponSlot slot, WeaponComponent weapon)
         {
             var weapons = Player.Weapons;

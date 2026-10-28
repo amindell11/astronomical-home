@@ -157,7 +157,7 @@ namespace Substrate.Sectors.Elements
 
         internal ItemSubset PoolFor(SectorPhase row) => row.loadouts ? row.loadouts : loadouts;
 
-        /// <summary>The ships this director can send and the weapons they can carry, read off its authored data so a prefab asset answers.</summary>
+        /// <summary>Reads only serialized data, so a prefab asset answers too.</summary>
         public SectorThreat Threat()
         {
             var ships = new List<Ship>();

@@ -23,7 +23,7 @@ namespace Combat.Weapons.Mods
         /// <summary>The held mods that fit <paramref name="weapon"/>, a weapon prefab, for a weapon offer's card.</summary>
         public IReadOnlyList<HeldMod> Using(WeaponComponent weapon) => Held(mod => Fits(mod, weapon));
 
-        /// <summary>The held mods in force now that mounting <paramref name="incoming"/> over <paramref name="replaced"/>, beside <paramref name="kept"/>, would leave idle; all three are prefabs.</summary>
+        /// <summary>The held mods this swap would idle; all three arguments are prefabs, not live mounts.</summary>
         public IReadOnlyList<HeldMod> IdledBy(WeaponComponent replaced, WeaponComponent incoming, WeaponComponent kept) =>
             Held(mod => Fits(mod, replaced) && !Fits(mod, incoming) && !Fits(mod, kept));
 
@@ -59,7 +59,6 @@ namespace Combat.Weapons.Mods
         }
     }
 
-    /// <summary>A held weapon mod and how many times the run picked it.</summary>
     public readonly struct HeldMod
     {
         public WeaponMod Mod { get; }
