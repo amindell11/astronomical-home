@@ -80,16 +80,16 @@ MonoBehaviour:
   team: 1
   phases:
   - seconds: 40
+    interval: 8
+    cap: 1
+    loadouts: {fileID: 0}
+  - seconds: 30
     interval: 6
     cap: 2
     loadouts: {fileID: 0}
-  - seconds: 40
+  - seconds: 20
     interval: 5
     cap: 3
-    loadouts: {fileID: 0}
-  - seconds: 40
-    interval: 4
-    cap: 4
     loadouts: {fileID: 0}
   lullSeconds: 5
   spawnRadius: 55
