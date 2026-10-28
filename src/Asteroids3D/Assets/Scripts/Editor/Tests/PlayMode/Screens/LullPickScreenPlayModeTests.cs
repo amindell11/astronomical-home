@@ -91,6 +91,34 @@ namespace Tests.PlayMode.Screens
         }
 
         [UnityTest]
+        public IEnumerator Click_ACardOrTheSkip_AnswersLikeItsKey()
+        {
+            var offers = new List<WeaponMod>
+            {
+                Mod("a", WeaponModField.Damage, 0.25f),
+                Mod("b", WeaponModField.Damage, 0.25f),
+            };
+            screen = LullPickScreen.Create(root.transform, offers, _ => "Lasers");
+            yield return null;
+
+            var card = screen.transform.Find("Cards/Card2").GetComponent<Button>();
+            Assert.IsNotNull(card, "each card is a button");
+            Assert.IsTrue(card.targetGraphic.raycastTarget, "the card's overlay takes the click");
+            Assert.AreEqual(Navigation.Mode.None, card.navigation.mode, "no gamepad focus to submit a card by accident");
+            card.onClick.Invoke();
+            Assert.AreEqual(1, screen.Choice, "clicking the second card picks it");
+
+            Object.Destroy(screen.gameObject);
+            screen = LullPickScreen.Create(root.transform, offers, _ => "Lasers");
+            yield return null;
+
+            var skip = screen.transform.Find("Skip").GetComponent<Button>();
+            Assert.IsNotNull(skip, "the skip is a button");
+            skip.onClick.Invoke();
+            Assert.AreEqual(LullPickScreen.Skip, screen.Choice, "clicking skip skips");
+        }
+
+        [UnityTest]
         public IEnumerator Choose_Skip_ReadsAsSkip()
         {
             screen = LullPickScreen.Create(root.transform, new List<WeaponMod> { Mod("a", WeaponModField.Damage, 0.25f) },

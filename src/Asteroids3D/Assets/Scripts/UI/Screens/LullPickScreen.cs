@@ -8,9 +8,9 @@ using UnityEngine.UI;
 namespace UI.Screens
 {
     /// <summary>
-    /// The lull pick's uGUI: up to three weapon mod cards keyed 1, 2, 3 and a skip, built at rest and
-    /// answered through <see cref="Choice"/>. It owns only its keys; the host stops the clock, silences
-    /// the player and applies the pick. How it was ruled to read: https://github.com/amindell11/astronomical-home/issues/1211#issuecomment-6464116762
+    /// The lull pick's uGUI: up to three weapon mod cards and a skip, each clickable and keyed (1, 2, 3,
+    /// Space), built at rest and answered through <see cref="Choice"/>. It owns only its keys and buttons;
+    /// the host stops the clock, silences the player and applies the pick. How it was ruled to read: https://github.com/amindell11/astronomical-home/issues/1211#issuecomment-6464116762
     /// </summary>
     public sealed class LullPickScreen : MonoBehaviour
     {
@@ -24,6 +24,7 @@ namespace UI.Screens
         private static readonly Color Gain = new(.56f, .83f, .67f);
         private static readonly Color Backing = new(.047f, .078f, .153f, .9f);
         private static readonly Color Dim = new(.047f, .078f, .153f, .55f);
+        private static readonly Color Hover = new(1f, 1f, 1f, .08f);
         private static readonly string[] Keys = { "<Keyboard>/1", "<Keyboard>/2", "<Keyboard>/3" };
         private static readonly string[] PadButtons =
             { "<Gamepad>/buttonWest", "<Gamepad>/buttonNorth", "<Gamepad>/buttonEast" };
@@ -87,19 +88,22 @@ namespace UI.Screens
             dim.gameObject.AddComponent<Image>().color = Dim;
 
             Label(Centered(transform, "Title", 600f, 48f, 160f), "WEAPON MOD PICK", 40, Paint, TextAnchor.MiddleCenter);
-            Label(Centered(transform, "Hint", 600f, 20f, 122f), "ONE KEY PICKS   ·   SPACE SKIPS", 12, Muted,
+            Label(Centered(transform, "Hint", 600f, 20f, 122f), "CLICK A CARD OR PRESS ITS KEY", 12, Muted,
                 TextAnchor.MiddleCenter);
 
             var count = offers.Count;
             var cards = Centered(transform, "Cards", count * CardWidth + (count - 1) * CardGap, CardHeight, 0f);
             for (var i = 0; i < count; i++)
                 BuildCard(cards, i, offers[i], landing(offers[i]));
+
+            BuildSkip(Centered(transform, "Skip", 216f, 38f, -CardHeight / 2f - 44f));
         }
 
         private void BuildCard(RectTransform cards, int index, WeaponMod mod, string landing)
         {
             var card = Box(cards, $"Card{index + 1}", index * (CardWidth + CardGap), 0f, CardWidth, CardHeight);
             Fill(card, Backing);
+            Clickable(card, index);
             Fill(Box(card, "CornerTop", 0, 0, 17, 1), Line);
             Fill(Box(card, "CornerLeft", 0, 0, 1, 17), Line);
 
@@ -113,6 +117,37 @@ namespace UI.Screens
             Label(Box(card, "Name", 72, 18, 210, 40), mod.DisplayName.ToUpperInvariant(), 18, Ink);
             Label(Box(card, "Effect", 18, 84, 264, 30), mod.Effect.ToUpperInvariant(), 18, Gain);
             Label(Box(card, "Landing", 18, 146, 264, 24), $"ON  {landing.ToUpperInvariant()}", 11, Muted);
+        }
+
+        private void BuildSkip(RectTransform skip)
+        {
+            Clickable(skip, Skip);
+            Fill(Box(skip, "Top", 0, 0, 216, 1), Line);
+            Fill(Box(skip, "Bottom", 0, 37, 216, 1), Line);
+            Fill(Box(skip, "Left", 0, 0, 1, 38), Line);
+            Fill(Box(skip, "Right", 215, 0, 1, 38), Line);
+            Label(Box(skip, "Label", 14, 0, 140, 38), "SKIP", 11, Ink);
+            Label(Box(skip, "Key", 140, 0, 62, 38), "SPACE", 11, Muted, TextAnchor.MiddleRight);
+        }
+
+        // A full-size overlay is the click target and shows only on hover, under the card's text.
+        private void Clickable(RectTransform rect, int choice)
+        {
+            var overlay = Box(rect, "Hover", 0, 0, rect.sizeDelta.x, rect.sizeDelta.y);
+            var image = overlay.gameObject.AddComponent<Image>();
+            image.color = Hover;
+
+            var button = rect.gameObject.AddComponent<Button>();
+            button.targetGraphic = image;
+            button.navigation = new Navigation { mode = Navigation.Mode.None };
+            var colors = button.colors;
+            colors.normalColor = Color.clear;
+            colors.selectedColor = Color.clear;
+            colors.highlightedColor = Color.white;
+            colors.pressedColor = Color.white;
+            colors.fadeDuration = 0f;
+            button.colors = colors;
+            button.onClick.AddListener(() => Choose(choice));
         }
 
         private void BindKeys()
