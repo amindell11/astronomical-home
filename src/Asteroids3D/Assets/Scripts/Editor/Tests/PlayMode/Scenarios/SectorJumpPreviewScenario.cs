@@ -81,10 +81,14 @@ namespace Tests.PlayMode.Scenarios
                     host.Transport.Restart();
                     host.Transport.Playing = false;
                     recording.Start();
-                    var steps = Mathf.CeilToInt(host.jumpFeel.Duration * 50f);
+                    var departure = host.Transport.Length(jump.Span(0));
+                    var length = departure + jump.Span(1).Seconds;
+                    var steps = Mathf.CeilToInt(length * 50f);
                     for (var frame = 0; frame <= steps; frame++)
                     {
-                        host.Transport.Scrub(0, Mathf.Min(frame / 50f, host.jumpFeel.Duration));
+                        var seconds = Mathf.Min(frame / 50f, length);
+                        if (seconds <= departure) host.Transport.Scrub(0, seconds);
+                        else host.Transport.Scrub(1, seconds - departure);
                         yield return null;
                     }
                     yield return null;

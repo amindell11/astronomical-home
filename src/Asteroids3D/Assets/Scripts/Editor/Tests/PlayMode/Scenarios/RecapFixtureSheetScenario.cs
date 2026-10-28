@@ -107,14 +107,11 @@ namespace Tests.PlayMode.Scenarios
             hostGo.SetActive(true);
         }
 
-        // A defeat plays its staged death through before the card, so the card sits over the aftermath.
         private IEnumerator Stage(RecapPreviewSubject recap, int fixture)
         {
             recap.SelectFixture(fixture);
             host.Transport.Scrub(0, 0f);
             for (var frame = 0; frame < 3; frame++) yield return null;
-            if (recap.Context.Outcome != RecapOutcome.Defeat) yield break;
-            yield return WaitFor(() => !recap.Busy, "the staged death's effects finish");
         }
 
         private IEnumerator Film(string still)

@@ -118,7 +118,7 @@ namespace Game.Travel
         public void BindBackdrop(Transform ui, LocaleBackdropPair backdrop)
         {
             presentation = SectorJumpPresentation.Create(ui, ship, rig.Overlay,
-                units.ActiveRegistry.ActiveShips, observer, backdrop, shader, false);
+                units.ActiveRegistry.ActiveShips, observer, backdrop, shader);
             presentation.SetWorldBlend(0f);
         }
 
@@ -145,7 +145,6 @@ namespace Game.Travel
             if (!presentation) elapsed = Mathf.Min(elapsed, departure);
             if (!resumed) held = Mathf.Max(0f, elapsed - passage.HoldStartsAt);
             State = passage.StateAt(elapsed, held);
-            var sequenceTime = elapsed - held;
             var position = ship.Body.position;
             var rotation = GamePlane.Rotation * Quaternion.AngleAxis(State.HeadingDegrees, Vector3.forward);
             ship.transform.SetPositionAndRotation(position, rotation);
@@ -157,9 +156,7 @@ namespace Game.Travel
             foreach (var active in units.ActiveRegistry.ActiveShips)
                 if (active && active.VisualRig) active.VisualRig.SetHudOpacity(State.HudAlpha);
             if (!presentation) return;
-            var blend = SectorJumpProfile.Ease((sequenceTime - departure) / profile.worldBlendDuration) *
-                (1f - SectorJumpProfile.Ease(passage.ExitProgress(elapsed, held)));
-            presentation.SetWorldBlend(blend);
+            presentation.SetWorldBlend(passage.WorldBlendAt(elapsed, held));
             var coast = resumed ? position - arrivalPosition : Vector3.zero;
             presentation.Apply(profile, State, SectorJumpPresentation.StreakSeed, false,
                 Vector3.Lerp(startPosition, arrivalPosition, State.LocaleBlend) + coast);

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Cameras;
 using Damage;
@@ -13,33 +14,29 @@ namespace Game.Preview
 {
     /// <summary>
     /// The run recap as a preview subject: a fixture, or any context a scenario builds, builds the real
-    /// screen at rest, and showing an instant applies that state through the same presenter the game
-    /// uses. A defeat shown from its first span stages the player's death at the context's death
-    /// point, so the explosion is the ship's own; the sequence scrubs, the explosion plays through.
+    /// screen at rest, and showing an instant applies that state the way the game does. Victory and
+    /// defeat go through the game's presenter; extraction plays the card alone, as the jump shows it.
+    /// A defeat shown from its first span stages the player's death at the context's death point, so
+    /// the explosion is the ship's own; the sequence scrubs, the explosion plays through.
     /// </summary>
     public sealed class RecapPreviewSubject : IPreviewSubject
     {
-        private readonly Transform uiRoot;
-        private readonly PlayerRig rig;
-        private readonly IUnitService units;
-        private readonly ObserverCam observer;
+        private readonly Action<RecapFeelProfile> selected;
         private RecapFeelProfile feel;
-        private readonly Action<bool> freezeSimulation;
+        private Transform uiRoot;
+        private PlayerRig rig;
+        private IUnitService units;
+        private ObserverCam observer;
+        private Action<bool> freezeSimulation;
         private RecapOutcomeSequence sequence;
         private RunRecapScreen screen;
         private RecapPresenter presenter;
         private int shownSpan = -1;
 
-        public RecapPreviewSubject(Transform uiRoot, PlayerRig rig, IUnitService units, ObserverCam observer,
-            RecapFeelProfile feel, Action<bool> freezeSimulation)
+        public RecapPreviewSubject(RecapFeelProfile feel, Action<RecapFeelProfile> selected)
         {
-            this.uiRoot = uiRoot;
-            this.rig = rig;
-            this.units = units;
-            this.observer = observer;
             this.feel = feel ? feel : throw new ArgumentNullException(nameof(feel));
-            this.freezeSimulation = freezeSimulation;
-            SelectFixture(0);
+            this.selected = selected;
         }
 
         public string Name => "Run recap";
@@ -51,14 +48,25 @@ namespace Game.Preview
             get => feel;
             set
             {
-                feel = value as RecapFeelProfile;
-                if (!feel) throw new ArgumentException("Run recap requires a RecapFeelProfile.", nameof(value));
+                var next = value as RecapFeelProfile;
+                if (!next) throw new ArgumentException("Run recap requires a RecapFeelProfile.", nameof(value));
+                feel = next;
+                selected(feel);
                 SelectFixture(Fixture);
             }
         }
         public RecapOutcomeContext Context => sequence.Context;
 
-        public bool Busy => false;
+        public IEnumerator Compose(PreviewWorld world)
+        {
+            uiRoot = world.Ui;
+            rig = world.Rig;
+            units = world.Session.Units;
+            observer = world.Observer;
+            freezeSimulation = world.FreezeSimulation;
+            SelectFixture(0);
+            yield break;
+        }
 
         public PreviewSpan Span(int index)
         {
@@ -82,17 +90,19 @@ namespace Game.Preview
             if (!rig.Player.gameObject.activeInHierarchy) units.RespawnShip(rig.Player.Id, PlayerPoint(), 0f);
             sequence = new RecapOutcomeSequence(feel, context);
             screen = RunRecapScreen.Create(uiRoot, context);
-            presenter = new RecapPresenter(context, rig.Overlay, units.ActiveRegistry.ActiveShips, observer);
+            presenter = context.Outcome == RecapOutcome.Extraction ? null
+                : new RecapPresenter(context, rig.Overlay, units.ActiveRegistry.ActiveShips, observer);
             shownSpan = -1;
         }
 
-        public void Show(int span, float seconds)
+        public void Show(int span, float seconds, float holdSeconds)
         {
             if (span == 0 && shownSpan != 0 && sequence.Context.Outcome == RecapOutcome.Defeat) StageDeath();
             shownSpan = span;
             var state = sequence.StateAt(span, seconds);
-            presenter.Apply(state);
             screen.Apply(state);
+            if (presenter == null) return;
+            presenter.Apply(state);
             freezeSimulation(state.SimulationFrozen);
         }
 
