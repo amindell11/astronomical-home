@@ -7,8 +7,8 @@ using Substrate;
 namespace Game.Player
 {
     /// <summary>
-    /// Translates player input into piloting and firing commands, pushed to the injected
-    /// <see cref="IPilot"/>/<see cref="IWeapons"/> actuators. Reads ship situation through the
+    /// Translates player input into piloting, firing and jump commands, pushed to the injected
+    /// <see cref="IPilot"/>/<see cref="IWeapons"/>/<see cref="IJumpDrive"/> actuators. Reads ship situation through the
     /// narrow <see cref="IShipStatus"/> — it never touches the Ship directly.
     /// </summary>
     [DefaultExecutionOrder(-30)]
@@ -17,6 +17,7 @@ namespace Game.Player
         private IShipStatus context;
         private IPilot pilot;
         private IWeapons weapons;
+        private IJumpDrive jump;
         internal PlayerInputReader playerInput;
         private bool hasScreenProjector;
 
@@ -29,6 +30,7 @@ namespace Game.Player
         private void Awake()
         {
             playerInput = new PlayerInputReader(_ => throw new InvalidOperationException("Screen-to-game-plane projector has not been configured."));
+            playerInput.JumpPressed += RequestJump;
         }
 
         public void SetScreenToGamePlane(Func<Vector3, Vector3> screenToGamePlane)
@@ -42,6 +44,7 @@ namespace Game.Player
             context = control.Ship;
             pilot = control.Pilot;
             weapons = control.WeaponActuator;
+            jump = control.Jump;
         }
 
         private float thrustInput;
@@ -75,6 +78,12 @@ namespace Game.Player
                 directionToMouse = (cursorPoint - context.Transform.position).normalized;
                 targetAngle = CalculateYawAngle(directionToMouse);
             }
+        }
+
+        private void RequestJump()
+        {
+            if (context == null) return;
+            jump.RequestJump();
         }
 
         private void OnEnable() => playerInput.Enable();

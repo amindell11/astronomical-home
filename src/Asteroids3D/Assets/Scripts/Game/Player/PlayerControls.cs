@@ -155,6 +155,15 @@ namespace Game.Player
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""Jump"",
+                    ""type"": ""Button"",
+                    ""id"": ""ec9fcdb3-bc5a-4f23-b213-cf494e3d6ce8"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -344,6 +353,17 @@ namespace Game.Player
                     ""action"": ""AimPoint"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""6c2d520a-b025-4cc5-8916-f149e9ef34b0"",
+                    ""path"": ""<Keyboard>/f"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Jump"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -387,6 +407,7 @@ namespace Game.Player
             m_Flight_SecondaryFire = m_Flight.FindAction("SecondaryFire", throwIfNotFound: true);
             m_Flight_HoldHeading = m_Flight.FindAction("HoldHeading", throwIfNotFound: true);
             m_Flight_AimPoint = m_Flight.FindAction("AimPoint", throwIfNotFound: true);
+            m_Flight_Jump = m_Flight.FindAction("Jump", throwIfNotFound: true);
             // Camera
             m_Camera = asset.FindActionMap("Camera", throwIfNotFound: true);
             m_Camera_ToggleLock = m_Camera.FindAction("ToggleLock", throwIfNotFound: true);
@@ -478,6 +499,7 @@ namespace Game.Player
         private readonly InputAction m_Flight_SecondaryFire;
         private readonly InputAction m_Flight_HoldHeading;
         private readonly InputAction m_Flight_AimPoint;
+        private readonly InputAction m_Flight_Jump;
         /// <summary>
         /// Provides access to input actions defined in input action map "Flight".
         /// </summary>
@@ -517,6 +539,10 @@ namespace Game.Player
             /// Provides access to the underlying input action "Flight/AimPoint".
             /// </summary>
             public InputAction @AimPoint => m_Wrapper.m_Flight_AimPoint;
+            /// <summary>
+            /// Provides access to the underlying input action "Flight/Jump".
+            /// </summary>
+            public InputAction @Jump => m_Wrapper.m_Flight_Jump;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -564,6 +590,9 @@ namespace Game.Player
                 @AimPoint.started += instance.OnAimPoint;
                 @AimPoint.performed += instance.OnAimPoint;
                 @AimPoint.canceled += instance.OnAimPoint;
+                @Jump.started += instance.OnJump;
+                @Jump.performed += instance.OnJump;
+                @Jump.canceled += instance.OnJump;
             }
 
             /// <summary>
@@ -596,6 +625,9 @@ namespace Game.Player
                 @AimPoint.started -= instance.OnAimPoint;
                 @AimPoint.performed -= instance.OnAimPoint;
                 @AimPoint.canceled -= instance.OnAimPoint;
+                @Jump.started -= instance.OnJump;
+                @Jump.performed -= instance.OnJump;
+                @Jump.canceled -= instance.OnJump;
             }
 
             /// <summary>
@@ -781,6 +813,13 @@ namespace Game.Player
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnAimPoint(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Jump" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnJump(InputAction.CallbackContext context);
         }
         /// <summary>
         /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Camera" which allows adding and removing callbacks.
