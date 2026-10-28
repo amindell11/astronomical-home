@@ -70,7 +70,7 @@ namespace Game.Preview
             var exitStarts = profile.turnDuration + profile.chargeDuration + profile.travelDuration -
                 profile.worldBlendDuration;
             var coast = motion.ArrivalDistanceAt(seconds - exitStarts);
-            presentation.Apply(profile, State, Fixture == 4 ? 417 : 1099, Fixture == 3,
+            presentation.Apply(profile, State, Fixture == 4 ? 417 : SectorJumpPresentation.StreakSeed, Fixture == 3,
                 origin + new Vector3(State.JumpDirection.x, State.JumpDirection.y, 0f) * coast);
         }
 
