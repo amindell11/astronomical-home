@@ -1,0 +1,23 @@
+{
+  "commit": "74967104227835671c97ea9e5365853950aa21a5",
+  "renderer": "Inkscape 1.4.2 (f4327f4, 2025-05-13)",
+  "result": "Two exports produced identical SHA256 values for all four generated PNGs",
+  "files": [
+    {
+      "file": "circle.png",
+      "sha256": "6DCDB5BC03EA608CC1F6C74A1F5BD12FECB77A8F4D6BBF15CB91633E164A9B98"
+    },
+    {
+      "file": "pointer.png",
+      "sha256": "27381C80879E3778B7CFCDB9E7C3DE724598CD7AE20A4CF43B6325B4B0B05BD7"
+    },
+    {
+      "file": "reload-ring.png",
+      "sha256": "943284E5A416BFA19EB443071810CCD4B05EBBD4C2B53DDCCF77AC9686985DF9"
+    },
+    {
+      "file": "resource-ring.png",
+      "sha256": "7E6DB59BCE14098B0978514A0885E127BFD8EF21482F6C82FF834928DFBD909C"
+    }
+  ]
+}

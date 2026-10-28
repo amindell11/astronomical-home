@@ -1,0 +1,97 @@
+{
+    "generatedAt":  "2026-10-28T13:12:10.7242290-07:00",
+    "projectPath":  "D:\\amind\\git\\agent-1\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "PlayMode",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "scopeResolved":  false,
+                      "testFilter":  "AimCrosshairPlayModeTests|WeaponHudBindingPlayModeTests|ShipStatusOverlayPlayModeTests",
+                      "testCategory":  "",
+                      "excludeCategory":  "RequiresGraphics",
+                      "categoryFilter":  "!RequiresGraphics",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  "",
+                      "auto":  null,
+                      "withGraphics":  false,
+                      "captureScenario":  ""
+                  },
+    "status":  "passed",
+    "totals":  {
+                   "total":  18,
+                   "passed":  18,
+                   "failed":  0,
+                   "skipped":  0,
+                   "durationSec":  2.873
+               },
+    "runs":  [
+                 {
+                     "platform":  "PlayMode",
+                     "xmlPath":  "D:\\amind\\git\\agent-1\\results\\unity-tests-agent\\20261028-131141-PlayMode.xml",
+                     "logPath":  "D:\\amind\\git\\agent-1\\results\\unity-tests-agent\\20261028-131141-PlayMode.log",
+                     "unityExitCode":  0,
+                     "status":  "passed",
+                     "total":  18,
+                     "passed":  18,
+                     "failed":  0,
+                     "skipped":  0,
+                     "durationSec":  2.8729616,
+                     "failures":  [
+
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "captureScenario":  "",
+                                       "auto":  null,
+                                       "scopeResolved":  false,
+                                       "excludeCategory":  "RequiresGraphics",
+                                       "scopeType":  "Workspace",
+                                       "assemblyNames":  "",
+                                       "rerunFailedFrom":  "",
+                                       "scopeName":  "",
+                                       "orderedTestListFile":  "",
+                                       "testCategory":  "",
+                                       "withGraphics":  false,
+                                       "testFilter":  "AimCrosshairPlayModeTests|WeaponHudBindingPlayModeTests|ShipStatusOverlayPlayModeTests",
+                                       "categoryFilter":  "!RequiresGraphics"
+                                   },
+                     "startedAt":  "2026-10-28 20:12:00Z",
+                     "finishedAt":  "2026-10-28 20:12:03Z"
+                 }
+             ],
+    "wallTiming":  {
+                       "elapsedSec":  29.16,
+                       "startupToFirstTestSec":  16.469,
+                       "executionSec":  3,
+                       "remainingSec":  9.691,
+                       "unavailableReason":  ""
+                   },
+    "coverage":  {
+                     "verdict":  "partial",
+                     "reason":  "mode=PlayMode"
+                 },
+    "memory":  {
+                   "processes":  [
+                                     {
+                                         "pid":  37196,
+                                         "rootPeakPrivateGB":  2.83,
+                                         "rootPeakWorkingSetGB":  2.688,
+                                         "treePeakSampledPrivateGB":  2.338,
+                                         "treePeakSampledWorkingSetGB":  2.318,
+                                         "treeSumOfPeaksPrivateGB":  2.997,
+                                         "commitHeadroomAtLaunchGB":  32.26,
+                                         "commitHeadroomMinGB":  30.02,
+                                         "availablePhysicalAtLaunchGB":  11.21,
+                                         "availablePhysicalMinGB":  9.12,
+                                         "bootLaneReleasedAtSec":  4.641,
+                                         "treePeakAtSec":  17.805,
+                                         "samples":  5,
+                                         "samplesFailed":  0,
+                                         "unavailableReason":  ""
+                                     }
+                                 ],
+                   "unavailableReason":  ""
+               }
+}
