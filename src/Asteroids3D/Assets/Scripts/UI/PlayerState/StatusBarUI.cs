@@ -7,10 +7,17 @@ namespace UI.PlayerState
     [RequireComponent(typeof(CanvasRenderer))]
     public sealed class StatusBarUI : MaskableGraphic
     {
+        private const float LowThreshold = .25f;
+        private const float LowPulsePeriod = 1.4f;
+
         private Resource source;
         private Text label;
+        private bool pulsesWhenLow;
+        private bool pulsing;
+        private float pulseTime;
 
-        public static StatusBarUI Create(Transform parent, Resource resource, Font font, Color tint, float y)
+        public static StatusBarUI Create(Transform parent, Resource resource, Font font, Color tint, float y,
+            bool pulsesWhenLow = false)
         {
             var bar = new GameObject("Status bar", typeof(RectTransform)).AddComponent<StatusBarUI>();
             bar.gameObject.layer = parent.gameObject.layer;
@@ -20,6 +27,7 @@ namespace UI.PlayerState
             bar.color = tint;
             bar.raycastTarget = false;
             bar.source = resource;
+            bar.pulsesWhenLow = pulsesWhenLow;
 
             bar.label = new GameObject("Current / capacity", typeof(RectTransform)).AddComponent<Text>();
             bar.label.gameObject.layer = parent.gameObject.layer;
@@ -56,6 +64,15 @@ namespace UI.PlayerState
             base.OnDisable();
         }
 
+        private void Update()
+        {
+            var low = pulsesWhenLow && source.Pct > 0f && source.Pct <= LowThreshold;
+            if (!low && !pulsing) return;
+            pulsing = low;
+            pulseTime = low ? pulseTime + Time.deltaTime : 0f;
+            SetVerticesDirty();
+        }
+
         private void OnResourceChanged(float current, float previous, float max) => Refresh();
 
         private void Refresh()
@@ -70,7 +87,13 @@ namespace UI.PlayerState
             if (source == null) return;
             Quad(mesh, -41f, 41f, 5f, new Color(.02f, .04f, .08f, .92f));
             Quad(mesh, -40f, 40f, 4f, new Color(.1f, .18f, .24f, 1f));
-            Quad(mesh, -40f, -40f + 80f * source.Pct, 4f, color);
+            var fill = color;
+            if (pulsing)
+            {
+                var pulse = (1f - Mathf.Cos(2f * Mathf.PI * pulseTime / LowPulsePeriod)) * .5f;
+                fill = Color.Lerp(new Color(.73f, .24f, .26f, color.a), new Color(.98f, .41f, .41f, color.a), pulse);
+            }
+            Quad(mesh, -40f, -40f + 80f * source.Pct, 4f, fill);
             for (var unit = 25; unit < source.MaxValue; unit += 25)
             {
                 var x = -40f + 80f * unit / source.MaxValue;

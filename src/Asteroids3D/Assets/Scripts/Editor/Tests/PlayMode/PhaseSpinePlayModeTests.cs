@@ -13,6 +13,7 @@ using Substrate.Services;
 using Substrate.Services.Objectives;
 using Substrate.Services.Units;
 using Tests.PlayMode.Common;
+using Tests.PlayMode.Common.SimulatedInput;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.InputSystem;
@@ -29,7 +30,7 @@ namespace Tests.PlayMode
 
         private UnitService _unitService;
         private ObjectiveService _objectives;
-        private InputTestFixture input;
+        private PlayModeInputTestFixture input;
         private Keyboard keyboard;
         private readonly List<GameObject> _created = new();
 
@@ -37,7 +38,7 @@ namespace Tests.PlayMode
         public override void SetUp()
         {
             base.SetUp();
-            input = new InputTestFixture();
+            input = new PlayModeInputTestFixture();
             input.Setup();
             keyboard = InputSystem.AddDevice<Keyboard>();
 

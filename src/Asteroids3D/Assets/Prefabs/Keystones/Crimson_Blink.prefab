@@ -45,7 +45,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 15df601d192d4f47b36fd5859055e811, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cooldown: 6
+  cooldown: 4
   range: 12
   sightMinimum: 6
 --- !u!114 &3361187402269917645
