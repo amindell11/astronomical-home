@@ -81,7 +81,6 @@ namespace UI.Screens
             return screen;
         }
 
-        /// <summary>Opens the mount step for an offer; ignored once answered or already on the mount step.</summary>
         public void ChooseOffer(int index)
         {
             if (index < 0 || index >= offers.Count)
@@ -92,7 +91,6 @@ namespace UI.Screens
             offerStep.gameObject.SetActive(false);
         }
 
-        /// <summary>Answers the screen with the open offer over <paramref name="slot"/>; the first answer stands.</summary>
         public void ChooseSlot(WeaponSlot slot)
         {
             if (Choice.HasValue || !offered.HasValue) return;
@@ -100,7 +98,6 @@ namespace UI.Screens
             Choice = offered;
         }
 
-        /// <summary>Space: skips the pick on the offer step, returns to the offers on the mount step.</summary>
         public void SkipOrBack()
         {
             if (Choice.HasValue) return;
