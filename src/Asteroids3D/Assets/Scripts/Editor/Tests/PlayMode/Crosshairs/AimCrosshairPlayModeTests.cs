@@ -210,7 +210,7 @@ namespace Tests.PlayMode.Crosshairs
                 Assert.That(decoded.GetPixel(128, 172).a, Is.GreaterThan(.9f));
                 decoded.LoadImage(System.IO.File.ReadAllBytes(AssetDatabase.GetAssetPath(pointer)));
                 Assert.That(decoded.GetPixel(128, 110).a, Is.GreaterThan(.9f));
-                Assert.That(decoded.GetPixel(128, 145).a, Is.EqualTo(0f));
+                Assert.That(decoded.GetPixel(128, 128).a, Is.EqualTo(0f));
             }
             finally { Object.DestroyImmediate(decoded); }
 #endif
