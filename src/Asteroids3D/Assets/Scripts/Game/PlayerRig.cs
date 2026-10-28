@@ -119,6 +119,8 @@ namespace Game
             // HUD/UI-cam/minimap are presentation: a headless/RL run builds no Canvas.
             if (presentationEnabled && observer && overlayPrefab && uiCamPrefab)
             {
+                if (!minimapCamPrefab)
+                    throw new InvalidOperationException($"PlayerRig on '{name}' needs a minimap camera for its HUD.");
                 var uiCam = Instantiate(uiCamPrefab, observer.transform);
                 uiCam.GetUniversalAdditionalCameraData().renderType = CameraRenderType.Overlay;
                 observer.Cam.GetUniversalAdditionalCameraData().cameraStack.Add(uiCam);
@@ -126,15 +128,9 @@ namespace Game
                 Overlay = Instantiate(overlayPrefab, uiRoot);
                 Overlay.SetCanvasWorldCamera(uiCam);
                 Overlay.Initialize(BuildHudBinding());
-                Overlay.BindObjectives(objectives);
-                Overlay.BindShips(units.ActiveRegistry.ActiveShips, observer.Cam);
-            }
-
-            if (presentationEnabled && observer && minimapCamPrefab)
-            {
                 var minimapCam = Instantiate(minimapCamPrefab, observer.transform);
-                if (Overlay && Overlay.ObjectiveMarker && Overlay.MinimapRect)
-                    Overlay.ObjectiveMarker.Initialize(minimapCam, Overlay.MinimapRect);
+                Overlay.BindObjectives(objectives, observer.Cam, minimapCam);
+                Overlay.BindShips(units.ActiveRegistry.ActiveShips, observer.Cam);
             }
 
             Park();
