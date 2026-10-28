@@ -235,6 +235,8 @@ namespace Tests.PlayMode
 #endif
 
             var enemy = CreateTarget(ship.transform.position + Vector3.up * 6f);
+            Assert.AreEqual(5.5f, Vector3.Distance(mounted.FireOrigin, mounted.FirstStrikePoint()), 0.01f,
+                "The aim line also passes its own hull, to the enemy's near face.");
 
             mounted.Charge.Configure(chargeTime: Time.fixedDeltaTime, minChargeToFire: 1f);
             mounted.HandleTrigger(new WeaponCommand { pressed = false, held = true }, Projectiles);
