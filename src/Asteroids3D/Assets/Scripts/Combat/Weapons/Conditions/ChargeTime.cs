@@ -1,6 +1,7 @@
 using Balance;
 using System;
 using Combat.Weapons;
+using Combat.Weapons.Mods;
 using UnityEngine;
 
 namespace Combat.Weapons.Conditions
@@ -46,7 +47,7 @@ namespace Combat.Weapons.Conditions
 
         public float SpentCharge { get; private set; }
 
-        public float FullChargeTime => chargeTime;
+        public float FullChargeTime => mods.Apply(WeaponModField.ChargeSpeed, chargeTime);
 
         /// <summary>
         /// Advances the charge by one trigger step of <paramref name="dt"/> seconds and returns
@@ -59,7 +60,7 @@ namespace Combat.Weapons.Conditions
 
             if (held)
             {
-                SetCharge(FullAfterHeldStep(dt) ? 1f : ChargePct + dt / chargeTime);
+                SetCharge(FullAfterHeldStep(dt) ? 1f : ChargePct + dt / FullChargeTime);
                 return ChargePct >= 1f;
             }
 
@@ -72,14 +73,15 @@ namespace Combat.Weapons.Conditions
             return false;
         }
 
-        public bool FullAfterHeldStep(float dt) => ChargePct + dt / chargeTime >= 1f - HalfStep / chargeTime;
+        public bool FullAfterHeldStep(float dt) =>
+            ChargePct + dt / FullChargeTime >= 1f - HalfStep / FullChargeTime;
 
         public override bool CanFire()
         {
             return AtMinimum;
         }
 
-        private bool AtMinimum => ChargePct >= minChargeToFire - HalfStep / chargeTime;
+        private bool AtMinimum => ChargePct >= minChargeToFire - HalfStep / FullChargeTime;
 
         public override void ProcessFire()
         {

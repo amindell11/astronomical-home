@@ -3,6 +3,7 @@ using System.Collections;
 using System.IO;
 using System.Runtime.ExceptionServices;
 using Cameras;
+using Combat.Weapons.Mods;
 using Game.Runs;
 using Game.Travel;
 using Ships;
@@ -41,6 +42,7 @@ namespace Game.Preview
         [SerializeField] internal RecapFeelProfile recapFeel;
         [SerializeField] internal SectorJumpProfile jumpFeel;
         [SerializeField] internal Shader jumpShader;
+        [SerializeField] internal WeaponModPool lullMods;
         [SerializeField] internal PreviewSubjectKind subjectKind;
         [SerializeField] internal PreviewMode mode;
         [SerializeField] internal PreviewPlaytestSetup playtestSetup;
@@ -133,6 +135,7 @@ namespace Game.Preview
             playtest.playerRig = playerRigPrefab;
             playtest.observerCamPrefab = observerCamPrefab;
             playtest.recapFeel = recapFeel;
+            playtest.lullMods = lullMods;
             if (playtestSetup == PreviewPlaytestSetup.CrowdedJumpGate)
             {
                 playtest.jumpFeel = jumpFeel;

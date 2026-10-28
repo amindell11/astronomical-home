@@ -218,7 +218,7 @@ namespace Combat.Projectiles
             {
                 if (!DamageableColliders.TryGet(buffer[i], out var obj) || obj == directHitTarget || IsFriendly(obj)) continue;
 
-                obj.TakeDamage(new DamageInfo(splashDamage, DamageKind.Missile, attackerId,
+                obj.TakeDamage(new DamageInfo(splashDamage * DamageScale, DamageKind.Missile, attackerId,
                     mass, velocity, buffer[i].ClosestPoint(transform.position)));
             }
         }

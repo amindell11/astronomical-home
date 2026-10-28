@@ -48,6 +48,17 @@ namespace Substrate.Sectors
         /// <summary>Baked module manifest (read-only view for editor/tests).</summary>
         public IReadOnlyList<SectorModule> Modules => modules;
 
+        /// <summary>The sector's module of type <typeparamref name="T"/>, or null when it carries none.</summary>
+        public T Module<T>() where T : SectorModule
+        {
+            foreach (var module in modules)
+            {
+                var match = module as T;
+                if (match) return match;
+            }
+            return null;
+        }
+
         /// <summary>The baked obstacle field AI ships spawned into this sector sense; null for a sector without rocks.</summary>
         public AI.Scanning.IObstacleField ObstacleField => obstacleField ? obstacleField : null;
 
