@@ -46,7 +46,8 @@ namespace Loot
             var rounds = 0;
             foreach (var pick in picks)
             {
-                if (pick is not WeaponMod mod || !mod.Fits(mount, prefab)) continue;
+                var mod = pick as WeaponMod;
+                if (!mod || !mod.Fits(mount, prefab)) continue;
                 any = true;
                 if (mod.Field == WeaponModField.Magazine) rounds += mod.Rounds;
                 else bonus[(int)mod.Field] += mod.Amount;
@@ -61,7 +62,8 @@ namespace Loot
             var bonus = new float[ShipModFields.Count];
             foreach (var pick in picks)
             {
-                if (pick is not ShipMod mod) continue;
+                var mod = pick as ShipMod;
+                if (!mod) continue;
                 any = true;
                 bonus[(int)mod.Field] += mod.Amount;
             }
@@ -75,7 +77,8 @@ namespace Loot
             var held = new List<HeldMod>();
             foreach (var pick in picks)
             {
-                if (pick is not WeaponMod mod || !include(mod)) continue;
+                var mod = pick as WeaponMod;
+                if (!mod || !include(mod)) continue;
                 var index = held.FindIndex(entry => entry.Mod == mod);
                 if (index < 0) held.Add(new HeldMod(mod, 1));
                 else held[index] = new HeldMod(mod, held[index].Count + 1);
