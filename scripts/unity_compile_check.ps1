@@ -126,6 +126,13 @@ function Invoke-Refresh {
     Save-Snapshot $ProjectPath $StateDir $asmdefs $fingerprint
 }
 
+# MSBuild counts imported project files as compile inputs, so rewriting identical content recompiles everything.
+function Write-FileIfChanged {
+    param([string]$Path, [string]$Content)
+    if ((Test-Path -LiteralPath $Path -PathType Leaf) -and [System.IO.File]::ReadAllText($Path) -ceq $Content) { return }
+    [System.IO.File]::WriteAllText($Path, $Content, (New-Object System.Text.UTF8Encoding($false)))
+}
+
 function Write-BuildFiles {
     param([string]$StateDir, [string]$SnapshotDir, [object[]]$Asmdefs)
     $groups = foreach ($asmdef in $Asmdefs) {
@@ -138,20 +145,19 @@ function Write-BuildFiles {
         "  </ItemGroup>"
     }
     $targets = Join-Path $StateDir "compile-check.targets"
-    $utf8 = New-Object System.Text.UTF8Encoding($false)
-    [System.IO.File]::WriteAllText($targets, "<Project>`n$($groups -join "`n")`n</Project>`n", $utf8)
+    Write-FileIfChanged $targets "<Project>`n$($groups -join "`n")`n</Project>`n"
 
-    $projects = ($Asmdefs | ForEach-Object { Join-Path $SnapshotDir "$($_.name).csproj" }) -join ';'
-    $properties = "CustomAfterMicrosoftCommonTargets=$targets;OutputPath=$StateDir\bin\;BaseIntermediateOutputPath=$StateDir\obj\;IntermediateOutputPath=$StateDir\obj\"
+    $projects = [System.Security.SecurityElement]::Escape(($Asmdefs | ForEach-Object { Join-Path $SnapshotDir "$($_.name).csproj" }) -join ';')
+    $properties = [System.Security.SecurityElement]::Escape("CustomAfterMicrosoftCommonTargets=$targets;OutputPath=$StateDir\bin\;BaseIntermediateOutputPath=$StateDir\obj\;IntermediateOutputPath=$StateDir\obj\")
     $proj = Join-Path $StateDir "compile-check.proj"
-    $escape = [System.Security.SecurityElement]::Escape
-    [System.IO.File]::WriteAllText($proj, @"
+    Write-FileIfChanged $proj @"
 <Project DefaultTargets="Build">
   <Target Name="Build">
-    <MSBuild Projects="$($escape.Invoke($projects))" Properties="$($escape.Invoke($properties))" BuildInParallel="true" />
+    <MSBuild Projects="$projects" Properties="$properties" BuildInParallel="true" />
   </Target>
 </Project>
-"@, $utf8)
+
+"@
     return $proj
 }
 
