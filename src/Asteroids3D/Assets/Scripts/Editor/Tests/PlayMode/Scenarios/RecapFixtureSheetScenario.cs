@@ -5,7 +5,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Cameras;
 using Capture;
 using Capture.Recording;
 using Game;
@@ -16,7 +15,6 @@ using Substrate.Sectors;
 using Substrate.Sessions;
 using Tests.PlayMode.Common;
 using Tests.PlayMode.Recording;
-using UI.Recap;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -31,11 +29,9 @@ namespace Tests.PlayMode.Scenarios
     /// </summary>
     public sealed class RecapFixtureSheetScenario : CaptureScenario
     {
-        private const string RigPrefabPath = "Assets/Prefabs/MiscObjects/PlayerRig.prefab";
-        private const string ObserverCamPrefabPath = "Assets/Prefabs/Cameras/Main Camera.prefab";
+        private const string GameHostPath = "Assets/Prefabs/Game/GameHost.prefab";
         private const string SectorPrefabPath = "Assets/Prefabs/Sectors/TrialSector.prefab";
         private const string SectorConfigPath = "Assets/Settings/Game/SurvivalTrialConfig.asset";
-        private const string FeelPath = "Assets/Settings/UI/RecapFeel.asset";
         private const string PanelTitle = "Preview Host";
         private static readonly (int width, int height)[] Sizes = { (1280, 720), (1680, 720) };
         private static readonly int[] BannerFixtures = { 2, 8 };
@@ -100,10 +96,8 @@ namespace Tests.PlayMode.Scenarios
                 },
                 presentation = true
             };
-            host.playerRigPrefab = AssetDatabase.LoadAssetAtPath<PlayerRig>(RigPrefabPath);
-            host.observerCamPrefab = AssetDatabase.LoadAssetAtPath<ObserverCam>(ObserverCamPrefabPath);
-            host.recapFeel = AssetDatabase.LoadAssetAtPath<RecapFeelProfile>(FeelPath);
-            Assert.IsTrue(host.recapFeel, $"feel profile asset at {FeelPath}");
+            host.gameHostPrefab = AssetDatabase.LoadAssetAtPath<GameHost>(GameHostPath);
+            Assert.IsTrue(host.gameHostPrefab, $"game host prefab at {GameHostPath}");
             hostGo.SetActive(true);
         }
 

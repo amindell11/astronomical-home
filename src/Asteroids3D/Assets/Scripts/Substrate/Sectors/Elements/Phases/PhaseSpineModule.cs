@@ -39,6 +39,9 @@ namespace Substrate.Sectors.Elements.Phases
 
         public SectorPhaseMark Phase => director.Phase;
 
+        /// <summary>What this sector's director can send, readable off the sector prefab before it loads.</summary>
+        public SectorThreat Threat() => director.Threat();
+
         public override IEnumerator Setup(SectorBuildContext ctx)
         {
             if (!director || !extractionZone)

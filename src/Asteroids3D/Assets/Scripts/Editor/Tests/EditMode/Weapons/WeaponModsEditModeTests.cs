@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Combat.Weapons;
 using Combat.Weapons.Mods;
 using NUnit.Framework;
 using UnityEngine;
@@ -90,15 +91,15 @@ namespace Tests.EditMode.Weapons
             foreach (var name in new[] { "a", "b", "c", "d", "e" })
                 pool.Add(Mod(name, WeaponModField.Damage, 0.25f));
 
-            var offer = WeaponModOffers.Draw(pool, mod => mod.name != "c", 3, _ => 0);
+            var offer = LootOffers.Draw(pool, mod => mod.name != "c", 3, _ => 0);
             CollectionAssert.AreEqual(new[] { "a", "b", "d" }, offer.ConvertAll(mod => mod.name),
                 "the unfitting mod is skipped and each draw removes its pick");
 
-            var two = WeaponModOffers.Draw(pool, mod => mod.name is "b" or "e", 3, n => n - 1);
+            var two = LootOffers.Draw(pool, mod => mod.name is "b" or "e", 3, n => n - 1);
             CollectionAssert.AreEquivalent(new[] { "b", "e" }, two.ConvertAll(mod => mod.name),
                 "fewer fitting mods than the count offers what fits");
 
-            Assert.IsEmpty(WeaponModOffers.Draw(pool, _ => false, 3, _ => 0), "nothing fits, nothing offered");
+            Assert.IsEmpty(LootOffers.Draw(pool, _ => false, 3, _ => 0), "nothing fits, nothing offered");
         }
     }
 }

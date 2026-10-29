@@ -4,17 +4,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Cameras;
 using Capture.Recording;
 using Capture.Views;
 using Game;
 using Game.Preview;
-using Game.Travel;
 using NUnit.Framework;
 using Substrate.Sectors;
 using Substrate.Sessions;
 using Tests.PlayMode.Recording;
-using UI.Recap;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -43,11 +40,7 @@ namespace Tests.PlayMode.Scenarios
                 },
                 presentation = true
             };
-            host.playerRigPrefab = AssetDatabase.LoadAssetAtPath<PlayerRig>("Assets/Prefabs/MiscObjects/PlayerRig.prefab");
-            host.observerCamPrefab = AssetDatabase.LoadAssetAtPath<ObserverCam>("Assets/Prefabs/Cameras/Main Camera.prefab");
-            host.recapFeel = AssetDatabase.LoadAssetAtPath<RecapFeelProfile>("Assets/Settings/UI/RecapFeel.asset");
-            host.jumpFeel = AssetDatabase.LoadAssetAtPath<SectorJumpProfile>("Assets/Settings/Game/SectorJumpTuning.asset");
-            host.jumpShader = Shader.Find("Astronomical/Travel/SectorJump");
+            host.gameHostPrefab = AssetDatabase.LoadAssetAtPath<GameHost>("Assets/Prefabs/Game/GameHost.prefab");
             host.subjectKind = PreviewSubjectKind.SectorJump;
             var priorTimeScale = Time.timeScale;
             try

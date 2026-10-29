@@ -868,6 +868,11 @@ Format: **term** — definition. *(authority)*
 - **lull pick** — the time-stopped choice of one weapon mod from up to three,
   or a skip, on the first frame of a sector phase lull; the lull's own seconds
   run after it. *(LullPickScreen, GameHost)*
+- **weapon pick** — the sector-break choice of one weapon the player does not
+  carry, from up to three, or a skip, then the mount it replaces; held in
+  hyperspace after the extraction recap. The swap keeps hull, shield and the run
+  clocks, and the hangar's kit stays the next run's. *(WeaponPickScreen,
+  PlayerRig.SwapWeapon)*
 - **keystone** — the locked ability in a ship's keystone slot, one kit per ship
   (`Keystone`; `Dash` today). Not a ship module: a kit prefab the ship
   instantiates, because a kit keeps per-ship runtime state (its cooldown clock,
