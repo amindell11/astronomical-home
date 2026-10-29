@@ -1,0 +1,44 @@
+{
+  "capture": {
+    "weapon": "Grenades",
+    "commit": "c3a1da4104f97d651e364212cd2281eacc5ea8b4",
+    "FrameDirectory": "D:/amind/git/agent-1/scratch/crosshair/concussion-shared\\frames\\20261029-205128-450-weapon-grenades",
+    "FrameMetadataPath": "D:/amind/git/agent-1/scratch/crosshair/concussion-shared\\frames\\20261029-205128-450-weapon-grenades\\frames.csv",
+    "ProvenancePath": "D:/amind/git/agent-1/scratch/crosshair/concussion-shared\\frames\\20261029-205128-450-weapon-grenades\\provenance.json",
+    "FrameCount": 288,
+    "shotTimes": [
+      0.6608295351473918,
+      1.8208291241496601,
+      2.9808287131519267
+    ],
+    "maxAmmo": 3,
+    "reloadSeconds": 10.0,
+    "refill": "Sequential",
+    "finalAmmo": 3,
+    "finalHeat": -1.0,
+    "finalCharge": -1.0,
+    "legacyAmmoWidgets": 0,
+    "separateReloadWidgets": false,
+    "hudImages": [
+      "Track",
+      "Fill",
+      "Threshold1",
+      "Threshold2"
+    ],
+    "playbackSpeed": 1
+  },
+  "hudTracksSource": true,
+  "observedReturnSecondsAfterFirstVisibleShot": [
+    9.976465199829931,
+    19.957011699263038,
+    29.94505260062358
+  ],
+  "recordedSeconds": 31.93362679988662,
+  "gif": {
+    "file": "concussion-shared.gif",
+    "frames": 288,
+    "durationSeconds": 32.08,
+    "bytes": 29109739,
+    "assembleVerification": "passed"
+  }
+}
