@@ -65,7 +65,10 @@ namespace Combat.Weapons
                 condition.SetMods(mods);
         }
 
-        /// <summary>Whether this weapon has the field a mod changes, judged on the live mount's conditions.</summary>
+        // Serialized refs, not Awake's lookup, so a prefab asset judges fit like its mount.
+        protected virtual WeaponCondition[] AuthoredConditions => Array.Empty<WeaponCondition>();
+
+        /// <summary>Whether this weapon has the field a mod changes, prefab asset or live mount alike.</summary>
         public virtual bool Supports(WeaponModField field) => field switch
         {
             WeaponModField.FireRate => Has<Cooldown>(),
@@ -87,8 +90,7 @@ namespace Combat.Weapons
 
         private T Condition<T>() where T : WeaponCondition
         {
-            if (conditions == null) return null;
-            foreach (var condition in conditions)
+            foreach (var condition in AuthoredConditions)
             {
                 var match = condition as T;
                 if (match) return match;
@@ -115,6 +117,9 @@ namespace Combat.Weapons
         /// <summary>Writes the circles an AI pilot carrying this weapon keeps out of right now; returns how many. None by default.</summary>
         public virtual int KeepOutCircles(Span<DetectedObstacle.PlaneCircle> circles) => 0;
 
+        /// <summary>True while this weapon holds its ship's engines off: no thrust, strafe or keystone, only turning.</summary>
+        public virtual bool CutsEngines => false;
+
         /// <summary>Full-auto repeats while held; semi-auto fires once per press. Only this weapon's <see cref="HandleTrigger"/> interprets it.</summary>
         public virtual bool AutoFire => true;
 
@@ -123,6 +128,15 @@ namespace Combat.Weapons
         {
             if (AutoFire ? cmd.held : cmd.pressed)
                 Fire(cmd.targetPoint, projectiles);
+        }
+
+        public void Reload()
+        {
+            foreach (var condition in conditions)
+            {
+                var rounds = condition as Rounds;
+                if (rounds) rounds.Reload();
+            }
         }
 
         public virtual bool CanFire()

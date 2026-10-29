@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using AI;
 using Combat;
@@ -7,11 +8,13 @@ using Combat.Weapons.Arsenal;
 using Damage;
 using Movement;
 using NUnit.Framework;
+using Ships;
 using Ships.Command;
 using Tests.Common;
 using Tests.PlayMode.Common;
 using Substrate;
 using UnityEngine;
+using UnityEngine.TestTools;
 using Utils;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -21,8 +24,9 @@ namespace Tests.PlayMode
 {
     /// <summary>
     /// Weapons own their trigger semantics: full-auto fires on held, semi-auto on pressed,
-    /// charge weapons accumulate while held and fire on release or at full charge. The AI
-    /// gunner aims each slot with that slot's ballistics — hitscan slots get no intercept lead.
+    /// charge weapons accumulate while held and fire on release or at full charge, and a charging
+    /// railgun cuts its ship's engines. A reload command reloads only its own slot. The AI gunner
+    /// aims each slot with that slot's ballistics — hitscan slots get no intercept lead.
     /// </summary>
     [Category("Weapons")]
     public class WeaponTriggerSemanticsPlayModeTests : PlayModeWorldFixture
@@ -243,6 +247,59 @@ namespace Tests.PlayMode
 
             Assert.AreEqual(0f, ownRecorder.TotalDamage, 0.001f, "Never hit the ship that fired.");
             Assert.AreEqual(45f, enemy.TotalDamage, 0.001f, "Beam continues past its own hull.");
+        }
+
+        [UnityTest]
+        public IEnumerator Railgun_Charging_CutsTheEnginesAndKeystone_ButNotTurning()
+        {
+            var ship = Object.Instantiate(TestAssets.LoadCrimsonPrefab(), Vector3.zero, GamePlane.Rotation);
+            spawned.Add(ship.gameObject);
+            ship.Initialize(0, 0, Projectiles);
+            ship.Reequip(ship.Shield, TestAssets.Load<Railguns>(RailgunPrefabPath), null);
+            var railgun = (Railguns)ship.Weapons.Primary;
+            // Long enough that the charge never fills and fires inside the test.
+            railgun.Charge.Configure(chargeTime: 1f, minChargeToFire: 1f);
+            yield return new WaitForFixedUpdate();
+
+            for (var i = 0; i < 10; i++)
+            {
+                railgun.HandleTrigger(new WeaponCommand { held = true }, Projectiles);
+                ship.Movement.Drive(new PilotCommand { thrust = 1f, strafe = 1f, boost = 1f, yawTorque = 1f });
+                yield return new WaitForFixedUpdate();
+            }
+
+            Assert.Greater(railgun.Charge.ChargePct, 0f, "test premise: still charging");
+            Assert.Less(ship.Rigidbody.linearVelocity.magnitude, 1e-3f, "No thrust or strafe while charging.");
+            Assert.IsTrue(ship.BoostAvailable, "The keystone did not fire while charging.");
+            Assert.Greater(Mathf.Abs(Vector3.Dot(ship.Rigidbody.angularVelocity, GamePlane.Normal)), 0.01f,
+                "Turning still works while charging.");
+
+            railgun.HandleTrigger(new WeaponCommand { held = false }, Projectiles);
+            ship.Movement.Drive(new PilotCommand { thrust = 1f });
+            yield return new WaitForFixedUpdate();
+
+            Assert.Greater(ship.Rigidbody.linearVelocity.magnitude, 1e-3f, "The engines answer once the charge drops.");
+        }
+
+        [Test]
+        public void ReloadCommand_ReloadsOnlyItsSlot()
+        {
+            var ship = Object.Instantiate(TestAssets.LoadCrimsonPrefab(), Vector3.zero, GamePlane.Rotation);
+            spawned.Add(ship.gameObject);
+            ship.Initialize(0, 0, Projectiles);
+            var rippers = TestAssets.Load<Rippers>(RippersPrefabPath);
+            ship.Reequip(ship.Shield, rippers, rippers);
+            var primary = ((Rippers)ship.Weapons.Primary).Rounds;
+            var secondary = ((Rippers)ship.Weapons.Secondary).Rounds;
+            primary.ProcessFire();
+            secondary.ProcessFire();
+
+            ship.Weapons.Arm(Projectiles).Fire(WeaponSlot.Secondary, new WeaponCommand { reload = true });
+
+            Assert.IsTrue(secondary.IsReloading, "The secondary ripper reloads.");
+            Assert.AreEqual(0, secondary.AmmoCount);
+            Assert.IsFalse(primary.IsReloading, "The primary ripper is untouched.");
+            Assert.AreEqual(primary.MaxAmmo - 1, primary.AmmoCount);
         }
 
         private sealed class FakeWeaponContext : IWeaponContext

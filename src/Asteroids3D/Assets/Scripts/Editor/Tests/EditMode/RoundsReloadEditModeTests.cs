@@ -81,6 +81,47 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void Reload_PartialMagazine_DumpsRoundsAndRefillsAfterReloadTime()
+        {
+            rounds.Configure(maxAmmo: 3, reloadTime: 1f);
+            rounds.ProcessFire();
+
+            rounds.Reload();
+
+            Assert.IsTrue(rounds.IsReloading);
+            Assert.AreEqual(0, rounds.AmmoCount, "the rounds left are dumped");
+            Assert.IsFalse(rounds.CanFire());
+
+            rounds.Tick(1.1f);
+            Assert.IsFalse(rounds.IsReloading);
+            Assert.AreEqual(3, rounds.AmmoCount);
+        }
+
+        [Test]
+        public void Reload_FullMagazine_DoesNothing()
+        {
+            rounds.Configure(maxAmmo: 3, reloadTime: 1f);
+
+            rounds.Reload();
+
+            Assert.IsFalse(rounds.IsReloading);
+            Assert.AreEqual(3, rounds.AmmoCount);
+        }
+
+        [Test]
+        public void Reload_PerRoundRefill_DoesNothing()
+        {
+            rounds.Configure(maxAmmo: 3, reloadTime: 1f, Rounds.RefillMode.PerRound);
+            rounds.ProcessFire();
+
+            rounds.Reload();
+
+            Assert.AreEqual(2, rounds.AmmoCount, "per-round refill keeps its rounds");
+            rounds.Tick(1f);
+            Assert.AreEqual(3, rounds.AmmoCount, "the spent round still returns on its own timer");
+        }
+
+        [Test]
         public void Reset_CancelsReloadAndRefills()
         {
             rounds.Configure(maxAmmo: 2, reloadTime: 5f);

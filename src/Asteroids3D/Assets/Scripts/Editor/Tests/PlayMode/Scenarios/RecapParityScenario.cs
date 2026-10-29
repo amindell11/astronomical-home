@@ -33,9 +33,7 @@ namespace Tests.PlayMode.Scenarios
     /// </summary>
     public sealed class RecapParityScenario : CaptureScenario
     {
-        private const string RigPrefabPath = "Assets/Prefabs/MiscObjects/PlayerRig.prefab";
-        private const string ObserverCamPrefabPath = "Assets/Prefabs/Cameras/Main Camera.prefab";
-        private const string FeelPath = "Assets/Settings/UI/RecapFeel.asset";
+        private const string GameHostPath = "Assets/Prefabs/Game/GameHost.prefab";
         private static readonly Vector2 EmptySpace = new(4000f, 4000f);
         private static readonly (int width, int height)[] Sizes = { (1280, 720), (1920, 1080) };
         private const int BannerHoldSpan = 2;
@@ -105,10 +103,10 @@ namespace Tests.PlayMode.Scenarios
                 sectors = new[] { new SectorEntry { prefab = template.GetComponent<Sector>(), config = bareConfig } },
                 presentation = true
             };
-            host.playerRigPrefab = AssetDatabase.LoadAssetAtPath<PlayerRig>(RigPrefabPath);
-            host.observerCamPrefab = AssetDatabase.LoadAssetAtPath<ObserverCam>(ObserverCamPrefabPath);
-            host.recapFeel = AssetDatabase.LoadAssetAtPath<RecapFeelProfile>(FeelPath);
-            Assert.IsTrue(host.recapFeel, $"feel profile asset at {FeelPath}");
+            host.gameHostPrefab = AssetDatabase.LoadAssetAtPath<GameHost>(GameHostPath);
+            Assert.IsTrue(host.gameHostPrefab, $"game host prefab at {GameHostPath}");
+            host.recapFeel = host.gameHostPrefab.recapFeel;
+            host.jumpFeel = host.gameHostPrefab.jumpFeel;
             hostGo.SetActive(true);
         }
 

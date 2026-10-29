@@ -6,6 +6,7 @@ using Combat;
 using Combat.Targeting;
 using Combat.Weapons;
 using Combat.Weapons.Mods;
+using Loot;
 using Movement;
 using Ships.Command;
 using Ships.Loadout;
@@ -34,6 +35,8 @@ namespace Ships.Weapons
         public WeaponComponent Primary { get; private set; }
         public WeaponComponent Secondary { get; private set; }
 
+        public bool EnginesCut => (Primary && Primary.CutsEngines) || (Secondary && Secondary.CutsEngines);
+
         /// <summary>The equipped weapon prefabs (the loadout's weapon modules; see ShipLoadout).</summary>
         public WeaponComponent PrimaryMountPrefab => primaryMount;
         public WeaponComponent SecondaryMountPrefab => secondaryMount;
@@ -44,7 +47,7 @@ namespace Ships.Weapons
         public event Action Fired;
 
         private WeaponContext context;
-        private WeaponModStack mods;
+        private LullModStack mods;
 
         private void Awake()
         {
@@ -53,7 +56,7 @@ namespace Ships.Weapons
             Sensor = FindMountSensor();
         }
 
-        /// <summary>Between-run mount swap (null = empty slot): unchanged slots keep their live instance, changed slots re-instantiate and the context refreshes in place so held references stay valid.</summary>
+        /// <summary>Mount swap (null = empty slot): unchanged slots keep their live instance, changed slots re-instantiate and the context refreshes in place so held references stay valid.</summary>
         public void Reequip(WeaponComponent newPrimary, WeaponComponent newSecondary)
         {
             var changed = false;
@@ -79,8 +82,8 @@ namespace Ships.Weapons
             }
         }
 
-        /// <summary>Puts the run's mods in force on the mounts and keeps them in force across <see cref="Reequip"/>; call again after a pick.</summary>
-        public void SetMods(WeaponModStack stack)
+        /// <summary>Puts the run's weapon mods in force across <see cref="Reequip"/>; the bound ship calls it per change.</summary>
+        public void SetMods(LullModStack stack)
         {
             mods = stack;
             HandMods();
@@ -123,7 +126,9 @@ namespace Ships.Weapons
             {
                 if (!owner || !owner.enabled) return;
                 var mount = owner.Mount(slot);
-                if (mount) mount.HandleTrigger(in cmd, projectiles);
+                if (!mount) return;
+                if (cmd.reload) mount.Reload();
+                mount.HandleTrigger(in cmd, projectiles);
             }
         }
 

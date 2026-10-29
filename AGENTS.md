@@ -25,7 +25,7 @@ the matching doc when its branch fires:
   vault at `doc/design/`, doc lifecycle, tracker usage); tracker label/body/board mechanics:
   `doc/agents/issue-tracker.md`.
 - Memory reads/writes → `doc/agents/memory.md` (feedback notes only; nothing repo-critical).
-- Machine/tooling facts (remote box, editor-analytics churn, pool
+- Machine/tooling facts (remote box, Sentis defines, pool
   capacity, MCP setup) → `doc/agents/environment.md`.
 - Answering "why is it like this" / "was X tried" → the `design-lookup` agent (searches issues + PR bodies, returns cited answers, never the record).
 - Changing a script's outputs, or calling one script from another →

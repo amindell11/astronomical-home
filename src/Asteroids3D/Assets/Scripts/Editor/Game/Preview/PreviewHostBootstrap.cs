@@ -1,9 +1,5 @@
-using Cameras;
-using Combat.Weapons.Mods;
-using Game.Travel;
 using Substrate.Sectors;
 using Substrate.Sessions;
-using UI.Recap;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -11,18 +7,20 @@ using UnityEngine;
 namespace Game.Preview
 {
     /// <summary>
-    /// Builds the preview host with the game's rig and presentation assets in an empty scene.
-    /// Playtest uses normal combat or the two-sector crowded jump fixture.
+    /// Builds the preview host in an empty scene around the game's GameHost prefab, with one trial
+    /// sector for Inspection and the two-sector crowded jump fixture.
     /// The chosen mode is assigned before activation, so Playtest never composes an inspection session.
+    /// The host waits inactive through the play-mode reload; entering play mode activates it on working
+    /// copies of the prefab's feel profiles, so neither mode ever runs on the assets themselves.
     /// </summary>
+    [InitializeOnLoad]
     public static class PreviewHostBootstrap
     {
-        private const string PlayerRigPath = "Assets/Prefabs/MiscObjects/PlayerRig.prefab";
-        private const string ObserverCamPath = "Assets/Prefabs/Cameras/Main Camera.prefab";
+        internal const string GameHostPath = "Assets/Prefabs/Game/GameHost.prefab";
         private const string SectorPrefabPath = "Assets/Prefabs/Sectors/TrialSector.prefab";
         private const string SectorConfigPath = "Assets/Settings/Game/SurvivalTrialConfig.asset";
-        internal const string RecapFeelPath = "Assets/Settings/UI/RecapFeel.asset";
-        internal const string LullModsPath = "Assets/Settings/Weapons/Mods/LullMods.asset";
+
+        static PreviewHostBootstrap() => EditorApplication.playModeStateChanged += ActivateWaitingHost;
 
         /// <summary>False when the user kept an unsaved scene open instead.</summary>
         public static bool EnterPlayMode(PreviewSubjectKind subject = PreviewSubjectKind.RunRecap,
@@ -41,6 +39,7 @@ namespace Game.Preview
             var root = new GameObject("PreviewHost");
             root.SetActive(false);
             var host = root.AddComponent<PreviewHost>();
+            host.gameHostPrefab = AssetDatabase.LoadAssetAtPath<GameHost>(GameHostPath);
             host.sessionProfile = new SessionProfile
             {
                 sectors = new[]
@@ -53,21 +52,25 @@ namespace Game.Preview
                 },
                 presentation = true
             };
-            host.playerRigPrefab = AssetDatabase.LoadAssetAtPath<PlayerRig>(PlayerRigPath);
-            host.observerCamPrefab = AssetDatabase.LoadAssetAtPath<ObserverCam>(ObserverCamPath);
-            host.recapFeel = AssetDatabase.LoadAssetAtPath<RecapFeelProfile>(RecapFeelPath);
-            host.jumpFeel = AssetDatabase.LoadAssetAtPath<SectorJumpProfile>("Assets/Settings/Game/SectorJumpTuning.asset");
-            host.jumpShader = Shader.Find("Astronomical/Travel/SectorJump");
-            host.lullMods = AssetDatabase.LoadAssetAtPath<WeaponModPool>(LullModsPath);
-            host.jumpPlaytestProfile = new SessionProfile
-            {
-                sectors = new[] { JumpEntry("CrowdedJumpDeparture"), JumpEntry("CrowdedJumpArrival") }
-            };
+            host.crowdedJumpSectors = new[] { JumpEntry("CrowdedJumpDeparture"), JumpEntry("CrowdedJumpArrival") };
             host.subjectKind = subject;
             host.mode = mode;
             host.playtestSetup = setup;
-            root.SetActive(true);
             return host;
+        }
+
+        internal static void Activate(PreviewHost host, FeelWorkingCopies copies)
+        {
+            host.recapFeel = copies.For(host.gameHostPrefab.recapFeel);
+            host.jumpFeel = copies.For(host.gameHostPrefab.jumpFeel);
+            host.gameObject.SetActive(true);
+        }
+
+        private static void ActivateWaitingHost(PlayModeStateChange change)
+        {
+            if (change != PlayModeStateChange.EnteredPlayMode) return;
+            var host = Object.FindFirstObjectByType<PreviewHost>(FindObjectsInactive.Include);
+            if (host && !host.gameObject.activeSelf) Activate(host, FeelWorkingCopies.Current);
         }
 
         private static SectorEntry JumpEntry(string name) => new()

@@ -23,6 +23,7 @@ using UI.Screens;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
@@ -295,6 +296,40 @@ namespace Tests.PlayMode.Preview
         }
 
         [UnityTest]
+        public IEnumerator PreloadedDestination_GradesTheWorldOnlyAfterArrival()
+        {
+            BuildPreview();
+            yield return WaitForFlight();
+            var game = host.Playtest;
+            PressJump();
+            var flight = game.Jump;
+            var preloaded = false;
+            var strays = new HashSet<string>();
+            IEnumerator Watch()
+            {
+                while (flight)
+                {
+                    var active = SceneManager.GetActiveScene();
+                    preloaded |= active.name == "Locale_3" && SceneManager.GetSceneByName("Locale_1").isLoaded;
+                    foreach (var volume in Object.FindObjectsByType<Volume>(FindObjectsSortMode.None))
+                        if (volume.enabled && volume.gameObject.scene != active &&
+                            volume.gameObject.scene.name.StartsWith("Locale_"))
+                            strays.Add($"{volume.gameObject.scene.name} while {active.name} is active");
+                    yield return null;
+                }
+            }
+            host.StartCoroutine(Watch());
+            yield return WaitForHold();
+            yield return ClickContinue(game.GetComponentInChildren<RunRecapScreen>());
+            yield return AsyncAssert.WaitUntil(() => !flight, 30f, "travel finishes after Continue");
+            Assert.That(preloaded, Is.True, "test premise: the destination loads before the locale switch");
+            Assert.That(strays, Is.Empty, "only the active locale's volume grades the world");
+            Assert.That(Object.FindObjectsByType<Volume>(FindObjectsSortMode.None)
+                    .Where(volume => volume.gameObject.scene.name == "Locale_1").Select(volume => volume.enabled),
+                Is.EqualTo(new[] { true }), "the destination's volume grades the world after arrival");
+        }
+
+        [UnityTest]
         public IEnumerator Handoff_FadesTheCard_PreparesTheDestination_AndPreservesCameraScale()
         {
             BuildPreview();
@@ -458,19 +493,29 @@ namespace Tests.PlayMode.Preview
             {
                 sectors = new[] { Entry("CrowdedJumpDeparture"), Entry("CrowdedJumpArrival") }
             };
+            var template = new GameObject("Crowded jump game host template");
+            template.SetActive(false);
+            extras.Add(template);
+            var game = new GameObject("Crowded jump game host");
+            game.transform.SetParent(template.transform, false);
+            var gameHost = game.AddComponent<GameHost>();
+            gameHost.sessionProfile = profile;
+            gameHost.playerRig = TestAssets.Load<PlayerRig>("Assets/Prefabs/MiscObjects/PlayerRig.prefab");
+            gameHost.observerCamPrefab = TestAssets.Load<ObserverCam>("Assets/Prefabs/Cameras/Main Camera.prefab");
+            gameHost.recapFeel = TestAssets.Load<RecapFeelProfile>("Assets/Settings/UI/RecapFeel.asset");
+            gameHost.jumpFeel = feel;
+            gameHost.jumpShader = Shader.Find("Astronomical/Travel/SectorJump");
             var root = new GameObject("Crowded jump test");
             root.SetActive(false);
             host = root.AddComponent<PreviewHost>();
             host.mode = PreviewMode.Playtest;
             host.subjectKind = PreviewSubjectKind.SectorJump;
             host.playtestSetup = PreviewPlaytestSetup.CrowdedJumpGate;
-            host.sessionProfile = profile;
-            host.jumpPlaytestProfile = profile;
-            host.playerRigPrefab = TestAssets.Load<PlayerRig>("Assets/Prefabs/MiscObjects/PlayerRig.prefab");
-            host.observerCamPrefab = TestAssets.Load<ObserverCam>("Assets/Prefabs/Cameras/Main Camera.prefab");
-            host.recapFeel = TestAssets.Load<RecapFeelProfile>("Assets/Settings/UI/RecapFeel.asset");
+            host.gameHostPrefab = gameHost;
+            host.recapFeel = gameHost.recapFeel;
             host.jumpFeel = feel;
-            host.jumpShader = Shader.Find("Astronomical/Travel/SectorJump");
+            host.sessionProfile = profile;
+            host.crowdedJumpSectors = profile.sectors;
             root.SetActive(true);
         }
 

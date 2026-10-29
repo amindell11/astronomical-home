@@ -76,7 +76,7 @@ if [[ -n "${RUNNER_AWAITS:-}" ]]; then
   [[ -e "$RUNNER_AWAITS" ]] || { echo "stub: $RUNNER_AWAITS never appeared while the runner ran" >&2; exit 1; }
 fi
 if [[ "${RUNNER_MUTATE_TRACKED:-0}" == 1 ]]; then
-  sed -i 's/UNITY_POST_PROCESSING_STACK_V2$/UNITY_POST_PROCESSING_STACK_V2;SENTIS_ANALYTICS_ENABLED/' src/Asteroids3D/ProjectSettings/ProjectSettings.asset
+  printf '    productName: changed by Unity\n' >> src/Asteroids3D/ProjectSettings/ProjectSettings.asset
 fi
 mode=Both scope=Workspace filter="" category="" assemblies="" transport_line="" outdir=""
 args=("$@")
@@ -322,19 +322,27 @@ pool merge agent-1 >/dev/null
 [[ "$(resharper_runs)" == "$resharper_before" ]] || fail "proven ReSharper tree/base pair should skip the re-run (got $(resharper_runs))"
 [[ "$(gh_merges)" == $((merges_before + 1)) ]] || fail "fast path should still merge (got $(gh_merges))"
 
-# Scoped submit records NO proof, and restores the runner's tracked Unity churn.
+# A test run that changes a tracked file fails submit, restoring the file and reporting the diff.
 echo change2 > "$TMP/agent-1/feature2.txt"
 git -C "$TMP/agent-1" add feature2.txt
 git -C "$TMP/agent-1" commit -qm "feature 2"
 runs_before="$(runner_runs)"
+if RUNNER_MUTATE_TRACKED=1 pool submit agent-1 origin/main --title "test PR" --body "test body" -- -Mode EditMode -ScopeType Feature -ScopeName camera >/dev/null 2>"$TMP/mutate.err"; then
+  fail "a test run that changes a tracked file should fail submit"
+fi
+[[ "$(runner_runs)" == $((runs_before + 1)) ]] || fail "the mutating submit should run tests once (got $(runner_runs))"
+[[ -z "$(git -C "$TMP/agent-1" status --porcelain)" ]] || fail "a failed run should still restore tracked Unity test mutations"
+grep -q "src/Asteroids3D/ProjectSettings/ProjectSettings.asset" "$TMP/mutate.err" \
+  || fail "the failure should name the changed file"
+grep -q "productName: changed by Unity" "$TMP/mutate.err" || fail "the failure should print the pre-restore diff"
+
+# Scoped submit records NO proof.
+runs_before="$(runner_runs)"
 resharper_before="$(resharper_runs)"
-RUNNER_MUTATE_TRACKED=1 pool submit agent-1 origin/main --title "test PR" --body "test body" -- -Mode EditMode -ScopeType Feature -ScopeName camera >/dev/null
+pool submit agent-1 origin/main --title "test PR" --body "test body" -- -Mode EditMode -ScopeType Feature -ScopeName camera >/dev/null
 [[ "$(runner_runs)" == $((runs_before + 1)) ]] || fail "scoped submit should still run tests once (got $(runner_runs))"
 [[ "$(resharper_runs)" == $((resharper_before + 1)) ]] || fail "submit should run the ReSharper ratchet once (got $(resharper_runs))"
 [[ "$(recorded_tree)" != "$(slot_tree)" ]] || fail "scoped submit must not record merge-grade proof"
-[[ -z "$(git -C "$TMP/agent-1" status --porcelain)" ]] || fail "submit should restore tracked Unity test mutations"
-[[ "$(cat "$TMP/agent-1/src/Asteroids3D/ProjectSettings/ProjectSettings.asset")" == "    Standalone: UNITY_POST_PROCESSING_STACK_V2" ]] \
-  || fail "submit should restore the known analytics define churn"
 
 # revise --no-test pushes but runs nothing and records no proof.
 echo hygiene >> "$TMP/agent-1/feature2.txt"

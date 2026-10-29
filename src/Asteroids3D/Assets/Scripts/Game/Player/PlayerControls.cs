@@ -164,6 +164,24 @@ namespace Game.Player
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""PrimaryReload"",
+                    ""type"": ""Button"",
+                    ""id"": ""2acba215-a613-4db3-9215-6e9acbe115b7"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""SecondaryReload"",
+                    ""type"": ""Button"",
+                    ""id"": ""212f5ab4-a129-4043-b00f-0b050257a4a9"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -364,6 +382,50 @@ namespace Game.Player
                     ""action"": ""Jump"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""6fa21149-2f4b-4bc1-832f-ac8af92f73a4"",
+                    ""path"": ""<Keyboard>/r"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""PrimaryReload"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""Shift+R"",
+                    ""id"": ""8cb70b60-9273-40da-bc41-71c2fdde8df1"",
+                    ""path"": ""OneModifier"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SecondaryReload"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""modifier"",
+                    ""id"": ""409f83ed-a0c2-4d13-a931-1b4a5e9989c1"",
+                    ""path"": ""<Keyboard>/shift"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SecondaryReload"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""binding"",
+                    ""id"": ""84290498-4da4-4b98-b59d-3e3a3b413e84"",
+                    ""path"": ""<Keyboard>/r"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SecondaryReload"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
                 }
             ]
         },
@@ -379,6 +441,15 @@ namespace Game.Player
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Zoom"",
+                    ""type"": ""Value"",
+                    ""id"": ""9732ab76-5df1-4058-9c8b-8c349018aed7"",
+                    ""expectedControlType"": ""Axis"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
                 }
             ],
             ""bindings"": [
@@ -390,6 +461,17 @@ namespace Game.Player
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""ToggleLock"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""0798f9a9-0be1-4d82-a129-7484d188364c"",
+                    ""path"": ""<Mouse>/scroll/y"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Zoom"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -408,9 +490,12 @@ namespace Game.Player
             m_Flight_HoldHeading = m_Flight.FindAction("HoldHeading", throwIfNotFound: true);
             m_Flight_AimPoint = m_Flight.FindAction("AimPoint", throwIfNotFound: true);
             m_Flight_Jump = m_Flight.FindAction("Jump", throwIfNotFound: true);
+            m_Flight_PrimaryReload = m_Flight.FindAction("PrimaryReload", throwIfNotFound: true);
+            m_Flight_SecondaryReload = m_Flight.FindAction("SecondaryReload", throwIfNotFound: true);
             // Camera
             m_Camera = asset.FindActionMap("Camera", throwIfNotFound: true);
             m_Camera_ToggleLock = m_Camera.FindAction("ToggleLock", throwIfNotFound: true);
+            m_Camera_Zoom = m_Camera.FindAction("Zoom", throwIfNotFound: true);
         }
 
         ~@PlayerControls()
@@ -500,6 +585,8 @@ namespace Game.Player
         private readonly InputAction m_Flight_HoldHeading;
         private readonly InputAction m_Flight_AimPoint;
         private readonly InputAction m_Flight_Jump;
+        private readonly InputAction m_Flight_PrimaryReload;
+        private readonly InputAction m_Flight_SecondaryReload;
         /// <summary>
         /// Provides access to input actions defined in input action map "Flight".
         /// </summary>
@@ -543,6 +630,14 @@ namespace Game.Player
             /// Provides access to the underlying input action "Flight/Jump".
             /// </summary>
             public InputAction @Jump => m_Wrapper.m_Flight_Jump;
+            /// <summary>
+            /// Provides access to the underlying input action "Flight/PrimaryReload".
+            /// </summary>
+            public InputAction @PrimaryReload => m_Wrapper.m_Flight_PrimaryReload;
+            /// <summary>
+            /// Provides access to the underlying input action "Flight/SecondaryReload".
+            /// </summary>
+            public InputAction @SecondaryReload => m_Wrapper.m_Flight_SecondaryReload;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -593,6 +688,12 @@ namespace Game.Player
                 @Jump.started += instance.OnJump;
                 @Jump.performed += instance.OnJump;
                 @Jump.canceled += instance.OnJump;
+                @PrimaryReload.started += instance.OnPrimaryReload;
+                @PrimaryReload.performed += instance.OnPrimaryReload;
+                @PrimaryReload.canceled += instance.OnPrimaryReload;
+                @SecondaryReload.started += instance.OnSecondaryReload;
+                @SecondaryReload.performed += instance.OnSecondaryReload;
+                @SecondaryReload.canceled += instance.OnSecondaryReload;
             }
 
             /// <summary>
@@ -628,6 +729,12 @@ namespace Game.Player
                 @Jump.started -= instance.OnJump;
                 @Jump.performed -= instance.OnJump;
                 @Jump.canceled -= instance.OnJump;
+                @PrimaryReload.started -= instance.OnPrimaryReload;
+                @PrimaryReload.performed -= instance.OnPrimaryReload;
+                @PrimaryReload.canceled -= instance.OnPrimaryReload;
+                @SecondaryReload.started -= instance.OnSecondaryReload;
+                @SecondaryReload.performed -= instance.OnSecondaryReload;
+                @SecondaryReload.canceled -= instance.OnSecondaryReload;
             }
 
             /// <summary>
@@ -666,6 +773,7 @@ namespace Game.Player
         private readonly InputActionMap m_Camera;
         private List<ICameraActions> m_CameraActionsCallbackInterfaces = new List<ICameraActions>();
         private readonly InputAction m_Camera_ToggleLock;
+        private readonly InputAction m_Camera_Zoom;
         /// <summary>
         /// Provides access to input actions defined in input action map "Camera".
         /// </summary>
@@ -681,6 +789,10 @@ namespace Game.Player
             /// Provides access to the underlying input action "Camera/ToggleLock".
             /// </summary>
             public InputAction @ToggleLock => m_Wrapper.m_Camera_ToggleLock;
+            /// <summary>
+            /// Provides access to the underlying input action "Camera/Zoom".
+            /// </summary>
+            public InputAction @Zoom => m_Wrapper.m_Camera_Zoom;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -710,6 +822,9 @@ namespace Game.Player
                 @ToggleLock.started += instance.OnToggleLock;
                 @ToggleLock.performed += instance.OnToggleLock;
                 @ToggleLock.canceled += instance.OnToggleLock;
+                @Zoom.started += instance.OnZoom;
+                @Zoom.performed += instance.OnZoom;
+                @Zoom.canceled += instance.OnZoom;
             }
 
             /// <summary>
@@ -724,6 +839,9 @@ namespace Game.Player
                 @ToggleLock.started -= instance.OnToggleLock;
                 @ToggleLock.performed -= instance.OnToggleLock;
                 @ToggleLock.canceled -= instance.OnToggleLock;
+                @Zoom.started -= instance.OnZoom;
+                @Zoom.performed -= instance.OnZoom;
+                @Zoom.canceled -= instance.OnZoom;
             }
 
             /// <summary>
@@ -820,6 +938,20 @@ namespace Game.Player
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnJump(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "PrimaryReload" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnPrimaryReload(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "SecondaryReload" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnSecondaryReload(InputAction.CallbackContext context);
         }
         /// <summary>
         /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Camera" which allows adding and removing callbacks.
@@ -835,6 +967,13 @@ namespace Game.Player
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnToggleLock(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Zoom" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnZoom(InputAction.CallbackContext context);
         }
     }
 }

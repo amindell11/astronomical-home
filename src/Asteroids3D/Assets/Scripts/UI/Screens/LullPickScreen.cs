@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Combat.Weapons.Mods;
+using Loot;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -8,9 +8,10 @@ using UnityEngine.UI;
 namespace UI.Screens
 {
     /// <summary>
-    /// The lull pick's uGUI: up to three weapon mod cards and a skip, each clickable and keyed (1, 2, 3,
-    /// Space), built at rest and answered through <see cref="Choice"/>. It owns only its keys and buttons;
-    /// the host stops the clock, silences the player and applies the pick. How it was ruled to read: https://github.com/amindell11/astronomical-home/issues/1211#issuecomment-6464116762
+    /// The lull pick's uGUI: up to three lull mod cards (weapon or ship) and a skip, each clickable and
+    /// keyed (1, 2, 3, Space), built at rest and answered through <see cref="Choice"/>. It owns only its
+    /// keys and buttons; the host stops the clock, silences the player and applies the pick. How it was
+    /// ruled to read: https://github.com/amindell11/astronomical-home/issues/1211#issuecomment-6464116762
     /// </summary>
     public sealed class LullPickScreen : MonoBehaviour
     {
@@ -39,8 +40,8 @@ namespace UI.Screens
         /// <summary>Null until answered; then the picked offer's index, or <see cref="Skip"/>.</summary>
         public int? Choice { get; private set; }
 
-        public static LullPickScreen Create(Transform parent, IReadOnlyList<WeaponMod> offers,
-            Func<WeaponMod, string> landing)
+        public static LullPickScreen Create(Transform parent, IReadOnlyList<LullMod> offers,
+            Func<LullMod, string> landing)
         {
             if (offers == null || offers.Count == 0 || offers.Count > MaxOffers)
                 throw new ArgumentException($"A lull pick offers one to {MaxOffers} mods.", nameof(offers));
@@ -78,7 +79,7 @@ namespace UI.Screens
             actions.Clear();
         }
 
-        private void Build(IReadOnlyList<WeaponMod> offers, Func<WeaponMod, string> landing)
+        private void Build(IReadOnlyList<LullMod> offers, Func<LullMod, string> landing)
         {
             var dim = Centered(transform, "Dim", 0f, 0f, 0f);
             dim.anchorMin = Vector2.zero;
@@ -87,7 +88,7 @@ namespace UI.Screens
             // Translucent so the HUD's phase line still reads; a raycast target so clicks stop here.
             dim.gameObject.AddComponent<Image>().color = Dim;
 
-            Label(Centered(transform, "Title", 600f, 48f, 160f), "WEAPON MOD PICK", 40, Paint, TextAnchor.MiddleCenter);
+            Label(Centered(transform, "Title", 600f, 48f, 160f), "MOD PICK", 40, Paint, TextAnchor.MiddleCenter);
             Label(Centered(transform, "Hint", 600f, 20f, 122f), "CLICK A CARD OR PRESS ITS KEY", 12, Muted,
                 TextAnchor.MiddleCenter);
 
@@ -99,7 +100,7 @@ namespace UI.Screens
             BuildSkip(Centered(transform, "Skip", 216f, 38f, -CardHeight / 2f - 44f));
         }
 
-        private void BuildCard(RectTransform cards, int index, WeaponMod mod, string landing)
+        private void BuildCard(RectTransform cards, int index, LullMod mod, string landing)
         {
             var card = Box(cards, $"Card{index + 1}", index * (CardWidth + CardGap), 0f, CardWidth, CardHeight);
             Fill(card, Backing);

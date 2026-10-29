@@ -1,8 +1,9 @@
 using System;
 using System.Collections;
 using Cameras;
-using Combat.Weapons.Mods;
+using Combat.Weapons;
 using Damage;
+using Loot;
 using Substrate.Sectors;
 using Substrate.Sessions;
 using Substrate.Services.Units;
@@ -65,8 +66,8 @@ namespace Game
         /// <summary>Every other ship spawned this run and its fate; reset with the tally at the loadout step.</summary>
         public SpawnLog Spawns { get; } = new();
 
-        /// <summary>The weapon mods picked this run; cleared at the loadout step, in force on the player's mounts after every equip and pick.</summary>
-        public WeaponModStack Mods { get; } = new();
+        /// <summary>The run's lull picks; cleared at the loadout step, bound to each player the rig builds.</summary>
+        public LullModStack Mods { get; } = new();
 
         /// <summary>The live HUD overlay this rig owns; null headless or before <see cref="Build"/>.</summary>
         public Overlay Overlay { get; private set; }
@@ -119,6 +120,8 @@ namespace Game
             // HUD/UI-cam/minimap are presentation: a headless/RL run builds no Canvas.
             if (presentationEnabled && observer && overlayPrefab && uiCamPrefab)
             {
+                if (!minimapCamPrefab)
+                    throw new InvalidOperationException($"PlayerRig on '{name}' needs a minimap camera for its HUD.");
                 var uiCam = Instantiate(uiCamPrefab, observer.transform);
                 uiCam.GetUniversalAdditionalCameraData().renderType = CameraRenderType.Overlay;
                 observer.Cam.GetUniversalAdditionalCameraData().cameraStack.Add(uiCam);
@@ -126,15 +129,9 @@ namespace Game
                 Overlay = Instantiate(overlayPrefab, uiRoot);
                 Overlay.ConfigureCameras(uiCam, observer.Cam);
                 Overlay.Initialize(BuildHudBinding());
-                Overlay.BindObjectives(objectives);
-                Overlay.BindShips(units.ActiveRegistry.ActiveShips, observer.Cam);
-            }
-
-            if (presentationEnabled && observer && minimapCamPrefab)
-            {
                 var minimapCam = Instantiate(minimapCamPrefab, observer.transform);
-                if (Overlay && Overlay.ObjectiveMarker && Overlay.MinimapRect)
-                    Overlay.ObjectiveMarker.Initialize(minimapCam, Overlay.MinimapRect);
+                Overlay.BindObjectives(objectives, observer.Cam, minimapCam);
+                Overlay.BindShips(units.ActiveRegistry.ActiveShips, observer.Cam);
             }
 
             Park();
@@ -198,7 +195,6 @@ namespace Game
                 RebuildPlayer(Loadout.Ship);
 
             Player.Reequip(Loadout.Shield, Loadout.PrimaryWeapon, Loadout.SecondaryWeapon);
-            if (Player.Weapons) Player.Weapons.SetMods(Mods);
 
             // Swapped-in weapon mounts carry world-facing parts (lock sensor) that the service
             // wired at spawn; ask it to re-wire (the player is never AI, so no field), then re-bind the HUD.
@@ -206,11 +202,17 @@ namespace Game
             RebindHud();
         }
 
-        /// <summary>Adds a lull pick to the run and puts it in force on the mounts it fits.</summary>
-        public void PickMod(WeaponMod mod)
+        /// <summary>Adds a lull pick to the run; the bound player applies it at once.</summary>
+        public void PickMod(LullMod mod) => Mods.Add(mod);
+
+        /// <summary>Mounts a sector-break pick mid-run; unlike <see cref="ApplyLoadout"/>, vitals, run clocks and hangar loadout stay.</summary>
+        public void SwapWeapon(WeaponSlot slot, WeaponComponent weapon)
         {
-            Mods.Add(mod);
-            if (Player && Player.Weapons) Player.Weapons.SetMods(Mods);
+            var weapons = Player.Weapons;
+            weapons.Reequip(slot == WeaponSlot.Primary ? weapon : weapons.PrimaryMountPrefab,
+                slot == WeaponSlot.Secondary ? weapon : weapons.SecondaryMountPrefab);
+            units.WireShipDependencies(Player, field: null);
+            RebindHud();
         }
 
         /// <summary>Silences or restores the player's controls while a screen holds the run with the ship live.</summary>
@@ -250,6 +252,7 @@ namespace Game
                 field: null);
             Player.tag = "Player";
             currentTemplate = template;
+            Player.BindMods(Mods);
 
             WirePlayerDeath();
 
