@@ -26,8 +26,9 @@ namespace Tests.PlayMode.Crosshairs
         {
             public int AmmoCount { get; set; } = 1;
             public int MaxAmmo => 2;
+            public Rounds.RefillMode Refill => Rounds.RefillMode.Sequential;
             public bool IsReloading { get; set; }
-            public float ReloadProgress => .5f;
+            public float ReloadProgress => IsReloading ? .5f : 0f;
             public float RoundProgress(int index) => index < AmmoCount ? 1f : IsReloading ? ReloadProgress : 0f;
             public event Action<int> OnAmmoCountChanged { add { } remove { } }
             public event Action OnReloadStarted { add { } remove { } }
@@ -142,59 +143,65 @@ namespace Tests.PlayMode.Crosshairs
             crosshair.gameObject.SetActive(false);
             weaponHud.gameObject.SetActive(false);
             Assert.IsTrue(Cursor.visible);
-            Assert.IsFalse(ImageAt("SecondaryResources/Round0").isActiveAndEnabled);
+            Assert.IsFalse(ImageAt("SecondaryResources/Fill").isActiveAndEnabled);
             crosshair.gameObject.SetActive(true);
             weaponHud.gameObject.SetActive(true);
             Draw();
             Assert.IsTrue(Visible("SecondaryResources"));
-            Assert.IsTrue(ImageAt("SecondaryResources/Round0").isActiveAndEnabled);
+            Assert.IsTrue(ImageAt("SecondaryResources/Fill").isActiveAndEnabled);
         }
 
         [Test]
-        public void ReloadProgress_FillsAmmoSegments_AndEmptyAmmoKeepsItsTrackVisible()
+        public void ReloadProgress_ExtendsTheAmmoFill_AndEmptyAmmoKeepsItsTrackVisible()
         {
             Draw();
-            var round = ImageAt("SecondaryResources/Round0");
-            var track = ImageAt("SecondaryResources/RoundTrack0");
-            Assert.That(round.fillAmount, Is.EqualTo(track.fillAmount));
-            Assert.That(ImageAt("SecondaryResources/Round1").fillAmount, Is.Zero);
+            var fill = ImageAt("SecondaryResources/Fill");
+            var track = ImageAt("SecondaryResources/Track");
+            Assert.That(fill.fillAmount, Is.EqualTo(track.fillAmount * .5f));
             ammo.AmmoCount = 0;
             Draw();
-            Assert.That(round.fillAmount, Is.Zero);
+            Assert.That(fill.fillAmount, Is.Zero);
             Assert.IsTrue(track.isActiveAndEnabled);
             ammo.IsReloading = true;
             Draw();
-            Assert.That(round.fillAmount, Is.EqualTo(track.fillAmount * .5f).Within(.001f));
+            Assert.That(fill.fillAmount, Is.EqualTo(track.fillAmount * .25f).Within(.001f));
             Assert.IsNull(weaponHud.transform.Find("SecondaryResources/ReloadFill"));
         }
 
         [UnityTest]
-        public IEnumerator MissileSegments_FillIndependently_ThroughReloadCompletion()
+        public IEnumerator MissileMeter_CrossesThresholdsWithoutJumping_AndFiringPreservesPartialProgress()
         {
             var rounds = shipRoot.AddComponent<Rounds>();
-            rounds.Configure(2, 2f, Rounds.RefillMode.PerRound);
+            rounds.Configure(2, 10f, Rounds.RefillMode.Sequential);
             rounds.enabled = false;
             weaponHud.Initialize(new WeaponSources(rounds));
             yield return null;
             rounds.ProcessFire();
-            rounds.Tick(1f);
+            rounds.Tick(5f);
+            Draw();
+            var fill = ImageAt("SecondaryResources/Fill");
+            var span = ImageAt("SecondaryResources/Track").fillAmount;
+            Assert.That(fill.fillAmount, Is.EqualTo(span * .75f).Within(.001f));
             rounds.ProcessFire();
-            rounds.Tick(.5f);
             Draw();
-            var first = ImageAt("SecondaryResources/Round0");
-            var second = ImageAt("SecondaryResources/Round1");
-            var span = ImageAt("SecondaryResources/RoundTrack0").fillAmount;
-            Assert.That(first.fillAmount, Is.EqualTo(span * .75f).Within(.001f));
-            Assert.That(second.fillAmount, Is.EqualTo(span * .25f).Within(.001f));
-            var separation = Quaternion.Angle(first.transform.localRotation, second.transform.localRotation);
-            Assert.That(separation - span * 360f, Is.EqualTo(4f).Within(.001f));
-            rounds.Tick(.5f);
+            Assert.That(fill.fillAmount, Is.EqualTo(span * .25f).Within(.001f));
+            Assert.IsNull(weaponHud.transform.Find("SecondaryResources/Round0"));
+            var threshold = ImageAt("SecondaryResources/Threshold1");
+            Assert.That(threshold.fillAmount * 360f, Is.EqualTo(2f).Within(.001f));
+            Assert.That(Quaternion.Angle(fill.transform.localRotation, threshold.transform.localRotation),
+                Is.EqualTo(59f).Within(.001f));
+            rounds.Tick(4.9f);
             Draw();
-            Assert.That(first.fillAmount, Is.EqualTo(span).Within(.001f));
-            Assert.That(second.fillAmount, Is.EqualTo(span * .5f).Within(.001f));
-            rounds.Tick(1f);
+            Assert.That(rounds.AmmoCount, Is.Zero);
+            Assert.That(fill.fillAmount, Is.EqualTo(span * .495f).Within(.001f));
+            rounds.Tick(.1f);
             Draw();
-            Assert.That(second.fillAmount, Is.EqualTo(span).Within(.001f));
+            Assert.That(rounds.AmmoCount, Is.EqualTo(1));
+            Assert.That(fill.fillAmount, Is.EqualTo(span * .5f).Within(.001f));
+            rounds.Tick(10f);
+            Draw();
+            Assert.That(rounds.AmmoCount, Is.EqualTo(2));
+            Assert.That(fill.fillAmount, Is.EqualTo(span).Within(.001f));
         }
 
         [Test]

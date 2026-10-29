@@ -1,6 +1,7 @@
 using System.Collections;
 using Combat.Weapons;
 using Combat.Weapons.Conditions;
+using Combat.Weapons.Mods;
 using NUnit.Framework;
 using Ships.Weapons;
 using Tests.PlayMode.Common;
@@ -116,6 +117,65 @@ namespace Tests.PlayMode.Crosshairs
             Assert.IsTrue(track.isActiveAndEnabled);
             Assert.IsEmpty(builder.Panels);
             Assert.AreSame(charge, builder.FirstReadout<IChargeReadout>());
+        }
+
+        [Test]
+        public void AuthoredMissiles_UseTenSecondSharedRecharge_WhileConcussionKeepsIndependentTimers()
+        {
+            var controller = Bind("Missiles");
+            var rounds = controller.Primary.GetComponent<Rounds>();
+            Assert.That(rounds.Refill, Is.EqualTo(Rounds.RefillMode.Sequential));
+            Assert.That(rounds.ReloadTime, Is.EqualTo(10f));
+            rounds.ProcessFire();
+            rounds.Tick(1f);
+            rounds.ProcessFire();
+            rounds.Tick(9f);
+            Draw();
+            Assert.That(rounds.AmmoCount, Is.EqualTo(1));
+            Assert.That(ImageAt("PrimaryResources/Fill").fillAmount, Is.EqualTo(1f / 6f).Within(.001f));
+            Assert.That(ImageAt("PrimaryResources/Threshold1").fillAmount, Is.EqualTo(2f / 360f));
+            Assert.That(ImageAt("SecondaryResources/Threshold1").fillAmount, Is.EqualTo(2f / 360f));
+            Assert.IsNull(hud.transform.Find("PrimaryResources/Round0"));
+            rounds.Tick(10f);
+            Draw();
+            Assert.That(rounds.AmmoCount, Is.EqualTo(2));
+            Assert.That(ImageAt("PrimaryResources/Fill").fillAmount, Is.EqualTo(1f / 3f).Within(.001f));
+            var concussion = LoadPrefab<Rounds>("Weapons/Grenades");
+            Assert.That(concussion.Refill, Is.EqualTo(Rounds.RefillMode.PerRound));
+            Assert.That(concussion.ReloadTime, Is.EqualTo(12f));
+        }
+
+        [UnityTest]
+        public IEnumerator MissileCapacityUpgrade_AddsAThreshold_AndPreservesSharedRecharge()
+        {
+            var controller = Bind("Missiles");
+            var rounds = controller.Primary.GetComponent<Rounds>();
+            rounds.enabled = false;
+            rounds.ProcessFire();
+            rounds.Tick(5f);
+            var mod = ScriptableObject.CreateInstance<WeaponMod>();
+            try
+            {
+                mod.Configure("Extra missile", WeaponModField.Magazine, 1f);
+                var stack = new WeaponModStack();
+                stack.Add(mod);
+                controller.SetMods(stack);
+                Draw();
+                yield return null;
+                Assert.That(rounds.AmmoCount, Is.EqualTo(2));
+                Assert.That(rounds.MaxAmmo, Is.EqualTo(3));
+                Assert.That(rounds.ReloadProgress, Is.EqualTo(.5f));
+                var first = ImageAt("PrimaryResources/Threshold1");
+                var second = ImageAt("PrimaryResources/Threshold2");
+                Assert.That(first.fillAmount, Is.EqualTo(second.fillAmount));
+                Assert.That(Quaternion.Angle(first.transform.localRotation, second.transform.localRotation),
+                    Is.EqualTo(40f).Within(.001f));
+                Assert.That(ImageAt("PrimaryResources/Fill").fillAmount, Is.EqualTo(2.5f / 9f).Within(.001f));
+                rounds.Tick(5f);
+                Assert.That(rounds.AmmoCount, Is.EqualTo(3));
+                Assert.IsFalse(rounds.IsReloading);
+            }
+            finally { Object.DestroyImmediate(mod); }
         }
 
         [Test]

@@ -372,6 +372,7 @@ MonoBehaviour:
   ink: {r: 0.953, g: 0.949, b: 0.875, a: 1}
   track: {r: 0.639, g: 0.651, b: 0.667, a: 0.3}
   empty: {r: 0.639, g: 0.651, b: 0.667, a: 0.3}
+  threshold: {r: 0.04, g: 0.06, b: 0.1, a: 1}
   overheat: {r: 1, g: 0.3, b: 0.16, a: 1}
 --- !u!1 &8651447687476948939
 GameObject:

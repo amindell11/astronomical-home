@@ -14,6 +14,7 @@ namespace UI.Weapons
         [SerializeField] private Color ink = new(.953f, .949f, .875f);
         [SerializeField] private Color track = new(.639f, .651f, .667f, .3f);
         [SerializeField] private Color empty = new(.639f, .651f, .667f, .3f);
+        [SerializeField] private Color threshold = new(.04f, .06f, .1f);
         [SerializeField] private Color overheat = new(1f, .3f, .16f);
 
         private sealed class Resource
@@ -23,9 +24,11 @@ namespace UI.Weapons
             public Image Fill;
             public Image[] Rounds;
             public float RoundSpan;
+            public int Capacity;
         }
 
         private readonly List<Resource> resources = new();
+        private IWeaponReadouts readouts;
 
         private void Awake()
         {
@@ -35,6 +38,7 @@ namespace UI.Weapons
 
         public void Initialize(IWeaponReadouts weapons)
         {
+            readouts = weapons;
             foreach (var resource in resources)
             {
                 resource.Root.SetActive(false);
@@ -63,7 +67,7 @@ namespace UI.Weapons
             var left = slot == WeaponSlot.Primary;
             var start = left ? 120f : 60f;
             var resource = new Resource { Source = source, Root = go };
-            if (source is IAmmoReadout { MaxAmmo: <= 8 } ammo)
+            if (source is IAmmoReadout { MaxAmmo: <= 8, Refill: not Rounds.RefillMode.Sequential } ammo)
             {
                 const float gap = 4f;
                 var span = (120f - gap * (ammo.MaxAmmo - 1)) / ammo.MaxAmmo;
@@ -81,7 +85,17 @@ namespace UI.Weapons
             {
                 AddArc(resourceTemplate, resourceRect, "Track", start, 120f, left, track);
                 resource.Fill = AddArc(resourceTemplate, resourceRect, "Fill", start, 0f, left, ink);
+                if (source is IAmmoReadout { MaxAmmo: <= 8, Refill: Rounds.RefillMode.Sequential } shared)
+                {
+                    const float width = 2f;
+                    for (var i = 1; i < shared.MaxAmmo; i++)
+                    {
+                        var angle = start + (left ? 1f : -1f) * (i * 120f / shared.MaxAmmo - width * .5f);
+                        AddArc(resourceTemplate, resourceRect, "Threshold" + i, angle, width, left, threshold);
+                    }
+                }
             }
+            if (source is IAmmoReadout capacity) resource.Capacity = capacity.MaxAmmo;
             return resource;
         }
 
@@ -100,6 +114,9 @@ namespace UI.Weapons
 
         private void LateUpdate()
         {
+            if (resources.Exists(resource => resource.Source is IAmmoReadout { Refill: Rounds.RefillMode.Sequential } ammo
+                    && resource.Capacity != ammo.MaxAmmo))
+                Initialize(readouts);
             var now = Time.unscaledTime;
             foreach (var resource in resources)
             {
@@ -121,9 +138,10 @@ namespace UI.Weapons
                                 resource.Rounds[i].fillAmount = resource.RoundSpan * ammo.RoundProgress(i);
                             break;
                         }
-                        resource.Fill.fillAmount = 120f / 360f * (ammo.IsReloading
-                            ? ammo.ReloadProgress
-                            : (float)ammo.AmmoCount / ammo.MaxAmmo);
+                        var progress = ammo.Refill == Rounds.RefillMode.Sequential
+                            ? (ammo.AmmoCount + ammo.ReloadProgress) / ammo.MaxAmmo
+                            : ammo.IsReloading ? ammo.ReloadProgress : (float)ammo.AmmoCount / ammo.MaxAmmo;
+                        resource.Fill.fillAmount = 120f / 360f * progress;
                         break;
                 }
             }
