@@ -151,15 +151,16 @@ namespace Ships
         private void Resolve() =>
             Stats = ResolvedShipStats.Resolve(this, engine, shield, mods?.ForShip() ?? ShipMods.None);
 
-        /// <summary>Resolve stats without instantiating and without run mods; shipRadius stays default until <see cref="Initialize"/> derives it from live colliders.</summary>
+        /// <summary>Authored stats, without run mods or instantiating; shipRadius stays default until <see cref="Initialize"/> derives it from live colliders.</summary>
         public ResolvedShipStats ResolveStats() => ResolvedShipStats.Resolve(this, engine, shield);
 
-        /// <summary>Binds the run's lull mods once: every resolve folds the ship mods in, every change re-hands the weapon mods and re-resolves with the vitals' fractions kept.</summary>
+        /// <summary>Binds the run's lull mods once; every change re-applies them, keeping the vitals' fractions.</summary>
         public void BindMods(LullModStack stack)
         {
-            if (mods != null) mods.Changed -= OnModsChanged;
+            if (mods != null)
+                throw new InvalidOperationException($"Ship '{name}' already has its run mods bound; a ship binds once.");
             mods = stack;
-            if (mods != null) mods.Changed += OnModsChanged;
+            mods.Changed += OnModsChanged;
             OnModsChanged();
         }
 
@@ -189,7 +190,7 @@ namespace Ships
             ReResolve(Vitals.Refill);
         }
 
-        // What a re-resolve does to health and shield: live inspector tuning leaves them, a lull pick keeps their fractions on the new max, the hangar equip refills them.
+        // Keep for live inspector tuning, Rescale for a lull pick, Refill for a hangar equip.
         private enum Vitals { Keep, Rescale, Refill }
 
         // Module swaps don't change geometry, so the derived radius carries forward.

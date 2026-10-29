@@ -82,7 +82,7 @@ namespace Ships.Weapons
             }
         }
 
-        /// <summary>Puts the run's weapon mods in force on the mounts and keeps them in force across <see cref="Reequip"/>; the ship calls it on bind and on every change of the stack.</summary>
+        /// <summary>Puts the run's weapon mods in force across <see cref="Reequip"/>; the bound ship calls it per change.</summary>
         public void SetMods(LullModStack stack)
         {
             mods = stack;

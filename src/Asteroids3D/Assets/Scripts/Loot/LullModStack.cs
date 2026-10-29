@@ -16,7 +16,6 @@ namespace Loot
     {
         private readonly List<LullMod> picks = new();
 
-        /// <summary>Raised after a pick lands or the run's picks clear.</summary>
         public event Action Changed;
 
         public void Add(LullMod mod)

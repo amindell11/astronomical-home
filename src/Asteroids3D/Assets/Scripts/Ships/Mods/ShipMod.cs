@@ -22,7 +22,7 @@ namespace Ships.Mods
 
         public override string Effect => $"+{Mathf.RoundToInt(amount * 100f)}% {field.Label()}";
 
-        /// <summary>Hull and engine mods fit every ship; a shield mod needs a shield module to scale.</summary>
+        /// <summary>Hull mods fit every ship; an engine or shield mod needs that module to scale.</summary>
         public override bool Fits(Ship ship)
         {
             if (!ship) return false;

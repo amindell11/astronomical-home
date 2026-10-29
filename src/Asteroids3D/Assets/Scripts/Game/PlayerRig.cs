@@ -66,7 +66,7 @@ namespace Game
         /// <summary>Every other ship spawned this run and its fate; reset with the tally at the loadout step.</summary>
         public SpawnLog Spawns { get; } = new();
 
-        /// <summary>The lull mods picked this run; cleared at the loadout step and bound to every player the rig builds, which keeps them in force itself.</summary>
+        /// <summary>The run's lull picks; cleared at the loadout step, bound to each player the rig builds.</summary>
         public LullModStack Mods { get; } = new();
 
         /// <summary>The live HUD overlay this rig owns; null headless or before <see cref="Build"/>.</summary>
