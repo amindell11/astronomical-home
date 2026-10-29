@@ -5,6 +5,7 @@ using Combat.Weapons;
 using Combat.Weapons.Arsenal;
 using Combat.Weapons.Conditions;
 using Combat.Weapons.Mods;
+using Loot;
 using NUnit.Framework;
 using Ships;
 using Tests.PlayMode.Common;
@@ -69,7 +70,7 @@ namespace Tests.PlayMode.Weapons
             var authoredMagazine = rippers.GetComponent<Rounds>().MaxAmmo;
             var authoredInterval = rippers.GetComponent<Cooldown>().SecondsBetweenShots;
 
-            var stack = new WeaponModStack();
+            var stack = new LullModStack();
             stack.Add(Mod("Heat sink", WeaponModField.HeatCapacity, 0.25f));
             stack.Add(Mod("Heat sink", WeaponModField.HeatCapacity, 0.25f));
             stack.Add(Mod("Deep magazine", WeaponModField.Magazine, 6f, rippers));
@@ -115,7 +116,7 @@ namespace Tests.PlayMode.Weapons
             var deepMagazine = Mod("Deep magazine", WeaponModField.Magazine, 6f, rippers);
             var extraMissile = Mod("Extra missile", WeaponModField.Magazine, 1f, missiles);
             var coolant = Mod("Coolant", WeaponModField.Cooling, 0.25f);
-            var stack = new WeaponModStack();
+            var stack = new LullModStack();
             stack.Add(deepMagazine);
             stack.Add(extraMissile);
             stack.Add(coolant);

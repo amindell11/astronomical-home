@@ -5,6 +5,7 @@ using Combat.Weapons;
 using Combat.Weapons.Arsenal;
 using Combat.Weapons.Conditions;
 using Combat.Weapons.Mods;
+using Loot;
 using NUnit.Framework;
 using Ships.Loadout;
 using UnityEditor;
@@ -75,7 +76,7 @@ namespace Tests.EditMode.Weapons
         [Test]
         public void Using_ListsTheHeldModsThatFitTheOffer_WithRepeatsCounted()
         {
-            var stack = new WeaponModStack();
+            var stack = new LullModStack();
             var hot = Mod("Hot rounds", WeaponModField.Damage);
             stack.Add(hot);
             stack.Add(Mod("Coolant", WeaponModField.Cooling));
@@ -94,7 +95,7 @@ namespace Tests.EditMode.Weapons
             var rippers = Weapon("Rippers");
             var lasers = Weapon("Lasers");
             var missiles = Weapon("Missiles");
-            var stack = new WeaponModStack();
+            var stack = new LullModStack();
             stack.Add(Mod("Hot rounds", WeaponModField.Damage));
             stack.Add(Mod("Coolant", WeaponModField.Cooling));
             stack.Add(Mod("Deep magazine", WeaponModField.Magazine, rippers));

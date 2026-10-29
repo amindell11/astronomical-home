@@ -88,7 +88,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **trainer** | ml-agents trainer runtime (`mlagents-learn`) · owned trainer runtime (takeover arc) · custom-trainer plugin seam · trainer config (`ppo_*.yaml`) · `RLTrainerConfigEditModeTests` | Always qualified. Bare "the trainer" is legal only in RL-run operational context (= the run's trainer-runtime process), never in a title. |
 | **tripwire** | eval tripwire (the scorecard subset watched as a collapse detector) · player-build tripwire (`PlayerBuildTripwireEditModeTests`) | Always qualified. |
 | **module** | deep module (design vocabulary, §2 → *design vocabulary*) · ship module (chassis/module/loadout) · `-ScopeType Module` (test scope) | Qualify: "deep module" / "ship module" / "Module scope". |
-| **mod** | weapon mod (§2 → *weapon mod*) · the colloquial short form of ship module | Bare "mod" = weapon mod inside the loot code (`Combat/Weapons/Mods/`, the lull pick) and in prose whose topic is weapon mods; a ship module is never shortened to "mod". In a title, qualify regardless. |
+| **mod** | lull mod (§2 → *lull mod*): a weapon mod or a ship mod · the colloquial short form of ship module | Bare "mod" = a lull mod of either kind inside the loot code (`Loot/`, the lull pick); prose names the kind ("weapon mod", "ship mod") wherever the kind matters; a ship module is never shortened to "mod". In a title, qualify regardless. |
 | **bench** | benchmark run (bench run, bench config, ram-bench harness) · benched work (`bench/<topic>`, §2 → *benched*) | Bare "bench" = benchmark run. Set-aside work is always "benched". |
 | **layer** | sky layer (one drawn backdrop layer — background, far nebula, starfield, close nebula — a child renderer of a locale's `LocaleSky` root) · Unity layer (`LayerIds`; notably `Sky`, the render layer every sky layer sits on, which only the flight and hangar cameras' culling masks include) · starfield depth layer (inside `StarField.shader`) · paint mask (§2 → *Art pipeline*; never "paint layer") | Always qualified: "sky layer" vs "the `Sky` layer". |
 | **charge** | charge-up / spent charge (`ChargeTime`, the `Charge` parameter) · concussion charge (`Grenade`, `IChargeFlight`, the target marker) | Always qualified in prose: "charge-up", "spent charge", "concussion charge". |
@@ -864,8 +864,20 @@ Format: **term** — definition. *(authority)*
   not the weapon: a picked mod lands on every carried weapon it fits, stacks
   with repeats, and one that fits nothing carried stays held and idle. The
   authored prefab numbers never change, so enemies and the hangar read the
-  weapon unmodded. Not a ship module. *(WeaponMod, WeaponModStack, WeaponMods)*
-- **lull pick** — the time-stopped choice of one weapon mod from up to three,
+  weapon unmodded. Not a ship module. *(WeaponMod, WeaponMods; held on the
+  LullModStack)*
+- **ship mod** — a run-scoped stat modifier on one field group of the player's
+  own hull, engine or shield (max hull; max speed; thrust; handling; shield
+  capacity, regen, recharge), grouped as the keystone scales group handling. It
+  folds into the ship's own resolve and applies at once with no heal: a max
+  rises and keeps its fraction. Only a bound stack mods a ship, so enemies and
+  the hangar read authored. Sibling of a weapon mod; not a ship module.
+  *(ShipMod, ShipMods, ResolvedShipStats.Resolve)*
+- **lull mod** — a weapon mod or a ship mod: what the lull pool holds and a
+  lull pick offers. A run's picks ride one stack the player rig binds to its
+  ship once; the ship re-reads it on every resolve and on every change.
+  *(LullMod, LullModPool, LullModStack, Ship.BindMods)*
+- **lull pick** — the time-stopped choice of one lull mod from up to three,
   or a skip, on the first frame of a sector phase lull; the lull's own seconds
   run after it. *(LullPickScreen, GameHost)*
 - **weapon pick** — the sector-break choice of one weapon the player does not

@@ -115,5 +115,17 @@ namespace Ships.Damage
 
             ResetDamageState();
         }
+
+        /// <summary>A mid-run max change: the bars keep their fractions and the regen clock keeps running.</summary>
+        public void Rescale(ResolvedShipStats s)
+        {
+            maxHealth       = s.maxHealth;
+            maxShield       = s.maxShield;
+            shieldRegenDelay= s.shieldRegenDelay;
+            shieldRegenRate = s.shieldRegenRate;
+
+            Health.Rescale(maxHealth);
+            Shield.Rescale(maxShield, shieldRegenRate, shieldRegenDelay);
+        }
     }
-} 
+}
