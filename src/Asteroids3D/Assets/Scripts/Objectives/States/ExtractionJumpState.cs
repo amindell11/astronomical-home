@@ -24,7 +24,7 @@ namespace Objectives.States
 
         public override ObjectiveType StateType => ObjectiveType.ExtractionChallenge;
         public override bool IsComplete => committed;
-        public override string StatusLine => zone.IsPlayerInZone ? "PRESS F TO JUMP" : "REACH THE JUMP GATE";
+        public override string StatusLine => zone.IsPlayerInZone ? "PRESS F TO JUMP" : string.Empty;
 
         public override void Enter()
         {
