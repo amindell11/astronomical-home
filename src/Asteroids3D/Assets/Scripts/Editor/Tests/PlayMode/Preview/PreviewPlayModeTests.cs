@@ -40,6 +40,8 @@ namespace Tests.PlayMode.Preview
         private PlayerRig rig;
         private SectorJumpProfile selectedJump;
         private RecapFeelProfile selectedRecap;
+        private SectorJumpProfile handedJump;
+        private RecapFeelProfile handedRecap;
 
         public override void SetUp()
         {
@@ -61,6 +63,8 @@ namespace Tests.PlayMode.Preview
             if (template) Object.Destroy(template);
             if (selectedJump) Object.Destroy(selectedJump);
             if (selectedRecap) Object.Destroy(selectedRecap);
+            if (handedJump) Object.Destroy(handedJump);
+            if (handedRecap) Object.Destroy(handedRecap);
             yield return null;
             input.TearDown();
         }
@@ -184,6 +188,23 @@ namespace Tests.PlayMode.Preview
         }
 
         [UnityTest]
+        public IEnumerator Playtest_RunsTheHandedFeels_AndAJumpFeelChangeRestartsCombat()
+        {
+            BuildPreview();
+            yield return WaitForFlight();
+            var combat = host.Playtest;
+            Assert.That(combat.recapFeel, Is.SameAs(handedRecap), "Playtest runs the feels its builder hands in");
+            Assert.That(combat.jumpFeel, Is.SameAs(handedJump));
+
+            var jump = TestAssets.Load<SectorJumpProfile>("Assets/Settings/Game/SectorJumpTuning.asset");
+            host.RestartPlaytest(jump);
+            yield return AsyncAssert.WaitUntil(() => host.IsReady && host.Playtest != combat, 30f,
+                "a jump feel change restarts Combat");
+            Assert.That(host.Playtest.jumpFeel, Is.SameAs(jump));
+            Assert.That(host.Playtest.recapFeel, Is.SameAs(handedRecap), "the restart keeps the recap feel");
+        }
+
+        [UnityTest]
         public IEnumerator InspectionExtractionRecap_LeavesTheHudAndClockToTheJump()
         {
             BuildPreview(PreviewMode.Inspection, PreviewSubjectKind.RunRecap);
@@ -244,6 +265,8 @@ namespace Tests.PlayMode.Preview
             host = root.AddComponent<PreviewHost>();
             host.mode = PreviewMode.Playtest;
             host.gameHostPrefab = shipped;
+            host.recapFeel = shipped.recapFeel;
+            host.jumpFeel = shipped.jumpFeel;
             host.sessionProfile = new SessionProfile();
             host.crowdedJumpSectors = new[] { "CrowdedJumpDeparture", "CrowdedJumpArrival" }.Select(name => new SectorEntry
             {
@@ -347,6 +370,8 @@ namespace Tests.PlayMode.Preview
             host.subjectKind = subject;
             host.gameHostPrefab = gameHost;
             host.sessionProfile = profile;
+            host.recapFeel = handedRecap = Object.Instantiate(gameHost.recapFeel);
+            host.jumpFeel = handedJump = Object.Instantiate(gameHost.jumpFeel);
             root.SetActive(true);
         }
     }

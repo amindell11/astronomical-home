@@ -25,9 +25,10 @@ namespace Game.Preview
     /// <summary>
     /// Inspection owns a session and presentation subject driven by a transport; Playtest owns an
     /// instance of the game's GameHost prefab, overriding only its run records, the selected feel
-    /// profiles and, for the crowded jump gate, its sectors. Inspection takes its rig, observer, jump
-    /// shader and starting feel from the same prefab. Replacement awaits the previous mode's teardown
-    /// before composing the next. Only inspection subjects may freeze this host's clock.
+    /// profiles and, for the crowded jump gate, its sectors. Inspection takes its rig, observer and jump
+    /// shader from the same prefab. The host's builder hands in the starting feel profiles before
+    /// activation; the host never saves them. Replacement awaits the previous mode's teardown before
+    /// composing the next. Only inspection subjects may freeze this host's clock.
     /// A throw while composing, replacing or tearing down faults the host: every later request refuses,
     /// Shutdown rethrows instead of tearing down, and only destroying the host recovers.
     /// https://github.com/amindell11/astronomical-home/issues/1151
@@ -43,8 +44,8 @@ namespace Game.Preview
         [SerializeField] internal PreviewMode mode;
         [SerializeField] internal PreviewPlaytestSetup playtestSetup;
 
-        private RecapFeelProfile recapFeel;
-        private SectorJumpProfile jumpFeel;
+        internal RecapFeelProfile recapFeel;
+        internal SectorJumpProfile jumpFeel;
         private UnitService unitService;
         private ObjectiveService objectiveService;
         private Session session;
@@ -81,8 +82,8 @@ namespace Game.Preview
         {
             unitService = GetComponent<UnitService>();
             objectiveService = GetComponent<ObjectiveService>();
-            recapFeel = gameHostPrefab.recapFeel;
-            jumpFeel = gameHostPrefab.jumpFeel;
+            if (!recapFeel)
+                throw new InvalidOperationException("The preview host requires a recap feel profile before activation.");
             RequireMode(mode);
             RequirePlaytestSetup(playtestSetup);
             if (!sessionProfile.presentation)
@@ -177,8 +178,8 @@ namespace Game.Preview
         public void RestartPlaytest(SectorJumpProfile feel)
         {
             RequireAvailable();
-            if (mode != PreviewMode.Playtest || playtestSetup != PreviewPlaytestSetup.CrowdedJumpGate)
-                throw new InvalidOperationException("Jump profile selection requires the crowded jump Playtest setup.");
+            if (mode != PreviewMode.Playtest)
+                throw new InvalidOperationException("Jump profile selection requires Playtest mode.");
             if (!feel) throw new ArgumentNullException(nameof(feel));
             jumpFeel = feel;
             BeginReplacement();

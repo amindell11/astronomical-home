@@ -26,7 +26,7 @@ namespace Tests.EditMode.Bootstrap
             host = PreviewHostBootstrap.BuildHost(PreviewSubjectKind.RunRecap, mode);
 
             Assert.AreEqual(mode, host.Mode);
-            Assert.IsTrue(host.gameObject.activeSelf, "the configured host is ready for play mode");
+            Assert.IsFalse(host.gameObject.activeSelf, "the host waits for play mode to hand it working copies");
             Assert.AreEqual(PreviewHostBootstrap.GameHostPath, AssetDatabase.GetAssetPath(host.gameHostPrefab),
                 "Playtest runs the GameHost prefab the boot scene instances");
             Assert.IsTrue(host.sessionProfile.presentation, "the preview shows presentation");
@@ -35,6 +35,26 @@ namespace Tests.EditMode.Bootstrap
             Assert.That(host.crowdedJumpSectors.Select(entry => entry.prefab.name),
                 Is.EqualTo(new[] { "CrowdedJumpDeparture", "CrowdedJumpArrival" }));
             Assert.That(host.crowdedJumpSectors.All(entry => entry.config), Is.True, "crowded jump configs assigned");
+        }
+
+        [Test]
+        public void Activate_RunsTheHostOnWorkingCopiesOfTheShippedFeels()
+        {
+            host = PreviewHostBootstrap.BuildHost();
+            var copies = new FeelWorkingCopies();
+            try
+            {
+                PreviewHostBootstrap.Activate(host, copies);
+
+                Assert.IsTrue(host.gameObject.activeSelf);
+                Assert.That(host.RecapFeel, Is.SameAs(copies.For(host.gameHostPrefab.recapFeel)));
+                Assert.That(host.JumpFeel, Is.SameAs(copies.For(host.gameHostPrefab.jumpFeel)));
+                Assert.IsFalse(AssetDatabase.Contains(host.RecapFeel), "the host never runs on the asset itself");
+            }
+            finally
+            {
+                copies.Close();
+            }
         }
 
         [Test]

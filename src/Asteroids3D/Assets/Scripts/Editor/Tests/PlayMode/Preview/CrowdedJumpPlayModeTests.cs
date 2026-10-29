@@ -477,6 +477,8 @@ namespace Tests.PlayMode.Preview
             host.subjectKind = PreviewSubjectKind.SectorJump;
             host.playtestSetup = PreviewPlaytestSetup.CrowdedJumpGate;
             host.gameHostPrefab = gameHost;
+            host.recapFeel = gameHost.recapFeel;
+            host.jumpFeel = feel;
             host.sessionProfile = profile;
             host.crowdedJumpSectors = profile.sectors;
             root.SetActive(true);

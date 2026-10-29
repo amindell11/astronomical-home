@@ -1,6 +1,4 @@
 using System.Linq;
-using Game.Travel;
-using UI.Recap;
 using UnityEditor;
 using UnityEngine;
 
@@ -8,8 +6,8 @@ namespace Game.Preview
 {
     /// <summary>
     /// Enters and switches the preview host's modes. Inspection drives a subject's timeline;
-    /// Playtest runs the real game and can restart it. Both edit feel assets with an explicit save.
-    /// Everything shown by either mode renders in the Game View.
+    /// Playtest runs the real game and can restart it. Both edit working copies of the feel assets,
+    /// which change only on Save. Everything shown by either mode renders in the Game View.
     /// </summary>
     internal sealed class PreviewControlPanel : EditorWindow
     {
@@ -77,9 +75,12 @@ namespace Game.Preview
                 return;
             }
             DrawTransport(host.Subject, host.Transport);
-            var profile = (ScriptableObject)EditorGUILayout.ObjectField("Feel profile", host.Subject.Knobs,
-                host.Subject.Knobs.GetType(), false);
-            if (profile && profile != host.Subject.Knobs) host.Subject.Knobs = profile;
+            var profile = PickProfile("Feel profile", host.Subject.Knobs);
+            if (profile)
+            {
+                host.Subject.Knobs = profile;
+                return;
+            }
             scroll = EditorGUILayout.BeginScrollView(scroll);
             DrawKnobs(host.Subject.Knobs, ref knobs);
             EditorGUILayout.EndScrollView();
@@ -112,29 +113,35 @@ namespace Game.Preview
                 host.RestartPlaytest();
                 return;
             }
-            var profile = (RecapFeelProfile)EditorGUILayout.ObjectField("Recap feel profile", host.RecapFeel,
-                typeof(RecapFeelProfile), false);
-            if (profile && profile != host.RecapFeel)
+            var recap = PickProfile("Recap feel profile", host.RecapFeel);
+            if (recap)
             {
-                host.RestartPlaytest(profile);
+                host.RestartPlaytest(recap);
                 return;
             }
             if (host.PlaytestSetup == PreviewPlaytestSetup.CrowdedJumpGate)
-            {
                 EditorGUILayout.HelpBox("Press F inside the jump gate. Continue completes arrival. " +
                     "Feel changes apply to the next jump; Restart Playtest tries again.", MessageType.None);
-                var jump = (SectorJumpProfile)EditorGUILayout.ObjectField("Jump feel profile", host.JumpFeel,
-                    typeof(SectorJumpProfile), false);
-                if (jump && jump != host.JumpFeel)
-                {
-                    host.RestartPlaytest(jump);
-                    return;
-                }
+            var jump = PickProfile("Jump feel profile", host.JumpFeel);
+            if (jump)
+            {
+                host.RestartPlaytest(jump);
+                return;
             }
             scroll = EditorGUILayout.BeginScrollView(scroll);
-            if (host.PlaytestSetup == PreviewPlaytestSetup.CrowdedJumpGate) DrawKnobs(host.JumpFeel, ref jumpKnobs);
+            DrawKnobs(host.JumpFeel, ref jumpKnobs);
             DrawKnobs(host.RecapFeel, ref knobs);
             EditorGUILayout.EndScrollView();
+        }
+
+        private static T PickProfile<T>(string label, T copy) where T : ScriptableObject
+        {
+            var copies = FeelWorkingCopies.Current;
+            var asset = copies.AssetOf(copy);
+            var picked = (T)EditorGUILayout.ObjectField(label, asset, asset.GetType(), false);
+            if (!picked || picked == asset) return null;
+            copies.Resolve(copy, FeelWorkingCopies.AskToSave);
+            return copies.For(picked);
         }
 
         private static void DrawTransport(IPreviewSubject subject, PreviewTransport transport)
@@ -166,19 +173,24 @@ namespace Game.Preview
             transport.HoldSeconds = EditorGUILayout.FloatField("Hold seconds", transport.HoldSeconds);
         }
 
-        private static void DrawKnobs(ScriptableObject target, ref SerializedObject serialized)
+        private static void DrawKnobs(ScriptableObject copy, ref SerializedObject serialized)
         {
-            if (!target) return;
-            if (serialized == null || serialized.targetObject != target) serialized = new SerializedObject(target);
+            if (serialized == null || serialized.targetObject != copy) serialized = new SerializedObject(copy);
+            var copies = FeelWorkingCopies.Current;
+            var unsaved = copies.HasUnsavedEdits(copy);
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Feel · " + target.name, EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Feel · " + copy.name + (unsaved ? " · unsaved edits" : ""), EditorStyles.boldLabel);
             serialized.Update();
             var property = serialized.GetIterator();
             for (var enterChildren = true; property.NextVisible(enterChildren); enterChildren = false)
                 if (property.name != "m_Script") EditorGUILayout.PropertyField(property, true);
             serialized.ApplyModifiedProperties();
-            using (new EditorGUI.DisabledScope(!EditorUtility.IsDirty(target)))
-                if (GUILayout.Button("Save feel profile")) AssetDatabase.SaveAssetIfDirty(target);
+            using (new EditorGUI.DisabledScope(!unsaved))
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button("Save feel profile")) copies.Save(copy);
+                if (GUILayout.Button("Revert")) copies.Revert(copy);
+            }
         }
     }
 }
