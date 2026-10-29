@@ -24,11 +24,12 @@ function Restore-UnityTrackedChanges {
     param([string]$RepoRoot)
     $changes = @(Get-TrackedChanges $RepoRoot)
     if ($changes.Count -eq 0) { return }
+    $diff = @(& git -c core.excludesFile= -C $RepoRoot diff --unified=0) -join "`n"
     & git -c core.excludesFile= -C $RepoRoot restore --worktree --source=HEAD -- . | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "Could not restore tracked files changed by Unity solution sync." }
     $remaining = @(Get-TrackedChanges $RepoRoot)
     if ($remaining.Count -gt 0) { throw "Unity solution sync left tracked changes: $($remaining -join ', ')" }
-    throw "Unity solution sync changed unexpected tracked files: $($changes -join ', ')"
+    throw "Unity solution sync changed unexpected tracked files: $($changes -join ', ')`n$diff"
 }
 
 if ($MyInvocation.InvocationName -eq '.') { return }

@@ -69,7 +69,9 @@ try {
     try { Restore-UnityTrackedChanges $temp } catch { $mutationRejected = $true }
     Assert-True $mutationRejected "solution sync rejects any tracked change Unity makes"
     Assert-True (@(Get-TrackedChanges $temp).Count -eq 0) "unexpected tracked mutations are restored before failure"
-    Restore-UnityTrackedChanges $temp
+    $cleanPassed = $true
+    try { Restore-UnityTrackedChanges $temp } catch { $cleanPassed = $false }
+    Assert-True $cleanPassed "solution sync passes a clean tracked tree"
 
     # -SolutionReady: a repo with no ProjectVersion.txt and no coordinator cannot resolve an editor or
     # sync, so reaching the missing-solution throw proves both were skipped.

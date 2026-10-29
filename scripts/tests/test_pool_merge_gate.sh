@@ -76,7 +76,7 @@ if [[ -n "${RUNNER_AWAITS:-}" ]]; then
   [[ -e "$RUNNER_AWAITS" ]] || { echo "stub: $RUNNER_AWAITS never appeared while the runner ran" >&2; exit 1; }
 fi
 if [[ "${RUNNER_MUTATE_TRACKED:-0}" == 1 ]]; then
-  sed -i 's/UNITY_POST_PROCESSING_STACK_V2$/UNITY_POST_PROCESSING_STACK_V2;SENTIS_ANALYTICS_ENABLED/' src/Asteroids3D/ProjectSettings/ProjectSettings.asset
+  printf '    productName: changed by Unity\n' >> src/Asteroids3D/ProjectSettings/ProjectSettings.asset
 fi
 mode=Both scope=Workspace filter="" category="" assemblies="" transport_line="" outdir=""
 args=("$@")
@@ -334,6 +334,7 @@ fi
 [[ -z "$(git -C "$TMP/agent-1" status --porcelain)" ]] || fail "a failed run should still restore tracked Unity test mutations"
 grep -q "src/Asteroids3D/ProjectSettings/ProjectSettings.asset" "$TMP/mutate.err" \
   || fail "the failure should name the changed file"
+grep -q "productName: changed by Unity" "$TMP/mutate.err" || fail "the failure should print the pre-restore diff"
 
 # Scoped submit records NO proof.
 runs_before="$(runner_runs)"
