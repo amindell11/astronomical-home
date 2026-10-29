@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Canopy and console concept review</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101317;color:#efeee8;font:16px/1.5 system-ui,sans-serif}main{max-width:1700px;margin:auto;padding:32px}h1{font-size:28px;font-weight:550;margin:0 0 8px}h2{font-size:22px;font-weight:550;margin:0 0 16px}p{max-width:1000px;color:#c5c8cb}section{margin-top:36px}.choices{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}button{font:inherit;padding:10px 16px;border:1px solid #535a61;border-radius:6px;background:#20262c;color:inherit;cursor:pointer}button[aria-pressed="true"]{background:#eeece3;color:#11171c;border-color:#eeece3}button:focus-visible,a:focus-visible{outline:3px solid #75d5df;outline-offset:3px}.picture{display:block}.picture img{display:block;width:100%;height:auto}figcaption{margin-top:12px;min-height:48px;color:#d3d5d6}figure{margin:0}a{color:#a6dce4}.note{font-size:14px;color:#aeb4b8}footer{margin-top:36px;border-top:1px solid #3c4349;padding-top:20px}@media(max-width:600px){main{padding:16px}button{flex:1 1 45%;padding:12px}h1{font-size:24px}}
+</style>
+<main>
+<h1>Canopy and console concept review</h1>
+<p>Choose the projection strategy and the console construction. The recommendations are selected below. Click an image to inspect it at full size.</p>
+<p class="note">Image-model concepts based on real game captures. Type, palette, symbols and sizes are provisional. These images do not prove exact additive blending or brightest-locale readability.</p>
+<section data-choice="canopy">
+<h2>1. How should the canopy projection be drawn?</h2>
+<div class="choices" aria-label="Canopy concepts">
+<button type="button" data-index="0" aria-pressed="false">A · Vector strokes</button>
+<button type="button" data-index="1" aria-pressed="false">B · Luminous fields</button>
+<button type="button" data-index="2" aria-pressed="true">C · Fills for quantities · Recommended</button>
+</div>
+<figure><a class="picture" href="concepts/03-measured-fills.png" target="_blank"><img src="concepts/03-measured-fills.png" alt="C. Thin vector instruments with luminous hatched fills only for quantities, over Copper and Turquoise gameplay."></a><figcaption aria-live="polite">C. Fills for quantities. The scene stays open, while charge and capacity read as illuminated areas. Recommended for its balance of minimal structure and readable amounts.</figcaption></figure>
+</section>
+<section data-choice="console">
+<h2>2. How should the consoles be constructed?</h2>
+<div class="choices" aria-label="Console concepts">
+<button type="button" data-index="0" aria-pressed="false">A · Physical housing</button>
+<button type="button" data-index="1" aria-pressed="false">B · Ink-drawn equipment</button>
+<button type="button" data-index="2" aria-pressed="true">C · Blended housing · Recommended</button>
+<button type="button" data-index="3" aria-pressed="false">D · Unboxed projection</button>
+</div>
+<figure><a class="picture" href="../consoles/concepts/03-blended.png" target="_blank"><img src="../consoles/concepts/03-blended.png" alt="C. A recessed hangar screen in a lightly worn frame with drawn contours and simple rails."></a><figcaption aria-live="polite">C. Blended housing. A tangible recessed screen, with the ship's ink and shadow treatment and simpler surrounding hardware. Recommended by both sessions.</figcaption></figure>
+</section>
+<footer><p>Reply with one letter for each numbered choice, such as <strong>1C, 2C</strong>. Viewing an option does not record a pick. Accepted picks go on <a href="https://github.com/amindell11/astronomical-home/issues/684">the UI direction issue</a>.</p></footer>
+</main>
+<script>
+const options={
+canopy:[
+['concepts/01-vector.png','A. Vector strokes. Bare luminous lines and tick marks keep the instruments most open. The clearest Asteroids homage.'],
+['concepts/02-luminous-fields.png','B. Luminous fields. Faint illuminated areas give each instrument a projected presence. The strongest sense of light on glass, with more visual haze.'],
+['concepts/03-measured-fills.png','C. Fills for quantities. The scene stays open, while charge and capacity read as illuminated areas. Recommended for its balance of minimal structure and readable amounts.']
+],
+console:[
+['../consoles/concepts/01-physical.png','A. Physical housing. A heavy, chamfered retro monitor with the strongest sense of solid machinery.'],
+['../consoles/concepts/02-ink-drawn.png','B. Ink-drawn equipment. The most illustrated and mechanical construction, with a broader surrounding console.'],
+['../consoles/concepts/03-blended.png',"C. Blended housing. A tangible recessed screen, with the ship's ink and shadow treatment and simpler surrounding hardware. Recommended by both sessions."],
+['../consoles/concepts/04-unboxed.png','D. Unboxed projection. The widest open view and the least hardware, but a weaker distinction between canopy and console.']
+]};
+document.querySelectorAll('[data-choice]').forEach(section=>{
+section.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>{
+const [src,caption]=options[section.dataset.choice][Number(button.dataset.index)];
+section.querySelectorAll('button').forEach(peer=>peer.setAttribute('aria-pressed',String(peer===button)));
+section.querySelector('img').src=src;section.querySelector('img').alt=caption;
+section.querySelector('.picture').href=src;section.querySelector('figcaption').textContent=caption;
+}));
+});
+</script>
+</html>
