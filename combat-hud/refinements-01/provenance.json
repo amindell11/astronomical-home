@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-29",
+  "status": "Unselected concept refinements",
+  "method": "Codex built-in imagegen",
+  "ownerFeedback": "https://github.com/amindell11/astronomical-home/issues/684#issuecomment-6508117055",
+  "parent": "../concepts/01-vector.png",
+  "parentSha256": "d233a22061746925b14ed86e76a838e8fbe875ed95d636cc6637e8bd06f2f5ac",
+  "originalSource": "../inputs/locale1-gameplay.png",
+  "originalSourceSha256": "e90c19fbd7f1292e6487c794d099690044fa4855fa89b54b6772dbca107aad83",
+  "outputs": [
+    {
+      "status": "For owner review",
+      "sha256": "569f07b9b219003157726d8da7db45426bfcca43a35823a27af0d8ba043f4ca5",
+      "file": "01-beam.png"
+    },
+    {
+      "status": "For owner review",
+      "sha256": "d3a314e640b0f198e90560778566d39b5dc3ae0e4db89bbb360f23e569a97163",
+      "file": "02-optics.png"
+    },
+    {
+      "status": "For owner review",
+      "sha256": "1ce0ab23bc385fbea1f9ee4cb06b20b0e11ee11784c03cbb368fb71bc68145ac",
+      "file": "03-combined.png"
+    },
+    {
+      "status": "Rejected for thick and saturated colored outlines",
+      "sha256": "6a8fc0fb0737eda8e945a05cb872e56adaf56d3c8aa96c13b36fa401f132b7fa",
+      "file": "rejected/heavy-fringe.png"
+    }
+  ],
+  "limitations": [
+    "Generated edits resynthesize pixels.",
+    "Stills do not demonstrate motion timing or verify additive blending.",
+    "Brightest-locale readability remains to be verified.",
+    "These images do not settle the generic character feedback."
+  ],
+  "recommendation": "1C combined, as a direction to test in motion, not a final finish"
+}

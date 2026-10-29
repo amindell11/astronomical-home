@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Canopy and console refinements</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101317;color:#efeee8;font:16px/1.5 system-ui,sans-serif}main{max-width:1700px;margin:auto;padding:32px}h1{font-size:28px;font-weight:550;margin:0 0 8px}h2{font-size:22px;font-weight:550;margin:0 0 12px}p{max-width:1000px;color:#c5c8cb}section{margin-top:36px}.choices{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}button{font:inherit;padding:10px 16px;border:1px solid #535a61;border-radius:6px;background:#20262c;color:inherit;cursor:pointer}button[aria-pressed="true"]{background:#eeece3;color:#11171c;border-color:#eeece3}button:focus-visible,a:focus-visible{outline:3px solid #75d5df;outline-offset:3px}.picture{display:block}.picture img{display:block;width:100%;height:auto}figcaption{margin-top:12px;min-height:48px;color:#d3d5d6}figure{margin:0}a{color:#a6dce4}.note{font-size:14px;color:#aeb4b8}footer{margin-top:36px;border-top:1px solid #3c4349;padding-top:20px}@media(max-width:600px){main{padding:16px}button{flex:1 1 45%;padding:12px}h1{font-size:24px}}
+</style>
+<main>
+<h1>Canopy and console refinements</h1>
+<p>Your canopy preference is A's simplicity, with more CRT character needed. Your console finish choice is the first B's ink-drawn treatment, with its construction and detail still open.</p>
+<p class="note">These are image-model concepts. The canopy stills show texture and refraction, but motion is needed to judge flicker and afterglow. Type, color values, symbols and dimensions remain provisional. Click an image for full size.</p>
+<section data-choice="canopy">
+<h2>1. Which character should the sparse canopy projection explore?</h2>
+<div class="choices" aria-label="Canopy refinements">
+<button type="button" data-index="0" aria-pressed="false">Original A reference</button>
+<button type="button" data-index="1" aria-pressed="false">1A · Beam texture</button>
+<button type="button" data-index="2" aria-pressed="false">1B · Peripheral optics</button>
+<button type="button" data-index="3" aria-pressed="true">1C · Combined · Recommended</button>
+</div>
+<figure><a class="picture" href="refinements-01/03-combined.png" target="_blank"><img src="refinements-01/03-combined.png" alt="1C. Sparse vector HUD with fine beam texture and a faint echo on the outer scope rim."></a><figcaption aria-live="polite">1C. Combined. Fine beam texture with a restrained peripheral echo. Recommended as the direction to carry into motion; the still does not settle the CRT character.</figcaption></figure>
+</section>
+<section data-choice="console">
+<h2>2. Which construction should carry the ink-drawn console finish?</h2>
+<div class="choices" aria-label="Console refinements">
+<button type="button" data-index="0" aria-pressed="false">Original B reference</button>
+<button type="button" data-index="1" aria-pressed="true">2A · Compact bezel · Recommended</button>
+<button type="button" data-index="2" aria-pressed="false">2B · Continuous face</button>
+<button type="button" data-index="3" aria-pressed="false">2C · Corner blocks and rails</button>
+</div>
+<figure><a class="picture" href="../consoles/refinements-01/01-compact-bezel.png" target="_blank"><img src="../consoles/refinements-01/01-compact-bezel.png" alt="2A. Ink-drawn recessed monitor with a simple bezel, low sill and separate Launch housing."></a><figcaption aria-live="polite">2A. Compact bezel. Keeps the console installed in the ship, with broad shading and fewer seams. Recommended by both sessions.</figcaption></figure>
+</section>
+<footer><p>These labels belong to this refinement batch. Reply with your preference for each numbered choice, such as <strong>1C, 2A</strong>, or describe what is still missing. Viewing an option does not record a pick.</p><p class="note">Exact additive blending and brightest-locale readability still need verification over unchanged captures. No game code or assets changed.</p></footer>
+</main>
+<script>
+const options={
+canopy:[
+['concepts/01-vector.png','Original A reference. The first vector concept, whose subtlety and simplicity the owner preferred.'],
+['refinements-01/01-beam.png','1A. Beam texture. Fine grain and small endpoint irregularities give the luminous strokes a less uniform finish.'],
+['refinements-01/02-optics.png','1B. Peripheral optics. A faint separated echo at the outer scope and direction arrow suggests imperfect projected light.'],
+['refinements-01/03-combined.png','1C. Combined. Fine beam texture with a restrained peripheral echo. Recommended as the direction to carry into motion; the still does not settle the CRT character.']
+],
+console:[
+['../consoles/concepts/02-ink-drawn.png','Original B reference. The owner selected its ink-drawn finish, while leaving the shape and detail open.'],
+['../consoles/refinements-01/01-compact-bezel.png','2A. Compact bezel. Keeps the console installed in the ship, with broad shading and fewer seams. Recommended by both sessions.'],
+['../consoles/refinements-01/02-continuous-face.png','2B. Continuous face. A broad equipment face joins the screen and Launch housing. It feels like one console, with more material across the view.'],
+['../consoles/refinements-01/03-corner-and-rail.png','2C. Corner blocks and rails. Shows the repeatable frame construction clearly. These generated housings look more detached from the cockpit.']
+]};
+document.querySelectorAll('[data-choice]').forEach(section=>{
+section.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>{
+const [src,caption]=options[section.dataset.choice][Number(button.dataset.index)];
+section.querySelectorAll('button').forEach(peer=>peer.setAttribute('aria-pressed',String(peer===button)));
+section.querySelector('img').src=src;section.querySelector('img').alt=caption;
+section.querySelector('.picture').href=src;section.querySelector('figcaption').textContent=caption;
+}));
+});
+</script>
+</html>
