@@ -1,6 +1,6 @@
 # Combat canopy review
 
-The [current joint review](review-04.html) presents the live canopy and console together. The console uses the canopy's shared fonts and CRT renderer. The [preceding review](review-03.html) preserves the earlier colored-hologram stills.
+The [current joint review](review-04.html) presents the unchanged live canopy and restored image-based console. The owner rejected the live console and requested only a modest ship-transparency adjustment, then a stop. That result replaces the rejected recommendation. The [preceding review](review-03.html) preserves the earlier colored-hologram stills.
 
 The current review uses the [live personality tuner](tuners/personality.html) and [color tuner](tuners/color.html). Open either downloaded HTML file in a WebGL browser. Each includes its captures, fonts and code, so it runs without a server or network connection. The [tuner notes](tuners/README.md) cover controls, sources and verification.
 
