@@ -144,8 +144,10 @@ function Write-BuildFiles {
         "    <Compile Include=`"$include`" Exclude=`"$exclude`" />`n" +
         "  </ItemGroup>"
     }
+    # Copy-local references would land in the shared bin while parallel projects read it.
+    $noCopy = "  <ItemGroup>`n    <Reference Update=`"@(Reference)`" Private=`"false`" />`n  </ItemGroup>"
     $targets = Join-Path $StateDir "compile-check.targets"
-    Write-FileIfChanged $targets "<Project>`n$($groups -join "`n")`n</Project>`n"
+    Write-FileIfChanged $targets "<Project>`n$noCopy`n$($groups -join "`n")`n</Project>`n"
 
     $projects = [System.Security.SecurityElement]::Escape(($Asmdefs | ForEach-Object { Join-Path $SnapshotDir "$($_.name).csproj" }) -join ';')
     $properties = [System.Security.SecurityElement]::Escape("CustomAfterMicrosoftCommonTargets=$targets;OutputPath=$StateDir\bin\;BaseIntermediateOutputPath=$StateDir\obj\;IntermediateOutputPath=$StateDir\obj\")
