@@ -283,6 +283,9 @@ MonoBehaviour:
   lockZoomToSubject: 0
   lockZoomDistance: 15
   keepSubjectInView: 1
+  zoomStep: 1.1
+  minZoomScale: 0.6
+  maxZoomScale: 2
 --- !u!114 &-8304186701405169169
 MonoBehaviour:
   m_ObjectHideFlags: 0
