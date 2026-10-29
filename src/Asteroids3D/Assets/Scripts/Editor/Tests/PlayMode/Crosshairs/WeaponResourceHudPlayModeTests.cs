@@ -156,23 +156,24 @@ namespace Tests.PlayMode.Crosshairs
             var mod = ScriptableObject.CreateInstance<WeaponMod>();
             try
             {
-                mod.Configure("Extra missile", WeaponModField.Magazine, 1f);
+                mod.Configure("Extra missile", WeaponModField.Magazine, 7f);
                 var stack = new WeaponModStack();
                 stack.Add(mod);
                 controller.SetMods(stack);
                 Draw();
                 yield return null;
-                Assert.That(rounds.AmmoCount, Is.EqualTo(2));
-                Assert.That(rounds.MaxAmmo, Is.EqualTo(3));
+                Assert.That(rounds.AmmoCount, Is.EqualTo(8));
+                Assert.That(rounds.MaxAmmo, Is.EqualTo(9));
                 Assert.That(rounds.ReloadProgress, Is.EqualTo(.5f));
+                Assert.IsNotNull(hud.transform.Find("PrimaryResources/Threshold8"));
                 var first = ImageAt("PrimaryResources/Threshold1");
                 var second = ImageAt("PrimaryResources/Threshold2");
                 Assert.That(first.fillAmount, Is.EqualTo(second.fillAmount));
                 Assert.That(Quaternion.Angle(first.transform.localRotation, second.transform.localRotation),
-                    Is.EqualTo(40f).Within(.001f));
-                Assert.That(ImageAt("PrimaryResources/Fill").fillAmount, Is.EqualTo(2.5f / 9f).Within(.001f));
+                    Is.EqualTo(120f / 9f).Within(.001f));
+                Assert.That(ImageAt("PrimaryResources/Fill").fillAmount, Is.EqualTo(8.5f / 27f).Within(.001f));
                 rounds.Tick(5f);
-                Assert.That(rounds.AmmoCount, Is.EqualTo(3));
+                Assert.That(rounds.AmmoCount, Is.EqualTo(9));
                 Assert.IsFalse(rounds.IsReloading);
             }
             finally { Object.DestroyImmediate(mod); }

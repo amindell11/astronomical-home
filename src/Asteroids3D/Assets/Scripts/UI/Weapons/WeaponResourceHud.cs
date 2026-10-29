@@ -85,7 +85,7 @@ namespace UI.Weapons
             {
                 AddArc(resourceTemplate, resourceRect, "Track", start, 120f, left, track);
                 resource.Fill = AddArc(resourceTemplate, resourceRect, "Fill", start, 0f, left, ink);
-                if (source is IAmmoReadout { MaxAmmo: <= 8, Refill: Rounds.RefillMode.Sequential } shared)
+                if (source is IAmmoReadout { Refill: Rounds.RefillMode.Sequential } shared)
                 {
                     const float width = 2f;
                     for (var i = 1; i < shared.MaxAmmo; i++)
