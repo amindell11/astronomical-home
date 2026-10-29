@@ -23,6 +23,7 @@ namespace UI.Weapons
             public GameObject Root;
             public Image Fill;
             public Image[] Rounds;
+            public float RoundSpan;
             public Image ReloadTrack;
             public Image ReloadFill;
         }
@@ -67,19 +68,24 @@ namespace UI.Weapons
             var resource = new Resource { Source = source, Root = go };
             if (source is IAmmoReadout { MaxAmmo: <= 8 } ammo)
             {
-                var gap = ammo.MaxAmmo == 2 ? 25f : 4f;
+                const float gap = 4f;
                 var span = (120f - gap * (ammo.MaxAmmo - 1)) / ammo.MaxAmmo;
+                resource.RoundSpan = span / 360f;
                 resource.Rounds = new Image[ammo.MaxAmmo];
                 for (var i = 0; i < ammo.MaxAmmo; i++)
+                {
+                    var angle = start + (left ? 1f : -1f) * i * (span + gap);
+                    AddArc(resourceTemplate, resourceRect, "RoundTrack" + i, angle, span, left, empty);
                     resource.Rounds[i] = AddArc(resourceTemplate, resourceRect, "Round" + i,
-                        start + (left ? 1f : -1f) * i * (span + gap), span, left, empty);
+                        angle, 0f, left, ink);
+                }
             }
             else
             {
                 AddArc(resourceTemplate, resourceRect, "Track", start, 120f, left, track);
                 resource.Fill = AddArc(resourceTemplate, resourceRect, "Fill", start, 0f, left, ink);
             }
-            if (source is IAmmoReadout)
+            if (source is IAmmoReadout && resource.Rounds == null)
             {
                 resource.ReloadTrack = AddArc(reloadTemplate, resourceRect, "ReloadTrack", start, 120f, left, track);
                 resource.ReloadFill = AddArc(reloadTemplate, resourceRect, "ReloadFill", start, 0f, left, ink);
@@ -117,10 +123,12 @@ namespace UI.Weapons
                         break;
                     case IAmmoReadout ammo:
                         if (resource.Rounds != null)
+                        {
                             for (var i = 0; i < resource.Rounds.Length; i++)
-                                resource.Rounds[i].color = i < ammo.AmmoCount ? ink : empty;
-                        else
-                            resource.Fill.fillAmount = 120f / 360f * ammo.AmmoCount / ammo.MaxAmmo;
+                                resource.Rounds[i].fillAmount = resource.RoundSpan * ammo.RoundProgress(i);
+                            break;
+                        }
+                        resource.Fill.fillAmount = 120f / 360f * ammo.AmmoCount / ammo.MaxAmmo;
                         resource.ReloadTrack.gameObject.SetActive(ammo.IsReloading);
                         resource.ReloadFill.gameObject.SetActive(ammo.IsReloading);
                         resource.ReloadFill.fillAmount = 120f / 360f * ammo.ReloadProgress;

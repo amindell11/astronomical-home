@@ -28,6 +28,7 @@ namespace Tests.PlayMode.Crosshairs
             public int MaxAmmo => 2;
             public bool IsReloading { get; set; }
             public float ReloadProgress => .5f;
+            public float RoundProgress(int index) => index < AmmoCount ? 1f : IsReloading ? ReloadProgress : 0f;
             public event Action<int> OnAmmoCountChanged { add { } remove { } }
             public event Action OnReloadStarted { add { } remove { } }
             public event Action OnReloadCompleted { add { } remove { } }
@@ -36,7 +37,7 @@ namespace Tests.PlayMode.Crosshairs
         private sealed class WeaponSources : IWeaponReadouts
         {
             private readonly IWeaponReadout[] ammo;
-            public WeaponSources(Ammo value) => ammo = new IWeaponReadout[] { value };
+            public WeaponSources(IAmmoReadout value) => ammo = new IWeaponReadout[] { value };
             public IReadOnlyList<WeaponSlot> Slots { get; } = new[] { WeaponSlot.Primary, WeaponSlot.Secondary };
             public string DisplayName(WeaponSlot slot) => slot.ToString();
             public IReadOnlyList<IWeaponReadout> Readouts(WeaponSlot slot) => ammo;
@@ -150,22 +151,50 @@ namespace Tests.PlayMode.Crosshairs
         }
 
         [Test]
-        public void ReloadProgress_UsesItsOwnArc_AndEmptyAmmoKeepsTheSpentRoundVisible()
+        public void ReloadProgress_FillsAmmoSegments_AndEmptyAmmoKeepsItsTrackVisible()
         {
-            Press(mouse.rightButton);
             Draw();
             var round = ImageAt("SecondaryResources/Round0");
-            var spentInk = ImageAt("SecondaryResources/Round1").color;
-            Assert.That(round.color, Is.Not.EqualTo(spentInk));
+            var track = ImageAt("SecondaryResources/RoundTrack0");
+            Assert.That(round.fillAmount, Is.EqualTo(track.fillAmount));
+            Assert.That(ImageAt("SecondaryResources/Round1").fillAmount, Is.Zero);
             ammo.AmmoCount = 0;
             Draw();
-            Assert.That(round.color, Is.EqualTo(spentInk));
-            Assert.IsTrue(round.isActiveAndEnabled);
+            Assert.That(round.fillAmount, Is.Zero);
+            Assert.IsTrue(track.isActiveAndEnabled);
             ammo.IsReloading = true;
             Draw();
-            var reload = ImageAt("SecondaryResources/ReloadFill");
-            Assert.IsTrue(reload.isActiveAndEnabled);
-            Assert.That(reload.fillAmount, Is.EqualTo(120f / 720f).Within(.001f));
+            Assert.That(round.fillAmount, Is.EqualTo(track.fillAmount * .5f).Within(.001f));
+            Assert.IsNull(weaponHud.transform.Find("SecondaryResources/ReloadFill"));
+        }
+
+        [UnityTest]
+        public IEnumerator MissileSegments_FillIndependently_ThroughReloadCompletion()
+        {
+            var rounds = shipRoot.AddComponent<Rounds>();
+            rounds.Configure(2, 2f, Rounds.RefillMode.PerRound);
+            rounds.enabled = false;
+            weaponHud.Initialize(new WeaponSources(rounds));
+            yield return null;
+            rounds.ProcessFire();
+            rounds.Tick(1f);
+            rounds.ProcessFire();
+            rounds.Tick(.5f);
+            Draw();
+            var first = ImageAt("SecondaryResources/Round0");
+            var second = ImageAt("SecondaryResources/Round1");
+            var span = ImageAt("SecondaryResources/RoundTrack0").fillAmount;
+            Assert.That(first.fillAmount, Is.EqualTo(span * .75f).Within(.001f));
+            Assert.That(second.fillAmount, Is.EqualTo(span * .25f).Within(.001f));
+            var separation = Quaternion.Angle(first.transform.localRotation, second.transform.localRotation);
+            Assert.That(separation - span * 360f, Is.EqualTo(4f).Within(.001f));
+            rounds.Tick(.5f);
+            Draw();
+            Assert.That(first.fillAmount, Is.EqualTo(span).Within(.001f));
+            Assert.That(second.fillAmount, Is.EqualTo(span * .5f).Within(.001f));
+            rounds.Tick(1f);
+            Draw();
+            Assert.That(second.fillAmount, Is.EqualTo(span).Within(.001f));
         }
 
         [Test]

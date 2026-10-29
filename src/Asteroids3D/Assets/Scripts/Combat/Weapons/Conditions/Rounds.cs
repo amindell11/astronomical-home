@@ -1,6 +1,7 @@
 using Balance;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Combat.Weapons;
 using Combat.Weapons.Mods;
 using UnityEngine;
@@ -18,6 +19,7 @@ namespace Combat.Weapons.Conditions
         int MaxAmmo { get; }
         bool IsReloading { get; }
         float ReloadProgress { get; }
+        float RoundProgress(int index);
         event Action<int> OnAmmoCountChanged;
         event Action OnReloadStarted;
         event Action OnReloadCompleted;
@@ -51,6 +53,15 @@ namespace Combat.Weapons.Conditions
             !IsReloading ? 0f
             : refill == RefillMode.PerRound ? Mathf.Clamp01(1f - (roundDueTimes.Peek() - regenClock) / ReloadTime)
             : Mathf.Clamp01(reloadElapsed / ReloadTime);
+
+        public float RoundProgress(int index)
+        {
+            if (index < AmmoCount) return 1f;
+            if (!IsReloading) return 0f;
+            return refill == RefillMode.Magazine
+                ? ReloadProgress
+                : Mathf.Clamp01(1f - (roundDueTimes.ElementAt(index - AmmoCount) - regenClock) / ReloadTime);
+        }
 
         private float reloadElapsed;
         private int knownMax;
