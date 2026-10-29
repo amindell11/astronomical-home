@@ -50,7 +50,7 @@ namespace Cameras
             if (manualCenter.HasValue)
             {
                 desiredCenter = manualCenter.Value;
-                desiredSize = manualZoom.HasValue ? ClampZoom(manualZoom.Value) : Cam.orthographicSize;
+                desiredSize = manualZoom ?? Cam.orthographicSize;
                 return;
             }
             if (!TryGetBoundaryAroundAllSubjects(out var min2D, out var max2D))
@@ -74,7 +74,7 @@ namespace Cameras
         private float ComputeDesiredZoom(Vector2 center, Vector2 boundsMin, Vector2 boundsMax)
         {
             if (manualZoom.HasValue)
-                return ClampZoom(manualZoom.Value);
+                return manualZoom.Value;
             if (lockZoomToSubject)
                 return ClampZoom(lockZoomDistance) * zoomScale;
             var preferredSize = CameraUtils.ZoomToFitBounds(center, boundsMin, boundsMax, padding, Cam.aspect);

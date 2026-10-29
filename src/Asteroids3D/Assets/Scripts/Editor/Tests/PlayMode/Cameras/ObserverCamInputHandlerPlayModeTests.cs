@@ -101,6 +101,24 @@ namespace Tests.PlayMode.Cameras
                 () => Assert.AreEqual(expected, cam.Cam.orthographicSize, SizeTolerance));
         }
 
+        [UnityTest]
+        public IEnumerator ScrolledFraming_HoldsUnderAManualZoom()
+        {
+            subject = new GameObject("Subject");
+            cam.SetSubject(subject.transform);
+            yield return Scroll(100f);
+            yield return new WaitForSecondsRealtime(SettleSec);
+            var scrolledSize = cam.Cam.orthographicSize;
+
+            cam.SetManualCenter(cam.CurrentCenter2D);
+            cam.SetManualZoom(scrolledSize);
+            yield return AsyncAssert.AssertRemainsFalseFor(
+                () => Mathf.Abs(cam.Cam.orthographicSize - scrolledSize) > SizeTolerance,
+                "pinning the live size as a manual zoom, as the defeat recap does, moved the framing",
+                minFrames: 30,
+                minUnscaledSeconds: 0.35f);
+        }
+
         private IEnumerator Scroll(float notches)
         {
             Set(mouse.scroll.y, notches);
