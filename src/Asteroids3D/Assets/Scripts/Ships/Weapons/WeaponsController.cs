@@ -125,7 +125,9 @@ namespace Ships.Weapons
             {
                 if (!owner || !owner.enabled) return;
                 var mount = owner.Mount(slot);
-                if (mount) mount.HandleTrigger(in cmd, projectiles);
+                if (!mount) return;
+                if (cmd.reload) mount.Reload();
+                mount.HandleTrigger(in cmd, projectiles);
             }
         }
 
