@@ -8,17 +8,14 @@ using Combat.Weapons.Conditions;
 namespace UI.Weapons
 {
     /// <summary>
-    /// Binds every weapon readout for HUD audio and builds corner panels for charge and lock.
-    /// Heat and ammunition surround Keystone in <see cref="WeaponResourceHud"/>.
+    /// Binds weapon readouts for HUD audio and builds corner panels for lock feedback.
+    /// Heat, ammunition and held charge surround Keystone in <see cref="WeaponResourceHud"/>.
     /// </summary>
     public sealed class WeaponReadoutBuilder : MonoBehaviour
     {
         [Header("Prefabs")]
         [Tooltip("Panel instantiated per equipped weapon slot.")]
         [SerializeField] internal WeaponReadoutPanel panelPrefab;
-
-        [Tooltip("Widget instantiated per charge readout.")]
-        [SerializeField] internal ChargeGaugeUI chargeWidgetPrefab;
 
         [Tooltip("Widget instantiated per lock readout.")]
         [SerializeField] internal LockReadoutUI lockWidgetPrefab;
@@ -69,40 +66,21 @@ namespace UI.Weapons
             var readouts = weapons.Readouts(slot);
             for (var i = 0; i < readouts.Count; i++)
             {
-                if (readouts[i] is IHeatReadout or IAmmoReadout)
+                if (readouts[i] is IHeatReadout or IAmmoReadout or IChargeReadout)
                 {
                     built.Add(new BoundReadout(slot, readouts[i], null));
                     continue;
                 }
-                if (readouts[i] is not IChargeReadout and not ILockStateSource) continue;
+                if (readouts[i] is not ILockStateSource lockSource || !lockWidgetPrefab) continue;
                 if (!panel)
                 {
                     panel = Instantiate(panelPrefab, transform);
                     panel.Initialize(weapons.DisplayName(slot));
                     panels.Add(panel);
                 }
-                var widget = CreateWidget(readouts[i], panel.Container);
-                if (widget)
-                    built.Add(new BoundReadout(slot, readouts[i], widget));
-            }
-        }
-
-        private MonoBehaviour CreateWidget(IWeaponReadout readout, Transform container)
-        {
-            switch (readout)
-            {
-                case IChargeReadout charge when chargeWidgetPrefab:
-                    var chargeGauge = Instantiate(chargeWidgetPrefab, container);
-                    chargeGauge.Initialize(charge);
-                    return chargeGauge;
-
-                case ILockStateSource lockSource when lockWidgetPrefab:
-                    var spinner = Instantiate(lockWidgetPrefab, container);
-                    spinner.Initialize(lockSource);
-                    return spinner;
-
-                default:
-                    return null;
+                var widget = Instantiate(lockWidgetPrefab, panel.Container);
+                widget.Initialize(lockSource);
+                built.Add(new BoundReadout(slot, readouts[i], widget));
             }
         }
 

@@ -1,0 +1,161 @@
+using System.Collections;
+using Combat.Weapons;
+using Combat.Weapons.Conditions;
+using NUnit.Framework;
+using Ships.Weapons;
+using Tests.PlayMode.Common;
+using UI.Weapons;
+using UnityEngine;
+using UnityEngine.TestTools;
+using UnityEngine.UI;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
+namespace Tests.PlayMode.Crosshairs
+{
+    [Category("Weapons")]
+    public sealed class WeaponResourceHudPlayModeTests : PlayModeWorldFixture
+    {
+        private GameObject root;
+        private WeaponResourceHud hud;
+        private WeaponReadoutBuilder builder;
+
+        [SetUp]
+        public void CreateHud()
+        {
+            root = new GameObject("Weapon HUD test", typeof(RectTransform), typeof(Canvas));
+            root.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
+            hud = Object.Instantiate(LoadPrefab<WeaponResourceHud>("UI/Crosshair/WeaponKeystoneHud"), root.transform);
+            builder = root.AddComponent<WeaponReadoutBuilder>();
+            var authoredBuilder = LoadPrefab<WeaponReadoutBuilder>("UI/UIOverlay");
+            builder.panelPrefab = authoredBuilder.panelPrefab;
+            builder.lockWidgetPrefab = authoredBuilder.lockWidgetPrefab;
+        }
+
+        [TearDown]
+        public override void TearDown()
+        {
+            Object.DestroyImmediate(root);
+            base.TearDown();
+        }
+
+        private static T LoadPrefab<T>(string path) where T : Component
+        {
+#if UNITY_EDITOR
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/" + path + ".prefab");
+            Assert.IsNotNull(prefab);
+            return prefab.GetComponentInChildren<T>(true);
+#else
+            Assert.Ignore("Requires authored weapon and HUD prefabs.");
+            return null;
+#endif
+        }
+
+        private WeaponsController Bind(string weaponName)
+        {
+            var mounts = new GameObject("Mounts");
+            mounts.transform.SetParent(root.transform);
+            mounts.SetActive(false);
+            var controller = mounts.AddComponent<WeaponsController>();
+            controller.primaryMount = LoadPrefab<WeaponComponent>("Weapons/" + weaponName);
+            controller.secondaryMount = controller.primaryMount;
+            mounts.SetActive(true);
+            controller.Initialize(() => default);
+            Rebind(controller);
+            return controller;
+        }
+
+        private void Rebind(WeaponsController controller)
+        {
+            hud.Initialize(controller.ReadoutContext);
+            hud.gameObject.SetActive(true);
+            builder.Build(controller.ReadoutContext);
+            Draw();
+        }
+
+        private void Draw() => hud.SendMessage("LateUpdate");
+        private Image ImageAt(string path) => hud.transform.Find(path).GetComponent<Image>();
+
+        [TestCase("Lasers")]
+        [TestCase("TurboLasers")]
+        [TestCase("ChargeLasers")]
+        [TestCase("Railgun")]
+        [TestCase("Rippers")]
+        [TestCase("Missiles")]
+        [TestCase("Grenades")]
+        public void AuthoredWeapon_HasPersistentResourcesInBothPositions(string weaponName)
+        {
+            Bind(weaponName);
+            Assert.IsTrue(hud.transform.Find("PrimaryResources").gameObject.activeInHierarchy);
+            Assert.IsTrue(hud.transform.Find("SecondaryResources").gameObject.activeInHierarchy);
+            Assert.IsNull(hud.transform.Find("PrimaryResources/ReloadFill"));
+            Assert.IsNull(hud.transform.Find("SecondaryResources/ReloadFill"));
+            Assert.That(builder.Panels.Count, Is.EqualTo(weaponName == "Missiles" ? 2 : 0));
+        }
+
+        [TestCase("ChargeLasers")]
+        [TestCase("Railgun")]
+        public void HeldCharge_FillsTheWeaponArc_AndFiringClearsIt(string weaponName)
+        {
+            var controller = Bind(weaponName);
+            var charge = controller.Primary.GetComponent<ChargeTime>();
+            var fill = ImageAt("PrimaryResources/Fill");
+            var track = ImageAt("PrimaryResources/Track");
+            Assert.That(fill.fillAmount, Is.Zero);
+            charge.HandleTrigger(true, charge.FullChargeTime * .5f);
+            Draw();
+            Assert.That(fill.fillAmount, Is.EqualTo(track.fillAmount * .5f).Within(.001f));
+            Assert.That(ImageAt("SecondaryResources/Fill").fillAmount, Is.Zero);
+            charge.HandleTrigger(true, charge.FullChargeTime * .5f);
+            Draw();
+            Assert.That(fill.fillAmount, Is.EqualTo(track.fillAmount).Within(.001f));
+            charge.ProcessFire();
+            Draw();
+            Assert.That(fill.fillAmount, Is.Zero);
+            Assert.IsTrue(track.isActiveAndEnabled);
+            Assert.IsEmpty(builder.Panels);
+            Assert.AreSame(charge, builder.FirstReadout<IChargeReadout>());
+        }
+
+        [Test]
+        public void RipperMagazine_ReloadFillsItsAmmoArcThroughCompletion()
+        {
+            var controller = Bind("Rippers");
+            var rounds = controller.Primary.GetComponent<Rounds>();
+            var fill = ImageAt("PrimaryResources/Fill");
+            var span = ImageAt("PrimaryResources/Track").fillAmount;
+            rounds.ProcessFire();
+            Draw();
+            Assert.That(fill.fillAmount, Is.EqualTo(span * 23f / 24f).Within(.001f));
+            while (rounds.AmmoCount > 0) rounds.ProcessFire();
+            Draw();
+            Assert.That(fill.fillAmount, Is.Zero);
+            rounds.Tick(rounds.ReloadTime * .5f);
+            Draw();
+            Assert.That(fill.fillAmount, Is.EqualTo(span * .5f).Within(.001f));
+            rounds.Tick(rounds.ReloadTime * .5f);
+            Draw();
+            Assert.That(fill.fillAmount, Is.EqualTo(span).Within(.001f));
+            Assert.IsNull(hud.transform.Find("PrimaryResources/ReloadFill"));
+        }
+
+        [UnityTest]
+        public IEnumerator WeaponSwap_ReplacesAmmoSegmentsWithCharge_AndClearsTheEmptyPosition()
+        {
+            var controller = Bind("Grenades");
+            var oldResources = hud.transform.Find("PrimaryResources").gameObject;
+            controller.Reequip(LoadPrefab<WeaponComponent>("Weapons/Railgun"), null);
+            Rebind(controller);
+            Assert.IsFalse(oldResources.activeSelf);
+            yield return null;
+            Assert.IsNull(hud.transform.Find("SecondaryResources"));
+            Assert.IsNull(hud.transform.Find("PrimaryResources/Round0"));
+            var charge = controller.Primary.GetComponent<ChargeTime>();
+            charge.HandleTrigger(true, charge.FullChargeTime * .5f);
+            Draw();
+            Assert.That(ImageAt("PrimaryResources/Fill").fillAmount, Is.EqualTo(1f / 6f).Within(.001f));
+            Assert.IsEmpty(builder.Panels);
+        }
+    }
+}

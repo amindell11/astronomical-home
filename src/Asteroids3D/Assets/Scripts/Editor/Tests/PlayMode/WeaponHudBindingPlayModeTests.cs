@@ -203,7 +203,6 @@ namespace Tests.PlayMode
             var builder = overlay.GetComponentInChildren<WeaponReadoutBuilder>(true);
             Assert.IsNotNull(builder, "UIOverlay must carry a WeaponReadoutBuilder.");
             Assert.IsNotNull(builder.panelPrefab, "Panel prefab must be wired.");
-            Assert.IsNotNull(builder.chargeWidgetPrefab, "Charge gauge prefab must be wired.");
             Assert.IsNotNull(builder.lockWidgetPrefab, "Lock readout prefab must be wired.");
 #else
             Assert.Ignore("Requires Unity Editor assets.");

@@ -11,7 +11,6 @@ namespace UI.Weapons
     public sealed class WeaponResourceHud : MonoBehaviour
     {
         [SerializeField] private Image resourceTemplate;
-        [SerializeField] private Image reloadTemplate;
         [SerializeField] private Color ink = new(.953f, .949f, .875f);
         [SerializeField] private Color track = new(.639f, .651f, .667f, .3f);
         [SerializeField] private Color empty = new(.639f, .651f, .667f, .3f);
@@ -24,16 +23,14 @@ namespace UI.Weapons
             public Image Fill;
             public Image[] Rounds;
             public float RoundSpan;
-            public Image ReloadTrack;
-            public Image ReloadFill;
         }
 
         private readonly List<Resource> resources = new();
 
         private void Awake()
         {
-            if (!resourceTemplate || !reloadTemplate)
-                throw new InvalidOperationException("WeaponResourceHud requires its resource image templates.");
+            if (!resourceTemplate)
+                throw new InvalidOperationException("WeaponResourceHud requires its resource image template.");
         }
 
         public void Initialize(IWeaponReadouts weapons)
@@ -49,7 +46,7 @@ namespace UI.Weapons
             {
                 var index = 0;
                 foreach (var readout in weapons.Readouts(slot))
-                    if (readout is IHeatReadout or IAmmoReadout)
+                    if (readout is IHeatReadout or IAmmoReadout or IChargeReadout)
                         resources.Add(BuildResource(slot, readout, index++));
             }
         }
@@ -85,13 +82,6 @@ namespace UI.Weapons
                 AddArc(resourceTemplate, resourceRect, "Track", start, 120f, left, track);
                 resource.Fill = AddArc(resourceTemplate, resourceRect, "Fill", start, 0f, left, ink);
             }
-            if (source is IAmmoReadout && resource.Rounds == null)
-            {
-                resource.ReloadTrack = AddArc(reloadTemplate, resourceRect, "ReloadTrack", start, 120f, left, track);
-                resource.ReloadFill = AddArc(reloadTemplate, resourceRect, "ReloadFill", start, 0f, left, ink);
-                resource.ReloadTrack.gameObject.SetActive(false);
-                resource.ReloadFill.gameObject.SetActive(false);
-            }
             return resource;
         }
 
@@ -115,6 +105,9 @@ namespace UI.Weapons
             {
                 switch (resource.Source)
                 {
+                    case IChargeReadout charge:
+                        resource.Fill.fillAmount = 120f / 360f * charge.ChargePct;
+                        break;
                     case IHeatReadout heat:
                         resource.Fill.fillAmount = 120f / 360f * heat.HeatPct;
                         resource.Fill.color = heat.Overheated
@@ -128,10 +121,9 @@ namespace UI.Weapons
                                 resource.Rounds[i].fillAmount = resource.RoundSpan * ammo.RoundProgress(i);
                             break;
                         }
-                        resource.Fill.fillAmount = 120f / 360f * ammo.AmmoCount / ammo.MaxAmmo;
-                        resource.ReloadTrack.gameObject.SetActive(ammo.IsReloading);
-                        resource.ReloadFill.gameObject.SetActive(ammo.IsReloading);
-                        resource.ReloadFill.fillAmount = 120f / 360f * ammo.ReloadProgress;
+                        resource.Fill.fillAmount = 120f / 360f * (ammo.IsReloading
+                            ? ammo.ReloadProgress
+                            : (float)ammo.AmmoCount / ammo.MaxAmmo);
                         break;
                 }
             }

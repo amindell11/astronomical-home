@@ -213,8 +213,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   panelPrefab: {fileID: 1000000000000000004, guid: 0dc0c17087e64875889e4cdf2ddec38f,
     type: 3}
-  chargeWidgetPrefab: {fileID: 5000000000000000005, guid: c2172d916a3343c79dfae300066b0390,
-    type: 3}
   lockWidgetPrefab: {fileID: 4000000000000000003, guid: bb293538c99d4c40a374865356c5b172,
     type: 3}
 --- !u!1 &3391675577926059122
