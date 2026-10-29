@@ -19,15 +19,25 @@ namespace Cameras
         [Tooltip("If true, camera will shift to keep the player within the view frustum.")]
         [SerializeField] private bool keepSubjectInView = true;
 
+        [Header("Player Zoom")]
+        [Tooltip("Factor the auto-fit or lock-zoom framing scales by per scroll-wheel notch.")]
+        [SerializeField, Min(1f)] private float zoomStep = 1.1f;
+        [Tooltip("Closest the player can zoom in, as a multiple of the auto-fit or lock-zoom framing.")]
+        [SerializeField] private float minZoomScale = 0.6f;
+        [Tooltip("Widest the player can zoom out, as a multiple of the auto-fit or lock-zoom framing.")]
+        [SerializeField] private float maxZoomScale = 2f;
+
         private HashSet<Transform> secondarySubjects;
         private Transform subject;
         private Vector2? manualCenter;
         private float? manualZoom;
+        private float zoomScale = 1f;
 
         public bool LockCameraToSubject => lockCameraToSubject;
         public Transform Subject => subject;
         public Vector2? ManualCenter => manualCenter;
         public float? ManualZoom => manualZoom;
+        public float ZoomScale => zoomScale;
 
         protected override void Awake()
         {
@@ -66,9 +76,9 @@ namespace Cameras
             if (manualZoom.HasValue)
                 return ClampZoom(manualZoom.Value);
             if (lockZoomToSubject)
-                return ClampZoom(lockZoomDistance);
+                return ClampZoom(lockZoomDistance) * zoomScale;
             var preferredSize = CameraUtils.ZoomToFitBounds(center, boundsMin, boundsMax, padding, Cam.aspect);
-            return ClampZoom(preferredSize);
+            return ClampZoom(preferredSize) * zoomScale;
         }
 
         private Vector2 ApplyViewConstraints(Vector2 center, float zoomSize)
@@ -138,6 +148,9 @@ namespace Cameras
 
         public void SetManualCenter(Vector2? center) => manualCenter = center;
         public void SetManualZoom(float? zoom) => manualZoom = zoom;
+
+        public void StepZoom(float notchesIn) =>
+            zoomScale = Mathf.Clamp(zoomScale * Mathf.Pow(zoomStep, -notchesIn), minZoomScale, maxZoomScale);
 
         public Vector2 CurrentCenter2D => manualCenter
             ?? (subject ? GamePlane.WorldPointToPlane(subject.position) : Vector2.zero);

@@ -12,18 +12,25 @@ namespace Tests.PlayMode.Cameras
     [Category("Camera")]
     public class ObserverCamInputHandlerPlayModeTests : PlayModeInputTestFixture
     {
+        private const float SettleSec = 1.5f;
+        private const float SizeTolerance = 0.05f;
+
         private Keyboard keyboard;
+        private Mouse mouse;
         private ObserverCam cam;
+        private GameObject subject;
 
         public override void Setup()
         {
             base.Setup();
             keyboard = InputSystem.AddDevice<Keyboard>();
+            mouse = InputSystem.AddDevice<Mouse>();
             cam = TestAssets.NewObserverCam();
         }
 
         public override void TearDown()
         {
+            if (subject) Object.DestroyImmediate(subject);
             if (cam) Object.DestroyImmediate(cam.gameObject);
             base.TearDown();
         }
@@ -45,6 +52,59 @@ namespace Tests.PlayMode.Cameras
             Press(keyboard.cKey);
             yield return null;
             Assert.AreEqual(locked, cam.LockCameraToSubject, "a fresh press flips it back");
+        }
+
+        [UnityTest]
+        public IEnumerator ScrollWheel_ZoomsOneEqualStepPerNotch()
+        {
+            yield return Scroll(1f);
+            var oneNotchIn = cam.ZoomScale;
+            Assert.Less(oneNotchIn, 1f, "scrolling up zooms in");
+
+            yield return Scroll(1f);
+            Assert.AreEqual(oneNotchIn * oneNotchIn, cam.ZoomScale, 1e-4f, "each notch is the same step");
+
+            yield return Scroll(-2f);
+            Assert.AreEqual(1f, cam.ZoomScale, 1e-4f, "scrolling back down undoes it");
+        }
+
+        [UnityTest]
+        public IEnumerator ScrollWheel_StopsAtTheZoomLimits()
+        {
+            yield return Scroll(100f);
+            var closest = cam.ZoomScale;
+            yield return Scroll(1f);
+            Assert.AreEqual(closest, cam.ZoomScale, "scrolling past the closest zoom holds it");
+
+            yield return Scroll(-100f);
+            var widest = cam.ZoomScale;
+            yield return Scroll(-1f);
+            Assert.AreEqual(widest, cam.ZoomScale, "scrolling past the widest zoom holds it");
+            Assert.Less(closest, 1f);
+            Assert.Greater(widest, 1f);
+        }
+
+        [UnityTest]
+        public IEnumerator ScrollWheel_ScalesTheAutoFitFraming()
+        {
+            subject = new GameObject("Subject");
+            cam.SetSubject(subject.transform);
+            yield return new WaitForSecondsRealtime(SettleSec);
+            var autoFit = cam.Cam.orthographicSize;
+
+            yield return Scroll(-3f);
+            var expected = autoFit * cam.ZoomScale;
+            Assert.Greater(expected, autoFit, "scrolling down widens the framing");
+            yield return AsyncAssert.WaitUntilThen(
+                () => Mathf.Abs(cam.Cam.orthographicSize - expected) < SizeTolerance,
+                SettleSec,
+                () => Assert.AreEqual(expected, cam.Cam.orthographicSize, SizeTolerance));
+        }
+
+        private IEnumerator Scroll(float notches)
+        {
+            Set(mouse.scroll.y, notches);
+            yield return null;
         }
     }
 }
