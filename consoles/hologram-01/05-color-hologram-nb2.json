@@ -1,0 +1,83 @@
+{
+  "output": "05-color-hologram-nb2.jpg",
+  "status": "exploration",
+  "provider": "google-gemini-api",
+  "model": "gemini-3.1-flash-image",
+  "interaction_id": "v1_ChZ3TVBqYXVQOUhPS19xdHNQX0wzM1NBEhZ3TVBqYXVQOUhPS19xdHNQX0wzM1NB",
+  "created_utc": "2026-10-29T22:07:53+00:00",
+  "prompt": "You are sitting in the cockpit looking out at the depths of space, with panels of electronics around you, whirring bleeps and lights, and the sleek, subtle glow of gently used screens. The style combines the analog buzz and grit of Alien and Star Wars with sleek modern science-fiction tech and a trace of Asteroids.\n\nThe owner likes IMAGE 1 exactly as it is, and asks for one local change: \"This looks really nice, but would love to have the ship color visible in the hologram.\"\n\nEDIT IMAGE 1. Copy the whole selected image and colorize only the projected spaceship. Keep the exact same ship geometry, position, pose, scale, transparency, luminous contours, scanlines, projector and upward beam. Keep all of Image 1's detailed ink-drawn console hardware, terminal screen and typography, blue-purple nebula, lighting, camera and composition as they are. The subject is already a hologram and stays one.\n\nIMAGE 2 shows the exact same spacecraft in its real paint colors. Transfer that specific color pattern onto the corresponding translucent facets of Image 1's hologram: creamy white main hull, dark graphite cockpit and inset areas, vivid orange-red wing edges and lower hull panels, orange-red tail accents, and the small luminous cyan circular detail on the near wing. The colors should be recognizable immediately, like a full-color optical model of the actual spacecraft. Render those colors as translucent light planes with the existing fine warm-white edge traces and horizontal scan strata over them. The nebula remains visible through the colored facets. Retain the dimensional body and the original ship silhouette. The projected color should have enough saturation to show the ship's identity without becoming a solid opaque painted ship. Keep the projector beam mostly warm pale light.\n\nImage roles: Image 1 is the sole edit target and sole composition reference. Image 2 is the ship paint-color map, not a layout change. Image 3 is the historical game capture for ship identity only; use none of its overlay UI. Images 4 and 5 document the beige hardware mood, Image 6 the surrounding electronics and lamps, and Images 7, 8 and 9 the terminal screen mood. They are continuity references for the already chosen Image 1. Preserve Image 1's particular screen, machinery and layout. Return the entire edited Image 1 as a single 16:9 image.\n",
+  "parent": {
+    "path": "inputs/preferred-surface-hologram.jpg",
+    "sha256": "e7103db980e06c65d31f5178942cea1f4e8b14764566020fcc9f3d23e6d7c0e3"
+  },
+  "references": [
+    {
+      "path": "inputs/preferred-mounted-terminal.jpg",
+      "sha256": "2ea394ac74a3abf62f1e7d337f8ddf7c1dc143a16b430c79f477ffea42d73ae3"
+    },
+    {
+      "path": "inputs/real-hangar-capture.png",
+      "sha256": "0e837bbf16a1c928586faa28c83981a530ad47dfa6aa5e3ef884e2985fe9bb84"
+    },
+    {
+      "path": "inputs/03-beige-console-schematic.png",
+      "sha256": "07be805e834956029fac9157a00dce8016653d15ff95e08224fd35e8d1e7d222"
+    },
+    {
+      "path": "inputs/09-beige-console-wireframe.png",
+      "sha256": "1059a0a67d7413255de5395e714e684824d384dc36e5de87a8212c579ffd1f28"
+    },
+    {
+      "path": "inputs/04-dark-cockpit-leds.png",
+      "sha256": "8967c780bebc7eab275530c7b9e4985d84404b54c1f9b457e039278aee331f2b"
+    },
+    {
+      "path": "inputs/01-nostromo-terminal.webp",
+      "sha256": "8c7b58aa4c94c24678e7eb508fb2338702dd29652e09687331bec794615a2a0c"
+    },
+    {
+      "path": "inputs/06-muthur-terminal-text.png",
+      "sha256": "90ecfffc4b82f0c60000e7f36dec01ebb803aabdc790fb3238c2b231ec3836f2"
+    },
+    {
+      "path": "inputs/07-hatched-progress-bars.webp",
+      "sha256": "508e9d94d8b979d2940d617e6a50e7365763180dd63c2b4777b8bad05484bee9"
+    }
+  ],
+  "params": {
+    "image_size": "2K",
+    "aspect_ratio": "16:9",
+    "thinking_level": null
+  },
+  "cost_estimate_usd": {
+    "per_image": 0.101,
+    "prices_as_of": "2026-09-22",
+    "excludes": "thinking and input tokens"
+  },
+  "usage": {
+    "input_tokens_by_modality": [
+      {
+        "modality": "text",
+        "tokens": 495
+      },
+      {
+        "modality": "image",
+        "tokens": 10080
+      }
+    ],
+    "output_tokens_by_modality": [
+      {
+        "modality": "image",
+        "tokens": 1680
+      }
+    ],
+    "total_cached_tokens": 0,
+    "total_input_tokens": 10575,
+    "total_output_tokens": 2022,
+    "total_thought_tokens": 0,
+    "total_tokens": 12597,
+    "total_tool_use_tokens": 0,
+    "initial_input_tokens": 10747
+  },
+  "model_text": ""
+}

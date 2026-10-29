@@ -1,0 +1,79 @@
+{
+  "output": "02-wireframe-nb2.jpg",
+  "status": "exploration",
+  "provider": "google-gemini-api",
+  "model": "gemini-3.1-flash-image",
+  "interaction_id": "v1_Chc0OEhqYXR5R0tlelZ6N0lQaktYRzBBdxIXNDhIamF0eUdLZXpWejdJUGpLWEcwQXc",
+  "created_utc": "2026-10-29T21:59:55+00:00",
+  "prompt": "You are sitting in the cockpit looking out at the depths of space, with panels of electronics around you, whirring bleeps and lights, and the sleek, subtle glow of gently used screens. The style combines the analog buzz and grit of Alien and Star Wars with sleek modern science-fiction tech and a trace of Asteroids.\n\nEDIT IMAGE 1, the owner's newly preferred complete console image. The owner asks: \"what if the ship is a hologram instead of being outside?\" Keep this particular image's hardware, all menu typography and words, layout, scale, lighting and camera unchanged. Turn only the ship into an interior holographic model projected from the console equipment below it.\n\nImage roles: Image 1 is the current OWNER-PREFERRED EDIT TARGET and chosen drawn finish. Image 2 is the real Vanguard geometry and game-scene reference, preserving that ship's exact recognizable silhouette and pose. Images 3 and 4 are hardware mood, the beige schematic and wireframe terminals. Image 5 is surrounding electronics and warm amber/dim-green lamp mood. Images 6, 7 and 8 are Nostromo, MU/TH/UR and hatching references for the existing screen. Those mood references keep continuity; do not redesign the chosen screen or housing.\n\nThe Vanguard now floats in the cockpit air above the bench, in exactly the same position, perspective, outline and generous visual size as the solid ship in Image 1. It is a model of that specific actual ship, not a new spaceship. The nebula remains visible outside behind it. The previously solid outside ship is fully replaced by the hologram. Add a compact projector emitter integrated into the existing dark hardware below it, with a restrained upward light connection and faint local light spill, so the model clearly originates inside the console.\n\nUse warm off-white projection light consistent with the menu ink. The projection's different appearance comes from translucency, luminous contours, scan strata and beam artifacts rather than giving it the cyan shield color or adding labels. Keep the hologram clearly legible at the full-screen viewing scale. Add no telemetry, controls, words, rings of fake data or duplicate ship.\n\nPreserve the selected panel's exact existing text and tab/column treatment: HANGAR; SHIP / Vanguard; ENGINE / Default_Engine; SHIELD / Default_Shield; PRIMARY / Lasers; SECONDARY / Missiles; LAUNCH. Do not move or reword any of it. Output the whole 16:9 image, without a presentation frame or caption.\n\nHOLOGRAM B: vector wireframe model. Draw a strong readable outer silhouette and a sparse set of internal structural lines following this exact Vanguard hull, as a warm-white vector-CRT hologram. Use varying line brightness, a few visible beam imperfections and limited faint translucent facet planes so its depth reads. Show through the largely empty interior to the nebula. Avoid a dense mesh or a generic geometric spacecraft. A narrow fan of light from the bench emitter anchors the model inside the cockpit. Leave hardware and screen exactly as in Image 1.\n",
+  "parent": {
+    "path": "inputs/preferred-mounted-terminal.jpg",
+    "sha256": "2ea394ac74a3abf62f1e7d337f8ddf7c1dc143a16b430c79f477ffea42d73ae3"
+  },
+  "references": [
+    {
+      "path": "inputs/real-hangar-capture.png",
+      "sha256": "0e837bbf16a1c928586faa28c83981a530ad47dfa6aa5e3ef884e2985fe9bb84"
+    },
+    {
+      "path": "inputs/03-beige-console-schematic.png",
+      "sha256": "07be805e834956029fac9157a00dce8016653d15ff95e08224fd35e8d1e7d222"
+    },
+    {
+      "path": "inputs/09-beige-console-wireframe.png",
+      "sha256": "1059a0a67d7413255de5395e714e684824d384dc36e5de87a8212c579ffd1f28"
+    },
+    {
+      "path": "inputs/04-dark-cockpit-leds.png",
+      "sha256": "8967c780bebc7eab275530c7b9e4985d84404b54c1f9b457e039278aee331f2b"
+    },
+    {
+      "path": "inputs/01-nostromo-terminal.webp",
+      "sha256": "8c7b58aa4c94c24678e7eb508fb2338702dd29652e09687331bec794615a2a0c"
+    },
+    {
+      "path": "inputs/06-muthur-terminal-text.png",
+      "sha256": "90ecfffc4b82f0c60000e7f36dec01ebb803aabdc790fb3238c2b231ec3836f2"
+    },
+    {
+      "path": "inputs/07-hatched-progress-bars.webp",
+      "sha256": "508e9d94d8b979d2940d617e6a50e7365763180dd63c2b4777b8bad05484bee9"
+    }
+  ],
+  "params": {
+    "image_size": "2K",
+    "aspect_ratio": "16:9",
+    "thinking_level": null
+  },
+  "cost_estimate_usd": {
+    "per_image": 0.101,
+    "prices_as_of": "2026-09-22",
+    "excludes": "thinking and input tokens"
+  },
+  "usage": {
+    "input_tokens_by_modality": [
+      {
+        "modality": "image",
+        "tokens": 8960
+      },
+      {
+        "modality": "text",
+        "tokens": 629
+      }
+    ],
+    "output_tokens_by_modality": [
+      {
+        "modality": "image",
+        "tokens": 1680
+      }
+    ],
+    "total_cached_tokens": 0,
+    "total_input_tokens": 9589,
+    "total_output_tokens": 2019,
+    "total_thought_tokens": 0,
+    "total_tokens": 11608,
+    "total_tool_use_tokens": 0,
+    "initial_input_tokens": 9750
+  },
+  "model_text": ""
+}
