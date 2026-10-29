@@ -105,15 +105,15 @@ namespace Tests.PlayMode.Crosshairs
         private bool Visible(string name) => weaponHud.transform.Find(name).gameObject.activeSelf;
 
         [Test]
-        public void TriggerReadouts_AreIndependent_AndRebindClearsTheirSources()
+        public void Readouts_StayVisibleWithoutTriggers_AndRebindClearsTheirSources()
         {
             Draw();
-            Assert.IsFalse(Visible("PrimaryResources"));
-            Assert.IsFalse(Visible("SecondaryResources"));
+            Assert.IsTrue(Visible("PrimaryResources"));
+            Assert.IsTrue(Visible("SecondaryResources"));
             Press(mouse.leftButton);
             Draw();
             Assert.IsTrue(Visible("PrimaryResources"));
-            Assert.IsFalse(Visible("SecondaryResources"));
+            Assert.IsTrue(Visible("SecondaryResources"));
             Press(mouse.rightButton);
             Draw();
             Assert.IsTrue(Visible("SecondaryResources"));
@@ -124,7 +124,7 @@ namespace Tests.PlayMode.Crosshairs
         }
 
         [UnityTest]
-        public IEnumerator Release_LingersThenHides_AndDisableRestoresCursor()
+        public IEnumerator Release_KeepsReadoutsVisible_AndHudHideRestoresCursor()
         {
             Assert.IsFalse(Cursor.visible);
             Press(mouse.rightButton);
@@ -137,14 +137,16 @@ namespace Tests.PlayMode.Crosshairs
             Assert.IsTrue(Visible("SecondaryResources"));
             yield return new WaitForSecondsRealtime(.45f);
             Draw();
-            Assert.IsFalse(Visible("SecondaryResources"));
+            Assert.IsTrue(Visible("SecondaryResources"));
             crosshair.gameObject.SetActive(false);
             weaponHud.gameObject.SetActive(false);
             Assert.IsTrue(Cursor.visible);
+            Assert.IsFalse(ImageAt("SecondaryResources/Round0").isActiveAndEnabled);
             crosshair.gameObject.SetActive(true);
             weaponHud.gameObject.SetActive(true);
             Draw();
-            Assert.IsFalse(Visible("SecondaryResources"));
+            Assert.IsTrue(Visible("SecondaryResources"));
+            Assert.IsTrue(ImageAt("SecondaryResources/Round0").isActiveAndEnabled);
         }
 
         [Test]

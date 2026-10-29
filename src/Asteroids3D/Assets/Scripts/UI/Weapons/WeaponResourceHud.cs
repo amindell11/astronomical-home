@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Combat.Weapons;
 using Combat.Weapons.Conditions;
-using Game.Player;
 using Ships.Command;
 using UnityEngine;
 using UnityEngine.UI;
@@ -20,7 +19,6 @@ namespace UI.Weapons
 
         private sealed class Resource
         {
-            public WeaponSlot Slot;
             public IWeaponReadout Source;
             public GameObject Root;
             public Image Fill;
@@ -30,15 +28,11 @@ namespace UI.Weapons
         }
 
         private readonly List<Resource> resources = new();
-        private PlayerControls controls;
-        private float primaryUntil = float.NegativeInfinity;
-        private float secondaryUntil = float.NegativeInfinity;
 
         private void Awake()
         {
             if (!resourceTemplate || !reloadTemplate)
                 throw new InvalidOperationException("WeaponResourceHud requires its resource image templates.");
-            controls = new PlayerControls();
         }
 
         public void Initialize(IWeaponReadouts weapons)
@@ -49,7 +43,6 @@ namespace UI.Weapons
                 Destroy(resource.Root);
             }
             resources.Clear();
-            primaryUntil = secondaryUntil = float.NegativeInfinity;
             if (weapons == null) return;
             foreach (var slot in weapons.Slots)
             {
@@ -63,7 +56,6 @@ namespace UI.Weapons
         private Resource BuildResource(WeaponSlot slot, IWeaponReadout source, int index)
         {
             var go = new GameObject(slot + "Resources", typeof(RectTransform));
-            go.SetActive(false);
             var resourceRect = (RectTransform)go.transform;
             resourceRect.SetParent(transform, false);
             resourceRect.anchorMin = Vector2.zero;
@@ -72,7 +64,7 @@ namespace UI.Weapons
             resourceRect.localScale = Vector3.one * (1f + index * .5f);
             var left = slot == WeaponSlot.Primary;
             var start = left ? 120f : 60f;
-            var resource = new Resource { Slot = slot, Source = source, Root = go };
+            var resource = new Resource { Source = source, Root = go };
             if (source is IAmmoReadout { MaxAmmo: <= 8 } ammo)
             {
                 var gap = ammo.MaxAmmo == 2 ? 25f : 4f;
@@ -110,29 +102,11 @@ namespace UI.Weapons
             return image;
         }
 
-        private void OnEnable()
-        {
-            controls.Flight.Enable();
-        }
-
-        private void OnDisable()
-        {
-            controls.Flight.Disable();
-            primaryUntil = secondaryUntil = float.NegativeInfinity;
-            foreach (var resource in resources) resource.Root.SetActive(false);
-        }
-
-        private void OnDestroy() => controls?.Dispose();
-
         private void LateUpdate()
         {
             var now = Time.unscaledTime;
-            if (controls.Flight.PrimaryFire.IsPressed()) primaryUntil = now + .4f;
-            if (controls.Flight.SecondaryFire.IsPressed()) secondaryUntil = now + .4f;
             foreach (var resource in resources)
             {
-                resource.Root.SetActive(now < (resource.Slot == WeaponSlot.Primary ? primaryUntil : secondaryUntil));
-                if (!resource.Root.activeSelf) continue;
                 switch (resource.Source)
                 {
                     case IHeatReadout heat:
