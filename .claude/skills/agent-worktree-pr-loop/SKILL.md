@@ -228,14 +228,13 @@ implementation from the session's build brief: owner rulings, design path,
 files, tests, the verify command, and the closing `STATUS: DONE | BLOCKED` /
 `CHANGED:` / `VERIFIED:` / `NOTICED:` block. Run Grok with
 `python scripts/grok_worker.py --slot <slot> --brief <file> --verify "<cmd>"`
-(exit codes and trailers in its header), where `<cmd>` is the slot's compile
-check once one exists, otherwise a scoped `./scripts/agent_worktree_pool.sh
-run-tests <slot> …`. Hand the brief to an Opus subagent scoped to the slot
-(Agent tool, `model: "opus"`) when the slice needs judgment mid-build, or once
-Grok returns BLOCKED or fails verification. Review the worker's diff before
-testing. Small fixes stay inline; once the session's context reaches 200k
-tokens, `scripts/build_delegation_guard.py` denies inline slot source edits past
-its line budget.
+(exit codes and trailers in its header), where `<cmd>` is a scoped
+`./scripts/agent_worktree_pool.sh run-tests <slot> …`. Hand the brief to an
+Opus subagent scoped to the slot (Agent tool, `model: "opus"`) when the slice
+needs judgment mid-build, or once Grok's `GROK_WORKER=` trailer is not `done`.
+Review the worker's diff before testing. Small fixes stay inline;
+`scripts/build_delegation_guard.py` denies inline slot source edits past its
+context and line budgets.
 
 Clear `src/Asteroids3D/Library/BurstCache/` before test runs. Iterate
 with scoped runs (`-ScopeType Auto`, or Feature/Module scopes).
