@@ -16,7 +16,7 @@ using UnityEngine.InputSystem.LowLevel;
 
 public static class CaptureBuiltCrosshair
 {
-    private const string Root = "D:/amind/git/agent-7/scratch/crosshair";
+    private const string Root = "D:/amind/git/agent-1/scratch/crosshair";
     public static string Main()
     {
         var host = Object.FindFirstObjectByType<PreviewHost>();
@@ -40,10 +40,13 @@ public static class CaptureBuiltCrosshair
         observer.enabled = false;
         observer.transform.position = new Vector3(-4f, -1f, -50f);
         observer.Cam.orthographicSize = 18f;
+        rig.Player.Keystone.Step(rig.Player.Kinematics, 1f, 0f, out _);
+        rig.Player.Keystone.Step(rig.Player.Kinematics, 0f, rig.Player.Keystone.Cooldown * .5f, out _);
         var source = rig.Overlay.GetComponentInChildren<WeaponReadoutBuilder>();
         var heat = (Heat)source.FirstReadout<IHeatReadout>();
         var rounds = (Rounds)source.FirstReadout<IAmmoReadout>();
         var crosshair = rig.Overlay.GetComponentInChildren<AimCrosshair>();
+        var weaponHud = rig.Overlay.GetComponentInChildren<WeaponResourceHud>();
         var mouse = InputSystem.AddDevice<Mouse>();
         var inputBehavior = InputSystem.settings.editorInputBehaviorInPlayMode;
         InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
@@ -51,13 +54,13 @@ public static class CaptureBuiltCrosshair
         crosshairControls.asset.devices = new InputDevice[] { mouse };
         var stagedMouse = new MouseState { position = new Vector2(880f, 430f) };
         System.Action stageInput = () => {
-            if (InputState.currentUpdateType == InputUpdateType.Dynamic) InputState.Change(mouse, stagedMouse);
+            if (InputState.currentUpdateType == InputUpdateType.Dynamic) { var sample = stagedMouse; sample.position += new Vector2((Time.frameCount % 2) * .2f, 0f); InputState.Change(mouse, sample); }
         };
         InputSystem.onAfterUpdate += stageInput;
         var capture = ScriptableObject.CreateInstance<GameViewEpisodeCapture>();
         var rows = new List<object>();
-        var names = new[] { "svg-idle", "svg-primary", "svg-secondary", "svg-both", "svg-reloading", "svg-overheated", "svg-1080p" };
-        var flags = BindingFlags.NonPublic | BindingFlags.Instance;
+        var names = new[] { "persistent-idle", "persistent-reloading", "persistent-overheated", "persistent-1080p" };
+        
         try
         {
             using (capture.PrepareHud1280x720())
@@ -65,14 +68,12 @@ public static class CaptureBuiltCrosshair
                 for (var index = 0; index < names.Length; index++)
                 {
                     heat.Reset();
-                    for (var i = 0; i < (index == 5 ? 20 : 6); i++) heat.ProcessFire();
+                    for (var i = 0; i < (index == 2 ? 20 : 6); i++) heat.ProcessFire();
                     rounds.Reset();rounds.ProcessFire();
-                    if (index == 4) { rounds.ProcessFire();rounds.Tick(rounds.ReloadTime * .5f); }
-                    var width = index == 6 ? 1920 : 1280;
-                    var height = index == 6 ? 1080 : 720;
-                    var state = new MouseState { position = index == 6 ? new Vector2(600f, 700f) : new Vector2(880f, 430f) };
-                    if (index == 1 || index >= 3) state = state.WithButton(MouseButton.Left);
-                    if (index == 2 || index >= 3) state = state.WithButton(MouseButton.Right);
+                    if (index == 1) { rounds.ProcessFire();rounds.Tick(rounds.ReloadTime * .5f); }
+                    var width = index == 3 ? 1920 : 1280;
+                    var height = index == 3 ? 1080 : 720;
+                    var state = new MouseState { position = index == 3 ? new Vector2(600f, 700f) : new Vector2(880f, 430f) };
                     stagedMouse = new MouseState { position = state.position };
                     InputSystem.QueueStateEvent(mouse, new MouseState { position = state.position });
                     InputSystem.Update();
@@ -92,8 +93,9 @@ public static class CaptureBuiltCrosshair
                         for (var frame = 0; frame < 5; frame++) { InputSystem.QueueStateEvent(mouse, state); yield return null; }
                         rows.Add(new { name = names[index], heat = heat.HeatPct, heat.Overheated,
                             rounds.AmmoCount, rounds.MaxAmmo, rounds.IsReloading, rounds.ReloadProgress,
-                            primary = crosshair.transform.Find("PrimaryResources").gameObject.activeSelf,
-                            secondary = crosshair.transform.Find("SecondaryResources").gameObject.activeSelf,
+                            keystoneFill = 1f - rig.Player.BoostCooldownPct,
+                            primary = weaponHud.transform.Find("PrimaryResources").gameObject.activeSelf,
+                            secondary = weaponHud.transform.Find("SecondaryResources").gameObject.activeSelf,
                             rawAim = crosshairControls.Flight.AimPoint.ReadValue<Vector2>().ToString(),
                             deviceAim = mouse.position.ReadValue().ToString(),
                             aimPhase = crosshairControls.Flight.AimPoint.phase.ToString(),
@@ -108,13 +110,13 @@ public static class CaptureBuiltCrosshair
                     }
                 }
             }
-            File.WriteAllText(Root + "/svg-state.json", Newtonsoft.Json.JsonConvert.SerializeObject(rows));
+            File.WriteAllText(Root + "/persistent-state.json", Newtonsoft.Json.JsonConvert.SerializeObject(rows));
         }
         finally
         {
             InputSystem.onAfterUpdate -= stageInput;
             crosshairControls.asset.devices = null;
-            InputSystem.settings.editorInputBehaviorInPlayMode = inputBehavior;
+                InputSystem.settings.editorInputBehaviorInPlayMode = inputBehavior;
             InputSystem.RemoveDevice(mouse);
             Object.DestroyImmediate(capture);
             EditorApplication.isPaused = true;
