@@ -1,0 +1,51 @@
+[
+  {
+    "weapon": "Rippers",
+    "file": "weapon-rippers.gif",
+    "frames": 43,
+    "durationSeconds": 5.75,
+    "bytes": 3687336
+  },
+  {
+    "weapon": "Lasers",
+    "file": "weapon-lasers.gif",
+    "frames": 80,
+    "durationSeconds": 10.82,
+    "bytes": 7182003
+  },
+  {
+    "weapon": "TurboLasers",
+    "file": "weapon-turbo-lasers.gif",
+    "frames": 59,
+    "durationSeconds": 8.08,
+    "bytes": 5172244
+  },
+  {
+    "weapon": "ChargeLasers",
+    "file": "weapon-charge-laser.gif",
+    "frames": 31,
+    "durationSeconds": 3.65,
+    "bytes": 2685278
+  },
+  {
+    "weapon": "Railgun",
+    "file": "weapon-railgun.gif",
+    "frames": 42,
+    "durationSeconds": 5.21,
+    "bytes": 3659480
+  },
+  {
+    "weapon": "Grenades",
+    "file": "weapon-concussion.gif",
+    "frames": 111,
+    "durationSeconds": 17.96,
+    "bytes": 11476735
+  },
+  {
+    "weapon": "Missiles",
+    "file": "weapon-missiles.gif",
+    "frames": 158,
+    "durationSeconds": 22.25,
+    "bytes": 14067382
+  }
+]
