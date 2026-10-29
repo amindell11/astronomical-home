@@ -458,19 +458,27 @@ namespace Tests.PlayMode.Preview
             {
                 sectors = new[] { Entry("CrowdedJumpDeparture"), Entry("CrowdedJumpArrival") }
             };
+            var template = new GameObject("Crowded jump game host template");
+            template.SetActive(false);
+            extras.Add(template);
+            var game = new GameObject("Crowded jump game host");
+            game.transform.SetParent(template.transform, false);
+            var gameHost = game.AddComponent<GameHost>();
+            gameHost.sessionProfile = profile;
+            gameHost.playerRig = TestAssets.Load<PlayerRig>("Assets/Prefabs/MiscObjects/PlayerRig.prefab");
+            gameHost.observerCamPrefab = TestAssets.Load<ObserverCam>("Assets/Prefabs/Cameras/Main Camera.prefab");
+            gameHost.recapFeel = TestAssets.Load<RecapFeelProfile>("Assets/Settings/UI/RecapFeel.asset");
+            gameHost.jumpFeel = feel;
+            gameHost.jumpShader = Shader.Find("Astronomical/Travel/SectorJump");
             var root = new GameObject("Crowded jump test");
             root.SetActive(false);
             host = root.AddComponent<PreviewHost>();
             host.mode = PreviewMode.Playtest;
             host.subjectKind = PreviewSubjectKind.SectorJump;
             host.playtestSetup = PreviewPlaytestSetup.CrowdedJumpGate;
+            host.gameHostPrefab = gameHost;
             host.sessionProfile = profile;
-            host.jumpPlaytestProfile = profile;
-            host.playerRigPrefab = TestAssets.Load<PlayerRig>("Assets/Prefabs/MiscObjects/PlayerRig.prefab");
-            host.observerCamPrefab = TestAssets.Load<ObserverCam>("Assets/Prefabs/Cameras/Main Camera.prefab");
-            host.recapFeel = TestAssets.Load<RecapFeelProfile>("Assets/Settings/UI/RecapFeel.asset");
-            host.jumpFeel = feel;
-            host.jumpShader = Shader.Find("Astronomical/Travel/SectorJump");
+            host.crowdedJumpSectors = profile.sectors;
             root.SetActive(true);
         }
 

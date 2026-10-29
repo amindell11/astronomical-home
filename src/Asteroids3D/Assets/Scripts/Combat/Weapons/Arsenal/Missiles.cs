@@ -28,6 +28,7 @@ namespace Combat.Weapons.Arsenal
         [Stat, SerializeField, Range(0f, 180f)] private float fallbackAngleTolerance = 15f;
 
         public Rounds Rounds => rounds;
+        protected override WeaponCondition[] AuthoredConditions => new WeaponCondition[] { rounds, cooldown };
         public float Damage => projectilePrefab.Damage;
         public float SplashDamage => projectilePrefab.SplashDamage;
 

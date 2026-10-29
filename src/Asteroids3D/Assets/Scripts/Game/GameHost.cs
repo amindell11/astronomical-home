@@ -3,6 +3,7 @@ using System.Collections;
 using System.Runtime.ExceptionServices;
 using Balance;
 using Cameras;
+using Combat.Weapons;
 using Combat.Weapons.Mods;
 using Damage;
 using Game.Audio;
@@ -36,7 +37,7 @@ namespace Game
     /// Presentation is read once alongside the session's snapshot.
     /// Shutdown finishes the current setup operation, releases input waits, then tears down the owned world.
     /// A fault in the run's coroutine stack is logged, and Shutdown rethrows it instead of tearing down.
-    /// An optional jump profile enables protected travel with extraction UI held in hyperspace.
+    /// An optional jump profile enables protected travel with the extraction recap and weapon pick held in hyperspace.
     /// The hangar, recap and restart stand in for Home Base and player progress.
     /// https://github.com/amindell11/astronomical-home/issues/295#issuecomment-5787867584
     /// </summary>
@@ -80,8 +81,8 @@ namespace Game
                  "when presentation is off.")]
         [SerializeField] internal DriftCam hangarCameraPrefab;
 
-        [Tooltip("Modules the hangar offers per slot. Null → no hangar choices (the player flies its " +
-                 "prefab-authored modules).")]
+        [Tooltip("Modules the hangar offers per slot; its weapons are also the sector-break weapon pick's pool. " +
+                 "Null → no hangar choices (the player flies its prefab-authored modules) and no weapon pick.")]
         [SerializeField] internal ItemSubset hangarOffer;
 
         [Header("Recap")]
@@ -356,17 +357,14 @@ namespace Game
                 }
                 Coroutine recap = null;
                 var destinationReady = false;
+                var continued = false;
                 if (!shutdownRequested)
                 {
                     PauseClock();
                     recap = StartCoroutine(RecapPlayback.RunScreen(new RecapOutcomeSequence(recapFeel, context), ui,
                         cancelled: () => shutdownRequested || exited,
                         ready: () => destinationReady && jump.State.LocaleBlend >= 1f,
-                        onContinue: () =>
-                        {
-                            jump.ResumeArrival();
-                            RestoreClock();
-                        }));
+                        onContinue: () => continued = true));
                 }
                 if (!shutdownRequested)
                 {
@@ -378,6 +376,12 @@ namespace Game
                     destinationReady = true;
                 }
                 if (recap != null) yield return recap;
+                if (continued && !shutdownRequested)
+                {
+                    yield return RunWeaponPick(destination);
+                    jump.ResumeArrival();
+                    RestoreClock();
+                }
                 if (!shutdownRequested)
                 {
                     while (!jump.Complete && !shutdownRequested) yield return null;
@@ -396,12 +400,38 @@ namespace Game
             yield return null;
         }
 
+        // Inside the hyperspace hold: the clock is already stopped and the jump owns controls.
+        private IEnumerator RunWeaponPick(int destination)
+        {
+            var weapons = rigInstance.Player.Weapons;
+            if (!hangarOffer || !weapons) yield break;
+            var primary = weapons.PrimaryMountPrefab;
+            var secondary = weapons.SecondaryMountPrefab;
+            var offers = LootOffers.Draw(hangarOffer.weapons, weapon => weapon != primary && weapon != secondary,
+                WeaponPickScreen.MaxOffers, n => UnityEngine.Random.Range(0, n));
+            if (offers.Count == 0) yield break;
+
+            var spine = sessionProfile.sectors[destination].prefab.Module<PhaseSpineModule>();
+            var screen = WeaponPickScreen.Create(ui, destination + 1, spine ? spine.Threat() : null, offers,
+                primary, secondary, rigInstance.Mods);
+            try
+            {
+                while (!screen.Choice.HasValue && !shutdownRequested) yield return null;
+                if (!shutdownRequested && screen.Choice is int pick && pick != WeaponPickScreen.Skip)
+                    rigInstance.SwapWeapon(screen.Slot, offers[pick]);
+            }
+            finally
+            {
+                Destroy(screen.gameObject);
+            }
+        }
+
         // The clock stops for the pick, so the lull's own seconds all run after it.
         private IEnumerator RunLullPick()
         {
             var weapons = rigInstance.Player.Weapons;
             if (!weapons) yield break;
-            var offers = WeaponModOffers.Draw(lullMods.mods, weapons.Fits, LullPickScreen.MaxOffers,
+            var offers = LootOffers.Draw(lullMods.mods, weapons.Fits, LullPickScreen.MaxOffers,
                 n => UnityEngine.Random.Range(0, n));
             if (offers.Count == 0) yield break;
 

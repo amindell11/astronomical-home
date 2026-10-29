@@ -65,7 +65,10 @@ namespace Combat.Weapons
                 condition.SetMods(mods);
         }
 
-        /// <summary>Whether this weapon has the field a mod changes, judged on the live mount's conditions.</summary>
+        // Serialized refs, not Awake's lookup, so a prefab asset judges fit like its mount.
+        protected virtual WeaponCondition[] AuthoredConditions => Array.Empty<WeaponCondition>();
+
+        /// <summary>Whether this weapon has the field a mod changes, prefab asset or live mount alike.</summary>
         public virtual bool Supports(WeaponModField field) => field switch
         {
             WeaponModField.FireRate => Has<Cooldown>(),
@@ -87,8 +90,7 @@ namespace Combat.Weapons
 
         private T Condition<T>() where T : WeaponCondition
         {
-            if (conditions == null) return null;
-            foreach (var condition in conditions)
+            foreach (var condition in AuthoredConditions)
             {
                 var match = condition as T;
                 if (match) return match;

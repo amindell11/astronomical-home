@@ -35,6 +35,7 @@ namespace Combat.Weapons.Arsenal
         public override float ProjectileSpeed => projectilePrefab.LaserSpeed;
         public override float FireRange => fireDistance;
         public ChargeTime Charge => charge;
+        protected override WeaponCondition[] AuthoredConditions => new WeaponCondition[] { charge, cooldown };
         public float MinChargeDamage => projectilePrefab.Damage * minChargeDamageScale;
         public float FullChargeDamage => projectilePrefab.Damage * fullChargeDamageScale;
 
