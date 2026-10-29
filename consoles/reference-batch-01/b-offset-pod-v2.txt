@@ -1,0 +1,19 @@
+You are sitting in the cockpit looking out at the depths of space, with panels of electronics around you, whirring bleeps and lights, and the sleek, subtle glow of gently used screens. Combine the analog buzz and grit of Alien and Star Wars with sleek modern screen light and the digital-crush character of Asteroids.
+
+Rebuild this whole hangar composition as exciting ink-drawn sci-fi fantasy equipment. This is a new composition using the references below, not a trace of either example menu. Output a full 16:9 game menu concept.
+
+Image 1 is the chosen ink-and-shade FINISH only: weighted black contours, graphic shadow planes, tactile wear. Image 2 supplies the real nebula and recognizable Vanguard ship and livery. Images 3 and 4, the beige consoles, supply recessed screen housings, secondary mechanisms and function-key-style tabs. Image 5, the dark cockpit, supplies purposeful electronics, grouped amber/green lights and layered dark equipment. Images 6, 7 and 8 supply the SCREEN language: Nostromo's strong inverse title strips, MU/TH/UR's raster mono lettering, and the thick rules/hatching in the oxygen display. These are mood images, not their labels, characters or rooms.
+
+The only menu is on the actual console screen. Use a single terminal ledger with an inverse off-white HANGAR title strip, a narrow category/tab column and a wider monospaced value column. Place these exact five lines once:
+SHIP            Vanguard
+ENGINE          Default_Engine
+SHIELD          Default_Shield
+PRIMARY         Lasers
+SECONDARY       Missiles
+Small selection chevrons belong beside the values. Integrate LAUNCH into the same equipment assembly. Use warm off-white on a dark phosphor screen, terminal raster type, tick rules and hatched separator strips. Every line must be present. Screen language should be recognizable as the supplied terminals, with decisive graphic contrast.
+
+The ship is the large hero of the open scene, fully visible with generous breathing room near the upper center/right. Equipment is a grounded assembly in the LOWER foreground with a readable, nearly front-facing screen. Rich dark graphite chassis, warm-grey highlights, useful vents, service connectors, cable guards and layered housing shapes, all drawn with the selected bold ink/shadow finish. Concentrate amber/dim green lamps in a few purposeful groups. Hardware details and the screen should be exciting and clearly visible.
+
+Correct the three failures from the earlier attempt: show the loadout ONLY inside the physical screen; remove the source screenshot's old menu; leave the upper view open without a full canopy/window arch or full-height side walls. Use hatched dividers, not invented progress bars or numerical telemetry. The console remains attached to visible dark supports descending out of the bottom edge. Reusable corners and straight edges use roughly 40-degree chamfers. Keep all five actual values readable. No presentation captions.
+
+COMPOSITION B: compact asymmetric service terminal. A squat upright terminal in the LOWER LEFT rises from a dark mechanical stem, with a secondary electronics pack attached behind one shoulder, offset rather than symmetrical. Its face is a readable terminal ledger. A lower attached command wing holds LAUNCH. Dark gaps between the mounting parts reveal space. This is one tactile installed gadget, not a wall or a floating picture frame. The ship remains large in the open upper-center/right and balanced against the terminal. Keep the detail strong.

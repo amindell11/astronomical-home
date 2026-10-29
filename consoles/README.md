@@ -1,5 +1,7 @@
 # Console panel concepts
 
+The [latest owner feedback](https://github.com/amindell11/astronomical-home/issues/684#issuecomment-6508943698) rejects the sparse refinements. The owner wants more exciting sci-fi equipment, richer terminal screens and a composition that gives the ship room. The [new reference batch](reference-batch-01/README.md) follows the revised method with the repo image generator and the owner's mood images. Earlier recommendations below are historical.
+
 These four image-model studies supported the first joint review for #1249. The owner has since [selected B's ink-drawn finish](https://github.com/amindell11/astronomical-home/issues/684#issuecomment-6508133052), with shape and detail still open. The two owner rulings on #684 dated 2026-10-29 remain the direction.
 
 ## What should the owner compare?

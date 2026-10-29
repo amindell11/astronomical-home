@@ -1,5 +1,7 @@
 # Ink-drawn housing refinements
 
+The owner [rejected these three refinements](https://github.com/amindell11/astronomical-home/issues/684#issuecomment-6508943698). The request was for better detail, not less. The light housing crowds the ship in R1 and R2, and R3 floats too freely. The recommendation below records the session's earlier interpretation, which the owner corrected.
+
 The owner [selected the first batch's B finish](https://github.com/amindell11/astronomical-home/issues/684#issuecomment-6508133052), while leaving shape and detail open. These three concepts keep that finish and compare housing construction. They continue the concept review before the HTML rebuild.
 
 ## What changed in these options?
