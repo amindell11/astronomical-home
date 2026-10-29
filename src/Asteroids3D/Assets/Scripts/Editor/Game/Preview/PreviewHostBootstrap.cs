@@ -1,9 +1,5 @@
-using Cameras;
-using Combat.Weapons.Mods;
-using Game.Travel;
 using Substrate.Sectors;
 using Substrate.Sessions;
-using UI.Recap;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -11,18 +7,16 @@ using UnityEngine;
 namespace Game.Preview
 {
     /// <summary>
-    /// Builds the preview host with the game's rig and presentation assets in an empty scene.
-    /// Playtest uses normal combat or the two-sector crowded jump fixture.
+    /// Builds the preview host around the game's GameHost prefab in an empty scene: Playtest runs that
+    /// prefab, and Inspection loads one trial sector with the prefab's rig and presentation assets.
+    /// The crowded jump setup swaps in the two-sector crowded jump fixture.
     /// The chosen mode is assigned before activation, so Playtest never composes an inspection session.
     /// </summary>
     public static class PreviewHostBootstrap
     {
-        private const string PlayerRigPath = "Assets/Prefabs/MiscObjects/PlayerRig.prefab";
-        private const string ObserverCamPath = "Assets/Prefabs/Cameras/Main Camera.prefab";
+        internal const string GameHostPath = "Assets/Prefabs/Game/GameHost.prefab";
         private const string SectorPrefabPath = "Assets/Prefabs/Sectors/TrialSector.prefab";
         private const string SectorConfigPath = "Assets/Settings/Game/SurvivalTrialConfig.asset";
-        internal const string RecapFeelPath = "Assets/Settings/UI/RecapFeel.asset";
-        internal const string LullModsPath = "Assets/Settings/Weapons/Mods/LullMods.asset";
 
         /// <summary>False when the user kept an unsaved scene open instead.</summary>
         public static bool EnterPlayMode(PreviewSubjectKind subject = PreviewSubjectKind.RunRecap,
@@ -41,6 +35,7 @@ namespace Game.Preview
             var root = new GameObject("PreviewHost");
             root.SetActive(false);
             var host = root.AddComponent<PreviewHost>();
+            host.gameHostPrefab = AssetDatabase.LoadAssetAtPath<GameHost>(GameHostPath);
             host.sessionProfile = new SessionProfile
             {
                 sectors = new[]
@@ -53,16 +48,7 @@ namespace Game.Preview
                 },
                 presentation = true
             };
-            host.playerRigPrefab = AssetDatabase.LoadAssetAtPath<PlayerRig>(PlayerRigPath);
-            host.observerCamPrefab = AssetDatabase.LoadAssetAtPath<ObserverCam>(ObserverCamPath);
-            host.recapFeel = AssetDatabase.LoadAssetAtPath<RecapFeelProfile>(RecapFeelPath);
-            host.jumpFeel = AssetDatabase.LoadAssetAtPath<SectorJumpProfile>("Assets/Settings/Game/SectorJumpTuning.asset");
-            host.jumpShader = Shader.Find("Astronomical/Travel/SectorJump");
-            host.lullMods = AssetDatabase.LoadAssetAtPath<WeaponModPool>(LullModsPath);
-            host.jumpPlaytestProfile = new SessionProfile
-            {
-                sectors = new[] { JumpEntry("CrowdedJumpDeparture"), JumpEntry("CrowdedJumpArrival") }
-            };
+            host.crowdedJumpSectors = new[] { JumpEntry("CrowdedJumpDeparture"), JumpEntry("CrowdedJumpArrival") };
             host.subjectKind = subject;
             host.mode = mode;
             host.playtestSetup = setup;
