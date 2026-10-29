@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Combat.Weapons
+namespace Loot
 {
     /// <summary>Draws a pick's offer: distinct eligible items from the pool, uniformly, up to the count.</summary>
     public static class LootOffers

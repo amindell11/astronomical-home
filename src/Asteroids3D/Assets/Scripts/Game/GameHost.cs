@@ -4,11 +4,11 @@ using System.Runtime.ExceptionServices;
 using Balance;
 using Cameras;
 using Combat.Weapons;
-using Combat.Weapons.Mods;
 using Damage;
 using Game.Audio;
 using Game.Runs;
 using Game.Travel;
+using Loot;
 using Substrate;
 using Substrate.Presentation;
 using Substrate.Sectors;
@@ -104,9 +104,9 @@ namespace Game
         [SerializeField, Range(0f, 1f)] private float killHullRestore = 0.25f;
 
         [Header("Lull pick")]
-        [Tooltip("Weapon mods offered at each sector phase lull, three at a time with time stopped. " +
+        [Tooltip("Lull mods offered at each sector phase lull, three at a time with time stopped. " +
                  "Null → no lull picks.")]
-        [SerializeField] internal WeaponModPool lullMods;
+        [SerializeField] internal LullModPool lullMods;
 
         internal string runRecordPath;
         internal BuildIdentitySource buildIdentity;
@@ -429,15 +429,14 @@ namespace Game
         // The clock stops for the pick, so the lull's own seconds all run after it.
         private IEnumerator RunLullPick()
         {
-            var weapons = rigInstance.Player.Weapons;
-            if (!weapons) yield break;
-            var offers = LootOffers.Draw(lullMods.mods, weapons.Fits, LullPickScreen.MaxOffers,
+            var player = rigInstance.Player;
+            var offers = LootOffers.Draw(lullMods.mods, mod => mod.Fits(player), LullPickScreen.MaxOffers,
                 n => UnityEngine.Random.Range(0, n));
             if (offers.Count == 0) yield break;
 
             PauseClock();
             rigInstance.SetInputEnabled(false);
-            var screen = LullPickScreen.Create(ui, offers, weapons.LandingNames);
+            var screen = LullPickScreen.Create(ui, offers, mod => mod.Landing(player));
             try
             {
                 while (!screen.Choice.HasValue && !shutdownRequested) yield return null;
