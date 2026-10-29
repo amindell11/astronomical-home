@@ -1,5 +1,7 @@
 # Live hangar console
 
+The owner rejected this rebuild on 2026-10-29. The [restored image-based console](../restored-console/index.html) is current, and `index.html` redirects there. The source and notes below are historical; the owner asked to stop after the small ship-transparency adjustment.
+
 ## What does this revision bring across from combat?
 
 The [owner clarified](https://github.com/amindell11/astronomical-home/issues/684#issuecomment-6510388690) that the console should adopt the combat HUD prototype's fonts and beam effects. [Open the live page](index.html) to compare them inside the selected drawn hardware.

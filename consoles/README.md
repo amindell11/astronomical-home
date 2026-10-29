@@ -1,6 +1,6 @@
 # Console panel concepts
 
-The [live hangar console](live-hangar/index.html) now uses the combat session's shared typography and CRT renderer inside the selected mounted terminal. This follows the [owner's clarification](https://github.com/amindell11/astronomical-home/issues/684#issuecomment-6510388690) that the console should adopt the combat prototype's fonts and beam effects. The ship is transparent with faint color beneath bright contours. The [preceding still gallery](hologram-02/review.html) preserves the image-model revisions and actual Unity references. Exact type, tint and effects settings remain open. Earlier recommendations below are historical.
+The [restored console](restored-console/index.html) is current. The owner [rejected the live rebuild](https://github.com/amindell11/astronomical-home/issues/684#issuecomment-6510846322) and asked to return to the earlier image, make only the ship a bit more transparent, and stop there. That adjustment is complete. Earlier recommendations and prototypes below are historical.
 
 These four image-model studies supported the first joint review for #1249. The owner has since [selected B's ink-drawn finish](https://github.com/amindell11/astronomical-home/issues/684#issuecomment-6508133052), with shape and detail still open. The two owner rulings on #684 dated 2026-10-29 remain the direction.
 
