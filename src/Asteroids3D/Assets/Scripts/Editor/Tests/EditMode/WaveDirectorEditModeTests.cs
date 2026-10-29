@@ -1,13 +1,17 @@
+using System.Linq;
 using Combat.Weapons;
 using NUnit.Framework;
+using Ships;
 using Ships.Loadout;
+using Substrate.Sectors;
 using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Phases;
+using UnityEditor;
 using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>Wave director pacing over a sector phase table with injected time: each phase opens once, its interval gates cadence and its cap gates count, a lull spawns nothing, and the done table keeps the last phase's pacing. Loadout draws come from the pool in force and leave the second mount empty.</summary>
+    /// <summary>Wave director pacing over a sector phase table with injected time: each phase opens once, its interval gates cadence and its cap gates count, a lull spawns nothing, and the done table keeps the last phase's pacing. Loadout draws come from the pool in force and leave the second mount empty, and the threat read lists the roster's ships and the weapons in force, off a prefab asset too.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class WaveDirectorEditModeTests
@@ -141,6 +145,66 @@ namespace Tests.EditMode
 
             foreach (var module in pool.shields) Object.DestroyImmediate(module);
             Object.DestroyImmediate(pool);
+        }
+
+        [Test]
+        public void Threat_ListsEachRosterShipOnce_AndTheWeaponsOfEveryPoolInForce()
+        {
+            var vanguard = new GameObject("Vanguard").AddComponent<Ship>();
+            var valis = new GameObject("Valis").AddComponent<Ship>();
+            var lasers = _go.AddComponent<PoolWeapon>();
+            var rippers = _go.AddComponent<PoolWeapon>();
+            var missiles = _go.AddComponent<PoolWeapon>();
+            var directorPool = ScriptableObject.CreateInstance<ItemSubset>();
+            directorPool.weapons = new WeaponComponent[] { lasers, rippers };
+            var phasePool = ScriptableObject.CreateInstance<ItemSubset>();
+            phasePool.weapons = new WeaponComponent[] { missiles, lasers };
+            var phases = Phases();
+            phases[1].loadouts = phasePool;
+            _director.Configure(new[]
+            {
+                new WaveDirector.RosterEntry { template = vanguard },
+                new WaveDirector.RosterEntry { template = valis },
+                new WaveDirector.RosterEntry { template = vanguard },
+            }, phases, Lull, loadouts: directorPool);
+
+            var threat = _director.Threat();
+
+            CollectionAssert.AreEqual(new[] { vanguard, valis }, threat.Ships, "a ship two pilots fly is listed once");
+            CollectionAssert.AreEqual(new WeaponComponent[] { lasers, rippers, missiles }, threat.Weapons,
+                "phase order, each weapon once");
+
+            Object.DestroyImmediate(directorPool);
+            Object.DestroyImmediate(phasePool);
+            Object.DestroyImmediate(vanguard.gameObject);
+            Object.DestroyImmediate(valis.gameObject);
+        }
+
+        [Test]
+        public void Threat_WithNoPool_ListsTheRosterShipsAuthoredWeapons()
+        {
+            var ship = AssetDatabase.LoadAssetAtPath<Ship>("Assets/Prefabs/Ships/Vanguard.prefab");
+            _director.Configure(new[] { new WaveDirector.RosterEntry { template = ship } }, Phases(), Lull);
+
+            var threat = _director.Threat();
+
+            CollectionAssert.AreEqual(new[] { ship }, threat.Ships);
+            CollectionAssert.AreEqual(
+                new[] { ship.Weapons.PrimaryMountPrefab, ship.Weapons.SecondaryMountPrefab }.Where(weapon => weapon),
+                threat.Weapons, "products fly their template's authored build");
+            Assert.IsNotEmpty(threat.Weapons);
+        }
+
+        [Test]
+        public void Threat_ReadsOffTheSectorPrefabAsset_BeforeItLoads()
+        {
+            var sector = AssetDatabase.LoadAssetAtPath<Sector>("Assets/Prefabs/Sectors/TrialSector2.prefab");
+            var threat = sector.Module<PhaseSpineModule>().Threat();
+
+            Assert.IsNotEmpty(threat.Ships);
+            Assert.IsNotEmpty(threat.Weapons);
+            CollectionAssert.AllItemsAreUnique(threat.Ships);
+            CollectionAssert.AllItemsAreUnique(threat.Weapons);
         }
 
         private sealed class PoolWeapon : WeaponComponent

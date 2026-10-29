@@ -41,6 +41,7 @@ namespace Combat.Weapons.Arsenal
         public override bool AutoFire => false;
         public override float? HoldRange => holdRange;
         public Rounds Rounds => rounds;
+        protected override WeaponCondition[] AuthoredConditions => new WeaponCondition[] { rounds, cooldown };
         public float BlastDamage => projectilePrefab.WavePrefab.MaxDamage;
         public float BlastRadius => projectilePrefab.WavePrefab.MaxRadius;
         public float Range => projectilePrefab.MaxDistance;

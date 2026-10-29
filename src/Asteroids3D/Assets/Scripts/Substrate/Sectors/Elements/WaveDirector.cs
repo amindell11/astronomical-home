@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using AI.Scanning;
+using Combat.Weapons;
 using Ships;
 using Ships.Command;
 using Ships.Loadout;
@@ -156,6 +157,34 @@ namespace Substrate.Sectors.Elements
 
         internal ItemSubset PoolFor(SectorPhase row) => row.loadouts ? row.loadouts : loadouts;
 
+        /// <summary>Reads only serialized data, so a prefab asset answers too.</summary>
+        public SectorThreat Threat()
+        {
+            var ships = new List<Ship>();
+            foreach (var entry in roster)
+                AddDistinct(ships, entry.template);
+
+            var weapons = new List<WeaponComponent>();
+            foreach (var row in phases)
+            {
+                var pool = PoolFor(row);
+                if (pool)
+                    foreach (var weapon in pool.weapons) AddDistinct(weapons, weapon);
+                else
+                    foreach (var ship in ships)
+                    {
+                        AddDistinct(weapons, ship.Weapons ? ship.Weapons.PrimaryMountPrefab : null);
+                        AddDistinct(weapons, ship.Weapons ? ship.Weapons.SecondaryMountPrefab : null);
+                    }
+            }
+            return new SectorThreat(ships, weapons);
+        }
+
+        private static void AddDistinct<T>(List<T> list, T item) where T : UnityEngine.Object
+        {
+            if (item && !list.Contains(item)) list.Add(item);
+        }
+
         /// <summary>One uniform pick per slot; no secondary, since AI aim leads for the primary only.</summary>
         internal static ShipLoadout Draw(Ship chassis, ItemSubset pool) =>
             new(chassis, Pick(pool.shields), Pick(pool.weapons), null);
@@ -214,5 +243,18 @@ namespace Substrate.Sectors.Elements
             BuildSchedule();
         }
 #endif
+    }
+
+    /// <summary>What a sector can send: its ships and the weapons they can carry, each listed once.</summary>
+    public readonly struct SectorThreat
+    {
+        public IReadOnlyList<Ship> Ships { get; }
+        public IReadOnlyList<WeaponComponent> Weapons { get; }
+
+        public SectorThreat(IReadOnlyList<Ship> ships, IReadOnlyList<WeaponComponent> weapons)
+        {
+            Ships = ships;
+            Weapons = weapons;
+        }
     }
 }
