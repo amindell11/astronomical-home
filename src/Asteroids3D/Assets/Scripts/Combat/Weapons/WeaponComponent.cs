@@ -117,6 +117,9 @@ namespace Combat.Weapons
         /// <summary>Writes the circles an AI pilot carrying this weapon keeps out of right now; returns how many. None by default.</summary>
         public virtual int KeepOutCircles(Span<DetectedObstacle.PlaneCircle> circles) => 0;
 
+        /// <summary>True while this weapon holds its ship's engines off: no thrust, strafe or keystone, only turning.</summary>
+        public virtual bool CutsEngines => false;
+
         /// <summary>Full-auto repeats while held; semi-auto fires once per press. Only this weapon's <see cref="HandleTrigger"/> interprets it.</summary>
         public virtual bool AutoFire => true;
 

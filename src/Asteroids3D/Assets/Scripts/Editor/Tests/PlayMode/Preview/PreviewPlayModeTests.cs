@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Cameras;
 using Game;
+using Game.Audio;
 using Game.Preview;
 using Game.Runs;
 using Game.Travel;
@@ -14,6 +15,8 @@ using Substrate.Services.Units;
 using Substrate.Sessions;
 using Tests.PlayMode.Common;
 using Tests.PlayMode.Common.SimulatedInput;
+using UI;
+using UI.Hangar;
 using UI.Recap;
 using UI.Screens;
 using UnityEngine;
@@ -231,6 +234,59 @@ namespace Tests.PlayMode.Preview
                 yield return SceneManager.UnloadSceneAsync("Locale_3");
         }
 
+        [UnityTest]
+        [Timeout(180000)]
+        public IEnumerator Playtest_RunsTheShippedGameHost_AndTheCrowdedGateSwapsOnlyItsSectors()
+        {
+            var shipped = TestAssets.Load<GameHost>("Assets/Prefabs/Game/GameHost.prefab");
+            var root = new GameObject("Shipped playtest test");
+            root.SetActive(false);
+            host = root.AddComponent<PreviewHost>();
+            host.mode = PreviewMode.Playtest;
+            host.gameHostPrefab = shipped;
+            host.sessionProfile = new SessionProfile();
+            host.crowdedJumpSectors = new[] { "CrowdedJumpDeparture", "CrowdedJumpArrival" }.Select(name => new SectorEntry
+            {
+                prefab = TestAssets.Load<Sector>($"Assets/Prefabs/Sectors/Preview/{name}.prefab"),
+                config = TestAssets.Load<SectorSettings>($"Assets/Settings/Game/Preview/{name}.asset")
+            }).ToArray();
+            root.SetActive(true);
+
+            var combat = host.Playtest;
+            yield return LaunchFromHangar(combat);
+            Assert.That(combat.sessionProfile.sectors.Select(entry => entry.prefab),
+                Is.EqualTo(shipped.sessionProfile.sectors.Select(entry => entry.prefab)));
+            Assert.IsTrue(shipped.jumpFeel, "Combat travels between sectors");
+            Assert.That(combat.jumpFeel, Is.SameAs(shipped.jumpFeel));
+            Assert.IsTrue(combat.GetComponentInChildren<GameMusic>(), "the shipped music plays");
+            Assert.IsTrue(combat.GetComponentInChildren<LoadingSplash>(true), "the shipped splash covers loads");
+            Assert.That(combat.runRecordPath, Is.Not.EqualTo(new RunRecordStore().Path));
+            Assert.That(combat.ActiveSector.name, Does.StartWith(shipped.sessionProfile.sectors[0].prefab.name));
+
+            host.SelectPlaytestSetup(PreviewPlaytestSetup.CrowdedJumpGate);
+            yield return AsyncAssert.WaitUntil(() => host.IsReady && host.Playtest != combat, 30f,
+                "the crowded gate replaces the run");
+            var crowded = host.Playtest;
+            yield return LaunchFromHangar(crowded);
+            Assert.That(combat == null, Is.True);
+            Assert.That(crowded.sessionProfile.sectors, Is.SameAs(host.crowdedJumpSectors));
+            Assert.That(crowded.sessionProfile.idleLocale.SceneName, Is.EqualTo(shipped.sessionProfile.idleLocale.SceneName));
+            Assert.That(crowded.ActiveSector.name, Does.StartWith("CrowdedJumpDeparture"));
+            Assert.That(Object.FindObjectsByType<GameHost>(FindObjectsSortMode.None).Length, Is.EqualTo(1));
+            Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None).Length, Is.EqualTo(1));
+        }
+
+        private static IEnumerator LaunchFromHangar(GameHost game)
+        {
+            HangarScreen hangar = null;
+            yield return AsyncAssert.WaitUntil(() => (hangar = game.GetComponentInChildren<HangarScreen>()) != null, 45f,
+                "the shipped run opens in the hangar");
+            Assert.That(SceneManager.GetSceneByName(game.sessionProfile.idleLocale.SceneName).isLoaded, Is.True,
+                "the idle locale shows behind the hangar");
+            hangar.launchButton.onClick.Invoke();
+            yield return AsyncAssert.WaitUntil(() => game.ActiveSector != null, 45f, "Launch loads the first sector");
+        }
+
         private IEnumerator WaitForFlight() => AsyncAssert.WaitUntil(() =>
         {
             if (!host.Playtest) return false;
@@ -257,16 +313,14 @@ namespace Tests.PlayMode.Preview
         private void BuildPreview(PreviewMode mode = PreviewMode.Playtest,
             PreviewSubjectKind subject = PreviewSubjectKind.SectorJump, bool jumpShader = true)
         {
-            template = new GameObject("Playtest selected setup");
+            template = new GameObject("Preview test templates");
             template.SetActive(false);
-            var sector = template.AddComponent<Sector>();
+            var sectorObject = new GameObject("Playtest selected setup");
+            sectorObject.SetActive(false);
+            sectorObject.transform.SetParent(template.transform, false);
+            var sector = sectorObject.AddComponent<Sector>();
             sector.SetManifest(null, null, System.Array.Empty<SectorModule>());
-            var root = new GameObject("Preview lifecycle test");
-            root.SetActive(false);
-            host = root.AddComponent<PreviewHost>();
-            host.mode = mode;
-            host.subjectKind = subject;
-            host.sessionProfile = new SessionProfile
+            var profile = new SessionProfile
             {
                 sectors = new[]
                 {
@@ -277,11 +331,22 @@ namespace Tests.PlayMode.Preview
                     }
                 }
             };
-            host.playerRigPrefab = TestAssets.Load<PlayerRig>("Assets/Prefabs/MiscObjects/PlayerRig.prefab");
-            host.observerCamPrefab = TestAssets.Load<ObserverCam>("Assets/Prefabs/Cameras/Main Camera.prefab");
-            host.recapFeel = TestAssets.Load<RecapFeelProfile>("Assets/Settings/UI/RecapFeel.asset");
-            host.jumpFeel = TestAssets.Load<SectorJumpProfile>("Assets/Settings/Game/SectorJumpTuning.asset");
-            host.jumpShader = jumpShader ? Shader.Find("Astronomical/Travel/SectorJump") : null;
+            var game = new GameObject("Playtest game host");
+            game.transform.SetParent(template.transform, false);
+            var gameHost = game.AddComponent<GameHost>();
+            gameHost.sessionProfile = profile;
+            gameHost.playerRig = TestAssets.Load<PlayerRig>("Assets/Prefabs/MiscObjects/PlayerRig.prefab");
+            gameHost.observerCamPrefab = TestAssets.Load<ObserverCam>("Assets/Prefabs/Cameras/Main Camera.prefab");
+            gameHost.recapFeel = TestAssets.Load<RecapFeelProfile>("Assets/Settings/UI/RecapFeel.asset");
+            gameHost.jumpFeel = TestAssets.Load<SectorJumpProfile>("Assets/Settings/Game/SectorJumpTuning.asset");
+            gameHost.jumpShader = jumpShader ? Shader.Find("Astronomical/Travel/SectorJump") : null;
+            var root = new GameObject("Preview lifecycle test");
+            root.SetActive(false);
+            host = root.AddComponent<PreviewHost>();
+            host.mode = mode;
+            host.subjectKind = subject;
+            host.gameHostPrefab = gameHost;
+            host.sessionProfile = profile;
             root.SetActive(true);
         }
     }
