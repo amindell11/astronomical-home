@@ -1,10 +1,12 @@
 #if UNITY_EDITOR
 using System.Collections;
+using System.Collections.Generic;
 using NUnit.Framework;
 using Substrate;
 using Substrate.Services.Locales;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
@@ -59,6 +61,60 @@ namespace Tests.PlayMode.Presentation
             yield return null;
             Assert.IsFalse(a.enabled, "the previously active locale's sky layers turn off");
             Assert.IsTrue(b.enabled, "the newly active locale's sky layers turn on");
+        }
+
+        [UnityTest]
+        public IEnumerator ActiveSceneSwap_EnablesOnlyTheActiveLocalesVolume()
+        {
+            SceneManager.SetActiveScene(first);
+            var a = AddVolume(first);
+            var b = AddVolume(second);
+            BuildRoot(first, null);
+            BuildRoot(second, null);
+            yield return null;
+            Assert.IsTrue(a.enabled, "the active locale grades the world");
+            Assert.IsFalse(b.enabled, "a preloaded locale's volume stays off");
+
+            SceneManager.SetActiveScene(second);
+            yield return null;
+            Assert.IsFalse(a.enabled, "the previously active locale stops grading");
+            Assert.IsTrue(b.enabled, "the newly active locale grades the world");
+        }
+
+        [UnityTest, Category("RequiresGraphics")]
+        public IEnumerator BackdropRender_EnablesEachImagesOwnVolume_ThenRestoresTheActiveOne()
+        {
+            SceneManager.SetActiveScene(first);
+            var a = AddVolume(first);
+            var b = AddVolume(second);
+            BuildRoot(first, null);
+            BuildRoot(second, null);
+            cameraRoot = new GameObject("Backdrop camera");
+            var camera = cameraRoot.AddComponent<Camera>();
+            camera.enabled = false;
+            target = new RenderTexture(16, 16, 24);
+            target.Create();
+            var pairRoot = new GameObject("Locale backdrop pair");
+            pairRoot.transform.SetParent(cameraRoot.transform);
+            var pair = pairRoot.AddComponent<LocaleBackdropPair>();
+            pair.Initialize(first, second, () => { });
+            var rendered = new List<string>();
+            void Record(ScriptableRenderContext _, Camera current)
+            {
+                if (current == camera) rendered.Add($"first {a.enabled}, second {b.enabled}");
+            }
+            var arrival = RenderTexture.GetTemporary(target.descriptor);
+            RenderPipelineManager.beginCameraRendering += Record;
+            try { pair.Render(camera, target, arrival); }
+            finally
+            {
+                RenderPipelineManager.beginCameraRendering -= Record;
+                RenderTexture.ReleaseTemporary(arrival);
+            }
+            Assert.That(rendered, Is.EqualTo(new[] { "first True, second False", "first False, second True" }),
+                "each travel image renders under its own locale's volume");
+            Assert.IsTrue(a.enabled && !b.enabled, "the active locale alone grades the world after the backdrop renders");
+            yield return null;
         }
 
         [UnityTest]
@@ -140,6 +196,15 @@ namespace Tests.PlayMode.Presentation
             root.AddComponent<LocaleSky>();
             root.SetActive(true);
             return renderer;
+        }
+
+        private static Volume AddVolume(Scene scene)
+        {
+            var atmosphere = new GameObject("Atmosphere");
+            SceneManager.MoveGameObjectToScene(atmosphere, scene);
+            var volume = atmosphere.AddComponent<Volume>();
+            volume.isGlobal = true;
+            return volume;
         }
 
         private Color ReadCenter()
