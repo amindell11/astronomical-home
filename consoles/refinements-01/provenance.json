@@ -1,0 +1,35 @@
+{
+  "status": "Unapproved housing refinements within selected ink-drawn finish",
+  "generatedWith": "Codex built-in imagegen",
+  "date": "2026-10-29",
+  "issue": 1249,
+  "ownerRuling": "https://github.com/amindell11/astronomical-home/issues/684#issuecomment-6508133052",
+  "selectedFinishReference": "../concepts/02-ink-drawn.png",
+  "inputCapture": "../source/hangar-vanguard.png",
+  "inputCaptureSha256": "0e837bbf16a1c928586faa28c83981a530ad47dfa6aa5e3ef884e2985fe9bb84",
+  "finishReferenceSha256": "029a36ae58a085e66e53fcd029c02896708a405adcc375447d7ca18bca69b800",
+  "recommendation": "01-compact-bezel",
+  "ownerRefinementPick": null,
+  "capturesArePixelExact": false,
+  "limits": "Image-model stills only. Exact angles, dimensions, type, modular stretching, motion and palette are unapproved.",
+  "images": [
+    {
+      "file": "01-compact-bezel.png",
+      "sha256": "fa1321344251e359503c46ece16d483dffe339d45a9f2f6c02a9853142b5d4aa",
+      "bytes": 1819086,
+      "prompt": "prompts/01-compact-bezel.txt"
+    },
+    {
+      "file": "02-continuous-face.png",
+      "sha256": "769ec46e53ac258a34d8af91e095174b1ee11379ef677f0ab11eb8152e408271",
+      "bytes": 1803455,
+      "prompt": "prompts/02-continuous-face.txt"
+    },
+    {
+      "file": "03-corner-and-rail.png",
+      "sha256": "2bc4bfe2954880bf9a17df8875768193e0878c00b7793f3b60eb787327b81c20",
+      "bytes": 1725476,
+      "prompt": "prompts/03-corner-and-rail.txt"
+    }
+  ]
+}

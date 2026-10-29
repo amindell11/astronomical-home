@@ -1,6 +1,6 @@
 # Console panel concepts
 
-These four image-model studies support the first joint review for #1249. The two owner rulings on #684 dated 2026-10-29 remain the direction. None of these studies is an owner pick.
+These four image-model studies supported the first joint review for #1249. The owner has since [selected B's ink-drawn finish](https://github.com/amindell11/astronomical-home/issues/684#issuecomment-6508133052), with shape and detail still open. The two owner rulings on #684 dated 2026-10-29 remain the direction.
 
 ## What should the owner compare?
 
@@ -10,10 +10,10 @@ Each image restyles the same hangar capture and shows the same ship and current 
 | --- | --- | --- | --- |
 | C1 | [Physical housing](concepts/01-physical.png) | A deep screen recess, heavy matte housing and physical edge wear. | The strongest retro monitor presence also takes the most attention. |
 | C2 | [Ink-drawn housing](concepts/02-ink-drawn.png) | Broad light and shadow planes, weighted contours and drawn surrounding equipment. | The closest match to the ship's illustration adds more hardware around the view. |
-| C3 | [Blended housing](concepts/03-blended.png) | A recessed screen with simple rails, selective ink contours and broad shaded material. | Keeps physical depth and the drawn finish with less surrounding equipment. Recommended. |
+| C3 | [Blended housing](concepts/03-blended.png) | A recessed screen with simple rails, selective ink contours and broad shaded material. | Keeps physical depth and the drawn finish with less surrounding equipment. Initial recommendation. |
 | C4 | [Unboxed projection](concepts/04-unboxed.png) | Screen content projected directly over the scene. | Leaves the widest open view but loses the physical distinction between canopy and console. Required comparison only. |
 
-C3 is the console session's recommendation, not a recorded decision. The combat HUD session hosts the joint numbered review and records owner choices on #684.
+C3 was the console session's initial recommendation. The owner chose B's ink-drawn finish instead. Its shape, detail and exact dimensions are not approved. The [second concept batch](refinements-01/README.md) explores housing construction within that finish. The combat HUD session hosts the joint numbered reviews and records owner choices on #684.
 
 ## Where did the images come from?
 

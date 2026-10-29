@@ -12,7 +12,14 @@
     "sha256": "0e837bbf16a1c928586faa28c83981a530ad47dfa6aa5e3ef884e2985fe9bb84"
   },
   "recommendation": "03-blended",
-  "ownerDecision": null,
+  "ownerDecision": {
+    "date": "2026-10-29",
+    "selectedFinish": "02-ink-drawn",
+    "status": "Finish selected; shape and detail require refinement",
+    "ruling": "https://github.com/amindell11/astronomical-home/issues/684#issuecomment-6508133052",
+    "exactGeometryApproved": false,
+    "exactDimensionsApproved": false
+  },
   "capturesArePixelExact": false,
   "limits": "Image-model style studies based on a real game capture. Typography, size, geometry, colors, modular production artwork and motion are not approved.",
   "concepts": [
@@ -40,5 +47,6 @@
       "bytes": 1647272,
       "prompt": "prompts/04-unboxed.txt"
     }
-  ]
+  ],
+  "recommendationStatus": "The recommendation field records the initial session recommendation, not the owner selection."
 }
