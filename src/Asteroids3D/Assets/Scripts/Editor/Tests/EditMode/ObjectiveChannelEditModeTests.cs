@@ -4,7 +4,7 @@ using System.Reflection;
 using NUnit.Framework;
 using Objectives;
 using Objectives.States;
-using UI;
+using UI.Objectives;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
@@ -77,15 +77,15 @@ namespace Tests.EditMode
             var minimap = NewGO("Minimap").AddComponent<RectTransform>();
             minimap.sizeDelta = new Vector2(200f, 200f);
             var icon = NewGO("Icon").AddComponent<Image>();
-            var marker = NewGO("Marker").AddComponent<MinimapObjectiveMarker>();
+            var canvas = NewGO("HUD").AddComponent<Canvas>();
+            var marker = NewGO("Marker").AddComponent<ObjectiveMarkers>();
             var serialized = new SerializedObject(marker);
             serialized.FindProperty("icon").objectReferenceValue = icon;
             serialized.ApplyModifiedPropertiesWithoutUndo();
-            marker.Initialize(cam, minimap);
-            var lateUpdate = typeof(MinimapObjectiveMarker)
+            marker.Initialize(svc, cam, cam, minimap, canvas);
+            var lateUpdate = typeof(ObjectiveMarkers)
                 .GetMethod("LateUpdate", BindingFlags.Instance | BindingFlags.NonPublic);
 
-            marker.BindObjectiveService(svc);
             var target = NewGO("Target").transform;
             target.position = new Vector3(0f, 25f, 0f);
             handle.Target = target;

@@ -15,7 +15,8 @@ namespace Combat.Weapons.Arsenal
     /// Charged hitscan railgun (<see cref="ProjectileSpeed"/> 0 — AI gunners aim with no intercept lead).
     /// The beam is a capsule swept along the game plane that pierces: it strikes targets nearest-first,
     /// and each kill's overkill (the return of <see cref="IDamageable.TakeDamage"/>) carries on to the
-    /// next target until a survivor, or a collider that takes no damage, stops it.
+    /// next target until a survivor, or a collider that takes no damage, stops it. While it holds any
+    /// charge it cuts its ship's engines (<see cref="CutsEngines"/>), so a shot costs the shooter its mobility.
     /// </summary>
     public class Railguns : WeaponComponent
     {
@@ -66,6 +67,7 @@ namespace Combat.Weapons.Arsenal
 
         public override float FireRange => fireDistance;
         public override float? HoldRange => holdRange;
+        public override bool CutsEngines => charge.ChargePct > 0f;
 
         protected override void Awake()
         {

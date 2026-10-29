@@ -7,6 +7,8 @@ using Combat.Weapons.Conditions;
 using Substrate.Services.Objectives;
 using Ships;
 using Utils;
+using System;
+using UI.Objectives;
 
 namespace UI
 {
@@ -28,9 +30,8 @@ namespace UI
         private RunTallyReadout tallyReadout;
         private ChargeTargetMarkers chargeMarkers;
         private ShipStatusOverlay shipStatus;
+        private ObjectiveMarkers objectiveMarkers;
 
-        public MinimapObjectiveMarker ObjectiveMarker { get; private set; }
-        public RectTransform MinimapRect => minimapRect;
         public Camera WorldCamera => canvases[0].worldCamera;
 
         private void Awake()
@@ -44,7 +45,7 @@ namespace UI
             missileWarningAudio = GetComponentInChildren<UIMissileWarningAudio>();
             boostGauge = GetComponentInChildren<BoostGaugeUI>(true);
             readoutBuilder = GetComponentInChildren<WeaponReadoutBuilder>(true);
-            ObjectiveMarker = GetComponentInChildren<MinimapObjectiveMarker>(true);
+            objectiveMarkers = GetComponentInChildren<ObjectiveMarkers>(true);
             chargeMarkers = GetComponentInChildren<ChargeTargetMarkers>(true);
         }
 
@@ -117,11 +118,11 @@ namespace UI
                 lockOnAudio.Initialize(readoutBuilder ? readoutBuilder.FirstReadout<ILockStateSource>() : null);
         }
 
-        public void BindObjectives(IObjectiveService objectives)
+        public void BindObjectives(IObjectiveService objectives, Camera worldCamera, Camera minimapCamera)
         {
-            if (ObjectiveMarker)
-                ObjectiveMarker.BindObjectiveService(objectives);
-
+            if (!objectiveMarkers || !minimapRect)
+                throw new InvalidOperationException($"Overlay on '{name}' needs its objective markers and minimap wired.");
+            objectiveMarkers.Initialize(objectives, worldCamera, minimapCamera, minimapRect, canvases[0]);
             ObjectiveStatusReadout.Create(transform).Initialize(objectives);
         }
     }
