@@ -133,7 +133,10 @@ namespace Combat.Weapons
         public void Reload()
         {
             foreach (var condition in conditions)
-                if (condition is Rounds rounds) rounds.Reload();
+            {
+                var rounds = condition as Rounds;
+                if (rounds) rounds.Reload();
+            }
         }
 
         public virtual bool CanFire()
