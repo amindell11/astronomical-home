@@ -199,6 +199,7 @@ MonoBehaviour:
   jumpShader: {fileID: 4800000, guid: 180b0e0f31f61dc44b388c8f1b818895, type: 3}
   deathBehavior: 2
   killHullRestore: 0.25
+  lullMods: {fileID: 11400000, guid: 39cc47f84df34c5589e2267bff2200d2, type: 2}
 --- !u!114 &217078675
 MonoBehaviour:
   m_ObjectHideFlags: 0

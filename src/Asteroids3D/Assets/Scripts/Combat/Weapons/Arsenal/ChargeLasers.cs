@@ -3,6 +3,7 @@ using Combat.Projectiles;
 using UnityEngine;
 using Substrate.Services.Projectiles;
 using Combat.Weapons.Conditions;
+using Combat.Weapons.Mods;
 
 namespace Combat.Weapons.Arsenal
 {
@@ -56,7 +57,8 @@ namespace Combat.Weapons.Arsenal
             if (proj == null) return null;
 
             var spent = Charge ? Charge.SpentCharge : 1f;
-            proj.SetDamageScale(Mathf.Lerp(minChargeDamageScale, fullChargeDamageScale, spent));
+            proj.SetDamageScale(Mods.Factor(WeaponModField.Damage) *
+                                Mathf.Lerp(minChargeDamageScale, fullChargeDamageScale, spent));
             return proj;
         }
 

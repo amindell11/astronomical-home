@@ -95,6 +95,21 @@ namespace Tests.EditMode.Travel
             Assert.That(end.HudAlpha, Is.EqualTo(1f).Within(1e-6f));
         }
 
+        [Test]
+        public void WorldBlend_ShowsTheWorldUntilDeparture_HoldsHyperspace_AndReturnsOverTheExit()
+        {
+            var passage = new SectorJumpPassage(profile, 0f, 90f);
+            const float hold = 4f;
+            var departure = profile.turnDuration + profile.chargeDuration;
+            var resume = passage.ExitStartsAt(hold);
+            Assert.That(passage.WorldBlendAt(departure, hold), Is.Zero);
+            Assert.That(passage.WorldBlendAt(departure + profile.worldBlendDuration * .5f, hold), Is.InRange(.1f, .9f));
+            Assert.That(passage.WorldBlendAt(passage.HoldStartsAt + hold * .5f, hold), Is.EqualTo(1f));
+            Assert.That(passage.WorldBlendAt(resume, hold), Is.EqualTo(1f));
+            Assert.That(passage.WorldBlendAt(resume + profile.worldBlendDuration * .5f, hold), Is.InRange(.1f, .9f));
+            Assert.That(passage.WorldBlendAt(resume + profile.worldBlendDuration, hold), Is.Zero);
+        }
+
         [TestCase(350f, 10f, 360f)]
         [TestCase(10f, 350f, 0f)]
         public void Turn_TakesTheShortestPathFromTheActualHeading(float start, float target, float halfway)

@@ -45,6 +45,13 @@ namespace Game.Travel
         public float ExitProgress(float elapsedSeconds, float holdSeconds) =>
             Mathf.Clamp01((elapsedSeconds - ExitStartsAt(holdSeconds)) / exitDuration);
 
+        public float WorldBlendAt(float elapsedSeconds, float holdSeconds)
+        {
+            var held = Mathf.Clamp(elapsedSeconds - HoldStartsAt, 0f, holdSeconds);
+            return SectorJumpProfile.Ease((elapsedSeconds - held - departure) / exitDuration) *
+                (1f - SectorJumpProfile.Ease(ExitProgress(elapsedSeconds, holdSeconds)));
+        }
+
         public SectorJumpState StateAt(float elapsedSeconds, float holdSeconds)
         {
             var time = Mathf.Clamp(elapsedSeconds, 0f, DurationWithHold(holdSeconds));

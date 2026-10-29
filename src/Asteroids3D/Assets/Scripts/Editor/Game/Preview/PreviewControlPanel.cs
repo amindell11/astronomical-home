@@ -43,6 +43,12 @@ namespace Game.Preview
                     MessageType.Info);
                 return;
             }
+            if (host.Fault != null)
+            {
+                EditorGUILayout.HelpBox($"The preview faulted: {host.Fault.Message}\nThe console has the stack. " +
+                                        "Exit play mode to recover.", MessageType.Error);
+                return;
+            }
             using (new EditorGUI.DisabledScope(host.IsReplacing))
             {
                 var modeChoice = (PreviewMode)EditorGUILayout.EnumPopup("Mode", host.Mode);
@@ -158,7 +164,6 @@ namespace Game.Preview
             }
             transport.Speed = EditorGUILayout.FloatField("Speed", transport.Speed);
             transport.HoldSeconds = EditorGUILayout.FloatField("Hold seconds", transport.HoldSeconds);
-            if (subject.Busy) EditorGUILayout.LabelField("Staged moment playing…");
         }
 
         private static void DrawKnobs(ScriptableObject target, ref SerializedObject serialized)

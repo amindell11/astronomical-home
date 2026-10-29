@@ -1,6 +1,7 @@
 using Balance;
 using System;
 using Combat.Projectiles;
+using Combat.Weapons.Mods;
 using UnityEngine;
 using Utils;
 using Substrate.Services.Projectiles;
@@ -26,6 +27,7 @@ namespace Combat.Weapons
 
             var proj = SimplePool<TProj>.Get(projectilePrefab, FireOrigin, firePoint.rotation);
             proj.Initialize(shooter);
+            proj.SetDamageScale(Mods.Factor(WeaponModField.Damage));
             projectiles.Register(proj, proj.ReturnToPoolImmediate);
             proj.Launch(FireDirection, targetPoint);
             InvokeOnFire();

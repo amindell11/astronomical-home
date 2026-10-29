@@ -2,6 +2,7 @@ using Balance;
 using System;
 using System.Collections.Generic;
 using Combat.Weapons;
+using Combat.Weapons.Mods;
 using UnityEngine;
 
 namespace Combat.Weapons.Conditions
@@ -41,17 +42,18 @@ namespace Combat.Weapons.Conditions
         public event Action OnReloadCompleted;
 
         public int AmmoCount { get; private set; }
-        public int MaxAmmo => maxAmmo;
-        public float ReloadTime => reloadTime;
+        public int MaxAmmo => mods.Rounds(maxAmmo);
+        public float ReloadTime => mods.Apply(WeaponModField.ReloadSpeed, reloadTime);
         public RefillMode Refill => refill;
         public bool IsReloading { get; private set; }
 
         public float ReloadProgress =>
             !IsReloading ? 0f
-            : refill == RefillMode.PerRound ? Mathf.Clamp01(1f - (roundDueTimes.Peek() - regenClock) / reloadTime)
-            : Mathf.Clamp01(reloadElapsed / reloadTime);
+            : refill == RefillMode.PerRound ? Mathf.Clamp01(1f - (roundDueTimes.Peek() - regenClock) / ReloadTime)
+            : Mathf.Clamp01(reloadElapsed / ReloadTime);
 
         private float reloadElapsed;
+        private int knownMax;
 
         // FIFO works because every round shares one duration: the front always lands first.
         private readonly Queue<float> roundDueTimes = new();
@@ -82,10 +84,10 @@ namespace Combat.Weapons.Conditions
         private void TickMagazine(float dt)
         {
             reloadElapsed += dt;
-            if (reloadElapsed < reloadTime - HalfStep) return;
+            if (reloadElapsed < ReloadTime - HalfStep) return;
 
             IsReloading = false;
-            AmmoCount = maxAmmo;
+            AmmoCount = MaxAmmo;
             OnReloadCompleted?.Invoke();
             OnAmmoCountChanged?.Invoke(AmmoCount);
         }
@@ -117,7 +119,18 @@ namespace Combat.Weapons.Conditions
             reloadElapsed = 0f;
             roundDueTimes.Clear();
             regenClock = 0f;
-            AmmoCount = maxAmmo;
+            AmmoCount = MaxAmmo;
+            knownMax = AmmoCount;
+            OnAmmoCountChanged?.Invoke(AmmoCount);
+        }
+
+        // Rounds a pick adds arrive loaded, so the counter shows the pick at once.
+        protected override void OnModsChanged()
+        {
+            var added = MaxAmmo - knownMax;
+            knownMax = MaxAmmo;
+            if (added <= 0) return;
+            AmmoCount += added;
             OnAmmoCountChanged?.Invoke(AmmoCount);
         }
 
@@ -130,11 +143,11 @@ namespace Combat.Weapons.Conditions
         {
             AmmoCount--;
             OnAmmoCountChanged?.Invoke(AmmoCount);
-            if (reloadTime <= 0f) return;
+            if (ReloadTime <= 0f) return;
 
             if (refill == RefillMode.PerRound)
             {
-                roundDueTimes.Enqueue(regenClock + reloadTime);
+                roundDueTimes.Enqueue(regenClock + ReloadTime);
                 if (!IsReloading) StartReload();
             }
             else if (AmmoCount <= 0)

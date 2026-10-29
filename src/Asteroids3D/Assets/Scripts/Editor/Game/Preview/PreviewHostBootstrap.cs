@@ -1,4 +1,5 @@
 using Cameras;
+using Combat.Weapons.Mods;
 using Game.Travel;
 using Substrate.Sectors;
 using Substrate.Sessions;
@@ -21,6 +22,7 @@ namespace Game.Preview
         private const string SectorPrefabPath = "Assets/Prefabs/Sectors/TrialSector.prefab";
         private const string SectorConfigPath = "Assets/Settings/Game/SurvivalTrialConfig.asset";
         internal const string RecapFeelPath = "Assets/Settings/UI/RecapFeel.asset";
+        internal const string LullModsPath = "Assets/Settings/Weapons/Mods/LullMods.asset";
 
         /// <summary>False when the user kept an unsaved scene open instead.</summary>
         public static bool EnterPlayMode(PreviewSubjectKind subject = PreviewSubjectKind.RunRecap,
@@ -56,6 +58,7 @@ namespace Game.Preview
             host.recapFeel = AssetDatabase.LoadAssetAtPath<RecapFeelProfile>(RecapFeelPath);
             host.jumpFeel = AssetDatabase.LoadAssetAtPath<SectorJumpProfile>("Assets/Settings/Game/SectorJumpTuning.asset");
             host.jumpShader = Shader.Find("Astronomical/Travel/SectorJump");
+            host.lullMods = AssetDatabase.LoadAssetAtPath<WeaponModPool>(LullModsPath);
             host.jumpPlaytestProfile = new SessionProfile
             {
                 sectors = new[] { JumpEntry("CrowdedJumpDeparture"), JumpEntry("CrowdedJumpArrival") }

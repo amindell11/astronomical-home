@@ -3,6 +3,7 @@ using System.Collections;
 using System.Runtime.ExceptionServices;
 using Balance;
 using Cameras;
+using Combat.Weapons.Mods;
 using Damage;
 using Game.Audio;
 using Game.Runs;
@@ -10,11 +11,13 @@ using Game.Travel;
 using Substrate;
 using Substrate.Presentation;
 using Substrate.Sectors;
+using Substrate.Sectors.Elements.Phases;
 using Substrate.Sessions;
 using Ships.Loadout;
 using UI;
 using UI.Hangar;
 using UI.Recap;
+using UI.Screens;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
@@ -99,6 +102,11 @@ namespace Game
         [Tooltip("Fraction of max hull restored to the player on each kill the run tally counts.")]
         [SerializeField, Range(0f, 1f)] private float killHullRestore = 0.25f;
 
+        [Header("Lull pick")]
+        [Tooltip("Weapon mods offered at each sector phase lull, three at a time with time stopped. " +
+                 "Null → no lull picks.")]
+        [SerializeField] internal WeaponModPool lullMods;
+
         internal string runRecordPath;
         internal BuildIdentitySource buildIdentity;
 
@@ -108,7 +116,7 @@ namespace Game
         private bool playerDied;
         private bool sectorEnded;
         private float sectorEndTime;
-        private float? recapTimeScale;
+        private float? pausedTimeScale;
         private bool shutdownRequested;
         private bool shutdownComplete;
         private int activeSectorIndex;
@@ -205,7 +213,7 @@ namespace Game
                 rigInstance.Tally.Killed -= RefillPlayerHull;
                 rigInstance.Teardown();
             }
-            RestoreRecapClock();
+            RestoreClock();
             yield return session.Teardown();
             if (rigInstance) Destroy(rigInstance.gameObject);
             if (music) Destroy(music.gameObject);
@@ -264,9 +272,20 @@ namespace Game
                     SetSplashVisible(false);
                     if (music) music.EnterSector(session.ActiveSector);
                     var sectorStartTime = Time.time;
+                    var lulls = presentation && lullMods && rigInstance
+                        ? session.ActiveSector.Module<PhaseSpineModule>() : null;
+                    var inLull = false;
 
                     while (!playerDied && !sectorEnded && !shutdownRequested)
+                    {
+                        if (lulls)
+                        {
+                            var lull = lulls.Phase.InLull;
+                            if (lull && !inLull) yield return RunLullPick();
+                            inLull = lull;
+                        }
                         yield return null;
+                    }
                     if (shutdownRequested) yield break;
 
                     if (playerDied || index == sessionProfile.sectors.Length - 1) break;
@@ -339,14 +358,14 @@ namespace Game
                 var destinationReady = false;
                 if (!shutdownRequested)
                 {
-                    PauseRecapClock();
+                    PauseClock();
                     recap = StartCoroutine(RecapPlayback.RunScreen(new RecapOutcomeSequence(recapFeel, context), ui,
                         cancelled: () => shutdownRequested || exited,
                         ready: () => destinationReady && jump.State.LocaleBlend >= 1f,
                         onContinue: () =>
                         {
                             jump.ResumeArrival();
-                            RestoreRecapClock();
+                            RestoreClock();
                         }));
                 }
                 if (!shutdownRequested)
@@ -372,9 +391,35 @@ namespace Game
                 Destroy(jump.gameObject);
                 jump = null;
                 if (backdrop) Destroy(backdrop.gameObject);
-                RestoreRecapClock();
+                RestoreClock();
             }
             yield return null;
+        }
+
+        // The clock stops for the pick, so the lull's own seconds all run after it.
+        private IEnumerator RunLullPick()
+        {
+            var weapons = rigInstance.Player.Weapons;
+            if (!weapons) yield break;
+            var offers = WeaponModOffers.Draw(lullMods.mods, weapons.Fits, LullPickScreen.MaxOffers,
+                n => UnityEngine.Random.Range(0, n));
+            if (offers.Count == 0) yield break;
+
+            PauseClock();
+            rigInstance.SetInputEnabled(false);
+            var screen = LullPickScreen.Create(ui, offers, weapons.LandingNames);
+            try
+            {
+                while (!screen.Choice.HasValue && !shutdownRequested) yield return null;
+                if (!shutdownRequested && screen.Choice is int pick && pick != LullPickScreen.Skip)
+                    rigInstance.PickMod(offers[pick]);
+            }
+            finally
+            {
+                Destroy(screen.gameObject);
+                rigInstance.SetInputEnabled(true);
+                RestoreClock();
+            }
         }
 
         private Transform NewRoot(string name)
@@ -528,30 +573,30 @@ namespace Game
             }
             finally
             {
-                RestoreRecapClock();
+                RestoreClock();
                 presenter.Restore();
             }
         }
 
         private void SetRecapClock(bool frozen)
         {
-            if (frozen) PauseRecapClock();
-            else RestoreRecapClock();
+            if (frozen) PauseClock();
+            else RestoreClock();
         }
 
-        private void PauseRecapClock()
+        private void PauseClock()
         {
-            recapTimeScale ??= Time.timeScale;
+            pausedTimeScale ??= Time.timeScale;
             Time.timeScale = 0f;
         }
 
-        private void RestoreRecapClock()
+        private void RestoreClock()
         {
-            if (!recapTimeScale.HasValue) return;
-            Time.timeScale = recapTimeScale.Value;
-            recapTimeScale = null;
+            if (!pausedTimeScale.HasValue) return;
+            Time.timeScale = pausedTimeScale.Value;
+            pausedTimeScale = null;
         }
 
-        private void OnDestroy() => RestoreRecapClock();
+        private void OnDestroy() => RestoreClock();
     }
 }

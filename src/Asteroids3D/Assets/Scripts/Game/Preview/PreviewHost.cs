@@ -1,13 +1,13 @@
 using System;
 using System.Collections;
 using System.IO;
+using System.Runtime.ExceptionServices;
 using Cameras;
+using Combat.Weapons.Mods;
 using Game.Runs;
 using Game.Travel;
 using Ships;
-using Substrate;
 using Substrate.Results;
-using Substrate.Services.Locales;
 using Substrate.Services.Objectives;
 using Substrate.Services.Units;
 using Substrate.Sessions;
@@ -15,6 +15,7 @@ using UI.Recap;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
+using Utils.Coroutines;
 
 namespace Game.Preview
 {
@@ -26,6 +27,8 @@ namespace Game.Preview
     /// Inspection owns a session and presentation subject driven by a transport; Playtest owns a
     /// real GameHost and its isolated run records. Replacement awaits the previous mode's teardown
     /// before composing the next. Only inspection subjects may freeze this host's clock.
+    /// A throw while composing, replacing or tearing down faults the host: every later request refuses,
+    /// Shutdown rethrows instead of tearing down, and only destroying the host recovers.
     /// https://github.com/amindell11/astronomical-home/issues/1151
     /// </summary>
     [RequireComponent(typeof(UnitService))]
@@ -39,6 +42,7 @@ namespace Game.Preview
         [SerializeField] internal RecapFeelProfile recapFeel;
         [SerializeField] internal SectorJumpProfile jumpFeel;
         [SerializeField] internal Shader jumpShader;
+        [SerializeField] internal WeaponModPool lullMods;
         [SerializeField] internal PreviewSubjectKind subjectKind;
         [SerializeField] internal PreviewMode mode;
         [SerializeField] internal PreviewPlaytestSetup playtestSetup;
@@ -57,6 +61,7 @@ namespace Game.Preview
         private bool replacing;
         private bool closing;
         private bool closed;
+        private ExceptionDispatchInfo fault;
 
         public PreviewTransport Transport { get; } = new();
 
@@ -70,7 +75,8 @@ namespace Game.Preview
         public RecapFeelProfile RecapFeel => recapFeel;
         public SectorJumpProfile JumpFeel => jumpFeel;
         public bool IsReplacing => replacing || closing;
-        public bool IsReady => !composing && !IsReplacing &&
+        public Exception Fault => fault?.SourceException;
+        public bool IsReady => fault == null && !composing && !IsReplacing &&
             (mode == PreviewMode.Inspection ? Subject != null : playtest && playtest.ActiveSector);
 
         private void Awake()
@@ -83,7 +89,7 @@ namespace Game.Preview
                 throw new InvalidOperationException("The preview host requires presentation to be enabled.");
             DontDestroyOnLoad(gameObject);
             composing = true;
-            StartCoroutine(ComposeMode(mode));
+            StartCoroutine(CatchingRoutine.Run(ComposeMode(mode), Faulted));
         }
 
         private IEnumerator ComposeMode(PreviewMode selected)
@@ -129,6 +135,7 @@ namespace Game.Preview
             playtest.playerRig = playerRigPrefab;
             playtest.observerCamPrefab = observerCamPrefab;
             playtest.recapFeel = recapFeel;
+            playtest.lullMods = lullMods;
             if (playtestSetup == PreviewPlaytestSetup.CrowdedJumpGate)
             {
                 playtest.jumpFeel = jumpFeel;
@@ -186,12 +193,13 @@ namespace Game.Preview
         {
             replacing = true;
             Transport.Playing = false;
-            StartCoroutine(ReplaceMode());
+            StartCoroutine(CatchingRoutine.Run(ReplaceMode(), Faulted));
         }
 
         private IEnumerator ReplaceMode()
         {
-            while (composing) yield return null;
+            while (composing && fault == null) yield return null;
+            if (fault != null) yield break;
             yield return TeardownMode();
             composing = true;
             yield return ComposeMode(mode);
@@ -211,7 +219,7 @@ namespace Game.Preview
             Transport.Playing = false;
             Transport.Restart();
             composing = true;
-            StartCoroutine(ReplaceSubject());
+            StartCoroutine(CatchingRoutine.Run(ReplaceSubject(), Faulted));
         }
 
         private IEnumerator ReplaceSubject()
@@ -222,29 +230,17 @@ namespace Game.Preview
 
         private IEnumerator ComposeSubject()
         {
-            if (subjectKind == PreviewSubjectKind.RunRecap)
-            {
-                Subject = new RecapPreviewSubject(ui, rig, session.Units, observer, recapFeel, SetSimulationFrozen);
-                yield break;
-            }
-            if (!jumpFeel || !jumpShader)
-                throw new InvalidOperationException("The jump preview requires a feel profile and shader.");
-            if (!rig.Player.gameObject.activeInHierarchy)
-                session.Units.RespawnShip(rig.Player.Id,
-                    GamePlane.WorldPointToPlane(rig.Player.transform.position), 0f);
-            SetSimulationFrozen(true);
-            LocaleBackdropPair backdrop = null;
-            yield return session.PrepareTravelBackdrop("Locale_1", transform, pair => backdrop = pair);
-            var presentation = SectorJumpPresentation.Create(ui, rig.Player, rig.Overlay,
-                session.Units.ActiveRegistry.ActiveShips, observer, backdrop, jumpShader);
-            Subject = new SectorJumpPreviewSubject(jumpFeel, presentation,
-                rig.Player.transform.position, rig.Player.MaxSpeed, () =>
-            {
-                DestroyImmediate(presentation.gameObject);
-                DestroyImmediate(backdrop.gameObject);
-                SetSimulationFrozen(false);
-            });
+            var subject = NewSubject();
+            yield return subject.Compose(new PreviewWorld(session, rig, observer, ui, transform, SetSimulationFrozen));
+            Subject = subject;
         }
+
+        private IPreviewSubject NewSubject() => subjectKind switch
+        {
+            PreviewSubjectKind.RunRecap => new RecapPreviewSubject(recapFeel, feel => recapFeel = feel),
+            PreviewSubjectKind.SectorJump => new SectorJumpPreviewSubject(jumpFeel, jumpShader, feel => jumpFeel = feel),
+            _ => throw new ArgumentOutOfRangeException(nameof(subjectKind), subjectKind, "Unknown preview subject.")
+        };
 
         private void LateUpdate()
         {
@@ -256,13 +252,22 @@ namespace Game.Preview
         {
             if (closing)
             {
-                while (!closed) yield return null;
+                while (!closed)
+                {
+                    fault?.Throw();
+                    yield return null;
+                }
                 yield break;
             }
             closing = true;
             Transport.Playing = false;
-            while (composing || replacing) yield return null;
-            yield return TeardownMode();
+            while (composing || replacing)
+            {
+                fault?.Throw();
+                yield return null;
+            }
+            yield return CatchingRoutine.Run(TeardownMode(), Faulted);
+            fault?.Throw();
             closed = true;
         }
 
@@ -299,10 +304,14 @@ namespace Game.Preview
 
         private void DisposeSubject()
         {
-            if (subjectKind == PreviewSubjectKind.RunRecap) recapFeel = (RecapFeelProfile)Subject.Knobs;
-            else jumpFeel = (SectorJumpProfile)Subject.Knobs;
             Subject.Dispose();
             Subject = null;
+        }
+
+        private void Faulted(Exception exception)
+        {
+            fault ??= ExceptionDispatchInfo.Capture(exception);
+            Debug.LogException(exception, this);
         }
 
         private static void RequireMode(PreviewMode selected)
@@ -322,6 +331,9 @@ namespace Game.Preview
 
         private void RequireAvailable()
         {
+            if (fault != null)
+                throw new InvalidOperationException("The preview host faulted; exit play mode to recover.",
+                    fault.SourceException);
             if (IsReplacing) throw new InvalidOperationException("The preview is already replacing or shutting down.");
         }
 

@@ -5,6 +5,7 @@ using AI.Scanning;
 using Combat;
 using Combat.Targeting;
 using Combat.Weapons;
+using Combat.Weapons.Mods;
 using Movement;
 using Ships.Command;
 using Ships.Loadout;
@@ -45,6 +46,7 @@ namespace Ships.Weapons
         public event Action Fired;
 
         private WeaponContext context;
+        private WeaponModStack mods;
 
         private void Awake()
         {
@@ -75,7 +77,33 @@ namespace Ships.Weapons
             {
                 context?.Refresh();
                 Sensor = FindMountSensor();
+                HandMods();
             }
+        }
+
+        /// <summary>Puts the run's mods in force on the mounts and keeps them in force across <see cref="Reequip"/>; call again after a pick.</summary>
+        public void SetMods(WeaponModStack stack)
+        {
+            mods = stack;
+            HandMods();
+        }
+
+        private void HandMods()
+        {
+            if (Primary) Primary.SetMods(mods?.For(Primary, primaryMount) ?? WeaponMods.None);
+            if (Secondary) Secondary.SetMods(mods?.For(Secondary, secondaryMount) ?? WeaponMods.None);
+        }
+
+        public bool Fits(WeaponMod mod) => mod.Fits(Primary, primaryMount) || mod.Fits(Secondary, secondaryMount);
+
+        /// <summary>The mounted weapons <paramref name="mod"/> lands on, by display name, for the pick card.</summary>
+        public string LandingNames(WeaponMod mod)
+        {
+            var primary = mod.Fits(Primary, primaryMount) ? Primary.DisplayName : null;
+            var secondary = mod.Fits(Secondary, secondaryMount) ? Secondary.DisplayName : null;
+            if (primary != null && secondary != null)
+                return primary == secondary ? primary : $"{primary} · {secondary}";
+            return primary ?? secondary ?? string.Empty;
         }
 
         /// <summary>The only firing surface: producing an <see cref="IWeapons"/> actuator demands the live-projectile registry, so a fire path without one cannot compile. The actuator reads mounts through this controller, staying current across <see cref="Reequip"/>.</summary>
