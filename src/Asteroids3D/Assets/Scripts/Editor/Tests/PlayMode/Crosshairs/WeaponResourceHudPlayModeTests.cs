@@ -119,30 +119,42 @@ namespace Tests.PlayMode.Crosshairs
             Assert.AreSame(charge, builder.FirstReadout<IChargeReadout>());
         }
 
-        [Test]
-        public void AuthoredMissiles_UseTenSecondSharedRecharge_WhileConcussionKeepsIndependentTimers()
+        [TestCase("Missiles", 2)]
+        [TestCase("Grenades", 3)]
+        public void AuthoredLaunchers_UseTenSecondSharedRecharge(string weaponName, int capacity)
         {
-            var controller = Bind("Missiles");
+            var controller = Bind(weaponName);
             var rounds = controller.Primary.GetComponent<Rounds>();
             Assert.That(rounds.Refill, Is.EqualTo(Rounds.RefillMode.Sequential));
             Assert.That(rounds.ReloadTime, Is.EqualTo(10f));
-            rounds.ProcessFire();
-            rounds.Tick(1f);
-            rounds.ProcessFire();
-            rounds.Tick(9f);
+            Assert.That(rounds.MaxAmmo, Is.EqualTo(capacity));
+            for (var shot = 0; shot < capacity; shot++)
+            {
+                rounds.ProcessFire();
+                rounds.Tick(1f);
+            }
+            Assert.That(rounds.AmmoCount, Is.Zero);
+            Assert.That(rounds.ReloadProgress, Is.EqualTo(capacity / 10f).Within(.001f));
             Draw();
-            Assert.That(rounds.AmmoCount, Is.EqualTo(1));
-            Assert.That(ImageAt("PrimaryResources/Fill").fillAmount, Is.EqualTo(1f / 6f).Within(.001f));
-            Assert.That(ImageAt("PrimaryResources/Threshold1").fillAmount, Is.EqualTo(2f / 360f));
-            Assert.That(ImageAt("SecondaryResources/Threshold1").fillAmount, Is.EqualTo(2f / 360f));
+            Assert.That(ImageAt("PrimaryResources/Fill").fillAmount, Is.EqualTo(1f / 30f).Within(.001f));
+            for (var threshold = 1; threshold < capacity; threshold++)
+            {
+                Assert.That(ImageAt("PrimaryResources/Threshold" + threshold).fillAmount, Is.EqualTo(2f / 360f));
+                Assert.That(ImageAt("SecondaryResources/Threshold" + threshold).fillAmount, Is.EqualTo(2f / 360f));
+            }
             Assert.IsNull(hud.transform.Find("PrimaryResources/Round0"));
-            rounds.Tick(10f);
-            Draw();
-            Assert.That(rounds.AmmoCount, Is.EqualTo(2));
-            Assert.That(ImageAt("PrimaryResources/Fill").fillAmount, Is.EqualTo(1f / 3f).Within(.001f));
-            var concussion = LoadPrefab<Rounds>("Weapons/Grenades");
-            Assert.That(concussion.Refill, Is.EqualTo(Rounds.RefillMode.PerRound));
-            Assert.That(concussion.ReloadTime, Is.EqualTo(12f));
+            rounds.Tick(9.9f - capacity);
+            Assert.That(rounds.AmmoCount, Is.Zero);
+            rounds.Tick(.1f);
+            for (var loaded = 1; loaded <= capacity; loaded++)
+            {
+                if (loaded > 1) rounds.Tick(10f);
+                Draw();
+                Assert.That(rounds.AmmoCount, Is.EqualTo(loaded));
+                Assert.That(rounds.IsReloading, Is.EqualTo(loaded < capacity));
+                Assert.That(ImageAt("PrimaryResources/Fill").fillAmount,
+                    Is.EqualTo(loaded / (3f * capacity)).Within(.001f));
+            }
         }
 
         [UnityTest]
