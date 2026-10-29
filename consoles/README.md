@@ -1,6 +1,6 @@
 # Console panel concepts
 
-The owner prefers the mounted terminal from the [reference batch](reference-batch-01/README.md), then chose the surface hologram as the working base and asked to keep the ship's own colors visible. The [current owner record](https://github.com/amindell11/astronomical-home/issues/684#issuecomment-6509444335) distinguishes that choice from exact effects or incidental generator defects. The [hologram gallery](hologram-01/review.html) shows the color edit and earlier comparisons. Earlier recommendations below are historical.
+The owner prefers the mounted terminal from the [reference batch](reference-batch-01/README.md) and a surface hologram with the ship's own colors visible. The latest feedback asks for muted colors, stronger outlines and [more transparency](https://github.com/amindell11/astronomical-home/issues/684#issuecomment-6510331300), with the actual combat HUD as a reference. The [current hologram gallery](hologram-02/review.html) shows that revision and distinguishes the Unity captures from the browser CRT prototype. Exact tint and effects settings remain open. Earlier recommendations below are historical.
 
 These four image-model studies supported the first joint review for #1249. The owner has since [selected B's ink-drawn finish](https://github.com/amindell11/astronomical-home/issues/684#issuecomment-6508133052), with shape and detail still open. The two owner rulings on #684 dated 2026-10-29 remain the direction.
 

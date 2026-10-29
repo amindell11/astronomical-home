@@ -1,0 +1,87 @@
+{
+  "output": "03-game-hud-contours-pro.jpg",
+  "status": "exploration",
+  "provider": "google-gemini-api",
+  "model": "gemini-3-pro-image",
+  "interaction_id": "v1_ChdEczNqYXNMU0p1aUhxdHNQaThhTy1ROBIXRHMzamFzTFNKdWlIcXRzUGk4YU8tUTg",
+  "created_utc": "2026-10-29T22:47:34+00:00",
+  "prompt": "You are sitting in the cockpit looking out at the depths of space, with panels of electronics around you, whirring bleeps and lights, and the sleek, subtle glow of gently used screens. The style combines the analog buzz and grit of Alien and Star Wars with sleek modern science-fiction tech and a trace of Asteroids.\n\nMake a precise local material edit to Image 1. The owner wants this latest HTML-review hologram to have less vivid colors, more prominent outlines, and a subtle holographic tint, and wants the console design closer to the in-game combat HUD they like. The selected tall mounted terminal, its text and inverse title, intricate ink-drawn hardware, camera, nebula and ship geometry/pose/size/position all stay as Image 1. Copy that composition exactly.\n\nImage 2 is an actual game screenshot. Look at the pale open circular instrument near the bottom: its clean fine structural line and selective stronger arc. Apply that hierarchy to Image 1's ship. The precise outer silhouette and key panel edges are bright pale near-white light, with a small luminous halo. Internal panel contours are finer and dimmer. Retain only sparse, purposeful lines, following the same existing ship geometry. This is the actual Vanguard model reproduced in light.\n\nMake most of the ship interior transparent, with the original nebula plainly visible across its hull. Turn the orange paint into very faint desaturated peach/salmon traces and patches, and the white hull into a weak translucent pearl-blue wash. The cyan round detail becomes pale icy light. Keep enough of this original color pattern to identify the ship, but the color planes must be much fainter than the outline, about a quarter as visually strong. Even the cockpit lets the background show through. The outline and internal contours carry the volume; the colored surfaces support them. Overall the optical model has a subtle pale blue-violet tint, with almost-white line cores, clearly distinguishable from a solid painted ship.\n\nImage 3 shows the browser CRT prototype. Borrow the fine scan texture and small cool/pink color separation around selected luminous edges, while keeping Image 2's clean line hierarchy as the structure. Keep all texture inside or tightly beside the projected ship. Let the existing projector and light connection remain in their exact positions. They support the hologram with faint cool spill. Apply a little of the same crisp pale luminous quality to Image 1's existing terminal letters and thin rules, preserving every word, position, inverse tab and glyph shape. The hardware remains opaque ink-and-shade metal.\n\nInput roles: Image 1 is the sole composition and edit target. Image 2 is the actual Unity HUD reference for open linework and emphasis, not a source of labels, map, ships, bars or other content to copy. Image 3 is only the browser prototype's luminous texture reference; ignore its browser controls and layout. Image 4 is the historical hangar capture for ship identity only. Images 5 and 6 are hardware mood, Image 7 electronics and lamps, Images 8, 9 and 10 terminal mood. These document the already chosen design. Output the full edited Image 1 in 16:9, changing its projection material rather than inventing a new scene.\n",
+  "parent": {
+    "path": "inputs/latest-html-hologram.jpg",
+    "sha256": "dc92ab42d0a332aa48e4461b7728c021862261fa5837406a86383e981092325b"
+  },
+  "references": [
+    {
+      "path": "inputs/unity-grenade-hud.png",
+      "sha256": "f30482c8f5430aa103e04111539e648d0f31db87ffb0add7c99a34b2f5ba1ee7"
+    },
+    {
+      "path": "inputs/combat-hud-strong-copper.png",
+      "sha256": "f87e94e6e7f9a8dfb92a1be8bde4706bdc037125378a8f0118a7051ab7bbf079"
+    },
+    {
+      "path": "inputs/real-hangar-capture.png",
+      "sha256": "0e837bbf16a1c928586faa28c83981a530ad47dfa6aa5e3ef884e2985fe9bb84"
+    },
+    {
+      "path": "inputs/03-beige-console-schematic.png",
+      "sha256": "07be805e834956029fac9157a00dce8016653d15ff95e08224fd35e8d1e7d222"
+    },
+    {
+      "path": "inputs/09-beige-console-wireframe.png",
+      "sha256": "1059a0a67d7413255de5395e714e684824d384dc36e5de87a8212c579ffd1f28"
+    },
+    {
+      "path": "inputs/04-dark-cockpit-leds.png",
+      "sha256": "8967c780bebc7eab275530c7b9e4985d84404b54c1f9b457e039278aee331f2b"
+    },
+    {
+      "path": "inputs/01-nostromo-terminal.webp",
+      "sha256": "8c7b58aa4c94c24678e7eb508fb2338702dd29652e09687331bec794615a2a0c"
+    },
+    {
+      "path": "inputs/06-muthur-terminal-text.png",
+      "sha256": "90ecfffc4b82f0c60000e7f36dec01ebb803aabdc790fb3238c2b231ec3836f2"
+    },
+    {
+      "path": "inputs/07-hatched-progress-bars.webp",
+      "sha256": "508e9d94d8b979d2940d617e6a50e7365763180dd63c2b4777b8bad05484bee9"
+    }
+  ],
+  "params": {
+    "image_size": "2K",
+    "aspect_ratio": "16:9",
+    "thinking_level": null
+  },
+  "cost_estimate_usd": {
+    "per_image": 0.134,
+    "prices_as_of": "2026-09-22",
+    "excludes": "thinking and input tokens"
+  },
+  "usage": {
+    "input_tokens_by_modality": [
+      {
+        "modality": "text",
+        "tokens": 667
+      },
+      {
+        "modality": "image",
+        "tokens": 5600
+      }
+    ],
+    "output_tokens_by_modality": [
+      {
+        "modality": "image",
+        "tokens": 1120
+      }
+    ],
+    "total_cached_tokens": 0,
+    "total_input_tokens": 6267,
+    "total_output_tokens": 1404,
+    "total_thought_tokens": 273,
+    "total_tokens": 7944,
+    "total_tool_use_tokens": 0,
+    "initial_input_tokens": 6484
+  },
+  "model_text": ""
+}

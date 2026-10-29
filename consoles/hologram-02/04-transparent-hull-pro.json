@@ -1,0 +1,87 @@
+{
+  "output": "04-transparent-hull-pro.jpg",
+  "status": "exploration",
+  "provider": "google-gemini-api",
+  "model": "gemini-3-pro-image",
+  "interaction_id": "v1_ChdnczNqYXI3T0ZMT3RxdHNQLXJydDZBRRIXZ3MzamFyN09GTE90cXRzUC1ycnQ2QUU",
+  "created_utc": "2026-10-29T22:49:30+00:00",
+  "prompt": "You are sitting in the cockpit looking out at the depths of space, with panels of electronics around you, whirring bleeps and lights, and the sleek, subtle glow of gently used screens. The style combines the analog buzz and grit of Alien and Star Wars with sleek modern science-fiction tech and a trace of Asteroids.\n\nLocal image edit. Copy IMAGE 1 exactly, except the projected ship material. The latest owner request is: \"It should be more transparent.\" Retain the precise terminal, dark screen background, lettering, hardware, camera and composition of Image 1. Keep the ship's exact silhouette, scale, pose and position, and the existing projector location. Leave all pixels outside the ship and its light connection unchanged.\n\nMake the ship almost entirely see-through. Approximately ninety percent of every hull surface is visually transparent, so the blue-purple nebula and its stars show clearly through the wing, fuselage and cockpit with almost their normal contrast. Draw the exact existing outer silhouette in bright fine pearly white light, and the important existing panel edges in fainter white light. Most of the model consists of open space between those lines. Preserve the three-dimensional ship shape through the different brightness of near and far contours. Only very faint desaturated peach traces mark the originally orange wing panels; the small circular detail has a faint icy cyan trace. Keep those hints of the original ship paint, but make the large colored panels nearly invisible. A subtle cool blue-violet tint unifies the luminous contours. This is a ghostly colored optical model, not luminous solid glass. Keep a faint beam from the existing projector, weaker than the ship's outlines.\n\nImage 2 is an actual Unity screenshot: the open, fine pale circular instrument near its bottom is the reference for clean linework enclosing empty transparent space. Image 3 is the CRT browser prototype: borrow a little beam grain, narrow color fringing and fine scan texture only on the hologram's lines, not a bright fill across the hull. Images 4 through 10 are continuity references: 4 is the real ship identity, 5 and 6 are hardware mood, 7 electronics and lamps, 8 through 10 terminal mood. None of those images changes Image 1's composition, screen or content. Return the entire edited Image 1 in 16:9. The requested change is visibly much more transparency, bright outlines, and only faint ship-color hints.\n",
+  "parent": {
+    "path": "inputs/latest-html-hologram.jpg",
+    "sha256": "dc92ab42d0a332aa48e4461b7728c021862261fa5837406a86383e981092325b"
+  },
+  "references": [
+    {
+      "path": "inputs/unity-grenade-hud.png",
+      "sha256": "f30482c8f5430aa103e04111539e648d0f31db87ffb0add7c99a34b2f5ba1ee7"
+    },
+    {
+      "path": "inputs/combat-hud-strong-copper.png",
+      "sha256": "f87e94e6e7f9a8dfb92a1be8bde4706bdc037125378a8f0118a7051ab7bbf079"
+    },
+    {
+      "path": "inputs/real-hangar-capture.png",
+      "sha256": "0e837bbf16a1c928586faa28c83981a530ad47dfa6aa5e3ef884e2985fe9bb84"
+    },
+    {
+      "path": "inputs/03-beige-console-schematic.png",
+      "sha256": "07be805e834956029fac9157a00dce8016653d15ff95e08224fd35e8d1e7d222"
+    },
+    {
+      "path": "inputs/09-beige-console-wireframe.png",
+      "sha256": "1059a0a67d7413255de5395e714e684824d384dc36e5de87a8212c579ffd1f28"
+    },
+    {
+      "path": "inputs/04-dark-cockpit-leds.png",
+      "sha256": "8967c780bebc7eab275530c7b9e4985d84404b54c1f9b457e039278aee331f2b"
+    },
+    {
+      "path": "inputs/01-nostromo-terminal.webp",
+      "sha256": "8c7b58aa4c94c24678e7eb508fb2338702dd29652e09687331bec794615a2a0c"
+    },
+    {
+      "path": "inputs/06-muthur-terminal-text.png",
+      "sha256": "90ecfffc4b82f0c60000e7f36dec01ebb803aabdc790fb3238c2b231ec3836f2"
+    },
+    {
+      "path": "inputs/07-hatched-progress-bars.webp",
+      "sha256": "508e9d94d8b979d2940d617e6a50e7365763180dd63c2b4777b8bad05484bee9"
+    }
+  ],
+  "params": {
+    "image_size": "2K",
+    "aspect_ratio": "16:9",
+    "thinking_level": null
+  },
+  "cost_estimate_usd": {
+    "per_image": 0.134,
+    "prices_as_of": "2026-09-22",
+    "excludes": "thinking and input tokens"
+  },
+  "usage": {
+    "input_tokens_by_modality": [
+      {
+        "modality": "text",
+        "tokens": 504
+      },
+      {
+        "modality": "image",
+        "tokens": 5600
+      }
+    ],
+    "output_tokens_by_modality": [
+      {
+        "modality": "image",
+        "tokens": 1120
+      }
+    ],
+    "total_cached_tokens": 0,
+    "total_input_tokens": 6104,
+    "total_output_tokens": 1345,
+    "total_thought_tokens": 233,
+    "total_tokens": 7682,
+    "total_tool_use_tokens": 0,
+    "initial_input_tokens": 6321
+  },
+  "model_text": ""
+}
