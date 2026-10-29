@@ -5,8 +5,14 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-. (Join-Path $PSScriptRoot "lib/unity_churn.ps1")
 . (Join-Path $PSScriptRoot "lib/process_tree.ps1")
+
+function Get-TrackedChanges {
+    param([string]$RepoRoot)
+    $changes = @(& git -c core.excludesFile= -C $RepoRoot status --porcelain --untracked-files=no)
+    if ($LASTEXITCODE -ne 0) { throw "Could not inspect tracked files in $RepoRoot" }
+    return $changes
+}
 
 function Assert-CleanTrackedWorktree {
     param([string]$RepoRoot)
@@ -16,15 +22,13 @@ function Assert-CleanTrackedWorktree {
 
 function Restore-UnityTrackedChanges {
     param([string]$RepoRoot)
-    # Classify BEFORE restoring: the restore is what destroys the evidence the unexpected-changes throw reports.
-    $verdict = Test-UnityAnalyticsChurnOnly -RepoRoot $RepoRoot
-    $changes = @($verdict.changes)
+    $changes = @(Get-TrackedChanges $RepoRoot)
     if ($changes.Count -eq 0) { return }
     & git -c core.excludesFile= -C $RepoRoot restore --worktree --source=HEAD -- . | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "Could not restore tracked files changed by Unity solution sync." }
     $remaining = @(Get-TrackedChanges $RepoRoot)
     if ($remaining.Count -gt 0) { throw "Unity solution sync left tracked changes: $($remaining -join ', ')" }
-    if (-not $verdict.knownChurn) { throw "Unity solution sync changed unexpected tracked files: $($changes -join ', ')" }
+    throw "Unity solution sync changed unexpected tracked files: $($changes -join ', ')"
 }
 
 if ($MyInvocation.InvocationName -eq '.') { return }

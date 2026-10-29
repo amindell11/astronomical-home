@@ -72,7 +72,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **spine** | sector spine (`SectorSpineModule`, `PhaseSpineModule`) · reward spine (the sparse ±1 outcome term) | Qualify. |
 | **adopt** | sector adoption (the placed object IS the runtime object) · coordinator Adopt (seize an orphan process) | Qualify: "sector-adopt" / "coordinator Adopt". |
 | **authority** | facing authority (RL action semantics) · strafe/lateral authority (physics) · design authority (which doc rules) · merge authority (who may merge) | Always qualified. |
-| **churn** | command churn (facing) · anti-churn gate (diff size) · define churn (Sentis) · churn-discard (bloat) · sort-churn | Always qualified. |
+| **churn** | command churn (facing) · anti-churn gate (diff size) · define churn (Sentis, retired) · churn-discard (bloat) · sort-churn | Always qualified. |
 | **smoke** | `Smoke` NUnit category · `-ScopeType Smoke` · `run_smoke.py` / trainer smoke · smoke ONNX fixture · "50k smoke" run | Qualify. Smoke is a **ScopeType, never a Mode**. |
 | **floor** | noise floor · characterization floor · curriculum floor (Dummy) · entropy floor · radius floor · speed floor (missile evasion's closing-speed floor, `ArchetypeBrain.closingSpeedFloor`) | Always qualified. |
 | **mirror** | mirror match/league · mirrored second `EpisodeRunner` · eval-env mirror · yaml branch-tip mirror · name mirror (§2 → *Art pipeline*) · Blender Mirror modifier | Always qualified. |
@@ -1115,8 +1115,9 @@ Format: **term** — definition. *(authority)*
   primary tree so they survive slot recycling. The primary tree takes no agent
   writes now; the RL tools' staging comments predate that, and where durable RL
   artifacts live is open on #883 (an orphan branch is favoured).
-- **define churn** — Sentis re-adding its analytics define on interactive loads.
-  Fixed at two registry values; never fix it by committing the define.
+- **define churn** — *retired 2026-10-28*: Sentis flipping its analytics define
+  between batch and interactive editor loads. The committed define pair ended it
+  (`doc/agents/environment.md` → The committed Sentis defines).
 - **orphan discipline** — killed monitors leave `tail.exe`/`grep.exe` holding
   logs (WinError 32). Taskkill by PID, never by image name.
 - **FMOD stub** — `src/fmod-stub/`: the package the hosted suite compiles

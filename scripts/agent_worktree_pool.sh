@@ -1286,22 +1286,14 @@ cmd_run_tests() {
 }
 
 restore_tracked_unity_changes() {
-  local path="$1" action="$2" changes verdict diff
+  local path="$1" action="$2" changes diff
   changes="$(git -C "$path" status --porcelain --untracked-files=no 2>/dev/null)"
   [[ -n "$changes" ]] || return 0
 
-  # The analytics-churn allowlist has ONE owner (scripts/lib/unity_churn.ps1); a second copy of the
-  # regex here is exactly the drift the classifier exists to prevent. Both the verdict and the diff
-  # are captured BEFORE the restore - the restore is what destroys the evidence this error reports.
+  # Captured BEFORE the restore - the restore is what destroys the evidence this error reports.
   diff="$(git -C "$path" diff --unified=0 2>/dev/null || true)"
-  verdict="$(powershell.exe -NoProfile -ExecutionPolicy Bypass \
-    -File "$SCRIPT_DIR/lib/unity_churn.ps1" -WorktreePath "$path" 2>/dev/null || true)"
-
   git -C "$path" restore --worktree --source=HEAD -- .
 
-  case "$verdict" in
-    *'"knownChurn":true'*) return 0 ;;
-  esac
   echo "$action changed unexpected tracked files:" >&2
   printf '%s\n' "$changes" | head -n 20 >&2
   echo "--- diff, captured before the restore ---" >&2
