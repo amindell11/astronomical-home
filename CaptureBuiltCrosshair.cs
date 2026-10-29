@@ -59,7 +59,7 @@ public static class CaptureBuiltCrosshair
         InputSystem.onAfterUpdate += stageInput;
         var capture = ScriptableObject.CreateInstance<GameViewEpisodeCapture>();
         var rows = new List<object>();
-        var names = new[] { "persistent-idle", "persistent-reloading", "persistent-overheated", "persistent-1080p" };
+        var names = new[] { "charge-idle", "charge-refilling", "charge-both-refilling", "charge-overheated", "charge-1080p" };
         
         try
         {
@@ -68,12 +68,13 @@ public static class CaptureBuiltCrosshair
                 for (var index = 0; index < names.Length; index++)
                 {
                     heat.Reset();
-                    for (var i = 0; i < (index == 2 ? 20 : 6); i++) heat.ProcessFire();
-                    rounds.Reset();rounds.ProcessFire();
-                    if (index == 1) { rounds.ProcessFire();rounds.Tick(rounds.ReloadTime * .5f); }
-                    var width = index == 3 ? 1920 : 1280;
-                    var height = index == 3 ? 1080 : 720;
-                    var state = new MouseState { position = index == 3 ? new Vector2(600f, 700f) : new Vector2(880f, 430f) };
+                    for (var i = 0; i < (index == 3 ? 20 : 6); i++) heat.ProcessFire();
+                    rounds.Reset();
+                    if (index != 0) { rounds.ProcessFire(); rounds.Tick(rounds.ReloadTime * .5f); }
+                    if (index == 2) { rounds.ProcessFire(); rounds.Tick(rounds.ReloadTime * .25f); }
+                    var width = index == 4 ? 1920 : 1280;
+                    var height = index == 4 ? 1080 : 720;
+                    var state = new MouseState { position = index == 4 ? new Vector2(600f, 700f) : new Vector2(880f, 430f) };
                     stagedMouse = new MouseState { position = state.position };
                     InputSystem.QueueStateEvent(mouse, new MouseState { position = state.position });
                     InputSystem.Update();
@@ -93,6 +94,7 @@ public static class CaptureBuiltCrosshair
                         for (var frame = 0; frame < 5; frame++) { InputSystem.QueueStateEvent(mouse, state); yield return null; }
                         rows.Add(new { name = names[index], heat = heat.HeatPct, heat.Overheated,
                             rounds.AmmoCount, rounds.MaxAmmo, rounds.IsReloading, rounds.ReloadProgress,
+                            firstRound = rounds.RoundProgress(0), secondRound = rounds.RoundProgress(1),
                             keystoneFill = 1f - rig.Player.BoostCooldownPct,
                             primary = weaponHud.transform.Find("PrimaryResources").gameObject.activeSelf,
                             secondary = weaponHud.transform.Find("SecondaryResources").gameObject.activeSelf,
@@ -110,7 +112,7 @@ public static class CaptureBuiltCrosshair
                     }
                 }
             }
-            File.WriteAllText(Root + "/persistent-state.json", Newtonsoft.Json.JsonConvert.SerializeObject(rows));
+            File.WriteAllText(Root + "/charge-state.json", Newtonsoft.Json.JsonConvert.SerializeObject(rows));
         }
         finally
         {
