@@ -142,6 +142,12 @@ plan exhausted '{"status": "DONE"}'
 work exhausted --rounds 1 --verify "test -f src/never.txt"
 expect exhausted 1 GROK_WORKER=verify_failed ROUNDS=1 VERIFY=fail
 
+# --- a verify that cannot judge stops without a retry round ---
+plan verr '{"status": "DONE"}' '{"status": "DONE"}'
+work verr --verify "echo stale-snapshot; exit 3"
+expect verr 1 GROK_WORKER=verify_error ROUNDS=1 VERIFY=error
+[[ "$(calls verr)" == 1 ]] || fail "verr: relaunched after a verify that could not judge"
+
 # --- BLOCKED stops before verify ---
 plan blocked '{"status": "BLOCKED"}' '{"status": "DONE"}'
 work blocked --verify "true"

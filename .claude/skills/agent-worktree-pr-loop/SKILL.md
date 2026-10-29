@@ -228,10 +228,13 @@ implementation from the session's build brief: owner rulings, design path,
 files, tests, the verify command, and the closing `STATUS: DONE | BLOCKED` /
 `CHANGED:` / `VERIFIED:` / `NOTICED:` block. Run Grok with
 `python scripts/grok_worker.py --slot <slot> --brief <file> --verify "<cmd>"`
-(exit codes and trailers in its header), where `<cmd>` is a scoped
+(exit codes and trailers in its header), where `<cmd>` exits 0 on pass, 1 when
+the change is wrong, and anything else when it cannot judge; use a scoped
 `./scripts/agent_worktree_pool.sh run-tests <slot> …`. Hand the brief to an
 Opus subagent scoped to the slot (Agent tool, `model: "opus"`) when the slice
-needs judgment mid-build, or once Grok's `GROK_WORKER=` trailer is not `done`.
+needs judgment mid-build, or once Grok's `GROK_WORKER=` trailer is neither
+`done` nor `verify_error`. On `verify_error`, fix the check (a stale snapshot,
+say), then rerun the verify on the worker's tree before deciding anything.
 Review the worker's diff before testing. Small fixes stay inline;
 `scripts/build_delegation_guard.py` denies inline slot source edits past its
 context and line budgets.

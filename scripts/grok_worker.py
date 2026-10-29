@@ -10,21 +10,23 @@ Usage:
 
   --slot    a pool slot name (resolved through `agent_worktree_pool.sh status --porcelain`)
             or the path of a git worktree root.
-  --verify  run with Git Bash in the slot after each DONE round; exit 0 = pass.
+  --verify  run with Git Bash in the slot after each DONE round. Its exit: 0 = pass;
+            1 = the change is wrong, so Grok gets the next round with its output;
+            any other = the check could not judge, so the run stops with no retry.
   --out     where transcripts and logs go; default a fresh dir under the system temp dir.
             Never inside the slot.
 
 Exit codes:
   0  Grok reported DONE and --verify passed, or no --verify was given.
   1  Grok reported BLOCKED or gave no STATUS line, verify still failed after the last round,
-     or a round passed ROUND_TIMEOUT_S (its process tree is killed).
+     verify could not judge, or a round passed ROUND_TIMEOUT_S (its process tree is killed).
   2  usage error (no trailers), or Cursor refused every launch of a round.
 
 Machine channel: these KEY=value trailers on stdout, in this order, and nothing else there.
-  GROK_WORKER=done|blocked|verify_failed|timeout|refused
+  GROK_WORKER=done|blocked|verify_failed|verify_error|timeout|refused
   ROUNDS=<rounds launched>
   WALL_S=<whole seconds>
-  VERIFY=pass|fail|none      the last verify run; none when no verify ran
+  VERIFY=pass|fail|error|none  the last verify run (exit 0 | 1 | other); none when none ran
   OUTSIDE_READS=<count>      distinct absolute paths outside the slot in Grok's tool-call args
                              (an edit counts only its target path)
   MODEL=<model>              as the transcript's init event names it; unknown when absent
@@ -347,10 +349,14 @@ def main():
             break
         log = out / f"verify-{n}.log"
         rc, tail = run_verify(bash, slot, args.verify, log)
-        verify = "pass" if rc == 0 else "fail"
+        verify = {0: "pass", 1: "fail"}.get(rc, "error")
         say(f"round {n}: verify {verify} (exit {rc}; log: {log.as_posix()})")
         if rc == 0:
             state = "done"
+            break
+        if rc != 1:
+            state = "verify_error"
+            say(f"verify could not judge the change; output ends:\n{tail}")
             break
         state = "verify_failed"
         if n < args.rounds:
