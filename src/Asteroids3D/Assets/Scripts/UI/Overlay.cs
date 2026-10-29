@@ -17,6 +17,7 @@ namespace UI
         [Header("Minimap")]
         [SerializeField] private RectTransform minimapRect;
         [SerializeField] private AimCrosshair crosshair;
+        [SerializeField] private WeaponResourceHud weaponResources;
 
         private Canvas[] canvases;
         private CanvasGroup visibility;
@@ -74,6 +75,7 @@ namespace UI
             if (chargeMarkers)
                 chargeMarkers.SetVisible(visible);
             crosshair.gameObject.SetActive(visible && visibility.alpha > 0f);
+            weaponResources.gameObject.SetActive(visible && visibility.alpha > 0f);
         }
 
         public void SetOpacity(float opacity, float? shipOpacity = null)
@@ -81,6 +83,7 @@ namespace UI
             visibility.alpha = opacity;
             if (chargeMarkers) chargeMarkers.SetVisible(opacity > 0f);
             crosshair.gameObject.SetActive(visible && opacity > 0f);
+            weaponResources.gameObject.SetActive(visible && opacity > 0f);
             if (shipStatus) shipStatus.SetOpacity(shipOpacity ?? opacity);
         }
 
@@ -108,7 +111,8 @@ namespace UI
 
             if (readoutBuilder)
                 readoutBuilder.Build(binding.Weapons);
-            crosshair.Initialize(binding.Status, binding.Weapons, gameplayCamera);
+            crosshair.Initialize(binding.Status, gameplayCamera);
+            weaponResources.Initialize(binding.Weapons);
 
             if (chargeMarkers)
                 chargeMarkers.Initialize(binding.Weapons);

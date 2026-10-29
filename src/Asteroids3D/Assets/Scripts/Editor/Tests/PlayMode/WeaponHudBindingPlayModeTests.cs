@@ -19,7 +19,7 @@ using Combat.Weapons.Conditions;
 namespace Tests.PlayMode
 {
     /// <summary>
-    /// Checks loadout bindings across the crosshair resources, corner widgets and HUD audio.
+    /// Checks loadout bindings across weapon resources, corner widgets and HUD audio.
     /// Also validates the Ripper's authored magazine and projectile.
     /// </summary>
     [Category("Weapons")]

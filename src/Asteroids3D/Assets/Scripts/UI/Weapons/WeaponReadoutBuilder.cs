@@ -9,7 +9,7 @@ namespace UI.Weapons
 {
     /// <summary>
     /// Binds every weapon readout for HUD audio and builds corner panels for charge and lock.
-    /// Heat and ammunition are drawn beside the aim point by <see cref="AimCrosshair"/>.
+    /// Heat and ammunition surround Keystone in <see cref="WeaponResourceHud"/>.
     /// </summary>
     public sealed class WeaponReadoutBuilder : MonoBehaviour
     {

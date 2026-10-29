@@ -120,9 +120,14 @@ namespace Tests.PlayMode.PlayerState
             var mainHud = hud.gameObject.AddComponent<global::UI.Overlay>();
             var crosshair = Object.Instantiate(TestAssets.Load<AimCrosshair>(
                 "Assets/Prefabs/UI/Crosshair/AimCrosshair.prefab"), hud.transform);
-            crosshair.Initialize(ship, null, camera);
+            crosshair.Initialize(ship, camera);
+            var weaponHud = Object.Instantiate(TestAssets.Load<WeaponResourceHud>(
+                "Assets/Prefabs/UI/Crosshair/WeaponKeystoneHud.prefab"), hud.transform);
+            weaponHud.Initialize(null);
             typeof(global::UI.Overlay).GetField("crosshair", BindingFlags.Instance | BindingFlags.NonPublic)
                 .SetValue(mainHud, crosshair);
+            typeof(global::UI.Overlay).GetField("weaponResources", BindingFlags.Instance | BindingFlags.NonPublic)
+                .SetValue(mainHud, weaponHud);
             mainHud.ConfigureCameras(camera, camera);
             mainHud.BindShips(ships, camera);
             var overlay = root.GetComponentInChildren<ShipStatusOverlay>();
@@ -165,9 +170,11 @@ namespace Tests.PlayMode.PlayerState
             mainHud.SetOpacity(1f);
             Assert.AreEqual(1f, overlay.GetComponent<CanvasGroup>().alpha);
             Assert.IsTrue(crosshair.gameObject.activeSelf);
+            Assert.IsTrue(weaponHud.gameObject.activeSelf);
             mainHud.SetVisible(false);
             mainHud.SetOpacity(0f, 1f);
             Assert.IsFalse(crosshair.gameObject.activeSelf);
+            Assert.IsFalse(weaponHud.gameObject.activeSelf);
             Assert.IsTrue(overlay.GetComponent<Canvas>().enabled);
             Assert.AreEqual(1f, overlay.GetComponent<CanvasGroup>().alpha);
             mainHud.SetOpacity(0f, .35f);
