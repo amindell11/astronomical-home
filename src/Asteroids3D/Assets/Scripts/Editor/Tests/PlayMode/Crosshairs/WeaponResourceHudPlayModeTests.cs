@@ -2,6 +2,7 @@ using System.Collections;
 using Combat.Weapons;
 using Combat.Weapons.Conditions;
 using Combat.Weapons.Mods;
+using Loot;
 using NUnit.Framework;
 using Ships.Weapons;
 using Tests.PlayMode.Common;
@@ -169,7 +170,7 @@ namespace Tests.PlayMode.Crosshairs
             try
             {
                 mod.Configure("Extra missile", WeaponModField.Magazine, 7f);
-                var stack = new WeaponModStack();
+                var stack = new LullModStack();
                 stack.Add(mod);
                 controller.SetMods(stack);
                 Draw();
