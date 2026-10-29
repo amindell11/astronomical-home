@@ -1,0 +1,44 @@
+{
+  "status": "unapproved concept exploration",
+  "issue": 1249,
+  "decisionIssue": 684,
+  "review": "first joint panel and combat strategy review",
+  "generatedWith": "Codex built-in imagegen",
+  "generationDate": "2026-10-29",
+  "inputCapture": {
+    "file": "source/hangar-vanguard.png",
+    "sourceCommit": "9c72e3e6ee0f745291dc692a726632adf261bde5",
+    "sourcePath": "hangar-stars/Vanguard_Preview.png",
+    "sha256": "0e837bbf16a1c928586faa28c83981a530ad47dfa6aa5e3ef884e2985fe9bb84"
+  },
+  "recommendation": "03-blended",
+  "ownerDecision": null,
+  "capturesArePixelExact": false,
+  "limits": "Image-model style studies based on a real game capture. Typography, size, geometry, colors, modular production artwork and motion are not approved.",
+  "concepts": [
+    {
+      "file": "concepts/01-physical.png",
+      "sha256": "c8edfa0470778370dbdfaf22cfebb883c3188b6c87c6f3a2d4588e79e45503ab",
+      "bytes": 1927020,
+      "prompt": "prompts/01-physical.txt"
+    },
+    {
+      "file": "concepts/02-ink-drawn.png",
+      "sha256": "029a36ae58a085e66e53fcd029c02896708a405adcc375447d7ca18bca69b800",
+      "bytes": 1900232,
+      "prompt": "prompts/02-ink-drawn.txt"
+    },
+    {
+      "file": "concepts/03-blended.png",
+      "sha256": "60e509737da418a20abd68662a1d0476e0c88a29327eb4f5a6bfbaff5f73cc3e",
+      "bytes": 1868693,
+      "prompt": "prompts/03-blended.txt"
+    },
+    {
+      "file": "concepts/04-unboxed.png",
+      "sha256": "70faebdfe159cf1e29c66e94c556dbd6fdb64c36d8d10406d588dc419a44ba8c",
+      "bytes": 1647272,
+      "prompt": "prompts/04-unboxed.txt"
+    }
+  ]
+}
