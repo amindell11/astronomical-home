@@ -115,6 +115,7 @@ try {
     $pass = Invoke-CheckScript $project $state
     Assert-True ($pass.exitCode -eq 0 -and $pass.stdout -eq "pass") "the fresh snapshot compiles: exit 0 (got $($pass.exitCode) '$($pass.stdout)'; $($pass.stderr))"
     Assert-True (Test-Path -LiteralPath (Join-Path $state "bin\Main.dll")) "build output lands under the state dir"
+    Assert-True (-not (Test-Path -LiteralPath (Join-Path $state "bin\netstandard.dll"))) "references are not copied into the shared bin that parallel projects read"
 
     $broken = Join-Path $project "Assets\Scripts\Broken.cs"
     Write-Text $broken "namespace Game`n{`n    public static class Broken { public static int Value => missingThing; }`n}`n"
