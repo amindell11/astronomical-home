@@ -103,7 +103,7 @@ git -C <slot-path> log --oneline origin/main..HEAD
 | `STATUS=infra_error total=0` | Compile failure — no tests ran | The runner prints the `error CS…` lines inline; fix and re-run. After a main-fold, suspect a dropped source file. |
 | runner: `parameter name '' is ambiguous` | A stray `--` reached `run-tests` | Drop it — `run-tests` takes args directly. |
 | runner: `Cannot validate argument on parameter 'Mode' … "Smoke"` | `-Mode Smoke` | Smoke is a `-ScopeType`; use `-Mode EditMode -ScopeType Smoke`. |
-| `REFUSING to prepare … uncommitted change(s)` on a lone `ProjectSettings.asset` / editor noise | Not real work | `git -C <slot> checkout -- <file>`, then re-`prepare` — don't push+`--force`. |
+| `REFUSING to prepare … uncommitted change(s)` on a lone `ProjectSettings.asset` / editor noise | Not real work — unless the diff is the Standalone define line (`doc/agents/environment.md` → The committed Sentis defines) | `git -C <slot> checkout -- <file>`, then re-`prepare` — don't push+`--force`. |
 | `revise`/`prepare` trips on `Assets/InitTestScene*.unity` | Scaffold from a killed run | `rm` the `InitTestScene*.unity*` and re-run — never real work. |
 | merge: `CONFLICT (content) … .unity`/`.prefab` | Gate merged main; Unity YAML doesn't auto-merge | Resolve in the slot, `revise` (re-test+push), re-`merge`. |
 | merge: `base moved during the merge gate` | Main moved from outside the merge turn: a push from another clone, or one that skipped `lock merge-turn` | Re-run `merge <slot>`. |

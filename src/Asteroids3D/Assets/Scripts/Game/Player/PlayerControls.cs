@@ -441,6 +441,15 @@ namespace Game.Player
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Zoom"",
+                    ""type"": ""Value"",
+                    ""id"": ""9732ab76-5df1-4058-9c8b-8c349018aed7"",
+                    ""expectedControlType"": ""Axis"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
                 }
             ],
             ""bindings"": [
@@ -452,6 +461,17 @@ namespace Game.Player
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""ToggleLock"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""0798f9a9-0be1-4d82-a129-7484d188364c"",
+                    ""path"": ""<Mouse>/scroll/y"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Zoom"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -475,6 +495,7 @@ namespace Game.Player
             // Camera
             m_Camera = asset.FindActionMap("Camera", throwIfNotFound: true);
             m_Camera_ToggleLock = m_Camera.FindAction("ToggleLock", throwIfNotFound: true);
+            m_Camera_Zoom = m_Camera.FindAction("Zoom", throwIfNotFound: true);
         }
 
         ~@PlayerControls()
@@ -752,6 +773,7 @@ namespace Game.Player
         private readonly InputActionMap m_Camera;
         private List<ICameraActions> m_CameraActionsCallbackInterfaces = new List<ICameraActions>();
         private readonly InputAction m_Camera_ToggleLock;
+        private readonly InputAction m_Camera_Zoom;
         /// <summary>
         /// Provides access to input actions defined in input action map "Camera".
         /// </summary>
@@ -767,6 +789,10 @@ namespace Game.Player
             /// Provides access to the underlying input action "Camera/ToggleLock".
             /// </summary>
             public InputAction @ToggleLock => m_Wrapper.m_Camera_ToggleLock;
+            /// <summary>
+            /// Provides access to the underlying input action "Camera/Zoom".
+            /// </summary>
+            public InputAction @Zoom => m_Wrapper.m_Camera_Zoom;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -796,6 +822,9 @@ namespace Game.Player
                 @ToggleLock.started += instance.OnToggleLock;
                 @ToggleLock.performed += instance.OnToggleLock;
                 @ToggleLock.canceled += instance.OnToggleLock;
+                @Zoom.started += instance.OnZoom;
+                @Zoom.performed += instance.OnZoom;
+                @Zoom.canceled += instance.OnZoom;
             }
 
             /// <summary>
@@ -810,6 +839,9 @@ namespace Game.Player
                 @ToggleLock.started -= instance.OnToggleLock;
                 @ToggleLock.performed -= instance.OnToggleLock;
                 @ToggleLock.canceled -= instance.OnToggleLock;
+                @Zoom.started -= instance.OnZoom;
+                @Zoom.performed -= instance.OnZoom;
+                @Zoom.canceled -= instance.OnZoom;
             }
 
             /// <summary>
@@ -935,6 +967,13 @@ namespace Game.Player
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnToggleLock(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Zoom" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnZoom(InputAction.CallbackContext context);
         }
     }
 }
