@@ -14,6 +14,9 @@ namespace Game.Player
         // and PlayerCommander derives the press edge for semi-auto weapons.
         public bool PrimaryFire => controls.Flight.PrimaryFire.IsPressed();
         public bool SecondaryFire => controls.Flight.SecondaryFire.IsPressed();
+        // Shift+R also matches the bare R binding; the shifted reload claims the press.
+        public bool PrimaryReload => controls.Flight.PrimaryReload.WasPressedThisFrame() && !SecondaryReload;
+        public bool SecondaryReload => controls.Flight.SecondaryReload.WasPressedThisFrame();
         public bool WantsToRotate => !controls.Flight.HoldHeading.IsPressed();
         // Raised inside the input update, so a jump commits before the next physics step.
         public event Action JumpPressed;

@@ -130,6 +130,15 @@ namespace Combat.Weapons
                 Fire(cmd.targetPoint, projectiles);
         }
 
+        public void Reload()
+        {
+            foreach (var condition in conditions)
+            {
+                var rounds = condition as Rounds;
+                if (rounds) rounds.Reload();
+            }
+        }
+
         public virtual bool CanFire()
         {
             return conditions.All(c => c.CanFire());

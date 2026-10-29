@@ -79,6 +79,25 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void R_ReloadsPrimaryOnly()
+        {
+            Press(keyboard.rKey);
+
+            Assert.IsTrue(reader.PrimaryReload);
+            Assert.IsFalse(reader.SecondaryReload);
+        }
+
+        [Test]
+        public void ShiftR_ReloadsSecondaryOnly()
+        {
+            Press(keyboard.leftShiftKey);
+            Press(keyboard.rKey);
+
+            Assert.IsTrue(reader.SecondaryReload);
+            Assert.IsFalse(reader.PrimaryReload, "the shifted press does not also reload the primary");
+        }
+
+        [Test]
         public void MousePosition_ReachesProjector()
         {
             reader.SetScreenToGamePlane(screen => screen * 2f);

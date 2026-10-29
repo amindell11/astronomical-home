@@ -157,6 +157,16 @@ namespace Combat.Weapons.Conditions
             }
         }
 
+        /// <summary>Dumps the rounds left and reloads the magazine; per-round refill has no magazine to reload.</summary>
+        public void Reload()
+        {
+            if (refill != RefillMode.Magazine || ReloadTime <= 0f || IsReloading || AmmoCount >= MaxAmmo) return;
+            AmmoCount = 0;
+            OnAmmoCountChanged?.Invoke(AmmoCount);
+            reloadElapsed = 0f;
+            StartReload();
+        }
+
         private void StartReload()
         {
             IsReloading = true;

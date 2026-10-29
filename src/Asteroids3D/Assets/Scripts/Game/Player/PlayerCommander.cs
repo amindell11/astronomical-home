@@ -53,6 +53,8 @@ namespace Game.Player
         private bool secondaryHeld;
         private bool prevPrimaryHeld;
         private bool prevSecondaryHeld;
+        private bool primaryReload;
+        private bool secondaryReload;
         private bool boostInput;
         private bool wantsRotate;
         private Vector3 cursorPoint;
@@ -69,6 +71,8 @@ namespace Game.Player
             boostInput |= playerInput.BoostDown;
             primaryHeld = playerInput.PrimaryFire;
             secondaryHeld = playerInput.SecondaryFire;
+            primaryReload |= playerInput.PrimaryReload;
+            secondaryReload |= playerInput.SecondaryReload;
             wantsRotate = playerInput.WantsToRotate;
             if (hasScreenProjector)
                 cursorPoint = playerInput.GetMouseWorldPosition();
@@ -103,12 +107,14 @@ namespace Game.Player
             wantsRotate = false;
             primaryHeld = false;
             secondaryHeld = false;
+            primaryReload = false;
+            secondaryReload = false;
 
             pilot.Drive(default);
             if (weapons != null)
             {
-                FireSlot(WeaponSlot.Primary, false, ref prevPrimaryHeld);
-                FireSlot(WeaponSlot.Secondary, false, ref prevSecondaryHeld);
+                FireSlot(WeaponSlot.Primary, false, ref prevPrimaryHeld, ref primaryReload);
+                FireSlot(WeaponSlot.Secondary, false, ref prevSecondaryHeld, ref secondaryReload);
             }
         }
 
@@ -129,17 +135,17 @@ namespace Game.Player
 
             if (weapons != null)
             {
-                FireSlot(WeaponSlot.Primary, primaryHeld, ref prevPrimaryHeld);
-                FireSlot(WeaponSlot.Secondary, secondaryHeld, ref prevSecondaryHeld);
+                FireSlot(WeaponSlot.Primary, primaryHeld, ref prevPrimaryHeld, ref primaryReload);
+                FireSlot(WeaponSlot.Secondary, secondaryHeld, ref prevSecondaryHeld, ref secondaryReload);
             }
         }
 
-        // Pushes raw trigger facts — held state and the press edge — every step; the weapon
-        // interprets its own firing semantics (auto/semi/charge) in HandleTrigger.
-        private void FireSlot(WeaponSlot slot, bool held, ref bool prevHeld)
+        // Raw input facts every step; the weapon interprets its own firing semantics in HandleTrigger.
+        private void FireSlot(WeaponSlot slot, bool held, ref bool prevHeld, ref bool reload)
         {
-            var cmd = new WeaponCommand { held = held, pressed = held && !prevHeld, targetPoint = TargetPoint() };
+            var cmd = new WeaponCommand { held = held, pressed = held && !prevHeld, reload = reload, targetPoint = TargetPoint() };
             prevHeld = held;
+            reload = false;
             weapons.Fire(slot, cmd);
         }
 

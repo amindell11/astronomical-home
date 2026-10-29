@@ -25,8 +25,8 @@ namespace Tests.PlayMode
     /// <summary>
     /// Weapons own their trigger semantics: full-auto fires on held, semi-auto on pressed,
     /// charge weapons accumulate while held and fire on release or at full charge, and a charging
-    /// railgun cuts its ship's engines. The AI gunner aims each slot with that slot's ballistics —
-    /// hitscan slots get no intercept lead.
+    /// railgun cuts its ship's engines. A reload command reloads only its own slot. The AI gunner
+    /// aims each slot with that slot's ballistics — hitscan slots get no intercept lead.
     /// </summary>
     [Category("Weapons")]
     public class WeaponTriggerSemanticsPlayModeTests : PlayModeWorldFixture
@@ -279,6 +279,27 @@ namespace Tests.PlayMode
             yield return new WaitForFixedUpdate();
 
             Assert.Greater(ship.Rigidbody.linearVelocity.magnitude, 1e-3f, "The engines answer once the charge drops.");
+        }
+
+        [Test]
+        public void ReloadCommand_ReloadsOnlyItsSlot()
+        {
+            var ship = Object.Instantiate(TestAssets.LoadCrimsonPrefab(), Vector3.zero, GamePlane.Rotation);
+            spawned.Add(ship.gameObject);
+            ship.Initialize(0, 0, Projectiles);
+            var rippers = TestAssets.Load<Rippers>(RippersPrefabPath);
+            ship.Reequip(ship.Shield, rippers, rippers);
+            var primary = ((Rippers)ship.Weapons.Primary).Rounds;
+            var secondary = ((Rippers)ship.Weapons.Secondary).Rounds;
+            primary.ProcessFire();
+            secondary.ProcessFire();
+
+            ship.Weapons.Arm(Projectiles).Fire(WeaponSlot.Secondary, new WeaponCommand { reload = true });
+
+            Assert.IsTrue(secondary.IsReloading, "The secondary ripper reloads.");
+            Assert.AreEqual(0, secondary.AmmoCount);
+            Assert.IsFalse(primary.IsReloading, "The primary ripper is untouched.");
+            Assert.AreEqual(primary.MaxAmmo - 1, primary.AmmoCount);
         }
 
         private sealed class FakeWeaponContext : IWeaponContext
