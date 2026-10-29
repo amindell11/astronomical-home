@@ -1,4 +1,4 @@
-# covers: scripts/unity_compile_check.ps1
+# covers: scripts/unity_compile_check.ps1 scripts/unity_access_client.ps1
 # A fake Unity project with old-style project files compiles under the real dotnet build. Save-Snapshot
 # stands in for the Unity boot. The check compiles the .cs files on disk (a nested asmdef's folder stays
 # out of its parent; the generated Compile list is ignored), reports errors in Unity's form, writes nothing
@@ -96,7 +96,7 @@ try {
     Write-Text (Join-Path $project "Assets\Scripts\Lib\Lib.asmdef") '{ "name": "Lib" }'
     Write-Text (Join-Path $project "Assets\Scripts\Main.cs") "namespace Game { public static class Entry { public static string Run() => Lib.Greeter.Hi(); } }`n"
     Write-Text (Join-Path $project "Assets\Scripts\Lib\Greeter.cs") "namespace Lib { public static class Greeter { public static string Hi() => `"hi`"; } }`n"
-    # Compiled into Main as well, this file would hit the #error: the nested-folder exclusion is what keeps it out.
+    # The #error fires if Main compiles this file, so a pass proves the nested-folder exclusion.
     Write-Text (Join-Path $project "Assets\Scripts\Lib\OnlyInLib.cs") "#if !LIB_ONLY`n#error compiled outside Lib`n#endif`nnamespace Lib { internal static class OnlyInLib { } }`n"
     foreach ($file in $Script:FingerprintFiles) { Write-Text (Join-Path $project $file) "$file`n" }
     Write-OldStyleProject (Join-Path $project "Main.csproj") "Main" "DEBUG" @($netstandard) @("Lib")

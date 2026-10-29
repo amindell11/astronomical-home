@@ -6,8 +6,8 @@
 .DESCRIPTION
     unity_compile_check.ps1 -ProjectPath <unity-project> -StateDir <dir> [-Refresh]
 
-    Builds a snapshot of the project's old-style (Rider package) .csproj files, kept under
-    <StateDir>\snapshot, after swapping each project's Compile items for a glob of its asmdef
+    Compiles a snapshot of the project's old-style (Rider package) .csproj files, kept under
+    <StateDir>\snapshot, with each project's Compile items swapped for a glob of its asmdef
     folder minus nested asmdef folders, so new and deleted files count. Build outputs go under
     <StateDir>. Only -Refresh writes under -ProjectPath.
 
@@ -73,13 +73,7 @@ function Get-InputFingerprint {
 
 function Get-ChangedInputs {
     param([string[]]$Recorded, [string[]]$Current)
-    $old = @{}
-    foreach ($line in $Recorded) { $hash, $path = $line -split ' ', 2; $old[$path] = $hash }
-    $new = @{}
-    foreach ($line in $Current) { $hash, $path = $line -split ' ', 2; $new[$path] = $hash }
-    foreach ($path in @($old.Keys) + @($new.Keys) | Sort-Object -Unique) {
-        if ($old[$path] -ne $new[$path]) { $path }
-    }
+    Compare-Object $Recorded $Current -CaseSensitive | ForEach-Object { ($_.InputObject -split ' ', 2)[1] } | Sort-Object -Unique
 }
 
 function Get-MissingReferences {
@@ -144,13 +138,13 @@ function Write-BuildFiles {
         "    <Compile Include=`"$include`" Exclude=`"$exclude`" />`n" +
         "  </ItemGroup>"
     }
-    # Copy-local references would land in the shared bin while parallel projects read it.
+    # Parallel projects share bin and obj: nothing may write a file another project reads or writes.
     $noCopy = "  <ItemGroup>`n    <Reference Update=`"@(Reference)`" Private=`"false`" />`n  </ItemGroup>"
     $targets = Join-Path $StateDir "compile-check.targets"
     Write-FileIfChanged $targets "<Project>`n$noCopy`n$($groups -join "`n")`n</Project>`n"
 
     $projects = [System.Security.SecurityElement]::Escape(($Asmdefs | ForEach-Object { Join-Path $SnapshotDir "$($_.name).csproj" }) -join ';')
-    $properties = [System.Security.SecurityElement]::Escape("CustomAfterMicrosoftCommonTargets=$targets;OutputPath=$StateDir\bin\;BaseIntermediateOutputPath=$StateDir\obj\;IntermediateOutputPath=$StateDir\obj\")
+    $properties = [System.Security.SecurityElement]::Escape("CustomAfterMicrosoftCommonTargets=$targets;OutputPath=$StateDir\bin\;BaseIntermediateOutputPath=$StateDir\obj\;IntermediateOutputPath=$StateDir\obj\;GenerateTargetFrameworkAttribute=false")
     $proj = Join-Path $StateDir "compile-check.proj"
     Write-FileIfChanged $proj @"
 <Project DefaultTargets="Build">

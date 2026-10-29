@@ -87,8 +87,8 @@ To avoid repeated Unity re-import/build cost in fresh worktrees, use the persist
 ./scripts/agent_worktree_pool.sh compile-check agent-1
 ```
 
-- Errors print the way Unity prints them (`Assets/<path>(<line>,<col>): error CS<n>: <message>`). The stdout trailer is `COMPILE_CHECK=pass|fail|error|stale`.
-- `stale` means the snapshot no longer matches the slot: no snapshot yet, an added or edited asmdef, a package or ProjectSettings change, or a wiped `Library`. `run-tests` then boots Unity as it always did, and `--refresh` brings the check back.
+- Errors print the way Unity prints them (`Assets/<path>(<line>,<col>): error CS<n>: <message>`). The stdout trailer is `COMPILE_CHECK=<pass|fail|error|stale> SECONDS=<n>`.
+- `stale` means the snapshot no longer matches the slot: no snapshot yet, an added or edited asmdef, a package or ProjectSettings change, or a wiped `Library`. `run-tests` still boots Unity, and `--refresh` brings the check back.
 - `--refresh` needs a tree that compiles (Unity's batch boot aborts on compile errors) and has no tracked changes (commit first).
 - It proves the C# compiles, nothing more: no tests, no ReSharper, and no Unity-only build steps. Unity compiles with its own Roslyn; the project files pin the same `LangVersion`.
 

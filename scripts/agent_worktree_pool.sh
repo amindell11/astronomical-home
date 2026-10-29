@@ -20,7 +20,7 @@ mkdir -p "$LOCK_ROOT"
 #   Acquire / release / prepare
 #   Hold / resume             held_snapshot, cmd_hold, cmd_resume
 #   Unity test runs           cmd_run_tests, restore_tracked_unity_changes, cmd_run_tests_clean
-#   Compile check             compile_check (the dotnet build, no Unity), compile_check_preflight (run-tests')
+#   Compile check             compile_check, cmd_compile_check, compile_check_preflight
 #   ReSharper ratchet         fingerprint + proof, cmd_run_resharper
 #   Script tests              cmd_run_script_tests, landing_diff_touches
 #   PR opening                flag grammar, gh helpers, push_and_open_pr, cmd_create_pr, cmd_submit
@@ -151,12 +151,12 @@ Commands:
       results/unity-tests-agent
       Runs compile-check first and prints its trailer. On fail it exits 2
       before booting Unity, as the runner's own compile failure would; on
-      any other verdict the tests run as before.
+      any other verdict the tests run.
 
   compile-check <slot> [--refresh]
       Compile every Unity assembly in the slot from the .cs files on disk
       with dotnet build, without booting Unity
-      (scripts/unity_compile_check.ps1). It builds the worktree pool's
+      (scripts/unity_compile_check.ps1). It compiles the worktree pool's
       snapshot of the slot's old-style (Rider package) project files,
       kept with the build outputs under compile-check/<slot>/ beside the
       lock root, so a check never writes into the slot and runs safely
@@ -1364,7 +1364,8 @@ compile_check() {
     echo "COMPILE_CHECK=error SECONDS=0"
     return 2
   fi
-  verdict="$(powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$path/scripts/unity_compile_check.ps1"     -ProjectPath "$path/src/Asteroids3D" -StateDir "$COMPILE_CHECK_ROOT/$slot" "$@")" || rc=$?
+  verdict="$(powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$path/scripts/unity_compile_check.ps1" \
+    -ProjectPath "$path/src/Asteroids3D" -StateDir "$COMPILE_CHECK_ROOT/$slot" "$@")" || rc=$?
   echo "COMPILE_CHECK=${verdict:-error} SECONDS=$((SECONDS - started))"
   return "$rc"
 }
@@ -1379,7 +1380,7 @@ cmd_compile_check() {
   esac
 }
 
-# Only a compile failure stops run-tests: the check is a proxy, and Unity stays the authority on every other verdict.
+# Only fail stops run-tests: the check is a proxy, so Unity decides on every other verdict.
 compile_check_preflight() {
   local rc=0
   compile_check "$1" || rc=$?

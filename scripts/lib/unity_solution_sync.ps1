@@ -12,7 +12,6 @@
     RunBatch under the Unity access coordinator, leased per call. It writes unity-sync.json and
     unity-sync.log under OutputRoot, and throws unless the child exited 0. The child refuses a
     worktree with tracked changes, because it restores any tracked file Unity touches.
-    Callers: resharper_ratchet.ps1, unity_compile_check.ps1.
 #>
 
 function Sync-UnitySolution {
