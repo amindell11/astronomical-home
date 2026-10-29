@@ -1,0 +1,152 @@
+{
+  "initialEffectsVisible": true,
+  "fontCount": 6,
+  "additive": {
+    "bright": {
+      "darkenedChannels": 0,
+      "changedChannels": 123249,
+      "max": 223,
+      "total": 4705728
+    },
+    "copper": {
+      "darkenedChannels": 0,
+      "changedChannels": 126645,
+      "max": 250,
+      "total": 4697588
+    },
+    "blueCombat": {
+      "darkenedChannels": 0,
+      "changedChannels": 131562,
+      "max": 252,
+      "total": 5100940
+    }
+  },
+  "effectResponse": {
+    "glow": {
+      "changedChannels": 108438,
+      "max": 165,
+      "total": 2115507
+    },
+    "aberration": {
+      "changedChannels": 28078,
+      "max": 194,
+      "total": 807023
+    },
+    "curvature": {
+      "changedChannels": 171253,
+      "max": 224,
+      "total": 5405115
+    },
+    "beamJitter": {
+      "changedChannels": 91918,
+      "max": 200,
+      "total": 987694
+    },
+    "scanlines": {
+      "changedChannels": 29576,
+      "max": 76,
+      "total": 335800
+    },
+    "flicker": {
+      "changedChannels": 85113,
+      "max": 31,
+      "total": 401961
+    },
+    "warmth": {
+      "changedChannels": 52137,
+      "max": 34,
+      "total": 166967
+    },
+    "wear": {
+      "changedChannels": 32713,
+      "max": 93,
+      "total": 441840
+    },
+    "glassDistortion": {
+      "changedChannels": 117088,
+      "max": 224,
+      "total": 2104746
+    },
+    "damageShudder": {
+      "changedChannels": 131347,
+      "max": 217,
+      "total": 3047375
+    },
+    "transitionGlitch": {
+      "changedChannels": 32865,
+      "max": 208,
+      "total": 755396
+    },
+    "afterglow": {
+      "changedChannels": 44552,
+      "max": 223,
+      "total": 2532652
+    }
+  },
+  "offSwitchIgnoresPersonality": {
+    "changedChannels": 0,
+    "max": 0,
+    "total": 0
+  },
+  "dimResponse": {
+    "changedChannels": 1704,
+    "max": 154,
+    "total": 146918
+  },
+  "export": {
+    "schemaVersion": 1,
+    "status": "review-draft",
+    "context": "combat",
+    "preset": "custom",
+    "personalityEnabled": true,
+    "personality": {
+      "glow": 1.35,
+      "aberration": 9.5,
+      "curvature": 0.65,
+      "beamJitter": 2.2,
+      "afterglow": 0.65,
+      "scanlines": 0.72,
+      "flicker": 0.8,
+      "warmth": 0.6,
+      "wear": 0.7,
+      "glassDistortion": 0.7,
+      "damageShudder": 12,
+      "transitionGlitch": 0.75
+    },
+    "colors": {
+      "ink": "#f4ebd9",
+      "shield": "#70dff5",
+      "hull": "#96e59b",
+      "threat": "#ff7b72",
+      "friendly": "#43d7c4",
+      "objective": "#dba6ff",
+      "neutral": "#a9aeb4",
+      "backing": "#171b22",
+      "dimOpacity": 0.55
+    },
+    "typography": {
+      "functional": "roboto",
+      "heading": "segmented",
+      "segmented": false
+    },
+    "capture": "bright"
+  },
+  "downloadMatches": true,
+  "colorPage": {
+    "open": true,
+    "swatches": 8
+  },
+  "colorExport": "#ffcc00",
+  "responsive": {
+    "375": {
+      "width": 375,
+      "scroll": 375
+    },
+    "768": {
+      "width": 768,
+      "scroll": 768
+    }
+  },
+  "errors": [],
+  "externalRequests": []
+}

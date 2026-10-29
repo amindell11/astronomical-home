@@ -1,0 +1,7 @@
+@font-face{font-family:'Plex Sans';src:url('fonts/plex-sans.ttf') format('truetype');font-weight:100 700;font-style:normal}
+@font-face{font-family:'Plex Mono';src:url('fonts/plex-mono.ttf') format('truetype');font-weight:400;font-style:normal}
+@font-face{font-family:'Roboto Sans';src:url('fonts/roboto-sans.ttf') format('truetype');font-weight:100 900;font-style:normal}
+@font-face{font-family:'Roboto Mono';src:url('fonts/roboto-mono.ttf') format('truetype');font-weight:100 700;font-style:normal}
+@font-face{font-family:'Michroma';src:url('fonts/michroma.ttf') format('truetype');font-weight:400;font-style:normal}
+@font-face{font-family:'DSEG14';src:url('fonts/dseg14.ttf') format('truetype');font-weight:400;font-style:normal}
+:root{--ui-sans:'Plex Sans';--ui-mono:'Plex Mono';--ui-heading:'Michroma'}

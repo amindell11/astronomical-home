@@ -1,0 +1,13 @@
+{
+  "status":"Unselected review candidates",
+  "functional":[
+    {"id":"plex","label":"IBM Plex","sans":"Plex Sans","mono":"Plex Mono","source":"https://github.com/IBM/plex"},
+    {"id":"roboto","label":"Roboto","sans":"Roboto Sans","mono":"Roboto Mono","source":"https://github.com/google/fonts"}
+  ],
+  "headings":[
+    {"id":"wide","label":"Wide display","family":"Michroma","source":"https://github.com/google/fonts/tree/main/ofl/michroma"},
+    {"id":"terminal","label":"Terminal","family":"Plex Mono","source":"https://github.com/IBM/plex"},
+    {"id":"segmented","label":"Segmented","family":"DSEG14","source":"https://github.com/keshikan/DSEG"}
+  ],
+  "weights":[400,600]
+}
