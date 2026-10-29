@@ -165,15 +165,11 @@ function ConvertTo-UnityErrorLines {
     param([string[]]$BuildOutput, [string]$ProjectPath)
     $pattern = '^\s*(?<file>.+?)\((?<line>\d+),(?<col>\d+)\): error (?<code>CS\d+): (?<message>.*?)(?: \[[^\]]+\])?\s*$'
     $prefix = $ProjectPath + '\'
-    $seen = @{}
     foreach ($line in $BuildOutput) {
         if ($line -notmatch $pattern) { continue }
         $file = $Matches.file
         if ($file.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)) { $file = $file.Substring($prefix.Length).Replace('\', '/') }
-        $text = "$file($($Matches.line),$($Matches.col)): error $($Matches.code): $($Matches.message)"
-        if ($seen.ContainsKey($text)) { continue }
-        $seen[$text] = $true
-        $text
+        "$file($($Matches.line),$($Matches.col)): error $($Matches.code): $($Matches.message)"
     }
 }
 

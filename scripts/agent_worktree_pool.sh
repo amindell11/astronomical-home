@@ -156,15 +156,15 @@ Commands:
   compile-check <slot> [--refresh]
       Compile every Unity assembly in the slot from the .cs files on disk
       with dotnet build, without booting Unity
-      (scripts/unity_compile_check.ps1). It builds the pool's snapshot of
-      the slot's old-style (Rider package) project files, kept with the
-      build outputs under compile-check/<slot>/ beside the lock root, so a
-      check never writes into the slot and runs safely beside a Unity
-      editor or test run there.
+      (scripts/unity_compile_check.ps1). It builds the worktree pool's
+      snapshot of the slot's old-style (Rider package) project files,
+      kept with the build outputs under compile-check/<slot>/ beside the
+      lock root, so a check never writes into the slot and runs safely
+      beside a Unity editor or test run there.
       --refresh first rebuilds the snapshot with one coordinated Unity
-      batch boot (about 40s warm; the boot refuses a slot with tracked
-      changes, so commit first). Run it on a slot's first check and
-      whenever the verdict is stale.
+      batch boot (about 40s warm). The boot needs a tree that compiles
+      and has no tracked changes (commit first). Run it on a slot's
+      first check and whenever the verdict is stale.
       Compile errors go to stderr as Unity prints them:
         Assets/<path>(<line>,<col>): error CS<n>: <message>
       Stdout trailer: COMPILE_CHECK=<verdict> SECONDS=<wall seconds>, the
