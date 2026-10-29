@@ -105,6 +105,8 @@ namespace Tests.PlayMode.Scenarios
             };
             host.gameHostPrefab = AssetDatabase.LoadAssetAtPath<GameHost>(GameHostPath);
             Assert.IsTrue(host.gameHostPrefab, $"game host prefab at {GameHostPath}");
+            host.recapFeel = host.gameHostPrefab.recapFeel;
+            host.jumpFeel = host.gameHostPrefab.jumpFeel;
             hostGo.SetActive(true);
         }
 

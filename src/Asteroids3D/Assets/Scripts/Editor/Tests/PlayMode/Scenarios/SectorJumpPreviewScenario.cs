@@ -41,6 +41,8 @@ namespace Tests.PlayMode.Scenarios
                 presentation = true
             };
             host.gameHostPrefab = AssetDatabase.LoadAssetAtPath<GameHost>("Assets/Prefabs/Game/GameHost.prefab");
+            host.recapFeel = host.gameHostPrefab.recapFeel;
+            host.jumpFeel = host.gameHostPrefab.jumpFeel;
             host.subjectKind = PreviewSubjectKind.SectorJump;
             var priorTimeScale = Time.timeScale;
             try
