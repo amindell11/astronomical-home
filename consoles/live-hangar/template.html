@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Hangar console in motion</title>
+<style>/*__FONTS__*/
+/*__ROLES__*/
+*{box-sizing:border-box}body{margin:0;background:#10151b;color:#eae7dd;font:15px/1.5 'Plex Sans',sans-serif}header,main{max-width:1800px;margin:auto;padding:20px 24px}header{padding-bottom:0}h1{font-size:24px;margin:0 0 6px}p{color:#b9c5cf;max-width:95ch;margin:6px 0 16px}.controls{display:flex;align-items:center;flex-wrap:wrap;gap:14px;margin:0 0 18px}label{display:flex;align-items:center;gap:8px}select,button{font:inherit;color:inherit;background:#202b34;border:1px solid #50616d;border-radius:4px;padding:8px 12px}button{cursor:pointer}a{color:#a6d8e5}canvas{display:block;width:100%;height:auto}figure{margin:0}figcaption{color:#aab9c5;padding:10px 0;font-size:13px}.more{display:flex;flex-wrap:wrap;gap:18px;margin-top:18px}details{margin-top:18px;border-top:1px solid #34434e;padding:12px 0}summary{cursor:pointer}textarea{width:100%;height:180px;background:#121c25;color:#b9d6e7;font:12px 'Plex Mono',monospace;border:1px solid #50616d;padding:12px}input[type=range]{width:135px}output{min-width:35px;font-family:'Plex Mono',monospace}#error{color:#ff9d8f;white-space:pre-wrap}body.focus header,body.focus .controls,body.focus .more,body.focus details,body.focus figcaption{display:none}body.focus main{padding:0;max-width:none}body.focus #exitFocus{display:block;position:fixed;right:12px;top:12px}#exitFocus{display:none}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #a6d8e5;outline-offset:3px}@media(max-width:700px){header,main{padding:14px 10px}.controls{gap:10px}label{font-size:13px}h1{font-size:21px}}
+</style></head><body>
+<header><h1>Hangar console in motion</h1><p>The combat prototype's typography and beam effects inside the selected drawn hardware. The ship keeps faint color behind bright contours.</p></header>
+<main><div class="controls">
+<label>Heading <select id="heading" aria-label="Heading face"></select></label>
+<label>Functional type <select id="family" aria-label="Functional type"></select></label>
+<label>Effects <select id="preset"><option value="exploration">Combat prototype strong</option><option value="menus">Menu draft</option><option value="custom" disabled>Imported settings</option></select></label>
+<label><input id="enabled" type="checkbox" checked> Personality on</label>
+<button id="replay">Replay startup</button><button id="pause">Pause</button><button id="expand">Expand preview</button>
+</div><p id="error" hidden></p>
+<figure><canvas id="view" aria-label="Animated hangar console and ship hologram"></canvas><figcaption id="caption">Shared fonts and CRT renderer. Draft settings; no font or effect values selected.</figcaption></figure>
+<div class="controls"><label>Ship surface <input id="surface" type="range" min="0" max="0.4" step="0.01" value="0.12"><output id="surfaceValue">0.12</output></label><label>Projection tint <select id="tint"><option value="cool">Cool pearl</option><option value="neutral">Near-white</option></select></label><button id="selection">Replay selection</button></div>
+<div class="more"><a href="../../combat-hud/tuners/personality.html">Shared personality tuner</a><a href="../../combat-hud/tuners/color.html">Shared color tuner</a><a href="../hologram-02/review.html">Still concepts and references</a><a href="README.md">Notes</a></div>
+<details><summary>Use settings from the shared tuner</summary><p>Paste the shared tuner's exported JSON to preview the same fonts, colors and effects here.</p><textarea id="settings" aria-label="Shared settings JSON"></textarea><button id="apply">Apply settings</button> <button id="export">Show current settings</button> <button id="download">Download settings</button><p id="status" role="status"></p></details>
+</main><button id="exitFocus">Show controls</button>
+<script id="embedded" type="application/json">__EMBEDDED__</script><script>/*__ENGINE__*/</script><script>/*__APP__*/</script>
+</body></html>

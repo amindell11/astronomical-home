@@ -1,0 +1,18 @@
+{
+  "ready": true,
+  "strongDiffersFromBaseline": true,
+  "headingChangesPixels": true,
+  "surfaceChangesPixels": true,
+  "tintChangesPixels": true,
+  "startupChangesPixels": true,
+  "fontCount": 6,
+  "canvas": [
+    1600,
+    893
+  ],
+  "roundtrip": true,
+  "invalidImportKeepsState": true,
+  "mobileFits": true,
+  "errors": [],
+  "externalRequests": []
+}

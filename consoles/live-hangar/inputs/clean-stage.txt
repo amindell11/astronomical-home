@@ -1,0 +1,7 @@
+You are sitting in the cockpit looking out at the depths of space, with panels of electronics around you, whirring bleeps and lights, and the sleek, subtle glow of gently used screens.
+
+This is a precise cleanup edit of Image 1 to prepare it for an animated UI mockup. Preserve the complete existing image, camera, nebula, ink-drawn hardware, cables, lights and all housing shapes exactly. Empty just the two display surfaces and remove the projected ship.
+
+The large left screen becomes a uniformly dark near-black display, keeping its existing screen edge and bezel. Remove all words, bars, tabs, hatch rules and on-screen lines inside that screen. The lower-right Launch screen also becomes the same blank dark display inside its existing physical housing. Keep all physical amber and green lamps beside both displays. Remove the entire floating holographic ship and its projector beam, restoring the blue-purple nebula behind the ship and the existing bench metal beneath the beam. Keep the projector hardware itself installed on the bench, unlit. No new object, no changed hardware silhouette, no changed view. Return the same whole 16:9 frame with empty screens and no hologram.
+
+Image 1 is the sole edit target and layout. Image 2 is the historical ship/game source, only a continuity reference. Images 3 and 4 document hardware mood, Image 5 electronics and lamps, and Images 6 to 8 terminal mood. None of these continuity references supplies replacement content. Preserve Image 1 exactly outside the three removal areas.

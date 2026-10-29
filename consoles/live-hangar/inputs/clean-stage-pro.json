@@ -1,0 +1,79 @@
+{
+  "output": "clean-stage-pro.jpg",
+  "status": "exploration",
+  "provider": "google-gemini-api",
+  "model": "gemini-3-pro-image",
+  "interaction_id": "v1_Chd5czdqYXNlZUE0UGpxdHNQbG9LaXdRMBIXeXM3amFzZWVBNFBqcXRzUGxvS2l3UTA",
+  "created_utc": "2026-10-29T22:54:59+00:00",
+  "prompt": "You are sitting in the cockpit looking out at the depths of space, with panels of electronics around you, whirring bleeps and lights, and the sleek, subtle glow of gently used screens.\n\nThis is a precise cleanup edit of Image 1 to prepare it for an animated UI mockup. Preserve the complete existing image, camera, nebula, ink-drawn hardware, cables, lights and all housing shapes exactly. Empty just the two display surfaces and remove the projected ship.\n\nThe large left screen becomes a uniformly dark near-black display, keeping its existing screen edge and bezel. Remove all words, bars, tabs, hatch rules and on-screen lines inside that screen. The lower-right Launch screen also becomes the same blank dark display inside its existing physical housing. Keep all physical amber and green lamps beside both displays. Remove the entire floating holographic ship and its projector beam, restoring the blue-purple nebula behind the ship and the existing bench metal beneath the beam. Keep the projector hardware itself installed on the bench, unlit. No new object, no changed hardware silhouette, no changed view. Return the same whole 16:9 frame with empty screens and no hologram.\n\nImage 1 is the sole edit target and layout. Image 2 is the historical ship/game source, only a continuity reference. Images 3 and 4 document hardware mood, Image 5 electronics and lamps, and Images 6 to 8 terminal mood. None of these continuity references supplies replacement content. Preserve Image 1 exactly outside the three removal areas.\n",
+  "parent": {
+    "path": "inputs/chosen-console.jpg",
+    "sha256": "6183e8f787dc449d78700d295fe898c0c98377229088dea78aef042db34b0add"
+  },
+  "references": [
+    {
+      "path": "../hologram-02/inputs/real-hangar-capture.png",
+      "sha256": "0e837bbf16a1c928586faa28c83981a530ad47dfa6aa5e3ef884e2985fe9bb84"
+    },
+    {
+      "path": "../hologram-02/inputs/03-beige-console-schematic.png",
+      "sha256": "07be805e834956029fac9157a00dce8016653d15ff95e08224fd35e8d1e7d222"
+    },
+    {
+      "path": "../hologram-02/inputs/09-beige-console-wireframe.png",
+      "sha256": "1059a0a67d7413255de5395e714e684824d384dc36e5de87a8212c579ffd1f28"
+    },
+    {
+      "path": "../hologram-02/inputs/04-dark-cockpit-leds.png",
+      "sha256": "8967c780bebc7eab275530c7b9e4985d84404b54c1f9b457e039278aee331f2b"
+    },
+    {
+      "path": "../hologram-02/inputs/01-nostromo-terminal.webp",
+      "sha256": "8c7b58aa4c94c24678e7eb508fb2338702dd29652e09687331bec794615a2a0c"
+    },
+    {
+      "path": "../hologram-02/inputs/06-muthur-terminal-text.png",
+      "sha256": "90ecfffc4b82f0c60000e7f36dec01ebb803aabdc790fb3238c2b231ec3836f2"
+    },
+    {
+      "path": "../hologram-02/inputs/07-hatched-progress-bars.webp",
+      "sha256": "508e9d94d8b979d2940d617e6a50e7365763180dd63c2b4777b8bad05484bee9"
+    }
+  ],
+  "params": {
+    "image_size": "2K",
+    "aspect_ratio": "16:9",
+    "thinking_level": null
+  },
+  "cost_estimate_usd": {
+    "per_image": 0.134,
+    "prices_as_of": "2026-09-22",
+    "excludes": "thinking and input tokens"
+  },
+  "usage": {
+    "input_tokens_by_modality": [
+      {
+        "modality": "image",
+        "tokens": 4480
+      },
+      {
+        "modality": "text",
+        "tokens": 317
+      }
+    ],
+    "output_tokens_by_modality": [
+      {
+        "modality": "image",
+        "tokens": 1120
+      }
+    ],
+    "total_cached_tokens": 0,
+    "total_input_tokens": 4797,
+    "total_output_tokens": 1295,
+    "total_thought_tokens": 199,
+    "total_tokens": 6291,
+    "total_tool_use_tokens": 0,
+    "initial_input_tokens": 4992
+  },
+  "model_text": ""
+}
