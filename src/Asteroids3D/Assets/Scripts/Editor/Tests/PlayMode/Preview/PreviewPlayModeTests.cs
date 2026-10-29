@@ -256,9 +256,10 @@ namespace Tests.PlayMode.Preview
             yield return LaunchFromHangar(combat);
             Assert.That(combat.sessionProfile.sectors.Select(entry => entry.prefab),
                 Is.EqualTo(shipped.sessionProfile.sectors.Select(entry => entry.prefab)));
-            Assert.That(combat.jumpFeel, Is.SameAs(shipped.jumpFeel).And.Not.Null, "Combat travels between sectors");
-            Assert.That(combat.GetComponentInChildren<GameMusic>(), Is.Not.Null, "the shipped music plays");
-            Assert.That(combat.GetComponentInChildren<LoadingSplash>(true), Is.Not.Null, "the shipped splash covers loads");
+            Assert.IsTrue(shipped.jumpFeel, "Combat travels between sectors");
+            Assert.That(combat.jumpFeel, Is.SameAs(shipped.jumpFeel));
+            Assert.IsTrue(combat.GetComponentInChildren<GameMusic>(), "the shipped music plays");
+            Assert.IsTrue(combat.GetComponentInChildren<LoadingSplash>(true), "the shipped splash covers loads");
             Assert.That(combat.runRecordPath, Is.Not.EqualTo(new RunRecordStore().Path));
             Assert.That(combat.ActiveSector.name, Does.StartWith(shipped.sessionProfile.sectors[0].prefab.name));
 

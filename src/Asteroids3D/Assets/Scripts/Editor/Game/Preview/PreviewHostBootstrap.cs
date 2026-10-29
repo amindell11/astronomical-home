@@ -7,9 +7,8 @@ using UnityEngine;
 namespace Game.Preview
 {
     /// <summary>
-    /// Builds the preview host around the game's GameHost prefab in an empty scene: Playtest runs that
-    /// prefab, and Inspection loads one trial sector with the prefab's rig and presentation assets.
-    /// The crowded jump setup swaps in the two-sector crowded jump fixture.
+    /// Builds the preview host in an empty scene around the game's GameHost prefab, with one trial
+    /// sector for Inspection and the two-sector crowded jump fixture.
     /// The chosen mode is assigned before activation, so Playtest never composes an inspection session.
     /// </summary>
     public static class PreviewHostBootstrap
