@@ -230,7 +230,8 @@ files, tests, the verify command, and the closing `STATUS: DONE | BLOCKED` /
 `python scripts/grok_worker.py --slot <slot> --brief <file> --verify "<cmd>"`
 (exit codes and trailers in its header), where `<cmd>` exits 0 on pass, 1 when
 the change is wrong, and anything else when it cannot judge; use a scoped
-`./scripts/agent_worktree_pool.sh run-tests <slot> …`. Hand the brief to an
+`./scripts/agent_worktree_pool.sh run-tests <slot> …` with `--fail-codes 1,2`,
+since its exit 2 covers compile failures. Hand the brief to an
 Opus subagent scoped to the slot (Agent tool, `model: "opus"`) when the slice
 needs judgment mid-build, or once Grok's `GROK_WORKER=` trailer is neither
 `done` nor `verify_error`. On `verify_error`, fix the check (a stale snapshot,

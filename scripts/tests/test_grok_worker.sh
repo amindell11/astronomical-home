@@ -148,6 +148,11 @@ work verr --verify "echo stale-snapshot; exit 3"
 expect verr 1 GROK_WORKER=verify_error ROUNDS=1 VERIFY=error
 [[ "$(calls verr)" == 1 ]] || fail "verr: relaunched after a verify that could not judge"
 
+# --- a --fail-codes exit is a failed change, so round 2 runs ---
+plan failcodes '{"status": "DONE"}' '{"status": "DONE", "write": ["src/compiled.txt"]}'
+work failcodes --fail-codes 1,2 --verify "test -f src/compiled.txt || exit 2"
+expect failcodes 0 GROK_WORKER=done ROUNDS=2 VERIFY=pass
+
 # --- BLOCKED stops before verify ---
 plan blocked '{"status": "BLOCKED"}' '{"status": "DONE"}'
 work blocked --verify "true"

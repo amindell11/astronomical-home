@@ -6,13 +6,16 @@ DONE round and relaunches with the verify output until it passes or the rounds r
 
 Usage:
   python scripts/grok_worker.py --slot <agent-N | path> --brief <file>
-      [--verify "<shell cmd>"] [--rounds 2] [--model grok-4.7-high] [--out <dir>]
+      [--verify "<shell cmd>"] [--fail-codes 1] [--rounds 2] [--model grok-4.7-high]
+      [--out <dir>]
 
   --slot    a pool slot name (resolved through `agent_worktree_pool.sh status --porcelain`)
             or the path of a git worktree root.
   --verify  run with Git Bash in the slot after each DONE round. Its exit: 0 = pass;
-            1 = the change is wrong, so Grok gets the next round with its output;
-            any other = the check could not judge, so the run stops with no retry.
+            a --fail-codes member = the change is wrong, so Grok gets the next round with
+            its output; any other = the check could not judge, so the run stops with no retry.
+  --fail-codes  comma list of verify exits that mean the change is wrong; default 1.
+            0 is a usage error.
   --out     where transcripts and logs go; default a fresh dir under the system temp dir.
             Never inside the slot.
 
@@ -26,7 +29,8 @@ Machine channel: these KEY=value trailers on stdout, in this order, and nothing 
   GROK_WORKER=done|blocked|verify_failed|verify_error|timeout|refused
   ROUNDS=<rounds launched>
   WALL_S=<whole seconds>
-  VERIFY=pass|fail|error|none  the last verify run (exit 0 | 1 | other); none when none ran
+  VERIFY=pass|fail|error|none  the last verify run (exit 0 | a fail code | other); none
+                             when none ran
   OUTSIDE_READS=<count>      distinct absolute paths outside the slot in Grok's tool-call args
                              (an edit counts only its target path)
   MODEL=<model>              as the transcript's init event names it; unknown when absent
@@ -288,11 +292,22 @@ def run_verify(bash, slot, command, log):
     return r.returncode, tail
 
 
+def fail_codes(text):
+    try:
+        codes = {int(c) for c in text.split(",")}
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"not a comma list of exit codes: {text!r}")
+    if 0 in codes:
+        raise argparse.ArgumentTypeError("0 is a pass, never a fail code")
+    return codes
+
+
 def parse_args():
     ap = argparse.ArgumentParser(description="Run Grok through the Cursor CLI in a pool slot.")
     ap.add_argument("--slot", required=True)
     ap.add_argument("--brief", required=True)
     ap.add_argument("--verify")
+    ap.add_argument("--fail-codes", type=fail_codes, default="1")
     ap.add_argument("--rounds", type=int, default=2)
     ap.add_argument("--model", default="grok-4.7-high")
     ap.add_argument("--out")
@@ -349,12 +364,12 @@ def main():
             break
         log = out / f"verify-{n}.log"
         rc, tail = run_verify(bash, slot, args.verify, log)
-        verify = {0: "pass", 1: "fail"}.get(rc, "error")
+        verify = "pass" if rc == 0 else "fail" if rc in args.fail_codes else "error"
         say(f"round {n}: verify {verify} (exit {rc}; log: {log.as_posix()})")
         if rc == 0:
             state = "done"
             break
-        if rc != 1:
+        if rc not in args.fail_codes:
             state = "verify_error"
             say(f"verify could not judge the change; output ends:\n{tail}")
             break
