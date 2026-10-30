@@ -17,6 +17,7 @@ using UI.Projection;
 using UnityEngine;
 using Ships.Registry;
 using Substrate;
+using Substrate.Sectors.Elements.Phases;
 
 namespace Game
 {
@@ -84,6 +85,7 @@ namespace Game
 
         private SessionFrame frame;
         private CanopyProjection projection;
+        private CanopyPersonality personality;
 
         public CanopyProjection Projection => projection;
         public CanopyProjectionProfile AuthoredCanopyProfile => uiCamPrefab.Profile;
@@ -128,11 +130,13 @@ namespace Game
                 if (!minimapCamPrefab)
                     throw new InvalidOperationException($"PlayerRig on '{name}' needs a minimap camera for its HUD.");
                 projection = Instantiate(uiCamPrefab, observer.transform);
-                projection.Initialize(observer.Cam, canopyProfileOverride);
                 var uiCam = projection.Camera;
 
                 Overlay = Instantiate(overlayPrefab, uiRoot);
-                Overlay.ConfigureCameras(uiCam, observer.Cam);
+                personality = CanopyPersonality.Create(gameObject, objectives, projection, () => Overlay.IsVisible);
+                personality.Initialize(Player.Damage);
+                projection.Initialize(observer.Cam, canopyProfileOverride, personality.Observe);
+                Overlay.ConfigureCameras(uiCam, observer.Cam, projection);
                 Overlay.Initialize(BuildHudBinding());
                 var minimapCam = Instantiate(minimapCamPrefab, observer.transform);
                 Overlay.BindObjectives(objectives, observer.Cam, minimapCam);
@@ -155,6 +159,9 @@ namespace Game
                 Destroy(Overlay.gameObject);
             if (projection)
                 Destroy(projection.gameObject);
+            if (personality)
+                Destroy(personality);
+            personality = null;
             projection = null;
             Overlay = null;
             Player = null;
@@ -279,8 +286,14 @@ namespace Game
         // their old source).
         private void RebindHud()
         {
+            if (personality) personality.Initialize(Player.Damage);
             if (Overlay)
                 Overlay.Initialize(BuildHudBinding());
+        }
+
+        public void EnterSector(PhaseSpineModule phase)
+        {
+            if (personality) personality.EnterSector(phase);
         }
 
         // The HUD binds narrow read surfaces, never the Ship itself (see HudBinding).

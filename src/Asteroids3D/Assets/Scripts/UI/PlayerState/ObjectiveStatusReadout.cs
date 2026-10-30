@@ -3,6 +3,7 @@ using Objectives;
 using Substrate.Services.Objectives;
 using UnityEngine;
 using UnityEngine.UI;
+using UI.Projection;
 
 namespace UI.PlayerState
 {
@@ -17,7 +18,8 @@ namespace UI.PlayerState
         private ObjectiveTracker announcedTracker;
         private float openedAt;
 
-        public static ObjectiveStatusReadout Create(Transform parent, Material textMaterial)
+        public static ObjectiveStatusReadout Create(Transform parent, Material textMaterial,
+            CanopyProjection projection = null, Func<bool> isVisible = null)
         {
             var go = new GameObject("ObjectiveStatusReadout", typeof(RectTransform));
             go.transform.SetParent(parent, false);
@@ -28,14 +30,17 @@ namespace UI.PlayerState
             rect.sizeDelta = new Vector2(420f, 28f);
 
             go.layer = parent.gameObject.layer;
-            var plate = CreateImage(go.transform, "Opening plate", new Vector2(125f, 20f),
+            ObjectiveStatusReadout readout = null;
+            var appearance = InstrumentAppear.Create(go.transform, projection,
+                () => readout.plate.enabled && readout.group.alpha > 0f && (isVisible?.Invoke() ?? true));
+            var plate = CreateImage(appearance.transform, "Opening plate", new Vector2(125f, 20f),
                 new Color(.025f, .08f, .095f, .94f));
-            var underline = CreateImage(go.transform, "Opening underline", new Vector2(40f, .94f),
+            var underline = CreateImage(appearance.transform, "Opening underline", new Vector2(40f, .94f),
                 new Color(.45f, .94f, .76f, 1f));
             underline.rectTransform.anchoredPosition = new Vector2(0, -20f);
             var labelObject = new GameObject("Label", typeof(RectTransform));
             labelObject.layer = go.layer;
-            labelObject.transform.SetParent(go.transform, false);
+            labelObject.transform.SetParent(appearance.transform, false);
             var text = labelObject.AddComponent<Text>();
             text.material = textMaterial;
             text.rectTransform.anchorMin = text.rectTransform.anchorMax = new Vector2(.5f, 1f);
@@ -45,7 +50,7 @@ namespace UI.PlayerState
             text.color = Color.white;
             text.alignment = TextAnchor.UpperCenter;
             text.raycastTarget = false;
-            var readout = go.AddComponent<ObjectiveStatusReadout>();
+            readout = go.AddComponent<ObjectiveStatusReadout>();
             readout.plate = plate;
             readout.underline = underline;
             return readout;

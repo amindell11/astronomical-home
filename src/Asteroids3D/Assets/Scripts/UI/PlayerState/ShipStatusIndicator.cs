@@ -2,6 +2,8 @@ using Ships;
 using Substrate;
 using System.Collections.Generic;
 using UnityEngine;
+using UI.Projection;
+using System;
 
 namespace UI.PlayerState
 {
@@ -14,7 +16,8 @@ namespace UI.PlayerState
         private CanvasGroup visibility;
         private IReadOnlyList<Renderer> silhouette;
 
-        public static ShipStatusIndicator Create(Canvas canvas, Camera worldCamera, Ship ship, Font font, Material textMaterial)
+        public static ShipStatusIndicator Create(Canvas canvas, Camera worldCamera, Ship ship, Font font, Material textMaterial,
+            CanopyProjection projection = null, Func<bool> isVisible = null)
         {
             var root = new GameObject("Ship status", typeof(RectTransform), typeof(CanvasGroup));
             root.SetActive(false);
@@ -24,8 +27,10 @@ namespace UI.PlayerState
             indicator.ship = ship;
             indicator.worldCamera = worldCamera;
             indicator.canvas = canvas;
-            StatusBarUI.Create(root.transform, ship.Damage.Shield, font, new Color(0f, .8f, 1f), 18f, textMaterial);
-            StatusBarUI.Create(root.transform, ship.Damage.Health, font, new Color(.22f, 1f, .15f), 0f, textMaterial, pulsesWhenLow: true);
+            var appearance = InstrumentAppear.Create(root.transform, projection,
+                () => indicator.visibility.alpha > 0f && (isVisible?.Invoke() ?? true));
+            StatusBarUI.Create(appearance.transform, ship.Damage.Shield, font, new Color(0f, .8f, 1f), 18f, textMaterial);
+            StatusBarUI.Create(appearance.transform, ship.Damage.Health, font, new Color(.22f, 1f, .15f), 0f, textMaterial, pulsesWhenLow: true);
             root.SetActive(true);
             return indicator;
         }

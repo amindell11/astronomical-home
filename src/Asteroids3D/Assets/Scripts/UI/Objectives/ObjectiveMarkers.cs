@@ -3,6 +3,7 @@ using Objectives;
 using Substrate.Services.Objectives;
 using UnityEngine;
 using UnityEngine.UI;
+using UI.Projection;
 
 namespace UI.Objectives
 {
@@ -24,7 +25,8 @@ namespace UI.Objectives
 
         private void Awake() => enabled = false;
 
-        public void Initialize(IObjectiveService source, Camera world, Camera map, RectTransform minimap, Canvas hud)
+        public void Initialize(IObjectiveService source, Camera world, Camera map, RectTransform minimap, Canvas hud,
+            CanopyProjection projection = null, Func<bool> isVisible = null)
         {
             if (source == null || !world || !map || !minimap || !hud || !icon)
                 throw new InvalidOperationException($"ObjectiveMarkers on '{name}' needs its objective source, cameras, minimap, canvas and icon.");
@@ -35,6 +37,10 @@ namespace UI.Objectives
             canvas = hud;
             screenBerth = BerthGraphic.Create(hud.transform, false);
             minimapBerth = BerthGraphic.Create(hud.transform, true);
+            InstrumentAppear.Attach(screenBerth.gameObject, projection,
+                () => screenBerth.enabled && (isVisible?.Invoke() ?? true));
+            InstrumentAppear.Attach(minimapBerth.gameObject, projection,
+                () => minimapBerth.enabled && (isVisible?.Invoke() ?? true));
             icon.enabled = false;
             enabled = true;
         }

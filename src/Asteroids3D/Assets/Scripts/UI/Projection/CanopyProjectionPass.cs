@@ -91,7 +91,7 @@ namespace UI.Projection
             data.resolution = new Vector4(source.Ink.rt.width, source.Ink.rt.height, 0f, 0f);
             data.time = Time.unscaledTime;
             data.enabled = source.EffectsEnabled;
-            data.appearanceAge = source.AppearanceAge;
+            data.appearanceAge = -1f;
             data.transitionAge = source.TransitionAge;
             data.hitAge = source.HitAge;
         }

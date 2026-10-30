@@ -1,19 +1,18 @@
 using Combat.Targeting;
-using Ships.Presentation;
 using UnityEngine;
 using Substrate;
 
-namespace UI
+namespace UI.Weapons
 {
     /// <summary>
     /// World-space UI element that displays lock-on progress over a target.
     /// It expects to live under a Canvas set to World Space and to have an Animator
     /// that exposes a float parameter named "lockProgress" (0–1) and a Trigger
-    /// named "LockComplete" for the flash when locking finishes. The lock channel is
-    /// injected via <see cref="Bind"/> (see <see cref="IShipVisual"/>).
+    /// named "LockComplete" for the flash when locking finishes. HUD ownership keeps its
+    /// visibility and appearance separate from the ship's world visuals.
     /// </summary>
     [RequireComponent(typeof(CanvasGroup))]
-    public sealed class LockOnIndicator : MonoBehaviour, IShipVisual
+    public sealed class LockOnIndicator : MonoBehaviour
     {
         private static readonly int LockProgress = Animator.StringToHash("lockProgress");
         private static readonly int LockComplete = Animator.StringToHash("LockComplete");
@@ -25,21 +24,22 @@ namespace UI
         private CanvasGroup canvasGroup;
         private LockChannel lockChannel;
         private bool subscribed;
+        private Transform pose;
+
+        public bool Visible => canvasGroup.alpha > 0f && pose && pose.gameObject.activeInHierarchy;
 
         private void Awake()
         {
             canvasGroup = GetComponent<CanvasGroup>();
             if (!animator) animator = GetComponentInChildren<Animator>();
-        }
-
-        private void Start()
-        {
             Hide();
         }
 
-        public void Bind(in ShipView view)
+        public void Initialize(LockChannel channel, Transform pose)
         {
-            lockChannel = view.Lock;
+            Unsubscribe();
+            lockChannel = channel;
+            this.pose = pose;
             if (isActiveAndEnabled) Subscribe();
         }
 
@@ -89,28 +89,27 @@ namespace UI
 
         private void UpdateProgress(float progress)
         {
-            if (!canvasGroup) return;
             canvasGroup.alpha = 1f;
             if (animator) animator.SetFloat(LockProgress, progress);
         }
 
         private void OnLockComplete()
         {
-            if (!canvasGroup) return;
             canvasGroup.alpha = 1f;
             if (animator) animator.SetTrigger(LockComplete);
         }
 
         private void Hide()
         {
-            if (canvasGroup) canvasGroup.alpha = 0f;
+            canvasGroup.alpha = 0f;
         }
 
         private void LateUpdate()
         {
-            if (canvasGroup && canvasGroup.alpha <= 0f) return;
+            if (!pose || !pose.gameObject.activeInHierarchy) Hide();
+            if (!Visible) return;
             transform.rotation = GamePlane.Rotation;
-            transform.position = transform.parent.position + GamePlane.Normal * verticalOffset;
+            transform.position = pose.position + GamePlane.Normal * verticalOffset;
         }
     }
 }

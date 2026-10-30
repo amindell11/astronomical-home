@@ -5,7 +5,7 @@ using Ships;
 using Ships.Presentation;
 using Ships.Visuals;
 using Tests.PlayMode.Common;
-using UI;
+using UI.Weapons;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UI.PlayerState;
@@ -54,7 +54,7 @@ namespace Tests.PlayMode.Presentation
 
             Assert.IsNotNull(ship.GetComponentInChildren<HullVisuals>(true), "Rig should contribute HullVisuals");
             Assert.IsNull(ship.GetComponentInChildren<StatusBarUI>(true), "Capacity indicators belong to the UI");
-            Assert.IsNotNull(ship.GetComponentInChildren<LockOnIndicator>(true), "Rig should contribute LockOnIndicator");
+            Assert.IsNull(ship.GetComponentInChildren<LockOnIndicator>(true), "Lock reticles belong to the HUD");
         }
 
         [UnityTest]
