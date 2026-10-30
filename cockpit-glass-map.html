@@ -19,19 +19,19 @@
   <div class="glass-legend text-small">
     <span>0 px</span><span class="glass-ramp" aria-hidden="true"></span><span id="glass-ceiling"></span>
     <span class="glass-key" aria-hidden="true"></span><span>Warped HUD grid</span>
-    <span class="glass-rim-key" aria-hidden="true"></span><span>Proposed canopy contour</span>
+    <span class="glass-rim-key" aria-hidden="true"></span><span>Canopy contour guide</span>
   </div>
   <div class="glass-panels">
     <section>
-      <div class="glass-caption"><span>Current · CRT + wavy glass</span><span class="text-small" id="glass-current-max"></span></div>
-      <canvas id="glass-current" role="img" aria-label="Current combined distortion. Circular CRT curvature plus asymmetric sinusoidal glass offsets. The center has little distortion; the corners bend the most."></canvas>
+      <div class="glass-caption"><span>Previous · CRT + wavy glass</span><span class="text-small" id="glass-current-max"></span></div>
+      <canvas id="glass-current" role="img" aria-label="Previous combined distortion. Circular CRT curvature plus asymmetric sinusoidal glass offsets. The center has little distortion; the corners bend the most."></canvas>
     </section>
     <section>
-      <div class="glass-caption"><span>Proposed · one canopy warp</span><span class="text-small" id="glass-canopy-max"></span></div>
-      <canvas id="glass-canopy" role="img" aria-label="Proposed single cockpit canopy field. A broad quiet center, an arched upper rim and a flatter lower lip, with stronger distortion toward the perimeter. No separate CRT curvature is added."></canvas>
+      <div class="glass-caption"><span>Approved · one canopy warp</span><span class="text-small" id="glass-canopy-max"></span></div>
+      <canvas id="glass-canopy" role="img" aria-label="Approved single cockpit canopy field, now implemented. A broad quiet center, an arched upper rim and a flatter lower lip, with stronger distortion toward the perimeter. No separate CRT curvature is added."></canvas>
     </section>
   </div>
-  <div class="glass-detail text-small" id="glass-detail" aria-live="polite">Current field measured from shader equations. Canopy field is a proposal.</div>
+  <div class="glass-detail text-small" id="glass-detail" aria-live="polite">Both fields use their shader equations. The approved field replaces both previous bends.</div>
   <script>
   (() => {
     const root = document.getElementById('cockpit-glass-map');
@@ -69,7 +69,7 @@
       const amount=strength*30*Math.pow(smooth(.26,1.12,r),2);
       return norm ? [gx/norm*amount/width,gy/norm*amount/height] : [0,0];
     }
-    const fields=[{canvas:currentCanvas,fn:current,name:'Current',id:'glass-current-max'}, {canvas:canopyCanvas,fn:canopy,name:'Canopy proposal',id:'glass-canopy-max'}];
+    const fields=[{canvas:currentCanvas,fn:current,name:'Previous',id:'glass-current-max'}, {canvas:canopyCanvas,fn:canopy,name:'Approved canopy',id:'glass-canopy-max'}];
     let ceiling=0;
     for(const f of fields){
       f.max=0;

@@ -1,0 +1,30 @@
+{
+  "bright-on": {
+    "minimum_channel_delta": 0,
+    "channels_darker": 0,
+    "channels_darker_by_more_than_one": 0,
+    "pixels_brighter": 43844,
+    "pixels": 921600
+  },
+  "bright-off": {
+    "minimum_channel_delta": 0,
+    "channels_darker": 0,
+    "channels_darker_by_more_than_one": 0,
+    "pixels_brighter": 41004,
+    "pixels": 921600
+  },
+  "copper-on": {
+    "minimum_channel_delta": 0,
+    "channels_darker": 0,
+    "channels_darker_by_more_than_one": 0,
+    "pixels_brighter": 43848,
+    "pixels": 921600
+  },
+  "copper-off": {
+    "minimum_channel_delta": 0,
+    "channels_darker": 0,
+    "channels_darker_by_more_than_one": 0,
+    "pixels_brighter": 41004,
+    "pixels": 921600
+  }
+}
