@@ -30,7 +30,6 @@ using Tests.PlayMode.Common.SimulatedInput;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 
@@ -56,11 +55,13 @@ namespace Tests.PlayMode.Bootstrap
         private GameObject[] templates;
         private string dir;
         private string recordPath;
+        private LightingSnapshot bootLighting;
 
         public override void SetUp()
         {
             input.Setup();
             base.SetUp();
+            bootLighting = LightingSnapshot.Capture();
             dir = Path.Combine(Path.GetTempPath(), "multi-sector-run-" + Guid.NewGuid().ToString("N"));
             recordPath = Path.Combine(dir, "run-records.jsonl");
         }
@@ -72,6 +73,7 @@ namespace Tests.PlayMode.Bootstrap
             if (templates != null)
                 foreach (var template in templates) DestroyTestObject(template);
             if (Directory.Exists(dir)) Directory.Delete(dir, true);
+            bootLighting.Restore();
             base.TearDown();
             input.TearDown();
         }
@@ -323,11 +325,29 @@ namespace Tests.PlayMode.Bootstrap
             Assert.IsFalse(hostGo.GetComponentInChildren<LocaleBackdropPair>(), "the backdrop is destroyed");
             var shutdown = host.Shutdown();
             Assert.That(Assert.Catch(() => shutdown.MoveNext()), Is.SameAs(ThrowingSetupModule.Fault));
-            // The faulted host never tears its session down, so its locale stays loaded.
             hostGo.GetComponent<UnitService>().Clear();
             DestroyTestObject(hostGo);
-            if (SceneManager.GetSceneByName("Locale_3").isLoaded)
-                yield return SceneManager.UnloadSceneAsync("Locale_3");
+        }
+
+        [UnityTest]
+        [Category("RequiresGraphics")]
+        public IEnumerator SectorLocaleUnlikeTheIdleLocale_KeepsTheShipLockLayer_AndTheWaveCap()
+        {
+            var idle = AssetDatabase.LoadAssetAtPath<LocaleSky>("Assets/Prefabs/Locales/Locale_1.prefab");
+            PlayerRig rig = null;
+            yield return BootToTheFirstSector(built => rig = built, presentation: true, productionJump: true,
+                idleLocale: idle);
+            Assert.AreNotSame(idle, host.sessionProfile.sectors[0].config.Locale,
+                "test premise: the sector's locale differs from the idle locale");
+            for (var frame = 0; frame < 30; frame++) yield return null;
+            Assert.IsTrue(GameObject.Find("Ship lock overlay"), "the ship lock layer outlives the idle locale");
+            var director = host.ActiveSector.GetComponentInChildren<WaveDirector>();
+            var phases = new SerializedObject(director).FindProperty("phases");
+            var cap = Enumerable.Range(0, phases.arraySize)
+                .Max(i => phases.GetArrayElementAtIndex(i).FindPropertyRelative("cap").intValue);
+            var enemies = hostGo.GetComponent<UnitService>().ActiveRegistry.ActiveShips.Count(ship => ship != rig.Player);
+            Assert.That(enemies, Is.LessThanOrEqualTo(cap), "the director's live ships stay at its phase cap");
+            Assert.AreEqual(enemies, director.Spawned.Count, "the director records every ship it spawns");
         }
 
         private IEnumerator EnterProductionZone(PlayerRig rig)
@@ -426,7 +446,7 @@ namespace Tests.PlayMode.Bootstrap
         }
 
         private IEnumerator BootToTheFirstSector(Action<PlayerRig> onBuilt, bool presentation = false,
-            bool productionJump = false, bool jumpTravel = false, ItemSubset hangarOffer = null)
+            bool productionJump = false, bool jumpTravel = false, ItemSubset hangarOffer = null, LocaleSky idleLocale = null)
         {
             var config = AssetDatabase.LoadAssetAtPath<SectorSettings>(productionJump
                 ? "Assets/Settings/Game/SurvivalTrialConfig.asset" : SectorConfigPath);
@@ -447,6 +467,7 @@ namespace Tests.PlayMode.Bootstrap
                         config = config
                     }).ToArray()
                     : Array.ConvertAll(templates, t => new SectorEntry { prefab = t.GetComponent<Sector>(), config = config }),
+                idleLocale = idleLocale,
                 presentation = presentation
             };
             host.playerRig = AssetDatabase.LoadAssetAtPath<PlayerRig>(RigPrefabPath);

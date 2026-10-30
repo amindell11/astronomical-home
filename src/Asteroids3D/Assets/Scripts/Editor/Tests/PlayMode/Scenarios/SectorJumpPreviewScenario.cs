@@ -10,11 +10,12 @@ using Game;
 using Game.Preview;
 using NUnit.Framework;
 using Substrate.Sectors;
+using Substrate.Services.Locales;
 using Substrate.Sessions;
+using Tests.PlayMode.Common;
 using Tests.PlayMode.Recording;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace Tests.PlayMode.Scenarios
 {
@@ -43,6 +44,7 @@ namespace Tests.PlayMode.Scenarios
             host.gameHostPrefab = AssetDatabase.LoadAssetAtPath<GameHost>("Assets/Prefabs/Game/GameHost.prefab");
             host.recapFeel = host.gameHostPrefab.recapFeel;
             host.jumpFeel = host.gameHostPrefab.jumpFeel;
+            host.jumpDestination = AssetDatabase.LoadAssetAtPath<LocaleSky>("Assets/Prefabs/Locales/Locale_1.prefab");
             host.subjectKind = PreviewSubjectKind.SectorJump;
             var priorTimeScale = Time.timeScale;
             try
@@ -51,7 +53,7 @@ namespace Tests.PlayMode.Scenarios
                 yield return WaitFor(() => host.Subject != null);
                 var jump = (SectorJumpPreviewSubject)host.Subject;
                 Assert.That(Time.timeScale, Is.Zero);
-                Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("Locale_3"));
+                Assert.That(LocaleInstances.Shown(), Is.EqualTo("Locale_3"));
                 var player = root.GetComponentInChildren<PlayerRig>().Player;
                 player.transform.rotation = Quaternion.identity;
                 yield return null;
@@ -105,7 +107,7 @@ namespace Tests.PlayMode.Scenarios
                 Assert.That(Time.timeScale, Is.EqualTo(priorTimeScale));
                 yield return WaitFor(() => host.Subject != null);
                 Assert.That(host.Subject, Is.TypeOf<RecapPreviewSubject>());
-                yield return WaitFor(() => !SceneManager.GetSceneByName("Locale_1").isLoaded);
+                yield return WaitFor(() => !LocaleInstances.Loaded("Locale_1"));
                 host.Subject.SelectFixture(6);
                 host.Transport.Restart();
                 yield return WaitFor(() => !player.gameObject.activeInHierarchy);

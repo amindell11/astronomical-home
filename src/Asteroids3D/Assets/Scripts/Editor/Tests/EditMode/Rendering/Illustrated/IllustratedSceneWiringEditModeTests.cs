@@ -2,10 +2,8 @@ using System.Linq;
 using Asteroids.Spawning;
 using NUnit.Framework;
 using Substrate;
-using Substrate.Services.Locales;
 using Unity.Collections;
 using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace Tests.EditMode.Rendering.Illustrated
@@ -18,12 +16,9 @@ namespace Tests.EditMode.Rendering.Illustrated
         {
             var shader = Shader.Find("Astronomical/Drawn/Contour");
             Assert.That(shader, Is.Not.Null);
-            var scene = EditorSceneManager.OpenScene("Assets/Scenes/Locales/Locale_3.unity", OpenSceneMode.Additive);
-            try
+            using (var locale = new OpenLocale("Assets/Prefabs/Locales/Locale_3.prefab"))
             {
-                var sky = scene.GetRootGameObjects().Where(g => g.activeSelf)
-                    .SelectMany(g => g.GetComponentsInChildren<LocaleSky>()).Single();
-                var materials = sky.GetComponentsInChildren<MeshRenderer>()
+                var materials = locale.Root.GetComponentsInChildren<MeshRenderer>()
                     .Where(r => r.enabled && r.gameObject.layer == LayerIds.Sky)
                     .SelectMany(r => r.sharedMaterials).Distinct().ToArray();
                 Assert.That(materials, Is.Not.Empty);
@@ -49,10 +44,6 @@ namespace Tests.EditMode.Rendering.Illustrated
                         Assert.That(contour.renderQueue, Is.LessThan(3000), path);
                     }
                 }
-            }
-            finally
-            {
-                EditorSceneManager.CloseScene(scene, true);
             }
         }
 

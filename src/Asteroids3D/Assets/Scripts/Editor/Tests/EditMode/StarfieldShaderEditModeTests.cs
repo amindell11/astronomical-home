@@ -1,8 +1,6 @@
-using System.Linq;
 using NUnit.Framework;
-using Substrate.Services.Locales;
+using Tests.EditMode.Rendering;
 using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace Tests.EditMode
@@ -221,26 +219,18 @@ namespace Tests.EditMode
             }
         }
 
-        [TestCase("Assets/Scenes/Locales/Locale_1.unity")]
-        [TestCase("Assets/Scenes/Locales/Locale_2.unity")]
-        [TestCase("Assets/Scenes/Locales/Locale_3.unity")]
+        [TestCase("Assets/Prefabs/Locales/Locale_1.prefab")]
+        [TestCase("Assets/Prefabs/Locales/Locale_2.prefab")]
+        [TestCase("Assets/Prefabs/Locales/Locale_3.prefab")]
         [TestCase("Assets/Scenes/EditScene.unity")]
-        public void AuthoredStarfield_RidesTheLocaleRoot_WithTheProductionMaterial(string scenePath)
+        public void AuthoredStarfield_RidesTheLocaleRoot_WithTheProductionMaterial(string path)
         {
-            var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
-            try
-            {
-                var root = scene.GetRootGameObjects().Single(g => g.activeSelf && g.GetComponent<LocaleSky>()).transform;
-                var starfield = root.Find("StarField");
-                Assert.IsNotNull(starfield, $"No StarField sky layer under {scenePath}'s LocaleSky root.");
-                var material = starfield.GetComponent<MeshRenderer>().sharedMaterial;
-                Assert.AreSame(LoadMaterial(), material.parent ? material.parent : material,
-                    "The starfield must use the production material or a per-locale variant of it.");
-            }
-            finally
-            {
-                EditorSceneManager.CloseScene(scene, true);
-            }
+            using var locale = new OpenLocale(path);
+            var starfield = locale.Sky.Find("StarField");
+            Assert.IsNotNull(starfield, $"No StarField sky layer under {path}'s Sky root.");
+            var material = starfield.GetComponent<MeshRenderer>().sharedMaterial;
+            Assert.AreSame(LoadMaterial(), material.parent ? material.parent : material,
+                "The starfield must use the production material or a per-locale variant of it.");
         }
     }
 }

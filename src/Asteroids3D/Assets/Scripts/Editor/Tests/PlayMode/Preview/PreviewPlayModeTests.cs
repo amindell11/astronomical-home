@@ -11,6 +11,7 @@ using Game.Travel;
 using NUnit.Framework;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
+using Substrate.Services.Locales;
 using Substrate.Services.Units;
 using Substrate.Sessions;
 using Tests.PlayMode.Common;
@@ -23,7 +24,6 @@ using UI.Screens;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
-using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
@@ -157,7 +157,7 @@ namespace Tests.PlayMode.Preview
 
             host.SelectMode(PreviewMode.Inspection);
             yield return AsyncAssert.WaitUntil(() => host.IsReady && host.Subject != null, 30f, "jump inspection composes");
-            Assert.That(SceneManager.GetSceneByName("Locale_1").isLoaded, Is.True);
+            Assert.That(LocaleInstances.Loaded("Locale_1"), Is.True);
             Assert.That(Time.timeScale, Is.Zero);
             host.Transport.Playing = false;
             host.Transport.Scrub(0, 3f);
@@ -182,8 +182,8 @@ namespace Tests.PlayMode.Preview
             host.SelectMode(PreviewMode.Playtest);
             yield return WaitForFlight();
             Assert.That(host.RecapFeel, Is.SameAs(selectedRecap));
-            Assert.That(SceneManager.GetSceneByName("Locale_1").isLoaded, Is.False);
-            Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("Locale_3"));
+            Assert.That(LocaleInstances.Loaded("Locale_1"), Is.False);
+            Assert.That(LocaleInstances.Shown(), Is.EqualTo("Locale_3"));
             Assert.That(Time.timeScale, Is.EqualTo(1f));
             Assert.That(Object.FindObjectsByType<GameHost>(FindObjectsSortMode.None).Length, Is.EqualTo(1));
             Assert.That(InputSystem.ListEnabledActions().Count(action => action.name == "Thrust"), Is.EqualTo(1));
@@ -278,6 +278,7 @@ namespace Tests.PlayMode.Preview
         public IEnumerator ComposeFault_FaultsTheHost_AndModeSwitchRestartAndShutdownRefuseInsteadOfWaiting()
         {
             LogAssert.Expect(LogType.Exception, new Regex("requires a feel profile and shader"));
+            var bootLighting = LightingSnapshot.Capture();
             BuildPreview(PreviewMode.Inspection, PreviewSubjectKind.SectorJump, jumpShader: false);
             host.SelectMode(PreviewMode.Playtest);
             yield return AsyncAssert.WaitUntil(() => host.Fault != null, 45f, "the subject's compose faults the host");
@@ -290,14 +291,13 @@ namespace Tests.PlayMode.Preview
             Assert.Throws<System.InvalidOperationException>(() => host.SelectSubject(PreviewSubjectKind.RunRecap));
             var shutdown = host.Shutdown();
             Assert.That(Assert.Catch(() => shutdown.MoveNext()), Is.SameAs(host.Fault));
-            // The faulted host never tears its session down, so its locale stays loaded.
+            // The faulted host never tears its session down, so it never restores the boot lighting.
             var faulted = host.gameObject;
             host = null;
             faulted.GetComponent<UnitService>().Clear();
             Object.Destroy(faulted);
             yield return null;
-            if (SceneManager.GetSceneByName("Locale_3").isLoaded)
-                yield return SceneManager.UnloadSceneAsync("Locale_3");
+            bootLighting.Restore();
         }
 
         [UnityTest]
@@ -338,7 +338,7 @@ namespace Tests.PlayMode.Preview
             yield return LaunchFromHangar(crowded);
             Assert.That(combat == null, Is.True);
             Assert.That(crowded.sessionProfile.sectors, Is.SameAs(host.crowdedJumpSectors));
-            Assert.That(crowded.sessionProfile.idleLocale.SceneName, Is.EqualTo(shipped.sessionProfile.idleLocale.SceneName));
+            Assert.That(crowded.sessionProfile.idleLocale, Is.SameAs(shipped.sessionProfile.idleLocale));
             Assert.That(crowded.ActiveSector.name, Does.StartWith("CrowdedJumpDeparture"));
             Assert.That(Object.FindObjectsByType<GameHost>(FindObjectsSortMode.None).Length, Is.EqualTo(1));
             Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None).Length, Is.EqualTo(1));
@@ -349,7 +349,7 @@ namespace Tests.PlayMode.Preview
             HangarScreen hangar = null;
             yield return AsyncAssert.WaitUntil(() => (hangar = game.GetComponentInChildren<HangarScreen>()) != null, 45f,
                 "the shipped run opens in the hangar");
-            Assert.That(SceneManager.GetSceneByName(game.sessionProfile.idleLocale.SceneName).isLoaded, Is.True,
+            Assert.That(LocaleInstances.Shown(), Is.EqualTo(game.sessionProfile.idleLocale.name),
                 "the idle locale shows behind the hangar");
             hangar.launchButton.onClick.Invoke();
             yield return AsyncAssert.WaitUntil(() => game.ActiveSector != null, 45f, "Launch loads the first sector");
@@ -415,6 +415,7 @@ namespace Tests.PlayMode.Preview
             host.subjectKind = subject;
             host.gameHostPrefab = gameHost;
             host.sessionProfile = profile;
+            host.jumpDestination = TestAssets.Load<LocaleSky>("Assets/Prefabs/Locales/Locale_1.prefab");
             host.recapFeel = handedRecap = Object.Instantiate(gameHost.recapFeel);
             host.jumpFeel = handedJump = Object.Instantiate(gameHost.jumpFeel);
             host.canopyFeel = handedCanopy = Object.Instantiate(gameHost.playerRig.AuthoredCanopyProfile);

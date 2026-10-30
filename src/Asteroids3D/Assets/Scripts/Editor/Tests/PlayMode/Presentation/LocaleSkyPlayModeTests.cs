@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using Substrate;
 using Substrate.Services.Locales;
+using Tests.PlayMode.Common;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
 namespace Tests.PlayMode.Presentation
@@ -17,78 +17,85 @@ namespace Tests.PlayMode.Presentation
     {
         private const string SkyTrianglePath = "Assets/Visuals/Locales/Sky/SkyTriangle.asset";
 
-        private Scene original;
-        private Scene first;
-        private Scene second;
+        private readonly List<GameObject> roots = new();
         private GameObject cameraRoot;
         private Texture2D texture;
         private Material material;
         private RenderTexture target;
+        private LightingSnapshot bootLighting;
 
-        [UnitySetUp]
-        public IEnumerator SetUp()
+        [SetUp]
+        public void SetUp()
         {
             Assert.That(LayerIds.Sky, Is.GreaterThanOrEqualTo(0), "test premise: the Sky layer exists");
-            original = SceneManager.GetActiveScene();
-            first = SceneManager.CreateScene("Locale A");
-            second = SceneManager.CreateScene("Locale B");
-            yield return null;
+            bootLighting = LightingSnapshot.Capture();
         }
 
-        [UnityTearDown]
-        public IEnumerator TearDown()
+        [TearDown]
+        public void TearDown()
         {
+            foreach (var root in roots) Object.Destroy(root);
+            roots.Clear();
             if (cameraRoot) Object.Destroy(cameraRoot);
             if (material) Object.Destroy(material);
             if (texture) Object.Destroy(texture);
             if (target) { target.Release(); Object.Destroy(target); }
-            SceneManager.SetActiveScene(original);
-            yield return SceneManager.UnloadSceneAsync(first);
-            yield return SceneManager.UnloadSceneAsync(second);
+            bootLighting.Restore();
         }
 
         [UnityTest]
-        public IEnumerator ActiveSceneSwap_EnablesOnlyTheActiveRootsLayers()
+        public IEnumerator SetVisible_EnablesOnlyTheShownLocalesLayers()
         {
-            SceneManager.SetActiveScene(first);
-            var a = BuildRoot(first, null);
-            var b = BuildRoot(second, null);
+            var a = BuildLocale(null, out var aLayer);
+            var b = BuildLocale(null, out var bLayer);
+            Wake(a, b);
+            a.SetVisible(true);
+            b.SetVisible(false);
             yield return null;
-            Assert.IsTrue(a.enabled, "the active locale's sky layers draw");
-            Assert.IsFalse(b.enabled, "an inactive loaded locale's sky layers stay off");
+            Assert.IsTrue(aLayer.enabled, "the shown locale's sky layers draw");
+            Assert.IsFalse(bLayer.enabled, "a loaded locale that is not shown keeps its sky layers off");
 
-            SceneManager.SetActiveScene(second);
+            a.SetVisible(false);
+            b.SetVisible(true);
             yield return null;
-            Assert.IsFalse(a.enabled, "the previously active locale's sky layers turn off");
-            Assert.IsTrue(b.enabled, "the newly active locale's sky layers turn on");
+            Assert.IsFalse(aLayer.enabled, "the previously shown locale's sky layers turn off");
+            Assert.IsTrue(bLayer.enabled, "the newly shown locale's sky layers turn on");
         }
 
         [UnityTest]
-        public IEnumerator ActiveSceneSwap_EnablesOnlyTheActiveLocalesVolume()
+        public IEnumerator SetVisible_EnablesOnlyTheShownLocalesVolumeAndLight()
         {
-            SceneManager.SetActiveScene(first);
-            var a = AddVolume(first);
-            var b = AddVolume(second);
-            BuildRoot(first, null);
-            BuildRoot(second, null);
+            var a = BuildLocale(null, out _);
+            var b = BuildLocale(null, out _);
+            var aVolume = AddFollower<Volume>(a);
+            var bVolume = AddFollower<Volume>(b);
+            var aLight = AddFollower<Light>(a);
+            var bLight = AddFollower<Light>(b);
+            Wake(a, b);
+            a.SetVisible(true);
+            b.SetVisible(false);
             yield return null;
-            Assert.IsTrue(a.enabled, "the active locale grades the world");
-            Assert.IsFalse(b.enabled, "a preloaded locale's volume stays off");
+            Assert.IsTrue(aVolume.enabled && aLight.enabled, "the shown locale grades and lights the world");
+            Assert.IsFalse(bVolume.enabled || bLight.enabled, "a preloaded locale's volume and light stay off");
 
-            SceneManager.SetActiveScene(second);
+            a.SetVisible(false);
+            b.SetVisible(true);
             yield return null;
-            Assert.IsFalse(a.enabled, "the previously active locale stops grading");
-            Assert.IsTrue(b.enabled, "the newly active locale grades the world");
+            Assert.IsFalse(aVolume.enabled || aLight.enabled, "the previously shown locale stops grading and lighting");
+            Assert.IsTrue(bVolume.enabled && bLight.enabled, "the newly shown locale grades and lights the world");
         }
 
         [UnityTest, Category("RequiresGraphics")]
-        public IEnumerator BackdropRender_EnablesEachImagesOwnVolume_ThenRestoresTheActiveOne()
+        public IEnumerator BackdropRender_UsesEachImagesOwnVolumeAndLighting_ThenRestoresTheShownLocale()
         {
-            SceneManager.SetActiveScene(first);
-            var a = AddVolume(first);
-            var b = AddVolume(second);
-            BuildRoot(first, null);
-            BuildRoot(second, null);
+            var a = BuildLocale(null, out _, new Color(0.3f, 0.1f, 0.1f));
+            var b = BuildLocale(null, out _, new Color(0.1f, 0.3f, 0.1f));
+            var aVolume = AddFollower<Volume>(a);
+            var bVolume = AddFollower<Volume>(b);
+            Wake(a, b);
+            a.SetVisible(true);
+            a.ApplyLighting();
+            b.SetVisible(false);
             cameraRoot = new GameObject("Backdrop camera");
             var camera = cameraRoot.AddComponent<Camera>();
             camera.enabled = false;
@@ -97,11 +104,12 @@ namespace Tests.PlayMode.Presentation
             var pairRoot = new GameObject("Locale backdrop pair");
             pairRoot.transform.SetParent(cameraRoot.transform);
             var pair = pairRoot.AddComponent<LocaleBackdropPair>();
-            pair.Initialize(first, second, () => { });
+            pair.Initialize(a, b, () => { });
             var rendered = new List<string>();
             void Record(ScriptableRenderContext _, Camera current)
             {
-                if (current == camera) rendered.Add($"first {a.enabled}, second {b.enabled}");
+                if (current == camera)
+                    rendered.Add($"first {aVolume.enabled}, second {bVolume.enabled}, ambient {RenderSettings.ambientLight}");
             }
             var arrival = RenderTexture.GetTemporary(target.descriptor);
             RenderPipelineManager.beginCameraRendering += Record;
@@ -111,29 +119,14 @@ namespace Tests.PlayMode.Presentation
                 RenderPipelineManager.beginCameraRendering -= Record;
                 RenderTexture.ReleaseTemporary(arrival);
             }
-            Assert.That(rendered, Is.EqualTo(new[] { "first True, second False", "first False, second True" }),
-                "each travel image renders under its own locale's volume");
-            Assert.IsTrue(a.enabled && !b.enabled, "the active locale alone grades the world after the backdrop renders");
+            Assert.That(rendered, Is.EqualTo(new[]
+            {
+                $"first True, second False, ambient {new Color(0.3f, 0.1f, 0.1f)}",
+                $"first False, second True, ambient {new Color(0.1f, 0.3f, 0.1f)}"
+            }), "each travel image renders under its own locale's volume and lighting");
+            Assert.IsTrue(aVolume.enabled && !bVolume.enabled, "the shown locale alone grades the world after the backdrop renders");
+            Assert.AreEqual(new Color(0.3f, 0.1f, 0.1f), RenderSettings.ambientLight, "the shown locale's lighting returns");
             yield return null;
-        }
-
-        [UnityTest]
-        public IEnumerator BackdropToASkylessLocale_FailsWithoutHoldingAHalfBuiltPair()
-        {
-            SceneManager.SetActiveScene(first);
-            BuildRoot(first, null);
-            var locales = new LocaleService();
-            yield return locales.ApplyLocaleAsync(first.name);
-            cameraRoot = new GameObject("Backdrop parent");
-            Assert.That(() => locales.PrepareBackdrop(second.name, cameraRoot.transform, _ => { }).MoveNext(),
-                Throws.InvalidOperationException.With.Message.Contains("no LocaleSky"));
-            yield return null;
-            Assert.That(cameraRoot.transform.childCount, Is.Zero, "the failed pair is destroyed");
-
-            BuildRoot(second, null);
-            LocaleBackdropPair pair = null;
-            yield return locales.PrepareBackdrop(second.name, cameraRoot.transform, built => pair = built);
-            Assert.That(pair, Is.Not.Null, "the next backdrop is not refused as already held");
         }
 
         [UnityTest, Category("RequiresGraphics")]
@@ -145,8 +138,9 @@ namespace Tests.PlayMode.Presentation
             texture.SetPixels(colors);
             texture.Apply();
             material = new Material(Shader.Find("Locales/Flat Background")) { mainTexture = texture };
-            SceneManager.SetActiveScene(first);
-            BuildRoot(first, material);
+            var sky = BuildLocale(material, out _);
+            Wake(sky);
+            sky.SetVisible(true);
 
             cameraRoot = new GameObject("Flight camera");
             var camera = cameraRoot.AddComponent<Camera>();
@@ -171,7 +165,7 @@ namespace Tests.PlayMode.Presentation
             var pairRoot = new GameObject("Shared locale backdrop");
             pairRoot.transform.SetParent(cameraRoot.transform);
             var pair = pairRoot.AddComponent<LocaleBackdropPair>();
-            pair.Initialize(first, first, () => { });
+            pair.Initialize(sky, sky, () => { });
             var arrival = RenderTexture.GetTemporary(target.descriptor);
             try
             {
@@ -183,28 +177,37 @@ namespace Tests.PlayMode.Presentation
             finally { RenderTexture.ReleaseTemporary(arrival); }
         }
 
-        private static MeshRenderer BuildRoot(Scene scene, Material layerMaterial)
+        private LocaleSky BuildLocale(Material layerMaterial, out MeshRenderer layer, Color ambient = default)
         {
-            var root = new GameObject("Sky");
+            var root = new GameObject("Locale");
             root.SetActive(false);
-            SceneManager.MoveGameObjectToScene(root, scene);
-            var layer = new GameObject("Layer") { layer = LayerIds.Sky };
-            layer.transform.SetParent(root.transform, false);
-            layer.AddComponent<MeshFilter>().sharedMesh = AssetDatabase.LoadAssetAtPath<Mesh>(SkyTrianglePath);
-            var renderer = layer.AddComponent<MeshRenderer>();
-            renderer.sharedMaterial = layerMaterial;
-            root.AddComponent<LocaleSky>();
-            root.SetActive(true);
-            return renderer;
+            roots.Add(root);
+            var layerObject = new GameObject("Layer") { layer = LayerIds.Sky };
+            layerObject.transform.SetParent(root.transform, false);
+            layerObject.AddComponent<MeshFilter>().sharedMesh = AssetDatabase.LoadAssetAtPath<Mesh>(SkyTrianglePath);
+            layer = layerObject.AddComponent<MeshRenderer>();
+            layer.sharedMaterial = layerMaterial;
+            var sky = root.AddComponent<LocaleSky>();
+            var lighting = new SerializedObject(sky);
+            lighting.FindProperty("lighting.ambientMode").intValue = (int)AmbientMode.Flat;
+            lighting.FindProperty("lighting.ambientSkyColor").colorValue = ambient;
+            lighting.ApplyModifiedPropertiesWithoutUndo();
+            return sky;
         }
 
-        private static Volume AddVolume(Scene scene)
+        private static void Wake(params LocaleSky[] skies)
         {
-            var atmosphere = new GameObject("Atmosphere");
-            SceneManager.MoveGameObjectToScene(atmosphere, scene);
-            var volume = atmosphere.AddComponent<Volume>();
-            volume.isGlobal = true;
-            return volume;
+            foreach (var sky in skies) sky.gameObject.SetActive(true);
+        }
+
+        // A locale finds its followers once, when it wakes, so they join while it is still inactive.
+        private static T AddFollower<T>(LocaleSky sky) where T : Behaviour
+        {
+            var follower = new GameObject(typeof(T).Name);
+            follower.transform.SetParent(sky.transform, false);
+            var component = follower.AddComponent<T>();
+            if (component is Volume volume) volume.isGlobal = true;
+            return component;
         }
 
         private Color ReadCenter()

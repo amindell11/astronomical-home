@@ -1,3 +1,4 @@
+using Substrate.Services.Locales;
 using UnityEngine;
 
 namespace Substrate.Sectors
@@ -9,12 +10,12 @@ namespace Substrate.Sectors
         [SerializeField] private int difficultySeed;
 
         [Header("Locale")]
-        [Tooltip("Locale scene supplying this sector's sky layers / ambient / reflection / fog / audio. " +
+        [Tooltip("Locale prefab supplying this sector's sky layers / lighting / audio. " +
                  "Required for any sector a player sees; only runtime-built headless configs leave it unassigned.")]
-        [SerializeField] private SceneReference locale;
+        [SerializeField] private LocaleSky locale;
 
         public string DisplayName => displayName;
         public int DifficultySeed => difficultySeed;
-        public SceneReference Locale => locale;
+        public LocaleSky Locale => locale;
     }
 }
