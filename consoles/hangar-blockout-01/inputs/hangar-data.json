@@ -1,0 +1,37 @@
+{
+  "sourceCommit": "5f6894e831a63be2ec58b9342119f13ef6342540",
+  "screenSource": "src/Asteroids3D/Assets/Prefabs/UI/HangarScreen.prefab",
+  "bindingSource": "src/Asteroids3D/Assets/Scripts/UI/Hangar/HangarScreen.cs",
+  "loadoutSource": "src/Asteroids3D/Assets/Scripts/Ships/Loadout/ShipLoadout.cs",
+  "title": "HANGAR",
+  "rows": ["SHIP", "PRIMARY", "SECONDARY"],
+  "samples": {
+    "Valis": {
+      "ship": "Valis",
+      "primary": "Lasers",
+      "secondary": "Missiles",
+      "source": "Assets/Prefabs/Ships/Valis.prefab inherits primaryMount and secondaryMount from ShipBase.prefab"
+    },
+    "Nightshade": {
+      "ship": "Nightshade",
+      "primary": "TurboLasers",
+      "secondary": "Missiles",
+      "source": "Assets/Prefabs/Ships/Nightshade.prefab overrides primaryMount to TurboLasers.prefab and secondaryMount to Missiles.prefab"
+    }
+  },
+  "stats": "HangarScreen.Refresh leaves stats empty with no hovered row. No invented readouts are shown.",
+  "control": "CALL",
+  "controlAuthority": "Owner hangar ruling 2026-10-30 replaces Launch with a physical Call control. Final copy remains later.",
+  "capture": {
+    "source": "D:/amind/git/agent-1/results/hangar-carousel/single-frames",
+    "publishedReview": "https://github.com/amindell11/astronomical-home/pull/1076",
+    "publishedEvidence": "9320368e26e398668f58ed7be83f244fea8046cc",
+    "fps": 30,
+    "frames": 180,
+    "width": 1280,
+    "height": 720,
+    "backgroundRGB": [9, 13, 23],
+    "blenderFrames": {"1-60": "Valis", "61-120": "Nightshade", "121-180": "Valis"},
+    "note": "Actual Unity preview RenderTexture pixels from the shipped carousel review, not a fresh capture. Background is keyed by a Blender material; original RGB frames are unchanged. Current authored weapon data is separate from the older capture fixture's initial null weapons."
+  }
+}

@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hangar dispatch blockout</title>
+<style>
+body{margin:0;background:#121418;color:#ddd;font:15px/1.5 system-ui,sans-serif}main{max-width:1440px;margin:auto;padding:20px}h1{font-size:22px;font-weight:500;margin:0 0 6px}p{margin:8px 0 16px;color:#b8bdc6}a{color:#eee}img,video{display:block;width:100%;height:auto;background:#08090c}section{margin-top:24px}h2{font-size:17px;font-weight:500}nav{display:flex;gap:20px;flex-wrap:wrap;margin:12px 0 20px}details{margin-top:22px}summary{cursor:pointer}
+</style>
+</head>
+<body><main>
+<h1>Hangar dispatch blockout</h1>
+<p>Station dock, one camera, grey console geometry. The real preview flights play above the projector. Call is a physical button.</p>
+<nav><a href="hangar-blockout.blend">Editable Blender file</a><a href="README.md">Editing guide and sources</a><a href="../lighting-01/electronic-light-contrast-nb2.jpg">Lighting C, for the later paint-over</a></nav>
+<img src="renders/blockout-valis.png" alt="Grey dispatch terminal standing on a station dock, real Valis preview above the projector and a physical Call button">
+<section><h2>The captured preview flights</h2>
+<p>Entry, Next at two seconds, Previous at four seconds. The screen data follows the selected hull. This is a Blender render of the actual captured motion.</p>
+<video controls loop muted playsinline preload="metadata" poster="renders/blockout-valis.png"><source src="renders/preview-flights.mp4" type="video/mp4"></video>
+<p><a href="renders/preview-flights.gif">GIF version</a></p></section>
+<details><summary>Nightshade view</summary><img src="renders/blockout-nightshade.png" alt="The same camera and console with Nightshade selected, TurboLasers primary and Missiles secondary"></details>
+<section><h2>Ready for layout review</h2>
+<p>The meshes, text, projector position, Call assembly and camera are editable in Blender. The source opens at frame 46. Scrub to frame 106 for Nightshade or 166 for Valis returned.</p>
+<p>The hull is a transparent captured image plane at this stage. The finished hologram shader and Call arrival beat come later. No paint-over has run; it waits for your blockout approval.</p>
+</section>
+</main></body></html>
