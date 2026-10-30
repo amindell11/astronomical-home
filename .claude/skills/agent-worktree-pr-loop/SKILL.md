@@ -231,8 +231,11 @@ files, tests, the verify command, and the closing `STATUS: DONE | BLOCKED` /
 `python scripts/grok_worker.py --slot <slot> --brief <file> --verify "<cmd>"`
 with `run_in_background: true` and wait for its notification; never poll its
 output. `<cmd>` exits 0 on pass, 1 when the change is wrong, and anything else
-when it cannot judge; use a scoped `./scripts/agent_worktree_pool.sh run-tests
-<slot> …` with `--fail-codes 1,2`, since its exit 2 covers compile failures.
+when it cannot judge. Use `./scripts/agent_worktree_pool.sh compile-check
+<slot>`, after a `compile-check <slot> --refresh` on the clean slot (a refresh
+needs no tracked changes, so it can't run mid-build); for test coverage, a
+scoped `run-tests <slot> …` with `--fail-codes 1,2`, since its exit 2 covers
+compile failures.
 Act on its `FALLBACK=` trailer (exit codes and the rest in its header):
 `none`, review the worker's diff, then test; `fix-verify`, fix the check (a
 stale snapshot, say) and rerun it on the worker's tree before deciding
