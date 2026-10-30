@@ -47,12 +47,12 @@ namespace UI.Projection
             });
             var old = graph.ImportTexture(history[previous]);
             var next = graph.ImportTexture(history[1 - previous]);
-            var settings = source.Profile.baseSettings;
+            var settings = source.Settings;
             using (var builder = graph.AddRasterRenderPass<PassData>("Canopy phosphor history", out var data))
             {
                 Fill(data, settings);
                 data.previous = old;
-                data.decay = historyValid && source.PersonalityEnabled && settings.afterglow > 0f
+                data.decay = historyValid && source.EffectsEnabled && settings.afterglow > 0f
                     ? Mathf.Exp(-Time.unscaledDeltaTime / Mathf.Max(.001f, settings.afterglow)) : 0f;
                 builder.UseTexture(ink, AccessFlags.Read);
                 builder.UseTexture(old, AccessFlags.Read);
@@ -90,7 +90,7 @@ namespace UI.Projection
             data.settings = settings;
             data.resolution = new Vector4(source.Ink.rt.width, source.Ink.rt.height, 0f, 0f);
             data.time = Time.unscaledTime;
-            data.enabled = source.PersonalityEnabled;
+            data.enabled = source.EffectsEnabled;
             data.appearanceAge = source.AppearanceAge;
             data.transitionAge = source.TransitionAge;
             data.hitAge = source.HitAge;

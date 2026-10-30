@@ -63,6 +63,7 @@ namespace Game.Preview
         {
             host.recapFeel = copies.For(host.gameHostPrefab.recapFeel);
             host.jumpFeel = copies.For(host.gameHostPrefab.jumpFeel);
+            host.canopyFeel = copies.For(host.gameHostPrefab.playerRig.AuthoredCanopyProfile);
             host.gameObject.SetActive(true);
         }
 

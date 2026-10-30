@@ -85,6 +85,9 @@ namespace Game
         private SessionFrame frame;
         private CanopyProjection projection;
 
+        public CanopyProjection Projection => projection;
+        public CanopyProjectionProfile AuthoredCanopyProfile => uiCamPrefab.Profile;
+
         // The prefab the current Player instance was built from — a hangar ship change is detected
         // against this (the prefab is the archetype; see ShipLoadout.Ship).
         private Ship currentTemplate;
@@ -99,7 +102,8 @@ namespace Game
         /// already has a subscriber.
         /// </summary>
         public IEnumerator Build(IUnitService units, IObjectiveService objectives, bool presentationEnabled,
-            ObserverCam observer, Transform uiRoot, SessionFrame frame, Action<ShipId, DamageInfo> onPlayerDeath)
+            ObserverCam observer, Transform uiRoot, SessionFrame frame, Action<ShipId, DamageInfo> onPlayerDeath,
+            CanopyProjectionProfile canopyProfileOverride = null)
         {
             this.units = units;
             this.observer = observer;
@@ -124,7 +128,7 @@ namespace Game
                 if (!minimapCamPrefab)
                     throw new InvalidOperationException($"PlayerRig on '{name}' needs a minimap camera for its HUD.");
                 projection = Instantiate(uiCamPrefab, observer.transform);
-                projection.Initialize(observer.Cam);
+                projection.Initialize(observer.Cam, canopyProfileOverride);
                 var uiCam = projection.Camera;
 
                 Overlay = Instantiate(overlayPrefab, uiRoot);
