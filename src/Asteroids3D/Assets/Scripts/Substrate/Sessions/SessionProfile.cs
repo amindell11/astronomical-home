@@ -1,4 +1,5 @@
 using Substrate.Sectors;
+using Substrate.Services.Locales;
 using UnityEngine;
 
 namespace Substrate.Sessions
@@ -14,9 +15,9 @@ namespace Substrate.Sessions
         [Tooltip("The sectors to load, in order; the host decides when to move to the next.")]
         public SectorEntry[] sectors;
 
-        [Tooltip("Locale shown while no sector is loaded; a sector naming the same locale keeps it loaded. " +
-                 "Unassigned → the boot scene, which carries no sky.")]
-        public SceneReference idleLocale;
+        [Tooltip("Locale shown while no sector is loaded; a sector naming the same locale keeps its instance. " +
+                 "Unassigned → no sky, under the boot scene's lighting.")]
+        public LocaleSky idleLocale;
 
         [Tooltip("When false, ship visual rigs, HUD/UI and one-shot VFX are disabled (headless/RL) — " +
                  "ships stay renderer/audio/particle-free while fully simulated.")]

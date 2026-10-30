@@ -7,6 +7,7 @@ using Game.Runs;
 using Game.Travel;
 using Ships;
 using Substrate.Results;
+using Substrate.Services.Locales;
 using Substrate.Services.Objectives;
 using Substrate.Services.Units;
 using Substrate.Sessions;
@@ -41,6 +42,7 @@ namespace Game.Preview
         [SerializeField] internal GameHost gameHostPrefab;
         [SerializeField] internal SessionProfile sessionProfile;
         [SerializeField] internal SectorEntry[] crowdedJumpSectors;
+        [SerializeField] internal LocaleSky jumpDestination;
         [SerializeField] internal PreviewSubjectKind subjectKind;
         [SerializeField] internal PreviewMode mode;
         [SerializeField] internal PreviewPlaytestSetup playtestSetup;
@@ -249,7 +251,7 @@ namespace Game.Preview
         {
             PreviewSubjectKind.RunRecap => new RecapPreviewSubject(recapFeel, feel => recapFeel = feel),
             PreviewSubjectKind.SectorJump => new SectorJumpPreviewSubject(jumpFeel, gameHostPrefab.jumpShader,
-                feel => jumpFeel = feel),
+                jumpDestination, feel => jumpFeel = feel),
             _ => throw new ArgumentOutOfRangeException(nameof(subjectKind), subjectKind, "Unknown preview subject.")
         };
 

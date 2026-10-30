@@ -1,4 +1,5 @@
 using Substrate.Sectors;
+using Substrate.Services.Locales;
 using Substrate.Sessions;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -19,6 +20,7 @@ namespace Game.Preview
         internal const string GameHostPath = "Assets/Prefabs/Game/GameHost.prefab";
         private const string SectorPrefabPath = "Assets/Prefabs/Sectors/TrialSector.prefab";
         private const string SectorConfigPath = "Assets/Settings/Game/SurvivalTrialConfig.asset";
+        private const string JumpDestinationPath = "Assets/Prefabs/Locales/Locale_1.prefab";
 
         static PreviewHostBootstrap() => EditorApplication.playModeStateChanged += ActivateWaitingHost;
 
@@ -53,6 +55,7 @@ namespace Game.Preview
                 presentation = true
             };
             host.crowdedJumpSectors = new[] { JumpEntry("CrowdedJumpDeparture"), JumpEntry("CrowdedJumpArrival") };
+            host.jumpDestination = AssetDatabase.LoadAssetAtPath<LocaleSky>(JumpDestinationPath);
             host.subjectKind = subject;
             host.mode = mode;
             host.playtestSetup = setup;
