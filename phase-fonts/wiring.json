@@ -1,0 +1,30 @@
+{
+  "success": true,
+  "command": "command eval_file",
+  "data": {
+    "command": "eval_file",
+    "parameters": {
+      "file": "D:/amind/git/agent-6/results/canopy-events/verify-fonts.cs"
+    },
+    "result": {
+      "output": null,
+      "diagnostics": [],
+      "success": true,
+      "result": {
+        "labelFont": "IBMPlexSans",
+        "readoutFont": "IBMPlexMono",
+        "headingFont": "Michroma",
+        "timerFont": "DSEG14Classic",
+        "textMaterial": "CanopyText",
+        "lockReticle": "UILockOnIndicator"
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7800,
+      "projectPath": "D:\\amind\\git\\agent-6\\src\\Asteroids3D"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}
