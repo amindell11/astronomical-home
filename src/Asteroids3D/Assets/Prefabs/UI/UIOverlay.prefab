@@ -620,10 +620,10 @@ MonoBehaviour:
   weaponResources: {fileID: 976607762061257238}
   lockReticle: {fileID: 1909242830012041073, guid: 8b42cad1f62b7f64b96a4ce6d2329c60,
     type: 3}
-  labelFont: {fileID: 12800000, guid: 9067c25fb7ff3a64b858fbf6c004f4a3, type: 3}
-  readoutFont: {fileID: 12800000, guid: 9b9bf3122dc49f54cb914635e03a6084, type: 3}
+  labelFont: {fileID: 12800000, guid: b03403ed07193c04d8661ff9cb84418b, type: 3}
+  readoutFont: {fileID: 12800000, guid: 841a481ee654a6e4db3281253434c975, type: 3}
   headingFont: {fileID: 12800000, guid: 754c2f511bf6e8b41a6ea1e10ea69956, type: 3}
-  timerFont: {fileID: 12800000, guid: c274c21d304ff4a4b976763fc510a9d3, type: 3}
+  timerFont: {fileID: 12800000, guid: 841a481ee654a6e4db3281253434c975, type: 3}
 --- !u!1 &4463188433804154887
 GameObject:
   m_ObjectHideFlags: 0

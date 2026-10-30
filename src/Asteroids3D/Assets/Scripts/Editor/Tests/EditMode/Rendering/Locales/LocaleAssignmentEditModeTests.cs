@@ -2,15 +2,16 @@ using System.Linq;
 using Game;
 using NUnit.Framework;
 using Substrate.Sectors;
+using Substrate.Services.Locales;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 
-namespace Tests.EditMode.Rendering
+namespace Tests.EditMode.Rendering.Locales
 {
     /// <summary>
-    /// The boot scene carries no sky, so every look the player sees comes from a named locale: each
+    /// The boot scene carries no sky, so every look the player sees comes from a locale prefab: each
     /// authored sector config names one, and the host names the idle locale shown between sectors.
-    /// Configs built at runtime (headless and RL sessions, which never apply locales) are exempt.
+    /// Configs built at runtime (headless and RL sessions, which never show locales) are exempt.
     /// </summary>
     [Category("Sectors")]
     public class LocaleAssignmentEditModeTests
@@ -19,21 +20,21 @@ namespace Tests.EditMode.Rendering
             .Select(AssetDatabase.GUIDToAssetPath).ToArray();
 
         [TestCaseSource(nameof(SectorConfigPaths))]
-        public void AuthoredSectorConfig_NamesABuiltLocale(string configPath)
+        public void AuthoredSectorConfig_NamesALocalePrefab(string configPath)
         {
             var config = AssetDatabase.LoadAssetAtPath<SectorSettings>(configPath);
-            AssertBuiltLocale(config.Locale, configPath);
+            AssertLocalePrefab(config.Locale, configPath);
         }
 
         [Test]
-        public void BootHost_NamesABuiltIdleLocale()
+        public void BootHost_NamesAnIdleLocalePrefab()
         {
             const string scenePath = "Assets/Scenes/InitScene.unity";
             var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
             try
             {
                 var host = scene.GetRootGameObjects().Select(g => g.GetComponentInChildren<GameHost>(true)).Single(h => h);
-                AssertBuiltLocale(host.sessionProfile.idleLocale, $"{scenePath} GameHost idle locale");
+                AssertLocalePrefab(host.sessionProfile.idleLocale, $"{scenePath} GameHost idle locale");
             }
             finally
             {
@@ -41,13 +42,11 @@ namespace Tests.EditMode.Rendering
             }
         }
 
-        private static void AssertBuiltLocale(SceneReference locale, string owner)
+        private static void AssertLocalePrefab(LocaleSky locale, string owner)
         {
-            var name = locale?.SceneName;
-            Assert.That(name, Is.Not.Null.And.Not.Empty, $"{owner}: no locale assigned, so it would render on black.");
-            Assert.That(EditorBuildSettings.scenes.Where(s => s.enabled)
-                    .Select(s => System.IO.Path.GetFileNameWithoutExtension(s.path)), Has.Member(name),
-                $"{owner}: locale '{name}' is not an enabled Build Settings scene.");
+            Assert.IsTrue(locale, $"{owner}: no locale assigned, so it would render on black.");
+            Assert.IsTrue(PrefabUtility.IsPartOfPrefabAsset(locale),
+                $"{owner}: locale '{locale.name}' must be a prefab asset, not a scene object.");
         }
     }
 }
