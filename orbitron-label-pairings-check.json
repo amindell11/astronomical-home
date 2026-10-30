@@ -1,0 +1,648 @@
+{
+  "fonts": [
+    {
+      "family": "Orbitron",
+      "weight": 500,
+      "loaded": true
+    },
+    {
+      "family": "Chakra Petch",
+      "weight": 500,
+      "loaded": true
+    },
+    {
+      "family": "Rajdhani",
+      "weight": 500,
+      "loaded": true
+    },
+    {
+      "family": "Share Tech",
+      "weight": 400,
+      "loaded": true
+    }
+  ],
+  "layouts": [
+    {
+      "width": 704,
+      "scrollWidth": 704,
+      "resolution": "1080",
+      "timer": [
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "55.2px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "55.2px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "55.2px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "55.2px"
+        }
+      ],
+      "caption": [
+        {
+          "font": "\"Chakra Petch\", sans-serif",
+          "weight": "500",
+          "size": "12px"
+        },
+        {
+          "font": "Rajdhani, sans-serif",
+          "weight": "500",
+          "size": "12px"
+        },
+        {
+          "font": "\"Share Tech\", sans-serif",
+          "weight": "400",
+          "size": "12px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "12px"
+        }
+      ],
+      "status": [
+        {
+          "font": "\"Chakra Petch\", sans-serif",
+          "weight": "500",
+          "size": "24px"
+        },
+        {
+          "font": "Rajdhani, sans-serif",
+          "weight": "500",
+          "size": "24px"
+        },
+        {
+          "font": "\"Share Tech\", sans-serif",
+          "weight": "400",
+          "size": "24px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "24px"
+        }
+      ],
+      "prompt": [
+        {
+          "font": "\"Chakra Petch\", sans-serif",
+          "weight": "500",
+          "size": "24px"
+        },
+        {
+          "font": "Rajdhani, sans-serif",
+          "weight": "500",
+          "size": "24px"
+        },
+        {
+          "font": "\"Share Tech\", sans-serif",
+          "weight": "400",
+          "size": "24px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "24px"
+        }
+      ],
+      "weapon": [
+        {
+          "font": "\"Chakra Petch\", sans-serif",
+          "weight": "500",
+          "size": "16.992px"
+        },
+        {
+          "font": "Rajdhani, sans-serif",
+          "weight": "500",
+          "size": "16.992px"
+        },
+        {
+          "font": "\"Share Tech\", sans-serif",
+          "weight": "400",
+          "size": "16.992px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "16.992px"
+        }
+      ],
+      "resource": [
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "12px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "12px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "12px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "12px"
+        }
+      ],
+      "overflow": [
+        {
+          "width": 704,
+          "scroll": 704
+        },
+        {
+          "width": 704,
+          "scroll": 704
+        },
+        {
+          "width": 704,
+          "scroll": 704
+        },
+        {
+          "width": 704,
+          "scroll": 704
+        }
+      ]
+    },
+    {
+      "width": 704,
+      "scrollWidth": 704,
+      "resolution": "720",
+      "timer": [
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "36.8px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "36.8px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "36.8px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "36.8px"
+        }
+      ],
+      "caption": [
+        {
+          "font": "\"Chakra Petch\", sans-serif",
+          "weight": "500",
+          "size": "8px"
+        },
+        {
+          "font": "Rajdhani, sans-serif",
+          "weight": "500",
+          "size": "8px"
+        },
+        {
+          "font": "\"Share Tech\", sans-serif",
+          "weight": "400",
+          "size": "8px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "8px"
+        }
+      ],
+      "status": [
+        {
+          "font": "\"Chakra Petch\", sans-serif",
+          "weight": "500",
+          "size": "16px"
+        },
+        {
+          "font": "Rajdhani, sans-serif",
+          "weight": "500",
+          "size": "16px"
+        },
+        {
+          "font": "\"Share Tech\", sans-serif",
+          "weight": "400",
+          "size": "16px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "16px"
+        }
+      ],
+      "prompt": [
+        {
+          "font": "\"Chakra Petch\", sans-serif",
+          "weight": "500",
+          "size": "16px"
+        },
+        {
+          "font": "Rajdhani, sans-serif",
+          "weight": "500",
+          "size": "16px"
+        },
+        {
+          "font": "\"Share Tech\", sans-serif",
+          "weight": "400",
+          "size": "16px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "16px"
+        }
+      ],
+      "weapon": [
+        {
+          "font": "\"Chakra Petch\", sans-serif",
+          "weight": "500",
+          "size": "11.328px"
+        },
+        {
+          "font": "Rajdhani, sans-serif",
+          "weight": "500",
+          "size": "11.328px"
+        },
+        {
+          "font": "\"Share Tech\", sans-serif",
+          "weight": "400",
+          "size": "11.328px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "11.328px"
+        }
+      ],
+      "resource": [
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "12px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "12px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "12px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "12px"
+        }
+      ],
+      "overflow": [
+        {
+          "width": 704,
+          "scroll": 704
+        },
+        {
+          "width": 704,
+          "scroll": 704
+        },
+        {
+          "width": 704,
+          "scroll": 704
+        },
+        {
+          "width": 704,
+          "scroll": 704
+        }
+      ]
+    },
+    {
+      "width": 288,
+      "scrollWidth": 288,
+      "resolution": "1080",
+      "timer": [
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "55.2px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "55.2px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "55.2px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "55.2px"
+        }
+      ],
+      "caption": [
+        {
+          "font": "\"Chakra Petch\", sans-serif",
+          "weight": "500",
+          "size": "12px"
+        },
+        {
+          "font": "Rajdhani, sans-serif",
+          "weight": "500",
+          "size": "12px"
+        },
+        {
+          "font": "\"Share Tech\", sans-serif",
+          "weight": "400",
+          "size": "12px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "12px"
+        }
+      ],
+      "status": [
+        {
+          "font": "\"Chakra Petch\", sans-serif",
+          "weight": "500",
+          "size": "24px"
+        },
+        {
+          "font": "Rajdhani, sans-serif",
+          "weight": "500",
+          "size": "24px"
+        },
+        {
+          "font": "\"Share Tech\", sans-serif",
+          "weight": "400",
+          "size": "24px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "24px"
+        }
+      ],
+      "prompt": [
+        {
+          "font": "\"Chakra Petch\", sans-serif",
+          "weight": "500",
+          "size": "24px"
+        },
+        {
+          "font": "Rajdhani, sans-serif",
+          "weight": "500",
+          "size": "24px"
+        },
+        {
+          "font": "\"Share Tech\", sans-serif",
+          "weight": "400",
+          "size": "24px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "24px"
+        }
+      ],
+      "weapon": [
+        {
+          "font": "\"Chakra Petch\", sans-serif",
+          "weight": "500",
+          "size": "16.992px"
+        },
+        {
+          "font": "Rajdhani, sans-serif",
+          "weight": "500",
+          "size": "16.992px"
+        },
+        {
+          "font": "\"Share Tech\", sans-serif",
+          "weight": "400",
+          "size": "16.992px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "16.992px"
+        }
+      ],
+      "resource": [
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "12px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "12px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "12px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "12px"
+        }
+      ],
+      "overflow": [
+        {
+          "width": 288,
+          "scroll": 288
+        },
+        {
+          "width": 288,
+          "scroll": 288
+        },
+        {
+          "width": 288,
+          "scroll": 288
+        },
+        {
+          "width": 288,
+          "scroll": 288
+        }
+      ]
+    },
+    {
+      "width": 288,
+      "scrollWidth": 288,
+      "resolution": "720",
+      "timer": [
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "36.8px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "36.8px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "36.8px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "36.8px"
+        }
+      ],
+      "caption": [
+        {
+          "font": "\"Chakra Petch\", sans-serif",
+          "weight": "500",
+          "size": "8px"
+        },
+        {
+          "font": "Rajdhani, sans-serif",
+          "weight": "500",
+          "size": "8px"
+        },
+        {
+          "font": "\"Share Tech\", sans-serif",
+          "weight": "400",
+          "size": "8px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "8px"
+        }
+      ],
+      "status": [
+        {
+          "font": "\"Chakra Petch\", sans-serif",
+          "weight": "500",
+          "size": "16px"
+        },
+        {
+          "font": "Rajdhani, sans-serif",
+          "weight": "500",
+          "size": "16px"
+        },
+        {
+          "font": "\"Share Tech\", sans-serif",
+          "weight": "400",
+          "size": "16px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "16px"
+        }
+      ],
+      "prompt": [
+        {
+          "font": "\"Chakra Petch\", sans-serif",
+          "weight": "500",
+          "size": "16px"
+        },
+        {
+          "font": "Rajdhani, sans-serif",
+          "weight": "500",
+          "size": "16px"
+        },
+        {
+          "font": "\"Share Tech\", sans-serif",
+          "weight": "400",
+          "size": "16px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "16px"
+        }
+      ],
+      "weapon": [
+        {
+          "font": "\"Chakra Petch\", sans-serif",
+          "weight": "500",
+          "size": "11.328px"
+        },
+        {
+          "font": "Rajdhani, sans-serif",
+          "weight": "500",
+          "size": "11.328px"
+        },
+        {
+          "font": "\"Share Tech\", sans-serif",
+          "weight": "400",
+          "size": "11.328px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "11.328px"
+        }
+      ],
+      "resource": [
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "12px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "12px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "12px"
+        },
+        {
+          "font": "Orbitron, sans-serif",
+          "weight": "500",
+          "size": "12px"
+        }
+      ],
+      "overflow": [
+        {
+          "width": 288,
+          "scroll": 288
+        },
+        {
+          "width": 288,
+          "scroll": 288
+        },
+        {
+          "width": 288,
+          "scroll": 288
+        },
+        {
+          "width": 288,
+          "scroll": 288
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "scope": "Browser rendering at nominal game font sizes; not Unity rendering proof. Ship resource samples held at 12px, camera scale 1x."
+}

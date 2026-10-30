@@ -1,0 +1,115 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500&amp;family=Orbitron:wght@500&amp;family=Rajdhani:wght@500&amp;family=Share+Tech&amp;display=swap">
+<style>
+  #orbitron-label-pairings { color:var(--foreground); }
+  #orbitron-label-pairings .specimen-heading { display:flex; align-items:center; flex-wrap:wrap; gap:12px 24px; margin-bottom:8px; padding-right:90px; }
+  #orbitron-label-pairings .specimen-heading h3 { margin:0; }
+  #orbitron-label-pairings .size-controls { display:flex; flex-wrap:wrap; gap:6px; }
+  #orbitron-label-pairings .specimen-context { color:var(--muted-foreground); margin-bottom:18px; }
+  #orbitron-label-pairings .specimens { display:grid; gap:18px; }
+  #orbitron-label-pairings .font-label { display:flex; flex-wrap:wrap; align-items:baseline; gap:8px; margin-bottom:7px; }
+  #orbitron-label-pairings .font-name { font-weight:500; }
+  #orbitron-label-pairings .font-weight { color:var(--muted-foreground); }
+  #orbitron-label-pairings .hud-samples { --hud-ink:#fff; --hud-field:#111c22; --hud-soft:#b2c0c2; --hud-label-size:calc(10px * var(--hud-scale)); padding:18px 22px; display:grid; grid-template-columns:minmax(150px,1fr) minmax(225px,1.3fr); gap:14px 24px; align-items:center; background:var(--hud-field); color:var(--hud-ink); border-radius:6px; font-family:var(--label-family),sans-serif; font-weight:var(--label-weight); font-synthesis:none; letter-spacing:0; }
+  #orbitron-label-pairings .hud-timer { font-family:'Orbitron',sans-serif; font-weight:500; font-size:calc(23px * var(--hud-scale)); line-height:1.15; white-space:nowrap; }
+  #orbitron-label-pairings .hud-caption { font-size:calc(5px * var(--hud-scale)); line-height:1.4; margin-top:8px; }
+  #orbitron-label-pairings .hud-status, #orbitron-label-pairings .hud-prompt { font-size:var(--hud-label-size); line-height:1.4; white-space:nowrap; }
+  #orbitron-label-pairings .hud-prompt { margin-top:7px; }
+  #orbitron-label-pairings .hud-weapon { font-size:calc(7.08px * var(--hud-scale)); line-height:1.3; opacity:.85; }
+  #orbitron-label-pairings .hud-resource { font-family:'Orbitron',sans-serif; font-size:12px; line-height:1.4; font-weight:500; }
+  #orbitron-label-pairings .size-key { color:var(--muted-foreground); margin-top:14px; }
+  #orbitron-label-pairings .load-failure { margin-top:12px; }
+  @media (max-width:540px) {
+    #orbitron-label-pairings .specimen-heading { padding-right:0; }
+    #orbitron-label-pairings .hud-samples { grid-template-columns:minmax(0,1fr); padding:16px; gap:14px; }
+    #orbitron-label-pairings .hud-timer-block, #orbitron-label-pairings .hud-notices { grid-column:1; }
+    #orbitron-label-pairings .hud-weapon, #orbitron-label-pairings .hud-resource { grid-column:1; }
+  }
+</style>
+<div id="orbitron-label-pairings" style="--hud-scale:2.4">
+  <div class="specimen-heading">
+    <h3>Orbitron + HUD labels</h3>
+    <div class="size-controls" role="group" aria-label="Nominal game resolution">
+      <button class="btn" type="button" data-resolution="720" aria-pressed="false">720p</button>
+      <button class="btn" type="button" data-resolution="1080" aria-pressed="true">1080p</button>
+    </div>
+  </div>
+  <div class="specimen-context text-small">Browser specimens · nominal HUD pixels · Orbitron 500 numbers</div>
+  <div class="specimens" aria-label="Four functional label font candidates paired with identical Orbitron numbers">
+    <section class="font-specimen" data-font="Chakra Petch" data-weight="500" aria-label="Chakra Petch labels">
+      <div class="font-label"><span class="font-name">Chakra Petch</span><span class="font-weight text-small">Medium · 500</span></div>
+      <div class="hud-samples" style="--label-family:'Chakra Petch';--label-weight:500">
+        <div class="hud-timer-block"><div class="hud-timer">0:44</div><div class="hud-caption">NEXT PHASE</div></div>
+        <div class="hud-notices"><div class="hud-status">EXTRACTION OPEN</div><div class="hud-prompt">PRESS F TO JUMP</div></div>
+        <div class="hud-weapon">Missiles</div><div class="hud-resource">65/65</div>
+      </div>
+    </section>
+    <section class="font-specimen" data-font="Rajdhani" data-weight="500" aria-label="Rajdhani labels">
+      <div class="font-label"><span class="font-name">Rajdhani</span><span class="font-weight text-small">Medium · 500</span></div>
+      <div class="hud-samples" style="--label-family:'Rajdhani';--label-weight:500">
+        <div class="hud-timer-block"><div class="hud-timer">0:44</div><div class="hud-caption">NEXT PHASE</div></div>
+        <div class="hud-notices"><div class="hud-status">EXTRACTION OPEN</div><div class="hud-prompt">PRESS F TO JUMP</div></div>
+        <div class="hud-weapon">Missiles</div><div class="hud-resource">65/65</div>
+      </div>
+    </section>
+    <section class="font-specimen" data-font="Share Tech" data-weight="400" aria-label="Share Tech labels">
+      <div class="font-label"><span class="font-name">Share Tech</span><span class="font-weight text-small">Regular · 400</span></div>
+      <div class="hud-samples" style="--label-family:'Share Tech';--label-weight:400">
+        <div class="hud-timer-block"><div class="hud-timer">0:44</div><div class="hud-caption">NEXT PHASE</div></div>
+        <div class="hud-notices"><div class="hud-status">EXTRACTION OPEN</div><div class="hud-prompt">PRESS F TO JUMP</div></div>
+        <div class="hud-weapon">Missiles</div><div class="hud-resource">65/65</div>
+      </div>
+    </section>
+    <section class="font-specimen" data-font="Orbitron" data-weight="500" aria-label="Orbitron labels">
+      <div class="font-label"><span class="font-name">Orbitron</span><span class="font-weight text-small">Medium · 500 · one family throughout</span></div>
+      <div class="hud-samples" style="--label-family:'Orbitron';--label-weight:500">
+        <div class="hud-timer-block"><div class="hud-timer">0:44</div><div class="hud-caption">NEXT PHASE</div></div>
+        <div class="hud-notices"><div class="hud-status">EXTRACTION OPEN</div><div class="hud-prompt">PRESS F TO JUMP</div></div>
+        <div class="hud-weapon">Missiles</div><div class="hud-resource">65/65</div>
+      </div>
+    </section>
+  </div>
+  <div class="size-key text-small" aria-live="polite" data-size-key>1080p: timer 55.2px · caption 12px · status 24px · Missiles 17px<br>Ship readout: 12px at 1×, independent of resolution</div>
+  <div class="load-failure text-small text-destructive" role="alert" hidden></div>
+</div>
+<script>
+(function () {
+  const root = document.getElementById('orbitron-label-pairings');
+  const buttons = root.querySelectorAll('[data-resolution]');
+  const sizeKey = root.querySelector('[data-size-key]');
+  function apply(state) {
+    const resolution = state && state.privateContent && state.privateContent.resolution === 720 ? 720 : 1080;
+    root.style.setProperty('--hud-scale', resolution === 720 ? '1.6' : '2.4');
+    root.dataset.resolution = String(resolution);
+    buttons.forEach(function (button) { button.setAttribute('aria-pressed', String(Number(button.dataset.resolution) === resolution)); });
+    sizeKey.replaceChildren(document.createTextNode(resolution === 720 ? '720p: timer 36.8px · caption 8px · status 16px · Missiles 11.3px' : '1080p: timer 55.2px · caption 12px · status 24px · Missiles 17px'), document.createElement('br'), document.createTextNode('Ship readout: 12px at 1×, independent of resolution'));
+  }
+  apply(window.openai && window.openai.widgetState);
+  buttons.forEach(function (button) {
+    button.addEventListener('click', function () {
+      const resolution = Number(button.dataset.resolution);
+      apply({privateContent:{resolution:resolution}});
+      if (window.openai && window.openai.setWidgetState) window.openai.setWidgetState({modelContent:null,privateContent:{resolution:resolution}}).catch(function () {});
+    });
+  });
+  window.addEventListener('openai:set_globals', function (event) {
+    if (event.detail && event.detail.globals && 'widgetState' in event.detail.globals) apply(event.detail.globals.widgetState);
+  });
+  const fontRequests = [{family:'Orbitron',weight:500},{family:'Chakra Petch',weight:500},{family:'Rajdhani',weight:500},{family:'Share Tech',weight:400}];
+  Promise.all(fontRequests.map(async function (request) {
+    try {
+      const faces = await document.fonts.load(request.weight + ' 16px "' + request.family + '"', 'NEXT PHASE Missiles 0:44 65/65');
+      request.loaded = faces.length > 0 && faces.every(function (face) { return face.status === 'loaded'; });
+    } catch (error) { request.loaded = false; }
+    return request;
+  })).then(function (results) {
+    root.dataset.fontResults = JSON.stringify(results);
+    const failed = results.filter(function (result) { return !result.loaded; });
+    if (failed.length) {
+      const warning = root.querySelector('.load-failure');
+      warning.textContent = 'Font preview unavailable: ' + failed.map(function (result) { return result.family; }).join(', ') + '.';
+      warning.hidden = false;
+    }
+    root.dataset.fontCheckComplete = 'true';
+  });
+})();
+</script>
