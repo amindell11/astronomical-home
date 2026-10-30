@@ -11,8 +11,8 @@ namespace Game.Travel
 {
     /// <summary>
     /// Applies a jump state to live locale skies, the ship's hull and the actual HUD.
-    /// The jump image draws through <see cref="SectorJumpFeature"/> on the observer camera after post-processing.
     /// Its render targets belong to the presentation, so previews and gameplay use the same renderer.
+    /// The jump image draws through <see cref="SectorJumpFeature"/> on the observer camera after post-processing.
     /// The caller owns simulation time, destination loading, the world blend and the ship and camera pose.
     /// </summary>
     public sealed class SectorJumpPresentation : MonoBehaviour
