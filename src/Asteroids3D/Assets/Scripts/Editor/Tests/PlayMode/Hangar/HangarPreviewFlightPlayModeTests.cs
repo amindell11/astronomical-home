@@ -189,7 +189,7 @@ namespace Tests.PlayMode.Hangar
             var screen = Object.Instantiate(prefab, screenRoot.transform);
             offer = ScriptableObject.CreateInstance<ItemSubset>();
             offer.ships = ships;
-            var loadout = new ShipLoadout(ships[0], null, null, null);
+            var loadout = new ShipLoadout(ships[0], null, null);
             screen.Show(offer, loadout, null);
             stage = screenRoot.GetComponentInChildren<HangarPreviewStage>();
             return (screen, loadout);
@@ -198,7 +198,7 @@ namespace Tests.PlayMode.Hangar
         private HangarPreviewFlight[] Active() => stage.GetComponentsInChildren<HangarPreviewFlight>();
 
         private void Show(Ship ship, bool backwards = false) =>
-            stage.Show(new ShipLoadout(ship, null, null, null), backwards);
+            stage.Show(new ShipLoadout(ship, null, null), backwards);
     }
 }
 #endif

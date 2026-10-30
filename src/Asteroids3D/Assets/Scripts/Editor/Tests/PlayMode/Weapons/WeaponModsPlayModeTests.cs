@@ -63,7 +63,7 @@ namespace Tests.PlayMode.Weapons
 
             var lasers = LoadWeapon<Lasers>(LasersPrefabPath);
             var rippers = LoadWeapon<Rippers>(RippersPrefabPath);
-            ship.Reequip(ship.Shield, lasers, rippers);
+            ship.Reequip(lasers, rippers);
             yield return null;
 
             var authoredHeat = lasers.GetComponent<Heat>().MaxHeat;
@@ -90,7 +90,7 @@ namespace Tests.PlayMode.Weapons
             Assert.AreEqual(authoredHeat * 1.5f, heat.MaxHeat, 1e-3f, "the sector-load reset keeps the mods");
             Assert.AreEqual(authoredMagazine + 6, rounds.AmmoCount, "a reset refills to the modded magazine");
 
-            ship.Reequip(ship.Shield, rippers, lasers);
+            ship.Reequip(rippers, lasers);
             yield return null;
             Assert.AreEqual(authoredMagazine + 6, ship.Weapons.Primary.GetComponent<Rounds>().MaxAmmo,
                 "a fresh mount reads the same picks");
@@ -107,7 +107,7 @@ namespace Tests.PlayMode.Weapons
             var lasers = LoadWeapon<Lasers>(LasersPrefabPath);
             var rippers = LoadWeapon<Rippers>(RippersPrefabPath);
             var missiles = LoadWeapon<Missiles>(MissilesPrefabPath);
-            ship.Reequip(ship.Shield, rippers, missiles);
+            ship.Reequip(rippers, missiles);
             yield return null;
 
             var authoredRipperMagazine = rippers.GetComponent<Rounds>().MaxAmmo;
@@ -128,7 +128,7 @@ namespace Tests.PlayMode.Weapons
             Assert.IsTrue(ship.Weapons.Fits(deepMagazine));
             Assert.AreEqual("Rippers", ship.Weapons.LandingNames(deepMagazine));
 
-            ship.Reequip(ship.Shield, lasers, missiles);
+            ship.Reequip(lasers, missiles);
             yield return null;
             Assert.IsFalse(ship.Weapons.Fits(deepMagazine), "the magazine mod idles once the rippers leave");
             Assert.IsTrue(ship.Weapons.Fits(coolant), "coolant wakes on the lasers");

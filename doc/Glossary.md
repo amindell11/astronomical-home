@@ -201,6 +201,10 @@ Format: **term** — definition. *(authority)*
   child issue's owner, a worker); it rides the prompt that starts that session.
   A session's own long task compacts instead (re-ruled 2026-10-19; AGENTS.md →
   Session hygiene).
+- **build worker** — the agent that writes a PR's implementation from the
+  session's build brief: Grok through `scripts/grok_worker.py` by default, an
+  Opus subagent as the fallback. Not the RL *worker* (§ RL & training).
+  *(agent-worktree-pr-loop → Step 2; #1252)*
 - **chief of staff** — the session that owns one issue with child issues, such
   as a roadmap over its arcs or an arc over its slices. Short form: **chief**.
   A user-level skill outside this repo sets its rules, and #1040 carries the
@@ -855,9 +859,10 @@ Format: **term** — definition. *(authority)*
   never by per-component globals; and it is **not** the same axis as the deleted
   `vfx` flag, which it has been confused with three separate times.
 - **chassis / module / loadout / hangar / sidegrade** — the ship-customization
-  naming key, in order of containment: the hull's own stats / the swappable parts
-  / the equipped set / the between-run screen where you change it / an option
-  that trades rather than upgrades.
+  naming key, in order of containment: the hull's own stats / the parts a ship
+  carries (engine and shield come with the chassis; only weapons swap) / the
+  equipped set / the between-run screen where you change it / an option that
+  trades rather than upgrades.
 - **weapon mod** — a run-scoped stat modifier on one field a carried weapon
   already has (fire rate, damage, heat capacity, cooling, magazine, reload
   speed, charge speed, blast radius), never a new behaviour. Mods ride the run,
@@ -897,16 +902,18 @@ Format: **term** — definition. *(authority)*
   presentation part, so presentation-off sessions drop it. *(KeystoneFlash,
   HullVisuals.HoldFlash)*
 - **item** — anything that fills a loadout slot: a chassis (a prefab with a root
-  `Ship`), an engine module, a shield module, or a weapon (a prefab with a root
-  `WeaponComponent`). Projectiles, trial pacing and `killHullRestore` are tuned
-  but fill no slot, so they are not items.
+  `Ship`) or a weapon (a prefab with a root `WeaponComponent`). Engine and shield
+  modules come with the chassis and fill no slot (#1073, #1254); projectiles,
+  trial pacing and `killHullRestore` are tuned but fill no slot either. None of
+  those are items.
 - **item catalog** — the one asset listing every item in the project, grouped
   by item type. An index only: each item's stats stay on its own asset. Listing
   is not what makes something an item — a test scans the project by type and
   fails when the list and the scan differ. *(ItemCatalog)*
 - **item subset** — an authored list of items one consumer chooses from, per
-  loadout slot. Two exist: the hangar's offer and the enemy loadout pool. Never
-  "the catalog": neither lists everything. *(ItemSubset)*
+  loadout slot. Two exist: the hangar's offer (ships and weapons) and the enemy
+  loadout pool (weapons only; an enemy's chassis is the roster's). Never "the
+  catalog": neither lists everything. *(ItemSubset)*
 - **hangar's offer** — the item subset the hangar shows the player.
   *(GameHost.hangarOffer)*
 - **lane clearing** — shooting asteroids to open a firing lane. Currently
