@@ -295,10 +295,10 @@ namespace Tests.PlayMode.Crosshairs
                 Assert.That(decoded.GetPixel(128, 128).a, Is.EqualTo(0f));
                 var resourceRing = weaponHud.transform.Find("ResourceTemplate").GetComponent<Image>().sprite;
                 decoded.LoadImage(System.IO.File.ReadAllBytes(AssetDatabase.GetAssetPath(resourceRing)));
-                Assert.That(decoded.GetPixel(223, 128).a, Is.GreaterThan(.9f));
-                Assert.That(decoded.GetPixel(235, 128).a, Is.GreaterThan(.9f));
-                Assert.That(decoded.GetPixel(221, 128).a, Is.EqualTo(0f));
-                Assert.That(decoded.GetPixel(237, 128).a, Is.EqualTo(0f));
+                Assert.That(decoded.GetPixel(227, 128).a, Is.GreaterThan(.9f));
+                Assert.That(decoded.GetPixel(231, 128).a, Is.GreaterThan(.9f));
+                Assert.That(decoded.GetPixel(225, 128).a, Is.EqualTo(0f));
+                Assert.That(decoded.GetPixel(233, 128).a, Is.EqualTo(0f));
             }
             finally { Object.DestroyImmediate(decoded); }
 #endif

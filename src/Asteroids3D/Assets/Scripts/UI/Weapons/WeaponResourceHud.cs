@@ -77,7 +77,7 @@ namespace UI.Weapons
             var rect = icon.rectTransform;
             rect.anchorMin = rect.anchorMax = new Vector2(.5f, .5f);
             rect.anchoredPosition = InstrumentCenter(slot);
-            rect.sizeDelta = new Vector2(40f, 40f);
+            rect.sizeDelta = new Vector2(34f, 34f);
             rect.localScale = Vector3.one;
             rect.localRotation = Quaternion.identity;
             icon.gameObject.SetActive(true);
@@ -85,7 +85,7 @@ namespace UI.Weapons
         }
 
         private static Vector2 InstrumentCenter(WeaponSlot slot) =>
-            new(slot == WeaponSlot.Primary ? -96f : 96f, 0f);
+            new(slot == WeaponSlot.Primary ? -78f : 78f, 0f);
 
         private Resource BuildResource(WeaponSlot slot, IWeaponReadout source, int index)
         {
@@ -94,7 +94,7 @@ namespace UI.Weapons
             resourceRect.SetParent(transform, false);
             resourceRect.anchorMin = resourceRect.anchorMax = new Vector2(.5f, .5f);
             resourceRect.anchoredPosition = InstrumentCenter(slot);
-            resourceRect.sizeDelta = new Vector2(92f, 92f);
+            resourceRect.sizeDelta = new Vector2(60f, 60f);
             resourceRect.localScale = Vector3.one * (1f + index * .5f);
             var left = slot == WeaponSlot.Primary;
             var start = left ? 120f : 60f;
