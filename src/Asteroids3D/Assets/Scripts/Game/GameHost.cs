@@ -355,8 +355,7 @@ namespace Game
             var exited = false;
             try
             {
-                yield return session.PrepareTravelBackdrop(sessionProfile.sectors[destination].config.Locale.SceneName,
-                    transform, pair => backdrop = pair);
+                backdrop = session.PrepareTravelBackdrop(sessionProfile.sectors[destination].config.Locale, transform);
                 if (!shutdownRequested)
                 {
                     jump.BindBackdrop(ui, backdrop);

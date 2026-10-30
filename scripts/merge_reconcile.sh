@@ -2,11 +2,11 @@
 set -euo pipefail
 
 # Merge reconcile (arc #617 Slice-4): after a push to main, reconcile the tracker with what each
-# squash-merged PR in the push shipped — a Shipped note and board Done on the issues the PR
-# closes, a Touched note on the open issues its body cites, a residue listing of `#N` citations
-# left in the agent docs, and a mismatch warning when the body disclaims a close the PR performs.
-# Mechanical: no Claude, no body edits; never closes or reopens an issue. Idempotent by text
-# match (Shipped), current Status (Done) and marker + line match (Touched).
+# squash-merged PR in the push shipped — a Shipped note on the issues the PR closes, a Touched
+# note on the open issues its body cites, a residue listing of `#N` citations left in the agent
+# docs, and a mismatch warning when the body disclaims a close the PR performs. Mechanical: no
+# Claude, no body edits, no board writes; never closes or reopens an issue. Idempotent by text
+# match (Shipped) and marker + line match (Touched).
 #
 # Usage: merge_reconcile.sh --event <event-json-path> [--dry-run]
 #        merge_reconcile.sh --sha <sha> [--dry-run]
@@ -15,13 +15,11 @@ set -euo pipefail
 #   --sha <sha>        one commit, read through the API (the workflow_dispatch form).
 #   --dry-run          reads only: every write is printed as a WRITE= line and run nowhere.
 # The residue grep runs over the tracked files of the git tree at the working directory.
-# Env:  GH_TOKEN (PR and issue reads, comments) · PROJECTS_TOKEN (board reads + the Done
-#       mutation; classic PAT, `project` scope only — GITHUB_TOKEN cannot mutate a user-owned
-#       project) · GITHUB_REPOSITORY (owner/repo; default `gh repo view`) · GITHUB_STEP_SUMMARY
-#       (optional: the closing report is appended there) · TRIAGE_RETRY_SLEEP (seconds for the
-#       one retry of a rate-limited write and the one wait for GitHub's auto-close; default 60).
-# Exit: 0 done — including `no-pr` · 1 infra (gh failed, or PROJECTS_TOKEN absent on a live run
-#       that has a closed issue to move) · 2 usage.
+# Env:  GH_TOKEN (PR and issue reads, comments) · GITHUB_REPOSITORY (owner/repo; default `gh
+#       repo view`) · GITHUB_STEP_SUMMARY (optional: the closing report is appended there) ·
+#       TRIAGE_RETRY_SLEEP (seconds for the one retry of a rate-limited write and the one wait
+#       for GitHub's auto-close; default 60).
+# Exit: 0 done — including `no-pr` · 1 infra (gh failed) · 2 usage.
 # Stdout trailers, one per line, stable — one block per reconciled PR:
 #   PR=<n>  CLOSED=<n,…>  TOUCHED=<n,…>  RESIDUE=<hit count>  MISMATCH=<n,…>
 #   WRITE=<gh command>  (one per write, applied or — dry run — printed)
@@ -31,11 +29,6 @@ set -euo pipefail
 BOT_LOGIN="github-actions[bot]"
 MARKER="<!-- merge-reconcile -->"
 RESIDUE_PATHS=(AGENTS.md doc/ .claude/ TESTING.md scripts/)
-
-# Operative copy of doc/agents/issue-tracker.md § Projects board sync.
-PROJECT_ID="PVT_kwHOAJsCkc4BfiTv"
-STATUS_FIELD_ID="PVTSSF_lAHOAJsCkc4BfiTvzhZ0hiE"
-DONE_OPTION="165b6aec"
 
 usage() { echo "Usage: merge_reconcile.sh (--event <event-json-path> | --sha <sha>) [--dry-run]" >&2; exit 2; }
 infra() { echo "merge_reconcile: $1" >&2; exit 1; }
@@ -64,19 +57,11 @@ summary() { SUMMARY_LINES+=("$1"); }
 hash_list() { local s="$*"; if [[ -n "$s" ]]; then printf '#%s' "${s// /, #}"; else printf none; fi; }
 WRITES=0
 run_write() {
-  local board=0
-  [[ "$1" != --board ]] || { board=1; shift; }
-  local shown="$*"
-  [[ "$board" -eq 0 ]] || shown="$shown  (PROJECTS_TOKEN)"
-  echo "WRITE=$shown"
-  summary "- \`$shown\`"
+  echo "WRITE=$*"
+  summary "- \`$*\`"
   WRITES=$((WRITES + 1))
   [[ "$DRY_RUN" -eq 0 ]] || return 0
-  if [[ "$board" -eq 1 ]]; then
-    GH_TOKEN="$PROJECTS_TOKEN" gh_retry "$@"
-  else
-    gh_retry "$@"
-  fi
+  gh_retry "$@"
 }
 # One retry after a minute on a rate-limited write (doc/agents/issue-tracker.md § Operations).
 gh_retry() {
@@ -129,8 +114,7 @@ PY
 [[ -s "$TMP/commits.tsv" ]] || { say "no commit subject ends in (#N): nothing to reconcile"; finish no-pr; }
 
 # ---- Tracker reads ----------------------------------------------------------------------------
-# REST issue record → `pr` (the number is a pull request) · `open` · `closed` · `missing` (404),
-# with node id and state files beside it for the callers that need them.
+# REST issue record → `pr` (the number is a pull request) · `open` · `closed` · `missing` (404).
 probe_issue() {
   local out
   if out="$(gh api "repos/$REPO/issues/$1" 2>&1)"; then
@@ -142,26 +126,8 @@ probe_issue() {
     infra "gh api issues/$1 failed: $out"
   fi
 }
-issue_field() { python3 -c 'import json,sys; print(json.load(open(sys.argv[1], encoding="utf-8")).get(sys.argv[2]) or "")' "$TMP/issue-$1.json" "$2"; }
 fetch_comments() {
   gh api "repos/$REPO/issues/$1/comments" --paginate --slurp > "$TMP/comments-$1.json" || infra "gh api issue comments for #$1 failed"
-}
-
-ITEM_ID="" CURRENT_OPTION=""
-board_lookup() {
-  GH_TOKEN="$PROJECTS_TOKEN" gh api graphql -F id="$1" -f query='query($id: ID!) { node(id: $id) { ... on Issue { projectItems(first: 50) { nodes { id project { id } fieldValueByName(name: "Status") { ... on ProjectV2ItemFieldSingleSelectValue { optionId } } } } } } }' \
-    > "$TMP/board.json" || infra "board query failed"
-  eval "$(python3 - "$TMP/board.json" "$PROJECT_ID" <<'PY'
-import json, shlex, sys
-data = json.load(open(sys.argv[1], encoding="utf-8"))
-nodes = ((data.get("data") or {}).get("node") or {}).get("projectItems", {}).get("nodes") or []
-print("ITEM_ID='' CURRENT_OPTION=''")
-for n in nodes:
-    if (n.get("project") or {}).get("id") == sys.argv[2]:
-        print(f"ITEM_ID={shlex.quote(n['id'])}")
-        print(f"CURRENT_OPTION={shlex.quote(((n.get('fieldValueByName') or {}).get('optionId')) or '')}")
-PY
-)"
 }
 
 # ---- Reconcile one PR -------------------------------------------------------------------------
@@ -218,19 +184,15 @@ PY
     summary "- ⚠ Mismatch: the body says it does not close #$n, but the PR closes it (no write)"
   done
 
-  if [[ -n "$CLOSED" && "$DRY_RUN" -eq 0 && -z "${PROJECTS_TOKEN:-}" ]]; then
-    infra "PROJECTS_TOKEN is not set and a board write is due (closed: ${CLOSED// /,})"
-  fi
-
-  # Shipped note + Done on each closed issue. GitHub's auto-close can trail the push event, so an
-  # issue still open gets one wait; still open after it, the note and Done land anyway.
+  # Shipped note on each closed issue. GitHub's auto-close can trail the push event, so an issue
+  # still open gets one wait; still open after it, the note lands anyway.
   for n in $CLOSED; do
     kind="$(probe_issue "$n")"
     if [[ "$kind" == open ]]; then
       say "#$n is still open (auto-close pending?); waiting ${RETRY_SLEEP}s once"
       sleep "$RETRY_SLEEP"
       kind="$(probe_issue "$n")"
-      [[ "$kind" != open ]] || summary "- #$n still open after the wait: Shipped note and Done posted anyway"
+      [[ "$kind" != open ]] || summary "- #$n still open after the wait: Shipped note posted anyway"
     fi
     [[ "$kind" == open || "$kind" == closed ]] || infra "#$n is $kind, not an issue"
     fetch_comments "$n"
@@ -243,24 +205,6 @@ PY
       } > "$TMP/shipped-$n.md"
       run_write gh issue comment "$n" --repo "$REPO" --body-file "$TMP/shipped-$n.md"
     fi
-    local node_id
-    node_id="$(issue_field "$n" node_id)"
-    if [[ -n "${PROJECTS_TOKEN:-}" ]]; then
-      board_lookup "$node_id"
-    else
-      ITEM_ID="" CURRENT_OPTION=""
-      say "PROJECTS_TOKEN absent: board membership of #$n unknown, printing the add + Done mutations"
-    fi
-    if [[ "$CURRENT_OPTION" == "$DONE_OPTION" ]]; then
-      say "#$n is already Done on the board"
-      continue
-    fi
-    if [[ -z "$ITEM_ID" ]]; then
-      run_write --board gh api graphql -f query="mutation { addProjectV2ItemById(input: {projectId: \"$PROJECT_ID\", contentId: \"$node_id\"}) { item { id } } }"
-      [[ "$DRY_RUN" -eq 1 ]] || board_lookup "$node_id"
-      ITEM_ID="${ITEM_ID:-<item-id>}"
-    fi
-    run_write --board gh api graphql -f query="mutation { updateProjectV2ItemFieldValue(input: {projectId: \"$PROJECT_ID\", itemId: \"$ITEM_ID\", fieldId: \"$STATUS_FIELD_ID\", value: {singleSelectOptionId: \"$DONE_OPTION\"}}) { projectV2Item { id } } }"
   done
 
   # Touched note: one marked bot comment per issue, one line per PR appended in place.
