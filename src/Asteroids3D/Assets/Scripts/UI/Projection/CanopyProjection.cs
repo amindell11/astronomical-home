@@ -47,13 +47,11 @@ namespace UI.Projection
             inkCamera.allowMSAA = false;
         }
 
-        public void Initialize(Camera camera, CanopyProjectionProfile profileOverride = null,
-            Func<CanopyFrame> observe = null)
+        public void Initialize(Camera camera, Func<CanopyFrame> observe = null)
         {
             if (!camera) throw new ArgumentNullException(nameof(camera));
             if (sceneCamera) throw new InvalidOperationException("CanopyProjection is already initialized.");
             sceneCamera = camera;
-            if (profileOverride) profile = profileOverride;
             this.observe = observe;
             blend = new CanopyStateBlend(profile);
             Bind();

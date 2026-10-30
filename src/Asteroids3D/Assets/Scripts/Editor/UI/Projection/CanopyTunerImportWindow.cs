@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using Game.Preview;
 using UnityEditor;
 using UnityEngine;
 
@@ -13,16 +12,12 @@ namespace UI.Projection
         private string error;
 
         [MenuItem("Astronomical/UI/Import Canopy Tuner Settings…")]
-        private static void OpenMenu()
-        {
-            var window = GetWindow<CanopyTunerImportWindow>("Import canopy settings");
-            window.asset = Selection.activeObject as CanopyProjectionProfile;
-        }
+        private static void OpenMenu() => Open(Selection.activeObject as CanopyProjectionProfile);
 
-        internal static void Open(CanopyProjectionProfile copy)
+        internal static void Open(CanopyProjectionProfile profile)
         {
             var window = GetWindow<CanopyTunerImportWindow>("Import canopy settings");
-            window.asset = (CanopyProjectionProfile)FeelWorkingCopies.Current.AssetOf(copy);
+            window.asset = profile;
         }
 
         private void OnGUI()
@@ -31,7 +26,8 @@ namespace UI.Projection
                 typeof(CanopyProjectionProfile), false);
             target = (CanopyState)EditorGUILayout.EnumPopup("Import into", target);
             if (EditorApplication.isPlaying)
-                EditorGUILayout.HelpBox("Import edits the preview working copy. Use Save in Preview Host to keep it.", MessageType.Info);
+                EditorGUILayout.HelpBox("Import edits the profile in place. In the preview, Save keeps it and Discard restores it.",
+                    MessageType.Info);
             using (new EditorGUI.DisabledScope(!asset))
             {
                 if (GUILayout.Button("Choose tuner JSON…")) Import();
@@ -46,10 +42,9 @@ namespace UI.Projection
             try
             {
                 var imported = CanopyTunerSettings.Parse(File.ReadAllText(path));
-                var destination = EditorApplication.isPlaying ? FeelWorkingCopies.Current.For(asset) : asset;
-                Undo.RecordObject(destination, "Import canopy tuner settings");
-                imported.Apply(destination, target);
-                EditorUtility.SetDirty(destination);
+                Undo.RecordObject(asset, "Import canopy tuner settings");
+                imported.Apply(asset, target);
+                EditorUtility.SetDirty(asset);
                 error = null;
                 Close();
             }

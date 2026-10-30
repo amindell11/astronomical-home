@@ -155,14 +155,12 @@ namespace Tests.PlayMode.Preview
             var camera = host.GetComponentsInChildren<Camera>().Single(item => item.name == "Jump sky camera");
             var subject = host.Subject;
             var settled = feel.worldBlendDuration + feel.settleDuration;
-            feel.arrivalSpeedFraction = 0f;
-            subject.Knobs = feel;
+            SetArrivalSpeed(0f);
             subject.Show(1, settled - .1f, 0f);
             var slowStart = camera.transform.position;
             subject.Show(1, settled, 0f);
             var slowDistance = Vector3.Distance(slowStart, camera.transform.position);
-            feel.arrivalSpeedFraction = 1f;
-            subject.Knobs = feel;
+            SetArrivalSpeed(1f);
             subject.Show(1, settled - .1f, 0f);
             var fastStart = camera.transform.position;
             subject.Show(1, settled, 0f);
@@ -512,11 +510,17 @@ namespace Tests.PlayMode.Preview
             host.subjectKind = PreviewSubjectKind.SectorJump;
             host.playtestSetup = PreviewPlaytestSetup.CrowdedJumpGate;
             host.gameHostPrefab = gameHost;
-            host.recapFeel = gameHost.recapFeel;
-            host.jumpFeel = feel;
             host.sessionProfile = profile;
             host.crowdedJumpSectors = profile.sectors;
             root.SetActive(true);
+        }
+
+        // The panel's edit path: a serialized edit bumps the profile's revision, so the subject replans.
+        private void SetArrivalSpeed(float fraction)
+        {
+            using var serialized = new UnityEditor.SerializedObject(feel);
+            serialized.FindProperty("arrivalSpeedFraction").floatValue = fraction;
+            serialized.ApplyModifiedProperties();
         }
 
         private static SectorEntry Entry(string name)
