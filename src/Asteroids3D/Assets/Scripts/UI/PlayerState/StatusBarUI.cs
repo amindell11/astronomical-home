@@ -38,7 +38,7 @@ namespace UI.PlayerState
             bar.label.rectTransform.sizeDelta = new Vector2(66f, 18f);
             bar.label.font = font;
             bar.label.fontSize = 12;
-            bar.label.fontStyle = FontStyle.Bold;
+            bar.label.fontStyle = FontStyle.Normal;
             bar.label.alignment = TextAnchor.MiddleLeft;
             bar.label.horizontalOverflow = HorizontalWrapMode.Overflow;
             bar.label.verticalOverflow = VerticalWrapMode.Overflow;

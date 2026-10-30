@@ -24,6 +24,12 @@ namespace UI
         [SerializeField] private WeaponResourceHud weaponResources;
         [SerializeField] private LockOnIndicator lockReticle;
 
+        [Header("Typography")]
+        [SerializeField] private Font labelFont;
+        [SerializeField] private Font readoutFont;
+        [SerializeField] private Font headingFont;
+        [SerializeField] private Font timerFont;
+
         private Canvas[] canvases;
         private CanvasGroup visibility;
         private UILockOnAudio lockOnAudio;
@@ -33,7 +39,6 @@ namespace UI
         private UIMissileWarningAudio missileWarningAudio;
         private BoostGaugeUI boostGauge;
         private WeaponReadoutBuilder readoutBuilder;
-        private RunTallyReadout tallyReadout;
         private ChargeTargetMarkers chargeMarkers;
         private Camera gameplayCamera;
         private bool visible = true;
@@ -96,7 +101,8 @@ namespace UI
         }
 
         public void BindShips(SubscribedSet<Ship> ships, Camera worldCamera) =>
-            shipStatus = ShipStatusOverlay.Create(canvases[0], ships, worldCamera, textMaterial, lockReticle, projection);
+            shipStatus = ShipStatusOverlay.Create(canvases[0], ships, worldCamera, readoutFont, textMaterial,
+                lockReticle, projection);
 
         private void OnDestroy()
         {
@@ -125,10 +131,6 @@ namespace UI
             if (chargeMarkers)
                 chargeMarkers.Initialize(binding.Weapons);
 
-            if (!tallyReadout)
-                tallyReadout = RunTallyReadout.Create(transform, textMaterial);
-            tallyReadout.Initialize(binding.Tally);
-
             // Overheat and lock audio are single overlay-level channels; each follows the
             // first weapon (in slot order) that exposes the matching readout.
             if (laserAudio)
@@ -143,7 +145,8 @@ namespace UI
             if (!objectiveMarkers || !minimapRect)
                 throw new InvalidOperationException($"Overlay on '{name}' needs its objective markers and minimap wired.");
             objectiveMarkers.Initialize(objectives, worldCamera, minimapCamera, minimapRect, canvases[0], projection, () => IsVisible);
-            ObjectiveStatusReadout.Create(transform, textMaterial, projection, () => IsVisible).Initialize(objectives);
+            ObjectiveStatusReadout.Create(transform, labelFont, headingFont, timerFont, textMaterial,
+                projection, () => IsVisible).Initialize(objectives);
         }
     }
 }

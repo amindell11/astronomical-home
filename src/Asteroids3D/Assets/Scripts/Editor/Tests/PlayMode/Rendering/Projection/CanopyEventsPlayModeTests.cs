@@ -194,12 +194,15 @@ namespace Tests.PlayMode.Rendering.Projection
             projection.ForceMode = CanopyForceMode.Base;
             var canvas = Child("HUD").AddComponent<Canvas>();
             var readout = ObjectiveStatusReadout.Create(canvas.transform,
+                TestAssets.Load<Font>("Assets/Visuals/Ui/Fonts/IBMPlexSans.ttf"),
+                TestAssets.Load<Font>("Assets/Visuals/Ui/Fonts/Michroma.ttf"),
+                TestAssets.Load<Font>("Assets/Visuals/Ui/Fonts/DSEG14Classic.ttf"),
                 TestAssets.Load<Material>("Assets/Visuals/Ui/Projection/CanopyText.mat"), projection, () => visible);
             readout.Initialize(objectives);
             var survive = InstallSpine();
             survive.Complete = true;
             objectives.Tick(0f);
-            var fade = readout.GetComponent<CanvasGroup>();
+            var announcement = readout.transform.Find("Extraction announcement").GetComponent<UnityEngine.UI.Text>();
             var appearance = readout.GetComponentInChildren<InstrumentAppear>().GetComponent<CanvasGroup>();
             var sawDip = false;
             var end = Time.unscaledTime + .5f;
@@ -209,14 +212,16 @@ namespace Tests.PlayMode.Rendering.Projection
                 if (appearance.alpha >= 1f) continue;
                 sawDip = true;
                 Assert.That(appearance.alpha, Is.EqualTo(.83f).Within(.001f));
-                Assert.That(fade.alpha * appearance.alpha, Is.LessThan(fade.alpha));
+                Assert.That(announcement.color.a * announcement.canvasRenderer.GetInheritedAlpha(),
+                    Is.EqualTo(announcement.color.a * appearance.alpha).Within(.001f));
+                Assert.That(announcement.color.a * appearance.alpha, Is.LessThan(announcement.color.a));
             }
             Assert.That(sawDip, Is.True);
-            Assert.That(fade.alpha, Is.EqualTo(1f));
+            Assert.That(announcement.color.a, Is.EqualTo(1f));
             projection.PersonalityEnabled = false;
             yield return null;
             Assert.That(appearance.alpha, Is.EqualTo(1f));
-            Assert.That(fade.alpha, Is.EqualTo(1f));
+            Assert.That(announcement.color.a, Is.EqualTo(1f));
         }
     }
 }

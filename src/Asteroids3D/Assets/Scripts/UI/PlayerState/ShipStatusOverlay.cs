@@ -25,7 +25,7 @@ namespace UI.PlayerState
         private LockOnIndicator reticlePrefab;
         private CanopyProjection projection;
 
-        public static ShipStatusOverlay Create(Canvas hud, SubscribedSet<Ship> ships, Camera worldCamera, Material textMaterial,
+        public static ShipStatusOverlay Create(Canvas hud, SubscribedSet<Ship> ships, Camera worldCamera, Font font, Material textMaterial,
             LockOnIndicator reticlePrefab, CanopyProjection projection = null)
         {
             if (!reticlePrefab) throw new ArgumentNullException(nameof(reticlePrefab));
@@ -43,6 +43,7 @@ namespace UI.PlayerState
             overlay.projection = projection;
             overlay.worldVisibility = new GameObject("Ship lock overlay").AddComponent<CanvasGroup>();
             overlay.worldVisibility.gameObject.layer = hud.gameObject.layer;
+            overlay.font = font;
             overlay.ships = ships;
             ships.OnAdd += overlay.Add;
             ships.OnRemove += overlay.Remove;
@@ -54,7 +55,6 @@ namespace UI.PlayerState
         {
             canvas = GetComponent<Canvas>();
             visibility = GetComponent<CanvasGroup>();
-            font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         }
 
         public void SetOpacity(float opacity) => visibility.alpha = worldVisibility.alpha = opacity;
