@@ -18,6 +18,7 @@ namespace UI
     {
         [Header("Minimap")]
         [SerializeField] private RectTransform minimapRect;
+        [SerializeField] private Material textMaterial;
         [SerializeField] private AimCrosshair crosshair;
         [SerializeField] private WeaponResourceHud weaponResources;
 
@@ -94,7 +95,7 @@ namespace UI
         }
 
         public void BindShips(SubscribedSet<Ship> ships, Camera worldCamera) =>
-            shipStatus = ShipStatusOverlay.Create(canvases[0], ships, worldCamera, readoutFont);
+            shipStatus = ShipStatusOverlay.Create(canvases[0], ships, worldCamera, readoutFont, textMaterial);
 
         private void OnDestroy()
         {
@@ -137,7 +138,7 @@ namespace UI
             if (!objectiveMarkers || !minimapRect)
                 throw new InvalidOperationException($"Overlay on '{name}' needs its objective markers and minimap wired.");
             objectiveMarkers.Initialize(objectives, worldCamera, minimapCamera, minimapRect, canvases[0]);
-            ObjectiveStatusReadout.Create(transform, labelFont, headingFont, timerFont).Initialize(objectives);
+            ObjectiveStatusReadout.Create(transform, labelFont, headingFont, timerFont, textMaterial).Initialize(objectives);
         }
     }
 }

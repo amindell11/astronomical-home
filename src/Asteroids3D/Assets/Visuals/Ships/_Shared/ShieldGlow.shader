@@ -70,7 +70,7 @@ Shader "UI/ShieldGlow"
                 alpha = saturate(alpha*(1+_Highlight*0.15));
                 alpha *= lerp(1,saturate(along/max(_ArcLength,0.001)),_Trail);
                 float3 rgb = lerp(float3(0.04,0.12,0.17),tint,core);
-                return float4(rgb,alpha*_Color.a)*i.color;
+                return saturate(float4(rgb,alpha*_Color.a)*i.color);
             }
             ENDCG
         }

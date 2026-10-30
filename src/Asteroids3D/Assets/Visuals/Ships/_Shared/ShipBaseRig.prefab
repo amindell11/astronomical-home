@@ -15121,7 +15121,7 @@ GameObject:
   - component: {fileID: 7628366985414171717}
   - component: {fileID: 628628324230272385}
   - component: {fileID: 6565058905238873752}
-  m_Layer: 10
+  m_Layer: 7
   m_Name: Shield
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -20128,7 +20128,7 @@ GameObject:
   - component: {fileID: 2228354087852635346}
   - component: {fileID: 6824623317164607386}
   - component: {fileID: 6541420031047646514}
-  m_Layer: 10
+  m_Layer: 7
   m_Name: ShieldRing
   m_TagString: Untagged
   m_Icon: {fileID: 0}
