@@ -105,7 +105,7 @@ namespace Game
         [SerializeField, Range(0f, 1f)] private float killHullRestore = 0.25f;
 
         [Header("Lull pick")]
-        [Tooltip("Lull mods offered at each sector phase lull, three at a time with time stopped. " +
+        [Tooltip("Lull mods offered at each lull between sector phases, three at a time with time stopped. " +
                  "Null → no lull picks.")]
         [SerializeField] internal LullModPool lullMods;
 
@@ -287,7 +287,7 @@ namespace Game
                         if (lulls)
                         {
                             var lull = lulls.Phase.InLull;
-                            if (lull && !inLull) yield return RunLullPick();
+                            if (lull && !inLull && !lulls.Phase.InOpeningLull) yield return RunLullPick();
                             inLull = lull;
                         }
                         yield return null;

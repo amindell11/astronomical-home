@@ -15,10 +15,11 @@ namespace Substrate.Sectors.Elements
 {
     /// <summary>
     /// Continuous producer for the survival trial, paced by a table of sector phases: each phase
-    /// opens by filling to its alive cap, then spawns one ship per interval while under it. The lull
-    /// before each later phase spawns nothing, and once the table is done the last phase's pacing
-    /// holds, so the hero leaves under pursuit. Ships ring the hero just off screen, facing it, on the
-    /// first angle clear of asteroids, each spawned with a build drawn from its phase's loadout pool.
+    /// opens by filling to its alive cap, then spawns one ship per interval while under it. The opening
+    /// lull before the first phase and the lull before each later one spawn nothing, and once the table
+    /// is done the last phase's pacing holds, so the hero leaves under pursuit. Ships ring the hero
+    /// just off screen, facing it, on the first angle clear of asteroids, each spawned with a build
+    /// drawn from its phase's loadout pool.
     /// Dead products are despawned on the tick, and the tick idles while the hero is inactive (the
     /// recap hold). Nothing spawns in Build: the sector builds under an inactive holder and the
     /// asteroid field lays out at its Start, so a Build-time clearance check would see no rocks.
@@ -45,6 +46,8 @@ namespace Substrate.Sectors.Elements
         [Stat(Ordered = true), SerializeField] private SectorPhase[] phases = Array.Empty<SectorPhase>();
         [Tooltip("Seconds between one phase's end and the next phase's opening, with nothing spawning.")]
         [Stat, SerializeField, Min(0f)] private float lullSeconds = 5f;
+        [Tooltip("Seconds from the sector's start to phase one's opening, with nothing spawning.")]
+        [Stat, SerializeField, Min(0f)] private float openingLullSeconds = 5f;
 
         [Header("Placement")]
         [Tooltip("Plane distance from the hero; author it past the camera's widest view so ships arrive off screen.")]
@@ -131,7 +134,7 @@ namespace Substrate.Sectors.Elements
                 ScheduleNext(now);
         }
 
-        private void BuildSchedule() => schedule = new SectorPhaseSchedule(phases, lullSeconds);
+        private void BuildSchedule() => schedule = new SectorPhaseSchedule(phases, lullSeconds, openingLullSeconds);
 
         internal void BeginSchedule(float now)
         {
@@ -233,12 +236,13 @@ namespace Substrate.Sectors.Elements
 
 #if UNITY_EDITOR
         internal void Configure(RosterEntry[] roster, SectorPhase[] phases, float lullSeconds = 5f,
-            float spawnRadius = 55f, ItemSubset loadouts = null)
+            float spawnRadius = 55f, ItemSubset loadouts = null, float openingLullSeconds = 0f)
         {
             this.roster = roster;
             this.loadouts = loadouts;
             this.phases = phases;
             this.lullSeconds = lullSeconds;
+            this.openingLullSeconds = openingLullSeconds;
             this.spawnRadius = spawnRadius;
             BuildSchedule();
         }

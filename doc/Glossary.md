@@ -883,8 +883,9 @@ Format: **term** — definition. *(authority)*
   ship once; the ship re-reads it on every resolve and on every change.
   *(LullMod, LullModPool, LullModStack, Ship.BindMods)*
 - **lull pick** — the time-stopped choice of one lull mod from up to three,
-  or a skip, on the first frame of a sector phase lull; the lull's own seconds
-  run after it. *(LullPickScreen, GameHost)*
+  or a skip, on the first frame of each lull between sector phases (never the
+  sector's opening lull); the lull's own seconds run after it.
+  *(LullPickScreen, GameHost)*
 - **weapon pick** — the sector-break choice of one weapon the player does not
   carry, from up to three, or a skip, then the mount it replaces; held in
   hyperspace after the extraction recap. The swap keeps hull, shield and the run
