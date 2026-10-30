@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Console lighting</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #080a0e; color: #e5ded1; font: 14px/1.45 system-ui, sans-serif; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px 20px; }
+    h1 { margin: 0; font-size: 16px; font-weight: 500; }
+    nav { display: flex; flex-wrap: wrap; gap: 6px; }
+    button { font: inherit; color: #c4beb4; background: #141820; border: 1px solid #3a3d43; border-radius: 3px; padding: 8px 12px; cursor: pointer; }
+    button[aria-pressed="true"] { color: #151515; background: #e6dac5; border-color: #e6dac5; }
+    button:focus-visible { outline: 2px solid #e6dac5; outline-offset: 3px; }
+    main { max-width: 2048px; margin: auto; }
+    img { display: block; width: 100%; height: auto; }
+    p { color: #a9a59d; margin: 12px 20px 18px; }
+    a { color: #e5ded1; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Console lighting</h1>
+    <nav aria-label="Compare lighting">
+      <button type="button" data-view="electronic" aria-pressed="true">Electronic light</button>
+      <button type="button" data-view="alternate" aria-pressed="false">Brighter starlight</button>
+      <button type="button" data-view="before" aria-pressed="false">Earlier lighting</button>
+    </nav>
+  </header>
+  <main>
+    <img id="concept" src="electronic-light-contrast-nb2.jpg" width="2752" height="1536" alt="Ink-drawn console in deep shadow, lit by the warm terminal and a colored transparent ship hologram">
+    <p id="caption" aria-live="polite">The screens and hologram lead. Warm light reaches the bezel while the controls fall into shadow. This version also dims the distant nebula.</p>
+    <noscript><p><a href="electronic-light-contrast-pro.jpg">Brighter starlight</a> · <a href="../restored-console/index.html">Earlier lighting</a></p></noscript>
+  </main>
+  <script>
+    const views = {
+      electronic: {
+        src: 'electronic-light-contrast-nb2.jpg',
+        alt: 'Ink-drawn console in deep shadow, lit by the warm terminal and a colored transparent ship hologram',
+        caption: 'The screens and hologram lead. Warm light reaches the bezel while the controls fall into shadow. This version also dims the distant nebula.'
+      },
+      alternate: {
+        src: 'electronic-light-contrast-pro.jpg',
+        alt: 'The same console with dimmer equipment and a brighter blue-purple space view',
+        caption: 'A more restrained lighting change, with the brighter space view retained.'
+      },
+      before: {
+        src: 'inputs/restored-console.jpg',
+        alt: 'The earlier console before the electronic-lighting revision',
+        caption: 'Earlier lighting, before this revision. The colored ship transparency is the starting point for both new studies.'
+      }
+    };
+    document.querySelectorAll('[data-view]').forEach(button => {
+      button.addEventListener('click', () => {
+        const view = views[button.dataset.view];
+        document.getElementById('concept').src = view.src;
+        document.getElementById('concept').alt = view.alt;
+        document.getElementById('caption').textContent = view.caption;
+        document.querySelectorAll('[data-view]').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 # Console panel concepts
 
-The [restored console](restored-console/index.html) is current. The owner [rejected the live rebuild](https://github.com/amindell11/astronomical-home/issues/684#issuecomment-6510846322) and asked to return to the earlier image, make only the ship a bit more transparent, and stop there. That adjustment is complete. Earlier recommendations and prototypes below are historical.
+The [console lighting study](lighting-01/index.html) is current for review. The owner [asked for electronic glow to light the dim control area](https://github.com/amindell11/astronomical-home/issues/684#issuecomment-6516350712), with little ambient starlight. It edits the [restored console](restored-console/index.html) and retains that earlier image for comparison. The rejected live rebuild remains historical.
 
 These four image-model studies supported the first joint review for #1249. The owner has since [selected B's ink-drawn finish](https://github.com/amindell11/astronomical-home/issues/684#issuecomment-6508133052), with shape and detail still open. The two owner rulings on #684 dated 2026-10-29 remain the direction.
 

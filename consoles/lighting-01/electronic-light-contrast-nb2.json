@@ -1,0 +1,55 @@
+{
+  "output": "electronic-light-contrast-nb2.jpg",
+  "status": "exploration",
+  "provider": "google-gemini-api",
+  "model": "gemini-3.1-flash-image",
+  "interaction_id": "v1_ChZBemZrYXBhTks2eUtxdHNQM1pTVldREhZBemZrYXBhTks2eUtxdHNQM1pTVldR",
+  "created_utc": "2026-10-30T06:19:42+00:00",
+  "prompt": "The owner says: \"i think there is more potential in the contrast between the dimly lit control area and the glow of the screens and hologram. thats where the real feeling is of this screen. let the electronic glow be the main light source with only a bit of ambient light from the stars\".\n\nRelight Image 1. It is the chosen design and exact edit target. Image 2 is a reference only for dark cockpit illumination by existing electronics; borrow its low ambient light and localized emission, not its objects, people, realism or green cast.\n\nCreate the feeling of sitting in a dark control area lit almost entirely by the terminal and the ship hologram. This needs a strong, clearly visible lighting change. Remove the broad flat room/daylight illumination. Most of the outer beige housing, lower deck, cables and equipment should fall into deep warm charcoal-brown shadow, around two stops darker in unlit areas. Retain enough reflected light to read the existing ink contours and equipment structure. The beige material is still beige where light touches it, never uniformly blue or grey. Starlight is a very faint cool edge on window-facing edges, not a second broad key light. Keep the space scene outside unchanged.\n\nMake the warm off-white screen and translucent colored ship the two luminous focal points. The terminal's actual lit bars and lettering cast soft warm reflected light onto its inner bezel, the lower lip and the nearest hardware, fading quickly into shadow. The large exterior bezel and the rest of the deck are much dimmer. LAUNCH casts a small local reflection only within its recess. Keep the dark navy screen face dark, and all lettering crisp and identical. Small existing amber and dim-green LEDs cast tiny local highlights. Do not invent lamps or add halos to every edge.\n\nThe holographic ship is the same detailed transparent colored projection in the same position, size and pose, with the same pale hull, muted orange paint, cyan detail, delicate contours and scanlines. Keep the current surface transparency. Its luminous image is visually stronger through contrast against dark equipment, not by whitening the colored surfaces or making them opaque. Keep its exact detailed silhouette. The projector has a small bright core and a restrained transparent beam; its light should make small pools and highlights on nearby deck surfaces, not an opaque cream fog. The grille, cables and deck away from those lights stay dim.\n\nPreserve the complete composition, camera, objects, geometry, ink drawing style, wear, colors, typography and layout of Image 1. All current text stays exactly the same, including HANGAR; SHIP Vanguard; ENGINE Default_Engine; SHIELD Default_Shield; PRIMARY Lasers; SECONDARY Missiles; LAUNCH and all arrows. Do not crop, simplify, move, add, remove or redesign anything. No person, new lighting fixture, lens flare, global color grade or vignette. Only the illumination changes. Aim for luminous electronic instruments surrounded by readable deep shadow.\n",
+  "parent": {
+    "path": "consoles/lighting-01/inputs/restored-console.jpg",
+    "sha256": "7a8661b4900ad3312d38b99af0f164a97c86c1f84a58b9cf2d077912b0718462"
+  },
+  "references": [
+    {
+      "path": "consoles/lighting-01/inputs/04-dark-cockpit-leds.png",
+      "sha256": "8967c780bebc7eab275530c7b9e4985d84404b54c1f9b457e039278aee331f2b"
+    }
+  ],
+  "params": {
+    "image_size": "2K",
+    "aspect_ratio": "16:9",
+    "thinking_level": null
+  },
+  "cost_estimate_usd": {
+    "per_image": 0.101,
+    "prices_as_of": "2026-09-22",
+    "excludes": "thinking and input tokens"
+  },
+  "usage": {
+    "input_tokens_by_modality": [
+      {
+        "modality": "image",
+        "tokens": 2240
+      },
+      {
+        "modality": "text",
+        "tokens": 599
+      }
+    ],
+    "output_tokens_by_modality": [
+      {
+        "modality": "image",
+        "tokens": 1680
+      }
+    ],
+    "total_cached_tokens": 0,
+    "total_input_tokens": 2839,
+    "total_output_tokens": 2199,
+    "total_thought_tokens": 0,
+    "total_tokens": 5038,
+    "total_tool_use_tokens": 0,
+    "initial_input_tokens": 2934
+  },
+  "model_text": ""
+}
