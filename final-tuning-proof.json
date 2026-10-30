@@ -1,0 +1,66 @@
+{
+  "success": true,
+  "command": "command eval_file",
+  "data": {
+    "command": "eval_file",
+    "parameters": {
+      "file": "D:/amind/git/agent-6/results/canopy-events/final-tuning.cs"
+    },
+    "result": {
+      "output": null,
+      "diagnostics": [],
+      "success": true,
+      "result": {
+        "savedInspectorEdits": false,
+        "lowHullFields": "BeamJitter, Flicker, Wear, DamageShudder",
+        "bigMomentFields": "Aberration, BeamJitter",
+        "baseSettings": {
+          "glow": 0.439,
+          "aberration": 4.64,
+          "beamJitter": 0.267,
+          "afterglow": 0.009,
+          "scanlines": 0.915,
+          "flicker": 0.594,
+          "warmth": 0.878,
+          "wear": 0.294,
+          "glassDistortion": 0.068,
+          "damageShudder": 10.49,
+          "transitionGlitch": 0.474
+        },
+        "lowHull": {
+          "glow": 0.439,
+          "aberration": 4.64,
+          "beamJitter": 1.268,
+          "afterglow": 0.009,
+          "scanlines": 0.915,
+          "flicker": 1,
+          "warmth": 0.878,
+          "wear": 0.836,
+          "glassDistortion": 0.068,
+          "damageShudder": 16.54,
+          "transitionGlitch": 0.474
+        },
+        "bigMoment": {
+          "glow": 0.439,
+          "aberration": 5.52,
+          "beamJitter": 1.3,
+          "afterglow": 0.009,
+          "scanlines": 0.915,
+          "flicker": 0.594,
+          "warmth": 0.878,
+          "wear": 0.294,
+          "glassDistortion": 0.068,
+          "damageShudder": 10.49,
+          "transitionGlitch": 0.474
+        }
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7800,
+      "projectPath": "D:\\amind\\git\\agent-6\\src\\Asteroids3D"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}
