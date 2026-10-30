@@ -1,0 +1,12 @@
+Name | Missiles | Rajdhani-Medium | 12 | Normal
+Current / capacity | 65/65 | Orbitron-Medium | 12 | Normal
+Current / capacity | 50/50 | Orbitron-Medium | 12 | Normal
+Phase clock | 0:01 | Orbitron-Medium | 23 | Normal
+Current / capacity | 100/100 | Orbitron-Medium | 12 | Normal
+Current / capacity | 32/32 | Orbitron-Medium | 12 | Normal
+Current / capacity | 32/32 | Orbitron-Medium | 12 | Normal
+Current / capacity | 100/100 | Orbitron-Medium | 12 | Normal
+Current / capacity | 90/90 | Orbitron-Medium | 12 | Normal
+Current / capacity | 100/100 | Orbitron-Medium | 12 | Normal
+Phase caption | EXTRACTION | Rajdhani-Medium | 5 | Normal
+LoadingLabel | LOADING . . . | LegacyRuntime | 28 | Normal

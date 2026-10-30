@@ -1,0 +1,60 @@
+{
+  "Orbitron-Medium.ttf": {
+    "source": "https://raw.githubusercontent.com/googlefonts/orbitron-vf/f16482824e0ce4d008dee59b9b632e9ce9663359/fonts/ttf/Orbitron-Medium.ttf",
+    "sha256": "bc96ab93d786e3417b92285b96cdfe40a3de263930ee99eebfd4e19a756df8d2",
+    "bytes": 38336,
+    "weight": 500,
+    "variable": false,
+    "family": "Orbitron Medium",
+    "style": "Regular",
+    "fullName": "Orbitron Medium",
+    "typographicFamily": "Orbitron",
+    "typographicStyle": "Medium",
+    "digits": {
+      "0": 834,
+      "1": 391,
+      "2": 830,
+      "3": 826,
+      "4": 730,
+      "5": 830,
+      "6": 820,
+      "7": 660,
+      "8": 834,
+      "9": 828
+    }
+  },
+  "Orbitron-LICENSE.txt": {
+    "source": "https://raw.githubusercontent.com/googlefonts/orbitron-vf/f16482824e0ce4d008dee59b9b632e9ce9663359/OFL.txt",
+    "sha256": "ab609b0e110d622435ff337cdf233288556e011bbf9bd0550be98846c0630819",
+    "bytes": 4426
+  },
+  "Rajdhani-Medium.ttf": {
+    "source": "https://raw.githubusercontent.com/google/fonts/6157dfaa640ca5738b4d1a7070fe389c3036d7fc/ofl/rajdhani/Rajdhani-Medium.ttf",
+    "sha256": "12ff7dcfe4c206e3875ac53b1762eab57de6a2fa7f5a86c26b97b88d6591eac2",
+    "bytes": 384348,
+    "weight": 500,
+    "variable": false,
+    "family": "Rajdhani",
+    "style": "Medium",
+    "fullName": "Rajdhani Medium",
+    "typographicFamily": "Rajdhani",
+    "typographicStyle": "Medium",
+    "digits": {
+      "0": 520,
+      "1": 322,
+      "2": 482,
+      "3": 500,
+      "4": 526,
+      "5": 489,
+      "6": 505,
+      "7": 395,
+      "8": 526,
+      "9": 505
+    }
+  },
+  "Rajdhani-LICENSE.txt": {
+    "source": "https://raw.githubusercontent.com/google/fonts/6157dfaa640ca5738b4d1a7070fe389c3036d7fc/ofl/rajdhani/OFL.txt",
+    "sha256": "f62ef357d3a1c3d27edd35a6e1ba350e8a8d13499797964eeadefbf0b3b15d1f",
+    "bytes": 4373
+  }
+}
