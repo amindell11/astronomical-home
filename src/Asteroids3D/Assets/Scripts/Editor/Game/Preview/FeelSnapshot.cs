@@ -10,9 +10,10 @@ namespace Game.Preview
     /// <summary>
     /// The preview's snapshot of the feel assets the panel edits in place. Taking it keeps a hidden copy
     /// of each asset. Save writes the asset and moves its copy forward; Discard restores the copy and
-    /// leaves the asset as dirty or clean as it was. Leaving play mode asks Save or Discard for edited
-    /// assets and discards the rest silently. As a singleton it survives a mid-play domain reload, so
-    /// that prompt still fires; it ends with the play session.
+    /// leaves the asset as dirty or clean as it was. Only Save writes a snapshotted asset: a project
+    /// save skips it. Leaving play mode asks Save or Discard for edited assets and discards the rest
+    /// silently. As a singleton it survives a mid-play domain reload, so that prompt still fires; it
+    /// ends with the play session.
     /// </summary>
     [InitializeOnLoad]
     internal sealed class FeelSnapshot : ScriptableSingleton<FeelSnapshot>
@@ -25,7 +26,19 @@ namespace Game.Preview
             public bool wasDirty;
         }
 
+        private sealed class ProjectSaveFilter : AssetModificationProcessor
+        {
+            private static string[] OnWillSaveAssets(string[] paths)
+            {
+                var held = instance.entries.Where(entry => entry.asset != instance.saving)
+                    .Select(entry => AssetDatabase.GetAssetPath(entry.asset));
+                return paths.Except(held).ToArray();
+            }
+        }
+
         [SerializeField] private List<Entry> entries = new();
+        // SaveAssetIfDirty also runs OnWillSaveAssets, so Save lets its own asset through.
+        [NonSerialized] private ScriptableObject saving;
 
         static FeelSnapshot() => EditorApplication.playModeStateChanged += change =>
         {
@@ -50,7 +63,9 @@ namespace Game.Preview
         public void Save(ScriptableObject asset)
         {
             var entry = EntryOf(asset);
+            saving = asset;
             AssetDatabase.SaveAssetIfDirty(asset);
+            saving = null;
             CopyKnobs(asset, entry.saved);
             entry.wasDirty = false;
         }

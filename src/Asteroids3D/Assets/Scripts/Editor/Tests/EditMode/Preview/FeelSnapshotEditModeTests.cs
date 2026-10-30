@@ -72,6 +72,23 @@ namespace Tests.EditMode.Preview
         }
 
         [Test]
+        public void ProjectSave_SkipsASnapshottedAsset_SoADiscardedEditNeverReachesTheFile()
+        {
+            var asset = CopyOfShipped<RecapFeelProfile>(RecapPath);
+            var path = AssetDatabase.GetAssetPath(asset);
+            var before = File.ReadAllBytes(path);
+            snapshot.Take(asset);
+
+            Edit(asset, "bannerInSeconds", asset.BannerInSeconds + 1f);
+            AssetDatabase.SaveAssets();
+            Assert.That(File.ReadAllBytes(path), Is.EqualTo(before), "only Save writes a snapshotted asset");
+
+            snapshot.Discard(asset);
+            AssetDatabase.SaveAssets();
+            Assert.That(File.ReadAllBytes(path), Is.EqualTo(before), "the discarded edit never reaches the file");
+        }
+
+        [Test]
         public void Save_WritesExactlyTheEditedKnob_AndALaterDiscardRestoresTheSavedValue()
         {
             var asset = CopyOfShipped<SectorJumpProfile>(JumpPath);
