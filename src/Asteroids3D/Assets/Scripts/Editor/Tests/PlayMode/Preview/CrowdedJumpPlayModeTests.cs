@@ -504,7 +504,7 @@ namespace Tests.PlayMode.Preview
             gameHost.observerCamPrefab = TestAssets.Load<ObserverCam>("Assets/Prefabs/Cameras/Main Camera.prefab");
             gameHost.recapFeel = TestAssets.Load<RecapFeelProfile>("Assets/Settings/UI/RecapFeel.asset");
             gameHost.jumpFeel = feel;
-            gameHost.jumpShader = Shader.Find("Astronomical/Travel/SectorJump");
+            gameHost.jumpFeature = TestAssets.Load<SectorJumpFeature>("Assets/Settings/Rendering/SectorJumpFeature.asset");
             var root = new GameObject("Crowded jump test");
             root.SetActive(false);
             host = root.AddComponent<PreviewHost>();

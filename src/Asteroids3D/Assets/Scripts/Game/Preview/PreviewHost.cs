@@ -248,7 +248,7 @@ namespace Game.Preview
         private IPreviewSubject NewSubject() => subjectKind switch
         {
             PreviewSubjectKind.RunRecap => new RecapPreviewSubject(recapFeel, feel => recapFeel = feel),
-            PreviewSubjectKind.SectorJump => new SectorJumpPreviewSubject(jumpFeel, gameHostPrefab.jumpShader,
+            PreviewSubjectKind.SectorJump => new SectorJumpPreviewSubject(jumpFeel, gameHostPrefab.jumpFeature,
                 feel => jumpFeel = feel),
             _ => throw new ArgumentOutOfRangeException(nameof(subjectKind), subjectKind, "Unknown preview subject.")
         };
@@ -336,7 +336,7 @@ namespace Game.Preview
             if (!Enum.IsDefined(typeof(PreviewPlaytestSetup), selected))
                 throw new ArgumentOutOfRangeException(nameof(selected));
             if (selected == PreviewPlaytestSetup.CrowdedJumpGate &&
-                (crowdedJumpSectors is not { Length: > 0 } || !jumpFeel || !gameHostPrefab.jumpShader))
+                (crowdedJumpSectors is not { Length: > 0 } || !jumpFeel || !gameHostPrefab.jumpFeature))
                 throw new InvalidOperationException("The crowded jump setup requires its fixture sectors and jump assets.");
         }
 

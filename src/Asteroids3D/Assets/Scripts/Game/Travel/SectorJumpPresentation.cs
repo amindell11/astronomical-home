@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Cameras;
 using Ships;
@@ -5,12 +6,12 @@ using Substrate;
 using Substrate.Services.Locales;
 using UI;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Game.Travel
 {
     /// <summary>
     /// Applies a jump state to live locale skies, the ship's hull and the actual HUD.
+    /// The jump image draws through <see cref="SectorJumpFeature"/> on the observer camera after post-processing.
     /// Its render targets belong to the presentation, so previews and gameplay use the same renderer.
     /// The caller owns simulation time, destination loading, the world blend and the ship and camera pose.
     /// </summary>
@@ -23,31 +24,33 @@ namespace Game.Travel
         private IEnumerable<Ship> ships;
         private ObserverCam observer;
         private LocaleBackdropPair backdrop;
+        private SectorJumpFeature feature;
+        private Camera boundCamera;
         private Camera skyCamera;
         private Camera hullCamera;
         private RenderTexture outgoing;
         private RenderTexture incoming;
         private RenderTexture hull;
         private RenderTexture incomingHull;
-        private RenderTexture composed;
         private Material material;
-        private RawImage image;
         private int[] hullLayers;
         private float worldBlend = 1f;
         private float hullDiameter;
 
         public static SectorJumpPresentation Create(Transform parent, Ship ship, Overlay overlay,
-            IEnumerable<Ship> ships, ObserverCam observer, LocaleBackdropPair backdrop, Shader shader)
+            IEnumerable<Ship> ships, ObserverCam observer, LocaleBackdropPair backdrop, SectorJumpFeature feature)
         {
+            if (!feature.JumpShader)
+                throw new InvalidOperationException($"Sector jump feature '{feature.name}' has no jump shader.");
             var root = new GameObject("Sector jump presentation");
             root.transform.SetParent(parent, false);
             var presentation = root.AddComponent<SectorJumpPresentation>();
-            presentation.Initialize(ship, overlay, ships, observer, backdrop, shader);
+            presentation.Initialize(ship, overlay, ships, observer, backdrop, feature);
             return presentation;
         }
 
         private void Initialize(Ship player, Overlay playerOverlay, IEnumerable<Ship> activeShips,
-            ObserverCam playerObserver, LocaleBackdropPair skies, Shader shader)
+            ObserverCam playerObserver, LocaleBackdropPair skies, SectorJumpFeature jumpFeature)
         {
             ship = player;
             overlay = playerOverlay;
@@ -60,29 +63,13 @@ namespace Game.Travel
             hullCamera.backgroundColor = Color.clear;
             hull = Target("Jump live hull", 512, 512);
             incomingHull = Target("Jump incoming hull", 512, 512);
-            material = new Material(shader);
+            material = new Material(jumpFeature.JumpShader);
             material.SetTexture("_ShipImage", hull);
             material.SetTexture("_ShipImageTo", incomingHull);
-            var canvas = NewCanvas();
-            image = new GameObject("Jump image", typeof(RectTransform)).AddComponent<RawImage>();
-            image.gameObject.layer = canvas.gameObject.layer;
-            image.transform.SetParent(canvas.transform, false);
-            image.rectTransform.anchorMin = Vector2.zero;
-            image.rectTransform.anchorMax = Vector2.one;
-            image.rectTransform.offsetMin = image.rectTransform.offsetMax = Vector2.zero;
-            image.raycastTarget = false;
+            jumpFeature.Bind(observer.Cam, new SectorJumpPass(material));
+            feature = jumpFeature;
+            boundCamera = observer.Cam;
             Resize();
-        }
-
-        private Canvas NewCanvas()
-        {
-            var canvas = new GameObject("Jump canvas").AddComponent<Canvas>();
-            canvas.transform.SetParent(transform, false);
-            canvas.renderMode = RenderMode.ScreenSpaceCamera;
-            canvas.worldCamera = observer.Cam;
-            canvas.planeDistance = observer.Cam.nearClipPlane + .1f;
-            canvas.sortingOrder = -100;
-            return canvas;
         }
 
         private Camera NewCamera(string label, int mask)
@@ -115,7 +102,7 @@ namespace Game.Travel
             Vector3? skyOrigin = null)
         {
             Resize();
-            var aspect = (float)composed.width / composed.height;
+            var aspect = (float)outgoing.width / outgoing.height;
             var origin = skyOrigin ?? ship.transform.position;
             var offset = state.JumpDirection * (state.TravelFraction * profile.skyTravelDistance);
             skyCamera.transform.position = new Vector3(origin.x + offset.x, origin.y + offset.y, -10f);
@@ -127,13 +114,10 @@ namespace Game.Travel
             material.SetTexture("_ShipImageTo", reverseLocales ? hull : incomingHull);
             material.SetTexture("_FromSky", reverseLocales ? incoming : outgoing);
             material.SetTexture("_ToSky", reverseLocales ? outgoing : incoming);
-            SectorJumpShader.Apply(material, profile, state, aspect, composed.height, seed);
+            SectorJumpShader.Apply(material, profile, state, aspect, outgoing.height, seed);
             var framing = material.GetVector("_Ship");
             framing.x = Mathf.Lerp(hullDiameter / (observer.Cam.orthographicSize * 2f), framing.x, worldBlend);
             material.SetVector("_Ship", framing);
-            var previous = RenderTexture.active;
-            try { Graphics.Blit(null, composed, material); }
-            finally { RenderTexture.active = previous; }
             overlay.SetOpacity(state.HudAlpha);
             foreach (var active in ships)
                 if (active && active.VisualRig) active.VisualRig.SetHudOpacity(state.HudAlpha);
@@ -142,21 +126,18 @@ namespace Game.Travel
         public void SetWorldBlend(float blend)
         {
             worldBlend = Mathf.Clamp01(blend);
-            image.color = new Color(1f, 1f, 1f, worldBlend);
+            material.SetFloat("_Opacity", worldBlend);
         }
 
         private void Resize()
         {
-            var width = Mathf.Max(2, Screen.width);
-            var height = Mathf.Max(2, Screen.height);
-            if (composed && composed.width == width && composed.height == height) return;
+            var width = Mathf.Max(2, observer.Cam.pixelWidth);
+            var height = Mathf.Max(2, observer.Cam.pixelHeight);
+            if (outgoing && outgoing.width == width && outgoing.height == height) return;
             Release(outgoing);
             Release(incoming);
-            Release(composed);
             outgoing = Target("Jump outgoing sky", width, height);
             incoming = Target("Jump incoming sky", width, height);
-            composed = Target("Jump composition", width, height);
-            image.texture = composed;
         }
 
         private void RenderHull()
@@ -206,6 +187,7 @@ namespace Game.Travel
 
         private void OnDestroy()
         {
+            if (feature) feature.Unbind(boundCamera);
             if (overlay) overlay.SetOpacity(1f);
             if (ships != null)
                 foreach (var active in ships)
@@ -214,7 +196,6 @@ namespace Game.Travel
             Release(incoming);
             Release(hull);
             Release(incomingHull);
-            Release(composed);
             if (material) Destroy(material);
         }
 
