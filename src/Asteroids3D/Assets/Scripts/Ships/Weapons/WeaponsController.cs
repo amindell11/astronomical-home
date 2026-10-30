@@ -270,6 +270,12 @@ namespace Ships.Weapons
 
             public string DisplayName(WeaponSlot slot) => owner.Mount(slot)?.DisplayName ?? string.Empty;
 
+            public Sprite Icon(WeaponSlot slot)
+            {
+                var mount = owner.Mount(slot);
+                return mount ? mount.HudIcon : null;
+            }
+
             public IReadOnlyList<IWeaponReadout> Readouts(WeaponSlot slot) =>
                 owner.Mount(slot)?.Readouts ?? System.Array.Empty<IWeaponReadout>();
         }

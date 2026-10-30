@@ -484,8 +484,8 @@ pre-merge comment check; its `--help` entry lists every refusal. Then run
 `land <pr>` yourself, or leave it to the merge task (§ Merge task).
 
 After the merge, the merge reconcile (`scripts/merge_reconcile.sh`, on the
-landing push) posts the Shipped note and board Done on the PR-closed issues, so
-the merging session posts neither.
+landing push) posts the Shipped note on the PR-closed issues, so the merging
+session does not.
 
 ## Step 7 — Finalize
 
