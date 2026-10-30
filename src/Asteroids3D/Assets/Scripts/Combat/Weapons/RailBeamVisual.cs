@@ -19,7 +19,7 @@ namespace Combat.Weapons
 
         [Header("Aim Line")]
         [Tooltip("Maximum dash width in world units.")]
-        [SerializeField, Min(0.01f)] private float aimWidth = 0.12f;
+        [SerializeField, Min(0.01f)] private float aimWidth = 0.24f;
         [Tooltip("Aim line opacity, as a fraction of the beam's, at full charge.")]
         [SerializeField, Range(0f, 1f)] private float aimOpacityAtFull = 0.68f;
         [SerializeField, Min(1f)] private float aimOpacityPower = 2.2f;

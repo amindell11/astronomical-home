@@ -216,7 +216,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fadeTime: 0.34
   flashTime: 0.06
-  aimWidth: 0.12
+  aimWidth: 0.24
   aimOpacityAtFull: 0.68
   aimOpacityPower: 2.2
   dashSpacing: 6
