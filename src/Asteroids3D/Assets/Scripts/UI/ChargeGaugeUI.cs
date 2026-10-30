@@ -4,10 +4,6 @@ using Combat.Weapons.Conditions;
 
 namespace UI
 {
-    /// <summary>
-    /// Charge readout widget: a fill bar tracking a charge weapon's held charge. One is
-    /// generated per charge-carrying weapon by <see cref="WeaponReadoutBuilder"/>.
-    /// </summary>
     public sealed class ChargeGaugeUI : MonoBehaviour
     {
         [Tooltip("Image whose FillAmount represents charge (0-1).")]

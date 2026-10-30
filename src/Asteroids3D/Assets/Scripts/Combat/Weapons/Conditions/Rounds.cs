@@ -1,6 +1,7 @@
 using Balance;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Combat.Weapons;
 using Combat.Weapons.Mods;
 using UnityEngine;
@@ -16,8 +17,10 @@ namespace Combat.Weapons.Conditions
     {
         int AmmoCount { get; }
         int MaxAmmo { get; }
+        Rounds.RefillMode Refill { get; }
         bool IsReloading { get; }
         float ReloadProgress { get; }
+        float RoundProgress(int index);
         event Action<int> OnAmmoCountChanged;
         event Action OnReloadStarted;
         event Action OnReloadCompleted;
@@ -25,7 +28,7 @@ namespace Combat.Weapons.Conditions
 
     public class Rounds : WeaponCondition, IAmmoReadout
     {
-        public enum RefillMode { Magazine = 0, PerRound = 1 }
+        public enum RefillMode { Magazine = 0, PerRound = 1, Sequential = 2 }
 
         [Header("Ammo System")]
         [Stat, SerializeField] private int maxAmmo = 4;
@@ -34,7 +37,8 @@ namespace Combat.Weapons.Conditions
         [Stat, SerializeField, Min(0f)] private float reloadTime = 0f;
 
         [Tooltip("Magazine: the whole magazine refills Reload Time after it empties. " +
-                 "PerRound: each round comes back Reload Time after it was fired.")]
+                 "PerRound: each round comes back Reload Time after it was fired. " +
+                 "Sequential: one round returns each Reload Time, preserving progress when firing.")]
         [Stat, SerializeField] private RefillMode refill = RefillMode.Magazine;
 
         public event Action<int> OnAmmoCountChanged;
@@ -51,6 +55,16 @@ namespace Combat.Weapons.Conditions
             !IsReloading ? 0f
             : refill == RefillMode.PerRound ? Mathf.Clamp01(1f - (roundDueTimes.Peek() - regenClock) / ReloadTime)
             : Mathf.Clamp01(reloadElapsed / ReloadTime);
+
+        public float RoundProgress(int index)
+        {
+            if (index < AmmoCount) return 1f;
+            if (!IsReloading) return 0f;
+            if (refill == RefillMode.Sequential) return index == AmmoCount ? ReloadProgress : 0f;
+            return refill == RefillMode.Magazine
+                ? ReloadProgress
+                : Mathf.Clamp01(1f - (roundDueTimes.ElementAt(index - AmmoCount) - regenClock) / ReloadTime);
+        }
 
         private float reloadElapsed;
         private int knownMax;
@@ -77,8 +91,31 @@ namespace Combat.Weapons.Conditions
 
             if (refill == RefillMode.PerRound)
                 TickPerRound(dt);
+            else if (refill == RefillMode.Sequential)
+                TickSequential(dt);
             else
                 TickMagazine(dt);
+        }
+
+        private void TickSequential(float dt)
+        {
+            reloadElapsed += dt;
+            var restored = 0;
+            while (AmmoCount < MaxAmmo && reloadElapsed >= ReloadTime - HalfStep)
+            {
+                reloadElapsed -= ReloadTime;
+                AmmoCount++;
+                restored++;
+            }
+            if (restored == 0) return;
+
+            if (AmmoCount == MaxAmmo)
+            {
+                reloadElapsed = 0f;
+                IsReloading = false;
+                OnReloadCompleted?.Invoke();
+            }
+            OnAmmoCountChanged?.Invoke(AmmoCount);
         }
 
         private void TickMagazine(float dt)
@@ -148,6 +185,10 @@ namespace Combat.Weapons.Conditions
             if (refill == RefillMode.PerRound)
             {
                 roundDueTimes.Enqueue(regenClock + ReloadTime);
+                if (!IsReloading) StartReload();
+            }
+            else if (refill == RefillMode.Sequential)
+            {
                 if (!IsReloading) StartReload();
             }
             else if (AmmoCount <= 0)

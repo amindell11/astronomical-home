@@ -19,10 +19,8 @@ using Combat.Weapons.Conditions;
 namespace Tests.PlayMode
 {
     /// <summary>
-    /// The weapon HUD is generated from the equipped loadout via the IWeaponReadouts read
-    /// surface: WeaponReadoutBuilder creates one panel per slot and one widget per readout the
-    /// weapon exposes (heat gauge, ammo counter, lock spinner). These tests cover the
-    /// generation across loadouts — including the Ripper, whose prefabs are also validated.
+    /// Checks loadout bindings across weapon resources, corner widgets and HUD audio.
+    /// Also validates the Ripper's authored magazine and projectile.
     /// </summary>
     [Category("Weapons")]
     public class WeaponHudBindingPlayModeTests : PlayModeWorldFixture
@@ -79,18 +77,14 @@ namespace Tests.PlayMode
 
             var builder = root.AddComponent<WeaponReadoutBuilder>();
             builder.panelPrefab = new GameObject("PanelTemplate").AddComponent<WeaponReadoutPanel>();
-            builder.heatWidgetPrefab = new GameObject("HeatTemplate").AddComponent<HeatGaugeUI>();
-            builder.ammoWidgetPrefab = new GameObject("AmmoTemplate").AddComponent<AmmoCounterUI>();
             builder.lockWidgetPrefab = new GameObject("LockTemplate").AddComponent<LockReadoutUI>();
             spawned.Add(builder.panelPrefab.gameObject);
-            spawned.Add(builder.heatWidgetPrefab.gameObject);
-            spawned.Add(builder.ammoWidgetPrefab.gameObject);
             spawned.Add(builder.lockWidgetPrefab.gameObject);
             return builder;
         }
 
         [Test]
-        public void DefaultLoadout_BuildsPanelPerSlot_WidgetPerReadout()
+        public void DefaultLoadout_KeepsLockPanelAndAudioBindings_WithoutCornerResources()
         {
             var controller = CreateController(
                 LoadWeaponPrefab<Lasers>(LasersPrefabPath),
@@ -99,25 +93,23 @@ namespace Tests.PlayMode
 
             builder.Build(controller.ReadoutContext);
 
-            Assert.AreEqual(2, builder.Panels.Count, "One panel per equipped slot.");
+            Assert.AreEqual(1, builder.Panels.Count, "Only the missile lock needs a corner panel.");
 
-            // Primary (laser): heat gauge. Secondary (missiles): ammo counter + lock spinner.
             Assert.AreEqual(3, builder.Built.Count);
 
             Assert.AreEqual(WeaponSlot.Primary, builder.Built[0].Slot);
             Assert.IsInstanceOf<IHeatReadout>(builder.Built[0].Readout);
-            Assert.IsInstanceOf<HeatGaugeUI>(builder.Built[0].Widget);
+            Assert.IsNull(builder.Built[0].Widget);
 
             Assert.AreEqual(WeaponSlot.Secondary, builder.Built[1].Slot);
             Assert.IsInstanceOf<IAmmoReadout>(builder.Built[1].Readout);
-            Assert.IsInstanceOf<AmmoCounterUI>(builder.Built[1].Widget);
+            Assert.IsNull(builder.Built[1].Widget);
 
             Assert.AreEqual(WeaponSlot.Secondary, builder.Built[2].Slot);
             Assert.IsInstanceOf<ILockStateSource>(builder.Built[2].Readout);
             Assert.IsInstanceOf<LockReadoutUI>(builder.Built[2].Widget);
 
-            // Widgets live inside their slot's panel, which lives under the builder.
-            Assert.AreSame(builder.Panels[0].Container, builder.Built[0].Widget.transform.parent);
+            Assert.AreSame(builder.Panels[0].Container, builder.Built[2].Widget.transform.parent);
             Assert.AreSame(builder.transform, builder.Panels[0].transform.parent);
 
             Assert.IsNotNull(builder.FirstReadout<IHeatReadout>());
@@ -125,7 +117,7 @@ namespace Tests.PlayMode
         }
 
         [Test]
-        public void RipperLoadout_BuildsTwoAmmoCounters_AndNoHeatGauge()
+        public void RipperLoadout_PreservesIndependentAmmoSources_AndNoHeatSource()
         {
             var controller = CreateController(
                 LoadWeaponPrefab<Rippers>(RippersPrefabPath),
@@ -134,8 +126,7 @@ namespace Tests.PlayMode
 
             builder.Build(controller.ReadoutContext);
 
-            // The HUD follows the loadout: each Rounds weapon gets its own ammo counter.
-            Assert.AreEqual(2, builder.Panels.Count);
+            Assert.AreEqual(1, builder.Panels.Count);
             Assert.IsNull(builder.FirstReadout<IHeatReadout>());
 
             Assert.AreEqual(WeaponSlot.Primary, builder.Built[0].Slot);
@@ -144,6 +135,19 @@ namespace Tests.PlayMode
             Assert.AreEqual(WeaponSlot.Secondary, builder.Built[1].Slot);
             Assert.IsInstanceOf<IAmmoReadout>(builder.Built[1].Readout);
             Assert.AreNotSame(builder.Built[0].Readout, builder.Built[1].Readout);
+        }
+
+        [Test]
+        public void ConcussionLoadout_DoesNotLeaveAnEmptyCornerPanel()
+        {
+            var controller = CreateController(
+                LoadWeaponPrefab<Grenades>("Assets/Prefabs/Weapons/Grenades.prefab"), null);
+            var builder = CreateBuilder();
+
+            builder.Build(controller.ReadoutContext);
+
+            Assert.IsEmpty(builder.Panels);
+            Assert.IsNotNull(builder.FirstReadout<IAmmoReadout>());
         }
 
         [Test]
@@ -170,7 +174,7 @@ namespace Tests.PlayMode
 
             builder.Build(controller.ReadoutContext);
 
-            Assert.AreEqual(2, builder.Panels.Count, "Rebuild must not accumulate panels.");
+            Assert.AreEqual(1, builder.Panels.Count, "Rebuild must not accumulate panels.");
             foreach (var panel in builder.Panels)
                 Assert.IsFalse(firstPanels.Contains(panel), "Rebuild replaces prior panel instances.");
         }
@@ -199,9 +203,6 @@ namespace Tests.PlayMode
             var builder = overlay.GetComponentInChildren<WeaponReadoutBuilder>(true);
             Assert.IsNotNull(builder, "UIOverlay must carry a WeaponReadoutBuilder.");
             Assert.IsNotNull(builder.panelPrefab, "Panel prefab must be wired.");
-            Assert.IsNotNull(builder.heatWidgetPrefab, "Heat gauge prefab must be wired.");
-            Assert.IsNotNull(builder.ammoWidgetPrefab, "Ammo counter prefab must be wired.");
-            Assert.IsNotNull(builder.chargeWidgetPrefab, "Charge gauge prefab must be wired.");
             Assert.IsNotNull(builder.lockWidgetPrefab, "Lock readout prefab must be wired.");
 #else
             Assert.Ignore("Requires Unity Editor assets.");

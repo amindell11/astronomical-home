@@ -4,11 +4,6 @@ using Combat.Weapons.Conditions;
 
 namespace UI
 {
-    /// <summary>
-    /// Ammo readout widget: a "current / max" counter plus a fill bar that runs while the
-    /// magazine reloads. One is generated per ammo-carrying weapon by
-    /// <see cref="WeaponReadoutBuilder"/>.
-    /// </summary>
     public sealed class AmmoCounterUI : MonoBehaviour
     {
         [Header("References")]

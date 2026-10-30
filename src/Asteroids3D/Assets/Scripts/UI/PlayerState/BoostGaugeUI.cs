@@ -4,10 +4,6 @@ using UnityEngine.UI;
 
 namespace UI.PlayerState
 {
-    /// <summary>
-    /// Boost readiness bar: a horizontal fill that charges toward full as the cooldown runs
-    /// down, recoloring once boost is ready. Polls the bound <see cref="IShipStatus"/>.
-    /// </summary>
     [RequireComponent(typeof(Image))]
     public sealed class BoostGaugeUI : MonoBehaviour
     {
@@ -26,7 +22,6 @@ namespace UI.PlayerState
             fill = GetComponent<Image>();
         }
 
-        /// <summary>Re-bindable: the persistent HUD re-Initializes when the player is rebuilt.</summary>
         public void Initialize(IShipStatus status)
         {
             this.status = status;

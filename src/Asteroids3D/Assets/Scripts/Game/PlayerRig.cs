@@ -128,7 +128,7 @@ namespace Game
                 var uiCam = projection.Camera;
 
                 Overlay = Instantiate(overlayPrefab, uiRoot);
-                Overlay.SetCanvasWorldCamera(uiCam);
+                Overlay.ConfigureCameras(uiCam, observer.Cam);
                 Overlay.Initialize(BuildHudBinding());
                 var minimapCam = Instantiate(minimapCamPrefab, observer.transform);
                 Overlay.BindObjectives(objectives, observer.Cam, minimapCam);

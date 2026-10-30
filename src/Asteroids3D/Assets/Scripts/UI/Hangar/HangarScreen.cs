@@ -224,6 +224,7 @@ namespace UI.Hangar
 
         private static string Refill(Rounds rounds) =>
             rounds.ReloadTime <= 0f ? ""
+            : rounds.Refill == Rounds.RefillMode.Sequential ? $" (shared recharge {rounds.ReloadTime:0.#}s/round)"
             : rounds.Refill == Rounds.RefillMode.PerRound ? $" (regen {rounds.ReloadTime:0.#}s/round)"
             : $" (reload {rounds.ReloadTime:0.#}s)";
 
