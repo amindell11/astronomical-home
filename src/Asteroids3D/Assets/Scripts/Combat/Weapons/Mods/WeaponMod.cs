@@ -1,5 +1,7 @@
 using System;
 using Balance;
+using Loot;
+using Ships;
 using UnityEngine;
 
 namespace Combat.Weapons.Mods
@@ -8,14 +10,11 @@ namespace Combat.Weapons.Mods
     /// One run-scoped stat modifier on a field carried weapons already have: a percent bonus, or
     /// whole rounds for Magazine. It fits any carried weapon that has the field, or only the listed
     /// prefabs. Picked at a lull, it rides the run and lands on every carried weapon it fits.
-    /// The rulings behind the layer: https://github.com/amindell11/astronomical-home/issues/1211#issuecomment-6464116762
+    /// Sibling of <see cref="Ships.Mods.ShipMod"/>. The rulings behind the layer: https://github.com/amindell11/astronomical-home/issues/1211#issuecomment-6464116762
     /// </summary>
     [CreateAssetMenu(fileName = "WeaponMod", menuName = "Weapons/Weapon Mod")]
-    public class WeaponMod : ScriptableObject
+    public class WeaponMod : LullMod
     {
-        [Tooltip("Name on the pick card. Empty = the asset name.")]
-        [SerializeField] private string displayName;
-
         [Stat, SerializeField] private WeaponModField field;
 
         [Tooltip("Bonus as a fraction of the authored value (0.25 = +25%); for Magazine, whole rounds added.")]
@@ -24,13 +23,11 @@ namespace Combat.Weapons.Mods
         [Tooltip("Weapon prefabs this mod fits. Empty = any carried weapon that has the field.")]
         [Stat, SerializeField] private WeaponComponent[] fits = Array.Empty<WeaponComponent>();
 
-        public string DisplayName => string.IsNullOrEmpty(displayName) ? name : displayName;
         public WeaponModField Field => field;
         public float Amount => amount;
         public int Rounds => Mathf.RoundToInt(amount);
 
-        /// <summary>The card's effect line, read off the field and amount so it cannot drift from them.</summary>
-        public string Effect => field == WeaponModField.Magazine
+        public override string Effect => field == WeaponModField.Magazine
             ? $"+{Rounds} {(Rounds == 1 ? "round" : "rounds")}"
             : $"+{Mathf.RoundToInt(amount * 100f)}% {field.Label()}";
 
@@ -38,10 +35,14 @@ namespace Combat.Weapons.Mods
         public bool Fits(WeaponComponent mount, WeaponComponent prefab) =>
             mount && mount.Supports(field) && (fits.Length == 0 || Array.IndexOf(fits, prefab) >= 0);
 
+        public override bool Fits(Ship ship) => ship && ship.Weapons && ship.Weapons.Fits(this);
+
+        public override string Landing(Ship ship) => ship.Weapons.LandingNames(this);
+
 #if UNITY_EDITOR
         internal void Configure(string displayName, WeaponModField field, float amount, params WeaponComponent[] fits)
         {
-            this.displayName = displayName;
+            SetDisplayName(displayName);
             this.field = field;
             this.amount = amount;
             this.fits = fits;

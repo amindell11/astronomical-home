@@ -54,5 +54,12 @@ namespace Ships.Damage
             this.regenRate = regenRate;
             this.regenDelay = regenDelay;
         }
+
+        public void Rescale(float maxValue, float regenRate, float regenDelay)
+        {
+            base.Rescale(maxValue);
+            this.regenRate = regenRate;
+            this.regenDelay = regenDelay;
+        }
     }
 }

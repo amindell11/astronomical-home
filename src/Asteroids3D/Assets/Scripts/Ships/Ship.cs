@@ -4,11 +4,13 @@ using System.Collections.Generic;
 using Combat;
 using Combat.Targeting;
 using Combat.Weapons;
+using Loot;
 using Ships.Command;
 using Utils;
 using Ships.Damage;
 using Ships.Keystones;
 using Ships.Loadout;
+using Ships.Mods;
 using Ships.Movement;
 using Ships.Presentation;
 using Ships.Weapons;
@@ -118,6 +120,7 @@ namespace Ships
 
         private bool isInitialized = false;
         private IProjectileService projectiles;
+        private LullModStack mods;
 
         protected virtual void Awake()
         {
@@ -145,40 +148,61 @@ namespace Ships
             Subscribe();
         }
 
-        private void Resolve() => Stats = ResolvedShipStats.Resolve(this, engine, shield);
+        private void Resolve() =>
+            Stats = ResolvedShipStats.Resolve(this, engine, shield, mods?.ForShip() ?? ShipMods.None);
 
-        /// <summary>Resolve stats without instantiating; shipRadius stays default until <see cref="Initialize"/> derives it from live colliders.</summary>
+        /// <summary>Authored stats, without run mods or instantiating; shipRadius stays default until <see cref="Initialize"/> derives it from live colliders.</summary>
         public ResolvedShipStats ResolveStats() => ResolvedShipStats.Resolve(this, engine, shield);
 
-        /// <summary>Between-run module swap (null modules are valid); after a weapon swap the caller must re-run <c>IUnitService.WireShipDependencies</c> to rewire world-scoped lock-sensor state.</summary>
-        public void Reequip(ShieldModule newShield, WeaponComponent newPrimaryWeapon, WeaponComponent newSecondaryWeapon)
+        /// <summary>Binds the run's lull mods once; every change re-applies them, keeping the vitals' fractions.</summary>
+        public void BindMods(LullModStack stack)
         {
-            shield = newShield;
+            if (mods != null)
+                throw new InvalidOperationException($"Ship '{name}' already has its run mods bound; a ship binds once.");
+            mods = stack;
+            mods.Changed += OnModsChanged;
+            OnModsChanged();
+        }
 
+        private void OnModsChanged()
+        {
+            if (Weapons) Weapons.SetMods(mods);
+            ReResolve(Vitals.Rescale);
+        }
+
+        private void OnDestroy()
+        {
+            if (mods != null) mods.Changed -= OnModsChanged;
+        }
+
+        /// <summary>Between-run weapon swap (null mounts are valid) that refills vitals; callers re-run <c>IUnitService.WireShipDependencies</c> for lock sensors.</summary>
+        public void Reequip(WeaponComponent newPrimaryWeapon, WeaponComponent newSecondaryWeapon)
+        {
             if (Weapons)
                 Weapons.Reequip(newPrimaryWeapon, newSecondaryWeapon);
 
-            // Subscribe before the pre-Initialize early-return so onChanged tracks the new modules either way.
-            Subscribe();
             if (!isInitialized) return;
 
-            ReResolve(resetVitals: true);
+            ReResolve(Vitals.Refill);
         }
 
-        // Module swaps don't change geometry, so the derived radius carries forward; resetVitals refills health/shield (equip swap yes, live inspector tuning no).
-        private void ReResolve(bool resetVitals)
+        // Keep for live inspector tuning, Rescale for a lull pick, Refill for a hangar equip.
+        private enum Vitals { Keep, Rescale, Refill }
+
+        // Module swaps don't change geometry, so the derived radius carries forward.
+        private void ReResolve(Vitals vitals)
         {
             var radius = Stats?.shipRadius ?? 1f;
             Resolve();
             Stats.shipRadius = radius;
-            Movement?.PopulateSettings(Stats);
-            if (resetVitals)
-                Damage?.PopulateSettings(Stats);
+            if (Movement) Movement.PopulateSettings(Stats);
+            if (Damage && vitals == Vitals.Refill) Damage.PopulateSettings(Stats);
+            if (Damage && vitals == Vitals.Rescale) Damage.Rescale(Stats);
             if (isInitialized)
                 baseDynamics = Stats.BuildDynamics(Rigidbody ? Rigidbody.inertiaTensor.z : 0f);
         }
 
-        private void OnSettingsChanged() => ReResolve(resetVitals: false);
+        private void OnSettingsChanged() => ReResolve(Vitals.Keep);
 
         private EngineModule subEngine;
         private ShieldModule subShield;

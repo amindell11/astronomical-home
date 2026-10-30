@@ -27,7 +27,7 @@ See also: [[Flight]]
 - Once locked, missile pursues the target subject to dynamic limits.
 - Missiles can be destroyed by lasers, other missiles, or asteroids.
 - Explosion deals high damage in a small AoE around impact.
-- Missiles have fixed ammo and do not replenish (unless designed otherwise later).
+- Missiles should support a stored burst while making a reserve worthwhile. Spending the reserve should create a recovery window.
 
 ## Health
 - Health is split into **shield** and **hull**.

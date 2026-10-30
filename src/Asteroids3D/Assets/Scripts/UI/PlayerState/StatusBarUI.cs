@@ -16,7 +16,7 @@ namespace UI.PlayerState
         private bool pulsing;
         private float pulseTime;
 
-        public static StatusBarUI Create(Transform parent, Resource resource, Font font, Color tint, float y,
+        public static StatusBarUI Create(Transform parent, Resource resource, Font font, Color tint, float y, Material textMaterial,
             bool pulsesWhenLow = false)
         {
             var bar = new GameObject("Status bar", typeof(RectTransform)).AddComponent<StatusBarUI>();
@@ -30,6 +30,7 @@ namespace UI.PlayerState
             bar.pulsesWhenLow = pulsesWhenLow;
 
             bar.label = new GameObject("Current / capacity", typeof(RectTransform)).AddComponent<Text>();
+            bar.label.material = textMaterial;
             bar.label.gameObject.layer = parent.gameObject.layer;
             bar.label.transform.SetParent(bar.transform, false);
             bar.label.rectTransform.pivot = new Vector2(0f, .5f);
@@ -37,7 +38,7 @@ namespace UI.PlayerState
             bar.label.rectTransform.sizeDelta = new Vector2(66f, 18f);
             bar.label.font = font;
             bar.label.fontSize = 12;
-            bar.label.fontStyle = FontStyle.Bold;
+            bar.label.fontStyle = FontStyle.Normal;
             bar.label.alignment = TextAnchor.MiddleLeft;
             bar.label.horizontalOverflow = HorizontalWrapMode.Overflow;
             bar.label.verticalOverflow = VerticalWrapMode.Overflow;

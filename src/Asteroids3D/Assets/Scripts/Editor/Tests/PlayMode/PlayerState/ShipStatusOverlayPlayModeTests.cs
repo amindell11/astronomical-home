@@ -5,6 +5,7 @@ using Ships;
 using Ships.Damage;
 using Tests.PlayMode.Common;
 using UI.PlayerState;
+using UI.Weapons;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
@@ -39,7 +40,8 @@ namespace Tests.PlayMode.PlayerState
             var resource = new Resource(150f);
             resource.ApplyDamage(75f);
             var bar = StatusBarUI.Create(root.transform, resource,
-                Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"), Color.cyan, 0f);
+                Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"), Color.cyan, 0f,
+                TestAssets.Load<Material>("Assets/Visuals/Ui/Projection/CanopyText.mat"));
             var label = bar.GetComponentInChildren<Text>();
             Assert.AreEqual("75/150", label.text);
             using (var mesh = new VertexHelper())
@@ -80,7 +82,8 @@ namespace Tests.PlayMode.PlayerState
             ship = ShipTestFactory.CreateShip(TestAssets.Load<Ship>("Assets/Prefabs/Ships/Vanguard.prefab"),
                 null, Projectiles, team: 1);
             var bars = ShipStatusIndicator.Create(canvas, camera, ship,
-                Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf")).GetComponentsInChildren<StatusBarUI>();
+                Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"),
+                TestAssets.Load<Material>("Assets/Visuals/Ui/Projection/CanopyText.mat")).GetComponentsInChildren<StatusBarUI>();
             var shieldColor = FillEdge(bars[0]).color;
             var healthColor = FillEdge(bars[1]).color;
 
@@ -117,7 +120,17 @@ namespace Tests.PlayMode.PlayerState
             hud.gameObject.layer = LayerMask.NameToLayer("UIBloom");
             hud.worldCamera = camera;
             var mainHud = hud.gameObject.AddComponent<global::UI.Overlay>();
-            mainHud.SetCanvasWorldCamera(camera);
+            var crosshair = Object.Instantiate(TestAssets.Load<AimCrosshair>(
+                "Assets/Prefabs/UI/Crosshair/AimCrosshair.prefab"), hud.transform);
+            crosshair.Initialize(ship, camera);
+            var weaponHud = Object.Instantiate(TestAssets.Load<WeaponResourceHud>(
+                "Assets/Prefabs/UI/Crosshair/WeaponKeystoneHud.prefab"), hud.transform);
+            weaponHud.Initialize(null);
+            typeof(global::UI.Overlay).GetField("crosshair", BindingFlags.Instance | BindingFlags.NonPublic)
+                .SetValue(mainHud, crosshair);
+            typeof(global::UI.Overlay).GetField("weaponResources", BindingFlags.Instance | BindingFlags.NonPublic)
+                .SetValue(mainHud, weaponHud);
+            mainHud.ConfigureCameras(camera, camera);
             mainHud.BindShips(ships, camera);
             var overlay = root.GetComponentInChildren<ShipStatusOverlay>();
             yield return null;
@@ -158,8 +171,12 @@ namespace Tests.PlayMode.PlayerState
                 "Travel fades and restores every HUD canvas through the same call");
             mainHud.SetOpacity(1f);
             Assert.AreEqual(1f, overlay.GetComponent<CanvasGroup>().alpha);
+            Assert.IsTrue(crosshair.gameObject.activeSelf);
+            Assert.IsTrue(weaponHud.gameObject.activeSelf);
             mainHud.SetVisible(false);
             mainHud.SetOpacity(0f, 1f);
+            Assert.IsFalse(crosshair.gameObject.activeSelf);
+            Assert.IsFalse(weaponHud.gameObject.activeSelf);
             Assert.IsTrue(overlay.GetComponent<Canvas>().enabled);
             Assert.AreEqual(1f, overlay.GetComponent<CanvasGroup>().alpha);
             mainHud.SetOpacity(0f, .35f);

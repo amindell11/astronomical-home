@@ -2,8 +2,8 @@ using System;
 using System.Collections;
 using Cameras;
 using Combat.Weapons;
-using Combat.Weapons.Mods;
 using Damage;
+using Loot;
 using Substrate.Sectors;
 using Substrate.Sessions;
 using Substrate.Services.Units;
@@ -13,8 +13,8 @@ using Ships;
 using Ships.Loadout;
 using Ships.Command;
 using UI;
+using UI.Projection;
 using UnityEngine;
-using UnityEngine.Rendering.Universal;
 using Ships.Registry;
 using Substrate;
 
@@ -40,7 +40,7 @@ namespace Game
         [SerializeField] private Vector2 playerSpawnPosition = Vector2.zero;
 
         [Header("Camera")]
-        [SerializeField] private Camera uiCamPrefab;
+        [SerializeField] private CanopyProjection uiCamPrefab;
         [SerializeField] private Camera minimapCamPrefab;
 
         [Header("UI")]
@@ -66,8 +66,8 @@ namespace Game
         /// <summary>Every other ship spawned this run and its fate; reset with the tally at the loadout step.</summary>
         public SpawnLog Spawns { get; } = new();
 
-        /// <summary>The weapon mods picked this run; cleared at the loadout step, in force on the player's mounts after every equip and pick.</summary>
-        public WeaponModStack Mods { get; } = new();
+        /// <summary>The run's lull picks; cleared at the loadout step, bound to each player the rig builds.</summary>
+        public LullModStack Mods { get; } = new();
 
         /// <summary>The live HUD overlay this rig owns; null headless or before <see cref="Build"/>.</summary>
         public Overlay Overlay { get; private set; }
@@ -83,6 +83,7 @@ namespace Game
         private Action<ShipId, DamageInfo> onPlayerDeath;
 
         private SessionFrame frame;
+        private CanopyProjection projection;
 
         // The prefab the current Player instance was built from — a hangar ship change is detected
         // against this (the prefab is the archetype; see ShipLoadout.Ship).
@@ -113,7 +114,7 @@ namespace Game
             Ledger.Bind(Player.Damage, units.Registry);
 
             // Seed the pending loadout from the ship's authored build so an unedited hangar is a no-op.
-            Loadout = new ShipLoadout(playerTemplate, Player.Shield,
+            Loadout = new ShipLoadout(playerTemplate,
                 Player.Weapons ? Player.Weapons.PrimaryMountPrefab : null,
                 Player.Weapons ? Player.Weapons.SecondaryMountPrefab : null);
 
@@ -122,12 +123,12 @@ namespace Game
             {
                 if (!minimapCamPrefab)
                     throw new InvalidOperationException($"PlayerRig on '{name}' needs a minimap camera for its HUD.");
-                var uiCam = Instantiate(uiCamPrefab, observer.transform);
-                uiCam.GetUniversalAdditionalCameraData().renderType = CameraRenderType.Overlay;
-                observer.Cam.GetUniversalAdditionalCameraData().cameraStack.Add(uiCam);
+                projection = Instantiate(uiCamPrefab, observer.transform);
+                projection.Initialize(observer.Cam);
+                var uiCam = projection.Camera;
 
                 Overlay = Instantiate(overlayPrefab, uiRoot);
-                Overlay.SetCanvasWorldCamera(uiCam);
+                Overlay.ConfigureCameras(uiCam, observer.Cam);
                 Overlay.Initialize(BuildHudBinding());
                 var minimapCam = Instantiate(minimapCamPrefab, observer.transform);
                 Overlay.BindObjectives(objectives, observer.Cam, minimapCam);
@@ -148,6 +149,9 @@ namespace Game
             Spawns.Bind(null, null);
             if (Overlay)
                 Destroy(Overlay.gameObject);
+            if (projection)
+                Destroy(projection.gameObject);
+            projection = null;
             Overlay = null;
             Player = null;
             observer = null;
@@ -172,9 +176,9 @@ namespace Game
         }
 
         /// <summary>
-        /// Install the pending <see cref="Loadout"/> onto the persistent player ship. A module change
-        /// is a data re-resolve (<see cref="Ship.Reequip"/>); a ship change is a whole-player rebuild
-        /// (<see cref="RebuildPlayer"/>) followed by the module equip. Called at each run's
+        /// Install the pending <see cref="Loadout"/> onto the persistent player ship. A weapon change
+        /// is a mount swap (<see cref="Ship.Reequip"/>); a ship change is a whole-player rebuild
+        /// (<see cref="RebuildPlayer"/>) followed by the weapon equip. Called at each run's
         /// hangar step — never mid-sector; leaves the player live for the next sector load.
         /// </summary>
         public void ApplyLoadout()
@@ -194,8 +198,7 @@ namespace Game
             if (Loadout.Ship && Loadout.Ship != currentTemplate)
                 RebuildPlayer(Loadout.Ship);
 
-            Player.Reequip(Loadout.Shield, Loadout.PrimaryWeapon, Loadout.SecondaryWeapon);
-            if (Player.Weapons) Player.Weapons.SetMods(Mods);
+            Player.Reequip(Loadout.PrimaryWeapon, Loadout.SecondaryWeapon);
 
             // Swapped-in weapon mounts carry world-facing parts (lock sensor) that the service
             // wired at spawn; ask it to re-wire (the player is never AI, so no field), then re-bind the HUD.
@@ -203,12 +206,8 @@ namespace Game
             RebindHud();
         }
 
-        /// <summary>Adds a lull pick to the run and puts it in force on the mounts it fits.</summary>
-        public void PickMod(WeaponMod mod)
-        {
-            Mods.Add(mod);
-            if (Player && Player.Weapons) Player.Weapons.SetMods(Mods);
-        }
+        /// <summary>Adds a lull pick to the run; the bound player applies it at once.</summary>
+        public void PickMod(LullMod mod) => Mods.Add(mod);
 
         /// <summary>Mounts a sector-break pick mid-run; unlike <see cref="ApplyLoadout"/>, vitals, run clocks and hangar loadout stay.</summary>
         public void SwapWeapon(WeaponSlot slot, WeaponComponent weapon)
@@ -257,6 +256,7 @@ namespace Game
                 field: null);
             Player.tag = "Player";
             currentTemplate = template;
+            Player.BindMods(Mods);
 
             WirePlayerDeath();
 

@@ -6,6 +6,7 @@ using Combat;
 using Combat.Targeting;
 using Combat.Weapons;
 using Combat.Weapons.Mods;
+using Loot;
 using Movement;
 using Ships.Command;
 using Ships.Loadout;
@@ -46,7 +47,7 @@ namespace Ships.Weapons
         public event Action Fired;
 
         private WeaponContext context;
-        private WeaponModStack mods;
+        private LullModStack mods;
 
         private void Awake()
         {
@@ -81,8 +82,8 @@ namespace Ships.Weapons
             }
         }
 
-        /// <summary>Puts the run's mods in force on the mounts and keeps them in force across <see cref="Reequip"/>; call again after a pick.</summary>
-        public void SetMods(WeaponModStack stack)
+        /// <summary>Puts the run's weapon mods in force across <see cref="Reequip"/>; the bound ship calls it per change.</summary>
+        public void SetMods(LullModStack stack)
         {
             mods = stack;
             HandMods();

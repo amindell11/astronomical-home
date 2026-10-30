@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Combat.Weapons;
 using Combat.Weapons.Mods;
+using Loot;
 using Ships.Command;
 using Substrate.Sectors.Elements;
 using UnityEngine;
@@ -44,7 +45,7 @@ namespace UI.Screens
         private IReadOnlyList<WeaponComponent> offers;
         private WeaponComponent primary;
         private WeaponComponent secondary;
-        private WeaponModStack mods;
+        private LullModStack mods;
         private RectTransform offerStep;
         private RectTransform mountStep;
         private int? offered;
@@ -57,7 +58,7 @@ namespace UI.Screens
 
         public static WeaponPickScreen Create(Transform parent, int sector, SectorThreat? threat,
             IReadOnlyList<WeaponComponent> offers, WeaponComponent primary, WeaponComponent secondary,
-            WeaponModStack mods)
+            LullModStack mods)
         {
             if (offers == null || offers.Count == 0 || offers.Count > MaxOffers)
                 throw new ArgumentException($"A weapon pick offers one to {MaxOffers} weapons.", nameof(offers));

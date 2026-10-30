@@ -88,7 +88,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **trainer** | ml-agents trainer runtime (`mlagents-learn`) · owned trainer runtime (takeover arc) · custom-trainer plugin seam · trainer config (`ppo_*.yaml`) · `RLTrainerConfigEditModeTests` | Always qualified. Bare "the trainer" is legal only in RL-run operational context (= the run's trainer-runtime process), never in a title. |
 | **tripwire** | eval tripwire (the scorecard subset watched as a collapse detector) · player-build tripwire (`PlayerBuildTripwireEditModeTests`) | Always qualified. |
 | **module** | deep module (design vocabulary, §2 → *design vocabulary*) · ship module (chassis/module/loadout) · `-ScopeType Module` (test scope) | Qualify: "deep module" / "ship module" / "Module scope". |
-| **mod** | weapon mod (§2 → *weapon mod*) · the colloquial short form of ship module | Bare "mod" = weapon mod inside the loot code (`Combat/Weapons/Mods/`, the lull pick) and in prose whose topic is weapon mods; a ship module is never shortened to "mod". In a title, qualify regardless. |
+| **mod** | lull mod (§2 → *lull mod*): a weapon mod or a ship mod · the colloquial short form of ship module | Bare "mod" = a lull mod of either kind inside the loot code (`Loot/`, the lull pick); prose names the kind ("weapon mod", "ship mod") wherever the kind matters; a ship module is never shortened to "mod". In a title, qualify regardless. |
 | **bench** | benchmark run (bench run, bench config, ram-bench harness) · benched work (`bench/<topic>`, §2 → *benched*) | Bare "bench" = benchmark run. Set-aside work is always "benched". |
 | **layer** | sky layer (one drawn backdrop layer — background, far nebula, starfield, close nebula — a child renderer of a locale's `LocaleSky` root) · Unity layer (`LayerIds`; notably `Sky`, the render layer every sky layer sits on, which only the flight and hangar cameras' culling masks include) · starfield depth layer (inside `StarField.shader`) · paint mask (§2 → *Art pipeline*; never "paint layer") | Always qualified: "sky layer" vs "the `Sky` layer". |
 | **charge** | charge-up / spent charge (`ChargeTime`, the `Charge` parameter) · concussion charge (`Grenade`, `IChargeFlight`, the target marker) | Always qualified in prose: "charge-up", "spent charge", "concussion charge". |
@@ -859,17 +859,30 @@ Format: **term** — definition. *(authority)*
   never by per-component globals; and it is **not** the same axis as the deleted
   `vfx` flag, which it has been confused with three separate times.
 - **chassis / module / loadout / hangar / sidegrade** — the ship-customization
-  naming key, in order of containment: the hull's own stats / the swappable parts
-  / the equipped set / the between-run screen where you change it / an option
-  that trades rather than upgrades.
+  naming key, in order of containment: the hull's own stats / the parts a ship
+  carries (engine and shield come with the chassis; only weapons swap) / the
+  equipped set / the between-run screen where you change it / an option that
+  trades rather than upgrades.
 - **weapon mod** — a run-scoped stat modifier on one field a carried weapon
   already has (fire rate, damage, heat capacity, cooling, magazine, reload
   speed, charge speed, blast radius), never a new behaviour. Mods ride the run,
   not the weapon: a picked mod lands on every carried weapon it fits, stacks
   with repeats, and one that fits nothing carried stays held and idle. The
   authored prefab numbers never change, so enemies and the hangar read the
-  weapon unmodded. Not a ship module. *(WeaponMod, WeaponModStack, WeaponMods)*
-- **lull pick** — the time-stopped choice of one weapon mod from up to three,
+  weapon unmodded. Not a ship module. *(WeaponMod, WeaponMods; held on the
+  LullModStack)*
+- **ship mod** — a run-scoped stat modifier on one field group of the player's
+  own hull, engine or shield (max hull; max speed; thrust; handling; shield
+  capacity, regen, recharge), grouped as the keystone scales group handling. It
+  folds into the ship's own resolve and applies at once with no heal: a max
+  rises and keeps its fraction. Only a bound stack mods a ship, so enemies and
+  the hangar read authored. Sibling of a weapon mod; not a ship module.
+  *(ShipMod, ShipMods, ResolvedShipStats.Resolve)*
+- **lull mod** — a weapon mod or a ship mod: what the lull pool holds and a
+  lull pick offers. A run's picks ride one stack the player rig binds to its
+  ship once; the ship re-reads it on every resolve and on every change.
+  *(LullMod, LullModPool, LullModStack, Ship.BindMods)*
+- **lull pick** — the time-stopped choice of one lull mod from up to three,
   or a skip, on the first frame of a sector phase lull; the lull's own seconds
   run after it. *(LullPickScreen, GameHost)*
 - **weapon pick** — the sector-break choice of one weapon the player does not
@@ -889,16 +902,18 @@ Format: **term** — definition. *(authority)*
   presentation part, so presentation-off sessions drop it. *(KeystoneFlash,
   HullVisuals.HoldFlash)*
 - **item** — anything that fills a loadout slot: a chassis (a prefab with a root
-  `Ship`), an engine module, a shield module, or a weapon (a prefab with a root
-  `WeaponComponent`). Projectiles, trial pacing and `killHullRestore` are tuned
-  but fill no slot, so they are not items.
+  `Ship`) or a weapon (a prefab with a root `WeaponComponent`). Engine and shield
+  modules come with the chassis and fill no slot (#1073, #1254); projectiles,
+  trial pacing and `killHullRestore` are tuned but fill no slot either. None of
+  those are items.
 - **item catalog** — the one asset listing every item in the project, grouped
   by item type. An index only: each item's stats stay on its own asset. Listing
   is not what makes something an item — a test scans the project by type and
   fails when the list and the scan differ. *(ItemCatalog)*
 - **item subset** — an authored list of items one consumer chooses from, per
-  loadout slot. Two exist: the hangar's offer and the enemy loadout pool. Never
-  "the catalog": neither lists everything. *(ItemSubset)*
+  loadout slot. Two exist: the hangar's offer (ships and weapons) and the enemy
+  loadout pool (weapons only; an enemy's chassis is the roster's). Never "the
+  catalog": neither lists everything. *(ItemSubset)*
 - **hangar's offer** — the item subset the hangar shows the player.
   *(GameHost.hangarOffer)*
 - **lane clearing** — shooting asteroids to open a firing lane. Currently

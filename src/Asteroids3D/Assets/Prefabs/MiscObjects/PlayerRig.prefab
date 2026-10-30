@@ -49,7 +49,7 @@ MonoBehaviour:
   playerCommander: {fileID: 6378580657550141484, guid: ed986bef16a6fa9488e6052de65aa9dd,
     type: 3}
   playerSpawnPosition: {x: 0, y: 0}
-  uiCamPrefab: {fileID: 3390105061295411697, guid: 295d83ec41ff69a44b8fed215945622a,
+  uiCamPrefab: {fileID: 3567397901875389468, guid: 295d83ec41ff69a44b8fed215945622a,
     type: 3}
   minimapCamPrefab: {fileID: 8356663853274892654, guid: d01c2caf016d7b942a890f2a013961f1,
     type: 3}

@@ -44,7 +44,7 @@ namespace RL.Episodes
                 GamePlane.Rotation * Quaternion.AngleAxis(rotDeg, Vector3.forward));
             ship.transform.SetParent(units.UnitsRoot, true);
             units.ActiveRegistry.ActiveShips.Add(ship);
-            ship.Reequip(ship.Shield, primary, null);
+            ship.Reequip(primary, null);
             return ship;
         }
 

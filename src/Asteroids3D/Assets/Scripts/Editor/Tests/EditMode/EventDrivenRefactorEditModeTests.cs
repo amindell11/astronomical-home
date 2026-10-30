@@ -4,6 +4,7 @@ using System.Reflection;
 using Combat.Targeting;
 using NUnit.Framework;
 using UI;
+using UI.Weapons;
 using UnityEngine;
 using UnityEngine.UI;
 using Combat.Weapons.Conditions;

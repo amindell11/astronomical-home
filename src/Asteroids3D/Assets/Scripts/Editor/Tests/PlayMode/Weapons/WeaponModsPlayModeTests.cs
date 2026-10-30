@@ -5,6 +5,7 @@ using Combat.Weapons;
 using Combat.Weapons.Arsenal;
 using Combat.Weapons.Conditions;
 using Combat.Weapons.Mods;
+using Loot;
 using NUnit.Framework;
 using Ships;
 using Tests.PlayMode.Common;
@@ -62,14 +63,14 @@ namespace Tests.PlayMode.Weapons
 
             var lasers = LoadWeapon<Lasers>(LasersPrefabPath);
             var rippers = LoadWeapon<Rippers>(RippersPrefabPath);
-            ship.Reequip(ship.Shield, lasers, rippers);
+            ship.Reequip(lasers, rippers);
             yield return null;
 
             var authoredHeat = lasers.GetComponent<Heat>().MaxHeat;
             var authoredMagazine = rippers.GetComponent<Rounds>().MaxAmmo;
             var authoredInterval = rippers.GetComponent<Cooldown>().SecondsBetweenShots;
 
-            var stack = new WeaponModStack();
+            var stack = new LullModStack();
             stack.Add(Mod("Heat sink", WeaponModField.HeatCapacity, 0.25f));
             stack.Add(Mod("Heat sink", WeaponModField.HeatCapacity, 0.25f));
             stack.Add(Mod("Deep magazine", WeaponModField.Magazine, 6f, rippers));
@@ -89,7 +90,7 @@ namespace Tests.PlayMode.Weapons
             Assert.AreEqual(authoredHeat * 1.5f, heat.MaxHeat, 1e-3f, "the sector-load reset keeps the mods");
             Assert.AreEqual(authoredMagazine + 6, rounds.AmmoCount, "a reset refills to the modded magazine");
 
-            ship.Reequip(ship.Shield, rippers, lasers);
+            ship.Reequip(rippers, lasers);
             yield return null;
             Assert.AreEqual(authoredMagazine + 6, ship.Weapons.Primary.GetComponent<Rounds>().MaxAmmo,
                 "a fresh mount reads the same picks");
@@ -106,7 +107,7 @@ namespace Tests.PlayMode.Weapons
             var lasers = LoadWeapon<Lasers>(LasersPrefabPath);
             var rippers = LoadWeapon<Rippers>(RippersPrefabPath);
             var missiles = LoadWeapon<Missiles>(MissilesPrefabPath);
-            ship.Reequip(ship.Shield, rippers, missiles);
+            ship.Reequip(rippers, missiles);
             yield return null;
 
             var authoredRipperMagazine = rippers.GetComponent<Rounds>().MaxAmmo;
@@ -115,7 +116,7 @@ namespace Tests.PlayMode.Weapons
             var deepMagazine = Mod("Deep magazine", WeaponModField.Magazine, 6f, rippers);
             var extraMissile = Mod("Extra missile", WeaponModField.Magazine, 1f, missiles);
             var coolant = Mod("Coolant", WeaponModField.Cooling, 0.25f);
-            var stack = new WeaponModStack();
+            var stack = new LullModStack();
             stack.Add(deepMagazine);
             stack.Add(extraMissile);
             stack.Add(coolant);
@@ -127,7 +128,7 @@ namespace Tests.PlayMode.Weapons
             Assert.IsTrue(ship.Weapons.Fits(deepMagazine));
             Assert.AreEqual("Rippers", ship.Weapons.LandingNames(deepMagazine));
 
-            ship.Reequip(ship.Shield, lasers, missiles);
+            ship.Reequip(lasers, missiles);
             yield return null;
             Assert.IsFalse(ship.Weapons.Fits(deepMagazine), "the magazine mod idles once the rippers leave");
             Assert.IsTrue(ship.Weapons.Fits(coolant), "coolant wakes on the lasers");
