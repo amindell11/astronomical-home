@@ -1,0 +1,2 @@
+compile check pass: 9 assemblies compiled (63s)
+COMPILE_CHECK=pass SECONDS=65
