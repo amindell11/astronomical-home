@@ -97,7 +97,7 @@ namespace Tests.PlayMode.Hangar
             var eventSystem = new GameObject("TestEventSystem").AddComponent<EventSystem>();
             eventSystemGo = eventSystem.gameObject;
             Canvas.ForceUpdateCanvases();
-            var rows = new[] { screen.shipRow, screen.shieldRow,
+            var rows = new[] { screen.shipRow,
                 screen.primaryWeaponRow, screen.secondaryWeaponRow };
             var buttons = rows.SelectMany(row => new[] { row.previousButton, row.nextButton })
                 .Append(screen.launchButton);

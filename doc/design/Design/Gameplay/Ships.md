@@ -77,7 +77,7 @@ Notes on the judgement calls:
 | Slot | Count | Fills with | Status |
 |---|---|---|---|
 | **Engine** | 1 | the chassis's own engine module — locked to the ship, not a hangar pick (#1028) | **built** |
-| **Shield** | 1 | shield module | **built** |
+| **Shield** | 1 | the chassis's own shield module — locked to the ship, not a hangar pick (#1254) | **built** |
 | **Weapon** | 2 (fixed for now) | [[Weapons]] | **exists**, frozen at two mounts |
 | **Utility** | N | consumables, mines, countermeasures, trinkets | **designed, deferred** |
 | **Keystone** | 1 | the chassis's own keystone kit — locked to the ship; every ship carries a Dash today (#1028) | **built** |
@@ -152,14 +152,15 @@ frames and locked kits are different reward landscapes, exactly the diversity
 - The monolithic `ShipSettings` dissolved into the **ship prefab itself** plus
   two composable SO modules. Chassis stats (`mass` / `maxHealth` /
   `startingLives` / `maxBankAngle`) are serialized fields on the **`Ship`**
-  MonoBehaviour; **`EngineModule`** and **`ShieldModule`** are the swappable
-  slots. A resolver flattens `Ship` + modules into a plain **`ResolvedShipStats`**
+  MonoBehaviour; **`EngineModule`** and **`ShieldModule`** are the chassis's own
+  modules, locked to the ship (#1028, #1254). A resolver flattens `Ship` + modules into a plain **`ResolvedShipStats`**
   that feeds the existing movement/damage systems and the MPC `Dynamics`
   unchanged.
 - There is **no `FrameSettings` asset** — the prefab *is* the frame. `Ship` holds
   the chassis fields directly plus typed module pointers (`engine` / `shield`);
   physical size is the prefab's root scale and the collision radius is derived
-  from its colliders. Runtime "equip" = swap a module pointer + re-resolve.
+  from its colliders. Runtime "equip" = swap the weapon mounts + re-resolve; the
+  module pointers are the prefab's.
 - **Build history:** an intermediate step split `ShipSettings` into a
   `FrameSettings` SO + modules; that SO was then folded into the ship prefab
   (this doc's model) so a ship is one normal Unity prefab. Values carried across

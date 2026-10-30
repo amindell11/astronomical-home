@@ -46,7 +46,7 @@ namespace Tests.PlayMode.Hangar
             var onScreen = new float[ships.Length];
             for (var i = 0; i < ships.Length; i++)
             {
-                stage.Show(new ShipLoadout(ships[i], null, null, null), backwards: false);
+                stage.Show(new ShipLoadout(ships[i], null, null), backwards: false);
                 yield return new WaitForSeconds(SettleSeconds);
                 var hull = stage.transform.Find($"Anchor/{ships[i].name}_Preview");
                 // Same hull mesh, so on-screen size goes as world scale over camera distance.
