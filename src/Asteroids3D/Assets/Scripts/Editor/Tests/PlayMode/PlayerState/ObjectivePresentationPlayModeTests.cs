@@ -140,8 +140,7 @@ namespace Tests.PlayMode.PlayerState
                 ["extract"] = () => new ExtractionState()
             }, target, progress);
 
-        [UnityTest]
-        public IEnumerator Markers_StaySmallAcrossZoom_AndHideWhenTheTargetIsDestroyed()
+        private (ObjectiveMarkers markers, Image icon, Camera camera) CreateMarkers()
         {
             var camera = Child("World camera").AddComponent<Camera>();
             camera.transform.position = new Vector3(0, 0, -50);
@@ -160,6 +159,13 @@ namespace Tests.PlayMode.PlayerState
             typeof(ObjectiveMarkers).GetField("icon", BindingFlags.Instance | BindingFlags.NonPublic)
                 .SetValue(markers, icon);
             markers.Initialize(service, camera, camera, minimap, canvas);
+            return (markers, icon, camera);
+        }
+
+        [UnityTest]
+        public IEnumerator Markers_StaySmallAcrossZoom_AndHideWhenTheTargetIsDestroyed()
+        {
+            var (_, icon, camera) = CreateMarkers();
             var target = Child("Destination").transform;
             target.position = new Vector3(8, 6, 0);
             Open(target);
@@ -185,6 +191,25 @@ namespace Tests.PlayMode.PlayerState
             yield return null;
             yield return null;
             Assert.IsFalse(screen.enabled || map.enabled || icon.enabled);
+        }
+
+        [UnityTest]
+        public IEnumerator Markers_InSurvive_DrawTheBerthsInTheBeaconAccent()
+        {
+            var (markers, icon, _) = CreateMarkers();
+            var beaconAccent = (Color)typeof(ObjectiveMarkers)
+                .GetField("beaconAccent", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(markers);
+            var target = Child("Beacon").transform;
+            target.position = new Vector3(8, 6, 0);
+            OpenPhases(target, () => new SectorPhaseProgress(0, 2, 5f, false));
+            yield return null;
+            var screen = canvas.transform.Find("Extraction direction").GetComponent<BerthGraphic>();
+            var map = canvas.transform.Find("Extraction minimap").GetComponent<BerthGraphic>();
+            Assert.IsTrue(screen.enabled && map.enabled, "A survive-state target draws the berths.");
+            Assert.AreEqual(beaconAccent, screen.Accent);
+            Assert.AreEqual(beaconAccent, map.Accent);
+            Assert.AreNotEqual(BerthGraphic.ExtractionAccent, beaconAccent);
+            Assert.IsFalse(icon.enabled);
         }
 
         private sealed class ExtractionState : ObjectiveState

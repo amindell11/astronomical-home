@@ -89,7 +89,7 @@ namespace Tests.PlayMode.Rendering.Projection
             director.Configure(null, new[] { new SectorPhase { seconds = 40f }, new SectorPhase { seconds = 40f } }, 5f);
             director.BeginSchedule(0f);
             var module = Child("Phase").AddComponent<PhaseSpineModule>();
-            module.Bind(director, null);
+            module.Bind(director, null, null);
             return (module, director);
         }
 

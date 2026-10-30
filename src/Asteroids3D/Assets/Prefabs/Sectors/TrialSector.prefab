@@ -91,7 +91,7 @@ MonoBehaviour:
     interval: 5
     cap: 3
     loadouts: {fileID: 0}
-  lullSeconds: 5
+  lullSeconds: 12
   spawnRadius: 55
   clearanceRadius: 6
   asteroidMask:

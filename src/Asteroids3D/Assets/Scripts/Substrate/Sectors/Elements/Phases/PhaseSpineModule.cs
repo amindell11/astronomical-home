@@ -13,8 +13,11 @@ namespace Substrate.Sectors.Elements.Phases
     /// <summary>
     /// A sector spine over its wave director's sector phases: survive them, then reach
     /// the extraction zone, which stays hidden until the phases are done and then appears on a clear
-    /// point away from the hero. The hero's jump request inside commits extraction. The director is held to
-    /// observe its phase, never commanded. The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1051
+    /// point away from the hero. The hero's jump request inside commits extraction. Each lull opens a
+    /// lull beacon on a clear point away from the hero the same way; flying into it claims that lull's
+    /// pick (<see cref="BeaconClaimed"/>, read by the host), and the next phase's start closes an
+    /// unclaimed one. The director is held to observe its phase, never commanded.
+    /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1051
     /// </summary>
     public class PhaseSpineModule : SectorModule
     {
@@ -34,24 +37,41 @@ namespace Substrate.Sectors.Elements.Phases
         [Tooltip("Random angles tried for a clear point; the last one tried is used when none is clear.")]
         [SerializeField, Min(1)] private int placementAttempts = 8;
 
+        [Header("Lull beacon")]
+        [SerializeField] private ExtractionZone beaconZone;
+        [Tooltip("Plane distance from the hero a lull beacon appears at on the lull's first frame.")]
+        [SerializeField, Min(0f)] private float beaconDistance = 150f;
+
         private SpineObjectiveHandle spine;
         private Ship hero;
         private ExtractionJumpState extraction;
+        private bool beaconsEnabled;
+        private bool beaconOpen;
+        private bool wasInLull;
 
         public SectorPhaseMark Phase => director.Phase;
+
+        /// <summary>True from a lull beacon's claim until the next opens; the host picks on its rising edge.</summary>
+        public bool BeaconClaimed { get; private set; }
 
         /// <summary>What this sector's director can send, readable off the sector prefab before it loads.</summary>
         public SectorThreat Threat() => director.Threat();
 
         public override IEnumerator Setup(SectorBuildContext ctx)
         {
-            if (!director || !extractionZone)
+            if (!director || !extractionZone || !beaconZone)
                 throw new InvalidOperationException(
-                    $"PhaseSpineModule on '{name}' needs its wave director and extraction zone wired.");
+                    $"PhaseSpineModule on '{name}' needs its wave director, extraction zone and beacon zone wired.");
 
             hero = ctx.Hero;
             extractionZone.BindPlayer(hero ? hero.Body : null);
             extractionZone.gameObject.SetActive(false);
+            beaconZone.BindPlayer(hero ? hero.Body : null);
+            beaconZone.gameObject.SetActive(false);
+            beaconsEnabled = ctx.PresentationEnabled && hero;
+            wasInLull = false;
+            beaconOpen = false;
+            BeaconClaimed = false;
             extraction = new ExtractionJumpState(extractionZone, hero,
                 () => RequestSectorEnd(SectorResult.Extracted(extractionZone.DepartureHeading)), OpenExtraction);
 
@@ -74,6 +94,9 @@ namespace Substrate.Sectors.Elements.Phases
         {
             ReleaseExtraction();
             if (extractionZone) extractionZone.Disarm();
+            beaconsEnabled = false;
+            if (beaconOpen) CloseBeacon();
+            if (beaconZone) beaconZone.Disarm();
             spine?.Close();
             spine = null;
             hero = null;
@@ -88,6 +111,42 @@ namespace Substrate.Sectors.Elements.Phases
 
         private void OnDestroy() => ReleaseExtraction();
 
+        private void Update() => Tick();
+
+        internal void Tick()
+        {
+            if (!beaconsEnabled || !hero) return;
+            var mark = director.Phase;
+            if (mark.InLull && !wasInLull) OpenBeacon();
+            else if (beaconOpen && !mark.InLull) CloseBeacon();
+            else if (beaconOpen && beaconZone.IsPlayerInZone) ClaimBeacon();
+            wasInLull = mark.InLull;
+        }
+
+        private void OpenBeacon()
+        {
+            beaconZone.transform.position = ClearPointAround(GamePlane.WorldPointToPlane(hero.transform.position), beaconDistance);
+            beaconZone.gameObject.SetActive(true);
+            beaconZone.Arm();
+            spine.Target = beaconZone.transform;
+            beaconOpen = true;
+            BeaconClaimed = false;
+        }
+
+        private void ClaimBeacon()
+        {
+            BeaconClaimed = true;
+            CloseBeacon();
+        }
+
+        private void CloseBeacon()
+        {
+            beaconOpen = false;
+            beaconZone.Disarm();
+            beaconZone.gameObject.SetActive(false);
+            spine.Target = null;
+        }
+
         private SectorPhaseProgress ReadPhaseProgress()
         {
             var mark = director.Phase;
@@ -98,20 +157,20 @@ namespace Substrate.Sectors.Elements.Phases
         private void OpenExtraction()
         {
             if (hero)
-                extractionZone.transform.position = ClearPointAround(GamePlane.WorldPointToPlane(hero.transform.position));
+                extractionZone.transform.position = ClearPointAround(GamePlane.WorldPointToPlane(hero.transform.position), zoneDistance);
             extractionZone.gameObject.SetActive(true);
             extractionZone.Arm();
             spine.Target = extractionZone.transform;
         }
 
-        private Vector3 ClearPointAround(Vector2 center)
+        private Vector3 ClearPointAround(Vector2 center, float distance)
         {
             var position = Vector3.zero;
             for (var attempt = 0; attempt < placementAttempts; attempt++)
             {
                 var angle = UnityEngine.Random.Range(0f, 2f * Mathf.PI);
                 var outward = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
-                position = GamePlane.PlanePointToWorld(center + outward * zoneDistance);
+                position = GamePlane.PlanePointToWorld(center + outward * distance);
                 if (!Physics.CheckSphere(position, zoneClearance, asteroidMask)) break;
             }
             return position;
@@ -155,10 +214,11 @@ namespace Substrate.Sectors.Elements.Phases
         }
 
 #if UNITY_EDITOR
-        internal void Bind(WaveDirector director, ExtractionZone zone)
+        internal void Bind(WaveDirector director, ExtractionZone zone, ExtractionZone beacon)
         {
             this.director = director;
             extractionZone = zone;
+            beaconZone = beacon;
         }
 #endif
     }
