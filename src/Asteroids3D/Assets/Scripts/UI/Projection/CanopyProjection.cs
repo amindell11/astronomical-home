@@ -17,10 +17,16 @@ namespace UI.Projection
         private RTHandle ink;
         private RTHandle inkColor;
         private bool bound;
+        private Func<CanopyState> observeState;
+        private CanopyStateBlend blend;
 
         public Camera Camera => inkCamera;
         public CanopyProjectionProfile Profile => profile;
         public bool PersonalityEnabled { get; set; } = true;
+        public bool EffectsEnabled => PersonalityEnabled && profile.personalityEnabled;
+        public CanopyForceMode ForceMode { get; set; }
+        public CanopyState ActiveState => blend.State;
+        public CanopySettings Settings => blend.Settings;
         public float AppearanceAge { get; set; } = -1f;
         public float TransitionAge { get; set; } = -1f;
         public float HitAge { get; set; } = -1f;
@@ -42,11 +48,15 @@ namespace UI.Projection
             inkCamera.allowMSAA = false;
         }
 
-        public void Initialize(Camera camera)
+        public void Initialize(Camera camera, CanopyProjectionProfile profileOverride = null,
+            Func<CanopyState> observeState = null)
         {
             if (!camera) throw new ArgumentNullException(nameof(camera));
             if (sceneCamera) throw new InvalidOperationException("CanopyProjection is already initialized.");
             sceneCamera = camera;
+            if (profileOverride) profile = profileOverride;
+            this.observeState = observeState;
+            blend = new CanopyStateBlend(profile);
             Bind();
             SynchronizeCamera();
         }
@@ -66,7 +76,11 @@ namespace UI.Projection
 
         private void LateUpdate()
         {
-            if (sceneCamera) SynchronizeCamera();
+            if (!sceneCamera) return;
+            var state = ForceMode == CanopyForceMode.Automatic
+                ? observeState?.Invoke() ?? CanopyState.Base : (CanopyState)((int)ForceMode - 1);
+            blend.Tick(state, Time.unscaledDeltaTime);
+            SynchronizeCamera();
         }
 
         private void SynchronizeCamera()

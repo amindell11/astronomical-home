@@ -11,6 +11,7 @@ using Substrate.Services.Objectives;
 using Substrate.Services.Units;
 using Substrate.Sessions;
 using UI.Recap;
+using UI.Projection;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
@@ -46,6 +47,7 @@ namespace Game.Preview
 
         internal RecapFeelProfile recapFeel;
         internal SectorJumpProfile jumpFeel;
+        internal CanopyProjectionProfile canopyFeel;
         private UnitService unitService;
         private ObjectiveService objectiveService;
         private Session session;
@@ -73,6 +75,7 @@ namespace Game.Preview
         public GameHost Playtest => playtest;
         public RecapFeelProfile RecapFeel => recapFeel;
         public SectorJumpProfile JumpFeel => jumpFeel;
+        public CanopyProjectionProfile CanopyFeel => canopyFeel;
         public bool IsReplacing => replacing || closing;
         public Exception Fault => fault?.SourceException;
         public bool IsReady => fault == null && !composing && !IsReplacing &&
@@ -118,7 +121,7 @@ namespace Game.Preview
             registry.ActiveShips.OnRemove += RemoveCameraSubject;
 
             rig = Instantiate(gameHostPrefab.playerRig, transform);
-            yield return rig.Build(session.Units, session.Objectives, true, observer, ui, session.Frame, null);
+            yield return rig.Build(session.Units, session.Objectives, true, observer, ui, session.Frame, null, canopyFeel);
             rig.ApplyLoadout();
             yield return session.LoadSector(0, rig.Player);
 
@@ -136,6 +139,7 @@ namespace Game.Preview
                 playtest.sessionProfile.sectors = crowdedJumpSectors;
             playtest.recapFeel = recapFeel;
             playtest.jumpFeel = jumpFeel;
+            playtest.canopyProfileOverride = canopyFeel;
             playtest.runRecordPath = Path.Combine(ResultsRoot.Folder("preview"),
                 Guid.NewGuid().ToString("N"), RunRecordStore.FileName);
             playtest.transform.SetParent(null, false);
@@ -182,6 +186,16 @@ namespace Game.Preview
                 throw new InvalidOperationException("Jump profile selection requires Playtest mode.");
             if (!feel) throw new ArgumentNullException(nameof(feel));
             jumpFeel = feel;
+            BeginReplacement();
+        }
+
+        public void RestartPlaytest(CanopyProjectionProfile feel)
+        {
+            RequireAvailable();
+            if (mode != PreviewMode.Playtest || playtestSetup != PreviewPlaytestSetup.Combat)
+                throw new InvalidOperationException("Canopy profile selection requires Combat Playtest.");
+            if (!feel) throw new ArgumentNullException(nameof(feel));
+            canopyFeel = feel;
             BeginReplacement();
         }
 

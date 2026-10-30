@@ -1,6 +1,7 @@
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UI.Projection;
 
 namespace Game.Preview
 {
@@ -14,6 +15,7 @@ namespace Game.Preview
         private PreviewHost host;
         private SerializedObject knobs;
         private SerializedObject jumpKnobs;
+        private SerializedObject canopyKnobs;
         [SerializeField] private PreviewSubjectKind selectedSubject;
         [SerializeField] private PreviewMode selectedMode;
         [SerializeField] private PreviewPlaytestSetup selectedSetup;
@@ -128,7 +130,24 @@ namespace Game.Preview
                 host.RestartPlaytest(jump);
                 return;
             }
+            if (host.PlaytestSetup == PreviewPlaytestSetup.Combat)
+            {
+                var canopy = PickProfile("Canopy profile", host.CanopyFeel);
+                if (canopy)
+                {
+                    host.RestartPlaytest(canopy);
+                    return;
+                }
+            }
             scroll = EditorGUILayout.BeginScrollView(scroll);
+            if (host.PlaytestSetup == PreviewPlaytestSetup.Combat)
+            {
+                var projection = host.Playtest.CanopyProjection;
+                if (projection)
+                    projection.ForceMode = (CanopyForceMode)EditorGUILayout.EnumPopup("Force canopy state", projection.ForceMode);
+                DrawKnobs(host.CanopyFeel, ref canopyKnobs);
+                if (GUILayout.Button("Import tuner settings…")) CanopyTunerImportWindow.Open(host.CanopyFeel);
+            }
             DrawKnobs(host.JumpFeel, ref jumpKnobs);
             DrawKnobs(host.RecapFeel, ref knobs);
             EditorGUILayout.EndScrollView();

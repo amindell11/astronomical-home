@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d61da4d07bae854f83ec6abcba12e0f, type: 3}
   m_Name: CanopyProjection
   m_EditorClassIdentifier: 
+  personalityEnabled: 1
   baseSettings:
     glow: 0.55
     aberration: 7
@@ -24,3 +25,36 @@ MonoBehaviour:
     glassDistortion: 0.96
     damageShudder: 12.6
     transitionGlitch: 0.75
+  lowHull:
+    fields: 0
+    settings:
+      glow: 0
+      aberration: 0
+      beamJitter: 0
+      afterglow: 0
+      scanlines: 0
+      flicker: 0
+      warmth: 0
+      wear: 0
+      glassDistortion: 0
+      damageShudder: 0
+      transitionGlitch: 0
+    blendInSeconds: 0.15
+    blendOutSeconds: 0.35
+  bigMoment:
+    fields: 2047
+    settings:
+      glow: 1.1
+      aberration: 4
+      beamJitter: 1.3
+      afterglow: 0.5
+      scanlines: 0.5
+      flicker: 0.6
+      warmth: 0.4
+      wear: 0.25
+      glassDistortion: 0.35
+      damageShudder: 5
+      transitionGlitch: 0.7
+    blendInSeconds: 0.15
+    blendOutSeconds: 0.35
+  bigMomentSeconds: 1

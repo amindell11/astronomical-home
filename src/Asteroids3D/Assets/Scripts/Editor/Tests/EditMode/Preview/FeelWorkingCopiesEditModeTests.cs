@@ -6,6 +6,7 @@ using Game.Preview;
 using Game.Travel;
 using NUnit.Framework;
 using UI.Recap;
+using UI.Projection;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -17,6 +18,7 @@ namespace Tests.EditMode.Preview
     {
         private const string RecapPath = "Assets/Settings/UI/RecapFeel.asset";
         private const string JumpPath = "Assets/Settings/Game/SectorJumpTuning.asset";
+        private const string CanopyPath = "Assets/Settings/UI/CanopyProjection.asset";
         private string folder;
         private FeelWorkingCopies copies;
 
@@ -91,6 +93,34 @@ namespace Tests.EditMode.Preview
             Assert.That(after.Length, Is.EqualTo(before.Length));
             var changed = Enumerable.Range(0, before.Length).Where(line => before[line] != after[line]);
             Assert.That(changed.Select(line => after[line].Trim()), Is.EqualTo(new[] { "streakFan: 7.25" }));
+        }
+
+        [Test]
+        public void CanopyNestedEditsAndImport_StayOnTheCopyUntilSave_AndRevertRestoresTheSavedBlock()
+        {
+            var asset = CopyOfShipped<CanopyProjectionProfile>(CanopyPath);
+            var before = File.ReadAllBytes(AssetDatabase.GetAssetPath(asset));
+            var copy = copies.For(asset);
+            Edit(copy, "lowHull.settings.glow", 1.7f);
+            using (var serialized = new SerializedObject(copy))
+            {
+                serialized.FindProperty("lowHull.fields").intValue = (int)CanopyFields.Glow;
+                serialized.ApplyModifiedProperties();
+            }
+            Assert.That(copies.HasUnsavedEdits(copy), Is.True);
+            Assert.That(EditorUtility.IsDirty(asset), Is.False);
+            Assert.That(File.ReadAllBytes(AssetDatabase.GetAssetPath(asset)), Is.EqualTo(before));
+            copies.Save(copy);
+            Assert.That(asset.Resolve(CanopyState.LowHull).glow, Is.EqualTo(1.7f));
+            var export = AssetDatabase.LoadAssetAtPath<TextAsset>(
+                "Assets/Scripts/Editor/Tests/EditMode/Rendering/Projection/OwnerSettings.json").text;
+            CanopyTunerSettings.Parse(export).Apply(copy, CanopyState.LowHull);
+            Assert.That(copy.lowHull.fields, Is.EqualTo(CanopyFields.All));
+            Assert.That(asset.lowHull.fields, Is.EqualTo(CanopyFields.Glow));
+            copies.Revert(copy);
+            Assert.That(copy.Resolve(CanopyState.LowHull).glow, Is.EqualTo(1.7f));
+            Assert.That(copy.lowHull.fields, Is.EqualTo(CanopyFields.Glow));
+            Assert.That(copies.HasUnsavedEdits(copy), Is.False);
         }
 
         [Test]
