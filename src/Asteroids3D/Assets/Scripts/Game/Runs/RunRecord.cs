@@ -109,7 +109,7 @@ namespace Game.Runs
                 {
                     chassis = NameOf(playerLoadout.Ship),
                     engine = NameOf(playerLoadout.Ship.Engine),
-                    shield = NameOf(playerLoadout.Shield),
+                    shield = NameOf(playerLoadout.Ship.Shield),
                     primary = NameOf(playerLoadout.PrimaryWeapon),
                     secondary = NameOf(playerLoadout.SecondaryWeapon),
                     statHash = playerLoadoutStatHash,

@@ -15,8 +15,8 @@ using Combat.Weapons.Conditions;
 namespace Tests.PlayMode
 {
     /// <summary>
-    /// Weapons are first-class loadout slots: <see cref="Ship.Reequip"/> swaps the mounted weapon
-    /// prefabs like it swaps the shield module. Changed slots replace their mount instances
+    /// Weapons are the loadout's slots: <see cref="Ship.Reequip"/> swaps the mounted weapon prefabs
+    /// and re-resolves the ship, refilling its vitals. Changed slots replace their mount instances
     /// (unchanged slots keep them — an unedited apply is a no-op), while the weapon context object
     /// survives (refreshed in place) so commander- and HUD-held references stay valid, and the
     /// ship's targeting cache follows the missile mount in and out. Also covers the death path:
@@ -63,7 +63,7 @@ namespace Tests.PlayMode
 
             var rippers = LoadWeapon<Rippers>(RippersPrefabPath);
             var lasers = LoadWeapon<Lasers>(LasersPrefabPath);
-            ship.Reequip(ship.Shield, rippers, lasers);
+            ship.Reequip(rippers, lasers);
 
             Assert.IsInstanceOf<Rippers>(ship.Weapons.Primary, "primary mount replaced by the ripper");
             Assert.IsInstanceOf<Lasers>(ship.Weapons.Secondary, "secondary mount replaced by the laser");
@@ -88,6 +88,25 @@ namespace Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator Reequip_RefillsVitals_AndKeepsTheDerivedRadius()
+        {
+            ship = ShipTestFactory.CreateDefaultShip(Projectiles);
+            Assert.IsNotNull(ship, "ship created");
+            yield return null;
+
+            Assert.Greater(ship.Stats.maxShield, 0f, "test premise: the default ship carries a shield");
+            var baselineRadius = ship.Stats.shipRadius;
+            ship.Damage.Shield.SetFraction(.3f);
+            Assert.AreEqual(.3f, ship.ShieldPct, 1e-3f, "test premise: the shield is drained before the swap");
+
+            ship.Reequip(LoadWeapon<Rippers>(RippersPrefabPath), LoadWeapon<Lasers>(LasersPrefabPath));
+
+            Assert.AreEqual(1f, ship.ShieldPct, 1e-3f, "vitals refill on a between-run equip swap");
+            Assert.AreEqual(baselineRadius, ship.Stats.shipRadius, 1e-4f,
+                "collision radius is geometry-derived and carries across a module swap");
+        }
+
+        [UnityTest]
         public IEnumerator Reequip_TargetingCache_FollowsTheMissileMount()
         {
             ship = ShipTestFactory.CreateDefaultShip(Projectiles);
@@ -99,12 +118,12 @@ namespace Tests.PlayMode
             // Swap the missiles away → the ship no longer has a lock sensor.
             var lasers = LoadWeapon<Lasers>(LasersPrefabPath);
             var rippers = LoadWeapon<Rippers>(RippersPrefabPath);
-            ship.Reequip(ship.Shield, lasers, rippers);
+            ship.Reequip(lasers, rippers);
             Assert.IsNull(ship.Targeting, "targeting cache cleared when no mount carries a sensor");
 
             // Swap missiles back in → the cache points at the NEW mount's sensor, ready for re-wiring.
             var missiles = LoadWeapon<Missiles>(MissilesPrefabPath);
-            ship.Reequip(ship.Shield, lasers, missiles);
+            ship.Reequip(lasers, missiles);
             Assert.IsNotNull(ship.Targeting, "targeting cache found the fresh missile mount's sensor");
             Assert.AreSame(ship.Targeting, ship.Weapons.Secondary.GetComponent<Combat.Targeting.LockOnSensor>(),
                 "cache points at the newly instantiated sensor, not a stale one");
@@ -117,7 +136,7 @@ namespace Tests.PlayMode
             Assert.IsNotNull(ship, "ship created");
             yield return null;
 
-            ship.Reequip(ship.Shield, null, null);
+            ship.Reequip(null, null);
 
             Assert.IsNull(ship.Weapons.Primary, "empty primary slot");
             Assert.IsNull(ship.Weapons.Secondary, "empty secondary slot");
@@ -137,8 +156,7 @@ namespace Tests.PlayMode
             var sensorBefore = ship.Targeting;
 
             // The seeded "unedited hangar" apply: same modules back in.
-            ship.Reequip(ship.Shield,
-                ship.Weapons.PrimaryMountPrefab, ship.Weapons.SecondaryMountPrefab);
+            ship.Reequip(ship.Weapons.PrimaryMountPrefab, ship.Weapons.SecondaryMountPrefab);
             yield return null; // a (wrong) deferred mount destroy would land here
 
             Assert.IsTrue(primaryBefore, "unchanged primary mount not destroyed");
@@ -159,7 +177,7 @@ namespace Tests.PlayMode
 
             var rippers = LoadWeapon<Rippers>(RippersPrefabPath);
             var missiles = LoadWeapon<Missiles>(MissilesPrefabPath);
-            ship.Reequip(ship.Shield, rippers, missiles);
+            ship.Reequip(rippers, missiles);
 
             Assert.IsNotNull(ship.Targeting, "sensor tracked from the new mounts even while inactive");
             Assert.AreEqual(0, ship.Weapons.ReadoutContext.Readouts(WeaponSlot.Primary).Count,
@@ -189,7 +207,7 @@ namespace Tests.PlayMode
 
             var lasers = LoadWeapon<Lasers>(LasersPrefabPath);
             var missiles = LoadWeapon<Missiles>(MissilesPrefabPath);
-            ship.Reequip(ship.Shield, lasers, missiles);
+            ship.Reequip(lasers, missiles);
 
             Assert.IsNull(ship.Weapons, "weapon slots ignored — the chassis decides which slots exist");
             Assert.IsNull(ship.Targeting, "no sensor appears on an unarmed chassis");

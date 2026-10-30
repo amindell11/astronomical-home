@@ -175,16 +175,12 @@ namespace Ships
             if (mods != null) mods.Changed -= OnModsChanged;
         }
 
-        /// <summary>Between-run module swap (null modules are valid); after a weapon swap the caller must re-run <c>IUnitService.WireShipDependencies</c> to rewire world-scoped lock-sensor state.</summary>
-        public void Reequip(ShieldModule newShield, WeaponComponent newPrimaryWeapon, WeaponComponent newSecondaryWeapon)
+        /// <summary>Between-run weapon swap (null mounts are valid); after it the caller must re-run <c>IUnitService.WireShipDependencies</c> to rewire world-scoped lock-sensor state.</summary>
+        public void Reequip(WeaponComponent newPrimaryWeapon, WeaponComponent newSecondaryWeapon)
         {
-            shield = newShield;
-
             if (Weapons)
                 Weapons.Reequip(newPrimaryWeapon, newSecondaryWeapon);
 
-            // Subscribe before the pre-Initialize early-return so onChanged tracks the new modules either way.
-            Subscribe();
             if (!isInitialized) return;
 
             ReResolve(Vitals.Refill);

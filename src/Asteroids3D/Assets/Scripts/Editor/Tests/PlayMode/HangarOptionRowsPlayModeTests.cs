@@ -57,13 +57,12 @@ namespace Tests.PlayMode
 
             catalog = ScriptableObject.CreateInstance<ItemSubset>();
             catalog.ships = new[] { vanguard };
-            catalog.shields = new ShieldModule[0];
             var weapons = new WeaponComponent[WeaponPaths.Length];
             for (var i = 0; i < WeaponPaths.Length; i++)
                 weapons[i] = Load<WeaponComponent>(WeaponPaths[i]);
             catalog.weapons = weapons;
 
-            var loadout = new ShipLoadout(vanguard, vanguard.Shield, null, null);
+            var loadout = new ShipLoadout(vanguard, null, null);
             Show(catalog, loadout);
             return loadout;
         }
@@ -191,7 +190,7 @@ namespace Tests.PlayMode
         {
             var offer = Load<ItemSubset>(RealCatalogPath);
             var first = offer.ships[0];
-            Show(offer, new ShipLoadout(first, first.Shield, null, null));
+            Show(offer, new ShipLoadout(first, null, null));
             Assert.AreEqual(first.name, screen.shipRow.label.text, "the ship row opens on the loadout's ship");
 
             for (var i = 1; i <= offer.ships.Length; i++)
@@ -203,18 +202,14 @@ namespace Tests.PlayMode
         }
 
         [Test]
-        public void RealCatalog_ShieldRowAndShipKit_ShowDisplayNames()
+        public void RealCatalog_ShipHover_NamesTheChassisEngineAndShield()
         {
             var offer = Load<ItemSubset>(RealCatalogPath);
             var first = offer.ships[0];
-            var loadout = new ShipLoadout(first, first.Shield, null, null);
+            var loadout = new ShipLoadout(first, null, null);
             Show(offer, loadout);
 
-            for (var i = 0; i < offer.shields.Length; i++)
-            {
-                Next(screen.shieldRow);
-                AssertDisplayName(loadout.Shield.DisplayName, screen.shieldRow.label.text, $"shield step {i + 1}");
-            }
+            Assert.IsNull(screen.transform.Find("Panel/ShieldRow"), "the hangar offers no shield row");
 
             var stats = screen.transform.Find("Panel/StatsText").GetComponent<Text>();
             screen.shipRow.GetComponent<EventTrigger>().OnPointerEnter(new PointerEventData(null));
@@ -222,19 +217,14 @@ namespace Tests.PlayMode
             {
                 Next(screen.shipRow);
                 var lines = stats.text.Split('\n');
-                var kit = $"Kit: {loadout.Ship.Shield.DisplayName}";
                 var engine = $"Engine: {loadout.Ship.Engine.DisplayName}";
-                StringAssert.EndsWith(kit, lines[0], $"ship step {i + 1} hover names the authored shield as the kit");
+                var shield = $"Shield: {loadout.Ship.Shield.DisplayName}";
+                StringAssert.DoesNotContain("Kit:", lines[0], $"ship step {i + 1} hover has no kit line: the ship is the whole pick");
                 StringAssert.StartsWith(engine, lines[1], $"ship step {i + 1} hover names the chassis's engine under the ship");
-                StringAssert.StartsWith($"Keystone: {loadout.Ship.KeystonePrefab.DisplayName}", lines[2], $"ship step {i + 1} hover names the chassis's keystone");
-                StringAssert.DoesNotContain("_", kit + engine, $"ship step {i + 1} kit shows authored names");
+                StringAssert.StartsWith(shield, lines[2], $"ship step {i + 1} hover names the chassis's shield read-only under the engine");
+                StringAssert.StartsWith($"Keystone: {loadout.Ship.KeystonePrefab.DisplayName}", lines[3], $"ship step {i + 1} hover names the chassis's keystone");
+                StringAssert.DoesNotContain("_", engine + shield, $"ship step {i + 1} hover shows authored names");
             }
-        }
-
-        private static void AssertDisplayName(string displayName, string label, string step)
-        {
-            Assert.AreEqual(displayName, label, $"{step} labels the pick by its display name");
-            StringAssert.DoesNotContain("_", label, $"{step} shows an authored name, not the asset name");
         }
     }
 }
