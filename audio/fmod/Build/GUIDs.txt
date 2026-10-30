@@ -43,6 +43,7 @@
 {fc743a58-2281-4345-918b-397c9a134e54} event:/Weapons/TurboLaser/Impact
 {390851dd-1030-43ff-9b58-6276426dabf7} event:/World/Ambience
 {5c304193-3486-492b-8b92-7e43899173b0} event:/World/Asteroid/Break
+{0c54d10f-3890-4d61-936f-88298f332ddc} event:/World/Asteroid/Hit
 {9b0393d6-205e-4eb0-a426-7add98b47136} parameter:/Charge
 {b4818c81-c170-4f81-9b3a-9c884898f964} parameter:/FirstShot
 {c2edb1a4-3877-4fa1-8ca9-8abc546ff7ab} parameter:/Heat

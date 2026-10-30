@@ -12,7 +12,8 @@
 //   snapshot:/LowHealth     scopes bus:/World volume to -10 dB and the Multiband EQ's band A to 1.5 kHz;
 //                           an AHDSR on the snapshot's intensity, 0.5 s attack and release
 // Instance caps in each event's macros: Weapons/*/Fire 8 stealing oldest; Weapons/*/{Impact,Detonate}
-// 6 stealing quietest; Ships/Engine 12 stealing quietest; World/Ambience and Music/Game 1.
+// and World/Asteroid/Hit 6 stealing quietest; Ships/Engine 12 stealing quietest; World/Ambience and
+// Music/Game 1.
 // HUD events are left alone. Idempotent: an event is routed only while it still outputs to bus:/World
 // and capped only while it still has the default cap; every bus, effect, modulator, scope and send is
 // created only when absent.
@@ -136,7 +137,7 @@ project.model.Event.findInstances().forEach(function (event) {
     else if (path.indexOf("event:/World/") === 0) routeFromWorld(event, environment);
 
     if (weaponFire.test(path)) cap(event, 8, stealing.oldest);
-    else if (weaponHit.test(path)) cap(event, 6, stealing.quietest);
+    else if (weaponHit.test(path) || path === "event:/World/Asteroid/Hit") cap(event, 6, stealing.quietest);
     else if (path === "event:/Ships/Engine") cap(event, 12, stealing.quietest);
     else if (path === "event:/World/Ambience" || path === "event:/Music/Game") cap(event, 1, stealing.oldest);
 });
