@@ -58,7 +58,7 @@ namespace Tests.PlayMode.Screens
                 Mod("Extra missile", WeaponModField.Magazine, 1f),
             };
             screen = LullPickScreen.Create(root.transform, offers,
-                mod => mod.Field == WeaponModField.Magazine ? "Missiles" : "Lasers · Missiles");
+                mod => ((WeaponMod)mod).Field == WeaponModField.Magazine ? "Missiles" : "Lasers · Missiles");
             yield return null;
 
             Assert.AreEqual("1", Text("Cards/Card1/KeyCap/Key"));

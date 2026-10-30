@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Combat.Weapons;
 using Combat.Weapons.Mods;
+using Loot;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;
@@ -63,7 +64,7 @@ namespace Tests.PlayMode.Screens
         // Rippers primary, lasers secondary; held: hot rounds twice, coolant, a rippers-only magazine.
         private WeaponPickScreen Open(SectorThreat? threat = null)
         {
-            var stack = new WeaponModStack();
+            var stack = new LullModStack();
             var hot = Mod("Hot rounds", WeaponModField.Damage);
             stack.Add(hot);
             stack.Add(hot);

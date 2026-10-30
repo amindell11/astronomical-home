@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Combat.Weapons;
 using Combat.Weapons.Mods;
+using Loot;
 using NUnit.Framework;
 using UnityEngine;
 
