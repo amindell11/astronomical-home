@@ -122,9 +122,7 @@ function ensureSnapshotTrack(strip) {
 }
 
 function isSpatial(event) {
-    return event.masterTrack.mixerGroup.effectChain.effects.some(function (effect) {
-        return effect.entity === "SpatialiserEffect";
-    });
+    return !!existingEffect(event.masterTrack.mixerGroup, "SpatialiserEffect");
 }
 
 // Reuses the project-wide preset so GUIDs.txt never lists a second parameter of the same name.
@@ -157,14 +155,10 @@ function distanceLowPass() {
 }
 
 function ensureDistanceLowPass(event, preset) {
-    var chain = event.masterTrack.mixerGroup.effectChain;
-    var present = chain.effects.some(function (effect) {
-        return effect.entity === "ProxyEffect" && effect.preset && effect.preset.id === preset.id;
-    });
+    var master = event.masterTrack.mixerGroup;
+    var present = existingEffect(master, "ProxyEffect", function (proxy) { return proxy.preset && proxy.preset.id === preset.id; });
     if (present) return;
-    var proxy = project.create("ProxyEffect");
-    proxy.preset = preset;
-    chain.relationships.effects.insert(0, proxy);
+    addPreFader(master, "ProxyEffect").preset = preset;
     console.log("added Distance Low-Pass before the " + event.getPath() + " fader");
 }
 
