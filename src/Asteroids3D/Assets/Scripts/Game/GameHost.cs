@@ -18,6 +18,7 @@ using Ships.Loadout;
 using UI;
 using UI.Hangar;
 using UI.Recap;
+using UI.Projection;
 using UI.Screens;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -131,6 +132,9 @@ namespace Game
         private ObserverCam observer;
         private DriftCam hangarCamera;
         private PlayerRig rigInstance;
+        internal CanopyProjectionProfile canopyProfileOverride;
+
+        public CanopyProjection CanopyProjection => rigInstance ? rigInstance.Projection : null;
         private LoadingSplash splash;
         private GameMusic music;
 
@@ -195,7 +199,7 @@ namespace Game
                 // An asset gets no lifecycle, and state parked on it would outlive the session.
                 rigInstance = Instantiate(playerRig, transform);
                 yield return rigInstance.Build(session.Units, session.Objectives, presentation,
-                    observer, ui, session.Frame, BuildDeathCallback());
+                    observer, ui, session.Frame, BuildDeathCallback(), canopyProfileOverride);
                 rigInstance.Tally.Killed += RefillPlayerHull;
             }
 
@@ -272,6 +276,7 @@ namespace Game
                         rigInstance.Player.Damage.Health.SetFraction(hull);
                     SetSplashVisible(false);
                     if (music) music.EnterSector(session.ActiveSector);
+                    if (rigInstance) rigInstance.EnterSector(session.ActiveSector.Module<PhaseSpineModule>());
                     var sectorStartTime = Time.time;
                     var lulls = presentation && lullMods && rigInstance
                         ? session.ActiveSector.Module<PhaseSpineModule>() : null;
@@ -309,6 +314,7 @@ namespace Game
                             yield return RunRecap(ExtractionContext(index, sectorStartTime));
                         if (shutdownRequested) yield break;
                         SetSplashVisible(true);
+                        if (rigInstance) rigInstance.EnterSector(null);
                         yield return session.UnloadSector();
                     }
                     if (shutdownRequested) yield break;
@@ -326,6 +332,7 @@ namespace Game
                 if (shutdownRequested) yield break;
 
                 SetSplashVisible(true);
+                if (rigInstance) rigInstance.EnterSector(null);
                 yield return session.UnloadSector();
                 if (rigInstance) rigInstance.Park();
             }
@@ -371,7 +378,9 @@ namespace Game
                     sectorEnded = false;
                     activeSectorIndex = destination;
                     rigInstance.Spawns.BeginSector();
+                    rigInstance.EnterSector(null);
                     yield return session.TransferSector(destination, rigInstance.Player, OnSectorComplete);
+                    rigInstance.EnterSector(session.ActiveSector.Module<PhaseSpineModule>());
                     rigInstance.Player.Damage.Health.SetFraction(hull);
                     destinationReady = true;
                 }

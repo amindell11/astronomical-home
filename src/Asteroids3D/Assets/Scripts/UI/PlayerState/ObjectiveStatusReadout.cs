@@ -4,6 +4,7 @@ using Objectives.Presentation;
 using Substrate.Services.Objectives;
 using UnityEngine;
 using UnityEngine.UI;
+using UI.Projection;
 
 namespace UI.PlayerState
 {
@@ -21,7 +22,7 @@ namespace UI.PlayerState
         private float openedAt;
 
         public static ObjectiveStatusReadout Create(Transform parent, Font labelFont, Font headingFont, Font timerFont,
-            Material textMaterial)
+            Material textMaterial, CanopyProjection projection = null, Func<bool> isVisible = null)
         {
             var go = new GameObject("ObjectiveStatusReadout", typeof(RectTransform));
             go.transform.SetParent(parent, false);
@@ -48,6 +49,8 @@ namespace UI.PlayerState
             announcement.rectTransform.pivot = new Vector2(.5f, .5f);
             announcement.alignment = TextAnchor.MiddleCenter;
             announcement.text = "EXTRACTION OPEN";
+            InstrumentAppear.Attach(announcement.gameObject, projection,
+                () => announcement.enabled && announcement.color.a > 0f && (isVisible?.Invoke() ?? true));
             var readout = go.AddComponent<ObjectiveStatusReadout>();
             readout.label = label;
             readout.clock = clock;

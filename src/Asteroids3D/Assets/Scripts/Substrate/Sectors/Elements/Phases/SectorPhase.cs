@@ -17,7 +17,7 @@ namespace Substrate.Sectors.Elements.Phases
         [Tooltip("Most director ships alive at once. The phase opens by filling to it.")]
         [Stat, Min(0)] public int cap;
 
-        [Tooltip("Shield and weapon pool this phase draws builds from. Unset → the director's pool.")]
+        [Tooltip("Weapon pool this phase draws builds from. Unset → the director's pool.")]
         [Stat] public ItemSubset loadouts;
     }
 }

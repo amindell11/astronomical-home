@@ -18,6 +18,7 @@ using Tests.PlayMode.Common.SimulatedInput;
 using UI;
 using UI.Hangar;
 using UI.Recap;
+using UI.Projection;
 using UI.Screens;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -42,6 +43,8 @@ namespace Tests.PlayMode.Preview
         private RecapFeelProfile selectedRecap;
         private SectorJumpProfile handedJump;
         private RecapFeelProfile handedRecap;
+        private CanopyProjectionProfile handedCanopy;
+        private CanopyProjectionProfile selectedCanopy;
 
         public override void SetUp()
         {
@@ -65,6 +68,8 @@ namespace Tests.PlayMode.Preview
             if (selectedRecap) Object.Destroy(selectedRecap);
             if (handedJump) Object.Destroy(handedJump);
             if (handedRecap) Object.Destroy(handedRecap);
+            if (handedCanopy) Object.Destroy(handedCanopy);
+            if (selectedCanopy) Object.Destroy(selectedCanopy);
             yield return null;
             input.TearDown();
         }
@@ -202,6 +207,46 @@ namespace Tests.PlayMode.Preview
                 "a jump feel change restarts Combat");
             Assert.That(host.Playtest.jumpFeel, Is.SameAs(jump));
             Assert.That(host.Playtest.recapFeel, Is.SameAs(handedRecap), "the restart keeps the recap feel");
+        }
+
+        [UnityTest]
+        public IEnumerator CanopyWorkingProfile_ControlsForcedStatesAndBothOffSwitches_AndSelectionRestartsCombat()
+        {
+            BuildPreview();
+            yield return WaitForFlight();
+            var combat = host.Playtest;
+            var projection = combat.CanopyProjection;
+            Assert.That(projection.Profile, Is.SameAs(handedCanopy));
+            var authored = rig.AuthoredCanopyProfile;
+            var authoredSettings = authored.baseSettings;
+            handedCanopy.lowHull.fields = CanopyFields.Glow;
+            handedCanopy.lowHull.settings.glow = 0f;
+            handedCanopy.lowHull.blendInSeconds = 0f;
+            projection.ForceMode = CanopyForceMode.LowHull;
+            yield return null;
+            yield return null;
+            Assert.That(projection.ActiveState, Is.EqualTo(CanopyState.LowHull));
+            Assert.That(projection.Settings.glow, Is.Zero);
+            Assert.That(projection.Settings.aberration, Is.EqualTo(handedCanopy.baseSettings.aberration));
+            Assert.That(authored.baseSettings, Is.EqualTo(authoredSettings));
+            handedCanopy.personalityEnabled = false;
+            Assert.That(projection.EffectsEnabled, Is.False);
+            handedCanopy.personalityEnabled = true;
+            projection.PersonalityEnabled = false;
+            Assert.That(projection.EffectsEnabled, Is.False);
+            projection.PersonalityEnabled = true;
+            Assert.That(projection.EffectsEnabled, Is.True);
+
+            selectedCanopy = Object.Instantiate(authored);
+            selectedCanopy.baseSettings.glow = .17f;
+            host.RestartPlaytest(selectedCanopy);
+            yield return AsyncAssert.WaitUntil(() => host.IsReady && host.Playtest != combat, 30f,
+                "a canopy profile change restarts Combat");
+            yield return WaitForFlight();
+            Assert.That(host.CanopyFeel, Is.SameAs(selectedCanopy));
+            Assert.That(host.Playtest.CanopyProjection.Profile, Is.SameAs(selectedCanopy));
+            Assert.That(host.Playtest.CanopyProjection.Settings.glow, Is.EqualTo(.17f));
+            Assert.That(host.Playtest.CanopyProjection.ForceMode, Is.EqualTo(CanopyForceMode.Automatic));
         }
 
         [UnityTest]
@@ -372,6 +417,7 @@ namespace Tests.PlayMode.Preview
             host.sessionProfile = profile;
             host.recapFeel = handedRecap = Object.Instantiate(gameHost.recapFeel);
             host.jumpFeel = handedJump = Object.Instantiate(gameHost.jumpFeel);
+            host.canopyFeel = handedCanopy = Object.Instantiate(gameHost.playerRig.AuthoredCanopyProfile);
             root.SetActive(true);
         }
     }

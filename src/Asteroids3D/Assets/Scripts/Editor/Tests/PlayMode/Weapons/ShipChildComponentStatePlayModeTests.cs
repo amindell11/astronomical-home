@@ -1,13 +1,11 @@
 using System.Collections;
-using Combat.Targeting;
 using NUnit.Framework;
 using Ships;
 using Tests.PlayMode.Common;
-using UI;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace Tests.PlayMode
+namespace Tests.PlayMode.Weapons
 {
     [Category("Ships")]
     public class ShipChildComponentStatePlayModeTests : PlayModeWorldFixture
@@ -81,46 +79,6 @@ namespace Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator AfterShipReset_LockOnIndicatorRespondsToLockEvents()
-        {
-            yield return null;
-
-            var lockOnIndicator = testShip.GetComponentInChildren<LockOnIndicator>(includeInactive: true);
-            if (lockOnIndicator == null)
-            {
-                Assert.Ignore("LockOnIndicator not present on Vanguard prefab variant");
-                yield break;
-            }
-
-            TestDamage.Kill(testShip, enemyShip);
-            yield return null;
-
-            testShip.ResetShip();
-            yield return null;
-
-            lockOnIndicator = testShip.GetComponentInChildren<LockOnIndicator>(includeInactive: true);
-            Assert.IsNotNull(lockOnIndicator, "LockOnIndicator should exist after reset");
-            Assert.IsTrue(lockOnIndicator.enabled, "LockOnIndicator component should be enabled after reset");
-
-            var targetable = testShip as ITargetable;
-            Assert.IsNotNull(targetable, "Ship should implement ITargetable");
-
-            // Alpha tracking the lock progress/release events proves LockOnIndicator re-subscribed across death→reset, not merely that dispatch didn't throw.
-            var canvasGroup = lockOnIndicator.GetComponent<CanvasGroup>();
-            Assert.IsNotNull(canvasGroup, "LockOnIndicator requires a CanvasGroup");
-
-            targetable.Lock.RaiseProgress(0.5f);
-            yield return null;
-            Assert.AreEqual(1f, canvasGroup.alpha, 0.0001f,
-                "LockOnIndicator should show (alpha 1) on lock progress after reset");
-
-            targetable.Lock.RaiseReleased();
-            yield return null;
-            Assert.AreEqual(0f, canvasGroup.alpha, 0.0001f,
-                "LockOnIndicator should hide (alpha 0) on lock release after reset");
-        }
-
-        [UnityTest]
         public IEnumerator MultipleDeathResetCycles_ChildComponentsRemainStable()
         {
             yield return null;
@@ -130,7 +88,6 @@ namespace Tests.PlayMode
             for (int cycle = 0; cycle < numCycles; cycle++)
             {
                 var weaponsController = combatShip.Weapons;
-                var lockOnIndicator = testShip.GetComponentInChildren<LockOnIndicator>(includeInactive: true);
 
                 TestDamage.Kill(testShip, enemyShip);
                 yield return null;
@@ -151,11 +108,7 @@ namespace Tests.PlayMode
                 Assert.IsNotNull(weaponsController.Primary,
                     $"Cycle {cycle}: Primary weapon should exist");
 
-                if (lockOnIndicator != null)
-                {
-                    Assert.IsTrue(lockOnIndicator.gameObject.activeInHierarchy,
-                        $"Cycle {cycle}: LockOnIndicator should be active");
-                }
+
             }
         }
     }

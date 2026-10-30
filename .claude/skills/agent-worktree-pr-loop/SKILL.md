@@ -222,9 +222,31 @@ Check in-flight work before acquiring (`./scripts/worktree_dashboard.sh`: slot
 leases, branches, merge progress, held leases; `gh pr list` for open PRs). An
 arc whose slices are `unity:editor` or move asset paths keeps one PR open:
 build its next slice once the previous PR has merged. Acquire
-a slot. A full pool parks the longest-idle slot that has no Unity editor and no merge gate; post that `HELD=` line on the parked work's issue. If `acquire` fails, every slot has a Unity editor or a merge gate, so wait. A reclaimed stale slot is not prepared, so `prepare` it. Build and test there, directly or via a sub-agent scoped to the
-slot's worktree path when the task is large enough to benefit from an isolated
-context. Clear `src/Asteroids3D/Library/BurstCache/` before test runs. Iterate
+a slot. A full pool parks the longest-idle slot that has no Unity editor and no merge gate; post that `HELD=` line on the parked work's issue. If `acquire` fails, every slot has a Unity editor or a merge gate, so wait. A reclaimed stale slot is not prepared, so `prepare` it.
+
+A build worker — Grok by default, an Opus subagent as the fallback — writes the
+implementation from the session's build brief: owner rulings, design path,
+files, tests, the verify command, and the closing `STATUS: DONE | BLOCKED` /
+`CHANGED:` / `VERIFIED:` / `NOTICED:` block. Run Grok with
+`python scripts/grok_worker.py --slot <slot> --brief <file> --verify "<cmd>"`
+with `run_in_background: true` and wait for its notification; never poll its
+output. `<cmd>` exits 0 on pass, 1 when the change is wrong, and anything else
+when it cannot judge. Use `./scripts/agent_worktree_pool.sh compile-check
+<slot>`, after a `compile-check <slot> --refresh` on the clean slot (a refresh
+needs no tracked changes, so it can't run mid-build); for test coverage, a
+scoped `run-tests <slot> …` with `--fail-codes 1,2`, since its exit 2 covers
+compile failures.
+Act on its `FALLBACK=` trailer (exit codes and the rest in its header):
+`none`, review the worker's diff, then test; `fix-verify`, fix the check (a
+stale snapshot, say) and rerun it on the worker's tree before deciding
+anything; `opus`, hand the same brief file to an Opus subagent scoped to the
+slot (Agent tool, `model: "opus"`), naming the `DIRTY=` files that hold Grok's
+partial edits for it to keep or redo (exit 3 means the tree is untouched). Go
+straight to the Opus subagent when the slice needs judgment mid-build. Small
+fixes stay inline; `scripts/build_delegation_guard.py` denies inline slot source
+edits past its context and line budgets.
+
+Clear `src/Asteroids3D/Library/BurstCache/` before test runs. Iterate
 with scoped runs (`-ScopeType Auto`, or Feature/Module scopes).
 
 ## Step 3 — Pre-review quality pass

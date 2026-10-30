@@ -5,6 +5,7 @@ using Ships;
 using Ships.Damage;
 using Tests.PlayMode.Common;
 using UI.PlayerState;
+using UI.Projection;
 using UI.Weapons;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -130,12 +131,29 @@ namespace Tests.PlayMode.PlayerState
                 .SetValue(mainHud, crosshair);
             typeof(global::UI.Overlay).GetField("weaponResources", BindingFlags.Instance | BindingFlags.NonPublic)
                 .SetValue(mainHud, weaponHud);
+            typeof(global::UI.Overlay).GetField("lockReticle", BindingFlags.Instance | BindingFlags.NonPublic)
+                .SetValue(mainHud, TestAssets.Load<LockOnIndicator>("Assets/Prefabs/UI/UILockOnIndicator.prefab"));
             mainHud.ConfigureCameras(camera, camera);
             mainHud.BindShips(ships, camera);
             var overlay = root.GetComponentInChildren<ShipStatusOverlay>();
             yield return null;
 
+            var worldVisibility = (CanvasGroup)typeof(ShipStatusOverlay)
+                .GetField("worldVisibility", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(overlay);
+            var reticle = worldVisibility.GetComponentInChildren<LockOnIndicator>();
+            var lockVisibility = reticle.GetComponent<CanvasGroup>();
+            Assert.IsNull(worldVisibility.transform.parent, "World reticles must not inherit canvas scale");
+            Assert.AreEqual(Vector3.one, worldVisibility.transform.lossyScale);
+            Assert.AreEqual(Vector2.one * 5f, ((RectTransform)reticle.transform).sizeDelta);
+            Assert.AreEqual(Color.red, reticle.GetComponent<Image>().color);
+            ship.Lock.RaiseProgress(.5f);
+            yield return null;
+            Assert.AreEqual(1f, lockVisibility.alpha);
+            Assert.That(Vector3.Distance(ship.VisualRig.transform.position + Substrate.GamePlane.Normal * -5f,
+                reticle.transform.position), Is.LessThan(.001f));
             var indicator = overlay.GetComponentInChildren<ShipStatusIndicator>();
+            var bars = indicator.GetComponentsInChildren<StatusBarUI>();
+            Assert.AreSame(bars[0].GetComponentInParent<InstrumentAppear>(), bars[1].GetComponentInParent<InstrumentAppear>());
             var visibility = indicator.GetComponent<CanvasGroup>();
             Assert.IsFalse(indicator.transform.IsChildOf(ship.transform));
             Assert.AreEqual(hud.gameObject.layer, indicator.gameObject.layer);
@@ -174,13 +192,16 @@ namespace Tests.PlayMode.PlayerState
             Assert.IsTrue(crosshair.gameObject.activeSelf);
             Assert.IsTrue(weaponHud.gameObject.activeSelf);
             mainHud.SetVisible(false);
+            Assert.AreEqual(0f, worldVisibility.alpha, "Ordinary HUD hiding also hides world reticles");
             mainHud.SetOpacity(0f, 1f);
             Assert.IsFalse(crosshair.gameObject.activeSelf);
             Assert.IsFalse(weaponHud.gameObject.activeSelf);
             Assert.IsTrue(overlay.GetComponent<Canvas>().enabled);
             Assert.AreEqual(1f, overlay.GetComponent<CanvasGroup>().alpha);
             mainHud.SetOpacity(0f, .35f);
+            Assert.AreEqual(.35f, worldVisibility.alpha, "Recap alpha composes above reticle visibility");
             yield return null;
+            Assert.That(reticle.GetComponent<CanvasRenderer>().GetInheritedAlpha(), Is.EqualTo(.35f).Within(.001f));
             Assert.AreEqual(.35f, overlay.GetComponent<CanvasGroup>().alpha, .001f);
             mainHud.SetOpacity(0f, 1f);
 
@@ -189,9 +210,15 @@ namespace Tests.PlayMode.PlayerState
                 TestDamage.Kill(ship);
                 yield return null;
                 Assert.AreEqual(0f, visibility.alpha);
+                Assert.AreEqual(0f, lockVisibility.alpha);
                 ship.ResetShip();
                 yield return null;
                 Assert.AreEqual(1f, visibility.alpha);
+                ship.Lock.RaiseProgress(.5f);
+                yield return null;
+                Assert.AreEqual(1f, lockVisibility.alpha, "HUD reticles remain subscribed across ship reset");
+                ship.Lock.RaiseReleased();
+                Assert.AreEqual(0f, lockVisibility.alpha);
                 ship.Damage.Health.SetFraction(.5f);
                 var labels = indicator.GetComponentsInChildren<Text>();
                 Assert.AreEqual($"{Mathf.CeilToInt(ship.Damage.Health.CurrentValue)}/{ship.Damage.Health.MaxValue}",
@@ -200,6 +227,7 @@ namespace Tests.PlayMode.PlayerState
             ships.Remove(ship);
             yield return null;
             Assert.IsFalse(indicator);
+            Assert.IsFalse(reticle, "Registry removal destroys the HUD-owned reticle");
             ships.Add(ship);
             yield return null;
             Assert.AreEqual(1, overlay.GetComponentsInChildren<ShipStatusIndicator>().Length);

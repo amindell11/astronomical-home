@@ -32,6 +32,7 @@ namespace Tests.PlayMode
         private ObjectiveService _objectives;
         private ItemSubset _pool;
         private EngineModule _chassisEngine;
+        private ShieldModule _chassisShield;
         private readonly List<GameObject> _created = new();
 
         [SetUp]
@@ -44,8 +45,8 @@ namespace Tests.PlayMode
             _objectives = TrackGO(new GameObject("ObjectiveService")).AddComponent<ObjectiveService>();
             ShipServices.Compose(_unitService, unitServiceGO.transform, presentationEnabled: true);
             _chassisEngine = ScriptableObject.CreateInstance<EngineModule>();
+            _chassisShield = ScriptableObject.CreateInstance<ShieldModule>();
             _pool = ScriptableObject.CreateInstance<ItemSubset>();
-            _pool.shields = new[] { ScriptableObject.CreateInstance<ShieldModule>() };
             _pool.weapons = new[] { TrackGO(new GameObject("PoolWeapon")).AddComponent<PoolWeapon>() };
         }
 
@@ -59,12 +60,8 @@ namespace Tests.PlayMode
             _created.Clear();
 
             if (_chassisEngine != null) { Object.DestroyImmediate(_chassisEngine); _chassisEngine = null; }
-            if (_pool != null)
-            {
-                Object.DestroyImmediate(_pool.shields[0]);
-                Object.DestroyImmediate(_pool);
-                _pool = null;
-            }
+            if (_chassisShield != null) { Object.DestroyImmediate(_chassisShield); _chassisShield = null; }
+            if (_pool != null) { Object.DestroyImmediate(_pool); _pool = null; }
 
             base.TearDown();
         }
@@ -77,6 +74,7 @@ namespace Tests.PlayMode
             var template = TrackGO(ShipTestFactory.CreateKinematicPrimitiveShipAt(new Vector2(1000f, 1000f)).gameObject)
                 .GetComponent<Ship>();
             template.engine = _chassisEngine;
+            template.shield = _chassisShield;
             return template;
         }
 
@@ -114,7 +112,6 @@ namespace Tests.PlayMode
             Assert.AreEqual(1, director.Spawned.Count, "The first phase opens by filling its cap.");
             var enemy = director.Spawned[0];
             Assert.AreEqual(1, enemy.teamNumber, "Director products are hostile to the team-0 player.");
-            Assert.AreEqual(_pool.shields[0], enemy.Shield, "Products are re-armed from the pool at spawn.");
             Assert.AreEqual(SpawnRadius,
                 Vector2.Distance(GamePlane.WorldPointToPlane(enemy.transform.position), Vector2.zero), 0.01f,
                 "Products spawn on the ring around the hero.");
@@ -133,7 +130,7 @@ namespace Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator WaveSpawn_FliesTheChassisEngine_AndArmsTheShieldFromThePool()
+        public IEnumerator WaveSpawn_FliesTheChassisEngineAndShield()
         {
             var template = NewTemplate();
             var player = _unitService.SpawnShip(template, null, 0, GamePlane.PlanePointToWorld(Vector2.zero),
@@ -147,7 +144,7 @@ namespace Tests.PlayMode
             Assert.AreEqual(1, director.Spawned.Count, "test premise: the opening wave spawned one product");
             var product = director.Spawned[0];
             Assert.AreEqual(_chassisEngine, product.Engine, "A wave product flies its chassis's own engine; the pool offers none.");
-            Assert.AreEqual(_pool.shields[0], product.Shield, "The pool still arms the shield.");
+            Assert.AreEqual(_chassisShield, product.Shield, "A wave product flies its chassis's own shield; the pool offers none.");
 
             yield return sector.Teardown();
         }
@@ -159,7 +156,7 @@ namespace Tests.PlayMode
 
             var enemy = _unitService.SpawnShip(NewTemplate(), TestAssets.LoadTestPilotMpc(), 1,
                 GamePlane.PlanePointToWorld(new Vector2(SpawnRadius, 0f)), GamePlane.Rotation, null,
-                new ShipLoadout(null, _pool.shields[0], null, null));
+                new ShipLoadout(null, null, null));
 
             Assert.AreEqual(_chassisEngine, enemy.Engine, "The loadout equip leaves the chassis's engine in place.");
             Assert.AreEqual(7f, ((AICommander)enemy.Commander).Navigator.dynamics.maxSpeed,

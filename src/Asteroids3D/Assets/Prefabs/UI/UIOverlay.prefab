@@ -618,6 +618,8 @@ MonoBehaviour:
   textMaterial: {fileID: 2100000, guid: 9b40b60b37593de4bb769186332c3e17, type: 2}
   crosshair: {fileID: 5249252180489586146}
   weaponResources: {fileID: 976607762061257238}
+  lockReticle: {fileID: 1909242830012041073, guid: 8b42cad1f62b7f64b96a4ce6d2329c60,
+    type: 3}
   labelFont: {fileID: 12800000, guid: b03403ed07193c04d8661ff9cb84418b, type: 3}
   readoutFont: {fileID: 12800000, guid: 841a481ee654a6e4db3281253434c975, type: 3}
   headingFont: {fileID: 12800000, guid: 754c2f511bf6e8b41a6ea1e10ea69956, type: 3}
