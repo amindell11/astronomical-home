@@ -361,6 +361,13 @@ MonoBehaviour:
       Data3: 1132368523
       Data4: -1334603383
     Path: event:/World/Asteroid/Break
+  hitEvent:
+    Guid:
+      Data1: 206885135
+      Data2: 1298217104
+      Data3: 696807315
+      Data4: -601017457
+    Path: event:/World/Asteroid/Hit
 --- !u!114 &2350833270292685406
 MonoBehaviour:
   m_ObjectHideFlags: 0
