@@ -1,0 +1,270 @@
+Tool 'jetbrains.resharper.globaltools' (version '2026.2.0') was restored. Available commands: jb
+
+Restore was successful.
+Warning: Found existing project file for D:\amind\git\agent-1\src\Asteroids3D\Assets\Scripts\Capture\Capture.asmdef with existing PSI source file (IsMiscProjectItem: False)
+Warning: Found existing project file for D:\amind\git\agent-1\src\Asteroids3D\Assets\Scripts\Core.asmdef with existing PSI source file (IsMiscProjectItem: False)
+Warning: Found existing project file for D:\amind\git\agent-1\src\Asteroids3D\Assets\Scripts\Editor\Capture\Capture.GameView.Editor.asmdef with existing PSI source file (IsMiscProjectItem: False)
+Warning: Found existing project file for D:\amind\git\agent-1\src\Asteroids3D\Assets\Scripts\Editor\Core.Editor.asmdef with existing PSI source file (IsMiscProjectItem: False)
+Warning: Found existing project file for D:\amind\git\agent-1\src\Asteroids3D\Assets\Scripts\Editor\Tests\Common\Tests.Common.asmdef with existing PSI source file (IsMiscProjectItem: False)
+Warning: Found existing project file for D:\amind\git\agent-1\src\Asteroids3D\Assets\Scripts\Editor\Tests\EditMode\Tests.EditMode.asmdef with existing PSI source file (IsMiscProjectItem: False)
+Warning: Found existing project file for D:\amind\git\agent-1\src\Asteroids3D\Assets\Scripts\Editor\Tests\PlayMode\Tests.PlayMode.asmdef with existing PSI source file (IsMiscProjectItem: False)
+Warning: Found existing project file for D:\amind\git\agent-1\src\Asteroids3D\Assets\Scripts\RL\RL.asmdef with existing PSI source file (IsMiscProjectItem: False)
+Warning: Found existing project file for D:\amind\git\agent-1\src\Asteroids3D\Assets\Scripts\RL\Runtime\RL.Runtime.asmdef with existing PSI source file (IsMiscProjectItem: False)
+Warning: [MsBuild] D:\Programs\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\amd64\Microsoft.Common.CurrentVersion.targets (2437,5)->(2437,5)  MSB3277: Found conflicts between different versions of "System.Memory" that could not be resolved.
+There was a conflict between "System.Memory, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" and "System.Memory, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51".
+    "System.Memory, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" was chosen because it was primary and "System.Memory, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" was not.
+    References which depend on "System.Memory, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" [D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Memory.dll].
+        D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Memory.dll
+          Project file item includes which caused reference "D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Memory.dll".
+            System.Memory
+    References which depend on or have been unified to "System.Memory, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" [].
+        D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.Microsoft.CodeAnalysis.CSharp.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.Microsoft.CodeAnalysis.CSharp.dll".
+            UnityPipeline.Microsoft.CodeAnalysis.CSharp
+        D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Collections.Immutable.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Collections.Immutable.dll".
+            UnityPipeline.System.Collections.Immutable
+            UnityPipeline.System.Reflection.Metadata
+        D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Reflection.Metadata.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Reflection.Metadata.dll".
+            UnityPipeline.System.Reflection.Metadata
+        D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.Microsoft.CodeAnalysis.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.Microsoft.CodeAnalysis.dll".
+            UnityPipeline.Microsoft.CodeAnalysis
+            UnityPipeline.Microsoft.CodeAnalysis.CSharp
+Warning: [MsBuild] D:\Programs\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\amd64\Microsoft.Common.CurrentVersion.targets (2437,5)->(2437,5)  MSB3277: Found conflicts between different versions of "System.Buffers" that could not be resolved.
+There was a conflict between "System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" and "System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51".
+    "System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" was chosen because it was primary and "System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" was not.
+    References which depend on "System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" [D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Buffers.dll].
+        D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Buffers.dll
+          Project file item includes which caused reference "D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Buffers.dll".
+            System.Buffers
+    References which depend on or have been unified to "System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" [].
+        D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Collections.Immutable.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Collections.Immutable.dll".
+            UnityPipeline.System.Collections.Immutable
+            UnityPipeline.System.Reflection.Metadata
+        D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Reflection.Metadata.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Reflection.Metadata.dll".
+            UnityPipeline.System.Reflection.Metadata
+Warning: [MsBuild] CSC (0,0)->(0,0)  CS2008: No source files specified.
+Warning: [MsBuild] CSC (0,0)->(0,0)  CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+Warning: [MsBuild] D:\Programs\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\amd64\Microsoft.Common.CurrentVersion.targets (2437,5)->(2437,5)  MSB3277: Found conflicts between different versions of "System.Memory" that could not be resolved.
+There was a conflict between "System.Memory, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" and "System.Memory, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51".
+    "System.Memory, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" was chosen because it was primary and "System.Memory, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" was not.
+    References which depend on "System.Memory, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" [D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Memory.dll].
+        D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Memory.dll
+          Project file item includes which caused reference "D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Memory.dll".
+            System.Memory
+    References which depend on or have been unified to "System.Memory, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" [].
+        D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.Microsoft.CodeAnalysis.CSharp.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.Microsoft.CodeAnalysis.CSharp.dll".
+            UnityPipeline.Microsoft.CodeAnalysis.CSharp
+        D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Collections.Immutable.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Collections.Immutable.dll".
+            UnityPipeline.System.Collections.Immutable
+            UnityPipeline.System.Reflection.Metadata
+        D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Reflection.Metadata.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Reflection.Metadata.dll".
+            UnityPipeline.System.Reflection.Metadata
+        D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.Microsoft.CodeAnalysis.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.Microsoft.CodeAnalysis.dll".
+            UnityPipeline.Microsoft.CodeAnalysis
+            UnityPipeline.Microsoft.CodeAnalysis.CSharp
+Warning: [MsBuild] D:\Programs\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\amd64\Microsoft.Common.CurrentVersion.targets (2437,5)->(2437,5)  MSB3277: Found conflicts between different versions of "System.Buffers" that could not be resolved.
+There was a conflict between "System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" and "System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51".
+    "System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" was chosen because it was primary and "System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" was not.
+    References which depend on "System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" [D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Buffers.dll].
+        D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Buffers.dll
+          Project file item includes which caused reference "D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Buffers.dll".
+            System.Buffers
+    References which depend on or have been unified to "System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" [].
+        D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Collections.Immutable.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Collections.Immutable.dll".
+            UnityPipeline.System.Collections.Immutable
+            UnityPipeline.System.Reflection.Metadata
+        D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Reflection.Metadata.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Reflection.Metadata.dll".
+            UnityPipeline.System.Reflection.Metadata
+Warning: [MsBuild] D:\Programs\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\amd64\Microsoft.Common.CurrentVersion.targets (2437,5)->(2437,5)  MSB3277: Found conflicts between different versions of "System.Memory" that could not be resolved.
+There was a conflict between "System.Memory, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" and "System.Memory, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51".
+    "System.Memory, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" was chosen because it was primary and "System.Memory, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" was not.
+    References which depend on "System.Memory, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" [D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Memory.dll].
+        D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Memory.dll
+          Project file item includes which caused reference "D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Memory.dll".
+            System.Memory
+    References which depend on or have been unified to "System.Memory, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" [].
+        D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.Microsoft.CodeAnalysis.CSharp.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.Microsoft.CodeAnalysis.CSharp.dll".
+            UnityPipeline.Microsoft.CodeAnalysis.CSharp
+        D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Collections.Immutable.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Collections.Immutable.dll".
+            UnityPipeline.System.Collections.Immutable
+            UnityPipeline.System.Reflection.Metadata
+        D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Reflection.Metadata.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Reflection.Metadata.dll".
+            UnityPipeline.System.Reflection.Metadata
+        D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.Microsoft.CodeAnalysis.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.Microsoft.CodeAnalysis.dll".
+            UnityPipeline.Microsoft.CodeAnalysis
+            UnityPipeline.Microsoft.CodeAnalysis.CSharp
+Warning: [MsBuild] D:\Programs\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\amd64\Microsoft.Common.CurrentVersion.targets (2437,5)->(2437,5)  MSB3277: Found conflicts between different versions of "System.Buffers" that could not be resolved.
+There was a conflict between "System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" and "System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51".
+    "System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" was chosen because it was primary and "System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" was not.
+    References which depend on "System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" [D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Buffers.dll].
+        D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Buffers.dll
+          Project file item includes which caused reference "D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Buffers.dll".
+            System.Buffers
+    References which depend on or have been unified to "System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" [].
+        D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Collections.Immutable.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Collections.Immutable.dll".
+            UnityPipeline.System.Collections.Immutable
+            UnityPipeline.System.Reflection.Metadata
+        D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Reflection.Metadata.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Reflection.Metadata.dll".
+            UnityPipeline.System.Reflection.Metadata
+Warning: [MsBuild] D:\Programs\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\amd64\Microsoft.Common.CurrentVersion.targets (2437,5)->(2437,5)  MSB3277: Found conflicts between different versions of "System.Memory" that could not be resolved.
+There was a conflict between "System.Memory, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" and "System.Memory, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51".
+    "System.Memory, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" was chosen because it was primary and "System.Memory, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" was not.
+    References which depend on "System.Memory, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" [D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Memory.dll].
+        D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Memory.dll
+          Project file item includes which caused reference "D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Memory.dll".
+            System.Memory
+    References which depend on or have been unified to "System.Memory, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" [].
+        D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.Microsoft.CodeAnalysis.CSharp.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.Microsoft.CodeAnalysis.CSharp.dll".
+            UnityPipeline.Microsoft.CodeAnalysis.CSharp
+        D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Collections.Immutable.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Collections.Immutable.dll".
+            UnityPipeline.System.Collections.Immutable
+            UnityPipeline.System.Reflection.Metadata
+        D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Reflection.Metadata.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Reflection.Metadata.dll".
+            UnityPipeline.System.Reflection.Metadata
+        D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.Microsoft.CodeAnalysis.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.Microsoft.CodeAnalysis.dll".
+            UnityPipeline.Microsoft.CodeAnalysis
+            UnityPipeline.Microsoft.CodeAnalysis.CSharp
+Warning: [MsBuild] D:\Programs\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\amd64\Microsoft.Common.CurrentVersion.targets (2437,5)->(2437,5)  MSB3277: Found conflicts between different versions of "System.Buffers" that could not be resolved.
+There was a conflict between "System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" and "System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51".
+    "System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" was chosen because it was primary and "System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" was not.
+    References which depend on "System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" [D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Buffers.dll].
+        D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Buffers.dll
+          Project file item includes which caused reference "D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Buffers.dll".
+            System.Buffers
+    References which depend on or have been unified to "System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" [].
+        D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Collections.Immutable.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Collections.Immutable.dll".
+            UnityPipeline.System.Collections.Immutable
+            UnityPipeline.System.Reflection.Metadata
+        D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Reflection.Metadata.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Reflection.Metadata.dll".
+            UnityPipeline.System.Reflection.Metadata
+Warning: [MsBuild] D:\Programs\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\amd64\Microsoft.Common.CurrentVersion.targets (2437,5)->(2437,5)  MSB3277: Found conflicts between different versions of "System.Threading.Tasks.Extensions" that could not be resolved.
+There was a conflict between "System.Threading.Tasks.Extensions, Version=4.2.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" and "System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51".
+    "System.Threading.Tasks.Extensions, Version=4.2.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" was chosen because it was primary and "System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" was not.
+    References which depend on "System.Threading.Tasks.Extensions, Version=4.2.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" [D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\UnityReferenceAssemblies\unity-4.8-api\Facades\System.Threading.Tasks.Extensions.dll].
+        D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\UnityReferenceAssemblies\unity-4.8-api\Facades\System.Threading.Tasks.Extensions.dll
+          Project file item includes which caused reference "D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\UnityReferenceAssemblies\unity-4.8-api\Facades\System.Threading.Tasks.Extensions.dll".
+            System.Threading.Tasks.Extensions
+    References which depend on or have been unified to "System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" [].
+        D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.Microsoft.CodeAnalysis.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.Microsoft.CodeAnalysis.dll".
+            UnityPipeline.Microsoft.CodeAnalysis
+            UnityPipeline.Microsoft.CodeAnalysis.CSharp
+            Unity.Pipeline
+Warning: [MsBuild] D:\Programs\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\amd64\Microsoft.Common.CurrentVersion.targets (2437,5)->(2437,5)  MSB3277: Found conflicts between different versions of "System.Memory" that could not be resolved.
+There was a conflict between "System.Memory, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" and "System.Memory, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51".
+    "System.Memory, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" was chosen because it was primary and "System.Memory, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" was not.
+    References which depend on "System.Memory, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" [D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Memory.dll].
+        D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Memory.dll
+          Project file item includes which caused reference "D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Memory.dll".
+            System.Memory
+    References which depend on or have been unified to "System.Memory, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" [].
+        D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.Microsoft.CodeAnalysis.CSharp.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.Microsoft.CodeAnalysis.CSharp.dll".
+            UnityPipeline.Microsoft.CodeAnalysis.CSharp
+        D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Collections.Immutable.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Collections.Immutable.dll".
+            UnityPipeline.System.Collections.Immutable
+            UnityPipeline.System.Reflection.Metadata
+        D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Reflection.Metadata.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Reflection.Metadata.dll".
+            UnityPipeline.System.Reflection.Metadata
+        D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.Microsoft.CodeAnalysis.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.Microsoft.CodeAnalysis.dll".
+            UnityPipeline.Microsoft.CodeAnalysis
+            UnityPipeline.Microsoft.CodeAnalysis.CSharp
+Warning: [MsBuild] D:\Programs\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\amd64\Microsoft.Common.CurrentVersion.targets (2437,5)->(2437,5)  MSB3277: Found conflicts between different versions of "System.Buffers" that could not be resolved.
+There was a conflict between "System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" and "System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51".
+    "System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" was chosen because it was primary and "System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" was not.
+    References which depend on "System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" [D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Buffers.dll].
+        D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Buffers.dll
+          Project file item includes which caused reference "D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Buffers.dll".
+            System.Buffers
+    References which depend on or have been unified to "System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" [].
+        D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Collections.Immutable.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Collections.Immutable.dll".
+            UnityPipeline.System.Collections.Immutable
+            UnityPipeline.System.Reflection.Metadata
+        D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Reflection.Metadata.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Reflection.Metadata.dll".
+            UnityPipeline.System.Reflection.Metadata
+Warning: [MsBuild] D:\Programs\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\amd64\Microsoft.Common.CurrentVersion.targets (2437,5)->(2437,5)  MSB3277: Found conflicts between different versions of "System.Threading.Tasks.Extensions" that could not be resolved.
+There was a conflict between "System.Threading.Tasks.Extensions, Version=4.2.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" and "System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51".
+    "System.Threading.Tasks.Extensions, Version=4.2.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" was chosen because it was primary and "System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" was not.
+    References which depend on "System.Threading.Tasks.Extensions, Version=4.2.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" [D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\UnityReferenceAssemblies\unity-4.8-api\Facades\System.Threading.Tasks.Extensions.dll].
+        D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\UnityReferenceAssemblies\unity-4.8-api\Facades\System.Threading.Tasks.Extensions.dll
+          Project file item includes which caused reference "D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\UnityReferenceAssemblies\unity-4.8-api\Facades\System.Threading.Tasks.Extensions.dll".
+            System.Threading.Tasks.Extensions
+    References which depend on or have been unified to "System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" [].
+        D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.Microsoft.CodeAnalysis.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.Microsoft.CodeAnalysis.dll".
+            UnityPipeline.Microsoft.CodeAnalysis
+            UnityPipeline.Microsoft.CodeAnalysis.CSharp
+            Unity.Pipeline
+            D:\amind\git\agent-1\src\Asteroids3D\Temp\Bin\Debug\Core.Editor\Core.Editor.dll
+Warning: [MsBuild] D:\Programs\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\amd64\Microsoft.Common.CurrentVersion.targets (2437,5)->(2437,5)  MSB3277: Found conflicts between different versions of "System.Threading.Tasks.Extensions" that could not be resolved.
+There was a conflict between "System.Threading.Tasks.Extensions, Version=4.2.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" and "System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51".
+    "System.Threading.Tasks.Extensions, Version=4.2.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" was chosen because it was primary and "System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" was not.
+    References which depend on "System.Threading.Tasks.Extensions, Version=4.2.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" [D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\UnityReferenceAssemblies\unity-4.8-api\Facades\System.Threading.Tasks.Extensions.dll].
+        D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\UnityReferenceAssemblies\unity-4.8-api\Facades\System.Threading.Tasks.Extensions.dll
+          Project file item includes which caused reference "D:\Programs\Unity\Editor\6000.1.8f1\Editor\Data\UnityReferenceAssemblies\unity-4.8-api\Facades\System.Threading.Tasks.Extensions.dll".
+            System.Threading.Tasks.Extensions
+    References which depend on or have been unified to "System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" [].
+        D:\amind\git\agent-1\src\Asteroids3D\Temp\Bin\Debug\Core.Editor\UnityPipeline.Microsoft.CodeAnalysis.dll
+          Project file item includes which caused reference "D:\amind\git\agent-1\src\Asteroids3D\Temp\Bin\Debug\Core.Editor\UnityPipeline.Microsoft.CodeAnalysis.dll".
+            D:\amind\git\agent-1\src\Asteroids3D\Temp\Bin\Debug\Core.Editor\Core.Editor.dll
+            D:\amind\git\agent-1\src\Asteroids3D\Temp\Bin\Debug\Capture.GameView.Editor\Capture.GameView.Editor.dll
+Warning: Roslyn Source Generator error from MonoScriptInfoGenerator from Only allowed to have one file passed in with extension '.AdditionalFile.txt'
+Warning: Roslyn Source Generator error from MonoScriptInfoGenerator from Only allowed to have one file passed in with extension '.AdditionalFile.txt'
+report src/Asteroids3D/Assets/Scripts/Objectives/ObjectiveTracker.cs:39 [Unity.PerformanceCriticalCodeInvocation] Expensive method invocation
+report src/Asteroids3D/Assets/Scripts/Objectives/ObjectiveTracker.cs:50 [Unity.PerformanceCriticalCodeInvocation] Expensive method invocation
+report src/Asteroids3D/Assets/Scripts/Objectives/ObjectiveTracker.cs:57 [Unity.PerformanceCriticalCodeInvocation] Expensive method invocation
+report src/Asteroids3D/Assets/Scripts/Objectives/ObjectiveTracker.cs:78 [Unity.PerformanceCriticalCodeInvocation] Expensive method invocation
+report src/Asteroids3D/Assets/Scripts/Substrate/Sectors/Elements/Phases/PhaseSpineModule.cs:69 [Unity.PerformanceCriticalCodeInvocation] Expensive method invocation
+report src/Asteroids3D/Assets/Scripts/Substrate/Services/Objectives/ObjectiveService.cs:72 [Unity.PerformanceCriticalCodeInvocation] Expensive method invocation
+report src/Asteroids3D/Assets/Scripts/Substrate/Services/Objectives/ObjectiveService.cs:77 [Unity.PerformanceCriticalCodeInvocation] Expensive method invocation
+report src/Asteroids3D/Assets/Scripts/Substrate/Services/Objectives/ObjectiveService.cs:83 [Unity.PerformanceCriticalCodeInvocation] Expensive method invocation
+report src/Asteroids3D/Assets/Scripts/UI/Overlay.cs:97 [Unity.PerformanceCriticalCodeInvocation] Expensive method invocation
+report src/Asteroids3D/Assets/Scripts/UI/Overlay.cs:139 [Unity.PerformanceCriticalCodeInvocation] Expensive method invocation
+report src/Asteroids3D/Assets/Scripts/UI/Overlay.cs:140 [Unity.PerformanceCriticalCodeInvocation] Expensive method invocation
+report src/Asteroids3D/Assets/Scripts/UI/Overlay.cs:140 [Unity.PerformanceCriticalCodeInvocation] Expensive method invocation
+report src/Asteroids3D/Assets/Scripts/UI/PlayerState/ObjectiveStatusReadout.cs:41 [Unity.PerformanceCriticalCodeInvocation] Expensive method invocation
+report src/Asteroids3D/Assets/Scripts/UI/PlayerState/ObjectiveStatusReadout.cs:42 [Unity.PerformanceCriticalCodeInvocation] Expensive method invocation
+report src/Asteroids3D/Assets/Scripts/UI/PlayerState/ObjectiveStatusReadout.cs:43 [Unity.PerformanceCriticalCodeInvocation] Expensive method invocation
+report src/Asteroids3D/Assets/Scripts/UI/PlayerState/ObjectiveStatusReadout.cs:44 [Unity.PerformanceCriticalCodeInvocation] Expensive method invocation
+report src/Asteroids3D/Assets/Scripts/UI/PlayerState/ObjectiveStatusReadout.cs:50 [Unity.PerformanceCriticalCodeInvocation] Expensive method invocation
+report src/Asteroids3D/Assets/Scripts/UI/PlayerState/ObjectiveStatusReadout.cs:62 [Unity.PerformanceCriticalCodeInvocation] Expensive method invocation
+report src/Asteroids3D/Assets/Scripts/UI/PlayerState/ObjectiveStatusReadout.cs:79 [Unity.PerformanceCriticalCodeInvocation] Expensive method invocation
+report src/Asteroids3D/Assets/Scripts/UI/PlayerState/ObjectiveStatusReadout.cs:97 [Unity.PerformanceCriticalCodeInvocation] Expensive method invocation
+report src/Asteroids3D/Assets/Scripts/UI/PlayerState/ObjectiveStatusReadout.cs:100 [Unity.PerformanceCriticalCodeInvocation] Expensive method invocation
+report src/Asteroids3D/Assets/Scripts/UI/PlayerState/ObjectiveStatusReadout.cs:121 [Unity.PerformanceCriticalCodeInvocation] Expensive method invocation
+report src/Asteroids3D/Assets/Scripts/UI/PlayerState/ObjectiveStatusReadout.cs:158 [Unity.PerformanceCriticalCodeInvocation] Expensive method invocation
+report src/Asteroids3D/Assets/Scripts/UI/PlayerState/ShipStatusOverlay.cs:25 [Unity.PerformanceCriticalCodeInvocation] Expensive method invocation
+report src/Asteroids3D/Assets/Scripts/UI/PlayerState/ShipStatusOverlay.cs:35 [Unity.PerformanceCriticalCodeInvocation] Expensive method invocation
+report src/Asteroids3D/Assets/Scripts/UI/PlayerState/ShipStatusOverlay.cs:48 [Unity.PerformanceCriticalCodeInvocation] Expensive method invocation
+report src/Asteroids3D/Assets/Scripts/UI/PlayerState/StatusBarUI.cs:22 [Unity.PerformanceCriticalCodeInvocation] Expensive method invocation
+report src/Asteroids3D/Assets/Scripts/UI/PlayerState/StatusBarUI.cs:32 [Unity.PerformanceCriticalCodeInvocation] Expensive method invocation
+report src/Asteroids3D/Assets/Scripts/UI/PlayerState/StatusBarUI.cs:45 [Unity.PerformanceCriticalCodeInvocation] Expensive method invocation
+ReSharper ratchet passed: no blocking Unity findings on changed lines (29 report-only/touched-file findings).
