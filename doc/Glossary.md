@@ -90,7 +90,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **module** | deep module (design vocabulary, §2 → *design vocabulary*) · ship module (chassis/module/loadout) · `-ScopeType Module` (test scope) | Qualify: "deep module" / "ship module" / "Module scope". |
 | **mod** | lull mod (§2 → *lull mod*): a weapon mod or a ship mod · the colloquial short form of ship module | Bare "mod" = a lull mod of either kind inside the loot code (`Loot/`, the lull pick); prose names the kind ("weapon mod", "ship mod") wherever the kind matters; a ship module is never shortened to "mod". In a title, qualify regardless. |
 | **bench** | benchmark run (bench run, bench config, ram-bench harness) · benched work (`bench/<topic>`, §2 → *benched*) | Bare "bench" = benchmark run. Set-aside work is always "benched". |
-| **layer** | sky layer (one drawn backdrop layer — background, far nebula, starfield, close nebula — a child renderer of a locale's `LocaleSky` root) · Unity layer (`LayerIds`; notably `Sky`, the render layer every sky layer sits on, which only the flight and hangar cameras' culling masks include) · starfield depth layer (inside `StarField.shader`) · paint mask (§2 → *Art pipeline*; never "paint layer") | Always qualified: "sky layer" vs "the `Sky` layer". |
+| **layer** | sky layer (one drawn backdrop layer — background, far nebula, starfield, close nebula — a renderer under a locale's `LocaleSky` root) · Unity layer (`LayerIds`; notably `Sky`, the render layer every sky layer sits on, which only the flight and hangar cameras' culling masks include) · starfield depth layer (inside `StarField.shader`) · paint mask (§2 → *Art pipeline*; never "paint layer") | Always qualified: "sky layer" vs "the `Sky` layer". |
 | **charge** | charge-up / spent charge (`ChargeTime`, the `Charge` parameter) · concussion charge (`Grenade`, `IChargeFlight`, the target marker) | Always qualified in prose: "charge-up", "spent charge", "concussion charge". |
 | **environment** | RL environment (the ml-agents env: environment scheduling, environment parameters, `--num-envs`) · Unity Lighting "Environment" settings (skybox, ambient) · Gizmo View "Environment" category · environment art (`Visuals/Environment/`: asteroids, stations, props) | Never for the locale in new prose — say "locale". Qualify the rest. |
 
@@ -325,12 +325,17 @@ Format: **term** — definition. *(authority)*
   one evidenced verdict per issue. Recurs, so not a *pass*.
   *(.claude/skills/issue-triage)*
 - **on-event triage** — the mechanical triage run on issue opened / edited:
-  board add + Status, one-priority rule, retry / premise / dead-pointer checks;
-  writes labels and at most one comment, and treats issue text as data.
-  *(.claude/skills/issue-triage/on-event.md)*
+  board add + *board kind* sort, one-priority rule, retry / premise /
+  dead-pointer checks; writes labels and at most one comment, and treats issue
+  text as data. *(.claude/skills/issue-triage/on-event.md)*
+- **board kind** — the board's Status read as the sort of attention an issue
+  needs: Mechanical, Complex, Judgement, Visual or Bugs, and Triage while
+  unsorted. Agents write it only while Status is empty or Triage; any other
+  column is the owner's.
+  *(rubric: .claude/skills/issue-triage/on-event.md)*
 - **merge reconcile** — the mechanical triage run on each push to main: for
-  every squash-merged PR in the push, a Shipped note and board Done on the
-  issues it closes, a Touched note on the open issues its body cites, a listing
+  every squash-merged PR in the push, a Shipped note on the issues it closes,
+  a Touched note on the open issues its body cites, a listing
   of `#N` citations of the closed issues left in the agent docs, and a warning
   when the body disclaims a close the PR performs. Never closes or reopens an
   issue; idempotent on re-run. *(scripts/merge_reconcile.sh)*
@@ -630,14 +635,16 @@ Format: **term** — definition. *(authority)*
   `ActivateOnToken`.
 - **adopt vs spawn** (sector) — the placed child IS the runtime object, versus
   spawner-produced. Variation lives in the object or in the spawner type.
-- **locale** — the per-sector look *scene*: lights, flat ambient, custom
-  reflection, ambience and sky layers (under its `LocaleSky` root).
-  `LocaleService` loads it additively and makes it active. Look is a scene;
-  gameplay is a prefab. The boot scene carries none: every authored sector
-  names one, and the session shows its idle locale between sectors.
+- **locale** — the per-sector look, a prefab. Its root `LocaleSky` holds the
+  lighting values (flat ambient, fog, custom reflection, sun), and its
+  children are the locale's lights, ambience and sky layers. `LocaleService`
+  instantiates it under the session's `Locale` root and writes those values to
+  `RenderSettings`, so showing a locale never changes the active scene. The
+  boot scene carries none: every authored sector names one, and the session
+  shows its idle locale between sectors.
 - **idle locale** — the locale a presentation session shows while no sector is
-  loaded (the hangar's backdrop). A sector naming the same locale keeps it
-  loaded across the hand-off instead of reloading it. *(`SessionProfile.idleLocale`)*
+  loaded (the hangar's backdrop). A sector naming the same locale keeps its
+  instance across the hand-off. *(`SessionProfile.idleLocale`)*
 - **cloud-bank sky layer** — a sky layer whose `Custom/Nebula` material has
   `_CloudOpacity` above 0. It draws from a seamless tile baked when it enables,
   not live noise, so it must stay static and zoom-free (`_NebulaSpeed` and

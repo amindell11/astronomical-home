@@ -79,14 +79,14 @@ namespace Tests.PlayMode.Crosshairs
         private void Draw() => hud.SendMessage("LateUpdate");
         private Image ImageAt(string path) => hud.transform.Find(path).GetComponent<Image>();
 
-        [TestCase("Lasers")]
-        [TestCase("TurboLasers")]
-        [TestCase("ChargeLasers")]
-        [TestCase("Railgun")]
-        [TestCase("Rippers")]
-        [TestCase("Missiles")]
-        [TestCase("Grenades")]
-        public void AuthoredWeapon_HasPersistentResourcesInBothPositions(string weaponName)
+        [TestCase("Lasers", "lasers")]
+        [TestCase("TurboLasers", "turbo-lasers")]
+        [TestCase("ChargeLasers", "charge-lasers")]
+        [TestCase("Railgun", "railgun")]
+        [TestCase("Rippers", "rippers")]
+        [TestCase("Missiles", "missiles")]
+        [TestCase("Grenades", "concussion")]
+        public void AuthoredWeapon_HasItsGlyphAndIndependentResourcesInBothPositions(string weaponName, string glyph)
         {
             Bind(weaponName);
             Assert.IsTrue(hud.transform.Find("PrimaryResources").gameObject.activeInHierarchy);
@@ -94,6 +94,22 @@ namespace Tests.PlayMode.Crosshairs
             Assert.IsNull(hud.transform.Find("PrimaryResources/ReloadFill"));
             Assert.IsNull(hud.transform.Find("SecondaryResources/ReloadFill"));
             Assert.That(builder.Panels.Count, Is.EqualTo(weaponName == "Missiles" ? 2 : 0));
+            var primary = ImageAt("PrimaryIcon");
+            var secondary = ImageAt("SecondaryIcon");
+            Assert.That(primary.sprite.name, Is.EqualTo(glyph));
+            Assert.That(secondary.sprite, Is.SameAs(primary.sprite));
+            Assert.That(primary.rectTransform.anchoredPosition.x, Is.LessThan(0f));
+            Assert.That(secondary.rectTransform.anchoredPosition.x, Is.EqualTo(-primary.rectTransform.anchoredPosition.x));
+            foreach (var slot in new[] { "Primary", "Secondary" })
+            {
+                var resource = (RectTransform)hud.transform.Find(slot + "Resources");
+                var icon = ImageAt(slot + "Icon");
+                Assert.That(icon.rectTransform.anchoredPosition, Is.EqualTo(resource.anchoredPosition));
+                Assert.That(Mathf.Abs(resource.anchoredPosition.x),
+                    Is.GreaterThan((resource.rect.width + ((RectTransform)hud.transform).rect.width) * .5f));
+                Assert.That(icon.type, Is.EqualTo(Image.Type.Simple));
+                Assert.That(icon.raycastTarget, Is.False);
+            }
         }
 
         [UnityTest]
@@ -264,11 +280,17 @@ namespace Tests.PlayMode.Crosshairs
         {
             var controller = Bind("Grenades");
             var oldResources = hud.transform.Find("PrimaryResources").gameObject;
+            var oldIcon = ImageAt("PrimaryIcon").gameObject;
             controller.Reequip(LoadPrefab<WeaponComponent>("Weapons/Railgun"), null);
             Rebind(controller);
             Assert.IsFalse(oldResources.activeSelf);
+            Assert.IsFalse(oldIcon.activeSelf);
             yield return null;
             Assert.IsNull(hud.transform.Find("SecondaryResources"));
+            Assert.IsNull(hud.transform.Find("SecondaryIcon"));
+            Assert.That(ImageAt("PrimaryIcon").sprite.name, Is.EqualTo("railgun"));
+            Assert.That(ImageAt("PrimaryIcon").rectTransform.anchoredPosition,
+                Is.EqualTo(((RectTransform)hud.transform.Find("PrimaryResources")).anchoredPosition));
             Assert.IsNull(hud.transform.Find("PrimaryResources/Round0"));
             var charge = controller.Primary.GetComponent<ChargeTime>();
             charge.HandleTrigger(true, charge.FullChargeTime * .5f);

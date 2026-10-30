@@ -6,6 +6,7 @@ using Cameras;
 using Game.Runs;
 using Ships;
 using Substrate.Results;
+using Substrate.Services.Locales;
 using Substrate.Services.Objectives;
 using Substrate.Services.Units;
 using Substrate.Sessions;
@@ -38,6 +39,7 @@ namespace Game.Preview
         [SerializeField] internal GameHost gameHostPrefab;
         [SerializeField] internal SessionProfile sessionProfile;
         [SerializeField] internal SectorEntry[] crowdedJumpSectors;
+        [SerializeField] internal LocaleSky jumpDestination;
         [SerializeField] internal PreviewSubjectKind subjectKind;
         [SerializeField] internal PreviewMode mode;
         [SerializeField] internal PreviewPlaytestSetup playtestSetup;
@@ -210,7 +212,8 @@ namespace Game.Preview
         private IPreviewSubject NewSubject() => subjectKind switch
         {
             PreviewSubjectKind.RunRecap => new RecapPreviewSubject(gameHostPrefab.recapFeel),
-            PreviewSubjectKind.SectorJump => new SectorJumpPreviewSubject(gameHostPrefab.jumpFeel, gameHostPrefab.jumpShader),
+            PreviewSubjectKind.SectorJump => new SectorJumpPreviewSubject(gameHostPrefab.jumpFeel, gameHostPrefab.jumpShader,
+                jumpDestination),
             _ => throw new ArgumentOutOfRangeException(nameof(subjectKind), subjectKind, "Unknown preview subject.")
         };
 

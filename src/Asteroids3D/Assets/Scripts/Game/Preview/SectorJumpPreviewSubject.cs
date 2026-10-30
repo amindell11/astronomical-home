@@ -24,8 +24,8 @@ namespace Game.Preview
             "Blue to copper, diagonal", "Blue to copper, upward", "Blue to copper, left",
             "Copper to blue, diagonal", "Blue to copper, alternate stars"
         };
-        private const string Destination = "Locale_1";
         private readonly Shader shader;
+        private readonly LocaleSky destination;
         private readonly SectorJumpProfile profile;
         private Ship ship;
         private ObserverCam observer;
@@ -42,12 +42,14 @@ namespace Game.Preview
         private SectorJumpMotion motion;
         private int revision = -1;
 
-        public SectorJumpPreviewSubject(SectorJumpProfile profile, Shader shader)
+        public SectorJumpPreviewSubject(SectorJumpProfile profile, Shader shader, LocaleSky destination)
         {
-            if (!profile || !shader)
-                throw new InvalidOperationException("The jump preview requires a feel profile and shader.");
+            if (!profile || !shader || !destination)
+                throw new InvalidOperationException(
+                    "The jump preview requires a feel profile and shader, and a destination locale.");
             this.profile = profile;
             this.shader = shader;
+            this.destination = destination;
         }
 
         public string Name => "Sector jump";
@@ -65,7 +67,7 @@ namespace Game.Preview
             if (!ship.gameObject.activeInHierarchy)
                 world.Session.Units.RespawnShip(ship.Id, GamePlane.WorldPointToPlane(ship.transform.position), 0f);
             freezeSimulation(true);
-            yield return world.Session.PrepareTravelBackdrop(Destination, world.Root, pair => backdrop = pair);
+            backdrop = world.Session.PrepareTravelBackdrop(destination, world.Root);
             origin = ship.transform.position;
             startRotation = ship.transform.rotation;
             startHeading = Vector3.SignedAngle(GamePlane.Forward,
@@ -77,6 +79,7 @@ namespace Game.Preview
             ship.Commander.enabled = false;
             presentation = SectorJumpPresentation.Create(world.Ui, ship, world.Rig.Overlay,
                 world.Session.Units.ActiveRegistry.ActiveShips, observer, backdrop, shader);
+            yield break;
         }
 
         public PreviewSpan Span(int index)

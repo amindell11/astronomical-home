@@ -9,13 +9,14 @@ ahead of the packet. Arc rulings: #617.
 ## Done by the script before you run
 
 Author allowlist (a non-allowlisted issue gets board add, Status Triage and
-`needs-triage`; you never see it) · board add + Status per the label mapping ·
-the one-priority rule · `needs-triage` on an allowlisted issue with no `pri:*`
-· the edit gate: on `edited` you run only for a title change or a body that
-names a path-like token the old body did not. The script renders your verdict
-into the issue's one marked note (`comment-formats.md` § On-event note) and
-edits it in place on later runs; a clean verdict with no prior note posts
-nothing.
+`needs-triage`; you never see it) · board add, and Status Triage for an item
+with no Status · the one-priority rule · `needs-triage` on an allowlisted issue
+with no `pri:*` · the edit gate: on `edited` you run only for a title change or
+a body that names a path-like token the old body did not. The script renders
+your verdict into the issue's one marked note (`comment-formats.md` § On-event
+note) and edits it in place on later runs; a clean verdict with no prior note
+posts nothing. After your verdict it writes a confident kind to Status, and
+only from Triage: any other column is the owner's placement.
 
 ## Rules
 
@@ -44,6 +45,20 @@ checkout with Glob. `dead_pointers` lists only the missing ones, each with
 `replacement`: the same basename elsewhere, or the symbol that superseded it,
 else `null`.
 
+**Kind** — the sort of attention the issue needs, which becomes its board
+Status:
+
+- `mechanical` — the fix is clear from the issue; an agent can build it unattended.
+- `complex` — a hard technical problem; deep work before the shape of the fix is known.
+- `judgement` — needs an owner decision (design, scope, a choice between options) before anyone builds.
+- `visual` — done is judged by the owner's eyes: look, paint, effects, camera, layout, feel.
+- `bugs` — a defect in tooling, the pipeline, scripts or tests. A game defect takes the kind its fix needs.
+
+`kind_confident` is `true` only when one kind clearly fits; when two fit or the
+body is too thin to tell, it is `false` and `kind` is the best guess.
+`kind_reason` is one line naming what in the issue decided it.
+
 Done when every path-like token has been globbed, every named symbol grepped,
-and the three checks carry their evidence. The schema you answer under is
-`VERDICT_SCHEMA` in `scripts/on_event_triage.sh`.
+the first three checks carry their evidence, and `kind_reason` names what
+decided the kind. The schema you answer under is `VERDICT_SCHEMA` in
+`scripts/on_event_triage.sh`.
