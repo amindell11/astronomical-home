@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Objectives.Presentation;
 
 namespace Objectives
 {
@@ -10,6 +11,7 @@ namespace Objectives
         private string currentStep;
         private readonly MissionDefinition mission;
         private readonly IReadOnlyDictionary<string, Func<ObjectiveState>> builders;
+        private readonly Func<SectorPhaseProgress> phaseProgress;
 
         /// <summary>Fires on every step transition — unlike <see cref="OnStateChanged"/>, which suppresses transitions between steps sharing an ObjectiveType.</summary>
         public event Action<string> OnStepChanged;
@@ -21,13 +23,16 @@ namespace Objectives
         public string CurrentStep => currentStep;
 
         public string CurrentStatusLine => current.StatusLine;
+        public SectorPhaseProgress? PhaseProgress => phaseProgress?.Invoke();
 
         public ObjectiveTracker(
             MissionDefinition mission,
-            IReadOnlyDictionary<string, Func<ObjectiveState>> builders)
+            IReadOnlyDictionary<string, Func<ObjectiveState>> builders,
+            Func<SectorPhaseProgress> phaseProgress = null)
         {
             this.mission = mission ?? throw new ArgumentNullException(nameof(mission));
             this.builders = builders ?? throw new ArgumentNullException(nameof(builders));
+            this.phaseProgress = phaseProgress;
 
             currentStep = mission.InitialStep;
             current = builders[currentStep]();

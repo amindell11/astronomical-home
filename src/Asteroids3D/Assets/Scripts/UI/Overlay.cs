@@ -21,6 +21,12 @@ namespace UI
         [SerializeField] private AimCrosshair crosshair;
         [SerializeField] private WeaponResourceHud weaponResources;
 
+        [Header("Typography")]
+        [SerializeField] private Font labelFont;
+        [SerializeField] private Font readoutFont;
+        [SerializeField] private Font headingFont;
+        [SerializeField] private Font timerFont;
+
         private Canvas[] canvases;
         private CanvasGroup visibility;
         private UILockOnAudio lockOnAudio;
@@ -30,7 +36,6 @@ namespace UI
         private UIMissileWarningAudio missileWarningAudio;
         private BoostGaugeUI boostGauge;
         private WeaponReadoutBuilder readoutBuilder;
-        private RunTallyReadout tallyReadout;
         private ChargeTargetMarkers chargeMarkers;
         private Camera gameplayCamera;
         private bool visible = true;
@@ -89,7 +94,7 @@ namespace UI
         }
 
         public void BindShips(SubscribedSet<Ship> ships, Camera worldCamera) =>
-            shipStatus = ShipStatusOverlay.Create(canvases[0], ships, worldCamera);
+            shipStatus = ShipStatusOverlay.Create(canvases[0], ships, worldCamera, readoutFont);
 
         private void OnDestroy()
         {
@@ -118,10 +123,6 @@ namespace UI
             if (chargeMarkers)
                 chargeMarkers.Initialize(binding.Weapons);
 
-            if (!tallyReadout)
-                tallyReadout = RunTallyReadout.Create(transform);
-            tallyReadout.Initialize(binding.Tally);
-
             // Overheat and lock audio are single overlay-level channels; each follows the
             // first weapon (in slot order) that exposes the matching readout.
             if (laserAudio)
@@ -136,7 +137,7 @@ namespace UI
             if (!objectiveMarkers || !minimapRect)
                 throw new InvalidOperationException($"Overlay on '{name}' needs its objective markers and minimap wired.");
             objectiveMarkers.Initialize(objectives, worldCamera, minimapCamera, minimapRect, canvases[0]);
-            ObjectiveStatusReadout.Create(transform).Initialize(objectives);
+            ObjectiveStatusReadout.Create(transform, labelFont, headingFont, timerFont).Initialize(objectives);
         }
     }
 }
