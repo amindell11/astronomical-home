@@ -6,7 +6,7 @@ namespace UI
 {
     /// <summary>
     /// Lock readout widget: a spinner shown while the weapon's lock is on cooldown. One is
-    /// generated per lock-capable weapon by <see cref="WeaponReadoutBuilder"/>.
+    /// generated per lock-capable weapon by <see cref="Weapons.WeaponReadoutBuilder"/>.
     /// </summary>
     public sealed class LockReadoutUI : MonoBehaviour
     {

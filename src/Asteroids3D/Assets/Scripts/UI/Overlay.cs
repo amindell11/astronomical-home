@@ -3,6 +3,7 @@ using UnityEngine;
 using UI.Audio;
 using UI.Markers;
 using UI.PlayerState;
+using UI.Weapons;
 using Combat.Weapons.Conditions;
 using Substrate.Services.Objectives;
 using Ships;
@@ -17,6 +18,8 @@ namespace UI
     {
         [Header("Minimap")]
         [SerializeField] private RectTransform minimapRect;
+        [SerializeField] private AimCrosshair crosshair;
+        [SerializeField] private WeaponResourceHud weaponResources;
 
         private Canvas[] canvases;
         private CanvasGroup visibility;
@@ -29,6 +32,8 @@ namespace UI
         private WeaponReadoutBuilder readoutBuilder;
         private RunTallyReadout tallyReadout;
         private ChargeTargetMarkers chargeMarkers;
+        private Camera gameplayCamera;
+        private bool visible = true;
         private ShipStatusOverlay shipStatus;
         private ObjectiveMarkers objectiveMarkers;
 
@@ -49,10 +54,11 @@ namespace UI
             chargeMarkers = GetComponentInChildren<ChargeTargetMarkers>(true);
         }
 
-        public void SetCanvasWorldCamera(Camera uicam)
+        public void ConfigureCameras(Camera uiCamera, Camera gameplayCamera)
         {
             // GetComponentsInChildren returns self first; RequireComponent guarantees a root canvas.
-            canvases[0].worldCamera = uicam;
+            canvases[0].worldCamera = uiCamera;
+            this.gameplayCamera = gameplayCamera;
         }
 
         /// <summary>
@@ -63,17 +69,22 @@ namespace UI
         /// </summary>
         public void SetVisible(bool visible)
         {
+            this.visible = visible;
             if (visible) SetOpacity(1f);
             foreach (var c in canvases)
                 c.enabled = visible;
             if (chargeMarkers)
                 chargeMarkers.SetVisible(visible);
+            crosshair.gameObject.SetActive(visible && visibility.alpha > 0f);
+            weaponResources.gameObject.SetActive(visible && visibility.alpha > 0f);
         }
 
         public void SetOpacity(float opacity, float? shipOpacity = null)
         {
             visibility.alpha = opacity;
             if (chargeMarkers) chargeMarkers.SetVisible(opacity > 0f);
+            crosshair.gameObject.SetActive(visible && opacity > 0f);
+            weaponResources.gameObject.SetActive(visible && opacity > 0f);
             if (shipStatus) shipStatus.SetOpacity(shipOpacity ?? opacity);
         }
 
@@ -101,6 +112,8 @@ namespace UI
 
             if (readoutBuilder)
                 readoutBuilder.Build(binding.Weapons);
+            crosshair.Initialize(binding.Status, gameplayCamera);
+            weaponResources.Initialize(binding.Weapons);
 
             if (chargeMarkers)
                 chargeMarkers.Initialize(binding.Weapons);
