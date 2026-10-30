@@ -30,9 +30,6 @@ Evidence: <path | PR | comment>
 Apply: gh issue edit <N> --remove-label pri:<from> --add-label pri:<to>
 ```
 
-The apply line's board Status change follows `doc/agents/issue-tracker.md`
-§ Projects board sync (the new `pri:*` label's option).
-
 ## Duplicate close
 
 Queued by a `duplicate-of #M` verdict.
@@ -99,6 +96,7 @@ On-event triage <date>
 Retry of #N — <closed title>
 Premise not in the tree — <path:line>
 Dead pointer: `<path>` → `<replacement>` | no replacement found
+Kind unsure: best guess <Mechanical | Complex | Judgement | Visual | Bugs> — <reason>
 In flight (assigned)
 ```
 

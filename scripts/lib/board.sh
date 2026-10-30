@@ -1,12 +1,16 @@
 # shellcheck shell=bash
 # The board protocol of the "Astronomical" user project (doc/agents/issue-tracker.md § Projects
-# board sync): its ids, and the GraphQL reads and writes a board writer makes. Sourced, never run.
+# board sync): its ids (of Status, only the options automation may write), and the GraphQL
+# reads and writes a board writer makes. Sourced, never run.
 # Every call runs under GH_TOKEN as the caller sets it, which needs the `project` scope
 # (PROJECTS_TOKEN in Actions), and returns gh's status. Text goes in as a GraphQL variable, so any
 # text is safe to pass.
 
 BOARD_PROJECT_ID="PVT_kwHOAJsCkc4BfiTv"
 BOARD_DECISION_FIELD_ID="PVTF_lAHOAJsCkc4BfiTvzhkWGNc"
+BOARD_STATUS_FIELD_ID="PVTSSF_lAHOAJsCkc4BfiTvzhZ0hiE"
+BOARD_STATUS_TRIAGE="d6567434"
+declare -A BOARD_KIND_OPTIONS=([mechanical]=225f15fa [complex]=a48c4ac0 [judgement]=bc4b1db5 [visual]=4dbdbff5 [bugs]=76914216)
 
 # board_item <owner/repo> <number> <text field name>: sets BOARD_NODE (the issue's or PR's node
 # id), BOARD_ITEM (its item on the project; empty when it is not on the board) and BOARD_TEXT (the

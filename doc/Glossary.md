@@ -325,12 +325,17 @@ Format: **term** — definition. *(authority)*
   one evidenced verdict per issue. Recurs, so not a *pass*.
   *(.claude/skills/issue-triage)*
 - **on-event triage** — the mechanical triage run on issue opened / edited:
-  board add + Status, one-priority rule, retry / premise / dead-pointer checks;
-  writes labels and at most one comment, and treats issue text as data.
-  *(.claude/skills/issue-triage/on-event.md)*
+  board add + *board kind* sort, one-priority rule, retry / premise /
+  dead-pointer checks; writes labels and at most one comment, and treats issue
+  text as data. *(.claude/skills/issue-triage/on-event.md)*
+- **board kind** — the board's Status read as the sort of attention an issue
+  needs: Mechanical, Complex, Judgement, Visual or Bugs, and Triage while
+  unsorted. Agents write it only while Status is empty or Triage; any other
+  column is the owner's.
+  *(rubric: .claude/skills/issue-triage/on-event.md)*
 - **merge reconcile** — the mechanical triage run on each push to main: for
-  every squash-merged PR in the push, a Shipped note and board Done on the
-  issues it closes, a Touched note on the open issues its body cites, a listing
+  every squash-merged PR in the push, a Shipped note on the issues it closes,
+  a Touched note on the open issues its body cites, a listing
   of `#N` citations of the closed issues left in the agent docs, and a warning
   when the body disclaims a close the PR performs. Never closes or reopens an
   issue; idempotent on re-run. *(scripts/merge_reconcile.sh)*
