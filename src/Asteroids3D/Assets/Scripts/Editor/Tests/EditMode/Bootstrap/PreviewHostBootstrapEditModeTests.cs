@@ -2,6 +2,7 @@ using System.Linq;
 using Game;
 using Game.Preview;
 using NUnit.Framework;
+using UI.Projection;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -26,7 +27,7 @@ namespace Tests.EditMode.Bootstrap
             host = PreviewHostBootstrap.BuildHost(PreviewSubjectKind.RunRecap, mode);
 
             Assert.AreEqual(mode, host.Mode);
-            Assert.IsFalse(host.gameObject.activeSelf, "the host waits for play mode to hand it working copies");
+            Assert.IsFalse(host.gameObject.activeSelf, "the host waits for play mode to take the snapshot");
             Assert.AreEqual(PreviewHostBootstrap.GameHostPath, AssetDatabase.GetAssetPath(host.gameHostPrefab),
                 "Playtest runs the GameHost prefab the boot scene instances");
             Assert.IsTrue(host.sessionProfile.presentation, "the preview shows presentation");
@@ -38,23 +39,24 @@ namespace Tests.EditMode.Bootstrap
         }
 
         [Test]
-        public void Activate_RunsTheHostOnWorkingCopiesOfTheShippedFeels()
+        public void Activate_SnapshotsTheFeelsTheGameShips_ThenActivatesTheHost()
         {
             host = PreviewHostBootstrap.BuildHost();
-            var copies = new FeelWorkingCopies();
+            var snapshot = FeelSnapshot.instance;
             try
             {
-                PreviewHostBootstrap.Activate(host, copies);
+                PreviewHostBootstrap.Activate(host, snapshot);
 
                 Assert.IsTrue(host.gameObject.activeSelf);
-                Assert.That(host.RecapFeel, Is.SameAs(copies.For(host.gameHostPrefab.recapFeel)));
-                Assert.That(host.JumpFeel, Is.SameAs(copies.For(host.gameHostPrefab.jumpFeel)));
-                Assert.That(host.CanopyFeel, Is.SameAs(copies.For(host.gameHostPrefab.playerRig.AuthoredCanopyProfile)));
-                Assert.IsFalse(AssetDatabase.Contains(host.RecapFeel), "the host never runs on the asset itself");
+                var game = host.gameHostPrefab;
+                var canopy = AssetDatabase.LoadAssetAtPath<CanopyProjectionProfile>("Assets/Settings/UI/CanopyProjection.asset");
+                Assert.That(PreviewHostBootstrap.CanopyProfile(game), Is.SameAs(canopy), "the rig's canopy prefab ships it");
+                foreach (var feel in new ScriptableObject[] { game.recapFeel, game.jumpFeel, canopy })
+                    Assert.IsFalse(snapshot.HasUnsavedEdits(feel), $"{feel.name} is under the snapshot");
             }
             finally
             {
-                copies.Close();
+                snapshot.Close();
             }
         }
 

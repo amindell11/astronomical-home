@@ -1026,8 +1026,9 @@ Format: **term** — definition. *(authority)*
   preview-only renderer is forbidden. Arc #1151. *(RecapOutcomeSequence,
   RecapOutcomeContext, RecapPresenter)*
 - **feel profile** — the ScriptableObject of named knobs a presentation module
-  reads live; the game serializes the asset on its host, the preview host edits
-  the same asset and saves it explicitly. *(RecapFeelProfile)*
+  reads live; the game serializes the asset on its host, and the preview's panel
+  edits that same asset in place under a snapshot: Save writes it, Discard
+  restores it. *(RecapFeelProfile, FeelSnapshot)*
 - **preview host** — the play-mode composition root beside the game host that
   composes a real session with presentation on around the real player rig,
   camera and HUD, and hosts one *preview subject* under a transport (play,
