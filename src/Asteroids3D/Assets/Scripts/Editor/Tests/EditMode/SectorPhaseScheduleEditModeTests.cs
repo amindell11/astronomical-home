@@ -59,5 +59,17 @@ namespace Tests.EditMode
             Assert.Throws<ArgumentException>(() => new SectorPhaseSchedule(Array.Empty<SectorPhase>(), 5f));
             Assert.Throws<ArgumentException>(() => new SectorPhaseSchedule(null, 5f));
         }
+
+        [TestCase(0f, 45f)]
+        [TestCase(39.5f, 5.5f)]
+        [TestCase(40f, 5f)]
+        [TestCase(44.5f, .5f)]
+        [TestCase(45f, 35f)]
+        [TestCase(80f, 20f)]
+        [TestCase(100f, 0f)]
+        public void Countdown_IncludesTheLull_AndEndsAtExtraction(float elapsed, float expected)
+        {
+            Assert.AreEqual(expected, Schedule(5f, 40f, 30f, 20f).At(elapsed).CountdownSeconds, .001f);
+        }
     }
 }

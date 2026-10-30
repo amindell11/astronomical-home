@@ -18,7 +18,7 @@ namespace UI.PlayerState
         private Material textMaterial;
         private CanvasGroup visibility;
 
-        public static ShipStatusOverlay Create(Canvas hud, SubscribedSet<Ship> ships, Camera worldCamera, Material textMaterial)
+        public static ShipStatusOverlay Create(Canvas hud, SubscribedSet<Ship> ships, Camera worldCamera, Font font, Material textMaterial)
         {
             var root = new GameObject("Ship status overlay", typeof(RectTransform), typeof(Canvas), typeof(CanvasGroup));
             root.layer = hud.gameObject.layer;
@@ -30,6 +30,7 @@ namespace UI.PlayerState
             overlay.canvas.sortingOrder = hud.sortingOrder - 1;
             overlay.worldCamera = worldCamera;
             overlay.textMaterial = textMaterial;
+            overlay.font = font;
             overlay.ships = ships;
             ships.OnAdd += overlay.Add;
             ships.OnRemove += overlay.Remove;
@@ -41,7 +42,6 @@ namespace UI.PlayerState
         {
             canvas = GetComponent<Canvas>();
             visibility = GetComponent<CanvasGroup>();
-            font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         }
 
         public void SetOpacity(float opacity) => visibility.alpha = opacity;
