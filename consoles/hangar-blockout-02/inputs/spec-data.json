@@ -1,0 +1,260 @@
+{
+  "sourceCommit": "4d23b8e5aaf0c9e085758648d1151f6793af022b",
+  "fleet": [
+    {
+      "ship": "Vanguard",
+      "source": "Prefabs\\Ships\\Vanguard.prefab",
+      "mass": 800.0,
+      "hull": 100.0,
+      "engine": {
+        "source": "Settings\\Ships\\Engines\\Vanguard_Engine.asset",
+        "name": "Vanguard Engine",
+        "maxSpeed": 25.0,
+        "forwardForce": 5600.0,
+        "maxYawRate": 180.0
+      },
+      "shield": {
+        "source": "Settings\\Ships\\Shields\\Default_Shield.asset",
+        "name": "Standard Shield",
+        "maxShield": 50.0,
+        "shieldRegenRate": 10.0
+      },
+      "keystone": {
+        "source": "Prefabs\\Keystones\\Vanguard_Dash.prefab",
+        "name": "Guard Dash",
+        "cooldown": 5.0
+      },
+      "acceleration": 7.0,
+      "stats": {
+        "Hull": 100.0,
+        "Shield capacity": 50.0,
+        "Shield recharge": 10.0,
+        "Top speed": 25.0,
+        "Acceleration": 7.0,
+        "Turn": 180.0
+      }
+    },
+    {
+      "ship": "Crimson",
+      "source": "Prefabs\\Ships\\Crimson.prefab",
+      "mass": 560.0,
+      "hull": 65.0,
+      "engine": {
+        "source": "Settings\\Ships\\Engines\\Crimson_Engine.asset",
+        "name": "Crimson Engine",
+        "maxSpeed": 28.0,
+        "forwardForce": 4900.0,
+        "maxYawRate": 240.0
+      },
+      "shield": {
+        "source": "Settings\\Ships\\Shields\\Light_Shield.asset",
+        "name": "Light Shield",
+        "maxShield": 32.0,
+        "shieldRegenRate": 18.0
+      },
+      "keystone": {
+        "source": "Prefabs\\Keystones\\Crimson_Blink.prefab",
+        "name": "Blink",
+        "cooldown": 4.0
+      },
+      "acceleration": 8.75,
+      "stats": {
+        "Hull": 65.0,
+        "Shield capacity": 32.0,
+        "Shield recharge": 18.0,
+        "Top speed": 28.0,
+        "Acceleration": 8.75,
+        "Turn": 240.0
+      }
+    },
+    {
+      "ship": "Nightshade",
+      "source": "Prefabs\\Ships\\Nightshade.prefab",
+      "mass": 700.0,
+      "hull": 85.0,
+      "engine": {
+        "source": "Settings\\Ships\\Engines\\Nightshade_Engine.asset",
+        "name": "Nightshade Engine",
+        "maxSpeed": 26.0,
+        "forwardForce": 5700.0,
+        "maxYawRate": 210.0
+      },
+      "shield": {
+        "source": "Settings\\Ships\\Shields\\Nightshade_Shield.asset",
+        "name": "Nightshade Shield",
+        "maxShield": 45.0,
+        "shieldRegenRate": 15.0
+      },
+      "keystone": {
+        "source": "Prefabs\\Keystones\\Nightshade_Stealth.prefab",
+        "name": "Stealth",
+        "cooldown": 8.0
+      },
+      "acceleration": 8.142857142857142,
+      "stats": {
+        "Hull": 85.0,
+        "Shield capacity": 45.0,
+        "Shield recharge": 15.0,
+        "Top speed": 26.0,
+        "Acceleration": 8.142857142857142,
+        "Turn": 210.0
+      },
+      "primary": "TurboLasers",
+      "secondary": "Missiles"
+    },
+    {
+      "ship": "Junker_1",
+      "source": "Prefabs\\Ships\\Cargo Ships\\Junker_1.prefab",
+      "mass": 4000.0,
+      "hull": 400.0,
+      "engine": {
+        "source": "Settings\\Ships\\Engines\\Hauler_Engine.asset",
+        "name": "Hauler Engine",
+        "maxSpeed": 19.0,
+        "forwardForce": 7200.0,
+        "maxYawRate": 130.0
+      },
+      "shield": {
+        "source": "Settings\\Ships\\Shields\\Cargo_Shield.asset",
+        "name": "Cargo_Shield",
+        "maxShield": 150.0,
+        "shieldRegenRate": 8.0
+      },
+      "keystone": {
+        "source": "Prefabs\\Keystones\\Junker_Dash.prefab",
+        "name": "Dash",
+        "cooldown": 5.0
+      },
+      "acceleration": 1.8,
+      "stats": {
+        "Hull": 400.0,
+        "Shield capacity": 150.0,
+        "Shield recharge": 8.0,
+        "Top speed": 19.0,
+        "Acceleration": 1.8,
+        "Turn": 130.0
+      }
+    },
+    {
+      "ship": "Valis",
+      "source": "Prefabs\\Ships\\Valis.prefab",
+      "mass": 650.0,
+      "hull": 80.0,
+      "engine": {
+        "source": "Settings\\Ships\\Engines\\Valis_Engine.asset",
+        "name": "Valis Engine",
+        "maxSpeed": 32.0,
+        "forwardForce": 6500.0,
+        "maxYawRate": 220.0
+      },
+      "shield": {
+        "source": "Settings\\Ships\\Shields\\Default_Shield.asset",
+        "name": "Standard Shield",
+        "maxShield": 50.0,
+        "shieldRegenRate": 10.0
+      },
+      "keystone": {
+        "source": "Prefabs\\Keystones\\Valis_Overdrive.prefab",
+        "name": "Overdrive",
+        "cooldown": 9.0
+      },
+      "acceleration": 10.0,
+      "stats": {
+        "Hull": 80.0,
+        "Shield capacity": 50.0,
+        "Shield recharge": 10.0,
+        "Top speed": 32.0,
+        "Acceleration": 10.0,
+        "Turn": 220.0
+      },
+      "primary": "Lasers",
+      "secondary": "Missiles"
+    },
+    {
+      "ship": "Bulwark",
+      "source": "Prefabs\\Ships\\Bulwark.prefab",
+      "mass": 1200.0,
+      "hull": 160.0,
+      "engine": {
+        "source": "Settings\\Ships\\Engines\\Bulwark_Engine.asset",
+        "name": "Bulwark Engine",
+        "maxSpeed": 21.0,
+        "forwardForce": 8100.0,
+        "maxYawRate": 140.0
+      },
+      "shield": {
+        "source": "Settings\\Ships\\Shields\\Bulwark_Shield.asset",
+        "name": "Bulwark Shield",
+        "maxShield": 90.0,
+        "shieldRegenRate": 6.0
+      },
+      "keystone": {
+        "source": "Prefabs\\Keystones\\Bulwark_Dash.prefab",
+        "name": "Ram",
+        "cooldown": 5.0
+      },
+      "acceleration": 6.75,
+      "stats": {
+        "Hull": 160.0,
+        "Shield capacity": 90.0,
+        "Shield recharge": 6.0,
+        "Top speed": 21.0,
+        "Acceleration": 6.75,
+        "Turn": 140.0
+      }
+    }
+  ],
+  "fleetSource": "Assets/Settings/Ships/ItemCatalog.asset, all six authored chassis",
+  "barMaximums": {
+    "Hull": 400.0,
+    "Shield capacity": 150.0,
+    "Shield recharge": 18.0,
+    "Top speed": 32.0,
+    "Acceleration": 10.0,
+    "Turn": 240.0
+  },
+  "barFloor": 0.05,
+  "weapons": {
+    "Lasers": {
+      "damage": 20,
+      "rate": 3.3333333333333335,
+      "speed": 50,
+      "overheatShots": 14,
+      "statLine": "DMG 20  /  3.3/s  /  SPD 50",
+      "extraLine": "OVERHEATS AFTER 14 SHOTS"
+    },
+    "TurboLasers": {
+      "damage": 5,
+      "rate": 13.333333333333334,
+      "speed": 65,
+      "overheatShots": 20,
+      "statLine": "DMG 5  /  13.3/s  /  SPD 65",
+      "extraLine": "OVERHEATS AFTER 20 SHOTS"
+    },
+    "Missiles": {
+      "damage": 35,
+      "splashDamage": 15,
+      "rounds": 2,
+      "recharge": 10,
+      "statLine": "DMG 35 + 15 SPLASH  /  2 ROUNDS",
+      "extraLine": "10s/ROUND RECHARGE  /  LOCK-ON"
+    }
+  },
+  "statSources": [
+    "Assets/Prefabs/Weapons/Lasers.prefab",
+    "Assets/Prefabs/Weapons/TurboLasers.prefab",
+    "Assets/Prefabs/Weapons/Missiles.prefab",
+    "Assets/Prefabs/Weapons/Projectiles/Laser.prefab",
+    "Assets/Prefabs/Weapons/Projectiles/TurboLaser.prefab",
+    "Assets/Prefabs/Weapons/Projectiles/MissileProjectile.prefab",
+    "Assets/Scripts/Combat/Weapons/Conditions/Heat.cs"
+  ],
+  "notes": [
+    "Acceleration is forwardForce divided by mass.",
+    "The floor is a provisional 5% minimum, then values are divided by each fleet maximum.",
+    "Plex Mono numbers follow the explicit spec-sheet ruling. Other menu text reuses shared Plex Sans.",
+    "Descriptions are visibly marked PLACEHOLDER.",
+    "Shared canopy diamond is a provisional keystone glyph, not a new ability icon.",
+    "The hologram sequence is unchanged; the arrival is a storyboard, not a Unity implementation."
+  ]
+}

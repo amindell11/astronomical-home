@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hangar blockout and arrival storyboard</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#111318;color:#e4e5e8;font:16px/1.5 system-ui,sans-serif}main{max-width:1640px;padding:24px;margin:auto}h1{font-size:27px;font-weight:500;margin:0 0 8px}h2{font-size:22px;font-weight:500;margin:28px 0 10px}p{color:#b5bbc4;margin:8px 0 16px;max-width:1050px}a{color:#e1e6ef}nav,.choices{display:flex;gap:18px;flex-wrap:wrap;margin:16px 0}button{font:inherit;background:#252a32;color:#e4e5e8;border:1px solid #606773;padding:8px 18px;cursor:pointer}button[aria-pressed=true]{background:#dce0e6;color:#181c21}img,video{display:block;width:100%;height:auto;background:#070a10}.hero{border:1px solid #383d47}.strip{display:grid;grid-auto-flow:column;grid-auto-columns:min(78vw,760px);gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 0 16px}.strip figure{margin:0;background:#1b1f26;scroll-snap-align:start}.strip figcaption{padding:14px 18px 20px}.strip b{display:block;font-weight:500;font-size:20px;margin-bottom:5px}.strip span{color:#b5bbc4}.links{font-size:14px}details{margin:24px 0}summary{cursor:pointer;color:#d9dde3;margin-bottom:12px}.note{border-left:2px solid #667080;padding-left:16px;margin-top:24px}footer{margin:32px 0;color:#aeb4be}
+</style></head><body><main>
+<h1>Hangar at the final camera</h1>
+<p>C's close crop, built as editable layers. The real preview flights stay. The spec sheet faces the camera, with the two hardpoints on a separate deck display.</p>
+<nav><a href="hangar-blockout.blend">Editable Blender source</a><a href="README.md">Editing guide and real values</a><a href="#arrival">Arrival storyboard</a><a href="../lighting-01/electronic-light-contrast-nb2.jpg">Reference C</a></nav>
+<div class="choices"><button id="valis" aria-pressed="true">Valis</button><button id="nightshade" aria-pressed="false">Nightshade</button></div>
+<a id="full" href="renders/blockout-valis.png"><img id="hero" class="hero" src="renders/blockout-valis.png" alt="Close cropped grey dispatch console with a face-on ship spec sheet, separate hardpoint display, projector, real hologram and physical Call button"></a>
+<p class="links">Click the frame to inspect it at full size. Description copy and the shared keystone diamond remain placeholders.</p>
+<details><summary>Play the preserved preview flights and changing stat bars</summary><video controls loop muted playsinline preload="metadata" poster="renders/blockout-valis.png"><source src="renders/preview-flights.mp4" type="video/mp4"></video></details>
+<h2 id="arrival">Arrival storyboard</h2>
+<p>The camera stays fixed. The approaching light grows into the real hull, which banks past the deck edge before the cut into the canopy. Scroll across the seven frames or open the whole strip below.</p>
+<div class="strip">
+<figure><a href="renders/arrival-01-idle.png"><img src="renders/arrival-01-idle.png" alt="Idle dispatch terminal with the hologram above its projector"></a><figcaption><b>01 / Idle</b><span>The hologram previews the selected ship. The real ship is offscreen.</span></figcaption></figure>
+<figure><a href="renders/arrival-02-call.png"><img src="renders/arrival-02-call.png" alt="The physical Call cap is depressed"></a><figcaption><b>02 / Call pressed</b><span>The deck button depresses and darkens. The camera does not move.</span></figcaption></figure>
+<figure><a href="renders/arrival-03-power-down.png"><img src="renders/arrival-03-power-down.png" alt="The ship hologram fades out"></a><figcaption><b>03 / Hologram powers down</b><span>The projection clears the space above the console.</span></figcaption></figure>
+<figure><a href="renders/arrival-04-distant-light.png"><img src="renders/arrival-04-distant-light.png" alt="A small light appears high in the space beyond the dock"></a><figcaption><b>04 / A light in deep space</b><span>The ship approaches along the open lane toward the camera.</span></figcaption></figure>
+<figure><a href="renders/arrival-05-swoop.png"><img src="renders/arrival-05-swoop.png" alt="The large arriving hull banks past, partially hidden by the console and dock edge"></a><figcaption><b>05 / Swoop past the console</b><span>The hull grows into the foreground and banks. The edge briefly hides its lower section.</span></figcaption></figure>
+<figure><a href="renders/arrival-06-glitch.png"><img src="renders/arrival-06-glitch.png" alt="Blocky transition bands cut from the terminal to the canopy"></a><figcaption><b>06 / Glitch cut</b><span>A short break covers the jump into the existing canopy view.</span></figcaption></figure>
+<figure><a href="renders/arrival-07-canopy.png"><img src="renders/arrival-07-canopy.png" alt="The combat session's canopy HUD is visible over real space art"></a><figcaption><b>07 / Canopy powers on</b><span>The combat session's existing HUD is the destination. No console hardware remains.</span></figcaption></figure>
+</div>
+<nav><a href="renders/arrival-storyboard-strip.png">Whole horizontal strip</a><a href="renders/arrival-storyboard-overview.png">Storyboard overview</a></nav>
+<p class="note">Both the blockout and arrival are ready for your pick. The arrival is a storyboard using real captured hull art. The grey frames remain editable, and no paint-over has run.</p>
+<footer>Saved at frame 46. Timeline markers include all seven arrival panels. Keep the preview-flight folder beside the Blender file.</footer>
+</main><script>
+for(const name of ['valis','nightshade'])document.getElementById(name).addEventListener('click',()=>{document.getElementById('hero').src=`renders/blockout-${name}.png`;document.getElementById('full').href=`renders/blockout-${name}.png`;for(const id of ['valis','nightshade'])document.getElementById(id).setAttribute('aria-pressed',id===name?'true':'false');});
+</script></body></html>
