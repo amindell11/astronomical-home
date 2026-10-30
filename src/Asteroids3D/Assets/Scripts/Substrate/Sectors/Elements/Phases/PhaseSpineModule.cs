@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Objectives;
+using Objectives.Presentation;
 using Objectives.States;
 using Ships;
 using Substrate.Services.Objectives;
@@ -65,7 +66,7 @@ namespace Substrate.Sectors.Elements.Phases
                 [StepExtract] = () => extraction,
                 [StepCompleted] = () => new CompletedState()
             };
-            spine = ctx.Objectives.SetSpineObjective(mission, builders);
+            spine = ctx.Objectives.SetSpineObjective(mission, builders, phaseProgress: ReadPhaseProgress);
             yield break;
         }
 
@@ -86,6 +87,13 @@ namespace Substrate.Sectors.Elements.Phases
         }
 
         private void OnDestroy() => ReleaseExtraction();
+
+        private SectorPhaseProgress ReadPhaseProgress()
+        {
+            var mark = director.Phase;
+            return new SectorPhaseProgress(mark.InLull ? mark.Index - 1 : mark.Index,
+                director.PhaseCount, mark.CountdownSeconds, mark.Done);
+        }
 
         private void OpenExtraction()
         {

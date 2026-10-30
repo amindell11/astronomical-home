@@ -71,11 +71,15 @@ namespace Tests.EditMode
 
             Assert.AreEqual(PhaseSpineModule.StepSurvive, svc.SpineStep);
             Assert.AreEqual("PHASE 1/2    0:40", svc.SpineTracker.CurrentStatusLine);
+            Assert.AreEqual(45f, svc.SpineTracker.PhaseProgress.Value.SecondsLeft);
+            Assert.AreEqual(2, svc.SpineTracker.PhaseProgress.Value.Count);
             Assert.IsFalse(zone.gameObject.activeSelf, "The zone stays hidden until extraction opens.");
             Assert.IsNull(svc.SpineTarget);
 
             director.Advance(41.5f);
             Assert.AreEqual("PHASE 2/2 IN 0:04", svc.SpineTracker.CurrentStatusLine, "A lull counts down to the phase it leads into.");
+            Assert.AreEqual(0, svc.SpineTracker.PhaseProgress.Value.Index);
+            Assert.AreEqual(3.5f, svc.SpineTracker.PhaseProgress.Value.SecondsLeft);
         }
 
         [Test]
@@ -95,6 +99,7 @@ namespace Tests.EditMode
             Assert.IsTrue(zone.gameObject.activeSelf);
             Assert.AreEqual(zone.transform, svc.SpineTarget);
             Assert.AreEqual(string.Empty, svc.SpineTracker.CurrentStatusLine);
+            Assert.IsTrue(svc.SpineTracker.PhaseProgress.Value.ExtractionOpen);
         }
 
         [Test]

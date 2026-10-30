@@ -30,34 +30,36 @@ namespace Substrate.Sectors.Elements.Phases
                 if (i > 0)
                 {
                     var lullEnd = start + lullSeconds;
-                    if (elapsed < lullEnd) return new SectorPhaseMark(i, true, false, lullEnd - elapsed);
+                    if (elapsed < lullEnd) return new SectorPhaseMark(i, true, false, lullEnd - elapsed, lullEnd - elapsed);
                     start = lullEnd;
                 }
 
                 var end = start + phases[i].seconds;
-                if (elapsed < end) return new SectorPhaseMark(i, false, false, end - elapsed);
+                if (elapsed < end) return new SectorPhaseMark(i, false, false, end - elapsed,
+                    end - elapsed + (i < phases.Length - 1 ? lullSeconds : 0f));
                 start = end;
             }
 
-            return new SectorPhaseMark(phases.Length - 1, false, true, 0f);
+            return new SectorPhaseMark(phases.Length - 1, false, true, 0f, 0f);
         }
     }
 
     public readonly struct SectorPhaseMark
     {
-        /// <summary>The running phase; during a lull, the phase it leads into; once done, the last phase.</summary>
+        // During a lull, Index names the upcoming sector phase.
         public int Index { get; }
         public bool InLull { get; }
         public bool Done { get; }
-        /// <summary>Left in the running phase or lull; zero once done.</summary>
         public float SecondsLeft { get; }
+        public float CountdownSeconds { get; }
 
-        public SectorPhaseMark(int index, bool inLull, bool done, float secondsLeft)
+        public SectorPhaseMark(int index, bool inLull, bool done, float secondsLeft, float countdownSeconds)
         {
             Index = index;
             InLull = inLull;
             Done = done;
             SecondsLeft = secondsLeft;
+            CountdownSeconds = countdownSeconds;
         }
     }
 }
