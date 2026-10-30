@@ -23,7 +23,7 @@ namespace Tests.PlayMode
 {
     /// <summary>
     /// Weapons own their trigger semantics: full-auto fires on held, semi-auto on pressed,
-    /// charge weapons accumulate while held and fire on release or at full charge, and a charging
+    /// charge weapons accumulate while held and auto-fire at full charge, and a charging
     /// railgun cuts its ship's engines. A reload command reloads only its own slot. The AI gunner
     /// aims each slot with that slot's ballistics — hitscan slots get no intercept lead.
     /// </summary>
