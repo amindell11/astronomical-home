@@ -13,15 +13,15 @@ MonoBehaviour:
   m_Name: CanopyProjection
   m_EditorClassIdentifier: 
   baseSettings:
-    glow: 1.1
-    aberration: 4.5
-    curvature: 0.4
-    beamJitter: 0.85
-    afterglow: 0.24
-    scanlines: 0.5
-    flicker: 0.3
-    warmth: 0.5
-    wear: 0.32
-    glassDistortion: 0.35
-    damageShudder: 3
-    transitionGlitch: 0.2
+    glow: 0.55
+    aberration: 7
+    curvature: 0.65
+    beamJitter: 0.7
+    afterglow: 0.5
+    scanlines: 0.92
+    flicker: 0.8
+    warmth: 0.6
+    wear: 0.73
+    glassDistortion: 0.96
+    damageShudder: 12.6
+    transitionGlitch: 0.75
