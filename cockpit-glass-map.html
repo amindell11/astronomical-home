@@ -1,0 +1,155 @@
+<div id="cockpit-glass-map">
+  <style>
+    #cockpit-glass-map .glass-panels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+    #cockpit-glass-map canvas { display: block; width: 100%; aspect-ratio: 16 / 9; }
+    #cockpit-glass-map .glass-caption { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+    #cockpit-glass-map .glass-legend { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 14px 0; }
+    #cockpit-glass-map .glass-ramp { width: 110px; height: 10px; background: linear-gradient(to right, transparent, var(--viz-series-1)); }
+    #cockpit-glass-map .glass-key { width: 24px; height: 0; border-top: 1px solid var(--foreground); }
+    #cockpit-glass-map .glass-rim-key { width: 24px; height: 0; border-top: 1px dashed var(--foreground); }
+    #cockpit-glass-map .glass-detail { min-height: 2em; margin-top: 8px; }
+    @media (max-width: 650px) { #cockpit-glass-map .glass-panels { grid-template-columns: 1fr; } }
+  </style>
+  <h3>Glass distortion across the canopy</h3>
+  <div class="viz-row">
+    <span>Glass strength <span class="tabular-nums">0.96</span></span>
+    <span class="text-muted">Offsets at 1600 × 900</span>
+    <button type="button" class="btn" id="glass-magnify" aria-pressed="true">Grid bend ×4</button>
+  </div>
+  <div class="glass-legend text-small">
+    <span>0 px</span><span class="glass-ramp" aria-hidden="true"></span><span id="glass-ceiling"></span>
+    <span class="glass-key" aria-hidden="true"></span><span>Warped HUD grid</span>
+    <span class="glass-rim-key" aria-hidden="true"></span><span>Proposed canopy contour</span>
+  </div>
+  <div class="glass-panels">
+    <section>
+      <div class="glass-caption"><span>Current · CRT + wavy glass</span><span class="text-small" id="glass-current-max"></span></div>
+      <canvas id="glass-current" role="img" aria-label="Current combined distortion. Circular CRT curvature plus asymmetric sinusoidal glass offsets. The center has little distortion; the corners bend the most."></canvas>
+    </section>
+    <section>
+      <div class="glass-caption"><span>Proposed · one canopy warp</span><span class="text-small" id="glass-canopy-max"></span></div>
+      <canvas id="glass-canopy" role="img" aria-label="Proposed single cockpit canopy field. A broad quiet center, an arched upper rim and a flatter lower lip, with stronger distortion toward the perimeter. No separate CRT curvature is added."></canvas>
+    </section>
+  </div>
+  <div class="glass-detail text-small" id="glass-detail" aria-live="polite">Current field measured from shader equations. Canopy field is a proposal.</div>
+  <script>
+  (() => {
+    const root = document.getElementById('cockpit-glass-map');
+    const currentCanvas = root.querySelector('#glass-current');
+    const canopyCanvas = root.querySelector('#glass-canopy');
+    const button = root.querySelector('#glass-magnify');
+    const detail = root.querySelector('#glass-detail');
+    const colorProbe = document.createElement('span');
+    colorProbe.hidden = true;
+    root.appendChild(colorProbe);
+    const strength = 0.96, curvature = 0.65, width = 1600, height = 900;
+    let magnification = 4;
+    const saved = window.openai?.widgetState?.privateContent;
+    if (saved?.magnification === 1) magnification = 1;
+    const clamp = x => Math.max(0, Math.min(1, x));
+    const smooth = (a,b,x) => { const t=clamp((x-a)/(b-a)); return t*t*(3-2*t); };
+    function current(u,v) {
+      const x=u-.5,y=v-.5,r=x*x+y*y,edge=smooth(.025,.45,r);
+      let px=.5+x*(1+curvature*.16*r),py=.5+y*(1+curvature*.16*r);
+      px+=strength*.006*Math.sin(py*13+px*4)*edge;
+      py+=strength*.003*Math.sin(px*10)*edge;
+      return [px-u,py-v];
+    }
+    function canopyRadius(u,v) {
+      const x=(u-.5)/.49,y=(v-.46)/.49;
+      const n=4-2*smooth(-.25,.35,y);
+      return Math.pow(Math.pow(Math.abs(x),n)+Math.pow(Math.abs(y),n),1/n);
+    }
+    function canopy(u,v) {
+      const r=canopyRadius(u,v),e=.0001;
+      if(r<.26)return [0,0];
+      const gx=(canopyRadius(u+e,v)-canopyRadius(u-e,v))/(2*e*width);
+      const gy=(canopyRadius(u,v+e)-canopyRadius(u,v-e))/(2*e*height);
+      const norm=Math.hypot(gx,gy);
+      const amount=strength*30*Math.pow(smooth(.26,1.12,r),2);
+      return norm ? [gx/norm*amount/width,gy/norm*amount/height] : [0,0];
+    }
+    const fields=[{canvas:currentCanvas,fn:current,name:'Current',id:'glass-current-max'}, {canvas:canopyCanvas,fn:canopy,name:'Canopy proposal',id:'glass-canopy-max'}];
+    let ceiling=0;
+    for(const f of fields){
+      f.max=0;
+      for(let j=0;j<=90;j++)for(let i=0;i<=160;i++){const d=f.fn(i/160,j/90);f.max=Math.max(f.max,Math.hypot(d[0]*width,d[1]*height));}
+      ceiling=Math.max(ceiling,f.max);
+      root.querySelector('#'+f.id).textContent='Max '+f.max.toFixed(1)+' px';
+    }
+    ceiling=Math.ceil(ceiling/5)*5;
+    root.querySelector('#glass-ceiling').textContent=ceiling+' px';
+    function colors(){
+      const color=name=>{colorProbe.style.color='var('+name+')';return getComputedStyle(colorProbe).color;};
+      return {ink:color('--foreground'),faint:color('--muted-foreground'),line:color('--border'),series:color('--viz-series-1')};
+    }
+    function inverse(fn,u,v){
+      let px=u,py=v;
+      for(let k=0;k<30;k++){const d=fn(px,py);px=u-d[0];py=v-d[1];}
+      return [u+magnification*(px-u),v+magnification*(py-v)];
+    }
+    function drawField(f){
+      const canvas=f.canvas,w=canvas.clientWidth,h=w*9/16,dpr=window.devicePixelRatio||1;
+      if(!w)return;
+      canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);
+      const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+      const c=colors();
+      ctx.clearRect(0,0,w,h);
+      const cols=160,rows=90;
+      const heat=document.createElement('canvas');heat.width=cols;heat.height=rows;
+      const heatCtx=heat.getContext('2d');heatCtx.fillStyle=c.series;
+      for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
+        const d=f.fn((x+.5)/cols,1-(y+.5)/rows);
+        heatCtx.globalAlpha=.62*Math.hypot(d[0]*width,d[1]*height)/ceiling;
+        heatCtx.fillRect(x,y,1,1);
+      }
+      ctx.drawImage(heat,0,0,w,h);
+      ctx.globalAlpha=.22;ctx.strokeStyle=c.faint;ctx.lineWidth=1;
+      ctx.beginPath();
+      for(let i=1;i<16;i++){ctx.moveTo(w*i/16,0);ctx.lineTo(w*i/16,h);}
+      for(let j=1;j<9;j++){ctx.moveTo(0,h*j/9);ctx.lineTo(w,h*j/9);}
+      ctx.stroke();
+      ctx.globalAlpha=.8;ctx.strokeStyle=c.ink;ctx.lineWidth=1;
+      ctx.beginPath();
+      for(let i=1;i<16;i++)for(let k=0;k<=120;k++){
+        const p=inverse(f.fn,i/16,k/120);const x=p[0]*w,y=(1-p[1])*h;
+        if(k===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+      }
+      for(let j=1;j<9;j++)for(let k=0;k<=160;k++){
+        const p=inverse(f.fn,k/160,j/9);const x=p[0]*w,y=(1-p[1])*h;
+        if(k===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+      if(f.fn===canopy){
+        ctx.globalAlpha=.7;ctx.setLineDash([4,5]);ctx.beginPath();
+        for(let i=0;i<=360;i++){
+          const a=i*Math.PI/180;let lo=0,hi=1;
+          for(let k=0;k<24;k++){const t=(lo+hi)/2;if(canopyRadius(.5+Math.cos(a)*t,.46+Math.sin(a)*t)>1)hi=t;else lo=t;}
+          const t=(lo+hi)/2,x=(.5+Math.cos(a)*t)*w,y=(1-.46-Math.sin(a)*t)*h;
+          if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+        }
+        ctx.stroke();ctx.setLineDash([]);
+      }
+      ctx.globalAlpha=.8;ctx.strokeStyle=c.ink;ctx.beginPath();
+      ctx.moveTo(w*.5-5,h*.5);ctx.lineTo(w*.5+5,h*.5);ctx.moveTo(w*.5,h*.5-5);ctx.lineTo(w*.5,h*.5+5);ctx.stroke();
+      ctx.globalAlpha=1;
+    }
+    function draw(){fields.forEach(drawField);button.textContent='Grid bend ×'+magnification;button.setAttribute('aria-pressed',String(magnification===4));}
+    button.addEventListener('click',()=>{
+      magnification=magnification===4?1:4;draw();
+      window.openai?.setWidgetState?.({modelContent:{glassDistortion:strength,proposal:'One canopy warp; no separate CRT curvature'},privateContent:{magnification}})?.catch(()=>{});
+    });
+    for(const f of fields){
+      const probe=event=>{
+        const b=f.canvas.getBoundingClientRect(),u=clamp((event.clientX-b.left)/b.width),v=1-clamp((event.clientY-b.top)/b.height),d=f.fn(u,v);
+        detail.textContent=f.name+' · screen '+Math.round(u*100)+'% across, '+Math.round((1-v)*100)+'% down · sample offset '+(d[0]*width).toFixed(1)+' px right, '+(-d[1]*height).toFixed(1)+' px down · '+Math.hypot(d[0]*width,d[1]*height).toFixed(1)+' px total';
+      };
+      f.canvas.addEventListener('pointermove',probe);f.canvas.addEventListener('click',probe);
+    }
+    window.addEventListener('openai:set_globals',event=>{const state=event.detail?.globals?.widgetState?.privateContent;if(state){magnification=state.magnification===1?1:4;draw();}});
+    new ResizeObserver(draw).observe(root);
+    new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:['class','style','data-theme']});
+    draw();
+  })();
+  </script>
+</div>

@@ -1,0 +1,6 @@
+{
+  "javascript_errors": [],
+  "magnification_changes_grid": true,
+  "mobile_no_horizontal_overflow": true,
+  "labels": "Glass distortion across the canopy\nGlass strength 0.96\nOffsets at 1600 \u00d7 900\nGrid bend \u00d74\n0 px\n55 px\nWarped HUD grid\nProposed canopy contour\nCurrent \u00b7 CRT + wavy glass\nMax 51.5 px\nProposed \u00b7 one canopy warp\nMax 28.8 px\nCurrent field measured from shader equations. Canopy field is a proposal."
+}
