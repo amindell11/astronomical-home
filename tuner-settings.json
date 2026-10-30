@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "status": "review-draft",
+  "context": "combat",
+  "preset": "combat",
+  "personalityEnabled": true,
+  "personality": {
+    "glow": 0.45,
+    "aberration": 1.3,
+    "curvature": 0.15,
+    "beamJitter": 0.35,
+    "afterglow": 0.12,
+    "scanlines": 0.22,
+    "flicker": 0.3,
+    "warmth": 0.3,
+    "wear": 0.18,
+    "glassDistortion": 0.15,
+    "damageShudder": 3,
+    "transitionGlitch": 0.2
+  },
+  "colors": {
+    "ink": "#f4ebd9",
+    "shield": "#70dff5",
+    "hull": "#96e59b",
+    "threat": "#ff7b72",
+    "friendly": "#43d7c4",
+    "objective": "#dba6ff",
+    "neutral": "#a9aeb4",
+    "backing": "#171b22",
+    "dimOpacity": 0.55
+  },
+  "typography": {
+    "functional": "plex",
+    "heading": "wide",
+    "segmented": true
+  },
+  "capture": "bright"
+}
