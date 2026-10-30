@@ -20,6 +20,7 @@ using Object = UnityEngine.Object;
 namespace Tests.PlayMode.Rendering.Projection
 {
     [Category("UI")]
+    [Category("RequiresGraphics")]
     public sealed class CanopyEventsPlayModeTests
     {
         private sealed class DamageSource : IDamageEvents
