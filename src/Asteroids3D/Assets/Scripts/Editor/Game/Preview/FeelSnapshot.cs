@@ -77,7 +77,7 @@ namespace Game.Preview
             entries.Clear();
         }
 
-        public static bool AskToSave(IReadOnlyList<string> names) => EditorUtility.DisplayDialog("Unsaved feel edits",
+        private static bool AskToSave(IReadOnlyList<string> names) => EditorUtility.DisplayDialog("Unsaved feel edits",
             $"{string.Join(", ", names)} {(names.Count == 1 ? "has" : "have")} unsaved edits. " +
             "Save writes them to the asset; Discard restores the last saved values.", "Save", "Discard");
 
