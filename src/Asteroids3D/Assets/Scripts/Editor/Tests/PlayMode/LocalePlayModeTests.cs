@@ -1,132 +1,149 @@
 #if UNITY_EDITOR
 using System.Collections;
-using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
+using Substrate.Services.Locales;
+using Tests.PlayMode.Common.Locales;
+using UnityEditor;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
-using Substrate.Services.Locales;
 
 namespace Tests.PlayMode
 {
     /// <summary>
-    /// PlayMode coverage for the locale scene seam on <see cref="LocaleService"/>:
-    /// apply makes the locale the active scene, a repeat apply is a no-op, a different locale swaps the
-    /// active scene (unloading the previous), a shared idle locale survives the hand-off, and unload
-    /// returns the boot scene to active. Locale scenes are created empty at runtime so the tests
-    /// exercise the SetActive/diff/restore paths without depending on Build Settings.
+    /// PlayMode coverage for <see cref="LocaleService"/>: showing a locale instantiates it under the root and applies
+    /// its lighting, a repeat show keeps the instance, a different locale replaces it, a shared idle locale keeps its
+    /// instance across the hand-off, and showing none restores the boot lighting. The active scene never changes.
+    /// Locales are runtime-built templates, so the tests depend on no locale asset.
     /// </summary>
     [TestFixture]
     [Category("Sectors")]
     public class LocalePlayModeTests
     {
-        private const string LocaleA = "LocaleTestA";
-        private const string LocaleB = "LocaleTestB";
+        private static readonly Color AmbientA = new(0.3f, 0.1f, 0.1f);
+        private static readonly Color AmbientB = new(0.1f, 0.3f, 0.1f);
 
-        private Scene _boot;
-        private readonly List<string> _created = new();
+        private Scene boot;
+        private GameObject templates;
+        private GameObject root;
+        private LocaleSky localeA;
+        private LocaleSky localeB;
+        private LightingSnapshot bootLighting;
 
         [SetUp]
         public void SetUp()
         {
-            _boot = SceneManager.GetActiveScene();
-            CreateEmpty(LocaleA);
-            CreateEmpty(LocaleB);
+            boot = SceneManager.GetActiveScene();
+            bootLighting = LightingSnapshot.Capture();
+            templates = new GameObject("Locale templates");
+            templates.SetActive(false);
+            localeA = Template("LocaleTestA", AmbientA);
+            localeB = Template("LocaleTestB", AmbientB);
+            root = new GameObject("Locale root");
         }
 
-        [UnityTearDown]
-        public IEnumerator TearDown()
+        [TearDown]
+        public void TearDown()
         {
-            if (_boot.IsValid() && _boot.isLoaded)
-                SceneManager.SetActiveScene(_boot);
-
-            foreach (var name in _created)
-            {
-                var scene = SceneManager.GetSceneByName(name);
-                if (scene.isLoaded)
-                {
-                    var op = SceneManager.UnloadSceneAsync(scene);
-                    while (op != null && !op.isDone) yield return null;
-                }
-            }
-            _created.Clear();
+            Object.Destroy(root);
+            Object.Destroy(templates);
+            bootLighting.Restore();
         }
 
         [UnityTest]
-        public IEnumerator ApplyLocale_MakesLocaleTheActiveScene()
+        public IEnumerator Show_InstantiatesTheLocaleUnderTheRoot_AndAppliesItsLighting()
         {
-            var locale = new LocaleService();
-            yield return locale.ApplyLocaleAsync(LocaleA);
-            Assert.AreEqual(LocaleA, SceneManager.GetActiveScene().name);
+            var locales = new LocaleService(root.transform);
+            locales.Show(localeA);
+            yield return null;
+            Assert.That(Instances().Select(i => i.name), Is.EqualTo(new[] { localeA.name }));
+            Assert.IsTrue(Instances()[0].Shown);
+            Assert.AreEqual(AmbientA, RenderSettings.ambientLight);
+            Assert.AreEqual(boot, SceneManager.GetActiveScene(), "showing a locale never changes the active scene");
         }
 
         [UnityTest]
-        public IEnumerator ApplySameLocaleTwice_StaysActiveAndLoaded()
+        public IEnumerator ShowSameLocaleTwice_KeepsTheInstance()
         {
-            var locale = new LocaleService();
-            yield return locale.ApplyLocaleAsync(LocaleA);
-            yield return locale.ApplyLocaleAsync(LocaleA);
-            Assert.AreEqual(LocaleA, SceneManager.GetActiveScene().name);
-            Assert.IsTrue(SceneManager.GetSceneByName(LocaleA).isLoaded);
+            var locales = new LocaleService(root.transform);
+            locales.Show(localeA);
+            var shown = Instances().Single();
+            locales.Show(localeA);
+            yield return null;
+            Assert.That(Instances(), Is.EqualTo(new[] { shown }));
         }
 
         [UnityTest]
-        public IEnumerator ApplyDifferentLocale_SwapsActiveAndUnloadsPrevious()
+        public IEnumerator ShowDifferentLocale_ReplacesTheInstance()
         {
-            var locale = new LocaleService();
-            yield return locale.ApplyLocaleAsync(LocaleA);
-            yield return locale.ApplyLocaleAsync(LocaleB);
-            Assert.AreEqual(LocaleB, SceneManager.GetActiveScene().name);
-            Assert.IsFalse(SceneManager.GetSceneByName(LocaleA).isLoaded,
-                "The previous locale must unload when a different one is applied.");
+            var locales = new LocaleService(root.transform);
+            locales.Show(localeA);
+            locales.Show(localeB);
+            yield return null;
+            Assert.That(Instances().Select(i => i.name), Is.EqualTo(new[] { localeB.name }),
+                "The previous locale must be destroyed when a different one is shown.");
+            Assert.AreEqual(AmbientB, RenderSettings.ambientLight);
         }
 
         [UnityTest]
-        public IEnumerator SectorNamingTheIdleLocale_KeepsTheSameSceneLoaded()
+        public IEnumerator SectorNamingTheIdleLocale_KeepsTheSameInstance()
         {
-            var locale = new LocaleService(LocaleA);
-            yield return locale.ApplyIdleLocaleAsync();
-            var idle = SceneManager.GetActiveScene().handle;
-            yield return locale.ApplyLocaleAsync(LocaleA);
-            yield return locale.ApplyIdleLocaleAsync();
-            Assert.AreEqual(idle, SceneManager.GetActiveScene().handle,
-                "A shared locale must survive the hand-off both ways without a reload.");
+            var locales = new LocaleService(root.transform, localeA);
+            locales.ShowIdle();
+            var idle = Instances().Single();
+            locales.Show(localeA);
+            locales.ShowIdle();
+            yield return null;
+            Assert.That(Instances(), Is.EqualTo(new[] { idle }),
+                "A shared locale must survive the hand-off both ways without a new instance.");
         }
 
         [UnityTest]
-        public IEnumerator ApplyIdle_WithNoIdleLocale_UnloadsToTheBootScene()
+        public IEnumerator ShowIdle_WithNoIdleLocale_RestoresTheBootLighting()
         {
-            var locale = new LocaleService();
-            yield return locale.ApplyLocaleAsync(LocaleA);
-            yield return locale.ApplyIdleLocaleAsync();
-            Assert.AreEqual(_boot.handle, SceneManager.GetActiveScene().handle);
-            Assert.IsFalse(SceneManager.GetSceneByName(LocaleA).isLoaded);
+            var locales = new LocaleService(root.transform);
+            locales.Show(localeA);
+            locales.ShowIdle();
+            yield return null;
+            Assert.That(Instances(), Is.Empty);
+            Assert.AreEqual(bootLighting.Ambient, RenderSettings.ambientLight);
         }
 
         [UnityTest]
-        public IEnumerator UnloadLocale_RestoresBootAndUnloadsLocale()
+        public IEnumerator Clear_RestoresTheBootLightingAndDestroysTheLocale()
         {
-            var locale = new LocaleService(LocaleA);
-            yield return locale.ApplyIdleLocaleAsync();
-            yield return locale.UnloadLocaleAsync();
-            Assert.AreEqual(_boot.handle, SceneManager.GetActiveScene().handle);
-            Assert.IsFalse(SceneManager.GetSceneByName(LocaleA).isLoaded,
-                "The locale must unload on restore.");
+            var locales = new LocaleService(root.transform, localeA);
+            locales.ShowIdle();
+            locales.Clear();
+            yield return null;
+            Assert.That(Instances(), Is.Empty, "The locale must be destroyed on restore.");
+            Assert.AreEqual(bootLighting.Ambient, RenderSettings.ambientLight);
         }
 
         [UnityTest]
-        public IEnumerator ApplyUnassignedLocale_IsNoOp()
+        public IEnumerator ShowUnassignedLocale_KeepsTheShownOne()
         {
-            var locale = new LocaleService();
-            var before = SceneManager.GetActiveScene().handle;
-            yield return locale.ApplyLocaleAsync(null);
-            yield return locale.ApplyLocaleAsync(string.Empty);
-            Assert.AreEqual(before, SceneManager.GetActiveScene().handle);
+            var locales = new LocaleService(root.transform);
+            locales.Show(localeA);
+            var shown = Instances().Single();
+            locales.Show(null);
+            yield return null;
+            Assert.That(Instances(), Is.EqualTo(new[] { shown }));
         }
 
-        private void CreateEmpty(string name)
+        private LocaleSky[] Instances() => root.GetComponentsInChildren<LocaleSky>(true);
+
+        private LocaleSky Template(string name, Color ambient)
         {
-            SceneManager.CreateScene(name);
-            _created.Add(name);
+            var go = new GameObject(name);
+            go.transform.SetParent(templates.transform, false);
+            var sky = go.AddComponent<LocaleSky>();
+            var lighting = new SerializedObject(sky);
+            lighting.FindProperty("lighting.ambientMode").intValue = (int)UnityEngine.Rendering.AmbientMode.Flat;
+            lighting.FindProperty("lighting.ambientSkyColor").colorValue = ambient;
+            lighting.ApplyModifiedPropertiesWithoutUndo();
+            return sky;
         }
     }
 }
