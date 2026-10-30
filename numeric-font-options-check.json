@@ -1,0 +1,117 @@
+{
+  "fonts": [
+    {
+      "family": "Oxanium",
+      "weight": "500",
+      "loaded": "true",
+      "computed": "Oxanium, sans-serif"
+    },
+    {
+      "family": "Chakra Petch",
+      "weight": "500",
+      "loaded": "true",
+      "computed": "\"Chakra Petch\", sans-serif"
+    },
+    {
+      "family": "Rajdhani",
+      "weight": "500",
+      "loaded": "true",
+      "computed": "Rajdhani, sans-serif"
+    },
+    {
+      "family": "Orbitron",
+      "weight": "500",
+      "loaded": "true",
+      "computed": "Orbitron, sans-serif"
+    },
+    {
+      "family": "IBM Plex Mono",
+      "weight": "400",
+      "loaded": "true",
+      "computed": "\"IBM Plex Mono\", sans-serif"
+    }
+  ],
+  "platform": [],
+  "layouts": [
+    {
+      "width": 704,
+      "scrollWidth": 704,
+      "root": {
+        "x": 0,
+        "y": 0,
+        "width": 704,
+        "height": 514,
+        "top": 0,
+        "right": 704,
+        "bottom": 514,
+        "left": 0
+      },
+      "overflow": [
+        {
+          "width": 562,
+          "scroll": 562
+        },
+        {
+          "width": 562,
+          "scroll": 562
+        },
+        {
+          "width": 562,
+          "scroll": 562
+        },
+        {
+          "width": 562,
+          "scroll": 562
+        },
+        {
+          "width": 562,
+          "scroll": 562
+        }
+      ]
+    },
+    {
+      "width": 288,
+      "scrollWidth": 288,
+      "root": {
+        "x": 0,
+        "y": 0,
+        "width": 288,
+        "height": 694,
+        "top": 0,
+        "right": 288,
+        "bottom": 694,
+        "left": 0
+      },
+      "overflow": [
+        {
+          "width": 288,
+          "scroll": 288
+        },
+        {
+          "width": 288,
+          "scroll": 288
+        },
+        {
+          "width": 288,
+          "scroll": 288
+        },
+        {
+          "width": 288,
+          "scroll": 288
+        },
+        {
+          "width": 288,
+          "scroll": 288
+        }
+      ]
+    }
+  ],
+  "toggled": [
+    "1:11",
+    "1:11",
+    "1:11",
+    "1:11",
+    "1:11"
+  ],
+  "errors": []
+}
