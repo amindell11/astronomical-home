@@ -276,6 +276,7 @@ namespace Game
                         rigInstance.Player.Damage.Health.SetFraction(hull);
                     SetSplashVisible(false);
                     if (music) music.EnterSector(session.ActiveSector);
+                    if (rigInstance) rigInstance.EnterSector(session.ActiveSector.Module<PhaseSpineModule>());
                     var sectorStartTime = Time.time;
                     var lulls = presentation && lullMods && rigInstance
                         ? session.ActiveSector.Module<PhaseSpineModule>() : null;
@@ -313,6 +314,7 @@ namespace Game
                             yield return RunRecap(ExtractionContext(index, sectorStartTime));
                         if (shutdownRequested) yield break;
                         SetSplashVisible(true);
+                        if (rigInstance) rigInstance.EnterSector(null);
                         yield return session.UnloadSector();
                     }
                     if (shutdownRequested) yield break;
@@ -330,6 +332,7 @@ namespace Game
                 if (shutdownRequested) yield break;
 
                 SetSplashVisible(true);
+                if (rigInstance) rigInstance.EnterSector(null);
                 yield return session.UnloadSector();
                 if (rigInstance) rigInstance.Park();
             }
@@ -375,7 +378,9 @@ namespace Game
                     sectorEnded = false;
                     activeSectorIndex = destination;
                     rigInstance.Spawns.BeginSector();
+                    rigInstance.EnterSector(null);
                     yield return session.TransferSector(destination, rigInstance.Player, OnSectorComplete);
+                    rigInstance.EnterSector(session.ActiveSector.Module<PhaseSpineModule>());
                     rigInstance.Player.Damage.Health.SetFraction(hull);
                     destinationReady = true;
                 }

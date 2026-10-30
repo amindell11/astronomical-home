@@ -7,7 +7,7 @@ namespace UI.PlayerState
     [RequireComponent(typeof(CanvasRenderer))]
     public sealed class StatusBarUI : MaskableGraphic
     {
-        private const float LowThreshold = .25f;
+        public const float LowThreshold = .25f;
         private const float LowPulsePeriod = 1.4f;
 
         private Resource source;

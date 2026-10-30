@@ -4,7 +4,7 @@ using Movement;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;
-using Ships.Presentation;
+using UI.Weapons;
 using Tests.PlayMode.Common;
 using UI;
 using UnityEngine;
@@ -14,7 +14,7 @@ using UI.PlayerState;
 using Ships.Registry;
 using System.Collections.Generic;
 
-namespace Tests.PlayMode
+namespace Tests.PlayMode.PlayerState
 {
     [Category("UI")]
     public class UILifecyclePlayModeTests : PlayModeWorldFixture
@@ -45,17 +45,11 @@ namespace Tests.PlayMode
 
         private GameObject CreateRoot(string name) => ownedRoot = new GameObject(name);
 
-        /// <summary>
-        /// Rig visuals are wired by injection (<see cref="IShipVisual.Bind"/>), not parent discovery:
-        /// once a LockChannel is injected, the indicator responds to lock progress, and it re-subscribes
-        /// across a disable/enable cycle (death/respawn).
-        /// </summary>
         [UnityTest]
         public IEnumerator LockOnIndicator_Injected_RespondsToProgress_AndResubscribesOnReenable()
         {
             var channel = new LockChannel();
 
-            // The indicator lives under a parent in the rig; LateUpdate reads transform.parent.
             var parent = CreateRoot("RigRoot");
             var indicatorGo = new GameObject("LockOnIndicator");
             indicatorGo.transform.SetParent(parent.transform, false);
@@ -66,8 +60,7 @@ namespace Tests.PlayMode
 
             yield return null; // Awake/Start (Hide)
 
-            // Inject the lock channel exactly as the presentation installer does.
-            indicator.Bind(new ShipView(indicatorGo.transform, null, null, channel, isPlayer: false));
+            indicator.Initialize(channel, parent.transform);
             yield return null;
 
             channel.RaiseProgress(0.4f);

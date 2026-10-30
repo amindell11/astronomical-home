@@ -17,7 +17,7 @@ namespace UI.Projection
         private RTHandle ink;
         private RTHandle inkColor;
         private bool bound;
-        private Func<CanopyState> observeState;
+        private Func<CanopyFrame> observe;
         private CanopyStateBlend blend;
 
         public Camera Camera => inkCamera;
@@ -27,9 +27,8 @@ namespace UI.Projection
         public CanopyForceMode ForceMode { get; set; }
         public CanopyState ActiveState => blend.State;
         public CanopySettings Settings => blend.Settings;
-        public float AppearanceAge { get; set; } = -1f;
-        public float TransitionAge { get; set; } = -1f;
-        public float HitAge { get; set; } = -1f;
+        public float TransitionAge { get; private set; } = -1f;
+        public float HitAge { get; private set; } = -1f;
         internal CanopyProjectionPass Pass { get; private set; }
         internal RTHandle Ink => ink;
         internal RTHandle InkColor => inkColor;
@@ -49,13 +48,13 @@ namespace UI.Projection
         }
 
         public void Initialize(Camera camera, CanopyProjectionProfile profileOverride = null,
-            Func<CanopyState> observeState = null)
+            Func<CanopyFrame> observe = null)
         {
             if (!camera) throw new ArgumentNullException(nameof(camera));
             if (sceneCamera) throw new InvalidOperationException("CanopyProjection is already initialized.");
             sceneCamera = camera;
             if (profileOverride) profile = profileOverride;
-            this.observeState = observeState;
+            this.observe = observe;
             blend = new CanopyStateBlend(profile);
             Bind();
             SynchronizeCamera();
@@ -77,8 +76,11 @@ namespace UI.Projection
         private void LateUpdate()
         {
             if (!sceneCamera) return;
+            var frame = observe?.Invoke() ?? CanopyFrame.Idle;
+            HitAge = frame.HitAge;
+            TransitionAge = frame.TransitionAge;
             var state = ForceMode == CanopyForceMode.Automatic
-                ? observeState?.Invoke() ?? CanopyState.Base : (CanopyState)((int)ForceMode - 1);
+                ? frame.State : (CanopyState)((int)ForceMode - 1);
             blend.Tick(state, Time.unscaledDeltaTime);
             SynchronizeCamera();
         }

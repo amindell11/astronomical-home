@@ -10,6 +10,7 @@ using Ships;
 using Utils;
 using System;
 using UI.Objectives;
+using UI.Projection;
 
 namespace UI
 {
@@ -21,6 +22,7 @@ namespace UI
         [SerializeField] private Material textMaterial;
         [SerializeField] private AimCrosshair crosshair;
         [SerializeField] private WeaponResourceHud weaponResources;
+        [SerializeField] private LockOnIndicator lockReticle;
 
         [Header("Typography")]
         [SerializeField] private Font labelFont;
@@ -42,8 +44,10 @@ namespace UI
         private bool visible = true;
         private ShipStatusOverlay shipStatus;
         private ObjectiveMarkers objectiveMarkers;
+        private CanopyProjection projection;
 
         public Camera WorldCamera => canvases[0].worldCamera;
+        public bool IsVisible => visible && visibility.alpha > 0f;
 
         private void Awake()
         {
@@ -60,11 +64,12 @@ namespace UI
             chargeMarkers = GetComponentInChildren<ChargeTargetMarkers>(true);
         }
 
-        public void ConfigureCameras(Camera uiCamera, Camera gameplayCamera)
+        public void ConfigureCameras(Camera uiCamera, Camera gameplayCamera, CanopyProjection projection = null)
         {
             // GetComponentsInChildren returns self first; RequireComponent guarantees a root canvas.
             canvases[0].worldCamera = uiCamera;
             this.gameplayCamera = gameplayCamera;
+            this.projection = projection;
         }
 
         /// <summary>
@@ -77,6 +82,7 @@ namespace UI
         {
             this.visible = visible;
             if (visible) SetOpacity(1f);
+            else if (shipStatus) shipStatus.SetOpacity(0f);
             foreach (var c in canvases)
                 c.enabled = visible;
             if (chargeMarkers)
@@ -95,7 +101,8 @@ namespace UI
         }
 
         public void BindShips(SubscribedSet<Ship> ships, Camera worldCamera) =>
-            shipStatus = ShipStatusOverlay.Create(canvases[0], ships, worldCamera, readoutFont, textMaterial);
+            shipStatus = ShipStatusOverlay.Create(canvases[0], ships, worldCamera, readoutFont, textMaterial,
+                lockReticle, projection);
 
         private void OnDestroy()
         {
@@ -137,8 +144,9 @@ namespace UI
         {
             if (!objectiveMarkers || !minimapRect)
                 throw new InvalidOperationException($"Overlay on '{name}' needs its objective markers and minimap wired.");
-            objectiveMarkers.Initialize(objectives, worldCamera, minimapCamera, minimapRect, canvases[0]);
-            ObjectiveStatusReadout.Create(transform, labelFont, headingFont, timerFont, textMaterial).Initialize(objectives);
+            objectiveMarkers.Initialize(objectives, worldCamera, minimapCamera, minimapRect, canvases[0], projection, () => IsVisible);
+            ObjectiveStatusReadout.Create(transform, labelFont, headingFont, timerFont, textMaterial,
+                projection, () => IsVisible).Initialize(objectives);
         }
     }
 }
