@@ -228,17 +228,19 @@ implementation from the session's build brief: owner rulings, design path,
 files, tests, the verify command, and the closing `STATUS: DONE | BLOCKED` /
 `CHANGED:` / `VERIFIED:` / `NOTICED:` block. Run Grok with
 `python scripts/grok_worker.py --slot <slot> --brief <file> --verify "<cmd>"`
-(exit codes and trailers in its header), where `<cmd>` exits 0 on pass, 1 when
-the change is wrong, and anything else when it cannot judge; use a scoped
-`./scripts/agent_worktree_pool.sh run-tests <slot> …` with `--fail-codes 1,2`,
-since its exit 2 covers compile failures. Hand the brief to an
-Opus subagent scoped to the slot (Agent tool, `model: "opus"`) when the slice
-needs judgment mid-build, or once Grok's `GROK_WORKER=` trailer is neither
-`done` nor `verify_error`. On `verify_error`, fix the check (a stale snapshot,
-say), then rerun the verify on the worker's tree before deciding anything.
-Review the worker's diff before testing. Small fixes stay inline;
-`scripts/build_delegation_guard.py` denies inline slot source edits past its
-context and line budgets.
+with `run_in_background: true` and wait for its notification; never poll its
+output. `<cmd>` exits 0 on pass, 1 when the change is wrong, and anything else
+when it cannot judge; use a scoped `./scripts/agent_worktree_pool.sh run-tests
+<slot> …` with `--fail-codes 1,2`, since its exit 2 covers compile failures.
+Act on its `FALLBACK=` trailer (exit codes and the rest in its header):
+`none`, review the worker's diff, then test; `fix-verify`, fix the check (a
+stale snapshot, say) and rerun it on the worker's tree before deciding
+anything; `opus`, hand the same brief file to an Opus subagent scoped to the
+slot (Agent tool, `model: "opus"`), naming the `DIRTY=` files that hold Grok's
+partial edits for it to keep or redo (exit 3 means the tree is untouched). Go
+straight to the Opus subagent when the slice needs judgment mid-build. Small
+fixes stay inline; `scripts/build_delegation_guard.py` denies inline slot source
+edits past its context and line budgets.
 
 Clear `src/Asteroids3D/Library/BurstCache/` before test runs. Iterate
 with scoped runs (`-ScopeType Auto`, or Feature/Module scopes).

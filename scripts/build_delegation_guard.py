@@ -120,7 +120,8 @@ def main():
               f"call (budget {INLINE_LINE_BUDGET}). Hand the build to a build worker "
               "(agent-worktree-pr-loop, Step 2): `python scripts/grok_worker.py --slot <slot> --brief "
               "<file> --verify \"<cmd>\"` by default, or an Opus subagent (Agent tool, model: \"opus\") "
-              "scoped to the slot. Small fixes under the budget stay inline.")
+              "scoped to the slot. Small fixes under the budget stay inline. When no build worker can "
+              "run, ask the user to `/compact`; inline edits pass once the context is under the budget.")
     print(json.dumps({"hookSpecificOutput": {"hookEventName": "PreToolUse",
                                              "permissionDecision": "deny",
                                              "permissionDecisionReason": reason}}))
