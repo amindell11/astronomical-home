@@ -96,7 +96,6 @@ namespace Substrate.Sectors.Elements.Phases
             if (extractionZone) extractionZone.Disarm();
             beaconsEnabled = false;
             if (beaconOpen) CloseBeacon();
-            if (beaconZone) beaconZone.Disarm();
             spine?.Close();
             spine = null;
             hero = null;

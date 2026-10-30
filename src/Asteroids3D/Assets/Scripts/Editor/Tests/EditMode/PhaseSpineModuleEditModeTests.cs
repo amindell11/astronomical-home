@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>PhaseSpineModule against the objective service: the survive step reads the director's phase into its status line, extraction opens only once the phases are done (zone shown, armed and targeted), and teardown closes the spine.</summary>
+    /// <summary>PhaseSpineModule against the objective service: the survive step reads the director's phase into its status line, extraction opens only once the phases are done (zone shown, armed and targeted), a lull with a hero opens a targeted beacon and the lull's end closes it unclaimed, and teardown closes the spine.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class PhaseSpineModuleEditModeTests

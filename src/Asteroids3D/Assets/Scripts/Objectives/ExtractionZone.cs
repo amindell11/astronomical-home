@@ -9,7 +9,7 @@ namespace Objectives
     }
 
     /// <summary>
-    /// A trigger zone the player claims by occupying it while armed; the extraction zone and the lull beacon
+    /// A trigger zone that reports the player inside only while armed; the extraction zone and the lull beacon
     /// both use it. Occupancy is a per-rigidbody level, so player identity and the blocker can arrive while
     /// the player is already parked inside.
     /// </summary>

@@ -19,12 +19,13 @@ using Object = UnityEngine.Object;
 
 namespace Tests.PlayMode
 {
-    /// <summary>A phased sector end to end: the director's phases run out, the extraction zone appears at its distance from the hero, and a non-player hero's jump request inside ends the sector extracted.</summary>
+    /// <summary>A phased sector end to end: the director's phases run out, the extraction zone appears at its distance from the hero, and a non-player hero's jump request inside ends the sector extracted; a lull's beacon appears at its distance and flying in claims it.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class PhaseSpinePlayModeTests : PlayModeWorldFixture
     {
         private const float ZoneDistance = 150f;
+        private const float BeaconDistance = 150f;
 
         private UnitService _unitService;
         private ObjectiveService _objectives;
@@ -96,12 +97,7 @@ namespace Tests.PlayMode
             director.Configure(new[] { new WaveDirector.RosterEntry { template = template } },
                 new[] { new SectorPhase { seconds = 1f, interval = 1f, cap = 0 } }, lullSeconds: 0f);
 
-            var zoneGO = new GameObject("Zone");
-            zoneGO.transform.SetParent(sectorGO.transform, false);
-            var zoneCol = zoneGO.AddComponent<SphereCollider>();
-            zoneCol.isTrigger = true;
-            zoneCol.radius = 4f;
-            var zone = zoneGO.AddComponent<ExtractionZone>();
+            var zone = NewZone(sectorGO.transform, "Zone");
 
             var spine = sectorGO.AddComponent<PhaseSpineModule>();
             spine.Bind(director, zone, NewZone(sectorGO.transform, "Beacon"));
@@ -113,12 +109,12 @@ namespace Tests.PlayMode
 
             yield return sector.Setup();
             Assert.AreEqual(PhaseSpineModule.StepSurvive, _objectives.SpineStep);
-            Assert.IsFalse(zoneGO.activeSelf, "The zone stays hidden while the phases run.");
+            Assert.IsFalse(zone.gameObject.activeSelf, "The zone stays hidden while the phases run.");
 
             yield return WaitSeconds(() => _objectives.SpineStep == PhaseSpineModule.StepExtract, 5f);
             Assert.AreEqual(PhaseSpineModule.StepExtract, _objectives.SpineStep,
                 "The spine opens extraction once the phases run out.");
-            Assert.IsTrue(zoneGO.activeSelf);
+            Assert.IsTrue(zone.gameObject.activeSelf);
             Assert.AreEqual(ZoneDistance,
                 Vector2.Distance(GamePlane.WorldPointToPlane(zone.transform.position), Vector2.zero), 0.01f,
                 "The zone appears its distance from the player.");
@@ -173,7 +169,7 @@ namespace Tests.PlayMode
             yield return WaitSeconds(() => _objectives.SpineTarget == beacon.transform, 5f);
             Assert.AreEqual(beacon.transform, _objectives.SpineTarget, "The lull opens a beacon the marker points at.");
             Assert.IsTrue(beacon.gameObject.activeSelf);
-            Assert.AreEqual(ZoneDistance,
+            Assert.AreEqual(BeaconDistance,
                 Vector2.Distance(GamePlane.WorldPointToPlane(beacon.transform.position), Vector2.zero), 0.01f,
                 "The beacon appears its distance from the player.");
             Assert.IsFalse(spine.BeaconClaimed);
