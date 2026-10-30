@@ -41,6 +41,14 @@ namespace Tests.PlayMode.Crosshairs
             public WeaponSources(IAmmoReadout value) => ammo = new IWeaponReadout[] { value };
             public IReadOnlyList<WeaponSlot> Slots { get; } = new[] { WeaponSlot.Primary, WeaponSlot.Secondary };
             public string DisplayName(WeaponSlot slot) => slot.ToString();
+            public Sprite Icon(WeaponSlot slot)
+            {
+#if UNITY_EDITOR
+                return AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Visuals/Ui/Crosshair/Generated/pointer.png");
+#else
+                return null;
+#endif
+            }
             public IReadOnlyList<IWeaponReadout> Readouts(WeaponSlot slot) => ammo;
         }
 

@@ -28,6 +28,7 @@ namespace UI.Weapons
         }
 
         private readonly List<Resource> resources = new();
+        private readonly List<Image> icons = new();
         private IWeaponReadouts readouts;
 
         private void Awake()
@@ -45,9 +46,16 @@ namespace UI.Weapons
                 Destroy(resource.Root);
             }
             resources.Clear();
+            foreach (var icon in icons)
+            {
+                icon.gameObject.SetActive(false);
+                Destroy(icon.gameObject);
+            }
+            icons.Clear();
             if (weapons == null) return;
             foreach (var slot in weapons.Slots)
             {
+                icons.Add(BuildIcon(slot, weapons.Icon(slot)));
                 var index = 0;
                 foreach (var readout in weapons.Readouts(slot))
                     if (readout is IHeatReadout or IAmmoReadout or IChargeReadout)
@@ -55,14 +63,38 @@ namespace UI.Weapons
             }
         }
 
+        private Image BuildIcon(WeaponSlot slot, Sprite sprite)
+        {
+            if (!sprite)
+                throw new InvalidOperationException($"WeaponResourceHud requires an icon for the equipped {slot} weapon.");
+            var icon = Instantiate(resourceTemplate, transform);
+            icon.name = slot + "Icon";
+            icon.sprite = sprite;
+            icon.type = Image.Type.Simple;
+            icon.preserveAspect = true;
+            icon.raycastTarget = false;
+            icon.color = ink;
+            var rect = icon.rectTransform;
+            rect.anchorMin = rect.anchorMax = new Vector2(.5f, .5f);
+            rect.anchoredPosition = InstrumentCenter(slot);
+            rect.sizeDelta = new Vector2(40f, 40f);
+            rect.localScale = Vector3.one;
+            rect.localRotation = Quaternion.identity;
+            icon.gameObject.SetActive(true);
+            return icon;
+        }
+
+        private static Vector2 InstrumentCenter(WeaponSlot slot) =>
+            new(slot == WeaponSlot.Primary ? -96f : 96f, 0f);
+
         private Resource BuildResource(WeaponSlot slot, IWeaponReadout source, int index)
         {
             var go = new GameObject(slot + "Resources", typeof(RectTransform));
             var resourceRect = (RectTransform)go.transform;
             resourceRect.SetParent(transform, false);
-            resourceRect.anchorMin = Vector2.zero;
-            resourceRect.anchorMax = Vector2.one;
-            resourceRect.sizeDelta = Vector2.zero;
+            resourceRect.anchorMin = resourceRect.anchorMax = new Vector2(.5f, .5f);
+            resourceRect.anchoredPosition = InstrumentCenter(slot);
+            resourceRect.sizeDelta = new Vector2(92f, 92f);
             resourceRect.localScale = Vector3.one * (1f + index * .5f);
             var left = slot == WeaponSlot.Primary;
             var start = left ? 120f : 60f;
