@@ -77,7 +77,7 @@ try {
     # sync, so reaching the missing-solution throw proves both were skipped.
     $scriptsCopy = Join-Path $temp "scripts"
     New-Item -ItemType Directory -Force -Path (Join-Path $scriptsCopy "lib") | Out-Null
-    foreach ($name in @("resharper_ratchet.ps1", "unity_access_client.ps1", "lib/repo_root.ps1", "lib/unity_editor.ps1")) {
+    foreach ($name in @("resharper_ratchet.ps1", "unity_access_client.ps1", "lib/repo_root.ps1", "lib/unity_editor.ps1", "lib/unity_solution_sync.ps1")) {
         Copy-Item -LiteralPath (Join-Path $PSScriptRoot "..\$name") -Destination (Join-Path $scriptsCopy $name)
     }
     & git -C $temp add .
