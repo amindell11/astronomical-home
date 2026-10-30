@@ -24,10 +24,9 @@ namespace Game.Preview
             "Blue to copper, diagonal", "Blue to copper, upward", "Blue to copper, left",
             "Copper to blue, diagonal", "Blue to copper, alternate stars"
         };
-        private const string Destination = "Locale_1";
         private readonly SectorJumpFeature feature;
-        private readonly Action<SectorJumpProfile> selected;
-        private SectorJumpProfile profile;
+        private readonly LocaleSky destination;
+        private readonly SectorJumpProfile profile;
         private Ship ship;
         private ObserverCam observer;
         private Action<bool> freezeSimulation;
@@ -43,14 +42,14 @@ namespace Game.Preview
         private SectorJumpMotion motion;
         private int revision = -1;
 
-        public SectorJumpPreviewSubject(SectorJumpProfile profile, SectorJumpFeature feature,
-            Action<SectorJumpProfile> selected)
+        public SectorJumpPreviewSubject(SectorJumpProfile profile, SectorJumpFeature feature, LocaleSky destination)
         {
-            if (!profile || !feature)
-                throw new InvalidOperationException("The jump preview requires a feel profile and jump feature.");
+            if (!profile || !feature || !destination)
+                throw new InvalidOperationException(
+                    "The jump preview requires a feel profile and jump feature, and a destination locale.");
             this.profile = profile;
             this.feature = feature;
-            this.selected = selected;
+            this.destination = destination;
         }
 
         public string Name => "Sector jump";
@@ -58,19 +57,7 @@ namespace Game.Preview
         public int Fixture { get; private set; }
         public int SpanCount => 2;
         public SectorJumpState State { get; private set; }
-
-        public ScriptableObject Knobs
-        {
-            get => profile;
-            set
-            {
-                var next = value as SectorJumpProfile;
-                if (!next) throw new ArgumentException("Sector jump requires a SectorJumpProfile.", nameof(value));
-                profile = next;
-                selected(profile);
-                revision = -1;
-            }
-        }
+        public ScriptableObject Knobs => profile;
 
         public IEnumerator Compose(PreviewWorld world)
         {
@@ -80,7 +67,7 @@ namespace Game.Preview
             if (!ship.gameObject.activeInHierarchy)
                 world.Session.Units.RespawnShip(ship.Id, GamePlane.WorldPointToPlane(ship.transform.position), 0f);
             freezeSimulation(true);
-            yield return world.Session.PrepareTravelBackdrop(Destination, world.Root, pair => backdrop = pair);
+            backdrop = world.Session.PrepareTravelBackdrop(destination, world.Root);
             origin = ship.transform.position;
             startRotation = ship.transform.rotation;
             startHeading = Vector3.SignedAngle(GamePlane.Forward,
@@ -92,6 +79,7 @@ namespace Game.Preview
             ship.Commander.enabled = false;
             presentation = SectorJumpPresentation.Create(world.Ui, ship, world.Rig.Overlay,
                 world.Session.Units.ActiveRegistry.ActiveShips, observer, backdrop, feature);
+            yield break;
         }
 
         public PreviewSpan Span(int index)

@@ -15,6 +15,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8301958025146036882, guid: a17b4473baa216a4eba58800a76acfc3,
         type: 3}
+      propertyPath: hudIcon
+      value: 
+      objectReference: {fileID: 21300000, guid: a046f8409137ac34e81fea137e7b5fca,
+        type: 3}
+    - target: {fileID: -8301958025146036882, guid: a17b4473baa216a4eba58800a76acfc3,
+        type: 3}
       propertyPath: projectilePrefab
       value: 
       objectReference: {fileID: 1964027203911021930, guid: 37a353b1f4bb0aa44bfa1ac7236f26f3,

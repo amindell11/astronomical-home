@@ -1,5 +1,7 @@
 using Substrate.Sectors;
+using Substrate.Services.Locales;
 using Substrate.Sessions;
+using UI.Projection;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -10,8 +12,8 @@ namespace Game.Preview
     /// Builds the preview host in an empty scene around the game's GameHost prefab, with one trial
     /// sector for Inspection and the two-sector crowded jump fixture.
     /// The chosen mode is assigned before activation, so Playtest never composes an inspection session.
-    /// The host waits inactive through the play-mode reload; entering play mode activates it on working
-    /// copies of the prefab's feel profiles, so neither mode ever runs on the assets themselves.
+    /// The host waits inactive through the play-mode reload; entering play mode snapshots the feel
+    /// profiles the prefab ships with, then activates it, so the panel tunes those assets in place.
     /// </summary>
     [InitializeOnLoad]
     public static class PreviewHostBootstrap
@@ -19,6 +21,7 @@ namespace Game.Preview
         internal const string GameHostPath = "Assets/Prefabs/Game/GameHost.prefab";
         private const string SectorPrefabPath = "Assets/Prefabs/Sectors/TrialSector.prefab";
         private const string SectorConfigPath = "Assets/Settings/Game/SurvivalTrialConfig.asset";
+        private const string JumpDestinationPath = "Assets/Prefabs/Locales/Locale_1.prefab";
 
         static PreviewHostBootstrap() => EditorApplication.playModeStateChanged += ActivateWaitingHost;
 
@@ -53,25 +56,32 @@ namespace Game.Preview
                 presentation = true
             };
             host.crowdedJumpSectors = new[] { JumpEntry("CrowdedJumpDeparture"), JumpEntry("CrowdedJumpArrival") };
+            host.jumpDestination = AssetDatabase.LoadAssetAtPath<LocaleSky>(JumpDestinationPath);
             host.subjectKind = subject;
             host.mode = mode;
             host.playtestSetup = setup;
             return host;
         }
 
-        internal static void Activate(PreviewHost host, FeelWorkingCopies copies)
+        internal static void Activate(PreviewHost host, FeelSnapshot snapshot)
         {
-            host.recapFeel = copies.For(host.gameHostPrefab.recapFeel);
-            host.jumpFeel = copies.For(host.gameHostPrefab.jumpFeel);
-            host.canopyFeel = copies.For(host.gameHostPrefab.playerRig.AuthoredCanopyProfile);
+            var game = host.gameHostPrefab;
+            snapshot.Take(game.recapFeel, game.jumpFeel, CanopyProfile(game));
             host.gameObject.SetActive(true);
+        }
+
+        // Read through serialization, so the rig grows no member for the preview.
+        internal static CanopyProjectionProfile CanopyProfile(GameHost game)
+        {
+            using var rig = new SerializedObject(game.playerRig);
+            return ((CanopyProjection)rig.FindProperty("uiCamPrefab").objectReferenceValue).Profile;
         }
 
         private static void ActivateWaitingHost(PlayModeStateChange change)
         {
             if (change != PlayModeStateChange.EnteredPlayMode) return;
             var host = Object.FindFirstObjectByType<PreviewHost>(FindObjectsInactive.Include);
-            if (host && !host.gameObject.activeSelf) Activate(host, FeelWorkingCopies.Current);
+            if (host && !host.gameObject.activeSelf) Activate(host, FeelSnapshot.instance);
         }
 
         private static SectorEntry JumpEntry(string name) => new()

@@ -7,8 +7,8 @@ namespace Game.Preview
 {
     /// <summary>
     /// Enters and switches the preview host's modes. Inspection drives a subject's timeline;
-    /// Playtest runs the real game and can restart it. Both edit working copies of the feel assets,
-    /// which change only on Save. Everything shown by either mode renders in the Game View.
+    /// Playtest runs the real game and can restart it. Both edit the feel assets the game ships, in
+    /// place under the preview's snapshot. Everything shown by either mode renders in the Game View.
     /// </summary>
     internal sealed class PreviewControlPanel : EditorWindow
     {
@@ -77,12 +77,6 @@ namespace Game.Preview
                 return;
             }
             DrawTransport(host.Subject, host.Transport);
-            var profile = PickProfile("Feel profile", host.Subject.Knobs);
-            if (profile)
-            {
-                host.Subject.Knobs = profile;
-                return;
-            }
             scroll = EditorGUILayout.BeginScrollView(scroll);
             DrawKnobs(host.Subject.Knobs, ref knobs);
             EditorGUILayout.EndScrollView();
@@ -115,52 +109,23 @@ namespace Game.Preview
                 host.RestartPlaytest();
                 return;
             }
-            var recap = PickProfile("Recap feel profile", host.RecapFeel);
-            if (recap)
-            {
-                host.RestartPlaytest(recap);
-                return;
-            }
             if (host.PlaytestSetup == PreviewPlaytestSetup.CrowdedJumpGate)
                 EditorGUILayout.HelpBox("Press F inside the jump gate. Continue completes arrival. " +
                     "Feel changes apply to the next jump; Restart Playtest tries again.", MessageType.None);
-            var jump = PickProfile("Jump feel profile", host.JumpFeel);
-            if (jump)
-            {
-                host.RestartPlaytest(jump);
-                return;
-            }
-            if (host.PlaytestSetup == PreviewPlaytestSetup.Combat)
-            {
-                var canopy = PickProfile("Canopy profile", host.CanopyFeel);
-                if (canopy)
-                {
-                    host.RestartPlaytest(canopy);
-                    return;
-                }
-            }
             scroll = EditorGUILayout.BeginScrollView(scroll);
+            var game = host.gameHostPrefab;
             if (host.PlaytestSetup == PreviewPlaytestSetup.Combat)
             {
                 var projection = host.Playtest.CanopyProjection;
                 if (projection)
                     projection.ForceMode = (CanopyForceMode)EditorGUILayout.EnumPopup("Force canopy state", projection.ForceMode);
-                DrawKnobs(host.CanopyFeel, ref canopyKnobs);
-                if (GUILayout.Button("Import tuner settings…")) CanopyTunerImportWindow.Open(host.CanopyFeel);
+                var canopy = PreviewHostBootstrap.CanopyProfile(game);
+                DrawKnobs(canopy, ref canopyKnobs);
+                if (GUILayout.Button("Import tuner settings…")) CanopyTunerImportWindow.Open(canopy);
             }
-            DrawKnobs(host.JumpFeel, ref jumpKnobs);
-            DrawKnobs(host.RecapFeel, ref knobs);
+            DrawKnobs(game.jumpFeel, ref jumpKnobs);
+            DrawKnobs(game.recapFeel, ref knobs);
             EditorGUILayout.EndScrollView();
-        }
-
-        private static T PickProfile<T>(string label, T copy) where T : ScriptableObject
-        {
-            var copies = FeelWorkingCopies.Current;
-            var asset = copies.AssetOf(copy);
-            var picked = (T)EditorGUILayout.ObjectField(label, asset, asset.GetType(), false);
-            if (!picked || picked == asset) return null;
-            copies.Resolve(copy, FeelWorkingCopies.AskToSave);
-            return copies.For(picked);
         }
 
         private static void DrawTransport(IPreviewSubject subject, PreviewTransport transport)
@@ -192,13 +157,13 @@ namespace Game.Preview
             transport.HoldSeconds = EditorGUILayout.FloatField("Hold seconds", transport.HoldSeconds);
         }
 
-        private static void DrawKnobs(ScriptableObject copy, ref SerializedObject serialized)
+        private static void DrawKnobs(ScriptableObject profile, ref SerializedObject serialized)
         {
-            if (serialized == null || serialized.targetObject != copy) serialized = new SerializedObject(copy);
-            var copies = FeelWorkingCopies.Current;
-            var unsaved = copies.HasUnsavedEdits(copy);
+            if (serialized == null || serialized.targetObject != profile) serialized = new SerializedObject(profile);
+            var snapshot = FeelSnapshot.instance;
+            var unsaved = snapshot.HasUnsavedEdits(profile);
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Feel · " + copy.name + (unsaved ? " · unsaved edits" : ""), EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Feel · " + profile.name + (unsaved ? " · unsaved edits" : ""), EditorStyles.boldLabel);
             serialized.Update();
             var property = serialized.GetIterator();
             for (var enterChildren = true; property.NextVisible(enterChildren); enterChildren = false)
@@ -207,8 +172,8 @@ namespace Game.Preview
             using (new EditorGUI.DisabledScope(!unsaved))
             using (new EditorGUILayout.HorizontalScope())
             {
-                if (GUILayout.Button("Save feel profile")) copies.Save(copy);
-                if (GUILayout.Button("Revert")) copies.Revert(copy);
+                if (GUILayout.Button("Save feel profile")) snapshot.Save(profile);
+                if (GUILayout.Button("Discard")) snapshot.Discard(profile);
             }
         }
     }

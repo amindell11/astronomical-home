@@ -79,6 +79,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   firePoint: {fileID: 0}
   displayName: 
+  hudIcon: {fileID: 21300000, guid: 3866da317a5202f45b2a91ea4960b47d, type: 3}
   projectilePrefab: {fileID: 5408995189547049293, guid: d4f6577bb30c48945a17243a523023ff,
     type: 3}
   fireDistance: 20
