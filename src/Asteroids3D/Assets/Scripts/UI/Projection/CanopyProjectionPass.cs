@@ -29,7 +29,8 @@ namespace UI.Projection
         {
             var resources = frameData.Get<UniversalResourceData>();
             var descriptor = source.Ink.rt.descriptor;
-            descriptor.graphicsFormat = GraphicsFormat.R8G8B8A8_UNorm;
+            // Floating-point history keeps faint afterglow decaying.
+            descriptor.graphicsFormat = GraphicsFormat.R16G16B16A16_SFloat;
             descriptor.depthStencilFormat = GraphicsFormat.None;
             for (var i = 0; i < history.Length; i++)
                 if (RenderingUtils.ReAllocateHandleIfNeeded(ref history[i], descriptor, FilterMode.Bilinear,

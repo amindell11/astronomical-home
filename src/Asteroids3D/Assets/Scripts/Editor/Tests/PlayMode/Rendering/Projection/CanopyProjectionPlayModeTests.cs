@@ -173,6 +173,12 @@ namespace Tests.PlayMode.Rendering.Projection
             var composite = Read(sceneTarget);
             Assert.That(composite[Height / 2 * Width + Width / 2].r, Is.GreaterThan(composite[0].r + .02f));
 
+            image.color = Color.clear;
+            yield return new WaitForSecondsRealtime(3f);
+            var faded = Read(sceneTarget);
+            Assert.That(faded[Height / 2 * Width + Width / 2].r - faded[0].r, Is.LessThan(.0005f),
+                "Removed ink must decay below visible precision instead of leaving a permanent trail.");
+
             var resized = Own(new RenderTexture(Width * 2, Height * 2, 24));
             resized.Create();
             sceneCamera.targetTexture = resized;
