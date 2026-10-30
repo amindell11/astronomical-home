@@ -31,6 +31,9 @@
 		<relationship name="timeline">
 			<destination>{d8f08ef7-c15c-4739-9abe-29d013814b4d}</destination>
 		</relationship>
+		<relationship name="parameters">
+			<destination>{8f009fc5-64ca-42ee-a2bd-4ae0a9e027d8}</destination>
+		</relationship>
 		<relationship name="banks">
 			<destination>{56d0553b-e4a9-4f30-96f1-4d4006cb1b6c}</destination>
 		</relationship>
@@ -73,6 +76,11 @@
 	<object class="Timeline" id="{d8f08ef7-c15c-4739-9abe-29d013814b4d}">
 		<relationship name="modules">
 			<destination>{5adb54e2-90f1-4bb8-ae9f-2532c889f12a}</destination>
+		</relationship>
+	</object>
+	<object class="ParameterProxy" id="{8f009fc5-64ca-42ee-a2bd-4ae0a9e027d8}">
+		<relationship name="preset">
+			<destination>{878837e5-efe6-4a31-81cb-5b0627af7732}</destination>
 		</relationship>
 	</object>
 	<object class="EventMixerMaster" id="{d9774011-5aef-42db-ab49-47f470603db2}">
@@ -125,6 +133,7 @@
 	</object>
 	<object class="MixerBusEffectChain" id="{ed0578d6-c0e7-45e1-a214-37426cbf0c63}">
 		<relationship name="effects">
+			<destination>{1d9eae8a-2197-4e82-a3c7-5ec339b162ff}</destination>
 			<destination>{828fef8a-fec4-4dab-8902-a12bc52dd5a2}</destination>
 			<destination>{405b41e4-e1e2-41b6-9fb8-2549526f7d11}</destination>
 		</relationship>
@@ -137,6 +146,14 @@
 		</relationship>
 	</object>
 	<object class="MixerBusPanner" id="{d187693d-2213-4de5-ac10-5ac94bf824f3}" />
+	<object class="ProxyEffect" id="{1d9eae8a-2197-4e82-a3c7-5ec339b162ff}">
+		<property name="inputFormat">
+			<value>0</value>
+		</property>
+		<relationship name="preset">
+			<destination>{2292ee77-1250-47b3-8395-1de3a519d8ac}</destination>
+		</relationship>
+	</object>
 	<object class="MixerBusFader" id="{828fef8a-fec4-4dab-8902-a12bc52dd5a2}" />
 	<object class="SpatialiserEffect" id="{405b41e4-e1e2-41b6-9fb8-2549526f7d11}" />
 	<object class="MixerBusFader" id="{f7ff5c89-8bed-42c5-890a-16e1a2e61b8b}" />

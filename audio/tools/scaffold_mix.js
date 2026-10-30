@@ -11,6 +11,9 @@
 //   Master Bus              post-fader: Limiter at a -1 dB ceiling, then a Loudness Meter
 //   snapshot:/LowHealth     scopes bus:/World volume to -10 dB and the Multiband EQ's band A to 1.5 kHz;
 //                           an AHDSR on the snapshot's intensity, 0.5 s attack and release
+//   every 3D event          pre-fader: the shared effect "Distance Low-Pass", a 12 dB low-pass whose
+//                           cutoff follows the built-in Distance parameter in plane units: open to 25,
+//                           500 Hz at 115. One curve, shared, so it tunes in one place.
 // Instance caps in each event's macros: Weapons/*/Fire 8 stealing oldest; Weapons/*/{Impact,Detonate}
 // and World/Asteroid/Hit 6 stealing quietest; Ships/Engine 12 stealing quietest; World/Ambience and
 // Music/Game 1.
@@ -29,6 +32,9 @@ var mixer = project.workspace.mixer;
 var stealing = { oldest: 0, quietest: 1 };
 var defaultMaxInstances = 65;
 var lowPass12dB = 1;
+var maxDistance = 115;
+// The zoomed-out screen edge is about 30 plane units out, so on-screen action stays unfiltered.
+var distanceCutoffs = [[0, 22000], [25, 22000], [50, 3000], [80, 1200], [maxDistance, 500]];
 
 function required(path) {
     var found = project.lookup(path);
@@ -115,6 +121,53 @@ function ensureSnapshotTrack(strip) {
     track.mixerStrip = strip;
 }
 
+function isSpatial(event) {
+    return event.masterTrack.mixerGroup.effectChain.effects.some(function (effect) {
+        return effect.entity === "SpatialiserEffect";
+    });
+}
+
+// Reuses the project-wide preset so GUIDs.txt never lists a second parameter of the same name.
+function ensureDistanceParameter(event) {
+    var present = event.getParameterPresets().some(function (parameter) {
+        return parameter.presetOwner.name === "Distance";
+    });
+    if (present) return;
+    var preset = project.lookup("parameter:/Distance");
+    if (preset) event.addGameParameter(preset);
+    else event.addGameParameter({ name: "Distance", type: project.parameterType.Distance, min: 0, max: maxDistance });
+}
+
+function distanceLowPass() {
+    var existing = project.model.EffectPreset.findInstances().filter(function (preset) {
+        return preset.name === "Distance Low-Pass";
+    })[0];
+    if (existing) return existing;
+    var preset = project.create("EffectPreset");
+    preset.name = "Distance Low-Pass";
+    preset.folder = project.workspace.masterEffectPresetFolder;
+    var eq = project.create("MultibandEqEffect");
+    preset.effect = eq;
+    eq.filterTypeA = lowPass12dB;
+    eq.frequencyA = 22000;
+    var curve = eq.addAutomator("frequencyA").addAutomationCurve(required("parameter:/Distance").parameter);
+    distanceCutoffs.forEach(function (point) { curve.addAutomationPoint(point[0], point[1]); });
+    console.log("created the shared effect Distance Low-Pass, cutoffs " + JSON.stringify(distanceCutoffs));
+    return preset;
+}
+
+function ensureDistanceLowPass(event, preset) {
+    var chain = event.masterTrack.mixerGroup.effectChain;
+    var present = chain.effects.some(function (effect) {
+        return effect.entity === "ProxyEffect" && effect.preset && effect.preset.id === preset.id;
+    });
+    if (present) return;
+    var proxy = project.create("ProxyEffect");
+    proxy.preset = preset;
+    chain.relationships.effects.insert(0, proxy);
+    console.log("added Distance Low-Pass before the " + event.getPath() + " fader");
+}
+
 function ensureReverbSend(bus) {
     var present = existingEffect(bus, "MixerSend", function (send) { return send.mixerReturn && send.mixerReturn.id === reverb.id; });
     if (present) return;
@@ -141,6 +194,11 @@ project.model.Event.findInstances().forEach(function (event) {
     else if (path === "event:/Ships/Engine") cap(event, 12, stealing.quietest);
     else if (path === "event:/World/Ambience" || path === "event:/Music/Game") cap(event, 1, stealing.oldest);
 });
+
+var spatialEvents = project.model.Event.findInstances().filter(isSpatial);
+spatialEvents.forEach(ensureDistanceParameter);
+var lowPass = distanceLowPass();
+spatialEvents.forEach(function (event) { ensureDistanceLowPass(event, lowPass); });
 
 var masterBus = mixer.masterBus;
 if (!existingEffect(masterBus, "LimiterEffect")) {
