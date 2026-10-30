@@ -72,14 +72,12 @@ namespace Substrate.Services.Locales
             shown.SetVisible(true);
         }
 
-        /// <summary>With no idle locale configured, shows none.</summary>
         public void ShowIdle()
         {
             if (idleLocale) Show(idleLocale);
             else Clear();
         }
 
-        /// <summary>Destroy every locale instance and restore the boot scene's lighting.</summary>
         public void Clear()
         {
             if (shown) Discard(shown);

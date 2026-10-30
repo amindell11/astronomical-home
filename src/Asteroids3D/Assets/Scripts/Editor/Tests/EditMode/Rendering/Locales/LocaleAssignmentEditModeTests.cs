@@ -6,7 +6,7 @@ using Substrate.Services.Locales;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 
-namespace Tests.EditMode.Rendering
+namespace Tests.EditMode.Rendering.Locales
 {
     /// <summary>
     /// The boot scene carries no sky, so every look the player sees comes from a locale prefab: each

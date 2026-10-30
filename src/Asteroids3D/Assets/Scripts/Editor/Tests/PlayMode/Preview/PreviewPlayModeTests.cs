@@ -15,6 +15,7 @@ using Substrate.Services.Locales;
 using Substrate.Services.Units;
 using Substrate.Sessions;
 using Tests.PlayMode.Common;
+using Tests.PlayMode.Common.Locales;
 using Tests.PlayMode.Common.SimulatedInput;
 using UI;
 using UI.Hangar;

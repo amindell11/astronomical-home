@@ -12,7 +12,7 @@ using NUnit.Framework;
 using Substrate.Sectors;
 using Substrate.Services.Locales;
 using Substrate.Sessions;
-using Tests.PlayMode.Common;
+using Tests.PlayMode.Common.Locales;
 using Tests.PlayMode.Recording;
 using UnityEditor;
 using UnityEngine;

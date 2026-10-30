@@ -7,7 +7,7 @@ using Ships.Loadout;
 using Substrate.Sectors;
 using Substrate.Sessions;
 using Substrate.Services.Units;
-using Tests.PlayMode.Common;
+using Tests.PlayMode.Common.Locales;
 using UI.Hangar;
 using UI.Recap;
 using UnityEditor;

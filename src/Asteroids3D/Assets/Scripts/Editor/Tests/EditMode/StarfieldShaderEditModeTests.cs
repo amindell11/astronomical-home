@@ -1,5 +1,5 @@
 using NUnit.Framework;
-using Tests.EditMode.Rendering;
+using Tests.EditMode.Rendering.Locales;
 using UnityEditor;
 using UnityEngine;
 

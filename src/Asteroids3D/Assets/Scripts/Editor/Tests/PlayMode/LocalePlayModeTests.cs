@@ -3,7 +3,7 @@ using System.Collections;
 using System.Linq;
 using NUnit.Framework;
 using Substrate.Services.Locales;
-using Tests.PlayMode.Common;
+using Tests.PlayMode.Common.Locales;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;

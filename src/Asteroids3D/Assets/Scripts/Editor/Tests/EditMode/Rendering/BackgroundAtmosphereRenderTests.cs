@@ -1,6 +1,7 @@
 using System.Linq;
 using NUnit.Framework;
 using Substrate.Services.Locales;
+using Tests.EditMode.Rendering.Locales;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;

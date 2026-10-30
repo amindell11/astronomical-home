@@ -133,7 +133,6 @@ namespace Substrate.Sessions
 
             yield return sector.Setup();
 
-            // Adopt the sector under the sector root before its load holder is destroyed.
             sector.transform.SetParent(sectorRoot, true);
             UnityEngine.Object.Destroy(holder);
         }

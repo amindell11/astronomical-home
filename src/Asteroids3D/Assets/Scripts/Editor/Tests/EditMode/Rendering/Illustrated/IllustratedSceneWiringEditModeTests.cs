@@ -2,6 +2,7 @@ using System.Linq;
 using Asteroids.Spawning;
 using NUnit.Framework;
 using Substrate;
+using Tests.EditMode.Rendering.Locales;
 using Unity.Collections;
 using UnityEditor;
 using UnityEngine;

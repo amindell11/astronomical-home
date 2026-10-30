@@ -9,7 +9,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 
-namespace Tests.EditMode.Rendering
+namespace Tests.EditMode.Rendering.Locales
 {
     [Category("Sectors")]
     public class LocaleSkyWiringEditModeTests
@@ -184,7 +184,7 @@ namespace Tests.EditMode.Rendering
             Assert.That(AssetDatabase.GetAssetPath(reflection),
                 Does.StartWith($"Assets/Visuals/Locales/Sky/Locales/{locale.name}/"));
             var sun = (Light)lighting.FindPropertyRelative("sun").objectReferenceValue;
-            Assert.That((bool)sun, Is.EqualTo(hasSun), "A locale's sun is the one its scene named.");
+            Assert.That((bool)sun, Is.EqualTo(hasSun), "Only Locale_3 names a sun.");
             if (sun) Assert.IsTrue(sun.transform.IsChildOf(locale.transform), "A locale's sun is its own light.");
         }
 

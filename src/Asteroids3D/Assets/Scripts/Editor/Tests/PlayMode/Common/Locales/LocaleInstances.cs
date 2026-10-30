@@ -2,7 +2,7 @@ using System.Linq;
 using Substrate.Services.Locales;
 using UnityEngine;
 
-namespace Tests.PlayMode.Common
+namespace Tests.PlayMode.Common.Locales
 {
     /// <summary>The live locale instances, each named for its prefab, and the one the locale service shows.</summary>
     public static class LocaleInstances

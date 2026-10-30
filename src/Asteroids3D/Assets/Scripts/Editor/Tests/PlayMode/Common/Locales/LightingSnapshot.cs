@@ -2,7 +2,7 @@ using Substrate.Services.Locales;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace Tests.PlayMode.Common
+namespace Tests.PlayMode.Common.Locales
 {
     /// <summary>
     /// The test scene's lighting before a fixture shows a locale. Showing one writes the scene's

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using Substrate;
 using Substrate.Services.Locales;
-using Tests.PlayMode.Common;
+using Tests.PlayMode.Common.Locales;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -206,7 +206,8 @@ namespace Tests.PlayMode.Presentation
             var follower = new GameObject(typeof(T).Name);
             follower.transform.SetParent(sky.transform, false);
             var component = follower.AddComponent<T>();
-            if (component is Volume volume) volume.isGlobal = true;
+            var volume = component as Volume;
+            if (volume) volume.isGlobal = true;
             return component;
         }
 

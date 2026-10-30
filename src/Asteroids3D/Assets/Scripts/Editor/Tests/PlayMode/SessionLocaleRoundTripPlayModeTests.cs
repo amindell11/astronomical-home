@@ -6,6 +6,7 @@ using Substrate.Sectors;
 using Substrate.Services.Locales;
 using Substrate.Sessions;
 using Tests.PlayMode.Common;
+using Tests.PlayMode.Common.Locales;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;

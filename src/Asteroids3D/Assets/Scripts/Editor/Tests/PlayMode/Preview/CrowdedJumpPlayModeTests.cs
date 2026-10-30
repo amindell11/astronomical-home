@@ -18,6 +18,7 @@ using Substrate.Services.Objectives;
 using Substrate.Services.Units;
 using Substrate.Sessions;
 using Tests.PlayMode.Common;
+using Tests.PlayMode.Common.Locales;
 using Tests.PlayMode.Common.SimulatedInput;
 using UI.Recap;
 using UI.Screens;

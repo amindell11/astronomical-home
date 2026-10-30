@@ -6,7 +6,7 @@ namespace Substrate.Services.Locales
     /// <summary>
     /// A locale prefab's root: the locale's lighting, and the sky layers, lights and volumes beneath it. Each renderer
     /// below is one sky layer on the <c>Sky</c> Unity layer, which only the flight and hangar cameras' culling masks
-    /// include. The locale service shows and hides each instance by explicit call; a hidden locale draws no sky layer
+    /// include. The locale service shows and hides each instance; a hidden locale draws no sky layer
     /// and enables no light or volume, so a preloaded locale cannot light or grade the outgoing world. A locale
     /// backdrop pair temporarily shows each locale for offscreen rendering. A sky layer's look lives on its material.
     /// Design: arc #1274.

@@ -26,6 +26,7 @@ using Substrate.Services.Units;
 using UI.Recap;
 using UI.Screens;
 using Tests.PlayMode.Common;
+using Tests.PlayMode.Common.Locales;
 using Tests.PlayMode.Common.SimulatedInput;
 using UnityEditor;
 using UnityEngine;

@@ -7,7 +7,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Tests.EditMode.Rendering
+namespace Tests.EditMode.Rendering.Locales
 {
     /// <summary>
     /// A locale's <see cref="LocaleSky"/> root and its <c>Sky</c> transform, loaded from a locale prefab or from a
