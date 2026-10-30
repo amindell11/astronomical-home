@@ -41,6 +41,14 @@ namespace Tests.PlayMode.Crosshairs
             public WeaponSources(IAmmoReadout value) => ammo = new IWeaponReadout[] { value };
             public IReadOnlyList<WeaponSlot> Slots { get; } = new[] { WeaponSlot.Primary, WeaponSlot.Secondary };
             public string DisplayName(WeaponSlot slot) => slot.ToString();
+            public Sprite Icon(WeaponSlot slot)
+            {
+#if UNITY_EDITOR
+                return AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Visuals/Ui/Crosshair/Generated/pointer.png");
+#else
+                return null;
+#endif
+            }
             public IReadOnlyList<IWeaponReadout> Readouts(WeaponSlot slot) => ammo;
         }
 
@@ -287,10 +295,10 @@ namespace Tests.PlayMode.Crosshairs
                 Assert.That(decoded.GetPixel(128, 128).a, Is.EqualTo(0f));
                 var resourceRing = weaponHud.transform.Find("ResourceTemplate").GetComponent<Image>().sprite;
                 decoded.LoadImage(System.IO.File.ReadAllBytes(AssetDatabase.GetAssetPath(resourceRing)));
-                Assert.That(decoded.GetPixel(223, 128).a, Is.GreaterThan(.9f));
-                Assert.That(decoded.GetPixel(235, 128).a, Is.GreaterThan(.9f));
-                Assert.That(decoded.GetPixel(221, 128).a, Is.EqualTo(0f));
-                Assert.That(decoded.GetPixel(237, 128).a, Is.EqualTo(0f));
+                Assert.That(decoded.GetPixel(227, 128).a, Is.GreaterThan(.9f));
+                Assert.That(decoded.GetPixel(231, 128).a, Is.GreaterThan(.9f));
+                Assert.That(decoded.GetPixel(225, 128).a, Is.EqualTo(0f));
+                Assert.That(decoded.GetPixel(233, 128).a, Is.EqualTo(0f));
             }
             finally { Object.DestroyImmediate(decoded); }
 #endif

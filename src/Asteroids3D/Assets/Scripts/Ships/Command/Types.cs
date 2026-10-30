@@ -145,6 +145,8 @@ namespace Ships.Command
         /// <summary>Name shown on the slot's readout panel.</summary>
         string DisplayName(WeaponSlot slot);
 
+        Sprite Icon(WeaponSlot slot);
+
         /// <summary>The slot's displayable state (heat, ammo, lock…), in display order.</summary>
         IReadOnlyList<IWeaponReadout> Readouts(WeaponSlot slot);
     }

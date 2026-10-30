@@ -35,6 +35,9 @@ namespace Combat.Weapons
 
         [Tooltip("Name shown on this weapon's HUD readout panel. Empty = the prefab name.")]
         [SerializeField] private string displayName;
+        [SerializeField] private Sprite hudIcon;
+
+        public Sprite HudIcon => hudIcon;
         protected IShooter shooter;
         protected WeaponCondition[] conditions;
         private List<IWeaponReadout> readouts;
