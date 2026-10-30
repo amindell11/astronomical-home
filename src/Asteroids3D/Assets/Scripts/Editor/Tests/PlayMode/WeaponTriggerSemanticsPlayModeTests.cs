@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using AI;
 using Combat;
-using Combat.Projectiles;
 using Combat.Weapons;
 using Combat.Weapons.Arsenal;
 using Damage;
@@ -33,7 +32,6 @@ namespace Tests.PlayMode
     {
         private const string RippersPrefabPath = "Assets/Prefabs/Weapons/Rippers.prefab";
         private const string MissilesPrefabPath = "Assets/Prefabs/Weapons/Missiles.prefab";
-        private const string ChargeLasersPrefabPath = "Assets/Prefabs/Weapons/ChargeLasers.prefab";
         private const string RailgunPrefabPath = "Assets/Prefabs/Weapons/Railgun.prefab";
 
         private readonly List<GameObject> spawned = new();
@@ -112,42 +110,20 @@ namespace Tests.PlayMode
         [Test]
         public void ChargeWeapon_ChargesWhileHeld_AndAutoFiresAtFull()
         {
-            var laser = InstantiateWeapon<ChargeLasers>(ChargeLasersPrefabPath);
+            var railgun = InstantiateWeapon<Railguns>(RailgunPrefabPath);
             // 10 physics steps to full, independent of the project's fixed timestep.
-            laser.Charge.Configure(chargeTime: Time.fixedDeltaTime * 10f, minChargeToFire: 0.3f);
+            railgun.Charge.Configure(chargeTime: Time.fixedDeltaTime * 10f, minChargeToFire: 0.3f);
             var fired = 0;
-            laser.OnFire += () => fired++;
+            railgun.OnFire += () => fired++;
 
-            laser.HandleTrigger(new WeaponCommand { pressed = true, held = true }, Projectiles);
+            railgun.HandleTrigger(new WeaponCommand { pressed = true, held = true }, Projectiles);
             Assert.AreEqual(0, fired, "Still charging — a press means nothing to a charge weapon.");
 
             for (var i = 0; i < 20 && fired == 0; i++)
-                laser.HandleTrigger(new WeaponCommand { pressed = false, held = true }, Projectiles);
+                railgun.HandleTrigger(new WeaponCommand { pressed = false, held = true }, Projectiles);
 
             Assert.AreEqual(1, fired, "Full charge while held auto-fires.");
-            Assert.AreEqual(0f, laser.Charge.ChargePct, 0.0001f, "Firing consumed the charge.");
-        }
-
-        [Test]
-        public void ChargeWeapon_ReleaseFires_WithChargeScaledDamage()
-        {
-            var laser = InstantiateWeapon<ChargeLasers>(ChargeLasersPrefabPath);
-            laser.Charge.Configure(chargeTime: Time.fixedDeltaTime * 10f, minChargeToFire: 0.3f);
-
-            // Hold for half the charge time, then release.
-            for (var i = 0; i < 5; i++)
-                laser.HandleTrigger(new WeaponCommand { pressed = false, held = true }, Projectiles);
-            Assert.AreEqual(0.5f, laser.Charge.ChargePct, 0.001f);
-
-            var before = Object.FindObjectsByType<Laser>(FindObjectsSortMode.None).Length;
-            laser.HandleTrigger(new WeaponCommand { pressed = false, held = false }, Projectiles);
-
-            var bolts = Object.FindObjectsByType<Laser>(FindObjectsSortMode.None);
-            Assert.AreEqual(before + 1, bolts.Length, "Release above the minimum fires the shot.");
-
-            // Damage scales linearly from the min-charge to full-charge multiplier (0.4 → 1).
-            var expected = Mathf.Lerp(0.4f, 1f, 0.5f);
-            Assert.AreEqual(expected, bolts[bolts.Length - 1].DamageScale, 0.02f);
+            Assert.AreEqual(0f, railgun.Charge.ChargePct, 0.0001f, "Firing consumed the charge.");
         }
 
         private sealed class DamageRecorder : MonoBehaviour, IDamageable

@@ -21,7 +21,6 @@ namespace Tests.PlayMode.Weapons
     [Category("Weapons")]
     public class FirePlanPlayModeTests : PlayModeWorldFixture
     {
-        private const string ChargeLasersPrefabPath = "Assets/Prefabs/Weapons/ChargeLasers.prefab";
         private const string RailgunPrefabPath = "Assets/Prefabs/Weapons/Railgun.prefab";
         private const string LasersPrefabPath = "Assets/Prefabs/Weapons/Lasers.prefab";
         private const string TurboLasersPrefabPath = "Assets/Prefabs/Weapons/TurboLasers.prefab";
@@ -49,13 +48,6 @@ namespace Tests.PlayMode.Weapons
             return weapon;
         }
 
-        private static void SetFloat(Object target, string field, float value)
-        {
-            var serialized = new SerializedObject(target);
-            serialized.FindProperty(field).floatValue = value;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-        }
-
         private static float GetFloat(Object target, string field) =>
             new SerializedObject(target).FindProperty(field).floatValue;
 
@@ -72,55 +64,6 @@ namespace Tests.PlayMode.Weapons
             var targetPoint = weapon.transform.position + weapon.transform.up * context.distanceToTarget;
             weapon.HandleTrigger(new WeaponCommand { held = held, targetPoint = targetPoint }, Projectiles);
             return held;
-        }
-
-        private static float ChargeStep(ChargeTime charge) => Time.fixedDeltaTime / charge.FullChargeTime;
-
-        [UnityTest]
-        public IEnumerator ChargeLasers_OnSolution_ReleaseAtTheReleaseCharge_AndWaitOutTheCooldown()
-        {
-            var laser = InstantiateWeapon<ChargeLasers>(ChargeLasersPrefabPath);
-            // Longer than the charge to the release point, so the second release must wait for it.
-            SetFloat(laser.GetComponent<Cooldown>(), "fireRate", 1f);
-            var releaseCharge = GetFloat(laser, "releaseCharge");
-            var spent = new List<float>();
-            laser.Charge.OnChargeSpent += spent.Add;
-
-            var wasted = 0;
-            var held = false;
-            var steps = Mathf.CeilToInt(2.5f / Time.fixedDeltaTime);
-            for (var step = 0; step < steps; step++)
-            {
-                var shots = spent.Count;
-                var wasHeld = held;
-                held = Step(laser, Target(0f));
-                if (wasHeld && !held && spent.Count == shots) wasted++;
-                yield return new WaitForFixedUpdate();
-            }
-
-            Assert.GreaterOrEqual(spent.Count, 2, "On solution the plan fires again once the cooldown ends.");
-            Assert.AreEqual(0, wasted, "Every release fired: none came while the cooldown ran.");
-            Assert.That(spent[0], Is.GreaterThanOrEqualTo(releaseCharge).And.LessThan(releaseCharge + ChargeStep(laser.Charge)),
-                "The first shot is released on the first step at the release charge.");
-            Assert.Greater(spent[1], releaseCharge + ChargeStep(laser.Charge),
-                "The second shot kept charging through the cooldown instead of dropping the charge.");
-        }
-
-        [Test]
-        public void ChargeLasers_ReleaseChargeUnderTheMinimum_ReleaseWaitsForTheMinimum()
-        {
-            var laser = InstantiateWeapon<ChargeLasers>(ChargeLasersPrefabPath);
-            laser.Charge.Configure(chargeTime: Time.fixedDeltaTime * 20f, minChargeToFire: 0.5f);
-            SetFloat(laser, "releaseCharge", 0.1f);
-            float? spent = null;
-            laser.Charge.OnChargeSpent += charge => spent = charge;
-
-            for (var i = 0; i < 40 && spent == null; i++)
-                Step(laser, Target(0f));
-
-            Assert.IsNotNull(spent, "The plan fires once the charge reaches its minimum.");
-            Assert.GreaterOrEqual(spent.Value, 0.5f - ChargeStep(laser.Charge) * 0.5f,
-                "No release below the minimum, where it would drop the charge.");
         }
 
         private void ChargeToTheCommitPoint(Railguns railgun)
@@ -233,12 +176,6 @@ namespace Tests.PlayMode.Weapons
             Assert.IsTrue(railgun.HoldTrigger(Target(25f)), "A started railgun keeps charging outside the start angle.");
             railgun.Reset();
             Assert.IsFalse(railgun.HoldTrigger(Target(25f)), "Reset drops the railgun's charge.");
-
-            var laser = InstantiateWeapon<ChargeLasers>(ChargeLasersPrefabPath);
-            Step(laser, Target(20f));
-            Assert.IsTrue(laser.HoldTrigger(Target(40f)), "A started charge keeps charging outside the charge cone.");
-            laser.Reset();
-            Assert.IsFalse(laser.HoldTrigger(Target(40f)), "Reset drops the started charge.");
 
             var turbo = InstantiateWeapon<Lasers>(TurboLasersPrefabPath);
             for (var i = 0; i < MaxSteps && !turbo.Heat.WouldOverheatOnNextShot(); i++)
