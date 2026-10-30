@@ -620,6 +620,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   minimapRect: {fileID: 4171153274029429517}
+  textMaterial: {fileID: 2100000, guid: 9b40b60b37593de4bb769186332c3e17, type: 2}
 --- !u!1 &4463188433804154887
 GameObject:
   m_ObjectHideFlags: 0

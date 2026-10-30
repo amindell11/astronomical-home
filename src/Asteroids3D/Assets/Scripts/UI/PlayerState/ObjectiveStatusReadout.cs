@@ -17,7 +17,7 @@ namespace UI.PlayerState
         private ObjectiveTracker announcedTracker;
         private float openedAt;
 
-        public static ObjectiveStatusReadout Create(Transform parent)
+        public static ObjectiveStatusReadout Create(Transform parent, Material textMaterial)
         {
             var go = new GameObject("ObjectiveStatusReadout", typeof(RectTransform));
             go.transform.SetParent(parent, false);
@@ -37,6 +37,7 @@ namespace UI.PlayerState
             labelObject.layer = go.layer;
             labelObject.transform.SetParent(go.transform, false);
             var text = labelObject.AddComponent<Text>();
+            text.material = textMaterial;
             text.rectTransform.anchorMin = text.rectTransform.anchorMax = new Vector2(.5f, 1f);
             text.rectTransform.pivot = new Vector2(.5f, 1f);
             text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");

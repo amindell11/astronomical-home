@@ -8,6 +8,7 @@ using Ships.Command;
 using Ships.Weapons;
 using Tests.PlayMode.Common;
 using UI;
+using UI.Weapons;
 using UnityEngine;
 using UnityEngine.TestTools;
 #if UNITY_EDITOR

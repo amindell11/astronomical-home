@@ -3,6 +3,7 @@ using Combat.Targeting;
 using Combat.Weapons;
 using Ships.Command;
 using UnityEngine;
+using UI.Weapons;
 using Combat.Weapons.Conditions;
 
 namespace UI

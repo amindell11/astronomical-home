@@ -7,6 +7,7 @@ using Objectives;
 using Substrate.Services.Objectives;
 using UI.Objectives;
 using UI.PlayerState;
+using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
@@ -47,7 +48,8 @@ namespace Tests.PlayMode.PlayerState
         [UnityTest]
         public IEnumerator Opening_FadesToStatus_AndReplaysForANewSectorOnly()
         {
-            var readout = ObjectiveStatusReadout.Create(canvas.transform);
+            var readout = ObjectiveStatusReadout.Create(canvas.transform,
+                TestAssets.Load<Material>("Assets/Visuals/Ui/Projection/CanopyText.mat"));
             readout.Initialize(service);
             var label = readout.GetComponentInChildren<Text>();
             var target = Child("Destination").transform;

@@ -14,7 +14,7 @@ namespace UI.PlayerState
         private CanvasGroup visibility;
         private IReadOnlyList<Renderer> silhouette;
 
-        public static ShipStatusIndicator Create(Canvas canvas, Camera worldCamera, Ship ship, Font font)
+        public static ShipStatusIndicator Create(Canvas canvas, Camera worldCamera, Ship ship, Font font, Material textMaterial)
         {
             var root = new GameObject("Ship status", typeof(RectTransform), typeof(CanvasGroup));
             root.SetActive(false);
@@ -24,8 +24,8 @@ namespace UI.PlayerState
             indicator.ship = ship;
             indicator.worldCamera = worldCamera;
             indicator.canvas = canvas;
-            StatusBarUI.Create(root.transform, ship.Damage.Shield, font, new Color(0f, .8f, 1f), 18f);
-            StatusBarUI.Create(root.transform, ship.Damage.Health, font, new Color(.22f, 1f, .15f), 0f, pulsesWhenLow: true);
+            StatusBarUI.Create(root.transform, ship.Damage.Shield, font, new Color(0f, .8f, 1f), 18f, textMaterial);
+            StatusBarUI.Create(root.transform, ship.Damage.Health, font, new Color(.22f, 1f, .15f), 0f, textMaterial, pulsesWhenLow: true);
             root.SetActive(true);
             return indicator;
         }

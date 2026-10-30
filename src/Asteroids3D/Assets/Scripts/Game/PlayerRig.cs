@@ -13,8 +13,8 @@ using Ships;
 using Ships.Loadout;
 using Ships.Command;
 using UI;
+using UI.Projection;
 using UnityEngine;
-using UnityEngine.Rendering.Universal;
 using Ships.Registry;
 using Substrate;
 
@@ -40,7 +40,7 @@ namespace Game
         [SerializeField] private Vector2 playerSpawnPosition = Vector2.zero;
 
         [Header("Camera")]
-        [SerializeField] private Camera uiCamPrefab;
+        [SerializeField] private CanopyProjection uiCamPrefab;
         [SerializeField] private Camera minimapCamPrefab;
 
         [Header("UI")]
@@ -83,6 +83,7 @@ namespace Game
         private Action<ShipId, DamageInfo> onPlayerDeath;
 
         private SessionFrame frame;
+        private CanopyProjection projection;
 
         // The prefab the current Player instance was built from — a hangar ship change is detected
         // against this (the prefab is the archetype; see ShipLoadout.Ship).
@@ -122,9 +123,9 @@ namespace Game
             {
                 if (!minimapCamPrefab)
                     throw new InvalidOperationException($"PlayerRig on '{name}' needs a minimap camera for its HUD.");
-                var uiCam = Instantiate(uiCamPrefab, observer.transform);
-                uiCam.GetUniversalAdditionalCameraData().renderType = CameraRenderType.Overlay;
-                observer.Cam.GetUniversalAdditionalCameraData().cameraStack.Add(uiCam);
+                projection = Instantiate(uiCamPrefab, observer.transform);
+                projection.Initialize(observer.Cam);
+                var uiCam = projection.Camera;
 
                 Overlay = Instantiate(overlayPrefab, uiRoot);
                 Overlay.SetCanvasWorldCamera(uiCam);
@@ -148,6 +149,9 @@ namespace Game
             Spawns.Bind(null, null);
             if (Overlay)
                 Destroy(Overlay.gameObject);
+            if (projection)
+                Destroy(projection.gameObject);
+            projection = null;
             Overlay = null;
             Player = null;
             observer = null;

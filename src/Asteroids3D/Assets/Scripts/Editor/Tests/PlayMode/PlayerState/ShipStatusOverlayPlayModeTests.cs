@@ -39,7 +39,8 @@ namespace Tests.PlayMode.PlayerState
             var resource = new Resource(150f);
             resource.ApplyDamage(75f);
             var bar = StatusBarUI.Create(root.transform, resource,
-                Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"), Color.cyan, 0f);
+                Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"), Color.cyan, 0f,
+                TestAssets.Load<Material>("Assets/Visuals/Ui/Projection/CanopyText.mat"));
             var label = bar.GetComponentInChildren<Text>();
             Assert.AreEqual("75/150", label.text);
             using (var mesh = new VertexHelper())
@@ -80,7 +81,8 @@ namespace Tests.PlayMode.PlayerState
             ship = ShipTestFactory.CreateShip(TestAssets.Load<Ship>("Assets/Prefabs/Ships/Vanguard.prefab"),
                 null, Projectiles, team: 1);
             var bars = ShipStatusIndicator.Create(canvas, camera, ship,
-                Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf")).GetComponentsInChildren<StatusBarUI>();
+                Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"),
+                TestAssets.Load<Material>("Assets/Visuals/Ui/Projection/CanopyText.mat")).GetComponentsInChildren<StatusBarUI>();
             var shieldColor = FillEdge(bars[0]).color;
             var healthColor = FillEdge(bars[1]).color;
 

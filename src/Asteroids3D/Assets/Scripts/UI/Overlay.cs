@@ -17,6 +17,7 @@ namespace UI
     {
         [Header("Minimap")]
         [SerializeField] private RectTransform minimapRect;
+        [SerializeField] private Material textMaterial;
 
         private Canvas[] canvases;
         private CanvasGroup visibility;
@@ -78,7 +79,7 @@ namespace UI
         }
 
         public void BindShips(SubscribedSet<Ship> ships, Camera worldCamera) =>
-            shipStatus = ShipStatusOverlay.Create(canvases[0], ships, worldCamera);
+            shipStatus = ShipStatusOverlay.Create(canvases[0], ships, worldCamera, textMaterial);
 
         private void OnDestroy()
         {
@@ -106,7 +107,7 @@ namespace UI
                 chargeMarkers.Initialize(binding.Weapons);
 
             if (!tallyReadout)
-                tallyReadout = RunTallyReadout.Create(transform);
+                tallyReadout = RunTallyReadout.Create(transform, textMaterial);
             tallyReadout.Initialize(binding.Tally);
 
             // Overheat and lock audio are single overlay-level channels; each follows the
@@ -123,7 +124,7 @@ namespace UI
             if (!objectiveMarkers || !minimapRect)
                 throw new InvalidOperationException($"Overlay on '{name}' needs its objective markers and minimap wired.");
             objectiveMarkers.Initialize(objectives, worldCamera, minimapCamera, minimapRect, canvases[0]);
-            ObjectiveStatusReadout.Create(transform).Initialize(objectives);
+            ObjectiveStatusReadout.Create(transform, textMaterial).Initialize(objectives);
         }
     }
 }
