@@ -80,7 +80,8 @@ namespace Tests.PlayMode.PlayerState
         private ObjectiveStatusReadout CreateReadout() => ObjectiveStatusReadout.Create(canvas.transform,
             TestAssets.Load<Font>("Assets/Visuals/Ui/Fonts/IBMPlexSans.ttf"),
             TestAssets.Load<Font>("Assets/Visuals/Ui/Fonts/Michroma.ttf"),
-            TestAssets.Load<Font>("Assets/Visuals/Ui/Fonts/DSEG14Classic.ttf"));
+            TestAssets.Load<Font>("Assets/Visuals/Ui/Fonts/DSEG14Classic.ttf"),
+            TestAssets.Load<Material>("Assets/Visuals/Ui/Projection/CanopyText.mat"));
 
         [UnityTest]
         public IEnumerator PhaseDisplay_UsesTheSchedule_AndRebindsAfterExtraction()
@@ -94,6 +95,8 @@ namespace Tests.PlayMode.PlayerState
             var clock = readout.transform.Find("Phase display/Phase clock").GetComponent<Text>();
             var caption = readout.transform.Find("Phase display/Phase caption").GetComponent<Text>();
             var label = readout.transform.Find("Phase display/Label").GetComponent<Text>();
+            foreach (var text in readout.GetComponentsInChildren<Text>())
+                Assert.That(text.material, Is.SameAs(TestAssets.Load<Material>("Assets/Visuals/Ui/Projection/CanopyText.mat")));
             Assert.AreEqual("0:35", clock.text);
             Assert.AreEqual("NEXT PHASE", caption.text);
             Assert.Greater(readout.transform.Find("Phase display/Sector phase 2").GetComponent<RectTransform>().sizeDelta.x,

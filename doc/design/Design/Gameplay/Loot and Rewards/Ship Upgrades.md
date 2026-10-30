@@ -16,21 +16,21 @@ types]]:
 | Category | Slot | What it changes | Status |
 |---|---|---|---|
 | **Engines** | Engine | thrust, top speed, handling | **built**, locked to the chassis — the engine comes with the ship, not as an upgrade (#1028) |
-| **Shield** | Shield | max shield, regen delay/rate, (later) shape | **built** |
+| **Shield** | Shield | max shield, regen delay/rate, (later) shape | **built**, locked to the chassis — the shield comes with the ship, not as an upgrade (#1254) |
 | **[[Weapons]]** | Weapon ×2 | what each mount fires | **exists** (two mounts) |
 | **Ship Passives** | Passive / Keystone / Utility | always-on effects, signature ability, situational tools | **designed, deferred** |
 
 ## How an upgrade changes the ship: whole-module swap
 
 Per [[Ships]]' **disjoint-ownership** rule, a module *owns* its stats outright —
-so an upgrade is a **whole-module replacement**, not a stacked bonus. A better
-shield is a different Shield module that fully defines capacity/regen; slotting
-it *replaces* the old one (the engine comes with the ship, #1028). No arithmetic,
-no modifier stack (for now).
+so an upgrade is a **whole-module replacement**, not a stacked bonus. A different
+weapon fully defines what its mount fires; slotting it *replaces* the old one
+(the engine and shield come with the ship, #1028, #1254). No arithmetic, no
+modifier stack (for now).
 
 This means early upgrades are **sidegrades and identity choices**, not "+numbers"
-— a fast-regen light shield vs a big slow-regen shield, a railgun vs a ripper;
-the racing-vs-hauler engine contrast is a chassis choice, not a module (#1028).
+— a railgun vs a ripper; the light-vs-heavy shield and racing-vs-hauler engine
+contrasts are chassis choices, not modules (#1028, #1254).
 That fits the [[Combat Depth]] philosophy (every
 strong option costs you on another axis) better than a pure power ladder.
 
@@ -61,8 +61,8 @@ differs. This keeps loot, crafting, and the hangar unified over one model.
 ## Where upgrades are chosen
 
 - **[[Home Base]] hangar** — assemble your starting build for a run from
-  permanent modules ("choose your shield, your weapons"; the engine comes with
-  the ship, #1028).
+  permanent modules ("choose your weapons"; the engine and shield come with the
+  ship, #1028, #1254).
 - **Mid-run** — swap in run-scoped modules found as loot (subject to which slots
   a run allows swapping; see open question).
 - **Simulated drill field** ([[Home Base]]) — test a build against the AI
@@ -71,7 +71,7 @@ differs. This keeps loot, crafting, and the hangar unified over one model.
 ## Open questions
 
 - **Which slots swap mid-run vs lock at the hangar?** (The chassis/hull, and with
-  it the engine (#1028), likely locks for a run; shield/weapons maybe swappable at
+  it the engine and shield (#1028, #1254), likely locks for a run; weapons maybe swappable at
   POIs.) Ties to
   [[Rogue-like]] pacing.
 - **Do enemies drop the exact module they were using**, or from a loot table?

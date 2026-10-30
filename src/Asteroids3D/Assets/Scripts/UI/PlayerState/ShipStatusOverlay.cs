@@ -15,9 +15,10 @@ namespace UI.PlayerState
         private Camera worldCamera;
         private Canvas canvas;
         private Font font;
+        private Material textMaterial;
         private CanvasGroup visibility;
 
-        public static ShipStatusOverlay Create(Canvas hud, SubscribedSet<Ship> ships, Camera worldCamera, Font font)
+        public static ShipStatusOverlay Create(Canvas hud, SubscribedSet<Ship> ships, Camera worldCamera, Font font, Material textMaterial)
         {
             var root = new GameObject("Ship status overlay", typeof(RectTransform), typeof(Canvas), typeof(CanvasGroup));
             root.layer = hud.gameObject.layer;
@@ -28,6 +29,7 @@ namespace UI.PlayerState
             overlay.canvas.planeDistance = hud.worldCamera.nearClipPlane + .1f;
             overlay.canvas.sortingOrder = hud.sortingOrder - 1;
             overlay.worldCamera = worldCamera;
+            overlay.textMaterial = textMaterial;
             overlay.font = font;
             overlay.ships = ships;
             ships.OnAdd += overlay.Add;
@@ -45,7 +47,7 @@ namespace UI.PlayerState
         public void SetOpacity(float opacity) => visibility.alpha = opacity;
 
         private void Add(Ship ship) => indicators.Add(ship,
-            ShipStatusIndicator.Create(canvas, worldCamera, ship, font));
+            ShipStatusIndicator.Create(canvas, worldCamera, ship, font, textMaterial));
 
         private void Remove(Ship ship)
         {

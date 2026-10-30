@@ -255,7 +255,7 @@ namespace Tests.PlayMode
             var ship = Object.Instantiate(TestAssets.LoadCrimsonPrefab(), Vector3.zero, GamePlane.Rotation);
             spawned.Add(ship.gameObject);
             ship.Initialize(0, 0, Projectiles);
-            ship.Reequip(ship.Shield, TestAssets.Load<Railguns>(RailgunPrefabPath), null);
+            ship.Reequip(TestAssets.Load<Railguns>(RailgunPrefabPath), null);
             var railgun = (Railguns)ship.Weapons.Primary;
             // Long enough that the charge never fills and fires inside the test.
             railgun.Charge.Configure(chargeTime: 1f, minChargeToFire: 1f);
@@ -288,7 +288,7 @@ namespace Tests.PlayMode
             spawned.Add(ship.gameObject);
             ship.Initialize(0, 0, Projectiles);
             var rippers = TestAssets.Load<Rippers>(RippersPrefabPath);
-            ship.Reequip(ship.Shield, rippers, rippers);
+            ship.Reequip(rippers, rippers);
             var primary = ((Rippers)ship.Weapons.Primary).Rounds;
             var secondary = ((Rippers)ship.Weapons.Secondary).Rounds;
             primary.ProcessFire();

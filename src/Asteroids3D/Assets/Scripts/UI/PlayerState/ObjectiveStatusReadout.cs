@@ -20,7 +20,8 @@ namespace UI.PlayerState
         private ObjectiveTracker announcedTracker;
         private float openedAt;
 
-        public static ObjectiveStatusReadout Create(Transform parent, Font labelFont, Font headingFont, Font timerFont)
+        public static ObjectiveStatusReadout Create(Transform parent, Font labelFont, Font headingFont, Font timerFont,
+            Material textMaterial)
         {
             var go = new GameObject("ObjectiveStatusReadout", typeof(RectTransform));
             go.transform.SetParent(parent, false);
@@ -38,10 +39,10 @@ namespace UI.PlayerState
             display.pivot = new Vector2(.5f, 1f);
             display.anchoredPosition = new Vector2(0f, -40f);
             display.sizeDelta = new Vector2(420f, 100f);
-            var label = CreateText(display, "Label", labelFont, 18, 0f, new Vector2(420f, 28f));
-            var clock = CreateText(display, "Phase clock", timerFont, 23, 0f, new Vector2(240f, 32f));
-            var caption = CreateText(display, "Phase caption", labelFont, 5, -41f, new Vector2(420f, 24f));
-            var announcement = CreateText(go.transform, "Extraction announcement", headingFont, 13, 0f,
+            var label = CreateText(display, "Label", labelFont, textMaterial, 18, 0f, new Vector2(420f, 28f));
+            var clock = CreateText(display, "Phase clock", timerFont, textMaterial, 23, 0f, new Vector2(240f, 32f));
+            var caption = CreateText(display, "Phase caption", labelFont, textMaterial, 5, -41f, new Vector2(420f, 24f));
+            var announcement = CreateText(go.transform, "Extraction announcement", headingFont, textMaterial, 13, 0f,
                 new Vector2(420f, 28f));
             announcement.rectTransform.anchorMin = announcement.rectTransform.anchorMax = new Vector2(.5f, .5f);
             announcement.rectTransform.pivot = new Vector2(.5f, .5f);
@@ -57,7 +58,7 @@ namespace UI.PlayerState
             return readout;
         }
 
-        private static Text CreateText(Transform parent, string name, Font font, int size, float y, Vector2 bounds)
+        private static Text CreateText(Transform parent, string name, Font font, Material material, int size, float y, Vector2 bounds)
         {
             var text = new GameObject(name, typeof(RectTransform)).AddComponent<Text>();
             text.gameObject.layer = parent.gameObject.layer;
@@ -67,6 +68,7 @@ namespace UI.PlayerState
             text.rectTransform.anchoredPosition = new Vector2(0f, y);
             text.rectTransform.sizeDelta = bounds;
             text.font = font;
+            text.material = material;
             text.fontSize = size;
             text.color = Color.white;
             text.alignment = TextAnchor.UpperCenter;

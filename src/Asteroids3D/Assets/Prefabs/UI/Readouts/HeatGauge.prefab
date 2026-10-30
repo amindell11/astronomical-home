@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 2000000000000000004}
   - component: {fileID: 2000000000000000005}
   - component: {fileID: 2000000000000000006}
-  - component: {fileID: 2000000000000000007}
   m_Layer: 10
   m_Name: HeatGauge
   m_TagString: Untagged
@@ -60,7 +59,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Material: {fileID: 2100000, guid: fbbdf94b058d9d945a7b261e4acaf3d1, type: 2}
+  m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
@@ -92,10 +91,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fillImage: {fileID: 2000000000000000004}
   animator: {fileID: 0}
-  glowController: {fileID: 2000000000000000007}
-  normalGlowColor: {r: 0.47528592, g: 10.076063, b: 10.076063, a: 0.85490197}
-  overheatGlowColor: {r: 10.432949, g: 0, b: 0, a: 0.85490197}
-  overheatFlashSpeed: 9.25
+  normalColor: {r: 0.17338184, g: 1, b: 1, a: 1}
+  overheatColor: {r: 0.98, g: 0.41, b: 0.41, a: 1}
+  overheatPulseRate: 1.5
 --- !u!114 &2000000000000000006
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -116,24 +114,3 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
---- !u!114 &2000000000000000007
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2000000000000000001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 735aad0cefe7caa4eacb569c0d22a65b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  glowMaterial: {fileID: 0}
-  baseColor: {r: 1, g: 1, b: 1, a: 1}
-  emissionColor: {r: 10.432949, g: 0, b: 0, a: 0.85490197}
-  emissionIntensity: 0.65
-  enablePulsing: 0
-  pulseSpeed: 2
-  pulseRange: {x: 0.5, y: 1.5}
-  enableFlashing: 1
-  flashSpeed: 9.25

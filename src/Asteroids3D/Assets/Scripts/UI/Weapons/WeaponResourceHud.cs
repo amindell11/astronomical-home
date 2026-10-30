@@ -15,7 +15,7 @@ namespace UI.Weapons
         [SerializeField] private Color track = new(.639f, .651f, .667f, .3f);
         [SerializeField] private Color empty = new(.639f, .651f, .667f, .3f);
         [SerializeField] private Color threshold = new(.04f, .06f, .1f);
-        [SerializeField] private Color overheat = new(1f, .3f, .16f);
+        [SerializeField] private Color overheat = new(.98f, .41f, .41f);
 
         private sealed class Resource
         {
@@ -127,9 +127,10 @@ namespace UI.Weapons
                         break;
                     case IHeatReadout heat:
                         resource.Fill.fillAmount = 120f / 360f * heat.HeatPct;
-                        resource.Fill.color = heat.Overheated
-                            ? Color.Lerp(ink, overheat, .65f + .35f * Mathf.Sin(now * 12f))
-                            : ink;
+                        var brightness = .825f + .175f * Mathf.Sin(now * 1.5f * Mathf.PI * 2f);
+                        var color = heat.Overheated ? overheat * brightness : ink;
+                        color.a = heat.Overheated ? overheat.a : ink.a;
+                        resource.Fill.color = color;
                         break;
                     case IAmmoReadout ammo:
                         if (resource.Rounds != null)

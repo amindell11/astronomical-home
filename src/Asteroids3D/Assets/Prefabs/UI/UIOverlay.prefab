@@ -615,6 +615,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   minimapRect: {fileID: 4171153274029429517}
+  textMaterial: {fileID: 2100000, guid: 9b40b60b37593de4bb769186332c3e17, type: 2}
   crosshair: {fileID: 5249252180489586146}
   weaponResources: {fileID: 976607762061257238}
   labelFont: {fileID: 12800000, guid: 9067c25fb7ff3a64b858fbf6c004f4a3, type: 3}

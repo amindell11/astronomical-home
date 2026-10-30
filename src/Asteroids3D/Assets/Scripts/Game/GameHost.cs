@@ -18,6 +18,7 @@ using Ships.Loadout;
 using UI;
 using UI.Hangar;
 using UI.Recap;
+using UI.Projection;
 using UI.Screens;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -131,6 +132,9 @@ namespace Game
         private ObserverCam observer;
         private DriftCam hangarCamera;
         private PlayerRig rigInstance;
+        internal CanopyProjectionProfile canopyProfileOverride;
+
+        public CanopyProjection CanopyProjection => rigInstance ? rigInstance.Projection : null;
         private LoadingSplash splash;
         private GameMusic music;
 
@@ -195,7 +199,7 @@ namespace Game
                 // An asset gets no lifecycle, and state parked on it would outlive the session.
                 rigInstance = Instantiate(playerRig, transform);
                 yield return rigInstance.Build(session.Units, session.Objectives, presentation,
-                    observer, ui, session.Frame, BuildDeathCallback());
+                    observer, ui, session.Frame, BuildDeathCallback(), canopyProfileOverride);
                 rigInstance.Tally.Killed += RefillPlayerHull;
             }
 

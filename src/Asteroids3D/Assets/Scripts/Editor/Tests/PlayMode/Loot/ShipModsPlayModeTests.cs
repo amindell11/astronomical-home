@@ -111,7 +111,7 @@ namespace Tests.PlayMode.Loot
             yield return null;
             Assert.AreEqual(authored * 1.25f, ship.Damage.Health.MaxValue, 1e-3f, "the sector-load reset keeps the mod");
 
-            ship.Reequip(ship.Shield, ship.Weapons.PrimaryMountPrefab, ship.Weapons.SecondaryMountPrefab);
+            ship.Reequip(ship.Weapons.PrimaryMountPrefab, ship.Weapons.SecondaryMountPrefab);
             yield return null;
             Assert.AreEqual(authored * 1.25f, ship.Damage.Health.MaxValue, 1e-3f, "the hangar equip keeps the mod");
 
@@ -132,7 +132,7 @@ namespace Tests.PlayMode.Loot
             yield return null;
             var lasers = AssetDatabase.LoadAssetAtPath<Lasers>(LasersPrefabPath);
             Assert.IsNotNull(lasers, "Lasers prefab loads");
-            ship.Reequip(ship.Shield, lasers, ship.Weapons.SecondaryMountPrefab);
+            ship.Reequip(lasers, ship.Weapons.SecondaryMountPrefab);
             yield return null;
             var authoredHeat = lasers.GetComponent<Heat>().MaxHeat;
             var heat = ship.Weapons.Primary.GetComponent<Heat>();

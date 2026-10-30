@@ -129,7 +129,6 @@ namespace Tests.EditMode
         public void Draw_StaysInsidePool_AndLeavesTheSecondMountEmpty()
         {
             var pool = ScriptableObject.CreateInstance<ItemSubset>();
-            pool.shields = new[] { ScriptableObject.CreateInstance<ShieldModule>(), ScriptableObject.CreateInstance<ShieldModule>() };
             pool.weapons = new WeaponComponent[]
             {
                 _go.AddComponent<PoolWeapon>(), _go.AddComponent<PoolWeapon>(), _go.AddComponent<PoolWeapon>(),
@@ -138,12 +137,10 @@ namespace Tests.EditMode
             for (var i = 0; i < 200; i++)
             {
                 var draw = WaveDirector.Draw(null, pool);
-                CollectionAssert.Contains(pool.shields, draw.Shield);
                 CollectionAssert.Contains(pool.weapons, draw.PrimaryWeapon);
                 Assert.IsFalse(draw.SecondaryWeapon, "Products fly primary-only.");
             }
 
-            foreach (var module in pool.shields) Object.DestroyImmediate(module);
             Object.DestroyImmediate(pool);
         }
 

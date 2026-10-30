@@ -13,8 +13,8 @@ using Ships;
 using Ships.Loadout;
 using Ships.Command;
 using UI;
+using UI.Projection;
 using UnityEngine;
-using UnityEngine.Rendering.Universal;
 using Ships.Registry;
 using Substrate;
 
@@ -40,7 +40,7 @@ namespace Game
         [SerializeField] private Vector2 playerSpawnPosition = Vector2.zero;
 
         [Header("Camera")]
-        [SerializeField] private Camera uiCamPrefab;
+        [SerializeField] private CanopyProjection uiCamPrefab;
         [SerializeField] private Camera minimapCamPrefab;
 
         [Header("UI")]
@@ -83,6 +83,10 @@ namespace Game
         private Action<ShipId, DamageInfo> onPlayerDeath;
 
         private SessionFrame frame;
+        private CanopyProjection projection;
+
+        public CanopyProjection Projection => projection;
+        public CanopyProjectionProfile AuthoredCanopyProfile => uiCamPrefab.Profile;
 
         // The prefab the current Player instance was built from — a hangar ship change is detected
         // against this (the prefab is the archetype; see ShipLoadout.Ship).
@@ -98,7 +102,8 @@ namespace Game
         /// already has a subscriber.
         /// </summary>
         public IEnumerator Build(IUnitService units, IObjectiveService objectives, bool presentationEnabled,
-            ObserverCam observer, Transform uiRoot, SessionFrame frame, Action<ShipId, DamageInfo> onPlayerDeath)
+            ObserverCam observer, Transform uiRoot, SessionFrame frame, Action<ShipId, DamageInfo> onPlayerDeath,
+            CanopyProjectionProfile canopyProfileOverride = null)
         {
             this.units = units;
             this.observer = observer;
@@ -113,7 +118,7 @@ namespace Game
             Ledger.Bind(Player.Damage, units.Registry);
 
             // Seed the pending loadout from the ship's authored build so an unedited hangar is a no-op.
-            Loadout = new ShipLoadout(playerTemplate, Player.Shield,
+            Loadout = new ShipLoadout(playerTemplate,
                 Player.Weapons ? Player.Weapons.PrimaryMountPrefab : null,
                 Player.Weapons ? Player.Weapons.SecondaryMountPrefab : null);
 
@@ -122,9 +127,9 @@ namespace Game
             {
                 if (!minimapCamPrefab)
                     throw new InvalidOperationException($"PlayerRig on '{name}' needs a minimap camera for its HUD.");
-                var uiCam = Instantiate(uiCamPrefab, observer.transform);
-                uiCam.GetUniversalAdditionalCameraData().renderType = CameraRenderType.Overlay;
-                observer.Cam.GetUniversalAdditionalCameraData().cameraStack.Add(uiCam);
+                projection = Instantiate(uiCamPrefab, observer.transform);
+                projection.Initialize(observer.Cam, canopyProfileOverride);
+                var uiCam = projection.Camera;
 
                 Overlay = Instantiate(overlayPrefab, uiRoot);
                 Overlay.ConfigureCameras(uiCam, observer.Cam);
@@ -148,6 +153,9 @@ namespace Game
             Spawns.Bind(null, null);
             if (Overlay)
                 Destroy(Overlay.gameObject);
+            if (projection)
+                Destroy(projection.gameObject);
+            projection = null;
             Overlay = null;
             Player = null;
             observer = null;
@@ -172,9 +180,9 @@ namespace Game
         }
 
         /// <summary>
-        /// Install the pending <see cref="Loadout"/> onto the persistent player ship. A module change
-        /// is a data re-resolve (<see cref="Ship.Reequip"/>); a ship change is a whole-player rebuild
-        /// (<see cref="RebuildPlayer"/>) followed by the module equip. Called at each run's
+        /// Install the pending <see cref="Loadout"/> onto the persistent player ship. A weapon change
+        /// is a mount swap (<see cref="Ship.Reequip"/>); a ship change is a whole-player rebuild
+        /// (<see cref="RebuildPlayer"/>) followed by the weapon equip. Called at each run's
         /// hangar step — never mid-sector; leaves the player live for the next sector load.
         /// </summary>
         public void ApplyLoadout()
@@ -194,7 +202,7 @@ namespace Game
             if (Loadout.Ship && Loadout.Ship != currentTemplate)
                 RebuildPlayer(Loadout.Ship);
 
-            Player.Reequip(Loadout.Shield, Loadout.PrimaryWeapon, Loadout.SecondaryWeapon);
+            Player.Reequip(Loadout.PrimaryWeapon, Loadout.SecondaryWeapon);
 
             // Swapped-in weapon mounts carry world-facing parts (lock sensor) that the service
             // wired at spawn; ask it to re-wire (the player is never AI, so no field), then re-bind the HUD.

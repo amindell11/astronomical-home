@@ -49,6 +49,7 @@ namespace Tests.EditMode.Bootstrap
                 Assert.IsTrue(host.gameObject.activeSelf);
                 Assert.That(host.RecapFeel, Is.SameAs(copies.For(host.gameHostPrefab.recapFeel)));
                 Assert.That(host.JumpFeel, Is.SameAs(copies.For(host.gameHostPrefab.jumpFeel)));
+                Assert.That(host.CanopyFeel, Is.SameAs(copies.For(host.gameHostPrefab.playerRig.AuthoredCanopyProfile)));
                 Assert.IsFalse(AssetDatabase.Contains(host.RecapFeel), "the host never runs on the asset itself");
             }
             finally

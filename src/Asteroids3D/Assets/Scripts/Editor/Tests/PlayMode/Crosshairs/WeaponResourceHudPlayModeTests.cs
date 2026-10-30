@@ -96,6 +96,51 @@ namespace Tests.PlayMode.Crosshairs
             Assert.That(builder.Panels.Count, Is.EqualTo(weaponName == "Missiles" ? 2 : 0));
         }
 
+        [UnityTest]
+        public IEnumerator HeatLockout_PulsesCoralWhileCooling_ThenRestoresInk()
+        {
+            var controller = Bind("Lasers");
+            var heat = controller.Primary.GetComponent<Heat>();
+            heat.enabled = false;
+            heat.Configure(100f, 100f, 20f, 0f, 0f);
+            var fill = ImageAt("PrimaryResources/Fill");
+            var span = ImageAt("PrimaryResources/Track").fillAmount;
+            var ink = fill.color;
+            heat.ProcessFire();
+            heat.Tick(1f);
+            Draw();
+            Assert.That(heat.Overheated, Is.True);
+            Assert.That(fill.fillAmount, Is.EqualTo(span * .8f).Within(.001f));
+
+            var minimum = 1f;
+            var maximum = 0f;
+            var until = Time.realtimeSinceStartup + .8f;
+            while (Time.realtimeSinceStartup < until)
+            {
+                yield return null;
+                Draw();
+                var color = fill.color;
+                Assert.That(color.g / color.r, Is.EqualTo(.41f / .98f).Within(.001f));
+                Assert.That(color.b / color.r, Is.EqualTo(.41f / .98f).Within(.001f));
+                Assert.That(color.a, Is.EqualTo(1f));
+                Assert.That(ImageAt("SecondaryResources/Fill").color, Is.EqualTo(ink));
+                minimum = Mathf.Min(minimum, color.r);
+                maximum = Mathf.Max(maximum, color.r);
+            }
+            Assert.That(maximum - minimum, Is.GreaterThan(.2f));
+            Assert.That(minimum, Is.GreaterThanOrEqualTo(.98f * .65f - .001f));
+            Assert.That(maximum, Is.LessThanOrEqualTo(.98f + .001f));
+
+            heat.Tick(5f);
+            Draw();
+            Assert.That(heat.Overheated, Is.False);
+            Assert.That(fill.fillAmount, Is.Zero);
+            Assert.That(fill.color, Is.EqualTo(ink));
+            yield return null;
+            Draw();
+            Assert.That(fill.color, Is.EqualTo(ink));
+        }
+
         [TestCase("ChargeLasers")]
         [TestCase("Railgun")]
         public void HeldCharge_FillsTheWeaponArc_AndFiringClearsIt(string weaponName)
