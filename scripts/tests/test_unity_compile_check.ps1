@@ -69,16 +69,20 @@ $projects
 "@
 }
 
+# Not Start-Process -Wait: it also waits on the build nodes dotnet build leaves running.
 function Invoke-CheckScript {
     param([string]$ProjectPath, [string]$StateDir)
-    $out = Join-Path $StateDir "..\stdout.txt"
-    $err = Join-Path $StateDir "..\stderr.txt"
-    $process = Start-Process powershell -Wait -PassThru -NoNewWindow -RedirectStandardOutput $out -RedirectStandardError $err -ArgumentList @(
-        "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "`"$checkScript`"", "-ProjectPath", "`"$ProjectPath`"", "-StateDir", "`"$StateDir`"")
+    $previousEap = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        $raw = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $checkScript -ProjectPath $ProjectPath -StateDir $StateDir 2>&1)
+        $exitCode = $LASTEXITCODE
+    }
+    finally { $ErrorActionPreference = $previousEap }
     return [pscustomobject]@{
-        exitCode = $process.ExitCode
-        stdout = ([System.IO.File]::ReadAllText($out)).Trim()
-        stderr = [System.IO.File]::ReadAllText($err)
+        exitCode = $exitCode
+        stdout = (@($raw | Where-Object { $_ -isnot [System.Management.Automation.ErrorRecord] }) -join "`n").Trim()
+        stderr = @($raw | Where-Object { $_ -is [System.Management.Automation.ErrorRecord] } | ForEach-Object { [string]$_ }) -join "`n"
     }
 }
 
