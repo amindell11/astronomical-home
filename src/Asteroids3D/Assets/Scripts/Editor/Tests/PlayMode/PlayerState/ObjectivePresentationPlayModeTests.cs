@@ -78,9 +78,9 @@ namespace Tests.PlayMode.PlayerState
         }
 
         private ObjectiveStatusReadout CreateReadout() => ObjectiveStatusReadout.Create(canvas.transform,
-            TestAssets.Load<Font>("Assets/Visuals/Ui/Fonts/IBMPlexSans.ttf"),
+            TestAssets.Load<Font>("Assets/Visuals/Ui/Fonts/Rajdhani-Medium.ttf"),
             TestAssets.Load<Font>("Assets/Visuals/Ui/Fonts/Michroma.ttf"),
-            TestAssets.Load<Font>("Assets/Visuals/Ui/Fonts/DSEG14Classic.ttf"),
+            TestAssets.Load<Font>("Assets/Visuals/Ui/Fonts/Orbitron-Medium.ttf"),
             TestAssets.Load<Material>("Assets/Visuals/Ui/Projection/CanopyText.mat"));
 
         [UnityTest]
@@ -98,6 +98,7 @@ namespace Tests.PlayMode.PlayerState
             foreach (var text in readout.GetComponentsInChildren<Text>())
                 Assert.That(text.material, Is.SameAs(TestAssets.Load<Material>("Assets/Visuals/Ui/Projection/CanopyText.mat")));
             Assert.AreEqual("0:35", clock.text);
+            Assert.AreEqual("Orbitron-Medium", clock.font.name);
             Assert.AreEqual("NEXT PHASE", caption.text);
             Assert.Greater(readout.transform.Find("Phase display/Sector phase 2").GetComponent<RectTransform>().sizeDelta.x,
                 readout.transform.Find("Phase display/Sector phase 1").GetComponent<RectTransform>().sizeDelta.x);
@@ -115,7 +116,7 @@ namespace Tests.PlayMode.PlayerState
             yield return new WaitForSecondsRealtime(2.2f);
             Assert.IsFalse(clock.enabled);
             Assert.AreEqual("EXTRACTION OPEN", label.text);
-            Assert.AreEqual("IBMPlexSans", label.font.name);
+            Assert.AreEqual("Rajdhani-Medium", label.font.name);
             Assert.AreEqual("PRESS F TO JUMP", caption.text);
             Assert.IsFalse(announcement.enabled);
             service.ClearAll();
