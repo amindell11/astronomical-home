@@ -72,9 +72,15 @@ namespace Tests.EditMode
             if (targetHost) UnityEngine.Object.DestroyImmediate(targetHost);
         }
 
-        private ArchetypeBrain NewBrain(OpponentArchetype archetype, Ship target)
+        private ArchetypeBrain NewBrain(OpponentArchetype archetype, Ship target, bool liveTargeting = false)
         {
             var brain = brainHost.AddComponent<ArchetypeBrain>();
+            if (liveTargeting)
+            {
+                var serialized = new SerializedObject(brain);
+                serialized.FindProperty("liveTargeting").boolValue = true;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+            }
             var shape = Shape();
             brain.Configure(target, archetype, in shape, JukeSeed, Vector2.zero, borderRadius: 500f);
             return brain;
@@ -146,6 +152,36 @@ namespace Tests.EditMode
             Assert.AreEqual(Vector2.zero, decision.Value.nav.planarVelocity);
             Assert.IsFalse(decision.Value.nav.TryGetAnchorId(out _), "the Dummy never packs against a target");
             Assert.IsFalse(decision.Value.engagePrimary);
+        }
+
+        // The test context never acquires an enemy, so Decide drops the Configured target.
+        [Test]
+        public void Decide_LiveTargeting_TargetGone_CruisesItsHeadingUnanchored()
+        {
+            var target = targetHost.AddComponent<Ship>();
+            var brain = NewBrain(OpponentArchetype.Aggressor, target, liveTargeting: true);
+            targetHost.SetActive(false);
+            var self = new Kinematics(new Vector2(3f, -4f), Vector2.zero, 90f, 0f, 0f);
+
+            var decision = brain.Decide(Ctx(self));
+
+            Assert.IsTrue(decision.HasValue, "a pilot whose target is gone keeps flying");
+            Assert.AreEqual(self.Forward * (Shape().speedFraction * Dynamics.Default.maxSpeed),
+                decision.Value.nav.planarVelocity, "inside the border it cruises its own heading at patrol speed");
+            Assert.IsFalse(decision.Value.nav.TryGetAnchorId(out _));
+            Assert.IsFalse(decision.Value.engagePrimary);
+            Assert.IsFalse(decision.Value.engageSecondary);
+        }
+
+        [Test]
+        public void Decide_LiveTargeting_TargetConcealed_ReturnsNoDecision()
+        {
+            var target = targetHost.AddComponent<Ship>();
+            var brain = NewBrain(OpponentArchetype.Aggressor, target, liveTargeting: true);
+            target.Lock.Conceal();
+
+            Assert.IsNull(brain.Decide(Ctx(default)),
+                "the commander hunts a concealed target's last-seen point only on a null decision");
         }
 
         [Test]

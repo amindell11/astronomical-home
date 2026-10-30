@@ -58,6 +58,7 @@ namespace RL.Opponents
         [SerializeField, Range(0f, 180f)] private float boostAlignment = 30f;
 
         private Ship target;
+        private Ship droppedTarget;
         private Vector2 arenaCenter;
         private bool borderAnchored;
 
@@ -112,18 +113,31 @@ namespace RL.Opponents
 
             if (liveTargeting && ctx.Combat.Enemy != target)
             {
+                droppedTarget = target;
                 target = ctx.Combat.Enemy;
                 ResetState();
             }
 
-            if (archetype != OpponentArchetype.Dummy
-                && (!target || !target.gameObject.activeInHierarchy))
-                return null;
+            // Null on a concealed target lets the commander hunt its last-seen point.
+            if (archetype != OpponentArchetype.Dummy && IsGone(target))
+                return liveTargeting && !IsConcealed(droppedTarget) ? Roam(ctx.Self) : null;
 
             if (tickCounter % RecomputeIntervalTicks == 0)
                 cachedDecision = BuildDecision(ctx);
             tickCounter++;
             return cachedDecision;
+        }
+
+        private static bool IsGone(Ship ship) => !ship || !ship.gameObject.activeInHierarchy;
+
+        private static bool IsConcealed(Ship ship) => !IsGone(ship) && ship.Lock.IsConcealed;
+
+        private BrainDecision Roam(IShipStatus status)
+        {
+            var self = status.Kinematics;
+            var cruise = self.Forward * (shape.speedFraction * status.Dynamics.maxSpeed);
+            return new BrainDecision(NavObjective.Planar(ArchetypeSteering.BorderTangentSteer(self.pos, cruise,
+                arenaCenter, borderRadius, ArchetypeSteering.BorderMargin)));
         }
 
         private BrainDecision BuildDecision(AIContext ctx)
