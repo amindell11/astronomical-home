@@ -1,0 +1,28 @@
+{
+  "success": true,
+  "command": "command eval_file",
+  "data": {
+    "command": "eval_file",
+    "parameters": {
+      "file": "D:/amind/git/agent-5/results/canopy-tuning/live-revert.cs"
+    },
+    "result": {
+      "output": null,
+      "diagnostics": [],
+      "success": true,
+      "result": {
+        "hadUnsaved": true,
+        "cleanAfterRevert": true,
+        "enabled": true,
+        "importWindowCount": 1
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7800,
+      "projectPath": "D:\\amind\\git\\agent-5\\src\\Asteroids3D"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

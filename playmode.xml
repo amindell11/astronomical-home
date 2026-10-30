@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="8" result="Passed" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-30 02:58:58Z" end-time="2026-10-30 02:59:04Z" duration="5.6943123">
+  <test-suite type="TestSuite" id="1628" name="Astronomical" fullname="Astronomical" runstate="Runnable" testcasecount="473" result="Passed" start-time="2026-10-30 02:58:58Z" end-time="2026-10-30 02:59:04Z" duration="5.694312" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1596" name="Tests.PlayMode.dll" fullname="D:/amind/git/agent-5/src/Asteroids3D/Library/ScriptAssemblies/Tests.PlayMode.dll" runstate="Runnable" testcasecount="469" result="Passed" start-time="2026-10-30 02:58:58Z" end-time="2026-10-30 02:59:04Z" duration="5.677907" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="39276" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1597" name="Tests" fullname="Tests" runstate="Runnable" testcasecount="469" result="Passed" start-time="2026-10-30 02:58:58Z" end-time="2026-10-30 02:59:04Z" duration="5.670441" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1598" name="PlayMode" fullname="Tests.PlayMode" runstate="Runnable" testcasecount="469" result="Passed" start-time="2026-10-30 02:58:58Z" end-time="2026-10-30 02:59:04Z" duration="5.662681" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1605" name="Preview" fullname="Tests.PlayMode.Preview" runstate="Runnable" testcasecount="18" result="Passed" start-time="2026-10-30 02:58:58Z" end-time="2026-10-30 02:59:01Z" duration="2.514569" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1401" name="PreviewPlayModeTests" fullname="Tests.PlayMode.Preview.PreviewPlayModeTests" classname="Tests.PlayMode.Preview.PreviewPlayModeTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-10-30 02:58:58Z" end-time="2026-10-30 02:59:01Z" duration="2.507620" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="Category" value="Bootstrap" />
+                <property name="Category" value="RequiresGraphics" />
+              </properties>
+              <test-case id="1405" name="CanopyWorkingProfile_ControlsForcedStatesAndBothOffSwitches_AndSelectionRestartsCombat" fullname="Tests.PlayMode.Preview.PreviewPlayModeTests.CanopyWorkingProfile_ControlsForcedStatesAndBothOffSwitches_AndSelectionRestartsCombat" methodname="CanopyWorkingProfile_ControlsForcedStatesAndBothOffSwitches_AndSelectionRestartsCombat" classname="Tests.PlayMode.Preview.PreviewPlayModeTests" runstate="Runnable" seed="279755903" result="Passed" start-time="2026-10-30 02:58:58Z" end-time="2026-10-30 02:59:01Z" duration="2.405523" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[FMOD] Please add an 'FMOD Studio Listener' component to your camera in the scene for correct 3D positioning of sounds.
+]]></output>
+              </test-case>
+              <test-case id="1404" name="Playtest_RunsTheHandedFeels_AndAJumpFeelChangeRestartsCombat" fullname="Tests.PlayMode.Preview.PreviewPlayModeTests.Playtest_RunsTheHandedFeels_AndAJumpFeelChangeRestartsCombat" methodname="Playtest_RunsTheHandedFeels_AndAJumpFeelChangeRestartsCombat" classname="Tests.PlayMode.Preview.PreviewPlayModeTests" runstate="Runnable" seed="1767526181" result="Passed" start-time="2026-10-30 02:59:01Z" end-time="2026-10-30 02:59:01Z" duration="0.078706" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+          </test-suite>
+          <test-suite type="TestSuite" id="1602" name="Rendering" fullname="Tests.PlayMode.Rendering" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-30 02:59:01Z" end-time="2026-10-30 02:59:04Z" duration="3.122728" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="1603" name="Projection" fullname="Tests.PlayMode.Rendering.Projection" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-30 02:59:01Z" end-time="2026-10-30 02:59:04Z" duration="3.122165" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1370" name="CanopyProjectionPlayModeTests" fullname="Tests.PlayMode.Rendering.Projection.CanopyProjectionPlayModeTests" classname="Tests.PlayMode.Rendering.Projection.CanopyProjectionPlayModeTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-30 02:59:01Z" end-time="2026-10-30 02:59:04Z" duration="3.121366" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties>
+                  <property name="Category" value="UI" />
+                  <property name="Category" value="RequiresGraphics" />
+                </properties>
+                <test-case id="1373" name="BloomUsesTheAlphaMask_IsolatedTextAddsLightWithoutAHalo" fullname="Tests.PlayMode.Rendering.Projection.CanopyProjectionPlayModeTests.BloomUsesTheAlphaMask_IsolatedTextAddsLightWithoutAHalo" methodname="BloomUsesTheAlphaMask_IsolatedTextAddsLightWithoutAHalo" classname="Tests.PlayMode.Rendering.Projection.CanopyProjectionPlayModeTests" runstate="Runnable" seed="1017232430" result="Passed" start-time="2026-10-30 02:59:01Z" end-time="2026-10-30 02:59:01Z" duration="0.035251" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1376" name="CameraPairRendersThroughTheFeature_AndResizesItsTarget" fullname="Tests.PlayMode.Rendering.Projection.CanopyProjectionPlayModeTests.CameraPairRendersThroughTheFeature_AndResizesItsTarget" methodname="CameraPairRendersThroughTheFeature_AndResizesItsTarget" classname="Tests.PlayMode.Rendering.Projection.CanopyProjectionPlayModeTests" runstate="Runnable" seed="1583740463" result="Passed" start-time="2026-10-30 02:59:01Z" end-time="2026-10-30 02:59:04Z" duration="3.049884" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1371" name="EveryEffectAtMaximum_LeavesAnEmptyHudSceneUnchanged_AndLightNeverDarkensIt" fullname="Tests.PlayMode.Rendering.Projection.CanopyProjectionPlayModeTests.EveryEffectAtMaximum_LeavesAnEmptyHudSceneUnchanged_AndLightNeverDarkensIt" methodname="EveryEffectAtMaximum_LeavesAnEmptyHudSceneUnchanged_AndLightNeverDarkensIt" classname="Tests.PlayMode.Rendering.Projection.CanopyProjectionPlayModeTests" runstate="Runnable" seed="1893976578" result="Passed" start-time="2026-10-30 02:59:04Z" end-time="2026-10-30 02:59:04Z" duration="0.015896" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1372" name="GlassWarpKeepsTheCenterStill_AndBendsBothSidesSymmetrically" fullname="Tests.PlayMode.Rendering.Projection.CanopyProjectionPlayModeTests.GlassWarpKeepsTheCenterStill_AndBendsBothSidesSymmetrically" methodname="GlassWarpKeepsTheCenterStill_AndBendsBothSidesSymmetrically" classname="Tests.PlayMode.Rendering.Projection.CanopyProjectionPlayModeTests" runstate="Runnable" seed="996965296" result="Passed" start-time="2026-10-30 02:59:04Z" end-time="2026-10-30 02:59:04Z" duration="0.005685" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1374" name="HistoryKeepsTheBrighterCurrentOrDecayedChannel_AndZeroDecayClearsIt" fullname="Tests.PlayMode.Rendering.Projection.CanopyProjectionPlayModeTests.HistoryKeepsTheBrighterCurrentOrDecayedChannel_AndZeroDecayClearsIt" methodname="HistoryKeepsTheBrighterCurrentOrDecayedChannel_AndZeroDecayClearsIt" classname="Tests.PlayMode.Rendering.Projection.CanopyProjectionPlayModeTests" runstate="Runnable" seed="1405718091" result="Passed" start-time="2026-10-30 02:59:04Z" end-time="2026-10-30 02:59:04Z" duration="0.005962" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1375" name="TextShaderAddsRgbAndPreservesDestinationAlpha" fullname="Tests.PlayMode.Rendering.Projection.CanopyProjectionPlayModeTests.TextShaderAddsRgbAndPreservesDestinationAlpha" methodname="TextShaderAddsRgbAndPreservesDestinationAlpha" classname="Tests.PlayMode.Rendering.Projection.CanopyProjectionPlayModeTests" runstate="Runnable" seed="433372520" result="Passed" start-time="2026-10-30 02:59:04Z" end-time="2026-10-30 02:59:04Z" duration="0.005143" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[Saving results to: C:/Users/amind/AppData/LocalLow/AryeGames/Astronomical\TestResults.xml
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

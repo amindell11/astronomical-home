@@ -1,0 +1,31 @@
+{
+  "success": true,
+  "command": "command eval_file",
+  "data": {
+    "command": "eval_file",
+    "parameters": {
+      "file": "D:/amind/git/agent-5/results/canopy-tuning/live-force.cs"
+    },
+    "result": {
+      "output": null,
+      "diagnostics": [],
+      "success": true,
+      "result": {
+        "forced": "BigMoment",
+        "active": "BigMoment",
+        "glow": 1.1,
+        "aberration": 4,
+        "expected": 1.1,
+        "effective": false,
+        "assetDirty": false
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7800,
+      "projectPath": "D:\\amind\\git\\agent-5\\src\\Asteroids3D"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

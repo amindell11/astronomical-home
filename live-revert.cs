@@ -1,0 +1,12 @@
+var host=UnityEngine.Object.FindFirstObjectByType<Game.Preview.PreviewHost>();
+var copy=host.CanopyFeel;
+var type=typeof(Game.Preview.PreviewHostBootstrap).Assembly.GetType("Game.Preview.FeelWorkingCopies");
+var store=type.GetProperty("Current").GetValue(null);
+var before=(bool)type.GetMethod("HasUnsavedEdits").Invoke(store,new object[]{copy});
+type.GetMethod("Revert").Invoke(store,new object[]{copy});
+var after=(bool)type.GetMethod("HasUnsavedEdits").Invoke(store,new object[]{copy});
+var importType=typeof(Game.Preview.PreviewHostBootstrap).Assembly.GetType("UI.Projection.CanopyTunerImportWindow");
+var imports=UnityEngine.Resources.FindObjectsOfTypeAll(importType);
+foreach(var item in imports) ((UnityEditor.EditorWindow)item).Close();
+UnityEngine.Time.timeScale=1f;
+return new { hadUnsaved=before, cleanAfterRevert=!after, enabled=copy.personalityEnabled, importWindowCount=imports.Length };

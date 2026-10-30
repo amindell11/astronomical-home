@@ -1,0 +1,20 @@
+{
+  "base": "6cef1bebc63c7bcd05dfbc463fa01366504143ed",
+  "editmode": "38/38 passed",
+  "graphics_playmode": "8/8 passed",
+  "live": {
+    "combat_working_copy": true,
+    "renderer_uses_same_copy": true,
+    "forced_big_moment_glow": 1.1,
+    "forced_big_moment_aberration": 4,
+    "profile_off_effective": false,
+    "asset_dirty": false,
+    "revert_restored_enabled": true,
+    "import_menu_opened": true,
+    "canopy_panel_visually_observed": true
+  },
+  "limitations": [
+    "Native screenshot capture alternated between editor windows; no screenshot file is retained. Live force/off/revert proof is in the routed Unity CLI JSON logs."
+  ],
+  "unity_cleanup": "canopy-tuning-proof editor closed and lease released; coordinator status has no owner, boot, or queue for this lease."
+}

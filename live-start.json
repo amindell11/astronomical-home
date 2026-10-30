@@ -1,0 +1,30 @@
+{
+  "success": true,
+  "command": "command eval_file",
+  "data": {
+    "command": "eval_file",
+    "parameters": {
+      "file": "D:/amind/git/agent-5/results/canopy-tuning/live-start.cs"
+    },
+    "result": {
+      "output": null,
+      "diagnostics": [],
+      "success": true,
+      "result": {
+        "IsReady": true,
+        "Mode": 1,
+        "PlaytestSetup": 0,
+        "hasCopy": true,
+        "same": true,
+        "saved": true
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7800,
+      "projectPath": "D:\\amind\\git\\agent-5\\src\\Asteroids3D"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

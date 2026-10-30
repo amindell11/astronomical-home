@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="38" result="Passed" total="38" passed="38" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-30 02:57:55Z" end-time="2026-10-30 02:57:59Z" duration="4.0261214">
+  <test-suite type="TestSuite" id="1000" name="Astronomical" fullname="Astronomical" runstate="Runnable" testcasecount="1096" result="Passed" start-time="2026-10-30 02:57:55Z" end-time="2026-10-30 02:57:59Z" duration="4.026121" total="38" passed="38" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="2308" name="Tests.EditMode.dll" fullname="D:/amind/git/agent-5/src/Asteroids3D/Library/ScriptAssemblies/Tests.EditMode.dll" runstate="Runnable" testcasecount="1096" result="Passed" start-time="2026-10-30 02:57:55Z" end-time="2026-10-30 02:57:59Z" duration="4.007306" total="38" passed="38" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="35080" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="2309" name="Tests" fullname="Tests" runstate="Runnable" testcasecount="1096" result="Passed" start-time="2026-10-30 02:57:55Z" end-time="2026-10-30 02:57:59Z" duration="4.001716" total="38" passed="38" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="2310" name="EditMode" fullname="Tests.EditMode" runstate="Runnable" testcasecount="1096" result="Passed" start-time="2026-10-30 02:57:55Z" end-time="2026-10-30 02:57:59Z" duration="3.997122" total="38" passed="38" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="2326" name="Bootstrap" fullname="Tests.EditMode.Bootstrap" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-30 02:57:55Z" end-time="2026-10-30 02:57:56Z" duration="0.402250" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="2296" name="PreviewHostBootstrapEditModeTests" fullname="Tests.EditMode.Bootstrap.PreviewHostBootstrapEditModeTests" classname="Tests.EditMode.Bootstrap.PreviewHostBootstrapEditModeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-30 02:57:55Z" end-time="2026-10-30 02:57:56Z" duration="0.400737" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="Category" value="Bootstrap" />
+              </properties>
+              <test-case id="2300" name="Activate_RunsTheHostOnWorkingCopiesOfTheShippedFeels" fullname="Tests.EditMode.Bootstrap.PreviewHostBootstrapEditModeTests.Activate_RunsTheHostOnWorkingCopiesOfTheShippedFeels" methodname="Activate_RunsTheHostOnWorkingCopiesOfTheShippedFeels" classname="Tests.EditMode.Bootstrap.PreviewHostBootstrapEditModeTests" runstate="Runnable" seed="1373571772" result="Passed" start-time="2026-10-30 02:57:55Z" end-time="2026-10-30 02:57:56Z" duration="0.343278" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="2301" name="BootScene_InstancesTheGameHostPrefab_WithNoOverrides" fullname="Tests.EditMode.Bootstrap.PreviewHostBootstrapEditModeTests.BootScene_InstancesTheGameHostPrefab_WithNoOverrides" methodname="BootScene_InstancesTheGameHostPrefab_WithNoOverrides" classname="Tests.EditMode.Bootstrap.PreviewHostBootstrapEditModeTests" runstate="Runnable" seed="1937134766" result="Passed" start-time="2026-10-30 02:57:56Z" end-time="2026-10-30 02:57:56Z" duration="0.022727" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="2299" name="BuildHost_AssignsModeTheShippedGameHostAndTheFixtureSectors" fullname="Tests.EditMode.Bootstrap.PreviewHostBootstrapEditModeTests.BuildHost_AssignsModeTheShippedGameHostAndTheFixtureSectors" classname="Tests.EditMode.Bootstrap.PreviewHostBootstrapEditModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-30 02:57:56Z" end-time="2026-10-30 02:57:56Z" duration="0.011852" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2297" name="BuildHost_AssignsModeTheShippedGameHostAndTheFixtureSectors(Inspection)" fullname="Tests.EditMode.Bootstrap.PreviewHostBootstrapEditModeTests.BuildHost_AssignsModeTheShippedGameHostAndTheFixtureSectors(Inspection)" methodname="BuildHost_AssignsModeTheShippedGameHostAndTheFixtureSectors" classname="Tests.EditMode.Bootstrap.PreviewHostBootstrapEditModeTests" runstate="Runnable" seed="1216322514" result="Passed" start-time="2026-10-30 02:57:56Z" end-time="2026-10-30 02:57:56Z" duration="0.005872" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="2298" name="BuildHost_AssignsModeTheShippedGameHostAndTheFixtureSectors(Playtest)" fullname="Tests.EditMode.Bootstrap.PreviewHostBootstrapEditModeTests.BuildHost_AssignsModeTheShippedGameHostAndTheFixtureSectors(Playtest)" methodname="BuildHost_AssignsModeTheShippedGameHostAndTheFixtureSectors" classname="Tests.EditMode.Bootstrap.PreviewHostBootstrapEditModeTests" runstate="Runnable" seed="1914339551" result="Passed" start-time="2026-10-30 02:57:56Z" end-time="2026-10-30 02:57:56Z" duration="0.000909" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+          <test-suite type="TestSuite" id="2322" name="Preview" fullname="Tests.EditMode.Preview" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-30 02:57:56Z" end-time="2026-10-30 02:57:59Z" duration="3.515362" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="2270" name="FeelWorkingCopiesEditModeTests" fullname="Tests.EditMode.Preview.FeelWorkingCopiesEditModeTests" classname="Tests.EditMode.Preview.FeelWorkingCopiesEditModeTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-30 02:57:56Z" end-time="2026-10-30 02:57:59Z" duration="3.513983" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="Category" value="Bootstrap" />
+              </properties>
+              <test-case id="2274" name="CanopyNestedEditsAndImport_StayOnTheCopyUntilSave_AndRevertRestoresTheSavedBlock" fullname="Tests.EditMode.Preview.FeelWorkingCopiesEditModeTests.CanopyNestedEditsAndImport_StayOnTheCopyUntilSave_AndRevertRestoresTheSavedBlock" methodname="CanopyNestedEditsAndImport_StayOnTheCopyUntilSave_AndRevertRestoresTheSavedBlock" classname="Tests.EditMode.Preview.FeelWorkingCopiesEditModeTests" runstate="Runnable" seed="2045648832" result="Passed" start-time="2026-10-30 02:57:56Z" end-time="2026-10-30 02:57:57Z" duration="0.798455" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="2272" name="EditThenDiscard_LeavesTheAssetFileByteForByteUnchanged_AndNeverDirty" fullname="Tests.EditMode.Preview.FeelWorkingCopiesEditModeTests.EditThenDiscard_LeavesTheAssetFileByteForByteUnchanged_AndNeverDirty" methodname="EditThenDiscard_LeavesTheAssetFileByteForByteUnchanged_AndNeverDirty" classname="Tests.EditMode.Preview.FeelWorkingCopiesEditModeTests" runstate="Runnable" seed="818595349" result="Passed" start-time="2026-10-30 02:57:57Z" end-time="2026-10-30 02:57:57Z" duration="0.490999" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="2271" name="For_GivesOneInMemoryCopyPerAsset_AndCloseDestroysIt" fullname="Tests.EditMode.Preview.FeelWorkingCopiesEditModeTests.For_GivesOneInMemoryCopyPerAsset_AndCloseDestroysIt" methodname="For_GivesOneInMemoryCopyPerAsset_AndCloseDestroysIt" classname="Tests.EditMode.Preview.FeelWorkingCopiesEditModeTests" runstate="Runnable" seed="1531858325" result="Passed" start-time="2026-10-30 02:57:57Z" end-time="2026-10-30 02:57:58Z" duration="0.463955" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="2276" name="Resolve_AsksOnlyWhenACopyHoldsUnsavedEdits_AndNamesOnlyThoseCopies" fullname="Tests.EditMode.Preview.FeelWorkingCopiesEditModeTests.Resolve_AsksOnlyWhenACopyHoldsUnsavedEdits_AndNamesOnlyThoseCopies" methodname="Resolve_AsksOnlyWhenACopyHoldsUnsavedEdits_AndNamesOnlyThoseCopies" classname="Tests.EditMode.Preview.FeelWorkingCopiesEditModeTests" runstate="Runnable" seed="1145008685" result="Passed" start-time="2026-10-30 02:57:58Z" end-time="2026-10-30 02:57:58Z" duration="0.685559" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="2275" name="Revert_ResetsTheCopyToTheAssetsValues" fullname="Tests.EditMode.Preview.FeelWorkingCopiesEditModeTests.Revert_ResetsTheCopyToTheAssetsValues" methodname="Revert_ResetsTheCopyToTheAssetsValues" classname="Tests.EditMode.Preview.FeelWorkingCopiesEditModeTests" runstate="Runnable" seed="166448605" result="Passed" start-time="2026-10-30 02:57:58Z" end-time="2026-10-30 02:57:59Z" duration="0.449281" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="2273" name="Save_WritesExactlyTheEditedKnobToTheAssetFile" fullname="Tests.EditMode.Preview.FeelWorkingCopiesEditModeTests.Save_WritesExactlyTheEditedKnobToTheAssetFile" methodname="Save_WritesExactlyTheEditedKnobToTheAssetFile" classname="Tests.EditMode.Preview.FeelWorkingCopiesEditModeTests" runstate="Runnable" seed="1079366982" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.621526" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+          </test-suite>
+          <test-suite type="TestSuite" id="2319" name="Rendering" fullname="Tests.EditMode.Rendering" runstate="Runnable" testcasecount="155" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.053282" total="28" passed="28" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="2320" name="Projection" fullname="Tests.EditMode.Rendering.Projection" runstate="Runnable" testcasecount="28" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.043010" total="28" passed="28" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="2172" name="CanopyTuningEditModeTests" fullname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" classname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" runstate="Runnable" testcasecount="28" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.042543" total="28" passed="28" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties>
+                  <property name="Category" value="UI" />
+                </properties>
+                <test-suite type="ParameterizedMethod" id="2193" name="ImportRejectsMalformedEnvelopes" fullname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests.ImportRejectsMalformedEnvelopes" classname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.008787" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="2187" name="ImportRejectsMalformedEnvelopes(&quot;{bad&quot;)" fullname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests.ImportRejectsMalformedEnvelopes(&quot;{bad&quot;)" methodname="ImportRejectsMalformedEnvelopes" classname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" runstate="Runnable" seed="31675938" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.005013" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2188" name="ImportRejectsMalformedEnvelopes(&quot;[]&quot;)" fullname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests.ImportRejectsMalformedEnvelopes(&quot;[]&quot;)" methodname="ImportRejectsMalformedEnvelopes" classname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" runstate="Runnable" seed="1175878859" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.000973" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2189" name="ImportRejectsMalformedEnvelopes(&quot;{}&quot;)" fullname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests.ImportRejectsMalformedEnvelopes(&quot;{}&quot;)" methodname="ImportRejectsMalformedEnvelopes" classname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" runstate="Runnable" seed="1039429639" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.000542" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2190" name="ImportRejectsMalformedEnvelopes(&quot;{\&quot;schemaVersion\&quot;:2}&quot;)" fullname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests.ImportRejectsMalformedEnvelopes(&quot;{\&quot;schemaVersion\&quot;:2}&quot;)" methodname="ImportRejectsMalformedEnvelopes" classname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" runstate="Runnable" seed="921078056" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.000285" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2191" name="ImportRejectsMalformedEnvelopes(&quot;{\&quot;schemaVersion\&quot;:1,\&quot;personalityEnabled\&quot;:0,\&quot;personality\&quot;:{}}&quot;)" fullname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests.ImportRejectsMalformedEnvelopes(&quot;{\&quot;schemaVersion\&quot;:1,\&quot;personalityEnabled\&quot;:0,\&quot;personality\&quot;:{}}&quot;)" methodname="ImportRejectsMalformedEnvelopes" classname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" runstate="Runnable" seed="1276676175" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.000241" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2192" name="ImportRejectsMalformedEnvelopes(&quot;{\&quot;schemaVersion\&quot;:1,\&quot;personalityEnabled\&quot;:true}&quot;)" fullname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests.ImportRejectsMalformedEnvelopes(&quot;{\&quot;schemaVersion\&quot;:1,\&quot;personalityEnabled\&quot;:true}&quot;)" methodname="ImportRejectsMalformedEnvelopes" classname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" runstate="Runnable" seed="1026018574" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.000222" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+                <test-suite type="ParameterizedMethod" id="2186" name="ImportRejectsMissingKeys" fullname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests.ImportRejectsMissingKeys" classname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" runstate="Runnable" testcasecount="11" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.013087" total="11" passed="11" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="2175" name="ImportRejectsMissingKeys(&quot;glow&quot;)" fullname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests.ImportRejectsMissingKeys(&quot;glow&quot;)" methodname="ImportRejectsMissingKeys" classname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" runstate="Runnable" seed="53889135" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.005487" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2176" name="ImportRejectsMissingKeys(&quot;aberration&quot;)" fullname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests.ImportRejectsMissingKeys(&quot;aberration&quot;)" methodname="ImportRejectsMissingKeys" classname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" runstate="Runnable" seed="806338649" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.000812" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2177" name="ImportRejectsMissingKeys(&quot;beamJitter&quot;)" fullname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests.ImportRejectsMissingKeys(&quot;beamJitter&quot;)" methodname="ImportRejectsMissingKeys" classname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" runstate="Runnable" seed="2004909531" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.000451" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2178" name="ImportRejectsMissingKeys(&quot;afterglow&quot;)" fullname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests.ImportRejectsMissingKeys(&quot;afterglow&quot;)" methodname="ImportRejectsMissingKeys" classname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" runstate="Runnable" seed="704514862" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.000413" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2179" name="ImportRejectsMissingKeys(&quot;scanlines&quot;)" fullname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests.ImportRejectsMissingKeys(&quot;scanlines&quot;)" methodname="ImportRejectsMissingKeys" classname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" runstate="Runnable" seed="2035235563" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.000605" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2180" name="ImportRejectsMissingKeys(&quot;flicker&quot;)" fullname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests.ImportRejectsMissingKeys(&quot;flicker&quot;)" methodname="ImportRejectsMissingKeys" classname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" runstate="Runnable" seed="10035815" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.000478" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2181" name="ImportRejectsMissingKeys(&quot;warmth&quot;)" fullname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests.ImportRejectsMissingKeys(&quot;warmth&quot;)" methodname="ImportRejectsMissingKeys" classname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" runstate="Runnable" seed="1713421948" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.000387" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2182" name="ImportRejectsMissingKeys(&quot;wear&quot;)" fullname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests.ImportRejectsMissingKeys(&quot;wear&quot;)" methodname="ImportRejectsMissingKeys" classname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" runstate="Runnable" seed="1475108102" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.000371" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2183" name="ImportRejectsMissingKeys(&quot;glassDistortion&quot;)" fullname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests.ImportRejectsMissingKeys(&quot;glassDistortion&quot;)" methodname="ImportRejectsMissingKeys" classname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" runstate="Runnable" seed="258023029" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.000467" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2184" name="ImportRejectsMissingKeys(&quot;damageShudder&quot;)" fullname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests.ImportRejectsMissingKeys(&quot;damageShudder&quot;)" methodname="ImportRejectsMissingKeys" classname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" runstate="Runnable" seed="70529141" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.000409" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2185" name="ImportRejectsMissingKeys(&quot;transitionGlitch&quot;)" fullname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests.ImportRejectsMissingKeys(&quot;transitionGlitch&quot;)" methodname="ImportRejectsMissingKeys" classname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" runstate="Runnable" seed="77601150" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.000446" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+                <test-case id="2174" name="ImportZeroValuesIntoAState_OverridesEveryFieldAndPreservesBlendTimes" fullname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests.ImportZeroValuesIntoAState_OverridesEveryFieldAndPreservesBlendTimes" methodname="ImportZeroValuesIntoAState_OverridesEveryFieldAndPreservesBlendTimes" classname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" runstate="Runnable" seed="1655303664" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.005057" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="2203" name="InterruptedBlendStartsFromDisplayedValues_AndExitUsesTheLeavingBlock" fullname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests.InterruptedBlendStartsFromDisplayedValues_AndExitUsesTheLeavingBlock" methodname="InterruptedBlendStartsFromDisplayedValues_AndExitUsesTheLeavingBlock" classname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" runstate="Runnable" seed="15148950" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.001371" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-suite type="ParameterizedMethod" id="2201" name="InvalidValueThrowsBeforeApplyingAnything" fullname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests.InvalidValueThrowsBeforeApplyingAnything" classname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.009247" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="2194" name="InvalidValueThrowsBeforeApplyingAnything(&quot;-0.1&quot;)" fullname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests.InvalidValueThrowsBeforeApplyingAnything(&quot;-0.1&quot;)" methodname="InvalidValueThrowsBeforeApplyingAnything" classname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" runstate="Runnable" seed="680336539" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.002241" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2195" name="InvalidValueThrowsBeforeApplyingAnything(&quot;2.01&quot;)" fullname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests.InvalidValueThrowsBeforeApplyingAnything(&quot;2.01&quot;)" methodname="InvalidValueThrowsBeforeApplyingAnything" classname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" runstate="Runnable" seed="912312613" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.000582" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2196" name="InvalidValueThrowsBeforeApplyingAnything(&quot;NaN&quot;)" fullname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests.InvalidValueThrowsBeforeApplyingAnything(&quot;NaN&quot;)" methodname="InvalidValueThrowsBeforeApplyingAnything" classname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" runstate="Runnable" seed="1933568397" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.000680" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2197" name="InvalidValueThrowsBeforeApplyingAnything(&quot;Infinity&quot;)" fullname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests.InvalidValueThrowsBeforeApplyingAnything(&quot;Infinity&quot;)" methodname="InvalidValueThrowsBeforeApplyingAnything" classname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" runstate="Runnable" seed="113979757" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.000968" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2198" name="InvalidValueThrowsBeforeApplyingAnything(&quot;null&quot;)" fullname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests.InvalidValueThrowsBeforeApplyingAnything(&quot;null&quot;)" methodname="InvalidValueThrowsBeforeApplyingAnything" classname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" runstate="Runnable" seed="523474275" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.001318" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2199" name="InvalidValueThrowsBeforeApplyingAnything(&quot;true&quot;)" fullname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests.InvalidValueThrowsBeforeApplyingAnything(&quot;true&quot;)" methodname="InvalidValueThrowsBeforeApplyingAnything" classname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" runstate="Runnable" seed="1160310984" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.000774" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2200" name="InvalidValueThrowsBeforeApplyingAnything(&quot;\&quot;0.5\&quot;&quot;)" fullname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests.InvalidValueThrowsBeforeApplyingAnything(&quot;\&quot;0.5\&quot;&quot;)" methodname="InvalidValueThrowsBeforeApplyingAnything" classname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" runstate="Runnable" seed="1129570404" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.000651" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+                <test-case id="2173" name="OwnerExport_PreservesEveryRetainedValue_AndIgnoresCurvatureAndArtwork" fullname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests.OwnerExport_PreservesEveryRetainedValue_AndIgnoresCurvatureAndArtwork" methodname="OwnerExport_PreservesEveryRetainedValue_AndIgnoresCurvatureAndArtwork" classname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" runstate="Runnable" seed="1036462204" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.001321" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="2202" name="WinningStateInheritsOnlyFromBase_AndAnExplicitZeroOverridesIt" fullname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests.WinningStateInheritsOnlyFromBase_AndAnExplicitZeroOverridesIt" methodname="WinningStateInheritsOnlyFromBase_AndAnExplicitZeroOverridesIt" classname="Tests.EditMode.Rendering.Projection.CanopyTuningEditModeTests" runstate="Runnable" seed="127869854" result="Passed" start-time="2026-10-30 02:57:59Z" end-time="2026-10-30 02:57:59Z" duration="0.001301" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[Saving results to: C:/Users/amind/AppData/LocalLow/AryeGames/Astronomical\TestResults.xml
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>
