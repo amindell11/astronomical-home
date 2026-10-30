@@ -74,7 +74,6 @@ namespace Tests.PlayMode
             Assert.AreNotEqual("Vanguard(Clone)", oldShip.name, "test premise: rig does not start on Vanguard");
 
             rig.Loadout.Ship = vanguard;
-            rig.Loadout.Shield = vanguard.Shield;
             rig.ApplyLoadout();
 
             Assert.AreNotSame(oldShip, rig.Player, "a new player instance was built");
@@ -108,7 +107,6 @@ namespace Tests.PlayMode
 
             var vanguard = AssetDatabase.LoadAssetAtPath<Ship>(VanguardPath);
             rig.Loadout.Ship = vanguard;
-            rig.Loadout.Shield = vanguard.Shield;
             rig.ApplyLoadout();
 
             var lethal = rig.Player.Stats.maxShield + rig.Player.Stats.maxHealth + 100f;

@@ -35,7 +35,7 @@ namespace Substrate.Sectors.Elements
 
         [Tooltip("Ships the director draws from, picked uniformly per spawn.")]
         [Stat, SerializeField] private RosterEntry[] roster = Array.Empty<RosterEntry>();
-        [Tooltip("Shield and weapon pool each spawn draws its build from; the chassis, and with it the engine, stays the roster's. " +
+        [Tooltip("Weapon pool each spawn draws its build from; the chassis, and with it the engine and shield, stays the roster's. " +
                  "A phase may name its own pool. Unset → products fly their template's authored build.")]
         [Stat, SerializeField] private ItemSubset loadouts;
         [SerializeField] private int team = 1;
@@ -185,17 +185,17 @@ namespace Substrate.Sectors.Elements
             if (item && !list.Contains(item)) list.Add(item);
         }
 
-        /// <summary>One uniform pick per slot; no secondary, since AI aim leads for the primary only.</summary>
+        /// <summary>A uniform primary pick; no secondary, since AI aim leads for the primary only.</summary>
         internal static ShipLoadout Draw(Ship chassis, ItemSubset pool) =>
-            new(chassis, Pick(pool.shields), Pick(pool.weapons), null);
+            new(chassis, Pick(pool.weapons), null);
 
         private static T Pick<T>(T[] pool) => pool[UnityEngine.Random.Range(0, pool.Length)];
 
         private void RequireComplete(ItemSubset pool)
         {
-            if (pool && (IsEmpty(pool.shields) || IsEmpty(pool.weapons)))
+            if (pool && IsEmpty(pool.weapons))
                 throw new InvalidOperationException(
-                    $"WaveDirector on '{name}': loadout pool '{pool.name}' needs at least one shield and weapon.");
+                    $"WaveDirector on '{name}': loadout pool '{pool.name}' needs at least one weapon.");
         }
 
         private static bool IsEmpty<T>(T[] pool) => pool == null || pool.Length == 0;

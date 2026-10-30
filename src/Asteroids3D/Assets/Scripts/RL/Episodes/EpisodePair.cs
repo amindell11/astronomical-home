@@ -158,7 +158,7 @@ namespace RL.Episodes
             ship.transform.SetParent(units.UnitsRoot, true);
             units.ActiveRegistry.ActiveShips.Add(ship);
 
-            ship.Reequip(ship.Shield, ship.Weapons.PrimaryMountPrefab, null);
+            ship.Reequip(ship.Weapons.PrimaryMountPrefab, null);
             if (ship.Weapons.Context.Slots.Count != 1)
                 throw new InvalidOperationException("Episode loadout must be lasers-only.");
             return ship;
@@ -174,7 +174,7 @@ namespace RL.Episodes
             ship.transform.SetParent(units.UnitsRoot, true);
             units.ActiveRegistry.ActiveShips.Add(ship);
 
-            ship.Reequip(ship.Shield, primary, null);
+            ship.Reequip(primary, null);
             return ship;
         }
     }

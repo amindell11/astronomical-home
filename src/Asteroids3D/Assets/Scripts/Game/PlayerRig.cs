@@ -114,7 +114,7 @@ namespace Game
             Ledger.Bind(Player.Damage, units.Registry);
 
             // Seed the pending loadout from the ship's authored build so an unedited hangar is a no-op.
-            Loadout = new ShipLoadout(playerTemplate, Player.Shield,
+            Loadout = new ShipLoadout(playerTemplate,
                 Player.Weapons ? Player.Weapons.PrimaryMountPrefab : null,
                 Player.Weapons ? Player.Weapons.SecondaryMountPrefab : null);
 
@@ -176,9 +176,9 @@ namespace Game
         }
 
         /// <summary>
-        /// Install the pending <see cref="Loadout"/> onto the persistent player ship. A module change
-        /// is a data re-resolve (<see cref="Ship.Reequip"/>); a ship change is a whole-player rebuild
-        /// (<see cref="RebuildPlayer"/>) followed by the module equip. Called at each run's
+        /// Install the pending <see cref="Loadout"/> onto the persistent player ship. A weapon change
+        /// is a mount swap (<see cref="Ship.Reequip"/>); a ship change is a whole-player rebuild
+        /// (<see cref="RebuildPlayer"/>) followed by the weapon equip. Called at each run's
         /// hangar step — never mid-sector; leaves the player live for the next sector load.
         /// </summary>
         public void ApplyLoadout()
@@ -198,7 +198,7 @@ namespace Game
             if (Loadout.Ship && Loadout.Ship != currentTemplate)
                 RebuildPlayer(Loadout.Ship);
 
-            Player.Reequip(Loadout.Shield, Loadout.PrimaryWeapon, Loadout.SecondaryWeapon);
+            Player.Reequip(Loadout.PrimaryWeapon, Loadout.SecondaryWeapon);
 
             // Swapped-in weapon mounts carry world-facing parts (lock sensor) that the service
             // wired at spawn; ask it to re-wire (the player is never AI, so no field), then re-bind the HUD.
