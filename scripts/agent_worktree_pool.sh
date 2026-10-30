@@ -20,6 +20,7 @@ mkdir -p "$LOCK_ROOT"
 #   Acquire / release / prepare
 #   Hold / resume             held_snapshot, cmd_hold, cmd_resume
 #   Unity test runs           cmd_run_tests, restore_tracked_unity_changes, cmd_run_tests_clean
+#   Compile check             compile_check, cmd_compile_check, compile_check_preflight
 #   ReSharper ratchet         fingerprint + proof, cmd_run_resharper
 #   Script tests              cmd_run_script_tests, landing_diff_touches
 #   PR opening                flag grammar, gh helpers, push_and_open_pr, cmd_create_pr, cmd_submit
@@ -61,9 +62,9 @@ Commands:
         locked_at=<iso8601>     locked/stale only; when the lease was acquired
         last_used_at=<iso8601>  locked/stale only; the last acquire, resume or
                                 working command on the slot: prepare,
-                                run-tests, run-resharper, run-script-tests,
-                                create-pr, submit, revise, review-comments,
-                                merge. status and merge-progress are reads
+                                run-tests, compile-check, run-resharper,
+                                run-script-tests, create-pr, submit, revise,
+                                review-comments, merge. status and merge-progress are reads
                                 and never count as use. A lock with no
                                 last-use stamp reports its locked_at.
 
@@ -148,6 +149,36 @@ Commands:
   run-tests <slot> [unity_test_agent.ps1 args...]
       Run Unity tests in that slot with standardized outDir:
       results/unity-tests-agent
+      Runs compile-check first and prints its trailer. On fail it exits 2
+      before booting Unity, as the runner's own compile failure would; on
+      any other verdict the tests run.
+
+  compile-check <slot> [--refresh]
+      Compile every Unity assembly in the slot from the .cs files on disk
+      with dotnet build, without booting Unity
+      (scripts/unity_compile_check.ps1). It compiles the worktree pool's
+      snapshot of the slot's old-style (Rider package) project files,
+      kept with the build outputs under compile-check/<slot>/ beside the
+      lock root, so a check never writes into the slot and runs safely
+      beside a Unity editor or test run there.
+      --refresh first rebuilds the snapshot with one coordinated Unity
+      batch boot (about 40s warm). The boot needs a tree that compiles
+      and has no tracked changes (commit first). Run it on a slot's
+      first check and whenever the verdict is stale.
+      Compile errors go to stderr as Unity prints them:
+        Assets/<path>(<line>,<col>): error CS<n>: <message>
+      Stdout trailer: COMPILE_CHECK=<verdict> SECONDS=<wall seconds>, the
+      verdict one of
+        pass   exit 0
+        fail   exit 1, compile errors
+        error  exit 2: a failed refresh, no dotnet, a build failure with no
+               CS error, or an unknown slot
+        stale  exit 3: no snapshot yet; an asmdef, Packages/manifest.json,
+               Packages/packages-lock.json, ProjectVersion.txt or
+               ProjectSettings.asset changed since the snapshot; or a file
+               a snapshot project references is gone (a wiped Library)
+      Overlapping checks on one slot share its outputs, so either may end
+      in error; re-run it.
 
   run-resharper <slot> [base_ref]
       Run the Unity-aware ReSharper changed-line ratchet against base_ref
@@ -442,6 +473,7 @@ Examples:
   scripts/agent_worktree_pool.sh acquire task-123 agent-4
   scripts/agent_worktree_pool.sh prepare agent-1 origin/main
   scripts/agent_worktree_pool.sh run-tests agent-1 -Mode EditMode -ScopeType Smoke
+  scripts/agent_worktree_pool.sh compile-check agent-1 --refresh
   scripts/agent_worktree_pool.sh run-resharper agent-1 origin/main
   scripts/agent_worktree_pool.sh create-pr agent-1 --title "feat(x): add y" --body "## Summary\n..."
   scripts/agent_worktree_pool.sh review-comments agent-1
@@ -1318,6 +1350,44 @@ run_tests_for_proof() {
   clear_run_summary "$path"
   cmd_run_tests_clean "$slot" "$@"
   record_tested_tree "$slot" "$path"
+}
+
+# ---- Compile check ---------------------------------------------------------
+COMPILE_CHECK_ROOT="${WORKTREE_POOL_COMPILE_CHECK_ROOT:-$ROOT/.worktree-pool/compile-check}"
+
+# Trailer COMPILE_CHECK=<verdict> SECONDS=<n>; the exit code is the script's (pass 0, fail 1, error 2, stale 3).
+compile_check() {
+  local slot="$1" path verdict rc=0 started=$SECONDS
+  shift
+  if ! path="$(slot_path "$slot")"; then
+    echo "compile-check: unknown slot '$slot'" >&2
+    echo "COMPILE_CHECK=error SECONDS=0"
+    return 2
+  fi
+  verdict="$(powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$path/scripts/unity_compile_check.ps1" \
+    -ProjectPath "$path/src/Asteroids3D" -StateDir "$COMPILE_CHECK_ROOT/$slot" "$@")" || rc=$?
+  echo "COMPILE_CHECK=${verdict:-error} SECONDS=$((SECONDS - started))"
+  return "$rc"
+}
+
+cmd_compile_check() {
+  local slot="$1"
+  shift
+  case "$*" in
+    "") compile_check "$slot" ;;
+    --refresh) compile_check "$slot" -Refresh ;;
+    *) echo "compile-check requires <slot> [--refresh]" >&2; return 2 ;;
+  esac
+}
+
+# Only fail stops run-tests: the check is a proxy, so Unity decides on every other verdict.
+compile_check_preflight() {
+  local rc=0
+  compile_check "$1" || rc=$?
+  if [[ "$rc" -eq 1 ]]; then
+    echo "run-tests: compile check failed; Unity was not booted." >&2
+    return 2
+  fi
 }
 
 # ---- ReSharper ratchet -----------------------------------------------------
@@ -3410,7 +3480,7 @@ main() {
 
   # Reads (status, merge-progress) never count as use: the dashboard runs both on every slot.
   case "$cmd" in
-    prepare|run-tests|run-resharper|run-script-tests|create-pr|submit|revise|review-comments|merge)
+    prepare|run-tests|compile-check|run-resharper|run-script-tests|create-pr|submit|revise|review-comments|merge)
       if [[ $# -ge 1 ]]; then mark_slot_used "$1"; fi
       ;;
   esac
@@ -3422,7 +3492,12 @@ main() {
     acquire) cmd_acquire "$@" ;;
     release) require_slot_arg "release requires <slot>" "$#"; cmd_release "$1" ;;
     prepare) require_slot_arg "prepare requires <slot> [base_ref]" "$#"; cmd_prepare "$@" ;;
-    run-tests) require_slot_arg "run-tests requires <slot> [args...]" "$#"; cmd_run_tests "$@" ;;
+    run-tests)
+      require_slot_arg "run-tests requires <slot> [args...]" "$#"
+      compile_check_preflight "$1" || exit $?
+      cmd_run_tests "$@"
+      ;;
+    compile-check) require_slot_arg "compile-check requires <slot> [--refresh]" "$#"; cmd_compile_check "$@" ;;
     run-resharper) require_slot_arg "run-resharper requires <slot> [base_ref]" "$#"; cmd_run_resharper "$@" ;;
     run-script-tests)
       require_slot_arg "run-script-tests requires <slot>" "$#"
