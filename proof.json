@@ -1,0 +1,36 @@
+{
+  "commit": "280df20a0b07019fc4d422447c1c149ec9e7e387",
+  "tests": [
+    {
+      "summary": "results/unity-tests-agent/20261029-202714-summary.json",
+      "passed": 24,
+      "failed": 0,
+      "mode": "PlayMode",
+      "transport": "routed"
+    },
+    {
+      "summary": "results/unity-tests-agent/20261029-202359-summary.json",
+      "note": "Two new EditMode tests and six unchanged lifecycle tests passed here. Initial exact reticle Vector3 assertion failed; corrected to a .001 world-unit tolerance and passed in the later 24-test run."
+    }
+  ],
+  "api": {
+    "observer": "CanopyPersonality.Create(owner, objectives, projection, visibilityObserver); Initialize(IDamageEvents); EnterSector(PhaseSpineModule); Observe() -> CanopyFrame(State, HitAge, TransitionAge)",
+    "projection": "CanopyProjection.Initialize(camera, profileOverride, Func<CanopyFrame>)",
+    "reticle": "UI.Weapons.LockOnIndicator.Initialize(LockChannel, Transform); prefab owned by UIOverlay through ShipStatusOverlay"
+  },
+  "staging": {
+    "hit": "Actual player DamageController.TakeDamage; observer listens to OnDamaged. Repeated hits restart HitAge. Decorative clocks use Time.unscaledTime.",
+    "hull": "Damage.Health.SetFraction(StatusBarUI.LowThreshold); positive health only; reference offsets repeat every 19 seconds.",
+    "phase": "Real WaveDirector.Configure/BeginSchedule then Advance. Lull index is not a phase start; advance past lull. Different PhaseSpineModule starts phase zero once.",
+    "extraction": "ObjectiveService spine transitions survive -> extract; actual phase module does this when WaveDirector reports Done. Existing opening readout fade multiplies child appearance group.",
+    "lock": "Enemy.Lock.RaiseProgress(.5f) then RaiseReleased(); neutral world root owns prefab, matches original visual-rig scale and original 5x5 nested rectangle.",
+    "off": "Projection.PersonalityEnabled=false or Projection.Profile.personalityEnabled=false; heat/hull informational pulses remain independent."
+  },
+  "editor": {
+    "lease": "canopy-events",
+    "pid": 27204,
+    "project": "D:/amind/git/agent-6/src/Asteroids3D",
+    "handoff": "Intentionally left open for parent capture in same workstream."
+  },
+  "unstaged": "Only ProjectSettings/QualitySettings.asset m_CurrentQuality 2 -> 0 from the coordinated LowMemory editor profile. Excluded from commit; restore after capture/editor close."
+}

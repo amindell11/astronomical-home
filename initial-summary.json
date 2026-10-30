@@ -1,0 +1,114 @@
+{
+  "generatedAt": "2026-10-29T20:25:41.4509823-07:00",
+  "projectPath": "D:\\amind\\git\\agent-6\\src\\Asteroids3D",
+  "unityPath": "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+  "mode": "Both",
+  "selection": {
+    "scopeType": "Workspace",
+    "scopeName": "",
+    "scopeResolved": false,
+    "testFilter": "CanopyEventsEditModeTests|CanopyEventsPlayModeTests|ShipStatusOverlayPlayModeTests|UILifecyclePlayModeTests|ShipPresentationPlayModeTests|ShipChildComponentStatePlayModeTests",
+    "testCategory": "",
+    "excludeCategory": "RequiresGraphics",
+    "categoryFilter": "!RequiresGraphics",
+    "assemblyNames": "",
+    "orderedTestListFile": "",
+    "rerunFailedFrom": "",
+    "auto": null,
+    "withGraphics": false,
+    "captureScenario": ""
+  },
+  "status": "failed",
+  "totals": {
+    "total": 14,
+    "passed": 13,
+    "failed": 1,
+    "skipped": 0,
+    "durationSec": 7.23
+  },
+  "runs": [
+    {
+      "platform": "EditMode",
+      "xmlPath": "",
+      "logPath": "",
+      "unityExitCode": 0,
+      "status": "passed",
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "durationSec": 0.74,
+      "failures": [],
+      "truncatedFailures": 0,
+      "selection": {
+        "scopeType": "Workspace",
+        "scopeName": "",
+        "scopeResolved": false,
+        "testFilter": "CanopyEventsEditModeTests|CanopyEventsPlayModeTests|ShipStatusOverlayPlayModeTests|UILifecyclePlayModeTests|ShipPresentationPlayModeTests|ShipChildComponentStatePlayModeTests",
+        "testCategory": "",
+        "excludeCategory": "RequiresGraphics",
+        "categoryFilter": "!RequiresGraphics",
+        "assemblyNames": "",
+        "orderedTestListFile": "",
+        "rerunFailedFrom": "",
+        "auto": null,
+        "withGraphics": false,
+        "captureScenario": ""
+      }
+    },
+    {
+      "platform": "PlayMode",
+      "xmlPath": "",
+      "logPath": "",
+      "unityExitCode": 0,
+      "status": "failed",
+      "total": 12,
+      "passed": 11,
+      "failed": 1,
+      "skipped": 0,
+      "durationSec": 6.49,
+      "failures": [
+        {
+          "name": "Indicators_FollowZoomConcealmentResetFadeAndRegistryRemoval",
+          "fullName": "Tests.PlayMode.PlayerState.ShipStatusOverlayPlayModeTests.Indicators_FollowZoomConcealmentResetFadeAndRegistryRemoval",
+          "durationSec": 1.6914012,
+          "message": "Expected: (0.00, 0.00, -5.00) But was: (0.00, 0.00, -5.00)",
+          "topStack": "at Tests.PlayMode.PlayerState.ShipStatusOverlayPlayModeTests+<Indicators_FollowZoomConcealmentResetFadeAndRegistryRemoval>d__6.MoveNext () [0x00406] in D:\\amind\\git\\agent-6\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\PlayMode\\PlayerState\\Sh..."
+        }
+      ],
+      "truncatedFailures": 0,
+      "selection": {
+        "scopeType": "Workspace",
+        "scopeName": "",
+        "scopeResolved": false,
+        "testFilter": "CanopyEventsEditModeTests|CanopyEventsPlayModeTests|ShipStatusOverlayPlayModeTests|UILifecyclePlayModeTests|ShipPresentationPlayModeTests|ShipChildComponentStatePlayModeTests",
+        "testCategory": "",
+        "excludeCategory": "RequiresGraphics",
+        "categoryFilter": "!RequiresGraphics",
+        "assemblyNames": "",
+        "orderedTestListFile": "",
+        "rerunFailedFrom": "",
+        "auto": null,
+        "withGraphics": false,
+        "captureScenario": ""
+      }
+    }
+  ],
+  "wallTiming": {
+    "elapsedSec": 101.997,
+    "startupToFirstTestSec": null,
+    "executionSec": null,
+    "remainingSec": null,
+    "unavailableReason": "resident-editor transport has no cold-process timestamps"
+  },
+  "coverage": {
+    "verdict": "partial",
+    "reason": "transport=routed (warm-editor run; merge-grade proof requires a cold-process run)"
+  },
+  "memory": {
+    "processes": [],
+    "unavailableReason": "resident-editor transport launches no process to sample"
+  },
+  "transport": "routed",
+  "editorPid": 27204
+}

@@ -1,0 +1,10 @@
+{
+  "source_frames": 152,
+  "decoded_frames": 153,
+  "terminal_repeat": true,
+  "expected_end_seconds": 12.175332893990927,
+  "decoded_end_seconds": 12.175,
+  "maximum_timestamp_error_seconds": 0.000497101757368057,
+  "verdict": "passed",
+  "shared_verifier": "Rejected FFmpeg progress-clock duration. Known issue #1185; actual presentation timestamps verified independently."
+}

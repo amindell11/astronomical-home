@@ -1,0 +1,9 @@
+{
+    "width": 1280,
+    "height": 720,
+    "frameCount": 152,
+    "completed": true,
+    "frameMetadata": "frames.csv",
+    "timingBasis": "unscaled",
+    "finalFrameHold": "repeat-last-interval; single-frame=0.1s"
+}

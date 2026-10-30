@@ -1,0 +1,128 @@
+{
+  "commit": "280df20a0b07019fc4d422447c1c149ec9e7e387",
+  "frames": 152,
+  "seconds": 12.06596829648526,
+  "stages": {
+    "0": {
+      "frames": 16,
+      "first": "f_00001.png",
+      "last": "f_00016.png",
+      "states": [
+        0
+      ]
+    },
+    "1": {
+      "frames": 21,
+      "first": "f_00017.png",
+      "last": "f_00037.png",
+      "states": [
+        0
+      ]
+    },
+    "2": {
+      "frames": 35,
+      "first": "f_00038.png",
+      "last": "f_00072.png",
+      "states": [
+        1
+      ]
+    },
+    "3": {
+      "frames": 23,
+      "first": "f_00073.png",
+      "last": "f_00095.png",
+      "states": [
+        0,
+        2
+      ]
+    },
+    "4": {
+      "frames": 24,
+      "first": "f_00096.png",
+      "last": "f_00119.png",
+      "states": [
+        0,
+        2
+      ]
+    },
+    "5": {
+      "frames": 19,
+      "first": "f_00120.png",
+      "last": "f_00138.png",
+      "states": [
+        0
+      ]
+    },
+    "6": {
+      "frames": 14,
+      "first": "f_00139.png",
+      "last": "f_00152.png",
+      "states": [
+        0
+      ]
+    }
+  },
+  "assertions": [
+    "applied hit drives hit age",
+    "low hull selects LowHull",
+    "phase start and extraction select BigMoment and transition clocks",
+    "off disables effects",
+    "world simulation remains paused",
+    "sampled frames contain nonuniform rendered content"
+  ],
+  "images": {
+    "f_00018.png": {
+      "rgb_stddev": 60.14536791623976,
+      "mean_rgb": [
+        24.718522135416666,
+        53.23595594618055,
+        119.018203125
+      ]
+    },
+    "f_00039.png": {
+      "rgb_stddev": 60.01976417677769,
+      "mean_rgb": [
+        24.55505425347222,
+        52.73868381076389,
+        118.77203125
+      ]
+    },
+    "f_00075.png": {
+      "rgb_stddev": 61.55868561611189,
+      "mean_rgb": [
+        25.65766167534722,
+        54.02669487847222,
+        119.92913845486112
+      ]
+    },
+    "f_00101.png": {
+      "rgb_stddev": 61.653021438723286,
+      "mean_rgb": [
+        25.717239583333335,
+        54.33967447916667,
+        120.18716145833334
+      ]
+    },
+    "f_00123.png": {
+      "rgb_stddev": 59.92990096579678,
+      "mean_rgb": [
+        24.536885850694443,
+        52.722081163194446,
+        118.66316623263889
+      ]
+    },
+    "f_00145.png": {
+      "rgb_stddev": 60.92025151333019,
+      "mean_rgb": [
+        25.023092447916667,
+        53.12300998263889,
+        119.11573025173611
+      ]
+    }
+  },
+  "limits": [
+    "Events are staged in real Combat Playtest.",
+    "No combat difficulty or timing performance claim.",
+    "Per-instrument dip depth and frequency are checked by the focused tests, not inferred from these pixels."
+  ]
+}
