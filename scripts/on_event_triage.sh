@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# On-event triage of one issue (arc #617 Slice-2): board add + Status, the one-priority rule
-# and `needs-triage` run here deterministically; the retry / premise / dead-pointer checks run
-# in a read-only `claude -p` whose structured verdict this script renders into the issue's one
-# marked note. Claude holds Read/Grep/Glob only; every tracker write is a `gh` call below.
+# On-event triage of one issue (arc #617 Slice-2): board add + Status Triage, the one-priority
+# rule and `needs-triage` run here deterministically; the retry / premise / dead-pointer checks
+# and the board-kind sort run in a read-only `claude -p` whose structured verdict this script
+# renders into the issue's one marked note and, for a confident kind, into the Status of an item
+# still in Triage. Claude holds Read/Grep/Glob only; every tracker write is a `gh` call below.
 #
 # Usage: on_event_triage.sh --event <event-json-path> [--dry-run]
 #   <event-json-path>  the Actions payload ($GITHUB_EVENT_PATH): an `issues` event carries
@@ -26,6 +27,8 @@ set -euo pipefail
 # Prose to stderr.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/board.sh
+. "$SCRIPT_DIR/lib/board.sh"
 PROMPT_FILE="$SCRIPT_DIR/../.claude/skills/issue-triage/on-event.md"
 
 ALLOWLIST="amindell11"
@@ -34,13 +37,7 @@ MARKER="<!-- on-event-triage -->"
 CLAUDE_MODEL="claude-opus-5-5"
 CLAUDE_MAX_TURNS=12
 
-# Operative copy of doc/agents/issue-tracker.md § Projects board sync; Doing / Done are human-owned.
-PROJECT_ID="PVT_kwHOAJsCkc4BfiTv"
-STATUS_FIELD_ID="PVTSSF_lAHOAJsCkc4BfiTvzhZ0hiE"
-STATUS_MAP="needs-triage=d6567434 bug=76914216 pri:now=291743a0 pri:next=4dbdbff5 pri:later=225f15fa"
-STICKY_STATUS="772cf1a0 165b6aec"
-
-VERDICT_SCHEMA='{"type":"object","additionalProperties":false,"properties":{"retry_of":{"type":["integer","null"]},"retry_evidence":{"type":"string"},"premise_holds":{"type":"boolean"},"premise_evidence":{"type":"string"},"dead_pointers":{"type":"array","items":{"type":"object","additionalProperties":false,"properties":{"path":{"type":"string"},"replacement":{"type":["string","null"]}},"required":["path","replacement"]}}},"required":["retry_of","retry_evidence","premise_holds","premise_evidence","dead_pointers"]}'
+VERDICT_SCHEMA='{"type":"object","additionalProperties":false,"properties":{"retry_of":{"type":["integer","null"]},"retry_evidence":{"type":"string"},"premise_holds":{"type":"boolean"},"premise_evidence":{"type":"string"},"dead_pointers":{"type":"array","items":{"type":"object","additionalProperties":false,"properties":{"path":{"type":"string"},"replacement":{"type":["string","null"]}},"required":["path","replacement"]}},"kind":{"type":"string","enum":["mechanical","complex","judgement","visual","bugs"]},"kind_confident":{"type":"boolean"},"kind_reason":{"type":"string"}},"required":["retry_of","retry_evidence","premise_holds","premise_evidence","dead_pointers","kind","kind_confident","kind_reason"]}'
 
 usage() { echo "Usage: on_event_triage.sh --event <event-json-path> [--dry-run]" >&2; exit 2; }
 infra() { echo "on_event_triage: $1" >&2; exit 1; }
@@ -161,34 +158,29 @@ else
 fi
 
 # ---- Board ------------------------------------------------------------------------------------
-status_option() {
-  local pair
-  for pair in $STATUS_MAP; do
-    has_label "${pair%%=*}" && { echo "${pair##*=}"; return; }
-  done
-  true
-}
-OPTION="$(status_option)"
 ITEM_ID="" CURRENT_OPTION=""
 board_lookup() {
   GH_TOKEN="$PROJECTS_TOKEN" gh api graphql -F id="$NODE_ID" -f query='query($id: ID!) { node(id: $id) { ... on Issue { projectItems(first: 50) { nodes { id project { id } fieldValueByName(name: "Status") { ... on ProjectV2ItemFieldSingleSelectValue { optionId } } } } } } }' \
     > "$TMP/board.json" || infra "board query failed"
-  ask board "$PROJECT_ID"
+  ask board "$BOARD_PROJECT_ID"
+}
+# Any other Status is the owner's placement, which automation never moves.
+sortable() { [[ -z "$CURRENT_OPTION" || "$CURRENT_OPTION" == "$BOARD_STATUS_TRIAGE" ]]; }
+set_status() {
+  run_write --board gh api graphql -f query="mutation { updateProjectV2ItemFieldValue(input: {projectId: \"$BOARD_PROJECT_ID\", itemId: \"$ITEM_ID\", fieldId: \"$BOARD_STATUS_FIELD_ID\", value: {singleSelectOptionId: \"$1\"}}) { projectV2Item { id } } }"
 }
 if [[ -n "${PROJECTS_TOKEN:-}" ]]; then
   board_lookup
 else
   [[ "$DRY_RUN" -eq 1 ]] || infra "PROJECTS_TOKEN is not set (board reads and writes need it)"
-  say "PROJECTS_TOKEN absent: board membership unknown, printing the add + Status mutations"
+  say "PROJECTS_TOKEN absent: board membership unknown, printing the add + Triage mutations"
 fi
 if [[ -z "$ITEM_ID" ]]; then
-  run_write --board gh api graphql -f query="mutation { addProjectV2ItemById(input: {projectId: \"$PROJECT_ID\", contentId: \"$NODE_ID\"}) { item { id } } }"
+  run_write --board gh api graphql -f query="mutation { addProjectV2ItemById(input: {projectId: \"$BOARD_PROJECT_ID\", contentId: \"$NODE_ID\"}) { item { id } } }"
   [[ "$DRY_RUN" -eq 1 ]] || board_lookup
   ITEM_ID="${ITEM_ID:-<item-id>}"
 fi
-if [[ -n "$OPTION" && "$OPTION" != "$CURRENT_OPTION" && " $STICKY_STATUS " != *" $CURRENT_OPTION "* ]]; then
-  run_write --board gh api graphql -f query="mutation { updateProjectV2ItemFieldValue(input: {projectId: \"$PROJECT_ID\", itemId: \"$ITEM_ID\", fieldId: \"$STATUS_FIELD_ID\", value: {singleSelectOptionId: \"$OPTION\"}}) { projectV2Item { id } } }"
-fi
+[[ -n "$CURRENT_OPTION" ]] || set_status "$BOARD_STATUS_TRIAGE"
 
 [[ "$AUTHOR" == "$ALLOWLIST" ]] || finish non-allowlisted none
 
@@ -217,6 +209,17 @@ ask verdict "$DATE" "$ASSIGNED" "$MARKER"
 [[ -z "${CLAUDE_ERROR:-}" ]] || infra "$CLAUDE_ERROR"
 say "verdict: $FINDINGS finding(s): $VERDICT_JSON"
 summary "- Verdict fields: \`$VERDICT_JSON\`"
+
+# ---- Kind -------------------------------------------------------------------------------------
+# Claude takes minutes, so a live run re-reads the board: the owner may have moved the item.
+if [[ "$KIND_CONFIDENT" -eq 1 ]]; then
+  if [[ "$DRY_RUN" -eq 0 ]] && sortable; then board_lookup; fi
+  if sortable; then
+    set_status "${BOARD_KIND_OPTIONS[$KIND]}"
+  else
+    say "kind $KIND not written: #$NUMBER is out of Triage, left where the owner put it"
+  fi
+fi
 
 # ---- Note -------------------------------------------------------------------------------------
 gh api "repos/$REPO/issues/$NUMBER/comments" --paginate --slurp > "$TMP/comments.json" || infra "gh api issue comments failed"
