@@ -172,9 +172,9 @@ namespace Game
         }
 
         /// <summary>
-        /// Install the pending <see cref="Loadout"/> onto the persistent player ship. A module change
-        /// is a data re-resolve (<see cref="Ship.Reequip"/>); a ship change is a whole-player rebuild
-        /// (<see cref="RebuildPlayer"/>) followed by the module equip. Called at each run's
+        /// Install the pending <see cref="Loadout"/> onto the persistent player ship. A weapon change
+        /// is a mount swap (<see cref="Ship.Reequip"/>); a ship change is a whole-player rebuild
+        /// (<see cref="RebuildPlayer"/>) followed by the weapon equip. Called at each run's
         /// hangar step — never mid-sector; leaves the player live for the next sector load.
         /// </summary>
         public void ApplyLoadout()

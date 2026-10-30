@@ -15,8 +15,8 @@ using Combat.Weapons.Conditions;
 namespace Tests.PlayMode
 {
     /// <summary>
-    /// Weapons are the loadout's slots: <see cref="Ship.Reequip"/> swaps the mounted weapon prefabs
-    /// and re-resolves the ship, refilling its vitals. Changed slots replace their mount instances
+    /// <see cref="Ship.Reequip"/> swaps the mounted weapon prefabs and re-resolves the ship,
+    /// refilling its vitals. Changed slots replace their mount instances
     /// (unchanged slots keep them — an unedited apply is a no-op), while the weapon context object
     /// survives (refreshed in place) so commander- and HUD-held references stay valid, and the
     /// ship's targeting cache follows the missile mount in and out. Also covers the death path:

@@ -185,7 +185,7 @@ namespace Substrate.Sectors.Elements
             if (item && !list.Contains(item)) list.Add(item);
         }
 
-        /// <summary>One uniform pick per slot; no secondary, since AI aim leads for the primary only.</summary>
+        /// <summary>A uniform primary pick; no secondary, since AI aim leads for the primary only.</summary>
         internal static ShipLoadout Draw(Ship chassis, ItemSubset pool) =>
             new(chassis, Pick(pool.weapons), null);
 

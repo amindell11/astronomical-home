@@ -3,13 +3,10 @@ using Combat.Weapons;
 namespace Ships.Loadout
 {
     /// <summary>
-    /// The pending module selection a hangar edits before it is applied to a ship. Holds the chassis
-    /// and the two weapon mounts; the engine and shield are the chassis's own (<see cref="Ship.Engine"/>,
-    /// <see cref="Ship.Shield"/>), never slots. <see cref="Ship.Reequip"/> is what actually installs
-    /// the weapons. Kept separate from the ship so the hangar can stage a build without touching the
-    /// live ship until the player commits (Launch).
-    ///
-    /// Weapon modules are the weapon prefabs themselves (prefab-as-module, like the chassis slot).
+    /// The pending selection a hangar edits before it is applied to a ship; the engine and shield
+    /// come with the chassis (<see cref="Ship.Engine"/>, <see cref="Ship.Shield"/>), never slots.
+    /// <see cref="Ship.Reequip"/> installs the weapons. Kept separate from the ship so the hangar can
+    /// stage a build without touching the live ship until the player commits (Launch).
     /// </summary>
     public class ShipLoadout
     {

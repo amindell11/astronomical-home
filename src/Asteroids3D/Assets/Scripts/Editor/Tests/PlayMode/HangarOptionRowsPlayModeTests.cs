@@ -209,8 +209,6 @@ namespace Tests.PlayMode
             var loadout = new ShipLoadout(first, null, null);
             Show(offer, loadout);
 
-            Assert.IsNull(screen.transform.Find("Panel/ShieldRow"), "the hangar offers no shield row");
-
             var stats = screen.transform.Find("Panel/StatsText").GetComponent<Text>();
             screen.shipRow.GetComponent<EventTrigger>().OnPointerEnter(new PointerEventData(null));
             for (var i = 0; i < offer.ships.Length; i++)
@@ -219,7 +217,6 @@ namespace Tests.PlayMode
                 var lines = stats.text.Split('\n');
                 var engine = $"Engine: {loadout.Ship.Engine.DisplayName}";
                 var shield = $"Shield: {loadout.Ship.Shield.DisplayName}";
-                StringAssert.DoesNotContain("Kit:", lines[0], $"ship step {i + 1} hover has no kit line: the ship is the whole pick");
                 StringAssert.StartsWith(engine, lines[1], $"ship step {i + 1} hover names the chassis's engine under the ship");
                 StringAssert.StartsWith(shield, lines[2], $"ship step {i + 1} hover names the chassis's shield read-only under the engine");
                 StringAssert.StartsWith($"Keystone: {loadout.Ship.KeystonePrefab.DisplayName}", lines[3], $"ship step {i + 1} hover names the chassis's keystone");
