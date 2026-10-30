@@ -41,6 +41,15 @@
         ]
       },
       {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import os,pathlib,runpy,sys; name='run_hook.py'; env=[pathlib.Path(p) for p in (os.environ.get('CURSOR_PROJECT_DIR'),os.environ.get('CLAUDE_PROJECT_DIR')) if p]; here=pathlib.Path.cwd(); found=next((c/'scripts'/name for c in [*env,here,*here.parents] if (c/'scripts'/name).is_file()),None); sys.exit(2) if found is None else runpy.run_path(str(found), run_name='__main__')\" scripts/build_delegation_guard.py"
+          }
+        ]
+      },
+      {
         "matcher": "mcp__ccd_session__start_session",
         "hooks": [
           {

@@ -201,6 +201,10 @@ Format: **term** — definition. *(authority)*
   child issue's owner, a worker); it rides the prompt that starts that session.
   A session's own long task compacts instead (re-ruled 2026-10-19; AGENTS.md →
   Session hygiene).
+- **build worker** — the agent that writes a PR's implementation from the
+  session's build brief: Grok through `scripts/grok_worker.py` by default, an
+  Opus subagent as the fallback. Not the RL *worker* (§ RL & training).
+  *(agent-worktree-pr-loop → Step 2; #1252)*
 - **chief of staff** — the session that owns one issue with child issues, such
   as a roadmap over its arcs or an arc over its slices. Short form: **chief**.
   A user-level skill outside this repo sets its rules, and #1040 carries the
