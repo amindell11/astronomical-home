@@ -29,6 +29,25 @@ Shader "Hidden/UI/CanopyProjection"
             return frac(sin(dot(p, float2(127.1, 311.7))) * 43758.5453);
         }
 
+        float CanopyRadius(float2 p)
+        {
+            float2 q = (p - float2(.5, .46)) / .49;
+            float exponent = 4.0 - 2.0 * smoothstep(-.25, .35, q.y);
+            return pow(pow(abs(q.x), exponent) + pow(abs(q.y), exponent), 1.0 / exponent);
+        }
+
+        float2 CanopyOffset(float2 p, float strength)
+        {
+            float radius = CanopyRadius(p);
+            if (radius < .26) return 0.0;
+            float2 gradient = float2(
+                CanopyRadius(p + float2(.0001, 0.0)) - CanopyRadius(p - float2(.0001, 0.0)),
+                CanopyRadius(p + float2(0.0, .0001)) - CanopyRadius(p - float2(0.0, .0001)));
+            float rim = smoothstep(.26, 1.12, radius);
+            float pixels = strength * 30.0 * (_Resolution.x / 1600.0) * rim * rim;
+            return normalize(gradient / _Resolution) * pixels / _Resolution;
+        }
+
         float3 Ink(float2 p)
         {
             if (any(p < 0.0) || any(p > 1.0)) return 0.0;
@@ -62,8 +81,7 @@ Shader "Hidden/UI/CanopyProjection"
             float pixelScale = _Resolution.x / 1600.0;
             float glow = _Beam.x;
             float aberration = _Beam.y * pixelScale;
-            float curvature = _Beam.z;
-            float beamJitter = _Beam.w * pixelScale;
+            float beamJitter = _Beam.z * pixelScale;
             float scanlines = _Phosphor.x;
             float flicker = _Phosphor.y;
             float warmth = _Phosphor.z;
@@ -73,9 +91,7 @@ Shader "Hidden/UI/CanopyProjection"
             float transitionGlitch = _Glass.z;
             if (_PersonalityEnabled > .5)
             {
-                p = .5 + center * (1.0 + curvature * .16 * dot(center, center));
-                p.x += glassDistortion * .006 * sin(p.y * 13.0 + p.x * 4.0) * edge;
-                p.y += glassDistortion * .003 * sin(p.x * 10.0) * edge;
+                p += CanopyOffset(p, glassDistortion);
                 float band = floor(p.y * _Resolution.y / 3.0);
                 p.x += (Hash(float2(band, floor(_Clock * 11.0))) - .5) * beamJitter / _Resolution.x;
                 float kick = _HitAge >= 0.0 && _HitAge < .7 ? damageShudder * exp(-_HitAge * 7.0) : 0.0;

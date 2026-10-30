@@ -111,7 +111,7 @@ namespace UI.Projection
             properties.SetFloat("_TransitionAge", data.transitionAge);
             properties.SetFloat("_HitAge", data.hitAge);
             properties.SetVector("_Beam", new Vector4(data.settings.glow, data.settings.aberration,
-                data.settings.curvature, data.settings.beamJitter));
+                data.settings.beamJitter, 0f));
             properties.SetVector("_Phosphor", new Vector4(data.settings.scanlines, data.settings.flicker,
                 data.settings.warmth, data.settings.wear));
             properties.SetVector("_Glass", new Vector4(data.settings.glassDistortion,

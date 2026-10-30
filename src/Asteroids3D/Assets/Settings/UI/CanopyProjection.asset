@@ -15,7 +15,6 @@ MonoBehaviour:
   baseSettings:
     glow: 0.55
     aberration: 7
-    curvature: 0.65
     beamJitter: 0.7
     afterglow: 0.5
     scanlines: 0.92

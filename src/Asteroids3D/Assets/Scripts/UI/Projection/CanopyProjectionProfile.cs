@@ -14,7 +14,6 @@ namespace UI.Projection
     {
         [Range(0f, 2f)] public float glow;
         [Range(0f, 12f)] public float aberration;
-        [Range(0f, 1f)] public float curvature;
         [Range(0f, 4f)] public float beamJitter;
         [Range(0f, 1.5f)] public float afterglow;
         [Range(0f, 1f)] public float scanlines;
@@ -27,7 +26,7 @@ namespace UI.Projection
 
         public static CanopySettings Combat => new()
         {
-            glow = .45f, aberration = 1.3f, curvature = .15f, beamJitter = .35f,
+            glow = .45f, aberration = 1.3f, beamJitter = .35f,
             afterglow = .12f, scanlines = .22f, flicker = .3f, warmth = .3f,
             wear = .18f, glassDistortion = .15f, damageShudder = 3f, transitionGlitch = .2f
         };

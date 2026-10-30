@@ -59,7 +59,7 @@ namespace Tests.PlayMode.Rendering.Projection
             scene.SetPixels(pixels);
             scene.Apply();
             properties.SetTexture("_SceneImage", scene);
-            properties.SetVector("_Beam", new Vector4(2f, 12f, 1f, 4f));
+            properties.SetVector("_Beam", new Vector4(2f, 12f, 4f, 0f));
             properties.SetVector("_Phosphor", Vector4.one);
             properties.SetVector("_Glass", new Vector4(1f, 18f, 1f, 0f));
             properties.SetFloat("_AppearAge", .12f);
@@ -80,6 +80,28 @@ namespace Tests.PlayMode.Rendering.Projection
                 brighter |= lit[i].r > pixels[i].r + .01f;
             }
             Assert.That(brighter, Is.True);
+        }
+
+        [Test]
+        public void GlassWarpKeepsTheCenterStill_AndBendsBothSidesSymmetrically()
+        {
+            var ink = Own(new Texture2D(Width, Height, TextureFormat.RGBAFloat, false, true));
+            for (var y = 0; y < Height; y++)
+            for (var x = 0; x < Width; x++)
+                ink.SetPixel(x, y, new Color((x + .5f) / Width * .5f, (y + .5f) / Height * .5f, .1f));
+            ink.Apply();
+            properties.SetTexture("_PreviousInk", ink);
+            var baseline = Render(1);
+            properties.SetVector("_Glass", new Vector4(.96f, 0f, 0f, 0f));
+            var warped = Render(1);
+            AssertColor(baseline[Height / 2 * Width + Width / 2], warped[Height / 2 * Width + Width / 2]);
+            var left = Height / 2 * Width + 3;
+            var right = Height / 2 * Width + Width - 4;
+            var leftShift = Mathf.LinearToGammaSpace(warped[left].r) - Mathf.LinearToGammaSpace(baseline[left].r);
+            var rightShift = Mathf.LinearToGammaSpace(warped[right].r) - Mathf.LinearToGammaSpace(baseline[right].r);
+            Assert.That(leftShift, Is.LessThan(-.001f));
+            Assert.That(rightShift, Is.GreaterThan(.001f));
+            Assert.That(leftShift + rightShift, Is.EqualTo(0f).Within(.0001f));
         }
 
         [Test]
