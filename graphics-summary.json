@@ -1,0 +1,97 @@
+{
+    "generatedAt":  "2026-10-29T20:53:39.7362648-07:00",
+    "projectPath":  "D:\\amind\\git\\agent-6\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "PlayMode",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "scopeResolved":  false,
+                      "testFilter":  "CanopyEventsPlayModeTests",
+                      "testCategory":  "",
+                      "excludeCategory":  "",
+                      "categoryFilter":  "",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  "",
+                      "auto":  null,
+                      "withGraphics":  true,
+                      "captureScenario":  ""
+                  },
+    "status":  "passed",
+    "totals":  {
+                   "total":  3,
+                   "passed":  3,
+                   "failed":  0,
+                   "skipped":  0,
+                   "durationSec":  1.733
+               },
+    "runs":  [
+                 {
+                     "platform":  "PlayMode",
+                     "xmlPath":  "D:\\amind\\git\\agent-6\\results\\unity-tests-agent\\20261029-205301-PlayMode.xml",
+                     "logPath":  "D:\\amind\\git\\agent-6\\results\\unity-tests-agent\\20261029-205301-PlayMode.log",
+                     "unityExitCode":  0,
+                     "status":  "passed",
+                     "total":  3,
+                     "passed":  3,
+                     "failed":  0,
+                     "skipped":  0,
+                     "durationSec":  1.7332464,
+                     "failures":  [
+
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "captureScenario":  "",
+                                       "auto":  null,
+                                       "scopeResolved":  false,
+                                       "excludeCategory":  "",
+                                       "scopeType":  "Workspace",
+                                       "assemblyNames":  "",
+                                       "rerunFailedFrom":  "",
+                                       "scopeName":  "",
+                                       "orderedTestListFile":  "",
+                                       "testCategory":  "",
+                                       "withGraphics":  true,
+                                       "testFilter":  "CanopyEventsPlayModeTests",
+                                       "categoryFilter":  ""
+                                   },
+                     "startedAt":  "2026-10-30 03:53:33Z",
+                     "finishedAt":  "2026-10-30 03:53:35Z"
+                 }
+             ],
+    "wallTiming":  {
+                       "elapsedSec":  38.202,
+                       "startupToFirstTestSec":  27.125,
+                       "executionSec":  2,
+                       "remainingSec":  9.077,
+                       "unavailableReason":  ""
+                   },
+    "coverage":  {
+                     "verdict":  "partial",
+                     "reason":  "mode=PlayMode"
+                 },
+    "memory":  {
+                   "processes":  [
+                                     {
+                                         "pid":  11560,
+                                         "rootPeakPrivateGB":  2.905,
+                                         "rootPeakWorkingSetGB":  2.683,
+                                         "treePeakSampledPrivateGB":  3.003,
+                                         "treePeakSampledWorkingSetGB":  2.88,
+                                         "treeSumOfPeaksPrivateGB":  3.114,
+                                         "commitHeadroomAtLaunchGB":  23.28,
+                                         "commitHeadroomMinGB":  20.05,
+                                         "availablePhysicalAtLaunchGB":  9.17,
+                                         "availablePhysicalMinGB":  6.16,
+                                         "bootLaneReleasedAtSec":  7.56,
+                                         "treePeakAtSec":  27.405,
+                                         "samples":  5,
+                                         "samplesFailed":  0,
+                                         "unavailableReason":  ""
+                                     }
+                                 ],
+                   "unavailableReason":  ""
+               }
+}
