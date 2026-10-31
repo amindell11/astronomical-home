@@ -26,7 +26,7 @@ Sound work happens in the primary tree, on main, as uncommitted edits beside the
 
 ## Unity's built-in audio and the FMOD Setup Wizard
 
-Unity's built-in audio is off (`m_DisableAudio: 1` in `ProjectSettings/AudioManager.asset`) and stays off: every sound is an FMOD event, and an `AudioSource` plays nothing. Set that flag in the file, never through the FMOD Setup Wizard, which can also switch Source Type away from "Single Platform Build" (`../../audio/fmod/Build/Desktop`). Decline every wizard page and close it. The committed settings hide the wizard; when it reappears, close it and check Source Type before committing `FMODStudioSettings.asset`.
+Unity's built-in audio stays off (`m_DisableAudio: 1` in `ProjectSettings/AudioManager.asset`): every sound is an FMOD event, and an `AudioSource` plays nothing. The committed settings hide the FMOD Setup Wizard; when it reappears, decline every page and close it, then check that Source Type is still "Single Platform Build" (`../../audio/fmod/Build/Desktop`) before committing `FMODStudioSettings.asset`.
 
 ## Runtime rules
 

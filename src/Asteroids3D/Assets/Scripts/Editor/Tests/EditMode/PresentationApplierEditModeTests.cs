@@ -52,7 +52,6 @@ namespace Tests.EditMode
             }
         }
 
-        /// <summary>Root renderer + child particle system + one behaviour part.</summary>
         private GameObject BuildTransient()
         {
             var root = Track(new GameObject("Transient"));
