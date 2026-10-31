@@ -18,6 +18,8 @@ the matching doc when its branch fires:
   geometry, tree hygiene).
 - Driving a live Editor over the `unity` CLI → `doc/agents/unity-cli.md`
   (readiness gating, eval contract, capture paths, reload dead zones).
+- Preview tuning: making a feel tunable, adding a tuning target →
+  `doc/agents/tuning.md` (what's tunable, the target recipe, Replay vs Playtest).
 - Audio: FMOD, anything under `audio/`, or code touching `FMODUnity` →
   `doc/agents/audio-pipeline.md` (`fmodstudiocl` rules, bank refresh, the
   Setup Wizard, the FMOD stub rules, how to verify sound).

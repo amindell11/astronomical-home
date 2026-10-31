@@ -152,3 +152,7 @@ MonoBehaviour:
   urgencyNearTime: 0.5
   boostUrgency: 0.5
   boostAlignment: 30
+  roamRingMin: 35
+  roamRingMax: 60
+  roamLaps: 2
+  roamWanderRadius: 120
