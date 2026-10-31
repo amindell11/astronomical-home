@@ -119,7 +119,7 @@ namespace Tests.PlayMode.Preview
         }
 
         [UnityTest]
-        public IEnumerator RestartAndModeSwitch_ReleaseRecapInputAndInspectionLocaleOwnership()
+        public IEnumerator RestartAndEntrySwitch_ReleaseRecapInputAndReplayLocaleOwnership()
         {
             BuildPreview();
             yield return WaitForFlight();
@@ -147,8 +147,8 @@ namespace Tests.PlayMode.Preview
                 Assert.That(Time.timeScale, Is.EqualTo(1f));
             }
 
-            host.SelectMode(PreviewMode.Inspection);
-            yield return AsyncAssert.WaitUntil(() => host.IsReady && host.Subject != null, 30f, "jump inspection composes");
+            host.Select(PreviewEntry.SectorJump);
+            yield return AsyncAssert.WaitUntil(() => host.IsReady && host.Subject != null, 30f, "jump replay composes");
             Assert.That(LocaleInstances.Loaded("Locale_1"), Is.True);
             Assert.That(Time.timeScale, Is.Zero);
             host.Transport.Playing = false;
@@ -162,14 +162,13 @@ namespace Tests.PlayMode.Preview
             Assert.That(((SectorJumpPreviewSubject)host.Subject).State, Is.EqualTo(state));
 
             var game = host.gameHostPrefab;
-            Assert.That(host.Subject.Knobs, Is.SameAs(game.jumpFeel), "Inspection tunes the profile the game runs");
-            host.SelectSubject(PreviewSubjectKind.RunRecap);
-            yield return AsyncAssert.WaitUntil(() => host.IsReady, 30f, "recap inspection composes");
-            Assert.That(host.Subject.Knobs, Is.SameAs(game.recapFeel));
-            host.SelectSubject(PreviewSubjectKind.SectorJump);
-            yield return AsyncAssert.WaitUntil(() => host.IsReady, 30f, "jump inspection returns");
+            host.Select(PreviewEntry.RunRecap);
+            yield return AsyncAssert.WaitUntil(() => host.IsReady, 30f, "recap replay composes");
+            Assert.That(host.Subject, Is.TypeOf<RecapPreviewSubject>());
+            host.Select(PreviewEntry.SectorJump);
+            yield return AsyncAssert.WaitUntil(() => host.IsReady, 30f, "jump replay returns");
 
-            host.SelectMode(PreviewMode.Playtest);
+            host.Select(PreviewEntry.Combat);
             yield return WaitForFlight();
             Assert.That(host.Playtest.recapFeel, Is.SameAs(game.recapFeel));
             Assert.That(LocaleInstances.Loaded("Locale_1"), Is.False);
@@ -177,9 +176,9 @@ namespace Tests.PlayMode.Preview
             Assert.That(Time.timeScale, Is.EqualTo(1f));
             Assert.That(Object.FindObjectsByType<GameHost>(FindObjectsSortMode.None).Length, Is.EqualTo(1));
             Assert.That(InputSystem.ListEnabledActions().Count(action => action.name == "Thrust"), Is.EqualTo(1));
-            host.SelectMode(PreviewMode.Inspection);
-            yield return AsyncAssert.WaitUntil(() => host.IsReady, 30f, "inspection returns after playtest");
-            Assert.That(host.Subject.Knobs, Is.SameAs(game.jumpFeel));
+            host.Select(PreviewEntry.SectorJump);
+            yield return AsyncAssert.WaitUntil(() => host.IsReady, 30f, "replay returns after playtest");
+            Assert.That(host.Subject, Is.TypeOf<SectorJumpPreviewSubject>());
         }
 
         [UnityTest]
@@ -224,10 +223,10 @@ namespace Tests.PlayMode.Preview
         }
 
         [UnityTest]
-        public IEnumerator InspectionExtractionRecap_LeavesTheHudAndClockToTheJump()
+        public IEnumerator ReplayExtractionRecap_LeavesTheHudAndClockToTheJump()
         {
-            BuildPreview(PreviewMode.Inspection, PreviewSubjectKind.RunRecap);
-            yield return AsyncAssert.WaitUntil(() => host.IsReady, 45f, "recap inspection composes");
+            BuildPreview(PreviewEntry.RunRecap);
+            yield return AsyncAssert.WaitUntil(() => host.IsReady, 45f, "recap replay composes");
             host.Transport.Playing = false;
             var recap = (RecapPreviewSubject)host.Subject;
             var hud = host.GetComponentInChildren<PlayerRig>().Overlay.GetComponent<CanvasGroup>();
@@ -249,20 +248,20 @@ namespace Tests.PlayMode.Preview
         }
 
         [UnityTest]
-        public IEnumerator ComposeFault_FaultsTheHost_AndModeSwitchRestartAndShutdownRefuseInsteadOfWaiting()
+        public IEnumerator ComposeFault_FaultsTheHost_AndEntrySwitchRestartAndShutdownRefuseInsteadOfWaiting()
         {
             LogAssert.Expect(LogType.Exception, new Regex("requires a feel profile and jump feature"));
             var bootLighting = LightingSnapshot.Capture();
-            BuildPreview(PreviewMode.Inspection, PreviewSubjectKind.SectorJump, jumpFeature: false);
-            host.SelectMode(PreviewMode.Playtest);
+            BuildPreview(PreviewEntry.SectorJump, jumpFeature: false);
+            host.Select(PreviewEntry.Combat);
             yield return AsyncAssert.WaitUntil(() => host.Fault != null, 45f, "the subject's compose faults the host");
             yield return null;
             Assert.That(host.Fault, Is.TypeOf<System.InvalidOperationException>());
             Assert.That(host.IsReady, Is.False);
-            Assert.That(host.Playtest, Is.Null, "the mode switch waiting on the compose stops at its fault");
-            Assert.Throws<System.InvalidOperationException>(() => host.SelectMode(PreviewMode.Inspection));
+            Assert.That(host.Playtest, Is.Null, "the entry switch waiting on the compose stops at its fault");
+            Assert.Throws<System.InvalidOperationException>(() => host.Select(PreviewEntry.SectorJump));
             Assert.Throws<System.InvalidOperationException>(() => host.RestartPlaytest());
-            Assert.Throws<System.InvalidOperationException>(() => host.SelectSubject(PreviewSubjectKind.RunRecap));
+            Assert.Throws<System.InvalidOperationException>(() => host.Select(PreviewEntry.RunRecap));
             var shutdown = host.Shutdown();
             Assert.That(Assert.Catch(() => shutdown.MoveNext()), Is.SameAs(host.Fault));
             // The faulted host never tears its session down, so it never restores the boot lighting.
@@ -282,7 +281,7 @@ namespace Tests.PlayMode.Preview
             var root = new GameObject("Shipped playtest test");
             root.SetActive(false);
             host = root.AddComponent<PreviewHost>();
-            host.mode = PreviewMode.Playtest;
+            host.entry = PreviewEntry.Combat;
             host.gameHostPrefab = shipped;
             host.sessionProfile = new SessionProfile();
             host.crowdedJumpSectors = new[] { "CrowdedJumpDeparture", "CrowdedJumpArrival" }.Select(name => new SectorEntry
@@ -303,7 +302,7 @@ namespace Tests.PlayMode.Preview
             Assert.That(combat.runRecordPath, Is.Not.EqualTo(new RunRecordStore().Path));
             Assert.That(combat.ActiveSector.name, Does.StartWith(shipped.sessionProfile.sectors[0].prefab.name));
 
-            host.SelectPlaytestSetup(PreviewPlaytestSetup.CrowdedJumpGate);
+            host.Select(PreviewEntry.CrowdedJumpGate);
             yield return AsyncAssert.WaitUntil(() => host.IsReady && host.Playtest != combat, 30f,
                 "the crowded gate replaces the run");
             var crowded = host.Playtest;
@@ -350,8 +349,7 @@ namespace Tests.PlayMode.Preview
                 15f, "the real recap consumes the fresh press");
         }
 
-        private void BuildPreview(PreviewMode mode = PreviewMode.Playtest,
-            PreviewSubjectKind subject = PreviewSubjectKind.SectorJump, bool jumpFeature = true)
+        private void BuildPreview(PreviewEntry entry = PreviewEntry.Combat, bool jumpFeature = true)
         {
             template = new GameObject("Preview test templates");
             template.SetActive(false);
@@ -383,8 +381,7 @@ namespace Tests.PlayMode.Preview
             var root = new GameObject("Preview lifecycle test");
             root.SetActive(false);
             host = root.AddComponent<PreviewHost>();
-            host.mode = mode;
-            host.subjectKind = subject;
+            host.entry = entry;
             host.gameHostPrefab = gameHost;
             host.sessionProfile = profile;
             host.jumpDestination = TestAssets.Load<LocaleSky>("Assets/Prefabs/Locales/Locale_1.prefab");

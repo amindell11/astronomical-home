@@ -45,10 +45,9 @@ namespace Game.Preview
 
     /// <summary>
     /// A presentation module with a chosen context, hosted by <see cref="PreviewHost"/>: it names its
-    /// fixtures and spans, shows any instant of its timeline on the real renderers, and exposes the
-    /// feel profile the control panel edits. It composes its own world setup from the host's
-    /// <see cref="PreviewWorld"/> and releases it on Dispose. The transport decides which instant and
-    /// how long an input hold lasts; the subject never drives time.
+    /// fixtures and spans and shows any instant of its timeline on the real renderers. It composes its
+    /// own world setup from the host's <see cref="PreviewWorld"/> and releases it on Dispose. The
+    /// transport decides which instant and how long an input hold lasts; the subject never drives time.
     /// </summary>
     public interface IPreviewSubject : IDisposable
     {
@@ -60,6 +59,5 @@ namespace Game.Preview
         PreviewSpan Span(int index);
         IEnumerator Compose(PreviewWorld world);
         void Show(int span, float seconds, float holdSeconds);
-        ScriptableObject Knobs { get; }
     }
 }

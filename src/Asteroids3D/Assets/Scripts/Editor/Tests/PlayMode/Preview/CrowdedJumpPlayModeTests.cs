@@ -146,12 +146,12 @@ namespace Tests.PlayMode.Preview
         }
 
         [UnityTest]
-        public IEnumerator Inspection_ArrivalSpeedChangesTheVisibleCoast()
+        public IEnumerator Replay_ArrivalSpeedChangesTheVisibleCoast()
         {
             BuildPreview();
             yield return WaitForFlight();
-            host.SelectMode(PreviewMode.Inspection);
-            yield return AsyncAssert.WaitUntil(() => host.IsReady, 30f, "jump inspection composes");
+            host.Select(PreviewEntry.SectorJump);
+            yield return AsyncAssert.WaitUntil(() => host.IsReady, 30f, "jump replay composes");
             host.Transport.Playing = false;
             var camera = host.GetComponentsInChildren<Camera>().Single(item => item.name == "Jump sky camera");
             var subject = host.Subject;
@@ -167,11 +167,11 @@ namespace Tests.PlayMode.Preview
             subject.Show(1, settled, 0f);
             var fastDistance = Vector3.Distance(fastStart, camera.transform.position);
             Assert.That(fastDistance, Is.GreaterThan(slowDistance + .1f),
-                "Inspection must show the arrival speed selected in the feel profile");
+                "Replay must show the arrival speed selected in the feel profile");
         }
 
         [UnityTest]
-        public IEnumerator Inspection_PlaysTheGamesJumpStates_ForTheGamesHold()
+        public IEnumerator Replay_PlaysTheGamesJumpStates_ForTheGamesHold()
         {
             BuildPreview();
             yield return WaitForFlight();
@@ -192,8 +192,8 @@ namespace Tests.PlayMode.Preview
             yield return ClickContinue(game.GetComponentInChildren<RunRecapScreen>());
             yield return AsyncAssert.WaitUntil(() => !flight, 30f, "travel finishes after Continue");
 
-            host.SelectMode(PreviewMode.Inspection);
-            yield return AsyncAssert.WaitUntil(() => host.IsReady, 30f, "jump inspection composes");
+            host.Select(PreviewEntry.SectorJump);
+            yield return AsyncAssert.WaitUntil(() => host.IsReady, 30f, "jump replay composes");
             host.Transport.Playing = false;
             var subject = (SectorJumpPreviewSubject)host.Subject;
             var holdStarts = subject.Span(0).Seconds;
@@ -409,7 +409,19 @@ namespace Tests.PlayMode.Preview
                 action.name is "Jump" or "Continue" or "Thrust"), Is.Zero);
         }
 
-        // Headings are left out: the game's come from the gate, Inspection's from its fixture.
+        [UnityTest]
+        public IEnumerator SelectingTheRecap_RebuildsTheGateIntoTheRecapsReplay()
+        {
+            BuildPreview();
+            yield return WaitForFlight();
+            host.Select(PreviewEntry.RunRecap);
+            yield return AsyncAssert.WaitUntil(() => host.IsReady, 30f, "recap replay composes");
+            Assert.That(host.Subject, Is.TypeOf<RecapPreviewSubject>());
+            Assert.That(host.Playtest, Is.Null);
+            Assert.That(Object.FindObjectsByType<GameHost>(FindObjectsSortMode.None), Is.Empty);
+        }
+
+        // Headings are left out: the game's come from the gate, Replay's from its fixture.
         private static void AssertSameTimeline(SectorJumpState expected, SectorJumpState shown)
         {
             const float tolerance = 1e-4f;
@@ -506,9 +518,7 @@ namespace Tests.PlayMode.Preview
             var root = new GameObject("Crowded jump test");
             root.SetActive(false);
             host = root.AddComponent<PreviewHost>();
-            host.mode = PreviewMode.Playtest;
-            host.subjectKind = PreviewSubjectKind.SectorJump;
-            host.playtestSetup = PreviewPlaytestSetup.CrowdedJumpGate;
+            host.entry = PreviewEntry.CrowdedJumpGate;
             host.gameHostPrefab = gameHost;
             host.sessionProfile = profile;
             host.crowdedJumpSectors = profile.sectors;
