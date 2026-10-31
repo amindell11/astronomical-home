@@ -7,9 +7,21 @@ namespace UI.Objectives
     public sealed class BerthGraphic : MaskableGraphic
     {
         private static readonly Color Ivory = new(.91f, .99f, .96f, 1f);
-        private static readonly Color Mint = new(.45f, .94f, .76f, 1f);
+        public static readonly Color ExtractionAccent = new(.45f, .94f, .76f, 1f);
         private static readonly Color Ink = new(.015f, .045f, .065f, .85f);
         private bool minimap;
+        private Color accent = ExtractionAccent;
+
+        public Color Accent
+        {
+            get => accent;
+            set
+            {
+                if (accent == value) return;
+                accent = value;
+                SetVerticesDirty();
+            }
+        }
 
         public static BerthGraphic Create(Transform parent, bool minimap)
         {
@@ -33,16 +45,16 @@ namespace UI.Objectives
             {
                 Disc(mesh, Vector2.zero, 11, new Color(Ink.r, Ink.g, Ink.b, .92f), scale);
                 Arch(mesh, 7, 5, 2.8f, scale);
-                Disc(mesh, new Vector2(0, -3), 2.1f, Mint, scale);
+                Disc(mesh, new Vector2(0, -3), 2.1f, accent, scale);
                 return;
             }
 
             Disc(mesh, Vector2.zero, 27, new Color(.015f, .055f, .065f, .28f), scale);
             Arch(mesh, 14, 10, 2.4f, scale);
-            Disc(mesh, new Vector2(-14, -11), 2.5f, Mint, scale);
-            Disc(mesh, new Vector2(14, -11), 2.5f, Mint, scale);
-            Disc(mesh, new Vector2(0, -15), 2.1f, Mint, scale);
-            Disc(mesh, new Vector2(0, -24), 1.5f, new Color(Mint.r, Mint.g, Mint.b, .5f), scale);
+            Disc(mesh, new Vector2(-14, -11), 2.5f, accent, scale);
+            Disc(mesh, new Vector2(14, -11), 2.5f, accent, scale);
+            Disc(mesh, new Vector2(0, -15), 2.1f, accent, scale);
+            Disc(mesh, new Vector2(0, -24), 1.5f, new Color(accent.r, accent.g, accent.b, .5f), scale);
         }
 
         private static void Arch(VertexHelper mesh, float radius, float leg, float width, float scale)

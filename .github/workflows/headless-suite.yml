@@ -57,7 +57,7 @@ jobs:
       - name: LFS cache key
         id: lfs-key
         run: |
-          oids="$(git lfs ls-files -l -I "*.fbx,*.FBX,*.obj,*.onnx,*.ttf,src/Asteroids3D/Assets/Resources/RunRecap/Ships/*.png,src/Asteroids3D/Assets/Visuals/Ui/Crosshair/Generated/*.png" | cut -d' ' -f1 | sort | sha256sum | cut -c1-16)"
+          oids="$(git lfs ls-files -l -I "*.fbx,*.FBX,*.obj,*.onnx,*.ttf,src/Asteroids3D/Assets/Resources/RunRecap/Ships/*.png,src/Asteroids3D/Assets/Visuals/Ui/Crosshair/Generated/*.png,src/Asteroids3D/Assets/Visuals/Ui/Weapons/Generated/*.png" | cut -d' ' -f1 | sort | sha256sum | cut -c1-16)"
           echo "key=lfs-$oids" >> "$GITHUB_OUTPUT"
 
       - uses: actions/cache@v4
@@ -70,7 +70,7 @@ jobs:
       - name: LFS light pull
         run: |
           git lfs install --local
-          git lfs pull --include="*.fbx,*.FBX,*.obj,*.onnx,*.ttf,src/Asteroids3D/Assets/Resources/RunRecap/Ships/*.png,src/Asteroids3D/Assets/Visuals/Ui/Crosshair/Generated/*.png" --exclude=""
+          git lfs pull --include="*.fbx,*.FBX,*.obj,*.onnx,*.ttf,src/Asteroids3D/Assets/Resources/RunRecap/Ships/*.png,src/Asteroids3D/Assets/Visuals/Ui/Crosshair/Generated/*.png,src/Asteroids3D/Assets/Visuals/Ui/Weapons/Generated/*.png" --exclude=""
           du -sh .git/lfs
 
       # game-ci's container mounts only the workspace, so the vendor tarball the committed manifest names is

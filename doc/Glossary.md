@@ -890,8 +890,14 @@ Format: **term** — definition. *(authority)*
   ship once; the ship re-reads it on every resolve and on every change.
   *(LullMod, LullModPool, LullModStack, Ship.BindMods)*
 - **lull pick** — the time-stopped choice of one lull mod from up to three,
-  or a skip, on the first frame of a sector phase lull; the lull's own seconds
-  run after it. *(LullPickScreen, GameHost)*
+  or a skip, when the player claims the lull beacon; the clock runs on after
+  it. *(LullPickScreen, GameHost)*
+- **lull beacon** — the zone the sector spine places on a clear point away from
+  the hero shortly before a sector phase that a lull follows ends, so its
+  marker shows during the fight; flying into it claims that lull's pick. It
+  stays through the lull and a grace window into the next sector phase, then
+  closes unclaimed (that pick is lost); a new beacon's opening closes the one
+  before it, so beacons never stack. *(PhaseSpineModule, ExtractionZone)*
 - **weapon pick** — the sector-break choice of one weapon the player does not
   carry, from up to three, or a skip, then the mount it replaces; held in
   hyperspace after the extraction recap. The swap keeps hull, shield and the run
