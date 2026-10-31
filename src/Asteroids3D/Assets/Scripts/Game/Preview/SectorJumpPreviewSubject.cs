@@ -6,6 +6,7 @@ using Game.Travel;
 using Ships;
 using Substrate;
 using Substrate.Services.Locales;
+using UI;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -29,6 +30,8 @@ namespace Game.Preview
         private readonly SectorJumpProfile profile;
         private Ship ship;
         private ObserverCam observer;
+        private Overlay overlay;
+        private IEnumerable<Ship> ships;
         private Action<bool> freezeSimulation;
         private LocaleBackdropPair backdrop;
         private SectorJumpPresentation presentation;
@@ -63,6 +66,8 @@ namespace Game.Preview
         {
             ship = world.Rig.Player;
             observer = world.Observer;
+            overlay = world.Rig.Overlay;
+            ships = world.Session.Units.ActiveRegistry.ActiveShips;
             freezeSimulation = world.FreezeSimulation;
             if (!ship.gameObject.activeInHierarchy)
                 world.Session.Units.RespawnShip(ship.Id, GamePlane.WorldPointToPlane(ship.transform.position), 0f);
@@ -77,8 +82,7 @@ namespace Game.Preview
             commanderEnabled = ship.Commander.enabled;
             observer.enabled = false;
             ship.Commander.enabled = false;
-            presentation = SectorJumpPresentation.Create(world.Ui, ship, world.Rig.Overlay,
-                world.Session.Units.ActiveRegistry.ActiveShips, observer, backdrop, feature);
+            presentation = SectorJumpPresentation.Create(world.Ui, ship, overlay, ships, observer, backdrop, feature);
             yield break;
         }
 
@@ -131,6 +135,9 @@ namespace Game.Preview
         {
             Object.DestroyImmediate(presentation.gameObject);
             Object.DestroyImmediate(backdrop.gameObject);
+            overlay.SetOpacity(1f);
+            foreach (var active in ships)
+                if (active && active.VisualRig) active.VisualRig.SetHudOpacity(1f);
             ship.transform.rotation = startRotation;
             ship.Body.rotation = startRotation;
             ship.Commander.enabled = commanderEnabled;
