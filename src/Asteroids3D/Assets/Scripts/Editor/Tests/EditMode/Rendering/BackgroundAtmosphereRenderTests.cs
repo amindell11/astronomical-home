@@ -1,8 +1,8 @@
 using System.Linq;
 using NUnit.Framework;
 using Substrate.Services.Locales;
+using Tests.EditMode.Rendering.Locales;
 using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -60,16 +60,15 @@ namespace Tests.EditMode.Rendering
             Object.DestroyImmediate(material);
         }
 
-        [TestCase("Assets/Scenes/Locales/Locale_1.unity")]
-        [TestCase("Assets/Scenes/Locales/Locale_2.unity")]
-        [TestCase("Assets/Scenes/Locales/Locale_3.unity")]
+        [TestCase("Assets/Prefabs/Locales/Locale_1.prefab")]
+        [TestCase("Assets/Prefabs/Locales/Locale_2.prefab")]
+        [TestCase("Assets/Prefabs/Locales/Locale_3.prefab")]
         [TestCase("Assets/Scenes/EditScene.unity")]
-        public void LocaleAtmosphere_SeparatesMaterialsAndPreservesDrawOrder(string scenePath)
+        public void LocaleAtmosphere_SeparatesMaterialsAndPreservesDrawOrder(string path)
         {
-            var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
-            try
+            using (var locale = new OpenLocale(path))
             {
-                var root = scene.GetRootGameObjects().Single(g => g.activeSelf && g.GetComponent<LocaleSky>()).transform;
+                var root = locale.Sky;
                 var far = root.Find("FarNebula").GetComponent<MeshRenderer>().sharedMaterial;
                 var stars = root.Find("StarField").GetComponent<MeshRenderer>().sharedMaterial;
                 var close = root.Find("CloseNebula").GetComponent<MeshRenderer>().sharedMaterial;
@@ -83,10 +82,6 @@ namespace Tests.EditMode.Rendering
                 Assert.That(far.GetFloat("_ZTest"), Is.EqualTo((float)CompareFunction.LessEqual));
                 Assert.That(close.GetFloat("_ZTest"), Is.EqualTo((float)CompareFunction.Always),
                     "The close nebula must draw over gameplay.");
-            }
-            finally
-            {
-                EditorSceneManager.CloseScene(scene, true);
             }
         }
 

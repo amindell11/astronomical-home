@@ -11,19 +11,21 @@ using Game.Travel;
 using NUnit.Framework;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
+using Substrate.Services.Locales;
 using Substrate.Services.Units;
 using Substrate.Sessions;
 using Tests.PlayMode.Common;
+using Tests.PlayMode.Common.Locales;
 using Tests.PlayMode.Common.SimulatedInput;
 using UI;
 using UI.Hangar;
 using UI.Recap;
 using UI.Projection;
 using UI.Screens;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
-using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
@@ -39,12 +41,7 @@ namespace Tests.PlayMode.Preview
         private Keyboard keyboard;
         private Mouse mouse;
         private PlayerRig rig;
-        private SectorJumpProfile selectedJump;
-        private RecapFeelProfile selectedRecap;
-        private SectorJumpProfile handedJump;
-        private RecapFeelProfile handedRecap;
-        private CanopyProjectionProfile handedCanopy;
-        private CanopyProjectionProfile selectedCanopy;
+        private CanopyProjectionProfile canopy;
 
         public override void SetUp()
         {
@@ -64,12 +61,7 @@ namespace Tests.PlayMode.Preview
                 Object.Destroy(host.gameObject);
             }
             if (template) Object.Destroy(template);
-            if (selectedJump) Object.Destroy(selectedJump);
-            if (selectedRecap) Object.Destroy(selectedRecap);
-            if (handedJump) Object.Destroy(handedJump);
-            if (handedRecap) Object.Destroy(handedRecap);
-            if (handedCanopy) Object.Destroy(handedCanopy);
-            if (selectedCanopy) Object.Destroy(selectedCanopy);
+            if (canopy) Object.Destroy(canopy);
             yield return null;
             input.TearDown();
         }
@@ -157,7 +149,7 @@ namespace Tests.PlayMode.Preview
 
             host.SelectMode(PreviewMode.Inspection);
             yield return AsyncAssert.WaitUntil(() => host.IsReady && host.Subject != null, 30f, "jump inspection composes");
-            Assert.That(SceneManager.GetSceneByName("Locale_1").isLoaded, Is.True);
+            Assert.That(LocaleInstances.Loaded("Locale_1"), Is.True);
             Assert.That(Time.timeScale, Is.Zero);
             host.Transport.Playing = false;
             host.Transport.Scrub(0, 3f);
@@ -169,84 +161,66 @@ namespace Tests.PlayMode.Preview
             yield return null;
             Assert.That(((SectorJumpPreviewSubject)host.Subject).State, Is.EqualTo(state));
 
-            selectedJump = Object.Instantiate((SectorJumpProfile)host.Subject.Knobs);
-            host.Subject.Knobs = selectedJump;
+            var game = host.gameHostPrefab;
+            Assert.That(host.Subject.Knobs, Is.SameAs(game.jumpFeel), "Inspection tunes the profile the game runs");
             host.SelectSubject(PreviewSubjectKind.RunRecap);
             yield return AsyncAssert.WaitUntil(() => host.IsReady, 30f, "recap inspection composes");
-            selectedRecap = Object.Instantiate((RecapFeelProfile)host.Subject.Knobs);
-            host.Subject.Knobs = selectedRecap;
+            Assert.That(host.Subject.Knobs, Is.SameAs(game.recapFeel));
             host.SelectSubject(PreviewSubjectKind.SectorJump);
             yield return AsyncAssert.WaitUntil(() => host.IsReady, 30f, "jump inspection returns");
-            Assert.That(host.Subject.Knobs, Is.SameAs(selectedJump));
 
             host.SelectMode(PreviewMode.Playtest);
             yield return WaitForFlight();
-            Assert.That(host.RecapFeel, Is.SameAs(selectedRecap));
-            Assert.That(SceneManager.GetSceneByName("Locale_1").isLoaded, Is.False);
-            Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("Locale_3"));
+            Assert.That(host.Playtest.recapFeel, Is.SameAs(game.recapFeel));
+            Assert.That(LocaleInstances.Loaded("Locale_1"), Is.False);
+            Assert.That(LocaleInstances.Shown(), Is.EqualTo("Locale_3"));
             Assert.That(Time.timeScale, Is.EqualTo(1f));
             Assert.That(Object.FindObjectsByType<GameHost>(FindObjectsSortMode.None).Length, Is.EqualTo(1));
             Assert.That(InputSystem.ListEnabledActions().Count(action => action.name == "Thrust"), Is.EqualTo(1));
             host.SelectMode(PreviewMode.Inspection);
             yield return AsyncAssert.WaitUntil(() => host.IsReady, 30f, "inspection returns after playtest");
-            Assert.That(host.Subject.Knobs, Is.SameAs(selectedJump));
+            Assert.That(host.Subject.Knobs, Is.SameAs(game.jumpFeel));
         }
 
         [UnityTest]
-        public IEnumerator Playtest_RunsTheHandedFeels_AndAJumpFeelChangeRestartsCombat()
+        public IEnumerator Playtest_RunsTheGameHostsOwnFeels_ThroughARestart()
         {
             BuildPreview();
             yield return WaitForFlight();
+            var game = host.gameHostPrefab;
             var combat = host.Playtest;
-            Assert.That(combat.recapFeel, Is.SameAs(handedRecap), "Playtest runs the feels its builder hands in");
-            Assert.That(combat.jumpFeel, Is.SameAs(handedJump));
+            Assert.That(combat.recapFeel, Is.SameAs(game.recapFeel), "Playtest runs the feels its GameHost ships");
+            Assert.That(combat.jumpFeel, Is.SameAs(game.jumpFeel));
 
-            var jump = TestAssets.Load<SectorJumpProfile>("Assets/Settings/Game/SectorJumpTuning.asset");
-            host.RestartPlaytest(jump);
-            yield return AsyncAssert.WaitUntil(() => host.IsReady && host.Playtest != combat, 30f,
-                "a jump feel change restarts Combat");
-            Assert.That(host.Playtest.jumpFeel, Is.SameAs(jump));
-            Assert.That(host.Playtest.recapFeel, Is.SameAs(handedRecap), "the restart keeps the recap feel");
+            host.RestartPlaytest();
+            yield return AsyncAssert.WaitUntil(() => host.IsReady && host.Playtest != combat, 30f, "Combat restarts");
+            Assert.That(host.Playtest.recapFeel, Is.SameAs(game.recapFeel));
+            Assert.That(host.Playtest.jumpFeel, Is.SameAs(game.jumpFeel));
         }
 
         [UnityTest]
-        public IEnumerator CanopyWorkingProfile_ControlsForcedStatesAndBothOffSwitches_AndSelectionRestartsCombat()
+        public IEnumerator CanopyProfile_ControlsForcedStatesAndBothOffSwitchesLive()
         {
             BuildPreview();
             yield return WaitForFlight();
-            var combat = host.Playtest;
-            var projection = combat.CanopyProjection;
-            Assert.That(projection.Profile, Is.SameAs(handedCanopy));
-            var authored = rig.AuthoredCanopyProfile;
-            var authoredSettings = authored.baseSettings;
-            handedCanopy.lowHull.fields = CanopyFields.Glow;
-            handedCanopy.lowHull.settings.glow = 0f;
-            handedCanopy.lowHull.blendInSeconds = 0f;
+            var projection = host.Playtest.CanopyProjection;
+            Assert.That(projection.Profile, Is.SameAs(canopy), "Playtest runs the profile its rig ships");
+            canopy.lowHull.fields = CanopyFields.Glow;
+            canopy.lowHull.settings.glow = 0f;
+            canopy.lowHull.blendInSeconds = 0f;
             projection.ForceMode = CanopyForceMode.LowHull;
             yield return null;
             yield return null;
             Assert.That(projection.ActiveState, Is.EqualTo(CanopyState.LowHull));
             Assert.That(projection.Settings.glow, Is.Zero);
-            Assert.That(projection.Settings.aberration, Is.EqualTo(handedCanopy.baseSettings.aberration));
-            Assert.That(authored.baseSettings, Is.EqualTo(authoredSettings));
-            handedCanopy.personalityEnabled = false;
+            Assert.That(projection.Settings.aberration, Is.EqualTo(canopy.baseSettings.aberration));
+            canopy.personalityEnabled = false;
             Assert.That(projection.EffectsEnabled, Is.False);
-            handedCanopy.personalityEnabled = true;
+            canopy.personalityEnabled = true;
             projection.PersonalityEnabled = false;
             Assert.That(projection.EffectsEnabled, Is.False);
             projection.PersonalityEnabled = true;
             Assert.That(projection.EffectsEnabled, Is.True);
-
-            selectedCanopy = Object.Instantiate(authored);
-            selectedCanopy.baseSettings.glow = .17f;
-            host.RestartPlaytest(selectedCanopy);
-            yield return AsyncAssert.WaitUntil(() => host.IsReady && host.Playtest != combat, 30f,
-                "a canopy profile change restarts Combat");
-            yield return WaitForFlight();
-            Assert.That(host.CanopyFeel, Is.SameAs(selectedCanopy));
-            Assert.That(host.Playtest.CanopyProjection.Profile, Is.SameAs(selectedCanopy));
-            Assert.That(host.Playtest.CanopyProjection.Settings.glow, Is.EqualTo(.17f));
-            Assert.That(host.Playtest.CanopyProjection.ForceMode, Is.EqualTo(CanopyForceMode.Automatic));
         }
 
         [UnityTest]
@@ -277,8 +251,9 @@ namespace Tests.PlayMode.Preview
         [UnityTest]
         public IEnumerator ComposeFault_FaultsTheHost_AndModeSwitchRestartAndShutdownRefuseInsteadOfWaiting()
         {
-            LogAssert.Expect(LogType.Exception, new Regex("requires a feel profile and shader"));
-            BuildPreview(PreviewMode.Inspection, PreviewSubjectKind.SectorJump, jumpShader: false);
+            LogAssert.Expect(LogType.Exception, new Regex("requires a feel profile and jump feature"));
+            var bootLighting = LightingSnapshot.Capture();
+            BuildPreview(PreviewMode.Inspection, PreviewSubjectKind.SectorJump, jumpFeature: false);
             host.SelectMode(PreviewMode.Playtest);
             yield return AsyncAssert.WaitUntil(() => host.Fault != null, 45f, "the subject's compose faults the host");
             yield return null;
@@ -290,14 +265,13 @@ namespace Tests.PlayMode.Preview
             Assert.Throws<System.InvalidOperationException>(() => host.SelectSubject(PreviewSubjectKind.RunRecap));
             var shutdown = host.Shutdown();
             Assert.That(Assert.Catch(() => shutdown.MoveNext()), Is.SameAs(host.Fault));
-            // The faulted host never tears its session down, so its locale stays loaded.
+            // The faulted host never tears its session down, so it never restores the boot lighting.
             var faulted = host.gameObject;
             host = null;
             faulted.GetComponent<UnitService>().Clear();
             Object.Destroy(faulted);
             yield return null;
-            if (SceneManager.GetSceneByName("Locale_3").isLoaded)
-                yield return SceneManager.UnloadSceneAsync("Locale_3");
+            bootLighting.Restore();
         }
 
         [UnityTest]
@@ -310,8 +284,6 @@ namespace Tests.PlayMode.Preview
             host = root.AddComponent<PreviewHost>();
             host.mode = PreviewMode.Playtest;
             host.gameHostPrefab = shipped;
-            host.recapFeel = shipped.recapFeel;
-            host.jumpFeel = shipped.jumpFeel;
             host.sessionProfile = new SessionProfile();
             host.crowdedJumpSectors = new[] { "CrowdedJumpDeparture", "CrowdedJumpArrival" }.Select(name => new SectorEntry
             {
@@ -338,7 +310,7 @@ namespace Tests.PlayMode.Preview
             yield return LaunchFromHangar(crowded);
             Assert.That(combat == null, Is.True);
             Assert.That(crowded.sessionProfile.sectors, Is.SameAs(host.crowdedJumpSectors));
-            Assert.That(crowded.sessionProfile.idleLocale.SceneName, Is.EqualTo(shipped.sessionProfile.idleLocale.SceneName));
+            Assert.That(crowded.sessionProfile.idleLocale, Is.SameAs(shipped.sessionProfile.idleLocale));
             Assert.That(crowded.ActiveSector.name, Does.StartWith("CrowdedJumpDeparture"));
             Assert.That(Object.FindObjectsByType<GameHost>(FindObjectsSortMode.None).Length, Is.EqualTo(1));
             Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None).Length, Is.EqualTo(1));
@@ -349,7 +321,7 @@ namespace Tests.PlayMode.Preview
             HangarScreen hangar = null;
             yield return AsyncAssert.WaitUntil(() => (hangar = game.GetComponentInChildren<HangarScreen>()) != null, 45f,
                 "the shipped run opens in the hangar");
-            Assert.That(SceneManager.GetSceneByName(game.sessionProfile.idleLocale.SceneName).isLoaded, Is.True,
+            Assert.That(LocaleInstances.Shown(), Is.EqualTo(game.sessionProfile.idleLocale.name),
                 "the idle locale shows behind the hangar");
             hangar.launchButton.onClick.Invoke();
             yield return AsyncAssert.WaitUntil(() => game.ActiveSector != null, 45f, "Launch loads the first sector");
@@ -379,7 +351,7 @@ namespace Tests.PlayMode.Preview
         }
 
         private void BuildPreview(PreviewMode mode = PreviewMode.Playtest,
-            PreviewSubjectKind subject = PreviewSubjectKind.SectorJump, bool jumpShader = true)
+            PreviewSubjectKind subject = PreviewSubjectKind.SectorJump, bool jumpFeature = true)
         {
             template = new GameObject("Preview test templates");
             template.SetActive(false);
@@ -403,11 +375,11 @@ namespace Tests.PlayMode.Preview
             game.transform.SetParent(template.transform, false);
             var gameHost = game.AddComponent<GameHost>();
             gameHost.sessionProfile = profile;
-            gameHost.playerRig = TestAssets.Load<PlayerRig>("Assets/Prefabs/MiscObjects/PlayerRig.prefab");
+            gameHost.playerRig = RigWithTestCanopy();
             gameHost.observerCamPrefab = TestAssets.Load<ObserverCam>("Assets/Prefabs/Cameras/Main Camera.prefab");
             gameHost.recapFeel = TestAssets.Load<RecapFeelProfile>("Assets/Settings/UI/RecapFeel.asset");
             gameHost.jumpFeel = TestAssets.Load<SectorJumpProfile>("Assets/Settings/Game/SectorJumpTuning.asset");
-            gameHost.jumpShader = jumpShader ? Shader.Find("Astronomical/Travel/SectorJump") : null;
+            gameHost.jumpFeature = jumpFeature ? TestAssets.Load<SectorJumpFeature>("Assets/Settings/Rendering/SectorJumpFeature.asset") : null;
             var root = new GameObject("Preview lifecycle test");
             root.SetActive(false);
             host = root.AddComponent<PreviewHost>();
@@ -415,10 +387,27 @@ namespace Tests.PlayMode.Preview
             host.subjectKind = subject;
             host.gameHostPrefab = gameHost;
             host.sessionProfile = profile;
-            host.recapFeel = handedRecap = Object.Instantiate(gameHost.recapFeel);
-            host.jumpFeel = handedJump = Object.Instantiate(gameHost.jumpFeel);
-            host.canopyFeel = handedCanopy = Object.Instantiate(gameHost.playerRig.AuthoredCanopyProfile);
+            host.jumpDestination = TestAssets.Load<LocaleSky>("Assets/Prefabs/Locales/Locale_1.prefab");
             root.SetActive(true);
+        }
+
+        // The rig's own canopy prefab references a test copy, so live edits never touch the shipped profile.
+        private PlayerRig RigWithTestCanopy()
+        {
+            var rigTemplate = Object.Instantiate(TestAssets.Load<PlayerRig>("Assets/Prefabs/MiscObjects/PlayerRig.prefab"),
+                template.transform);
+            using var serializedRig = new SerializedObject(rigTemplate);
+            var canopyPrefab = serializedRig.FindProperty("uiCamPrefab");
+            var projection = Object.Instantiate((CanopyProjection)canopyPrefab.objectReferenceValue, template.transform);
+            canopy = Object.Instantiate(projection.Profile);
+            using (var serializedProjection = new SerializedObject(projection))
+            {
+                serializedProjection.FindProperty("profile").objectReferenceValue = canopy;
+                serializedProjection.ApplyModifiedPropertiesWithoutUndo();
+            }
+            canopyPrefab.objectReferenceValue = projection;
+            serializedRig.ApplyModifiedPropertiesWithoutUndo();
+            return rigTemplate;
         }
     }
 }

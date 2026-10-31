@@ -4,14 +4,12 @@ using System.IO;
 using System.Runtime.ExceptionServices;
 using Cameras;
 using Game.Runs;
-using Game.Travel;
 using Ships;
 using Substrate.Results;
+using Substrate.Services.Locales;
 using Substrate.Services.Objectives;
 using Substrate.Services.Units;
 using Substrate.Sessions;
-using UI.Recap;
-using UI.Projection;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
@@ -25,11 +23,11 @@ namespace Game.Preview
 
     /// <summary>
     /// Inspection owns a session and presentation subject driven by a transport; Playtest owns an
-    /// instance of the game's GameHost prefab, overriding only its run records, the selected feel
-    /// profiles and, for the crowded jump gate, its sectors. Inspection takes its rig, observer and jump
-    /// shader from the same prefab. The host's builder hands in the starting feel profiles before
-    /// activation; the host never saves them. Replacement awaits the previous mode's teardown before
-    /// composing the next. Only inspection subjects may freeze this host's clock.
+    /// instance of the game's GameHost prefab, overriding only its run records and, for the crowded
+    /// jump gate, its sectors. Inspection takes its rig, observer, jump shader and feel profiles from
+    /// the same prefab, so both modes run on the feel assets the game ships. Replacement awaits the
+    /// previous mode's teardown before composing the next. Only inspection subjects may freeze this
+    /// host's clock.
     /// A throw while composing, replacing or tearing down faults the host: every later request refuses,
     /// Shutdown rethrows instead of tearing down, and only destroying the host recovers.
     /// https://github.com/amindell11/astronomical-home/issues/1151
@@ -41,13 +39,11 @@ namespace Game.Preview
         [SerializeField] internal GameHost gameHostPrefab;
         [SerializeField] internal SessionProfile sessionProfile;
         [SerializeField] internal SectorEntry[] crowdedJumpSectors;
+        [SerializeField] internal LocaleSky jumpDestination;
         [SerializeField] internal PreviewSubjectKind subjectKind;
         [SerializeField] internal PreviewMode mode;
         [SerializeField] internal PreviewPlaytestSetup playtestSetup;
 
-        internal RecapFeelProfile recapFeel;
-        internal SectorJumpProfile jumpFeel;
-        internal CanopyProjectionProfile canopyFeel;
         private UnitService unitService;
         private ObjectiveService objectiveService;
         private Session session;
@@ -73,9 +69,6 @@ namespace Game.Preview
         public PreviewMode Mode => mode;
         public PreviewPlaytestSetup PlaytestSetup => playtestSetup;
         public GameHost Playtest => playtest;
-        public RecapFeelProfile RecapFeel => recapFeel;
-        public SectorJumpProfile JumpFeel => jumpFeel;
-        public CanopyProjectionProfile CanopyFeel => canopyFeel;
         public bool IsReplacing => replacing || closing;
         public Exception Fault => fault?.SourceException;
         public bool IsReady => fault == null && !composing && !IsReplacing &&
@@ -85,8 +78,6 @@ namespace Game.Preview
         {
             unitService = GetComponent<UnitService>();
             objectiveService = GetComponent<ObjectiveService>();
-            if (!recapFeel)
-                throw new InvalidOperationException("The preview host requires a recap feel profile before activation.");
             RequireMode(mode);
             RequirePlaytestSetup(playtestSetup);
             if (!sessionProfile.presentation)
@@ -121,7 +112,7 @@ namespace Game.Preview
             registry.ActiveShips.OnRemove += RemoveCameraSubject;
 
             rig = Instantiate(gameHostPrefab.playerRig, transform);
-            yield return rig.Build(session.Units, session.Objectives, true, observer, ui, session.Frame, null, canopyFeel);
+            yield return rig.Build(session.Units, session.Objectives, true, observer, ui, session.Frame, null);
             rig.ApplyLoadout();
             yield return session.LoadSector(0, rig.Player);
 
@@ -137,9 +128,6 @@ namespace Game.Preview
             playtest = Instantiate(gameHostPrefab, staging.transform);
             if (playtestSetup == PreviewPlaytestSetup.CrowdedJumpGate)
                 playtest.sessionProfile.sectors = crowdedJumpSectors;
-            playtest.recapFeel = recapFeel;
-            playtest.jumpFeel = jumpFeel;
-            playtest.canopyProfileOverride = canopyFeel;
             playtest.runRecordPath = Path.Combine(ResultsRoot.Folder("preview"),
                 Guid.NewGuid().ToString("N"), RunRecordStore.FileName);
             playtest.transform.SetParent(null, false);
@@ -155,7 +143,13 @@ namespace Game.Preview
             BeginReplacement();
         }
 
-        public void RestartPlaytest() => RestartPlaytest(recapFeel);
+        public void RestartPlaytest()
+        {
+            RequireAvailable();
+            if (mode != PreviewMode.Playtest)
+                throw new InvalidOperationException("Restart Playtest requires Playtest mode.");
+            BeginReplacement();
+        }
 
         public void SelectPlaytestSetup(PreviewPlaytestSetup selected)
         {
@@ -166,36 +160,6 @@ namespace Game.Preview
             if (selected == playtestSetup)
                 throw new InvalidOperationException("That Playtest setup is already selected.");
             playtestSetup = selected;
-            BeginReplacement();
-        }
-
-        public void RestartPlaytest(RecapFeelProfile feel)
-        {
-            RequireAvailable();
-            if (mode != PreviewMode.Playtest)
-                throw new InvalidOperationException("Restart Playtest requires Playtest mode.");
-            if (!feel) throw new ArgumentNullException(nameof(feel));
-            recapFeel = feel;
-            BeginReplacement();
-        }
-
-        public void RestartPlaytest(SectorJumpProfile feel)
-        {
-            RequireAvailable();
-            if (mode != PreviewMode.Playtest)
-                throw new InvalidOperationException("Jump profile selection requires Playtest mode.");
-            if (!feel) throw new ArgumentNullException(nameof(feel));
-            jumpFeel = feel;
-            BeginReplacement();
-        }
-
-        public void RestartPlaytest(CanopyProjectionProfile feel)
-        {
-            RequireAvailable();
-            if (mode != PreviewMode.Playtest || playtestSetup != PreviewPlaytestSetup.Combat)
-                throw new InvalidOperationException("Canopy profile selection requires Combat Playtest.");
-            if (!feel) throw new ArgumentNullException(nameof(feel));
-            canopyFeel = feel;
             BeginReplacement();
         }
 
@@ -247,9 +211,9 @@ namespace Game.Preview
 
         private IPreviewSubject NewSubject() => subjectKind switch
         {
-            PreviewSubjectKind.RunRecap => new RecapPreviewSubject(recapFeel, feel => recapFeel = feel),
-            PreviewSubjectKind.SectorJump => new SectorJumpPreviewSubject(jumpFeel, gameHostPrefab.jumpShader,
-                feel => jumpFeel = feel),
+            PreviewSubjectKind.RunRecap => new RecapPreviewSubject(gameHostPrefab.recapFeel),
+            PreviewSubjectKind.SectorJump => new SectorJumpPreviewSubject(gameHostPrefab.jumpFeel, gameHostPrefab.jumpFeature,
+                jumpDestination),
             _ => throw new ArgumentOutOfRangeException(nameof(subjectKind), subjectKind, "Unknown preview subject.")
         };
 
@@ -336,7 +300,7 @@ namespace Game.Preview
             if (!Enum.IsDefined(typeof(PreviewPlaytestSetup), selected))
                 throw new ArgumentOutOfRangeException(nameof(selected));
             if (selected == PreviewPlaytestSetup.CrowdedJumpGate &&
-                (crowdedJumpSectors is not { Length: > 0 } || !jumpFeel || !gameHostPrefab.jumpShader))
+                (crowdedJumpSectors is not { Length: > 0 } || !gameHostPrefab.jumpFeel || !gameHostPrefab.jumpFeature))
                 throw new InvalidOperationException("The crowded jump setup requires its fixture sectors and jump assets.");
         }
 

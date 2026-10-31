@@ -9,7 +9,7 @@ namespace UI.Weapons
 {
     /// <summary>
     /// Binds weapon readouts for HUD audio and builds corner panels for lock feedback.
-    /// Heat, ammunition and held charge surround Keystone in <see cref="WeaponResourceHud"/>.
+    /// Heat, ammunition and held charge flank the keystone in <see cref="WeaponResourceHud"/>.
     /// </summary>
     public sealed class WeaponReadoutBuilder : MonoBehaviour
     {

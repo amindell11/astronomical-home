@@ -88,7 +88,6 @@ namespace Game
         private CanopyPersonality personality;
 
         public CanopyProjection Projection => projection;
-        public CanopyProjectionProfile AuthoredCanopyProfile => uiCamPrefab.Profile;
 
         // The prefab the current Player instance was built from — a hangar ship change is detected
         // against this (the prefab is the archetype; see ShipLoadout.Ship).
@@ -104,8 +103,7 @@ namespace Game
         /// already has a subscriber.
         /// </summary>
         public IEnumerator Build(IUnitService units, IObjectiveService objectives, bool presentationEnabled,
-            ObserverCam observer, Transform uiRoot, SessionFrame frame, Action<ShipId, DamageInfo> onPlayerDeath,
-            CanopyProjectionProfile canopyProfileOverride = null)
+            ObserverCam observer, Transform uiRoot, SessionFrame frame, Action<ShipId, DamageInfo> onPlayerDeath)
         {
             this.units = units;
             this.observer = observer;
@@ -135,7 +133,7 @@ namespace Game
                 Overlay = Instantiate(overlayPrefab, uiRoot);
                 personality = CanopyPersonality.Create(gameObject, objectives, projection, () => Overlay.IsVisible);
                 personality.Initialize(Player.Damage);
-                projection.Initialize(observer.Cam, canopyProfileOverride, personality.Observe);
+                projection.Initialize(observer.Cam, personality.Observe);
                 Overlay.ConfigureCameras(uiCam, observer.Cam, projection);
                 Overlay.Initialize(BuildHudBinding());
                 var minimapCam = Instantiate(minimapCamPrefab, observer.transform);

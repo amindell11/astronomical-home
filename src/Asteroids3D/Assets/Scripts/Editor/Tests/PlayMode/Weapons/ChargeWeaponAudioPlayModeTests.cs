@@ -17,6 +17,7 @@ namespace Tests.PlayMode.Weapons
         private const string RailgunPrefabPath = "Assets/Prefabs/Weapons/Railgun.prefab";
         private const string ChargeLaserFire = "event:/Weapons/ChargeLaser/Fire";
         private const string RailgunFire = "event:/Weapons/Railgun/Fire";
+        private const int StopFrames = 10;
 
         [UnityTest]
         public IEnumerator ChargeLasers_SoundFollowsTheChargeUp_KeysOffOnTheShot_AndStopsOnADrop()
@@ -73,10 +74,16 @@ namespace Tests.PlayMode.Weapons
             Assert.AreEqual(1, Instances(description).Length, "a fresh instance for the second charge-up");
             Release(weapon);
             Assert.AreEqual(1, fired, "a release below the minimum does not fire");
-            yield return Flush();
-            instances = Instances(description);
-            var dropState = instances.Length == 0 ? PLAYBACK_STATE.STOPPED : State(instances[0]);
-            Debug.Log($"[FMOD] {eventPath} drop: instances={instances.Length} state={dropState}");
+            // A fade-out stop waits out the event's effect tails, which can take another mixer update.
+            var frames = 0;
+            PLAYBACK_STATE dropState;
+            do
+            {
+                yield return Flush();
+                instances = Instances(description);
+                dropState = instances.Length == 0 ? PLAYBACK_STATE.STOPPED : State(instances[0]);
+            } while (++frames < StopFrames && dropState != PLAYBACK_STATE.STOPPED && dropState != PLAYBACK_STATE.STOPPING);
+            Debug.Log($"[FMOD] {eventPath} drop: instances={instances.Length} state={dropState} after {frames} frame(s)");
             Assert.That(dropState, Is.EqualTo(PLAYBACK_STATE.STOPPED).Or.EqualTo(PLAYBACK_STATE.STOPPING), "an unfired release stops the sound");
         }
     }
