@@ -105,7 +105,7 @@ namespace Game
         [SerializeField, Range(0f, 1f)] private float killHullRestore = 0.25f;
 
         [Header("Lull pick")]
-        [Tooltip("Lull mods offered at each sector phase lull, three at a time with time stopped. " +
+        [Tooltip("Lull mods offered when the player claims a lull beacon, three at a time with time stopped. " +
                  "Null → no lull picks.")]
         [SerializeField] internal LullModPool lullMods;
 
@@ -274,17 +274,17 @@ namespace Game
                     if (music) music.EnterSector(session.ActiveSector);
                     if (rigInstance) rigInstance.EnterSector(session.ActiveSector.Module<PhaseSpineModule>());
                     var sectorStartTime = Time.time;
-                    var lulls = presentation && lullMods && rigInstance
+                    var beacons = presentation && lullMods && rigInstance
                         ? session.ActiveSector.Module<PhaseSpineModule>() : null;
-                    var inLull = false;
+                    var beaconClaimed = false;
 
                     while (!playerDied && !sectorEnded && !shutdownRequested)
                     {
-                        if (lulls)
+                        if (beacons)
                         {
-                            var lull = lulls.Phase.InLull;
-                            if (lull && !inLull) yield return RunLullPick();
-                            inLull = lull;
+                            var claimed = beacons.BeaconClaimed;
+                            if (claimed && !beaconClaimed) yield return RunLullPick();
+                            beaconClaimed = claimed;
                         }
                         yield return null;
                     }
@@ -430,7 +430,7 @@ namespace Game
             }
         }
 
-        // The clock stops for the pick, so the lull's own seconds all run after it.
+        // The clock stops for the pick and runs on after it; a claim can land mid-phase.
         private IEnumerator RunLullPick()
         {
             var player = rigInstance.Player;

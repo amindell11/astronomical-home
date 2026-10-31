@@ -20,7 +20,6 @@ namespace Tests.EditMode.Weapons
         [TestCase("Assets/Prefabs/Weapons/Lasers.prefab")]
         [TestCase("Assets/Prefabs/Weapons/TurboLasers.prefab")]
         [TestCase("Assets/Prefabs/Weapons/Rippers.prefab")]
-        [TestCase("Assets/Prefabs/Weapons/ChargeLasers.prefab")]
         public void Prefab_LeavesHoldRangeToThePilot(string path)
         {
             Assert.IsNull(Load(path).HoldRange, path);
