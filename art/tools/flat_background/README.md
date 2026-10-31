@@ -130,7 +130,7 @@ palette-mapped colours. A locale's nebula materials vary these, so re-sending
 refreshes inherited colours while Inspector overrides survive. Assign the
 background material to a `Background` sky layer under the locale's `LocaleSky`
 root; swap it in Play Mode to preview, or assign it in Edit Mode and save the
-scene to apply.
+locale prefab to apply.
 
 ## Tests
 

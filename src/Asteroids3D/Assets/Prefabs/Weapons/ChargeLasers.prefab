@@ -62,7 +62,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   chargeTime: 1.2
   minChargeToFire: 0.3
-  autoFireAtFull: 1
 --- !u!114 &-8301958025146036882
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -77,10 +76,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   firePoint: {fileID: 0}
   displayName: Charge Laser
+  hudIcon: {fileID: 21300000, guid: 6cdac7be26982404e9f1ed08ea121ba1, type: 3}
   projectilePrefab: {fileID: 5408995189547049293, guid: 204237af4e4f426ea0eee9eb1a490331,
     type: 3}
-  charge: {fileID: 6448982411033854647}
-  cooldown: {fileID: 8105349543242701031}
   minChargeDamageScale: 0.4
   fullChargeDamageScale: 1
   fireDistance: 25
@@ -88,6 +86,8 @@ MonoBehaviour:
   chargeCone: 25
   releaseCharge: 0.31
   fullChargeReleaseCone: 12
+  charge: {fileID: 6448982411033854647}
+  cooldown: {fileID: 8105349543242701031}
 --- !u!114 &2792708326550319890
 MonoBehaviour:
   m_ObjectHideFlags: 0
