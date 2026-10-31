@@ -24,4 +24,4 @@ A thing is tunable when all three hold:
 - **Replay** — a timeline subject (`IPreviewSubject`) the transport scrubs, loops and holds. Use it when the owner judges a moment: a presentation module that is a function of a feel profile, a context and a time. The subject reaches its state through the real cause (a *staged moment*), such as damage through the real damage path.
 - **Playtest** — the shipped `GameHost` prefab, flown by the owner, with preview run records and at most swapped sectors. Use it when the feel shows only under real input and real timing.
 
-A target lists Replay entries above Playtest ones; the top entry is where a switch lands when the new target lacks the running one. Two targets may share an entry (the recap and the HUD share Combat), and switching between them keeps the running world.
+The panel lists a target's Replay entries above its Playtest ones, and the top entry is where a switch lands when the new target lacks the running one. Two targets may share an entry (the recap and the HUD share Combat), and switching between them keeps the running world.

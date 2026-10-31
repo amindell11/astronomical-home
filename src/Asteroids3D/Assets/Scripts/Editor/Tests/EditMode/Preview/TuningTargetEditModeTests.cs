@@ -6,7 +6,7 @@ using NUnit.Framework;
 using UI.Projection;
 using UnityEditor;
 
-namespace Tests.EditMode.Bootstrap
+namespace Tests.EditMode.Preview
 {
     [Category("Bootstrap")]
     public class TuningTargetEditModeTests

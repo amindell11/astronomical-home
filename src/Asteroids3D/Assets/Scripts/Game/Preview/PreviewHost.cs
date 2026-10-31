@@ -23,9 +23,9 @@ namespace Game.Preview
     /// A Replay entry owns a session and a presentation subject driven by a transport; a Playtest entry
     /// owns an instance of the game's GameHost prefab, overriding only its run records and, for the
     /// crowded jump gate, its sectors. Replay takes its rig, observer, jump shader and feel profiles from
-    /// the same prefab, so both kinds of entry run on the feel assets the game ships. Replacement awaits
-    /// the previous entry's teardown before composing the next. Only Replay subjects may freeze this
-    /// host's clock.
+    /// the same prefab, so both kinds of entry run on the feel assets the game ships. A switch between
+    /// Replay entries swaps only the subject; any other switch or restart awaits the previous entry's
+    /// teardown before composing the next. Only Replay subjects may freeze this host's clock.
     /// A throw while composing, replacing or tearing down faults the host: every later request refuses,
     /// Shutdown rethrows instead of tearing down, and only destroying the host recovers.
     /// https://github.com/amindell11/astronomical-home/issues/1151
