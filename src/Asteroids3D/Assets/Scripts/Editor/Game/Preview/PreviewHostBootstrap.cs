@@ -1,7 +1,6 @@
 using Substrate.Sectors;
 using Substrate.Services.Locales;
 using Substrate.Sessions;
-using UI.Projection;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -10,10 +9,10 @@ namespace Game.Preview
 {
     /// <summary>
     /// Builds the preview host in an empty scene around the game's GameHost prefab, with one trial
-    /// sector for Inspection and the two-sector crowded jump fixture.
-    /// The chosen mode is assigned before activation, so Playtest never composes an inspection session.
-    /// The host waits inactive through the play-mode reload; entering play mode snapshots the feel
-    /// profiles the prefab ships with, then activates it, so the panel tunes those assets in place.
+    /// sector for Replay and the two-sector crowded jump fixture.
+    /// The chosen entry is assigned before activation, so Playtest never composes a Replay session.
+    /// The host waits inactive through the play-mode reload; entering play mode snapshots every tuning
+    /// target's feel profiles, then activates it, so the panel tunes those assets in place.
     /// </summary>
     [InitializeOnLoad]
     public static class PreviewHostBootstrap
@@ -26,18 +25,16 @@ namespace Game.Preview
         static PreviewHostBootstrap() => EditorApplication.playModeStateChanged += ActivateWaitingHost;
 
         /// <summary>False when the user kept an unsaved scene open instead.</summary>
-        public static bool EnterPlayMode(PreviewSubjectKind subject = PreviewSubjectKind.RunRecap,
-            PreviewMode mode = PreviewMode.Inspection, PreviewPlaytestSetup setup = PreviewPlaytestSetup.Combat)
+        public static bool EnterPlayMode(PreviewEntry entry = PreviewEntry.RunRecap)
         {
             if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return false;
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-            BuildHost(subject, mode, setup);
+            BuildHost(entry);
             EditorApplication.EnterPlaymode();
             return true;
         }
 
-        internal static PreviewHost BuildHost(PreviewSubjectKind subject = PreviewSubjectKind.RunRecap,
-            PreviewMode mode = PreviewMode.Inspection, PreviewPlaytestSetup setup = PreviewPlaytestSetup.Combat)
+        internal static PreviewHost BuildHost(PreviewEntry entry = PreviewEntry.RunRecap)
         {
             var root = new GameObject("PreviewHost");
             root.SetActive(false);
@@ -57,24 +54,14 @@ namespace Game.Preview
             };
             host.crowdedJumpSectors = new[] { JumpEntry("CrowdedJumpDeparture"), JumpEntry("CrowdedJumpArrival") };
             host.jumpDestination = AssetDatabase.LoadAssetAtPath<LocaleSky>(JumpDestinationPath);
-            host.subjectKind = subject;
-            host.mode = mode;
-            host.playtestSetup = setup;
+            host.entry = entry;
             return host;
         }
 
         internal static void Activate(PreviewHost host, FeelSnapshot snapshot)
         {
-            var game = host.gameHostPrefab;
-            snapshot.Take(game.recapFeel, game.jumpFeel, CanopyProfile(game));
+            snapshot.Take(TuningTarget.ProfilesOfAll(host.gameHostPrefab));
             host.gameObject.SetActive(true);
-        }
-
-        // Read through serialization, so the rig grows no member for the preview.
-        internal static CanopyProjectionProfile CanopyProfile(GameHost game)
-        {
-            using var rig = new SerializedObject(game.playerRig);
-            return ((CanopyProjection)rig.FindProperty("uiCamPrefab").objectReferenceValue).Profile;
         }
 
         private static void ActivateWaitingHost(PlayModeStateChange change)

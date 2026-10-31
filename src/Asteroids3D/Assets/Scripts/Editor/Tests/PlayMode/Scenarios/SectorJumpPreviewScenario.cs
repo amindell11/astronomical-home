@@ -43,7 +43,7 @@ namespace Tests.PlayMode.Scenarios
             };
             host.gameHostPrefab = AssetDatabase.LoadAssetAtPath<GameHost>("Assets/Prefabs/Game/GameHost.prefab");
             host.jumpDestination = AssetDatabase.LoadAssetAtPath<LocaleSky>("Assets/Prefabs/Locales/Locale_1.prefab");
-            host.subjectKind = PreviewSubjectKind.SectorJump;
+            host.entry = PreviewEntry.SectorJump;
             var priorTimeScale = Time.timeScale;
             try
             {
@@ -101,7 +101,7 @@ namespace Tests.PlayMode.Scenarios
                 host.Transport.Scrub(0, 3.1f);
                 yield return null;
                 Assert.That(jump.State, Is.EqualTo(expected));
-                host.SelectSubject(PreviewSubjectKind.RunRecap);
+                host.Select(PreviewEntry.RunRecap);
                 Assert.That(Time.timeScale, Is.EqualTo(priorTimeScale));
                 yield return WaitFor(() => host.Subject != null);
                 Assert.That(host.Subject, Is.TypeOf<RecapPreviewSubject>());
@@ -109,7 +109,7 @@ namespace Tests.PlayMode.Scenarios
                 host.Subject.SelectFixture(6);
                 host.Transport.Restart();
                 yield return WaitFor(() => !player.gameObject.activeInHierarchy);
-                host.SelectSubject(PreviewSubjectKind.SectorJump);
+                host.Select(PreviewEntry.SectorJump);
                 yield return WaitFor(() => host.Subject != null);
                 Assert.That(player.gameObject.activeInHierarchy, Is.True,
                     "Entering jump after a staged defeat must restore its live ship.");
