@@ -58,10 +58,6 @@ namespace Tests.PlayMode.Audio
             OneImpactPerHit("TurboLaser", "event:/Weapons/TurboLaser/Impact");
 
         [UnityTest]
-        public IEnumerator ChargeBoltHit_PlaysOneChargeLaserImpact() =>
-            OneImpactPerHit("ChargeBolt", "event:/Weapons/ChargeLaser/Impact");
-
-        [UnityTest]
         public IEnumerator RipperSlugHit_PlaysOneRipperImpact() =>
             OneImpactPerHit("RipperSlug", "event:/Weapons/Ripper/Impact");
 

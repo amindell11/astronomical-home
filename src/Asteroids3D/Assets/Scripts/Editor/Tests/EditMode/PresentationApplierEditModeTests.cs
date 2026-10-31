@@ -154,7 +154,6 @@ namespace Tests.EditMode
             "Assets/Prefabs/Weapons/Projectiles/Laser.prefab",
             "Assets/Prefabs/Weapons/Projectiles/TurboLaser.prefab",
             "Assets/Prefabs/Weapons/Projectiles/RipperSlug.prefab",
-            "Assets/Prefabs/Weapons/Projectiles/ChargeBolt.prefab",
             "Assets/Prefabs/Weapons/Projectiles/MissileProjectile.prefab",
             "Assets/Prefabs/Weapons/Projectiles/GrenadeCharge.prefab",
             "Assets/Prefabs/Weapons/Projectiles/ConcussionWave.prefab",

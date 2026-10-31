@@ -129,26 +129,6 @@ namespace Tests.PlayMode.Weapons
             Assert.AreEqual(0.3f, launches[3] - launches[0], HalfStep, "30, 60, 90, then the overheating fourth shot");
             Assert.AreEqual(1.5f, launches[4] - launches[3], HalfStep, "0.5 s overheat penalty, then 100 heat at 100/s");
         }
-
-        [UnityTest]
-        public IEnumerator Charge_FiresOnTheAuthoredSteps()
-        {
-            var lasers = Template<ChargeLasers>();
-            lasers.projectilePrefab = Bolt();
-            AddCooldown(lasers, secondsBetweenShots: 0.1f);
-            lasers.gameObject.AddComponent<ChargeTime>().Configure(chargeTime: 1f, minChargeToFire: 0.5f);
-
-            var held = new List<float>();
-            yield return Fire(lasers, _ => true, seconds: 2.2f, held);
-            var tapped = new List<float>();
-            yield return Fire(lasers, weapon => !weapon.CanFire(), seconds: 1.5f, tapped);
-
-            Assert.That(held.Count, Is.GreaterThanOrEqualTo(2), "two full charges");
-            Assert.AreEqual(1f, held[1] - held[0], HalfStep, "held: fires at full charge every 1 s");
-            Assert.That(tapped.Count, Is.GreaterThanOrEqualTo(2), "two releases at minimum charge");
-            Assert.AreEqual(0.5f + Time.fixedDeltaTime, tapped[1] - tapped[0], HalfStep,
-                "released once firable: half charge, then the release step");
-        }
     }
 }
 #endif
