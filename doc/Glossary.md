@@ -599,18 +599,16 @@ Format: **term** — definition. *(authority)*
   anything fanning sessions across one plane. A session fact, distinct from the
   obstacle field an AI ship senses, which rides the spawn call on its own.
   *(`SessionFrame`, `Substrate/Sessions/Session.cs`)*
-- **session scene** — the scene a `Session` creates and keeps active until its
+- **session scene** — the scene a `Session` keeps active from construction to
   teardown. Unity puts an object created without a parent into the active
-  scene, so such an object lives exactly as long as the session, and the locale
-  lighting the session writes stays in this scene's `RenderSettings`. Only the
-  arena root lives there; the host's viewport, UI, rig and music stay under the
-  host, which outlives its session. A host destroyed without tearing its
-  session down takes the scene with it, through a lease component the session
-  puts on the host. The active scene is process-wide, so while several sessions
-  are alive the newest one's scene is active and every unparented object lands
-  there. That includes a second session's owner created meanwhile, which then
-  dies with the first session's scene; hosts call `DontDestroyOnLoad` to stay
-  out. *(`Session`, `SessionSceneLease`)*
+  scene, so such an object dies with the session. The session builds only its
+  arena root there; the host's viewport, UI, rig and music stay under the host,
+  which outlives its session. `SessionSceneLease` unloads the scene when its
+  host is destroyed without a teardown. The active scene is process-wide, so
+  with several sessions alive every unparented object lands in the newest one's
+  scene. A host created while another session is alive lands there too and
+  dies with that session's scene, unless it calls `DontDestroyOnLoad` as
+  `GameHost` and `PreviewHost` do. *(`Session`, `SessionSceneLease`)*
 - **sector** — a bounded open-space field of POIs. The load-bearing decisions:
   it builds **deterministically** from a serialized manifest, and there is **one
   concrete class**, configured by prefab — variation never arrives as a subclass.

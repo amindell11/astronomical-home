@@ -29,7 +29,7 @@ namespace Tests.PlayMode.Recording
 
         public override void TearDown()
         {
-            // Destroying the owner unloads a session the test never tore down; a finished Teardown nulls the pool.
+            // Destroying the owner unloads a session never torn down; a finished Teardown nulls the pool.
             DestroyTestObject(sessionRoot);
             sessionRoot = null;
 

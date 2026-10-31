@@ -20,8 +20,8 @@ namespace Substrate.Sessions
     /// player it built to each load. The RL harness composes the same per-ship services
     /// through <see cref="ShipServices"/> and never drives a session. Presentation is read from the
     /// profile once, at construction. The session creates its own scene, builds its arena there and
-    /// keeps it active until teardown, so an object created without a parent meanwhile dies with the
-    /// session; a <see cref="SessionSceneLease"/> on the owner unloads it if the owner dies first. The
+    /// keeps it active until teardown, so an object created without a parent dies with the session;
+    /// a <see cref="SessionSceneLease"/> on the owner unloads the scene if the owner dies first. The
     /// active scene is process-wide: with several sessions alive, the newest one's scene is active.
     /// </summary>
     public sealed class Session

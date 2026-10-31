@@ -5,10 +5,9 @@ using UnityEngine.SceneManagement;
 namespace Substrate.Sessions
 {
     /// <summary>
-    /// Ties a session scene to the GameObject that owns the session. Releasing it, or destroying the owner without a
-    /// release, makes the previously active scene active again, then unloads the session scene. The previous scene is
-    /// restored only while the session scene is still the active one and the previous scene is still loaded; a session
-    /// scene that is no longer loaded (play-mode exit, a finished release) is left alone.
+    /// Ties a session scene to the GameObject that owns the session. Releasing the lease, or destroying the owner
+    /// without a release, unloads the session scene, first handing the active scene back to the previous one if the
+    /// session scene still holds it. A scene already unloaded, by a finished release or at play-mode exit, is left alone.
     /// </summary>
     public sealed class SessionSceneLease : MonoBehaviour
     {
