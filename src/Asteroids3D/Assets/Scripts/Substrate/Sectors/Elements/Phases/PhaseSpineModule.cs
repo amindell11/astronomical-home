@@ -136,7 +136,7 @@ namespace Substrate.Sectors.Elements.Phases
         // The lull in progress, or the one within the lead of this phase's end.
         private int LullAhead(SectorPhaseMark mark)
         {
-            if (mark.Done) return -1;
+            if (mark.Done || mark.InOpeningLull) return -1;
             if (mark.InLull) return mark.Index;
             var lullFollows = mark.Index < director.PhaseCount - 1;
             return lullFollows && mark.SecondsLeft <= beaconLeadSeconds ? mark.Index + 1 : -1;

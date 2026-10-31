@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>Wave director pacing over a sector phase table with injected time: each phase opens once, its interval gates cadence and its cap gates count, a lull spawns nothing, and the done table keeps the last phase's pacing. Loadout draws come from the pool in force and leave the second mount empty, and the threat read lists the roster's ships and the weapons in force, off a prefab asset too.</summary>
+    /// <summary>Wave director pacing over a sector phase table with injected time: each phase opens once, its interval gates cadence and its cap gates count, a lull (the opening one too) spawns nothing, and the done table keeps the last phase's pacing. Loadout draws come from the pool in force and leave the second mount empty, and the threat read lists the roster's ships and the weapons in force, off a prefab asset too.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class WaveDirectorEditModeTests
@@ -96,6 +96,24 @@ namespace Tests.EditMode
             _director.ScheduleNext(0f);
             _director.Advance(42f);
             Assert.IsFalse(_director.SpawnDue(42f, 0), "A lull spawns nothing, whatever is due.");
+        }
+
+        [Test]
+        public void OpeningLull_OpensAndSpawnsNothing_ThenPhaseOneOpensAtItsEnd()
+        {
+            _director.Configure(null, Phases(), Lull, openingLullSeconds: 5f);
+            _director.BeginSchedule(0f);
+
+            _director.Advance(0f);
+            Assert.IsTrue(_director.Phase.InLull, "The sector opens in a lull.");
+            Assert.IsFalse(_director.OpensPhase(), "The opening lull opens nothing.");
+            _director.Advance(4.9f);
+            Assert.IsFalse(_director.OpensPhase());
+            Assert.IsFalse(_director.SpawnDue(4.9f, 0), "The opening lull spawns nothing, whatever is due.");
+
+            _director.Advance(5f);
+            Assert.AreEqual(0, _director.Phase.Index);
+            Assert.IsTrue(_director.OpensPhase(), "Phase one opens as the opening lull ends.");
         }
 
         [Test]

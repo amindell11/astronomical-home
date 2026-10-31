@@ -43,13 +43,14 @@ namespace Tests.EditMode
 
         private (PhaseSpineModule module, WaveDirector director, ExtractionZone zone, ExtractionZone beacon,
             ObjectiveService svc, SectorBuildContext ctx) Build(Ship hero = null, float lead = 8f, float grace = 10f,
-            int phaseCount = 2)
+            int phaseCount = 2, float openingLull = 0f)
         {
             var svc = NewGO("ObjectiveService").AddComponent<ObjectiveService>();
 
             var director = NewGO("WaveDirector").AddComponent<WaveDirector>();
             director.Configure(null, Enumerable.Range(0, phaseCount)
-                .Select(_ => new SectorPhase { seconds = 40f, interval = 4f, cap = 3 }).ToArray(), lullSeconds: 5f);
+                .Select(_ => new SectorPhase { seconds = 40f, interval = 4f, cap = 3 }).ToArray(), lullSeconds: 5f,
+                openingLullSeconds: openingLull);
             director.BeginSchedule(0f);
 
             var zoneGO = NewGO("Zone");
@@ -169,6 +170,19 @@ namespace Tests.EditMode
             module.Tick();
             Assert.IsTrue(beacon.gameObject.activeSelf);
             Assert.AreEqual(beacon.transform, svc.SpineTarget);
+        }
+
+        [Test]
+        public void OpeningLull_OpensNoBeacon()
+        {
+            var (module, director, _, beacon, svc, ctx) = Build(NewGO("Hero").AddComponent<Ship>(), openingLull: 5f);
+            Run(module.Setup(ctx));
+
+            director.Advance(2f);
+            module.Tick();
+
+            Assert.IsFalse(beacon.gameObject.activeSelf);
+            Assert.IsNull(svc.SpineTarget);
         }
 
         [Test]
