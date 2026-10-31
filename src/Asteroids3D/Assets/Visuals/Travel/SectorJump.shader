@@ -6,25 +6,28 @@ Shader "Astronomical/Travel/SectorJump"
         _ToSky("Incoming locale", 2D) = "black" {}
         _ShipImage("Ship", 2D) = "black" {}
         _ShipImageTo("Ship in destination lighting", 2D) = "black" {}
+        _Opacity("Opacity", Range(0, 1)) = 1
     }
     SubShader
     {
-        Tags { "Queue"="Background" "RenderType"="Opaque" }
-        Cull Off ZWrite Off ZTest Always
+        Tags { "RenderPipeline" = "UniversalPipeline" }
+        ZWrite Off ZTest Always Cull Off
+        Blend SrcAlpha OneMinusSrcAlpha, Zero One
         Pass
         {
             HLSLPROGRAM
-            #pragma vertex vert_img
+            #pragma vertex Vert
             #pragma fragment Frag
             #pragma target 3.5
-            #include "UnityCG.cginc"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
             sampler2D _FromSky, _ToSky, _ShipImage, _ShipImageTo;
             float4 _Direction, _Motion, _Streaks, _Nebula, _Ship, _Exhaust;
             float4 _StreakColor, _ExhaustColor, _StreakDistribution;
-            float _RawBackgroundBlend;
+            float _RawBackgroundBlend, _Opacity;
             int _Seed;
 
-            float Hash(uint value)
+            float StreakHash(uint value)
             {
                 value ^= (uint)_Seed;
                 value ^= value >> 16;
@@ -50,9 +53,10 @@ Shader "Astronomical/Travel/SectorJump"
                     tex2D(_ShipImageTo, saturate(local)), _Motion.z) * inside;
             }
 
-            float4 Frag(v2f_img input) : SV_Target
+            float4 Frag(Varyings input) : SV_Target
             {
-                float2 p = (input.uv - 0.5) * float2(_Motion.w, 1);
+                // URP camera intermediates are stored y-flipped on D3D, so texcoord's origin is bottom-left.
+                float2 p = (input.texcoord - 0.5) * float2(_Motion.w, 1);
                 float2 direction = _Direction.xy;
                 float along = dot(p, direction);
                 float across = dot(p, float2(-direction.y, direction.x));
@@ -84,18 +88,18 @@ Shader "Astronomical/Travel/SectorJump"
                 {
                     uint id = (uint)streakIndex * 7u;
                     float variation = _StreakDistribution.x;
-                    float depth = lerp(1, lerp(0.35, 1.4, Hash(id + 2u)), variation);
-                    float starAcross = (Hash(id) - 0.5) * acrossExtent * _StreakDistribution.y;
-                    float starAlong = (frac(Hash(id + 1u) - _Motion.y * depth / period) - 0.5) * period;
-                    float fan = (Hash(id + 6u) * 2 - 1) * _StreakDistribution.z;
+                    float depth = lerp(1, lerp(0.35, 1.4, StreakHash(id + 2u)), variation);
+                    float starAcross = (StreakHash(id) - 0.5) * acrossExtent * _StreakDistribution.y;
+                    float starAlong = (frac(StreakHash(id + 1u) - _Motion.y * depth / period) - 0.5) * period;
+                    float fan = (StreakHash(id + 6u) * 2 - 1) * _StreakDistribution.z;
                     float2 delta = float2(along - starAlong, across - starAcross);
                     float transverse = abs(dot(delta, float2(-sin(fan), cos(fan))));
                     float longitudinal = abs(dot(delta, float2(cos(fan), sin(fan))));
                     float streakLength = _Streaks.y * _Motion.x * depth *
-                        lerp(1, lerp(0.4, 1.5, Hash(id + 3u)), variation);
+                        lerp(1, lerp(0.4, 1.5, StreakHash(id + 3u)), variation);
                     float width = _Streaks.z * depth *
-                        lerp(1, lerp(0.5, 1.8, Hash(id + 4u)), variation);
-                    float brightness = lerp(1, lerp(0.2, 1.3, Hash(id + 5u)), variation);
+                        lerp(1, lerp(0.5, 1.8, StreakHash(id + 4u)), variation);
+                    float brightness = lerp(1, lerp(0.2, 1.3, StreakHash(id + 5u)), variation);
                     float end = 1 - smoothstep(streakLength * 0.25, streakLength * 0.5 + aa, longitudinal);
                     float lineIntensity = 1 - smoothstep(width * 0.5, width * 0.5 + aa, transverse);
                     float glow = exp2(-transverse / max(width * 3, aa)) * 0.15;
@@ -127,7 +131,7 @@ Shader "Astronomical/Travel/SectorJump"
                 float coreWeight = lerp(1, _Ship.w, saturate(_Ship.y));
                 float3 color = sky * (1 - trail.a) + trail.rgb;
                 color = color * (1 - core.a * coreWeight) + core.rgb * coreWeight;
-                return float4(color, 1);
+                return float4(saturate(color), _Opacity);
             }
             ENDHLSL
         }

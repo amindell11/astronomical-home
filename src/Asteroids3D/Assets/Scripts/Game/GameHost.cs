@@ -93,7 +93,7 @@ namespace Game
 
         [Header("Sector travel")]
         [SerializeField] internal SectorJumpProfile jumpFeel;
-        [SerializeField] internal Shader jumpShader;
+        [SerializeField] internal SectorJumpFeature jumpFeature;
 
         [Header("Death Policy")]
         [Tooltip("What happens when the player ship dies. RestartSector ends the run (run record, death " +
@@ -170,8 +170,8 @@ namespace Game
             var presentation = sessionProfile.presentation;
             if (presentation && !recapFeel)
                 throw new InvalidOperationException("GameHost presents but has no recap feel profile assigned.");
-            if (presentation && jumpFeel && !jumpShader)
-                throw new InvalidOperationException("GameHost enables jump travel but has no jump shader assigned.");
+            if (presentation && jumpFeel && !jumpFeature)
+                throw new InvalidOperationException("GameHost enables jump travel but has no jump feature assigned.");
             session = new Session(sessionProfile, arena, unitService, objectiveService);
             if (presentation)
                 BuildEventSystem(ui);
@@ -344,7 +344,7 @@ namespace Game
             if (!result.Success || !jumpFeel || !sessionProfile.presentation || !rigInstance ||
                 activeSectorIndex == sessionProfile.sectors.Length - 1) return;
             jump = SectorJumpFlight.Begin(transform, rigInstance, session.Units, observer, jumpFeel,
-                jumpShader, result.DepartureHeading.Value);
+                jumpFeature, result.DepartureHeading.Value);
         }
 
         private IEnumerator RunJump(RecapOutcomeContext context, int destination, float hull)

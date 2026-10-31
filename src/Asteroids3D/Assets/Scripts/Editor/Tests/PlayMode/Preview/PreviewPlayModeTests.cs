@@ -251,9 +251,9 @@ namespace Tests.PlayMode.Preview
         [UnityTest]
         public IEnumerator ComposeFault_FaultsTheHost_AndModeSwitchRestartAndShutdownRefuseInsteadOfWaiting()
         {
-            LogAssert.Expect(LogType.Exception, new Regex("requires a feel profile and shader"));
+            LogAssert.Expect(LogType.Exception, new Regex("requires a feel profile and jump feature"));
             var bootLighting = LightingSnapshot.Capture();
-            BuildPreview(PreviewMode.Inspection, PreviewSubjectKind.SectorJump, jumpShader: false);
+            BuildPreview(PreviewMode.Inspection, PreviewSubjectKind.SectorJump, jumpFeature: false);
             host.SelectMode(PreviewMode.Playtest);
             yield return AsyncAssert.WaitUntil(() => host.Fault != null, 45f, "the subject's compose faults the host");
             yield return null;
@@ -351,7 +351,7 @@ namespace Tests.PlayMode.Preview
         }
 
         private void BuildPreview(PreviewMode mode = PreviewMode.Playtest,
-            PreviewSubjectKind subject = PreviewSubjectKind.SectorJump, bool jumpShader = true)
+            PreviewSubjectKind subject = PreviewSubjectKind.SectorJump, bool jumpFeature = true)
         {
             template = new GameObject("Preview test templates");
             template.SetActive(false);
@@ -379,7 +379,7 @@ namespace Tests.PlayMode.Preview
             gameHost.observerCamPrefab = TestAssets.Load<ObserverCam>("Assets/Prefabs/Cameras/Main Camera.prefab");
             gameHost.recapFeel = TestAssets.Load<RecapFeelProfile>("Assets/Settings/UI/RecapFeel.asset");
             gameHost.jumpFeel = TestAssets.Load<SectorJumpProfile>("Assets/Settings/Game/SectorJumpTuning.asset");
-            gameHost.jumpShader = jumpShader ? Shader.Find("Astronomical/Travel/SectorJump") : null;
+            gameHost.jumpFeature = jumpFeature ? TestAssets.Load<SectorJumpFeature>("Assets/Settings/Rendering/SectorJumpFeature.asset") : null;
             var root = new GameObject("Preview lifecycle test");
             root.SetActive(false);
             host = root.AddComponent<PreviewHost>();
