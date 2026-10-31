@@ -139,7 +139,6 @@ namespace Game
 
         private Transform viewport;
         private Transform ui;
-        private Transform arena;
 
         public Sector ActiveSector => session?.ActiveSector;
         public SectorJumpFlight Jump => jump;
@@ -151,7 +150,6 @@ namespace Game
 
             viewport = NewRoot("Viewport");
             ui = NewRoot("UI");
-            arena = NewRoot("Arena");
 
             buildIdentity ??= BuildIdentity.Source();
             runRecords = new RunRecordStore(runRecordPath);
@@ -172,7 +170,7 @@ namespace Game
                 throw new InvalidOperationException("GameHost presents but has no recap feel profile assigned.");
             if (presentation && jumpFeel && !jumpFeature)
                 throw new InvalidOperationException("GameHost enables jump travel but has no jump feature assigned.");
-            session = new Session(sessionProfile, arena, unitService, objectiveService);
+            session = new Session(sessionProfile, gameObject, unitService, objectiveService);
             if (presentation)
                 BuildEventSystem(ui);
             if (splashPrefab && presentation)
@@ -223,7 +221,6 @@ namespace Game
             if (music) Destroy(music.gameObject);
             Destroy(ui.gameObject);
             Destroy(viewport.gameObject);
-            Destroy(arena.gameObject);
             yield return null;
             shutdownComplete = true;
         }

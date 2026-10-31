@@ -9,7 +9,7 @@ namespace Substrate.Services.Locales
     /// Locale switching for one session, held privately by it rather than exposed beside its services: it
     /// instantiates a sector's locale prefab under the session's locale root before the sector's content builds,
     /// shows the idle locale (the one shown while no sector is loaded) whenever the sector unloads, and restores the
-    /// boot scene's lighting, captured at construction, when it shows none. A sector naming the shown locale keeps its
+    /// active scene's lighting, captured at construction, when it shows none. A sector naming the shown locale keeps its
     /// instance. A travel backdrop holds both locales across the transfer and destroys the one no longer shown when
     /// released. The session skips these steps headless.
     /// </summary>
