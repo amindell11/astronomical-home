@@ -16,7 +16,7 @@ MonoBehaviour:
   maxSpeed: 26
   maxYawRate: 210
   forwardForce: 5700
-  reverseForce: 2600
+  reverseForce: 1300
   yawTorque: 13000
   angularDrag: 3
   bankTorque: 17500
