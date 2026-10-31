@@ -81,7 +81,6 @@ namespace Tests.PlayMode.Crosshairs
 
         [TestCase("Lasers", "lasers")]
         [TestCase("TurboLasers", "turbo-lasers")]
-        [TestCase("ChargeLasers", "charge-lasers")]
         [TestCase("Railgun", "railgun")]
         [TestCase("Rippers", "rippers")]
         [TestCase("Missiles", "missiles")]
@@ -157,7 +156,6 @@ namespace Tests.PlayMode.Crosshairs
             Assert.That(fill.color, Is.EqualTo(ink));
         }
 
-        [TestCase("ChargeLasers")]
         [TestCase("Railgun")]
         public void HeldCharge_FillsTheWeaponArc_AndFiringClearsIt(string weaponName)
         {

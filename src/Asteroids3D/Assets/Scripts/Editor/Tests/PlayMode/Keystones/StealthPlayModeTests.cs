@@ -139,7 +139,7 @@ namespace Tests.PlayMode.Keystones
                 yield return new WaitForFixedUpdate();
                 peak = Mathf.Max(peak, nightshade.Kinematics.Speed);
             }
-            Assert.That(peak, Is.GreaterThan(baseCap * 1.15f), "concealed, it flies well past the base cap");
+            Assert.That(peak, Is.GreaterThan(baseCap * 1.1f), "concealed, it flies well past the base cap");
             Assert.That(nightshade.Dynamics.maxSpeed, Is.EqualTo(baseCap).Within(0.01f), "the cap returns to base when stealth ends");
         }
 

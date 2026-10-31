@@ -13,18 +13,9 @@ namespace Tests.PlayMode.Weapons
     [Category("Audio")]
     public class ChargeWeaponAudioPlayModeTests : WeaponAudioFixture
     {
-        private const string ChargeLasersPrefabPath = "Assets/Prefabs/Weapons/ChargeLasers.prefab";
         private const string RailgunPrefabPath = "Assets/Prefabs/Weapons/Railgun.prefab";
-        private const string ChargeLaserFire = "event:/Weapons/ChargeLaser/Fire";
         private const string RailgunFire = "event:/Weapons/Railgun/Fire";
         private const int StopFrames = 10;
-
-        [UnityTest]
-        public IEnumerator ChargeLasers_SoundFollowsTheChargeUp_KeysOffOnTheShot_AndStopsOnADrop()
-        {
-            var weapon = Mount<ChargeLasers>(ChargeLasersPrefabPath);
-            yield return ChargeSound(weapon, weapon.Charge, ChargeLaserFire);
-        }
 
         [UnityTest]
         public IEnumerator Railgun_SoundFollowsTheChargeUp_KeysOffOnTheShot_AndStopsOnADrop()

@@ -94,7 +94,9 @@ namespace Tests.PlayMode.Audio
             var zone = New("Zone");
             zone.AddComponent<SphereCollider>().isTrigger = true;
             var spine = New("Spine").AddComponent<PhaseSpineModule>();
-            spine.Bind(director, zone.AddComponent<ExtractionZone>());
+            var beacon = New("Beacon");
+            beacon.AddComponent<SphereCollider>().isTrigger = true;
+            spine.Bind(director, zone.AddComponent<ExtractionZone>(), beacon.AddComponent<ExtractionZone>());
             var sectorGo = New("Sector");
             sectorGo.SetActive(false);
             var sector = sectorGo.AddComponent<Sector>();
