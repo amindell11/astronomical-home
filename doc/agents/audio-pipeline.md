@@ -24,9 +24,9 @@ Sound work happens in the primary tree, on main, as uncommitted edits beside the
 - **`-build` leaves `Build/GUIDs.txt` as it was.** Regenerate it after the build with a `-script` that calls `studio.project.exportGUIDs()`.
 - **Pre-create events and parameters with `-script`**, so code and Studio agree on event paths and parameter names before the owner designs the sound.
 
-## The FMOD Setup Wizard
+## Unity's built-in audio and the FMOD Setup Wizard
 
-Decline every page and close it. "Disable built in audio" silences every sound not yet ported (it waits for the cut-over slice), and the wizard can switch Source Type away from "Single Platform Build" (`../../audio/fmod/Build/Desktop`). The committed settings hide it; when it reappears, close it and check Source Type before committing `FMODStudioSettings.asset`.
+Unity's built-in audio is off (`m_DisableAudio: 1` in `ProjectSettings/AudioManager.asset`) and stays off: every sound is an FMOD event, and an `AudioSource` plays nothing. Set that flag in the file, never through the FMOD Setup Wizard, which can also switch Source Type away from "Single Platform Build" (`../../audio/fmod/Build/Desktop`). Decline every wizard page and close it. The committed settings hide the wizard; when it reappears, close it and check Source Type before committing `FMODStudioSettings.asset`.
 
 ## Runtime rules
 

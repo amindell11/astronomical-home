@@ -52,7 +52,7 @@ namespace Tests.EditMode
             }
         }
 
-        /// <summary>Root renderer + child particle system + child audio source + one behaviour part.</summary>
+        /// <summary>Root renderer + child particle system + one behaviour part.</summary>
         private GameObject BuildTransient()
         {
             var root = Track(new GameObject("Transient"));
@@ -63,15 +63,11 @@ namespace Tests.EditMode
             particleChild.transform.SetParent(root.transform);
             particleChild.AddComponent<ParticleSystem>();
 
-            var audioChild = new GameObject("Audio");
-            audioChild.transform.SetParent(root.transform);
-            audioChild.AddComponent<AudioSource>();
-
             return root;
         }
 
         [Test]
-        public void ApplyOff_DisablesPartsRenderersParticlesAndAudio()
+        public void ApplyOff_DisablesPartsRenderersAndParticles()
         {
             var root = BuildTransient();
 
@@ -81,7 +77,6 @@ namespace Tests.EditMode
             Assert.AreEqual(false, root.GetComponent<RecordingPart>().LastApplied);
             Assert.IsFalse(root.GetComponent<MeshRenderer>().enabled);
             Assert.IsFalse(root.GetComponentInChildren<ParticleSystem>(true).isPlaying);
-            Assert.IsFalse(root.GetComponentInChildren<AudioSource>(true).enabled);
         }
 
         [Test]
@@ -96,7 +91,6 @@ namespace Tests.EditMode
             Assert.IsTrue(root.GetComponent<RecordingPart>().enabled);
             Assert.AreEqual(true, root.GetComponent<RecordingPart>().LastApplied);
             Assert.IsTrue(root.GetComponent<MeshRenderer>().enabled);
-            Assert.IsTrue(root.GetComponentInChildren<AudioSource>(true).enabled);
         }
 
         [Test]
@@ -174,8 +168,6 @@ namespace Tests.EditMode
 
             foreach (var renderer in instance.GetComponentsInChildren<Renderer>(true))
                 Assert.IsFalse(renderer.enabled, $"{path}: renderer '{renderer.name}' still enabled");
-            foreach (var source in instance.GetComponentsInChildren<AudioSource>(true))
-                Assert.IsFalse(source.enabled, $"{path}: audio source '{source.name}' still enabled");
             foreach (var ps in instance.GetComponentsInChildren<ParticleSystem>(true))
                 Assert.IsFalse(ps.isPlaying, $"{path}: particle system '{ps.name}' still playing");
             foreach (var part in instance.GetComponentsInChildren<IPresentationPart>(true))
