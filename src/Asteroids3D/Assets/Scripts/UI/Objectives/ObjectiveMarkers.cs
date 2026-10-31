@@ -13,6 +13,7 @@ namespace UI.Objectives
         [SerializeField] private float pulseSpeed = 4f;
         [SerializeField] private float pulseScale = .15f;
         [SerializeField] private Color baseColor = Color.yellow;
+        [SerializeField] private Color beaconAccent = new(1f, .82f, .35f, 1f);
 
         private readonly Vector3[] corners = new Vector3[4];
         private IObjectiveService objectives;
@@ -49,11 +50,13 @@ namespace UI.Objectives
         {
             var state = objectives.SpineState;
             var target = objectives.SpineTarget;
-            var extraction = state == ObjectiveType.ExtractionChallenge && target;
+            var berth = (state == ObjectiveType.ExtractionChallenge || state == ObjectiveType.Survive) && target;
             var generic = (state == ObjectiveType.Explore || state == ObjectiveType.KeyAcquired) && target;
-            screenBerth.enabled = minimapBerth.enabled = extraction;
+            screenBerth.enabled = minimapBerth.enabled = berth;
+            screenBerth.Accent = minimapBerth.Accent =
+                state == ObjectiveType.Survive ? beaconAccent : BerthGraphic.ExtractionAccent;
             icon.enabled = generic;
-            if (!extraction && !generic) return;
+            if (!berth && !generic) return;
 
             var mapPoint = minimapCamera.WorldToViewportPoint(target.position);
             var mapOffset = new Vector2(mapPoint.x - .5f, mapPoint.y - .5f);
@@ -64,7 +67,7 @@ namespace UI.Objectives
                 icon.color = Color.Lerp(baseColor, Color.white, pulse * .5f + .5f);
                 icon.rectTransform.localScale = Vector3.one * (1f + pulseScale * pulse);
             }
-            if (!extraction) return;
+            if (!berth) return;
 
             minimapRect.GetWorldCorners(corners);
             var canvasRect = (RectTransform)canvas.transform;
