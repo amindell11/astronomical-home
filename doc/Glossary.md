@@ -897,7 +897,8 @@ Format: **term** — definition. *(authority)*
   marker shows during the fight; flying into it claims that lull's pick. It
   stays through the lull and a grace window into the next sector phase, then
   closes unclaimed (that pick is lost); a new beacon's opening closes the one
-  before it, so beacons never stack. *(PhaseSpineModule, ExtractionZone)*
+  before it, so beacons never stack. The sector's opening lull gets none.
+  *(PhaseSpineModule, ExtractionZone)*
 - **weapon pick** — the sector-break choice of one weapon the player does not
   carry, from up to three, or a skip, then the mount it replaces; held in
   hyperspace after the extraction recap. The swap keeps hull, shield and the run
