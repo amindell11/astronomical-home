@@ -6,7 +6,7 @@ namespace Substrate.Services.Locales
 {
     /// <summary>
     /// The <see cref="RenderSettings"/> values a locale owns. A <see cref="LocaleSky"/> serializes one and writes it
-    /// while its locale is shown; the locale service captures the boot scene's values in the same shape, so restoring
+    /// while its locale is shown; the locale service captures the active scene's values in the same shape, so restoring
     /// them overwrites every value a locale wrote.
     /// </summary>
     [Serializable]

@@ -19,7 +19,8 @@ namespace Tests.PlayMode
     /// The hangar round trip at session level: a presentation session shows its idle locale from compose, shows the
     /// sector's locale on every load and returns to the idle one on every unload, keeping one instance of a locale both
     /// name, so no sector look carries into the hangar, including the ambient probe and default reflection derived from
-    /// the shown locale's lighting. The active scene stays the boot scene throughout.
+    /// the shown locale's lighting. The session's own scene is active from construction and unloads at teardown, or
+    /// when its owner is destroyed without one; either way the boot scene is active again.
     /// </summary>
     [TestFixture]
     [Category("Sectors")]
@@ -31,6 +32,7 @@ namespace Tests.PlayMode
 
         private GameObject root;
         private Scene boot;
+        private Scene sessionScene;
         private LightingSnapshot bootLighting;
         private bool savedAudioPause;
 
@@ -72,8 +74,8 @@ namespace Tests.PlayMode
             yield return session.Teardown();
             yield return null;
             Assert.That(Instances(), Is.Empty, "Teardown destroys the locale.");
-            Assert.AreEqual(bootLighting.Ambient, RenderSettings.ambientLight, "Teardown restores the boot lighting.");
-            Assert.AreEqual(boot, SceneManager.GetActiveScene());
+            Assert.AreEqual(boot, SceneManager.GetActiveScene(), "Teardown makes the boot scene active again.");
+            Assert.AreEqual(bootLighting.Ambient, RenderSettings.ambientLight, "The session never lights the boot scene.");
         }
 
         [UnityTest]
@@ -115,27 +117,47 @@ namespace Tests.PlayMode
 
         [UnityTest]
         [Timeout(600000)]
-        public IEnumerator UnparentedObjectFromTheIdleLocale_SurvivesASectorWithADifferentLocale()
+        public IEnumerator UnparentedObject_SurvivesASectorWithADifferentLocale_AndDiesWithTheSession()
         {
             var config = LoadConfig();
             var other = AssetDatabase.LoadAssetAtPath<LocaleSky>(OtherLocalePath);
             Assert.AreNotSame(other, config.Locale, "test premise: the idle and sector locales differ");
             var session = CreateSession(config, other);
+            Assert.AreNotEqual(boot, sessionScene, "The session's own scene is active from construction.");
 
             yield return session.Compose();
             var bare = new GameObject("Unparented after compose");
             try
             {
+                Assert.AreEqual(sessionScene, bare.scene, "An object created without a parent lands in the session scene.");
                 yield return session.LoadSector();
                 yield return null;
                 Assert.IsTrue(bare, "An object created without a parent must outlive the idle locale's hand-off.");
-                Assert.AreEqual(boot, SceneManager.GetActiveScene(), "Showing a locale never changes the active scene.");
+                Assert.AreEqual(sessionScene, SceneManager.GetActiveScene(), "Showing a locale never changes the active scene.");
                 yield return session.Teardown();
+                Assert.IsFalse(bare, "Teardown unloads the session scene and the object in it.");
+                Assert.AreEqual(boot, SceneManager.GetActiveScene(), "Teardown makes the boot scene active again.");
             }
             finally
             {
                 if (bare) Object.Destroy(bare);
             }
+        }
+
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator DestroyingTheOwnerWithoutTeardown_UnloadsTheSessionScene()
+        {
+            var config = LoadConfig();
+            var session = CreateSession(config, config.Locale);
+            yield return session.Compose();
+            yield return session.LoadSector();
+            Assert.AreNotEqual(boot, sessionScene, "test premise: the session scene is active");
+
+            Object.DestroyImmediate(root);
+            Assert.AreEqual(boot, SceneManager.GetActiveScene(), "Destroying the owner makes the boot scene active again.");
+            yield return AsyncAssert.WaitUntil(() => !sessionScene.isLoaded, 10f, "The session scene never unloaded.");
+            Assert.That(Instances(), Is.Empty, "The unload takes the locale with it.");
         }
 
         private static SectorSettings LoadConfig()
@@ -149,7 +171,7 @@ namespace Tests.PlayMode
         private Session CreateSession(SectorSettings config, LocaleSky idleLocale)
         {
             root = new GameObject("SessionRoot");
-            return TestSession.Create(root, new SessionProfile
+            var session = TestSession.Create(root, new SessionProfile
             {
                 sectors = new[]
                 {
@@ -162,9 +184,12 @@ namespace Tests.PlayMode
                 idleLocale = idleLocale,
                 presentation = true
             });
+            sessionScene = SceneManager.GetActiveScene();
+            return session;
         }
 
-        private LocaleSky[] Instances() => root.GetComponentsInChildren<LocaleSky>(true);
+        private LocaleSky[] Instances() =>
+            LocaleInstances.All().Where(locale => locale.gameObject.scene == sessionScene).ToArray();
 
         private LocaleSky Shown() => Instances().Single(locale => locale.Shown);
 
