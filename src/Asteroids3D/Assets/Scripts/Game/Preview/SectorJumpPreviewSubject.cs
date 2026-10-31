@@ -60,7 +60,6 @@ namespace Game.Preview
         public int Fixture { get; private set; }
         public int SpanCount => 2;
         public SectorJumpState State { get; private set; }
-        public ScriptableObject Knobs => profile;
 
         public IEnumerator Compose(PreviewWorld world)
         {
