@@ -16,7 +16,7 @@ using Combat.Targeting;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the collapsed archetype seam: the enum → law dispatch through Configure/Decide (both the episode roster and the authored pilot ride the same component), the Dummy's no-target constant, the unknown-enum failure, the ArchetypePilot authoring that makes an archetype flyable in a live sector, and the pure missile-evasion laws.</summary>
+    /// <summary>Pins the collapsed archetype seam: the enum → law dispatch through Configure/Decide (both the episode roster and the authored pilot ride the same component), the Dummy's no-target constant, the unknown-enum failure, the ArchetypePilot authoring that makes an archetype flyable in a live sector, the waypoint roam a live-targeting pilot flies once its target is gone, and the pure missile-evasion laws.</summary>
     [Category("AI")]
     public class ArchetypeBrainEditModeTests
     {
@@ -72,9 +72,16 @@ namespace Tests.EditMode
             if (targetHost) UnityEngine.Object.DestroyImmediate(targetHost);
         }
 
-        private ArchetypeBrain NewBrain(OpponentArchetype archetype, Ship target)
+        private ArchetypeBrain NewBrain(OpponentArchetype archetype, Ship target, bool liveTargeting = false,
+            GameObject host = null)
         {
-            var brain = brainHost.AddComponent<ArchetypeBrain>();
+            var brain = (host ? host : brainHost).AddComponent<ArchetypeBrain>();
+            if (liveTargeting)
+            {
+                var serialized = new SerializedObject(brain);
+                serialized.FindProperty("liveTargeting").boolValue = true;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+            }
             var shape = Shape();
             brain.Configure(target, archetype, in shape, JukeSeed, Vector2.zero, borderRadius: 500f);
             return brain;
@@ -146,6 +153,105 @@ namespace Tests.EditMode
             Assert.AreEqual(Vector2.zero, decision.Value.nav.planarVelocity);
             Assert.IsFalse(decision.Value.nav.TryGetAnchorId(out _), "the Dummy never packs against a target");
             Assert.IsFalse(decision.Value.engagePrimary);
+        }
+
+        // The test context never acquires an enemy, so Decide drops the Configured target.
+        [Test]
+        public void Decide_LiveTargeting_TargetGone_RoamVelocityIgnoresTheNose()
+        {
+            var brain = NewBrain(OpponentArchetype.Aggressor, targetHost.AddComponent<Ship>(), liveTargeting: true);
+            targetHost.SetActive(false);
+            var pos = new Vector2(3f, -4f);
+
+            var noseUp = brain.Decide(Ctx(new Kinematics(pos, Vector2.zero, 0f, 0f, 0f)));
+            var noseTurned = brain.Decide(Ctx(new Kinematics(pos, Vector2.zero, 135f, 0f, 0f)));
+
+            Assert.IsTrue(noseUp.HasValue && noseTurned.HasValue, "a pilot whose target is gone keeps flying");
+            Assert.AreEqual(noseUp.Value.nav.planarVelocity, noseTurned.Value.nav.planarVelocity,
+                "a roam velocity that follows the nose turns with it and spirals");
+            Assert.AreEqual(Shape().speedFraction * Dynamics.Default.maxSpeed,
+                noseTurned.Value.nav.planarVelocity.magnitude, 1e-4f, "inside the border it roams at patrol speed");
+            Assert.IsFalse(noseTurned.Value.nav.TryGetAnchorId(out _));
+            Assert.IsFalse(noseTurned.Value.engagePrimary);
+            Assert.IsFalse(noseTurned.Value.engageSecondary);
+        }
+
+        [TestCase(OpponentArchetype.Aggressor, true, 35f, 60f)]
+        [TestCase(OpponentArchetype.Orbiter, true, 35f, 60f)]
+        [TestCase(OpponentArchetype.Kiter, false, 0f, 120f)]
+        public void Roam_AggressorAndOrbiterCircle_KiterWanders(OpponentArchetype archetype, bool circles,
+            float minDistance, float maxDistance)
+        {
+            var brain = NewBrain(archetype, targetHost.AddComponent<Ship>(), liveTargeting: true);
+            targetHost.SetActive(false);
+
+            brain.Decide(Ctx(new Kinematics(new Vector2(3f, -4f), Vector2.zero, 0f, 0f, 0f)));
+
+            Assert.AreEqual(circles, brain.RoamCircling);
+            Assert.That(Vector2.Distance(brain.RoamWaypoint, brain.RoamCenter),
+                Is.InRange(minDistance - 1e-3f, maxDistance + 1e-3f));
+        }
+
+        [Test]
+        public void Roam_CirclesItsLaps_ThenWanders()
+        {
+            var brain = NewBrain(OpponentArchetype.Aggressor, targetHost.AddComponent<Ship>(), liveTargeting: true);
+            targetHost.SetActive(false);
+            brain.Decide(Ctx(new Kinematics(new Vector2(3f, -4f), Vector2.zero, 0f, 0f, 0f)));
+            var center = brain.RoamCenter;
+
+            var ringWaypoints = 0;
+            while (brain.RoamCircling && ringWaypoints < 50)
+            {
+                ringWaypoints++;
+                brain.Decide(Ctx(new Kinematics(brain.RoamWaypoint, Vector2.zero, 0f, 0f, 0f)));
+            }
+
+            const float twoLaps = 720f;
+            Assert.That(ringWaypoints, Is.InRange(Mathf.CeilToInt(twoLaps / ArchetypeRoam.StepMaxDegrees),
+                Mathf.CeilToInt(twoLaps / ArchetypeRoam.StepMinDegrees)), "two laps at the ring's angular steps");
+            for (var i = 0; i < 10; i++)
+            {
+                Assert.IsFalse(brain.RoamCircling, "once wandering, the pilot never circles again");
+                Assert.That(Vector2.Distance(brain.RoamWaypoint, center), Is.LessThanOrEqualTo(120f + 1e-3f),
+                    "wander waypoints stay in the disc around the wreck");
+                brain.Decide(Ctx(new Kinematics(brain.RoamWaypoint, Vector2.zero, 0f, 0f, 0f)));
+            }
+        }
+
+        [Test]
+        public void Roam_TwoPilots_PickDifferentWaypoints()
+        {
+            var otherHost = new GameObject("ArchetypeOtherHost");
+            try
+            {
+                var target = targetHost.AddComponent<Ship>();
+                var first = NewBrain(OpponentArchetype.Aggressor, target, liveTargeting: true);
+                var second = NewBrain(OpponentArchetype.Aggressor, target, liveTargeting: true, otherHost);
+                targetHost.SetActive(false);
+                var self = new Kinematics(new Vector2(3f, -4f), Vector2.zero, 0f, 0f, 0f);
+
+                first.Decide(Ctx(self));
+                second.Decide(Ctx(self));
+
+                Assert.AreNotEqual(first.RoamWaypoint, second.RoamWaypoint,
+                    "pilots sharing an authored seed must not bunch onto the same points");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(otherHost);
+            }
+        }
+
+        [Test]
+        public void Decide_LiveTargeting_TargetConcealed_ReturnsNoDecision()
+        {
+            var target = targetHost.AddComponent<Ship>();
+            var brain = NewBrain(OpponentArchetype.Aggressor, target, liveTargeting: true);
+            target.Lock.Conceal();
+
+            Assert.IsNull(brain.Decide(Ctx(default)),
+                "the commander hunts a concealed target's last-seen point only on a null decision");
         }
 
         [Test]

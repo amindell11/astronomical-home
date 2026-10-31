@@ -9,7 +9,8 @@ using AI.Strategy;
 
 namespace RL.Opponents
 {
-    /// <summary>The one scripted opponent component, switched on <see cref="OpponentArchetype"/>: target validity, the 5 Hz recompute cache, the missile evasion blended over the law, and the border tangent-steer world-velocity pack. The roster Configures a pinned target per episode draw; an authored pilot serializes the same fields and can instead track the context's enemy.</summary>
+    /// <summary>The one scripted opponent component, switched on <see cref="OpponentArchetype"/>: target validity, the 5 Hz recompute cache, the missile evasion blended over the law, and the border tangent-steer world-velocity pack. The roster Configures a pinned target per episode draw; an authored pilot serializes the same fields and can instead track the context's enemy.
+    /// With that enemy gone, a live-targeting pilot roams around its last live position (the wreck) through held waypoints: the Aggressor and Orbiter circle it loosely for a few laps, then wander as the Kiter and Evader do from the start.</summary>
     public sealed class ArchetypeBrain : Brain
     {
         private const int RecomputeIntervalTicks = 10;
@@ -57,7 +58,21 @@ namespace RL.Opponents
         [Tooltip("Largest angle (degrees) between the nose and the escape heading at which the pilot boosts.")]
         [SerializeField, Range(0f, 180f)] private float boostAlignment = 30f;
 
+        [Header("Roam")]
+        [Tooltip("With the target gone: the nearest distance (u) from the wreck at which circling waypoints are drawn.")]
+        [SerializeField, Min(0f)] private float roamRingMin = 35f;
+
+        [Tooltip("With the target gone: the farthest distance (u) from the wreck at which circling waypoints are drawn.")]
+        [SerializeField, Min(0f)] private float roamRingMax = 60f;
+
+        [Tooltip("Laps the Aggressor and Orbiter circle the wreck before they switch to wandering.")]
+        [SerializeField, Min(0f)] private float roamLaps = 2f;
+
+        [Tooltip("Radius (u) of the disc around the wreck that wander waypoints are drawn in.")]
+        [SerializeField, Min(0f)] private float roamWanderRadius = 120f;
+
         private Ship target;
+        private Ship droppedTarget;
         private Vector2 arenaCenter;
         private bool borderAnchored;
 
@@ -72,6 +87,22 @@ namespace RL.Opponents
         private int threatSeenTick = -1;
         private ITrackingMissile evadedMissile;
         private int escapeSide;
+
+        // Outlives ResetState: the live-target change that resets the brain is when roaming begins.
+        private Vector2? wreck;
+
+        private bool roaming;
+        private bool roamCircling;
+        private Vector2 roamCenter;
+        private Vector2 roamWaypoint;
+        private float roamAngle;
+        private float roamDegrees;
+        private int roamLane;
+        private System.Random roamRng;
+
+        internal Vector2 RoamCenter => roamCenter;
+        internal Vector2 RoamWaypoint => roamWaypoint;
+        internal bool RoamCircling => roamCircling;
 
         public void Configure(Ship target, OpponentArchetype archetype, in OpponentDraw shape, int jukeSeed,
             Vector2 arenaCenter, float borderRadius)
@@ -97,6 +128,7 @@ namespace RL.Opponents
                 shape.jukePeriod / (RecomputeIntervalTicks * Time.fixedDeltaTime)));
             threatSeenTick = -1;
             evadedMissile = null;
+            roaming = false;
         }
 
         public override BrainDecision? Decide(AIContext ctx)
@@ -112,18 +144,65 @@ namespace RL.Opponents
 
             if (liveTargeting && ctx.Combat.Enemy != target)
             {
+                droppedTarget = target;
                 target = ctx.Combat.Enemy;
                 ResetState();
             }
 
-            if (archetype != OpponentArchetype.Dummy
-                && (!target || !target.gameObject.activeInHierarchy))
-                return null;
+            if (liveTargeting && !IsGone(target)) wreck = target.Kinematics.pos;
+
+            // Null on a concealed target lets the commander hunt its last-seen point.
+            if (archetype != OpponentArchetype.Dummy && IsGone(target))
+                return liveTargeting && !IsConcealed(droppedTarget) ? Roam(ctx.Self) : null;
 
             if (tickCounter % RecomputeIntervalTicks == 0)
                 cachedDecision = BuildDecision(ctx);
             tickCounter++;
             return cachedDecision;
+        }
+
+        private static bool IsGone(Ship ship) => !ship || !ship.gameObject.activeInHierarchy;
+
+        private static bool IsConcealed(Ship ship) => !IsGone(ship) && ship.Lock.IsConcealed;
+
+        private BrainDecision Roam(IShipStatus status)
+        {
+            var self = status.Kinematics;
+            if (!roaming) BeginRoam(self.pos, self.vel);
+            else if (Vector2.Distance(self.pos, roamWaypoint) <= ArchetypeRoam.ArrivalRadius) PickRoamWaypoint();
+
+            var seek = ArchetypeRoam.SeekVelocity(self.pos, roamWaypoint,
+                shape.speedFraction * status.Dynamics.maxSpeed);
+            return new BrainDecision(NavObjective.Planar(ArchetypeSteering.BorderTangentSteer(self.pos, seek,
+                arenaCenter, borderRadius, ArchetypeSteering.BorderMargin)));
+        }
+
+        private void BeginRoam(Vector2 pos, Vector2 vel)
+        {
+            roaming = true;
+            roamCenter = wreck ?? pos;
+            roamCircling = archetype is OpponentArchetype.Aggressor or OpponentArchetype.Orbiter;
+            var radial = pos - roamCenter;
+            roamLane = radial.x * vel.y - radial.y * vel.x >= 0f ? 1 : -1;
+            roamAngle = Mathf.Atan2(radial.y, radial.x) * Mathf.Rad2Deg;
+            roamDegrees = 0f;
+            // Pilots authored with the same jukeSeed must still pick their own waypoints.
+            roamRng = new System.Random(unchecked(jukeSeed * 397) ^ GetInstanceID());
+            PickRoamWaypoint();
+        }
+
+        private void PickRoamWaypoint()
+        {
+            if (roamCircling && roamDegrees >= roamLaps * 360f) roamCircling = false;
+            if (!roamCircling)
+            {
+                roamWaypoint = ArchetypeRoam.WanderWaypoint(roamCenter, roamWanderRadius, roamRng);
+                return;
+            }
+
+            roamWaypoint = ArchetypeRoam.RingWaypoint(roamCenter, ref roamAngle, roamLane, roamRingMin, roamRingMax,
+                roamRng, out var step);
+            roamDegrees += step;
         }
 
         private BrainDecision BuildDecision(AIContext ctx)
