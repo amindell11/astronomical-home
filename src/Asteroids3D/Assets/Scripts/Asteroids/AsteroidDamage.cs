@@ -1,3 +1,4 @@
+using System;
 using Asteroids.Fragnetics;
 using Damage;
 using UnityEngine;
@@ -28,6 +29,7 @@ namespace Asteroids
 
         public float Health { get; private set; }
         public float MaxHealth { get; private set; }
+        public event Action<Vector3> OnHit;
 
         private void Awake()
         {
@@ -67,6 +69,7 @@ namespace Asteroids
             // Already broken up: a later hit in the same step passes straight through.
             if (isDestroyed) return hit.Amount;
 
+            OnHit?.Invoke(hit.HitPoint);
             Health -= hit.Amount;
             if (Health > 0f) return 0f;
 

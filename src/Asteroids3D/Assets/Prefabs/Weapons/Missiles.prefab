@@ -49,6 +49,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   firePoint: {fileID: 0}
   displayName: 
+  hudIcon: {fileID: 21300000, guid: 20cd538154f26d74db31ff4f215e85ef, type: 3}
   projectilePrefab: {fileID: -6854199025283548723, guid: 5615e4673e17c104384d4c8493c5d42b,
     type: 3}
   targetingComputer: {fileID: 941428023342471022}

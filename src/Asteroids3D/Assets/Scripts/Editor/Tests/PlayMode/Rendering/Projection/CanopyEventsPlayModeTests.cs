@@ -60,12 +60,17 @@ namespace Tests.PlayMode.Rendering.Projection
                 root.transform).GetComponent<CanopyProjection>();
             profile = Object.Instantiate(projection.Profile);
             profile.bigMomentSeconds = .15f;
+            using (var serialized = new UnityEditor.SerializedObject(projection))
+            {
+                serialized.FindProperty("profile").objectReferenceValue = profile;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+            }
             objectives = Child("Objectives").AddComponent<ObjectiveService>();
             visible = true;
             personality = CanopyPersonality.Create(root, objectives, projection, () => visible);
             damage = new DamageSource();
             personality.Initialize(damage);
-            projection.Initialize(camera, profile, personality.Observe);
+            projection.Initialize(camera, personality.Observe);
         }
 
         [TearDown]

@@ -60,6 +60,6 @@ namespace Game.Preview
         PreviewSpan Span(int index);
         IEnumerator Compose(PreviewWorld world);
         void Show(int span, float seconds, float holdSeconds);
-        ScriptableObject Knobs { get; set; }
+        ScriptableObject Knobs { get; }
     }
 }

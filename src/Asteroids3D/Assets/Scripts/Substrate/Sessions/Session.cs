@@ -29,7 +29,7 @@ namespace Substrate.Sessions
         private Transform sectorRoot;
         private readonly UnitService units;
         private readonly ObjectiveService objectives;
-        private readonly LocaleService locale;
+        private LocaleService locale;
         private readonly SessionProfile profile;
         private readonly bool presentation;
         private Action<SectorResult> onSectorComplete;
@@ -49,11 +49,11 @@ namespace Substrate.Sessions
 
         public Sector ActiveSector { get; private set; }
 
-        public IEnumerator PrepareTravelBackdrop(string destination, Transform parent, Action<LocaleBackdropPair> ready)
+        public LocaleBackdropPair PrepareTravelBackdrop(LocaleSky destination, Transform parent)
         {
             Require(Phase.Loaded, nameof(PrepareTravelBackdrop));
             if (!presentation) throw new InvalidOperationException("Travel presentation requires a visible session.");
-            return locale.PrepareBackdrop(destination, parent, ready);
+            return locale.PrepareBackdrop(destination, parent);
         }
 
         public Session(SessionProfile profile, Transform root, UnitService units, ObjectiveService objectives)
@@ -63,7 +63,6 @@ namespace Substrate.Sessions
             this.units = units ? units : throw new ArgumentNullException(nameof(units));
             this.objectives = objectives ? objectives : throw new ArgumentNullException(nameof(objectives));
             presentation = profile.presentation;
-            locale = new LocaleService(profile.idleLocale?.SceneName);
             Frame = new SessionFrame(profile.offset);
         }
 
@@ -81,9 +80,13 @@ namespace Substrate.Sessions
             Objectives = objectives;
 
             if (presentation)
-                yield return locale.ApplyIdleLocaleAsync();
+            {
+                locale = new LocaleService(NewChild("Locale"), profile.idleLocale);
+                locale.ShowIdle();
+            }
 
             phase = Phase.Composed;
+            yield break;
         }
 
         /// <summary>
@@ -103,10 +106,9 @@ namespace Substrate.Sessions
             if (!entry.config)
                 throw new InvalidOperationException($"Sector entry {index} has no settings.");
 
-            // Make the sector's locale the active (lighting) scene before content builds; skipped headless.
-            // A headless config may leave its locale scene unassigned.
+            // Show the sector's locale before content builds; skipped headless, where a config may leave it unassigned.
             if (presentation)
-                yield return locale.ApplyLocaleAsync(entry.config.Locale?.SceneName);
+                locale.Show(entry.config.Locale);
 
             // Inactive holder under the sector root: authored children Awake only after adoption wires them.
             var holder = new GameObject("SectorLoad") { hideFlags = HideFlags.HideAndDontSave };
@@ -131,7 +133,6 @@ namespace Substrate.Sessions
 
             yield return sector.Setup();
 
-            // Adopting moves the sector into the root's stable scene, out of the swappable locale scene.
             sector.transform.SetParent(sectorRoot, true);
             UnityEngine.Object.Destroy(holder);
         }
@@ -143,7 +144,7 @@ namespace Substrate.Sessions
             yield return UnloadContent();
 
             if (presentation)
-                yield return locale.ApplyIdleLocaleAsync();
+                locale.ShowIdle();
         }
 
         public IEnumerator TransferSector(int index, Ship hero, Action<SectorResult> onComplete)
@@ -174,7 +175,7 @@ namespace Substrate.Sessions
             yield return DestroyActiveSector(runTeardown: false);
 
             if (presentation)
-                yield return locale.UnloadLocaleAsync();
+                locale.Clear();
 
             Projectiles.ReturnAllToPool();
             Units.Clear();

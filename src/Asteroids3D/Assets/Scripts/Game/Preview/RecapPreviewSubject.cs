@@ -21,8 +21,7 @@ namespace Game.Preview
     /// </summary>
     public sealed class RecapPreviewSubject : IPreviewSubject
     {
-        private readonly Action<RecapFeelProfile> selected;
-        private RecapFeelProfile feel;
+        private readonly RecapFeelProfile feel;
         private Transform uiRoot;
         private PlayerRig rig;
         private IUnitService units;
@@ -33,28 +32,14 @@ namespace Game.Preview
         private RecapPresenter presenter;
         private int shownSpan = -1;
 
-        public RecapPreviewSubject(RecapFeelProfile feel, Action<RecapFeelProfile> selected)
-        {
+        public RecapPreviewSubject(RecapFeelProfile feel) =>
             this.feel = feel ? feel : throw new ArgumentNullException(nameof(feel));
-            this.selected = selected;
-        }
 
         public string Name => "Run recap";
         public IReadOnlyList<string> Fixtures => RecapFixtures.Names;
         public int Fixture { get; private set; }
         public int SpanCount => sequence.SpanCount;
-        public ScriptableObject Knobs
-        {
-            get => feel;
-            set
-            {
-                var next = value as RecapFeelProfile;
-                if (!next) throw new ArgumentException("Run recap requires a RecapFeelProfile.", nameof(value));
-                feel = next;
-                selected(feel);
-                SelectFixture(Fixture);
-            }
-        }
+        public ScriptableObject Knobs => feel;
         public RecapOutcomeContext Context => sequence.Context;
 
         public IEnumerator Compose(PreviewWorld world)
