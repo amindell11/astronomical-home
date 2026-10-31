@@ -51,7 +51,6 @@ namespace Game.Preview
         private PlayerRig rig;
         private Transform viewport;
         private Transform ui;
-        private Transform arena;
         private float? frozenTimeScale;
         private GameHost playtest;
         private bool composing;
@@ -100,8 +99,7 @@ namespace Game.Preview
         {
             viewport = NewRoot("Viewport");
             ui = NewRoot("UI");
-            arena = NewRoot("Arena");
-            session = new Session(sessionProfile, arena, unitService, objectiveService);
+            session = new Session(sessionProfile, gameObject, unitService, objectiveService);
             var eventSystem = new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
             eventSystem.transform.SetParent(ui, false);
             yield return session.Compose();
@@ -266,10 +264,9 @@ namespace Game.Preview
                 Destroy(rig.gameObject);
                 Destroy(viewport.gameObject);
                 Destroy(ui.gameObject);
-                Destroy(arena.gameObject);
                 rig = null;
                 observer = null;
-                viewport = ui = arena = null;
+                viewport = ui = null;
             }
             yield return null;
         }

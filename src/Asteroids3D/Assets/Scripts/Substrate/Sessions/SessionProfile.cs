@@ -16,7 +16,7 @@ namespace Substrate.Sessions
         public SectorEntry[] sectors;
 
         [Tooltip("Locale shown while no sector is loaded; a sector naming the same locale keeps its instance. " +
-                 "Unassigned → no sky, under the boot scene's lighting.")]
+                 "Unassigned → no sky, under the session scene's default lighting.")]
         public LocaleSky idleLocale;
 
         [Tooltip("When false, ship visual rigs, HUD/UI and one-shot VFX are disabled (headless/RL) — " +

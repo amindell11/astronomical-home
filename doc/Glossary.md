@@ -599,6 +599,16 @@ Format: **term** — definition. *(authority)*
   anything fanning sessions across one plane. A session fact, distinct from the
   obstacle field an AI ship senses, which rides the spawn call on its own.
   *(`SessionFrame`, `Substrate/Sessions/Session.cs`)*
+- **session scene** — the scene a `Session` keeps active from construction to
+  teardown. Unity puts an object created without a parent into the active
+  scene, so such an object dies with the session. The session builds only its
+  arena root there; the host's viewport, UI, rig and music stay under the host,
+  which outlives its session. `SessionSceneLease` unloads the scene when its
+  host is destroyed without a teardown. The active scene is process-wide, so
+  with several sessions alive every unparented object lands in the newest one's
+  scene. A host created while another session is alive lands there too and
+  dies with that session's scene, unless it calls `DontDestroyOnLoad` as
+  `GameHost` and `PreviewHost` do. *(`Session`, `SessionSceneLease`)*
 - **sector** — a bounded open-space field of POIs. The load-bearing decisions:
   it builds **deterministically** from a serialized manifest, and there is **one
   concrete class**, configured by prefab — variation never arrives as a subclass.
@@ -639,9 +649,10 @@ Format: **term** — definition. *(authority)*
   lighting values (flat ambient, fog, custom reflection, sun), and its
   children are the locale's lights, ambience and sky layers. `LocaleService`
   instantiates it under the session's `Locale` root and writes those values to
-  `RenderSettings`, so showing a locale never changes the active scene. The
-  boot scene carries none: every authored sector names one, and the session
-  shows its idle locale between sectors.
+  the *session scene*'s `RenderSettings`, so showing a locale never changes the
+  active scene or the boot scene's lighting. The boot scene carries none: every
+  authored sector names one, and the session shows its idle locale between
+  sectors.
 - **idle locale** — the locale a presentation session shows while no sector is
   loaded (the hangar's backdrop). A sector naming the same locale keeps its
   instance across the hand-off. *(`SessionProfile.idleLocale`)*
@@ -659,7 +670,7 @@ Format: **term** — definition. *(authority)*
   variant instead; its overrides survive the refresh.
 - **GamePlane** — the frozen 2.5D convention. Production is `PlaneAxis.Z` (the XY
   plane); never reshape toward Y. *(GamePlane.cs)*
-- **arena** — the RL isolation unit. Isolation is **by distance, not by scene**:
+- **arena** — the RL isolation unit. Isolation is **by distance, not by physics scene**:
   arenas are offsets sharing one PhysicsScene, and **ghost rock** — cross-arena
   physical leakage — is a known, accepted consequence rather than a bug. The
   harness's per-arena composition spawns at its offset and hands its field to
