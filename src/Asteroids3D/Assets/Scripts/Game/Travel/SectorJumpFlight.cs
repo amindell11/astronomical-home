@@ -23,7 +23,7 @@ namespace Game.Travel
         private SectorJumpPassage passage;
         private SectorJumpMotion motion;
         private SectorJumpPresentation presentation;
-        private Shader shader;
+        private SectorJumpFeature feature;
         private bool commanderEnabled;
         private bool movementEnabled;
         private bool observerEnabled;
@@ -49,27 +49,28 @@ namespace Game.Travel
         public float ArrivalSpeed => ship.MaxSpeed * profile.arrivalSpeedFraction;
 
         public static SectorJumpFlight Begin(Transform parent, PlayerRig rig, IUnitService units,
-            ObserverCam observer, SectorJumpProfile feel, Shader shader, float heading)
+            ObserverCam observer, SectorJumpProfile feel, SectorJumpFeature jumpFeature, float heading)
         {
-            if (!feel || !shader) throw new ArgumentException("Jump travel needs a feel profile and shader.");
+            if (!feel || !jumpFeature)
+                throw new ArgumentException("Jump travel needs a feel profile and jump feature.");
             if (!(feel.departureDistance >= 0f) || !(feel.arrivalSpeedFraction >= 0f) ||
                 !(feel.arrivalSpeedFraction <= 1f) || !(feel.worldBlendDuration > 0f))
                 throw new ArgumentException("Jump flight handoff settings are outside their supported ranges.");
             var root = new GameObject("Sector jump flight");
             root.transform.SetParent(parent, false);
             var flight = root.AddComponent<SectorJumpFlight>();
-            flight.Initialize(rig, units, observer, feel, shader, heading);
+            flight.Initialize(rig, units, observer, feel, jumpFeature, heading);
             return flight;
         }
 
         private void Initialize(PlayerRig playerRig, IUnitService unitService, ObserverCam camera,
-            SectorJumpProfile feel, Shader jumpShader, float heading)
+            SectorJumpProfile feel, SectorJumpFeature jumpFeature, float heading)
         {
             rig = playerRig;
             ship = rig.Player;
             units = unitService;
             observer = camera;
-            shader = jumpShader;
+            feature = jumpFeature;
             profile = Instantiate(feel);
             var startingHeading = Vector3.SignedAngle(GamePlane.Forward,
                 Vector3.ProjectOnPlane(ship.transform.up, GamePlane.Normal), GamePlane.Normal);
@@ -118,7 +119,7 @@ namespace Game.Travel
         public void BindBackdrop(Transform ui, LocaleBackdropPair backdrop)
         {
             presentation = SectorJumpPresentation.Create(ui, ship, rig.Overlay,
-                units.ActiveRegistry.ActiveShips, observer, backdrop, shader);
+                units.ActiveRegistry.ActiveShips, observer, backdrop, feature);
             presentation.SetWorldBlend(0f);
         }
 

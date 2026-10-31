@@ -24,7 +24,7 @@ namespace Game.Preview
             "Blue to copper, diagonal", "Blue to copper, upward", "Blue to copper, left",
             "Copper to blue, diagonal", "Blue to copper, alternate stars"
         };
-        private readonly Shader shader;
+        private readonly SectorJumpFeature feature;
         private readonly LocaleSky destination;
         private readonly SectorJumpProfile profile;
         private Ship ship;
@@ -42,13 +42,13 @@ namespace Game.Preview
         private SectorJumpMotion motion;
         private int revision = -1;
 
-        public SectorJumpPreviewSubject(SectorJumpProfile profile, Shader shader, LocaleSky destination)
+        public SectorJumpPreviewSubject(SectorJumpProfile profile, SectorJumpFeature feature, LocaleSky destination)
         {
-            if (!profile || !shader || !destination)
+            if (!profile || !feature || !destination)
                 throw new InvalidOperationException(
-                    "The jump preview requires a feel profile and shader, and a destination locale.");
+                    "The jump preview requires a feel profile and jump feature, and a destination locale.");
             this.profile = profile;
-            this.shader = shader;
+            this.feature = feature;
             this.destination = destination;
         }
 
@@ -78,7 +78,7 @@ namespace Game.Preview
             observer.enabled = false;
             ship.Commander.enabled = false;
             presentation = SectorJumpPresentation.Create(world.Ui, ship, world.Rig.Overlay,
-                world.Session.Units.ActiveRegistry.ActiveShips, observer, backdrop, shader);
+                world.Session.Units.ActiveRegistry.ActiveShips, observer, backdrop, feature);
             yield break;
         }
 
