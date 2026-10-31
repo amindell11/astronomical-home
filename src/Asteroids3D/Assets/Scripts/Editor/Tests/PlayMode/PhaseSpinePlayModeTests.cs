@@ -19,7 +19,7 @@ using Object = UnityEngine.Object;
 
 namespace Tests.PlayMode
 {
-    /// <summary>A phased sector end to end: the director's phases run out, the extraction zone appears at its distance from the hero, and a non-player hero's jump request inside ends the sector extracted; a lull's beacon appears at its distance and flying in claims it.</summary>
+    /// <summary>A phased sector end to end: the director's phases run out, the extraction zone appears at its distance from the hero, and a non-player hero's jump request inside ends the sector extracted; a beacon opens ahead of a lull at its distance and flying in claims it.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class PhaseSpinePlayModeTests : PlayModeWorldFixture
@@ -140,7 +140,7 @@ namespace Tests.PlayMode
 
         [UnityTest]
         [Timeout(600000)]
-        public IEnumerator Lull_OpensABeaconAwayFromTheHero_AndFlyingInClaimsIt()
+        public IEnumerator PhaseEnd_OpensABeaconAwayFromTheHero_AndFlyingInClaimsIt()
         {
             var player = SpawnKinematicShip(Vector2.zero);
             var template = SpawnKinematicShip(new Vector2(500f, 500f));
@@ -152,6 +152,7 @@ namespace Tests.PlayMode
             var directorGO = new GameObject("WaveDirector");
             directorGO.transform.SetParent(sectorGO.transform, false);
             var director = directorGO.AddComponent<WaveDirector>();
+            // One-second phases sit inside the default lead, so the beacon opens with the sector.
             director.Configure(new[] { new WaveDirector.RosterEntry { template = template } }, new[]
             {
                 new SectorPhase { seconds = 1f, interval = 1f, cap = 0 },
@@ -167,7 +168,7 @@ namespace Tests.PlayMode
 
             yield return sector.Setup();
             yield return WaitSeconds(() => _objectives.SpineTarget == beacon.transform, 5f);
-            Assert.AreEqual(beacon.transform, _objectives.SpineTarget, "The lull opens a beacon the marker points at.");
+            Assert.AreEqual(beacon.transform, _objectives.SpineTarget, "The phase's end opens a beacon the marker points at.");
             Assert.IsTrue(beacon.gameObject.activeSelf);
             Assert.AreEqual(BeaconDistance,
                 Vector2.Distance(GamePlane.WorldPointToPlane(beacon.transform.position), Vector2.zero), 0.01f,
@@ -181,6 +182,8 @@ namespace Tests.PlayMode
             Assert.IsTrue(spine.BeaconClaimed, "Flying into the beacon claims it.");
             Assert.IsFalse(beacon.gameObject.activeSelf);
             Assert.IsNull(_objectives.SpineTarget);
+            yield return null;
+            Assert.IsFalse(beacon.gameObject.activeSelf, "A claimed lull's beacon stays closed.");
 
             yield return sector.Teardown();
         }

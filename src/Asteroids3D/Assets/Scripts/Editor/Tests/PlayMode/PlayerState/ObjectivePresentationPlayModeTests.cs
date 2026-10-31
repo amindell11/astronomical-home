@@ -132,13 +132,39 @@ namespace Tests.PlayMode.PlayerState
             Assert.IsNull(readout.transform.Find("Phase display/Sector phase 2"));
         }
 
-        private void OpenPhases(Transform target, Func<SectorPhaseProgress> progress) => service.SetSpineObjective(
-            new MissionDefinition("survive", new Dictionary<string, string> { ["survive"] = "extract" }),
-            new Dictionary<string, Func<ObjectiveState>>
-            {
-                ["survive"] = () => new SurvivalState(() => progress().ExtractionOpen),
-                ["extract"] = () => new ExtractionState()
-            }, target, progress);
+        private SpineObjectiveHandle OpenPhases(Transform target, Func<SectorPhaseProgress> progress) =>
+            service.SetSpineObjective(
+                new MissionDefinition("survive", new Dictionary<string, string> { ["survive"] = "extract" }),
+                new Dictionary<string, Func<ObjectiveState>>
+                {
+                    ["survive"] = () => new SurvivalState(() => progress().ExtractionOpen),
+                    ["extract"] = () => new ExtractionState()
+                }, target, progress);
+
+        [UnityTest]
+        public IEnumerator Readout_AnnouncesABeacon_WhenASurviveTargetAppears_AndReplaysForTheNext()
+        {
+            var readout = CreateReadout();
+            readout.Initialize(service);
+            var announcement = readout.transform.Find("Extraction announcement").GetComponent<Text>();
+            var handle = OpenPhases(null, () => new SectorPhaseProgress(0, 2, 20f, false));
+            yield return null;
+            Assert.IsFalse(announcement.enabled, "Surviving with no beacon announces nothing.");
+            var beacon = Child("Beacon").transform;
+            handle.Target = beacon;
+            yield return null;
+            yield return new WaitForSecondsRealtime(.3f);
+            Assert.IsTrue(announcement.enabled);
+            Assert.AreEqual("MOD BEACON", announcement.text);
+            yield return new WaitForSecondsRealtime(2.2f);
+            Assert.IsFalse(announcement.enabled);
+            handle.Target = null;
+            yield return null;
+            handle.Target = beacon;
+            yield return null;
+            yield return new WaitForSecondsRealtime(.3f);
+            Assert.IsTrue(announcement.enabled, "The next beacon announces again.");
+        }
 
         private (ObjectiveMarkers markers, Image icon, Camera camera) CreateMarkers()
         {

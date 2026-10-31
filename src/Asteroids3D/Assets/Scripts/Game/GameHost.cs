@@ -435,7 +435,7 @@ namespace Game
             }
         }
 
-        // The clock stops for the pick; the lull's remaining seconds run after it.
+        // The clock stops for the pick and runs on after it; a claim can land mid-phase.
         private IEnumerator RunLullPick()
         {
             var player = rigInstance.Player;

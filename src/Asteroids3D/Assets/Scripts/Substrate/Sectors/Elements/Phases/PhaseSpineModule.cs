@@ -13,10 +13,12 @@ namespace Substrate.Sectors.Elements.Phases
     /// <summary>
     /// A sector spine over its wave director's sector phases: survive them, then reach
     /// the extraction zone, which stays hidden until the phases are done and then appears on a clear
-    /// point away from the hero. The hero's jump request inside commits extraction. Each lull opens a
-    /// lull beacon on a clear point away from the hero the same way; flying into it claims that lull's
-    /// pick (<see cref="BeaconClaimed"/>, read by the host), and the next phase's start closes an
-    /// unclaimed one. The director is held to observe its phase, never commanded.
+    /// point away from the hero. The hero's jump request inside commits extraction. Shortly before a
+    /// sector phase that a lull follows ends, a lull beacon opens on a clear point away from the hero
+    /// the same way and stays through the lull and a grace window into the next phase; flying into it
+    /// claims that lull's pick (<see cref="BeaconClaimed"/>, read by the host), and an unclaimed one
+    /// closes when its grace runs out or the next beacon opens. The director is held to observe its
+    /// phase, never commanded.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1051
     /// </summary>
     public class PhaseSpineModule : SectorModule
@@ -39,15 +41,20 @@ namespace Substrate.Sectors.Elements.Phases
 
         [Header("Lull beacon")]
         [SerializeField] private ExtractionZone beaconZone;
-        [Tooltip("Plane distance from the hero a lull beacon appears at on the lull's first frame.")]
+        [Tooltip("Plane distance from the hero a lull beacon appears at.")]
         [SerializeField, Min(0f)] private float beaconDistance = 150f;
+        [Tooltip("Seconds before a sector phase ends that its lull's beacon appears, so the marker shows during the fight.")]
+        [SerializeField, Min(0f)] private float beaconLeadSeconds = 8f;
+        [Tooltip("Seconds into the next sector phase an unclaimed beacon stays before it closes.")]
+        [SerializeField, Min(0f)] private float beaconGraceSeconds = 10f;
 
         private SpineObjectiveHandle spine;
         private Ship hero;
         private ExtractionJumpState extraction;
         private bool beaconsEnabled;
         private bool beaconOpen;
-        private bool wasInLull;
+        // The last beacon's lull, kept after it closes so a claimed lull never reopens.
+        private int beaconLull;
 
         public SectorPhaseMark Phase => director.Phase;
 
@@ -69,7 +76,7 @@ namespace Substrate.Sectors.Elements.Phases
             beaconZone.BindPlayer(hero ? hero.Body : null);
             beaconZone.gameObject.SetActive(false);
             beaconsEnabled = ctx.PresentationEnabled && hero;
-            wasInLull = false;
+            beaconLull = -1;
             beaconOpen = false;
             BeaconClaimed = false;
             extraction = new ExtractionJumpState(extractionZone, hero,
@@ -116,19 +123,37 @@ namespace Substrate.Sectors.Elements.Phases
         {
             if (!beaconsEnabled || !hero) return;
             var mark = director.Phase;
-            if (mark.InLull && !wasInLull) OpenBeacon();
-            else if (beaconOpen && !mark.InLull) CloseBeacon();
+            var lull = LullAhead(mark);
+            if (lull >= 0 && lull != beaconLull)
+            {
+                if (beaconOpen) CloseBeacon();
+                OpenBeacon(lull);
+            }
             else if (beaconOpen && beaconZone.IsPlayerInZone) ClaimBeacon();
-            wasInLull = mark.InLull;
+            else if (beaconOpen && BeaconExpired(mark)) CloseBeacon();
         }
 
-        private void OpenBeacon()
+        // The lull in progress, or the one within the lead of this phase's end.
+        private int LullAhead(SectorPhaseMark mark)
+        {
+            if (mark.Done) return -1;
+            if (mark.InLull) return mark.Index;
+            var lullFollows = mark.Index < director.PhaseCount - 1;
+            return lullFollows && mark.SecondsLeft <= beaconLeadSeconds ? mark.Index + 1 : -1;
+        }
+
+        private bool BeaconExpired(SectorPhaseMark mark) =>
+            mark.Done || !mark.InLull && (mark.Index > beaconLull
+                || mark.Index == beaconLull && mark.ElapsedSeconds >= beaconGraceSeconds);
+
+        private void OpenBeacon(int lull)
         {
             beaconZone.transform.position = ClearPointAround(GamePlane.WorldPointToPlane(hero.transform.position), beaconDistance);
             beaconZone.gameObject.SetActive(true);
             beaconZone.Arm();
             spine.Target = beaconZone.transform;
             beaconOpen = true;
+            beaconLull = lull;
             BeaconClaimed = false;
         }
 
@@ -143,7 +168,8 @@ namespace Substrate.Sectors.Elements.Phases
             beaconOpen = false;
             beaconZone.Disarm();
             beaconZone.gameObject.SetActive(false);
-            spine.Target = null;
+            // Extraction may already hold the marker; the beacon clears only its own.
+            if (spine.Target == beaconZone.transform) spine.Target = null;
         }
 
         private SectorPhaseProgress ReadPhaseProgress()
@@ -213,11 +239,14 @@ namespace Substrate.Sectors.Elements.Phases
         }
 
 #if UNITY_EDITOR
-        internal void Bind(WaveDirector director, ExtractionZone zone, ExtractionZone beacon)
+        internal void Bind(WaveDirector director, ExtractionZone zone, ExtractionZone beacon,
+            float? leadSeconds = null, float? graceSeconds = null)
         {
             this.director = director;
             extractionZone = zone;
             beaconZone = beacon;
+            if (leadSeconds.HasValue) beaconLeadSeconds = leadSeconds.Value;
+            if (graceSeconds.HasValue) beaconGraceSeconds = graceSeconds.Value;
         }
 #endif
     }

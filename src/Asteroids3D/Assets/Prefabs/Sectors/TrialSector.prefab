@@ -432,6 +432,8 @@ MonoBehaviour:
   placementAttempts: 8
   beaconZone: {fileID: 7877101623167739606}
   beaconDistance: 150
+  beaconLeadSeconds: 8
+  beaconGraceSeconds: 10
 --- !u!1 &8433355183706691782
 GameObject:
   m_ObjectHideFlags: 0

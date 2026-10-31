@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using Objectives;
 using Ships;
@@ -13,7 +14,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>PhaseSpineModule against the objective service: the survive step reads the director's phase into its status line, extraction opens only once the phases are done (zone shown, armed and targeted), a lull with a hero opens a targeted beacon and the lull's end closes it unclaimed, and teardown closes the spine.</summary>
+    /// <summary>PhaseSpineModule against the objective service: the survive step reads the director's phase into its status line, extraction opens only once the phases are done (zone shown, armed and targeted), a beacon opens within the lead of a phase's end, outlives its lull into the next phase's grace, and the next beacon or the table's end closes it unclaimed, and teardown closes the spine.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class PhaseSpineModuleEditModeTests
@@ -41,16 +42,14 @@ namespace Tests.EditMode
         }
 
         private (PhaseSpineModule module, WaveDirector director, ExtractionZone zone, ExtractionZone beacon,
-            ObjectiveService svc, SectorBuildContext ctx) Build(Ship hero = null)
+            ObjectiveService svc, SectorBuildContext ctx) Build(Ship hero = null, float lead = 8f, float grace = 10f,
+            int phaseCount = 2)
         {
             var svc = NewGO("ObjectiveService").AddComponent<ObjectiveService>();
 
             var director = NewGO("WaveDirector").AddComponent<WaveDirector>();
-            director.Configure(null, new[]
-            {
-                new SectorPhase { seconds = 40f, interval = 6f, cap = 2 },
-                new SectorPhase { seconds = 40f, interval = 4f, cap = 3 },
-            }, lullSeconds: 5f);
+            director.Configure(null, Enumerable.Range(0, phaseCount)
+                .Select(_ => new SectorPhase { seconds = 40f, interval = 4f, cap = 3 }).ToArray(), lullSeconds: 5f);
             director.BeginSchedule(0f);
 
             var zoneGO = NewGO("Zone");
@@ -62,7 +61,7 @@ namespace Tests.EditMode
             var beacon = beaconGO.AddComponent<ExtractionZone>();
 
             var module = NewGO("Spine").AddComponent<PhaseSpineModule>();
-            module.Bind(director, zone, beacon);
+            module.Bind(director, zone, beacon, lead, grace);
 
             var ctx = new SectorBuildContext(null, svc, true, null, default, null, hero, bus: new SectorEventBus());
             return (module, director, zone, beacon, svc, ctx);
@@ -108,43 +107,112 @@ namespace Tests.EditMode
             Assert.IsTrue(svc.SpineTracker.PhaseProgress.Value.ExtractionOpen);
         }
 
+        private static float PlaneDistance(Transform a, Transform b) =>
+            (GamePlane.WorldPointToPlane(a.position) - GamePlane.WorldPointToPlane(b.position)).magnitude;
+
         [Test]
-        public void Lull_WithAHero_OpensABeaconAwayFromTheHero_AndTargetsIt()
+        public void PhaseEnd_WithinTheLead_OpensABeaconAwayFromTheHero_AndTargetsIt()
         {
             var hero = NewGO("Hero").AddComponent<Ship>();
             var (module, director, zone, beacon, svc, ctx) = Build(hero);
             Run(module.Setup(ctx));
 
-            director.Advance(41.5f);
+            director.Advance(31.5f);
+            module.Tick();
+            Assert.IsFalse(beacon.gameObject.activeSelf, "Outside the lead no beacon opens.");
+            Assert.IsNull(svc.SpineTarget);
+
+            director.Advance(32.5f);
             module.Tick();
 
             Assert.IsTrue(beacon.gameObject.activeSelf);
             Assert.AreEqual(beacon.transform, svc.SpineTarget);
-            var distance = (GamePlane.WorldPointToPlane(beacon.transform.position)
-                - GamePlane.WorldPointToPlane(hero.transform.position)).magnitude;
-            Assert.AreEqual(150f, distance, 0.01f);
+            Assert.AreEqual(150f, PlaneDistance(beacon.transform, hero.transform), 0.01f);
             Assert.IsFalse(module.BeaconClaimed);
-            Assert.IsFalse(zone.gameObject.activeSelf, "The extraction zone stays hidden through a lull.");
+            Assert.IsFalse(zone.gameObject.activeSelf, "The extraction zone stays hidden while a beacon is open.");
         }
 
         [Test]
-        public void LullEnd_ClosesAnUnclaimedBeacon()
+        public void Beacon_StaysThroughTheLull_AndClosesWhenItsGraceRunsOut()
         {
             var (module, director, _, beacon, svc, ctx) = Build(NewGO("Hero").AddComponent<Ship>());
             Run(module.Setup(ctx));
-            director.Advance(41.5f);
+            director.Advance(32.5f);
             module.Tick();
 
-            director.Advance(46f);
+            director.Advance(44f);
             module.Tick();
+            Assert.IsTrue(beacon.gameObject.activeSelf, "The lull keeps it.");
 
+            director.Advance(54.5f);
+            module.Tick();
+            Assert.IsTrue(beacon.gameObject.activeSelf, "Still inside the grace of the next phase.");
+
+            director.Advance(55.5f);
+            module.Tick();
             Assert.IsFalse(beacon.gameObject.activeSelf);
             Assert.IsNull(svc.SpineTarget);
             Assert.IsFalse(module.BeaconClaimed);
         }
 
         [Test]
-        public void Lull_WithoutAHero_OpensNoBeacon()
+        public void Lull_ReachedWithNoBeacon_OpensOneOnItsFirstFrame()
+        {
+            var (module, director, _, beacon, svc, ctx) = Build(NewGO("Hero").AddComponent<Ship>(), lead: 0f);
+            Run(module.Setup(ctx));
+
+            director.Advance(39.5f);
+            module.Tick();
+            Assert.IsFalse(beacon.gameObject.activeSelf);
+
+            director.Advance(40.5f);
+            module.Tick();
+            Assert.IsTrue(beacon.gameObject.activeSelf);
+            Assert.AreEqual(beacon.transform, svc.SpineTarget);
+        }
+
+        [Test]
+        public void TheNextBeacon_ReplacesAnUnclaimedOne()
+        {
+            var hero = NewGO("Hero").AddComponent<Ship>();
+            var (module, director, _, beacon, _, ctx) = Build(hero, grace: 999f, phaseCount: 3);
+            Run(module.Setup(ctx));
+            director.Advance(32.5f);
+            module.Tick();
+
+            director.Advance(60f);
+            module.Tick();
+            Assert.IsTrue(beacon.gameObject.activeSelf);
+
+            hero.transform.position = new Vector3(300f, 0f, 0f);
+            director.Advance(77.5f);
+            module.Tick();
+
+            Assert.IsTrue(beacon.gameObject.activeSelf);
+            Assert.AreEqual(150f, PlaneDistance(beacon.transform, hero.transform), 0.01f,
+                "The new lull's beacon is placed afresh.");
+            Assert.IsFalse(module.BeaconClaimed);
+        }
+
+        [Test]
+        public void TableDone_ClosesTheBeacon_AndLeavesExtractionTargeted()
+        {
+            var (module, director, zone, beacon, svc, ctx) = Build(NewGO("Hero").AddComponent<Ship>(), grace: 999f);
+            Run(module.Setup(ctx));
+            director.Advance(32.5f);
+            module.Tick();
+
+            director.Advance(85f);
+            svc.Tick(0.1f);
+            module.Tick();
+
+            Assert.AreEqual(PhaseSpineModule.StepExtract, svc.SpineStep);
+            Assert.IsFalse(beacon.gameObject.activeSelf);
+            Assert.AreEqual(zone.transform, svc.SpineTarget, "The beacon clears only its own marker.");
+        }
+
+        [Test]
+        public void WithoutAHero_NoBeaconOpens()
         {
             var (module, director, _, beacon, svc, ctx) = Build();
             Run(module.Setup(ctx));

@@ -33,11 +33,13 @@ namespace Tests.EditMode
             Assert.IsTrue(lull.InLull);
             Assert.AreEqual(1, lull.Index);
             Assert.AreEqual(4f, lull.SecondsLeft, 1e-4f);
+            Assert.AreEqual(1f, lull.ElapsedSeconds, 1e-4f);
 
             var second = schedule.At(45f);
             Assert.IsFalse(second.InLull);
             Assert.AreEqual(1, second.Index);
             Assert.AreEqual(30f, second.SecondsLeft, 1e-4f);
+            Assert.AreEqual(0f, second.ElapsedSeconds, 1e-4f);
         }
 
         [Test]
@@ -51,6 +53,7 @@ namespace Tests.EditMode
             Assert.IsFalse(done.InLull);
             Assert.AreEqual(1, done.Index);
             Assert.AreEqual(0f, done.SecondsLeft);
+            Assert.AreEqual(5f, schedule.At(80f).ElapsedSeconds, 1e-4f, "Once done, the mark counts from the table's end.");
         }
 
         [Test]
