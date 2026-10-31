@@ -485,7 +485,7 @@ namespace Tests.PlayMode.Bootstrap
             if (productionJump || jumpTravel)
             {
                 host.jumpFeel = AssetDatabase.LoadAssetAtPath<SectorJumpProfile>("Assets/Settings/Game/SectorJumpTuning.asset");
-                host.jumpShader = Shader.Find("Astronomical/Travel/SectorJump");
+                host.jumpFeature = AssetDatabase.LoadAssetAtPath<SectorJumpFeature>("Assets/Settings/Rendering/SectorJumpFeature.asset");
             }
             if (productionJump)
                 host.hangarScreenPrefab = AssetDatabase.LoadAssetAtPath<HangarScreen>("Assets/Prefabs/UI/HangarScreen.prefab");
