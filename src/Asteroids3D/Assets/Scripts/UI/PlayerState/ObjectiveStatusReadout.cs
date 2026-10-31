@@ -19,6 +19,8 @@ namespace UI.PlayerState
         private Image[] segments = Array.Empty<Image>();
         private IObjectiveService objectives;
         private ObjectiveTracker announcedTracker;
+        private ObjectiveType announcedState;
+        private Transform announcedTarget;
         private float openedAt;
 
         public static ObjectiveStatusReadout Create(Transform parent, Font labelFont, Font headingFont, Font timerFont,
@@ -48,7 +50,6 @@ namespace UI.PlayerState
             announcement.rectTransform.anchorMin = announcement.rectTransform.anchorMax = new Vector2(.5f, .5f);
             announcement.rectTransform.pivot = new Vector2(.5f, .5f);
             announcement.alignment = TextAnchor.MiddleCenter;
-            announcement.text = "EXTRACTION OPEN";
             InstrumentAppear.Attach(announcement.gameObject, projection,
                 () => announcement.enabled && announcement.color.a > 0f && (isVisible?.Invoke() ?? true));
             var readout = go.AddComponent<ObjectiveStatusReadout>();
@@ -108,16 +109,23 @@ namespace UI.PlayerState
         {
             var tracker = objectives.SpineTracker;
             var progress = tracker?.PhaseProgress;
-            var extraction = objectives.SpineState == ObjectiveType.ExtractionChallenge && objectives.SpineTarget;
-            if (!extraction) announcedTracker = null;
-            else if (tracker != announcedTracker)
+            var state = objectives.SpineState;
+            var target = objectives.SpineTarget;
+            // A survive-state target is a lull beacon; extraction retargets without replaying its opening.
+            var open = target && (state is ObjectiveType.Survive or ObjectiveType.ExtractionChallenge);
+            if (!open) announcedTracker = null;
+            else if (tracker != announcedTracker || state != announcedState
+                     || state == ObjectiveType.Survive && target != announcedTarget)
             {
                 announcedTracker = tracker;
+                announcedState = state.Value;
+                announcedTarget = target;
                 openedAt = Time.unscaledTime;
+                announcement.text = state == ObjectiveType.Survive ? "MOD BEACON" : "EXTRACTION OPEN";
             }
 
             var elapsed = Time.unscaledTime - openedAt;
-            var opening = extraction && elapsed < 2.05f;
+            var opening = open && elapsed < 2.05f;
             var openingAlpha = Mathf.Clamp01(Mathf.Min(elapsed / .22f, (2.05f - elapsed) / .45f));
             announcement.enabled = opening;
             announcement.color = new Color(1f, 1f, 1f, openingAlpha);

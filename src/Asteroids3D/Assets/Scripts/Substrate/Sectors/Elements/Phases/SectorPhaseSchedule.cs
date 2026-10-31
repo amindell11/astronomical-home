@@ -30,17 +30,18 @@ namespace Substrate.Sectors.Elements.Phases
                 if (i > 0)
                 {
                     var lullEnd = start + lullSeconds;
-                    if (elapsed < lullEnd) return new SectorPhaseMark(i, true, false, lullEnd - elapsed, lullEnd - elapsed);
+                    if (elapsed < lullEnd) return new SectorPhaseMark(i, true, false, lullEnd - elapsed,
+                        lullEnd - elapsed, elapsed - start);
                     start = lullEnd;
                 }
 
                 var end = start + phases[i].seconds;
                 if (elapsed < end) return new SectorPhaseMark(i, false, false, end - elapsed,
-                    end - elapsed + (i < phases.Length - 1 ? lullSeconds : 0f));
+                    end - elapsed + (i < phases.Length - 1 ? lullSeconds : 0f), elapsed - start);
                 start = end;
             }
 
-            return new SectorPhaseMark(phases.Length - 1, false, true, 0f, 0f);
+            return new SectorPhaseMark(phases.Length - 1, false, true, 0f, 0f, elapsed - start);
         }
     }
 
@@ -52,14 +53,18 @@ namespace Substrate.Sectors.Elements.Phases
         public bool Done { get; }
         public float SecondsLeft { get; }
         public float CountdownSeconds { get; }
+        // Seconds into this sector phase or lull; once done, since the table finished.
+        public float ElapsedSeconds { get; }
 
-        public SectorPhaseMark(int index, bool inLull, bool done, float secondsLeft, float countdownSeconds)
+        public SectorPhaseMark(int index, bool inLull, bool done, float secondsLeft, float countdownSeconds,
+            float elapsedSeconds)
         {
             Index = index;
             InLull = inLull;
             Done = done;
             SecondsLeft = secondsLeft;
             CountdownSeconds = countdownSeconds;
+            ElapsedSeconds = elapsedSeconds;
         }
     }
 }
