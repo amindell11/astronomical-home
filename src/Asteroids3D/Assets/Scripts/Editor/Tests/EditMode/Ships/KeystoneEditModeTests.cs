@@ -314,8 +314,8 @@ namespace Tests.EditMode.Ships
             var stealth = catalog.Chassis.Single(c => c.name == "Nightshade").KeystonePrefab as Stealth;
             Assert.That(stealth, Is.Not.Null, "Nightshade's kit is Stealth");
             Assert.That(stealth.name, Is.EqualTo("Nightshade_Stealth"));
-            Assert.That(stealth.Window, Is.EqualTo(3f));
-            Assert.That(stealth.Cooldown, Is.EqualTo(8f));
+            Assert.That(stealth.Window, Is.EqualTo(2.5f));
+            Assert.That(stealth.Cooldown, Is.EqualTo(12f));
             Assert.That(stealth.PeakSpeedScale, Is.EqualTo(1.3f));
             Assert.That(stealth.PeakThrustScale, Is.EqualTo(1.45f));
             Assert.That(stealth.GetComponent<StealthVeil>(), Is.Not.Null, "the kit carries its tell");
