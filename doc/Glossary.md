@@ -1047,11 +1047,31 @@ Format: **term** — definition. *(authority)*
   reads live; the game serializes the asset on its host, and the preview's panel
   edits that same asset in place under a snapshot: Save writes it, Discard
   restores it. *(RecapFeelProfile, FeelSnapshot)*
-- **preview host** — the play-mode composition root beside the game host that
-  composes a real session with presentation on around the real player rig,
-  camera and HUD, and hosts one *preview subject* under a transport (play,
-  pause, scrub, loop, speed). The control panel is an editor window and nothing
-  more. *(PreviewHost, PreviewTransport, PreviewControlPanel)*
+- **preview host** — the play-mode composition root beside the game host. It
+  runs one entry at a time. A *preview Replay* entry composes a real session
+  with presentation on around the real player rig, camera and HUD, and hosts a
+  *preview subject* under a transport (play, pause, scrub, loop, speed). A
+  *preview Playtest* entry runs the shipped game host prefab. The host knows
+  entries and never *tuning targets*. The control panel is an editor window and
+  nothing more. *(PreviewHost, PreviewEntry, PreviewTransport,
+  PreviewControlPanel)*
+- **tuning target** — one thing the owner tunes in the preview panel, such as
+  the sector jump, the run recap or the HUD. It names its feel profiles and the
+  preview entries that show them, and the panel draws only its knobs. Targets
+  are editor code only: game code, the preview host included, never learns they
+  exist (owner ruling 2026-10-30). Switching to a target that offers the running
+  entry keeps the world; otherwise the preview rebuilds to the target's top
+  entry. What makes something tunable, and how to add a target:
+  `doc/agents/tuning.md`. *(TuningTarget, HudTarget)*
+- **preview Replay** — the panel section and kind of preview entry that hosts
+  a *preview subject* under the transport: a moment the owner scrubs and
+  judges. Bare "Replay" is legal in preview context. (Retired form: the preview
+  host's "Inspection" mode.) *(PreviewEntry.RunRecap, PreviewEntry.SectorJump)*
+- **preview Playtest** — the panel section and kind of preview entry that runs
+  the shipped game host prefab for the owner to fly, with preview run records
+  and at most swapped sectors. Bare "Playtest" is legal in preview context;
+  elsewhere "playtest" is the owner playing the game.
+  *(PreviewEntry.Combat, PreviewEntry.CrowdedJumpGate)*
 - **preview subject** — a presentation module with a chosen context (a fixture
   built from constants, or any context a scenario builds), hosted by the preview
   host. *(IPreviewSubject, RecapPreviewSubject, RecapFixtures)*

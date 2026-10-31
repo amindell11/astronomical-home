@@ -1,25 +1,26 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using UI.Projection;
 
 namespace Game.Preview
 {
     /// <summary>
-    /// Enters and switches the preview host's modes. Inspection drives a subject's timeline;
-    /// Playtest runs the real game and can restart it. Both edit the feel assets the game ships, in
-    /// place under the preview's snapshot. Everything shown by either mode renders in the Game View.
+    /// Opens on a tuning target, offers that target's Replay and Playtest entries, and draws only its
+    /// knobs. Replay drives a subject's timeline; Playtest runs the real game and can restart it. Both
+    /// edit the feel assets the game ships, in place under the preview's snapshot. Everything either
+    /// shows renders in the Game View.
     /// </summary>
     internal sealed class PreviewControlPanel : EditorWindow
     {
+        private readonly Dictionary<ScriptableObject, SerializedObject> knobs = new();
         private PreviewHost host;
-        private SerializedObject knobs;
-        private SerializedObject jumpKnobs;
-        private SerializedObject canopyKnobs;
-        [SerializeField] private PreviewSubjectKind selectedSubject;
-        [SerializeField] private PreviewMode selectedMode;
-        [SerializeField] private PreviewPlaytestSetup selectedSetup;
+        [SerializeField] private int targetIndex;
+        [SerializeField] private PreviewEntry selectedEntry;
         private Vector2 scroll;
+
+        private TuningTarget Target => TuningTarget.All[targetIndex];
 
         [MenuItem("Window/Preview Host")]
         public static void Open() => GetWindow<PreviewControlPanel>("Preview Host");
@@ -49,13 +50,27 @@ namespace Game.Preview
                                         "Exit play mode to recover.", MessageType.Error);
                 return;
             }
-            using (new EditorGUI.DisabledScope(host.IsReplacing))
+            if (!Target.Offers(host.Entry))
+                targetIndex = Array.FindIndex(TuningTarget.All, target => target.Offers(host.Entry));
+            selectedEntry = host.Entry;
+            // Not ready, not just replacing: a Replay-to-Replay switch refuses while a compose is in flight.
+            using (new EditorGUI.DisabledScope(!host.IsReady))
             {
-                var modeChoice = (PreviewMode)EditorGUILayout.EnumPopup("Mode", host.Mode);
-                selectedMode = modeChoice;
-                if (modeChoice != host.Mode)
+                var game = host.gameHostPrefab;
+                var names = TuningTarget.All.Select(target => target.Name +
+                    (target.Profiles(game).Any(FeelSnapshot.instance.HasUnsavedEdits) ? " · unsaved" : "")).ToArray();
+                var picked = EditorGUILayout.Popup("Target", targetIndex, names);
+                if (picked != targetIndex)
                 {
-                    host.SelectMode(modeChoice);
+                    targetIndex = picked;
+                    var next = Target.EntryAfterSwitch(host.Entry);
+                    if (next != host.Entry) host.Select(next);
+                    return;
+                }
+                var chosen = DrawSections(host.Entry);
+                if (chosen != host.Entry)
+                {
+                    host.Select(chosen);
                     return;
                 }
             }
@@ -64,68 +79,50 @@ namespace Game.Preview
                 EditorGUILayout.LabelField(host.IsReplacing ? "Replacing the preview…" : "Loading the preview…");
                 return;
             }
-            if (host.Mode == PreviewMode.Playtest)
+            if (PreviewHost.IsPlaytest(host.Entry))
             {
-                DrawPlaytest();
-                return;
+                if (GUILayout.Button("Restart Playtest"))
+                {
+                    host.RestartPlaytest();
+                    return;
+                }
+                if (host.Entry == PreviewEntry.CrowdedJumpGate)
+                    EditorGUILayout.HelpBox("Press F inside the jump gate. Continue completes arrival. " +
+                        "Feel changes apply to the next jump; Restart Playtest tries again.", MessageType.None);
             }
-            var selected = (PreviewSubjectKind)EditorGUILayout.EnumPopup("Subject", host.SubjectKind);
-            selectedSubject = selected;
-            if (selected != host.SubjectKind)
-            {
-                host.SelectSubject(selected);
-                return;
-            }
-            DrawTransport(host.Subject, host.Transport);
+            else
+                DrawTransport(host.Subject, host.Transport);
+            Target.DrawControls(host);
             scroll = EditorGUILayout.BeginScrollView(scroll);
-            DrawKnobs(host.Subject.Knobs, ref knobs);
+            foreach (var profile in Target.Profiles(host.gameHostPrefab)) DrawKnobs(profile);
             EditorGUILayout.EndScrollView();
         }
 
         private void DrawEntry()
         {
-            EditorGUILayout.HelpBox("Inspection shows a presentation with timeline controls. " +
-                                    "Playtest starts the real game with separate preview run records.", MessageType.None);
-            selectedMode = (PreviewMode)EditorGUILayout.EnumPopup("Mode", selectedMode);
-            if (selectedMode == PreviewMode.Inspection)
-                selectedSubject = (PreviewSubjectKind)EditorGUILayout.EnumPopup("Subject", selectedSubject);
-            else
-                selectedSetup = (PreviewPlaytestSetup)EditorGUILayout.EnumPopup("Setup", selectedSetup);
+            EditorGUILayout.HelpBox("Pick what you're tuning, then how to preview it. Replay shows a moment with " +
+                                    "timeline controls; Playtest starts the real game with separate preview run records.",
+                MessageType.None);
+            targetIndex = EditorGUILayout.Popup("Target", targetIndex, TuningTarget.All.Select(target => target.Name).ToArray());
+            selectedEntry = DrawSections(Target.EntryAfterSwitch(selectedEntry));
             if (GUILayout.Button("Enter preview"))
-                PreviewHostBootstrap.EnterPlayMode(selectedSubject, selectedMode, selectedSetup);
+                PreviewHostBootstrap.EnterPlayMode(selectedEntry);
         }
 
-        private void DrawPlaytest()
+        private PreviewEntry DrawSections(PreviewEntry current)
         {
-            var setup = (PreviewPlaytestSetup)EditorGUILayout.EnumPopup("Setup", host.PlaytestSetup);
-            selectedSetup = setup;
-            if (setup != host.PlaytestSetup)
+            var chosen = current;
+            foreach (var playtest in new[] { false, true })
             {
-                host.SelectPlaytestSetup(setup);
-                return;
+                var entries = Target.Entries.Where(entry => PreviewHost.IsPlaytest(entry) == playtest).ToArray();
+                if (entries.Length == 0) continue;
+                EditorGUILayout.LabelField(playtest ? "Playtest" : "Replay", EditorStyles.boldLabel);
+                foreach (var entry in entries)
+                    if (GUILayout.Toggle(entry == current, ObjectNames.NicifyVariableName(entry.ToString()),
+                            EditorStyles.radioButton) && entry != current)
+                        chosen = entry;
             }
-            if (GUILayout.Button("Restart Playtest"))
-            {
-                host.RestartPlaytest();
-                return;
-            }
-            if (host.PlaytestSetup == PreviewPlaytestSetup.CrowdedJumpGate)
-                EditorGUILayout.HelpBox("Press F inside the jump gate. Continue completes arrival. " +
-                    "Feel changes apply to the next jump; Restart Playtest tries again.", MessageType.None);
-            scroll = EditorGUILayout.BeginScrollView(scroll);
-            var game = host.gameHostPrefab;
-            if (host.PlaytestSetup == PreviewPlaytestSetup.Combat)
-            {
-                var projection = host.Playtest.CanopyProjection;
-                if (projection)
-                    projection.ForceMode = (CanopyForceMode)EditorGUILayout.EnumPopup("Force canopy state", projection.ForceMode);
-                var canopy = PreviewHostBootstrap.CanopyProfile(game);
-                DrawKnobs(canopy, ref canopyKnobs);
-                if (GUILayout.Button("Import tuner settings…")) CanopyTunerImportWindow.Open(canopy);
-            }
-            DrawKnobs(game.jumpFeel, ref jumpKnobs);
-            DrawKnobs(game.recapFeel, ref knobs);
-            EditorGUILayout.EndScrollView();
+            return chosen;
         }
 
         private static void DrawTransport(IPreviewSubject subject, PreviewTransport transport)
@@ -157,9 +154,9 @@ namespace Game.Preview
             transport.HoldSeconds = EditorGUILayout.FloatField("Hold seconds", transport.HoldSeconds);
         }
 
-        private static void DrawKnobs(ScriptableObject profile, ref SerializedObject serialized)
+        private void DrawKnobs(ScriptableObject profile)
         {
-            if (serialized == null || serialized.targetObject != profile) serialized = new SerializedObject(profile);
+            if (!knobs.TryGetValue(profile, out var serialized)) knobs.Add(profile, serialized = new SerializedObject(profile));
             var snapshot = FeelSnapshot.instance;
             var unsaved = snapshot.HasUnsavedEdits(profile);
             EditorGUILayout.Space();

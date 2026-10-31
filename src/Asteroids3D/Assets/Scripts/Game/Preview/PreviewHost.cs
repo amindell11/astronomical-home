@@ -17,16 +17,14 @@ using Utils.Coroutines;
 
 namespace Game.Preview
 {
-    public enum PreviewSubjectKind { RunRecap, SectorJump }
-    public enum PreviewMode { Inspection, Playtest }
-    public enum PreviewPlaytestSetup { Combat, CrowdedJumpGate }
+    public enum PreviewEntry { RunRecap, SectorJump, Combat, CrowdedJumpGate }
 
     /// <summary>
-    /// Inspection owns a session and presentation subject driven by a transport; Playtest owns an
-    /// instance of the game's GameHost prefab, overriding only its run records and, for the crowded
-    /// jump gate, its sectors. Inspection takes its rig, observer, jump shader and feel profiles from
-    /// the same prefab, so both modes run on the feel assets the game ships. Replacement awaits the
-    /// previous mode's teardown before composing the next. Only inspection subjects may freeze this
+    /// A Replay entry owns a session and a presentation subject driven by a transport; a Playtest entry
+    /// owns an instance of the game's GameHost prefab, overriding only its run records and, for the
+    /// crowded jump gate, its sectors. Replay takes its rig, observer, jump shader and feel profiles from
+    /// the same prefab, so both kinds of entry run on the feel assets the game ships. Replacement awaits
+    /// the previous entry's teardown before composing the next. Only Replay subjects may freeze this
     /// host's clock.
     /// A throw while composing, replacing or tearing down faults the host: every later request refuses,
     /// Shutdown rethrows instead of tearing down, and only destroying the host recovers.
@@ -40,9 +38,7 @@ namespace Game.Preview
         [SerializeField] internal SessionProfile sessionProfile;
         [SerializeField] internal SectorEntry[] crowdedJumpSectors;
         [SerializeField] internal LocaleSky jumpDestination;
-        [SerializeField] internal PreviewSubjectKind subjectKind;
-        [SerializeField] internal PreviewMode mode;
-        [SerializeField] internal PreviewPlaytestSetup playtestSetup;
+        [SerializeField] internal PreviewEntry entry;
 
         private UnitService unitService;
         private ObjectiveService objectiveService;
@@ -64,38 +60,43 @@ namespace Game.Preview
         public IPreviewSubject Subject { get; private set; }
 
         public ObserverCam Observer => observer;
-        public PreviewSubjectKind SubjectKind => subjectKind;
-        public PreviewMode Mode => mode;
-        public PreviewPlaytestSetup PlaytestSetup => playtestSetup;
+        public PreviewEntry Entry => entry;
         public GameHost Playtest => playtest;
         public bool IsReplacing => replacing || closing;
         public Exception Fault => fault?.SourceException;
         public bool IsReady => fault == null && !composing && !IsReplacing &&
-            (mode == PreviewMode.Inspection ? Subject != null : playtest != null);
+            (IsPlaytest(entry) ? playtest != null : Subject != null);
+
+        public static bool IsPlaytest(PreviewEntry entry) => entry switch
+        {
+            PreviewEntry.RunRecap or PreviewEntry.SectorJump => false,
+            PreviewEntry.Combat or PreviewEntry.CrowdedJumpGate => true,
+            _ => throw new ArgumentOutOfRangeException(nameof(entry), entry, "Unknown preview entry.")
+        };
 
         private void Awake()
         {
             unitService = GetComponent<UnitService>();
             objectiveService = GetComponent<ObjectiveService>();
-            RequireMode(mode);
-            RequirePlaytestSetup(playtestSetup);
+            RequireEntry(entry);
             if (!sessionProfile.presentation)
                 throw new InvalidOperationException("The preview host requires presentation to be enabled.");
             DontDestroyOnLoad(gameObject);
             composing = true;
-            StartCoroutine(CatchingRoutine.Run(ComposeMode(mode), Faulted));
+            StartCoroutine(CatchingRoutine.Run(ComposeEntry(entry), Faulted));
         }
 
-        private IEnumerator ComposeMode(PreviewMode selected)
+        // Takes its entry: a Playtest selection may land while a Replay is still composing.
+        private IEnumerator ComposeEntry(PreviewEntry composed)
         {
-            if (selected == PreviewMode.Inspection)
-                yield return ComposeInspection();
+            if (IsPlaytest(composed))
+                BuildPlaytest(composed);
             else
-                BuildPlaytest();
+                yield return ComposeReplay(composed);
             composing = false;
         }
 
-        private IEnumerator ComposeInspection()
+        private IEnumerator ComposeReplay(PreviewEntry composed)
         {
             viewport = NewRoot("Viewport");
             ui = NewRoot("UI");
@@ -114,17 +115,17 @@ namespace Game.Preview
             rig.ApplyLoadout();
             yield return session.LoadSector(0, rig.Player);
 
-            yield return ComposeSubject();
+            yield return ComposeSubject(composed);
             Transport.Restart();
         }
 
         // GameHost reads its configuration in Awake, so the overrides land while the copy is staged inactive.
-        private void BuildPlaytest()
+        private void BuildPlaytest(PreviewEntry composed)
         {
             var staging = new GameObject("Preview Playtest staging");
             staging.SetActive(false);
             playtest = Instantiate(gameHostPrefab, staging.transform);
-            if (playtestSetup == PreviewPlaytestSetup.CrowdedJumpGate)
+            if (composed == PreviewEntry.CrowdedJumpGate)
                 playtest.sessionProfile.sectors = crowdedJumpSectors;
             playtest.runRecordPath = Path.Combine(ResultsRoot.Folder("preview"),
                 Guid.NewGuid().ToString("N"), RunRecordStore.FileName);
@@ -132,32 +133,31 @@ namespace Game.Preview
             Destroy(staging);
         }
 
-        public void SelectMode(PreviewMode selected)
+        public void Select(PreviewEntry selected)
         {
-            RequireMode(selected);
+            RequireEntry(selected);
             RequireAvailable();
-            if (selected == mode) throw new InvalidOperationException("That preview mode is already selected.");
-            mode = selected;
-            BeginReplacement();
+            if (selected == entry) throw new InvalidOperationException("That preview entry is already selected.");
+            if (IsPlaytest(selected) || IsPlaytest(entry))
+            {
+                entry = selected;
+                BeginReplacement();
+                return;
+            }
+            if (composing) throw new InvalidOperationException("The preview is still composing.");
+            DisposeSubject();
+            entry = selected;
+            Transport.Playing = false;
+            Transport.Restart();
+            composing = true;
+            StartCoroutine(CatchingRoutine.Run(ReplaceSubject(), Faulted));
         }
 
         public void RestartPlaytest()
         {
             RequireAvailable();
-            if (mode != PreviewMode.Playtest)
-                throw new InvalidOperationException("Restart Playtest requires Playtest mode.");
-            BeginReplacement();
-        }
-
-        public void SelectPlaytestSetup(PreviewPlaytestSetup selected)
-        {
-            RequireAvailable();
-            if (mode != PreviewMode.Playtest)
-                throw new InvalidOperationException("Setup selection requires Playtest mode.");
-            RequirePlaytestSetup(selected);
-            if (selected == playtestSetup)
-                throw new InvalidOperationException("That Playtest setup is already selected.");
-            playtestSetup = selected;
+            if (!IsPlaytest(entry))
+                throw new InvalidOperationException("Restart Playtest requires a Playtest entry.");
             BeginReplacement();
         }
 
@@ -165,59 +165,43 @@ namespace Game.Preview
         {
             replacing = true;
             Transport.Playing = false;
-            StartCoroutine(CatchingRoutine.Run(ReplaceMode(), Faulted));
+            StartCoroutine(CatchingRoutine.Run(ReplaceEntry(), Faulted));
         }
 
-        private IEnumerator ReplaceMode()
+        private IEnumerator ReplaceEntry()
         {
             while (composing && fault == null) yield return null;
             if (fault != null) yield break;
-            yield return TeardownMode();
+            yield return TeardownEntry();
             composing = true;
-            yield return ComposeMode(mode);
+            yield return ComposeEntry(entry);
             replacing = false;
-        }
-
-        public void SelectSubject(PreviewSubjectKind kind)
-        {
-            RequireAvailable();
-            if (mode != PreviewMode.Inspection)
-                throw new InvalidOperationException("Subject selection requires Inspection mode.");
-            if (!Enum.IsDefined(typeof(PreviewSubjectKind), kind))
-                throw new ArgumentOutOfRangeException(nameof(kind));
-            if (composing) throw new InvalidOperationException("The preview is still composing.");
-            DisposeSubject();
-            subjectKind = kind;
-            Transport.Playing = false;
-            Transport.Restart();
-            composing = true;
-            StartCoroutine(CatchingRoutine.Run(ReplaceSubject(), Faulted));
         }
 
         private IEnumerator ReplaceSubject()
         {
-            yield return ComposeSubject();
+            yield return ComposeSubject(entry);
             composing = false;
         }
 
-        private IEnumerator ComposeSubject()
+        private IEnumerator ComposeSubject(PreviewEntry composed)
         {
-            var subject = NewSubject();
+            var subject = NewSubject(composed);
             yield return subject.Compose(new PreviewWorld(session, rig, observer, ui, transform, SetSimulationFrozen));
             Subject = subject;
         }
 
-        private IPreviewSubject NewSubject() => subjectKind switch
+        private IPreviewSubject NewSubject(PreviewEntry composed) => composed switch
         {
-            PreviewSubjectKind.RunRecap => new RecapPreviewSubject(gameHostPrefab.recapFeel),
-            PreviewSubjectKind.SectorJump => new SectorJumpPreviewSubject(gameHostPrefab.jumpFeel, gameHostPrefab.jumpFeature,
+            PreviewEntry.RunRecap => new RecapPreviewSubject(gameHostPrefab.recapFeel),
+            PreviewEntry.SectorJump => new SectorJumpPreviewSubject(gameHostPrefab.jumpFeel, gameHostPrefab.jumpFeature,
                 jumpDestination),
-            _ => throw new ArgumentOutOfRangeException(nameof(subjectKind), subjectKind, "Unknown preview subject.")
+            _ => throw new ArgumentOutOfRangeException(nameof(composed), composed, "Not a Replay entry.")
         };
 
         private void LateUpdate()
         {
-            if (mode != PreviewMode.Inspection || !IsReady) return;
+            if (IsPlaytest(entry) || !IsReady) return;
             Transport.Tick(Time.unscaledDeltaTime, Subject);
         }
 
@@ -239,12 +223,12 @@ namespace Game.Preview
                 fault?.Throw();
                 yield return null;
             }
-            yield return CatchingRoutine.Run(TeardownMode(), Faulted);
+            yield return CatchingRoutine.Run(TeardownEntry(), Faulted);
             fault?.Throw();
             closed = true;
         }
 
-        private IEnumerator TeardownMode()
+        private IEnumerator TeardownEntry()
         {
             if (playtest)
             {
@@ -286,17 +270,11 @@ namespace Game.Preview
             Debug.LogException(exception, this);
         }
 
-        private static void RequireMode(PreviewMode selected)
+        private void RequireEntry(PreviewEntry selected)
         {
-            if (!Enum.IsDefined(typeof(PreviewMode), selected))
+            if (!Enum.IsDefined(typeof(PreviewEntry), selected))
                 throw new ArgumentOutOfRangeException(nameof(selected));
-        }
-
-        private void RequirePlaytestSetup(PreviewPlaytestSetup selected)
-        {
-            if (!Enum.IsDefined(typeof(PreviewPlaytestSetup), selected))
-                throw new ArgumentOutOfRangeException(nameof(selected));
-            if (selected == PreviewPlaytestSetup.CrowdedJumpGate &&
+            if (selected == PreviewEntry.CrowdedJumpGate &&
                 (crowdedJumpSectors is not { Length: > 0 } || !gameHostPrefab.jumpFeel || !gameHostPrefab.jumpFeature))
                 throw new InvalidOperationException("The crowded jump setup requires its fixture sectors and jump assets.");
         }

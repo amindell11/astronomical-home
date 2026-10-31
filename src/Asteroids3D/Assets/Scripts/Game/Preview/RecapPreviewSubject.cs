@@ -39,7 +39,6 @@ namespace Game.Preview
         public IReadOnlyList<string> Fixtures => RecapFixtures.Names;
         public int Fixture { get; private set; }
         public int SpanCount => sequence.SpanCount;
-        public ScriptableObject Knobs => feel;
         public RecapOutcomeContext Context => sequence.Context;
 
         public IEnumerator Compose(PreviewWorld world)
