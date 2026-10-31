@@ -183,11 +183,6 @@ namespace UI.Hangar
                 return $"Damage {lasers.Damage:0}{Rate(lasers.ShotsPerSecond)}   |   Speed {lasers.ProjectileSpeed:0}" +
                        (lasers.ShotsToOverheat is int shots ? $"   |   Overheats after {shots} shots" : "");
 
-            var chargeLasers = weapon as ChargeLasers;
-            if (chargeLasers)
-                return $"Damage {chargeLasers.MinChargeDamage:0}-{chargeLasers.FullChargeDamage:0}{FullCharge(chargeLasers.Charge)}" +
-                       $"   |   Speed {chargeLasers.ProjectileSpeed:0}";
-
             var railguns = weapon as Railguns;
             if (railguns)
                 return $"Damage {railguns.Damage:0}   |   Range {railguns.BeamRange:0}{FullCharge(railguns.Charge)}   |   Hitscan";

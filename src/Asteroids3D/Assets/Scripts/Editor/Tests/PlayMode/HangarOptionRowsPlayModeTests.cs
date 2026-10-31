@@ -28,7 +28,6 @@ namespace Tests.PlayMode
         private static readonly string[] WeaponPaths =
         {
             "Assets/Prefabs/Weapons/Lasers.prefab",
-            "Assets/Prefabs/Weapons/ChargeLasers.prefab",
             "Assets/Prefabs/Weapons/Missiles.prefab",
             "Assets/Prefabs/Weapons/Railgun.prefab",
             "Assets/Prefabs/Weapons/Rippers.prefab",
@@ -165,8 +164,6 @@ namespace Tests.PlayMode
         // Patterns, not values, so balance tuning never breaks it.
         [TestCase("Assets/Prefabs/Weapons/Lasers.prefab",
             @"Damage \d+", @"Rate [\d.]+/s", @"Speed \d+", @"Overheats after \d+ shots")]
-        [TestCase("Assets/Prefabs/Weapons/ChargeLasers.prefab",
-            @"Damage \d+-\d+", @"Full charge [\d.]+s", @"Speed \d+")]
         [TestCase("Assets/Prefabs/Weapons/Railgun.prefab",
             @"Damage \d+", @"Range \d+", @"Full charge [\d.]+s", "Hitscan")]
         [TestCase("Assets/Prefabs/Weapons/Rippers.prefab",

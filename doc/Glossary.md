@@ -703,8 +703,8 @@ Format: **term** — definition. *(authority)*
   (`ChargeTargetMarkers`), never to an "is player" fact. No blast-radius ring: the
   owner ruled it handholding.
 - **spent charge** — the charge-up fraction the last shot consumed, announced by
-  `ChargeTime` before its charge-up zeroes, so the shot's damage and the sound's
-  release read the same value. *(`ChargeTime.SpentCharge`, `OnChargeSpent`)*
+  `ChargeTime` before its charge-up zeroes, so the sound's release holds the
+  shot's charge. *(`ChargeTime.SpentCharge`, `OnChargeSpent`)*
 - **sustained sound** — an FMOD event instance a component holds across state
   changes, feeds parameters and stops itself (the charge-up, the engine), as
   against a one-shot it starts and releases at once. One component per sustained
@@ -1013,7 +1013,7 @@ Format: **term** — definition. *(authority)*
   long it lived and whether the player's shot killed it (the run tally's rule). A
   consumer-side recorder on the player rig beside the damage ledger and the run
   tally, never sim state. It exists because damage kind cannot say which weapon
-  fired: Lasers, ChargeLasers and Rippers all fire the `Laser` projectile. A ship
+  fired: Lasers and Rippers both fire the `Laser` projectile. A ship
   placed during the sector load reads as spawned at second 0. *(SpawnLog)*
 - **build identity** — the git side of what a run was played on: the commit and a
   dirty flag (any tracked change or untracked file under `src/Asteroids3D/`). The
