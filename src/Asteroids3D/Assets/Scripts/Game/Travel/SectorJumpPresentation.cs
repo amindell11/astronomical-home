@@ -13,7 +13,8 @@ namespace Game.Travel
     /// Applies a jump state to live locale skies, the ship's hull and the actual HUD.
     /// Its render targets belong to the presentation, so previews and gameplay use the same renderer.
     /// The jump image draws through <see cref="SectorJumpFeature"/> on the observer camera after post-processing.
-    /// The caller owns simulation time, destination loading, the world blend and the ship and camera pose.
+    /// The caller owns simulation time, destination loading, the world blend, the ship and camera pose, and
+    /// restoring the HUD once the jump ends.
     /// </summary>
     public sealed class SectorJumpPresentation : MonoBehaviour
     {
@@ -188,10 +189,6 @@ namespace Game.Travel
         private void OnDestroy()
         {
             if (feature) feature.Unbind(boundCamera);
-            if (overlay) overlay.SetOpacity(1f);
-            if (ships != null)
-                foreach (var active in ships)
-                    if (active && active.VisualRig) active.VisualRig.SetHudOpacity(1f);
             Release(outgoing);
             Release(incoming);
             Release(hull);

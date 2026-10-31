@@ -35,14 +35,14 @@ namespace UI.Weapons
 
         private void OnEnable()
         {
-            controls.Flight.Enable();
+            controls.Flight.AimPoint.Enable();
             previousCursorVisible = Cursor.visible;
             Cursor.visible = false;
         }
 
         private void OnDisable()
         {
-            controls.Flight.Disable();
+            controls.Flight.AimPoint.Disable();
             Cursor.visible = previousCursorVisible;
         }
 
