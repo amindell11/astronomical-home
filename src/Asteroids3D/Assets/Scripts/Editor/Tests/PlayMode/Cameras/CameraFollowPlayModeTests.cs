@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using Substrate;
 
-namespace Tests.PlayMode
+namespace Tests.PlayMode.Cameras
 {
 
 [Category("Camera")]
@@ -16,18 +16,24 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
     private ObserverCam cam;
     private HashSet<GameObject> secondarySubjects;
     private GameObject subject;
+    private SimulationMode simulationMode;
 
     // Deterministic timeout — camera follow should settle well within this.
     private const float FollowTimeoutSec = 3f;
     private const float FollowThreshold  = 0.1f;
     private const int NegativeProofFrames = 30;
+    private const float SettleSec = 1f;
+    private const float SizeTolerance = 0.05f;
+    private const float LeadSpeed = 10f;
+    private const string FlightCameraPath = "Assets/Settings/Cameras/FlightCamera.asset";
 
     [SetUp]
     public override void SetUp()
     {
         base.SetUp();
+        simulationMode = Physics.simulationMode;
         
-        cam = new GameObject("Camera").AddComponent<ObserverCam>();
+        cam = TestAssets.NewObserverCam();
         cam.transform.position = Vector3.zero;
         
         subject = new GameObject("Subject");
@@ -49,6 +55,7 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
         DestroyTestObject(subject);
         foreach (var s in secondarySubjects) 
             DestroyTestObject(s);
+        Physics.simulationMode = simulationMode;
         base.TearDown();
     }
 
@@ -106,6 +113,49 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
         Assert.That(Vector2.Distance(finalCamPos2D, initialCamPos2D), Is.LessThan(FollowThreshold),
             "Camera should remain at its initial position when subject is inactive");
     }
+
+    [UnityTest]
+    public IEnumerator Locked_CentersAheadAlongTheVelocity_AndBackOnTheSubjectWhenItStops()
+    {
+        // Script mode keeps the body's velocity without moving it, so follow smoothing adds no lag.
+        Physics.simulationMode = SimulationMode.Script;
+        var body = subject.AddComponent<Rigidbody>();
+        body.useGravity = false;
+        body.linearVelocity = GamePlane.Right * LeadSpeed;
+        cam.SetSubject(subject.transform, body);
+
+        var feel = TestAssets.Load<FlightCameraProfile>(FlightCameraPath);
+        var subjectCenter = GamePlane.WorldPointToPlane(subject.transform.position);
+        var leadDistance = Mathf.Min(LeadSpeed * feel.leadSeconds, feel.maxLead);
+        yield return CameraSettlesOn(subjectCenter + GamePlane.WorldDirToPlane(GamePlane.Right) * leadDistance);
+
+        body.linearVelocity = Vector3.zero;
+        yield return CameraSettlesOn(subjectCenter);
+    }
+
+    [UnityTest]
+    public IEnumerator LockOff_ZoomsToFitLikeTheOldDefault_NotToTheProfile()
+    {
+        cam.SetSubject(subject.transform);
+        cam.SetLockCameraToSubject(false);
+        cam.SetLockZoomToSubject(false);
+        yield return new WaitForSecondsRealtime(SettleSec);
+        var autoFit = cam.Cam.orthographicSize;
+
+        cam.SetLockZoomToSubject(true);
+        yield return AsyncAssert.AssertRemainsFalseFor(
+            () => Mathf.Abs(cam.Cam.orthographicSize - autoFit) > SizeTolerance,
+            "with the camera lock off, the shipped zoom lock moved the framing off the auto-fit",
+            minFrames: NegativeProofFrames,
+            minUnscaledSeconds: 0.35f);
+    }
+
+    private IEnumerator CameraSettlesOn(Vector2 center)
+    {
+        float Miss() => Vector2.Distance(GamePlane.WorldPointToPlane(cam.transform.position), center);
+        yield return AsyncAssert.WaitUntilThen(() => Miss() < FollowThreshold, FollowTimeoutSec,
+            () => Assert.That(Miss(), Is.LessThan(FollowThreshold)));
+    }
 }
 
-} // namespace Tests.PlayMode
+} // namespace Tests.PlayMode.Cameras

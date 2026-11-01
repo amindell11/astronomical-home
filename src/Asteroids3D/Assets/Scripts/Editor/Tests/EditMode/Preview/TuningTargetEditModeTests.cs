@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Cameras;
 using Game;
 using Game.Preview;
 using NUnit.Framework;
@@ -27,6 +28,8 @@ namespace Tests.EditMode.Preview
             {
                 PreviewEntry.Startup, PreviewEntry.LowHull, PreviewEntry.Damage, PreviewEntry.Extraction, PreviewEntry.Combat
             }, canopy);
+            AssertTarget(Target<FlightCameraTarget>(), new[] { PreviewEntry.Combat },
+                AssetDatabase.LoadAssetAtPath<FlightCameraProfile>("Assets/Settings/Cameras/FlightCamera.asset"));
         }
 
         [Test]

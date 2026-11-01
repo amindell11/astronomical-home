@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Substrate;
@@ -13,7 +14,8 @@ namespace Cameras
         [Header("Focus Behavior")]
         [SerializeField] private bool lockCameraToSubject;
         [SerializeField] private bool lockZoomToSubject;
-        [SerializeField] private float lockZoomDistance = 10f;
+        [Tooltip("Zoom and velocity lead while locked on the subject.")]
+        [SerializeField] private FlightCameraProfile feel;
 
         [Header("Player Tracking")]
         [Tooltip("If true, camera will shift to keep the player within the view frustum.")]
@@ -29,6 +31,9 @@ namespace Cameras
 
         private HashSet<Transform> secondarySubjects;
         private Transform subject;
+        private Rigidbody leadBody;
+        private Vector2 lead;
+        private Vector2 leadVelocity;
         private Vector2? manualCenter;
         private float? manualZoom;
         private float zoomScale = 1f;
@@ -41,6 +46,8 @@ namespace Cameras
 
         protected override void Awake()
         {
+            if (!feel)
+                throw new InvalidOperationException($"{name}'s ObserverCam has no FlightCameraProfile assigned to feel.");
             base.Awake();
             secondarySubjects = new HashSet<Transform>();
         }
@@ -67,16 +74,26 @@ namespace Cameras
         private Vector2 ComputeFocusCenter(Vector2 boundsMin, Vector2 boundsMax)
         {
             if (lockCameraToSubject && subject)
-                return GamePlane.WorldPointToPlane(subject.position);
+                return GamePlane.WorldPointToPlane(subject.position) + StepLead();
             return CameraUtils.BoundsCenter(boundsMin, boundsMax);
+        }
+
+        private Vector2 StepLead()
+        {
+            var target = leadBody && leadBody.gameObject.activeInHierarchy
+                ? Vector2.ClampMagnitude(GamePlane.WorldDirToPlane(leadBody.linearVelocity) * feel.leadSeconds, feel.maxLead)
+                : Vector2.zero;
+            lead = Vector2.SmoothDamp(lead, target, ref leadVelocity, feel.leadSmoothTime,
+                float.PositiveInfinity, Time.unscaledDeltaTime);
+            return lead;
         }
 
         private float ComputeDesiredZoom(Vector2 center, Vector2 boundsMin, Vector2 boundsMax)
         {
             if (manualZoom.HasValue)
                 return manualZoom.Value;
-            if (lockZoomToSubject)
-                return ClampZoom(lockZoomDistance) * zoomScale;
+            if (lockZoomToSubject && lockCameraToSubject)
+                return ClampZoom(feel.zoom) * zoomScale;
             var preferredSize = CameraUtils.ZoomToFitBounds(center, boundsMin, boundsMax, padding, Cam.aspect);
             return ClampZoom(preferredSize) * zoomScale;
         }
@@ -117,12 +134,13 @@ namespace Cameras
 
         public void SetLockCameraToSubject(bool value) => lockCameraToSubject = value;
         public void SetLockZoomToSubject(bool value) => lockZoomToSubject = value;
-        public void SetSubject(Transform newSubject, bool removeOldSubject = true)
+        public void SetSubject(Transform newSubject, Rigidbody newLeadBody = null, bool removeOldSubject = true)
         {
             if (subject && removeOldSubject)
                 secondarySubjects.Remove(subject);
             
             subject = newSubject;
+            leadBody = newLeadBody;
             
             if (newSubject)
                 secondarySubjects.Add(newSubject);
