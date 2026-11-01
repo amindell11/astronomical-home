@@ -11,14 +11,14 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2ff1ce1d228e43288ea910dea53074a3, type: 3}
   m_Name: FlightCamera
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   zoom: 15
   maxWiden: 7
-  zoomPerSpeed: 0.15
+  zoomPerSpeed: 0.25
   fightRadius: 30
   releaseMargin: 10
   widenTime: 0.4
-  narrowTime: 1.5
-  leadSeconds: 0.3
-  maxLead: 8
-  leadSmoothTime: 0.5
+  narrowTime: 1.2
+  leadSeconds: 0.7
+  maxLead: 20
+  leadSmoothTime: 0.8
