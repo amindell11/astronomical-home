@@ -3,6 +3,7 @@ using System.Linq;
 using Asteroids.Fields;
 using Cameras;
 using Game;
+using Game.Player;
 using Game.Preview;
 using NUnit.Framework;
 using UI.Projection;
@@ -34,6 +35,8 @@ namespace Tests.EditMode.Preview
             var fields = new[] { "Sector1", "Sector2", "Big" }.Select(field =>
                 AssetDatabase.LoadAssetAtPath<AsteroidFieldSettings>($"Assets/Settings/Asteroids/{field}FieldSettings.asset"));
             AssertTarget(Target<AsteroidsTarget>(), new[] { PreviewEntry.Combat }, fields.ToArray());
+            AssertTarget(Target<FlightAssistTarget>(), new[] { PreviewEntry.Combat },
+                AssetDatabase.LoadAssetAtPath<FlightAssistProfile>("Assets/Settings/Game/FlightAssist.asset"));
         }
 
         [Test]
