@@ -9,11 +9,14 @@ namespace Game.Player
     /// <summary>
     /// Translates player input into piloting, firing and jump commands, pushed to the injected
     /// <see cref="IPilot"/>/<see cref="IWeapons"/>/<see cref="IJumpDrive"/> actuators. Reads ship situation through the
-    /// narrow <see cref="IShipStatus"/> — it never touches the Ship directly.
+    /// narrow <see cref="IShipStatus"/> — it never touches the Ship directly. While the flight assist is on
+    /// (V toggles it), a movement axis with no input counter-thrusts the ship's drift along it on its own engines.
     /// </summary>
     [DefaultExecutionOrder(-30)]
     public class PlayerCommander : Commander
     {
+        [SerializeField] private FlightAssistProfile assist;
+
         private IShipStatus context;
         private IPilot pilot;
         private IWeapons weapons;
@@ -29,6 +32,7 @@ namespace Game.Player
 
         private void Awake()
         {
+            if (!assist) throw new InvalidOperationException($"{name} has no {nameof(FlightAssistProfile)} assigned.");
             playerInput = new PlayerInputReader(_ => throw new InvalidOperationException("Screen-to-game-plane projector has not been configured."));
             playerInput.JumpPressed += RequestJump;
         }
@@ -58,6 +62,10 @@ namespace Game.Player
         private bool boostInput;
         private bool wantsRotate;
         private Vector3 cursorPoint;
+        private bool assistOn = true;
+        private float thrustInputAt = float.NegativeInfinity;
+        private float strafeInputAt = float.NegativeInfinity;
+        private float boostPressedAt = float.NegativeInfinity;
 
         // Past any weapon's range: with no cursor the shot aims down the nose and the weapon clamps it.
         private const float NoseAimDistance = 1000f;
@@ -74,6 +82,7 @@ namespace Game.Player
             primaryReload |= playerInput.PrimaryReload;
             secondaryReload |= playerInput.SecondaryReload;
             wantsRotate = playerInput.WantsToRotate;
+            if (playerInput.AssistTogglePressed) assistOn = !assistOn;
             if (hasScreenProjector)
                 cursorPoint = playerInput.GetMouseWorldPosition();
 
@@ -122,10 +131,15 @@ namespace Game.Player
         {
             if (context == null) return;
 
+            if (thrustInput != 0f) thrustInputAt = Time.time;
+            if (strafeInput != 0f) strafeInputAt = Time.time;
+            if (boostInput) boostPressedAt = Time.time;
+
+            var forward = context.Kinematics.Forward;
             var cmd = new PilotCommand
             {
-                thrust = thrustInput,
-                strafe = strafeInput,
+                thrust = Assisted(thrustInput, thrustInputAt, forward),
+                strafe = Assisted(strafeInput, strafeInputAt, new Vector2(forward.y, -forward.x)),
                 boost = (boostInput && context.BoostAvailable) ? 1f : 0f,
                 yawTorque = wantsRotate ? GetMouseRotationTorque() : 0f,
                 abilityTarget = hasScreenProjector ? (Vector2?)GamePlane.WorldPointToPlane(cursorPoint) : null,
@@ -138,6 +152,14 @@ namespace Game.Player
                 FireSlot(WeaponSlot.Primary, primaryHeld, ref prevPrimaryHeld, ref primaryReload);
                 FireSlot(WeaponSlot.Secondary, secondaryHeld, ref prevSecondaryHeld, ref secondaryReload);
             }
+        }
+
+        private float Assisted(float input, float inputAt, Vector2 axis)
+        {
+            if (!assistOn || input != 0f) return input;
+            if (Time.time - Mathf.Max(inputAt, boostPressedAt) < assist.delay) return 0f;
+            var drift = Vector2.Dot(context.Kinematics.vel, axis);
+            return -Mathf.Clamp(drift / assist.fullBrakeSpeed, -1f, 1f) * assist.strength;
         }
 
         // Raw input facts every step; the weapon interprets its own firing semantics in HandleTrigger.

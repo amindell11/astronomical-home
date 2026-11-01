@@ -3,10 +3,11 @@
 Astronomical uses 2.5D top-down, Newtonian flight.
 
 ## Controls (keyboard + mouse)
-- **WASD**: thrust forward/back/left/right.
-- Hold **Right Mouse**: point the ship’s facing direction.
-- **Strafing** left/right also **rolls** the ship.
-- **Forward boost**: a strong impulse on a per-engine cooldown.
+- The ship turns to face the **mouse cursor**; hold **Shift** to hold its heading.
+- **W/S**: thrust forward/back along the nose.
+- **A/D**: strafe left/right; strafing also **rolls** the ship.
+- **Space**: forward boost, a strong impulse on a per-engine cooldown.
+- **Flight assist**: on by default, **V** toggles it; any movement axis you release counter-thrusts the ship’s drift along it.
 
 ## Intended skill expression
 - Dodging via strafing/rolling and momentum management.

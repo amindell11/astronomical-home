@@ -48,6 +48,7 @@ MonoBehaviour:
   useMouseDirection: 1
   showMouseGizmos: 1
   mouseGizmoScale: 3
+  assist: {fileID: 11400000, guid: 7439822e442242b78f1aabce9b47fabb, type: 2}
 --- !u!114 &4908403199749514410
 MonoBehaviour:
   m_ObjectHideFlags: 0
