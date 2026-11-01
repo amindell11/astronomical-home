@@ -11,7 +11,9 @@ namespace Game.Preview
     internal abstract class TuningTarget
     {
         internal static readonly TuningTarget[] All =
-            { new SectorJumpTarget(), new RunRecapTarget(), new HudTarget(), new FlightCameraTarget() };
+        {
+            new SectorJumpTarget(), new RunRecapTarget(), new HudTarget(), new FlightCameraTarget(), new AsteroidsTarget()
+        };
 
         public abstract string Name { get; }
         public abstract IReadOnlyList<PreviewEntry> Entries { get; }

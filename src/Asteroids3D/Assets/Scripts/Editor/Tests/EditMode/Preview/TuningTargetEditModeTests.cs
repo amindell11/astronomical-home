@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Asteroids.Fields;
 using Cameras;
 using Game;
 using Game.Preview;
@@ -30,6 +31,9 @@ namespace Tests.EditMode.Preview
             }, canopy);
             AssertTarget(Target<FlightCameraTarget>(), new[] { PreviewEntry.Combat },
                 AssetDatabase.LoadAssetAtPath<FlightCameraProfile>("Assets/Settings/Cameras/FlightCamera.asset"));
+            var fields = new[] { "Sector1", "Sector2", "Big" }.Select(field =>
+                AssetDatabase.LoadAssetAtPath<AsteroidFieldSettings>($"Assets/Settings/Asteroids/{field}FieldSettings.asset"));
+            AssertTarget(Target<AsteroidsTarget>(), new[] { PreviewEntry.Combat }, fields.ToArray());
         }
 
         [Test]
@@ -51,11 +55,11 @@ namespace Tests.EditMode.Preview
 
         private static TuningTarget Target<T>() where T : TuningTarget => TuningTarget.All.OfType<T>().Single();
 
-        private void AssertTarget(TuningTarget target, PreviewEntry[] entries, UnityEngine.Object profile)
+        private void AssertTarget(TuningTarget target, PreviewEntry[] entries, params UnityEngine.Object[] profiles)
         {
-            Assert.IsTrue(profile, $"{target.Name}'s profile ships");
+            foreach (var profile in profiles) Assert.IsTrue(profile, $"{target.Name}'s profile ships");
             Assert.That(target.Entries, Is.EqualTo(entries), target.Name);
-            Assert.That(target.Profiles(game), Is.EqualTo(new[] { profile }), target.Name);
+            Assert.That(target.Profiles(game), Is.EqualTo(profiles), target.Name);
         }
     }
 }
