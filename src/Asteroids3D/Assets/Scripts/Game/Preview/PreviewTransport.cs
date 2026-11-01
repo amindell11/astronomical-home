@@ -4,7 +4,8 @@ namespace Game.Preview
 {
     /// <summary>
     /// Where the hosted subject is on its timeline and how it moves: play, pause, scrub, loop, speed.
-    /// An input hold lasts <see cref="HoldSeconds"/> here, since no player presses anything.
+    /// An input hold lasts <see cref="HoldSeconds"/> here, since no player presses anything. Only a
+    /// subject that scrubs loops by rewinding; one that doesn't is re-staged by the host instead.
     /// </summary>
     public sealed class PreviewTransport
     {
@@ -26,24 +27,27 @@ namespace Game.Preview
         public float Length(PreviewSpan span) => span.Seconds + (span.WaitsForInput ? HoldSeconds : 0f);
 
         // Shown before advancing, so a span's staged moment starts before speed can skip past it.
-        public void Tick(float unscaledDelta, IPreviewSubject subject)
+        // True when a looping subject that can't rewind reached its end.
+        public bool Tick(float unscaledDelta, IPreviewSubject subject)
         {
             subject.Show(Span, Seconds, HoldSeconds);
-            if (Playing) Advance(unscaledDelta * Speed, subject);
+            return Playing && Advance(unscaledDelta * Speed, subject);
         }
 
-        private void Advance(float delta, IPreviewSubject subject)
+        private bool Advance(float delta, IPreviewSubject subject)
         {
             Seconds += delta;
             var length = Length(subject.Span(Span));
-            if (Seconds < length) return;
+            if (Seconds < length) return false;
             if (Span + 1 < subject.SpanCount) Scrub(Span + 1, 0f);
-            else if (Loop) Restart();
+            else if (Loop && subject.Scrubs) Restart();
+            else if (Loop) return true;
             else
             {
                 Seconds = length;
                 Playing = false;
             }
+            return false;
         }
     }
 }

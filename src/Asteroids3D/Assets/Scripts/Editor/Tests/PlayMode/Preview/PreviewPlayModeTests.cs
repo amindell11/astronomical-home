@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -11,7 +12,9 @@ using Game.Travel;
 using NUnit.Framework;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
+using Substrate.Sectors.Elements.Phases;
 using Substrate.Services.Locales;
+using Substrate.Services.Objectives;
 using Substrate.Services.Units;
 using Substrate.Sessions;
 using Tests.PlayMode.Common;
@@ -19,6 +22,7 @@ using Tests.PlayMode.Common.Locales;
 using Tests.PlayMode.Common.SimulatedInput;
 using UI;
 using UI.Hangar;
+using UI.PlayerState;
 using UI.Recap;
 using UI.Projection;
 using UI.Screens;
@@ -198,21 +202,56 @@ namespace Tests.PlayMode.Preview
         }
 
         [UnityTest]
-        public IEnumerator CanopyProfile_ControlsForcedStatesAndBothOffSwitchesLive()
+        public IEnumerator DamageReplay_HitsThroughTakeDamageOnPlay_RestagesOnRestart_AndDrivesTheSimulationClock()
         {
-            BuildPreview();
+            BuildPreview(PreviewEntry.Damage);
+            yield return AsyncAssert.WaitUntil(() => host.IsReady, 45f, "the damage replay composes");
+            var damage = host.GetComponentInChildren<PlayerRig>().Player.Damage;
+            var hits = new List<(float hull, float shield)>();
+            damage.OnDamaged += _ => hits.Add((damage.Health.CurrentValue, damage.Shield.CurrentValue));
+            yield return null;
+            Assert.That(Time.timeScale, Is.Zero, "a paused replay stops the simulation clock");
+            Assert.That(hits, Is.Empty, "the hit waits for Play");
+
+            host.Transport.Speed = .25f;
+            host.Transport.Playing = true;
+            yield return AsyncAssert.WaitUntil(() => hits.Count == 1, 10f, "the played replay lands its hit");
+            Assert.That(Time.timeScale, Is.EqualTo(.25f));
+            Assert.That(hits[0].shield, Is.Zero, "the hit breaks the shield");
+            Assert.That(hits[0].hull, Is.LessThan(damage.Health.MaxValue), "and takes some hull");
+
+            host.RestartReplay();
+            yield return AsyncAssert.WaitUntil(() => hits.Count == 2, 30f, "the restart re-stages the hit");
+            Assert.That(hits[1], Is.EqualTo(hits[0]));
+
+            host.Select(PreviewEntry.Combat);
             yield return WaitForFlight();
-            var projection = host.Playtest.CanopyProjection;
-            Assert.That(projection.Profile, Is.SameAs(canopy), "Playtest runs the profile its rig ships");
+            Assert.That(Time.timeScale, Is.EqualTo(1f), "leaving the replay restores the clock");
+        }
+
+        [UnityTest]
+        public IEnumerator LowHullReplay_ArrivesThroughTakeDamage_AndCanopyKnobsAndBothOffSwitchesApplyLive()
+        {
+            BuildPreview(PreviewEntry.LowHull);
+            yield return AsyncAssert.WaitUntil(() => host.IsReady, 45f, "the low hull replay composes");
+            var projection = host.GetComponentInChildren<CanopyProjection>();
+            Assert.That(projection.Profile, Is.SameAs(canopy), "the replay runs the profile its rig ships");
+            var damage = host.GetComponentInChildren<PlayerRig>().Player.Damage;
+            var damaged = false;
+            damage.OnDamaged += _ => damaged = true;
             canopy.lowHull.fields = CanopyFields.Glow;
             canopy.lowHull.settings.glow = 0f;
             canopy.lowHull.blendInSeconds = 0f;
-            projection.ForceMode = CanopyForceMode.LowHull;
-            yield return null;
-            yield return null;
-            Assert.That(projection.ActiveState, Is.EqualTo(CanopyState.LowHull));
+            host.Transport.Playing = true;
+            yield return AsyncAssert.WaitUntil(() => projection.ActiveState == CanopyState.LowHull, 10f,
+                "the canopy reaches low hull");
+            Assert.That(damaged, Is.True, "low hull arrives through TakeDamage");
+            Assert.That(damage.Health.Pct, Is.GreaterThan(0f).And.LessThanOrEqualTo(StatusBarUI.LowThreshold));
             Assert.That(projection.Settings.glow, Is.Zero);
             Assert.That(projection.Settings.aberration, Is.EqualTo(canopy.baseSettings.aberration));
+            canopy.lowHull.settings.glow = .7f;
+            yield return null;
+            Assert.That(projection.Settings.glow, Is.EqualTo(.7f), "a knob edit applies live");
             canopy.personalityEnabled = false;
             Assert.That(projection.EffectsEnabled, Is.False);
             canopy.personalityEnabled = true;
@@ -220,6 +259,18 @@ namespace Tests.PlayMode.Preview
             Assert.That(projection.EffectsEnabled, Is.False);
             projection.PersonalityEnabled = true;
             Assert.That(projection.EffectsEnabled, Is.True);
+        }
+
+        [UnityTest]
+        public IEnumerator ExtractionReplay_FiresTheSpinesExtractStep()
+        {
+            BuildPreview(PreviewEntry.Extraction);
+            var steps = new List<string>();
+            host.GetComponent<ObjectiveService>().OnSpineStepChanged += steps.Add;
+            yield return AsyncAssert.WaitUntil(() => host.IsReady, 45f, "the extraction replay composes");
+            host.Transport.Playing = true;
+            yield return AsyncAssert.WaitUntil(() => steps.Contains(PhaseSpineModule.StepExtract), 10f,
+                "the real spine opens extraction");
         }
 
         [UnityTest]
@@ -385,8 +436,16 @@ namespace Tests.PlayMode.Preview
             host.gameHostPrefab = gameHost;
             host.sessionProfile = profile;
             host.jumpDestination = TestAssets.Load<LocaleSky>("Assets/Prefabs/Locales/Locale_1.prefab");
+            host.hudQuietSector = HudSector("HudQuietSector");
+            host.hudExtractionSector = HudSector("HudExtractionSector");
             root.SetActive(true);
         }
+
+        private static SectorEntry HudSector(string name) => new()
+        {
+            prefab = TestAssets.Load<Sector>($"Assets/Prefabs/Sectors/Preview/{name}.prefab"),
+            config = TestAssets.Load<SectorSettings>("Assets/Settings/Game/SurvivalTrialConfig.asset")
+        };
 
         // The rig's own canopy prefab references a test copy, so live edits never touch the shipped profile.
         private PlayerRig RigWithTestCanopy()

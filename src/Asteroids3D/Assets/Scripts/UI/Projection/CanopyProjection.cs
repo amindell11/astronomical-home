@@ -24,7 +24,6 @@ namespace UI.Projection
         public CanopyProjectionProfile Profile => profile;
         public bool PersonalityEnabled { get; set; } = true;
         public bool EffectsEnabled => PersonalityEnabled && profile.personalityEnabled;
-        public CanopyForceMode ForceMode { get; set; }
         public CanopyState ActiveState => blend.State;
         public CanopySettings Settings => blend.Settings;
         public float TransitionAge { get; private set; } = -1f;
@@ -77,9 +76,7 @@ namespace UI.Projection
             var frame = observe?.Invoke() ?? CanopyFrame.Idle;
             HitAge = frame.HitAge;
             TransitionAge = frame.TransitionAge;
-            var state = ForceMode == CanopyForceMode.Automatic
-                ? frame.State : (CanopyState)((int)ForceMode - 1);
-            blend.Tick(state, Time.unscaledDeltaTime);
+            blend.Tick(frame.State, Time.unscaledDeltaTime);
             SynchronizeCamera();
         }
 

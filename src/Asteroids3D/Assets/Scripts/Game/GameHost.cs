@@ -18,7 +18,6 @@ using Ships.Loadout;
 using UI;
 using UI.Hangar;
 using UI.Recap;
-using UI.Projection;
 using UI.Screens;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -132,8 +131,6 @@ namespace Game
         private ObserverCam observer;
         private DriftCam hangarCamera;
         private PlayerRig rigInstance;
-
-        public CanopyProjection CanopyProjection => rigInstance ? rigInstance.Projection : null;
         private LoadingSplash splash;
         private GameMusic music;
 

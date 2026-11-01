@@ -36,5 +36,4 @@ namespace UI.Projection
     }
 
     public enum CanopyState { Base, LowHull, BigMoment }
-    public enum CanopyForceMode { Automatic, Base, LowHull, BigMoment }
 }

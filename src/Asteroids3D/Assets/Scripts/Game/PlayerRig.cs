@@ -87,8 +87,6 @@ namespace Game
         private CanopyProjection projection;
         private CanopyPersonality personality;
 
-        public CanopyProjection Projection => projection;
-
         // The prefab the current Player instance was built from — a hangar ship change is detected
         // against this (the prefab is the archetype; see ShipLoadout.Ship).
         private Ship currentTemplate;
