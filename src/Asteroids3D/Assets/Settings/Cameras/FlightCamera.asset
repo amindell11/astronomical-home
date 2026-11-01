@@ -13,6 +13,12 @@ MonoBehaviour:
   m_Name: FlightCamera
   m_EditorClassIdentifier:
   zoom: 15
+  maxWiden: 7
+  zoomPerSpeed: 0.15
+  fightRadius: 30
+  releaseMargin: 10
+  widenTime: 0.4
+  narrowTime: 1.5
   leadSeconds: 0.3
   maxLead: 8
   leadSmoothTime: 0.5
