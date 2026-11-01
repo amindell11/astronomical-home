@@ -1,9 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
 using Cameras;
 using NUnit.Framework;
 using Tests.PlayMode.Common;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Substrate;
@@ -198,8 +198,14 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
     }
 
     private float Cap => feel.zoom + feel.maxWiden;
-    private float Padding => (float)typeof(SmoothCamera)
-        .GetField("padding", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(cam);
+    private float Padding
+    {
+        get
+        {
+            using var serialized = new SerializedObject(cam);
+            return serialized.FindProperty("padding").floatValue;
+        }
+    }
 
     // Script mode keeps the body's velocity without moving it, so follow smoothing adds no lag.
     private Rigidbody GiveSubjectVelocity(Vector3 velocity)
