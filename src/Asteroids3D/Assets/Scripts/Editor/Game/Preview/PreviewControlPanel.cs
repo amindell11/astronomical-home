@@ -91,7 +91,7 @@ namespace Game.Preview
                         "Feel changes apply to the next jump; Restart Playtest tries again.", MessageType.None);
             }
             else
-                DrawTransport(host.Subject, host.Transport);
+                DrawTransport(host);
             Target.DrawControls(host);
             scroll = EditorGUILayout.BeginScrollView(scroll);
             foreach (var profile in Target.Profiles(host.gameHostPrefab)) DrawKnobs(profile);
@@ -125,33 +125,42 @@ namespace Game.Preview
             return chosen;
         }
 
-        private static void DrawTransport(IPreviewSubject subject, PreviewTransport transport)
+        private static void DrawTransport(PreviewHost host)
         {
+            var subject = host.Subject;
+            var transport = host.Transport;
             EditorGUILayout.LabelField("Subject", subject.Name);
-            var fixture = EditorGUILayout.Popup("Fixture", subject.Fixture, subject.Fixtures.ToArray());
-            if (fixture != subject.Fixture)
+            if (subject.Fixtures.Count > 1)
             {
-                subject.SelectFixture(fixture);
-                transport.Restart();
+                var fixture = EditorGUILayout.Popup("Fixture", subject.Fixture, subject.Fixtures.ToArray());
+                if (fixture != subject.Fixture)
+                {
+                    subject.SelectFixture(fixture);
+                    transport.Restart();
+                }
             }
 
-            var names = new string[subject.SpanCount];
-            for (var i = 0; i < names.Length; i++) names[i] = subject.Span(i).Name;
-            var span = EditorGUILayout.Popup("Phase", Mathf.Min(transport.Span, names.Length - 1), names);
-            if (span != transport.Span) transport.Scrub(span, 0f);
+            if (subject.Scrubs)
+            {
+                var names = new string[subject.SpanCount];
+                for (var i = 0; i < names.Length; i++) names[i] = subject.Span(i).Name;
+                var span = EditorGUILayout.Popup("Phase", Mathf.Min(transport.Span, names.Length - 1), names);
+                if (span != transport.Span) transport.Scrub(span, 0f);
 
-            var length = transport.Length(subject.Span(span));
-            var seconds = EditorGUILayout.Slider("Time", transport.Seconds, 0f, Mathf.Max(length, .001f));
-            if (!Mathf.Approximately(seconds, transport.Seconds)) transport.Scrub(span, seconds);
+                var length = transport.Length(subject.Span(span));
+                var seconds = EditorGUILayout.Slider("Time", transport.Seconds, 0f, Mathf.Max(length, .001f));
+                if (!Mathf.Approximately(seconds, transport.Seconds)) transport.Scrub(span, seconds);
+            }
 
             using (new EditorGUILayout.HorizontalScope())
             {
                 if (GUILayout.Button(transport.Playing ? "Pause" : "Play")) transport.Playing = !transport.Playing;
-                if (GUILayout.Button("Restart")) transport.Restart();
+                if (GUILayout.Button("Restart")) host.RestartReplay();
                 transport.Loop = GUILayout.Toggle(transport.Loop, "Loop");
             }
-            transport.Speed = EditorGUILayout.FloatField("Speed", transport.Speed);
-            transport.HoldSeconds = EditorGUILayout.FloatField("Hold seconds", transport.HoldSeconds);
+            // A negative time scale throws.
+            transport.Speed = Mathf.Max(0f, EditorGUILayout.FloatField("Speed", transport.Speed));
+            if (subject.Scrubs) transport.HoldSeconds = EditorGUILayout.FloatField("Hold seconds", transport.HoldSeconds);
         }
 
         private void DrawKnobs(ScriptableObject profile)

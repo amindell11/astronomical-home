@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.IO;
+using System.Linq;
 using System.Runtime.ExceptionServices;
 using Cameras;
 using Game.Runs;
@@ -17,7 +18,7 @@ using Utils.Coroutines;
 
 namespace Game.Preview
 {
-    public enum PreviewEntry { RunRecap, SectorJump, Combat, CrowdedJumpGate }
+    public enum PreviewEntry { RunRecap, SectorJump, Combat, CrowdedJumpGate, Startup, LowHull, Damage, Extraction }
 
     /// <summary>
     /// A Replay entry owns a session and a presentation subject driven by a transport; a Playtest entry
@@ -25,7 +26,9 @@ namespace Game.Preview
     /// crowded jump gate, its sectors. Replay takes its rig, observer, jump shader and feel profiles from
     /// the same prefab, so both kinds of entry run on the feel assets the game ships. A switch between
     /// Replay entries swaps only the subject; any other switch or restart awaits the previous entry's
-    /// teardown before composing the next. Only Replay subjects may freeze this host's clock.
+    /// teardown before composing the next. Only Replay entries touch this host's clock: a scrubbing
+    /// subject may freeze it, and while a subject that plays from its start is selected, the host sets
+    /// it from the transport. Restart and Loop re-compose such a subject.
     /// A throw while composing, replacing or tearing down faults the host: every later request refuses,
     /// Shutdown rethrows instead of tearing down, and only destroying the host recovers.
     /// https://github.com/amindell11/astronomical-home/issues/1151
@@ -37,6 +40,8 @@ namespace Game.Preview
         [SerializeField] internal GameHost gameHostPrefab;
         [SerializeField] internal SessionProfile sessionProfile;
         [SerializeField] internal SectorEntry[] crowdedJumpSectors;
+        [SerializeField] internal SectorEntry hudQuietSector;
+        [SerializeField] internal SectorEntry hudExtractionSector;
         [SerializeField] internal LocaleSky jumpDestination;
         [SerializeField] internal PreviewEntry entry;
 
@@ -47,7 +52,9 @@ namespace Game.Preview
         private PlayerRig rig;
         private Transform viewport;
         private Transform ui;
-        private float? frozenTimeScale;
+        private PreviewWorld world;
+        private float? savedTimeScale;
+        private bool clockFollowsTransport;
         private GameHost playtest;
         private bool composing;
         private bool replacing;
@@ -69,7 +76,8 @@ namespace Game.Preview
 
         public static bool IsPlaytest(PreviewEntry entry) => entry switch
         {
-            PreviewEntry.RunRecap or PreviewEntry.SectorJump => false,
+            PreviewEntry.RunRecap or PreviewEntry.SectorJump or PreviewEntry.Startup or PreviewEntry.LowHull
+                or PreviewEntry.Damage or PreviewEntry.Extraction => false,
             PreviewEntry.Combat or PreviewEntry.CrowdedJumpGate => true,
             _ => throw new ArgumentOutOfRangeException(nameof(entry), entry, "Unknown preview entry.")
         };
@@ -100,7 +108,7 @@ namespace Game.Preview
         {
             viewport = NewRoot("Viewport");
             ui = NewRoot("UI");
-            session = new Session(sessionProfile, gameObject, unitService, objectiveService);
+            session = new Session(ReplayProfile(), gameObject, unitService, objectiveService);
             var eventSystem = new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
             eventSystem.transform.SetParent(ui, false);
             yield return session.Compose();
@@ -114,10 +122,19 @@ namespace Game.Preview
             yield return rig.Build(session.Units, session.Objectives, true, observer, ui, session.Frame, null);
             rig.ApplyLoadout();
             yield return session.LoadSector(0, rig.Player);
+            world = new PreviewWorld(session, rig, observer, ui, transform, SetSimulationFrozen, loadedSector: 0);
 
             yield return ComposeSubject(composed);
             Transport.Restart();
         }
+
+        private SessionProfile ReplayProfile() => new()
+        {
+            sectors = sessionProfile.sectors.Append(hudQuietSector).Append(hudExtractionSector).ToArray(),
+            idleLocale = sessionProfile.idleLocale,
+            presentation = sessionProfile.presentation,
+            offset = sessionProfile.offset
+        };
 
         // GameHost reads its configuration in Awake, so the overrides land while the copy is staged inactive.
         private void BuildPlaytest(PreviewEntry composed)
@@ -145,10 +162,24 @@ namespace Game.Preview
                 return;
             }
             if (composing) throw new InvalidOperationException("The preview is still composing.");
-            DisposeSubject();
             entry = selected;
             Transport.Playing = false;
             Transport.Restart();
+            RecomposeSubject();
+        }
+
+        public void RestartReplay()
+        {
+            RequireAvailable();
+            if (IsPlaytest(entry)) throw new InvalidOperationException("Restart Replay requires a Replay entry.");
+            if (composing) throw new InvalidOperationException("The preview is still composing.");
+            Transport.Restart();
+            if (!Subject.Scrubs) RecomposeSubject();
+        }
+
+        private void RecomposeSubject()
+        {
+            DisposeSubject();
             composing = true;
             StartCoroutine(CatchingRoutine.Run(ReplaceSubject(), Faulted));
         }
@@ -187,7 +218,8 @@ namespace Game.Preview
         private IEnumerator ComposeSubject(PreviewEntry composed)
         {
             var subject = NewSubject(composed);
-            yield return subject.Compose(new PreviewWorld(session, rig, observer, ui, transform, SetSimulationFrozen));
+            FollowTransport(!subject.Scrubs);
+            yield return subject.Compose(world);
             Subject = subject;
         }
 
@@ -196,13 +228,17 @@ namespace Game.Preview
             PreviewEntry.RunRecap => new RecapPreviewSubject(gameHostPrefab.recapFeel),
             PreviewEntry.SectorJump => new SectorJumpPreviewSubject(gameHostPrefab.jumpFeel, gameHostPrefab.jumpFeature,
                 jumpDestination),
+            PreviewEntry.Startup => new HudReplaySubject(composed, 0),
+            PreviewEntry.LowHull or PreviewEntry.Damage => new HudReplaySubject(composed, sessionProfile.sectors.Length),
+            PreviewEntry.Extraction => new HudReplaySubject(composed, sessionProfile.sectors.Length + 1),
             _ => throw new ArgumentOutOfRangeException(nameof(composed), composed, "Not a Replay entry.")
         };
 
         private void LateUpdate()
         {
+            if (clockFollowsTransport) SetSimulationClock(Transport.Playing ? Transport.Speed : 0f);
             if (IsPlaytest(entry) || !IsReady) return;
-            Transport.Tick(Time.unscaledDeltaTime, Subject);
+            if (Transport.Tick(Time.unscaledDeltaTime, Subject)) RestartReplay();
         }
 
         public IEnumerator Shutdown()
@@ -239,7 +275,7 @@ namespace Game.Preview
             if (session != null)
             {
                 DisposeSubject();
-                SetSimulationFrozen(false);
+                FollowTransport(false);
                 rig.Teardown();
                 yield return session.Teardown();
                 session = null;
@@ -249,6 +285,7 @@ namespace Game.Preview
                 Destroy(viewport.gameObject);
                 Destroy(ui.gameObject);
                 rig = null;
+                world = null;
                 observer = null;
                 viewport = ui = null;
             }
@@ -277,6 +314,9 @@ namespace Game.Preview
             if (selected == PreviewEntry.CrowdedJumpGate &&
                 (crowdedJumpSectors is not { Length: > 0 } || !gameHostPrefab.jumpFeel || !gameHostPrefab.jumpFeature))
                 throw new InvalidOperationException("The crowded jump setup requires its fixture sectors and jump assets.");
+            if (selected is PreviewEntry.Startup or PreviewEntry.LowHull or PreviewEntry.Damage or PreviewEntry.Extraction
+                && !(hudQuietSector?.prefab && hudExtractionSector?.prefab))
+                throw new InvalidOperationException("The HUD replays require their fixture sectors.");
         }
 
         private void RequireAvailable()
@@ -294,23 +334,32 @@ namespace Game.Preview
             return root;
         }
 
-        private void SetSimulationFrozen(bool frozen)
+        private void SetSimulationFrozen(bool frozen) => SetSimulationClock(frozen ? 0f : null);
+
+        private void FollowTransport(bool follow)
         {
-            if (frozen)
+            clockFollowsTransport = follow;
+            if (!follow) SetSimulationClock(null);
+        }
+
+        // Null gives back the scale saved when the host first took the clock.
+        private void SetSimulationClock(float? scale)
+        {
+            if (scale.HasValue)
             {
-                frozenTimeScale ??= Time.timeScale;
-                Time.timeScale = 0f;
+                savedTimeScale ??= Time.timeScale;
+                Time.timeScale = scale.Value;
                 return;
             }
-            if (!frozenTimeScale.HasValue) return;
-            Time.timeScale = frozenTimeScale.Value;
-            frozenTimeScale = null;
+            if (!savedTimeScale.HasValue) return;
+            Time.timeScale = savedTimeScale.Value;
+            savedTimeScale = null;
         }
 
         private void OnDestroy()
         {
             Subject?.Dispose();
-            SetSimulationFrozen(false);
+            FollowTransport(false);
             if (playtest) Destroy(playtest.gameObject);
         }
     }

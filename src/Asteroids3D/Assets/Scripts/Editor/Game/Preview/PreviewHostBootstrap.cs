@@ -9,7 +9,7 @@ namespace Game.Preview
 {
     /// <summary>
     /// Builds the preview host in an empty scene around the game's GameHost prefab, with one trial
-    /// sector for Replay and the two-sector crowded jump fixture.
+    /// sector for Replay, the HUD replays' two fixture sectors and the two-sector crowded jump fixture.
     /// The chosen entry is assigned before activation, so Playtest never composes a Replay session.
     /// The host waits inactive through the play-mode reload; entering play mode snapshots every tuning
     /// target's feel profiles, then activates it, so the panel tunes those assets in place.
@@ -53,6 +53,8 @@ namespace Game.Preview
                 presentation = true
             };
             host.crowdedJumpSectors = new[] { JumpEntry("CrowdedJumpDeparture"), JumpEntry("CrowdedJumpArrival") };
+            host.hudQuietSector = FixtureSector("HudQuietSector", SectorConfigPath);
+            host.hudExtractionSector = FixtureSector("HudExtractionSector", SectorConfigPath);
             host.jumpDestination = AssetDatabase.LoadAssetAtPath<LocaleSky>(JumpDestinationPath);
             host.entry = entry;
             return host;
@@ -71,10 +73,13 @@ namespace Game.Preview
             if (host && !host.gameObject.activeSelf) Activate(host, FeelSnapshot.instance);
         }
 
-        private static SectorEntry JumpEntry(string name) => new()
+        private static SectorEntry JumpEntry(string name) =>
+            FixtureSector(name, $"Assets/Settings/Game/Preview/{name}.asset");
+
+        private static SectorEntry FixtureSector(string name, string configPath) => new()
         {
             prefab = AssetDatabase.LoadAssetAtPath<Sector>($"Assets/Prefabs/Sectors/Preview/{name}.prefab"),
-            config = AssetDatabase.LoadAssetAtPath<SectorSettings>($"Assets/Settings/Game/Preview/{name}.asset")
+            config = AssetDatabase.LoadAssetAtPath<SectorSettings>(configPath)
         };
     }
 }

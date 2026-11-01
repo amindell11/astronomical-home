@@ -21,7 +21,11 @@ A thing is tunable when all three hold:
 
 ## Replay or Playtest
 
-- **Replay** — a timeline subject (`IPreviewSubject`) the transport scrubs, loops and holds. Use it when the owner judges a moment: a presentation module that is a function of a feel profile, a context and a time. The subject reaches its state through the real cause (a *staged moment*), such as damage through the real damage path.
+- **Replay** — a timeline subject (`IPreviewSubject`) under the transport. Use it when the owner judges a moment. `Scrubs` picks the kind:
+  - **Scrubbing** — a presentation module that is a function of a feel profile, a context and a time (the recap, the jump). The transport scrubs, loops and holds it.
+  - **Replay from the start** — a live world the moment plays out in (`HudReplaySubject`). The panel offers play, pause, speed, loop and restart only; Restart and Loop re-compose the subject through the host. While one is selected, the host sets `Time.timeScale` from the transport: 0 paused, its speed playing. The HUD's unscaled effects (canopy blend, hit flash, instrument flicker, extraction announcement) keep real speed, so the owner re-watches them with Restart.
 - **Playtest** — the shipped `GameHost` prefab, flown by the owner, with preview run records and at most swapped sectors. Use it when the feel shows only under real input and real timing.
+
+A Replay subject reaches its state through its real cause, a *staged moment*: damage through `TakeDamage`, extraction through the sector's spine, never a setter on a runtime component. `StagedMoments` is their shared home, for preview subjects and capture scenarios alike. A moment that needs a scripted world gets a fixture sector: a prefab variant of a shipped sector in `Assets/Prefabs/Sectors/Preview/` (the HUD's `HudQuietSector` and `HudExtractionSector`), serialized on `PreviewHost`, set by `PreviewHostBootstrap` and required by `RequireEntry`.
 
 The panel lists a target's Replay entries above its Playtest ones, and the top entry is where a switch lands when the new target lacks the running one. Two targets may share an entry (the recap and the HUD share Combat), and switching between them keeps the running world.

@@ -36,6 +36,9 @@ namespace Tests.EditMode.Bootstrap
             Assert.That(host.crowdedJumpSectors.Select(entry => entry.prefab.name),
                 Is.EqualTo(new[] { "CrowdedJumpDeparture", "CrowdedJumpArrival" }));
             Assert.That(host.crowdedJumpSectors.All(entry => entry.config), Is.True, "crowded jump configs assigned");
+            var hud = new[] { host.hudQuietSector, host.hudExtractionSector };
+            Assert.That(hud.Select(entry => entry.prefab.name), Is.EqualTo(new[] { "HudQuietSector", "HudExtractionSector" }));
+            Assert.That(hud.All(entry => entry.config), Is.True, "HUD fixture configs assigned");
         }
 
         [Test]

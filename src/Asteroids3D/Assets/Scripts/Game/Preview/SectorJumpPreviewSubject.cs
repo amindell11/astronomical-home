@@ -56,6 +56,7 @@ namespace Game.Preview
         }
 
         public string Name => "Sector jump";
+        public bool Scrubs => true;
         public IReadOnlyList<string> Fixtures => Names;
         public int Fixture { get; private set; }
         public int SpanCount => 2;

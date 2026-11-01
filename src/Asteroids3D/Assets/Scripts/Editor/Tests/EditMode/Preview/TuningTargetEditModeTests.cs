@@ -23,7 +23,10 @@ namespace Tests.EditMode.Preview
             AssertTarget(Target<SectorJumpTarget>(), new[] { PreviewEntry.SectorJump, PreviewEntry.CrowdedJumpGate },
                 game.jumpFeel);
             AssertTarget(Target<RunRecapTarget>(), new[] { PreviewEntry.RunRecap, PreviewEntry.Combat }, game.recapFeel);
-            AssertTarget(Target<HudTarget>(), new[] { PreviewEntry.Combat }, canopy);
+            AssertTarget(Target<HudTarget>(), new[]
+            {
+                PreviewEntry.Startup, PreviewEntry.LowHull, PreviewEntry.Damage, PreviewEntry.Extraction, PreviewEntry.Combat
+            }, canopy);
         }
 
         [Test]
@@ -32,7 +35,7 @@ namespace Tests.EditMode.Preview
             Assert.AreEqual(PreviewEntry.Combat, Target<RunRecapTarget>().EntryAfterSwitch(PreviewEntry.Combat));
             Assert.AreEqual(PreviewEntry.Combat, Target<HudTarget>().EntryAfterSwitch(PreviewEntry.Combat));
             Assert.AreEqual(PreviewEntry.RunRecap, Target<RunRecapTarget>().EntryAfterSwitch(PreviewEntry.CrowdedJumpGate));
-            Assert.AreEqual(PreviewEntry.Combat, Target<HudTarget>().EntryAfterSwitch(PreviewEntry.RunRecap));
+            Assert.AreEqual(PreviewEntry.Startup, Target<HudTarget>().EntryAfterSwitch(PreviewEntry.RunRecap));
             Assert.AreEqual(PreviewEntry.SectorJump, Target<SectorJumpTarget>().EntryAfterSwitch(PreviewEntry.Combat));
         }
 

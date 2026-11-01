@@ -1064,9 +1064,11 @@ Format: **term** — definition. *(authority)*
   entry. What makes something tunable, and how to add a target:
   `doc/agents/tuning.md`. *(TuningTarget, HudTarget)*
 - **preview Replay** — the panel section and kind of preview entry that hosts
-  a *preview subject* under the transport: a moment the owner scrubs and
-  judges. Bare "Replay" is legal in preview context. (Retired form: the preview
-  host's "Inspection" mode.) *(PreviewEntry.RunRecap, PreviewEntry.SectorJump)*
+  a *preview subject* under the transport: a moment the owner judges. The recap
+  and the jump scrub to any instant. The HUD replays play from their start, and
+  Restart or Loop stages them again from scratch. Bare "Replay" is legal in
+  preview context. (Retired form: the preview host's "Inspection" mode.)
+  *(PreviewEntry.RunRecap, PreviewEntry.SectorJump, HudReplaySubject)*
 - **preview Playtest** — the panel section and kind of preview entry that runs
   the shipped game host prefab for the owner to fly, with preview run records
   and at most swapped sectors. Bare "Playtest" is legal in preview context;
@@ -1075,10 +1077,12 @@ Format: **term** — definition. *(authority)*
 - **preview subject** — a presentation module with a chosen context (a fixture
   built from constants, or any context a scenario builds), hosted by the preview
   host. *(IPreviewSubject, RecapPreviewSubject, RecapFixtures)*
-- **staged moment** — a game state the preview subject reaches live (the
-  player's death at the context's death point, first) so the host can show it and
-  a capture scenario can film it through the subject, instead of per-session
-  reflection and scripted kills. *(RecapPreviewSubject.StageDeath)*
+- **staged moment** — a game state a preview subject reaches live through its
+  real cause, never through a setter on a runtime component, so the host can
+  show it and a capture scenario can film it. The recap stages the player's
+  death at the context's death point. The HUD replays stage a hit and hull
+  brought low through the damage path, a run's start in the game host's order,
+  and extraction opened by a fixture sector's own spine. *(StagedMoments)*
 - **gizmo capture profile** — the named set of Unity component types a capture
   selects for drawing, chosen by `RL_HARNESS_GIZMOS`. Code-defined only: there is
   no per-diagnostic selection grammar, because Unity's own per-component-type

@@ -2,8 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Cameras;
-using Damage;
-using Ships.Registry;
 using Substrate;
 using Substrate.Services.Units;
 using UI.Recap;
@@ -36,6 +34,7 @@ namespace Game.Preview
             this.feel = feel ? feel : throw new ArgumentNullException(nameof(feel));
 
         public string Name => "Run recap";
+        public bool Scrubs => true;
         public IReadOnlyList<string> Fixtures => RecapFixtures.Names;
         public int Fixture { get; private set; }
         public int SpanCount => sequence.SpanCount;
@@ -90,15 +89,10 @@ namespace Game.Preview
             freezeSimulation(state.SimulationFrozen);
         }
 
-        // The ship's own death at the death point, through the real damage path.
         private void StageDeath()
         {
-            var player = rig.Player;
-            units.RespawnShip(player.Id, sequence.Context.DeathPoint, 0f);
-            player.Damage.SetInvulnerability(0f);
-            var blow = new DamageInfo(99999f, DamageKind.Laser, ShipId.Invalid, 0f, Vector3.zero, Vector3.zero);
-            for (var i = 0; i < 8 && player.Damage.Health.CurrentValue > 0f; i++)
-                player.Damage.TakeDamage(blow);
+            units.RespawnShip(rig.Player.Id, sequence.Context.DeathPoint, 0f);
+            StagedMoments.Kill(rig.Player);
         }
 
         private Vector2 PlayerPoint() => GamePlane.WorldPointToPlane(rig.Player.transform.position);

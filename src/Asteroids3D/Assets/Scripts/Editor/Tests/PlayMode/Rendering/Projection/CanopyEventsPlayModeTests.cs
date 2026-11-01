@@ -196,7 +196,9 @@ namespace Tests.PlayMode.Rendering.Projection
         public IEnumerator ExtractionAppearance_MultipliesExistingFade_AndUsesResolvedWorkingProfile()
         {
             profile.baseSettings.flicker = 1f;
-            projection.ForceMode = CanopyForceMode.Base;
+            profile.bigMoment.fields &= ~CanopyFields.Flicker;
+            // One base tick first, so the extraction surge blends from flicker 1.
+            yield return null;
             var canvas = Child("HUD").AddComponent<Canvas>();
             var readout = ObjectiveStatusReadout.Create(canvas.transform,
                 TestAssets.Load<Font>("Assets/Visuals/Ui/Fonts/IBMPlexSans.ttf"),

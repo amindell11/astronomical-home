@@ -8,14 +8,14 @@ namespace Game.Preview
     internal sealed class HudTarget : TuningTarget
     {
         public override string Name => "HUD";
-        public override IReadOnlyList<PreviewEntry> Entries { get; } = new[] { PreviewEntry.Combat };
+        public override IReadOnlyList<PreviewEntry> Entries { get; } = new[]
+        {
+            PreviewEntry.Startup, PreviewEntry.LowHull, PreviewEntry.Damage, PreviewEntry.Extraction, PreviewEntry.Combat
+        };
         public override IEnumerable<ScriptableObject> Profiles(GameHost game) => new ScriptableObject[] { CanopyProfile(game) };
 
         public override void DrawControls(PreviewHost host)
         {
-            var projection = host.Entry == PreviewEntry.Combat ? host.Playtest.CanopyProjection : null;
-            if (projection)
-                projection.ForceMode = (CanopyForceMode)EditorGUILayout.EnumPopup("Force canopy state", projection.ForceMode);
             if (GUILayout.Button("Import tuner settings…")) CanopyTunerImportWindow.Open(CanopyProfile(host.gameHostPrefab));
         }
 
