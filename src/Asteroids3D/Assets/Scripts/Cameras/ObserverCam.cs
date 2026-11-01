@@ -93,7 +93,7 @@ namespace Cameras
             if (manualZoom.HasValue)
                 return manualZoom.Value;
             if (lockZoomToSubject && lockCameraToSubject)
-                return ClampZoom(feel.zoom) * zoomScale;
+                return feel.zoom * zoomScale;
             var preferredSize = CameraUtils.ZoomToFitBounds(center, boundsMin, boundsMax, padding, Cam.aspect);
             return ClampZoom(preferredSize) * zoomScale;
         }

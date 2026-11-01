@@ -89,6 +89,7 @@ namespace Tests.PlayMode.Cameras
         {
             subject = new GameObject("Subject");
             cam.SetSubject(subject.transform);
+            cam.SetLockCameraToSubject(false);
             yield return new WaitForSecondsRealtime(SettleSec);
             var autoFit = cam.Cam.orthographicSize;
 
