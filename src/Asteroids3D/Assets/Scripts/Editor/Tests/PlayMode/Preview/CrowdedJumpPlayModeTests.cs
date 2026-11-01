@@ -328,7 +328,7 @@ namespace Tests.PlayMode.Preview
         }
 
         [UnityTest]
-        public IEnumerator Handoff_FadesTheCard_PreparesTheDestination_AndPreservesCameraScale()
+        public IEnumerator Handoff_FadesTheCard_PreparesTheDestination_AndHandsOffTheCameraWithoutAPop()
         {
             BuildPreview();
             feel.travelDuration = 4f;
@@ -349,15 +349,27 @@ namespace Tests.PlayMode.Preview
             var clickedAt = Time.realtimeSinceStartup;
             yield return ClickContinue(recap);
             var fadesOut = false;
-            var sizeBeforeRelease = observer.Cam.orthographicSize;
+            var sizes = new List<(float at, float size)>();
             while (game.Jump && Time.realtimeSinceStartup - clickedAt < 10f)
             {
                 if (card && card.alpha > 0f && card.alpha < .99f) fadesOut = true;
-                sizeBeforeRelease = observer.Cam.orthographicSize;
+                sizes.Add((Time.realtimeSinceStartup, observer.Cam.orthographicSize));
                 yield return null;
             }
-            var exitSeconds = Time.realtimeSinceStartup - clickedAt;
-            yield return new WaitForSecondsRealtime(.4f);
+            var releasedAt = Time.realtimeSinceStartup;
+            var exitSeconds = releasedAt - clickedAt;
+            while (Time.realtimeSinceStartup - releasedAt < .4f)
+            {
+                sizes.Add((Time.realtimeSinceStartup, observer.Cam.orthographicSize));
+                yield return null;
+            }
+            var rates = sizes.Zip(sizes.Skip(1), (earlier, later) =>
+                    (later.at, dt: later.at - earlier.at, ds: Mathf.Abs(later.size - earlier.size)))
+                .Where(step => step.dt > 0f).Select(step => (step.at, rate: step.ds / step.dt)).ToList();
+            float FastestRate(float from, float to) =>
+                rates.Where(step => step.at >= from && step.at < to).Select(step => step.rate).DefaultIfEmpty().Max();
+            var rateBefore = FastestRate(releasedAt - .4f, releasedAt);
+            var rateAfter = FastestRate(releasedAt, float.PositiveInfinity);
             var failures = new List<string>();
             if (!fadesIn) failures.Add("the extraction card must start transparent");
             if (!prepared) failures.Add("destination content must load while the card appears");
@@ -365,8 +377,8 @@ namespace Tests.PlayMode.Preview
             if (strayLights.Length != 0) failures.Add("outgoing lights must not leak into the destination");
             if (!fadesOut) failures.Add("Continue must fade the card");
             if (exitSeconds >= 1.4f) failures.Add($"exit took {exitSeconds:F2}s after Continue");
-            if (Mathf.Abs(observer.Cam.orthographicSize - sizeBeforeRelease) > .1f)
-                failures.Add($"controls changed camera size from {sizeBeforeRelease:F2} to {observer.Cam.orthographicSize:F2}");
+            if (rateAfter > rateBefore + 2f)
+                failures.Add($"control release popped the camera size: {rateAfter:F1} u/s after vs {rateBefore:F1} u/s before");
             Assert.That(failures, Is.Empty, string.Join("; ", failures));
         }
 

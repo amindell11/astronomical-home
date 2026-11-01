@@ -213,9 +213,9 @@ MonoBehaviour:
   minZoom: 10
   maxZoom: 17
   padding: 5
-  lockCameraToSubject: 0
-  lockZoomToSubject: 0
-  lockZoomDistance: 15
+  lockCameraToSubject: 1
+  lockZoomToSubject: 1
+  feel: {fileID: 11400000, guid: f328a9c8e1cb4a039b4e993ed14d6c0e, type: 2}
   keepSubjectInView: 1
   zoomStep: 1.1
   minZoomScale: 0.6

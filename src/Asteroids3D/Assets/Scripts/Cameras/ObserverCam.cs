@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Substrate;
@@ -13,7 +14,8 @@ namespace Cameras
         [Header("Focus Behavior")]
         [SerializeField] private bool lockCameraToSubject;
         [SerializeField] private bool lockZoomToSubject;
-        [SerializeField] private float lockZoomDistance = 10f;
+        [Tooltip("Adaptive zoom and velocity lead while locked on the subject.")]
+        [SerializeField] private FlightCameraProfile feel;
 
         [Header("Player Tracking")]
         [Tooltip("If true, camera will shift to keep the player within the view frustum.")]
@@ -29,6 +31,13 @@ namespace Cameras
 
         private HashSet<Transform> secondarySubjects;
         private Transform subject;
+        private Rigidbody leadBody;
+        private Vector2 lead;
+        private Vector2 leadVelocity;
+        private HashSet<Transform> engaged;
+        private HashSet<Transform> nextEngaged;
+        private float lockedZoom;
+        private float lockedZoomVelocity;
         private Vector2? manualCenter;
         private float? manualZoom;
         private float zoomScale = 1f;
@@ -41,8 +50,13 @@ namespace Cameras
 
         protected override void Awake()
         {
+            if (!feel)
+                throw new InvalidOperationException($"{name}'s ObserverCam has no FlightCameraProfile assigned to feel.");
+            lockedZoom = feel.zoom;
             base.Awake();
             secondarySubjects = new HashSet<Transform>();
+            engaged = new HashSet<Transform>();
+            nextEngaged = new HashSet<Transform>();
         }
 
         protected override void ComputeDesiredCameraState(out Vector2? desiredCenter, out float? desiredSize)
@@ -67,18 +81,72 @@ namespace Cameras
         private Vector2 ComputeFocusCenter(Vector2 boundsMin, Vector2 boundsMax)
         {
             if (lockCameraToSubject && subject)
-                return GamePlane.WorldPointToPlane(subject.position);
+                return GamePlane.WorldPointToPlane(subject.position) + StepLead();
             return CameraUtils.BoundsCenter(boundsMin, boundsMax);
         }
+
+        private Vector2 StepLead()
+        {
+            var target = Vector2.ClampMagnitude(LeadBodyVelocity * feel.leadSeconds, feel.maxLead);
+            lead = Vector2.SmoothDamp(lead, target, ref leadVelocity, feel.leadSmoothTime,
+                float.PositiveInfinity, Time.unscaledDeltaTime);
+            return lead;
+        }
+
+        private Vector2 LeadBodyVelocity => leadBody && leadBody.gameObject.activeInHierarchy
+            ? GamePlane.WorldDirToPlane(leadBody.linearVelocity)
+            : Vector2.zero;
 
         private float ComputeDesiredZoom(Vector2 center, Vector2 boundsMin, Vector2 boundsMax)
         {
             if (manualZoom.HasValue)
                 return manualZoom.Value;
-            if (lockZoomToSubject)
-                return ClampZoom(lockZoomDistance) * zoomScale;
+            if (lockZoomToSubject && lockCameraToSubject)
+                return StepLockedZoom(center) * zoomScale;
             var preferredSize = CameraUtils.ZoomToFitBounds(center, boundsMin, boundsMax, padding, Cam.aspect);
             return ClampZoom(preferredSize) * zoomScale;
+        }
+
+        private float StepLockedZoom(Vector2 center)
+        {
+            StepEngaged();
+            var speedZoom = feel.zoom + feel.zoomPerSpeed * LeadBodyVelocity.magnitude;
+            var target = Mathf.Clamp(Mathf.Max(speedZoom, FightZoom(center)), feel.zoom, feel.zoom + feel.maxWiden);
+            lockedZoom = CameraUtils.SmoothZoom(lockedZoom, target, ref lockedZoomVelocity,
+                feel.widenTime, feel.narrowTime, Time.unscaledDeltaTime);
+            return lockedZoom;
+        }
+
+        private void StepEngaged()
+        {
+            nextEngaged.Clear();
+            foreach (var ship in secondarySubjects)
+            {
+                if (IsEngaged(ship))
+                    nextEngaged.Add(ship);
+            }
+            (engaged, nextEngaged) = (nextEngaged, engaged);
+        }
+
+        private bool IsEngaged(Transform ship)
+        {
+            if (!subject || !ship || ship == subject || !ship.gameObject.activeInHierarchy)
+                return false;
+            var distance = Vector2.Distance(GamePlane.WorldPointToPlane(subject.position), GamePlane.WorldPointToPlane(ship.position));
+            return engaged.Contains(ship)
+                ? distance <= feel.fightRadius + feel.releaseMargin
+                : distance < feel.fightRadius;
+        }
+
+        private float FightZoom(Vector2 center)
+        {
+            if (engaged.Count == 0)
+                return 0f;
+            CameraUtils.InitEmptyBounds(out var min, out var max);
+            CameraUtils.ExpandBounds(ref min, ref max, GamePlane.WorldPointToPlane(subject.position));
+            foreach (var ship in engaged)
+                CameraUtils.ExpandBounds(ref min, ref max, GamePlane.WorldPointToPlane(ship.position));
+            return CameraUtils.ZoomToFitBounds(center, min, max, padding, Cam.aspect);
         }
 
         private Vector2 ApplyViewConstraints(Vector2 center, float zoomSize)
@@ -117,12 +185,13 @@ namespace Cameras
 
         public void SetLockCameraToSubject(bool value) => lockCameraToSubject = value;
         public void SetLockZoomToSubject(bool value) => lockZoomToSubject = value;
-        public void SetSubject(Transform newSubject, bool removeOldSubject = true)
+        public void SetSubject(Transform newSubject, Rigidbody newLeadBody = null, bool removeOldSubject = true)
         {
             if (subject && removeOldSubject)
                 secondarySubjects.Remove(subject);
             
             subject = newSubject;
+            leadBody = newLeadBody;
             
             if (newSubject)
                 secondarySubjects.Add(newSubject);
