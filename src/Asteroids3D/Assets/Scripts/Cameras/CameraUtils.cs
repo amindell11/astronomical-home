@@ -50,6 +50,16 @@ namespace Cameras
             return center;
         }
 
+        public static float SmoothZoom(float current, float target, ref float velocity,
+            float widenTime, float narrowTime, float deltaTime)
+        {
+            // Momentum built toward an earlier target must not carry the zoom away from this one.
+            if (velocity * (target - current) <= 0f)
+                velocity = 0f;
+            var smoothTime = target > current ? widenTime : narrowTime;
+            return Mathf.SmoothDamp(current, target, ref velocity, smoothTime, float.PositiveInfinity, deltaTime);
+        }
+
         /// <summary>
         /// Expands bounds to include a new point.
         /// </summary>

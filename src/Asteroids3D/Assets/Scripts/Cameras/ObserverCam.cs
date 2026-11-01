@@ -112,9 +112,8 @@ namespace Cameras
             StepEngaged();
             var speedZoom = feel.zoom + feel.zoomPerSpeed * LeadBodyVelocity.magnitude;
             var target = Mathf.Clamp(Mathf.Max(speedZoom, FightZoom(center)), feel.zoom, feel.zoom + feel.maxWiden);
-            var smoothTime = target > lockedZoom ? feel.widenTime : feel.narrowTime;
-            lockedZoom = Mathf.SmoothDamp(lockedZoom, target, ref lockedZoomVelocity, smoothTime,
-                float.PositiveInfinity, Time.unscaledDeltaTime);
+            lockedZoom = CameraUtils.SmoothZoom(lockedZoom, target, ref lockedZoomVelocity,
+                feel.widenTime, feel.narrowTime, Time.unscaledDeltaTime);
             return lockedZoom;
         }
 
