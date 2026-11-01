@@ -542,6 +542,12 @@ PrefabInstance:
       propertyPath: m_Name
       value: AsteroidField
       objectReference: {fileID: 0}
+    - target: {fileID: 7997124830668444265, guid: a4a07ada72adcc44ba51f616ad29384b,
+        type: 3}
+      propertyPath: settings
+      value: 
+      objectReference: {fileID: 11400000, guid: 65c274c56b444d04a85ecd6e8e524e72,
+        type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
