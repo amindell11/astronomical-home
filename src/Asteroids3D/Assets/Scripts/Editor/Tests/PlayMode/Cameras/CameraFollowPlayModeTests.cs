@@ -134,7 +134,7 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
     }
 
     [UnityTest]
-    public IEnumerator LockOff_ZoomsToFitLikeTheOldDefault_NotToTheProfile()
+    public IEnumerator LockOff_ZoomsToFit_NotToTheProfile()
     {
         cam.SetSubject(subject.transform);
         cam.SetLockCameraToSubject(false);
