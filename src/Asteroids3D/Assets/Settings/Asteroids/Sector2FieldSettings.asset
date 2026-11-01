@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 05c351aee451e594c9ffd819289ea8d6, type: 3}
+  m_Name: Sector2FieldSettings
+  m_EditorClassIdentifier: 
+  chunkSize: 4.7
+  noiseFrequency: 0.1
+  averageAsteroidsPerCell: 0.6
+  densityMultiplierRange: {x: 0.05, y: 0.76}
+  fieldRadius: 10000
+  ambientDrift: 1
+  packingMargin: 0
+  minSpacing: 0
+  startClearRadius: 22
+  noiseOctaves: 4
+  noiseLacunarity: 2.97
+  noisePersistence: 0.222
+  ridgedNoise: 1
+  noiseContrast: 5.18
+  densityFloor: 0.238
+  warpStrength: 2.15
+  warpFrequency: 1.12
+  loadRadius: 87.5
+  unloadRadiusMultiplier: 1.5
+  maxSpawnsPerFrame: 10
+  maxAsteroids: 1600
