@@ -111,17 +111,18 @@ namespace Tests.PlayMode.Presentation.Breakup
                     piece.FindPropertyRelative("lifetime").floatValue))
                 .ToArray();
             debris.Initialize(Vector3.zero, System.Array.Empty<Transform>(), feel);
-            var start = Time.time;
+            // Summed like the debris's own age: late in a long run, Time.time differences lose precision.
+            var elapsed = 0f;
             while (true)
             {
                 yield return null;
+                elapsed += Time.deltaTime;
                 if (!debris) break;
-                var pacedAge = pace * (Time.time - start);
                 foreach (var (renderer, lifetime) in authored)
-                    Assert.That(VisibilityOf(renderer), Is.EqualTo(Mathf.Clamp01((lifetime - pacedAge) / fade)).Within(.001f),
+                    Assert.That(VisibilityOf(renderer), Is.EqualTo(Mathf.Clamp01((lifetime - pace * elapsed) / fade)).Within(.001f),
                         "each piece fades on the paced clock, inside its own lifetime");
             }
-            Assert.That(Time.time - start, Is.InRange(pacedLifetime - .001f, pacedLifetime + 2f * Time.maximumDeltaTime));
+            Assert.That(elapsed, Is.InRange(pacedLifetime - .001f, pacedLifetime + 2f * Time.maximumDeltaTime));
         }
 
         private static float VisibilityOf(Renderer renderer)
