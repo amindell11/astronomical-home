@@ -14,7 +14,7 @@ namespace Cameras
         [Header("Focus Behavior")]
         [SerializeField] private bool lockCameraToSubject;
         [SerializeField] private bool lockZoomToSubject;
-        [Tooltip("Adaptive zoom and velocity lead while locked on the subject.")]
+        [Tooltip("Adaptive zoom, velocity lead and cursor lead while locked on the subject.")]
         [SerializeField] private FlightCameraProfile feel;
 
         [Header("Player Tracking")]
@@ -34,6 +34,9 @@ namespace Cameras
         private Rigidbody leadBody;
         private Vector2 lead;
         private Vector2 leadVelocity;
+        private Vector2? cursor;
+        private Vector2 cursorLead;
+        private Vector2 cursorLeadVelocity;
         private HashSet<Transform> engaged;
         private HashSet<Transform> nextEngaged;
         private float lockedZoom;
@@ -81,7 +84,7 @@ namespace Cameras
         private Vector2 ComputeFocusCenter(Vector2 boundsMin, Vector2 boundsMax)
         {
             if (lockCameraToSubject && subject)
-                return GamePlane.WorldPointToPlane(subject.position) + StepLead();
+                return GamePlane.WorldPointToPlane(subject.position) + StepLead() + StepCursorLead();
             return CameraUtils.BoundsCenter(boundsMin, boundsMax);
         }
 
@@ -91,6 +94,16 @@ namespace Cameras
             lead = Vector2.SmoothDamp(lead, target, ref leadVelocity, feel.leadSmoothTime,
                 float.PositiveInfinity, Time.unscaledDeltaTime);
             return lead;
+        }
+
+        private Vector2 StepCursorLead()
+        {
+            var target = cursor.HasValue
+                ? CameraUtils.CursorLead(Cam.ScreenToViewportPoint(cursor.Value), feel.cursorDeadZone, feel.cursorLead)
+                : Vector2.zero;
+            cursorLead = Vector2.SmoothDamp(cursorLead, target, ref cursorLeadVelocity, feel.cursorLeadSmoothTime,
+                float.PositiveInfinity, Time.unscaledDeltaTime);
+            return cursorLead;
         }
 
         private Vector2 LeadBodyVelocity => leadBody && leadBody.gameObject.activeInHierarchy
@@ -217,6 +230,14 @@ namespace Cameras
 
         public void SetManualCenter(Vector2? center) => manualCenter = center;
         public void SetManualZoom(float? zoom) => manualZoom = zoom;
+        public void SetCursor(Vector2? screenPoint) => cursor = screenPoint;
+
+        public void ResumeFollow()
+        {
+            lead = leadVelocity = cursorLead = cursorLeadVelocity = Vector2.zero;
+            // Keeps pace with the subject instead of springing toward the stale lead.
+            dampVelocity = GamePlane.PlaneDirToWorld(LeadBodyVelocity);
+        }
 
         public void StepZoom(float notchesIn) =>
             zoomScale = Mathf.Clamp(zoomScale * Mathf.Pow(zoomStep, -notchesIn), minZoomScale, maxZoomScale);

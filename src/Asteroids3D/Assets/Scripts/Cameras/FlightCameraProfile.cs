@@ -34,5 +34,14 @@ namespace Cameras
 
         [Tooltip("Seconds the lead takes to follow a change in the player's velocity.")]
         [Min(0f)] public float leadSmoothTime = 0.5f;
+
+        [Tooltip("How far the camera leads toward the cursor with it at the screen edge, in world units. Adds to the velocity lead.")]
+        [Min(0f)] public float cursorLead = 6f;
+
+        [Tooltip("Fraction of half the screen around its center where the cursor leads nothing. Past it the lead ramps up to full at the screen edge.")]
+        [Range(0f, 1f)] public float cursorDeadZone = 0.2f;
+
+        [Tooltip("Seconds the cursor lead takes to follow the cursor.")]
+        [Min(0f)] public float cursorLeadSmoothTime = 0.4f;
     }
 }

@@ -60,6 +60,14 @@ namespace Cameras
             return Mathf.SmoothDamp(current, target, ref velocity, smoothTime, float.PositiveInfinity, deltaTime);
         }
 
+        public static Vector2 CursorLead(Vector2 viewportPoint, float deadZone, float distance)
+        {
+            if (viewportPoint.x < 0f || viewportPoint.x > 1f || viewportPoint.y < 0f || viewportPoint.y > 1f)
+                return Vector2.zero;
+            var offset = Vector2.ClampMagnitude(viewportPoint * 2f - Vector2.one, 1f);
+            return offset.normalized * (Mathf.InverseLerp(deadZone, 1f, offset.magnitude) * distance);
+        }
+
         /// <summary>
         /// Expands bounds to include a new point.
         /// </summary>
