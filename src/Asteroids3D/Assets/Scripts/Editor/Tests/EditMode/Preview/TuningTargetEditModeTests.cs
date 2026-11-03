@@ -6,6 +6,7 @@ using Game;
 using Game.Player;
 using Game.Preview;
 using NUnit.Framework;
+using Ships.Visuals.Breakup;
 using UI.Projection;
 using UnityEditor;
 
@@ -30,6 +31,8 @@ namespace Tests.EditMode.Preview
             {
                 PreviewEntry.Startup, PreviewEntry.LowHull, PreviewEntry.Damage, PreviewEntry.Extraction, PreviewEntry.Combat
             }, canopy);
+            AssertTarget(Target<ShipDeathTarget>(), new[] { PreviewEntry.EnemyDeath, PreviewEntry.RunRecap, PreviewEntry.Combat },
+                AssetDatabase.LoadAssetAtPath<DeathFeelProfile>("Assets/Settings/Ships/DeathFeel.asset"), game.recapFeel);
             AssertTarget(Target<FlightCameraTarget>(), new[] { PreviewEntry.Combat },
                 AssetDatabase.LoadAssetAtPath<FlightCameraProfile>("Assets/Settings/Cameras/FlightCamera.asset"));
             var fields = new[] { "Sector1", "Sector2", "Big" }.Select(field =>
@@ -47,6 +50,8 @@ namespace Tests.EditMode.Preview
             Assert.AreEqual(PreviewEntry.RunRecap, Target<RunRecapTarget>().EntryAfterSwitch(PreviewEntry.CrowdedJumpGate));
             Assert.AreEqual(PreviewEntry.Startup, Target<HudTarget>().EntryAfterSwitch(PreviewEntry.RunRecap));
             Assert.AreEqual(PreviewEntry.SectorJump, Target<SectorJumpTarget>().EntryAfterSwitch(PreviewEntry.Combat));
+            Assert.AreEqual(PreviewEntry.RunRecap, Target<ShipDeathTarget>().EntryAfterSwitch(PreviewEntry.RunRecap));
+            Assert.AreEqual(PreviewEntry.EnemyDeath, Target<ShipDeathTarget>().EntryAfterSwitch(PreviewEntry.CrowdedJumpGate));
         }
 
         [Test]

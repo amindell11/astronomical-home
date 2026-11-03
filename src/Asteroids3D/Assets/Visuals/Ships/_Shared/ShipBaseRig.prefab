@@ -123,6 +123,7 @@ MonoBehaviour:
   hull: {fileID: 314116195773112417}
   debrisPrefab: {fileID: 0}
   poseSources: []
+  feel: {fileID: 11400000, guid: f329e9d53fa44144bc4451f1feadf793, type: 2}
 --- !u!114 &5959759570422215558
 MonoBehaviour:
   m_ObjectHideFlags: 0

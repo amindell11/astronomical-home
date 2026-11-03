@@ -737,3 +737,4 @@ MonoBehaviour:
   debrisPrefab: {fileID: 4892102532802009922, guid: 2b0f4d0e6b739fd41a94fcdbf6992f5a,
     type: 3}
   poseSources: []
+  feel: {fileID: 11400000, guid: f329e9d53fa44144bc4451f1feadf793, type: 2}

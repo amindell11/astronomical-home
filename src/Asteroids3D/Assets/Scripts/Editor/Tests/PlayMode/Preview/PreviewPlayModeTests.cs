@@ -10,6 +10,9 @@ using Game.Preview;
 using Game.Runs;
 using Game.Travel;
 using NUnit.Framework;
+using Ships;
+using Ships.Loadout;
+using Ships.Visuals.Breakup;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Phases;
@@ -230,6 +233,49 @@ namespace Tests.PlayMode.Preview
         }
 
         [UnityTest]
+        public IEnumerator EnemyDeathReplay_KillsThroughTakeDamageOnPlay_RestagesAFreshVictim_AndSpawnsThePickedShip()
+        {
+            BuildPreview(PreviewEntry.EnemyDeath);
+            var victims = new List<Ship>();
+            host.GetComponent<UnitService>().OnShipSpawned += victims.Add;
+            yield return AsyncAssert.WaitUntil(() => host.IsReady, 45f, "the enemy death replay composes");
+            victims.Remove(host.GetComponentInChildren<PlayerRig>().Player);
+            Assert.That(victims, Has.Count.EqualTo(1));
+            yield return DiesOnPlay(victims[0]);
+
+            host.Transport.Playing = false;
+            host.RestartReplay();
+            yield return AsyncAssert.WaitUntil(() => host.IsReady, 30f, "the restart re-stages the replay");
+            Assert.That(victims, Has.Count.EqualTo(2));
+            Assert.That(victims[0] == null, Is.True, "the restart despawns the dead victim");
+            yield return DiesOnPlay(victims[1]);
+
+            host.Transport.Playing = false;
+            host.Subject.SelectFixture(2);
+            host.RestartReplay();
+            yield return AsyncAssert.WaitUntil(() => host.IsReady, 30f, "the picked ship re-stages the replay");
+            Assert.That(victims, Has.Count.EqualTo(3));
+            Assert.That(host.Subject.Fixture, Is.EqualTo(2), "the restart keeps the pick");
+            Assert.That(victims[2].name, Does.StartWith(host.gameHostPrefab.hangarOffer.ships[2].name));
+        }
+
+        private IEnumerator DiesOnPlay(Ship victim)
+        {
+            var events = new List<string>();
+            victim.Damage.OnDamaged += _ => events.Add("damaged");
+            victim.Damage.OnDeath += (_, _) => events.Add("death");
+            var debris = Object.FindObjectsByType<ShipBreakupDebris>(FindObjectsSortMode.None);
+            yield return null;
+            Assert.That(events, Is.Empty, "the kill waits for Play");
+
+            host.Transport.Playing = true;
+            yield return AsyncAssert.WaitUntil(() => events.Contains("death"), 10f, "the played replay kills the victim");
+            Assert.That(events[0], Is.EqualTo("damaged"), "the death arrives through TakeDamage");
+            Assert.That(Object.FindObjectsByType<ShipBreakupDebris>(FindObjectsSortMode.None).Except(debris), Is.Not.Empty,
+                "the victim breaks up");
+        }
+
+        [UnityTest]
         public IEnumerator LowHullReplay_ArrivesThroughTakeDamage_AndCanopyKnobsAndBothOffSwitchesApplyLive()
         {
             BuildPreview(PreviewEntry.LowHull);
@@ -429,6 +475,7 @@ namespace Tests.PlayMode.Preview
             gameHost.recapFeel = TestAssets.Load<RecapFeelProfile>("Assets/Settings/UI/RecapFeel.asset");
             gameHost.jumpFeel = TestAssets.Load<SectorJumpProfile>("Assets/Settings/Game/SectorJumpTuning.asset");
             gameHost.jumpFeature = jumpFeature ? TestAssets.Load<SectorJumpFeature>("Assets/Settings/Rendering/SectorJumpFeature.asset") : null;
+            gameHost.hangarOffer = TestAssets.Load<ItemSubset>("Assets/Settings/Ships/PlayerLoadout.asset");
             var root = new GameObject("Preview lifecycle test");
             root.SetActive(false);
             host = root.AddComponent<PreviewHost>();
