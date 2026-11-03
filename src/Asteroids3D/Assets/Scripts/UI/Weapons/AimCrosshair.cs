@@ -2,6 +2,7 @@ using System;
 using Game.Player;
 using Ships.Command;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace UI.Weapons
 {
@@ -13,9 +14,10 @@ namespace UI.Weapons
         private Canvas rootCanvas;
         private RectTransform rect;
         private RectTransform parentRect;
+        private Graphic[] artwork;
         private IShipStatus ship;
         private Camera gameplayCamera;
-        private bool previousCursorVisible;
+        private bool focused;
 
         private void Awake()
         {
@@ -23,6 +25,7 @@ namespace UI.Weapons
             rootCanvas = GetComponentInParent<Canvas>().rootCanvas;
             rect = (RectTransform)transform;
             parentRect = (RectTransform)transform.parent;
+            artwork = GetComponentsInChildren<Graphic>(true);
             controls = new PlayerControls();
         }
 
@@ -36,21 +39,27 @@ namespace UI.Weapons
         private void OnEnable()
         {
             controls.Flight.AimPoint.Enable();
-            previousCursorVisible = Cursor.visible;
-            Cursor.visible = false;
+            focused = Application.isFocused;
         }
 
         private void OnDisable()
         {
             controls.Flight.AimPoint.Disable();
-            Cursor.visible = previousCursorVisible;
+            Cursor.visible = true;
         }
+
+        private void OnApplicationFocus(bool hasFocus) => focused = hasFocus;
 
         private void OnDestroy() => controls?.Dispose();
 
         private void LateUpdate()
         {
             var aim = controls.Flight.AimPoint.ReadValue<Vector2>();
+            // A focused editor Game view keeps the cursor hidden over the other panels too.
+            var overGame = focused && new Rect(0f, 0f, Screen.width, Screen.height).Contains(aim);
+            Cursor.visible = !overGame;
+            foreach (var graphic in artwork)
+                graphic.enabled = overGame;
             var uiCamera = rootCanvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : rootCanvas.worldCamera;
             RectTransformUtility.ScreenPointToLocalPointInRectangle(parentRect, aim, uiCamera, out var point);
             rect.localPosition = point;

@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using Objectives;
+using Objectives.Presentation;
 using Ships;
 using Substrate;
 using Substrate.Sectors;
@@ -128,7 +129,7 @@ namespace Tests.PlayMode
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
             Assert.IsFalse(got.HasValue, "Entering after a dropped request must not extract.");
-            Assert.AreEqual("PRESS F TO JUMP", _objectives.SpineTracker.CurrentStatusLine);
+            Assert.AreEqual(new InteractionPrompt("F", "JUMP"), _objectives.SpineTracker.CurrentPrompt);
             pilot.RequestJump();
 
             Assert.IsTrue(got.HasValue, "A request inside must end the sector on the spot.");

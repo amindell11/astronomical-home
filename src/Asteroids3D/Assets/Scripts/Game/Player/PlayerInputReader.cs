@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Game.Player
 {
-    public class PlayerInputReader : IDisposable
+    public class PlayerInputReader : IFlightInput, IDisposable
     {
         private readonly PlayerControls controls = new();
 

@@ -1,4 +1,5 @@
 using System;
+using Objectives.Presentation;
 using Ships;
 
 namespace Objectives.States
@@ -10,6 +11,8 @@ namespace Objectives.States
     /// </summary>
     public sealed class ExtractionJumpState : ObjectiveState, IDisposable
     {
+        private static readonly InteractionPrompt Jump = new("F", "JUMP");
+
         private readonly IExtractionZone zone;
         private readonly Ship hero;
         private readonly Action onCommit;
@@ -24,7 +27,7 @@ namespace Objectives.States
 
         public override ObjectiveType StateType => ObjectiveType.ExtractionChallenge;
         public override bool IsComplete => committed;
-        public override string StatusLine => zone.IsPlayerInZone ? "PRESS F TO JUMP" : string.Empty;
+        public override InteractionPrompt? Prompt => zone.IsPlayerInZone ? Jump : null;
 
         public override void Enter()
         {
