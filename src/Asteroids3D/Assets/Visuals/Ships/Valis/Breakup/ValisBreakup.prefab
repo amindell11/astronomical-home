@@ -1540,8 +1540,6 @@ MonoBehaviour:
   - {fileID: 7329642427977347544}
   - {fileID: 2322741077604043872}
   - {fileID: 817171761836298085}
-  explosionPrefab: {fileID: 4644404847865670880, guid: 2a4964647510e6049b128491375dbf1d,
-    type: 3}
   motion: {fileID: 3571512826605781513}
   lifetime: 1.4
   fadeDuration: 0.25

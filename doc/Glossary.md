@@ -1047,6 +1047,9 @@ Format: **term** — definition. *(authority)*
   reads live; the game serializes the asset on its host, and the preview's panel
   edits that same asset in place under a snapshot: Save writes it, Discard
   restores it. *(RecapFeelProfile, FeelSnapshot)*
+- **death feel profile** — the feel profile every ship's death reads: its debris
+  explosion and debris pace. The ship rig serializes it, not the game host.
+  *(DeathFeelProfile, ShipDeathTarget)*
 - **preview host** — the play-mode composition root beside the game host. It
   runs one entry at a time. A *preview Replay* entry composes a real session
   with presentation on around the real player rig, camera and HUD, and hosts a
@@ -1065,10 +1068,11 @@ Format: **term** — definition. *(authority)*
   `doc/agents/tuning.md`. *(TuningTarget, HudTarget)*
 - **preview Replay** — the panel section and kind of preview entry that hosts
   a *preview subject* under the transport: a moment the owner judges. The recap
-  and the jump scrub to any instant. The HUD replays play from their start, and
-  Restart or Loop stages them again from scratch. Bare "Replay" is legal in
-  preview context. (Retired form: the preview host's "Inspection" mode.)
-  *(PreviewEntry.RunRecap, PreviewEntry.SectorJump, HudReplaySubject)*
+  and the jump scrub to any instant. The HUD replays and Enemy death play from
+  their start, and Restart or Loop stages them again from scratch. Bare "Replay"
+  is legal in preview context. (Retired form: the preview host's "Inspection"
+  mode.) *(PreviewEntry.RunRecap, PreviewEntry.SectorJump, HudReplaySubject,
+  EnemyDeathSubject)*
 - **preview Playtest** — the panel section and kind of preview entry that runs
   the shipped game host prefab for the owner to fly, with preview run records
   and at most swapped sectors. Bare "Playtest" is legal in preview context;

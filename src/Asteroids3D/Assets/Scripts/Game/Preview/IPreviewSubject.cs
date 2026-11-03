@@ -48,10 +48,10 @@ namespace Game.Preview
     /// <summary>
     /// A presentation module with a chosen context, hosted by <see cref="PreviewHost"/>: it names its
     /// fixtures and spans and shows its timeline on the real renderers. A subject that scrubs shows any
-    /// instant; one that doesn't plays from its start, and the host re-composes it to restart. It
-    /// composes its own world setup from the host's <see cref="PreviewWorld"/> and releases it on
-    /// Dispose. The transport decides which instant and how long an input hold lasts; the subject never
-    /// drives time.
+    /// instant; one that doesn't plays from its start, and the host re-composes it to restart, keeping
+    /// its fixture. It composes its own world setup from the host's <see cref="PreviewWorld"/> and
+    /// releases it on Dispose. The transport decides which instant and how long an input hold lasts;
+    /// the subject never drives time.
     /// </summary>
     public interface IPreviewSubject : IDisposable
     {

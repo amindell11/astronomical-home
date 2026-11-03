@@ -15,21 +15,21 @@ namespace Ships.Visuals.Breakup
 
         [SerializeField] private Piece[] pieces;
         [SerializeField] private Transform[] poseRoots = Array.Empty<Transform>();
-        [SerializeField] private PooledVFX explosionPrefab;
         [SerializeField] private Animation motion;
         [SerializeField, Min(.1f)] private float lifetime = 1.4f;
         [SerializeField, Min(.01f)] private float fadeDuration = .25f;
         private static readonly int Visibility = Shader.PropertyToID("_DebrisVisibility");
         private MaterialPropertyBlock block;
         private Vector3 velocity;
+        private float pace;
         private float age;
 
         public int PoseCount => poseRoots.Length;
 
         private void Awake()
         {
-            if (!explosionPrefab || !motion || !motion.clip || pieces == null || pieces.Length == 0 || lifetime <= fadeDuration)
-                throw new InvalidOperationException("Ship debris requires pieces, motion, an explosion and lifetime longer than its fade.");
+            if (!motion || !motion.clip || pieces == null || pieces.Length == 0 || lifetime <= fadeDuration)
+                throw new InvalidOperationException("Ship debris requires pieces, motion and lifetime longer than its fade.");
             foreach (var piece in pieces)
                 if (!piece.renderer || piece.lifetime <= fadeDuration || piece.lifetime > lifetime)
                     throw new InvalidOperationException("Ship debris pieces require renderers and lifetimes within their parent's lifetime.");
@@ -39,18 +39,20 @@ namespace Ships.Visuals.Breakup
             block = new MaterialPropertyBlock();
         }
 
-        public void Initialize(Vector3 inheritedVelocity, Transform[] sourcePose)
+        public void Initialize(Vector3 inheritedVelocity, Transform[] sourcePose, DeathFeelProfile feel)
         {
             velocity = inheritedVelocity;
+            pace = feel.Pace;
             for (var i = 0; i < poseRoots.Length; i++)
                 poseRoots[i].localRotation = sourcePose[i].localRotation;
+            motion[motion.clip.name].speed = pace;
             motion.Play();
-            SimplePool<PooledVFX>.Get(explosionPrefab, transform.position, Quaternion.identity);
+            SimplePool<PooledVFX>.Get(feel.DebrisExplosion, transform.position, Quaternion.identity);
         }
 
         private void Update()
         {
-            age += Time.deltaTime;
+            age += Time.deltaTime * pace;
             transform.position += velocity * Time.deltaTime;
             foreach (var piece in pieces)
             {
