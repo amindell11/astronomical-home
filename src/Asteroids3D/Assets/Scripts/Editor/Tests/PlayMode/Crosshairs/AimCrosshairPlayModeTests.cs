@@ -113,6 +113,15 @@ namespace Tests.PlayMode.Crosshairs
         private Image ImageAt(string path) => (path.StartsWith("Primary") || path.StartsWith("Secondary")
             ? weaponHud.transform : crosshair.transform).Find(path).GetComponent<Image>();
         private bool Visible(string name) => weaponHud.transform.Find(name).gameObject.activeSelf;
+        private static Vector2 ScreenCentre => new(Screen.width * .5f, Screen.height * .5f);
+        private void Focus(bool focused) => crosshair.SendMessage("OnApplicationFocus", focused);
+
+        private void AssertPointerOverGame(bool over)
+        {
+            Assert.That(Cursor.visible, Is.EqualTo(!over));
+            Assert.That(ImageAt("Circle").enabled, Is.EqualTo(over));
+            Assert.That(ImageAt("Pointer").enabled, Is.EqualTo(over));
+        }
 
         [Test]
         public void Readouts_StayVisibleWithoutTriggers_AndRebindClearsTheirSources()
@@ -136,6 +145,9 @@ namespace Tests.PlayMode.Crosshairs
         [UnityTest]
         public IEnumerator Release_KeepsReadoutsVisible_AndHudHideRestoresCursor()
         {
+            Focus(true);
+            Set(mouse.position, ScreenCentre);
+            Draw();
             Assert.IsFalse(Cursor.visible);
             Press(mouse.rightButton);
             yield return null;
@@ -157,6 +169,34 @@ namespace Tests.PlayMode.Crosshairs
             Draw();
             Assert.IsTrue(Visible("SecondaryResources"));
             Assert.IsTrue(ImageAt("SecondaryResources/Fill").isActiveAndEnabled);
+        }
+
+        [Test]
+        public void OsCursorReturns_AndCrosshairHides_WhilePointerIsOutsideTheGameOrFocusIsLost()
+        {
+            Focus(true);
+            Set(mouse.position, ScreenCentre);
+            Draw();
+            AssertPointerOverGame(true);
+            foreach (var outside in new[]
+                     {
+                         new Vector2(-5f, ScreenCentre.y), new Vector2(Screen.width + 5f, ScreenCentre.y),
+                         new Vector2(ScreenCentre.x, -5f), new Vector2(ScreenCentre.x, Screen.height + 5f)
+                     })
+            {
+                Set(mouse.position, outside);
+                Draw();
+                AssertPointerOverGame(false);
+            }
+            Set(mouse.position, ScreenCentre);
+            Draw();
+            AssertPointerOverGame(true);
+            Focus(false);
+            Draw();
+            AssertPointerOverGame(false);
+            Focus(true);
+            Draw();
+            AssertPointerOverGame(true);
         }
 
         [Test]
