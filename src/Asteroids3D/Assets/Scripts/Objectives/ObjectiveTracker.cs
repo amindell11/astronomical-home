@@ -23,6 +23,7 @@ namespace Objectives
         public string CurrentStep => currentStep;
 
         public string CurrentStatusLine => current.StatusLine;
+        public InteractionPrompt? CurrentPrompt => current.Prompt;
         public SectorPhaseProgress? PhaseProgress => phaseProgress?.Invoke();
 
         public ObjectiveTracker(

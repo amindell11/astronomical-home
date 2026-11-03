@@ -5,6 +5,7 @@ using Substrate.Services.Objectives;
 using UnityEngine;
 using UnityEngine.UI;
 using UI.Projection;
+using UI.Prompts;
 
 namespace UI.PlayerState
 {
@@ -14,6 +15,7 @@ namespace UI.PlayerState
         private Text clock;
         private Text caption;
         private Text announcement;
+        private KeyPrompt keyPrompt;
         private RectTransform display;
         private Font labelFont;
         private Image[] segments = Array.Empty<Image>();
@@ -24,7 +26,7 @@ namespace UI.PlayerState
         private float openedAt;
 
         public static ObjectiveStatusReadout Create(Transform parent, Font labelFont, Font headingFont, Font timerFont,
-            Material textMaterial, CanopyProjection projection = null, Func<bool> isVisible = null)
+            Font keyFont, Material textMaterial, CanopyProjection projection = null, Func<bool> isVisible = null)
         {
             var go = new GameObject("ObjectiveStatusReadout", typeof(RectTransform));
             go.transform.SetParent(parent, false);
@@ -45,6 +47,10 @@ namespace UI.PlayerState
             var label = CreateText(display, "Label", labelFont, textMaterial, 18, 0f, new Vector2(420f, 28f));
             var clock = CreateText(display, "Phase clock", timerFont, textMaterial, 23, 0f, new Vector2(240f, 32f));
             var caption = CreateText(display, "Phase caption", labelFont, textMaterial, 5, -41f, new Vector2(420f, 24f));
+            var keyPrompt = KeyPrompt.Create(display, keyFont, labelFont, textMaterial, string.Empty, string.Empty);
+            var keyPromptRect = (RectTransform)keyPrompt.transform;
+            keyPromptRect.anchorMin = keyPromptRect.anchorMax = keyPromptRect.pivot = new Vector2(.5f, 1f);
+            keyPrompt.gameObject.SetActive(false);
             var announcement = CreateText(go.transform, "Extraction announcement", headingFont, textMaterial, 13, 0f,
                 new Vector2(420f, 28f));
             announcement.rectTransform.anchorMin = announcement.rectTransform.anchorMax = new Vector2(.5f, .5f);
@@ -57,6 +63,7 @@ namespace UI.PlayerState
             readout.clock = clock;
             readout.caption = caption;
             readout.announcement = announcement;
+            readout.keyPrompt = keyPrompt;
             readout.display = display;
             readout.labelFont = labelFont;
             return readout;
@@ -129,29 +136,38 @@ namespace UI.PlayerState
             var openingAlpha = Mathf.Clamp01(Mathf.Min(elapsed / .22f, (2.05f - elapsed) / .45f));
             announcement.enabled = opening;
             announcement.color = new Color(1f, 1f, 1f, openingAlpha);
+            var prompt = tracker?.CurrentPrompt;
             if (progress.HasValue && tracker.CurrentState is ObjectiveType.Survive or ObjectiveType.ExtractionChallenge)
             {
-                ApplyPhase(progress.Value, tracker.CurrentStatusLine);
+                ApplyPhase(progress.Value, tracker.CurrentStatusLine, prompt);
                 return;
             }
 
             clock.enabled = caption.enabled = false;
             display.anchoredPosition = new Vector2(0f, -40f);
             foreach (var segment in segments) segment.enabled = false;
-            label.enabled = true;
             label.fontSize = 18;
             label.font = labelFont;
             label.alignment = TextAnchor.UpperCenter;
             label.rectTransform.sizeDelta = new Vector2(420f, 28f);
             label.text = tracker?.CurrentStatusLine ?? string.Empty;
+            ShowPrompt(prompt, label);
         }
 
-        private void ApplyPhase(SectorPhaseProgress phase, string instruction)
+        private void ShowPrompt(InteractionPrompt? prompt, Text replaced)
+        {
+            replaced.enabled = !prompt.HasValue;
+            keyPrompt.gameObject.SetActive(prompt.HasValue);
+            if (!prompt.HasValue) return;
+            keyPrompt.Set(prompt.Value.Key, prompt.Value.Action);
+            ((RectTransform)keyPrompt.transform).anchoredPosition = replaced.rectTransform.anchoredPosition;
+        }
+
+        private void ApplyPhase(SectorPhaseProgress phase, string instruction, InteractionPrompt? prompt)
         {
             display.anchoredPosition = new Vector2(0f, -20f);
             clock.enabled = !phase.ExtractionOpen;
             label.enabled = phase.ExtractionOpen;
-            caption.enabled = true;
             label.font = labelFont;
             label.fontSize = 10;
             label.alignment = TextAnchor.UpperCenter;
@@ -162,6 +178,7 @@ namespace UI.PlayerState
             caption.text = phase.ExtractionOpen ? instruction : phase.Index == phase.Count - 1 ? "EXTRACTION" : "NEXT PHASE";
             caption.fontSize = phase.ExtractionOpen ? 10 : 5;
             caption.rectTransform.anchoredPosition = new Vector2(0f, phase.ExtractionOpen ? -36f : -41f);
+            ShowPrompt(phase.ExtractionOpen ? prompt : null, caption);
 
             if (segments.Length != phase.Count)
             {

@@ -10,7 +10,6 @@ namespace Game.Player
         public float Thrust => controls.Flight.Thrust.ReadValue<float>();
         public float Strafe => controls.Flight.Strafe.ReadValue<float>();
         public bool BoostDown => controls.Flight.Boost.WasPressedThisFrame();
-        public Vector2 ScreenAimPoint => controls.Flight.AimPoint.ReadValue<Vector2>();
         // Both triggers report the held (level) state; the weapon decides auto vs semi-auto,
         // and PlayerCommander derives the press edge for semi-auto weapons.
         public bool PrimaryFire => controls.Flight.PrimaryFire.IsPressed();

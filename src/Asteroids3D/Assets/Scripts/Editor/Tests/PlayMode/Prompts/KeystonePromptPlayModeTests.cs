@@ -22,16 +22,15 @@ using Object = UnityEngine.Object;
 namespace Tests.PlayMode.Prompts
 {
     [Category("UI")]
-    public class ControlPromptsPlayModeTests : PlayModeWorldFixture
+    public class KeystonePromptPlayModeTests : PlayModeWorldFixture
     {
         private const string RigPrefabPath = "Assets/Prefabs/MiscObjects/PlayerRig.prefab";
         private const string KeyFontPath = "Assets/Visuals/Ui/Fonts/Orbitron-Medium.ttf";
-        private const string ActionFontPath = "Assets/Visuals/Ui/Fonts/Rajdhani-Medium.ttf";
+        private const string WordFontPath = "Assets/Visuals/Ui/Fonts/Rajdhani-Medium.ttf";
         private const float Timeout = 2f;
 
         private PlayModeInputTestFixture input;
         private Keyboard keyboard;
-        private Mouse mouse;
         private PlayerInputReader reader;
         private GameObject hud;
         private GameObject servicesGo;
@@ -46,7 +45,6 @@ namespace Tests.PlayMode.Prompts
             input = new PlayModeInputTestFixture();
             input.Setup();
             keyboard = InputSystem.AddDevice<Keyboard>();
-            mouse = InputSystem.AddDevice<Mouse>();
             hud = new GameObject("Prompts HUD", typeof(RectTransform), typeof(Canvas));
             reader = new PlayerInputReader(_ => Vector3.zero);
             reader.Enable();
@@ -67,37 +65,31 @@ namespace Tests.PlayMode.Prompts
         }
 
         [UnityTest]
-        public IEnumerator UsingAControl_FadesItsRowWhileTheOthersStay()
+        public IEnumerator PressingSpace_FadesThePrompt()
         {
-            var prompts = Show(() => false);
+            var prompt = Show(() => false);
             yield return null;
-            Assert.AreEqual(1f, Alpha(prompts, "Thrust"), "test premise: the rows show until used");
+            Assert.AreEqual(1f, Alpha(prompt), "test premise: the prompt shows until used");
 
-            input.Press(keyboard.wKey);
-            yield return AsyncAssert.WaitUntil(() => Alpha(prompts, "Thrust") == 0f, Timeout, "W fades the thrust row");
-            AssertShowing(prompts, "Strafe", "Aim", "Fire", "Boost");
-
-            input.Press(mouse.leftButton);
-            yield return AsyncAssert.WaitUntil(() => Alpha(prompts, "Fire") == 0f, Timeout, "a click fades the fire row");
-            AssertShowing(prompts, "Strafe", "Aim", "Boost");
+            input.Press(keyboard.spaceKey);
+            yield return AsyncAssert.WaitUntil(() => !prompt, Timeout, "Space fades the prompt and it goes");
         }
 
         [UnityTest]
-        public IEnumerator Dismissal_FadesEveryRemainingRow()
+        public IEnumerator Dismissal_FadesThePrompt()
         {
             var dismissed = false;
-            var prompts = Show(() => dismissed);
-            input.Press(keyboard.wKey);
-            yield return AsyncAssert.WaitUntil(() => Alpha(prompts, "Thrust") == 0f, Timeout, "W fades the thrust row");
-            AssertShowing(prompts, "Strafe", "Aim", "Fire", "Boost");
+            var prompt = Show(() => dismissed);
+            yield return null;
+            Assert.AreEqual(1f, Alpha(prompt), "test premise: the prompt shows until dismissed");
 
             dismissed = true;
-            yield return AsyncAssert.WaitUntil(() => !prompts, Timeout, "every remaining row fades and the prompts go");
+            yield return AsyncAssert.WaitUntil(() => !prompt, Timeout, "dismissal fades the prompt and it goes");
         }
 
         [UnityTest]
         [Category("RequiresGraphics")]
-        public IEnumerator Rig_ShowsThePromptsAtTheFirstSectorItEntersOnly()
+        public IEnumerator Rig_ShowsThePromptAtTheFirstSectorItEntersOnly()
         {
             servicesGo = new GameObject("TestServices");
             units = servicesGo.AddComponent<UnitService>();
@@ -112,31 +104,29 @@ namespace Tests.PlayMode.Prompts
             Assert.IsEmpty(PromptsOn(rig), "leaving a sector shows nothing");
             var (first, firstDirector) = NewPhase("First sector");
             rig.EnterSector(first);
-            Assert.AreEqual(1, PromptsOn(rig).Length, "the first sector start shows the prompts");
+            Assert.AreEqual(1, PromptsOn(rig).Length, "the first sector start shows the prompt");
+            var line = PromptsOn(rig)[0].GetComponent<KeyPrompt>();
+            Assert.AreEqual("SPACE", line.Key);
+            Assert.AreEqual(rig.Player.Keystone.DisplayName.ToUpperInvariant(), line.Action,
+                "the prompt names the keystone the player flies");
 
             rig.EnterSector(null);
             rig.EnterSector(NewPhase("Second sector").module);
             yield return null;
-            Assert.AreEqual(1, PromptsOn(rig).Length, "a later sector start shows no second set");
+            Assert.AreEqual(1, PromptsOn(rig).Length, "a later sector start shows no second prompt");
 
             firstDirector.Advance(41f);
             yield return AsyncAssert.WaitUntil(() => PromptsOn(rig).Length == 0, Timeout,
-                "the first sector's lull after its first sector phase ends the prompts");
+                "the first sector's lull after its first sector phase ends the prompt");
         }
 
-        private ControlPrompts Show(Func<bool> dismissed) => ControlPrompts.Create(hud.transform,
-            TestAssets.Load<Font>(KeyFontPath), TestAssets.Load<Font>(ActionFontPath), null, reader, dismissed);
+        private KeystonePrompt Show(Func<bool> dismissed) => KeystonePrompt.Create(hud.transform,
+            TestAssets.Load<Font>(KeyFontPath), TestAssets.Load<Font>(WordFontPath), null, reader, "Blink", dismissed);
 
-        private static float Alpha(ControlPrompts prompts, string row) =>
-            prompts.transform.Find(row).GetComponent<CanvasGroup>().alpha;
+        private static float Alpha(KeystonePrompt prompt) => prompt.GetComponent<CanvasGroup>().alpha;
 
-        private static void AssertShowing(ControlPrompts prompts, params string[] rows)
-        {
-            foreach (var row in rows) Assert.AreEqual(1f, Alpha(prompts, row), $"the {row} row still shows");
-        }
-
-        private static ControlPrompts[] PromptsOn(PlayerRig rig) =>
-            rig.Overlay.GetComponentsInChildren<ControlPrompts>(true);
+        private static KeystonePrompt[] PromptsOn(PlayerRig rig) =>
+            rig.Overlay.GetComponentsInChildren<KeystonePrompt>(true);
 
         private (PhaseSpineModule module, WaveDirector director) NewPhase(string name)
         {
