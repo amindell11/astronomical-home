@@ -182,6 +182,15 @@ namespace Game.Player
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""ToggleAssist"",
+                    ""type"": ""Button"",
+                    ""id"": ""e7003959-5545-46be-88fc-5df119b2bc9c"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -426,6 +435,17 @@ namespace Game.Player
                     ""action"": ""SecondaryReload"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""7d810572-ebbf-4190-9176-b52fbe1e4366"",
+                    ""path"": ""<Keyboard>/v"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ToggleAssist"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -492,6 +512,7 @@ namespace Game.Player
             m_Flight_Jump = m_Flight.FindAction("Jump", throwIfNotFound: true);
             m_Flight_PrimaryReload = m_Flight.FindAction("PrimaryReload", throwIfNotFound: true);
             m_Flight_SecondaryReload = m_Flight.FindAction("SecondaryReload", throwIfNotFound: true);
+            m_Flight_ToggleAssist = m_Flight.FindAction("ToggleAssist", throwIfNotFound: true);
             // Camera
             m_Camera = asset.FindActionMap("Camera", throwIfNotFound: true);
             m_Camera_ToggleLock = m_Camera.FindAction("ToggleLock", throwIfNotFound: true);
@@ -587,6 +608,7 @@ namespace Game.Player
         private readonly InputAction m_Flight_Jump;
         private readonly InputAction m_Flight_PrimaryReload;
         private readonly InputAction m_Flight_SecondaryReload;
+        private readonly InputAction m_Flight_ToggleAssist;
         /// <summary>
         /// Provides access to input actions defined in input action map "Flight".
         /// </summary>
@@ -638,6 +660,10 @@ namespace Game.Player
             /// Provides access to the underlying input action "Flight/SecondaryReload".
             /// </summary>
             public InputAction @SecondaryReload => m_Wrapper.m_Flight_SecondaryReload;
+            /// <summary>
+            /// Provides access to the underlying input action "Flight/ToggleAssist".
+            /// </summary>
+            public InputAction @ToggleAssist => m_Wrapper.m_Flight_ToggleAssist;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -694,6 +720,9 @@ namespace Game.Player
                 @SecondaryReload.started += instance.OnSecondaryReload;
                 @SecondaryReload.performed += instance.OnSecondaryReload;
                 @SecondaryReload.canceled += instance.OnSecondaryReload;
+                @ToggleAssist.started += instance.OnToggleAssist;
+                @ToggleAssist.performed += instance.OnToggleAssist;
+                @ToggleAssist.canceled += instance.OnToggleAssist;
             }
 
             /// <summary>
@@ -735,6 +764,9 @@ namespace Game.Player
                 @SecondaryReload.started -= instance.OnSecondaryReload;
                 @SecondaryReload.performed -= instance.OnSecondaryReload;
                 @SecondaryReload.canceled -= instance.OnSecondaryReload;
+                @ToggleAssist.started -= instance.OnToggleAssist;
+                @ToggleAssist.performed -= instance.OnToggleAssist;
+                @ToggleAssist.canceled -= instance.OnToggleAssist;
             }
 
             /// <summary>
@@ -952,6 +984,13 @@ namespace Game.Player
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnSecondaryReload(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "ToggleAssist" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnToggleAssist(InputAction.CallbackContext context);
         }
         /// <summary>
         /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Camera" which allows adding and removing callbacks.

@@ -2,6 +2,7 @@ using System;
 using AI;
 using Capture;
 using Capture.Recording;
+using Game.Player;
 using Ships;
 using UnityEngine;
 #if UNITY_EDITOR
@@ -20,11 +21,14 @@ public static class TestAssets
     // Standard asset paths
     private const string CrimsonPrefabPath = "Assets/Prefabs/Ships/Crimson.prefab";
     private const string TestPilotMpcPath = "Assets/Prefabs/Pilots/TestPilotMPC.prefab";
+    private const string PlayerPilotPath = "Assets/Prefabs/Pilots/PlayerPilot.prefab";
     private const string ObserverCamPrefabPath = "Assets/Prefabs/Cameras/Main Camera.prefab";
 
     public static Ship LoadCrimsonPrefab() => Load<Ship>(CrimsonPrefabPath);
 
     public static AICommander LoadTestPilotMpc() => Load<AICommander>(TestPilotMpcPath);
+
+    public static PlayerCommander LoadPlayerPilot() => Load<PlayerCommander>(PlayerPilotPath);
 
     public static T Load<T>(string assetPath) where T : UnityEngine.Object
     {

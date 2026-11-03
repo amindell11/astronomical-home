@@ -11,9 +11,10 @@ namespace Tests.Common
     {
         public Transform transform;
         public Dynamics dynamics;
+        public Kinematics kinematics;
         public ShipId Id => default;
         public Transform Transform => transform;
-        public Kinematics Kinematics => default;
+        public Kinematics Kinematics => kinematics;
         public Dynamics Dynamics => dynamics;
         public float HealthPct => 1f;
         public float ShieldPct => 1f;

@@ -18,6 +18,7 @@ namespace Game.Player
         public bool PrimaryReload => controls.Flight.PrimaryReload.WasPressedThisFrame() && !SecondaryReload;
         public bool SecondaryReload => controls.Flight.SecondaryReload.WasPressedThisFrame();
         public bool WantsToRotate => !controls.Flight.HoldHeading.IsPressed();
+        public bool AssistTogglePressed => controls.Flight.ToggleAssist.WasPressedThisFrame();
         // Raised inside the input update, so a jump commits before the next physics step.
         public event Action JumpPressed;
 

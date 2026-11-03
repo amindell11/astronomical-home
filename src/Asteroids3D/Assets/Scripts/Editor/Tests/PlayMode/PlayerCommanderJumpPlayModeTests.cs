@@ -51,8 +51,8 @@ namespace Tests.PlayMode
         public IEnumerator EachFreshPress_RaisesOneRequest_AndADisabledCommanderRaisesNone()
         {
             var keyboard = InputSystem.AddDevice<Keyboard>();
-            commanderGo = new GameObject("TestCommander");
-            var commander = commanderGo.AddComponent<PlayerCommander>();
+            var commander = Object.Instantiate(TestAssets.LoadPlayerPilot());
+            commanderGo = commander.gameObject;
             var jump = new CountingJumpDrive();
             commander.Initialize(new ShipControl(new StubShipStatus { transform = commanderGo.transform },
                 new IdlePilot(), new SeedScope(0), jump: jump));
