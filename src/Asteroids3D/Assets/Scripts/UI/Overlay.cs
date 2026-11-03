@@ -5,12 +5,14 @@ using UI.Markers;
 using UI.PlayerState;
 using UI.Weapons;
 using Combat.Weapons.Conditions;
+using Game.Player;
 using Substrate.Services.Objectives;
 using Ships;
 using Utils;
 using System;
 using UI.Objectives;
 using UI.Projection;
+using UI.Prompts;
 
 namespace UI
 {
@@ -45,6 +47,7 @@ namespace UI
         private ShipStatusOverlay shipStatus;
         private ObjectiveMarkers objectiveMarkers;
         private CanopyProjection projection;
+        private IFlightInput flightInput;
 
         public Camera WorldCamera => canvases[0].worldCamera;
         public bool IsVisible => visible && visibility.alpha > 0f;
@@ -111,6 +114,8 @@ namespace UI
 
         public void Initialize(in HudBinding binding)
         {
+            flightInput = binding.Input;
+
             if (healthAudio)
                 healthAudio.Initialize(binding.Damage);
 
@@ -148,5 +153,8 @@ namespace UI
             ObjectiveStatusReadout.Create(transform, labelFont, headingFont, timerFont, textMaterial,
                 projection, () => IsVisible).Initialize(objectives);
         }
+
+        public void ShowControlPrompts(Func<bool> dismissed) =>
+            ControlPrompts.Create(transform, readoutFont, labelFont, textMaterial, flightInput, dismissed);
     }
 }

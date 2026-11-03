@@ -6,8 +6,8 @@ namespace UI
 {
     /// <summary>
     /// The read-only bundle the HUD binds to — the UI's counterpart of <see cref="ShipControl"/>:
-    /// narrow, event-driven surfaces of the ship it displays plus the run tally, assembled by the
-    /// owning rig.
+    /// narrow, event-driven surfaces of the ship it displays plus the run tally and the player's flight
+    /// controls, assembled by the owning rig.
     /// The UI never sees the Ship or any sim MonoBehaviour behind these.
     /// </summary>
     public readonly struct HudBinding
@@ -23,12 +23,17 @@ namespace UI
 
         public readonly IRunTally Tally;
 
-        public HudBinding(IShipStatus status, IDamageEvents damage, IWeaponReadouts weapons, IRunTally tally)
+        /// <summary>The player's flight controls, or null when no player commander flies the ship.</summary>
+        public readonly IFlightInput Input;
+
+        public HudBinding(IShipStatus status, IDamageEvents damage, IWeaponReadouts weapons, IRunTally tally,
+            IFlightInput input)
         {
             Status = status;
             Damage = damage;
             Weapons = weapons;
             Tally = tally;
+            Input = input;
         }
     }
 }
