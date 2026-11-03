@@ -29,9 +29,10 @@ namespace Game
     /// player by injection (<see cref="Sector.Initialize"/>), never building or clearing it. The
     /// player — ship, input and HUD — is parked (<see cref="Park"/>) from <see cref="Build"/> and
     /// from each sector's unload until <see cref="ApplyLoadout"/> unparks it at the end of the next
-    /// hangar step, so the hangar never handles player presence. Pure mechanism: the rig holds no
-    /// session policy — the host injects the player-death behavior via <see cref="Build"/> and the
-    /// rig only wires it onto each player it builds. A host with no rig assigned has no player.
+    /// hangar step, so the hangar never handles player presence. Pure mechanism with one exception, the
+    /// HUD's keystone prompt at the first sector it enters: the host injects the player-death behavior
+    /// via <see cref="Build"/> and the rig only wires it onto each player it builds. A host with no rig
+    /// assigned has no player.
     /// </summary>
     public class PlayerRig : MonoBehaviour
     {
@@ -86,6 +87,7 @@ namespace Game
         private SessionFrame frame;
         private CanopyProjection projection;
         private CanopyPersonality personality;
+        private bool keystonePromptShown;
 
         // The prefab the current Player instance was built from — a hangar ship change is detected
         // against this (the prefab is the archetype; see ShipLoadout.Ship).
@@ -290,11 +292,22 @@ namespace Game
         public void EnterSector(PhaseSpineModule phase)
         {
             if (personality) personality.EnterSector(phase);
+            if (!phase || keystonePromptShown) return;
+            keystonePromptShown = true;
+            if (Overlay) Overlay.ShowKeystonePrompt(() => FirstSectorPhaseOver(phase));
         }
 
+        // A lull's Index names the next sector phase; an unloaded sector has ended the first too.
+        private static bool FirstSectorPhaseOver(PhaseSpineModule spine) =>
+            !spine || spine.Phase.Index >= 1 || spine.Phase.Done;
+
         // The HUD binds narrow read surfaces, never the Ship itself (see HudBinding).
-        private HudBinding BuildHudBinding() => new HudBinding(
-            Player, Player.Damage, Player.Weapons ? Player.Weapons.ReadoutContext : null, Tally);
+        private HudBinding BuildHudBinding()
+        {
+            var commander = Player.Commander as PlayerCommander;
+            return new HudBinding(Player, Player.Damage, Player.Weapons ? Player.Weapons.ReadoutContext : null, Tally,
+                commander ? commander.playerInput : null, Player.Keystone.DisplayName);
+        }
 
         private void WirePlayerDeath()
         {

@@ -204,6 +204,7 @@ namespace Tests.PlayMode.Rendering.Projection
                 TestAssets.Load<Font>("Assets/Visuals/Ui/Fonts/IBMPlexSans.ttf"),
                 TestAssets.Load<Font>("Assets/Visuals/Ui/Fonts/Michroma.ttf"),
                 TestAssets.Load<Font>("Assets/Visuals/Ui/Fonts/DSEG14Classic.ttf"),
+                TestAssets.Load<Font>("Assets/Visuals/Ui/Fonts/DSEG14Classic.ttf"),
                 TestAssets.Load<Material>("Assets/Visuals/Ui/Projection/CanopyText.mat"), projection, () => visible);
             readout.Initialize(objectives);
             var survive = InstallSpine();

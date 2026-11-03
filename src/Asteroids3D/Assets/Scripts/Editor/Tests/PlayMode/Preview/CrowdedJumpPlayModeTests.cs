@@ -10,6 +10,7 @@ using Game.Preview.Fixtures;
 using Game.Travel;
 using NUnit.Framework;
 using Objectives;
+using Objectives.Presentation;
 using Ships;
 using Substrate;
 using Substrate.Sectors;
@@ -87,8 +88,8 @@ namespace Tests.PlayMode.Preview
             yield return new WaitForFixedUpdate();
             Assert.That(zone.IsPlayerInZone, Is.True);
             Assert.That(host.Playtest.Jump, Is.Null, "entering while F is held needs a fresh press");
-            Assert.That(host.Playtest.GetComponent<ObjectiveService>().SpineTracker.CurrentStatusLine,
-                Is.EqualTo("PRESS F TO JUMP"));
+            Assert.That(host.Playtest.GetComponent<ObjectiveService>().SpineTracker.CurrentPrompt,
+                Is.EqualTo(new InteractionPrompt("F", "JUMP")));
             input.Release(keyboard.fKey);
             InputSystem.Update();
             var hull = player.Damage.Health.CurrentValue;
