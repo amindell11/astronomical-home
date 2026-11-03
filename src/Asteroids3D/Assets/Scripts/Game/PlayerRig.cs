@@ -29,10 +29,10 @@ namespace Game
     /// player by injection (<see cref="Sector.Initialize"/>), never building or clearing it. The
     /// player — ship, input and HUD — is parked (<see cref="Park"/>) from <see cref="Build"/> and
     /// from each sector's unload until <see cref="ApplyLoadout"/> unparks it at the end of the next
-    /// hangar step, so the hangar never handles player presence. Pure mechanism: bar the HUD's control
-    /// prompts at the first sector it enters, the rig holds no session policy — the host injects the
-    /// player-death behavior via <see cref="Build"/> and the rig only wires it onto each player it
-    /// builds. A host with no rig assigned has no player.
+    /// hangar step, so the hangar never handles player presence. Pure mechanism with one exception, the
+    /// HUD's control prompts at the first sector it enters: the host injects the player-death behavior
+    /// via <see cref="Build"/> and the rig only wires it onto each player it builds. A host with no rig
+    /// assigned has no player.
     /// </summary>
     public class PlayerRig : MonoBehaviour
     {
