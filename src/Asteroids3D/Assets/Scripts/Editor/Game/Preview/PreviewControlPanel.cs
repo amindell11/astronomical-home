@@ -136,8 +136,7 @@ namespace Game.Preview
                 if (fixture != subject.Fixture)
                 {
                     subject.SelectFixture(fixture);
-                    if (subject.Scrubs) transport.Restart();
-                    else host.RestartReplay();
+                    host.RestartReplay();
                 }
             }
 
