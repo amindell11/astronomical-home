@@ -104,21 +104,24 @@ namespace Tests.PlayMode.Presentation.Breakup
                 "Assets/Visuals/Ships/Crimson/Breakup/CrimsonBreakup.prefab"));
             var serialized = new SerializedObject(debris);
             var pacedLifetime = serialized.FindProperty("lifetime").floatValue / pace;
+            var fade = serialized.FindProperty("fadeDuration").floatValue;
             var pieces = serialized.FindProperty("pieces");
-            var renderers = Enumerable.Range(0, pieces.arraySize)
-                .Select(i => (Renderer)pieces.GetArrayElementAtIndex(i).FindPropertyRelative("renderer").objectReferenceValue)
+            var authored = Enumerable.Range(0, pieces.arraySize).Select(pieces.GetArrayElementAtIndex)
+                .Select(piece => ((Renderer)piece.FindPropertyRelative("renderer").objectReferenceValue,
+                    piece.FindPropertyRelative("lifetime").floatValue))
                 .ToArray();
             debris.Initialize(Vector3.zero, System.Array.Empty<Transform>(), feel);
             var start = Time.time;
-            float[] lastAlive = null;
             while (true)
             {
                 yield return null;
                 if (!debris) break;
-                lastAlive = renderers.Select(VisibilityOf).ToArray();
+                var pacedAge = pace * (Time.time - start);
+                foreach (var (renderer, lifetime) in authored)
+                    Assert.That(VisibilityOf(renderer), Is.EqualTo(Mathf.Clamp01((lifetime - pacedAge) / fade)).Within(.001f),
+                        "each piece fades on the paced clock, inside its own lifetime");
             }
             Assert.That(Time.time - start, Is.InRange(pacedLifetime - .001f, pacedLifetime + 2f * Time.maximumDeltaTime));
-            Assert.That(lastAlive, Is.All.EqualTo(0f), "every piece has faded by the debris's last frame");
         }
 
         private static float VisibilityOf(Renderer renderer)
