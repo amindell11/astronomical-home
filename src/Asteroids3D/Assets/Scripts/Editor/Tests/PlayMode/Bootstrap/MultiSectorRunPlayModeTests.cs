@@ -3,12 +3,14 @@ using System;
 using System.Collections;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using Cameras;
 using Combat.Weapons;
 using Combat.Weapons.Arsenal;
 using Combat.Weapons.Mods;
 using Game;
+using Game.Moments;
 using Game.Runs;
 using Game.Travel;
 using Objectives;
@@ -108,6 +110,25 @@ namespace Tests.PlayMode.Bootstrap
 
             yield return WaitFor(() => InSector("SectorA"), "the next run starts at the first sector");
             Assert.AreEqual(1f, rig.Player.Damage.Health.Pct, 1e-3f, "a new run starts at full hull");
+        }
+
+        [UnityTest]
+        public IEnumerator EachSectorEntry_ReachesTheStream_AndALowCarriedHullIsNoNewCloseCall()
+        {
+            PlayerRig rig = null;
+            yield return BootToTheFirstSector(built => rig = built);
+            var moments = (RunMomentStream)typeof(GameHost)
+                .GetField("moments", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(host);
+
+            rig.Player.Damage.Health.SetFraction(0.2f);
+            host.ActiveSector.GetComponent<ExtractOnCueModule>().Extract();
+            yield return WaitFor(() => InSector("SectorB"), "extracting from the first sector loads the second");
+            yield return WaitFor(() => Mathf.Abs(rig.Player.Damage.Health.Pct - 0.2f) < 1e-3f,
+                "hull carries into the next sector");
+
+            CollectionAssert.AreEqual(new[] { 1, 2 }, moments.Moments.OfType<SectorEntered>().Select(m => m.Sector));
+            Assert.AreEqual(1, moments.Moments.OfType<CloseCall>().Single().Sector,
+                "the reset and carry at the second sector's load are not a new dip");
         }
 
         [UnityTest]
