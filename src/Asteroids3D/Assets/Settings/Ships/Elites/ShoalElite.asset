@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33424cb3ff214030b47ad2f7b3f470ea, type: 3}
+  m_Name: ShoalElite
+  m_EditorClassIdentifier: 
+  displayName: Shoal Valis
+  scale:
+    size: 1.5
+    mass: 1.5
+    thrust: 1.5
+    torque: 2.5
+    hull: 3
+  primary: {fileID: 918213022752191143, guid: b0f5486eb29ea024da3b9a9978de5236, type: 3}
+  secondary: {fileID: 2094418735087310904, guid: 175e0fad8ede2484082130e20c00cc0a, type: 3}
+  mods:
+  - {fileID: 11400000, guid: de1bcf784de74a1780b063dfcb4e56c9, type: 2}
+  escalation: []

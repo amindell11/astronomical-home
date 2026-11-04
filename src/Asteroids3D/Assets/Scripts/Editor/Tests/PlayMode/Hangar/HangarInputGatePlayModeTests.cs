@@ -1,9 +1,11 @@
 #if UNITY_EDITOR
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Cameras;
 using Game;
+using Game.Runs;
 using Substrate.Sessions;
 using NUnit.Framework;
 using Ships.Loadout;
@@ -78,6 +80,7 @@ namespace Tests.PlayMode.Hangar
             var host = hostGo.AddComponent<GameHost>();
             host.hangarScreenPrefab = AssetDatabase.LoadAssetAtPath<HangarScreen>(HangarScreenPath);
             host.hangarOffer = AssetDatabase.LoadAssetAtPath<ItemSubset>(OfferPath);
+            host.unlocks = new ShipUnlocks(Path.Combine(Application.temporaryCachePath, "no-run-records.jsonl"));
 
             var finished = false;
             IEnumerator Run()

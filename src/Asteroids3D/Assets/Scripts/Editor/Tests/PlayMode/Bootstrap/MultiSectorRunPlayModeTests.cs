@@ -359,9 +359,15 @@ namespace Tests.PlayMode.Bootstrap
             var director = host.ActiveSector.GetComponentInChildren<WaveDirector>();
             director.BeginSchedule(Time.time - 500f);
             director.Advance(Time.time);
-            host.GetComponent<ObjectiveService>().Tick(0f);
+            var objectives = host.GetComponent<ObjectiveService>();
+            objectives.Tick(0f);
+            var elite = rig.Spawns.Entries().FindLast(entry => entry.Elite);
+            Assert.IsTrue(elite.Elite, "Completed production phases summon the sector's elite.");
+            Assert.IsTrue(hostGo.GetComponent<UnitService>().ActiveRegistry.TryGetShip(elite.Id, out var eliteShip));
+            TestDamage.Kill(eliteShip);
+            objectives.Tick(0f);
             var zone = host.ActiveSector.GetComponentInChildren<ExtractionZone>();
-            Assert.IsNotNull(zone, "Completed production phases expose the extraction zone.");
+            Assert.IsNotNull(zone, "The elite's death exposes the extraction zone.");
             Assert.IsTrue(zone.gameObject.activeInHierarchy, "The production zone is active in the loaded sector.");
             rig.Player.transform.position = zone.transform.position;
             rig.Player.Body.position = zone.transform.position;

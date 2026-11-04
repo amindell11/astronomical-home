@@ -1,7 +1,12 @@
+using System;
+
 namespace Substrate.Sectors.Elements.Elites
 {
     public interface IEliteStatus
     {
+        event Action<EliteMoment> Announced;
+        event Action<EliteMoment> Beaten;
+
         string Name { get; }
 
         /// <summary>True while an elite ship is alive in the sector.</summary>

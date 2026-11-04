@@ -1,5 +1,61 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &7957699207206050188
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7206773867486977950}
+  - component: {fileID: 4201520510818603066}
+  m_Layer: 0
+  m_Name: Elite
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7206773867486977950
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7957699207206050188}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 464567137062519928}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4201520510818603066
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7957699207206050188}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b57ff78bd184a9c995eb88f434af7cc, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  profile: {fileID: 11400000, guid: 6eb906335616460983af1abe9f7c5ea2, type: 2}
+  faction: {fileID: 4667602915908898981}
+  pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660, type: 3}
+  escortPilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
+    type: 3}
+  team: 1
+  spawnRadius: 55
+  clearanceRadius: 6
+  asteroidMask:
+    serializedVersion: 2
+    m_Bits: 256
+  placementAttempts: 8
 --- !u!1 &39433959598591787
 GameObject:
   m_ObjectHideFlags: 0
@@ -429,6 +485,7 @@ Transform:
   - {fileID: 2290485117306431782}
   - {fileID: 9176014152621210194}
   - {fileID: 6832071909392833808}
+  - {fileID: 7206773867486977950}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &9090061438643016835
@@ -468,6 +525,7 @@ MonoBehaviour:
   director: {fileID: 1116166669378757183}
   hunt: {fileID: 7436810692243587915}
   extractionZone: {fileID: 1390678639999065524}
+  elite: {fileID: 4201520510818603066}
   zoneDistance: 150
   zoneClearance: 35
   asteroidMask:

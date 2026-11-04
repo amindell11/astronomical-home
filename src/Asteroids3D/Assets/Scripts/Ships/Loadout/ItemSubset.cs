@@ -7,12 +7,15 @@ namespace Ships.Loadout
     /// <summary>
     /// An authored subset of the <see cref="ItemCatalog"/>: the items one consumer chooses from, per
     /// loadout slot. The hangar's offer uses it: the player picks a <see cref="ShipLoadout"/> from
-    /// it, and the weapon pick between sectors draws from its weapons. Loot/ownership (which items
-    /// the player has actually earned) is a later layer that would filter the hangar's offer.
+    /// it, and the weapon pick between sectors draws from its weapons. The hangar narrows its ships
+    /// to the starter plus the ships the player has earned.
     /// </summary>
     [CreateAssetMenu(fileName = "ItemSubset", menuName = "Ship/Item Subset")]
     public class ItemSubset : ScriptableObject
     {
+        [Tooltip("The ship a new player flies; every other offered ship unlocks by beating its elite.")]
+        public Ship starter;
+
         [Tooltip("Ship prefabs selectable in the hangar's Ship slot (the chassis choice).")]
         [Stat] public Ship[] ships;
 

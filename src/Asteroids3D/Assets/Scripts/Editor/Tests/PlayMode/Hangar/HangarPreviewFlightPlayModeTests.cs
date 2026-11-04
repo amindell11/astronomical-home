@@ -188,9 +188,10 @@ namespace Tests.PlayMode.Hangar
             var prefab = AssetDatabase.LoadAssetAtPath<HangarScreen>("Assets/Prefabs/UI/HangarScreen.prefab");
             var screen = Object.Instantiate(prefab, screenRoot.transform);
             offer = ScriptableObject.CreateInstance<ItemSubset>();
+            offer.starter = ships[0];
             offer.ships = ships;
             var loadout = new ShipLoadout(ships[0], null, null);
-            screen.Show(offer, loadout, null);
+            screen.Show(offer, loadout, _ => true, null);
             stage = screenRoot.GetComponentInChildren<HangarPreviewStage>();
             return (screen, loadout);
         }

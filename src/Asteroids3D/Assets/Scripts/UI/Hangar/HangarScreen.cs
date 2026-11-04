@@ -13,7 +13,8 @@ namespace UI.Hangar
 {
     /// <summary>
     /// Between-run hangar screen: binds the prefab-authored option cyclers to the hangar's offer (a
-    /// <see cref="ItemSubset"/>) and writes picks into the pending <see cref="ShipLoadout"/>. Nothing
+    /// <see cref="ItemSubset"/>) and writes picks into the pending <see cref="ShipLoadout"/>. A ship
+    /// neither the starter nor earned still cycles in, shown locked, and holds Launch back. Nothing
     /// touches the live ship — the caller installs the selection when Launch fires.
     /// </summary>
     [RequireComponent(typeof(Canvas))]
@@ -52,8 +53,25 @@ namespace UI.Hangar
         }
 
         /// <summary>Mutates <paramref name="loadout"/> in place as options are picked.</summary>
-        public void Show(ItemSubset offer, ShipLoadout loadout, Action onLaunch)
+        public void Show(ItemSubset offer, ShipLoadout loadout, Func<Ship, bool> earned, Action onLaunch)
         {
+            if (offer && offer.ships is { Length: > 0 } && !offer.starter)
+                throw new InvalidOperationException($"Hangar offer '{offer.name}' offers ships but names no starter.");
+
+            var gated = offer && offer.starter;
+            bool Selectable(Ship ship) => ship == offer.starter || earned(ship);
+
+            // Picking a ship reseeds the module slots to that ship's authored kit.
+            void Reseed(Ship ship)
+            {
+                loadout.Ship = ship;
+                var mounts = ship.Weapons;
+                loadout.PrimaryWeapon = mounts ? mounts.PrimaryMountPrefab : null;
+                loadout.SecondaryWeapon = mounts ? mounts.SecondaryMountPrefab : null;
+            }
+
+            if (gated && !Selectable(loadout.Ship)) Reseed(offer.starter);
+
             if (previewImage)
             {
                 // Beside the screen, not under it: the overlay canvas's pixel-space transform would drag the stage.
@@ -66,20 +84,24 @@ namespace UI.Hangar
 
             if (offer)
             {
-                // Picking a ship reseeds the module slots to that ship's authored kit.
                 BindRow(shipRow, offer.ships, () => loadout.Ship, (s, step) =>
                 {
-                    loadout.Ship = s;
-                    var mounts = s.Weapons;
-                    loadout.PrimaryWeapon = mounts ? mounts.PrimaryMountPrefab : null;
-                    loadout.SecondaryWeapon = mounts ? mounts.SecondaryMountPrefab : null;
+                    Reseed(s);
                     if (previewStage) previewStage.Show(loadout, backwards: step < 0);
-                }, Describe);
+                }, Describe, ship => !gated || Selectable(ship) ? ship.name : $"{ship.name} (locked)");
                 BindRow(primaryWeaponRow, offer.weapons, () => loadout.PrimaryWeapon,
                     (w, _) => loadout.PrimaryWeapon = w, Describe, WeaponLabel);
                 BindRow(secondaryWeaponRow, offer.weapons, () => loadout.SecondaryWeapon,
                     (w, _) => loadout.SecondaryWeapon = w, Describe, WeaponLabel);
             }
+
+            if (gated)
+                refreshers.Add(() =>
+                {
+                    var selectable = Selectable(loadout.Ship);
+                    if (shipRow) shipRow.Dimmed = !selectable;
+                    if (launchButton) launchButton.interactable = selectable;
+                });
 
             Refresh();
 
