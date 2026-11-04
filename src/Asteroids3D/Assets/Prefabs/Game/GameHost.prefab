@@ -80,6 +80,8 @@ MonoBehaviour:
   deathBehavior: 2
   killHullRestore: 0.25
   lullMods: {fileID: 11400000, guid: 39cc47f84df34c5589e2267bff2200d2, type: 2}
+  companionLines: {fileID: 11400000, guid: c5fa908d79cd4ebea0dc1d1d998e41f0, type: 2}
+  companionFeel: {fileID: 11400000, guid: 1429d475f64d411c84eb4b31ec6d6256, type: 2}
 --- !u!114 &7632041640955592545
 MonoBehaviour:
   m_ObjectHideFlags: 0

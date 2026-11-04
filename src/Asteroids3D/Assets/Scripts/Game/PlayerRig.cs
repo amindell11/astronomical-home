@@ -174,7 +174,9 @@ namespace Game
         public void Park()
         {
             Player.gameObject.SetActive(false);
-            if (Overlay) Overlay.SetVisible(false);
+            if (!Overlay) return;
+            Overlay.SetVisible(false);
+            Overlay.CommLine.Clear();
         }
 
         // A fire button held across the revive reads unpressed until pressed afresh (initialStateCheck off).

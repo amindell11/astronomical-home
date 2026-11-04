@@ -67,7 +67,16 @@ namespace Game.Runs
                     ? row
                     : throw new ArgumentException("This run's record is not a readable run-record-v2.", nameof(thisRun));
 
-            if (!File.Exists(path)) return new Scoreboard(Array.Empty<Row>(), mine);
+            var runs = ReadRuns(path);
+            return runs == null
+                ? new Scoreboard(Array.Empty<Row>(), null)
+                : new Scoreboard(runs.ConvertAll(run => run.Row), mine);
+        }
+
+        /// <summary>Every readable run in file order; null when the file cannot be read, which is logged.</summary>
+        internal static List<(RunRecord Record, Row Row)> ReadRuns(string path)
+        {
+            if (!File.Exists(path)) return new List<(RunRecord, Row)>();
 
             string[] lines;
             try
@@ -77,22 +86,22 @@ namespace Game.Runs
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {
                 Debug.LogError($"Scoreboard not read from '{path}': {e.Message}");
-                return new Scoreboard(Array.Empty<Row>(), null);
+                return null;
             }
 
-            var recorded = new List<Row>(lines.Length);
+            var runs = new List<(RunRecord, Row)>(lines.Length);
             foreach (var line in lines)
-                if (TryParse(line, out var row)) recorded.Add(row);
-            return new Scoreboard(recorded, mine);
+                if (TryParse(line, out var record, out var row)) runs.Add((record, row));
+            return runs;
         }
 
-        private static bool TryParse(string line, out Row row)
+        private static bool TryParse(string line, out RunRecord record, out Row row)
         {
+            record = default;
             row = default;
             // JsonUtility unboxes an empty line to a null struct, which throws NullReferenceException.
             if (string.IsNullOrWhiteSpace(line)) return false;
 
-            RunRecord record;
             try
             {
                 record = JsonUtility.FromJson<RunRecord>(line);
