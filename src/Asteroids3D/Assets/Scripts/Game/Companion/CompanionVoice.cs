@@ -67,9 +67,8 @@ namespace Game.Companion
         }
 
         private static string DebugLabel(IRunMoment moment) =>
-            string.Join(" · ", moment.Facts.Where(fact => fact.Value.Length > 0)
-                .Select(fact => fact.Key + " " + fact.Value)
-                .Prepend("[" + moment.Slot + "]"));
+            ("[" + moment.Slot + "] " + string.Join(" · ", moment.Facts.Where(fact => fact.Value.Length > 0)
+                .Select(fact => fact.Key + " " + fact.Value))).TrimEnd();
 
         private void Update() => TrySpeak();
 
