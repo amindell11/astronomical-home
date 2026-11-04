@@ -5,6 +5,7 @@ using Objectives;
 using Objectives.Presentation;
 using Objectives.States;
 using Ships;
+using Substrate.Sectors.Elements.Hunt;
 using Substrate.Services.Objectives;
 using UnityEngine;
 
@@ -17,8 +18,8 @@ namespace Substrate.Sectors.Elements.Phases
     /// sector phase that a lull follows ends, a lull beacon opens on a clear point away from the hero
     /// the same way and stays through the lull and a grace window into the next phase; flying into it
     /// claims that lull's pick (<see cref="BeaconClaimed"/>, read by the host), and an unclaimed one
-    /// closes when its grace runs out or the next beacon opens. The director is held to observe its
-    /// phase, never commanded.
+    /// closes when its grace runs out or the next beacon opens. While the sector's hunt runs, the HUD's
+    /// countdown reads the hunt instead. The director and the hunt are held to observe, never commanded.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1051
     /// </summary>
     public class PhaseSpineModule : SectorModule
@@ -28,6 +29,8 @@ namespace Substrate.Sectors.Elements.Phases
         public const string StepCompleted = "completed";
 
         [SerializeField] private WaveDirector director;
+        [Tooltip("The sector's opening hunt, read for the HUD's countdown until its alarm; unset for none.")]
+        [SerializeField] private SectorHunt hunt;
         [SerializeField] private ExtractionZone extractionZone;
 
         [Header("Zone placement")]
@@ -175,6 +178,12 @@ namespace Substrate.Sectors.Elements.Phases
         private SectorPhaseProgress ReadPhaseProgress()
         {
             var mark = director.Phase;
+            if (hunt && mark.InOpeningLull && !hunt.Alarmed)
+            {
+                var callIn = hunt.CallInSecondsLeft;
+                return new SectorPhaseProgress(-1, director.PhaseCount, callIn ?? hunt.SearchSecondsLeft, false,
+                    callIn.HasValue ? HuntReading.Spotted : HuntReading.Searching);
+            }
             return new SectorPhaseProgress(mark.InLull ? mark.Index - 1 : mark.Index,
                 director.PhaseCount, mark.CountdownSeconds, mark.Done);
         }
@@ -240,9 +249,10 @@ namespace Substrate.Sectors.Elements.Phases
 
 #if UNITY_EDITOR
         internal void Bind(WaveDirector director, ExtractionZone zone, ExtractionZone beacon,
-            float? leadSeconds = null, float? graceSeconds = null)
+            float? leadSeconds = null, float? graceSeconds = null, SectorHunt hunt = null)
         {
             this.director = director;
+            this.hunt = hunt;
             extractionZone = zone;
             beaconZone = beacon;
             if (leadSeconds.HasValue) beaconLeadSeconds = leadSeconds.Value;

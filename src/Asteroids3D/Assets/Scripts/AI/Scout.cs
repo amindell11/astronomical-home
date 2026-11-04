@@ -30,6 +30,9 @@ namespace AI
         private Transform origin;
         private ShipId shipId;
         public ShipId ShipId => shipId;
+
+        /// <summary>Scans still feed avoidance, but no contacts are reported, so the pilot acquires no enemy.</summary>
+        public bool Unaware { get; set; }
         public IShipRegistry Registry { get; private set; }
         private Dynamics shipDynamics;
         private IWeaponContext weapons;
@@ -69,7 +72,7 @@ namespace AI
             if (!shipId.IsValid) return;
 
             shipScanner?.Scan();
-            Contacts = shipScanner != null
+            Contacts = shipScanner != null && !Unaware
                 ? ContactSummary.Build(shipScanner.LastResult, shipId, origin.position, Registry)
                 : ContactSummary.Empty;
             HasNearbyCover = coverSensor != null && coverSensor.Detect() > 0;

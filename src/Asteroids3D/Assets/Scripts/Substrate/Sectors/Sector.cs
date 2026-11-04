@@ -67,19 +67,20 @@ namespace Substrate.Sectors
             GamePlane.WorldPointToPlane((startPointMarker ? startPointMarker.transform : transform).position);
 
         public void Initialize(IUnitService units, IObjectiveService objectives, bool presentationEnabled,
-            SessionFrame frame, Ship hero)
+            SessionFrame frame, Ship hero, int sectorIndex = 0)
         {
             Units = units ?? throw new ArgumentNullException(nameof(units));
             Objectives = objectives ?? throw new ArgumentNullException(nameof(objectives));
             PresentationEnabled = presentationEnabled;
-            Context = new SectorBuildContext(Units, Objectives, PresentationEnabled, this, frame, ObstacleField, hero);
+            Context = new SectorBuildContext(Units, Objectives, PresentationEnabled, this, frame, ObstacleField, hero,
+                sectorIndex: sectorIndex);
         }
 
         public IEnumerator Setup()
         {
             // Fresh bus each cycle so a restart never sees stale latched tokens (episode-reset requirement).
             Context = new SectorBuildContext(Units, Objectives, PresentationEnabled, this, Context.Frame,
-                Context.Field, Context.Hero, new SectorEventBus());
+                Context.Field, Context.Hero, new SectorEventBus(), Context.SectorIndex);
 
             foreach (var t in adopted)
                 AdoptShip(t);
