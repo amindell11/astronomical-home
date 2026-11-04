@@ -49,12 +49,14 @@ namespace Game.Runs
         public LoadoutRow loadout;
         public float aliveSeconds;
         public bool killedByPlayer;
+        public bool elite;
     }
 
     /// <summary>
     /// One finished run as one JSON line: what it was played on (build identity, stat fingerprint),
-    /// what the player flew, how it went, what hurt the player, and every ship that spawned. A run
-    /// ends extracted from its last sector or dead; only a death carries a killing blow.
+    /// what the player flew, how it went, what hurt the player, and every ship that spawned, its
+    /// sector's elite flagged. A run ends extracted from its last sector or dead; only a death carries
+    /// a killing blow.
     /// A damage row and the killing blow name their attacker as an index into <see cref="spawns"/>,
     /// <see cref="NoSpawn"/> when no logged ship dealt it, so no Unity instance id reaches the file.
     /// Older v2 rows lack a measured shield/hull split; hasDamageSplit distinguishes those from zero damage.
@@ -164,6 +166,7 @@ namespace Game.Runs
                     },
                     aliveSeconds = entry.AliveSeconds,
                     killedByPlayer = entry.KilledByPlayer,
+                    elite = entry.Elite,
                 });
 
             return record;

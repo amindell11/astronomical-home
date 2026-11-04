@@ -121,6 +121,7 @@ namespace Ships
         private bool isInitialized = false;
         private IProjectileService projectiles;
         private LullModStack mods;
+        private ShipScale scale = ShipScale.One;
 
         protected virtual void Awake()
         {
@@ -149,7 +150,7 @@ namespace Ships
         }
 
         private void Resolve() =>
-            Stats = ResolvedShipStats.Resolve(this, engine, shield, mods?.ForShip() ?? ShipMods.None);
+            Stats = ResolvedShipStats.Resolve(this, engine, shield, mods?.ForShip() ?? ShipMods.None, scale);
 
         /// <summary>Authored stats, without run mods or instantiating; shipRadius stays default until <see cref="Initialize"/> derives it from live colliders.</summary>
         public ResolvedShipStats ResolveStats() => ResolvedShipStats.Resolve(this, engine, shield);
@@ -224,8 +225,8 @@ namespace Ships
             subShield = null;
         }
 
-        /// <summary>The registry may be null only for a ship that never arms a commander (unarmed or commander-less); arming demands it.</summary>
-        public virtual void Initialize(int team, int decisionSeed, IProjectileService projectiles)
+        /// <summary>The registry may be null only for a ship that never arms a commander (unarmed or commander-less); arming demands it. A null <paramref name="scale"/> flies the ship as authored.</summary>
+        public virtual void Initialize(int team, int decisionSeed, IProjectileService projectiles, ShipScale scale = null)
         {
             if (isInitialized) return;
             if (!keystone)
@@ -233,6 +234,8 @@ namespace Ships
             teamNumber = team;
             DecisionSeed = decisionSeed;
             this.projectiles = projectiles;
+            this.scale = scale ?? ShipScale.One;
+            transform.localScale *= this.scale.Size;
             Resolve();
             Movement.Initialize(Stats, ()=>KinematicsPoller.Kinematics, Keystone, Weapons);
             Damage.Initialize(Keystone);

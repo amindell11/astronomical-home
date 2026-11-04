@@ -291,7 +291,9 @@ namespace Game
 
         public void EnterSector(PhaseSpineModule phase)
         {
+            Spawns.Watch(phase ? phase.Elite : null);
             if (personality) personality.EnterSector(phase);
+            if (Overlay) Overlay.BindElite(phase ? phase.Elite : null);
             if (!phase || keystonePromptShown) return;
             keystonePromptShown = true;
             if (Overlay) Overlay.ShowKeystonePrompt(() => FirstSectorPhaseOver(phase));

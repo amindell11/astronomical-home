@@ -1,5 +1,6 @@
 using System;
 using AI.Scanning;
+using Loot;
 using Ships;
 using Ships.Command;
 using Ships.Loadout;
@@ -16,7 +17,7 @@ namespace Substrate.Services.Units
         /// <summary>All ships currently in play.</summary>
         ShipRegistry ActiveRegistry { get; }
 
-        /// <summary>Spawn a ship, wire its dependencies (an AI commander senses <paramref name="field"/>, null for no rocks), and register it. A <paramref name="loadout"/> installs its module slots before the wiring, so an AI commander initialises against the build it flies; null keeps the template's authored build.</summary>
+        /// <summary>Spawn a ship, wire its dependencies (an AI commander senses <paramref name="field"/>, null for no rocks), and register it. A <paramref name="loadout"/> installs its module slots and <paramref name="mods"/> bind before the wiring, so an AI commander initialises against the build and stats it flies; null keeps the template's authored build, unmodded. A <paramref name="scale"/> sizes and retunes the ship before it initialises; null flies it as authored.</summary>
         Ship SpawnShip(
             Ship template,
             Commander commander,
@@ -24,7 +25,9 @@ namespace Substrate.Services.Units
             Vector3 position,
             Quaternion rotation,
             IObstacleField field,
-            ShipLoadout loadout = null);
+            ShipLoadout loadout = null,
+            ShipScale scale = null,
+            LullModStack mods = null);
 
         /// <summary>Take ownership of an already-instantiated ship (authored as a sector child): wire its child pilot, initialise it from its own settings/team, wire it against <paramref name="field"/>, and register it.</summary>
         Ship AdoptShip(Ship ship, IObstacleField field);
