@@ -76,7 +76,19 @@ namespace Game.Runs
         /// <summary>Every readable run in file order; null when the file cannot be read, which is logged.</summary>
         internal static List<(RunRecord Record, Row Row)> ReadRuns(string path)
         {
-            if (!File.Exists(path)) return new List<(RunRecord, Row)>();
+            var records = ReadRecords(path);
+            if (records == null) return null;
+
+            var runs = new List<(RunRecord, Row)>(records.Count);
+            foreach (var record in records)
+                if (TryRead(record, out var row)) runs.Add((record, row));
+            return runs;
+        }
+
+        /// <summary>Every run-record-v2 line in file order; null when the file cannot be read, which is logged.</summary>
+        internal static List<RunRecord> ReadRecords(string path)
+        {
+            if (!File.Exists(path)) return new List<RunRecord>();
 
             string[] lines;
             try
@@ -85,20 +97,19 @@ namespace Game.Runs
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {
-                Debug.LogError($"Scoreboard not read from '{path}': {e.Message}");
+                Debug.LogError($"Run records not read from '{path}': {e.Message}");
                 return null;
             }
 
-            var runs = new List<(RunRecord, Row)>(lines.Length);
+            var records = new List<RunRecord>(lines.Length);
             foreach (var line in lines)
-                if (TryParse(line, out var record, out var row)) runs.Add((record, row));
-            return runs;
+                if (TryParse(line, out var record)) records.Add(record);
+            return records;
         }
 
-        private static bool TryParse(string line, out RunRecord record, out Row row)
+        private static bool TryParse(string line, out RunRecord record)
         {
             record = default;
-            row = default;
             // JsonUtility unboxes an empty line to a null struct, which throws NullReferenceException.
             if (string.IsNullOrWhiteSpace(line)) return false;
 
@@ -110,7 +121,7 @@ namespace Game.Runs
             {
                 return false;
             }
-            return TryRead(record, out row);
+            return record.schema == RunRecord.SchemaId;
         }
 
         private static bool TryRead(in RunRecord record, out Row row)

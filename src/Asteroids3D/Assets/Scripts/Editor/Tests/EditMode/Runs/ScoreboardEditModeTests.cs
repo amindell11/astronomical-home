@@ -120,7 +120,7 @@ namespace Tests.EditMode.Runs
             File.WriteAllLines(path, new[] { Record(1, 1, 1f).ToJsonLine() });
             using var hold = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
 
-            LogAssert.Expect(LogType.Error, new Regex("Scoreboard not read from '" + Regex.Escape(path) + "'"));
+            LogAssert.Expect(LogType.Error, new Regex("Run records not read from '" + Regex.Escape(path) + "'"));
             var board = Scoreboard.Read(path, Record(2, 2, 2f));
 
             Assert.IsNull(board.Rank);
