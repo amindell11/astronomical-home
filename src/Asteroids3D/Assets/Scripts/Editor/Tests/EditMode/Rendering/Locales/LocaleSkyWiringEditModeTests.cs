@@ -17,6 +17,10 @@ namespace Tests.EditMode.Rendering.Locales
         private const string Locale1 = "Assets/Prefabs/Locales/Locale_1.prefab";
         private const string Locale2 = "Assets/Prefabs/Locales/Locale_2.prefab";
         private const string Locale3 = "Assets/Prefabs/Locales/Locale_3.prefab";
+        private const string Locale4 = "Assets/Prefabs/Locales/Locale_4.prefab";
+        private const string Locale5 = "Assets/Prefabs/Locales/Locale_5.prefab";
+        private const string Locale6 = "Assets/Prefabs/Locales/Locale_6.prefab";
+        private const string Locale7 = "Assets/Prefabs/Locales/Locale_7.prefab";
         private const string EditScene = "Assets/Scenes/EditScene.unity";
         private static readonly string[] CandidateLayers = { "Background", "FarNebula", "StarField", "CloseNebula" };
         private static readonly int[] CandidateQueues = { 2900, 2940, 2950, 2990 };
@@ -24,6 +28,10 @@ namespace Tests.EditMode.Rendering.Locales
         [TestCase(Locale1)]
         [TestCase(Locale2)]
         [TestCase(Locale3)]
+        [TestCase(Locale4)]
+        [TestCase(Locale5)]
+        [TestCase(Locale6)]
+        [TestCase(Locale7)]
         public void LocalePrefab_HasExactlyOneLocaleSky_AtItsRoot(string prefabPath)
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
@@ -101,6 +109,10 @@ namespace Tests.EditMode.Rendering.Locales
         [TestCase(Locale1)]
         [TestCase(Locale2)]
         [TestCase(Locale3)]
+        [TestCase(Locale4)]
+        [TestCase(Locale5)]
+        [TestCase(Locale6)]
+        [TestCase(Locale7)]
         [TestCase(EditScene)]
         public void CloudBankLayers_BakeAStaticZoomFreeTile(string path)
         {
@@ -171,6 +183,10 @@ namespace Tests.EditMode.Rendering.Locales
         [TestCase(Locale1, false)]
         [TestCase(Locale2, false)]
         [TestCase(Locale3, true)]
+        [TestCase(Locale4, true)]
+        [TestCase(Locale5, true)]
+        [TestCase(Locale6, true)]
+        [TestCase(Locale7, true)]
         public void LocalePrefab_LightsFromFlatAmbientAndItsOwnReflectionCubemap(string prefabPath, bool hasSun)
         {
             var locale = AssetDatabase.LoadAssetAtPath<LocaleSky>(prefabPath);
@@ -184,7 +200,7 @@ namespace Tests.EditMode.Rendering.Locales
             Assert.That(AssetDatabase.GetAssetPath(reflection),
                 Does.StartWith($"Assets/Visuals/Locales/Sky/Locales/{locale.name}/"));
             var sun = (Light)lighting.FindPropertyRelative("sun").objectReferenceValue;
-            Assert.That((bool)sun, Is.EqualTo(hasSun), "Only Locale_3 names a sun.");
+            Assert.That((bool)sun, Is.EqualTo(hasSun));
             if (sun) Assert.IsTrue(sun.transform.IsChildOf(locale.transform), "A locale's sun is its own light.");
         }
 

@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: FarNebula
+  m_Shader: {fileID: 4800000, guid: 1af0987870b4c154392851c7d14257dc, type: 3}
+  m_Parent: {fileID: 2100000, guid: 483f5a2fecf0dd74dbec0d5270dc22d6, type: 2}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs: []
+    m_Ints: []
+    m_Floats:
+    - _CloudDirection: -18
+    - _CloudGlow: 0.65
+    - _CloudGlowSpread: 0.2
+    - _CloudOpacity: 0.94
+    - _CloudStretch: 3.8
+    - _NebulaParallax: 0.018
+    - _NebulaScale: 0.24
+    - _NebulaSpeed: 0
+    - _NebulaStrength: 0.55
+    - _Seed: 113
+    m_Colors:
+    - _CloudGlowCool: {r: 0.72, g: 0.34, b: 0.09, a: 1}
+    - _CloudGlowWarm: {r: 1, g: 0.5, b: 0.13, a: 1}
+    - _CloudShadow: {r: 0.075, g: 0.052, b: 0.025, a: 1}
+    - _NebulaCool: {r: 0.6012433, g: 0.42358282, b: 0.20598412, a: 1}
+    - _NebulaWarm: {r: 0.48452914, g: 0.303532, b: 0.11207492, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
