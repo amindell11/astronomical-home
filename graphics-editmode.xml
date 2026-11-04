@@ -1,0 +1,413 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="54" result="Passed" total="54" passed="54" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-04 19:11:36Z" end-time="2026-11-04 19:11:47Z" duration="11.2246438">
+  <test-suite type="TestSuite" id="1000" name="Astronomical" fullname="Astronomical" runstate="Runnable" testcasecount="1178" result="Passed" start-time="2026-11-04 19:11:36Z" end-time="2026-11-04 19:11:47Z" duration="11.224644" total="54" passed="54" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="2410" name="Tests.EditMode.dll" fullname="D:/amind/git/agent-8/src/Asteroids3D/Library/ScriptAssemblies/Tests.EditMode.dll" runstate="Runnable" testcasecount="1178" result="Passed" start-time="2026-11-04 19:11:36Z" end-time="2026-11-04 19:11:47Z" duration="11.201171" total="54" passed="54" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="47040" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="2411" name="Tests" fullname="Tests" runstate="Runnable" testcasecount="1178" result="Passed" start-time="2026-11-04 19:11:36Z" end-time="2026-11-04 19:11:47Z" duration="11.191023" total="54" passed="54" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="2412" name="EditMode" fullname="Tests.EditMode" runstate="Runnable" testcasecount="1178" result="Passed" start-time="2026-11-04 19:11:36Z" end-time="2026-11-04 19:11:47Z" duration="11.183300" total="54" passed="54" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="2428" name="FlatBackground" fullname="Tests.EditMode.FlatBackground" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-11-04 19:11:36Z" end-time="2026-11-04 19:11:43Z" duration="6.048191" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="2383" name="FlatBackgroundImportEditModeTests" fullname="Tests.EditMode.FlatBackground.FlatBackgroundImportEditModeTests" classname="Tests.EditMode.FlatBackground.FlatBackgroundImportEditModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-04 19:11:36Z" end-time="2026-11-04 19:11:39Z" duration="2.192228" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="Category" value="Sectors" />
+              </properties>
+              <test-case id="2384" name="Reimport_KeepsTheMaterialIdentityAndItsHandSetTuning" fullname="Tests.EditMode.FlatBackground.FlatBackgroundImportEditModeTests.Reimport_KeepsTheMaterialIdentityAndItsHandSetTuning" methodname="Reimport_KeepsTheMaterialIdentityAndItsHandSetTuning" classname="Tests.EditMode.FlatBackground.FlatBackgroundImportEditModeTests" runstate="Runnable" seed="12214732" result="Passed" start-time="2026-11-04 19:11:36Z" end-time="2026-11-04 19:11:39Z" duration="2.155230" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="2385" name="FlatBackgroundPaletteEditModeTests" fullname="Tests.EditMode.FlatBackground.FlatBackgroundPaletteEditModeTests" classname="Tests.EditMode.FlatBackground.FlatBackgroundPaletteEditModeTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-11-04 19:11:39Z" end-time="2026-11-04 19:11:43Z" duration="3.849711" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="Category" value="Sectors" />
+              </properties>
+              <test-case id="2388" name="Parse_RejectsAnUnknownSchemaVersion" fullname="Tests.EditMode.FlatBackground.FlatBackgroundPaletteEditModeTests.Parse_RejectsAnUnknownSchemaVersion" methodname="Parse_RejectsAnUnknownSchemaVersion" classname="Tests.EditMode.FlatBackground.FlatBackgroundPaletteEditModeTests" runstate="Runnable" seed="434498553" result="Passed" start-time="2026-11-04 19:11:39Z" end-time="2026-11-04 19:11:39Z" duration="0.418185" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="2387" name="Reimport_RefreshesInheritedColours_KeepsLocaleOverrides_AndRevertReturnsToPalette" fullname="Tests.EditMode.FlatBackground.FlatBackgroundPaletteEditModeTests.Reimport_RefreshesInheritedColours_KeepsLocaleOverrides_AndRevertReturnsToPalette" methodname="Reimport_RefreshesInheritedColours_KeepsLocaleOverrides_AndRevertReturnsToPalette" classname="Tests.EditMode.FlatBackground.FlatBackgroundPaletteEditModeTests" runstate="Runnable" seed="621941723" result="Passed" start-time="2026-11-04 19:11:39Z" end-time="2026-11-04 19:11:41Z" duration="2.071131" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="2386" name="SidecarImport_WritesPaletteParents_OverridingOnlyTheMappedColours" fullname="Tests.EditMode.FlatBackground.FlatBackgroundPaletteEditModeTests.SidecarImport_WritesPaletteParents_OverridingOnlyTheMappedColours" methodname="SidecarImport_WritesPaletteParents_OverridingOnlyTheMappedColours" classname="Tests.EditMode.FlatBackground.FlatBackgroundPaletteEditModeTests" runstate="Runnable" seed="712887254" result="Passed" start-time="2026-11-04 19:11:41Z" end-time="2026-11-04 19:11:43Z" duration="1.323566" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+          </test-suite>
+          <test-suite type="TestSuite" id="2422" name="Rendering" fullname="Tests.EditMode.Rendering" runstate="Runnable" testcasecount="177" result="Passed" start-time="2026-11-04 19:11:43Z" end-time="2026-11-04 19:11:47Z" duration="4.881460" total="50" passed="50" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="2136" name="BackgroundAtmosphereRenderTests" fullname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests" classname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-11-04 19:11:43Z" end-time="2026-11-04 19:11:46Z" duration="3.184249" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="Category" value="Sectors" />
+                <property name="Category" value="RequiresGraphics" />
+              </properties>
+              <test-case id="2148" name="CloudBanks_AttenuateStarsInCloudsButLeaveGapsAndReturnAfterTravel" fullname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests.CloudBanks_AttenuateStarsInCloudsButLeaveGapsAndReturnAfterTravel" methodname="CloudBanks_AttenuateStarsInCloudsButLeaveGapsAndReturnAfterTravel" classname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests" runstate="Runnable" seed="1086453605" result="Passed" start-time="2026-11-04 19:11:43Z" end-time="2026-11-04 19:11:43Z" duration="0.305760" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="2150" name="CloudBankTile_WrapsWithoutASeam" fullname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests.CloudBankTile_WrapsWithoutASeam" methodname="CloudBankTile_WrapsWithoutASeam" classname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests" runstate="Runnable" seed="624323109" result="Passed" start-time="2026-11-04 19:11:43Z" end-time="2026-11-04 19:11:43Z" duration="0.068139" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="2149" name="CloudGlow_SpreadsBeyondDenseCloudsWithoutChangingStarTransmission" fullname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests.CloudGlow_SpreadsBeyondDenseCloudsWithoutChangingStarTransmission" methodname="CloudGlow_SpreadsBeyondDenseCloudsWithoutChangingStarTransmission" classname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests" runstate="Runnable" seed="1003602991" result="Passed" start-time="2026-11-04 19:11:43Z" end-time="2026-11-04 19:11:43Z" duration="0.130449" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="2146" name="ForegroundWisps_AtLowStrengthAreSparseFaintAndMoveWithoutDrawingStars" fullname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests.ForegroundWisps_AtLowStrengthAreSparseFaintAndMoveWithoutDrawingStars" methodname="ForegroundWisps_AtLowStrengthAreSparseFaintAndMoveWithoutDrawingStars" classname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests" runstate="Runnable" seed="1548178176" result="Passed" start-time="2026-11-04 19:11:43Z" end-time="2026-11-04 19:11:43Z" duration="0.028203" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="2141" name="LocaleAtmosphere_SeparatesMaterialsAndPreservesDrawOrder" fullname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests.LocaleAtmosphere_SeparatesMaterialsAndPreservesDrawOrder" classname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-11-04 19:11:43Z" end-time="2026-11-04 19:11:44Z" duration="0.844538" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2137" name="LocaleAtmosphere_SeparatesMaterialsAndPreservesDrawOrder(&quot;Assets/Prefabs/Locales/Locale_1.prefab&quot;)" fullname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests.LocaleAtmosphere_SeparatesMaterialsAndPreservesDrawOrder(&quot;Assets/Prefabs/Locales/Locale_1.prefab&quot;)" methodname="LocaleAtmosphere_SeparatesMaterialsAndPreservesDrawOrder" classname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests" runstate="Runnable" seed="1380328319" result="Passed" start-time="2026-11-04 19:11:43Z" end-time="2026-11-04 19:11:43Z" duration="0.132846" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="2138" name="LocaleAtmosphere_SeparatesMaterialsAndPreservesDrawOrder(&quot;Assets/Prefabs/Locales/Locale_2.prefab&quot;)" fullname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests.LocaleAtmosphere_SeparatesMaterialsAndPreservesDrawOrder(&quot;Assets/Prefabs/Locales/Locale_2.prefab&quot;)" methodname="LocaleAtmosphere_SeparatesMaterialsAndPreservesDrawOrder" classname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests" runstate="Runnable" seed="962348169" result="Passed" start-time="2026-11-04 19:11:43Z" end-time="2026-11-04 19:11:43Z" duration="0.068573" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="2139" name="LocaleAtmosphere_SeparatesMaterialsAndPreservesDrawOrder(&quot;Assets/Prefabs/Locales/Locale_3.prefab&quot;)" fullname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests.LocaleAtmosphere_SeparatesMaterialsAndPreservesDrawOrder(&quot;Assets/Prefabs/Locales/Locale_3.prefab&quot;)" methodname="LocaleAtmosphere_SeparatesMaterialsAndPreservesDrawOrder" classname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests" runstate="Runnable" seed="1699799097" result="Passed" start-time="2026-11-04 19:11:43Z" end-time="2026-11-04 19:11:43Z" duration="0.030087" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="2140" name="LocaleAtmosphere_SeparatesMaterialsAndPreservesDrawOrder(&quot;Assets/Scenes/EditScene.unity&quot;)" fullname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests.LocaleAtmosphere_SeparatesMaterialsAndPreservesDrawOrder(&quot;Assets/Scenes/EditScene.unity&quot;)" methodname="LocaleAtmosphere_SeparatesMaterialsAndPreservesDrawOrder" classname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests" runstate="Runnable" seed="215671146" result="Passed" start-time="2026-11-04 19:11:43Z" end-time="2026-11-04 19:11:44Z" duration="0.608920" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-case id="2142" name="Nebula_HasDarkGapsEvolvesAndReturnsAfterCameraTravel" fullname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests.Nebula_HasDarkGapsEvolvesAndReturnsAfterCameraTravel" methodname="Nebula_HasDarkGapsEvolvesAndReturnsAfterCameraTravel" classname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests" runstate="Runnable" seed="1986301642" result="Passed" start-time="2026-11-04 19:11:44Z" end-time="2026-11-04 19:11:44Z" duration="0.042687" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="2145" name="Nebula_ZoomDoesNotRescaleCloudsOrTheirMotion" fullname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests.Nebula_ZoomDoesNotRescaleCloudsOrTheirMotion" classname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-11-04 19:11:44Z" end-time="2026-11-04 19:11:44Z" duration="0.079604" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2143" name="Nebula_ZoomDoesNotRescaleCloudsOrTheirMotion(False)" fullname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests.Nebula_ZoomDoesNotRescaleCloudsOrTheirMotion(False)" methodname="Nebula_ZoomDoesNotRescaleCloudsOrTheirMotion" classname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests" runstate="Runnable" seed="621180578" result="Passed" start-time="2026-11-04 19:11:44Z" end-time="2026-11-04 19:11:44Z" duration="0.034576" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="2144" name="Nebula_ZoomDoesNotRescaleCloudsOrTheirMotion(True)" fullname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests.Nebula_ZoomDoesNotRescaleCloudsOrTheirMotion(True)" methodname="Nebula_ZoomDoesNotRescaleCloudsOrTheirMotion" classname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests" runstate="Runnable" seed="262304165" result="Passed" start-time="2026-11-04 19:11:44Z" end-time="2026-11-04 19:11:44Z" duration="0.036446" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-case id="2147" name="ShootingStars_AppearMoveAndLeaveQuietIntervals" fullname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests.ShootingStars_AppearMoveAndLeaveQuietIntervals" methodname="ShootingStars_AppearMoveAndLeaveQuietIntervals" classname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests" runstate="Runnable" seed="974582023" result="Passed" start-time="2026-11-04 19:11:44Z" end-time="2026-11-04 19:11:46Z" duration="1.680737" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestSuite" id="2424" name="Locales" fullname="Tests.EditMode.Rendering.Locales" runstate="Runnable" testcasecount="47" result="Passed" start-time="2026-11-04 19:11:46Z" end-time="2026-11-04 19:11:47Z" duration="1.683624" total="38" passed="38" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="2248" name="LocaleSkyWiringEditModeTests" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" testcasecount="31" result="Passed" start-time="2026-11-04 19:11:46Z" end-time="2026-11-04 19:11:47Z" duration="1.504175" total="31" passed="31" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties>
+                  <property name="Category" value="Sectors" />
+                </properties>
+                <test-case id="2275" name="BootScene_CarriesNoSky" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.BootScene_CarriesNoSky" methodname="BootScene_CarriesNoSky" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" seed="1667162659" result="Passed" start-time="2026-11-04 19:11:46Z" end-time="2026-11-04 19:11:46Z" duration="0.539299" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-suite type="ParameterizedMethod" id="2271" name="CloudBankLayers_BakeAStaticZoomFreeTile" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.CloudBankLayers_BakeAStaticZoomFreeTile" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-11-04 19:11:46Z" end-time="2026-11-04 19:11:47Z" duration="0.833593" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="2263" name="CloudBankLayers_BakeAStaticZoomFreeTile(&quot;Assets/Prefabs/Locales/Locale_1.prefab&quot;)" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.CloudBankLayers_BakeAStaticZoomFreeTile(&quot;Assets/Prefabs/Locales/Locale_1.prefab&quot;)" methodname="CloudBankLayers_BakeAStaticZoomFreeTile" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" seed="439672693" result="Passed" start-time="2026-11-04 19:11:46Z" end-time="2026-11-04 19:11:46Z" duration="0.090953" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2264" name="CloudBankLayers_BakeAStaticZoomFreeTile(&quot;Assets/Prefabs/Locales/Locale_2.prefab&quot;)" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.CloudBankLayers_BakeAStaticZoomFreeTile(&quot;Assets/Prefabs/Locales/Locale_2.prefab&quot;)" methodname="CloudBankLayers_BakeAStaticZoomFreeTile" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" seed="1722451124" result="Passed" start-time="2026-11-04 19:11:46Z" end-time="2026-11-04 19:11:46Z" duration="0.080108" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2265" name="CloudBankLayers_BakeAStaticZoomFreeTile(&quot;Assets/Prefabs/Locales/Locale_3.prefab&quot;)" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.CloudBankLayers_BakeAStaticZoomFreeTile(&quot;Assets/Prefabs/Locales/Locale_3.prefab&quot;)" methodname="CloudBankLayers_BakeAStaticZoomFreeTile" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" seed="2040533313" result="Passed" start-time="2026-11-04 19:11:46Z" end-time="2026-11-04 19:11:47Z" duration="0.098777" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2266" name="CloudBankLayers_BakeAStaticZoomFreeTile(&quot;Assets/Prefabs/Locales/Locale_4.prefab&quot;)" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.CloudBankLayers_BakeAStaticZoomFreeTile(&quot;Assets/Prefabs/Locales/Locale_4.prefab&quot;)" methodname="CloudBankLayers_BakeAStaticZoomFreeTile" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" seed="35776555" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.120503" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2267" name="CloudBankLayers_BakeAStaticZoomFreeTile(&quot;Assets/Prefabs/Locales/Locale_5.prefab&quot;)" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.CloudBankLayers_BakeAStaticZoomFreeTile(&quot;Assets/Prefabs/Locales/Locale_5.prefab&quot;)" methodname="CloudBankLayers_BakeAStaticZoomFreeTile" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" seed="354558356" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.101366" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2268" name="CloudBankLayers_BakeAStaticZoomFreeTile(&quot;Assets/Prefabs/Locales/Locale_6.prefab&quot;)" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.CloudBankLayers_BakeAStaticZoomFreeTile(&quot;Assets/Prefabs/Locales/Locale_6.prefab&quot;)" methodname="CloudBankLayers_BakeAStaticZoomFreeTile" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" seed="523052881" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.156703" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2269" name="CloudBankLayers_BakeAStaticZoomFreeTile(&quot;Assets/Prefabs/Locales/Locale_7.prefab&quot;)" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.CloudBankLayers_BakeAStaticZoomFreeTile(&quot;Assets/Prefabs/Locales/Locale_7.prefab&quot;)" methodname="CloudBankLayers_BakeAStaticZoomFreeTile" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" seed="1967037538" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.150431" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2270" name="CloudBankLayers_BakeAStaticZoomFreeTile(&quot;Assets/Scenes/EditScene.unity&quot;)" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.CloudBankLayers_BakeAStaticZoomFreeTile(&quot;Assets/Scenes/EditScene.unity&quot;)" methodname="CloudBankLayers_BakeAStaticZoomFreeTile" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" seed="1727884689" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.031211" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+                <test-case id="2257" name="EditScene_HasExactlyOneActiveLocaleSky" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.EditScene_HasExactlyOneActiveLocaleSky" methodname="EditScene_HasExactlyOneActiveLocaleSky" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" seed="1379475094" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.024053" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="2284" name="EditScene_LightsFromFlatAmbientAndALocaleReflectionCubemap" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.EditScene_LightsFromFlatAmbientAndALocaleReflectionCubemap" methodname="EditScene_LightsFromFlatAmbientAndALocaleReflectionCubemap" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" seed="276450332" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.028798" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-suite type="ParameterizedMethod" id="2256" name="LocalePrefab_HasExactlyOneLocaleSky_AtItsRoot" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.LocalePrefab_HasExactlyOneLocaleSky_AtItsRoot" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.009369" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="2249" name="LocalePrefab_HasExactlyOneLocaleSky_AtItsRoot(&quot;Assets/Prefabs/Locales/Locale_1.prefab&quot;)" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.LocalePrefab_HasExactlyOneLocaleSky_AtItsRoot(&quot;Assets/Prefabs/Locales/Locale_1.prefab&quot;)" methodname="LocalePrefab_HasExactlyOneLocaleSky_AtItsRoot" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" seed="1282064478" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.002859" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2250" name="LocalePrefab_HasExactlyOneLocaleSky_AtItsRoot(&quot;Assets/Prefabs/Locales/Locale_2.prefab&quot;)" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.LocalePrefab_HasExactlyOneLocaleSky_AtItsRoot(&quot;Assets/Prefabs/Locales/Locale_2.prefab&quot;)" methodname="LocalePrefab_HasExactlyOneLocaleSky_AtItsRoot" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" seed="63387683" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.000521" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2251" name="LocalePrefab_HasExactlyOneLocaleSky_AtItsRoot(&quot;Assets/Prefabs/Locales/Locale_3.prefab&quot;)" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.LocalePrefab_HasExactlyOneLocaleSky_AtItsRoot(&quot;Assets/Prefabs/Locales/Locale_3.prefab&quot;)" methodname="LocalePrefab_HasExactlyOneLocaleSky_AtItsRoot" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" seed="1479299234" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.000160" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2252" name="LocalePrefab_HasExactlyOneLocaleSky_AtItsRoot(&quot;Assets/Prefabs/Locales/Locale_4.prefab&quot;)" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.LocalePrefab_HasExactlyOneLocaleSky_AtItsRoot(&quot;Assets/Prefabs/Locales/Locale_4.prefab&quot;)" methodname="LocalePrefab_HasExactlyOneLocaleSky_AtItsRoot" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" seed="2049373269" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.000477" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2253" name="LocalePrefab_HasExactlyOneLocaleSky_AtItsRoot(&quot;Assets/Prefabs/Locales/Locale_5.prefab&quot;)" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.LocalePrefab_HasExactlyOneLocaleSky_AtItsRoot(&quot;Assets/Prefabs/Locales/Locale_5.prefab&quot;)" methodname="LocalePrefab_HasExactlyOneLocaleSky_AtItsRoot" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" seed="1005772246" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.000784" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2254" name="LocalePrefab_HasExactlyOneLocaleSky_AtItsRoot(&quot;Assets/Prefabs/Locales/Locale_6.prefab&quot;)" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.LocalePrefab_HasExactlyOneLocaleSky_AtItsRoot(&quot;Assets/Prefabs/Locales/Locale_6.prefab&quot;)" methodname="LocalePrefab_HasExactlyOneLocaleSky_AtItsRoot" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" seed="1868026836" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.000572" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2255" name="LocalePrefab_HasExactlyOneLocaleSky_AtItsRoot(&quot;Assets/Prefabs/Locales/Locale_7.prefab&quot;)" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.LocalePrefab_HasExactlyOneLocaleSky_AtItsRoot(&quot;Assets/Prefabs/Locales/Locale_7.prefab&quot;)" methodname="LocalePrefab_HasExactlyOneLocaleSky_AtItsRoot" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" seed="738081054" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.000553" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+                <test-suite type="ParameterizedMethod" id="2283" name="LocalePrefab_LightsFromFlatAmbientAndItsOwnReflectionCubemap" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.LocalePrefab_LightsFromFlatAmbientAndItsOwnReflectionCubemap" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.006204" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="2276" name="LocalePrefab_LightsFromFlatAmbientAndItsOwnReflectionCubemap(&quot;Assets/Prefabs/Locales/Locale_1.prefab&quot;,False)" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.LocalePrefab_LightsFromFlatAmbientAndItsOwnReflectionCubemap(&quot;Assets/Prefabs/Locales/Locale_1.prefab&quot;,False)" methodname="LocalePrefab_LightsFromFlatAmbientAndItsOwnReflectionCubemap" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" seed="130011795" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.002422" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2277" name="LocalePrefab_LightsFromFlatAmbientAndItsOwnReflectionCubemap(&quot;Assets/Prefabs/Locales/Locale_2.prefab&quot;,False)" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.LocalePrefab_LightsFromFlatAmbientAndItsOwnReflectionCubemap(&quot;Assets/Prefabs/Locales/Locale_2.prefab&quot;,False)" methodname="LocalePrefab_LightsFromFlatAmbientAndItsOwnReflectionCubemap" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" seed="277480954" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.000338" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2278" name="LocalePrefab_LightsFromFlatAmbientAndItsOwnReflectionCubemap(&quot;Assets/Prefabs/Locales/Locale_3.prefab&quot;,True)" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.LocalePrefab_LightsFromFlatAmbientAndItsOwnReflectionCubemap(&quot;Assets/Prefabs/Locales/Locale_3.prefab&quot;,True)" methodname="LocalePrefab_LightsFromFlatAmbientAndItsOwnReflectionCubemap" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" seed="1997266315" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.000537" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2279" name="LocalePrefab_LightsFromFlatAmbientAndItsOwnReflectionCubemap(&quot;Assets/Prefabs/Locales/Locale_4.prefab&quot;,True)" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.LocalePrefab_LightsFromFlatAmbientAndItsOwnReflectionCubemap(&quot;Assets/Prefabs/Locales/Locale_4.prefab&quot;,True)" methodname="LocalePrefab_LightsFromFlatAmbientAndItsOwnReflectionCubemap" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" seed="1633975534" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.000294" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2280" name="LocalePrefab_LightsFromFlatAmbientAndItsOwnReflectionCubemap(&quot;Assets/Prefabs/Locales/Locale_5.prefab&quot;,True)" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.LocalePrefab_LightsFromFlatAmbientAndItsOwnReflectionCubemap(&quot;Assets/Prefabs/Locales/Locale_5.prefab&quot;,True)" methodname="LocalePrefab_LightsFromFlatAmbientAndItsOwnReflectionCubemap" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" seed="1314569542" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.000269" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2281" name="LocalePrefab_LightsFromFlatAmbientAndItsOwnReflectionCubemap(&quot;Assets/Prefabs/Locales/Locale_6.prefab&quot;,True)" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.LocalePrefab_LightsFromFlatAmbientAndItsOwnReflectionCubemap(&quot;Assets/Prefabs/Locales/Locale_6.prefab&quot;,True)" methodname="LocalePrefab_LightsFromFlatAmbientAndItsOwnReflectionCubemap" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" seed="257392734" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.000429" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2282" name="LocalePrefab_LightsFromFlatAmbientAndItsOwnReflectionCubemap(&quot;Assets/Prefabs/Locales/Locale_7.prefab&quot;,True)" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.LocalePrefab_LightsFromFlatAmbientAndItsOwnReflectionCubemap(&quot;Assets/Prefabs/Locales/Locale_7.prefab&quot;,True)" methodname="LocalePrefab_LightsFromFlatAmbientAndItsOwnReflectionCubemap" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" seed="952969959" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.000388" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+                <test-suite type="ParameterizedMethod" id="2274" name="Scene_HasNoSkyboxRollbackRootOrLightingData" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.Scene_HasNoSkyboxRollbackRootOrLightingData" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.026485" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="2272" name="Scene_HasNoSkyboxRollbackRootOrLightingData(&quot;Assets/Scenes/InitScene.unity&quot;)" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.Scene_HasNoSkyboxRollbackRootOrLightingData(&quot;Assets/Scenes/InitScene.unity&quot;)" methodname="Scene_HasNoSkyboxRollbackRootOrLightingData" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" seed="1412175531" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.004479" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2273" name="Scene_HasNoSkyboxRollbackRootOrLightingData(&quot;Assets/Scenes/EditScene.unity&quot;)" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.Scene_HasNoSkyboxRollbackRootOrLightingData(&quot;Assets/Scenes/EditScene.unity&quot;)" methodname="Scene_HasNoSkyboxRollbackRootOrLightingData" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" seed="1132597292" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.021471" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+                <test-suite type="ParameterizedMethod" id="2262" name="SkyRoot_DrawsPerLocaleVariantsOfItsBackground_InLockedOrder" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.SkyRoot_DrawsPerLocaleVariantsOfItsBackground_InLockedOrder" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.033307" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="2258" name="SkyRoot_DrawsPerLocaleVariantsOfItsBackground_InLockedOrder(&quot;Assets/Prefabs/Locales/Locale_1.prefab&quot;,&quot;copper-turquoise-final&quot;)" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.SkyRoot_DrawsPerLocaleVariantsOfItsBackground_InLockedOrder(&quot;Assets/Prefabs/Locales/Locale_1.prefab&quot;,&quot;copper-turquoise-final&quot;)" methodname="SkyRoot_DrawsPerLocaleVariantsOfItsBackground_InLockedOrder" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" seed="727667429" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.007030" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2259" name="SkyRoot_DrawsPerLocaleVariantsOfItsBackground_InLockedOrder(&quot;Assets/Prefabs/Locales/Locale_2.prefab&quot;,&quot;nebula-glow-flat-final&quot;)" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.SkyRoot_DrawsPerLocaleVariantsOfItsBackground_InLockedOrder(&quot;Assets/Prefabs/Locales/Locale_2.prefab&quot;,&quot;nebula-glow-flat-final&quot;)" methodname="SkyRoot_DrawsPerLocaleVariantsOfItsBackground_InLockedOrder" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" seed="1332723151" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.002144" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2260" name="SkyRoot_DrawsPerLocaleVariantsOfItsBackground_InLockedOrder(&quot;Assets/Prefabs/Locales/Locale_3.prefab&quot;,&quot;illustrated-blue-final&quot;)" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.SkyRoot_DrawsPerLocaleVariantsOfItsBackground_InLockedOrder(&quot;Assets/Prefabs/Locales/Locale_3.prefab&quot;,&quot;illustrated-blue-final&quot;)" methodname="SkyRoot_DrawsPerLocaleVariantsOfItsBackground_InLockedOrder" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" seed="1863854646" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.005091" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2261" name="SkyRoot_DrawsPerLocaleVariantsOfItsBackground_InLockedOrder(&quot;Assets/Scenes/EditScene.unity&quot;,&quot;nebula-glow-flat-final&quot;,&quot;Locale_2&quot;)" fullname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests.SkyRoot_DrawsPerLocaleVariantsOfItsBackground_InLockedOrder(&quot;Assets/Scenes/EditScene.unity&quot;,&quot;nebula-glow-flat-final&quot;,&quot;Locale_2&quot;)" methodname="SkyRoot_DrawsPerLocaleVariantsOfItsBackground_InLockedOrder" classname="Tests.EditMode.Rendering.Locales.LocaleSkyWiringEditModeTests" runstate="Runnable" seed="1363650980" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.017490" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+              </test-suite>
+              <test-suite type="TestFixture" id="2285" name="LocaleVarietyEditModeTests" fullname="Tests.EditMode.Rendering.Locales.LocaleVarietyEditModeTests" classname="Tests.EditMode.Rendering.Locales.LocaleVarietyEditModeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.009467" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties>
+                  <property name="Category" value="Sectors" />
+                </properties>
+                <test-suite type="ParameterizedMethod" id="2290" name="PreviewConfigSelectsItsCompleteLocaleWithIndependentPaletteMaterials" fullname="Tests.EditMode.Rendering.Locales.LocaleVarietyEditModeTests.PreviewConfigSelectsItsCompleteLocaleWithIndependentPaletteMaterials" classname="Tests.EditMode.Rendering.Locales.LocaleVarietyEditModeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.007780" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="2286" name="PreviewConfigSelectsItsCompleteLocaleWithIndependentPaletteMaterials(4,&quot;coral-sunset&quot;,&quot;CoralSunset&quot;)" fullname="Tests.EditMode.Rendering.Locales.LocaleVarietyEditModeTests.PreviewConfigSelectsItsCompleteLocaleWithIndependentPaletteMaterials(4,&quot;coral-sunset&quot;,&quot;CoralSunset&quot;)" methodname="PreviewConfigSelectsItsCompleteLocaleWithIndependentPaletteMaterials" classname="Tests.EditMode.Rendering.Locales.LocaleVarietyEditModeTests" runstate="Runnable" seed="1999297903" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.003014" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2287" name="PreviewConfigSelectsItsCompleteLocaleWithIndependentPaletteMaterials(5,&quot;cyan-aurora&quot;,&quot;CyanAurora&quot;)" fullname="Tests.EditMode.Rendering.Locales.LocaleVarietyEditModeTests.PreviewConfigSelectsItsCompleteLocaleWithIndependentPaletteMaterials(5,&quot;cyan-aurora&quot;,&quot;CyanAurora&quot;)" methodname="PreviewConfigSelectsItsCompleteLocaleWithIndependentPaletteMaterials" classname="Tests.EditMode.Rendering.Locales.LocaleVarietyEditModeTests" runstate="Runnable" seed="1114121095" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.000999" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2288" name="PreviewConfigSelectsItsCompleteLocaleWithIndependentPaletteMaterials(6,&quot;violet-planet&quot;,&quot;VerdantGiant&quot;)" fullname="Tests.EditMode.Rendering.Locales.LocaleVarietyEditModeTests.PreviewConfigSelectsItsCompleteLocaleWithIndependentPaletteMaterials(6,&quot;violet-planet&quot;,&quot;VerdantGiant&quot;)" methodname="PreviewConfigSelectsItsCompleteLocaleWithIndependentPaletteMaterials" classname="Tests.EditMode.Rendering.Locales.LocaleVarietyEditModeTests" runstate="Runnable" seed="1301716556" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.001990" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="2289" name="PreviewConfigSelectsItsCompleteLocaleWithIndependentPaletteMaterials(7,&quot;amber-planet&quot;,&quot;BlueCrescent&quot;)" fullname="Tests.EditMode.Rendering.Locales.LocaleVarietyEditModeTests.PreviewConfigSelectsItsCompleteLocaleWithIndependentPaletteMaterials(7,&quot;amber-planet&quot;,&quot;BlueCrescent&quot;)" methodname="PreviewConfigSelectsItsCompleteLocaleWithIndependentPaletteMaterials" classname="Tests.EditMode.Rendering.Locales.LocaleVarietyEditModeTests" runstate="Runnable" seed="1701663735" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.000833" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+              </test-suite>
+              <test-suite type="TestFixture" id="2291" name="PlanetRenderTests" fullname="Tests.EditMode.Rendering.Locales.PlanetRenderTests" classname="Tests.EditMode.Rendering.Locales.PlanetRenderTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.167036" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties>
+                  <property name="Category" value="Sectors" />
+                  <property name="Category" value="RequiresGraphics" />
+                </properties>
+                <test-case id="2294" name="CameraTravelMovesOnePlanetWithoutRepeatingAndReturnsToItsOriginalPosition" fullname="Tests.EditMode.Rendering.Locales.PlanetRenderTests.CameraTravelMovesOnePlanetWithoutRepeatingAndReturnsToItsOriginalPosition" methodname="CameraTravelMovesOnePlanetWithoutRepeatingAndReturnsToItsOriginalPosition" classname="Tests.EditMode.Rendering.Locales.PlanetRenderTests" runstate="Runnable" seed="1881084126" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.128103" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="2292" name="DiscBlocksStarlightWhileItsRimAndSurroundingsRemainTransparent" fullname="Tests.EditMode.Rendering.Locales.PlanetRenderTests.DiscBlocksStarlightWhileItsRimAndSurroundingsRemainTransparent" methodname="DiscBlocksStarlightWhileItsRimAndSurroundingsRemainTransparent" classname="Tests.EditMode.Rendering.Locales.PlanetRenderTests" runstate="Runnable" seed="1629188700" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.010217" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="2293" name="PlanetIsRoundAndKeepsItsApparentSizeThroughZoom" fullname="Tests.EditMode.Rendering.Locales.PlanetRenderTests.PlanetIsRoundAndKeepsItsApparentSizeThroughZoom" methodname="PlanetIsRoundAndKeepsItsApparentSizeThroughZoom" classname="Tests.EditMode.Rendering.Locales.PlanetRenderTests" runstate="Runnable" seed="1493783640" result="Passed" start-time="2026-11-04 19:11:47Z" end-time="2026-11-04 19:11:47Z" duration="0.027317" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[Saving results to: C:/Users/amind/AppData/LocalLow/AryeGames/Astronomical\TestResults.xml
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

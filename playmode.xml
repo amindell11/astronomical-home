@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="9" result="Passed" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-04 19:15:04Z" end-time="2026-11-04 19:15:22Z" duration="17.1314733">
+  <test-suite type="TestSuite" id="1676" name="Astronomical" fullname="Astronomical" runstate="Runnable" testcasecount="510" result="Passed" start-time="2026-11-04 19:15:04Z" end-time="2026-11-04 19:15:22Z" duration="17.131473" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1640" name="Tests.PlayMode.dll" fullname="D:/amind/git/agent-8/src/Asteroids3D/Library/ScriptAssemblies/Tests.PlayMode.dll" runstate="Runnable" testcasecount="506" result="Passed" start-time="2026-11-04 19:15:04Z" end-time="2026-11-04 19:15:22Z" duration="17.117141" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="32052" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1641" name="Tests" fullname="Tests" runstate="Runnable" testcasecount="506" result="Passed" start-time="2026-11-04 19:15:04Z" end-time="2026-11-04 19:15:22Z" duration="17.111233" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1642" name="PlayMode" fullname="Tests.PlayMode" runstate="Runnable" testcasecount="506" result="Passed" start-time="2026-11-04 19:15:04Z" end-time="2026-11-04 19:15:22Z" duration="17.104864" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1653" name="Presentation" fullname="Tests.PlayMode.Presentation" runstate="Runnable" testcasecount="39" result="Passed" start-time="2026-11-04 19:15:04Z" end-time="2026-11-04 19:15:15Z" duration="10.911637" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1442" name="LocalePlaytestProbe" fullname="Tests.PlayMode.Presentation.LocalePlaytestProbe" classname="Tests.PlayMode.Presentation.LocalePlaytestProbe" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-04 19:15:04Z" end-time="2026-11-04 19:15:15Z" duration="10.759536" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="Category" value="Sectors" />
+                <property name="Category" value="RequiresGraphics" />
+              </properties>
+              <test-case id="1443" name="FourLocalesLoadThroughTheRealGameHostAndRenderBehindItsPlayer" fullname="Tests.PlayMode.Presentation.LocalePlaytestProbe.FourLocalesLoadThroughTheRealGameHostAndRenderBehindItsPlayer" methodname="FourLocalesLoadThroughTheRealGameHostAndRenderBehindItsPlayer" classname="Tests.PlayMode.Presentation.LocalePlaytestProbe" runstate="Runnable" seed="1734974331" result="Passed" start-time="2026-11-04 19:15:04Z" end-time="2026-11-04 19:15:15Z" duration="10.736772" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[LOCALE_PLAYTEST=4 PLAYER=Crimson(Clone) SKY=Locale_4
+[FMOD] Please add an 'FMOD Studio Listener' component to your camera in the scene for correct 3D positioning of sounds.
+LOCALE_PLAYTEST=5 PLAYER=Crimson(Clone) SKY=Locale_5
+LOCALE_PLAYTEST=6 PLAYER=Crimson(Clone) SKY=Locale_6
+LOCALE_PLAYTEST=7 PLAYER=Crimson(Clone) SKY=Locale_7
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1444" name="LocaleSkyPlayModeTests" fullname="Tests.PlayMode.Presentation.LocaleSkyPlayModeTests" classname="Tests.PlayMode.Presentation.LocaleSkyPlayModeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-11-04 19:15:15Z" end-time="2026-11-04 19:15:15Z" duration="0.147957" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="Category" value="Sectors" />
+              </properties>
+              <test-case id="1447" name="BackdropRender_UsesEachImagesOwnVolumeAndLighting_ThenRestoresTheShownLocale" fullname="Tests.PlayMode.Presentation.LocaleSkyPlayModeTests.BackdropRender_UsesEachImagesOwnVolumeAndLighting_ThenRestoresTheShownLocale" methodname="BackdropRender_UsesEachImagesOwnVolumeAndLighting_ThenRestoresTheShownLocale" classname="Tests.PlayMode.Presentation.LocaleSkyPlayModeTests" runstate="Runnable" seed="2141495276" result="Passed" start-time="2026-11-04 19:15:15Z" end-time="2026-11-04 19:15:15Z" duration="0.050882" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="Category" value="RequiresGraphics" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1448" name="FlightCameraFarFromOrigin_DrawsSkyInBothSharedLocaleTravelImages" fullname="Tests.PlayMode.Presentation.LocaleSkyPlayModeTests.FlightCameraFarFromOrigin_DrawsSkyInBothSharedLocaleTravelImages" methodname="FlightCameraFarFromOrigin_DrawsSkyInBothSharedLocaleTravelImages" classname="Tests.PlayMode.Presentation.LocaleSkyPlayModeTests" runstate="Runnable" seed="1046215300" result="Passed" start-time="2026-11-04 19:15:15Z" end-time="2026-11-04 19:15:15Z" duration="0.051749" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="Category" value="RequiresGraphics" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Releasing render texture that is set to be RenderTexture.active!
+]]></output>
+              </test-case>
+              <test-case id="1445" name="SetVisible_EnablesOnlyTheShownLocalesLayers" fullname="Tests.PlayMode.Presentation.LocaleSkyPlayModeTests.SetVisible_EnablesOnlyTheShownLocalesLayers" methodname="SetVisible_EnablesOnlyTheShownLocalesLayers" classname="Tests.PlayMode.Presentation.LocaleSkyPlayModeTests" runstate="Runnable" seed="736344767" result="Passed" start-time="2026-11-04 19:15:15Z" end-time="2026-11-04 19:15:15Z" duration="0.029756" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1446" name="SetVisible_EnablesOnlyTheShownLocalesVolumeAndLight" fullname="Tests.PlayMode.Presentation.LocaleSkyPlayModeTests.SetVisible_EnablesOnlyTheShownLocalesVolumeAndLight" methodname="SetVisible_EnablesOnlyTheShownLocalesVolumeAndLight" classname="Tests.PlayMode.Presentation.LocaleSkyPlayModeTests" runstate="Runnable" seed="1656162937" result="Passed" start-time="2026-11-04 19:15:15Z" end-time="2026-11-04 19:15:15Z" duration="0.004209" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+          </test-suite>
+          <test-suite type="TestFixture" id="1220" name="SessionLocaleRoundTripPlayModeTests" fullname="Tests.PlayMode.SessionLocaleRoundTripPlayModeTests" classname="Tests.PlayMode.SessionLocaleRoundTripPlayModeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-11-04 19:15:15Z" end-time="2026-11-04 19:15:22Z" duration="6.177109" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Sectors" />
+            </properties>
+            <test-case id="1224" name="DestroyingTheOwnerWithoutTeardown_UnloadsTheSessionScene" fullname="Tests.PlayMode.SessionLocaleRoundTripPlayModeTests.DestroyingTheOwnerWithoutTeardown_UnloadsTheSessionScene" methodname="DestroyingTheOwnerWithoutTeardown_UnloadsTheSessionScene" classname="Tests.PlayMode.SessionLocaleRoundTripPlayModeTests" runstate="Runnable" seed="742073532" result="Passed" start-time="2026-11-04 19:15:15Z" end-time="2026-11-04 19:15:17Z" duration="1.442514" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="600000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1222" name="EachStep_LightsFromTheShownLocalesFlatAmbientAndCustomReflection" fullname="Tests.PlayMode.SessionLocaleRoundTripPlayModeTests.EachStep_LightsFromTheShownLocalesFlatAmbientAndCustomReflection" methodname="EachStep_LightsFromTheShownLocalesFlatAmbientAndCustomReflection" classname="Tests.PlayMode.SessionLocaleRoundTripPlayModeTests" runstate="Runnable" seed="1788098972" result="Passed" start-time="2026-11-04 19:15:17Z" end-time="2026-11-04 19:15:21Z" duration="4.569960" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="600000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Registered Communicator in Agent.
+Couldn't connect to trainer on port 5004 using API version 1.5.0. Will perform inference instead.
+]]></output>
+            </test-case>
+            <test-case id="1221" name="IdleLocaleSharedWithTheSector_KeepsItsInstanceAcrossTheHandOff" fullname="Tests.PlayMode.SessionLocaleRoundTripPlayModeTests.IdleLocaleSharedWithTheSector_KeepsItsInstanceAcrossTheHandOff" methodname="IdleLocaleSharedWithTheSector_KeepsItsInstanceAcrossTheHandOff" classname="Tests.PlayMode.SessionLocaleRoundTripPlayModeTests" runstate="Runnable" seed="2064979705" result="Passed" start-time="2026-11-04 19:15:21Z" end-time="2026-11-04 19:15:21Z" duration="0.094258" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="600000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1223" name="UnparentedObject_SurvivesASectorWithADifferentLocale_AndDiesWithTheSession" fullname="Tests.PlayMode.SessionLocaleRoundTripPlayModeTests.UnparentedObject_SurvivesASectorWithADifferentLocale_AndDiesWithTheSession" methodname="UnparentedObject_SurvivesASectorWithADifferentLocale_AndDiesWithTheSession" classname="Tests.PlayMode.SessionLocaleRoundTripPlayModeTests" runstate="Runnable" seed="672865925" result="Passed" start-time="2026-11-04 19:15:21Z" end-time="2026-11-04 19:15:22Z" duration="0.067374" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="600000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Saving results to: C:/Users/amind/AppData/LocalLow/AryeGames/Astronomical\TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>
