@@ -217,7 +217,7 @@ namespace Game
             }
             if (presentation && companionLines && rigInstance && rigInstance.Overlay)
                 voice = CompanionVoice.Create(transform, companionLines, companionFeel, rigInstance.Overlay.CommLine,
-                    () => rigInstance.Overlay.IsVisible);
+                    () => rigInstance.Overlay.IsVisible, Debug.isDebugBuild);
 
             yield return PlayRuns(presentation);
 

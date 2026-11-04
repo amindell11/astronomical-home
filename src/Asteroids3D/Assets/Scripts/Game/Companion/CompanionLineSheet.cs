@@ -29,7 +29,8 @@ namespace Game.Companion
         [SerializeField] private bool mustSay;
 
         [Tooltip("The companion says one of these, picked at random. A line quotes the moment's facts as " +
-                 "{name}. An empty line slot stays silent.")]
+                 "{name}. An empty line slot stays silent in player builds and shows a bracketed debug label " +
+                 "in the editor and development builds.")]
         [SerializeField, TextArea] private string[] lines = Array.Empty<string>();
 
         public string Moment => moment;

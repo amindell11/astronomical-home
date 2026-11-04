@@ -52,7 +52,10 @@ namespace Tests.PlayMode.Companion
 
         private RunStarted FirstRun() => new(PastRuns.Read(Path.Combine(dir, "run-records.jsonl")));
 
-        private void BuildVoice(params (string moment, bool mustSay, string[] lines)[] slots)
+        private void BuildVoice(params (string moment, bool mustSay, string[] lines)[] slots) =>
+            BuildVoice(false, slots);
+
+        private void BuildVoice(bool debugLabels, params (string moment, bool mustSay, string[] lines)[] slots)
         {
             sheet = ScriptableObject.CreateInstance<CompanionLineSheet>();
             using (var serialized = new SerializedObject(sheet))
@@ -72,13 +75,13 @@ namespace Tests.PlayMode.Companion
                 serialized.ApplyModifiedPropertiesWithoutUndo();
             }
 
-            voice = CompanionVoice.Create(hud.transform, sheet, feel, display, () => true);
+            voice = CompanionVoice.Create(hud.transform, sheet, feel, display, () => true, debugLabels);
             moments = new RunMomentStream();
             voice.Initialize(moments);
         }
 
         [UnityTest]
-        public IEnumerator EmptyLineSlots_ShowNothing()
+        public IEnumerator EmptyLineSlotsWithoutDebugLabels_ShowNothing()
         {
             BuildVoice(RunStarted.AllSlots.Append(PlayerDied.DeathSlot)
                 .Select(slot => (slot, true, Array.Empty<string>())).ToArray());
@@ -89,6 +92,22 @@ namespace Tests.PlayMode.Companion
 
             Assert.IsFalse(display.Speaking, "an empty line slot stays silent");
             Assert.AreEqual(string.Empty, display.Line);
+        }
+
+        [UnityTest]
+        public IEnumerator EmptyLineSlotWithDebugLabels_SpeaksItsIdAndFactsThroughTheBudget()
+        {
+            BuildVoice(true, (RunStarted.FirstLaunchSlot, true, Array.Empty<string>()),
+                (PlayerDied.DeathSlot, false, Array.Empty<string>()));
+
+            moments.Raise(FirstRun());
+            Assert.IsTrue(display.Speaking, "the debug label shows like a line");
+            Assert.AreEqual("[run-start.first-launch] clone 1", display.Line);
+
+            moments.Raise(new PlayerDied(2, DamageKind.Missile));
+            yield return null;
+            Assert.AreEqual("[run-start.first-launch] clone 1", display.Line,
+                "a plain slot's label waits out the nag budget like a plain line");
         }
 
         [UnityTest]

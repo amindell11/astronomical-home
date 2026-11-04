@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Game.Moments;
 using UI.Comms;
 using UnityEngine;
@@ -8,7 +9,8 @@ namespace Game.Companion
     /// <summary>
     /// Speaks for the run's moments: each raised moment picks a line from its line slot, fills in the
     /// moment's facts and offers it to the nag budget, and a line the budget lets through shows on the comm
-    /// line. Built once per session; each run hands it that run's moment stream.
+    /// line. Built once per session; each run hands it that run's moment stream. With debug labels on, an
+    /// empty line slot speaks a bracketed label of its id and the moment's facts instead of staying silent.
     /// </summary>
     public sealed class CompanionVoice : MonoBehaviour
     {
@@ -16,11 +18,12 @@ namespace Game.Companion
         private CompanionFeelProfile feel;
         private CommLine display;
         private Func<bool> canSpeak;
+        private bool debugLabels;
         private NagBudget budget;
         private RunMomentStream moments;
 
         public static CompanionVoice Create(Transform parent, CompanionLineSheet sheet, CompanionFeelProfile feel,
-            CommLine display, Func<bool> canSpeak)
+            CommLine display, Func<bool> canSpeak, bool debugLabels)
         {
             if (!parent) throw new ArgumentNullException(nameof(parent));
             if (!sheet) throw new ArgumentNullException(nameof(sheet));
@@ -35,6 +38,7 @@ namespace Game.Companion
             voice.feel = feel;
             voice.display = display;
             voice.canSpeak = canSpeak;
+            voice.debugLabels = debugLabels;
             voice.budget = new NagBudget(feel);
             return voice;
         }
@@ -51,12 +55,21 @@ namespace Game.Companion
         {
             var slot = sheet.Find(moment.Slot);
             var line = slot.Pick(n => UnityEngine.Random.Range(0, n));
-            if (line == null) return;
-            foreach (var fact in moment.Facts)
-                line = line.Replace("{" + fact.Key + "}", fact.Value);
+            if (line != null)
+                foreach (var fact in moment.Facts)
+                    line = line.Replace("{" + fact.Key + "}", fact.Value);
+            else if (debugLabels)
+                line = DebugLabel(moment);
+            else
+                return;
             budget.Offer(line, slot.MustSay, Time.unscaledTime);
             TrySpeak();
         }
+
+        private static string DebugLabel(IRunMoment moment) =>
+            string.Join(" · ", moment.Facts.Where(fact => fact.Value.Length > 0)
+                .Select(fact => fact.Key + " " + fact.Value)
+                .Prepend("[" + moment.Slot + "]"));
 
         private void Update() => TrySpeak();
 
