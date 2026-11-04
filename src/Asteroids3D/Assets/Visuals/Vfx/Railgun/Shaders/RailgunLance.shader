@@ -77,8 +77,8 @@ Shader "Astronomical/Vfx/Railgun Lance"
                 float streak = (1 - smoothstep(along - aa, along + aa, across)) * (1 - step(1, along));
                 float notch = saturate((along - 0.65) / 0.35);
                 streak *= lerp(1, smoothstep(notch - aa, notch + aa, across), step(0.65, along));
-                half4 line = half4(half3(0.107, 0.597, 1) * baseline, baseline);
-                return half4(half3(0.694, 0.930, 1) * streak, streak) + line * (1 - streak);
+                half4 baselineColor = half4(half3(0.107, 0.597, 1) * baseline, baseline);
+                return half4(half3(0.694, 0.930, 1) * streak, streak) + baselineColor * (1 - streak);
             }
             half4 Frag(Varying i):SV_Target
             {
