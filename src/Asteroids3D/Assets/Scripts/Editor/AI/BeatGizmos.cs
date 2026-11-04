@@ -6,7 +6,6 @@ using UnityEngine;
 
 namespace AI
 {
-    /// <summary>Names each beat-picking enemy's current beat over its ship, with the seconds it has left and the two best scores of its last pick.</summary>
     [InitializeOnLoad]
     internal static class BeatGizmos
     {
@@ -19,7 +18,8 @@ namespace AI
         {
             if (!GizmoView.IsOn(typeof(AICommander), "beat") || !GizmoView.InScope(commander)) return;
             if (!Application.isPlaying || commander.context?.Self == null || !commander.Brain) return;
-            if (commander.Brain is not IBeatReadout readout) return;
+            var readout = commander.Brain as IBeatReadout;
+            if (readout == null) return;
 
             var left = float.IsPositiveInfinity(readout.BeatSecondsLeft) ? "" : $" {readout.BeatSecondsLeft:F1}s";
             var best = Enumerable.Range(0, readout.ScoredCount).Select(readout.Scored)

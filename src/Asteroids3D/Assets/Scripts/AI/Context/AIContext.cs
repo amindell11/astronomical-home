@@ -20,7 +20,6 @@ namespace AI.Context
 
         public float? HoldRange { get; private set; }
 
-        /// <summary>Seconds since the ship last lost hull or shield, polled tick to tick; infinite before the first hit.</summary>
         public float SecondsSinceHit { get; private set; } = float.PositiveInfinity;
 
         private float lastHealthPct;

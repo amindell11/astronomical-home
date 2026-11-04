@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace RL.Opponents.Beats
 {
-    /// <summary>What a pick reads about the fight, sampled at each of the brain's recomputes.</summary>
     internal readonly struct BeatSituation
     {
         public static readonly BeatSituation NoTarget = default;
@@ -37,7 +36,7 @@ namespace RL.Opponents.Beats
     /// </summary>
     internal sealed class BeatSelector
     {
-        // A tie keeps the earlier beat in this order, so equal scores always pick the same beat.
+        // Ties keep the earlier beat here, so equal scores always pick the same beat.
         internal static readonly Beat[] ScoredBeats = { Beat.AttackRun, Beat.Flank, Beat.Hold, Beat.BreakOff };
 
         private const float UnhurriedBreakOff = 0.5f;
@@ -86,7 +85,7 @@ namespace RL.Opponents.Beats
             Pick(in situation);
         }
 
-        internal float Score(Beat beat, in BeatSituation situation) => beat switch
+        private float Score(Beat beat, in BeatSituation situation) => beat switch
         {
             Beat.AttackRun => Attack - Crowding * Excess(situation.attackers),
             Beat.Flank => Flank * (1f + situation.aimedAt) - Crowding * Excess(situation.attackers),

@@ -93,7 +93,6 @@ namespace RL.Opponents.Beats
         private ITrackingMissile evadedMissile;
         private int escapeSide;
 
-        internal BeatSelector Selector => selector;
         internal Beat Beat => selector?.Beat ?? Beat.Search;
         internal ShipId TargetId => Live(target) ? target.Id : ShipId.Invalid;
         internal bool Attacking => Live(target) && Beat is Beat.AttackRun or Beat.Flank;
@@ -104,8 +103,7 @@ namespace RL.Opponents.Beats
         (string beat, float score) IBeatReadout.Scored(int index) =>
             (BeatSelector.ScoredBeats[index].ToString(), selector.LastScore(index));
 
-        /// <summary>Draws this enemy's personality, recompute phase and beat shapes from one seed.</summary>
-        internal void Seed(int seed)
+        private void Seed(int seed)
         {
             rng = new System.Random(seed);
             selector = new BeatSelector(personality, rng);

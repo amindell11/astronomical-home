@@ -463,8 +463,13 @@ namespace Tests.PlayMode.Preview
             Assert.That(fight.ActiveSector.name, Does.StartWith("CrowdedFightSector"));
             var ships = fight.GetComponent<UnitService>().ActiveRegistry.ActiveShips;
             yield return AsyncAssert.WaitUntil(
-                () => ships.Count(ship => ship.Commander is AI.AICommander { Brain: RL.Opponents.Beats.BeatBrain }) >= 4, 15f,
-                "the fixture's waves fill with enemies on the beat brain");
+                () => ships.Count(FliesBeats) >= 4, 15f, "the fixture's waves fill with enemies on the beat brain");
+        }
+
+        private static bool FliesBeats(Ship ship)
+        {
+            var commander = ship.Commander as AI.AICommander;
+            return commander && commander.Brain as RL.Opponents.Beats.BeatBrain;
         }
 
         private static IEnumerator LaunchFromHangar(GameHost game)

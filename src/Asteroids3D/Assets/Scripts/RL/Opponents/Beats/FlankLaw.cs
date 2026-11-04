@@ -18,7 +18,7 @@ namespace RL.Opponents.Beats
         internal static Vector2 Velocity(Vector2 selfPos, in Kinematics enemy, Vector2 blindPoint, float speed) =>
             Vector2.ClampMagnitude(enemy.vel + Gain * (blindPoint - selfPos), speed);
 
-        /// <summary>The side of the tail away from where the attackers are, else the side this pilot is already on.</summary>
+        /// <summary>The tail side away from the attackers, else the side this pilot is on.</summary>
         internal static int Side(Vector2 selfPos, in Kinematics enemy, in Crowd crowd)
         {
             var tail = -enemy.Forward;
