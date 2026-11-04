@@ -1,0 +1,185 @@
+quality=High Fidelity
+  Crimson/shoal: Assets/Visuals/Ships/Crimson/Hull paint.mat -> Assets/Visuals/Ships/Crimson/Materials/shoal/Hull paint.mat
+  Valis/shoal: Assets/Visuals/Ships/Valis/Materials/jade-iris/Ivory.mat -> Assets/Visuals/Ships/Valis/Materials/shoal/Ivory.mat
+  Valis/shoal: Assets/Visuals/Ships/Valis/Materials/jade-iris/Cool gray.mat -> Assets/Visuals/Ships/Valis/Materials/shoal/Cool gray.mat
+  Valis/shoal: Assets/Visuals/Ships/Valis/Materials/jade-iris/Lavender.mat -> Assets/Visuals/Ships/Valis/Materials/shoal/Lavender.mat
+  Valis/shoal: Assets/Visuals/Ships/Valis/Materials/jade-iris/Graphite.mat -> Assets/Visuals/Ships/Valis/Materials/shoal/Graphite.mat
+  Valis/shoal: Assets/Visuals/Ships/Valis/Materials/jade-iris/Edge.mat -> Assets/Visuals/Ships/Valis/Materials/shoal/Edge.mat
+  Valis/shoal: Assets/Visuals/Ships/Valis/Materials/jade-iris/Engine.mat -> Assets/Visuals/Ships/Valis/Materials/shoal/Engine.mat
+  Valis/shoal-elite: Assets/Visuals/Ships/Valis/Materials/jade-iris/Ivory.mat -> Assets/Visuals/Ships/Valis/Materials/shoal-elite/Ivory.mat
+  Valis/shoal-elite: Assets/Visuals/Ships/Valis/Materials/jade-iris/Cool gray.mat -> Assets/Visuals/Ships/Valis/Materials/shoal-elite/Cool gray.mat
+  Valis/shoal-elite: Assets/Visuals/Ships/Valis/Materials/jade-iris/Lavender.mat -> Assets/Visuals/Ships/Valis/Materials/shoal-elite/Lavender.mat
+  Valis/shoal-elite: Assets/Visuals/Ships/Valis/Materials/jade-iris/Graphite.mat -> Assets/Visuals/Ships/Valis/Materials/shoal-elite/Graphite.mat
+  Valis/shoal-elite: Assets/Visuals/Ships/Valis/Materials/jade-iris/Edge.mat -> Assets/Visuals/Ships/Valis/Materials/shoal-elite/Edge.mat
+  Valis/shoal-elite: Assets/Visuals/Ships/Valis/Materials/jade-iris/Engine.mat -> Assets/Visuals/Ships/Valis/Materials/shoal-elite/Engine.mat
+  Crimson/veil: Assets/Visuals/Ships/Crimson/Hull paint.mat -> Assets/Visuals/Ships/Crimson/Materials/veil/Hull paint.mat
+  Nightshade/veil: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Midnight.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Midnight.mat
+  Nightshade/veil: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Edge.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Edge.mat
+  Nightshade/veil: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Recess.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Recess.mat
+  Nightshade/veil: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Violet.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Violet.mat
+  Nightshade/veil: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Plum.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Plum.mat
+  Nightshade/veil: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Glass.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Glass.mat
+  Nightshade/veil: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Recess.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Recess.mat
+  Nightshade/veil-elite: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Midnight.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Midnight.mat
+  Nightshade/veil-elite: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Edge.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Edge.mat
+  Nightshade/veil-elite: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Recess.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Recess.mat
+  Nightshade/veil-elite: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Violet.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Violet.mat
+  Nightshade/veil-elite: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Plum.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Plum.mat
+  Nightshade/veil-elite: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Glass.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Glass.mat
+  Nightshade/veil-elite: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Recess.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Recess.mat
+  Crimson/bastion: Assets/Visuals/Ships/Crimson/Hull paint.mat -> Assets/Visuals/Ships/Crimson/Materials/bastion/Hull paint.mat
+  Bulwark/bastion: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Structure.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Structure.mat
+  Bulwark/bastion: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Armor Charcoal.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Armor Charcoal.mat
+  Bulwark/bastion: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Guard Plum.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Guard Plum.mat
+  Bulwark/bastion: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Structure.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Structure.mat
+  Bulwark/bastion: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Metal.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Metal.mat
+  Bulwark/bastion: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Bone.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Bone.mat
+  Bulwark/bastion: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark EdgeCoat.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark EdgeCoat.mat
+  Bulwark/bastion: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Flap.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Flap.mat
+  Bulwark/bastion-elite: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Structure.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Structure.mat
+  Bulwark/bastion-elite: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Armor Charcoal.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Armor Charcoal.mat
+  Bulwark/bastion-elite: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Guard Plum.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Guard Plum.mat
+  Bulwark/bastion-elite: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Structure.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Structure.mat
+  Bulwark/bastion-elite: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Metal.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Metal.mat
+  Bulwark/bastion-elite: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Bone.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Bone.mat
+  Bulwark/bastion-elite: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark EdgeCoat.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark EdgeCoat.mat
+  Bulwark/bastion-elite: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Flap.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Flap.mat
+factions: rows Crimson(player), Valis(player), Nightshade(player), Bulwark(player), Vanguard(player) / Crimson(shoal), Valis(shoal), Valis(shoal elite) / Crimson(veil), Nightshade(veil), Nightshade(veil elite) / Crimson(bastion), Bulwark(bastion), Bulwark(bastion elite); ortho 8.516508
+  Crimson/shoal: Assets/Visuals/Ships/Crimson/Hull paint.mat -> Assets/Visuals/Ships/Crimson/Materials/shoal/Hull paint.mat
+  Valis/shoal: Assets/Visuals/Ships/Valis/Materials/jade-iris/Ivory.mat -> Assets/Visuals/Ships/Valis/Materials/shoal/Ivory.mat
+  Valis/shoal: Assets/Visuals/Ships/Valis/Materials/jade-iris/Cool gray.mat -> Assets/Visuals/Ships/Valis/Materials/shoal/Cool gray.mat
+  Valis/shoal: Assets/Visuals/Ships/Valis/Materials/jade-iris/Lavender.mat -> Assets/Visuals/Ships/Valis/Materials/shoal/Lavender.mat
+  Valis/shoal: Assets/Visuals/Ships/Valis/Materials/jade-iris/Graphite.mat -> Assets/Visuals/Ships/Valis/Materials/shoal/Graphite.mat
+  Valis/shoal: Assets/Visuals/Ships/Valis/Materials/jade-iris/Edge.mat -> Assets/Visuals/Ships/Valis/Materials/shoal/Edge.mat
+  Valis/shoal: Assets/Visuals/Ships/Valis/Materials/jade-iris/Engine.mat -> Assets/Visuals/Ships/Valis/Materials/shoal/Engine.mat
+  Valis/shoal-elite: Assets/Visuals/Ships/Valis/Materials/jade-iris/Ivory.mat -> Assets/Visuals/Ships/Valis/Materials/shoal-elite/Ivory.mat
+  Valis/shoal-elite: Assets/Visuals/Ships/Valis/Materials/jade-iris/Cool gray.mat -> Assets/Visuals/Ships/Valis/Materials/shoal-elite/Cool gray.mat
+  Valis/shoal-elite: Assets/Visuals/Ships/Valis/Materials/jade-iris/Lavender.mat -> Assets/Visuals/Ships/Valis/Materials/shoal-elite/Lavender.mat
+  Valis/shoal-elite: Assets/Visuals/Ships/Valis/Materials/jade-iris/Graphite.mat -> Assets/Visuals/Ships/Valis/Materials/shoal-elite/Graphite.mat
+  Valis/shoal-elite: Assets/Visuals/Ships/Valis/Materials/jade-iris/Edge.mat -> Assets/Visuals/Ships/Valis/Materials/shoal-elite/Edge.mat
+  Valis/shoal-elite: Assets/Visuals/Ships/Valis/Materials/jade-iris/Engine.mat -> Assets/Visuals/Ships/Valis/Materials/shoal-elite/Engine.mat
+  Crimson/veil: Assets/Visuals/Ships/Crimson/Hull paint.mat -> Assets/Visuals/Ships/Crimson/Materials/veil/Hull paint.mat
+  Nightshade/veil: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Midnight.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Midnight.mat
+  Nightshade/veil: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Edge.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Edge.mat
+  Nightshade/veil: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Recess.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Recess.mat
+  Nightshade/veil: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Violet.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Violet.mat
+  Nightshade/veil: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Plum.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Plum.mat
+  Nightshade/veil: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Glass.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Glass.mat
+  Nightshade/veil: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Recess.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Recess.mat
+  Nightshade/veil-elite: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Midnight.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Midnight.mat
+  Nightshade/veil-elite: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Edge.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Edge.mat
+  Nightshade/veil-elite: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Recess.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Recess.mat
+  Nightshade/veil-elite: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Violet.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Violet.mat
+  Nightshade/veil-elite: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Plum.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Plum.mat
+  Nightshade/veil-elite: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Glass.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Glass.mat
+  Nightshade/veil-elite: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Recess.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Recess.mat
+  Crimson/bastion: Assets/Visuals/Ships/Crimson/Hull paint.mat -> Assets/Visuals/Ships/Crimson/Materials/bastion/Hull paint.mat
+  Bulwark/bastion: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Structure.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Structure.mat
+  Bulwark/bastion: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Armor Charcoal.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Armor Charcoal.mat
+  Bulwark/bastion: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Guard Plum.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Guard Plum.mat
+  Bulwark/bastion: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Structure.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Structure.mat
+  Bulwark/bastion: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Metal.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Metal.mat
+  Bulwark/bastion: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Bone.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Bone.mat
+  Bulwark/bastion: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark EdgeCoat.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark EdgeCoat.mat
+  Bulwark/bastion: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Flap.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Flap.mat
+  Bulwark/bastion-elite: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Structure.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Structure.mat
+  Bulwark/bastion-elite: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Armor Charcoal.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Armor Charcoal.mat
+  Bulwark/bastion-elite: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Guard Plum.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Guard Plum.mat
+  Bulwark/bastion-elite: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Structure.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Structure.mat
+  Bulwark/bastion-elite: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Metal.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Metal.mat
+  Bulwark/bastion-elite: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Bone.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Bone.mat
+  Bulwark/bastion-elite: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark EdgeCoat.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark EdgeCoat.mat
+  Bulwark/bastion-elite: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Flap.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Flap.mat
+factions-game-light: rows Crimson(player), Valis(player), Nightshade(player), Bulwark(player), Vanguard(player) / Crimson(shoal), Valis(shoal), Valis(shoal elite) / Crimson(veil), Nightshade(veil), Nightshade(veil elite) / Crimson(bastion), Bulwark(bastion), Bulwark(bastion elite); ortho 8.516508
+  Crimson/shoal: Assets/Visuals/Ships/Crimson/Hull paint.mat -> Assets/Visuals/Ships/Crimson/Materials/shoal/Hull paint.mat
+  Valis/shoal: Assets/Visuals/Ships/Valis/Materials/jade-iris/Ivory.mat -> Assets/Visuals/Ships/Valis/Materials/shoal/Ivory.mat
+  Valis/shoal: Assets/Visuals/Ships/Valis/Materials/jade-iris/Cool gray.mat -> Assets/Visuals/Ships/Valis/Materials/shoal/Cool gray.mat
+  Valis/shoal: Assets/Visuals/Ships/Valis/Materials/jade-iris/Lavender.mat -> Assets/Visuals/Ships/Valis/Materials/shoal/Lavender.mat
+  Valis/shoal: Assets/Visuals/Ships/Valis/Materials/jade-iris/Graphite.mat -> Assets/Visuals/Ships/Valis/Materials/shoal/Graphite.mat
+  Valis/shoal: Assets/Visuals/Ships/Valis/Materials/jade-iris/Edge.mat -> Assets/Visuals/Ships/Valis/Materials/shoal/Edge.mat
+  Valis/shoal: Assets/Visuals/Ships/Valis/Materials/jade-iris/Engine.mat -> Assets/Visuals/Ships/Valis/Materials/shoal/Engine.mat
+  Valis/shoal-elite: Assets/Visuals/Ships/Valis/Materials/jade-iris/Ivory.mat -> Assets/Visuals/Ships/Valis/Materials/shoal-elite/Ivory.mat
+  Valis/shoal-elite: Assets/Visuals/Ships/Valis/Materials/jade-iris/Cool gray.mat -> Assets/Visuals/Ships/Valis/Materials/shoal-elite/Cool gray.mat
+  Valis/shoal-elite: Assets/Visuals/Ships/Valis/Materials/jade-iris/Lavender.mat -> Assets/Visuals/Ships/Valis/Materials/shoal-elite/Lavender.mat
+  Valis/shoal-elite: Assets/Visuals/Ships/Valis/Materials/jade-iris/Graphite.mat -> Assets/Visuals/Ships/Valis/Materials/shoal-elite/Graphite.mat
+  Valis/shoal-elite: Assets/Visuals/Ships/Valis/Materials/jade-iris/Edge.mat -> Assets/Visuals/Ships/Valis/Materials/shoal-elite/Edge.mat
+  Valis/shoal-elite: Assets/Visuals/Ships/Valis/Materials/jade-iris/Engine.mat -> Assets/Visuals/Ships/Valis/Materials/shoal-elite/Engine.mat
+  Crimson/veil: Assets/Visuals/Ships/Crimson/Hull paint.mat -> Assets/Visuals/Ships/Crimson/Materials/veil/Hull paint.mat
+  Nightshade/veil: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Midnight.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Midnight.mat
+  Nightshade/veil: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Edge.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Edge.mat
+  Nightshade/veil: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Recess.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Recess.mat
+  Nightshade/veil: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Violet.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Violet.mat
+  Nightshade/veil: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Plum.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Plum.mat
+  Nightshade/veil: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Glass.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Glass.mat
+  Nightshade/veil: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Recess.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Recess.mat
+  Nightshade/veil-elite: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Midnight.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Midnight.mat
+  Nightshade/veil-elite: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Edge.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Edge.mat
+  Nightshade/veil-elite: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Recess.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Recess.mat
+  Nightshade/veil-elite: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Violet.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Violet.mat
+  Nightshade/veil-elite: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Plum.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Plum.mat
+  Nightshade/veil-elite: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Glass.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Glass.mat
+  Nightshade/veil-elite: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Recess.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Recess.mat
+  Crimson/bastion: Assets/Visuals/Ships/Crimson/Hull paint.mat -> Assets/Visuals/Ships/Crimson/Materials/bastion/Hull paint.mat
+  Bulwark/bastion: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Structure.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Structure.mat
+  Bulwark/bastion: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Armor Charcoal.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Armor Charcoal.mat
+  Bulwark/bastion: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Guard Plum.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Guard Plum.mat
+  Bulwark/bastion: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Structure.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Structure.mat
+  Bulwark/bastion: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Metal.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Metal.mat
+  Bulwark/bastion: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Bone.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Bone.mat
+  Bulwark/bastion: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark EdgeCoat.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark EdgeCoat.mat
+  Bulwark/bastion: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Flap.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Flap.mat
+  Bulwark/bastion-elite: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Structure.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Structure.mat
+  Bulwark/bastion-elite: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Armor Charcoal.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Armor Charcoal.mat
+  Bulwark/bastion-elite: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Guard Plum.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Guard Plum.mat
+  Bulwark/bastion-elite: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Structure.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Structure.mat
+  Bulwark/bastion-elite: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Metal.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Metal.mat
+  Bulwark/bastion-elite: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Bone.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Bone.mat
+  Bulwark/bastion-elite: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark EdgeCoat.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark EdgeCoat.mat
+  Bulwark/bastion-elite: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Flap.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Flap.mat
+factions-flames: rows Crimson(player), Valis(player), Nightshade(player), Bulwark(player), Vanguard(player) / Crimson(shoal), Valis(shoal), Valis(shoal elite) / Crimson(veil), Nightshade(veil), Nightshade(veil elite) / Crimson(bastion), Bulwark(bastion), Bulwark(bastion elite); ortho 8.516508
+  Crimson/shoal: Assets/Visuals/Ships/Crimson/Hull paint.mat -> Assets/Visuals/Ships/Crimson/Materials/shoal/Hull paint.mat
+  Valis/shoal: Assets/Visuals/Ships/Valis/Materials/jade-iris/Ivory.mat -> Assets/Visuals/Ships/Valis/Materials/shoal/Ivory.mat
+  Valis/shoal: Assets/Visuals/Ships/Valis/Materials/jade-iris/Cool gray.mat -> Assets/Visuals/Ships/Valis/Materials/shoal/Cool gray.mat
+  Valis/shoal: Assets/Visuals/Ships/Valis/Materials/jade-iris/Lavender.mat -> Assets/Visuals/Ships/Valis/Materials/shoal/Lavender.mat
+  Valis/shoal: Assets/Visuals/Ships/Valis/Materials/jade-iris/Graphite.mat -> Assets/Visuals/Ships/Valis/Materials/shoal/Graphite.mat
+  Valis/shoal: Assets/Visuals/Ships/Valis/Materials/jade-iris/Edge.mat -> Assets/Visuals/Ships/Valis/Materials/shoal/Edge.mat
+  Valis/shoal: Assets/Visuals/Ships/Valis/Materials/jade-iris/Engine.mat -> Assets/Visuals/Ships/Valis/Materials/shoal/Engine.mat
+  Valis/shoal-elite: Assets/Visuals/Ships/Valis/Materials/jade-iris/Ivory.mat -> Assets/Visuals/Ships/Valis/Materials/shoal-elite/Ivory.mat
+  Valis/shoal-elite: Assets/Visuals/Ships/Valis/Materials/jade-iris/Cool gray.mat -> Assets/Visuals/Ships/Valis/Materials/shoal-elite/Cool gray.mat
+  Valis/shoal-elite: Assets/Visuals/Ships/Valis/Materials/jade-iris/Lavender.mat -> Assets/Visuals/Ships/Valis/Materials/shoal-elite/Lavender.mat
+  Valis/shoal-elite: Assets/Visuals/Ships/Valis/Materials/jade-iris/Graphite.mat -> Assets/Visuals/Ships/Valis/Materials/shoal-elite/Graphite.mat
+  Valis/shoal-elite: Assets/Visuals/Ships/Valis/Materials/jade-iris/Edge.mat -> Assets/Visuals/Ships/Valis/Materials/shoal-elite/Edge.mat
+  Valis/shoal-elite: Assets/Visuals/Ships/Valis/Materials/jade-iris/Engine.mat -> Assets/Visuals/Ships/Valis/Materials/shoal-elite/Engine.mat
+  Crimson/veil: Assets/Visuals/Ships/Crimson/Hull paint.mat -> Assets/Visuals/Ships/Crimson/Materials/veil/Hull paint.mat
+  Nightshade/veil: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Midnight.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Midnight.mat
+  Nightshade/veil: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Edge.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Edge.mat
+  Nightshade/veil: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Recess.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Recess.mat
+  Nightshade/veil: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Violet.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Violet.mat
+  Nightshade/veil: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Plum.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Plum.mat
+  Nightshade/veil: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Glass.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Glass.mat
+  Nightshade/veil: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Recess.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Recess.mat
+  Nightshade/veil-elite: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Midnight.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Midnight.mat
+  Nightshade/veil-elite: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Edge.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Edge.mat
+  Nightshade/veil-elite: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Recess.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Recess.mat
+  Nightshade/veil-elite: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Violet.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Violet.mat
+  Nightshade/veil-elite: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Plum.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Plum.mat
+  Nightshade/veil-elite: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Glass.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Glass.mat
+  Nightshade/veil-elite: Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Recess.mat -> Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Recess.mat
+  Crimson/bastion: Assets/Visuals/Ships/Crimson/Hull paint.mat -> Assets/Visuals/Ships/Crimson/Materials/bastion/Hull paint.mat
+  Bulwark/bastion: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Structure.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Structure.mat
+  Bulwark/bastion: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Armor Charcoal.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Armor Charcoal.mat
+  Bulwark/bastion: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Guard Plum.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Guard Plum.mat
+  Bulwark/bastion: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Structure.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Structure.mat
+  Bulwark/bastion: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Metal.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Metal.mat
+  Bulwark/bastion: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Bone.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Bone.mat
+  Bulwark/bastion: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark EdgeCoat.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark EdgeCoat.mat
+  Bulwark/bastion: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Flap.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Flap.mat
+  Bulwark/bastion-elite: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Structure.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Structure.mat
+  Bulwark/bastion-elite: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Armor Charcoal.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Armor Charcoal.mat
+  Bulwark/bastion-elite: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Guard Plum.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Guard Plum.mat
+  Bulwark/bastion-elite: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Structure.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Structure.mat
+  Bulwark/bastion-elite: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Metal.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Metal.mat
+  Bulwark/bastion-elite: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Bone.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Bone.mat
+  Bulwark/bastion-elite: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark EdgeCoat.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark EdgeCoat.mat
+  Bulwark/bastion-elite: Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Flap.mat -> Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Flap.mat
+factions-game-light-flames: rows Crimson(player), Valis(player), Nightshade(player), Bulwark(player), Vanguard(player) / Crimson(shoal), Valis(shoal), Valis(shoal elite) / Crimson(veil), Nightshade(veil), Nightshade(veil elite) / Crimson(bastion), Bulwark(bastion), Bulwark(bastion elite); ortho 8.516508

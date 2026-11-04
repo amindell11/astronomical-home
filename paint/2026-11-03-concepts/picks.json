@@ -1,0 +1,48 @@
+{
+  "note": "Provisional picks (owner gate pending). sRGB hex sampled from the picked image-gen concepts. 'keep' = today's default-palette value for that region.",
+  "concepts": {
+    "shoal": "round1/shoal/shoal-a-pro.jpg",
+    "veil": "round1/veil/veil-a-pro.jpg",
+    "bastion": "round1/bastion/bastion-a-pro.jpg",
+    "glow": {"shoal": "round2/shoal/shoal-glow-pro.jpg", "veil": "round2/veil/veil-glow-pro.jpg", "bastion": "round2/bastion/bastion-glow-nb2.jpg"},
+    "elite": "round2/shoal/shoal-elite-nb2.jpg (hot magenta, also chosen in veil-elite-nb2/pro and shoal-elite-pro)"
+  },
+  "elite_color": "#fc12d8",
+  "glow": {
+    "shoal":   {"flame": "#fe861a", "shield_ring": "#fe861a"},
+    "veil":    {"flame": "#a8f63b", "shield_ring": "#a8f63b"},
+    "bastion": {"flame": "#2bd2f7", "shield_ring": "#2bd2f7"},
+    "elite":   {"flame": "#fc12d8"}
+  },
+  "palettes": {
+    "crimson": {
+      "shoal":   {"Silver": "#f2a71a", "SilverStructure": "#f2a71a", "Red": "#171614", "RedStructure": "#171614", "Frame": "#171614", "Charcoal": "#3c3e43", "Rim": "#3a3a3e", "Crimson canopy": "keep", "FloorIndicator": "keep", "YokeIndicator": "keep", "NozzleRing": "keep"},
+      "veil":    {"Silver": "#2d2e36", "SilverStructure": "#2c2e35", "Red": "#9fe535", "RedStructure": "#9fe535", "Frame": "#9fe535", "Charcoal": "#1d1e23", "Rim": "#1d1e23", "Crimson canopy": "keep", "FloorIndicator": "keep", "YokeIndicator": "keep", "NozzleRing": "keep"},
+      "bastion": {"Silver": "#eeeeee", "SilverStructure": "#234eb3", "Red": "#234eb3", "RedStructure": "#234eb3", "Frame": "#234eb3", "Charcoal": "#1f2441", "Rim": "#ededed", "Crimson canopy": "keep", "FloorIndicator": "keep", "YokeIndicator": "keep", "NozzleRing": "keep"}
+    },
+    "valis": {
+      "shoal":       {"Ivory": "#f1a619", "Cool gray": "#d28c0c", "Edge": "#d78c08", "Graphite": "#171412", "Lavender": "#363737", "Engine": "#39393d", "Canopy": "keep"},
+      "shoal-elite": {"Ivory": "#f1a619", "Cool gray": "#d28c0c", "Edge": "#d78c08", "Graphite": "#171412", "Lavender": "#fc12d8", "Engine": "#39393d", "Canopy": "keep"}
+    },
+    "nightshade": {
+      "veil":       {"Nightshade Midnight": "#1c1d22", "Nightshade Violet": "#2c2e36", "Nightshade Plum": "#9ee636", "Nightshade Glass": "#a1e535", "Nightshade Edge": "#1e1f24", "Nightshade Recess": "keep"},
+      "veil-elite": {"Nightshade Midnight": "#1c1d22", "Nightshade Violet": "#2c2e36", "Nightshade Plum": "#fc12d8", "Nightshade Glass": "#a1e535", "Nightshade Edge": "#1e1f24", "Nightshade Recess": "keep"}
+    },
+    "bulwark": {
+      "bastion": {
+        "_unity_roles": "Bone and EdgeCoat are masked: RegionColor0 = substrate, RegionColor1 = coat, _PaperColor = substrate. Flap is masked too.",
+        "substrate": "#1c2547", "coat": "#2450b8", "flap": "#eeeeee", "guard": "#eeeeee",
+        "armor_charcoal": "#1c2547", "structure": "#1c2547", "metal": "#e6e6e6", "glass": "keep"
+      },
+      "bastion-elite": {
+        "substrate": "#1c2547", "coat": "#2450b8", "flap": "#fc12d8", "guard": "#fc12d8",
+        "armor_charcoal": "#1c2547", "structure": "#1c2547", "metal": "#e6e6e6", "glass": "keep"
+      }
+    }
+  },
+  "elite_accent_regions": {
+    "valis": ["Lavender"],
+    "nightshade": ["Nightshade Plum"],
+    "bulwark": ["Bulwark Guard Plum", "Bulwark Flap"]
+  }
+}

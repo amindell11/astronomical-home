@@ -1,0 +1,7 @@
+READABILITY AT GAME DISTANCE COMES FIRST. In play each ship is only 60 to 100 pixels across on a dark space background, in fast combat. This faction must be recognisable at a glance at that size: both ships must read instantly as the same faction, clearly unlike the player's ships and unlike other factions. One large dominant hull colour carries the identity; at most three main colours plus a dark trim.
+
+Image 1 is the object reference for the Valis: keep its exact top-down silhouette, panel boundaries and proportions. Image 2 is the object reference for the Crimson, shown in the player's livery (red and cream-white): keep its exact silhouette and panel boundaries, but its red and cream are the player's colours and must NOT be used as this faction's main colours. The faction must also avoid teal-jade with lavender, violet with electric blue, and bone with plum as its main colours, because those are the other player ships' liveries.
+
+Repaint both ships for the Shoal faction, a fast, fragile swarm that comes in packs: hazard yellow-amber as the dominant hull colour, with black trim and a small charcoal secondary.
+
+Output: both ships top-down, nose up, side by side on a flat mid-grey background, the Valis on the left and the Crimson on the right, at the same orthographic framing as the references. Flat solid colour per panel region exactly like the reference renders: no shading, no gradients, no lighting, no wear, damage, grunge, decals, text or logos. Change only the colours and which panels get which colour; never change any shape.

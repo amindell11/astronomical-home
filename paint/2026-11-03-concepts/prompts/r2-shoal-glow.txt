@@ -1,0 +1,3 @@
+READABILITY AT GAME DISTANCE COMES FIRST: in play each ship is 60 to 100 pixels across on a dark space background.
+
+Image 1 is this faction's approved livery (amber-yellow and black) on the Valis (left) and the Crimson (right). Keep both ships' shapes and livery exactly. Show the same two ships top-down, nose up, on a near-black space background, each with its engine exhaust flames glowing straight out behind it (downward in the image) and a thin glowing circular shield ring around it. Choose ONE glow colour for the flames and the shield ring that reads as this faction at a glance and pairs with its livery; it must not be red (the player's flame) and must not be confused with acid green (Veil) or cobalt blue (Bastion). Flat graphic style, no text.

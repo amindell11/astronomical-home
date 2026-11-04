@@ -1,0 +1,372 @@
+== Materials (45)
+-- src/Asteroids3D/Assets/Visuals/Ships/Crimson/Materials/shoal/Hull paint.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Crimson/Hull paint.mat)
+  texture guids identical (6)
+  _PaintRegionColor0   = (0.235294, 0.243137, 0.262745, a 1)  <- Charcoal #3c3e43 (hex/255)  OK
+  _PaintRegionColor3   = (0.090196, 0.086275, 0.078431, a 1)  <- Frame #171614 (hex/255)  OK
+  _PaintRegionColor5   = (0.090196, 0.086275, 0.078431, a 1)  <- Red #171614 (hex/255)  OK
+  _PaintRegionColor6   = (0.090196, 0.086275, 0.078431, a 1)  <- RedStructure #171614 (hex/255)  OK
+  _PaintRegionColor7   = (0.227451, 0.227451, 0.243137, a 1)  <- Rim #3a3a3e (hex/255)  OK
+  _PaintRegionColor8   = (0.949020, 0.654902, 0.101961, a 1)  <- Silver #f2a71a (hex/255)  OK
+  _PaintRegionColor9   = (0.949020, 0.654902, 0.101961, a 1)  <- SilverStructure #f2a71a (hex/255)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Crimson/Materials/veil/Hull paint.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Crimson/Hull paint.mat)
+  texture guids identical (6)
+  _PaintRegionColor0   = (0.113725, 0.117647, 0.137255, a 1)  <- Charcoal #1d1e23 (hex/255)  OK
+  _PaintRegionColor3   = (0.623529, 0.898039, 0.207843, a 1)  <- Frame #9fe535 (hex/255)  OK
+  _PaintRegionColor5   = (0.623529, 0.898039, 0.207843, a 1)  <- Red #9fe535 (hex/255)  OK
+  _PaintRegionColor6   = (0.623529, 0.898039, 0.207843, a 1)  <- RedStructure #9fe535 (hex/255)  OK
+  _PaintRegionColor7   = (0.113725, 0.117647, 0.137255, a 1)  <- Rim #1d1e23 (hex/255)  OK
+  _PaintRegionColor8   = (0.176471, 0.180392, 0.211765, a 1)  <- Silver #2d2e36 (hex/255)  OK
+  _PaintRegionColor9   = (0.172549, 0.180392, 0.207843, a 1)  <- SilverStructure #2c2e35 (hex/255)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Crimson/Materials/bastion/Hull paint.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Crimson/Hull paint.mat)
+  texture guids identical (6)
+  _PaintRegionColor0   = (0.121569, 0.141176, 0.254902, a 1)  <- Charcoal #1f2441 (hex/255)  OK
+  _PaintRegionColor3   = (0.137255, 0.305882, 0.701961, a 1)  <- Frame #234eb3 (hex/255)  OK
+  _PaintRegionColor5   = (0.137255, 0.305882, 0.701961, a 1)  <- Red #234eb3 (hex/255)  OK
+  _PaintRegionColor6   = (0.137255, 0.305882, 0.701961, a 1)  <- RedStructure #234eb3 (hex/255)  OK
+  _PaintRegionColor7   = (0.929412, 0.929412, 0.929412, a 1)  <- Rim #ededed (hex/255)  OK
+  _PaintRegionColor8   = (0.933333, 0.933333, 0.933333, a 1)  <- Silver #eeeeee (hex/255)  OK
+  _PaintRegionColor9   = (0.137255, 0.305882, 0.701961, a 1)  <- SilverStructure #234eb3 (hex/255)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/shoal/Ivory.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/jade-iris/Ivory.mat)
+  texture guids identical (4)
+  _PaperColor          = (0.945098, 0.650980, 0.098039, a 1)  <- Ivory #f1a619 (hex/255)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/shoal/Cool gray.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/jade-iris/Cool gray.mat)
+  texture guids identical (4)
+  _PaperColor          = (0.823529, 0.549020, 0.047059, a 1)  <- Cool gray #d28c0c (hex/255)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/shoal/Lavender.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/jade-iris/Lavender.mat)
+  texture guids identical (4)
+  _EmissionColor       = (1.356395, 0.724486, 0.155768, a 2.2)  <- glow #fe861a scaled x2.0288 (linear) to lumY 0.77490 lumY today 0.77490 new 0.77490 alpha 2.2  OK
+  _PaperColor          = (0.211765, 0.215686, 0.215686, a 1)  <- Lavender #363737 (hex/255)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/shoal/Graphite.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/jade-iris/Graphite.mat)
+  texture guids identical (4)
+  _PaperColor          = (0.090196, 0.078431, 0.070588, a 1)  <- Graphite #171412 (hex/255)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/shoal/Edge.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/jade-iris/Edge.mat)
+  texture guids identical (4)
+  _PaperColor          = (0.843137, 0.549020, 0.031373, a 1)  <- Edge #d78c08 (hex/255)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/shoal/Engine.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/jade-iris/Engine.mat)
+  texture guids identical (4)
+  _PaperColor          = (0.223529, 0.223529, 0.239216, a 1)  <- Engine #39393d (hex/255)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/shoal-elite/Ivory.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/jade-iris/Ivory.mat)
+  texture guids identical (4)
+  _PaperColor          = (0.945098, 0.650980, 0.098039, a 1)  <- Ivory #f1a619 (hex/255)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/shoal-elite/Cool gray.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/jade-iris/Cool gray.mat)
+  texture guids identical (4)
+  _PaperColor          = (0.823529, 0.549020, 0.047059, a 1)  <- Cool gray #d28c0c (hex/255)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/shoal-elite/Lavender.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/jade-iris/Lavender.mat)
+  texture guids identical (4)
+  _EmissionColor       = (1.587097, 0.142681, 1.364879, a 2.2)  <- glow #fc12d8 scaled x2.9706 (linear) to lumY 0.77490 lumY today 0.77490 new 0.77490 alpha 2.2  OK
+  _PaperColor          = (0.988235, 0.070588, 0.847059, a 1)  <- Lavender #fc12d8 (hex/255)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/shoal-elite/Graphite.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/jade-iris/Graphite.mat)
+  texture guids identical (4)
+  _PaperColor          = (0.090196, 0.078431, 0.070588, a 1)  <- Graphite #171412 (hex/255)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/shoal-elite/Edge.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/jade-iris/Edge.mat)
+  texture guids identical (4)
+  _PaperColor          = (0.843137, 0.549020, 0.031373, a 1)  <- Edge #d78c08 (hex/255)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/shoal-elite/Engine.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/jade-iris/Engine.mat)
+  texture guids identical (4)
+  _PaperColor          = (0.223529, 0.223529, 0.239216, a 1)  <- Engine #39393d (hex/255)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Midnight.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Midnight.mat)
+  texture guids identical (4)
+  _PaintLightColor     = (0.545607, 0.546096, 0.548776, a 1)  <- Nightshade Midnight #1c1d22 srgb(lift(linear6, 0.25))  OK
+  _PaperColor          = (0.109802, 0.113723, 0.133332, a 1)  <- Nightshade Midnight #1c1d22 srgb(linear6)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Violet.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Violet.mat)
+  texture guids identical (4)
+  _PaintLightColor     = (0.555345, 0.556856, 0.563568, a 1)  <- Nightshade Violet #2c2e36 srgb(lift(linear6, 0.25))  OK
+  _PaperColor          = (0.172550, 0.180393, 0.211763, a 1)  <- Nightshade Violet #2c2e36 srgb(linear6)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Plum.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Plum.mat)
+  texture guids identical (4)
+  _PaintLightColor     = (0.739580, 0.927763, 0.563568, a 1)  <- Nightshade Plum #9ee636 srgb(lift(linear6, 0.25))  OK
+  _PaperColor          = (0.619607, 0.901961, 0.211763, a 1)  <- Nightshade Plum #9ee636 srgb(linear6)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Edge.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Edge.mat)
+  texture guids identical (4)
+  _PaintLightColor     = (0.546601, 0.547121, 0.549960, a 1)  <- Nightshade Edge #1e1f24 srgb(lift(linear6, 0.25))  OK
+  _PaperColor          = (0.117647, 0.121568, 0.141177, a 1)  <- Nightshade Edge #1e1f24 srgb(linear6)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Recess.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Recess.mat)
+  texture guids identical (4)
+-- src/Asteroids3D/Assets/Visuals/Ships/Nightshade/Materials/veil/Nightshade Glass.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Glass.mat)
+  texture guids identical (4)
+  _PaintLightColor     = (0.746638, 0.924932, 0.562670, a 1)  <- Nightshade Glass #a1e535 srgb(lift(linear6, 0.25))  OK
+  _PaperColor          = (0.631372, 0.898039, 0.207842, a 1)  <- Nightshade Glass #a1e535 srgb(linear6)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Midnight.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Midnight.mat)
+  texture guids identical (4)
+  _PaintLightColor     = (0.545607, 0.546096, 0.548776, a 1)  <- Nightshade Midnight #1c1d22 srgb(lift(linear6, 0.25))  OK
+  _PaperColor          = (0.109802, 0.113723, 0.133332, a 1)  <- Nightshade Midnight #1c1d22 srgb(linear6)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Violet.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Violet.mat)
+  texture guids identical (4)
+  _PaintLightColor     = (0.555345, 0.556856, 0.563568, a 1)  <- Nightshade Violet #2c2e36 srgb(lift(linear6, 0.25))  OK
+  _PaperColor          = (0.172550, 0.180393, 0.211763, a 1)  <- Nightshade Violet #2c2e36 srgb(linear6)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Plum.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Plum.mat)
+  texture guids identical (4)
+  _PaintLightColor     = (0.991194, 0.541552, 0.888586, a 1)  <- Nightshade Plum #fc12d8 srgb(lift(linear6, 0.25))  OK
+  _PaperColor          = (0.988235, 0.070590, 0.847059, a 1)  <- Nightshade Plum #fc12d8 srgb(linear6)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Edge.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Edge.mat)
+  texture guids identical (4)
+  _PaintLightColor     = (0.546601, 0.547121, 0.549960, a 1)  <- Nightshade Edge #1e1f24 srgb(lift(linear6, 0.25))  OK
+  _PaperColor          = (0.117647, 0.121568, 0.141177, a 1)  <- Nightshade Edge #1e1f24 srgb(linear6)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Recess.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Recess.mat)
+  texture guids identical (4)
+-- src/Asteroids3D/Assets/Visuals/Ships/Nightshade/Materials/veil-elite/Nightshade Glass.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Nightshade/Materials/nightshade/Nightshade Glass.mat)
+  texture guids identical (4)
+  _PaintLightColor     = (0.746638, 0.924932, 0.562670, a 1)  <- Nightshade Glass #a1e535 srgb(lift(linear6, 0.25))  OK
+  _PaperColor          = (0.631372, 0.898039, 0.207842, a 1)  <- Nightshade Glass #a1e535 srgb(linear6)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Bone.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Bone.mat)
+  texture guids identical (5)
+  _EmissionColor       = (0.208644, 0.980736, 1.151798, a 1)  <- glow #2bd2f7 scaled x1.4845 (linear) to lumY 0.79157 lumY today 0.79157 new 0.79157 alpha 1  OK
+  _PaintLightColor     = (0.494833, 0.500819, 0.537501, a 1)  <- substrate #1c2547 srgb(lift(linear6, 0.2))  OK
+  _PaintRegionColor0   = (0.109802, 0.145097, 0.278431, a 1)  <- substrate #1c2547 srgb(linear6)  OK
+  _PaintRegionColor1   = (0.141177, 0.313726, 0.721568, a 1)  <- coat #2450b8 srgb(linear6)  OK
+  _PaperColor          = (0.109802, 0.145097, 0.278431, a 1)  <- substrate #1c2547 srgb(linear6)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark EdgeCoat.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark EdgeCoat.mat)
+  texture guids identical (5)
+  _EmissionColor       = (0.208644, 0.980736, 1.151798, a 1)  <- glow #2bd2f7 scaled x1.4845 (linear) to lumY 0.79157 lumY today 0.79157 new 0.79157 alpha 1  OK
+  _PaintLightColor     = (0.494833, 0.500819, 0.537501, a 1)  <- substrate #1c2547 srgb(lift(linear6, 0.2))  OK
+  _PaintRegionColor0   = (0.109802, 0.145097, 0.278431, a 1)  <- substrate #1c2547 srgb(linear6)  OK
+  _PaintRegionColor1   = (0.141177, 0.313726, 0.721568, a 1)  <- coat #2450b8 srgb(linear6)  OK
+  _PaperColor          = (0.109802, 0.145097, 0.278431, a 1)  <- substrate #1c2547 srgb(linear6)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Flap.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Flap.mat)
+  texture guids identical (5)
+  _EmissionColor       = (0.208644, 0.980736, 1.151798, a 1)  <- glow #2bd2f7 scaled x1.4845 (linear) to lumY 0.79157 lumY today 0.79157 new 0.79157 alpha 1  OK
+  _PaintLightColor     = (0.947166, 0.947166, 0.947166, a 1)  <- substrate #eeeeee srgb(lift(linear6, 0.2))  OK
+  _PaintRegionColor0   = (0.933334, 0.933334, 0.933334, a 1)  <- substrate #eeeeee srgb(linear6)  OK
+  _PaintRegionColor1   = (0.933334, 0.933334, 0.933334, a 1)  <- coat #eeeeee srgb(linear6)  OK
+  _PaperColor          = (0.933334, 0.933334, 0.933334, a 1)  <- substrate #eeeeee srgb(linear6)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Guard Plum.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Guard Plum.mat)
+  texture guids identical (4)
+  _EmissionColor       = (0.208644, 0.980736, 1.151798, a 1)  <- glow #2bd2f7 scaled x1.4845 (linear) to lumY 0.79157 lumY today 0.79157 new 0.79157 alpha 1  OK
+  _PaintLightColor     = (0.947166, 0.947166, 0.947166, a 1)  <- #eeeeee srgb(lift(linear6, 0.2))  OK
+  _PaperColor          = (0.933334, 0.933334, 0.933334, a 1)  <- #eeeeee srgb(linear6)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Armor Charcoal.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Armor Charcoal.mat)
+  texture guids identical (4)
+  _EmissionColor       = (0.208644, 0.980736, 1.151798, a 1)  <- glow #2bd2f7 scaled x1.4845 (linear) to lumY 0.79157 lumY today 0.79157 new 0.79157 alpha 1  OK
+  _PaintLightColor     = (0.494833, 0.500819, 0.537501, a 1)  <- #1c2547 srgb(lift(linear6, 0.2))  OK
+  _PaperColor          = (0.109802, 0.145097, 0.278431, a 1)  <- #1c2547 srgb(linear6)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Structure.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Structure.mat)
+  texture guids identical (4)
+  _EmissionColor       = (0.208644, 0.980736, 1.151798, a 1)  <- glow #2bd2f7 scaled x1.4845 (linear) to lumY 0.79157 lumY today 0.79157 new 0.79157 alpha 1  OK
+  _PaintLightColor     = (0.494833, 0.500819, 0.537501, a 1)  <- #1c2547 srgb(lift(linear6, 0.2))  OK
+  _PaperColor          = (0.109802, 0.145097, 0.278431, a 1)  <- #1c2547 srgb(linear6)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Bulwark/Materials/bastion/Bulwark Metal.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Metal.mat)
+  texture guids identical (4)
+  _EmissionColor       = (0.208644, 0.980736, 1.151798, a 1)  <- glow #2bd2f7 scaled x1.4845 (linear) to lumY 0.79157 lumY today 0.79157 new 0.79157 alpha 1  OK
+  _PaintLightColor     = (0.922679, 0.922679, 0.922679, a 1)  <- #e6e6e6 srgb(lift(linear6, 0.2))  OK
+  _PaperColor          = (0.901961, 0.901961, 0.901961, a 1)  <- #e6e6e6 srgb(linear6)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Bone.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Bone.mat)
+  texture guids identical (5)
+  _EmissionColor       = (0.208644, 0.980736, 1.151798, a 1)  <- glow #2bd2f7 scaled x1.4845 (linear) to lumY 0.79157 lumY today 0.79157 new 0.79157 alpha 1  OK
+  _PaintLightColor     = (0.494833, 0.500819, 0.537501, a 1)  <- substrate #1c2547 srgb(lift(linear6, 0.2))  OK
+  _PaintRegionColor0   = (0.109802, 0.145097, 0.278431, a 1)  <- substrate #1c2547 srgb(linear6)  OK
+  _PaintRegionColor1   = (0.141177, 0.313726, 0.721568, a 1)  <- coat #2450b8 srgb(linear6)  OK
+  _PaperColor          = (0.109802, 0.145097, 0.278431, a 1)  <- substrate #1c2547 srgb(linear6)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark EdgeCoat.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark EdgeCoat.mat)
+  texture guids identical (5)
+  _EmissionColor       = (0.208644, 0.980736, 1.151798, a 1)  <- glow #2bd2f7 scaled x1.4845 (linear) to lumY 0.79157 lumY today 0.79157 new 0.79157 alpha 1  OK
+  _PaintLightColor     = (0.494833, 0.500819, 0.537501, a 1)  <- substrate #1c2547 srgb(lift(linear6, 0.2))  OK
+  _PaintRegionColor0   = (0.109802, 0.145097, 0.278431, a 1)  <- substrate #1c2547 srgb(linear6)  OK
+  _PaintRegionColor1   = (0.141177, 0.313726, 0.721568, a 1)  <- coat #2450b8 srgb(linear6)  OK
+  _PaperColor          = (0.109802, 0.145097, 0.278431, a 1)  <- substrate #1c2547 srgb(linear6)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Flap.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Flap.mat)
+  texture guids identical (5)
+  _EmissionColor       = (1.601726, 0.144442, 1.377528, a 1)  <- glow #fc12d8 scaled x3.0345 (linear) to lumY 0.79157 lumY today 0.79157 new 0.79157 alpha 1  OK
+  _PaintLightColor     = (0.990603, 0.489931, 0.880486, a 1)  <- substrate #fc12d8 srgb(lift(linear6, 0.2))  OK
+  _PaintRegionColor0   = (0.988235, 0.070590, 0.847059, a 1)  <- substrate #fc12d8 srgb(linear6)  OK
+  _PaintRegionColor1   = (0.988235, 0.070590, 0.847059, a 1)  <- coat #fc12d8 srgb(linear6)  OK
+  _PaperColor          = (0.988235, 0.070590, 0.847059, a 1)  <- substrate #fc12d8 srgb(linear6)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Guard Plum.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Guard Plum.mat)
+  texture guids identical (4)
+  _EmissionColor       = (1.601726, 0.144442, 1.377528, a 1)  <- glow #fc12d8 scaled x3.0345 (linear) to lumY 0.79157 lumY today 0.79157 new 0.79157 alpha 1  OK
+  _PaintLightColor     = (0.990603, 0.489931, 0.880486, a 1)  <- #fc12d8 srgb(lift(linear6, 0.2))  OK
+  _PaperColor          = (0.988235, 0.070590, 0.847059, a 1)  <- #fc12d8 srgb(linear6)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Armor Charcoal.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Armor Charcoal.mat)
+  texture guids identical (4)
+  _EmissionColor       = (0.208644, 0.980736, 1.151798, a 1)  <- glow #2bd2f7 scaled x1.4845 (linear) to lumY 0.79157 lumY today 0.79157 new 0.79157 alpha 1  OK
+  _PaintLightColor     = (0.494833, 0.500819, 0.537501, a 1)  <- #1c2547 srgb(lift(linear6, 0.2))  OK
+  _PaperColor          = (0.109802, 0.145097, 0.278431, a 1)  <- #1c2547 srgb(linear6)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Structure.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Structure.mat)
+  texture guids identical (4)
+  _EmissionColor       = (0.208644, 0.980736, 1.151798, a 1)  <- glow #2bd2f7 scaled x1.4845 (linear) to lumY 0.79157 lumY today 0.79157 new 0.79157 alpha 1  OK
+  _PaintLightColor     = (0.494833, 0.500819, 0.537501, a 1)  <- #1c2547 srgb(lift(linear6, 0.2))  OK
+  _PaperColor          = (0.109802, 0.145097, 0.278431, a 1)  <- #1c2547 srgb(linear6)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/Bulwark/Materials/bastion-elite/Bulwark Metal.mat  (from src/Asteroids3D/Assets/Visuals/Ships/Bulwark/Materials/plum-bone/Bulwark Metal.mat)
+  texture guids identical (4)
+  _EmissionColor       = (0.208644, 0.980736, 1.151798, a 1)  <- glow #2bd2f7 scaled x1.4845 (linear) to lumY 0.79157 lumY today 0.79157 new 0.79157 alpha 1  OK
+  _PaintLightColor     = (0.922679, 0.922679, 0.922679, a 1)  <- #e6e6e6 srgb(lift(linear6, 0.2))  OK
+  _PaperColor          = (0.901961, 0.901961, 0.901961, a 1)  <- #e6e6e6 srgb(linear6)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/_Shared/ThrusFlame_Shoal.mat  (from src/Asteroids3D/Assets/Visuals/Ships/_Shared/ThrusFlame_Blue.mat)
+  texture guids identical (3)
+  _BaseColor           = (0.996078, 0.525490, 0.101961, a 1)  <- #fe861a (hex/255, a 1)  OK
+  _Color               = (0.996078, 0.525490, 0.101961, a 1)  <- #fe861a (hex/255, a 1)  OK
+  _EmissionColor       = (0.996078, 0.525490, 0.101961, a 1)  <- #fe861a (hex/255, a 1)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/_Shared/ThrusFlame_Veil.mat  (from src/Asteroids3D/Assets/Visuals/Ships/_Shared/ThrusFlame_Blue.mat)
+  texture guids identical (3)
+  _BaseColor           = (0.658824, 0.964706, 0.231373, a 1)  <- #a8f63b (hex/255, a 1)  OK
+  _Color               = (0.658824, 0.964706, 0.231373, a 1)  <- #a8f63b (hex/255, a 1)  OK
+  _EmissionColor       = (0.658824, 0.964706, 0.231373, a 1)  <- #a8f63b (hex/255, a 1)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/_Shared/ThrusFlame_Bastion.mat  (from src/Asteroids3D/Assets/Visuals/Ships/_Shared/ThrusFlame_Blue.mat)
+  texture guids identical (3)
+  _BaseColor           = (0.168627, 0.823529, 0.968627, a 1)  <- #2bd2f7 (hex/255, a 1)  OK
+  _Color               = (0.168627, 0.823529, 0.968627, a 1)  <- #2bd2f7 (hex/255, a 1)  OK
+  _EmissionColor       = (0.168627, 0.823529, 0.968627, a 1)  <- #2bd2f7 (hex/255, a 1)  OK
+-- src/Asteroids3D/Assets/Visuals/Ships/_Shared/ThrusFlame_Elite.mat  (from src/Asteroids3D/Assets/Visuals/Ships/_Shared/ThrusFlame_Blue.mat)
+  texture guids identical (3)
+  _BaseColor           = (0.988235, 0.070588, 0.847059, a 1)  <- #fc12d8 (hex/255, a 1)  OK
+  _Color               = (0.988235, 0.070588, 0.847059, a 1)  <- #fc12d8 (hex/255, a 1)  OK
+  _EmissionColor       = (0.988235, 0.070588, 0.847059, a 1)  <- #fc12d8 (hex/255, a 1)  OK
+
+== Folder metas
+  src/Asteroids3D/Assets/Visuals/Ships/Crimson/Materials.meta guid 4e207bcf75b843fbbb1edff81a50b014 OK
+  src/Asteroids3D/Assets/Visuals/Ships/Crimson/Materials/shoal.meta guid fb8e524d2f2a4c93ae524cd32642dd42 OK
+  src/Asteroids3D/Assets/Visuals/Ships/Crimson/Materials/veil.meta guid fa2fe3ac620645b693587d743d6c7612 OK
+  src/Asteroids3D/Assets/Visuals/Ships/Crimson/Materials/bastion.meta guid b08d8f66d992461cbd1fde0fe012793e OK
+  src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/shoal.meta guid b866dd4e184744d7b0313a3981b4fe24 OK
+  src/Asteroids3D/Assets/Visuals/Ships/Valis/Materials/shoal-elite.meta guid 8f5f346b7be843efac9ecadfc7e1703b OK
+  src/Asteroids3D/Assets/Visuals/Ships/Nightshade/Materials/veil.meta guid 6d914e2af18b4c728e9e1cdaa124805d OK
+  src/Asteroids3D/Assets/Visuals/Ships/Nightshade/Materials/veil-elite.meta guid 1d8c2771f9ce4636a400bd7aaa544ac4 OK
+  src/Asteroids3D/Assets/Visuals/Ships/Bulwark/Materials/bastion.meta guid 600c18514a554dc7b24d468cd6d091f7 OK
+  src/Asteroids3D/Assets/Visuals/Ships/Bulwark/Materials/bastion-elite.meta guid ff004102a061401b8f94edefc19361a7 OK
+  duplicate guids anywhere under Assets: 0
+
+== Light-lift checks (today's source materials)
+  Nightshade: paint.json light_lift L=0.25; lift rule vs today's nightshade/ max diff 4.08e-09 -> reproduces (<=0.002)
+  Bulwark: L derived from plum-bone paper/light pairs: mean 0.200000 range [0.200000, 0.200000] (n=21); paint.json light_lift 0.2; used 0.2
+
+== Crimson Hull paint region order (sorted names -> _PaintRegionColorN vs srgb(crimson linear))
+   0 Charcoal         today (0.140, 0.150, 0.170) srgb(lin) (0.140, 0.150, 0.170) diff 0.0e+00
+   1 Crimson canopy   today (0.028, 0.034, 0.041) srgb(lin) (0.028, 0.034, 0.041) diff 0.0e+00
+   2 FloorIndicator   today (0.100, 0.660, 0.130) srgb(lin) (0.100, 0.660, 0.130) diff 0.0e+00
+   3 Frame            today (0.850, 0.045, 0.025) srgb(lin) (0.850, 0.045, 0.025) diff 6.9e-18
+   4 NozzleRing       today (0.380, 0.390, 0.380) srgb(lin) (0.380, 0.390, 0.380) diff 0.0e+00
+   5 Red              today (0.920, 0.038, 0.023) srgb(lin) (0.920, 0.038, 0.023) diff 0.0e+00
+   6 RedStructure     today (0.920, 0.038, 0.023) srgb(lin) (0.920, 0.038, 0.023) diff 0.0e+00
+   7 Rim              today (0.570, 0.580, 0.550) srgb(lin) (0.570, 0.580, 0.550) diff 0.0e+00
+   8 Silver           today (0.940, 0.920, 0.860) srgb(lin) (0.940, 0.920, 0.860) diff 0.0e+00
+   9 SilverStructure  today (0.940, 0.920, 0.860) srgb(lin) (0.940, 0.920, 0.860) diff 0.0e+00
+  10 YokeIndicator    today (0.180, 0.720, 0.120) srgb(lin) (0.180, 0.720, 0.120) diff 0.0e+00
+  order CONFIRMED
+
+== palettes.json
+-- art/ships/crimson/palettes.json: default 'crimson' (HEAD 'crimson'); palettes ['crimson', 'shoal', 'veil', 'bastion']
+  formatting: HEAD lines 74, now 278, HEAD first 71 lines unchanged: True
+  [shoal] 11 regions, keys match default order: True
+    Silver                         [0.887923, 0.386429, 0.01033, 1]
+    SilverStructure                [0.887923, 0.386429, 0.01033, 1]
+    Red                            [0.008568, 0.008023, 0.006995, 1]
+    RedStructure                   [0.008568, 0.008023, 0.006995, 1]
+    Frame                          [0.008568, 0.008023, 0.006995, 1]
+    Charcoal                       [0.045186, 0.048172, 0.056128, 1]
+    Rim                            [0.042311, 0.042311, 0.048172, 1]
+    NozzleRing                     keep [0.1192801876221121, 0.12596738774090202, 0.1192801876221121]
+    FloorIndicator                 keep [0.010022825574869039, 0.3931231302267222, 0.01532520332062848]
+    YokeIndicator                  keep [0.027211780951381357, 0.47699978456654196, 0.01341174889765847]
+    Crimson canopy                 keep [0.0021671826625387, 0.0026315789473684214, 0.0031742787091666403]
+  [veil] 11 regions, keys match default order: True
+    Silver                         [0.026241, 0.027321, 0.036889, 1]
+    SilverStructure                [0.025187, 0.027321, 0.035601, 1]
+    Red                            [0.346704, 0.783538, 0.035601, 1]
+    RedStructure                   [0.346704, 0.783538, 0.035601, 1]
+    Frame                          [0.346704, 0.783538, 0.035601, 1]
+    Charcoal                       [0.012286, 0.012983, 0.016807, 1]
+    Rim                            [0.012286, 0.012983, 0.016807, 1]
+    NozzleRing                     keep [0.1192801876221121, 0.12596738774090202, 0.1192801876221121]
+    FloorIndicator                 keep [0.010022825574869039, 0.3931231302267222, 0.01532520332062848]
+    YokeIndicator                  keep [0.027211780951381357, 0.47699978456654196, 0.01341174889765847]
+    Crimson canopy                 keep [0.0021671826625387, 0.0026315789473684214, 0.0031742787091666403]
+  [bastion] 11 regions, keys match default order: True
+    Silver                         [0.854993, 0.854993, 0.854993, 1]
+    SilverStructure                [0.016807, 0.076185, 0.450786, 1]
+    Red                            [0.016807, 0.076185, 0.450786, 1]
+    RedStructure                   [0.016807, 0.076185, 0.450786, 1]
+    Frame                          [0.016807, 0.076185, 0.450786, 1]
+    Charcoal                       [0.013702, 0.017642, 0.052861, 1]
+    Rim                            [0.846873, 0.846873, 0.846873, 1]
+    NozzleRing                     keep [0.1192801876221121, 0.12596738774090202, 0.1192801876221121]
+    FloorIndicator                 keep [0.010022825574869039, 0.3931231302267222, 0.01532520332062848]
+    YokeIndicator                  keep [0.027211780951381357, 0.47699978456654196, 0.01341174889765847]
+    Crimson canopy                 keep [0.0021671826625387, 0.0026315789473684214, 0.0031742787091666403]
+-- art/ships/valis/palettes.json: default 'jade-iris' (HEAD 'jade-iris'); palettes ['ivory-lavender', 'jade-gray', 'jade-iris', 'shoal', 'shoal-elite']
+  formatting: HEAD lines 138, now 226, HEAD first 135 lines unchanged: True
+  [shoal] 7 regions, keys match default order: True
+    Ivory                          [0.879622, 0.381326, 0.009721, 1.0]
+    Cool gray                      [0.64448, 0.262251, 0.003677, 1.0]
+    Lavender                       [0.036889, 0.038204, 0.038204, 1.0]
+    Graphite                       [0.008568, 0.006995, 0.006049, 1.0]
+    Edge                           [0.679542, 0.262251, 0.002428, 1.0]
+    Canopy                         keep [0.006995410187265387, 0.017641954488384078, 0.030713443732993635]
+    Engine                         [0.040915, 0.040915, 0.046665, 1.0]
+  [shoal-elite] 7 regions, keys match default order: True
+    Ivory                          [0.879622, 0.381326, 0.009721, 1.0]
+    Cool gray                      [0.64448, 0.262251, 0.003677, 1.0]
+    Lavender                       [0.973445, 0.006049, 0.686685, 1.0]
+    Graphite                       [0.008568, 0.006995, 0.006049, 1.0]
+    Edge                           [0.679542, 0.262251, 0.002428, 1.0]
+    Canopy                         keep [0.006995410187265387, 0.017641954488384078, 0.030713443732993635]
+    Engine                         [0.040915, 0.040915, 0.046665, 1.0]
+-- art/ships/nightshade/palettes.json: default 'nightshade' (HEAD 'nightshade'); palettes ['nightshade', 'veil', 'veil-elite']
+  formatting: HEAD lines 14, now 30, HEAD first 11 lines unchanged: True
+  [veil] 6 regions, keys match default order: True
+    Nightshade Midnight            [0.011612, 0.012286, 0.015996, 1.0]
+    Nightshade Violet              [0.025187, 0.027321, 0.036889, 1.0]
+    Nightshade Plum                [0.341914, 0.791298, 0.036889, 1.0]
+    Nightshade Edge                [0.012983, 0.013702, 0.017642, 1.0]
+    Nightshade Recess              keep [0.0012141079641878605, 0.002124688820913434, 0.005181516520678997]
+    Nightshade Glass               [0.3564, 0.783538, 0.035601, 1.0]
+  [veil-elite] 6 regions, keys match default order: True
+    Nightshade Midnight            [0.011612, 0.012286, 0.015996, 1.0]
+    Nightshade Violet              [0.025187, 0.027321, 0.036889, 1.0]
+    Nightshade Plum                [0.973445, 0.006049, 0.686685, 1.0]
+    Nightshade Edge                [0.012983, 0.013702, 0.017642, 1.0]
+    Nightshade Recess              keep [0.0012141079641878605, 0.002124688820913434, 0.005181516520678997]
+    Nightshade Glass               [0.3564, 0.783538, 0.035601, 1.0]
+-- art/ships/bulwark/palettes.json: default 'plum-bone' (HEAD 'plum-bone'); palettes ['plum-bone', 'bastion', 'bastion-elite']
+  formatting: HEAD lines 98, now 282, HEAD first 95 lines unchanged: True
+  [bastion] 15 regions, keys match default order: True
+    Bulwark Plum                   [0.011612, 0.0185, 0.06301, 1.0]
+    Bulwark Bone                   [0.011612, 0.0185, 0.06301, 1.0]
+    Bulwark Structure              [0.011612, 0.0185, 0.06301, 1.0]
+    Bulwark Glass                  keep [0.16513219475746155, 0.2345505803823471, 0.28314873576164246]
+    Bulwark Flap                   [0.854993, 0.854993, 0.854993, 1.0]
+    Bulwark Armor Charcoal         [0.011612, 0.0185, 0.06301, 1.0]
+    Bulwark Guard Bone             [0.017642, 0.08022, 0.47932, 1.0]
+    Bulwark Guard Plum             [0.854993, 0.854993, 0.854993, 1.0]
+    Bulwark Plum Secondary         [0.011612, 0.0185, 0.06301, 1.0]
+    Bulwark Bone Secondary         [0.011612, 0.0185, 0.06301, 1.0]
+    Bulwark Structure Secondary    [0.011612, 0.0185, 0.06301, 1.0]
+    Bulwark Glass Secondary        keep [0.16513219475746155, 0.2345505803823471, 0.28314873576164246]
+    Bulwark Flap Secondary         [0.854993, 0.854993, 0.854993, 1.0]
+    Bulwark Metal                  [0.791298, 0.791298, 0.791298, 1.0]
+    Bulwark EdgeCoat               [0.011612, 0.0185, 0.06301, 1.0]
+  [bastion-elite] 15 regions, keys match default order: True
+    Bulwark Plum                   [0.011612, 0.0185, 0.06301, 1.0]
+    Bulwark Bone                   [0.011612, 0.0185, 0.06301, 1.0]
+    Bulwark Structure              [0.011612, 0.0185, 0.06301, 1.0]
+    Bulwark Glass                  keep [0.16513219475746155, 0.2345505803823471, 0.28314873576164246]
+    Bulwark Flap                   [0.973445, 0.006049, 0.686685, 1.0]
+    Bulwark Armor Charcoal         [0.011612, 0.0185, 0.06301, 1.0]
+    Bulwark Guard Bone             [0.017642, 0.08022, 0.47932, 1.0]
+    Bulwark Guard Plum             [0.973445, 0.006049, 0.686685, 1.0]
+    Bulwark Plum Secondary         [0.011612, 0.0185, 0.06301, 1.0]
+    Bulwark Bone Secondary         [0.011612, 0.0185, 0.06301, 1.0]
+    Bulwark Structure Secondary    [0.011612, 0.0185, 0.06301, 1.0]
+    Bulwark Glass Secondary        keep [0.16513219475746155, 0.2345505803823471, 0.28314873576164246]
+    Bulwark Flap Secondary         [0.973445, 0.006049, 0.686685, 1.0]
+    Bulwark Metal                  [0.791298, 0.791298, 0.791298, 1.0]
+    Bulwark EdgeCoat               [0.011612, 0.0185, 0.06301, 1.0]
+
+== Palette values vs picks (linear6 of hex)
+  crimson/shoal: 7 picks match linear6(hex), kept ['NozzleRing', 'FloorIndicator', 'YokeIndicator', 'Crimson canopy']: OK
+  crimson/veil: 7 picks match linear6(hex), kept ['NozzleRing', 'FloorIndicator', 'YokeIndicator', 'Crimson canopy']: OK
+  crimson/bastion: 7 picks match linear6(hex), kept ['NozzleRing', 'FloorIndicator', 'YokeIndicator', 'Crimson canopy']: OK
+  valis/shoal: 6 picks match linear6(hex), kept ['Canopy']: OK
+  valis/shoal-elite: 6 picks match linear6(hex), kept ['Canopy']: OK
+  nightshade/veil: 5 picks match linear6(hex), kept ['Nightshade Recess']: OK
+  nightshade/veil-elite: 5 picks match linear6(hex), kept ['Nightshade Recess']: OK
+  bulwark/bastion: 13 picks match linear6(hex), kept ['Bulwark Glass', 'Bulwark Glass Secondary']: OK
+  bulwark/bastion-elite: 13 picks match linear6(hex), kept ['Bulwark Glass', 'Bulwark Glass Secondary']: OK
+
+== git status --short
+   M art/ships/bulwark/palettes.json
+   M art/ships/crimson/palettes.json
+   M art/ships/nightshade/palettes.json
+   M art/ships/valis/palettes.json
+  modified: 4 (expected exactly the 4 palettes.json: True)
+  untracked files: 100 (expected 100; set equal: True)
+
+RESULT: PASS
