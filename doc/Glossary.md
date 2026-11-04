@@ -717,6 +717,21 @@ Format: **term** — definition. *(authority)*
 - **tracking missile** — a missile that has a target and hasn't lost track. The
   target's lock channel lists it from launch until it loses track or leaves play.
   *(`Missile.IsTracking`, `LockChannel.Trackers`, `IShipStatus.TrackingMissiles`)*
+- **beat** (enemy brain) — one committed stretch of a game enemy's fight: an
+  attack run, a flank to the target's blind side, a hold at range with long
+  shots, a break-off while the shield regenerates, or a search with no target.
+  The pilot scores the beats only when its current one ends, at its drawn
+  length or its own early end, never mid-beat: commitment is the answer to the
+  old utility brain's ping-pong, not stickiness (ruled 2026-11-04, #1349).
+  Crowding is score lost per ally past the pilot's tolerance already attacking
+  the same target, read off those allies' own brains, with no hard ceiling.
+  ⚠ The hold beat is not the hold range (AI): an attack run flies at the hold
+  range, a hold circles outside it. *(BeatBrain, BeatSelector, Crowd)*
+- **personality** (enemy pilot) — the weight set a game pilot picks beats by,
+  one asset per kind of pilot (enemy, elite, escort). Each enemy flies its own
+  draw within the asset's variation, seeded from the engine's random state, so
+  no two enemies are alike and a run never repeats the last. A faction role is
+  another asset, not another code path (#1320). *(Personality)*
 - **missile evasion** — a scripted pilot leaning away from a tracking missile and
   boosting to escape it. Only missiles tracking its own ship count: a lost track ends
   it, and a missile lock before launch draws none (dodging the lock-on cone would deny
