@@ -1,13 +1,19 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
+using Combat.Targeting;
+using Damage;
 using NUnit.Framework;
 using Ships;
 using Ships.Damage;
+using Ships.Registry;
 using Tests.PlayMode.Common;
+using Tests.PlayMode.Common.SimulatedInput;
 using UI.PlayerState;
 using UI.Projection;
 using UI.Weapons;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 using Utils;
@@ -19,6 +25,12 @@ namespace Tests.PlayMode.PlayerState
     {
         private GameObject root;
         private Ship ship;
+        private Ship player;
+        private Ship abeam;
+        private Ship ahead;
+        private ShipRegistry registry;
+        private CanopyProjectionProfile profile;
+        private PlayModeInputTestFixture input;
 
         [SetUp]
         public override void SetUp()
@@ -32,6 +44,14 @@ namespace Tests.PlayMode.PlayerState
         {
             DestroyTestObject(root);
             ShipTestFactory.DestroyShip(ship);
+            ShipTestFactory.DestroyShip(player);
+            ShipTestFactory.DestroyShip(abeam);
+            ShipTestFactory.DestroyShip(ahead);
+            registry?.Dispose();
+            registry = null;
+            if (profile) Object.DestroyImmediate(profile);
+            input?.TearDown();
+            input = null;
             base.TearDown();
         }
 
@@ -133,7 +153,8 @@ namespace Tests.PlayMode.PlayerState
                 .SetValue(mainHud, weaponHud);
             typeof(global::UI.Overlay).GetField("lockReticle", BindingFlags.Instance | BindingFlags.NonPublic)
                 .SetValue(mainHud, TestAssets.Load<LockOnIndicator>("Assets/Prefabs/UI/UILockOnIndicator.prefab"));
-            mainHud.ConfigureCameras(camera, camera);
+            // A pick radius of two screen heights targets the ship wherever the cursor is.
+            mainHud.ConfigureCameras(camera, camera, Projection(pickRadius: 2f, hitBarsSeconds: 3f));
             mainHud.BindShips(ships, camera);
             var overlay = root.GetComponentInChildren<ShipStatusOverlay>();
             yield return null;
@@ -181,7 +202,7 @@ namespace Tests.PlayMode.PlayerState
             yield return null;
             Assert.AreEqual(0f, visibility.alpha);
             ship.tag = "Player";
-            yield return null;
+            yield return Pick();
             Assert.AreEqual(1f, visibility.alpha, "Player bars remain readable while concealed");
             ship.Lock.Reveal();
             mainHud.SetOpacity(.35f);
@@ -237,10 +258,122 @@ namespace Tests.PlayMode.PlayerState
                 null, Projectiles, team: 1);
             Assert.IsFalse(ship.VisualRig, "Exercise legacy ships without a visual rig");
             ships.Add(ship);
-            yield return null;
+            yield return Pick();
             var cargoIndicator = overlay.GetComponentInChildren<ShipStatusIndicator>();
             Assert.AreEqual(1f, cargoIndicator.GetComponent<CanvasGroup>().alpha);
             Assert.AreEqual("400/400", cargoIndicator.GetComponentsInChildren<Text>()[1].text);
+        }
+
+        [UnityTest]
+        public IEnumerator EnemyBars_ShowOnTheTargetAndAfterPlayerHits_ThenFade()
+        {
+            input = new PlayModeInputTestFixture();
+            input.Setup();
+            var mouse = InputSystem.AddDevice<Mouse>();
+            var camera = new GameObject("Camera").AddComponent<Camera>();
+            camera.transform.SetParent(root.transform);
+            camera.transform.position = new Vector3(0f, 0f, -50f);
+            camera.orthographic = true;
+            camera.orthographicSize = 17f;
+            registry = new ShipRegistry();
+            var ships = registry.ActiveShips;
+            var vanguard = TestAssets.Load<Ship>("Assets/Prefabs/Ships/Vanguard.prefab");
+            player = ShipTestFactory.CreateShip(vanguard, null, Projectiles, team: 0);
+            player.tag = "Player";
+            abeam = ShipTestFactory.CreateShip(vanguard, null, Projectiles, team: 1, position: new Vector3(-8f, 0f, 0f));
+            ahead = ShipTestFactory.CreateShip(vanguard, null, Projectiles, team: 1, position: new Vector3(0f, 8f, 0f));
+            abeam.Rigidbody.interpolation = ahead.Rigidbody.interpolation = RigidbodyInterpolation.None;
+            ships.Add(player);
+            ships.Add(abeam);
+            ships.Add(ahead);
+            var hud = new GameObject("HUD").AddComponent<Canvas>();
+            hud.transform.SetParent(root.transform);
+            hud.gameObject.layer = LayerMask.NameToLayer("UIBloom");
+            hud.worldCamera = camera;
+            var overlay = ShipStatusOverlay.Create(hud, ships, camera,
+                Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"),
+                TestAssets.Load<Material>("Assets/Visuals/Ui/Projection/CanopyText.mat"),
+                TestAssets.Load<LockOnIndicator>("Assets/Prefabs/UI/UILockOnIndicator.prefab"),
+                Projection(pickRadius: .1f, hitBarsSeconds: .3f));
+            var indicators = (Dictionary<Ship, ShipStatusIndicator>)typeof(ShipStatusOverlay)
+                .GetField("indicators", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(overlay);
+            float Alpha(Ship target) => indicators[target].GetComponent<CanvasGroup>().alpha;
+            bool Numbers(Ship target)
+            {
+                var labels = indicators[target].GetComponentsInChildren<Text>(true);
+                Assert.AreEqual(labels[0].enabled, labels[1].enabled, "Shield and hull numbers show together");
+                return labels[0].enabled;
+            }
+            Vector2 OnScreen(Ship target) => camera.WorldToScreenPoint(target.transform.position);
+
+            input.Set(mouse.position, OnScreen(abeam));
+            yield return Pick();
+            Assert.AreEqual(1f, Alpha(abeam), "The enemy under the cursor shows its bars");
+            Assert.IsTrue(Numbers(abeam), "The enemy under the cursor shows its numbers");
+            Assert.AreEqual(0f, Alpha(ahead), "Enemies away from the cursor stay hidden");
+            Assert.AreEqual(1f, Alpha(player));
+            Assert.IsTrue(Numbers(player));
+
+            input.Set(mouse.position, OnScreen(ahead));
+            yield return Pick();
+            Assert.AreEqual(1f, Alpha(ahead));
+            Assert.IsTrue(Numbers(ahead));
+            Assert.IsFalse(Numbers(abeam), "Numbers leave with the cursor");
+            Assert.That(Alpha(abeam), Is.GreaterThan(0f).And.LessThan(1f), "Bars fade rather than cut");
+            yield return AsyncAssert.WaitUntil(() => Alpha(abeam) == 0f, 2f, "The old target's bars fade out");
+
+            input.Set(mouse.position, new Vector2(5f, 5f));
+            yield return AsyncAssert.WaitUntil(() => Alpha(ahead) == 0f, 2f, "Nothing under the cursor, no enemy bars");
+            Assert.AreEqual(1f, Alpha(player), "The player's own bars always show");
+            Assert.IsTrue(Numbers(player));
+
+            abeam.Damage.SetInvulnerability(0f);
+            abeam.Damage.TakeDamage(new DamageInfo(5f, DamageKind.Laser, player.Id, 0f, Vector3.zero, Vector3.zero));
+            ahead.Damage.SetInvulnerability(0f);
+            ahead.Damage.TakeDamage(new DamageInfo(5f, DamageKind.Laser, ShipId.Invalid, 0f, Vector3.zero, Vector3.zero));
+            yield return Pick();
+            Assert.AreEqual(1f, Alpha(abeam), "An enemy the player hits shows its bars");
+            Assert.IsFalse(Numbers(abeam), "A hit shows bars without numbers");
+            Assert.AreEqual(0f, Alpha(ahead), "Hits from anything but the player show nothing");
+            yield return AsyncAssert.WaitUntil(() => Alpha(abeam) == 0f, 2f, "A hit's bars fade out");
+
+            input.Set(mouse.position, OnScreen(abeam));
+            abeam.Lock.Conceal();
+            yield return Pick();
+            Assert.AreEqual(0f, Alpha(abeam), "A concealed enemy stays hidden under the cursor");
+            abeam.Lock.Reveal();
+
+            player.Targeting.SetRegistry(registry);
+            for (var i = 0; i < 30 && player.Targeting.State != LockState.Locking; i++)
+                yield return new WaitForFixedUpdate();
+            Assert.AreEqual(LockState.Locking, player.Targeting.State, "test premise: the player locks the enemy ahead");
+            yield return Pick();
+            Assert.AreEqual(1f, Alpha(ahead), "The missile lock's target shows its bars");
+            Assert.IsTrue(Numbers(ahead));
+            Assert.IsFalse(Numbers(abeam), "The missile lock wins over the cursor");
+        }
+
+        // Tests resume after Update, so the overlay's pick sees a change one frame later.
+        private static IEnumerator Pick()
+        {
+            yield return null;
+            yield return null;
+        }
+
+        private CanopyProjection Projection(float pickRadius, float hitBarsSeconds)
+        {
+            var projection = Object.Instantiate(TestAssets.Load<GameObject>("Assets/Prefabs/Cameras/UI Cam.prefab"),
+                root.transform).GetComponent<CanopyProjection>();
+            projection.PersonalityEnabled = false;
+            profile = Object.Instantiate(projection.Profile);
+            profile.targetPickRadius = pickRadius;
+            profile.hitBarsSeconds = hitBarsSeconds;
+            using (var serialized = new UnityEditor.SerializedObject(projection))
+            {
+                serialized.FindProperty("profile").objectReferenceValue = profile;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+            }
+            return projection;
         }
 
         private static UIVertex FillEdge(StatusBarUI bar)

@@ -58,3 +58,5 @@ MonoBehaviour:
     blendInSeconds: 0.15
     blendOutSeconds: 0.35
   bigMomentSeconds: 1
+  targetPickRadius: 0.1
+  hitBarsSeconds: 3
