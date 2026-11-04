@@ -1,0 +1,97 @@
+{
+    "generatedAt":  "2026-11-04T10:53:02.6041424-08:00",
+    "projectPath":  "D:\\amind\\git\\agent-7\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "PlayMode",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "scopeResolved":  false,
+                      "testFilter":  "RailgunBeamPlayModeTests|ShipSpawnPresentationPlayModeTests|Tests.PlayMode.Recording.CaptureScenarioPlayModeTests",
+                      "testCategory":  "",
+                      "excludeCategory":  "",
+                      "categoryFilter":  "",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  "",
+                      "auto":  null,
+                      "withGraphics":  true,
+                      "captureScenario":  "RailgunLanceScenario"
+                  },
+    "status":  "passed",
+    "totals":  {
+                   "total":  17,
+                   "passed":  17,
+                   "failed":  0,
+                   "skipped":  0,
+                   "durationSec":  30.259
+               },
+    "runs":  [
+                 {
+                     "platform":  "PlayMode",
+                     "xmlPath":  "D:\\amind\\git\\agent-7\\results\\unity-tests-agent\\20261104-105139-PlayMode.xml",
+                     "logPath":  "D:\\amind\\git\\agent-7\\results\\unity-tests-agent\\20261104-105139-PlayMode.log",
+                     "unityExitCode":  0,
+                     "status":  "passed",
+                     "total":  17,
+                     "passed":  17,
+                     "failed":  0,
+                     "skipped":  0,
+                     "durationSec":  30.2585627,
+                     "failures":  [
+
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "captureScenario":  "RailgunLanceScenario",
+                                       "auto":  null,
+                                       "scopeResolved":  false,
+                                       "excludeCategory":  "",
+                                       "scopeType":  "Workspace",
+                                       "assemblyNames":  "",
+                                       "rerunFailedFrom":  "",
+                                       "scopeName":  "",
+                                       "orderedTestListFile":  "",
+                                       "testCategory":  "",
+                                       "withGraphics":  true,
+                                       "testFilter":  "RailgunBeamPlayModeTests|ShipSpawnPresentationPlayModeTests|Tests.PlayMode.Recording.CaptureScenarioPlayModeTests",
+                                       "categoryFilter":  ""
+                                   },
+                     "startedAt":  "2026-11-04 18:52:21Z",
+                     "finishedAt":  "2026-11-04 18:52:51Z"
+                 }
+             ],
+    "wallTiming":  {
+                       "elapsedSec":  85.038,
+                       "startupToFirstTestSec":  37.008,
+                       "executionSec":  30,
+                       "remainingSec":  18.029,
+                       "unavailableReason":  ""
+                   },
+    "coverage":  {
+                     "verdict":  "partial",
+                     "reason":  "mode=PlayMode"
+                 },
+    "memory":  {
+                   "processes":  [
+                                     {
+                                         "pid":  11916,
+                                         "rootPeakPrivateGB":  5.91,
+                                         "rootPeakWorkingSetGB":  4.008,
+                                         "treePeakSampledPrivateGB":  6.064,
+                                         "treePeakSampledWorkingSetGB":  4.287,
+                                         "treeSumOfPeaksPrivateGB":  6.305,
+                                         "commitHeadroomAtLaunchGB":  13.07,
+                                         "commitHeadroomMinGB":  2.64,
+                                         "availablePhysicalAtLaunchGB":  8.61,
+                                         "availablePhysicalMinGB":  0.57,
+                                         "bootLaneReleasedAtSec":  9.375,
+                                         "treePeakAtSec":  43.331,
+                                         "samples":  11,
+                                         "samplesFailed":  0,
+                                         "unavailableReason":  ""
+                                     }
+                                 ],
+                   "unavailableReason":  ""
+               }
+}

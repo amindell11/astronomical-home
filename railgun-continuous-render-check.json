@@ -1,0 +1,28 @@
+{
+  "commit": "bae0b03ed75368f5c5275f4cbe76bc19127154f6",
+  "source": "native-game-view",
+  "capture": "20261104-185224-668-RailgunLanceScenario",
+  "continuity": {
+    "frame": 110,
+    "xRange": [190, 1135],
+    "yBand": [365, 373],
+    "method": "maximum blue per column in line band",
+    "minimumBlue": 146,
+    "maximumBlue": 203,
+    "emptyColumns": 0
+  },
+  "motion": {
+    "method": "cross correlation of blue profiles in consecutive frames, x250:1050 y365:373, shifts -18:18",
+    "frames": [60, 75, 90, 105],
+    "displacementPixels": [-4, -6, -8, -12],
+    "negativeDirection": "left, toward the muzzle"
+  },
+  "timing": {
+    "frames": 487,
+    "simulationDeltaSeconds": 0.019999985827664,
+    "mp4Fps": 50,
+    "gifStep": 2,
+    "gifFps": 25
+  },
+  "scope": "Isolated scene with authored camera, mounted weapon and ship prefabs; not a complete sector encounter."
+}
