@@ -7,6 +7,7 @@ using Game.Player;
 using Game.Preview;
 using NUnit.Framework;
 using Ships.Visuals.Breakup;
+using Substrate.Sectors.Elements.Hunt;
 using UI.Projection;
 using UnityEditor;
 
@@ -40,6 +41,8 @@ namespace Tests.EditMode.Preview
             AssertTarget(Target<AsteroidsTarget>(), new[] { PreviewEntry.Combat }, fields.ToArray());
             AssertTarget(Target<FlightAssistTarget>(), new[] { PreviewEntry.Combat },
                 AssetDatabase.LoadAssetAtPath<FlightAssistProfile>("Assets/Settings/Game/FlightAssist.asset"));
+            AssertTarget(Target<HuntTarget>(), new[] { PreviewEntry.Combat },
+                AssetDatabase.LoadAssetAtPath<HuntFeelProfile>("Assets/Settings/Game/HuntFeel.asset"));
         }
 
         [Test]

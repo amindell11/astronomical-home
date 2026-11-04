@@ -175,7 +175,12 @@ namespace UI.PlayerState
             label.text = "EXTRACTION OPEN";
             var seconds = Mathf.CeilToInt(phase.SecondsLeft);
             clock.text = $"{seconds / 60}:{seconds % 60:00}";
-            caption.text = phase.ExtractionOpen ? instruction : phase.Index == phase.Count - 1 ? "EXTRACTION" : "NEXT PHASE";
+            caption.text = phase.ExtractionOpen ? instruction : phase.Hunt switch
+            {
+                HuntReading.Searching => "SEARCHING",
+                HuntReading.Spotted => "SPOTTED",
+                _ => phase.Index == phase.Count - 1 ? "EXTRACTION" : "NEXT PHASE"
+            };
             caption.fontSize = phase.ExtractionOpen ? 10 : 5;
             caption.rectTransform.anchoredPosition = new Vector2(0f, phase.ExtractionOpen ? -36f : -41f);
             ShowPrompt(phase.ExtractionOpen ? prompt : null, caption);

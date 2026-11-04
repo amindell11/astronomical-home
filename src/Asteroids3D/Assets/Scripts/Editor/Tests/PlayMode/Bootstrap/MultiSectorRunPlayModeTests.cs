@@ -20,6 +20,7 @@ using NUnit.Framework;
 using Substrate;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
+using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sessions;
 using Substrate.Services.Locales;
 using Substrate.Services.Units;
@@ -346,7 +347,9 @@ namespace Tests.PlayMode.Bootstrap
             var phases = new SerializedObject(director).FindProperty("phases");
             var cap = Enumerable.Range(0, phases.arraySize)
                 .Max(i => phases.GetArrayElementAtIndex(i).FindPropertyRelative("cap").intValue);
-            var enemies = hostGo.GetComponent<UnitService>().ActiveRegistry.ActiveShips.Count(ship => ship != rig.Player);
+            var patrols = host.ActiveSector.GetComponentInChildren<SectorHunt>().Spawned;
+            var enemies = hostGo.GetComponent<UnitService>().ActiveRegistry.ActiveShips
+                .Count(ship => ship != rig.Player && !patrols.Contains(ship));
             Assert.That(enemies, Is.LessThanOrEqualTo(cap), "the director's live ships stay at its phase cap");
             Assert.AreEqual(enemies, director.Spawned.Count, "the director records every ship it spawns");
         }

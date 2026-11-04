@@ -93,12 +93,72 @@ MonoBehaviour:
     loadouts: {fileID: 0}
   lullSeconds: 12
   openingLullSeconds: 5
+  hunt: {fileID: 7436810692243587915}
   spawnRadius: 55
   clearanceRadius: 6
   asteroidMask:
     serializedVersion: 2
     m_Bits: 256
   placementAttempts: 4
+--- !u!1 &5823190446372318541
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2290485117306431782}
+  - component: {fileID: 7436810692243587915}
+  m_Layer: 0
+  m_Name: Hunt
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2290485117306431782
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5823190446372318541}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 464567137062519928}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7436810692243587915
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5823190446372318541}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 219e10584a2a4eb9890af852af315afe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  activationToken: 
+  feel: {fileID: 11400000, guid: 2f6eb6f11d5f42abb1254ac5f9af90ef, type: 2}
+  patrolShip: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
+    type: 3}
+  patrolPilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
+    type: 3}
+  patrolCount: 1
+  team: 1
+  spawnDistanceMin: 100
+  spawnDistanceMax: 150
+  clearanceRadius: 10
+  asteroidMask:
+    serializedVersion: 2
+    m_Bits: 256
+  placementAttempts: 8
 --- !u!1 &4210092014597554681
 GameObject:
   m_ObjectHideFlags: 0
@@ -387,6 +447,7 @@ Transform:
   - {fileID: 8433170188032759988}
   - {fileID: 648705769799920652}
   - {fileID: 8742499773624804708}
+  - {fileID: 2290485117306431782}
   - {fileID: 9176014152621210194}
   - {fileID: 6832071909392833808}
   m_Father: {fileID: 0}
@@ -407,6 +468,7 @@ MonoBehaviour:
   spawners:
   - {fileID: 7753410013603303191}
   - {fileID: 1116166669378757183}
+  - {fileID: 7436810692243587915}
   modules:
   - {fileID: 1227466035045939097}
   obstacleField: {fileID: 393807887964278560}
@@ -424,6 +486,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   director: {fileID: 1116166669378757183}
+  hunt: {fileID: 7436810692243587915}
   extractionZone: {fileID: 1390678639999065524}
   zoneDistance: 150
   zoneClearance: 35

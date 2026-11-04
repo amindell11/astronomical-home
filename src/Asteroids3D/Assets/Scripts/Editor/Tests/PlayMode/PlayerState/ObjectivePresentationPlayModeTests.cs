@@ -141,6 +141,14 @@ namespace Tests.PlayMode.PlayerState
             Assert.AreEqual("1:00", clock.text);
             Assert.AreEqual("EXTRACTION", caption.text);
             Assert.IsNull(readout.transform.Find("Phase display/Sector phase 2"));
+            phase = new SectorPhaseProgress(-1, 1, 44.2f, false, HuntReading.Searching);
+            yield return null;
+            Assert.AreEqual("0:45", clock.text);
+            Assert.AreEqual("SEARCHING", caption.text, "The hunt's search clock reads as the search.");
+            phase = new SectorPhaseProgress(-1, 1, 2.1f, false, HuntReading.Spotted);
+            yield return null;
+            Assert.AreEqual("0:03", clock.text);
+            Assert.AreEqual("SPOTTED", caption.text, "A patrol's call-in reads as spotted.");
         }
 
         private SpineObjectiveHandle OpenPhases(Transform target, Func<SectorPhaseProgress> progress) =>

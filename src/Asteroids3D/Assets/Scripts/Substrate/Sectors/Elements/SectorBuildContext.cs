@@ -24,10 +24,12 @@ namespace Substrate.Sectors.Elements
         public readonly IObstacleField Field;
         public readonly Ship Hero;
         public readonly SectorEventBus Bus;
+        /// <summary>This sector's position in the session profile's run, from 0.</summary>
+        public readonly int SectorIndex;
 
         public SectorBuildContext(IUnitService units, IObjectiveService objectives, bool presentationEnabled,
             Sector sector, SessionFrame frame, IObstacleField field = null,
-            Ship hero = null, SectorEventBus bus = null)
+            Ship hero = null, SectorEventBus bus = null, int sectorIndex = 0)
         {
             Units = units;
             Objectives = objectives;
@@ -37,6 +39,7 @@ namespace Substrate.Sectors.Elements
             Field = field;
             Hero = hero;
             Bus = bus;
+            SectorIndex = sectorIndex;
         }
     }
 }

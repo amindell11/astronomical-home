@@ -637,6 +637,13 @@ Format: **term** — definition. *(authority)*
   each faster-paced: extracting moves the run on, extracting from the last wins
   it, and the game host's player-death path ends it.
   *(TrialSector, TrialSector2, TrialSector3 prefabs)*
+- **hunt** — a combat sector's opening, before its first sector phase: patrols
+  roam unaware of the player until the alarm. A patrol that sees the player
+  (short radius, asteroids are cover) or is hit by it starts a call-in, and the
+  alarm sounds when the call-in runs out or the search clock does; killing the
+  calling patrol first cancels its call-in. The wave director holds its opening
+  lull until the alarm, so phase numbering is unchanged. *(SectorHunt,
+  HuntFeelProfile)*
 - **sector fixture** — a world object present at spawn, sector-owned, independent
   of encounter state.
 - **signal / SignalPort** — the bus coupling seam. ⚠ **Designed, not built** —
