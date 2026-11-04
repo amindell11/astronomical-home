@@ -1070,7 +1070,9 @@ Format: **term** — definition. *(authority)*
   every line of text. *(RunMomentStream, IRunMoment)*
 - **line sheet** — the companion's lines, one line slot per moment. The owner
   writes every line and agents write none (owner ruling 2026-11-03); an empty
-  line slot shows nothing. *(CompanionLineSheet)*
+  line slot shows nothing in player builds; the editor and development builds show
+  a bracketed debug label of its id and facts instead (owner ruling 2026-11-04).
+  *(CompanionLineSheet, CompanionVoice.DebugLabel)*
 - **nag budget** — the companion speaks at most one line per interval; must-say
   line slots skip the wait, and a line that cannot show before it goes stale is
   dropped, never queued. *(NagBudget, CompanionFeelProfile)*
