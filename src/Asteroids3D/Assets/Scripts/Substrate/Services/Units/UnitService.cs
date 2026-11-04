@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using AI;
 using AI.Scanning;
+using Loot;
 using Ships;
 using Ships.Command;
 using Utils;
@@ -54,7 +55,9 @@ namespace Substrate.Services.Units
             Vector3 position,
             Quaternion rotation,
             IObstacleField field,
-            ShipLoadout loadout = null)
+            ShipLoadout loadout = null,
+            ShipScale scale = null,
+            LullModStack mods = null)
         {
             if (!template)
                 throw new ArgumentNullException(nameof(template));
@@ -64,11 +67,14 @@ namespace Substrate.Services.Units
                 position, rotation,
                 postInitialize: spawned =>
                 {
-                    // An AI commander captures dynamics and muzzle speed when wired, so the equip lands first.
+                    // An AI commander captures dynamics and muzzle speed when wired, so the equip and mods land first.
                     if (loadout != null)
                         spawned.Reequip(loadout.PrimaryWeapon, loadout.SecondaryWeapon);
+                    if (mods != null)
+                        spawned.BindMods(mods);
                     WireShipDependencies(spawned, field);
-                });
+                },
+                scale: scale);
 
             ship.transform.SetParent(UnitsRoot, true);
             ActiveRegistry.ActiveShips.Add(ship);

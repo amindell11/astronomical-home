@@ -412,6 +412,34 @@ namespace Tests.PlayMode.Preview
             Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None).Length, Is.EqualTo(1));
         }
 
+        [UnityTest]
+        [Timeout(180000)]
+        public IEnumerator Playtest_Boss_RunsOnlyTheBossFixture_AndDropsStraightIntoTheElite()
+        {
+            var root = new GameObject("Boss playtest test");
+            root.SetActive(false);
+            host = root.AddComponent<PreviewHost>();
+            host.entry = PreviewEntry.Boss;
+            host.gameHostPrefab = TestAssets.Load<GameHost>("Assets/Prefabs/Game/GameHost.prefab");
+            host.sessionProfile = new SessionProfile();
+            host.bossSector = new SectorEntry
+            {
+                prefab = TestAssets.Load<Sector>("Assets/Prefabs/Sectors/Preview/BossSector.prefab"),
+                config = TestAssets.Load<SectorSettings>("Assets/Settings/Game/SurvivalTrialConfig.asset")
+            };
+            root.SetActive(true);
+
+            var boss = host.Playtest;
+            yield return LaunchFromHangar(boss);
+            Assert.That(boss.sessionProfile.sectors, Is.EqualTo(new[] { host.bossSector }));
+            Assert.That(boss.ActiveSector.name, Does.StartWith("BossSector"));
+            var spine = boss.ActiveSector.Module<PhaseSpineModule>();
+            var objectives = boss.GetComponent<ObjectiveService>();
+            yield return AsyncAssert.WaitUntil(
+                () => objectives.SpineStep == PhaseSpineModule.StepElite && spine.Elite.Present, 15f,
+                "the boss fixture summons its elite at once");
+        }
+
         private static IEnumerator LaunchFromHangar(GameHost game)
         {
             HangarScreen hangar = null;

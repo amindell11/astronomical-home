@@ -18,17 +18,18 @@ using Utils.Coroutines;
 
 namespace Game.Preview
 {
-    public enum PreviewEntry { RunRecap, SectorJump, Combat, CrowdedJumpGate, Startup, LowHull, Damage, Extraction, EnemyDeath }
+    public enum PreviewEntry { RunRecap, SectorJump, Combat, CrowdedJumpGate, Startup, LowHull, Damage, Extraction, EnemyDeath, Boss }
 
     /// <summary>
     /// A Replay entry owns a session and a presentation subject driven by a transport; a Playtest entry
     /// owns an instance of the game's GameHost prefab, overriding only its run records and, for the
-    /// crowded jump gate, its sectors. Replay takes its rig, observer, jump shader and feel profiles from
-    /// the same prefab, so both kinds of entry run on the feel assets the game ships. A switch between
-    /// Replay entries swaps only the subject; any other switch or restart awaits the previous entry's
-    /// teardown before composing the next. Only Replay entries touch this host's clock: a scrubbing
-    /// subject may freeze it, and while a subject that plays from its start is selected, the host sets
-    /// it from the transport. Restart and Loop re-compose such a subject, keeping its fixture.
+    /// crowded jump gate and the boss fixture, its sectors. Replay takes its rig, observer, jump shader
+    /// and feel profiles from the same prefab, so both kinds of entry run on the feel assets the game
+    /// ships. A switch between Replay entries swaps only the subject; any other switch or restart awaits
+    /// the previous entry's teardown before composing the next. Only Replay entries touch this host's
+    /// clock: a scrubbing subject may freeze it, and while a subject that plays from its start is
+    /// selected, the host sets it from the transport. Restart and Loop re-compose such a subject,
+    /// keeping its fixture.
     /// A throw while composing, replacing or tearing down faults the host: every later request refuses,
     /// Shutdown rethrows instead of tearing down, and only destroying the host recovers.
     /// https://github.com/amindell11/astronomical-home/issues/1151
@@ -42,6 +43,7 @@ namespace Game.Preview
         [SerializeField] internal SectorEntry[] crowdedJumpSectors;
         [SerializeField] internal SectorEntry hudQuietSector;
         [SerializeField] internal SectorEntry hudExtractionSector;
+        [SerializeField] internal SectorEntry bossSector;
         [SerializeField] internal LocaleSky jumpDestination;
         [SerializeField] internal PreviewEntry entry;
 
@@ -78,7 +80,7 @@ namespace Game.Preview
         {
             PreviewEntry.RunRecap or PreviewEntry.SectorJump or PreviewEntry.Startup or PreviewEntry.LowHull
                 or PreviewEntry.Damage or PreviewEntry.Extraction or PreviewEntry.EnemyDeath => false,
-            PreviewEntry.Combat or PreviewEntry.CrowdedJumpGate => true,
+            PreviewEntry.Combat or PreviewEntry.CrowdedJumpGate or PreviewEntry.Boss => true,
             _ => throw new ArgumentOutOfRangeException(nameof(entry), entry, "Unknown preview entry.")
         };
 
@@ -144,6 +146,8 @@ namespace Game.Preview
             playtest = Instantiate(gameHostPrefab, staging.transform);
             if (composed == PreviewEntry.CrowdedJumpGate)
                 playtest.sessionProfile.sectors = crowdedJumpSectors;
+            if (composed == PreviewEntry.Boss)
+                playtest.sessionProfile.sectors = new[] { bossSector };
             playtest.runRecordPath = Path.Combine(ResultsRoot.Folder("preview"),
                 Guid.NewGuid().ToString("N"), RunRecordStore.FileName);
             playtest.transform.SetParent(null, false);
@@ -322,6 +326,8 @@ namespace Game.Preview
             if (selected == PreviewEntry.EnemyDeath &&
                 !(hudQuietSector?.prefab && gameHostPrefab.hangarOffer && gameHostPrefab.hangarOffer.ships is { Length: > 0 }))
                 throw new InvalidOperationException("The enemy death replay requires its fixture sector and the hangar's ships.");
+            if (selected == PreviewEntry.Boss && !bossSector?.prefab)
+                throw new InvalidOperationException("The boss playtest requires its fixture sector.");
         }
 
         private void RequireAvailable()
