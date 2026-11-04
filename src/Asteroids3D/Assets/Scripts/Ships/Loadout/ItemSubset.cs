@@ -7,8 +7,8 @@ namespace Ships.Loadout
     /// <summary>
     /// An authored subset of the <see cref="ItemCatalog"/>: the items one consumer chooses from, per
     /// loadout slot. The hangar's offer uses it: the player picks a <see cref="ShipLoadout"/> from
-    /// it, and the weapon pick between sectors draws from its weapons. The hangar narrows its ships
-    /// to the starter plus the ships the player has earned.
+    /// it, and the weapon pick between sectors draws from its weapons. The hangar shows every ship but
+    /// launches only the starter or a ship the player has earned.
     /// </summary>
     [CreateAssetMenu(fileName = "ItemSubset", menuName = "Ship/Item Subset")]
     public class ItemSubset : ScriptableObject

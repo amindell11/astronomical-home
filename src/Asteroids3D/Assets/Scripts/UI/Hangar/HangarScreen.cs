@@ -61,7 +61,6 @@ namespace UI.Hangar
             var gated = offer && offer.starter;
             bool Selectable(Ship ship) => ship == offer.starter || earned(ship);
 
-            // Picking a ship reseeds the module slots to that ship's authored kit.
             void Reseed(Ship ship)
             {
                 loadout.Ship = ship;
