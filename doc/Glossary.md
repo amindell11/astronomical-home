@@ -645,10 +645,11 @@ Format: **term** — definition. *(authority)*
   lull until the alarm, so phase numbering is unchanged. *(SectorHunt,
   HuntFeelProfile)*
 - **faction** — the side a sector's enemies belong to; each survival trial
-  names one, and its wave director fields only that faction's two ships. The
+  names one, and its wave director and hunt field only that faction's ships. The
   **signature ship** is the faction's own chassis, and its elite flies it; the
   **common ship** is the chassis every faction flies. Each ship always carries
-  its **faction kit**, one fixed primary. The **answer weapon** is the weapon
+  its **faction kit**, one fixed primary, and wears the faction's paint, flame
+  and shield ring colour. The **answer weapon** is the weapon
   that counters the faction's way of fighting, so no faction kit carries it.
   The sector-to-faction mapping is ruled on #1320. *(Faction, SectorFaction)*
 - **sector fixture** — a world object present at spawn, sector-owned, independent
