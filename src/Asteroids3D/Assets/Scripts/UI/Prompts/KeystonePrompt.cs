@@ -13,13 +13,15 @@ namespace UI.Prompts
         private CanvasGroup group;
         private IFlightInput input;
         private Func<bool> dismissed;
+        private Func<bool> waiting;
         private float fadeAt = float.PositiveInfinity;
 
         public static KeystonePrompt Create(Transform parent, Font keyFont, Font wordFont, Material textMaterial,
-            IFlightInput input, string keystone, Func<bool> dismissed)
+            IFlightInput input, string keystone, Func<bool> dismissed, Func<bool> waiting)
         {
             if (input == null) throw new ArgumentNullException(nameof(input));
             if (dismissed == null) throw new ArgumentNullException(nameof(dismissed));
+            if (waiting == null) throw new ArgumentNullException(nameof(waiting));
 
             var line = KeyPrompt.Create(parent, keyFont, wordFont, textMaterial, Key, keystone.ToUpperInvariant());
             line.name = "KeystonePrompt";
@@ -32,13 +34,25 @@ namespace UI.Prompts
             prompt.group = line.gameObject.AddComponent<CanvasGroup>();
             prompt.input = input;
             prompt.dismissed = dismissed;
+            prompt.waiting = waiting;
+            prompt.group.alpha = waiting() ? 0f : 1f;
             return prompt;
         }
 
         private void Update()
         {
             var now = Time.unscaledTime;
-            if (float.IsPositiveInfinity(fadeAt) && (input.BoostDown || dismissed())) fadeAt = now;
+            if (float.IsPositiveInfinity(fadeAt))
+            {
+                var done = input.BoostDown || dismissed();
+                if (waiting())
+                {
+                    group.alpha = 0f;
+                    if (done) Destroy(gameObject);
+                    return;
+                }
+                if (done) fadeAt = now;
+            }
             group.alpha = 1f - Mathf.Clamp01((now - fadeAt) / FadeSeconds);
             if (group.alpha == 0f) Destroy(gameObject);
         }
