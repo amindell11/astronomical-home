@@ -14,14 +14,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: shoal
   displayName: Shoal
-  color: {r: 0.25, g: 0.85, b: 0.95, a: 1}
+  color: {r: 0.996, g: 0.525, b: 0.102, a: 1}
   signature:
     ship: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a, type: 3}
     kit: {fileID: -8301958025146036882, guid: a17b4473baa216a4eba58800a76acfc3, type: 3}
+    hull: []
+    eliteHull: []
   common:
     ship: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274, type: 3}
     kit: {fileID: -8301958025146036882, guid: a17b4473baa216a4eba58800a76acfc3, type: 3}
+    hull: []
+    eliteHull: []
   answer: {fileID: -8301958025146036882, guid: 3fc089f1b126427bbc347956f599714b, type: 3}
-  skin:
-    swaps: []
-    elite: []
+  flame: {fileID: 0}
+  eliteFlame: {fileID: 0}
+  shieldRing: {r: 0.51, g: 0.75, b: 0.76, a: 1}

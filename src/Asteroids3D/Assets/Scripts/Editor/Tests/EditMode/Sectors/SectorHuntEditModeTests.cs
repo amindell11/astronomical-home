@@ -7,6 +7,7 @@ using Substrate.Sectors;
 using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sectors.Elements.Phases;
+using Substrate.Sectors.Factions;
 using UnityEditor;
 using UnityEngine;
 
@@ -106,13 +107,14 @@ namespace Tests.EditMode.Sectors
         [TestCase("TrialSector", 1)]
         [TestCase("TrialSector2", 2)]
         [TestCase("TrialSector3", 2)]
-        public void TrialSector_HoldsForItsHunt_OfItsPatrolCount_FlyingCrimson(string sector, int patrols)
+        public void TrialSector_HoldsForItsHunt_OfItsPatrolCount_FlyingItsFactionsCommonShip(string sector, int patrols)
         {
             var prefab = AssetDatabase.LoadAssetAtPath<Sector>($"Assets/Prefabs/Sectors/{sector}.prefab");
             var hunt = prefab.Spawners.OfType<SectorHunt>().Single();
             using var serialized = new SerializedObject(hunt);
             Assert.AreEqual(patrols, serialized.FindProperty("patrolCount").intValue);
-            Assert.AreEqual("Crimson", serialized.FindProperty("patrolShip").objectReferenceValue.name);
+            Assert.AreSame(prefab.Module<SectorFaction>(), serialized.FindProperty("faction").objectReferenceValue,
+                "Patrols fly the sector's faction.");
             Assert.IsTrue(serialized.FindProperty("patrolPilot").objectReferenceValue, "Patrols fly a wave pilot.");
             Assert.IsTrue(serialized.FindProperty("feel").objectReferenceValue);
             Assert.AreSame(hunt, Field(prefab.Spawners.OfType<WaveDirector>().Single(), "hunt"));

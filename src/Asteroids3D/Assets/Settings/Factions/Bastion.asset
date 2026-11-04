@@ -14,14 +14,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: bastion
   displayName: Bastion
-  color: {r: 0.95, g: 0.65, b: 0.2, a: 1}
+  color: {r: 0.169, g: 0.824, b: 0.969, a: 1}
   signature:
     ship: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd, type: 3}
     kit: {fileID: 918213022752191143, guid: b0f5486eb29ea024da3b9a9978de5236, type: 3}
+    hull: []
+    eliteHull: []
   common:
     ship: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274, type: 3}
     kit: {fileID: -8301958025146036882, guid: a17b4473baa216a4eba58800a76acfc3, type: 3}
+    hull: []
+    eliteHull: []
   answer: {fileID: 2094418735087310904, guid: 175e0fad8ede2484082130e20c00cc0a, type: 3}
-  skin:
-    swaps: []
-    elite: []
+  flame: {fileID: 0}
+  eliteFlame: {fileID: 0}
+  shieldRing: {r: 0.51, g: 0.75, b: 0.76, a: 1}

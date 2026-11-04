@@ -125,8 +125,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   activationToken: 
   feel: {fileID: 11400000, guid: 2f6eb6f11d5f42abb1254ac5f9af90ef, type: 2}
-  patrolShip: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-    type: 3}
+  faction: {fileID: 4667602915908898981}
   patrolPilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
     type: 3}
   patrolCount: 1

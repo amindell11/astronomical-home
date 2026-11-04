@@ -14,14 +14,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: veil
   displayName: Veil
-  color: {r: 0.6, g: 0.35, b: 0.9, a: 1}
+  color: {r: 0.659, g: 0.965, b: 0.231, a: 1}
   signature:
     ship: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637, type: 3}
     kit: {fileID: -8301958025146036882, guid: a8d8040d4d414a15a9db015021e2bed2, type: 3}
+    hull: []
+    eliteHull: []
   common:
     ship: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274, type: 3}
     kit: {fileID: -8301958025146036882, guid: a17b4473baa216a4eba58800a76acfc3, type: 3}
+    hull: []
+    eliteHull: []
   answer: {fileID: 1100000000000000202, guid: 4c9a03fda4724848a895b5640634048a, type: 3}
-  skin:
-    swaps: []
-    elite: []
+  flame: {fileID: 0}
+  eliteFlame: {fileID: 0}
+  shieldRing: {r: 0.51, g: 0.75, b: 0.76, a: 1}

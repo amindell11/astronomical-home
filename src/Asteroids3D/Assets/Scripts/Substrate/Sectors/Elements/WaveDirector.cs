@@ -227,7 +227,7 @@ namespace Substrate.Sectors.Elements
                 var facingHero = GamePlane.PlanePose(GamePlane.Normal, GamePlane.PlaneDirToWorld(-outward));
                 var loadout = faction ? new ShipLoadout(entry.template, KitFor(entry.template), null) : null;
                 var ship = units.SpawnShip(entry.template, entry.pilot, team, position, facingHero, field, loadout);
-                if (faction) faction.Faction.Dress(ship, elite: false);
+                if (faction) faction.Faction.Dress(entry.template, ship, elite: false);
                 products.Add(ship);
                 return true;
             }
