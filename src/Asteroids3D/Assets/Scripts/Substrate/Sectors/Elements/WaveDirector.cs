@@ -225,8 +225,8 @@ namespace Substrate.Sectors.Elements
 
                 var entry = roster[UnityEngine.Random.Range(0, roster.Length)];
                 var facingHero = GamePlane.PlanePose(GamePlane.Normal, GamePlane.PlaneDirToWorld(-outward));
-                var kit = faction ? new ShipLoadout(entry.template, KitFor(entry.template), null) : null;
-                var ship = units.SpawnShip(entry.template, entry.pilot, team, position, facingHero, field, kit);
+                var loadout = faction ? new ShipLoadout(entry.template, KitFor(entry.template), null) : null;
+                var ship = units.SpawnShip(entry.template, entry.pilot, team, position, facingHero, field, loadout);
                 if (faction) faction.Faction.Dress(ship, elite: false);
                 products.Add(ship);
                 return true;
