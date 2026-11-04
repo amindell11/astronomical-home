@@ -99,7 +99,7 @@ namespace Tests.EditMode.Ships
             stack.Add(WeaponMod("Hot rounds", WeaponModField.Damage, 0.25f));
 
             var authored = ship.ResolveStats();
-            var modded = ResolvedShipStats.Resolve(ship, ship.Engine, ship.Shield, stack.ForShip());
+            var modded = ResolvedShipStats.Resolve(ship, ship.Engine, ship.Shield, stack.ForShip(), ShipScale.One);
 
             Assert.AreEqual(authored.maxYawRate * 1.25f, modded.maxYawRate, 1e-3f);
             Assert.AreEqual(authored.yawTorque * 1.25f, modded.yawTorque, 1e-3f);

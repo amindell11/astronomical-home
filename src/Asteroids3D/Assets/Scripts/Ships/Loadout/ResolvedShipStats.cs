@@ -9,7 +9,7 @@ namespace Ships.Loadout
     /// from its single owner (the ship's own chassis / engine / shield). This is a PLAIN C# type — not
     /// a ScriptableObject — and is what all runtime consumers (movement, damage, forces, dynamics) read.
     /// Disjoint ownership means the resolver just copies each field from the source that owns it; the
-    /// one scaling is a run's ship mods, applied once on top of the copy.
+    /// scalings are a run's ship mods and the ship's spawn scale, applied once on top of the copy.
     /// </summary>
     public sealed class ResolvedShipStats
     {
@@ -80,8 +80,9 @@ namespace Ships.Loadout
             return r;
         }
 
-        /// <summary>The same copy with a run's ship mods applied once per field group.</summary>
-        public static ResolvedShipStats Resolve(Ship ship, EngineModule engine, ShieldModule shield, ShipMods mods)
+        /// <summary>The same copy with a run's ship mods applied once per field group, then the ship's scale.</summary>
+        public static ResolvedShipStats Resolve(Ship ship, EngineModule engine, ShieldModule shield, ShipMods mods,
+            ShipScale scale)
         {
             var r = Resolve(ship, engine, shield);
             r.maxHealth = mods.Apply(ShipModField.Hull, r.maxHealth);
@@ -95,6 +96,7 @@ namespace Ships.Loadout
             r.maxShield = mods.Apply(ShipModField.ShieldCapacity, r.maxShield);
             r.shieldRegenRate = mods.Apply(ShipModField.ShieldRegen, r.shieldRegenRate);
             r.shieldRegenDelay = mods.Apply(ShipModField.ShieldRecharge, r.shieldRegenDelay);
+            scale.Apply(r);
             return r;
         }
 

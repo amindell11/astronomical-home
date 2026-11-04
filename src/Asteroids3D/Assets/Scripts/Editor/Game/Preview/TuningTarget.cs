@@ -13,7 +13,7 @@ namespace Game.Preview
         internal static readonly TuningTarget[] All =
         {
             new SectorJumpTarget(), new RunRecapTarget(), new HudTarget(), new ShipDeathTarget(), new FlightCameraTarget(),
-            new AsteroidsTarget(), new FlightAssistTarget()
+            new AsteroidsTarget(), new FlightAssistTarget(), new BossTarget()
         };
 
         public abstract string Name { get; }
