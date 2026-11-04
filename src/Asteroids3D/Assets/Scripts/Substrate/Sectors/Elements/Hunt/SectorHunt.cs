@@ -7,7 +7,7 @@ using Balance;
 using Damage;
 using Ships;
 using Ships.Loadout;
-using Ships.Visuals;
+using Ships.Presentation;
 using Substrate.Sectors.Elements.Placement;
 using Substrate.Sectors.Factions;
 using Substrate.Services.Units;
@@ -163,7 +163,7 @@ namespace Substrate.Sectors.Elements.Hunt
         private void BeginCallIn(Patrol patrol, float now)
         {
             patrol.CallInEndsAt = now + feel.callInSeconds;
-            if (patrol.Marker) patrol.Marker.Pulsing = true;
+            if (patrol.Rig) patrol.Rig.PulseMinimapMarker(true);
             PatrolSpotted?.Invoke(sectorIndex, patrol.Ship);
         }
 
@@ -230,8 +230,8 @@ namespace Substrate.Sectors.Elements.Hunt
             public readonly Ship Ship;
             public readonly AICommander Commander;
             public readonly Scout Scout;
-            // Null on a presentation-less ship: nothing pulses.
-            public readonly MinimapShipMarker Marker;
+            // A presentation-less ship has no rig, or a dark one: nothing pulses.
+            public readonly ShipVisualRig Rig;
             private readonly Vector2[] route;
             private int leg;
             public Action<AppliedDamage> OnDamaged;
@@ -242,7 +242,7 @@ namespace Substrate.Sectors.Elements.Hunt
                 Ship = ship;
                 Commander = commander;
                 Scout = commander.Scout;
-                Marker = ship.GetComponentInChildren<MinimapShipMarker>(true);
+                Rig = ship.VisualRig;
                 this.route = route;
             }
 
@@ -258,7 +258,7 @@ namespace Substrate.Sectors.Elements.Hunt
             public void Release()
             {
                 Commander.ClearSteer();
-                if (Marker) Marker.Pulsing = false;
+                if (Rig) Rig.PulseMinimapMarker(false);
             }
         }
 
