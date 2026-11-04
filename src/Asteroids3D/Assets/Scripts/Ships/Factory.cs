@@ -1,5 +1,6 @@
 using System;
 using Ships.Command;
+using Ships.Loadout;
 using UnityEngine;
 using Substrate.Services.Projectiles;
 
@@ -16,11 +17,12 @@ namespace Ships
              IProjectileService projectiles,
              Vector3 position,
              Quaternion rotation,
-             Action<Ship> postInitialize = null)
+             Action<Ship> postInitialize = null,
+             ShipScale scale = null)
         {
             var ship = UnityEngine.Object.Instantiate(prefab, position, rotation);
             ship.AddCommander(commander);
-            ship.Initialize(team, decisionSeed, projectiles);
+            ship.Initialize(team, decisionSeed, projectiles, scale);
             postInitialize?.Invoke(ship);
             return ship;
         }

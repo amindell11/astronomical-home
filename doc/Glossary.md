@@ -652,6 +652,14 @@ Format: **term** — definition. *(authority)*
   and shield ring colour. The **answer weapon** is the weapon
   that counters the faction's way of fighting, so no faction kit carries it.
   The sector-to-faction mapping is ruled on #1320. *(Faction, SectorFaction)*
+- **elite** — a sector's end-of-sector enemy: its faction's signature ship made
+  larger, with a heavy weapon pair and stacked run mods. The sector's phases
+  ending summon it, and extraction opens on its death. Sector 3's elite is the
+  boss, which escalates at hull thresholds (escorts, heavier fire).
+  An escalation step stacks weapon mods only, so the dynamics the AI captured at
+  spawn stay true. Not an *encounter*: no activation rule arms it; the sector
+  spine owns it and drives it. *(EliteEncounter, EliteProfile,
+  PhaseSpineModule.StepElite)*
 - **sector fixture** — a world object present at spawn, sector-owned, independent
   of encounter state.
 - **signal / SignalPort** — the bus coupling seam. ⚠ **Designed, not built** —
@@ -1092,7 +1100,7 @@ Format: **term** — definition. *(authority)*
   the shipped game host prefab for the owner to fly, with preview run records
   and at most swapped sectors. Bare "Playtest" is legal in preview context;
   elsewhere "playtest" is the owner playing the game.
-  *(PreviewEntry.Combat, PreviewEntry.CrowdedJumpGate)*
+  *(PreviewEntry.Combat, PreviewEntry.CrowdedJumpGate, PreviewEntry.Boss)*
 - **preview subject** — a presentation module with a chosen context (a fixture
   built from constants, or any context a scenario builds), hosted by the preview
   host. *(IPreviewSubject, RecapPreviewSubject, RecapFixtures)*

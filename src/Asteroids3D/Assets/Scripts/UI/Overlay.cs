@@ -1,11 +1,13 @@
 using Combat.Targeting;
 using UnityEngine;
 using UI.Audio;
+using UI.Elites;
 using UI.Markers;
 using UI.PlayerState;
 using UI.Weapons;
 using Combat.Weapons.Conditions;
 using Game.Player;
+using Substrate.Sectors.Elements.Elites;
 using Substrate.Services.Objectives;
 using Ships;
 using Utils;
@@ -49,6 +51,7 @@ namespace UI
         private CanopyProjection projection;
         private IFlightInput flightInput;
         private string keystoneName;
+        private EliteReadout eliteReadout;
 
         public Camera WorldCamera => canvases[0].worldCamera;
         public bool IsVisible => visible && visibility.alpha > 0f;
@@ -154,6 +157,13 @@ namespace UI
             objectiveMarkers.Initialize(objectives, worldCamera, minimapCamera, minimapRect, canvases[0], projection, () => IsVisible);
             ObjectiveStatusReadout.Create(transform, labelFont, headingFont, timerFont, readoutFont, textMaterial,
                 projection, () => IsVisible).Initialize(objectives);
+        }
+
+        public void BindElite(IEliteStatus elite)
+        {
+            if (!eliteReadout)
+                eliteReadout = EliteReadout.Create(transform, labelFont, headingFont, textMaterial, projection, () => IsVisible);
+            eliteReadout.Bind(elite);
         }
 
         public void ShowKeystonePrompt(Func<bool> dismissed) =>
