@@ -12,6 +12,7 @@ using Substrate.Sectors;
 using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Phases;
+using Substrate.Sectors.Factions;
 using Substrate.Services;
 using Substrate.Services.Objectives;
 using Substrate.Services.Units;
@@ -22,7 +23,7 @@ using Object = UnityEngine.Object;
 
 namespace Tests.PlayMode.Sectors
 {
-    /// <summary>A phased sector that ends at its elite: the phases' end summons a scaled elite and announces it, its hull falling past the first escalation step calls that step's escorts, its death extracts, and teardown clears it and its escorts.</summary>
+    /// <summary>A phased sector that ends at its elite: the phases' end summons a scaled elite on its faction's signature ship and announces it with the sector's index and faction id, its hull falling past the first escalation step calls that step's escorts on the faction's common ship, its death extracts, and teardown clears it and its escorts.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class EliteEncounterPlayModeTests : PlayModeWorldFixture
@@ -75,9 +76,12 @@ namespace Tests.PlayMode.Sectors
         {
             var hero = Track(ShipTestFactory.CreateKinematicPrimitiveShipAt(Vector2.zero).gameObject).GetComponent<Ship>();
             var crimson = TestAssets.LoadCrimsonPrefab();
+            var vanguard = TestAssets.Load<Ship>("Assets/Prefabs/Ships/Vanguard.prefab");
             var pilot = TestAssets.LoadTestPilotMpc();
             Assert.IsTrue(crimson && crimson.Weapons && crimson.Weapons.PrimaryMountPrefab,
                 "test premise: Crimson carries a primary");
+            Assert.IsTrue(vanguard && vanguard.Weapons && vanguard.Weapons.PrimaryMountPrefab,
+                "test premise: Vanguard carries a primary");
             var wave = Track(ShipTestFactory.CreateKinematicPrimitiveShipAt(new Vector2(500f, 500f)).gameObject).GetComponent<Ship>();
             wave.gameObject.SetActive(false);
 
@@ -90,8 +94,15 @@ namespace Tests.PlayMode.Sectors
                     new EscalationStep { hull = 1f / 3f, escorts = 1 },
                 });
 
+            var faction = Track(ScriptableObject.CreateInstance<Faction>());
+            faction.id = "bastion";
+            faction.signature = new FactionShip { ship = crimson, kit = crimson.Weapons.PrimaryMountPrefab };
+            faction.common = new FactionShip { ship = vanguard, kit = vanguard.Weapons.PrimaryMountPrefab };
+
             var sectorGO = Track(new GameObject("EliteSector"));
             var sector = sectorGO.AddComponent<Sector>();
+            var sectorFaction = sectorGO.AddComponent<SectorFaction>();
+            sectorFaction.Bind(faction);
             var directorGO = new GameObject("WaveDirector");
             directorGO.transform.SetParent(sectorGO.transform, false);
             var director = directorGO.AddComponent<WaveDirector>();
@@ -100,14 +111,14 @@ namespace Tests.PlayMode.Sectors
             var eliteGO = new GameObject("Elite");
             eliteGO.transform.SetParent(sectorGO.transform, false);
             var encounter = eliteGO.AddComponent<EliteEncounter>();
-            encounter.Configure(profile, crimson, pilot, crimson, pilot, "bastion", 2);
+            encounter.Configure(profile, sectorFaction, pilot, pilot);
 
             var zone = NewZone(sectorGO.transform, "Zone");
             var spine = sectorGO.AddComponent<PhaseSpineModule>();
             spine.Bind(director, zone, NewZone(sectorGO.transform, "Beacon"), elite: encounter);
 
-            sector.SetManifest(null, new SectorSpawner[] { director }, new SectorModule[] { spine });
-            sector.Initialize(_unitService, _objectives, true, default, hero);
+            sector.SetManifest(null, new SectorSpawner[] { director }, new SectorModule[] { sectorFaction, spine });
+            sector.Initialize(_unitService, _objectives, true, default, hero, 2);
             var announced = new List<EliteMoment>();
             var beaten = new List<EliteMoment>();
             encounter.Announced += announced.Add;
@@ -143,6 +154,7 @@ namespace Tests.PlayMode.Sectors
             yield return null;
             var escorts = Escorts();
             Assert.AreEqual(2, escorts.Length, "Falling past two thirds calls the first step's escorts, and only those.");
+            Assert.IsTrue(escorts.All(ship => ship.name.StartsWith(vanguard.name)), "Escorts fly the faction's common ship.");
 
             StagedMoments.Kill(elite);
             Assert.AreEqual(1, beaten.Count, "The elite's death is announced once.");

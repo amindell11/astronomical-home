@@ -7,6 +7,7 @@ using Ships;
 using Ships.Command;
 using Ships.Loadout;
 using Ships.Registry;
+using Substrate.Sectors.Factions;
 using Substrate.Services.Units;
 using UnityEngine;
 
@@ -17,7 +18,9 @@ namespace Substrate.Sectors.Elements.Elites
     /// death opens extraction. The sector's <see cref="Phases.PhaseSpineModule"/> owns it and drives
     /// it (Begin, Summon, End), so it is neither a spawner nor a module in the sector's manifest. As the
     /// elite's hull falls through its profile's escalation steps, it calls escorts and stacks heavier
-    /// fire. <see cref="Announced"/> and <see cref="Beaten"/> carry data only, with no display strings.
+    /// fire. Its ships come from the sector's faction: the elite flies the signature ship in the elite
+    /// skin, escorts the common ship. <see cref="Announced"/> and <see cref="Beaten"/> carry data only,
+    /// with no display strings.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1318
     /// </summary>
     public sealed class EliteEncounter : MonoBehaviour, IEliteStatus
@@ -28,19 +31,13 @@ namespace Substrate.Sectors.Elements.Elites
         [SerializeField] private EliteProfile profile;
 
         [Header("Ships")]
-        [Tooltip("The elite's chassis and its skin. This and the pilot, escort and faction fields are set per sector " +
-                 "until the faction data repoints them to the sector's Faction asset.")]
-        [SerializeField] private Ship template;
+        [Tooltip("The sector's faction. The elite flies its signature ship in the elite skin; escorts fly its common " +
+                 "ship with the faction's kit.")]
+        [SerializeField] private SectorFaction faction;
         [Tooltip("The elite's pilot.")]
         [SerializeField] private Commander pilot;
-        [Tooltip("The ship an escalation step calls in, flown with its authored build.")]
-        [SerializeField] private Ship escort;
         [Tooltip("The escorts' pilot.")]
         [SerializeField] private Commander escortPilot;
-        [Tooltip("The sector's faction, carried on the announced and beaten events.")]
-        [SerializeField] private string factionId;
-        [Tooltip("Zero-based index of this sector in the run, as the game host counts it.")]
-        [SerializeField, Min(0)] private int sectorIndex;
         [SerializeField] private int team = 1;
 
         [Header("Placement")]
@@ -60,6 +57,7 @@ namespace Substrate.Sectors.Elements.Elites
         private Ship elite;
         private LullModStack stack;
         private EliteMoment moment;
+        private int sectorIndex;
         private int nextStep;
         private bool summoned;
 
@@ -75,9 +73,9 @@ namespace Substrate.Sectors.Elements.Elites
 
         public void Begin(SectorBuildContext ctx)
         {
-            if (!profile || !template || !pilot || !escort || !escortPilot)
+            if (!profile || !faction || !faction.Faction || !pilot || !escortPilot)
                 throw new InvalidOperationException(
-                    $"EliteEncounter on '{name}' needs its profile, elite ship and pilot, and escort ship and pilot wired.");
+                    $"EliteEncounter on '{name}' needs its profile, a sector faction naming a faction, and elite and escort pilots wired.");
             try
             {
                 profile.Validate();
@@ -91,6 +89,7 @@ namespace Substrate.Sectors.Elements.Elites
             units = ctx.Units;
             field = ctx.Field;
             hero = ctx.Hero;
+            sectorIndex = ctx.SectorIndex;
         }
 
         public void Summon()
@@ -105,10 +104,12 @@ namespace Substrate.Sectors.Elements.Elites
             var position = ClearPoint(center, spawnRadius, clearanceRadius * profile.Scale.Size);
             stack = new LullModStack();
             foreach (var mod in profile.Mods) stack.Add(mod);
-            elite = units.SpawnShip(template, pilot, team, position, FacingHero(position), field,
-                new ShipLoadout(template, profile.Primary, profile.Secondary), profile.Scale, stack);
+            var ship = faction.Faction.EliteShip;
+            elite = units.SpawnShip(ship, pilot, team, position, FacingHero(position), field,
+                new ShipLoadout(ship, profile.Primary, profile.Secondary), profile.Scale, stack);
+            faction.Faction.Dress(ship, elite, elite: true);
             elite.Damage.OnDeath += OnEliteDeath;
-            moment = new EliteMoment(sectorIndex, factionId, elite.Id);
+            moment = new EliteMoment(sectorIndex, faction.Faction.id, elite.Id);
             Announced?.Invoke(moment);
         }
 
@@ -148,10 +149,14 @@ namespace Substrate.Sectors.Elements.Elites
         {
             var center = GamePlane.WorldPointToPlane(elite.transform.position);
             var distance = EscortDistanceInEliteRadii * elite.ShipRadius;
+            var common = faction.Faction.common.ship;
             for (var i = 0; i < step.escorts; i++)
             {
                 var position = ClearPoint(center, distance, clearanceRadius);
-                escorts.Add(units.SpawnShip(escort, escortPilot, team, position, FacingHero(position), field));
+                var escort = units.SpawnShip(common, escortPilot, team, position, FacingHero(position), field,
+                    new ShipLoadout(common, faction.Faction.KitFor(common), null));
+                faction.Faction.Dress(common, escort, elite: false);
+                escorts.Add(escort);
             }
             if (step.fireMods == null) return;
             foreach (var mod in step.fireMods) stack.Add(mod);
@@ -183,16 +188,12 @@ namespace Substrate.Sectors.Elements.Elites
         }
 
 #if UNITY_EDITOR
-        internal void Configure(EliteProfile profile, Ship template, Commander pilot, Ship escort, Commander escortPilot,
-            string factionId, int sectorIndex)
+        internal void Configure(EliteProfile profile, SectorFaction faction, Commander pilot, Commander escortPilot)
         {
             this.profile = profile;
-            this.template = template;
+            this.faction = faction;
             this.pilot = pilot;
-            this.escort = escort;
             this.escortPilot = escortPilot;
-            this.factionId = factionId;
-            this.sectorIndex = sectorIndex;
         }
 #endif
     }

@@ -1,65 +1,5 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &1557197188369879400
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1758853492999795641}
-  - component: {fileID: 2984336339052111618}
-  m_Layer: 0
-  m_Name: Elite
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1758853492999795641
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1557197188369879400}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 8780453690993216696}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2984336339052111618
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1557197188369879400}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6b57ff78bd184a9c995eb88f434af7cc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  profile: {fileID: 11400000, guid: d0bcf0c7e3eb9754dabe2ed134c1ecd2, type: 2}
-  template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
-    type: 3}
-  pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660, type: 3}
-  escort: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274, type: 3}
-  escortPilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
-    type: 3}
-  factionId: bastion
-  sectorIndex: 2
-  team: 1
-  spawnRadius: 55
-  clearanceRadius: 6
-  asteroidMask:
-    serializedVersion: 2
-    m_Bits: 256
-  placementAttempts: 8
 --- !u!1001 &7723978388501677273
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -68,11 +8,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 401323896909822848, guid: 09c73779418090c498dc37d26f9f005c,
-        type: 3}
-      propertyPath: elite
-      value: 
-      objectReference: {fileID: 2984336339052111618}
     - target: {fileID: 1363294876955101281, guid: 09c73779418090c498dc37d26f9f005c,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -125,6 +60,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2009862734842818086, guid: 09c73779418090c498dc37d26f9f005c,
         type: 3}
+      propertyPath: hunt
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 2009862734842818086, guid: 09c73779418090c498dc37d26f9f005c,
+        type: 3}
       propertyPath: phases.Array.size
       value: 1
       objectReference: {fileID: 0}
@@ -148,6 +88,11 @@ PrefabInstance:
       propertyPath: phases.Array.data[0].interval
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 8335538121620574034, guid: 09c73779418090c498dc37d26f9f005c,
+        type: 3}
+      propertyPath: patrolCount
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8375463817979959823, guid: 09c73779418090c498dc37d26f9f005c,
         type: 3}
       propertyPath: m_Name
@@ -155,16 +100,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: 1363294876955101281, guid: 09c73779418090c498dc37d26f9f005c,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1758853492999795641}
+    m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 09c73779418090c498dc37d26f9f005c, type: 3}
---- !u!4 &8780453690993216696 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 1363294876955101281, guid: 09c73779418090c498dc37d26f9f005c,
-    type: 3}
-  m_PrefabInstance: {fileID: 7723978388501677273}
-  m_PrefabAsset: {fileID: 0}
