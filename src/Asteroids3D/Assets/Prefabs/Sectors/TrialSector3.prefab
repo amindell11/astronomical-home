@@ -114,6 +114,35 @@ PrefabInstance:
       propertyPath: patrolCount
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: roster.Array.data[0].template
+      value: 
+      objectReference: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
+        type: 3}
+    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: roster.Array.data[0].pilot
+      value: 
+      objectReference: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
+        type: 3}
+    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: roster.Array.data[1].template
+      value: 
+      objectReference: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
+        type: 3}
+    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: roster.Array.data[1].pilot
+      value: 
+      objectReference: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
+        type: 3}
+    - target: {fileID: 4667602915908898981, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: faction
+      value: 
+      objectReference: {fileID: 11400000, guid: 899c66c060c147a0bc54fc07a43d283b, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
