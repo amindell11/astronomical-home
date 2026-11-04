@@ -87,7 +87,7 @@ namespace Substrate.Sectors.Elements.Stations
             Tick(Time.deltaTime);
         }
 
-        internal void Tick(float deltaTime)
+        private void Tick(float deltaTime)
         {
             if (!placed)
             {

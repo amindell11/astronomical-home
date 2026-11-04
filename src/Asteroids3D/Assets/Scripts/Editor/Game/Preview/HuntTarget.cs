@@ -12,7 +12,7 @@ namespace Game.Preview
         public override string Name => "Hunt";
         public override IReadOnlyList<PreviewEntry> Entries { get; } = new[] { PreviewEntry.Combat };
 
-        // A fixture sector may carry neither, and then gives no profile.
+        // A sector may lack a hunt or a station; each missing one gives no profile.
         public override IEnumerable<ScriptableObject> Profiles(GameHost game) => game.sessionProfile.sectors
             .SelectMany(sector => new Object[]
             {
