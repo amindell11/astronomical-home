@@ -48,7 +48,7 @@ namespace RL.Opponents.Beats
         public Vector2 breakOffSeconds = new(3f, 6f);
 
         [Header("Beat shape")]
-        [Tooltip("A hold circles at this multiple of the attack run's range.")]
+        [Tooltip("A hold circles at this multiple of the attack run's range, pulled inside the primary's fire distance.")]
         [Min(1f)] public float holdRangeScale = 1.6f;
         [Tooltip("Distance (u) behind the target that a flank aims for.")]
         [Min(0f)] public float flankDistance = 14f;

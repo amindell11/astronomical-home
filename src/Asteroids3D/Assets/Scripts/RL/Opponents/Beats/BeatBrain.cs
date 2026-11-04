@@ -26,6 +26,8 @@ namespace RL.Opponents.Beats
         private const int RecomputeIntervalTicks = 10;
         private const float FlankArrivalRadius = 6f;
         private const float JukePeriod = 1.2f;
+        // The orbit swings about its ring; a tenth of the fire distance stays in hand.
+        private const float HoldRingInsideFire = 0.9f;
 
         [Tooltip("The weight set this pilot picks beats by; each enemy flies its own draw from it.")]
         [SerializeField] private Personality personality;
@@ -212,11 +214,19 @@ namespace RL.Opponents.Beats
                         FlankLaw.BlindPoint(in enemy, flankSide, personality.flankDistance), speed),
                     primary: true, secondary: true, facing: true),
                 Beat.Hold => Pack(status, ArchetypeLaws.OrbitVelocity(in self, in enemy,
-                        personality.holdRangeScale * range, orbitSign, speedFraction, maxSpeed),
+                        HoldRing(range, ctx.FireRange, personality.holdRangeScale), orbitSign, speedFraction,
+                        maxSpeed),
                     primary: LongShot(), secondary: false, facing: true),
                 _ => Pack(status, ArchetypeLaws.FleeVelocity(self.pos, enemy.pos, Juke(), speed),
                     primary: false, secondary: false, facing: false),
             };
+        }
+
+        /// <summary>Pulled inside the primary's fire distance, so a hold can always take its long shots.</summary>
+        internal static float HoldRing(float attackRange, float? fireRange, float holdRangeScale)
+        {
+            var ring = holdRangeScale * attackRange;
+            return fireRange.HasValue ? Mathf.Min(ring, HoldRingInsideFire * fireRange.Value) : ring;
         }
 
         private bool LongShot() =>

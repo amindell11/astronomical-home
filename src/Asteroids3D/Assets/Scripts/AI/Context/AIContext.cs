@@ -20,19 +20,23 @@ namespace AI.Context
 
         public float? HoldRange { get; private set; }
 
+        /// <summary>The primary weapon's AI fire distance; null when it declares none.</summary>
+        public float? FireRange { get; private set; }
+
         public float SecondsSinceHit { get; private set; } = float.PositiveInfinity;
 
         private float lastHealthPct;
         private float lastShieldPct;
 
         public AIContext(IShipStatus self, Scout scout, float? holdRange,
-            float combatExitDelay = 3f)
+            float combatExitDelay = 3f, float? fireRange = null)
         {
             if (self == null || scout == null) return;
 
             Self = self;
             Scout = scout;
             HoldRange = holdRange;
+            FireRange = fireRange;
             Combat = new EnemyTracker(scout, combatExitDelay);
             lastHealthPct = self.HealthPct;
             lastShieldPct = self.ShieldPct;

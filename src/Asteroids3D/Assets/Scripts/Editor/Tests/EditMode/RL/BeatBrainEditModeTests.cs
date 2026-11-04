@@ -4,6 +4,7 @@ using System.Linq;
 using AI;
 using AI.Context;
 using Combat.Targeting;
+using Combat.Weapons;
 using Movement;
 using NUnit.Framework;
 using RL.Opponents.Beats;
@@ -14,7 +15,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>The beat pick: a lone pilot attacks or flanks, a crowded one holds, the always-pressing elite attacks however crowded, a beat holds until its length runs out unless its own early end fires past the minimum, ties pick the earlier beat, and each seed draws its own desires within the personality's variation. Also the hit clock the break-off reads, and the authored pilots.</summary>
+    /// <summary>The beat pick: a lone pilot attacks or flanks, a crowded one holds, the always-pressing elite attacks however crowded, a beat holds until its length runs out unless its own early end fires past the minimum, ties pick the earlier beat, and each seed draws its own desires within the personality's variation. Also the hit clock the break-off reads, the hold ring inside every weapon's fire distance, and the authored pilots.</summary>
     [Category("AI")]
     public class BeatBrainEditModeTests
     {
@@ -184,6 +185,32 @@ namespace Tests.EditMode
             status.HealthPct = 0.9f;
             context.Update(0.1f);
             Assert.AreEqual(0f, context.SecondsSinceHit);
+        }
+
+        [Test]
+        public void HoldRing_SitsInsideFireDistance_ForEveryShippedWeaponAndPilot()
+        {
+            var weapons = AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/Prefabs/Weapons" })
+                .Select(guid => AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(guid)))
+                .Select(prefab => prefab.GetComponent<WeaponComponent>())
+                .Where(weapon => weapon && weapon.FireRange > 0f).ToArray();
+            Assert.That(weapons.Select(weapon => weapon.name),
+                Is.SupersetOf(new[] { "Lasers", "TurboLasers", "Rippers", "Railgun" }));
+            var railgun = weapons.Single(weapon => weapon.name == "Railgun");
+            var enemy = AssetDatabase.LoadAssetAtPath<Personality>(Personalities + "EnemyPersonality.asset");
+            Assert.Greater(enemy.holdRangeScale * railgun.HoldRange.Value, railgun.FireRange,
+                "test premise: the personality's own ring would leave a railgun out of range");
+
+            using var pilot = new SerializedObject(
+                AssetDatabase.LoadAssetAtPath<GameObject>(Pilots + "EnemyPilot.prefab").GetComponent<BeatBrain>());
+            var attackRange = pilot.FindProperty("attackRange").floatValue;
+            foreach (var personality in new[] { "Enemy", "Elite", "Escort" }.Select(name =>
+                         AssetDatabase.LoadAssetAtPath<Personality>(Personalities + name + "Personality.asset")))
+            foreach (var weapon in weapons)
+            {
+                var ring = BeatBrain.HoldRing(weapon.HoldRange ?? attackRange, weapon.FireRange, personality.holdRangeScale);
+                Assert.Less(ring, weapon.FireRange, $"{personality.name} holding with {weapon.name}");
+            }
         }
 
         [TestCase("EnemyPilot", "EnemyPersonality")]

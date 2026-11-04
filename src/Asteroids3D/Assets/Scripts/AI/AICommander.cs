@@ -109,7 +109,7 @@ namespace AI
                 Gunner.Initialize(control.Weapons, control.WeaponActuator, pose, aimSettings,
                     seed.Derive(GunnerStream));
 
-            context = new AIContext(self, Scout, PrimaryHoldRange(), combatExitDelay);
+            context = new AIContext(self, Scout, PrimaryHoldRange(), combatExitDelay, PrimaryFireRange());
 
             systemsInitialized = true;
         }
@@ -125,7 +125,7 @@ namespace AI
             engageSecondary = false;
             boost = false;
             hasAnchor = false;
-            context = new AIContext(control.Ship, Scout, PrimaryHoldRange(), combatExitDelay);
+            context = new AIContext(control.Ship, Scout, PrimaryHoldRange(), combatExitDelay, PrimaryFireRange());
             if (Brain) Brain.ResetState();
         }
 
@@ -230,6 +230,12 @@ namespace AI
                 Desired(Navigator.CostVelocityReference), Navigator.PlanEnd, control.Ship.ShieldPct));
 
         private float? PrimaryHoldRange() => control.Weapons?.HoldRange(WeaponSlot.Primary);
+
+        private float? PrimaryFireRange()
+        {
+            var range = control.Weapons?.Sight(WeaponSlot.Primary)?.FireRange ?? 0f;
+            return range > 0f ? range : null;
+        }
 
         // The scout sizes its look-ahead once, so it must cover the keystone's raised cap.
         private Dynamics PeakDynamics(IShipStatus self) =>
