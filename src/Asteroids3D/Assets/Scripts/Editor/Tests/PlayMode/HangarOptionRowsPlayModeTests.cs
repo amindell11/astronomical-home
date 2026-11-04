@@ -23,6 +23,8 @@ namespace Tests.PlayMode
     {
         private const string ScreenPrefabPath = "Assets/Prefabs/UI/HangarScreen.prefab";
         private const string VanguardPath = "Assets/Prefabs/Ships/Vanguard.prefab";
+        private const string ValisPath = "Assets/Prefabs/Ships/Valis.prefab";
+        private const string CrimsonPath = "Assets/Prefabs/Ships/Crimson.prefab";
         private const string RealCatalogPath = "Assets/Settings/Ships/PlayerLoadout.asset";
 
         private static readonly string[] WeaponPaths =
@@ -55,6 +57,7 @@ namespace Tests.PlayMode
             vanguard = Load<Ship>(VanguardPath);
 
             catalog = ScriptableObject.CreateInstance<ItemSubset>();
+            catalog.starter = vanguard;
             catalog.ships = new[] { vanguard };
             var weapons = new WeaponComponent[WeaponPaths.Length];
             for (var i = 0; i < WeaponPaths.Length; i++)
@@ -66,11 +69,25 @@ namespace Tests.PlayMode
             return loadout;
         }
 
-        private void Show(ItemSubset offer, ShipLoadout loadout)
+        private void Show(ItemSubset offer, ShipLoadout loadout, System.Func<Ship, bool> earned = null)
         {
             screen = Object.Instantiate(Load<HangarScreen>(ScreenPrefabPath));
             Object.DestroyImmediate(screen.GetComponentInChildren<RawImage>());
-            screen.Show(offer, loadout, onLaunch: null);
+            screen.Show(offer, loadout, earned ?? (_ => true), onLaunch: null);
+        }
+
+        private ShipLoadout ShowLockedOffer(System.Func<Ship, bool> earned, out Ship vanguard, out Ship valis)
+        {
+            vanguard = Load<Ship>(VanguardPath);
+            valis = Load<Ship>(ValisPath);
+            catalog = ScriptableObject.CreateInstance<ItemSubset>();
+            catalog.starter = vanguard;
+            catalog.ships = new[] { vanguard, valis };
+            catalog.weapons = System.Array.Empty<WeaponComponent>();
+
+            var loadout = new ShipLoadout(Load<Ship>(CrimsonPath), null, null);
+            Show(catalog, loadout, earned);
+            return loadout;
         }
 
         private static void Next(OptionCycler row) => row.nextButton.onClick.Invoke();
@@ -139,6 +156,48 @@ namespace Tests.PlayMode
                 "ship step reseeds the primary mount to the ship's authored kit");
             Assert.AreSame(authored.SecondaryMountPrefab, loadout.SecondaryWeapon,
                 "ship step reseeds the secondary mount to the ship's authored kit");
+        }
+
+        [Test]
+        public void Show_PendingShipNotSelectable_ReseedsToTheStarterWithItsKit()
+        {
+            var loadout = ShowLockedOffer(_ => false, out var vanguard, out _);
+            var authored = vanguard.GetComponent<WeaponsController>();
+
+            Assert.AreSame(vanguard, loadout.Ship, "a pending ship the player can't fly reseeds to the starter");
+            Assert.AreSame(authored.PrimaryMountPrefab, loadout.PrimaryWeapon, "the starter's authored primary");
+            Assert.AreSame(authored.SecondaryMountPrefab, loadout.SecondaryWeapon, "the starter's authored secondary");
+            Assert.AreEqual(vanguard.name, screen.shipRow.label.text);
+            Assert.IsTrue(screen.launchButton.interactable, "the starter can launch");
+        }
+
+        [Test]
+        public void LockedShip_ShowsLockedAndHoldsLaunch_UntilSteppedAway()
+        {
+            ShowLockedOffer(_ => false, out var vanguard, out var valis);
+            var shown = screen.shipRow.label.color;
+
+            Next(screen.shipRow);
+            Assert.AreEqual($"{valis.name} (locked)", screen.shipRow.label.text);
+            Assert.IsFalse(screen.launchButton.interactable, "a locked ship can't launch");
+            Assert.Less(screen.shipRow.label.color.a, shown.a, "a locked ship's row is dimmed");
+
+            Previous(screen.shipRow);
+            Assert.AreEqual(vanguard.name, screen.shipRow.label.text);
+            Assert.IsTrue(screen.launchButton.interactable, "stepping back to the starter re-enables launch");
+            Assert.AreEqual(shown, screen.shipRow.label.color, "the starter's row is not dimmed");
+        }
+
+        [Test]
+        public void EarnedShip_IsSelectable()
+        {
+            var valis = Load<Ship>(ValisPath);
+            ShowLockedOffer(ship => ship == valis, out _, out _);
+
+            Next(screen.shipRow);
+
+            Assert.AreEqual(valis.name, screen.shipRow.label.text);
+            Assert.IsTrue(screen.launchButton.interactable, "an earned ship can launch");
         }
 
         [Test]

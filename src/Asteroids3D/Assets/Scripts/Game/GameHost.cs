@@ -110,6 +110,7 @@ namespace Game
 
         internal string runRecordPath;
         internal BuildIdentitySource buildIdentity;
+        internal ShipUnlocks unlocks;
 
         private RunRecordStore runRecords;
         private DamageInfo lastKillingBlow;
@@ -150,6 +151,7 @@ namespace Game
 
             buildIdentity ??= BuildIdentity.Source();
             runRecords = new RunRecordStore(runRecordPath);
+            unlocks = new ShipUnlocks(runRecords.Path);
 
             DontDestroyOnLoad(gameObject);
             StartCoroutine(CatchingRoutine.Run(Run(), exception =>
@@ -195,6 +197,7 @@ namespace Game
                 yield return rigInstance.Build(session.Units, session.Objectives, presentation,
                     observer, ui, session.Frame, BuildDeathCallback());
                 rigInstance.Tally.Killed += RefillPlayerHull;
+                rigInstance.Spawns.EliteKilled += unlocks.Claim;
             }
 
             yield return PlayRuns(presentation);
@@ -559,6 +562,7 @@ namespace Game
         /// <summary>Never blocks on a click when not presenting; callable without a session for tests.</summary>
         internal IEnumerator RunHangar(PlayerRig rig, bool presentationEnabled, Transform uiRoot)
         {
+            unlocks.Read();
             if (!rig || !rig.Player || rig.Loadout == null || !hangarScreenPrefab || !presentationEnabled)
             {
                 if (rig) rig.ApplyLoadout();
@@ -567,7 +571,7 @@ namespace Game
 
             var screen = Instantiate(hangarScreenPrefab, uiRoot);
             var launched = false;
-            screen.Show(hangarOffer, rig.Loadout, () => launched = true);
+            screen.Show(hangarOffer, rig.Loadout, unlocks.Earned, () => launched = true);
 
             yield return new WaitUntil(() => launched || shutdownRequested);
 

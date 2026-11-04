@@ -137,6 +137,11 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
         type: 3}
+    - target: {fileID: 4201520510818603066, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: profile
+      value: 
+      objectReference: {fileID: 11400000, guid: 21315f95bf1e425ba68af48ed9c9bee1, type: 2}
     - target: {fileID: 4667602915908898981, guid: 35f72eeaa8adb4c43832be646409d034,
         type: 3}
       propertyPath: faction

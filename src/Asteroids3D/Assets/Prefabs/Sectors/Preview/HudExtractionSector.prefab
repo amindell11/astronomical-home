@@ -95,6 +95,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1227466035045939097, guid: 35f72eeaa8adb4c43832be646409d034,
         type: 3}
+      propertyPath: elite
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 1227466035045939097, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
       propertyPath: hunt
       value: 
       objectReference: {fileID: 0}

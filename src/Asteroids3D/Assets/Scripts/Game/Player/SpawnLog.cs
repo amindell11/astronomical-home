@@ -4,6 +4,7 @@ using Balance;
 using Damage;
 using Ships;
 using Ships.Registry;
+using Substrate.Sectors.Elements.Elites;
 using Substrate.Services.Units;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -17,10 +18,25 @@ namespace Game.Player
     /// the run tally, never sim state. It logs every spawn, the player's included, because the
     /// player's id is not known until the spawn returns; <see cref="Entries"/> leaves the current
     /// player out. A ship logged before <see cref="Begin"/> (placed during the sector load) reads
-    /// as spawned at second 0.
+    /// as spawned at second 0. The watched elite's announcement marks its life elite, and the
+    /// player's kill of that life raises <see cref="EliteKilled"/>.
     /// </summary>
     public sealed class SpawnLog
     {
+        public readonly struct EliteKill
+        {
+            public readonly int SectorIndex;
+            public readonly string FactionId;
+            public readonly string Chassis;
+
+            public EliteKill(int sectorIndex, string factionId, string chassis)
+            {
+                SectorIndex = sectorIndex;
+                FactionId = factionId;
+                Chassis = chassis;
+            }
+        }
+
         public readonly struct Entry
         {
             public readonly ShipId Id;
@@ -34,6 +50,7 @@ namespace Game.Player
             public readonly float SpawnSeconds;
             public readonly float AliveSeconds;
             public readonly bool KilledByPlayer;
+            public readonly bool Elite;
 
             internal Entry(Spawn spawn, float runStart, float runEnd)
             {
@@ -50,6 +67,7 @@ namespace Game.Player
                 SpawnSeconds = spawnedAt - runStart;
                 AliveSeconds = (spawn.Dead ? spawn.DiedAt : spawn.Left ? spawn.LeftAt : runEnd) - spawnedAt;
                 KilledByPlayer = spawn.KilledByPlayer;
+                Elite = spawn.Elite;
             }
         }
 
@@ -69,6 +87,9 @@ namespace Game.Player
             public bool Left;
             public float LeftAt;
             public bool KilledByPlayer;
+            public bool Elite;
+            public int SectorIndex;
+            public string FactionId;
         }
 
         private const string CloneSuffix = "(Clone)";
@@ -76,10 +97,13 @@ namespace Game.Player
         private readonly List<Spawn> spawns = new();
         private int sectorStart;
         private IUnitService units;
+        private IEliteStatus watched;
         private Func<ShipId> playerId;
         private float startTime;
         private float endTime;
         private bool running;
+
+        public event Action<EliteKill> EliteKilled;
 
         /// <summary>Re-bindable; a null <paramref name="unitService"/> unbinds and stops logging.</summary>
         public void Bind(IUnitService unitService, Func<ShipId> currentPlayerId)
@@ -97,6 +121,14 @@ namespace Game.Player
                 units.OnShipRespawned += OnShipRespawned;
             }
             else running = false;
+        }
+
+        /// <summary>Re-bindable; a null <paramref name="elite"/> watches none.</summary>
+        public void Watch(IEliteStatus elite)
+        {
+            if (watched != null) watched.Announced -= MarkElite;
+            watched = elite;
+            if (watched != null) watched.Announced += MarkElite;
         }
 
         public void Reset()
@@ -190,6 +222,18 @@ namespace Game.Player
             spawn.Dead = true;
             spawn.DiedAt = now;
             spawn.KilledByPlayer = killingBlow.AttackerId == player && victim != player;
+            if (spawn.Elite && spawn.KilledByPlayer)
+                EliteKilled?.Invoke(new EliteKill(spawn.SectorIndex, spawn.FactionId, spawn.Chassis));
+        }
+
+        internal void MarkElite(EliteMoment moment)
+        {
+            var spawn = spawns.FindLast(s => s.Id == moment.Ship);
+            if (spawn == null)
+                throw new InvalidOperationException($"Elite ship {moment.Ship} was announced but never logged as a spawn.");
+            spawn.Elite = true;
+            spawn.SectorIndex = moment.SectorIndex;
+            spawn.FactionId = moment.FactionId;
         }
 
         private void OnShipSpawned(Ship ship)
