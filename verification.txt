@@ -1,0 +1,32 @@
+Locale variety verification, 2026-11-04
+
+Implementation: dd44b5fd684e33d1b4e72b504afde697d17eb20c
+Base: 5b5b0e2e633ba432728ff0ddab4af61f2118e149
+Issue: https://github.com/amindell11/astronomical-home/issues/798
+Scope: four locale prefabs, their art and lighting, one planet shader, preview sector settings, and focused tests.
+
+EditMode: 54 passed, zero failures or skips. See graphics-editmode.xml.
+Selection: LocaleSkyWiringEditModeTests;LocaleVarietyEditModeTests;PlanetRenderTests;BackgroundAtmosphereRenderTests;FlatBackground
+Ran Unity with graphics through scripts/unity_access.ps1 RunBatch and locale-batch.ps1. The normal pool runner accepts its WithGraphics option only for PlayMode, so this EditMode invocation used the same access coordinator directly.
+
+PlayMode: 9 passed, zero failures or skips. See playmode.xml and playmode-summary.json.
+Command: scripts/agent_worktree_pool.sh run-tests agent-8 -WithGraphics -Mode PlayMode -TestFilter 'LocalePlaytestProbe|LocaleSkyPlayModeTests|SessionLocaleRoundTripPlayModeTests'
+LocalePlaytestProbe was a temporary capture fixture. It loaded each preview SectorSettings through the real GameHost and production player, asserted exactly one expected visible locale, and captured the observer camera after startup. The hangar screen and music were disabled for the capture fixture. Run records went to test results. It checked non-uniform rendered pixels rather than file existence.
+
+Tests ran on the working tree subsequently committed as the implementation above. Temporary authoring and capture fixtures were removed from Assets before that commit and are preserved here. A subsequent compile check passed all nine assemblies after their removal.
+
+Locale_4 is Coral Sunset, Locale_5 is Cyan Aurora, Locale_6 is Verdant Giant, Locale_7 is Blue Crescent.
+The four *-playtest.png captures show the real GameHost, Crimson player and HUD through the observer camera, at 1600x900.
+The twelve Locale_N, Locale_N-zoom and Locale_N-travel captures use an isolated Valis rig, the production camera and locale assets. Normal orthographic size is 7, zoom size is 14, and travel moves the camera and ship by 120,60 world units.
+The four *_preview.png images are Blender source-tile previews, not in-game renders.
+Still images do not establish movement smoothness or combat readability across a full run. Planet opacity, aspect ratio, stable zoom size, bounded parallax and no repetition are covered by rendered pixel assertions in PlanetRenderTests.
+
+AuthorLocales.cs creates assets through Unity serialization and prefab APIs. CaptureLocales.cs and LocalePlaytestProbe.cs produce the two capture sets. These scripts are evidence, not runtime dependencies or maintained authoring APIs.
+Nebula source presets live in art/tools/flat_background. The generated EXR and JSON assets retain the existing flat-background pipeline provenance. Planet cutouts were generated during the approved concept work and copied unchanged into Assets/Visuals/Locales/Sky/Planets.
+
+Approved concept evidence: https://github.com/amindell11/astronomical-home/tree/8eedc3f33241f6e5b2a51241c0e57df7adb22218
+No run progression or random locale selection changes are included.
+
+ReSharper passed on the committed implementation with zero blocking findings on changed lines. Eleven informational findings concern string shader-property lookups in tests. See resharper-summary.json.
+The required combined quality review found no blocking correctness, scope, comment or Unity-convention issues and made no edits.
+These scoped tests are review evidence, not full-suite merge proof.
