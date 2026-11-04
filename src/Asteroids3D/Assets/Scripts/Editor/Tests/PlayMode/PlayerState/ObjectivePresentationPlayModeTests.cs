@@ -161,6 +161,48 @@ namespace Tests.PlayMode.PlayerState
                 }, target, progress);
 
         [UnityTest]
+        public IEnumerator HuntBanners_HoldSpottedWithItsCountdown_ClearOnSilence_AndAnnounceTheAlarm()
+        {
+            var phase = new SectorPhaseProgress(-1, 2, 40f, false, HuntReading.Searching);
+            var readout = CreateReadout();
+            readout.Initialize(service);
+            var announcement = readout.transform.Find("Extraction announcement").GetComponent<Text>();
+            OpenPhases(null, () => phase);
+            yield return null;
+            Assert.IsFalse(announcement.enabled, "Searching announces nothing.");
+
+            phase = new SectorPhaseProgress(-1, 2, 2.1f, false, HuntReading.Spotted);
+            yield return null;
+            yield return new WaitForSecondsRealtime(2.5f);
+            Assert.IsTrue(announcement.enabled, "SPOTTED holds for as long as the call-in lasts.");
+            Assert.AreEqual("SPOTTED  0:03", announcement.text);
+            Assert.AreEqual(1f, announcement.color.a, .01f);
+            Assert.Greater(announcement.color.r, announcement.color.g, "SPOTTED reads red.");
+
+            phase = new SectorPhaseProgress(-1, 2, 30f, false, HuntReading.Searching);
+            yield return null;
+            Assert.IsFalse(announcement.enabled, "Silencing the caller clears the banner at once.");
+
+            phase = new SectorPhaseProgress(-1, 2, 1f, false, HuntReading.Spotted);
+            yield return null;
+            phase = new SectorPhaseProgress(0, 2, 30f, false);
+            yield return null;
+            yield return new WaitForSecondsRealtime(.3f);
+            Assert.IsTrue(announcement.enabled);
+            Assert.AreEqual("THEY'RE COMING", announcement.text);
+            Assert.AreEqual(Color.white, new Color(announcement.color.r, announcement.color.g, announcement.color.b));
+            yield return new WaitForSecondsRealtime(2.2f);
+            Assert.IsFalse(announcement.enabled, "The alarm banner fades like the other announcements.");
+
+            phase = new SectorPhaseProgress(-1, 2, 40f, false, HuntReading.Searching);
+            yield return null;
+            service.ClearAll();
+            OpenPhases(null, () => new SectorPhaseProgress(0, 2, 30f, false));
+            yield return null;
+            Assert.IsFalse(announcement.enabled, "A new tracker never reads as the alarm.");
+        }
+
+        [UnityTest]
         public IEnumerator Readout_AnnouncesABeacon_WhenASurviveTargetAppears_AndReplaysForTheNext()
         {
             var readout = CreateReadout();
