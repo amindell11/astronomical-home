@@ -123,8 +123,7 @@ namespace Cameras
         private float StepLockedZoom(Vector2 center)
         {
             StepEngaged();
-            var speedZoom = feel.zoom + feel.zoomPerSpeed * LeadBodyVelocity.magnitude;
-            var target = Mathf.Clamp(Mathf.Max(speedZoom, FightZoom(center)), feel.zoom, feel.zoom + feel.maxWiden);
+            var target = Mathf.Clamp(Mathf.Max(SpeedZoom, FightZoom(center)), feel.zoom, feel.zoom + feel.maxWiden);
             lockedZoom = CameraUtils.SmoothZoom(lockedZoom, target, ref lockedZoomVelocity,
                 feel.widenTime, feel.narrowTime, Time.unscaledDeltaTime);
             return lockedZoom;
@@ -151,7 +150,7 @@ namespace Cameras
                 : distance < feel.fightRadius;
         }
 
-        private float FightZoom(Vector2 center)
+        internal float FightZoom(Vector2 center)
         {
             if (engaged.Count == 0)
                 return 0f;
@@ -178,7 +177,13 @@ namespace Cameras
 
             return CameraUtils.ShiftToKeepPointInView(center, toPlayer2D, zoomSize, Cam.aspect, padding);
         }
-    
+
+        internal FlightCameraProfile Feel => feel;
+        internal Vector2 VelocityLead => lead;
+        internal Vector2 CursorLead => cursorLead;
+        internal IReadOnlyCollection<Transform> Engaged => engaged;
+        internal float SpeedZoom => feel.zoom + feel.zoomPerSpeed * LeadBodyVelocity.magnitude;
+
         internal bool TryGetBoundaryAroundAllSubjects(out Vector2 min, out Vector2 max)
         {
             CameraUtils.InitEmptyBounds(out min, out max);
