@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Substrate;
@@ -18,6 +19,7 @@ namespace Ships.Presentation
         [SerializeField] private Renderer[] silhouette;
 
         private IShipVisual[] visuals;
+        private IWearsLivery[] liveryParts;
         private Ship ship;
         private CanvasGroup hud;
 
@@ -26,11 +28,38 @@ namespace Ships.Presentation
         private void Awake()
         {
             visuals = GetComponentsInChildren<IShipVisual>(true);
+            liveryParts = GetComponentsInChildren<IWearsLivery>(true);
             ship = GetComponentInParent<Ship>();
             hud = gameObject.AddComponent<CanvasGroup>();
         }
 
         public void SetHudOpacity(float opacity) => hud.alpha = opacity;
+
+        public void Wear(in ShipLivery livery)
+        {
+            if (livery.Hull.Count > 0) PaintHull(livery.Hull);
+            foreach (var part in liveryParts)
+                part.Wear(livery);
+        }
+
+        private void PaintHull(IReadOnlyList<Material> hull)
+        {
+            var slots = 0;
+            foreach (var surface in silhouette)
+                slots += surface.sharedMaterials.Length;
+            if (slots != hull.Count)
+                throw new InvalidOperationException(
+                    $"'{name}' has {slots} hull material slots; the livery paints {hull.Count}.");
+
+            var next = 0;
+            foreach (var surface in silhouette)
+            {
+                var materials = surface.sharedMaterials;
+                for (var i = 0; i < materials.Length; i++)
+                    materials[i] = hull[next++];
+                surface.sharedMaterials = materials;
+            }
+        }
 
         public void ApplyPresentation(bool visible) => gameObject.SetActive(visible);
 

@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ec48bc6105449028b65cebc2d7dbe46, type: 3}
+  m_Name: Veil
+  m_EditorClassIdentifier: 
+  id: veil
+  displayName: Veil
+  color: {r: 0.659, g: 0.965, b: 0.231, a: 1}
+  signature:
+    ship: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637, type: 3}
+    kit: {fileID: -8301958025146036882, guid: a8d8040d4d414a15a9db015021e2bed2, type: 3}
+    hull: []
+    eliteHull: []
+  common:
+    ship: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274, type: 3}
+    kit: {fileID: -8301958025146036882, guid: a17b4473baa216a4eba58800a76acfc3, type: 3}
+    hull: []
+    eliteHull: []
+  answer: {fileID: 1100000000000000202, guid: 4c9a03fda4724848a895b5640634048a, type: 3}
+  flame: {fileID: 0}
+  eliteFlame: {fileID: 0}
+  shieldRing: {r: 0.51, g: 0.75, b: 0.76, a: 1}

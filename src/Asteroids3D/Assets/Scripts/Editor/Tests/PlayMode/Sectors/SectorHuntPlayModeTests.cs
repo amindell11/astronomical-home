@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using AI;
+using Combat.Weapons;
 using Damage;
 using NUnit.Framework;
 using Objectives;
@@ -13,6 +14,7 @@ using Substrate.Sectors;
 using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sectors.Elements.Phases;
+using Substrate.Sectors.Factions;
 using Substrate.Services;
 using Substrate.Services.Objectives;
 using Substrate.Services.Units;
@@ -29,6 +31,7 @@ namespace Tests.PlayMode.Sectors
     public class SectorHuntPlayModeTests : PlayModeWorldFixture
     {
         private const string PatrolPilotPath = "Assets/Prefabs/Pilots/AggressorPilot.prefab";
+        private const string PatrolKitPath = "Assets/Prefabs/Weapons/Lasers.prefab";
         private const float SpawnDistance = 30f;
         private const int SectorIndex = 1;
 
@@ -175,8 +178,14 @@ namespace Tests.PlayMode.Sectors
             feel.callInSeconds = callInSeconds;
             feel.searchSeconds = searchSeconds;
             var hunt = Track(new GameObject("Hunt")).AddComponent<SectorHunt>();
-            hunt.Configure(feel, TestAssets.LoadCrimsonPrefab(), TestAssets.Load<AICommander>(PatrolPilotPath), 1,
-                SpawnDistance);
+            var faction = Track(ScriptableObject.CreateInstance<Faction>());
+            faction.common = new FactionShip
+            {
+                ship = TestAssets.LoadCrimsonPrefab(), kit = TestAssets.Load<WeaponComponent>(PatrolKitPath),
+            };
+            var sectorFaction = Track(new GameObject("Faction")).AddComponent<SectorFaction>();
+            sectorFaction.Bind(faction);
+            hunt.Configure(feel, sectorFaction, TestAssets.Load<AICommander>(PatrolPilotPath), 1, SpawnDistance);
             hunt.PatrolSpotted += (sector, patrol) => _beats.Add($"spotted {sector} {patrol.name}");
             hunt.PatrolSilenced += (sector, patrol) => _beats.Add($"silenced {sector} {patrol.name}");
             hunt.AlarmRaised += (sector, reason, caller) =>

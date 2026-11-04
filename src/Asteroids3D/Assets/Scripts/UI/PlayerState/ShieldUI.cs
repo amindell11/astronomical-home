@@ -10,7 +10,7 @@ using UnityEngine.UI;
 namespace UI.PlayerState
 {
     [RequireComponent(typeof(Image))]
-    public sealed class ShieldUI : MonoBehaviour, IShipVisual
+    public sealed class ShieldUI : MonoBehaviour, IShipVisual, IWearsLivery
     {
         [SerializeField, Min(0.1f)] private float fullHold = 1f;
 
@@ -22,12 +22,14 @@ namespace UI.PlayerState
         private static readonly int RingRotation = Shader.PropertyToID("_RingRotation");
         private static readonly int Trail = Shader.PropertyToID("_Trail");
         private static readonly int Highlight = Shader.PropertyToID("_Highlight");
+        private static readonly int RingColor = Shader.PropertyToID("_Color");
         private IDamageEvents source;
         private ShipVisualRig rig;
         private Transform root;
         private LockChannel enemyLock;
         private Image ring;
         private Material material;
+        private Color? worn;
         private bool subscribed;
         private float hitAngle;
         private float hitAge = float.PositiveInfinity;
@@ -45,7 +47,15 @@ namespace UI.PlayerState
                 throw new InvalidOperationException("Shield ring requires its ShieldGlow material.");
             material = new Material(ring.material);
             ring.material = material;
+            if (worn.HasValue) material.SetColor(RingColor, worn.Value);
             Clear();
+        }
+
+        // The ring may wear its colour before its first Awake, while its object is still inactive.
+        public void Wear(in ShipLivery livery)
+        {
+            worn = livery.ShieldRing;
+            if (material) material.SetColor(RingColor, livery.ShieldRing);
         }
 
         public void Bind(in ShipView view)

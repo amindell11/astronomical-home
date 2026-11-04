@@ -6,6 +6,8 @@ using AI.Scanning;
 using Balance;
 using Damage;
 using Ships;
+using Ships.Loadout;
+using Substrate.Sectors.Factions;
 using Substrate.Services.Units;
 using UnityEngine;
 using Utils;
@@ -27,8 +29,8 @@ namespace Substrate.Sectors.Elements.Hunt
     {
         [Tooltip("Search clock, sight and call-in timing.")]
         [Stat, SerializeField] private HuntFeelProfile feel;
-        [Tooltip("The ship every patrol flies.")]
-        [Stat, SerializeField] private Ship patrolShip;
+        [Tooltip("The sector's faction: every patrol flies its common ship, on its kit and in its skin.")]
+        [Stat, SerializeField] private SectorFaction faction;
         [Stat, SerializeField] private AICommander patrolPilot;
         [Stat, SerializeField, Min(0)] private int patrolCount = 1;
         [SerializeField] private int team = 1;
@@ -74,9 +76,9 @@ namespace Substrate.Sectors.Elements.Hunt
             products.Clear();
             patrols.Clear();
             Spawned = products;
-            if (!feel || patrolCount > 0 && (!patrolShip || !patrolPilot))
+            if (!feel || patrolCount > 0 && (!faction || !patrolPilot))
                 throw new InvalidOperationException(
-                    $"SectorHunt on '{name}' needs its feel profile, and a patrol ship and pilot when it spawns patrols.");
+                    $"SectorHunt on '{name}' needs its feel profile, and a faction and patrol pilot when it spawns patrols.");
 
             units = ctx.Units;
             field = ctx.Field;
@@ -168,8 +170,11 @@ namespace Substrate.Sectors.Elements.Hunt
             {
                 var angle = UnityEngine.Random.Range(0f, 2f * Mathf.PI);
                 var heading = GamePlane.PlaneDirToWorld(new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)));
+                var patrolShip = faction.Faction.common.ship;
                 var ship = units.SpawnShip(patrolShip, patrolPilot, team, ClearPointAround(center),
-                    GamePlane.PlanePose(GamePlane.Normal, heading), field);
+                    GamePlane.PlanePose(GamePlane.Normal, heading), field,
+                    new ShipLoadout(patrolShip, faction.Faction.KitFor(patrolShip), null));
+                faction.Faction.Dress(patrolShip, ship, elite: false);
                 var patrol = new Patrol(ship, ((AICommander)ship.Commander).Scout);
                 patrol.Scout.Unaware = true;
                 patrol.OnDamaged = hit =>
@@ -229,11 +234,11 @@ namespace Substrate.Sectors.Elements.Hunt
         }
 
 #if UNITY_EDITOR
-        internal void Configure(HuntFeelProfile feel, Ship patrolShip, AICommander patrolPilot, int patrolCount,
+        internal void Configure(HuntFeelProfile feel, SectorFaction faction, AICommander patrolPilot, int patrolCount,
             float spawnDistance)
         {
             this.feel = feel;
-            this.patrolShip = patrolShip;
+            this.faction = faction;
             this.patrolPilot = patrolPilot;
             this.patrolCount = patrolCount;
             spawnDistanceMin = spawnDistanceMax = spawnDistance;
