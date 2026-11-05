@@ -35,7 +35,6 @@ namespace Substrate.Sectors.Elements.Hunt
         [Tooltip("The sector's faction: every patrol flies its common ship, on its kit and in its skin.")]
         [Stat, SerializeField] private SectorFaction faction;
         [Stat, SerializeField] private AICommander patrolPilot;
-        [Stat, SerializeField, Min(0)] private int patrolCount = 1;
         [SerializeField] private int team = 1;
 
         [Header("Placement")]
@@ -56,6 +55,7 @@ namespace Substrate.Sectors.Elements.Hunt
         private Ship hero;
         private Sector sector;
         private int sectorIndex;
+        private int patrolCount;
         private bool started;
         private float startTime;
 
@@ -80,9 +80,15 @@ namespace Substrate.Sectors.Elements.Hunt
             products.Clear();
             patrols.Clear();
             Spawned = products;
-            if (!feel || patrolCount > 0 && (!faction || !patrolPilot || !ctx.Sector))
+            if (!feel)
+                throw new InvalidOperationException($"SectorHunt on '{name}' needs its feel profile.");
+            if (ctx.SectorIndex < 0 || ctx.SectorIndex >= feel.patrolsPerSector.Length)
                 throw new InvalidOperationException(
-                    $"SectorHunt on '{name}' needs its feel profile, and a faction, patrol pilot and sector when it spawns patrols.");
+                    $"'{feel.name}' lists patrols for {feel.patrolsPerSector.Length} sectors, not for sector {ctx.SectorIndex}.");
+            patrolCount = feel.patrolsPerSector[ctx.SectorIndex];
+            if (patrolCount > 0 && (!faction || !patrolPilot || !ctx.Sector))
+                throw new InvalidOperationException(
+                    $"SectorHunt on '{name}' needs a faction, patrol pilot and sector when it spawns patrols.");
 
             units = ctx.Units;
             field = ctx.Field;
@@ -263,13 +269,12 @@ namespace Substrate.Sectors.Elements.Hunt
         }
 
 #if UNITY_EDITOR
-        internal void Configure(HuntFeelProfile feel, SectorFaction faction, AICommander patrolPilot, int patrolCount,
+        internal void Configure(HuntFeelProfile feel, SectorFaction faction, AICommander patrolPilot,
             float spawnDistance)
         {
             this.feel = feel;
             this.faction = faction;
             this.patrolPilot = patrolPilot;
-            this.patrolCount = patrolCount;
             spawnDistanceMin = spawnDistanceMax = spawnDistance;
         }
 #endif

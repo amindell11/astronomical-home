@@ -38,8 +38,9 @@ namespace Tests.EditMode.Sectors
         {
             var feel = Track(ScriptableObject.CreateInstance<HuntFeelProfile>());
             feel.searchSeconds = SearchSeconds;
+            feel.patrolsPerSector = new[] { 0, 0, 0 };
             hunt = Track(new GameObject("Hunt")).AddComponent<SectorHunt>();
-            hunt.Configure(feel, null, null, 0, 0f);
+            hunt.Configure(feel, null, null, 0f);
             var hero = Track(new GameObject("Hero")).AddComponent<Ship>();
             Drive(hunt.Build(new SectorBuildContext(null, null, true, null, default, hero: hero, sectorIndex: 2)));
             hunt.AlarmRaised += (sector, reason, caller) => alarms.Add((sector, reason, caller));
@@ -120,26 +121,28 @@ namespace Tests.EditMode.Sectors
             Assert.AreEqual(50f, Vector2.Distance(east[0], west[0]), 1e-4f, "Patrols on opposite bearings pass on opposite sides.");
         }
 
-        [TestCase("TrialSector", 1)]
-        [TestCase("TrialSector2", 2)]
-        [TestCase("TrialSector3", 2)]
-        public void TrialSector_HoldsForItsHunt_OfItsPatrolCount_FlyingItsFactionsCommonShip(string sector, int patrols)
+        [TestCase("TrialSector", 0, 2)]
+        [TestCase("TrialSector2", 1, 3)]
+        [TestCase("TrialSector3", 2, 3)]
+        public void TrialSector_HoldsForItsHunt_OfItsPatrolCount_FlyingItsFactionsCommonShip(string sector, int index,
+            int patrols)
         {
             var prefab = AssetDatabase.LoadAssetAtPath<Sector>($"Assets/Prefabs/Sectors/{sector}.prefab");
             var hunt = prefab.Spawners.OfType<SectorHunt>().Single();
             using var serialized = new SerializedObject(hunt);
-            Assert.AreEqual(patrols, serialized.FindProperty("patrolCount").intValue);
+            var feel = (HuntFeelProfile)serialized.FindProperty("feel").objectReferenceValue;
+            Assert.AreEqual(patrols, feel.patrolsPerSector[index], "The hunt feel sets each sector's patrol count.");
             Assert.AreSame(prefab.Module<SectorFaction>(), serialized.FindProperty("faction").objectReferenceValue,
                 "Patrols fly the sector's faction.");
             Assert.IsTrue(serialized.FindProperty("patrolPilot").objectReferenceValue, "Patrols fly a wave pilot.");
-            Assert.IsTrue(serialized.FindProperty("feel").objectReferenceValue);
             Assert.AreSame(hunt, Field(prefab.Spawners.OfType<WaveDirector>().Single(), "hunt"));
             Assert.AreSame(hunt, Field(prefab.GetComponent<PhaseSpineModule>(), "hunt"));
         }
 
         [TestCase("HudQuietSector")]
         [TestCase("HudExtractionSector")]
-        public void HudFixtureSector_RunsNoHunt(string sector)
+        [TestCase("BossSector")]
+        public void FixtureSector_RunsNoHunt(string sector)
         {
             var prefab = AssetDatabase.LoadAssetAtPath<Sector>($"Assets/Prefabs/Sectors/Preview/{sector}.prefab");
             Assert.IsNull(Field(prefab.Spawners.OfType<WaveDirector>().Single(), "hunt"));
