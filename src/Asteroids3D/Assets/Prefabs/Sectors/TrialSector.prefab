@@ -129,6 +129,7 @@ MonoBehaviour:
   lullSeconds: 12
   openingLullSeconds: 5
   hunt: {fileID: 7436810692243587915}
+  elite: {fileID: 4201520510818603066}
   spawnRadius: 55
   clearanceRadius: 6
   asteroidMask:
