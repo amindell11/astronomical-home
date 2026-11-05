@@ -27,6 +27,8 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
     private const float SettleSec = 1f;
     private const float SizeTolerance = 0.05f;
     private const float LeadSpeed = 10f;
+    private const float JumpFlightSec = 0.5f;
+    private const float WhipWindowSec = 0.1f;
     private const string FlightCameraPath = "Assets/Settings/Cameras/FlightCamera.asset";
 
     [SetUp]
@@ -36,6 +38,8 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
         simulationMode = Physics.simulationMode;
         
         cam = TestAssets.NewObserverCam();
+        // The cursor comes from SetCursor alone; the editor's live mouse would move the lead.
+        cam.GetComponent<ObserverCamInputHandler>().enabled = false;
         cam.transform.position = Vector3.zero;
         feel = TestAssets.Load<FlightCameraProfile>(FlightCameraPath);
 
@@ -129,6 +133,29 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
 
         body.linearVelocity = Vector3.zero;
         yield return CameraSettlesOn(subjectCenter);
+    }
+
+    [UnityTest]
+    public IEnumerator ResumeFollow_EasesTheLeadInInsteadOfWhippingToIt()
+    {
+        cam.SetSubject(subject.transform);
+        cam.SetLockCameraToSubject(true);
+        cam.SetCursor(cam.Cam.ViewportToScreenPoint(new Vector3(1f, .5f)));
+        var subjectCenter = GamePlane.WorldPointToPlane(subject.transform.position);
+
+        var flightEnds = Time.realtimeSinceStartup + JumpFlightSec;
+        while (Time.realtimeSinceStartup < flightEnds)
+        {
+            yield return null;
+            cam.transform.position -= GamePlane.PlaneDirToWorld(GamePlane.WorldPointToPlane(cam.transform.position) - subjectCenter);
+        }
+        cam.ResumeFollow();
+        yield return new WaitForSecondsRealtime(WhipWindowSec);
+
+        var offset = Vector2.Distance(GamePlane.WorldPointToPlane(cam.transform.position), subjectCenter);
+        Assert.That(offset, Is.LessThan(.25f * feel.cursorLead),
+            "the camera whipped toward the lead it built while the jump flight held it");
+        yield return CameraSettlesOn(subjectCenter + GamePlane.WorldDirToPlane(GamePlane.Right) * feel.cursorLead);
     }
 
     [UnityTest]
