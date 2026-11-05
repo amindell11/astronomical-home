@@ -203,6 +203,7 @@ namespace Tests.PlayMode.Sectors
             feel.sightRadius = sightRadius;
             feel.callInSeconds = callInSeconds;
             feel.searchSeconds = searchSeconds;
+            feel.patrolsPerSector = new[] { 0, 1 };
             var hunt = Track(new GameObject("Hunt")).AddComponent<SectorHunt>();
             var faction = Track(ScriptableObject.CreateInstance<Faction>());
             faction.common = new FactionShip
@@ -211,7 +212,7 @@ namespace Tests.PlayMode.Sectors
             };
             var sectorFaction = Track(new GameObject("Faction")).AddComponent<SectorFaction>();
             sectorFaction.Bind(faction);
-            hunt.Configure(feel, sectorFaction, TestAssets.Load<AICommander>(PatrolPilotPath), 1, spawnDistance);
+            hunt.Configure(feel, sectorFaction, TestAssets.Load<AICommander>(PatrolPilotPath), spawnDistance);
             hunt.PatrolSpotted += (sector, patrol) => _beats.Add($"spotted {sector} {patrol.name}");
             hunt.PatrolSilenced += (sector, patrol) => _beats.Add($"silenced {sector} {patrol.name}");
             hunt.AlarmRaised += (sector, reason, caller) =>

@@ -184,7 +184,6 @@ MonoBehaviour:
   faction: {fileID: 4667602915908898981}
   patrolPilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
     type: 3}
-  patrolCount: 1
   team: 1
   spawnDistanceMin: 100
   spawnDistanceMax: 150
