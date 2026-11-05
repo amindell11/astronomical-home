@@ -33,7 +33,7 @@ namespace Tests.PlayMode.Presentation
             previousTimeScale = Time.timeScale;
             previousTarget = RenderTexture.active;
             Time.timeScale = 1;
-            target = new RenderTexture(1600, 900, 24, RenderTextureFormat.ARGBHalf);
+            target = new RenderTexture(1600, 900, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
             target.Create();
             image = new Texture2D(1600, 900, TextureFormat.RGB24, false);
         }
@@ -59,8 +59,8 @@ namespace Tests.PlayMode.Presentation
         [UnityTest]
         public IEnumerator FourLocalesLoadThroughTheRealGameHostAndRenderBehindItsPlayer()
         {
-            var output = ResultsRoot.Folder("unity-tests-agent/locale-variety/playtest-captures");
-            var records = ResultsRoot.Folder("unity-tests-agent/locale-variety/run-records");
+            var output = ResultsRoot.Folder("unity-tests-agent/locale-variety/revision-20261105/playtest-captures");
+            var records = ResultsRoot.Folder("unity-tests-agent/locale-variety/revision-20261105/run-records");
             Directory.CreateDirectory(output);
             Directory.CreateDirectory(records);
             var configs = new[] { "CoralSunset", "CyanAurora", "VerdantGiant", "BlueCrescent" };
@@ -146,3 +146,4 @@ namespace Tests.PlayMode.Presentation
         }
     }
 }
+

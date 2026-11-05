@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="3" result="Failed(Child)" total="3" passed="0" failed="3" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-05 08:28:41Z" end-time="2026-11-05 08:28:42Z" duration="0.6083379">
+  <test-suite type="TestSuite" id="1000" name="Astronomical" fullname="Astronomical" runstate="Runnable" testcasecount="1181" result="Failed" site="Child" start-time="2026-11-05 08:28:41Z" end-time="2026-11-05 08:28:42Z" duration="0.608338" total="3" passed="0" failed="3" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="2413" name="Tests.EditMode.dll" fullname="D:/amind/git/agent-8/src/Asteroids3D/Library/ScriptAssemblies/Tests.EditMode.dll" runstate="Runnable" testcasecount="1181" result="Failed" site="Child" start-time="2026-11-05 08:28:41Z" end-time="2026-11-05 08:28:42Z" duration="0.574796" total="3" passed="0" failed="3" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="52580" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="2414" name="Tests" fullname="Tests" runstate="Runnable" testcasecount="1181" result="Failed" site="Child" start-time="2026-11-05 08:28:41Z" end-time="2026-11-05 08:28:42Z" duration="0.562177" total="3" passed="0" failed="3" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="2415" name="EditMode" fullname="Tests.EditMode" runstate="Runnable" testcasecount="1181" result="Failed" site="Child" start-time="2026-11-05 08:28:41Z" end-time="2026-11-05 08:28:42Z" duration="0.550373" total="3" passed="0" failed="3" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="2425" name="Rendering" fullname="Tests.EditMode.Rendering" runstate="Runnable" testcasecount="180" result="Failed" site="Child" start-time="2026-11-05 08:28:41Z" end-time="2026-11-05 08:28:42Z" duration="0.466867" total="3" passed="0" failed="3" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestFixture" id="2136" name="BackgroundAtmosphereRenderTests" fullname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests" classname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests" runstate="Runnable" testcasecount="13" result="Failed" site="Child" start-time="2026-11-05 08:28:42Z" end-time="2026-11-05 08:28:42Z" duration="0.387783" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="Category" value="Sectors" />
+                <property name="Category" value="RequiresGraphics" />
+              </properties>
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-case id="2148" name="CloudBanks_EvolveOnlyWhenMotionIsEnabled" fullname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests.CloudBanks_EvolveOnlyWhenMotionIsEnabled" methodname="CloudBanks_EvolveOnlyWhenMotionIsEnabled" classname="Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests" runstate="Runnable" seed="1247406934" result="Failed" start-time="2026-11-05 08:28:42Z" end-time="2026-11-05 08:28:42Z" duration="0.361194" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <failure>
+                  <message><![CDATA[  A moving cloud bank must evolve despite using a cached tile.
+  Expected: greater than 0.00100000005f
+  But was:  0.0f
+]]></message>
+                  <stack-trace><![CDATA[at Tests.EditMode.Rendering.BackgroundAtmosphereRenderTests.CloudBanks_EvolveOnlyWhenMotionIsEnabled () [0x00112] in D:\amind\git\agent-8\src\Asteroids3D\Assets\Scripts\Editor\Tests\EditMode\Rendering\BackgroundAtmosphereRenderTests.cs:181
+]]></stack-trace>
+                </failure>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestSuite" id="2427" name="Locales" fullname="Tests.EditMode.Rendering.Locales" runstate="Runnable" testcasecount="49" result="Failed" site="Child" start-time="2026-11-05 08:28:42Z" end-time="2026-11-05 08:28:42Z" duration="0.063297" total="2" passed="0" failed="2" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-suite type="TestFixture" id="2292" name="PlanetRenderTests" fullname="Tests.EditMode.Rendering.Locales.PlanetRenderTests" classname="Tests.EditMode.Rendering.Locales.PlanetRenderTests" runstate="Runnable" testcasecount="5" result="Failed" site="Child" start-time="2026-11-05 08:28:42Z" end-time="2026-11-05 08:28:42Z" duration="0.059534" total="2" passed="0" failed="2" inconclusive="0" skipped="0" asserts="0">
+                <properties>
+                  <property name="Category" value="Sectors" />
+                  <property name="Category" value="RequiresGraphics" />
+                </properties>
+                <failure>
+                  <message><![CDATA[One or more child tests had errors]]></message>
+                </failure>
+                <test-case id="2293" name="SurfaceRespondsToItsLightDirection" fullname="Tests.EditMode.Rendering.Locales.PlanetRenderTests.SurfaceRespondsToItsLightDirection" methodname="SurfaceRespondsToItsLightDirection" classname="Tests.EditMode.Rendering.Locales.PlanetRenderTests" runstate="Runnable" seed="1489082530" result="Failed" start-time="2026-11-05 08:28:42Z" end-time="2026-11-05 08:28:42Z" duration="0.033566" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <failure>
+                    <message><![CDATA[  Changing the light must shade the spherical surface from the opposite side.
+  Expected: greater than 0.0199999996f
+  But was:  0.0f
+]]></message>
+                    <stack-trace><![CDATA[at Tests.EditMode.Rendering.Locales.PlanetRenderTests.SurfaceRespondsToItsLightDirection () [0x0006c] in D:\amind\git\agent-8\src\Asteroids3D\Assets\Scripts\Editor\Tests\EditMode\Rendering\Locales\PlanetRenderTests.cs:81
+]]></stack-trace>
+                  </failure>
+                </test-case>
+                <test-case id="2294" name="SurfaceRotatesWhileTheSilhouetteStaysFixed" fullname="Tests.EditMode.Rendering.Locales.PlanetRenderTests.SurfaceRotatesWhileTheSilhouetteStaysFixed" methodname="SurfaceRotatesWhileTheSilhouetteStaysFixed" classname="Tests.EditMode.Rendering.Locales.PlanetRenderTests" runstate="Runnable" seed="825799220" result="Failed" start-time="2026-11-05 08:28:42Z" end-time="2026-11-05 08:28:42Z" duration="0.021446" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <failure>
+                    <message><![CDATA[  Surface rotation must move cloud markings across the visible hemisphere.
+  Expected: greater than 0.0199999996f
+  But was:  0.0f
+]]></message>
+                    <stack-trace><![CDATA[at Tests.EditMode.Rendering.Locales.PlanetRenderTests.SurfaceRotatesWhileTheSilhouetteStaysFixed () [0x000d4] in D:\amind\git\agent-8\src\Asteroids3D\Assets\Scripts\Editor\Tests\EditMode\Rendering\Locales\PlanetRenderTests.cs:99
+]]></stack-trace>
+                  </failure>
+                  <output><![CDATA[Saving results to: C:/Users/amind/AppData/LocalLow/AryeGames/Astronomical\TestResults.xml
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

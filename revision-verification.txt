@@ -1,0 +1,24 @@
+Locale revision, 2026-11-05
+Implementation: 69a9a88860e3e971751019edb2a517f1ac91b5c5
+Approved direction: issue798 comment6653161983; v4 concepts on evidence/locale-variety commit802671f7dc06c7d95c8663d824ea92fdf27b1271.
+
+Root causes: overly strong/tinted locale lights; planets authored as UV-sliding lit cutouts; cached cloud-bank sampling ignored time.
+Revised implementation: shared white key/fill and neutral ambient/reflections; fixed locale-relative spherical planets, independent daylight and rotating equirectangular surfaces; gentle time-varying cloud warp.
+Original locales1-3 asset data unchanged. No progression, UI, or runtime wiring changes.
+
+Verification:
+Three new red probes all failed on prior implementation with zero pixel change.
+Graphics EditMode:59 passed, zero skipped/failed. Ran after shader and lighting revision; subsequent material-only refinement adjusted cloud colors/form and blue light direction, covered by final captures.
+Graphics PlayMode:10 passed, zero skipped/failed, 20261105-004649-summary.json. Includes real GameHost startup across all four locales, existing locale lifecycle tests, and native GameView motion capture.
+Compile:9 assemblies passed.
+ReSharper:passed, zero blocking findings;66 report-only findings in touched files.
+Combined quality pass: no findings, no edits.
+
+Visual evidence:
+Locale_N-engine-v5.png: isolated production camera and Valis visual rig; explicit sRGB readback.
+Locale_N-gamehost-v5.png: actual GameHost and Crimson player, offscreen production camera readback with sRGB output.
+Locale_N-motion-v5.gif/mp4: native GameView, staged production camera and Valis rig.12 seconds per locale: stationary start,120x60-unit round-trip camera/ship travel, then7->14->7 orthographic zoom. Surface/cloud animation uses production speeds.
+Capture uses three fixed steps per rendered frame (.06 simulated seconds). Encoded16.6667fps to preserve simulation speed; GIF retains every other frame. Raw metadata includes original wall-clock timestamps; manifest/provenance preserved. Both encodes passed readback verification.
+Earlier half-float offscreen PNG captures encoded linear color as display bytes, making them artificially dark. Final stills use explicit sRGB targets, and native GameView frames agree. Older captures retained for history must not be used for exposure comparison.
+
+Art limitation: cloud detail is broader/softer and planetary rim more subdued than imagegen paintovers. Final look remains for owner review, not merged.
