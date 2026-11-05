@@ -20,6 +20,11 @@ namespace UI.Projection
             }
         };
         [Min(0f)] public float bigMomentSeconds = 1f;
+        [Header("Enemy status bars")]
+        [Tooltip("How near the cursor must come to an enemy, as a fraction of the screen's height, to show its bars and numbers.")]
+        [Min(0f)] public float targetPickRadius = .1f;
+        [Tooltip("Seconds an enemy the player hits keeps its bars, without numbers.")]
+        [Min(0f)] public float hitBarsSeconds = 3f;
 
         public CanopySettings Resolve(CanopyState state) => state == CanopyState.Base
             ? baseSettings : OverrideFor(state).Apply(baseSettings);
