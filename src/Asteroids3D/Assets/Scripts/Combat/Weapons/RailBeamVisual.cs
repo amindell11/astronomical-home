@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Combat.Weapons
 {
     /// <summary>
-    /// Owns the railgun's one line renderer: inward charge dashes and a contracting SVG lance.
+    /// Owns the railgun's one line renderer: continuous inward charge and a contracting SVG lance.
     /// The weapon supplies the exact shot endpoints; this component changes only presentation.
     /// </summary>
     [RequireComponent(typeof(Railguns), typeof(LineRenderer))]
@@ -18,32 +18,32 @@ namespace Combat.Weapons
         [SerializeField, Min(0f)] private float flashTime = 0.06f;
 
         [Header("Aim Line")]
-        [Tooltip("Maximum dash width in world units.")]
+        [Tooltip("Maximum charge streak width in world units; the continuous baseline is thinner.")]
         [SerializeField, Min(0.01f)] private float aimWidth = 0.24f;
         [Tooltip("Aim line opacity, as a fraction of the beam's, at full charge.")]
         [SerializeField, Range(0f, 1f)] private float aimOpacityAtFull = 0.68f;
         [SerializeField, Min(1f)] private float aimOpacityPower = 2.2f;
-        [Tooltip("Distance between successive dash tips, independent of target distance.")]
-        [SerializeField, Min(0.01f)] private float dashSpacing = 6f;
-        [SerializeField, Range(0.01f, 0.99f)] private float dashGap = 0.3f;
+        [Tooltip("Distance between successive streak tips, independent of target distance.")]
+        [SerializeField, Min(0.01f)] private float streakSpacing = 8.5f;
+        [SerializeField, Min(0.01f)] private float streakLength = 3f;
         [Tooltip("Inward speed in world units per second; accelerates with charge squared.")]
-        [SerializeField, Min(0f)] private float dashSpeedAtStart = 10.8f;
-        [SerializeField, Min(0f)] private float dashSpeedAtFull = 46.8f;
+        [SerializeField, Min(0f)] private float streakSpeedAtStart = 10.8f;
+        [SerializeField, Min(0f)] private float streakSpeedAtFull = 46.8f;
 
         private static readonly int ShotId = Shader.PropertyToID("_Shot");
         private static readonly int ShotAgeId = Shader.PropertyToID("_ShotAge");
         private static readonly int BeamLengthId = Shader.PropertyToID("_BeamLength");
         private static readonly int LineWidthId = Shader.PropertyToID("_LineWidth");
-        private static readonly int DashPhaseId = Shader.PropertyToID("_DashPhase");
-        private static readonly int DashSpacingId = Shader.PropertyToID("_DashSpacing");
-        private static readonly int DashGapId = Shader.PropertyToID("_DashGap");
+        private static readonly int StreakPhaseId = Shader.PropertyToID("_StreakPhase");
+        private static readonly int StreakSpacingId = Shader.PropertyToID("_StreakSpacing");
+        private static readonly int StreakLengthId = Shader.PropertyToID("_StreakLength");
 
         private Railguns weapon;
         private LineRenderer line;
         private Color beamStartColor;
         private Color beamEndColor;
         private float beamWidth;
-        private float dashPhase;
+        private float streakPhase;
         private MaterialPropertyBlock properties;
         private Coroutine fade;
 
@@ -57,8 +57,8 @@ namespace Combat.Weapons
             beamEndColor = line.endColor;
             beamWidth = line.widthMultiplier;
             properties = new MaterialPropertyBlock();
-            properties.SetFloat(DashSpacingId, dashSpacing);
-            properties.SetFloat(DashGapId, dashGap);
+            properties.SetFloat(StreakSpacingId, streakSpacing);
+            properties.SetFloat(StreakLengthId, streakLength);
             Clear();
         }
 
@@ -68,8 +68,8 @@ namespace Combat.Weapons
         {
             if (!(fadeTime > 0f && flashTime >= 0f && flashTime < fadeTime && aimWidth > 0f &&
                   aimOpacityAtFull >= 0f && aimOpacityAtFull <= 1f && aimOpacityPower >= 1f &&
-                  dashSpacing > 0f && dashGap > 0f && dashGap < 1f &&
-                  dashSpeedAtStart >= 0f && dashSpeedAtFull > dashSpeedAtStart))
+                  streakSpacing > 0f && streakLength > 0f && streakLength < streakSpacing &&
+                  streakSpeedAtStart >= 0f && streakSpeedAtFull > streakSpeedAtStart))
                 throw new InvalidOperationException($"{nameof(RailBeamVisual)} has invalid charge or shot settings.");
         }
 
@@ -99,15 +99,15 @@ namespace Combat.Weapons
         private void ChargeChanged(float charge)
         {
             if (charge > 0f) return;
-            dashPhase = 0f;
-            properties.SetFloat(DashPhaseId, 0f);
+            streakPhase = 0f;
+            properties.SetFloat(StreakPhaseId, 0f);
             if (fade == null) Clear();
         }
 
         private void Clear()
         {
-            dashPhase = 0f;
-            properties.SetFloat(DashPhaseId, 0f);
+            streakPhase = 0f;
+            properties.SetFloat(StreakPhaseId, 0f);
             properties.SetFloat(ShotId, 0f);
             properties.SetFloat(ShotAgeId, 0f);
             line.SetPropertyBlock(properties);
@@ -123,10 +123,10 @@ namespace Combat.Weapons
             line.enabled = charge > 0f;
             if (!line.enabled) return;
 
-            dashPhase = Mathf.Repeat(dashPhase + Mathf.Lerp(dashSpeedAtStart, dashSpeedAtFull,
-                charge * charge) * Time.deltaTime, dashSpacing);
+            streakPhase = Mathf.Repeat(streakPhase + Mathf.Lerp(streakSpeedAtStart, streakSpeedAtFull,
+                charge * charge) * Time.deltaTime, streakSpacing);
             properties.SetFloat(ShotId, 0f);
-            properties.SetFloat(DashPhaseId, dashPhase);
+            properties.SetFloat(StreakPhaseId, streakPhase);
             Draw(weapon.FireOrigin, weapon.FirstStrikePoint(), aimWidth,
                 aimOpacityAtFull * Mathf.Pow(charge, aimOpacityPower));
         }

@@ -1,61 +1,5 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &2732041102447145364
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2984724598772274038}
-  - component: {fileID: 209655084854551976}
-  m_Layer: 0
-  m_Name: Elite
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2984724598772274038
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2732041102447145364}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1363294876955101281}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &209655084854551976
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2732041102447145364}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6b57ff78bd184a9c995eb88f434af7cc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  profile: {fileID: 11400000, guid: d0bcf0c7e3eb9754dabe2ed134c1ecd2, type: 2}
-  faction: {fileID: 6079776144532020412}
-  pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660, type: 3}
-  escortPilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
-    type: 3}
-  team: 1
-  spawnRadius: 55
-  clearanceRadius: 6
-  asteroidMask:
-    serializedVersion: 2
-    m_Bits: 256
-  placementAttempts: 8
 --- !u!1001 &1484248537094573081
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -184,11 +128,11 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
         type: 3}
-    - target: {fileID: 1227466035045939097, guid: 35f72eeaa8adb4c43832be646409d034,
+    - target: {fileID: 4201520510818603066, guid: 35f72eeaa8adb4c43832be646409d034,
         type: 3}
-      propertyPath: elite
+      propertyPath: profile
       value: 
-      objectReference: {fileID: 209655084854551976}
+      objectReference: {fileID: 11400000, guid: d0bcf0c7e3eb9754dabe2ed134c1ecd2, type: 2}
     - target: {fileID: 4667602915908898981, guid: 35f72eeaa8adb4c43832be646409d034,
         type: 3}
       propertyPath: faction
@@ -207,28 +151,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: 464567137062519928, guid: 35f72eeaa8adb4c43832be646409d034,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 2984724598772274038}
+    m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 35f72eeaa8adb4c43832be646409d034, type: 3}
---- !u!4 &1363294876955101281 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 464567137062519928, guid: 35f72eeaa8adb4c43832be646409d034,
-    type: 3}
-  m_PrefabInstance: {fileID: 1484248537094573081}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &6079776144532020412 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4667602915908898981, guid: 35f72eeaa8adb4c43832be646409d034,
-    type: 3}
-  m_PrefabInstance: {fileID: 1484248537094573081}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b40e078c827947c4972f959411f79cd4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

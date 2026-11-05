@@ -660,6 +660,9 @@ Format: **term** — definition. *(authority)*
   spawn stay true. Not an *encounter*: no activation rule arms it; the sector
   spine owns it and drives it. *(EliteEncounter, EliteProfile,
   PhaseSpineModule.StepElite)*
+- **unlocked ship** — a ship the hangar lets the player fly: the starter plus
+  every elite chassis the player killed in any run record. No save file; a kill
+  counts once its run's record is written. *(ShipUnlocks, ItemSubset.starter)*
 - **sector fixture** — a world object present at spawn, sector-owned, independent
   of encounter state.
 - **signal / SignalPort** — the bus coupling seam. ⚠ **Designed, not built** —
