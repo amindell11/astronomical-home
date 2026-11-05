@@ -44,8 +44,45 @@ namespace Tests.EditMode.Rendering.Locales
             Assert.That(planet.renderQueue, Is.LessThan(sky.Find("CloseNebula").GetComponent<MeshRenderer>().sharedMaterial.renderQueue));
             var texture = planet.mainTexture;
             Assert.That(texture, Is.Not.Null);
-            Assert.That(texture.width, Is.EqualTo(texture.height));
-            Assert.That(texture.wrapMode, Is.EqualTo(TextureWrapMode.Clamp));
+            Assert.That(texture.width, Is.EqualTo(texture.height * 2));
+            Assert.That(texture.wrapModeU, Is.EqualTo(TextureWrapMode.Repeat));
+            Assert.That(texture.wrapModeV, Is.EqualTo(TextureWrapMode.Clamp));
+        }
+
+        [Test]
+        public void NewLocalesShareNeutralShipLightingAndReflections()
+        {
+            Color[] previousReflection = null;
+            Light[] previousLights = null;
+            for (var number = 4; number <= 7; number++)
+            {
+                var locale = AssetDatabase.LoadAssetAtPath<LocaleSky>($"Assets/Prefabs/Locales/Locale_{number}.prefab");
+                var lighting = new SerializedObject(locale).FindProperty("lighting");
+                Assert.That(lighting.FindPropertyRelative("ambientSkyColor").colorValue,
+                    Is.EqualTo(new Color(.24f, .24f, .24f)));
+                Assert.That(lighting.FindPropertyRelative("ambientIntensity").floatValue, Is.EqualTo(1));
+                Assert.That(lighting.FindPropertyRelative("reflectionIntensity").floatValue, Is.EqualTo(.35f));
+                var reflection = (Cubemap)lighting.FindPropertyRelative("reflection").objectReferenceValue;
+                var colors = Enumerable.Range(0, 6).SelectMany(face => reflection.GetPixels((CubemapFace)face)).ToArray();
+                Assert.That(colors.All(c => c.r == c.g && c.g == c.b), Is.True,
+                    "Reflection light must not tint a ship to match its sky.");
+                if (previousReflection != null) Assert.That(colors, Is.EqualTo(previousReflection));
+                previousReflection = colors;
+                var lights = locale.GetComponentsInChildren<Light>(true).OrderBy(light => light.name).ToArray();
+                Assert.That(lights, Has.Length.EqualTo(2));
+                foreach (var light in lights)
+                {
+                    Assert.That(light.color, Is.EqualTo(Color.white));
+                    Assert.That(light.useColorTemperature, Is.False);
+                }
+                if (previousLights != null)
+                    for (var i = 0; i < lights.Length; i++)
+                    {
+                        Assert.That(lights[i].intensity, Is.EqualTo(previousLights[i].intensity));
+                        Assert.That(lights[i].transform.rotation, Is.EqualTo(previousLights[i].transform.rotation));
+                    }
+                previousLights = lights;
+            }
         }
     }
 }

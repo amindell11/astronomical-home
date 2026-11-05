@@ -5,8 +5,8 @@ namespace Substrate.Services.Locales
 {
     /// <summary>
     /// Bakes a cloud-bank sky layer — a <c>Custom/Nebula</c> material with <c>_CloudOpacity</c> above 0 — into a
-    /// tile once, so the layer samples a texture instead of evaluating its clouds every frame. The layer is static
-    /// and zoom-free, so a tile that wraps in both axes covers unbounded camera travel. Runs in Edit Mode too, so the
+    /// tile once, so the layer samples a texture instead of evaluating its clouds every frame. The shader can evolve
+    /// its sampling coordinates; the tile wraps in both axes for unbounded camera travel. Runs in Edit Mode too, so the
     /// Scene view keeps its clouds, and re-bakes whenever the editor sees the material change.
     /// Design: https://github.com/amindell11/astronomical-home/issues/1048
     /// </summary>

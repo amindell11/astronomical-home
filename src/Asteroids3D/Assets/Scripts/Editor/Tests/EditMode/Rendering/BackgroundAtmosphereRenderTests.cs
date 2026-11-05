@@ -165,6 +165,24 @@ namespace Tests.EditMode.Rendering
         }
 
         [Test]
+        public void CloudBanks_EvolveOnlyWhenMotionIsEnabled()
+        {
+            material.SetFloat("_CloudOpacity", .95f);
+            material.SetFloat("_CloudCoverage", .55f);
+            material.SetFloat("_NebulaScale", .25f);
+            material.SetFloat("_NebulaStrength", .6f);
+            material.SetFloat("_NebulaSpeed", 0);
+            BakeTile();
+            var initial = Render(0);
+            Assert.That(initial.Max(c => c.r), Is.GreaterThan(.01f));
+            Assert.That(Difference(initial, Render(40)), Is.Zero,
+                "Existing stationary cloud banks must remain unchanged at zero speed.");
+            material.SetFloat("_NebulaSpeed", .02f);
+            Assert.That(Difference(Render(0), Render(40)), Is.GreaterThan(.001f),
+                "A moving cloud bank must evolve despite using a cached tile.");
+        }
+
+        [Test]
         public void CloudBanks_AttenuateStarsInCloudsButLeaveGapsAndReturnAfterTravel()
         {
             material.SetFloat("_CloudOpacity", 0.95f);

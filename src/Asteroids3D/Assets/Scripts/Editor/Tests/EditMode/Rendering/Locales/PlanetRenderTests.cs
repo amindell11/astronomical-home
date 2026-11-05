@@ -18,6 +18,7 @@ namespace Tests.EditMode.Rendering.Locales
         private RenderTexture target;
         private RenderTexture previousTarget;
         private Vector4 previousCamera;
+        private Vector4 previousTime;
         private CommandBuffer commands;
 
         [SetUp]
@@ -25,23 +26,22 @@ namespace Tests.EditMode.Rendering.Locales
         {
             previousTarget = RenderTexture.active;
             previousCamera = Shader.GetGlobalVector("_WorldSpaceCameraPos");
+            previousTime = Shader.GetGlobalVector("_Time");
             var shader = AssetDatabase.LoadAssetAtPath<Shader>("Assets/Visuals/Locales/Sky/Planets/Planet.shader");
             material = new Material(shader);
-            material.SetVector("_PlanetCenter", Vector4.zero);
-            material.SetFloat("_PlanetSize", 6);
-            material.SetFloat("_Parallax", .01f);
-            planet = new Texture2D(64, 64, TextureFormat.RGBAFloat, false, true)
+            material.SetVector("_PlanetCenter", new Vector4(0, 0, 100000, 0));
+            material.SetFloat("_PlanetRadius", 18000);
+            material.SetVector("_LightDirection", new Vector4(0, 0, -1, 0));
+            material.SetFloat("_AxialTilt", 0);
+            planet = new Texture2D(128, 64, TextureFormat.RGBAFloat, false, true)
             {
-                wrapMode = TextureWrapMode.Repeat,
+                wrapModeU = TextureWrapMode.Repeat,
+                wrapModeV = TextureWrapMode.Clamp,
                 filterMode = FilterMode.Bilinear
             };
-            for (var y = 0; y < 64; y++)
-            for (var x = 0; x < 64; x++)
-            {
-                var radius = new Vector2((x + .5f) / 64 - .5f, (y + .5f) / 64 - .5f).magnitude;
-                var alpha = Mathf.Clamp01((.48f - radius) / .12f) * (250f / 255);
-                planet.SetPixel(x, y, new Color(.4f, .2f, .1f, alpha));
-            }
+            for (var y = 0; y < planet.height; y++)
+            for (var x = 0; x < planet.width; x++)
+                planet.SetPixel(x, y, new Color(.4f, .2f, .1f, 0));
             planet.Apply();
             material.SetTexture("_MainTex", planet);
             mesh = new Mesh
@@ -60,6 +60,7 @@ namespace Tests.EditMode.Rendering.Locales
         {
             RenderTexture.active = previousTarget;
             Shader.SetGlobalVector("_WorldSpaceCameraPos", previousCamera);
+            Shader.SetGlobalVector("_Time", previousTime);
             commands?.Release();
             if (target) target.Release();
             Object.DestroyImmediate(target);
@@ -70,17 +71,47 @@ namespace Tests.EditMode.Rendering.Locales
         }
 
         [Test]
-        public void DiscBlocksStarlightWhileItsRimAndSurroundingsRemainTransparent()
+        public void SurfaceRespondsToItsLightDirection()
+        {
+            material.SetVector("_LightDirection", new Vector4(-1, 0, -1, 0));
+            var leftLit = Render(Color.black);
+            material.SetVector("_LightDirection", new Vector4(1, 0, -1, 0));
+            Assert.That(Difference(leftLit, Render(Color.black)), Is.GreaterThan(.02f),
+                "Changing the light must shade the spherical surface from the opposite side.");
+        }
+
+        [Test]
+        public void SurfaceRotatesWhileTheSilhouetteStaysFixed()
+        {
+            for (var y = 0; y < planet.height; y++)
+            for (var x = 0; x < planet.width; x++)
+            {
+                var color = planet.GetPixel(x, y);
+                color.r *= .6f + .4f * Mathf.Sin(x * Mathf.PI * 8 / planet.width);
+                planet.SetPixel(x, y, color);
+            }
+            planet.Apply();
+            material.SetFloat("_RotationSpeed", .05f);
+            var initial = Render(Color.clear);
+            var rotated = Render(Color.clear, time: 10);
+            Assert.That(Difference(initial, rotated), Is.GreaterThan(.02f),
+                "Surface rotation must move cloud markings across the visible hemisphere.");
+            Assert.That(initial.Select(c => c.a), Is.EqualTo(rotated.Select(c => c.a)),
+                "Surface rotation must not translate or deform the planet silhouette.");
+        }
+
+        [Test]
+        public void SphereBlocksStarlightIndependentlyOfSurfaceAlphaWhileItsRimTransmits()
         {
             var dark = Render(Color.black);
             var lit = Render(Color.white);
             var center = Height / 2 * Width + Width / 2;
             Assert.That(dark[center].r, Is.EqualTo(.4f).Within(.001f));
             Assert.That(lit[center].r - dark[center].r, Is.LessThan(.0001f),
-                "Painted interiors with alpha 250/255 must fully occlude the star layers.");
+                "Surface-map alpha must not let stars shine through solid geometry.");
             Assert.That(lit[0].r - dark[0].r, Is.EqualTo(1).Within(.0001f));
             Assert.That(lit.Where((color, i) => color.r - dark[i].r > .1f && color.r - dark[i].r < .9f).Count(),
-                Is.GreaterThan(100), "The atmospheric rim must retain partial transmission.");
+                Is.GreaterThan(20), "The atmospheric rim must retain partial transmission.");
         }
 
         [Test]
@@ -99,13 +130,24 @@ namespace Tests.EditMode.Rendering.Locales
         public void CameraTravelMovesOnePlanetWithoutRepeatingAndReturnsToItsOriginalPosition()
         {
             var baseline = Render(Color.black);
-            Assert.That(Difference(baseline, Render(Color.black, cameraX: 20)), Is.GreaterThan(.01f));
-            Assert.That(Render(Color.black, cameraX: 5000).Max(color => color.maxColorComponent), Is.Zero,
+            Assert.That(Difference(baseline, Render(Color.black, cameraX: 1000)), Is.GreaterThan(.01f));
+            Assert.That(Render(Color.black, cameraX: 500000).Max(color => color.maxColorComponent), Is.Zero,
                 "Leaving the one planet's bounds must not repeat or smear its edge.");
             Assert.That(Difference(baseline, Render(Color.black)), Is.Zero);
         }
 
-        private Color[] Render(Color background, float cameraX = 0, float halfHeight = 7)
+        [Test]
+        public void LocaleOffsetCarriesItsPlanetButTurningTheCameraDoesNot()
+        {
+            var baseline = Render(Color.black);
+            Assert.That(Difference(baseline, Render(Color.black, cameraX: 20000, localeX: 20000)), Is.Zero,
+                "A session offset must carry the distant anchor with its locale.");
+            Assert.That(Render(Color.black, cameraYaw: 90).Max(c => c.maxColorComponent), Is.Zero,
+                "Looking away from a fixed sphere must remove it from view.");
+        }
+
+        private Color[] Render(Color background, float cameraX = 0, float halfHeight = 7, float time = 0,
+            float localeX = 0, float cameraYaw = 0)
         {
             var cameraPosition = new Vector3(cameraX, 0, -10);
             var halfWidth = halfHeight * Width / Height;
@@ -113,10 +155,12 @@ namespace Tests.EditMode.Rendering.Locales
             commands.SetRenderTarget(target);
             commands.ClearRenderTarget(true, true, background);
             commands.SetViewProjectionMatrices(
-                Matrix4x4.Scale(new Vector3(1, 1, -1)) * Matrix4x4.Translate(-cameraPosition),
+                Matrix4x4.Scale(new Vector3(1, 1, -1)) * Matrix4x4.TRS(cameraPosition,
+                    Quaternion.Euler(0, cameraYaw, 0), Vector3.one).inverse,
                 GL.GetGPUProjectionMatrix(Matrix4x4.Ortho(-halfWidth, halfWidth, -halfHeight, halfHeight, .1f, 100), true));
             commands.SetGlobalVector("_WorldSpaceCameraPos", cameraPosition);
-            commands.DrawMesh(mesh, Matrix4x4.identity, material);
+            commands.SetGlobalVector("_Time", new Vector4(time / 20, time, time * 2, time * 3));
+            commands.DrawMesh(mesh, Matrix4x4.Translate(new Vector3(localeX, 0, 0)), material);
             Graphics.ExecuteCommandBuffer(commands);
             RenderTexture.active = target;
             readback.ReadPixels(new Rect(0, 0, Width, Height), 0, 0);

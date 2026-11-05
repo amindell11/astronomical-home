@@ -25,22 +25,22 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _CloudCoverage: 0.64
+    - _CloudCoverage: 0.61
     - _CloudDirection: -26
-    - _CloudGlow: 0.85
-    - _CloudGlowSpread: 0.2
+    - _CloudGlow: 0.22
+    - _CloudGlowSpread: 0.12
     - _CloudOpacity: 0.94
     - _CloudStretch: 2.6
     - _NebulaParallax: 0.018
-    - _NebulaScale: 0.24
-    - _NebulaSpeed: 0
-    - _NebulaStrength: 0.9
+    - _NebulaScale: 0.3
+    - _NebulaSpeed: 0.003
+    - _NebulaStrength: 0.68
     - _Seed: 53
     m_Colors:
-    - _CloudGlowCool: {r: 2, g: 0.55, b: 0.2, a: 1}
-    - _CloudGlowWarm: {r: 2.2, g: 0.85, b: 0.55, a: 1}
-    - _CloudShadow: {r: 0.48, g: 0.13, b: 0.1, a: 1}
-    - _NebulaCool: {r: 1, g: 0.5838314, b: 0.3810918, a: 1}
-    - _NebulaWarm: {r: 0.9063317, g: 0.31330413, b: 0.17184407, a: 1}
+    - _CloudGlowCool: {r: 1.4, g: 0.5, b: 0.14, a: 1}
+    - _CloudGlowWarm: {r: 1.15, g: 0.55, b: 0.5, a: 1}
+    - _CloudShadow: {r: 0.28, g: 0.07, b: 0.05, a: 1}
+    - _NebulaCool: {r: 0.85, g: 0.22, b: 0.09, a: 1}
+    - _NebulaWarm: {r: 0.75, g: 0.21, b: 0.24, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

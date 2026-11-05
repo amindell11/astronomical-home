@@ -167,11 +167,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   lighting:
     ambientMode: 3
-    ambientSkyColor: {r: 0.24, g: 0.27, b: 0.32, a: 1}
-    ambientEquatorColor: {r: 0.14400001, g: 0.16200002, b: 0.192, a: 0.6}
-    ambientGroundColor: {r: 0.06, g: 0.0675, b: 0.08, a: 0.25}
-    ambientIntensity: 0.64
-    fog: 1
+    ambientSkyColor: {r: 0.24, g: 0.24, b: 0.24, a: 1}
+    ambientEquatorColor: {r: 0.24, g: 0.24, b: 0.24, a: 1}
+    ambientGroundColor: {r: 0.24, g: 0.24, b: 0.24, a: 1}
+    ambientIntensity: 1
+    fog: 0
     fogMode: 2
     fogColor: {r: 0.096, g: 0.108, b: 0.128, a: 0.4}
     fogDensity: 0.02
@@ -179,7 +179,7 @@ MonoBehaviour:
     fogEndDistance: 300
     reflectionMode: 1
     reflection: {fileID: 8900000, guid: 3f1167d449b8f214e8bed5352a4fb528, type: 2}
-    reflectionIntensity: 0.5
+    reflectionIntensity: 0.35
     sun: {fileID: 8649588998157539456}
 --- !u!1 &2551104194613567655
 GameObject:
@@ -790,22 +790,22 @@ PrefabInstance:
     - target: {fileID: 1630524696104405141, guid: a47d966b53220014ab36eb170225d83e,
         type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.9311101
+      value: 0.9659259
       objectReference: {fileID: 0}
     - target: {fileID: 1630524696104405141, guid: a47d966b53220014ab36eb170225d83e,
         type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.20642215
+      value: 0.25881907
       objectReference: {fileID: 0}
     - target: {fileID: 1630524696104405141, guid: a47d966b53220014ab36eb170225d83e,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.29357788
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 1630524696104405141, guid: a47d966b53220014ab36eb170225d83e,
         type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0.06508465
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 2349669587948955412, guid: a47d966b53220014ab36eb170225d83e,
         type: 3}
@@ -860,22 +860,22 @@ PrefabInstance:
     - target: {fileID: 3904066399910153068, guid: a47d966b53220014ab36eb170225d83e,
         type: 3}
       propertyPath: m_Color.b
-      value: 0.19
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3904066399910153068, guid: a47d966b53220014ab36eb170225d83e,
         type: 3}
       propertyPath: m_Color.g
-      value: 0.4
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3904066399910153068, guid: a47d966b53220014ab36eb170225d83e,
         type: 3}
       propertyPath: m_Color.r
-      value: 0.65
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3904066399910153068, guid: a47d966b53220014ab36eb170225d83e,
         type: 3}
       propertyPath: m_Intensity
-      value: 3.5
+      value: 0.35
       objectReference: {fileID: 0}
     - target: {fileID: 3904066399910153068, guid: a47d966b53220014ab36eb170225d83e,
         type: 3}
@@ -890,12 +890,12 @@ PrefabInstance:
     - target: {fileID: 5525312928754460379, guid: a47d966b53220014ab36eb170225d83e,
         type: 3}
       propertyPath: m_Color.g
-      value: 0.83
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5525312928754460379, guid: a47d966b53220014ab36eb170225d83e,
         type: 3}
       propertyPath: m_Color.r
-      value: 0.66
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5525312928754460379, guid: a47d966b53220014ab36eb170225d83e,
         type: 3}
@@ -916,6 +916,26 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Shadows.m_NormalBias
       value: 0.05
+      objectReference: {fileID: 0}
+    - target: {fileID: 6655066785608122465, guid: a47d966b53220014ab36eb170225d83e,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.29613742
+      objectReference: {fileID: 0}
+    - target: {fileID: 6655066785608122465, guid: a47d966b53220014ab36eb170225d83e,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.052217018
+      objectReference: {fileID: 0}
+    - target: {fileID: 6655066785608122465, guid: a47d966b53220014ab36eb170225d83e,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.9392278
+      objectReference: {fileID: 0}
+    - target: {fileID: 6655066785608122465, guid: a47d966b53220014ab36eb170225d83e,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.16561121
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

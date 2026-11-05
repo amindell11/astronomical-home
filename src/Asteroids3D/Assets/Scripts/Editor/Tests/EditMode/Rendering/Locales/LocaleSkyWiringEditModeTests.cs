@@ -114,7 +114,7 @@ namespace Tests.EditMode.Rendering.Locales
         [TestCase(Locale6)]
         [TestCase(Locale7)]
         [TestCase(EditScene)]
-        public void CloudBankLayers_BakeAStaticZoomFreeTile(string path)
+        public void CloudBankLayers_UseZoomFreeTilesAndPreserveOriginalStationaryLocales(string path)
         {
             using var locale = new OpenLocale(path);
             foreach (var layer in locale.Root.GetComponentsInChildren<MeshRenderer>(true))
@@ -125,7 +125,10 @@ namespace Tests.EditMode.Rendering.Locales
                 Assert.That((bool)tile, Is.EqualTo(cloudBank),
                     $"{layer.name}: a cloud-bank sky layer samples a baked tile, so exactly those carry CloudBankTile.");
                 if (!cloudBank) continue;
-                Assert.That(material.GetFloat("_NebulaSpeed"), Is.Zero, $"{layer.name}: a baked tile cannot animate.");
+                if (path == Locale1 || path == Locale2 || path == Locale3 || path == EditScene)
+                    Assert.That(material.GetFloat("_NebulaSpeed"), Is.Zero, $"{layer.name}: original clouds stay stationary.");
+                else
+                    Assert.That(material.GetFloat("_NebulaSpeed"), Is.GreaterThan(0), $"{layer.name}: new clouds evolve.");
                 Assert.That(material.GetFloat("_NebulaZoomResponse"), Is.Zero,
                     $"{layer.name}: a baked tile cannot respond to zoom.");
             }

@@ -26,9 +26,9 @@ Material:
     m_Ints: []
     m_Floats:
     - _RepeatDistance: 20000
-    - _TextureStrength: 0.16
+    - _TextureStrength: 0.025
     - _ViewHeightInTiles: 0.4
     m_Colors:
-    - _BaseColor: {r: 0.02, g: 0.16, b: 0.26, a: 1}
+    - _BaseColor: {r: 0.012, g: 0.07, b: 0.1, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

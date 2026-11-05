@@ -27,8 +27,8 @@ Material:
     m_Ints: []
     m_Floats:
     - _NebulaParallax: 0.05
-    - _NebulaSpeed: 0
-    - _NebulaStrength: 0.008
+    - _NebulaSpeed: 0.003
+    - _NebulaStrength: 0.004
     - _Seed: 120
     m_Colors:
     - _NebulaCool: {r: 0.6012433, g: 0.42358282, b: 0.20598412, a: 1}
