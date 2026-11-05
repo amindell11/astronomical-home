@@ -14,7 +14,7 @@ namespace Cameras
         [Header("Focus Behavior")]
         [SerializeField] private bool lockCameraToSubject;
         [SerializeField] private bool lockZoomToSubject;
-        [Tooltip("Adaptive zoom, velocity lead and cursor lead while locked on the subject.")]
+        [Tooltip("Adaptive zoom, velocity lead, cursor lead and fight pull while locked on the subject.")]
         [SerializeField] private FlightCameraProfile feel;
 
         [Header("Player Tracking")]
@@ -37,6 +37,8 @@ namespace Cameras
         private Vector2? cursor;
         private Vector2 cursorLead;
         private Vector2 cursorLeadVelocity;
+        private Vector2 fightShift;
+        private Vector2 fightShiftVelocity;
         private HashSet<Transform> engaged;
         private HashSet<Transform> nextEngaged;
         private float lockedZoom;
@@ -76,6 +78,8 @@ namespace Cameras
                 desiredSize = null;
                 return;
             }
+            // Outside the locked branch, so the set empties once the subject is destroyed.
+            StepEngaged();
             var center2D = ComputeFocusCenter(min2D, max2D);
             desiredSize = ComputeDesiredZoom(center2D, min2D, max2D);
             desiredCenter = ApplyViewConstraints(center2D, desiredSize.Value);
@@ -83,9 +87,10 @@ namespace Cameras
 
         private Vector2 ComputeFocusCenter(Vector2 boundsMin, Vector2 boundsMax)
         {
-            if (lockCameraToSubject && subject)
-                return GamePlane.WorldPointToPlane(subject.position) + StepLead() + StepCursorLead();
-            return CameraUtils.BoundsCenter(boundsMin, boundsMax);
+            if (!lockCameraToSubject || !subject)
+                return CameraUtils.BoundsCenter(boundsMin, boundsMax);
+            var center = GamePlane.WorldPointToPlane(subject.position) + StepLead() + StepCursorLead();
+            return center + StepFightShift(center);
         }
 
         private Vector2 StepLead()
@@ -106,6 +111,16 @@ namespace Cameras
             return cursorLead;
         }
 
+        private Vector2 StepFightShift(Vector2 center)
+        {
+            var target = TryGetFightBounds(out var min, out var max)
+                ? feel.fightPull * (CameraUtils.ShiftToFitBounds(center, min, max, feel.zoom + feel.fightMaxWiden, Cam.aspect, padding) - center)
+                : Vector2.zero;
+            fightShift = Vector2.SmoothDamp(fightShift, target, ref fightShiftVelocity, feel.leadSmoothTime,
+                float.PositiveInfinity, Time.unscaledDeltaTime);
+            return fightShift;
+        }
+
         private Vector2 LeadBodyVelocity => leadBody && leadBody.gameObject.activeInHierarchy
             ? GamePlane.WorldDirToPlane(leadBody.linearVelocity)
             : Vector2.zero;
@@ -122,8 +137,8 @@ namespace Cameras
 
         private float StepLockedZoom(Vector2 center)
         {
-            StepEngaged();
-            var target = Mathf.Clamp(Mathf.Max(SpeedZoom, FightZoom(center)), feel.zoom, feel.zoom + feel.maxWiden);
+            var target = Mathf.Max(Mathf.Clamp(SpeedZoom, feel.zoom, feel.zoom + feel.maxWiden),
+                Mathf.Min(FightZoom(center), feel.zoom + feel.fightMaxWiden));
             lockedZoom = CameraUtils.SmoothZoom(lockedZoom, target, ref lockedZoomVelocity,
                 feel.widenTime, feel.narrowTime, Time.unscaledDeltaTime);
             return lockedZoom;
@@ -150,15 +165,19 @@ namespace Cameras
                 : distance < feel.fightRadius;
         }
 
-        internal float FightZoom(Vector2 center)
+        internal float FightZoom(Vector2 center) => TryGetFightBounds(out var min, out var max)
+            ? CameraUtils.ZoomToFitBounds(center, min, max, padding, Cam.aspect)
+            : 0f;
+
+        private bool TryGetFightBounds(out Vector2 min, out Vector2 max)
         {
+            CameraUtils.InitEmptyBounds(out min, out max);
             if (engaged.Count == 0)
-                return 0f;
-            CameraUtils.InitEmptyBounds(out var min, out var max);
+                return false;
             CameraUtils.ExpandBounds(ref min, ref max, GamePlane.WorldPointToPlane(subject.position));
             foreach (var ship in engaged)
                 CameraUtils.ExpandBounds(ref min, ref max, GamePlane.WorldPointToPlane(ship.position));
-            return CameraUtils.ZoomToFitBounds(center, min, max, padding, Cam.aspect);
+            return true;
         }
 
         private Vector2 ApplyViewConstraints(Vector2 center, float zoomSize)
@@ -181,6 +200,7 @@ namespace Cameras
         internal FlightCameraProfile Feel => feel;
         internal Vector2 VelocityLead => lead;
         internal Vector2 CursorLead => cursorLead;
+        internal Vector2 FightShift => fightShift;
         internal IReadOnlyCollection<Transform> Engaged => engaged;
         internal float SpeedZoom => feel.zoom + feel.zoomPerSpeed * LeadBodyVelocity.magnitude;
 
@@ -239,7 +259,7 @@ namespace Cameras
 
         public void ResumeFollow()
         {
-            lead = leadVelocity = cursorLead = cursorLeadVelocity = Vector2.zero;
+            lead = leadVelocity = cursorLead = cursorLeadVelocity = fightShift = fightShiftVelocity = Vector2.zero;
             // Keeps pace with the subject instead of springing toward the stale lead.
             dampVelocity = GamePlane.PlaneDirToWorld(LeadBodyVelocity);
         }

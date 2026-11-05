@@ -50,6 +50,14 @@ namespace Cameras
             return center;
         }
 
+        public static Vector2 ShiftToFitBounds(Vector2 center, Vector2 boundsMin, Vector2 boundsMax,
+            float zoomSize, float aspect, float padding) =>
+            new(ClampIntoReach(center.x, boundsMin.x, boundsMax.x, zoomSize * aspect - padding),
+                ClampIntoReach(center.y, boundsMin.y, boundsMax.y, zoomSize - padding));
+
+        private static float ClampIntoReach(float center, float min, float max, float reach) =>
+            max - reach > min + reach ? (min + max) * 0.5f : Mathf.Clamp(center, max - reach, min + reach);
+
         public static float SmoothZoom(float current, float target, ref float velocity,
             float widenTime, float narrowTime, float deltaTime)
         {

@@ -10,6 +10,8 @@ namespace Tests.EditMode
     {
         private const float LeadDistance = 6f;
         private const float DeadZone = .2f;
+        private const float FitZoom = 10f;
+        private const float FitPadding = 2f;
 
         [Test]
         [Category("Smoke")]
@@ -38,6 +40,43 @@ namespace Tests.EditMode
             // View extent is 10, with padding 2, so max allowed offset is 8
             // Target at 15 requires shift of 7
             Assert.That(shifted.x, Is.EqualTo(7f).Within(0.01f));
+        }
+
+        [Test]
+        public void ShiftToFitBounds_BoundsInsideTheView_LeavesTheCenter()
+        {
+            var center = new Vector2(1f, 2f);
+            var shifted = CameraUtils.ShiftToFitBounds(center, new Vector2(-3f, -4f), new Vector2(5f, 6f), FitZoom, 1f, FitPadding);
+            Assert.That(shifted, Is.EqualTo(center));
+        }
+
+        [Test]
+        public void ShiftToFitBounds_BoundsPokingOutAbove_ShiftsUpJustEnough()
+        {
+            var max = new Vector2(1f, 12f);
+            var shifted = CameraUtils.ShiftToFitBounds(Vector2.zero, new Vector2(-1f, -2f), max, FitZoom, 1f, FitPadding);
+            Assert.That(shifted.y + FitZoom, Is.EqualTo(max.y + FitPadding).Within(1e-4f));
+            Assert.That(shifted.x, Is.EqualTo(0f));
+        }
+
+        [Test]
+        public void ShiftToFitBounds_BoundsPokingOutLeft_ReachesAsFarAsTheAspectWidens()
+        {
+            const float aspect = 16f / 9f;
+            var min = new Vector2(-20f, -1f);
+            var shifted = CameraUtils.ShiftToFitBounds(Vector2.zero, min, new Vector2(0f, 1f), FitZoom, aspect, FitPadding);
+            Assert.That(shifted.x, Is.EqualTo(min.x + FitZoom * aspect - FitPadding).Within(1e-4f));
+            Assert.That(shifted.y, Is.EqualTo(0f));
+        }
+
+        [Test]
+        public void ShiftToFitBounds_BoundsTallerThanTheView_CentersOnTheirVerticalMidpoint()
+        {
+            var min = new Vector2(-1f, -20f);
+            var max = new Vector2(1f, 30f);
+            var shifted = CameraUtils.ShiftToFitBounds(new Vector2(10f, 0f), min, max, FitZoom, 1f, FitPadding);
+            Assert.That(shifted.y, Is.EqualTo((min.y + max.y) / 2f).Within(1e-4f));
+            Assert.That(shifted.x, Is.EqualTo(min.x + FitZoom - FitPadding).Within(1e-4f));
         }
 
         [Test]
