@@ -1,0 +1,13 @@
+Locale visual revision, 2026-11-04
+
+The user rejected the implementation's value balance: the new backdrops outshine the ships, planets are too bright, lighting washes out ship colors, planets feel like camera-following cutouts, and clouds lack motion.
+
+Four built-in imagegen paint-overs use the actual Locale_4 through Locale_7 game captures from commit dd44b5fd684e33d1b4e72b504afde697d17eb20c. They explore lower background brightness, saturated shadows, limited cloud highlights, more neutral ship lighting, and a darker planetary night side. They are concepts only, not new engine captures. Imagegen also altered HUD rendering, so UI changes in these images must not be treated as implemented or requested.
+
+Confirmed from the source: GameHost.idleLocale references Locale_3. Planet.shader draws a screen-space sky triangle and uses reference-view coordinates plus camera-position parallax; the planet texture's light and cloud shape are baked. The new nebula materials set _NebulaSpeed to zero. These facts identify the current authoring model; no revised motion model has been implemented or visually validated.
+
+Next rendering study after visual direction is chosen: a distant spherical planet surface with a defined light direction, atmosphere restricted to the illuminated limb, and slowly moving cloud bands. Compare camera travel, zoom and surface rotation in a clip, rather than accepting still images or stable apparent size as proof of spatial behavior. Nebula cloud motion should evolve subtly instead of looking like a sliding image.
+
+A new baseline capture of Locale_3 was attempted through unity_access RunBatch. The coordinator refused the boot because memory headroom was below its threshold. No override was used, no Unity process was launched, and the temporary capture source was removed from Assets. The four existing game captures were available and used as edit targets.
+
+The PR implementation is unchanged. The proposed appearance and movement model await user feedback. Full prompts are preserved in paintover-prompts-v3.json.
