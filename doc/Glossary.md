@@ -663,8 +663,8 @@ Format: **term** — definition. *(authority)*
 - **unlocked ship** — a ship the hangar lets the player fly: the starter plus
   every elite chassis the player killed in any run record. No save file; a kill
   counts once its run's record is written. *(ShipUnlocks, ItemSubset.starter)*
-- **repair station** — a fly-in zone each combat sector places on a clear point
-  away from the start, with a minimap marker and no objective pointer. While the
+- **repair station** — a fly-in zone each combat sector places, two by default,
+  each on its own clear point away from the start, with a minimap marker and no objective pointer. While the
   player sits in it, it repairs hull from a supply of about one hull, then goes
   dark. The hunt's alarm darkens it too, and whatever supply was left is lost.
   Hull carries into the next sector. The first *station* kind. *(RepairStation,

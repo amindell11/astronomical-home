@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   repairPerSecond: 0.2
   supply: 1
+  stationsPerSector: 2

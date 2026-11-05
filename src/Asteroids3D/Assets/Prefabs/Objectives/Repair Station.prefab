@@ -52,6 +52,7 @@ MonoBehaviour:
   hunt: {fileID: 0}
   distanceMin: 120
   distanceMax: 180
+  spacing: 60
   clearanceRadius: 35
   asteroidMask:
     serializedVersion: 2
