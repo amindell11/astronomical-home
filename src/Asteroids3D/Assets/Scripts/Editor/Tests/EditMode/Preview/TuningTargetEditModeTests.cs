@@ -7,6 +7,7 @@ using Game.Companion;
 using Game.Player;
 using Game.Preview;
 using NUnit.Framework;
+using RL.Opponents.Beats;
 using Ships.Visuals.Breakup;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Hunt;
@@ -50,6 +51,9 @@ namespace Tests.EditMode.Preview
             AssertTarget(Target<CompanionTarget>(), new[] { PreviewEntry.Combat },
                 AssetDatabase.LoadAssetAtPath<CompanionFeelProfile>("Assets/Settings/Game/Companion/CompanionFeel.asset"),
                 AssetDatabase.LoadAssetAtPath<CompanionLineSheet>("Assets/Settings/Game/Companion/CompanionLines.asset"));
+            var personalities = new[] { "Enemy", "Elite", "Escort" }.Select(pilot =>
+                AssetDatabase.LoadAssetAtPath<Personality>($"Assets/Settings/AI/Pilots/{pilot}Personality.asset"));
+            AssertTarget(Target<EnemyPilotsTarget>(), new[] { PreviewEntry.CrowdedFight }, personalities.ToArray());
         }
 
         [Test]

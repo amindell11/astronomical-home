@@ -440,6 +440,38 @@ namespace Tests.PlayMode.Preview
                 "the boss fixture summons its elite at once");
         }
 
+        [UnityTest]
+        [Timeout(180000)]
+        public IEnumerator Playtest_CrowdedFight_RunsOnlyItsFixture_AndFillsWithBeatPilots()
+        {
+            var root = new GameObject("Crowded fight playtest test");
+            root.SetActive(false);
+            host = root.AddComponent<PreviewHost>();
+            host.entry = PreviewEntry.CrowdedFight;
+            host.gameHostPrefab = TestAssets.Load<GameHost>("Assets/Prefabs/Game/GameHost.prefab");
+            host.sessionProfile = new SessionProfile();
+            host.crowdedFightSector = new SectorEntry
+            {
+                prefab = TestAssets.Load<Sector>("Assets/Prefabs/Sectors/Preview/CrowdedFightSector.prefab"),
+                config = TestAssets.Load<SectorSettings>("Assets/Settings/Game/SurvivalTrialConfig.asset")
+            };
+            root.SetActive(true);
+
+            var fight = host.Playtest;
+            yield return LaunchFromHangar(fight);
+            Assert.That(fight.sessionProfile.sectors, Is.EqualTo(new[] { host.crowdedFightSector }));
+            Assert.That(fight.ActiveSector.name, Does.StartWith("CrowdedFightSector"));
+            var ships = fight.GetComponent<UnitService>().ActiveRegistry.ActiveShips;
+            yield return AsyncAssert.WaitUntil(
+                () => ships.Count(FliesBeats) >= 4, 15f, "the fixture's waves fill with enemies on the beat brain");
+        }
+
+        private static bool FliesBeats(Ship ship)
+        {
+            var commander = ship.Commander as AI.AICommander;
+            return commander && commander.Brain as RL.Opponents.Beats.BeatBrain;
+        }
+
         private static IEnumerator LaunchFromHangar(GameHost game)
         {
             HangarScreen hangar = null;

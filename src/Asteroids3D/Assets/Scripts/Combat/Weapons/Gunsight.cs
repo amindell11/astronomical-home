@@ -26,6 +26,8 @@ namespace Combat.Weapons
 
         public Vector3 FirePoint => weapon ? weapon.FireOrigin : Vector3.zero;
 
+        public float FireRange => weapon ? weapon.FireRange : 0f;
+
         /// <summary>Returns whether the weapon's fire plan holds its trigger at the given world-space target this step.</summary>
         public bool Evaluate(Vector3 targetWorld)
         {
