@@ -2,13 +2,14 @@ using System.Linq;
 using NUnit.Framework;
 using Objectives;
 using Substrate.Sectors;
+using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sectors.Elements.Stations;
 using UnityEditor;
 using UnityEngine;
 
 namespace Tests.EditMode.Sectors
 {
-    /// <summary>Each trial sector carries one repair station module on the shared feel, placed 120 to 180 u from the start, with its zone on the body and a minimap marker among the parts that go dark.</summary>
+    /// <summary>Each trial sector carries one repair station module on the shared feel, placed 120 to 180 u from the start, reading the sector's own hunt, with its zone on the body and a minimap marker among the parts that go dark.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class RepairStationEditModeTests
@@ -27,6 +28,8 @@ namespace Tests.EditMode.Sectors
                 serialized.FindProperty("feel").objectReferenceValue);
             Assert.AreEqual(120f, serialized.FindProperty("distanceMin").floatValue);
             Assert.AreEqual(180f, serialized.FindProperty("distanceMax").floatValue);
+            Assert.AreSame(prefab.GetComponentInChildren<SectorHunt>(true), serialized.FindProperty("hunt").objectReferenceValue,
+                "The station reads the sector's own hunt for its alarm.");
 
             var body = (GameObject)serialized.FindProperty("body").objectReferenceValue;
             var lit = (GameObject)serialized.FindProperty("lit").objectReferenceValue;

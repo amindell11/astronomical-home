@@ -666,8 +666,8 @@ Format: **term** — definition. *(authority)*
 - **repair station** — a fly-in zone each combat sector places on a clear point
   away from the start, with a minimap marker and no objective pointer. While the
   player sits in it, it repairs hull from a supply of about one hull, then goes
-  dark. It stays open through the hunt and after the alarm, and hull carries
-  into the next sector. The first *station* kind. *(RepairStation,
+  dark. The hunt's alarm darkens it too, and whatever supply was left is lost.
+  Hull carries into the next sector. The first *station* kind. *(RepairStation,
   RepairStationFeelProfile)*
 - **sector fixture** — a world object present at spawn, sector-owned, independent
   of encounter state.

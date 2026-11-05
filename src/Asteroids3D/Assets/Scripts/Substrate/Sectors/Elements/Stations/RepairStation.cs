@@ -3,6 +3,7 @@ using System.Collections;
 using Balance;
 using Objectives;
 using Ships;
+using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sectors.Elements.Placement;
 using UnityEngine;
 
@@ -11,9 +12,9 @@ namespace Substrate.Sectors.Elements.Stations
     /// <summary>
     /// A sector's repair station. On its first tick it moves to a clear point away from the hero's start and
     /// shows. While the hero sits in its zone it restores hull at the feel's rate from a supply that drains only
-    /// by what it heals, and it goes dark (glow and minimap marker off) when the supply is spent. It works from
-    /// the sector's start to its end, through the hunt and after the alarm. The arrival events are plain C#,
-    /// raised once on the first arrival, for listeners outside the sector.
+    /// by what it heals, and it goes dark (glow and minimap marker off) when the supply is spent, or when the
+    /// sector's hunt raises its alarm, losing whatever supply is left. A sector with no hunt keeps it live. The
+    /// arrival events are plain C#, raised once on the first arrival, for listeners outside the sector.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1319
     /// </summary>
     public class RepairStation : SectorModule
@@ -26,6 +27,8 @@ namespace Substrate.Sectors.Elements.Stations
         [SerializeField] private GameObject body;
         [Tooltip("The glow and the minimap marker; hidden when the supply is spent.")]
         [SerializeField] private GameObject lit;
+        [Tooltip("The sector's opening hunt, read for its alarm, which darkens the station; unset for none.")]
+        [SerializeField] private SectorHunt hunt;
 
         [Header("Placement")]
         [Tooltip("Plane distances from the hero's start the station is placed between.")]
@@ -94,6 +97,12 @@ namespace Substrate.Sectors.Elements.Stations
                 Place();
                 return;
             }
+            if (Spent) return;
+            if (hunt && hunt.Alarmed)
+            {
+                GoDark();
+                return;
+            }
             if (!zone.IsPlayerInZone) return;
 
             if (!arrived)
@@ -134,9 +143,10 @@ namespace Substrate.Sectors.Elements.Stations
         }
 
 #if UNITY_EDITOR
-        internal void Configure(RepairStationFeelProfile feel, float distance)
+        internal void Configure(RepairStationFeelProfile feel, float distance, SectorHunt hunt = null)
         {
             this.feel = feel;
+            this.hunt = hunt;
             distanceMin = distanceMax = distance;
         }
 #endif

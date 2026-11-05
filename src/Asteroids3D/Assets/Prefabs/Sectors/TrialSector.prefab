@@ -608,6 +608,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: RepairStation
       objectReference: {fileID: 0}
+    - target: {fileID: 7893528099763759301, guid: a681f7ceb406f8a4fb3649e34c08c76e,
+        type: 3}
+      propertyPath: hunt
+      value: 
+      objectReference: {fileID: 7436810692243587915}
     - target: {fileID: 8122136947576484882, guid: a681f7ceb406f8a4fb3649e34c08c76e,
         type: 3}
       propertyPath: m_LocalPosition.x

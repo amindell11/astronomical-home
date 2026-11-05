@@ -49,6 +49,7 @@ MonoBehaviour:
   zone: {fileID: 8044714544803237901}
   body: {fileID: 7423505139418972609}
   lit: {fileID: 8596565270731034227}
+  hunt: {fileID: 0}
   distanceMin: 120
   distanceMax: 180
   clearanceRadius: 35
