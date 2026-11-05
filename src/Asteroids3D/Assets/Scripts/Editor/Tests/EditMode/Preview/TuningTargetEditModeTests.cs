@@ -11,6 +11,7 @@ using RL.Opponents.Beats;
 using Ships.Visuals.Breakup;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Hunt;
+using Substrate.Sectors.Elements.Stations;
 using UI.Projection;
 using UnityEditor;
 
@@ -45,7 +46,8 @@ namespace Tests.EditMode.Preview
             AssertTarget(Target<FlightAssistTarget>(), new[] { PreviewEntry.Combat },
                 AssetDatabase.LoadAssetAtPath<FlightAssistProfile>("Assets/Settings/Game/FlightAssist.asset"));
             AssertTarget(Target<HuntTarget>(), new[] { PreviewEntry.Combat },
-                AssetDatabase.LoadAssetAtPath<HuntFeelProfile>("Assets/Settings/Game/HuntFeel.asset"));
+                AssetDatabase.LoadAssetAtPath<HuntFeelProfile>("Assets/Settings/Game/HuntFeel.asset"),
+                AssetDatabase.LoadAssetAtPath<RepairStationFeelProfile>("Assets/Settings/Game/RepairStationFeel.asset"));
             AssertTarget(Target<BossTarget>(), new[] { PreviewEntry.Boss },
                 AssetDatabase.LoadAssetAtPath<EliteProfile>("Assets/Settings/Ships/Elites/BastionBoss.asset"));
             AssertTarget(Target<CompanionTarget>(), new[] { PreviewEntry.Combat },

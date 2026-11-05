@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace Tests.EditMode.Sectors
 {
-    /// <summary>The hunt's search clock with injected time, and the wave director holding its opening lull for it: with no patrol calling, the clock sounds the alarm itself, and phase one opens at the alarm keeping index 0, then the table runs as authored. The trial sectors wire a hunt of one patrol, then two, flying Crimson, and the HUD fixtures opt out.</summary>
+    /// <summary>The hunt's search clock with injected time, and the wave director holding its opening lull for it: with no patrol calling, the clock sounds the alarm itself, and phase one opens at the alarm keeping index 0, then the table runs as authored. A patrol's route passes beside the start on its own side. The trial sectors wire a hunt of one patrol, then two, flying Crimson, and the HUD fixtures opt out.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class SectorHuntEditModeTests
@@ -102,6 +102,22 @@ namespace Tests.EditMode.Sectors
             director.Advance(0f);
             Tick(1f);
             Assert.IsTrue(director.Phase.Done, "A schedule already past its opening lull runs on.");
+        }
+
+        [Test]
+        public void PatrolRoute_PassesBesideTheStart_ThenTheCenter_ThenHome_OnEachBearingsOwnSide()
+        {
+            var start = new Vector2(10f, 0f);
+            var center = new Vector2(-5f, 5f);
+            var east = PatrolRoute.Waypoints(start, center, start + new Vector2(120f, 0f), 25f);
+            Assert.AreEqual(3, east.Length);
+            Assert.AreEqual(25f, Vector2.Distance(east[0], start), 1e-4f, "The route passes its distance from the start.");
+            Assert.AreEqual(0f, Vector2.Dot(east[0] - start, Vector2.right), 1e-4f, "It passes beside the start, square to the approach.");
+            Assert.AreEqual(center, east[1]);
+            Assert.AreEqual(start + new Vector2(120f, 0f), east[2], "The route loops back through the spawn point.");
+
+            var west = PatrolRoute.Waypoints(start, center, start - new Vector2(120f, 0f), 25f);
+            Assert.AreEqual(50f, Vector2.Distance(east[0], west[0]), 1e-4f, "Patrols on opposite bearings pass on opposite sides.");
         }
 
         [TestCase("TrialSector", 1)]
