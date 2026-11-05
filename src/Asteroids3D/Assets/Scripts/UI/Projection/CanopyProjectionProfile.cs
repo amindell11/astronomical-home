@@ -25,6 +25,10 @@ namespace UI.Projection
         [Min(0f)] public float targetPickRadius = .1f;
         [Tooltip("Seconds an enemy the player hits keeps its bars, without numbers.")]
         [Min(0f)] public float hitBarsSeconds = 3f;
+        [Tooltip("Seconds an enemy's bars take to fade in when it becomes the target or is hit.")]
+        [Min(0f)] public float barsFadeInSeconds = .15f;
+        [Tooltip("Seconds an enemy's bars take to fade out once nothing keeps them shown.")]
+        [Min(0f)] public float barsFadeOutSeconds = .4f;
 
         public CanopySettings Resolve(CanopyState state) => state == CanopyState.Base
             ? baseSettings : OverrideFor(state).Apply(baseSettings);

@@ -10,8 +10,6 @@ namespace UI.PlayerState
 {
     public sealed class ShipStatusIndicator : MonoBehaviour
     {
-        private const float FadeSeconds = .4f;
-
         private Ship ship;
         private Camera worldCamera;
         private Canvas canvas;
@@ -21,7 +19,6 @@ namespace UI.PlayerState
         private StatusBarUI shieldBar;
         private StatusBarUI healthBar;
         private Ship player;
-        private bool barsShown;
         private bool numbersShown = true;
         private float playerHitAt = float.NegativeInfinity;
         private float focus;
@@ -63,11 +60,13 @@ namespace UI.PlayerState
             if (ship) ship.Damage.OnDamaged -= RecordHit;
         }
 
-        public void Present(Ship player, bool targeted, float hitBarsSeconds)
+        public void Present(Ship player, bool targeted, CanopyProjectionProfile feel)
         {
             this.player = player;
             var own = ship == player;
-            barsShown = own || targeted || Time.time - playerHitAt < hitBarsSeconds;
+            var shown = own || targeted || Time.time - playerHitAt < feel.hitBarsSeconds;
+            var fade = shown ? feel.barsFadeInSeconds : feel.barsFadeOutSeconds;
+            focus = own ? 1f : Mathf.MoveTowards(focus, shown ? 1f : 0f, fade > 0f ? Time.deltaTime / fade : 1f);
             var numbers = own || targeted;
             if (numbers == numbersShown) return;
             numbersShown = numbers;
@@ -85,7 +84,6 @@ namespace UI.PlayerState
             var visible = ship && ship.gameObject.activeInHierarchy &&
                 (!ship.VisualRig || ship.VisualRig.gameObject.activeInHierarchy) &&
                 (ship.CompareTag(TagNames.Player) || !ship.Lock.IsConcealed);
-            focus = barsShown ? 1f : Mathf.MoveTowards(focus, 0f, Time.deltaTime / FadeSeconds);
             visibility.alpha = visible ? focus : 0f;
             if (visibility.alpha <= 0f) return;
 

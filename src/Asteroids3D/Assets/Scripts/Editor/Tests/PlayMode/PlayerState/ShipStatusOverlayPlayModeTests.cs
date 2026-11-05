@@ -343,6 +343,20 @@ namespace Tests.PlayMode.PlayerState
             Assert.AreEqual(0f, Alpha(abeam), "A concealed enemy stays hidden under the cursor");
             abeam.Lock.Reveal();
 
+            input.Set(mouse.position, new Vector2(5f, 5f));
+            profile.barsFadeInSeconds = .5f;
+            profile.barsFadeOutSeconds = 1f;
+            yield return AsyncAssert.WaitUntil(() => Alpha(abeam) == 0f, 2f, "test premise: no enemy bars show");
+            input.Set(mouse.position, OnScreen(abeam));
+            var start = Time.time;
+            while (Alpha(abeam) < 1f && Time.time - start < 3f) yield return null;
+            Assert.That(Time.time - start, Is.InRange(.48f, .85f), "The bars fade in over their fade-in time");
+            input.Set(mouse.position, new Vector2(5f, 5f));
+            start = Time.time;
+            while (Alpha(abeam) > 0f && Time.time - start < 3f) yield return null;
+            Assert.That(Time.time - start, Is.InRange(.98f, 1.35f), "The bars fade out over their fade-out time");
+            profile.barsFadeInSeconds = 0f;
+
             player.Targeting.SetRegistry(registry);
             for (var i = 0; i < 30 && player.Targeting.State != LockState.Locking; i++)
                 yield return new WaitForFixedUpdate();
@@ -368,6 +382,9 @@ namespace Tests.PlayMode.PlayerState
             profile = Object.Instantiate(projection.Profile);
             profile.targetPickRadius = pickRadius;
             profile.hitBarsSeconds = hitBarsSeconds;
+            // An instant fade-in lets each step check full alpha one pick later.
+            profile.barsFadeInSeconds = 0f;
+            profile.barsFadeOutSeconds = .4f;
             using (var serialized = new UnityEditor.SerializedObject(projection))
             {
                 serialized.FindProperty("profile").objectReferenceValue = profile;

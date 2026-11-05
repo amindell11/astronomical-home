@@ -60,3 +60,5 @@ MonoBehaviour:
   bigMomentSeconds: 1
   targetPickRadius: 0.1
   hitBarsSeconds: 3
+  barsFadeInSeconds: 0.15
+  barsFadeOutSeconds: 0.4

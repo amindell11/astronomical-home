@@ -94,7 +94,7 @@ namespace UI.PlayerState
             var locked = sensor ? sensor.CurrentTarget as Ship : null;
             var target = locked ? locked : pointed;
             foreach (var (ship, indicator) in indicators)
-                indicator.Present(player, ship == target, profile.hitBarsSeconds);
+                indicator.Present(player, ship == target, profile);
         }
 
         public void SetOpacity(float opacity) => visibility.alpha = worldVisibility.alpha = opacity;
