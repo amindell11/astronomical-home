@@ -134,6 +134,31 @@ namespace Tests.PlayMode.Audio
         }
 
         [UnityTest]
+        public IEnumerator EliteStep_SetsElite_AndItsEndSetsExtract()
+        {
+            var description = Fresh(MusicEvent);
+            var objectives = New("Objectives").AddComponent<ObjectiveService>();
+            var music = NewMusic(objectives);
+            var elite = new Step(ObjectiveType.Survive);
+            objectives.SetSpineObjective(new MissionDefinition(PhaseSpineModule.StepElite,
+                    new Dictionary<string, string> { [PhaseSpineModule.StepElite] = PhaseSpineModule.StepExtract }),
+                new Dictionary<string, Func<ObjectiveState>>
+                {
+                    [PhaseSpineModule.StepElite] = () => elite,
+                    [PhaseSpineModule.StepExtract] = () => new Step(ObjectiveType.ExtractionChallenge)
+                });
+            yield return Flush();
+            var instance = Instances(description)[0];
+            Assert.AreEqual(nameof(GameMusic.State.Elite), Label(description, instance), "the spine entered the elite step");
+
+            elite.Complete = true;
+            yield return null;
+            yield return Flush();
+            Assert.AreEqual(PhaseSpineModule.StepExtract, objectives.SpineStep);
+            Assert.AreEqual(nameof(GameMusic.State.Extract), Label(description, instance), "the elite's end opens extraction");
+        }
+
+        [UnityTest]
         [Category("RequiresGraphics")]
         public IEnumerator PresentingHost_WalksOneInstanceThroughTheRunSteps()
         {
@@ -193,6 +218,16 @@ namespace Tests.PlayMode.Audio
             Debug.Log($"[FMOD] presentation off: {MusicEvent} instances={Instances(description).Length}");
             Assert.AreEqual(0, Instances(description).Length, "no music instance without presentation");
             Assert.IsFalse(hostGo.GetComponentInChildren<GameMusic>(true), "no music object without presentation");
+        }
+
+        private sealed class Step : ObjectiveState
+        {
+            private readonly ObjectiveType type;
+            public bool Complete;
+            public Step(ObjectiveType type) => this.type = type;
+            public override ObjectiveType StateType => type;
+            public override bool IsComplete => Complete;
+            public override void Tick(float deltaTime) { }
         }
 
         private GameObject New(string name)

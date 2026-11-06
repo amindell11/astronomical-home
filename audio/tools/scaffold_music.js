@@ -1,11 +1,12 @@
 // Pre-creates the music contract GameMusic consumes, in bank:/Music and routed to bus:/Music
 // (scaffold_hud.js creates the bus):
 //   event:/Music/Game   2D loop, one instance held for the session
-//     MusicState        labelled: Hangar, Combat, Extract, Recap, Victory, Defeat
+//     MusicState        labelled: Hangar, Combat, Extract, Recap, Victory, Defeat, Elite
 //     Phase             discrete, the survive phase's 0-based index
 // The placeholder is the owner's hangar track, imported in place, because an empty event stops on
 // its first update. The owner builds the states and transitions in Studio. Idempotent: anything
-// already present is left as the designer has it.
+// already present is left as the designer has it, except that labels missing from the end of
+// MusicState are appended, so existing indices keep their meaning.
 //
 // Lives outside audio/fmod/Scripts/: Studio evaluates every script there on each project load.
 // Run only while FMOD Studio is closed: the CLI discards the open GUI's unsaved-changes backup.
@@ -15,7 +16,7 @@ var project = studio.project;
 var workspace = project.workspace;
 var assetDir = __dirname + "/../fmod/Assets/";
 var placeholder = "Hero's_Landing_3.wav";
-var states = ["Hangar", "Combat", "Extract", "Recap", "Victory", "Defeat"];
+var states = ["Hangar", "Combat", "Extract", "Recap", "Victory", "Defeat", "Elite"];
 var lastPhase = 7;
 
 var musicBus = project.lookup("bus:/Music");
@@ -97,8 +98,23 @@ function ensureParameter(event, definition) {
     console.log("created parameter " + definition.name + " on " + event.getPath());
 }
 
+// Appends only: a reordered or renamed label would move an index GameMusic.State already sends.
+function ensureTrailingLabels(name, labels) {
+    var parameter = project.lookup("parameter:/" + name).parameter;
+    var present = parameter.enumerationLabels;
+    for (var i = 0; i < present.length; i++) {
+        if (present[i] !== labels[i])
+            throw new Error(name + " label " + i + " is " + present[i] + ", expected " + labels[i]);
+    }
+    if (present.length === labels.length) return;
+    parameter.enumerationLabels = labels;
+    parameter.maximum = labels.length;
+    console.log("appended " + labels.slice(present.length).join(", ") + " to " + name);
+}
+
 var game = ensureLoopEvent("event:/Music/Game", placeholder, bank("Music"));
 ensureParameter(game, { name: "MusicState", type: project.parameterType.UserEnumeration, enumerationLabels: states });
+ensureTrailingLabels("MusicState", states);
 ensureParameter(game, { name: "Phase", type: project.parameterType.UserDiscrete, min: 0, max: lastPhase });
 
 if (!project.save()) throw new Error("project save failed");
