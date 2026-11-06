@@ -1,0 +1,17 @@
+The feeling comes from the contrast between a dimly lit control area and the glow of its screens and hologram. Let the electronic glow be the main light source, with only a little ambient light from the stars.
+
+Edit Image 1, the owner's revised Blender camera capture. Refine this exact scene into a convincing ink-drawn sci-fi console concept that can guide the next Blender modeling pass.
+
+Image roles:
+Image 1 is the edit source and the authority for the camera, framing, perspective, console tilt, object positions, proportions, ship pose, and cropping. The owner just adjusted these angles. Preserve them.
+Image 2 is the earlier chosen illustration, used ONLY for the ink-and-shade finish, hardware craftsmanship, and warm electronic lighting. Do not revert to Image 2's upright monitor or its composition.
+
+Keep the broad open blue-purple space above the console, the angled monitor in the lower left, the colored fighter hologram at upper right, the equipment deck along the bottom, the projector directly beneath the ship, and the control housing cropped by the lower-right edge exactly as in Image 1. Keep the ship's silhouette, nose direction, scale and placement. Its muted grey, cream and red paint must remain visible through the translucent projection, with thin bright edges and restrained horizontal scanlines.
+
+Refine the hardware details while preserving those primary masses and angles. Replace the generic oversized rounded corner caps with integrated angular armor plates and recessed fasteners. Give the monitor a coherent stepped chamfered rim and properly joined structural panels. Resolve the feet and deck junctions into believable bolted mounts. Clean up the equipment housings, fin banks and cable routing: cables should terminate in clear sockets, follow sensible curves, and have a few intentional collars and clamps. Give the projector a purposeful layered housing, vent slots and a recessed luminous lens. Keep the design buildable as solid 3D forms. Detail should look functional and authored, not a dense random greeble texture.
+
+Use warm grey metal, deep charcoal recesses, selective dark ink contours, broad shaded planes, restrained surface wear and fine edge accents. Local warm screen spill should catch the inner bezel, nearby metal and cable edges; the projector should cast a soft warm beam and pool of light. Keep the hardware otherwise dim. Subdue the nebula slightly so the display and hologram are the main sources of brightness. Keep the dark screen face clear and its text readable.
+
+Preserve the existing main display content and its perspective: HANGAR; SHIP / Vanguard; ENGINE / Default_Engine; SHIELD / Default_Shield; PRIMARY / Lasers; SECONDARY / Missiles. Preserve the inverse cream labels and thin hatched rules. The lower-right control may show LAUNCH on its existing face, respecting the crop and angle. No new readouts or invented UI data.
+
+Return one full-frame landscape refinement of Image 1. No collage, annotation, border, extra views or interface around the picture. The result is a detail and lighting paint-over of the owner's revised geometry, not a new layout.
