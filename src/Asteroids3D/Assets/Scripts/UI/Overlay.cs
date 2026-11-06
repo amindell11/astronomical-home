@@ -137,6 +137,7 @@ namespace UI
                 readoutBuilder.Build(binding.Weapons);
             crosshair.Initialize(binding.Status, gameplayCamera);
             weaponResources.Initialize(binding.Weapons);
+            weaponResources.BindKeystone(binding.KeystoneIcon);
 
             if (chargeMarkers)
                 chargeMarkers.Initialize(binding.Weapons);

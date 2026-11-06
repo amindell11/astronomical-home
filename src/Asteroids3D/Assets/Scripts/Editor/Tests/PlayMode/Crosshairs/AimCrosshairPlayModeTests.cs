@@ -5,6 +5,7 @@ using Combat.Weapons;
 using Combat.Weapons.Conditions;
 using NUnit.Framework;
 using Ships.Command;
+using Ships.Keystones;
 using Tests.Common;
 using UI.PlayerState;
 using UI.Weapons;
@@ -289,6 +290,55 @@ namespace Tests.PlayMode.Crosshairs
             Assert.That(fill.fillAmount, Is.EqualTo(1f));
             Assert.That(((RectTransform)weaponHud.transform).sizeDelta, Is.EqualTo(new Vector2(92f, 92f)));
             Assert.That(((RectTransform)weaponHud.transform).anchoredPosition, Is.EqualTo(new Vector2(0f, 58.5f)));
+        }
+
+        [Test]
+        public void KeystoneGlyph_SwapsWithTheBoundKit_WithoutChangingTheRing()
+        {
+#if !UNITY_EDITOR
+            Assert.Ignore("Requires the authored keystone prefabs.");
+#else
+            var gauge = weaponHud.GetComponentInChildren<BoostGaugeUI>();
+            var fill = gauge.GetComponent<Image>();
+            var glyph = weaponHud.transform.Find("KeystonePlaceholder").GetComponent<Image>();
+            var ring = fill.sprite;
+            Assert.That(glyph, Is.Not.SameAs(fill));
+            Assert.That(glyph.rectTransform.anchorMin, Is.EqualTo(new Vector2(.5f, .5f)));
+            Assert.That(glyph.rectTransform.anchorMax, Is.EqualTo(new Vector2(.5f, .5f)));
+            Assert.That(glyph.rectTransform.sizeDelta, Is.EqualTo(new Vector2(48f, 48f)));
+
+            var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+            typeof(BoostGaugeUI).GetField("coolingColor", flags).SetValue(gauge, new Color(.25f, .45f, .6f, .6f));
+            typeof(BoostGaugeUI).GetField("readyColor", flags).SetValue(gauge, new Color(.1f, .9f, 1f, .9f));
+            ship.BoostAvailable = false;
+            ship.BoostCooldownPct = .75f;
+            gauge.SendMessage("Update");
+            var fillAmount = fill.fillAmount;
+            var fillColor = fill.color;
+            Assert.That(fillAmount, Is.EqualTo(.25f));
+
+            var dash = AssetDatabase.LoadAssetAtPath<Keystone>("Assets/Prefabs/Keystones/Vanguard_Dash.prefab");
+            var ram = AssetDatabase.LoadAssetAtPath<Keystone>("Assets/Prefabs/Keystones/Bulwark_Dash.prefab");
+            weaponHud.BindKeystone(dash.Icon);
+            Assert.That(glyph.sprite, Is.SameAs(dash.Icon));
+            Assert.That(fill.sprite, Is.SameAs(ring));
+            Assert.That(fill.fillAmount, Is.EqualTo(fillAmount));
+            Assert.That(fill.color, Is.EqualTo(fillColor));
+
+            weaponHud.BindKeystone(ram.Icon);
+            Assert.That(glyph.sprite, Is.SameAs(ram.Icon));
+            Assert.That(fill.sprite, Is.SameAs(ring));
+            Assert.That(fill.fillAmount, Is.EqualTo(fillAmount));
+            Assert.That(fill.color, Is.EqualTo(fillColor));
+
+            ship.BoostAvailable = true;
+            ship.BoostCooldownPct = 0f;
+            gauge.SendMessage("Update");
+            Assert.That(fill.fillAmount, Is.EqualTo(1f));
+            Assert.That(fill.color, Is.Not.EqualTo(fillColor));
+            Assert.That(fill.sprite, Is.SameAs(ring));
+            Assert.That(glyph.sprite, Is.SameAs(ram.Icon));
+#endif
         }
 
         private void AssertPointer(Vector2 aim)

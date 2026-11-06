@@ -46,6 +46,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cooldown: 12
+  icon: {fileID: 21300000, guid: 587e9ac6f8d4e9376c510798191a5fdc, type: 3}
   window: 2.5
   sightShield: 0.3
   speedScale: 1.3
