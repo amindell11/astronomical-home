@@ -183,6 +183,12 @@ namespace Tests.PlayMode.Screens
             }
             var recap = (RectTransform)screen.transform.Find("Panels/Recap");
             var scoreboard = (RectTransform)recap.Find("Scoreboard");
+            var canvasBounds = ((RectTransform)screen.transform).rect;
+            var cardBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(screen.transform, recap);
+            Assert.GreaterOrEqual(cardBounds.min.x, canvasBounds.xMin);
+            Assert.LessOrEqual(cardBounds.max.x, canvasBounds.xMax);
+            Assert.GreaterOrEqual(cardBounds.min.y, canvasBounds.yMin);
+            Assert.LessOrEqual(cardBounds.max.y, canvasBounds.yMax);
             Assert.AreEqual(1, screen.transform.Find("Panels").childCount);
             Assert.AreSame(recap, scoreboard.parent);
             Assert.IsNull(scoreboard.GetComponent<Image>());

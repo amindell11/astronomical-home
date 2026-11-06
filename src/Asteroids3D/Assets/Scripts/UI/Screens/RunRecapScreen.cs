@@ -46,6 +46,8 @@ namespace UI.Screens
             var scaler = go.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1280f, 720f);
+            scaler.screenMatchMode = context.Outcome == RecapOutcome.Extraction
+                ? CanvasScaler.ScreenMatchMode.MatchWidthOrHeight : CanvasScaler.ScreenMatchMode.Expand;
             scaler.matchWidthOrHeight = .5f;
             go.AddComponent<GraphicRaycaster>();
             var screen = go.AddComponent<RunRecapScreen>();
