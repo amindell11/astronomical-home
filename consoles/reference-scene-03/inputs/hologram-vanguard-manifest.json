@@ -1,0 +1,24 @@
+{
+  "source": "D:\\amind\\git\\astronomical-home\\art\\ships\\vanguard\\Vanguard.blend",
+  "source_sha256": "e4c3dbf9552873ddf0a461f361d59245da13edf76208f27b0f0e56b3920fa031",
+  "objects": 15,
+  "vertices": 26471,
+  "polygons": 49794,
+  "contour_segments": 1612,
+  "local_bounds": [
+    6.0,
+    3.893641397678522,
+    1.4208843048274387
+  ],
+  "bank_34_bounds": [
+    6.0,
+    3.2279751300811768,
+    2.5576292276382446
+  ],
+  "collection": "HologramVanguard",
+  "root": "HologramVanguardRoot",
+  "packed_images": [
+    "Vanguard muted hologram palette"
+  ],
+  "source_unchanged": true
+}

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Console in 3D</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101115;color:#ede9e1;font:16px/1.5 system-ui,sans-serif}main{max-width:1800px;margin:auto;padding:24px}h1{font-size:27px;font-weight:500;margin:0 0 8px}p{margin:0 0 18px;color:#bcb9b3;max-width:1000px}nav,.views{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:16px 0}nav{gap:24px}a{color:#eee0c7;text-underline-offset:4px}button{font:inherit;border:1px solid #635d52;background:#232321;color:#e9e4db;padding:8px 18px;cursor:pointer}button[aria-pressed=true]{background:#ded2b8;color:#191a1c;border-color:#ded2b8}button:focus-visible,a:focus-visible{outline:2px solid #e8c786;outline-offset:4px}figure{margin:0}img{display:block;width:100%;height:auto;background:#080a10;border:1px solid #373635}figcaption{padding-top:12px;color:#bcb9b3}.note{font-size:14px;margin-top:22px;color:#aaa7a0}
+</style>
+</head>
+<body><main>
+<h1>Console in 3D</h1>
+<p>The selected composition rebuilt as an editable Blender scene, ready for your adjustments before the full detail pass.</p>
+<nav><a href="reference-console.blend">Open Blender source</a><a href="README.md">Editing guide</a></nav>
+<div class="views" role="group" aria-label="Scene views">
+<button data-view="hero" aria-pressed="true">Camera render</button>
+<button data-view="oblique" aria-pressed="false">3D construction</button>
+<button data-view="reference" aria-pressed="false">Your reference</button>
+</div>
+<figure><a id="full" href="hero.png"><img id="frame" src="hero.png" alt="Medium-detail 3D console scene at the reference camera"></a><figcaption id="caption">The large monitor, equipment deck, cables, projector and control are separate 3D parts. The hologram uses the real Vanguard model.</figcaption></figure>
+<p class="note">Screen labels reproduce the reference as temporary artwork. This pass is for the hardware, camera and lighting. Click any image to inspect it at full size.</p>
+</main>
+<script>
+const views={hero:{src:'hero.png',alt:'Medium-detail 3D console scene at the reference camera',caption:'The large monitor, equipment deck, cables, projector and control are separate 3D parts. The hologram uses the real Vanguard model.'},oblique:{src:'oblique.png',alt:'Oblique view showing the console thickness and separate 3D parts',caption:'An oblique view of the modeled hardware. The Blender file opens at the main camera.'},reference:{src:'reference/owner-target.png',alt:'The owner-selected console reference with large left screen and colored ship hologram',caption:'Your attached image, preserved unchanged as the modeling reference.'}};
+for(const button of document.querySelectorAll('[data-view]'))button.addEventListener('click',()=>{const view=views[button.dataset.view];document.getElementById('frame').src=view.src;document.getElementById('frame').alt=view.alt;document.getElementById('full').href=view.src;document.getElementById('caption').textContent=view.caption;for(const other of document.querySelectorAll('[data-view]'))other.setAttribute('aria-pressed',String(other===button));});
+</script>
+</body></html>
