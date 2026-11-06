@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using Game.Player;
 using Game.Runs;
 using UI.Recap;
@@ -88,13 +87,13 @@ namespace UI.Screens
             var victory = context.Outcome == RecapOutcome.Victory;
             var outcomeColor = victory ? Success : Loss;
             var title = victory ? "VICTORY" : "SHIP LOST";
-            var panel = BuildPanel(title, outcomeColor, 760f, 676f, true);
+            var panel = BuildPanel(title, outcomeColor, 760f, 576f, true);
             AddTrophies(panel, context.Kills, 82f, 58f, true);
             Label(panel, "Progress", $"{context.SectorsCleared} SECTORS CLEARED", 28, 202, 424, 20, 11, Muted);
             AddRoute(panel, context.SectorsCleared, context.SectorCount, 232f);
             Rule(panel, 274f);
             AddScoreboard(panel, context.Board, outcomeColor);
-            continueButton = Continue(panel, "RETURN TO HANGAR", 610f);
+            continueButton = Continue(panel, "RETURN TO HANGAR", 510f);
             breakdown = panel.gameObject.AddComponent<CanvasGroup>();
             breakdown.alpha = 0f;
             breakdown.interactable = false;
@@ -215,83 +214,71 @@ namespace UI.Screens
 
         private void AddScoreboard(Transform parent, Scoreboard board, Color outcomeColor)
         {
-            var panel = Box(parent, "Scoreboard", 28, 286, 704, 302);
+            var weaponIcons = RecapWeaponIcons.Load();
+            var panel = Box(parent, "Scoreboard", 28, 286, 704, 202);
             Label(panel, "Heading", "SCOREBOARD", 0, 0, 132, 20, 13, Ink);
             var rank = board.Rank.HasValue ? $"{board.Rank} of {board.Rows.Count}" : "Not recorded";
             Label(panel, "Rank", "Your best runs · " + rank, 404, 0, 300, 20, 11, Muted, TextAnchor.MiddleRight);
-            ScoreCells(panel, "Columns", 26, "Run", "Sectors", "Kills", "Time", Muted, false);
-            Label(panel, "ShipHeading", "Ship / loadout", 152, 26, 270, 24, 11, Muted);
-            var viewport = Box(panel, "Rows", 0, 52, 704, 250);
-            viewport.gameObject.AddComponent<Image>().color = Color.clear;
-            viewport.gameObject.AddComponent<RectMask2D>();
-            var content = Box(viewport, "Content", 0, 0, 704, 0);
-            var scroll = viewport.gameObject.AddComponent<ScrollRect>();
-            scroll.viewport = viewport;
-            scroll.content = content;
-            scroll.horizontal = false;
-            scroll.movementType = ScrollRect.MovementType.Clamped;
-            scroll.scrollSensitivity = 35f;
+            ScoreCells(panel, "Columns", 26, "Rank", "Sectors", "Kills", "Time", Muted, false);
+            Label(panel, "ShipHeading", "Ship", 92, 26, 260, 24, 11, Muted);
             var visible = Math.Min(5, board.Rows.Count);
-            var y = 0f;
             for (var i = 0; i < visible; i++)
             {
                 var index = i == 4 && board.Rank > 5 ? board.Rank.Value - 1 : i;
                 var row = board.Rows[index];
                 var current = board.Rank == index + 1;
-                var background = Box(content, current ? "CurrentRun" : "Divider", 0, y, 704, 1);
-                var cells = ScoreCells(content, "Row" + (index + 1), y + 3,
-                    $"{index + 1}   " + (current ? "This run" : row.EndedUtc.ToLocalTime().ToString("MMM d", CultureInfo.InvariantCulture)),
+                var y = 52 + i * 30f;
+                Fill(Box(panel, "Divider", 0, y, 704, 1), Line);
+                if (current)
+                    Fill(Box(panel, "CurrentRun", 0, y, 704, 30),
+                        new Color(outcomeColor.r, outcomeColor.g, outcomeColor.b, .07f));
+                var cells = ScoreCells(panel, "Row" + (index + 1), y + 3, (index + 1).ToString(),
                     row.SectorsCleared.ToString(), row.Kills.ToString(), RunTally.FormatSeconds(row.SecondsSurvived),
                     current ? outcomeColor : Ink, true);
-                var ship = LoadoutLabel(cells, "Ship", string.IsNullOrEmpty(row.Player.chassis)
-                    ? "Ship not recorded" : row.Player.chassis, 140, 0, 270, 24, current ? outcomeColor : Ink);
+                var ship = Label(cells, "Ship", string.IsNullOrEmpty(row.Player.chassis)
+                    ? "Ship not recorded" : row.Player.chassis, 80, 0, 260, 24, 11, current ? outcomeColor : Ink);
+                Ellipsize(ship);
                 var texture = string.IsNullOrEmpty(row.Player.chassis) ? null
                     : Resources.Load<Texture2D>(SilhouetteFolder + "/" + row.Player.chassis);
                 if (texture)
                 {
-                    var icon = Box(cells, "Silhouette", 104, 0, 24, 24).gameObject.AddComponent<RawImage>();
+                    var icon = Box(cells, "Silhouette", 44, 0, 24, 24).gameObject.AddComponent<RawImage>();
                     icon.texture = texture;
                     icon.color = Paint;
                     icon.raycastTarget = false;
                 }
-                else Label(cells, "UnavailableIcon", "?", 104, 0, 24, 24, 16, Muted, TextAnchor.MiddleCenter);
-                var partsY = ship.rectTransform.rect.height + 2;
-                var shield = LoadoutLabel(cells, "Shield", "Shield: " + Part(row.Player.shield), 0, partsY, 214, 16, Muted);
-                var primary = LoadoutLabel(cells, "Primary", "Primary: " + Part(row.Player.primary), 226, partsY, 214, 16, Muted);
-                var secondary = LoadoutLabel(cells, "Secondary", "Secondary: " + Part(row.Player.secondary), 452, partsY, 228, 16, Muted);
-                var height = partsY + Mathf.Max(shield.rectTransform.rect.height,
-                    primary.rectTransform.rect.height, secondary.rectTransform.rect.height) + 8;
-                cells.sizeDelta = new Vector2(680, height - 6);
-                if (current)
-                {
-                    background.sizeDelta = new Vector2(704, height);
-                    Fill(background, new Color(outcomeColor.r, outcomeColor.g, outcomeColor.b, .07f));
-                }
-                else Fill(background, Line);
-                y += height;
+                else Label(cells, "UnavailableIcon", "?", 44, 0, 24, 24, 16, Muted, TextAnchor.MiddleCenter);
+                var weaponsX = 80 + ship.preferredWidth + 12;
+                WeaponIcon(cells, "Primary", weaponsX, weaponIcons.Find(row.Player.primary));
+                WeaponIcon(cells, "Secondary", weaponsX + 36, weaponIcons.Find(row.Player.secondary));
             }
-            content.sizeDelta = new Vector2(704, y);
-            scroll.vertical = y > viewport.rect.height;
-            if (scroll.vertical)
-                Label(panel, "ScrollHint", "SCROLL FOR LOADOUTS", 144, 0, 180, 20, 10, Muted);
         }
 
-        private static string Part(string name) => string.IsNullOrEmpty(name) ? "Empty" : name;
-
-        private Text LoadoutLabel(Transform parent, string name, string value, float x, float y,
-            float width, float height, Color color)
+        private static void WeaponIcon(Transform parent, string name, float x, Sprite sprite)
         {
-            var text = Label(parent, name, value, x, y, width, height, 11, color, TextAnchor.UpperLeft);
+            var icon = Box(parent, name, x, 0, 24, 24).gameObject.AddComponent<Image>();
+            icon.sprite = sprite;
+            icon.enabled = sprite;
+            icon.preserveAspect = true;
+            icon.color = Paint;
+            icon.raycastTarget = false;
+        }
+
+        private static void Ellipsize(Text text)
+        {
             text.supportRichText = false;
-            text.rectTransform.sizeDelta = new Vector2(width, Mathf.Max(height, text.preferredHeight));
-            return text;
+            text.horizontalOverflow = HorizontalWrapMode.Overflow;
+            var fullName = text.text;
+            var length = fullName.Length;
+            while (text.preferredWidth > text.rectTransform.rect.width)
+                text.text = fullName.Substring(0, --length) + "…";
         }
 
         private RectTransform ScoreCells(RectTransform panel, string name, float y, string run, string sectors,
             string kills, string time, Color color, bool numeric)
         {
             var row = Box(panel, name, 12, y, 680, 24);
-            Label(row, "Run", run, 0, 0, 96, 24, 11, color);
+            Label(row, "Rank", run, 0, 0, 32, 24, 11, color);
             Label(row, "Sectors", sectors, 442, 0, 90, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);
             Label(row, "Kills", kills, 544, 0, 60, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);
             Label(row, "Time", time, 626, 0, 54, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);

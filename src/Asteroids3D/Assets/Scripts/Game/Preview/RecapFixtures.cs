@@ -64,8 +64,8 @@ namespace Game.Preview
         {
             chassis = Chassis[index % Chassis.Length],
             shield = "Default_Shield",
-            primary = index % 2 == 0 ? "Lasers" : "Railgun",
-            secondary = index % 3 == 0 ? "" : "Missiles",
+            primary = (index % 4) switch { 0 => "Lasers", 1 => "TurboLasers", 2 => "Rippers", _ => "Railgun" },
+            secondary = (index % 3) switch { 0 => "", 1 => "Missiles", _ => "Grenades" },
         };
 
         private static Scoreboard Board(bool topFive, Scoreboard.Row thisRun)
