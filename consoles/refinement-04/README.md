@@ -1,4 +1,6 @@
-# Console palette controls
+# Console composition and palette
+
+The latest [composition study](composition.html) reduces the complete console assembly to about the left third of the image and enlarges the ship across the right two-thirds. The built-in image tool edited the darker warm [palette preview](palette-default-preview.png), following this [prompt](composition-thirds-prompt.txt). The [result](composition-thirds.png) keeps the existing physical controls, warm neutral hardware and colored hologram. This image study has not been applied to Blender. The palette controls below remain available for the preceding layout.
 
 Open the [palette editor](palette.html) to adjust each material's color and brightness over [neutral-materials.png](neutral-materials.png). The initial palette darkens the bright shell and warms the silver trim. Housing, trim, covers, dark structure, selector caps, and knobs and cables have separate controls. The projection indicator lights have an optional color control. The ship, sky, display content, projection beam and Launch cap keep their original pixels.
 

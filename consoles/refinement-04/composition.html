@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hangar composition study</title>
+  <link rel="stylesheet" href="../../combat-hud/shared/type.css">
+  <link rel="stylesheet" href="../../combat-hud/shared/roles.css">
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#0a0e14;color:var(--ui-ink);font:15px/1.5 var(--ui-sans),sans-serif}main{max-width:1800px;margin:auto;padding:24px}h1{font-size:27px;font-weight:500;margin:0 0 7px}p{color:#a6adb7;max-width:1000px;margin:0 0 18px}a{color:#d6c3a4;text-underline-offset:4px}nav,.views{display:flex;gap:12px 20px;flex-wrap:wrap;margin:20px 0}.views{gap:10px}button{font:inherit;color:var(--ui-ink);background:#242a31;border:1px solid #41464d;border-radius:5px;padding:9px 16px;cursor:pointer}button:hover{background:#313943}button[aria-pressed=true]{background:#c1ac8c;border-color:#ddc8a6;color:#1d2024}button:focus-visible,a:focus-visible{outline:2px solid #dbc29b;outline-offset:4px}img{display:block;width:100%;height:auto;border:1px solid #303943;border-radius:6px}#caption{font-size:13px;margin:12px 0 0}.footnote{font-size:12px;margin-top:16px}@media(max-width:600px){main{padding:16px}h1{font-size:23px}nav{gap:9px 16px}button{font-size:13px;padding:9px 12px}}
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Hangar composition study</h1>
+    <p>A smaller monitor gives the ship more of the picture. Compare the new composition with the previous layout.</p>
+    <nav aria-label="Study navigation"><a href="palette.html">Palette controls for previous layout</a><a href="history.html">Image history</a></nav>
+    <div class="views" role="group" aria-label="Compare compositions">
+      <button type="button" data-view="thirds" aria-pressed="true">New composition</button>
+      <button type="button" data-view="previous" aria-pressed="false">Previous layout</button>
+    </div>
+    <a id="full" href="composition-thirds.png" aria-label="Open the displayed image at full resolution"><img id="frame" src="composition-thirds.png" alt="Hangar study with a smaller monitor on the left and a larger holographic ship across the right"></a>
+    <p id="caption" aria-live="polite">The monitor occupies roughly one-third of the width, with the ship filling the remaining two-thirds.</p>
+    <p class="footnote">Both views use the darker warm palette.</p>
+  </main>
+  <script>
+    const views={thirds:{src:'composition-thirds.png',alt:'Hangar study with a smaller monitor on the left and a larger holographic ship across the right',caption:'The monitor occupies roughly one-third of the width, with the ship filling the remaining two-thirds.'},previous:{src:'palette-default-preview.png',alt:'Previous hangar layout with the larger monitor and smaller holographic ship, using the darker warm palette',caption:'Previous layout with the default darker warm palette.'}};
+    for(const button of document.querySelectorAll('[data-view]'))button.addEventListener('click',()=>{
+      const view=views[button.dataset.view];
+      document.getElementById('frame').src=view.src;
+      document.getElementById('frame').alt=view.alt;
+      document.getElementById('full').href=view.src;
+      document.getElementById('caption').textContent=view.caption;
+      for(const candidate of document.querySelectorAll('[data-view]'))candidate.setAttribute('aria-pressed',String(candidate===button));
+    });
+  </script>
+</body>
+</html>
