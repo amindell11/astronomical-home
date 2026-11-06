@@ -1,4 +1,5 @@
 using System;
+using Objectives.Presentation;
 
 namespace Objectives
 {
@@ -25,5 +26,8 @@ namespace Objectives
 
         /// <summary>One HUD line for the player while this state runs; null shows nothing.</summary>
         public virtual string StatusLine => null;
+
+        /// <summary>A key to press now, shown in place of the status line; null shows none.</summary>
+        public virtual InteractionPrompt? Prompt => null;
     }
 }

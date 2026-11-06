@@ -9,6 +9,7 @@ using Substrate.Services.Objectives;
 using Tests.PlayMode.Common;
 using UI.Objectives;
 using UI.PlayerState;
+using UI.Prompts;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
@@ -61,13 +62,13 @@ namespace Tests.PlayMode.PlayerState
             Assert.IsTrue(announcement.enabled);
             Assert.AreEqual(new Vector2(.5f, .5f), announcement.rectTransform.anchorMin);
             Assert.AreEqual(1f, announcement.color.a, .01f);
-            Assert.AreEqual("PRESS F TO JUMP", label.text);
+            AssertShowsJump(readout, label);
             yield return new WaitForSecondsRealtime(2.2f);
-            Assert.AreEqual("PRESS F TO JUMP", label.text, "Contextual interaction survives the announcement");
+            AssertShowsJump(readout, label, "Contextual interaction survives the announcement");
             Assert.IsFalse(announcement.enabled);
             handle.Target = Child("Replacement destination").transform;
             yield return null;
-            Assert.AreEqual("PRESS F TO JUMP", label.text, "Retargeting cannot replay the opening");
+            AssertShowsJump(readout, label, "Retargeting cannot replay the opening");
             Open(target);
             yield return null;
             Assert.IsTrue(announcement.enabled, "A new sector opens without a blank frame between trackers");
@@ -81,7 +82,17 @@ namespace Tests.PlayMode.PlayerState
             TestAssets.Load<Font>("Assets/Visuals/Ui/Fonts/Rajdhani-Medium.ttf"),
             TestAssets.Load<Font>("Assets/Visuals/Ui/Fonts/Michroma.ttf"),
             TestAssets.Load<Font>("Assets/Visuals/Ui/Fonts/Orbitron-Medium.ttf"),
+            TestAssets.Load<Font>("Assets/Visuals/Ui/Fonts/Orbitron-Medium.ttf"),
             TestAssets.Load<Material>("Assets/Visuals/Ui/Projection/CanopyText.mat"));
+
+        private static void AssertShowsJump(ObjectiveStatusReadout readout, Text replaced, string message = null)
+        {
+            var prompt = readout.GetComponentInChildren<KeyPrompt>();
+            Assert.IsTrue(prompt, message);
+            Assert.AreEqual("F", prompt.Key, message);
+            Assert.AreEqual("JUMP", prompt.Action, message);
+            Assert.IsFalse(replaced.enabled, message);
+        }
 
         [UnityTest]
         public IEnumerator PhaseDisplay_UsesTheSchedule_AndRebindsAfterExtraction()
@@ -117,7 +128,7 @@ namespace Tests.PlayMode.PlayerState
             Assert.IsFalse(clock.enabled);
             Assert.AreEqual("EXTRACTION OPEN", label.text);
             Assert.AreEqual("Rajdhani-Medium", label.font.name);
-            Assert.AreEqual("PRESS F TO JUMP", caption.text);
+            AssertShowsJump(readout, caption);
             Assert.IsFalse(announcement.enabled);
             service.ClearAll();
             yield return null;
@@ -130,6 +141,14 @@ namespace Tests.PlayMode.PlayerState
             Assert.AreEqual("1:00", clock.text);
             Assert.AreEqual("EXTRACTION", caption.text);
             Assert.IsNull(readout.transform.Find("Phase display/Sector phase 2"));
+            phase = new SectorPhaseProgress(-1, 1, 44.2f, false, HuntReading.Searching);
+            yield return null;
+            Assert.AreEqual("0:45", clock.text);
+            Assert.AreEqual("SEARCHING", caption.text, "The hunt's search clock reads as the search.");
+            phase = new SectorPhaseProgress(-1, 1, 2.1f, false, HuntReading.Spotted);
+            yield return null;
+            Assert.AreEqual("0:03", clock.text);
+            Assert.AreEqual("SPOTTED", caption.text, "A patrol's call-in reads as spotted.");
         }
 
         private SpineObjectiveHandle OpenPhases(Transform target, Func<SectorPhaseProgress> progress) =>
@@ -242,7 +261,7 @@ namespace Tests.PlayMode.PlayerState
         {
             public override ObjectiveType StateType => ObjectiveType.ExtractionChallenge;
             public override bool IsComplete => false;
-            public override string StatusLine => "PRESS F TO JUMP";
+            public override InteractionPrompt? Prompt => new InteractionPrompt("F", "JUMP");
             public override void Tick(float deltaTime) { }
         }
 

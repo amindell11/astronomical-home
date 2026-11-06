@@ -68,6 +68,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: HudQuietSector
       objectReference: {fileID: 0}
+    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: hunt
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 1227466035045939097, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: elite
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 1227466035045939097, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: hunt
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 5823190446372318541, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

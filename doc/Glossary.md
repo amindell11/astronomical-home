@@ -60,7 +60,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 |---|---|---|
 | **gate** | merge gate · eval gate (`eval_gate.py`) · gate score · cost gate (fix-ladder rung 3) · go/no-go gate · curriculum lesson gate · anti-churn gate · scoping gate · owner's gate (a ship art stage approval) · "gated off" code conditionals | Always qualified. Bare "the gate" is legal only in pool-merge context (= merge gate) and RL-run context (= eval gate), and never in a title. |
 | **lane** | boot lane · remote lane (the second Unity box, `remote_lane.sh`) · harness lane · curriculum lane · watch/capture lane · audit lane · teacher-tuning lane · access-queue lane · firing lane (lane clearing) · decision lane (nav / fire / ability — the three seams a `BrainDecision` carries) · LANE slot (the MPC sentence term, always caps) | Always qualified. |
-| **pool** | worktree pool · ship resource pool (`PoolDifferential`) · self-play snapshot pool · object pool (`SimplePool`) · enemy loadout pool (the item subset a wave director draws builds from) · Dev Pool issue labels (`mid-dev-pool`/`high-dev-pool`, ex-board columns) | Always qualified. |
+| **pool** | worktree pool · ship resource pool (`PoolDifferential`) · self-play snapshot pool · object pool (`SimplePool`) · Dev Pool issue labels (`mid-dev-pool`/`high-dev-pool`, ex-board columns) | Always qualified. |
 | **token** | bus/signal token · obs obstacle token (`ObstacleTokenCap`) · threat token · LLM context token | Always qualified. |
 | **term** | intent/cost term (a weighted sentence-slot cost the MPC solves — #485) · activation term (`ActivationTerm`, the AND-ed predicate atoms of sector activation rules) · reward term (a `RewardSpec` component, e.g. the reward spine's outcome term) | Always qualified. An intent-grammar doc may read bare "term" = intent/cost term only after declaring the carve-out (Stage A brief precedent). |
 | **slot** | worktree slot (`agent-N`) · weapon/mount slot · ONNX import slot · obs slot-block grammar · MPC terminal-cost slot · sentence slot, instance or class (a typed intent-sentence position) · anatomy slot (§2 → *anatomy*) · keystone slot (§2 → *keystone*) | Qualify outside pool-loop context; bare "slot" = worktree slot in workflow text only. |
@@ -637,6 +637,32 @@ Format: **term** — definition. *(authority)*
   each faster-paced: extracting moves the run on, extracting from the last wins
   it, and the game host's player-death path ends it.
   *(TrialSector, TrialSector2, TrialSector3 prefabs)*
+- **hunt** — a combat sector's opening, before its first sector phase: patrols
+  roam unaware of the player until the alarm. A patrol that sees the player
+  (short radius, asteroids are cover) or is hit by it starts a call-in, and the
+  alarm sounds when the call-in runs out or the search clock does; killing the
+  calling patrol first cancels its call-in. The wave director holds its opening
+  lull until the alarm, so phase numbering is unchanged. *(SectorHunt,
+  HuntFeelProfile)*
+- **faction** — the side a sector's enemies belong to; each survival trial
+  names one, and its wave director and hunt field only that faction's ships. The
+  **signature ship** is the faction's own chassis, and its elite flies it; the
+  **common ship** is the chassis every faction flies. Each ship always carries
+  its **faction kit**, one fixed primary, and wears the faction's paint, flame
+  and shield ring colour. The **answer weapon** is the weapon
+  that counters the faction's way of fighting, so no faction kit carries it.
+  The sector-to-faction mapping is ruled on #1320. *(Faction, SectorFaction)*
+- **elite** — a sector's end-of-sector enemy: its faction's signature ship made
+  larger, with a heavy weapon pair and stacked run mods. The sector's phases
+  ending summon it, and extraction opens on its death. Sector 3's elite is the
+  boss, which escalates at hull thresholds (escorts, heavier fire).
+  An escalation step stacks weapon mods only, so the dynamics the AI captured at
+  spawn stay true. Not an *encounter*: no activation rule arms it; the sector
+  spine owns it and drives it. *(EliteEncounter, EliteProfile,
+  PhaseSpineModule.StepElite)*
+- **unlocked ship** — a ship the hangar lets the player fly: the starter plus
+  every elite chassis the player killed in any run record. No save file; a kill
+  counts once its run's record is written. *(ShipUnlocks, ItemSubset.starter)*
 - **sector fixture** — a world object present at spawn, sector-owned, independent
   of encounter state.
 - **signal / SignalPort** — the bus coupling seam. ⚠ **Designed, not built** —
@@ -936,9 +962,9 @@ Format: **term** — definition. *(authority)*
   is not what makes something an item — a test scans the project by type and
   fails when the list and the scan differ. *(ItemCatalog)*
 - **item subset** — an authored list of items one consumer chooses from, per
-  loadout slot. Two exist: the hangar's offer (ships and weapons) and the enemy
-  loadout pool (weapons only; an enemy's chassis is the roster's). Never "the
-  catalog": neither lists everything. *(ItemSubset)*
+  loadout slot. One exists: the hangar's offer (ships and weapons). Enemies draw
+  nothing: each flies its faction kit. Never "the catalog": it doesn't list
+  everything. *(ItemSubset)*
 - **hangar's offer** — the item subset the hangar shows the player.
   *(GameHost.hangarOffer)*
 - **lane clearing** — shooting asteroids to open a firing lane. Currently
@@ -1047,6 +1073,9 @@ Format: **term** — definition. *(authority)*
   reads live; the game serializes the asset on its host, and the preview's panel
   edits that same asset in place under a snapshot: Save writes it, Discard
   restores it. *(RecapFeelProfile, FeelSnapshot)*
+- **death feel profile** — the feel profile every ship's death reads: its debris
+  explosion and debris pace. The ship rig serializes it, not the game host.
+  *(DeathFeelProfile, ShipDeathTarget)*
 - **preview host** — the play-mode composition root beside the game host. It
   runs one entry at a time. A *preview Replay* entry composes a real session
   with presentation on around the real player rig, camera and HUD, and hosts a
@@ -1065,15 +1094,16 @@ Format: **term** — definition. *(authority)*
   `doc/agents/tuning.md`. *(TuningTarget, HudTarget)*
 - **preview Replay** — the panel section and kind of preview entry that hosts
   a *preview subject* under the transport: a moment the owner judges. The recap
-  and the jump scrub to any instant. The HUD replays play from their start, and
-  Restart or Loop stages them again from scratch. Bare "Replay" is legal in
-  preview context. (Retired form: the preview host's "Inspection" mode.)
-  *(PreviewEntry.RunRecap, PreviewEntry.SectorJump, HudReplaySubject)*
+  and the jump scrub to any instant. The HUD replays and Enemy death play from
+  their start, and Restart or Loop stages them again from scratch. Bare "Replay"
+  is legal in preview context. (Retired form: the preview host's "Inspection"
+  mode.) *(PreviewEntry.RunRecap, PreviewEntry.SectorJump, HudReplaySubject,
+  EnemyDeathSubject)*
 - **preview Playtest** — the panel section and kind of preview entry that runs
   the shipped game host prefab for the owner to fly, with preview run records
   and at most swapped sectors. Bare "Playtest" is legal in preview context;
   elsewhere "playtest" is the owner playing the game.
-  *(PreviewEntry.Combat, PreviewEntry.CrowdedJumpGate)*
+  *(PreviewEntry.Combat, PreviewEntry.CrowdedJumpGate, PreviewEntry.Boss)*
 - **preview subject** — a presentation module with a chosen context (a fixture
   built from constants, or any context a scenario builds), hosted by the preview
   host. *(IPreviewSubject, RecapPreviewSubject, RecapFixtures)*

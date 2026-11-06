@@ -21,7 +21,7 @@ using Object = UnityEngine.Object;
 
 namespace Tests.PlayMode
 {
-    /// <summary>Survival trial end to end on primitives: the wave director's first-tick opening spawn rings the hero on the chassis's own engine, armed from the pool, the player's killing blow lands on the run tally, and the director despawns its dead product.</summary>
+    /// <summary>Survival trial end to end on primitives: the wave director's first-tick opening spawn rings the hero on the chassis's own engine, the player's killing blow lands on the run tally, and the director despawns its dead product.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class SurvivalTrialPlayModeTests : PlayModeWorldFixture
@@ -30,7 +30,6 @@ namespace Tests.PlayMode
 
         private UnitService _unitService;
         private ObjectiveService _objectives;
-        private ItemSubset _pool;
         private EngineModule _chassisEngine;
         private ShieldModule _chassisShield;
         private readonly List<GameObject> _created = new();
@@ -46,8 +45,6 @@ namespace Tests.PlayMode
             ShipServices.Compose(_unitService, unitServiceGO.transform, presentationEnabled: true);
             _chassisEngine = ScriptableObject.CreateInstance<EngineModule>();
             _chassisShield = ScriptableObject.CreateInstance<ShieldModule>();
-            _pool = ScriptableObject.CreateInstance<ItemSubset>();
-            _pool.weapons = new[] { TrackGO(new GameObject("PoolWeapon")).AddComponent<PoolWeapon>() };
         }
 
         [TearDown]
@@ -61,7 +58,6 @@ namespace Tests.PlayMode
 
             if (_chassisEngine != null) { Object.DestroyImmediate(_chassisEngine); _chassisEngine = null; }
             if (_chassisShield != null) { Object.DestroyImmediate(_chassisShield); _chassisShield = null; }
-            if (_pool != null) { Object.DestroyImmediate(_pool); _pool = null; }
 
             base.TearDown();
         }
@@ -86,7 +82,7 @@ namespace Tests.PlayMode
             directorGO.transform.SetParent(sectorGO.transform, false);
             var director = directorGO.AddComponent<WaveDirector>();
             director.Configure(new[] { new WaveDirector.RosterEntry { template = template } },
-                new[] { new SectorPhase { seconds = 100f, interval = 100f, cap = 1 } }, spawnRadius: SpawnRadius, loadouts: _pool);
+                new[] { new SectorPhase { seconds = 100f, interval = 100f, cap = 1 } }, spawnRadius: SpawnRadius);
             sector.SetManifest(null, new SectorSpawner[] { director }, null);
             sector.Initialize(_unitService, _objectives, true, default, player);
             return director;
@@ -143,8 +139,8 @@ namespace Tests.PlayMode
 
             Assert.AreEqual(1, director.Spawned.Count, "test premise: the opening wave spawned one product");
             var product = director.Spawned[0];
-            Assert.AreEqual(_chassisEngine, product.Engine, "A wave product flies its chassis's own engine; the pool offers none.");
-            Assert.AreEqual(_chassisShield, product.Shield, "A wave product flies its chassis's own shield; the pool offers none.");
+            Assert.AreEqual(_chassisEngine, product.Engine, "A wave product flies its chassis's own engine.");
+            Assert.AreEqual(_chassisShield, product.Shield, "A wave product flies its chassis's own shield.");
 
             yield return sector.Teardown();
         }
@@ -162,11 +158,6 @@ namespace Tests.PlayMode
             Assert.AreEqual(7f, ((AICommander)enemy.Commander).Navigator.dynamics.maxSpeed,
                 "The AI plans against the chassis's engine.");
             yield return null;
-        }
-
-        private sealed class PoolWeapon : Combat.Weapons.WeaponComponent
-        {
-            public override Combat.Projectiles.ProjectileBase Fire(UnityEngine.Vector3 targetPoint, Substrate.Services.Projectiles.IProjectileService projectiles) => null;
         }
     }
 }

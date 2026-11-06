@@ -1,5 +1,61 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &7957699207206050188
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7206773867486977950}
+  - component: {fileID: 4201520510818603066}
+  m_Layer: 0
+  m_Name: Elite
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7206773867486977950
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7957699207206050188}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 464567137062519928}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4201520510818603066
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7957699207206050188}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b57ff78bd184a9c995eb88f434af7cc, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  profile: {fileID: 11400000, guid: 6eb906335616460983af1abe9f7c5ea2, type: 2}
+  faction: {fileID: 4667602915908898981}
+  pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660, type: 3}
+  escortPilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
+    type: 3}
+  team: 1
+  spawnRadius: 55
+  clearanceRadius: 6
+  asteroidMask:
+    serializedVersion: 2
+    m_Bits: 256
+  placementAttempts: 8
 --- !u!1 &39433959598591787
 GameObject:
   m_ObjectHideFlags: 0
@@ -46,59 +102,97 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   activationToken: 
   roster:
-  - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-      type: 3}
-    pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764, type: 3}
-  - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-      type: 3}
-    pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660, type: 3}
-  - template: {fileID: 1627378045775059580, guid: c3c15225cb3a8fd42a87c756c1d2d884,
-      type: 3}
-    pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764, type: 3}
-  - template: {fileID: 1627378045775059580, guid: c3c15225cb3a8fd42a87c756c1d2d884,
-      type: 3}
-    pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660, type: 3}
-  - template: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637,
-      type: 3}
-    pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e, type: 3}
-  - template: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637,
-      type: 3}
-    pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660, type: 3}
   - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
       type: 3}
     pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e, type: 3}
   - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
       type: 3}
     pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764, type: 3}
-  - template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
+  - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
+      type: 3}
+    pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764, type: 3}
+  - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
       type: 3}
     pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660, type: 3}
-  - template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
-      type: 3}
-    pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e, type: 3}
-  loadouts: {fileID: 11400000, guid: c967b2c2f24e4ab280ca200ca84ba69a, type: 2}
+  faction: {fileID: 4667602915908898981}
   team: 1
   phases:
   - seconds: 40
     interval: 8
     cap: 1
-    loadouts: {fileID: 0}
   - seconds: 30
     interval: 6
     cap: 2
-    loadouts: {fileID: 0}
   - seconds: 20
     interval: 5
     cap: 3
-    loadouts: {fileID: 0}
   lullSeconds: 12
   openingLullSeconds: 5
+  hunt: {fileID: 7436810692243587915}
   spawnRadius: 55
   clearanceRadius: 6
   asteroidMask:
     serializedVersion: 2
     m_Bits: 256
   placementAttempts: 4
+--- !u!1 &5823190446372318541
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2290485117306431782}
+  - component: {fileID: 7436810692243587915}
+  m_Layer: 0
+  m_Name: Hunt
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2290485117306431782
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5823190446372318541}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 464567137062519928}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7436810692243587915
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5823190446372318541}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 219e10584a2a4eb9890af852af315afe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  activationToken: 
+  feel: {fileID: 11400000, guid: 2f6eb6f11d5f42abb1254ac5f9af90ef, type: 2}
+  faction: {fileID: 4667602915908898981}
+  patrolPilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
+    type: 3}
+  patrolCount: 1
+  team: 1
+  spawnDistanceMin: 100
+  spawnDistanceMax: 150
+  clearanceRadius: 10
+  asteroidMask:
+    serializedVersion: 2
+    m_Bits: 256
+  placementAttempts: 8
 --- !u!1 &4210092014597554681
 GameObject:
   m_ObjectHideFlags: 0
@@ -364,6 +458,7 @@ GameObject:
   - component: {fileID: 464567137062519928}
   - component: {fileID: 9090061438643016835}
   - component: {fileID: 1227466035045939097}
+  - component: {fileID: 4667602915908898981}
   m_Layer: 0
   m_Name: TrialSector
   m_TagString: Untagged
@@ -387,8 +482,10 @@ Transform:
   - {fileID: 8433170188032759988}
   - {fileID: 648705769799920652}
   - {fileID: 8742499773624804708}
+  - {fileID: 2290485117306431782}
   - {fileID: 9176014152621210194}
   - {fileID: 6832071909392833808}
+  - {fileID: 7206773867486977950}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &9090061438643016835
@@ -407,8 +504,10 @@ MonoBehaviour:
   spawners:
   - {fileID: 7753410013603303191}
   - {fileID: 1116166669378757183}
+  - {fileID: 7436810692243587915}
   modules:
   - {fileID: 1227466035045939097}
+  - {fileID: 4667602915908898981}
   obstacleField: {fileID: 393807887964278560}
   startPointMarker: {fileID: 6035797466321995783}
 --- !u!114 &1227466035045939097
@@ -424,7 +523,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   director: {fileID: 1116166669378757183}
+  hunt: {fileID: 7436810692243587915}
   extractionZone: {fileID: 1390678639999065524}
+  elite: {fileID: 4201520510818603066}
   zoneDistance: 150
   zoneClearance: 35
   asteroidMask:
@@ -435,6 +536,19 @@ MonoBehaviour:
   beaconDistance: 150
   beaconLeadSeconds: 8
   beaconGraceSeconds: 10
+--- !u!114 &4667602915908898981
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6963272944453637654}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b40e078c827947c4972f959411f79cd4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  faction: {fileID: 11400000, guid: b8e87030f2d54df6bf6f209b2666c769, type: 2}
 --- !u!1 &8433355183706691782
 GameObject:
   m_ObjectHideFlags: 0

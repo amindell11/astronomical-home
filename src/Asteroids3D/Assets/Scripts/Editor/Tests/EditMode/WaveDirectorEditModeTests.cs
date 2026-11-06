@@ -2,16 +2,16 @@ using System.Linq;
 using Combat.Weapons;
 using NUnit.Framework;
 using Ships;
-using Ships.Loadout;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Phases;
+using Substrate.Sectors.Factions;
 using UnityEditor;
 using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>Wave director pacing over a sector phase table with injected time: each phase opens once, its interval gates cadence and its cap gates count, a lull (the opening one too) spawns nothing, and the done table keeps the last phase's pacing. Loadout draws come from the pool in force and leave the second mount empty, and the threat read lists the roster's ships and the weapons in force, off a prefab asset too.</summary>
+    /// <summary>Wave director pacing over a sector phase table with injected time: each phase opens once, its interval gates cadence and its cap gates count, a lull (the opening one too) spawns nothing, and the done table keeps the last phase's pacing. The threat read lists the roster's ships and the weapons they fly, their faction kits when the sector names a faction, off a prefab asset too.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class WaveDirectorEditModeTests
@@ -128,75 +128,36 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void PoolFor_PrefersThePhasesPool_OverTheDirectors()
+        public void Threat_ListsEachRosterShipOnce_AndTheFactionKitEachFlies()
         {
-            var directorPool = ScriptableObject.CreateInstance<ItemSubset>();
-            var phasePool = ScriptableObject.CreateInstance<ItemSubset>();
-            var phases = Phases();
-            phases[0].loadouts = phasePool;
-            _director.Configure(null, phases, Lull, loadouts: directorPool);
-
-            Assert.AreSame(phasePool, _director.PoolFor(phases[0]));
-            Assert.AreSame(directorPool, _director.PoolFor(phases[1]), "A phase naming no pool uses the director's.");
-
-            Object.DestroyImmediate(directorPool);
-            Object.DestroyImmediate(phasePool);
-        }
-
-        [Test]
-        public void Draw_StaysInsidePool_AndLeavesTheSecondMountEmpty()
-        {
-            var pool = ScriptableObject.CreateInstance<ItemSubset>();
-            pool.weapons = new WeaponComponent[]
-            {
-                _go.AddComponent<PoolWeapon>(), _go.AddComponent<PoolWeapon>(), _go.AddComponent<PoolWeapon>(),
-            };
-
-            for (var i = 0; i < 200; i++)
-            {
-                var draw = WaveDirector.Draw(null, pool);
-                CollectionAssert.Contains(pool.weapons, draw.PrimaryWeapon);
-                Assert.IsFalse(draw.SecondaryWeapon, "Products fly primary-only.");
-            }
-
-            Object.DestroyImmediate(pool);
-        }
-
-        [Test]
-        public void Threat_ListsEachRosterShipOnce_AndTheWeaponsOfEveryPoolInForce()
-        {
-            var vanguard = new GameObject("Vanguard").AddComponent<Ship>();
             var valis = new GameObject("Valis").AddComponent<Ship>();
+            var crimson = new GameObject("Crimson").AddComponent<Ship>();
             var lasers = _go.AddComponent<PoolWeapon>();
             var rippers = _go.AddComponent<PoolWeapon>();
-            var missiles = _go.AddComponent<PoolWeapon>();
-            var directorPool = ScriptableObject.CreateInstance<ItemSubset>();
-            directorPool.weapons = new WeaponComponent[] { lasers, rippers };
-            var phasePool = ScriptableObject.CreateInstance<ItemSubset>();
-            phasePool.weapons = new WeaponComponent[] { missiles, lasers };
-            var phases = Phases();
-            phases[1].loadouts = phasePool;
+            var faction = ScriptableObject.CreateInstance<Faction>();
+            faction.signature = new FactionShip { ship = valis, kit = rippers };
+            faction.common = new FactionShip { ship = crimson, kit = lasers };
+            var sectorFaction = _go.AddComponent<SectorFaction>();
+            sectorFaction.Bind(faction);
             _director.Configure(new[]
             {
-                new WaveDirector.RosterEntry { template = vanguard },
+                new WaveDirector.RosterEntry { template = crimson },
                 new WaveDirector.RosterEntry { template = valis },
-                new WaveDirector.RosterEntry { template = vanguard },
-            }, phases, Lull, loadouts: directorPool);
+                new WaveDirector.RosterEntry { template = crimson },
+            }, Phases(), Lull, faction: sectorFaction);
 
             var threat = _director.Threat();
 
-            CollectionAssert.AreEqual(new[] { vanguard, valis }, threat.Ships, "a ship two pilots fly is listed once");
-            CollectionAssert.AreEqual(new WeaponComponent[] { lasers, rippers, missiles }, threat.Weapons,
-                "phase order, each weapon once");
+            CollectionAssert.AreEqual(new[] { crimson, valis }, threat.Ships, "a ship two pilots fly is listed once");
+            CollectionAssert.AreEqual(new WeaponComponent[] { lasers, rippers }, threat.Weapons, "each ship's faction kit, in roster order");
 
-            Object.DestroyImmediate(directorPool);
-            Object.DestroyImmediate(phasePool);
-            Object.DestroyImmediate(vanguard.gameObject);
+            Object.DestroyImmediate(faction);
             Object.DestroyImmediate(valis.gameObject);
+            Object.DestroyImmediate(crimson.gameObject);
         }
 
         [Test]
-        public void Threat_WithNoPool_ListsTheRosterShipsAuthoredWeapons()
+        public void Threat_WithNoFaction_ListsTheRosterShipsAuthoredWeapons()
         {
             var ship = AssetDatabase.LoadAssetAtPath<Ship>("Assets/Prefabs/Ships/Vanguard.prefab");
             _director.Configure(new[] { new WaveDirector.RosterEntry { template = ship } }, Phases(), Lull);

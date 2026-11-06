@@ -6,7 +6,8 @@ set -euo pipefail
 # slot and a sibling worktree. GROK_WORKER_AGENT_CMD swaps Cursor for a fake agent that answers the
 # `models` preflight from the case's models.json (a Grok listing by default) and plays one canned
 # call per launch (exit code, stderr, files to write, tool-call paths, a hang, STATUS), recording
-# its argv, so each case pins the exit code and trailers the worker derives from Cursor's output.
+# its argv and shell variables, so each case pins the exit code and trailers the worker derives
+# from Cursor's output.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORKER="$SCRIPT_DIR/../grok_worker.py"
@@ -41,6 +42,7 @@ if sys.argv[1:] == ["models"]:
     sys.exit(spec.get("exit", 0))
 n = len(list(plan.glob("argv-*.json"))) + 1
 (plan / f"argv-{n}.json").write_text(json.dumps(sys.argv[1:]))
+(plan / f"env-{n}.json").write_text(json.dumps({k: os.environ.get(k) for k in ("MSYSTEM", "SHELL")}))
 call = json.loads((plan / f"call-{n}.json").read_text())
 ws = sys.argv[sys.argv.index("--workspace") + 1]
 for rel in call.get("write", []):
@@ -97,9 +99,9 @@ expect() {  # expect <case> <rc> <KEY=value>...
   done
 }
 
-# --- DONE with a passing verify; permissions, argv and exclude ---
+# --- DONE with a passing verify; permissions, argv, env and exclude ---
 plan done '{"status": "DONE", "write": ["src/hello.txt"]}'
-work done --verify "test -f src/hello.txt"
+MSYSTEM=MINGW64 SHELL=/usr/bin/bash work done --verify "test -f src/hello.txt"
 expect done 0 GROK_WORKER=done ROUNDS=1 VERIFY=pass OUTSIDE_READS=0 MODEL=fake-grok FALLBACK=none DIRTY=src/hello.txt
 [[ "$(trailer TRANSCRIPT)" == *transcript-1.jsonl && -s "$(trailer TRANSCRIPT)" ]] || fail "done: no transcript: $out"
 [[ "$(wc -l <<<"$out" | tr -d ' ')" == 9 ]] || fail "done: stdout holds more than the trailers: $out"
@@ -113,6 +115,8 @@ assert argv[argv.index("--workspace") + 1] == sys.argv[2], argv
 assert argv[argv.index("--model") + 1] == "grok-4.7-high", argv
 assert argv[-1].startswith("You are the build worker") and argv[-1].endswith("Create the files the test asks for.\n"), argv[-1]
 EOF
+python3 -c 'import json, sys; e = json.load(open(sys.argv[1])); assert e == {"MSYSTEM": None, "SHELL": None}, e' \
+  "$T/plan-done/env-1.json" || fail "done: Cursor got MSYSTEM or SHELL, so its hooks run in bash"
 python3 - "$S/.cursor/cli.json" "$P" "$SIB" "$S" <<'EOF' || fail "done: cli.json permissions are wrong"
 import json, sys
 perms = json.load(open(sys.argv[1]))["permissions"]

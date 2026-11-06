@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Balance;
 using Damage;
@@ -6,12 +7,14 @@ using NUnit.Framework;
 using Ships;
 using Ships.Loadout;
 using Ships.Registry;
+using Substrate.Sectors.Elements.Elites;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Tests.EditMode.Runs
 {
-    /// <summary>The spawn log off a real hull: an entry names the ship's parts and carries its loadout stat hash, times are measured from the run's begin, fate follows the run tally's rule, and the current player's own entry is left out.</summary>
+    /// <summary>The spawn log off a real hull: an entry names the ship's parts and carries its loadout stat hash, times are measured from the run's begin, fate follows the run tally's rule, the current player's own entry is left out, and the announced elite's life is marked and its kill by the player raised.</summary>
     [Category("Bootstrap")]
     public class SpawnLogEditModeTests
     {
@@ -169,6 +172,74 @@ namespace Tests.EditMode.Runs
             var entries = log.Entries();
             Assert.AreEqual(1, entries.Count);
             Assert.AreEqual(Enemy, entries[0].Id);
+        }
+
+        private static EliteMoment EliteMomentOf(ShipId ship) => new(1, "veil", ship);
+
+        [Test]
+        public void MarkElite_FlagsTheAnnouncedLife()
+        {
+            log.Begin(0f);
+            log.Log(Enemy, NewHull(), 0f);
+            log.Log(OtherEnemy, NewHull(), 1f);
+            log.MarkElite(EliteMomentOf(OtherEnemy));
+            log.End(2f);
+
+            var entries = log.Entries();
+            Assert.IsFalse(entries[0].Elite);
+            Assert.IsTrue(entries[1].Elite);
+        }
+
+        [Test]
+        public void PlayersKillOfTheElite_RaisesEliteKilled_WithTheMomentsSectorAndFactionAndTheChassis()
+        {
+            var hull = NewHull();
+            var kills = new List<SpawnLog.EliteKill>();
+            log.EliteKilled += kills.Add;
+            log.Begin(0f);
+            log.Log(Enemy, hull, 0f);
+            log.MarkElite(EliteMomentOf(Enemy));
+            log.MarkDead(Enemy, BlowFrom(Player), 2f);
+
+            Assert.AreEqual(1, kills.Count);
+            Assert.AreEqual(1, kills[0].SectorIndex);
+            Assert.AreEqual("veil", kills[0].FactionId);
+            Assert.AreEqual(hull.name.Replace("(Clone)", string.Empty), kills[0].Chassis);
+        }
+
+        [Test]
+        public void AnotherShipsKillOfTheElite_RaisesNothing()
+        {
+            var kills = new List<SpawnLog.EliteKill>();
+            log.EliteKilled += kills.Add;
+            log.Begin(0f);
+            log.Log(Enemy, NewHull(), 0f);
+            log.MarkElite(EliteMomentOf(Enemy));
+            log.MarkDead(Enemy, BlowFrom(OtherEnemy), 2f);
+
+            Assert.IsEmpty(kills);
+        }
+
+        [Test]
+        public void PlayersKillOfAShipNotElite_RaisesNothing()
+        {
+            var kills = new List<SpawnLog.EliteKill>();
+            log.EliteKilled += kills.Add;
+            log.Begin(0f);
+            log.Log(Enemy, NewHull(), 0f);
+            log.Log(OtherEnemy, NewHull(), 0f);
+            log.MarkElite(EliteMomentOf(Enemy));
+            log.MarkDead(OtherEnemy, BlowFrom(Player), 2f);
+
+            Assert.IsEmpty(kills);
+        }
+
+        [Test]
+        public void MarkElite_ForAShipNeverLogged_Throws()
+        {
+            log.Log(Enemy, NewHull(), 0f);
+
+            Assert.Throws<InvalidOperationException>(() => log.MarkElite(EliteMomentOf(OtherEnemy)));
         }
 
         [Test]

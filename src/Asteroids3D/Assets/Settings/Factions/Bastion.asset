@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ec48bc6105449028b65cebc2d7dbe46, type: 3}
+  m_Name: Bastion
+  m_EditorClassIdentifier: 
+  id: bastion
+  displayName: Bastion
+  color: {r: 0.169, g: 0.824, b: 0.969, a: 1}
+  signature:
+    ship: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd, type: 3}
+    kit: {fileID: 918213022752191143, guid: b0f5486eb29ea024da3b9a9978de5236, type: 3}
+    hull:
+    - {fileID: 2100000, guid: 036d1ae86d4257c7878f8dc6748bc865, type: 2}
+    - {fileID: 2100000, guid: 0833b70d54a2465cb314ab75227f2415, type: 2}
+    - {fileID: 2100000, guid: e6a8119c81514c78802ad3ae6998ecef, type: 2}
+    - {fileID: 2100000, guid: f663740afecd4f32a91115568ee8c4bb, type: 2}
+    - {fileID: 2100000, guid: 0833b70d54a2465cb314ab75227f2415, type: 2}
+    - {fileID: 2100000, guid: ec751c7a922d49a09397a87d9c7bf792, type: 2}
+    - {fileID: 2100000, guid: 398261779d4146eb85fb5c1faedb4669, type: 2}
+    - {fileID: 2100000, guid: c36348f426114ba3826b3096f3ece94a, type: 2}
+    - {fileID: 2100000, guid: 3036dc8f770341c4be0c002d5764906d, type: 2}
+    - {fileID: 2100000, guid: 8fe8bb73a83938740bdf04942014f662, type: 2}
+    eliteHull:
+    - {fileID: 2100000, guid: 036d1ae86d4257c7878f8dc6748bc865, type: 2}
+    - {fileID: 2100000, guid: e66fa1e1db054eac99b7af984f01278f, type: 2}
+    - {fileID: 2100000, guid: ada201cf56c943339f9fc134abfde82e, type: 2}
+    - {fileID: 2100000, guid: 2a2838390de542ff9f740a198c66d5bc, type: 2}
+    - {fileID: 2100000, guid: e66fa1e1db054eac99b7af984f01278f, type: 2}
+    - {fileID: 2100000, guid: 2d32dff68c2b4b4bb5566b14f3908d96, type: 2}
+    - {fileID: 2100000, guid: 4ebbd480c5c846e886d8949012dd10ea, type: 2}
+    - {fileID: 2100000, guid: 526dcca0013b4f10b9c5aac5d2a55f45, type: 2}
+    - {fileID: 2100000, guid: e3b33775e923445e887210ce1c1e0649, type: 2}
+    - {fileID: 2100000, guid: 8fe8bb73a83938740bdf04942014f662, type: 2}
+  common:
+    ship: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274, type: 3}
+    kit: {fileID: -8301958025146036882, guid: a17b4473baa216a4eba58800a76acfc3, type: 3}
+    hull:
+    - {fileID: 2100000, guid: ec1e92eddee8c274ba934d9f29d1fc52, type: 2}
+    - {fileID: 2100000, guid: 3d00a177b3d44a71a65d863b8e5f8e9d, type: 2}
+    - {fileID: 2100000, guid: 89b3b30dd92ee8e468cc5400ff623197, type: 2}
+    eliteHull:
+    - {fileID: 2100000, guid: ec1e92eddee8c274ba934d9f29d1fc52, type: 2}
+    - {fileID: 2100000, guid: 3d00a177b3d44a71a65d863b8e5f8e9d, type: 2}
+    - {fileID: 2100000, guid: 89b3b30dd92ee8e468cc5400ff623197, type: 2}
+  answer: {fileID: 2094418735087310904, guid: 175e0fad8ede2484082130e20c00cc0a, type: 3}
+  flame: {fileID: 2100000, guid: 8b59b8dceb3942a38da30f0cc1084eae, type: 2}
+  eliteFlame: {fileID: 2100000, guid: 361c2fabb726455cb13b67b0c6af7406, type: 2}
+  shieldRing: {r: 0.16862746, g: 0.8235294, b: 0.96862745, a: 1}

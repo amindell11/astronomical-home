@@ -219,7 +219,7 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void OfSetting_CoversTheTrialSectorsDirectorAndItsEnemyPool()
+        public void OfSetting_CoversTheTrialSectorsDirectorAndItsFaction()
         {
             var sector = AssetDatabase.LoadAssetAtPath<Sector>(TrialSectorPath);
             Assert.IsNotNull(sector, $"Trial sector prefab missing at {TrialSectorPath}");
@@ -229,7 +229,8 @@ namespace Tests.EditMode
 
             Assert.That(lines, Has.Some.StartsWith($"sector[0]/{director.name}/WaveDirector.phases[0]={{"));
             Assert.That(lines, Has.Some.StartsWith($"sector[0]/{director.name}/WaveDirector.roster={{"));
-            Assert.That(lines, Has.Some.StartsWith("sector[0]/TrialEnemyLoadout/ItemSubset.weapons="));
+            Assert.That(lines, Has.Some.StartsWith("sector[0]/Shoal/Faction.signature={"));
+            Assert.That(lines, Has.Some.StartsWith("sector[0]/Shoal/Faction.common={"));
             Assert.That(lines, Has.Some.StartsWith("PlayerLoadout/ItemSubset.ships="));
             Assert.That(lines, Has.Member("setting/killHullRestore=0.25"));
         }

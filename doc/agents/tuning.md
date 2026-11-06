@@ -8,7 +8,7 @@ A *tuning target* is one thing the owner tunes in the preview panel (`Window/Pre
 
 A thing is tunable when all three hold:
 
-- **Its knobs live in a feel profile the shipped game references** — a ScriptableObject on the `GameHost` prefab or on a prefab it builds. The panel edits that asset in place under `FeelSnapshot`, and Save writes it. A copy the game never reads tunes nothing.
+- **Its knobs live in a feel profile the shipped game references** — a ScriptableObject on the `GameHost` prefab or on a prefab it builds. The panel edits that asset in place under `FeelSnapshot`, and Save writes it. A copy the game never reads tunes nothing. A profile that hangs off ship prefabs is reached through the ships the `GameHost` prefab's hangar offer references, and the target requires they share it (`ShipDeathTarget`).
 - **The preview reaches it through the game's own seams** — the shipped `GameHost` prefab for Playtest; a real session, rig and presentation module for Replay.
 - **Every game type stays preview-free** — owner ruling 2026-10-30 on #1270. When the editor needs a reference the game keeps private, read it through `SerializedObject`, as an inspector does (`HudTarget.CanopyProfile`). An override field, setter, getter or parameter added for the preview is the smell; stop and raise it with the user, because the fix is a healthier game seam or a staged moment.
 
@@ -23,7 +23,7 @@ A thing is tunable when all three hold:
 
 - **Replay** — a timeline subject (`IPreviewSubject`) under the transport. Use it when the owner judges a moment. `Scrubs` picks the kind:
   - **Scrubbing** — a presentation module that is a function of a feel profile, a context and a time (the recap, the jump). The transport scrubs, loops and holds it.
-  - **Replay from the start** — a live world the moment plays out in (`HudReplaySubject`). The panel offers play, pause, speed, loop and restart only; Restart and Loop re-compose the subject through the host. While one is selected, the host sets `Time.timeScale` from the transport: 0 paused, its speed playing. The HUD's unscaled effects (canopy blend, hit flash, instrument flicker, extraction announcement) keep real speed, so the owner re-watches them with Restart.
+  - **Replay from the start** — a live world the moment plays out in (`HudReplaySubject`). The panel offers play, pause, speed, loop and restart only; Restart and Loop re-compose the subject through the host. A subject with fixtures keeps its pick across Restart and Loop, and picking another re-stages. While one is selected, the host sets `Time.timeScale` from the transport: 0 paused, its speed playing. The HUD's unscaled effects (canopy blend, hit flash, instrument flicker, extraction announcement) keep real speed, so the owner re-watches them with Restart.
 - **Playtest** — the shipped `GameHost` prefab, flown by the owner, with preview run records and at most swapped sectors. Use it when the feel shows only under real input and real timing.
 
 A Replay subject reaches its state through its real cause, a *staged moment*: damage through `TakeDamage`, extraction through the sector's spine, never a setter on a runtime component. `StagedMoments` is their shared home, for preview subjects and capture scenarios alike. A moment that needs a scripted world gets a fixture sector: a prefab variant of a shipped sector in `Assets/Prefabs/Sectors/Preview/` (the HUD's `HudQuietSector` and `HudExtractionSector`), serialized on `PreviewHost`, set by `PreviewHostBootstrap` and required by `RequireEntry`.

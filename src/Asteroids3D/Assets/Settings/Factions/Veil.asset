@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ec48bc6105449028b65cebc2d7dbe46, type: 3}
+  m_Name: Veil
+  m_EditorClassIdentifier: 
+  id: veil
+  displayName: Veil
+  color: {r: 0.659, g: 0.965, b: 0.231, a: 1}
+  signature:
+    ship: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637, type: 3}
+    kit: {fileID: -8301958025146036882, guid: a8d8040d4d414a15a9db015021e2bed2, type: 3}
+    hull:
+    - {fileID: 2100000, guid: 62edce561b5043bd9598564fdc1aac23, type: 2}
+    - {fileID: 2100000, guid: 3df8dd70ef6c43e0975c343017ca6dfa, type: 2}
+    - {fileID: 2100000, guid: 12469696e2e8443490d1d2acfc5e4005, type: 2}
+    - {fileID: 2100000, guid: 07a1dd73082542e3a2e35b86b00c894c, type: 2}
+    - {fileID: 2100000, guid: 2e564927438942f891629c2a25c2a3cf, type: 2}
+    - {fileID: 2100000, guid: fffb0bc813ec4b37b1b8514924d37a17, type: 2}
+    - {fileID: 2100000, guid: bfd639f9701aedb4595e5236e4c87018, type: 2}
+    - {fileID: 2100000, guid: effa8fccffdd9f445b04fd273029a15c, type: 2}
+    - {fileID: 2100000, guid: 12469696e2e8443490d1d2acfc5e4005, type: 2}
+    eliteHull:
+    - {fileID: 2100000, guid: 33ac302c0b024cc7ba8fd8c502c62b3e, type: 2}
+    - {fileID: 2100000, guid: 3926a720ad1c4fce8fd8530caf0f09b4, type: 2}
+    - {fileID: 2100000, guid: dafee05ff9274d3088c72fe408bf0abe, type: 2}
+    - {fileID: 2100000, guid: e5c32019abc34522be5748efb4b35848, type: 2}
+    - {fileID: 2100000, guid: f2221fabff61486c8c8b2d8ca801f561, type: 2}
+    - {fileID: 2100000, guid: aed55f3a0f4945b8b756d8f65dc0dfcb, type: 2}
+    - {fileID: 2100000, guid: bfd639f9701aedb4595e5236e4c87018, type: 2}
+    - {fileID: 2100000, guid: effa8fccffdd9f445b04fd273029a15c, type: 2}
+    - {fileID: 2100000, guid: dafee05ff9274d3088c72fe408bf0abe, type: 2}
+  common:
+    ship: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274, type: 3}
+    kit: {fileID: -8301958025146036882, guid: a17b4473baa216a4eba58800a76acfc3, type: 3}
+    hull:
+    - {fileID: 2100000, guid: ec1e92eddee8c274ba934d9f29d1fc52, type: 2}
+    - {fileID: 2100000, guid: 6a82540ff8124e12b91e336b15ab4111, type: 2}
+    - {fileID: 2100000, guid: 89b3b30dd92ee8e468cc5400ff623197, type: 2}
+    eliteHull:
+    - {fileID: 2100000, guid: ec1e92eddee8c274ba934d9f29d1fc52, type: 2}
+    - {fileID: 2100000, guid: 6a82540ff8124e12b91e336b15ab4111, type: 2}
+    - {fileID: 2100000, guid: 89b3b30dd92ee8e468cc5400ff623197, type: 2}
+  answer: {fileID: 1100000000000000202, guid: 4c9a03fda4724848a895b5640634048a, type: 3}
+  flame: {fileID: 2100000, guid: dc73442ac6bb43f6a5846835e6252b1f, type: 2}
+  eliteFlame: {fileID: 2100000, guid: 361c2fabb726455cb13b67b0c6af7406, type: 2}
+  shieldRing: {r: 0.65882355, g: 0.9647059, b: 0.23137255, a: 1}

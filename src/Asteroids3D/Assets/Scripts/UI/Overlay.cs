@@ -1,16 +1,20 @@
 using Combat.Targeting;
 using UnityEngine;
 using UI.Audio;
+using UI.Elites;
 using UI.Markers;
 using UI.PlayerState;
 using UI.Weapons;
 using Combat.Weapons.Conditions;
+using Game.Player;
+using Substrate.Sectors.Elements.Elites;
 using Substrate.Services.Objectives;
 using Ships;
 using Utils;
 using System;
 using UI.Objectives;
 using UI.Projection;
+using UI.Prompts;
 
 namespace UI
 {
@@ -45,6 +49,9 @@ namespace UI
         private ShipStatusOverlay shipStatus;
         private ObjectiveMarkers objectiveMarkers;
         private CanopyProjection projection;
+        private IFlightInput flightInput;
+        private string keystoneName;
+        private EliteReadout eliteReadout;
 
         public Camera WorldCamera => canvases[0].worldCamera;
         public bool IsVisible => visible && visibility.alpha > 0f;
@@ -111,6 +118,9 @@ namespace UI
 
         public void Initialize(in HudBinding binding)
         {
+            flightInput = binding.Input;
+            keystoneName = binding.KeystoneName;
+
             if (healthAudio)
                 healthAudio.Initialize(binding.Damage);
 
@@ -145,8 +155,18 @@ namespace UI
             if (!objectiveMarkers || !minimapRect)
                 throw new InvalidOperationException($"Overlay on '{name}' needs its objective markers and minimap wired.");
             objectiveMarkers.Initialize(objectives, worldCamera, minimapCamera, minimapRect, canvases[0], projection, () => IsVisible);
-            ObjectiveStatusReadout.Create(transform, labelFont, headingFont, timerFont, textMaterial,
+            ObjectiveStatusReadout.Create(transform, labelFont, headingFont, timerFont, readoutFont, textMaterial,
                 projection, () => IsVisible).Initialize(objectives);
         }
+
+        public void BindElite(IEliteStatus elite)
+        {
+            if (!eliteReadout)
+                eliteReadout = EliteReadout.Create(transform, labelFont, headingFont, textMaterial, projection, () => IsVisible);
+            eliteReadout.Bind(elite);
+        }
+
+        public void ShowKeystonePrompt(Func<bool> dismissed) =>
+            KeystonePrompt.Create(transform, readoutFont, labelFont, textMaterial, flightInput, keystoneName, dismissed);
     }
 }

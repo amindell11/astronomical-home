@@ -23,6 +23,7 @@ namespace Tests.PlayMode.Presentation.Breakup
     {
         private GameObject host;
         private UnitService units;
+        private DeathFeelProfile feel;
         private float savedMaxDelta;
         private static readonly int Visibility = Shader.PropertyToID("_DebrisVisibility");
 
@@ -40,6 +41,7 @@ namespace Tests.PlayMode.Presentation.Breakup
         {
             units.Clear();
             Object.DestroyImmediate(host);
+            if (feel) Object.Destroy(feel);
             Time.maximumDeltaTime = savedMaxDelta;
             base.TearDown();
         }
@@ -66,6 +68,12 @@ namespace Tests.PlayMode.Presentation.Breakup
         public IEnumerator BulwarkDeath_PreservesPaintAndBreaksIntoLargeSections() => PaintedHullDeath("Bulwark", 8);
 
         [UnityTest]
+        public IEnumerator SlowDebris_FadesEveryPieceBeforeItsPacedLifetimeEnds() => PacedDebris(.5f);
+
+        [UnityTest]
+        public IEnumerator FastDebris_FadesEveryPieceBeforeItsPacedLifetimeEnds() => PacedDebris(3f);
+
+        [UnityTest]
         public IEnumerator Bulwark_FliesFiresAndCollidesOnTheGameplayPlane()
         {
             var ship = Spawn("Bulwark");
@@ -82,6 +90,46 @@ namespace Tests.PlayMode.Presentation.Breakup
             ship.Weapons.Arm(Projectiles).Fire(Ships.Command.WeaponSlot.Primary,
                 new Combat.Weapons.WeaponCommand { held = true, pressed = true, targetPoint = ship.transform.position + ship.transform.up * 20f });
             Assert.That(Projectiles.ActiveCount, Is.GreaterThan(0));
+        }
+
+        private IEnumerator PacedDebris(float pace)
+        {
+            feel = Object.Instantiate(AssetDatabase.LoadAssetAtPath<DeathFeelProfile>("Assets/Settings/Ships/DeathFeel.asset"));
+            using (var serializedFeel = new SerializedObject(feel))
+            {
+                serializedFeel.FindProperty("pace").floatValue = pace;
+                serializedFeel.ApplyModifiedPropertiesWithoutUndo();
+            }
+            var debris = Object.Instantiate(AssetDatabase.LoadAssetAtPath<ShipBreakupDebris>(
+                "Assets/Visuals/Ships/Crimson/Breakup/CrimsonBreakup.prefab"));
+            var serialized = new SerializedObject(debris);
+            var pacedLifetime = serialized.FindProperty("lifetime").floatValue / pace;
+            var fade = serialized.FindProperty("fadeDuration").floatValue;
+            var pieces = serialized.FindProperty("pieces");
+            var authored = Enumerable.Range(0, pieces.arraySize).Select(pieces.GetArrayElementAtIndex)
+                .Select(piece => ((Renderer)piece.FindPropertyRelative("renderer").objectReferenceValue,
+                    piece.FindPropertyRelative("lifetime").floatValue))
+                .ToArray();
+            debris.Initialize(Vector3.zero, System.Array.Empty<Transform>(), feel);
+            // Summed like the debris's own age: late in a long run, Time.time differences lose precision.
+            var elapsed = 0f;
+            while (true)
+            {
+                yield return null;
+                elapsed += Time.deltaTime;
+                if (!debris) break;
+                foreach (var (renderer, lifetime) in authored)
+                    Assert.That(VisibilityOf(renderer), Is.EqualTo(Mathf.Clamp01((lifetime - pace * elapsed) / fade)).Within(.001f),
+                        "each piece fades on the paced clock, inside its own lifetime");
+            }
+            Assert.That(elapsed, Is.InRange(pacedLifetime - .001f, pacedLifetime + 2f * Time.maximumDeltaTime));
+        }
+
+        private static float VisibilityOf(Renderer renderer)
+        {
+            var block = new MaterialPropertyBlock();
+            renderer.GetPropertyBlock(block);
+            return block.GetFloat(Visibility);
         }
 
         private IEnumerator PaintedHullDeath(string name, int pieceCount)
