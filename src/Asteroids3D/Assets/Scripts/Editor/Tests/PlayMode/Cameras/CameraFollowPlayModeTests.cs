@@ -27,6 +27,8 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
     private const float SettleSec = 1f;
     private const float SizeTolerance = 0.05f;
     private const float LeadSpeed = 10f;
+    private const float JumpFlightSec = 0.5f;
+    private const float WhipWindowSec = 0.1f;
     private const string FlightCameraPath = "Assets/Settings/Cameras/FlightCamera.asset";
 
     [SetUp]
@@ -36,6 +38,8 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
         simulationMode = Physics.simulationMode;
         
         cam = TestAssets.NewObserverCam();
+        // The cursor comes from SetCursor alone; the editor's live mouse would move the lead.
+        cam.GetComponent<ObserverCamInputHandler>().enabled = false;
         cam.transform.position = Vector3.zero;
         feel = TestAssets.Load<FlightCameraProfile>(FlightCameraPath);
 
@@ -132,6 +136,29 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
     }
 
     [UnityTest]
+    public IEnumerator ResumeFollow_EasesTheLeadInInsteadOfWhippingToIt()
+    {
+        cam.SetSubject(subject.transform);
+        cam.SetLockCameraToSubject(true);
+        cam.SetCursor(cam.Cam.ViewportToScreenPoint(new Vector3(1f, .5f)));
+        var subjectCenter = GamePlane.WorldPointToPlane(subject.transform.position);
+
+        var flightEnds = Time.realtimeSinceStartup + JumpFlightSec;
+        while (Time.realtimeSinceStartup < flightEnds)
+        {
+            yield return null;
+            cam.transform.position -= GamePlane.PlaneDirToWorld(GamePlane.WorldPointToPlane(cam.transform.position) - subjectCenter);
+        }
+        cam.ResumeFollow();
+        yield return new WaitForSecondsRealtime(WhipWindowSec);
+
+        var offset = Vector2.Distance(GamePlane.WorldPointToPlane(cam.transform.position), subjectCenter);
+        Assert.That(offset, Is.LessThan(.25f * feel.cursorLead),
+            "the camera whipped toward the lead it built while the jump flight held it");
+        yield return CameraSettlesOn(subjectCenter + GamePlane.WorldDirToPlane(GamePlane.Right) * feel.cursorLead);
+    }
+
+    [UnityTest]
     public IEnumerator LockOff_ZoomsToFit_NotToTheProfile()
     {
         cam.SetSubject(subject.transform);
@@ -162,7 +189,7 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
     public IEnumerator Locked_ZoomWidensToFitANearbyEnemy()
     {
         cam.SetSubject(subject.transform);
-        var enemy = AddEngagedEnemyNeeding(feel.zoom + feel.maxWiden / 2f);
+        var enemy = AddEngagedEnemyNeeding(feel.zoom + feel.fightMaxWiden / 2f);
 
         yield return ZoomSettlesOn(FitWith(enemy));
     }
@@ -180,10 +207,10 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
         yield return ZoomHolds(feel.zoom, "an enemy that never came inside fightRadius widened the zoom");
 
         enemy.position = OnForward(feel.fightRadius / 2f);
-        yield return ZoomSettlesOn(Mathf.Clamp(FitWith(enemy), feel.zoom, Cap));
+        yield return ZoomSettlesOn(Mathf.Clamp(FitWith(enemy), feel.zoom, FightCap));
 
         enemy.position = OnForward(band);
-        var held = Mathf.Clamp(FitWith(enemy), feel.zoom, Cap);
+        var held = Mathf.Clamp(FitWith(enemy), feel.zoom, FightCap);
         yield return ZoomSettlesOn(held);
         yield return ZoomHolds(held, "an engaged enemy was released inside the release margin");
     }
@@ -192,12 +219,41 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
     public IEnumerator Locked_ZoomWidensNoFurtherThanTheCap()
     {
         cam.SetSubject(subject.transform);
-        AddEngagedEnemyNeeding(feel.zoom + 2f * feel.maxWiden);
+        AddEngagedEnemyNeeding(feel.zoom + 2f * feel.fightMaxWiden);
 
-        yield return ZoomSettlesOn(Cap);
+        yield return ZoomSettlesOn(FightCap);
     }
 
-    private float Cap => feel.zoom + feel.maxWiden;
+    [UnityTest]
+    public IEnumerator Locked_PullsTowardAnEnemyBehindTheLead_SoItStaysInView()
+    {
+        cam.SetSubject(subject.transform, GiveSubjectVelocity(GamePlane.Forward * LeadSpeed));
+        var behind = feel.fightRadius / 2f;
+        var enemy = AddEnemy(OnForward(-behind));
+
+        var lead = Mathf.Min(LeadSpeed * feel.leadSeconds, feel.maxLead);
+        Assume.That(feel.fightPull, Is.GreaterThan(0f), "this tuning turns the fight pull off");
+        Assume.That(lead + behind, Is.GreaterThan(FightCap - Padding), "this tuning frames the enemy without a pull");
+        Assume.That(behind + 2f * Padding, Is.LessThanOrEqualTo(2f * FightCap), "this tuning cannot fit the enemy at all");
+
+        var subjectCenter = GamePlane.WorldPointToPlane(subject.transform.position);
+        var enemyCenter = GamePlane.WorldPointToPlane(enemy.position);
+        var leadCenter = subjectCenter + GamePlane.WorldDirToPlane(GamePlane.Forward) * lead;
+        var fit = CameraUtils.ShiftToFitBounds(leadCenter, Vector2.Min(subjectCenter, enemyCenter),
+            Vector2.Max(subjectCenter, enemyCenter), FightCap, cam.Cam.aspect, Padding);
+        // Heading out to the lead the camera crosses the pulled center; the widen outlasts that.
+        yield return ZoomSettlesOn(FightCap);
+        yield return CameraSettlesOn(leadCenter + feel.fightPull * (fit - leadCenter));
+
+        Assume.That(feel.fightPull, Is.EqualTo(1f), "this tuning pulls part way, so the enemy may stay out of view");
+        var offset = enemyCenter - GamePlane.WorldPointToPlane(cam.transform.position);
+        // The zoom only approaches the cap, so the view gets the zoom's settle tolerance too.
+        var reach = new Vector2(cam.Cam.aspect, 1f) * (cam.Cam.orthographicSize + SizeTolerance) - Vector2.one * Padding;
+        Assert.That(Mathf.Abs(offset.x), Is.LessThanOrEqualTo(reach.x + FollowThreshold), "the enemy is off the side of the view");
+        Assert.That(Mathf.Abs(offset.y), Is.LessThanOrEqualTo(reach.y + FollowThreshold), "the enemy is off the end of the view");
+    }
+
+    private float FightCap => feel.zoom + feel.fightMaxWiden;
     private float Padding
     {
         get

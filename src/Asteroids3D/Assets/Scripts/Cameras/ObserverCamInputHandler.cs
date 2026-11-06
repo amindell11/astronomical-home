@@ -32,6 +32,8 @@ namespace Cameras
                 observerCam.StepZoom(scroll);
             if (controls.Camera.ToggleLock.WasPressedThisFrame())
                 observerCam.SetLockCameraToSubject(!observerCam.LockCameraToSubject);
+            var point = controls.Camera.Point;
+            observerCam.SetCursor(point.IsInProgress() ? point.ReadValue<Vector2>() : null);
         }
     }
 }
