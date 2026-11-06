@@ -96,6 +96,8 @@ namespace Tests.PlayMode.Scenarios
             };
             host.gameHostPrefab = AssetDatabase.LoadAssetAtPath<GameHost>(GameHostPath);
             Assert.IsTrue(host.gameHostPrefab, $"game host prefab at {GameHostPath}");
+            host.hudQuietSector = TestAssets.HudFixture("HudQuietSector");
+            host.hudExtractionSector = TestAssets.HudFixture("HudExtractionSector");
             hostGo.SetActive(true);
         }
 

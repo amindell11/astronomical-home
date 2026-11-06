@@ -508,16 +508,10 @@ namespace Tests.PlayMode.Preview
             host.gameHostPrefab = gameHost;
             host.sessionProfile = profile;
             host.jumpDestination = TestAssets.Load<LocaleSky>("Assets/Prefabs/Locales/CopperTurquoise.prefab");
-            host.hudQuietSector = HudSector("HudQuietSector");
-            host.hudExtractionSector = HudSector("HudExtractionSector");
+            host.hudQuietSector = TestAssets.HudFixture("HudQuietSector");
+            host.hudExtractionSector = TestAssets.HudFixture("HudExtractionSector");
             root.SetActive(true);
         }
-
-        private static SectorEntry HudSector(string name) => new()
-        {
-            prefab = TestAssets.Load<Sector>($"Assets/Prefabs/Sectors/Preview/{name}.prefab"),
-            locale = TestAssets.Load<LocaleSky>("Assets/Prefabs/Locales/IllustratedBlue.prefab")
-        };
 
         // The rig's own canopy prefab references a test copy, so live edits never touch the shipped profile.
         private PlayerRig RigWithTestCanopy()

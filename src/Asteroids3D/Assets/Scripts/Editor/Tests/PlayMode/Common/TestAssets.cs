@@ -4,6 +4,9 @@ using Capture;
 using Capture.Recording;
 using Game.Player;
 using Ships;
+using Substrate.Sectors;
+using Substrate.Services.Locales;
+using Substrate.Sessions;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -23,12 +26,20 @@ public static class TestAssets
     private const string TestPilotMpcPath = "Assets/Prefabs/Pilots/TestPilotMPC.prefab";
     private const string PlayerPilotPath = "Assets/Prefabs/Pilots/PlayerPilot.prefab";
     private const string ObserverCamPrefabPath = "Assets/Prefabs/Cameras/Main Camera.prefab";
+    private const string HudFixtureLocalePath = "Assets/Prefabs/Locales/IllustratedBlue.prefab";
 
     public static Ship LoadCrimsonPrefab() => Load<Ship>(CrimsonPrefabPath);
 
     public static AICommander LoadTestPilotMpc() => Load<AICommander>(TestPilotMpcPath);
 
     public static PlayerCommander LoadPlayerPilot() => Load<PlayerCommander>(PlayerPilotPath);
+
+    // Every Replay session appends both HUD rows to its run, so a test preview host needs them.
+    public static SectorEntry HudFixture(string name) => new()
+    {
+        prefab = Load<Sector>($"Assets/Prefabs/Sectors/Preview/{name}.prefab"),
+        locale = Load<LocaleSky>(HudFixtureLocalePath)
+    };
 
     public static T Load<T>(string assetPath) where T : UnityEngine.Object
     {

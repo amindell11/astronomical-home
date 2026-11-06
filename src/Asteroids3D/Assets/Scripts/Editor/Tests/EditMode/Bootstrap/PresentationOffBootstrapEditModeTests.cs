@@ -25,7 +25,7 @@ namespace Tests.EditMode.Bootstrap
             Assert.IsFalse(host.sessionProfile.presentation, "presentation is off from the first compose");
             Assert.IsTrue(host.playerRig, "player rig assigned");
             Assert.IsTrue(host.observerCamPrefab, "observer camera assigned");
-            Assert.That(host.sessionProfile.run.Sectors, Has.Count.EqualTo(1), "one headless sector");
+            Assert.AreEqual(1, host.sessionProfile.run.Sectors.Count, "one headless sector");
             Assert.IsTrue(host.sessionProfile.run.Sectors[0].prefab, "sector prefab assigned");
         }
     }

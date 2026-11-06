@@ -12,6 +12,7 @@ using NUnit.Framework;
 using Substrate.Sectors;
 using Substrate.Services.Locales;
 using Substrate.Sessions;
+using Tests.PlayMode.Common;
 using Tests.PlayMode.Common.Locales;
 using Tests.PlayMode.Recording;
 using UnityEditor;
@@ -40,6 +41,8 @@ namespace Tests.PlayMode.Scenarios
             };
             host.gameHostPrefab = AssetDatabase.LoadAssetAtPath<GameHost>("Assets/Prefabs/Game/GameHost.prefab");
             host.jumpDestination = AssetDatabase.LoadAssetAtPath<LocaleSky>("Assets/Prefabs/Locales/CopperTurquoise.prefab");
+            host.hudQuietSector = TestAssets.HudFixture("HudQuietSector");
+            host.hudExtractionSector = TestAssets.HudFixture("HudExtractionSector");
             host.entry = PreviewEntry.SectorJump;
             var priorTimeScale = Time.timeScale;
             try
