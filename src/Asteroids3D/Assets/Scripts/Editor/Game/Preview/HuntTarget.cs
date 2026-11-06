@@ -11,7 +11,7 @@ namespace Game.Preview
         public override string Name => "Hunt";
         public override IReadOnlyList<PreviewEntry> Entries { get; } = new[] { PreviewEntry.Combat };
 
-        public override IEnumerable<ScriptableObject> Profiles(GameHost game) => game.sessionProfile.sectors
+        public override IEnumerable<ScriptableObject> Profiles(GameHost game) => game.sessionProfile.run.Sectors
             .Select(sector => Feel(sector.prefab.GetComponentInChildren<SectorHunt>(true)))
             .Distinct();
 

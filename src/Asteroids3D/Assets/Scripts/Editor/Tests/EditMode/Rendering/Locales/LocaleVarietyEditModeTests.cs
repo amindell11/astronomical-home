@@ -1,7 +1,6 @@
 using System.Linq;
 using NUnit.Framework;
 using Substrate;
-using Substrate.Sectors;
 using Substrate.Services.Locales;
 using UnityEditor;
 using UnityEngine;
@@ -11,21 +10,21 @@ namespace Tests.EditMode.Rendering.Locales
     [Category("Sectors")]
     public sealed class LocaleVarietyEditModeTests
     {
-        [TestCase(4, "coral-sunset", "CoralSunset")]
-        [TestCase(5, "cyan-aurora", "CyanAurora")]
-        [TestCase(6, "violet-planet", "VerdantGiant")]
-        [TestCase(7, "amber-planet", "BlueCrescent")]
-        public void PreviewConfigSelectsItsCompleteLocaleWithIndependentPaletteMaterials(int number, string palette, string config)
+        private static readonly string[] NewLocales = { "CoralSunset", "CyanAurora", "VerdantGiant", "BlueCrescent" };
+
+        [TestCase("CoralSunset", "coral-sunset", false)]
+        [TestCase("CyanAurora", "cyan-aurora", false)]
+        [TestCase("VerdantGiant", "violet-planet", true)]
+        [TestCase("BlueCrescent", "amber-planet", true)]
+        public void LocaleIsCompleteWithIndependentPaletteMaterials(string name, string palette, bool hasPlanet)
         {
-            var locale = AssetDatabase.LoadAssetAtPath<LocaleSky>($"Assets/Prefabs/Locales/Locale_{number}.prefab");
-            var sector = AssetDatabase.LoadAssetAtPath<SectorSettings>($"Assets/Settings/Game/Preview/Locales/{config}.asset");
-            Assert.That(sector.Locale, Is.EqualTo(locale));
+            var locale = AssetDatabase.LoadAssetAtPath<LocaleSky>($"Assets/Prefabs/Locales/{name}.prefab");
             var sky = locale.transform.Find("Sky");
             foreach (var renderer in sky.GetComponentsInChildren<MeshRenderer>(true))
             {
                 Assert.That(renderer.gameObject.layer, Is.EqualTo(LayerIds.Sky));
                 Assert.That(AssetDatabase.GetAssetPath(renderer.sharedMaterial),
-                    Does.StartWith($"Assets/Visuals/Locales/Sky/Locales/Locale_{number}/"));
+                    Does.StartWith($"Assets/Visuals/Locales/Sky/Locales/{name}/"));
             }
             foreach (var layer in new[] { "Background", "FarNebula", "CloseNebula" })
             {
@@ -36,7 +35,7 @@ namespace Tests.EditMode.Rendering.Locales
             }
             var planets = sky.GetComponentsInChildren<MeshRenderer>(true)
                 .Where(renderer => renderer.sharedMaterial.shader.name == "Locales/Planet").ToArray();
-            Assert.That(planets.Length, Is.EqualTo(number >= 6 ? 1 : 0));
+            Assert.That(planets.Length, Is.EqualTo(hasPlanet ? 1 : 0));
             if (planets.Length == 0) return;
             var planet = planets[0].sharedMaterial;
             var stars = sky.Find("StarField").GetComponent<MeshRenderer>().sharedMaterial;
@@ -54,9 +53,9 @@ namespace Tests.EditMode.Rendering.Locales
         {
             Color[] previousReflection = null;
             Light[] previousLights = null;
-            for (var number = 4; number <= 7; number++)
+            foreach (var name in NewLocales)
             {
-                var locale = AssetDatabase.LoadAssetAtPath<LocaleSky>($"Assets/Prefabs/Locales/Locale_{number}.prefab");
+                var locale = AssetDatabase.LoadAssetAtPath<LocaleSky>($"Assets/Prefabs/Locales/{name}.prefab");
                 var lighting = new SerializedObject(locale).FindProperty("lighting");
                 Assert.That(lighting.FindPropertyRelative("ambientSkyColor").colorValue,
                     Is.EqualTo(new Color(.24f, .24f, .24f)));

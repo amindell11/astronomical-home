@@ -16,6 +16,7 @@ using Ships;
 using Substrate;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
+using Substrate.Services.Locales;
 using Substrate.Sessions;
 using Tests.PlayMode.Common;
 using Tests.PlayMode.Recording;
@@ -42,7 +43,6 @@ namespace Tests.PlayMode.Scenarios
         private GameObject hostGo;
         private PreviewHost host;
         private Ship player;
-        private SectorSettings bareConfig;
         private string stamp;
 
         public override GizmoCaptureProfile Profile => GizmoCaptureProfile.None;
@@ -84,13 +84,11 @@ namespace Tests.PlayMode.Scenarios
             finally
             {
                 if (hostGo) UnityEngine.Object.DestroyImmediate(hostGo);
-                if (bareConfig) UnityEngine.Object.DestroyImmediate(bareConfig);
             }
         }
 
         private void BootHost()
         {
-            bareConfig = ScriptableObject.CreateInstance<SectorSettings>();
             var template = new GameObject("SectorA");
             template.SetActive(false);
             template.AddComponent<Sector>().SetManifest(null, null, Array.Empty<SectorModule>());
@@ -100,7 +98,11 @@ namespace Tests.PlayMode.Scenarios
             host = hostGo.AddComponent<PreviewHost>();
             host.sessionProfile = new SessionProfile
             {
-                sectors = new[] { new SectorEntry { prefab = template.GetComponent<Sector>(), config = bareConfig } },
+                run = SectorRun.Create(new SectorEntry
+                {
+                    prefab = template.GetComponent<Sector>(),
+                    locale = AssetDatabase.LoadAssetAtPath<LocaleSky>("Assets/Prefabs/Locales/IllustratedBlue.prefab")
+                }),
                 presentation = true
             };
             host.gameHostPrefab = AssetDatabase.LoadAssetAtPath<GameHost>(GameHostPath);

@@ -5,6 +5,7 @@ using System.Linq;
 using AI;
 using AI.Context;
 using AI.Scanning;
+using Substrate.Services.Locales;
 using Substrate.Sessions;
 using Substrate.Sectors;
 using NUnit.Framework;
@@ -29,7 +30,7 @@ namespace Tests.PlayMode
         private const float SimSeconds = 4f;
 
         private const string SectorPrefabPath = "Assets/Prefabs/Sectors/ArenaSector.prefab";
-        private const string ConfigPath = "Assets/Settings/Game/DefaultSectorConfig.asset";
+        private const string LocalePath = "Assets/Prefabs/Locales/IllustratedBlue.prefab";
 
         private sealed class ArenaUnderTest
         {
@@ -327,8 +328,8 @@ namespace Tests.PlayMode
         {
             var sectorPrefab = AssetDatabase.LoadAssetAtPath<Sector>(SectorPrefabPath);
             Assert.IsNotNull(sectorPrefab, $"Sector prefab missing at {SectorPrefabPath}");
-            var config = AssetDatabase.LoadAssetAtPath<SectorSettings>(ConfigPath);
-            Assert.IsNotNull(config, $"Sector config missing at {ConfigPath}");
+            var locale = AssetDatabase.LoadAssetAtPath<LocaleSky>(LocalePath);
+            Assert.IsNotNull(locale, $"Sector locale missing at {LocalePath}");
 
             arena.Root = new GameObject(name);
             // Kept out of the other arena's active session scene, as a GameHost keeps itself.
@@ -336,7 +337,7 @@ namespace Tests.PlayMode
             created.Add(arena.Root);
             arena.Session = TestSession.Create(arena.Root, new SessionProfile
             {
-                sectors = new[] { new SectorEntry { prefab = sectorPrefab, config = config } },
+                run = SectorRun.Create(new SectorEntry { prefab = sectorPrefab, locale = locale }),
                 presentation = false,
                 offset = arena.Offset
             });

@@ -156,7 +156,7 @@ namespace Tests.PlayMode.Preview
 
             host.Select(PreviewEntry.SectorJump);
             yield return AsyncAssert.WaitUntil(() => host.IsReady && host.Subject != null, 30f, "jump replay composes");
-            Assert.That(LocaleInstances.Loaded("Locale_1"), Is.True);
+            Assert.That(LocaleInstances.Loaded("CopperTurquoise"), Is.True);
             Assert.That(Time.timeScale, Is.Zero);
             host.Transport.Playing = false;
             host.Transport.Scrub(0, 3f);
@@ -178,8 +178,8 @@ namespace Tests.PlayMode.Preview
             host.Select(PreviewEntry.Combat);
             yield return WaitForFlight();
             Assert.That(host.Playtest.recapFeel, Is.SameAs(game.recapFeel));
-            Assert.That(LocaleInstances.Loaded("Locale_1"), Is.False);
-            Assert.That(LocaleInstances.Shown(), Is.EqualTo("Locale_3"));
+            Assert.That(LocaleInstances.Loaded("CopperTurquoise"), Is.False);
+            Assert.That(LocaleInstances.Shown(), Is.EqualTo("IllustratedBlue"));
             Assert.That(Time.timeScale, Is.EqualTo(1f));
             Assert.That(Object.FindObjectsByType<GameHost>(FindObjectsSortMode.None).Length, Is.EqualTo(1));
             Assert.That(InputSystem.ListEnabledActions().Count(action => action.name == "Thrust"), Is.EqualTo(1));
@@ -381,23 +381,23 @@ namespace Tests.PlayMode.Preview
             host.entry = PreviewEntry.Combat;
             host.gameHostPrefab = shipped;
             host.sessionProfile = new SessionProfile();
-            host.crowdedJumpSectors = new[] { "CrowdedJumpDeparture", "CrowdedJumpArrival" }.Select(name => new SectorEntry
-            {
-                prefab = TestAssets.Load<Sector>($"Assets/Prefabs/Sectors/Preview/{name}.prefab"),
-                config = TestAssets.Load<SectorSettings>($"Assets/Settings/Game/Preview/{name}.asset")
-            }).ToArray();
+            host.crowdedJumpSectors = new[] { ("CrowdedJumpDeparture", "IllustratedBlue"), ("CrowdedJumpArrival", "CopperTurquoise") }
+                .Select(row => new SectorEntry
+                {
+                    prefab = TestAssets.Load<Sector>($"Assets/Prefabs/Sectors/Preview/{row.Item1}.prefab"),
+                    locale = TestAssets.Load<LocaleSky>($"Assets/Prefabs/Locales/{row.Item2}.prefab")
+                }).ToArray();
             root.SetActive(true);
 
             var combat = host.Playtest;
             yield return LaunchFromHangar(combat);
-            Assert.That(combat.sessionProfile.sectors.Select(entry => entry.prefab),
-                Is.EqualTo(shipped.sessionProfile.sectors.Select(entry => entry.prefab)));
+            Assert.That(combat.sessionProfile.run, Is.SameAs(shipped.sessionProfile.run));
             Assert.IsTrue(shipped.jumpFeel, "Combat travels between sectors");
             Assert.That(combat.jumpFeel, Is.SameAs(shipped.jumpFeel));
             Assert.IsTrue(combat.GetComponentInChildren<GameMusic>(), "the shipped music plays");
             Assert.IsTrue(combat.GetComponentInChildren<LoadingSplash>(true), "the shipped splash covers loads");
             Assert.That(combat.runRecordPath, Is.Not.EqualTo(new RunRecordStore().Path));
-            Assert.That(combat.ActiveSector.name, Does.StartWith(shipped.sessionProfile.sectors[0].prefab.name));
+            Assert.That(combat.ActiveSector.name, Does.StartWith(shipped.sessionProfile.run.Sectors[0].prefab.name));
 
             host.Select(PreviewEntry.CrowdedJumpGate);
             yield return AsyncAssert.WaitUntil(() => host.IsReady && host.Playtest != combat, 30f,
@@ -405,7 +405,7 @@ namespace Tests.PlayMode.Preview
             var crowded = host.Playtest;
             yield return LaunchFromHangar(crowded);
             Assert.That(combat == null, Is.True);
-            Assert.That(crowded.sessionProfile.sectors, Is.SameAs(host.crowdedJumpSectors));
+            Assert.That(crowded.sessionProfile.run.Sectors, Is.EqualTo(host.crowdedJumpSectors));
             Assert.That(crowded.sessionProfile.idleLocale, Is.SameAs(shipped.sessionProfile.idleLocale));
             Assert.That(crowded.ActiveSector.name, Does.StartWith("CrowdedJumpDeparture"));
             Assert.That(Object.FindObjectsByType<GameHost>(FindObjectsSortMode.None).Length, Is.EqualTo(1));
@@ -425,13 +425,13 @@ namespace Tests.PlayMode.Preview
             host.bossSector = new SectorEntry
             {
                 prefab = TestAssets.Load<Sector>("Assets/Prefabs/Sectors/Preview/BossSector.prefab"),
-                config = TestAssets.Load<SectorSettings>("Assets/Settings/Game/SurvivalTrialConfig.asset")
+                locale = TestAssets.Load<LocaleSky>("Assets/Prefabs/Locales/IllustratedBlue.prefab")
             };
             root.SetActive(true);
 
             var boss = host.Playtest;
             yield return LaunchFromHangar(boss);
-            Assert.That(boss.sessionProfile.sectors, Is.EqualTo(new[] { host.bossSector }));
+            Assert.That(boss.sessionProfile.run.Sectors, Is.EqualTo(new[] { host.bossSector }));
             Assert.That(boss.ActiveSector.name, Does.StartWith("BossSector"));
             var spine = boss.ActiveSector.Module<PhaseSpineModule>();
             var objectives = boss.GetComponent<ObjectiveService>();
@@ -485,14 +485,11 @@ namespace Tests.PlayMode.Preview
             sector.SetManifest(null, null, System.Array.Empty<SectorModule>());
             var profile = new SessionProfile
             {
-                sectors = new[]
+                run = SectorRun.Create(new SectorEntry
                 {
-                    new SectorEntry
-                    {
-                        prefab = sector,
-                        config = TestAssets.Load<SectorSettings>("Assets/Settings/Game/SurvivalTrialConfig.asset")
-                    }
-                }
+                    prefab = sector,
+                    locale = TestAssets.Load<LocaleSky>("Assets/Prefabs/Locales/IllustratedBlue.prefab")
+                })
             };
             var game = new GameObject("Playtest game host");
             game.transform.SetParent(template.transform, false);
@@ -510,7 +507,7 @@ namespace Tests.PlayMode.Preview
             host.entry = entry;
             host.gameHostPrefab = gameHost;
             host.sessionProfile = profile;
-            host.jumpDestination = TestAssets.Load<LocaleSky>("Assets/Prefabs/Locales/Locale_1.prefab");
+            host.jumpDestination = TestAssets.Load<LocaleSky>("Assets/Prefabs/Locales/CopperTurquoise.prefab");
             host.hudQuietSector = HudSector("HudQuietSector");
             host.hudExtractionSector = HudSector("HudExtractionSector");
             root.SetActive(true);
@@ -519,7 +516,7 @@ namespace Tests.PlayMode.Preview
         private static SectorEntry HudSector(string name) => new()
         {
             prefab = TestAssets.Load<Sector>($"Assets/Prefabs/Sectors/Preview/{name}.prefab"),
-            config = TestAssets.Load<SectorSettings>("Assets/Settings/Game/SurvivalTrialConfig.asset")
+            locale = TestAssets.Load<LocaleSky>("Assets/Prefabs/Locales/IllustratedBlue.prefab")
         };
 
         // The rig's own canopy prefab references a test copy, so live edits never touch the shipped profile.

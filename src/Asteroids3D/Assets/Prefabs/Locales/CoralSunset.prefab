@@ -549,7 +549,7 @@ GameObject:
   - component: {fileID: 7426520943839102699}
   - component: {fileID: 3833049007285589542}
   m_Layer: 0
-  m_Name: Locale_4
+  m_Name: CoralSunset
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

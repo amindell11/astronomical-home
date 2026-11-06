@@ -17,7 +17,7 @@ namespace Tests.EditMode.Rendering.Illustrated
         {
             var shader = Shader.Find("Astronomical/Drawn/Contour");
             Assert.That(shader, Is.Not.Null);
-            using (var locale = new OpenLocale("Assets/Prefabs/Locales/Locale_3.prefab"))
+            using (var locale = new OpenLocale("Assets/Prefabs/Locales/IllustratedBlue.prefab"))
             {
                 var materials = locale.Root.GetComponentsInChildren<MeshRenderer>()
                     .Where(r => r.enabled && r.gameObject.layer == LayerIds.Sky)
