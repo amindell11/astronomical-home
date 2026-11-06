@@ -195,6 +195,9 @@ namespace Tests.PlayMode.Screens
                 foreach (var (mount, weaponName) in new[] { ("Primary", loadout.primary), ("Secondary", loadout.secondary) })
                 {
                     var weaponIcon = screen.transform.Find("Panels/" + rowPath + mount).GetComponent<Image>();
+                    var firstIcon = (RectTransform)screen.transform.Find("Panels/Recap/Scoreboard/Row1/" + mount);
+                    Assert.AreEqual(firstIcon.anchoredPosition.x, weaponIcon.rectTransform.anchoredPosition.x,
+                        "weapon columns align across different ship names and empty mounts");
                     Assert.AreEqual(!string.IsNullOrEmpty(weaponName), weaponIcon.enabled);
                     var weapon = string.IsNullOrEmpty(weaponName) ? null
                         : AssetDatabase.LoadAssetAtPath<WeaponComponent>($"Assets/Prefabs/Weapons/{weaponName}.prefab");

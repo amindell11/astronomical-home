@@ -248,9 +248,8 @@ namespace UI.Screens
                     icon.raycastTarget = false;
                 }
                 else Label(cells, "UnavailableIcon", "?", 44, 0, 24, 24, 16, Muted, TextAnchor.MiddleCenter);
-                var weaponsX = 80 + ship.preferredWidth + 12;
-                WeaponIcon(cells, "Primary", weaponsX, weaponIcons.Find(row.Player.primary));
-                WeaponIcon(cells, "Secondary", weaponsX + 36, weaponIcons.Find(row.Player.secondary));
+                WeaponIcon(cells, "Primary", 352, weaponIcons.Find(row.Player.primary));
+                WeaponIcon(cells, "Secondary", 388, weaponIcons.Find(row.Player.secondary));
             }
         }
 
