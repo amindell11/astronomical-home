@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Console material palette</title>
+  <link rel="stylesheet" href="../../combat-hud/shared/type.css">
+  <link rel="stylesheet" href="../../combat-hud/shared/roles.css">
+  <link rel="stylesheet" href="palette.css">
+  <script src="palette-assets.js" defer></script>
+  <script src="palette.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div><a class="back" href="history.html">Console studies</a><h1>Material palette</h1></div>
+    <p>Change the console colors. Keep the shading.</p>
+  </header>
+  <main class="workspace">
+    <section class="preview" aria-labelledby="preview-title">
+      <div class="preview-toolbar">
+        <div><h2 id="preview-title">Console preview</h2><span id="palette-name">Darker warm neutrals</span></div>
+        <button id="compare" type="button" aria-pressed="false" disabled>Show original</button>
+      </div>
+      <div class="image-wrap"><canvas id="view" aria-label="Console with the current material colors" role="img"></canvas><p id="loading">Loading the console…</p></div>
+      <div class="preview-caption"><span id="source-label">neutral-materials.png</span><span id="view-status">Palette preview</span></div>
+      <p class="protection-note">Ship, sky, screen, lettering, and the amber projection stay as drawn. Cyan accents have a separate optional control.</p>
+      <p id="error" role="alert" hidden></p>
+    </section>
+    <aside class="controls" aria-label="Material controls">
+      <div class="controls-heading"><h2>Hardware colors</h2><p>Pick a color or enter a hex value, then adjust its brightness.</p></div>
+      <div id="material-controls"></div>
+      <div id="light-controls"></div>
+      <div class="actions">
+        <button id="reset" type="button" disabled>Reset darker palette</button>
+        <button id="original" type="button" class="quiet" disabled>Restore source colors</button>
+      </div>
+      <div class="exports">
+        <button id="download-image" type="button" class="primary" disabled>Download image PNG</button>
+        <button id="download-palette" type="button" disabled>Download palette JSON</button>
+        <p id="save-status" aria-live="polite">Your choices save in this browser.</p>
+      </div>
+      <details class="data"><summary>Palette data</summary><textarea id="export" rows="12" readonly aria-label="Exported palette JSON" spellcheck="false"></textarea></details>
+    </aside>
+  </main>
+</body>
+</html>

@@ -1,0 +1,151 @@
+{
+  "schemaVersion": 1,
+  "sourceImage": {
+    "file": "neutral-materials.png",
+    "width": 1670,
+    "height": 941,
+    "sha256": "f7b77651a5271d3972d787f760b1d2f66a51305a25f3d59b3efb6e2fc98c752a"
+  },
+  "maskImage": "palette-regions.png",
+  "encoding": {
+    "format": "RGBA8",
+    "regionChannel": "R",
+    "regionValues": "integer IDs 1..7; 0 is protected",
+    "coverageChannel": "G",
+    "coverageRange": [
+      0,
+      255
+    ],
+    "blueChannel": 0,
+    "alphaChannel": 255,
+    "protectedPixel": {
+      "r": 0,
+      "g": 0,
+      "b": 0,
+      "a": 255
+    }
+  },
+  "regions": [
+    {
+      "id": 1,
+      "key": "mainHousing",
+      "label": "Main housing",
+      "originalColor": "#ead0ad",
+      "referenceColor": "#ead0ad",
+      "defaultColor": "#bba78e",
+      "pixelCount": 159957,
+      "weightedPixelCount": 153355.03,
+      "referenceSample": {
+        "x": 1382,
+        "y": 747,
+        "color": "#ead0ad"
+      },
+      "recolorMode": "linearChannelGain"
+    },
+    {
+      "id": 2,
+      "key": "silverTrim",
+      "label": "Metal trim",
+      "originalColor": "#bbb6b9",
+      "referenceColor": "#bbb6b9",
+      "defaultColor": "#999187",
+      "pixelCount": 39914,
+      "weightedPixelCount": 35839.24,
+      "referenceSample": {
+        "x": 366,
+        "y": 332,
+        "color": "#bbb6b9"
+      },
+      "recolorMode": "linearChannelGain"
+    },
+    {
+      "id": 3,
+      "key": "taupeCovers",
+      "label": "Taupe covers",
+      "originalColor": "#997766",
+      "referenceColor": "#997766",
+      "defaultColor": "#8e7565",
+      "pixelCount": 20994,
+      "weightedPixelCount": 20245.81,
+      "referenceSample": {
+        "x": 1640,
+        "y": 755,
+        "color": "#997766"
+      },
+      "recolorMode": "linearChannelGain"
+    },
+    {
+      "id": 4,
+      "key": "darkStructure",
+      "label": "Dark structure",
+      "originalColor": "#343137",
+      "referenceColor": "#343137",
+      "defaultColor": "#343238",
+      "pixelCount": 119562,
+      "weightedPixelCount": 109972.22,
+      "referenceSample": {
+        "x": 831,
+        "y": 749,
+        "color": "#343137"
+      },
+      "recolorMode": "linearChannelGain"
+    },
+    {
+      "id": 5,
+      "key": "buttonCaps",
+      "label": "Selector caps",
+      "originalColor": "#dcc4a8",
+      "referenceColor": "#dcc4a8",
+      "defaultColor": "#c8b195",
+      "pixelCount": 11059,
+      "weightedPixelCount": 9916.28,
+      "referenceSample": {
+        "x": 629,
+        "y": 539,
+        "color": "#dcc4a8"
+      },
+      "recolorMode": "linearChannelGain"
+    },
+    {
+      "id": 6,
+      "key": "knobsCables",
+      "label": "Knobs and cables",
+      "originalColor": "#413b3e",
+      "referenceColor": "#413b3e",
+      "defaultColor": "#353234",
+      "pixelCount": 26193,
+      "weightedPixelCount": 18063.46,
+      "referenceSample": {
+        "x": 1427,
+        "y": 726,
+        "color": "#413b3e"
+      },
+      "recolorMode": "linearChannelGain"
+    },
+    {
+      "id": 7,
+      "key": "projectionLights",
+      "label": "Projection accents",
+      "originalColor": "#8af5fa",
+      "referenceColor": "#8af5fa",
+      "defaultColor": "#d9c6a2",
+      "pixelCount": 2895,
+      "weightedPixelCount": 2537.26,
+      "referenceSample": {
+        "x": 1208,
+        "y": 897,
+        "color": "#8af5fa"
+      },
+      "recolorMode": "luminanceTint"
+    }
+  ],
+  "protected": [
+    "Holographic ship",
+    "Sky",
+    "Display face and text",
+    "Projector aperture and beam",
+    "Amber status lights",
+    "Launch glowing cap"
+  ],
+  "qualification": "Hand-authored supersampled part polygons, luminance preservation for ink and shadow, amber emission protection, and local cyan hue membership for projection accents."
+}

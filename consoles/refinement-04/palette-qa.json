@@ -1,0 +1,78 @@
+{
+  "fileProtocol": "file:",
+  "initial": {
+    "changedPixels": 369679,
+    "changedOutsideMask": 0,
+    "changedByRegion": {
+      "1": 159632,
+      "2": 39584,
+      "3": 20742,
+      "4": 110966,
+      "5": 10886,
+      "6": 24990,
+      "7": 2879
+    },
+    "roleCount": 7
+  },
+  "originalComparisonDifferentBytes": 0,
+  "restoredSourceDifferentBytes": 0,
+  "exported": {
+    "schemaVersion": 1,
+    "status": "review-draft",
+    "context": "console-materials",
+    "preset": "custom",
+    "colors": {
+      "mainHousing": "#5f665b",
+      "silverTrim": "#bbb6b9",
+      "taupeCovers": "#997766",
+      "darkStructure": "#343137",
+      "buttonCaps": "#dcc4a8",
+      "knobsCables": "#413b3e",
+      "projectionLights": "#8af5fa"
+    },
+    "brightness": {
+      "mainHousing": 0.74,
+      "silverTrim": 1,
+      "taupeCovers": 1,
+      "darkStructure": 1,
+      "buttonCaps": 1,
+      "knobsCables": 1,
+      "projectionLights": 1
+    },
+    "enabled": {
+      "mainHousing": true,
+      "silverTrim": true,
+      "taupeCovers": true,
+      "darkStructure": true,
+      "buttonCaps": true,
+      "knobsCables": true,
+      "projectionLights": true
+    },
+    "sourceImage": "neutral-materials.png",
+    "sourceSHA256": "f7b77651a5271d3972d787f760b1d2f66a51305a25f3d59b3efb6e2fc98c752a"
+  },
+  "persistedAfterReload": true,
+  "invalidHexRejected": true,
+  "downloadedJSONMatches": true,
+  "downloadedPNGMatches": true,
+  "layouts": [
+    {
+      "width": 1600,
+      "contentWidth": 1585,
+      "canvasWidth": 1199
+    },
+    {
+      "width": 840,
+      "contentWidth": 825,
+      "canvasWidth": 787
+    },
+    {
+      "width": 390,
+      "contentWidth": 390,
+      "canvasWidth": 360
+    }
+  ],
+  "sourceSHA256": "f7b77651a5271d3972d787f760b1d2f66a51305a25f3d59b3efb6e2fc98c752a",
+  "sourceUnchanged": true,
+  "status": "passed"
+}

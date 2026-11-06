@@ -1,6 +1,6 @@
 # Console panel concepts
 
-The [owner-angle detail refinement](refinement-04/index.html) is the latest review. It captures the owner's November 6 Blender edits with the missing nebula plane restored, then uses that frame for an image-model detail and lighting pass. The edited Blender source is preserved; the proposed image details have not been modeled yet.
+The [console palette editor](refinement-04/index.html) is the latest review. It gives the owner direct color and brightness controls over the neutral console image, starting with darker, warmer materials. The [image history](refinement-04/history.html) preserves the preceding refinements and the owner's November 6 Blender capture. The edited Blender source is preserved; the proposed image details have not been modeled yet.
 
 The [editable 3D console](reference-scene-03/index.html) is the modeling base for that refinement. The [November 5 owner direction](https://github.com/amindell11/astronomical-home/issues/684#issuecomment-6679675163) returns to the attached lighting-C image and requests a full 3D scene at medium detail for direct Blender edits. The monitor, equipment deck, cables, projector, control and real Vanguard hologram have editable geometry. Reference screen labels are temporary artwork for this modeling pass. The [first blockout](hangar-blockout-01/index.html), [second blockout and arrival storyboard](hangar-blockout-02/index.html), and [lighting studies](lighting-01/index.html) remain historical references.
 
