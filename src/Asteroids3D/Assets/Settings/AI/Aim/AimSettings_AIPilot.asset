@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: AimSettings_AIPilot
   m_EditorClassIdentifier:
   reactionDelay: 0.375
-  wanderSize: 5
+  wanderSize: 11.25
   wanderCorrelationTime: 0.5
-  startingError: 12
+  startingError: 0
   timeToTighten: 6
   cone: 30
   range: 25
