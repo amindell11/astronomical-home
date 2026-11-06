@@ -133,7 +133,7 @@ namespace Tests.PlayMode.Audio
         }
 
         [UnityTest]
-        public IEnumerator EliteStep_SetsElite_AndItsEndSetsExtract()
+        public IEnumerator EliteStep_SetsElite_AndExtractionAfterItStaysOnElite()
         {
             var description = Fresh(MusicEvent);
             var objectives = New("Objectives").AddComponent<ObjectiveService>();
@@ -154,7 +154,8 @@ namespace Tests.PlayMode.Audio
             yield return null;
             yield return Flush();
             Assert.AreEqual(PhaseSpineModule.StepExtract, objectives.SpineStep);
-            Assert.AreEqual(nameof(GameMusic.State.Extract), Label(description, instance), "the elite's end opens extraction");
+            Assert.AreEqual(nameof(GameMusic.State.Elite), Label(description, instance),
+                "extraction after the elite keeps the elite's cue");
         }
 
         [UnityTest]
