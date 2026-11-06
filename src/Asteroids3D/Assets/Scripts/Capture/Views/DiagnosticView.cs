@@ -39,7 +39,7 @@ namespace Capture.Views
         {
             cameraView = gameObject.AddComponent<Camera>();
             cameraView.orthographic = true;
-            cameraView.cullingMask &= ~LayerMask.GetMask("Minimap", "Minimap_Ship", "Minimap_Enemy");
+            cameraView.cullingMask &= ~LayerMask.GetMask("Minimap", "Minimap_Ship", "Minimap_Enemy", "Minimap_Find");
             cameraView.clearFlags = CameraClearFlags.SolidColor;
             cameraView.backgroundColor = new Color(0.02f, 0.02f, 0.05f);
             cameraView.depth = 100f;

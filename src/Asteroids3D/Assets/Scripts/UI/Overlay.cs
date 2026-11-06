@@ -155,6 +155,7 @@ namespace UI
             if (!objectiveMarkers || !minimapRect)
                 throw new InvalidOperationException($"Overlay on '{name}' needs its objective markers and minimap wired.");
             objectiveMarkers.Initialize(objectives, worldCamera, minimapCamera, minimapRect, canvases[0], projection, () => IsVisible);
+            FindPointers.Create(minimapRect, projection, () => IsVisible).Initialize(objectives, minimapCamera);
             ObjectiveStatusReadout.Create(transform, labelFont, headingFont, timerFont, readoutFont, textMaterial,
                 projection, () => IsVisible).Initialize(objectives);
         }
