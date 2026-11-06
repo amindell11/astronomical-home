@@ -1,0 +1,747 @@
+{
+  "source_commit": "4381bc43f8a12bd0cd6d459828b73a530a29a56e",
+  "primary_commit": "372bc3ec6a03c5527acb95319f3d03813194baa9",
+  "path_format": "All source and destination paths are absolute. destination_project_relative is relative to primary src/Asteroids3D.",
+  "primary_scene_source": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Scenes/InitScene.unity",
+  "primary_scene_sha256": "12e2e8f399250e4a3130a83d3c41629b069cbb1a1a1fbfee21c677da9b57bbcc",
+  "preview_scenes": [
+    "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Scenes/LocalePreview/PlanetPreview_Green.unity",
+    "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Scenes/LocalePreview/PlanetPreview_Blue.unity"
+  ],
+  "existing_primary_files_that_differ": [
+    "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Nebula.shader"
+  ],
+  "files": [
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Prefabs/Locales/Locale_6.prefab",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Prefabs/Locales/Locale_6.prefab",
+      "destination_project_relative": "Assets/Prefabs/Locales/Locale_6.prefab",
+      "action": "add",
+      "sha256": "eb4de1465e6901512e1f3fb39e56d1a460d7acd559230e7f36ae327742e9c6c1",
+      "bytes": 29487,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Prefabs/Locales/Locale_6.prefab.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Prefabs/Locales/Locale_6.prefab.meta",
+      "destination_project_relative": "Assets/Prefabs/Locales/Locale_6.prefab.meta",
+      "action": "add",
+      "sha256": "2c63add69f786a84ce4611b262e6f56de8f744ed2f712a9b28ab8c646769bfa2",
+      "bytes": 154,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Prefabs/Locales/Locale_7.prefab",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Prefabs/Locales/Locale_7.prefab",
+      "destination_project_relative": "Assets/Prefabs/Locales/Locale_7.prefab",
+      "action": "add",
+      "sha256": "380a280f2e4e8d831fdbf7f3b8575aaefc9170574111744ccd994a8c858c6dfe",
+      "bytes": 29483,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Prefabs/Locales/Locale_7.prefab.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Prefabs/Locales/Locale_7.prefab.meta",
+      "destination_project_relative": "Assets/Prefabs/Locales/Locale_7.prefab.meta",
+      "action": "add",
+      "sha256": "357d7aa8f078d509eb7b787852c4e481e3d03818a6b02b06f52ffdc1073108a5",
+      "bytes": 154,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/scratch/luminance-20261105/LocalePreview.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Scenes/LocalePreview.meta",
+      "destination_project_relative": "Assets/Scenes/LocalePreview.meta",
+      "action": "add",
+      "sha256": "8bbf946f09e1acb982cb37d68cc056c19c3da9a6e63e708e43f52d81f376b128",
+      "bytes": 180,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/scratch/luminance-20261105/PlanetPreview_Blue.unity",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Scenes/LocalePreview/PlanetPreview_Blue.unity",
+      "destination_project_relative": "Assets/Scenes/LocalePreview/PlanetPreview_Blue.unity",
+      "action": "add",
+      "sha256": "7758ab95f0ffcc2d356ff63568d1b5eb362b9f355fcce31297e2cb1d1160e40d",
+      "bytes": 7331,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/scratch/luminance-20261105/PlanetPreview_Blue.unity.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Scenes/LocalePreview/PlanetPreview_Blue.unity.meta",
+      "destination_project_relative": "Assets/Scenes/LocalePreview/PlanetPreview_Blue.unity.meta",
+      "action": "add",
+      "sha256": "1a8e18c396766775768e6ee9d67e9dbf2afdafad7883417eab86a666597e5975",
+      "bytes": 155,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/scratch/luminance-20261105/PlanetPreview_Green.unity",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Scenes/LocalePreview/PlanetPreview_Green.unity",
+      "destination_project_relative": "Assets/Scenes/LocalePreview/PlanetPreview_Green.unity",
+      "action": "add",
+      "sha256": "e0845339ec0dcda7fe0205756e4a708027be73522df4c51ce21c6123ea824147",
+      "bytes": 7331,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/scratch/luminance-20261105/PlanetPreview_Green.unity.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Scenes/LocalePreview/PlanetPreview_Green.unity.meta",
+      "destination_project_relative": "Assets/Scenes/LocalePreview/PlanetPreview_Green.unity.meta",
+      "action": "add",
+      "sha256": "0f4f5653bf1aace32cd016df3fa87f599f1429ebc4591954a9a54d3749893a92",
+      "bytes": 155,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Settings/Game/Preview/Locales.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Settings/Game/Preview/Locales.meta",
+      "destination_project_relative": "Assets/Settings/Game/Preview/Locales.meta",
+      "action": "add",
+      "sha256": "20af80e0e237d4bc18062ef4d6f24b00e211dc6453727604731ea67443b42379",
+      "bytes": 172,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Settings/Game/Preview/Locales/BlueCrescent.asset",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Settings/Game/Preview/Locales/BlueCrescent.asset",
+      "destination_project_relative": "Assets/Settings/Game/Preview/Locales/BlueCrescent.asset",
+      "action": "add",
+      "sha256": "ad592864a63d5e71391275b9a284dbebf1bb612c836c3da2cc68ec44f046e24e",
+      "bytes": 542,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Settings/Game/Preview/Locales/BlueCrescent.asset.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Settings/Game/Preview/Locales/BlueCrescent.asset.meta",
+      "destination_project_relative": "Assets/Settings/Game/Preview/Locales/BlueCrescent.asset.meta",
+      "action": "add",
+      "sha256": "8ba5b1860c5c908653336354c0d478ec4865d368cc894f5de9a2cfb3cfd7529a",
+      "bytes": 189,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Settings/Game/Preview/Locales/VerdantGiant.asset",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Settings/Game/Preview/Locales/VerdantGiant.asset",
+      "destination_project_relative": "Assets/Settings/Game/Preview/Locales/VerdantGiant.asset",
+      "action": "add",
+      "sha256": "9e7c0318403969a9c270ab7010a4ab29a2b8678ba0d65d34c6e77f8bcf20f3b1",
+      "bytes": 542,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Settings/Game/Preview/Locales/VerdantGiant.asset.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Settings/Game/Preview/Locales/VerdantGiant.asset.meta",
+      "destination_project_relative": "Assets/Settings/Game/Preview/Locales/VerdantGiant.asset.meta",
+      "action": "add",
+      "sha256": "629169fc0325546bf25333073caa4c8154e1662789cbcd4e38d21508109aa6f9",
+      "bytes": 189,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Flat/Generated/amber-planet-final.CloseNebula.mat",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Flat/Generated/amber-planet-final.CloseNebula.mat",
+      "destination_project_relative": "Assets/Visuals/Locales/Flat/Generated/amber-planet-final.CloseNebula.mat",
+      "action": "add",
+      "sha256": "925c0260165f9affdeeb9779c33eb4decd5093c2845f4dd7a755942d46bb52e8",
+      "bytes": 986,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Flat/Generated/amber-planet-final.CloseNebula.mat.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Flat/Generated/amber-planet-final.CloseNebula.mat.meta",
+      "destination_project_relative": "Assets/Visuals/Locales/Flat/Generated/amber-planet-final.CloseNebula.mat.meta",
+      "action": "add",
+      "sha256": "4dd47fe277b445647ce602bfb671bec8189dc7c56a4e4afe9da676c7f8dbb71a",
+      "bytes": 188,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Flat/Generated/amber-planet-final.FarNebula.mat",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Flat/Generated/amber-planet-final.FarNebula.mat",
+      "destination_project_relative": "Assets/Visuals/Locales/Flat/Generated/amber-planet-final.FarNebula.mat",
+      "action": "add",
+      "sha256": "e2917785b2d5d3ab9468fa8a7f2fca97bb9430ff050b24291df22a5168c10d9b",
+      "bytes": 964,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Flat/Generated/amber-planet-final.FarNebula.mat.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Flat/Generated/amber-planet-final.FarNebula.mat.meta",
+      "destination_project_relative": "Assets/Visuals/Locales/Flat/Generated/amber-planet-final.FarNebula.mat.meta",
+      "action": "add",
+      "sha256": "50a9b08047af489a1aeb52547f1707095cda4895fb4ef339c579a53ff9e283c2",
+      "bytes": 188,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Flat/Generated/amber-planet-final.exr",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Flat/Generated/amber-planet-final.exr",
+      "destination_project_relative": "Assets/Visuals/Locales/Flat/Generated/amber-planet-final.exr",
+      "action": "add",
+      "sha256": "bf97f6224b0dcd3981354af9aa6e168fa3b8c03eb6f77bfe24877e116588b96c",
+      "bytes": 12014598,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Flat/Generated/amber-planet-final.exr.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Flat/Generated/amber-planet-final.exr.meta",
+      "destination_project_relative": "Assets/Visuals/Locales/Flat/Generated/amber-planet-final.exr.meta",
+      "action": "add",
+      "sha256": "0734808916683637357b82db669c7e3cb0ee476896086fa6ff567bead41416fe",
+      "bytes": 2652,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Flat/Generated/amber-planet-final.mat",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Flat/Generated/amber-planet-final.mat",
+      "destination_project_relative": "Assets/Visuals/Locales/Flat/Generated/amber-planet-final.mat",
+      "action": "add",
+      "sha256": "0048ccffc308b09dbc598ce3f95a07fdc0495215adf40884a1d34a13dc2f1bd0",
+      "bytes": 1045,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Flat/Generated/amber-planet-final.mat.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Flat/Generated/amber-planet-final.mat.meta",
+      "destination_project_relative": "Assets/Visuals/Locales/Flat/Generated/amber-planet-final.mat.meta",
+      "action": "add",
+      "sha256": "18d9ace153a15579876756ff78f3de921657d203c0dda355037e020f991d1d8a",
+      "bytes": 188,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Flat/Generated/violet-planet-final.CloseNebula.mat",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Flat/Generated/violet-planet-final.CloseNebula.mat",
+      "destination_project_relative": "Assets/Visuals/Locales/Flat/Generated/violet-planet-final.CloseNebula.mat",
+      "action": "add",
+      "sha256": "808008ecdfabdfd138c8bc57c069711b721170fefb72969a27ae7fa48b796d47",
+      "bytes": 989,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Flat/Generated/violet-planet-final.CloseNebula.mat.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Flat/Generated/violet-planet-final.CloseNebula.mat.meta",
+      "destination_project_relative": "Assets/Visuals/Locales/Flat/Generated/violet-planet-final.CloseNebula.mat.meta",
+      "action": "add",
+      "sha256": "34dd62227d59b6e638fd310c8310696c8e2350018ddd11d8f0f3ae8230bc2c78",
+      "bytes": 188,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Flat/Generated/violet-planet-final.FarNebula.mat",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Flat/Generated/violet-planet-final.FarNebula.mat",
+      "destination_project_relative": "Assets/Visuals/Locales/Flat/Generated/violet-planet-final.FarNebula.mat",
+      "action": "add",
+      "sha256": "2c4f3284835f1becc870448fbdf694bbba1b5beb58271ba299bb6f4d4eddf2d3",
+      "bytes": 966,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Flat/Generated/violet-planet-final.FarNebula.mat.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Flat/Generated/violet-planet-final.FarNebula.mat.meta",
+      "destination_project_relative": "Assets/Visuals/Locales/Flat/Generated/violet-planet-final.FarNebula.mat.meta",
+      "action": "add",
+      "sha256": "0492b67c741f30d6857de636330875a7a11cf99189ee40ae8e0fc53be3b7e61c",
+      "bytes": 188,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Flat/Generated/violet-planet-final.exr",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Flat/Generated/violet-planet-final.exr",
+      "destination_project_relative": "Assets/Visuals/Locales/Flat/Generated/violet-planet-final.exr",
+      "action": "add",
+      "sha256": "8189596dbf3ea32a48156688dd2b5868f5015787a0c318a395476faffa74f4c8",
+      "bytes": 12573329,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Flat/Generated/violet-planet-final.exr.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Flat/Generated/violet-planet-final.exr.meta",
+      "destination_project_relative": "Assets/Visuals/Locales/Flat/Generated/violet-planet-final.exr.meta",
+      "action": "add",
+      "sha256": "9165a5ecdafc3f1d2b1b6e35ea16ada5c5c34c045308d21230673ec1615014e8",
+      "bytes": 2652,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Flat/Generated/violet-planet-final.mat",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Flat/Generated/violet-planet-final.mat",
+      "destination_project_relative": "Assets/Visuals/Locales/Flat/Generated/violet-planet-final.mat",
+      "action": "add",
+      "sha256": "e508e56b10133fd8d200ab9cbc58e7c2031504f547d5a8ba555dcacfcf82a790",
+      "bytes": 1046,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Flat/Generated/violet-planet-final.mat.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Flat/Generated/violet-planet-final.mat.meta",
+      "destination_project_relative": "Assets/Visuals/Locales/Flat/Generated/violet-planet-final.mat.meta",
+      "action": "add",
+      "sha256": "27c07bdd32e4d09f48ebae1ba26488c227ca3a08a54162e20fccfceffecf12ce",
+      "bytes": 188,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6.meta",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_6.meta",
+      "action": "add",
+      "sha256": "4648960b77b77d14eeb91c9718ccaaf4101d0cc703f3d8e3c719bedf78a119ce",
+      "bytes": 172,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6/Atmosphere.asset",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6/Atmosphere.asset",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_6/Atmosphere.asset",
+      "action": "add",
+      "sha256": "19104029732164f8c6ef5c75103e5d5abeb22e24926fe423371ad345b41dd6d9",
+      "bytes": 892,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6/Atmosphere.asset.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6/Atmosphere.asset.meta",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_6/Atmosphere.asset.meta",
+      "action": "add",
+      "sha256": "959883eaf11e6472bee62a860fb1ddcd06fb149ca38ead0f0f3857a2fd9af438",
+      "bytes": 189,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6/Background.mat",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6/Background.mat",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_6/Background.mat",
+      "action": "add",
+      "sha256": "5c176c4fa840a3ac4b7c0ddeb25009b4c3be586a3a8ad6d5eb88583757c4584e",
+      "bytes": 947,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6/Background.mat.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6/Background.mat.meta",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_6/Background.mat.meta",
+      "action": "add",
+      "sha256": "f58f9f7ac40dde4d6c94c15f97e422bd82fb5759212e48245ffa6befd9223b86",
+      "bytes": 188,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6/CloseNebula.mat",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6/CloseNebula.mat",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_6/CloseNebula.mat",
+      "action": "add",
+      "sha256": "6794c1b9b333368da425e787f2f44d10c359fe6d96edf90396d5b8f762dd45b3",
+      "bytes": 1067,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6/CloseNebula.mat.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6/CloseNebula.mat.meta",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_6/CloseNebula.mat.meta",
+      "action": "add",
+      "sha256": "ab9a79fdb44d05ce2b7f1b41e97baf8b7ae7841e65b95902fa3855109ec4e100",
+      "bytes": 188,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6/DistantStars.mat",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6/DistantStars.mat",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_6/DistantStars.mat",
+      "action": "add",
+      "sha256": "b54c1abc3295e59cd57194d81b375e8a55668f013f804e02ad9cc08e6068bfdf",
+      "bytes": 1376,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6/DistantStars.mat.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6/DistantStars.mat.meta",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_6/DistantStars.mat.meta",
+      "action": "add",
+      "sha256": "ab1752102ca3c19b7d59de275457542d7dcf4263a7f5b5ad01e23ad19eb96620",
+      "bytes": 188,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6/FarNebula.mat",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6/FarNebula.mat",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_6/FarNebula.mat",
+      "action": "add",
+      "sha256": "60ddb89c3910cce7ff2d0892b6dce835f365438b4fcf4c53be4a0190025cd47a",
+      "bytes": 1352,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6/FarNebula.mat.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6/FarNebula.mat.meta",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_6/FarNebula.mat.meta",
+      "action": "add",
+      "sha256": "1e2a9241ebc03ce4fb0e3ddea48d6e107682ae2cd5303c9dca727149878e535c",
+      "bytes": 188,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6/Planet.mat",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6/Planet.mat",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_6/Planet.mat",
+      "action": "add",
+      "sha256": "326b3bc956a278e93dd439ad54d1a18266d8e7df5667bcf984983e4f212c31a1",
+      "bytes": 1232,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6/Planet.mat.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6/Planet.mat.meta",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_6/Planet.mat.meta",
+      "action": "add",
+      "sha256": "88bd99b89e0ad2d6d9551926a9436ad894826b7b294cd7fd011aebf2e4da965e",
+      "bytes": 188,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6/ReflectionCubemap.asset",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6/ReflectionCubemap.asset",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_6/ReflectionCubemap.asset",
+      "action": "add",
+      "sha256": "ecf8e984a589ef0f8089bd42d67ebb7d7c1854551825cdc246d2a75c58702326",
+      "bytes": 33884,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6/ReflectionCubemap.asset.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6/ReflectionCubemap.asset.meta",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_6/ReflectionCubemap.asset.meta",
+      "action": "add",
+      "sha256": "ab9fd8b3ad1a4cefa80cb23603b9685a0739bfb5bd4b629afe372f240f6d0547",
+      "bytes": 188,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6/StarField.mat",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6/StarField.mat",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_6/StarField.mat",
+      "action": "add",
+      "sha256": "bc18d6637cf52060931ecd338787f89d6544f593eed9b1377994f9321b0b3b6f",
+      "bytes": 1452,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6/StarField.mat.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_6/StarField.mat.meta",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_6/StarField.mat.meta",
+      "action": "add",
+      "sha256": "ee77a810b505a37afe428cc442331a2518e27f754d712ee3ba64bad9c94b1186",
+      "bytes": 188,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7.meta",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_7.meta",
+      "action": "add",
+      "sha256": "92c2c762ac31e2704c7488d1341260b41657940ada202ff3cbba3d17a7a971ec",
+      "bytes": 172,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7/Atmosphere.asset",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7/Atmosphere.asset",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_7/Atmosphere.asset",
+      "action": "add",
+      "sha256": "19104029732164f8c6ef5c75103e5d5abeb22e24926fe423371ad345b41dd6d9",
+      "bytes": 892,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7/Atmosphere.asset.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7/Atmosphere.asset.meta",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_7/Atmosphere.asset.meta",
+      "action": "add",
+      "sha256": "a9ce85d8c2fd91fb10de710d5f35af7dd5e67d6f154085bde9e4457f19e846c5",
+      "bytes": 189,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7/Background.mat",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7/Background.mat",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_7/Background.mat",
+      "action": "add",
+      "sha256": "4640d178848325534beb243591dbb6b87011d38654b63c5f12dcebca3dcb4409",
+      "bytes": 947,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7/Background.mat.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7/Background.mat.meta",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_7/Background.mat.meta",
+      "action": "add",
+      "sha256": "2859cf14895bc7a594c4a750c88cc60e835072518e97edae8d105b9daf8d589e",
+      "bytes": 188,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7/CloseNebula.mat",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7/CloseNebula.mat",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_7/CloseNebula.mat",
+      "action": "add",
+      "sha256": "1045f5ae2ccf6cbc5f4779752f98ceaeaa4e2cc1165f888a8d6f097ef604f31d",
+      "bytes": 1065,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7/CloseNebula.mat.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7/CloseNebula.mat.meta",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_7/CloseNebula.mat.meta",
+      "action": "add",
+      "sha256": "ec2f0fba86f4782a336396e08b9ecf03cb4f0bfddbb12a373beba7435e898261",
+      "bytes": 188,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7/DistantStars.mat",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7/DistantStars.mat",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_7/DistantStars.mat",
+      "action": "add",
+      "sha256": "74a051aa34431fc1878140ac5af2df6932db60a09a06239b30245045756e22ca",
+      "bytes": 1378,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7/DistantStars.mat.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7/DistantStars.mat.meta",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_7/DistantStars.mat.meta",
+      "action": "add",
+      "sha256": "b651feaf4fd83333942b87c50d98140885ca44071385ed57570ea21a27887f26",
+      "bytes": 188,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7/FarNebula.mat",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7/FarNebula.mat",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_7/FarNebula.mat",
+      "action": "add",
+      "sha256": "1039511b972288306db6857dc6e8ada14ba1f7e5d4682e8b7b368d77e5dfc5d8",
+      "bytes": 1333,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7/FarNebula.mat.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7/FarNebula.mat.meta",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_7/FarNebula.mat.meta",
+      "action": "add",
+      "sha256": "19c0104969f41ea2e4a46cdd72312621173392b0a18cc517e8ee61d9b0be23b9",
+      "bytes": 188,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7/Planet.mat",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7/Planet.mat",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_7/Planet.mat",
+      "action": "add",
+      "sha256": "dada4cfd811cfcfb7e0505f2ccc616ec03593fc31053799a13b03d99818a865c",
+      "bytes": 1235,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7/Planet.mat.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7/Planet.mat.meta",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_7/Planet.mat.meta",
+      "action": "add",
+      "sha256": "83e927af94f0bb1f50fcdd4a38c0c57224d6571f93a569428437ee26941ce196",
+      "bytes": 188,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7/ReflectionCubemap.asset",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7/ReflectionCubemap.asset",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_7/ReflectionCubemap.asset",
+      "action": "add",
+      "sha256": "ecf8e984a589ef0f8089bd42d67ebb7d7c1854551825cdc246d2a75c58702326",
+      "bytes": 33884,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7/ReflectionCubemap.asset.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7/ReflectionCubemap.asset.meta",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_7/ReflectionCubemap.asset.meta",
+      "action": "add",
+      "sha256": "c7babb0a1e37c1922468571215ba5f1e1d5e2a682f73cf1b0ccce29359ad8565",
+      "bytes": 188,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7/StarField.mat",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7/StarField.mat",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_7/StarField.mat",
+      "action": "add",
+      "sha256": "99ddaee2532f35ca48dca753fa4ec59caddc8e646826465015fd1d2d86f2c2b9",
+      "bytes": 1454,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7/StarField.mat.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_7/StarField.mat.meta",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Locales/Locale_7/StarField.mat.meta",
+      "action": "add",
+      "sha256": "91bfd1a7aefea819d8f86bb95224c100f4415519eeeb4aff31fa5f91977bd67c",
+      "bytes": 188,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Nebula.shader",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Nebula.shader",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Nebula.shader",
+      "action": "replace",
+      "sha256": "4a0e1827dd6b59708115d7bf743c39f6686c35304e7b237c86bd500b42ece533",
+      "bytes": 12561,
+      "existing_destination_sha256": "4f905ccbc89019f698e78dcb46b82c88bbaceff759461aae94218d5fd28d483d"
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Planets.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Planets.meta",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Planets.meta",
+      "action": "add",
+      "sha256": "6960110f47597e2be41dd674cf1f518428ea69864c14bc1cf612d3bbbf243ebc",
+      "bytes": 172,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Planets/BlueGasGiant.png",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Planets/BlueGasGiant.png",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Planets/BlueGasGiant.png",
+      "action": "add",
+      "sha256": "a0bb4c66405101e8731e6a69290521846fb4b5ffb11585c5ea98d2bf3cd543f1",
+      "bytes": 1757897,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Planets/BlueGasGiant.png.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Planets/BlueGasGiant.png.meta",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Planets/BlueGasGiant.png.meta",
+      "action": "add",
+      "sha256": "a8e3b1c890af830fc145186ad09a08490606cdf0d23e2d07bcfd648910b79632",
+      "bytes": 2652,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Planets/GreenGasGiant.png",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Planets/GreenGasGiant.png",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Planets/GreenGasGiant.png",
+      "action": "add",
+      "sha256": "b0f6b81283ac513860e89baddc6cf0ffbadbc89e57b54e870fc24d60d3a2f7af",
+      "bytes": 2167640,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Planets/GreenGasGiant.png.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Planets/GreenGasGiant.png.meta",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Planets/GreenGasGiant.png.meta",
+      "action": "add",
+      "sha256": "d9f000de4cc3f67c02aeff97eb15eb24889919668a7673fab52e8cbfc8ba3873",
+      "bytes": 2652,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Planets/Planet.shader",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Planets/Planet.shader",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Planets/Planet.shader",
+      "action": "add",
+      "sha256": "ba5bdf3a43505b1a7987fead42243606e4e7471cfa1aa6f55ce63cfc006500ab",
+      "bytes": 4033,
+      "existing_destination_sha256": null
+    },
+    {
+      "source": "D:/amind/git/agent-8/src/Asteroids3D/Assets/Visuals/Locales/Sky/Planets/Planet.shader.meta",
+      "destination": "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Planets/Planet.shader.meta",
+      "destination_project_relative": "Assets/Visuals/Locales/Sky/Planets/Planet.shader.meta",
+      "action": "add",
+      "sha256": "38bf48fd5b476f8401fb4b123fd4f691fa456279184edd150478c3b4a3891896",
+      "bytes": 204,
+      "existing_destination_sha256": null
+    }
+  ],
+  "guid_closure": {
+    "status": "passed",
+    "source_assets_inspected": 32,
+    "existing_primary_references": {
+      "15ff0cee2d8f4e34952c6f9c25ef907b": [
+        "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Scripts/Substrate/Sectors/SectorSettings.cs"
+      ],
+      "b18f177bd928aa8469f8f3364cfa1cf0": [
+        "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/StarFieldMaterial.mat"
+      ],
+      "158759aec174df240b9bdba3928f8403": [
+        "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/StarField.shader"
+      ],
+      "8fee2363b840d2943a9707191583da98": [
+        "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Flat/FlatBackground.shader"
+      ],
+      "9a6610d2e704f1648819acc8d7460285": {
+        "installed_component_reused_from": [
+          "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Prefabs/Locales/Locale_1.prefab",
+          "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Prefabs/Locales/Locale_2.prefab",
+          "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Prefabs/Locales/Locale_3.prefab"
+        ],
+        "package_manifest_and_lock_match": true
+      },
+      "a47d966b53220014ab36eb170225d83e": [
+        "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Scenes/Lighting.prefab"
+      ],
+      "f4d30870e21c8da429a2da47965d6903": [
+        "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/SkyTriangle.asset"
+      ],
+      "172515602e62fb746b5d573b38a5fe58": {
+        "installed_component_reused_from": [
+          "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Prefabs/Locales/Locale_1.prefab",
+          "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Prefabs/Locales/Locale_3.prefab"
+        ],
+        "package_manifest_and_lock_match": true
+      },
+      "1af0987870b4c154392851c7d14257dc": [
+        "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Nebula.shader"
+      ],
+      "5bfb244e87df80b4a8902811b5b532fa": [
+        "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/ForegroundNebulaMaterial.mat"
+      ],
+      "60e08b215014d744c8892c4cd418b23e": [
+        "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/NebulaMaterial.mat"
+      ],
+      "9fdbcbb9e105c6e49bacf46996880f89": [
+        "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Scripts/Substrate/Services/Locales/LocaleSky.cs"
+      ],
+      "d7fd9488000d3734a9e00ee676215985": {
+        "installed_component_reused_from": [
+          "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_1/Atmosphere.asset",
+          "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_3/Atmosphere.asset"
+        ],
+        "package_manifest_and_lock_match": true
+      },
+      "81180773991d8724ab7f2d216912b564": {
+        "installed_component_reused_from": [
+          "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_1/Atmosphere.asset",
+          "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Locales/Locale_3/Atmosphere.asset"
+        ],
+        "package_manifest_and_lock_match": true
+      },
+      "0af6cc7a2f6c3d2488cc86ab5534a9f9": [
+        "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Scripts/Substrate/Services/Locales/CloudBankTile.cs"
+      ],
+      "bec7b7260051bcf4a820bf8a41c799e4": [
+        "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Prefabs/Sectors/TrialSector2.prefab"
+      ],
+      "09c73779418090c498dc37d26f9f005c": [
+        "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Prefabs/Sectors/TrialSector3.prefab"
+      ],
+      "35f72eeaa8adb4c43832be646409d034": [
+        "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Prefabs/Sectors/TrialSector.prefab"
+      ],
+      "dda9cd8a5978ed0499f77c1f6edcdde1": [
+        "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Prefabs/Game/GameHost.prefab"
+      ]
+    },
+    "shader_includes": [
+      "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/SkyCommon.hlsl"
+    ]
+  }
+}

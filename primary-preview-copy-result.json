@@ -1,0 +1,13 @@
+{
+  "status": "copied-and-verified",
+  "sourceCommit": "4381bc43f8a12bd0cd6d459828b73a530a29a56e",
+  "files": 72,
+  "ownerFilesPreserved": 45,
+  "scenes": [
+    "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Scenes/LocalePreview/PlanetPreview_Green.unity",
+    "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Scenes/LocalePreview/PlanetPreview_Blue.unity"
+  ],
+  "replaced": [
+    "D:/amind/git/astronomical-home/src/Asteroids3D/Assets/Visuals/Locales/Sky/Nebula.shader"
+  ]
+}
