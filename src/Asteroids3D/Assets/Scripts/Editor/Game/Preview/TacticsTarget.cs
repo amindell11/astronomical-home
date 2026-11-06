@@ -1,8 +1,5 @@
-using System;
 using System.Collections.Generic;
 using AI;
-using AI.Tactics;
-using UnityEditor;
 using UnityEngine;
 
 namespace Game.Preview
@@ -12,13 +9,8 @@ namespace Game.Preview
         public override string Name => "Tactics";
         public override IReadOnlyList<PreviewEntry> Entries { get; } = new[] { PreviewEntry.CrowdedFight };
 
-        // No shipped prefab reads the asset; the situation overlay finds it by path, so this does too.
-        public override IEnumerable<ScriptableObject> Profiles(GameHost game)
-        {
-            var settings = AssetDatabase.LoadAssetAtPath<TacticsSettings>(SituationGizmos.SettingsPath);
-            if (!settings)
-                throw new InvalidOperationException($"The tactics settings '{SituationGizmos.SettingsPath}' are missing.");
-            return new ScriptableObject[] { settings };
-        }
+        // No shipped prefab reads the asset, so this tunes the one the situation overlay loads.
+        public override IEnumerable<ScriptableObject> Profiles(GameHost game) =>
+            new ScriptableObject[] { SituationGizmos.Settings };
     }
 }

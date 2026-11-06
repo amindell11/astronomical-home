@@ -70,7 +70,7 @@ namespace AI.Tactics
         private static Vector2 OpenSide(AIContext context, in Kinematics target, float distance,
             Vector2 bearing, float halfCone, float laneWidth)
         {
-            var left = new Vector2(-bearing.y, bearing.x);
+            var left = Vector2.Perpendicular(bearing);
             var leftOpen = IsOpen(context, target, left, distance, halfCone, laneWidth);
             var rightOpen = IsOpen(context, target, -left, distance, halfCone, laneWidth);
             if (leftOpen && rightOpen) return Vector2.Dot(left, target.Forward) <= 0f ? left : -left;

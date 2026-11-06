@@ -10,7 +10,7 @@ namespace AI
     [InitializeOnLoad]
     internal static class SituationGizmos
     {
-        internal const string SettingsPath = "Assets/Settings/AI/Tactics/TacticsSettings.asset";
+        private const string SettingsPath = "Assets/Settings/AI/Tactics/TacticsSettings.asset";
 
         static SituationGizmos() =>
             GizmoView.Register(typeof(AICommander), "situation", "Situation",
@@ -30,13 +30,13 @@ namespace AI
 
         private static TacticsSettings settings;
 
-        private static TacticsSettings Settings
+        internal static TacticsSettings Settings
         {
             get
             {
                 if (settings) return settings;
                 settings = AssetDatabase.LoadAssetAtPath<TacticsSettings>(SettingsPath);
-                if (!settings) throw new InvalidOperationException($"The situation overlay reads '{SettingsPath}', which is missing.");
+                if (!settings) throw new InvalidOperationException($"The tactics settings '{SettingsPath}' are missing.");
                 return settings;
             }
         }
