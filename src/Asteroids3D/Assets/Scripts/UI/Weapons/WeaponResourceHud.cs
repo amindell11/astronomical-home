@@ -40,15 +40,11 @@ namespace UI.Weapons
                 throw new InvalidOperationException("WeaponResourceHud requires its keystone glyph.");
         }
 
-        public void BindKeystone(Sprite icon)
+        public void Initialize(IWeaponReadouts weapons, Sprite keystoneIcon)
         {
-            if (!icon)
+            if (!keystoneIcon)
                 throw new InvalidOperationException("WeaponResourceHud requires a keystone icon.");
-            keystoneGlyph.sprite = icon;
-        }
-
-        public void Initialize(IWeaponReadouts weapons)
-        {
+            keystoneGlyph.sprite = keystoneIcon;
             readouts = weapons;
             foreach (var resource in resources)
             {
@@ -158,7 +154,7 @@ namespace UI.Weapons
         {
             if (resources.Exists(resource => resource.Source is IAmmoReadout { Refill: Rounds.RefillMode.Sequential } ammo
                     && resource.Capacity != ammo.MaxAmmo))
-                Initialize(readouts);
+                Initialize(readouts, keystoneGlyph.sprite);
             var now = Time.unscaledTime;
             foreach (var resource in resources)
             {

@@ -59,6 +59,7 @@ namespace Tests.PlayMode.Crosshairs
         private StubShipStatus ship;
         private AimCrosshair crosshair;
         private WeaponResourceHud weaponHud;
+        private Sprite keystoneIcon;
         private Mouse mouse;
         private Ammo ammo;
         private bool cursorWasVisible;
@@ -87,7 +88,8 @@ namespace Tests.PlayMode.Crosshairs
             crosshair.gameObject.SetActive(true);
             weaponHud = Object.Instantiate(AssetDatabase.LoadAssetAtPath<WeaponResourceHud>(
                 "Assets/Prefabs/UI/Crosshair/WeaponKeystoneHud.prefab"), root.transform);
-            weaponHud.Initialize(new WeaponSources(ammo));
+            keystoneIcon = AssetDatabase.LoadAssetAtPath<Keystone>("Assets/Prefabs/Keystones/Vanguard_Dash.prefab").Icon;
+            weaponHud.Initialize(new WeaponSources(ammo), keystoneIcon);
             weaponHud.GetComponentInChildren<BoostGaugeUI>(true).Initialize(ship);
             weaponHud.gameObject.SetActive(true);
 #else
@@ -137,7 +139,7 @@ namespace Tests.PlayMode.Crosshairs
             Press(mouse.rightButton);
             Draw();
             Assert.IsTrue(Visible("SecondaryResources"));
-            weaponHud.Initialize(null);
+            weaponHud.Initialize(null, keystoneIcon);
             Draw();
             Assert.IsFalse(Visible("PrimaryResources"));
             Assert.IsFalse(Visible("SecondaryResources"));
@@ -223,7 +225,7 @@ namespace Tests.PlayMode.Crosshairs
             var rounds = shipRoot.AddComponent<Rounds>();
             rounds.Configure(2, 10f, Rounds.RefillMode.Sequential);
             rounds.enabled = false;
-            weaponHud.Initialize(new WeaponSources(rounds));
+            weaponHud.Initialize(new WeaponSources(rounds), keystoneIcon);
             yield return null;
             rounds.ProcessFire();
             rounds.Tick(5f);
@@ -319,13 +321,13 @@ namespace Tests.PlayMode.Crosshairs
 
             var dash = AssetDatabase.LoadAssetAtPath<Keystone>("Assets/Prefabs/Keystones/Vanguard_Dash.prefab");
             var ram = AssetDatabase.LoadAssetAtPath<Keystone>("Assets/Prefabs/Keystones/Bulwark_Dash.prefab");
-            weaponHud.BindKeystone(dash.Icon);
+            weaponHud.Initialize(new WeaponSources(ammo), dash.Icon);
             Assert.That(glyph.sprite, Is.SameAs(dash.Icon));
             Assert.That(fill.sprite, Is.SameAs(ring));
             Assert.That(fill.fillAmount, Is.EqualTo(fillAmount));
             Assert.That(fill.color, Is.EqualTo(fillColor));
 
-            weaponHud.BindKeystone(ram.Icon);
+            weaponHud.Initialize(new WeaponSources(ammo), ram.Icon);
             Assert.That(glyph.sprite, Is.SameAs(ram.Icon));
             Assert.That(fill.sprite, Is.SameAs(ring));
             Assert.That(fill.fillAmount, Is.EqualTo(fillAmount));
