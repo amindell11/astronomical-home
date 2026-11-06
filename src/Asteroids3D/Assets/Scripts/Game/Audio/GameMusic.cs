@@ -11,7 +11,8 @@ namespace Game.Audio
     /// <summary>
     /// The run's music: one Studio event held for the session, told the run's state and the active
     /// sector's survive phase. Studio owns every transition between states. <see cref="GameHost"/>'s
-    /// run loop sets the state, except the elite fight and extraction, which follow the sector spine's step.
+    /// run loop sets the state, except the elite fight and extraction, which follow the sector spine's step;
+    /// extraction after an elite stays on Elite, so its cue carries on without restarting.
     /// </summary>
     public sealed class GameMusic : MonoBehaviour
     {
@@ -27,6 +28,7 @@ namespace Game.Audio
         private IObjectiveService objectives;
         private PhaseSpineModule phases;
         private EventInstance music;
+        private string spineStep;
 
         public void Initialize(IObjectiveService objectiveService)
         {
@@ -53,7 +55,8 @@ namespace Game.Audio
         private void OnSpineStepChanged(string step)
         {
             if (step == PhaseSpineModule.StepElite) Set(State.Elite);
-            else if (step == PhaseSpineModule.StepExtract) Set(State.Extract);
+            else if (step == PhaseSpineModule.StepExtract && spineStep != PhaseSpineModule.StepElite) Set(State.Extract);
+            spineStep = step;
         }
 
         private void OnDestroy()
