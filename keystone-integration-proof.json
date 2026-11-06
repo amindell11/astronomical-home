@@ -1,0 +1,29 @@
+{
+  "commit": "25830c0711ada209596f365298d2834a46d2e1fe",
+  "approvedArtCommit": "92fb935b464965f85ebd30c24b0655ba0a514775",
+  "capture": "Production PreviewHost, PlayerRig and canopy HUD; paused after startup, ship swaps through ApplyLoadout",
+  "crop": [
+    430,
+    557,
+    850,
+    697
+  ],
+  "scale": 1,
+  "focusedTests": {
+    "passed": 52,
+    "failed": 0
+  },
+  "graphicsTests": {
+    "passed": 4,
+    "failed": 0
+  },
+  "resharper": "No blocking Unity findings on changed lines",
+  "fullFrameNote": "The frozen startup hint belongs to the original Crimson. Capture proves glyph rebinding and canopy appearance, not a tutorial flow.",
+  "files": [
+    "keystone-vanguard.png",
+    "keystone-bulwark.png",
+    "keystone-valis.png",
+    "keystone-crimson.png",
+    "keystone-nightshade.png"
+  ]
+}
