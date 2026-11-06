@@ -90,6 +90,7 @@ namespace Tests.PlayMode.Sectors
             Assert.IsTrue(Commander(patrol).Steered, "An unaware patrol flies its route.");
             Assert.AreEqual(HuntReading.Searching, Progress().Hunt, "The countdown reads the search.");
             Assert.IsTrue(director.Phase.InOpeningLull);
+            Assert.IsEmpty(_objectives.Finds, "A patrol is no find, so it gets no minimap edge pointer.");
 
             ShipTestFactory.MoveKinematicShip(hero, patrol.transform.position + GamePlane.Right * 10f);
             yield return null;
