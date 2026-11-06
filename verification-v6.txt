@@ -1,0 +1,42 @@
+Planet comparison revision v6 — 2026-11-05
+Production commit: ff35c5d0a6012416750b18f1e448aba157f23a77
+PR: https://github.com/amindell11/astronomical-home/pull/1359
+Arc and user approval: #798. Approval covers this implementation and comparison, not merge.
+
+Scope
+Only Locale_6 and Locale_7 planet art and depth relationships changed in this follow-up.
+Neutral ship lighting, Locale_4 and Locale_5, original locales 1–3, gameplay, and UI are unchanged.
+
+Root cause and correction
+The previous planet moved about 1.2 pixels during the 120-by-60 world-unit path, while stars and clouds moved much farther. That inverted depth relationship made the planet appear attached to the screen.
+The sphere keeps its fixed locale/world center. Its center and radius are scaled closer together about the initial camera position, preserving initial apparent size. Background motion is below planet motion; foreground wisps are above it. No camera-following clamp is added.
+The visible surface used only about one tenth of each map's width. New finer cloud maps, surface longitude, restored palettes and a narrower rim restore visible detail without changing ship light.
+
+Comparison
+A = gentler motion, committed provisionally. B = twice A's planet motion, capture-only override.
+Identical flight path and art in both halves. Approximate maximum limb displacement at 1280 width: A 20 pixels, B 40 pixels.
+Each native recording has 336 frames at 50/3 fps, 20.16 seconds.
+First half freezes planet/cloud animation to isolate travel. Second half repeats the path with animation.
+Each half holds, travels 120 by 60 units and returns, then holds. No zoom in the comparisons.
+Both side-by-side MP4s are composed from matching raw native frames; output frame count and duration are checked.
+GIFs are reduced to 960 pixels wide and 25/4 fps for inline review. MP4s preserve 1280-pixel comparison width.
+The isolated native GameView footage uses a staged Valis visual. Separate GameHost captures show the real player and HUD.
+Static travel and zoom images are supplementary checks; they do not claim the user has evaluated zoom.
+
+Art
+Built-in imagegen edited both surface maps. Actual returned size: 1774 x 887.
+Exact prompts and source references: planet-surface-prompts-v6.json.
+PNG assets were replaced in place; GUIDs are unchanged.
+
+Verification
+Compile check: all 9 assemblies passed.
+PlanetRenderTests: 8/8 passed through the resident Editor, including rendered travel ordering, return position and longitude/silhouette checks.
+Native capture fixture: 1/1 passed; four recordings.
+GameHost fixture: 1/1 passed; both planets rendered with the real player and HUD.
+Quality review: no findings in the scoped follow-up.
+ReSharper ratchet: passed, zero blocking findings; 68 touched-file findings are report-only.
+A combined test-filter attempt selected zero tests because it used a semicolon. The separate fixture runs above completed successfully.
+Automatic approval review rejected generated Burst-cache cleanup. The cache was left in place and checks used the existing cache.
+These focused warm-Editor checks are not a full merge suite. Visual acceptance and the A/B preference remain with the user.
+Temporary capture scripts were removed from Assets; their sources are preserved here. The capture lane and interactive Editor were released.
+

@@ -1,0 +1,24 @@
+[
+  {
+    "locale": 6,
+    "frames": 336,
+    "seconds": 20.16,
+    "gifSeconds": 20.16,
+    "sources": [
+      "Locale_6-A-gentle-v6.mp4",
+      "Locale_6-B-stronger-v6.mp4"
+    ],
+    "comparison": "Locale_6-comparison-v6.mp4"
+  },
+  {
+    "locale": 7,
+    "frames": 336,
+    "seconds": 20.16,
+    "gifSeconds": 20.16,
+    "sources": [
+      "Locale_7-A-gentle-v6.mp4",
+      "Locale_7-B-stronger-v6.mp4"
+    ],
+    "comparison": "Locale_7-comparison-v6.mp4"
+  }
+]
