@@ -1,5 +1,7 @@
 # Owner-angle detail refinement
 
+The latest image is [physical-controls.png](physical-controls.png). The owner requested physical buttons for interactions, cockpit-style control banks and switches, and a physical Launch button, then confirmed this should happen in image generation. The built-in image tool edited the preceding refinement using [this prompt](physical-controls-prompt.txt). Selection buttons sit outside the glass; the main screen is a readout. No further Blender changes were made for this revision.
+
 The [comparison page](index.html) shows the [owner-edited Blender capture](owner-capture.png) and the [refinement image](refined-console.png). The image pass proposes details and lighting before any further Blender modeling.
 
 The owner changed the main console angle, camera and other scene objects in the live Blender session. These changes were unsaved. [inputs/owner-edited.blend](inputs/owner-edited.blend) preserves that state before intervention. The space collection was empty because its background plane had been deleted; the nebula image and material were still packed. Restoring only that plane moved none of the existing objects. [inputs/capture-scene.blend](inputs/capture-scene.blend) preserves the restored scene used for the 2048 by 1152 camera render. The live Blender session also has the restored background.
