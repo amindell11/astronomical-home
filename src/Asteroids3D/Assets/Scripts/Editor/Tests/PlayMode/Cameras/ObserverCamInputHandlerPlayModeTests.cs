@@ -1,6 +1,7 @@
 using System.Collections;
 using Cameras;
 using NUnit.Framework;
+using Substrate;
 using Tests.PlayMode.Common;
 using Tests.PlayMode.Common.SimulatedInput;
 using UnityEngine;
@@ -14,6 +15,9 @@ namespace Tests.PlayMode.Cameras
     {
         private const float SettleSec = 1.5f;
         private const float SizeTolerance = 0.05f;
+        private const float LeadSettleSec = 3f;
+        private const float FollowThreshold = 0.1f;
+        private const string FlightCameraPath = "Assets/Settings/Cameras/FlightCamera.asset";
 
         private Keyboard keyboard;
         private Mouse mouse;
@@ -120,10 +124,33 @@ namespace Tests.PlayMode.Cameras
                 minUnscaledSeconds: 0.35f);
         }
 
+        [UnityTest]
+        public IEnumerator Cursor_LeadsTheLockedCameraTowardIt_AndNothingOnceOutsideTheView()
+        {
+            subject = new GameObject("Subject");
+            cam.SetSubject(subject.transform);
+            cam.SetLockCameraToSubject(true);
+            var feel = TestAssets.Load<FlightCameraProfile>(FlightCameraPath);
+            var subjectCenter = GamePlane.WorldPointToPlane(subject.transform.position);
+
+            Set(mouse.position, (Vector2)cam.Cam.ViewportToScreenPoint(new Vector3(1f, .5f)));
+            yield return CameraSettlesOn(subjectCenter + GamePlane.WorldDirToPlane(GamePlane.Right) * feel.cursorLead);
+
+            Set(mouse.position, (Vector2)cam.Cam.ViewportToScreenPoint(new Vector3(-.2f, .5f)));
+            yield return CameraSettlesOn(subjectCenter);
+        }
+
         private IEnumerator Scroll(float notches)
         {
             Set(mouse.scroll.y, notches);
             yield return null;
+        }
+
+        private IEnumerator CameraSettlesOn(Vector2 center)
+        {
+            float Miss() => Vector2.Distance(GamePlane.WorldPointToPlane(cam.transform.position), center);
+            yield return AsyncAssert.WaitUntilThen(() => Miss() < FollowThreshold, LeadSettleSec,
+                () => Assert.That(Miss(), Is.LessThan(FollowThreshold)));
         }
     }
 }
