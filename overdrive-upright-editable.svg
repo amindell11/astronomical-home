@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" width="64" height="64" viewBox="0 0 64 64">
+  <sodipodi:namedview id="editor-view" pagecolor="#0a1320" borderopacity="0" inkscape:pageopacity="0" inkscape:deskcolor="#0a1320" inkscape:zoom="8" inkscape:cx="32" inkscape:cy="32"/>
+  <path id="diamond" fill="#ffffff" d="M 32 9.38495 L 43 18.61505 L 32 27.84514 L 21 18.61505 Z"/>
+  <path id="left-streak" fill="#ffffff" d="M 23 24.49325 L 27.8 28.52093 L 27.8 54.61505 L 23 54.61505 Z"/>
+  <path id="right-streak" fill="#ffffff" d="M 41 24.49325 L 36.2 28.52093 L 36.2 54.61505 L 41 54.61505 Z"/>
+</svg>
