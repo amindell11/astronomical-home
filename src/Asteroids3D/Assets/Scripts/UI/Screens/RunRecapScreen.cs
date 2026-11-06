@@ -87,7 +87,7 @@ namespace UI.Screens
             var victory = context.Outcome == RecapOutcome.Victory;
             var outcomeColor = victory ? Success : Loss;
             var title = victory ? "VICTORY" : "SHIP LOST";
-            var panel = BuildPanel(title, outcomeColor, 760f, 576f, true);
+            var panel = BuildPanel(title, outcomeColor, 480f, 576f, true);
             AddTrophies(panel, context.Kills, 82f, 58f, true);
             Label(panel, "Progress", $"{context.SectorsCleared} SECTORS CLEARED", 28, 202, 424, 20, 11, Muted);
             AddRoute(panel, context.SectorsCleared, context.SectorCount, 232f);
@@ -215,12 +215,12 @@ namespace UI.Screens
         private void AddScoreboard(Transform parent, Scoreboard board, Color outcomeColor)
         {
             var weaponIcons = RecapWeaponIcons.Load();
-            var panel = Box(parent, "Scoreboard", 28, 286, 704, 202);
+            var panel = Box(parent, "Scoreboard", 28, 286, 424, 202);
             Label(panel, "Heading", "SCOREBOARD", 0, 0, 132, 20, 13, Ink);
             var rank = board.Rank.HasValue ? $"{board.Rank} of {board.Rows.Count}" : "Not recorded";
-            Label(panel, "Rank", "Your best runs · " + rank, 404, 0, 300, 20, 11, Muted, TextAnchor.MiddleRight);
+            Label(panel, "Rank", "Your best runs · " + rank, 132, 0, 292, 20, 11, Muted, TextAnchor.MiddleRight);
             ScoreCells(panel, "Columns", 26, "Rank", "Sectors", "Kills", "Time", Muted, false);
-            Label(panel, "ShipHeading", "Ship", 92, 26, 260, 24, 11, Muted);
+            Label(panel, "ShipHeading", "Ship", 76, 26, 84, 24, 11, Muted);
             var visible = Math.Min(5, board.Rows.Count);
             for (var i = 0; i < visible; i++)
             {
@@ -228,28 +228,28 @@ namespace UI.Screens
                 var row = board.Rows[index];
                 var current = board.Rank == index + 1;
                 var y = 52 + i * 30f;
-                Fill(Box(panel, "Divider", 0, y, 704, 1), Line);
+                Fill(Box(panel, "Divider", 0, y, 424, 1), Line);
                 if (current)
-                    Fill(Box(panel, "CurrentRun", 0, y, 704, 30),
+                    Fill(Box(panel, "CurrentRun", 0, y, 424, 30),
                         new Color(outcomeColor.r, outcomeColor.g, outcomeColor.b, .07f));
                 var cells = ScoreCells(panel, "Row" + (index + 1), y + 3, (index + 1).ToString(),
                     row.SectorsCleared.ToString(), row.Kills.ToString(), RunTally.FormatSeconds(row.SecondsSurvived),
                     current ? outcomeColor : Ink, true);
                 var ship = Label(cells, "Ship", string.IsNullOrEmpty(row.Player.chassis)
-                    ? "Ship not recorded" : row.Player.chassis, 80, 0, 260, 24, 11, current ? outcomeColor : Ink);
+                    ? "Ship not recorded" : row.Player.chassis, 64, 0, 84, 24, 11, current ? outcomeColor : Ink);
                 Ellipsize(ship);
                 var texture = string.IsNullOrEmpty(row.Player.chassis) ? null
                     : Resources.Load<Texture2D>(SilhouetteFolder + "/" + row.Player.chassis);
                 if (texture)
                 {
-                    var icon = Box(cells, "Silhouette", 44, 0, 24, 24).gameObject.AddComponent<RawImage>();
+                    var icon = Box(cells, "Silhouette", 32, 0, 24, 24).gameObject.AddComponent<RawImage>();
                     icon.texture = texture;
                     icon.color = Paint;
                     icon.raycastTarget = false;
                 }
-                else Label(cells, "UnavailableIcon", "?", 44, 0, 24, 24, 16, Muted, TextAnchor.MiddleCenter);
-                WeaponIcon(cells, "Primary", 352, weaponIcons.Find(row.Player.primary));
-                WeaponIcon(cells, "Secondary", 388, weaponIcons.Find(row.Player.secondary));
+                else Label(cells, "UnavailableIcon", "?", 32, 0, 24, 24, 16, Muted, TextAnchor.MiddleCenter);
+                WeaponIcon(cells, "Primary", 160, weaponIcons.Find(row.Player.primary));
+                WeaponIcon(cells, "Secondary", 192, weaponIcons.Find(row.Player.secondary));
             }
         }
 
@@ -276,11 +276,11 @@ namespace UI.Screens
         private RectTransform ScoreCells(RectTransform panel, string name, float y, string run, string sectors,
             string kills, string time, Color color, bool numeric)
         {
-            var row = Box(panel, name, 12, y, 680, 24);
+            var row = Box(panel, name, 12, y, 400, 24);
             Label(row, "Rank", run, 0, 0, 32, 24, 11, color);
-            Label(row, "Sectors", sectors, 442, 0, 90, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);
-            Label(row, "Kills", kills, 544, 0, 60, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);
-            Label(row, "Time", time, 626, 0, 54, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);
+            Label(row, "Sectors", sectors, 228, 0, 42, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);
+            Label(row, "Kills", kills, 282, 0, 42, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);
+            Label(row, "Time", time, 346, 0, 54, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);
             return row;
         }
 
