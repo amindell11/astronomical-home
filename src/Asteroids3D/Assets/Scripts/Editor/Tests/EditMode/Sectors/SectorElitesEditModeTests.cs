@@ -1,7 +1,9 @@
+using System.Linq;
 using NUnit.Framework;
 using Ships;
 using Ships.Loadout;
 using Substrate.Sectors;
+using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Factions;
@@ -10,7 +12,7 @@ using Object = UnityEngine.Object;
 
 namespace Tests.EditMode.Sectors
 {
-    /// <summary>The shipped sectors and hangar offer, read as assets: each trial sector ends at an elite flown from its own faction, sectors 1 and 2 at a 1.5x elite with no escalation, the HUD fixtures at none, and the hangar offers Vanguard as its starter and never Crimson.</summary>
+    /// <summary>The shipped sectors and hangar offer, read as assets: each trial sector ends at an elite flown from its own faction and watched by its wave director, sectors 1 and 2 at a 1.5x elite with no escalation, the HUD fixtures at none, and the hangar offers Vanguard as its starter and never Crimson.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class SectorElitesEditModeTests
@@ -25,6 +27,8 @@ namespace Tests.EditMode.Sectors
             var prefab = Load<Sector>($"Assets/Prefabs/Sectors/{sector}.prefab");
             var encounter = (EliteEncounter)Field(prefab.GetComponent<PhaseSpineModule>(), "elite");
             Assert.IsNotNull(encounter, $"{sector}'s spine owns an elite");
+            Assert.AreSame(encounter, Field(prefab.Spawners.OfType<WaveDirector>().Single(), "elite"),
+                "the waves stop when the spine's elite arrives");
 
             var faction = (SectorFaction)Field(encounter, "faction");
             Assert.AreSame(prefab.Module<SectorFaction>(), faction, "the elite flies the sector's own faction");
