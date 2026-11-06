@@ -34,7 +34,7 @@ public static class TestAssets
 
     public static PlayerCommander LoadPlayerPilot() => Load<PlayerCommander>(PlayerPilotPath);
 
-    // Every Replay session appends both HUD rows to its run, so a test preview host needs them.
+    // Replay appends both HUD rows to its run, so every test preview host needs them.
     public static SectorEntry HudFixture(string name) => new()
     {
         prefab = Load<Sector>($"Assets/Prefabs/Sectors/Preview/{name}.prefab"),
