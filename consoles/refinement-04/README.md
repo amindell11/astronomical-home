@@ -1,6 +1,8 @@
 # Owner-angle detail refinement
 
-The latest image is [physical-controls.png](physical-controls.png). The owner requested physical buttons for interactions, cockpit-style control banks and switches, and a physical Launch button, then confirmed this should happen in image generation. The built-in image tool edited the preceding refinement using [this prompt](physical-controls-prompt.txt). Selection buttons sit outside the glass; the main screen is a readout. No further Blender changes were made for this revision.
+The latest image is [ship-language.png](ship-language.png). The owner liked the physical-control direction, especially the switch panel beside the hologram, but wanted less clutter, clearer purpose and more of the ships' colorful arcade aesthetic. The built-in image tool edited the control concept using real Vanguard art as a shape and color reference. The [exact prompt](ship-language-prompt.txt) requests broad armor planes, fewer incidental details and concise display and projection control groups. Their control functions remain concept proposals, not implemented behavior. Blender remains unchanged.
+
+The preceding [physical-controls.png](physical-controls.png) followed the owner's request for physical buttons, cockpit-style control banks and switches, and a physical Launch button. Its [prompt](physical-controls-prompt.txt) keeps selection buttons outside the glass and the main screen as a readout.
 
 The [comparison page](index.html) shows the [owner-edited Blender capture](owner-capture.png) and the [refinement image](refined-console.png). The image pass proposes details and lighting before any further Blender modeling.
 
