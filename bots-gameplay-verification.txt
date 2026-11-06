@@ -1,0 +1,43 @@
+Bots-only gameplay footage — 2026-11-05
+Production revision: ff35c5d0a6012416750b18f1e448aba157f23a77
+PR: https://github.com/amindell11/astronomical-home/pull/1359
+User request: full gameplay footage, bots-only, to judge the planets in context.
+
+Setup
+Real GameHost and authored ArenaSector, with two teams of four AI ships and authored respawns.
+No human player rig. ObserverCam follows a live bot using its prefab's normal subject lock, zoom and velocity lead.
+If the followed bot is deactivated, the capture chooses a remaining active bot. There is no authored camera path.
+Normal presentation and High Fidelity quality. Planet A (gentler motion) is the committed setting in both recordings.
+Three seconds of settling precede each continuous 40-second recording.
+Planet surface and cloud animation remain enabled throughout.
+These are spectator clips: no player-only controls, minimap or instrument HUD is manufactured.
+The GIFs are silent. No art, lighting, gameplay or production source was changed for this request.
+
+Capture and timing
+Each source recording has 1002 native 1280x720 frames.
+CapturePacing.Locked(2) advances .04 game seconds per recorded frame.
+The simulator advances normally, while lossless frame acquisition takes longer in wall time.
+The exports explicitly use 25 fps to preserve game speed; using the acquisition timestamps would slow the footage down.
+GIF uses every third source frame at 960x540, with 120ms per GIF frame and 40.08 seconds total.
+MP4 retains all source frames at 1280x720; the assembler adds the documented final hold.
+Commands:
+python scripts/capture/assemble.py <frame-directory> --fps 25 --keep-frames
+python scripts/capture/assemble.py <frame-directory> --fps 25 --format gif --scale 0.75 --step 3 --keep-frames
+
+Verification
+Native capture fixture passed 1/1.
+Both clips contain eight active bots, over 190 weapon firing events and over 80 damage events.
+Green camera range: x -121.36 to 4.28, y 3.17 to 120.59; half-height 15.97 to 22.
+Blue camera range: x -52.90 to 4.36, y 3.12 to 59.52; half-height 16.37 to 22.
+Source telemetry confirms .04-second simulation steps throughout both clips.
+Mid-clip PNGs were visually inspected before encoding; both show the correct planet, ship colors, asteroids and combat.
+The shared assembler checks decoded MP4 frame count, GIF duration, and subject-color error.
+See bots-gameplay-measurements.json and the copied frame logs for measurements.
+The scratch capture source is preserved as PlanetBotsGameplayScenario.cs and was removed from Assets after recording.
+The capture lane and interactive Editor were released.
+
+Limits
+These are two continuous excerpts from the respawning arena, not complete finite campaign runs.
+They show current A only; the earlier isolated A/B comparisons remain on the PR.
+User acceptance of the art and motion remains open. Nothing was merged.
+

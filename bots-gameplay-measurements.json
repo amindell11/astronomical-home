@@ -1,0 +1,66 @@
+{
+  "Locale_6": {
+    "camera_x": {
+      "min": -121.36113739013672,
+      "max": 4.283392906188965
+    },
+    "camera_y": {
+      "min": 3.1743197441101074,
+      "max": 120.59290313720703
+    },
+    "camera_half_height": {
+      "min": 15.967967987060547,
+      "max": 22.0
+    },
+    "live_ships": {
+      "min": 8.0,
+      "max": 8.0
+    },
+    "shots": {
+      "min": 0.0,
+      "max": 198.0
+    },
+    "damage_events": {
+      "min": 1.0,
+      "max": 96.0
+    },
+    "frames": 1002,
+    "gameSeconds": 40.079978720238095,
+    "videoFps": 25,
+    "gifStep": 3,
+    "gifWidth": 960,
+    "gifHeight": 540
+  },
+  "Locale_7": {
+    "camera_x": {
+      "min": -52.896358489990234,
+      "max": 4.356175899505615
+    },
+    "camera_y": {
+      "min": 3.1220293045043945,
+      "max": 59.52484130859375
+    },
+    "camera_half_height": {
+      "min": 16.3697566986084,
+      "max": 22.0
+    },
+    "live_ships": {
+      "min": 8.0,
+      "max": 8.0
+    },
+    "shots": {
+      "min": 0.0,
+      "max": 194.0
+    },
+    "damage_events": {
+      "min": 1.0,
+      "max": 87.0
+    },
+    "frames": 1002,
+    "gameSeconds": 40.07997872023809,
+    "videoFps": 25,
+    "gifStep": 3,
+    "gifWidth": 960,
+    "gifHeight": 540
+  }
+}
