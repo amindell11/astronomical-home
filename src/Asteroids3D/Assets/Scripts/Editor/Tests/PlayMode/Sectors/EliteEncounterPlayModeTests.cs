@@ -24,7 +24,7 @@ using Object = UnityEngine.Object;
 
 namespace Tests.PlayMode.Sectors
 {
-    /// <summary>A phased sector that ends at its elite: the phases' end summons a scaled elite on its faction's signature ship and announces it with the sector's index and faction id, its hull falling past the first escalation step calls that step's escorts on the faction's common ship, its death extracts, and teardown clears it and its escorts. A spawn log watching the encounter marks the elite's life and raises the player's kill of it.</summary>
+    /// <summary>A phased sector that ends at its elite: the phases' end summons a scaled elite on its faction's signature ship and announces it with the sector's index and faction id, its hull falling past the first escalation step calls that step's escorts on the faction's common ship, its death extracts, and teardown clears it and its escorts. Once the elite arrives the wave director sends no more ships and those already out fly on, while a sector whose spine owns no elite keeps refilling. A spawn log watching the encounter marks the elite's life and raises the player's kill of it.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class EliteEncounterPlayModeTests : PlayModeWorldFixture
@@ -73,7 +73,7 @@ namespace Tests.PlayMode.Sectors
 
         // The elite flies Crimson, the faction's signature ship; escorts fly Vanguard, its common ship.
         private (Sector sector, PhaseSpineModule spine, EliteEncounter encounter, ExtractionZone zone) EliteSector(
-            Ship hero, EliteProfile profile, string factionId, int sectorIndex)
+            Ship hero, EliteProfile profile, string factionId, int sectorIndex, int waveCap = 0, bool spineOwnsElite = true)
         {
             var crimson = TestAssets.LoadCrimsonPrefab();
             var vanguard = TestAssets.Load<Ship>("Assets/Prefabs/Ships/Vanguard.prefab");
@@ -83,7 +83,8 @@ namespace Tests.PlayMode.Sectors
             Assert.IsTrue(vanguard && vanguard.Weapons && vanguard.Weapons.PrimaryMountPrefab,
                 "test premise: Vanguard carries a primary");
             var wave = Track(ShipTestFactory.CreateKinematicPrimitiveShipAt(new Vector2(500f, 500f)).gameObject).GetComponent<Ship>();
-            wave.gameObject.SetActive(false);
+            // A clone of an inactive template is born inactive, and the director despawns it as dead.
+            wave.gameObject.SetActive(waveCap > 0);
 
             var faction = Track(ScriptableObject.CreateInstance<Faction>());
             faction.id = factionId;
@@ -97,16 +98,16 @@ namespace Tests.PlayMode.Sectors
             var directorGO = new GameObject("WaveDirector");
             directorGO.transform.SetParent(sectorGO.transform, false);
             var director = directorGO.AddComponent<WaveDirector>();
-            director.Configure(new[] { new WaveDirector.RosterEntry { template = wave } },
-                new[] { new SectorPhase { seconds = 1f, interval = 1f, cap = 0 } }, lullSeconds: 0f);
             var eliteGO = new GameObject("Elite");
             eliteGO.transform.SetParent(sectorGO.transform, false);
             var encounter = eliteGO.AddComponent<EliteEncounter>();
             encounter.Configure(profile, sectorFaction, pilot, pilot);
+            director.Configure(new[] { new WaveDirector.RosterEntry { template = wave } },
+                new[] { new SectorPhase { seconds = 1f, interval = 1f, cap = waveCap } }, lullSeconds: 0f, elite: encounter);
 
             var zone = NewZone(sectorGO.transform, "Zone");
             var spine = sectorGO.AddComponent<PhaseSpineModule>();
-            spine.Bind(director, zone, NewZone(sectorGO.transform, "Beacon"), elite: encounter);
+            spine.Bind(director, zone, NewZone(sectorGO.transform, "Beacon"), elite: spineOwnsElite ? encounter : null);
 
             sector.SetManifest(null, new SectorSpawner[] { director }, new SectorModule[] { sectorFaction, spine });
             sector.Initialize(_unitService, _objectives, true, default, hero, sectorIndex);
@@ -218,6 +219,69 @@ namespace Tests.PlayMode.Sectors
             log.Watch(null);
             log.Bind(null, null);
             yield return sector.Teardown();
+        }
+
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator EliteArrival_StopsTheWaves_AndTheShipsAlreadyOutFlyOn()
+        {
+            var hero = Track(ShipTestFactory.CreateKinematicPrimitiveShipAt(Vector2.zero).gameObject).GetComponent<Ship>();
+            var (sector, _, _, _) = EliteSector(hero, PlainProfile(), "shoal", sectorIndex: 0, waveCap: 2);
+            var director = sector.Spawners.OfType<WaveDirector>().Single();
+
+            yield return sector.Setup();
+            yield return AsyncAssert.WaitUntil(() => _objectives.SpineStep == PhaseSpineModule.StepElite, 5f,
+                "the phases' end summons the elite");
+            Assert.AreEqual(2, director.Spawned.Count, "test premise: the phase filled its cap before the elite");
+            var downed = director.Spawned[0];
+            var survivor = director.Spawned[1];
+
+            StagedMoments.Kill(downed);
+            for (var i = 0; i < 10 && director.Spawned.Contains(downed); i++)
+                yield return null;
+            yield return null;
+            yield return null;
+
+            CollectionAssert.AreEqual(new[] { survivor }, director.Spawned, "No wave ship replaces the downed one.");
+            Assert.IsTrue(survivor.gameObject.activeInHierarchy, "A wave ship already out flies on.");
+            Assert.IsTrue(hero.gameObject.activeInHierarchy, "test premise: the hero lives, so the director ticks");
+
+            yield return sector.Teardown();
+        }
+
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator SectorWithNoElite_KeepsRefillingPastThePhasesEnd()
+        {
+            var hero = Track(ShipTestFactory.CreateKinematicPrimitiveShipAt(Vector2.zero).gameObject).GetComponent<Ship>();
+            // As in the HUD fixtures, the director watches an elite its spine never summons.
+            var (sector, _, _, _) = EliteSector(hero, PlainProfile(), "shoal", sectorIndex: 0, waveCap: 2,
+                spineOwnsElite: false);
+            var director = sector.Spawners.OfType<WaveDirector>().Single();
+
+            yield return sector.Setup();
+            yield return AsyncAssert.WaitUntil(() => _objectives.SpineStep == PhaseSpineModule.StepExtract, 5f,
+                "with no elite the phases' end opens extraction");
+            Assert.AreEqual(2, director.Spawned.Count, "test premise: the phase filled its cap");
+            var downed = director.Spawned[0];
+
+            StagedMoments.Kill(downed);
+            for (var i = 0; i < 10 && (director.Spawned.Contains(downed) || director.Spawned.Count < 2); i++)
+                yield return null;
+
+            Assert.IsFalse(director.Spawned.Contains(downed), "The director despawns its dead product.");
+            Assert.AreEqual(2, director.Spawned.Count, "The last phase's pacing refills the downed ship.");
+
+            yield return sector.Teardown();
+        }
+
+        private EliteProfile PlainProfile()
+        {
+            var crimson = TestAssets.LoadCrimsonPrefab();
+            var profile = Track(ScriptableObject.CreateInstance<EliteProfile>());
+            profile.name = "TestElite";
+            profile.Configure("Test elite", new ShipScale(1.5f, 1f, 1f, 1f, 1f), crimson.Weapons.PrimaryMountPrefab);
+            return profile;
         }
     }
 }
