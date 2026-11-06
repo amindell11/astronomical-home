@@ -32,7 +32,7 @@ Material:
     - _HaloStrength: 0.015
     - _ParallaxFar: 0
     - _ParallaxNear: 0.15
-    - _ParallaxScale: 0.013
+    - _ParallaxScale: 0.0003
     - _Seed: 186
     - _ShapeVariation: 0
     - _ShootingBrightness: 0

@@ -30,7 +30,7 @@ Material:
     - _CloudGlowSpread: 0.2
     - _CloudOpacity: 0.94
     - _CloudStretch: 3.8
-    - _NebulaParallax: 0.018
+    - _NebulaParallax: 0.0014
     - _NebulaScale: 0.24
     - _NebulaSpeed: 0.002
     - _NebulaStrength: 0.46

@@ -1,5 +1,6 @@
 using System.Linq;
 using NUnit.Framework;
+using Substrate.Services.Locales;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -93,6 +94,11 @@ namespace Tests.EditMode.Rendering.Locales
             planet.Apply();
             material.SetFloat("_RotationSpeed", .05f);
             var initial = Render(Color.clear);
+            material.SetFloat("_SurfaceLongitude", 45);
+            var reframed = Render(Color.clear);
+            Assert.That(Difference(initial, reframed), Is.GreaterThan(.02f));
+            Assert.That(initial.Select(c => c.a), Is.EqualTo(reframed.Select(c => c.a)));
+            material.SetFloat("_SurfaceLongitude", 0);
             var rotated = Render(Color.clear, time: 10);
             Assert.That(Difference(initial, rotated), Is.GreaterThan(.02f),
                 "Surface rotation must move cloud markings across the visible hemisphere.");
@@ -146,10 +152,81 @@ namespace Tests.EditMode.Rendering.Locales
                 "Looking away from a fixed sphere must remove it from view.");
         }
 
-        private Color[] Render(Color background, float cameraX = 0, float halfHeight = 7, float time = 0,
-            float localeX = 0, float cameraYaw = 0)
+        [TestCase(6)]
+        [TestCase(7)]
+        public void OrdinaryTravelKeepsPlanetBetweenDistantLayersAndForegroundAndReturns(int number)
         {
-            var cameraPosition = new Vector3(cameraX, 0, -10);
+            var folder = $"Assets/Visuals/Locales/Sky/Locales/Locale_{number}/";
+            Object.DestroyImmediate(material);
+            material = new Material(AssetDatabase.LoadAssetAtPath<Material>(folder + "Planet.mat"));
+            var initial = Render(Color.clear, cameraZ: -100);
+            var travelled = Render(Color.clear, cameraX: 120, cameraZ: -100);
+            var initialEdge = Enumerable.Range(0, Width).First(x => initial[Height / 2 * Width + x].a > .95f);
+            var travelledEdge = Enumerable.Range(0, Width).First(x => travelled[Height / 2 * Width + x].a > .95f);
+            var planetTravel = initialEdge - travelledEdge;
+            Assert.That(planetTravel, Is.InRange(3, 10),
+                "Ordinary flight must visibly move the limb without making the planet foreground scenery.");
+            Assert.That(Difference(initial, Render(Color.clear, cameraZ: -100)), Is.Zero,
+                "Returning the camera must return to the same fixed surface.");
+
+            foreach (var layer in new[] { "DistantStars", "StarField", "FarNebula", "CloseNebula" })
+            {
+                Object.DestroyImmediate(material);
+                material = new Material(AssetDatabase.LoadAssetAtPath<Material>(folder + layer + ".mat"));
+                GameObject bank = null;
+                MaterialPropertyBlock properties = null;
+                try
+                {
+                    if (layer == "FarNebula")
+                    {
+                        bank = new GameObject("Bank", typeof(MeshRenderer));
+                        var renderer = bank.GetComponent<MeshRenderer>();
+                        renderer.sharedMaterial = material;
+                        bank.AddComponent<CloudBankTile>();
+                        properties = new MaterialPropertyBlock();
+                        renderer.GetPropertyBlock(properties);
+                    }
+                    var before = Render(Color.black, cameraZ: -100, properties: properties);
+                    var after = Render(Color.black, cameraX: 120, cameraZ: -100, properties: properties);
+                    Assert.That(before.Max(c => c.maxColorComponent), Is.GreaterThan(.00001f), layer);
+                    var travel = FeatureTravel(before, after);
+                    if (layer == "CloseNebula")
+                        Assert.That(travel, Is.GreaterThan(planetTravel), "Foreground wisps must pass ahead of the planet.");
+                    else
+                        Assert.That(travel, Is.LessThan(planetTravel), layer + " must remain behind the planet.");
+                    Assert.That(Difference(before, Render(Color.black, cameraZ: -100, properties: properties)), Is.Zero);
+                }
+                finally
+                {
+                    if (bank) Object.DestroyImmediate(bank);
+                }
+            }
+        }
+
+        private static int FeatureTravel(Color[] before, Color[] after)
+        {
+            var bestError = float.PositiveInfinity;
+            var travel = 0;
+            for (var shift = 0; shift <= 24; shift++)
+            {
+                var error = 0f;
+                for (var y = 12; y < Height - 12; y += 2)
+                for (var x = 24; x < Width - 24; x += 2)
+                {
+                    var difference = before[y * Width + x] - after[y * Width + x - shift];
+                    error += Mathf.Abs(difference.r) + Mathf.Abs(difference.g) + Mathf.Abs(difference.b);
+                }
+                if (error >= bestError) continue;
+                bestError = error;
+                travel = shift;
+            }
+            return travel;
+        }
+
+        private Color[] Render(Color background, float cameraX = 0, float halfHeight = 7, float time = 0,
+            float localeX = 0, float cameraYaw = 0, float cameraZ = -10, MaterialPropertyBlock properties = null)
+        {
+            var cameraPosition = new Vector3(cameraX, 0, cameraZ);
             var halfWidth = halfHeight * Width / Height;
             commands.Clear();
             commands.SetRenderTarget(target);
@@ -160,7 +237,7 @@ namespace Tests.EditMode.Rendering.Locales
                 GL.GetGPUProjectionMatrix(Matrix4x4.Ortho(-halfWidth, halfWidth, -halfHeight, halfHeight, .1f, 100), true));
             commands.SetGlobalVector("_WorldSpaceCameraPos", cameraPosition);
             commands.SetGlobalVector("_Time", new Vector4(time / 20, time, time * 2, time * 3));
-            commands.DrawMesh(mesh, Matrix4x4.Translate(new Vector3(localeX, 0, 0)), material);
+            commands.DrawMesh(mesh, Matrix4x4.Translate(new Vector3(localeX, 0, 0)), material, 0, 0, properties);
             Graphics.ExecuteCommandBuffer(commands);
             RenderTexture.active = target;
             readback.ReadPixels(new Rect(0, 0, Width, Height), 0, 0);

@@ -26,7 +26,7 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _NebulaParallax: 0.05
+    - _NebulaParallax: 0.008
     - _NebulaSpeed: 0.003
     - _NebulaStrength: 0.004
     - _Seed: 120

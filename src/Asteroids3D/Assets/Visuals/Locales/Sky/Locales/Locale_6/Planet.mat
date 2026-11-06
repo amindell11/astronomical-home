@@ -29,13 +29,14 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _AxialTilt: -22
-    - _PlanetRadius: 60000
+    - _AxialTilt: 45
+    - _PlanetRadius: 3750
     - _RotationSpeed: 0.003
+    - _SurfaceLongitude: -66
     m_Colors:
-    - _AtmosphereColor: {r: 0.018, g: 0.095, b: 0.075, a: 1}
-    - _LightDirection: {r: -0.9, g: 0.25, b: -0.4, a: 0}
-    - _PlanetCenter: {r: 56000, g: 0, b: 100000, a: 0}
+    - _AtmosphereColor: {r: 0.14, g: 0.38, b: 0.32, a: 1}
+    - _LightDirection: {r: -0.9, g: 0.25, b: -0.1, a: 0}
+    - _PlanetCenter: {r: 3500, g: 0, b: 6156.25, a: 0}
     - _Tint: {r: 0.95, g: 0.95, b: 0.95, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

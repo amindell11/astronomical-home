@@ -25,7 +25,7 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _RepeatDistance: 20000
+    - _RepeatDistance: 60000
     - _TextureStrength: 0.025
     - _ViewHeightInTiles: 0.4
     m_Colors:
