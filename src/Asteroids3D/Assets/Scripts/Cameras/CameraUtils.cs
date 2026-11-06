@@ -50,6 +50,14 @@ namespace Cameras
             return center;
         }
 
+        public static Vector2 ShiftToFitBounds(Vector2 center, Vector2 boundsMin, Vector2 boundsMax,
+            float zoomSize, float aspect, float padding) =>
+            new(ClampIntoReach(center.x, boundsMin.x, boundsMax.x, zoomSize * aspect - padding),
+                ClampIntoReach(center.y, boundsMin.y, boundsMax.y, zoomSize - padding));
+
+        private static float ClampIntoReach(float center, float min, float max, float reach) =>
+            max - reach > min + reach ? (min + max) * 0.5f : Mathf.Clamp(center, max - reach, min + reach);
+
         public static float SmoothZoom(float current, float target, ref float velocity,
             float widenTime, float narrowTime, float deltaTime)
         {
@@ -58,6 +66,14 @@ namespace Cameras
                 velocity = 0f;
             var smoothTime = target > current ? widenTime : narrowTime;
             return Mathf.SmoothDamp(current, target, ref velocity, smoothTime, float.PositiveInfinity, deltaTime);
+        }
+
+        public static Vector2 CursorLead(Vector2 viewportPoint, float deadZone, float distance)
+        {
+            if (viewportPoint.x < 0f || viewportPoint.x > 1f || viewportPoint.y < 0f || viewportPoint.y > 1f)
+                return Vector2.zero;
+            var offset = Vector2.ClampMagnitude(viewportPoint * 2f - Vector2.one, 1f);
+            return offset.normalized * (Mathf.InverseLerp(deadZone, 1f, offset.magnitude) * distance);
         }
 
         /// <summary>

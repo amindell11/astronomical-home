@@ -120,7 +120,7 @@ namespace Tests.PlayMode.Weapons
         }
 
         [UnityTest]
-        public IEnumerator ChargeDashes_StartInvisible_FadeSlowly_AndRestartAfterAnAbort()
+        public IEnumerator ChargeLine_StartInvisible_FadeSlowly_AndRestartAfterAnAbort()
         {
             var line = railgun.GetComponent<LineRenderer>();
             Assert.IsFalse(line.enabled);
@@ -130,7 +130,7 @@ namespace Tests.PlayMode.Weapons
             railgun.Charge.HandleTrigger(true, railgun.Charge.FullChargeTime * 0.25f);
             yield return null;
             var earlyAlpha = line.startColor.a;
-            var firstPhase = VisualProperty(line, "_DashPhase");
+            var firstPhase = VisualProperty(line, "_StreakPhase");
             Assert.IsTrue(line.enabled);
             Assert.That(earlyAlpha, Is.GreaterThan(0f).And.LessThan(0.06f));
 
@@ -146,11 +146,11 @@ namespace Tests.PlayMode.Weapons
             railgun.Charge.HandleTrigger(false, Time.fixedDeltaTime);
             Assert.IsFalse(line.enabled, "aborting clears the line before the next rendered frame");
             Assert.AreEqual(0f, line.startColor.a);
-            Assert.AreEqual(0f, VisualProperty(line, "_DashPhase"));
+            Assert.AreEqual(0f, VisualProperty(line, "_StreakPhase"));
             railgun.Charge.HandleTrigger(true, railgun.Charge.FullChargeTime * 0.25f);
             yield return null;
             Assert.AreEqual(earlyAlpha, line.startColor.a, 0.001f);
-            Assert.AreEqual(firstPhase, VisualProperty(line, "_DashPhase"), 0.001f,
+            Assert.AreEqual(firstPhase, VisualProperty(line, "_StreakPhase"), 0.001f,
                 "an abort and restart within one frame still reset inward travel");
         }
 
@@ -161,29 +161,28 @@ namespace Tests.PlayMode.Weapons
             yield return null;
             railgun.Charge.HandleTrigger(true, railgun.Charge.FullChargeTime * 0.25f);
             yield return null;
-            var spacing = VisualProperty(line, "_DashSpacing");
-            var phase = VisualProperty(line, "_DashPhase");
+            var spacing = VisualProperty(line, "_StreakSpacing");
+            var phase = VisualProperty(line, "_StreakPhase");
             yield return null;
-            var slowStep = Mathf.Repeat(VisualProperty(line, "_DashPhase") - phase, spacing);
-            phase = VisualProperty(line, "_DashPhase");
+            var slowStep = Mathf.Repeat(VisualProperty(line, "_StreakPhase") - phase, spacing);
+            phase = VisualProperty(line, "_StreakPhase");
 
             railgun.Charge.HandleTrigger(true, railgun.Charge.FullChargeTime * 0.5f);
             yield return null;
-            var fastStep = Mathf.Repeat(VisualProperty(line, "_DashPhase") - phase, spacing);
+            var fastStep = Mathf.Repeat(VisualProperty(line, "_StreakPhase") - phase, spacing);
             Assert.That(slowStep, Is.GreaterThan(0f), "positive phase draws the pattern toward its origin");
             Assert.That(fastStep, Is.GreaterThan(slowStep * 2f).And.LessThan(spacing / 6f),
                 "charge changes the next travel step without jumping the pattern");
             Assert.AreEqual(railgun.BeamRange, VisualProperty(line, "_BeamLength"), 0.001f);
 
-            phase = VisualProperty(line, "_DashPhase");
+            phase = VisualProperty(line, "_StreakPhase");
             CreateSoak(Aim * 12f);
             Physics.SyncTransforms();
             yield return null;
             Assert.That(VisualProperty(line, "_BeamLength"), Is.LessThan(railgun.BeamRange / 2f));
-            Assert.AreEqual(spacing, VisualProperty(line, "_DashSpacing"));
-            Assert.AreEqual(fastStep, Mathf.Repeat(VisualProperty(line, "_DashPhase") - phase, spacing), 0.001f,
-                "nearby collisions change the span, not the dash travel speed");
-            Assert.AreEqual(0.3f, VisualProperty(line, "_DashGap"), 0.001f);
+            Assert.AreEqual(spacing, VisualProperty(line, "_StreakSpacing"));
+            Assert.AreEqual(fastStep, Mathf.Repeat(VisualProperty(line, "_StreakPhase") - phase, spacing), 0.001f,
+                "nearby collisions change the span, not the streak travel speed");
         }
 
         [UnityTest]
@@ -225,7 +224,7 @@ namespace Tests.PlayMode.Weapons
 
             visual.ApplyPresentation(false);
             Assert.IsFalse(line.enabled);
-            Assert.AreEqual(0f, VisualProperty(line, "_DashPhase"));
+            Assert.AreEqual(0f, VisualProperty(line, "_StreakPhase"));
             yield return null;
             Assert.IsFalse(line.enabled);
             visual.ApplyPresentation(true);

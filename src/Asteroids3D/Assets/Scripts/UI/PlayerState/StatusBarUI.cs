@@ -51,6 +51,8 @@ namespace UI.PlayerState
             return bar;
         }
 
+        public void ShowNumbers(bool shown) => label.enabled = shown;
+
         protected override void OnEnable()
         {
             base.OnEnable();

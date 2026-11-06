@@ -1,17 +1,20 @@
 using System.Linq;
+using System.Text.RegularExpressions;
 using Combat.Weapons;
 using NUnit.Framework;
 using Ships;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
+using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Factions;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Tests.EditMode
 {
-    /// <summary>Wave director pacing over a sector phase table with injected time: each phase opens once, its interval gates cadence and its cap gates count, a lull (the opening one too) spawns nothing, and the done table keeps the last phase's pacing. The threat read lists the roster's ships and the weapons they fly, their faction kits when the sector names a faction, off a prefab asset too.</summary>
+    /// <summary>Wave director pacing over a sector phase table with injected time: each phase opens once, its interval gates cadence and its cap gates count, a lull (the opening one too) spawns nothing, and the done table keeps the last phase's pacing. The threat read lists the roster's ships and the weapons they fly, their faction kits when the sector names a faction, off a prefab asset too. Validation refuses a director that misses its spine's elite.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class WaveDirectorEditModeTests
@@ -181,6 +184,27 @@ namespace Tests.EditMode
             Assert.IsNotEmpty(threat.Weapons);
             CollectionAssert.AllItemsAreUnique(threat.Ships);
             CollectionAssert.AllItemsAreUnique(threat.Weapons);
+        }
+
+        [Test]
+        public void Validation_RefusesADirectorThatMissesItsSpinesElite()
+        {
+            var sector = new GameObject("Sector");
+            _go.transform.SetParent(sector.transform, false);
+            var encounter = new GameObject("Elite").AddComponent<EliteEncounter>();
+            encounter.transform.SetParent(sector.transform, false);
+            sector.AddComponent<PhaseSpineModule>().Bind(_director, null, null, elite: encounter);
+            using var serialized = new SerializedObject(_director);
+
+            LogAssert.Expect(LogType.Exception, new Regex("must watch its spine's elite"));
+            serialized.FindProperty("team").intValue = 2;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+
+            serialized.FindProperty("elite").objectReferenceValue = encounter;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            LogAssert.NoUnexpectedReceived();
+
+            Object.DestroyImmediate(sector);
         }
 
         private sealed class PoolWeapon : WeaponComponent

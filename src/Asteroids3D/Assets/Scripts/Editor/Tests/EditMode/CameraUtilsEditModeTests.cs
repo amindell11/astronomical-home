@@ -8,6 +8,11 @@ namespace Tests.EditMode
     [Category("Camera")]
     public class CameraUtilsEditModeTests
     {
+        private const float LeadDistance = 6f;
+        private const float DeadZone = .2f;
+        private const float FitZoom = 10f;
+        private const float FitPadding = 2f;
+
         [Test]
         [Category("Smoke")]
         public void ZoomToFitBounds_WideBounds_RespectsAspectRatio()
@@ -38,6 +43,43 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void ShiftToFitBounds_BoundsInsideTheView_LeavesTheCenter()
+        {
+            var center = new Vector2(1f, 2f);
+            var shifted = CameraUtils.ShiftToFitBounds(center, new Vector2(-3f, -4f), new Vector2(5f, 6f), FitZoom, 1f, FitPadding);
+            Assert.That(shifted, Is.EqualTo(center));
+        }
+
+        [Test]
+        public void ShiftToFitBounds_BoundsPokingOutAbove_ShiftsUpJustEnough()
+        {
+            var max = new Vector2(1f, 12f);
+            var shifted = CameraUtils.ShiftToFitBounds(Vector2.zero, new Vector2(-1f, -2f), max, FitZoom, 1f, FitPadding);
+            Assert.That(shifted.y + FitZoom, Is.EqualTo(max.y + FitPadding).Within(1e-4f));
+            Assert.That(shifted.x, Is.EqualTo(0f));
+        }
+
+        [Test]
+        public void ShiftToFitBounds_BoundsPokingOutLeft_ReachesAsFarAsTheAspectWidens()
+        {
+            const float aspect = 16f / 9f;
+            var min = new Vector2(-20f, -1f);
+            var shifted = CameraUtils.ShiftToFitBounds(Vector2.zero, min, new Vector2(0f, 1f), FitZoom, aspect, FitPadding);
+            Assert.That(shifted.x, Is.EqualTo(min.x + FitZoom * aspect - FitPadding).Within(1e-4f));
+            Assert.That(shifted.y, Is.EqualTo(0f));
+        }
+
+        [Test]
+        public void ShiftToFitBounds_BoundsTallerThanTheView_CentersOnTheirVerticalMidpoint()
+        {
+            var min = new Vector2(-1f, -20f);
+            var max = new Vector2(1f, 30f);
+            var shifted = CameraUtils.ShiftToFitBounds(new Vector2(10f, 0f), min, max, FitZoom, 1f, FitPadding);
+            Assert.That(shifted.y, Is.EqualTo((min.y + max.y) / 2f).Within(1e-4f));
+            Assert.That(shifted.x, Is.EqualTo(min.x + FitZoom - FitPadding).Within(1e-4f));
+        }
+
+        [Test]
         public void SmoothZoom_TargetDropsBelowWhileWidening_NeverMovesAwayFromIt()
         {
             const float widenTime = .4f, narrowTime = 1.2f, deltaTime = .02f, settled = 18.7f;
@@ -59,5 +101,51 @@ namespace Tests.EditMode
 
             Assert.That(current, Is.EqualTo(settled).Within(0.01f));
         }
+
+        [Test]
+        public void CursorLead_AtTheCenter_IsZero() =>
+            AssertLead(Vector2.zero, CameraUtils.CursorLead(new Vector2(.5f, .5f), DeadZone, LeadDistance));
+
+        [Test]
+        public void CursorLead_InsideTheDeadZone_IsZero() =>
+            AssertLead(Vector2.zero, CameraUtils.CursorLead(new Vector2(.55f, .45f), DeadZone, LeadDistance));
+
+        [Test]
+        public void CursorLead_AtAScreenEdge_LeadsTheFullDistanceAlongThatAxis()
+        {
+            AssertLead(new Vector2(LeadDistance, 0f), CameraUtils.CursorLead(new Vector2(1f, .5f), DeadZone, LeadDistance));
+            AssertLead(new Vector2(0f, LeadDistance), CameraUtils.CursorLead(new Vector2(.5f, 1f), DeadZone, LeadDistance));
+        }
+
+        [Test]
+        public void CursorLead_HalfwayThroughTheRamp_LeadsHalfTheDistance()
+        {
+            var halfway = (1f + (DeadZone + 1f) / 2f) / 2f;
+            AssertLead(new Vector2(LeadDistance / 2f, 0f), CameraUtils.CursorLead(new Vector2(halfway, .5f), DeadZone, LeadDistance));
+        }
+
+        [Test]
+        public void CursorLead_AtACorner_ClampsToTheFullDistanceDiagonally()
+        {
+            var diagonal = Vector2.one.normalized * LeadDistance;
+            AssertLead(diagonal, CameraUtils.CursorLead(Vector2.one, DeadZone, LeadDistance));
+        }
+
+        [Test]
+        public void CursorLead_OutsideTheView_IsZero()
+        {
+            AssertLead(Vector2.zero, CameraUtils.CursorLead(new Vector2(1.1f, .5f), DeadZone, LeadDistance));
+            AssertLead(Vector2.zero, CameraUtils.CursorLead(new Vector2(-.1f, .5f), DeadZone, LeadDistance));
+        }
+
+        [Test]
+        public void CursorLead_WithNoDeadZone_RampsLinearlyFromTheCenter()
+        {
+            AssertLead(new Vector2(LeadDistance * .2f, 0f), CameraUtils.CursorLead(new Vector2(.6f, .5f), 0f, LeadDistance));
+            AssertLead(new Vector2(0f, -LeadDistance / 2f), CameraUtils.CursorLead(new Vector2(.5f, .25f), 0f, LeadDistance));
+        }
+
+        private static void AssertLead(Vector2 expected, Vector2 actual) =>
+            Assert.That(Vector2.Distance(expected, actual), Is.LessThan(1e-4f), $"lead {actual}, expected {expected}");
     }
 }

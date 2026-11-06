@@ -220,10 +220,10 @@ MonoBehaviour:
   aimWidth: 0.24
   aimOpacityAtFull: 0.68
   aimOpacityPower: 2.2
-  dashSpacing: 6
-  dashGap: 0.3
-  dashSpeedAtStart: 10.8
-  dashSpeedAtFull: 46.8
+  streakSpacing: 8.5
+  streakLength: 3
+  streakSpeedAtStart: 10.8
+  streakSpeedAtFull: 46.8
 --- !u!114 &3893981710489989632
 MonoBehaviour:
   m_ObjectHideFlags: 0
