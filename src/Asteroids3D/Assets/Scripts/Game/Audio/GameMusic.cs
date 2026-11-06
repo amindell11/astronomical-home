@@ -11,12 +11,12 @@ namespace Game.Audio
     /// <summary>
     /// The run's music: one Studio event held for the session, told the run's state and the active
     /// sector's survive phase. Studio owns every transition between states. <see cref="GameHost"/>'s
-    /// run loop sets the state, except extraction, which follows the sector spine's step.
+    /// run loop sets the state, except the elite fight and extraction, which follow the sector spine's step.
     /// </summary>
     public sealed class GameMusic : MonoBehaviour
     {
         // Values are the indices of the MusicState labels in Studio.
-        public enum State { Hangar = 0, Combat = 1, Extract = 2, Recap = 3, Victory = 4, Defeat = 5 }
+        public enum State { Hangar = 0, Combat = 1, Extract = 2, Recap = 3, Victory = 4, Defeat = 5, Elite = 6 }
 
         private const string MusicStateParameter = "MusicState";
         private const string PhaseParameter = "Phase";
@@ -52,7 +52,8 @@ namespace Game.Audio
 
         private void OnSpineStepChanged(string step)
         {
-            if (step == PhaseSpineModule.StepExtract) Set(State.Extract);
+            if (step == PhaseSpineModule.StepElite) Set(State.Elite);
+            else if (step == PhaseSpineModule.StepExtract) Set(State.Extract);
         }
 
         private void OnDestroy()
