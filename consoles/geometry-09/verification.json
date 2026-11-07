@@ -1,0 +1,28 @@
+{
+  "result": "pass",
+  "cameraShipLightsUnchanged": true,
+  "sourceFilesUnchanged": true,
+  "ownerSceneObjects": 772,
+  "displayParallelEdgeErrorDegrees": {
+    "07 | Main rectangular display": 4.815258668922737e-06,
+    "07 | Detail rectangular display": 2.29644309499974e-05
+  },
+  "missingImages": [],
+  "editableHoseAssembly": "pass",
+  "projectorBoolean": "pass",
+  "cornerFitRmsPixels": {
+    "07 | Monitor assembly": {
+      "before": 38.90798084039437,
+      "after": 15.063109744217714
+    },
+    "07 | Projection control assembly": {
+      "before": 15.912622340838324,
+      "after": 0.5635570646741228
+    },
+    "07 | Launch assembly": {
+      "before": 21.990892815921665,
+      "after": 1.1593602352898416
+    }
+  },
+  "visualApproval": "pending"
+}

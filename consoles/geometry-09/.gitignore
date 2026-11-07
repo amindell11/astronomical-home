@@ -1,0 +1,6 @@
+draft-*
+*.log
+*.blend1
+geometry.blend
+geometry-*.png
+geometry-fit.json
