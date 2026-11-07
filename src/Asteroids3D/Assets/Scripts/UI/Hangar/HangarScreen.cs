@@ -13,7 +13,8 @@ namespace UI.Hangar
 {
     /// <summary>
     /// Between-run hangar screen: binds the prefab-authored option cyclers to the hangar's offer (a
-    /// <see cref="ItemSubset"/>) and writes picks into the pending <see cref="ShipLoadout"/>. Nothing
+    /// <see cref="ItemSubset"/>) and writes picks into the pending <see cref="ShipLoadout"/>. A ship
+    /// neither the starter nor earned still cycles in, shown locked, and holds Launch back. Nothing
     /// touches the live ship — the caller installs the selection when Launch fires.
     /// </summary>
     [RequireComponent(typeof(Canvas))]
@@ -21,7 +22,6 @@ namespace UI.Hangar
     {
         [Header("Option rows")]
         [SerializeField] internal OptionCycler shipRow;
-        [SerializeField] internal OptionCycler shieldRow;
         [SerializeField] internal OptionCycler primaryWeaponRow;
         [SerializeField] internal OptionCycler secondaryWeaponRow;
 
@@ -53,8 +53,24 @@ namespace UI.Hangar
         }
 
         /// <summary>Mutates <paramref name="loadout"/> in place as options are picked.</summary>
-        public void Show(ItemSubset offer, ShipLoadout loadout, Action onLaunch)
+        public void Show(ItemSubset offer, ShipLoadout loadout, Func<Ship, bool> earned, Action onLaunch)
         {
+            if (offer && offer.ships is { Length: > 0 } && !offer.starter)
+                throw new InvalidOperationException($"Hangar offer '{offer.name}' offers ships but names no starter.");
+
+            var gated = offer && offer.starter;
+            bool Selectable(Ship ship) => ship == offer.starter || earned(ship);
+
+            void Reseed(Ship ship)
+            {
+                loadout.Ship = ship;
+                var mounts = ship.Weapons;
+                loadout.PrimaryWeapon = mounts ? mounts.PrimaryMountPrefab : null;
+                loadout.SecondaryWeapon = mounts ? mounts.SecondaryMountPrefab : null;
+            }
+
+            if (gated && !Selectable(loadout.Ship)) Reseed(offer.starter);
+
             if (previewImage)
             {
                 // Beside the screen, not under it: the overlay canvas's pixel-space transform would drag the stage.
@@ -67,22 +83,24 @@ namespace UI.Hangar
 
             if (offer)
             {
-                // Picking a ship reseeds the module slots to that ship's authored kit.
                 BindRow(shipRow, offer.ships, () => loadout.Ship, (s, step) =>
                 {
-                    loadout.Ship = s;
-                    loadout.Shield = s.Shield;
-                    var mounts = s.Weapons;
-                    loadout.PrimaryWeapon = mounts ? mounts.PrimaryMountPrefab : null;
-                    loadout.SecondaryWeapon = mounts ? mounts.SecondaryMountPrefab : null;
+                    Reseed(s);
                     if (previewStage) previewStage.Show(loadout, backwards: step < 0);
-                }, Describe);
-                BindRow(shieldRow, offer.shields, () => loadout.Shield, (m, _) => loadout.Shield = m, Describe, ModuleLabel);
+                }, Describe, ship => !gated || Selectable(ship) ? ship.name : $"{ship.name} (locked)");
                 BindRow(primaryWeaponRow, offer.weapons, () => loadout.PrimaryWeapon,
                     (w, _) => loadout.PrimaryWeapon = w, Describe, WeaponLabel);
                 BindRow(secondaryWeaponRow, offer.weapons, () => loadout.SecondaryWeapon,
                     (w, _) => loadout.SecondaryWeapon = w, Describe, WeaponLabel);
             }
+
+            if (gated)
+                refreshers.Add(() =>
+                {
+                    var selectable = Selectable(loadout.Ship);
+                    if (shipRow) shipRow.Dimmed = !selectable;
+                    if (launchButton) launchButton.interactable = selectable;
+                });
 
             Refresh();
 
@@ -166,9 +184,9 @@ namespace UI.Hangar
         }
 
         private static string Describe(Ship ship) =>
-            $"Hull {ship.maxHealth:0}   |   Mass {ship.mass:0}   |   Bank {ship.maxBankAngle:0} deg   |   " +
-            $"Kit: {(ship.Shield ? ship.Shield.DisplayName : "no shield")}\n" +
+            $"Hull {ship.maxHealth:0}   |   Mass {ship.mass:0}   |   Bank {ship.maxBankAngle:0} deg\n" +
             $"Engine: {ship.Engine.DisplayName}   |   {Describe(ship.Engine)}\n" +
+            $"Shield: {(ship.Shield ? ship.Shield.DisplayName + "   |   " + Describe(ship.Shield) : "none")}\n" +
             $"Keystone: {ship.KeystonePrefab.DisplayName} ({ship.KeystonePrefab.Cooldown:0.#} s)";
 
         private static string Describe(EngineModule engine) =>
@@ -185,11 +203,6 @@ namespace UI.Hangar
             if (lasers)
                 return $"Damage {lasers.Damage:0}{Rate(lasers.ShotsPerSecond)}   |   Speed {lasers.ProjectileSpeed:0}" +
                        (lasers.ShotsToOverheat is int shots ? $"   |   Overheats after {shots} shots" : "");
-
-            var chargeLasers = weapon as ChargeLasers;
-            if (chargeLasers)
-                return $"Damage {chargeLasers.MinChargeDamage:0}-{chargeLasers.FullChargeDamage:0}{FullCharge(chargeLasers.Charge)}" +
-                       $"   |   Speed {chargeLasers.ProjectileSpeed:0}";
 
             var railguns = weapon as Railguns;
             if (railguns)
@@ -224,12 +237,11 @@ namespace UI.Hangar
 
         private static string Refill(Rounds rounds) =>
             rounds.ReloadTime <= 0f ? ""
+            : rounds.Refill == Rounds.RefillMode.Sequential ? $" (shared recharge {rounds.ReloadTime:0.#}s/round)"
             : rounds.Refill == Rounds.RefillMode.PerRound ? $" (regen {rounds.ReloadTime:0.#}s/round)"
             : $" (reload {rounds.ReloadTime:0.#}s)";
 
         private static string WeaponLabel(WeaponComponent weapon) => weapon.DisplayName;
-
-        private static string ModuleLabel(TunableModule module) => module.DisplayName;
 
         private void Refresh()
         {

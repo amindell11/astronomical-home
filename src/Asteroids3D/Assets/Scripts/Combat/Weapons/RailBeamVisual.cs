@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using Combat.Weapons.Arsenal;
 using Substrate.Presentation;
@@ -6,75 +7,179 @@ using UnityEngine;
 namespace Combat.Weapons
 {
     /// <summary>
-    /// Presentation for a <see cref="Railguns"/> shot: flashes a line renderer along the beam
-    /// and fades it out. Purely cosmetic — damage is applied by the weapon's raycast.
+    /// Owns the railgun's one line renderer: continuous inward charge and a contracting SVG lance.
+    /// The weapon supplies the exact shot endpoints; this component changes only presentation.
     /// </summary>
     [RequireComponent(typeof(Railguns), typeof(LineRenderer))]
     public sealed class RailBeamVisual : MonoBehaviour, IPresentationPart
     {
         [Tooltip("Seconds the beam takes to fade out after a shot.")]
-        [SerializeField, Min(0.01f)] private float fadeTime = 0.15f;
+        [SerializeField, Min(0.01f)] private float fadeTime = 0.34f;
+        [SerializeField, Min(0f)] private float flashTime = 0.06f;
+
+        [Header("Aim Line")]
+        [Tooltip("Maximum charge streak width in world units; the continuous baseline is thinner.")]
+        [SerializeField, Min(0.01f)] private float aimWidth = 0.24f;
+        [Tooltip("Aim line opacity, as a fraction of the beam's, at full charge.")]
+        [SerializeField, Range(0f, 1f)] private float aimOpacityAtFull = 0.68f;
+        [SerializeField, Min(1f)] private float aimOpacityPower = 2.2f;
+        [Tooltip("Distance between successive streak tips, independent of target distance.")]
+        [SerializeField, Min(0.01f)] private float streakSpacing = 8.5f;
+        [SerializeField, Min(0.01f)] private float streakLength = 3f;
+        [Tooltip("Inward speed in world units per second; accelerates with charge squared.")]
+        [SerializeField, Min(0f)] private float streakSpeedAtStart = 10.8f;
+        [SerializeField, Min(0f)] private float streakSpeedAtFull = 46.8f;
+
+        private static readonly int ShotId = Shader.PropertyToID("_Shot");
+        private static readonly int ShotAgeId = Shader.PropertyToID("_ShotAge");
+        private static readonly int BeamLengthId = Shader.PropertyToID("_BeamLength");
+        private static readonly int LineWidthId = Shader.PropertyToID("_LineWidth");
+        private static readonly int StreakPhaseId = Shader.PropertyToID("_StreakPhase");
+        private static readonly int StreakSpacingId = Shader.PropertyToID("_StreakSpacing");
+        private static readonly int StreakLengthId = Shader.PropertyToID("_StreakLength");
 
         private Railguns weapon;
         private LineRenderer line;
+        private Color beamStartColor;
+        private Color beamEndColor;
+        private float beamWidth;
+        private float streakPhase;
+        private MaterialPropertyBlock properties;
         private Coroutine fade;
 
         private void Awake()
         {
+            ValidateSettings();
             weapon = GetComponent<Railguns>();
             line = GetComponent<LineRenderer>();
+            line.positionCount = 2;
+            beamStartColor = line.startColor;
+            beamEndColor = line.endColor;
+            beamWidth = line.widthMultiplier;
+            properties = new MaterialPropertyBlock();
+            properties.SetFloat(StreakSpacingId, streakSpacing);
+            properties.SetFloat(StreakLengthId, streakLength);
+            Clear();
+        }
+
+        private void OnValidate() => ValidateSettings();
+
+        private void ValidateSettings()
+        {
+            if (!(fadeTime > 0f && flashTime >= 0f && flashTime < fadeTime && aimWidth > 0f &&
+                  aimOpacityAtFull >= 0f && aimOpacityAtFull <= 1f && aimOpacityPower >= 1f &&
+                  streakSpacing > 0f && streakLength > 0f && streakLength < streakSpacing &&
+                  streakSpeedAtStart >= 0f && streakSpeedAtFull > streakSpeedAtStart))
+                throw new InvalidOperationException($"{nameof(RailBeamVisual)} has invalid charge or shot settings.");
         }
 
         public void ApplyPresentation(bool visible)
         {
             enabled = visible;
-            // Only a shot lights the beam; the field is unset until Awake caches it.
+            // Presentation can be applied before Awake.
             if (line) line.enabled = false;
         }
 
         private void OnEnable()
         {
             weapon.OnBeamFired += ShowBeam;
-            line.enabled = false;
+            weapon.Charge.OnChargeChanged += ChargeChanged;
+            Clear();
         }
 
         private void OnDisable()
         {
             weapon.OnBeamFired -= ShowBeam;
+            weapon.Charge.OnChargeChanged -= ChargeChanged;
             if (fade != null) StopCoroutine(fade);
+            fade = null;
+            Clear();
+        }
+
+        private void ChargeChanged(float charge)
+        {
+            if (charge > 0f) return;
+            streakPhase = 0f;
+            properties.SetFloat(StreakPhaseId, 0f);
+            if (fade == null) Clear();
+        }
+
+        private void Clear()
+        {
+            streakPhase = 0f;
+            properties.SetFloat(StreakPhaseId, 0f);
+            properties.SetFloat(ShotId, 0f);
+            properties.SetFloat(ShotAgeId, 0f);
+            line.SetPropertyBlock(properties);
+            SetOpacity(0f);
             line.enabled = false;
+        }
+
+        private void LateUpdate()
+        {
+            if (fade != null) return;
+
+            var charge = weapon.Charge.ChargePct;
+            line.enabled = charge > 0f;
+            if (!line.enabled) return;
+
+            streakPhase = Mathf.Repeat(streakPhase + Mathf.Lerp(streakSpeedAtStart, streakSpeedAtFull,
+                charge * charge) * Time.deltaTime, streakSpacing);
+            properties.SetFloat(ShotId, 0f);
+            properties.SetFloat(StreakPhaseId, streakPhase);
+            Draw(weapon.FireOrigin, weapon.FirstStrikePoint(), aimWidth,
+                aimOpacityAtFull * Mathf.Pow(charge, aimOpacityPower));
         }
 
         private void ShowBeam(Vector3 start, Vector3 end)
         {
-            line.positionCount = 2;
-            line.SetPosition(0, start);
-            line.SetPosition(1, end);
+            properties.SetFloat(ShotId, 1f);
+            properties.SetFloat(ShotAgeId, 0f);
+            Draw(start, end, beamWidth * 1.54f, 1f);
             line.enabled = true;
 
             if (fade != null) StopCoroutine(fade);
             fade = StartCoroutine(FadeOut());
         }
 
+        private void Draw(Vector3 start, Vector3 end, float width, float opacity)
+        {
+            line.SetPosition(0, start);
+            line.SetPosition(1, end);
+            line.widthMultiplier = width;
+            properties.SetFloat(BeamLengthId, Vector3.Distance(start, end));
+            properties.SetFloat(LineWidthId, width);
+            line.SetPropertyBlock(properties);
+            SetOpacity(opacity);
+        }
+
+        private void SetOpacity(float opacity)
+        {
+            line.startColor = Faded(beamStartColor, opacity);
+            line.endColor = Faded(beamEndColor, opacity);
+        }
+
+        private static Color Faded(Color color, float opacity) => new(color.r, color.g, color.b, color.a * opacity);
+
         private IEnumerator FadeOut()
         {
             var elapsed = 0f;
-            var startColor = line.startColor;
-            var endColor = line.endColor;
-
             while (elapsed < fadeTime)
             {
-                elapsed += Time.deltaTime;
-                var alpha = 1f - Mathf.Clamp01(elapsed / fadeTime);
-                line.startColor = new Color(startColor.r, startColor.g, startColor.b, startColor.a * alpha);
-                line.endColor = new Color(endColor.r, endColor.g, endColor.b, endColor.a * alpha);
                 yield return null;
+                elapsed += Time.deltaTime;
+                var decay = Mathf.InverseLerp(flashTime, fadeTime, elapsed);
+                var collapse = Mathf.SmoothStep(0f, 1f, decay);
+                line.widthMultiplier = beamWidth * (1f + 0.54f * Mathf.Exp(-elapsed * 40f)) *
+                                       (1f - 0.92f * collapse);
+                properties.SetFloat(LineWidthId, line.widthMultiplier);
+                properties.SetFloat(ShotAgeId, elapsed);
+                line.SetPropertyBlock(properties);
+                SetOpacity(Mathf.Pow(1f - decay, 1.45f));
             }
 
-            line.enabled = false;
-            line.startColor = startColor;
-            line.endColor = endColor;
             fade = null;
+            Clear();
         }
     }
 }

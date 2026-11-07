@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Objectives;
+using Objectives.Presentation;
 using UnityEngine;
 
 namespace Substrate.Services.Objectives
@@ -21,7 +22,8 @@ namespace Substrate.Services.Objectives
         SpineObjectiveHandle SetSpineObjective(
             MissionDefinition mission,
             IReadOnlyDictionary<string, Func<ObjectiveState>> builders,
-            Transform target = null);
+            Transform target = null,
+            Func<SectorPhaseProgress> phaseProgress = null);
 
         event Action<ObjectiveType, ObjectiveType> OnSpineStateChanged;
 

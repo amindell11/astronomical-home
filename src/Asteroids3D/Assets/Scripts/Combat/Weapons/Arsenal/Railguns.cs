@@ -6,6 +6,7 @@ using Damage;
 using UnityEngine;
 using Substrate.Services.Projectiles;
 using Combat.Weapons.Conditions;
+using Combat.Weapons.Mods;
 using Substrate;
 
 namespace Combat.Weapons.Arsenal
@@ -14,7 +15,8 @@ namespace Combat.Weapons.Arsenal
     /// Charged hitscan railgun (<see cref="ProjectileSpeed"/> 0 — AI gunners aim with no intercept lead).
     /// The beam is a capsule swept along the game plane that pierces: it strikes targets nearest-first,
     /// and each kill's overkill (the return of <see cref="IDamageable.TakeDamage"/>) carries on to the
-    /// next target until a survivor, or a collider that takes no damage, stops it.
+    /// next target until a survivor, or a collider that takes no damage, stops it. While it holds any
+    /// charge it cuts its ship's engines (<see cref="CutsEngines"/>), so a shot costs the shooter its mobility.
     /// </summary>
     public class Railguns : WeaponComponent
     {
@@ -33,10 +35,18 @@ namespace Combat.Weapons.Arsenal
         [SerializeField] private LayerMask hitMask = -1;
 
         [Header("AI Firing")]
-        [Tooltip("Max distance at which an AI gunner will hold the charge trigger.")]
+        [Tooltip("Distance an AI pilot carrying this weapon holds from its target.")]
+        [Stat, SerializeField, Min(0f)] private float holdRange = 30f;
+        [Tooltip("Max distance at which an AI gunner charges. Leaving it mid-charge aborts the shot.")]
         [Stat, SerializeField, Min(0f)] private float fireDistance = 45f;
-        [Tooltip("Max aim error (degrees) at which an AI gunner will hold the charge trigger.")]
+        [Tooltip("Max aim error (degrees) of the firing envelope. The AI's fire plan uses startAngle, breakAngle and commitPoint instead.")]
         [Stat, SerializeField, Range(0f, 180f)] private float fireAngleTolerance = 2f;
+        [Tooltip("Max aim error (degrees) at which an AI gunner starts a charge.")]
+        [Stat, SerializeField, Range(0f, 180f)] private float startAngle = 10f;
+        [Tooltip("Max aim error (degrees) an AI gunner allows before the commit point. Past it, the charge drops.")]
+        [Stat, SerializeField, Range(0f, 180f)] private float breakAngle = 30f;
+        [Tooltip("Charge fraction from which an AI gunner ignores its aim and holds through to the shot at full. Leaving fireDistance still drops it.")]
+        [Stat, SerializeField, Range(0f, 1f)] private float commitPoint = 2f / 3f;
 
         /// <summary>Raised per shot with the beam's world start and end points (for visuals).</summary>
         public event Action<Vector3, Vector3> OnBeamFired;
@@ -49,6 +59,7 @@ namespace Combat.Weapons.Arsenal
         [Stat, SerializeField] private Cooldown cooldown;
 
         public ChargeTime Charge => charge;
+        protected override WeaponCondition[] AuthoredConditions => new WeaponCondition[] { charge, cooldown };
         public float Damage => damage;
         public float BeamRange => range;
         public float BeamRadius => beamRadius;
@@ -56,6 +67,8 @@ namespace Combat.Weapons.Arsenal
         public override float ProjectileSpeed => 0f;
 
         public override float FireRange => fireDistance;
+        public override float? HoldRange => holdRange;
+        public override bool CutsEngines => charge.ChargePct > 0f;
 
         protected override void Awake()
         {
@@ -68,17 +81,15 @@ namespace Combat.Weapons.Arsenal
 
         public override void HandleTrigger(in WeaponCommand cmd, IProjectileService projectiles)
         {
-            if (Charge && Charge.HandleTrigger(cmd.held, Time.fixedDeltaTime))
+            // The cooldown is a recovery: no charge builds until it ends.
+            if (Charge && Charge.HandleTrigger(cmd.held && cooldown.CanFire(), Time.fixedDeltaTime))
                 Fire(cmd.targetPoint, projectiles);
         }
 
         // Hitscan: the registry is part of the uniform firing surface but there is never a projectile to track.
         public override ProjectileBase Fire(Vector3 targetPoint, IProjectileService projectiles)
         {
-            if (!CanFire()) return null;
-
-            foreach (var condition in conditions)
-                condition.ProcessFire();
+            if (!TrySpendFireConditions()) return null;
 
             FireBeam();
             InvokeOnFire();
@@ -88,50 +99,79 @@ namespace Combat.Weapons.Arsenal
         }
 
         public override bool InEnvelope(in TargetingContext context) =>
-            context.hasLineOfSight
-            && context.distanceToTarget <= fireDistance
-            && context.angleToTarget <= fireAngleTolerance;
+            context.Within(fireDistance, fireAngleTolerance);
 
-        // The AI holds the trigger to charge; ChargeTime auto-fires at full, so readiness adds nothing here.
-        public override bool ShouldFire(TargetingContext context) => InEnvelope(in context);
+        // The authored charge fires only when full, so releasing early aborts the shot.
+        public override bool HoldTrigger(TargetingContext context)
+        {
+            if (context.distanceToTarget > fireDistance) return false;
+            if (charge.ChargePct <= 0f) return context.angleToTarget <= startAngle;
+            return charge.ChargePct >= commitPoint || context.angleToTarget <= breakAngle;
+        }
 
         private static RaycastHit[] beamHits = new RaycastHit[32];
         private static readonly IComparer<RaycastHit> nearestFirst =
             Comparer<RaycastHit>.Create((a, b) => a.distance.CompareTo(b.distance));
         private static readonly HashSet<IDamageable> struck = new();
 
-        private void FireBeam()
+        /// <summary>Projected onto the beam's line; the full-range end on a clear path.</summary>
+        public Vector3 FirstStrikePoint()
         {
-            var origin = GamePlane.PlanePointToWorld(GamePlane.WorldPointToPlane(firePoint.position));
-            var direction = GamePlane.PlaneDirToWorld(GamePlane.WorldDirToPlane(firePoint.up).normalized);
-            var end = origin + direction * range;
+            var origin = FireOrigin;
+            var direction = FireDirection;
+            var count = CastBeam(origin, direction);
+            var shooterBody = shooter?.Body;
+            for (var i = 0; i < count; i++)
+            {
+                if (shooterBody && beamHits[i].rigidbody == shooterBody) continue;
+                return OnBeamLine(origin, direction, StrikePoint(beamHits[i], origin));
+            }
+            return origin + direction * range;
+        }
 
+        private int CastBeam(Vector3 origin, Vector3 direction)
+        {
             // A full buffer may have dropped the nearest hits, so grow it and cast again.
             int count;
             while ((count = Physics.SphereCastNonAlloc(origin, beamRadius, direction, beamHits, range, hitMask)) == beamHits.Length)
                 beamHits = new RaycastHit[beamHits.Length * 2];
             Array.Sort(beamHits, 0, count, nearestFirst);
+            return count;
+        }
+
+        // A collider already overlapping the sphere at the origin reports distance 0 and a zero point.
+        private static Vector3 StrikePoint(in RaycastHit hit, Vector3 origin) =>
+            hit.distance > 0f ? hit.point : hit.collider.ClosestPoint(origin);
+
+        private static Vector3 OnBeamLine(Vector3 origin, Vector3 direction, Vector3 point) =>
+            origin + direction * Mathf.Max(0f, Vector3.Dot(point - origin, direction));
+
+        private void FireBeam()
+        {
+            var origin = FireOrigin;
+            var direction = FireDirection;
+            var end = origin + direction * range;
+            var count = CastBeam(origin, direction);
 
             // The beam starts inside the firing ship, so skip the shooter's own body.
             var shooterBody = shooter?.Body;
             var attackerId = shooter?.Id ?? Ships.Registry.ShipId.Invalid;
-            var remaining = damage;
+            var remaining = Mods.Apply(WeaponModField.Damage, damage);
             struck.Clear();
             for (var i = 0; i < count; i++)
             {
                 var hit = beamHits[i];
                 if (shooterBody && hit.rigidbody == shooterBody) continue;
-                var damageable = hit.collider.GetComponentInParent<IDamageable>();
+                DamageableColliders.TryGet(hit.collider, out var damageable);
                 if (damageable != null && !struck.Add(damageable)) continue;
 
-                // A collider already overlapping the sphere at the origin reports distance 0 and a zero point.
-                var point = hit.distance > 0f ? hit.point : hit.collider.ClosestPoint(origin);
+                var point = StrikePoint(hit, origin);
                 remaining = damageable?.TakeDamage(new DamageInfo(remaining, DamageKind.Railgun, attackerId,
                     impactMass, direction * impactSpeed, point)) ?? 0f;
                 Hit?.Invoke(point, damageable);
                 if (remaining > 0f) continue;
 
-                end = origin + direction * Mathf.Max(0f, Vector3.Dot(point - origin, direction));
+                end = OnBeamLine(origin, direction, point);
                 break;
             }
 

@@ -16,9 +16,10 @@ namespace UI.PlayerState
         private int shownKills = -1;
         private int shownSeconds = -1;
 
-        public static RunTallyReadout Create(Transform parent)
+        public static RunTallyReadout Create(Transform parent, Material textMaterial)
         {
             var go = new GameObject("RunTallyReadout", typeof(RectTransform));
+            go.layer = parent.gameObject.layer;
             go.transform.SetParent(parent, false);
             var rect = (RectTransform)go.transform;
             rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 1f);
@@ -27,6 +28,7 @@ namespace UI.PlayerState
             rect.sizeDelta = new Vector2(320f, 28f);
 
             var text = go.AddComponent<Text>();
+            text.material = textMaterial;
             text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             text.fontSize = 18;
             text.color = Color.white;

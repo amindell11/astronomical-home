@@ -19,7 +19,8 @@ Ops: `op <args>` - reads (bare names are in <tmp-dir>) -> assignments; extra fil
   verdict <date> <assigned> <marker>
                                    claude.json -> CLAUDE_ERROR alone on bad output; else
                                    TOKENS_IN TOKENS_OUT TOKENS_CACHE COST_USD FINDINGS
-                                   VERDICT_JSON, plus note.md when FINDINGS > 0
+                                   VERDICT_JSON KIND KIND_CONFIDENT, plus note.md when
+                                   FINDINGS > 0
   prior <bot-login> <marker>       comments.json -> PRIOR_ID (empty when none)
 Failure: past verdict's CLAUDE_ERROR, an unknown op or a missing/malformed input raises; the
 helper exits non-zero and the caller's read hits EOF. Exit 0 only when stdin closes.
@@ -31,6 +32,7 @@ import shlex
 import sys
 
 TMP, EVENT, PROMPT_FILE = sys.argv[1:4]
+KINDS = ("mechanical", "complex", "judgement", "visual", "bugs")
 
 
 def tmp(name):
@@ -132,9 +134,11 @@ def verdict(date, assigned, marker):
         except Exception:
             v = None
     required = {"retry_of": (int, type(None)), "retry_evidence": str, "premise_holds": bool,
-                "premise_evidence": str, "dead_pointers": list}
+                "premise_evidence": str, "dead_pointers": list, "kind": str, "kind_confident": bool,
+                "kind_reason": str}
     if not isinstance(v, dict) or any(k not in v or not isinstance(v[k], t) for k, t in required.items()) \
-            or any(not isinstance(d, dict) or "path" not in d for d in v["dead_pointers"]):
+            or any(not isinstance(d, dict) or "path" not in d for d in v["dead_pointers"]) \
+            or v["kind"] not in KINDS:
         return [("CLAUDE_ERROR", "verdict does not match the schema: " + json.dumps(v)[:300])]
     usage = out.get("usage") or {}
     reply = [("TOKENS_IN", int(usage.get("input_tokens") or 0)),
@@ -149,7 +153,10 @@ def verdict(date, assigned, marker):
     for d in v["dead_pointers"]:
         rep = d.get("replacement")
         lines.append(f"Dead pointer: `{d['path']}` → " + (f"`{rep}`" if rep else "no replacement found"))
-    reply += [("FINDINGS", len(lines)), ("VERDICT_JSON", json.dumps(v, ensure_ascii=False))]
+    if not v["kind_confident"]:
+        lines.append(f"Kind unsure: best guess {v['kind'].capitalize()} — {v['kind_reason']}")
+    reply += [("FINDINGS", len(lines)), ("VERDICT_JSON", json.dumps(v, ensure_ascii=False)),
+              ("KIND", v["kind"]), ("KIND_CONFIDENT", 1 if v["kind_confident"] else 0)]
     if lines:
         if assigned == "1":
             lines.append("In flight (assigned)")

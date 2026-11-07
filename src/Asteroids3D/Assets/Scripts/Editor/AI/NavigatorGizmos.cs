@@ -134,7 +134,7 @@ namespace AI
             var config = nav.config;
             var input = nav.solver.BuildCostInput(nav.CostVelocityReference, nav.enemyPos, nav.enemyVel,
                 nav.enemyYaw, nav.enemyYawRate, nav.projectileSpeed, states[0].vel, nav.sentence,
-                nav.referent1, nav.referent2, nav.referent3);
+                nav.referent1, nav.referent2, nav.referent3, nav.costAimReference);
             var prevPos = Plane(states[0].pos);
             var prevU = sequence[0];
 

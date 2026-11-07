@@ -8,13 +8,14 @@ using NUnit.Framework;
 using Ships;
 using Ships.Loadout;
 using Ships.Registry;
+using Substrate.Sectors.Elements.Elites;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace Tests.EditMode.Runs
 {
-    /// <summary>A run record composed from real recorders: it is one JSON line tagged with the schema, it round-trips, damage rows and the killing blow point at spawn entries by index, an extracted run carries no killing blow, and no ship id reaches the text.</summary>
+    /// <summary>A run record composed from real recorders: it is one JSON line tagged with the schema, it round-trips, damage rows and the killing blow point at spawn entries by index, a spawn row carries its elite flag, an extracted run carries no killing blow, and no ship id reaches the text.</summary>
     [Category("Bootstrap")]
     public class RunRecordEditModeTests
     {
@@ -68,7 +69,7 @@ namespace Tests.EditMode.Runs
             RunRecord.Compose(
                 new DateTime(2026, 10, 1, 12, 34, 56, DateTimeKind.Utc), sectorsCleared, "TrialSector",
                 new BuildIdentity { commit = "abc123", dirty = true }, Fingerprint,
-                new ShipLoadout(offer.ships[0], offer.shields[0], offer.weapons[0], null), PlayerHash,
+                new ShipLoadout(offer.ships[0], offer.weapons[0], null), PlayerHash,
                 new FixedTally(), ledger, spawns, killingBlow);
 
         [TearDown]
@@ -123,7 +124,7 @@ namespace Tests.EditMode.Runs
 
             Assert.AreEqual(offer.ships[0].name, player.chassis);
             Assert.AreEqual(offer.ships[0].Engine.name, player.engine, "the engine is the chassis's own");
-            Assert.AreEqual(offer.shields[0].name, player.shield);
+            Assert.AreEqual(offer.ships[0].Shield.name, player.shield, "the shield is the chassis's own");
             Assert.AreEqual(offer.weapons[0].name, player.primary);
             Assert.AreEqual(string.Empty, player.secondary, "an empty mount is an empty name");
             Assert.AreEqual(PlayerHash, player.statHash);
@@ -214,6 +215,26 @@ namespace Tests.EditMode.Runs
             Assert.AreEqual(1, damage[1].spawn);
             Assert.AreEqual(50f, damage[1].total, 1e-4f);
             Assert.AreEqual(2, damage[1].hits);
+        }
+
+        [Test]
+        public void SpawnRows_CarryTheEliteFlag_ThroughComposeAndTheJsonLine()
+        {
+            var spawns = new SpawnLog();
+            spawns.Bind(null, () => Player);
+            spawns.Begin(0f);
+            spawns.Log(Bystander, NewHull(), 1f);
+            spawns.Log(Laserer, NewHull(), 2f);
+            spawns.MarkElite(new EliteMoment(0, "shoal", Laserer));
+            spawns.End(30f);
+
+            var composed = Compose(new DamageLedger(), spawns, 1, null);
+            Assert.IsFalse(composed.spawns[0].elite);
+            Assert.IsTrue(composed.spawns[1].elite);
+
+            var read = JsonUtility.FromJson<RunRecord>(composed.ToJsonLine());
+            Assert.IsFalse(read.spawns[0].elite);
+            Assert.IsTrue(read.spawns[1].elite);
         }
 
         [Test]

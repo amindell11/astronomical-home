@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using Objectives;
 using Objectives.States;
+using Ships;
+using Ships.Command;
 using UnityEngine;
 
 namespace Tests.EditMode
@@ -11,6 +13,15 @@ namespace Tests.EditMode
     [Category("Objectives")]
     public class ObjectiveTrackerEditModeTests
     {
+        private Ship hero;
+
+        [SetUp]
+        public void SetUp() => hero = new GameObject("Hero").AddComponent<Ship>();
+
+        [TearDown]
+        public void TearDown() => UnityEngine.Object.DestroyImmediate(hero.gameObject);
+
+        private void RequestJump() => ((IJumpDrive)hero).RequestJump();
 
         private (ObjectiveTracker tracker, StubKeyTracker key, BoolRef alive, StubExtractionZone zone)
             BuildExploreTracker(bool playerInZone = false)
@@ -23,7 +34,7 @@ namespace Tests.EditMode
             {
                 ["explore"] = () => new ExploreState(key),
                 ["key"] = () => new KeyAcquiredState(),
-                ["extraction"] = () => new ExtractionChallengeState(zone),
+                ["extraction"] = () => new ExtractionJumpState(zone, hero, () => { }),
                 ["extracted"] = () => new ExtractedState(),
                 ["failed"] = () => new FailedState()
             };
@@ -72,6 +83,7 @@ namespace Tests.EditMode
             key.HasKey = true;
             tracker.Tick(0.1f); // → KeyAcquired
             tracker.Tick(0.1f); // → ExtractionChallenge (zone.InZone=true)
+            RequestJump();
             tracker.Tick(0.1f); // → Extracted
             Assert.AreEqual(ObjectiveType.Extracted, tracker.CurrentState);
 
@@ -111,6 +123,7 @@ namespace Tests.EditMode
             key.HasKey = true;
             tracker.Tick(0.1f); // → KeyAcquired
             tracker.Tick(0.1f); // → ExtractionChallenge
+            RequestJump();
             tracker.Tick(0.1f); // → Extracted
             Assert.AreEqual(ObjectiveType.Extracted, tracker.CurrentState);
 
@@ -126,6 +139,7 @@ namespace Tests.EditMode
             key.HasKey = true;
             tracker.Tick(0.1f);
             tracker.Tick(0.1f);
+            RequestJump();
             tracker.Tick(0.1f);
             Assert.AreEqual(ObjectiveType.Extracted, tracker.CurrentState);
 
@@ -146,6 +160,7 @@ namespace Tests.EditMode
             key.HasKey = true;
             tracker.Tick(0.1f); // Explore → KeyAcquired
             tracker.Tick(0.1f); // KeyAcquired → ExtractionChallenge
+            RequestJump();
             tracker.Tick(0.1f); // ExtractionChallenge → Extracted
 
             Assert.AreEqual(3, transitions.Count, "Expected exactly 3 transitions on the success path.");
@@ -173,7 +188,7 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void ExtractionChallenge_DoesNotComplete_WhileBlocked()
+        public void ExtractionJump_CommitsOnlyOnARequestWhileEligible()
         {
             var (tracker, key, _, zone) = BuildExploreTracker();
 
@@ -183,13 +198,39 @@ namespace Tests.EditMode
             Assert.AreEqual(ObjectiveType.ExtractionChallenge, tracker.CurrentState);
 
             zone.InZone = false;
+            RequestJump();
             tracker.Tick(0.1f);
             Assert.AreEqual(ObjectiveType.ExtractionChallenge, tracker.CurrentState,
-                "Should remain in extraction while zone reports player not in zone.");
+                "A request while the zone reports the hero outside must not commit.");
 
             zone.InZone = true;
             tracker.Tick(0.1f);
+            Assert.AreEqual(ObjectiveType.ExtractionChallenge, tracker.CurrentState,
+                "Eligibility alone must not commit; the earlier request was dropped.");
+
+            RequestJump();
+            tracker.Tick(0.1f);
             Assert.AreEqual(ObjectiveType.Extracted, tracker.CurrentState);
+        }
+
+        [Test]
+        public void ExtractionJump_CommitsOncePerEntry_AndOnlyWhileEntered()
+        {
+            var commits = 0;
+            var state = new ExtractionJumpState(new StubExtractionZone(true), hero, () => commits++);
+
+            RequestJump();
+            state.Enter();
+            state.Exit();
+            RequestJump();
+            Assert.AreEqual(0, commits, "Requests before entry or after exit must not commit.");
+
+            state.Enter();
+            RequestJump();
+            RequestJump();
+            Assert.AreEqual(1, commits, "A second request after the commit must not commit again.");
+            Assert.IsTrue(state.IsComplete);
+            state.Dispose();
         }
 
         [Test]
@@ -217,6 +258,7 @@ namespace Tests.EditMode
             key.HasKey = true;
             tracker.Tick(0.1f);
             tracker.Tick(0.1f);
+            RequestJump();
             tracker.Tick(0.1f);
 
             CollectionAssert.AreEqual(new[] { "key", "extraction", "extracted" }, steps);

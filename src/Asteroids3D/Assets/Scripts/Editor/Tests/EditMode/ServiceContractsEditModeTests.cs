@@ -60,7 +60,7 @@ namespace Tests.EditMode
             {
                 ["explore"] = () => new ExploreState(key ?? new StubKeyTracker(false)),
                 ["key"] = () => new KeyAcquiredState(),
-                ["extraction"] = () => new ExtractionChallengeState(zone ?? new StubExtractionZone(false)),
+                ["extraction"] = () => new ExtractionJumpState(zone ?? new StubExtractionZone(false), hero: null, onCommit: () => { }),
                 ["extracted"] = () => new ExtractedState(),
                 ["failed"] = () => new FailedState()
             };

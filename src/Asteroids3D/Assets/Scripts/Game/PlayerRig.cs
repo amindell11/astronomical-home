@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
 using Cameras;
+using Combat.Weapons;
 using Damage;
+using Loot;
 using Substrate.Sectors;
 using Substrate.Sessions;
 using Substrate.Services.Units;
@@ -11,10 +13,11 @@ using Ships;
 using Ships.Loadout;
 using Ships.Command;
 using UI;
+using UI.Projection;
 using UnityEngine;
-using UnityEngine.Rendering.Universal;
 using Ships.Registry;
 using Substrate;
+using Substrate.Sectors.Elements.Phases;
 
 namespace Game
 {
@@ -26,9 +29,10 @@ namespace Game
     /// player by injection (<see cref="Sector.Initialize"/>), never building or clearing it. The
     /// player — ship, input and HUD — is parked (<see cref="Park"/>) from <see cref="Build"/> and
     /// from each sector's unload until <see cref="ApplyLoadout"/> unparks it at the end of the next
-    /// hangar step, so the hangar never handles player presence. Pure mechanism: the rig holds no
-    /// session policy — the host injects the player-death behavior via <see cref="Build"/> and the
-    /// rig only wires it onto each player it builds. A host with no rig assigned has no player.
+    /// hangar step, so the hangar never handles player presence. Pure mechanism with one exception, the
+    /// HUD's keystone prompt at the first sector it enters: the host injects the player-death behavior
+    /// via <see cref="Build"/> and the rig only wires it onto each player it builds. A host with no rig
+    /// assigned has no player.
     /// </summary>
     public class PlayerRig : MonoBehaviour
     {
@@ -38,7 +42,7 @@ namespace Game
         [SerializeField] private Vector2 playerSpawnPosition = Vector2.zero;
 
         [Header("Camera")]
-        [SerializeField] private Camera uiCamPrefab;
+        [SerializeField] private CanopyProjection uiCamPrefab;
         [SerializeField] private Camera minimapCamPrefab;
 
         [Header("UI")]
@@ -64,6 +68,9 @@ namespace Game
         /// <summary>Every other ship spawned this run and its fate; reset with the tally at the loadout step.</summary>
         public SpawnLog Spawns { get; } = new();
 
+        /// <summary>The run's lull picks; cleared at the loadout step, bound to each player the rig builds.</summary>
+        public LullModStack Mods { get; } = new();
+
         /// <summary>The live HUD overlay this rig owns; null headless or before <see cref="Build"/>.</summary>
         public Overlay Overlay { get; private set; }
 
@@ -78,6 +85,9 @@ namespace Game
         private Action<ShipId, DamageInfo> onPlayerDeath;
 
         private SessionFrame frame;
+        private CanopyProjection projection;
+        private CanopyPersonality personality;
+        private bool keystonePromptShown;
 
         // The prefab the current Player instance was built from — a hangar ship change is detected
         // against this (the prefab is the archetype; see ShipLoadout.Ship).
@@ -108,28 +118,27 @@ namespace Game
             Ledger.Bind(Player.Damage, units.Registry);
 
             // Seed the pending loadout from the ship's authored build so an unedited hangar is a no-op.
-            Loadout = new ShipLoadout(playerTemplate, Player.Shield,
+            Loadout = new ShipLoadout(playerTemplate,
                 Player.Weapons ? Player.Weapons.PrimaryMountPrefab : null,
                 Player.Weapons ? Player.Weapons.SecondaryMountPrefab : null);
 
             // HUD/UI-cam/minimap are presentation: a headless/RL run builds no Canvas.
             if (presentationEnabled && observer && overlayPrefab && uiCamPrefab)
             {
-                var uiCam = Instantiate(uiCamPrefab, observer.transform);
-                uiCam.GetUniversalAdditionalCameraData().renderType = CameraRenderType.Overlay;
-                observer.Cam.GetUniversalAdditionalCameraData().cameraStack.Add(uiCam);
+                if (!minimapCamPrefab)
+                    throw new InvalidOperationException($"PlayerRig on '{name}' needs a minimap camera for its HUD.");
+                projection = Instantiate(uiCamPrefab, observer.transform);
+                var uiCam = projection.Camera;
 
                 Overlay = Instantiate(overlayPrefab, uiRoot);
-                Overlay.SetCanvasWorldCamera(uiCam);
+                personality = CanopyPersonality.Create(gameObject, objectives, projection, () => Overlay.IsVisible);
+                personality.Initialize(Player.Damage);
+                projection.Initialize(observer.Cam, personality.Observe);
+                Overlay.ConfigureCameras(uiCam, observer.Cam, projection);
                 Overlay.Initialize(BuildHudBinding());
-                Overlay.BindObjectives(objectives);
-            }
-
-            if (presentationEnabled && observer && minimapCamPrefab)
-            {
                 var minimapCam = Instantiate(minimapCamPrefab, observer.transform);
-                if (Overlay && Overlay.ObjectiveMarker && Overlay.MinimapRect)
-                    Overlay.ObjectiveMarker.Initialize(minimapCam, Overlay.MinimapRect);
+                Overlay.BindObjectives(objectives, observer.Cam, minimapCam);
+                Overlay.BindShips(units.ActiveRegistry.ActiveShips, observer.Cam);
             }
 
             Park();
@@ -146,6 +155,12 @@ namespace Game
             Spawns.Bind(null, null);
             if (Overlay)
                 Destroy(Overlay.gameObject);
+            if (projection)
+                Destroy(projection.gameObject);
+            if (personality)
+                Destroy(personality);
+            personality = null;
+            projection = null;
             Overlay = null;
             Player = null;
             observer = null;
@@ -170,9 +185,9 @@ namespace Game
         }
 
         /// <summary>
-        /// Install the pending <see cref="Loadout"/> onto the persistent player ship. A module change
-        /// is a data re-resolve (<see cref="Ship.Reequip"/>); a ship change is a whole-player rebuild
-        /// (<see cref="RebuildPlayer"/>) followed by the module equip. Called at each run's
+        /// Install the pending <see cref="Loadout"/> onto the persistent player ship. A weapon change
+        /// is a mount swap (<see cref="Ship.Reequip"/>); a ship change is a whole-player rebuild
+        /// (<see cref="RebuildPlayer"/>) followed by the weapon equip. Called at each run's
         /// hangar step — never mid-sector; leaves the player live for the next sector load.
         /// </summary>
         public void ApplyLoadout()
@@ -183,6 +198,7 @@ namespace Game
             Ledger.Clear();
             Tally.Reset();
             Spawns.Reset();
+            Mods.Clear();
 
             // The player is always parked here. Unpark it before applying so swapped-in weapon mounts
             // instantiate active and Awake-wire; the subsequent LoadSector repositions and resets it anyway.
@@ -191,12 +207,31 @@ namespace Game
             if (Loadout.Ship && Loadout.Ship != currentTemplate)
                 RebuildPlayer(Loadout.Ship);
 
-            Player.Reequip(Loadout.Shield, Loadout.PrimaryWeapon, Loadout.SecondaryWeapon);
+            Player.Reequip(Loadout.PrimaryWeapon, Loadout.SecondaryWeapon);
 
             // Swapped-in weapon mounts carry world-facing parts (lock sensor) that the service
             // wired at spawn; ask it to re-wire (the player is never AI, so no field), then re-bind the HUD.
             units.WireShipDependencies(Player, field: null);
             RebindHud();
+        }
+
+        /// <summary>Adds a lull pick to the run; the bound player applies it at once.</summary>
+        public void PickMod(LullMod mod) => Mods.Add(mod);
+
+        /// <summary>Mounts a sector-break pick mid-run; unlike <see cref="ApplyLoadout"/>, vitals, run clocks and hangar loadout stay.</summary>
+        public void SwapWeapon(WeaponSlot slot, WeaponComponent weapon)
+        {
+            var weapons = Player.Weapons;
+            weapons.Reequip(slot == WeaponSlot.Primary ? weapon : weapons.PrimaryMountPrefab,
+                slot == WeaponSlot.Secondary ? weapon : weapons.SecondaryMountPrefab);
+            units.WireShipDependencies(Player, field: null);
+            RebindHud();
+        }
+
+        /// <summary>Silences or restores the player's controls while a screen holds the run with the ship live.</summary>
+        public void SetInputEnabled(bool enabled)
+        {
+            if (Player && Player.Commander) Player.Commander.enabled = enabled;
         }
 
         /// <summary>
@@ -230,12 +265,13 @@ namespace Game
                 field: null);
             Player.tag = "Player";
             currentTemplate = template;
+            Player.BindMods(Mods);
 
             WirePlayerDeath();
 
             if (!observer) return;
 
-            observer.SetSubject(Player.transform);
+            observer.SetSubject(Player.transform, Player.Rigidbody);
             var screenCommander = Player.Commander as PlayerCommander;
             if (screenCommander)
                 screenCommander.SetScreenToGamePlane(pos =>
@@ -248,13 +284,32 @@ namespace Game
         // their old source).
         private void RebindHud()
         {
+            if (personality) personality.Initialize(Player.Damage);
             if (Overlay)
                 Overlay.Initialize(BuildHudBinding());
         }
 
+        public void EnterSector(PhaseSpineModule phase)
+        {
+            Spawns.Watch(phase ? phase.Elite : null);
+            if (personality) personality.EnterSector(phase);
+            if (Overlay) Overlay.BindElite(phase ? phase.Elite : null);
+            if (!phase || keystonePromptShown) return;
+            keystonePromptShown = true;
+            if (Overlay) Overlay.ShowKeystonePrompt(() => FirstSectorPhaseOver(phase));
+        }
+
+        // A lull's Index names the next sector phase; an unloaded sector has ended the first too.
+        private static bool FirstSectorPhaseOver(PhaseSpineModule spine) =>
+            !spine || spine.Phase.Index >= 1 || spine.Phase.Done;
+
         // The HUD binds narrow read surfaces, never the Ship itself (see HudBinding).
-        private HudBinding BuildHudBinding() => new HudBinding(
-            Player, Player.Damage, Player.Weapons ? Player.Weapons.ReadoutContext : null, Tally);
+        private HudBinding BuildHudBinding()
+        {
+            var commander = Player.Commander as PlayerCommander;
+            return new HudBinding(Player, Player.Damage, Player.Weapons ? Player.Weapons.ReadoutContext : null, Tally,
+                commander ? commander.playerInput : null, Player.Keystone.DisplayName, Player.Keystone.Icon);
+        }
 
         private void WirePlayerDeath()
         {

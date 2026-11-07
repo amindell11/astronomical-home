@@ -1,87 +1,111 @@
 using System;
-using System.Collections;
-using UnityEngine.SceneManagement;
+using UnityEngine;
+using UnityEngine.Rendering;
+using Object = UnityEngine.Object;
 
 namespace Substrate.Services.Locales
 {
     /// <summary>
-    /// Locale switching for one session, held privately by it rather than exposed beside its services:
-    /// swap the active (lighting) scene to a sector's authored locale before its content builds, return
-    /// to the idle locale — the one shown while no sector is loaded — whenever the sector unloads, and
-    /// hand the boot scene back when the session tears down. Every step is presentation-only — the
-    /// session skips them headless — and nothing outside the session ever calls them.
+    /// Locale switching for one session, held privately by it rather than exposed beside its services: it
+    /// instantiates a sector's locale prefab under the session's locale root before the sector's content builds,
+    /// shows the idle locale (the one shown while no sector is loaded) whenever the sector unloads, and restores the
+    /// active scene's lighting, captured at construction, when it shows none. A sector naming the shown locale keeps its
+    /// instance. A travel backdrop holds both locales across the transfer and destroys the one no longer shown when
+    /// released. The session skips these steps headless.
     /// </summary>
     public class LocaleService
     {
-        private readonly Scene bootScene = SceneManager.GetActiveScene();
-        private readonly string idleLocaleName;
-        private string loadedLocaleName;
+        private readonly Transform root;
+        private readonly LocaleSky idleLocale;
+        private readonly LocaleLighting bootLighting = LocaleLighting.Capture();
+        private readonly SphericalHarmonicsL2 bootProbe = RenderSettings.ambientProbe;
+        private LocaleSky shownLocale;
+        private LocaleSky shown;
+        private LocaleSky retained;
+        private LocaleSky backdropDestination;
+        private LocaleBackdropPair backdrop;
 
-        public LocaleService(string idleLocaleName = null)
+        public LocaleService(Transform root, LocaleSky idleLocale = null)
         {
-            this.idleLocaleName = idleLocaleName;
+            this.root = root ? root : throw new ArgumentNullException(nameof(root));
+            this.idleLocale = idleLocale;
         }
 
-        /// <summary>Make the named scene the active (lighting) scene, additively loading it and unloading the prior locale; no-op when empty or already applied.</summary>
-        public IEnumerator ApplyLocaleAsync(string localeSceneName)
+        public LocaleBackdropPair PrepareBackdrop(LocaleSky destination, Transform parent)
         {
-            if (string.IsNullOrWhiteSpace(localeSceneName) || loadedLocaleName == localeSceneName)
-                yield break;
-
-            if (!string.IsNullOrEmpty(loadedLocaleName))
-                yield return UnloadSceneAsync(loadedLocaleName);
-
-            var scene = SceneManager.GetSceneByName(localeSceneName);
-            if (!scene.isLoaded)
+            if (!destination) throw new ArgumentNullException(nameof(destination));
+            if (backdrop) throw new InvalidOperationException("A locale backdrop is already held.");
+            if (!shown) throw new InvalidOperationException("A backdrop requires a shown departure locale.");
+            var to = shown;
+            if (destination != shownLocale)
             {
-                var loadOp = SceneManager.LoadSceneAsync(localeSceneName, LoadSceneMode.Additive);
-                if (loadOp == null)
-                    throw new InvalidOperationException(
-                        $"Failed to load locale scene '{localeSceneName}'. " +
-                        "Verify it exists and is enabled in Build Settings.");
-
-                while (!loadOp.isDone)
-                    yield return null;
-
-                scene = SceneManager.GetSceneByName(localeSceneName);
+                to = retained = Instantiate(destination);
+                to.SetVisible(false);
             }
-
-            if (scene.isLoaded)
-                SceneManager.SetActiveScene(scene);
-            loadedLocaleName = localeSceneName;
+            var pairRoot = new GameObject("Locale backdrop pair");
+            pairRoot.transform.SetParent(parent, false);
+            backdrop = pairRoot.AddComponent<LocaleBackdropPair>();
+            backdrop.Initialize(shown, to, Release);
+            backdropDestination = destination;
+            return backdrop;
         }
 
-        /// <summary>With no idle locale configured, unloads to the boot scene.</summary>
-        public IEnumerator ApplyIdleLocaleAsync()
+        /// <summary>An unassigned locale keeps the shown one.</summary>
+        public void Show(LocaleSky locale)
         {
-            if (string.IsNullOrWhiteSpace(idleLocaleName))
-                return UnloadLocaleAsync();
-            return ApplyLocaleAsync(idleLocaleName);
-        }
+            if (!locale || locale == shownLocale) return;
+            if (backdrop && locale != backdropDestination)
+                throw new InvalidOperationException("A held travel backdrop can only transfer to its destination.");
 
-        /// <summary>Restore the boot scene as active and unload the applied locale, if any.</summary>
-        public IEnumerator UnloadLocaleAsync()
-        {
-            if (string.IsNullOrEmpty(loadedLocaleName))
-                yield break;
-
-            // Re-activate boot BEFORE the unload so RenderSettings never resolve against a scene going away this frame.
-            if (bootScene.IsValid() && bootScene.isLoaded)
-                SceneManager.SetActiveScene(bootScene);
-
-            yield return UnloadSceneAsync(loadedLocaleName);
-            loadedLocaleName = null;
-        }
-
-        private static IEnumerator UnloadSceneAsync(string sceneName)
-        {
-            var scene = SceneManager.GetSceneByName(sceneName);
-            if (scene.isLoaded)
+            if (backdrop)
             {
-                var op = SceneManager.UnloadSceneAsync(sceneName);
-                while (op != null && !op.isDone)
-                    yield return null;
+                (shown, retained) = (retained, shown);
+                retained.SetVisible(false);
             }
+            else
+            {
+                if (shown) Discard(shown);
+                shown = Instantiate(locale);
+            }
+            shownLocale = locale;
+            shown.ApplyLighting();
+            shown.SetVisible(true);
+        }
+
+        public void ShowIdle()
+        {
+            if (idleLocale) Show(idleLocale);
+            else Clear();
+        }
+
+        public void Clear()
+        {
+            if (shown) Discard(shown);
+            if (retained) Object.Destroy(retained.gameObject);
+            shown = retained = shownLocale = null;
+            bootLighting.Apply();
+            RenderSettings.ambientProbe = bootProbe;
+        }
+
+        private LocaleSky Instantiate(LocaleSky locale)
+        {
+            var instance = Object.Instantiate(locale, root);
+            instance.name = locale.name;
+            return instance;
+        }
+
+        // Destroy waits for the frame's end; hidden first, the instance lights nothing meanwhile.
+        private static void Discard(LocaleSky instance)
+        {
+            instance.SetVisible(false);
+            Object.Destroy(instance.gameObject);
+        }
+
+        private void Release()
+        {
+            if (retained) Object.Destroy(retained.gameObject);
+            retained = backdropDestination = null;
+            backdrop = null;
         }
     }
 }

@@ -19,7 +19,7 @@ using Substrate;
 
 namespace Tests.PlayMode
 {
-    /// <summary>End-to-end demo spine: key pickup advances the spine over the bus, the extraction rule activates the chaser, and reaching the gate extracts — including parked-in-gate-then-get-key with no physics-frame hack.</summary>
+    /// <summary>End-to-end demo spine: key pickup advances the spine over the bus, the extraction rule activates the chaser, and the hero's jump request inside the eligible zone extracts, including when already parked there.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class SectorSpineDemoPlayModeTests : PlayModeWorldFixture
@@ -28,14 +28,13 @@ namespace Tests.PlayMode
 
         private UnitService _unitService;
         private ObjectiveService _objectives;
-        private SectorSettings _config;
+        private JumpTestCommander pilot;
         private readonly List<GameObject> _created = new();
 
         [SetUp]
         public override void SetUp()
         {
             base.SetUp();
-
             var unitServiceGO = TrackGO(new GameObject("UnitService"));
             _unitService = unitServiceGO.AddComponent<UnitService>();
 
@@ -43,8 +42,6 @@ namespace Tests.PlayMode
             _objectives = objectiveServiceGO.AddComponent<ObjectiveService>();
 
             ShipServices.Compose(_unitService, unitServiceGO.transform, presentationEnabled: true);
-
-            _config = ScriptableObject.CreateInstance<SectorSettings>();
         }
 
         [TearDown]
@@ -56,10 +53,10 @@ namespace Tests.PlayMode
                 if (go != null) Object.DestroyImmediate(go);
             _created.Clear();
 
-            if (_config != null) { Object.DestroyImmediate(_config); _config = null; }
-
             base.TearDown();
         }
+
+        private void RequestJump() => pilot.RequestJump();
 
         private GameObject TrackGO(GameObject go) { _created.Add(go); return go; }
 
@@ -78,6 +75,7 @@ namespace Tests.PlayMode
             string activateToken = ChallengeToken)
         {
             var player = SpawnKinematicShip(Vector2.zero);
+            pilot = JumpTestCommander.Fly(player);
             var chaser = SpawnKinematicShip(chaserPlane ?? new Vector2(300f, 300f));
             chaser.gameObject.SetActive(false);
             var activate = chaser.gameObject.AddComponent<ActivateOnToken>();
@@ -121,7 +119,7 @@ namespace Tests.PlayMode
             modules.Add(activate);
 
             sector.SetManifest(null, null, modules.ToArray());
-            sector.Initialize(_unitService, _objectives, true, _config, default, player);
+            sector.Initialize(_unitService, _objectives, true, default, player);
             return (sector, key, zone, player, chaser);
         }
 
@@ -160,9 +158,10 @@ namespace Tests.PlayMode
             ShipTestFactory.MoveKinematicShip(player, GamePlane.PlanePointToWorld(GatePlane));
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
+            RequestJump();
             yield return WaitFrames(() => got.HasValue);
 
-            Assert.IsTrue(got.HasValue, "Reaching the gate with the key must end the sector.");
+            Assert.IsTrue(got.HasValue, "A jump request inside the eligible jump gate must end the sector.");
             Assert.IsTrue(got.Value.Success, "The completed spine must end the sector as Extracted.");
 
             yield return sector.Teardown();
@@ -191,11 +190,14 @@ namespace Tests.PlayMode
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
             Assert.IsTrue(key.PlayerHasKey);
+            yield return WaitFrames(() => _objectives.SpineStep == SectorSpineModule.StepReadyToExtract);
+            Assert.IsFalse(got.HasValue, "Eligibility alone cannot extract a parked player.");
 
+            RequestJump();
             yield return WaitFrames(() => got.HasValue);
 
             Assert.IsTrue(got.HasValue,
-                "A player parked in the gate before qualifying must still extract — occupancy is a level, not an enter-edge.");
+                "A jump request must extract an eligible parked player without leaving and re-entering the zone.");
             Assert.IsTrue(got.Value.Success);
             Assert.IsTrue(chaser.gameObject.activeSelf, "The rule must still have fired on the way through ready-to-extract.");
 
@@ -221,12 +223,14 @@ namespace Tests.PlayMode
             ShipTestFactory.MoveKinematicShip(player, GamePlane.PlanePointToWorld(GatePlane));
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
+            RequestJump();
             yield return WaitFrames(() => got.HasValue, maxFrames: 30);
             Assert.IsFalse(got.HasValue,
                 "A chaser within blockDistance must block extraction even with the player parked in the gate.");
 
             ShipTestFactory.MoveKinematicShip(
                 chaser, GamePlane.PlanePointToWorld(new Vector2(300f, 300f)));
+            RequestJump();
             yield return WaitFrames(() => got.HasValue);
             Assert.IsTrue(got.HasValue, "Moving the chaser out of blockDistance must unblock extraction.");
             Assert.IsTrue(got.Value.Success, "The unblocked extraction must end the sector as Extracted.");
@@ -252,6 +256,7 @@ namespace Tests.PlayMode
             ShipTestFactory.MoveKinematicShip(player, GamePlane.PlanePointToWorld(GatePlane));
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
+            RequestJump();
             yield return WaitFrames(() => got.HasValue, maxFrames: 30);
 
             Assert.IsFalse(got.HasValue,
@@ -281,6 +286,7 @@ namespace Tests.PlayMode
             ShipTestFactory.MoveKinematicShip(player, GamePlane.PlanePointToWorld(GatePlane));
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
+            RequestJump();
             yield return WaitFrames(() => got.HasValue, maxFrames: 30);
 
             Assert.IsFalse(got.HasValue,
@@ -310,10 +316,11 @@ namespace Tests.PlayMode
             ShipTestFactory.MoveKinematicShip(player, GamePlane.PlanePointToWorld(GatePlane));
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
+            RequestJump();
             yield return WaitFrames(() => got.HasValue);
 
             Assert.IsTrue(got.HasValue,
-                "The rule and zone are wired — extraction must still complete past a broken activation listener.");
+                "A jump request still commits extraction when the activation listener is broken.");
             Assert.IsFalse(chaser.gameObject.activeSelf,
                 "An inert listener must fail closed: the chaser never activates.");
 

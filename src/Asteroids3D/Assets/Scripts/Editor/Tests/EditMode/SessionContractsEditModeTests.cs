@@ -27,9 +27,10 @@ namespace Tests.EditMode
         [Test]
         public void SectorResult_Extracted_IsSuccess()
         {
-            var result = SectorResult.Extracted();
+            var result = SectorResult.Extracted(90f);
             Assert.IsTrue(result.Success);
             Assert.IsNull(result.FailReason);
+            Assert.AreEqual(90f, result.DepartureHeading);
         }
 
         [Test]

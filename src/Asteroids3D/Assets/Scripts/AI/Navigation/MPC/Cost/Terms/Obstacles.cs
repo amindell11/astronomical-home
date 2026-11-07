@@ -22,6 +22,12 @@ namespace AI.Navigation.MPC
                     hullRadius, cfg.maxLatAccel) * cfg.wObstacle * fieldScale;
         }
 
+        /// <summary>Obstacle threat: the MPC's obstacle handling fires this step — hull overlap or collision-course turn-away, mirroring <see cref="ObstacleCosts"/>' two mutually exclusive branches.</summary>
+        internal static bool ObstacleThreat(float2 pos, float2 vel,
+            Unity.Collections.NativeArray<ObstacleData> obstacles, int count, float hullRadius, float maxLatAccel)
+            => count > 0 && (Collides(pos, obstacles, count, hullRadius)
+                || TurnAwayCost(pos, vel, obstacles, count, hullRadius, maxLatAccel) > 0f);
+
         /// <summary>Bank profile: cos(strafe * maxBank) is the fraction of the ship's cross-section visible in-plane — banking rolls the collider, narrowing the hull. Drives obstacle clearance.</summary>
         internal static float BankProfileScale(float strafe, in Config cfg)
             => cfg.maxBankAngleRad > 0f ? math.cos(math.abs(strafe) * cfg.maxBankAngleRad) : 1f;

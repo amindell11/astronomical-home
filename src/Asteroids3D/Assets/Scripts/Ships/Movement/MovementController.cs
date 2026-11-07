@@ -4,6 +4,7 @@ using UnityEngine;
 using Ships.Command;
 using Ships.Keystones;
 using Ships.Loadout;
+using Ships.Weapons;
 using Substrate;
 namespace Ships.Movement
 {
@@ -13,6 +14,7 @@ namespace Ships.Movement
     {
         private Rigidbody  rb;
         private Keystone keystone;
+        private WeaponsController weapons;
         internal ResolvedShipStats settings;
         private PilotCommand currentCommand;
         private float speedCap;
@@ -35,10 +37,12 @@ namespace Ships.Movement
             ResetMovement();
         }
 
-        public void Initialize(ResolvedShipStats s, Func<Kinematics> getKinematics, Keystone keystone)
+        /// <param name="weapons">Null on an unarmed ship.</param>
+        public void Initialize(ResolvedShipStats s, Func<Kinematics> getKinematics, Keystone keystone, WeaponsController weapons)
         {
             this.getKinematics = getKinematics;
             this.keystone = keystone;
+            this.weapons = weapons;
             PopulateSettings(s);
         }
 
@@ -65,11 +69,15 @@ namespace Ships.Movement
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
             rb.maxLinearVelocity = speedCap = settings.maxSpeed;
+            rb.maxAngularVelocity = settings.maxYawRate * Mathf.Deg2Rad;
             currentCommand = default;
         }
 
         private void FixedUpdate()
         {
+            if (weapons && weapons.EnginesCut)
+                currentCommand = new PilotCommand { yawTorque = currentCommand.yawTorque, abilityTarget = currentCommand.abilityTarget };
+
             var kinematics = Kinematics;
             var effect = keystone.Step(in kinematics, currentCommand.boost, Time.fixedDeltaTime, out var activated,
                 settings.maxSpeed, currentCommand.abilityTarget);
@@ -78,7 +86,9 @@ namespace Ships.Movement
             ApplySpeedCap(Time.fixedDeltaTime);
             var outs = Forces.ComputeOutputs(kinematics, currentCommand, settings, keystone.SpeedScale);
             var thrust = currentCommand.thrust > 0f ? outs.thrust * keystone.ThrustScale : outs.thrust;
-            ApplyForces(thrust, outs.strafe, effect.Impulse, outs.yawTorque, outs.bank);
+            var maneuverability = keystone.ManeuverabilityScale;
+            rb.maxAngularVelocity = settings.maxYawRate * maneuverability * Mathf.Deg2Rad;
+            ApplyForces(thrust, outs.strafe * maneuverability, effect.Impulse, outs.yawTorque * maneuverability, outs.bank);
             ConstrainRotation();
         }
 

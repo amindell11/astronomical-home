@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Balance;
+using Combat.Weapons;
 using Combat.Weapons.Conditions;
 using NUnit.Framework;
 using Ships;
@@ -128,6 +129,14 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void Of_IncludesADeclaredHoldRange()
+        {
+            IncludesHoldRange("Assets/Prefabs/Weapons/Railgun.prefab", "Railguns", 30f);
+            IncludesHoldRange("Assets/Prefabs/Weapons/Missiles.prefab", "Missiles", 13f);
+            IncludesHoldRange("Assets/Prefabs/Weapons/Grenades.prefab", "Grenades", 18f);
+        }
+
+        [Test]
         public void OfSetting_IgnoresListOrder()
         {
             var offer = HangarOffer();
@@ -136,7 +145,6 @@ namespace Tests.EditMode
             var reordered = Object.Instantiate(offer);
             scratch.Add(reordered);
             Array.Reverse(reordered.ships);
-            Array.Reverse(reordered.shields);
             Array.Reverse(reordered.weapons);
             var reversedRoster = RosterOf(offer.ships.Reverse());
 
@@ -211,7 +219,7 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void OfSetting_CoversTheTrialSectorsDirectorAndItsEnemyPool()
+        public void OfSetting_CoversTheTrialSectorsDirectorAndItsFaction()
         {
             var sector = AssetDatabase.LoadAssetAtPath<Sector>(TrialSectorPath);
             Assert.IsNotNull(sector, $"Trial sector prefab missing at {TrialSectorPath}");
@@ -221,7 +229,8 @@ namespace Tests.EditMode
 
             Assert.That(lines, Has.Some.StartsWith($"sector[0]/{director.name}/WaveDirector.phases[0]={{"));
             Assert.That(lines, Has.Some.StartsWith($"sector[0]/{director.name}/WaveDirector.roster={{"));
-            Assert.That(lines, Has.Some.StartsWith("sector[0]/TrialEnemyLoadout/ItemSubset.weapons="));
+            Assert.That(lines, Has.Some.StartsWith("sector[0]/Shoal/Faction.signature={"));
+            Assert.That(lines, Has.Some.StartsWith("sector[0]/Shoal/Faction.common={"));
             Assert.That(lines, Has.Some.StartsWith("PlayerLoadout/ItemSubset.ships="));
             Assert.That(lines, Has.Member("setting/killHullRestore=0.25"));
         }
@@ -251,6 +260,14 @@ namespace Tests.EditMode
             var offer = AssetDatabase.LoadAssetAtPath<ItemSubset>(HangarOfferPath);
             Assert.IsNotNull(offer, $"Hangar offer missing at {HangarOfferPath}");
             return offer;
+        }
+
+        private static void IncludesHoldRange(string path, string typeName, float range)
+        {
+            var weapon = AssetDatabase.LoadAssetAtPath<WeaponComponent>(path);
+            Assert.IsNotNull(weapon, path);
+            var line = $"{weapon.name}/{typeName}.holdRange={range.ToString("R", CultureInfo.InvariantCulture)}";
+            Assert.That(StatHash.Lines(weapon), Has.Member(line), path);
         }
 
         private static WaveDirector.RosterEntry[] RosterOf(IEnumerable<Ship> hulls) =>

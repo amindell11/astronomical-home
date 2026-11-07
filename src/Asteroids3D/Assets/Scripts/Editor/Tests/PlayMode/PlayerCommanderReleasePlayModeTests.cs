@@ -63,8 +63,8 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator Disable_ReleasesPilotAndWeaponCommands()
         {
-            commanderGo = new GameObject("TestCommander");
-            var commander = commanderGo.AddComponent<PlayerCommander>();
+            var commander = Object.Instantiate(TestAssets.LoadPlayerPilot());
+            commanderGo = commander.gameObject;
             var pilot = new RecordingPilot();
             var weapons = new RecordingWeapons();
             commander.Initialize(new ShipControl(
@@ -97,8 +97,8 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator Disable_BeforeInitialize_DoesNotThrow()
         {
-            commanderGo = new GameObject("TestCommander");
-            var commander = commanderGo.AddComponent<PlayerCommander>();
+            var commander = Object.Instantiate(TestAssets.LoadPlayerPilot());
+            commanderGo = commander.gameObject;
             yield return null;
 
             commander.enabled = false;

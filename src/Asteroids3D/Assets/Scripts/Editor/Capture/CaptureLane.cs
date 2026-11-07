@@ -98,10 +98,14 @@ namespace Capture.GameView
             "Queue a one-shot capture scenario for the next routed CaptureScenarioPlayModeTests run. Cleared on read; survives domain reloads, dies with the editor.",
             Tags = new[] { "capture" })]
         public static string RequestScenario(
-            [CliArg("scenario", "CaptureScenario type name, e.g. TwoShipSkirmishScenario.")] string scenario)
+            [CliArg("scenario", "CaptureScenario type name, e.g. TwoShipSkirmishScenario.")] string scenario,
+            [CliArg("commit", "40-character sha written into provenance. The cold runner passes this as -captureCommit.")] string commit = "")
         {
             CaptureDispatch.Request(scenario);
-            return "capture request queued: " + scenario;
+            CaptureDispatch.SetCommit(commit);
+            return string.IsNullOrEmpty(commit)
+                ? "capture request queued: " + scenario
+                : "capture request queued: " + scenario + " at " + commit;
         }
 
         internal static void RecoverAbandoned(LaneStore store)

@@ -1,5 +1,5 @@
 #if UNITY_EDITOR
-using Capture;
+using Capture.Views;
 using NUnit.Framework;
 using Substrate;
 using UnityEngine;
@@ -18,7 +18,7 @@ namespace Tests.EditMode.Rendering
                 var camera = root.GetComponent<Camera>();
                 camera.orthographic = true;
                 camera.aspect = 16f / 9;
-                CaptureFraming.Apply(camera, new CaptureConfig(), new[] { Vector2.zero });
+                CaptureFraming.Apply(camera, new DiagnosticViewConfig(), new[] { Vector2.zero });
                 var center = camera.WorldToViewportPoint(GamePlane.Origin);
                 var right = camera.WorldToViewportPoint(GamePlane.Origin + GamePlane.Right);
                 var forward = camera.WorldToViewportPoint(GamePlane.Origin + GamePlane.Forward);

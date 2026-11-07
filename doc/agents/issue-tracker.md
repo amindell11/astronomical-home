@@ -95,11 +95,11 @@ only feedback notes (`doc/agents/memory.md`). Body shapes:
 
 The "Astronomical" user project (https://github.com/users/amindell11/projects/1,
 private) mirrors the tracker for the human. New issues are NOT auto-added —
-**every flow that creates an issue adds it to the board and sets Status**:
+**every flow that creates an issue adds it to the board with Status Triage**:
 
 ```
 gh api graphql -f query='mutation { addProjectV2ItemById(input: {projectId: "PVT_kwHOAJsCkc4BfiTv", contentId: "<issue-node-id>"}) { item { id } } }'
-gh api graphql -f query='mutation { updateProjectV2ItemFieldValue(input: {projectId: "PVT_kwHOAJsCkc4BfiTv", itemId: "<item-id>", fieldId: "PVTSSF_lAHOAJsCkc4BfiTvzhZ0hiE", value: {singleSelectOptionId: "<option-id>"}}) { projectV2Item { id } } }'
+gh api graphql -f query='mutation { updateProjectV2ItemFieldValue(input: {projectId: "PVT_kwHOAJsCkc4BfiTv", itemId: "<item-id>", fieldId: "PVTSSF_lAHOAJsCkc4BfiTvzhZ0hiE", value: {singleSelectOptionId: "d6567434"}}) { projectV2Item { id } } }'
 ```
 
 (`<issue-node-id>` via `gh issue view <n> --json id --jq .id`.) Actions runs
@@ -111,11 +111,11 @@ scope only): `GITHUB_TOKEN` cannot mutate a user-owned project.
 without them once wiped all 66 items' Status, and closed items' pre-wipe
 Status was unrecoverable.
 
-Status option from labels: `needs-triage` → Triage `d6567434`; `bug` → Bugs
-`76914216`; `pri:now` → Now `291743a0`; `pri:next` → Next `4dbdbff5`;
-`pri:later` → Later `225f15fa`; Doing `772cf1a0` is a human state. Done
-`165b6aec` is set by the merge reconcile at close for PR-closed issues
-(`scripts/merge_reconcile.sh`), human otherwise. First match in that order wins.
+Status is the item's *board kind* (`doc/Glossary.md`). The on-event triage
+sorts a Triage item to its kind (rubric: `.claude/skills/issue-triage/on-event.md`)
+and leaves it in Triage when unsure. Automation writes Status only on an item
+with no Status or in Triage; any other column is the owner's placement. Labels
+never move Status, and nothing writes Done.
 
 `Decision` (text field `PVTF_lAHOAJsCkc4BfiTvzhkWGNc`, at most 1024 UTF-8
 bytes) is the item's open decision, the row the decisions view lists. It is a
@@ -126,10 +126,10 @@ or a PR to the board to set it. To ask, comment on the item; the field follows.
 The views that would show a PR filter `is:issue`, so a PR's row shows only in
 "Decisions".
 
-New board code goes through `scripts/lib/board.sh` (the ids, an issue's or a
-PR's membership, adding an item, setting and clearing a text field).
-`on_event_triage.sh` and `merge_reconcile.sh` still carry their own copies
-(#922).
+New board code goes through `scripts/lib/board.sh` (the ids, Status options
+included, an issue's or a PR's membership, adding an item, setting and clearing
+a text field). `on_event_triage.sh` takes its ids from there but still makes its
+own board calls (#922, parked in #1036).
 
 ## Wayfinding operations
 
@@ -153,4 +153,4 @@ Used by the wayfinder skill; body law above applies.
   work.
 - **Resolve**: gist comment (+ memory link when deep) → close → append the
   context pointer to the map's Decisions-so-far. The merge reconcile posts the
-  shipped pointer and Done for PR-closed issues.
+  shipped pointer for PR-closed issues.

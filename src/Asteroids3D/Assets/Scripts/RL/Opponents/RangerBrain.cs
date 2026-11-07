@@ -8,7 +8,7 @@ using AI.Strategy;
 
 namespace RL.Opponents
 {
-    /// <summary>Scripted stand-in policy over the velocity interface: closes to weapon range on a live target, holds, and hands both triggers to the gunner; the per-weapon Gunsight/ShouldFire deliberately still applies on top.</summary>
+    /// <summary>Scripted stand-in policy over the velocity interface: closes to weapon range on a live target, holds, and hands both triggers to the gunner; the per-weapon Gunsight/HoldTrigger deliberately still applies on top.</summary>
     public class RangerBrain : Brain
     {
         private const int RecomputeIntervalTicks = 10;

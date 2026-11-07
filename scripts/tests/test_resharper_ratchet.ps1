@@ -61,24 +61,23 @@ try {
     [System.IO.File]::WriteAllText($settingsPath, "    Standalone: UNITY_POST_PROCESSING_STACK_V2`n", (New-Object System.Text.UTF8Encoding($false)))
     & git -C $temp add $settingsPath
     & git -C $temp commit -qm settings
-    [System.IO.File]::WriteAllText($settingsPath, "    Standalone: UNITY_POST_PROCESSING_STACK_V2;SENTIS_ANALYTICS_ENABLED`n", (New-Object System.Text.UTF8Encoding($false)))
+    [System.IO.File]::WriteAllText($settingsPath, "    Standalone: UNITY_POST_PROCESSING_STACK_V2`n    productName: changed by Unity`n", (New-Object System.Text.UTF8Encoding($false)))
     $cleanRejected = $false
     try { Assert-CleanTrackedWorktree $temp } catch { $cleanRejected = $true }
     Assert-True $cleanRejected "solution sync rejects a dirty tracked tree"
-    Restore-UnityTrackedChanges $temp
-    Assert-True (@(Get-TrackedChanges $temp).Count -eq 0) "solution sync restores tracked Unity mutations"
-
-    [System.IO.File]::WriteAllText($settingsPath, "    Standalone: UNITY_POST_PROCESSING_STACK_V2;SENTIS_ANALYTICS_ENABLED`n    productName: changed by Unity`n", (New-Object System.Text.UTF8Encoding($false)))
-    $extraMutationRejected = $false
-    try { Restore-UnityTrackedChanges $temp } catch { $extraMutationRejected = $true }
-    Assert-True $extraMutationRejected "analytics churn allowlist rejects another change in ProjectSettings"
+    $mutationRejected = $false
+    try { Restore-UnityTrackedChanges $temp } catch { $mutationRejected = $true }
+    Assert-True $mutationRejected "solution sync rejects any tracked change Unity makes"
     Assert-True (@(Get-TrackedChanges $temp).Count -eq 0) "unexpected tracked mutations are restored before failure"
+    $cleanPassed = $true
+    try { Restore-UnityTrackedChanges $temp } catch { $cleanPassed = $false }
+    Assert-True $cleanPassed "solution sync passes a clean tracked tree"
 
     # -SolutionReady: a repo with no ProjectVersion.txt and no coordinator cannot resolve an editor or
     # sync, so reaching the missing-solution throw proves both were skipped.
     $scriptsCopy = Join-Path $temp "scripts"
     New-Item -ItemType Directory -Force -Path (Join-Path $scriptsCopy "lib") | Out-Null
-    foreach ($name in @("resharper_ratchet.ps1", "unity_access_client.ps1", "lib/repo_root.ps1", "lib/unity_editor.ps1")) {
+    foreach ($name in @("resharper_ratchet.ps1", "unity_access_client.ps1", "lib/repo_root.ps1", "lib/unity_editor.ps1", "lib/unity_solution_sync.ps1")) {
         Copy-Item -LiteralPath (Join-Path $PSScriptRoot "..\$name") -Destination (Join-Path $scriptsCopy $name)
     }
     & git -C $temp add .

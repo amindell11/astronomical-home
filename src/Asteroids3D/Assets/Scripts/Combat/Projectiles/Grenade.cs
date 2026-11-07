@@ -35,6 +35,7 @@ namespace Combat.Projectiles
         private bool detonated;
         private float sinceLaunch;
         private int shipLayers;
+        private float blastRadiusScale = 1f;
 
         private bool Armed => sinceLaunch >= armingTime;
 
@@ -49,8 +50,16 @@ namespace Combat.Projectiles
         /// <summary>Where this charge comes to rest: the launch's target point, clamped to max range.</summary>
         public Vector3 TargetPoint => targetPoint;
 
+        public float LaunchSpeed => launchSpeed;
+
         /// <summary>Serialized-state read for hangar stat lines (evaluated on the prefab asset).</summary>
         public ConcussionWave WavePrefab => wavePrefab;
+
+        /// <summary>Per-shot multiplier on the wave's reach, set by the launcher after launch; resets to 1 on pool return.</summary>
+        public void SetBlastRadiusScale(float scale)
+        {
+            blastRadiusScale = Mathf.Max(0f, scale);
+        }
 
         event Action IChargeFlight.Ended
         {
@@ -63,7 +72,10 @@ namespace Combat.Projectiles
             base.Awake();
             shipLayers = LayerIds.Mask(LayerIds.Ship);
             SimplePool<ConcussionWave>.Warm(wavePrefab);
+            DamageableColliders.Register(this, GetComponentsInChildren<Collider>(true));
         }
+
+        private void OnDestroy() => DamageableColliders.Unregister(this);
 
         public override void Launch(Vector3 direction, Vector3 targetPoint)
         {
@@ -128,7 +140,7 @@ namespace Combat.Projectiles
             detonated = true;
 
             var wave = SimplePool<ConcussionWave>.Get(wavePrefab, transform.position, Quaternion.identity);
-            wave.Begin(Shooter?.Id ?? Ships.Registry.ShipId.Invalid);
+            wave.Begin(Shooter?.Id ?? Ships.Registry.ShipId.Invalid, DamageScale, blastRadiusScale);
             Spawned?.Invoke(wave, wave.ReturnToPoolImmediate);
 
             OnDetonated?.Invoke(transform.position);
@@ -139,6 +151,7 @@ namespace Combat.Projectiles
         {
             detonated = false;
             sinceLaunch = 0f;
+            blastRadiusScale = 1f;
         }
     }
 }

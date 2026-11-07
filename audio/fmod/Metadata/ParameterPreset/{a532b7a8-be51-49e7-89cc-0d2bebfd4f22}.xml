@@ -11,5 +11,17 @@
 			<destination>{a1563732-541d-45d4-911a-965ac4030c5e}</destination>
 		</relationship>
 	</object>
-	<object class="GameParameter" id="{a1563732-541d-45d4-911a-965ac4030c5e}" />
+	<object class="GameParameter" id="{a1563732-541d-45d4-911a-965ac4030c5e}">
+		<relationship name="modulators">
+			<destination>{644c13bb-98ef-4fb6-b234-cb9710aebc18}</destination>
+		</relationship>
+	</object>
+	<object class="SeekModulator" id="{644c13bb-98ef-4fb6-b234-cb9710aebc18}">
+		<property name="nameOfPropertyBeingModulated">
+			<value>cursorPosition</value>
+		</property>
+		<property name="speedAscending">
+			<value>2</value>
+		</property>
+	</object>
 </objects>

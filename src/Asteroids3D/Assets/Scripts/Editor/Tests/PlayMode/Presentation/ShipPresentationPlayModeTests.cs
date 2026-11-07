@@ -5,7 +5,7 @@ using Ships;
 using Ships.Presentation;
 using Ships.Visuals;
 using Tests.PlayMode.Common;
-using UI;
+using UI.Weapons;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UI.PlayerState;
@@ -53,8 +53,8 @@ namespace Tests.PlayMode.Presentation
             yield return null; // let the embedded rig self-bind in Start
 
             Assert.IsNotNull(ship.GetComponentInChildren<HullVisuals>(true), "Rig should contribute HullVisuals");
-            Assert.IsNotNull(ship.GetComponentInChildren<StatusBarUI>(true), "Rig should contribute StatusBarUI");
-            Assert.IsNotNull(ship.GetComponentInChildren<LockOnIndicator>(true), "Rig should contribute LockOnIndicator");
+            Assert.IsNull(ship.GetComponentInChildren<StatusBarUI>(true), "Capacity indicators belong to the UI");
+            Assert.IsNull(ship.GetComponentInChildren<LockOnIndicator>(true), "Lock reticles belong to the HUD");
         }
 
         [UnityTest]
@@ -65,7 +65,7 @@ namespace Tests.PlayMode.Presentation
             var prefab = TestAssets.Load<Ship>("Assets/Prefabs/Ships/Nightshade.prefab");
             Assert.IsNotNull(prefab, "Nightshade prefab failed to load");
             ship = Factory.CreateShip(prefab, null, 0, 0, projectiles: null, Vector3.zero, Quaternion.identity);
-            Assert.IsTrue(ship.GetComponentInChildren<HullVisuals>(true).enabled);
+            Assert.IsTrue(ship.GetComponentInChildren<HullDamageEffects>(true).enabled);
 #endif
             yield return null;
 
@@ -101,9 +101,9 @@ namespace Tests.PlayMode.Presentation
 
         private static GameObject GetSmokeObject(Ship ship)
         {
-            var hull = ship.GetComponentInChildren<HullVisuals>(true);
+            var hull = ship.GetComponentInChildren<HullDamageEffects>(true);
             if (!hull) return null;
-            var smokeField = typeof(HullVisuals).GetField("smoke", BindingFlags.Instance | BindingFlags.NonPublic);
+            var smokeField = typeof(HullDamageEffects).GetField("smoke", BindingFlags.Instance | BindingFlags.NonPublic);
             var smoke = smokeField?.GetValue(hull) as ParticleSystem;
             return smoke ? smoke.gameObject : null;
         }

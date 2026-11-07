@@ -1,9 +1,12 @@
 using Balance;
 using System;
 using System.Collections.Generic;
+using AI.Scanning;
 using Combat;
 using Combat.Targeting;
 using Combat.Weapons;
+using Combat.Weapons.Mods;
+using Loot;
 using Movement;
 using Ships.Command;
 using Ships.Loadout;
@@ -32,6 +35,8 @@ namespace Ships.Weapons
         public WeaponComponent Primary { get; private set; }
         public WeaponComponent Secondary { get; private set; }
 
+        public bool EnginesCut => (Primary && Primary.CutsEngines) || (Secondary && Secondary.CutsEngines);
+
         /// <summary>The equipped weapon prefabs (the loadout's weapon modules; see ShipLoadout).</summary>
         public WeaponComponent PrimaryMountPrefab => primaryMount;
         public WeaponComponent SecondaryMountPrefab => secondaryMount;
@@ -39,16 +44,19 @@ namespace Ships.Weapons
         /// <summary>The lock-on sensor carried by a mounted weapon (null when none); kept current across <see cref="Reequip"/> so consumers never scan the hierarchy.</summary>
         public LockOnSensor Sensor { get; private set; }
 
+        public event Action Fired;
+
         private WeaponContext context;
+        private LullModStack mods;
 
         private void Awake()
         {
-            if (primaryMount) Primary = Instantiate(primaryMount, ResolveMount(WeaponSlot.Primary));
-            if (secondaryMount) Secondary = Instantiate(secondaryMount, ResolveMount(WeaponSlot.Secondary));
+            Primary = ReplaceMount(null, primaryMount, WeaponSlot.Primary);
+            Secondary = ReplaceMount(null, secondaryMount, WeaponSlot.Secondary);
             Sensor = FindMountSensor();
         }
 
-        /// <summary>Between-run mount swap (null = empty slot): unchanged slots keep their live instance, changed slots re-instantiate and the context refreshes in place so held references stay valid.</summary>
+        /// <summary>Mount swap (null = empty slot): unchanged slots keep their live instance, changed slots re-instantiate and the context refreshes in place so held references stay valid.</summary>
         public void Reequip(WeaponComponent newPrimary, WeaponComponent newSecondary)
         {
             var changed = false;
@@ -70,7 +78,33 @@ namespace Ships.Weapons
             {
                 context?.Refresh();
                 Sensor = FindMountSensor();
+                HandMods();
             }
+        }
+
+        /// <summary>Puts the run's weapon mods in force across <see cref="Reequip"/>; the bound ship calls it per change.</summary>
+        public void SetMods(LullModStack stack)
+        {
+            mods = stack;
+            HandMods();
+        }
+
+        private void HandMods()
+        {
+            if (Primary) Primary.SetMods(mods?.For(Primary, primaryMount) ?? WeaponMods.None);
+            if (Secondary) Secondary.SetMods(mods?.For(Secondary, secondaryMount) ?? WeaponMods.None);
+        }
+
+        public bool Fits(WeaponMod mod) => mod.Fits(Primary, primaryMount) || mod.Fits(Secondary, secondaryMount);
+
+        /// <summary>The mounted weapons <paramref name="mod"/> lands on, by display name, for the pick card.</summary>
+        public string LandingNames(WeaponMod mod)
+        {
+            var primary = mod.Fits(Primary, primaryMount) ? Primary.DisplayName : null;
+            var secondary = mod.Fits(Secondary, secondaryMount) ? Secondary.DisplayName : null;
+            if (primary != null && secondary != null)
+                return primary == secondary ? primary : $"{primary} · {secondary}";
+            return primary ?? secondary ?? string.Empty;
         }
 
         /// <summary>The only firing surface: producing an <see cref="IWeapons"/> actuator demands the live-projectile registry, so a fire path without one cannot compile. The actuator reads mounts through this controller, staying current across <see cref="Reequip"/>.</summary>
@@ -92,20 +126,28 @@ namespace Ships.Weapons
             {
                 if (!owner || !owner.enabled) return;
                 var mount = owner.Mount(slot);
-                if (mount) mount.HandleTrigger(in cmd, projectiles);
+                if (!mount) return;
+                if (cmd.reload) mount.Reload();
+                mount.HandleTrigger(in cmd, projectiles);
             }
         }
+
+        private void RaiseFired() => Fired?.Invoke();
 
         private WeaponComponent ReplaceMount(WeaponComponent current, WeaponComponent prefab, WeaponSlot slot)
         {
             if (current)
             {
                 // Detach before the deferred Destroy so same-frame hierarchy queries can't find the outgoing mount.
+                current.OnFire -= RaiseFired;
                 current.transform.SetParent(null);
                 Destroy(current.gameObject);
             }
 
-            return prefab ? Instantiate(prefab, ResolveMount(slot)) : null;
+            if (!prefab) return null;
+            var mounted = Instantiate(prefab, ResolveMount(slot));
+            mounted.OnFire += RaiseFired;
+            return mounted;
         }
 
         /// <summary>The first mounted weapon's lock sensor (mount-scoped; sensors ride the mounts).</summary>
@@ -201,6 +243,24 @@ namespace Ships.Weapons
 
             public float ProjectileSpeed(WeaponSlot slot) => owner.Mount(slot)?.ProjectileSpeed ?? 0f;
 
+            public Vector2 AimPoint(WeaponSlot slot, in Kinematics shooter, Vector2 targetPos, Vector2 targetVel)
+            {
+                var mount = owner.Mount(slot);
+                return mount ? mount.AimPoint(in shooter, targetPos, targetVel) : targetPos;
+            }
+
+            public float? HoldRange(WeaponSlot slot)
+            {
+                var mount = owner.Mount(slot);
+                return mount ? mount.HoldRange : null;
+            }
+
+            public int KeepOutCircles(WeaponSlot slot, Span<DetectedObstacle.PlaneCircle> circles)
+            {
+                var mount = owner.Mount(slot);
+                return mount ? mount.KeepOutCircles(circles) : 0;
+            }
+
             public Gunsight Sight(WeaponSlot slot) => slot switch
             {
                 WeaponSlot.Primary => primarySight,
@@ -209,6 +269,12 @@ namespace Ships.Weapons
             };
 
             public string DisplayName(WeaponSlot slot) => owner.Mount(slot)?.DisplayName ?? string.Empty;
+
+            public Sprite Icon(WeaponSlot slot)
+            {
+                var mount = owner.Mount(slot);
+                return mount ? mount.HudIcon : null;
+            }
 
             public IReadOnlyList<IWeaponReadout> Readouts(WeaponSlot slot) =>
                 owner.Mount(slot)?.Readouts ?? System.Array.Empty<IWeaponReadout>();

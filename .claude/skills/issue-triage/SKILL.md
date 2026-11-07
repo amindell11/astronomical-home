@@ -14,8 +14,8 @@ This file is the **triage sweep** (steps below) plus the reference both triage
 runs share; the **on-event triage** (issue opened / edited) is
 [`on-event.md`](on-event.md), the prompt `scripts/on_event_triage.sh` feeds its
 read-only `claude -p`; the **merge reconcile** (push to main) is
-`scripts/merge_reconcile.sh`, mechanical: a Shipped note and board Done on the
-issues a merged PR closes, a Touched note on the open issues its body cites
+`scripts/merge_reconcile.sh`, mechanical: a Shipped note on the issues a
+merged PR closes, a Touched note on the open issues its body cites
 (formats in [`comment-formats.md`](comment-formats.md)). Arc brief and
 rulings: #617.
 
@@ -66,9 +66,9 @@ Anything else, or a verb other than `sweep`, stops with the usage line.
 - **Author allowlist.** The run acts on its own only on issues authored by
   `amindell11`. Any other author: board add, `needs-triage`, a report line —
   nothing else.
-- **Board sync.** Every label write applies the Status mapping in
-  `doc/agents/issue-tracker.md` § Projects board sync; an issue found off the
-  board is added with the same mutations.
+- **Board sync.** An issue found off the board is added with Status Triage;
+  a label write leaves Status alone (`doc/agents/issue-tracker.md` § Projects
+  board sync).
 - **Rate limits.** Writes go out in batches under the content-creation limit
   (`doc/agents/issue-tracker.md` § Operations); a 403 means wait a minute and
   retry, never fail.
@@ -211,7 +211,7 @@ For each autonomous verdict and hygiene item:
 - `duplicate-of` / `covered-by` / `unblocked`: `gh issue comment <N> --body "<verdict> <date> — <evidence>"`; `blocked-by`: `gh issue edit <N> --add-blocked-by <M>` when the dependency is missing.
 - Stale-fact strike / dead-pointer repoint: re-read the issue (`gh issue view <N> --json updatedAt,body`) immediately before the write; if `updatedAt` moved since the snapshot, skip the issue with a report note ("changed since snapshot"); otherwise `gh issue edit <N> --body-file <file>` with the edit applied to the body just read.
 - `needs-triage` clear / one-priority rule / non-allowlisted `needs-triage`: `gh issue edit <N> --add-label … --remove-label …`.
-- Board add + Status for every label write and every off-board issue (`doc/agents/issue-tracker.md` § Projects board sync).
+- Board add + Status Triage for every off-board issue; a label write leaves Status alone (`doc/agents/issue-tracker.md` § Projects board sync).
 
 `--dry-run`: print each command in the report's last column and run none.
 

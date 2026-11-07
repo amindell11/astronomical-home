@@ -27,8 +27,13 @@ namespace Cameras
         private void Update()
         {
             if (!observerCam) return;
-            if (!controls.Camera.ToggleLock.WasPressedThisFrame()) return;
-            observerCam.SetLockCameraToSubject(!observerCam.LockCameraToSubject);
+            var scroll = controls.Camera.Zoom.ReadValue<float>();
+            if (scroll != 0f)
+                observerCam.StepZoom(scroll);
+            if (controls.Camera.ToggleLock.WasPressedThisFrame())
+                observerCam.SetLockCameraToSubject(!observerCam.LockCameraToSubject);
+            var point = controls.Camera.Point;
+            observerCam.SetCursor(point.IsInProgress() ? point.ReadValue<Vector2>() : null);
         }
     }
 }

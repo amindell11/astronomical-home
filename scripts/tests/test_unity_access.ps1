@@ -780,20 +780,23 @@ try {
     $projPid = Join-Path $Root "projPid\src\Asteroids3D"
     $pidOwnerFile = ""
     foreach ($case in @(
-        @{ name = "matching start time"; start = (Get-Process -Id $PID).StartTime.ToUniversalTime().ToString("o"); alive = $true },
-        @{ name = "legacy record"; start = ""; alive = $true },
-        @{ name = "recycled pid"; start = "2001-01-01T00:00:00.0000000Z"; alive = $false })) {
+        @{ name = "matching start time"; holder = $PID; start = (Get-Process -Id $PID).StartTime.ToUniversalTime().ToString("o"); alive = $true },
+        @{ name = "legacy record"; holder = $PID; start = ""; alive = $true },
+        @{ name = "recycled pid"; holder = $PID; start = "2001-01-01T00:00:00.0000000Z"; alive = $false },
+        # System (PID 4) hides its start time from a non-elevated user.
+        @{ name = "pid recycled by a process hiding its start time"; holder = 4; start = "2001-01-01T00:00:00.0000000Z"; alive = $false })) {
         [void](Invoke-Coordinator -Action Acquire -Lease pid-identity -ProjectPath $projPid)
         if ([string]::IsNullOrWhiteSpace($pidOwnerFile)) {
             $pidOwnerFile = (Get-ChildItem -LiteralPath (Join-Path $State "owners") -Recurse -Filter owner.json |
                 Where-Object { ((Get-Content -LiteralPath $_.FullName -Raw) | ConvertFrom-Json).lease -eq "pid-identity" }).FullName
         }
         $record = (Get-Content -LiteralPath $pidOwnerFile -Raw) | ConvertFrom-Json
-        $record.holderProcessId = $PID
+        $record.holderProcessId = $case.holder
         $record.holderStartTime = $case.start
         [System.IO.File]::WriteAllText($pidOwnerFile, ($record | ConvertTo-Json -Depth 8), $Utf8NoBom)
         # OwnerTtlSeconds 0 ages out any pid-less owner, so only holder identity can keep this lease.
         $pidStatus = Invoke-Coordinator -Action Status -OwnerTtlSeconds 0
+        Assert-Equal $pidStatus.code 0 "Status reads holder liveness for a $($case.name)"
         $seen = $null -ne (Get-OwnerByLease $pidStatus "pid-identity")
         Assert-Equal $seen $case.alive "holder liveness for a $($case.name)"
         [void](Invoke-Coordinator -Action Release -Lease pid-identity -ProjectPath $projPid)

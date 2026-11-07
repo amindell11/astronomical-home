@@ -45,10 +45,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 61b524559ff147f4b055de280d9770a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cooldown: 7
-  impulse: 13500
+  cooldown: 5
+  icon: {fileID: 21300000, guid: 254b6793c5a1b6043928d465e6e72ca9, type: 3}
+  impulse: 15000
   window: 0.6
   shipDamage: 60
+  sightAngle: 15
 --- !u!114 &3361187402269917645
 MonoBehaviour:
   m_ObjectHideFlags: 0

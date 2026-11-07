@@ -12,7 +12,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/primary_tree_check.sh\""
+            "command": "python3 -c \"import os,pathlib,runpy,sys; name='run_hook.py'; env=[pathlib.Path(p) for p in (os.environ.get('CURSOR_PROJECT_DIR'),os.environ.get('CLAUDE_PROJECT_DIR')) if p]; here=pathlib.Path.cwd(); found=next((c/'scripts'/name for c in [*env,here,*here.parents] if (c/'scripts'/name).is_file()),None); sys.exit(2) if found is None else runpy.run_path(str(found), run_name='__main__')\" scripts/primary_tree_check.sh"
           }
         ]
       },
@@ -21,7 +21,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cat \"$CLAUDE_PROJECT_DIR/.claude/after-compact.md\""
+            "command": "python3 -c \"import os,pathlib,runpy,sys; name='run_hook.py'; env=[pathlib.Path(p) for p in (os.environ.get('CURSOR_PROJECT_DIR'),os.environ.get('CLAUDE_PROJECT_DIR')) if p]; here=pathlib.Path.cwd(); found=next((c/'scripts'/name for c in [*env,here,*here.parents] if (c/'scripts'/name).is_file()),None); sys.exit(2) if found is None else runpy.run_path(str(found), run_name='__main__')\" .claude/after-compact.md"
           }
         ]
       }
@@ -32,7 +32,20 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/scripts/primary_tree_guard.py\""
+            "command": "python3 -c \"import os,pathlib,runpy,sys; name='run_hook.py'; env=[pathlib.Path(p) for p in (os.environ.get('CURSOR_PROJECT_DIR'),os.environ.get('CLAUDE_PROJECT_DIR')) if p]; here=pathlib.Path.cwd(); found=next((c/'scripts'/name for c in [*env,here,*here.parents] if (c/'scripts'/name).is_file()),None); sys.exit(2) if found is None else runpy.run_path(str(found), run_name='__main__')\" scripts/primary_tree_guard.py"
+          },
+          {
+            "type": "command",
+            "command": "python3 -c \"import os,pathlib,runpy,sys; name='run_hook.py'; env=[pathlib.Path(p) for p in (os.environ.get('CURSOR_PROJECT_DIR'),os.environ.get('CLAUDE_PROJECT_DIR')) if p]; here=pathlib.Path.cwd(); found=next((c/'scripts'/name for c in [*env,here,*here.parents] if (c/'scripts'/name).is_file()),None); sys.exit(2) if found is None else runpy.run_path(str(found), run_name='__main__')\" scripts/pool_cap_guard.py"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import os,pathlib,runpy,sys; name='run_hook.py'; env=[pathlib.Path(p) for p in (os.environ.get('CURSOR_PROJECT_DIR'),os.environ.get('CLAUDE_PROJECT_DIR')) if p]; here=pathlib.Path.cwd(); found=next((c/'scripts'/name for c in [*env,here,*here.parents] if (c/'scripts'/name).is_file()),None); sys.exit(2) if found is None else runpy.run_path(str(found), run_name='__main__')\" scripts/build_delegation_guard.py"
           }
         ]
       },
@@ -41,7 +54,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/scripts/app_worktree_guard.py\""
+            "command": "python3 -c \"import os,pathlib,runpy,sys; name='run_hook.py'; env=[pathlib.Path(p) for p in (os.environ.get('CURSOR_PROJECT_DIR'),os.environ.get('CLAUDE_PROJECT_DIR')) if p]; here=pathlib.Path.cwd(); found=next((c/'scripts'/name for c in [*env,here,*here.parents] if (c/'scripts'/name).is_file()),None); sys.exit(2) if found is None else runpy.run_path(str(found), run_name='__main__')\" scripts/app_worktree_guard.py"
           }
         ]
       }

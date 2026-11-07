@@ -8,13 +8,16 @@ restating it.
 
 ## Worktree pool capacity
 
-Pool is `agent-1..5`. Grow only when EVERY slot holds a live lease (`pool status`;
-a stale lock is reclaimable by plain `acquire`):
-`git worktree add -b agent-6 D:/amind/git/agent-6 origin/main` from the primary
-tree — the pool script discovers slots by the `agent-N` branch pattern. **Never
-past `agent-7` without asking the user.** A fresh slot is Unity-cold (full asset
-import + Burst compile, plus the AnnotationManager trap in #401) — prefer a warm
-slot for iteration-heavy work.
+The pool is `agent-1` through `agent-8`. `acquire` with no slot named takes a
+free slot, then a stale lock whose tree is safe to reset, then parks the
+longest-idle leased slot that has no Unity editor and no merge gate. Parked
+work stays on a local `held/<lease>` branch. That session gets it back with
+`resume <lease>`. When every slot has a Unity editor or a merge gate,
+`acquire` fails and the session waits.
+
+`scripts/pool_cap_guard.py` refuses `git worktree add` for `agent-9` and above.
+
+A fresh slot is Unity-cold (full asset import + Burst compile, plus the AnnotationManager trap in #401). Prefer a warm slot for iteration-heavy work.
 
 ## Retuning the Unity boot demand constants
 
@@ -78,21 +81,19 @@ Dispatch is `scripts/remote_gate.sh`; the lane is proven at local parity
   either direction; suspect AP client isolation) — this blocks #463. Fix candidates:
   Ethernet, or Tailscale.
 
-## Sentis rewrites scripting defines on every editor load
+## The committed Sentis defines
 
-`com.unity.ai.inference` (pulled in by `com.unity.ml-agents`) has an
-`[InitializeOnLoadMethod]` that adds `SENTIS_ANALYTICS_ENABLED` when
-`EditorAnalytics.enabled` and removes it otherwise — either direction dirties
-`ProjectSettings.asset` and the `Main` build profile asset and forces a recompile.
-
-Fix, with Unity closed: set BOTH
-`HKCU\Software\Unity Technologies\Unity Editor 5.x\EnableEditorAnalytics_h1011414259`
-and `EnableEditorAnalyticsV2_h1918497687` to `0`. ⚠ RECURS — an interactive
-session resets V2 back to `1`; check both values after any interactive session.
-⚠ Never commit the define: agent worktrees run batch, where the manager strips it
-and leaves every merge gate dirty. (The self-consistent committed form
-`SENTIS_ANALYTICS_ENABLED;FORCE_SENTIS_ANALYTICS` was rejected 2026-07-22 — it
-opts batch runs into Sentis model-import telemetry.)
+`com.unity.ai.inference` (pulled in by `com.unity.ml-agents`) runs
+`AnalyticsDefineManager` on every editor load. It adds `SENTIS_ANALYTICS_ENABLED`
+to the Standalone defines when `EditorAnalytics.enabled` and strips it otherwise,
+and batch and interactive editors disagree on that flag. With
+`FORCE_SENTIS_ANALYTICS` also present it writes nothing, so the Standalone define
+line in `ProjectSettings.asset` and the `Main` build profile commits both: the
+line stays as committed in every mode. Keep the pair whole when editing that line.
+Telemetry still follows the editor-analytics pref, because
+`EditorAnalytics.SendAnalytic` returns `AnalyticsDisabled` before sending when it
+is off (ruling and source on #1237). A test run or solution sync that fails on a
+diff in that line means a package upgrade changed the manager.
 
 ## git-lfs owns hooks in `core.hooksPath`
 

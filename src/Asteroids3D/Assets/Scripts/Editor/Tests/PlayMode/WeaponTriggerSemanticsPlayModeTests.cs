@@ -1,16 +1,20 @@
+using System.Collections;
 using System.Collections.Generic;
 using AI;
 using Combat;
-using Combat.Projectiles;
 using Combat.Weapons;
 using Combat.Weapons.Arsenal;
 using Damage;
 using Movement;
 using NUnit.Framework;
+using Ships;
 using Ships.Command;
+using Tests.Common;
 using Tests.PlayMode.Common;
 using Substrate;
 using UnityEngine;
+using UnityEngine.TestTools;
+using Utils;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -19,15 +23,15 @@ namespace Tests.PlayMode
 {
     /// <summary>
     /// Weapons own their trigger semantics: full-auto fires on held, semi-auto on pressed,
-    /// charge weapons accumulate while held and fire on release or at full charge. The AI
-    /// gunner aims each slot with that slot's ballistics — hitscan slots get no intercept lead.
+    /// charge weapons accumulate while held and auto-fire at full charge, and a charging
+    /// railgun cuts its ship's engines. A reload command reloads only its own slot. The AI gunner
+    /// aims each slot with that slot's ballistics — hitscan slots get no intercept lead.
     /// </summary>
     [Category("Weapons")]
     public class WeaponTriggerSemanticsPlayModeTests : PlayModeWorldFixture
     {
         private const string RippersPrefabPath = "Assets/Prefabs/Weapons/Rippers.prefab";
         private const string MissilesPrefabPath = "Assets/Prefabs/Weapons/Missiles.prefab";
-        private const string ChargeLasersPrefabPath = "Assets/Prefabs/Weapons/ChargeLasers.prefab";
         private const string RailgunPrefabPath = "Assets/Prefabs/Weapons/Railgun.prefab";
 
         private readonly List<GameObject> spawned = new();
@@ -54,6 +58,27 @@ namespace Tests.PlayMode
             Assert.Ignore("Requires Unity Editor assets.");
             return null;
 #endif
+        }
+
+        [Test]
+        public void FirePointTiltedOutOfPlane_LaunchesInThePlaneAtFullSpeed()
+        {
+            var ripper = InstantiateWeapon<Rippers>(RippersPrefabPath);
+            var aim = GamePlane.PlaneDirToWorld(Vector2.up);
+            var across = GamePlane.PlaneDirToWorld(Vector2.right);
+            ripper.transform.SetPositionAndRotation(GamePlane.Normal * 0.8f,
+                Quaternion.AngleAxis(30f, across) * GamePlane.Rotation);
+            Assume.That(Vector3.Angle(ripper.firePoint.up, aim), Is.EqualTo(30f).Within(0.01f),
+                "the fire point tilts out of the plane");
+
+            var proj = ripper.Fire(ripper.FireOrigin + aim, Projectiles);
+            Assert.IsNotNull(proj, "the shot launched");
+
+            Assert.AreEqual(0f, Vector3.Dot(proj.transform.position - GamePlane.Origin, GamePlane.Normal), 0.001f,
+                "the projectile spawns in the plane");
+            var velocity = proj.GetComponent<Rigidbody>().linearVelocity;
+            Assert.That(Vector3.Distance(velocity, aim * ripper.ProjectileSpeed), Is.LessThan(0.001f),
+                "velocity lies in the plane at full speed along the aim");
         }
 
         [Test]
@@ -85,42 +110,20 @@ namespace Tests.PlayMode
         [Test]
         public void ChargeWeapon_ChargesWhileHeld_AndAutoFiresAtFull()
         {
-            var laser = InstantiateWeapon<ChargeLasers>(ChargeLasersPrefabPath);
+            var railgun = InstantiateWeapon<Railguns>(RailgunPrefabPath);
             // 10 physics steps to full, independent of the project's fixed timestep.
-            laser.Charge.Configure(chargeTime: Time.fixedDeltaTime * 10f, minChargeToFire: 0.3f);
+            railgun.Charge.Configure(chargeTime: Time.fixedDeltaTime * 10f, minChargeToFire: 0.3f);
             var fired = 0;
-            laser.OnFire += () => fired++;
+            railgun.OnFire += () => fired++;
 
-            laser.HandleTrigger(new WeaponCommand { pressed = true, held = true }, Projectiles);
+            railgun.HandleTrigger(new WeaponCommand { pressed = true, held = true }, Projectiles);
             Assert.AreEqual(0, fired, "Still charging — a press means nothing to a charge weapon.");
 
             for (var i = 0; i < 20 && fired == 0; i++)
-                laser.HandleTrigger(new WeaponCommand { pressed = false, held = true }, Projectiles);
+                railgun.HandleTrigger(new WeaponCommand { pressed = false, held = true }, Projectiles);
 
             Assert.AreEqual(1, fired, "Full charge while held auto-fires.");
-            Assert.AreEqual(0f, laser.Charge.ChargePct, 0.0001f, "Firing consumed the charge.");
-        }
-
-        [Test]
-        public void ChargeWeapon_ReleaseFires_WithChargeScaledDamage()
-        {
-            var laser = InstantiateWeapon<ChargeLasers>(ChargeLasersPrefabPath);
-            laser.Charge.Configure(chargeTime: Time.fixedDeltaTime * 10f, minChargeToFire: 0.3f);
-
-            // Hold for half the charge time, then release.
-            for (var i = 0; i < 5; i++)
-                laser.HandleTrigger(new WeaponCommand { pressed = false, held = true }, Projectiles);
-            Assert.AreEqual(0.5f, laser.Charge.ChargePct, 0.001f);
-
-            var before = Object.FindObjectsByType<Laser>(FindObjectsSortMode.None).Length;
-            laser.HandleTrigger(new WeaponCommand { pressed = false, held = false }, Projectiles);
-
-            var bolts = Object.FindObjectsByType<Laser>(FindObjectsSortMode.None);
-            Assert.AreEqual(before + 1, bolts.Length, "Release above the minimum fires the shot.");
-
-            // Damage scales linearly from the min-charge to full-charge multiplier (0.4 → 1).
-            var expected = Mathf.Lerp(0.4f, 1f, 0.5f);
-            Assert.AreEqual(expected, bolts[bolts.Length - 1].DamageScale, 0.02f);
+            Assert.AreEqual(0f, railgun.Charge.ChargePct, 0.0001f, "Firing consumed the charge.");
         }
 
         private sealed class DamageRecorder : MonoBehaviour, IDamageable
@@ -132,6 +135,8 @@ namespace Tests.PlayMode
                 TotalDamage += hit.Amount;
                 return 0f;
             }
+
+            private void OnDestroy() => DamageableColliders.Unregister(this);
         }
 
         private sealed class TestShooter : MonoBehaviour, IShooter
@@ -147,7 +152,9 @@ namespace Tests.PlayMode
             spawned.Add(go);
             go.transform.position = position;
             go.AddComponent<BoxCollider>().size = Vector3.one;
-            return go.AddComponent<DamageRecorder>();
+            var recorder = go.AddComponent<DamageRecorder>();
+            DamageableColliderRegistration.Register(recorder);
+            return recorder;
         }
 
         [Test]
@@ -194,6 +201,7 @@ namespace Tests.PlayMode
             ship.AddComponent<BoxCollider>().size = Vector3.one * 2f;
             ship.AddComponent<TestShooter>();
             var ownRecorder = ship.AddComponent<DamageRecorder>();
+            DamageableColliderRegistration.Register(ownRecorder);
 
 #if UNITY_EDITOR
             // Instantiated as a child so Awake resolves the shooter from the parent hierarchy.
@@ -207,12 +215,67 @@ namespace Tests.PlayMode
 #endif
 
             var enemy = CreateTarget(ship.transform.position + Vector3.up * 6f);
+            Assert.AreEqual(5.5f, Vector3.Distance(mounted.FireOrigin, mounted.FirstStrikePoint()), 0.01f,
+                "The aim line also passes its own hull, to the enemy's near face.");
 
             mounted.Charge.Configure(chargeTime: Time.fixedDeltaTime, minChargeToFire: 1f);
             mounted.HandleTrigger(new WeaponCommand { pressed = false, held = true }, Projectiles);
 
             Assert.AreEqual(0f, ownRecorder.TotalDamage, 0.001f, "Never hit the ship that fired.");
             Assert.AreEqual(45f, enemy.TotalDamage, 0.001f, "Beam continues past its own hull.");
+        }
+
+        [UnityTest]
+        public IEnumerator Railgun_Charging_CutsTheEnginesAndKeystone_ButNotTurning()
+        {
+            var ship = Object.Instantiate(TestAssets.LoadCrimsonPrefab(), Vector3.zero, GamePlane.Rotation);
+            spawned.Add(ship.gameObject);
+            ship.Initialize(0, 0, Projectiles);
+            ship.Reequip(TestAssets.Load<Railguns>(RailgunPrefabPath), null);
+            var railgun = (Railguns)ship.Weapons.Primary;
+            // Long enough that the charge never fills and fires inside the test.
+            railgun.Charge.Configure(chargeTime: 1f, minChargeToFire: 1f);
+            yield return new WaitForFixedUpdate();
+
+            for (var i = 0; i < 10; i++)
+            {
+                railgun.HandleTrigger(new WeaponCommand { held = true }, Projectiles);
+                ship.Movement.Drive(new PilotCommand { thrust = 1f, strafe = 1f, boost = 1f, yawTorque = 1f });
+                yield return new WaitForFixedUpdate();
+            }
+
+            Assert.Greater(railgun.Charge.ChargePct, 0f, "test premise: still charging");
+            Assert.Less(ship.Rigidbody.linearVelocity.magnitude, 1e-3f, "No thrust or strafe while charging.");
+            Assert.IsTrue(ship.BoostAvailable, "The keystone did not fire while charging.");
+            Assert.Greater(Mathf.Abs(Vector3.Dot(ship.Rigidbody.angularVelocity, GamePlane.Normal)), 0.01f,
+                "Turning still works while charging.");
+
+            railgun.HandleTrigger(new WeaponCommand { held = false }, Projectiles);
+            ship.Movement.Drive(new PilotCommand { thrust = 1f });
+            yield return new WaitForFixedUpdate();
+
+            Assert.Greater(ship.Rigidbody.linearVelocity.magnitude, 1e-3f, "The engines answer once the charge drops.");
+        }
+
+        [Test]
+        public void ReloadCommand_ReloadsOnlyItsSlot()
+        {
+            var ship = Object.Instantiate(TestAssets.LoadCrimsonPrefab(), Vector3.zero, GamePlane.Rotation);
+            spawned.Add(ship.gameObject);
+            ship.Initialize(0, 0, Projectiles);
+            var rippers = TestAssets.Load<Rippers>(RippersPrefabPath);
+            ship.Reequip(rippers, rippers);
+            var primary = ((Rippers)ship.Weapons.Primary).Rounds;
+            var secondary = ((Rippers)ship.Weapons.Secondary).Rounds;
+            primary.ProcessFire();
+            secondary.ProcessFire();
+
+            ship.Weapons.Arm(Projectiles).Fire(WeaponSlot.Secondary, new WeaponCommand { reload = true });
+
+            Assert.IsTrue(secondary.IsReloading, "The secondary ripper reloads.");
+            Assert.AreEqual(0, secondary.AmmoCount);
+            Assert.IsFalse(primary.IsReloading, "The primary ripper is untouched.");
+            Assert.AreEqual(primary.MaxAmmo - 1, primary.AmmoCount);
         }
 
         private sealed class FakeWeaponContext : IWeaponContext
@@ -224,6 +287,10 @@ namespace Tests.PlayMode
             public IReadOnlyList<WeaponSlot> Slots => slots;
             public bool IsReady(WeaponSlot slot) => true;
             public float ProjectileSpeed(WeaponSlot slot) => slot == WeaponSlot.Primary ? PrimarySpeed : SecondarySpeed;
+            public Vector2 AimPoint(WeaponSlot slot, in Kinematics shooter, Vector2 targetPos, Vector2 targetVel) =>
+                AI.Gunner.AimPoint(in shooter, targetPos, targetVel, ProjectileSpeed(slot));
+            public float? HoldRange(WeaponSlot slot) => null;
+            public int KeepOutCircles(WeaponSlot slot, System.Span<AI.Scanning.DetectedObstacle.PlaneCircle> circles) => 0;
             public Combat.Weapons.Gunsight Sight(WeaponSlot slot) => null;
         }
 
@@ -241,7 +308,7 @@ namespace Tests.PlayMode
             var gunner = go.AddComponent<AI.Gunner>();
 
             Kinematics Pose() => new(new Vector2(10f, 0f), Vector2.zero, 0f, 0f, 0f);
-            gunner.Initialize(new FakeWeaponContext(), new CommandRecorder(), Pose);
+            gunner.Initialize(new FakeWeaponContext(), new CommandRecorder(), Pose, TestAimSettings.Perfect, new SeedScope(1));
             gunner.Aim(new AI.Context.EnemyTarget
             {
                 kinematics = new Kinematics(Vector2.zero, Vector2.zero, 0f, 0f, 0f),
@@ -261,7 +328,7 @@ namespace Tests.PlayMode
             var context = new FakeWeaponContext();
             var recorder = new CommandRecorder();
             Kinematics Pose() => new(Vector2.zero, Vector2.zero, 0f, 0f, 0f);
-            gunner.Initialize(context, recorder, Pose);
+            gunner.Initialize(context, recorder, Pose, TestAimSettings.Perfect, new SeedScope(1));
 
             var enemyPos = new Vector2(10f, 0f);
             var enemyVel = new Vector2(0f, 5f);

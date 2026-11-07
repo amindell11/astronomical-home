@@ -3,10 +3,14 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using AI.Scanning;
+using Combat.Weapons;
 using Ships;
 using Ships.Command;
 using Ships.Loadout;
+using Substrate.Sectors.Elements.Elites;
+using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sectors.Elements.Phases;
+using Substrate.Sectors.Factions;
 using Substrate.Services.Units;
 using UnityEngine;
 
@@ -14,10 +18,12 @@ namespace Substrate.Sectors.Elements
 {
     /// <summary>
     /// Continuous producer for the survival trial, paced by a table of sector phases: each phase
-    /// opens by filling to its alive cap, then spawns one ship per interval while under it. The lull
-    /// before each later phase spawns nothing, and once the table is done the last phase's pacing
-    /// holds, so the hero leaves under pursuit. Ships ring the hero just off screen, facing it, on the
-    /// first angle clear of asteroids, each spawned with a build drawn from its phase's loadout pool.
+    /// opens by filling to its alive cap, then spawns one ship per interval while under it. The opening
+    /// lull before the first phase (held until the alarm when the sector has a hunt, so phase one keeps
+    /// index 0) and the lull before each later one spawn nothing, and once the table is done the last
+    /// phase's pacing holds, so the hero leaves under pursuit; the sector's elite arriving stops spawning
+    /// for good. Ships ring the hero just off screen, facing it, on the first angle clear of asteroids,
+    /// each flying its sector faction's kit for its ship and wearing the faction's skin.
     /// Dead products are despawned on the tick, and the tick idles while the hero is inactive (the
     /// recap hold). Nothing spawns in Build: the sector builds under an inactive holder and the
     /// asteroid field lays out at its Start, so a Build-time clearance check would see no rocks.
@@ -34,9 +40,9 @@ namespace Substrate.Sectors.Elements
 
         [Tooltip("Ships the director draws from, picked uniformly per spawn.")]
         [Stat, SerializeField] private RosterEntry[] roster = Array.Empty<RosterEntry>();
-        [Tooltip("Shield and weapon pool each spawn draws its build from; the chassis, and with it the engine, stays the roster's. " +
-                 "A phase may name its own pool. Unset → products fly their template's authored build.")]
-        [Stat, SerializeField] private ItemSubset loadouts;
+        [Tooltip("The sector's faction: every roster ship must be its signature or common ship, and flies that ship's faction kit. " +
+                 "Unset → products fly their template's authored build.")]
+        [Stat, SerializeField] private SectorFaction faction;
         [SerializeField] private int team = 1;
 
         [Header("Sector phases")]
@@ -44,6 +50,12 @@ namespace Substrate.Sectors.Elements
         [Stat(Ordered = true), SerializeField] private SectorPhase[] phases = Array.Empty<SectorPhase>();
         [Tooltip("Seconds between one phase's end and the next phase's opening, with nothing spawning.")]
         [Stat, SerializeField, Min(0f)] private float lullSeconds = 5f;
+        [Tooltip("Seconds from the sector's start to phase one's opening, with nothing spawning.")]
+        [Stat, SerializeField, Min(0f)] private float openingLullSeconds = 5f;
+        [Tooltip("The sector's opening hunt. Set, the opening lull lasts until its alarm; unset, the seconds above.")]
+        [SerializeField] private SectorHunt hunt;
+        [Tooltip("The elite the sector's spine summons. Set, spawning stops when it arrives; it must be the spine's own elite.")]
+        [SerializeField] private EliteEncounter elite;
 
         [Header("Placement")]
         [Tooltip("Plane distance from the hero; author it past the camera's widest view so ships arrive off screen.")]
@@ -62,6 +74,8 @@ namespace Substrate.Sectors.Elements
         private float startTime;
         private float nextSpawnTime;
         private bool started;
+        private bool huntReleased;
+        private bool eliteArrived;
         private int openedPhase;
 
         /// <summary>Where the phase table stands as of the last tick.</summary>
@@ -80,20 +94,23 @@ namespace Substrate.Sectors.Elements
                 yield break;
             }
 
-            RequireComplete(loadouts);
-            foreach (var phase in phases)
-                RequireComplete(phase.loadouts);
+            // A roster ship the faction doesn't fly fails the load, not the first spawn.
+            foreach (var entry in roster)
+                KitFor(entry.template);
             BuildSchedule();
 
             units = ctx.Units;
             field = ctx.Field;
             hero = ctx.Hero;
             started = false;
+            eliteArrived = false;
+            if (elite) elite.Announced += OnEliteArrived;
             Phase = schedule.At(0f);
         }
 
         protected override IEnumerator OnTeardown(SectorBuildContext ctx)
         {
+            if (elite) elite.Announced -= OnEliteArrived;
             hero = null;
             var teardown = base.OnTeardown(ctx);
             while (teardown.MoveNext()) yield return teardown.Current;
@@ -114,29 +131,49 @@ namespace Substrate.Sectors.Elements
             }
 
             DespawnDead();
+            HoldForHunt(now);
             Advance(now);
-            if (Phase.InLull) return;
+            if (Phase.InLull || eliteArrived) return;
 
             var row = phases[Phase.Index];
             if (OpensPhase())
             {
                 for (var i = products.Count; i < row.cap; i++)
-                    TrySpawn(row);
+                    TrySpawn();
                 ScheduleNext(now);
                 return;
             }
 
-            if (SpawnDue(now, products.Count) && TrySpawn(row))
+            if (SpawnDue(now, products.Count) && TrySpawn())
                 ScheduleNext(now);
         }
 
-        private void BuildSchedule() => schedule = new SectorPhaseSchedule(phases, lullSeconds);
+        private void OnEliteArrived(EliteMoment moment) => eliteArrived = true;
+
+        private void OnValidate()
+        {
+            var spine = GetComponentInParent<PhaseSpineModule>(true);
+            if (spine && spine.Elite is EliteEncounter owned && owned != elite)
+                throw new InvalidOperationException(
+                    $"WaveDirector on '{name}' must watch its spine's elite '{owned.name}', so the waves stop when it arrives.");
+        }
+
+        private void BuildSchedule() => schedule = new SectorPhaseSchedule(phases, lullSeconds, openingLullSeconds);
 
         internal void BeginSchedule(float now)
         {
             startTime = now;
             openedPhase = -1;
+            huntReleased = false;
             Phase = schedule.At(0f);
+        }
+
+        /// <summary>Holds the opening lull at its start until the hunt's alarm, then ends it, once.</summary>
+        internal void HoldForHunt(float now)
+        {
+            if (!hunt || huntReleased || !Phase.InOpeningLull) return;
+            huntReleased = hunt.Alarmed;
+            startTime = huntReleased ? now - openingLullSeconds : now;
         }
 
         internal void Advance(float now) => Phase = schedule.At(now - startTime);
@@ -154,22 +191,33 @@ namespace Substrate.Sectors.Elements
 
         internal void ScheduleNext(float now) => nextSpawnTime = now + phases[Phase.Index].interval;
 
-        internal ItemSubset PoolFor(SectorPhase row) => row.loadouts ? row.loadouts : loadouts;
-
-        /// <summary>One uniform pick per slot; no secondary, since AI aim leads for the primary only.</summary>
-        internal static ShipLoadout Draw(Ship chassis, ItemSubset pool) =>
-            new(chassis, Pick(pool.shields), Pick(pool.weapons), null);
-
-        private static T Pick<T>(T[] pool) => pool[UnityEngine.Random.Range(0, pool.Length)];
-
-        private void RequireComplete(ItemSubset pool)
+        /// <summary>Reads only serialized data, so a prefab asset answers too.</summary>
+        public SectorThreat Threat()
         {
-            if (pool && (IsEmpty(pool.shields) || IsEmpty(pool.weapons)))
-                throw new InvalidOperationException(
-                    $"WaveDirector on '{name}': loadout pool '{pool.name}' needs at least one shield and weapon.");
+            var ships = new List<Ship>();
+            foreach (var entry in roster)
+                AddDistinct(ships, entry.template);
+
+            var weapons = new List<WeaponComponent>();
+            foreach (var ship in ships)
+            {
+                if (faction)
+                {
+                    AddDistinct(weapons, KitFor(ship));
+                    continue;
+                }
+                AddDistinct(weapons, ship.Weapons ? ship.Weapons.PrimaryMountPrefab : null);
+                AddDistinct(weapons, ship.Weapons ? ship.Weapons.SecondaryMountPrefab : null);
+            }
+            return new SectorThreat(ships, weapons);
         }
 
-        private static bool IsEmpty<T>(T[] pool) => pool == null || pool.Length == 0;
+        private static void AddDistinct<T>(List<T> list, T item) where T : UnityEngine.Object
+        {
+            if (item && !list.Contains(item)) list.Add(item);
+        }
+
+        private WeaponComponent KitFor(Ship chassis) => faction ? faction.Faction.KitFor(chassis) : null;
 
         private void DespawnDead()
         {
@@ -182,7 +230,7 @@ namespace Substrate.Sectors.Elements
             }
         }
 
-        private bool TrySpawn(SectorPhase row)
+        private bool TrySpawn()
         {
             var center = GamePlane.WorldPointToPlane(hero.transform.position);
             for (var attempt = 0; attempt < placementAttempts; attempt++)
@@ -194,9 +242,10 @@ namespace Substrate.Sectors.Elements
 
                 var entry = roster[UnityEngine.Random.Range(0, roster.Length)];
                 var facingHero = GamePlane.PlanePose(GamePlane.Normal, GamePlane.PlaneDirToWorld(-outward));
-                var pool = PoolFor(row);
-                products.Add(units.SpawnShip(entry.template, entry.pilot, team, position, facingHero, field,
-                    pool ? Draw(entry.template, pool) : null));
+                var loadout = faction ? new ShipLoadout(entry.template, KitFor(entry.template), null) : null;
+                var ship = units.SpawnShip(entry.template, entry.pilot, team, position, facingHero, field, loadout);
+                if (faction) faction.Faction.Dress(entry.template, ship, elite: false);
+                products.Add(ship);
                 return true;
             }
             return false;
@@ -204,15 +253,32 @@ namespace Substrate.Sectors.Elements
 
 #if UNITY_EDITOR
         internal void Configure(RosterEntry[] roster, SectorPhase[] phases, float lullSeconds = 5f,
-            float spawnRadius = 55f, ItemSubset loadouts = null)
+            float spawnRadius = 55f, SectorFaction faction = null, float openingLullSeconds = 0f, SectorHunt hunt = null,
+            EliteEncounter elite = null)
         {
+            this.hunt = hunt;
+            this.elite = elite;
             this.roster = roster;
-            this.loadouts = loadouts;
+            this.faction = faction;
             this.phases = phases;
             this.lullSeconds = lullSeconds;
+            this.openingLullSeconds = openingLullSeconds;
             this.spawnRadius = spawnRadius;
             BuildSchedule();
         }
 #endif
+    }
+
+    /// <summary>What a sector can send: its ships and the weapons they can carry, each listed once.</summary>
+    public readonly struct SectorThreat
+    {
+        public IReadOnlyList<Ship> Ships { get; }
+        public IReadOnlyList<WeaponComponent> Weapons { get; }
+
+        public SectorThreat(IReadOnlyList<Ship> ships, IReadOnlyList<WeaponComponent> weapons)
+        {
+            Ships = ships;
+            Weapons = weapons;
+        }
     }
 }

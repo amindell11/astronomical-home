@@ -236,9 +236,9 @@ namespace Tests.EditMode.Ships
             var overdrive = catalog.Chassis.Single(c => c.name == "Valis").KeystonePrefab as Overdrive;
             Assert.That(overdrive, Is.Not.Null, "Valis's kit is Overdrive");
             Assert.That(overdrive.name, Is.EqualTo("Valis_Overdrive"));
-            Assert.That(overdrive.Cooldown, Is.EqualTo(8f));
-            Assert.That(overdrive.Window, Is.EqualTo(3f));
-            Assert.That(overdrive.PeakSpeedScale, Is.EqualTo(1.35f));
+            Assert.That(overdrive.Cooldown, Is.EqualTo(9f));
+            Assert.That(overdrive.Window, Is.EqualTo(5f));
+            Assert.That(overdrive.PeakSpeedScale, Is.EqualTo(1.5f));
             Assert.That(overdrive.PeakThrustScale, Is.EqualTo(1.5f));
             Assert.That(overdrive.GetComponent<KeystoneFlash>(), Is.Not.Null, "the kit carries its tell");
         }
@@ -252,6 +252,7 @@ namespace Tests.EditMode.Ships
             so.FindProperty("window").floatValue = 3f;
             so.FindProperty("speedScale").floatValue = 1.35f;
             so.FindProperty("thrustScale").floatValue = 1.5f;
+            so.FindProperty("maneuverabilityScale").floatValue = 1.5f;
             so.FindProperty("sightSaturation").floatValue = 0.8f;
             so.ApplyModifiedPropertiesWithoutUndo();
             return kit;
@@ -264,11 +265,13 @@ namespace Tests.EditMode.Ships
             var slow = new Kinematics(Vector2.zero, new Vector2(0f, 20f), 0f, 0f, 0f);
             var fast = new Kinematics(Vector2.zero, new Vector2(0f, 35f), 0f, 0f, 0f);
             Assert.That(kit.SpeedScale, Is.EqualTo(1f));
+            Assert.That(kit.ManeuverabilityScale, Is.EqualTo(1f));
 
             Assert.That(kit.Step(in slow, 1f, Dt, out var activated, 32f).Impulse, Is.EqualTo(Vector2.zero), "no impulse");
             Assert.That(activated, Is.True);
             Assert.That(kit.SpeedScale, Is.EqualTo(1.35f));
             Assert.That(kit.ThrustScale, Is.EqualTo(1.5f));
+            Assert.That(kit.ManeuverabilityScale, Is.EqualTo(1.5f));
             Assert.That(kit.PaidActivations, Is.EqualTo(0), "under the base cap pays nothing");
 
             kit.Step(in fast, 0f, Dt, out _, 32f);
@@ -277,6 +280,7 @@ namespace Tests.EditMode.Ships
             while (kit.Active) kit.Step(in slow, 0f, Dt, out _, 32f);
             Assert.That(kit.SpeedScale, Is.EqualTo(1f));
             Assert.That(kit.ThrustScale, Is.EqualTo(1f));
+            Assert.That(kit.ManeuverabilityScale, Is.EqualTo(1f));
         }
 
         [Test]
@@ -299,8 +303,43 @@ namespace Tests.EditMode.Ships
             Assert.That(blink, Is.Not.Null, "Crimson's kit is Blink");
             Assert.That(blink.name, Is.EqualTo("Crimson_Blink"));
             Assert.That(blink.Range, Is.EqualTo(12f));
-            Assert.That(blink.Cooldown, Is.EqualTo(6f));
+            Assert.That(blink.Cooldown, Is.EqualTo(4f));
             Assert.That(blink.GetComponent<KeystoneFlash>(), Is.Not.Null, "the kit carries its tell");
+        }
+
+        [Test]
+        public void Nightshade_CarriesStealth()
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<ItemCatalog>(ItemCatalog.AssetPath);
+            var stealth = catalog.Chassis.Single(c => c.name == "Nightshade").KeystonePrefab as Stealth;
+            Assert.That(stealth, Is.Not.Null, "Nightshade's kit is Stealth");
+            Assert.That(stealth.name, Is.EqualTo("Nightshade_Stealth"));
+            Assert.That(stealth.Window, Is.EqualTo(2.5f));
+            Assert.That(stealth.Cooldown, Is.EqualTo(12f));
+            Assert.That(stealth.PeakSpeedScale, Is.EqualTo(1.3f));
+            Assert.That(stealth.PeakThrustScale, Is.EqualTo(1.45f));
+            Assert.That(stealth.GetComponent<StealthVeil>(), Is.Not.Null, "the kit carries its tell");
+        }
+
+        [Test]
+        public void TargetLock_DropsAConcealedTarget_InTheSameCall()
+        {
+            host = new GameObject("Locked Ship");
+            var target = host.AddComponent<Ship>();
+            var released = 0;
+            target.Lock.Released += () => released++;
+            var targetLock = new Combat.Targeting.TargetLock(0.5f, 3f, () => true);
+            Assert.That(targetLock.TryStartLock(target), Is.True);
+
+            target.Lock.Conceal();
+
+            Assert.That(targetLock.State, Is.EqualTo(Combat.Targeting.LockState.Idle), "the lock drops the moment its target conceals");
+            Assert.That(targetLock.CurrentTarget, Is.Null);
+            Assert.That(released, Is.EqualTo(1), "the lock indicator hears the release");
+            Assert.That(targetLock.TryStartLock(target), Is.False, "a concealed ship cannot be locked again");
+
+            target.Lock.Reveal();
+            Assert.That(targetLock.TryStartLock(target), Is.True, "and can be once revealed");
         }
 
         [Test]
@@ -309,14 +348,14 @@ namespace Tests.EditMode.Ships
             var catalog = AssetDatabase.LoadAssetAtPath<ItemCatalog>(ItemCatalog.AssetPath);
             var guard = catalog.Chassis.Single(c => c.name == "Vanguard").KeystonePrefab as GuardDash;
             Assert.That(guard, Is.Not.Null, "Vanguard's kit is the Guard Dash");
+            Assert.That(guard.DisplayName, Is.EqualTo("Dash"));
             Assert.That(guard.Window, Is.EqualTo(0.4f));
             Assert.That(guard.GetComponent<KeystoneFlash>(), Is.Not.Null, "the kit carries its tell");
         }
 
         [TestCase("Vanguard", 9000f, 5f)]
-        [TestCase("Bulwark", 13500f, 7f)]
-        [TestCase("Nightshade", 8500f, 4.5f)]
-        [TestCase("Junker_1", 13000f, 7f)]
+        [TestCase("Bulwark", 15000f, 5f)]
+        [TestCase("Junker_1", 15000f, 5f)]
         public void Chassis_CarriesItsOwnDash(string chassis, float impulse, float cooldown)
         {
             var catalog = AssetDatabase.LoadAssetAtPath<ItemCatalog>(ItemCatalog.AssetPath);
@@ -326,6 +365,29 @@ namespace Tests.EditMode.Ships
             Assert.That(dash.name, Is.EqualTo($"{chassis.Split('_')[0]}_Dash"), $"{chassis}: its own kit prefab");
             Assert.That(dash.Impulse, Is.EqualTo(impulse), $"{chassis}: impulse");
             Assert.That(dash.Cooldown, Is.EqualTo(cooldown), $"{chassis}: cooldown");
+        }
+
+        [Test]
+        public void Kits_AuthorTheirHudIcons()
+        {
+            AssertIcon("Vanguard_Dash", "Assets/Visuals/Ui/Keystones/Generated/dash.png");
+            AssertIcon("Bulwark_Dash", "Assets/Visuals/Ui/Keystones/Generated/ram.png");
+            AssertIcon("Valis_Overdrive", "Assets/Visuals/Ui/Keystones/Generated/overdrive.png");
+            AssertIcon("Crimson_Blink", "Assets/Visuals/Ui/Keystones/Generated/blink.png");
+            AssertIcon("Nightshade_Stealth", "Assets/Visuals/Ui/Keystones/Generated/stealth.png");
+            AssertIcon("Junker_Dash", "Assets/Visuals/Ui/Crosshair/Generated/keystone-placeholder.png");
+            Assert.That(AssetDatabase.AssetPathToGUID(
+                    "Assets/Visuals/Ui/Crosshair/Generated/keystone-placeholder.png"),
+                Is.EqualTo("9f5919c47706b7f438d1531e6e55719d"));
+        }
+
+        private static void AssertIcon(string prefab, string spritePath)
+        {
+            var kit = AssetDatabase.LoadAssetAtPath<Keystone>($"Assets/Prefabs/Keystones/{prefab}.prefab");
+            var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(spritePath);
+            Assert.That(kit, Is.Not.Null, prefab);
+            Assert.That(sprite, Is.Not.Null, spritePath);
+            Assert.That(kit.Icon, Is.SameAs(sprite), prefab);
         }
     }
 }

@@ -1,7 +1,9 @@
 using Balance;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Combat.Weapons;
+using Combat.Weapons.Mods;
 using UnityEngine;
 
 namespace Combat.Weapons.Conditions
@@ -15,8 +17,10 @@ namespace Combat.Weapons.Conditions
     {
         int AmmoCount { get; }
         int MaxAmmo { get; }
+        Rounds.RefillMode Refill { get; }
         bool IsReloading { get; }
         float ReloadProgress { get; }
+        float RoundProgress(int index);
         event Action<int> OnAmmoCountChanged;
         event Action OnReloadStarted;
         event Action OnReloadCompleted;
@@ -24,7 +28,7 @@ namespace Combat.Weapons.Conditions
 
     public class Rounds : WeaponCondition, IAmmoReadout
     {
-        public enum RefillMode { Magazine = 0, PerRound = 1 }
+        public enum RefillMode { Magazine = 0, PerRound = 1, Sequential = 2 }
 
         [Header("Ammo System")]
         [Stat, SerializeField] private int maxAmmo = 4;
@@ -33,7 +37,8 @@ namespace Combat.Weapons.Conditions
         [Stat, SerializeField, Min(0f)] private float reloadTime = 0f;
 
         [Tooltip("Magazine: the whole magazine refills Reload Time after it empties. " +
-                 "PerRound: each round comes back Reload Time after it was fired.")]
+                 "PerRound: each round comes back Reload Time after it was fired. " +
+                 "Sequential: one round returns each Reload Time, preserving progress when firing.")]
         [Stat, SerializeField] private RefillMode refill = RefillMode.Magazine;
 
         public event Action<int> OnAmmoCountChanged;
@@ -41,17 +46,28 @@ namespace Combat.Weapons.Conditions
         public event Action OnReloadCompleted;
 
         public int AmmoCount { get; private set; }
-        public int MaxAmmo => maxAmmo;
-        public float ReloadTime => reloadTime;
+        public int MaxAmmo => mods.Rounds(maxAmmo);
+        public float ReloadTime => mods.Apply(WeaponModField.ReloadSpeed, reloadTime);
         public RefillMode Refill => refill;
         public bool IsReloading { get; private set; }
 
         public float ReloadProgress =>
             !IsReloading ? 0f
-            : refill == RefillMode.PerRound ? Mathf.Clamp01(1f - (roundDueTimes.Peek() - regenClock) / reloadTime)
-            : Mathf.Clamp01(reloadElapsed / reloadTime);
+            : refill == RefillMode.PerRound ? Mathf.Clamp01(1f - (roundDueTimes.Peek() - regenClock) / ReloadTime)
+            : Mathf.Clamp01(reloadElapsed / ReloadTime);
+
+        public float RoundProgress(int index)
+        {
+            if (index < AmmoCount) return 1f;
+            if (!IsReloading) return 0f;
+            if (refill == RefillMode.Sequential) return index == AmmoCount ? ReloadProgress : 0f;
+            return refill == RefillMode.Magazine
+                ? ReloadProgress
+                : Mathf.Clamp01(1f - (roundDueTimes.ElementAt(index - AmmoCount) - regenClock) / ReloadTime);
+        }
 
         private float reloadElapsed;
+        private int knownMax;
 
         // FIFO works because every round shares one duration: the front always lands first.
         private readonly Queue<float> roundDueTimes = new();
@@ -75,17 +91,40 @@ namespace Combat.Weapons.Conditions
 
             if (refill == RefillMode.PerRound)
                 TickPerRound(dt);
+            else if (refill == RefillMode.Sequential)
+                TickSequential(dt);
             else
                 TickMagazine(dt);
+        }
+
+        private void TickSequential(float dt)
+        {
+            reloadElapsed += dt;
+            var restored = 0;
+            while (AmmoCount < MaxAmmo && reloadElapsed >= ReloadTime - HalfStep)
+            {
+                reloadElapsed -= ReloadTime;
+                AmmoCount++;
+                restored++;
+            }
+            if (restored == 0) return;
+
+            if (AmmoCount == MaxAmmo)
+            {
+                reloadElapsed = 0f;
+                IsReloading = false;
+                OnReloadCompleted?.Invoke();
+            }
+            OnAmmoCountChanged?.Invoke(AmmoCount);
         }
 
         private void TickMagazine(float dt)
         {
             reloadElapsed += dt;
-            if (reloadElapsed < reloadTime - HalfStep) return;
+            if (reloadElapsed < ReloadTime - HalfStep) return;
 
             IsReloading = false;
-            AmmoCount = maxAmmo;
+            AmmoCount = MaxAmmo;
             OnReloadCompleted?.Invoke();
             OnAmmoCountChanged?.Invoke(AmmoCount);
         }
@@ -117,7 +156,18 @@ namespace Combat.Weapons.Conditions
             reloadElapsed = 0f;
             roundDueTimes.Clear();
             regenClock = 0f;
-            AmmoCount = maxAmmo;
+            AmmoCount = MaxAmmo;
+            knownMax = AmmoCount;
+            OnAmmoCountChanged?.Invoke(AmmoCount);
+        }
+
+        // Rounds a pick adds arrive loaded, so the counter shows the pick at once.
+        protected override void OnModsChanged()
+        {
+            var added = MaxAmmo - knownMax;
+            knownMax = MaxAmmo;
+            if (added <= 0) return;
+            AmmoCount += added;
             OnAmmoCountChanged?.Invoke(AmmoCount);
         }
 
@@ -130,11 +180,15 @@ namespace Combat.Weapons.Conditions
         {
             AmmoCount--;
             OnAmmoCountChanged?.Invoke(AmmoCount);
-            if (reloadTime <= 0f) return;
+            if (ReloadTime <= 0f) return;
 
             if (refill == RefillMode.PerRound)
             {
-                roundDueTimes.Enqueue(regenClock + reloadTime);
+                roundDueTimes.Enqueue(regenClock + ReloadTime);
+                if (!IsReloading) StartReload();
+            }
+            else if (refill == RefillMode.Sequential)
+            {
                 if (!IsReloading) StartReload();
             }
             else if (AmmoCount <= 0)
@@ -142,6 +196,16 @@ namespace Combat.Weapons.Conditions
                 reloadElapsed = 0f;
                 StartReload();
             }
+        }
+
+        /// <summary>Dumps the rounds left and reloads the magazine; per-round refill has no magazine to reload.</summary>
+        public void Reload()
+        {
+            if (refill != RefillMode.Magazine || ReloadTime <= 0f || IsReloading || AmmoCount >= MaxAmmo) return;
+            AmmoCount = 0;
+            OnAmmoCountChanged?.Invoke(AmmoCount);
+            reloadElapsed = 0f;
+            StartReload();
         }
 
         private void StartReload()

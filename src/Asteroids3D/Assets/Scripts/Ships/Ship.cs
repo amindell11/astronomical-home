@@ -4,11 +4,13 @@ using System.Collections.Generic;
 using Combat;
 using Combat.Targeting;
 using Combat.Weapons;
+using Loot;
 using Ships.Command;
 using Utils;
 using Ships.Damage;
 using Ships.Keystones;
 using Ships.Loadout;
+using Ships.Mods;
 using Ships.Movement;
 using Ships.Presentation;
 using Ships.Weapons;
@@ -22,7 +24,7 @@ namespace Ships
     [RequireComponent(typeof(MovementController))]
     [RequireComponent(typeof(DamageController))]
     [DefaultExecutionOrder(-90)]
-    public class Ship : MonoBehaviour, ITargetable, IShipStatus, IShooter
+    public class Ship : MonoBehaviour, ITargetable, IShipStatus, IShooter, IJumpDrive
     {
         [Header("Chassis")]
         [Tooltip("Ship mass (kg). Drives momentum and the physics inertia tensor.")]
@@ -90,16 +92,19 @@ namespace Ships
         public ShipId Id { get; private set; }
         public int DecisionSeed { get; private set; }
         public Collider[] Colliders {get; private set;}
-        /// <summary>The motion model as it stands this step: the base model with any keystone scaling applied.</summary>
-        public Dynamics Dynamics => Keystone ? baseDynamics.Scaled(Keystone.SpeedScale, Keystone.ThrustScale) : baseDynamics;
+        public Dynamics Dynamics => Keystone
+            ? baseDynamics.Scaled(Keystone.SpeedScale, Keystone.ThrustScale, Keystone.ManeuverabilityScale)
+            : baseDynamics;
 
         private Dynamics baseDynamics;
         public Transform TargetPoint => transform;
         public LockChannel Lock { get; } = new LockChannel();
+        public event Action JumpRequested;
         public Vector3 Velocity => Movement ? Movement.Kinematics.WorldVel : Vector3.zero;
         public Rigidbody Body => Rigidbody;
 
         Transform IShipStatus.Transform => transform;
+        void IJumpDrive.RequestJump() => JumpRequested?.Invoke();
         public Kinematics Kinematics => Movement ? Movement.Kinematics : default;
         public float HealthPct => Damage ? Damage.Health.Pct : 1f;
         public float ShieldPct => Damage ? Damage.Shield.Pct : 1f;
@@ -107,7 +112,7 @@ namespace Ships
         public float BoostCooldownRemaining => Keystone ? Keystone.CooldownRemaining : 0f;
         public float BoostCooldownPct => Keystone ? Keystone.CooldownPct : 0f;
         public float MaxSpeed => Stats != null ? Stats.maxSpeed : 0f;
-        public float MaxYawRate => Stats != null ? Stats.maxYawRate : 0f;
+        public float MaxYawRate => Stats != null ? Stats.maxYawRate * (Keystone ? Keystone.ManeuverabilityScale : 1f) : 0f;
         public IReadOnlyList<ITrackingMissile> TrackingMissiles => Lock.Trackers;
 
         /// <summary>Collision radius derived from collider bounds in <see cref="Initialize"/>; 1 until then.</summary>
@@ -115,6 +120,8 @@ namespace Ships
 
         private bool isInitialized = false;
         private IProjectileService projectiles;
+        private LullModStack mods;
+        private ShipScale scale = ShipScale.One;
 
         protected virtual void Awake()
         {
@@ -142,40 +149,61 @@ namespace Ships
             Subscribe();
         }
 
-        private void Resolve() => Stats = ResolvedShipStats.Resolve(this, engine, shield);
+        private void Resolve() =>
+            Stats = ResolvedShipStats.Resolve(this, engine, shield, mods?.ForShip() ?? ShipMods.None, scale);
 
-        /// <summary>Resolve stats without instantiating; shipRadius stays default until <see cref="Initialize"/> derives it from live colliders.</summary>
+        /// <summary>Authored stats, without run mods or instantiating; shipRadius stays default until <see cref="Initialize"/> derives it from live colliders.</summary>
         public ResolvedShipStats ResolveStats() => ResolvedShipStats.Resolve(this, engine, shield);
 
-        /// <summary>Between-run module swap (null modules are valid); after a weapon swap the caller must re-run <c>IUnitService.WireShipDependencies</c> to rewire world-scoped lock-sensor state.</summary>
-        public void Reequip(ShieldModule newShield, WeaponComponent newPrimaryWeapon, WeaponComponent newSecondaryWeapon)
+        /// <summary>Binds the run's lull mods once; every change re-applies them, keeping the vitals' fractions.</summary>
+        public void BindMods(LullModStack stack)
         {
-            shield = newShield;
+            if (mods != null)
+                throw new InvalidOperationException($"Ship '{name}' already has its run mods bound; a ship binds once.");
+            mods = stack;
+            mods.Changed += OnModsChanged;
+            OnModsChanged();
+        }
 
+        private void OnModsChanged()
+        {
+            if (Weapons) Weapons.SetMods(mods);
+            ReResolve(Vitals.Rescale);
+        }
+
+        private void OnDestroy()
+        {
+            if (mods != null) mods.Changed -= OnModsChanged;
+        }
+
+        /// <summary>Between-run weapon swap (null mounts are valid) that refills vitals; callers re-run <c>IUnitService.WireShipDependencies</c> for lock sensors.</summary>
+        public void Reequip(WeaponComponent newPrimaryWeapon, WeaponComponent newSecondaryWeapon)
+        {
             if (Weapons)
                 Weapons.Reequip(newPrimaryWeapon, newSecondaryWeapon);
 
-            // Subscribe before the pre-Initialize early-return so onChanged tracks the new modules either way.
-            Subscribe();
             if (!isInitialized) return;
 
-            ReResolve(resetVitals: true);
+            ReResolve(Vitals.Refill);
         }
 
-        // Module swaps don't change geometry, so the derived radius carries forward; resetVitals refills health/shield (equip swap yes, live inspector tuning no).
-        private void ReResolve(bool resetVitals)
+        // Keep for live inspector tuning, Rescale for a lull pick, Refill for a hangar equip.
+        private enum Vitals { Keep, Rescale, Refill }
+
+        // Module swaps don't change geometry, so the derived radius carries forward.
+        private void ReResolve(Vitals vitals)
         {
             var radius = Stats?.shipRadius ?? 1f;
             Resolve();
             Stats.shipRadius = radius;
-            Movement?.PopulateSettings(Stats);
-            if (resetVitals)
-                Damage?.PopulateSettings(Stats);
+            if (Movement) Movement.PopulateSettings(Stats);
+            if (Damage && vitals == Vitals.Refill) Damage.PopulateSettings(Stats);
+            if (Damage && vitals == Vitals.Rescale) Damage.Rescale(Stats);
             if (isInitialized)
                 baseDynamics = Stats.BuildDynamics(Rigidbody ? Rigidbody.inertiaTensor.z : 0f);
         }
 
-        private void OnSettingsChanged() => ReResolve(resetVitals: false);
+        private void OnSettingsChanged() => ReResolve(Vitals.Keep);
 
         private EngineModule subEngine;
         private ShieldModule subShield;
@@ -197,8 +225,8 @@ namespace Ships
             subShield = null;
         }
 
-        /// <summary>The registry may be null only for a ship that never arms a commander (unarmed or commander-less); arming demands it.</summary>
-        public virtual void Initialize(int team, int decisionSeed, IProjectileService projectiles)
+        /// <summary>The registry may be null only for a ship that never arms a commander (unarmed or commander-less); arming demands it. A null <paramref name="scale"/> flies the ship as authored.</summary>
+        public virtual void Initialize(int team, int decisionSeed, IProjectileService projectiles, ShipScale scale = null)
         {
             if (isInitialized) return;
             if (!keystone)
@@ -206,10 +234,13 @@ namespace Ships
             teamNumber = team;
             DecisionSeed = decisionSeed;
             this.projectiles = projectiles;
+            this.scale = scale ?? ShipScale.One;
+            transform.localScale *= this.scale.Size;
             Resolve();
-            Movement.Initialize(Stats, ()=>KinematicsPoller.Kinematics, Keystone);
+            Movement.Initialize(Stats, ()=>KinematicsPoller.Kinematics, Keystone, Weapons);
             Damage.Initialize(Keystone);
             Damage.OnBlocked += Keystone.NotifyBlocked;
+            if (Weapons) Weapons.Fired += Keystone.NotifyFired;
             Damage?.PopulateSettings(Stats);
             Subscribe();
 
@@ -257,8 +288,8 @@ namespace Ships
 
         private ShipControl BuildShipControl() =>
             Weapons
-                ? new(this, Movement, new SeedScope(DecisionSeed), Weapons.Context, Weapons.Arm(projectiles), Keystone)
-                : new(this, Movement, new SeedScope(DecisionSeed), keystone: Keystone);
+                ? new(this, Movement, new SeedScope(DecisionSeed), Weapons.Context, Weapons.Arm(projectiles), Keystone, jump: this)
+                : new(this, Movement, new SeedScope(DecisionSeed), keystone: Keystone, jump: this);
 
         private void SetCommander(Commander commander)
         {

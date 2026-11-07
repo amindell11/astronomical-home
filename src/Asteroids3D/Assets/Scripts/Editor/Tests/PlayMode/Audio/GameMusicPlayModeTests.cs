@@ -19,7 +19,9 @@ using Substrate.Services.Objectives;
 using Substrate.Services.Units;
 using Substrate.Sessions;
 using Tests.PlayMode.Common;
+using UI.Hangar;
 using UI.Screens;
+using UI.Recap;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -34,6 +36,8 @@ namespace Tests.PlayMode.Audio
         private const string RigPrefabPath = "Assets/Prefabs/MiscObjects/PlayerRig.prefab";
         private const string ObserverCamPrefabPath = "Assets/Prefabs/Cameras/Main Camera.prefab";
         private const string SectorConfigPath = "Assets/Settings/Game/DefaultSectorConfig.asset";
+        private const string RecapFeelPath = "Assets/Settings/UI/RecapFeel.asset";
+        private const string HangarScreenPrefabPath = "Assets/Prefabs/UI/HangarScreen.prefab";
         private const string MusicEvent = "event:/Music/Game";
         private const string MusicStateName = "MusicState";
         private const string PhaseName = "Phase";
@@ -92,7 +96,9 @@ namespace Tests.PlayMode.Audio
             var zone = New("Zone");
             zone.AddComponent<SphereCollider>().isTrigger = true;
             var spine = New("Spine").AddComponent<PhaseSpineModule>();
-            spine.Bind(director, zone.AddComponent<ExtractionZone>());
+            var beacon = New("Beacon");
+            beacon.AddComponent<SphereCollider>().isTrigger = true;
+            spine.Bind(director, zone.AddComponent<ExtractionZone>(), beacon.AddComponent<ExtractionZone>());
             var sectorGo = New("Sector");
             sectorGo.SetActive(false);
             var sector = sectorGo.AddComponent<Sector>();
@@ -136,6 +142,9 @@ namespace Tests.PlayMode.Audio
             PlayerRig rig = null;
             Boot(presentation: true);
 
+            yield return Until(() => hostGo.GetComponentInChildren<HangarScreen>(), "the hangar opens", description,
+                seen, instanceCounts);
+            Launch();
             yield return Until(() =>
             {
                 rig = hostGo.GetComponentInChildren<PlayerRig>();
@@ -153,6 +162,9 @@ namespace Tests.PlayMode.Audio
             yield return Until(() => hostGo.GetComponentInChildren<RunRecapScreen>(), "the victory recap shows",
                 description, seen, instanceCounts);
             Dismiss();
+            yield return Until(() => hostGo.GetComponentInChildren<HangarScreen>(), "the next run's hangar opens",
+                description, seen, instanceCounts);
+            Launch();
             yield return Until(() => Loaded("SectorA"), "the next run's first sector loads", description, seen,
                 instanceCounts);
             yield return Until(() => true, "the next run's first frame", description, seen, instanceCounts);
@@ -220,6 +232,9 @@ namespace Tests.PlayMode.Audio
             host.playerRig = AssetDatabase.LoadAssetAtPath<PlayerRig>(RigPrefabPath);
             host.observerCamPrefab = AssetDatabase.LoadAssetAtPath<ObserverCam>(ObserverCamPrefabPath);
             host.musicPrefab = AssetDatabase.LoadAssetAtPath<GameMusic>(MusicPrefabPath);
+            host.recapFeel = AssetDatabase.LoadAssetAtPath<RecapFeelProfile>(RecapFeelPath);
+            // Without a hangar screen the Hangar step lasts zero frames, too short to sample.
+            host.hangarScreenPrefab = AssetDatabase.LoadAssetAtPath<HangarScreen>(HangarScreenPrefabPath);
             recordPath = Path.Combine(Path.GetTempPath(), "game-music-" + Guid.NewGuid().ToString("N") + ".jsonl");
             host.runRecordPath = recordPath;
             host.buildIdentity = (out BuildIdentity identity, out string failure) =>
@@ -253,6 +268,8 @@ namespace Tests.PlayMode.Audio
             var recap = hostGo.GetComponentInChildren<RunRecapScreen>();
             recap.transform.Find("Panels/Recap/Continue").GetComponent<Button>().onClick.Invoke();
         }
+
+        private void Launch() => hostGo.GetComponentInChildren<HangarScreen>().launchButton.onClick.Invoke();
 
         // Each frame until the condition holds, records the MusicState label whenever it changes.
         private static IEnumerator Until(Func<bool> condition, string what, EventDescription description,

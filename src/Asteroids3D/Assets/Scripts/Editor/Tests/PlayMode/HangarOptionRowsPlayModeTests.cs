@@ -23,12 +23,13 @@ namespace Tests.PlayMode
     {
         private const string ScreenPrefabPath = "Assets/Prefabs/UI/HangarScreen.prefab";
         private const string VanguardPath = "Assets/Prefabs/Ships/Vanguard.prefab";
+        private const string ValisPath = "Assets/Prefabs/Ships/Valis.prefab";
+        private const string CrimsonPath = "Assets/Prefabs/Ships/Crimson.prefab";
         private const string RealCatalogPath = "Assets/Settings/Ships/PlayerLoadout.asset";
 
         private static readonly string[] WeaponPaths =
         {
             "Assets/Prefabs/Weapons/Lasers.prefab",
-            "Assets/Prefabs/Weapons/ChargeLasers.prefab",
             "Assets/Prefabs/Weapons/Missiles.prefab",
             "Assets/Prefabs/Weapons/Railgun.prefab",
             "Assets/Prefabs/Weapons/Rippers.prefab",
@@ -56,23 +57,37 @@ namespace Tests.PlayMode
             vanguard = Load<Ship>(VanguardPath);
 
             catalog = ScriptableObject.CreateInstance<ItemSubset>();
+            catalog.starter = vanguard;
             catalog.ships = new[] { vanguard };
-            catalog.shields = new ShieldModule[0];
             var weapons = new WeaponComponent[WeaponPaths.Length];
             for (var i = 0; i < WeaponPaths.Length; i++)
                 weapons[i] = Load<WeaponComponent>(WeaponPaths[i]);
             catalog.weapons = weapons;
 
-            var loadout = new ShipLoadout(vanguard, vanguard.Shield, null, null);
+            var loadout = new ShipLoadout(vanguard, null, null);
             Show(catalog, loadout);
             return loadout;
         }
 
-        private void Show(ItemSubset offer, ShipLoadout loadout)
+        private void Show(ItemSubset offer, ShipLoadout loadout, System.Func<Ship, bool> earned = null)
         {
             screen = Object.Instantiate(Load<HangarScreen>(ScreenPrefabPath));
             Object.DestroyImmediate(screen.GetComponentInChildren<RawImage>());
-            screen.Show(offer, loadout, onLaunch: null);
+            screen.Show(offer, loadout, earned ?? (_ => true), onLaunch: null);
+        }
+
+        private ShipLoadout ShowLockedOffer(System.Func<Ship, bool> earned, out Ship vanguard, out Ship valis)
+        {
+            vanguard = Load<Ship>(VanguardPath);
+            valis = Load<Ship>(ValisPath);
+            catalog = ScriptableObject.CreateInstance<ItemSubset>();
+            catalog.starter = vanguard;
+            catalog.ships = new[] { vanguard, valis };
+            catalog.weapons = System.Array.Empty<WeaponComponent>();
+
+            var loadout = new ShipLoadout(Load<Ship>(CrimsonPath), null, null);
+            Show(catalog, loadout, earned);
+            return loadout;
         }
 
         private static void Next(OptionCycler row) => row.nextButton.onClick.Invoke();
@@ -144,6 +159,48 @@ namespace Tests.PlayMode
         }
 
         [Test]
+        public void Show_PendingShipNotSelectable_ReseedsToTheStarterWithItsKit()
+        {
+            var loadout = ShowLockedOffer(_ => false, out var vanguard, out _);
+            var authored = vanguard.GetComponent<WeaponsController>();
+
+            Assert.AreSame(vanguard, loadout.Ship, "a pending ship the player can't fly reseeds to the starter");
+            Assert.AreSame(authored.PrimaryMountPrefab, loadout.PrimaryWeapon, "the starter's authored primary");
+            Assert.AreSame(authored.SecondaryMountPrefab, loadout.SecondaryWeapon, "the starter's authored secondary");
+            Assert.AreEqual(vanguard.name, screen.shipRow.label.text);
+            Assert.IsTrue(screen.launchButton.interactable, "the starter can launch");
+        }
+
+        [Test]
+        public void LockedShip_ShowsLockedAndHoldsLaunch_UntilSteppedAway()
+        {
+            ShowLockedOffer(_ => false, out var vanguard, out var valis);
+            var shown = screen.shipRow.label.color;
+
+            Next(screen.shipRow);
+            Assert.AreEqual($"{valis.name} (locked)", screen.shipRow.label.text);
+            Assert.IsFalse(screen.launchButton.interactable, "a locked ship can't launch");
+            Assert.Less(screen.shipRow.label.color.a, shown.a, "a locked ship's row is dimmed");
+
+            Previous(screen.shipRow);
+            Assert.AreEqual(vanguard.name, screen.shipRow.label.text);
+            Assert.IsTrue(screen.launchButton.interactable, "stepping back to the starter re-enables launch");
+            Assert.AreEqual(shown, screen.shipRow.label.color, "the starter's row is not dimmed");
+        }
+
+        [Test]
+        public void EarnedShip_IsSelectable()
+        {
+            var valis = Load<Ship>(ValisPath);
+            ShowLockedOffer(ship => ship == valis, out _, out _);
+
+            Next(screen.shipRow);
+
+            Assert.AreEqual(valis.name, screen.shipRow.label.text);
+            Assert.IsTrue(screen.launchButton.interactable, "an earned ship can launch");
+        }
+
+        [Test]
         public void HoveredRowStats_FollowTheCycledPick()
         {
             ShowScreen(out _);
@@ -166,17 +223,15 @@ namespace Tests.PlayMode
         // Patterns, not values, so balance tuning never breaks it.
         [TestCase("Assets/Prefabs/Weapons/Lasers.prefab",
             @"Damage \d+", @"Rate [\d.]+/s", @"Speed \d+", @"Overheats after \d+ shots")]
-        [TestCase("Assets/Prefabs/Weapons/ChargeLasers.prefab",
-            @"Damage \d+-\d+", @"Full charge [\d.]+s", @"Speed \d+")]
         [TestCase("Assets/Prefabs/Weapons/Railgun.prefab",
             @"Damage \d+", @"Range \d+", @"Full charge [\d.]+s", "Hitscan")]
         [TestCase("Assets/Prefabs/Weapons/Rippers.prefab",
             @"Damage \d+", @"Rate [\d.]+/s", @"Mag \d+ \(reload [\d.]+s\)", @"Speed \d+")]
         [TestCase("Assets/Prefabs/Weapons/Missiles.prefab",
-            @"Damage \d+ \+ \d+ splash", @"\d+ rounds \(regen [\d.]+s/round\)", "Lock-on homing",
+            @"Damage \d+ \+ \d+ splash", @"\d+ rounds \(shared recharge [\d.]+s/round\)", "Lock-on homing",
             "Direct hit skips shields")]
         [TestCase("Assets/Prefabs/Weapons/Grenades.prefab",
-            @"Blast \d+ to \d+u, hits friend and foe", @"\d+ charges \(regen [\d.]+s/round\)", @"Range \d+u")]
+            @"Blast \d+ to \d+u, hits friend and foe", @"\d+ charges \(shared recharge [\d.]+s/round\)", @"Range \d+u")]
         public void Describe_ShowsEveryStatOfCatalogWeaponAsset(string path, params string[] segmentPatterns)
         {
             var description = HangarScreen.Describe(Load<WeaponComponent>(path));
@@ -191,7 +246,7 @@ namespace Tests.PlayMode
         {
             var offer = Load<ItemSubset>(RealCatalogPath);
             var first = offer.ships[0];
-            Show(offer, new ShipLoadout(first, first.Shield, null, null));
+            Show(offer, new ShipLoadout(first, null, null));
             Assert.AreEqual(first.name, screen.shipRow.label.text, "the ship row opens on the loadout's ship");
 
             for (var i = 1; i <= offer.ships.Length; i++)
@@ -203,18 +258,12 @@ namespace Tests.PlayMode
         }
 
         [Test]
-        public void RealCatalog_ShieldRowAndShipKit_ShowDisplayNames()
+        public void RealCatalog_ShipHover_NamesTheChassisEngineAndShield()
         {
             var offer = Load<ItemSubset>(RealCatalogPath);
             var first = offer.ships[0];
-            var loadout = new ShipLoadout(first, first.Shield, null, null);
+            var loadout = new ShipLoadout(first, null, null);
             Show(offer, loadout);
-
-            for (var i = 0; i < offer.shields.Length; i++)
-            {
-                Next(screen.shieldRow);
-                AssertDisplayName(loadout.Shield.DisplayName, screen.shieldRow.label.text, $"shield step {i + 1}");
-            }
 
             var stats = screen.transform.Find("Panel/StatsText").GetComponent<Text>();
             screen.shipRow.GetComponent<EventTrigger>().OnPointerEnter(new PointerEventData(null));
@@ -222,19 +271,13 @@ namespace Tests.PlayMode
             {
                 Next(screen.shipRow);
                 var lines = stats.text.Split('\n');
-                var kit = $"Kit: {loadout.Ship.Shield.DisplayName}";
                 var engine = $"Engine: {loadout.Ship.Engine.DisplayName}";
-                StringAssert.EndsWith(kit, lines[0], $"ship step {i + 1} hover names the authored shield as the kit");
+                var shield = $"Shield: {loadout.Ship.Shield.DisplayName}";
                 StringAssert.StartsWith(engine, lines[1], $"ship step {i + 1} hover names the chassis's engine under the ship");
-                StringAssert.StartsWith($"Keystone: {loadout.Ship.KeystonePrefab.DisplayName}", lines[2], $"ship step {i + 1} hover names the chassis's keystone");
-                StringAssert.DoesNotContain("_", kit + engine, $"ship step {i + 1} kit shows authored names");
+                StringAssert.StartsWith(shield, lines[2], $"ship step {i + 1} hover names the chassis's shield read-only under the engine");
+                StringAssert.StartsWith($"Keystone: {loadout.Ship.KeystonePrefab.DisplayName}", lines[3], $"ship step {i + 1} hover names the chassis's keystone");
+                StringAssert.DoesNotContain("_", engine + shield, $"ship step {i + 1} hover shows authored names");
             }
-        }
-
-        private static void AssertDisplayName(string displayName, string label, string step)
-        {
-            Assert.AreEqual(displayName, label, $"{step} labels the pick by its display name");
-            StringAssert.DoesNotContain("_", label, $"{step} shows an authored name, not the asset name");
         }
     }
 }

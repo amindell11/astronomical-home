@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System.Collections;
 using System.Collections.Generic;
 using Combat.Weapons;
 using Combat.Weapons.Arsenal;
@@ -7,9 +8,11 @@ using NUnit.Framework;
 using Ships.Damage;
 using Ships.Loadout;
 using Substrate;
+using Tests.Common;
 using Tests.PlayMode.Common;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Tests.PlayMode.Weapons
 {
@@ -27,6 +30,7 @@ namespace Tests.PlayMode.Weapons
         private Railguns railgun;
         private Vector3 beamStart;
         private Vector3 beamEnd;
+        private float savedCaptureDelta;
 
         /// <summary>Soaks <see cref="Toughness"/> damage, then dies and passes the rest on.</summary>
         private sealed class Soak : MonoBehaviour, IDamageable
@@ -41,11 +45,15 @@ namespace Tests.PlayMode.Weapons
                 Toughness = Mathf.Max(0f, Toughness - hit.Amount);
                 return overkill;
             }
+
+            private void OnDestroy() => DamageableColliders.Unregister(this);
         }
 
         public override void SetUp()
         {
             base.SetUp();
+            savedCaptureDelta = Time.captureDeltaTime;
+            Time.captureDeltaTime = 1f / 60f;
             var prefab = AssetDatabase.LoadAssetAtPath<Railguns>(RailgunPrefabPath);
             Assert.IsNotNull(prefab, $"Failed to load weapon prefab at {RailgunPrefabPath}");
             railgun = Object.Instantiate(prefab, Vector3.zero, GamePlane.Rotation);
@@ -60,6 +68,7 @@ namespace Tests.PlayMode.Weapons
 
         public override void TearDown()
         {
+            Time.captureDeltaTime = savedCaptureDelta;
             foreach (var go in spawned)
                 if (go) Object.DestroyImmediate(go);
             spawned.Clear();
@@ -76,6 +85,7 @@ namespace Tests.PlayMode.Weapons
             go.AddComponent<BoxCollider>().size = Vector3.one * size;
             var soak = go.AddComponent<Soak>();
             soak.Toughness = toughness;
+            DamageableColliderRegistration.Register(soak);
             return soak;
         }
 
@@ -101,6 +111,137 @@ namespace Tests.PlayMode.Weapons
         }
 
         private static float Amount(Soak soak) => soak.Hits[0].Amount;
+
+        private static float VisualProperty(LineRenderer line, string name)
+        {
+            var properties = new MaterialPropertyBlock();
+            line.GetPropertyBlock(properties);
+            return properties.GetFloat(name);
+        }
+
+        [UnityTest]
+        public IEnumerator ChargeLine_StartInvisible_FadeSlowly_AndRestartAfterAnAbort()
+        {
+            var line = railgun.GetComponent<LineRenderer>();
+            Assert.IsFalse(line.enabled);
+            Assert.AreEqual(0f, line.startColor.a);
+            yield return null;
+
+            railgun.Charge.HandleTrigger(true, railgun.Charge.FullChargeTime * 0.25f);
+            yield return null;
+            var earlyAlpha = line.startColor.a;
+            var firstPhase = VisualProperty(line, "_StreakPhase");
+            Assert.IsTrue(line.enabled);
+            Assert.That(earlyAlpha, Is.GreaterThan(0f).And.LessThan(0.06f));
+
+            railgun.Charge.HandleTrigger(true, railgun.Charge.FullChargeTime * 0.25f);
+            yield return null;
+            var middleAlpha = line.startColor.a;
+            Assert.That(middleAlpha, Is.GreaterThan(earlyAlpha * 3f).And.LessThan(0.2f));
+
+            railgun.Charge.HandleTrigger(true, railgun.Charge.FullChargeTime * 0.25f);
+            yield return null;
+            Assert.That(line.startColor.a, Is.GreaterThan(middleAlpha * 2f));
+
+            railgun.Charge.HandleTrigger(false, Time.fixedDeltaTime);
+            Assert.IsFalse(line.enabled, "aborting clears the line before the next rendered frame");
+            Assert.AreEqual(0f, line.startColor.a);
+            Assert.AreEqual(0f, VisualProperty(line, "_StreakPhase"));
+            railgun.Charge.HandleTrigger(true, railgun.Charge.FullChargeTime * 0.25f);
+            yield return null;
+            Assert.AreEqual(earlyAlpha, line.startColor.a, 0.001f);
+            Assert.AreEqual(firstPhase, VisualProperty(line, "_StreakPhase"), 0.001f,
+                "an abort and restart within one frame still reset inward travel");
+        }
+
+        [UnityTest]
+        public IEnumerator ChargeMotion_AcceleratesContinuously_WithoutChangingWithHitDistance()
+        {
+            var line = railgun.GetComponent<LineRenderer>();
+            yield return null;
+            railgun.Charge.HandleTrigger(true, railgun.Charge.FullChargeTime * 0.25f);
+            yield return null;
+            var spacing = VisualProperty(line, "_StreakSpacing");
+            var phase = VisualProperty(line, "_StreakPhase");
+            yield return null;
+            var slowStep = Mathf.Repeat(VisualProperty(line, "_StreakPhase") - phase, spacing);
+            phase = VisualProperty(line, "_StreakPhase");
+
+            railgun.Charge.HandleTrigger(true, railgun.Charge.FullChargeTime * 0.5f);
+            yield return null;
+            var fastStep = Mathf.Repeat(VisualProperty(line, "_StreakPhase") - phase, spacing);
+            Assert.That(slowStep, Is.GreaterThan(0f), "positive phase draws the pattern toward its origin");
+            Assert.That(fastStep, Is.GreaterThan(slowStep * 2f).And.LessThan(spacing / 6f),
+                "charge changes the next travel step without jumping the pattern");
+            Assert.AreEqual(railgun.BeamRange, VisualProperty(line, "_BeamLength"), 0.001f);
+
+            phase = VisualProperty(line, "_StreakPhase");
+            CreateSoak(Aim * 12f);
+            Physics.SyncTransforms();
+            yield return null;
+            Assert.That(VisualProperty(line, "_BeamLength"), Is.LessThan(railgun.BeamRange / 2f));
+            Assert.AreEqual(spacing, VisualProperty(line, "_StreakSpacing"));
+            Assert.AreEqual(fastStep, Mathf.Repeat(VisualProperty(line, "_StreakPhase") - phase, spacing), 0.001f,
+                "nearby collisions change the span, not the streak travel speed");
+        }
+
+        [UnityTest]
+        public IEnumerator Shot_ShowsItsWholeDamageSpanImmediately_ThenContractsAndFades()
+        {
+            var line = railgun.GetComponent<LineRenderer>();
+            CreateSoak(Aim * 30f);
+            Fire();
+            var peakWidth = line.widthMultiplier;
+            Assert.IsTrue(line.enabled);
+            Assert.AreEqual(1f, line.startColor.a);
+            Assert.AreEqual(1f, VisualProperty(line, "_Shot"));
+            Assert.That(peakWidth, Is.GreaterThan(3f));
+            Assert.Less(Vector3.Distance(line.GetPosition(0), beamStart), 0.001f);
+            Assert.Less(Vector3.Distance(line.GetPosition(1), beamEnd), 0.001f);
+
+            for (var frame = 0; frame < 2; frame++) yield return null;
+            Assert.AreEqual(1f, line.startColor.a, "the initial flash holds its brightness");
+            for (var frame = 0; frame < 8; frame++) yield return null;
+            Assert.That(line.startColor.a, Is.GreaterThan(0f).And.LessThan(0.9f));
+            Assert.That(line.widthMultiplier, Is.LessThan(peakWidth));
+            Assert.Less(Vector3.Distance(line.GetPosition(1), beamEnd), 0.001f);
+            Assert.That(VisualProperty(line, "_ShotAge"), Is.GreaterThan(0.1f));
+
+            for (var frame = 0; frame < 16; frame++) yield return null;
+            Assert.IsFalse(line.enabled);
+            Assert.AreEqual(0f, line.startColor.a);
+            Assert.AreEqual(0f, VisualProperty(line, "_Shot"));
+        }
+
+        [UnityTest]
+        public IEnumerator PresentationDisable_ClearsChargeAndShotAnimation()
+        {
+            var visual = railgun.GetComponent<RailBeamVisual>();
+            var line = railgun.GetComponent<LineRenderer>();
+            railgun.Charge.HandleTrigger(true, railgun.Charge.FullChargeTime * 0.5f);
+            yield return null;
+            Assert.IsTrue(line.enabled);
+
+            visual.ApplyPresentation(false);
+            Assert.IsFalse(line.enabled);
+            Assert.AreEqual(0f, VisualProperty(line, "_StreakPhase"));
+            yield return null;
+            Assert.IsFalse(line.enabled);
+            visual.ApplyPresentation(true);
+            yield return null;
+            Assert.IsTrue(line.enabled, "presentation resumes a charge still held by the weapon");
+
+            Fire();
+            Assert.IsTrue(line.enabled);
+            visual.ApplyPresentation(false);
+            Assert.AreEqual(0f, VisualProperty(line, "_Shot"));
+            Assert.AreEqual(0f, VisualProperty(line, "_ShotAge"));
+            yield return null;
+            visual.ApplyPresentation(true);
+            yield return null;
+            Assert.IsFalse(line.enabled, "a canceled shot does not resume on re-enable");
+            Assert.AreEqual(0f, line.startColor.a);
+        }
 
         [Test]
         public void KillingBlow_CarriesTheOverkillToTheTargetBehind()
@@ -141,6 +282,27 @@ namespace Tests.PlayMode.Weapons
         }
 
         [Test]
+        public void FirstStrikePoint_IsWhereASurvivorEndsTheShot()
+        {
+            CreateSoak(Aim * 5f);
+            CreateSoak(Aim * 10f);
+            Physics.SyncTransforms();
+            var predicted = railgun.FirstStrikePoint();
+
+            Fire();
+
+            Assert.Less(Vector3.Distance(predicted, beamEnd), 0.001f, "the aim line ends where the shot stops");
+        }
+
+        [Test]
+        public void FirstStrikePoint_OnAClearPath_IsFullRange()
+        {
+            Physics.SyncTransforms();
+
+            Assert.Less(Vector3.Distance(railgun.FirstStrikePoint(), Aim * railgun.BeamRange), 0.001f);
+        }
+
+        [Test]
         public void InvulnerableShip_BlocksTheTargetBehind()
         {
             var ship = CreateShip(Aim * 5f, health: 10f, shield: 0f);
@@ -169,6 +331,7 @@ namespace Tests.PlayMode.Weapons
             }
             var ship = root.AddComponent<Soak>();
             ship.Toughness = 10f;
+            DamageableColliderRegistration.Register(ship);
             var behind = CreateSoak(Aim * 10f);
 
             Fire();

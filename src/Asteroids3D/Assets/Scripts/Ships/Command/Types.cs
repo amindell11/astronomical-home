@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using AI.Scanning;
 using Combat;
 using Combat.Targeting;
 using Combat.Weapons;
@@ -67,6 +69,15 @@ namespace Ships.Command
         void Fire(WeaponSlot slot, in WeaponCommand cmd);
     }
 
+    /// <summary>
+    /// The jump actuator: asks to leave the sector, one request per press, never a held state.
+    /// The sector decides whether a request commits (<see cref="Ship.JumpRequested"/>).
+    /// </summary>
+    public interface IJumpDrive
+    {
+        void RequestJump();
+    }
+
     // ── Read contexts ──
 
     /// <summary>
@@ -107,6 +118,15 @@ namespace Ships.Command
         /// <summary>Muzzle speed of the slot's projectile (for AI intercept lead). 0 = hitscan/no lead.</summary>
         float ProjectileSpeed(WeaponSlot slot);
 
+        /// <summary>Where an AI gunner aims the slot's weapon at a target, by the weapon's own flight (<see cref="WeaponComponent.AimPoint"/>).</summary>
+        Vector2 AimPoint(WeaponSlot slot, in Kinematics shooter, Vector2 targetPos, Vector2 targetVel);
+
+        /// <summary>The distance the slot's weapon asks an AI pilot to hold from its target; null when it declares none.</summary>
+        float? HoldRange(WeaponSlot slot);
+
+        /// <summary>Writes the circles the slot's weapon asks an AI pilot to keep out of right now; returns how many it wrote.</summary>
+        int KeepOutCircles(WeaponSlot slot, Span<DetectedObstacle.PlaneCircle> circles);
+
         /// <summary>The firing solution helper for the given slot, or null if the slot is empty.</summary>
         Gunsight Sight(WeaponSlot slot);
     }
@@ -124,6 +144,8 @@ namespace Ships.Command
 
         /// <summary>Name shown on the slot's readout panel.</summary>
         string DisplayName(WeaponSlot slot);
+
+        Sprite Icon(WeaponSlot slot);
 
         /// <summary>The slot's displayable state (heat, ammo, lock…), in display order.</summary>
         IReadOnlyList<IWeaponReadout> Readouts(WeaponSlot slot);
@@ -160,8 +182,12 @@ namespace Ships.Command
         /// <summary>The ship's keystone kit, whose sight and contact state an AI commander reads; null when the ship has none.</summary>
         public readonly Keystone Keystone;
 
+        /// <summary>Jump actuator; every ship supplies one.</summary>
+        public readonly IJumpDrive Jump;
+
         public ShipControl(IShipStatus ship, IPilot pilot, SeedScope decisionSeed,
-            IWeaponContext weapons = null, IWeapons weaponActuator = null, Keystone keystone = null)
+            IWeaponContext weapons = null, IWeapons weaponActuator = null, Keystone keystone = null,
+            IJumpDrive jump = null)
         {
             Ship = ship;
             Pilot = pilot;
@@ -169,6 +195,7 @@ namespace Ships.Command
             Weapons = weapons;
             WeaponActuator = weaponActuator;
             Keystone = keystone;
+            Jump = jump;
         }
 
         /// <summary>True when both the weapon context and actuator are present.</summary>

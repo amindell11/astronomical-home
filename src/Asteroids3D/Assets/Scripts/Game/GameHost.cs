@@ -1,32 +1,43 @@
 using System;
 using System.Collections;
+using System.Runtime.ExceptionServices;
 using Balance;
 using Cameras;
+using Combat.Weapons;
 using Damage;
 using Game.Audio;
 using Game.Runs;
+using Game.Travel;
+using Loot;
 using Substrate;
 using Substrate.Presentation;
 using Substrate.Sectors;
+using Substrate.Sectors.Elements.Phases;
 using Substrate.Sessions;
 using Ships.Loadout;
 using UI;
 using UI.Hangar;
+using UI.Recap;
+using UI.Screens;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
-using UI.Screens;
 using Ships.Registry;
 using Substrate.Services.Units;
 using Substrate.Services.Objectives;
+using Substrate.Services.Locales;
+using Utils.Coroutines;
 
 namespace Game
 {
     /// <summary>
     /// Runs the interactive game over one session: hangar, sectors, extraction recaps, then final results.
     /// Owns the player rig, viewport, UI, music, run records and clock; the session composes, loads and unloads.
-    /// Hull carries between sectors. On death the HUD fades and the camera holds while effects finish;
-    /// only then does the recap pause play. Presentation is read once alongside the session's snapshot.
+    /// Hull carries between sectors. Death frames the explosion while surviving ships keep moving.
+    /// Presentation is read once alongside the session's snapshot.
+    /// Shutdown finishes the current setup operation, releases input waits, then tears down the owned world.
+    /// A fault in the run's coroutine stack is logged, and Shutdown rethrows it instead of tearing down.
+    /// An optional jump profile enables protected travel with the extraction recap and weapon pick held in hyperspace.
     /// The hangar, recap and restart stand in for Home Base and player progress.
     /// https://github.com/amindell11/astronomical-home/issues/295#issuecomment-5787867584
     /// </summary>
@@ -70,9 +81,18 @@ namespace Game
                  "when presentation is off.")]
         [SerializeField] internal DriftCam hangarCameraPrefab;
 
-        [Tooltip("Modules the hangar offers per slot. Null → no hangar choices (the player flies its " +
-                 "prefab-authored modules).")]
+        [Tooltip("Modules the hangar offers per slot; its weapons are also the sector-break weapon pick's pool. " +
+                 "Null → no hangar choices (the player flies its prefab-authored modules) and no weapon pick.")]
         [SerializeField] internal ItemSubset hangarOffer;
+
+        [Header("Recap")]
+        [Tooltip("Timings of the recap sequence: HUD fade, banner, gap, breakdown. The preview host tunes " +
+                 "this same asset. Required whenever presentation is on.")]
+        [SerializeField] internal RecapFeelProfile recapFeel;
+
+        [Header("Sector travel")]
+        [SerializeField] internal SectorJumpProfile jumpFeel;
+        [SerializeField] internal SectorJumpFeature jumpFeature;
 
         [Header("Death Policy")]
         [Tooltip("What happens when the player ship dies. RestartSector ends the run (run record, death " +
@@ -83,16 +103,27 @@ namespace Game
         [Tooltip("Fraction of max hull restored to the player on each kill the run tally counts.")]
         [SerializeField, Range(0f, 1f)] private float killHullRestore = 0.25f;
 
-        // Test seams, set before the host activates: null → the default store path and the real source.
+        [Header("Lull pick")]
+        [Tooltip("Lull mods offered when the player claims a lull beacon, three at a time with time stopped. " +
+                 "Null → no lull picks.")]
+        [SerializeField] internal LullModPool lullMods;
+
         internal string runRecordPath;
         internal BuildIdentitySource buildIdentity;
+        internal ShipUnlocks unlocks;
 
         private RunRecordStore runRecords;
         private DamageInfo lastKillingBlow;
+        private Vector2 deathPosition;
         private bool playerDied;
         private bool sectorEnded;
         private float sectorEndTime;
-        private float? recapTimeScale;
+        private float? pausedTimeScale;
+        private bool shutdownRequested;
+        private bool shutdownComplete;
+        private int activeSectorIndex;
+        private SectorJumpFlight jump;
+        private ExceptionDispatchInfo fault;
 
         private UnitService unitService;
         private ObjectiveService objectiveService;
@@ -106,9 +137,9 @@ namespace Game
 
         private Transform viewport;
         private Transform ui;
-        private Transform arena;
 
         public Sector ActiveSector => session?.ActiveSector;
+        public SectorJumpFlight Jump => jump;
 
         private void Awake()
         {
@@ -117,20 +148,28 @@ namespace Game
 
             viewport = NewRoot("Viewport");
             ui = NewRoot("UI");
-            arena = NewRoot("Arena");
 
             buildIdentity ??= BuildIdentity.Source();
             runRecords = new RunRecordStore(runRecordPath);
+            unlocks = new ShipUnlocks(runRecords.Path);
 
             DontDestroyOnLoad(gameObject);
-            StartCoroutine(Run());
+            StartCoroutine(CatchingRoutine.Run(Run(), exception =>
+            {
+                fault = ExceptionDispatchInfo.Capture(exception);
+                Debug.LogException(exception, this);
+            }));
         }
 
         private IEnumerator Run()
         {
             // No yield separates this read from the session's own snapshot, so the two cannot disagree.
             var presentation = sessionProfile.presentation;
-            session = new Session(sessionProfile, arena, unitService, objectiveService);
+            if (presentation && !recapFeel)
+                throw new InvalidOperationException("GameHost presents but has no recap feel profile assigned.");
+            if (presentation && jumpFeel && !jumpFeature)
+                throw new InvalidOperationException("GameHost enables jump travel but has no jump feature assigned.");
+            session = new Session(sessionProfile, gameObject, unitService, objectiveService);
             if (presentation)
                 BuildEventSystem(ui);
             if (splashPrefab && presentation)
@@ -158,9 +197,47 @@ namespace Game
                 yield return rigInstance.Build(session.Units, session.Objectives, presentation,
                     observer, ui, session.Frame, BuildDeathCallback());
                 rigInstance.Tally.Killed += RefillPlayerHull;
+                rigInstance.Spawns.EliteKilled += unlocks.Claim;
             }
 
-            while (true)
+            yield return PlayRuns(presentation);
+
+            if (jump)
+            {
+                jump.Release(false);
+                Destroy(jump.gameObject);
+                jump = null;
+                yield return null;
+            }
+
+            if (rigInstance)
+            {
+                rigInstance.Tally.Killed -= RefillPlayerHull;
+                rigInstance.Teardown();
+            }
+            RestoreClock();
+            yield return session.Teardown();
+            if (rigInstance) Destroy(rigInstance.gameObject);
+            if (music) Destroy(music.gameObject);
+            Destroy(ui.gameObject);
+            Destroy(viewport.gameObject);
+            yield return null;
+            shutdownComplete = true;
+        }
+
+        public IEnumerator Shutdown()
+        {
+            shutdownRequested = true;
+            while (!shutdownComplete)
+            {
+                fault?.Throw();
+                yield return null;
+            }
+        }
+
+        private IEnumerator PlayRuns(bool presentation)
+        {
+            while (!shutdownRequested)
             {
                 SetSplashVisible(false);
                 if (rigInstance)
@@ -170,32 +247,48 @@ namespace Game
                     yield return RunHangar(rigInstance, presentation, ui);
                     SetHangarViewVisible(false);
                 }
+                if (shutdownRequested) yield break;
 
                 playerDied = false;
                 string playerLoadoutStatHash = null;
                 var hull = 1f;
                 var index = 0;
+                var transferred = false;
                 while (true)
                 {
-                    SetSplashVisible(true);
-                    sectorEnded = false;
-                    if (rigInstance) rigInstance.Spawns.BeginSector();
-                    yield return session.LoadSector(index, rigInstance ? rigInstance.Player : null, _ =>
+                    if (!transferred)
                     {
-                        sectorEndTime = Time.time;
-                        sectorEnded = true;
-                    });
+                        SetSplashVisible(true);
+                        sectorEnded = false;
+                        activeSectorIndex = index;
+                        if (rigInstance) rigInstance.Spawns.BeginSector();
+                        yield return session.LoadSector(index, rigInstance ? rigInstance.Player : null, OnSectorComplete);
+                    }
+                    transferred = false;
+                    if (shutdownRequested) yield break;
                     if (index == 0)
                         playerLoadoutStatHash = rigInstance ? BeginRun() : null;
                     else if (rigInstance)
                         rigInstance.Player.Damage.Health.SetFraction(hull);
                     SetSplashVisible(false);
                     if (music) music.EnterSector(session.ActiveSector);
+                    if (rigInstance) rigInstance.EnterSector(session.ActiveSector.Module<PhaseSpineModule>());
                     var sectorStartTime = Time.time;
+                    var beacons = presentation && lullMods && rigInstance
+                        ? session.ActiveSector.Module<PhaseSpineModule>() : null;
+                    var beaconClaimed = false;
 
-                    // Run-end signals latch, so one arriving mid-load or mid-recap never cuts that step short.
-                    while (!playerDied && !sectorEnded)
+                    while (!playerDied && !sectorEnded && !shutdownRequested)
+                    {
+                        if (beacons)
+                        {
+                            var claimed = beacons.BeaconClaimed;
+                            if (claimed && !beaconClaimed) yield return RunLullPick();
+                            beaconClaimed = claimed;
+                        }
                         yield return null;
+                    }
+                    if (shutdownRequested) yield break;
 
                     if (playerDied || index == sessionProfile.sectors.Length - 1) break;
 
@@ -205,13 +298,22 @@ namespace Game
                         hull = rigInstance.Player.Damage.Health.Pct;
                         rigInstance.Spawns.EndSector(sectorEndTime);
                         SetMusic(GameMusic.State.Recap);
-                        if (presentation)
-                            yield return RunRecap((screen, dismiss) => screen.ShowSector(
-                                rigInstance.Spawns.KilledShips(currentSector: true), index + 1,
-                                Mathf.Max(0f, sectorEndTime - sectorStartTime), dismiss));
                     }
-                    SetSplashVisible(true);
-                    yield return session.UnloadSector();
+                    if (jump)
+                    {
+                        yield return RunJump(ExtractionContext(index, sectorStartTime), index + 1, hull);
+                        transferred = true;
+                    }
+                    else
+                    {
+                        if (rigInstance && presentation)
+                            yield return RunRecap(ExtractionContext(index, sectorStartTime));
+                        if (shutdownRequested) yield break;
+                        SetSplashVisible(true);
+                        if (rigInstance) rigInstance.EnterSector(null);
+                        yield return session.UnloadSector();
+                    }
+                    if (shutdownRequested) yield break;
                     index++;
                 }
 
@@ -221,12 +323,135 @@ namespace Game
                     var board = AppendRunRecord(playerLoadoutStatHash, index, playerDied ? lastKillingBlow : null);
                     SetMusic(playerDied ? GameMusic.State.Defeat : GameMusic.State.Victory);
                     if (presentation)
-                        yield return RunOutcomeRecap(board, index);
+                        yield return RunRecap(OutcomeContext(board, index));
                 }
+                if (shutdownRequested) yield break;
 
                 SetSplashVisible(true);
+                if (rigInstance) rigInstance.EnterSector(null);
                 yield return session.UnloadSector();
                 if (rigInstance) rigInstance.Park();
+            }
+        }
+
+        private void OnSectorComplete(SectorResult result)
+        {
+            sectorEndTime = Time.time;
+            sectorEnded = true;
+            if (!result.Success || !jumpFeel || !sessionProfile.presentation || !rigInstance ||
+                activeSectorIndex == sessionProfile.sectors.Length - 1) return;
+            jump = SectorJumpFlight.Begin(transform, rigInstance, session.Units, observer, jumpFeel,
+                jumpFeature, result.DepartureHeading.Value);
+        }
+
+        private IEnumerator RunJump(RecapOutcomeContext context, int destination, float hull)
+        {
+            LocaleBackdropPair backdrop = null;
+            var arrived = false;
+            var exited = false;
+            try
+            {
+                backdrop = session.PrepareTravelBackdrop(sessionProfile.sectors[destination].config.Locale, transform);
+                if (!shutdownRequested)
+                {
+                    jump.BindBackdrop(ui, backdrop);
+                    while ((!jump.Holding || jump.State.LocaleBlend < .9f) && !shutdownRequested) yield return null;
+                }
+                Coroutine recap = null;
+                var destinationReady = false;
+                var continued = false;
+                if (!shutdownRequested)
+                {
+                    PauseClock();
+                    recap = StartCoroutine(RecapPlayback.RunScreen(new RecapOutcomeSequence(recapFeel, context), ui,
+                        cancelled: () => shutdownRequested || exited,
+                        ready: () => destinationReady && jump.State.LocaleBlend >= 1f,
+                        onContinue: () => continued = true));
+                }
+                if (!shutdownRequested)
+                {
+                    sectorEnded = false;
+                    activeSectorIndex = destination;
+                    rigInstance.Spawns.BeginSector();
+                    rigInstance.EnterSector(null);
+                    yield return session.TransferSector(destination, rigInstance.Player, OnSectorComplete);
+                    rigInstance.EnterSector(session.ActiveSector.Module<PhaseSpineModule>());
+                    rigInstance.Player.Damage.Health.SetFraction(hull);
+                    destinationReady = true;
+                }
+                if (recap != null) yield return recap;
+                if (continued && !shutdownRequested)
+                {
+                    yield return RunWeaponPick(destination);
+                    jump.ResumeArrival();
+                    RestoreClock();
+                }
+                if (!shutdownRequested)
+                {
+                    while (!jump.Complete && !shutdownRequested) yield return null;
+                }
+                arrived = !shutdownRequested;
+            }
+            finally
+            {
+                exited = true;
+                jump.Release(arrived);
+                Destroy(jump.gameObject);
+                jump = null;
+                if (backdrop) Destroy(backdrop.gameObject);
+                RestoreClock();
+            }
+            yield return null;
+        }
+
+        // Inside the hyperspace hold: the clock is already stopped and the jump owns controls.
+        private IEnumerator RunWeaponPick(int destination)
+        {
+            var weapons = rigInstance.Player.Weapons;
+            if (!hangarOffer || !weapons) yield break;
+            var primary = weapons.PrimaryMountPrefab;
+            var secondary = weapons.SecondaryMountPrefab;
+            var offers = LootOffers.Draw(hangarOffer.weapons, weapon => weapon != primary && weapon != secondary,
+                WeaponPickScreen.MaxOffers, n => UnityEngine.Random.Range(0, n));
+            if (offers.Count == 0) yield break;
+
+            var spine = sessionProfile.sectors[destination].prefab.Module<PhaseSpineModule>();
+            var screen = WeaponPickScreen.Create(ui, destination + 1, spine ? spine.Threat() : null, offers,
+                primary, secondary, rigInstance.Mods);
+            try
+            {
+                while (!screen.Choice.HasValue && !shutdownRequested) yield return null;
+                if (!shutdownRequested && screen.Choice is int pick && pick != WeaponPickScreen.Skip)
+                    rigInstance.SwapWeapon(screen.Slot, offers[pick]);
+            }
+            finally
+            {
+                Destroy(screen.gameObject);
+            }
+        }
+
+        // The clock stops for the pick and runs on after it; a claim can land mid-phase.
+        private IEnumerator RunLullPick()
+        {
+            var player = rigInstance.Player;
+            var offers = LootOffers.Draw(lullMods.mods, mod => mod.Fits(player), LullPickScreen.MaxOffers,
+                n => UnityEngine.Random.Range(0, n));
+            if (offers.Count == 0) yield break;
+
+            PauseClock();
+            rigInstance.SetInputEnabled(false);
+            var screen = LullPickScreen.Create(ui, offers, mod => mod.Landing(player));
+            try
+            {
+                while (!screen.Choice.HasValue && !shutdownRequested) yield return null;
+                if (!shutdownRequested && screen.Choice is int pick && pick != LullPickScreen.Skip)
+                    rigInstance.PickMod(offers[pick]);
+            }
+            finally
+            {
+                Destroy(screen.gameObject);
+                rigInstance.SetInputEnabled(true);
+                RestoreClock();
             }
         }
 
@@ -291,6 +516,7 @@ namespace Game
                     {
                         EndRun();
                         lastKillingBlow = killingBlow;
+                        deathPosition = GamePlane.WorldPointToPlane(rigInstance.Player.transform.position);
                         playerDied = true;
                     };
                 case PlayerDeathBehavior.None:
@@ -336,6 +562,7 @@ namespace Game
         /// <summary>Never blocks on a click when not presenting; callable without a session for tests.</summary>
         internal IEnumerator RunHangar(PlayerRig rig, bool presentationEnabled, Transform uiRoot)
         {
+            unlocks.Read();
             if (!rig || !rig.Player || rig.Loadout == null || !hangarScreenPrefab || !presentationEnabled)
             {
                 if (rig) rig.ApplyLoadout();
@@ -344,81 +571,66 @@ namespace Game
 
             var screen = Instantiate(hangarScreenPrefab, uiRoot);
             var launched = false;
-            screen.Show(hangarOffer, rig.Loadout, () => launched = true);
+            screen.Show(hangarOffer, rig.Loadout, unlocks.Earned, () => launched = true);
 
-            yield return new WaitUntil(() => launched);
+            yield return new WaitUntil(() => launched || shutdownRequested);
 
-            rig.ApplyLoadout();
+            if (!shutdownRequested) rig.ApplyLoadout();
             Destroy(screen.gameObject);
         }
 
-        private IEnumerator RunOutcomeRecap(Scoreboard board, int index)
+        private RecapOutcomeContext ExtractionContext(int index, float sectorStartTime) =>
+            RecapOutcomeContext.Extraction(rigInstance.Spawns.KilledShips(currentSector: true), index + 1,
+                Mathf.Max(0f, sectorEndTime - sectorStartTime));
+
+        private RecapOutcomeContext OutcomeContext(Scoreboard board, int index)
         {
-            if (!playerDied) PauseRecapClock();
-            var cameraEnabled = observer.enabled;
-            observer.enabled = false;
+            var kills = rigInstance.Spawns.KilledShips();
+            var count = sessionProfile.sectors.Length;
+            return playerDied
+                ? RecapOutcomeContext.Defeat(kills, index, count, board, deathPosition)
+                : RecapOutcomeContext.Victory(kills, index + 1, count, board);
+        }
+
+        private IEnumerator RunRecap(RecapOutcomeContext context)
+        {
+            var sequence = new RecapOutcomeSequence(recapFeel, context);
+            var presenter = new RecapPresenter(context, rigInstance.Overlay, session.Units.ActiveRegistry.ActiveShips,
+                observer);
             try
             {
-                var elapsed = 0f;
-                do
-                {
-                    var t = Mathf.Clamp01(elapsed / .3f);
-                    SetGameplayOpacity(1f - t * t * t * (t * (t * 6f - 15f) + 10f));
-                    yield return null;
-                    elapsed += Time.unscaledDeltaTime;
-                } while (elapsed < .3f || playerDied && rigInstance.Player.VisualRig.DeathEffectsPlaying);
-                SetGameplayOpacity(0f);
-                yield return RunRecap((screen, dismiss) => screen.ShowRun(!playerDied,
-                    rigInstance.Spawns.KilledShips(), playerDied ? index : index + 1,
-                    sessionProfile.sectors.Length, board, dismiss));
+                yield return RecapPlayback.RunScreen(sequence, ui, state =>
+                    {
+                        presenter.Apply(state);
+                        SetRecapClock(state.SimulationFrozen);
+                    }, () => shutdownRequested);
             }
             finally
             {
-                observer.enabled = cameraEnabled;
-                SetGameplayOpacity(1f);
+                RestoreClock();
+                presenter.Restore();
             }
         }
 
-        private void SetGameplayOpacity(float opacity)
+        private void SetRecapClock(bool frozen)
         {
-            if (rigInstance.Overlay) rigInstance.Overlay.SetOpacity(opacity);
-            foreach (var ship in session.Units.ActiveRegistry.ActiveShips)
-                if (ship.VisualRig) ship.VisualRig.SetHudOpacity(opacity);
+            if (frozen) PauseClock();
+            else RestoreClock();
         }
 
-        private IEnumerator RunRecap(Action<RunRecapScreen, Action> show)
+        private void PauseClock()
         {
-            var overlay = rigInstance.Overlay;
-            if (overlay) overlay.SetVisible(false);
-            var screen = RunRecapScreen.Create(ui);
-            var dismissed = false;
-            PauseRecapClock();
-            try
-            {
-                show(screen, () => dismissed = true);
-                yield return new WaitUntil(() => dismissed);
-            }
-            finally
-            {
-                Destroy(screen.gameObject);
-                RestoreRecapClock();
-                if (overlay) overlay.SetVisible(true);
-            }
-        }
-
-        private void PauseRecapClock()
-        {
-            recapTimeScale ??= Time.timeScale;
+            pausedTimeScale ??= Time.timeScale;
             Time.timeScale = 0f;
         }
 
-        private void RestoreRecapClock()
+        private void RestoreClock()
         {
-            if (!recapTimeScale.HasValue) return;
-            Time.timeScale = recapTimeScale.Value;
-            recapTimeScale = null;
+            if (!pausedTimeScale.HasValue) return;
+            Time.timeScale = pausedTimeScale.Value;
+            pausedTimeScale = null;
         }
 
-        private void OnDestroy() => RestoreRecapClock();
+        private void OnDestroy() => RestoreClock();
     }
 }

@@ -2,13 +2,12 @@
 set -euo pipefail
 # covers: scripts/agent_worktree_pool.sh
 
-# Regression for the shared PR seams (#456): one flag grammar for create-pr/submit, a PR lookup
-# that refuses a missing head branch, and the single-owner Unity churn classifier the pool shells
-# out to. Every case here fails before any network or gh call, so the suite stays hermetic.
+# Regression for the shared PR seams (#456): one flag grammar for create-pr/submit and a PR lookup
+# that refuses a missing head branch. Every case here fails before any network or gh call, so the
+# suite stays hermetic.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 POOL="$SCRIPT_DIR/../agent_worktree_pool.sh"
-CHURN="$SCRIPT_DIR/../lib/unity_churn.ps1"
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
@@ -21,12 +20,7 @@ git init -q --bare -b main "$TMP/origin.git"
 git clone -q "$TMP/origin.git" "$TMP/primary"
 git -C "$TMP/primary" config user.email pool-test@example.test
 git -C "$TMP/primary" config user.name "Pool Test"
-mkdir -p "$TMP/primary/src/Asteroids3D/ProjectSettings" "$TMP/primary/src/Asteroids3D/Assets/Settings/Rendering/Build Profiles"
 printf 'base\n' > "$TMP/primary/file.txt"
-printf '  Standalone: UNITY_POST_PROCESSING_STACK_V2\n' \
-  > "$TMP/primary/src/Asteroids3D/ProjectSettings/ProjectSettings.asset"
-printf "    - line: '|     Standalone: UNITY_POST_PROCESSING_STACK_V2'
-"   > "$TMP/primary/src/Asteroids3D/Assets/Settings/Rendering/Build Profiles/Main.asset"
 git -C "$TMP/primary" add -A
 git -C "$TMP/primary" commit -qm init
 git -C "$TMP/primary" push -q origin main
@@ -125,27 +119,4 @@ grep -qxF -- "--body-file" "$TMP/gh-create-args" || fail "gh pr create should re
 grep -qxF -- "$big_body" "$TMP/gh-create-args" || fail "gh pr create should receive the body file's path"
 ! grep -qxF -- "--body" "$TMP/gh-create-args" || fail "a body file must not be inlined as --body"
 
-# --- churn classifier is the single owner of the restore allowlist ------------------------
-churn() { powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$CHURN" -WorktreePath "$1"; }
-
-[[ "$(churn "$TMP/primary")" == *'"knownChurn":true'* ]] || fail "a clean worktree is not unexpected churn"
-
-printf '  Standalone: UNITY_POST_PROCESSING_STACK_V2;SENTIS_ANALYTICS_ENABLED\n' \
-  > "$TMP/primary/src/Asteroids3D/ProjectSettings/ProjectSettings.asset"
-[[ "$(churn "$TMP/primary")" == *'"knownChurn":true'* ]] || fail "the analytics define flip is the known churn"
-
-printf "    - line: '|     Standalone: UNITY_POST_PROCESSING_STACK_V2;SENTIS_ANALYTICS_ENABLED'
-"   > "$TMP/primary/src/Asteroids3D/Assets/Settings/Rendering/Build Profiles/Main.asset"
-[[ "$(churn "$TMP/primary")" == *'"knownChurn":true'* ]] || fail "the flip in both files together is the known churn"
-
-git -C "$TMP/primary" restore --worktree -- src/Asteroids3D/ProjectSettings
-[[ "$(churn "$TMP/primary")" == *'"knownChurn":true'* ]] || fail "the flip in the Main build profile alone is the known churn"
-
-printf 'edited\n' > "$TMP/primary/file.txt"
-[[ "$(churn "$TMP/primary")" == *'"knownChurn":false'* ]] || fail "a real edit alongside the churn is NOT allowlisted"
-
-git -C "$TMP/primary" restore --worktree -- .
-printf 'edited\n' > "$TMP/primary/file.txt"
-[[ "$(churn "$TMP/primary")" == *'"knownChurn":false'* ]] || fail "an unrelated tracked edit is not allowlisted"
-
-echo "PASS: pool PR seams — shared flag grammar + head-branch PR lookup + body-file pass-through + single-owner churn classifier"
+echo "PASS: pool PR seams — shared flag grammar + head-branch PR lookup + body-file pass-through"

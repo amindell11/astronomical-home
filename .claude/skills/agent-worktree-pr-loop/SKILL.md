@@ -32,9 +32,10 @@ the PR ceremony added review the session had already performed.)
 ## Pool commands
 
 - `./scripts/agent_worktree_pool.sh status`
-- `./scripts/agent_worktree_pool.sh acquire <lease-id> [slot]` — name a slot when you have a reason (warm Unity Library from related work, the dashboard shows affinity, or avoiding a slot with an open editor); a named slot that isn't free fails rather than falling back, so pick from the dashboard, don't guess. Omit for auto-pick (free slots before stale reclaims). A free slot comes back prepared at `origin/main`; one holding unpushed work is released untouched and acquire fails — report that slot and name another.
+- `./scripts/agent_worktree_pool.sh acquire <lease-id> [slot]`. Name a slot when you have a reason (warm Unity Library from related work, the dashboard shows affinity, or avoiding a slot with an open editor). A named slot that isn't free fails rather than falling back, so pick from the dashboard. Omit the slot for auto-pick: a free slot, then a stale lock that is safe to reset, then the longest-idle leased slot with no Unity editor and no merge gate. That last step parks the work on a local `held/<lease>`. A free slot comes back prepared at `origin/main`. One holding unpushed work is released untouched and acquire fails. Report that slot and name another.
 - `./scripts/agent_worktree_pool.sh prepare <slot> origin/main` — never during feedback rounds unless the user explicitly asks to restart from main.
 - `./scripts/agent_worktree_pool.sh run-tests <slot> <test args>` — forwards args straight to the runner (no `--`; see the cheat-sheet)
+- `./scripts/agent_worktree_pool.sh compile-check <slot> [--refresh]` — compiles every assembly with `dotnet build` in seconds, no Unity boot; `run-tests` runs it first. `TESTING.md` § Compile check.
 - `./scripts/agent_worktree_pool.sh create-pr <slot> --title "<text>" (--body "<text>" | --body-file <path>)` — title/body are required (validated before anything runs); pushes to the same `task/<lease>` branch as `submit`, just without a test run.
 - `./scripts/agent_worktree_pool.sh submit <slot> origin/main --title "<text>" (--body "<text>" | --body-file <path>) -- <test args>` — same required flags; only a passing full run (`-Mode Both -ScopeType Workspace`, unfiltered) records merge-grade proof; scoped runs still open the PR but never satisfy the gate. `-ScopeType Auto` is the recommended scope for iteration and submit runs.
 - `./scripts/agent_worktree_pool.sh review-comments <slot>`
@@ -103,7 +104,7 @@ git -C <slot-path> log --oneline origin/main..HEAD
 | `STATUS=infra_error total=0` | Compile failure — no tests ran | The runner prints the `error CS…` lines inline; fix and re-run. After a main-fold, suspect a dropped source file. |
 | runner: `parameter name '' is ambiguous` | A stray `--` reached `run-tests` | Drop it — `run-tests` takes args directly. |
 | runner: `Cannot validate argument on parameter 'Mode' … "Smoke"` | `-Mode Smoke` | Smoke is a `-ScopeType`; use `-Mode EditMode -ScopeType Smoke`. |
-| `REFUSING to prepare … uncommitted change(s)` on a lone `ProjectSettings.asset` / editor noise | Not real work | `git -C <slot> checkout -- <file>`, then re-`prepare` — don't push+`--force`. |
+| `REFUSING to prepare … uncommitted change(s)` on a lone `ProjectSettings.asset` / editor noise | Not real work — unless the diff is the Standalone define line (`doc/agents/environment.md` → The committed Sentis defines) | `git -C <slot> checkout -- <file>`, then re-`prepare` — don't push+`--force`. |
 | `revise`/`prepare` trips on `Assets/InitTestScene*.unity` | Scaffold from a killed run | `rm` the `InitTestScene*.unity*` and re-run — never real work. |
 | merge: `CONFLICT (content) … .unity`/`.prefab` | Gate merged main; Unity YAML doesn't auto-merge | Resolve in the slot, `revise` (re-test+push), re-`merge`. |
 | merge: `base moved during the merge gate` | Main moved from outside the merge turn: a push from another clone, or one that skipped `lock merge-turn` | Re-run `merge <slot>`. |
@@ -131,18 +132,16 @@ them to close it — never close it automatically.
 ## Holding a slot
 
 Mechanics: the pool script's `--help`. Pass `--local` for work that must not
-go public yet, such as work awaiting approval: the repo is public.
+go public yet, such as work awaiting approval. The repo is public. `acquire`'s
+park is already local.
 
-Offer to hold another session's slot, never hold it unasked, and offer only
-when a session starting work finds every slot full and that slot meets all of:
+`acquire` with no slot named parks the longest-idle leased slot when none are
+free and none are safe to reclaim: no Unity editor on it, and no merge gate.
+Post the `HELD=` line from its stderr on that work's issue. Resume with
+`resume <lease>`.
 
-- its open PR is waiting on a human — review or a decision (the PR thread and
-  that session's chat title say which);
-- `merge-progress <slot> --oneline` prints nothing;
-- `unity_access.ps1 -Action Status -ProjectPath <slot-path>/src/Asteroids3D -Json`
-  shows no `projectOwner`, so no editor or test run is live there.
-
-A session may hold its own work when it stops at a design fork for the user.
+A session holds its own work with `hold <slot>` when it stops at a design fork
+for the user.
 A rejected *prototype slice* is closed instead: close its PR, post its
 findings on its issue and `release` the slot. Its branch stays on origin, so
 the PR reopens.
@@ -223,9 +222,31 @@ Check in-flight work before acquiring (`./scripts/worktree_dashboard.sh`: slot
 leases, branches, merge progress, held leases; `gh pr list` for open PRs). An
 arc whose slices are `unity:editor` or move asset paths keeps one PR open:
 build its next slice once the previous PR has merged. Acquire
-a slot (every slot full → "Holding a slot"; a reclaimed stale slot is not prepared, so `prepare` it); build and test there — directly, or via a sub-agent scoped to the
-slot's worktree path when the task is large enough to benefit from an isolated
-context. Clear `src/Asteroids3D/Library/BurstCache/` before test runs. Iterate
+a slot. A full pool parks the longest-idle slot that has no Unity editor and no merge gate; post that `HELD=` line on the parked work's issue. If `acquire` fails, every slot has a Unity editor or a merge gate, so wait. A reclaimed stale slot is not prepared, so `prepare` it.
+
+A build worker — Grok by default, an Opus subagent as the fallback — writes the
+implementation from the session's build brief: owner rulings, design path,
+files, tests, the verify command, and the closing `STATUS: DONE | BLOCKED` /
+`CHANGED:` / `VERIFIED:` / `NOTICED:` block. Run Grok with
+`python scripts/grok_worker.py --slot <slot> --brief <file> --verify "<cmd>"`
+with `run_in_background: true` and wait for its notification; never poll its
+output. `<cmd>` exits 0 on pass, 1 when the change is wrong, and anything else
+when it cannot judge. Use `./scripts/agent_worktree_pool.sh compile-check
+<slot>`, after a `compile-check <slot> --refresh` on the clean slot (a refresh
+needs no tracked changes, so it can't run mid-build); for test coverage, a
+scoped `run-tests <slot> …` with `--fail-codes 1,2`, since its exit 2 covers
+compile failures.
+Act on its `FALLBACK=` trailer (exit codes and the rest in its header):
+`none`, review the worker's diff, then test; `fix-verify`, fix the check (a
+stale snapshot, say) and rerun it on the worker's tree before deciding
+anything; `opus`, hand the same brief file to an Opus subagent scoped to the
+slot (Agent tool, `model: "opus"`), naming the `DIRTY=` files that hold Grok's
+partial edits for it to keep or redo (exit 3 means the tree is untouched). Go
+straight to the Opus subagent when the slice needs judgment mid-build. Small
+fixes stay inline; `scripts/build_delegation_guard.py` denies inline slot source
+edits past its context and line budgets.
+
+Clear `src/Asteroids3D/Library/BurstCache/` before test runs. Iterate
 with scoped runs (`-ScopeType Auto`, or Feature/Module scopes).
 
 ## Step 3 — Pre-review quality pass
@@ -351,29 +372,11 @@ non-LFS image: `https://github.com/<owner>/<repo>/raw/<sha>/<path>`; MP4 link:
 `https://github.com/<owner>/<repo>/blob/<sha>/<path>`.
 
 - Evidence already in the diff (an asset's `previews/`) → pin to the PR head SHA.
-- Anything else → push it to `evidence/<lease>`, an orphan side branch that never
-  merges, and pin to that SHA. Re-running for a follow-up round appends a commit,
-  so earlier pins keep resolving. Never delete an `evidence/*` branch — PR bodies
-  link into it.
-
-```bash
-lease=<lease>; files=(<evidence paths>)
-ev="$(mktemp -d)"
-if git fetch -q origin "evidence/$lease" 2>/dev/null; then
-  git worktree add -q -B "evidence/$lease" "$ev" FETCH_HEAD
-else
-  git worktree add -q --detach "$ev"
-  git -C "$ev" checkout -q --orphan "evidence/$lease" && git -C "$ev" rm -rfq .
-  printf '%s filter=lfs diff=lfs merge=lfs -text\n' '*.png' '*.gif' '*.mp4' '*.jpg' > "$ev/.gitattributes"
-fi
-cp "${files[@]}" "$ev/" && git -C "$ev" add -A && git -C "$ev" commit -qm "evidence: $lease"
-git -C "$ev" lfs push origin "evidence/$lease" && git -C "$ev" push -q -u origin "evidence/$lease"
-git -C "$ev" rev-parse HEAD   # the <sha> to pin
-git worktree remove "$ev" && git branch -D "evidence/$lease"
-```
-
-The explicit `git lfs push` matters: the orphan worktree has no `.githooks/`, so
-the LFS pre-push hook cannot be relied on there.
+- Anything else → push it with `scripts/evidence_push.sh <lease> <files…>`. The
+  command appends the orphan branch `evidence/<lease>`, strips git-lfs hook stubs
+  inside that worktree, and prints `URL=` lines plus `SHA=` after each URL returns
+  HTTP 200. Pin the body to that SHA. Re-running appends a commit, so earlier pins
+  keep resolving. Never delete an `evidence/*` branch.
 
 ## Step 5 — Review round-trip
 
@@ -481,8 +484,8 @@ pre-merge comment check; its `--help` entry lists every refusal. Then run
 `land <pr>` yourself, or leave it to the merge task (§ Merge task).
 
 After the merge, the merge reconcile (`scripts/merge_reconcile.sh`, on the
-landing push) posts the Shipped note and board Done on the PR-closed issues, so
-the merging session posts neither.
+landing push) posts the Shipped note on the PR-closed issues, so the merging
+session does not.
 
 ## Step 7 — Finalize
 

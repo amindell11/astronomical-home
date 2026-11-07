@@ -45,6 +45,7 @@ namespace Tests.PlayMode
 
             public IReadOnlyList<WeaponSlot> Slots => new[] { WeaponSlot.Secondary };
             public string DisplayName(WeaponSlot slot) => "Grenades";
+            public Sprite Icon(WeaponSlot slot) => null;
             public IReadOnlyList<IWeaponReadout> Readouts(WeaponSlot slot) => readouts;
         }
 

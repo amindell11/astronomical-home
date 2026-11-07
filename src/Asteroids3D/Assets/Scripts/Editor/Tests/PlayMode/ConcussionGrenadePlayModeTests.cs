@@ -7,6 +7,7 @@ using Combat.Weapons;
 using Combat.Weapons.Arsenal;
 using Damage;
 using NUnit.Framework;
+using Tests.Common;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -59,6 +60,8 @@ namespace Tests.PlayMode
                 TotalDamage += hit.Amount;
                 return 0f;
             }
+
+            private void OnDestroy() => DamageableColliders.Unregister(this);
         }
 
         private static DamageInfo Shot(Vector3 point) =>
@@ -102,7 +105,9 @@ namespace Tests.PlayMode
             spawned.Add(go);
             go.transform.position = position;
             go.AddComponent<SphereCollider>().radius = 0.5f;
-            return go.AddComponent<DamageRecorder>();
+            var recorder = go.AddComponent<DamageRecorder>();
+            DamageableColliderRegistration.Register(recorder);
+            return recorder;
         }
 
         private DamageRecorder CreateRock(Vector3 position)
@@ -314,7 +319,7 @@ namespace Tests.PlayMode
         {
             var weapon = MountWeapon(out var shooter);
             shooter.gameObject.AddComponent<SphereCollider>().radius = 0.5f;
-            shooter.gameObject.AddComponent<DamageRecorder>();
+            DamageableColliderRegistration.Register(shooter.gameObject.AddComponent<DamageRecorder>());
             var grenade = weapon.Fire(weapon.firePoint.position + Plane(0f, 100f), Projectiles) as Grenade;
             var flight = new Flight();
 
@@ -331,7 +336,7 @@ namespace Tests.PlayMode
             var weapon = MountWeapon(out var shooter);
             AddBody(shooter).isKinematic = true;
             shooter.gameObject.AddComponent<SphereCollider>().radius = 3f;
-            shooter.gameObject.AddComponent<DamageRecorder>();
+            DamageableColliderRegistration.Register(shooter.gameObject.AddComponent<DamageRecorder>());
 
             var grenade = weapon.Fire(weapon.firePoint.position + Plane(0f, 20f), Projectiles) as Grenade;
             yield return new WaitForFixedUpdate();
@@ -384,6 +389,7 @@ namespace Tests.PlayMode
             var weapon = MountWeapon(out var shooter);
             var shooterRecorder = shooter.gameObject.AddComponent<DamageRecorder>();
             shooter.gameObject.AddComponent<SphereCollider>().radius = 0.5f;
+            DamageableColliderRegistration.Register(shooterRecorder);
 
             var origin = weapon.firePoint.position;
             var near = CreateTarget(origin + Plane(0f, 3f), "NearTarget");
@@ -418,7 +424,7 @@ namespace Tests.PlayMode
             var broadphase = hull.AddComponent<SphereCollider>();
             broadphase.isTrigger = true;
             broadphase.radius = 4.5f;
-            hull.AddComponent<DamageRecorder>();
+            DamageableColliderRegistration.Register(hull.AddComponent<DamageRecorder>());
             var hullBody = AddBody(hull.transform);
 
             var sphereBody = AddBody(CreateTarget(origin + Plane(-4f, 0f), "Sphere"));

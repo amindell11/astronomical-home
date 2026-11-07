@@ -4,6 +4,7 @@ using NUnit.Framework;
 using Substrate.Sectors;
 using Substrate.Sessions;
 using Tests.PlayMode.Common;
+using Tests.PlayMode.Recording;
 using UnityEditor;
 using UnityEngine;
 
@@ -33,13 +34,12 @@ namespace Tests.PlayMode.Scenarios
             // Inside the start point's rock-free clearing, so neither ship spawns into an asteroid.
             var (a, _) = SpawnCombatShip(new Vector2(-6f, 0f), rotDeg: -90f, team: 0);
             var (b, _) = SpawnCombatShip(new Vector2(6f, 0f), rotDeg: 90f, team: 1);
-            Film(a, b);
+            yield return Film(a, b);
 
             var steps = Mathf.CeilToInt(SimSeconds / Time.fixedDeltaTime);
             for (var i = 0; i < steps && a && b; i++)
             {
                 yield return new WaitForFixedUpdate();
-                FilmStep();
             }
         }
     }

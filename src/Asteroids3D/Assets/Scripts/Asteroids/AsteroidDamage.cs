@@ -1,3 +1,4 @@
+using System;
 using Asteroids.Fragnetics;
 using Damage;
 using UnityEngine;
@@ -28,11 +29,15 @@ namespace Asteroids
 
         public float Health { get; private set; }
         public float MaxHealth { get; private set; }
+        public event Action<Vector3> OnHit;
 
         private void Awake()
         {
             controller = GetComponent<AsteroidController>();
+            DamageableColliders.Register(this, GetComponentsInChildren<Collider>(true));
         }
+
+        private void OnDestroy() => DamageableColliders.Unregister(this);
 
         public void Initialize(float volume, float lethality = 1f)
         {
@@ -64,6 +69,7 @@ namespace Asteroids
             // Already broken up: a later hit in the same step passes straight through.
             if (isDestroyed) return hit.Amount;
 
+            OnHit?.Invoke(hit.HitPoint);
             Health -= hit.Amount;
             if (Health > 0f) return 0f;
 
@@ -86,8 +92,8 @@ namespace Asteroids
             var damage = CalcDamage(deltaV);
             if (damage <= 0f) return;
 
-            var damageable = collision.gameObject.GetComponent<IDamageable>();
-            damageable?.TakeDamage(new DamageInfo(damage, DamageKind.Collision, Ships.Registry.ShipId.Invalid,
+            if (!DamageableColliders.TryGet(collision.collider, out var damageable)) return;
+            damageable.TakeDamage(new DamageInfo(damage, DamageKind.Collision, Ships.Registry.ShipId.Invalid,
                 controller.Mass, controller.Rb.linearVelocity, collision.GetContact(0).point));
         }
 

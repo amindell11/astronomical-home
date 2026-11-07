@@ -50,7 +50,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: edf82047f2d64a919057c88845dba2f7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fireRate: 1.5
+  fireRate: 1.7
 --- !u!114 &6448982411033854647
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -63,7 +63,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66a2ea484ed844bc8971ac8a1cb255ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  chargeTime: 1.1
+  chargeTime: 1.5
   minChargeToFire: 1
 --- !u!114 &-8301958025146036882
 MonoBehaviour:
@@ -79,6 +79,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   firePoint: {fileID: 0}
   displayName: Railgun
+  hudIcon: {fileID: 21300000, guid: 6032c7af754a15f459f554ae853d29ce, type: 3}
   damage: 45
   range: 60
   beamRadius: 0.5
@@ -87,8 +88,12 @@ MonoBehaviour:
   hitMask:
     serializedVersion: 2
     m_Bits: 4294967295
+  holdRange: 30
   fireDistance: 45
   fireAngleTolerance: 2
+  startAngle: 10
+  breakAngle: 30
+  commitPoint: 0.6666667
   charge: {fileID: 6448982411033854647}
   cooldown: {fileID: 8105349543242701031}
 --- !u!120 &1200000000000000001
@@ -115,7 +120,7 @@ LineRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10306, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 4bf167e8e1cf4daca24743adf934933a, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -141,7 +146,7 @@ LineRenderer:
   - {x: 0, y: 1, z: 0}
   m_Parameters:
     serializedVersion: 3
-    widthMultiplier: 0.08
+    widthMultiplier: 2.4
     widthCurve:
       serializedVersion: 2
       m_Curve:
@@ -159,8 +164,8 @@ LineRenderer:
       m_RotationOrder: 4
     colorGradient:
       serializedVersion: 2
-      key0: {r: 0.4, g: 0.85, b: 1, a: 1}
-      key1: {r: 0.2, g: 0.5, b: 1, a: 1}
+      key0: {r: 1, g: 1, b: 1, a: 1}
+      key1: {r: 1, g: 1, b: 1, a: 1}
       key2: {r: 0, g: 0, b: 0, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}
       key4: {r: 0, g: 0, b: 0, a: 0}
@@ -188,7 +193,7 @@ LineRenderer:
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
     numCornerVertices: 0
-    numCapVertices: 2
+    numCapVertices: 0
     alignment: 0
     textureMode: 0
     textureScale: {x: 1, y: 1}
@@ -210,7 +215,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7608e47ca4a24b85a298835bcedd2568, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fadeTime: 0.15
+  fadeTime: 0.34
+  flashTime: 0.06
+  aimWidth: 0.24
+  aimOpacityAtFull: 0.68
+  aimOpacityPower: 2.2
+  streakSpacing: 8.5
+  streakLength: 3
+  streakSpeedAtStart: 10.8
+  streakSpeedAtFull: 46.8
 --- !u!114 &3893981710489989632
 MonoBehaviour:
   m_ObjectHideFlags: 0

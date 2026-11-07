@@ -12,6 +12,11 @@
   afterward. An untracked main-worktree editor is user-owned: ask the user to
   close it, never terminate it. Inspect owners, the boot lane, and the FIFO
   queue with `./scripts/unity_access.ps1 -Action Status`.
+- After editing C#, `./scripts/agent_worktree_pool.sh compile-check <slot>`
+  finds compile errors in about 10 s without booting Unity. `run-tests` runs
+  it first and stops on a compile failure. On a `stale` verdict, run
+  `compile-check <slot> --refresh`: one batch boot, which needs a tree that
+  compiles and has no tracked changes. Details: `TESTING.md` § Compile check.
 - For PlayMode tests, prefer inheriting from
   `Tests.PlayMode.Common.PlayModeWorldFixture` when it makes sense (ensures
   GamePlane/test-arena setup and cleanup).

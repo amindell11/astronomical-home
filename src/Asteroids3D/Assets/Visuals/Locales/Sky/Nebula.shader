@@ -123,12 +123,15 @@ Shader "Custom/Nebula"
                 return farClouds * 0.6 + nearWisps * 0.4;
             }
 
-            // A cloud bank is static and zoom-free, so its baked tile slides with parallax alone.
             half4 CloudBankFromTile(float2 position)
             {
                 float angle = radians(_CloudDirection);
                 float2 axis = float2(cos(angle), sin(angle));
                 float2 rotated = float2(dot(position, axis), dot(position, float2(-axis.y, axis.x)));
+                float time = _Time.y * _NebulaSpeed;
+                float2 phase = rotated * 0.18 + _Seed;
+                // Subtracting the initial warp preserves every stationary cloud bank exactly.
+                rotated += (sin(phase.yx + float2(time, -time * 0.73)) - sin(phase.yx)) * 1.4;
                 return SAMPLE_TEXTURE2D(_CloudBankTile, sampler_CloudBankTile, rotated / _CloudBankTileSize);
             }
 

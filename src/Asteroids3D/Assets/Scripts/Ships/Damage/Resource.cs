@@ -49,6 +49,14 @@ namespace Ships.Damage
             Reset();
         }
 
+        /// <summary>A new max that keeps the current fraction: no heal, no refill.</summary>
+        public void Rescale(float maxValue)
+        {
+            var fraction = Pct;
+            MaxValue = maxValue;
+            Set(fraction * maxValue);
+        }
+
         protected void Set(float val)
         {
             var prev = CurrentValue;

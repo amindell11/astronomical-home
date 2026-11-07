@@ -62,6 +62,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxAmmo: 24
   reloadTime: 1.5
+  refill: 0
 --- !u!114 &-8301958025146036882
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -75,12 +76,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   firePoint: {fileID: 0}
+  displayName: 
+  hudIcon: {fileID: 21300000, guid: d1b87bf203c8e924a9c1373a73959eb0, type: 3}
   projectilePrefab: {fileID: 5408995189547049293, guid: 05108a6211974df09de2de019a7d23d7,
     type: 3}
-  rounds: {fileID: 6448982411033854647}
-  cooldown: {fileID: 8105349543242701031}
   fireDistance: 18
   fireAngleTolerance: 6
+  rounds: {fileID: 6448982411033854647}
+  cooldown: {fileID: 8105349543242701031}
 --- !u!114 &3036594076463291748
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -21,6 +21,7 @@ namespace Combat.Weapons.Arsenal
         public override float ProjectileSpeed => projectilePrefab.LaserSpeed;
         public override float FireRange => fireDistance;
         public Rounds Rounds => rounds;
+        protected override WeaponCondition[] AuthoredConditions => new WeaponCondition[] { rounds, cooldown };
         public float Damage => projectilePrefab.Damage;
         public float? ShotsPerSecond =>
             cooldown && cooldown.SecondsBetweenShots > 0f ? 1f / cooldown.SecondsBetweenShots : (float?)null;
@@ -33,11 +34,9 @@ namespace Combat.Weapons.Arsenal
         }
 
         public override bool InEnvelope(in TargetingContext context) =>
-            context.hasLineOfSight
-            && context.distanceToTarget <= fireDistance
-            && context.angleToTarget <= fireAngleTolerance;
+            context.Within(fireDistance, fireAngleTolerance);
 
-        public override bool ShouldFire(TargetingContext context) =>
+        public override bool HoldTrigger(TargetingContext context) =>
             Rounds && Rounds.CanFire() && InEnvelope(in context);
     }
 }

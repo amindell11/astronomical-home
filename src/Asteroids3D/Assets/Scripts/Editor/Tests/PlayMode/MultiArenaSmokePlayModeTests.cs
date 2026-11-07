@@ -82,7 +82,8 @@ namespace Tests.PlayMode
             var worldOffset = GamePlane.PlaneDirToWorld(b.Offset - a.Offset);
 
             Assert.Less(
-                Vector3.Distance(b.Root.transform.position, a.Root.transform.position + worldOffset),
+                Vector3.Distance(b.Session.ActiveSector.transform.root.position,
+                    a.Session.ActiveSector.transform.root.position + worldOffset),
                 PlacementTolerance, "Arena roots must sit apart by the profile offset.");
             Assert.Less(
                 Vector3.Distance(
@@ -330,6 +331,8 @@ namespace Tests.PlayMode
             Assert.IsNotNull(config, $"Sector config missing at {ConfigPath}");
 
             arena.Root = new GameObject(name);
+            // Kept out of the other arena's active session scene, as a GameHost keeps itself.
+            Object.DontDestroyOnLoad(arena.Root);
             created.Add(arena.Root);
             arena.Session = TestSession.Create(arena.Root, new SessionProfile
             {

@@ -1,36 +1,47 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
+using UnityEngine.Rendering;
 
 namespace Substrate.Services.Locales
 {
     /// <summary>
-    /// A locale scene's sky root. Each child renderer is one sky layer on the <c>Sky</c> Unity
-    /// layer, which only the flight and hangar cameras' culling masks include; the root enables its sky layers
-    /// only while its scene is the active scene, so inactive loaded locales draw nothing.
-    /// A sky layer's look lives on its material. Design: arc #678.
+    /// A locale prefab's root: the locale's lighting, and the sky layers, lights and volumes beneath it. Each renderer
+    /// below is one sky layer on the <c>Sky</c> Unity layer, which only the flight and hangar cameras' culling masks
+    /// include. The locale service shows and hides each instance; a hidden locale draws no sky layer
+    /// and enables no light or volume, so a preloaded locale cannot light or grade the outgoing world. A locale
+    /// backdrop pair temporarily shows each locale for offscreen rendering. A sky layer's look lives on its material.
+    /// Design: arc #1274.
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class LocaleSky : MonoBehaviour
     {
+        [SerializeField] private LocaleLighting lighting;
+
         private Renderer[] layers;
+        private Behaviour[] followers;
+        private bool[] followerEnabled;
 
-        private void Awake() => layers = GetComponentsInChildren<Renderer>(true);
+        internal bool Shown { get; private set; }
 
-        private void OnEnable()
+        private void Awake()
         {
-            SceneManager.activeSceneChanged += OnActiveSceneChanged;
-            Show(SceneManager.GetActiveScene());
+            layers = GetComponentsInChildren<Renderer>(true);
+            var lights = GetComponentsInChildren<Light>(true);
+            var volumes = GetComponentsInChildren<Volume>(true);
+            followers = new Behaviour[lights.Length + volumes.Length];
+            lights.CopyTo(followers, 0);
+            volumes.CopyTo(followers, lights.Length);
+            followerEnabled = new bool[followers.Length];
+            for (var i = 0; i < followers.Length; i++) followerEnabled[i] = followers[i].enabled;
         }
 
-        private void OnDisable() => SceneManager.activeSceneChanged -= OnActiveSceneChanged;
-
-        private void OnActiveSceneChanged(Scene previous, Scene active) => Show(active);
-
-        private void Show(Scene active)
+        internal void SetVisible(bool visible)
         {
-            var visible = gameObject.scene == active;
             foreach (var layer in layers)
                 layer.enabled = visible;
+            for (var i = 0; i < followers.Length; i++) followers[i].enabled = visible && followerEnabled[i];
+            Shown = visible;
         }
+
+        internal void ApplyLighting() => lighting.Apply();
     }
 }

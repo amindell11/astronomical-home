@@ -48,7 +48,7 @@ namespace AI
             var s0 = nav.lastInitialState;
             var input = nav.solver.BuildCostInput(nav.CostVelocityReference, nav.enemyPos, nav.enemyVel,
                 nav.enemyYaw, nav.enemyYawRate, nav.projectileSpeed, s0.vel, sentence,
-                nav.referent1, nav.referent2, nav.referent3);
+                nav.referent1, nav.referent2, nav.referent3, nav.costAimReference);
             var ctx = Cost.EvalContext.Create(s0, input, nav.config, 0);
             var shipPos = Plane(s0.pos);
 

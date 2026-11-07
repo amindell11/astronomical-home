@@ -147,7 +147,7 @@ namespace Tests.EditMode
 
                 Cost.ObstacleCosts(state, input, cfg, profileScale, fieldScale: 1f, out var collision, out var turnAway);
                 var costsFired = collision > 0f || turnAway > 0f;
-                var classified = ControllerProbe.ObstacleThreat(state.pos, state.vel, obstacles, 1,
+                var classified = Cost.ObstacleThreat(state.pos, state.vel, obstacles, 1,
                     hullRadius, cfg.maxLatAccel);
 
                 Assert.AreEqual(expected, costsFired, $"{label}: ObstacleCosts semantics moved under the probe");

@@ -18,6 +18,8 @@ the matching doc when its branch fires:
   geometry, tree hygiene).
 - Driving a live Editor over the `unity` CLI → `doc/agents/unity-cli.md`
   (readiness gating, eval contract, capture paths, reload dead zones).
+- Preview tuning: making a feel tunable, adding a tuning target →
+  `doc/agents/tuning.md` (what's tunable, the target recipe, Replay vs Playtest).
 - Audio: FMOD, anything under `audio/`, or code touching `FMODUnity` →
   `doc/agents/audio-pipeline.md` (`fmodstudiocl` rules, bank refresh, the
   Setup Wizard, the FMOD stub rules, how to verify sound).
@@ -25,7 +27,7 @@ the matching doc when its branch fires:
   vault at `doc/design/`, doc lifecycle, tracker usage); tracker label/body/board mechanics:
   `doc/agents/issue-tracker.md`.
 - Memory reads/writes → `doc/agents/memory.md` (feedback notes only; nothing repo-critical).
-- Machine/tooling facts (remote box, editor-analytics churn, pool
+- Machine/tooling facts (remote box, Sentis defines, pool
   capacity, MCP setup) → `doc/agents/environment.md`.
 - Answering "why is it like this" / "was X tried" → the `design-lookup` agent (searches issues + PR bodies, returns cited answers, never the record).
 - Changing a script's outputs, or calling one script from another →
@@ -84,6 +86,7 @@ Skills live under `.claude/skills/` — the canonical home; a second tool that n
 `.claude/skills/agent-worktree-pr-loop/SKILL.md` is the single authority for the coding-task loop — the default for any coding task, whether or not the request mentions worktrees, slots, or PRs. Invariants:
 - Scope is confirmed with the user before building.
 - Build and test in a pooled worktree. The primary tree is the owner's: an agent's only writes there are syncing main (`./scripts/agent_worktree_pool.sh sync-primary`) and sound work (`doc/agents/audio-pipeline.md` → Where sound work happens). Outputs go to the session scratchpad or a slot, and each deliverable lands on a GitHub issue, an `evidence/*` or research branch, or a PR before the session ends. Worktrees come from the pool, never from `.claude/worktrees/` inside the primary tree: no `isolation: "worktree"` / EnterWorktree, and `start_session` passes `use_worktree: false`. Hooks in `.claude/settings.json` refuse destructive commands aimed there and session starts that would make an app worktree, and `.githooks/post-merge` lists primary-tree strays after each sync or pull there.
+- A build worker writes the implementation (skill → Step 2).
 - The arc's brief lives on its issue before the work builds; the PR description carries the why and the rejected alternatives (`doc/agents/design-docs.md` → Where design lives).
 - PR when green.
 - Merge ONLY through the pool script — `merge <slot>`, or `land <pr>` for a PR no slot holds — and only on an explicit user merge instruction (definition in the skill), or by `land` for a PR in the *auto-merge class* (glossary). For any other PR, `land` needs that instruction recorded (`./scripts/drain_pick.sh instruct <pr>@<sha>`); a recorded instruction survives only an inert delta. Every session is the same GitHub account, so record only an instruction the user gave you. Sole exception: user-approved docs-only changes may commit directly to main (skill → "Docs-only landing").

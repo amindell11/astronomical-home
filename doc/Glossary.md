@@ -60,7 +60,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 |---|---|---|
 | **gate** | merge gate · eval gate (`eval_gate.py`) · gate score · cost gate (fix-ladder rung 3) · go/no-go gate · curriculum lesson gate · anti-churn gate · scoping gate · owner's gate (a ship art stage approval) · "gated off" code conditionals | Always qualified. Bare "the gate" is legal only in pool-merge context (= merge gate) and RL-run context (= eval gate), and never in a title. |
 | **lane** | boot lane · remote lane (the second Unity box, `remote_lane.sh`) · harness lane · curriculum lane · watch/capture lane · audit lane · teacher-tuning lane · access-queue lane · firing lane (lane clearing) · decision lane (nav / fire / ability — the three seams a `BrainDecision` carries) · LANE slot (the MPC sentence term, always caps) | Always qualified. |
-| **pool** | worktree pool · ship resource pool (`PoolDifferential`) · self-play snapshot pool · object pool (`SimplePool`) · enemy loadout pool (the item subset a wave director draws builds from) · Dev Pool issue labels (`mid-dev-pool`/`high-dev-pool`, ex-board columns) | Always qualified. |
+| **pool** | worktree pool · ship resource pool (`PoolDifferential`) · self-play snapshot pool · object pool (`SimplePool`) · Dev Pool issue labels (`mid-dev-pool`/`high-dev-pool`, ex-board columns) | Always qualified. |
 | **token** | bus/signal token · obs obstacle token (`ObstacleTokenCap`) · threat token · LLM context token | Always qualified. |
 | **term** | intent/cost term (a weighted sentence-slot cost the MPC solves — #485) · activation term (`ActivationTerm`, the AND-ed predicate atoms of sector activation rules) · reward term (a `RewardSpec` component, e.g. the reward spine's outcome term) | Always qualified. An intent-grammar doc may read bare "term" = intent/cost term only after declaring the carve-out (Stage A brief precedent). |
 | **slot** | worktree slot (`agent-N`) · weapon/mount slot · ONNX import slot · obs slot-block grammar · MPC terminal-cost slot · sentence slot, instance or class (a typed intent-sentence position) · anatomy slot (§2 → *anatomy*) · keystone slot (§2 → *keystone*) | Qualify outside pool-loop context; bare "slot" = worktree slot in workflow text only. |
@@ -72,7 +72,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **spine** | sector spine (`SectorSpineModule`, `PhaseSpineModule`) · reward spine (the sparse ±1 outcome term) | Qualify. |
 | **adopt** | sector adoption (the placed object IS the runtime object) · coordinator Adopt (seize an orphan process) | Qualify: "sector-adopt" / "coordinator Adopt". |
 | **authority** | facing authority (RL action semantics) · strafe/lateral authority (physics) · design authority (which doc rules) · merge authority (who may merge) | Always qualified. |
-| **churn** | command churn (facing) · anti-churn gate (diff size) · define churn (Sentis) · churn-discard (bloat) · sort-churn | Always qualified. |
+| **churn** | command churn (facing) · anti-churn gate (diff size) · define churn (Sentis, retired) · churn-discard (bloat) · sort-churn | Always qualified. |
 | **smoke** | `Smoke` NUnit category · `-ScopeType Smoke` · `run_smoke.py` / trainer smoke · smoke ONNX fixture · "50k smoke" run | Qualify. Smoke is a **ScopeType, never a Mode**. |
 | **floor** | noise floor · characterization floor · curriculum floor (Dummy) · entropy floor · radius floor · speed floor (missile evasion's closing-speed floor, `ArchetypeBrain.closingSpeedFloor`) | Always qualified. |
 | **mirror** | mirror match/league · mirrored second `EpisodeRunner` · eval-env mirror · yaml branch-tip mirror · name mirror (§2 → *Art pipeline*) · Blender Mirror modifier | Always qualified. |
@@ -88,8 +88,9 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **trainer** | ml-agents trainer runtime (`mlagents-learn`) · owned trainer runtime (takeover arc) · custom-trainer plugin seam · trainer config (`ppo_*.yaml`) · `RLTrainerConfigEditModeTests` | Always qualified. Bare "the trainer" is legal only in RL-run operational context (= the run's trainer-runtime process), never in a title. |
 | **tripwire** | eval tripwire (the scorecard subset watched as a collapse detector) · player-build tripwire (`PlayerBuildTripwireEditModeTests`) | Always qualified. |
 | **module** | deep module (design vocabulary, §2 → *design vocabulary*) · ship module (chassis/module/loadout) · `-ScopeType Module` (test scope) | Qualify: "deep module" / "ship module" / "Module scope". |
+| **mod** | lull mod (§2 → *lull mod*): a weapon mod or a ship mod · the colloquial short form of ship module | Bare "mod" = a lull mod of either kind inside the loot code (`Loot/`, the lull pick); prose names the kind ("weapon mod", "ship mod") wherever the kind matters; a ship module is never shortened to "mod". In a title, qualify regardless. |
 | **bench** | benchmark run (bench run, bench config, ram-bench harness) · benched work (`bench/<topic>`, §2 → *benched*) | Bare "bench" = benchmark run. Set-aside work is always "benched". |
-| **layer** | sky layer (one drawn backdrop layer — background, far nebula, starfield, close nebula — a child renderer of a locale's `LocaleSky` root) · Unity layer (`LayerIds`; notably `Sky`, the render layer every sky layer sits on, which only the flight and hangar cameras' culling masks include) · starfield depth layer (inside `StarField.shader`) · paint mask (§2 → *Art pipeline*; never "paint layer") | Always qualified: "sky layer" vs "the `Sky` layer". |
+| **layer** | sky layer (one drawn backdrop layer — background, far nebula, starfield, close nebula — a renderer under a locale's `LocaleSky` root) · Unity layer (`LayerIds`; notably `Sky`, the render layer every sky layer sits on, which only the flight and hangar cameras' culling masks include) · starfield depth layer (inside `StarField.shader`) · paint mask (§2 → *Art pipeline*; never "paint layer") | Always qualified: "sky layer" vs "the `Sky` layer". |
 | **charge** | charge-up / spent charge (`ChargeTime`, the `Charge` parameter) · concussion charge (`Grenade`, `IChargeFlight`, the target marker) | Always qualified in prose: "charge-up", "spent charge", "concussion charge". |
 | **environment** | RL environment (the ml-agents env: environment scheduling, environment parameters, `--num-envs`) · Unity Lighting "Environment" settings (skybox, ambient) · Gizmo View "Environment" category · environment art (`Visuals/Environment/`: asteroids, stations, props) | Never for the locale in new prose — say "locale". Qualify the rest. |
 
@@ -200,6 +201,19 @@ Format: **term** — definition. *(authority)*
   child issue's owner, a worker); it rides the prompt that starts that session.
   A session's own long task compacts instead (re-ruled 2026-10-19; AGENTS.md →
   Session hygiene).
+- **build worker** — the agent that writes a PR's implementation from the
+  session's build brief: Grok through `scripts/grok_worker.py` by default, an
+  Opus subagent as the fallback. Not the RL *worker* (§ RL & training).
+  *(agent-worktree-pr-loop → Step 2; #1252)*
+- **chief of staff** — the session that owns one issue with child issues, such
+  as a roadmap over its arcs or an arc over its slices. Short form: **chief**.
+  A user-level skill outside this repo sets its rules, and #1040 carries the
+  why and the trial's 2026-10-28 verdict.
+  *(`~/.claude/skills/chief-of-staff/SKILL.md`; #1040)*
+- **DRI** — Directly Responsible Individual. Here the individual is a session,
+  the one answerable for carrying an issue's work through to the end. It
+  answers for follow-through only, because the user makes the decisions. A
+  *chief of staff* is the DRI for its issue. *(chief-of-staff skill; #1040)*
 - **slot / pool / lease** (workflow senses) — a pooled `agent-N` worktree / the
   pool machinery / the durable claim on a slot. *(agent_worktree_pool.sh)*
 - **held** (work) — slot work set aside while it waits on the user; mechanics
@@ -311,12 +325,17 @@ Format: **term** — definition. *(authority)*
   one evidenced verdict per issue. Recurs, so not a *pass*.
   *(.claude/skills/issue-triage)*
 - **on-event triage** — the mechanical triage run on issue opened / edited:
-  board add + Status, one-priority rule, retry / premise / dead-pointer checks;
-  writes labels and at most one comment, and treats issue text as data.
-  *(.claude/skills/issue-triage/on-event.md)*
+  board add + *board kind* sort, one-priority rule, retry / premise /
+  dead-pointer checks; writes labels and at most one comment, and treats issue
+  text as data. *(.claude/skills/issue-triage/on-event.md)*
+- **board kind** — the board's Status read as the sort of attention an issue
+  needs: Mechanical, Complex, Judgement, Visual or Bugs, and Triage while
+  unsorted. Agents write it only while Status is empty or Triage; any other
+  column is the owner's.
+  *(rubric: .claude/skills/issue-triage/on-event.md)*
 - **merge reconcile** — the mechanical triage run on each push to main: for
-  every squash-merged PR in the push, a Shipped note and board Done on the
-  issues it closes, a Touched note on the open issues its body cites, a listing
+  every squash-merged PR in the push, a Shipped note on the issues it closes,
+  a Touched note on the open issues its body cites, a listing
   of `#N` citations of the closed issues left in the agent docs, and a warning
   when the body disclaims a close the PR performs. Never closes or reopens an
   issue; idempotent on re-run. *(scripts/merge_reconcile.sh)*
@@ -484,6 +503,14 @@ Format: **term** — definition. *(authority)*
   target, so a missile's contact and splash are not told apart, and a shot
   still in flight when the target dies is fired and never hits.
   *(MarksmanshipProbe, MarksmanshipSampler)*
+- **matrix lane** — the harness lane that fights two scripted ships, one weapon
+  each. Its rows are a snapshot, not a constant: judge a change by running the
+  lane on the base and the head with the same seeds, and quote the replicate
+  gap between two identical runs as the noise. *(#1120 · MatrixLane.cs)*
+- **armed matrix** — every unordered pair from the weapons a matrix lane was
+  given, a weapon against itself included. A draw counts half a win, and a
+  weapon's rate against the others leaves its self pair out.
+  *(#1120 · MatrixProbe.cs)*
 - **command churn** — commanded facing movement per decision (measured 48°)
   exceeding the **slew budget** (yaw rate × decision period = 36°/decision). The
   cause.
@@ -572,6 +599,16 @@ Format: **term** — definition. *(authority)*
   anything fanning sessions across one plane. A session fact, distinct from the
   obstacle field an AI ship senses, which rides the spawn call on its own.
   *(`SessionFrame`, `Substrate/Sessions/Session.cs`)*
+- **session scene** — the scene a `Session` keeps active from construction to
+  teardown. Unity puts an object created without a parent into the active
+  scene, so such an object dies with the session. The session builds only its
+  arena root there; the host's viewport, UI, rig and music stay under the host,
+  which outlives its session. `SessionSceneLease` unloads the scene when its
+  host is destroyed without a teardown. The active scene is process-wide, so
+  with several sessions alive every unparented object lands in the newest one's
+  scene. A host created while another session is alive lands there too and
+  dies with that session's scene, unless it calls `DontDestroyOnLoad` as
+  `GameHost` and `PreviewHost` do. *(`Session`, `SessionSceneLease`)*
 - **sector** — a bounded open-space field of POIs. The load-bearing decisions:
   it builds **deterministically** from a serialized manifest, and there is **one
   concrete class**, configured by prefab — variation never arrives as a subclass.
@@ -600,6 +637,32 @@ Format: **term** — definition. *(authority)*
   each faster-paced: extracting moves the run on, extracting from the last wins
   it, and the game host's player-death path ends it.
   *(TrialSector, TrialSector2, TrialSector3 prefabs)*
+- **hunt** — a combat sector's opening, before its first sector phase: patrols
+  roam unaware of the player until the alarm. A patrol that sees the player
+  (short radius, asteroids are cover) or is hit by it starts a call-in, and the
+  alarm sounds when the call-in runs out or the search clock does; killing the
+  calling patrol first cancels its call-in. The wave director holds its opening
+  lull until the alarm, so phase numbering is unchanged. *(SectorHunt,
+  HuntFeelProfile)*
+- **faction** — the side a sector's enemies belong to; each survival trial
+  names one, and its wave director and hunt field only that faction's ships. The
+  **signature ship** is the faction's own chassis, and its elite flies it; the
+  **common ship** is the chassis every faction flies. Each ship always carries
+  its **faction kit**, one fixed primary, and wears the faction's paint, flame
+  and shield ring colour. The **answer weapon** is the weapon
+  that counters the faction's way of fighting, so no faction kit carries it.
+  The sector-to-faction mapping is ruled on #1320. *(Faction, SectorFaction)*
+- **elite** — a sector's end-of-sector enemy: its faction's signature ship made
+  larger, with a heavy weapon pair and stacked run mods. The sector's phases
+  ending summon it, and extraction opens on its death. Sector 3's elite is the
+  boss, which escalates at hull thresholds (escorts, heavier fire).
+  An escalation step stacks weapon mods only, so the dynamics the AI captured at
+  spawn stay true. Not an *encounter*: no activation rule arms it; the sector
+  spine owns it and drives it. *(EliteEncounter, EliteProfile,
+  PhaseSpineModule.StepElite)*
+- **unlocked ship** — a ship the hangar lets the player fly: the starter plus
+  every elite chassis the player killed in any run record. No save file; a kill
+  counts once its run's record is written. *(ShipUnlocks, ItemSubset.starter)*
 - **sector fixture** — a world object present at spawn, sector-owned, independent
   of encounter state.
 - **signal / SignalPort** — the bus coupling seam. ⚠ **Designed, not built** —
@@ -608,14 +671,17 @@ Format: **term** — definition. *(authority)*
   `ActivateOnToken`.
 - **adopt vs spawn** (sector) — the placed child IS the runtime object, versus
   spawner-produced. Variation lives in the object or in the spawner type.
-- **locale** — the per-sector look *scene*: lights, flat ambient, custom
-  reflection, ambience and sky layers (under its `LocaleSky` root).
-  `LocaleService` loads it additively and makes it active. Look is a scene;
-  gameplay is a prefab. The boot scene carries none: every authored sector
-  names one, and the session shows its idle locale between sectors.
+- **locale** — the per-sector look, a prefab. Its root `LocaleSky` holds the
+  lighting values (flat ambient, fog, custom reflection, sun), and its
+  children are the locale's lights, ambience and sky layers. `LocaleService`
+  instantiates it under the session's `Locale` root and writes those values to
+  the *session scene*'s `RenderSettings`, so showing a locale never changes the
+  active scene or the boot scene's lighting. The boot scene carries none: every
+  authored sector names one, and the session shows its idle locale between
+  sectors.
 - **idle locale** — the locale a presentation session shows while no sector is
-  loaded (the hangar's backdrop). A sector naming the same locale keeps it
-  loaded across the hand-off instead of reloading it. *(`SessionProfile.idleLocale`)*
+  loaded (the hangar's backdrop). A sector naming the same locale keeps its
+  instance across the hand-off. *(`SessionProfile.idleLocale`)*
 - **cloud-bank sky layer** — a sky layer whose `Custom/Nebula` material has
   `_CloudOpacity` above 0. It draws from a seamless tile baked when it enables,
   not live noise, so it must stay static and zoom-free (`_NebulaSpeed` and
@@ -630,7 +696,7 @@ Format: **term** — definition. *(authority)*
   variant instead; its overrides survive the refresh.
 - **GamePlane** — the frozen 2.5D convention. Production is `PlaneAxis.Z` (the XY
   plane); never reshape toward Y. *(GamePlane.cs)*
-- **arena** — the RL isolation unit. Isolation is **by distance, not by scene**:
+- **arena** — the RL isolation unit. Isolation is **by distance, not by physics scene**:
   arenas are offsets sharing one PhysicsScene, and **ghost rock** — cross-arena
   physical leakage — is a known, accepted consequence rather than a bug. The
   harness's per-arena composition spawns at its offset and hands its field to
@@ -674,8 +740,8 @@ Format: **term** — definition. *(authority)*
   (`ChargeTargetMarkers`), never to an "is player" fact. No blast-radius ring: the
   owner ruled it handholding.
 - **spent charge** — the charge-up fraction the last shot consumed, announced by
-  `ChargeTime` before its charge-up zeroes, so the shot's damage and the sound's
-  release read the same value. *(`ChargeTime.SpentCharge`, `OnChargeSpent`)*
+  `ChargeTime` before its charge-up zeroes, so the sound's release holds the
+  shot's charge. *(`ChargeTime.SpentCharge`, `OnChargeSpent`)*
 - **sustained sound** — an FMOD event instance a component holds across state
   changes, feeds parameters and stops itself (the charge-up, the engine), as
   against a one-shot it starts and releases at once. One component per sustained
@@ -685,9 +751,49 @@ Format: **term** — definition. *(authority)*
   physics rate — the brain decides *whether*, the gunner decides *when*. Replaces
   "the trigger is a decision, not a permission" (reversed by the fire-lane rework,
   2026-08-11: a ~0.2 s decision cadence cannot own a 50 Hz instant).
+- **fire plan** — a weapon's own AI decision, each step, whether to hold its
+  trigger. Any state it keeps, such as a charge in progress or a heat vent,
+  lives in the weapon, so the Gunner never learns what a trigger means to it.
+  *(`WeaponComponent.HoldTrigger`; #1133)*
+- **hold range** (AI) — the distance from its target that a weapon asks an AI
+  pilot to fly at, in place of the pilot's own range, as a mine carrier holds
+  outside its own blast. Only the primary weapon's counts, and
+  it reaches the brain on `AIContext`, never on `IShipStatus`, because it is
+  how the AI uses a weapon, not a fact about the ship. Not a firing range.
+  *(`WeaponComponent.HoldRange`; #1139)*
 - **velocity reference / feasibility tracker** — the RL↔MPC boundary: the policy
   emits a planar velocity and MPC is demoted to a ~2s tracker (feasibility, aim,
   velocity-track).
+- **aim reference** — the heading a ship's primary weapon needs this step and
+  that heading's rate, or none, published by the Gunner. It parallels the
+  velocity reference. The Gunner computes it from the target as it perceives it
+  (see aim settings), with the same lead it fires with, and the AICommander
+  hands it to the Navigator as a value on each `ComputeCommand` call, so no
+  weapon fact enters the Navigator.
+  *(AimReference, Gunner.PrimaryAimReference)*
+- **aim servo** — the Navigator's yaw controller that turns the ship onto the
+  aim reference within the engine's yaw torque. It replaces only the MPC's yaw
+  torque, and the Navigator stays the single author of the pilot command. The
+  AIM slot's weight switches it in and out with hysteresis rather than blending
+  torques, because #871's research found continuous blending flip-flops. An
+  obstacle threat hands yaw back to the MPC, which keeps it for a short hold
+  after the threat clears. It exists because the MPC's facing cost cannot aim:
+  its sampling noise held aim error near 20° whatever the facing cost's shape
+  or weight (#409). *(AimServo, YawHandover)*
+- **aim settings** — one armed AI pilot's aim knobs, a `ScriptableObject` beside
+  `MpcSettings`: its perception (a reaction delay and a wandering aim error with
+  its correlation time) and its earned accuracy, each off at 0. The AICommander
+  hands it to the Gunner at `Initialize`, and the Gunner reads it every tick, so
+  inspector edits apply live in Play. An armed AI pilot without one fails at
+  spawn. The servo's turn acceleration stays on `MpcSettings`. These are raw
+  knobs by ruling, not a 0 to 1 skill dial; how they map onto difficulty is
+  open (#1057). *(AimSettings, AimPerception)*
+- **earned accuracy** — a Gunner bearing error that starts loose when it picks
+  up a target and tightens to 0 while the target stays in its nose cone, in
+  range and in line of sight. A new target, a jink, a boost or a lost line of
+  sight restarts it. #409's calibration found it is rarely earned against a
+  moving target: a jink threshold low enough to see a strafe also fires on
+  ordinary flight. *(EarnedAccuracy)*
 - **controller** (probe) — the MPC-retune instrument separating target-motion
   yaw demand from self-generated churn; metrics live in the row schema.
   *(ControllerProbe, ControllerSampler)*
@@ -695,7 +801,7 @@ Format: **term** — definition. *(authority)*
   fires — hull overlap (`Cost.Collides`) or collision-course turn-away
   (`Cost.TurnAwayCost > 0`). Always the qualified form in prose; the probe
   sidecar's `threat`/`clear` field names are context-bound and stay.
-  *(Cost.ObstacleCosts, ControllerProbe.ObstacleThreat)*
+  *(Cost.ObstacleCosts, Cost.ObstacleThreat)*
 - **intent sentence** — the decision-varying slice of the MPC cost as a fixed
   set of typed sentence slots (AIM/POS/VEL binding one referent each, LANE
   pinned to the enemy, FIELD a class slot binding none), each with a signed
@@ -797,9 +903,44 @@ Format: **term** — definition. *(authority)*
   never by per-component globals; and it is **not** the same axis as the deleted
   `vfx` flag, which it has been confused with three separate times.
 - **chassis / module / loadout / hangar / sidegrade** — the ship-customization
-  naming key, in order of containment: the hull's own stats / the swappable parts
-  / the equipped set / the between-run screen where you change it / an option
-  that trades rather than upgrades.
+  naming key, in order of containment: the hull's own stats / the parts a ship
+  carries (engine and shield come with the chassis; only weapons swap) / the
+  equipped set / the between-run screen where you change it / an option that
+  trades rather than upgrades.
+- **weapon mod** — a run-scoped stat modifier on one field a carried weapon
+  already has (fire rate, damage, heat capacity, cooling, magazine, reload
+  speed, charge speed, blast radius), never a new behaviour. Mods ride the run,
+  not the weapon: a picked mod lands on every carried weapon it fits, stacks
+  with repeats, and one that fits nothing carried stays held and idle. The
+  authored prefab numbers never change, so enemies and the hangar read the
+  weapon unmodded. Not a ship module. *(WeaponMod, WeaponMods; held on the
+  LullModStack)*
+- **ship mod** — a run-scoped stat modifier on one field group of the player's
+  own hull, engine or shield (max hull; max speed; thrust; handling; shield
+  capacity, regen, recharge), grouped as the keystone scales group handling. It
+  folds into the ship's own resolve and applies at once with no heal: a max
+  rises and keeps its fraction. Only a bound stack mods a ship, so enemies and
+  the hangar read authored. Sibling of a weapon mod; not a ship module.
+  *(ShipMod, ShipMods, ResolvedShipStats.Resolve)*
+- **lull mod** — a weapon mod or a ship mod: what the lull pool holds and a
+  lull pick offers. A run's picks ride one stack the player rig binds to its
+  ship once; the ship re-reads it on every resolve and on every change.
+  *(LullMod, LullModPool, LullModStack, Ship.BindMods)*
+- **lull pick** — the time-stopped choice of one lull mod from up to three,
+  or a skip, when the player claims the lull beacon; the clock runs on after
+  it. *(LullPickScreen, GameHost)*
+- **lull beacon** — the zone the sector spine places on a clear point away from
+  the hero shortly before a sector phase that a lull follows ends, so its
+  marker shows during the fight; flying into it claims that lull's pick. It
+  stays through the lull and a grace window into the next sector phase, then
+  closes unclaimed (that pick is lost); a new beacon's opening closes the one
+  before it, so beacons never stack. The sector's opening lull gets none.
+  *(PhaseSpineModule, ExtractionZone)*
+- **weapon pick** — the sector-break choice of one weapon the player does not
+  carry, from up to three, or a skip, then the mount it replaces; held in
+  hyperspace after the extraction recap. The swap keeps hull, shield and the run
+  clocks, and the hangar's kit stays the next run's. *(WeaponPickScreen,
+  PlayerRig.SwapWeapon)*
 - **keystone** — the locked ability in a ship's keystone slot, one kit per ship
   (`Keystone`; `Dash` today). Not a ship module: a kit prefab the ship
   instantiates, because a kit keeps per-ship runtime state (its cooldown clock,
@@ -812,16 +953,18 @@ Format: **term** — definition. *(authority)*
   presentation part, so presentation-off sessions drop it. *(KeystoneFlash,
   HullVisuals.HoldFlash)*
 - **item** — anything that fills a loadout slot: a chassis (a prefab with a root
-  `Ship`), an engine module, a shield module, or a weapon (a prefab with a root
-  `WeaponComponent`). Projectiles, trial pacing and `killHullRestore` are tuned
-  but fill no slot, so they are not items.
+  `Ship`) or a weapon (a prefab with a root `WeaponComponent`). Engine and shield
+  modules come with the chassis and fill no slot (#1073, #1254); projectiles,
+  trial pacing and `killHullRestore` are tuned but fill no slot either. None of
+  those are items.
 - **item catalog** — the one asset listing every item in the project, grouped
   by item type. An index only: each item's stats stay on its own asset. Listing
   is not what makes something an item — a test scans the project by type and
   fails when the list and the scan differ. *(ItemCatalog)*
 - **item subset** — an authored list of items one consumer chooses from, per
-  loadout slot. Two exist: the hangar's offer and the enemy loadout pool. Never
-  "the catalog": neither lists everything. *(ItemSubset)*
+  loadout slot. One exists: the hangar's offer (ships and weapons). Enemies draw
+  nothing: each flies its faction kit. Never "the catalog": it doesn't list
+  everything. *(ItemSubset)*
 - **hangar's offer** — the item subset the hangar shows the player.
   *(GameHost.hangarOffer)*
 - **lane clearing** — shooting asteroids to open a firing lane. Currently
@@ -908,7 +1051,7 @@ Format: **term** — definition. *(authority)*
   long it lived and whether the player's shot killed it (the run tally's rule). A
   consumer-side recorder on the player rig beside the damage ledger and the run
   tally, never sim state. It exists because damage kind cannot say which weapon
-  fired: Lasers, ChargeLasers and Rippers all fire the `Laser` projectile. A ship
+  fired: Lasers and Rippers both fire the `Laser` projectile. A ship
   placed during the sector load reads as spawned at second 0. *(SpawnLog)*
 - **build identity** — the git side of what a run was played on: the commit and a
   dirty flag (any tracked change or untracked file under `src/Asteroids3D/`). The
@@ -917,10 +1060,59 @@ Format: **term** — definition. *(authority)*
   Informational only: records are grouped by stat fingerprint and loadout stat
   hash. "Build" in this term is the git side, never a ship's parts, which are its
   loadout. *(BuildIdentity, BuildIdentityStamp)*
-- **death recap** — the post-death summary rendered from the damage ledger and
-  the run tally at the game host's hold between death and sector unload; presentation-gated, so a
+- **death recap** — the run outcome recap after a death: the HUD fades while the
+  explosion finishes, then the banner and the breakdown card; presentation-gated, so a
   game host with presentation off goes straight to the unload.
-  *(DeathRecapScreen, GameHost.RunDeathRecap)*
+  *(RunRecapScreen, GameHost.RunRecap)*
+- **presentation module** — a presentation (the recap outcome sequence first)
+  exposed as a pure function of a *feel profile*, an immutable *context* and a
+  time, rendered by one renderer whichever host drives the time; a
+  preview-only renderer is forbidden. Arc #1151. *(RecapOutcomeSequence,
+  RecapOutcomeContext, RecapPresenter)*
+- **feel profile** — the ScriptableObject of named knobs a presentation module
+  reads live; the game serializes the asset on its host, and the preview's panel
+  edits that same asset in place under a snapshot: Save writes it, Discard
+  restores it. *(RecapFeelProfile, FeelSnapshot)*
+- **death feel profile** — the feel profile every ship's death reads: its debris
+  explosion and debris pace. The ship rig serializes it, not the game host.
+  *(DeathFeelProfile, ShipDeathTarget)*
+- **preview host** — the play-mode composition root beside the game host. It
+  runs one entry at a time. A *preview Replay* entry composes a real session
+  with presentation on around the real player rig, camera and HUD, and hosts a
+  *preview subject* under a transport (play, pause, scrub, loop, speed). A
+  *preview Playtest* entry runs the shipped game host prefab. The host knows
+  entries and never *tuning targets*. The control panel is an editor window and
+  nothing more. *(PreviewHost, PreviewEntry, PreviewTransport,
+  PreviewControlPanel)*
+- **tuning target** — one thing the owner tunes in the preview panel, such as
+  the sector jump, the run recap or the HUD. It names its feel profiles and the
+  preview entries that show them, and the panel draws only its knobs. Targets
+  are editor code only: game code, the preview host included, never learns they
+  exist (owner ruling 2026-10-30). Switching to a target that offers the running
+  entry keeps the world; otherwise the preview rebuilds to the target's top
+  entry. What makes something tunable, and how to add a target:
+  `doc/agents/tuning.md`. *(TuningTarget, HudTarget)*
+- **preview Replay** — the panel section and kind of preview entry that hosts
+  a *preview subject* under the transport: a moment the owner judges. The recap
+  and the jump scrub to any instant. The HUD replays and Enemy death play from
+  their start, and Restart or Loop stages them again from scratch. Bare "Replay"
+  is legal in preview context. (Retired form: the preview host's "Inspection"
+  mode.) *(PreviewEntry.RunRecap, PreviewEntry.SectorJump, HudReplaySubject,
+  EnemyDeathSubject)*
+- **preview Playtest** — the panel section and kind of preview entry that runs
+  the shipped game host prefab for the owner to fly, with preview run records
+  and at most swapped sectors. Bare "Playtest" is legal in preview context;
+  elsewhere "playtest" is the owner playing the game.
+  *(PreviewEntry.Combat, PreviewEntry.CrowdedJumpGate, PreviewEntry.Boss)*
+- **preview subject** — a presentation module with a chosen context (a fixture
+  built from constants, or any context a scenario builds), hosted by the preview
+  host. *(IPreviewSubject, RecapPreviewSubject, RecapFixtures)*
+- **staged moment** — a game state a preview subject reaches live through its
+  real cause, never through a setter on a runtime component, so the host can
+  show it and a capture scenario can film it. The recap stages the player's
+  death at the context's death point. The HUD replays stage a hit and hull
+  brought low through the damage path, a run's start in the game host's order,
+  and extraction opened by a fixture sector's own spine. *(StagedMoments)*
 - **gizmo capture profile** — the named set of Unity component types a capture
   selects for drawing, chosen by `RL_HARNESS_GIZMOS`. Code-defined only: there is
   no per-diagnostic selection grammar, because Unity's own per-component-type
@@ -1027,8 +1219,9 @@ Format: **term** — definition. *(authority)*
   primary tree so they survive slot recycling. The primary tree takes no agent
   writes now; the RL tools' staging comments predate that, and where durable RL
   artifacts live is open on #883 (an orphan branch is favoured).
-- **define churn** — Sentis re-adding its analytics define on interactive loads.
-  Fixed at two registry values; never fix it by committing the define.
+- **define churn** — *retired 2026-10-28*: Sentis flipping its analytics define
+  between batch and interactive editor loads. The committed define pair ended it
+  (`doc/agents/environment.md` → The committed Sentis defines).
 - **orphan discipline** — killed monitors leave `tail.exe`/`grep.exe` holding
   logs (WinError 32). Taskkill by PID, never by image name.
 - **FMOD stub** — `src/fmod-stub/`: the package the hosted suite compiles

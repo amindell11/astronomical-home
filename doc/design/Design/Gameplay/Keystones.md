@@ -11,7 +11,7 @@ live on #1028 until the kit ships.
 |---|---|---|
 | Vanguard | dash with a brief invulnerability window | protected escape |
 | Bulwark | dash that deals damage on contact | commit |
-| Valis | overdrive window: raised speed cap and thrust, no impulse | sustained mobility |
+| Valis | overdrive window: raised speed cap, forward and sideways thrust, turning strength and turn rate, no impulse | sustained mobility |
 | Crimson | blink toward the cursor, clamped to a range | free reposition |
 | Nightshade | short stealth; the first shot out of it is buffed | information |
 

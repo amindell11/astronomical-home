@@ -13,16 +13,16 @@ namespace Ships.Visuals.Breakup
         [SerializeField] private Transform hull;
         [SerializeField] private ShipBreakupDebris debrisPrefab;
         [SerializeField] private Transform[] poseSources = Array.Empty<Transform>();
+        [SerializeField] private DeathFeelProfile feel;
         private Rigidbody body;
         private IDamageEvents source;
         private bool subscribed;
-        public float DeathEffectsEndAt { get; private set; }
 
         private void Awake()
         {
             body = GetComponentInParent<Rigidbody>();
-            if (!hull || !debrisPrefab)
-                throw new InvalidOperationException("Ship breakup requires an intact hull and debris prefab.");
+            if (!hull || !debrisPrefab || !feel)
+                throw new InvalidOperationException("Ship breakup requires an intact hull, debris prefab and death feel profile.");
             if (poseSources.Length != debrisPrefab.PoseCount)
                 throw new InvalidOperationException("Ship breakup pose sources must match the debris pose roots.");
             foreach (var pose in poseSources)
@@ -66,8 +66,7 @@ namespace Ships.Visuals.Breakup
             var debris = Instantiate(debrisPrefab, hull.position, hull.rotation);
             SceneManager.MoveGameObjectToScene(debris.gameObject, gameObject.scene);
             debris.transform.localScale = hull.lossyScale;
-            debris.Initialize(body.linearVelocity, poseSources);
-            DeathEffectsEndAt = debris.EndsAt;
+            debris.Initialize(body.linearVelocity, poseSources, feel);
             hull.gameObject.SetActive(false);
         }
     }

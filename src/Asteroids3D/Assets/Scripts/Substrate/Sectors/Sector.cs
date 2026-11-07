@@ -36,7 +36,6 @@ namespace Substrate.Sectors
         protected IUnitService Units { get; private set; }
         protected IObjectiveService Objectives { get; private set; }
         protected bool PresentationEnabled { get; private set; }
-        protected SectorSettings Config { get; private set; }
         protected bool IsSetUp { get; private set; }
         protected SectorBuildContext Context { get; private set; }
 
@@ -49,6 +48,17 @@ namespace Substrate.Sectors
         /// <summary>Baked module manifest (read-only view for editor/tests).</summary>
         public IReadOnlyList<SectorModule> Modules => modules;
 
+        /// <summary>The sector's module of type <typeparamref name="T"/>, or null when it carries none.</summary>
+        public T Module<T>() where T : SectorModule
+        {
+            foreach (var module in modules)
+            {
+                var match = module as T;
+                if (match) return match;
+            }
+            return null;
+        }
+
         /// <summary>The baked obstacle field AI ships spawned into this sector sense; null for a sector without rocks.</summary>
         public AI.Scanning.IObstacleField ObstacleField => obstacleField ? obstacleField : null;
 
@@ -57,20 +67,20 @@ namespace Substrate.Sectors
             GamePlane.WorldPointToPlane((startPointMarker ? startPointMarker.transform : transform).position);
 
         public void Initialize(IUnitService units, IObjectiveService objectives, bool presentationEnabled,
-            SectorSettings config, SessionFrame frame, Ship hero)
+            SessionFrame frame, Ship hero, int sectorIndex = 0)
         {
             Units = units ?? throw new ArgumentNullException(nameof(units));
             Objectives = objectives ?? throw new ArgumentNullException(nameof(objectives));
             PresentationEnabled = presentationEnabled;
-            Config = config ?? throw new ArgumentNullException(nameof(config));
-            Context = new SectorBuildContext(Units, Objectives, PresentationEnabled, this, frame, ObstacleField, hero);
+            Context = new SectorBuildContext(Units, Objectives, PresentationEnabled, this, frame, ObstacleField, hero,
+                sectorIndex: sectorIndex);
         }
 
         public IEnumerator Setup()
         {
             // Fresh bus each cycle so a restart never sees stale latched tokens (episode-reset requirement).
             Context = new SectorBuildContext(Units, Objectives, PresentationEnabled, this, Context.Frame,
-                Context.Field, Context.Hero, new SectorEventBus());
+                Context.Field, Context.Hero, new SectorEventBus(), Context.SectorIndex);
 
             foreach (var t in adopted)
                 AdoptShip(t);

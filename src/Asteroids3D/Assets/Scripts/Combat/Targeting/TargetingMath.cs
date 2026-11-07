@@ -43,7 +43,12 @@ namespace Combat.Targeting
             return LineOfSight.IsClear(fromPos, targetPos, ObstacleMask);
         }
 
-        public static Vector2 PredictIntercept(in Kinematics self, Vector2 targetPos, Vector2 targetVel, float projectileSpeed)
+        public static Vector2 PredictIntercept(in Kinematics self, Vector2 targetPos, Vector2 targetVel, float projectileSpeed) =>
+            PredictIntercept(in self, targetPos, targetVel, projectileSpeed, out _);
+
+        /// <summary>Also gives the intercept point's velocity while both ships hold their velocity and the shooter its heading.</summary>
+        public static Vector2 PredictIntercept(in Kinematics self, Vector2 targetPos, Vector2 targetVel, float projectileSpeed,
+            out Vector2 interceptVel)
         {
             var shooterPos = self.pos;
             var forward = self.Forward;
@@ -80,6 +85,12 @@ namespace Combat.Targeting
                 }
             }
 
+            // Range drifts at the true relative velocity, moving the root of a·t² + b·t + c.
+            var slope = 2f * a * t + b;
+            var tRate = t != 0f && Mathf.Abs(slope) >= eps
+                ? -2f * Vector2.Dot(targetVel - self.vel, relPos + relVel * t) / slope
+                : 0f;
+            interceptVel = targetVel * (1f + tRate);
             return targetPos + targetVel * t;
         }
 

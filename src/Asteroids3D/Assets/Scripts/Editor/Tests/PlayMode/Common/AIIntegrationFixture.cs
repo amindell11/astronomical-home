@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System.Collections.Generic;
 using AI;
+using AI.Gunnery;
 using NUnit.Framework;
 using Ships;
 using UnityEngine;
@@ -37,7 +38,8 @@ public abstract class AIIntegrationFixture : PlayModeWorldFixture
         base.TearDown();
     }
 
-    protected (Ship ship, AICommander cmdr) CreateAIShip(Vector3 position, int team, int decisionSeed = 0)
+    protected (Ship ship, AICommander cmdr) CreateAIShip(Vector3 position, int team, int decisionSeed = 0,
+        AimSettings aimSettings = null)
     {
         var ship = ShipTestFactory.CreateDefaultShipAt(position, Quaternion.identity, Projectiles, team: team, decisionSeed: decisionSeed);
         Assert.IsNotNull(ship, "Failed to create AI ship — check test asset paths");
@@ -52,6 +54,8 @@ public abstract class AIIntegrationFixture : PlayModeWorldFixture
         // The stripped test pilot authors no brain; ticking commanders need one installed.
         cmdr.InstallBrain<ArchetypeBrain>()
             .Configure(null, OpponentArchetype.Dummy, default, jukeSeed: 0, Vector2.zero, borderRadius: 0f);
+
+        if (aimSettings) cmdr.aimSettings = aimSettings;
 
         // Sensing wiring triggers TryInitializeSystems; these ships sense ships only, no obstacles.
         cmdr.SetSensing(registry, null);

@@ -1,5 +1,4 @@
 using System;
-using AI;
 using Ships;
 using UnityEngine;
 using Substrate;
@@ -81,9 +80,9 @@ namespace RL.Runtime
             var slots = weapons.Slots;
             for (var i = 0; i < slots.Count; i++)
             {
-                // Evaluate at the same per-slot intercept lead the gunner fires at, not the target's center.
-                var aimWorld = GamePlane.PlanePointToWorld(Gunner.AimPoint(
-                    in shooterKin, targetKin.pos, targetKin.vel, weapons.ProjectileSpeed(slots[i])));
+                // Evaluate at the same per-slot aim point the gunner fires at, not the target's center.
+                var aimWorld = GamePlane.PlanePointToWorld(
+                    weapons.AimPoint(slots[i], in shooterKin, targetKin.pos, targetKin.vel));
                 if (weapons.Sight(slots[i])?.InEnvelope(aimWorld) ?? false)
                     return true;
             }

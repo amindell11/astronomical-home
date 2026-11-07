@@ -35,7 +35,10 @@ namespace Ships.Damage
             myShip = GetComponent<Ship>();
             Health = new Resource(maxHealth);
             Shield = new RegenResource(maxShield, shieldRegenRate, shieldRegenDelay);
+            DamageableColliders.Register(this, GetComponentsInChildren<Collider>(true));
         }
+
+        private void OnDestroy() => DamageableColliders.Unregister(this);
 
         private void Update()
         {
@@ -112,5 +115,17 @@ namespace Ships.Damage
 
             ResetDamageState();
         }
+
+        /// <summary>A mid-run max change: the bars keep their fractions and the regen clock keeps running.</summary>
+        public void Rescale(ResolvedShipStats s)
+        {
+            maxHealth       = s.maxHealth;
+            maxShield       = s.maxShield;
+            shieldRegenDelay= s.shieldRegenDelay;
+            shieldRegenRate = s.shieldRegenRate;
+
+            Health.Rescale(maxHealth);
+            Shield.Rescale(maxShield, shieldRegenRate, shieldRegenDelay);
+        }
     }
-} 
+}

@@ -19,6 +19,7 @@ namespace Tests.PlayMode.Audio
         private const string SpawnSettingsPath = "Assets/Settings/Asteroids/SpawnSettings.asset";
         private const string FragSettingsPath = "Assets/Settings/Asteroids/FragSettings.asset";
         private const string BreakEvent = "event:/World/Asteroid/Break";
+        private const string HitEvent = "event:/World/Asteroid/Hit";
         private const float Scale = 1.65f;
 
         private GameObject holder;
@@ -55,6 +56,37 @@ namespace Tests.PlayMode.Audio
                 Assert.AreEqual(1, instances.Length, "one break per destroyed asteroid; its fragments play none");
                 Assert.Less(Vector3.Distance(Position(instances[0]), position), 0.01f, "played where the asteroid broke");
                 AssertPlaying(instances[0], "the break still sounds a frame later");
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator HitAsteroids_PlayOneHitEach_WhereTheHitLanded()
+        {
+            var spawner = NewSpawner(out var settings);
+            var info = settings.meshInfos[0];
+            var attributes = new AsteroidAttributes(info, 0, info.cachedVolume * Scale * Scale * Scale * settings.density,
+                Scale, Vector3.zero, Vector3.zero);
+            var rock = spawner.Spawn(new Pose(new Vector3(-20f, 0f, 0f), Quaternion.identity), attributes, 713);
+            yield return Flush();
+
+            var position = rock.transform.position;
+            var maxHealth = rock.Damage.MaxHealth;
+            foreach (var (amount, point, what) in new[]
+                     {
+                         (maxHealth * 0.1f, position + new Vector3(1.5f, 0f, 0f), "a hit it survives"),
+                         (maxHealth + 1, position + new Vector3(0f, 0f, -1.5f), "the hit that breaks it"),
+                     })
+            {
+                var hits = Fresh(HitEvent);
+                rock.Damage.TakeDamage(new DamageInfo(amount, DamageKind.Laser, ShipId.Invalid, 2,
+                    new Vector3(4, 1, 0), point));
+                yield return Flush();
+
+                var instances = Instances(hits);
+                Debug.Log($"[FMOD] {HitEvent} instances={instances.Length} after {what} at {point}");
+                Assert.AreEqual(1, instances.Length, $"one hit for {what}");
+                Assert.Less(Vector3.Distance(Position(instances[0]), point), 0.01f, "played where the hit landed");
+                AssertPlaying(instances[0], "the hit still sounds a frame later");
             }
         }
 

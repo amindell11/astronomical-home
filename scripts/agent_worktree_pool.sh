@@ -20,6 +20,7 @@ mkdir -p "$LOCK_ROOT"
 #   Acquire / release / prepare
 #   Hold / resume             held_snapshot, cmd_hold, cmd_resume
 #   Unity test runs           cmd_run_tests, restore_tracked_unity_changes, cmd_run_tests_clean
+#   Compile check             compile_check, cmd_compile_check, compile_check_preflight
 #   ReSharper ratchet         fingerprint + proof, cmd_run_resharper
 #   Script tests              cmd_run_script_tests, landing_diff_touches
 #   PR opening                flag grammar, gh helpers, push_and_open_pr, cmd_create_pr, cmd_submit
@@ -61,9 +62,9 @@ Commands:
         locked_at=<iso8601>     locked/stale only; when the lease was acquired
         last_used_at=<iso8601>  locked/stale only; the last acquire, resume or
                                 working command on the slot: prepare,
-                                run-tests, run-resharper, run-script-tests,
-                                create-pr, submit, revise, review-comments,
-                                merge. status and merge-progress are reads
+                                run-tests, compile-check, run-resharper,
+                                run-script-tests, create-pr, submit, revise,
+                                review-comments, merge. status and merge-progress are reads
                                 and never count as use. A lock with no
                                 last-use stamp reports its locked_at.
 
@@ -81,14 +82,20 @@ Commands:
       optional key being absent.
 
   acquire [lease_id] [slot]
-      Lock and return an available slot. Auto-pick prefers genuinely
-      free slots over stale-lock reclaims. Naming a slot is strict:
-      if it isn't free (or safely reclaimable) acquire FAILS — no
-      silent fallback to auto-pick.
+      Lock and return an available slot. The pool is the worktrees on
+      branches agent-1 through agent-8. Auto-pick prefers a free slot,
+      then a stale lock whose tree is safe to reset, then parks the
+      longest-idle leased slot that has no Unity editor and no merge
+      gate. Parking runs hold --local: the work stays on held/<lease>
+      in this clone, and the slot is prepared at origin/main for the
+      new lease. Park messages, including the HELD= line, go to stderr.
+      Naming a slot is strict: if it isn't free (or safely reclaimable)
+      acquire fails, with no fallback to another slot.
       A free slot is handed back prepared at origin/main (as prepare,
       keeping ignored dirs); when prepare refuses (the slot holds unpushed
-      work) acquire releases the slot untouched and fails - auto-pick does
-      not move on to another slot. A reclaimed stale slot is not prepared.
+      work) acquire releases the slot untouched and fails. Auto-pick does
+      not move on to another slot in that case. A reclaimed stale slot
+      is not prepared.
       Output: SLOT=<name> PATH=<abs-path>
       Lease mutation uses Perl flock on a stable per-slot .mutation file.
       Concurrent mutation returns nonzero. The OS lock releases when its
@@ -142,6 +149,36 @@ Commands:
   run-tests <slot> [unity_test_agent.ps1 args...]
       Run Unity tests in that slot with standardized outDir:
       results/unity-tests-agent
+      Runs compile-check first and prints its trailer. On fail it exits 2
+      before booting Unity, as the runner's own compile failure would; on
+      any other verdict the tests run.
+
+  compile-check <slot> [--refresh]
+      Compile every Unity assembly in the slot from the .cs files on disk
+      with dotnet build, without booting Unity
+      (scripts/unity_compile_check.ps1). It compiles the worktree pool's
+      snapshot of the slot's old-style (Rider package) project files,
+      kept with the build outputs under compile-check/<slot>/ beside the
+      lock root, so a check never writes into the slot and runs safely
+      beside a Unity editor or test run there.
+      --refresh first rebuilds the snapshot with one coordinated Unity
+      batch boot (about 40s warm). The boot needs a tree that compiles
+      and has no tracked changes (commit first). Run it on a slot's
+      first check and whenever the verdict is stale.
+      Compile errors go to stderr as Unity prints them:
+        Assets/<path>(<line>,<col>): error CS<n>: <message>
+      Stdout trailer: COMPILE_CHECK=<verdict> SECONDS=<wall seconds>, the
+      verdict one of
+        pass   exit 0
+        fail   exit 1, compile errors
+        error  exit 2: a failed refresh, no dotnet, a build failure with no
+               CS error, or an unknown slot
+        stale  exit 3: no snapshot yet; an asmdef, Packages/manifest.json,
+               Packages/packages-lock.json, ProjectVersion.txt or
+               ProjectSettings.asset changed since the snapshot; or a file
+               a snapshot project references is gone (a wiped Library)
+      Overlapping checks on one slot share its outputs, so either may end
+      in error; re-run it.
 
   run-resharper <slot> [base_ref]
       Run the Unity-aware ReSharper changed-line ratchet against base_ref
@@ -436,6 +473,7 @@ Examples:
   scripts/agent_worktree_pool.sh acquire task-123 agent-4
   scripts/agent_worktree_pool.sh prepare agent-1 origin/main
   scripts/agent_worktree_pool.sh run-tests agent-1 -Mode EditMode -ScopeType Smoke
+  scripts/agent_worktree_pool.sh compile-check agent-1 --refresh
   scripts/agent_worktree_pool.sh run-resharper agent-1 origin/main
   scripts/agent_worktree_pool.sh create-pr agent-1 --title "feat(x): add y" --body "## Summary\n..."
   scripts/agent_worktree_pool.sh review-comments agent-1
@@ -459,7 +497,7 @@ slots_tsv() {
       path = substr($0, 10)
       next
     }
-    /^branch refs\/heads\/agent-[0-9]+$/ {
+    /^branch refs\/heads\/agent-[1-8]$/ {
       branch = $0
       sub(/^branch refs\/heads\//, "", branch)
       print branch "\t" path
@@ -978,6 +1016,77 @@ claim_prepared_slot() {
   echo "$out"
 }
 
+# Unset asks the coordinator. "none" is the test double for an idle project.
+slot_unity_busy() {
+  local path="$1" owner
+  if [[ -n "${WORKTREE_POOL_UNITY_OWNER+x}" ]]; then
+    [[ "$WORKTREE_POOL_UNITY_OWNER" == "none" ]] && return 1
+    return 0
+  fi
+  owner="$(project_owner "$path")" || return 0
+  [[ -n "$owner" ]]
+}
+
+slot_merge_busy() {
+  local slot="$1" rc=0
+  with_flock "$LOCK_ROOT/$slot.merge" 0 "" true || rc=$?
+  [[ "$rc" -ne 0 ]]
+}
+
+# Runs under the slot's mutation lock, which claim and mark_slot_used also take.
+park_if_unchanged() {
+  local slot="$1" expected_lease="$2" expected_used="$3" current used
+  current="$(lease_for "$slot")"
+  used="$(lock_last_use "$(lock_dir_for "$slot")")"
+  if [[ "$current" != "$expected_lease" || "$used" != "$expected_used" ]]; then
+    echo "acquire: leaving $slot; its lease or last use changed." >&2
+    return 1
+  fi
+  hold_locked "$slot" --local >&2
+}
+
+# A full pool parks the longest-idle slot so the next lease reuses it.
+park_one_idle_slot() {
+  local new_lease="$1" list age slot path ldir lease age_s
+  list="$(mktemp)"
+  {
+    while IFS=$'\t' read -r slot path; do
+      ldir="$(lock_dir_for "$slot")"
+      [[ -d "$ldir" ]] || continue
+      lease="$(lease_for "$slot")"
+      [[ -n "$lease" ]] || continue
+      age_s="$(lock_age_seconds "$ldir")"
+      printf '%s\t%s\t%s\t%s\t%s\n' "$age_s" "$slot" "$path" "$lease" "$(lock_last_use "$ldir")"
+    done < <(slots_tsv)
+  } | sort -nr > "$list"
+  if [[ -n "${WORKTREE_POOL_BEFORE_PARK:-}" ]]; then
+    bash "$WORKTREE_POOL_BEFORE_PARK" "$list" || true
+  fi
+  while IFS=$'\t' read -r age slot path lease used; do
+    [[ -n "${slot:-}" ]] || continue
+    if slot_unity_busy "$path"; then
+      echo "acquire: leaving $slot; a Unity editor is using it." >&2
+      continue
+    fi
+    if slot_merge_busy "$slot"; then
+      echo "acquire: leaving $slot; a merge gate is running there." >&2
+      continue
+    fi
+    echo "acquire: parking $slot (idle ${age}s) for $new_lease." >&2
+    if ! with_flock "$LOCK_ROOT/$slot.merge" 0 "" with_slot_mutation "$slot" \
+        park_if_unchanged "$slot" "$lease" "$used"; then
+      echo "acquire: could not park $slot." >&2
+      continue
+    fi
+    if claim_prepared_slot "$slot" "$new_lease" "$path"; then
+      rm -f "$list"
+      return 0
+    fi
+  done < "$list"
+  rm -f "$list"
+  return 1
+}
+
 # resume claims lock-only: it resets the slot to its held snapshot itself.
 lock_slot() {
   local lease="$1" wanted="$2" claim="$3"
@@ -1001,7 +1110,10 @@ lock_slot() {
     try_reclaim_slot "$slot" "$lease" "$path" && return 0
   done < <(slots_tsv)
 
-  echo "No free slots" >&2
+  if park_one_idle_slot "$lease"; then
+    return 0
+  fi
+  echo "acquire: no free slot. agent-1 through agent-8 stay leased while a Unity editor or a merge gate is using them." >&2
   return 1
 }
 
@@ -1093,7 +1205,7 @@ held_snapshot() {
 }
 
 # Runs under the slot's .merge flock (see main): no merge gate is live, and none starts mid-hold.
-cmd_hold() {
+hold_locked() {
   local slot="$1" mode="${2:-}"
   local path lease branch snap where="origin" self="$SCRIPT_DIR/agent_worktree_pool.sh"
   case "$mode" in
@@ -1124,13 +1236,15 @@ cmd_hold() {
 
   # The snapshot is on its branch, so this reset destroys nothing.
   cmd_prepare "$slot" origin/main --force >&2
-  with_slot_mutation "$slot" release_slot "$slot" "$lease" >&2 || {
+  release_slot "$slot" "$lease" >&2 || {
     echo "hold: $slot was prepared but not released; the work is safe on $branch." >&2
     return 1
   }
   echo "Held $slot's work on $branch ($where); $slot is prepared and free." >&2
   echo "HELD=$lease RESUME=\"agent_worktree_pool.sh resume $lease\""
 }
+
+cmd_hold() { with_slot_mutation "$1" hold_locked "$@"; }
 
 cmd_resume() {
   local lease="$1" wanted="${2:-}"
@@ -1204,22 +1318,14 @@ cmd_run_tests() {
 }
 
 restore_tracked_unity_changes() {
-  local path="$1" action="$2" changes verdict diff
+  local path="$1" action="$2" changes diff
   changes="$(git -C "$path" status --porcelain --untracked-files=no 2>/dev/null)"
   [[ -n "$changes" ]] || return 0
 
-  # The analytics-churn allowlist has ONE owner (scripts/lib/unity_churn.ps1); a second copy of the
-  # regex here is exactly the drift the classifier exists to prevent. Both the verdict and the diff
-  # are captured BEFORE the restore - the restore is what destroys the evidence this error reports.
+  # Captured BEFORE the restore - the restore is what destroys the evidence this error reports.
   diff="$(git -C "$path" diff --unified=0 2>/dev/null || true)"
-  verdict="$(powershell.exe -NoProfile -ExecutionPolicy Bypass \
-    -File "$SCRIPT_DIR/lib/unity_churn.ps1" -WorktreePath "$path" 2>/dev/null || true)"
-
   git -C "$path" restore --worktree --source=HEAD -- .
 
-  case "$verdict" in
-    *'"knownChurn":true'*) return 0 ;;
-  esac
   echo "$action changed unexpected tracked files:" >&2
   printf '%s\n' "$changes" | head -n 20 >&2
   echo "--- diff, captured before the restore ---" >&2
@@ -1244,6 +1350,44 @@ run_tests_for_proof() {
   clear_run_summary "$path"
   cmd_run_tests_clean "$slot" "$@"
   record_tested_tree "$slot" "$path"
+}
+
+# ---- Compile check ---------------------------------------------------------
+COMPILE_CHECK_ROOT="${WORKTREE_POOL_COMPILE_CHECK_ROOT:-$ROOT/.worktree-pool/compile-check}"
+
+# Trailer COMPILE_CHECK=<verdict> SECONDS=<n>; the exit code is the script's (pass 0, fail 1, error 2, stale 3).
+compile_check() {
+  local slot="$1" path verdict rc=0 started=$SECONDS
+  shift
+  if ! path="$(slot_path "$slot")"; then
+    echo "compile-check: unknown slot '$slot'" >&2
+    echo "COMPILE_CHECK=error SECONDS=0"
+    return 2
+  fi
+  verdict="$(powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$path/scripts/unity_compile_check.ps1" \
+    -ProjectPath "$path/src/Asteroids3D" -StateDir "$COMPILE_CHECK_ROOT/$slot" "$@")" || rc=$?
+  echo "COMPILE_CHECK=${verdict:-error} SECONDS=$((SECONDS - started))"
+  return "$rc"
+}
+
+cmd_compile_check() {
+  local slot="$1"
+  shift
+  case "$*" in
+    "") compile_check "$slot" ;;
+    --refresh) compile_check "$slot" -Refresh ;;
+    *) echo "compile-check requires <slot> [--refresh]" >&2; return 2 ;;
+  esac
+}
+
+# Only fail stops run-tests: the check is a proxy, so Unity decides on every other verdict.
+compile_check_preflight() {
+  local rc=0
+  compile_check "$1" || rc=$?
+  if [[ "$rc" -eq 1 ]]; then
+    echo "run-tests: compile check failed; Unity was not booted." >&2
+    return 2
+  fi
 }
 
 # ---- ReSharper ratchet -----------------------------------------------------
@@ -3336,7 +3480,7 @@ main() {
 
   # Reads (status, merge-progress) never count as use: the dashboard runs both on every slot.
   case "$cmd" in
-    prepare|run-tests|run-resharper|run-script-tests|create-pr|submit|revise|review-comments|merge)
+    prepare|run-tests|compile-check|run-resharper|run-script-tests|create-pr|submit|revise|review-comments|merge)
       if [[ $# -ge 1 ]]; then mark_slot_used "$1"; fi
       ;;
   esac
@@ -3348,7 +3492,12 @@ main() {
     acquire) cmd_acquire "$@" ;;
     release) require_slot_arg "release requires <slot>" "$#"; cmd_release "$1" ;;
     prepare) require_slot_arg "prepare requires <slot> [base_ref]" "$#"; cmd_prepare "$@" ;;
-    run-tests) require_slot_arg "run-tests requires <slot> [args...]" "$#"; cmd_run_tests "$@" ;;
+    run-tests)
+      require_slot_arg "run-tests requires <slot> [args...]" "$#"
+      compile_check_preflight "$1" || exit $?
+      cmd_run_tests "$@"
+      ;;
+    compile-check) require_slot_arg "compile-check requires <slot> [--refresh]" "$#"; cmd_compile_check "$@" ;;
     run-resharper) require_slot_arg "run-resharper requires <slot> [base_ref]" "$#"; cmd_run_resharper "$@" ;;
     run-script-tests)
       require_slot_arg "run-script-tests requires <slot>" "$#"

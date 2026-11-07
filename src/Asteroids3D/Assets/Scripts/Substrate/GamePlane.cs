@@ -103,6 +103,12 @@ namespace Substrate
         public static Vector2 WorldDirToPlane(Vector3 worldDir) => Canonical.WorldDirToPlane(worldDir);
         public static Vector3 PlanePointToWorld(Vector2 planePt) => Canonical.PlanePointToWorld(planePt);
         public static Vector3 PlaneDirToWorld(Vector2 planeDir) => Canonical.PlaneDirToWorld(planeDir);
+
+        public static Vector3 WorldPointOnPlane(Vector3 worldPt) =>
+            PlanePointToWorld(WorldPointToPlane(worldPt));
+
+        public static Vector3 WorldDirOnPlane(Vector3 worldDir) =>
+            PlaneDirToWorld(WorldDirToPlane(worldDir).normalized);
     }
 
     public static class PlaneConstraints

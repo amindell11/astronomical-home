@@ -1692,8 +1692,6 @@ MonoBehaviour:
   - renderer: {fileID: 5451539294259599541}
     lifetime: 0.95
   poseRoots: []
-  explosionPrefab: {fileID: 4644404847865670880, guid: 2a4964647510e6049b128491375dbf1d,
-    type: 3}
   motion: {fileID: 2074753714519926415}
   lifetime: 1.4
   fadeDuration: 0.25

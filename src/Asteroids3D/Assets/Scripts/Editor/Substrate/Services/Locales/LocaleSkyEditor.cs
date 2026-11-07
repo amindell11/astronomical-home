@@ -5,9 +5,9 @@ using UnityEngine;
 namespace Substrate.Services.Locales
 {
     /// <summary>
-    /// Makes a <see cref="LocaleSky"/> root the one place its sky layers are edited together: each
-    /// child sky layer's GameObject checkbox, then its material through Unity's own
-    /// <see cref="MaterialEditor"/>, so variant override bars and Revert still work.
+    /// Makes a <see cref="LocaleSky"/> root the one place a locale is edited together: its lighting, then each
+    /// sky layer's GameObject checkbox and its material through Unity's own <see cref="MaterialEditor"/>, so variant
+    /// override bars and Revert still work.
     /// </summary>
     [CustomEditor(typeof(LocaleSky))]
     public sealed class LocaleSkyEditor : UnityEditor.Editor
@@ -16,13 +16,13 @@ namespace Substrate.Services.Locales
 
         public override void OnInspectorGUI()
         {
-            foreach (Transform child in ((LocaleSky)target).transform)
+            serializedObject.Update();
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("lighting"), true);
+            serializedObject.ApplyModifiedProperties();
+            foreach (var renderer in ((LocaleSky)target).GetComponentsInChildren<Renderer>(true))
             {
-                var renderer = child.GetComponent<Renderer>();
-                if (!renderer)
-                    continue;
                 EditorGUILayout.Space();
-                DrawActiveToggle(child.gameObject);
+                DrawActiveToggle(renderer.gameObject);
                 var material = renderer.sharedMaterial;
                 if (!material)
                     continue;

@@ -1,5 +1,7 @@
 using System;
 using AI.Context;
+using AI.Gunnery;
+using AI.Navigation.MPC;
 using Combat;
 using Combat.Weapons;
 using Movement;
@@ -7,6 +9,7 @@ using Ships.Command;
 using UnityEngine;
 using Combat.Targeting;
 using Substrate;
+using Utils;
 
 namespace AI
 {
@@ -16,6 +19,7 @@ namespace AI
         internal IWeaponContext weapons;
         private IWeapons actuator;
         private Func<Kinematics> pose;
+        private AimPerception perception;
 
         private Vector2 targetPos;
         private Vector2 targetVel;
@@ -27,15 +31,18 @@ namespace AI
         internal Vector3 Target { get; private set; }
         public bool HasTarget => hasTarget;
 
-        /// <summary>Muzzle speed of the primary weapon, used by the navigator for intercept lead.</summary>
-        public float PrimaryProjectileSpeed => weapons?.ProjectileSpeed(WeaponSlot.Primary) ?? 0f;
         private void ClearTarget() => Target = Vector3.zero;
 
-        public void Initialize(IWeaponContext weapons, IWeapons actuator, Func<Kinematics> poseFunc)
+        public void Initialize(IWeaponContext weapons, IWeapons actuator, Func<Kinematics> poseFunc,
+            AimSettings aimSettings, SeedScope aimScope)
         {
+            if (!aimSettings)
+                throw new ArgumentNullException(nameof(aimSettings),
+                    $"{name}: an armed AI pilot needs AimSettings, assigned on its AICommander.");
             this.weapons = weapons;
             this.actuator = actuator;
             pose = poseFunc;
+            perception = new AimPerception(aimSettings, aimScope);
         }
 
         /// <summary>Drops the tracked target and aim point, restoring the freshly-initialized gunner.</summary>
@@ -46,6 +53,7 @@ namespace AI
             targetVel = default;
             prevPrimaryHeld = false;
             prevSecondaryHeld = false;
+            perception?.Reset();
             ClearTarget();
         }
 
@@ -73,34 +81,57 @@ namespace AI
             actuator.Fire(slot, cmd);
         }
 
-        /// <summary>The gunner's aim policy for one weapon: intercept lead from its muzzle speed; non-positive speed = hitscan, aim at the present position.</summary>
+        /// <summary>The default intercept lead from a muzzle speed; non-positive speed = hitscan, aim at the present position.</summary>
         public static Vector2 AimPoint(in Kinematics shooterPose, Vector2 targetPos, Vector2 targetVel, float projectileSpeed) =>
-            projectileSpeed <= 0f
-                ? targetPos
-                : TargetingMath.PredictIntercept(in shooterPose, targetPos, targetVel, projectileSpeed);
+            AimPoint(in shooterPose, targetPos, targetVel, projectileSpeed, out _);
+
+        private static Vector2 AimPoint(in Kinematics shooterPose, Vector2 targetPos, Vector2 targetVel, float projectileSpeed,
+            out Vector2 aimVel)
+        {
+            if (projectileSpeed > 0f)
+                return TargetingMath.PredictIntercept(in shooterPose, targetPos, targetVel, projectileSpeed, out aimVel);
+            aimVel = targetVel;
+            return targetPos;
+        }
+
+        /// <summary>Bearing to the primary weapon's aim point and its rate; none without a target.</summary>
+        public AimReference PrimaryAimReference()
+        {
+            if (!hasTarget) return AimReference.None;
+
+            var self = pose();
+            var toAim = AimPoint(in self, targetPos, targetVel, weapons.ProjectileSpeed(WeaponSlot.Primary),
+                out var aimVel) - self.pos;
+            var rangeSq = toAim.sqrMagnitude;
+            // On top of the aim point the bearing is undefined.
+            if (rangeSq < 0.01f) return AimReference.None;
+
+            var relVel = aimVel - self.vel;
+            return new AimReference(Mathf.Atan2(-toAim.x, toAim.y),
+                (toAim.x * relVel.y - toAim.y * relVel.x) / rangeSq);
+        }
 
         internal Vector3 AimPointFor(WeaponSlot slot)
         {
             if (pose == null)
                 return GamePlane.PlanePointToWorld(targetPos);
 
-            return GamePlane.PlanePointToWorld(
-                AimPoint(pose(), targetPos, targetVel, weapons.ProjectileSpeed(slot)));
+            return GamePlane.PlanePointToWorld(weapons.AimPoint(slot, pose(), targetPos, targetVel));
         }
 
-        /// <summary>Consumes the fire lane's anchor (mirrors <c>Navigator.ApplyObjective</c>): stores enemy kinematics for per-slot firing solutions.</summary>
-        public void Aim(in EnemyTarget anchor) => Aim(anchor.kinematics.pos, anchor.kinematics.vel);
-
-        /// <summary>The AIM-referent swap's entry: any resolved referent's plane kinematics (a rock aims exactly like a ship — same intercept policy, no new fire machinery).</summary>
-        public void Aim(Vector2 referentPos, Vector2 referentVel)
+        /// <summary>Stores the fire lane's anchor as perceived, for per-slot firing solutions and the aim reference.</summary>
+        public void Aim(in EnemyTarget anchor)
         {
             if (pose == null) return;
 
-            targetPos = referentPos;
-            targetVel = referentVel;
+            perception.Perceive(pose(), in anchor, Time.fixedTimeAsDouble, out targetPos, out targetVel);
             hasTarget = true;
             Target = AimPointFor(WeaponSlot.Primary);
         }
+
+        /// <summary>The AIM-referent swap's entry: a rock gets the same perception and lead as a ship.</summary>
+        public void Aim(Vector2 referentPos, Vector2 referentVel) =>
+            Aim(new EnemyTarget { kinematics = new Kinematics(referentPos, referentVel, 0f, 0f, 0f) });
 
         /// <summary>Drops the aim without dropping the weapons: the slots stay the gunner's, it just has nothing to shoot at.</summary>
         public void HoldFire()

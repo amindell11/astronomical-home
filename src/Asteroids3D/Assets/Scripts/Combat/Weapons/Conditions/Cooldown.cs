@@ -1,5 +1,6 @@
 using Balance;
 using System;
+using Combat.Weapons.Mods;
 using UnityEngine;
 
 namespace Combat.Weapons.Conditions
@@ -16,9 +17,9 @@ namespace Combat.Weapons.Conditions
         public event Action OnCooldownStart;
         public event Action OnCooldownReady;
 
-        public float SecondsBetweenShots => fireRate;
+        public float SecondsBetweenShots => mods.Apply(WeaponModField.FireRate, fireRate);
         public float CooldownRemaining => Mathf.Max(0, nextFireTime - clock);
-        public float CooldownPercentage => fireRate > 0 ? CooldownRemaining / fireRate : 0f;
+        public float CooldownPercentage => SecondsBetweenShots > 0 ? CooldownRemaining / SecondsBetweenShots : 0f;
 
         private void FixedUpdate()
         {
@@ -42,7 +43,7 @@ namespace Combat.Weapons.Conditions
 
         public override void ProcessFire()
         {
-            nextFireTime = clock + fireRate;
+            nextFireTime = clock + SecondsBetweenShots;
             OnCooldownStart?.Invoke();
             wasOnCooldown = true;
         }

@@ -5,13 +5,13 @@ using UnityEngine;
 namespace Ships.Keystones.Kits
 {
     /// <summary>
-    /// Valis's kit: no impulse, a window in which the ship's speed cap and forward thrust are raised.
-    /// The ship reads the scales live (rigidbody cap, thrust, and the dynamics the solver plans with);
+    /// Valis's kit raises speed, forward thrust, turning and lateral thrust during its active window.
+    /// The ship reads the scales live in its physics and the dynamics the solver plans with;
     /// after the window the cap bleeds back down, so the speed it built is the kit's cost to shed.
     /// </summary>
     public sealed class Overdrive : Keystone
     {
-        [Tooltip("Seconds after activation during which the cap and thrust stay raised.")]
+        [Tooltip("Seconds after activation during which speed, thrust and maneuverability stay raised.")]
         [Stat, SerializeField] private float window = 3f;
 
         [Tooltip("Multiplier on the speed cap during the window.")]
@@ -19,6 +19,9 @@ namespace Ships.Keystones.Kits
 
         [Tooltip("Multiplier on forward thrust during the window; must lift drag-limited top speed past the raised cap.")]
         [Stat, SerializeField] private float thrustScale = 1.5f;
+
+        [Tooltip("Multiplier on yaw torque, maximum yaw rate and lateral thrust during the window.")]
+        [Stat, SerializeField] private float maneuverabilityScale = 1.5f;
 
         [Tooltip("Fraction of the cap the navigator must ask for before an AI fires.")]
         [Stat, SerializeField] private float sightSaturation = 0.8f;
@@ -28,6 +31,7 @@ namespace Ships.Keystones.Kits
         public override bool Active => SinceActivation < window;
         public override float SpeedScale => Active ? speedScale : 1f;
         public override float ThrustScale => Active ? thrustScale : 1f;
+        public override float ManeuverabilityScale => Active ? maneuverabilityScale : 1f;
         public override float PeakSpeedScale => speedScale;
         public override float PeakThrustScale => thrustScale;
 

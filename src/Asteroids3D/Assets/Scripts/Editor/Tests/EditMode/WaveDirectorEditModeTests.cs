@@ -1,13 +1,20 @@
+using System.Linq;
+using System.Text.RegularExpressions;
 using Combat.Weapons;
 using NUnit.Framework;
-using Ships.Loadout;
+using Ships;
+using Substrate.Sectors;
 using Substrate.Sectors.Elements;
+using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Phases;
+using Substrate.Sectors.Factions;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Tests.EditMode
 {
-    /// <summary>Wave director pacing over a sector phase table with injected time: each phase opens once, its interval gates cadence and its cap gates count, a lull spawns nothing, and the done table keeps the last phase's pacing. Loadout draws come from the pool in force and leave the second mount empty.</summary>
+    /// <summary>Wave director pacing over a sector phase table with injected time: each phase opens once, its interval gates cadence and its cap gates count, a lull (the opening one too) spawns nothing, and the done table keeps the last phase's pacing. The threat read lists the roster's ships and the weapons they fly, their faction kits when the sector names a faction, off a prefab asset too. Validation refuses a director that misses its spine's elite.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class WaveDirectorEditModeTests
@@ -95,6 +102,24 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void OpeningLull_OpensAndSpawnsNothing_ThenPhaseOneOpensAtItsEnd()
+        {
+            _director.Configure(null, Phases(), Lull, openingLullSeconds: 5f);
+            _director.BeginSchedule(0f);
+
+            _director.Advance(0f);
+            Assert.IsTrue(_director.Phase.InLull, "The sector opens in a lull.");
+            Assert.IsFalse(_director.OpensPhase(), "The opening lull opens nothing.");
+            _director.Advance(4.9f);
+            Assert.IsFalse(_director.OpensPhase());
+            Assert.IsFalse(_director.SpawnDue(4.9f, 0), "The opening lull spawns nothing, whatever is due.");
+
+            _director.Advance(5f);
+            Assert.AreEqual(0, _director.Phase.Index);
+            Assert.IsTrue(_director.OpensPhase(), "Phase one opens as the opening lull ends.");
+        }
+
+        [Test]
         public void DoneTable_KeepsTheLastPhasesPacing()
         {
             _director.Advance(500f);
@@ -106,41 +131,80 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void PoolFor_PrefersThePhasesPool_OverTheDirectors()
+        public void Threat_ListsEachRosterShipOnce_AndTheFactionKitEachFlies()
         {
-            var directorPool = ScriptableObject.CreateInstance<ItemSubset>();
-            var phasePool = ScriptableObject.CreateInstance<ItemSubset>();
-            var phases = Phases();
-            phases[0].loadouts = phasePool;
-            _director.Configure(null, phases, Lull, loadouts: directorPool);
+            var valis = new GameObject("Valis").AddComponent<Ship>();
+            var crimson = new GameObject("Crimson").AddComponent<Ship>();
+            var lasers = _go.AddComponent<PoolWeapon>();
+            var rippers = _go.AddComponent<PoolWeapon>();
+            var faction = ScriptableObject.CreateInstance<Faction>();
+            faction.signature = new FactionShip { ship = valis, kit = rippers };
+            faction.common = new FactionShip { ship = crimson, kit = lasers };
+            var sectorFaction = _go.AddComponent<SectorFaction>();
+            sectorFaction.Bind(faction);
+            _director.Configure(new[]
+            {
+                new WaveDirector.RosterEntry { template = crimson },
+                new WaveDirector.RosterEntry { template = valis },
+                new WaveDirector.RosterEntry { template = crimson },
+            }, Phases(), Lull, faction: sectorFaction);
 
-            Assert.AreSame(phasePool, _director.PoolFor(phases[0]));
-            Assert.AreSame(directorPool, _director.PoolFor(phases[1]), "A phase naming no pool uses the director's.");
+            var threat = _director.Threat();
 
-            Object.DestroyImmediate(directorPool);
-            Object.DestroyImmediate(phasePool);
+            CollectionAssert.AreEqual(new[] { crimson, valis }, threat.Ships, "a ship two pilots fly is listed once");
+            CollectionAssert.AreEqual(new WeaponComponent[] { lasers, rippers }, threat.Weapons, "each ship's faction kit, in roster order");
+
+            Object.DestroyImmediate(faction);
+            Object.DestroyImmediate(valis.gameObject);
+            Object.DestroyImmediate(crimson.gameObject);
         }
 
         [Test]
-        public void Draw_StaysInsidePool_AndLeavesTheSecondMountEmpty()
+        public void Threat_WithNoFaction_ListsTheRosterShipsAuthoredWeapons()
         {
-            var pool = ScriptableObject.CreateInstance<ItemSubset>();
-            pool.shields = new[] { ScriptableObject.CreateInstance<ShieldModule>(), ScriptableObject.CreateInstance<ShieldModule>() };
-            pool.weapons = new WeaponComponent[]
-            {
-                _go.AddComponent<PoolWeapon>(), _go.AddComponent<PoolWeapon>(), _go.AddComponent<PoolWeapon>(),
-            };
+            var ship = AssetDatabase.LoadAssetAtPath<Ship>("Assets/Prefabs/Ships/Vanguard.prefab");
+            _director.Configure(new[] { new WaveDirector.RosterEntry { template = ship } }, Phases(), Lull);
 
-            for (var i = 0; i < 200; i++)
-            {
-                var draw = WaveDirector.Draw(null, pool);
-                CollectionAssert.Contains(pool.shields, draw.Shield);
-                CollectionAssert.Contains(pool.weapons, draw.PrimaryWeapon);
-                Assert.IsFalse(draw.SecondaryWeapon, "Products fly primary-only.");
-            }
+            var threat = _director.Threat();
 
-            foreach (var module in pool.shields) Object.DestroyImmediate(module);
-            Object.DestroyImmediate(pool);
+            CollectionAssert.AreEqual(new[] { ship }, threat.Ships);
+            CollectionAssert.AreEqual(
+                new[] { ship.Weapons.PrimaryMountPrefab, ship.Weapons.SecondaryMountPrefab }.Where(weapon => weapon),
+                threat.Weapons, "products fly their template's authored build");
+            Assert.IsNotEmpty(threat.Weapons);
+        }
+
+        [Test]
+        public void Threat_ReadsOffTheSectorPrefabAsset_BeforeItLoads()
+        {
+            var sector = AssetDatabase.LoadAssetAtPath<Sector>("Assets/Prefabs/Sectors/TrialSector2.prefab");
+            var threat = sector.Module<PhaseSpineModule>().Threat();
+
+            Assert.IsNotEmpty(threat.Ships);
+            Assert.IsNotEmpty(threat.Weapons);
+            CollectionAssert.AllItemsAreUnique(threat.Ships);
+            CollectionAssert.AllItemsAreUnique(threat.Weapons);
+        }
+
+        [Test]
+        public void Validation_RefusesADirectorThatMissesItsSpinesElite()
+        {
+            var sector = new GameObject("Sector");
+            _go.transform.SetParent(sector.transform, false);
+            var encounter = new GameObject("Elite").AddComponent<EliteEncounter>();
+            encounter.transform.SetParent(sector.transform, false);
+            sector.AddComponent<PhaseSpineModule>().Bind(_director, null, null, elite: encounter);
+            using var serialized = new SerializedObject(_director);
+
+            LogAssert.Expect(LogType.Exception, new Regex("must watch its spine's elite"));
+            serialized.FindProperty("team").intValue = 2;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+
+            serialized.FindProperty("elite").objectReferenceValue = encounter;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            LogAssert.NoUnexpectedReceived();
+
+            Object.DestroyImmediate(sector);
         }
 
         private sealed class PoolWeapon : WeaponComponent

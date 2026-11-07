@@ -27,10 +27,6 @@ namespace Tests.EditMode
             AssertGroupMatchesProject("chassis", catalog.Chassis, PrefabsWithRoot<Ship>());
 
         [Test]
-        public void Shields_ListEveryShieldModuleAsset() =>
-            AssertGroupMatchesProject("shields", catalog.Shields, AssetsOfType<ShieldModule>());
-
-        [Test]
         public void Weapons_ListEveryPrefabWithARootWeaponComponent() =>
             AssertGroupMatchesProject("weapons", catalog.Weapons, PrefabsWithRoot<WeaponComponent>());
 
@@ -41,11 +37,6 @@ namespace Tests.EditMode
             AssetDatabase.FindAssets("t:Prefab", new[] { "Assets" })
                 .Select(AssetDatabase.GUIDToAssetPath)
                 .Where(path => path != ShipBasePath && AssetDatabase.LoadAssetAtPath<GameObject>(path).GetComponent<T>())
-                .ToList();
-
-        private static List<string> AssetsOfType<T>() where T : ScriptableObject =>
-            AssetDatabase.FindAssets($"t:{typeof(T).Name}", new[] { "Assets" })
-                .Select(AssetDatabase.GUIDToAssetPath)
                 .ToList();
 
         private static void AssertGroupMatchesProject<T>(string group, IReadOnlyList<T> entries, List<string> scanned)

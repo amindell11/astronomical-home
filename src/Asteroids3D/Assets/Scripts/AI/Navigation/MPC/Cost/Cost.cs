@@ -49,7 +49,12 @@ namespace AI.Navigation.MPC
                 var sentence = input.sentence;
 
                 float facingTarget, facingWeightScale;
-                if (sentence.aim.armed)
+                if (sentence.aim.armed && input.aimReference.live)
+                {
+                    facingTarget = ReferenceHeadingAt(input.aimReference, stepTime);
+                    facingWeightScale = sentence.aim.weight;
+                }
+                else if (sentence.aim.armed)
                 {
                     // An AIM with no live referent collapses to NaN (FacingCost 0) — the priors carry delegation.
                     facingTarget = ResolveReferent(sentence.aim.referent, input, hasEnemy,
@@ -143,6 +148,13 @@ namespace AI.Navigation.MPC
                         yaw = enemyYaw;
                         return hasEnemy;
                 }
+            }
+
+            // Rounds rather than WrapRadians: a fast bearing rate over the horizon can unwind past one turn.
+            private static float ReferenceHeadingAt(in AimReference reference, float stepTime)
+            {
+                var heading = reference.heading + reference.rate * stepTime;
+                return heading - TwoPi * math.round(heading / TwoPi);
             }
 
             private static bool Extrapolate(in ReferentSnapshot snapshot, float stepTime,

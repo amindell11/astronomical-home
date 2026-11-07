@@ -98,7 +98,7 @@ namespace Combat.Projectiles
 
         protected bool TryGetHitTarget(Collider other, out IDamageable target)
         {
-            target = other.GetComponentInParent<IDamageable>();
+            DamageableColliders.TryGet(other, out target);
             var shooterComponent = Shooter as Component;
             if (target == null || !shooterComponent) return false;
             if (other.attachedRigidbody && other.attachedRigidbody == Shooter.Body) return false;
@@ -114,7 +114,7 @@ namespace Combat.Projectiles
             rb.angularVelocity = Vector3.zero;
         }
 
-        /// <summary>Per-shot multiplier set by the firing weapon after launch (charge-scaled shots); resets to 1 on pool return.</summary>
+        /// <summary>Per-shot multiplier set by the firing weapon after launch (its damage mods); resets to 1 on pool return.</summary>
         public void SetDamageScale(float scale)
         {
             damageScale = Mathf.Max(0f, scale);

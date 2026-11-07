@@ -24,15 +24,13 @@ namespace AI.Context
         }
 
         public Ship Enemy => cachedEnemy;
-        public bool HasEnemy => cachedEnemy && cachedEnemy.gameObject.activeInHierarchy;
+        public bool HasEnemy => cachedEnemy && cachedEnemy.gameObject.activeInHierarchy && !cachedEnemy.Lock.IsConcealed;
         public bool InCombat => HasEnemy || TimeSinceCombat < combatExitDelay;
         public float TimeSinceCombat { get; private set; } = float.MaxValue;
 
         public Vector2 EnemyPos => HasEnemy ? cachedEnemy.Kinematics.pos : Vector2.zero;
         public Vector2 EnemyVel => HasEnemy ? cachedEnemy.Kinematics.vel : Vector2.zero;
-        public Movement.Dynamics EnemyDynamics => HasEnemy ? cachedEnemy.Dynamics : default;
         public Vector2 EnemyForward => HasEnemy ? cachedEnemy.Kinematics.Forward : Vector2.up;
-        public float EnemyYawRate => HasEnemy ? cachedEnemy.Kinematics.yawRate : 0f;
         public float EnemyHealthPct => HasEnemy ? cachedEnemy.HealthPct : 0f;
         public float EnemyShieldPct => HasEnemy ? cachedEnemy.ShieldPct : 0f;
 
@@ -40,7 +38,7 @@ namespace AI.Context
         {
             simTime += deltaTime;
 
-            if (cachedEnemy == null || !cachedEnemy.gameObject.activeInHierarchy)
+            if (!HasEnemy)
             {
                 cachedEnemy = null;
                 AcquireEnemy();

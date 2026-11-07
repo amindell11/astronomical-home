@@ -5,6 +5,7 @@ using Combat.Projectiles;
 using Damage;
 using NUnit.Framework;
 using Substrate;
+using Tests.Common;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -51,6 +52,8 @@ namespace Tests.PlayMode
                 Hits++;
                 return 0f;
             }
+
+            private void OnDestroy() => DamageableColliders.Unregister(this);
         }
 
         public override void TearDown()
@@ -127,7 +130,9 @@ namespace Tests.PlayMode
             var sphere = go.AddComponent<SphereCollider>();
             sphere.isTrigger = true;
             sphere.radius = TargetRadius;
-            return go.AddComponent<DamageRecorder>();
+            var recorder = go.AddComponent<DamageRecorder>();
+            DamageableColliderRegistration.Register(recorder);
+            return recorder;
         }
 
         // Starts half a step short of the target so one step straddles it.

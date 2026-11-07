@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System.Collections;
 using System.Collections.Generic;
+using AI.Navigation.MPC;
 using NUnit.Framework;
 using Ships.Command;
 using Tests.PlayMode.Common;
@@ -42,7 +43,7 @@ namespace Tests.PlayMode
             cmdr.Navigator.SetVelocityReference(CommandedVelocity);
             var plan = new PilotCommand[SolvesPerPlan];
             for (var i = 0; i < SolvesPerPlan; i++)
-                plan[i] = cmdr.Navigator.ComputeCommand();
+                plan[i] = cmdr.Navigator.ComputeCommand(AimReference.None);
             return plan;
         }
 

@@ -2,11 +2,12 @@
 // bus:/World (scaffold_hud.js creates it):
 //   bank:/Weapons  event:/Weapons/{Laser,TurboLaser,ChargeLaser,Ripper}/Impact   3D one-shots
 //   bank:/Ships    event:/Ships/{ShieldHit,HullHit,Death,CollisionDeath}          3D one-shots
-//   bank:/World    event:/World/Asteroid/Break                                    3D one-shot
+//   bank:/World    event:/World/Asteroid/{Hit,Break}                              3D one-shots
 //                  event:/World/Ambience                                          2D loop
 // 3D events take the weapon events' max distance of 115 plane units. Placeholders are clips under
 // Assets/, imported in place when the project lacks them, because an empty event stops on its first
-// update. Idempotent: anything already present is left as the designer has it.
+// update. An event given several clips plays one per trigger, with pitch and volume randomized.
+// Idempotent: anything already present is left as the designer has it.
 //
 // Lives outside audio/fmod/Scripts/: Studio evaluates every script there on each project load.
 // Run only while FMOD Studio is closed: the CLI discards the open GUI's unsaved-changes backup.
@@ -16,6 +17,8 @@ var project = studio.project;
 var workspace = project.workspace;
 var assetDir = __dirname + "/../fmod/Assets/";
 var maxDistance = 115;
+var pitchSpreadSemitones = 2;
+var volumeSpreadDb = 3;
 
 var world = project.lookup("bus:/World");
 if (!world) throw new Error("bus:/World is missing: run scaffold_hud.js first");
@@ -59,6 +62,19 @@ function clip(assetPath) {
     return imported;
 }
 
+function addVariedSound(event, assetPaths) {
+    var audios = assetPaths.map(clip);
+    var length = Math.max.apply(null, audios.map(function (audio) { return audio.length; }));
+    var multi = event.addGroupTrack("Cue").addSound(event.timeline, "MultiSound", 0, length);
+    audios.forEach(function (audio) {
+        var single = project.create("SingleSound");
+        single.audioFile = audio;
+        multi.relationships.sounds.add(single);
+    });
+    multi.addModulator("RandomizerModulator", "pitch").amount = pitchSpreadSemitones;
+    multi.addModulator("RandomizerModulator", "volume").amount = volumeSpreadDb;
+}
+
 // Creation, placeholder, bank and routing all happen only for a new event, so a designed one is untouched.
 function ensureEvent(path, spatial, looping, assetPath, assigned) {
     var existing = project.lookup(path);
@@ -68,7 +84,14 @@ function ensureEvent(path, spatial, looping, assetPath, assigned) {
     var created = workspace.addEvent(name, spatial);
     created.folder = folderPath(parts);
     if (spatial) created.automatableProperties.maximumDistance = maxDistance;
+    created.relationships.banks.add(assigned);
+    created.mixerInput.output = world;
 
+    if (Array.isArray(assetPath)) {
+        addVariedSound(created, assetPath);
+        console.log("created " + path + " with " + assetPath.join(", ") + " in bank:/" + assigned.name);
+        return created;
+    }
     var audio = clip(assetPath);
     var sound = created.addGroupTrack("Cue").addSound(created.timeline, "SingleSound", 0, audio.length);
     sound.audioFile = audio;
@@ -80,8 +103,6 @@ function ensureEvent(path, spatial, looping, assetPath, assigned) {
         region.timeline = created.timeline;
         region.markerTrack = created.markerTracks.length > 0 ? created.markerTracks[0] : created.addMarkerTrack();
     }
-    created.relationships.banks.add(assigned);
-    created.mixerInput.output = world;
     console.log("created " + path + " with " + audio.assetPath + " in bank:/" + assigned.name);
     return created;
 }
@@ -97,6 +118,8 @@ ensureEvent("event:/Ships/ShieldHit", true, false, "Sfx/Impacts/shield_hit_1.wav
 ensureEvent("event:/Ships/HullHit", true, false, "Sfx/Impacts/hull_thud_main.wav", ships);
 ensureEvent("event:/Ships/Death", true, false, "Sfx/Explosions/ship_explosion.wav", ships);
 ensureEvent("event:/Ships/CollisionDeath", true, false, "rockExplosion1.wav", ships);
+ensureEvent("event:/World/Asteroid/Hit", true, false,
+    ["Sfx/Impacts/rock_hit.wav", "Sfx/Impacts/rock_hit_2.wav", "Sfx/Impacts/rock_hit_3.wav"], worldBank);
 ensureEvent("event:/World/Asteroid/Break", true, false, "Sfx/Explosions/asteroid_explosion.wav", worldBank);
 ensureEvent("event:/World/Ambience", false, true, "Sfx/Ambience/spaceAmbience1.mp3", worldBank);
 

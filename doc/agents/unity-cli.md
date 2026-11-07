@@ -79,14 +79,12 @@ JSON string; `--result-only` returns it parsed.
 ## Moving assets
 
 `AssetDatabase.MoveAsset` in a live editor keeps every GUID (each `.meta` diffs
-as git `R100`), and `EditorBuildSettings.asset` follows a moved scene. Three
+as git `R100`), and `EditorBuildSettings.asset` follows a moved scene. Two
 references are keyed by path or name and stay behind; update them in the same
 diff:
 
 - `Settings/Rendering/Build Profiles/*.asset` `m_Scenes`: `m_path` only, no
   GUID, so the profile keeps listing the old path.
-- A `SceneReference`'s baked `sceneName`: `SceneReferenceDrawer` re-bakes it
-  only when the inspector draws the field, so set it in the `.asset`.
 - String paths and scene names in code, tests and `art/` tool scripts and
   READMEs: `git grep` the old path.
 

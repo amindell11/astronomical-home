@@ -8,6 +8,12 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 393807887964278560, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: settings
+      value: 
+      objectReference: {fileID: 11400000, guid: ec31aa679f82416fb7b89fe199eb3ccb,
+        type: 2}
     - target: {fileID: 464567137062519928, guid: 35f72eeaa8adb4c43832be646409d034,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -75,6 +81,21 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
         type: 3}
+      propertyPath: phases.Array.data[0].seconds
+      value: 40
+      objectReference: {fileID: 0}
+    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: phases.Array.data[1].seconds
+      value: 30
+      objectReference: {fileID: 0}
+    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: phases.Array.data[2].seconds
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
       propertyPath: phases.Array.data[0].interval
       value: 5
       objectReference: {fileID: 0}
@@ -93,6 +114,39 @@ PrefabInstance:
       propertyPath: m_Name
       value: TrialSector2
       objectReference: {fileID: 0}
+    - target: {fileID: 7436810692243587915, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: patrolCount
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: roster.Array.data[0].template
+      value: 
+      objectReference: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637,
+        type: 3}
+    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: roster.Array.data[1].template
+      value: 
+      objectReference: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637,
+        type: 3}
+    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: roster.Array.data[1].pilot
+      value: 
+      objectReference: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
+        type: 3}
+    - target: {fileID: 4201520510818603066, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: profile
+      value: 
+      objectReference: {fileID: 11400000, guid: 21315f95bf1e425ba68af48ed9c9bee1, type: 2}
+    - target: {fileID: 4667602915908898981, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: faction
+      value: 
+      objectReference: {fileID: 11400000, guid: d2f3d0db478d4212936af9c856faf5c8, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

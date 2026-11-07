@@ -2,7 +2,7 @@ name: merge-reconcile
 
 # Runs on pushes to main only (the pool script's squash merges and docs-only landings): no
 # pull_request trigger, so fork PRs never run it or reach its secrets. Comments go out under
-# GITHUB_TOKEN and never trigger a workflow; the board's Done mutation needs PROJECTS_TOKEN.
+# GITHUB_TOKEN and never trigger a workflow.
 on:
   push:
     branches: [main]
@@ -41,7 +41,6 @@ jobs:
       - name: Reconcile
         env:
           GH_TOKEN: ${{ github.token }}
-          PROJECTS_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
           SHA: ${{ inputs.sha }}
           DRY_RUN: ${{ inputs.dry_run }}
         run: |

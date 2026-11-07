@@ -81,6 +81,47 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void Reload_PartialMagazine_DumpsRoundsAndRefillsAfterReloadTime()
+        {
+            rounds.Configure(maxAmmo: 3, reloadTime: 1f);
+            rounds.ProcessFire();
+
+            rounds.Reload();
+
+            Assert.IsTrue(rounds.IsReloading);
+            Assert.AreEqual(0, rounds.AmmoCount, "the rounds left are dumped");
+            Assert.IsFalse(rounds.CanFire());
+
+            rounds.Tick(1.1f);
+            Assert.IsFalse(rounds.IsReloading);
+            Assert.AreEqual(3, rounds.AmmoCount);
+        }
+
+        [Test]
+        public void Reload_FullMagazine_DoesNothing()
+        {
+            rounds.Configure(maxAmmo: 3, reloadTime: 1f);
+
+            rounds.Reload();
+
+            Assert.IsFalse(rounds.IsReloading);
+            Assert.AreEqual(3, rounds.AmmoCount);
+        }
+
+        [Test]
+        public void Reload_PerRoundRefill_DoesNothing()
+        {
+            rounds.Configure(maxAmmo: 3, reloadTime: 1f, Rounds.RefillMode.PerRound);
+            rounds.ProcessFire();
+
+            rounds.Reload();
+
+            Assert.AreEqual(2, rounds.AmmoCount, "per-round refill keeps its rounds");
+            rounds.Tick(1f);
+            Assert.AreEqual(3, rounds.AmmoCount, "the spent round still returns on its own timer");
+        }
+
+        [Test]
         public void Reset_CancelsReloadAndRefills()
         {
             rounds.Configure(maxAmmo: 2, reloadTime: 5f);
@@ -131,6 +172,82 @@ namespace Tests.EditMode
 
             rounds.Tick(1f);
             Assert.AreEqual(0f, rounds.ReloadProgress, 0.0001f, "Progress reads 0 once reload completes.");
+        }
+
+        [Test]
+        public void Sequential_RapidShots_ReturnAtTenAndTwentySeconds_AndNotifyIdleEdges()
+        {
+            rounds.Configure(2, 10f, Rounds.RefillMode.Sequential);
+            var started = 0;
+            var completed = 0;
+            var notifiedAmmo = -1;
+            rounds.OnReloadStarted += () => started++;
+            rounds.OnReloadCompleted += () => completed++;
+            rounds.OnAmmoCountChanged += ammo => notifiedAmmo = ammo;
+            rounds.ProcessFire();
+            rounds.Tick(1f);
+            rounds.ProcessFire();
+            Assert.That(rounds.ReloadProgress, Is.EqualTo(.1f).Within(.001f));
+            Assert.That(started, Is.EqualTo(1));
+            rounds.Tick(8.9f);
+            Assert.IsFalse(rounds.CanFire());
+            rounds.Tick(.1f);
+            Assert.That(rounds.AmmoCount, Is.EqualTo(1));
+            Assert.That(notifiedAmmo, Is.EqualTo(1));
+            Assert.That(completed, Is.Zero);
+            rounds.Tick(1f);
+            Assert.That(rounds.AmmoCount, Is.EqualTo(1));
+            rounds.Tick(9f);
+            Assert.That(rounds.AmmoCount, Is.EqualTo(2));
+            Assert.That(notifiedAmmo, Is.EqualTo(2));
+            Assert.That(completed, Is.EqualTo(1));
+            Assert.IsFalse(rounds.IsReloading);
+        }
+
+        [Test]
+        public void Sequential_FiringDuringRecharge_PreservesProgressTowardNextRound()
+        {
+            rounds.Configure(2, 10f, Rounds.RefillMode.Sequential);
+            FireUntilEmpty();
+            rounds.Tick(15f);
+            Assert.That(rounds.AmmoCount, Is.EqualTo(1));
+            rounds.ProcessFire();
+            Assert.That(rounds.ReloadProgress, Is.EqualTo(.5f));
+            Assert.That(rounds.RoundProgress(0), Is.EqualTo(.5f));
+            Assert.That(rounds.RoundProgress(1), Is.Zero);
+            rounds.Tick(5f);
+            Assert.That(rounds.AmmoCount, Is.EqualTo(1));
+            Assert.That(rounds.ReloadProgress, Is.Zero);
+        }
+
+        [Test]
+        public void Sequential_FullCapacity_DiscardsExtraTime_AndIdleDoesNotBankRecharge()
+        {
+            rounds.Configure(2, 10f, Rounds.RefillMode.Sequential);
+            FireUntilEmpty();
+            rounds.Tick(25f);
+            Assert.That(rounds.AmmoCount, Is.EqualTo(2));
+            rounds.Tick(60f);
+            rounds.ProcessFire();
+            Assert.That(rounds.ReloadProgress, Is.Zero);
+            rounds.Tick(9f);
+            Assert.That(rounds.AmmoCount, Is.EqualTo(1));
+            rounds.Tick(1f);
+            Assert.That(rounds.AmmoCount, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void Sequential_Reset_ClearsPartialRecharge()
+        {
+            rounds.Configure(2, 10f, Rounds.RefillMode.Sequential);
+            rounds.ProcessFire();
+            rounds.Tick(5f);
+            rounds.Reset();
+            Assert.IsFalse(rounds.IsReloading);
+            rounds.ProcessFire();
+            rounds.Tick(5f);
+            Assert.That(rounds.AmmoCount, Is.EqualTo(1));
+            Assert.That(rounds.ReloadProgress, Is.EqualTo(.5f));
         }
 
         [Test]

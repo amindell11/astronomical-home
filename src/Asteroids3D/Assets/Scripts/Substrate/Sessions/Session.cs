@@ -4,6 +4,7 @@ using Substrate.Sectors;
 using Substrate.Services;
 using Ships;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Substrate.Services.Units;
 using Substrate.Services.Projectiles;
 using Substrate.Services.Objectives;
@@ -18,18 +19,21 @@ namespace Substrate.Sessions
     /// interactive game) paces these steps, owns the clock, hangar, death and restart, and hands the
     /// player it built to each load. The RL harness composes the same per-ship services
     /// through <see cref="ShipServices"/> and never drives a session. Presentation is read from the
-    /// profile once, at construction. No process-wide state is written, so one process can hold
-    /// several sessions.
+    /// profile once, at construction. The session creates its own scene, builds its arena there and
+    /// keeps it active until teardown, so an object created without a parent dies with the session;
+    /// a <see cref="SessionSceneLease"/> on the owner unloads the scene if the owner dies first. The
+    /// active scene is process-wide: with several sessions alive, the newest one's scene is active.
     /// </summary>
     public sealed class Session
     {
         private enum Phase { Created, Composed, Loaded, TornDown }
 
         private readonly Transform root;
+        private readonly SessionSceneLease sceneLease;
         private Transform sectorRoot;
         private readonly UnitService units;
         private readonly ObjectiveService objectives;
-        private readonly LocaleService locale;
+        private LocaleService locale;
         private readonly SessionProfile profile;
         private readonly bool presentation;
         private Action<SectorResult> onSectorComplete;
@@ -49,15 +53,27 @@ namespace Substrate.Sessions
 
         public Sector ActiveSector { get; private set; }
 
-        public Session(SessionProfile profile, Transform root, UnitService units, ObjectiveService objectives)
+        public LocaleBackdropPair PrepareTravelBackdrop(LocaleSky destination, Transform parent)
+        {
+            Require(Phase.Loaded, nameof(PrepareTravelBackdrop));
+            if (!presentation) throw new InvalidOperationException("Travel presentation requires a visible session.");
+            return locale.PrepareBackdrop(destination, parent);
+        }
+
+        public Session(SessionProfile profile, GameObject owner, UnitService units, ObjectiveService objectives)
         {
             this.profile = profile ?? throw new ArgumentNullException(nameof(profile));
-            this.root = root ? root : throw new ArgumentNullException(nameof(root));
+            if (!owner) throw new ArgumentNullException(nameof(owner));
             this.units = units ? units : throw new ArgumentNullException(nameof(units));
             this.objectives = objectives ? objectives : throw new ArgumentNullException(nameof(objectives));
             presentation = profile.presentation;
-            locale = new LocaleService(profile.idleLocale?.SceneName);
             Frame = new SessionFrame(profile.offset);
+
+            var previous = SceneManager.GetActiveScene();
+            var scene = SceneManager.CreateScene($"Session {Guid.NewGuid():N}", new CreateSceneParameters(LocalPhysicsMode.None));
+            SceneManager.SetActiveScene(scene);
+            root = new GameObject("Arena").transform;
+            sceneLease = SessionSceneLease.Attach(owner, scene, previous);
         }
 
         /// <summary>Compose the services — once; they persist across sector loads until <see cref="Teardown"/>. With presentation, shows the idle locale.</summary>
@@ -65,7 +81,7 @@ namespace Substrate.Sessions
         {
             Require(Phase.Created, nameof(Compose));
 
-            // The session root doubles as the arena root: placed at the frame offset before anything composes against it.
+            // Placed at the frame offset before anything composes against the arena root.
             root.position = GamePlane.Origin + GamePlane.PlaneDirToWorld(Frame.Offset);
 
             sectorRoot = NewChild("Sector");
@@ -74,9 +90,13 @@ namespace Substrate.Sessions
             Objectives = objectives;
 
             if (presentation)
-                yield return locale.ApplyIdleLocaleAsync();
+            {
+                locale = new LocaleService(NewChild("Locale"), profile.idleLocale);
+                locale.ShowIdle();
+            }
 
             phase = Phase.Composed;
+            yield break;
         }
 
         /// <summary>
@@ -93,10 +113,12 @@ namespace Substrate.Sessions
             var entry = sectors != null && index >= 0 && index < sectors.Length ? sectors[index] : null;
             if (!entry?.prefab)
                 throw new InvalidOperationException($"No sector entry {index} configured on the session profile.");
+            if (!entry.config)
+                throw new InvalidOperationException($"Sector entry {index} has no settings.");
 
-            // Make the sector's locale the active (lighting) scene before content builds; skipped headless.
+            // Show the sector's locale before content builds; skipped headless, where a config may leave it unassigned.
             if (presentation)
-                yield return locale.ApplyLocaleAsync(entry.config ? entry.config.Locale?.SceneName : null);
+                locale.Show(entry.config.Locale);
 
             // Inactive holder under the sector root: authored children Awake only after adoption wires them.
             var holder = new GameObject("SectorLoad") { hideFlags = HideFlags.HideAndDontSave };
@@ -108,7 +130,7 @@ namespace Substrate.Sessions
             // Loaded from here: a sector completing inside its own Setup must already be unloadable.
             phase = Phase.Loaded;
             // Inject the host's session-lifetime references — the sector reads them, never builds or owns them.
-            sector.Initialize(Units, Objectives, presentation, entry.config, Frame, hero);
+            sector.Initialize(Units, Objectives, presentation, Frame, hero, index);
 
             this.onSectorComplete = onSectorComplete;
             if (onSectorComplete != null)
@@ -121,7 +143,6 @@ namespace Substrate.Sessions
 
             yield return sector.Setup();
 
-            // Adopting moves the sector into the root's stable scene, out of the swappable locale scene.
             sector.transform.SetParent(sectorRoot, true);
             UnityEngine.Object.Destroy(holder);
         }
@@ -130,15 +151,27 @@ namespace Substrate.Sessions
         public IEnumerator UnloadSector()
         {
             Require(Phase.Loaded, nameof(UnloadSector));
+            yield return UnloadContent();
+
+            if (presentation)
+                locale.ShowIdle();
+        }
+
+        public IEnumerator TransferSector(int index, Ship hero, Action<SectorResult> onComplete)
+        {
+            Require(Phase.Loaded, nameof(TransferSector));
+            yield return UnloadContent();
+            yield return LoadSector(index, hero, onComplete);
+        }
+
+        private IEnumerator UnloadContent()
+        {
             // Drop any queued player/NPC revives so a pending respawn cannot fire into the torn-down sector.
             Units.CancelPendingRespawns();
             // Old-sector transients must not survive into the next sector (they live under the session root, not the sector).
             Projectiles.ReturnAllToPool();
 
             yield return DestroyActiveSector(runTeardown: true);
-
-            if (presentation)
-                yield return locale.ApplyIdleLocaleAsync();
 
             phase = Phase.Composed;
         }
@@ -152,7 +185,7 @@ namespace Substrate.Sessions
             yield return DestroyActiveSector(runTeardown: false);
 
             if (presentation)
-                yield return locale.UnloadLocaleAsync();
+                locale.Clear();
 
             Projectiles.ReturnAllToPool();
             Units.Clear();
@@ -160,6 +193,7 @@ namespace Substrate.Sessions
             Projectiles = null;
             Units = null;
             Objectives = null;
+            yield return sceneLease.Release();
             phase = Phase.TornDown;
         }
 

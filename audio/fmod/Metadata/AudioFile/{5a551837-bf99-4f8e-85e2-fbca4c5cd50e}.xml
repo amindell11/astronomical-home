@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.04.00">
+	<object class="AudioFile" id="{5a551837-bf99-4f8e-85e2-fbca4c5cd50e}">
+		<property name="assetPath">
+			<value>Sfx/Engine/engine_rumble_low_2.wav</value>
+		</property>
+		<property name="isStreaming">
+			<value>true</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>44.100000000000001</value>
+		</property>
+		<property name="channelCount">
+			<value>1</value>
+		</property>
+		<property name="length">
+			<value>11.925487528344672</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{f3f5788a-2024-4cc1-9c4a-b275a56be015}</destination>
+		</relationship>
+	</object>
+</objects>

@@ -49,7 +49,7 @@ namespace Tests.PlayMode
             {
                 ["explore"] = () => new ExploreState(kp),
                 ["key"] = () => new KeyAcquiredState(),
-                ["extraction"] = () => new ExtractionChallengeState(new StubExtractionZone()),
+                ["extraction"] = () => new ExtractionJumpState(new StubExtractionZone(), hero: null, onCommit: () => { }),
                 ["extracted"] = () => new ExtractedState(),
                 ["failed"] = () => new FailedState()
             };

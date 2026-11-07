@@ -8,11 +8,18 @@ namespace Objectives
         bool IsPlayerInZone { get; }
     }
 
-    /// <summary>Trigger extraction zone; occupancy is a per-rigidbody level, so player identity and the blocker can arrive while the player is already parked inside.</summary>
+    /// <summary>
+    /// A trigger zone that reports the player inside only while armed; the extraction zone and the lull beacon
+    /// both use it. Occupancy is a per-rigidbody level, so player identity and the blocker can arrive while
+    /// the player is already parked inside.
+    /// </summary>
     [RequireComponent(typeof(Collider))]
     public class ExtractionZone : MonoBehaviour, IExtractionZone
     {
         [SerializeField] private float blockDistance = 20f;
+        [SerializeField] private float departureHeading = 70f;
+
+        public float DepartureHeading => departureHeading;
 
         [Tooltip("Optional hostile whose proximity blocks extraction while the zone is armed (observation-only binding).")]
         [SerializeField] private Transform blocker;
@@ -45,5 +52,7 @@ namespace Objectives
         private void OnTriggerEnter(Collider other) => occupancy.Enter(other);
 
         private void OnTriggerExit(Collider other) => occupancy.Exit(other);
+
+        private void OnDisable() => occupancy.Clear();
     }
 }

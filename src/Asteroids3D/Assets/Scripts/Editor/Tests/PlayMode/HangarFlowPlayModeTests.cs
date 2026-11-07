@@ -1,6 +1,8 @@
 #if UNITY_EDITOR
 using System.Collections;
+using System.IO;
 using Game;
+using Game.Runs;
 using NUnit.Framework;
 using Substrate.Services;
 using Substrate.Services.Objectives;
@@ -50,6 +52,7 @@ namespace Tests.PlayMode
             hostGo = new GameObject("TestHost");
             hostGo.SetActive(false);
             var host = hostGo.AddComponent<GameHost>();
+            host.unlocks = NoUnlocks();
 
             // A bare rig: no player was built, no screen prefab assigned — both gate conditions hold.
             rigGo = new GameObject("TestRig");
@@ -88,6 +91,7 @@ namespace Tests.PlayMode
             hostGo = new GameObject("TestHost");
             hostGo.SetActive(false);
             var host = hostGo.AddComponent<GameHost>();
+            host.unlocks = NoUnlocks();
 
             yield return host.RunHangar(playerRig, presentationEnabled: false, hostGo.transform);
             Assert.IsTrue(playerRig.Player.gameObject.activeSelf,
@@ -104,6 +108,10 @@ namespace Tests.PlayMode
             yield return host.RunHangar(playerRig, presentationEnabled: false, hostGo.transform);
             Assert.IsTrue(playerRig.Player.gameObject.activeSelf, "the next hangar step revives the parked player");
         }
+
+        // The inactive host never runs Awake, so the test hands it the unlocks.
+        private static ShipUnlocks NoUnlocks() =>
+            new(Path.Combine(Application.temporaryCachePath, "no-run-records.jsonl"));
     }
 }
 #endif

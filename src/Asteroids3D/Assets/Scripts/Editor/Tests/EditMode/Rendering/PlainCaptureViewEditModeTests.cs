@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System;
 using Capture.GameView;
+using Capture.GameView.Views;
 using Diagnostics;
 using NUnit.Framework;
 using UnityEngine;
@@ -17,8 +18,8 @@ namespace Tests.EditMode.Rendering
             var prior = view.Snapshot();
             var priorColliders = GizmoView.CollidersOn;
             var subject = new GameObject("Plain capture subject");
-            var transaction = new GameViewCaptureTransaction(Array.Empty<Type>(),
-                new UnityEngine.Object[] { subject }, subject, 960, 540, GizmoScope.All, 0);
+            var transaction = new DiagnosticViewTransaction(Array.Empty<Type>(),
+                new UnityEngine.Object[] { subject }, subject, GizmoScope.All, 0);
             try
             {
                 Assert.That(view.Snapshot().drawGizmos, Is.False, "Plain footage must suppress selected collider guides.");

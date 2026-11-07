@@ -7,10 +7,11 @@ using Ships.Loadout;
 using Substrate.Sectors;
 using Substrate.Sessions;
 using Substrate.Services.Units;
+using Tests.PlayMode.Common.Locales;
 using UI.Hangar;
+using UI.Recap;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
 namespace Tests.PlayMode.Hangar
@@ -25,35 +26,33 @@ namespace Tests.PlayMode.Hangar
         private const string HangarCameraPrefabPath = "Assets/Prefabs/Cameras/Hangar Camera.prefab";
         private const string HangarScreenPath = "Assets/Prefabs/UI/HangarScreen.prefab";
         private const string OfferPath = "Assets/Settings/Ships/PlayerLoadout.asset";
+        private const string RecapFeelPath = "Assets/Settings/UI/RecapFeel.asset";
         private const string SectorPrefabPath = "Assets/Prefabs/Sectors/ArenaSector.prefab";
         private const string SectorConfigPath = "Assets/Settings/Game/DefaultSectorConfig.asset";
-        private const string SectorLocale = "Locale_3";
         private const float TimeoutSec = 60f;
 
         private GameObject hostGo;
-        private Scene boot;
+        private LightingSnapshot bootLighting;
         private bool savedAudioPause;
 
         [SetUp]
         public void SetUp()
         {
-            boot = SceneManager.GetActiveScene();
+            bootLighting = LightingSnapshot.Capture();
             savedAudioPause = AudioListener.pause;
             AudioListener.pause = true;
         }
 
-        // The host dies mid-sector without unloading its locale scene, which later fixtures would inherit.
-        [UnityTearDown]
-        public IEnumerator TearDown()
+        // The host dies mid-sector without restoring the boot lighting, which later fixtures would inherit.
+        [TearDown]
+        public void TearDown()
         {
             if (hostGo)
             {
                 hostGo.GetComponent<UnitService>().Clear();
                 Object.DestroyImmediate(hostGo);
             }
-            SceneManager.SetActiveScene(boot);
-            if (SceneManager.GetSceneByName(SectorLocale).isLoaded)
-                yield return SceneManager.UnloadSceneAsync(SectorLocale);
+            bootLighting.Restore();
             AudioListener.pause = savedAudioPause;
         }
 
@@ -81,6 +80,7 @@ namespace Tests.PlayMode.Hangar
             host.hangarCameraPrefab = AssetDatabase.LoadAssetAtPath<DriftCam>(HangarCameraPrefabPath);
             host.hangarScreenPrefab = AssetDatabase.LoadAssetAtPath<HangarScreen>(HangarScreenPath);
             host.hangarOffer = AssetDatabase.LoadAssetAtPath<ItemSubset>(OfferPath);
+            host.recapFeel = AssetDatabase.LoadAssetAtPath<RecapFeelProfile>(RecapFeelPath);
             Assert.IsTrue(host.hangarCameraPrefab, $"hangar camera prefab loads from {HangarCameraPrefabPath}");
             hostGo.SetActive(true);
 

@@ -1,5 +1,6 @@
 using System;
 using Movement;
+using AI.Navigation.Aim;
 using AI.Navigation.MPC;
 using AI.Context;
 using Ships.Command;
@@ -19,7 +20,7 @@ namespace AI
     }
 #endif
 
-    /// <summary>Turns a <see cref="NavObjective"/> into per-frame movement commands: owns the control surface (velocity reference, enemy state) and drives an <see cref="Mpc"/> solver, holding no solver state or MPC math itself.</summary>
+    /// <summary>Turns a <see cref="NavObjective"/> into per-frame movement commands: owns the control surface (velocity reference, enemy state) and drives an <see cref="Mpc"/> solver, holding no solver state or MPC math itself. It stays the single author of the <see cref="PilotCommand"/>: while the <see cref="YawHandover"/> gives the aim servo yaw, <see cref="AimServo"/> replaces only the solver's yaw torque.</summary>
     [DefaultExecutionOrder(-60)]
     public class Navigator : MonoBehaviour
     {
@@ -40,6 +41,8 @@ namespace AI
         protected internal ReferentSnapshot referent1;
         protected internal ReferentSnapshot referent2;
         protected internal ReferentSnapshot referent3;
+        internal AimReference costAimReference;
+        private YawHandover handover;
 
         protected PilotCommand currentCommand;
         public PilotCommand CurrentCommand => currentCommand;
@@ -58,7 +61,7 @@ namespace AI
         internal Dynamics dynamics;
         private SeedScope navScope;
 
-        /// <summary>Ballistics never cross the decision seam: the host injects our own primary muzzle speed once, and intercept-lead geometry stays the solver's.</summary>
+        /// <summary>Ballistics never cross the decision seam: the solver leads with this muzzle speed, the aim servo with the Gunner's aim reference.</summary>
         public void Initialize(IShipStatus shipContext, Dynamics dynamics, Scout scout, SeedScope navScope,
             float primaryProjectileSpeed)
         {
@@ -70,6 +73,7 @@ namespace AI
             if (!mpcSettings)
                 mpcSettings = ScriptableObject.CreateInstance<MpcSettings>();
             mpc = new Mpc(mpcSettings, dynamics, navScope.Derive(MpcSamplerStream).ToUint());
+            handover = new YawHandover(mpcSettings);
         }
 
         /// <summary>Restores the freshly-initialized navigator: clears every override and rebuilds the solver so its warm-start plan and RNG stream replay from the spawn seed.</summary>
@@ -81,6 +85,7 @@ namespace AI
             lastSolveFixedTime = double.NaN;
             mpc?.Dispose();
             mpc = new Mpc(mpcSettings, dynamics, navScope.Derive(MpcSamplerStream).ToUint());
+            handover = new YawHandover(mpcSettings);
         }
 
         /// <summary>The ship the solver must not steer around this tick, or invalid for none.</summary>
@@ -91,12 +96,13 @@ namespace AI
         /// <summary>Where the current plan ends, or null before the first plan.</summary>
         public Vector2? PlanEnd => mpc?.PredictedStates is { Length: > 0 } plan ? new Vector2(plan[^1].pos.x, plan[^1].pos.y) : null;
 
-        public PilotCommand ComputeCommand()
+        public PilotCommand ComputeCommand(in AimReference aim)
         {
             using var _ = EditorProfilingScope.Begin("MPC.Navigator.GenerateNavCommands");
             var kin = context.Kinematics;
             dynamics = context.Dynamics;
             mpc.SetDynamics(in dynamics);
+            handover.UpdateAuthority(sentence.aim.armed ? sentence.aim.weight : 0f);
             if (ShouldIdle())
                 return currentCommand = default;
 
@@ -112,6 +118,11 @@ namespace AI
                 : System.Math.Max(1, (int)System.Math.Round((now - lastSolveFixedTime) / tickSeconds));
             lastSolveFixedTime = now;
             var sinceLastSolve = Mathf.Min(ticksSinceSolve * tickSeconds, mpcSettings.horizonSeconds);
+
+            var servoAim = aim.live
+                ? new AimReference(Cost.WrapRadians(aim.heading + sentence.aim.offsetRad), aim.rate)
+                : aim;
+            costAimReference = handover.ServoOwnsYaw(in servoAim) ? servoAim : AimReference.None;
 
             var inputs = new MpcInputs
             {
@@ -129,6 +140,7 @@ namespace AI
                 referent1 = referent1,
                 referent2 = referent2,
                 referent3 = referent3,
+                aimReference = costAimReference,
                 obstacleScan = scan,
                 enableObstacleAvoidance = enableObstacleAvoidance,
             };
@@ -147,7 +159,19 @@ namespace AI
 #endif
 
             ApplyControl(in result);
+            handover.ObserveThreat(ObstacleThreat(in kin, result.strafe), sinceLastSolve);
+            if (handover.ServoOwnsYaw(in servoAim))
+                currentCommand.yawTorque = AimServo.YawTorque(in kin, in servoAim, in dynamics, mpcSettings);
             return currentCommand;
+        }
+
+        // The obstacle buffer is valid only until the next solve: classify the step just solved.
+        private bool ObstacleThreat(in Kinematics kin, float strafe)
+        {
+            var cfg = mpc.Config;
+            var hullRadius = cfg.shipRadius * Cost.BankProfileScale(strafe, cfg) + cfg.collisionSafetyMargin;
+            return Cost.ObstacleThreat(new float2(kin.pos.x, kin.pos.y), new float2(kin.vel.x, kin.vel.y),
+                mpc.Solver.Obstacles, mpc.Solver.ObstacleCount, hullRadius, cfg.maxLatAccel);
         }
 
         /// <summary>A zero reference is a valid "stop", so the arm flags — not the values — gate activity: idle iff no world reference and no armed sentence slot.</summary>
@@ -292,7 +316,7 @@ namespace AI
 
         private CostBreakdown EvaluateBreakdown(State mpcState)
         {
-            var input = solver.BuildCostInput(CostVelocityReference, enemyPos, enemyVel, enemyYaw, enemyYawRate, projectileSpeed, mpcState.vel, sentence, referent1, referent2, referent3);
+            var input = solver.BuildCostInput(CostVelocityReference, enemyPos, enemyVel, enemyYaw, enemyYawRate, projectileSpeed, mpcState.vel, sentence, referent1, referent2, referent3, costAimReference);
             if (costBreakdownMode == CostBreakdownMode.CurrentState)
                 return Cost.EvaluateBreakdown(mpcState, bestSequence[0], lastControl, input, config);
             return Cost.EvaluateTrajectoryBreakdown(mpcState, bestSequence, input, config, dynamics, lastControl);

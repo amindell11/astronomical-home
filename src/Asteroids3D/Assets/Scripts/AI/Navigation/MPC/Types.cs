@@ -119,6 +119,9 @@ namespace AI.Navigation.MPC
         public ReferentSnapshot referent1;
         public ReferentSnapshot referent2;
         public ReferentSnapshot referent3;
+
+        /// <summary>Live only while the aim servo owns yaw: the armed AIM slot then faces it instead of its referent's lead.</summary>
+        public AimReference aimReference;
     }
 
     internal readonly struct EditorProfilingScope : System.IDisposable

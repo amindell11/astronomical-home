@@ -3,9 +3,10 @@ set -euo pipefail
 # covers: scripts/on_event_triage.sh scripts/on_event_triage_helper.py
 
 # Hermetic regression for scripts/on_event_triage.sh: the allowlist split, the edit gate, the
-# one-priority rule, needs-triage on a priority-less issue, note emission (new / edited in place /
-# resolved / none), --dry-run issuing zero writes, the verdict parse, and infra exits on a bad
-# claude output. gh and claude are stubs on PATH; every call the stub does not model fails closed.
+# one-priority rule, needs-triage on a priority-less issue, the board Status (Triage, then the
+# kind only from no Status or Triage), note emission (new / edited in place / resolved / none),
+# --dry-run issuing zero writes, the verdict parse, and infra exits on a bad claude output.
+# gh and claude are stubs on PATH; every call the stub does not model fails closed.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TRIAGE="$SCRIPT_DIR/../on_event_triage.sh"
@@ -55,7 +56,9 @@ case "$args" in
   "api repos/"*"/events --paginate --slurp") pages "$FIX/events.json" ;;
   "api -X PATCH repos/"*"/comments/"*) echo "token=$GH_TOKEN $args body=<<$(inline_body "$@")>>" >> "$GH_WRITE_LOG" ;;
   "api repos/"*"/comments --paginate --slurp") pages "$FIX/comments.json" ;;
-  "api graphql "*"mutation "*) echo "token=$GH_TOKEN $args" >> "$GH_WRITE_LOG"; echo '{"data":{}}' ;;
+  # An add puts the issue on the board with no Status, as GitHub does.
+  "api graphql "*"mutation "*) echo "token=$GH_TOKEN $args" >> "$GH_WRITE_LOG"; echo '{"data":{}}'
+    [[ "$args" != *addProjectV2ItemById* ]] || echo '{"data":{"node":{"projectItems":{"nodes":[{"id":"PVTI_added","project":{"id":"PVT_kwHOAJsCkc4BfiTv"},"fieldValueByName":null}]}}}}' > "$FIX/board.json" ;;
   "api graphql "*"projectItems"*) echo "token=$GH_TOKEN board-query" >> "$GH_CALL_LOG"; cat "$FIX/board.json" ;;
   "issue edit "*) echo "token=$GH_TOKEN $args" >> "$GH_WRITE_LOG" ;;
   "issue comment "*) echo "token=$GH_TOKEN $args body=<<$(inline_body "$@")>>" >> "$GH_WRITE_LOG" ;;
@@ -68,6 +71,8 @@ cat > "$STUB_BIN/claude" <<'EOF'
 #!/usr/bin/env bash
 echo "$*" >> "$CLAUDE_CALL_LOG"
 cat > "$CLAUDE_PROMPT_CAPTURE"
+# The owner moving the item while claude runs.
+[[ ! -f "$FIX/board-after-claude.json" ]] || mv "$FIX/board-after-claude.json" "$FIX/board.json"
 cat "$CLAUDE_OUTPUT"
 exit "$(cat "$CLAUDE_EXIT_FILE")"
 EOF
@@ -75,7 +80,9 @@ chmod +x "$STUB_BIN/claude"
 export PATH="$STUB_BIN:$PATH"
 
 TODAY="$(date -u +%F)"
-BOARD_ON='{"data":{"node":{"projectItems":{"nodes":[{"id":"PVTI_item","project":{"id":"PVT_kwHOAJsCkc4BfiTv"},"fieldValueByName":{"optionId":"291743a0"}}]}}}}'
+TRIAGE_ID="d6567434"; MECHANICAL_ID="225f15fa"; NOW_ID="291743a0"
+# board_at <option-id> — the board query's answer for an item in that Status column.
+board_at() { printf '{"data":{"node":{"projectItems":{"nodes":[{"id":"PVTI_item","project":{"id":"PVT_kwHOAJsCkc4BfiTv"},"fieldValueByName":{"optionId":"%s"}}]}}}}' "$1"; }
 BOARD_OFF='{"data":{"node":{"projectItems":{"nodes":[]}}}}'
 
 # issue <author> <labels-json> [assignees-json] [state] — the fixture gh issue view returns.
@@ -88,17 +95,20 @@ JSON
 }
 event() { printf '%s' "$1" > "$FIX/event.json"; echo "$FIX/event.json"; }
 verdict() { printf '%s' "$1" > "$CLAUDE_OUTPUT"; }
-CLEAN='{"type":"result","subtype":"success","is_error":false,"usage":{"input_tokens":1200,"output_tokens":80,"cache_creation_input_tokens":300,"cache_read_input_tokens":500},"total_cost_usd":0.0421,"structured_output":{"retry_of":null,"retry_evidence":"none","premise_holds":true,"premise_evidence":"scripts/capture/assemble.py:12","dead_pointers":[]}}'
-FINDINGS='{"type":"result","subtype":"success","is_error":false,"usage":{"input_tokens":1500,"output_tokens":120},"total_cost_usd":0.05,"structured_output":{"retry_of":632,"retry_evidence":"Capture rig X-mirror deferred","premise_holds":false,"premise_evidence":"scripts/capture/assemble.py:40 flips Y, not X","dead_pointers":[{"path":"doc/agents/unity-cli.md","replacement":null},{"path":"doc/Feature_Plans/capture.md","replacement":"#520"}]}}'
+SURE='"kind":"mechanical","kind_confident":true,"kind_reason":"the body names the fix"'
+UNSURE='"kind":"visual","kind_confident":false,"kind_reason":"a camera tweak or a design call"'
+CLEAN='{"type":"result","subtype":"success","is_error":false,"usage":{"input_tokens":1200,"output_tokens":80,"cache_creation_input_tokens":300,"cache_read_input_tokens":500},"total_cost_usd":0.0421,"structured_output":{"retry_of":null,"retry_evidence":"none","premise_holds":true,"premise_evidence":"scripts/capture/assemble.py:12","dead_pointers":[],'"$SURE"'}}'
+FINDINGS='{"type":"result","subtype":"success","is_error":false,"usage":{"input_tokens":1500,"output_tokens":120},"total_cost_usd":0.05,"structured_output":{"retry_of":632,"retry_evidence":"Capture rig X-mirror deferred","premise_holds":false,"premise_evidence":"scripts/capture/assemble.py:40 flips Y, not X","dead_pointers":[{"path":"doc/agents/unity-cli.md","replacement":null},{"path":"doc/Feature_Plans/capture.md","replacement":"#520"}],'"$SURE"'}}'
+unsure() { printf '%s' "${1/"$SURE"/"$UNSURE"}"; }
 
 reset() {
   : > "$GH_CALL_LOG"; : > "$GH_WRITE_LOG"; : > "$CLAUDE_CALL_LOG"; : > "$GITHUB_STEP_SUMMARY"
-  rm -f "$CLAUDE_PROMPT_CAPTURE"
+  rm -f "$CLAUDE_PROMPT_CAPTURE" "$FIX/board-after-claude.json"
   echo 0 > "$CLAUDE_EXIT_FILE"
   echo '[{"number":632,"title":"Capture rig X-mirror deferred","closedAt":"2026-09-21T10:00:00Z"}]' > "$FIX/closed.json"
   echo '[]' > "$FIX/events.json"
   echo '[]' > "$FIX/comments.json"
-  echo "$BOARD_ON" > "$FIX/board.json"
+  board_at "$NOW_ID" > "$FIX/board.json"
   verdict "$CLEAN"
 }
 run() { bash "$TRIAGE" "$@"; }
@@ -132,12 +142,11 @@ grep -q 'singleSelectOptionId: "d6567434"' "$GH_WRITE_LOG" || fail "stranger: St
 [[ "$(trailer VERDICT <<<"$out")" == none ]] || fail "stranger: verdict none"
 grep -q '^## On-event triage #700' "$GITHUB_STEP_SUMMARY" || fail "job summary missing"
 
-# --- allowlisted, no pri label -> needs-triage; Status Triage; claude runs on opened ------------
+# --- allowlisted, no pri label -> needs-triage; claude runs on opened ----------------------------
 reset; issue amindell11 '[{"name":"Capture"}]'
 out="$(run --event "$(event "$OPENED")" 2>/dev/null)"
 [[ "$(trailer GATE <<<"$out")" == run ]] || fail "opened should run (got: $out)"
 grep -q -- '--add-label needs-triage' "$GH_WRITE_LOG" || fail "priority-less issue gets needs-triage"
-grep -q 'singleSelectOptionId: "d6567434"' "$GH_WRITE_LOG" || fail "priority-less issue: Status Triage"
 claude_ran || fail "opened allowlisted issue should reach claude"
 grep -q -- '-p --tools Read,Grep,Glob --json-schema ' "$CLAUDE_CALL_LOG" || fail "claude surface is read-only (got: $(cat "$CLAUDE_CALL_LOG"))"
 grep -q -- '--output-format json --max-turns 12 --model claude-opus-5-5' "$CLAUDE_CALL_LOG" || fail "claude flags (got: $(cat "$CLAUDE_CALL_LOG"))"
@@ -150,16 +159,31 @@ grep -q 'Verdict fields: `{"retry_of": null' "$GITHUB_STEP_SUMMARY" || fail "job
 [[ "$(trailer COST_USD <<<"$out")" == 0.0421 ]] || fail "cost trailer"
 ! grep -q 'issue comment' "$GH_WRITE_LOG" || fail "clean verdict with no prior note posts nothing"
 
-# --- Status already right and pri present: no label or Status write --------------------------
-reset; issue amindell11 '[{"name":"pri:now"}]'
+# --- board kind: Triage when there is no Status; the kind only from no Status or Triage ---------
+board_writes() { { grep -o 'addProjectV2ItemById\|singleSelectOptionId: "[0-9a-f]*"' "$GH_WRITE_LOG" || true; } | sed 's/singleSelectOptionId: //; s/"//g' | tr '\n' ' '; }
+reset; issue amindell11 '[{"name":"pri:now"}]'; echo "$BOARD_OFF" > "$FIX/board.json"
 out="$(run --event "$(event "$OPENED")" 2>/dev/null)"
-[[ "$(writes <<<"$out")" -eq 0 ]] || fail "pri:now on an issue already at Now writes nothing (got: $out)"
+[[ "$(board_writes)" == "addProjectV2ItemById $TRIAGE_ID $MECHANICAL_ID " ]] || fail "off the board: add, Triage, then the confident kind (got: $(cat "$GH_WRITE_LOG"))"
+[[ "$(grep -c 'token=projects-pat .*itemId: "PVTI_added"' "$GH_WRITE_LOG")" -eq 2 ]] || fail "both Status writes land on the added item under PROJECTS_TOKEN"
 
-# --- Doing is sticky ------------------------------------------------------------------------
-reset; issue amindell11 '[{"name":"pri:now"}]'
-echo '{"data":{"node":{"projectItems":{"nodes":[{"id":"PVTI_item","project":{"id":"PVT_kwHOAJsCkc4BfiTv"},"fieldValueByName":{"optionId":"772cf1a0"}}]}}}}' > "$FIX/board.json"
+reset; issue amindell11 '[{"name":"pri:now"}]'; board_at "$TRIAGE_ID" > "$FIX/board.json"
 out="$(run --event "$(event "$OPENED")" 2>/dev/null)"
-! grep -q updateProjectV2ItemFieldValue "$GH_WRITE_LOG" || fail "Doing must not be overwritten by the mapping"
+[[ "$(board_writes)" == "$MECHANICAL_ID " && "$(writes <<<"$out")" -eq 1 ]] || fail "in Triage: the kind is the only write (got: $out)"
+[[ "$(grep -c board-query "$GH_CALL_LOG")" -eq 2 ]] || fail "a live run re-reads the board before the kind write"
+
+reset; issue amindell11 '[{"name":"pri:now"}]'
+out="$(run --event "$(event "$OPENED")" 2>/dev/null)"
+[[ "$(writes <<<"$out")" -eq 0 ]] || fail "an item in an owner column (Now) gets no Status write (got: $out)"
+
+reset; issue amindell11 '[{"name":"pri:now"}]'; board_at "$TRIAGE_ID" > "$FIX/board.json"; board_at "$NOW_ID" > "$FIX/board-after-claude.json"
+out="$(run --event "$(event "$OPENED")" 2>/dev/null)"
+[[ "$(writes <<<"$out")" -eq 0 ]] || fail "an item the owner moved while claude ran keeps its Status (got: $out)"
+
+reset; issue amindell11 '[{"name":"pri:now"}]'; board_at "$TRIAGE_ID" > "$FIX/board.json"; verdict "$(unsure "$CLEAN")"
+out="$(run --event "$(event "$OPENED")" 2>/dev/null)"
+[[ -z "$(board_writes)" ]] || fail "an unsure kind is not written (got: $(cat "$GH_WRITE_LOG"))"
+[[ "$(trailer VERDICT <<<"$out")" == findings && "$(writes <<<"$out")" -eq 1 ]] || fail "an unsure kind alone posts the note (got: $out)"
+grep -q '^Kind unsure: best guess Visual — a camera tweak or a design call>>$' "$GH_WRITE_LOG" || fail "the note carries the best guess and the reason (got: $(cat "$GH_WRITE_LOG"))"
 
 # --- one-priority rule: keep the pri:* added last ------------------------------------------
 reset; issue amindell11 '[{"name":"pri:now"},{"name":"pri:next"},{"name":"pri:later"}]'
@@ -168,7 +192,6 @@ out="$(run --event "$(event "$OPENED")" 2>/dev/null)"
 grep -q -- '--remove-label pri:now' "$GH_WRITE_LOG" || fail "one-priority: pri:now removed"
 grep -q -- '--remove-label pri:next' "$GH_WRITE_LOG" || fail "one-priority: pri:next removed"
 ! grep -q -- '--remove-label pri:later' "$GH_WRITE_LOG" || fail "one-priority: pri:later (added last) kept"
-grep -q 'singleSelectOptionId: "225f15fa"' "$GH_WRITE_LOG" || fail "one-priority: Status recomputed to Later"
 
 # --- edit gate ---------------------------------------------------------------------------------
 reset; issue amindell11 '[{"name":"pri:now"}]'
@@ -211,7 +234,7 @@ out="$(run --event "$ev" 2>/dev/null)"
 ! claude_ran || fail "stranger title edit must not reach claude"
 
 # --- findings: new note, assigned line, in-place edit, resolved rewrite ----------------------
-reset; issue amindell11 '[{"name":"pri:now"}]' '[{"login":"amindell11"}]'; verdict "$FINDINGS"
+reset; issue amindell11 '[{"name":"pri:now"}]' '[{"login":"amindell11"}]'; verdict "$(unsure "$FINDINGS")"
 out="$(run --event "$(event "$OPENED")" 2>/dev/null)"
 [[ "$(trailer VERDICT <<<"$out")" == findings ]] || fail "findings verdict (got: $out)"
 grep -q 'issue comment 700 --repo owner/repo --body-file' "$GH_WRITE_LOG" || fail "findings with no prior note post a new comment (got: $(cat "$GH_WRITE_LOG"))"
@@ -223,6 +246,7 @@ note="$(cat "$GH_WRITE_LOG")"
 [[ "$note" == *'Dead pointer: `doc/agents/unity-cli.md` → no replacement found'* ]] || fail "dead pointer without replacement"
 [[ "$note" == *'Dead pointer: `doc/Feature_Plans/capture.md` → `#520`'* ]] || fail "dead pointer with replacement"
 [[ "$note" == *"In flight (assigned)"* ]] || fail "assigned issue says in flight"
+[[ "$note" == *'→ `#520`'$'\n''Kind unsure: best guess Visual — a camera tweak or a design call'$'\n''In flight (assigned)'* ]] || fail "the kind line sits after the dead pointers, before in flight (got: $note)"
 [[ "$(writes <<<"$out")" -eq 1 ]] || fail "findings on a tidy issue: the note is the only write (got: $out)"
 
 reset; issue amindell11 '[{"name":"pri:now"}]'; verdict "$FINDINGS"
@@ -231,6 +255,7 @@ out="$(run --event "$(event "$OPENED")" 2>/dev/null)"
 grep -q 'api -X PATCH repos/owner/repo/issues/comments/42 -F body=@' "$GH_WRITE_LOG" || fail "prior bot note is edited in place, not the forged one (got: $(cat "$GH_WRITE_LOG"))"
 ! grep -q 'issue comment' "$GH_WRITE_LOG" || fail "no second comment when a prior note exists"
 grep -q 'Retry of #632' "$GH_WRITE_LOG" || fail "edited note carries the new findings"
+! grep -q 'Kind unsure' "$GH_WRITE_LOG" || fail "a confident kind adds no note line"
 
 reset; issue amindell11 '[{"name":"pri:now"}]'
 echo '[{"id":42,"user":{"login":"github-actions[bot]"},"body":"<!-- on-event-triage -->\nOn-event triage 2026-09-01\nRetry of #1"}]' > "$FIX/comments.json"
@@ -246,11 +271,13 @@ out="$(run --event "$(event "$OPENED")" --dry-run 2>/dev/null)"
 [[ ! -s "$GH_WRITE_LOG" ]] || fail "dry run must run no write (ran: $(cat "$GH_WRITE_LOG"))"
 grep -q '(PROJECTS_TOKEN)' <<<"$out" || fail "printed board writes name their token"
 
-reset; issue amindell11 '[{"name":"pri:now"},{"name":"pri:next"}]' '[]'; verdict "$FINDINGS"
+reset; issue amindell11 '[{"name":"pri:now"},{"name":"pri:next"}]' '[]'; verdict "$FINDINGS"; board_at "$TRIAGE_ID" > "$FIX/board.json"
 echo '[{"event":"labeled","label":{"name":"pri:now"},"created_at":"2026-09-01T00:00:00Z"},{"event":"labeled","label":{"name":"pri:next"},"created_at":"2026-09-05T00:00:00Z"}]' > "$FIX/events.json"
 out="$(run --event "$(event "$OPENED")" --dry-run 2>/dev/null)"
 [[ "$(trailer GATE <<<"$out")" == run && "$(trailer VERDICT <<<"$out")" == findings ]] || fail "dry run still runs claude (got: $out)"
-[[ "$(writes <<<"$out")" -eq 3 ]] || fail "dry run: remove pri:now, Status Next, note (got: $out)"
+[[ "$(writes <<<"$out")" -eq 3 ]] || fail "dry run: remove pri:now, the kind, note (got: $out)"
+grep -q "itemId: \"PVTI_item\".*singleSelectOptionId: \"$MECHANICAL_ID\"" <<<"$out" || fail "dry run prints the kind write (got: $out)"
+[[ "$(grep -c board-query "$GH_CALL_LOG")" -eq 1 ]] || fail "a dry run does not re-read the board"
 [[ ! -s "$GH_WRITE_LOG" ]] || fail "dry run with findings must run no write (ran: $(cat "$GH_WRITE_LOG"))"
 grep -q 'Writes (3)' "$GITHUB_STEP_SUMMARY" || fail "job summary counts printed writes"
 
@@ -258,12 +285,14 @@ grep -q 'Writes (3)' "$GITHUB_STEP_SUMMARY" || fail "job summary counts printed 
 reset; issue amindell11 '[{"name":"pri:now"}]'
 out="$(PROJECTS_TOKEN= run --event "$(event "$OPENED")" --dry-run 2>/dev/null)"
 grep -q 'addProjectV2ItemById' <<<"$out" || fail "dry run without the PAT prints the board add"
+grep -q "itemId: \"<item-id>\".*singleSelectOptionId: \"$MECHANICAL_ID\"" <<<"$out" || fail "dry run without the PAT prints the kind with a placeholder item (got: $out)"
 ! grep -q board-query "$GH_CALL_LOG" || fail "no PAT, no board query"
 rc=0; PROJECTS_TOKEN= run --event "$(event "$OPENED")" > /dev/null 2>&1 || rc=$?
 [[ "$rc" -eq 1 ]] || fail "live run without PROJECTS_TOKEN should exit 1 (got $rc)"
 
 # --- bad claude output exits 1 and writes no note ----------------------------------------------
-for bad in 'not json' '{"type":"result","subtype":"success","is_error":true,"result":"Failed to authenticate"}' '{"type":"result","is_error":false,"structured_output":{"retry_of":"x"}}'; do
+NO_KIND='{"type":"result","is_error":false,"structured_output":{"retry_of":null,"retry_evidence":"none","premise_holds":true,"premise_evidence":"x","dead_pointers":[]}}'
+for bad in 'not json' '{"type":"result","subtype":"success","is_error":true,"result":"Failed to authenticate"}' '{"type":"result","is_error":false,"structured_output":{"retry_of":"x"}}' "$NO_KIND" "${CLEAN/mechanical/design}"; do
   reset; issue amindell11 '[{"name":"pri:now"}]'; verdict "$bad"
   rc=0; run --event "$(event "$OPENED")" > /dev/null 2>&1 || rc=$?
   [[ "$rc" -eq 1 ]] || fail "claude output '$bad' should exit 1 (got $rc)"

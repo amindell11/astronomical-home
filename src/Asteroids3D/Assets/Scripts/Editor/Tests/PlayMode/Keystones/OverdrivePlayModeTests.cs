@@ -71,7 +71,38 @@ namespace Tests.PlayMode.Keystones
         }
 
         [UnityTest]
-        public IEnumerator ResetDuringOverdrive_RestoresTheBaseCap()
+        public IEnumerator Overdrive_RaisesTurningAndStrafe_ThenRestoresThem()
+        {
+            valis = Object.Instantiate(TestAssets.Load<Ship>(ValisPath), Vector3.zero, GamePlane.Rotation);
+            valis.Initialize(0, 0, Projectiles);
+            yield return new WaitForFixedUpdate();
+            var normal = valis.Dynamics;
+            valis.Movement.Drive(new PilotCommand { strafe = 1f, yawTorque = 1f, boost = 1f });
+            yield return new WaitForFixedUpdate();
+
+            Assert.That(valis.Keystone.Active, Is.True);
+            Assert.That(valis.Movement.dbgStrafe.magnitude, Is.EqualTo(normal.maxStrafeAcc * 1.5f).Within(.01f));
+            Assert.That(valis.Movement.dbgYaw, Is.EqualTo(normal.yawTorque * 1.5f).Within(.01f));
+            Assert.That(valis.Dynamics.maxStrafeAcc, Is.EqualTo(normal.maxStrafeAcc * 1.5f));
+            Assert.That(valis.Dynamics.minStrafeAcc, Is.EqualTo(normal.minStrafeAcc * 1.5f));
+            Assert.That(valis.Dynamics.yawTorque, Is.EqualTo(normal.yawTorque * 1.5f));
+            Assert.That(valis.Dynamics.maxYawRate, Is.EqualTo(normal.maxYawRate * 1.5f));
+            Assert.That(valis.Rigidbody.maxAngularVelocity, Is.EqualTo(valis.Dynamics.maxYawRate).Within(.001f));
+            Assert.That(valis.MaxYawRate * Mathf.Deg2Rad, Is.EqualTo(valis.Dynamics.maxYawRate).Within(.001f));
+
+            while (valis.Keystone.Active) yield return new WaitForFixedUpdate();
+
+            Assert.That(valis.Movement.dbgYaw, Is.EqualTo(normal.yawTorque).Within(.01f));
+            Assert.That(valis.Dynamics.maxStrafeAcc, Is.EqualTo(normal.maxStrafeAcc));
+            Assert.That(valis.Dynamics.minStrafeAcc, Is.EqualTo(normal.minStrafeAcc));
+            Assert.That(valis.Dynamics.yawTorque, Is.EqualTo(normal.yawTorque));
+            Assert.That(valis.Dynamics.maxYawRate, Is.EqualTo(normal.maxYawRate));
+            Assert.That(valis.Rigidbody.maxAngularVelocity, Is.EqualTo(normal.maxYawRate).Within(.001f));
+            Assert.That(valis.MaxYawRate * Mathf.Deg2Rad, Is.EqualTo(normal.maxYawRate).Within(.001f));
+        }
+
+        [UnityTest]
+        public IEnumerator ResetDuringOverdrive_RestoresTheBaseCaps()
         {
             valis = Object.Instantiate(TestAssets.Load<Ship>(ValisPath), Vector3.zero, GamePlane.Rotation);
             valis.Initialize(0, 0, Projectiles);
@@ -79,10 +110,15 @@ namespace Tests.PlayMode.Keystones
             valis.Movement.Drive(new PilotCommand { thrust = 1f, boost = 1f });
             yield return new WaitForFixedUpdate();
             Assert.That(valis.Rigidbody.maxLinearVelocity, Is.GreaterThan(valis.Stats.maxSpeed), "overdrive raised the cap");
+            Assert.That(valis.Rigidbody.maxAngularVelocity, Is.GreaterThan(valis.Stats.maxYawRate * Mathf.Deg2Rad));
 
             valis.ResetShip();
 
             Assert.That(valis.Rigidbody.maxLinearVelocity, Is.EqualTo(valis.Stats.maxSpeed), "an in-place respawn starts at the base cap");
+            Assert.That(valis.Rigidbody.maxAngularVelocity, Is.EqualTo(valis.Stats.maxYawRate * Mathf.Deg2Rad));
+            Assert.That(valis.MaxYawRate, Is.EqualTo(valis.Stats.maxYawRate));
+            Assert.That(valis.Dynamics.yawTorque, Is.EqualTo(valis.Stats.yawTorque));
+            Assert.That(valis.Dynamics.maxStrafeAcc, Is.EqualTo(valis.Stats.maxStrafeForce));
         }
     }
 }

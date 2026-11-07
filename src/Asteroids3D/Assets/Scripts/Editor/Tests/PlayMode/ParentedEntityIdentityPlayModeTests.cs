@@ -5,6 +5,7 @@ using Combat.Weapons;
 using Combat.Weapons.Arsenal;
 using Damage;
 using NUnit.Framework;
+using Tests.Common;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -54,6 +55,8 @@ namespace Tests.PlayMode
                 TotalDamage += hit.Amount;
                 return 0f;
             }
+
+            private void OnDestroy() => DamageableColliders.Unregister(this);
         }
 
         private Transform CreateArenaRoot()
@@ -81,7 +84,9 @@ namespace Tests.PlayMode
             go.transform.SetParent(parent, true);
             go.transform.position = position;
             go.AddComponent<BoxCollider>().size = Vector3.one;
-            return go.AddComponent<DamageRecorder>();
+            var recorder = go.AddComponent<DamageRecorder>();
+            DamageableColliderRegistration.Register(recorder);
+            return recorder;
         }
 
         private T MountWeapon<T>(string path, GameObject ship) where T : WeaponComponent
@@ -104,6 +109,7 @@ namespace Tests.PlayMode
             var arena = CreateArenaRoot();
             var ship = CreateShooterShip(arena);
             var ownRecorder = ship.AddComponent<DamageRecorder>();
+            DamageableColliderRegistration.Register(ownRecorder);
             var enemy = CreateEnemy(arena, ship.transform.position + Vector3.up * 6f);
             var railgun = MountWeapon<Railguns>(RailgunPrefabPath, ship);
 
@@ -120,6 +126,7 @@ namespace Tests.PlayMode
             var arena = CreateArenaRoot();
             var ship = CreateShooterShip(arena);
             var ownRecorder = ship.AddComponent<DamageRecorder>();
+            DamageableColliderRegistration.Register(ownRecorder);
             var enemy = CreateEnemy(arena, ship.transform.position + Vector3.up * 5f);
             var ripper = MountWeapon<Rippers>(RippersPrefabPath, ship);
 

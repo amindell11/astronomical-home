@@ -65,6 +65,7 @@ namespace RL.Probes
             [FacingProbe.ProbeName] = (parameters => new FacingProbe(parameters),
                 new[] { FacingProbe.AuthorityScaleKey }),
             [MarksmanshipProbe.ProbeName] = (_ => new MarksmanshipProbe(), Array.Empty<string>()),
+            [MatrixProbe.ProbeName] = (_ => new MatrixProbe(), Array.Empty<string>()),
             [SentenceProbe.ProbeName] = (_ => new SentenceProbe(), Array.Empty<string>()),
         };
 

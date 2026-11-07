@@ -49,9 +49,10 @@ namespace Combat.Targeting
 
         public bool TryStartLock(ITargetable candidate)
         {
-            if (candidate == null || State != LockState.Idle) return false;
+            if (candidate == null || State != LockState.Idle || candidate.Lock.IsConcealed) return false;
 
             CurrentTarget = candidate;
+            CurrentTarget.Lock.Concealed += Cancel;
             lockTimer = 0f;
             SetState(LockState.Locking);
             return true;
@@ -111,7 +112,11 @@ namespace Combat.Targeting
 
         private void ResetLock()
         {
-            CurrentTarget?.Lock.RaiseReleased();
+            if (CurrentTarget != null)
+            {
+                CurrentTarget.Lock.Concealed -= Cancel;
+                CurrentTarget.Lock.RaiseReleased();
+            }
             CurrentTarget = null;
             lockTimer = 0f;
             lockDuration = 0f;

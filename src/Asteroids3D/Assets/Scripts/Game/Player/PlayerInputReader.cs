@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Game.Player
 {
-    public class PlayerInputReader : IDisposable
+    public class PlayerInputReader : IFlightInput, IDisposable
     {
         private readonly PlayerControls controls = new();
 
@@ -14,13 +14,20 @@ namespace Game.Player
         // and PlayerCommander derives the press edge for semi-auto weapons.
         public bool PrimaryFire => controls.Flight.PrimaryFire.IsPressed();
         public bool SecondaryFire => controls.Flight.SecondaryFire.IsPressed();
+        // Shift+R also matches the bare R binding; the shifted reload claims the press.
+        public bool PrimaryReload => controls.Flight.PrimaryReload.WasPressedThisFrame() && !SecondaryReload;
+        public bool SecondaryReload => controls.Flight.SecondaryReload.WasPressedThisFrame();
         public bool WantsToRotate => !controls.Flight.HoldHeading.IsPressed();
+        public bool AssistTogglePressed => controls.Flight.ToggleAssist.WasPressedThisFrame();
+        // Raised inside the input update, so a jump commits before the next physics step.
+        public event Action JumpPressed;
 
         private Func<Vector3, Vector3> screenToGamePlane;
 
         public PlayerInputReader(Func<Vector3, Vector3> screenToGamePlane)
         {
             SetScreenToGamePlane(screenToGamePlane);
+            controls.Flight.Jump.performed += _ => JumpPressed?.Invoke();
         }
 
         public void SetScreenToGamePlane(Func<Vector3, Vector3> projector)
