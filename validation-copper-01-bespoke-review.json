@@ -1,0 +1,28 @@
+{
+  "status": "Review candidate, awaiting owner visual judgment",
+  "scope": "One Copper asteroid; 25 individually authored asteroids planned, not completed",
+  "source_check": "Fresh Blender reopen",
+  "solid_meshes": 10,
+  "drawing_ribbons": 10,
+  "host_connected_components": 1,
+  "solid_boundary_edges": 0,
+  "solid_nonmanifold_edges": 0,
+  "solid_zero_area_faces": 0,
+  "drawing_zero_area_faces": 0,
+  "all_solid_meshes_have_uvs": true,
+  "packed_images": 3,
+  "image_dimensions": [
+    1254,
+    1254
+  ],
+  "native_preview_canvas": [
+    150,
+    110
+  ],
+  "limitations": [
+    "Broad faces and mineral boundaries remain simpler than concept",
+    "Freestyle outer contour is render-only",
+    "No production exports or Unity integration"
+  ],
+  "source_sha256": "0c60959803e777bd116a11a1699edbcf182808b583cdeb9135c09a6623d7a694"
+}

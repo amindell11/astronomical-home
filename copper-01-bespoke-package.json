@@ -1,0 +1,11 @@
+{
+  "status": "One bespoke Copper review candidate; owner visual acceptance pending",
+  "planned_asteroids": 25,
+  "completed_set": false,
+  "archive": "copper-01-bespoke-review.zip",
+  "files_in_archive": 28,
+  "archive_bytes": 19168663,
+  "archive_sha256": "004a80287ec7cfb503d376af0ecae4383f7649993081b9cdd4399ad9abbc38ec",
+  "source_sha256": "0c60959803e777bd116a11a1699edbcf182808b583cdeb9135c09a6623d7a694",
+  "approved_violet_sha256": "74a075325a1f30d9e4de1777d1992d01b06cc080c6315d81efe557bf1668726b"
+}
