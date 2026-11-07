@@ -29,6 +29,15 @@ namespace Combat.Projectiles.Visual
             if (source.Length > 0) BakeFromDirectory(source);
         }
 
+        public static void Bake()
+        {
+            var args = Environment.GetCommandLineArgs();
+            var index = Array.IndexOf(args, "-laserImpactExport");
+            if (index < 0 || index + 1 >= args.Length)
+                throw new ArgumentException("Pass -laserImpactExport with the directory returned by bake.cjs.");
+            BakeFromDirectory(args[index + 1]);
+        }
+
         public static void BakeFromDirectory(string source)
         {
             var settings = JsonUtility.FromJson<Settings>(File.ReadAllText(Path.Combine(source, "bake.json")));

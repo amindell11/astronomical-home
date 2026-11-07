@@ -19,7 +19,14 @@ The atlas has 20 frames in five columns and four rows, with the contact at each
 cell's center and the fan pointing along negative local Y.
 
 In a coordinated Unity editor, choose **Tools > Art > Bake laser impact** and select
-that output directory. The baker imports the texture, creates the pooled particle
+that output directory. For coordinated batch execution, pass the output directory
+returned by `bake.cjs`:
+
+```text
+-executeMethod Combat.Projectiles.Visual.LaserImpactBaker.Bake -laserImpactExport <output>
+```
+
+The baker imports the texture, creates the pooled particle
 prefab and material, wires the standard laser, and excludes its TurboLaser variant.
 The initial visible fan length is 1.2 world units. Tune the effect prefab's particle
 size in flight; the browser's 48-pixel preview did not establish a world scale.

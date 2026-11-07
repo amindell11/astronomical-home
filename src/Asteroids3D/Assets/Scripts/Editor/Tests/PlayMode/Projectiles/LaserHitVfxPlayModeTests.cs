@@ -7,6 +7,7 @@ using NUnit.Framework;
 using Ships.Registry;
 using Substrate;
 using Substrate.Services.Projectiles;
+using Tests.Common;
 using Tests.PlayMode.Common;
 using UnityEditor;
 using UnityEngine;
@@ -28,6 +29,8 @@ namespace Tests.PlayMode.Projectiles
         private sealed class Target : MonoBehaviour, IDamageable
         {
             public float TakeDamage(in DamageInfo hit) => 0f;
+
+            private void OnDestroy() => DamageableColliders.Unregister(this);
         }
 
         private readonly List<GameObject> spawned = new();
@@ -93,7 +96,7 @@ namespace Tests.PlayMode.Projectiles
             var collider = target.AddComponent<SphereCollider>();
             collider.isTrigger = true;
             collider.radius = 0.5f;
-            target.AddComponent<Target>();
+            DamageableColliderRegistration.Register(target.AddComponent<Target>());
             var shooter = Track(new GameObject("Shooter")).AddComponent<Shooter>();
             var prefab = AssetDatabase.LoadAssetAtPath<Laser>($"Assets/Prefabs/Weapons/Projectiles/{prefabName}.prefab");
             var projectile = SimplePool<Laser>.Get(prefab, Vector3.zero, GamePlane.PlanePose(GamePlane.Normal, direction));
