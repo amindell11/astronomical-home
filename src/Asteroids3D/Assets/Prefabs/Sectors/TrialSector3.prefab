@@ -144,11 +144,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: TrialSector3
       objectReference: {fileID: 0}
-    - target: {fileID: 7436810692243587915, guid: 35f72eeaa8adb4c43832be646409d034,
-        type: 3}
-      propertyPath: patrolCount
-      value: 2
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

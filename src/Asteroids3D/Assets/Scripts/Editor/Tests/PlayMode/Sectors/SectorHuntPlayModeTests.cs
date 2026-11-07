@@ -9,6 +9,7 @@ using NUnit.Framework;
 using Objectives;
 using Objectives.Presentation;
 using Ships;
+using Ships.Visuals;
 using Substrate;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
@@ -25,7 +26,7 @@ using Object = UnityEngine.Object;
 
 namespace Tests.PlayMode.Sectors
 {
-    /// <summary>A sector's hunt with real patrols: unaware until one sees the hero (or is hit by it), then a call-in that sounds the alarm, wakes the patrols and opens phase one with the HUD reading the search and then the call-in; asteroids hide the hero, and killing the caller inside its call-in silences it, leaving the search clock to end the hunt.</summary>
+    /// <summary>A sector's hunt with real patrols: unaware, flying a route that brings one into sight of a still hero, until one sees the hero (or is hit by it), then a call-in, its marker pulsing, that sounds the alarm, hands the patrols back to their brains and opens phase one with the HUD reading the search and then the call-in; asteroids hide the hero, and killing the caller inside its call-in silences it, leaving the search clock to end the hunt.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class SectorHuntPlayModeTests : PlayModeWorldFixture
@@ -85,7 +86,8 @@ namespace Tests.PlayMode.Sectors
             yield return null;
             var patrol = Patrol(hunt);
             Assert.AreEqual(SpawnDistance, PlaneDistance(patrol, hero), 2f, "The patrol spawns its distance from the start.");
-            Assert.IsTrue(Scout(patrol).Unaware, "A patrol roams unaware of the hero.");
+            Assert.IsTrue(Scout(patrol).Unaware, "A patrol flies unaware of the hero.");
+            Assert.IsTrue(Commander(patrol).Steered, "An unaware patrol flies its route.");
             Assert.AreEqual(HuntReading.Searching, Progress().Hunt, "The countdown reads the search.");
             Assert.IsTrue(director.Phase.InOpeningLull);
 
@@ -96,6 +98,7 @@ namespace Tests.PlayMode.Sectors
             Assert.AreEqual(HuntReading.Spotted, Progress().Hunt, "The countdown reads the call-in.");
             Assert.That(Progress().SecondsLeft, Is.LessThanOrEqualTo(.5f));
             Assert.IsTrue(Scout(patrol).Unaware, "A calling patrol still holds fire.");
+            Assert.IsTrue(Marker(patrol).Pulsing, "The calling patrol's marker pulses.");
 
             yield return WaitSeconds(() => director.Phase.Index == 0 && !director.Phase.InLull, 3f);
             Assert.AreEqual(new[] { $"spotted {SectorIndex} {patrol.name}", $"alarm {SectorIndex} Patrol {patrol.name}" },
@@ -103,6 +106,8 @@ namespace Tests.PlayMode.Sectors
             Assert.IsFalse(director.Phase.InLull, "Phase one opens at the alarm.");
             Assert.AreEqual(0, director.Phase.Index, "The hunt adds no sector phase.");
             Assert.IsFalse(Scout(patrol).Unaware, "The alarm wakes the patrol.");
+            Assert.IsFalse(Commander(patrol).Steered, "The alarm hands the patrol back to its brain.");
+            Assert.IsFalse(Marker(patrol).Pulsing, "The alarm stops the pulse.");
             Assert.AreEqual(HuntReading.None, Progress().Hunt);
 
             yield return sector.Teardown();
@@ -121,12 +126,15 @@ namespace Tests.PlayMode.Sectors
             yield return null;
             var patrol = Patrol(hunt);
             var name = patrol.name;
+            var marker = Marker(patrol);
             Assert.AreEqual(new[] { $"spotted {SectorIndex} {name}" }, _beats, "A patrol in sight starts calling.");
+            Assert.IsTrue(marker.Pulsing);
 
             patrol.Damage.TakeDamage(new DamageInfo(1e6f, DamageKind.Laser, hero.Id, 0f, Vector3.zero, patrol.transform.position));
             yield return null;
             Assert.AreEqual(new[] { $"spotted {SectorIndex} {name}", $"silenced {SectorIndex} {name}" }, _beats);
             Assert.IsEmpty(hunt.Spawned, "A dead patrol is despawned.");
+            Assert.IsFalse(marker.Pulsing, "Silencing the caller stops its pulse.");
 
             yield return WaitSeconds(() => hunt.Alarmed, 5f);
             Assert.AreEqual(new[] { $"spotted {SectorIndex} {name}", $"silenced {SectorIndex} {name}", $"alarm {SectorIndex} SearchClock none" },
@@ -169,14 +177,33 @@ namespace Tests.PlayMode.Sectors
             Assert.AreEqual(new[] { $"spotted {SectorIndex} {patrol.name}" }, _beats, "A patrol the hero hits has spotted it.");
         }
 
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator AnUnawarePatrolFarOut_FliesItsRouteIntoSightOfAStillHero()
+        {
+            var hero = SpawnHero();
+            var hunt = NewHunt(sightRadius: 50f, callInSeconds: 30f, searchSeconds: 60f, spawnDistance: 120f);
+            yield return Build(hunt, hero);
+            yield return null;
+            yield return null;
+            Assert.IsEmpty(_beats, "The patrol spawns out of sight.");
+
+            yield return WaitSeconds(() => _beats.Count > 0, 15f);
+            Assert.AreEqual(new[] { $"spotted {SectorIndex} {Patrol(hunt).name}" }, _beats,
+                "The route brings the patrol into sight of the start.");
+            Assert.IsTrue(Commander(Patrol(hunt)).Steered, "A calling patrol keeps flying its route.");
+        }
+
         private Ship SpawnHero() => Track(ShipTestFactory.CreateKinematicPrimitiveShipAt(Vector2.zero).gameObject).GetComponent<Ship>();
 
-        private SectorHunt NewHunt(float sightRadius, float callInSeconds, float searchSeconds)
+        private SectorHunt NewHunt(float sightRadius, float callInSeconds, float searchSeconds,
+            float spawnDistance = SpawnDistance)
         {
             var feel = Track(ScriptableObject.CreateInstance<HuntFeelProfile>());
             feel.sightRadius = sightRadius;
             feel.callInSeconds = callInSeconds;
             feel.searchSeconds = searchSeconds;
+            feel.patrolsPerSector = new[] { 0, 1 };
             var hunt = Track(new GameObject("Hunt")).AddComponent<SectorHunt>();
             var faction = Track(ScriptableObject.CreateInstance<Faction>());
             faction.common = new FactionShip
@@ -185,7 +212,7 @@ namespace Tests.PlayMode.Sectors
             };
             var sectorFaction = Track(new GameObject("Faction")).AddComponent<SectorFaction>();
             sectorFaction.Bind(faction);
-            hunt.Configure(feel, sectorFaction, TestAssets.Load<AICommander>(PatrolPilotPath), 1, SpawnDistance);
+            hunt.Configure(feel, sectorFaction, TestAssets.Load<AICommander>(PatrolPilotPath), spawnDistance);
             hunt.PatrolSpotted += (sector, patrol) => _beats.Add($"spotted {sector} {patrol.name}");
             hunt.PatrolSilenced += (sector, patrol) => _beats.Add($"silenced {sector} {patrol.name}");
             hunt.AlarmRaised += (sector, reason, caller) =>
@@ -194,8 +221,8 @@ namespace Tests.PlayMode.Sectors
         }
 
         private IEnumerator Build(SectorHunt hunt, Ship hero) =>
-            hunt.Build(new SectorBuildContext(_unitService, _objectives, true, null, default, hero: hero,
-                sectorIndex: SectorIndex));
+            hunt.Build(new SectorBuildContext(_unitService, _objectives, true,
+                Track(new GameObject("Sector")).AddComponent<Sector>(), default, hero: hero, sectorIndex: SectorIndex));
 
         private static Ship Patrol(SectorHunt hunt)
         {
@@ -203,7 +230,16 @@ namespace Tests.PlayMode.Sectors
             return hunt.Spawned[0];
         }
 
-        private static Scout Scout(Ship patrol) => ((AICommander)patrol.Commander).Scout;
+        private static Scout Scout(Ship patrol) => Commander(patrol).Scout;
+
+        private static AICommander Commander(Ship patrol) => (AICommander)patrol.Commander;
+
+        private static MinimapShipMarker Marker(Ship patrol)
+        {
+            var marker = patrol.GetComponentInChildren<MinimapShipMarker>(true);
+            Assert.IsTrue(marker, "The patrol ship carries a minimap marker.");
+            return marker;
+        }
 
         private SectorPhaseProgress Progress() => _objectives.SpineTracker.PhaseProgress.Value;
 

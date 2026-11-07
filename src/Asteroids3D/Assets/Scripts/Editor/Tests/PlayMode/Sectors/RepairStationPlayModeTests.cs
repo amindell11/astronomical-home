@@ -254,8 +254,9 @@ namespace Tests.PlayMode.Sectors
         {
             var feel = Track(ScriptableObject.CreateInstance<HuntFeelProfile>());
             feel.searchSeconds = 1000f;
+            feel.patrolsPerSector = new[] { 0, 0, 0 };
             var hunt = Track(new GameObject("Hunt")).AddComponent<SectorHunt>();
-            hunt.Configure(feel, null, null, 0, 0f);
+            hunt.Configure(feel, null, null, 0f);
             Drive(hunt.Build(Context(hero)));
             return hunt;
         }
