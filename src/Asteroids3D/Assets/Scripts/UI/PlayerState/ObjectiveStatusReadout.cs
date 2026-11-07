@@ -13,6 +13,7 @@ namespace UI.PlayerState
     {
         private Text label;
         private Text clock;
+        private int clockSeconds = -1;
         private Text caption;
         private Text announcement;
         private KeyPrompt keyPrompt;
@@ -174,7 +175,11 @@ namespace UI.PlayerState
             label.rectTransform.sizeDelta = new Vector2(420f, 28f);
             label.text = "EXTRACTION OPEN";
             var seconds = Mathf.CeilToInt(phase.SecondsLeft);
-            clock.text = $"{seconds / 60}:{seconds % 60:00}";
+            if (seconds != clockSeconds)
+            {
+                clockSeconds = seconds;
+                clock.text = $"{seconds / 60}:{seconds % 60:00}";
+            }
             caption.text = phase.ExtractionOpen ? instruction : phase.Hunt switch
             {
                 HuntReading.Searching => "SEARCHING",
