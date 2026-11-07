@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using AI.Tactics;
 using Asteroids.Fields;
 using Cameras;
 using Game;
@@ -46,6 +47,8 @@ namespace Tests.EditMode.Preview
                 AssetDatabase.LoadAssetAtPath<HuntFeelProfile>("Assets/Settings/Game/HuntFeel.asset"));
             AssertTarget(Target<BossTarget>(), new[] { PreviewEntry.Boss },
                 AssetDatabase.LoadAssetAtPath<EliteProfile>("Assets/Settings/Ships/Elites/BastionBoss.asset"));
+            AssertTarget(Target<TacticsTarget>(), new[] { PreviewEntry.CrowdedFight },
+                AssetDatabase.LoadAssetAtPath<TacticsSettings>("Assets/Settings/AI/Tactics/TacticsSettings.asset"));
         }
 
         [Test]
