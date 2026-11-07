@@ -1,0 +1,418 @@
+{
+  "source": "wide-display-base.png",
+  "directions": [
+    {
+      "id": "A",
+      "name": "Radial mounts",
+      "screenBounds": {
+        "x": 150,
+        "y": 497,
+        "width": 370,
+        "height": 319
+      },
+      "maskPolygon": [
+        [
+          153,
+          499
+        ],
+        [
+          450,
+          499
+        ],
+        [
+          488,
+          530
+        ],
+        [
+          510,
+          803
+        ],
+        [
+          501,
+          815
+        ],
+        [
+          160,
+          815
+        ],
+        [
+          151,
+          805
+        ]
+      ],
+      "stats": [
+        {
+          "key": "hull",
+          "label": "Hull",
+          "value": "100",
+          "segments": 6
+        },
+        {
+          "key": "shieldCapacity",
+          "label": "Shield",
+          "value": "50",
+          "segments": 6
+        },
+        {
+          "key": "shieldRecharge",
+          "label": "Regen",
+          "value": "10/s",
+          "segments": 6
+        },
+        {
+          "key": "topSpeed",
+          "label": "Speed",
+          "value": "25",
+          "segments": 6
+        },
+        {
+          "key": "acceleration",
+          "label": "Accel",
+          "value": "7",
+          "segments": 6
+        },
+        {
+          "key": "turn",
+          "label": "Turn",
+          "value": "180°/s",
+          "segments": 6
+        }
+      ],
+      "leaders": [
+        "hull",
+        "shieldCapacity",
+        "shieldRecharge",
+        "topSpeed",
+        "acceleration",
+        "turn",
+        "weapon0",
+        "weapon1"
+      ],
+      "glyphs": [
+        "../display-concepts-01/assets/icons/ships/Vanguard.png",
+        "../display-concepts-01/assets/icons/weapons/lasers.svg",
+        "../display-concepts-01/assets/icons/weapons/missiles.svg",
+        "../display-concepts-01/assets/icons/keystones/dash.svg"
+      ],
+      "fonts": {
+        "label": true,
+        "readout": true,
+        "heading": true
+      },
+      "overflow": []
+    },
+    {
+      "id": "B",
+      "name": "Bilateral instruments",
+      "screenBounds": {
+        "x": 150,
+        "y": 497,
+        "width": 370,
+        "height": 319
+      },
+      "maskPolygon": [
+        [
+          153,
+          499
+        ],
+        [
+          450,
+          499
+        ],
+        [
+          488,
+          530
+        ],
+        [
+          510,
+          803
+        ],
+        [
+          501,
+          815
+        ],
+        [
+          160,
+          815
+        ],
+        [
+          151,
+          805
+        ]
+      ],
+      "stats": [
+        {
+          "key": "hull",
+          "label": "Hull",
+          "value": "100",
+          "segments": 6
+        },
+        {
+          "key": "shieldCapacity",
+          "label": "Shield",
+          "value": "50",
+          "segments": 6
+        },
+        {
+          "key": "shieldRecharge",
+          "label": "Regen",
+          "value": "10/s",
+          "segments": 6
+        },
+        {
+          "key": "topSpeed",
+          "label": "Speed",
+          "value": "25",
+          "segments": 6
+        },
+        {
+          "key": "acceleration",
+          "label": "Accel",
+          "value": "7",
+          "segments": 6
+        },
+        {
+          "key": "turn",
+          "label": "Turn",
+          "value": "180°/s",
+          "segments": 6
+        }
+      ],
+      "leaders": [
+        "hull",
+        "shieldCapacity",
+        "shieldRecharge",
+        "topSpeed",
+        "acceleration",
+        "turn",
+        "weapon0",
+        "weapon1"
+      ],
+      "glyphs": [
+        "../display-concepts-01/assets/icons/ships/Vanguard.png",
+        "../display-concepts-01/assets/icons/weapons/lasers.svg",
+        "../display-concepts-01/assets/icons/weapons/missiles.svg",
+        "../display-concepts-01/assets/icons/keystones/dash.svg"
+      ],
+      "fonts": {
+        "label": true,
+        "readout": true,
+        "heading": true
+      },
+      "overflow": []
+    },
+    {
+      "id": "C",
+      "name": "Forward fan",
+      "screenBounds": {
+        "x": 150,
+        "y": 497,
+        "width": 370,
+        "height": 319
+      },
+      "maskPolygon": [
+        [
+          153,
+          499
+        ],
+        [
+          450,
+          499
+        ],
+        [
+          488,
+          530
+        ],
+        [
+          510,
+          803
+        ],
+        [
+          501,
+          815
+        ],
+        [
+          160,
+          815
+        ],
+        [
+          151,
+          805
+        ]
+      ],
+      "stats": [
+        {
+          "key": "hull",
+          "label": "Hull",
+          "value": "100",
+          "segments": 6
+        },
+        {
+          "key": "shieldCapacity",
+          "label": "Shield",
+          "value": "50",
+          "segments": 6
+        },
+        {
+          "key": "shieldRecharge",
+          "label": "Regen",
+          "value": "10/s",
+          "segments": 6
+        },
+        {
+          "key": "topSpeed",
+          "label": "Speed",
+          "value": "25",
+          "segments": 6
+        },
+        {
+          "key": "acceleration",
+          "label": "Accel",
+          "value": "7",
+          "segments": 6
+        },
+        {
+          "key": "turn",
+          "label": "Turn",
+          "value": "180°/s",
+          "segments": 6
+        }
+      ],
+      "leaders": [
+        "hull",
+        "shieldCapacity",
+        "shieldRecharge",
+        "topSpeed",
+        "acceleration",
+        "turn",
+        "weapon0",
+        "weapon1"
+      ],
+      "glyphs": [
+        "../display-concepts-01/assets/icons/ships/Vanguard.png",
+        "../display-concepts-01/assets/icons/weapons/lasers.svg",
+        "../display-concepts-01/assets/icons/weapons/missiles.svg",
+        "../display-concepts-01/assets/icons/keystones/dash.svg"
+      ],
+      "fonts": {
+        "label": true,
+        "readout": true,
+        "heading": true
+      },
+      "overflow": []
+    },
+    {
+      "id": "D",
+      "name": "Dash ring",
+      "screenBounds": {
+        "x": 150,
+        "y": 497,
+        "width": 370,
+        "height": 319
+      },
+      "maskPolygon": [
+        [
+          153,
+          499
+        ],
+        [
+          450,
+          499
+        ],
+        [
+          488,
+          530
+        ],
+        [
+          510,
+          803
+        ],
+        [
+          501,
+          815
+        ],
+        [
+          160,
+          815
+        ],
+        [
+          151,
+          805
+        ]
+      ],
+      "stats": [
+        {
+          "key": "hull",
+          "label": "Hull",
+          "value": "100",
+          "segments": 6
+        },
+        {
+          "key": "shieldCapacity",
+          "label": "Shield",
+          "value": "50",
+          "segments": 6
+        },
+        {
+          "key": "shieldRecharge",
+          "label": "Regen",
+          "value": "10/s",
+          "segments": 6
+        },
+        {
+          "key": "topSpeed",
+          "label": "Speed",
+          "value": "25",
+          "segments": 6
+        },
+        {
+          "key": "acceleration",
+          "label": "Accel",
+          "value": "7",
+          "segments": 6
+        },
+        {
+          "key": "turn",
+          "label": "Turn",
+          "value": "180°/s",
+          "segments": 6
+        }
+      ],
+      "leaders": [
+        "hull",
+        "shieldCapacity",
+        "shieldRecharge",
+        "topSpeed",
+        "acceleration",
+        "turn",
+        "weapon0",
+        "weapon1"
+      ],
+      "glyphs": [
+        "../display-concepts-01/assets/icons/ships/Vanguard.png",
+        "../display-concepts-01/assets/icons/weapons/lasers.svg",
+        "../display-concepts-01/assets/icons/weapons/missiles.svg",
+        "../display-concepts-01/assets/icons/keystones/dash.svg"
+      ],
+      "fonts": {
+        "label": true,
+        "readout": true,
+        "heading": true
+      },
+      "overflow": []
+    }
+  ],
+  "contactSheet": {
+    "x": 0,
+    "y": 0,
+    "width": 1600,
+    "height": 1675.03125
+  },
+  "gallery": {
+    "initialCompare": true,
+    "fullScene": true,
+    "native": true,
+    "returnedToComparison": true
+  },
+  "status": "passed"
+}

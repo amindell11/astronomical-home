@@ -1,0 +1,80 @@
+{
+  "source": "wide-display-base.png",
+  "sourceSha256": "3af78aafe04f6fa566da6587defff1aeedbdd21d33c886277b577ddb54075334",
+  "comparison": "Native overlay against the widened base; no comparison to the earlier imagegen source.",
+  "directions": [
+    {
+      "option": "A",
+      "fullSceneSize": [
+        1672,
+        941
+      ],
+      "nativeSize": [
+        370,
+        319
+      ],
+      "closeupSize": [
+        1110,
+        957
+      ],
+      "changedPixels": 11345,
+      "changedOutsideGlass": 0,
+      "nativeMatchesFullSceneCrop": true
+    },
+    {
+      "option": "B",
+      "fullSceneSize": [
+        1672,
+        941
+      ],
+      "nativeSize": [
+        370,
+        319
+      ],
+      "closeupSize": [
+        1110,
+        957
+      ],
+      "changedPixels": 11073,
+      "changedOutsideGlass": 0,
+      "nativeMatchesFullSceneCrop": true
+    },
+    {
+      "option": "C",
+      "fullSceneSize": [
+        1672,
+        941
+      ],
+      "nativeSize": [
+        370,
+        319
+      ],
+      "closeupSize": [
+        1110,
+        957
+      ],
+      "changedPixels": 11195,
+      "changedOutsideGlass": 0,
+      "nativeMatchesFullSceneCrop": true
+    },
+    {
+      "option": "D",
+      "fullSceneSize": [
+        1672,
+        941
+      ],
+      "nativeSize": [
+        370,
+        319
+      ],
+      "closeupSize": [
+        1110,
+        957
+      ],
+      "changedPixels": 11524,
+      "changedOutsideGlass": 0,
+      "nativeMatchesFullSceneCrop": true
+    }
+  ],
+  "status": "passed"
+}
