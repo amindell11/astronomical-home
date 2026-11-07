@@ -221,6 +221,7 @@ namespace UI.Screens
             Label(panel, "Rank", "Your best runs · " + rank, 132, 0, 292, 20, 11, Muted, TextAnchor.MiddleRight);
             ScoreCells(panel, "Columns", 26, "Rank", "Sectors", "Kills", "Time", Muted, false);
             Label(panel, "ShipHeading", "Ship", 76, 26, 84, 24, 11, Muted);
+            Label(panel, "LoadoutHeading", "Loadout", 172, 26, 56, 24, 11, Muted);
             var visible = Math.Min(5, board.Rows.Count);
             for (var i = 0; i < visible; i++)
             {
