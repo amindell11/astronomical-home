@@ -1,0 +1,14 @@
+[
+  {
+    "file": "gate1-a-twin-pier-harbour.png",
+    "sha256": "11ddec5eb450756ad7fedc32558400e2df900b7a266cf0d7ab23c82f36c583b5"
+  },
+  {
+    "file": "gate1-b-broken-ring-roadhouse.png",
+    "sha256": "fe5e41882d62838537036a4fdf99f04f86a7134537163dc55c7a5395f2b3ed1e"
+  },
+  {
+    "file": "gate1-c-offset-crane-dock.png",
+    "sha256": "e90e20bfe3a6dc96c4abf5a8fb6abbbaf9342105abeacfdecbc40288576a2fa6"
+  }
+]

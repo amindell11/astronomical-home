@@ -1,0 +1,42 @@
+{
+  "date": "2026-11-06",
+  "timezone": "America/Los_Angeles",
+  "issue": 1384,
+  "arc": 1381,
+  "stage": "Gate 1 concept review",
+  "direction": "A | Twin-pier harbour",
+  "status": "Awaiting owner verdict",
+  "generator": "Built-in image_gen imagegen tool",
+  "model": "Not exposed by the tool",
+  "generation": "First pass, shown without regeneration or manual edits",
+  "file": "gate1-a-twin-pier-harbour.png",
+  "prompt_file": "gate1-a-prompt.txt",
+  "references": [
+    {
+      "file": "01-ink-finish.png",
+      "role": "Chosen drawn finish and broad shape treatment; not ship paint or console layout.",
+      "url": "https://media.githubusercontent.com/media/amindell11/astronomical-home/945c2ed4cf2b0ed556c87d26b25fd7c929be9c5c/consoles/concepts/02-ink-drawn.png"
+    },
+    {
+      "file": "02-lighting-mood.jpg",
+      "role": "Warm light spill from inhabited openings, dark hardware. Session recommendation, not an owner-selected exact image.",
+      "url": "https://media.githubusercontent.com/media/amindell11/astronomical-home/945c2ed4cf2b0ed556c87d26b25fd7c929be9c5c/consoles/lighting-01/electronic-light-contrast-nb2.jpg"
+    },
+    {
+      "file": "03-owner-cockpit.png",
+      "role": "Owner's practical electronics lighting mood only. Third-party image not republished.",
+      "url": "https://raw.githubusercontent.com/amindell11/astronomical-home/cd45b620e2b3f7c32f14af03df73a1d6f4bdce9a/04-dark-cockpit-leds.png"
+    },
+    {
+      "file": "04-current-repair.png",
+      "role": "Current lit/spent appearance and relative scale reference only; no inherited geometry.",
+      "url": "https://media.githubusercontent.com/media/amindell11/astronomical-home/7b131b65c3426da0fda434506136172f4600ad69/station-world.png"
+    }
+  ],
+  "known_limitations": [
+    "A has residual amber light on an inner berth edge in the large dark view. Cache and armory service hues are not carried onto the object clearly.",
+    "Distance strip is an image-model readability study, not a calibrated engine capture. Scale figures are oversized and do not establish the 29-unit station, 16-unit trigger, or 15:1 station-to-ship ratio.",
+    "Requested light swatches are proposals; the generated images do not reproduce them exactly.",
+    "No in-use state, measured triangle count, mesh, texture, Blender proof, locale comparison or runtime-outline proof is claimed at gate 1."
+  ]
+}
