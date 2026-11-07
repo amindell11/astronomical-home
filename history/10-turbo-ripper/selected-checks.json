@@ -1,0 +1,16 @@
+{
+  "errors": [],
+  "still": {
+    "width": 1200,
+    "height": 730,
+    "bodyWidth": 1200,
+    "bodyHeight": 730
+  },
+  "moving": {
+    "width": 1050,
+    "height": 510,
+    "bodyWidth": 1050,
+    "bodyHeight": 510
+  },
+  "frames": 45
+}

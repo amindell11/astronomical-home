@@ -1,0 +1,45 @@
+{
+  "tool": "Built-in image_gen",
+  "date": "2026-11-07",
+  "decision": "Rejected both rounds because generated edges had stray cyan speckles; selected review candidate uses clean native canvas geometry.",
+  "rounds": [
+    {
+      "asset": "slug",
+      "file": "slug-round1.png",
+      "transparent_background": true,
+      "prompt": "Use case: precise-object-edit. Asset: single ripper autocannon projectile sprite for a top-down 2.5D space shooter. Image 1 is the chosen native sketch and EDIT TARGET. Image 2 is only a supporting style reference for broad flat hand-drawn color bands and crisp edges, not its starburst shape. Refine Image 1 into a finished, very simple hand-drawn kinetic slug. Preserve the short solid faceted body, left-facing blunt beveled nose, directional silhouette, three broad light/shadow planes, and a small cyan tracer extending to the RIGHT behind it. Keep it readable at about 28 pixels total length. Solid dark blue-steel body, pale cyan upper plane, off-white nose glint; the tracer is one short taper around one quarter of body length. Total projectile silhouette roughly 3 times as long as tall. A few confident slightly irregular edges may replace perfectly straight vector edges. Do NOT add grooves, holes, fins, panel lines, little scratches, speckles, rim spikes, mechanical parts, a cartridge casing, or dense internal detail. Do not turn the solid body into a laser streak. No soft haze around the body. Restrained localized brightness at nose and tail only. One projectile centered horizontally with wide transparent padding, native alpha background, no text, no labels, no scene, no comparison layout. This is a gameplay sprite, not a realistic product drawing. Keep the palette cyan-white-blue steel.",
+      "inputs": [
+        "../ripper-slug-sketch.png",
+        "approved art/vfx/laser-impact/source.png"
+      ]
+    },
+    {
+      "asset": "impact",
+      "file": "impact-round1.png",
+      "transparent_background": true,
+      "prompt": "Use case: precise-object-edit. Asset: a single compact RIPPER ballistic hit-effect source sprite for a top-down 2.5D space game. Image 1 is the EDIT TARGET: a deliberately simple impact sketch. Image 2 is the approved laser impact, used ONLY as the crisp, flat hand-drawn color-band style reference. Refine Image 1 with the same graphic confidence but keep it much SIMPLER than Image 2. Preserve left contact point with a flat blunt WHITE contact cap, fan extending right, only THREE main broad wedge shapes, one pale cyan interior shape and a saturated cyan outer shape. Three small detached triangular sparks maximum. White contact -> pale ice cyan -> stronger cyan outer edge. Very few large color shapes, no mechanical details, no dark outline around every edge. A small asymmetric break in one wedge can give it a hand-drawn character but do not add branches or little spikes. No left-pointing spikes. Readable at 34px long in game; avoid internal texture and tiny details. This is a small bullet-impact snap, not a grand energy explosion. Maintain the overall target silhouette and sparse layout, with generous transparent padding so the sparks do not clip. Flat hard-edged tone bands; localized luminosity only at contact, no bloom cloud, no smoke, no gradients across the background, no texture noise, no lettering. Output exactly ONE isolated gameplay effect sprite on a true transparent background, no labels, no scene, no comparison layout.",
+      "inputs": [
+        "../ripper-impact-sketch.png",
+        "approved art/vfx/laser-impact/source.png"
+      ]
+    },
+    {
+      "asset": "slug",
+      "file": "slug-round2.png",
+      "transparent_background": true,
+      "prompt": "Clean up only the background and outside edges of this projectile sprite. Keep the exact solid faceted projectile, its 3 broad blue-steel and pale-cyan shading planes, the white blunt left nose, and its short cyan triangular tail to the right. REMOVE every stray cyan/blue/white speckle, scratch, spray, scattered fleck, fragmented edge halo, and pixel noise outside the continuous solid silhouette. Outside the projectile and attached tail must be completely empty with alpha ZERO, no color whatsoever. Give the solid silhouette an uninterrupted crisp antialiased edge. Do not add any detail, outlines, gradients, or texture. Maintain size, orientation, proportions and the simple broad colors. One sprite on transparent background, no text.",
+      "inputs": [
+        "slug-round1.png"
+      ]
+    },
+    {
+      "asset": "impact",
+      "file": "impact-round2.png",
+      "transparent_background": true,
+      "prompt": "Clean up only the transparent background and shape edges of this effect sprite. Keep the main continuous three-wedge cyan fan, pale cyan inner shape and blunt white left contact cap, and keep EXACTLY THREE separated large triangular sparks in their current positions. REMOVE ALL other pixels outside those four connected objects: every spray, noise, speckle, small fleck, halo, rough patch or detached line. Every empty gap between the fan and the three sparks must be alpha ZERO with absolutely NO scattered cyan or blue grains. The main fan and each triangle need crisp smooth antialiased edges, not dark outlines. Preserve geometry, orientation, relative sizes, and the simple three flat tone colors. Do not add anything. One isolated impact effect, transparent background, no text.",
+      "inputs": [
+        "impact-round1.png"
+      ]
+    }
+  ]
+}

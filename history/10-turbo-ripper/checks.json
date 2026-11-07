@@ -1,0 +1,38 @@
+{
+  "errors": [],
+  "width": 1050,
+  "height": 670,
+  "bodyWidth": 1050,
+  "bodyHeight": 670,
+  "fadeChecks": {
+    "rows": [
+      {
+        "time": 0,
+        "laser": 7766,
+        "turbo": 7766
+      },
+      {
+        "time": 60,
+        "laser": 15334,
+        "turbo": 15334
+      },
+      {
+        "time": 140,
+        "laser": 15308,
+        "turbo": 15308
+      },
+      {
+        "time": 280,
+        "laser": 0,
+        "turbo": 0
+      },
+      {
+        "time": 340,
+        "laser": 0,
+        "turbo": 0
+      }
+    ],
+    "ripperAt180": 0
+  },
+  "frames": 90
+}

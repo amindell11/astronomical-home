@@ -35,3 +35,7 @@ The palette follows `art/vfx/laser-bolt/crackle/crackle.py`. The rough shapes ar
 ## Review
 
 Browser checks: no page errors; time scrub updates the scene; speed and rapid-hit controls respond; the layout has no horizontal overflow at 390 px. Stills were inspected for contact placement and legibility. This does not claim runtime performance, Unity placement, damage behavior, or production effect lifetime verification.
+
+## Turbolaser and ripper pass
+
+[Stage 10](history/10-turbo-ripper/README.md) records the 2026-11-07 combined pass. The owner selected a compact ripper slug with a short tracer. The current review candidate pairs it with a smaller, simpler hit and the approved laser hit recolored magenta for turbo. The artwork, proposed reference sizes and ripper timing await review before Unity integration. Generated refinements remain in the stage's rejected-generation folder because they added unwanted texture.
