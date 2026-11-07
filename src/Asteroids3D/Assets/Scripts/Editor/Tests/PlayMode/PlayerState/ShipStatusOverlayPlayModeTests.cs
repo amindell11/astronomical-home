@@ -146,7 +146,7 @@ namespace Tests.PlayMode.PlayerState
             crosshair.Initialize(ship, camera);
             var weaponHud = Object.Instantiate(TestAssets.Load<WeaponResourceHud>(
                 "Assets/Prefabs/UI/Crosshair/WeaponKeystoneHud.prefab"), hud.transform);
-            weaponHud.Initialize(null);
+            weaponHud.Initialize(null, ship.Keystone.Icon);
             typeof(global::UI.Overlay).GetField("crosshair", BindingFlags.Instance | BindingFlags.NonPublic)
                 .SetValue(mainHud, crosshair);
             typeof(global::UI.Overlay).GetField("weaponResources", BindingFlags.Instance | BindingFlags.NonPublic)
