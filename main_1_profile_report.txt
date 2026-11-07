@@ -1,0 +1,672 @@
+raw=C:\Users\amind\AppData\Local\Temp\claude\D--amind-git-astronomical-home\a8d9b191-aa2c-5062-94e5-2d5f2cdd62e0\scratchpad\runs\main_1_profile.raw frames=3014..3313
+mainThreadFrameMs n=300 med=7.89 p95=18.09 p99=21.30 max=28.94
+frames>16.7=29 >25=1 >33=0
+
+== Top self time per frame (mean over all frames), with GC KB/frame and calls/frame
+     0.64 ms  gc     0.0KB  calls      3  Core.dll!AI::Scout.Update() [Invoke]
+     0.42 ms  gc     0.0KB  calls   14.9  WaitForJobGroupID
+     0.31 ms  gc     0.1KB  calls    1.4  Core.dll!AI::AICommander.FixedUpdate() [Invoke]
+     0.30 ms  gc     0.0KB  calls      1  Core.dll!Asteroids.Fields::UpdatingAsteroidField.Update() [Invoke]
+     0.22 ms  gc     0.0KB  calls    1.7  EvaluateCandidatesJob (Burst)
+     0.20 ms  gc     0.0KB  calls      1  CanvasUpdate.PreRender
+     0.13 ms  gc     0.0KB  calls      1  UGUI.Rendering.UpdateBatches
+     0.13 ms  gc     0.0KB  calls      3  Inl_ScriptableRenderContext.Submit
+     0.12 ms  gc     0.0KB  calls      3  Inl_ExecuteRenderGraph
+     0.12 ms  gc     0.0KB  calls    1.5  Idle
+     0.12 ms  gc     0.1KB  calls      3  Inl_RenderCameraStack
+     0.11 ms  gc     0.0KB  calls      1  Profiler.FlushMemoryCounters
+     0.09 ms  gc     0.4KB  calls      1  PlayerLoop
+     0.09 ms  gc     0.0KB  calls     52  TransformChangeSystem
+     0.09 ms  gc     0.0KB  calls    0.5  PxScene.simulate
+     0.07 ms  gc     0.0KB  calls      1  Inl_UniversalRenderPipeline.RenderSingleCameraInternal: UI Cam(Clone)
+     0.07 ms  gc     0.1KB  calls      1  Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone)
+     0.07 ms  gc     0.0KB  calls   41.9  Core.dll!Asteroids::AsteroidController.LateUpdate() [Invoke]
+     0.07 ms  gc     0.1KB  calls      1  BehaviourUpdate
+     0.07 ms  gc     0.0KB  calls      3  Inl_ComputeHashRenderGraph
+     0.07 ms  gc     0.1KB  calls      1  LateBehaviourUpdate
+     0.06 ms  gc     0.1KB  calls      1  PostLateUpdate.FinishFrameRendering
+     0.06 ms  gc     0.1KB  calls      2  Inl_UniversalRenderTotal
+     0.06 ms  gc     0.0KB  calls    6.8  Canvas.BuildBatch
+     0.06 ms  gc     0.0KB  calls      1  DXGI.WaitOnSwapChain
+     0.06 ms  gc     0.0KB  calls      1  Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone)
+     0.05 ms  gc     0.0KB  calls      2  PlayerConnection.Poll
+     0.05 ms  gc     0.0KB  calls      2  Inl_UniversalRenderPipeline.ComputeShadowCasterCullingInfos
+     0.05 ms  gc     0.0KB  calls      3  VolumeManager.Update
+     0.04 ms  gc     0.0KB  calls      6  Physics.OverlapSphereNonAlloc
+     0.04 ms  gc     0.0KB  calls    3.7  UpdateRendererBoundingVolumes
+     0.04 ms  gc     0.0KB  calls      2  UGUI.Rendering.EmitWorldScreenspaceCameraGeometry
+     0.04 ms  gc     0.0KB  calls      1  ParticleSystem.Update
+     0.04 ms  gc     0.1KB  calls      4  Core.dll!UI.PlayerState::ShipStatusIndicator.LateUpdate() [Invoke]
+     0.04 ms  gc     0.0KB  calls      3  Inl_CompileRenderGraph
+     0.04 ms  gc     0.0KB  calls      2  UnityEngine.UI.dll!UnityEngine.UI::Image.OnEnable() [Invoke]
+     0.04 ms  gc     0.0KB  calls    3.1  JobHandle.Complete
+     0.03 ms  gc     0.0KB  calls      1  Core.dll!Cameras::SmoothCamera.Update() [Invoke]
+     0.03 ms  gc     0.1KB  calls      1  Core.dll!UI.PlayerState::ObjectiveStatusReadout.LateUpdate() [Invoke]
+     0.03 ms  gc     0.0KB  calls      3  Inl_UniversalRenderPipeline.CreateCameraData
+     0.03 ms  gc     0.1KB  calls      2  UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke]
+     0.03 ms  gc     0.0KB  calls      4  Core.dll!UI.PlayerState::ShieldUI.LateUpdate() [Invoke]
+     0.03 ms  gc     0.0KB  calls      3  Inl_UniversalRenderPipeline.InitializeStackedCameraData
+     0.03 ms  gc     0.0KB  calls      3  Inl_UniversalRenderPipeline.InitializeAdditionalCameraData
+     0.03 ms  gc     0.0KB  calls    1.9  Core.dll!Ships.Movement::MovementController.FixedUpdate() [Invoke]
+
+== Top GC allocators (KB/frame mean)
+      0.42 KB  PlayerLoop
+      0.23 KB  GC.Alloc
+      0.14 KB  PostLateUpdate.FinishFrameRendering
+      0.14 KB  UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke]
+      0.14 KB  Inl_UniversalRenderTotal
+      0.14 KB  Inl_RenderCameraStack
+      0.14 KB  Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone)
+      0.14 KB  Inl_RecordRenderGraph
+      0.13 KB  PreLateUpdate.ScriptRunBehaviourLateUpdate
+      0.13 KB  LateBehaviourUpdate
+      0.08 KB  Update.ScriptRunBehaviourUpdate
+      0.08 KB  BehaviourUpdate
+      0.08 KB  Core.dll!Ships.Damage::DamageController.Update() [Invoke]
+      0.07 KB  FixedUpdate.ScriptRunBehaviourFixedUpdate
+      0.07 KB  FixedBehaviourUpdate
+      0.07 KB  Core.dll!UI.PlayerState::ObjectiveStatusReadout.LateUpdate() [Invoke]
+      0.06 KB  Core.dll!UI.PlayerState::ShipStatusIndicator.LateUpdate() [Invoke]
+      0.05 KB  Core.dll!AI::AICommander.FixedUpdate() [Invoke]
+      0.05 KB  GameObject.ActivateAwakeRecursively
+      0.03 KB  GameObject.Activate
+
+== Inclusive path time: mean / p99 / max (ms), paths with mean >= 0.10 or max >= 4
+     9.41   21.26   28.85  PlayerLoop
+     0.31    1.75    2.07  PlayerLoop > FixedUpdate.PhysicsFixedUpdate
+     0.25    1.28    1.80  PlayerLoop > FixedUpdate.PhysicsFixedUpdate > Physics.RunSimulationStage
+     0.24    1.27    1.80  PlayerLoop > FixedUpdate.PhysicsFixedUpdate > Physics.RunSimulationStage > Physics.Simulate
+     0.24    1.23    1.78  PlayerLoop > FixedUpdate.PhysicsFixedUpdate > Physics.RunSimulationStage > Physics.Simulate > PxScene.simulate
+     0.99    5.95    8.58  PlayerLoop > FixedUpdate.ScriptRunBehaviourFixedUpdate
+     0.99    5.95    8.58  PlayerLoop > FixedUpdate.ScriptRunBehaviourFixedUpdate > FixedBehaviourUpdate
+     0.90    5.63    7.85  PlayerLoop > FixedUpdate.ScriptRunBehaviourFixedUpdate > FixedBehaviourUpdate > Core.dll!AI::AICommander.FixedUpdate() [Invoke]
+     0.57    3.92    5.13  PlayerLoop > FixedUpdate.ScriptRunBehaviourFixedUpdate > FixedBehaviourUpdate > Core.dll!AI::AICommander.FixedUpdate() [Invoke] > JobHandle.Complete
+     0.54    3.10    4.87  PlayerLoop > FixedUpdate.ScriptRunBehaviourFixedUpdate > FixedBehaviourUpdate > Core.dll!AI::AICommander.FixedUpdate() [Invoke] > JobHandle.Complete > WaitForJobGroupID
+     0.22    1.37    2.21  PlayerLoop > FixedUpdate.ScriptRunBehaviourFixedUpdate > FixedBehaviourUpdate > Core.dll!AI::AICommander.FixedUpdate() [Invoke] > JobHandle.Complete > WaitForJobGroupID > EvaluateCandidatesJob (Burst)
+     4.66   15.09   17.51  PlayerLoop > PostLateUpdate.FinishFrameRendering
+     4.54   14.69   16.93  PlayerLoop > PostLateUpdate.FinishFrameRendering > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke]
+     4.51   14.63   16.85  PlayerLoop > PostLateUpdate.FinishFrameRendering > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal
+     4.43   14.45   16.59  PlayerLoop > PostLateUpdate.FinishFrameRendering > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack
+     1.04    3.59    4.27  PlayerLoop > PostLateUpdate.FinishFrameRendering > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit
+     0.45    1.87    3.04  PlayerLoop > PostLateUpdate.FinishFrameRendering > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone)
+     0.20    0.81    1.24  PlayerLoop > PostLateUpdate.FinishFrameRendering > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone)
+     0.20    0.92    1.34  PlayerLoop > PostLateUpdate.FinishFrameRendering > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: UI Cam(Clone)
+     1.56    6.30    7.83  PlayerLoop > PostLateUpdate.FinishFrameRendering > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone)
+     0.33    1.34    2.58  PlayerLoop > PostLateUpdate.FinishFrameRendering > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone) > CullScriptable
+     0.55    2.57    4.03  PlayerLoop > PostLateUpdate.FinishFrameRendering > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone) > Inl_ExecuteRenderGraph
+     0.48    1.96    2.07  PlayerLoop > PostLateUpdate.FinishFrameRendering > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone) > Inl_RecordRenderGraph
+     0.66    2.65    3.01  PlayerLoop > PostLateUpdate.FinishFrameRendering > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone)
+     0.18    0.81    1.01  PlayerLoop > PostLateUpdate.FinishFrameRendering > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone) > CullScriptable
+     0.19    0.88    0.97  PlayerLoop > PostLateUpdate.FinishFrameRendering > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone) > Inl_ExecuteRenderGraph
+     0.18    0.81    0.89  PlayerLoop > PostLateUpdate.FinishFrameRendering > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone) > Inl_RecordRenderGraph
+     0.90    3.17    3.62  PlayerLoop > PostLateUpdate.FinishFrameRendering > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: UI Cam(Clone)
+     0.18    0.65    0.75  PlayerLoop > PostLateUpdate.FinishFrameRendering > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: UI Cam(Clone) > CullScriptable
+     0.28    1.16    1.97  PlayerLoop > PostLateUpdate.FinishFrameRendering > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: UI Cam(Clone) > Inl_ExecuteRenderGraph
+     0.28    0.95    1.50  PlayerLoop > PostLateUpdate.FinishFrameRendering > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: UI Cam(Clone) > Inl_RecordRenderGraph
+     0.53    1.96    4.46  PlayerLoop > PostLateUpdate.PlayerUpdateCanvases
+     0.52    1.93    4.43  PlayerLoop > PostLateUpdate.PlayerUpdateCanvases > UIEvents.WillRenderCanvases
+     0.52    1.93    4.42  PlayerLoop > PostLateUpdate.PlayerUpdateCanvases > UIEvents.WillRenderCanvases > UGUI.Rendering.UpdateBatches
+     0.21    1.41    2.61  PlayerLoop > PostLateUpdate.PlayerUpdateCanvases > UIEvents.WillRenderCanvases > UGUI.Rendering.UpdateBatches > UnityEngine.UIModule.dll!UnityEngine::Canvas.SendWillRenderCanvases() [Invoke]
+     0.20    1.35    2.37  PlayerLoop > PostLateUpdate.PlayerUpdateCanvases > UIEvents.WillRenderCanvases > UGUI.Rendering.UpdateBatches > UnityEngine.UIModule.dll!UnityEngine::Canvas.SendWillRenderCanvases() [Invoke] > Render
+     0.20    1.34    2.34  PlayerLoop > PostLateUpdate.PlayerUpdateCanvases > UIEvents.WillRenderCanvases > UGUI.Rendering.UpdateBatches > UnityEngine.UIModule.dll!UnityEngine::Canvas.SendWillRenderCanvases() [Invoke] > Render > CanvasUpdate.PreRender
+     0.15    0.47    0.59  PlayerLoop > PostLateUpdate.ProfilerEndFrame
+     0.15    0.46    0.59  PlayerLoop > PostLateUpdate.ProfilerEndFrame > Profiler.FlushCounters
+     0.11    0.33    0.34  PlayerLoop > PostLateUpdate.ProfilerEndFrame > Profiler.FlushCounters > Profiler.FlushMemoryCounters
+     0.12    0.37    0.65  PlayerLoop > PostLateUpdate.UpdateAllRenderers
+     0.13    0.55    0.86  PlayerLoop > PreLateUpdate.DirectorUpdateAnimationBegin
+     0.11    0.72    3.58  PlayerLoop > PreLateUpdate.ParticleSystemBeginUpdateAll
+     0.11    0.72    3.58  PlayerLoop > PreLateUpdate.ParticleSystemBeginUpdateAll > ParticleSystem.Update
+     0.41    1.54    2.02  PlayerLoop > PreLateUpdate.ScriptRunBehaviourLateUpdate
+     0.41    1.53    2.01  PlayerLoop > PreLateUpdate.ScriptRunBehaviourLateUpdate > LateBehaviourUpdate
+     1.30    4.79    5.34  PlayerLoop > Update.ScriptRunBehaviourUpdate
+     1.30    4.79    5.33  PlayerLoop > Update.ScriptRunBehaviourUpdate > BehaviourUpdate
+     0.68    2.86    3.26  PlayerLoop > Update.ScriptRunBehaviourUpdate > BehaviourUpdate > Core.dll!AI::Scout.Update() [Invoke]
+     0.30    1.35    1.53  PlayerLoop > Update.ScriptRunBehaviourUpdate > BehaviourUpdate > Core.dll!Asteroids.Fields::UpdatingAsteroidField.Update() [Invoke]
+
+== Spike frame 3116 main thread 28.94 ms (items >= 0.5 ms)
+  28.85 (self 0.17, calls 1, gc 0.3KB) PlayerLoop
+    17.51 (self 0.36, calls 1, gc 0.1KB) PostLateUpdate.FinishFrameRendering
+      16.93 (self 0.09, calls 2, gc 0.1KB) UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke]
+        16.85 (self 0.22, calls 2, gc 0.1KB) Inl_UniversalRenderTotal
+          16.59 (self 0.43, calls 3, gc 0.1KB) Inl_RenderCameraStack
+            6.30 (self 0.29, calls 1, gc 0.1KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone)
+              2.57 (self 0.25, calls 1, gc 0.0KB) Inl_ExecuteRenderGraph
+              1.97 (self 0.02, calls 1, gc 0.1KB) Inl_RecordRenderGraph
+                1.95 (self 1.59, calls 1, gc 0.1KB) Inl_On Record Render Graph
+              0.86 (self 0.04, calls 1, gc 0.0KB) CullScriptable
+            4.27 (self 0.57, calls 3, gc 0.0KB) Inl_ScriptableRenderContext.Submit
+              1.85 (self 0.06, calls 1, gc 0.0KB) UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone)
+                1.77 (self 0.25, calls 1, gc 0.0KB) ExecuteRenderGraph
+              0.92 (self 0.04, calls 1, gc 0.0KB) UniversalRenderPipeline.RenderSingleCameraInternal: UI Cam(Clone)
+                0.85 (self 0.18, calls 1, gc 0.0KB) ExecuteRenderGraph
+              0.77 (self 0.04, calls 1, gc 0.0KB) UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone)
+                0.69 (self 0.14, calls 1, gc 0.0KB) ExecuteRenderGraph
+            2.92 (self 0.36, calls 1, gc 0.0KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone)
+              0.88 (self 0.13, calls 1, gc 0.0KB) Inl_ExecuteRenderGraph
+              0.80 (self 0.02, calls 1, gc 0.0KB) Inl_RecordRenderGraph
+                0.78 (self 0.76, calls 1, gc 0.0KB) Inl_On Record Render Graph
+              0.63 (self 0.03, calls 1, gc 0.0KB) CullScriptable
+            2.13 (self 0.17, calls 1, gc 0.0KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: UI Cam(Clone)
+              0.89 (self 0.11, calls 1, gc 0.0KB) Inl_ExecuteRenderGraph
+              0.61 (self 0.01, calls 1, gc 0.0KB) Inl_RecordRenderGraph
+                0.59 (self 0.49, calls 1, gc 0.0KB) Inl_On Record Render Graph
+    5.83 (self 0.06, calls 1, gc 0.0KB) FixedUpdate.ScriptRunBehaviourFixedUpdate
+      5.78 (self 0.17, calls 1, gc 0.0KB) FixedBehaviourUpdate
+        4.55 (self 2.04, calls 3, gc 0.0KB) Core.dll!AI::AICommander.FixedUpdate() [Invoke]
+          2.50 (self 0.34, calls 7, gc 0.0KB) JobHandle.Complete
+            2.16 (self 1.80, calls 6, gc 0.0KB) WaitForJobGroupID
+        0.90 (self 0.90, calls 4, gc 0.0KB) Core.dll!Ships.Movement::MovementController.FixedUpdate() [Invoke]
+    1.72 (self 0.00, calls 1, gc 0.1KB) Update.ScriptRunBehaviourUpdate
+      1.72 (self 0.11, calls 1, gc 0.1KB) BehaviourUpdate
+        0.85 (self 0.79, calls 3, gc 0.0KB) Core.dll!AI::Scout.Update() [Invoke]
+    0.82 (self 0.00, calls 1, gc 0.0KB) FixedUpdate.PhysicsFixedUpdate
+      0.72 (self 0.01, calls 1, gc 0.0KB) Physics.RunSimulationStage
+        0.71 (self 0.00, calls 1, gc 0.0KB) Physics.Simulate
+          0.70 (self 0.18, calls 1, gc 0.0KB) PxScene.simulate
+    0.62 (self 0.00, calls 1, gc 0.0KB) PostLateUpdate.PlayerUpdateCanvases
+      0.60 (self 0.00, calls 1, gc 0.0KB) UIEvents.WillRenderCanvases
+        0.60 (self 0.18, calls 1, gc 0.0KB) UGUI.Rendering.UpdateBatches
+    0.54 (self 0.00, calls 1, gc 0.1KB) PreLateUpdate.ScriptRunBehaviourLateUpdate
+      0.54 (self 0.08, calls 1, gc 0.1KB) LateBehaviourUpdate
+
+== Spike frame 3133 main thread 23.91 ms (items >= 0.5 ms)
+  23.88 (self 0.11, calls 1, gc 0.3KB) PlayerLoop
+    10.97 (self 0.13, calls 1, gc 0.1KB) PostLateUpdate.FinishFrameRendering
+      10.72 (self 0.08, calls 2, gc 0.1KB) UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke]
+        10.65 (self 0.14, calls 2, gc 0.1KB) Inl_UniversalRenderTotal
+          10.48 (self 0.40, calls 3, gc 0.1KB) Inl_RenderCameraStack
+            3.36 (self 0.26, calls 1, gc 0.0KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: UI Cam(Clone)
+              1.10 (self 0.12, calls 1, gc 0.0KB) Inl_ExecuteRenderGraph
+              1.01 (self 0.02, calls 1, gc 0.0KB) Inl_RecordRenderGraph
+                0.98 (self 0.82, calls 1, gc 0.0KB) Inl_On Record Render Graph
+              0.65 (self 0.03, calls 1, gc 0.0KB) CullScriptable
+            2.42 (self 0.10, calls 1, gc 0.1KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone)
+              0.86 (self 0.01, calls 1, gc 0.1KB) Inl_RecordRenderGraph
+                0.85 (self 0.67, calls 1, gc 0.1KB) Inl_On Record Render Graph
+              0.65 (self 0.07, calls 1, gc 0.0KB) Inl_ExecuteRenderGraph
+              0.63 (self 0.02, calls 1, gc 0.0KB) CullScriptable
+            2.38 (self 0.33, calls 3, gc 0.0KB) Inl_ScriptableRenderContext.Submit
+              0.79 (self 0.04, calls 1, gc 0.0KB) UniversalRenderPipeline.RenderSingleCameraInternal: UI Cam(Clone)
+                0.72 (self 0.14, calls 1, gc 0.0KB) ExecuteRenderGraph
+              0.64 (self 0.02, calls 1, gc 0.0KB) UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone)
+                0.60 (self 0.09, calls 1, gc 0.0KB) ExecuteRenderGraph
+            1.55 (self 0.11, calls 1, gc 0.0KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone)
+              0.68 (self 0.01, calls 1, gc 0.0KB) Inl_RecordRenderGraph
+                0.67 (self 0.66, calls 1, gc 0.0KB) Inl_On Record Render Graph
+    4.77 (self 0.00, calls 1, gc 0.1KB) Update.ScriptRunBehaviourUpdate
+      4.77 (self 0.19, calls 1, gc 0.1KB) BehaviourUpdate
+        2.23 (self 2.12, calls 3, gc 0.0KB) Core.dll!AI::Scout.Update() [Invoke]
+        1.45 (self 1.45, calls 1, gc 0.0KB) Core.dll!Asteroids.Fields::UpdatingAsteroidField.Update() [Invoke]
+    2.26 (self 0.00, calls 1, gc 0.0KB) FixedUpdate.ScriptRunBehaviourFixedUpdate
+      2.25 (self 0.04, calls 1, gc 0.0KB) FixedBehaviourUpdate
+        2.08 (self 0.65, calls 3, gc 0.0KB) Core.dll!AI::AICommander.FixedUpdate() [Invoke]
+          1.42 (self 0.05, calls 6, gc 0.0KB) JobHandle.Complete
+            1.37 (self 0.22, calls 6, gc 0.0KB) WaitForJobGroupID
+              1.07 (self 1.07, calls 3, gc 0.0KB) EvaluateCandidatesJob (Burst)
+    1.88 (self 0.01, calls 1, gc 0.0KB) PostLateUpdate.PlayerUpdateCanvases
+      1.83 (self 0.00, calls 1, gc 0.0KB) UIEvents.WillRenderCanvases
+        1.83 (self 0.41, calls 1, gc 0.0KB) UGUI.Rendering.UpdateBatches
+          0.61 (self 0.01, calls 1, gc 0.0KB) UnityEngine.UIModule.dll!UnityEngine::Canvas.SendWillRenderCanvases() [Invoke]
+            0.58 (self 0.01, calls 1, gc 0.0KB) Render
+              0.56 (self 0.56, calls 1, gc 0.0KB) CanvasUpdate.PreRender
+    0.95 (self 0.00, calls 1, gc 0.0KB) FixedUpdate.PhysicsFixedUpdate
+      0.81 (self 0.01, calls 1, gc 0.0KB) Physics.RunSimulationStage
+        0.81 (self 0.00, calls 1, gc 0.0KB) Physics.Simulate
+          0.79 (self 0.36, calls 1, gc 0.0KB) PxScene.simulate
+    0.55 (self 0.00, calls 1, gc 0.0KB) PreLateUpdate.DirectorUpdateAnimationBegin
+
+== Spike frame 3178 main thread 22.07 ms (items >= 0.5 ms)
+  22.02 (self 0.11, calls 1, gc 0.3KB) PlayerLoop
+    14.92 (self 0.20, calls 1, gc 0.1KB) PostLateUpdate.FinishFrameRendering
+      13.77 (self 0.06, calls 2, gc 0.1KB) UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke]
+        13.71 (self 0.15, calls 2, gc 0.1KB) Inl_UniversalRenderTotal
+          13.53 (self 0.27, calls 3, gc 0.1KB) Inl_RenderCameraStack
+            5.39 (self 0.23, calls 1, gc 0.1KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone)
+              2.03 (self 0.21, calls 1, gc 0.0KB) Inl_ExecuteRenderGraph
+              1.63 (self 0.01, calls 1, gc 0.1KB) Inl_RecordRenderGraph
+                1.62 (self 1.28, calls 1, gc 0.1KB) Inl_On Record Render Graph
+              1.06 (self 0.03, calls 1, gc 0.0KB) CullScriptable
+                0.68 (self 0.05, calls 1, gc 0.0KB) SceneCulling
+            3.57 (self 0.43, calls 3, gc 0.0KB) Inl_ScriptableRenderContext.Submit
+              1.87 (self 0.05, calls 1, gc 0.0KB) UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone)
+                1.80 (self 0.20, calls 1, gc 0.0KB) ExecuteRenderGraph
+                  0.87 (self 0.01, calls 1, gc 0.0KB) Draw Main Light Shadowmap
+                    0.86 (self 0.33, calls 1, gc 0.0KB) MainLightShadow
+                      0.53 (self 0.31, calls 4, gc 0.0KB) Shadows.ExecuteDrawShadows
+              0.67 (self 0.03, calls 1, gc 0.0KB) UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone)
+                0.63 (self 0.10, calls 1, gc 0.0KB) ExecuteRenderGraph
+            2.55 (self 0.19, calls 1, gc 0.0KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone)
+              0.80 (self 0.02, calls 1, gc 0.0KB) CullScriptable
+                0.57 (self 0.04, calls 1, gc 0.0KB) SceneCulling
+              0.73 (self 0.10, calls 1, gc 0.0KB) Inl_ExecuteRenderGraph
+              0.66 (self 0.02, calls 1, gc 0.0KB) Inl_RecordRenderGraph
+                0.64 (self 0.63, calls 1, gc 0.0KB) Inl_On Record Render Graph
+            1.36 (self 0.10, calls 1, gc 0.0KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: UI Cam(Clone)
+      0.83 (self 0.04, calls 3, gc 0.0KB) DestroyCullResults
+        0.80 (self 0.80, calls 6, gc 0.0KB) RenderLoop.CleanupNodeQueue
+    1.96 (self 0.00, calls 1, gc 0.1KB) Update.ScriptRunBehaviourUpdate
+      1.96 (self 0.16, calls 1, gc 0.1KB) BehaviourUpdate
+        1.15 (self 1.05, calls 3, gc 0.0KB) Core.dll!AI::Scout.Update() [Invoke]
+    1.55 (self 0.00, calls 1, gc 0.0KB) FixedUpdate.ScriptRunBehaviourFixedUpdate
+      1.55 (self 0.03, calls 1, gc 0.0KB) FixedBehaviourUpdate
+        1.44 (self 0.41, calls 3, gc 0.0KB) Core.dll!AI::AICommander.FixedUpdate() [Invoke]
+          1.03 (self 0.04, calls 6, gc 0.0KB) JobHandle.Complete
+            0.99 (self 0.77, calls 6, gc 0.0KB) WaitForJobGroupID
+    1.13 (self 0.00, calls 1, gc 0.0KB) FixedUpdate.PhysicsFixedUpdate
+      0.95 (self 0.00, calls 1, gc 0.0KB) Physics.RunSimulationStage
+        0.95 (self 0.00, calls 1, gc 0.0KB) Physics.Simulate
+          0.94 (self 0.23, calls 1, gc 0.0KB) PxScene.simulate
+    0.55 (self 0.00, calls 1, gc 0.0KB) PostLateUpdate.PlayerUpdateCanvases
+      0.54 (self 0.00, calls 1, gc 0.0KB) UIEvents.WillRenderCanvases
+        0.54 (self 0.15, calls 1, gc 0.0KB) UGUI.Rendering.UpdateBatches
+
+== Spike frame 3241 main thread 21.30 ms (items >= 0.5 ms)
+  21.26 (self 0.11, calls 1, gc 0.7KB) PlayerLoop
+    13.29 (self 0.15, calls 1, gc 0.1KB) PostLateUpdate.FinishFrameRendering
+      13.02 (self 0.08, calls 2, gc 0.1KB) UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke]
+        12.94 (self 0.15, calls 2, gc 0.1KB) Inl_UniversalRenderTotal
+          12.77 (self 0.35, calls 3, gc 0.1KB) Inl_RenderCameraStack
+            3.62 (self 0.25, calls 1, gc 0.0KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: UI Cam(Clone)
+              1.50 (self 0.03, calls 1, gc 0.0KB) Inl_RecordRenderGraph
+                1.48 (self 1.29, calls 1, gc 0.0KB) Inl_On Record Render Graph
+              0.94 (self 0.11, calls 1, gc 0.0KB) Inl_ExecuteRenderGraph
+              0.58 (self 0.03, calls 1, gc 0.0KB) CullScriptable
+            2.92 (self 0.23, calls 1, gc 0.0KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone)
+              0.97 (self 0.14, calls 1, gc 0.0KB) Inl_ExecuteRenderGraph
+              0.87 (self 0.03, calls 1, gc 0.0KB) CullScriptable
+                0.66 (self 0.08, calls 1, gc 0.0KB) SceneCulling
+              0.63 (self 0.02, calls 1, gc 0.0KB) Inl_RecordRenderGraph
+                0.61 (self 0.60, calls 1, gc 0.0KB) Inl_On Record Render Graph
+            2.73 (self 0.12, calls 1, gc 0.1KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone)
+              0.88 (self 0.01, calls 1, gc 0.1KB) Inl_RecordRenderGraph
+                0.87 (self 0.64, calls 1, gc 0.1KB) Inl_On Record Render Graph
+              0.84 (self 0.09, calls 1, gc 0.0KB) Inl_ExecuteRenderGraph
+              0.63 (self 0.18, calls 1, gc 0.0KB) CullScriptable
+            2.65 (self 0.39, calls 3, gc 0.0KB) Inl_ScriptableRenderContext.Submit
+              1.01 (self 0.04, calls 1, gc 0.0KB) UniversalRenderPipeline.RenderSingleCameraInternal: UI Cam(Clone)
+                0.95 (self 0.16, calls 1, gc 0.0KB) ExecuteRenderGraph
+              0.60 (self 0.03, calls 1, gc 0.0KB) UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone)
+                0.55 (self 0.11, calls 1, gc 0.0KB) ExecuteRenderGraph
+              0.58 (self 0.02, calls 1, gc 0.0KB) UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone)
+                0.56 (self 0.07, calls 1, gc 0.0KB) ExecuteRenderGraph
+    2.73 (self 0.00, calls 1, gc 0.4KB) FixedUpdate.ScriptRunBehaviourFixedUpdate
+      2.73 (self 0.06, calls 1, gc 0.4KB) FixedBehaviourUpdate
+        1.96 (self 0.85, calls 3, gc 0.0KB) Core.dll!AI::AICommander.FixedUpdate() [Invoke]
+          1.10 (self 0.07, calls 7, gc 0.0KB) JobHandle.Complete
+            1.03 (self 0.40, calls 7, gc 0.0KB) WaitForJobGroupID
+              0.51 (self 0.51, calls 4, gc 0.0KB) EvaluateCandidatesJob (Burst)
+        0.51 (self 0.26, calls 2, gc 0.4KB) Core.dll!Combat.Projectiles::ProjectileBase.FixedUpdate() [Invoke]
+    1.47 (self 0.00, calls 1, gc 0.1KB) Update.ScriptRunBehaviourUpdate
+      1.47 (self 0.11, calls 1, gc 0.1KB) BehaviourUpdate
+        0.66 (self 0.62, calls 3, gc 0.0KB) Core.dll!AI::Scout.Update() [Invoke]
+    1.01 (self 0.00, calls 1, gc 0.0KB) PostLateUpdate.PlayerUpdateCanvases
+      1.00 (self 0.00, calls 1, gc 0.0KB) UIEvents.WillRenderCanvases
+        1.00 (self 0.34, calls 1, gc 0.0KB) UGUI.Rendering.UpdateBatches
+    0.57 (self 0.00, calls 1, gc 0.0KB) FixedUpdate.PhysicsFixedUpdate
+
+== Spike frame 3311 main thread 21.28 ms (items >= 0.5 ms)
+  21.25 (self 0.12, calls 1, gc 0.3KB) PlayerLoop
+    11.10 (self 0.08, calls 1, gc 0.1KB) PostLateUpdate.FinishFrameRendering
+      10.95 (self 0.04, calls 2, gc 0.1KB) UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke]
+        10.91 (self 0.10, calls 2, gc 0.1KB) Inl_UniversalRenderTotal
+          10.80 (self 0.29, calls 3, gc 0.1KB) Inl_RenderCameraStack
+            3.98 (self 0.16, calls 1, gc 0.1KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone)
+              1.26 (self 0.13, calls 1, gc 0.1KB) Inl_RecordRenderGraph
+                1.13 (self 0.91, calls 1, gc 0.1KB) Inl_On Record Render Graph
+              0.98 (self 0.03, calls 1, gc 0.0KB) CullScriptable
+                0.64 (self 0.03, calls 1, gc 0.0KB) SceneCulling
+              0.92 (self 0.09, calls 1, gc 0.0KB) Inl_ExecuteRenderGraph
+            2.46 (self 0.19, calls 3, gc 0.0KB) Inl_ScriptableRenderContext.Submit
+              1.34 (self 0.02, calls 1, gc 0.0KB) UniversalRenderPipeline.RenderSingleCameraInternal: UI Cam(Clone)
+                1.32 (self 0.15, calls 1, gc 0.0KB) ExecuteRenderGraph
+                  0.71 (self 0.01, calls 1, gc 0.0KB) DrawOpaqueObjects
+                    0.71 (self 0.01, calls 2, gc 0.0KB) RenderLoop.ScheduleDraw
+                      0.61 (self 0.05, calls 1, gc 0.0KB) WaitForJobGroupID
+                        0.56 (self 0.56, calls 1, gc 0.0KB) Idle
+              0.51 (self 0.01, calls 1, gc 0.0KB) UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone)
+            2.24 (self 0.25, calls 1, gc 0.0KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone)
+              0.87 (self 0.02, calls 1, gc 0.0KB) Inl_RecordRenderGraph
+                0.84 (self 0.83, calls 1, gc 0.0KB) Inl_On Record Render Graph
+              0.65 (self 0.03, calls 1, gc 0.0KB) CullScriptable
+            1.19 (self 0.10, calls 1, gc 0.0KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: UI Cam(Clone)
+    2.88 (self 0.00, calls 1, gc 0.0KB) FixedUpdate.ScriptRunBehaviourFixedUpdate
+      2.88 (self 0.05, calls 1, gc 0.0KB) FixedBehaviourUpdate
+        2.68 (self 0.75, calls 3, gc 0.0KB) Core.dll!AI::AICommander.FixedUpdate() [Invoke]
+          1.92 (self 0.07, calls 7, gc 0.0KB) JobHandle.Complete
+            1.86 (self 0.50, calls 7, gc 0.0KB) WaitForJobGroupID
+              0.70 (self 0.70, calls 4, gc 0.0KB) EvaluateCandidatesJob (Burst)
+              0.59 (self 0.59, calls 4, gc 0.0KB) Idle
+    2.40 (self 0.00, calls 1, gc 0.1KB) Update.ScriptRunBehaviourUpdate
+      2.40 (self 0.10, calls 1, gc 0.1KB) BehaviourUpdate
+        1.19 (self 1.12, calls 3, gc 0.0KB) Core.dll!AI::Scout.Update() [Invoke]
+        0.68 (self 0.68, calls 1, gc 0.0KB) Core.dll!Asteroids.Fields::UpdatingAsteroidField.Update() [Invoke]
+    1.30 (self 0.00, calls 1, gc 0.0KB) PostLateUpdate.PlayerUpdateCanvases
+      1.27 (self 0.00, calls 1, gc 0.0KB) UIEvents.WillRenderCanvases
+        1.27 (self 0.33, calls 1, gc 0.0KB) UGUI.Rendering.UpdateBatches
+    0.81 (self 0.00, calls 1, gc 0.1KB) PreLateUpdate.ScriptRunBehaviourLateUpdate
+      0.81 (self 0.13, calls 1, gc 0.1KB) LateBehaviourUpdate
+    0.65 (self 0.01, calls 1, gc 0.0KB) PostLateUpdate.UpdateAllRenderers
+    0.55 (self 0.00, calls 1, gc 0.0KB) FixedUpdate.PhysicsFixedUpdate
+
+== Spike frame 3117 main thread 20.77 ms (items >= 0.5 ms)
+  20.67 (self 0.13, calls 1, gc 0.3KB) PlayerLoop
+    5.77 (self 0.00, calls 1, gc 0.0KB) FixedUpdate.ScriptRunBehaviourFixedUpdate
+      5.77 (self 0.10, calls 1, gc 0.0KB) FixedBehaviourUpdate
+        5.31 (self 2.48, calls 3, gc 0.0KB) Core.dll!AI::AICommander.FixedUpdate() [Invoke]
+          2.79 (self 0.18, calls 7, gc 0.0KB) JobHandle.Complete
+            2.61 (self 0.86, calls 7, gc 0.0KB) WaitForJobGroupID
+              1.39 (self 1.39, calls 3, gc 0.0KB) EvaluateCandidatesJob (Burst)
+    4.02 (self 0.06, calls 1, gc 0.1KB) PostLateUpdate.FinishFrameRendering
+      3.90 (self 0.03, calls 2, gc 0.1KB) UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke]
+        3.87 (self 0.06, calls 2, gc 0.1KB) Inl_UniversalRenderTotal
+          3.79 (self 0.12, calls 3, gc 0.1KB) Inl_RenderCameraStack
+            1.20 (self 0.06, calls 1, gc 0.1KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone)
+            1.00 (self 0.09, calls 1, gc 0.0KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: UI Cam(Clone)
+            0.81 (self 0.11, calls 3, gc 0.0KB) Inl_ScriptableRenderContext.Submit
+            0.50 (self 0.05, calls 1, gc 0.0KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone)
+    3.86 (self 0.00, calls 1, gc 0.1KB) Update.ScriptRunBehaviourUpdate
+      3.86 (self 0.14, calls 1, gc 0.1KB) BehaviourUpdate
+        2.61 (self 2.43, calls 3, gc 0.0KB) Core.dll!AI::Scout.Update() [Invoke]
+        0.61 (self 0.61, calls 1, gc 0.0KB) Core.dll!Asteroids.Fields::UpdatingAsteroidField.Update() [Invoke]
+    2.07 (self 0.00, calls 1, gc 0.0KB) FixedUpdate.PhysicsFixedUpdate
+      1.59 (self 0.01, calls 1, gc 0.0KB) Physics.RunSimulationStage
+        1.58 (self 0.01, calls 1, gc 0.0KB) Physics.Simulate
+          1.56 (self 0.80, calls 1, gc 0.0KB) PxScene.simulate
+    0.94 (self 0.00, calls 1, gc 0.0KB) PostLateUpdate.PlayerUpdateCanvases
+      0.93 (self 0.00, calls 1, gc 0.0KB) UIEvents.WillRenderCanvases
+        0.93 (self 0.17, calls 1, gc 0.0KB) UGUI.Rendering.UpdateBatches
+    0.93 (self 0.00, calls 1, gc 0.1KB) PreLateUpdate.ScriptRunBehaviourLateUpdate
+      0.92 (self 0.35, calls 1, gc 0.1KB) LateBehaviourUpdate
+    0.85 (self 0.00, calls 1, gc 0.0KB) PreLateUpdate.ParticleSystemBeginUpdateAll
+      0.85 (self 0.17, calls 1, gc 0.0KB) ParticleSystem.Update
+        0.62 (self 0.59, calls 1, gc 0.0KB) WaitForJobGroupID
+
+== Spike frame 3152 main thread 20.24 ms (items >= 0.5 ms)
+  20.20 (self 0.17, calls 1, gc 0.3KB) PlayerLoop
+    15.77 (self 0.20, calls 1, gc 0.1KB) PostLateUpdate.FinishFrameRendering
+      15.46 (self 0.06, calls 2, gc 0.1KB) UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke]
+        15.40 (self 0.16, calls 2, gc 0.1KB) Inl_UniversalRenderTotal
+          15.22 (self 0.24, calls 3, gc 0.1KB) Inl_RenderCameraStack
+            7.83 (self 0.27, calls 1, gc 0.1KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone)
+              4.03 (self 0.56, calls 1, gc 0.0KB) Inl_ExecuteRenderGraph
+                0.57 (self 0.57, calls 14, gc 0.0KB) Inl_NRPRGComp_ExecuteBeginRenderpassCommand
+              1.96 (self 0.02, calls 1, gc 0.1KB) Inl_RecordRenderGraph
+                1.94 (self 1.61, calls 1, gc 0.1KB) Inl_On Record Render Graph
+              1.04 (self 0.03, calls 1, gc 0.0KB) CullScriptable
+                0.53 (self 0.04, calls 1, gc 0.0KB) SceneCulling
+            3.72 (self 0.84, calls 3, gc 0.0KB) Inl_ScriptableRenderContext.Submit
+              1.98 (self 0.02, calls 1, gc 0.0KB) UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone)
+                1.94 (self 0.21, calls 1, gc 0.0KB) ExecuteRenderGraph
+                  0.84 (self 0.00, calls 1, gc 0.0KB) Bloom
+                    0.79 (self 0.78, calls 1, gc 0.0KB) RG_BloomUpsample
+            1.63 (self 0.14, calls 1, gc 0.0KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: UI Cam(Clone)
+            1.42 (self 0.13, calls 1, gc 0.0KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone)
+    1.38 (self 0.00, calls 1, gc 0.1KB) Update.ScriptRunBehaviourUpdate
+      1.38 (self 0.07, calls 1, gc 0.1KB) BehaviourUpdate
+        0.75 (self 0.69, calls 3, gc 0.0KB) Core.dll!AI::Scout.Update() [Invoke]
+    0.84 (self 0.00, calls 1, gc 0.1KB) PreLateUpdate.ScriptRunBehaviourLateUpdate
+      0.84 (self 0.13, calls 1, gc 0.1KB) LateBehaviourUpdate
+
+== Spike frame 3173 main thread 19.76 ms (items >= 0.5 ms)
+  19.72 (self 0.09, calls 1, gc 0.3KB) PlayerLoop
+    10.51 (self 0.12, calls 1, gc 0.1KB) PostLateUpdate.FinishFrameRendering
+      10.29 (self 0.07, calls 2, gc 0.1KB) UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke]
+        10.22 (self 0.12, calls 2, gc 0.1KB) Inl_UniversalRenderTotal
+          10.07 (self 0.24, calls 3, gc 0.1KB) Inl_RenderCameraStack
+            3.16 (self 0.21, calls 1, gc 0.0KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: UI Cam(Clone)
+              1.12 (self 0.12, calls 1, gc 0.0KB) Inl_ExecuteRenderGraph
+              0.92 (self 0.01, calls 1, gc 0.0KB) Inl_RecordRenderGraph
+                0.90 (self 0.78, calls 1, gc 0.0KB) Inl_On Record Render Graph
+              0.53 (self 0.02, calls 1, gc 0.0KB) CullScriptable
+            2.49 (self 0.14, calls 1, gc 0.1KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone)
+              0.79 (self 0.02, calls 1, gc 0.0KB) CullScriptable
+                0.60 (self 0.04, calls 1, gc 0.0KB) SceneCulling
+              0.70 (self 0.01, calls 1, gc 0.1KB) Inl_RecordRenderGraph
+                0.69 (self 0.55, calls 1, gc 0.1KB) Inl_On Record Render Graph
+              0.67 (self 0.07, calls 1, gc 0.0KB) Inl_ExecuteRenderGraph
+            1.98 (self 0.17, calls 1, gc 0.0KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone)
+              0.59 (self 0.02, calls 1, gc 0.0KB) Inl_RecordRenderGraph
+                0.57 (self 0.55, calls 1, gc 0.0KB) Inl_On Record Render Graph
+              0.56 (self 0.08, calls 1, gc 0.0KB) Inl_ExecuteRenderGraph
+            1.87 (self 0.29, calls 3, gc 0.0KB) Inl_ScriptableRenderContext.Submit
+              0.60 (self 0.02, calls 1, gc 0.0KB) UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone)
+                0.58 (self 0.08, calls 1, gc 0.0KB) ExecuteRenderGraph
+    4.52 (self 0.00, calls 1, gc 0.1KB) Update.ScriptRunBehaviourUpdate
+      4.52 (self 0.16, calls 1, gc 0.1KB) BehaviourUpdate
+        2.33 (self 2.24, calls 3, gc 0.0KB) Core.dll!AI::Scout.Update() [Invoke]
+        1.35 (self 1.35, calls 1, gc 0.0KB) Core.dll!Asteroids.Fields::UpdatingAsteroidField.Update() [Invoke]
+    1.43 (self 0.00, calls 1, gc 0.0KB) PostLateUpdate.PlayerUpdateCanvases
+      1.40 (self 0.00, calls 1, gc 0.0KB) UIEvents.WillRenderCanvases
+        1.40 (self 0.33, calls 1, gc 0.0KB) UGUI.Rendering.UpdateBatches
+          0.51 (self 0.01, calls 1, gc 0.0KB) UnityEngine.UIModule.dll!UnityEngine::Canvas.SendWillRenderCanvases() [Invoke]
+    1.40 (self 0.00, calls 1, gc 0.1KB) PreLateUpdate.ScriptRunBehaviourLateUpdate
+      1.40 (self 0.16, calls 1, gc 0.1KB) LateBehaviourUpdate
+        0.52 (self 0.28, calls 4, gc 0.0KB) Core.dll!UI.PlayerState::ShieldUI.LateUpdate() [Invoke]
+
+== Spike frame 3307 main thread 19.59 ms (items >= 0.5 ms)
+  19.51 (self 0.12, calls 1, gc 0.7KB) PlayerLoop
+    12.41 (self 0.24, calls 1, gc 0.1KB) PostLateUpdate.FinishFrameRendering
+      11.94 (self 0.08, calls 2, gc 0.1KB) UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke]
+        11.87 (self 0.20, calls 2, gc 0.1KB) Inl_UniversalRenderTotal
+          11.63 (self 0.31, calls 3, gc 0.1KB) Inl_RenderCameraStack
+            4.31 (self 0.23, calls 1, gc 0.1KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone)
+              1.65 (self 0.04, calls 1, gc 0.0KB) CullScriptable
+                0.90 (self 0.07, calls 1, gc 0.0KB) SceneCulling
+                  0.53 (self 0.05, calls 1, gc 0.0KB) CullAllVisibleLights
+                0.51 (self 0.03, calls 1, gc 0.0KB) CullResults.CreateSharedRendererScene
+              0.87 (self 0.10, calls 1, gc 0.0KB) Inl_ExecuteRenderGraph
+              0.69 (self 0.01, calls 1, gc 0.1KB) Inl_RecordRenderGraph
+                0.68 (self 0.54, calls 1, gc 0.1KB) Inl_On Record Render Graph
+            2.69 (self 0.43, calls 3, gc 0.0KB) Inl_ScriptableRenderContext.Submit
+              0.98 (self 0.03, calls 1, gc 0.0KB) UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone)
+                0.94 (self 0.17, calls 1, gc 0.0KB) ExecuteRenderGraph
+              0.71 (self 0.04, calls 1, gc 0.0KB) UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone)
+                0.62 (self 0.10, calls 1, gc 0.0KB) ExecuteRenderGraph
+            2.25 (self 0.20, calls 1, gc 0.0KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone)
+              0.68 (self 0.11, calls 1, gc 0.0KB) Inl_ExecuteRenderGraph
+              0.65 (self 0.01, calls 1, gc 0.0KB) Inl_RecordRenderGraph
+                0.64 (self 0.62, calls 1, gc 0.0KB) Inl_On Record Render Graph
+              0.52 (self 0.02, calls 1, gc 0.0KB) CullScriptable
+            1.67 (self 0.12, calls 1, gc 0.0KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: UI Cam(Clone)
+              0.62 (self 0.07, calls 1, gc 0.0KB) Inl_ExecuteRenderGraph
+    2.11 (self 0.00, calls 1, gc 0.4KB) FixedUpdate.ScriptRunBehaviourFixedUpdate
+      2.11 (self 0.04, calls 1, gc 0.4KB) FixedBehaviourUpdate
+        1.61 (self 0.51, calls 3, gc 0.0KB) Core.dll!AI::AICommander.FixedUpdate() [Invoke]
+          1.09 (self 0.04, calls 7, gc 0.0KB) JobHandle.Complete
+            1.04 (self 0.27, calls 7, gc 0.0KB) WaitForJobGroupID
+              0.58 (self 0.58, calls 4, gc 0.0KB) EvaluateCandidatesJob (Burst)
+    1.32 (self 0.00, calls 1, gc 0.1KB) Update.ScriptRunBehaviourUpdate
+      1.32 (self 0.08, calls 1, gc 0.1KB) BehaviourUpdate
+        0.65 (self 0.62, calls 3, gc 0.0KB) Core.dll!AI::Scout.Update() [Invoke]
+    0.66 (self 0.00, calls 1, gc 0.0KB) PostLateUpdate.PlayerUpdateCanvases
+      0.64 (self 0.00, calls 1, gc 0.0KB) UIEvents.WillRenderCanvases
+        0.64 (self 0.19, calls 1, gc 0.0KB) UGUI.Rendering.UpdateBatches
+    0.62 (self 0.00, calls 1, gc 0.0KB) FixedUpdate.PhysicsFixedUpdate
+      0.52 (self 0.00, calls 1, gc 0.0KB) Physics.RunSimulationStage
+        0.51 (self 0.00, calls 1, gc 0.0KB) Physics.Simulate
+    0.51 (self 0.00, calls 1, gc 0.1KB) PreLateUpdate.ScriptRunBehaviourLateUpdate
+      0.50 (self 0.08, calls 1, gc 0.1KB) LateBehaviourUpdate
+
+== Spike frame 3115 main thread 19.51 ms (items >= 0.5 ms)
+  19.47 (self 0.10, calls 1, gc 0.3KB) PlayerLoop
+    15.41 (self 0.17, calls 1, gc 0.1KB) PostLateUpdate.FinishFrameRendering
+      15.12 (self 0.07, calls 2, gc 0.1KB) UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke]
+        15.05 (self 0.19, calls 2, gc 0.1KB) Inl_UniversalRenderTotal
+          14.84 (self 0.34, calls 3, gc 0.1KB) Inl_RenderCameraStack
+            7.77 (self 0.27, calls 1, gc 0.1KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone)
+              2.58 (self 0.04, calls 1, gc 0.0KB) CullScriptable
+                2.22 (self 0.08, calls 1, gc 0.0KB) SceneCulling
+                  1.65 (self 0.31, calls 1, gc 0.0KB) WaitForJobGroupID
+                    1.22 (self 1.22, calls 1, gc 0.0KB) Idle
+              2.29 (self 0.20, calls 1, gc 0.0KB) Inl_ExecuteRenderGraph
+              2.03 (self 0.02, calls 1, gc 0.1KB) Inl_RecordRenderGraph
+                2.00 (self 1.68, calls 1, gc 0.1KB) Inl_On Record Render Graph
+            2.58 (self 0.32, calls 1, gc 0.0KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone)
+              0.75 (self 0.02, calls 1, gc 0.0KB) CullScriptable
+              0.67 (self 0.02, calls 1, gc 0.0KB) Inl_RecordRenderGraph
+                0.64 (self 0.63, calls 1, gc 0.0KB) Inl_On Record Render Graph
+              0.66 (self 0.10, calls 1, gc 0.0KB) Inl_ExecuteRenderGraph
+            2.50 (self 0.39, calls 3, gc 0.0KB) Inl_ScriptableRenderContext.Submit
+              0.84 (self 0.03, calls 1, gc 0.0KB) UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone)
+                0.80 (self 0.12, calls 1, gc 0.0KB) ExecuteRenderGraph
+              0.61 (self 0.04, calls 1, gc 0.0KB) UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone)
+                0.54 (self 0.10, calls 1, gc 0.0KB) ExecuteRenderGraph
+              0.51 (self 0.03, calls 1, gc 0.0KB) UniversalRenderPipeline.RenderSingleCameraInternal: UI Cam(Clone)
+            1.22 (self 0.11, calls 1, gc 0.0KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: UI Cam(Clone)
+              0.50 (self 0.07, calls 1, gc 0.0KB) Inl_ExecuteRenderGraph
+    1.67 (self 0.00, calls 1, gc 0.1KB) Update.ScriptRunBehaviourUpdate
+      1.67 (self 0.08, calls 1, gc 0.1KB) BehaviourUpdate
+        0.81 (self 0.76, calls 3, gc 0.0KB) Core.dll!AI::Scout.Update() [Invoke]
+
+== Spike frame 3130 main thread 18.75 ms (items >= 0.5 ms)
+  18.72 (self 0.09, calls 1, gc 0.3KB) PlayerLoop
+    5.95 (self 0.00, calls 1, gc 0.0KB) FixedUpdate.ScriptRunBehaviourFixedUpdate
+      5.95 (self 0.05, calls 1, gc 0.0KB) FixedBehaviourUpdate
+        5.71 (self 1.45, calls 3, gc 0.0KB) Core.dll!AI::AICommander.FixedUpdate() [Invoke]
+          4.26 (self 0.14, calls 7, gc 0.0KB) JobHandle.Complete
+            4.12 (self 0.82, calls 7, gc 0.0KB) WaitForJobGroupID
+              2.21 (self 2.21, calls 4, gc 0.0KB) EvaluateCandidatesJob (Burst)
+              0.97 (self 0.97, calls 3, gc 0.0KB) Idle
+    4.51 (self 0.07, calls 1, gc 0.1KB) PostLateUpdate.FinishFrameRendering
+      4.37 (self 0.03, calls 2, gc 0.1KB) UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke]
+        4.34 (self 0.07, calls 2, gc 0.1KB) Inl_UniversalRenderTotal
+          4.26 (self 0.12, calls 3, gc 0.1KB) Inl_RenderCameraStack
+            1.39 (self 0.06, calls 1, gc 0.1KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone)
+              0.54 (self 0.06, calls 1, gc 0.0KB) Inl_ExecuteRenderGraph
+            1.06 (self 0.11, calls 3, gc 0.0KB) Inl_ScriptableRenderContext.Submit
+              0.56 (self 0.01, calls 1, gc 0.0KB) UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone)
+                0.54 (self 0.08, calls 1, gc 0.0KB) ExecuteRenderGraph
+            0.95 (self 0.09, calls 1, gc 0.0KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: UI Cam(Clone)
+            0.59 (self 0.06, calls 1, gc 0.0KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone)
+    2.39 (self 0.00, calls 1, gc 0.1KB) Update.ScriptRunBehaviourUpdate
+      2.39 (self 0.09, calls 1, gc 0.1KB) BehaviourUpdate
+        1.47 (self 1.36, calls 3, gc 0.0KB) Core.dll!AI::Scout.Update() [Invoke]
+    1.99 (self 0.00, calls 1, gc 0.0KB) FixedUpdate.PhysicsFixedUpdate
+      1.80 (self 0.01, calls 1, gc 0.0KB) Physics.RunSimulationStage
+        1.80 (self 0.00, calls 1, gc 0.0KB) Physics.Simulate
+          1.78 (self 0.83, calls 1, gc 0.0KB) PxScene.simulate
+    1.90 (self 0.00, calls 1, gc 0.0KB) PostLateUpdate.PlayerUpdateCanvases
+      1.89 (self 0.00, calls 1, gc 0.0KB) UIEvents.WillRenderCanvases
+        1.88 (self 0.15, calls 1, gc 0.0KB) UGUI.Rendering.UpdateBatches
+          1.41 (self 0.00, calls 1, gc 0.0KB) UnityEngine.UIModule.dll!UnityEngine::Canvas.SendWillRenderCanvases() [Invoke]
+            1.35 (self 0.01, calls 1, gc 0.0KB) Render
+              1.34 (self 1.34, calls 1, gc 0.0KB) CanvasUpdate.PreRender
+    0.51 (self 0.00, calls 1, gc 0.1KB) PreLateUpdate.ScriptRunBehaviourLateUpdate
+      0.51 (self 0.07, calls 1, gc 0.1KB) LateBehaviourUpdate
+
+== Spike frame 3107 main thread 18.34 ms (items >= 0.5 ms)
+  18.31 (self 0.10, calls 1, gc 1.4KB) PlayerLoop
+    4.79 (self 0.00, calls 1, gc 0.1KB) Update.ScriptRunBehaviourUpdate
+      4.79 (self 0.16, calls 1, gc 0.1KB) BehaviourUpdate
+        3.26 (self 3.11, calls 3, gc 0.0KB) Core.dll!AI::Scout.Update() [Invoke]
+        0.85 (self 0.85, calls 1, gc 0.0KB) Core.dll!Asteroids.Fields::UpdatingAsteroidField.Update() [Invoke]
+    4.53 (self 0.06, calls 1, gc 0.1KB) PostLateUpdate.FinishFrameRendering
+      4.42 (self 0.03, calls 2, gc 0.1KB) UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke]
+        4.39 (self 0.07, calls 2, gc 0.1KB) Inl_UniversalRenderTotal
+          4.31 (self 0.14, calls 3, gc 0.1KB) Inl_RenderCameraStack
+            1.27 (self 0.06, calls 1, gc 0.1KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone)
+            0.99 (self 0.14, calls 3, gc 0.0KB) Inl_ScriptableRenderContext.Submit
+            0.96 (self 0.08, calls 1, gc 0.0KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: UI Cam(Clone)
+            0.78 (self 0.07, calls 1, gc 0.0KB) Inl_UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone)
+    4.37 (self 0.00, calls 1, gc 1.1KB) FixedUpdate.ScriptRunBehaviourFixedUpdate
+      4.37 (self 0.05, calls 1, gc 1.1KB) FixedBehaviourUpdate
+        4.12 (self 1.19, calls 3, gc 1.1KB) Core.dll!AI::AICommander.FixedUpdate() [Invoke]
+          2.44 (self 0.07, calls 7, gc 0.0KB) JobHandle.Complete
+            2.37 (self 1.65, calls 7, gc 0.0KB) WaitForJobGroupID
+    1.75 (self 0.01, calls 1, gc 0.0KB) FixedUpdate.PhysicsFixedUpdate
+      1.27 (self 0.01, calls 1, gc 0.0KB) Physics.RunSimulationStage
+        1.26 (self 0.01, calls 1, gc 0.0KB) Physics.Simulate
+          1.23 (self 0.43, calls 1, gc 0.0KB) PxScene.simulate
+    0.69 (self 0.00, calls 1, gc 0.0KB) PostLateUpdate.PlayerUpdateCanvases
+      0.68 (self 0.00, calls 1, gc 0.0KB) UIEvents.WillRenderCanvases
+        0.68 (self 0.22, calls 1, gc 0.0KB) UGUI.Rendering.UpdateBatches
+    0.66 (self 0.00, calls 1, gc 0.1KB) PreLateUpdate.ScriptRunBehaviourLateUpdate
+      0.66 (self 0.10, calls 1, gc 0.1KB) LateBehaviourUpdate
+
+== Threads in frame 301410
+  0  / Main Thread
+  1  / Render Thread
+  2 Other Threads / AssetGarbageCollectorHelper
+  3 Other Threads / AssetGarbageCollectorHelper
+  4 Other Threads / AssetGarbageCollectorHelper
+  5 Other Threads / AssetGarbageCollectorHelper
+  6 Other Threads / AssetGarbageCollectorHelper
+  7 Other Threads / AssetGarbageCollectorHelper
+  8 Other Threads / AssetGarbageCollectorHelper
+  9 Other Threads / AssetGarbageCollectorHelper
+  10 Other Threads / AssetGarbageCollectorHelper
+  11 Other Threads / AssetGarbageCollectorHelper
+  12 Other Threads / AssetGarbageCollectorHelper
+  13 Other Threads / AssetGarbageCollectorHelper
+  14 Other Threads / AssetGarbageCollectorHelper
+  15 Other Threads / AssetGarbageCollectorHelper
+  16 Other Threads / AssetGarbageCollectorHelper
+  17 Other Threads / AssetGarbageCollectorHelper
+  18 Other Threads / AssetGarbageCollectorHelper
+  19 Other Threads / AssetGarbageCollectorHelper
+  20 Other Threads / AssetGarbageCollectorHelper
+  21 Other Threads / AssetGarbageCollectorHelper
+  22 Other Threads / AssetGarbageCollectorHelper
+  23 Loading / AsyncRead
+  24 Other Threads / BatchDeleteObjects
+  25 Profiler / Dispatcher
+  26 Scripting Threads / Finalizer
+  27 Other Threads / HIDInput
+  28 Loading / PreloadManager
+  29 Job / Worker 0
+  30 Background Job / Worker 0
+  31 Job / Worker 1
+  32 Background Job / Worker 1
+  33 Job / Worker 10
+  34 Background Job / Worker 10
+  35 Job / Worker 11
+  36 Background Job / Worker 11
+  37 Job / Worker 12
+  38 Background Job / Worker 12
+  39 Background Job / Worker 13
+  40 Job / Worker 13
+  41 Background Job / Worker 14
+  42 Job / Worker 14
+  43 Background Job / Worker 15
+  44 Job / Worker 15
+  45 Job / Worker 16
+  46 Job / Worker 17
+  47 Job / Worker 18
+  48 Job / Worker 19
+  49 Background Job / Worker 2
+  50 Job / Worker 2
+  51 Job / Worker 20
+  52 Job / Worker 3
+  53 Background Job / Worker 3
+  54 Job / Worker 4
+  55 Background Job / Worker 4
+  56 Background Job / Worker 5
+  57 Job / Worker 5
+  58 Background Job / Worker 6
+  59 Job / Worker 6
+  60 Background Job / Worker 7
+  61 Job / Worker 7
+  62 Job / Worker 8
+  63 Background Job / Worker 8
+
+== Render thread top self time per frame
+     6.66 ms  Semaphore.WaitForSignal
+     0.46 ms  RenderLoop
+     0.40 ms  RenderLoop.Draw
+     0.16 ms  ScheduleGeometryJobs
+     0.16 ms  Gfx.SetRenderTarget
+     0.14 ms  IDXGISwapChain::Present
+     0.13 ms  DrawBuffersBatchMode
+     0.10 ms  SSAO
+     0.10 ms  Canvas.RenderSubBatch
+     0.09 ms  ExecuteRenderGraph
+     0.08 ms  Shadows.Draw
+     0.07 ms  RenderLoopDevice.Idle
+     0.05 ms  RenderLoop.DrawSRPBatcher
+     0.05 ms  GpuRecorder.FrameTick
+     0.05 ms  BlitFinalToBackBuffer
+     0.05 ms  MainLightShadow
+     0.04 ms  RG_BloomDownsample
+     0.04 ms  DrawTransparentObjects
+     0.04 ms  UpdateReflectionProbeAtlas
+     0.03 ms  Setup Camera Properties

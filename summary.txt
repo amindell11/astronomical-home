@@ -1,0 +1,322 @@
+====================================================================================================
+C:/Users/amind/AppData/Local/Temp/claude/D--amind-git-astronomical-home/a8d9b191-aa2c-5062-94e5-2d5f2cdd62e0/scratchpad/runs/main_1.jsonl
+   {'header': True, 'device': 'NVIDIA RTX 2000 Ada Generation Laptop GPU', 'api': 'Direct3D11', 'cpu': 'Intel(R) Core(TM) Ultra 7 155H', 'ftmEnabled': True, 'gpuRecorder': True, 'refreshHz': 120, 'desktop': '3840x2160', 'bootSeconds': 8.4513}
+   {'flight': True, 'sector': 'TrialSector(Clone)', 'invulnerable': True, 'loadFrames': 1, 'loadSeconds': 0.115, 'loadMaxDt': 115.413, 'loadTop': '115.4'}
+   {'done': True, 'seconds': 286.2986}
+
+  LIVE (dt = frame interval ms; main/render/gpu = FrameTimingManager ms)
+  hangar_live      1920x1080 prof=False n= 2212  dt med   4.24 p95   6.86 p99  10.28 max    16.1 | >16.7    0 >25    0 >33    0 >50   0 | main med  4.23 p95  6.84 p99 10.24 | rend  0.38 | gpu med  2.52 p95  2.79 | gcKB med   0.0 p95    0.0 tot      386 coll 1
+      worst: 1.29s:16.1ms/gc0k 9.43s:16.0ms/gc0k 7.51s:14.8ms/gc0k 0.85s:14.6ms/gc0k 8.17s:14.4ms/gc0k 3.80s:14.0ms/gc0k 9.32s:14.0ms/gc0k 8.53s:13.3ms/gc0k 0.79s:13.1ms/gc0k 5.42s:12.8ms/gc0k 1.25s:12.5ms/gc0k 0.01s:12.4ms/gc0k
+      census before: damageables=0 projectiles=0 bodies=0 particles=2 visibleRenderers=11 canvases=3 cams=4
+      census after:  damageables=0 projectiles=0 bodies=0 particles=2 visibleRenderers=11 canvases=3 cams=4
+  hangar_live      3840x2160 prof=False n= 1087  dt med   9.08 p95  10.39 p99  11.15 max    14.2 | >16.7    0 >25    0 >33    0 >50   0 | main med  9.06 p95 10.35 p99 11.10 | rend  0.34 | gpu med  8.74 p95  9.26 | gcKB med   0.0 p95    0.0 tot      194 coll 1
+      worst: 0.51s:14.2ms/gc0k 0.42s:13.4ms/gc0k 7.61s:12.0ms/gc0k 7.35s:11.5ms/gc0k 9.74s:11.5ms/gc0k 9.35s:11.4ms/gc0k 4.71s:11.4ms/gc48k 8.78s:11.3ms/gc0k 4.76s:11.3ms/gc0k 9.33s:11.2ms/gc0k 7.59s:11.2ms/gc0k 9.98s:11.2ms/gc0k
+      census before: damageables=0 projectiles=0 bodies=0 particles=2 visibleRenderers=11 canvases=3 cams=4
+      census after:  damageables=0 projectiles=0 bodies=0 particles=2 visibleRenderers=11 canvases=3 cams=4
+  arrival          1920x1080 prof=False n= 1094  dt med   4.67 p95  10.72 p99  13.99 max    16.1 | >16.7    0 >25    0 >33    0 >50   0 | main med  4.66 p95 10.65 p99 13.94 | rend  0.59 | gpu med  2.60 p95  2.79 | gcKB med   0.2 p95    0.3 tot      463 coll 1
+      worst: 1.09s:16.1ms/gc0k 5.83s:15.8ms/gc0k 5.87s:15.5ms/gc0k 5.13s:15.5ms/gc0k 0.54s:15.5ms/gc0k 0.61s:15.4ms/gc0k 3.34s:15.4ms/gc0k 3.06s:14.8ms/gc0k 2.12s:14.4ms/gc0k 4.87s:14.2ms/gc0k 0.49s:14.1ms/gc0k 5.64s:14.0ms/gc0k
+      census before: damageables=2 projectiles=0 bodies=41 particles=6 visibleRenderers=36 canvases=7 cams=3
+      census after:  damageables=2 projectiles=0 bodies=41 particles=6 visibleRenderers=37 canvases=7 cams=3
+  flight_live      1920x1080 prof=False n= 4264  dt med   5.41 p95  15.59 p99  21.80 max    49.9 | >16.7  168 >25   24 >33    6 >50   0 | main med  5.38 p95 15.53 p99 21.72 | rend  0.72 | gpu med  2.58 p95  2.73 | gcKB med   0.2 p95    0.3 tot     1971 coll 3
+      worst: 29.44s:49.9ms/gc1k 25.75s:40.8ms/gc0k 23.53s:35.1ms/gc0k 3.47s:34.7ms/gc0k 27.88s:33.8ms/gc0k 26.63s:33.6ms/gc0k 3.31s:33.0ms/gc0k 29.42s:32.3ms/gc147k 29.56s:32.2ms/gc1k 25.91s:32.1ms/gc0k 24.93s:32.0ms/gc0k 25.61s:30.9ms/gc0k
+      census before: damageables=2 projectiles=0 bodies=41 particles=6 visibleRenderers=37 canvases=7 cams=3
+      census after:  damageables=3 projectiles=0 bodies=42 particles=8 visibleRenderers=38 canvases=9 cams=3
+  flight_live      3840x2160 prof=False n= 2269  dt med  12.59 p95  18.02 p99  21.21 max   123.5 | >16.7  148 >25    6 >33    2 >50   1 | main med 12.57 p95 17.98 p99 21.05 | rend  0.61 | gpu med 12.37 p95 13.01 | gcKB med   0.3 p95    1.3 tot     1225 coll 1
+      worst: 2.73s:123.5ms/gc0k 0.70s:38.1ms/gc0k 27.29s:26.7ms/gc0k 26.88s:26.6ms/gc2k 27.34s:26.0ms/gc0k 2.76s:25.5ms/gc0k 27.54s:24.7ms/gc2k 5.50s:24.5ms/gc0k 5.48s:23.9ms/gc0k 27.89s:23.6ms/gc0k 27.50s:23.5ms/gc0k 27.21s:23.4ms/gc0k
+      census before: damageables=3 projectiles=1 bodies=43 particles=8 visibleRenderers=42 canvases=9 cams=3
+      census after:  damageables=3 projectiles=2 bodies=44 particles=8 visibleRenderers=47 canvases=9 cams=3
+  flight_profiled  1920x1080 prof=True  n= 3313  dt med   6.87 p95  16.33 p99  22.20 max   522.9 | >16.7  148 >25   18 >33   11 >50   6 | main med  6.82 p95 16.27 p99 22.04 | rend  0.91 | gpu med  2.65 p95  3.10 | gcKB med   0.3 p95    0.7 tot     1681 coll 2
+      worst: 4.76s:522.9ms/gc0k 2.66s:520.2ms/gc0k 13.64s:517.5ms/gc0k 3.72s:517.4ms/gc0k 0.59s:516.5ms/gc0k 1.63s:511.9ms/gc0k 3.72s:37.5ms/gc1k 1.64s:36.9ms/gc2k 0.60s:35.5ms/gc1k 6.98s:34.0ms/gc0k 26.68s:34.0ms/gc23k 4.77s:32.9ms/gc1k
+      census before: damageables=3 projectiles=2 bodies=44 particles=8 visibleRenderers=51 canvases=9 cams=3
+      census after:  damageables=4 projectiles=2 bodies=48 particles=12 visibleRenderers=59 canvases=11 cams=3
+
+  FROZEN / ARMS (GPU median ms)
+   hangar_base                                                                 1920x1080 gpu   2.60 (p90   2.71) main   3.88 rend   0.32 dt   3.88
+   hangar_no_sky                                                               1920x1080 gpu   1.31 (p90   1.32) main   3.57 rend   0.26 dt   3.60
+   hangar_no_feature:URP-HighFidelity-Renderer/SSAO<ScreenSpaceAmbientOcclusio 1920x1080 gpu   2.39 (p90   2.47) main   3.61 rend   0.32 dt   3.62
+   hangar_no_feature:URP-HighFidelity-Renderer/SectorJumpFeature<SectorJumpFea 1920x1080 gpu   2.72 (p90   2.78) main   3.66 rend   0.28 dt   3.67
+   hangar_no_feature:URP-HighFidelity-Renderer/CanopyProjectionFeature<CanopyP 1920x1080 gpu   2.53 (p90   2.63) main   4.12 rend   0.36 dt   4.11
+   hangar_no_feature:MinimapRenderer/Env<RenderObjects>                        1920x1080 gpu   2.58 (p90   2.67) main   4.07 rend   0.39 dt   4.12
+   hangar_no_feature:MinimapRenderer/Player<RenderObjects>                     1920x1080 gpu   2.55 (p90   2.65) main   4.39 rend   0.39 dt   4.32
+   hangar_no_feature:MinimapRenderer/Enemy<RenderObjects>                      1920x1080 gpu   2.54 (p90   2.60) main   4.29 rend   0.40 dt   4.31
+   hangar_base                                                                 3840x2160 gpu   8.54 (p90   9.34) main   9.56 rend   0.43 dt   9.57
+   hangar_no_sky                                                               3840x2160 gpu   3.20 (p90   3.23) main   7.01 rend   0.24 dt   7.05
+   hangar_no_feature:URP-HighFidelity-Renderer/SSAO<ScreenSpaceAmbientOcclusio 3840x2160 gpu   8.06 (p90   8.32) main   8.92 rend   0.45 dt   8.99
+   hangar_no_feature:URP-HighFidelity-Renderer/SectorJumpFeature<SectorJumpFea 3840x2160 gpu   8.99 (p90   9.23) main   9.54 rend   0.45 dt   9.58
+   hangar_no_feature:URP-HighFidelity-Renderer/CanopyProjectionFeature<CanopyP 3840x2160 gpu   8.79 (p90   9.34) main   9.43 rend   0.42 dt   9.45
+   hangar_no_feature:MinimapRenderer/Env<RenderObjects>                        3840x2160 gpu   9.06 (p90   9.22) main   9.29 rend   0.36 dt   9.31
+   hangar_no_feature:MinimapRenderer/Player<RenderObjects>                     3840x2160 gpu   8.68 (p90   8.83) main   9.27 rend   0.41 dt   9.25
+   hangar_no_feature:MinimapRenderer/Enemy<RenderObjects>                      3840x2160 gpu   8.69 (p90   9.15) main   9.02 rend   0.35 dt   9.05
+   --- matrix High Fidelity 1920x1080 | damageables=4 projectiles=2 bodies=48 particles=12 visibleRenderers=59 canvases=11 cams=3
+       sky: CloseNebula/CloseNebula<Custom/Nebula> | Background/Background<Locales/Flat Background> | FarNebula/FarNebula<Custom/Nebula> | DistantStars/DistantStars<Custom/StarField> | StarField/StarField<Custom/StarField>
+       cams: Minimap Cam(Clone)->RT fmt=R32G32B32A32_SFloat | UI Cam(Clone)->RT fmt=R8G8B8A8_SRGB | Main Camera(Clone) fmt=bb
+       features: URP-HighFidelity-Renderer/SSAO<ScreenSpaceAmbientOcclusion> | URP-HighFidelity-Renderer/SectorJumpFeature<SectorJumpFeature> | URP-HighFidelity-Renderer/CanopyProjectionFeature<CanopyProjectionFeature> | MinimapRenderer/Env<RenderObjects> | MinimapRenderer/Player<RenderObjects> | MinimapRenderer/Enemy<RenderObjects>
+   base                                                                        1920x1080 gpu   2.69 (p90   2.75) main   5.79 rend   0.96 dt   5.84
+   passes 1920x1080 : FrameTime.GPU=2.708ms x1 ; ExecuteRenderGraph=2.692ms x3 ; UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone)=2.486ms x1 ; DrawTransparentObjects=1.270ms x3 ; Canopy projection=0.294ms x1 ; SSAO=0.177ms x2 ; UniversalRenderPipeline.RenderSingleCameraInternal: UI Cam(Clone)=0.146ms x1 ; RG_UberPost=0.118ms x1 ; Bloom=0.082ms x1 ; BlitFinalToBackBuffer=0.078ms x3 ; DrawMotionVectors=0.072ms x1 ; RG_MotionBlur=0.068ms x1 ; UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone)=0.060ms x1 ; DrawOpaqueObjects=0.058ms x3 ; MainLightShadow=0.042ms x1 ; Draw Main Light Shadowmap=0.042ms x3 ; RG_StopNaNs=0.040ms x1 ; CopyColor=0.039ms x4 ; PaniniProjection=0.037ms x1 ; Canopy phosphor history=0.035ms x1 ; RG_BloomPrefilter=0.031ms x1 ; RG_BloomDownsample=0.027ms x1 ; RG_BloomUpsample=0.022ms x1 ; CopyDepth=0.021ms x2 ; Env=0.008ms x1 ; DrawDepthNormalPrepass=0.
+   no_sky                                                                      1920x1080 gpu   1.35 (p90   1.36) main   5.90 rend   0.92 dt   6.02
+   no_sky:CloseNebula/CloseNebula<Custom/Nebula>                               1920x1080 gpu   2.43 (p90   2.79) main   6.33 rend   1.01 dt   6.41
+   no_sky:Background/Background<Locales/Flat Background>                       1920x1080 gpu   2.60 (p90   2.69) main   5.44 rend   0.90 dt   5.45
+   no_sky:FarNebula/FarNebula<Custom/Nebula>                                   1920x1080 gpu   2.51 (p90   2.54) main   5.62 rend   0.86 dt   5.67
+   no_sky:DistantStars/DistantStars<Custom/StarField>                          1920x1080 gpu   2.54 (p90   2.63) main   5.97 rend   0.97 dt   6.08
+   no_sky:StarField/StarField<Custom/StarField>                                1920x1080 gpu   2.07 (p90   2.41) main   7.69 rend   1.18 dt   7.78
+   base_again                                                                  1920x1080 gpu   3.06 (p90   3.20) main   8.76 rend   1.33 dt   9.13
+   no_cam:Minimap Cam(Clone)                                                   1920x1080 gpu   2.63 (p90   2.70) main   5.45 rend   1.06 dt   5.42
+   no_cam:UI Cam(Clone)                                                        1920x1080 gpu   2.55 (p90   2.61) main   5.21 rend   1.00 dt   5.21
+   no_feature:URP-HighFidelity-Renderer/SSAO<ScreenSpaceAmbientOcclusion>      1920x1080 gpu   2.57 (p90   2.60) main   6.14 rend   0.94 dt   6.22
+   no_feature:URP-HighFidelity-Renderer/SectorJumpFeature<SectorJumpFeature>   1920x1080 gpu   2.68 (p90   2.70) main   6.00 rend   0.99 dt   6.00
+   no_feature:URP-HighFidelity-Renderer/CanopyProjectionFeature<CanopyProjecti 1920x1080 gpu   1.96 (p90   1.98) main   5.35 rend   0.86 dt   5.37
+   no_feature:MinimapRenderer/Env<RenderObjects>                               1920x1080 gpu   2.68 (p90   2.72) main   6.12 rend   1.11 dt   6.16
+   no_feature:MinimapRenderer/Player<RenderObjects>                            1920x1080 gpu   2.68 (p90   2.72) main   6.53 rend   1.08 dt   6.49
+   no_feature:MinimapRenderer/Enemy<RenderObjects>                             1920x1080 gpu   2.68 (p90   2.73) main   6.66 rend   1.14 dt   6.61
+   no_any_ui                                                                   1920x1080 gpu   2.65 (p90   2.68) main   6.44 rend   1.13 dt   6.46
+   no_post                                                                     1920x1080 gpu   2.19 (p90   2.22) main   5.41 rend   0.88 dt   5.44
+   floor_sky_ui_post_off                                                       1920x1080 gpu   0.89 (p90   0.90) main   4.98 rend   0.79 dt   5.00
+   base_end                                                                    1920x1080 gpu   2.69 (p90   2.73) main   7.23 rend   1.18 dt   7.34
+   --- matrix High Fidelity 3840x2160 | damageables=4 projectiles=3 bodies=49 particles=12 visibleRenderers=60 canvases=11 cams=3
+       sky: CloseNebula/CloseNebula<Custom/Nebula> | Background/Background<Locales/Flat Background> | FarNebula/FarNebula<Custom/Nebula> | DistantStars/DistantStars<Custom/StarField> | StarField/StarField<Custom/StarField>
+       cams: Minimap Cam(Clone)->RT fmt=R32G32B32A32_SFloat | UI Cam(Clone)->RT fmt=R8G8B8A8_SRGB | Main Camera(Clone) fmt=bb
+       features: URP-HighFidelity-Renderer/SSAO<ScreenSpaceAmbientOcclusion> | URP-HighFidelity-Renderer/SectorJumpFeature<SectorJumpFeature> | URP-HighFidelity-Renderer/CanopyProjectionFeature<CanopyProjectionFeature> | MinimapRenderer/Env<RenderObjects> | MinimapRenderer/Player<RenderObjects> | MinimapRenderer/Enemy<RenderObjects>
+   base                                                                        3840x2160 gpu  10.96 (p90  12.72) main  22.94 rend   1.23 dt  22.96
+   passes 3840x2160 : FrameTime.GPU=12.406ms x1 ; ExecuteRenderGraph=12.325ms x3 ; UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone)=11.673ms x1 ; DrawTransparentObjects=5.951ms x3 ; Canopy projection=1.421ms x1 ; SSAO=0.736ms x2 ; UniversalRenderPipeline.RenderSingleCameraInternal: UI Cam(Clone)=0.570ms x1 ; RG_UberPost=0.495ms x1 ; Bloom=0.346ms x1 ; DrawMotionVectors=0.343ms x1 ; RG_MotionBlur=0.342ms x1 ; BlitFinalToBackBuffer=0.327ms x3 ; PaniniProjection=0.216ms x1 ; RG_StopNaNs=0.196ms x1 ; RG_BloomPrefilter=0.183ms x1 ; Canopy phosphor history=0.172ms x1 ; DrawOpaqueObjects=0.163ms x3 ; CopyColor=0.146ms x4 ; RG_BloomUpsample=0.084ms x1 ; UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone)=0.081ms x1 ; RG_BloomDownsample=0.078ms x1 ; Draw Main Light Shadowmap=0.051ms x3 ; MainLightShadow=0.051ms x1 ; CopyDepth=0.029ms x2 ; DrawDepthNormalPrepass=0.011ms x2 ; Env
+   no_sky                                                                      3840x2160 gpu   5.03 (p90   5.26) main   7.69 rend   0.62 dt   7.72
+   no_sky:CloseNebula/CloseNebula<Custom/Nebula>                               3840x2160 gpu  11.86 (p90  12.18) main  11.92 rend   0.60 dt  11.96
+   no_sky:Background/Background<Locales/Flat Background>                       3840x2160 gpu  11.97 (p90  12.20) main  12.01 rend   0.57 dt  12.05
+   no_sky:FarNebula/FarNebula<Custom/Nebula>                                   3840x2160 gpu  11.46 (p90  11.70) main  11.54 rend   0.65 dt  11.59
+   no_sky:DistantStars/DistantStars<Custom/StarField>                          3840x2160 gpu  11.24 (p90  11.50) main  11.36 rend   0.71 dt  11.40
+   no_sky:StarField/StarField<Custom/StarField>                                3840x2160 gpu   8.97 (p90   9.14) main  10.27 rend   0.74 dt  10.31
+   base_again                                                                  3840x2160 gpu  12.35 (p90  12.49) main  12.38 rend   0.64 dt  12.43
+   no_cam:Minimap Cam(Clone)                                                   3840x2160 gpu  11.16 (p90  12.09) main  17.84 rend   1.16 dt  18.00
+   no_cam:UI Cam(Clone)                                                        3840x2160 gpu  11.47 (p90  12.17) main  14.77 rend   1.03 dt  14.45
+   no_feature:URP-HighFidelity-Renderer/SSAO<ScreenSpaceAmbientOcclusion>      3840x2160 gpu  11.66 (p90  12.28) main  12.70 rend   0.89 dt  13.14
+   no_feature:URP-HighFidelity-Renderer/SectorJumpFeature<SectorJumpFeature>   3840x2160 gpu  12.97 (p90  13.14) main  13.06 rend   0.63 dt  13.12
+   no_feature:URP-HighFidelity-Renderer/CanopyProjectionFeature<CanopyProjecti 3840x2160 gpu   8.70 (p90   9.53) main  10.10 rend   0.76 dt  10.22
+   no_feature:MinimapRenderer/Env<RenderObjects>                               3840x2160 gpu  12.49 (p90  13.56) main  13.43 rend   0.76 dt  13.53
+   no_feature:MinimapRenderer/Player<RenderObjects>                            3840x2160 gpu  12.78 (p90  13.26) main  13.70 rend   1.02 dt  13.65
+   no_feature:MinimapRenderer/Enemy<RenderObjects>                             3840x2160 gpu  12.81 (p90  13.70) main  13.82 rend   0.88 dt  13.85
+   no_any_ui                                                                   3840x2160 gpu  13.10 (p90  13.86) main  13.70 rend   0.74 dt  13.76
+   no_post                                                                     3840x2160 gpu  10.87 (p90  11.95) main  11.23 rend   0.64 dt  11.27
+   floor_sky_ui_post_off                                                       3840x2160 gpu   3.05 (p90   3.08) main   8.23 rend   0.66 dt   8.28
+   base_end                                                                    3840x2160 gpu  13.67 (p90  14.82) main  13.75 rend   0.67 dt  13.80
+====================================================================================================
+C:/Users/amind/AppData/Local/Temp/claude/D--amind-git-astronomical-home/a8d9b191-aa2c-5062-94e5-2d5f2cdd62e0/scratchpad/runs/base_1.jsonl
+   {'header': True, 'device': 'NVIDIA RTX 2000 Ada Generation Laptop GPU', 'api': 'Direct3D11', 'cpu': 'Intel(R) Core(TM) Ultra 7 155H', 'ftmEnabled': True, 'gpuRecorder': True, 'refreshHz': 120, 'desktop': '3840x2160', 'bootSeconds': 6.531}
+   {'flight': True, 'sector': 'TrialSector(Clone)', 'invulnerable': True, 'loadFrames': 4, 'loadSeconds': 0.129, 'loadMaxDt': 75.464, 'loadTop': '75.5 28.2 18.1 6.8'}
+   {'done': True, 'seconds': 228.7864}
+
+  LIVE (dt = frame interval ms; main/render/gpu = FrameTimingManager ms)
+  hangar_live      1920x1080 prof=False n= 2308  dt med   3.44 p95   5.66 p99   7.32 max   515.2 | >16.7    3 >25    3 >33    3 >50   3 | main med  3.43 p95  5.64 p99  7.28 | rend  0.30 | gpu med  2.23 p95  2.56 | gcKB med   0.0 p95    0.0 tot      386 coll 0
+      worst: 1.16s:515.2ms/gc0k 2.21s:513.0ms/gc0k 0.62s:502.4ms/gc3k 6.65s:13.0ms/gc0k 4.67s:11.2ms/gc0k 6.07s:10.7ms/gc0k 6.06s:10.6ms/gc0k 6.05s:10.2ms/gc0k 5.45s:10.1ms/gc0k 4.68s:9.8ms/gc0k 5.32s:8.8ms/gc0k 4.98s:8.7ms/gc0k
+      census before: damageables=0 projectiles=0 bodies=0 particles=2 visibleRenderers=8 canvases=1 cams=4
+      census after:  damageables=0 projectiles=0 bodies=0 particles=2 visibleRenderers=8 canvases=1 cams=4
+  hangar_live      3840x2160 prof=False n= 1058  dt med   9.45 p95   9.96 p99  10.29 max    10.9 | >16.7    0 >25    0 >33    0 >50   0 | main med  9.43 p95  9.94 p99 10.29 | rend  0.28 | gpu med  9.40 p95  9.92 | gcKB med   0.0 p95    0.0 tot      194 coll 0
+      worst: 8.02s:10.9ms/gc0k 0.55s:10.8ms/gc0k 7.96s:10.8ms/gc0k 3.10s:10.8ms/gc0k 8.01s:10.6ms/gc0k 5.04s:10.4ms/gc0k 0.59s:10.4ms/gc0k 8.03s:10.4ms/gc0k 9.89s:10.3ms/gc0k 8.06s:10.3ms/gc0k 2.32s:10.3ms/gc0k 9.95s:10.3ms/gc0k
+      census before: damageables=0 projectiles=0 bodies=0 particles=2 visibleRenderers=8 canvases=1 cams=4
+      census after:  damageables=0 projectiles=0 bodies=0 particles=2 visibleRenderers=8 canvases=1 cams=4
+  arrival          1920x1080 prof=False n= 1233  dt med   4.39 p95   7.95 p99  11.02 max    38.9 | >16.7    3 >25    2 >33    1 >50   0 | main med  4.37 p95  7.95 p99 10.99 | rend  0.79 | gpu med  2.08 p95  2.22 | gcKB med   0.0 p95    0.1 tot      225 coll 1
+      worst: 2.70s:38.9ms/gc5k 2.49s:25.6ms/gc0k 0.01s:19.0ms/gc0k 0.67s:15.6ms/gc0k 2.72s:14.3ms/gc0k 2.25s:13.9ms/gc0k 5.99s:13.0ms/gc0k 2.57s:12.7ms/gc0k 2.71s:11.8ms/gc0k 4.91s:11.7ms/gc0k 0.77s:11.1ms/gc0k 1.27s:11.1ms/gc0k
+      census before: damageables=3 projectiles=0 bodies=107 particles=10 visibleRenderers=109 canvases=8 cams=3
+      census after:  damageables=3 projectiles=0 bodies=107 particles=14 visibleRenderers=103 canvases=8 cams=3
+  flight_live      1920x1080 prof=False n= 5040  dt med   4.94 p95  12.13 p99  16.05 max    26.6 | >16.7   40 >25    2 >33    0 >50   0 | main med  4.89 p95 12.13 p99 16.12 | rend  0.90 | gpu med  2.08 p95  2.26 | gcKB med   0.0 p95    0.1 tot      967 coll 1
+      worst: 16.73s:26.6ms/gc0k 19.91s:26.4ms/gc0k 18.84s:21.9ms/gc0k 17.95s:21.1ms/gc0k 13.89s:20.8ms/gc0k 17.05s:20.7ms/gc0k 17.82s:20.6ms/gc0k 19.95s:19.6ms/gc1k 19.55s:19.6ms/gc0k 17.84s:19.6ms/gc0k 17.32s:19.6ms/gc0k 17.35s:19.5ms/gc0k
+      census before: damageables=3 projectiles=0 bodies=108 particles=9 visibleRenderers=102 canvases=8 cams=3
+      census after:  damageables=3 projectiles=0 bodies=108 particles=8 visibleRenderers=108 canvases=8 cams=3
+  flight_live      3840x2160 prof=False n= 2623  dt med  10.63 p95  15.60 p99  18.75 max    31.0 | >16.7   62 >25    4 >33    0 >50   0 | main med 10.61 p95 15.55 p99 18.62 | rend  0.82 | gpu med 10.28 p95 11.04 | gcKB med   0.0 p95    0.5 tot      718 coll 1
+      worst: 29.09s:31.0ms/gc0k 29.99s:26.6ms/gc0k 23.15s:26.5ms/gc0k 22.67s:25.0ms/gc1k 25.09s:25.0ms/gc0k 24.09s:24.2ms/gc0k 28.88s:22.8ms/gc0k 29.40s:22.8ms/gc0k 24.99s:21.9ms/gc0k 20.17s:20.8ms/gc0k 29.53s:20.7ms/gc0k 22.81s:20.6ms/gc0k
+      census before: damageables=3 projectiles=0 bodies=108 particles=10 visibleRenderers=112 canvases=8 cams=3
+      census after:  damageables=4 projectiles=0 bodies=110 particles=16 visibleRenderers=117 canvases=10 cams=3
+  flight_profiled  1920x1080 prof=True  n= 4570  dt med   5.61 p95  13.00 p99  16.25 max    71.6 | >16.7   36 >25    2 >33    1 >50   1 | main med  5.56 p95 12.95 p99 16.25 | rend  1.00 | gpu med  2.10 p95  2.27 | gcKB med   0.0 p95    0.1 tot      998 coll 2
+      worst: 0.04s:71.6ms/gc0k 0.06s:28.7ms/gc1k 0.36s:24.9ms/gc0k 18.58s:23.2ms/gc0k 0.18s:21.6ms/gc0k 0.08s:20.8ms/gc0k 0.29s:20.8ms/gc0k 0.22s:20.7ms/gc0k 0.32s:20.4ms/gc0k 24.16s:20.0ms/gc0k 6.43s:19.9ms/gc0k 0.50s:19.8ms/gc0k
+      census before: damageables=4 projectiles=1 bodies=111 particles=12 visibleRenderers=109 canvases=10 cams=3
+      census after:  damageables=4 projectiles=4 bodies=113 particles=14 visibleRenderers=121 canvases=10 cams=3
+
+  FROZEN / ARMS (GPU median ms)
+   hangar_base                                                                 1920x1080 gpu   2.38 (p90   2.44) main   2.96 rend   0.28 dt   2.96
+   hangar_no_sky                                                               1920x1080 gpu   1.01 (p90   1.02) main   2.31 rend   0.20 dt   2.31
+   hangar_no_feature:URP-HighFidelity-Renderer/SSAO<ScreenSpaceAmbientOcclusio 1920x1080 gpu   2.30 (p90   2.34) main   2.74 rend   0.25 dt   2.75
+   hangar_no_feature:MinimapRenderer/Env<RenderObjects>                        1920x1080 gpu   2.44 (p90   2.50) main   2.84 rend   0.26 dt   2.87
+   hangar_no_feature:MinimapRenderer/Player<RenderObjects>                     1920x1080 gpu   2.33 (p90   2.39) main   3.08 rend   0.27 dt   3.09
+   hangar_no_feature:MinimapRenderer/Enemy<RenderObjects>                      1920x1080 gpu   2.32 (p90   2.42) main   3.01 rend   0.27 dt   3.10
+   hangar_base                                                                 3840x2160 gpu   9.26 (p90   9.60) main   9.31 rend   0.24 dt   9.32
+   hangar_no_sky                                                               3840x2160 gpu   3.71 (p90   3.89) main   5.41 rend   0.17 dt   5.42
+   hangar_no_feature:URP-HighFidelity-Renderer/SSAO<ScreenSpaceAmbientOcclusio 3840x2160 gpu   9.62 (p90  10.05) main   9.63 rend   0.23 dt   9.64
+   hangar_no_feature:MinimapRenderer/Env<RenderObjects>                        3840x2160 gpu   9.77 (p90  10.14) main   9.77 rend   0.25 dt   9.78
+   hangar_no_feature:MinimapRenderer/Player<RenderObjects>                     3840x2160 gpu   9.86 (p90  10.16) main   9.88 rend   0.25 dt   9.91
+   hangar_no_feature:MinimapRenderer/Enemy<RenderObjects>                      3840x2160 gpu   9.57 (p90   9.79) main   9.58 rend   0.25 dt   9.58
+   --- matrix High Fidelity 1920x1080 | damageables=4 projectiles=4 bodies=113 particles=14 visibleRenderers=122 canvases=10 cams=3
+       sky: CloseNebula/CloseNebula<Custom/Nebula> | StarField/StarField<Custom/StarField> | FarNebula/FarNebula<Custom/Nebula> | DistantStars/DistantStars<Custom/StarField> | Background/Background<Locales/Flat Background>
+       cams: Main Camera(Clone) fmt=bb | Minimap Cam(Clone)->RT fmt=R32G32B32A32_SFloat | UI Cam(Clone) fmt=bb
+       features: URP-HighFidelity-Renderer/SSAO<ScreenSpaceAmbientOcclusion> | MinimapRenderer/Env<RenderObjects> | MinimapRenderer/Player<RenderObjects> | MinimapRenderer/Enemy<RenderObjects>
+   base                                                                        1920x1080 gpu   2.14 (p90   2.23) main   4.73 rend   1.07 dt   4.79
+   passes 1920x1080 : FrameTime.GPU=2.212ms x1 ; ExecuteRenderGraph=2.191ms x3 ; UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone)=1.844ms x1 ; DrawTransparentObjects=1.168ms x3 ; UniversalRenderPipeline.RenderSingleCameraInternal: UI Cam(Clone)=0.255ms x1 ; SSAO=0.183ms x2 ; RG_UberPost=0.126ms x2 ; Bloom=0.116ms x2 ; UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone)=0.095ms x1 ; DrawMotionVectors=0.076ms x1 ; MainLightShadow=0.072ms x1 ; Draw Main Light Shadowmap=0.072ms x3 ; RG_MotionBlur=0.069ms x1 ; DrawOpaqueObjects=0.059ms x3 ; RG_StopNaNs=0.045ms x2 ; RG_BloomDownsample=0.045ms x2 ; BlitFinalToBackBuffer=0.038ms x1 ; RG_BloomPrefilter=0.037ms x2 ; Env=0.036ms x1 ; CopyDepth=0.032ms x2 ; RG_BloomUpsample=0.032ms x2 ; CopyColor=0.022ms x2 ; PaniniProjection=0.021ms x1 ; DrawDepthNormalPrepass=0.014ms x2 ; Blit Color LUT=0.010ms x2 ; ColorGradingLUT=0.009ms x2 ; 
+   no_sky                                                                      1920x1080 gpu   0.99 (p90   1.00) main   4.55 rend   0.90 dt   4.66
+   no_sky:CloseNebula/CloseNebula<Custom/Nebula>                               1920x1080 gpu   1.85 (p90   1.86) main   4.48 rend   0.93 dt   4.55
+   no_sky:StarField/StarField<Custom/StarField>                                1920x1080 gpu   1.52 (p90   1.53) main   4.55 rend   0.92 dt   4.63
+   no_sky:FarNebula/FarNebula<Custom/Nebula>                                   1920x1080 gpu   2.03 (p90   2.37) main   4.93 rend   0.88 dt   4.97
+   no_sky:DistantStars/DistantStars<Custom/StarField>                          1920x1080 gpu   1.95 (p90   2.07) main   4.66 rend   0.85 dt   4.67
+   no_sky:Background/Background<Locales/Flat Background>                       1920x1080 gpu   2.09 (p90   2.15) main   4.61 rend   0.83 dt   4.65
+   base_again                                                                  1920x1080 gpu   2.13 (p90   2.30) main   4.71 rend   0.85 dt   4.74
+   no_cam:Minimap Cam(Clone)                                                   1920x1080 gpu   2.13 (p90   2.37) main   4.06 rend   0.88 dt   4.08
+   no_cam:UI Cam(Clone)                                                        1920x1080 gpu   1.92 (p90   2.06) main   3.75 rend   0.54 dt   3.76
+   no_feature:URP-HighFidelity-Renderer/SSAO<ScreenSpaceAmbientOcclusion>      1920x1080 gpu   2.02 (p90   2.09) main   4.41 rend   0.81 dt   4.45
+   no_feature:MinimapRenderer/Env<RenderObjects>                               1920x1080 gpu   2.15 (p90   2.91) main   4.49 rend   0.86 dt   4.47
+   no_feature:MinimapRenderer/Player<RenderObjects>                            1920x1080 gpu   2.13 (p90   2.62) main   4.46 rend   0.77 dt   4.47
+   no_feature:MinimapRenderer/Enemy<RenderObjects>                             1920x1080 gpu   2.13 (p90   2.21) main   4.52 rend   0.80 dt   4.57
+   no_any_ui                                                                   1920x1080 gpu   2.17 (p90   2.61) main   4.26 rend   0.65 dt   4.30
+   no_post                                                                     1920x1080 gpu   1.72 (p90   1.92) main   3.95 rend   0.73 dt   3.95
+   floor_sky_ui_post_off                                                       1920x1080 gpu   0.53 (p90   0.54) main   3.75 rend   0.52 dt   3.76
+   base_end                                                                    1920x1080 gpu   2.10 (p90   2.23) main   4.43 rend   0.85 dt   4.46
+   --- matrix High Fidelity 3840x2160 | damageables=4 projectiles=3 bodies=112 particles=14 visibleRenderers=121 canvases=10 cams=3
+       sky: CloseNebula/CloseNebula<Custom/Nebula> | StarField/StarField<Custom/StarField> | FarNebula/FarNebula<Custom/Nebula> | DistantStars/DistantStars<Custom/StarField> | Background/Background<Locales/Flat Background>
+       cams: Main Camera(Clone) fmt=bb | Minimap Cam(Clone)->RT fmt=R32G32B32A32_SFloat | UI Cam(Clone) fmt=bb
+       features: URP-HighFidelity-Renderer/SSAO<ScreenSpaceAmbientOcclusion> | MinimapRenderer/Env<RenderObjects> | MinimapRenderer/Player<RenderObjects> | MinimapRenderer/Enemy<RenderObjects>
+   base                                                                        3840x2160 gpu  10.32 (p90  10.34) main  10.35 rend   0.61 dt  10.36
+   passes 3840x2160 : FrameTime.GPU=10.035ms x1 ; ExecuteRenderGraph=9.936ms x3 ; UniversalRenderPipeline.RenderSingleCameraInternal: Main Camera(Clone)=8.578ms x1 ; DrawTransparentObjects=5.776ms x3 ; UniversalRenderPipeline.RenderSingleCameraInternal: UI Cam(Clone)=1.238ms x1 ; SSAO=0.804ms x2 ; RG_UberPost=0.618ms x2 ; Bloom=0.477ms x2 ; DrawMotionVectors=0.371ms x1 ; RG_MotionBlur=0.334ms x1 ; RG_StopNaNs=0.256ms x2 ; RG_BloomPrefilter=0.188ms x2 ; DrawOpaqueObjects=0.169ms x3 ; RG_BloomDownsample=0.160ms x2 ; RG_BloomUpsample=0.127ms x2 ; UniversalRenderPipeline.RenderSingleCameraInternal: Minimap Cam(Clone)=0.125ms x1 ; PaniniProjection=0.122ms x1 ; MainLightShadow=0.091ms x1 ; Draw Main Light Shadowmap=0.091ms x3 ; CopyColor=0.059ms x2 ; BlitFinalToBackBuffer=0.050ms x1 ; Env=0.046ms x1 ; CopyDepth=0.034ms x2 ; DrawDepthNormalPrepass=0.032ms x2 ; ColorGradingLUT=0.012ms x2 ; Blit Color LUT=0.012ms x2 ;
+   no_sky                                                                      3840x2160 gpu   3.19 (p90   3.30) main   6.44 rend   0.68 dt   6.46
+   no_sky:CloseNebula/CloseNebula<Custom/Nebula>                               3840x2160 gpu   8.94 (p90   9.63) main   9.37 rend   0.68 dt   9.39
+   no_sky:StarField/StarField<Custom/StarField>                                3840x2160 gpu   6.69 (p90   6.81) main   8.08 rend   0.68 dt   8.11
+   no_sky:FarNebula/FarNebula<Custom/Nebula>                                   3840x2160 gpu  10.01 (p90  10.33) main  10.26 rend   0.82 dt  10.28
+   no_sky:DistantStars/DistantStars<Custom/StarField>                          3840x2160 gpu   9.19 (p90  10.06) main   9.81 rend   0.92 dt   9.88
+   no_sky:Background/Background<Locales/Flat Background>                       3840x2160 gpu  10.11 (p90  10.67) main  10.36 rend   0.75 dt  10.36
+   base_again                                                                  3840x2160 gpu  10.61 (p90  10.70) main  10.63 rend   0.73 dt  10.67
+   no_cam:Minimap Cam(Clone)                                                   3840x2160 gpu  10.56 (p90  10.59) main  10.60 rend   0.71 dt  10.63
+   no_cam:UI Cam(Clone)                                                        3840x2160 gpu   9.33 (p90   9.39) main   9.36 rend   0.44 dt   9.38
+   no_feature:URP-HighFidelity-Renderer/SSAO<ScreenSpaceAmbientOcclusion>      3840x2160 gpu  10.01 (p90  10.09) main  10.05 rend   0.64 dt  10.07
+   no_feature:MinimapRenderer/Env<RenderObjects>                               3840x2160 gpu  10.57 (p90  10.66) main  10.62 rend   0.69 dt  10.66
+   no_feature:MinimapRenderer/Player<RenderObjects>                            3840x2160 gpu  10.61 (p90  10.67) main  10.62 rend   0.72 dt  10.65
+   no_feature:MinimapRenderer/Enemy<RenderObjects>                             3840x2160 gpu  10.62 (p90  10.68) main  10.64 rend   0.75 dt  10.67
+   no_any_ui                                                                   3840x2160 gpu  10.55 (p90  10.62) main  10.57 rend   0.63 dt  10.60
+   no_post                                                                     3840x2160 gpu   7.90 (p90   8.03) main   8.19 rend   0.63 dt   8.20
+   floor_sky_ui_post_off                                                       3840x2160 gpu   1.39 (p90   1.39) main   5.63 rend   0.53 dt   5.67
+   base_end                                                                    3840x2160 gpu  10.60 (p90  10.79) main  10.65 rend   0.76 dt  10.69
+====================================================================================================
+C:/Users/amind/AppData/Local/Temp/claude/D--amind-git-astronomical-home/a8d9b191-aa2c-5062-94e5-2d5f2cdd62e0/scratchpad/runs/base_2.jsonl
+   {'header': True, 'device': 'NVIDIA RTX 2000 Ada Generation Laptop GPU', 'api': 'Direct3D11', 'cpu': 'Intel(R) Core(TM) Ultra 7 155H', 'ftmEnabled': True, 'gpuRecorder': True, 'refreshHz': 120, 'desktop': '3840x2160', 'bootSeconds': 5.5051}
+   {'flight': True, 'sector': 'TrialSector(Clone)', 'invulnerable': True, 'loadFrames': 4, 'loadSeconds': 0.12, 'loadMaxDt': 57.629, 'loadTop': '57.6 28.3 27.8 6.2'}
+   {'done': True, 'seconds': 170.4727}
+
+  LIVE (dt = frame interval ms; main/render/gpu = FrameTimingManager ms)
+  hangar_live      1920x1080 prof=False n= 1724  dt med   2.71 p95   3.68 p99   4.46 max     6.1 | >16.7    0 >25    0 >33    0 >50   0 | main med  2.69 p95  3.68 p99  4.40 | rend  0.20 | gpu med  2.50 p95  2.58 | gcKB med   0.0 p95    0.0 tot      194 coll 0
+      worst: 2.59s:6.1ms/gc0k 2.59s:5.9ms/gc0k 2.61s:5.4ms/gc0k 0.50s:5.2ms/gc0k 2.63s:5.2ms/gc0k 2.62s:5.1ms/gc0k 2.58s:5.0ms/gc0k 2.62s:5.0ms/gc0k 2.71s:4.9ms/gc0k 0.49s:4.9ms/gc0k 2.63s:4.8ms/gc0k 0.56s:4.8ms/gc0k
+      census before: damageables=0 projectiles=0 bodies=0 particles=2 visibleRenderers=8 canvases=1 cams=4
+      census after:  damageables=0 projectiles=0 bodies=0 particles=2 visibleRenderers=8 canvases=1 cams=4
+  hangar_live      3840x2160 prof=False n=  540  dt med   9.26 p95   9.90 p99  10.39 max    11.1 | >16.7    0 >25    0 >33    0 >50   0 | main med  9.25 p95  9.88 p99 10.37 | rend  0.27 | gpu med  9.23 p95  9.83 | gcKB med   0.0 p95    0.0 tot       98 coll 0
+      worst: 0.48s:11.1ms/gc0k 1.04s:11.1ms/gc0k 1.02s:10.8ms/gc0k 0.53s:10.6ms/gc0k 0.21s:10.4ms/gc0k 2.94s:10.4ms/gc0k 0.47s:10.3ms/gc0k 3.02s:10.3ms/gc0k 0.43s:10.3ms/gc0k 0.26s:10.1ms/gc0k 0.34s:10.1ms/gc0k 0.18s:10.1ms/gc2k
+      census before: damageables=0 projectiles=0 bodies=0 particles=2 visibleRenderers=8 canvases=1 cams=4
+      census after:  damageables=0 projectiles=0 bodies=0 particles=2 visibleRenderers=8 canvases=1 cams=4
+  arrival          1920x1080 prof=False n=  891  dt med   4.19 p95  15.49 p99  23.08 max   510.4 | >16.7   40 >25    7 >33    4 >50   3 | main med  4.18 p95 14.99 p99 22.32 | rend  0.72 | gpu med  2.14 p95  2.32 | gcKB med   0.0 p95    0.0 tot      100 coll 0
+      worst: 6.00s:510.4ms/gc0k 4.93s:501.0ms/gc0k 6.02s:62.8ms/gc0k 4.95s:49.9ms/gc0k 5.35s:27.2ms/gc0k 5.29s:26.9ms/gc0k 5.38s:25.8ms/gc0k 5.44s:24.8ms/gc0k 5.42s:24.3ms/gc0k 5.19s:23.1ms/gc0k 5.23s:23.1ms/gc0k 5.17s:23.0ms/gc0k
+      census before: damageables=3 projectiles=0 bodies=107 particles=10 visibleRenderers=100 canvases=8 cams=3
+      census after:  damageables=3 projectiles=0 bodies=107 particles=10 visibleRenderers=100 canvases=8 cams=3
+  flight_live      1920x1080 prof=False n=10665  dt med   4.77 p95  10.47 p99  19.91 max    58.7 | >16.7  121 >25   92 >33   56 >50   3 | main med  4.76 p95 10.45 p99 20.07 | rend  0.77 | gpu med  2.10 p95  2.20 | gcKB med   0.0 p95    0.1 tot     2086 coll 4
+      worst: 45.30s:58.7ms/gc0k 45.91s:57.4ms/gc0k 46.70s:55.1ms/gc0k 44.16s:49.3ms/gc0k 44.20s:46.8ms/gc0k 45.68s:46.5ms/gc0k 46.07s:46.2ms/gc0k 47.54s:44.5ms/gc0k 45.02s:44.0ms/gc0k 46.04s:43.9ms/gc0k 45.34s:42.7ms/gc2k 45.26s:42.7ms/gc1k
+      census before: damageables=3 projectiles=0 bodies=108 particles=12 visibleRenderers=100 canvases=8 cams=3
+      census after:  damageables=4 projectiles=0 bodies=116 particles=14 visibleRenderers=98 canvases=10 cams=3
+  flight_live      3840x2160 prof=False n= 4184  dt med  13.38 p95  24.79 p99  30.07 max    49.6 | >16.7  934 >25  201 >33   10 >50   0 | main med 13.33 p95 24.85 p99 29.99 | rend  1.09 | gpu med  9.56 p95 11.29 | gcKB med   0.0 p95    1.1 tot     1217 coll 1
+      worst: 32.16s:49.6ms/gc0k 32.01s:39.6ms/gc0k 32.13s:38.5ms/gc0k 29.71s:38.0ms/gc2k 32.73s:35.1ms/gc1k 51.55s:34.3ms/gc0k 25.93s:34.1ms/gc1k 32.31s:33.9ms/gc0k 23.62s:33.8ms/gc0k 23.43s:33.4ms/gc0k 27.37s:33.2ms/gc0k 24.88s:33.1ms/gc1k
+      census before: damageables=4 projectiles=1 bodies=117 particles=12 visibleRenderers=96 canvases=10 cams=3
+      census after:  damageables=4 projectiles=0 bodies=116 particles=14 visibleRenderers=94 canvases=10 cams=3
+  flight_profiled  1920x1080 prof=True  n=  150  dt med  37.30 p95  62.47 p99  74.21 max    78.2 | >16.7  114 >25   91 >33   81 >50  29 | main med 37.27 p95 61.95 p99 71.99 | rend  2.47 | gpu med  3.44 p95  9.74 | gcKB med   0.0 p95    2.2 tot       69 coll 0
+      worst: 2.12s:78.2ms/gc0k 3.47s:74.2ms/gc0k 3.54s:72.1ms/gc0k 2.22s:70.2ms/gc0k 3.60s:69.1ms/gc0k 3.77s:68.6ms/gc0k 0.76s:67.9ms/gc0k 4.16s:62.5ms/gc1k 3.00s:62.3ms/gc2k 3.34s:60.9ms/gc0k 4.52s:60.4ms/gc0k 1.01s:60.2ms/gc0k
+      census before: damageables=4 projectiles=0 bodies=116 particles=12 visibleRenderers=94 canvases=10 cams=3
+      census after:  damageables=4 projectiles=0 bodies=118 particles=14 visibleRenderers=95 canvases=10 cams=3
+
+  FROZEN / ARMS (GPU median ms)
+====================================================================================================
+C:/Users/amind/AppData/Local/Temp/claude/D--amind-git-astronomical-home/a8d9b191-aa2c-5062-94e5-2d5f2cdd62e0/scratchpad/runs/main_2.jsonl
+   {'header': True, 'device': 'NVIDIA RTX 2000 Ada Generation Laptop GPU', 'api': 'Direct3D11', 'cpu': 'Intel(R) Core(TM) Ultra 7 155H', 'ftmEnabled': True, 'gpuRecorder': True, 'refreshHz': 120, 'desktop': '3840x2160', 'bootSeconds': 4.9857}
+   {'flight': True, 'sector': 'TrialSector(Clone)', 'invulnerable': True, 'loadFrames': 1, 'loadSeconds': 0.127, 'loadMaxDt': 126.944, 'loadTop': '126.9'}
+   {'done': True, 'seconds': 634.301}
+
+  LIVE (dt = frame interval ms; main/render/gpu = FrameTimingManager ms)
+  hangar_live      1920x1080 prof=False n= 1020  dt med   4.17 p95  10.21 p99  12.66 max    15.9 | >16.7    0 >25    0 >33    0 >50   0 | main med  4.17 p95 10.17 p99 12.64 | rend  0.40 | gpu med  2.49 p95  2.70 | gcKB med   0.0 p95    0.0 tot       98 coll 0
+      worst: 3.98s:15.9ms/gc0k 2.09s:15.8ms/gc0k 3.41s:15.2ms/gc0k 2.81s:14.0ms/gc0k 0.04s:13.7ms/gc1k 3.89s:13.2ms/gc0k 4.68s:13.1ms/gc0k 3.80s:13.1ms/gc0k 4.99s:12.9ms/gc0k 3.54s:12.8ms/gc0k 0.94s:12.7ms/gc0k 0.82s:12.4ms/gc0k
+      census before: damageables=0 projectiles=0 bodies=0 particles=2 visibleRenderers=11 canvases=3 cams=4
+      census after:  damageables=0 projectiles=0 bodies=0 particles=2 visibleRenderers=11 canvases=3 cams=4
+  hangar_live      3840x2160 prof=False n=  457  dt med  10.31 p95  14.76 p99  15.85 max    18.6 | >16.7    1 >25    0 >33    0 >50   0 | main med 10.29 p95 14.78 p99 15.84 | rend  0.46 | gpu med  9.32 p95 10.47 | gcKB med   0.0 p95    0.0 tot       50 coll 0
+      worst: 2.62s:18.6ms/gc0k 4.60s:16.5ms/gc0k 2.82s:16.3ms/gc24k 3.18s:16.0ms/gc0k 4.71s:15.9ms/gc0k 3.74s:15.9ms/gc0k 0.02s:15.7ms/gc0k 2.75s:15.7ms/gc0k 3.15s:15.6ms/gc0k 4.05s:15.6ms/gc0k 2.86s:15.5ms/gc0k 3.98s:15.5ms/gc0k
+      census before: damageables=0 projectiles=0 bodies=0 particles=2 visibleRenderers=11 canvases=3 cams=4
+      census after:  damageables=0 projectiles=0 bodies=0 particles=2 visibleRenderers=11 canvases=3 cams=4
+  arrival          1920x1080 prof=False n=  960  dt med   4.94 p95  13.48 p99  17.33 max    19.9 | >16.7   15 >25    0 >33    0 >50   0 | main med  4.93 p95 13.40 p99 17.31 | rend  0.68 | gpu med  2.60 p95  3.01 | gcKB med   0.2 p95    0.3 tot      334 coll 0
+      worst: 5.27s:19.9ms/gc0k 5.80s:19.7ms/gc0k 1.73s:18.9ms/gc0k 4.67s:18.9ms/gc0k 1.68s:18.4ms/gc0k 5.75s:18.2ms/gc0k 4.81s:18.0ms/gc0k 2.77s:17.9ms/gc0k 2.72s:17.9ms/gc0k 1.49s:17.5ms/gc0k 4.00s:17.3ms/gc0k 2.30s:17.3ms/gc0k
+      census before: damageables=2 projectiles=0 bodies=41 particles=6 visibleRenderers=37 canvases=7 cams=3
+      census after:  damageables=2 projectiles=0 bodies=41 particles=6 visibleRenderers=37 canvases=7 cams=3
+  flight_live      1920x1080 prof=False n= 8882  dt med   5.34 p95  13.99 p99  19.88 max    34.4 | >16.7  196 >25   30 >33    2 >50   0 | main med  5.33 p95 13.88 p99 19.80 | rend  0.73 | gpu med  2.67 p95  3.32 | gcKB med   0.2 p95    0.3 tot     4134 coll 5
+      worst: 15.33s:34.4ms/gc0k 0.13s:34.2ms/gc0k 0.78s:32.9ms/gc0k 4.38s:32.0ms/gc0k 15.29s:31.6ms/gc0k 0.65s:31.4ms/gc0k 52.39s:31.2ms/gc0k 12.09s:29.9ms/gc0k 53.71s:29.6ms/gc1k 56.61s:29.1ms/gc1k 0.34s:29.0ms/gc0k 13.85s:28.8ms/gc0k
+      census before: damageables=2 projectiles=0 bodies=41 particles=6 visibleRenderers=38 canvases=7 cams=3
+      census after:  damageables=3 projectiles=3 bodies=45 particles=8 visibleRenderers=48 canvases=9 cams=3
+  flight_live      3840x2160 prof=False n= 1396  dt med  14.00 p95  20.14 p99  23.62 max 505888.4 | >16.7  229 >25   10 >33    1 >50   1 | main med 13.98 p95 20.07 p99 23.38 | rend  0.62 | gpu med 13.58 p95 14.52 | gcKB med   0.3 p95    1.3 tot      870 coll 2
+      worst: 526.67s:505888.4ms/gc0k 19.39s:32.6ms/gc0k 12.03s:29.0ms/gc0k 19.86s:28.5ms/gc0k 20.06s:28.0ms/gc0k 20.75s:27.5ms/gc0k 19.71s:26.8ms/gc1k 20.40s:26.4ms/gc0k 8.56s:25.2ms/gc0k 20.56s:25.0ms/gc0k 20.16s:24.6ms/gc1k 19.37s:24.4ms/gc0k
+      census before: damageables=3 projectiles=1 bodies=43 particles=6 visibleRenderers=45 canvases=9 cams=3
+      census after:  damageables=4 projectiles=2 bodies=49 particles=12 visibleRenderers=53 canvases=11 cams=3
+  flight_profiled  3840x2160 prof=True  n=  428  dt med  11.52 p95  12.60 p99  13.66 max    22.6 | >16.7    2 >25    0 >33    0 >50   0 | main med 11.50 p95 12.60 p99 13.62 | rend  0.57 | gpu med 11.42 p95 12.44 | gcKB med   0.3 p95    1.4 tot      220 coll 0
+      worst: 0.01s:22.6ms/gc0k 0.02s:16.9ms/gc2k 0.53s:16.0ms/gc1k 0.14s:14.1ms/gc0k 0.82s:13.7ms/gc6k 2.83s:13.0ms/gc1k 0.88s:12.8ms/gc0k 0.92s:12.8ms/gc1k 0.69s:12.8ms/gc0k 0.37s:12.8ms/gc1k 0.41s:12.7ms/gc0k 0.51s:12.7ms/gc1k
+      census before: damageables=4 projectiles=1 bodies=48 particles=12 visibleRenderers=62 canvases=11 cams=3
+      census after:  damageables=4 projectiles=4 bodies=51 particles=12 visibleRenderers=62 canvases=11 cams=3
+
+  FROZEN / ARMS (GPU median ms)
+====================================================================================================
+C:/Users/amind/AppData/Local/Temp/claude/D--amind-git-astronomical-home/a8d9b191-aa2c-5062-94e5-2d5f2cdd62e0/scratchpad/runs/base_3.jsonl
+   {'header': True, 'device': 'NVIDIA RTX 2000 Ada Generation Laptop GPU', 'api': 'Direct3D11', 'cpu': 'Intel(R) Core(TM) Ultra 7 155H', 'ftmEnabled': True, 'gpuRecorder': True, 'refreshHz': 120, 'desktop': '3840x2160', 'bootSeconds': 4.2479}
+   {'flight': True, 'sector': 'TrialSector(Clone)', 'invulnerable': True, 'loadFrames': 4, 'loadSeconds': 0.073, 'loadMaxDt': 36.881, 'loadTop': '36.9 15.5 10.5 9.9'}
+   {'done': True, 'seconds': 168.3264}
+
+  LIVE (dt = frame interval ms; main/render/gpu = FrameTimingManager ms)
+  hangar_live      1920x1080 prof=False n= 1881  dt med   2.60 p95   3.15 p99   3.26 max     4.6 | >16.7    0 >25    0 >33    0 >50   0 | main med  2.59 p95  3.15 p99  3.26 | rend  0.22 | gpu med  2.30 p95  2.46 | gcKB med   0.0 p95    0.0 tot      194 coll 0
+      worst: 0.00s:4.6ms/gc0k 0.24s:3.4ms/gc0k 0.01s:3.4ms/gc0k 3.55s:3.4ms/gc0k 3.51s:3.4ms/gc0k 3.68s:3.4ms/gc0k 1.68s:3.3ms/gc0k 3.57s:3.3ms/gc0k 4.43s:3.3ms/gc0k 2.69s:3.3ms/gc96k 4.44s:3.3ms/gc0k 3.29s:3.3ms/gc0k
+      census before: damageables=0 projectiles=0 bodies=0 particles=2 visibleRenderers=8 canvases=1 cams=4
+      census after:  damageables=0 projectiles=0 bodies=0 particles=2 visibleRenderers=8 canvases=1 cams=4
+  hangar_live      3840x2160 prof=False n=  571  dt med   8.74 p95   9.29 p99   9.70 max    16.0 | >16.7    0 >25    0 >33    0 >50   0 | main med  8.73 p95  9.29 p99  9.67 | rend  0.31 | gpu med  8.71 p95  9.19 | gcKB med   0.0 p95    0.0 tot       98 coll 0
+      worst: 2.01s:16.0ms/gc0k 0.24s:10.1ms/gc0k 0.32s:10.0ms/gc3k 0.13s:9.9ms/gc0k 0.26s:9.9ms/gc0k 0.25s:9.8ms/gc0k 4.73s:9.7ms/gc0k 3.50s:9.7ms/gc0k 0.06s:9.7ms/gc0k 4.51s:9.7ms/gc0k 3.23s:9.6ms/gc0k 0.11s:9.6ms/gc0k
+      census before: damageables=0 projectiles=0 bodies=0 particles=2 visibleRenderers=8 canvases=1 cams=4
+      census after:  damageables=0 projectiles=0 bodies=0 particles=2 visibleRenderers=8 canvases=1 cams=4
+  arrival          1920x1080 prof=False n= 1911  dt med   3.23 p95   3.79 p99   4.34 max     6.3 | >16.7    0 >25    0 >33    0 >50   0 | main med  3.22 p95  3.78 p99  4.33 | rend  0.52 | gpu med  2.46 p95  2.60 | gcKB med   0.0 p95    0.0 tot      208 coll 1
+      worst: 0.14s:6.3ms/gc0k 2.33s:5.3ms/gc0k 0.85s:5.0ms/gc0k 0.00s:5.0ms/gc0k 0.72s:5.0ms/gc0k 2.32s:5.0ms/gc0k 0.68s:4.9ms/gc0k 2.30s:4.8ms/gc0k 4.84s:4.8ms/gc0k 0.63s:4.6ms/gc0k 0.66s:4.5ms/gc0k 0.64s:4.5ms/gc0k
+      census before: damageables=3 projectiles=0 bodies=107 particles=10 visibleRenderers=88 canvases=8 cams=3
+      census after:  damageables=3 projectiles=0 bodies=107 particles=10 visibleRenderers=117 canvases=8 cams=3
+  flight_live      1920x1080 prof=False n=13922  dt med   3.95 p95   7.21 p99  12.09 max    28.9 | >16.7   18 >25    1 >33    0 >50   0 | main med  3.94 p95  7.19 p99 11.99 | rend  0.66 | gpu med  2.20 p95  2.44 | gcKB med   0.0 p95    0.1 tot     1987 coll 3
+      worst: 45.16s:28.9ms/gc0k 56.51s:24.9ms/gc0k 55.66s:22.3ms/gc0k 57.71s:22.0ms/gc0k 7.47s:20.1ms/gc3k 58.22s:19.2ms/gc0k 57.31s:18.4ms/gc0k 56.59s:18.1ms/gc0k 59.20s:17.8ms/gc0k 55.99s:17.5ms/gc0k 57.85s:17.4ms/gc0k 54.50s:17.4ms/gc0k
+      census before: damageables=3 projectiles=1 bodies=108 particles=10 visibleRenderers=116 canvases=8 cams=3
+      census after:  damageables=4 projectiles=0 bodies=108 particles=15 visibleRenderers=120 canvases=10 cams=3
+  flight_live      3840x2160 prof=False n= 5456  dt med  10.16 p95  15.52 p99  18.65 max    30.4 | >16.7  166 >25    2 >33    0 >50   0 | main med 10.14 p95 15.54 p99 18.68 | rend  0.78 | gpu med  9.41 p95 10.24 | gcKB med   0.1 p95    0.4 tot     1325 coll 2
+      worst: 47.44s:30.4ms/gc0k 46.10s:28.1ms/gc0k 38.21s:23.2ms/gc0k 20.65s:22.9ms/gc1k 47.51s:22.4ms/gc0k 45.69s:21.2ms/gc0k 44.83s:21.0ms/gc0k 39.94s:20.8ms/gc0k 48.13s:20.7ms/gc0k 41.23s:20.6ms/gc0k 39.67s:20.5ms/gc0k 53.37s:20.4ms/gc0k
+      census before: damageables=4 projectiles=0 bodies=108 particles=14 visibleRenderers=101 canvases=10 cams=3
+      census after:  damageables=4 projectiles=1 bodies=130 particles=15 visibleRenderers=133 canvases=10 cams=3
+  flight_profiled  1920x1080 prof=True  n=  779  dt med   5.87 p95  11.42 p99  14.74 max    37.1 | >16.7    3 >25    1 >33    1 >50   0 | main med  5.85 p95 11.39 p99 14.71 | rend  0.89 | gpu med  2.14 p95  2.19 | gcKB med   0.0 p95    0.1 tot      138 coll 0
+      worst: 0.01s:37.1ms/gc0k 2.24s:17.1ms/gc0k 1.39s:17.0ms/gc0k 2.02s:15.8ms/gc0k 3.98s:15.0ms/gc1k 3.14s:15.0ms/gc0k 1.40s:14.9ms/gc0k 3.64s:14.9ms/gc0k 3.52s:14.7ms/gc0k 4.98s:14.2ms/gc0k 2.49s:14.1ms/gc0k 4.02s:14.1ms/gc0k
+      census before: damageables=4 projectiles=0 bodies=129 particles=18 visibleRenderers=130 canvases=10 cams=3
+      census after:  damageables=4 projectiles=1 bodies=131 particles=16 visibleRenderers=130 canvases=10 cams=3
+
+  FROZEN / ARMS (GPU median ms)
+====================================================================================================
+C:/Users/amind/AppData/Local/Temp/claude/D--amind-git-astronomical-home/a8d9b191-aa2c-5062-94e5-2d5f2cdd62e0/scratchpad/runs/main_3.jsonl
+   {'header': True, 'device': 'NVIDIA RTX 2000 Ada Generation Laptop GPU', 'api': 'Direct3D11', 'cpu': 'Intel(R) Core(TM) Ultra 7 155H', 'ftmEnabled': True, 'gpuRecorder': True, 'refreshHz': 120, 'desktop': '3840x2160', 'bootSeconds': 4.5207}
+   {'flight': True, 'sector': 'TrialSector(Clone)', 'invulnerable': True, 'loadFrames': 1, 'loadSeconds': 0.077, 'loadMaxDt': 77.121, 'loadTop': '77.1'}
+   {'done': True, 'seconds': 166.8677}
+
+  LIVE (dt = frame interval ms; main/render/gpu = FrameTimingManager ms)
+  hangar_live      1920x1080 prof=False n= 1450  dt med   3.30 p95   4.68 p99   6.03 max     9.2 | >16.7    0 >25    0 >33    0 >50   0 | main med  3.29 p95  4.67 p99  6.00 | rend  0.30 | gpu med  2.72 p95  2.83 | gcKB med   0.0 p95    0.0 tot      194 coll 1
+      worst: 3.46s:9.2ms/gc0k 4.63s:8.9ms/gc0k 0.04s:8.4ms/gc0k 4.30s:8.0ms/gc0k 3.37s:7.4ms/gc0k 4.93s:7.4ms/gc0k 3.87s:7.1ms/gc0k 3.14s:6.8ms/gc0k 3.97s:6.7ms/gc0k 3.71s:6.4ms/gc0k 3.13s:6.4ms/gc0k 4.55s:6.3ms/gc0k
+      census before: damageables=0 projectiles=0 bodies=0 particles=2 visibleRenderers=11 canvases=3 cams=4
+      census after:  damageables=0 projectiles=0 bodies=0 particles=2 visibleRenderers=11 canvases=3 cams=4
+  hangar_live      3840x2160 prof=False n=  522  dt med   9.43 p95  10.23 p99  11.19 max    16.2 | >16.7    0 >25    0 >33    0 >50   0 | main med  9.42 p95 10.21 p99 11.18 | rend  0.24 | gpu med  9.38 p95 10.12 | gcKB med   0.0 p95    0.0 tot       98 coll 1
+      worst: 4.33s:16.2ms/gc0k 3.93s:13.5ms/gc0k 3.75s:13.0ms/gc0k 0.93s:11.7ms/gc0k 4.31s:11.3ms/gc0k 2.94s:11.2ms/gc0k 2.97s:11.1ms/gc0k 0.44s:11.0ms/gc0k 0.53s:11.0ms/gc0k 3.07s:10.6ms/gc0k 2.90s:10.5ms/gc0k 3.05s:10.5ms/gc0k
+      census before: damageables=0 projectiles=0 bodies=0 particles=2 visibleRenderers=11 canvases=3 cams=4
+      census after:  damageables=0 projectiles=0 bodies=0 particles=2 visibleRenderers=11 canvases=3 cams=4
+  arrival          1920x1080 prof=False n= 1456  dt med   3.59 p95   5.16 p99   7.04 max   514.7 | >16.7    1 >25    1 >33    1 >50   1 | main med  3.57 p95  5.11 p99  6.96 | rend  0.41 | gpu med  2.94 p95  3.15 | gcKB med   0.2 p95    0.2 tot      552 coll 1
+      worst: 0.83s:514.7ms/gc0k 4.92s:9.5ms/gc0k 4.05s:9.2ms/gc0k 5.24s:9.1ms/gc0k 0.83s:9.0ms/gc0k 6.00s:8.9ms/gc0k 4.79s:8.8ms/gc0k 4.21s:8.8ms/gc0k 3.66s:8.7ms/gc0k 1.37s:8.4ms/gc0k 4.11s:7.5ms/gc0k 5.90s:7.3ms/gc0k
+      census before: damageables=2 projectiles=0 bodies=41 particles=6 visibleRenderers=37 canvases=7 cams=3
+      census after:  damageables=2 projectiles=0 bodies=41 particles=6 visibleRenderers=37 canvases=7 cams=3
+  flight_live      1920x1080 prof=False n=10939  dt med   4.62 p95  10.51 p99  15.40 max    29.5 | >16.7   63 >25    2 >33    0 >50   0 | main med  4.61 p95 10.46 p99 15.26 | rend  0.59 | gpu med  2.77 p95  3.26 | gcKB med   0.2 p95    0.3 tot     4733 coll 7
+      worst: 2.85s:29.5ms/gc0k 9.48s:27.0ms/gc0k 44.43s:24.3ms/gc768k 9.91s:23.8ms/gc0k 46.33s:23.4ms/gc0k 32.33s:23.2ms/gc0k 5.86s:23.2ms/gc0k 5.02s:23.0ms/gc0k 40.76s:22.9ms/gc0k 2.57s:22.5ms/gc0k 8.84s:22.4ms/gc0k 11.87s:22.4ms/gc0k
+      census before: damageables=2 projectiles=0 bodies=41 particles=6 visibleRenderers=37 canvases=7 cams=3
+      census after:  damageables=3 projectiles=2 bodies=44 particles=8 visibleRenderers=47 canvases=9 cams=3
+  flight_live      3840x2160 prof=False n= 4290  dt med  13.75 p95  15.95 p99  19.46 max    23.8 | >16.7  171 >25    0 >33    0 >50   0 | main med 13.74 p95 15.91 p99 19.45 | rend  0.64 | gpu med 13.59 p95 14.09 | gcKB med   0.3 p95    1.3 tot     2686 coll 3
+      worst: 12.58s:23.8ms/gc0k 42.57s:22.8ms/gc1k 45.05s:22.2ms/gc0k 3.70s:22.1ms/gc0k 42.62s:21.7ms/gc0k 43.38s:21.5ms/gc1k 40.77s:21.4ms/gc0k 43.00s:21.3ms/gc0k 40.87s:21.2ms/gc0k 40.73s:21.0ms/gc0k 42.81s:21.0ms/gc0k 41.14s:20.9ms/gc0k
+      census before: damageables=3 projectiles=0 bodies=46 particles=8 visibleRenderers=48 canvases=9 cams=3
+      census after:  damageables=4 projectiles=2 bodies=54 particles=10 visibleRenderers=52 canvases=11 cams=3
+  flight_profiled  1920x1080 prof=True  n=  830  dt med   5.18 p95  10.38 p99  13.90 max   157.9 | >16.7    2 >25    2 >33    1 >50   1 | main med  5.16 p95 10.33 p99 13.87 | rend  0.63 | gpu med  2.85 p95  3.18 | gcKB med   0.3 p95    0.7 tot      415 coll 1
+      worst: 3.18s:157.9ms/gc1k 0.01s:33.3ms/gc1k 4.38s:15.7ms/gc1k 3.43s:15.4ms/gc0k 3.19s:15.3ms/gc0k 2.23s:15.0ms/gc0k 0.78s:14.8ms/gc0k 1.58s:14.0ms/gc0k 4.60s:13.9ms/gc0k 1.89s:13.7ms/gc0k 0.96s:13.4ms/gc0k 3.02s:13.1ms/gc0k
+      census before: damageables=4 projectiles=5 bodies=57 particles=10 visibleRenderers=66 canvases=11 cams=3
+      census after:  damageables=4 projectiles=6 bodies=58 particles=8 visibleRenderers=49 canvases=11 cams=3
+
+  FROZEN / ARMS (GPU median ms)
