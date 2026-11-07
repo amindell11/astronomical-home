@@ -130,7 +130,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4d1737f425ac4e978c6e8ab4432c69cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hitEffect: {fileID: 0}
+  hitEffect: {fileID: 5527562608276501706, guid: 80b9cd72ad77a644fa82dca2448c38b5,
+    type: 3}
+  alignWithProjectile: 1
 --- !u!54 &3791456385073129076
 Rigidbody:
   m_ObjectHideFlags: 0

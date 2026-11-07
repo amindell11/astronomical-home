@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Substrate.Sectors.Elements.Hunt;
+using Substrate.Sectors.Elements.Stations;
 using UnityEditor;
 using UnityEngine;
 
@@ -11,14 +12,21 @@ namespace Game.Preview
         public override string Name => "Hunt";
         public override IReadOnlyList<PreviewEntry> Entries { get; } = new[] { PreviewEntry.Combat };
 
+        // A sector may lack a hunt or a station; each missing one gives no profile.
         public override IEnumerable<ScriptableObject> Profiles(GameHost game) => game.sessionProfile.run.Sectors
-            .Select(sector => Feel(sector.prefab.GetComponentInChildren<SectorHunt>(true)))
+            .SelectMany(sector => new Object[]
+            {
+                sector.prefab.GetComponentInChildren<SectorHunt>(true),
+                sector.prefab.GetComponentInChildren<RepairStation>(true)
+            })
+            .Where(owner => owner)
+            .Select(Feel)
             .Distinct();
 
-        // Read through serialization, so the hunt grows no member for the preview.
-        private static ScriptableObject Feel(SectorHunt hunt)
+        // Read through serialization, so the hunt and the station grow no member for the preview.
+        private static ScriptableObject Feel(Object owner)
         {
-            using var serialized = new SerializedObject(hunt);
+            using var serialized = new SerializedObject(owner);
             return (ScriptableObject)serialized.FindProperty("feel").objectReferenceValue;
         }
     }

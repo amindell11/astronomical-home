@@ -14,8 +14,8 @@ namespace Tests.EditMode.Rendering.Locales
 
         [TestCase("CoralSunset", "coral-sunset", false)]
         [TestCase("CyanAurora", "cyan-aurora", false)]
-        [TestCase("VerdantGiant", "violet-planet", true)]
-        [TestCase("BlueCrescent", "amber-planet", true)]
+        [TestCase("VerdantGiant", "violet-planet", true, Category = "RequiresLfsPng")]
+        [TestCase("BlueCrescent", "amber-planet", true, Category = "RequiresLfsPng")]
         public void LocaleIsCompleteWithIndependentPaletteMaterials(string name, string palette, bool hasPlanet)
         {
             var locale = AssetDatabase.LoadAssetAtPath<LocaleSky>($"Assets/Prefabs/Locales/{name}.prefab");
