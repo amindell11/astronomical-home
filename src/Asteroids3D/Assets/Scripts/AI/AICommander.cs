@@ -50,6 +50,9 @@ namespace AI
         private bool hasAnchor;
         private ShipId anchorId;
         private EnemyTarget anchorTarget;
+        // The owner's route overrides the brain's nav lane, guns cold, whatever brain is installed.
+        private Vector2? steerPoint;
+        private float steerSpeed;
 
         internal AIContext context;
 
@@ -59,6 +62,8 @@ namespace AI
         public Gunner Gunner { get; private set; }
         // Brain is optional too: the harness pilots author none and install one per episode.
         public Brain Brain { get; private set; }
+
+        internal bool Steered => steerPoint.HasValue;
 
         protected virtual void Awake()
         {
@@ -78,6 +83,14 @@ namespace AI
             Brain = attach(gameObject);
             return Brain;
         }
+
+        public void SteerTo(Vector2 planePoint, float speed)
+        {
+            steerPoint = planePoint;
+            steerSpeed = speed;
+        }
+
+        public void ClearSteer() => steerPoint = null;
 
         /// <summary>What this ship senses: the registry it scans for ships and the obstacle field it scans for rocks (null for none). Set by the unit service at wiring, before the systems initialise.</summary>
         public void SetSensing(IShipRegistry shipRegistry, IObstacleField obstacleField)
@@ -125,6 +138,7 @@ namespace AI
             engageSecondary = false;
             boost = false;
             hasAnchor = false;
+            steerPoint = null;
             context = new AIContext(control.Ship, Scout, PrimaryHoldRange(), combatExitDelay);
             if (Brain) Brain.ResetState();
         }
@@ -133,7 +147,10 @@ namespace AI
         {
             if (!systemsInitialized) return;
 
-            if (Brain && Brain.isActiveAndEnabled)
+            if (steerPoint.HasValue)
+                Route(new BrainDecision(NavObjective.Planar(
+                    (steerPoint.Value - control.Ship.Kinematics.pos).normalized * steerSpeed)));
+            else if (Brain && Brain.isActiveAndEnabled)
             {
                 context.Update(Time.fixedDeltaTime);
                 Route(Brain.Decide(context));

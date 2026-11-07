@@ -11,6 +11,7 @@ using Game.Runs;
 using NUnit.Framework;
 using Ships;
 using Substrate.Sectors;
+using Substrate.Services.Locales;
 using Substrate.Sessions;
 using Substrate.Services.Units;
 using Tests.PlayMode.Common;
@@ -31,7 +32,7 @@ namespace Tests.PlayMode.Bootstrap
         private const string RigPrefabPath = "Assets/Prefabs/MiscObjects/PlayerRig.prefab";
         private const string ObserverCamPrefabPath = "Assets/Prefabs/Cameras/Main Camera.prefab";
         private const string SectorPrefabPath = "Assets/Prefabs/Sectors/ArenaSector.prefab";
-        private const string SectorConfigPath = "Assets/Settings/Game/DefaultSectorConfig.asset";
+        private const string LocalePath = "Assets/Prefabs/Locales/IllustratedBlue.prefab";
         private const string TestCommit = "test-commit";
         private const float StepTimeoutSec = 30f;
         private const int SettleFrames = 5;
@@ -161,14 +162,11 @@ namespace Tests.PlayMode.Bootstrap
             var host = hostGo.AddComponent<GameHost>();
             host.sessionProfile = new SessionProfile
             {
-                sectors = new[]
+                run = SectorRun.Create(new SectorEntry
                 {
-                    new SectorEntry
-                    {
-                        prefab = sectorPrefab,
-                        config = AssetDatabase.LoadAssetAtPath<SectorSettings>(SectorConfigPath)
-                    }
-                },
+                    prefab = sectorPrefab,
+                    locale = AssetDatabase.LoadAssetAtPath<LocaleSky>(LocalePath)
+                }),
                 presentation = false
             };
             host.playerRig = AssetDatabase.LoadAssetAtPath<PlayerRig>(RigPrefabPath);

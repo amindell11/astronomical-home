@@ -15,3 +15,6 @@ MonoBehaviour:
   searchSeconds: 45
   sightRadius: 50
   callInSeconds: 3
+  routeSpeed: 8
+  routeStartPass: 25
+  arrivalRadius: 15

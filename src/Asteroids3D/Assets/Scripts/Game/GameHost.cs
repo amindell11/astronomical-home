@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Linq;
 using System.Runtime.ExceptionServices;
 using Balance;
 using Cameras;
@@ -290,7 +291,7 @@ namespace Game
                     }
                     if (shutdownRequested) yield break;
 
-                    if (playerDied || index == sessionProfile.sectors.Length - 1) break;
+                    if (playerDied || index == sessionProfile.run.Sectors.Count - 1) break;
 
                     // The unload despawns this sector's ships, and the next load resets the player's hull.
                     if (rigInstance)
@@ -339,7 +340,7 @@ namespace Game
             sectorEndTime = Time.time;
             sectorEnded = true;
             if (!result.Success || !jumpFeel || !sessionProfile.presentation || !rigInstance ||
-                activeSectorIndex == sessionProfile.sectors.Length - 1) return;
+                activeSectorIndex == sessionProfile.run.Sectors.Count - 1) return;
             jump = SectorJumpFlight.Begin(transform, rigInstance, session.Units, observer, jumpFeel,
                 jumpFeature, result.DepartureHeading.Value);
         }
@@ -351,7 +352,7 @@ namespace Game
             var exited = false;
             try
             {
-                backdrop = session.PrepareTravelBackdrop(sessionProfile.sectors[destination].config.Locale, transform);
+                backdrop = session.PrepareTravelBackdrop(sessionProfile.run.Sectors[destination].locale, transform);
                 if (!shutdownRequested)
                 {
                     jump.BindBackdrop(ui, backdrop);
@@ -415,7 +416,7 @@ namespace Game
                 WeaponPickScreen.MaxOffers, n => UnityEngine.Random.Range(0, n));
             if (offers.Count == 0) yield break;
 
-            var spine = sessionProfile.sectors[destination].prefab.Module<PhaseSpineModule>();
+            var spine = sessionProfile.run.Sectors[destination].prefab.Module<PhaseSpineModule>();
             var screen = WeaponPickScreen.Create(ui, destination + 1, spine ? spine.Threat() : null, offers,
                 primary, secondary, rigInstance.Mods);
             try
@@ -548,7 +549,7 @@ namespace Game
                 return Scoreboard.Read(runRecords.Path, null);
             }
 
-            var sectors = Array.ConvertAll(sessionProfile.sectors, entry => entry.prefab);
+            var sectors = sessionProfile.run.Sectors.Select(entry => entry.prefab).ToArray();
             var sectorsCleared = killingBlow.HasValue ? endedIn : endedIn + 1;
             var record = RunRecord.Compose(DateTime.UtcNow, sectorsCleared, sectors[endedIn].name, identity,
                 StatHash.OfSetting(hangarOffer, sectors, killHullRestore), rigInstance.Loadout, playerLoadoutStatHash,
@@ -586,7 +587,7 @@ namespace Game
         private RecapOutcomeContext OutcomeContext(Scoreboard board, int index)
         {
             var kills = rigInstance.Spawns.KilledShips();
-            var count = sessionProfile.sectors.Length;
+            var count = sessionProfile.run.Sectors.Count;
             return playerDied
                 ? RecapOutcomeContext.Defeat(kills, index, count, board, deathPosition)
                 : RecapOutcomeContext.Victory(kills, index + 1, count, board);

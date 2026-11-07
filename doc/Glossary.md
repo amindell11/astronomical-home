@@ -663,6 +663,20 @@ Format: **term** — definition. *(authority)*
 - **unlocked ship** — a ship the hangar lets the player fly: the starter plus
   every elite chassis the player killed in any run record. No save file; a kill
   counts once its run's record is written. *(ShipUnlocks, ItemSubset.starter)*
+- **repair station** — a fly-in zone each combat sector places, two by default,
+  each on its own clear point away from the start, marked as a *find*. While the
+  player sits in it, it repairs hull from a supply of about one hull, then goes
+  dark. The hunt's alarm darkens it too, and whatever supply was left is lost.
+  Hull carries into the next sector. The first *station* kind. *(RepairStation,
+  RepairStationFeelProfile)*
+- **find** — a sector object the player goes looking for and uses once:
+  repair stations now, the weapon cache and armory next. A live find registers
+  with the objective service. In range the minimap shows the find's own
+  marker; out of range, an *edge pointer* (its icon pinned to the minimap rim,
+  aimed at it). Patrols get no edge pointer. One find colour for every kind,
+  apart from ship markers. Spent or shut by the hunt's alarm, it closes its
+  registration and both go.
+  *(IObjectiveService.MarkFind, FindMarker, FindPointers)*
 - **sector fixture** — a world object present at spawn, sector-owned, independent
   of encounter state.
 - **signal / SignalPort** — the bus coupling seam. ⚠ **Designed, not built** —
@@ -679,6 +693,12 @@ Format: **term** — definition. *(authority)*
   active scene or the boot scene's lighting. The boot scene carries none: every
   authored sector names one, and the session shows its idle locale between
   sectors.
+- **sector run** — the ordered sectors one run flies, one row each: the sector
+  prefab and the locale it shows. Authored as one asset edited as a table, so a
+  locale change never edits a prefab; tests, the preview and the headless lane
+  build theirs with `SectorRun.Create`. A presentation session refuses a row
+  with no locale at construction. *(`SectorRun`, `SessionProfile.run`,
+  `Settings/Game/SurvivalTrialRun.asset`)*
 - **idle locale** — the locale a presentation session shows while no sector is
   loaded (the hangar's backdrop). A sector naming the same locale keeps its
   instance across the hand-off. *(`SessionProfile.idleLocale`)*

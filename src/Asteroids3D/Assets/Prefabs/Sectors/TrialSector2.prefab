@@ -114,11 +114,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: TrialSector2
       objectReference: {fileID: 0}
-    - target: {fileID: 7436810692243587915, guid: 35f72eeaa8adb4c43832be646409d034,
-        type: 3}
-      propertyPath: patrolCount
-      value: 2
-      objectReference: {fileID: 0}
     - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
         type: 3}
       propertyPath: roster.Array.data[0].template
