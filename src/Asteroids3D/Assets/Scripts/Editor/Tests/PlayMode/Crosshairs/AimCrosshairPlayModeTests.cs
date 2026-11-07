@@ -20,7 +20,7 @@ using UnityEditor;
 
 namespace Tests.PlayMode.Crosshairs
 {
-    [Category("Weapons")]
+    [Category("Weapons"), Category("RequiresLfsPng")]
     public sealed class AimCrosshairPlayModeTests : InputTestFixture
     {
         private sealed class Ammo : IAmmoReadout

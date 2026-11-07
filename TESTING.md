@@ -270,7 +270,7 @@ carry only `paths` (repo-relative forward-slash globs): `-ScopeType Auto` maps
 changed files to modules and `-ScopeType Module <name>` names one, then both
 derive the run from the domain `[Category]` tags on the fixtures those paths
 cover, so a new fixture in a mapped domain needs no map edit. Speed/selector
-overlays (`Smoke`/`Slow`/`RequiresGraphics`/`ChaseBenchmark`) never seed a scope,
+overlays (`Smoke`/`Slow`/`RequiresGraphics`/`RequiresLfsPng`/`ChaseBenchmark`) never seed a scope,
 and the `Smoke` category is always added. A changed file matching no module glob,
 or a matched module whose paths cover no tagged fixture, falls back to the full
 Workspace suite — so leaving ambiguous areas unmapped is safe.
@@ -524,6 +524,20 @@ needs no scope-map upkeep:
 .\scripts\unity_test_agent.ps1 -Mode Both -TestCategory Weapons   # one domain
 .\scripts\unity_test_agent.ps1 -Mode Both -TestCategory Smoke     # fast gating subset
 .\scripts\unity_test_agent.ps1 -Mode PlayMode -TestCategory Sectors
+```
+
+### `RequiresLfsPng` (hosted skip)
+
+A test that reads LFS-backed PNG art under `src/Asteroids3D/Assets/` (HUD
+icons, recap silhouettes, planet textures) carries `RequiresLfsPng`. The
+hosted headless suite pulls only the meshes and models there, so it skips
+this tag next to `RequiresGraphics`. Local runs include it, so a local full
+run still covers it. Tag the fixture when every test in it reads the art,
+otherwise the test or the test case. A PR that touches a tagged test or the
+PNGs it reads lists an owed-local item to run them:
+
+```powershell
+.\scripts\unity_test_agent.ps1 -Mode Both -TestCategory RequiresLfsPng
 ```
 
 ---

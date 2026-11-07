@@ -3,7 +3,7 @@ Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot "lib/repo_root.ps1")
 
 # Speed/selector overlays, never domains: they must not seed a scope, or a Slow/graphics tag would pull every such test across domains.
-$Script:AutoScopeOverlayCategories = @('Smoke', 'Slow', 'RequiresGraphics', 'ChaseBenchmark')
+$Script:AutoScopeOverlayCategories = @('Smoke', 'Slow', 'RequiresGraphics', 'RequiresLfsPng', 'ChaseBenchmark')
 
 function Resolve-FullPath {
     param([string]$Path)
