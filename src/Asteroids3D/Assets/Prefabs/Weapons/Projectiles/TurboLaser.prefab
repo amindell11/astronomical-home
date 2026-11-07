@@ -128,11 +128,12 @@ PrefabInstance:
         type: 3}
       propertyPath: hitEffect
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 3770588707102415303, guid: 4c00b3a504664d64b854e47e43888aa7,
+        type: 3}
     - target: {fileID: 3333333333333333333, guid: d4f6577bb30c48945a17243a523023ff,
         type: 3}
       propertyPath: alignWithProjectile
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3815271880710915890, guid: d4f6577bb30c48945a17243a523023ff,
         type: 3}

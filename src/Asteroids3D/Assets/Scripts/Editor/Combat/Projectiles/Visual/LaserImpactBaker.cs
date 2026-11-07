@@ -126,7 +126,6 @@ namespace Combat.Projectiles.Visual
             finally { UnityEngine.Object.DestroyImmediate(root); }
 
             Wire("Laser", prefab, true);
-            Wire("TurboLaser", null, false);
             AssetDatabase.SaveAssets();
         }
 
