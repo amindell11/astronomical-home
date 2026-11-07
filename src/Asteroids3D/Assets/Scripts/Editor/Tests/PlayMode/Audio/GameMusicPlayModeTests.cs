@@ -17,6 +17,7 @@ using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Services.Objectives;
 using Substrate.Services.Units;
+using Substrate.Services.Locales;
 using Substrate.Sessions;
 using Tests.PlayMode.Common;
 using UI.Hangar;
@@ -35,7 +36,7 @@ namespace Tests.PlayMode.Audio
         private const string MusicPrefabPath = "Assets/Prefabs/Audio/GameMusic.prefab";
         private const string RigPrefabPath = "Assets/Prefabs/MiscObjects/PlayerRig.prefab";
         private const string ObserverCamPrefabPath = "Assets/Prefabs/Cameras/Main Camera.prefab";
-        private const string SectorConfigPath = "Assets/Settings/Game/DefaultSectorConfig.asset";
+        private const string LocalePath = "Assets/Prefabs/Locales/IllustratedBlue.prefab";
         private const string RecapFeelPath = "Assets/Settings/UI/RecapFeel.asset";
         private const string HangarScreenPrefabPath = "Assets/Prefabs/UI/HangarScreen.prefab";
         private const string MusicEvent = "event:/Music/Game";
@@ -217,7 +218,7 @@ namespace Tests.PlayMode.Audio
 
         private void Boot(bool presentation)
         {
-            var config = AssetDatabase.LoadAssetAtPath<SectorSettings>(SectorConfigPath);
+            var locale = AssetDatabase.LoadAssetAtPath<LocaleSky>(LocalePath);
             var templates = new[] { NewSectorTemplate("SectorA"), NewSectorTemplate("SectorB") };
 
             hostGo = new GameObject("TestHost");
@@ -225,8 +226,8 @@ namespace Tests.PlayMode.Audio
             host = hostGo.AddComponent<GameHost>();
             host.sessionProfile = new SessionProfile
             {
-                sectors = Array.ConvertAll(templates,
-                    t => new SectorEntry { prefab = t.GetComponent<Sector>(), config = config }),
+                run = SectorRun.Create(Array.ConvertAll(templates,
+                    t => new SectorEntry { prefab = t.GetComponent<Sector>(), locale = locale })),
                 presentation = presentation
             };
             host.playerRig = AssetDatabase.LoadAssetAtPath<PlayerRig>(RigPrefabPath);

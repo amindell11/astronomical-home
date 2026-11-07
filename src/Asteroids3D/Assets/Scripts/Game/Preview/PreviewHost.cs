@@ -132,7 +132,7 @@ namespace Game.Preview
 
         private SessionProfile ReplayProfile() => new()
         {
-            sectors = sessionProfile.sectors.Append(hudQuietSector).Append(hudExtractionSector).ToArray(),
+            run = SectorRun.Create(sessionProfile.run.Sectors.Append(hudQuietSector).Append(hudExtractionSector).ToArray()),
             idleLocale = sessionProfile.idleLocale,
             presentation = sessionProfile.presentation,
             offset = sessionProfile.offset
@@ -145,9 +145,9 @@ namespace Game.Preview
             staging.SetActive(false);
             playtest = Instantiate(gameHostPrefab, staging.transform);
             if (composed == PreviewEntry.CrowdedJumpGate)
-                playtest.sessionProfile.sectors = crowdedJumpSectors;
+                playtest.sessionProfile.run = SectorRun.Create(crowdedJumpSectors);
             if (composed == PreviewEntry.Boss)
-                playtest.sessionProfile.sectors = new[] { bossSector };
+                playtest.sessionProfile.run = SectorRun.Create(bossSector);
             playtest.runRecordPath = Path.Combine(ResultsRoot.Folder("preview"),
                 Guid.NewGuid().ToString("N"), RunRecordStore.FileName);
             playtest.transform.SetParent(null, false);
@@ -233,9 +233,9 @@ namespace Game.Preview
             PreviewEntry.SectorJump => new SectorJumpPreviewSubject(gameHostPrefab.jumpFeel, gameHostPrefab.jumpFeature,
                 jumpDestination),
             PreviewEntry.Startup => new HudReplaySubject(composed, 0),
-            PreviewEntry.LowHull or PreviewEntry.Damage => new HudReplaySubject(composed, sessionProfile.sectors.Length),
-            PreviewEntry.Extraction => new HudReplaySubject(composed, sessionProfile.sectors.Length + 1),
-            PreviewEntry.EnemyDeath => new EnemyDeathSubject(gameHostPrefab.hangarOffer.ships, sessionProfile.sectors.Length,
+            PreviewEntry.LowHull or PreviewEntry.Damage => new HudReplaySubject(composed, sessionProfile.run.Sectors.Count),
+            PreviewEntry.Extraction => new HudReplaySubject(composed, sessionProfile.run.Sectors.Count + 1),
+            PreviewEntry.EnemyDeath => new EnemyDeathSubject(gameHostPrefab.hangarOffer.ships, sessionProfile.run.Sectors.Count,
                 fixture),
             _ => throw new ArgumentOutOfRangeException(nameof(composed), composed, "Not a Replay entry.")
         };

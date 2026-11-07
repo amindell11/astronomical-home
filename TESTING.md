@@ -655,13 +655,13 @@ reflection helper. How to choose the seam:
    `Sector.Editor.cs` (`SetManifest`, `SetLoadScene`).
 4. **A seam lives on the class that owns the state.** A `partial` of class A
    cannot touch class B's `private` members, and `InternalsVisibleTo` only
-   crosses *assembly* boundaries, not class boundaries. The setter for
-   `SectorSettings.loadScene` had to be on `SectorSettings` (or the field moved).
+   crosses *assembly* boundaries, not class boundaries. A runtime-built run's
+   rows are private to `SectorRun`, so their setter is `SectorRun.Create`.
 5. **Put config where it varies.** Type-intrinsic config belongs on the
    template/prefab; per-instance/per-run config belongs in an overridable SO.
    Scene identity (`sceneName`/`loadScene`) moved onto the `Sector` template
-   (every instance of a sector loads the same scene); `difficultySeed` stays in
-   the per-entry `SectorSettings`. Getting this right often *removes* the need
+   (every instance of a sector loads the same scene); the locale a sector shows
+   stays on its row of the `SectorRun`. Getting this right often *removes* the need
    for a seam entirely.
 6. **The `Tick(dt)` + internal-clock pattern** (for #3 above): keep a private
    `clock` advanced by `Tick(float dt)`; have `Update()` call

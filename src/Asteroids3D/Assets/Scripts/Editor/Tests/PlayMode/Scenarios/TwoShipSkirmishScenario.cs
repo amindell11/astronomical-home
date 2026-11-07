@@ -2,6 +2,7 @@
 using System.Collections;
 using NUnit.Framework;
 using Substrate.Sectors;
+using Substrate.Services.Locales;
 using Substrate.Sessions;
 using Tests.PlayMode.Common;
 using Tests.PlayMode.Recording;
@@ -15,7 +16,7 @@ namespace Tests.PlayMode.Scenarios
     {
         private const float SimSeconds = 8f;
         private const string SectorPrefabPath = "Assets/Prefabs/Sectors/TuningSector.prefab";
-        private const string SectorConfigPath = "Assets/Settings/Game/DefaultSectorConfig.asset";
+        private const string LocalePath = "Assets/Prefabs/Locales/IllustratedBlue.prefab";
 
         public override SectorEntry SectorEntry
         {
@@ -23,9 +24,9 @@ namespace Tests.PlayMode.Scenarios
             {
                 var prefab = AssetDatabase.LoadAssetAtPath<Sector>(SectorPrefabPath);
                 Assert.IsNotNull(prefab, $"Sector prefab missing at {SectorPrefabPath}");
-                var config = AssetDatabase.LoadAssetAtPath<SectorSettings>(SectorConfigPath);
-                Assert.IsNotNull(config, $"Sector config missing at {SectorConfigPath}");
-                return new SectorEntry { prefab = prefab, config = config };
+                var locale = AssetDatabase.LoadAssetAtPath<LocaleSky>(LocalePath);
+                Assert.IsNotNull(locale, $"Sector locale missing at {LocalePath}");
+                return new SectorEntry { prefab = prefab, locale = locale };
             }
         }
 

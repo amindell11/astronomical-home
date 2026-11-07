@@ -13,7 +13,7 @@ namespace Game.Preview
         public override IReadOnlyList<PreviewEntry> Entries { get; } = new[] { PreviewEntry.Combat };
 
         // A sector may lack a hunt or a station; each missing one gives no profile.
-        public override IEnumerable<ScriptableObject> Profiles(GameHost game) => game.sessionProfile.sectors
+        public override IEnumerable<ScriptableObject> Profiles(GameHost game) => game.sessionProfile.run.Sectors
             .SelectMany(sector => new Object[]
             {
                 sector.prefab.GetComponentInChildren<SectorHunt>(true),
