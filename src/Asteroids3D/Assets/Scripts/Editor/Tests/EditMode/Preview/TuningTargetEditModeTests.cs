@@ -3,6 +3,7 @@ using System.Linq;
 using Asteroids.Fields;
 using Cameras;
 using Game;
+using Game.Companion;
 using Game.Player;
 using Game.Preview;
 using NUnit.Framework;
@@ -46,6 +47,9 @@ namespace Tests.EditMode.Preview
                 AssetDatabase.LoadAssetAtPath<HuntFeelProfile>("Assets/Settings/Game/HuntFeel.asset"));
             AssertTarget(Target<BossTarget>(), new[] { PreviewEntry.Boss },
                 AssetDatabase.LoadAssetAtPath<EliteProfile>("Assets/Settings/Ships/Elites/BastionBoss.asset"));
+            AssertTarget(Target<CompanionTarget>(), new[] { PreviewEntry.Combat },
+                AssetDatabase.LoadAssetAtPath<CompanionFeelProfile>("Assets/Settings/Game/Companion/CompanionFeel.asset"),
+                AssetDatabase.LoadAssetAtPath<CompanionLineSheet>("Assets/Settings/Game/Companion/CompanionLines.asset"));
         }
 
         [Test]
