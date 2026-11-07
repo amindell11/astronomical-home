@@ -1,6 +1,10 @@
 # Console composition and palette
 
-The latest [composition study](composition.html) gives the hologram more breathing room, shows a thin physical viewport rim across the top, and simplifies the monitor and controls. Broad housing planes, larger simple fasteners, plain screen separators and fewer knob markings replace the dense detail that made the left console look miniaturized. The [final image](composition-viewport.png) keeps the console in the left third and the ship presentation in the right two-thirds.
+The latest [viewport glass review](glass.html) is the first of two separately reviewed steps requested by the owner. [viewport-glass.png](viewport-glass.png) adds faint perimeter clouding, sparse hexagons and etched geometric lines. The built-in image tool used the owner's red annotations as placement guidance and [composition-viewport-first.png](composition-viewport-first.png) as the clean edit target because that is the layout shown in the annotated image. The [prompt](viewport-glass-prompt.txt) limits this pass to the glass. The review page compares it with that exact source layout.
+
+The display and Launch refinement is pending separate feedback. That second step should use the in-game HUD's existing fonts and ship, weapon and keystone icons. DISPLAY and PROJECTION lettering, if retained, should be lighter and more subtle. This glass pass does not attempt those changes.
+
+The earlier [composition study](composition.html) gives the hologram more breathing room, shows a thin physical viewport rim across the top, and simplifies the monitor and controls. Broad housing planes, larger simple fasteners, plain screen separators and fewer knob markings replace the dense detail that made the left console look miniaturized. Its [final image](composition-viewport.png) keeps the console in the left third and the ship presentation in the right two-thirds.
 
 The built-in image tool edited [the previous composition](composition-thirds.png) using the [viewport and detail prompt](composition-viewport-prompt.txt). That [first pass](composition-viewport-first.png) reduced the ship too far. A [targeted correction](composition-viewport-scale-prompt.txt) restored a modest reduction and the display vent's three broad openings. These image studies have not been applied to Blender. The palette controls below remain available for the earlier layout.
 
