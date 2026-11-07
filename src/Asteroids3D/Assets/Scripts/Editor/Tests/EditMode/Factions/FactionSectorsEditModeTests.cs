@@ -1,13 +1,14 @@
 using System.Linq;
 using NUnit.Framework;
 using Substrate.Sectors;
+using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Factions;
 using UnityEditor;
 
 namespace Tests.EditMode.Factions
 {
-    /// <summary>The three trial sector prefabs, read as assets: each names its own faction in run order, and its roster flies only that faction's signature and common ships on their kits, none of which is the faction's answer weapon.</summary>
+    /// <summary>The three trial sector prefabs, read as assets: each names its own faction in run order, and its roster flies only that faction's signature and common ships on their kits, none of which is the faction's answer weapon, and draws the signature ship three times as often as the common one.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class FactionSectorsEditModeTests
@@ -41,6 +42,26 @@ namespace Tests.EditMode.Factions
                     threat.Weapons, path);
                 CollectionAssert.DoesNotContain(threat.Weapons, faction.answer,
                     $"{path}: a kit never carries the weapon that answers its faction.");
+            }
+        }
+
+        [Test]
+        public void EachTrialRoster_DrawsItsSignatureShip_ThreeTimesAsOftenAsItsCommonShip()
+        {
+            foreach (var path in TrialSectorPaths)
+            {
+                var sector = Load(path);
+                var faction = FactionOf(sector);
+                var roster = new SerializedObject(sector.GetComponentInChildren<WaveDirector>(true))
+                    .FindProperty("roster");
+                var templates = Enumerable.Range(0, roster.arraySize)
+                    .Select(i => roster.GetArrayElementAtIndex(i).FindPropertyRelative("template").objectReferenceValue)
+                    .ToArray();
+
+                var common = templates.Count(t => t == faction.common.ship);
+                Assert.Greater(common, 0, $"{path}: the common ship still flies.");
+                Assert.AreEqual(3 * common, templates.Count(t => t == faction.signature.ship),
+                    $"{path}: the director draws uniformly over entries, so entry counts set the mix.");
             }
         }
 
