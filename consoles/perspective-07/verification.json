@@ -1,0 +1,11 @@
+{
+  "result": "pass",
+  "camera": "07 Camera - perspective",
+  "perspectiveLens": 33.0,
+  "sourceSceneObjects": 772,
+  "sourceFilesUnchanged": true,
+  "missingImages": [],
+  "assemblyMovement": "pass",
+  "visualApproval": "pending",
+  "fileSha256": "ae87fef712f123d7679eed28ca7e3a766838d17ca61c5e9be3b00a932c0beffc"
+}

@@ -1,0 +1,8 @@
+{
+  "oppositeEdgeDivergenceDegrees": [
+    1.2193592817574102,
+    3.804010024760276
+  ],
+  "rectangularFace": false,
+  "method": "World-space directions of the four long sides of the chamfered display face."
+}
