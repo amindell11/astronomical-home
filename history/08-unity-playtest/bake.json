@@ -1,0 +1,37 @@
+{
+  "texture": "LaserImpact.png",
+  "sourceHash": "0eb51ba237edc0a04427f49863250b4d234705e9a07e1de12a1da3061c9e6108",
+  "tilePx": 256,
+  "columns": 5,
+  "rows": 4,
+  "frames": 20,
+  "durationSeconds": 0.34,
+  "contactUv": [
+    0.5,
+    0.5
+  ],
+  "fanDirection": "negative local Y",
+  "solidWidthFraction": 0.375,
+  "alphaCounts": [
+    13046,
+    24363,
+    24938,
+    25479,
+    25910,
+    26173,
+    26265,
+    26222,
+    25873,
+    25133,
+    23555,
+    21363,
+    14668,
+    107,
+    81,
+    59,
+    42,
+    25,
+    8,
+    0
+  ]
+}
