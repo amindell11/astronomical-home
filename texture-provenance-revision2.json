@@ -1,0 +1,84 @@
+{
+  "method": "Geometry-aware unlit color guides and packed UV layouts, painted with built-in Imagegen. Final PNGs are unchanged generated outputs. No lighting, AO or specular bake is used.",
+  "families": [
+    {
+      "family": "copper",
+      "generator": "built-in Imagegen",
+      "albedo": "copper/copper-albedo.png",
+      "albedo_size": [
+        1254,
+        1254
+      ],
+      "sha256": "542d14a061ffab6b820803c8bf7fb30e6985f459dea9ab464254a648bcbfca45",
+      "unlit_region_guide": "copper/copper-eroded-color.png",
+      "uv_layout": "copper/copper-uv-layout.png",
+      "prompts": [
+        "copper/prompts/copper-selected-prompt.txt",
+        "copper/prompts/copper-padding-prompt.txt"
+      ]
+    },
+    {
+      "family": "violet",
+      "generator": "built-in Imagegen",
+      "albedo": "violet/violet-albedo.png",
+      "albedo_size": [
+        1254,
+        1254
+      ],
+      "sha256": "dbfb38ebd2bea0eed750a37b143aeb41aa0e5eeda0186e00800d162c2de28a37",
+      "unlit_region_guide": "violet/violet-eroded-color.png",
+      "uv_layout": "violet/violet-uv-layout.png",
+      "prompts": [
+        "violet/prompts/violet-paint-prompt.txt",
+        "violet/prompts/violet-deeper-prompt.txt"
+      ],
+      "uv_note": "New lip-chip faces reuse a quiet host paint region; existing UVs were preserved."
+    },
+    {
+      "family": "chalk",
+      "generator": "built-in Imagegen",
+      "albedo": "chalk/chalk-albedo.png",
+      "albedo_size": [
+        1254,
+        1254
+      ],
+      "sha256": "990127418771017f710e420d939e39bc14983d4b72226c590afa7caed7cf4c51",
+      "unlit_region_guide": "chalk/chalk-eroded-color.png",
+      "uv_layout": "chalk/chalk-uv-layout.png",
+      "prompts": [
+        "chalk/prompts/chalk-paint-prompt.txt"
+      ]
+    },
+    {
+      "family": "verdant",
+      "generator": "built-in Imagegen",
+      "albedo": "verdant/verdant-albedo.png",
+      "albedo_size": [
+        1254,
+        1254
+      ],
+      "sha256": "535eae74ec80e974cb5740467df58594379cb5d3dd5695cab30b260e4464e66a",
+      "unlit_region_guide": "verdant/verdant-eroded-color.png",
+      "uv_layout": "verdant/verdant-uv-layout.png",
+      "prompts": [
+        "verdant/prompts/verdant-paint-prompt.txt",
+        "verdant/prompts/verdant-deeper-prompt.txt"
+      ]
+    },
+    {
+      "family": "ice",
+      "generator": "built-in Imagegen",
+      "albedo": "ice/ice-albedo.png",
+      "albedo_size": [
+        1254,
+        1254
+      ],
+      "sha256": "fcd3575989bce78d7d3a1de42056cb6c4a5403943d2d8391d99be1ce4b15799c",
+      "unlit_region_guide": "ice/ice-eroded-color.png",
+      "uv_layout": "ice/ice-uv-layout.png",
+      "prompts": [
+        "ice/prompts/ice-paint-prompt.txt"
+      ]
+    }
+  ]
+}

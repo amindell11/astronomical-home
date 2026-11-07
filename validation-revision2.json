@@ -1,0 +1,380 @@
+{
+  "verdict": "PASS",
+  "blender": "5.1.2",
+  "families": [
+    {
+      "family": "copper",
+      "locale": 1,
+      "source_reopened": true,
+      "source": {
+        "object": "CopperSurface",
+        "vertices": 617,
+        "triangles": 1230,
+        "materials": 1,
+        "uv_layers": 1,
+        "dimensions": [
+          4.0,
+          1.9368714094161987,
+          1.526033878326416
+        ]
+      },
+      "component_vertex_groups": {},
+      "albedo_size": [
+        1254,
+        1254
+      ],
+      "packed_albedo": true,
+      "direct_image_material": true,
+      "source_sha256": "d18b7b42c93d0501c3d81e7598c437163e5481dc3f54d3057f1f4fc217be5b99",
+      "albedo_sha256": "542d14a061ffab6b820803c8bf7fb30e6985f459dea9ab464254a648bcbfca45",
+      "exports": {
+        "glb": {
+          "reimported": true,
+          "structure_verified": true,
+          "object_count": 1,
+          "triangles": 1230,
+          "albedo_size": [
+            1254,
+            1254
+          ],
+          "reimport_render": "reimport-checks/copper-glb.png",
+          "bytes": 1574872,
+          "sha256": "a64c1297b4605ea20aa55bbd7535ed97e5c76e1488b7093dade4fff8e83961e3",
+          "appearance_review": "Matches packed source: geometry, paint placement and band brightness.",
+          "render_mean_absolute_channel_difference_0_255": [
+            0.4039,
+            0.3973,
+            0.4321,
+            0.0
+          ],
+          "embedded_albedo_sha256_matches_source": true
+        },
+        "fbx": {
+          "reimported": true,
+          "structure_verified": true,
+          "object_count": 1,
+          "triangles": 1230,
+          "albedo_size": [
+            1254,
+            1254
+          ],
+          "reimport_render": "reimport-checks/copper-fbx.png",
+          "bytes": 1541932,
+          "sha256": "9e776aa3bc4403747e9ec44b8604eda0f6c3b9d77b810823b514924278e51ddd",
+          "appearance_review": "Matches packed source: geometry, paint placement and band brightness.",
+          "render_mean_absolute_channel_difference_0_255": [
+            0.404,
+            0.3975,
+            0.4323,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "family": "violet",
+      "locale": 2,
+      "source_reopened": true,
+      "source": {
+        "object": "VioletSurface",
+        "vertices": 234,
+        "triangles": 452,
+        "materials": 1,
+        "uv_layers": 1,
+        "dimensions": [
+          3.881439208984375,
+          2.199842929840088,
+          2.185305118560791
+        ]
+      },
+      "component_vertex_groups": {
+        "CopperFracturedHost": 166,
+        "AmethystFace1": 11,
+        "AmethystFace2": 11,
+        "AmethystFace3": 11
+      },
+      "albedo_size": [
+        1254,
+        1254
+      ],
+      "packed_albedo": true,
+      "direct_image_material": true,
+      "source_sha256": "6f7c791463c5a3645256ef219fad40708f20e7124a7659b5a5154a58d29adb70",
+      "albedo_sha256": "dbfb38ebd2bea0eed750a37b143aeb41aa0e5eeda0186e00800d162c2de28a37",
+      "exports": {
+        "glb": {
+          "reimported": true,
+          "structure_verified": true,
+          "object_count": 1,
+          "triangles": 452,
+          "albedo_size": [
+            1254,
+            1254
+          ],
+          "reimport_render": "reimport-checks/violet-glb.png",
+          "bytes": 1549620,
+          "sha256": "381b4cb24a1bb12f06ad5bde6c6e8fbde04d1ce364e99a8eca8d9c4f2d01aa86",
+          "appearance_review": "Matches packed source: geometry, paint placement and band brightness.",
+          "render_mean_absolute_channel_difference_0_255": [
+            0.0032,
+            0.0025,
+            0.0036,
+            0.0
+          ],
+          "embedded_albedo_sha256_matches_source": true
+        },
+        "fbx": {
+          "reimported": true,
+          "structure_verified": true,
+          "object_count": 1,
+          "triangles": 452,
+          "albedo_size": [
+            1254,
+            1254
+          ],
+          "reimport_render": "reimport-checks/violet-fbx.png",
+          "bytes": 1544732,
+          "sha256": "74da1ef275e3ec8de3a2ec1427d3497866c483301c5abba56683b553cdf3895a",
+          "appearance_review": "Matches packed source: geometry, paint placement and band brightness.",
+          "render_mean_absolute_channel_difference_0_255": [
+            0.0075,
+            0.0069,
+            0.0088,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "family": "chalk",
+      "locale": 3,
+      "source_reopened": true,
+      "source": {
+        "object": "ChalkSurface",
+        "vertices": 496,
+        "triangles": 988,
+        "materials": 1,
+        "uv_layers": 1,
+        "dimensions": [
+          4.0,
+          1.8070998191833496,
+          1.5933665037155151
+        ]
+      },
+      "component_vertex_groups": {
+        "ChalkSurface": 496
+      },
+      "albedo_size": [
+        1254,
+        1254
+      ],
+      "packed_albedo": true,
+      "direct_image_material": true,
+      "source_sha256": "fee744543303efb24cfdd1c92db5ee88e7aff2ce03bb3f75bdfe3674bb6eed1d",
+      "albedo_sha256": "990127418771017f710e420d939e39bc14983d4b72226c590afa7caed7cf4c51",
+      "exports": {
+        "glb": {
+          "reimported": true,
+          "structure_verified": true,
+          "object_count": 1,
+          "triangles": 988,
+          "albedo_size": [
+            1254,
+            1254
+          ],
+          "reimport_render": "reimport-checks/chalk-glb.png",
+          "bytes": 1596448,
+          "sha256": "6ce8ac219fccfb85e9aa921d49bfc2843575396122a77105390614ce5869baff",
+          "appearance_review": "Matches packed source: geometry, paint placement and band brightness.",
+          "render_mean_absolute_channel_difference_0_255": [
+            0.8551,
+            0.8614,
+            0.8678,
+            0.0
+          ],
+          "embedded_albedo_sha256_matches_source": true
+        },
+        "fbx": {
+          "reimported": true,
+          "structure_verified": true,
+          "object_count": 1,
+          "triangles": 988,
+          "albedo_size": [
+            1254,
+            1254
+          ],
+          "reimport_render": "reimport-checks/chalk-fbx.png",
+          "bytes": 1573916,
+          "sha256": "e4225f4bcd55c849584743e5755f79751e62ec91b3a3ec0717ec4ee1264d46d1",
+          "appearance_review": "Matches packed source: geometry, paint placement and band brightness.",
+          "render_mean_absolute_channel_difference_0_255": [
+            0.8552,
+            0.8614,
+            0.8679,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "family": "verdant",
+      "locale": 6,
+      "source_reopened": true,
+      "source": {
+        "object": "VerdantSurface",
+        "vertices": 2069,
+        "triangles": 4134,
+        "materials": 1,
+        "uv_layers": 1,
+        "dimensions": [
+          3.9449727535247803,
+          2.4407896995544434,
+          2.0864124298095703
+        ]
+      },
+      "component_vertex_groups": {
+        "VerdantSurface": 2069
+      },
+      "albedo_size": [
+        1254,
+        1254
+      ],
+      "packed_albedo": true,
+      "direct_image_material": true,
+      "source_sha256": "10dc3f5ae79abeb471cfb78b24b6fdcb8fb1c0de2241f40063ff416b82e8857f",
+      "albedo_sha256": "535eae74ec80e974cb5740467df58594379cb5d3dd5695cab30b260e4464e66a",
+      "exports": {
+        "glb": {
+          "reimported": true,
+          "structure_verified": true,
+          "object_count": 1,
+          "triangles": 4134,
+          "albedo_size": [
+            1254,
+            1254
+          ],
+          "reimport_render": "reimport-checks/verdant-glb.png",
+          "bytes": 1725320,
+          "sha256": "c5a6bc9ac9fb4689008f4a8ca073bea33c6ef3772d2cfa259c148154004e786f",
+          "appearance_review": "Matches packed source: geometry, paint placement and band brightness.",
+          "render_mean_absolute_channel_difference_0_255": [
+            0.0004,
+            0.0004,
+            0.0004,
+            0.0
+          ],
+          "embedded_albedo_sha256_matches_source": true
+        },
+        "fbx": {
+          "reimported": true,
+          "structure_verified": true,
+          "object_count": 1,
+          "triangles": 4134,
+          "albedo_size": [
+            1254,
+            1254
+          ],
+          "reimport_render": "reimport-checks/verdant-fbx.png",
+          "bytes": 1747948,
+          "sha256": "8ce090060d2965389da22d25c5dd600e9b1be2fa2855aedf9824d9cde97f8628",
+          "appearance_review": "Matches packed source: geometry, paint placement and band brightness.",
+          "render_mean_absolute_channel_difference_0_255": [
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "family": "ice",
+      "locale": 7,
+      "source_reopened": true,
+      "source": {
+        "object": "IceSurface",
+        "vertices": 292,
+        "triangles": 568,
+        "materials": 1,
+        "uv_layers": 1,
+        "dimensions": [
+          4.0,
+          1.5091586112976074,
+          1.6433511972427368
+        ]
+      },
+      "component_vertex_groups": {
+        "IceSurface": 256,
+        "EmbeddedStone1": 12,
+        "EmbeddedStone2": 12,
+        "EmbeddedStone3": 12
+      },
+      "albedo_size": [
+        1254,
+        1254
+      ],
+      "packed_albedo": true,
+      "direct_image_material": true,
+      "source_sha256": "6350f7c4659bed96d1dff909a27d97a387aa50d6d78d1b7427af145d92042a89",
+      "albedo_sha256": "fcd3575989bce78d7d3a1de42056cb6c4a5403943d2d8391d99be1ce4b15799c",
+      "exports": {
+        "glb": {
+          "reimported": true,
+          "structure_verified": true,
+          "object_count": 1,
+          "triangles": 568,
+          "albedo_size": [
+            1254,
+            1254
+          ],
+          "reimport_render": "reimport-checks/ice-glb.png",
+          "bytes": 1597560,
+          "sha256": "09b31b1e36dc590190ebe1df30315a03923a0bf3d50fcfc86266bbb5ae895f0e",
+          "appearance_review": "Matches packed source: geometry, paint placement and band brightness.",
+          "render_mean_absolute_channel_difference_0_255": [
+            0.2756,
+            0.2314,
+            0.1986,
+            0.0
+          ],
+          "embedded_albedo_sha256_matches_source": true
+        },
+        "fbx": {
+          "reimported": true,
+          "structure_verified": true,
+          "object_count": 1,
+          "triangles": 568,
+          "albedo_size": [
+            1254,
+            1254
+          ],
+          "reimport_render": "reimport-checks/ice-fbx.png",
+          "bytes": 1591900,
+          "sha256": "fbc458a14c02b2c8a686cd89607f3d94a645eb609eab1f8858c215cde9260feb",
+          "appearance_review": "Matches packed source: geometry, paint placement and band brightness.",
+          "render_mean_absolute_channel_difference_0_255": [
+            0.276,
+            0.2317,
+            0.1987,
+            0.0
+          ]
+        }
+      }
+    }
+  ],
+  "scope": "Blender art proof. No Unity integration, collision, fragmentation, volume or covering-sphere data.",
+  "preview": "Silhouette-only Freestyle in BLEND; no contour geometry, cameras or lights in exports.",
+  "appearance_review": {
+    "verdict": "PASS",
+    "comparison": "asteroid-reimport-checks.png",
+    "method": "Viewed all five packed-source / GLB / FBX comparisons under matched Blender scene lighting. No missing components or color multiplication differences observed."
+  },
+  "package_review": {
+    "no_backup_files": true,
+    "source_textures_hash_match_generated_originals": true,
+    "exact_game_preview_widths": [
+      128,
+      96
+    ]
+  }
+}
