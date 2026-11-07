@@ -1,0 +1,312 @@
+{
+  "schemaVersion": 1,
+  "sourceRepository": "D:\\amind\\git\\astronomical-home",
+  "sourceCommit": "07fffad2a5a27954843e71d0a25b702d7586af67",
+  "copiedUnmodified": true,
+  "runtimeAuthority": {
+    "fontRoles": "src/Asteroids3D/Assets/Prefabs/UI/UIOverlay.prefab:623-626",
+    "weaponGlyphs": "src/Asteroids3D/Assets/Prefabs/Weapons/Lasers.prefab:82; Missiles.prefab:52",
+    "keystoneGlyphs": "7834963a013ba8a92d23998b314410a6c1fb62d1:src/Asteroids3D/Assets/Prefabs/Keystones/Vanguard_Dash.prefab icon -> 143a5682b490a5f32817c354d5d61b98 -> src/Asteroids3D/Assets/Visuals/Ui/Keystones/Generated/dash.png.meta",
+    "shipGlyph": "src/Asteroids3D/Assets/Scripts/UI/Screens/RunRecapScreen.cs:19"
+  },
+  "fontRoles": {
+    "labels": {
+      "file": "fonts/Rajdhani-Medium.ttf",
+      "weight": 500
+    },
+    "numbersAndTimers": {
+      "file": "fonts/Orbitron-Medium.ttf",
+      "weight": 500
+    },
+    "headings": {
+      "file": "fonts/Michroma.ttf",
+      "weight": 400
+    }
+  },
+  "notes": [
+    "Use normal font style; Medium face outlines already carry weight 500.",
+    "Orbitron has proportional digits; do not claim it is monospace.",
+    "Vanguard icon is the shipped recap silhouette, not a newly generated or traced icon.",
+    "No authored Vanguard narrative description was found; HangarScreen derives factual summaries from stats.",
+    "Older Oct29 scratch combat HTML studies use superseded typography and should not supply font choices.",
+    "Guard Dash uses the approved Dash glyph merged in PR1379, verified against its merge commit.",
+    "The primary checkout is an older owner branch; fresh keystone source was read from agent-1 and checked against the merged tree.",
+    "October 30 reference captures predate ship-specific keystone icons; they remain font and weapon-layout references only.",
+    "All six ship stats and bar maxima were rechecked from the PR1379 merged tree."
+  ],
+  "files": [
+    {
+      "file": "fonts/Rajdhani-Medium.ttf",
+      "source": "src/Asteroids3D/Assets/Visuals/Ui/Fonts/Rajdhani-Medium.ttf",
+      "sha256": "12ff7dcfe4c206e3875ac53b1762eab57de6a2fa7f5a86c26b97b88d6591eac2",
+      "bytes": 384348,
+      "meaning": "Current combat HUD typography or upstream license/source note"
+    },
+    {
+      "file": "fonts/Orbitron-Medium.ttf",
+      "source": "src/Asteroids3D/Assets/Visuals/Ui/Fonts/Orbitron-Medium.ttf",
+      "sha256": "bc96ab93d786e3417b92285b96cdfe40a3de263930ee99eebfd4e19a756df8d2",
+      "bytes": 38336,
+      "meaning": "Current combat HUD typography or upstream license/source note"
+    },
+    {
+      "file": "fonts/Michroma.ttf",
+      "source": "src/Asteroids3D/Assets/Visuals/Ui/Fonts/Michroma.ttf",
+      "sha256": "b62301163788bc5b7f8fcac0b74b184e34e1827e577b499ecb724da065098f87",
+      "bytes": 64344,
+      "meaning": "Current combat HUD typography or upstream license/source note"
+    },
+    {
+      "file": "fonts/Rajdhani-LICENSE.txt",
+      "source": "src/Asteroids3D/Assets/Visuals/Ui/Fonts/Rajdhani-LICENSE.txt",
+      "sha256": "bb36ea0b5e02431f0372edde87b029ceb071806f5296c4ffb38756850a54e2ed",
+      "bytes": 4466,
+      "meaning": "Current combat HUD typography or upstream license/source note"
+    },
+    {
+      "file": "fonts/Orbitron-LICENSE.txt",
+      "source": "src/Asteroids3D/Assets/Visuals/Ui/Fonts/Orbitron-LICENSE.txt",
+      "sha256": "3b94a3a6c15d769d713b8a932a46b126b017c2b2637ac8390bbd5362d192d6e9",
+      "bytes": 4519,
+      "meaning": "Current combat HUD typography or upstream license/source note"
+    },
+    {
+      "file": "fonts/Michroma-LICENSE.txt",
+      "source": "src/Asteroids3D/Assets/Visuals/Ui/Fonts/Michroma-LICENSE.txt",
+      "sha256": "3ee261bc73895fc39377d58bc502e39fbe8166b144b9e03b6ecd4fe885fbe4af",
+      "bytes": 4488,
+      "meaning": "Current combat HUD typography or upstream license/source note"
+    },
+    {
+      "file": "fonts/SELECTED-FONTS.md",
+      "source": "src/Asteroids3D/Assets/Visuals/Ui/Fonts/SELECTED-FONTS.md",
+      "sha256": "a213bfa8b480ec6b9a3a30febcc0b75f707d6c147f30daebd4634ef7e5854061",
+      "bytes": 1086,
+      "meaning": "Current combat HUD typography or upstream license/source note"
+    },
+    {
+      "file": "icons/ships/Vanguard.png",
+      "source": "src/Asteroids3D/Assets/Resources/RunRecap/Ships/Vanguard.png",
+      "sha256": "4ea2bc5be0c63d9debedc0188ade03b00b34eb928f0ca48bf77df430d1ee8bd4",
+      "bytes": 1245,
+      "meaning": "Shipped Vanguard run-recap silhouette",
+      "dimensions": [
+        128,
+        128
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "file": "icons/weapons/lasers.svg",
+      "source": "src/Asteroids3D/Assets/Visuals/Ui/Weapons/lasers.svg",
+      "sha256": "357e874d309a7d0e4ff9efa520faf24b057e6fde3e07a87bf903b08b786604bc",
+      "bytes": 276,
+      "meaning": "Authored weapon SVG master used for runtime glyph"
+    },
+    {
+      "file": "icons/weapons/lasers.png",
+      "source": "src/Asteroids3D/Assets/Visuals/Ui/Weapons/Generated/lasers.png",
+      "sha256": "39f303c15b76b4caacc199389e7bb97b9b5b19eeb75339b0a36939f58577c414",
+      "bytes": 3539,
+      "meaning": "Generated runtime weapon sprite",
+      "dimensions": [
+        256,
+        256
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "file": "icons/weapons/missiles.svg",
+      "source": "src/Asteroids3D/Assets/Visuals/Ui/Weapons/missiles.svg",
+      "sha256": "9490e0bf0c2f88e491bedcafb5eeae7f660d18159b812abcb6a6a01a429ba081",
+      "bytes": 370,
+      "meaning": "Authored weapon SVG master used for runtime glyph"
+    },
+    {
+      "file": "icons/weapons/missiles.png",
+      "source": "src/Asteroids3D/Assets/Visuals/Ui/Weapons/Generated/missiles.png",
+      "sha256": "e37a3aafeeabdde6350d4c05b706f5ed9d66b635bda251c7a79d8359a47db663",
+      "bytes": 3867,
+      "meaning": "Generated runtime weapon sprite",
+      "dimensions": [
+        256,
+        256
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "file": "reference/hud-lasers-missiles.png",
+      "source": "origin/evidence/weapon-instruments:refined-lasers-missiles.png",
+      "sha256": "d12c156a19d9a5929524ac23111a6da10a1d4ce6e01f4f7285361676b36e0a08",
+      "bytes": 1074717,
+      "dimensions": [
+        1280,
+        720
+      ],
+      "meaning": "Actual Unity capture from October 30 HUD evidence; staged state, not current-main playthrough"
+    },
+    {
+      "file": "reference/hud-current-fonts.png",
+      "source": "origin/evidence/hud-font-pairing:running-1080.png",
+      "sha256": "b09376ef90a438f6e0426c81455e1a86ef555ef00236f43b999d1b38a9e5301a",
+      "bytes": 1974769,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "meaning": "Actual Unity capture from October 30 HUD evidence; staged state, not current-main playthrough"
+    },
+    {
+      "file": "icons/keystones/dash.svg",
+      "source": "src/Asteroids3D/Assets/Visuals/Ui/Keystones/dash.svg",
+      "sourceRepository": "D:\\amind\\git\\agent-1",
+      "sourceCommit": "7834963a013ba8a92d23998b314410a6c1fb62d1",
+      "verifiedAgainstMergeCommit": true,
+      "sha256": "da0425e95432f77d079d5e39dfe1b53e76f1fbf63c9df61d4c33e5ba10347f7e",
+      "bytes": 372,
+      "meaning": "Approved Dash glyph bound to Vanguard Guard Dash in merged PR1379"
+    },
+    {
+      "file": "icons/keystones/dash.png",
+      "source": "src/Asteroids3D/Assets/Visuals/Ui/Keystones/Generated/dash.png",
+      "sourceRepository": "D:\\amind\\git\\agent-1",
+      "sourceCommit": "7834963a013ba8a92d23998b314410a6c1fb62d1",
+      "verifiedAgainstMergeCommit": true,
+      "sha256": "0047d09cea226ebb5d1782687b40080393c29d5f3490e2d3a58338e9e66dc7e3",
+      "bytes": 4562,
+      "meaning": "Approved Dash glyph bound to Vanguard Guard Dash in merged PR1379",
+      "dimensions": [
+        256,
+        256
+      ],
+      "mode": "RGBA"
+    }
+  ],
+  "referenceResults": [
+    {
+      "file": "D:\\amind\\scratch\\ui-mockups-20261029-console\\consoles\\display-concepts-01\\assets\\reference\\hud-lasers-missiles.png",
+      "status": "copied verified local Git/LFS object"
+    },
+    {
+      "file": "D:\\amind\\scratch\\ui-mockups-20261029-console\\consoles\\display-concepts-01\\assets\\reference\\hud-current-fonts.png",
+      "status": "copied verified local Git/LFS object"
+    }
+  ],
+  "keystoneSource": {
+    "repository": "D:\\amind\\git\\agent-1",
+    "mergeCommit": "7834963a013ba8a92d23998b314410a6c1fb62d1",
+    "pullRequest": 1379,
+    "prefab": "src/Asteroids3D/Assets/Prefabs/Keystones/Vanguard_Dash.prefab",
+    "iconGuid": "143a5682b490a5f32817c354d5d61b98",
+    "sourceMatchesMergeCommit": true
+  },
+  "fleetVerification": {
+    "sourceCommit": "7834963a013ba8a92d23998b314410a6c1fb62d1",
+    "maxima": {
+      "hull": 400.0,
+      "shieldCapacity": 150.0,
+      "shieldRecharge": 18.0,
+      "topSpeed": 32.0,
+      "acceleration": 10.0,
+      "turn": 240.0
+    },
+    "fleet": [
+      {
+        "ship": "Vanguard",
+        "stats": {
+          "hull": 100.0,
+          "shieldCapacity": 50.0,
+          "shieldRecharge": 10.0,
+          "topSpeed": 25.0,
+          "acceleration": 7.0,
+          "turn": 180.0
+        },
+        "sources": [
+          "src/Asteroids3D/Assets/Prefabs/Ships/Vanguard.prefab",
+          "src/Asteroids3D/Assets/Settings/Ships/Engines/Vanguard_Engine.asset",
+          "src/Asteroids3D/Assets/Settings/Ships/Shields/Default_Shield.asset"
+        ]
+      },
+      {
+        "ship": "Crimson",
+        "stats": {
+          "hull": 65.0,
+          "shieldCapacity": 32.0,
+          "shieldRecharge": 18.0,
+          "topSpeed": 28.0,
+          "acceleration": 8.75,
+          "turn": 240.0
+        },
+        "sources": [
+          "src/Asteroids3D/Assets/Prefabs/Ships/Crimson.prefab",
+          "src/Asteroids3D/Assets/Settings/Ships/Engines/Crimson_Engine.asset",
+          "src/Asteroids3D/Assets/Settings/Ships/Shields/Light_Shield.asset"
+        ]
+      },
+      {
+        "ship": "Nightshade",
+        "stats": {
+          "hull": 85.0,
+          "shieldCapacity": 45.0,
+          "shieldRecharge": 15.0,
+          "topSpeed": 26.0,
+          "acceleration": 8.142857142857142,
+          "turn": 210.0
+        },
+        "sources": [
+          "src/Asteroids3D/Assets/Prefabs/Ships/Nightshade.prefab",
+          "src/Asteroids3D/Assets/Settings/Ships/Engines/Nightshade_Engine.asset",
+          "src/Asteroids3D/Assets/Settings/Ships/Shields/Nightshade_Shield.asset"
+        ]
+      },
+      {
+        "ship": "Junker_1",
+        "stats": {
+          "hull": 400.0,
+          "shieldCapacity": 150.0,
+          "shieldRecharge": 8.0,
+          "topSpeed": 19.0,
+          "acceleration": 1.8,
+          "turn": 130.0
+        },
+        "sources": [
+          "src/Asteroids3D/Assets/Prefabs/Ships/Cargo Ships/Junker_1.prefab",
+          "src/Asteroids3D/Assets/Settings/Ships/Engines/Hauler_Engine.asset",
+          "src/Asteroids3D/Assets/Settings/Ships/Shields/Cargo_Shield.asset"
+        ]
+      },
+      {
+        "ship": "Valis",
+        "stats": {
+          "hull": 80.0,
+          "shieldCapacity": 50.0,
+          "shieldRecharge": 10.0,
+          "topSpeed": 32.0,
+          "acceleration": 10.0,
+          "turn": 220.0
+        },
+        "sources": [
+          "src/Asteroids3D/Assets/Prefabs/Ships/Valis.prefab",
+          "src/Asteroids3D/Assets/Settings/Ships/Engines/Valis_Engine.asset",
+          "src/Asteroids3D/Assets/Settings/Ships/Shields/Default_Shield.asset"
+        ]
+      },
+      {
+        "ship": "Bulwark",
+        "stats": {
+          "hull": 160.0,
+          "shieldCapacity": 90.0,
+          "shieldRecharge": 6.0,
+          "topSpeed": 21.0,
+          "acceleration": 6.75,
+          "turn": 140.0
+        },
+        "sources": [
+          "src/Asteroids3D/Assets/Prefabs/Ships/Bulwark.prefab",
+          "src/Asteroids3D/Assets/Settings/Ships/Engines/Bulwark_Engine.asset",
+          "src/Asteroids3D/Assets/Settings/Ships/Shields/Bulwark_Shield.asset"
+        ]
+      }
+    ]
+  }
+}

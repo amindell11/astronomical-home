@@ -1,0 +1,204 @@
+{
+  "protocol": "file:",
+  "studies": [
+    {
+      "id": "A",
+      "file": "a-flight-card.png",
+      "width": 850,
+      "height": 1228,
+      "bars": 6,
+      "weaponCount": 2,
+      "ship": "Vanguard",
+      "keystone": "assets/icons/keystones/dash.svg",
+      "fonts": {
+        "label": true,
+        "readout": true,
+        "heading": true
+      },
+      "weights": {
+        "label": "500",
+        "readout": "500",
+        "heading": "400"
+      },
+      "overflow": []
+    },
+    {
+      "id": "B",
+      "file": "b-hull-diagram.png",
+      "width": 850,
+      "height": 1228,
+      "bars": 6,
+      "weaponCount": 2,
+      "ship": "Vanguard",
+      "keystone": "assets/icons/keystones/dash.svg",
+      "fonts": {
+        "label": true,
+        "readout": true,
+        "heading": true
+      },
+      "weights": {
+        "label": "500",
+        "readout": "500",
+        "heading": "400"
+      },
+      "overflow": []
+    },
+    {
+      "id": "C",
+      "file": "c-ship-dossier.png",
+      "width": 850,
+      "height": 1228,
+      "bars": 6,
+      "weaponCount": 2,
+      "ship": "Vanguard",
+      "keystone": "assets/icons/keystones/dash.svg",
+      "fonts": {
+        "label": true,
+        "readout": true,
+        "heading": true
+      },
+      "weights": {
+        "label": "500",
+        "readout": "500",
+        "heading": "400"
+      },
+      "overflow": []
+    },
+    {
+      "id": "D",
+      "file": "d-component-stack.png",
+      "width": 850,
+      "height": 1228,
+      "bars": 6,
+      "weaponCount": 2,
+      "ship": "Vanguard",
+      "keystone": "assets/icons/keystones/dash.svg",
+      "fonts": {
+        "label": true,
+        "readout": true,
+        "heading": true
+      },
+      "weights": {
+        "label": "500",
+        "readout": "500",
+        "heading": "400"
+      },
+      "overflow": []
+    },
+    {
+      "id": "E",
+      "file": "e-open-instruments.png",
+      "width": 850,
+      "height": 1228,
+      "bars": 6,
+      "weaponCount": 2,
+      "ship": "Vanguard",
+      "keystone": "assets/icons/keystones/dash.svg",
+      "fonts": {
+        "label": true,
+        "readout": true,
+        "heading": true
+      },
+      "weights": {
+        "label": "500",
+        "readout": "500",
+        "heading": "400"
+      },
+      "overflow": []
+    },
+    {
+      "id": "F",
+      "file": "f-vertical-instruments.png",
+      "width": 850,
+      "height": 1228,
+      "bars": 6,
+      "weaponCount": 2,
+      "ship": "Vanguard",
+      "keystone": "assets/icons/keystones/dash.svg",
+      "fonts": {
+        "label": true,
+        "readout": true,
+        "heading": true
+      },
+      "weights": {
+        "label": "500",
+        "readout": "500",
+        "heading": "400"
+      },
+      "overflow": []
+    }
+  ],
+  "assetHashes": [
+    {
+      "file": "fonts/Rajdhani-Medium.ttf",
+      "verified": true
+    },
+    {
+      "file": "fonts/Orbitron-Medium.ttf",
+      "verified": true
+    },
+    {
+      "file": "fonts/Michroma.ttf",
+      "verified": true
+    },
+    {
+      "file": "fonts/Rajdhani-LICENSE.txt",
+      "verified": true
+    },
+    {
+      "file": "fonts/Orbitron-LICENSE.txt",
+      "verified": true
+    },
+    {
+      "file": "fonts/Michroma-LICENSE.txt",
+      "verified": true
+    },
+    {
+      "file": "fonts/SELECTED-FONTS.md",
+      "verified": true
+    },
+    {
+      "file": "icons/ships/Vanguard.png",
+      "verified": true
+    },
+    {
+      "file": "icons/weapons/lasers.svg",
+      "verified": true
+    },
+    {
+      "file": "icons/weapons/lasers.png",
+      "verified": true
+    },
+    {
+      "file": "icons/weapons/missiles.svg",
+      "verified": true
+    },
+    {
+      "file": "icons/weapons/missiles.png",
+      "verified": true
+    },
+    {
+      "file": "reference/hud-lasers-missiles.png",
+      "verified": true
+    },
+    {
+      "file": "reference/hud-current-fonts.png",
+      "verified": true
+    },
+    {
+      "file": "icons/keystones/dash.svg",
+      "verified": true
+    },
+    {
+      "file": "icons/keystones/dash.png",
+      "verified": true
+    }
+  ],
+  "contactSheet": {
+    "x": 0,
+    "y": 0,
+    "width": 1800,
+    "height": 2055.5
+  },
+  "status": "passed"
+}

@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "7834963a013ba8a92d23998b314410a6c1fb62d1",
+  "ship": "Vanguard",
+  "shipIcon": "icons/ships/Vanguard.png",
+  "engine": "Vanguard Engine",
+  "shield": "Standard Shield",
+  "description": null,
+  "descriptionStatus": "No authored narrative description in current ship asset or HangarScreen; omit or label placeholder.",
+  "mass": 800,
+  "keystone": {
+    "name": "Guard Dash",
+    "cooldownSeconds": 5,
+    "guardWindowSeconds": 0.4,
+    "icon": "icons/keystones/dash.svg",
+    "iconStatus": "Approved Dash glyph bound to Vanguard Guard Dash in merged PR1379",
+    "iconPng": "icons/keystones/dash.png",
+    "iconSourceCommit": "7834963a013ba8a92d23998b314410a6c1fb62d1"
+  },
+  "stats": [
+    {
+      "key": "hull",
+      "label": "Hull",
+      "value": 100,
+      "unit": "",
+      "barMaximum": 400.0
+    },
+    {
+      "key": "shieldCapacity",
+      "label": "Shield capacity",
+      "value": 50,
+      "unit": "",
+      "barMaximum": 150.0
+    },
+    {
+      "key": "shieldRecharge",
+      "label": "Shield recharge",
+      "value": 10,
+      "unit": "/s",
+      "barMaximum": 18.0
+    },
+    {
+      "key": "topSpeed",
+      "label": "Top speed",
+      "value": 25,
+      "unit": "",
+      "barMaximum": 32.0
+    },
+    {
+      "key": "acceleration",
+      "label": "Acceleration",
+      "value": 7,
+      "unit": "",
+      "barMaximum": 10.0
+    },
+    {
+      "key": "turn",
+      "label": "Turn",
+      "value": 180,
+      "unit": "deg/s",
+      "barMaximum": 240.0
+    }
+  ],
+  "shieldRechargeDelaySeconds": 4,
+  "weapons": [
+    {
+      "slot": "Primary",
+      "name": "Lasers",
+      "icon": "icons/weapons/lasers.svg",
+      "damage": 20,
+      "shotsPerSecond": 3.3333333333333335,
+      "projectileSpeed": 50,
+      "shotsToOverheat": 14,
+      "statLine": "DMG 20 / 3.3/s / SPD 50",
+      "detailLine": "OVERHEATS AFTER 14 SHOTS"
+    },
+    {
+      "slot": "Secondary",
+      "name": "Missiles",
+      "icon": "icons/weapons/missiles.svg",
+      "damage": 35,
+      "splashDamage": 15,
+      "rounds": 2,
+      "secondsPerRound": 10,
+      "refill": "Sequential",
+      "statLine": "DMG 35 + 15 SPLASH / 2 ROUNDS",
+      "detailLine": "10s/ROUND / LOCK-ON"
+    }
+  ],
+  "statSources": [
+    "src/Asteroids3D/Assets/Prefabs/Ships/Vanguard.prefab",
+    "src/Asteroids3D/Assets/Prefabs/Ships/ShipBase.prefab",
+    "src/Asteroids3D/Assets/Settings/Ships/Engines/Vanguard_Engine.asset",
+    "src/Asteroids3D/Assets/Settings/Ships/Shields/Default_Shield.asset",
+    "src/Asteroids3D/Assets/Prefabs/Keystones/Vanguard_Dash.prefab",
+    "src/Asteroids3D/Assets/Scripts/Ships/Keystones/Kits/GuardDash.cs",
+    "src/Asteroids3D/Assets/Prefabs/Weapons/Lasers.prefab",
+    "src/Asteroids3D/Assets/Prefabs/Weapons/Missiles.prefab",
+    "src/Asteroids3D/Assets/Prefabs/Weapons/Projectiles/Laser.prefab",
+    "src/Asteroids3D/Assets/Prefabs/Weapons/Projectiles/MissileProjectile.prefab",
+    "src/Asteroids3D/Assets/Scripts/Combat/Weapons/Conditions/Heat.cs"
+  ],
+  "notes": [
+    "Vanguard values and all six ship bar maxima verified against merged commit 7834963a013ba8a92d23998b314410a6c1fb62d1.",
+    "Acceleration is forwardForce 5600 divided by configured mass 800.",
+    "Lasers overheat count follows the current Heat.ShotsToOverheat formula.",
+    "Vanguard inherits Lasers and Missiles from ShipBase primaryMount/secondaryMount.",
+    "Keep the same ship, values, glyphs, and colors across all screen concept directions.",
+    "Keystone glyph source is the freshly merged main change; the owner primary checkout was older."
+  ],
+  "initialSourceCommit": "07fffad2a5a27954843e71d0a25b702d7586af67"
+}
