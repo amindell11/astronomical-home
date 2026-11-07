@@ -1,0 +1,10 @@
+import {readFile,writeFile} from 'node:fs/promises';
+import {dirname,join} from 'node:path';
+import {fileURLToPath} from 'node:url';
+const root=dirname(fileURLToPath(import.meta.url)),assetRoot=join(root,'../display-concepts-01/assets');
+const data=JSON.parse(await readFile(join(assetRoot,'screen-data.json'),'utf8'));
+const files=[data.shipIcon,data.keystone.icon,...data.weapons.map(item=>item.icon)];
+const icons=Object.fromEntries(await Promise.all(files.map(async path=>[path,`data:${path.endsWith('.svg')?'image/svg+xml':'image/png'};base64,${(await readFile(join(assetRoot,path))).toString('base64')}`])));
+const base=`data:image/png;base64,${(await readFile(join(root,'hardware-base.png'))).toString('base64')}`;
+await writeFile(join(root,'embedded-assets.js'),'window.CONSOLE_ASSETS='+JSON.stringify({base,icons})+';\n');
+console.log(JSON.stringify({status:'built',source:'hardware-base.png',icons:files,output:'embedded-assets.js'}));

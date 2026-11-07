@@ -1,5 +1,7 @@
 # Wider hull-diagram directions
 
+The owner [selected B on November 7](https://github.com/amindell11/astronomical-home/issues/684#issuecomment-6704567926). The [interactive B pass](../interactive-console-04/index.html) keeps that layout and explores effects, controls, and a detail display.
+
 The owner asked to remove the six right-hand selector buttons and expand the glass into that space. These four concepts keep the hull in the center, connect its stats with leader lines, integrate both weapons into the diagram, and give Guard Dash more space.
 
 Open the [review](index.html) to compare the screens inside the console and at larger sizes. The previous [compact pass](../display-refinement-02/index.html) remains available for comparison.

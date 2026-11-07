@@ -1,0 +1,27 @@
+{
+  "comparison": "effects-off.png to effects-on.png",
+  "effectChangedPixels": 149109,
+  "outsideEffectRegions": 0,
+  "outsideBounds": null,
+  "regions": {
+    "main": [
+      150,
+      497,
+      370,
+      319
+    ],
+    "detail": [
+      146,
+      848,
+      324,
+      42
+    ],
+    "hologram": [
+      610,
+      140,
+      840,
+      390
+    ]
+  },
+  "status": "passed"
+}
