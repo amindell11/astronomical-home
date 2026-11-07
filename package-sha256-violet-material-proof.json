@@ -1,0 +1,16 @@
+{
+  "files": 29,
+  "archive": "violet-material-proof.zip",
+  "bytes": 15934082,
+  "sha256": "b62108d961c2f3cb7fd798c24f23009cff734dc24fb5341cb2544a614570928c",
+  "sources": [
+    {
+      "file": "violet-refine.blend",
+      "sha256": "c25375548bb69ed1ad86ddbae65cb9d87ecbf3a0d46a0f12b5fdba42c8f5c634"
+    },
+    {
+      "file": "violet-painted.blend",
+      "sha256": "74a075325a1f30d9e4de1777d1992d01b06cc080c6315d81efe557bf1668726b"
+    }
+  ]
+}

@@ -1,0 +1,728 @@
+{
+  "stage": "One Violet geometry and mapped-material proof, not production acceptance",
+  "sources": [
+    {
+      "file": "violet-refine.blend",
+      "sha256": "c25375548bb69ed1ad86ddbae65cb9d87ecbf3a0d46a0f12b5fdba42c8f5c634",
+      "meshes": [
+        {
+          "name": "Rock_Host",
+          "parent": "Asteroid_Violet_Refinement",
+          "vertices": 304,
+          "faces": 207,
+          "boundary_edges": 0,
+          "nonmanifold_edges": 0,
+          "connected_components": [
+            {
+              "vertices": 304,
+              "faces": 207,
+              "surface_area": 24.48959907346392,
+              "bounds": [
+                [
+                  -2.5088000297546387,
+                  1.9730161428451538
+                ],
+                [
+                  -0.9350000023841858,
+                  1.037000060081482
+                ],
+                [
+                  -0.6640000343322754,
+                  0.9039155840873718
+                ]
+              ]
+            }
+          ],
+          "uv_layers": [],
+          "materials": [
+            "Rock host, slate",
+            "Fresh fracture"
+          ],
+          "role": "Solid material component"
+        },
+        {
+          "name": "Crystal_Main",
+          "parent": "Asteroid_Violet_Refinement",
+          "vertices": 20,
+          "faces": 15,
+          "boundary_edges": 0,
+          "nonmanifold_edges": 0,
+          "connected_components": [
+            {
+              "vertices": 20,
+              "faces": 15,
+              "surface_area": 2.31622713804245,
+              "bounds": [
+                [
+                  -0.206231027841568,
+                  0.613871693611145
+                ],
+                [
+                  -0.7443807721138,
+                  0.082002192735672
+                ],
+                [
+                  -0.491934210062027,
+                  0.5328502655029297
+                ]
+              ]
+            }
+          ],
+          "uv_layers": [],
+          "materials": [
+            "Amethyst, side planes",
+            "Amethyst, broken termination"
+          ],
+          "role": "Solid material component"
+        },
+        {
+          "name": "Crystal_Left",
+          "parent": "Asteroid_Violet_Refinement",
+          "vertices": 21,
+          "faces": 15,
+          "boundary_edges": 0,
+          "nonmanifold_edges": 0,
+          "connected_components": [
+            {
+              "vertices": 21,
+              "faces": 15,
+              "surface_area": 1.460003443993628,
+              "bounds": [
+                [
+                  -0.8691301345825195,
+                  -0.08441539108753204
+                ],
+                [
+                  -0.8810963034629822,
+                  -0.2720915973186493
+                ],
+                [
+                  -0.650411069393158,
+                  0.13163290917873383
+                ]
+              ]
+            }
+          ],
+          "uv_layers": [],
+          "materials": [
+            "Amethyst, side planes",
+            "Amethyst, broken termination"
+          ],
+          "role": "Solid material component"
+        },
+        {
+          "name": "Crystal_Right",
+          "parent": "Asteroid_Violet_Refinement",
+          "vertices": 18,
+          "faces": 14,
+          "boundary_edges": 0,
+          "nonmanifold_edges": 0,
+          "connected_components": [
+            {
+              "vertices": 18,
+              "faces": 14,
+              "surface_area": 1.483527071774006,
+              "bounds": [
+                [
+                  0.590246319770813,
+                  1.3078911304473877
+                ],
+                [
+                  -0.3768932819366455,
+                  0.12384127080440521
+                ],
+                [
+                  -0.6348800659179688,
+                  0.29106220602989197
+                ]
+              ]
+            }
+          ],
+          "uv_layers": [],
+          "materials": [
+            "Amethyst, side planes",
+            "Amethyst, broken termination"
+          ],
+          "role": "Solid material component"
+        },
+        {
+          "name": "Crystal_Fragment",
+          "parent": "Asteroid_Violet_Refinement",
+          "vertices": 18,
+          "faces": 14,
+          "boundary_edges": 0,
+          "nonmanifold_edges": 0,
+          "connected_components": [
+            {
+              "vertices": 18,
+              "faces": 14,
+              "surface_area": 0.5466123390942812,
+              "bounds": [
+                [
+                  1.0372521877288818,
+                  1.385625958442688
+                ],
+                [
+                  -0.11046311259269714,
+                  0.2517247200012207
+                ],
+                [
+                  -0.20776762068271637,
+                  0.2654443383216858
+                ]
+              ]
+            }
+          ],
+          "uv_layers": [],
+          "materials": [
+            "Amethyst, side planes",
+            "Amethyst, broken termination"
+          ],
+          "role": "Solid material component"
+        },
+        {
+          "name": "Mineral_Patch_RoofLeft",
+          "parent": "Asteroid_Violet_Refinement",
+          "vertices": 20,
+          "faces": 12,
+          "boundary_edges": 0,
+          "nonmanifold_edges": 0,
+          "connected_components": [
+            {
+              "vertices": 20,
+              "faces": 12,
+              "surface_area": 0.074512945022434,
+              "bounds": [
+                [
+                  -1.2002016305923462,
+                  -0.7835984826087952
+                ],
+                [
+                  -0.180323988199234,
+                  -0.06734953075647354
+                ],
+                [
+                  0.5472214221954346,
+                  0.6056520342826843
+                ]
+              ]
+            }
+          ],
+          "uv_layers": [],
+          "materials": [
+            "Warm mineral deposits"
+          ],
+          "role": "Solid material component"
+        },
+        {
+          "name": "Mineral_Patch_RoofCenter",
+          "parent": "Asteroid_Violet_Refinement",
+          "vertices": 20,
+          "faces": 12,
+          "boundary_edges": 0,
+          "nonmanifold_edges": 0,
+          "connected_components": [
+            {
+              "vertices": 20,
+              "faces": 12,
+              "surface_area": 0.05868247360922396,
+              "bounds": [
+                [
+                  0.6702942252159119,
+                  1.0943487882614136
+                ],
+                [
+                  0.15651902556419373,
+                  0.3074807822704315
+                ],
+                [
+                  0.7027780413627625,
+                  0.7616360783576965
+                ]
+              ]
+            }
+          ],
+          "uv_layers": [],
+          "materials": [
+            "Warm mineral deposits"
+          ],
+          "role": "Solid material component"
+        },
+        {
+          "name": "Mineral_Patch_RoofRight",
+          "parent": "Asteroid_Violet_Refinement",
+          "vertices": 20,
+          "faces": 12,
+          "boundary_edges": 0,
+          "nonmanifold_edges": 0,
+          "connected_components": [
+            {
+              "vertices": 20,
+              "faces": 12,
+              "surface_area": 0.08967542613390833,
+              "bounds": [
+                [
+                  1.007755994796753,
+                  1.5783292055130005
+                ],
+                [
+                  0.3032119572162628,
+                  0.440874308347702
+                ],
+                [
+                  0.28063735365867615,
+                  0.4146775007247925
+                ]
+              ]
+            }
+          ],
+          "uv_layers": [],
+          "materials": [
+            "Warm mineral deposits"
+          ],
+          "role": "Solid material component"
+        }
+      ],
+      "images": [],
+      "hidden_construction_objects": 13,
+      "camera": [
+        -3.0,
+        -8.0,
+        4.300000190734863
+      ]
+    },
+    {
+      "file": "violet-painted.blend",
+      "sha256": "74a075325a1f30d9e4de1777d1992d01b06cc080c6315d81efe557bf1668726b",
+      "meshes": [
+        {
+          "name": "Rock_Host",
+          "parent": "Asteroid_Violet_Refinement",
+          "vertices": 304,
+          "faces": 207,
+          "boundary_edges": 0,
+          "nonmanifold_edges": 0,
+          "connected_components": [
+            {
+              "vertices": 304,
+              "faces": 207,
+              "surface_area": 24.48959907346392,
+              "bounds": [
+                [
+                  -2.5088000297546387,
+                  1.9730161428451538
+                ],
+                [
+                  -0.9350000023841858,
+                  1.037000060081482
+                ],
+                [
+                  -0.6640000343322754,
+                  0.9039155840873718
+                ]
+              ]
+            }
+          ],
+          "uv_layers": [
+            "DirectionalPaintUV"
+          ],
+          "materials": [
+            "Painted slate, source swatch"
+          ],
+          "role": "Solid material component"
+        },
+        {
+          "name": "Crystal_Main",
+          "parent": "Asteroid_Violet_Refinement",
+          "vertices": 20,
+          "faces": 15,
+          "boundary_edges": 0,
+          "nonmanifold_edges": 0,
+          "connected_components": [
+            {
+              "vertices": 20,
+              "faces": 15,
+              "surface_area": 2.31622713804245,
+              "bounds": [
+                [
+                  -0.206231027841568,
+                  0.613871693611145
+                ],
+                [
+                  -0.7443807721138,
+                  0.082002192735672
+                ],
+                [
+                  -0.491934210062027,
+                  0.5328502655029297
+                ]
+              ]
+            }
+          ],
+          "uv_layers": [
+            "DirectionalPaintUV"
+          ],
+          "materials": [
+            "Painted amethyst, source swatch"
+          ],
+          "role": "Solid material component"
+        },
+        {
+          "name": "Crystal_Left",
+          "parent": "Asteroid_Violet_Refinement",
+          "vertices": 21,
+          "faces": 15,
+          "boundary_edges": 0,
+          "nonmanifold_edges": 0,
+          "connected_components": [
+            {
+              "vertices": 21,
+              "faces": 15,
+              "surface_area": 1.460003443993628,
+              "bounds": [
+                [
+                  -0.8691301345825195,
+                  -0.08441539108753204
+                ],
+                [
+                  -0.8810963034629822,
+                  -0.2720915973186493
+                ],
+                [
+                  -0.650411069393158,
+                  0.13163290917873383
+                ]
+              ]
+            }
+          ],
+          "uv_layers": [
+            "DirectionalPaintUV"
+          ],
+          "materials": [
+            "Painted amethyst, source swatch"
+          ],
+          "role": "Solid material component"
+        },
+        {
+          "name": "Crystal_Right",
+          "parent": "Asteroid_Violet_Refinement",
+          "vertices": 18,
+          "faces": 14,
+          "boundary_edges": 0,
+          "nonmanifold_edges": 0,
+          "connected_components": [
+            {
+              "vertices": 18,
+              "faces": 14,
+              "surface_area": 1.483527071774006,
+              "bounds": [
+                [
+                  0.590246319770813,
+                  1.3078911304473877
+                ],
+                [
+                  -0.3768932819366455,
+                  0.12384127080440521
+                ],
+                [
+                  -0.6348800659179688,
+                  0.29106220602989197
+                ]
+              ]
+            }
+          ],
+          "uv_layers": [
+            "DirectionalPaintUV"
+          ],
+          "materials": [
+            "Painted amethyst, source swatch"
+          ],
+          "role": "Solid material component"
+        },
+        {
+          "name": "Crystal_Fragment",
+          "parent": "Asteroid_Violet_Refinement",
+          "vertices": 18,
+          "faces": 14,
+          "boundary_edges": 0,
+          "nonmanifold_edges": 0,
+          "connected_components": [
+            {
+              "vertices": 18,
+              "faces": 14,
+              "surface_area": 0.5466123390942812,
+              "bounds": [
+                [
+                  1.0372521877288818,
+                  1.385625958442688
+                ],
+                [
+                  -0.11046311259269714,
+                  0.2517247200012207
+                ],
+                [
+                  -0.20776762068271637,
+                  0.2654443383216858
+                ]
+              ]
+            }
+          ],
+          "uv_layers": [
+            "DirectionalPaintUV"
+          ],
+          "materials": [
+            "Painted amethyst, source swatch"
+          ],
+          "role": "Solid material component"
+        },
+        {
+          "name": "Mineral_Patch_RoofLeft",
+          "parent": "Asteroid_Violet_Refinement",
+          "vertices": 20,
+          "faces": 12,
+          "boundary_edges": 0,
+          "nonmanifold_edges": 0,
+          "connected_components": [
+            {
+              "vertices": 20,
+              "faces": 12,
+              "surface_area": 0.074512945022434,
+              "bounds": [
+                [
+                  -1.2002016305923462,
+                  -0.7835984826087952
+                ],
+                [
+                  -0.180323988199234,
+                  -0.06734953075647354
+                ],
+                [
+                  0.5472214221954346,
+                  0.6056520342826843
+                ]
+              ]
+            }
+          ],
+          "uv_layers": [
+            "DirectionalPaintUV"
+          ],
+          "materials": [
+            "Warm broken mineral paint"
+          ],
+          "role": "Solid material component"
+        },
+        {
+          "name": "Mineral_Patch_RoofCenter",
+          "parent": "Asteroid_Violet_Refinement",
+          "vertices": 20,
+          "faces": 12,
+          "boundary_edges": 0,
+          "nonmanifold_edges": 0,
+          "connected_components": [
+            {
+              "vertices": 20,
+              "faces": 12,
+              "surface_area": 0.05868247360922396,
+              "bounds": [
+                [
+                  0.6702942252159119,
+                  1.0943487882614136
+                ],
+                [
+                  0.15651902556419373,
+                  0.3074807822704315
+                ],
+                [
+                  0.7027780413627625,
+                  0.7616360783576965
+                ]
+              ]
+            }
+          ],
+          "uv_layers": [
+            "DirectionalPaintUV"
+          ],
+          "materials": [
+            "Warm broken mineral paint"
+          ],
+          "role": "Solid material component"
+        },
+        {
+          "name": "Mineral_Patch_RoofRight",
+          "parent": "Asteroid_Violet_Refinement",
+          "vertices": 20,
+          "faces": 12,
+          "boundary_edges": 0,
+          "nonmanifold_edges": 0,
+          "connected_components": [
+            {
+              "vertices": 20,
+              "faces": 12,
+              "surface_area": 0.08967542613390833,
+              "bounds": [
+                [
+                  1.007755994796753,
+                  1.5783292055130005
+                ],
+                [
+                  0.3032119572162628,
+                  0.440874308347702
+                ],
+                [
+                  0.28063735365867615,
+                  0.4146775007247925
+                ]
+              ]
+            }
+          ],
+          "uv_layers": [
+            "DirectionalPaintUV"
+          ],
+          "materials": [
+            "Warm broken mineral paint"
+          ],
+          "role": "Solid material component"
+        },
+        {
+          "name": "Crystal_Main_PaleAccent_1",
+          "parent": "Asteroid_Violet_Refinement",
+          "vertices": 4,
+          "faces": 2,
+          "boundary_edges": 4,
+          "nonmanifold_edges": 4,
+          "connected_components": [
+            {
+              "vertices": 4,
+              "faces": 2,
+              "surface_area": 0.001289328036364168,
+              "bounds": [
+                [
+                  -0.07192281633615494,
+                  0.11744203418493271
+                ],
+                [
+                  -0.3697645664215088,
+                  -0.29826152324676514
+                ],
+                [
+                  0.41447386145591736,
+                  0.48662206530570984
+                ]
+              ]
+            }
+          ],
+          "uv_layers": [],
+          "materials": [
+            "Painted pale lavender edge accents"
+          ],
+          "role": "Open tapered paint accent"
+        },
+        {
+          "name": "Crystal_Main_PaleAccent_2",
+          "parent": "Asteroid_Violet_Refinement",
+          "vertices": 4,
+          "faces": 2,
+          "boundary_edges": 4,
+          "nonmanifold_edges": 4,
+          "connected_components": [
+            {
+              "vertices": 4,
+              "faces": 2,
+              "surface_area": 0.0012752549955621362,
+              "bounds": [
+                [
+                  0.2145434021949768,
+                  0.22730565071105957
+                ],
+                [
+                  -0.5620160102844238,
+                  -0.35008102655410767
+                ],
+                [
+                  0.5165384411811829,
+                  0.5262815356254578
+                ]
+              ]
+            }
+          ],
+          "uv_layers": [],
+          "materials": [
+            "Painted pale lavender edge accents"
+          ],
+          "role": "Open tapered paint accent"
+        },
+        {
+          "name": "Crystal_Left_PaleAccent_1",
+          "parent": "Asteroid_Violet_Refinement",
+          "vertices": 4,
+          "faces": 2,
+          "boundary_edges": 4,
+          "nonmanifold_edges": 4,
+          "connected_components": [
+            {
+              "vertices": 4,
+              "faces": 2,
+              "surface_area": 0.001139483938459307,
+              "bounds": [
+                [
+                  -0.5329064726829529,
+                  -0.34871652722358704
+                ],
+                [
+                  -0.5653358697891235,
+                  -0.5217279195785522
+                ],
+                [
+                  0.11049149185419083,
+                  0.125978022813797
+                ]
+              ]
+            }
+          ],
+          "uv_layers": [],
+          "materials": [
+            "Painted pale lavender edge accents"
+          ],
+          "role": "Open tapered paint accent"
+        }
+      ],
+      "images": [
+        {
+          "name": "violet-crystal-paint.png",
+          "path": "//paint\\violet-crystal-paint.png",
+          "packed": true,
+          "dimensions": [
+            1254,
+            1254
+          ]
+        },
+        {
+          "name": "violet-rock-paint.png",
+          "path": "//paint\\violet-rock-paint.png",
+          "packed": true,
+          "dimensions": [
+            1254,
+            1254
+          ]
+        }
+      ],
+      "hidden_construction_objects": 13,
+      "camera": [
+        -3.0,
+        -8.0,
+        4.300000190734863
+      ]
+    }
+  ],
+  "paint_sources": [
+    {
+      "file": "paint/violet-crystal-paint.png",
+      "sha256": "8fe751933c2f03fd1a6a0c397c2aed545b73b8c505372f3fcf5ea4d2e1dd5b28"
+    },
+    {
+      "file": "paint/violet-rock-paint.png",
+      "sha256": "9e4336635de9663b81dce150a6bf681e3fcc7dfef7e514188992a3b6e8663bcf"
+    }
+  ],
+  "contour_note": "Freestyle outer contours and selected fracture strokes are Blender render effects. Pale accents are separate open paint ribbons."
+}

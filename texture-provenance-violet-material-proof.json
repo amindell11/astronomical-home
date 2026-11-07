@@ -1,0 +1,13 @@
+{
+  "tool": "built-in image_gen",
+  "reference": "reference-violet.png",
+  "transparent_background": false,
+  "prompts": {
+    "rock": "Use case: precise-object-edit. Asset type: flat base-color texture for the ROCK PART ONLY of a stylized game asteroid. Input image 1 is the approved Violet asteroid concept, used only for its slate stone palette and hand-painted brush character. Extract and expand that stone surface paint into a square 1024px edge-to-edge material swatch suitable for UV mapping. There is NO depicted asteroid, crystal, object, scene, border, or label. Fill the entire image with opaque muted violet-gray slate paint, a restrained dark desaturated purple-gray base, broad uneven angular brush patches, long broken dry-brush streaks primarily top-to-bottom, subtle lighter dusty lavender scuffs, a few narrow graphite-colored fissure strokes. Several scales of marks, with readable quiet areas between them. Matte illustrated gouache style from the reference, restrained two-to-three-tone values, no photorealism. Uniform flat lighting with no baked cast shadows, ambient occlusion, specular highlights, depth, glow, or gradients across the whole swatch. Avoid huge isolated triangles, polygon/UV outlines, white borders, crystals, gold deposits, and a collage of boulders. Texture should be useful across multiple rock faces; the actual mesh will supply the shape, large fractures, shading and drawn contours. Opaque background, no transparency.",
+    "crystal": "Use case: precise-object-edit. Asset type: flat base-color texture for the separate AMETHYST CRYSTAL MESHES of a stylized game asteroid. Input image 1 is the approved Violet asteroid concept, used only for its crystal palette and hand-painted character. Extract and expand the purple crystal surface paint into a square 1024px edge-to-edge flat material swatch suitable for UV mapping. NO whole gemstone, no 3D object, no rock, no environment, no border, no labels. Fill the entire image with rich medium amethyst-purple brush paint, small variations of lavender and plum, a few broad slightly angled light-purple bands and subdued fine dry-brush striations primarily vertical. Keep value variation restrained so it will not fight the large planar faces of the actual crystal mesh. Hand-painted graphic gouache, matte, opaque, no glossy photographic reflections, no glitter, no bright white highlights, no glow, no baked lighting, no tessellated diamond/cell pattern, no black silhouette outlines. Actual mesh geometry and face shading will create the facet shapes. The result must look like a flat color-and-brush albedo material swatch, not a rendered crystal."
+  },
+  "files": {
+    "rock": "violet-rock-paint.png",
+    "crystal": "violet-crystal-paint.png"
+  }
+}
