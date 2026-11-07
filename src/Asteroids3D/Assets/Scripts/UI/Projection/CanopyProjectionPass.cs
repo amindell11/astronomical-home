@@ -11,6 +11,7 @@ namespace UI.Projection
     {
         private readonly CanopyProjection source;
         private readonly Material material;
+        private static readonly string[] HistoryNames = { "Canopy history 0", "Canopy history 1" };
         private readonly RTHandle[] history = new RTHandle[2];
         private int previous;
         private bool historyValid;
@@ -34,7 +35,7 @@ namespace UI.Projection
             descriptor.depthStencilFormat = GraphicsFormat.None;
             for (var i = 0; i < history.Length; i++)
                 if (RenderingUtils.ReAllocateHandleIfNeeded(ref history[i], descriptor, FilterMode.Bilinear,
-                        TextureWrapMode.Clamp, name: $"Canopy history {i}"))
+                        TextureWrapMode.Clamp, name: HistoryNames[i]))
                     historyValid = false;
 
             var ink = graph.ImportTexture(source.InkColor, new RenderTargetInfo
