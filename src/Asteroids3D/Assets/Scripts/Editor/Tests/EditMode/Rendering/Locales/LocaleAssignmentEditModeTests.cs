@@ -1,8 +1,8 @@
 using System.Linq;
 using Game;
 using NUnit.Framework;
-using Substrate.Sectors;
 using Substrate.Services.Locales;
+using Substrate.Sessions;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 
@@ -10,20 +10,22 @@ namespace Tests.EditMode.Rendering.Locales
 {
     /// <summary>
     /// The boot scene carries no sky, so every look the player sees comes from a locale prefab: each
-    /// authored sector config names one, and the host names the idle locale shown between sectors.
-    /// Configs built at runtime (headless and RL sessions, which never show locales) are exempt.
+    /// row of an authored sector run names one, and the host names the idle locale shown between sectors.
+    /// Runs built at runtime (headless and RL sessions, which never show locales) are exempt.
     /// </summary>
     [Category("Sectors")]
     public class LocaleAssignmentEditModeTests
     {
-        private static string[] SectorConfigPaths() => AssetDatabase.FindAssets($"t:{nameof(SectorSettings)}")
+        private static string[] SectorRunPaths() => AssetDatabase.FindAssets($"t:{nameof(SectorRun)}")
             .Select(AssetDatabase.GUIDToAssetPath).ToArray();
 
-        [TestCaseSource(nameof(SectorConfigPaths))]
-        public void AuthoredSectorConfig_NamesALocalePrefab(string configPath)
+        [TestCaseSource(nameof(SectorRunPaths))]
+        public void AuthoredSectorRun_NamesALocalePrefabOnEveryRow(string runPath)
         {
-            var config = AssetDatabase.LoadAssetAtPath<SectorSettings>(configPath);
-            AssertLocalePrefab(config.Locale, configPath);
+            var run = AssetDatabase.LoadAssetAtPath<SectorRun>(runPath);
+            Assert.That(run.Sectors, Is.Not.Empty, $"{runPath}: an authored run flies at least one sector.");
+            for (var i = 0; i < run.Sectors.Count; i++)
+                AssertLocalePrefab(run.Sectors[i].locale, $"{runPath} row {i}");
         }
 
         [Test]

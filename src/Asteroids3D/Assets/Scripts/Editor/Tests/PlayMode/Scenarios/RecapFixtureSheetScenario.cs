@@ -12,6 +12,7 @@ using Game.Preview;
 using NUnit.Framework;
 using Ships;
 using Substrate.Sectors;
+using Substrate.Services.Locales;
 using Substrate.Sessions;
 using Tests.PlayMode.Common;
 using Tests.PlayMode.Recording;
@@ -31,7 +32,7 @@ namespace Tests.PlayMode.Scenarios
     {
         private const string GameHostPath = "Assets/Prefabs/Game/GameHost.prefab";
         private const string SectorPrefabPath = "Assets/Prefabs/Sectors/TrialSector.prefab";
-        private const string SectorConfigPath = "Assets/Settings/Game/SurvivalTrialConfig.asset";
+        private const string LocalePath = "Assets/Prefabs/Locales/IllustratedBlue.prefab";
         private const string PanelTitle = "Preview Host";
         private static readonly (int width, int height)[] Sizes = { (1280, 720), (1680, 720) };
         private static readonly int[] BannerFixtures = { 2, 8 };
@@ -86,18 +87,17 @@ namespace Tests.PlayMode.Scenarios
             host = hostGo.AddComponent<PreviewHost>();
             host.sessionProfile = new SessionProfile
             {
-                sectors = new[]
+                run = SectorRun.Create(new SectorEntry
                 {
-                    new SectorEntry
-                    {
-                        prefab = AssetDatabase.LoadAssetAtPath<Sector>(SectorPrefabPath),
-                        config = AssetDatabase.LoadAssetAtPath<SectorSettings>(SectorConfigPath)
-                    }
-                },
+                    prefab = AssetDatabase.LoadAssetAtPath<Sector>(SectorPrefabPath),
+                    locale = AssetDatabase.LoadAssetAtPath<LocaleSky>(LocalePath)
+                }),
                 presentation = true
             };
             host.gameHostPrefab = AssetDatabase.LoadAssetAtPath<GameHost>(GameHostPath);
             Assert.IsTrue(host.gameHostPrefab, $"game host prefab at {GameHostPath}");
+            host.hudQuietSector = TestAssets.HudFixture("HudQuietSector");
+            host.hudExtractionSector = TestAssets.HudFixture("HudExtractionSector");
             hostGo.SetActive(true);
         }
 

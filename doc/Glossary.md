@@ -685,6 +685,12 @@ Format: **term** — definition. *(authority)*
   active scene or the boot scene's lighting. The boot scene carries none: every
   authored sector names one, and the session shows its idle locale between
   sectors.
+- **sector run** — the ordered sectors one run flies, one row each: the sector
+  prefab and the locale it shows. Authored as one asset edited as a table, so a
+  locale change never edits a prefab; tests, the preview and the headless lane
+  build theirs with `SectorRun.Create`. A presentation session refuses a row
+  with no locale at construction. *(`SectorRun`, `SessionProfile.run`,
+  `Settings/Game/SurvivalTrialRun.asset`)*
 - **idle locale** — the locale a presentation session shows while no sector is
   loaded (the hangar's backdrop). A sector naming the same locale keeps its
   instance across the hand-off. *(`SessionProfile.idleLocale`)*
