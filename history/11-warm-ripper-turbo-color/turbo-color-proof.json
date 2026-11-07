@@ -1,0 +1,18 @@
+{
+    "shotsFired": 18,
+    "brightenedPixels": 336,
+    "frame": "f_00070.png",
+    "frameDirectory": "D:\\amind\\git\\agent-4\\results\\capture\\frames\\20261107-090215-865-turbo-current-color",
+    "materials": [
+        {
+            "name": "Laser",
+            "shader": "Universal Render Pipeline/Particles/Unlit",
+            "emission": {
+                "r": 106.8269271850586,
+                "g": 1.0252783298492432,
+                "b": 108.67924499511719,
+                "a": 1.0
+            }
+        }
+    ]
+}

@@ -1,0 +1,73 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Turbolaser + Ripper | first shape study</title><style>
+*{box-sizing:border-box}html,body{margin:0;background:#080e18;color:#e5f1fc;font-family:Arial,sans-serif}canvas{display:block;max-width:100%;height:auto;margin:auto}button{background:#152635;color:#bcebf2;border:1px solid #365060;border-radius:8px;padding:10px 16px;cursor:pointer}nav{position:fixed;right:20px;top:20px;display:flex;gap:8px}body.motion canvas{max-width:100vw}body.capture nav{display:none}
+</style></head><body><canvas id="board"></canvas><nav><button id="motion">Play impact comparison</button><button id="pause">Pause</button></nav><script>
+__ENGINE__
+</script><script>
+const source=new Image();source.src='data:image/png;base64,__SOURCE__';
+const board=document.querySelector('canvas'),ctx=board.getContext('2d');
+const params=new URLSearchParams(location.search);let mode=params.has('motion'),paused=false,start=0,elapsed=0,engine;
+const ink='#e9f4fc',muted='#96aabb',cyan='#f1c466';
+const settings={durationMs:340,widthPx:48,fanMotion:.12,sparkReachPx:20,glow:.25};
+const impactLayer=document.createElement('canvas');impactLayer.width=700;impactLayer.height=600;const impactCtx=impactLayer.getContext('2d');
+const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
+function text(str,x,y,size=16,color=ink,weight=400){ctx.font=`${weight} ${size}px Arial`;ctx.fillStyle=color;ctx.fillText(str,x,y);}
+function panel(x,y,w,h){ctx.fillStyle='#101b29';ctx.beginPath();ctx.roundRect(x,y,w,h,16);ctx.fill();ctx.strokeStyle='#253648';ctx.lineWidth=1;ctx.stroke();}
+function line(x1,y1,x2,y2,color='#2b3c4e'){ctx.strokeStyle=color;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();}
+function polygon(points,color){ctx.fillStyle=color;ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();ctx.fill();}
+function fade(t){return t<=60?1:clamp((280-t)/220);}
+function impact(kind,x,y,width,time){impactCtx.clearRect(0,0,700,600);engine.draw(impactCtx,time,settings,[210,300],width);ctx.save();ctx.globalAlpha=fade(time);ctx.translate(x,y);if(kind==='turbo'){ctx.filter='hue-rotate(100deg) saturate(1.15)';ctx.scale(1,.75);}ctx.drawImage(impactLayer,-210,-300);ctx.restore();}
+function slug(kind,x,y,width=28){ctx.save();ctx.translate(x,y);const scale=width/(kind==='C'?19:28);ctx.scale(scale,scale);
+ if(kind==='A'){
+  polygon([[0,-1.5],[3,-4.3],[15,-3.4],[19,-1.4],[19,2.4],[14,4.1],[3,3.4],[0,1]],'#392d1b');
+  polygon([[0,-1.5],[3,-4.3],[15,-3.4],[19,-1.4],[4,-1],[1,1.2]],'#e9c96d');
+  polygon([[1,1.2],[4,-1],[18,-1.4],[16,1.3],[4,2.9]],'#9f7a35');
+  polygon([[0,-1.5],[3,-4.3],[4,-2],[2,1.5],[0,1]],'#fff5cf');
+  polygon([[19,-.7],[28,0],[19,1]],'#ffd262');
+ }else if(kind==='B'){
+  polygon([[0,0],[19,-3.7],[22,-1],[22,2.6],[18,3.4]],'#24495d');
+  polygon([[0,0],[19,-3.7],[21,-1.3],[5,.1]],'#b5e5e8');
+  polygon([[0,0],[19,.1],[18,3.4]],'#5797ab');
+  polygon([[21,-.6],[28,0],[21,.7]],'#70d8e6');
+ }else{
+  polygon([[0,-1],[2,-3.7],[6,-4.8],[10,-3],[12,0],[10,3.6],[5,4.7],[1,2.7]],'#386776');
+  polygon([[0,-1],[2,-3.7],[6,-4.8],[10,-3],[8,-.6],[3,.6]],'#d8f4f3');
+  polygon([[3,.6],[8,-.6],[10,1.4],[7,3.3],[3,2.5]],'#76bfcc');
+  polygon([[12,-.5],[19,0],[12,.7]],'#5eb9ca');
+ }
+ ctx.restore();
+}
+function ripperHit(x,y,width=34,time=0){const u=time/180;if(u>=1||u<0)return;ctx.save();ctx.translate(x,y);ctx.scale(width/34,width/34);ctx.globalAlpha=clamp(1-u*1.15);const spread=1+Math.sin(u*Math.PI)*.12;ctx.scale(spread,spread);
+ if(u<.62){
+ polygon([[0,-2],[3,-5],[11,-8],[17,-14],[14,-6],[24,-8],[19,-2],[31,0],[18,3],[23,11],[12,6],[8,9],[3,4],[0,2]],'#e7ab36');
+ polygon([[1,-1],[4,-3],[11,-5],[9,-1],[20,0],[10,2],[13,6],[5,3],[1,1]],'#ffe5a1');
+ polygon([[0,-1],[2,-3],[5,-2],[6,1],[3,3],[0,1]],'#fff8de');
+ }
+ const d=4+u*15;ctx.globalAlpha=clamp(1-u);
+ polygon([[22+d,-12],[26+d,-16],[24+d,-11]],'#ffe2a0');
+ polygon([[27+d,6],[32+d,8],[27+d,8]],'#f6bb4f');
+ polygon([[13+d,14],[16+d,17],[13+d,16]],'#ffe4ad');ctx.restore();
+}
+function contact(x,y,h=85){line(x,y-h/2,x,y+h/2,'#476379');ctx.fillStyle='#8fa7b6';ctx.beginPath();ctx.arc(x,y,2,0,Math.PI*2);ctx.fill();}
+function drawStudy(){board.width=1440;board.height=1100;ctx.fillStyle='#080e18';ctx.fillRect(0,0,1440,1100);
+ text('TURBOLASER + RIPPER',40,45,14,'#7c9caf',700);text('First shape study',40,86,34,ink,700);text('Same laser hit. A distinct ballistic projectile.',40,115,17,muted);
+ const cards=[{x:40,name:'Standard laser',tag:'APPROVED BASELINE',kind:'laser',color:'#62dbe8'},{x:740,name:'Turbolaser',tag:'COLOR CHANGE ONLY',kind:'turbo',color:'#eb89ea'}];
+ cards.forEach(c=>{panel(c.x,145,660,300);text(c.tag,c.x+24,174,11,c.color,700);text(c.name,c.x+24,202,24,ink,700);contact(c.x+73,315,103);impact(c.kind,c.x+77,315,190,0);text('Enlarged',c.x+74,424,13,muted);line(c.x+346,223,c.x+346,419);contact(c.x+405,313,69);impact(c.kind,c.x+408,313,48,0);text('48 px reference size',c.x+390,370,14,ink);text('Same shape, motion and fade',c.x+390,394,12,muted);});
+ text('Ripper projectile',40,492,25,ink,700);text('Three silhouettes. Travel direction is left.',40,519,16,muted);
+ const names=['Compact slug','Sharp dart','Small pellet'];
+ ['A','B','C'].forEach((k,i)=>{const x=40+i*466;panel(x,542,428,224);text(k,x+22,573,14,cyan,700);text(names[i],x+50,574,20,ink,700);if(i===0)text('SELECTED',x+313,573,10,cyan,700);slug(k,x+62,635,k==='C'?160:196);line(x+288,603,x+288,709);slug(k,x+330,638,28);text('Enlarged',x+62,710,13,muted);text('28 px',x+321,684,12,muted);text(i===0?'Faceted body, tiny tracer':i===1?'Long point, almost no tail':'Round body, very short streak',x+22,741,14,muted);});
+ panel(40,796,1360,252);text('SIMPLER RIPPER IMPACT',64,826,11,cyan,700);text('A tight burst with fewer shapes',64,857,24,ink,700);contact(105,947,105);ripperHit(110,947,159,0);text('Enlarged',113,1023,13,muted);line(401,869,401,1020);contact(473,945,60);ripperHit(477,945,34,0);text('34 px proposal',443,1005,13,muted);
+ text('180 ms proposal',665,909,23,ink,700);text('A small white contact, three broad shards,',665,944,17,muted);text('and a few sparks. Clears sooner than the laser.',665,971,17,muted);text('Projectile and hit share cyan-white highlights.',665,1005,15,'#7da5b3');
+ text('Shape sketches for review. Sizes are reference pixels, not a Unity flight capture.',40,1080,13,'#6e899e');
+}
+function drawMotion(t){board.width=1050;board.height=670;ctx.fillStyle='#080e18';ctx.fillRect(0,0,1050,670);text('TURBOLASER + RIPPER',32,35,12,'#7c9caf',700);text('Impact timing comparison',32,71,28,ink,700);text('Enlarged for review',32,99,15,muted);
+ const phase=t%1500,hitTime=phase-550;
+ ['laser','turbo','ripper'].forEach((kind,i)=>{const top=124+i*169,y=top+82;panel(24,top,1002,153);text(['Standard laser','Turbolaser','Ripper • compact slug'][i],45,top+29,18,ink,700);text(i===2?'Proposed 180 ms':'Approved fade: gone by 280 ms',45,top+54,12,muted);contact(397,y,90);
+ if(hitTime<0){const x=397+(-hitTime/550)*395;ctx.save();ctx.globalAlpha=clamp((phase-70)/80);if(i===2)slug('A',x,y,62);else{polygon([[x,y-2],[x+98,y-5],[x+114,y],[x+98,y+5],[x,y+2]],i===0?'#4fd8e7':'#e66fe0');polygon([[x,y-1],[x+99,y-2],[x+106,y],[x+99,y+2],[x,y+1]],'#f7fcfa');}ctx.restore();}
+ else if(i===2)ripperHit(401,y,100,hitTime);else impact(kind,401,y,148,hitTime);
+ text(hitTime<0?'In flight':hitTime<340?`${Math.floor(hitTime)} ms after contact`:'Clear',803,top+110,13,muted);});text('Native shape study. This is not a Unity capture.',32,657,12,'#6e899e');}
+window.renderAt=(time,motionMode=mode)=>{mode=motionMode;document.body.classList.toggle('motion',mode);mode?drawMotion(time):drawStudy();};
+document.querySelector('#motion').onclick=()=>{mode=!mode;document.querySelector('#motion').textContent=mode?'Show shape sheet':'Play impact comparison';start=performance.now();};
+document.querySelector('#pause').onclick=()=>{paused=!paused;document.querySelector('#pause').textContent=paused?'Play':'Pause';start=performance.now()-elapsed;};
+if(params.has('capture'))document.body.classList.add('capture');
+source.decode().then(()=>{engine=ImpactMotion.create(ImpactMotion.parse(source));window.ready=true;start=performance.now();function loop(now){if(!paused)elapsed=now-start;if(!params.has('capture'))window.renderAt(elapsed);requestAnimationFrame(loop);}window.renderAt(0);requestAnimationFrame(loop);});
+</script></body></html>
