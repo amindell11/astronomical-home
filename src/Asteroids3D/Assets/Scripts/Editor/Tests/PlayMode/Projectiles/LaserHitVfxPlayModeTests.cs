@@ -51,9 +51,29 @@ namespace Tests.PlayMode.Projectiles
         [UnityTest]
         public IEnumerator LaserHit_UsesContactAndOrientation_ExpiresAndReplaysFromPool()
         {
-            Fire("Laser", Vector3.up, Projectiles);
+            yield return HitCycle("Laser", "LaserImpact");
+        }
+
+        [UnityTest]
+        public IEnumerator TurboLaserHit_UsesItsOwnImpact_ExpiresAndReplaysFromPool()
+        {
+            yield return HitCycle("TurboLaser", "TurboLaserImpact");
+        }
+
+        [UnityTest]
+        public IEnumerator RipperHit_UsesItsOwnImpact_ExpiresAndReplaysFromPool()
+        {
+            yield return HitCycle("RipperSlug", "RipperImpact");
+        }
+
+        private IEnumerator HitCycle(string projectileName, string effectName)
+        {
+            Fire(projectileName, Vector3.up, Projectiles);
             yield return WaitForHit();
             var first = OnlyImpact();
+            var material = AssetDatabase.LoadAssetAtPath<Material>($"Assets/Visuals/Vfx/{effectName}/Materials/{effectName}.mat");
+            Assert.IsTrue(material);
+            Assert.AreSame(material, first.GetComponent<ParticleSystemRenderer>().sharedMaterial);
             Assert.Less(Vector3.Distance(first.transform.position, hitAt.Value), 0.001f);
             Assert.Less(Vector3.Angle(first.transform.up, Vector3.up), 0.01f);
             Assert.Greater(first.GetComponent<ParticleSystem>().particleCount, 0);
@@ -61,7 +81,7 @@ namespace Tests.PlayMode.Projectiles
             yield return new WaitForSeconds(0.4f);
             Assert.IsFalse(first.gameObject.activeSelf, "the short impact returns to its pool");
 
-            Fire("Laser", Vector3.right, Projectiles);
+            Fire(projectileName, Vector3.right, Projectiles);
             yield return WaitForHit();
             var second = OnlyImpact();
             Assert.AreSame(first, second, "the next hit reuses the expired impact");
@@ -71,24 +91,51 @@ namespace Tests.PlayMode.Projectiles
         }
 
         [UnityTest]
-        public IEnumerator HeadlessLaserHit_SpawnsNoImpact()
+        public IEnumerator HeadlessProjectileHits_SpawnNoImpact()
         {
             var host = Track(new GameObject("Headless projectiles"));
             var headless = new ProjectileService(host.transform, presentationEnabled: false);
-            Fire("Laser", Vector3.up, headless);
-            yield return WaitForHit();
-            Assert.IsEmpty(Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None));
+            foreach (var name in new[] { "Laser", "TurboLaser", "RipperSlug" })
+            {
+                var projectile = Fire(name, Vector3.up, headless);
+                foreach (var renderer in projectile.GetComponentsInChildren<Renderer>())
+                    Assert.IsFalse(renderer.enabled, $"{name}'s renderer must be dark headless");
+                yield return WaitForHit();
+                Assert.IsEmpty(Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None));
+            }
         }
 
         [UnityTest]
-        public IEnumerator TurboLaserHit_DoesNotInheritStandardLaserImpact()
+        public IEnumerator RipperVisual_FadesDuringFlight_AndRestoresOnReuse()
         {
-            Fire("TurboLaser", Vector3.up, Projectiles);
-            yield return WaitForHit();
-            Assert.IsEmpty(Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None));
+            var prefab = AssetDatabase.LoadAssetAtPath<Laser>("Assets/Prefabs/Weapons/Projectiles/RipperSlug.prefab");
+            var shooter = Track(new GameObject("Shooter")).AddComponent<Shooter>();
+            var projectile = SimplePool<Laser>.Get(prefab, Vector3.zero, Quaternion.identity);
+            Projectiles.Register(projectile, projectile.ReturnToPoolImmediate);
+            projectile.Initialize(shooter);
+            projectile.Launch(Vector3.up, Vector3.up * 50f);
+            var renderer = projectile.transform.Find("Slug").GetComponent<Renderer>();
+            var block = new MaterialPropertyBlock();
+            var baseColor = Shader.PropertyToID("_BaseColor");
+            while (projectile.gameObject.activeSelf && projectile.DistanceTraveled < projectile.MaxDistance * .85f)
+                yield return new WaitForFixedUpdate();
+            Assert.IsTrue(projectile.gameObject.activeSelf, "sample the moving slug before range expiry");
+            yield return null;
+            renderer.GetPropertyBlock(block);
+            Assert.That(block.GetColor(baseColor).a, Is.InRange(0.01f, .9f));
+            projectile.ReturnToPoolImmediate();
+            var reused = SimplePool<Laser>.Get(prefab, Vector3.zero, Quaternion.identity);
+            Assert.AreSame(projectile, reused);
+            Projectiles.Register(reused, reused.ReturnToPoolImmediate);
+            reused.Initialize(shooter);
+            reused.Launch(Vector3.up, Vector3.up * 50f);
+            yield return null;
+            renderer.GetPropertyBlock(block);
+            Assert.Greater(block.GetColor(baseColor).a, .95f, "the reused child must regain full opacity");
+            reused.ReturnToPoolImmediate();
         }
 
-        private void Fire(string prefabName, Vector3 direction, ProjectileService projectiles)
+        private Laser Fire(string prefabName, Vector3 direction, ProjectileService projectiles)
         {
             hitAt = null;
             var target = Track(new GameObject("Target") { layer = LayerIds.Ship });
@@ -105,6 +152,7 @@ namespace Tests.PlayMode.Projectiles
             projectile.ReturnedToPool += () => projectile.Hit -= RecordHit;
             projectile.Initialize(shooter);
             projectile.Launch(direction, target.transform.position);
+            return projectile;
         }
 
         private void RecordHit(Vector3 point, IDamageable _) => hitAt = point;
