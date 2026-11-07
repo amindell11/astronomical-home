@@ -27,3 +27,9 @@ One combined quality review found no correctness or scope issues. Its only edit 
 The Windows player build succeeded with zero errors. It was built from the tested working tree before the production commit, so its embedded identity records base `828d62d52811e70b40ac2911e818bff320a57f44` with `dirty: true`. The unchanged production payload was then committed as `36fb0b01ce8ec8498556a0246c9b674ba02ae480`. Generated build settings, bank copies and temporary helpers were excluded from that commit.
 
 The player launched and exposed its Astronomical window. The owner pressed Escape during computer control, so UI automation stopped before inspecting the hangar. The game captures above provide the visual verification; no further automated player input was sent.
+
+## Merge
+
+The owner instructed merge on 2026-11-07. [The combined pass](https://github.com/amindell11/astronomical-home/pull/1387) landed as `7c1a44d2ddcc7f16986a08057e5473b3f6035bcf`. Its integrated landing tree passed 1,570 tests with zero failures and two skips, plus the final ReSharper check with zero blocking findings. The merge-suite XML, summary and final static-check receipt are retained beside this note.
+
+Primary-tree sync refused because the owner's checkout remains on `fly/owner-flights`. No owner branch or edits were changed.
