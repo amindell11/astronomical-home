@@ -46,6 +46,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cooldown: 4
+  icon: {fileID: 21300000, guid: 476d89b5e7c3d8265b40f68708094ecb, type: 3}
   range: 12
   sightMinimum: 6
 --- !u!114 &3361187402269917645
