@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="9" result="Failed(Child)" total="9" passed="8" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-07 22:28:35Z" end-time="2026-11-07 22:28:43Z" duration="7.6944603">
+  <test-suite type="TestSuite" id="1695" name="Astronomical" fullname="Astronomical" runstate="Runnable" testcasecount="527" result="Failed" site="Child" start-time="2026-11-07 22:28:35Z" end-time="2026-11-07 22:28:43Z" duration="7.694460" total="9" passed="8" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1658" name="Tests.PlayMode.dll" fullname="D:/amind/git/agent-4/src/Asteroids3D/Library/ScriptAssemblies/Tests.PlayMode.dll" runstate="Runnable" testcasecount="523" result="Failed" site="Child" start-time="2026-11-07 22:28:35Z" end-time="2026-11-07 22:28:43Z" duration="7.671788" total="9" passed="8" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="51616" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1659" name="Tests" fullname="Tests" runstate="Runnable" testcasecount="523" result="Failed" site="Child" start-time="2026-11-07 22:28:35Z" end-time="2026-11-07 22:28:43Z" duration="7.662705" total="9" passed="8" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1660" name="PlayMode" fullname="Tests.PlayMode" runstate="Runnable" testcasecount="523" result="Failed" site="Child" start-time="2026-11-07 22:28:35Z" end-time="2026-11-07 22:28:43Z" duration="7.654094" total="9" passed="8" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1670" name="Projectiles" fullname="Tests.PlayMode.Projectiles" runstate="Runnable" testcasecount="9" result="Failed" site="Child" start-time="2026-11-07 22:28:35Z" end-time="2026-11-07 22:28:43Z" duration="7.637754" total="9" passed="8" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestFixture" id="1410" name="LaserHitVfxPlayModeTests" fullname="Tests.PlayMode.Projectiles.LaserHitVfxPlayModeTests" classname="Tests.PlayMode.Projectiles.LaserHitVfxPlayModeTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-11-07 22:28:35Z" end-time="2026-11-07 22:28:39Z" duration="3.411671" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="Category" value="Presentation" />
+              </properties>
+              <test-case id="1414" name="HeadlessProjectileHits_SpawnNoImpact" fullname="Tests.PlayMode.Projectiles.LaserHitVfxPlayModeTests.HeadlessProjectileHits_SpawnNoImpact" methodname="HeadlessProjectileHits_SpawnNoImpact" classname="Tests.PlayMode.Projectiles.LaserHitVfxPlayModeTests" runstate="Runnable" seed="375871961" result="Passed" start-time="2026-11-07 22:28:35Z" end-time="2026-11-07 22:28:36Z" duration="0.308007" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1411" name="LaserHit_UsesContactAndOrientation_ExpiresAndReplaysFromPool" fullname="Tests.PlayMode.Projectiles.LaserHitVfxPlayModeTests.LaserHit_UsesContactAndOrientation_ExpiresAndReplaysFromPool" methodname="LaserHit_UsesContactAndOrientation_ExpiresAndReplaysFromPool" classname="Tests.PlayMode.Projectiles.LaserHitVfxPlayModeTests" runstate="Runnable" seed="1435704626" result="Passed" start-time="2026-11-07 22:28:36Z" end-time="2026-11-07 22:28:37Z" duration="1.179298" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[FMOD] Please add an 'FMOD Studio Listener' component to your camera in the scene for correct 3D positioning of sounds.
+]]></output>
+              </test-case>
+              <test-case id="1413" name="RipperHit_UsesItsOwnImpact_ExpiresAndReplaysFromPool" fullname="Tests.PlayMode.Projectiles.LaserHitVfxPlayModeTests.RipperHit_UsesItsOwnImpact_ExpiresAndReplaysFromPool" methodname="RipperHit_UsesItsOwnImpact_ExpiresAndReplaysFromPool" classname="Tests.PlayMode.Projectiles.LaserHitVfxPlayModeTests" runstate="Runnable" seed="1865142473" result="Passed" start-time="2026-11-07 22:28:37Z" end-time="2026-11-07 22:28:37Z" duration="0.558725" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1415" name="RipperVisual_FadesDuringFlight_AndRestoresOnReuse" fullname="Tests.PlayMode.Projectiles.LaserHitVfxPlayModeTests.RipperVisual_FadesDuringFlight_AndRestoresOnReuse" methodname="RipperVisual_FadesDuringFlight_AndRestoresOnReuse" classname="Tests.PlayMode.Projectiles.LaserHitVfxPlayModeTests" runstate="Runnable" seed="1477705570" result="Passed" start-time="2026-11-07 22:28:37Z" end-time="2026-11-07 22:28:38Z" duration="0.861478" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1412" name="TurboLaserHit_UsesItsOwnImpact_ExpiresAndReplaysFromPool" fullname="Tests.PlayMode.Projectiles.LaserHitVfxPlayModeTests.TurboLaserHit_UsesItsOwnImpact_ExpiresAndReplaysFromPool" methodname="TurboLaserHit_UsesItsOwnImpact_ExpiresAndReplaysFromPool" classname="Tests.PlayMode.Projectiles.LaserHitVfxPlayModeTests" runstate="Runnable" seed="1935644876" result="Passed" start-time="2026-11-07 22:28:38Z" end-time="2026-11-07 22:28:39Z" duration="0.477918" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1416" name="TurboRipperImpactRenderCheck" fullname="Tests.PlayMode.Projectiles.TurboRipperImpactRenderCheck" classname="Tests.PlayMode.Projectiles.TurboRipperImpactRenderCheck" runstate="Runnable" testcasecount="4" result="Failed" site="Child" start-time="2026-11-07 22:28:39Z" end-time="2026-11-07 22:28:43Z" duration="4.223191" total="4" passed="3" failed="1" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="Category" value="Presentation" />
+                <property name="Category" value="RequiresGraphics" />
+              </properties>
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-case id="1420" name="RipperAsteroidImpactRenders" fullname="Tests.PlayMode.Projectiles.TurboRipperImpactRenderCheck.RipperAsteroidImpactRenders" methodname="RipperAsteroidImpactRenders" classname="Tests.PlayMode.Projectiles.TurboRipperImpactRenderCheck" runstate="Runnable" seed="1442089528" result="Passed" start-time="2026-11-07 22:28:39Z" end-time="2026-11-07 22:28:41Z" duration="2.039597" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[TURBO_RIPPER_IMPACT_RENDER target=ripper-asteroid changedPixels=5650 contact=(0.00, -2.02, 0.00)
+TURBO_RIPPER_IMPACT_TAIL target=ripper-asteroid changedPixelsAt300ms=0
+]]></output>
+              </test-case>
+              <test-case id="1419" name="RipperShipImpactRenders" fullname="Tests.PlayMode.Projectiles.TurboRipperImpactRenderCheck.RipperShipImpactRenders" methodname="RipperShipImpactRenders" classname="Tests.PlayMode.Projectiles.TurboRipperImpactRenderCheck" runstate="Runnable" seed="2091580430" result="Failed" start-time="2026-11-07 22:28:41Z" end-time="2026-11-07 22:28:41Z" duration="0.714494" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <failure>
+                  <message><![CDATA[  Expected: 1
+  But was:  0
+]]></message>
+                  <stack-trace><![CDATA[at Tests.PlayMode.Projectiles.TurboRipperImpactRenderCheck+<Check>d__7.MoveNext () [0x002b7] in D:\amind\git\agent-4\src\Asteroids3D\Assets\Scripts\Editor\Tests\PlayMode\Projectiles\TurboRipperImpactRenderCheck.cs:85
+at UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0003a] in .\Library\PackageCache\com.unity.test-framework@7056e7f856e9\UnityEngine.TestRunner\NUnitExtensions\Attributes\TestEnumerator.cs:44
+]]></stack-trace>
+                </failure>
+              </test-case>
+              <test-case id="1418" name="TurboAsteroidImpactRenders" fullname="Tests.PlayMode.Projectiles.TurboRipperImpactRenderCheck.TurboAsteroidImpactRenders" methodname="TurboAsteroidImpactRenders" classname="Tests.PlayMode.Projectiles.TurboRipperImpactRenderCheck" runstate="Runnable" seed="908199135" result="Passed" start-time="2026-11-07 22:28:41Z" end-time="2026-11-07 22:28:42Z" duration="0.205226" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[TURBO_RIPPER_IMPACT_RENDER target=turbo-asteroid changedPixels=9454 contact=(0.00, -2.09, 0.00)
+TURBO_RIPPER_IMPACT_TAIL target=turbo-asteroid changedPixelsAt300ms=0
+]]></output>
+              </test-case>
+              <test-case id="1417" name="TurboShipImpactRenders" fullname="Tests.PlayMode.Projectiles.TurboRipperImpactRenderCheck.TurboShipImpactRenders" methodname="TurboShipImpactRenders" classname="Tests.PlayMode.Projectiles.TurboRipperImpactRenderCheck" runstate="Runnable" seed="947726861" result="Passed" start-time="2026-11-07 22:28:42Z" end-time="2026-11-07 22:28:43Z" duration="1.259372" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[TURBO_RIPPER_IMPACT_RENDER target=turbo-ship changedPixels=10937 contact=(0.00, -1.34, 0.00)
+TURBO_RIPPER_IMPACT_TAIL target=turbo-ship changedPixelsAt300ms=0
+Saving results to: C:/Users/amind/AppData/LocalLow/AryeGames/Astronomical\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

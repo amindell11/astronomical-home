@@ -1,0 +1,97 @@
+{
+    "generatedAt":  "2026-11-07T14:34:55.6354732-08:00",
+    "projectPath":  "D:\\amind\\git\\agent-4\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "PlayMode",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "scopeResolved":  false,
+                      "testFilter":  "LaserHitVfxPlayModeTests|TurboRipperImpactRenderCheck|Tests.PlayMode.Recording.CaptureScenarioPlayModeTests",
+                      "testCategory":  "",
+                      "excludeCategory":  "",
+                      "categoryFilter":  "",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  "",
+                      "auto":  null,
+                      "withGraphics":  true,
+                      "captureScenario":  "RipperFlightScenario"
+                  },
+    "status":  "passed",
+    "totals":  {
+                   "total":  10,
+                   "passed":  10,
+                   "failed":  0,
+                   "skipped":  0,
+                   "durationSec":  25.573
+               },
+    "runs":  [
+                 {
+                     "platform":  "PlayMode",
+                     "xmlPath":  "D:\\amind\\git\\agent-4\\results\\unity-tests-agent\\20261107-143325-PlayMode.xml",
+                     "logPath":  "D:\\amind\\git\\agent-4\\results\\unity-tests-agent\\20261107-143325-PlayMode.log",
+                     "unityExitCode":  0,
+                     "status":  "passed",
+                     "total":  10,
+                     "passed":  10,
+                     "failed":  0,
+                     "skipped":  0,
+                     "durationSec":  25.573392,
+                     "failures":  [
+
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "captureScenario":  "RipperFlightScenario",
+                                       "auto":  null,
+                                       "scopeResolved":  false,
+                                       "excludeCategory":  "",
+                                       "scopeType":  "Workspace",
+                                       "assemblyNames":  "",
+                                       "rerunFailedFrom":  "",
+                                       "scopeName":  "",
+                                       "orderedTestListFile":  "",
+                                       "testCategory":  "",
+                                       "withGraphics":  true,
+                                       "testFilter":  "LaserHitVfxPlayModeTests|TurboRipperImpactRenderCheck|Tests.PlayMode.Recording.CaptureScenarioPlayModeTests",
+                                       "categoryFilter":  ""
+                                   },
+                     "startedAt":  "2026-11-07 22:34:25Z",
+                     "finishedAt":  "2026-11-07 22:34:51Z"
+                 }
+             ],
+    "wallTiming":  {
+                       "elapsedSec":  90.924,
+                       "startupToFirstTestSec":  53.252,
+                       "executionSec":  26,
+                       "remainingSec":  11.672,
+                       "unavailableReason":  ""
+                   },
+    "coverage":  {
+                     "verdict":  "partial",
+                     "reason":  "mode=PlayMode"
+                 },
+    "memory":  {
+                   "processes":  [
+                                     {
+                                         "pid":  47684,
+                                         "rootPeakPrivateGB":  5.66,
+                                         "rootPeakWorkingSetGB":  3.452,
+                                         "treePeakSampledPrivateGB":  5.109,
+                                         "treePeakSampledWorkingSetGB":  3.682,
+                                         "treeSumOfPeaksPrivateGB":  6.825,
+                                         "commitHeadroomAtLaunchGB":  32.03,
+                                         "commitHeadroomMinGB":  26.35,
+                                         "availablePhysicalAtLaunchGB":  5.77,
+                                         "availablePhysicalMinGB":  2.28,
+                                         "bootLaneReleasedAtSec":  9.825,
+                                         "treePeakAtSec":  68.643,
+                                         "samples":  13,
+                                         "samplesFailed":  0,
+                                         "unavailableReason":  ""
+                                     }
+                                 ],
+                   "unavailableReason":  ""
+               }
+}

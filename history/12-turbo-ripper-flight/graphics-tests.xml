@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="10" result="Passed" total="10" passed="10" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-07 22:34:25Z" end-time="2026-11-07 22:34:51Z" duration="25.573392">
+  <test-suite type="TestSuite" id="1695" name="Astronomical" fullname="Astronomical" runstate="Runnable" testcasecount="527" result="Passed" start-time="2026-11-07 22:34:25Z" end-time="2026-11-07 22:34:51Z" duration="25.573392" total="10" passed="10" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1658" name="Tests.PlayMode.dll" fullname="D:/amind/git/agent-4/src/Asteroids3D/Library/ScriptAssemblies/Tests.PlayMode.dll" runstate="Runnable" testcasecount="523" result="Passed" start-time="2026-11-07 22:34:25Z" end-time="2026-11-07 22:34:51Z" duration="25.542410" total="10" passed="10" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="47684" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1659" name="Tests" fullname="Tests" runstate="Runnable" testcasecount="523" result="Passed" start-time="2026-11-07 22:34:25Z" end-time="2026-11-07 22:34:51Z" duration="25.526848" total="10" passed="10" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1660" name="PlayMode" fullname="Tests.PlayMode" runstate="Runnable" testcasecount="523" result="Passed" start-time="2026-11-07 22:34:25Z" end-time="2026-11-07 22:34:51Z" duration="25.511962" total="10" passed="10" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1670" name="Projectiles" fullname="Tests.PlayMode.Projectiles" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-11-07 22:34:25Z" end-time="2026-11-07 22:34:31Z" duration="6.139491" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1410" name="LaserHitVfxPlayModeTests" fullname="Tests.PlayMode.Projectiles.LaserHitVfxPlayModeTests" classname="Tests.PlayMode.Projectiles.LaserHitVfxPlayModeTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-11-07 22:34:25Z" end-time="2026-11-07 22:34:28Z" duration="3.325451" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="Category" value="Presentation" />
+              </properties>
+              <test-case id="1414" name="HeadlessProjectileHits_SpawnNoImpact" fullname="Tests.PlayMode.Projectiles.LaserHitVfxPlayModeTests.HeadlessProjectileHits_SpawnNoImpact" methodname="HeadlessProjectileHits_SpawnNoImpact" classname="Tests.PlayMode.Projectiles.LaserHitVfxPlayModeTests" runstate="Runnable" seed="1212430535" result="Passed" start-time="2026-11-07 22:34:25Z" end-time="2026-11-07 22:34:25Z" duration="0.245621" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1411" name="LaserHit_UsesContactAndOrientation_ExpiresAndReplaysFromPool" fullname="Tests.PlayMode.Projectiles.LaserHitVfxPlayModeTests.LaserHit_UsesContactAndOrientation_ExpiresAndReplaysFromPool" methodname="LaserHit_UsesContactAndOrientation_ExpiresAndReplaysFromPool" classname="Tests.PlayMode.Projectiles.LaserHitVfxPlayModeTests" runstate="Runnable" seed="99056972" result="Passed" start-time="2026-11-07 22:34:25Z" end-time="2026-11-07 22:34:26Z" duration="1.079222" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[FMOD] Please add an 'FMOD Studio Listener' component to your camera in the scene for correct 3D positioning of sounds.
+]]></output>
+              </test-case>
+              <test-case id="1413" name="RipperHit_UsesItsOwnImpact_ExpiresAndReplaysFromPool" fullname="Tests.PlayMode.Projectiles.LaserHitVfxPlayModeTests.RipperHit_UsesItsOwnImpact_ExpiresAndReplaysFromPool" methodname="RipperHit_UsesItsOwnImpact_ExpiresAndReplaysFromPool" classname="Tests.PlayMode.Projectiles.LaserHitVfxPlayModeTests" runstate="Runnable" seed="2099443678" result="Passed" start-time="2026-11-07 22:34:26Z" end-time="2026-11-07 22:34:27Z" duration="0.581662" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1415" name="RipperVisual_FadesDuringFlight_AndRestoresOnReuse" fullname="Tests.PlayMode.Projectiles.LaserHitVfxPlayModeTests.RipperVisual_FadesDuringFlight_AndRestoresOnReuse" methodname="RipperVisual_FadesDuringFlight_AndRestoresOnReuse" classname="Tests.PlayMode.Projectiles.LaserHitVfxPlayModeTests" runstate="Runnable" seed="2077439309" result="Passed" start-time="2026-11-07 22:34:27Z" end-time="2026-11-07 22:34:28Z" duration="0.882601" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1412" name="TurboLaserHit_UsesItsOwnImpact_ExpiresAndReplaysFromPool" fullname="Tests.PlayMode.Projectiles.LaserHitVfxPlayModeTests.TurboLaserHit_UsesItsOwnImpact_ExpiresAndReplaysFromPool" methodname="TurboLaserHit_UsesItsOwnImpact_ExpiresAndReplaysFromPool" classname="Tests.PlayMode.Projectiles.LaserHitVfxPlayModeTests" runstate="Runnable" seed="841764986" result="Passed" start-time="2026-11-07 22:34:28Z" end-time="2026-11-07 22:34:28Z" duration="0.494732" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1416" name="TurboRipperImpactRenderCheck" fullname="Tests.PlayMode.Projectiles.TurboRipperImpactRenderCheck" classname="Tests.PlayMode.Projectiles.TurboRipperImpactRenderCheck" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-11-07 22:34:28Z" end-time="2026-11-07 22:34:31Z" duration="2.807438" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="Category" value="Presentation" />
+                <property name="Category" value="RequiresGraphics" />
+              </properties>
+              <test-case id="1420" name="RipperAsteroidImpactRenders" fullname="Tests.PlayMode.Projectiles.TurboRipperImpactRenderCheck.RipperAsteroidImpactRenders" methodname="RipperAsteroidImpactRenders" classname="Tests.PlayMode.Projectiles.TurboRipperImpactRenderCheck" runstate="Runnable" seed="1946184745" result="Passed" start-time="2026-11-07 22:34:28Z" end-time="2026-11-07 22:34:29Z" duration="0.724813" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[DEBUG-ripper-expiry] atHit projectile=RipperSlug asteroid=True active=1 includingInactive=1
+[DEBUG-ripper-expiry] atHit instance=-3830 name=RipperImpact(Clone) activeSelf=True returnAfter=0.230
+TURBO_RIPPER_IMPACT_RENDER target=ripper-asteroid changedPixels=5646 contact=(0.00, -2.02, 0.00)
+TURBO_RIPPER_IMPACT_TAIL target=ripper-asteroid changedPixelsAt300ms=0
+[DEBUG-ripper-expiry] originalLookup projectile=RipperSlug asteroid=True active=0 includingInactive=1 age=0.334 instance=-3830 activeSelf=False
+]]></output>
+              </test-case>
+              <test-case id="1419" name="RipperShipImpactRenders" fullname="Tests.PlayMode.Projectiles.TurboRipperImpactRenderCheck.RipperShipImpactRenders" methodname="RipperShipImpactRenders" classname="Tests.PlayMode.Projectiles.TurboRipperImpactRenderCheck" runstate="Runnable" seed="318060411" result="Passed" start-time="2026-11-07 22:34:29Z" end-time="2026-11-07 22:34:31Z" duration="1.577610" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[DEBUG-ripper-expiry] atHit projectile=RipperSlug asteroid=False active=1 includingInactive=1
+[DEBUG-ripper-expiry] atHit instance=-4202 name=RipperImpact(Clone) activeSelf=True returnAfter=0.230
+TURBO_RIPPER_IMPACT_RENDER target=ripper-ship changedPixels=5696 contact=(0.00, -1.27, 0.00)
+TURBO_RIPPER_IMPACT_TAIL target=ripper-ship changedPixelsAt300ms=0
+[DEBUG-ripper-expiry] originalLookup projectile=RipperSlug asteroid=False active=0 includingInactive=1 age=0.464 instance=-4202 activeSelf=False
+]]></output>
+              </test-case>
+              <test-case id="1418" name="TurboAsteroidImpactRenders" fullname="Tests.PlayMode.Projectiles.TurboRipperImpactRenderCheck.TurboAsteroidImpactRenders" methodname="TurboAsteroidImpactRenders" classname="Tests.PlayMode.Projectiles.TurboRipperImpactRenderCheck" runstate="Runnable" seed="978283968" result="Passed" start-time="2026-11-07 22:34:31Z" end-time="2026-11-07 22:34:31Z" duration="0.287640" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[DEBUG-ripper-expiry] atHit projectile=TurboLaser asteroid=True active=1 includingInactive=1
+[DEBUG-ripper-expiry] atHit instance=-4332 name=TurboLaserImpact(Clone) activeSelf=True returnAfter=0.390
+TURBO_RIPPER_IMPACT_RENDER target=turbo-asteroid changedPixels=9428 contact=(0.00, -2.09, 0.00)
+TURBO_RIPPER_IMPACT_TAIL target=turbo-asteroid changedPixelsAt300ms=0
+[DEBUG-ripper-expiry] originalLookup projectile=TurboLaser asteroid=True active=1 includingInactive=1 age=0.220 instance=-4332 activeSelf=True
+]]></output>
+              </test-case>
+              <test-case id="1417" name="TurboShipImpactRenders" fullname="Tests.PlayMode.Projectiles.TurboRipperImpactRenderCheck.TurboShipImpactRenders" methodname="TurboShipImpactRenders" classname="Tests.PlayMode.Projectiles.TurboRipperImpactRenderCheck" runstate="Runnable" seed="848286705" result="Passed" start-time="2026-11-07 22:34:31Z" end-time="2026-11-07 22:34:31Z" duration="0.208859" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[DEBUG-ripper-expiry] atHit projectile=TurboLaser asteroid=False active=1 includingInactive=1
+[DEBUG-ripper-expiry] atHit instance=-4648 name=TurboLaserImpact(Clone) activeSelf=True returnAfter=0.390
+TURBO_RIPPER_IMPACT_RENDER target=turbo-ship changedPixels=10838 contact=(0.00, -1.34, 0.00)
+TURBO_RIPPER_IMPACT_TAIL target=turbo-ship changedPixelsAt300ms=0
+[DEBUG-ripper-expiry] originalLookup projectile=TurboLaser asteroid=False active=1 includingInactive=1 age=0.150 instance=-4648 activeSelf=True
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+          <test-suite type="TestSuite" id="1668" name="Recording" fullname="Tests.PlayMode.Recording" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-11-07 22:34:31Z" end-time="2026-11-07 22:34:51Z" duration="19.346041" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1399" name="CaptureScenarioPlayModeTests" fullname="Tests.PlayMode.Recording.CaptureScenarioPlayModeTests" classname="Tests.PlayMode.Recording.CaptureScenarioPlayModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-07 22:34:31Z" end-time="2026-11-07 22:34:51Z" duration="19.340265" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="Category" value="Camera" />
+                <property name="Category" value="RequiresGraphics" />
+              </properties>
+              <test-case id="1400" name="RunsRequestedScenario" fullname="Tests.PlayMode.Recording.CaptureScenarioPlayModeTests.RunsRequestedScenario" methodname="RunsRequestedScenario" classname="Tests.PlayMode.Recording.CaptureScenarioPlayModeTests" runstate="Runnable" seed="499095098" result="Passed" start-time="2026-11-07 22:34:31Z" end-time="2026-11-07 22:34:51Z" duration="19.336019" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="Timeout" value="600000" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+Execute is not implemented, the pass UI.Projection.CanopyProjectionPass won't be executed in the current render loop.
+[RipperFlight] 14 actual shots, 124 brightened pixels, 49 warm pixels, evidence frame f_00089.png
+[Capture] 101 frames -> D:\amind\git\agent-4\results\capture\frames\20261107-223436-033-ripper-flight
+Saving results to: C:/Users/amind/AppData/LocalLow/AryeGames/Astronomical\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>
