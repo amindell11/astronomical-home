@@ -96,6 +96,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1111111111111111111, guid: d4f6577bb30c48945a17243a523023ff,
         type: 3}
+      propertyPath: impactEvent.Path
+      value: event:/Weapons/TurboLaser/Impact
+      objectReference: {fileID: 0}
+    - target: {fileID: 1111111111111111111, guid: d4f6577bb30c48945a17243a523023ff,
+        type: 3}
       propertyPath: impactEvent.Guid.Data1
       value: -59491752
       objectReference: {fileID: 0}
@@ -114,15 +119,20 @@ PrefabInstance:
       propertyPath: impactEvent.Guid.Data4
       value: 1414402970
       objectReference: {fileID: 0}
-    - target: {fileID: 1111111111111111111, guid: d4f6577bb30c48945a17243a523023ff,
-        type: 3}
-      propertyPath: impactEvent.Path
-      value: event:/Weapons/TurboLaser/Impact
-      objectReference: {fileID: 0}
     - target: {fileID: 2028383931407238149, guid: d4f6577bb30c48945a17243a523023ff,
         type: 3}
       propertyPath: m_Name
       value: TurboLaser
+      objectReference: {fileID: 0}
+    - target: {fileID: 3333333333333333333, guid: d4f6577bb30c48945a17243a523023ff,
+        type: 3}
+      propertyPath: hitEffect
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 3333333333333333333, guid: d4f6577bb30c48945a17243a523023ff,
+        type: 3}
+      propertyPath: alignWithProjectile
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3815271880710915890, guid: d4f6577bb30c48945a17243a523023ff,
         type: 3}
