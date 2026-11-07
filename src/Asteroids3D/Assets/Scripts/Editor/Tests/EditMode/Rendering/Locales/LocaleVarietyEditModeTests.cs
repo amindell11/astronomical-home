@@ -13,8 +13,8 @@ namespace Tests.EditMode.Rendering.Locales
     {
         [TestCase(4, "coral-sunset", "CoralSunset")]
         [TestCase(5, "cyan-aurora", "CyanAurora")]
-        [TestCase(6, "violet-planet", "VerdantGiant")]
-        [TestCase(7, "amber-planet", "BlueCrescent")]
+        [TestCase(6, "violet-planet", "VerdantGiant", Category = "RequiresLfsPng")]
+        [TestCase(7, "amber-planet", "BlueCrescent", Category = "RequiresLfsPng")]
         public void PreviewConfigSelectsItsCompleteLocaleWithIndependentPaletteMaterials(int number, string palette, string config)
         {
             var locale = AssetDatabase.LoadAssetAtPath<LocaleSky>($"Assets/Prefabs/Locales/Locale_{number}.prefab");

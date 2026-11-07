@@ -59,7 +59,7 @@ namespace Tests.PlayMode.Screens
                 screen.Apply, () => screen.Continued));
         }
 
-        [Test]
+        [Test, Category("RequiresLfsPng")]
         public void RecordedWeaponIcons_MatchEveryAuthoredWeaponHudIcon()
         {
             var catalog = RecapWeaponIcons.Load();
@@ -73,7 +73,7 @@ namespace Tests.PlayMode.Screens
             Assert.IsNull(catalog.Find("Removed historical weapon"));
         }
 
-        [Test]
+        [Test, Category("RequiresLfsPng")]
         public void EveryPlayableChassis_HasANonEmptyTransparentSilhouette()
         {
             foreach (var guid in AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/Prefabs/Ships" }))
@@ -93,7 +93,7 @@ namespace Tests.PlayMode.Screens
             }
         }
 
-        [UnityTest]
+        [UnityTest, Category("RequiresLfsPng")]
         public IEnumerator SectorRecap_ShowsSectorKillsAndTime_WithoutScoreboard()
         {
             Play(RecapOutcomeContext.Extraction(new[] { "Valis", "Crimson" }, 2, 222.8f));
@@ -111,13 +111,13 @@ namespace Tests.PlayMode.Screens
             Assert.IsTrue(screen.Continued);
         }
 
-        [UnityTest]
+        [UnityTest, Category("RequiresLfsPng")]
         public IEnumerator Victory_ShowsGreenOutcomeAndScoreboardOnSameCard()
         {
             yield return RunEnding(true);
         }
 
-        [UnityTest]
+        [UnityTest, Category("RequiresLfsPng")]
         public IEnumerator Defeat_ShowsRedOutcomeAndOnlyClearedSectors()
         {
             yield return RunEnding(false);
@@ -252,7 +252,7 @@ namespace Tests.PlayMode.Screens
             Assert.IsFalse(screen.Continued);
         }
 
-        [UnityTest]
+        [UnityTest, Category("RequiresLfsPng")]
         public IEnumerator ExtractionScreenOnly_KeepsTheClockAndCompletesOnce()
         {
             var context = RecapOutcomeContext.Extraction(new[] { "Valis" }, 1, 42f);
@@ -279,7 +279,7 @@ namespace Tests.PlayMode.Screens
             Assert.AreEqual(.65f, Time.timeScale);
         }
 
-        [UnityTest]
+        [UnityTest, Category("RequiresLfsPng")]
         public IEnumerator CancellationDuringThePressHold_DisposesInputAndTheScreen()
         {
             var context = RecapOutcomeContext.Victory(Array.Empty<string>(), 3, 3,
@@ -308,7 +308,7 @@ namespace Tests.PlayMode.Screens
             Assert.AreEqual(actionsBefore, InputSystem.ListEnabledActions().Count);
         }
 
-        [UnityTest]
+        [UnityTest, Category("RequiresLfsPng")]
         public IEnumerator LongRun_KeepsEveryTrophyAndTheCurrentRankVisible()
         {
             var previous = Enumerable.Range(0, 8).Select(i => new Scoreboard.Row(3, 100 + i, 900, DateTime.UtcNow)).ToArray();

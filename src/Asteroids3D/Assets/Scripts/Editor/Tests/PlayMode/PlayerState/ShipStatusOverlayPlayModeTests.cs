@@ -123,7 +123,7 @@ namespace Tests.PlayMode.PlayerState
             Assert.AreEqual(healthColor, FillEdge(bars[1]).color);
         }
 
-        [UnityTest]
+        [UnityTest, Category("RequiresLfsPng")]
         public IEnumerator Indicators_FollowZoomConcealmentResetFadeAndRegistryRemoval()
         {
             var camera = new GameObject("Camera").AddComponent<Camera>();

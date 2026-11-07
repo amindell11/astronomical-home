@@ -17,7 +17,7 @@ using UnityEditor;
 
 namespace Tests.PlayMode.Crosshairs
 {
-    [Category("Weapons")]
+    [Category("Weapons"), Category("RequiresLfsPng")]
     public sealed class WeaponResourceHudPlayModeTests : PlayModeWorldFixture
     {
         private GameObject root;

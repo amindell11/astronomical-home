@@ -367,7 +367,7 @@ namespace Tests.EditMode.Ships
             Assert.That(dash.Cooldown, Is.EqualTo(cooldown), $"{chassis}: cooldown");
         }
 
-        [Test]
+        [Test, Category("RequiresLfsPng")]
         public void Kits_AuthorTheirHudIcons()
         {
             AssertIcon("Vanguard_Dash", "Assets/Visuals/Ui/Keystones/Generated/dash.png");

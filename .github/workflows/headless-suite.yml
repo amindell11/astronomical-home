@@ -22,6 +22,8 @@ env:
   # Same editor as unityVersion below; the hosted ratchet needs its reference assemblies, not a licence.
   EDITOR_IMAGE: unityci/editor:ubuntu-6000.1.8f1-linux-il2cpp-3
   RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+  # Meshes and models only. PNG art stays a pointer file; tests that read it carry RequiresLfsPng.
+  LFS_INCLUDE: src/Asteroids3D/Assets/**/*.fbx,src/Asteroids3D/Assets/**/*.FBX,src/Asteroids3D/Assets/**/*.obj,src/Asteroids3D/Assets/**/*.onnx
 
 jobs:
   headless:
@@ -54,6 +56,25 @@ jobs:
           status="$(jq -r '.status // empty' results/resharper-ratchet/summary.json 2>/dev/null || true)"
           [ "$status" != skipped ] || echo "skipped=1" >> "$GITHUB_OUTPUT"
 
+      - name: LFS cache key
+        id: lfs-key
+        run: |
+          oids="$(git lfs ls-files -l -I "$LFS_INCLUDE" | cut -d' ' -f1 | sort | sha256sum | cut -c1-16)"
+          echo "key=lfs-assets-$oids" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v4
+        with:
+          path: .git/lfs
+          key: ${{ steps.lfs-key.outputs.key }}
+          restore-keys: lfs-assets-
+
+      # Light checkout: a full LFS pull per push would spend the monthly bandwidth allowance.
+      - name: LFS light pull
+        run: |
+          git lfs install --local
+          git lfs pull --include="$LFS_INCLUDE" --exclude=""
+          du -sh .git/lfs
+
       # game-ci's container mounts only the workspace, so the vendor tarball the committed manifest names is
       # unreachable here: the suite compiles against the FMOD stub instead (doc/agents/audio-pipeline.md).
       - name: FMOD stub
@@ -83,7 +104,7 @@ jobs:
           projectPath: src/Asteroids3D
           unityVersion: 6000.1.8f1
           testMode: editmode
-          customParameters: -testCategory !RequiresGraphics -syncSolutionForCi
+          customParameters: -testCategory !RequiresGraphics;!RequiresLfsPng -syncSolutionForCi
           # Empty token: the default github.token would post a second, edit-mode-only "Test Results" check.
           githubToken: ''
           artifactsPath: headless-artifacts
@@ -101,7 +122,7 @@ jobs:
           projectPath: src/Asteroids3D
           unityVersion: 6000.1.8f1
           testMode: playmode
-          customParameters: -testCategory !RequiresGraphics -syncSolutionForCi
+          customParameters: -testCategory !RequiresGraphics;!RequiresLfsPng -syncSolutionForCi
           githubToken: ${{ secrets.GITHUB_TOKEN }}
           checkName: headless-suite
           artifactsPath: headless-artifacts
