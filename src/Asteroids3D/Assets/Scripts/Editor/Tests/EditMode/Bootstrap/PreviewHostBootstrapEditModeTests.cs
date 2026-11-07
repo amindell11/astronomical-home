@@ -31,14 +31,17 @@ namespace Tests.EditMode.Bootstrap
             Assert.AreEqual(PreviewHostBootstrap.GameHostPath, AssetDatabase.GetAssetPath(host.gameHostPrefab),
                 "Playtest runs the GameHost prefab the boot scene instances");
             Assert.IsTrue(host.sessionProfile.presentation, "the preview shows presentation");
-            Assert.IsTrue(host.sessionProfile.sectors[0].prefab, "replay sector prefab assigned");
-            Assert.IsTrue(host.sessionProfile.sectors[0].config, "replay sector config assigned");
+            var run = host.gameHostPrefab.sessionProfile.run;
+            Assert.That(host.sessionProfile.run, Is.SameAs(run), "Replay flies the game's own sector run");
             Assert.That(host.crowdedJumpSectors.Select(entry => entry.prefab.name),
                 Is.EqualTo(new[] { "CrowdedJumpDeparture", "CrowdedJumpArrival" }));
-            Assert.That(host.crowdedJumpSectors.All(entry => entry.config), Is.True, "crowded jump configs assigned");
+            Assert.That(host.crowdedJumpSectors.Select(entry => entry.locale.name),
+                Is.EqualTo(new[] { "IllustratedBlue", "CopperTurquoise" }));
             var hud = new[] { host.hudQuietSector, host.hudExtractionSector };
             Assert.That(hud.Select(entry => entry.prefab.name), Is.EqualTo(new[] { "HudQuietSector", "HudExtractionSector" }));
-            Assert.That(hud.All(entry => entry.config), Is.True, "HUD fixture configs assigned");
+            Assert.That(hud.Select(entry => entry.locale), Is.All.SameAs(run.Sectors[0].locale),
+                "the HUD fixtures show the run's first locale");
+            Assert.That(host.bossSector.locale, Is.SameAs(run.Sectors[^1].locale), "the boss shows the run's last locale");
         }
 
         [Test]
