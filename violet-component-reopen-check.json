@@ -1,0 +1,179 @@
+{
+  "stage": "Untextured Violet component geometry study, visual approval pending",
+  "source": "violet-components.blend",
+  "source_sha256": "cd7632bc5da77518791d5cc95259aa2554975e478bbb67cc62e39d45c05ef53b",
+  "components": [
+    {
+      "name": "Rock_Host",
+      "parent": "Asteroid_Violet_Prototype",
+      "vertices": 476,
+      "faces": 308,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "materials": [
+        "Rock host - slate",
+        "Fresh rock fracture"
+      ]
+    },
+    {
+      "name": "Crystal_Main",
+      "parent": "Asteroid_Violet_Prototype",
+      "vertices": 14,
+      "faces": 9,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "materials": [
+        "Amethyst mineral",
+        "Amethyst broken faces"
+      ]
+    },
+    {
+      "name": "Crystal_Left",
+      "parent": "Asteroid_Violet_Prototype",
+      "vertices": 12,
+      "faces": 8,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "materials": [
+        "Amethyst mineral",
+        "Amethyst broken faces"
+      ]
+    },
+    {
+      "name": "Crystal_Right",
+      "parent": "Asteroid_Violet_Prototype",
+      "vertices": 12,
+      "faces": 8,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "materials": [
+        "Amethyst mineral",
+        "Amethyst broken faces"
+      ]
+    },
+    {
+      "name": "Crystal_UpperFragment",
+      "parent": "Asteroid_Violet_Prototype",
+      "vertices": 12,
+      "faces": 8,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "materials": [
+        "Amethyst mineral",
+        "Amethyst broken faces"
+      ]
+    },
+    {
+      "name": "Mineral_Patch_Left",
+      "parent": "Asteroid_Violet_Prototype",
+      "vertices": 12,
+      "faces": 8,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "materials": [
+        "Warm mineral seam"
+      ]
+    },
+    {
+      "name": "Mineral_Patch_Right",
+      "parent": "Asteroid_Violet_Prototype",
+      "vertices": 12,
+      "faces": 8,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "materials": [
+        "Warm mineral seam"
+      ]
+    },
+    {
+      "name": "Mineral_Patch_Lower",
+      "parent": "Asteroid_Violet_Prototype",
+      "vertices": 12,
+      "faces": 8,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "materials": [
+        "Warm mineral seam"
+      ]
+    }
+  ],
+  "hidden_editable_host_construction": {
+    "count": 20,
+    "hidden_from_render": true,
+    "objects": [
+      "Host_Core",
+      "Host_Roof",
+      "Host_LowerJaw",
+      "Stratum_Left",
+      "Stratum_Central",
+      "Stratum_Right",
+      "Fracture_Void",
+      "Upper right broken shoulder",
+      "Left end sheared corner",
+      "Broken lower jaw end",
+      "Rear stratum shear",
+      "Roof lip oblique incision",
+      "Rear left slant",
+      "Rear right slant",
+      "Left diagonal face",
+      "Lower sill missing wedge",
+      "Lower sill stepped neighbor",
+      "Left stratum broken end",
+      "Central stratum side fracture",
+      "Right stratum end fracture"
+    ]
+  },
+  "image_textures": [],
+  "saved_hero_camera": {
+    "name": "ReviewCamera",
+    "location": [
+      -3.0,
+      -8.0,
+      4.300000190734863
+    ]
+  },
+  "saved_viewports": [
+    {
+      "view": "CAMERA",
+      "shading": "MATERIAL"
+    },
+    {
+      "view": "CAMERA",
+      "shading": "MATERIAL"
+    },
+    {
+      "view": "CAMERA",
+      "shading": "MATERIAL"
+    },
+    {
+      "view": "CAMERA",
+      "shading": "MATERIAL"
+    },
+    {
+      "view": "CAMERA",
+      "shading": "MATERIAL"
+    },
+    {
+      "view": "CAMERA",
+      "shading": "MATERIAL"
+    },
+    {
+      "view": "CAMERA",
+      "shading": "MATERIAL"
+    },
+    {
+      "view": "CAMERA",
+      "shading": "MATERIAL"
+    },
+    {
+      "view": "CAMERA",
+      "shading": "MATERIAL"
+    },
+    {
+      "view": "CAMERA",
+      "shading": "MATERIAL"
+    }
+  ],
+  "outer_contour": "Blender Freestyle in plain-material mode; no ink in clay mode",
+  "exports": "Not produced at geometry-review stage"
+}
