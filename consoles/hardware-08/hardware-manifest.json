@@ -1,0 +1,289 @@
+{
+  "input": "D:\\amind\\scratch\\ui-mockups-20261029-console\\consoles\\perspective-07\\perspective.blend",
+  "inputSha256": "ae87fef712f123d7679eed28ca7e3a766838d17ca61c5e9be3b00a932c0beffc",
+  "inputUnchanged": true,
+  "cameraUnchanged": true,
+  "screenTransformsUnchanged": true,
+  "shipTransformUnchanged": true,
+  "lightsUnchanged": true,
+  "cameraLens": 33.0,
+  "newObjects": 99,
+  "retiredObjects": [
+    "07 | Monitor single front casting",
+    "07 | Top trim",
+    "07 | Display divider",
+    "07 | Power switch socket",
+    "07 | Power switch",
+    "07 | Status light recess",
+    "07 | Selector cap",
+    "07 | Selector collar",
+    "07 | Previous cap",
+    "07 | Previous socket",
+    "07 | Next cap",
+    "07 | Next socket",
+    "07 | Projector raked apron",
+    "07 | Projector aperture cutout",
+    "07 reuse | Projector aperture metal lip",
+    "07 reuse | Projector captive mounting bolt hex fastener",
+    "07 reuse | Projector captive mounting bolt hex fastener.001",
+    "07 reuse | Projector captive mounting bolt recessed seat",
+    "07 reuse | Projector captive mounting bolt recessed seat.001",
+    "07 reuse | Projector captive mounting bolt slot",
+    "07 reuse | Projector captive mounting bolt slot.001",
+    "07 reuse | Projector front service plate",
+    "07 reuse | Projector frosted luminous lens",
+    "07 reuse | Projector full rear body",
+    "07 reuse | Projector housing side cooling rib",
+    "07 reuse | Projector housing side cooling rib.001",
+    "07 reuse | Projector housing side cooling rib.002",
+    "07 reuse | Projector housing side cooling rib.003",
+    "07 reuse | Projector housing side cooling rib.004",
+    "07 reuse | Projector housing side cooling rib.005",
+    "07 reuse | Projector housing side cooling rib.006",
+    "07 reuse | Projector housing side cooling rib.007",
+    "07 reuse | Projector housing side cooling rib.008",
+    "07 reuse | Projector housing side cooling rib.009",
+    "07 reuse | Projector housing side cooling rib.010",
+    "07 reuse | Projector housing side cooling rib.011",
+    "07 reuse | Projector mounting foot",
+    "07 reuse | Projector upper aperture well",
+    "07 reuse | Projector warm power light lens",
+    "07 reuse | Projector warm power light rim",
+    "07 reuse | Projector warm power light socket",
+    "07 | Cooling bank surround",
+    "07 | Raked cooling rib 1",
+    "07 | Raked cooling rib 2",
+    "07 | Raked cooling rib 3",
+    "07 | Projection knob",
+    "07 | Projection square control",
+    "07 | Switch housing",
+    "07 | Switch plate",
+    "07 | Toggle cap",
+    "07 | Toggle cap.001",
+    "07 | Toggle socket",
+    "07 | Toggle socket.001",
+    "07 | Toggle stalk",
+    "07 | Toggle stalk.001",
+    "07 | Launch button",
+    "07 | Launch enclosure",
+    "07 | Launch socket",
+    "07 | Cable 1",
+    "07 | Cable 2",
+    "07 | Cable saddle"
+  ],
+  "blend": "hardware.blend",
+  "ownerSceneObjects": 772,
+  "lockedState": {
+    "camera": [
+      [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.11315740644931793,
+        -0.9935770630836487,
+        -18.0
+      ],
+      [
+        0.0,
+        0.9935770630836487,
+        0.11315740644931793,
+        6.800000190734863
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "screens": {
+      "07 | Main rectangular display": [
+        [
+          0.9867895245552063,
+          -0.09147088974714279,
+          0.13371409475803375,
+          -5.534055233001709
+        ],
+        [
+          0.1615724414587021,
+          0.6160914897918701,
+          -0.7709251642227173,
+          -0.4534130096435547
+        ],
+        [
+          -0.011862903833389282,
+          0.7823454141616821,
+          0.6227318644523621,
+          2.9930293560028076
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "07 | Detail rectangular display": [
+        [
+          0.9867895245552063,
+          -0.09147088974714279,
+          0.13371409475803375,
+          -5.287998676300049
+        ],
+        [
+          0.1615724414587021,
+          0.6160914897918701,
+          -0.7709251642227173,
+          -2.11069917678833
+        ],
+        [
+          -0.011862903833389282,
+          0.7823454141616821,
+          0.6227318644523621,
+          0.8885203003883362
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    "ship": [
+      [
+        1.159420371055603,
+        0.0,
+        0.0,
+        2.3499999046325684
+      ],
+      [
+        0.0,
+        1.1507781744003296,
+        -0.14129780232906342,
+        3.449282169342041
+      ],
+      [
+        0.0,
+        0.14129780232906342,
+        1.1507781744003296,
+        7.220453262329102
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "lights": {
+      "07 Soft key": {
+        "matrix": [
+          [
+            0.8741573095321655,
+            0.3685770332813263,
+            -0.3162277340888977,
+            -5.0
+          ],
+          [
+            -0.4856428802013397,
+            0.6634387969970703,
+            -0.5692099928855896,
+            -9.0
+          ],
+          [
+            1.725222276149907e-08,
+            0.6511527895927429,
+            0.7589466571807861,
+            14.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "energy": 2000.0,
+        "color": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "07 Fill": {
+        "matrix": [
+          [
+            0.3162277042865753,
+            -0.5070926547050476,
+            0.8017836809158325,
+            9.0
+          ],
+          [
+            0.9486833214759827,
+            0.16903090476989746,
+            -0.2672611176967621,
+            -3.0
+          ],
+          [
+            -7.90839180808689e-08,
+            0.8451542258262634,
+            0.5345225930213928,
+            9.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "energy": 700.0,
+        "color": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "07 Rim": {
+        "matrix": [
+          [
+            -1.0,
+            -1.5154490995428205e-07,
+            5.610685605006438e-08,
+            0.0
+          ],
+          [
+            1.5099580252808664e-07,
+            -0.7525767683982849,
+            0.6585045456886292,
+            7.0
+          ],
+          [
+            -5.7568300348975754e-08,
+            0.6585045456886292,
+            0.7525767683982849,
+            11.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "energy": 1800.0,
+        "color": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    }
+  },
+  "stage": "Grey hardware geometry review; visual approval pending"
+}
