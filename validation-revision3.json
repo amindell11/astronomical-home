@@ -1,0 +1,530 @@
+{
+  "verdict": "PASS",
+  "blender": "5.1.2",
+  "families": [
+    {
+      "family": "copper",
+      "locale": 1,
+      "source_reopened": true,
+      "source_sha256": "e06aa6e4af5322e7644deb593d357f4193806af7a2568b214f5654ecfe550d0c",
+      "albedo_sha256": "0066ed90f3dd41b2d3482c51ace5909abfaff39bd56f58af1a4633eeaea420cb",
+      "albedo_size": [
+        1254,
+        1254
+      ],
+      "packed_relative_albedo": true,
+      "direct_image_material": true,
+      "vertex_color_multiplication": false,
+      "objects": {
+        "CopperSurface": {
+          "vertices": 174,
+          "triangles": 344,
+          "minimum_triangle_area": 0.0064397463571470625,
+          "materials": 1,
+          "uv_layers": 1
+        },
+        "CopperDrawing": {
+          "vertices": 360,
+          "triangles": 336,
+          "minimum_triangle_area": 7.831922662474892e-06,
+          "materials": 1,
+          "uv_layers": 0
+        }
+      },
+      "surface_topology": {
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0
+      },
+      "component_vertex_groups": {},
+      "exports": {
+        "glb": {
+          "reimported": true,
+          "surface_and_drawing_present": true,
+          "nondegenerate_triangles": true,
+          "sha256": "bef1021e44bf482af0307105e85482cf764ada27ebfc0ab963700c31b94a58fa",
+          "bytes": 1878476,
+          "reimport_render": "reimport-checks/copper-glb.png",
+          "render_mean_absolute_channel_difference_0_255": [
+            0.00061,
+            0.00053,
+            0.00063,
+            0.0
+          ],
+          "embedded_albedo_matches_source": true
+        },
+        "fbx": {
+          "reimported": true,
+          "surface_and_drawing_present": true,
+          "nondegenerate_triangles": true,
+          "sha256": "f953df8db5717a1ad719cec53496aa4891641f7b3f3c526d2ef78fb3140b4e80",
+          "bytes": 1875564,
+          "reimport_render": "reimport-checks/copper-fbx.png",
+          "render_mean_absolute_channel_difference_0_255": [
+            0.09973,
+            0.08684,
+            0.10003,
+            0.22048
+          ]
+        }
+      },
+      "native_previews": [
+        {
+          "file": "copper/copper-native-160x128.png",
+          "canvas": [
+            160,
+            128
+          ],
+          "subject_bounds": [
+            15,
+            30,
+            145,
+            99
+          ],
+          "subject_width": 130,
+          "resampled": false
+        },
+        {
+          "file": "copper/copper-native-120x96.png",
+          "canvas": [
+            120,
+            96
+          ],
+          "subject_bounds": [
+            11,
+            23,
+            109,
+            74
+          ],
+          "subject_width": 98,
+          "resampled": false
+        }
+      ],
+      "relative_albedo_path": "//copper-albedo.png"
+    },
+    {
+      "family": "violet",
+      "locale": 2,
+      "source_reopened": true,
+      "source_sha256": "751c3c52dcd624f3ba97b961986fcb937ab1ad0088dc904389c898c729a19942",
+      "albedo_sha256": "facdb3b94716304f9b14dba10c10867272f77d31d7363504a9a9ca64decdd2d8",
+      "albedo_size": [
+        1254,
+        1254
+      ],
+      "packed_relative_albedo": true,
+      "direct_image_material": true,
+      "vertex_color_multiplication": false,
+      "objects": {
+        "VioletSurface": {
+          "vertices": 178,
+          "triangles": 336,
+          "minimum_triangle_area": 0.004651633046262169,
+          "materials": 1,
+          "uv_layers": 1
+        },
+        "VioletDrawing": {
+          "vertices": 510,
+          "triangles": 476,
+          "minimum_triangle_area": 1.521520920254156e-06,
+          "materials": 1,
+          "uv_layers": 0
+        }
+      },
+      "surface_topology": {
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0
+      },
+      "component_vertex_groups": {
+        "AmethystFace1": 13,
+        "AmethystFace2": 13,
+        "AmethystFace3": 13,
+        "AmethystFace4": 13
+      },
+      "exports": {
+        "glb": {
+          "reimported": true,
+          "surface_and_drawing_present": true,
+          "nondegenerate_triangles": true,
+          "sha256": "a632dd1543b3e378a4b2236e4eaea6fe0d619ceeb8cfabe39d446665674ae25f",
+          "bytes": 1764680,
+          "reimport_render": "reimport-checks/violet-glb.png",
+          "render_mean_absolute_channel_difference_0_255": [
+            0.19013,
+            0.1953,
+            0.16567,
+            0.0
+          ],
+          "embedded_albedo_matches_source": true
+        },
+        "fbx": {
+          "reimported": true,
+          "surface_and_drawing_present": true,
+          "nondegenerate_triangles": true,
+          "sha256": "222dc984d1784fe0991f4b7340888a638d3032fdee35cb6212b3933777805db4",
+          "bytes": 1764572,
+          "reimport_render": "reimport-checks/violet-fbx.png",
+          "render_mean_absolute_channel_difference_0_255": [
+            0.36856,
+            0.35736,
+            0.38001,
+            0.38586
+          ]
+        }
+      },
+      "native_previews": [
+        {
+          "file": "violet/violet-native-160x128.png",
+          "canvas": [
+            160,
+            128
+          ],
+          "subject_bounds": [
+            17,
+            26,
+            143,
+            102
+          ],
+          "subject_width": 126,
+          "resampled": false
+        },
+        {
+          "file": "violet/violet-native-120x96.png",
+          "canvas": [
+            120,
+            96
+          ],
+          "subject_bounds": [
+            11,
+            19,
+            107,
+            77
+          ],
+          "subject_width": 96,
+          "resampled": false
+        }
+      ],
+      "relative_albedo_path": "//violet-albedo.png"
+    },
+    {
+      "family": "chalk",
+      "locale": 3,
+      "source_reopened": true,
+      "source_sha256": "68537e2752fa492af766ba2a31422b2c8e6bb6f2c68c8d1678b65efa0c81ba94",
+      "albedo_sha256": "6aba6339f0f55ede76840552b266cfa0a17d2bb609da3bc3890cec832039eacc",
+      "albedo_size": [
+        1254,
+        1254
+      ],
+      "packed_relative_albedo": true,
+      "direct_image_material": true,
+      "vertex_color_multiplication": false,
+      "objects": {
+        "ChalkSurface": {
+          "vertices": 131,
+          "triangles": 258,
+          "minimum_triangle_area": 0.00495044885574511,
+          "materials": 1,
+          "uv_layers": 1
+        },
+        "ChalkDrawing": {
+          "vertices": 420,
+          "triangles": 392,
+          "minimum_triangle_area": 1.2895059543772683e-05,
+          "materials": 1,
+          "uv_layers": 0
+        }
+      },
+      "surface_topology": {
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0
+      },
+      "component_vertex_groups": {},
+      "exports": {
+        "glb": {
+          "reimported": true,
+          "surface_and_drawing_present": true,
+          "nondegenerate_triangles": true,
+          "sha256": "5b02f3cce8e3ebaf15d87a66b30780ac2d1f70e706a09128162f7fa574fc78ed",
+          "bytes": 1867700,
+          "reimport_render": "reimport-checks/chalk-glb.png",
+          "render_mean_absolute_channel_difference_0_255": [
+            0.00366,
+            0.00351,
+            0.00416,
+            0.0
+          ],
+          "embedded_albedo_matches_source": true
+        },
+        "fbx": {
+          "reimported": true,
+          "surface_and_drawing_present": true,
+          "nondegenerate_triangles": true,
+          "sha256": "3dff9671b7f18f15edbe79d59f66cc75eacf50b4eb500bf147de21f9026a587c",
+          "bytes": 1869708,
+          "reimport_render": "reimport-checks/chalk-fbx.png",
+          "render_mean_absolute_channel_difference_0_255": [
+            0.29635,
+            0.29057,
+            0.30242,
+            0.50578
+          ]
+        }
+      },
+      "uv_note": "The added ledge wall samples an existing slate region; the painted islands are preserved.",
+      "native_previews": [
+        {
+          "file": "chalk/chalk-native-160x128.png",
+          "canvas": [
+            160,
+            128
+          ],
+          "subject_bounds": [
+            12,
+            32,
+            145,
+            96
+          ],
+          "subject_width": 133,
+          "resampled": false
+        },
+        {
+          "file": "chalk/chalk-native-120x96.png",
+          "canvas": [
+            120,
+            96
+          ],
+          "subject_bounds": [
+            9,
+            24,
+            109,
+            72
+          ],
+          "subject_width": 100,
+          "resampled": false
+        }
+      ],
+      "relative_albedo_path": "//chalk-albedo.png"
+    },
+    {
+      "family": "verdant",
+      "locale": 6,
+      "source_reopened": true,
+      "source_sha256": "df1527df5e56a44b99cd35474bb4ceff602de70b0cfe9c2ed20347fa404d58aa",
+      "albedo_sha256": "62f613f640c9555b5150de7a526f1550996e8418bf5596505286c76c4ba3c4cd",
+      "albedo_size": [
+        1254,
+        1254
+      ],
+      "packed_relative_albedo": true,
+      "direct_image_material": true,
+      "vertex_color_multiplication": false,
+      "objects": {
+        "VerdantSurface": {
+          "vertices": 176,
+          "triangles": 340,
+          "minimum_triangle_area": 0.004834764901471371,
+          "materials": 1,
+          "uv_layers": 1
+        },
+        "VerdantDrawing": {
+          "vertices": 300,
+          "triangles": 280,
+          "minimum_triangle_area": 5.623169481299972e-06,
+          "materials": 1,
+          "uv_layers": 0
+        }
+      },
+      "surface_topology": {
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0
+      },
+      "component_vertex_groups": {
+        "CreamRind1": 18,
+        "CreamRind2": 16
+      },
+      "exports": {
+        "glb": {
+          "reimported": true,
+          "surface_and_drawing_present": true,
+          "nondegenerate_triangles": true,
+          "sha256": "9251c0524f2e198c76c45cbf4201b99fbe36f64f266dd500130311b9da6562b6",
+          "bytes": 1695084,
+          "reimport_render": "reimport-checks/verdant-glb.png",
+          "render_mean_absolute_channel_difference_0_255": [
+            1.1515,
+            1.22642,
+            1.29039,
+            0.0
+          ],
+          "embedded_albedo_matches_source": true
+        },
+        "fbx": {
+          "reimported": true,
+          "surface_and_drawing_present": true,
+          "nondegenerate_triangles": true,
+          "sha256": "7768aa9c4ea35c3fbd85ae7af7914c4597473f48074b4b2421a0f35e1d7953cf",
+          "bytes": 1698524,
+          "reimport_render": "reimport-checks/verdant-fbx.png",
+          "render_mean_absolute_channel_difference_0_255": [
+            1.15538,
+            1.23068,
+            1.29552,
+            0.022
+          ]
+        }
+      },
+      "native_previews": [
+        {
+          "file": "verdant/verdant-native-160x128.png",
+          "canvas": [
+            160,
+            128
+          ],
+          "subject_bounds": [
+            16,
+            27,
+            146,
+            97
+          ],
+          "subject_width": 130,
+          "resampled": false
+        },
+        {
+          "file": "verdant/verdant-native-120x96.png",
+          "canvas": [
+            120,
+            96
+          ],
+          "subject_bounds": [
+            11,
+            20,
+            109,
+            73
+          ],
+          "subject_width": 98,
+          "resampled": false
+        }
+      ],
+      "relative_albedo_path": "//verdant-albedo.png"
+    },
+    {
+      "family": "ice",
+      "locale": 7,
+      "source_reopened": true,
+      "source_sha256": "3ba2d3b3e21f9efac021a3c77d4865d725ddb4ad134b2927ab06ad125a8f41d9",
+      "albedo_sha256": "0fec2450b76cd82c4159ba32e013a04a213413daca207d91e86e7d039d8fece1",
+      "albedo_size": [
+        1254,
+        1254
+      ],
+      "packed_relative_albedo": true,
+      "direct_image_material": true,
+      "vertex_color_multiplication": false,
+      "objects": {
+        "IceSurface": {
+          "vertices": 126,
+          "triangles": 248,
+          "minimum_triangle_area": 0.023352213093512098,
+          "materials": 1,
+          "uv_layers": 1
+        },
+        "IceDrawing": {
+          "vertices": 210,
+          "triangles": 196,
+          "minimum_triangle_area": 8.397389503991597e-06,
+          "materials": 1,
+          "uv_layers": 0
+        }
+      },
+      "surface_topology": {
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0
+      },
+      "component_vertex_groups": {
+        "EmbeddedStone1": 8,
+        "EmbeddedStone2": 6,
+        "EmbeddedStone3": 4,
+        "EmbeddedStone4": 4
+      },
+      "exports": {
+        "glb": {
+          "reimported": true,
+          "surface_and_drawing_present": true,
+          "nondegenerate_triangles": true,
+          "sha256": "8fa143a0d35330fa2b09cbd1fea327928f0655c0a2abf76f3148ca61a996ee1e",
+          "bytes": 2036772,
+          "reimport_render": "reimport-checks/ice-glb.png",
+          "render_mean_absolute_channel_difference_0_255": [
+            0.00068,
+            0.0007,
+            0.00065,
+            0.0
+          ],
+          "embedded_albedo_matches_source": true
+        },
+        "fbx": {
+          "reimported": true,
+          "surface_and_drawing_present": true,
+          "nondegenerate_triangles": true,
+          "sha256": "b8ddbee84bd8b51047206ffe925e67d657464822f2092a4576f3caf788a70355",
+          "bytes": 2039804,
+          "reimport_render": "reimport-checks/ice-fbx.png",
+          "render_mean_absolute_channel_difference_0_255": [
+            0.20011,
+            0.21826,
+            0.23964,
+            0.35714
+          ]
+        }
+      },
+      "native_previews": [
+        {
+          "file": "ice/ice-native-160x128.png",
+          "canvas": [
+            160,
+            128
+          ],
+          "subject_bounds": [
+            17,
+            33,
+            146,
+            95
+          ],
+          "subject_width": 129,
+          "resampled": false
+        },
+        {
+          "file": "ice/ice-native-120x96.png",
+          "canvas": [
+            120,
+            96
+          ],
+          "subject_bounds": [
+            13,
+            24,
+            110,
+            72
+          ],
+          "subject_width": 97,
+          "resampled": false
+        }
+      ],
+      "relative_albedo_path": "//ice-albedo.png"
+    }
+  ],
+  "scope": "Blender art proof. No Unity integration or gameplay collision/volume data.",
+  "outline": "Persistent fitted Drawing mesh is exported. Outer contour is Blender Freestyle and requires the existing runtime DrawnContour treatment in Unity.",
+  "appearance_review": {
+    "verdict": "PASS",
+    "comparison": "asteroid-reimport-checks.png",
+    "turntable": "asteroid-turntable-proof.png",
+    "method": "Viewed every source / GLB / FBX row and all eight-view rows. No missing components, graphite or mineral placement observed. Minor export shading and contour differences are recorded numerically."
+  },
+  "topology_limits": "Edge counts describe closed surface components. Violet crystals and Verdant rind remain intersecting visual components; no collision, volume, self-intersection or fragmentation certification is implied.",
+  "package_review": {
+    "no_blender_backups": true,
+    "generated_albedos_unchanged": true,
+    "native_previews_resampled": false,
+    "active_source_images_only": true
+  }
+}

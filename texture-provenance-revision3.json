@@ -1,0 +1,82 @@
+{
+  "method": "Built-in Imagegen painting of unlit geometry-region UV guides. Generated final PNGs are unchanged. Internal graphite is fitted mesh geometry; outer contour is Blender Freestyle.",
+  "families": [
+    {
+      "family": "copper",
+      "albedo": "copper/copper-albedo.png",
+      "sha256": "0066ed90f3dd41b2d3482c51ace5909abfaff39bd56f58af1a4633eeaea420cb",
+      "size": [
+        1254,
+        1254
+      ],
+      "color_guide": "copper/copper-color-guide.png",
+      "painting_uv_layout": "copper/copper-guide-uv-layout.png",
+      "final_uv_layout": "copper/copper-uv-layout.png",
+      "prompts": [
+        "copper/prompts/copper-reference-prompt.txt",
+        "copper/prompts/copper-reference-padding-prompt.txt",
+        "copper/prompts/copper-reference-calm-prompt.txt"
+      ]
+    },
+    {
+      "family": "violet",
+      "albedo": "violet/violet-albedo.png",
+      "sha256": "facdb3b94716304f9b14dba10c10867272f77d31d7363504a9a9ca64decdd2d8",
+      "size": [
+        1254,
+        1254
+      ],
+      "color_guide": "violet/violet-color-guide.png",
+      "painting_uv_layout": "violet/violet-guide-uv-layout.png",
+      "final_uv_layout": "violet/violet-uv-layout.png",
+      "prompts": [
+        "violet/prompts/violet-reference-prompt.txt"
+      ]
+    },
+    {
+      "family": "chalk",
+      "albedo": "chalk/chalk-albedo.png",
+      "sha256": "6aba6339f0f55ede76840552b266cfa0a17d2bb609da3bc3890cec832039eacc",
+      "size": [
+        1254,
+        1254
+      ],
+      "color_guide": "chalk/chalk-color-guide.png",
+      "painting_uv_layout": "chalk/chalk-guide-uv-layout.png",
+      "final_uv_layout": "chalk/chalk-uv-layout.png",
+      "prompts": [
+        "chalk/prompts/chalk-reference-prompt.txt"
+      ]
+    },
+    {
+      "family": "verdant",
+      "albedo": "verdant/verdant-albedo.png",
+      "sha256": "62f613f640c9555b5150de7a526f1550996e8418bf5596505286c76c4ba3c4cd",
+      "size": [
+        1254,
+        1254
+      ],
+      "color_guide": "verdant/verdant-color-guide.png",
+      "painting_uv_layout": "verdant/verdant-guide-uv-layout.png",
+      "final_uv_layout": "verdant/verdant-uv-layout.png",
+      "prompts": [
+        "verdant/prompts/verdant-reference-prompt.txt"
+      ]
+    },
+    {
+      "family": "ice",
+      "albedo": "ice/ice-albedo.png",
+      "sha256": "0fec2450b76cd82c4159ba32e013a04a213413daca207d91e86e7d039d8fece1",
+      "size": [
+        1254,
+        1254
+      ],
+      "color_guide": "ice/ice-color-guide.png",
+      "painting_uv_layout": "ice/ice-guide-uv-layout.png",
+      "final_uv_layout": "ice/ice-uv-layout.png",
+      "prompts": [
+        "ice/prompts/ice-reference-prompt.txt"
+      ]
+    }
+  ]
+}
