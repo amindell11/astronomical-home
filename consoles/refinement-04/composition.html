@@ -13,18 +13,19 @@
 <body>
   <main>
     <h1>Hangar composition study</h1>
-    <p>A smaller monitor gives the ship more of the picture. Compare the new composition with the previous layout.</p>
+    <p>A slightly smaller ship, a visible upper window rim, and simpler monitor and control details. Compare the latest refinement with the earlier layouts.</p>
     <nav aria-label="Study navigation"><a href="palette.html">Palette controls for previous layout</a><a href="history.html">Image history</a></nav>
     <div class="views" role="group" aria-label="Compare compositions">
-      <button type="button" data-view="thirds" aria-pressed="true">New composition</button>
-      <button type="button" data-view="previous" aria-pressed="false">Previous layout</button>
+      <button type="button" data-view="viewport" aria-pressed="true">Viewport + simpler controls</button>
+      <button type="button" data-view="thirds" aria-pressed="false">Previous composition</button>
+      <button type="button" data-view="previous" aria-pressed="false">Earlier layout</button>
     </div>
-    <a id="full" href="composition-thirds.png" aria-label="Open the displayed image at full resolution"><img id="frame" src="composition-thirds.png" alt="Hangar study with a smaller monitor on the left and a larger holographic ship across the right"></a>
-    <p id="caption" aria-live="polite">The monitor occupies roughly one-third of the width, with the ship filling the remaining two-thirds.</p>
-    <p class="footnote">Both views use the darker warm palette.</p>
+    <a id="full" href="composition-viewport.png" aria-label="Open the displayed image at full resolution"><img id="frame" src="composition-viewport.png" alt="Hangar study with a slightly smaller holographic ship, a thin upper window rim, and simpler console hardware"></a>
+    <p id="caption" aria-live="polite">Latest refinement: a slightly smaller ship beneath the visible upper viewport edge, with coarser hardware and fewer monitor details.</p>
+    <p class="footnote">All three views use the darker warm palette.</p>
   </main>
   <script>
-    const views={thirds:{src:'composition-thirds.png',alt:'Hangar study with a smaller monitor on the left and a larger holographic ship across the right',caption:'The monitor occupies roughly one-third of the width, with the ship filling the remaining two-thirds.'},previous:{src:'palette-default-preview.png',alt:'Previous hangar layout with the larger monitor and smaller holographic ship, using the darker warm palette',caption:'Previous layout with the default darker warm palette.'}};
+    const views={viewport:{src:'composition-viewport.png',alt:'Hangar study with a slightly smaller holographic ship, a thin upper window rim, and simpler console hardware',caption:'Latest refinement: a slightly smaller ship beneath the visible upper viewport edge, with coarser hardware and fewer monitor details.'},thirds:{src:'composition-thirds.png',alt:'Previous composition with a smaller monitor on the left and a larger holographic ship across the right',caption:'Previous composition: the monitor occupies roughly one-third of the width, with the ship filling the remaining two-thirds.'},previous:{src:'palette-default-preview.png',alt:'Earlier hangar layout with the larger monitor and smaller holographic ship, using the darker warm palette',caption:'Earlier layout with the default darker warm palette.'}};
     for(const button of document.querySelectorAll('[data-view]'))button.addEventListener('click',()=>{
       const view=views[button.dataset.view];
       document.getElementById('frame').src=view.src;
