@@ -9,6 +9,7 @@ namespace Combat.Projectiles.Visual
     public class ProjectileHitVfx : MonoBehaviour, IPresentationPart
     {
         [SerializeField] private GameObject hitEffect;
+        [SerializeField] private bool alignWithProjectile;
 
         private ProjectileBase projectile;
         private PooledVFX pooledHitEffect;
@@ -36,8 +37,9 @@ namespace Combat.Projectiles.Visual
         private void HandleHit(Vector3 position, IDamageable _)
         {
             if (!hitEffect) return;
-            if (pooledHitEffect) SimplePool<PooledVFX>.Get(pooledHitEffect, position, Quaternion.identity);
-            else Instantiate(hitEffect, position, Quaternion.identity);
+            var rotation = alignWithProjectile ? transform.rotation : Quaternion.identity;
+            if (pooledHitEffect) SimplePool<PooledVFX>.Get(pooledHitEffect, position, rotation);
+            else Instantiate(hitEffect, position, rotation);
         }
     }
 }
