@@ -1,0 +1,142 @@
+diff --git a/src/Asteroids3D/Assets/Scripts/UI/Projection/CanopyProjectionFeature.cs b/src/Asteroids3D/Assets/Scripts/UI/Projection/CanopyProjectionFeature.cs
+index 266fd3d8a..c66d9cd9c 100644
+--- a/src/Asteroids3D/Assets/Scripts/UI/Projection/CanopyProjectionFeature.cs
++++ b/src/Asteroids3D/Assets/Scripts/UI/Projection/CanopyProjectionFeature.cs
+@@ -25,7 +25,8 @@ public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingD
+         {
+             if (sources.TryGetValue(renderingData.cameraData.camera, out var source))
+             {
+-                renderingData.cameraData.cameraTargetDescriptor.graphicsFormat = GraphicsFormat.R16G16B16A16_SFloat;
++                if (!CanopyExperiment.PackedScene)
++                    renderingData.cameraData.cameraTargetDescriptor.graphicsFormat = GraphicsFormat.R16G16B16A16_SFloat;
+                 renderer.EnqueuePass(source.Pass);
+             }
+         }
+diff --git a/src/Asteroids3D/Assets/Scripts/UI/Projection/CanopyProjectionPass.cs b/src/Asteroids3D/Assets/Scripts/UI/Projection/CanopyProjectionPass.cs
+index a8ae7786a..c3e7db896 100644
+--- a/src/Asteroids3D/Assets/Scripts/UI/Projection/CanopyProjectionPass.cs
++++ b/src/Asteroids3D/Assets/Scripts/UI/Projection/CanopyProjectionPass.cs
+@@ -32,6 +32,12 @@ public override void RecordRenderGraph(RenderGraph graph, ContextContainer frame
+             // Floating-point history keeps faint afterglow decaying.
+             descriptor.graphicsFormat = GraphicsFormat.R16G16B16A16_SFloat;
+             descriptor.depthStencilFormat = GraphicsFormat.None;
++            var half = CanopyExperiment.HalfAfterglow;
++            if (half)
++            {
++                descriptor.width = Mathf.Max(1, descriptor.width / 2);
++                descriptor.height = Mathf.Max(1, descriptor.height / 2);
++            }
+             for (var i = 0; i < history.Length; i++)
+                 if (RenderingUtils.ReAllocateHandleIfNeeded(ref history[i], descriptor, FilterMode.Bilinear,
+                         TextureWrapMode.Clamp, name: $"Canopy history {i}"))
+@@ -62,19 +68,24 @@ public override void RecordRenderGraph(RenderGraph graph, ContextContainer frame
+ 
+             var scene = resources.activeColorTexture;
+             var outputDescriptor = graph.GetTextureDesc(scene);
++            CanopyExperiment.SceneFormat = outputDescriptor.format.ToString();
+             outputDescriptor.name = "Canopy composite";
+             outputDescriptor.clearBuffer = false;
+             var output = graph.CreateTexture(outputDescriptor);
+             using (var builder = graph.AddRasterRenderPass<PassData>("Canopy projection", out var data))
+             {
+                 Fill(data, settings);
+-                data.previous = next;
++                data.previous = half ? old : next;
++                if (half)
++                    data.decay = historyValid && source.EffectsEnabled && settings.afterglow > 0f
++                        ? Mathf.Exp(-Time.unscaledDeltaTime / Mathf.Max(.001f, settings.afterglow)) : 0f;
+                 data.scene = scene;
+                 builder.UseTexture(ink, AccessFlags.Read);
+-                builder.UseTexture(next, AccessFlags.Read);
++                builder.UseTexture(half ? old : next, AccessFlags.Read);
+                 builder.UseTexture(scene, AccessFlags.Read);
+                 builder.SetRenderAttachment(output, 0, AccessFlags.Write);
+-                builder.SetRenderFunc((PassData pass, RasterGraphContext context) => Draw(pass, context, 1));
++                var passIndex = half ? 2 : 1;
++                builder.SetRenderFunc((PassData pass, RasterGraphContext context) => Draw(pass, context, passIndex));
+             }
+             resources.cameraColor = output;
+             previous = 1 - previous;
+@@ -89,7 +100,7 @@ private void Fill(PassData data, CanopySettings settings)
+             data.ink = source.Ink.rt;
+             data.settings = settings;
+             data.resolution = new Vector4(source.Ink.rt.width, source.Ink.rt.height, 0f, 0f);
+-            data.time = Time.unscaledTime;
++            data.time = CanopyExperiment.FreezeClock ? 1f : Time.unscaledTime;
+             data.enabled = source.EffectsEnabled;
+             data.appearanceAge = -1f;
+             data.transitionAge = source.TransitionAge;
+diff --git a/src/Asteroids3D/Assets/Visuals/Ui/Projection/CanopyProjection.shader b/src/Asteroids3D/Assets/Visuals/Ui/Projection/CanopyProjection.shader
+index c6663ba85..22c4ab982 100644
+--- a/src/Asteroids3D/Assets/Visuals/Ui/Projection/CanopyProjection.shader
++++ b/src/Asteroids3D/Assets/Visuals/Ui/Projection/CanopyProjection.shader
+@@ -48,10 +48,13 @@ Shader "Hidden/UI/CanopyProjection"
+             return normalize(gradient / _Resolution) * pixels / _Resolution;
+         }
+ 
+-        float3 Ink(float2 p)
++        float3 Ink(float2 p, bool afterglow)
+         {
+             if (any(p < 0.0) || any(p > 1.0)) return 0.0;
+-            return SAMPLE_TEXTURE2D(_PreviousInk, sampler_LinearClamp, ImageUv(p)).rgb;
++            float3 previous = SAMPLE_TEXTURE2D(_PreviousInk, sampler_LinearClamp, ImageUv(p)).rgb;
++            if (!afterglow) return previous;
++            float3 now = LinearToSRGB(SAMPLE_TEXTURE2D(_HudInk, sampler_LinearClamp, ImageUv(p)).rgb);
++            return max(now, previous * _Decay);
+         }
+ 
+         float3 Bloom(float2 p)
+@@ -70,7 +73,7 @@ Shader "Hidden/UI/CanopyProjection"
+             return float4(max(now, old), 1.0);
+         }
+ 
+-        float4 Composite(Varyings input) : SV_Target
++        float4 CompositeImage(Varyings input, bool afterglow)
+         {
+             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+             float3 sceneLinear = SAMPLE_TEXTURE2D_X(_SceneImage, sampler_LinearClamp, input.texcoord).rgb;
+@@ -103,11 +106,11 @@ Shader "Hidden/UI/CanopyProjection"
+                     p.x += tear * sin(_TransitionAge * 39.0) * transitionGlitch * .025 * (1.0 - _TransitionAge / .35);
+                 }
+             }
+-            float3 light = Ink(p);
++            float3 light = Ink(p, afterglow);
+             if (_PersonalityEnabled > .5)
+             {
+                 float2 separation = normalize(center + float2(.0001, .0001)) * aberration * edge / _Resolution;
+-                float3 split = float3(Ink(p + separation).r, light.g, Ink(p - separation).b);
++                float3 split = float3(Ink(p + separation, afterglow).r, light.g, Ink(p - separation, afterglow).b);
+                 light = lerp(light, split, .88);
+                 float grain = Hash(floor(p * _Resolution * .8));
+                 light *= 1.0 - wear * .62 * (1.0 - grain);
+@@ -133,6 +136,16 @@ Shader "Hidden/UI/CanopyProjection"
+             float3 lightDelta = SRGBToLinear(min(scene + max(light, 0.0), 1.0)) - SRGBToLinear(scene);
+             return float4(sceneLinear + lightDelta, 1.0);
+         }
++
++        float4 Composite(Varyings input) : SV_Target
++        {
++            return CompositeImage(input, false);
++        }
++
++        float4 CompositeAfterglow(Varyings input) : SV_Target
++        {
++            return CompositeImage(input, true);
++        }
+         ENDHLSL
+ 
+         Pass
+@@ -151,5 +164,13 @@ Shader "Hidden/UI/CanopyProjection"
+             #pragma fragment Composite
+             ENDHLSL
+         }
++        Pass
++        {
++            Name "Canopy composite afterglow"
++            HLSLPROGRAM
++            #pragma vertex Vert
++            #pragma fragment CompositeAfterglow
++            ENDHLSL
++        }
+     }
+ }
