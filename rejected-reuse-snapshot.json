@@ -1,0 +1,34 @@
+{
+  "status": "rejected by owner on 2026-11-07",
+  "reason": "Reused rounded bodies and added material treatments did not meet approved Violet visual quality",
+  "source_count": 60,
+  "families": [
+    {
+      "file": "chalk.blend",
+      "bytes": 52608871,
+      "sha256": "dda7e95a9ed17c6b80c94fe410acb9db0bb6292dcc16ee0bde2cdab55ef61b55"
+    },
+    {
+      "file": "copper.blend",
+      "bytes": 69770477,
+      "sha256": "9d78cb50876dbffbcc690534ded897de48d0e9140a8bbd50e3b7957bd2ba7f45"
+    },
+    {
+      "file": "ice.blend",
+      "bytes": 68288121,
+      "sha256": "6792b564c643d0f9b9ee20c01160c69f4138e3a64132c4f0bfb8e26471aff9c0"
+    },
+    {
+      "file": "verdant.blend",
+      "bytes": 56380543,
+      "sha256": "b29f3ba9fb5c17e0fa385b3b46335ff0e00d388cdb2678271483e79a46c5bec6"
+    },
+    {
+      "file": "violet.blend",
+      "bytes": 68422116,
+      "sha256": "20c0d8d6347b7a7505c9ffc3b9cab10979805b019f5df22dfcab9fd8a6bfc109"
+    }
+  ],
+  "replacement": "Five individually authored asteroids per locale; bespoke Copper first for visual review",
+  "topology_cleanup": "Interrupted; per-family reports describe saved state and are not production export approval"
+}
