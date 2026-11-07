@@ -16,6 +16,7 @@ namespace Diagnostics
         Missiles,
         LockOn,
         Policy,
+        Beat,
     }
 
     /// <summary>Places ship status rows so independently-drawn diagnostics never collide. The stack is laid out in screen space — a pixel line pitch above the subject's projection — so layout tracks the fixed-size fonts at every zoom. Placement and styling only — geometry stays with the drawer that owns it.</summary>
@@ -29,7 +30,7 @@ namespace Diagnostics
         private const float MinBasePixels = 24f;
 
         /// <summary>Lines each row is allowed, indexed by <see cref="ShipReadoutRow"/>. A row's reservation is what holds every row above it in place.</summary>
-        private static readonly int[] ReservedLines = { 1, 3, 1, 1, 1, 2, 3, 4 };
+        private static readonly int[] ReservedLines = { 1, 3, 1, 1, 1, 2, 3, 4, 2 };
 
         public static void Draw(Vector2 subject, ShipReadoutRow row, string text, Color color)
         {

@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce03ab11bf2845758eedb990ef3dd0f2, type: 3}
+  m_Name: EscortPersonality
+  m_EditorClassIdentifier:
+  attack: 0.6
+  flank: 0.8
+  hold: 0.7
+  breakOff: 1
+  crowding: 0.8
+  tolerance: 0
+  breakOffShield: 0.35
+  resumeShield: 0.8
+  hitMemorySeconds: 2
+  minBeatSeconds: 1.5
+  attackSeconds: {x: 4, y: 7}
+  flankSeconds: {x: 3, y: 5}
+  holdSeconds: {x: 3, y: 6}
+  breakOffSeconds: {x: 3, y: 6}
+  holdRangeScale: 1.8
+  flankDistance: 14
+  longShotInterval: 2
+  longShotSeconds: 0.6
+  variation: 0.25

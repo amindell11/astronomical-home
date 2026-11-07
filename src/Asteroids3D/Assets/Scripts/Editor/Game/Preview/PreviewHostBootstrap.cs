@@ -9,8 +9,8 @@ namespace Game.Preview
 {
     /// <summary>
     /// Builds the preview host in an empty scene around the game's GameHost prefab, with one trial
-    /// sector for Replay, the HUD replays' two fixture sectors, the two-sector crowded jump fixture and
-    /// the boss fixture.
+    /// sector for Replay, the HUD replays' two fixture sectors, the two-sector crowded jump fixture, the
+    /// boss fixture and the crowded fight fixture.
     /// The chosen entry is assigned before activation, so Playtest never composes a Replay session.
     /// The host waits inactive through the play-mode reload; entering play mode snapshots every tuning
     /// target's feel profiles, then activates it, so the panel tunes those assets in place.
@@ -57,6 +57,7 @@ namespace Game.Preview
             host.hudQuietSector = FixtureSector("HudQuietSector", SectorConfigPath);
             host.hudExtractionSector = FixtureSector("HudExtractionSector", SectorConfigPath);
             host.bossSector = FixtureSector("BossSector", SectorConfigPath);
+            host.crowdedFightSector = FixtureSector("CrowdedFightSector", SectorConfigPath);
             host.jumpDestination = AssetDatabase.LoadAssetAtPath<LocaleSky>(JumpDestinationPath);
             host.entry = entry;
             return host;

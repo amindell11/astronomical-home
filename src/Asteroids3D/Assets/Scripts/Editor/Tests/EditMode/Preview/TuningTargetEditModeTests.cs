@@ -6,6 +6,7 @@ using Game;
 using Game.Player;
 using Game.Preview;
 using NUnit.Framework;
+using RL.Opponents.Beats;
 using Ships.Visuals.Breakup;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Hunt;
@@ -46,6 +47,9 @@ namespace Tests.EditMode.Preview
                 AssetDatabase.LoadAssetAtPath<HuntFeelProfile>("Assets/Settings/Game/HuntFeel.asset"));
             AssertTarget(Target<BossTarget>(), new[] { PreviewEntry.Boss },
                 AssetDatabase.LoadAssetAtPath<EliteProfile>("Assets/Settings/Ships/Elites/BastionBoss.asset"));
+            var personalities = new[] { "Enemy", "Elite", "Escort" }.Select(pilot =>
+                AssetDatabase.LoadAssetAtPath<Personality>($"Assets/Settings/AI/Pilots/{pilot}Personality.asset"));
+            AssertTarget(Target<EnemyPilotsTarget>(), new[] { PreviewEntry.CrowdedFight }, personalities.ToArray());
         }
 
         [Test]

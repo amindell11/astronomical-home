@@ -7,7 +7,8 @@ namespace AI.Context
     /// The world model the AI reasons over for a single tick: the live views
     /// (<see cref="Self"/>, <see cref="Combat"/>) over the sensing tier
     /// (<see cref="Scout"/>), plus the distance its primary weapon asks it to hold
-    /// (<see cref="HoldRange"/>). Holds no actuators (navigator/gunner) — those are
+    /// (<see cref="HoldRange"/>) and how long since the ship was last hit
+    /// (<see cref="SecondsSinceHit"/>). Holds no actuators (navigator/gunner) — those are
     /// owned by the host that acts on the context.
     /// </summary>
     [Serializable]
@@ -19,17 +20,36 @@ namespace AI.Context
 
         public float? HoldRange { get; private set; }
 
+        /// <summary>The primary weapon's AI fire distance; null when it declares none.</summary>
+        public float? FireRange { get; private set; }
+
+        public float SecondsSinceHit { get; private set; } = float.PositiveInfinity;
+
+        private float lastHealthPct;
+        private float lastShieldPct;
+
         public AIContext(IShipStatus self, Scout scout, float? holdRange,
-            float combatExitDelay = 3f)
+            float combatExitDelay = 3f, float? fireRange = null)
         {
             if (self == null || scout == null) return;
 
             Self = self;
             Scout = scout;
             HoldRange = holdRange;
+            FireRange = fireRange;
             Combat = new EnemyTracker(scout, combatExitDelay);
+            lastHealthPct = self.HealthPct;
+            lastShieldPct = self.ShieldPct;
         }
 
-        public void Update(float deltaTime) => Combat.Update(deltaTime);
+        public void Update(float deltaTime)
+        {
+            Combat.Update(deltaTime);
+            var health = Self.HealthPct;
+            var shield = Self.ShieldPct;
+            SecondsSinceHit = health < lastHealthPct || shield < lastShieldPct ? 0f : SecondsSinceHit + deltaTime;
+            lastHealthPct = health;
+            lastShieldPct = shield;
+        }
     }
 }
