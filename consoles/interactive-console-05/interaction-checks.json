@@ -1,0 +1,388 @@
+{
+  "browserErrors": [],
+  "initial": {
+    "snapshot": {
+      "selected": "hull",
+      "detail": "hull",
+      "hover": null,
+      "knobAngle": -60,
+      "effects": true,
+      "reducedMotion": false,
+      "transitionAge": 10.8,
+      "transitionActive": false,
+      "launchCount": 0,
+      "detailLines": [
+        "Vanguard",
+        "Hull 100 · Mass 800",
+        "Vanguard Engine · Standard Shield"
+      ]
+    },
+    "bounds": {
+      "main": [
+        150,
+        497,
+        370,
+        319
+      ],
+      "detail": [
+        146,
+        837,
+        364,
+        70
+      ],
+      "hologram": [
+        610,
+        140,
+        840,
+        390
+      ]
+    },
+    "fonts": [
+      [
+        "HUD Label"
+      ],
+      [
+        "HUD Readout"
+      ],
+      [
+        "HUD Heading"
+      ]
+    ],
+    "settings": {
+      "glow": 0.41250000000000003,
+      "aberration": 0.4,
+      "curvature": 0.077,
+      "beamJitter": 0.096,
+      "afterglow": 0.3,
+      "scanlines": 0.29250000000000004,
+      "flicker": 0,
+      "warmth": 0.12,
+      "wear": 0.06,
+      "glassDistortion": 0.020000000000000004,
+      "damageShudder": 0,
+      "transitionGlitch": 0.24750000000000003
+    },
+    "hologramMaskPixels": 115432,
+    "sharedEngine": "function"
+  },
+  "hover": {
+    "selected": "hull",
+    "detail": "missiles",
+    "hover": "missiles",
+    "knobAngle": -60,
+    "effects": true,
+    "reducedMotion": false,
+    "transitionAge": 0,
+    "transitionActive": true,
+    "launchCount": 0,
+    "detailLines": [
+      "Missiles",
+      "35 damage + 15 splash",
+      "2 rounds · 10s/round · Lock-on"
+    ]
+  },
+  "hoverExit": {
+    "selected": "hull",
+    "detail": "hull",
+    "hover": null,
+    "knobAngle": -60,
+    "effects": true,
+    "reducedMotion": false,
+    "transitionAge": 0,
+    "transitionActive": true,
+    "launchCount": 0,
+    "detailLines": [
+      "Vanguard",
+      "Hull 100 · Mass 800",
+      "Vanguard Engine · Standard Shield"
+    ]
+  },
+  "click": {
+    "selected": "missiles",
+    "detail": "missiles",
+    "hover": null,
+    "knobAngle": 20,
+    "effects": true,
+    "reducedMotion": false,
+    "transitionAge": 0,
+    "transitionActive": true,
+    "launchCount": 0,
+    "detailLines": [
+      "Missiles",
+      "35 damage + 15 splash",
+      "2 rounds · 10s/round · Lock-on"
+    ]
+  },
+  "next": {
+    "selected": "dash",
+    "detail": "dash",
+    "hover": null,
+    "knobAngle": 60,
+    "effects": true,
+    "reducedMotion": false,
+    "transitionAge": 0,
+    "transitionActive": true,
+    "launchCount": 0,
+    "detailLines": [
+      "Guard Dash",
+      "5s cooldown",
+      "0.4s guard window"
+    ]
+  },
+  "previous": {
+    "selected": "missiles",
+    "detail": "missiles",
+    "hover": null,
+    "knobAngle": 20,
+    "effects": true,
+    "reducedMotion": false,
+    "transitionAge": 0,
+    "transitionActive": true,
+    "launchCount": 0,
+    "detailLines": [
+      "Missiles",
+      "35 damage + 15 splash",
+      "2 rounds · 10s/round · Lock-on"
+    ]
+  },
+  "arrowKey": {
+    "selected": "dash",
+    "detail": "dash",
+    "hover": null,
+    "knobAngle": 60,
+    "effects": true,
+    "reducedMotion": false,
+    "transitionAge": 0,
+    "transitionActive": true,
+    "launchCount": 0,
+    "detailLines": [
+      "Guard Dash",
+      "5s cooldown",
+      "0.4s guard window"
+    ]
+  },
+  "enterKey": {
+    "selected": "lasers",
+    "detail": "lasers",
+    "hover": null,
+    "knobAngle": -20,
+    "effects": true,
+    "reducedMotion": false,
+    "transitionAge": 0,
+    "transitionActive": true,
+    "launchCount": 0,
+    "detailLines": [
+      "Lasers",
+      "20 damage · 3.3 shots/s",
+      "14 shots to overheat · Speed 50"
+    ]
+  },
+  "spaceKey": {
+    "selected": "hull",
+    "detail": "hull",
+    "hover": null,
+    "knobAngle": -60,
+    "effects": true,
+    "reducedMotion": false,
+    "transitionAge": 0,
+    "transitionActive": true,
+    "launchCount": 0,
+    "detailLines": [
+      "Vanguard",
+      "Hull 100 · Mass 800",
+      "Vanguard Engine · Standard Shield"
+    ]
+  },
+  "backgroundArrow": {
+    "snapshot": {
+      "selected": "dash",
+      "detail": "dash",
+      "hover": null,
+      "knobAngle": 60,
+      "effects": true,
+      "reducedMotion": false,
+      "transitionAge": 0,
+      "transitionActive": true,
+      "launchCount": 0,
+      "detailLines": [
+        "Guard Dash",
+        "5s cooldown",
+        "0.4s guard window"
+      ]
+    },
+    "focus": "scene"
+  },
+  "transitionEarly": {
+    "selected": "lasers",
+    "detail": "lasers",
+    "hover": null,
+    "knobAngle": -20,
+    "effects": true,
+    "reducedMotion": false,
+    "transitionAge": 0.09999999999999964,
+    "transitionActive": true,
+    "launchCount": 0,
+    "detailLines": [
+      "Lasers",
+      "20 damage · 3.3 shots/s",
+      "14 shots to overheat · Speed 50"
+    ]
+  },
+  "transitionEnded": {
+    "selected": "lasers",
+    "detail": "lasers",
+    "hover": null,
+    "knobAngle": -20,
+    "effects": true,
+    "reducedMotion": false,
+    "transitionAge": 0.3999999999999986,
+    "transitionActive": false,
+    "launchCount": 0,
+    "detailLines": [
+      "Lasers",
+      "20 damage · 3.3 shots/s",
+      "14 shots to overheat · Speed 50"
+    ]
+  },
+  "history": {
+    "differingPixels": 2407,
+    "residualLight": 122165,
+    "maxChannelDelta": 58,
+    "transitionAge": 0.4000000000000199
+  },
+  "reducedMotion": {
+    "snapshot": {
+      "selected": "dash",
+      "detail": "dash",
+      "hover": null,
+      "knobAngle": 60,
+      "effects": true,
+      "reducedMotion": true,
+      "transitionAge": 0.10000000000000497,
+      "transitionActive": false,
+      "launchCount": 0,
+      "detailLines": [
+        "Guard Dash",
+        "5s cooldown",
+        "0.4s guard window"
+      ]
+    },
+    "settings": {
+      "glow": 0.41250000000000003,
+      "aberration": 0.4,
+      "curvature": 0.077,
+      "beamJitter": 0,
+      "afterglow": 0,
+      "scanlines": 0.29250000000000004,
+      "flicker": 0,
+      "warmth": 0.12,
+      "wear": 0.06,
+      "glassDistortion": 0.020000000000000004,
+      "damageShudder": 0,
+      "transitionGlitch": 0
+    }
+  },
+  "launch": {
+    "selected": "dash",
+    "detail": "dash",
+    "hover": null,
+    "knobAngle": 60,
+    "effects": true,
+    "reducedMotion": true,
+    "transitionAge": 0,
+    "transitionActive": false,
+    "launchCount": 1,
+    "detailLines": [
+      "Guard Dash",
+      "5s cooldown",
+      "0.4s guard window"
+    ]
+  },
+  "reducedMotionFeedback": {
+    "pressed": false,
+    "elapsed": 0.6003999999999987
+  },
+  "detailText": [
+    {
+      "item": "hull",
+      "lines": [
+        {
+          "text": "Vanguard",
+          "width": 69.96592712402344,
+          "available": 340
+        },
+        {
+          "text": "Hull 100 · Mass 800",
+          "width": 124.07989501953125,
+          "available": 340
+        },
+        {
+          "text": "Vanguard Engine · Standard Shield",
+          "width": 225.93576049804688,
+          "available": 340
+        }
+      ]
+    },
+    {
+      "item": "lasers",
+      "lines": [
+        {
+          "text": "Lasers",
+          "width": 47.501953125,
+          "available": 340
+        },
+        {
+          "text": "20 damage · 3.3 shots/s",
+          "width": 156.51187133789062,
+          "available": 340
+        },
+        {
+          "text": "14 shots to overheat · Speed 50",
+          "width": 205.2638397216797,
+          "available": 340
+        }
+      ]
+    },
+    {
+      "item": "missiles",
+      "lines": [
+        {
+          "text": "Missiles",
+          "width": 56.8619384765625,
+          "available": 340
+        },
+        {
+          "text": "35 damage + 15 splash",
+          "width": 148.3198699951172,
+          "available": 340
+        },
+        {
+          "text": "2 rounds · 10s/round · Lock-on",
+          "width": 193.67979431152344,
+          "available": 340
+        }
+      ]
+    },
+    {
+      "item": "dash",
+      "lines": [
+        {
+          "text": "Guard Dash",
+          "width": 83.7899169921875,
+          "available": 340
+        },
+        {
+          "text": "5s cooldown",
+          "width": 80.06393432617188,
+          "available": 340
+        },
+        {
+          "text": "0.4s guard window",
+          "width": 122.52789306640625,
+          "available": 340
+        }
+      ]
+    }
+  ],
+  "passed": true
+}

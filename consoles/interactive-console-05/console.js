@@ -1,0 +1,60 @@
+(async function(){
+'use strict';
+const $=id=>document.getElementById(id),data=window.SCREEN_STUDY_DATA,embedded=window.CONSOLE_ASSETS;
+const capture=new URLSearchParams(location.search).has('capture'),manual=new URLSearchParams(location.search).has('test');
+if(capture)document.body.classList.add('capture');
+try{
+const load=async src=>{const image=new Image();image.src=src;await image.decode();return image;};
+const [base,lowerHousing,...loadedIcons]=await Promise.all([load(embedded.base),load(embedded.lowerHousing),...Object.values(embedded.icons).map(load)]);
+const icons=Object.fromEntries(Object.keys(embedded.icons).map((key,i)=>[key,loadedIcons[i]]));$('base').src=embedded.base;$('lower-housing').src=embedded.lowerHousing;
+const loadedFonts=await Promise.all(['500 16px "HUD Label"','500 16px "HUD Readout"','400 17px "HUD Heading"'].map(value=>document.fonts.load(value)));
+if(loadedFonts.some(fonts=>fonts.length===0))throw new Error('A current HUD font did not load.');
+const media=matchMedia('(prefers-reduced-motion: reduce)'),order=['hull','lasers','missiles','dash'];
+const names={hull:'Vanguard hull',lasers:'Lasers',missiles:'Missiles',dash:'Guard Dash'},angles={hull:-60,lasers:-20,missiles:20,dash:60};
+const state={selected:'hull',hover:null,focused:null,detail:'hull',effects:true,reducedMotion:media.matches,time:0,transitionAt:-10,launchAt:-10,launchCount:0,paused:manual,native:false,ready:false};
+const bounds={main:[150,497,370,319],detail:[146,837,364,70],hologram:[610,140,840,390]};
+function canvas(width,height){const result=document.createElement('canvas');result.width=width;result.height=height;return result;}
+async function screen(id,box,scale,source=base){const [x,y,w,h]=box,bg=canvas(w*scale,h*scale);bg.getContext('2d').drawImage(source,x,y,w,h,0,0,bg.width,bg.height);const engine=CanopyCRT.create($(id));engine.setBackground(await load(bg.toDataURL()));const ink=canvas(bg.width,bg.height),ctx=ink.getContext('2d');return {engine,ink,ctx,scale,box};}
+const main=await screen('main-screen',bounds.main,1),detail=await screen('detail-screen',bounds.detail,1,lowerHousing);
+const holoInk=canvas(840,390),holoContext=holoInk.getContext('2d'),holoBlack=canvas(840,390);holoBlack.getContext('2d').fillRect(0,0,840,390);
+const holoEngine=CanopyCRT.create($('hologram'));holoEngine.setBackground(await load(holoBlack.toDataURL()));
+const hullPolygon=[[738,178],[810,196],[814,152],[866,161],[955,218],[1043,222],[1164,268],[1300,293],[1396,331],[1415,349],[1386,365],[1190,384],[1202,417],[1144,481],[924,502],[903,474],[737,519],[826,430],[850,387],[675,342],[706,328],[832,337],[804,307],[668,286],[693,268],[852,275],[865,254],[684,220],[704,211],[868,226],[838,209]];
+holoContext.save();holoContext.beginPath();hullPolygon.forEach(([x,y],i)=>i?holoContext.lineTo(x-610,y-140):holoContext.moveTo(x-610,y-140));holoContext.closePath();holoContext.clip();holoContext.drawImage(base,610,140,840,390,0,0,840,390);holoContext.restore();
+const holoPixels=holoContext.getImageData(0,0,840,390);let hologramMaskPixels=0;for(let i=0;i<holoPixels.data.length;i+=4){const p=holoPixels.data,r=p[i],g=p[i+1],b=p[i+2],coverage=p[i+3]/255;const warm=Math.max(0,Math.min(1,(r-b-16)/65))*Math.max(0,Math.min(1,(r-85)/100))*coverage;if(warm>0)hologramMaskPixels++;p[i]=r*warm*.28;p[i+1]=g*warm*.28;p[i+2]=b*warm*.28;p[i+3]=255;}holoContext.putImageData(holoPixels,0,0);
+const knob=$('knob');knob.width=148;knob.height=148;knob.getContext('2d').drawImage(base,51,632,74,74,0,0,148,148);
+const stats=Object.fromEntries(data.stats.map(stat=>[stat.key,stat]));
+const metrics=[['hull','Hull',13,62],['shieldCapacity','Shield',13,118],['shieldRecharge','Regen',13,174],['topSpeed','Speed',273,62],['acceleration','Accel',273,118],['turn','Turn',273,174]];
+const leaders=[['M168 120 L112 100 H75',false],['M146 153 H75',false],['M159 197 L120 212 H75',false],['M194 120 L249 100 H273',false],['M216 153 H273',false],['M203 197 L244 212 H273',false],['M163 213 L135 246 L115 250',true],['M196 213 L209 239 L204 250',true],['M211 191 L259 228 L278 252',false]];
+const ink='#f4ebd9',muted='#c8d0d2';
+function text(c,value,x,y,font,color=ink,align='left'){c.font=font;c.fillStyle=color;c.textAlign=align;c.fillText(value,x,y);}
+function reset(surface){const c=surface.ctx;c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,surface.ink.width,surface.ink.height);c.scale(surface.scale,surface.scale);return c;}
+function drawMain(){const c=reset(main);text(c,data.ship,181,28,'400 17px "HUD Heading"',ink,'center');for(const [path,weapon]of leaders){c.strokeStyle=weapon?'#e4dece':'#9bafb8';c.lineWidth=weapon?1.15:1.05;c.globalAlpha=.88;c.stroke(new Path2D(path));}c.globalAlpha=1;c.drawImage(icons[data.shipIcon],117,94,128,128);
+for(const[key,label,x,y]of metrics){const stat=stats[key];text(c,label,x,y+12,'500 12px "HUD Label"',muted);text(c,String(stat.value),x,y+31,'500 16px "HUD Readout"');const width=c.measureText(String(stat.value)).width;if(stat.unit)text(c,stat.unit==='deg/s'?'°/s':stat.unit,x+width+3,y+31,'500 11px "HUD Label"',muted);for(let i=0;i<6;i++){c.fillStyle='#2d3941';c.fillRect(x+i*10.5,y+36,8.5,3);c.fillStyle='#f0e7d4';c.fillRect(x+i*10.5,y+36,8.5*Math.max(0,Math.min(1,stat.value/stat.barMaximum*6-i)),3);}}
+data.weapons.forEach((weapon,i)=>{const x=[115,204][i];c.drawImage(icons[weapon.icon],x-17,248,34,34);text(c,weapon.name,x,297,'500 13px "HUD Label"',ink,'center');});
+c.drawImage(icons[data.keystone.icon],18,13.26836,28,37.46328,278,236,38,51);text(c,'5',282,311,'500 20px "HUD Readout"');text(c,'s',302,311,'500 11px "HUD Label"',muted);text(c,'Guard Dash',278,230,'500 12px "HUD Label"','#d6dcdd');
+const marker={hull:[143,226,76],lasers:[91,303,48],missiles:[179,303,50],dash:[277,315,45]}[state.selected];c.fillStyle='#d3b586';c.fillRect(marker[0],marker[1],marker[2],1);}
+function detailLines(item){if(item==='hull')return [data.ship,`Hull ${stats.hull.value} · Mass ${data.mass}`,`${data.engine} · ${data.shield}`];if(item==='lasers')return [data.weapons[0].name,`${data.weapons[0].damage} damage · ${data.weapons[0].shotsPerSecond.toFixed(1)} shots/s`,`${data.weapons[0].shotsToOverheat} shots to overheat · Speed ${data.weapons[0].projectileSpeed}`];if(item==='missiles')return [data.weapons[1].name,`${data.weapons[1].damage} damage + ${data.weapons[1].splashDamage} splash`,`${data.weapons[1].rounds} rounds · ${data.weapons[1].secondsPerRound}s/round · Lock-on`];return [data.keystone.name,`${data.keystone.cooldownSeconds}s cooldown`,`${data.keystone.guardWindowSeconds.toFixed(1)}s guard window`];}
+function drawDetail(){const c=reset(detail),lines=detailLines(state.detail);text(c,lines[0],12,20,'500 18px "HUD Label"');text(c,lines[1],12,42,'500 16px "HUD Label"',muted);text(c,lines[2],12,63,'500 16px "HUD Label"',muted);}
+const menu=CanopyCRT.presets.menus,subtleMenu={...menu,glow:menu.glow*.55,aberration:menu.aberration*.2,curvature:menu.curvature*.22,beamJitter:menu.beamJitter*.16,scanlines:menu.scanlines*.65,flicker:0,warmth:menu.warmth*.3,wear:menu.wear*.24,glassDistortion:menu.glassDistortion*.2,transitionGlitch:menu.transitionGlitch*.55};
+function settings(){return state.reducedMotion?{...subtleMenu,beamJitter:0,afterglow:0,transitionGlitch:0}:subtleMenu;}
+function render(delta=1/60){const options={settings:settings(),time:state.reducedMotion?0:state.time,delta,enabled:state.effects,appearAge:-1,transitionAge:state.reducedMotion?-1:state.time-state.transitionAt};main.engine.render({...options,hud:main.ink,glowMask:main.ink});detail.engine.render({...options,hud:detail.ink,glowMask:detail.ink});const hologramSource=state.effects?holoInk:holoBlack;holoEngine.render({...options,hud:hologramSource,glowMask:hologramSource});$('launch').classList.toggle('pressed',state.time-state.launchAt<.3);}
+function changeDetail(){const item=state.hover||state.focused||state.selected;if(item!==state.detail){state.detail=item;state.transitionAt=state.time;drawDetail();}}
+function update(){for(const button of document.querySelectorAll('[data-item]'))button.setAttribute('aria-pressed',String(button.dataset.item===state.selected));const rotation=`rotate(${angles[state.selected]}deg)`;knob.style.transform=rotation;document.querySelector('.knob-mark').style.transform=rotation;$('selector').setAttribute('aria-label',`Rotary selector: ${names[state.selected]}. Activate for next item`);$('status').textContent=names[state.selected]+' selected.';drawMain();changeDetail();render(0);}
+function select(item){if(!order.includes(item))throw new Error('Unknown console item: '+item);if(item!==state.selected){state.selected=item;state.transitionAt=state.time;}state.hover=null;state.focused=null;update();}
+function preview(item){if(item!==null&&!order.includes(item))throw new Error('Unknown preview item: '+item);state.hover=item;changeDetail();render(0);}
+function cycle(direction){select(order[(order.indexOf(state.selected)+direction+order.length)%order.length]);}
+function setEffects(enabled){state.effects=enabled;$('effects').checked=enabled;for(const engine of[main.engine,detail.engine,holoEngine])engine.clear();render(0);}
+for(const button of document.querySelectorAll('[data-item]')){button.addEventListener('pointerenter',()=>preview(button.dataset.item));button.addEventListener('pointerleave',()=>preview(null));button.addEventListener('focus',()=>{state.focused=button.dataset.item;changeDetail();render(0);});button.addEventListener('blur',()=>{state.focused=null;changeDetail();render(0);});button.addEventListener('click',()=>select(button.dataset.item));}
+$('previous').onclick=()=>cycle(-1);$('next').onclick=()=>cycle(1);$('selector').onclick=()=>cycle(1);$('effects').onchange=event=>setEffects(event.target.checked);
+$('scene').addEventListener('pointerdown',event=>{if(!event.target.closest('button'))$('scene').focus({preventScroll:true});});
+$('scene').addEventListener('keydown',event=>{if(['ArrowLeft','ArrowUp','ArrowRight','ArrowDown'].includes(event.key)){event.preventDefault();cycle(['ArrowLeft','ArrowUp'].includes(event.key)?-1:1);}});
+$('launch').onclick=()=>{state.launchCount++;state.launchAt=state.time;state.transitionAt=state.time;$('status').textContent='Launch preview acknowledged · prototype only.';render(0);};
+function fit(){const wrap=$('scene-wrap'),scale=capture||state.native?1:Math.min(1,wrap.clientWidth/1672);$('scene').style.transform=`scale(${scale})`;wrap.style.height=941*scale+'px';wrap.style.overflow=state.native?'auto':'hidden';}
+$('native-size').onclick=()=>{state.native=!state.native;$('native-size').setAttribute('aria-pressed',String(state.native));fit();};new ResizeObserver(fit).observe($('scene-wrap'));fit();
+media.addEventListener('change',event=>{state.reducedMotion=event.matches;for(const engine of[main.engine,detail.engine,holoEngine])engine.clear();render(0);});
+function advance(seconds){const steps=Math.max(1,Math.ceil(seconds*60)),delta=seconds/steps;for(let i=0;i<steps;i++){state.time+=delta;render(delta);}}
+function snapshot(){return {selected:state.selected,detail:state.detail,hover:state.hover,knobAngle:angles[state.selected],effects:state.effects,reducedMotion:state.reducedMotion,transitionAge:state.time-state.transitionAt,transitionActive:!state.reducedMotion&&state.time-state.transitionAt<.35,launchCount:state.launchCount,detailLines:detailLines(state.detail)};}
+drawMain();drawDetail();update();state.ready=true;window.consolePrototype={ready:true,state,select,preview,cycle,setEffects,advance,render,snapshot,engines:{main:main.engine,detail:detail.engine,hologram:holoEngine},inputs:{main:main.ink,detail:detail.ink,hologram:holoInk},bounds,hologramMaskPixels,settings,fonts:loadedFonts.map(fonts=>fonts.map(font=>font.family))};
+let last=performance.now();function loop(now){const delta=Math.min(.1,(now-last)/1000);last=now;if(!state.paused){const wasPressed=state.time-state.launchAt<.3;state.time+=delta;if(!state.reducedMotion||wasPressed&&state.time-state.launchAt>=.3)render(delta);}requestAnimationFrame(loop);}requestAnimationFrame(loop);
+}catch(error){$('error').hidden=false;$('error').textContent=error.message;console.error(error);}
+})();

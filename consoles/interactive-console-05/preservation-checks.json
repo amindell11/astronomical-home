@@ -1,0 +1,27 @@
+{
+  "comparison": "Previous effects-off.png to current effects-off.png",
+  "originalBaseHash": "60f75d6e101ab91ef9da621caa23dadf6b570385fc33c7b14a1341ce0a66f85e",
+  "currentBaseHash": "60f75d6e101ab91ef9da621caa23dadf6b570385fc33c7b14a1341ce0a66f85e",
+  "mainScreen": [
+    150,
+    497,
+    370,
+    319
+  ],
+  "mainChangedPixels": 0,
+  "outsideLowerHousingChangedPixels": 0,
+  "lowerHousingClip": [
+    0,
+    824,
+    568,
+    117
+  ],
+  "detailBounds": [
+    146,
+    837,
+    364,
+    70
+  ],
+  "detailAreaRatio": 1.8724279835390947,
+  "status": "passed"
+}
