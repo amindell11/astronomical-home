@@ -2,12 +2,14 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using Ships;
 using Substrate;
 using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sectors.Elements.Stations;
+using Substrate.Services.Objectives;
 using Tests.PlayMode.Common;
 using UnityEditor;
 using UnityEngine;
@@ -16,9 +18,10 @@ using Object = UnityEngine.Object;
 
 namespace Tests.PlayMode.Sectors
 {
-    /// <summary>The shipped repair station prefab with a scratch feel: it shows on a point its distance from the hero's start, repairs hull at the feel's rate while the hero sits in it, draws on its supply only for what it heals, goes dark when the supply is spent or the sector's hunt raises its alarm, places a set of stations apart with a supply each, stays live in a sector with no hunt, and raises its arrival events once.</summary>
+    /// <summary>The shipped repair station prefab with a scratch feel: it shows on a point its distance from the hero's start, repairs hull at the feel's rate while the hero sits in it, draws on its supply only for what it heals, goes dark when the supply is spent or the sector's hunt raises its alarm, places a set of stations apart with a supply each, stays live in a sector with no hunt, raises its arrival events once, and is a find on the objective service from placement until it goes dark.</summary>
     [TestFixture]
     [Category("Sectors")]
+    [Category("RequiresLfsPng")]
     public class RepairStationPlayModeTests : PlayModeWorldFixture
     {
         private const string StationPath = "Assets/Prefabs/Objectives/Repair Station.prefab";
@@ -28,6 +31,14 @@ namespace Tests.PlayMode.Sectors
 
         private readonly List<Object> _created = new();
         private readonly List<string> _beats = new();
+        private ObjectiveService _objectives;
+
+        [SetUp]
+        public override void SetUp()
+        {
+            base.SetUp();
+            _objectives = Track(new GameObject("Objectives")).AddComponent<ObjectiveService>();
+        }
 
         [TearDown]
         public override void TearDown()
@@ -56,6 +67,7 @@ namespace Tests.PlayMode.Sectors
             Assert.AreEqual(Distance, PlaneDistance(station.Position, hero.transform.position), .01f,
                 "The station is placed its distance from the hero's start.");
             Assert.IsEmpty(_beats, "Nothing is raised before the hero arrives.");
+            AssertFinds(module, station);
 
             hero.Damage.Health.SetFraction(.3f);
             ShipTestFactory.MoveKinematicShip(hero, station.Position);
@@ -72,6 +84,7 @@ namespace Tests.PlayMode.Sectors
             Assert.IsTrue(station.Spent);
             Assert.AreEqual(.7f, hero.Damage.Health.Pct, 1e-4f, "The station gives exactly its supply.");
             Assert.IsFalse(station.Lit.activeSelf, "A spent station goes dark.");
+            AssertFinds(module);
 
             hero.Damage.Health.SetFraction(.5f);
             yield return null;
@@ -110,8 +123,10 @@ namespace Tests.PlayMode.Sectors
             Assert.Less(station.SupplyLeft, 1f);
             Assert.AreEqual(2, _beats.Count, "Coming back raises no second arrival.");
 
+            AssertFinds(module, station);
             Drive(module.Teardown(Context(hero)));
             Assert.IsFalse(station.Body.activeSelf, "Teardown hides the station.");
+            Assert.IsEmpty(_objectives.Finds, "Teardown leaves no finds.");
         }
 
         [UnityTest]
@@ -131,6 +146,7 @@ namespace Tests.PlayMode.Sectors
             yield return null;
             Assert.IsTrue(station.Spent, "The alarm takes the whole supply.");
             Assert.IsFalse(station.Lit.activeSelf, "The alarm darkens the station.");
+            AssertFinds(module);
 
             hero.Damage.Health.SetFraction(.5f);
             ShipTestFactory.MoveKinematicShip(hero, station.Position);
@@ -220,6 +236,7 @@ namespace Tests.PlayMode.Sectors
             }
             Assert.GreaterOrEqual(PlaneDistance(first.Position, second.Position), Spacing,
                 "The stations place at least their spacing apart.");
+            AssertFinds(module, first, second);
 
             hero.Damage.Health.SetFraction(.2f);
             ShipTestFactory.MoveKinematicShip(hero, first.Position);
@@ -229,6 +246,7 @@ namespace Tests.PlayMode.Sectors
             Assert.IsFalse(first.Lit.activeSelf, "The spent station goes dark.");
             Assert.AreEqual(.2f, second.SupplyLeft, "The other station keeps its own supply.");
             Assert.IsTrue(second.Lit.activeSelf);
+            AssertFinds(module, second);
             Assert.AreEqual(new[] { $"arrived Repair {SectorIndex}", "claimed Repair" }, _beats);
 
             ShipTestFactory.MoveKinematicShip(hero, second.Position);
@@ -245,6 +263,7 @@ namespace Tests.PlayMode.Sectors
                 Assert.IsTrue(station.Spent, "The alarm takes every station's supply.");
                 Assert.IsFalse(station.Lit.activeSelf, "The alarm darkens every station.");
             }
+            AssertFinds(module);
         }
 
         private Ship SpawnHero() =>
@@ -282,8 +301,26 @@ namespace Tests.PlayMode.Sectors
             return station;
         }
 
-        private static SectorBuildContext Context(Ship hero) =>
-            new(null, null, true, null, default, hero: hero, sectorIndex: SectorIndex);
+        private SectorBuildContext Context(Ship hero) =>
+            new(null, _objectives, true, null, default, hero: hero, sectorIndex: SectorIndex);
+
+        // Exactly the live stations are finds, with the module's icon and find-layer markers.
+        private void AssertFinds(RepairStation module, params RepairStation.Station[] live)
+        {
+            using var serialized = new SerializedObject(module);
+            var icon = (Sprite)serialized.FindProperty("icon").objectReferenceValue;
+            Assert.IsTrue(icon, "The module carries its find icon.");
+            CollectionAssert.AreEquivalent(live.Select(station => station.Body.transform),
+                _objectives.Finds.Select(find => find.Target), "Exactly the live stations are finds.");
+            foreach (var find in _objectives.Finds)
+                Assert.AreSame(icon, find.Icon);
+            foreach (var station in live)
+            {
+                var marker = station.Lit.GetComponentInChildren<MeshRenderer>(true);
+                Assert.IsTrue(marker.enabled && marker.gameObject.activeInHierarchy, "A live find shows its minimap marker.");
+                Assert.AreEqual(LayerMask.NameToLayer("Minimap_Find"), marker.gameObject.layer);
+            }
+        }
 
         private static float PlaneDistance(Vector3 a, Vector3 b) => Vector2.Distance(
             GamePlane.WorldPointToPlane(a), GamePlane.WorldPointToPlane(b));

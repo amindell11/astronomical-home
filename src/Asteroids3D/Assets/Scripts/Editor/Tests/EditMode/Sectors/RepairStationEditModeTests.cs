@@ -9,9 +9,10 @@ using UnityEngine;
 
 namespace Tests.EditMode.Sectors
 {
-    /// <summary>Each trial sector carries one repair station module on the shared feel, placed 120 to 180 u from the start, reading the sector's own hunt, with its zone on the body and a minimap marker among the parts that go dark.</summary>
+    /// <summary>Each trial sector carries one repair station module on the shared feel, placed 120 to 180 u from the start, reading the sector's own hunt, with its zone on the body, its find icon, and a find-layer minimap marker among the parts that go dark.</summary>
     [TestFixture]
     [Category("Sectors")]
+    [Category("RequiresLfsPng")]
     public class RepairStationEditModeTests
     {
         private const string FeelPath = "Assets/Settings/Game/RepairStationFeel.asset";
@@ -38,7 +39,8 @@ namespace Tests.EditMode.Sectors
             Assert.IsTrue(zone.GetComponent<Collider>().isTrigger);
             Assert.IsTrue(lit.transform.IsChildOf(body.transform));
             Assert.That(lit.GetComponentsInChildren<Renderer>(true).Select(r => r.gameObject.layer),
-                Has.Member(LayerMask.NameToLayer("Minimap_Ship")), "The marker that shows on the minimap goes dark with the glow.");
+                Has.Member(LayerMask.NameToLayer("Minimap_Find")), "The find marker that shows on the minimap goes dark with the glow.");
+            Assert.IsTrue(serialized.FindProperty("icon").objectReferenceValue as Sprite, "The station carries its find icon.");
             Assert.IsNotEmpty(lit.GetComponentsInChildren<Light>(true));
         }
     }

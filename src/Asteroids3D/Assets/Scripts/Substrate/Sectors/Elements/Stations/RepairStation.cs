@@ -6,6 +6,7 @@ using Objectives;
 using Ships;
 using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sectors.Elements.Placement;
+using Substrate.Services.Objectives;
 using UnityEngine;
 
 namespace Substrate.Sectors.Elements.Stations
@@ -13,10 +14,11 @@ namespace Substrate.Sectors.Elements.Stations
     /// <summary>
     /// A sector's repair stations: the authored body plus copies of it, as many as the feel asks for. On the
     /// first tick each moves to its own clear point away from the hero's start, spaced from the others, and
-    /// shows. While the hero sits in one it restores hull at the feel's rate from that station's supply, which
-    /// drains only by what it heals, and the station goes dark (glow and minimap marker off) when its supply is
-    /// spent, or when the sector's hunt raises its alarm, losing whatever supply is left. A sector with no hunt
-    /// keeps them live. The arrival events are plain C#, raised once per station on its first arrival.
+    /// shows, marked as a find (its minimap marker in range, an edge pointer out of it) until it goes dark.
+    /// While the hero sits in one it restores hull at the feel's rate from that station's supply, which drains
+    /// only by what it heals, and the station goes dark (glow and minimap marker off) when its supply is spent,
+    /// or when the sector's hunt raises its alarm, losing whatever supply is left. A sector with no hunt keeps
+    /// them live. The arrival events are plain C#, raised once per station on its first arrival.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1319
     /// </summary>
     public class RepairStation : SectorModule
@@ -31,6 +33,8 @@ namespace Substrate.Sectors.Elements.Stations
         [SerializeField] private GameObject lit;
         [Tooltip("The sector's opening hunt, read for its alarm, which darkens every station; unset for none.")]
         [SerializeField] private SectorHunt hunt;
+        [Tooltip("The find icon its minimap marker and edge pointer show.")]
+        [SerializeField] private Sprite icon;
 
         [Header("Placement")]
         [Tooltip("Plane distances from the hero's start the stations are placed between.")]
@@ -47,6 +51,7 @@ namespace Substrate.Sectors.Elements.Stations
         private readonly List<Station> stations = new();
         private readonly List<GameObject> copies = new();
         private Ship hero;
+        private IObjectiveService objectives;
         private int sectorIndex;
         private bool placed;
 
@@ -62,12 +67,13 @@ namespace Substrate.Sectors.Elements.Stations
 
         public override IEnumerator Setup(SectorBuildContext ctx)
         {
-            if (!feel || !zone || !body || !lit
+            if (!feel || !zone || !body || !lit || !icon || ctx.Objectives == null
                 || !zone.transform.IsChildOf(body.transform) || !lit.transform.IsChildOf(body.transform))
                 throw new InvalidOperationException(
-                    $"RepairStation on '{name}' needs its feel profile, body, and a zone and lit parts under the body.");
+                    $"RepairStation on '{name}' needs its feel profile, icon, objective service, body, and a zone and lit parts under the body.");
 
             hero = ctx.Hero;
+            objectives = ctx.Objectives;
             sectorIndex = ctx.SectorIndex;
             placed = false;
             ClearStations();
@@ -86,6 +92,7 @@ namespace Substrate.Sectors.Elements.Stations
             ClearStations();
             body.SetActive(false);
             hero = null;
+            objectives = null;
             yield break;
         }
 
@@ -133,7 +140,7 @@ namespace Substrate.Sectors.Elements.Stations
                 var point = ClearPoint.Around(start, distanceMin, distanceMax, clearanceRadius, asteroidMask,
                     placementAttempts, taken, spacing);
                 taken.Add(point);
-                station.Show(point);
+                station.Show(point, objectives.MarkFind(station.Body.transform, icon));
             }
             placed = true;
         }
@@ -151,7 +158,11 @@ namespace Substrate.Sectors.Elements.Stations
 
         private void ClearStations()
         {
-            foreach (var station in stations) station.Zone.Disarm();
+            foreach (var station in stations)
+            {
+                station.Zone.Disarm();
+                station.Unmark();
+            }
             stations.Clear();
             foreach (var copy in copies)
             {
@@ -168,6 +179,7 @@ namespace Substrate.Sectors.Elements.Stations
             internal readonly ExtractionZone Zone;
             internal readonly GameObject Lit;
             internal bool HasArrived;
+            private FindMarker find;
 
             internal Station(GameObject body, ExtractionZone zone, GameObject lit)
             {
@@ -193,11 +205,12 @@ namespace Substrate.Sectors.Elements.Stations
                 Lit.SetActive(true);
             }
 
-            internal void Show(Vector3 position)
+            internal void Show(Vector3 position, FindMarker marker)
             {
                 Body.transform.position = position;
                 Body.SetActive(true);
                 Zone.Arm();
+                find = marker;
             }
 
             internal void Repair(Ship hero, float amount)
@@ -216,6 +229,13 @@ namespace Substrate.Sectors.Elements.Stations
                 SupplyLeft = 0f;
                 Zone.Disarm();
                 Lit.SetActive(false);
+                Unmark();
+            }
+
+            internal void Unmark()
+            {
+                find?.Close();
+                find = null;
             }
         }
 

@@ -189,7 +189,7 @@ namespace Tests.PlayMode.Recording
                 var diagnosticCamera = Array.Find(UnityEngine.Object.FindObjectsByType<Camera>(FindObjectsSortMode.None),
                     candidate => candidate.gameObject.name == "[Capture] Diagnostic view");
                 Assert.IsNotNull(diagnosticCamera);
-                foreach (var layer in new[] { "Minimap", "Minimap_Ship", "Minimap_Enemy" })
+                foreach (var layer in new[] { "Minimap", "Minimap_Ship", "Minimap_Enemy", "Minimap_Find" })
                     Assert.Zero(diagnosticCamera.cullingMask & LayerMask.GetMask(layer), layer);
                 Assert.AreNotEqual(0, diagnosticCamera.cullingMask & LayerMask.GetMask("Asteroid"));
                 using var recording = capture.Prepare(ToggleRequest("silhouette"));
