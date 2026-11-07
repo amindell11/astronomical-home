@@ -7,6 +7,7 @@ using Balance;
 using Damage;
 using Ships;
 using Ships.Loadout;
+using Substrate.Sectors.Elements.Placement;
 using Substrate.Sectors.Factions;
 using Substrate.Services.Units;
 using UnityEngine;
@@ -171,7 +172,9 @@ namespace Substrate.Sectors.Elements.Hunt
                 var angle = UnityEngine.Random.Range(0f, 2f * Mathf.PI);
                 var heading = GamePlane.PlaneDirToWorld(new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)));
                 var patrolShip = faction.Faction.common.ship;
-                var ship = units.SpawnShip(patrolShip, patrolPilot, team, ClearPointAround(center),
+                var position = ClearPoint.Around(center, spawnDistanceMin, spawnDistanceMax, clearanceRadius,
+                    asteroidMask, placementAttempts);
+                var ship = units.SpawnShip(patrolShip, patrolPilot, team, position,
                     GamePlane.PlanePose(GamePlane.Normal, heading), field,
                     new ShipLoadout(patrolShip, faction.Faction.KitFor(patrolShip), null));
                 faction.Faction.Dress(patrolShip, ship, elite: false);
@@ -186,19 +189,6 @@ namespace Substrate.Sectors.Elements.Hunt
                 patrols.Add(patrol);
                 products.Add(ship);
             }
-        }
-
-        private Vector3 ClearPointAround(Vector2 center)
-        {
-            var position = Vector3.zero;
-            for (var attempt = 0; attempt < placementAttempts; attempt++)
-            {
-                var angle = UnityEngine.Random.Range(0f, 2f * Mathf.PI);
-                var distance = UnityEngine.Random.Range(spawnDistanceMin, spawnDistanceMax);
-                position = GamePlane.PlanePointToWorld(center + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * distance);
-                if (!Physics.CheckSphere(position, clearanceRadius, asteroidMask)) break;
-            }
-            return position;
         }
 
         private void DespawnDead()
