@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.IO;
 using System.Linq;
+using Combat.Weapons;
 using Game.Runs;
 using NUnit.Framework;
 using UI.Recap;
@@ -59,6 +60,20 @@ namespace Tests.PlayMode.Screens
         }
 
         [Test]
+        public void RecordedWeaponIcons_MatchEveryAuthoredWeaponHudIcon()
+        {
+            var catalog = RecapWeaponIcons.Load();
+            foreach (var weaponName in new[] { "Lasers", "TurboLasers", "Rippers", "Railgun", "Missiles", "Grenades" })
+            {
+                var weapon = AssetDatabase.LoadAssetAtPath<WeaponComponent>($"Assets/Prefabs/Weapons/{weaponName}.prefab");
+                Assert.IsNotNull(weapon.HudIcon, weaponName);
+                Assert.AreSame(weapon.HudIcon, catalog.Find(weaponName), weaponName);
+            }
+            Assert.IsNull(catalog.Find(""));
+            Assert.IsNull(catalog.Find("Removed historical weapon"));
+        }
+
+        [Test]
         public void EveryPlayableChassis_HasANonEmptyTransparentSilhouette()
         {
             foreach (var guid in AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/Prefabs/Ships" }))
@@ -112,8 +127,10 @@ namespace Tests.PlayMode.Screens
         {
             var kills = Enumerable.Repeat("Nightshade", 17).ToArray();
             var cleared = victory ? 3 : 2;
-            var board = new Scoreboard(new[] { new Scoreboard.Row(3, 25, 900, DateTime.UtcNow) },
-                new Scoreboard.Row(cleared, 17, 686, DateTime.UtcNow));
+            var previous = new LoadoutRow { chassis = "Valis", shield = "Light_Shield", primary = "Lasers", secondary = "Missiles" };
+            var current = new LoadoutRow { chassis = "Bulwark", shield = "Bulwark_Shield", primary = "Railgun", secondary = "" };
+            var board = new Scoreboard(new[] { new Scoreboard.Row(3, 25, 900, DateTime.UtcNow, previous) },
+                new Scoreboard.Row(cleared, 17, 686, DateTime.UtcNow, current));
             Time.timeScale = 0f;
             Press(keyboard.spaceKey);
             Press(keyboard.wKey);
@@ -167,10 +184,34 @@ namespace Tests.PlayMode.Screens
             Assert.AreEqual(17, screen.transform.Find("Panels/Recap/Trophies/Content").childCount);
             foreach (var marker in screen.GetComponentsInChildren<RecapSectorMarker>())
                 Assert.IsNotNull(marker.canvasRenderer, "sector markers need a renderer");
-            Assert.IsTrue(TextAt("Recap/Scoreboard/Row2/Run").text.Contains("This run"));
+            Assert.AreEqual("2", TextAt("Recap/Scoreboard/Row2/Rank").text);
             Assert.AreEqual(cleared.ToString(), TextAt("Recap/Scoreboard/Row2/Sectors").text);
+            foreach (var (number, loadout) in new[] { (1, previous), (2, current) })
+            {
+                var rowPath = $"Recap/Scoreboard/Row{number}/";
+                Assert.AreEqual(loadout.chassis, TextAt(rowPath + "Ship").text);
+                var icon = screen.transform.Find("Panels/" + rowPath + "Silhouette").GetComponent<RawImage>();
+                Assert.AreSame(Resources.Load<Texture2D>(RunRecapScreen.SilhouetteFolder + "/" + loadout.chassis), icon.texture);
+                foreach (var (mount, weaponName) in new[] { ("Primary", loadout.primary), ("Secondary", loadout.secondary) })
+                {
+                    var weaponIcon = screen.transform.Find("Panels/" + rowPath + mount).GetComponent<Image>();
+                    var firstIcon = (RectTransform)screen.transform.Find("Panels/Recap/Scoreboard/Row1/" + mount);
+                    Assert.AreEqual(firstIcon.anchoredPosition.x, weaponIcon.rectTransform.anchoredPosition.x,
+                        "weapon columns align across different ship names and empty mounts");
+                    Assert.AreEqual(!string.IsNullOrEmpty(weaponName), weaponIcon.enabled);
+                    var weapon = string.IsNullOrEmpty(weaponName) ? null
+                        : AssetDatabase.LoadAssetAtPath<WeaponComponent>($"Assets/Prefabs/Weapons/{weaponName}.prefab");
+                    Assert.AreSame(weapon ? weapon.HudIcon : null, weaponIcon.sprite);
+                }
+            }
             var recap = (RectTransform)screen.transform.Find("Panels/Recap");
             var scoreboard = (RectTransform)recap.Find("Scoreboard");
+            var canvasBounds = ((RectTransform)screen.transform).rect;
+            var cardBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(screen.transform, recap);
+            Assert.GreaterOrEqual(cardBounds.min.x, canvasBounds.xMin);
+            Assert.LessOrEqual(cardBounds.max.x, canvasBounds.xMax);
+            Assert.GreaterOrEqual(cardBounds.min.y, canvasBounds.yMin);
+            Assert.LessOrEqual(cardBounds.max.y, canvasBounds.yMax);
             Assert.AreEqual(1, screen.transform.Find("Panels").childCount);
             Assert.AreSame(recap, scoreboard.parent);
             Assert.IsNull(scoreboard.GetComponent<Image>());
@@ -280,8 +321,45 @@ namespace Tests.PlayMode.Screens
             scroll.verticalNormalizedPosition = 0f;
             yield return null;
             Assert.Greater(scroll.content.anchoredPosition.y, 0f);
-            Assert.IsTrue(TextAt("Recap/Scoreboard/Row9/Run").text.Contains("This run"));
+            Assert.AreEqual("9", TextAt("Recap/Scoreboard/Row9/Rank").text);
             Assert.AreEqual("57", TextAt("Recap/Scoreboard/Row9/Kills").text);
+            Assert.IsNull(screen.transform.Find("Panels/Recap/Scoreboard").GetComponentInChildren<ScrollRect>());
+        }
+
+        [UnityTest]
+        public IEnumerator LongShipNames_EllipsizeWithinOneRow_AndLeaveEmptyWeaponSpaces()
+        {
+            var longName = string.Join(" ", Enumerable.Repeat("Long recorded component name", 5));
+            var loadout = new LoadoutRow { chassis = longName, shield = longName, primary = longName, secondary = "" };
+            var previous = Enumerable.Range(0, 4).Select(i => new Scoreboard.Row(3, 100 + i, 900, DateTime.UtcNow, loadout)).ToArray();
+            var board = new Scoreboard(previous, new Scoreboard.Row(2, 1, 600, DateTime.UtcNow, loadout));
+            Play(RecapOutcomeContext.Defeat(Array.Empty<string>(), 2, 3, board, Vector2.zero));
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            var scoreboard = screen.transform.Find("Panels/Recap/Scoreboard");
+            for (var i = 1; i <= 5; i++)
+            {
+                var row = (RectTransform)scoreboard.Find("Row" + i);
+                var ship = row.Find("Ship").GetComponent<Text>();
+                StringAssert.EndsWith("…", ship.text);
+                StringAssert.StartsWith(ship.text.Substring(0, ship.text.Length - 1), longName);
+                Assert.LessOrEqual(ship.preferredWidth, ship.rectTransform.rect.width);
+                Assert.IsFalse(row.Find("Primary").GetComponent<Image>().enabled);
+                Assert.IsFalse(row.Find("Secondary").GetComponent<Image>().enabled);
+                CollectionAssert.AreEquivalent(new[] { "Rank", "Ship", "Sectors", "Kills", "Time", "UnavailableIcon" },
+                    row.GetComponentsInChildren<Text>().Select(label => label.name));
+                foreach (var label in row.GetComponentsInChildren<Text>())
+                    Assert.GreaterOrEqual(label.rectTransform.rect.height + .01f, label.preferredHeight, label.name);
+                Assert.LessOrEqual(ship.rectTransform.anchoredPosition.x + ship.preferredWidth,
+                    ((RectTransform)row.Find("Primary")).anchoredPosition.x);
+                var secondary = (RectTransform)row.Find("Secondary");
+                Assert.LessOrEqual(secondary.anchoredPosition.x + secondary.rect.width,
+                    ((RectTransform)row.Find("Sectors")).anchoredPosition.x);
+                if (i < 5)
+                    Assert.GreaterOrEqual(row.anchoredPosition.y - row.rect.height,
+                        ((RectTransform)scoreboard.Find("Row" + (i + 1))).anchoredPosition.y);
+            }
+            Assert.AreEqual("5", TextAt("Recap/Scoreboard/Row5/Rank").text);
         }
     }
 }
