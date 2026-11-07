@@ -1,0 +1,479 @@
+{
+  "schemaVersion": 1,
+  "exportedAt": "2026-11-07T09:03:53.216Z",
+  "sourceUrl": "file:///D:/amind/scratch/ui-mockups-20261029-console/consoles/interactive-console-05/index.html?capture=1&test=1",
+  "sourceHtml": "D:\\amind\\scratch\\ui-mockups-20261029-console\\consoles\\interactive-console-05\\index.html",
+  "acceptedReference": "D:\\amind\\scratch\\ui-mockups-20261029-console\\consoles\\interactive-console-05\\preview.png",
+  "method": "Direct native canvas.toDataURL(image/png); serialized bytes written unchanged.",
+  "pixelTreatment": "Transparent sRGB RGBA ink. No resizing, background, CRT effects, glass, scanlines, bloom, emission, or raster processing applied.",
+  "defaultSelection": "hull",
+  "detailStateFiles": {
+    "hull": "detail-hud.png",
+    "lasers": "detail-lasers.png",
+    "missiles": "detail-missiles.png",
+    "dash": "detail-dash.png"
+  },
+  "blenderUse": {
+    "colorSpace": "sRGB",
+    "alpha": "STRAIGHT",
+    "placement": "Separate screen planes. PNG top-left is canvas top-left; preserve aspect ratio.",
+    "effects": "Apply emission and physical glass in Blender."
+  },
+  "fonts": [
+    {
+      "role": "labels",
+      "family": "HUD Label",
+      "name": "Rajdhani Medium",
+      "weight": 500,
+      "file": "Rajdhani-Medium.ttf",
+      "path": "D:\\amind\\scratch\\ui-mockups-20261029-console\\consoles\\display-concepts-01\\assets\\fonts\\Rajdhani-Medium.ttf",
+      "sha256": "12ff7dcfe4c206e3875ac53b1762eab57de6a2fa7f5a86c26b97b88d6591eac2"
+    },
+    {
+      "role": "numbers",
+      "family": "HUD Readout",
+      "name": "Orbitron Medium",
+      "weight": 500,
+      "file": "Orbitron-Medium.ttf",
+      "path": "D:\\amind\\scratch\\ui-mockups-20261029-console\\consoles\\display-concepts-01\\assets\\fonts\\Orbitron-Medium.ttf",
+      "sha256": "bc96ab93d786e3417b92285b96cdfe40a3de263930ee99eebfd4e19a756df8d2"
+    },
+    {
+      "role": "headings",
+      "family": "HUD Heading",
+      "name": "Michroma",
+      "weight": 400,
+      "file": "Michroma.ttf",
+      "path": "D:\\amind\\scratch\\ui-mockups-20261029-console\\consoles\\display-concepts-01\\assets\\fonts\\Michroma.ttf",
+      "sha256": "b62301163788bc5b7f8fcac0b74b184e34e1827e577b499ecb724da065098f87"
+    }
+  ],
+  "runtime": {
+    "fonts": [
+      {
+        "family": "HUD Label",
+        "weight": "500",
+        "status": "loaded",
+        "style": "normal"
+      },
+      {
+        "family": "HUD Readout",
+        "weight": "500",
+        "status": "loaded",
+        "style": "normal"
+      },
+      {
+        "family": "HUD Heading",
+        "weight": "400",
+        "status": "loaded",
+        "style": "normal"
+      }
+    ],
+    "loadedFamilies": [
+      [
+        "HUD Label"
+      ],
+      [
+        "HUD Readout"
+      ],
+      [
+        "HUD Heading"
+      ]
+    ],
+    "content": {
+      "schemaVersion": 1,
+      "sourceCommit": "7834963a013ba8a92d23998b314410a6c1fb62d1",
+      "ship": "Vanguard",
+      "shipIcon": "icons/ships/Vanguard.png",
+      "engine": "Vanguard Engine",
+      "shield": "Standard Shield",
+      "description": null,
+      "descriptionStatus": "No authored narrative description in current ship asset or HangarScreen; omit or label placeholder.",
+      "mass": 800,
+      "keystone": {
+        "name": "Guard Dash",
+        "cooldownSeconds": 5,
+        "guardWindowSeconds": 0.4,
+        "icon": "icons/keystones/dash.svg",
+        "iconStatus": "Approved Dash glyph bound to Vanguard Guard Dash in merged PR1379",
+        "iconPng": "icons/keystones/dash.png",
+        "iconSourceCommit": "7834963a013ba8a92d23998b314410a6c1fb62d1"
+      },
+      "stats": [
+        {
+          "key": "hull",
+          "label": "Hull",
+          "value": 100,
+          "unit": "",
+          "barMaximum": 400
+        },
+        {
+          "key": "shieldCapacity",
+          "label": "Shield capacity",
+          "value": 50,
+          "unit": "",
+          "barMaximum": 150
+        },
+        {
+          "key": "shieldRecharge",
+          "label": "Shield recharge",
+          "value": 10,
+          "unit": "/s",
+          "barMaximum": 18
+        },
+        {
+          "key": "topSpeed",
+          "label": "Top speed",
+          "value": 25,
+          "unit": "",
+          "barMaximum": 32
+        },
+        {
+          "key": "acceleration",
+          "label": "Acceleration",
+          "value": 7,
+          "unit": "",
+          "barMaximum": 10
+        },
+        {
+          "key": "turn",
+          "label": "Turn",
+          "value": 180,
+          "unit": "deg/s",
+          "barMaximum": 240
+        }
+      ],
+      "shieldRechargeDelaySeconds": 4,
+      "weapons": [
+        {
+          "slot": "Primary",
+          "name": "Lasers",
+          "icon": "icons/weapons/lasers.svg",
+          "damage": 20,
+          "shotsPerSecond": 3.3333333333333335,
+          "projectileSpeed": 50,
+          "shotsToOverheat": 14,
+          "statLine": "DMG 20 / 3.3/s / SPD 50",
+          "detailLine": "OVERHEATS AFTER 14 SHOTS"
+        },
+        {
+          "slot": "Secondary",
+          "name": "Missiles",
+          "icon": "icons/weapons/missiles.svg",
+          "damage": 35,
+          "splashDamage": 15,
+          "rounds": 2,
+          "secondsPerRound": 10,
+          "refill": "Sequential",
+          "statLine": "DMG 35 + 15 SPLASH / 2 ROUNDS",
+          "detailLine": "10s/ROUND / LOCK-ON"
+        }
+      ],
+      "statSources": [
+        "src/Asteroids3D/Assets/Prefabs/Ships/Vanguard.prefab",
+        "src/Asteroids3D/Assets/Prefabs/Ships/ShipBase.prefab",
+        "src/Asteroids3D/Assets/Settings/Ships/Engines/Vanguard_Engine.asset",
+        "src/Asteroids3D/Assets/Settings/Ships/Shields/Default_Shield.asset",
+        "src/Asteroids3D/Assets/Prefabs/Keystones/Vanguard_Dash.prefab",
+        "src/Asteroids3D/Assets/Scripts/Ships/Keystones/Kits/GuardDash.cs",
+        "src/Asteroids3D/Assets/Prefabs/Weapons/Lasers.prefab",
+        "src/Asteroids3D/Assets/Prefabs/Weapons/Missiles.prefab",
+        "src/Asteroids3D/Assets/Prefabs/Weapons/Projectiles/Laser.prefab",
+        "src/Asteroids3D/Assets/Prefabs/Weapons/Projectiles/MissileProjectile.prefab",
+        "src/Asteroids3D/Assets/Scripts/Combat/Weapons/Conditions/Heat.cs"
+      ],
+      "notes": [
+        "Vanguard values and all six ship bar maxima verified against merged commit 7834963a013ba8a92d23998b314410a6c1fb62d1.",
+        "Acceleration is forwardForce 5600 divided by configured mass 800.",
+        "Lasers overheat count follows the current Heat.ShotsToOverheat formula.",
+        "Vanguard inherits Lasers and Missiles from ShipBase primaryMount/secondaryMount.",
+        "Keep the same ship, values, glyphs, and colors across all screen concept directions.",
+        "Keystone glyph source is the freshly merged main change; the owner primary checkout was older."
+      ],
+      "initialSourceCommit": "07fffad2a5a27954843e71d0a25b702d7586af67"
+    },
+    "devicePixelRatio": 1,
+    "canvasColorSpace": "srgb"
+  },
+  "sources": [
+    {
+      "path": "D:\\amind\\scratch\\ui-mockups-20261029-console\\consoles\\interactive-console-05\\index.html",
+      "bytes": 2931,
+      "sha256": "45f01dae04b6948530fdacaf224f1b1cebe903d60c1b6db89dab886a99957fef"
+    },
+    {
+      "path": "D:\\amind\\scratch\\ui-mockups-20261029-console\\consoles\\interactive-console-05\\console.js",
+      "bytes": 12124,
+      "sha256": "9b214316a784afc6c19538e30074267bc9886b96bfff2da3eb3e91e100c6e8e8"
+    },
+    {
+      "path": "D:\\amind\\scratch\\ui-mockups-20261029-console\\consoles\\interactive-console-05\\console.css",
+      "bytes": 4784,
+      "sha256": "ae01e8291016f5d800d5d98fd7fc13a0b03c447d59797bfeb3d6a4e609325ab2"
+    },
+    {
+      "path": "D:\\amind\\scratch\\ui-mockups-20261029-console\\consoles\\interactive-console-05\\embedded-assets.js",
+      "bytes": 4506405,
+      "sha256": "240fe0b7555d077e57443c933b688d0c53c13e273c26b6bcb040e26a94a1a516"
+    },
+    {
+      "path": "D:\\amind\\scratch\\ui-mockups-20261029-console\\consoles\\display-concepts-01\\screen-data.js",
+      "bytes": 2999,
+      "sha256": "ee1c5d2c9a829ed4aa0ab0bc9b04450ca0a185a4a4539972c4477977e1599f4f"
+    },
+    {
+      "path": "D:\\amind\\scratch\\ui-mockups-20261029-console\\consoles\\display-concepts-01\\assets\\screen-data.json",
+      "bytes": 3763,
+      "sha256": "15be2ab6e4cecba5194d5dd1485fe4a4bfb8d71e645aa0503c8cbe9e5e1a377f"
+    },
+    {
+      "path": "D:\\amind\\scratch\\ui-mockups-20261029-console\\consoles\\display-concepts-01\\assets\\provenance.json",
+      "bytes": 12204,
+      "sha256": "487fc73fc0adc24946ac5e16849ce7471f9fe254c18308e482f634dc1e611d19"
+    },
+    {
+      "path": "D:\\amind\\scratch\\ui-mockups-20261029-console\\combat-hud\\shared\\type.css",
+      "bytes": 814,
+      "sha256": "95bf42c3e2757d97eeac722809442004e6c24c085e5783633ddcc9cfa0c69da3"
+    },
+    {
+      "path": "D:\\amind\\scratch\\ui-mockups-20261029-console\\combat-hud\\shared\\roles.css",
+      "bytes": 214,
+      "sha256": "7efc04f1790f6e7a6045c5e35e11cf6d48699c13230572759386d12d791a864d"
+    },
+    {
+      "path": "D:\\amind\\scratch\\ui-mockups-20261029-console\\combat-hud\\shared\\personality.js",
+      "bytes": 8888,
+      "sha256": "a0b242e3d8b0f8f92477b19320ba8938598bc353eecb098487643f75921a90e5"
+    },
+    {
+      "path": "D:\\amind\\scratch\\ui-mockups-20261029-console\\consoles\\display-concepts-01\\assets\\fonts\\Rajdhani-Medium.ttf",
+      "bytes": 384348,
+      "sha256": "12ff7dcfe4c206e3875ac53b1762eab57de6a2fa7f5a86c26b97b88d6591eac2"
+    },
+    {
+      "path": "D:\\amind\\scratch\\ui-mockups-20261029-console\\consoles\\display-concepts-01\\assets\\fonts\\Orbitron-Medium.ttf",
+      "bytes": 38336,
+      "sha256": "bc96ab93d786e3417b92285b96cdfe40a3de263930ee99eebfd4e19a756df8d2"
+    },
+    {
+      "path": "D:\\amind\\scratch\\ui-mockups-20261029-console\\consoles\\display-concepts-01\\assets\\fonts\\Michroma.ttf",
+      "bytes": 64344,
+      "sha256": "b62301163788bc5b7f8fcac0b74b184e34e1827e577b499ecb724da065098f87"
+    }
+  ],
+  "icons": [
+    {
+      "path": "D:\\amind\\scratch\\ui-mockups-20261029-console\\consoles\\display-concepts-01\\assets\\icons\\ships\\Vanguard.png",
+      "sha256": "4ea2bc5be0c63d9debedc0188ade03b00b34eb928f0ca48bf77df430d1ee8bd4",
+      "bytes": 1245,
+      "embeddedBytesMatch": true
+    },
+    {
+      "path": "D:\\amind\\scratch\\ui-mockups-20261029-console\\consoles\\display-concepts-01\\assets\\icons\\keystones\\dash.svg",
+      "sha256": "da0425e95432f77d079d5e39dfe1b53e76f1fbf63c9df61d4c33e5ba10347f7e",
+      "bytes": 372,
+      "embeddedBytesMatch": true
+    },
+    {
+      "path": "D:\\amind\\scratch\\ui-mockups-20261029-console\\consoles\\display-concepts-01\\assets\\icons\\weapons\\lasers.svg",
+      "sha256": "357e874d309a7d0e4ff9efa520faf24b057e6fde3e07a87bf903b08b786604bc",
+      "bytes": 276,
+      "embeddedBytesMatch": true
+    },
+    {
+      "path": "D:\\amind\\scratch\\ui-mockups-20261029-console\\consoles\\display-concepts-01\\assets\\icons\\weapons\\missiles.svg",
+      "sha256": "9490e0bf0c2f88e491bedcafb5eeae7f660d18159b812abcb6a6a01a429ba081",
+      "bytes": 370,
+      "embeddedBytesMatch": true
+    }
+  ],
+  "exporter": {
+    "path": "D:\\amind\\scratch\\ui-mockups-20261029-console\\consoles\\blender-console-06\\inputs\\ui\\export_ui.mjs",
+    "sha256": "e0dde1803f908371837026c7f7d8cb927becc69149186ab1db235e7ff59f2161"
+  },
+  "exports": [
+    {
+      "file": "main-hud.png",
+      "surface": "main",
+      "source": "window.consolePrototype.inputs.main",
+      "state": "hull",
+      "bytes": 19504,
+      "sha256": "fc7519bb329de50b413fb6e893228fbe366cd310dbe3972043584c6afe07d49a",
+      "width": 370,
+      "height": 319,
+      "transparentPixels": 106900,
+      "partialAlphaPixels": 5115,
+      "opaquePixels": 6015,
+      "visibleBounds": {
+        "minX": 12,
+        "minY": 15,
+        "maxX": 333,
+        "maxY": 310
+      },
+      "snapshot": {
+        "selected": "hull",
+        "detail": "hull",
+        "hover": null,
+        "knobAngle": -60,
+        "effects": true,
+        "reducedMotion": false,
+        "transitionAge": 10,
+        "transitionActive": false,
+        "launchCount": 0,
+        "detailLines": [
+          "Vanguard",
+          "Hull 100 · Mass 800",
+          "Vanguard Engine · Standard Shield"
+        ]
+      }
+    },
+    {
+      "file": "detail-hud.png",
+      "surface": "detail",
+      "source": "window.consolePrototype.inputs.detail",
+      "state": "hull",
+      "bytes": 6174,
+      "sha256": "3fe4792c6fcaa3c5647f38ad869fc5e35392bc72b8b1607a0cc13aa1ccc82b9b",
+      "width": 364,
+      "height": 70,
+      "transparentPixels": 22970,
+      "partialAlphaPixels": 2357,
+      "opaquePixels": 153,
+      "visibleBounds": {
+        "minX": 12,
+        "minY": 8,
+        "maxX": 237,
+        "maxY": 64
+      },
+      "snapshot": {
+        "selected": "hull",
+        "detail": "hull",
+        "hover": null,
+        "knobAngle": -60,
+        "effects": true,
+        "reducedMotion": false,
+        "transitionAge": 10,
+        "transitionActive": false,
+        "launchCount": 0,
+        "detailLines": [
+          "Vanguard",
+          "Hull 100 · Mass 800",
+          "Vanguard Engine · Standard Shield"
+        ]
+      }
+    },
+    {
+      "file": "detail-lasers.png",
+      "surface": "detail",
+      "source": "window.consolePrototype.inputs.detail",
+      "state": "lasers",
+      "bytes": 6401,
+      "sha256": "47a44a4bf009d625d603d8f0151a054483d47bfd61f778d79edd466a6472472b",
+      "width": 364,
+      "height": 70,
+      "transparentPixels": 23219,
+      "partialAlphaPixels": 2072,
+      "opaquePixels": 189,
+      "visibleBounds": {
+        "minX": 12,
+        "minY": 9,
+        "maxX": 216,
+        "maxY": 64
+      },
+      "snapshot": {
+        "selected": "lasers",
+        "detail": "lasers",
+        "hover": null,
+        "knobAngle": -20,
+        "effects": true,
+        "reducedMotion": false,
+        "transitionAge": 0,
+        "transitionActive": true,
+        "launchCount": 0,
+        "detailLines": [
+          "Lasers",
+          "20 damage · 3.3 shots/s",
+          "14 shots to overheat · Speed 50"
+        ]
+      }
+    },
+    {
+      "file": "detail-missiles.png",
+      "surface": "detail",
+      "source": "window.consolePrototype.inputs.detail",
+      "state": "missiles",
+      "bytes": 6212,
+      "sha256": "56448392666526ca2be61f99b511182522c9484e33728c8d75863720ffd6f6cb",
+      "width": 364,
+      "height": 70,
+      "transparentPixels": 23290,
+      "partialAlphaPixels": 2047,
+      "opaquePixels": 143,
+      "visibleBounds": {
+        "minX": 12,
+        "minY": 8,
+        "maxX": 204,
+        "maxY": 62
+      },
+      "snapshot": {
+        "selected": "missiles",
+        "detail": "missiles",
+        "hover": null,
+        "knobAngle": 20,
+        "effects": true,
+        "reducedMotion": false,
+        "transitionAge": 0,
+        "transitionActive": true,
+        "launchCount": 0,
+        "detailLines": [
+          "Missiles",
+          "35 damage + 15 splash",
+          "2 rounds · 10s/round · Lock-on"
+        ]
+      }
+    },
+    {
+      "file": "detail-dash.png",
+      "surface": "detail",
+      "source": "window.consolePrototype.inputs.detail",
+      "state": "dash",
+      "bytes": 5230,
+      "sha256": "2238511f2f1877314888ed4431fa44e8e51c5d4364e60cc81c6ed7fb691195a9",
+      "width": 364,
+      "height": 70,
+      "transparentPixels": 23782,
+      "partialAlphaPixels": 1604,
+      "opaquePixels": 94,
+      "visibleBounds": {
+        "minX": 12,
+        "minY": 8,
+        "maxX": 134,
+        "maxY": 64
+      },
+      "snapshot": {
+        "selected": "dash",
+        "detail": "dash",
+        "hover": null,
+        "knobAngle": 60,
+        "effects": true,
+        "reducedMotion": false,
+        "transitionAge": 0,
+        "transitionActive": true,
+        "launchCount": 0,
+        "detailLines": [
+          "Guard Dash",
+          "5s cooldown",
+          "0.4s guard window"
+        ]
+      }
+    }
+  ],
+  "verification": {
+    "browserErrors": [],
+    "sourceFilesUnchanged": true,
+    "nativeDimensionsVerified": true,
+    "allFontsLoaded": true,
+    "embeddedIconsMatchSources": true
+  }
+}

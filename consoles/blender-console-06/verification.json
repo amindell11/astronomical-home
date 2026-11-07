@@ -1,0 +1,25 @@
+{
+  "result": "pass",
+  "blenderVersion": "5.1.2",
+  "camera": "Hero camera",
+  "resolution": [
+    1672,
+    941
+  ],
+  "sourceSha256": "3cb1105ee199dd5f2476fa839a9b43623ef1713eb1f6c0ab823359e54489c372",
+  "sourceUnchanged": true,
+  "packedImages": 10,
+  "missingImages": [],
+  "mainScreen": [
+    370,
+    319
+  ],
+  "detailScreen": [
+    364,
+    70
+  ],
+  "assemblyTranslation": "pass",
+  "selectorLocalRotation": "pass",
+  "editableCableCurves": 2,
+  "fileSha256": "b7eb9424b13722e83ca2a4e137e1517c75d4c6c751d8da724a103cfc05ae0d6d"
+}

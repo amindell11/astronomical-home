@@ -1,0 +1,9 @@
+draft-*
+review-*.blend
+*.blend1
+owner-inventory.json
+owner-camera.png
+draft-inspection.json
+inspect_draft.py
+inspect_owner.py
+*.log
