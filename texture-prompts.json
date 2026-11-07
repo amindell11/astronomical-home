@@ -1,0 +1,57 @@
+[
+  {
+    "family": "copper",
+    "output_file": "copper-albedo.png",
+    "method": "built-in imagegen",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "role": "Unlit base color. No shadows, graphite drawing, collision or geometry data.",
+    "prompt": "Use case: precise-object-edit. Asset type: 1024x1024 seamless flat base-color/albedo texture for a rotating 3D asteroid in a hand-drawn 2.5D game. Image 1 is the current asteroid brush albedo and is the EDIT TARGET and exact surface-paint style reference. Image 2 is the approved five-family CONCEPT REFERENCE only, use the corresponding row's material identity, never its lighting or black outlines. Repaint image 1 into this material family: Copper-bearing asteroid. About 60 percent medium iron slate-grey paint, 25 percent broad muted russet/copper mineral plates, 15 percent restrained matte turquoise/verdigris pigment. Several broad intersecting mineral bands with irregular chipped paint boundaries. Copper is a pigment color, not shiny metal. Sparse blue-green mineral deposits must be broad enough to read at small scale. No orange illumination.\nPreserve the original texture's broad directional gouache brushwork, asymmetrical interlocking mineral regions and deliberately quiet planes. Around 6 to 10 large regions across the sheet. All surface detail should survive when a whole asteroid is only 80 pixels wide. Flat color only, no directional shading, no cast shadows, no ambient occlusion, no black creases, no holes, no outlines, no white specular highlights, no crater motifs. No dense grunge, speckles, tiny facets, triangulated low-poly mosaic or noisy hatching. A separate authored mesh provides recesses, graphite drawing and lighting. The result must be a tileable flat texture filling the entire square canvas, not a rock render, not a material ball, not a swatch sheet. No margins, text, background scene or UI. Keep all four edges tileable."
+  },
+  {
+    "family": "violet",
+    "output_file": "violet-albedo.png",
+    "method": "built-in imagegen",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "role": "Unlit base color. No shadows, graphite drawing, collision or geometry data.",
+    "prompt": "Use case: precise-object-edit. Asset type: 1024x1024 seamless flat base-color/albedo texture for a rotating 3D asteroid in a hand-drawn 2.5D game. Image 1 is the current asteroid brush albedo and is the EDIT TARGET and exact surface-paint style reference. Image 2 is the approved five-family CONCEPT REFERENCE only, use the corresponding row's material identity, never its lighting or black outlines. Repaint image 1 into this material family: Violet crystal-bearing host rock. Mostly medium dusty graphite-violet, desaturated mauve-grey and slightly warm grey mineral planes, with a few broad subdued lavender color regions. This is the stone host's paint only. Separate mesh facets will supply exposed crystals; do not paint gemstones, crystal outlines or holes into this image. Keep saturation restrained and value medium.\nPreserve the original texture's broad directional gouache brushwork, asymmetrical interlocking mineral regions and deliberately quiet planes. Around 6 to 10 large regions across the sheet. All surface detail should survive when a whole asteroid is only 80 pixels wide. Flat color only, no directional shading, no cast shadows, no ambient occlusion, no black creases, no holes, no outlines, no white specular highlights, no crater motifs. No dense grunge, speckles, tiny facets, triangulated low-poly mosaic or noisy hatching. A separate authored mesh provides recesses, graphite drawing and lighting. The result must be a tileable flat texture filling the entire square canvas, not a rock render, not a material ball, not a swatch sheet. No margins, text, background scene or UI. Keep all four edges tileable."
+  },
+  {
+    "family": "chalk",
+    "output_file": "chalk-albedo.png",
+    "method": "built-in imagegen",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "role": "Unlit base color. No shadows, graphite drawing, collision or geometry data.",
+    "prompt": "Use case: precise-object-edit. Asset type: 1024x1024 seamless flat base-color/albedo texture for a rotating 3D asteroid in a hand-drawn 2.5D game. Image 1 is the current asteroid brush albedo and is the EDIT TARGET and exact surface-paint style reference. Image 2 is the approved five-family CONCEPT REFERENCE only, use the corresponding row's material identity, never its lighting or black outlines. Repaint image 1 into this material family: Pale layered asteroid stone. Medium-light warm chalk-grey, muted putty-beige and slate-grey broad geological bands. Irregular broken bands run roughly diagonally, with offshoots and a few open interlocking mineral planes. Matte, broad dry-brush pigment, not woodgrain and not zebra stripes. Lightest regions warm grey, never pure white. No relief shading.\nPreserve the original texture's broad directional gouache brushwork, asymmetrical interlocking mineral regions and deliberately quiet planes. Around 6 to 10 large regions across the sheet. All surface detail should survive when a whole asteroid is only 80 pixels wide. Flat color only, no directional shading, no cast shadows, no ambient occlusion, no black creases, no holes, no outlines, no white specular highlights, no crater motifs. No dense grunge, speckles, tiny facets, triangulated low-poly mosaic or noisy hatching. A separate authored mesh provides recesses, graphite drawing and lighting. The result must be a tileable flat texture filling the entire square canvas, not a rock render, not a material ball, not a swatch sheet. No margins, text, background scene or UI. Keep all four edges tileable."
+  },
+  {
+    "family": "verdant",
+    "output_file": "verdant-albedo.png",
+    "method": "built-in imagegen",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "role": "Unlit base color. No shadows, graphite drawing, collision or geometry data.",
+    "prompt": "Use case: precise-object-edit. Asset type: 1024x1024 seamless flat base-color/albedo texture for a rotating 3D asteroid in a hand-drawn 2.5D game. Image 1 is the current asteroid brush albedo and is the EDIT TARGET and exact surface-paint style reference. Image 2 is the approved five-family CONCEPT REFERENCE only, use the corresponding row's material identity, never its lighting or black outlines. Repaint image 1 into this material family: Serpentine-like green mineral nodule. Medium grey-olive and sage base with broad irregular desaturated jade-green bands, subdued cream-grey mineral crust regions, and very sparse muted sulfur-ochre pigment. Green covers about one third of the image; retain quiet grey and cream regions. No leaves, moss, organic pores, vines, smoke or luminous green.\nPreserve the original texture's broad directional gouache brushwork, asymmetrical interlocking mineral regions and deliberately quiet planes. Around 6 to 10 large regions across the sheet. All surface detail should survive when a whole asteroid is only 80 pixels wide. Flat color only, no directional shading, no cast shadows, no ambient occlusion, no black creases, no holes, no outlines, no white specular highlights, no crater motifs. No dense grunge, speckles, tiny facets, triangulated low-poly mosaic or noisy hatching. A separate authored mesh provides recesses, graphite drawing and lighting. The result must be a tileable flat texture filling the entire square canvas, not a rock render, not a material ball, not a swatch sheet. No margins, text, background scene or UI. Keep all four edges tileable."
+  },
+  {
+    "family": "ice",
+    "output_file": "ice-albedo.png",
+    "method": "built-in imagegen",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "role": "Unlit base color. No shadows, graphite drawing, collision or geometry data.",
+    "prompt": "Use case: precise-object-edit. Asset type: 1024x1024 seamless flat base-color/albedo texture for a rotating 3D asteroid in a hand-drawn 2.5D game. Image 1 is the current asteroid brush albedo and is the EDIT TARGET and exact surface-paint style reference. Image 2 is the approved five-family CONCEPT REFERENCE only, use the corresponding row's material identity, never its lighting or black outlines. Repaint image 1 into this material family: Dirty ice asteroid. Broad milky blue-grey and frosted cool grey mineral-color regions with a few muted smoky slate-grey inclusions. Pale opaque diffuse pigment only; separate model materials can supply frost and exposed stones. Large elongated interlocking areas, calm hand-painted gouache marks, muted near-white grey allowed sparingly but no pure white highlights. No painted transparency, glossy reflections, ice crack lines, glass prisms or embedded shaded rocks.\nPreserve the original texture's broad directional gouache brushwork, asymmetrical interlocking mineral regions and deliberately quiet planes. Around 6 to 10 large regions across the sheet. All surface detail should survive when a whole asteroid is only 80 pixels wide. Flat color only, no directional shading, no cast shadows, no ambient occlusion, no black creases, no holes, no outlines, no white specular highlights, no crater motifs. No dense grunge, speckles, tiny facets, triangulated low-poly mosaic or noisy hatching. A separate authored mesh provides recesses, graphite drawing and lighting. The result must be a tileable flat texture filling the entire square canvas, not a rock render, not a material ball, not a swatch sheet. No margins, text, background scene or UI. Keep all four edges tileable."
+  }
+]

@@ -1,0 +1,378 @@
+{
+  "verdict": "PASS",
+  "blender": "5.1.2",
+  "families": [
+    {
+      "family": "copper",
+      "source_reopened": true,
+      "objects": [
+        {
+          "object": "CopperSurface",
+          "vertices": 617,
+          "triangles": 1230,
+          "materials": 1,
+          "uv_layers": 1
+        },
+        {
+          "object": "CopperDrawing",
+          "vertices": 360,
+          "triangles": 324,
+          "materials": 1,
+          "uv_layers": 0
+        }
+      ],
+      "vertices": 977,
+      "triangles": 1554,
+      "material_count": 2,
+      "dimensions": [
+        4.0,
+        1.7293494939804077,
+        1.5310521125793457
+      ],
+      "images": [
+        {
+          "image": "CopperAlbedo",
+          "file": "copper-albedo.png",
+          "packed": true,
+          "size": [
+            1254,
+            1254
+          ]
+        }
+      ],
+      "exports": {
+        "glb": {
+          "reimported": true,
+          "objects": 2,
+          "triangles": 1554,
+          "images": 1,
+          "bytes": 2181460
+        },
+        "fbx": {
+          "reimported": true,
+          "objects": 2,
+          "triangles": 1554,
+          "images": 1,
+          "bytes": 2143084
+        }
+      }
+    },
+    {
+      "family": "violet",
+      "source_reopened": true,
+      "objects": [
+        {
+          "object": "VioletSurface",
+          "vertices": 2077,
+          "triangles": 4150,
+          "materials": 1,
+          "uv_layers": 1
+        },
+        {
+          "object": "VioletDrawing",
+          "vertices": 12342,
+          "triangles": 12128,
+          "materials": 1,
+          "uv_layers": 0
+        },
+        {
+          "object": "AmethystExposure1",
+          "vertices": 18,
+          "triangles": 32,
+          "materials": 4,
+          "uv_layers": 1
+        },
+        {
+          "object": "AmethystExposure2",
+          "vertices": 18,
+          "triangles": 32,
+          "materials": 4,
+          "uv_layers": 1
+        },
+        {
+          "object": "AmethystExposure3",
+          "vertices": 18,
+          "triangles": 32,
+          "materials": 4,
+          "uv_layers": 1
+        },
+        {
+          "object": "AmethystExposure4",
+          "vertices": 18,
+          "triangles": 32,
+          "materials": 4,
+          "uv_layers": 1
+        },
+        {
+          "object": "AmethystExposure5",
+          "vertices": 18,
+          "triangles": 32,
+          "materials": 4,
+          "uv_layers": 1
+        }
+      ],
+      "vertices": 14509,
+      "triangles": 16438,
+      "material_count": 6,
+      "dimensions": [
+        4.0,
+        3.347888231277466,
+        2.648489236831665
+      ],
+      "images": [
+        {
+          "image": "Asteroid2Normal",
+          "file": "violet-relief.png",
+          "packed": true,
+          "size": [
+            1024,
+            1024
+          ]
+        },
+        {
+          "image": "VioletAlbedo",
+          "file": "violet-albedo.png",
+          "packed": true,
+          "size": [
+            1254,
+            1254
+          ]
+        }
+      ],
+      "exports": {
+        "glb": {
+          "reimported": true,
+          "objects": 7,
+          "triangles": 16438,
+          "images": 2,
+          "bytes": 2530520
+        },
+        "fbx": {
+          "reimported": true,
+          "objects": 7,
+          "triangles": 16438,
+          "images": 2,
+          "bytes": 2577100
+        }
+      }
+    },
+    {
+      "family": "chalk",
+      "source_reopened": true,
+      "objects": [
+        {
+          "object": "ChalkSurface",
+          "vertices": 496,
+          "triangles": 988,
+          "materials": 3,
+          "uv_layers": 1
+        },
+        {
+          "object": "ChalkDrawing",
+          "vertices": 294,
+          "triangles": 268,
+          "materials": 1,
+          "uv_layers": 0
+        }
+      ],
+      "vertices": 790,
+      "triangles": 1256,
+      "material_count": 4,
+      "dimensions": [
+        4.0,
+        1.8070998191833496,
+        1.5933665037155151
+      ],
+      "images": [
+        {
+          "image": "ChalkAlbedo",
+          "file": "chalk-albedo.png",
+          "packed": true,
+          "size": [
+            1254,
+            1254
+          ]
+        }
+      ],
+      "exports": {
+        "glb": {
+          "reimported": true,
+          "objects": 2,
+          "triangles": 1256,
+          "images": 1,
+          "bytes": 2036656
+        },
+        "fbx": {
+          "reimported": true,
+          "objects": 2,
+          "triangles": 1256,
+          "images": 1,
+          "bytes": 2011100
+        }
+      }
+    },
+    {
+      "family": "verdant",
+      "source_reopened": true,
+      "objects": [
+        {
+          "object": "VerdantSurface",
+          "vertices": 2069,
+          "triangles": 4134,
+          "materials": 1,
+          "uv_layers": 1
+        },
+        {
+          "object": "VerdantDrawing",
+          "vertices": 10360,
+          "triangles": 10154,
+          "materials": 1,
+          "uv_layers": 0
+        }
+      ],
+      "vertices": 12429,
+      "triangles": 14288,
+      "material_count": 2,
+      "dimensions": [
+        4.0,
+        2.511260986328125,
+        2.2516555786132812
+      ],
+      "images": [
+        {
+          "image": "Asteroid3Normal",
+          "file": "verdant-relief.png",
+          "packed": true,
+          "size": [
+            1024,
+            1024
+          ]
+        },
+        {
+          "image": "VerdantAlbedo",
+          "file": "verdant-albedo.png",
+          "packed": true,
+          "size": [
+            1254,
+            1254
+          ]
+        },
+        {
+          "image": "VerdantExportAlbedo",
+          "file": "verdant-export-albedo.png",
+          "packed": true,
+          "size": [
+            1254,
+            1254
+          ]
+        },
+        {
+          "image": "VerdantExportRelief",
+          "file": "verdant-export-relief.png",
+          "packed": true,
+          "size": [
+            1254,
+            1254
+          ]
+        }
+      ],
+      "exports": {
+        "glb": {
+          "reimported": true,
+          "objects": 2,
+          "triangles": 14288,
+          "images": 2,
+          "bytes": 1936944
+        },
+        "fbx": {
+          "reimported": true,
+          "objects": 2,
+          "triangles": 14288,
+          "images": 2,
+          "bytes": 1955516
+        }
+      }
+    },
+    {
+      "family": "ice",
+      "source_reopened": true,
+      "objects": [
+        {
+          "object": "IceSurface",
+          "vertices": 256,
+          "triangles": 508,
+          "materials": 1,
+          "uv_layers": 1
+        },
+        {
+          "object": "IceDrawing",
+          "vertices": 278,
+          "triangles": 240,
+          "materials": 1,
+          "uv_layers": 0
+        },
+        {
+          "object": "EmbeddedStone1",
+          "vertices": 12,
+          "triangles": 20,
+          "materials": 1,
+          "uv_layers": 2
+        },
+        {
+          "object": "EmbeddedStone2",
+          "vertices": 12,
+          "triangles": 20,
+          "materials": 1,
+          "uv_layers": 2
+        },
+        {
+          "object": "EmbeddedStone3",
+          "vertices": 12,
+          "triangles": 20,
+          "materials": 1,
+          "uv_layers": 2
+        }
+      ],
+      "vertices": 570,
+      "triangles": 808,
+      "material_count": 3,
+      "dimensions": [
+        4.0,
+        1.5091586112976074,
+        1.678767442703247
+      ],
+      "images": [
+        {
+          "image": "IceAlbedo",
+          "file": "ice-albedo.png",
+          "packed": true,
+          "size": [
+            1254,
+            1254
+          ]
+        }
+      ],
+      "exports": {
+        "glb": {
+          "reimported": true,
+          "objects": 5,
+          "triangles": 808,
+          "images": 1,
+          "bytes": 2015052
+        },
+        "fbx": {
+          "reimported": true,
+          "objects": 5,
+          "triangles": 808,
+          "images": 1,
+          "bytes": 2012028
+        }
+      }
+    }
+  ],
+  "notes": [
+    "Art proof only. No runtime, collision, fragmentation or volume data.",
+    "Verdant mineral bands are baked into a flat emission-color export albedo shared by BLEND, GLB and FBX; the original source albedo is preserved.",
+    "Preview contour shells, lights and cameras exist only in BLEND and are excluded from exports."
+  ]
+}
