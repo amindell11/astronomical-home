@@ -21,6 +21,7 @@ namespace Tests.PlayMode.Sectors
     /// <summary>The shipped repair station prefab with a scratch feel: it shows on a point its distance from the hero's start, repairs hull at the feel's rate while the hero sits in it, draws on its supply only for what it heals, goes dark when the supply is spent or the sector's hunt raises its alarm, places a set of stations apart with a supply each, stays live in a sector with no hunt, raises its arrival events once, and is a find on the objective service from placement until it goes dark.</summary>
     [TestFixture]
     [Category("Sectors")]
+    [Category("RequiresLfsPng")]
     public class RepairStationPlayModeTests : PlayModeWorldFixture
     {
         private const string StationPath = "Assets/Prefabs/Objectives/Repair Station.prefab";

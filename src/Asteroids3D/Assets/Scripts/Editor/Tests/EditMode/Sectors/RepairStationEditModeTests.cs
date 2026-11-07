@@ -12,6 +12,7 @@ namespace Tests.EditMode.Sectors
     /// <summary>Each trial sector carries one repair station module on the shared feel, placed 120 to 180 u from the start, reading the sector's own hunt, with its zone on the body, its find icon, and a find-layer minimap marker among the parts that go dark.</summary>
     [TestFixture]
     [Category("Sectors")]
+    [Category("RequiresLfsPng")]
     public class RepairStationEditModeTests
     {
         private const string FeelPath = "Assets/Settings/Game/RepairStationFeel.asset";

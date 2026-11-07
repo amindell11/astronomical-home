@@ -12,6 +12,7 @@ namespace Tests.PlayMode.PlayerState
 {
     /// <summary>A find beyond the minimap's range points from the rim toward it with its icon; in range, or closed, it shows no pointer.</summary>
     [Category("UI")]
+    [Category("RequiresLfsPng")]
     public class FindPointersPlayModeTests
     {
         private const string IconPath = "Assets/Visuals/Ui/Minimap/Finds/RepairFind.png";
