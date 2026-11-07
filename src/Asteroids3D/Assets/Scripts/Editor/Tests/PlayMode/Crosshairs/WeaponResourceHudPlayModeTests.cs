@@ -4,6 +4,7 @@ using Combat.Weapons.Conditions;
 using Combat.Weapons.Mods;
 using Loot;
 using NUnit.Framework;
+using Ships.Keystones;
 using Ships.Weapons;
 using Tests.PlayMode.Common;
 using UI.Weapons;
@@ -21,6 +22,7 @@ namespace Tests.PlayMode.Crosshairs
     {
         private GameObject root;
         private WeaponResourceHud hud;
+        private Sprite keystoneIcon;
         private WeaponReadoutBuilder builder;
 
         [SetUp]
@@ -29,6 +31,7 @@ namespace Tests.PlayMode.Crosshairs
             root = new GameObject("Weapon HUD test", typeof(RectTransform), typeof(Canvas));
             root.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
             hud = Object.Instantiate(LoadPrefab<WeaponResourceHud>("UI/Crosshair/WeaponKeystoneHud"), root.transform);
+            keystoneIcon = LoadPrefab<Keystone>("Keystones/Vanguard_Dash").Icon;
             builder = root.AddComponent<WeaponReadoutBuilder>();
             var authoredBuilder = LoadPrefab<WeaponReadoutBuilder>("UI/UIOverlay");
             builder.panelPrefab = authoredBuilder.panelPrefab;
@@ -70,7 +73,7 @@ namespace Tests.PlayMode.Crosshairs
 
         private void Rebind(WeaponsController controller)
         {
-            hud.Initialize(controller.ReadoutContext);
+            hud.Initialize(controller.ReadoutContext, keystoneIcon);
             hud.gameObject.SetActive(true);
             builder.Build(controller.ReadoutContext);
             Draw();

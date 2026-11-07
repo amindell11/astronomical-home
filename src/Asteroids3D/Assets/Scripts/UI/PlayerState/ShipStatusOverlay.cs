@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using Game.Player;
 using Ships;
+using Substrate;
 using UnityEngine;
 using Utils;
 using UI.Projection;
@@ -10,6 +12,8 @@ namespace UI.PlayerState
 {
     /// <summary>
     /// Session-owned ship indicators and lock reticles share a recap fade independently of the main HUD.
+    /// Each frame it picks the player's one target (the missile lock, else the enemy nearest the cursor)
+    /// and tells each indicator whether it is targeted.
     /// </summary>
     public sealed class ShipStatusOverlay : MonoBehaviour
     {
@@ -24,11 +28,13 @@ namespace UI.PlayerState
         private CanvasGroup worldVisibility;
         private LockOnIndicator reticlePrefab;
         private CanopyProjection projection;
+        private PlayerControls controls;
 
         public static ShipStatusOverlay Create(Canvas hud, SubscribedSet<Ship> ships, Camera worldCamera, Font font, Material textMaterial,
-            LockOnIndicator reticlePrefab, CanopyProjection projection = null)
+            LockOnIndicator reticlePrefab, CanopyProjection projection)
         {
             if (!reticlePrefab) throw new ArgumentNullException(nameof(reticlePrefab));
+            if (!projection) throw new ArgumentNullException(nameof(projection));
             var root = new GameObject("Ship status overlay", typeof(RectTransform), typeof(Canvas), typeof(CanvasGroup));
             root.layer = hud.gameObject.layer;
             root.transform.SetParent(hud.transform.parent, false);
@@ -55,6 +61,40 @@ namespace UI.PlayerState
         {
             canvas = GetComponent<Canvas>();
             visibility = GetComponent<CanvasGroup>();
+            controls = new PlayerControls();
+        }
+
+        private void OnEnable() => controls.Flight.AimPoint.Enable();
+
+        private void OnDisable() => controls.Flight.AimPoint.Disable();
+
+        private void Update()
+        {
+            var profile = projection.Profile;
+            var aim = controls.Flight.AimPoint.ReadValue<Vector2>();
+            var reach = profile.targetPickRadius * Screen.height;
+            var nearest = reach * reach;
+            Ship player = null;
+            Ship pointed = null;
+            foreach (var ship in indicators.Keys)
+            {
+                if (ship.CompareTag(TagNames.Player))
+                {
+                    player = ship;
+                    continue;
+                }
+                if (!ship.gameObject.activeInHierarchy || ship.Lock.IsConcealed) continue;
+                var point = worldCamera.WorldToScreenPoint(ship.transform.position);
+                var distance = ((Vector2)point - aim).sqrMagnitude;
+                if (point.z < 0f || distance > nearest) continue;
+                nearest = distance;
+                pointed = ship;
+            }
+            var sensor = player ? player.Targeting : null;
+            var locked = sensor ? sensor.CurrentTarget as Ship : null;
+            var target = locked ? locked : pointed;
+            foreach (var (ship, indicator) in indicators)
+                indicator.Present(player, ship == target, profile);
         }
 
         public void SetOpacity(float opacity) => visibility.alpha = worldVisibility.alpha = opacity;
@@ -82,6 +122,7 @@ namespace UI.PlayerState
 
         private void OnDestroy()
         {
+            controls.Dispose();
             if (worldVisibility) Destroy(worldVisibility.gameObject);
             if (ships == null) return;
             ships.OnAdd -= Add;

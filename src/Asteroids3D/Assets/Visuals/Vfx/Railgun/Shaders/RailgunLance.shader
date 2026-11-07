@@ -11,9 +11,9 @@ Shader "Astronomical/Vfx/Railgun Lance"
         [HideInInspector] _ShotAge ("Shot age", Float) = 0
         [HideInInspector] _BeamLength ("Beam length", Float) = 60
         [HideInInspector] _LineWidth ("Line width", Float) = 1
-        [HideInInspector] _DashPhase ("Inward travel", Float) = 0
-        [HideInInspector] _DashSpacing ("Dash repeat distance", Float) = 6
-        [HideInInspector] _DashGap ("Dash gap fraction", Float) = 0.3
+        [HideInInspector] _StreakPhase ("Inward travel", Float) = 0
+        [HideInInspector] _StreakSpacing ("Streak repeat distance", Float) = 8.5
+        [HideInInspector] _StreakLength ("Streak length", Float) = 3
     }
     SubShader
     {
@@ -39,9 +39,9 @@ Shader "Astronomical/Vfx/Railgun Lance"
                 float _ShotAge;
                 float _BeamLength;
                 float _LineWidth;
-                float _DashPhase;
-                float _DashSpacing;
-                float _DashGap;
+                float _StreakPhase;
+                float _StreakSpacing;
+                float _StreakLength;
             CBUFFER_END
             struct Input { float4 vertex:POSITION; float2 uv:TEXCOORD0; half4 color:COLOR; };
             struct Varying { float4 position:SV_POSITION; float2 uv:TEXCOORD0; half4 color:COLOR; };
@@ -70,15 +70,15 @@ Shader "Astronomical/Vfx/Railgun Lance"
             }
             half4 Charge(float2 uv, float distance)
             {
-                float along = frac((distance + _DashPhase) / _DashSpacing);
-                float dash = along / (1 - _DashGap);
-                float halfWidth = dash < 0.21 ? dash / 0.21 : lerp(1, 0.38, saturate((dash - 0.21) / 0.79));
+                float along = frac((distance + _StreakPhase) / _StreakSpacing) * _StreakSpacing / _StreakLength;
                 float across = abs(uv.y * 2 - 1);
-                float aa = max(fwidth(across), 0.001);
-                float shape = (1 - smoothstep(halfWidth - aa, halfWidth, across)) * (1 - step(1, dash));
-                float core = smoothstep(0.15, 0.21, dash) * (1 - smoothstep(0.6, 0.65, dash));
-                core *= 1 - smoothstep(0.2, 0.2 + aa, across);
-                return half4(lerp(half3(0.107, 0.597, 1), half3(0.694, 0.930, 1), core) * shape, shape);
+                float aa = max(fwidth(uv.y), 0.001);
+                float baseline = (1 - smoothstep(0.35 - aa, 0.35 + aa, across)) * 0.62;
+                float streak = (1 - smoothstep(along - aa, along + aa, across)) * (1 - step(1, along));
+                float notch = saturate((along - 0.65) / 0.35);
+                streak *= lerp(1, smoothstep(notch - aa, notch + aa, across), step(0.65, along));
+                half4 baselineColor = half4(half3(0.107, 0.597, 1) * baseline, baseline);
+                return half4(half3(0.694, 0.930, 1) * streak, streak) + baselineColor * (1 - streak);
             }
             half4 Frag(Varying i):SV_Target
             {

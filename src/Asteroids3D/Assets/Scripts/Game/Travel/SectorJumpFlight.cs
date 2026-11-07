@@ -183,7 +183,11 @@ namespace Game.Travel
                 ship.Movement.enabled = movementEnabled;
                 ship.Commander.enabled = commanderEnabled;
             }
-            if (observer) observer.enabled = observerEnabled;
+            if (observer)
+            {
+                observer.enabled = observerEnabled;
+                observer.ResumeFollow();
+            }
             if (rig.Overlay) rig.Overlay.SetOpacity(1f);
             foreach (var active in units.ActiveRegistry.ActiveShips)
                 if (active && active.VisualRig) active.VisualRig.SetHudOpacity(1f);

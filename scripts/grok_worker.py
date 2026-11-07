@@ -494,7 +494,9 @@ def main():
     prompt = f"{preamble}\n# Brief\n\n{brief}"
     if len(prompt) > MAX_PROMPT_CHARS:
         usage_error(f"the brief makes a {len(prompt)}-char prompt; the limit is {MAX_PROMPT_CHARS}")
-    env = dict(os.environ, CURSOR_INVOKED_AS="agent")
+    # Cursor writes hooks as PowerShell but runs them in Git Bash when either is set.
+    env = {k: v for k, v in os.environ.items() if k not in ("MSYSTEM", "SHELL")}
+    env["CURSOR_INVOKED_AS"] = "agent"
     cursor = cursor_command(env)
     reason = preflight(cursor, env, slot, args.model)
     if reason:

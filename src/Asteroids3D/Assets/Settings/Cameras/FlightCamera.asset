@@ -17,8 +17,13 @@ MonoBehaviour:
   zoomPerSpeed: 0.25
   fightRadius: 30
   releaseMargin: 10
+  fightMaxWiden: 7
+  fightPull: 1
   widenTime: 0.4
   narrowTime: 1.2
   leadSeconds: 0.7
   maxLead: 20
   leadSmoothTime: 0.8
+  cursorLead: 6
+  cursorDeadZone: 0.2
+  cursorLeadSmoothTime: 0.4

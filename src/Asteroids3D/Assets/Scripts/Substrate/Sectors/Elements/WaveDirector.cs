@@ -7,6 +7,7 @@ using Combat.Weapons;
 using Ships;
 using Ships.Command;
 using Ships.Loadout;
+using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Factions;
@@ -20,9 +21,9 @@ namespace Substrate.Sectors.Elements
     /// opens by filling to its alive cap, then spawns one ship per interval while under it. The opening
     /// lull before the first phase (held until the alarm when the sector has a hunt, so phase one keeps
     /// index 0) and the lull before each later one spawn nothing, and once the table is done the last
-    /// phase's pacing holds, so the hero leaves under pursuit. Ships ring the hero
-    /// just off screen, facing it, on the first angle clear of asteroids, each flying its sector
-    /// faction's kit for its ship and wearing the faction's skin.
+    /// phase's pacing holds, so the hero leaves under pursuit; the sector's elite arriving stops spawning
+    /// for good. Ships ring the hero just off screen, facing it, on the first angle clear of asteroids,
+    /// each flying its sector faction's kit for its ship and wearing the faction's skin.
     /// Dead products are despawned on the tick, and the tick idles while the hero is inactive (the
     /// recap hold). Nothing spawns in Build: the sector builds under an inactive holder and the
     /// asteroid field lays out at its Start, so a Build-time clearance check would see no rocks.
@@ -53,6 +54,8 @@ namespace Substrate.Sectors.Elements
         [Stat, SerializeField, Min(0f)] private float openingLullSeconds = 5f;
         [Tooltip("The sector's opening hunt. Set, the opening lull lasts until its alarm; unset, the seconds above.")]
         [SerializeField] private SectorHunt hunt;
+        [Tooltip("The elite the sector's spine summons. Set, spawning stops when it arrives; it must be the spine's own elite.")]
+        [SerializeField] private EliteEncounter elite;
 
         [Header("Placement")]
         [Tooltip("Plane distance from the hero; author it past the camera's widest view so ships arrive off screen.")]
@@ -72,6 +75,7 @@ namespace Substrate.Sectors.Elements
         private float nextSpawnTime;
         private bool started;
         private bool huntReleased;
+        private bool eliteArrived;
         private int openedPhase;
 
         /// <summary>Where the phase table stands as of the last tick.</summary>
@@ -99,11 +103,14 @@ namespace Substrate.Sectors.Elements
             field = ctx.Field;
             hero = ctx.Hero;
             started = false;
+            eliteArrived = false;
+            if (elite) elite.Announced += OnEliteArrived;
             Phase = schedule.At(0f);
         }
 
         protected override IEnumerator OnTeardown(SectorBuildContext ctx)
         {
+            if (elite) elite.Announced -= OnEliteArrived;
             hero = null;
             var teardown = base.OnTeardown(ctx);
             while (teardown.MoveNext()) yield return teardown.Current;
@@ -126,7 +133,7 @@ namespace Substrate.Sectors.Elements
             DespawnDead();
             HoldForHunt(now);
             Advance(now);
-            if (Phase.InLull) return;
+            if (Phase.InLull || eliteArrived) return;
 
             var row = phases[Phase.Index];
             if (OpensPhase())
@@ -139,6 +146,16 @@ namespace Substrate.Sectors.Elements
 
             if (SpawnDue(now, products.Count) && TrySpawn())
                 ScheduleNext(now);
+        }
+
+        private void OnEliteArrived(EliteMoment moment) => eliteArrived = true;
+
+        private void OnValidate()
+        {
+            var spine = GetComponentInParent<PhaseSpineModule>(true);
+            if (spine && spine.Elite is EliteEncounter owned && owned != elite)
+                throw new InvalidOperationException(
+                    $"WaveDirector on '{name}' must watch its spine's elite '{owned.name}', so the waves stop when it arrives.");
         }
 
         private void BuildSchedule() => schedule = new SectorPhaseSchedule(phases, lullSeconds, openingLullSeconds);
@@ -236,9 +253,11 @@ namespace Substrate.Sectors.Elements
 
 #if UNITY_EDITOR
         internal void Configure(RosterEntry[] roster, SectorPhase[] phases, float lullSeconds = 5f,
-            float spawnRadius = 55f, SectorFaction faction = null, float openingLullSeconds = 0f, SectorHunt hunt = null)
+            float spawnRadius = 55f, SectorFaction faction = null, float openingLullSeconds = 0f, SectorHunt hunt = null,
+            EliteEncounter elite = null)
         {
             this.hunt = hunt;
+            this.elite = elite;
             this.roster = roster;
             this.faction = faction;
             this.phases = phases;
