@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff266d098eaa48b29db7cbb8ae86713c, type: 3}
+  m_Name: WeaponIcons
+  m_EditorClassIdentifier:
+  entries:
+  - weapon: Lasers
+    icon: {fileID: 21300000, guid: 3866da317a5202f45b2a91ea4960b47d, type: 3}
+  - weapon: TurboLasers
+    icon: {fileID: 21300000, guid: a046f8409137ac34e81fea137e7b5fca, type: 3}
+  - weapon: Rippers
+    icon: {fileID: 21300000, guid: d1b87bf203c8e924a9c1373a73959eb0, type: 3}
+  - weapon: Railgun
+    icon: {fileID: 21300000, guid: 6032c7af754a15f459f554ae853d29ce, type: 3}
+  - weapon: Missiles
+    icon: {fileID: 21300000, guid: 20cd538154f26d74db31ff4f215e85ef, type: 3}
+  - weapon: Grenades
+    icon: {fileID: 21300000, guid: 87385cf094ca7ce41b87ed1dfff9e060, type: 3}

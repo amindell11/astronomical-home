@@ -22,13 +22,16 @@ namespace Game.Runs
             public readonly int Kills;
             public readonly float SecondsSurvived;
             public readonly DateTime EndedUtc;
+            public readonly LoadoutRow Player;
 
-            public Row(int sectorsCleared, int kills, float secondsSurvived, DateTime endedUtc)
+            public Row(int sectorsCleared, int kills, float secondsSurvived, DateTime endedUtc,
+                LoadoutRow player = default)
             {
                 SectorsCleared = sectorsCleared;
                 Kills = kills;
                 SecondsSurvived = secondsSurvived;
                 EndedUtc = endedUtc;
+                Player = player;
             }
         }
 
@@ -112,7 +115,7 @@ namespace Game.Runs
                     DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var ended))
                 return false;
 
-            row = new Row(record.sectorsCleared, record.kills, record.secondsSurvived, ended);
+            row = new Row(record.sectorsCleared, record.kills, record.secondsSurvived, ended, record.player);
             return true;
         }
     }

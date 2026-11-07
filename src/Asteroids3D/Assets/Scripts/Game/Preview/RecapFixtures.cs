@@ -51,25 +51,32 @@ namespace Game.Preview
                     return RecapOutcomeContext.Extraction(kills, 2, 222.8f);
                 case RecapOutcome.Victory:
                     return RecapOutcomeContext.Victory(kills, SectorCount, SectorCount,
-                        Board(shape.TopFive, new Scoreboard.Row(SectorCount, shape.Kills, 1234f, Ended)));
+                        Board(shape.TopFive, new Scoreboard.Row(SectorCount, shape.Kills, 1234f, Ended, Loadout(0))));
                 case RecapOutcome.Defeat:
                     return RecapOutcomeContext.Defeat(kills, 1, SectorCount,
-                        Board(shape.TopFive, new Scoreboard.Row(1, shape.Kills, 420f, Ended)), deathPoint);
+                        Board(shape.TopFive, new Scoreboard.Row(1, shape.Kills, 420f, Ended, Loadout(0))), deathPoint);
                 default:
                     throw new ArgumentOutOfRangeException(nameof(index), shape.Outcome, "Unknown recap outcome.");
             }
         }
 
-        // Sectors rank first, then kills: the better rows always out-rank this run, zero-sector rows never.
+        private static LoadoutRow Loadout(int index) => new()
+        {
+            chassis = Chassis[index % Chassis.Length],
+            shield = "Default_Shield",
+            primary = (index % 4) switch { 0 => "Lasers", 1 => "TurboLasers", 2 => "Rippers", _ => "Railgun" },
+            secondary = (index % 3) switch { 0 => "", 1 => "Missiles", _ => "Grenades" },
+        };
+
         private static Scoreboard Board(bool topFive, Scoreboard.Row thisRun)
         {
             var better = topFive ? 2 : 8;
             var rows = new List<Scoreboard.Row>();
             for (var i = 0; i < better; i++)
-                rows.Add(new Scoreboard.Row(SectorCount, 50 + i, 1500f + i, Ended.AddDays(-1 - i)));
+                rows.Add(new Scoreboard.Row(SectorCount, 50 + i, 1500f + i, Ended.AddDays(-1 - i), Loadout(i + 1)));
             if (topFive)
                 for (var i = 0; i < 4; i++)
-                    rows.Add(new Scoreboard.Row(0, i, 100f + i, Ended.AddDays(-10 - i)));
+                    rows.Add(new Scoreboard.Row(0, i, 100f + i, Ended.AddDays(-10 - i), Loadout(i + 3)));
             return new Scoreboard(rows, thisRun);
         }
 
