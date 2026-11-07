@@ -11,7 +11,7 @@ Each study uses the same Vanguard data, actual icons and current HUD fonts. A ma
 - E, Open instruments, separates the data into sparse HUD-like clusters.
 - F, Vertical instruments, compares the six quantities as grouped vertical tracks.
 
-The console session recommends A as the clearest balanced starting point, or E for a stronger resemblance to the open combat HUD. B makes the ship diagram dominant; C prioritizes an orderly reading sequence; D makes the fitted parts explicit; F gives the quantities an instrument-bank arrangement. No direction is selected yet.
+The owner selected B, Hull diagram, and found every option too detailed and text-heavy for the space in the console. The next pass simplifies B at the actual viewing size. The console session's initial recommendation was A or E; the owner's B pick is the direction.
 
 These are layouts rendered with real font and image files, not image-model lettering. Rajdhani Medium supplies labels, Orbitron Medium supplies values, and Michroma supplies headings. The source Medium faces use their existing weight without synthetic bold. The gallery reuses the combat session's shared type and color-role files, which remain unchanged.
 

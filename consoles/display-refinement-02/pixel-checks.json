@@ -1,0 +1,19 @@
+{
+  "changedPixels": 87150,
+  "changedOutsideDisplay": 0,
+  "changedBounds": {
+    "left": 151,
+    "top": 497,
+    "right": 434,
+    "bottom": 810
+  },
+  "sourceSize": [
+    1672,
+    941
+  ],
+  "closeupSize": [
+    858,
+    942
+  ],
+  "maskEdgeAllowancePixels": 1
+}
