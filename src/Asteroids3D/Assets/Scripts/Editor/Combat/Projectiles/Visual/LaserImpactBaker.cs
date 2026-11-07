@@ -88,6 +88,17 @@ namespace Combat.Projectiles.Visual
                 main.maxParticles = 1;
                 main.simulationSpace = ParticleSystemSimulationSpace.Local;
                 main.cullingMode = ParticleSystemCullingMode.AlwaysSimulate;
+                var color = particles.colorOverLifetime;
+                color.enabled = true;
+                color.color = new ParticleSystem.MinMaxGradient(new Gradient
+                {
+                    colorKeys = new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
+                    alphaKeys = new[]
+                    {
+                        new GradientAlphaKey(1f, 0f), new GradientAlphaKey(1f, 0.06f / settings.durationSeconds),
+                        new GradientAlphaKey(0f, 0.28f / settings.durationSeconds), new GradientAlphaKey(0f, 1f)
+                    }
+                });
                 var emission = particles.emission;
                 emission.rateOverTime = 0f;
                 emission.SetBursts(new[] { new ParticleSystem.Burst(0f, 1) });

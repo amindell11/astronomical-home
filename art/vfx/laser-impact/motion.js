@@ -1,14 +1,14 @@
 const ImpactMotion = (() => {
-  const WORK_SIZE = 320; // Raster size for interactive warping.
-  const PALETTE = [[8,104,250],[0,214,250],[184,250,244],[250,252,252]]; // Approved energy bands.
+  const WORK_SIZE = 320;
+  const PALETTE = [[8,104,250],[0,214,250],[184,250,244],[250,252,252]];
   const BAND_NAMES = ['Blue rim','Cyan','Pale mint','White core'];
   const BODY_END = 0.66; // Body disappears before the last sparks.
   const BAND_END = [0.66,0.60,0.50,0.38]; // Hotter bands vanish first.
   const SPARK_START = 0.10; // Sparks leave after the initial contact flash.
-  const SPARK_LENGTH_PX = 6; // Starting spark length at the default display scale.
+  const SPARK_LENGTH_PX = 6;
   const SPARK_WIDTH_PX = 1.4; // Keeps sparks legible without dominating the fan.
   const GLOW_RADIUS_PX = 18; // Glow stays near contact.
-  const WARP_CYCLES = 2.5; // Uneven edge motion across one body lifetime.
+  const WARP_CYCLES = 2.5;
   const RAY_WINDOWS = [[-1.35,-.70],[-.70,-.23],[-.23,.23],[.23,.78],[.78,1.35]]; // One source-derived ray per lobe.
   const clamp = (x,a=0,b=1) => Math.max(a,Math.min(b,x));
   const smooth = x => {x=clamp(x);return x*x*(3-2*x);};

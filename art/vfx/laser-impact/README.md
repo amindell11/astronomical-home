@@ -30,3 +30,5 @@ The baker imports the texture, creates the pooled particle
 prefab and material, wires the standard laser, and excludes its TurboLaser variant.
 The initial visible fan length is 1.2 world units. Tune the effect prefab's particle
 size in flight; the browser's 48-pixel preview did not establish a world scale.
+The Unity prefab keeps the source motion timing and fades its opacity from 60 ms
+to zero at 280 ms, following the first flight feedback.
