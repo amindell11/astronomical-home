@@ -155,6 +155,9 @@ namespace Ships
         /// <summary>Authored stats, without run mods or instantiating; shipRadius stays default until <see cref="Initialize"/> derives it from live colliders.</summary>
         public ResolvedShipStats ResolveStats() => ResolvedShipStats.Resolve(this, engine, shield);
 
+        /// <summary>The run's lull mods bound by <see cref="BindMods"/>; null for a ship that carries none.</summary>
+        public LullModStack Mods => mods;
+
         /// <summary>Binds the run's lull mods once; every change re-applies them, keeping the vitals' fractions.</summary>
         public void BindMods(LullModStack stack)
         {

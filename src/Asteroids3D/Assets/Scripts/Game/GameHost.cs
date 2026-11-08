@@ -295,24 +295,32 @@ namespace Game
                         playerLoadoutStatHash = rigInstance ? BeginRun() : null;
                     else if (rigInstance)
                         rigInstance.Player.Damage.Health.SetFraction(hull);
+                    moments.Raise(new SectorEntered(index + 1));
                     SetSplashVisible(false);
                     if (music) music.EnterSector(session.ActiveSector);
                     if (rigInstance) rigInstance.EnterSector(session.ActiveSector.Module<PhaseSpineModule>());
                     var sectorStartTime = Time.time;
-                    var beacons = presentation && lullMods && rigInstance
+                    var beacons = presentation && rigInstance
                         ? session.ActiveSector.Module<PhaseSpineModule>() : null;
                     var beaconClaimed = false;
+                    var closeCalls = rigInstance
+                        ? new CloseCallWatch(rigInstance.Player.Damage.Health, moments, index + 1) : null;
 
                     while (!playerDied && !sectorEnded && !shutdownRequested)
                     {
                         if (beacons)
                         {
                             var claimed = beacons.BeaconClaimed;
-                            if (claimed && !beaconClaimed) yield return RunLullPick();
+                            if (claimed && !beaconClaimed)
+                            {
+                                moments.Raise(new BeaconClaimed(index + 1));
+                                if (lullMods) yield return RunLullPick();
+                            }
                             beaconClaimed = claimed;
                         }
                         yield return null;
                     }
+                    closeCalls?.Dispose();
                     if (shutdownRequested) yield break;
 
                     if (playerDied || index == sessionProfile.run.Sectors.Count - 1) break;
@@ -473,7 +481,10 @@ namespace Game
             {
                 while (!screen.Choice.HasValue && !shutdownRequested) yield return null;
                 if (!shutdownRequested && screen.Choice is int pick && pick != LullPickScreen.Skip)
+                {
                     rigInstance.PickMod(offers[pick]);
+                    moments.Raise(new LullPickTaken(offers[pick]));
+                }
             }
             finally
             {

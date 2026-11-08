@@ -161,6 +161,7 @@ namespace UI
             FindPointers.Create(minimapRect, projection, () => IsVisible).Initialize(objectives, minimapCamera);
             ObjectiveStatusReadout.Create(transform, labelFont, headingFont, timerFont, readoutFont, textMaterial,
                 projection, () => IsVisible).Initialize(objectives);
+            BoostReadout.Create(transform, labelFont, textMaterial, projection, () => IsVisible).Initialize(objectives);
         }
 
         public void BindElite(IEliteStatus elite)
