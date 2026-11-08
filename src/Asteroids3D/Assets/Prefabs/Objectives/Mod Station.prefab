@@ -53,10 +53,7 @@ MonoBehaviour:
   distanceMin: 120
   distanceMax: 180
   spacing: 60
-  clearanceRadius: 35
-  asteroidMask:
-    serializedVersion: 2
-    m_Bits: 256
+  clearRadius: 35
   placementAttempts: 8
 --- !u!1 &2064291225595691423
 GameObject:
