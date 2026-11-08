@@ -1,0 +1,38 @@
+{
+  "reviewer": "gpt-6.1-sol",
+  "scope": "Restore the ink-drawn, cartoony material language without geometry changes.",
+  "standingInstruction": "Use a Sol sub-agent to review future results, address actionable feedback, and wait for no remaining actionable feedback before handoff.",
+  "rounds": [
+    {
+      "candidate": "draft-01",
+      "feedback": [
+        "The stronger bezel and part boundaries and sparse ticks improve the drawn appearance.",
+        "Remove the irregular bright patch across Launch; it resembles an extra facet or plastic highlight.",
+        "Lift cable, connector, vent and deck faces slightly so they remain visible inside the dark outlines."
+      ],
+      "action": "Raised dark material values and removed normal-based color bands from Launch."
+    },
+    {
+      "candidate": "draft-02",
+      "feedback": [
+        "Dark-face readability is sufficient. No further palette or wear changes requested.",
+        "The Launch patch remains. Clearance held only on that issue."
+      ],
+      "action": "Isolated the inherited Launch fill light as the cause. Turning off its energy removed the hard boundary; material probes and beam visibility did not. Kept the button's own emission and all object transforms."
+    },
+    {
+      "candidate": "console.blend, final camera and neutral inspection",
+      "feedback": [
+        "No remaining actionable feedback within the material and lighting scope.",
+        "The matte fills, crisp dark contours, restrained surface marks, and neutral component colors restore the drawn character. Dark parts remain readable, and Launch false highlight is resolved."
+      ],
+      "action": "No further material changes."
+    }
+  ],
+  "status": "Sol review complete, no remaining actionable feedback. User review pending.",
+  "finalRenderSha256": {
+    "camera": "6f97a9d03512b3b87e4d744d9d06d5d5a729b3f3a6ecdd4c56db30da122a4436",
+    "inspection": "e84462af5d4e3ee60449d563f045c51a485b6dcc928bbbb8971ed7bf0fd0d497",
+    "blend": "b3ba44df5c1ebeac7ac8a11ed6031fd14cfdd83982f89232ca472963e03b9a56"
+  }
+}

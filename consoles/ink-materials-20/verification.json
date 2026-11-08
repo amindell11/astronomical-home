@@ -1,0 +1,12 @@
+{
+  "result": "pass",
+  "sourceSha256": "50422a368d4dd88165e4760a266e7c3f9e3541dcee5ae1033922ff7f69ff4d65",
+  "existingObjectsVerified": 345,
+  "geometryTransformsAndVisibility": "unchanged",
+  "objectInventory": "unchanged",
+  "camera": "unchanged",
+  "unpackedImages": [],
+  "geometryApproval": "provisional",
+  "materialsApproval": "pending user review",
+  "errors": []
+}

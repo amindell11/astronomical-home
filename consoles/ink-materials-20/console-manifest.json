@@ -1,0 +1,24 @@
+{
+  "input": "D:\\amind\\scratch\\ui-mockups-20261029-console\\consoles\\materials-19\\console.blend",
+  "sourceSha256": "50422a368d4dd88165e4760a266e7c3f9e3541dcee5ae1033922ff7f69ff4d65",
+  "materials": [
+    "20 | Warm limestone paint",
+    "20 | Paint edge",
+    "20 | Warm grey casing",
+    "20 | Secondary cover paint",
+    "20 | Taupe keys",
+    "20 | Graphite chassis",
+    "20 | Charcoal control grips",
+    "20 | Control caps",
+    "20 | Graphite cooling fins",
+    "20 | Cooling fin edges",
+    "20 | Brushed warm nickel",
+    "20 | Satin rubber",
+    "20 | Black elastomer",
+    "20 | Launch amber resin"
+  ],
+  "geometry": "unchanged",
+  "ink": "Freestyle visible silhouettes and creases",
+  "approval": "pending user review",
+  "lightingChange": "Disabled extra Launch fill light; retained button emission and all object transforms."
+}
