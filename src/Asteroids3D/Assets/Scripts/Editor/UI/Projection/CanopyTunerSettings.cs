@@ -6,6 +6,11 @@ namespace UI.Projection
 {
     public sealed class CanopyTunerSettings
     {
+        public const CanopyFields Fields = CanopyFields.Glow | CanopyFields.Aberration | CanopyFields.BeamJitter
+            | CanopyFields.Afterglow | CanopyFields.Scanlines | CanopyFields.Flicker | CanopyFields.Warmth
+            | CanopyFields.Wear | CanopyFields.GlassDistortion | CanopyFields.DamageShudder
+            | CanopyFields.TransitionGlitch;
+
         public bool PersonalityEnabled { get; }
         public CanopySettings Settings { get; }
 
@@ -44,14 +49,29 @@ namespace UI.Projection
 
         public void Apply(CanopyProjectionProfile profile, CanopyState target)
         {
-            if (target == CanopyState.Base) profile.baseSettings = Settings;
+            if (target == CanopyState.Base) Write(ref profile.baseSettings);
             else
             {
                 var block = profile.OverrideFor(target);
-                block.settings = Settings;
-                block.fields = CanopyFields.All;
+                Write(ref block.settings);
+                block.fields |= Fields;
             }
             profile.personalityEnabled = PersonalityEnabled;
+
+            void Write(ref CanopySettings destination)
+            {
+                destination.glow = Settings.glow;
+                destination.aberration = Settings.aberration;
+                destination.beamJitter = Settings.beamJitter;
+                destination.afterglow = Settings.afterglow;
+                destination.scanlines = Settings.scanlines;
+                destination.flicker = Settings.flicker;
+                destination.warmth = Settings.warmth;
+                destination.wear = Settings.wear;
+                destination.glassDistortion = Settings.glassDistortion;
+                destination.damageShudder = Settings.damageShudder;
+                destination.transitionGlitch = Settings.transitionGlitch;
+            }
         }
 
         private static float Number(JObject values, string key, float maximum)

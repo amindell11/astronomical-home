@@ -11,10 +11,13 @@ Shader "Hidden/UI/CanopyProjection"
 
         TEXTURE2D(_HudInk);
         TEXTURE2D(_PreviousInk);
+        TEXTURE2D(_HaloLight);
         TEXTURE2D_X(_SceneImage);
         float2 _Resolution;
         float _Decay, _Clock, _PersonalityEnabled, _AppearAge, _TransitionAge, _HitAge;
         float4 _Beam, _Phosphor, _Glass;
+        float4 _Halo, _Bleed, _CoolTint, _HaloDirection;
+        float2 _HaloResolution;
 
         float2 ImageUv(float2 p)
         {
@@ -54,11 +57,16 @@ Shader "Hidden/UI/CanopyProjection"
             return SAMPLE_TEXTURE2D(_PreviousInk, sampler_LinearClamp, ImageUv(p)).rgb;
         }
 
+        float3 HaloSource(float2 uv)
+        {
+            float4 ink = SAMPLE_TEXTURE2D(_HudInk, sampler_LinearClamp, uv);
+            return LinearToSRGB(ink.rgb) * max(ink.a, _Halo.z);
+        }
+
         float3 Bloom(float2 p)
         {
             if (any(p < 0.0) || any(p > 1.0)) return 0.0;
-            float4 ink = SAMPLE_TEXTURE2D(_HudInk, sampler_LinearClamp, ImageUv(p));
-            return LinearToSRGB(ink.rgb) * ink.a;
+            return HaloSource(ImageUv(p));
         }
 
         float4 History(Varyings input) : SV_Target
@@ -68,6 +76,32 @@ Shader "Hidden/UI/CanopyProjection"
             if (_Decay > 0.0)
                 old = SAMPLE_TEXTURE2D(_PreviousInk, sampler_LinearClamp, input.texcoord).rgb * _Decay;
             return float4(max(now, old), 1.0);
+        }
+
+        float4 HaloPrefilter(Varyings input) : SV_Target
+        {
+            // Four bilinear taps cover the 4x4 block this pixel owns.
+            float2 texel = 1.0 / _Resolution;
+            float3 avg = HaloSource(input.texcoord + float2(-texel.x, -texel.y));
+            avg += HaloSource(input.texcoord + float2(texel.x, -texel.y));
+            avg += HaloSource(input.texcoord + float2(-texel.x, texel.y));
+            avg += HaloSource(input.texcoord + float2(texel.x, texel.y));
+            return float4(avg * .25, 1.0);
+        }
+
+        float4 HaloBlur(Varyings input) : SV_Target
+        {
+            float sigma = _Halo.x * (_Resolution.x / 1600.0) / 4.0;
+            float2 stepUv = _HaloDirection.xy * (sigma / 3.0) / _HaloResolution;
+            float3 sum = 0.0;
+            float weightSum = 0.0;
+            [unroll] for (int k = -6; k <= 6; k++)
+            {
+                float w = exp(-k * k / 18.0);
+                sum += SAMPLE_TEXTURE2D(_HaloLight, sampler_LinearClamp, input.texcoord + stepUv * k).rgb * w;
+                weightSum += w;
+            }
+            return float4(sum / weightSum, 1.0);
         }
 
         float4 Composite(Varyings input) : SV_Target
@@ -109,6 +143,21 @@ Shader "Hidden/UI/CanopyProjection"
                 float2 separation = normalize(center + float2(.0001, .0001)) * aberration * edge / _Resolution;
                 float3 split = float3(Ink(p + separation).r, light.g, Ink(p - separation).b);
                 light = lerp(light, split, .88);
+                if (_Bleed.x > 0.0)
+                {
+                    float stepPx = _Bleed.y * pixelScale / 12.0;
+                    float trail = 0.0;
+                    float weightSum = 0.0;
+                    [unroll] for (int k = 1; k <= 12; k++)
+                    {
+                        float w = exp(-k / 4.0);
+                        // Sampling left lays the trail to the right of strokes.
+                        float3 s = Ink(p - float2(k * stepPx / _Resolution.x, 0.0));
+                        trail += max(s.r, max(s.g, s.b)) * w;
+                        weightSum += w;
+                    }
+                    light += _CoolTint.rgb * (trail / weightSum) * _Bleed.x;
+                }
                 float grain = Hash(floor(p * _Resolution * .8));
                 light *= 1.0 - wear * .62 * (1.0 - grain);
                 light *= 1.0 - scanlines * .48 * (.5 + .5 * cos(p.y * _Resolution.y * 3.14159265));
@@ -119,7 +168,11 @@ Shader "Hidden/UI/CanopyProjection"
                     + Bloom(p + float2(0.0, d.y)) + Bloom(p - float2(0.0, d.y))) * .12;
                 halo += (Bloom(p + d) + Bloom(p - d) + Bloom(p + float2(d.x, -d.y))
                     + Bloom(p + float2(-d.x, d.y))) * .09;
-                light += halo * glow * .65;
+                halo *= glow * .65;
+                if (all(p >= 0.0) && all(p <= 1.0))
+                    halo += SAMPLE_TEXTURE2D(_HaloLight, sampler_LinearClamp, ImageUv(p)).rgb * _Halo.y;
+                halo *= lerp(1.0, _CoolTint.rgb, _Halo.w);
+                light += halo;
                 float chroma = max(light.r, max(light.g, light.b)) - min(light.r, min(light.g, light.b));
                 light = lerp(light, light * float3(1.08, 1.0, .67), warmth * (1.0 - smoothstep(.06, .3, chroma)));
                 if (_AppearAge >= 0.0 && _AppearAge < .8)
@@ -149,6 +202,22 @@ Shader "Hidden/UI/CanopyProjection"
             HLSLPROGRAM
             #pragma vertex Vert
             #pragma fragment Composite
+            ENDHLSL
+        }
+        Pass
+        {
+            Name "Halo prefilter"
+            HLSLPROGRAM
+            #pragma vertex Vert
+            #pragma fragment HaloPrefilter
+            ENDHLSL
+        }
+        Pass
+        {
+            Name "Halo blur"
+            HLSLPROGRAM
+            #pragma vertex Vert
+            #pragma fragment HaloBlur
             ENDHLSL
         }
     }
