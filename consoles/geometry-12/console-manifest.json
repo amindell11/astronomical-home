@@ -1,0 +1,75 @@
+{
+  "input": "D:\\amind\\scratch\\ui-mockups-20261029-console\\consoles\\geometry-11\\console.blend",
+  "inputSha256": "813aed6473aeef58718fa1b077f73cf41988813e5cfee7c324aa91e13cabc1d2",
+  "monitorMatrix": [
+    [
+      0.8027034401893616,
+      -0.13639043271541595,
+      0.2747471034526825,
+      -5.604404926300049
+    ],
+    [
+      0.2608141601085663,
+      0.5076646208763123,
+      -0.7824309468269348,
+      -2.799994468688965
+    ],
+    [
+      -0.02947355806827545,
+      0.7778181433677673,
+      0.5588522553443909,
+      0.1884394884109497
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "cameraMatrix": [
+    [
+      1.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.11315740644931793,
+      -0.9935770630836487,
+      -18.0
+    ],
+    [
+      0.0,
+      0.9935770630836487,
+      0.11315740644931793,
+      6.800000190734863
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "housingOperands": [
+    "12 | Monitor to cooling bay housing",
+    "12 | Under-screen armored housing",
+    "12 | Projector full-depth casing",
+    "12 | Wrapped control housing shoulder",
+    "12 | Control housing wall",
+    "12 | Launch surrounding armor face",
+    "12 | Launch housing wall",
+    "12 | Joined projector and control core",
+    "12 | Folded armor joining the launch cheek",
+    "12 | Launch left return beneath folded armor"
+  ],
+  "pockets": [
+    "12 | Monitor face clearance",
+    "12 | Recessed control insert",
+    "12 | Recessed Launch seat",
+    "09 | Projector aperture cutter"
+  ],
+  "visualApproval": "pending"
+}

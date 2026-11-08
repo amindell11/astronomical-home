@@ -1,0 +1,17 @@
+{
+  "result": "pass",
+  "cameraMonitorShipUnchanged": true,
+  "sourceFilesUnchanged": true,
+  "ownerSceneObjects": 772,
+  "evaluatedHousing": {
+    "vertices": 1595,
+    "faces": 1285,
+    "connectedComponents": 1,
+    "nonManifoldEdges": 0
+  },
+  "liveHousingOperands": 10,
+  "recesses": 4,
+  "sidePostsOutsideCamera": true,
+  "missingImages": [],
+  "visualApproval": "pending"
+}
