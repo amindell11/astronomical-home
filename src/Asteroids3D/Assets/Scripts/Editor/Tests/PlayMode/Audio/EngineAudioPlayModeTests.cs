@@ -21,12 +21,10 @@ namespace Tests.PlayMode.Audio
     {
         private const string RigPrefabPath = "Assets/Visuals/Ships/_Shared/ShipBaseRig.prefab";
         private const string EngineEvent = "event:/Ships/Engine";
-        private const string BoostEvent = "event:/Ships/Boost";
 
         private GameObject host;
         private Ship ship;
         private PilotCommand command;
-        private bool boostAvailable;
 
         [TearDown]
         public override void TearDown()
@@ -49,14 +47,13 @@ namespace Tests.PlayMode.Audio
         }
 
         private ShipView View() =>
-            new(host.transform, null, () => command, null, false, null, () => boostAvailable);
+            new(host.transform, null, () => command, null, false, null);
 
         [UnityTest]
         public IEnumerator BoundEngine_PlaysOneInstance_FedTheCommand()
         {
             var description = Fresh(EngineEvent);
             var engine = NewEngine();
-            boostAvailable = true;
             command = new PilotCommand { thrust = -0.6f, strafe = -0.4f };
             engine.Bind(View());
             yield return null;
@@ -88,7 +85,6 @@ namespace Tests.PlayMode.Audio
         {
             var description = Fresh(EngineEvent);
             var engine = NewEngine();
-            boostAvailable = true;
             engine.Bind(View());
             yield return Flush();
 
@@ -98,29 +94,6 @@ namespace Tests.PlayMode.Audio
             var states = Instances(description).Select(State).ToArray();
             Debug.Log($"[FMOD] after disable: {string.Join(",", states)}");
             Assert.That(states, Has.None.EqualTo(PLAYBACK_STATE.PLAYING), "disabling the engine stops it");
-        }
-
-        [UnityTest]
-        public IEnumerator BoostReadyFalling_PlaysOneBoost()
-        {
-            var boost = Fresh(BoostEvent);
-            var engine = NewEngine();
-            boostAvailable = true;
-            engine.Bind(View());
-            yield return null;
-            yield return Flush();
-            Assert.AreEqual(0, Instances(boost).Length, "no boost while the boost stays ready");
-
-            boostAvailable = false;
-            yield return null;
-            yield return Flush();
-            var afterFall = Instances(boost).Length;
-            Debug.Log($"[FMOD] {BoostEvent} instances after the fall={afterFall}");
-            Assert.AreEqual(1, afterFall, "one boost when the ready state falls");
-
-            yield return null;
-            yield return Flush();
-            Assert.That(Instances(boost).Length, Is.LessThanOrEqualTo(1), "staying unready plays no second boost");
         }
 
         [UnityTest]

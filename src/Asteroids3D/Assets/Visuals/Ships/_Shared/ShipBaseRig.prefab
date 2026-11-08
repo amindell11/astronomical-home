@@ -275,13 +275,6 @@ MonoBehaviour:
       Data3: -1509622638
       Data4: -185054237
     Path: event:/Ships/Engine
-  boostEvent:
-    Guid:
-      Data1: 1072396484
-      Data2: 1258055003
-      Data3: -310434416
-      Data4: 1108904726
-    Path: event:/Ships/Boost
 --- !u!1 &4144346170191044602
 GameObject:
   m_ObjectHideFlags: 0
