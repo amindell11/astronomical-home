@@ -1,0 +1,21 @@
+{
+  "result": "pass",
+  "cameraMonitorShipAndLightObjectsUnchanged": true,
+  "sourceFilesUnchanged": true,
+  "ownerSceneObjects": 772,
+  "sidePostPixelBounds": {
+    "07 | Viewport side post": [
+      -318.4739291667938,
+      -188.2642952799797
+    ],
+    "07 | Viewport side post.001": [
+      1860.2643575668335,
+      1990.4739789962769
+    ]
+  },
+  "consoleBodyClosedAndConnected": true,
+  "missingImages": [],
+  "projectionCueEnabledInSavedScene": true,
+  "projectorBoolean": "pass",
+  "visualApproval": "pending"
+}
