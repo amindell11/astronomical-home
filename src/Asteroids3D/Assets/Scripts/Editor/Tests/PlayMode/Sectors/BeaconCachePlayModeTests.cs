@@ -22,7 +22,7 @@ using Object = UnityEngine.Object;
 
 namespace Tests.PlayMode.Sectors
 {
-    /// <summary>A phased sector with a beacon cache beside its spine: each beacon claim adds one rolled bonus to the run's mods and shows it with its seconds left, each bonus runs out on its own clock and is taken back, teardown takes back a running one and leaves the run's picks, a sector whose beacons don't run grants nothing, and a shipped shield bonus applies to a live ship and comes off again.</summary>
+    /// <summary>A phased sector with a beacon cache beside its spine: each beacon claim adds one rolled bonus to the run's mods and shows it with its seconds left, each bonus runs out on its own clock and is taken back, teardown takes back a running one and leaves the run's picks, the hull patch restores hull at once without touching the mods and wastes what passes full, a sector whose beacons don't run grants nothing, and a shipped shield bonus applies to a live ship and comes off again.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class BeaconCachePlayModeTests : PlayModeWorldFixture
@@ -104,6 +104,37 @@ namespace Tests.PlayMode.Sectors
             yield return world.Sector.Teardown();
             Assert.AreEqual(1.25f, hero.Mods.ForShip().Factor(ShipModField.Hull), 1e-5f, "The next sector starts without it.");
             Assert.IsEmpty(_objectives.Boosts, "The HUD line goes with it.");
+        }
+
+        [UnityTest]
+        [Timeout(120000)]
+        public IEnumerator TheHullPatch_RestoresHullAtOnce_LeavesTheModsAlone_AndWastesWhatPassesFull()
+        {
+            var hero = SpawnHero();
+            var changes = 0;
+            hero.Mods.Changed += () => changes++;
+            var feel = Feel(cacheSeconds: 1000f);
+            feel.hullRestore = .3f;
+            feel.hullWeight = 1f;
+            var world = BuildSector(hero, feel, presentation: true, phases: 3);
+            yield return world.Sector.Setup();
+
+            hero.Damage.Health.SetFraction(.5f);
+            yield return ClaimNextBeacon(world, hero);
+            var claimedAt = Time.time;
+            Assert.AreEqual(.8f, hero.Damage.Health.Pct, 1e-4f, "The patch restores 30% of a full hull at once.");
+            Assert.AreEqual(0, changes, "The patch never touches the run's mods.");
+            Assert.AreEqual(new[] { "Hull patch +30% hull" }, _objectives.Boosts.Select(boost => boost.Label));
+            Assert.AreEqual(claimedAt + 3f, _objectives.Boosts[0].EndsAt, .1f, "The HUD shows it briefly.");
+
+            hero.Damage.Health.SetFraction(1f);
+            yield return ClaimNextBeacon(world, hero);
+            Assert.AreEqual(1f, hero.Damage.Health.Pct, 1e-6f, "At full hull the patch is wasted.");
+            Assert.AreEqual(0, changes);
+
+            yield return WaitSeconds(() => _objectives.Boosts.Count == 0, 6f);
+            Assert.IsEmpty(_objectives.Boosts, "Each patch's readout closes on its own.");
+            yield return world.Sector.Teardown();
         }
 
         [UnityTest]
@@ -201,11 +232,13 @@ namespace Tests.PlayMode.Sectors
             return mod;
         }
 
+        // The hull patch weighs 0 unless a test asks for it, so these rolls always take the given bonus.
         private BeaconCacheFeelProfile Feel(float cacheSeconds, params LullMod[] bonuses)
         {
             var feel = Track(ScriptableObject.CreateInstance<BeaconCacheFeelProfile>());
             feel.cacheSeconds = cacheSeconds;
             feel.bonuses = bonuses;
+            feel.hullWeight = 0f;
             return feel;
         }
 

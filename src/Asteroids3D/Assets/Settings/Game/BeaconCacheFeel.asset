@@ -17,3 +17,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 5f3249bfa1d84e0b9bbd34aba11b29ef, type: 2}
   - {fileID: 11400000, guid: 07a09b14547f489ea4d750b9ec707fcd, type: 2}
   - {fileID: 11400000, guid: 7473a22e59f6468abcfc4960c298d776, type: 2}
+  hullRestore: 0.3
+  hullWeight: 1
+  leanToHull: 0
+  lowHullThreshold: 0.35
+  lowHullWeightMultiplier: 3
