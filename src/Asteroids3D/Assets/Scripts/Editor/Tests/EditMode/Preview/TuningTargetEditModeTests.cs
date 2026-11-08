@@ -46,7 +46,11 @@ namespace Tests.EditMode.Preview
             AssertTarget(Target<HuntTarget>(), new[] { PreviewEntry.Combat },
                 AssetDatabase.LoadAssetAtPath<HuntFeelProfile>("Assets/Settings/Game/HuntFeel.asset"),
                 AssetDatabase.LoadAssetAtPath<RepairStationFeelProfile>("Assets/Settings/Game/RepairStationFeel.asset"));
-            AssertTarget(Target<BossTarget>(), new[] { PreviewEntry.Boss },
+            AssertTarget(Target("Sector 1 elite"), new[] { PreviewEntry.Sector1Elite },
+                AssetDatabase.LoadAssetAtPath<EliteProfile>("Assets/Settings/Ships/Elites/ShoalElite.asset"));
+            AssertTarget(Target("Sector 2 elite"), new[] { PreviewEntry.Sector2Elite },
+                AssetDatabase.LoadAssetAtPath<EliteProfile>("Assets/Settings/Ships/Elites/VeilElite.asset"));
+            AssertTarget(Target("Boss"), new[] { PreviewEntry.Boss },
                 AssetDatabase.LoadAssetAtPath<EliteProfile>("Assets/Settings/Ships/Elites/BastionBoss.asset"));
         }
 
@@ -70,6 +74,8 @@ namespace Tests.EditMode.Preview
         }
 
         private static TuningTarget Target<T>() where T : TuningTarget => TuningTarget.All.OfType<T>().Single();
+
+        private static TuningTarget Target(string name) => TuningTarget.All.Single(target => target.Name == name);
 
         private void AssertTarget(TuningTarget target, PreviewEntry[] entries, params UnityEngine.Object[] profiles)
         {

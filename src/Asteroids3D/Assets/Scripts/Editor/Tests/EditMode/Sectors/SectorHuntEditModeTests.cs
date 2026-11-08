@@ -142,6 +142,8 @@ namespace Tests.EditMode.Sectors
         [TestCase("HudQuietSector")]
         [TestCase("HudExtractionSector")]
         [TestCase("BossSector")]
+        [TestCase("EliteSector1")]
+        [TestCase("EliteSector2")]
         public void FixtureSector_RunsNoHunt(string sector)
         {
             var prefab = AssetDatabase.LoadAssetAtPath<Sector>($"Assets/Prefabs/Sectors/Preview/{sector}.prefab");
