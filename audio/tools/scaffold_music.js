@@ -122,8 +122,12 @@ function ensureCopiedCue(event, parameterName, from, to) {
     function at(index) { return proxy.modules.filter(function (m) { return m.start === index; })[0]; }
     if (at(to)) return;
     var source = at(from);
-    if (!source || !source.isOfExactType("SingleSound"))
-        throw new Error(parameterName + " has no single sound at " + from + " to copy");
+    if (!source) {
+        console.log("no " + parameterName + " cue at " + from + " yet; left " + to + " empty");
+        return;
+    }
+    if (!source.isOfExactType("SingleSound"))
+        throw new Error(parameterName + " " + from + " is a " + source.entity + ", not a single sound to copy");
 
     var copy = event.groupTracks[0].addSound(proxy, "SingleSound", to, source.length);
     copy.audioFile = source.audioFile;
