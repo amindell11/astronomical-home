@@ -128,6 +128,54 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
         type: 3}
+    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: roster.Array.data[4].template
+      value: 
+      objectReference: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
+        type: 3}
+    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: roster.Array.data[5].template
+      value: 
+      objectReference: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
+        type: 3}
+    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: roster.Array.data[6].template
+      value: 
+      objectReference: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
+        type: 3}
+    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: roster.Array.data[7].template
+      value: 
+      objectReference: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
+        type: 3}
+    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: roster.Array.data[4].pilot
+      value: 
+      objectReference: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
+        type: 3}
+    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: roster.Array.data[6].pilot
+      value: 
+      objectReference: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
+        type: 3}
+    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: roster.Array.data[5].pilot
+      value: 
+      objectReference: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
+        type: 3}
+    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: roster.Array.data[7].pilot
+      value: 
+      objectReference: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
+        type: 3}
     - target: {fileID: 4201520510818603066, guid: 35f72eeaa8adb4c43832be646409d034,
         type: 3}
       propertyPath: profile
