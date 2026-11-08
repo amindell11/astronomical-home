@@ -42,6 +42,14 @@ namespace Tests.EditMode.Bootstrap
             Assert.That(hud.Select(entry => entry.locale), Is.All.SameAs(run.Sectors[0].locale),
                 "the HUD fixtures show the run's first locale");
             Assert.That(host.bossSector.locale, Is.SameAs(run.Sectors[^1].locale), "the boss shows the run's last locale");
+            Assert.IsTrue(host.sector1EliteSector.prefab, "sector 1's elite fixture loads");
+            Assert.AreEqual("EliteSector1", host.sector1EliteSector.prefab.name);
+            Assert.That(host.sector1EliteSector.locale, Is.SameAs(run.Sectors[0].locale),
+                "sector 1's elite shows the run's first locale");
+            Assert.IsTrue(host.sector2EliteSector.prefab, "sector 2's elite fixture loads");
+            Assert.AreEqual("EliteSector2", host.sector2EliteSector.prefab.name);
+            Assert.That(host.sector2EliteSector.locale, Is.SameAs(run.Sectors[1].locale),
+                "sector 2's elite shows the run's second locale");
         }
 
         [Test]
