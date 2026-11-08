@@ -1,3 +1,4 @@
+using System.Linq;
 using Substrate.Sectors;
 using Substrate.Services.Locales;
 using Substrate.Sessions;
@@ -21,22 +22,25 @@ namespace Game.Preview
     public static class PreviewHostBootstrap
     {
         internal const string GameHostPath = "Assets/Prefabs/Game/GameHost.prefab";
+        private const string LocalesFolder = "Assets/Prefabs/Locales";
         private const string IllustratedBluePath = "Assets/Prefabs/Locales/IllustratedBlue.prefab";
         private const string CopperTurquoisePath = "Assets/Prefabs/Locales/CopperTurquoise.prefab";
 
         static PreviewHostBootstrap() => EditorApplication.playModeStateChanged += ActivateWaitingHost;
 
         /// <summary>False when the user kept an unsaved scene open instead.</summary>
-        public static bool EnterPlayMode(PreviewEntry entry = PreviewEntry.RunRecap)
+        public static bool EnterPlayMode(PreviewEntry entry = PreviewEntry.RunRecap,
+            int combatSector = PreviewHost.WholeRun, LocaleSky combatLocale = null)
         {
             if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return false;
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-            BuildHost(entry);
+            BuildHost(entry, combatSector, combatLocale);
             EditorApplication.EnterPlaymode();
             return true;
         }
 
-        internal static PreviewHost BuildHost(PreviewEntry entry = PreviewEntry.RunRecap)
+        internal static PreviewHost BuildHost(PreviewEntry entry = PreviewEntry.RunRecap,
+            int combatSector = PreviewHost.WholeRun, LocaleSky combatLocale = null)
         {
             var root = new GameObject("PreviewHost");
             root.SetActive(false);
@@ -56,8 +60,16 @@ namespace Game.Preview
             host.sector2EliteSector = FixtureSector("EliteSector2", RowLocale(run, 1));
             host.jumpDestination = Locale(CopperTurquoisePath);
             host.entry = entry;
+            host.combatSector = combatSector;
+            host.combatLocale = combatLocale;
             return host;
         }
+
+        internal static LocaleSky[] Locales() => AssetDatabase.FindAssets("t:Prefab", new[] { LocalesFolder })
+            .Select(guid => AssetDatabase.LoadAssetAtPath<LocaleSky>(AssetDatabase.GUIDToAssetPath(guid)))
+            .Where(locale => locale)
+            .OrderBy(locale => locale.name)
+            .ToArray();
 
         internal static void Activate(PreviewHost host, FeelSnapshot snapshot)
         {

@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.ExceptionServices;
@@ -26,8 +27,9 @@ namespace Game.Preview
 
     /// <summary>
     /// A Replay entry owns a session and a presentation subject driven by a transport; a Playtest entry
-    /// owns an instance of the game's GameHost prefab, overriding only its run records and, for the
-    /// crowded jump gate and the elite fixtures, its sectors. Replay takes its rig, observer, jump shader
+    /// owns an instance of the game's GameHost prefab, overriding only its run records and, for some
+    /// entries, its sectors: the crowded jump gate and the elite entries fly their fixtures, and Combat flies
+    /// its Sector and Locale picks, read again at each restart. Replay takes its rig, observer, jump shader
     /// and feel profiles from the same prefab, so both kinds of entry run on the feel assets the game
     /// ships. A switch between Replay entries swaps only the subject; any other switch or restart awaits
     /// the previous entry's teardown before composing the next. Only Replay entries touch this host's
@@ -42,6 +44,8 @@ namespace Game.Preview
     [RequireComponent(typeof(ObjectiveService))]
     public sealed class PreviewHost : MonoBehaviour
     {
+        internal const int WholeRun = -1;
+
         [SerializeField] internal GameHost gameHostPrefab;
         [SerializeField] internal SessionProfile sessionProfile;
         [SerializeField] internal SectorEntry[] crowdedJumpSectors;
@@ -52,6 +56,8 @@ namespace Game.Preview
         [SerializeField] internal SectorEntry sector2EliteSector;
         [SerializeField] internal LocaleSky jumpDestination;
         [SerializeField] internal PreviewEntry entry;
+        [SerializeField] internal int combatSector = WholeRun;
+        [SerializeField] internal LocaleSky combatLocale;
 
         private UnitService unitService;
         private ObjectiveService objectiveService;
@@ -156,6 +162,8 @@ namespace Game.Preview
             var staging = new GameObject("Preview Playtest staging");
             staging.SetActive(false);
             playtest = Instantiate(gameHostPrefab, staging.transform);
+            if (composed == PreviewEntry.Combat)
+                playtest.sessionProfile.run = CombatRun();
             if (composed == PreviewEntry.CrowdedJumpGate)
                 playtest.sessionProfile.run = SectorRun.Create(crowdedJumpSectors);
             var fixture = PlaytestFixture(composed);
@@ -165,6 +173,20 @@ namespace Game.Preview
                 Guid.NewGuid().ToString("N"), RunRecordStore.FileName);
             playtest.transform.SetParent(null, false);
             Destroy(staging);
+        }
+
+        // New rows, so a Locale pick never writes to the run asset.
+        internal SectorRun CombatRun()
+        {
+            var run = gameHostPrefab.sessionProfile.run;
+            if (combatSector == WholeRun && !combatLocale) return run;
+            IEnumerable<SectorEntry> rows = combatSector == WholeRun ? run.Sectors : new[] { run.Sectors[combatSector] };
+            return SectorRun.Create(run.LocalePool.ToArray(), rows.Select(row => new SectorEntry
+            {
+                prefab = row.prefab,
+                locale = combatLocale ? combatLocale : row.locale,
+                random = !combatLocale && row.random
+            }).ToArray());
         }
 
         public void Select(PreviewEntry selected)
