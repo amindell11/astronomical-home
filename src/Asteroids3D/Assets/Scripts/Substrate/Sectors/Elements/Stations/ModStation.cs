@@ -24,12 +24,8 @@ namespace Substrate.Sectors.Elements.Stations
     {
         [Tooltip("Station count.")]
         [Stat, SerializeField] private ModStationFeelProfile feel;
-        [Tooltip("The fly-in trigger, on or under the body.")]
-        [SerializeField] private ExtractionZone zone;
-        [Tooltip("The model, zone and lit parts; copied per station and hidden until placed.")]
-        [SerializeField] private GameObject body;
-        [Tooltip("The glow and the minimap marker, under the body; hidden when the station goes dark.")]
-        [SerializeField] private GameObject lit;
+        [Tooltip("The model with its zone and lit parts; copied per station and hidden until placed.")]
+        [SerializeField] private ModStationBody body;
         [Tooltip("The sector's opening hunt, read for its alarm, which darkens every unclaimed station; unset for none.")]
         [SerializeField] private SectorHunt hunt;
         [Tooltip("The sector's repair stations, read for their placed points so no mod station lands beside one; unset for none.")]
@@ -71,8 +67,8 @@ namespace Substrate.Sectors.Elements.Stations
 
         public override IEnumerator Setup(SectorBuildContext ctx)
         {
-            if (!feel || !zone || !body || !lit || !icon || ctx.Objectives == null
-                || !zone.transform.IsChildOf(body.transform) || !lit.transform.IsChildOf(body.transform))
+            if (!feel || !body || !body.Zone || !body.Lit || !icon || ctx.Objectives == null
+                || !body.Zone.transform.IsChildOf(body.transform) || !body.Lit.transform.IsChildOf(body.transform))
                 throw new InvalidOperationException(
                     $"ModStation on '{name}' needs its feel profile, icon, objective service, body, and a zone and lit parts under the body.");
 
@@ -82,10 +78,10 @@ namespace Substrate.Sectors.Elements.Stations
             placed = false;
             Claims = 0;
             ClearStations();
-            body.SetActive(false);
+            body.gameObject.SetActive(false);
             for (var i = 0; i < feel.stationsPerSector; i++)
             {
-                var station = i == 0 ? new Station(body, zone, lit) : Copy();
+                var station = i == 0 ? new Station(body) : Copy();
                 station.Reset(hero);
                 stations.Add(station);
             }
@@ -95,7 +91,7 @@ namespace Substrate.Sectors.Elements.Stations
         public override IEnumerator Teardown(SectorBuildContext ctx)
         {
             ClearStations();
-            body.SetActive(false);
+            body.gameObject.SetActive(false);
             hero = null;
             objectives = null;
             yield break;
@@ -165,13 +161,9 @@ namespace Substrate.Sectors.Elements.Stations
         private Station Copy()
         {
             var copy = Instantiate(body, body.transform.parent);
-            copies.Add(copy);
-            return new Station(copy, Counterpart(zone.transform, copy.transform).GetComponent<ExtractionZone>(),
-                Counterpart(lit.transform, copy.transform).gameObject);
+            copies.Add(copy.gameObject);
+            return new Station(copy);
         }
-
-        private Transform Counterpart(Transform part, Transform copy) =>
-            part == body.transform ? copy : Counterpart(part.parent, copy).GetChild(part.GetSiblingIndex());
 
         private void ClearStations()
         {
@@ -197,11 +189,11 @@ namespace Substrate.Sectors.Elements.Stations
             internal readonly GameObject Lit;
             private FindMarker find;
 
-            internal Station(GameObject body, ExtractionZone zone, GameObject lit)
+            internal Station(ModStationBody body)
             {
-                Body = body;
-                Zone = zone;
-                Lit = lit;
+                Body = body.gameObject;
+                Zone = body.Zone;
+                Lit = body.Lit;
             }
 
             /// <summary>Claimed, or darkened by the alarm.</summary>
