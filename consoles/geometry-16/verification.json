@@ -1,0 +1,22 @@
+{
+  "result": "pass",
+  "existingObjects": 311,
+  "unchangedTransforms": true,
+  "editedMeshObjects": [
+    "14 | Forearm fold into Launch and controls",
+    "14 | Launch casing folded returns",
+    "14 | Projector formed armor",
+    "14 | Projector to control folded shoulder",
+    "15 | Launch underside clearance"
+  ],
+  "nonManifoldEdges": {
+    "14 | Projector to control folded shoulder": 0,
+    "07 | Continuous left console body": 0,
+    "15 | Launch underside clearance": 0,
+    "14 | Forearm fold into Launch and controls": 0,
+    "14 | Launch casing folded returns": 0,
+    "14 | Projector formed armor": 0
+  },
+  "errors": [],
+  "visualApproval": "pending"
+}
