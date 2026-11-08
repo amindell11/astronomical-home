@@ -125,7 +125,7 @@ namespace Tests.PlayMode.Bootstrap
             var append = typeof(GameHost).GetMethod("AppendRunRecord",
                 System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
             var board = (Scoreboard)append.Invoke(hostGo.GetComponent<GameHost>(),
-                new object[] { StatHash.OfLoadout(rig.Player), 0, null });
+                new object[] { StatHash.OfLoadout(rig.Player), 0, null, null });
 
             Assert.IsNull(board.Rank, "an unsaved run must not be ranked");
             Assert.IsEmpty(board.Rows);

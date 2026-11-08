@@ -691,13 +691,19 @@ Format: **term** — definition. *(authority)*
   instantiates it under the session's `Locale` root and writes those values to
   the *session scene*'s `RenderSettings`, so showing a locale never changes the
   active scene or the boot scene's lighting. The boot scene carries none: every
-  authored sector names one, and the session shows its idle locale between
-  sectors.
+  authored sector names one or draws one, and the session shows its idle locale
+  between sectors.
 - **sector run** — the ordered sectors one run flies, one row each: the sector
-  prefab and the locale it shows. Authored as one asset edited as a table, so a
-  locale change never edits a prefab; tests, the preview and the headless lane
-  build theirs with `SectorRun.Create`. A presentation session refuses a row
-  with no locale at construction. *(`SectorRun`, `SessionProfile.run`,
+  prefab and the locale it shows, or Random. Authored as one asset edited as a
+  table, so a locale change never edits a prefab; tests, the preview and the
+  headless lane build theirs with `SectorRun.Create`. Random rows draw from the
+  run's locale pool at each run's start, never repeating within the run and
+  leaving out the locales named rows use. The draw takes a `System.Random`
+  because the sim reads `UnityEngine.Random`, and a headless run draws nothing.
+  The host hands each drawn locale to the load and the jump backdrop that show
+  it; the session keeps no draw. A presentation session refuses, at
+  construction, a named row with no locale and a pool that can't serve its
+  Random rows. *(`SectorRun.DrawLocales`, `SessionProfile.run`,
   `Settings/Game/SurvivalTrialRun.asset`)*
 - **idle locale** — the locale a presentation session shows while no sector is
   loaded (the hangar's backdrop). A sector naming the same locale keeps its

@@ -15,10 +15,20 @@ MonoBehaviour:
   sectors:
   - prefab: {fileID: 9090061438643016835, guid: 35f72eeaa8adb4c43832be646409d034,
       type: 3}
-    locale: {fileID: 836507228316825353, guid: efda15947979b3345b239b9741b2c488, type: 3}
+    locale: {fileID: 0}
+    random: 1
   - prefab: {fileID: 2953836036986906632, guid: bec7b7260051bcf4a820bf8a41c799e4,
       type: 3}
-    locale: {fileID: 836507228316825353, guid: efda15947979b3345b239b9741b2c488, type: 3}
+    locale: {fileID: 0}
+    random: 1
   - prefab: {fileID: 7692005886971173018, guid: 09c73779418090c498dc37d26f9f005c,
       type: 3}
-    locale: {fileID: 836507228316825353, guid: efda15947979b3345b239b9741b2c488, type: 3}
+    locale: {fileID: 0}
+    random: 1
+  localePool:
+  - {fileID: 836507228316825353, guid: efda15947979b3345b239b9741b2c488, type: 3}
+  - {fileID: 1719099133570245750, guid: 299ed7319f205e940ad8b61b4d851b30, type: 3}
+  - {fileID: 3833049007285589542, guid: dd295c666e4830b4787548eadd27d24c, type: 3}
+  - {fileID: 3981041967102220573, guid: e7f33ca8e76360a4cb6f94f585cd87f6, type: 3}
+  - {fileID: 7011407172503594401, guid: 3b311131e47bcc6429e901ef2388479f, type: 3}
+  - {fileID: 5133432934505610864, guid: 935b6bfe642839647a70b11027d391dd, type: 3}

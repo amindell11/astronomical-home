@@ -255,6 +255,7 @@ namespace Game
                 var hull = 1f;
                 var index = 0;
                 var transferred = false;
+                var locales = presentation ? sessionProfile.run.DrawLocales(new System.Random()) : null;
                 while (true)
                 {
                     if (!transferred)
@@ -263,7 +264,8 @@ namespace Game
                         sectorEnded = false;
                         activeSectorIndex = index;
                         if (rigInstance) rigInstance.Spawns.BeginSector();
-                        yield return session.LoadSector(index, rigInstance ? rigInstance.Player : null, OnSectorComplete);
+                        yield return session.LoadSector(index, rigInstance ? rigInstance.Player : null, OnSectorComplete,
+                            locales?[index]);
                     }
                     transferred = false;
                     if (shutdownRequested) yield break;
@@ -302,7 +304,8 @@ namespace Game
                     }
                     if (jump)
                     {
-                        yield return RunJump(ExtractionContext(index, sectorStartTime), index + 1, hull);
+                        yield return RunJump(ExtractionContext(index, sectorStartTime), index + 1, locales[index + 1],
+                            hull);
                         transferred = true;
                     }
                     else
@@ -321,7 +324,8 @@ namespace Game
                 if (rigInstance)
                 {
                     if (!playerDied) EndRun();
-                    var board = AppendRunRecord(playerLoadoutStatHash, index, playerDied ? lastKillingBlow : null);
+                    var board = AppendRunRecord(playerLoadoutStatHash, index, playerDied ? lastKillingBlow : null,
+                        locales);
                     SetMusic(playerDied ? GameMusic.State.Defeat : GameMusic.State.Victory);
                     if (presentation)
                         yield return RunRecap(OutcomeContext(board, index));
@@ -345,14 +349,14 @@ namespace Game
                 jumpFeature, result.DepartureHeading.Value);
         }
 
-        private IEnumerator RunJump(RecapOutcomeContext context, int destination, float hull)
+        private IEnumerator RunJump(RecapOutcomeContext context, int destination, LocaleSky destinationLocale, float hull)
         {
             LocaleBackdropPair backdrop = null;
             var arrived = false;
             var exited = false;
             try
             {
-                backdrop = session.PrepareTravelBackdrop(sessionProfile.run.Sectors[destination].locale, transform);
+                backdrop = session.PrepareTravelBackdrop(destinationLocale, transform);
                 if (!shutdownRequested)
                 {
                     jump.BindBackdrop(ui, backdrop);
@@ -375,7 +379,8 @@ namespace Game
                     activeSectorIndex = destination;
                     rigInstance.Spawns.BeginSector();
                     rigInstance.EnterSector(null);
-                    yield return session.TransferSector(destination, rigInstance.Player, OnSectorComplete);
+                    yield return session.TransferSector(destination, rigInstance.Player, OnSectorComplete,
+                        destinationLocale);
                     rigInstance.EnterSector(session.ActiveSector.Module<PhaseSpineModule>());
                     rigInstance.Player.Damage.Health.SetFraction(hull);
                     destinationReady = true;
@@ -541,7 +546,8 @@ namespace Game
         }
 
         // An unreadable build identity leaves the run unrecorded, like a failed write.
-        private Scoreboard AppendRunRecord(string playerLoadoutStatHash, int endedIn, DamageInfo? killingBlow)
+        private Scoreboard AppendRunRecord(string playerLoadoutStatHash, int endedIn, DamageInfo? killingBlow,
+            LocaleSky[] locales)
         {
             if (!buildIdentity(out var identity, out var failure))
             {
@@ -551,7 +557,7 @@ namespace Game
 
             var sectors = sessionProfile.run.Sectors.Select(entry => entry.prefab).ToArray();
             var sectorsCleared = killingBlow.HasValue ? endedIn : endedIn + 1;
-            var record = RunRecord.Compose(DateTime.UtcNow, sectorsCleared, sectors[endedIn].name, identity,
+            var record = RunRecord.Compose(DateTime.UtcNow, sectorsCleared, sectors[endedIn].name, locales, identity,
                 StatHash.OfSetting(hangarOffer, sectors, killHullRestore), rigInstance.Loadout, playerLoadoutStatHash,
                 rigInstance.Tally, rigInstance.Ledger, rigInstance.Spawns, killingBlow);
             var board = Scoreboard.Read(runRecords.Path, record);
