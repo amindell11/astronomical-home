@@ -21,8 +21,6 @@ namespace Tests.EditMode.Rendering.Locales
         private const string VerdantGiant = "Assets/Prefabs/Locales/VerdantGiant.prefab";
         private const string BlueCrescent = "Assets/Prefabs/Locales/BlueCrescent.prefab";
         private const string EditScene = "Assets/Scenes/EditScene.unity";
-        private static readonly string[] CandidateLayers = { "Background", "FarNebula", "StarField", "CloseNebula" };
-        private static readonly int[] CandidateQueues = { 2900, 2940, 2950, 2990 };
 
         [TestCase(CopperTurquoise)]
         [TestCase(IllustratedBlue)]
@@ -63,11 +61,8 @@ namespace Tests.EditMode.Rendering.Locales
             Assert.IsTrue(locale.Root);
             Assert.IsTrue(root.gameObject.activeSelf, "The palette-driven sky is the live root.");
             var layers = root.GetComponentsInChildren<MeshRenderer>().Select(r => r.transform).ToArray();
-            var illustrated = locale.Name == "CopperTurquoise" || locale.Name == "IllustratedBlue";
-            var names = illustrated
-                ? new[] { "Background", "DistantStars", "FarNebula", "StarField", "CloseNebula" }
-                : CandidateLayers;
-            var queues = illustrated ? new[] { 2900, 2930, 2940, 2950, 2990 } : CandidateQueues;
+            var names = new[] { "Background", "DistantStars", "FarNebula", "StarField", "CloseNebula" };
+            var queues = new[] { 2900, 2930, 2940, 2950, 2990 };
 
             if (locale.Name == "CopperTurquoise")
             {
@@ -82,9 +77,8 @@ namespace Tests.EditMode.Rendering.Locales
                 "Assets/Visuals/Locales/Sky/StarFieldMaterial.mat",
                 PaletteParents.PathFor(sidecar, "CloseNebula"),
             };
-            if (illustrated)
-                expectedParents = new[] { expectedParents[0], expectedParents[2], expectedParents[1],
-                    expectedParents[2], expectedParents[3] };
+            expectedParents = new[] { expectedParents[0], expectedParents[2], expectedParents[1],
+                expectedParents[2], expectedParents[3] };
             if (locale.Name == "CopperTurquoise")
                 expectedParents = new[] { expectedParents[0], expectedParents[1], expectedParents[2],
                     expectedParents[2], expectedParents[3], expectedParents[4] };
