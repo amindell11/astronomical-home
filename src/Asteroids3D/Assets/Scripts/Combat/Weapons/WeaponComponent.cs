@@ -63,7 +63,6 @@ namespace Combat.Weapons
         /// <summary>Alternates shots between the hull's left and right sockets; false fires every shot from the centre.</summary>
         public virtual bool DualFire => false;
 
-        /// <summary>Hands this mount its hull sockets, once, at mount.</summary>
         public void Initialize(Transform centre, Transform left, Transform right)
         {
             firePoint = DualFire ? left : centre;
