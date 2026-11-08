@@ -60,6 +60,9 @@
 		</relationship>
 	</object>
 	<object class="EventAutomatableProperties" id="{e2a9605b-4752-484b-8876-51d941e49fda}">
+		<property name="dopplerEnabled">
+			<value>true</value>
+		</property>
 		<property name="maximumDistance">
 			<value>115</value>
 		</property>
@@ -102,7 +105,10 @@
 	<object class="MixerBusPanner" id="{d213f406-e7ed-4471-8e8a-46f0f403c1f7}" />
 	<object class="SingleSound" id="{192b57e5-9040-4482-ad51-dc4ad4388b8a}">
 		<property name="length">
-			<value>3</value>
+			<value>2.7799999999999998</value>
+		</property>
+		<property name="timelockedOffset">
+			<value>0.21999999999999997</value>
 		</property>
 		<relationship name="audioFile">
 			<destination>{4da404d7-ecbf-4b7c-9dd4-cc1139bbdd5d}</destination>

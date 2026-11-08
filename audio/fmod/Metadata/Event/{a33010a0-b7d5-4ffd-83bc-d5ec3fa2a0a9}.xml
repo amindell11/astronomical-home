@@ -23,7 +23,7 @@
 			<destination>{18355408-0283-407a-bef5-9b18091d18b5}</destination>
 		</relationship>
 		<relationship name="markerTracks">
-			<destination>{1baddb4d-0a76-4664-9779-ca6cc4ccd8aa}</destination>
+			<destination>{f1c27a7d-1a33-417a-afbe-8baffbc2911d}</destination>
 		</relationship>
 		<relationship name="groupTracks">
 			<destination>{d900a0e5-dd6c-487e-b874-f34aeb9541fd}</destination>
@@ -60,11 +60,14 @@
 		</relationship>
 	</object>
 	<object class="EventAutomatableProperties" id="{18355408-0283-407a-bef5-9b18091d18b5}">
+		<property name="dopplerEnabled">
+			<value>true</value>
+		</property>
 		<property name="maximumDistance">
 			<value>115</value>
 		</property>
 	</object>
-	<object class="MarkerTrack" id="{1baddb4d-0a76-4664-9779-ca6cc4ccd8aa}" />
+	<object class="MarkerTrack" id="{f1c27a7d-1a33-417a-afbe-8baffbc2911d}" />
 	<object class="GroupTrack" id="{d900a0e5-dd6c-487e-b874-f34aeb9541fd}">
 		<relationship name="modules">
 			<destination>{a6ac42ea-8ed3-4e29-a0f3-7bdf44842f74}</destination>
@@ -87,6 +90,9 @@
 		</relationship>
 	</object>
 	<object class="EventMixerMaster" id="{5a07db36-9b6c-4413-9587-856410ccbac9}">
+		<property name="volume">
+			<value>7</value>
+		</property>
 		<relationship name="effectChain">
 			<destination>{bd4d258e-cf49-44de-a6f5-edc30775b513}</destination>
 		</relationship>
@@ -121,6 +127,9 @@
 		</relationship>
 	</object>
 	<object class="EventMixerGroup" id="{3da97404-c043-40b9-8838-2aea0e991e42}">
+		<property name="volume">
+			<value>5.5</value>
+		</property>
 		<property name="name">
 			<value>Stealth</value>
 		</property>
@@ -136,13 +145,13 @@
 	</object>
 	<object class="SustainPoint" id="{1fc757ef-40f0-406d-920a-d7b9dcde1b46}">
 		<property name="position">
-			<value>0.040000000000000001</value>
+			<value>0</value>
 		</property>
 		<relationship name="timeline">
 			<destination>{f4a4cdce-ccfb-4ac3-901c-bc3baf7b24be}</destination>
 		</relationship>
 		<relationship name="markerTrack">
-			<destination>{1baddb4d-0a76-4664-9779-ca6cc4ccd8aa}</destination>
+			<destination>{f1c27a7d-1a33-417a-afbe-8baffbc2911d}</destination>
 		</relationship>
 	</object>
 	<object class="MixerBusEffectChain" id="{bd4d258e-cf49-44de-a6f5-edc30775b513}">
