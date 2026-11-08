@@ -62,22 +62,17 @@ namespace UI.Projection
 
             var w = Mathf.Max(1, source.Ink.rt.width / 4);
             var h = Mathf.Max(1, source.Ink.rt.height / 4);
-            var haloA = graph.CreateTexture(new TextureDesc(w, h)
+            var haloDescriptor = new TextureDesc(w, h)
             {
                 colorFormat = GraphicsFormat.R16G16B16A16_SFloat,
                 filterMode = FilterMode.Bilinear,
                 wrapMode = TextureWrapMode.Clamp,
                 clearBuffer = false,
                 name = "Canopy halo A"
-            });
-            var haloB = graph.CreateTexture(new TextureDesc(w, h)
-            {
-                colorFormat = GraphicsFormat.R16G16B16A16_SFloat,
-                filterMode = FilterMode.Bilinear,
-                wrapMode = TextureWrapMode.Clamp,
-                clearBuffer = false,
-                name = "Canopy halo B"
-            });
+            };
+            var haloA = graph.CreateTexture(haloDescriptor);
+            haloDescriptor.name = "Canopy halo B";
+            var haloB = graph.CreateTexture(haloDescriptor);
             using (var builder = graph.AddRasterRenderPass<PassData>("Canopy halo prefilter", out var data))
             {
                 Fill(data, settings);
@@ -89,7 +84,7 @@ namespace UI.Projection
             {
                 Fill(data, settings);
                 data.halo = haloA;
-                data.haloDirection = new Vector4(1f, 0f, 0f, 0f);
+                data.haloTexel = new Vector4(1f / w, 0f, 0f, 0f);
                 builder.UseTexture(haloA, AccessFlags.Read);
                 builder.SetRenderAttachment(haloB, 0, AccessFlags.Write);
                 builder.SetRenderFunc((PassData pass, RasterGraphContext context) => Draw(pass, context, 3));
@@ -98,7 +93,7 @@ namespace UI.Projection
             {
                 Fill(data, settings);
                 data.halo = haloB;
-                data.haloDirection = new Vector4(0f, 1f, 0f, 0f);
+                data.haloTexel = new Vector4(0f, 1f / h, 0f, 0f);
                 builder.UseTexture(haloB, AccessFlags.Read);
                 builder.SetRenderAttachment(haloA, 0, AccessFlags.Write);
                 builder.SetRenderFunc((PassData pass, RasterGraphContext context) => Draw(pass, context, 3));
@@ -129,11 +124,10 @@ namespace UI.Projection
 
         private void Fill(PassData data, CanopySettings settings)
         {
+            data.previous = TextureHandle.nullHandle;
             data.scene = TextureHandle.nullHandle;
             data.halo = TextureHandle.nullHandle;
-            data.haloDirection = Vector4.zero;
-            data.haloResolution = new Vector4(Mathf.Max(1, source.Ink.rt.width / 4),
-                Mathf.Max(1, source.Ink.rt.height / 4), 0f, 0f);
+            data.haloTexel = Vector4.zero;
             data.decay = 0f;
             data.material = material;
             data.ink = source.Ink.rt;
@@ -151,7 +145,7 @@ namespace UI.Projection
             var properties = data.properties;
             properties.Clear();
             properties.SetTexture("_HudInk", data.ink);
-            properties.SetTexture("_PreviousInk", data.previous);
+            if (data.previous.IsValid()) properties.SetTexture("_PreviousInk", data.previous);
             if (data.scene.IsValid()) properties.SetTexture("_SceneImage", data.scene);
             if (data.halo.IsValid()) properties.SetTexture("_HaloLight", data.halo);
             properties.SetVector("_Resolution", data.resolution);
@@ -159,8 +153,7 @@ namespace UI.Projection
                 data.settings.textGlow, data.settings.halation));
             properties.SetVector("_Bleed", new Vector4(data.settings.signalBleed, data.settings.bleedLength, 0f, 0f));
             properties.SetVector("_CoolTint", (Vector4)data.settings.coolTint);
-            properties.SetVector("_HaloDirection", data.haloDirection);
-            properties.SetVector("_HaloResolution", data.haloResolution);
+            properties.SetVector("_HaloTexel", data.haloTexel);
             properties.SetFloat("_Decay", data.decay);
             properties.SetFloat("_Clock", data.time);
             properties.SetFloat("_PersonalityEnabled", data.enabled ? 1f : 0f);
@@ -192,8 +185,7 @@ namespace UI.Projection
             public TextureHandle previous;
             public TextureHandle scene;
             public TextureHandle halo;
-            public Vector4 haloDirection;
-            public Vector4 haloResolution;
+            public Vector4 haloTexel;
             public CanopySettings settings;
             public Vector4 resolution;
             public float decay;

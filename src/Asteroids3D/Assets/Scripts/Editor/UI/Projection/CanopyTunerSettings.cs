@@ -49,29 +49,15 @@ namespace UI.Projection
 
         public void Apply(CanopyProjectionProfile profile, CanopyState target)
         {
-            if (target == CanopyState.Base) Write(ref profile.baseSettings);
+            var tuned = new CanopyStateOverride { fields = Fields, settings = Settings };
+            if (target == CanopyState.Base) profile.baseSettings = tuned.Apply(profile.baseSettings);
             else
             {
                 var block = profile.OverrideFor(target);
-                Write(ref block.settings);
+                block.settings = tuned.Apply(block.settings);
                 block.fields |= Fields;
             }
             profile.personalityEnabled = PersonalityEnabled;
-
-            void Write(ref CanopySettings destination)
-            {
-                destination.glow = Settings.glow;
-                destination.aberration = Settings.aberration;
-                destination.beamJitter = Settings.beamJitter;
-                destination.afterglow = Settings.afterglow;
-                destination.scanlines = Settings.scanlines;
-                destination.flicker = Settings.flicker;
-                destination.warmth = Settings.warmth;
-                destination.wear = Settings.wear;
-                destination.glassDistortion = Settings.glassDistortion;
-                destination.damageShudder = Settings.damageShudder;
-                destination.transitionGlitch = Settings.transitionGlitch;
-            }
         }
 
         private static float Number(JObject values, string key, float maximum)

@@ -16,8 +16,7 @@ Shader "Hidden/UI/CanopyProjection"
         float2 _Resolution;
         float _Decay, _Clock, _PersonalityEnabled, _AppearAge, _TransitionAge, _HitAge;
         float4 _Beam, _Phosphor, _Glass;
-        float4 _Halo, _Bleed, _CoolTint, _HaloDirection;
-        float2 _HaloResolution;
+        float4 _Halo, _Bleed, _CoolTint, _HaloTexel;
 
         float2 ImageUv(float2 p)
         {
@@ -92,7 +91,7 @@ Shader "Hidden/UI/CanopyProjection"
         float4 HaloBlur(Varyings input) : SV_Target
         {
             float sigma = _Halo.x * (_Resolution.x / 1600.0) / 4.0;
-            float2 stepUv = _HaloDirection.xy * (sigma / 3.0) / _HaloResolution;
+            float2 stepUv = _HaloTexel.xy * (sigma / 3.0);
             float3 sum = 0.0;
             float weightSum = 0.0;
             [unroll] for (int k = -6; k <= 6; k++)

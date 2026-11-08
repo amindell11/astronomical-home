@@ -73,6 +73,7 @@ namespace Tests.EditMode.Rendering.Projection
             profile.lowHull.settings.signalBleed = .3f;
             profile.lowHull.settings.bleedLength = 7f;
             var before = profile.baseSettings;
+            var block = profile.lowHull.settings;
             CanopyTunerSettings.Parse(root.ToString()).Apply(profile, CanopyState.LowHull);
             Assert.That(profile.lowHull.fields, Is.EqualTo(CanopyFields.HaloReach | CanopyTunerSettings.Fields));
             var resolved = before;
@@ -89,13 +90,7 @@ namespace Tests.EditMode.Rendering.Projection
             resolved.transitionGlitch = 0f;
             resolved.haloReach = 12f;
             Assert.That(profile.Resolve(CanopyState.LowHull), Is.EqualTo(resolved));
-            Assert.That(profile.lowHull.settings.haloReach, Is.EqualTo(12f));
-            Assert.That(profile.lowHull.settings.haloStrength, Is.EqualTo(1.4f));
-            Assert.That(profile.lowHull.settings.textGlow, Is.EqualTo(.25f));
-            Assert.That(profile.lowHull.settings.halation, Is.EqualTo(.4f));
-            Assert.That(profile.lowHull.settings.coolTint, Is.EqualTo(new Color(.2f, .5f, .9f, 1f)));
-            Assert.That(profile.lowHull.settings.signalBleed, Is.EqualTo(.3f));
-            Assert.That(profile.lowHull.settings.bleedLength, Is.EqualTo(7f));
+            Assert.That(profile.lowHull.settings, Is.EqualTo(block));
             Assert.That(profile.lowHull.blendInSeconds, Is.EqualTo(.7f));
             Assert.That(profile.lowHull.blendOutSeconds, Is.EqualTo(1.2f));
             Assert.That(profile.baseSettings, Is.EqualTo(before));
