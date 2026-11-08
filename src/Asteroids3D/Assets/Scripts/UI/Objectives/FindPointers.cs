@@ -15,7 +15,7 @@ namespace UI.Objectives
     {
         private const float IconSize = 22f;
         private const float ArrowSize = 9f;
-        private static readonly Color FindColour = new(.72f, .48f, 1f, 1f);
+        internal static readonly Color FindColour = new(.72f, .48f, 1f, 1f);
 
         private readonly List<Pointer> pointers = new();
         private RectTransform minimap;

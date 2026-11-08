@@ -669,8 +669,19 @@ Format: **term** — definition. *(authority)*
   dark. The hunt's alarm darkens it too, and whatever supply was left is lost.
   Hull carries into the next sector. The first *station* kind. *(RepairStation,
   RepairStationFeelProfile)*
+- **beacon cache** — what a lull beacon's claim grants beside the lull pick:
+  one roll among the authored mod bonuses that fit the hero (damage, fire
+  rate, shield regen) and the *hull patch*, all weighted alike. A bonus joins
+  the run's mods for 20 s by default, adding to lull picks rather than
+  multiplying them, and the HUD lists it with its seconds left. Each claim's
+  bonus runs on its own clock, and sector teardown takes back any still
+  running. The hull patch restores 30% of a full hull at once, touches no mods,
+  and wastes what passes full. A low-hull lean, off by default, multiplies the
+  patch's weight while the hero's hull is below a threshold. No beacon, no
+  cache: headless and RL sectors never grant one. *(BeaconCache,
+  BeaconCacheFeelProfile, IObjectiveService.ShowBoost)*
 - **find** — a sector object the player goes looking for and uses once:
-  repair stations now, the weapon cache and armory next. A live find registers
+  repair stations now, the mod station and armory next. A live find registers
   with the objective service. In range the minimap shows the find's own
   marker; out of range, an *edge pointer* (its icon pinned to the minimap rim,
   aimed at it). Patrols get no edge pointer. One find colour for every kind,
