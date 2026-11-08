@@ -1,0 +1,15 @@
+{
+  "result": "pass",
+  "cameraShipLightsUnchanged": true,
+  "sourceFilesUnchanged": true,
+  "ownerSceneObjects": 772,
+  "monitorBackRakeDegrees": 33.976456542694855,
+  "displayParallelEdgeErrorDegrees": {
+    "07 | Main rectangular display": 5.12264187750957e-06,
+    "07 | Detail rectangular display": 4.2125748887443704e-05
+  },
+  "missingImages": [],
+  "editableTubeAssembly": "pass",
+  "foldedForearmGrouped": true,
+  "visualApproval": "pending"
+}
