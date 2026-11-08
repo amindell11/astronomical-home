@@ -127,7 +127,8 @@ namespace Tests.PlayMode.Bootstrap
             var both = Moments().OfType<CacheClaimed>().ToList();
             Assert.AreEqual(2, both.Count, "a second claim in the sector raises a second");
             Assert.AreEqual(cache.LastBonus, both[1].Bonus);
-            CollectionAssert.IsSubsetOf(both.Select(moment => moment.Bonus), BonusKeys);
+            foreach (var moment in both)
+                CollectionAssert.Contains(BonusKeys, moment.Bonus);
         }
 
         [UnityTest]
