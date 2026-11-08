@@ -1,0 +1,21 @@
+{
+  "result": "pass",
+  "sourceSha256": "0ffaa5eb8a181b38e7fcd71f8cde456ea0a3d7585ea809defd138c11392b73e2",
+  "existingObjectsPreserved": 302,
+  "maxTransformError": 0.0,
+  "originalMeshVerticesPreserved": true,
+  "curvePathsPreserved": 13,
+  "evaluatedNonManifoldEdges": {
+    "07 | Continuous left console body": 0,
+    "15 | Fascia tube seal 0": 0,
+    "14 | Forearm fold into Launch and controls": 0,
+    "15 | Launch underside clearance": 0,
+    "15 | Fascia tube seal 1": 0,
+    "14 | Launch casing folded returns": 0,
+    "15 | Projector to control rear end cap": 0,
+    "15 | Control pod rear casing closure": 0,
+    "15 | Projector rear casing closure": 0,
+    "15 | Control insert contact clearance": 0
+  },
+  "visualApproval": "pending"
+}
