@@ -245,8 +245,9 @@ namespace UI.Hangar
 
         private static string WeaponLabel(WeaponComponent weapon) => weapon.DisplayName;
 
+        // A null pool stays null, so BindRow leaves the row unbound as it does for any unset list.
         private static WeaponComponent[] Filling(WeaponSlot slot, WeaponComponent[] pool) =>
-            Array.FindAll(pool, weapon => weapon && WeaponsController.SlotFor(weapon) == slot);
+            pool == null ? null : Array.FindAll(pool, weapon => weapon && WeaponsController.SlotFor(weapon) == slot);
 
         private void Refresh()
         {
