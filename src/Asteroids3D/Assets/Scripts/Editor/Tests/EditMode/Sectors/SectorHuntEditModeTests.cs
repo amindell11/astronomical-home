@@ -121,9 +121,9 @@ namespace Tests.EditMode.Sectors
             Assert.AreEqual(50f, Vector2.Distance(east[0], west[0]), 1e-4f, "Patrols on opposite bearings pass on opposite sides.");
         }
 
-        [TestCase("TrialSector", 0, 2)]
-        [TestCase("TrialSector2", 1, 3)]
-        [TestCase("TrialSector3", 2, 3)]
+        [TestCase("TrialSector", 0, 1)]
+        [TestCase("TrialSector2", 1, 2)]
+        [TestCase("TrialSector3", 2, 2)]
         public void TrialSector_HoldsForItsHunt_OfItsPatrolCount_FlyingItsFactionsCommonShip(string sector, int index,
             int patrols)
         {

@@ -25,7 +25,7 @@ namespace Substrate.Sectors.Elements.Hunt
     /// or is hit by it starts calling the hero in, its minimap marker pulsing; the alarm sounds when a call-in
     /// runs out, or when the search clock does, and a patrol killed first cancels its call-in. At the alarm
     /// every live patrol leaves its route and its scout wakes, so it fights like a wave ship. The wave director
-    /// holds its opening lull until <see cref="Alarmed"/>. The events are plain C#, for listeners outside the sector.
+    /// holds its opening lull until <see cref="Alarmed"/> and counts <see cref="LivePatrols"/> against its cap. The events are plain C#, for listeners outside the sector.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1319
     /// </summary>
     public class SectorHunt : SectorSpawner
@@ -69,6 +69,8 @@ namespace Substrate.Sectors.Elements.Hunt
         public event Action<int, Ship> PatrolSilenced;
 
         public bool Alarmed { get; private set; }
+
+        public int LivePatrols => patrols.Count;
 
         public float SearchSecondsLeft { get; private set; }
 
