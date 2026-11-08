@@ -1,0 +1,83 @@
+{
+  "source_index": "D:\\amind\\git\\agent-1\\results\\capture\\verdant-single-background-index.json",
+  "views": [
+    {
+      "key": "original-flight",
+      "still": "verdant-single-20261108-original-flight.png",
+      "sha256": "9dd75e443f0dc72a09107d7c78c79a8617222ec73986b1521c6e75decb147570",
+      "frame_directory": "D:\\amind\\scratch\\asteroid-locale-concepts-20261106\\verdant-single-20261108\\frames\\original-flight",
+      "frame_count": 10,
+      "metadata": "frames.csv"
+    },
+    {
+      "key": "original-close",
+      "still": "verdant-single-20261108-original-close.png",
+      "sha256": "6c9f72ae11914734b2a5ff728964d4050b7ba070cb58e9d98364186609055c11",
+      "frame_directory": "D:\\amind\\scratch\\asteroid-locale-concepts-20261106\\verdant-single-20261108\\frames\\original-close",
+      "frame_count": 10,
+      "metadata": "frames.csv"
+    },
+    {
+      "key": "original-rotation",
+      "still": "verdant-single-20261108-original-rotation.png",
+      "sha256": "4e10807f9b89cdbdb17689ce1164c8a28abc16ed5d2925b3d2b0447188b5c20c",
+      "frame_directory": "D:\\amind\\scratch\\asteroid-locale-concepts-20261106\\verdant-single-20261108\\frames\\original-rotation",
+      "frame_count": 180,
+      "metadata": "frames.csv"
+    },
+    {
+      "key": "muted-flight",
+      "still": "verdant-single-20261108-muted-flight.png",
+      "sha256": "3dc39015fc496096f9be404ed480676135121c454a17a3c6eb7a70338ebb49ca",
+      "frame_directory": "D:\\amind\\scratch\\asteroid-locale-concepts-20261106\\verdant-single-20261108\\frames\\muted-flight",
+      "frame_count": 10,
+      "metadata": "frames.csv"
+    },
+    {
+      "key": "muted-close",
+      "still": "verdant-single-20261108-muted-close.png",
+      "sha256": "e023e9f7d6cecfef9d82e94a249cfa0ce1be467dbe86c43145050dbd676c7f65",
+      "frame_directory": "D:\\amind\\scratch\\asteroid-locale-concepts-20261106\\verdant-single-20261108\\frames\\muted-close",
+      "frame_count": 10,
+      "metadata": "frames.csv"
+    },
+    {
+      "key": "muted-rotation",
+      "still": "verdant-single-20261108-muted-rotation.png",
+      "sha256": "d65785b48f93c07d414a0e6b45a1ed8cec5ad8c2b40beed488bc6ad76230e29a",
+      "frame_directory": "D:\\amind\\scratch\\asteroid-locale-concepts-20261106\\verdant-single-20261108\\frames\\muted-rotation",
+      "frame_count": 180,
+      "metadata": "frames.csv"
+    }
+  ],
+  "pairs": [
+    {
+      "framing": "flight",
+      "same_camera_pose_lighting_setup": true,
+      "foreground_body_crop": [
+        710,
+        320,
+        740,
+        340
+      ],
+      "foreground_max_channel_difference": 4,
+      "planet_mean_channel_difference": 11.015866666666668
+    },
+    {
+      "framing": "close",
+      "same_camera_pose_lighting_setup": true,
+      "foreground_body_crop": [
+        700,
+        300,
+        840,
+        350
+      ],
+      "foreground_max_channel_difference": 4,
+      "planet_mean_channel_difference": 11.271612698412698
+    },
+    {
+      "framing": "rotation",
+      "same_camera_pose_lighting_setup": true
+    }
+  ]
+}

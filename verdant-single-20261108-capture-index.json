@@ -1,0 +1,157 @@
+{
+    "lighting": "Actual game camera and Verdant backdrop with neutral review lighting, new painted material gain 1",
+    "comparison": "A original RGB; B saturation 0.82, contrast 0.88 around linear 0.08, background only. Backdrop motion and shader clock frozen identically.",
+    "contour": "Joined contour-only normals, 3.2px, minimum0.45, uniform0.4; surface normals unchanged",
+    "views": [
+        {
+            "background": "original",
+            "framing": "flight",
+            "zoom": 15.0,
+            "frame_directory": "D:\\amind\\git\\agent-1\\results\\capture\\frames\\20261108-100027-681-verdant-single-original-flight",
+            "model": "verdant-single",
+            "frozen_time": 0.9608471989631653,
+            "frame_count": 10,
+            "camera_position": {
+                "x": -0.000009397354006068781,
+                "y": -0.000040782302676234394,
+                "z": -49.999977111816409
+            },
+            "asteroid_position": {
+                "x": 3.5,
+                "y": 1.0,
+                "z": 0.0
+            },
+            "ship_position": {
+                "x": -0.30000001192092898,
+                "y": -1.399999976158142,
+                "z": 2.2351741790771486e-8
+            },
+            "recommended_playback_fps": 24
+        },
+        {
+            "background": "original",
+            "framing": "close",
+            "zoom": 5.400000095367432,
+            "frame_directory": "D:\\amind\\git\\agent-1\\results\\capture\\frames\\20261108-100030-357-verdant-single-original-close",
+            "model": "verdant-single",
+            "frozen_time": 0.9608471989631653,
+            "frame_count": 10,
+            "camera_position": {
+                "x": 1.3999994993209839,
+                "y": 0.3999998867511749,
+                "z": -49.9999885559082
+            },
+            "asteroid_position": {
+                "x": 3.5,
+                "y": 1.0,
+                "z": 0.0
+            },
+            "ship_position": {
+                "x": -0.30000001192092898,
+                "y": -1.399999976158142,
+                "z": 2.2351741790771486e-8
+            },
+            "recommended_playback_fps": 24
+        },
+        {
+            "background": "original",
+            "framing": "rotation",
+            "zoom": 5.400000095367432,
+            "frame_directory": "D:\\amind\\git\\agent-1\\results\\capture\\frames\\20261108-100032-944-verdant-single-original-rotation",
+            "model": "verdant-single",
+            "frozen_time": 0.9608471989631653,
+            "frame_count": 180,
+            "camera_position": {
+                "x": 1.399999737739563,
+                "y": 0.3999999463558197,
+                "z": -49.99999237060547
+            },
+            "asteroid_position": {
+                "x": 3.5,
+                "y": 1.0,
+                "z": 0.0
+            },
+            "ship_position": {
+                "x": -0.30000001192092898,
+                "y": -1.399999976158142,
+                "z": 2.2351741790771486e-8
+            },
+            "recommended_playback_fps": 24
+        },
+        {
+            "background": "muted",
+            "framing": "flight",
+            "zoom": 15.0,
+            "frame_directory": "D:\\amind\\git\\agent-1\\results\\capture\\frames\\20261108-100053-734-verdant-single-muted-flight",
+            "model": "verdant-single",
+            "frozen_time": 0.9608471989631653,
+            "frame_count": 10,
+            "camera_position": {
+                "x": -0.000009397354006068781,
+                "y": -0.000040782302676234394,
+                "z": -49.999977111816409
+            },
+            "asteroid_position": {
+                "x": 3.5,
+                "y": 1.0,
+                "z": 0.0
+            },
+            "ship_position": {
+                "x": -0.30000001192092898,
+                "y": -1.399999976158142,
+                "z": 2.2351741790771486e-8
+            },
+            "recommended_playback_fps": 24
+        },
+        {
+            "background": "muted",
+            "framing": "close",
+            "zoom": 5.400000095367432,
+            "frame_directory": "D:\\amind\\git\\agent-1\\results\\capture\\frames\\20261108-100056-295-verdant-single-muted-close",
+            "model": "verdant-single",
+            "frozen_time": 0.9608471989631653,
+            "frame_count": 10,
+            "camera_position": {
+                "x": 1.3999994993209839,
+                "y": 0.3999998867511749,
+                "z": -49.9999885559082
+            },
+            "asteroid_position": {
+                "x": 3.5,
+                "y": 1.0,
+                "z": 0.0
+            },
+            "ship_position": {
+                "x": -0.30000001192092898,
+                "y": -1.399999976158142,
+                "z": 2.2351741790771486e-8
+            },
+            "recommended_playback_fps": 24
+        },
+        {
+            "background": "muted",
+            "framing": "rotation",
+            "zoom": 5.400000095367432,
+            "frame_directory": "D:\\amind\\git\\agent-1\\results\\capture\\frames\\20261108-100058-811-verdant-single-muted-rotation",
+            "model": "verdant-single",
+            "frozen_time": 0.9608471989631653,
+            "frame_count": 180,
+            "camera_position": {
+                "x": 1.399999737739563,
+                "y": 0.3999999463558197,
+                "z": -49.99999237060547
+            },
+            "asteroid_position": {
+                "x": 3.5,
+                "y": 1.0,
+                "z": 0.0
+            },
+            "ship_position": {
+                "x": -0.30000001192092898,
+                "y": -1.399999976158142,
+                "z": 2.2351741790771486e-8
+            },
+            "recommended_playback_fps": 24
+        }
+    ]
+}

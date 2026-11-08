@@ -1,0 +1,94 @@
+{
+  "status": "SOURCE_IMPORT_AND_GAME_CAPTURE_PASS_REVIEW_CANDIDATE",
+  "model_count": 1,
+  "scope": "One Verdant review candidate; no other asteroid family changed.",
+  "painted_source": {
+    "path": "model/verdant-painted.blend",
+    "sha256": "76fda8bd02a60e09238617b1916b63858cd8066eac7fa7abb594fd8a116b5a33"
+  },
+  "frozen_projection_source": {
+    "path": "model/verdant-projection-source.blend",
+    "sha256": "def6ad726f2ee0ab4540652ad19b839f46edbe0b6ba4040b4804d61ee1046717"
+  },
+  "source_checks": {
+    "report": "source-check.json",
+    "sha256": "0ebfb5826c8946d3f9a9d4bc40da3c64d3fc7424281502ed93181efc849e5797",
+    "host_connected_components": 1,
+    "closed_mesh_objects": 10,
+    "open_drawing_objects": 7,
+    "closed_boundary_edges": 0,
+    "closed_nonmanifold_edges": 0,
+    "zero_area_faces": 0,
+    "all_closed_component_signed_volumes_positive": true
+  },
+  "intersection_checks": {
+    "report": "final-geometry-check.json",
+    "sha256": "3dac512a7a0fbe1cccf50ef5456add79b7e6a668380fde21f729e205b05f87e8",
+    "connected_solid_self_crossings": 0,
+    "separate_cream_corner_contacts": 3
+  },
+  "paint_checks": {
+    "report": "paint-bake-report.json",
+    "sha256": "bd5ea3ffe6a00ef7ae574c20e7e86e0a97c5350754ccb9004ebbb2b72ea6a921",
+    "method": "Frozen multi-view projection, exact visible component-ID masks, unlit per-component UV bake. Unobserved regions use their own authored base color.",
+    "packed_albedo_images": 10,
+    "generated_source_images_unchanged": true,
+    "visibility_masks": "guides/component-ids.json",
+    "views": [
+      "hero",
+      "rear",
+      "underside"
+    ]
+  },
+  "import_checks": {
+    "report": "import-check.json",
+    "sha256": "8e1bddeec8f68c09479330d20b9a99e0905c1ee85f94e605e5cbce9ae307bf84",
+    "fbx": "export/models/verdant-single.fbx",
+    "fbx_sha256": "0f80f891f9410631653d936d97675ca4e32b840b547744564bfda411a3e24b8b",
+    "parts_checked": 17,
+    "position_tolerance": 5e-05,
+    "uv_tolerance": 2e-05,
+    "maximum_position_error": 4.2981520598697533e-07,
+    "maximum_uv_error": 0,
+    "material_slots_match": true,
+    "appearance_proof": "model/verdant-fbx-reimport.png"
+  },
+  "history_not_current_verdict": {
+    "repair_record": "history/repair-reports/join-repair-report.json",
+    "rejected_geometry": "history/pre-join-repair/exact-intersections.json",
+    "rejected_projection_bake": "history/pre-component-mask/paint-bake-report.json"
+  },
+  "game_capture": {
+    "status": "PASS",
+    "run": "20261108-015914",
+    "test_summary": "capture/validation/20261108-015914-summary.json",
+    "test_summary_sha256": "c0cb7791edc670761eb18e6974ec1001e1a7ba50a50c368c146d4e6711839f44",
+    "result_index": "capture/validation/verdant-single-background-index.json",
+    "result_index_sha256": "2a1a8df71da145473d00c911a191b94bbd9b0bc3d1d386ded8e044acc5766aba",
+    "scenario": "capture/VerdantSingleBackgroundScenario.cs",
+    "scenario_sha256": "d839ddf9a8b35281f4e44751c09aad13375555d794d20ecaff442b8e4bba2294",
+    "tests_passed": 1,
+    "tests_failed": 0,
+    "views": 6,
+    "frames": 400,
+    "paired_camera_pose_time_settings_equal": true,
+    "visual_review": "Root inspected flight/close A/B; worker inspected close A/B and a tilted rotation frame. Both are legible; muted backdrop is visibly quieter. No claim of owner acceptance or target parity.",
+    "root_pixel_observation": {
+      "planet_mean_channel_difference_approx": 11,
+      "foreground_body_crop_max_channel_difference": 4,
+      "note": "Identical scene settings; rendered foreground output has a slight difference."
+    },
+    "lighting": "Actual game camera/backdrop with neutral review key/fill; gain1",
+    "background_B": {
+      "saturation": 0.82,
+      "contrast": 0.88,
+      "linear_pivot": 0.08
+    },
+    "backdrop_correction_report": "backdrop-clone-correction.json"
+  },
+  "visual_limitations": [
+    "Broad walls remain simpler than the target; this is an experiment for owner review, not target parity.",
+    "Blender outer ink is Freestyle; Unity preview uses an actual private contour mesh and existing house shader.",
+    "No production spawning, collision, breakup or shipping background integration."
+  ]
+}

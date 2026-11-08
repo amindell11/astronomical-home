@@ -1,0 +1,77 @@
+[
+  {
+    "Name": "verdant-single-20261108-capture-index.json",
+    "Bytes": 5771,
+    "SHA256": "2a1a8df71da145473d00c911a191b94bbd9b0bc3d1d386ded8e044acc5766aba"
+  },
+  {
+    "Name": "verdant-single-20261108-capture-validation.json",
+    "Bytes": 3129,
+    "SHA256": "8707efc095823b239a2a3b60bd75b7ce49fb17b14f0357413d080179e715a0c1"
+  },
+  {
+    "Name": "verdant-single-20261108-editable-source.zip",
+    "Bytes": 59484703,
+    "SHA256": "65f4fc0115822339b1831e22c3070851b418d6e129ec9d4b55dd07754ae4d8ec"
+  },
+  {
+    "Name": "verdant-single-20261108-muted-close.png",
+    "Bytes": 925133,
+    "SHA256": "e023e9f7d6cecfef9d82e94a249cfa0ce1be467dbe86c43145050dbd676c7f65"
+  },
+  {
+    "Name": "verdant-single-20261108-muted-flight.png",
+    "Bytes": 859154,
+    "SHA256": "3dc39015fc496096f9be404ed480676135121c454a17a3c6eb7a70338ebb49ca"
+  },
+  {
+    "Name": "verdant-single-20261108-muted-rotation.gif",
+    "Bytes": 7154203,
+    "SHA256": "fbc20162e9973be2cb0719abce759d3f282e38423dde126335f78470e73ce3b7"
+  },
+  {
+    "Name": "verdant-single-20261108-muted-rotation.mp4",
+    "Bytes": 89739,
+    "SHA256": "bb9e9ad1e800d24d4dc555714b4107be13fc823478f36283d8c59d5e9969013a"
+  },
+  {
+    "Name": "verdant-single-20261108-muted-rotation.png",
+    "Bytes": 913211,
+    "SHA256": "d65785b48f93c07d414a0e6b45a1ed8cec5ad8c2b40beed488bc6ad76230e29a"
+  },
+  {
+    "Name": "verdant-single-20261108-original-close.png",
+    "Bytes": 905833,
+    "SHA256": "6c9f72ae11914734b2a5ff728964d4050b7ba070cb58e9d98364186609055c11"
+  },
+  {
+    "Name": "verdant-single-20261108-original-flight.png",
+    "Bytes": 842287,
+    "SHA256": "9dd75e443f0dc72a09107d7c78c79a8617222ec73986b1521c6e75decb147570"
+  },
+  {
+    "Name": "verdant-single-20261108-original-rotation.gif",
+    "Bytes": 6655740,
+    "SHA256": "8f9c97b470cb64f552e069496197e567f426eb0a7d0ed91069f9533facd87aaf"
+  },
+  {
+    "Name": "verdant-single-20261108-original-rotation.mp4",
+    "Bytes": 92837,
+    "SHA256": "b145be1f2aed3060265142161cdfa64b044c4b2f8ccdad823aa0cd8c9e31cf20"
+  },
+  {
+    "Name": "verdant-single-20261108-original-rotation.png",
+    "Bytes": 895364,
+    "SHA256": "4e10807f9b89cdbdb17689ce1164c8a28abc16ed5d2925b3d2b0447188b5c20c"
+  },
+  {
+    "Name": "verdant-single-20261108-source-validation.json",
+    "Bytes": 4283,
+    "SHA256": "64d86dfd8aaf0abf50685e2572bac25c9557125673e6d3552be2eb7cedf62b5b"
+  },
+  {
+    "Name": "verdant-single-20261108-unity-test-summary.json",
+    "Bytes": 4785,
+    "SHA256": "c0cb7791edc670761eb18e6974ec1001e1a7ba50a50c368c146d4e6711839f44"
+  }
+]
