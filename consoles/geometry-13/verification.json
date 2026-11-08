@@ -1,0 +1,46 @@
+{
+  "result": "pass",
+  "cameraMonitorShipUnchanged": true,
+  "sourceFilesUnchanged": true,
+  "ownerSceneObjects": 772,
+  "sidePostsOutsideCamera": true,
+  "missingImages": [],
+  "evaluatedNewMeshes": {
+    "13 | Cooling deck folded beneath monitor": {
+      "vertices": 112,
+      "faces": 110,
+      "nonManifoldEdges": 0
+    },
+    "13 | Control and Launch folded chassis": {
+      "vertices": 204,
+      "faces": 193,
+      "nonManifoldEdges": 0
+    },
+    "13 | Outer shoulder armor": {
+      "vertices": 56,
+      "faces": 54,
+      "nonManifoldEdges": 0
+    },
+    "13 | Outer shoulder folded side": {
+      "vertices": 62,
+      "faces": 61,
+      "nonManifoldEdges": 0
+    },
+    "13 | Projector recessed support return": {
+      "vertices": 176,
+      "faces": 174,
+      "nonManifoldEdges": 0
+    },
+    "13 | Projector to control narrow folded seam": {
+      "vertices": 144,
+      "faces": 144,
+      "nonManifoldEdges": 0
+    },
+    "13 | Forearm right return into Launch": {
+      "vertices": 62,
+      "faces": 59,
+      "nonManifoldEdges": 0
+    }
+  },
+  "visualApproval": "pending"
+}
