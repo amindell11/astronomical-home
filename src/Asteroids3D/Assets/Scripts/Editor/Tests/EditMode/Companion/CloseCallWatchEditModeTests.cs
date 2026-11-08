@@ -98,8 +98,8 @@ namespace Tests.EditMode.Companion
             mod.name = "Overclock";
             try
             {
-                Assert.AreEqual("Overclock", new LullPickTaken(mod).Facts["mod"]);
-                Assert.AreEqual(LullPickTaken.PickSlot, new LullPickTaken(mod).Slot);
+                Assert.AreEqual("Overclock", new ModPicked(mod).Facts["mod"]);
+                Assert.AreEqual(ModPicked.PickSlot, new ModPicked(mod).Slot);
             }
             finally
             {
@@ -107,8 +107,9 @@ namespace Tests.EditMode.Companion
             }
             Assert.AreEqual("3", new SectorEntered(3).Facts["sector"]);
             Assert.AreEqual(SectorEntered.SectorSlot, new SectorEntered(3).Slot);
-            Assert.AreEqual("2", new BeaconClaimed(2).Facts["sector"]);
-            Assert.AreEqual(BeaconClaimed.BeaconSlot, new BeaconClaimed(2).Slot);
+            Assert.AreEqual("2", new CacheClaimed(2, "hull").Facts["sector"]);
+            Assert.AreEqual("hull", new CacheClaimed(2, "hull").Facts["bonus"]);
+            Assert.AreEqual(CacheClaimed.CacheSlot, new CacheClaimed(2, "hull").Slot);
         }
     }
 }

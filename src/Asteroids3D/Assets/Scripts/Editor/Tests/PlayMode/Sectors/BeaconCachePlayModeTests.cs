@@ -119,10 +119,14 @@ namespace Tests.PlayMode.Sectors
             var world = BuildSector(hero, feel, presentation: true, phases: 3);
             yield return world.Sector.Setup();
 
+            var cache = world.Sector.GetComponent<BeaconCache>();
+            Assert.IsNull(cache.LastBonus, "No bonus before a claim.");
             hero.Damage.Health.SetFraction(.5f);
             yield return ClaimNextBeacon(world, hero);
             var claimedAt = Time.time;
             Assert.AreEqual(.8f, hero.Damage.Health.Pct, 1e-4f, "The patch restores 30% of a full hull at once.");
+            Assert.AreEqual(1, cache.Claims);
+            Assert.AreEqual(BeaconCache.HullKey, cache.LastBonus, "The host reads the patch as the hull key.");
             Assert.AreEqual(0, changes, "The patch never touches the run's mods.");
             Assert.AreEqual(new[] { "Hull patch +30% hull" }, _objectives.Boosts.Select(boost => boost.Label));
             Assert.AreEqual(claimedAt + 3f, _objectives.Boosts[0].EndsAt, .1f, "The HUD shows it briefly.");
@@ -131,6 +135,7 @@ namespace Tests.PlayMode.Sectors
             yield return ClaimNextBeacon(world, hero);
             Assert.AreEqual(1f, hero.Damage.Health.Pct, 1e-6f, "At full hull the patch is wasted.");
             Assert.AreEqual(0, changes);
+            Assert.AreEqual(2, cache.Claims, "Each claim counts.");
 
             yield return WaitSeconds(() => _objectives.Boosts.Count == 0, 6f);
             Assert.IsEmpty(_objectives.Boosts, "Each patch's readout closes on its own.");

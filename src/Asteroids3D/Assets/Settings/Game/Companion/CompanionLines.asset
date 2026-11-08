@@ -31,10 +31,10 @@ MonoBehaviour:
   - moment: sector-entered
     mustSay: 0
     lines: []
-  - moment: beacon-claimed
+  - moment: cache-claimed
     mustSay: 0
     lines: []
-  - moment: lull-pick
+  - moment: mod-pick
     mustSay: 0
     lines: []
   - moment: close-call

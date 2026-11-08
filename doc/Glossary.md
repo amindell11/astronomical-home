@@ -669,7 +669,7 @@ Format: **term** — definition. *(authority)*
   dark. The hunt's alarm darkens it too, and whatever supply was left is lost.
   Hull carries into the next sector. The first *station* kind. *(RepairStation,
   RepairStationFeelProfile)*
-- **beacon cache** — what a lull beacon's claim grants beside the lull pick:
+- **beacon cache** — what a lull beacon's claim grants:
   one roll among the authored mod bonuses that fit the hero (damage, fire
   rate, shield regen) and the *hull patch*, all weighted alike. A bonus joins
   the run's mods for 20 s by default, adding to lull picks rather than
@@ -680,8 +680,13 @@ Format: **term** — definition. *(authority)*
   patch's weight while the hero's hull is below a threshold. No beacon, no
   cache: headless and RL sectors never grant one. *(BeaconCache,
   BeaconCacheFeelProfile, IObjectiveService.ShowBoost)*
+- **mod station** — the second *station* kind: a *find* each combat sector
+  places, two by default, spaced from each other and from the repair stations.
+  The first fly-in opens one *lull pick*, then the station goes dark; the
+  hunt's alarm darkens an unclaimed one, and its pick is lost. Headless and RL
+  runs claim it with no pick. *(ModStation, ModStationFeelProfile)*
 - **find** — a sector object the player goes looking for and uses once:
-  repair stations now, the mod station and armory next. A live find registers
+  repair and mod stations now, the armory next. A live find registers
   with the objective service. In range the minimap shows the find's own
   marker; out of range, an *edge pointer* (its icon pinned to the minimap rim,
   aimed at it). Patrols get no edge pointer. One find colour for every kind,
@@ -974,13 +979,13 @@ Format: **term** — definition. *(authority)*
   ship once; the ship re-reads it on every resolve and on every change.
   *(LullMod, LullModPool, LullModStack, Ship.BindMods)*
 - **lull pick** — the time-stopped choice of one lull mod from up to three,
-  or a skip, when the player claims the lull beacon; the clock runs on after
+  or a skip, when the player claims a *mod station*; the clock runs on after
   it. *(LullPickScreen, GameHost)*
 - **lull beacon** — the zone the sector spine places on a clear point away from
   the hero shortly before a sector phase that a lull follows ends, so its
-  marker shows during the fight; flying into it claims that lull's pick. It
+  marker shows during the fight; flying into it claims it. It
   stays through the lull and a grace window into the next sector phase, then
-  closes unclaimed (that pick is lost); a new beacon's opening closes the one
+  closes unclaimed; a new beacon's opening closes the one
   before it, so beacons never stack. The sector's opening lull gets none.
   *(PhaseSpineModule, ExtractionZone)*
 - **weapon pick** — the sector-break choice of one weapon the player does not

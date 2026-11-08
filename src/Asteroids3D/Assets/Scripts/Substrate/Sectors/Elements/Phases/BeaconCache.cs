@@ -2,8 +2,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Balance;
+using Combat.Weapons.Mods;
 using Loot;
 using Ships;
+using Ships.Mods;
 using Substrate.Services.Objectives;
 using UnityEngine;
 
@@ -14,12 +16,14 @@ namespace Substrate.Sectors.Elements.Phases
     /// the hero, or the hull patch. A mod bonus joins the run's mods and shows on the HUD with its seconds
     /// left; it runs out on its own clock, or at teardown, and is taken back off the run's mods. The hull
     /// patch restores a fraction of hull at once and shows briefly, touching no mods. A sector whose beacons
-    /// don't run (headless, no hero) never claims one, so never grants.
+    /// don't run (headless, no hero) never claims one, so never grants. The host reads <see cref="Claims"/>
+    /// and <see cref="LastBonus"/> to tell the companion what each claim rolled.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1319
     /// </summary>
     public class BeaconCache : SectorModule
     {
         private const float PatchNoticeSeconds = 3f;
+        public const string HullKey = "hull";
 
         [Tooltip("Bonus duration, the mod bonuses and the hull patch a claim rolls from.")]
         [Stat, SerializeField] private BeaconCacheFeelProfile feel;
@@ -32,6 +36,13 @@ namespace Substrate.Sectors.Elements.Phases
         private Ship hero;
         private IObjectiveService objectives;
         private bool wasClaimed;
+        private LullMod lastRolled;
+
+        /// <summary>Beacon claims this sector; the host raises one moment per claim.</summary>
+        public int Claims { get; private set; }
+
+        /// <summary>The last claim's rolled bonus as a fixed key (damage, fire-rate, shield or hull); null before one.</summary>
+        public string LastBonus => Claims == 0 ? null : lastRolled ? KeyOf(lastRolled) : HullKey;
 
         public override IEnumerator Setup(SectorBuildContext ctx)
         {
@@ -43,6 +54,8 @@ namespace Substrate.Sectors.Elements.Phases
             hero = ctx.Hero;
             objectives = ctx.Objectives;
             wasClaimed = false;
+            Claims = 0;
+            lastRolled = null;
             yield break;
         }
 
@@ -88,6 +101,19 @@ namespace Substrate.Sectors.Elements.Phases
             var index = Pick(fitting.Count, feel.HullWeight(hero.Damage.Health.Pct), UnityEngine.Random.value);
             if (index < 0) PatchHull(now);
             else GrantMod(fitting[index], now);
+            lastRolled = index < 0 ? null : fitting[index];
+            Claims++;
+        }
+
+        internal static string KeyOf(LullMod bonus)
+        {
+            var weapon = bonus as WeaponMod;
+            if (weapon && weapon.Field == WeaponModField.Damage) return "damage";
+            if (weapon && weapon.Field == WeaponModField.FireRate) return "fire-rate";
+            var ship = bonus as ShipMod;
+            if (ship && ship.Field == ShipModField.ShieldRegen) return "shield";
+            throw new InvalidOperationException(
+                $"Beacon cache bonus '{bonus.name}' changes a field with no companion key; add one to KeyOf.");
         }
 
         /// <summary>
