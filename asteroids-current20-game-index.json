@@ -1,0 +1,160 @@
+{
+  "kind": "Unity game-context art review",
+  "production_spawning_changed": false,
+  "capture_summary": "20261107-171031-summary.json",
+  "lighting": "Game camera and locale backdrops with neutral review lighting; declared Verdant dark/jade material roles gain 1.4; contour-only joined normals, uniform 4px",
+  "source_catalog_sha256": "f9140609bbb9fcc74ed16fe40c6bda3c88ce9b59e1bf0ff9e5a62e271ca3e46f",
+  "source_blend_hashes": {
+    "copper-01": "0c60959803e777bd116a11a1699edbcf182808b583cdeb9135c09a6623d7a694",
+    "copper-02": "d38b39d4b7d0c2356189a6631f6482b4d82343a4b80b008c3e83fa4107272c05",
+    "copper-03": "c4f7ab13c8118349f26db5b22e1b3996364750327e91896293d548856415951c",
+    "copper-04": "fcbca5c35fece9d074f6e1e4c2cc57f37c4ae85e2e5382be026d494d10583c53",
+    "copper-05": "8679f445b121702ae7397055cfd43870249b9c47be5d06b898eaf258004c3957",
+    "chalk-01": "66e6427a198b1735ce09de6174391e340872be40cd3fb90eba59af504640569f",
+    "chalk-02": "2c18f3dd9720cb387539bdf94b5680993b5317122c06d5969f5841b31dcc04a2",
+    "chalk-03": "3f8a961ca0a23416626f74c7c6cdfde10a51060a8712222876c440fe1bc4b6a1",
+    "chalk-04": "a9bc27a7884e16d718f4473aef87199d87c72569399a8272ad86fa8b74b1b6a6",
+    "chalk-05": "b82d736b53ed9b43cdf065d8c35cf23f2d5ea474b7a7dbd652318aa6fb1fcb5f",
+    "verdant-01": "663269d1658edf7ee27892e2af46bf74d2dfe4c75dc3ced5bf946796d9c3504e",
+    "verdant-02": "b8d1b15e5f23b4d4a078ee2b7df85e4ecb0fa550332643b4efabee9f012d10aa",
+    "verdant-03": "ed40d14415b7b36dbd9ea2cd948ee18dc138a5d3c062d637c5df456cf62680b2",
+    "verdant-04": "b5edd0a0d91d14d305c61e7322c110bcbe2abf1ef34332d5a47e96926d8246da",
+    "verdant-05": "89edb4582fd5cb83995d33d8fb8ab920694b520f520e075cded3da68415c4507",
+    "ice-01": "e57eb089b83521ba3408e6200abe11ea9f2f4c6b95165d8d4daa9545d482a87f",
+    "ice-02": "aee6ad8ad12a8ec0adee5b7d92d5ead676035c7ec37902abc80e947ea0f8e4f0",
+    "ice-03": "f7a34a6762e3999f514a445337436cf2a9b53d9a5a244a11ec1586526d976fd0",
+    "ice-04": "2824c69cd69921c1166a978818c9810d3835128e5cb4755587fe9d9b68869ed9",
+    "ice-05": "dfcd1c63128626c793560186a3698f9e9f922c8830e5654823bcab7e314240f6"
+  },
+  "poses": "Saved Blender camera basis mapped through measured FBX axes; per-piece in-plane rotation.",
+  "views": [
+    {
+      "family": "copper",
+      "locale": 1,
+      "zoom": 15.0,
+      "frame_directory": "D:\\amind\\git\\agent-5\\results\\capture\\frames\\20261108-011124-661-current20-review-locale-1-copper-flight",
+      "models": [
+        "copper-01",
+        "copper-02",
+        "copper-03",
+        "copper-04",
+        "copper-05"
+      ],
+      "still": "asteroids-current20-game-copper-flight.png",
+      "still_sha256": "0d1212b359a8343a07e65478aed9c857dd7702ad1139be4f97081e993a1f8305",
+      "raw_frames": "D:\\amind\\scratch\\asteroid-locale-concepts-20261106\\bespoke-five\\current-review\\frames\\20261108-011124-661-current20-review-locale-1-copper-flight"
+    },
+    {
+      "family": "copper",
+      "locale": 1,
+      "zoom": 9.0,
+      "frame_directory": "D:\\amind\\git\\agent-5\\results\\capture\\frames\\20261108-011126-691-current20-review-locale-1-copper-close",
+      "models": [
+        "copper-01",
+        "copper-02",
+        "copper-03",
+        "copper-04",
+        "copper-05"
+      ],
+      "still": "asteroids-current20-game-copper-close.png",
+      "still_sha256": "ee6e4649d077427fcef09a7ed33f182348f6268a827a8c09a139b3fc8afd4d57",
+      "raw_frames": "D:\\amind\\scratch\\asteroid-locale-concepts-20261106\\bespoke-five\\current-review\\frames\\20261108-011126-691-current20-review-locale-1-copper-close"
+    },
+    {
+      "family": "chalk",
+      "locale": 3,
+      "zoom": 15.0,
+      "frame_directory": "D:\\amind\\git\\agent-5\\results\\capture\\frames\\20261108-011128-950-current20-review-locale-3-chalk-flight",
+      "models": [
+        "chalk-01",
+        "chalk-02",
+        "chalk-03",
+        "chalk-04",
+        "chalk-05"
+      ],
+      "still": "asteroids-current20-game-chalk-flight.png",
+      "still_sha256": "635bf905622fd242ca807a93e716eafb90331df7047bb128f329e1832cc1694c",
+      "raw_frames": "D:\\amind\\scratch\\asteroid-locale-concepts-20261106\\bespoke-five\\current-review\\frames\\20261108-011128-950-current20-review-locale-3-chalk-flight"
+    },
+    {
+      "family": "chalk",
+      "locale": 3,
+      "zoom": 9.0,
+      "frame_directory": "D:\\amind\\git\\agent-5\\results\\capture\\frames\\20261108-011131-217-current20-review-locale-3-chalk-close",
+      "models": [
+        "chalk-01",
+        "chalk-02",
+        "chalk-03",
+        "chalk-04",
+        "chalk-05"
+      ],
+      "still": "asteroids-current20-game-chalk-close.png",
+      "still_sha256": "abd1179de3f8637a474dcfb1c5d17c1fe0c67a8c8418055e01634a76e931814f",
+      "raw_frames": "D:\\amind\\scratch\\asteroid-locale-concepts-20261106\\bespoke-five\\current-review\\frames\\20261108-011131-217-current20-review-locale-3-chalk-close"
+    },
+    {
+      "family": "verdant",
+      "locale": 6,
+      "zoom": 15.0,
+      "frame_directory": "D:\\amind\\git\\agent-5\\results\\capture\\frames\\20261108-011134-181-current20-review-locale-6-verdant-flight",
+      "models": [
+        "verdant-01",
+        "verdant-02",
+        "verdant-03",
+        "verdant-04",
+        "verdant-05"
+      ],
+      "still": "asteroids-current20-game-verdant-flight.png",
+      "still_sha256": "f5ec77d71e5aef5555363cabbf76d7c830e7937c78271b6910292e65757fad0b",
+      "raw_frames": "D:\\amind\\scratch\\asteroid-locale-concepts-20261106\\bespoke-five\\current-review\\frames\\20261108-011134-181-current20-review-locale-6-verdant-flight"
+    },
+    {
+      "family": "verdant",
+      "locale": 6,
+      "zoom": 9.0,
+      "frame_directory": "D:\\amind\\git\\agent-5\\results\\capture\\frames\\20261108-011138-106-current20-review-locale-6-verdant-close",
+      "models": [
+        "verdant-01",
+        "verdant-02",
+        "verdant-03",
+        "verdant-04",
+        "verdant-05"
+      ],
+      "still": "asteroids-current20-game-verdant-close.png",
+      "still_sha256": "589ed0df88869d77584f40411dfe15d25e91b92a9ccfae4faa2d341e4577fc2b",
+      "raw_frames": "D:\\amind\\scratch\\asteroid-locale-concepts-20261106\\bespoke-five\\current-review\\frames\\20261108-011138-106-current20-review-locale-6-verdant-close"
+    },
+    {
+      "family": "ice",
+      "locale": 7,
+      "zoom": 15.0,
+      "frame_directory": "D:\\amind\\git\\agent-5\\results\\capture\\frames\\20261108-011141-953-current20-review-locale-7-ice-flight",
+      "models": [
+        "ice-01",
+        "ice-02",
+        "ice-03",
+        "ice-04",
+        "ice-05"
+      ],
+      "still": "asteroids-current20-game-ice-flight.png",
+      "still_sha256": "392424fa43b275e12c39f9ece8a778635f1061760ed5d9d5cac8ce742e645912",
+      "raw_frames": "D:\\amind\\scratch\\asteroid-locale-concepts-20261106\\bespoke-five\\current-review\\frames\\20261108-011141-953-current20-review-locale-7-ice-flight"
+    },
+    {
+      "family": "ice",
+      "locale": 7,
+      "zoom": 9.0,
+      "frame_directory": "D:\\amind\\git\\agent-5\\results\\capture\\frames\\20261108-011145-707-current20-review-locale-7-ice-close",
+      "models": [
+        "ice-01",
+        "ice-02",
+        "ice-03",
+        "ice-04",
+        "ice-05"
+      ],
+      "still": "asteroids-current20-game-ice-close.png",
+      "still_sha256": "bd861db3d4c33b4b71dd24d28bff4eade4e1d70f43ba2a953cf17abc097a1995",
+      "raw_frames": "D:\\amind\\scratch\\asteroid-locale-concepts-20261106\\bespoke-five\\current-review\\frames\\20261108-011145-707-current20-review-locale-7-ice-close"
+    }
+  ]
+}

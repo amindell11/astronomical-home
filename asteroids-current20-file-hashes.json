@@ -1,0 +1,110 @@
+{
+  "asteroids-current20-catalog.json": {
+    "sha256": "07b99c3c9736a61c02cdded50d37efae72439f0f33247b65f9b721d850256ecc",
+    "bytes": 22095
+  },
+  "asteroids-current20-chalk-board.png": {
+    "sha256": "93acd88f5b383bf8dcbbd5add04d35f1f9a60b4a8cd15c38d3acd7e9af043609",
+    "bytes": 624060
+  },
+  "asteroids-current20-chalk.zip": {
+    "sha256": "f3a4890d04a19af792f9bf74403781bbce380e42bdb6c54bd8eb9c42bde9a5cb",
+    "bytes": 25435584
+  },
+  "asteroids-current20-copper-board.png": {
+    "sha256": "895acdde34614a0d8cba947c01bff302fd8825225a722d01fee712d887d38946",
+    "bytes": 807033
+  },
+  "asteroids-current20-copper.zip": {
+    "sha256": "07c6a1acac6e06414d0ce66548137afcf068b985585236a28ac96537a49dbbd4",
+    "bytes": 42885832
+  },
+  "asteroids-current20-game-chalk-close.png": {
+    "sha256": "abd1179de3f8637a474dcfb1c5d17c1fe0c67a8c8418055e01634a76e931814f",
+    "bytes": 988938
+  },
+  "asteroids-current20-game-chalk-flight.png": {
+    "sha256": "635bf905622fd242ca807a93e716eafb90331df7047bb128f329e1832cc1694c",
+    "bytes": 969279
+  },
+  "asteroids-current20-game-copper-close.png": {
+    "sha256": "ee6e4649d077427fcef09a7ed33f182348f6268a827a8c09a139b3fc8afd4d57",
+    "bytes": 1012301
+  },
+  "asteroids-current20-game-copper-flight.png": {
+    "sha256": "0d1212b359a8343a07e65478aed9c857dd7702ad1139be4f97081e993a1f8305",
+    "bytes": 1012844
+  },
+  "asteroids-current20-game-ice-close.png": {
+    "sha256": "bd861db3d4c33b4b71dd24d28bff4eade4e1d70f43ba2a953cf17abc097a1995",
+    "bytes": 766159
+  },
+  "asteroids-current20-game-ice-flight.png": {
+    "sha256": "392424fa43b275e12c39f9ece8a778635f1061760ed5d9d5cac8ce742e645912",
+    "bytes": 624481
+  },
+  "asteroids-current20-game-index.json": {
+    "sha256": "02baea79cfa1f8a9fd129d1391f29143a42d0d349dd06caf4e08205376fb1ca6",
+    "bytes": 7724
+  },
+  "asteroids-current20-game-overview.png": {
+    "sha256": "ec1811aa3bb6583d62161bbf08b5186661fd3043166342a37a9da289a76090b5",
+    "bytes": 1010600
+  },
+  "asteroids-current20-game-preview.zip": {
+    "sha256": "02374749265d871aac0a3a0740b46dcb8b6b4b923ac2ee07b8f951707edfdf78",
+    "bytes": 24341938
+  },
+  "asteroids-current20-game-test-summary.json": {
+    "sha256": "c05ebc24c438d7615fb2a87a12cf85ce1db1af7ac418c9bc6b5a09b386084889",
+    "bytes": 4789
+  },
+  "asteroids-current20-game-verdant-close.png": {
+    "sha256": "589ed0df88869d77584f40411dfe15d25e91b92a9ccfae4faa2d341e4577fc2b",
+    "bytes": 921922
+  },
+  "asteroids-current20-game-verdant-flight.png": {
+    "sha256": "f5ec77d71e5aef5555363cabbf76d7c830e7937c78271b6910292e65757fad0b",
+    "bytes": 868634
+  },
+  "asteroids-current20-ice-board.png": {
+    "sha256": "f207ca8f29f68865be17c694cfda9b87afb05b821d88f133882335b5801953d2",
+    "bytes": 705486
+  },
+  "asteroids-current20-ice.zip": {
+    "sha256": "0b5c30f68a0c287c1a8374098e8c14fad3c385c6cea509f19ecfc7ac07c655a7",
+    "bytes": 24054984
+  },
+  "asteroids-current20-packages.json": {
+    "sha256": "0360a613ecb0052285738f5cbdbab55c62aaa662c224567ade7bfb16861f67bc",
+    "bytes": 910
+  },
+  "asteroids-current20-README.md": {
+    "sha256": "a6d16d1800512f4064cea15aa1d6156986028ddb0ee7e25a6efcf6e8a75ebb82",
+    "bytes": 3896
+  },
+  "asteroids-current20-shared.zip": {
+    "sha256": "630ea59e377df2a19314e59fcdb37b4da33085d02b9f205ac2c9443cb851b9e1",
+    "bytes": 14017385
+  },
+  "asteroids-current20-source-overview.png": {
+    "sha256": "c11d2ef7f406bccf947b0cfb0cab95618b3365449e1a445cee1ed4fa8ec9f6af",
+    "bytes": 770031
+  },
+  "asteroids-current20-validation.json": {
+    "sha256": "12425356ec4e1cbfe598290748f2757dbb444c2664b8cbfa59a94099f9649b81",
+    "bytes": 2750
+  },
+  "asteroids-current20-verdant-board.png": {
+    "sha256": "f348dd7e2b650009391d652c85f4abb46d1391272188e9cf2c285e45ce4f55fb",
+    "bytes": 675797
+  },
+  "asteroids-current20-verdant.zip": {
+    "sha256": "7ffad3193fed096485640a3982ef2baf804c8475bd26e5671187f73ebaa6180e",
+    "bytes": 37542128
+  },
+  "asteroids-rejected-solid-chalk01.zip": {
+    "sha256": "4910bf2fc5ca63d101c47bb0423e5d605cd2b49b241d869c66bfc1a0a4b210d3",
+    "bytes": 24593599
+  }
+}

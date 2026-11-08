@@ -1,0 +1,32 @@
+[
+  {
+    "file": "asteroids-current20-copper.zip",
+    "bytes": 42885832,
+    "sha256": "07c6a1acac6e06414d0ce66548137afcf068b985585236a28ac96537a49dbbd4",
+    "files": 42
+  },
+  {
+    "file": "asteroids-current20-chalk.zip",
+    "bytes": 25435584,
+    "sha256": "f3a4890d04a19af792f9bf74403781bbce380e42bdb6c54bd8eb9c42bde9a5cb",
+    "files": 38
+  },
+  {
+    "file": "asteroids-current20-verdant.zip",
+    "bytes": 37542128,
+    "sha256": "7ffad3193fed096485640a3982ef2baf804c8475bd26e5671187f73ebaa6180e",
+    "files": 38
+  },
+  {
+    "file": "asteroids-current20-ice.zip",
+    "bytes": 24054984,
+    "sha256": "0b5c30f68a0c287c1a8374098e8c14fad3c385c6cea509f19ecfc7ac07c655a7",
+    "files": 38
+  },
+  {
+    "file": "asteroids-current20-shared.zip",
+    "bytes": 14017385,
+    "sha256": "630ea59e377df2a19314e59fcdb37b4da33085d02b9f205ac2c9443cb851b9e1",
+    "files": 31
+  }
+]
