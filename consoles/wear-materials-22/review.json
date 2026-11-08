@@ -1,0 +1,28 @@
+{
+  "reviewer": "gpt-6.1-sol",
+  "scope": "Add restrained drawn imperfections, scuffs and small edge chips while preserving the current console geometry and style.",
+  "standingInstruction": "Sol reviews every result and handoff waits until no actionable feedback remains.",
+  "rounds": [
+    {
+      "candidate": "Wear direction",
+      "feedback": "Use localized, asymmetrical handling wear with short dark scuffs and small pale chips. Vary lengths and angles; avoid uniform dots, repeated scratch rows, all-over noise and marks resembling seams or geometry damage.",
+      "action": "Placed local material marks on the monitor frame, control plate, forearm, clamp, connector and button contact areas."
+    },
+    {
+      "candidate": "draft-01",
+      "feedback": "The wear fits the existing style but is too subtle at comparison size. Fix the soft blotch near the left arrow button and add four to six localized chipped-edge clusters while keeping broad areas clear.",
+      "action": "Corrected grazing-angle width conversion, made six contact-edge clusters more visible, and increased dark nick/pale chip contrast."
+    },
+    {
+      "candidate": "draft-02",
+      "feedback": "Clear candidate2. No remaining actionable wear feedback. Camera and neutral views show restrained, uneven handling scuffs and edge nicks. They stay attached to the surfaces without suggesting cracks or new folds, and preserve21's ink style, painted shading, and clean broad areas.",
+      "action": "Saved the reviewed candidate without further appearance changes."
+    }
+  ],
+  "status": "Sol review complete. No remaining actionable feedback. User review pending.",
+  "finalSha256": {
+    "camera": "6f6fc57087106b036f24920f17fb7ce477699e1db811e124c88fceca48b21960",
+    "inspection": "1d610c3836047b8633f77e005c0b4a5e5c19fc8d7a9ea3dc834480c63c0910f0",
+    "blend": "297fb3d98bd55a928c2934828aaaf208bef17c329fe44f9256d5ab2440831077"
+  }
+}
