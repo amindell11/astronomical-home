@@ -60,7 +60,6 @@ namespace Tests.PlayMode.Screens
             return mod;
         }
 
-        // Rippers in the weapon slot; held: hot rounds twice, coolant, a rippers-only and a missiles-only magazine.
         private WeaponPickScreen Open(SectorThreat? threat = null, WeaponComponent ordnance = null)
         {
             var stack = new LullModStack();

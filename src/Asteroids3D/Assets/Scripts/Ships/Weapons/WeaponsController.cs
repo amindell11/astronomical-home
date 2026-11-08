@@ -62,10 +62,9 @@ namespace Ships.Weapons
                 throw new InvalidOperationException($"{name}: WeaponsController needs the hull's {side} socket (Hardpoints/{side}).");
         }
 
-        /// <summary>The slot <paramref name="item"/>'s kind fills: an ordnance the ordnance slot, anything else the weapon slot.</summary>
         public static WeaponSlot SlotFor(WeaponComponent item) => item.IsOrdnance ? WeaponSlot.Secondary : WeaponSlot.Primary;
 
-        /// <summary>The slot rule: throws unless the weapon slot gets a non-ordnance or nothing and the ordnance slot an ordnance or nothing.</summary>
+        /// <summary>The slot rule: throws when a slot holds the wrong kind; an empty slot passes.</summary>
         public static void RequireKinds(string owner, WeaponComponent primary, WeaponComponent secondary)
         {
             RequireKind(owner, WeaponSlot.Primary, primary);
