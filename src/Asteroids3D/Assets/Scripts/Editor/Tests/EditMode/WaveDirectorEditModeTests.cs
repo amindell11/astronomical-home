@@ -93,6 +93,12 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void Alive_WithNoHunt_CountsOnlyTheDirectorsShips()
+        {
+            Assert.AreEqual(0, _director.Alive, "With no hunt, no patrol takes a slot.");
+        }
+
+        [Test]
         public void Lull_SpawnsNothing()
         {
             _director.Advance(0f);
