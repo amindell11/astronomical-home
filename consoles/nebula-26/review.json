@@ -1,0 +1,17 @@
+{
+  "reviewer": "gpt-6.1-sol",
+  "scope": "Make the nebula substantially brighter, retaining the existing console, glass, lettering, camera and lighting.",
+  "rounds": [
+    {
+      "candidate": "26",
+      "feedback": "Clear26. The nebula is substantially brighter than25, with vivid blue, cyan and violet structure. The ship, controls, Launch lettering and subtle glass markings remain readable; the warm console treatment is retained. No actionable feedback for this narrow change."
+    }
+  ],
+  "finalSha256": {
+    "blend": "e51fc70f3af40ab9a0cddc676628c222d46979f29f08f1cf2ed63811ab6cee39",
+    "camera": "d90f6e091a2d77347c4695225d06a5eeb744677c7a8fc833ca9a23771de78402",
+    "inspection": "786accc3fa8291cfaa39736755133f5c33fa38483638a066b83385d209264583"
+  },
+  "inspection": "Unchanged image reused from25 because the nebula is hidden in that view.",
+  "status": "Sol review complete. Owner review pending."
+}

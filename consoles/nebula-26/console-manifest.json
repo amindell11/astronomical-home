@@ -1,0 +1,9 @@
+{
+  "input": "D:\\amind\\scratch\\ui-mockups-20261029-console\\consoles\\console-finish-25\\console.blend",
+  "sourceSha256": "6dfa3ddd871a1bc9ab3bb287ded1311ec9d34a50203e3cc44733af7b8529194c",
+  "visibleNebulaBefore": 0.07800000160932541,
+  "visibleNebulaAfter": 0.45,
+  "consoleIllumination": "unchanged; non-camera rays retain the previous nebula emission",
+  "geometryAndCamera": "unchanged",
+  "inspection": "Unchanged angled view reused from console-finish-25; that view hides the nebula."
+}
