@@ -20,12 +20,16 @@ namespace Ships.Keystones
         [Tooltip("Seconds from one activation until the next is ready.")]
         [Stat, SerializeField] private float cooldown = 5f;
 
+        [Tooltip("Glyph shown in the keystone instrument.")]
+        [SerializeField] private Sprite icon;
+
         private float clock;
         private float readyAt;
         private float activatedAt = float.NegativeInfinity;
         private int creditedActivation;
 
         public abstract string DisplayName { get; }
+        public Sprite Icon => icon;
         public float Cooldown => cooldown;
         public bool Ready => clock >= readyAt;
         public float CooldownRemaining => Mathf.Max(0f, readyAt - clock);

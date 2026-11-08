@@ -12,6 +12,7 @@ using NUnit.Framework;
 using Substrate.Sectors;
 using Substrate.Services.Locales;
 using Substrate.Sessions;
+using Tests.PlayMode.Common;
 using Tests.PlayMode.Common.Locales;
 using Tests.PlayMode.Recording;
 using UnityEditor;
@@ -31,18 +32,17 @@ namespace Tests.PlayMode.Scenarios
             var host = root.AddComponent<PreviewHost>();
             host.sessionProfile = new SessionProfile
             {
-                sectors = new[]
+                run = SectorRun.Create(new SectorEntry
                 {
-                    new SectorEntry
-                    {
-                        prefab = AssetDatabase.LoadAssetAtPath<Sector>("Assets/Prefabs/Sectors/TrialSector.prefab"),
-                        config = AssetDatabase.LoadAssetAtPath<SectorSettings>("Assets/Settings/Game/SurvivalTrialConfig.asset")
-                    }
-                },
+                    prefab = AssetDatabase.LoadAssetAtPath<Sector>("Assets/Prefabs/Sectors/TrialSector.prefab"),
+                    locale = AssetDatabase.LoadAssetAtPath<LocaleSky>("Assets/Prefabs/Locales/IllustratedBlue.prefab")
+                }),
                 presentation = true
             };
             host.gameHostPrefab = AssetDatabase.LoadAssetAtPath<GameHost>("Assets/Prefabs/Game/GameHost.prefab");
-            host.jumpDestination = AssetDatabase.LoadAssetAtPath<LocaleSky>("Assets/Prefabs/Locales/Locale_1.prefab");
+            host.jumpDestination = AssetDatabase.LoadAssetAtPath<LocaleSky>("Assets/Prefabs/Locales/CopperTurquoise.prefab");
+            host.hudQuietSector = TestAssets.HudFixture("HudQuietSector");
+            host.hudExtractionSector = TestAssets.HudFixture("HudExtractionSector");
             host.entry = PreviewEntry.SectorJump;
             var priorTimeScale = Time.timeScale;
             try
@@ -51,7 +51,7 @@ namespace Tests.PlayMode.Scenarios
                 yield return WaitFor(() => host.Subject != null);
                 var jump = (SectorJumpPreviewSubject)host.Subject;
                 Assert.That(Time.timeScale, Is.Zero);
-                Assert.That(LocaleInstances.Shown(), Is.EqualTo("Locale_3"));
+                Assert.That(LocaleInstances.Shown(), Is.EqualTo("IllustratedBlue"));
                 var player = root.GetComponentInChildren<PlayerRig>().Player;
                 player.transform.rotation = Quaternion.identity;
                 yield return null;
@@ -105,7 +105,7 @@ namespace Tests.PlayMode.Scenarios
                 Assert.That(Time.timeScale, Is.EqualTo(priorTimeScale));
                 yield return WaitFor(() => host.Subject != null);
                 Assert.That(host.Subject, Is.TypeOf<RecapPreviewSubject>());
-                yield return WaitFor(() => !LocaleInstances.Loaded("Locale_1"));
+                yield return WaitFor(() => !LocaleInstances.Loaded("CopperTurquoise"));
                 host.Subject.SelectFixture(6);
                 host.Transport.Restart();
                 yield return WaitFor(() => !player.gameObject.activeInHierarchy);

@@ -12,7 +12,9 @@ namespace Tests.EditMode.Bootstrap
         [TearDown]
         public void TearDown()
         {
-            if (host) Object.DestroyImmediate(host.gameObject);
+            if (!host) return;
+            Object.DestroyImmediate(host.sessionProfile.run);
+            Object.DestroyImmediate(host.gameObject);
         }
 
         [Test]
@@ -23,8 +25,8 @@ namespace Tests.EditMode.Bootstrap
             Assert.IsFalse(host.sessionProfile.presentation, "presentation is off from the first compose");
             Assert.IsTrue(host.playerRig, "player rig assigned");
             Assert.IsTrue(host.observerCamPrefab, "observer camera assigned");
-            Assert.IsTrue(host.sessionProfile.sectors[0].prefab, "sector prefab assigned");
-            Assert.IsTrue(host.sessionProfile.sectors[0].config, "sector config assigned");
+            Assert.AreEqual(1, host.sessionProfile.run.Sectors.Count, "one headless sector");
+            Assert.IsTrue(host.sessionProfile.run.Sectors[0].prefab, "sector prefab assigned");
         }
     }
 }

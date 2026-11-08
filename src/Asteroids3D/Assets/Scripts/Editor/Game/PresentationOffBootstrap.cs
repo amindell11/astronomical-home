@@ -17,7 +17,6 @@ namespace Game
         private const string PlayerRigPath = "Assets/Prefabs/MiscObjects/PlayerRig.prefab";
         private const string ObserverCamPath = "Assets/Prefabs/Cameras/Main Camera.prefab";
         private const string SectorPrefabPath = "Assets/Prefabs/Sectors/TrialSector.prefab";
-        private const string SectorConfigPath = "Assets/Settings/Game/SurvivalTrialConfig.asset";
 
         public static void EnterPlayMode()
         {
@@ -29,18 +28,10 @@ namespace Game
         internal static GameHost BuildHost()
         {
             var host = new GameObject("GameHost").AddComponent<GameHost>();
-            host.sessionProfile = new SessionProfile
-            {
-                sectors = new[]
-                {
-                    new SectorEntry
-                    {
-                        prefab = AssetDatabase.LoadAssetAtPath<Sector>(SectorPrefabPath),
-                        config = AssetDatabase.LoadAssetAtPath<SectorSettings>(SectorConfigPath)
-                    }
-                },
-                presentation = false
-            };
+            var run = SectorRun.Create(new SectorEntry { prefab = AssetDatabase.LoadAssetAtPath<Sector>(SectorPrefabPath) });
+            // Built in edit mode and never saved: the flags keep it through the play-mode reload.
+            run.hideFlags = HideFlags.HideAndDontSave;
+            host.sessionProfile = new SessionProfile { run = run, presentation = false };
             host.playerRig = AssetDatabase.LoadAssetAtPath<PlayerRig>(PlayerRigPath);
             host.observerCamPrefab = AssetDatabase.LoadAssetAtPath<ObserverCam>(ObserverCamPath);
             return host;

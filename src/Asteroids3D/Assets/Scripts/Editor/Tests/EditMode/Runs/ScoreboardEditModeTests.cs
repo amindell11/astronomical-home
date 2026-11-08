@@ -65,6 +65,33 @@ namespace Tests.EditMode.Runs
         }
 
         [Test]
+        public void Read_RankedRowsKeepTheirOwnRecordedLoadouts()
+        {
+            var earlier = Record(1, 20, 60f);
+            earlier.player = new LoadoutRow
+            {
+                chassis = "Valis", shield = "Light_Shield", primary = "Lasers", secondary = "Missiles",
+            };
+            var current = Record(2, 10, 120f);
+            current.player = new LoadoutRow
+            {
+                chassis = "Bulwark", shield = "Bulwark_Shield", primary = "Railgun", secondary = "",
+            };
+            File.WriteAllLines(path, new[] { earlier.ToJsonLine() });
+
+            var board = Scoreboard.Read(path, current);
+
+            Assert.AreEqual(1, board.Rank);
+            foreach (var (expected, actual) in new[] { (current.player, board.Rows[0].Player), (earlier.player, board.Rows[1].Player) })
+            {
+                Assert.AreEqual(expected.chassis, actual.chassis);
+                Assert.AreEqual(expected.shield, actual.shield);
+                Assert.AreEqual(expected.primary, actual.primary);
+                Assert.AreEqual(expected.secondary, actual.secondary);
+            }
+        }
+
+        [Test]
         public void Rows_RankBySectorsThenKillsThenSeconds()
         {
             var board = new Scoreboard(new[] { Row(1, 9, 500f), Row(2, 3, 10f), Row(2, 3, 40f), Row(2, 8, 5f) }, null);

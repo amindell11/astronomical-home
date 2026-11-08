@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using Game.Player;
 using Game.Runs;
 using UI.Recap;
@@ -46,6 +45,8 @@ namespace UI.Screens
             var scaler = go.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1280f, 720f);
+            scaler.screenMatchMode = context.Outcome == RecapOutcome.Extraction
+                ? CanvasScaler.ScreenMatchMode.MatchWidthOrHeight : CanvasScaler.ScreenMatchMode.Expand;
             scaler.matchWidthOrHeight = .5f;
             go.AddComponent<GraphicRaycaster>();
             var screen = go.AddComponent<RunRecapScreen>();
@@ -213,11 +214,14 @@ namespace UI.Screens
 
         private void AddScoreboard(Transform parent, Scoreboard board, Color outcomeColor)
         {
+            var weaponIcons = RecapWeaponIcons.Load();
             var panel = Box(parent, "Scoreboard", 28, 286, 424, 202);
             Label(panel, "Heading", "SCOREBOARD", 0, 0, 132, 20, 13, Ink);
             var rank = board.Rank.HasValue ? $"{board.Rank} of {board.Rows.Count}" : "Not recorded";
             Label(panel, "Rank", "Your best runs · " + rank, 132, 0, 292, 20, 11, Muted, TextAnchor.MiddleRight);
-            ScoreCells(panel, "Columns", 26, "Run", "Sectors", "Kills", "Time", Muted, false);
+            ScoreCells(panel, "Columns", 26, "Rank", "Sectors", "Kills", "Time", Muted, false);
+            Label(panel, "ShipHeading", "Ship", 76, 26, 84, 24, 11, Muted);
+            Label(panel, "LoadoutHeading", "Loadout", 172, 26, 56, 24, 11, Muted);
             var visible = Math.Min(5, board.Rows.Count);
             for (var i = 0; i < visible; i++)
             {
@@ -229,21 +233,56 @@ namespace UI.Screens
                 if (current)
                     Fill(Box(panel, "CurrentRun", 0, y, 424, 30),
                         new Color(outcomeColor.r, outcomeColor.g, outcomeColor.b, .07f));
-                ScoreCells(panel, "Row" + (index + 1), y + 3,
-                    $"{index + 1}   " + (current ? "This run" : row.EndedUtc.ToLocalTime().ToString("MMM d", CultureInfo.InvariantCulture)),
+                var cells = ScoreCells(panel, "Row" + (index + 1), y + 3, (index + 1).ToString(),
                     row.SectorsCleared.ToString(), row.Kills.ToString(), RunTally.FormatSeconds(row.SecondsSurvived),
                     current ? outcomeColor : Ink, true);
+                var ship = Label(cells, "Ship", string.IsNullOrEmpty(row.Player.chassis)
+                    ? "Ship not recorded" : row.Player.chassis, 64, 0, 84, 24, 11, current ? outcomeColor : Ink);
+                Ellipsize(ship);
+                var texture = string.IsNullOrEmpty(row.Player.chassis) ? null
+                    : Resources.Load<Texture2D>(SilhouetteFolder + "/" + row.Player.chassis);
+                if (texture)
+                {
+                    var icon = Box(cells, "Silhouette", 32, 0, 24, 24).gameObject.AddComponent<RawImage>();
+                    icon.texture = texture;
+                    icon.color = Paint;
+                    icon.raycastTarget = false;
+                }
+                else Label(cells, "UnavailableIcon", "?", 32, 0, 24, 24, 16, Muted, TextAnchor.MiddleCenter);
+                WeaponIcon(cells, "Primary", 160, weaponIcons.Find(row.Player.primary));
+                WeaponIcon(cells, "Secondary", 192, weaponIcons.Find(row.Player.secondary));
             }
         }
 
-        private void ScoreCells(RectTransform panel, string name, float y, string run, string sectors,
+        private static void WeaponIcon(Transform parent, string name, float x, Sprite sprite)
+        {
+            var icon = Box(parent, name, x, 0, 24, 24).gameObject.AddComponent<Image>();
+            icon.sprite = sprite;
+            icon.enabled = sprite;
+            icon.preserveAspect = true;
+            icon.color = Paint;
+            icon.raycastTarget = false;
+        }
+
+        private static void Ellipsize(Text text)
+        {
+            text.supportRichText = false;
+            text.horizontalOverflow = HorizontalWrapMode.Overflow;
+            var fullName = text.text;
+            var length = fullName.Length;
+            while (text.preferredWidth > text.rectTransform.rect.width)
+                text.text = fullName.Substring(0, --length) + "…";
+        }
+
+        private RectTransform ScoreCells(RectTransform panel, string name, float y, string run, string sectors,
             string kills, string time, Color color, bool numeric)
         {
             var row = Box(panel, name, 12, y, 400, 24);
-            Label(row, "Run", run, 0, 0, 138, 24, 11, color);
-            Label(row, "Sectors", sectors, 150, 0, 98, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);
-            Label(row, "Kills", kills, 260, 0, 76, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);
-            Label(row, "Time", time, 350, 0, 50, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);
+            Label(row, "Rank", run, 0, 0, 32, 24, 11, color);
+            Label(row, "Sectors", sectors, 228, 0, 42, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);
+            Label(row, "Kills", kills, 282, 0, 42, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);
+            Label(row, "Time", time, 346, 0, 54, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);
+            return row;
         }
 
         private Button Continue(RectTransform parent, string caption, float y)

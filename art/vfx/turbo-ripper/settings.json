@@ -1,0 +1,12 @@
+{
+  "turbo": { "hueDegrees": 100, "saturation": 1.15, "spread": 0.75, "worldLength": 1.2 },
+  "ripper": {
+    "durationMs": 180,
+    "worldLength": 0.85,
+    "colors": { "rim": "#e7ab36", "inner": "#ffe5a1", "core": "#fff8de", "sparkLight": "#ffe2a0", "sparkGold": "#f6bb4f" }
+  },
+  "slug": {
+    "worldLength": 0.7,
+    "colors": { "shadow": "#392d1b", "top": "#e9c96d", "side": "#9f7a35", "nose": "#fff5cf", "tail": "#ffd262" }
+  }
+}
