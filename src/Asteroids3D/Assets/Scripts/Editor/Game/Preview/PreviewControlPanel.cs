@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Substrate.Services.Locales;
+using Substrate.Sessions;
 using UnityEditor;
 using UnityEngine;
 
@@ -18,6 +20,9 @@ namespace Game.Preview
         private PreviewHost host;
         [SerializeField] private int targetIndex;
         [SerializeField] private PreviewEntry selectedEntry;
+        [SerializeField] private int combatSector = PreviewHost.WholeRun;
+        [SerializeField] private LocaleSky combatLocale;
+        private LocaleSky[] locales;
         private Vector2 scroll;
 
         private TuningTarget Target => TuningTarget.All[targetIndex];
@@ -29,6 +34,8 @@ namespace Game.Preview
         {
             if (EditorApplication.isPlaying) Repaint();
         }
+
+        private void OnProjectChange() => locales = null;
 
         private void OnGUI()
         {
@@ -53,6 +60,8 @@ namespace Game.Preview
             if (!Target.Offers(host.Entry))
                 targetIndex = Array.FindIndex(TuningTarget.All, target => target.Offers(host.Entry));
             selectedEntry = host.Entry;
+            combatSector = host.combatSector;
+            combatLocale = host.combatLocale;
             // Not ready, not just replacing: a Replay-to-Replay switch refuses while a compose is in flight.
             using (new EditorGUI.DisabledScope(!host.IsReady))
             {
@@ -67,7 +76,9 @@ namespace Game.Preview
                     if (next != host.Entry) host.Select(next);
                     return;
                 }
-                var chosen = DrawSections(host.Entry);
+                var chosen = DrawSections(host.Entry, game.sessionProfile.run);
+                host.combatSector = combatSector;
+                host.combatLocale = combatLocale;
                 if (chosen != host.Entry)
                 {
                     host.Select(chosen);
@@ -104,12 +115,13 @@ namespace Game.Preview
                                     "timeline controls; Playtest starts the real game with separate preview run records.",
                 MessageType.None);
             targetIndex = EditorGUILayout.Popup("Target", targetIndex, TuningTarget.All.Select(target => target.Name).ToArray());
-            selectedEntry = DrawSections(Target.EntryAfterSwitch(selectedEntry));
+            var run = AssetDatabase.LoadAssetAtPath<GameHost>(PreviewHostBootstrap.GameHostPath).sessionProfile.run;
+            selectedEntry = DrawSections(Target.EntryAfterSwitch(selectedEntry), run);
             if (GUILayout.Button("Enter preview"))
-                PreviewHostBootstrap.EnterPlayMode(selectedEntry);
+                PreviewHostBootstrap.EnterPlayMode(selectedEntry, combatSector, combatLocale);
         }
 
-        private PreviewEntry DrawSections(PreviewEntry current)
+        private PreviewEntry DrawSections(PreviewEntry current, SectorRun run)
         {
             var chosen = current;
             foreach (var playtest in new[] { false, true })
@@ -118,11 +130,25 @@ namespace Game.Preview
                 if (entries.Length == 0) continue;
                 EditorGUILayout.LabelField(playtest ? "Playtest" : "Replay", EditorStyles.boldLabel);
                 foreach (var entry in entries)
+                {
                     if (GUILayout.Toggle(entry == current, ObjectNames.NicifyVariableName(entry.ToString()),
                             EditorStyles.radioButton) && entry != current)
                         chosen = entry;
+                    if (entry == PreviewEntry.Combat) DrawCombatPicks(run);
+                }
             }
             return chosen;
+        }
+
+        private void DrawCombatPicks(SectorRun run)
+        {
+            locales ??= PreviewHostBootstrap.Locales();
+            using var indent = new EditorGUI.IndentLevelScope();
+            var sectors = run.Sectors.Select((row, index) => $"Sector {index + 1} · {row.prefab.name}");
+            combatSector = EditorGUILayout.Popup("Sector", combatSector + 1, sectors.Prepend("Whole run").ToArray()) - 1;
+            var locale = EditorGUILayout.Popup("Locale", Array.IndexOf(locales, combatLocale) + 1,
+                locales.Select(sky => sky.name).Prepend("As the run says").ToArray());
+            combatLocale = locale == 0 ? null : locales[locale - 1];
         }
 
         private static void DrawTransport(PreviewHost host)

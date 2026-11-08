@@ -440,6 +440,39 @@ namespace Tests.PlayMode.Preview
                 "the boss fixture summons its elite at once");
         }
 
+        [UnityTest]
+        [Timeout(180000)]
+        public IEnumerator Playtest_CombatFliesItsSectorAndLocalePicks_AndRestartFliesAChangedPick()
+        {
+            var shipped = TestAssets.Load<GameHost>("Assets/Prefabs/Game/GameHost.prefab");
+            var root = new GameObject("Combat picks playtest test");
+            root.SetActive(false);
+            host = root.AddComponent<PreviewHost>();
+            host.entry = PreviewEntry.Combat;
+            host.gameHostPrefab = shipped;
+            host.sessionProfile = new SessionProfile();
+            host.combatSector = 1;
+            host.combatLocale = TestAssets.Load<LocaleSky>("Assets/Prefabs/Locales/CoralSunset.prefab");
+            root.SetActive(true);
+
+            var picked = host.Playtest;
+            yield return LaunchFromHangar(picked);
+            Assert.That(picked.sessionProfile.run.Sectors, Has.Count.EqualTo(1), "the Sector pick flies alone");
+            Assert.That(picked.ActiveSector.name, Does.StartWith(shipped.sessionProfile.run.Sectors[1].prefab.name));
+            Assert.That(LocaleInstances.Shown(), Is.EqualTo("CoralSunset"));
+
+            host.combatSector = PreviewHost.WholeRun;
+            host.combatLocale = TestAssets.Load<LocaleSky>("Assets/Prefabs/Locales/BlueCrescent.prefab");
+            host.RestartPlaytest();
+            yield return AsyncAssert.WaitUntil(() => host.IsReady && host.Playtest != picked, 30f,
+                "Restart Playtest builds the changed pick");
+            var whole = host.Playtest;
+            yield return LaunchFromHangar(whole);
+            Assert.That(whole.sessionProfile.run.Sectors.Select(row => row.prefab),
+                Is.EqualTo(shipped.sessionProfile.run.Sectors.Select(row => row.prefab)), "Whole run flies every row");
+            Assert.That(LocaleInstances.Shown(), Is.EqualTo("BlueCrescent"));
+        }
+
         private static IEnumerator LaunchFromHangar(GameHost game)
         {
             HangarScreen hangar = null;

@@ -2,6 +2,7 @@ using System.Linq;
 using Game;
 using Game.Preview;
 using NUnit.Framework;
+using Substrate.Services.Locales;
 using UI.Projection;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -42,6 +43,48 @@ namespace Tests.EditMode.Bootstrap
             Assert.That(hud.Select(entry => entry.locale), Is.All.SameAs(run.Sectors[0].locale),
                 "the HUD fixtures show the run's first locale");
             Assert.That(host.bossSector.locale, Is.SameAs(run.Sectors[^1].locale), "the boss shows the run's last locale");
+        }
+
+        [Test]
+        public void CombatRun_WithNoPick_IsTheGameHostsOwnRun()
+        {
+            host = PreviewHostBootstrap.BuildHost(PreviewEntry.Combat);
+
+            Assert.That(host.combatSector, Is.EqualTo(PreviewHost.WholeRun));
+            Assert.IsFalse(host.combatLocale);
+            Assert.That(host.CombatRun(), Is.SameAs(host.gameHostPrefab.sessionProfile.run));
+        }
+
+        [TestCase(1, "CoralSunset")]
+        [TestCase(PreviewHost.WholeRun, "CoralSunset")]
+        [TestCase(1, null)]
+        public void CombatRun_FliesTheSectorPickAlone_InTheLocalePick_AndLeavesTheRunAsset(int sector, string locale)
+        {
+            var run = AssetDatabase.LoadAssetAtPath<GameHost>(PreviewHostBootstrap.GameHostPath).sessionProfile.run;
+            var shipped = run.Sectors.Select(row => (row.prefab, row.locale)).ToArray();
+            var picked = locale == null ? null : AssetDatabase.LoadAssetAtPath<LocaleSky>($"Assets/Prefabs/Locales/{locale}.prefab");
+            host = PreviewHostBootstrap.BuildHost(PreviewEntry.Combat, sector, picked);
+
+            var combat = host.CombatRun();
+
+            var flown = sector == PreviewHost.WholeRun ? shipped : new[] { shipped[sector] };
+            Assert.That(combat, Is.Not.SameAs(run));
+            Assert.That(combat.Sectors.Select(row => row.prefab), Is.EqualTo(flown.Select(row => row.prefab)));
+            Assert.That(combat.Sectors.Select(row => row.locale), Is.EqualTo(flown.Select(row => picked ? picked : row.locale)));
+            Assert.That(run.Sectors.Select(row => (row.prefab, row.locale)), Is.EqualTo(shipped), "a pick never writes to the run asset");
+            Object.DestroyImmediate(combat);
+        }
+
+        [Test]
+        public void Locales_ListsEveryLocalePrefabInTheLocalesFolder_ByName()
+        {
+            var locales = PreviewHostBootstrap.Locales();
+
+            var names = locales.Select(locale => locale.name).ToArray();
+            Assert.That(names, Is.SupersetOf(new[]
+                { "BlueCrescent", "CopperTurquoise", "CoralSunset", "CyanAurora", "IllustratedBlue", "NebulaGlow", "VerdantGiant" }));
+            Assert.That(names, Is.EqualTo(names.OrderBy(name => name)), "listed by name");
+            Assert.That(locales.Select(locale => AssetDatabase.GetAssetPath(locale)), Is.All.StartWith("Assets/Prefabs/Locales/"));
         }
 
         [Test]
