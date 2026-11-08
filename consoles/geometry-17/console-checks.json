@@ -1,0 +1,31 @@
+{
+  "source": "D:\\amind\\scratch\\ui-mockups-20261029-console\\consoles\\geometry-15\\console.blend",
+  "sha256": "c71862e97d74d115ac6167f80d3e3da432b431a8946844f1fb55854935fa6902",
+  "existingTransformsAndVerticesPreserved": 311,
+  "removedJoinFaces": {
+    "14 | Forearm fold into Launch and controls": [
+      6,
+      7,
+      8
+    ],
+    "14 | Projector to control folded shoulder": [
+      1
+    ]
+  },
+  "panelPlanarityError": {
+    "Ridge to control transition": 2.8204055979585974e-08,
+    "Apron upper connection": 4.6566128730773926e-09,
+    "Apron control connection": 1.1175870895385742e-08,
+    "Apron lower connection": 7.450580596923828e-08,
+    "Existing armor seam closure": 2.9802322387695312e-08,
+    "Control front left return": 1.1175870895385742e-08,
+    "Control front middle return": 1.4901161193847656e-08,
+    "Control front right return": 2.9802322387695312e-08,
+    "Control corner inner closure": 2.7939677238464355e-09,
+    "Control corner outer closure": 1.862645149230957e-09,
+    "Lower join flange front": 2.2351741790771484e-08,
+    "Lower join flange rear": 1.1175870895385742e-08,
+    "Lower join end return": 7.450580596923828e-09
+  },
+  "visualApproval": "pending"
+}

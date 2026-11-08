@@ -1,0 +1,36 @@
+{
+  "result": "pass",
+  "source": "geometry-15",
+  "existingObjectsVerified": 311,
+  "originalVerticesUnchanged": 32994,
+  "armorFacesAndFoldEdgesUnchanged": true,
+  "removedConnectionFaces": {
+    "14 | Forearm fold into Launch and controls": [
+      6,
+      7,
+      8
+    ],
+    "14 | Projector to control folded shoulder": [
+      1
+    ]
+  },
+  "maxNewPanelPlanarityError": 3.725290298461914e-08,
+  "newPanels": 13,
+  "nonmanifoldEdges": {
+    "17 | Ridge to control transition": 0,
+    "17 | Apron upper connection": 0,
+    "17 | Apron control connection": 0,
+    "17 | Apron lower connection": 0,
+    "17 | Existing armor seam closure": 0,
+    "17 | Control front left return": 0,
+    "17 | Control front middle return": 0,
+    "17 | Control front right return": 0,
+    "17 | Control corner inner closure": 0,
+    "17 | Control corner outer closure": 0,
+    "17 | Lower join flange front": 0,
+    "17 | Lower join flange rear": 0,
+    "17 | Lower join end return": 0
+  },
+  "errors": [],
+  "visualApproval": "pending"
+}
