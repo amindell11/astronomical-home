@@ -1,0 +1,30 @@
+{
+  "result": "pass",
+  "existingObjectsVerified": 326,
+  "geometryTransformsAndVisibility": "unchanged",
+  "newObjects": [
+    "19 | Vanguard / Cockpit cooling vent / bright contours",
+    "19 | Vanguard / Cockpit.001 / bright contours",
+    "19 | Vanguard / Fuselage / bright contours",
+    "19 | Vanguard / Pod cooling hatch / bright contours",
+    "19 | Vanguard / Power Nacelle Housing / bright contours",
+    "19 | Vanguard / Sparrow Tail / bright contours",
+    "19 | Vanguard / Tail / bright contours",
+    "19 | Vanguard / Wing / bright contours",
+    "19 | Vanguard / Wing service hatch / bright contours",
+    "19 | Vanguard / wing_armature / bright contours",
+    "19 | Vanguard / wing_armor / bright contours",
+    "19 | Vanguard / wing_tail / bright contours",
+    "19 | Distant space",
+    "19 | Projection spill",
+    "19 | Screen bounce",
+    "19 | Faint starlight",
+    "19 | Soft ambient readability",
+    "19 | Launch glow",
+    "19 | Launch legend"
+  ],
+  "unpackedImages": [],
+  "geometryApproval": "provisional",
+  "materialsApproval": "pending",
+  "errors": []
+}

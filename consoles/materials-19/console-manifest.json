@@ -1,0 +1,98 @@
+{
+  "input": "D:\\amind\\scratch\\ui-mockups-20261029-console\\consoles\\geometry-18\\console.blend",
+  "sha256": "7d6d3e50e7ed1598cd1b55423bee640ae483a2fcb0927516cffc9901fa3aa2cd",
+  "palette": {
+    "Armor face": [
+      "Warm limestone paint",
+      "#bba78e",
+      0.08,
+      0.55
+    ],
+    "Broad armor chamfers": [
+      "Paint edge",
+      "#a3937f",
+      0.16,
+      0.43
+    ],
+    "Armor side walls": [
+      "Warm grey casing",
+      "#766c60",
+      0.22,
+      0.48
+    ],
+    "Dark structural housing": [
+      "Graphite chassis",
+      "#343238",
+      0.32,
+      0.48
+    ],
+    "Gasket and recess": [
+      "Black elastomer",
+      "#121417",
+      0,
+      0.8
+    ],
+    "Hose jacket": [
+      "Satin rubber",
+      "#242225",
+      0,
+      0.52
+    ],
+    "Faceted controls": [
+      "Charcoal control grips",
+      "#353234",
+      0.02,
+      0.54
+    ],
+    "Control top faces": [
+      "Control caps",
+      "#514a43",
+      0.12,
+      0.48
+    ],
+    "Connector alloy": [
+      "Brushed warm nickel",
+      "#999187",
+      0.68,
+      0.37
+    ],
+    "Neutral lens and pointer": [
+      "Ivory legends",
+      "#e0d4b9",
+      0.06,
+      0.43
+    ],
+    "Raised key faces": [
+      "Taupe keys",
+      "#8a7d6e",
+      0.1,
+      0.45
+    ],
+    "Matte cooling fin faces": [
+      "Graphite cooling fins",
+      "#474146",
+      0.48,
+      0.56
+    ],
+    "Matte cooling fin sides": [
+      "Cooling fin edges",
+      "#2c292d",
+      0.4,
+      0.53
+    ]
+  },
+  "displaySources": [
+    "../blender-console-06/inputs/ui/main-hud.png",
+    "../blender-console-06/inputs/ui/detail-hud.png"
+  ],
+  "lighting": [
+    "19 | Projection spill",
+    "19 | Screen bounce",
+    "19 | Faint starlight",
+    "19 | Soft ambient readability",
+    "19 | Launch glow"
+  ],
+  "mechanicalGeometry": "unchanged",
+  "geometryApproval": "provisional",
+  "visualApproval": "pending"
+}
