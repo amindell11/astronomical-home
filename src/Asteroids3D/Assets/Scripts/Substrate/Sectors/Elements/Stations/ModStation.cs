@@ -128,7 +128,7 @@ namespace Substrate.Sectors.Elements.Stations
             }
         }
 
-        // A repair station's body shows once its module has placed it, so the mod stations read final points.
+        // A repair body shows only once placed, so mod stations read final points.
         private bool RepairsPlaced()
         {
             if (!repairs) return true;
