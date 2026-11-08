@@ -9,9 +9,9 @@ namespace Game.Preview
 {
     /// <summary>
     /// Builds the preview host in an empty scene around the game's GameHost prefab. Replay flies the first
-    /// row of the prefab's sector run; the HUD replays' two fixture sectors take that row's locale, sector
-    /// 1's elite fixture takes the first row's locale, sector 2's the second and the boss the last row's,
-    /// while the two-sector crowded jump fixture keeps its own two locales.
+    /// row of the prefab's sector run; the HUD replays' two fixture sectors and sector 1's elite fixture
+    /// take that row's locale, sector 2's elite fixture the second row's and the boss fixture the last
+    /// row's, while the two-sector crowded jump fixture keeps its own two locales.
     /// The chosen entry is assigned before activation, so Playtest never composes a Replay session.
     /// The host waits inactive through the play-mode reload; entering play mode snapshots every tuning
     /// target's feel profiles, then activates it, so the panel tunes those assets in place.
