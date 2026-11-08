@@ -1,0 +1,81 @@
+{
+  "result": "pass",
+  "cameraMonitorShipUnchanged": true,
+  "sourceFilesUnchanged": true,
+  "ownerSceneObjects": 772,
+  "sidePostsOutsideCamera": true,
+  "missingImages": [],
+  "evaluatedNewMeshes": {
+    "14 | Projector formed armor": {
+      "vertices": 184,
+      "faces": 148,
+      "nonManifoldEdges": 0
+    },
+    "14 | Projector recessed folded sidewalls": {
+      "vertices": 124,
+      "faces": 122,
+      "nonManifoldEdges": 0
+    },
+    "14 | Thin fitted control face": {
+      "vertices": 208,
+      "faces": 202,
+      "nonManifoldEdges": 0
+    },
+    "14 | Projector to control folded shoulder": {
+      "vertices": 88,
+      "faces": 86,
+      "nonManifoldEdges": 0
+    },
+    "14 | Forearm fold into Launch and controls": {
+      "vertices": 304,
+      "faces": 293,
+      "nonManifoldEdges": 0
+    },
+    "14 | Launch casing folded returns": {
+      "vertices": 260,
+      "faces": 258,
+      "nonManifoldEdges": 0
+    },
+    "14 | Flush Launch gasket": {
+      "vertices": 224,
+      "faces": 224,
+      "nonManifoldEdges": 0
+    },
+    "14 | Recessed Launch key boot": {
+      "vertices": 208,
+      "faces": 202,
+      "nonManifoldEdges": 0
+    },
+    "14 | Right shoulder into Launch edge": {
+      "vertices": 100,
+      "faces": 100,
+      "nonManifoldEdges": 0
+    },
+    "14 | Dark support beneath apron fold": {
+      "vertices": 70,
+      "faces": 67,
+      "nonManifoldEdges": 0
+    },
+    "14 | Hose socket inset": {
+      "vertices": 208,
+      "faces": 202,
+      "nonManifoldEdges": 0
+    },
+    "14 | Socket perimeter": {
+      "vertices": 224,
+      "faces": 224,
+      "nonManifoldEdges": 0
+    },
+    "14 | Flush hose gland 0": {
+      "vertices": 96,
+      "faces": 86,
+      "nonManifoldEdges": 0
+    },
+    "14 | Flush hose gland 1": {
+      "vertices": 96,
+      "faces": 86,
+      "nonManifoldEdges": 0
+    }
+  },
+  "visualApproval": "pending"
+}
