@@ -1,9 +1,13 @@
 #if UNITY_EDITOR
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using Cameras;
 using Game;
+using Game.Moments;
 using Game.Runs;
 using Loot;
 using NUnit.Framework;
@@ -24,9 +28,10 @@ using Object = UnityEngine.Object;
 namespace Tests.PlayMode.Bootstrap
 {
     /// <summary>
-    /// A real host on the trial sector: each mod station claim opens the lull pick once with time stopped,
-    /// a lull beacon claim opens none, and a headless host claims stations with no pick. The rig is built
-    /// without its HUD, so the presenting host needs no graphics device.
+    /// A real host on the trial sector: each mod station claim opens the lull pick once with time stopped and
+    /// a taken pick raises mod-pick, a lull beacon claim opens none and raises one cache-claimed with its
+    /// bonus key, and a headless host claims stations with no pick. The rig is built without its HUD, so
+    /// the presenting host needs no graphics device.
     /// </summary>
     [Category("Bootstrap")]
     [Category("RequiresLfsPng")]
@@ -40,6 +45,10 @@ namespace Tests.PlayMode.Bootstrap
         private const string LullModsPath = "Assets/Settings/Weapons/Mods/LullMods.asset";
         private const float StepTimeoutSec = 30f;
         private const int SettleFrames = 10;
+
+        private static readonly FieldInfo MomentsField =
+            typeof(GameHost).GetField("moments", BindingFlags.Instance | BindingFlags.NonPublic);
+        private static readonly string[] BonusKeys = { "damage", "fire-rate", "shield", BeaconCache.HullKey };
 
         private GameObject hostGo;
         private GameObject rigTemplateRoot;
@@ -75,8 +84,9 @@ namespace Tests.PlayMode.Bootstrap
             yield return FlyInto(stations.Stations[0]);
             yield return WaitFor(() => Card(), "the first claim opens the card");
             Assert.AreEqual(0f, Time.timeScale, "the card stops time");
-            Card().Choose(LullPickScreen.Skip);
-            yield return WaitFor(() => !Card() && Time.timeScale > 0f, "the skip closes the card and time runs on");
+            Card().Choose(0);
+            yield return WaitFor(() => !Card() && Time.timeScale > 0f, "the pick closes the card and time runs on");
+            Assert.AreEqual(1, Moments().OfType<ModPicked>().Count(), "a taken pick raises mod-pick");
 
             yield return Settle();
             Assert.IsFalse(Card(), "a claimed station opens no second card");
@@ -85,6 +95,7 @@ namespace Tests.PlayMode.Bootstrap
             yield return WaitFor(() => Card(), "the second station's claim opens the card again");
             Card().Choose(LullPickScreen.Skip);
             yield return WaitFor(() => !Card(), "the second card closes");
+            Assert.AreEqual(1, Moments().OfType<ModPicked>().Count(), "a skip raises no mod-pick");
 
             yield return FlyInto(stations.Stations[0]);
             Assert.IsFalse(Card(), "flying back into a spent station opens nothing");
@@ -95,6 +106,28 @@ namespace Tests.PlayMode.Bootstrap
                 .SetValue(spine, true);
             yield return Settle();
             Assert.IsFalse(Card(), "a lull beacon claim no longer opens the card");
+        }
+
+        [UnityTest]
+        [Timeout(180000)]
+        public IEnumerator EachCacheClaim_RaisesOneCacheClaimed_WithItsBonusKey()
+        {
+            yield return BootToTheTrialSector(presentation: true);
+            var host = hostGo.GetComponent<GameHost>();
+            var spine = host.ActiveSector.Module<PhaseSpineModule>();
+            var cache = host.ActiveSector.Module<BeaconCache>();
+
+            yield return ClaimBeacon(spine);
+            var first = Moments().OfType<CacheClaimed>().ToList();
+            Assert.AreEqual(1, first.Count, "one claim raises one cache-claimed");
+            Assert.AreEqual(cache.LastBonus, first[0].Bonus, "the moment carries the rolled bonus");
+            Assert.AreEqual(1, first[0].Sector);
+
+            yield return ClaimBeacon(spine);
+            var both = Moments().OfType<CacheClaimed>().ToList();
+            Assert.AreEqual(2, both.Count, "a second claim in the sector raises a second");
+            Assert.AreEqual(cache.LastBonus, both[1].Bonus);
+            CollectionAssert.IsSubsetOf(both.Select(moment => moment.Bonus), BonusKeys);
         }
 
         [UnityTest]
@@ -158,6 +191,19 @@ namespace Tests.PlayMode.Bootstrap
             serialized.ApplyModifiedPropertiesWithoutUndo();
             return template;
         }
+
+        // The cache rolls on the claim's rising edge, so each call drops the claim first.
+        private static IEnumerator ClaimBeacon(PhaseSpineModule spine)
+        {
+            var claimed = typeof(PhaseSpineModule).GetProperty(nameof(PhaseSpineModule.BeaconClaimed));
+            claimed.SetValue(spine, false);
+            yield return Settle();
+            claimed.SetValue(spine, true);
+            yield return Settle();
+        }
+
+        private IReadOnlyList<IRunMoment> Moments() =>
+            ((RunMomentStream)MomentsField.GetValue(hostGo.GetComponent<GameHost>())).Moments;
 
         private ModStation StationsPlaced() => hostGo.GetComponent<GameHost>().ActiveSector.Module<ModStation>();
 

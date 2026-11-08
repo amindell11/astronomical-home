@@ -304,9 +304,8 @@ namespace Game
                     var modStations = presentation && lullMods && rigInstance
                         ? session.ActiveSector.Module<ModStation>() : null;
                     var picksOpened = 0;
-                    var beacons = presentation && rigInstance
-                        ? session.ActiveSector.Module<PhaseSpineModule>() : null;
-                    var beaconClaimed = false;
+                    var caches = presentation && rigInstance ? session.ActiveSector.Module<BeaconCache>() : null;
+                    var cachesClaimed = 0;
                     var closeCalls = rigInstance
                         ? new CloseCallWatch(rigInstance.Player.Damage.Health, moments, index + 1) : null;
 
@@ -317,11 +316,10 @@ namespace Game
                             picksOpened++;
                             yield return RunLullPick();
                         }
-                        if (beacons)
+                        if (caches && caches.Claims > cachesClaimed)
                         {
-                            var claimed = beacons.BeaconClaimed;
-                            if (claimed && !beaconClaimed) moments.Raise(new BeaconClaimed(index + 1));
-                            beaconClaimed = claimed;
+                            cachesClaimed++;
+                            moments.Raise(new CacheClaimed(index + 1, caches.LastBonus));
                         }
                         yield return null;
                     }

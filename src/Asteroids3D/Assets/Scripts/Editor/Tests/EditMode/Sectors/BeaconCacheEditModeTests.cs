@@ -93,5 +93,23 @@ namespace Tests.EditMode.Sectors
             Assert.AreEqual(1, BeaconCache.Pick(2, 0f, 1f), "At zero weight the top of the draw is the last bonus, never the patch.");
             Assert.Throws<InvalidOperationException>(() => BeaconCache.Pick(0, 0f, .5f), "Nothing to roll is a wiring bug.");
         }
+
+        [Test]
+        public void EachShippedBonus_HasItsCompanionKey_AndAnUnkeyedBonusThrows()
+        {
+            var feel = AssetDatabase.LoadAssetAtPath<BeaconCacheFeelProfile>(FeelPath);
+            Assert.AreEqual(new[] { "damage", "fire-rate", "shield" }, feel.bonuses.Select(BeaconCache.KeyOf));
+
+            var unkeyed = ScriptableObject.CreateInstance<ShipMod>();
+            try
+            {
+                unkeyed.Configure("Hull bonus", ShipModField.Hull, .5f);
+                Assert.Throws<InvalidOperationException>(() => BeaconCache.KeyOf(unkeyed));
+            }
+            finally
+            {
+                Object.DestroyImmediate(unkeyed);
+            }
+        }
     }
 }
