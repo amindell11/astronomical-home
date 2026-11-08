@@ -1,0 +1,35 @@
+{
+  "reviewer": "gpt-6.1-sol",
+  "scope": "Push outlines and painted shading closer to the illustrated reference without geometry changes.",
+  "standingInstruction": "Sol reviews each result; handoff waits until actionable feedback is addressed.",
+  "rounds": [
+    {
+      "candidate": "Direction review against ink-materials-20 and illustrated references",
+      "feedback": "The prior pass still reads as tidy low-poly 3D with scratches. Require stronger outer contours than internal seams, broad painted tones, low-frequency paint variation, selective existing-edge accents and readable dark faces at comparison size.",
+      "action": "Created separate ink weights and mostly painted shading for armor, controls, cables and housings."
+    },
+    {
+      "candidate": "draft-01",
+      "feedback": "The stronger illustrated treatment registers at half width. Correct wood-like pigment stripes, knob highlight grids, ink crowding the projector slats, a false shell highlight and stray stroke tails.",
+      "action": "Broadened pigment patches, removed procedural bevel highlights, emphasized existing edge materials and excluded luminous details from heavy ink."
+    },
+    {
+      "candidate": "draft-02 and draft-03",
+      "feedback": "Broad painted values and graphic controls are on target in camera and neutral views. Keep those values; clean the contours on recessed support and hose fittings.",
+      "action": "Made the line selection more selective around recessed supports, optical well and hose fittings, without changing their surfaces or visibility."
+    },
+    {
+      "candidate": "draft-04 compared with compositor-contour exploration draft-07",
+      "feedback": "Candidate4 has preferable drawn line quality and clean vent/cable terminations. Candidate7 has technical edge noise. Candidate4's broad painted values and contour terminations pass.",
+      "action": "Selected candidate4. Kept the scene and renders byte-for-byte."
+    }
+  ],
+  "previewCorrection": "Earlier preview interpretations incorrectly reported missing hologram and UI icons. Direct checks of the original PNGs found the same complete content and alpha255 throughout; exact-source crops confirmed it visually. These were preview misreads, not output defects. The alternate compositor exploration was rejected.",
+  "finalReviewerVerdict": "Clear candidate4. No remaining actionable feedback. Its heavier outer ink, finer internal boundaries, broad painted tones, and restrained edge accents now read illustrated at normal review scale. Vent and cable terminations are clean; knobs avoid the mesh-grid effect. The exact-source crops confirm the complete UI icons and hologram.",
+  "status": "Sol review complete. No remaining actionable feedback. User review pending.",
+  "finalSha256": {
+    "camera": "0c15376406027f3030cc4c6b41277f4649b040b51e2a1894dd9f6708e6b39ae1",
+    "inspection": "d53a1f0dd4204c7e015e0298c34dc92daf4cbb6a5ccc370e3ccc75ee81819f21",
+    "blend": "a8765b91eccae510e436f05a8af1bb7ae7ff98b90167b5c4d2ba1e6b2c93cec3"
+  }
+}

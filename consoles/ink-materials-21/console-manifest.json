@@ -1,0 +1,23 @@
+{
+  "input": "D:\\amind\\scratch\\ui-mockups-20261029-console\\consoles\\ink-materials-20\\console.blend",
+  "sourceSha256": "b3ba44df5c1ebeac7ac8a11ed6031fd14cfdd83982f89232ca472963e03b9a56",
+  "materials": [
+    "21 | Warm limestone paint",
+    "21 | Paint edge",
+    "21 | Warm grey casing",
+    "21 | Secondary cover paint",
+    "21 | Taupe keys",
+    "21 | Graphite chassis",
+    "21 | Charcoal control grips",
+    "21 | Control caps",
+    "21 | Graphite cooling fins",
+    "21 | Cooling fin edges",
+    "21 | Brushed warm nickel",
+    "21 | Satin rubber",
+    "21 | Black elastomer"
+  ],
+  "geometry": "unchanged",
+  "lighting": "unchanged",
+  "ink": "Separate outer contour and internal crease weights with slight pen-pressure variation",
+  "approval": "pending user review"
+}
