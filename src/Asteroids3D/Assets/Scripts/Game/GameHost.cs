@@ -1,11 +1,14 @@
 using System;
 using System.Collections;
+using System.Linq;
 using System.Runtime.ExceptionServices;
 using Balance;
 using Cameras;
 using Combat.Weapons;
 using Damage;
 using Game.Audio;
+using Game.Companion;
+using Game.Moments;
 using Game.Runs;
 using Game.Travel;
 using Loot;
@@ -32,7 +35,8 @@ namespace Game
 {
     /// <summary>
     /// Runs the interactive game over one session: hangar, sectors, extraction recaps, then final results.
-    /// Owns the player rig, viewport, UI, music, run records and clock; the session composes, loads and unloads.
+    /// Owns the player rig, viewport, UI, music, companion, run records, each run's moment stream and clock;
+    /// the session composes, loads and unloads.
     /// Hull carries between sectors. Death frames the explosion while surviving ships keep moving.
     /// Presentation is read once alongside the session's snapshot.
     /// Shutdown finishes the current setup operation, releases input waits, then tears down the owned world.
@@ -108,6 +112,14 @@ namespace Game
                  "Null → no lull picks.")]
         [SerializeField] internal LullModPool lullMods;
 
+        [Header("Companion")]
+        [Tooltip("The companion's lines, one line slot per moment. Null → the companion stays silent. The " +
+                 "preview host tunes this same asset.")]
+        [SerializeField] internal CompanionLineSheet companionLines;
+
+        [Tooltip("The nag budget and line timings. Required when lines are assigned and presentation is on.")]
+        [SerializeField] internal CompanionFeelProfile companionFeel;
+
         internal string runRecordPath;
         internal BuildIdentitySource buildIdentity;
         internal ShipUnlocks unlocks;
@@ -134,6 +146,8 @@ namespace Game
         private PlayerRig rigInstance;
         private LoadingSplash splash;
         private GameMusic music;
+        private CompanionVoice voice;
+        private RunMomentStream moments;
 
         private Transform viewport;
         private Transform ui;
@@ -169,6 +183,8 @@ namespace Game
                 throw new InvalidOperationException("GameHost presents but has no recap feel profile assigned.");
             if (presentation && jumpFeel && !jumpFeature)
                 throw new InvalidOperationException("GameHost enables jump travel but has no jump feature assigned.");
+            if (presentation && companionLines && !companionFeel)
+                throw new InvalidOperationException("GameHost has companion lines but no companion feel profile assigned.");
             session = new Session(sessionProfile, gameObject, unitService, objectiveService);
             if (presentation)
                 BuildEventSystem(ui);
@@ -199,6 +215,9 @@ namespace Game
                 rigInstance.Tally.Killed += RefillPlayerHull;
                 rigInstance.Spawns.EliteKilled += unlocks.Claim;
             }
+            if (presentation && companionLines && rigInstance && rigInstance.Overlay)
+                voice = CompanionVoice.Create(transform, companionLines, companionFeel, rigInstance.Overlay.CommLine,
+                    () => rigInstance.Overlay.IsVisible, Debug.isDebugBuild);
 
             yield return PlayRuns(presentation);
 
@@ -210,6 +229,8 @@ namespace Game
                 yield return null;
             }
 
+            // The voice reads the rig's overlay each frame, so it goes first.
+            if (voice) Destroy(voice.gameObject);
             if (rigInstance)
             {
                 rigInstance.Tally.Killed -= RefillPlayerHull;
@@ -250,6 +271,8 @@ namespace Game
                 if (shutdownRequested) yield break;
 
                 playerDied = false;
+                moments = new RunMomentStream();
+                if (voice) voice.Initialize(moments);
                 string playerLoadoutStatHash = null;
                 var hull = 1f;
                 var index = 0;
@@ -290,7 +313,7 @@ namespace Game
                     }
                     if (shutdownRequested) yield break;
 
-                    if (playerDied || index == sessionProfile.sectors.Length - 1) break;
+                    if (playerDied || index == sessionProfile.run.Sectors.Count - 1) break;
 
                     // The unload despawns this sector's ships, and the next load resets the player's hull.
                     if (rigInstance)
@@ -339,7 +362,7 @@ namespace Game
             sectorEndTime = Time.time;
             sectorEnded = true;
             if (!result.Success || !jumpFeel || !sessionProfile.presentation || !rigInstance ||
-                activeSectorIndex == sessionProfile.sectors.Length - 1) return;
+                activeSectorIndex == sessionProfile.run.Sectors.Count - 1) return;
             jump = SectorJumpFlight.Begin(transform, rigInstance, session.Units, observer, jumpFeel,
                 jumpFeature, result.DepartureHeading.Value);
         }
@@ -351,7 +374,7 @@ namespace Game
             var exited = false;
             try
             {
-                backdrop = session.PrepareTravelBackdrop(sessionProfile.sectors[destination].config.Locale, transform);
+                backdrop = session.PrepareTravelBackdrop(sessionProfile.run.Sectors[destination].locale, transform);
                 if (!shutdownRequested)
                 {
                     jump.BindBackdrop(ui, backdrop);
@@ -415,7 +438,7 @@ namespace Game
                 WeaponPickScreen.MaxOffers, n => UnityEngine.Random.Range(0, n));
             if (offers.Count == 0) yield break;
 
-            var spine = sessionProfile.sectors[destination].prefab.Module<PhaseSpineModule>();
+            var spine = sessionProfile.run.Sectors[destination].prefab.Module<PhaseSpineModule>();
             var screen = WeaponPickScreen.Create(ui, destination + 1, spine ? spine.Threat() : null, offers,
                 primary, secondary, rigInstance.Mods);
             try
@@ -518,6 +541,7 @@ namespace Game
                         lastKillingBlow = killingBlow;
                         deathPosition = GamePlane.WorldPointToPlane(rigInstance.Player.transform.position);
                         playerDied = true;
+                        moments.Raise(new PlayerDied(activeSectorIndex + 1, killingBlow.Kind));
                     };
                 case PlayerDeathBehavior.None:
                 default:
@@ -530,6 +554,7 @@ namespace Game
         {
             rigInstance.Tally.Begin(Time.time);
             rigInstance.Spawns.Begin(Time.time);
+            moments.Raise(new RunStarted(PastRuns.Read(runRecords.Path)));
             return StatHash.OfLoadout(rigInstance.Player);
         }
 
@@ -548,7 +573,7 @@ namespace Game
                 return Scoreboard.Read(runRecords.Path, null);
             }
 
-            var sectors = Array.ConvertAll(sessionProfile.sectors, entry => entry.prefab);
+            var sectors = sessionProfile.run.Sectors.Select(entry => entry.prefab).ToArray();
             var sectorsCleared = killingBlow.HasValue ? endedIn : endedIn + 1;
             var record = RunRecord.Compose(DateTime.UtcNow, sectorsCleared, sectors[endedIn].name, identity,
                 StatHash.OfSetting(hangarOffer, sectors, killHullRestore), rigInstance.Loadout, playerLoadoutStatHash,
@@ -586,7 +611,7 @@ namespace Game
         private RecapOutcomeContext OutcomeContext(Scoreboard board, int index)
         {
             var kills = rigInstance.Spawns.KilledShips();
-            var count = sessionProfile.sectors.Length;
+            var count = sessionProfile.run.Sectors.Count;
             return playerDied
                 ? RecapOutcomeContext.Defeat(kills, index, count, board, deathPosition)
                 : RecapOutcomeContext.Victory(kills, index + 1, count, board);

@@ -47,7 +47,7 @@ namespace Tests.PlayMode.Bootstrap
     {
         private const string RigPrefabPath = "Assets/Prefabs/MiscObjects/PlayerRig.prefab";
         private const string ObserverCamPrefabPath = "Assets/Prefabs/Cameras/Main Camera.prefab";
-        private const string SectorConfigPath = "Assets/Settings/Game/DefaultSectorConfig.asset";
+        private const string LocalePath = "Assets/Prefabs/Locales/IllustratedBlue.prefab";
         private const string RecapFeelPath = "Assets/Settings/UI/RecapFeel.asset";
         private const float StepTimeoutSec = 30f;
 
@@ -335,11 +335,11 @@ namespace Tests.PlayMode.Bootstrap
         [Category("RequiresGraphics")]
         public IEnumerator SectorLocaleUnlikeTheIdleLocale_KeepsTheShipLockLayer_AndTheWaveCap()
         {
-            var idle = AssetDatabase.LoadAssetAtPath<LocaleSky>("Assets/Prefabs/Locales/Locale_1.prefab");
+            var idle = AssetDatabase.LoadAssetAtPath<LocaleSky>("Assets/Prefabs/Locales/CopperTurquoise.prefab");
             PlayerRig rig = null;
             yield return BootToTheFirstSector(built => rig = built, presentation: true, productionJump: true,
                 idleLocale: idle);
-            Assert.AreNotSame(idle, host.sessionProfile.sectors[0].config.Locale,
+            Assert.AreNotSame(idle, host.sessionProfile.run.Sectors[0].locale,
                 "test premise: the sector's locale differs from the idle locale");
             for (var frame = 0; frame < 30; frame++) yield return null;
             Assert.IsTrue(GameObject.Find("Ship lock overlay"), "the ship lock layer outlives the idle locale");
@@ -458,8 +458,7 @@ namespace Tests.PlayMode.Bootstrap
         private IEnumerator BootToTheFirstSector(Action<PlayerRig> onBuilt, bool presentation = false,
             bool productionJump = false, bool jumpTravel = false, ItemSubset hangarOffer = null, LocaleSky idleLocale = null)
         {
-            var config = AssetDatabase.LoadAssetAtPath<SectorSettings>(productionJump
-                ? "Assets/Settings/Game/SurvivalTrialConfig.asset" : SectorConfigPath);
+            var locale = AssetDatabase.LoadAssetAtPath<LocaleSky>(LocalePath);
             hostGo = new GameObject("TestHost");
             hostGo.SetActive(false);
             templates = productionJump
@@ -470,13 +469,13 @@ namespace Tests.PlayMode.Bootstrap
             host = hostGo.AddComponent<GameHost>();
             host.sessionProfile = new SessionProfile
             {
-                sectors = productionJump
+                run = SectorRun.Create(productionJump
                     ? new[] { "TrialSector", "TrialSector2" }.Select(name => new SectorEntry
                     {
                         prefab = AssetDatabase.LoadAssetAtPath<Sector>($"Assets/Prefabs/Sectors/{name}.prefab"),
-                        config = config
+                        locale = locale
                     }).ToArray()
-                    : Array.ConvertAll(templates, t => new SectorEntry { prefab = t.GetComponent<Sector>(), config = config }),
+                    : Array.ConvertAll(templates, t => new SectorEntry { prefab = t.GetComponent<Sector>(), locale = locale })),
                 idleLocale = idleLocale,
                 presentation = presentation
             };

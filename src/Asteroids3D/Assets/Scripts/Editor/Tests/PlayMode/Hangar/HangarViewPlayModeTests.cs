@@ -5,6 +5,7 @@ using Game;
 using NUnit.Framework;
 using Ships.Loadout;
 using Substrate.Sectors;
+using Substrate.Services.Locales;
 using Substrate.Sessions;
 using Substrate.Services.Units;
 using Tests.PlayMode.Common.Locales;
@@ -28,7 +29,7 @@ namespace Tests.PlayMode.Hangar
         private const string OfferPath = "Assets/Settings/Ships/PlayerLoadout.asset";
         private const string RecapFeelPath = "Assets/Settings/UI/RecapFeel.asset";
         private const string SectorPrefabPath = "Assets/Prefabs/Sectors/ArenaSector.prefab";
-        private const string SectorConfigPath = "Assets/Settings/Game/DefaultSectorConfig.asset";
+        private const string LocalePath = "Assets/Prefabs/Locales/IllustratedBlue.prefab";
         private const float TimeoutSec = 60f;
 
         private GameObject hostGo;
@@ -65,14 +66,11 @@ namespace Tests.PlayMode.Hangar
             var host = hostGo.AddComponent<GameHost>();
             host.sessionProfile = new SessionProfile
             {
-                sectors = new[]
+                run = SectorRun.Create(new SectorEntry
                 {
-                    new SectorEntry
-                    {
-                        prefab = AssetDatabase.LoadAssetAtPath<Sector>(SectorPrefabPath),
-                        config = AssetDatabase.LoadAssetAtPath<SectorSettings>(SectorConfigPath)
-                    }
-                },
+                    prefab = AssetDatabase.LoadAssetAtPath<Sector>(SectorPrefabPath),
+                    locale = AssetDatabase.LoadAssetAtPath<LocaleSky>(LocalePath)
+                }),
                 presentation = true
             };
             host.playerRig = AssetDatabase.LoadAssetAtPath<PlayerRig>(RigPrefabPath);

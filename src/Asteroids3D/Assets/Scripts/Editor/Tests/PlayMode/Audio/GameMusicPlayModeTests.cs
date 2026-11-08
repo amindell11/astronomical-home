@@ -17,6 +17,7 @@ using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Services.Objectives;
 using Substrate.Services.Units;
+using Substrate.Services.Locales;
 using Substrate.Sessions;
 using Tests.PlayMode.Common;
 using UI.Hangar;
@@ -35,7 +36,7 @@ namespace Tests.PlayMode.Audio
         private const string MusicPrefabPath = "Assets/Prefabs/Audio/GameMusic.prefab";
         private const string RigPrefabPath = "Assets/Prefabs/MiscObjects/PlayerRig.prefab";
         private const string ObserverCamPrefabPath = "Assets/Prefabs/Cameras/Main Camera.prefab";
-        private const string SectorConfigPath = "Assets/Settings/Game/DefaultSectorConfig.asset";
+        private const string LocalePath = "Assets/Prefabs/Locales/IllustratedBlue.prefab";
         private const string RecapFeelPath = "Assets/Settings/UI/RecapFeel.asset";
         private const string HangarScreenPrefabPath = "Assets/Prefabs/UI/HangarScreen.prefab";
         private const string MusicEvent = "event:/Music/Game";
@@ -133,6 +134,32 @@ namespace Tests.PlayMode.Audio
         }
 
         [UnityTest]
+        public IEnumerator EliteStep_SetsElite_AndExtractionAfterItStaysOnElite()
+        {
+            var description = Fresh(MusicEvent);
+            var objectives = New("Objectives").AddComponent<ObjectiveService>();
+            var music = NewMusic(objectives);
+            var elite = new Step(ObjectiveType.Survive);
+            objectives.SetSpineObjective(new MissionDefinition(PhaseSpineModule.StepElite,
+                    new Dictionary<string, string> { [PhaseSpineModule.StepElite] = PhaseSpineModule.StepExtract }),
+                new Dictionary<string, Func<ObjectiveState>>
+                {
+                    [PhaseSpineModule.StepElite] = () => elite,
+                    [PhaseSpineModule.StepExtract] = () => new Step(ObjectiveType.ExtractionChallenge)
+                });
+            yield return Flush();
+            var instance = Instances(description)[0];
+            Assert.AreEqual(nameof(GameMusic.State.Elite), Label(description, instance), "the spine entered the elite step");
+
+            elite.Complete = true;
+            yield return null;
+            yield return Flush();
+            Assert.AreEqual(PhaseSpineModule.StepExtract, objectives.SpineStep);
+            Assert.AreEqual(nameof(GameMusic.State.Elite), Label(description, instance),
+                "extraction after the elite keeps the elite's cue");
+        }
+
+        [UnityTest]
         [Category("RequiresGraphics")]
         public IEnumerator PresentingHost_WalksOneInstanceThroughTheRunSteps()
         {
@@ -194,6 +221,16 @@ namespace Tests.PlayMode.Audio
             Assert.IsFalse(hostGo.GetComponentInChildren<GameMusic>(true), "no music object without presentation");
         }
 
+        private sealed class Step : ObjectiveState
+        {
+            private readonly ObjectiveType type;
+            public bool Complete;
+            public Step(ObjectiveType type) => this.type = type;
+            public override ObjectiveType StateType => type;
+            public override bool IsComplete => Complete;
+            public override void Tick(float deltaTime) { }
+        }
+
         private GameObject New(string name)
         {
             var go = new GameObject(name);
@@ -217,7 +254,7 @@ namespace Tests.PlayMode.Audio
 
         private void Boot(bool presentation)
         {
-            var config = AssetDatabase.LoadAssetAtPath<SectorSettings>(SectorConfigPath);
+            var locale = AssetDatabase.LoadAssetAtPath<LocaleSky>(LocalePath);
             var templates = new[] { NewSectorTemplate("SectorA"), NewSectorTemplate("SectorB") };
 
             hostGo = new GameObject("TestHost");
@@ -225,8 +262,8 @@ namespace Tests.PlayMode.Audio
             host = hostGo.AddComponent<GameHost>();
             host.sessionProfile = new SessionProfile
             {
-                sectors = Array.ConvertAll(templates,
-                    t => new SectorEntry { prefab = t.GetComponent<Sector>(), config = config }),
+                run = SectorRun.Create(Array.ConvertAll(templates,
+                    t => new SectorEntry { prefab = t.GetComponent<Sector>(), locale = locale })),
                 presentation = presentation
             };
             host.playerRig = AssetDatabase.LoadAssetAtPath<PlayerRig>(RigPrefabPath);

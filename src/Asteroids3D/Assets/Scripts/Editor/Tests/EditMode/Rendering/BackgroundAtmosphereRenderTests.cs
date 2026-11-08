@@ -60,9 +60,9 @@ namespace Tests.EditMode.Rendering
             Object.DestroyImmediate(material);
         }
 
-        [TestCase("Assets/Prefabs/Locales/Locale_1.prefab")]
-        [TestCase("Assets/Prefabs/Locales/Locale_2.prefab")]
-        [TestCase("Assets/Prefabs/Locales/Locale_3.prefab")]
+        [TestCase("Assets/Prefabs/Locales/CopperTurquoise.prefab")]
+        [TestCase("Assets/Prefabs/Locales/NebulaGlow.prefab")]
+        [TestCase("Assets/Prefabs/Locales/IllustratedBlue.prefab")]
         [TestCase("Assets/Scenes/EditScene.unity")]
         public void LocaleAtmosphere_SeparatesMaterialsAndPreservesDrawOrder(string path)
         {
@@ -162,6 +162,24 @@ namespace Tests.EditMode.Rendering
             Assert.Greater(movingFrames, 1, "A streak must change across frames.");
             material.SetFloat("_ShootingBrightness", 0);
             Assert.That(Render(10).Max(c => c.maxColorComponent), Is.Zero);
+        }
+
+        [Test]
+        public void CloudBanks_EvolveOnlyWhenMotionIsEnabled()
+        {
+            material.SetFloat("_CloudOpacity", .95f);
+            material.SetFloat("_CloudCoverage", .55f);
+            material.SetFloat("_NebulaScale", .25f);
+            material.SetFloat("_NebulaStrength", .6f);
+            material.SetFloat("_NebulaSpeed", 0);
+            BakeTile();
+            var initial = Render(0);
+            Assert.That(initial.Max(c => c.r), Is.GreaterThan(.01f));
+            Assert.That(Difference(initial, Render(40)), Is.Zero,
+                "Existing stationary cloud banks must remain unchanged at zero speed.");
+            material.SetFloat("_NebulaSpeed", .02f);
+            Assert.That(Difference(Render(0), Render(40)), Is.GreaterThan(.001f),
+                "A moving cloud bank must evolve despite using a cached tile.");
         }
 
         [Test]

@@ -27,8 +27,8 @@ namespace Tests.PlayMode
     public class SessionLocaleRoundTripPlayModeTests
     {
         private const string SectorPrefabPath = "Assets/Prefabs/Sectors/ArenaSector.prefab";
-        private const string ConfigPath = "Assets/Settings/Game/DefaultSectorConfig.asset";
-        private const string OtherLocalePath = "Assets/Prefabs/Locales/Locale_1.prefab";
+        private const string LocalePath = "Assets/Prefabs/Locales/IllustratedBlue.prefab";
+        private const string OtherLocalePath = "Assets/Prefabs/Locales/CopperTurquoise.prefab";
 
         private GameObject root;
         private Scene boot;
@@ -58,12 +58,12 @@ namespace Tests.PlayMode
         [Timeout(600000)]
         public IEnumerator IdleLocaleSharedWithTheSector_KeepsItsInstanceAcrossTheHandOff()
         {
-            var config = LoadConfig();
-            var session = CreateSession(config, config.Locale);
+            var locale = LoadLocale();
+            var session = CreateSession(locale, locale);
 
             yield return session.Compose();
             var idle = Shown();
-            Assert.AreEqual(config.Locale.name, idle.name, "Compose shows the idle locale.");
+            Assert.AreEqual(locale.name, idle.name, "Compose shows the idle locale.");
 
             yield return session.LoadSector();
             Assert.AreSame(idle, Shown(), "A sector naming the idle locale must keep its instance.");
@@ -82,11 +82,11 @@ namespace Tests.PlayMode
         [Timeout(600000)]
         public IEnumerator EachStep_LightsFromTheShownLocalesFlatAmbientAndCustomReflection()
         {
-            var config = LoadConfig();
+            var locale = LoadLocale();
             var other = AssetDatabase.LoadAssetAtPath<LocaleSky>(OtherLocalePath);
             Assert.IsNotNull(other, $"Locale missing at {OtherLocalePath}");
-            Assert.AreNotSame(other, config.Locale, "test premise: the idle and sector locales differ");
-            var session = CreateSession(config, other);
+            Assert.AreNotSame(other, locale, "test premise: the idle and sector locales differ");
+            var session = CreateSession(locale, other);
 
             yield return session.Compose();
             Assert.AreEqual(other.name, Shown().name);
@@ -95,7 +95,7 @@ namespace Tests.PlayMode
             AssertLitByShownLocale("after compose");
 
             yield return session.LoadSector();
-            Assert.AreEqual(config.Locale.name, Shown().name);
+            Assert.AreEqual(locale.name, Shown().name);
             Assert.AreNotEqual(idleAmbient, RenderSettings.ambientLight,
                 "test premise: the sector's ambient differs from the idle locale's, so a stale probe would show");
             Assert.AreNotSame(idleReflection, RenderSettings.customReflectionTexture,
@@ -119,10 +119,10 @@ namespace Tests.PlayMode
         [Timeout(600000)]
         public IEnumerator UnparentedObject_SurvivesASectorWithADifferentLocale_AndDiesWithTheSession()
         {
-            var config = LoadConfig();
+            var locale = LoadLocale();
             var other = AssetDatabase.LoadAssetAtPath<LocaleSky>(OtherLocalePath);
-            Assert.AreNotSame(other, config.Locale, "test premise: the idle and sector locales differ");
-            var session = CreateSession(config, other);
+            Assert.AreNotSame(other, locale, "test premise: the idle and sector locales differ");
+            var session = CreateSession(locale, other);
             Assert.AreNotEqual(boot, sessionScene, "The session's own scene is active from construction.");
 
             yield return session.Compose();
@@ -148,8 +148,8 @@ namespace Tests.PlayMode
         [Timeout(600000)]
         public IEnumerator DestroyingTheOwnerWithoutTeardown_UnloadsTheSessionScene()
         {
-            var config = LoadConfig();
-            var session = CreateSession(config, config.Locale);
+            var locale = LoadLocale();
+            var session = CreateSession(locale, locale);
             yield return session.Compose();
             yield return session.LoadSector();
             Assert.AreNotEqual(boot, sessionScene, "test premise: the session scene is active");
@@ -160,27 +160,23 @@ namespace Tests.PlayMode
             Assert.That(Instances(), Is.Empty, "The unload takes the locale with it.");
         }
 
-        private static SectorSettings LoadConfig()
+        private static LocaleSky LoadLocale()
         {
-            var config = AssetDatabase.LoadAssetAtPath<SectorSettings>(ConfigPath);
-            Assert.IsNotNull(config, $"Sector config missing at {ConfigPath}");
-            Assert.IsTrue(config.Locale, "The default sector must name a locale.");
-            return config;
+            var locale = AssetDatabase.LoadAssetAtPath<LocaleSky>(LocalePath);
+            Assert.IsTrue(locale, $"Sector locale missing at {LocalePath}");
+            return locale;
         }
 
-        private Session CreateSession(SectorSettings config, LocaleSky idleLocale)
+        private Session CreateSession(LocaleSky locale, LocaleSky idleLocale)
         {
             root = new GameObject("SessionRoot");
             var session = TestSession.Create(root, new SessionProfile
             {
-                sectors = new[]
+                run = SectorRun.Create(new SectorEntry
                 {
-                    new SectorEntry
-                    {
-                        prefab = AssetDatabase.LoadAssetAtPath<Sector>(SectorPrefabPath),
-                        config = config
-                    }
-                },
+                    prefab = AssetDatabase.LoadAssetAtPath<Sector>(SectorPrefabPath),
+                    locale = locale
+                }),
                 idleLocale = idleLocale,
                 presentation = true
             });

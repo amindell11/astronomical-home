@@ -3,12 +3,14 @@ using System.Linq;
 using Asteroids.Fields;
 using Cameras;
 using Game;
+using Game.Companion;
 using Game.Player;
 using Game.Preview;
 using NUnit.Framework;
 using Ships.Visuals.Breakup;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Hunt;
+using Substrate.Sectors.Elements.Stations;
 using UI.Projection;
 using UnityEditor;
 
@@ -43,9 +45,17 @@ namespace Tests.EditMode.Preview
             AssertTarget(Target<FlightAssistTarget>(), new[] { PreviewEntry.Combat },
                 AssetDatabase.LoadAssetAtPath<FlightAssistProfile>("Assets/Settings/Game/FlightAssist.asset"));
             AssertTarget(Target<HuntTarget>(), new[] { PreviewEntry.Combat },
-                AssetDatabase.LoadAssetAtPath<HuntFeelProfile>("Assets/Settings/Game/HuntFeel.asset"));
-            AssertTarget(Target<BossTarget>(), new[] { PreviewEntry.Boss },
+                AssetDatabase.LoadAssetAtPath<HuntFeelProfile>("Assets/Settings/Game/HuntFeel.asset"),
+                AssetDatabase.LoadAssetAtPath<RepairStationFeelProfile>("Assets/Settings/Game/RepairStationFeel.asset"));
+            AssertTarget(Target("Sector 1 elite"), new[] { PreviewEntry.Sector1Elite },
+                AssetDatabase.LoadAssetAtPath<EliteProfile>("Assets/Settings/Ships/Elites/ShoalElite.asset"));
+            AssertTarget(Target("Sector 2 elite"), new[] { PreviewEntry.Sector2Elite },
+                AssetDatabase.LoadAssetAtPath<EliteProfile>("Assets/Settings/Ships/Elites/VeilElite.asset"));
+            AssertTarget(Target("Boss"), new[] { PreviewEntry.Boss },
                 AssetDatabase.LoadAssetAtPath<EliteProfile>("Assets/Settings/Ships/Elites/BastionBoss.asset"));
+            AssertTarget(Target<CompanionTarget>(), new[] { PreviewEntry.Combat },
+                AssetDatabase.LoadAssetAtPath<CompanionFeelProfile>("Assets/Settings/Game/Companion/CompanionFeel.asset"),
+                AssetDatabase.LoadAssetAtPath<CompanionLineSheet>("Assets/Settings/Game/Companion/CompanionLines.asset"));
         }
 
         [Test]
@@ -68,6 +78,8 @@ namespace Tests.EditMode.Preview
         }
 
         private static TuningTarget Target<T>() where T : TuningTarget => TuningTarget.All.OfType<T>().Single();
+
+        private static TuningTarget Target(string name) => TuningTarget.All.Single(target => target.Name == name);
 
         private void AssertTarget(TuningTarget target, PreviewEntry[] entries, params UnityEngine.Object[] profiles)
         {
