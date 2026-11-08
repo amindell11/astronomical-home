@@ -457,8 +457,10 @@ namespace Tests.PlayMode.Preview
 
             var picked = host.Playtest;
             yield return LaunchFromHangar(picked);
-            Assert.That(picked.sessionProfile.run.Sectors, Has.Count.EqualTo(1), "the Sector pick flies alone");
-            Assert.That(picked.ActiveSector.name, Does.StartWith(shipped.sessionProfile.run.Sectors[1].prefab.name));
+            var second = shipped.sessionProfile.run.Sectors[1].prefab;
+            Assert.That(picked.sessionProfile.run.Sectors.Select(row => row.prefab), Is.EqualTo(new[] { second }),
+                "the Sector pick flies alone");
+            Assert.That(picked.ActiveSector.name, Does.StartWith(second.name));
             Assert.That(LocaleInstances.Shown(), Is.EqualTo("CoralSunset"));
 
             host.combatSector = PreviewHost.WholeRun;
