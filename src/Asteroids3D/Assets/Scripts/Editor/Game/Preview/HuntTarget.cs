@@ -27,8 +27,11 @@ namespace Game.Preview
             .Distinct();
 
         // The cache's bonuses are mod assets, and their amounts are what the owner tunes.
-        private static IEnumerable<ScriptableObject> WithBonuses(ScriptableObject feel) =>
-            feel is BeaconCacheFeelProfile cache ? cache.bonuses.Cast<ScriptableObject>().Prepend(feel) : new[] { feel };
+        private static IEnumerable<ScriptableObject> WithBonuses(ScriptableObject feel)
+        {
+            var cache = feel as BeaconCacheFeelProfile;
+            return cache ? cache.bonuses.Cast<ScriptableObject>().Prepend(feel) : new[] { feel };
+        }
 
         // Read through serialization, so the profile owners grow no member for the preview.
         private static ScriptableObject Feel(Object owner)
