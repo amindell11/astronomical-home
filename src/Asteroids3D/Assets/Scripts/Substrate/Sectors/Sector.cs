@@ -2,6 +2,7 @@ using Balance;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Substrate.Services.Units;
 using Substrate.Services.Objectives;
 using Substrate.Sessions;
@@ -80,10 +81,10 @@ namespace Substrate.Sectors
         /// <summary>Throws when <paramref name="row"/> lacks a value a part of this layout reads; a prefab asset answers too.</summary>
         public void CheckRow(SectorEntry row)
         {
-            foreach (var spawner in spawners)
-                if (spawner && spawner is ISectorRowReader reader) reader.CheckRow(row);
-            foreach (var module in modules)
-                if (module && module is ISectorRowReader reader) reader.CheckRow(row);
+            foreach (var reader in spawners.Where(spawner => spawner).OfType<ISectorRowReader>())
+                reader.CheckRow(row);
+            foreach (var reader in modules.Where(module => module).OfType<ISectorRowReader>())
+                reader.CheckRow(row);
         }
 
         public IEnumerator Setup()
