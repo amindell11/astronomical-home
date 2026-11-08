@@ -20,52 +20,52 @@
     "bytes": 42885832
   },
   "asteroids-current20-game-chalk-close.png": {
-    "sha256": "abd1179de3f8637a474dcfb1c5d17c1fe0c67a8c8418055e01634a76e931814f",
-    "bytes": 988938
+    "sha256": "79e07a0b92e700ea1bc4f04bc6a79159b0fd24a37d9404bbc727c18421ef3775",
+    "bytes": 974420
   },
   "asteroids-current20-game-chalk-flight.png": {
-    "sha256": "635bf905622fd242ca807a93e716eafb90331df7047bb128f329e1832cc1694c",
-    "bytes": 969279
+    "sha256": "2af8103e7ea1b7a506e4d3a41a83e70fd881d39811083f695219724fdac31ec6",
+    "bytes": 943650
   },
   "asteroids-current20-game-copper-close.png": {
-    "sha256": "ee6e4649d077427fcef09a7ed33f182348f6268a827a8c09a139b3fc8afd4d57",
-    "bytes": 1012301
+    "sha256": "416d1df2965cce00ca18e565a70924de0b0c9faea19e8c00a28d34e9376b5d09",
+    "bytes": 1013540
   },
   "asteroids-current20-game-copper-flight.png": {
-    "sha256": "0d1212b359a8343a07e65478aed9c857dd7702ad1139be4f97081e993a1f8305",
-    "bytes": 1012844
+    "sha256": "6e4776b1bb47dc21296edb6b140b7b3222cff4167bf417a4934ff5d6aeb3be09",
+    "bytes": 1019211
   },
   "asteroids-current20-game-ice-close.png": {
-    "sha256": "bd861db3d4c33b4b71dd24d28bff4eade4e1d70f43ba2a953cf17abc097a1995",
-    "bytes": 766159
+    "sha256": "c39fc694fad20288ea3e8e0c9d38de53e866e5d0f177ff2612e6781289957aa4",
+    "bytes": 753631
   },
   "asteroids-current20-game-ice-flight.png": {
-    "sha256": "392424fa43b275e12c39f9ece8a778635f1061760ed5d9d5cac8ce742e645912",
-    "bytes": 624481
+    "sha256": "0e9b6a7a7ed927da2b59c20ea04d71f945be2cae095f78cfbda214e9bc1c8ef7",
+    "bytes": 621099
   },
   "asteroids-current20-game-index.json": {
-    "sha256": "02baea79cfa1f8a9fd129d1391f29143a42d0d349dd06caf4e08205376fb1ca6",
-    "bytes": 7724
+    "sha256": "e40410184ff81e84a3481700cccc2cd0c652837289ed688f69aa0c0438ff3679",
+    "bytes": 7984
   },
   "asteroids-current20-game-overview.png": {
-    "sha256": "ec1811aa3bb6583d62161bbf08b5186661fd3043166342a37a9da289a76090b5",
-    "bytes": 1010600
+    "sha256": "203e880cff9edca9cdef9dcb8a332129e03f7042303d15fe32d553f5166ac53a",
+    "bytes": 1007652
   },
   "asteroids-current20-game-preview.zip": {
-    "sha256": "02374749265d871aac0a3a0740b46dcb8b6b4b923ac2ee07b8f951707edfdf78",
-    "bytes": 24341938
+    "sha256": "740db3636f2e99adb0e01322c2f17556bb8ad771a1516f35ddafb094bd451569",
+    "bytes": 24347126
   },
   "asteroids-current20-game-test-summary.json": {
-    "sha256": "c05ebc24c438d7615fb2a87a12cf85ce1db1af7ac418c9bc6b5a09b386084889",
-    "bytes": 4789
+    "sha256": "8c5476df341c1389fdc0ca98920ea691aceaacb7bb26984eadbd3732d8b3e766",
+    "bytes": 4787
   },
   "asteroids-current20-game-verdant-close.png": {
-    "sha256": "589ed0df88869d77584f40411dfe15d25e91b92a9ccfae4faa2d341e4577fc2b",
-    "bytes": 921922
+    "sha256": "18b447d22693b1b99befd537cd339aadaeff3421b1bc06ad35416f5289d47d8b",
+    "bytes": 904611
   },
   "asteroids-current20-game-verdant-flight.png": {
-    "sha256": "f5ec77d71e5aef5555363cabbf76d7c830e7937c78271b6910292e65757fad0b",
-    "bytes": 868634
+    "sha256": "c521cb95c82420ffb5acf3d71db515dbe459fe794f7f937eed18e86b23338e8c",
+    "bytes": 880928
   },
   "asteroids-current20-ice-board.png": {
     "sha256": "f207ca8f29f68865be17c694cfda9b87afb05b821d88f133882335b5801953d2",

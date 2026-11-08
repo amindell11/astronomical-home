@@ -1,5 +1,5 @@
 {
-    "generatedAt":  "2026-11-07T17:11:57.0447409-08:00",
+    "generatedAt":  "2026-11-07T18:49:39.8456462-08:00",
     "projectPath":  "D:\\amind\\git\\agent-5\\src\\Asteroids3D",
     "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
     "mode":  "PlayMode",
@@ -24,20 +24,20 @@
                    "passed":  1,
                    "failed":  0,
                    "skipped":  0,
-                   "durationSec":  34.209
+                   "durationSec":  29.181
                },
     "runs":  [
                  {
                      "platform":  "PlayMode",
-                     "xmlPath":  "D:\\amind\\git\\agent-5\\results\\unity-tests-agent\\20261107-171031-PlayMode.xml",
-                     "logPath":  "D:\\amind\\git\\agent-5\\results\\unity-tests-agent\\20261107-171031-PlayMode.log",
+                     "xmlPath":  "D:\\amind\\git\\agent-5\\results\\unity-tests-agent\\20261107-184821-PlayMode.xml",
+                     "logPath":  "D:\\amind\\git\\agent-5\\results\\unity-tests-agent\\20261107-184821-PlayMode.log",
                      "unityExitCode":  0,
                      "status":  "passed",
                      "total":  1,
                      "passed":  1,
                      "failed":  0,
                      "skipped":  0,
-                     "durationSec":  34.2087459,
+                     "durationSec":  29.1809843,
                      "failures":  [
 
                                   ],
@@ -57,15 +57,15 @@
                                        "testFilter":  "Tests.PlayMode.Recording.CaptureScenarioPlayModeTests",
                                        "categoryFilter":  ""
                                    },
-                     "startedAt":  "2026-11-08 01:11:12Z",
-                     "finishedAt":  "2026-11-08 01:11:46Z"
+                     "startedAt":  "2026-11-08 02:49:02Z",
+                     "finishedAt":  "2026-11-08 02:49:31Z"
                  }
              ],
     "wallTiming":  {
-                       "elapsedSec":  86.218,
-                       "startupToFirstTestSec":  38.369,
-                       "executionSec":  34,
-                       "remainingSec":  13.849,
+                       "elapsedSec":  79.258,
+                       "startupToFirstTestSec":  37.555,
+                       "executionSec":  29,
+                       "remainingSec":  12.703,
                        "unavailableReason":  ""
                    },
     "coverage":  {
@@ -75,19 +75,19 @@
     "memory":  {
                    "processes":  [
                                      {
-                                         "pid":  32024,
-                                         "rootPeakPrivateGB":  6.31,
-                                         "rootPeakWorkingSetGB":  4.254,
-                                         "treePeakSampledPrivateGB":  6.201,
-                                         "treePeakSampledWorkingSetGB":  4.319,
-                                         "treeSumOfPeaksPrivateGB":  6.982,
-                                         "commitHeadroomAtLaunchGB":  36.22,
-                                         "commitHeadroomMinGB":  26.86,
-                                         "availablePhysicalAtLaunchGB":  10.48,
-                                         "availablePhysicalMinGB":  3.88,
-                                         "bootLaneReleasedAtSec":  5.534,
-                                         "treePeakAtSec":  51.514,
-                                         "samples":  13,
+                                         "pid":  5660,
+                                         "rootPeakPrivateGB":  6.201,
+                                         "rootPeakWorkingSetGB":  4.11,
+                                         "treePeakSampledPrivateGB":  6.074,
+                                         "treePeakSampledWorkingSetGB":  4.299,
+                                         "treeSumOfPeaksPrivateGB":  6.603,
+                                         "commitHeadroomAtLaunchGB":  36.98,
+                                         "commitHeadroomMinGB":  30.9,
+                                         "availablePhysicalAtLaunchGB":  10.34,
+                                         "availablePhysicalMinGB":  6.33,
+                                         "bootLaneReleasedAtSec":  7.217,
+                                         "treePeakAtSec":  58.335,
+                                         "samples":  11,
                                          "samplesFailed":  0,
                                          "unavailableReason":  ""
                                      }
