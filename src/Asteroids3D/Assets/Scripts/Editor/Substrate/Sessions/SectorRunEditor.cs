@@ -11,7 +11,7 @@ namespace Substrate.Sessions
         private const float RandomWidth = 72f;
         private const float PatrolsWidth = 48f;
         private const float Gap = 6f;
-        private const int WideColumns = 5;
+        private const int WideColumns = 4;
         private static readonly string[] Unfolded = { nameof(SectorEntry.roster), nameof(SectorEntry.phases) };
 
         private ReorderableList table;
@@ -24,16 +24,19 @@ namespace Substrate.Sessions
             localePool = serializedObject.FindProperty("localePool");
             table = new ReorderableList(serializedObject, serializedObject.FindProperty("sectors"), true, true, true, true)
             {
+                headerHeight = 2f * Line + 2f,
                 drawHeaderCallback = rect =>
                 {
-                    var (index, sector, locale, faction, elite, patrols, field) = Columns(rect);
+                    var line = new Rect(rect.x, rect.y, rect.width, EditorGUIUtility.singleLineHeight);
+                    var (index, sector, faction, elite, patrols, field) = Columns(line);
                     EditorGUI.LabelField(index, "#");
                     EditorGUI.LabelField(sector, "Sector");
-                    EditorGUI.LabelField(locale, "Locale");
                     EditorGUI.LabelField(faction, "Faction");
                     EditorGUI.LabelField(elite, "Elite");
                     EditorGUI.LabelField(patrols, "Patrols");
                     EditorGUI.LabelField(field, "Field");
+                    line.y += Line;
+                    EditorGUI.LabelField(LocaleLine(line), "Locale");
                 },
                 elementHeightCallback = i => RowHeight(table.serializedProperty.GetArrayElementAtIndex(i)),
                 drawElementCallback = (rect, i, _, _) => DrawRow(rect, i, table.serializedProperty.GetArrayElementAtIndex(i))
@@ -51,19 +54,22 @@ namespace Substrate.Sessions
         private static void DrawRow(Rect rect, int i, SerializedProperty row)
         {
             var line = new Rect(rect.x, rect.y + 2f, rect.width, EditorGUIUtility.singleLineHeight);
-            var (index, sector, locale, faction, elite, patrols, field) = Columns(line);
+            var (index, sector, faction, elite, patrols, field) = Columns(line);
             EditorGUI.LabelField(index, (i + 1).ToString());
             Draw(sector, row, nameof(SectorEntry.prefab));
+            Draw(faction, row, nameof(SectorEntry.faction));
+            Draw(elite, row, nameof(SectorEntry.elite));
+            Draw(patrols, row, nameof(SectorEntry.patrols));
+            Draw(field, row, nameof(SectorEntry.field));
+
+            line.y += Line;
+            var locale = LocaleLine(line);
             var random = row.FindPropertyRelative(nameof(SectorEntry.random));
             random.boolValue = EditorGUI.ToggleLeft(new Rect(locale.x, locale.y, RandomWidth, locale.height),
                 "Random", random.boolValue);
             if (!random.boolValue)
                 Draw(new Rect(locale.x + RandomWidth, locale.y, locale.width - RandomWidth, locale.height), row,
                     nameof(SectorEntry.locale));
-            Draw(faction, row, nameof(SectorEntry.faction));
-            Draw(elite, row, nameof(SectorEntry.elite));
-            Draw(patrols, row, nameof(SectorEntry.patrols));
-            Draw(field, row, nameof(SectorEntry.field));
 
             line.y += Line;
             row.isExpanded = EditorGUI.Foldout(line, row.isExpanded, "Roster and phases", true);
@@ -81,7 +87,7 @@ namespace Substrate.Sessions
 
         private static float RowHeight(SerializedProperty row)
         {
-            var height = 2f * Line + 4f;
+            var height = 3f * Line + 4f;
             if (!row.isExpanded) return height;
             foreach (var name in Unfolded)
                 height += EditorGUI.GetPropertyHeight(row.FindPropertyRelative(name), true) +
@@ -92,8 +98,11 @@ namespace Substrate.Sessions
         private static void Draw(Rect rect, SerializedProperty row, string name) =>
             EditorGUI.PropertyField(rect, row.FindPropertyRelative(name), GUIContent.none);
 
-        private static (Rect index, Rect sector, Rect locale, Rect faction, Rect elite, Rect patrols, Rect field)
-            Columns(Rect rect)
+        // The locale controls get a line of their own, so a docked Inspector never squeezes the Random toggle.
+        private static Rect LocaleLine(Rect line) =>
+            new(line.x + IndexWidth + Gap, line.y, line.width - IndexWidth - Gap, line.height);
+
+        private static (Rect index, Rect sector, Rect faction, Rect elite, Rect patrols, Rect field) Columns(Rect rect)
         {
             var column = (rect.width - IndexWidth - PatrolsWidth - (WideColumns + 1) * Gap) / WideColumns;
             var x = rect.x;
@@ -103,8 +112,7 @@ namespace Substrate.Sessions
                 x += width + Gap;
                 return next;
             }
-            return (Next(IndexWidth), Next(column), Next(column), Next(column), Next(column), Next(PatrolsWidth),
-                Next(column));
+            return (Next(IndexWidth), Next(column), Next(column), Next(column), Next(PatrolsWidth), Next(column));
         }
     }
 }
