@@ -41,6 +41,10 @@ namespace Substrate.Services.Objectives
 
         IReadOnlyList<FindMarker> Finds { get; }
 
+        SectorBoost ShowBoost(string label);
+
+        IReadOnlyList<SectorBoost> Boosts { get; }
+
         void ClearAll();
     }
 }

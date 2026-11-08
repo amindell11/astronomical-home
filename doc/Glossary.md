@@ -669,8 +669,14 @@ Format: **term** — definition. *(authority)*
   dark. The hunt's alarm darkens it too, and whatever supply was left is lost.
   Hull carries into the next sector. The first *station* kind. *(RepairStation,
   RepairStationFeelProfile)*
+- **weapon cache** — the second *station* kind: a *find* each combat sector
+  places, two by default, spaced from each other and from the repair stations.
+  The first fly-in adds a damage mod to the run's mods until the sector ends,
+  then the cache goes dark. That boost adds to lull picks rather than
+  multiplying them, and the HUD lists it while it lasts as a *sector boost*.
+  *(WeaponCache, WeaponCacheFeelProfile, IObjectiveService.ShowBoost)*
 - **find** — a sector object the player goes looking for and uses once:
-  repair stations now, the weapon cache and armory next. A live find registers
+  repair stations and weapon caches now, the armory next. A live find registers
   with the objective service. In range the minimap shows the find's own
   marker; out of range, an *edge pointer* (its icon pinned to the minimap rim,
   aimed at it). Patrols get no edge pointer. One find colour for every kind,

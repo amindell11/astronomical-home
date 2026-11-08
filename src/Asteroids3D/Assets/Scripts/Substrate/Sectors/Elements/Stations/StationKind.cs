@@ -1,4 +1,4 @@
 namespace Substrate.Sectors.Elements.Stations
 {
-    public enum StationKind { Repair }
+    public enum StationKind { Repair, Cache }
 }
