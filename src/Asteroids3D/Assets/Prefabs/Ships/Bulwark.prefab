@@ -312,10 +312,20 @@ PrefabInstance:
       propertyPath: m_Name
       value: Bulwark
       objectReference: {fileID: 0}
+    - target: {fileID: 1420000000000000006, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.706
+      objectReference: {fileID: 0}
+    - target: {fileID: 1420000000000000006, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.492
+      objectReference: {fileID: 0}
     - target: {fileID: 1420000000000000002, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -1.023
+      value: 1.023
       objectReference: {fileID: 0}
     - target: {fileID: 1420000000000000002, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
@@ -330,7 +340,7 @@ PrefabInstance:
     - target: {fileID: 1420000000000000004, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 1.023
+      value: -1.023
       objectReference: {fileID: 0}
     - target: {fileID: 1420000000000000004, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}

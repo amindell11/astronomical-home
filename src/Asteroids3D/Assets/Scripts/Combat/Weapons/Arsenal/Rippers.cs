@@ -18,6 +18,7 @@ namespace Combat.Weapons.Arsenal
         [Stat, SerializeField] private Rounds rounds;
         [Stat, SerializeField] private Cooldown cooldown;
 
+        public override bool DualFire => true;
         public override float ProjectileSpeed => projectilePrefab.LaserSpeed;
         public override float FireRange => fireDistance;
         public Rounds Rounds => rounds;

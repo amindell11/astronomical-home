@@ -28,7 +28,10 @@ namespace Tests.EditMode.Ships
         private const string HullSlot = Rig + "/Hull";
         private const string Exhaust = Rig + "/Thruster/EngineExhaust";
         private const string TwinExhaust = Rig + "/Thruster/EngineExhaustTwin";
-        private static readonly string[] Sockets = { "Hardpoints/Primary", "Hardpoints/Secondary", Exhaust };
+        private const string Centre = "Hardpoints/Centre";
+        private const string Left = "Hardpoints/Left";
+        private const string Right = "Hardpoints/Right";
+        private static readonly string[] Sockets = { Centre, Left, Right, Exhaust };
 
         private static readonly (string path, System.Type type, string propertyPrefix)[] Slots =
         {
@@ -143,9 +146,19 @@ namespace Tests.EditMode.Ships
                     Assert.That(root.transform.InverseTransformPoint(root.transform.Find(socket).position).y, Is.LessThan(hull.center.y - hull.extents.y * .5f),
                         $"{socket}: the engine exhaust sits aft of the hull; the prow faces +Y.");
             }
-            foreach (var hardpoint in new[] { "Hardpoints/Primary", "Hardpoints/Secondary" })
-                Assert.That(root.transform.InverseTransformPoint(root.transform.Find(hardpoint).position).y, Is.GreaterThan(exhaust.y), hardpoint);
+            foreach (var hardpoint in new[] { Centre, Left, Right })
+                Assert.That(LocalPosition(root, hardpoint).y, Is.GreaterThan(exhaust.y), hardpoint);
+            var centre = LocalPosition(root, Centre);
+            var left = LocalPosition(root, Left);
+            var right = LocalPosition(root, Right);
+            Assert.That(centre.x, Is.EqualTo(0f).Within(1e-4f), $"{Centre}: the centre socket sits on the centreline.");
+            Assert.That(centre.y, Is.GreaterThan(Mathf.Max(left.y, right.y)), $"{Centre}: the centre socket sits forward of the side pair.");
+            Assert.That(left.x, Is.LessThan(0f), $"{Left}: with the prow up under the game camera, +X is the right side.");
+            Assert.That(right.x, Is.GreaterThan(0f), $"{Right}: with the prow up under the game camera, +X is the right side.");
         }
+
+        private static Vector3 LocalPosition(GameObject root, string path) =>
+            root.transform.InverseTransformPoint(root.transform.Find(path).position);
 
         [TestCaseSource(nameof(MigratedChassis))]
         public void Chassis_HullSlotHoldsItsOwnRoleMeshes(string path)

@@ -21,16 +21,12 @@ namespace Ships.Weapons
         [Stat, SerializeField] internal WeaponComponent primaryMount;
         [Stat, SerializeField] internal WeaponComponent secondaryMount;
 
-        /// <summary>A slot's mount point on the hull: the weapon instantiates here and fires from it.</summary>
-        [Serializable]
-        internal struct Hardpoint
-        {
-            public WeaponSlot slot;
-            public Transform mount;
-        }
-
-        [Tooltip("Per-slot mount transforms on the hull. A slot with no entry falls back to this transform.")]
-        [SerializeField] private Hardpoint[] hardpoints;
+        [Tooltip("The hull's centreline socket at the nose; single-fire weapons fire every shot from it.")]
+        [SerializeField] internal Transform centreSocket;
+        [Tooltip("The hull's left side socket; dual-fire weapons alternate shots between it and the right one.")]
+        [SerializeField] internal Transform leftSocket;
+        [Tooltip("The hull's right side socket; dual-fire weapons alternate shots between it and the left one.")]
+        [SerializeField] internal Transform rightSocket;
 
         public WeaponComponent Primary { get; private set; }
         public WeaponComponent Secondary { get; private set; }
@@ -51,9 +47,18 @@ namespace Ships.Weapons
 
         private void Awake()
         {
-            Primary = ReplaceMount(null, primaryMount, WeaponSlot.Primary);
-            Secondary = ReplaceMount(null, secondaryMount, WeaponSlot.Secondary);
+            RequireSocket(centreSocket, "Centre");
+            RequireSocket(leftSocket, "Left");
+            RequireSocket(rightSocket, "Right");
+            Primary = ReplaceMount(null, primaryMount);
+            Secondary = ReplaceMount(null, secondaryMount);
             Sensor = FindMountSensor();
+        }
+
+        private void RequireSocket(Transform socket, string side)
+        {
+            if (!socket)
+                throw new InvalidOperationException($"{name}: WeaponsController needs the hull's {side} socket (Hardpoints/{side}).");
         }
 
         /// <summary>Mount swap (null = empty slot): unchanged slots keep their live instance, changed slots re-instantiate and the context refreshes in place so held references stay valid.</summary>
@@ -64,13 +69,13 @@ namespace Ships.Weapons
             if (newPrimary != primaryMount)
             {
                 primaryMount = newPrimary;
-                Primary = ReplaceMount(Primary, newPrimary, WeaponSlot.Primary);
+                Primary = ReplaceMount(Primary, newPrimary);
                 changed = true;
             }
             if (newSecondary != secondaryMount)
             {
                 secondaryMount = newSecondary;
-                Secondary = ReplaceMount(Secondary, newSecondary, WeaponSlot.Secondary);
+                Secondary = ReplaceMount(Secondary, newSecondary);
                 changed = true;
             }
 
@@ -134,7 +139,7 @@ namespace Ships.Weapons
 
         private void RaiseFired() => Fired?.Invoke();
 
-        private WeaponComponent ReplaceMount(WeaponComponent current, WeaponComponent prefab, WeaponSlot slot)
+        private WeaponComponent ReplaceMount(WeaponComponent current, WeaponComponent prefab)
         {
             if (current)
             {
@@ -145,7 +150,8 @@ namespace Ships.Weapons
             }
 
             if (!prefab) return null;
-            var mounted = Instantiate(prefab, ResolveMount(slot));
+            var mounted = Instantiate(prefab, transform);
+            mounted.Initialize(centreSocket, leftSocket, rightSocket);
             mounted.OnFire += RaiseFired;
             return mounted;
         }
@@ -156,19 +162,6 @@ namespace Ships.Weapons
             if (Primary && Primary.TryGetComponent(out LockOnSensor primarySensor)) return primarySensor;
             if (Secondary && Secondary.TryGetComponent(out LockOnSensor secondarySensor)) return secondarySensor;
             return null;
-        }
-
-        /// <summary>The authored mount for a slot, or this transform (ship origin) when none is set.</summary>
-        internal Transform ResolveMount(WeaponSlot slot) => ResolveMount(hardpoints, slot, transform);
-
-        /// <summary>Pure slot→mount lookup: the matching hardpoint's mount, else <paramref name="fallback"/>.</summary>
-        internal static Transform ResolveMount(Hardpoint[] hardpoints, WeaponSlot slot, Transform fallback)
-        {
-            if (hardpoints != null)
-                foreach (var hp in hardpoints)
-                    if (hp.slot == slot && hp.mount)
-                        return hp.mount;
-            return fallback;
         }
 
         /// <summary>Supplies the ship pose used to build each slot's firing solution.</summary>

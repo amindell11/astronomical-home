@@ -781,6 +781,16 @@ Format: **term** — definition. *(authority)*
   it reaches the brain on `AIContext`, never on `IShipStatus`, because it is
   how the AI uses a weapon, not a fact about the ship. Not a firing range.
   *(`WeaponComponent.HoldRange`; #1139)*
+- **single fire** — a weapon fires every shot from the hull's centre socket, on its
+  centreline at the nose. Every weapon that is not dual fire fires this way.
+  *(`WeaponComponent.DualFire`; #1410)*
+- **dual fire** — a weapon alternates its shots between the hull's left and right
+  sockets, one projectile per shot at the weapon's own fire rate. The owner ruled
+  alternation over both sides at once (2026-11-08). Left and right are the sides the
+  player sees with the prow up under the game camera, so left is the hull's local -X.
+  The weapon's class owns the choice, so Missiles, Concussion and the Railgun have no
+  switch to author: Rippers are always dual fire, and the TurboLasers variant turns
+  on the Lasers switch. *(`WeaponComponent.DualFire`; #1410)*
 - **velocity reference / feasibility tracker** — the RL↔MPC boundary: the policy
   emits a planar velocity and MPC is demoted to a ~2s tracker (feasibility, aim,
   velocity-track).

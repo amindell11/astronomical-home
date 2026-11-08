@@ -29,6 +29,7 @@ namespace Combat.Weapons
     public abstract class WeaponComponent : MonoBehaviour
     {
         public Transform firePoint;
+        private Transform otherSide;
 
         public Vector3 FireOrigin => GamePlane.WorldPointOnPlane((firePoint ? firePoint : transform).position);
         public Vector3 FireDirection => GamePlane.WorldDirOnPlane((firePoint ? firePoint : transform).up);
@@ -57,6 +58,16 @@ namespace Combat.Weapons
                 condition.Initialize(this);
                 condition.SetMods(Mods);
             }
+        }
+
+        /// <summary>Alternates shots between the hull's left and right sockets; false fires every shot from the centre.</summary>
+        public virtual bool DualFire => false;
+
+        /// <summary>Hands this mount its hull sockets, once, at mount.</summary>
+        public void Initialize(Transform centre, Transform left, Transform right)
+        {
+            firePoint = DualFire ? left : centre;
+            otherSide = DualFire ? right : null;
         }
 
         /// <summary>Puts <paramref name="mods"/> in force on this mount and its conditions; pre-Awake they are handed down in Awake.</summary>
@@ -201,6 +212,8 @@ namespace Combat.Weapons
         protected void InvokeOnFire()
         {
             OnFire?.Invoke();
+            // After the handlers, so the fire sound plays at the side that fired.
+            if (otherSide) (firePoint, otherSide) = (otherSide, firePoint);
         }
     }
 }
