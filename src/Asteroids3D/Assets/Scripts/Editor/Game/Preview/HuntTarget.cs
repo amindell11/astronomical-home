@@ -25,7 +25,7 @@ namespace Game.Preview
             .Select(entry => Profile(entry.owner, entry.field))
             .Distinct();
 
-        // Read through serialization, so the hunt, the station and the cache grow no member for the preview.
+        // Read through serialization, so the profile owners grow no member for the preview.
         private static ScriptableObject Profile(Object owner, string field)
         {
             using var serialized = new SerializedObject(owner);
