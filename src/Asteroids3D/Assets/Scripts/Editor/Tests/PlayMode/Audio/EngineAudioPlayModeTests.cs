@@ -47,7 +47,7 @@ namespace Tests.PlayMode.Audio
         }
 
         private ShipView View() =>
-            new(host.transform, null, () => command, null, false, null);
+            new(host.transform, null, () => command, null, false);
 
         [UnityTest]
         public IEnumerator BoundEngine_PlaysOneInstance_FedTheCommand()

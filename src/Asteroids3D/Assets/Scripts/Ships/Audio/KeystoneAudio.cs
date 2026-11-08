@@ -20,16 +20,11 @@ namespace Ships.Audio
         [SerializeField] private EventReference activationEvent;
 
         private int heardActivations;
-        private bool wasActive;
         private EventInstance instance;
 
         public void ApplyPresentation(bool visible) => enabled = visible;
 
-        private void OnEnable()
-        {
-            heardActivations = keystone.Activations;
-            wasActive = keystone.Active;
-        }
+        private void OnEnable() => heardActivations = keystone.Activations;
 
         private void OnDisable()
         {
@@ -45,9 +40,8 @@ namespace Ships.Audio
                 Begin();
             heardActivations = keystone.Activations;
 
-            if (wasActive && !keystone.Active)
+            if (!keystone.Active)
                 KeyOff();
-            wasActive = keystone.Active;
         }
 
         private void Begin()

@@ -91,7 +91,7 @@ namespace Tests.PlayMode.Audio
 
             var states = Instances(description).Select(State).ToArray();
             Debug.Log($"[FMOD] {OverdriveEvent} {FadeSeconds}s after the window: {string.Join(",", states)}");
-            Assert.That(states, Has.None.EqualTo(PLAYBACK_STATE.PLAYING), "the window's end fades out the 12 s clip");
+            Assert.That(states, Has.All.EqualTo(PLAYBACK_STATE.STOPPED), "the window's end fades out the 12 s clip");
         }
 
         [UnityTest]
@@ -111,6 +111,7 @@ namespace Tests.PlayMode.Audio
             var kit = Kit();
             PresentationApplier.Apply(kit.gameObject, false);
             Activate(kit);
+            yield return null;
             yield return Flush();
             Assert.AreEqual(0, Instances(description).Length, "presentation off starts nothing");
         }
