@@ -118,6 +118,19 @@ namespace Tests.EditMode.Companion
         }
 
         [Test]
+        public void ShippedSheet_HasALineSlotForEveryInRunMoment()
+        {
+            var sheet = AssetDatabase.LoadAssetAtPath<CompanionLineSheet>(SheetPath);
+
+            foreach (var moment in new[]
+                     {
+                         SectorEntered.SectorSlot, BeaconClaimed.BeaconSlot, LullPickTaken.PickSlot,
+                         CloseCall.CloseCallSlot,
+                     })
+                Assert.DoesNotThrow(() => sheet.Find(moment), $"{moment} has a line slot");
+        }
+
+        [Test]
         public void ShippedGameHost_ReferencesTheShippedSheetAndFeel()
         {
             var host = AssetDatabase.LoadAssetAtPath<GameHost>(GameHostPath);

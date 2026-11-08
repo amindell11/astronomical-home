@@ -28,3 +28,15 @@ MonoBehaviour:
   - moment: death
     mustSay: 1
     lines: []
+  - moment: sector-entered
+    mustSay: 0
+    lines: []
+  - moment: beacon-claimed
+    mustSay: 0
+    lines: []
+  - moment: lull-pick
+    mustSay: 0
+    lines: []
+  - moment: close-call
+    mustSay: 0
+    lines: []
