@@ -1,0 +1,27 @@
+{
+  "reviewer": "gpt-6.1-sol",
+  "scope": "Lower and warm the lighting; uneven casing ink, painted shadows and wear; exact shared-font labels and calibrated dial marks. Geometry and camera fixed.",
+  "rounds": [
+    {
+      "candidate": "Direction review against23 and lighting01",
+      "feedback": "Use the dim warm control area in lighting01 as the primary reference. Reduce broad illumination, soften the orange cone, put uneven shadows/wear near contact edges, and make text and dial scales mechanically exact.",
+      "action": "Lowered broad light and background brightness, warmed the hologram/display tint, varied ink pressure, authored painted masks and rebuilt the manufactured markings."
+    },
+    {
+      "candidate": "draft-01",
+      "feedback": "Lighting and uneven casing ink are on direction. Several polygon marks look like applied tape or repair stickers. Blend them into existing folds with lower contrast and feathered brush ends. Reduce the projection label width. Dial marks are regular.",
+      "action": "Moved shadows against existing folds and contact edges, reduced their contrast, feathered boundaries, removed extra outline strokes and repeated decorative slashes, and resized the shared-font label with physical aspect preserved."
+    },
+    {
+      "candidate": "draft-02",
+      "feedback": "Clear draft02. No remaining actionable feedback within this scope. The dim warm lighting now follows the primary reference's local electronic glow. Uneven casing ink, integrated painted shadows, chips and scuffs break the uniform surface treatment. Labels and calibrated dial arcs remain clean and regular. Both camera and neutral views pass; the sticker-like patches are resolved.",
+      "action": "Saved the reviewed candidate unchanged as console.blend."
+    }
+  ],
+  "finalSha256": {
+    "blend": "7c68dcd84477ea81881bdb398740aea6ad8d76b0fcfe5dd576079df2f5b33da2",
+    "camera": "c450cc513381098930e3699a747ad42504178c26092e3e6ddd5d0bb8d2967b24",
+    "inspection": "3f8ad271039cc8072d34ff82bb36cbb5377c44cf48dad2a24a6446d832f9cb15"
+  },
+  "status": "Sol review complete. No remaining actionable feedback. Owner review pending."
+}
