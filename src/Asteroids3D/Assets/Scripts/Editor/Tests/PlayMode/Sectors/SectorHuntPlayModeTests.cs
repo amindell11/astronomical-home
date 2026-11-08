@@ -23,6 +23,7 @@ using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
+using Substrate.Sessions;
 
 namespace Tests.PlayMode.Sectors
 {
@@ -40,6 +41,7 @@ namespace Tests.PlayMode.Sectors
         private ObjectiveService _objectives;
         private readonly List<Object> _created = new();
         private readonly List<string> _beats = new();
+        private int _patrols;
 
         [SetUp]
         public override void SetUp()
@@ -73,13 +75,13 @@ namespace Tests.PlayMode.Sectors
             var sectorGO = Track(new GameObject("HuntedSector"));
             hunt.transform.SetParent(sectorGO.transform, false);
             var director = Child(sectorGO, "WaveDirector").AddComponent<WaveDirector>();
-            director.Configure(new[] { new WaveDirector.RosterEntry { template = template } },
-                new[] { new SectorPhase { seconds = 30f, interval = 30f, cap = 0 } }, openingLullSeconds: 5f, hunt: hunt);
+            var row = HuntRow(template, new SectorPhase { seconds = 30f, interval = 30f, cap = 0 });
+            director.Configure(row.roster, row.phases, openingLullSeconds: 5f, hunt: hunt);
             var spine = sectorGO.AddComponent<PhaseSpineModule>();
             spine.Bind(director, NewZone(sectorGO, "Zone"), NewZone(sectorGO, "Beacon"), hunt: hunt);
             var sector = sectorGO.AddComponent<Sector>();
             sector.SetManifest(null, new SectorSpawner[] { director, hunt }, new SectorModule[] { spine });
-            sector.Initialize(_unitService, _objectives, true, default, hero, SectorIndex);
+            sector.Initialize(_unitService, _objectives, true, default, hero, row, SectorIndex);
 
             yield return sector.Setup();
             yield return null;
@@ -207,12 +209,11 @@ namespace Tests.PlayMode.Sectors
             var sectorGO = Track(new GameObject("HuntedSector"));
             hunt.transform.SetParent(sectorGO.transform, false);
             var director = Child(sectorGO, "WaveDirector").AddComponent<WaveDirector>();
-            director.Configure(new[] { new WaveDirector.RosterEntry { template = template } },
-                new[] { new SectorPhase { seconds = 60f, interval = .25f, cap = cap } }, openingLullSeconds: 5f,
-                hunt: hunt);
+            var row = HuntRow(template, new SectorPhase { seconds = 60f, interval = .25f, cap = cap });
+            director.Configure(row.roster, row.phases, openingLullSeconds: 5f, hunt: hunt);
             var sector = sectorGO.AddComponent<Sector>();
             sector.SetManifest(null, new SectorSpawner[] { director, hunt }, null);
-            sector.Initialize(_unitService, _objectives, true, default, hero, SectorIndex);
+            sector.Initialize(_unitService, _objectives, true, default, hero, row, SectorIndex);
 
             yield return sector.Setup();
             yield return WaitSeconds(() => director.Spawned.Count > 0, 3f);
@@ -241,7 +242,7 @@ namespace Tests.PlayMode.Sectors
             feel.sightRadius = sightRadius;
             feel.callInSeconds = callInSeconds;
             feel.searchSeconds = searchSeconds;
-            feel.patrolsPerSector = new[] { 0, patrols };
+            _patrols = patrols;
             var hunt = Track(new GameObject("Hunt")).AddComponent<SectorHunt>();
             var faction = Track(ScriptableObject.CreateInstance<Faction>());
             faction.common = new FactionShip
@@ -258,9 +259,17 @@ namespace Tests.PlayMode.Sectors
             return hunt;
         }
 
+        private SectorEntry HuntRow(Ship template = null, SectorPhase phase = default) => new()
+        {
+            roster = new[] { new WaveDirector.RosterEntry { template = template } },
+            phases = new[] { phase },
+            patrols = _patrols
+        };
+
         private IEnumerator Build(SectorHunt hunt, Ship hero) =>
             hunt.Build(new SectorBuildContext(_unitService, _objectives, true,
-                Track(new GameObject("Sector")).AddComponent<Sector>(), default, hero: hero, sectorIndex: SectorIndex));
+                Track(new GameObject("Sector")).AddComponent<Sector>(), default, hero: hero, sectorIndex: SectorIndex,
+                row: HuntRow()));
 
         private static Ship Patrol(SectorHunt hunt)
         {

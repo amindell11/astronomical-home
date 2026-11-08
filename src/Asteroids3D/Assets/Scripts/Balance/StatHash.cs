@@ -7,7 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Ships;
 using Ships.Loadout;
-using Substrate.Sectors;
+using Substrate.Sessions;
 using Object = UnityEngine.Object;
 
 namespace Balance
@@ -36,9 +36,9 @@ namespace Balance
         /// <summary>The loadout stat hash; the same on a spawned instance and on its prefab asset.</summary>
         public static string OfLoadout(Ship ship) => Of(ship);
 
-        /// <summary>The stat fingerprint: the hangar's offer, the spawners of the run's sectors in order, and the kill refill.</summary>
-        public static string OfSetting(ItemSubset hangarOffer, IEnumerable<Sector> sectorPrefabs, float killHullRestore) =>
-            Digest(SettingLines(hangarOffer, sectorPrefabs, killHullRestore));
+        /// <summary>The stat fingerprint: the hangar's offer, each run row and its layout in order, and the kill refill.</summary>
+        public static string OfSetting(ItemSubset hangarOffer, IEnumerable<SectorEntry> rows, float killHullRestore) =>
+            Digest(SettingLines(hangarOffer, rows, killHullRestore));
 
         internal static SortedSet<string> Lines(Object item)
         {
@@ -47,7 +47,7 @@ namespace Balance
             return lines;
         }
 
-        internal static SortedSet<string> SettingLines(ItemSubset hangarOffer, IEnumerable<Sector> sectorPrefabs,
+        internal static SortedSet<string> SettingLines(ItemSubset hangarOffer, IEnumerable<SectorEntry> rows,
             float killHullRestore)
         {
             var lines = NewLines();
@@ -55,10 +55,14 @@ namespace Balance
 
             // Keyed by position, so the run's order and its repeats are part of the setting.
             var index = 0;
-            foreach (var sectorPrefab in sectorPrefabs)
+            foreach (var row in rows)
             {
                 var sectorLines = NewLines();
-                Visit(sectorPrefab, sectorLines, new HashSet<Object>());
+                var visited = new HashSet<Object>();
+                Visit(row.prefab, sectorLines, visited);
+                foreach (var field in StatFields(typeof(SectorEntry)))
+                    Read($"row/{nameof(SectorEntry)}.{field.Name}", field.GetValue(row), sectorLines, visited,
+                        field.GetCustomAttribute<StatAttribute>().Ordered);
                 foreach (var line in sectorLines)
                     lines.Add($"sector[{index}]/{line}");
                 index++;

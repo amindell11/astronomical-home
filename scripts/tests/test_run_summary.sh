@@ -27,7 +27,7 @@ cat > "$TMP/run-records.jsonl" <<EOF
 {"schema":"run-record-v1","endedUtc":"2026-10-01T12:34:56Z","sector":"TrialSector","buildIdentity":{"commit":"abc123de4567890f","dirty":true},"statFingerprint":"f0e1d2c3b4a59687","player":$PLAYER,"kills":3,"secondsSurvived":42.5,"damage":[{"kind":"Laser","total":25.0,"hits":2,"source":"Ship_2","spawn":1},{"kind":"Collision","total":40.0,"hits":1,"source":"asteroid","spawn":-1}],"killingBlow":{"kind":"Laser","spawn":1},"spawns":[{"spawnSeconds":1.0,"pilot":"AICommander","loadout":$(lasers 1111111111111111),"aliveSeconds":10.0,"killedByPlayer":true},{"spawnSeconds":2.0,"pilot":"AICommander","loadout":$RIPPERS,"aliveSeconds":40.5,"killedByPlayer":false}]}
 {"schema":"run-record-v1","endedUtc":"2026-10-01T13:00:00Z","sector":"TrialSector","buildIdentity":{"commit":"abc123de4567890f","dirty":false},"statFingerprint":"f0e1d2c3b4a59687","player":$PLAYER,"kills":1,"secondsSurvived":21.5,"damage":[{"kind":"Laser","total":30.0,"hits":3,"source":"Ship_2","spawn":0}],"killingBlow":{"kind":"Collision","spawn":-1},"spawns":[{"spawnSeconds":0.0,"pilot":"AICommander","loadout":$(lasers 1111111111111111),"aliveSeconds":5.0,"killedByPlayer":true},{"spawnSeconds":13.5,"pilot":"AICommander","loadout":$(lasers 3333333333333333),"aliveSeconds":8.0,"killedByPlayer":false}]}
 {"schema":"run-record-v1","endedUtc":"2026-10-02T09:00:00Z","sector":"TrialSector","buildIdentity":{"commit":"0f9e8d7c6b5a4321","dirty":false},"statFingerprint":"0123456789abcdef","player":$PLAYER,"kills":5,"secondsSurvived":60.0,"damage":[{"kind":"Laser","total":12.5,"hits":1,"source":"Ship_2","spawn":0}],"killingBlow":{"kind":"Laser","spawn":0},"spawns":[{"spawnSeconds":4.0,"pilot":"AICommander","loadout":$RIPPERS,"aliveSeconds":30.5,"killedByPlayer":true}]}
-{"schema":"run-record-v2","endedUtc":"2026-10-03T10:00:00Z","outcome":"extracted","sectorsCleared":3,"sector":"TrialSector3","buildIdentity":{"commit":"0f9e8d7c6b5a4321","dirty":false},"statFingerprint":"0123456789abcdef","player":$PLAYER,"kills":7,"secondsSurvived":480.0,"damage":[],"killingBlow":{"kind":"","spawn":-1},"spawns":[]}
+{"schema":"run-record-v2","endedUtc":"2026-10-03T10:00:00Z","outcome":"extracted","sectorsCleared":3,"sector":"Sector 3","buildIdentity":{"commit":"0f9e8d7c6b5a4321","dirty":false},"statFingerprint":"0123456789abcdef","player":$PLAYER,"kills":7,"secondsSurvived":480.0,"damage":[],"killingBlow":{"kind":"","spawn":-1},"spawns":[]}
 EOF
 
 # Column padding squeezed to one space, so a row is asserted without its alignment.
@@ -42,7 +42,7 @@ LASERS_CELL="Ship_2 / Racer_Engine / Light_Shield / Lasers / -"
 RIPPERS_CELL="Ship_2 / Racer_Engine / Light_Shield / Rippers / Missiles"
 
 has "## Runs on stat fingerprint f0e1d2c3b4a59687 (TrialSector)" "a Runs table per stat fingerprint"
-has "## Runs on stat fingerprint 0123456789abcdef (TrialSector, TrialSector3)" "a Runs table per stat fingerprint"
+has "## Runs on stat fingerprint 0123456789abcdef (Sector 3, TrialSector)" "a Runs table per stat fingerprint"
 has "| 2026-10-01T12:34:56Z | abc123de+dirty | $PLAYER_CELL | died (0 cleared) | 3 | 42.5 | Laser from $RIPPERS_CELL | |" "run row"
 has "| 2026-10-01T13:00:00Z | abc123de | $PLAYER_CELL | died (0 cleared) | 1 | 21.5 | Collision (no ship) | mixed |" "mixed run row"
 has "| 2026-10-02T09:00:00Z | 0f9e8d7c | $PLAYER_CELL | died (0 cleared) | 5 | 60 | Laser from $RIPPERS_CELL | |" "a v1 record reads as a death"

@@ -12,7 +12,7 @@ using Substrate.Sectors.Activation;
 
 namespace Substrate.Sectors
 {
-    /// <summary>The single concrete play-sector: owns manifest content + modules; the hero is session-lifetime and injected by the host through <see cref="Initialize"/>. Combat/Arena/Testbench are prefabs differing only in manifest.</summary>
+    /// <summary>The single concrete play-sector: owns manifest content + modules; the hero is session-lifetime and injected by the host through <see cref="Initialize"/>, with the run row whose values the parts read. Combat/Arena/Testbench are prefabs differing only in manifest.</summary>
     public class Sector : MonoBehaviour, ISector
     {
         public event Action<SectorResult> OnSectorComplete;
@@ -67,20 +67,30 @@ namespace Substrate.Sectors
             GamePlane.WorldPointToPlane((startPointMarker ? startPointMarker.transform : transform).position);
 
         public void Initialize(IUnitService units, IObjectiveService objectives, bool presentationEnabled,
-            SessionFrame frame, Ship hero, int sectorIndex = 0)
+            SessionFrame frame, Ship hero, SectorEntry row, int sectorIndex = 0)
         {
             Units = units ?? throw new ArgumentNullException(nameof(units));
             Objectives = objectives ?? throw new ArgumentNullException(nameof(objectives));
+            if (row == null) throw new ArgumentNullException(nameof(row));
             PresentationEnabled = presentationEnabled;
             Context = new SectorBuildContext(Units, Objectives, PresentationEnabled, this, frame, ObstacleField, hero,
-                sectorIndex: sectorIndex);
+                sectorIndex: sectorIndex, row: row);
+        }
+
+        /// <summary>Throws when <paramref name="row"/> lacks a value a part of this layout reads; a prefab asset answers too.</summary>
+        public void CheckRow(SectorEntry row)
+        {
+            foreach (var spawner in spawners)
+                if (spawner && spawner is ISectorRowReader reader) reader.CheckRow(row);
+            foreach (var module in modules)
+                if (module && module is ISectorRowReader reader) reader.CheckRow(row);
         }
 
         public IEnumerator Setup()
         {
             // Fresh bus each cycle so a restart never sees stale latched tokens (episode-reset requirement).
             Context = new SectorBuildContext(Units, Objectives, PresentationEnabled, this, Context.Frame,
-                Context.Field, Context.Hero, new SectorEventBus(), Context.SectorIndex);
+                Context.Field, Context.Hero, new SectorEventBus(), Context.SectorIndex, Context.Row);
 
             foreach (var t in adopted)
                 AdoptShip(t);

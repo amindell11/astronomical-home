@@ -15,6 +15,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
+using Substrate.Sessions;
 
 namespace Tests.PlayMode.Sectors
 {
@@ -273,7 +274,6 @@ namespace Tests.PlayMode.Sectors
         {
             var feel = Track(ScriptableObject.CreateInstance<HuntFeelProfile>());
             feel.searchSeconds = 1000f;
-            feel.patrolsPerSector = new[] { 0, 0, 0 };
             var hunt = Track(new GameObject("Hunt")).AddComponent<SectorHunt>();
             hunt.Configure(feel, null, null, 0f);
             Drive(hunt.Build(Context(hero)));
@@ -302,7 +302,7 @@ namespace Tests.PlayMode.Sectors
         }
 
         private SectorBuildContext Context(Ship hero) =>
-            new(null, _objectives, true, null, default, hero: hero, sectorIndex: SectorIndex);
+            new(null, _objectives, true, null, default, hero: hero, sectorIndex: SectorIndex, row: new SectorEntry());
 
         // Exactly the live stations are finds, with the module's icon and find-layer markers.
         private void AssertFinds(RepairStation module, params RepairStation.Station[] live)

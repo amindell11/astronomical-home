@@ -9,7 +9,6 @@ using Capture.Views;
 using Game;
 using Game.Preview;
 using NUnit.Framework;
-using Substrate.Sectors;
 using Substrate.Services.Locales;
 using Substrate.Sessions;
 using Tests.PlayMode.Common;
@@ -32,11 +31,8 @@ namespace Tests.PlayMode.Scenarios
             var host = root.AddComponent<PreviewHost>();
             host.sessionProfile = new SessionProfile
             {
-                run = SectorRun.Create(new SectorEntry
-                {
-                    prefab = AssetDatabase.LoadAssetAtPath<Sector>("Assets/Prefabs/Sectors/TrialSector.prefab"),
-                    locale = AssetDatabase.LoadAssetAtPath<LocaleSky>("Assets/Prefabs/Locales/IllustratedBlue.prefab")
-                }),
+                run = SectorRun.Create(TestAssets.TrialRow(0)
+                    .WithLocale(AssetDatabase.LoadAssetAtPath<LocaleSky>("Assets/Prefabs/Locales/IllustratedBlue.prefab"))),
                 presentation = true
             };
             host.gameHostPrefab = AssetDatabase.LoadAssetAtPath<GameHost>("Assets/Prefabs/Game/GameHost.prefab");

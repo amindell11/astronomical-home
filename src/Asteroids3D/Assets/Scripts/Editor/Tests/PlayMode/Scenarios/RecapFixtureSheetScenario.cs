@@ -11,7 +11,6 @@ using Game;
 using Game.Preview;
 using NUnit.Framework;
 using Ships;
-using Substrate.Sectors;
 using Substrate.Services.Locales;
 using Substrate.Sessions;
 using Tests.PlayMode.Common;
@@ -31,7 +30,6 @@ namespace Tests.PlayMode.Scenarios
     public sealed class RecapFixtureSheetScenario : CaptureScenario
     {
         private const string GameHostPath = "Assets/Prefabs/Game/GameHost.prefab";
-        private const string SectorPrefabPath = "Assets/Prefabs/Sectors/TrialSector.prefab";
         private const string LocalePath = "Assets/Prefabs/Locales/IllustratedBlue.prefab";
         private const string PanelTitle = "Preview Host";
         private static readonly (int width, int height)[] Sizes = { (1280, 720), (1680, 720) };
@@ -87,11 +85,7 @@ namespace Tests.PlayMode.Scenarios
             host = hostGo.AddComponent<PreviewHost>();
             host.sessionProfile = new SessionProfile
             {
-                run = SectorRun.Create(new SectorEntry
-                {
-                    prefab = AssetDatabase.LoadAssetAtPath<Sector>(SectorPrefabPath),
-                    locale = AssetDatabase.LoadAssetAtPath<LocaleSky>(LocalePath)
-                }),
+                run = SectorRun.Create(TestAssets.TrialRow(0).WithLocale(AssetDatabase.LoadAssetAtPath<LocaleSky>(LocalePath))),
                 presentation = true
             };
             host.gameHostPrefab = AssetDatabase.LoadAssetAtPath<GameHost>(GameHostPath);

@@ -1,7 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Asteroids.Fields;
+using Balance;
 using Substrate.Sectors;
+using Substrate.Sectors.Elements;
+using Substrate.Sectors.Elements.Elites;
+using Substrate.Sectors.Elements.Phases;
+using Substrate.Sectors.Factions;
 using Substrate.Services.Locales;
 using UnityEngine;
 
@@ -66,5 +72,32 @@ namespace Substrate.Sessions
 
         [Tooltip("Draw this sector's locale from the run's pool once per run instead of naming one.")]
         public bool random;
+
+        [Tooltip("The side this sector's enemies belong to: its waves, hunt and elite fly that faction's ships.")]
+        [Stat] public Faction faction;
+
+        [Tooltip("The elite the sector ends at. None for a layout whose spine summons no elite.")]
+        public EliteProfile elite;
+
+        [Tooltip("Ships the wave director draws from, picked uniformly per spawn.")]
+        [Stat] public WaveDirector.RosterEntry[] roster = Array.Empty<WaveDirector.RosterEntry>();
+
+        [Tooltip("The wave director's sector phases, in run order.")]
+        [Stat(Ordered = true)] public SectorPhase[] phases = Array.Empty<SectorPhase>();
+
+        [Tooltip("Patrols the sector's opening hunt spawns.")]
+        [Stat, Min(0)] public int patrols;
+
+        [Tooltip("Asteroid field preset, for a layout whose field names none of its own.")]
+        public AsteroidFieldSettings field;
+
+        /// <summary>A copy of this row showing <paramref name="shown"/>, Random only when <paramref name="drawn"/>.</summary>
+        public SectorEntry WithLocale(LocaleSky shown, bool drawn = false)
+        {
+            var copy = (SectorEntry)MemberwiseClone();
+            copy.locale = shown;
+            copy.random = drawn;
+            return copy;
+        }
     }
 }

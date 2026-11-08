@@ -16,6 +16,7 @@ using Substrate.Services.Objectives;
 using Substrate.Sectors.Elements;
 using Substrate.Sectors.Activation;
 using Substrate;
+using Substrate.Sessions;
 
 namespace Tests.PlayMode
 {
@@ -119,7 +120,7 @@ namespace Tests.PlayMode
             modules.Add(activate);
 
             sector.SetManifest(null, null, modules.ToArray());
-            sector.Initialize(_unitService, _objectives, true, default, player);
+            sector.Initialize(_unitService, _objectives, true, default, player, new SectorEntry());
             return (sector, key, zone, player, chaser);
         }
 

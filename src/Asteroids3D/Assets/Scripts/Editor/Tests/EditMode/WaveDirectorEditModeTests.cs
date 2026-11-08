@@ -3,7 +3,6 @@ using System.Text.RegularExpressions;
 using Combat.Weapons;
 using NUnit.Framework;
 using Ships;
-using Substrate.Sectors;
 using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Phases;
@@ -11,6 +10,7 @@ using Substrate.Sectors.Factions;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
+using Substrate.Sessions;
 
 namespace Tests.EditMode
 {
@@ -147,15 +147,19 @@ namespace Tests.EditMode
             faction.signature = new FactionShip { ship = valis, kit = rippers };
             faction.common = new FactionShip { ship = crimson, kit = lasers };
             var sectorFaction = _go.AddComponent<SectorFaction>();
-            sectorFaction.Bind(faction);
-            _director.Configure(new[]
+            var row = new SectorEntry
             {
-                new WaveDirector.RosterEntry { template = crimson },
-                new WaveDirector.RosterEntry { template = valis },
-                new WaveDirector.RosterEntry { template = crimson },
-            }, Phases(), Lull, faction: sectorFaction);
+                faction = faction,
+                roster = new[]
+                {
+                    new WaveDirector.RosterEntry { template = crimson },
+                    new WaveDirector.RosterEntry { template = valis },
+                    new WaveDirector.RosterEntry { template = crimson },
+                }
+            };
+            _director.Configure(row.roster, Phases(), Lull, faction: sectorFaction);
 
-            var threat = _director.Threat();
+            var threat = _director.Threat(row);
 
             CollectionAssert.AreEqual(new[] { crimson, valis }, threat.Ships, "a ship two pilots fly is listed once");
             CollectionAssert.AreEqual(new WeaponComponent[] { lasers, rippers }, threat.Weapons, "each ship's faction kit, in roster order");
@@ -169,9 +173,9 @@ namespace Tests.EditMode
         public void Threat_WithNoFaction_ListsTheRosterShipsAuthoredWeapons()
         {
             var ship = AssetDatabase.LoadAssetAtPath<Ship>("Assets/Prefabs/Ships/Vanguard.prefab");
-            _director.Configure(new[] { new WaveDirector.RosterEntry { template = ship } }, Phases(), Lull);
+            var row = new SectorEntry { roster = new[] { new WaveDirector.RosterEntry { template = ship } } };
 
-            var threat = _director.Threat();
+            var threat = _director.Threat(row);
 
             CollectionAssert.AreEqual(new[] { ship }, threat.Ships);
             CollectionAssert.AreEqual(
@@ -181,10 +185,10 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void Threat_ReadsOffTheSectorPrefabAsset_BeforeItLoads()
+        public void Threat_ReadsOffTheRowAndItsSectorPrefabAsset_BeforeItLoads()
         {
-            var sector = AssetDatabase.LoadAssetAtPath<Sector>("Assets/Prefabs/Sectors/TrialSector2.prefab");
-            var threat = sector.Module<PhaseSpineModule>().Threat();
+            var row = AssetDatabase.LoadAssetAtPath<SectorRun>("Assets/Settings/Game/SurvivalTrialRun.asset").Sectors[1];
+            var threat = row.prefab.Module<PhaseSpineModule>().Threat(row);
 
             Assert.IsNotEmpty(threat.Ships);
             Assert.IsNotEmpty(threat.Weapons);

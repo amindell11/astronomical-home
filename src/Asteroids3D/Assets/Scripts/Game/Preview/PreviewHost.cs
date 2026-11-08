@@ -152,9 +152,9 @@ namespace Game.Preview
             offset = sessionProfile.offset
         };
 
-        // Replays and fixtures draw nothing, so a Random row shows its pool's first locale there.
-        internal static SectorEntry Named(SectorRun run, SectorEntry row) =>
-            row.random ? new SectorEntry { prefab = row.prefab, locale = run.LocalePool[0] } : row;
+        // Replays draw nothing, so a Random row shows its pool's first locale there.
+        private static SectorEntry Named(SectorRun run, SectorEntry row) =>
+            row.random ? row.WithLocale(run.LocalePool[0]) : row;
 
         // GameHost reads its configuration in Awake, so the overrides land while the copy is staged inactive.
         private void BuildPlaytest(PreviewEntry composed)
@@ -181,12 +181,8 @@ namespace Game.Preview
             var run = gameHostPrefab.sessionProfile.run;
             if (combatSector == WholeRun && !combatLocale) return run;
             IEnumerable<SectorEntry> rows = combatSector == WholeRun ? run.Sectors : new[] { run.Sectors[combatSector] };
-            return SectorRun.Create(run.LocalePool.ToArray(), rows.Select(row => new SectorEntry
-            {
-                prefab = row.prefab,
-                locale = combatLocale ? combatLocale : row.locale,
-                random = !combatLocale && row.random
-            }).ToArray());
+            return SectorRun.Create(run.LocalePool.ToArray(), rows.Select(row =>
+                row.WithLocale(combatLocale ? combatLocale : row.locale, !combatLocale && row.random)).ToArray());
         }
 
         public void Select(PreviewEntry selected)
