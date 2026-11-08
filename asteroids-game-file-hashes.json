@@ -1,0 +1,58 @@
+{
+  "asteroids-game-capture-index.json": {
+    "sha256": "34ec45e73e9e9993351bc470ea3e12be2e9074e63869c90c997ab6b0805ea62b",
+    "bytes": 9023
+  },
+  "asteroids-game-chalk-close.png": {
+    "sha256": "1dbabbe65d56f8c8150da1eff5338ff493063f193f410dc73930d574dbc8964c",
+    "bytes": 986702
+  },
+  "asteroids-game-chalk-flight.png": {
+    "sha256": "6311022a95be53ff6fbd017528c02c00d9df31b4922c951d9cc553d6a041dbf6",
+    "bytes": 942147
+  },
+  "asteroids-game-copper-close.png": {
+    "sha256": "b249da16a8e76fb8cbac8cdae8e1052790bf11372523a281fd3529d98b6b4146",
+    "bytes": 979522
+  },
+  "asteroids-game-copper-flight.png": {
+    "sha256": "3289b139d624aab06bd7a4f4a4cd782f0541adbcab1cc2bf0aee1d0d7857ec0d",
+    "bytes": 985137
+  },
+  "asteroids-game-ice-close.png": {
+    "sha256": "d288bef21eb2544e1f83c1abbdd7091de6ab0d896b2700278926194567149704",
+    "bytes": 743582
+  },
+  "asteroids-game-ice-flight.png": {
+    "sha256": "0d0f696d0cf69eb92d629dd2fc0ccef44fc11eff8a572a919db7bbc18474a60e",
+    "bytes": 611022
+  },
+  "asteroids-game-overview.png": {
+    "sha256": "4c3806f4673c167b23c780f80cd82a53051f46abb86e57b9cfa5600dddacf06d",
+    "bytes": 1328336
+  },
+  "asteroids-game-preview-source.zip": {
+    "sha256": "803599e6677fa70abe2d0db217d7cb68db9d7c4f56f7e2e89e5cee71a5cdc9c5",
+    "bytes": 30477780
+  },
+  "asteroids-game-test-summary.json": {
+    "sha256": "16084d1d3d0f6efb912d0ef19d415f3e3f3b04442153b028620508d1765f7509",
+    "bytes": 4786
+  },
+  "asteroids-game-verdant-close.png": {
+    "sha256": "20f70e5a8d0c5ebc88edb94cc8588accb8be2b2a166028d758bdbe11ecfb668d",
+    "bytes": 893967
+  },
+  "asteroids-game-verdant-flight.png": {
+    "sha256": "4a17e2ae89281ea13108a443d4f4b9dfe19daa5f577ec14495f396bb114eccca",
+    "bytes": 854099
+  },
+  "asteroids-game-violet-close.png": {
+    "sha256": "631fd0400163f422a44bf1880770dbe15c6474929e9bec11cf15a971358bbf13",
+    "bytes": 1103366
+  },
+  "asteroids-game-violet-flight.png": {
+    "sha256": "e4944bafc9817d3c7a2313c10e7efcdded7bdd1e69ac044567b88127ec972ac4",
+    "bytes": 1082239
+  }
+}
