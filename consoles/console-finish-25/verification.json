@@ -1,0 +1,12 @@
+{
+  "result": "pass",
+  "sourceSha256": "7c68dcd84477ea81881bdb398740aea6ad8d76b0fcfe5dd576079df2f5b33da2",
+  "existingObjectsVerified": 345,
+  "geometryTransformsAndVisibility": "unchanged",
+  "objectInventory": "345 existing objects unchanged; added one editable viewport glass surface",
+  "camera": "unchanged",
+  "unpackedImages": [],
+  "geometryApproval": "provisional",
+  "materialsApproval": "pending user review",
+  "errors": []
+}
