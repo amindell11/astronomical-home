@@ -105,14 +105,16 @@ namespace Substrate.Sectors.Elements.Phases
             Claims++;
         }
 
-        internal static string KeyOf(LullMod bonus) => bonus switch
+        internal static string KeyOf(LullMod bonus)
         {
-            WeaponMod { Field: WeaponModField.Damage } => "damage",
-            WeaponMod { Field: WeaponModField.FireRate } => "fire-rate",
-            ShipMod { Field: ShipModField.ShieldRegen } => "shield",
-            _ => throw new InvalidOperationException(
-                $"Beacon cache bonus '{bonus.name}' changes a field with no companion key; add one to KeyOf.")
-        };
+            var weapon = bonus as WeaponMod;
+            if (weapon && weapon.Field == WeaponModField.Damage) return "damage";
+            if (weapon && weapon.Field == WeaponModField.FireRate) return "fire-rate";
+            var ship = bonus as ShipMod;
+            if (ship && ship.Field == ShipModField.ShieldRegen) return "shield";
+            throw new InvalidOperationException(
+                $"Beacon cache bonus '{bonus.name}' changes a field with no companion key; add one to KeyOf.");
+        }
 
         /// <summary>
         /// The rolled option for a uniform <paramref name="roll"/> in [0, 1]: a fitting bonus's index, each
