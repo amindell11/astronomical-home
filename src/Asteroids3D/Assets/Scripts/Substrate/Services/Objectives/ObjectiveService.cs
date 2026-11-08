@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Substrate.Services.Objectives
 {
-    /// <summary>Owns the spine tracker plus open local trackers, which it ticks itself via Update, the open find markers and the sector boosts in force.</summary>
+    /// <summary>Owns the spine tracker plus open local trackers, which it ticks itself via Update, the open find markers and the timed boosts in force.</summary>
     public class ObjectiveService : MonoBehaviour, IObjectiveService
     {
         private readonly List<LocalObjectiveHandle> locals = new();
@@ -75,10 +75,10 @@ namespace Substrate.Services.Objectives
             return find;
         }
 
-        public SectorBoost ShowBoost(string label)
+        public SectorBoost ShowBoost(string label, float endsAt)
         {
             if (string.IsNullOrEmpty(label)) throw new ArgumentException("A boost shows a label.", nameof(label));
-            var boost = new SectorBoost(label, CloseBoost);
+            var boost = new SectorBoost(label, endsAt, CloseBoost);
             boosts.Add(boost);
             return boost;
         }

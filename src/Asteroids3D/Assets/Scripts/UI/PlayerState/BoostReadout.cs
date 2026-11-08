@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace UI.PlayerState
 {
-    /// <summary>Lists the sector boosts in force under the phase display, one line each, in the find colour.</summary>
+    /// <summary>Lists the timed boosts in force under the phase display, each with its whole seconds left, in the find colour.</summary>
     public sealed class BoostReadout : MonoBehaviour
     {
         private static readonly Color FindColour = new(.72f, .48f, 1f, 1f);
@@ -15,7 +15,6 @@ namespace UI.PlayerState
         private readonly StringBuilder lines = new();
         private Text text;
         private IObjectiveService objectives;
-        private int shown = -1;
 
         public static BoostReadout Create(Transform parent, Font font, Material material, CanopyProjection projection = null,
             Func<bool> isVisible = null)
@@ -51,11 +50,11 @@ namespace UI.PlayerState
         {
             var boosts = objectives.Boosts;
             text.enabled = boosts.Count > 0;
-            if (boosts.Count == shown) return;
-            shown = boosts.Count;
+            if (!text.enabled) return;
             lines.Clear();
             foreach (var boost in boosts)
-                lines.AppendLine(boost.Label.ToUpperInvariant());
+                lines.Append(boost.Label.ToUpperInvariant()).Append("  ")
+                    .Append(Mathf.CeilToInt(Mathf.Max(0f, boost.EndsAt - Time.time))).AppendLine("s");
             text.text = lines.ToString().TrimEnd();
         }
     }

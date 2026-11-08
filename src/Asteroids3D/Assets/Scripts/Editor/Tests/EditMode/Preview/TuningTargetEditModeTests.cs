@@ -7,10 +7,10 @@ using Game.Companion;
 using Game.Player;
 using Game.Preview;
 using NUnit.Framework;
-using Combat.Weapons.Mods;
 using Ships.Visuals.Breakup;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Hunt;
+using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Elements.Stations;
 using UI.Projection;
 using UnityEditor;
@@ -48,8 +48,10 @@ namespace Tests.EditMode.Preview
             AssertTarget(Target<HuntTarget>(), new[] { PreviewEntry.Combat },
                 AssetDatabase.LoadAssetAtPath<HuntFeelProfile>("Assets/Settings/Game/HuntFeel.asset"),
                 AssetDatabase.LoadAssetAtPath<RepairStationFeelProfile>("Assets/Settings/Game/RepairStationFeel.asset"),
-                AssetDatabase.LoadAssetAtPath<WeaponCacheFeelProfile>("Assets/Settings/Game/WeaponCacheFeel.asset"),
-                AssetDatabase.LoadAssetAtPath<WeaponMod>("Assets/Settings/Game/WeaponCacheBoost.asset"));
+                AssetDatabase.LoadAssetAtPath<BeaconCacheFeelProfile>("Assets/Settings/Game/BeaconCacheFeel.asset"),
+                AssetDatabase.LoadAssetAtPath<UnityEngine.ScriptableObject>("Assets/Settings/Game/BeaconCache/DamageSurge.asset"),
+                AssetDatabase.LoadAssetAtPath<UnityEngine.ScriptableObject>("Assets/Settings/Game/BeaconCache/FireRateSurge.asset"),
+                AssetDatabase.LoadAssetAtPath<UnityEngine.ScriptableObject>("Assets/Settings/Game/BeaconCache/ShieldSurge.asset"));
             AssertTarget(Target("Sector 1 elite"), new[] { PreviewEntry.Sector1Elite },
                 AssetDatabase.LoadAssetAtPath<EliteProfile>("Assets/Settings/Ships/Elites/ShoalElite.asset"));
             AssertTarget(Target("Sector 2 elite"), new[] { PreviewEntry.Sector2Elite },

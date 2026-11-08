@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7688160e7d884009919e901c830c71ae, type: 3}
+  m_Name: BeaconCacheFeel
+  m_EditorClassIdentifier: 
+  cacheSeconds: 20
+  bonuses:
+  - {fileID: 11400000, guid: 5f3249bfa1d84e0b9bbd34aba11b29ef, type: 2}
+  - {fileID: 11400000, guid: 07a09b14547f489ea4d750b9ec707fcd, type: 2}
+  - {fileID: 11400000, guid: 7473a22e59f6468abcfc4960c298d776, type: 2}

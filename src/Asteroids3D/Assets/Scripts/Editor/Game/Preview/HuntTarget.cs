@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Substrate.Sectors.Elements.Hunt;
+using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Elements.Stations;
 using UnityEditor;
 using UnityEngine;
@@ -12,24 +13,28 @@ namespace Game.Preview
         public override string Name => "Hunt";
         public override IReadOnlyList<PreviewEntry> Entries { get; } = new[] { PreviewEntry.Combat };
 
-        // A sector may lack a hunt, a station or a cache; each missing one gives no profile.
+        // A sector may lack a hunt, a station or a beacon cache; each missing one gives no profile.
         public override IEnumerable<ScriptableObject> Profiles(GameHost game) => game.sessionProfile.run.Sectors
-            .SelectMany(sector => new (Object owner, string field)[]
+            .SelectMany(sector => new Object[]
             {
-                (sector.prefab.GetComponentInChildren<SectorHunt>(true), "feel"),
-                (sector.prefab.GetComponentInChildren<RepairStation>(true), "feel"),
-                (sector.prefab.GetComponentInChildren<WeaponCache>(true), "feel"),
-                (sector.prefab.GetComponentInChildren<WeaponCache>(true), "boost")
+                sector.prefab.GetComponentInChildren<SectorHunt>(true),
+                sector.prefab.GetComponentInChildren<RepairStation>(true),
+                sector.prefab.GetComponentInChildren<BeaconCache>(true)
             })
-            .Where(entry => entry.owner)
-            .Select(entry => Profile(entry.owner, entry.field))
+            .Where(owner => owner)
+            .Select(Feel)
+            .SelectMany(WithBonuses)
             .Distinct();
 
+        // The cache's bonuses are mod assets, and their amounts are what the owner tunes.
+        private static IEnumerable<ScriptableObject> WithBonuses(ScriptableObject feel) =>
+            feel is BeaconCacheFeelProfile cache ? cache.bonuses.Cast<ScriptableObject>().Prepend(feel) : new[] { feel };
+
         // Read through serialization, so the profile owners grow no member for the preview.
-        private static ScriptableObject Profile(Object owner, string field)
+        private static ScriptableObject Feel(Object owner)
         {
             using var serialized = new SerializedObject(owner);
-            return (ScriptableObject)serialized.FindProperty(field).objectReferenceValue;
+            return (ScriptableObject)serialized.FindProperty("feel").objectReferenceValue;
         }
     }
 }

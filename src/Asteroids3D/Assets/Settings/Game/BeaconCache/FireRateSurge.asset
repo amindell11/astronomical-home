@@ -9,7 +9,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8b45ec6d3653489d81f7b02a22b14005, type: 3}
-  m_Name: WeaponCacheFeel
+  m_Script: {fileID: 11500000, guid: c22b766eeacb4e9db44c8846c6523696, type: 3}
+  m_Name: FireRateSurge
   m_EditorClassIdentifier: 
-  cachesPerSector: 2
+  displayName: Fire-rate surge
+  field: 0
+  amount: 0.6
+  fits: []
