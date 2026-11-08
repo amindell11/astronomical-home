@@ -516,13 +516,11 @@ namespace Tests.PlayMode.Preview
             sectorObject.transform.SetParent(template.transform, false);
             var sector = sectorObject.AddComponent<Sector>();
             sector.SetManifest(null, null, System.Array.Empty<SectorModule>());
+            // A Random row over a one-locale pool: the playtest draws it and the Replays stand it in.
+            var pool = new[] { TestAssets.Load<LocaleSky>("Assets/Prefabs/Locales/IllustratedBlue.prefab") };
             var profile = new SessionProfile
             {
-                run = SectorRun.Create(new SectorEntry
-                {
-                    prefab = sector,
-                    locale = TestAssets.Load<LocaleSky>("Assets/Prefabs/Locales/IllustratedBlue.prefab")
-                })
+                run = SectorRun.Create(pool, new SectorEntry { prefab = sector, random = true })
             };
             var game = new GameObject("Playtest game host");
             game.transform.SetParent(template.transform, false);

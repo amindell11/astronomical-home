@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   personalityEnabled: 1
   baseSettings:
-    glow: 0.439
+    glow: 0.434
     aberration: 4.64
     beamJitter: 0.267
     afterglow: 0.009
@@ -22,9 +22,16 @@ MonoBehaviour:
     flicker: 0.594
     warmth: 0.878
     wear: 0.294
-    glassDistortion: 0.068
+    glassDistortion: 0
     damageShudder: 10.49
     transitionGlitch: 0.474
+    haloReach: 10
+    haloStrength: 0.6
+    textGlow: 0
+    halation: 0.7
+    coolTint: {r: 0.35, g: 0.62, b: 1, a: 1}
+    signalBleed: 0.8
+    bleedLength: 10
   lowHull:
     fields: 676
     settings:
@@ -39,6 +46,13 @@ MonoBehaviour:
       glassDistortion: 0.334
       damageShudder: 16.54
       transitionGlitch: 0.808
+      haloReach: 10
+      haloStrength: 0.6
+      textGlow: 0
+      halation: 0.7
+      coolTint: {r: 0.35, g: 0.62, b: 1, a: 1}
+      signalBleed: 0.8
+      bleedLength: 10
     blendInSeconds: 0.15
     blendOutSeconds: 0.35
   bigMoment:
@@ -55,6 +69,13 @@ MonoBehaviour:
       glassDistortion: 0.35
       damageShudder: 5
       transitionGlitch: 0.7
+      haloReach: 10
+      haloStrength: 0.6
+      textGlow: 0
+      halation: 0.7
+      coolTint: {r: 0.35, g: 0.62, b: 1, a: 1}
+      signalBleed: 0.8
+      bleedLength: 10
     blendInSeconds: 0.15
     blendOutSeconds: 0.35
   bigMomentSeconds: 1

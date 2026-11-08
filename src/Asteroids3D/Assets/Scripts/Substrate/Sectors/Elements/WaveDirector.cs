@@ -18,7 +18,8 @@ namespace Substrate.Sectors.Elements
 {
     /// <summary>
     /// Continuous producer for the survival trial, paced by a table of sector phases: each phase
-    /// opens by filling to its alive cap, then spawns one ship per interval while under it. The opening
+    /// opens by filling to its alive cap, then spawns one ship per interval while under it; the cap
+    /// counts the hunt's live patrols with the director's own ships. The opening
     /// lull before the first phase (held until the alarm when the sector has a hunt, so phase one keeps
     /// index 0) and the lull before each later one spawn nothing, and once the table is done the last
     /// phase's pacing holds, so the hero leaves under pursuit; the sector's elite arriving stops spawning
@@ -138,15 +139,17 @@ namespace Substrate.Sectors.Elements
             var row = phases[Phase.Index];
             if (OpensPhase())
             {
-                for (var i = products.Count; i < row.cap; i++)
+                for (var i = Alive; i < row.cap; i++)
                     TrySpawn();
                 ScheduleNext(now);
                 return;
             }
 
-            if (SpawnDue(now, products.Count) && TrySpawn())
+            if (SpawnDue(now, Alive) && TrySpawn())
                 ScheduleNext(now);
         }
+
+        internal int Alive => products.Count + (hunt ? hunt.LivePatrols : 0);
 
         private void OnEliteArrived(EliteMoment moment) => eliteArrived = true;
 
