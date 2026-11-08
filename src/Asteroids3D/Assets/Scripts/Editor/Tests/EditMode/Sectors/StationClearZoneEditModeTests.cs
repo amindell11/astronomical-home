@@ -8,15 +8,17 @@ using UnityEngine;
 
 namespace Tests.EditMode.Sectors
 {
-    /// <summary>The trial sector's asteroid field reads its own repair and mod stations for their clearings, and each station kind carries its own clear radius, 35 u as shipped.</summary>
+    /// <summary>Each trial sector's asteroid field reads its own repair and mod stations for their clearings, and each station kind carries its own clear radius, 35 u as shipped.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class StationClearZoneEditModeTests
     {
-        [Test]
-        public void TrialSector_TheFieldReadsItsOwnStations()
+        [TestCase("TrialSector")]
+        [TestCase("TrialSector2")]
+        [TestCase("TrialSector3")]
+        public void TrialSector_TheFieldReadsItsOwnStations(string sector)
         {
-            var prefab = AssetDatabase.LoadAssetAtPath<Sector>("Assets/Prefabs/Sectors/TrialSector.prefab");
+            var prefab = AssetDatabase.LoadAssetAtPath<Sector>($"Assets/Prefabs/Sectors/{sector}.prefab");
             var spawner = prefab.Spawners.OfType<AsteroidFieldSpawner>().Single();
             using var serialized = new SerializedObject(spawner);
             Assert.AreSame(prefab.Modules.OfType<RepairStation>().Single(),
