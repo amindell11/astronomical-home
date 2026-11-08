@@ -1,0 +1,435 @@
+{
+  "models": [
+    {
+      "id": "verdant-single",
+      "family": "verdant",
+      "locale": 6,
+      "fbx": "models/verdant-single.fbx",
+      "source_sha256": "76fda8bd02a60e09238617b1916b63858cd8066eac7fa7abb594fd8a116b5a33",
+      "fbx_sha256": "0f80f891f9410631653d936d97675ca4e32b840b547744564bfda411a3e24b8b",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Angular connected host",
+          "ink": false,
+          "contour": true,
+          "materials": [
+            "V_00"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Broken green intermediate ledges",
+          "ink": false,
+          "contour": false,
+          "materials": [
+            "V_01"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Deep green shear interior",
+          "ink": false,
+          "contour": false,
+          "materials": [
+            "V_02"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Drawing_Fracture_00",
+          "ink": true,
+          "contour": false,
+          "materials": [
+            "V_03"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_Fracture_01",
+          "ink": true,
+          "contour": false,
+          "materials": [
+            "V_04"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_Fracture_02",
+          "ink": true,
+          "contour": false,
+          "materials": [
+            "V_05"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Drawing_Fracture_03",
+          "ink": true,
+          "contour": false,
+          "materials": [
+            "V_06"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Drawing_Fracture_04",
+          "ink": true,
+          "contour": false,
+          "materials": [
+            "V_07"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Drawing_Fracture_05",
+          "ink": true,
+          "contour": false,
+          "materials": [
+            "V_08"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Drawing_Fracture_06",
+          "ink": true,
+          "contour": false,
+          "materials": [
+            "V_09"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Ochre fracture deposit 1",
+          "ink": false,
+          "contour": false,
+          "materials": [
+            "V_10"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Ochre fracture deposit 2",
+          "ink": false,
+          "contour": false,
+          "materials": [
+            "V_11"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Ochre fracture deposit 3",
+          "ink": false,
+          "contour": false,
+          "materials": [
+            "V_12"
+          ]
+        },
+        {
+          "name": "part_013",
+          "source_name": "Ochre fracture deposit 4",
+          "ink": false,
+          "contour": false,
+          "materials": [
+            "V_13"
+          ]
+        },
+        {
+          "name": "part_014",
+          "source_name": "Ochre fracture deposit 5",
+          "ink": false,
+          "contour": false,
+          "materials": [
+            "V_14"
+          ]
+        },
+        {
+          "name": "part_015",
+          "source_name": "Pale mineral laminae",
+          "ink": false,
+          "contour": false,
+          "materials": [
+            "V_15"
+          ]
+        },
+        {
+          "name": "part_016",
+          "source_name": "Unequal cream shoulder and crust remnants",
+          "ink": false,
+          "contour": false,
+          "materials": [
+            "V_16"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.4128045439720154,
+        -0.7505536079406738,
+        0.5160055160522461
+      ],
+      "source_up": [
+        0.2486727237701416,
+        0.4521322250366211,
+        0.8565852642059326
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "key": "V_00",
+      "source_name": "Angular connected host fitted paint.001",
+      "review_role": "dark_host",
+      "paint_path": "paint/verdant-00-albedo.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "19395acb4c482833dd1db03d1b5defd9cb6b5c6857a8fa8c89bf7c7642816e80",
+      "dimensions": [
+        2048,
+        2048
+      ]
+    },
+    {
+      "key": "V_01",
+      "source_name": "Broken green intermediate ledges fitted paint.001",
+      "review_role": "mineral",
+      "paint_path": "paint/verdant-02-albedo.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "9fc4e36f21eecbd32184008a9f86623245d906f009d4313e8fcac998c3c989c4",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "key": "V_02",
+      "source_name": "Deep green shear interior fitted paint.001",
+      "review_role": "mineral",
+      "paint_path": "paint/verdant-01-albedo.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "b00b684d8c95eba8ee6e60cbfb7359052d4de6a8f6e27b395141da6a45c808e7",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "key": "V_03",
+      "source_name": "Selected graphite fracture strokes.001",
+      "review_role": "ink",
+      "paint_path": "",
+      "color": [
+        0.02199999988079071,
+        0.02500000037252903,
+        0.027000000700354576,
+        1.0
+      ]
+    },
+    {
+      "key": "V_04",
+      "source_name": "Selected graphite fracture strokes.001",
+      "review_role": "ink",
+      "paint_path": "",
+      "color": [
+        0.02199999988079071,
+        0.02500000037252903,
+        0.027000000700354576,
+        1.0
+      ]
+    },
+    {
+      "key": "V_05",
+      "source_name": "Selected graphite fracture strokes.001",
+      "review_role": "ink",
+      "paint_path": "",
+      "color": [
+        0.02199999988079071,
+        0.02500000037252903,
+        0.027000000700354576,
+        1.0
+      ]
+    },
+    {
+      "key": "V_06",
+      "source_name": "Selected graphite fracture strokes.001",
+      "review_role": "ink",
+      "paint_path": "",
+      "color": [
+        0.02199999988079071,
+        0.02500000037252903,
+        0.027000000700354576,
+        1.0
+      ]
+    },
+    {
+      "key": "V_07",
+      "source_name": "Selected graphite fracture strokes.001",
+      "review_role": "ink",
+      "paint_path": "",
+      "color": [
+        0.02199999988079071,
+        0.02500000037252903,
+        0.027000000700354576,
+        1.0
+      ]
+    },
+    {
+      "key": "V_08",
+      "source_name": "Selected graphite fracture strokes.001",
+      "review_role": "ink",
+      "paint_path": "",
+      "color": [
+        0.02199999988079071,
+        0.02500000037252903,
+        0.027000000700354576,
+        1.0
+      ]
+    },
+    {
+      "key": "V_09",
+      "source_name": "Selected graphite fracture strokes.001",
+      "review_role": "ink",
+      "paint_path": "",
+      "color": [
+        0.02199999988079071,
+        0.02500000037252903,
+        0.027000000700354576,
+        1.0
+      ]
+    },
+    {
+      "key": "V_10",
+      "source_name": "Ochre fracture deposit 1 fitted paint.001",
+      "review_role": "ochre",
+      "paint_path": "paint/verdant-05-albedo.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "9272b2cda9b675400387ae0a25eee846f2c6df20d3349695dbf69efc81d0b34c",
+      "dimensions": [
+        512,
+        512
+      ]
+    },
+    {
+      "key": "V_11",
+      "source_name": "Ochre fracture deposit 2 fitted paint.001",
+      "review_role": "ochre",
+      "paint_path": "paint/verdant-06-albedo.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "2f980b31614018809d9325581c1d8b924df7a90b737468de897f15874924ff3e",
+      "dimensions": [
+        512,
+        512
+      ]
+    },
+    {
+      "key": "V_12",
+      "source_name": "Ochre fracture deposit 3 fitted paint.001",
+      "review_role": "ochre",
+      "paint_path": "paint/verdant-07-albedo.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "269186862e168c71ee89a745a90c3032533e094d4e591574ea3b7eef5e076de6",
+      "dimensions": [
+        512,
+        512
+      ]
+    },
+    {
+      "key": "V_13",
+      "source_name": "Ochre fracture deposit 4 fitted paint.001",
+      "review_role": "ochre",
+      "paint_path": "paint/verdant-08-albedo.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "e80c4b01c04d0ab45b40053b9be51d836bcb0ae8c2cb067b7ae4797003e46a03",
+      "dimensions": [
+        512,
+        512
+      ]
+    },
+    {
+      "key": "V_14",
+      "source_name": "Ochre fracture deposit 5 fitted paint.001",
+      "review_role": "ochre",
+      "paint_path": "paint/verdant-09-albedo.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "85ba6b300115a6fd4cfa6f46d8f9c9e8fcb8819895b689fa6599c75f02ffef5f",
+      "dimensions": [
+        512,
+        512
+      ]
+    },
+    {
+      "key": "V_15",
+      "source_name": "Pale mineral laminae fitted paint.001",
+      "review_role": "mineral",
+      "paint_path": "paint/verdant-03-albedo.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "7caea004923af5789cebe27a02ceaa2eca9fd07ad525dcc163007b7226c77eda",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "key": "V_16",
+      "source_name": "Unequal cream shoulder and crust remnants fitted paint.001",
+      "review_role": "cream",
+      "paint_path": "paint/verdant-04-albedo.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "2e403bf068390f41e33d01359eb2686711ba8ca383a663a7735621b8bea74615",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "orientation_basis": "models/orientation-basis.fbx",
+  "color_workflow": "Exact per-component unlit projection-baked albedo, no gain or image changes"
+}

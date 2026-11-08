@@ -1,0 +1,3766 @@
+{
+  "models": [
+    {
+      "id": "copper-01",
+      "family": "copper",
+      "locale": 1,
+      "fbx": "models/copper-01.fbx",
+      "source_sha256": "0c60959803e777bd116a11a1699edbcf182808b583cdeb9135c09a6623d7a694",
+      "fbx_sha256": "1dd70039ad39aed121c6fdc3fd8f4781b5710be108cce5bb29348e3d563abc82",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Copper_Fracture_01",
+          "ink": false,
+          "materials": [
+            "M_4a12d6eea84ca011"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Copper_Fracture_02",
+          "ink": false,
+          "materials": [
+            "M_4a12d6eea84ca011"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Copper_Fracture_03",
+          "ink": false,
+          "materials": [
+            "M_4a12d6eea84ca011"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Drawing_Fracture_01",
+          "ink": true,
+          "materials": [
+            "M_7b071352c986f4e4"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_Fracture_02",
+          "ink": true,
+          "materials": [
+            "M_7b071352c986f4e4"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_Fracture_03",
+          "ink": true,
+          "materials": [
+            "M_7b071352c986f4e4"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Drawing_Fracture_04",
+          "ink": true,
+          "materials": [
+            "M_7b071352c986f4e4"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Drawing_Fracture_05",
+          "ink": true,
+          "materials": [
+            "M_7b071352c986f4e4"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Drawing_Fracture_06",
+          "ink": true,
+          "materials": [
+            "M_7b071352c986f4e4"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Drawing_Fracture_07",
+          "ink": true,
+          "materials": [
+            "M_7b071352c986f4e4"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Drawing_Fracture_08",
+          "ink": true,
+          "materials": [
+            "M_7b071352c986f4e4"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Drawing_LeftRoofToWall",
+          "ink": true,
+          "materials": [
+            "M_7b071352c986f4e4"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Drawing_RightRoofToWall",
+          "ink": true,
+          "materials": [
+            "M_7b071352c986f4e4"
+          ]
+        },
+        {
+          "name": "part_013",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_da3f590be757bf06"
+          ]
+        },
+        {
+          "name": "part_014",
+          "source_name": "Turquoise_LeftCleft",
+          "ink": false,
+          "materials": [
+            "M_709b0a7aa0263306"
+          ]
+        },
+        {
+          "name": "part_015",
+          "source_name": "Turquoise_LeftToe",
+          "ink": false,
+          "materials": [
+            "M_709b0a7aa0263306"
+          ]
+        },
+        {
+          "name": "part_016",
+          "source_name": "Turquoise_RearContact",
+          "ink": false,
+          "materials": [
+            "M_709b0a7aa0263306"
+          ]
+        },
+        {
+          "name": "part_017",
+          "source_name": "Turquoise_RightBlade",
+          "ink": false,
+          "materials": [
+            "M_709b0a7aa0263306"
+          ]
+        },
+        {
+          "name": "part_018",
+          "source_name": "Turquoise_RightTip",
+          "ink": false,
+          "materials": [
+            "M_709b0a7aa0263306"
+          ]
+        },
+        {
+          "name": "part_019",
+          "source_name": "Turquoise_UpperContact",
+          "ink": false,
+          "materials": [
+            "M_709b0a7aa0263306"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.1770169734954834,
+        -0.8611636161804199,
+        0.47651058435440063
+      ],
+      "source_up": [
+        0.0959433764219284,
+        0.46675175428390503,
+        0.8791687488555908
+      ]
+    },
+    {
+      "id": "copper-02",
+      "family": "copper",
+      "locale": 1,
+      "fbx": "models/copper-02.fbx",
+      "source_sha256": "d38b39d4b7d0c2356189a6631f6482b4d82343a4b80b008c3e83fa4107272c05",
+      "fbx_sha256": "6c808c02745208aeeae532c55cc07aff20ee8de64421faef1eff08dc32ccaeb0",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Copper_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_9cbb6ed89eab62d6"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Copper_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_9cbb6ed89eab62d6"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Drawing_Fracture_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Drawing_Fracture_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_Fracture_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_Fracture_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Drawing_Fracture_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Drawing_Fracture_6",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Drawing_LeftRoofCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Drawing_RightRoofCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_ae64e09fc6602625"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Turquoise_1",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Turquoise_2",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        },
+        {
+          "name": "part_013",
+          "source_name": "Turquoise_3",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        },
+        {
+          "name": "part_014",
+          "source_name": "Turquoise_4",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        },
+        {
+          "name": "part_015",
+          "source_name": "Turquoise_5",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.1714285910129547,
+        -0.8571428656578064,
+        0.48571425676345825
+      ],
+      "source_up": [
+        0.09525640308856964,
+        0.4762820303440094,
+        0.8741176724433899
+      ]
+    },
+    {
+      "id": "copper-03",
+      "family": "copper",
+      "locale": 1,
+      "fbx": "models/copper-03.fbx",
+      "source_sha256": "c4f7ab13c8118349f26db5b22e1b3996364750327e91896293d548856415951c",
+      "fbx_sha256": "c255e57993f492427a7e2836786571416053c69d93b89bab2de3aaa1a1608beb",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Copper_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_9cbb6ed89eab62d6"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Copper_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_9cbb6ed89eab62d6"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Copper_FittedSections.002",
+          "ink": false,
+          "materials": [
+            "M_9cbb6ed89eab62d6"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Copper_FittedSections.003",
+          "ink": false,
+          "materials": [
+            "M_9cbb6ed89eab62d6"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_Fracture_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_Fracture_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Drawing_Fracture_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Drawing_Fracture_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Drawing_Fracture_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Drawing_LowerCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Drawing_TabletCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_ae64e09fc6602625"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Turquoise_1",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        },
+        {
+          "name": "part_013",
+          "source_name": "Turquoise_2",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        },
+        {
+          "name": "part_014",
+          "source_name": "Turquoise_3",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        },
+        {
+          "name": "part_015",
+          "source_name": "Turquoise_4",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        },
+        {
+          "name": "part_016",
+          "source_name": "Turquoise_5",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.1714285910129547,
+        -0.8571428656578064,
+        0.48571425676345825
+      ],
+      "source_up": [
+        0.09525640308856964,
+        0.4762820303440094,
+        0.8741176724433899
+      ]
+    },
+    {
+      "id": "copper-04",
+      "family": "copper",
+      "locale": 1,
+      "fbx": "models/copper-04.fbx",
+      "source_sha256": "fcbca5c35fece9d074f6e1e4c2cc57f37c4ae85e2e5382be026d494d10583c53",
+      "fbx_sha256": "0daf12e6ebb43b4dbb66828745f3861d20ac8321738e2999025aef6ee0e72e9c",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Copper_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_9cbb6ed89eab62d6"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Copper_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_9cbb6ed89eab62d6"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Drawing_CoreCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Drawing_Fracture_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_Fracture_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_Fracture_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Drawing_Fracture_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Drawing_Fracture_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_ae64e09fc6602625"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Turquoise_1",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Turquoise_2",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Turquoise_3",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Turquoise_4",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.1714285910129547,
+        -0.8571428656578064,
+        0.48571425676345825
+      ],
+      "source_up": [
+        0.09525640308856964,
+        0.4762820303440094,
+        0.8741176724433899
+      ]
+    },
+    {
+      "id": "copper-05",
+      "family": "copper",
+      "locale": 1,
+      "fbx": "models/copper-05.fbx",
+      "source_sha256": "8679f445b121702ae7397055cfd43870249b9c47be5d06b898eaf258004c3957",
+      "fbx_sha256": "26ed63e8e47094e553d6f4adad8e82e0e6a710959e36c59a56d1fb39f9966355",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Copper_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_9cbb6ed89eab62d6"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Copper_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_9cbb6ed89eab62d6"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Drawing_BladeCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Drawing_EndCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_Fracture_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_Fracture_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Drawing_Fracture_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Drawing_Fracture_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Drawing_Fracture_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_ae64e09fc6602625"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Turquoise_1",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Turquoise_2",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Turquoise_3",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        },
+        {
+          "name": "part_013",
+          "source_name": "Turquoise_4",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.1714285910129547,
+        -0.8571428656578064,
+        0.48571425676345825
+      ],
+      "source_up": [
+        0.09525640308856964,
+        0.4762820303440094,
+        0.8741176724433899
+      ]
+    },
+    {
+      "id": "violet-01",
+      "family": "violet",
+      "locale": 2,
+      "fbx": "models/violet-01.fbx",
+      "source_sha256": "74a075325a1f30d9e4de1777d1992d01b06cc080c6315d81efe557bf1668726b",
+      "fbx_sha256": "d27c197c951c2dce260fefe935e81dd0e4869ff25cff3b142532a2509c5429cf",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Crystal_Fragment",
+          "ink": false,
+          "materials": [
+            "M_100240458bd7268b"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Crystal_Left",
+          "ink": false,
+          "materials": [
+            "M_100240458bd7268b"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Crystal_Left_PaleAccent_1",
+          "ink": true,
+          "materials": [
+            "M_40c9ef353ed572a1"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Crystal_Main",
+          "ink": false,
+          "materials": [
+            "M_100240458bd7268b"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Crystal_Main_PaleAccent_1",
+          "ink": true,
+          "materials": [
+            "M_40c9ef353ed572a1"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Crystal_Main_PaleAccent_2",
+          "ink": true,
+          "materials": [
+            "M_40c9ef353ed572a1"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Crystal_Right",
+          "ink": false,
+          "materials": [
+            "M_100240458bd7268b"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Mineral_Patch_RoofCenter",
+          "ink": false,
+          "materials": [
+            "M_52ecbfc9915fcbae"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Mineral_Patch_RoofLeft",
+          "ink": false,
+          "materials": [
+            "M_52ecbfc9915fcbae"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Mineral_Patch_RoofRight",
+          "ink": false,
+          "materials": [
+            "M_52ecbfc9915fcbae"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_62a1b00f7333815e"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.3154011070728302,
+        -0.8410696387290955,
+        0.4394589066505432
+      ],
+      "source_up": [
+        0.15430432558059692,
+        0.411478191614151,
+        0.8982627987861633
+      ]
+    },
+    {
+      "id": "violet-02",
+      "family": "violet",
+      "locale": 2,
+      "fbx": "models/violet-02.fbx",
+      "source_sha256": "ef490222f328c0833e7e8950d8bcc7466264ff4c72ba9a15d003d2f126bf1cb3",
+      "fbx_sha256": "3381ae70fa7a1174edf0657b1055be5ddf06cec97009341c9e83f6b4c2b16044",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Crystal_Fragment",
+          "ink": false,
+          "materials": [
+            "M_c41bd7a0500e07fc"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Crystal_Left",
+          "ink": false,
+          "materials": [
+            "M_c41bd7a0500e07fc"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Crystal_Left_PaleAccent_1",
+          "ink": true,
+          "materials": [
+            "M_c77ef289175b5f96"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Crystal_Main",
+          "ink": false,
+          "materials": [
+            "M_c41bd7a0500e07fc"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Crystal_Main_PaleAccent_1",
+          "ink": true,
+          "materials": [
+            "M_c77ef289175b5f96"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Crystal_Main_PaleAccent_2",
+          "ink": true,
+          "materials": [
+            "M_c77ef289175b5f96"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Crystal_Right",
+          "ink": false,
+          "materials": [
+            "M_c41bd7a0500e07fc"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Drawing_Fracture_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Drawing_Fracture_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Drawing_Fracture_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Drawing_Fracture_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Drawing_Fracture_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Drawing_Fracture_6",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_013",
+          "source_name": "Drawing_SpineCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_014",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_316eda7924f52c64"
+          ]
+        },
+        {
+          "name": "part_015",
+          "source_name": "WarmDeposit_1",
+          "ink": false,
+          "materials": [
+            "M_1fb2519355690209"
+          ]
+        },
+        {
+          "name": "part_016",
+          "source_name": "WarmDeposit_2",
+          "ink": false,
+          "materials": [
+            "M_1fb2519355690209"
+          ]
+        },
+        {
+          "name": "part_017",
+          "source_name": "WarmDeposit_3",
+          "ink": false,
+          "materials": [
+            "M_1fb2519355690209"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.3154011368751526,
+        -0.8410696387290955,
+        0.43945884704589844
+      ],
+      "source_up": [
+        0.1543043553829193,
+        0.41147807240486145,
+        0.8982627391815186
+      ]
+    },
+    {
+      "id": "violet-03",
+      "family": "violet",
+      "locale": 2,
+      "fbx": "models/violet-03.fbx",
+      "source_sha256": "22c8f22f724b35f478c50108960f0b9e053c5b85ce2403d0f6d9f0d2643e2236",
+      "fbx_sha256": "795ebf53712d238885b7a2513e7fa65f586420185ba2cc1033318dea86d10f91",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Crystal_Left",
+          "ink": false,
+          "materials": [
+            "M_c41bd7a0500e07fc"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Crystal_Left_PaleAccent_1",
+          "ink": true,
+          "materials": [
+            "M_c77ef289175b5f96"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Crystal_Main",
+          "ink": false,
+          "materials": [
+            "M_c41bd7a0500e07fc"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Crystal_Main_PaleAccent_1",
+          "ink": true,
+          "materials": [
+            "M_c77ef289175b5f96"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Crystal_Main_PaleAccent_2",
+          "ink": true,
+          "materials": [
+            "M_c77ef289175b5f96"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Crystal_Right",
+          "ink": false,
+          "materials": [
+            "M_c41bd7a0500e07fc"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Drawing_Fracture_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Drawing_Fracture_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Drawing_Fracture_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Drawing_Fracture_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Drawing_Fracture_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Drawing_RoofCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_316eda7924f52c64"
+          ]
+        },
+        {
+          "name": "part_013",
+          "source_name": "WarmDeposit_1",
+          "ink": false,
+          "materials": [
+            "M_1fb2519355690209"
+          ]
+        },
+        {
+          "name": "part_014",
+          "source_name": "WarmDeposit_2",
+          "ink": false,
+          "materials": [
+            "M_1fb2519355690209"
+          ]
+        },
+        {
+          "name": "part_015",
+          "source_name": "WarmDeposit_3",
+          "ink": false,
+          "materials": [
+            "M_1fb2519355690209"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.3154011368751526,
+        -0.8410696387290955,
+        0.43945884704589844
+      ],
+      "source_up": [
+        0.1543043553829193,
+        0.41147807240486145,
+        0.8982627391815186
+      ]
+    },
+    {
+      "id": "violet-04",
+      "family": "violet",
+      "locale": 2,
+      "fbx": "models/violet-04.fbx",
+      "source_sha256": "7fb66c7fb44067ce583903b4be3854bd6641c27e161df7c6a99616100d9415a2",
+      "fbx_sha256": "b189725471a4e2c49db7e45adb5ec14f3370d103168610a5c80c131a25185ae1",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Crystal_Fragment",
+          "ink": false,
+          "materials": [
+            "M_c41bd7a0500e07fc"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Crystal_Left",
+          "ink": false,
+          "materials": [
+            "M_c41bd7a0500e07fc"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Crystal_Left_PaleAccent_1",
+          "ink": true,
+          "materials": [
+            "M_c77ef289175b5f96"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Crystal_Main",
+          "ink": false,
+          "materials": [
+            "M_c41bd7a0500e07fc"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Crystal_Main_PaleAccent_1",
+          "ink": true,
+          "materials": [
+            "M_c77ef289175b5f96"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Crystal_Main_PaleAccent_2",
+          "ink": true,
+          "materials": [
+            "M_c77ef289175b5f96"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Crystal_Right",
+          "ink": false,
+          "materials": [
+            "M_c41bd7a0500e07fc"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Drawing_Fracture_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Drawing_Fracture_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Drawing_Fracture_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Drawing_Fracture_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Drawing_Fracture_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Drawing_LeftRidgeCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_013",
+          "source_name": "Drawing_RightRidgeCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_014",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_316eda7924f52c64"
+          ]
+        },
+        {
+          "name": "part_015",
+          "source_name": "WarmDeposit_1",
+          "ink": false,
+          "materials": [
+            "M_1fb2519355690209"
+          ]
+        },
+        {
+          "name": "part_016",
+          "source_name": "WarmDeposit_2",
+          "ink": false,
+          "materials": [
+            "M_1fb2519355690209"
+          ]
+        },
+        {
+          "name": "part_017",
+          "source_name": "WarmDeposit_3",
+          "ink": false,
+          "materials": [
+            "M_1fb2519355690209"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.3154011368751526,
+        -0.8410696387290955,
+        0.43945884704589844
+      ],
+      "source_up": [
+        0.1543043553829193,
+        0.41147807240486145,
+        0.8982627391815186
+      ]
+    },
+    {
+      "id": "violet-05",
+      "family": "violet",
+      "locale": 2,
+      "fbx": "models/violet-05.fbx",
+      "source_sha256": "03a67fa091714b4b13f5ccdcdfc7a4c1a6e40885061273f1766a4963ef6afc5c",
+      "fbx_sha256": "b62b76fa6d61006ec94c88a7c9f4d4ef0abbe3e4f432a5d720e5cac930adb3d5",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Crystal_Fragment",
+          "ink": false,
+          "materials": [
+            "M_c41bd7a0500e07fc"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Crystal_Main",
+          "ink": false,
+          "materials": [
+            "M_c41bd7a0500e07fc"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Crystal_Main_PaleAccent_1",
+          "ink": true,
+          "materials": [
+            "M_c77ef289175b5f96"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Crystal_Main_PaleAccent_2",
+          "ink": true,
+          "materials": [
+            "M_c77ef289175b5f96"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Crystal_Support",
+          "ink": false,
+          "materials": [
+            "M_c41bd7a0500e07fc"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Crystal_Support_PaleAccent_1",
+          "ink": true,
+          "materials": [
+            "M_c77ef289175b5f96"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Drawing_Fracture_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Drawing_Fracture_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Drawing_Fracture_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Drawing_Fracture_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Drawing_Fracture_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Drawing_SpineCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_316eda7924f52c64"
+          ]
+        },
+        {
+          "name": "part_013",
+          "source_name": "WarmDeposit_1",
+          "ink": false,
+          "materials": [
+            "M_1fb2519355690209"
+          ]
+        },
+        {
+          "name": "part_014",
+          "source_name": "WarmDeposit_2",
+          "ink": false,
+          "materials": [
+            "M_1fb2519355690209"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.3154011368751526,
+        -0.8410696387290955,
+        0.43945884704589844
+      ],
+      "source_up": [
+        0.1543043553829193,
+        0.41147807240486145,
+        0.8982627391815186
+      ]
+    },
+    {
+      "id": "chalk-01",
+      "family": "chalk",
+      "locale": 3,
+      "fbx": "models/chalk-01.fbx",
+      "source_sha256": "89570c9029dcb3785be045e3cd90747b7ddddf8312b56bb9f6a844d8a87d0bc6",
+      "fbx_sha256": "e0028a798a4928c83aa6c23ba66fd68d4ec436961a46b9efe23e87886a336964",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Chalk stratum_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_86db1432573f7536"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Chalk stratum_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_86db1432573f7536"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Chalk stratum_FittedSections.002",
+          "ink": false,
+          "materials": [
+            "M_86db1432573f7536"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Drawing_MiddleFracture",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_Stratum_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_Stratum_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Drawing_Stratum_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Drawing_Stratum_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Drawing_Stratum_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Drawing_UpperFracture",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_bc4095c4fcb5582a"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.1714285910129547,
+        -0.8571428656578064,
+        0.48571425676345825
+      ],
+      "source_up": [
+        0.09525640308856964,
+        0.4762820303440094,
+        0.8741176724433899
+      ]
+    },
+    {
+      "id": "chalk-02",
+      "family": "chalk",
+      "locale": 3,
+      "fbx": "models/chalk-02.fbx",
+      "source_sha256": "ea1d189e74f0c4095de56a744664f6013debc04c1633ecb1c0ca2490168e34a7",
+      "fbx_sha256": "7923d3c1f80ad527b4ab790e68d77512b16e9937f57ec0190d72484e35cde26d",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Chalk stratum_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_86db1432573f7536"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Chalk stratum_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_86db1432573f7536"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Chalk stratum_FittedSections.002",
+          "ink": false,
+          "materials": [
+            "M_86db1432573f7536"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Drawing_Stratum_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_Stratum_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_Stratum_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Drawing_Stratum_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Drawing_Stratum_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Drawing_UpperCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_bc4095c4fcb5582a"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.1714285910129547,
+        -0.8571428656578064,
+        0.48571425676345825
+      ],
+      "source_up": [
+        0.09525640308856964,
+        0.4762820303440094,
+        0.8741176724433899
+      ]
+    },
+    {
+      "id": "chalk-03",
+      "family": "chalk",
+      "locale": 3,
+      "fbx": "models/chalk-03.fbx",
+      "source_sha256": "9006fc6337ba604f158cf3506db8435f48597e5aa967b1c9b1c16a8ca251b5d4",
+      "fbx_sha256": "aabfcb6f60adf04dcd06ee89fa72af046c8cffd7c243a0b849e326cee49dcb66",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Chalk stratum_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_86db1432573f7536"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Chalk stratum_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_86db1432573f7536"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Chalk stratum_FittedSections.002",
+          "ink": false,
+          "materials": [
+            "M_86db1432573f7536"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Chalk stratum_FittedSections.003",
+          "ink": false,
+          "materials": [
+            "M_86db1432573f7536"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Chalk stratum_FittedSections.004",
+          "ink": false,
+          "materials": [
+            "M_86db1432573f7536"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Chalk stratum_FittedSections.005",
+          "ink": false,
+          "materials": [
+            "M_86db1432573f7536"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Drawing_LeftRidgeCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Drawing_Stratum_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Drawing_Stratum_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Drawing_Stratum_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Drawing_Stratum_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Drawing_Stratum_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_bc4095c4fcb5582a"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.1714285910129547,
+        -0.8571428656578064,
+        0.48571425676345825
+      ],
+      "source_up": [
+        0.09525640308856964,
+        0.4762820303440094,
+        0.8741176724433899
+      ]
+    },
+    {
+      "id": "chalk-04",
+      "family": "chalk",
+      "locale": 3,
+      "fbx": "models/chalk-04.fbx",
+      "source_sha256": "98c830636bde62511faa1407e04abc85d8e7b4a88a16ff15ed067330993b5aec",
+      "fbx_sha256": "5044a4f872c3deab4075036fcc32ab30a6b1ea674ccd9dec4e4c31627d02a5e5",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Chalk stratum_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_86db1432573f7536"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Chalk stratum_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_86db1432573f7536"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Chalk stratum_FittedSections.002",
+          "ink": false,
+          "materials": [
+            "M_86db1432573f7536"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Chalk stratum_FittedSections.003",
+          "ink": false,
+          "materials": [
+            "M_86db1432573f7536"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Chalk stratum_FittedSections.004",
+          "ink": false,
+          "materials": [
+            "M_86db1432573f7536"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Chalk stratum_FittedSections.005",
+          "ink": false,
+          "materials": [
+            "M_86db1432573f7536"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Drawing_CantedCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Drawing_Stratum_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Drawing_Stratum_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Drawing_Stratum_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Drawing_Stratum_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Drawing_Stratum_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_bc4095c4fcb5582a"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.1714285910129547,
+        -0.8571428656578064,
+        0.48571425676345825
+      ],
+      "source_up": [
+        0.09525640308856964,
+        0.4762820303440094,
+        0.8741176724433899
+      ]
+    },
+    {
+      "id": "chalk-05",
+      "family": "chalk",
+      "locale": 3,
+      "fbx": "models/chalk-05.fbx",
+      "source_sha256": "af3411f3024d642721b7018d2b3c12a590ab0fa1bb69dfa5e0a92a250e38b1eb",
+      "fbx_sha256": "33f164d1275cbcbf7b3747583b606344ffcc0f0a3159602176b7f07daa956d5f",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Chalk stratum_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_86db1432573f7536"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Chalk stratum_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_86db1432573f7536"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Chalk stratum_FittedSections.002",
+          "ink": false,
+          "materials": [
+            "M_86db1432573f7536"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Drawing_ShaleCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_Stratum_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_Stratum_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Drawing_Stratum_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Drawing_Stratum_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Drawing_Stratum_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_bc4095c4fcb5582a"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.1714285910129547,
+        -0.8571428656578064,
+        0.48571425676345825
+      ],
+      "source_up": [
+        0.09525640308856964,
+        0.4762820303440094,
+        0.8741176724433899
+      ]
+    },
+    {
+      "id": "verdant-01",
+      "family": "verdant",
+      "locale": 6,
+      "fbx": "models/verdant-01.fbx",
+      "source_sha256": "11ab6b34daf8ad6221116dedf3d243ae2331fa57b55f8b01d29118b431dccd18",
+      "fbx_sha256": "a01e7a02fe60b0b16eaf966366c497cad32965c7585af1388f3e62ab79eadf02",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Broken pale crust_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Broken pale crust_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Broken pale crust_FittedSections.002",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Broken pale crust_FittedSections.003",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Broken pale crust_FittedSections.004",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_Crust_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Drawing_Crust_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Drawing_Crust_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Drawing_Crust_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Drawing_Crust_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Drawing_RightRindCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Ochre_Vein_1",
+          "ink": false,
+          "materials": [
+            "M_0462500ceabd7bea"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Ochre_Vein_2",
+          "ink": false,
+          "materials": [
+            "M_0462500ceabd7bea"
+          ]
+        },
+        {
+          "name": "part_013",
+          "source_name": "Ochre_Vein_3",
+          "ink": false,
+          "materials": [
+            "M_0462500ceabd7bea"
+          ]
+        },
+        {
+          "name": "part_014",
+          "source_name": "Recessed_GreenMineral",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348",
+            "M_e2604e0d9a1a8cad",
+            "M_a725fdc902f63201",
+            "M_f08361946eaceaec"
+          ]
+        },
+        {
+          "name": "part_015",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.20290198922157288,
+        -0.8116077780723572,
+        0.5478353500366211
+      ],
+      "source_up": [
+        0.13286960124969482,
+        0.5314782857894897,
+        0.8365861773490906
+      ]
+    },
+    {
+      "id": "verdant-02",
+      "family": "verdant",
+      "locale": 6,
+      "fbx": "models/verdant-02.fbx",
+      "source_sha256": "e5e32b08bde8548b5ec954e5086806ca60da4eedbf12e18a590a41856a54df62",
+      "fbx_sha256": "afea35a31f413270f72cbd7e91fcd8aecf04097ce6e45d89707be1b4190865f5",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Broken pale crust_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Broken pale crust_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Broken pale crust_FittedSections.002",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Broken pale crust_FittedSections.003",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Broken pale crust_FittedSections.004",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Broken pale crust_FittedSections.005",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Drawing_Crust_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Drawing_Crust_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Drawing_Crust_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Drawing_Crust_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Drawing_Crust_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Drawing_RightCrustCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Ochre_Vein_1",
+          "ink": false,
+          "materials": [
+            "M_0462500ceabd7bea"
+          ]
+        },
+        {
+          "name": "part_013",
+          "source_name": "Ochre_Vein_2",
+          "ink": false,
+          "materials": [
+            "M_0462500ceabd7bea"
+          ]
+        },
+        {
+          "name": "part_014",
+          "source_name": "Ochre_Vein_3",
+          "ink": false,
+          "materials": [
+            "M_0462500ceabd7bea"
+          ]
+        },
+        {
+          "name": "part_015",
+          "source_name": "Recessed_GreenMineral",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348",
+            "M_e2604e0d9a1a8cad",
+            "M_a725fdc902f63201",
+            "M_f08361946eaceaec"
+          ]
+        },
+        {
+          "name": "part_016",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.20290198922157288,
+        -0.8116077780723572,
+        0.5478353500366211
+      ],
+      "source_up": [
+        0.13286960124969482,
+        0.5314782857894897,
+        0.8365861773490906
+      ]
+    },
+    {
+      "id": "verdant-03",
+      "family": "verdant",
+      "locale": 6,
+      "fbx": "models/verdant-03.fbx",
+      "source_sha256": "aee13be9c6fc90577b69f0230fb6ea795192ca518cba8c16dda50cef0ec107eb",
+      "fbx_sha256": "b43a6ccc42f3c8fcb259bc768e7a6609281a69527fdaf6dab843d0ac2f39efd7",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Broken pale crust_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Broken pale crust_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Broken pale crust_FittedSections.002",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Drawing_BackRindCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_Crust_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_Crust_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Drawing_Crust_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Drawing_Crust_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Drawing_Crust_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Ochre_Vein_1",
+          "ink": false,
+          "materials": [
+            "M_0462500ceabd7bea"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Ochre_Vein_2",
+          "ink": false,
+          "materials": [
+            "M_0462500ceabd7bea"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Ochre_Vein_3",
+          "ink": false,
+          "materials": [
+            "M_0462500ceabd7bea"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Recessed_GreenMineral",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348",
+            "M_e2604e0d9a1a8cad",
+            "M_a725fdc902f63201"
+          ]
+        },
+        {
+          "name": "part_013",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.20290198922157288,
+        -0.8116077780723572,
+        0.5478353500366211
+      ],
+      "source_up": [
+        0.13286960124969482,
+        0.5314782857894897,
+        0.8365861773490906
+      ]
+    },
+    {
+      "id": "verdant-04",
+      "family": "verdant",
+      "locale": 6,
+      "fbx": "models/verdant-04.fbx",
+      "source_sha256": "94e2d28b3161737a4dfb6e96c18d12ad573c6049db680ea2a22bd4163e42977a",
+      "fbx_sha256": "5abc99fa6b98643003675df247be6783761d5ccda6abf89e1d73931ed9b30835",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Broken pale crust_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Broken pale crust_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Broken pale crust_FittedSections.002",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Broken pale crust_FittedSections.003",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Broken pale crust_FittedSections.004",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Broken pale crust_FittedSections.005",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Drawing_Crust_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Drawing_Crust_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Drawing_Crust_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Drawing_Crust_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Drawing_Crust_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Drawing_LeftRindCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Ochre_Vein_1",
+          "ink": false,
+          "materials": [
+            "M_0462500ceabd7bea"
+          ]
+        },
+        {
+          "name": "part_013",
+          "source_name": "Ochre_Vein_2",
+          "ink": false,
+          "materials": [
+            "M_0462500ceabd7bea"
+          ]
+        },
+        {
+          "name": "part_014",
+          "source_name": "Ochre_Vein_3",
+          "ink": false,
+          "materials": [
+            "M_0462500ceabd7bea"
+          ]
+        },
+        {
+          "name": "part_015",
+          "source_name": "Recessed_GreenMineral",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348",
+            "M_e2604e0d9a1a8cad",
+            "M_a725fdc902f63201",
+            "M_f08361946eaceaec"
+          ]
+        },
+        {
+          "name": "part_016",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.20290198922157288,
+        -0.8116077780723572,
+        0.5478353500366211
+      ],
+      "source_up": [
+        0.13286960124969482,
+        0.5314782857894897,
+        0.8365861773490906
+      ]
+    },
+    {
+      "id": "verdant-05",
+      "family": "verdant",
+      "locale": 6,
+      "fbx": "models/verdant-05.fbx",
+      "source_sha256": "a3c78e4b7243eb63679b444e8dd329f3346f3da3465b47d0353f51bddbb17ac0",
+      "fbx_sha256": "bcf52fb89f5698a4074bd5e8ef676f755a0ee42c1d6948417f3e330bf043b110",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Broken pale crust_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Broken pale crust_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Broken pale crust_FittedSections.002",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Broken pale crust_FittedSections.003",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Broken pale crust_FittedSections.004",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Broken pale crust_FittedSections.005",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Broken pale crust_FittedSections.006",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Drawing_Crust_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Drawing_Crust_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Drawing_Crust_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Drawing_Crust_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Drawing_Crust_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Drawing_RearRindCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_013",
+          "source_name": "Ochre_Vein_1",
+          "ink": false,
+          "materials": [
+            "M_0462500ceabd7bea"
+          ]
+        },
+        {
+          "name": "part_014",
+          "source_name": "Ochre_Vein_2",
+          "ink": false,
+          "materials": [
+            "M_0462500ceabd7bea"
+          ]
+        },
+        {
+          "name": "part_015",
+          "source_name": "Ochre_Vein_3",
+          "ink": false,
+          "materials": [
+            "M_0462500ceabd7bea"
+          ]
+        },
+        {
+          "name": "part_016",
+          "source_name": "Recessed_GreenMineral",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348",
+            "M_e2604e0d9a1a8cad",
+            "M_a725fdc902f63201",
+            "M_f08361946eaceaec"
+          ]
+        },
+        {
+          "name": "part_017",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.20290198922157288,
+        -0.8116077780723572,
+        0.5478353500366211
+      ],
+      "source_up": [
+        0.13286960124969482,
+        0.5314782857894897,
+        0.8365861773490906
+      ]
+    },
+    {
+      "id": "ice-01",
+      "family": "ice",
+      "locale": 7,
+      "fbx": "models/ice-01.fbx",
+      "source_sha256": "e57eb089b83521ba3408e6200abe11ea9f2f4c6b95165d8d4daa9545d482a87f",
+      "fbx_sha256": "a3f8bd79945549cf51a09f3679eff5316fe8b04ce287d49e465cd07177bba399",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Drawing_IceCrack",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Drawing_IceFracture_1",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Drawing_IceFracture_2",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Drawing_IceFracture_3",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_IceFracture_4",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_IceFracture_5",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Fresh pale ice_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Fresh pale ice_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Fresh pale ice_FittedSections.002",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Fresh pale ice_FittedSections.003",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Fresh pale ice_FittedSections.004",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Ice_Host",
+          "ink": false,
+          "materials": [
+            "M_f743235172ed41ea"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Rock crossing front fracture",
+          "ink": false,
+          "materials": [
+            "M_ed9111336fa655b9"
+          ]
+        },
+        {
+          "name": "part_013",
+          "source_name": "Stone_RightPlate",
+          "ink": false,
+          "materials": [
+            "M_ed9111336fa655b9"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.1714285910129547,
+        -0.8571428656578064,
+        0.48571425676345825
+      ],
+      "source_up": [
+        0.09525640308856964,
+        0.4762820303440094,
+        0.8741176724433899
+      ]
+    },
+    {
+      "id": "ice-02",
+      "family": "ice",
+      "locale": 7,
+      "fbx": "models/ice-02.fbx",
+      "source_sha256": "aee6ad8ad12a8ec0adee5b7d92d5ead676035c7ec37902abc80e947ea0f8e4f0",
+      "fbx_sha256": "1660752e62e366a40d28e0c0e67573cee533497d91cf70d66e5262591c244a8c",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Drawing_IceCrack",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Drawing_IceFracture_1",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Drawing_IceFracture_2",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Drawing_IceFracture_3",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_IceFracture_4",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_IceFracture_5",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Exposed stone spine",
+          "ink": false,
+          "materials": [
+            "M_ed9111336fa655b9"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Fresh pale ice_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Fresh pale ice_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Fresh pale ice_FittedSections.002",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Ice_Host",
+          "ink": false,
+          "materials": [
+            "M_f743235172ed41ea"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.1714285910129547,
+        -0.8571428656578064,
+        0.48571425676345825
+      ],
+      "source_up": [
+        0.09525640308856964,
+        0.4762820303440094,
+        0.8741176724433899
+      ]
+    },
+    {
+      "id": "ice-03",
+      "family": "ice",
+      "locale": 7,
+      "fbx": "models/ice-03.fbx",
+      "source_sha256": "f7a34a6762e3999f514a445337436cf2a9b53d9a5a244a11ec1586526d976fd0",
+      "fbx_sha256": "811fed18cb69a3c9e5ac3b25664433b5197fc788b5e46a31f7e5b535993a4eb8",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Drawing_IceCrack",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Drawing_IceFracture_1",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Drawing_IceFracture_2",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Drawing_IceFracture_3",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_IceFracture_4",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_IceFracture_5",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Far horn rock section",
+          "ink": false,
+          "materials": [
+            "M_ed9111336fa655b9"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Fresh pale ice_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Fresh pale ice_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Fresh pale ice_FittedSections.002",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Fresh pale ice_FittedSections.003",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Fresh pale ice_FittedSections.004",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Fresh pale ice_FittedSections.005",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_013",
+          "source_name": "Ice_Host",
+          "ink": false,
+          "materials": [
+            "M_f743235172ed41ea"
+          ]
+        },
+        {
+          "name": "part_014",
+          "source_name": "Rock root in inner bend",
+          "ink": false,
+          "materials": [
+            "M_ed9111336fa655b9"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.1714285910129547,
+        -0.8571428656578064,
+        0.48571425676345825
+      ],
+      "source_up": [
+        0.09525640308856964,
+        0.4762820303440094,
+        0.8741176724433899
+      ]
+    },
+    {
+      "id": "ice-04",
+      "family": "ice",
+      "locale": 7,
+      "fbx": "models/ice-04.fbx",
+      "source_sha256": "2824c69cd69921c1166a978818c9810d3835128e5cb4755587fe9d9b68869ed9",
+      "fbx_sha256": "be057d6e8045f511d951a35d4e802e4dc18d0782db56f668a5a59860659bbcfc",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Drawing_IceCrack",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Drawing_IceFracture_1",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Drawing_IceFracture_2",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Drawing_IceFracture_3",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_IceFracture_4",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_IceFracture_5",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Fresh pale ice_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Fresh pale ice_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Fresh pale ice_FittedSections.002",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Fresh pale ice_FittedSections.003",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Ice_Host",
+          "ink": false,
+          "materials": [
+            "M_f743235172ed41ea"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Stone crossing lower split",
+          "ink": false,
+          "materials": [
+            "M_ed9111336fa655b9"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Upper frozen stone section",
+          "ink": false,
+          "materials": [
+            "M_ed9111336fa655b9"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.1714285910129547,
+        -0.8571428656578064,
+        0.48571425676345825
+      ],
+      "source_up": [
+        0.09525640308856964,
+        0.4762820303440094,
+        0.8741176724433899
+      ]
+    },
+    {
+      "id": "ice-05",
+      "family": "ice",
+      "locale": 7,
+      "fbx": "models/ice-05.fbx",
+      "source_sha256": "dfcd1c63128626c793560186a3698f9e9f922c8830e5654823bcab7e314240f6",
+      "fbx_sha256": "53b704983198a488d8c35d4e73189a03df04a0bcf5cb014253ca36dadf77e520",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Drawing_IceCrack",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Drawing_IceFracture_1",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Drawing_IceFracture_2",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Drawing_IceFracture_3",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_IceFracture_4",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_IceFracture_5",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Fresh pale ice_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Fresh pale ice_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Fresh pale ice_FittedSections.002",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Fresh pale ice_FittedSections.003",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Fresh pale ice_FittedSections.004",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Ice_Host",
+          "ink": false,
+          "materials": [
+            "M_f743235172ed41ea"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Long slab buried left rib",
+          "ink": false,
+          "materials": [
+            "M_ed9111336fa655b9"
+          ]
+        },
+        {
+          "name": "part_013",
+          "source_name": "Right step enclosed stone",
+          "ink": false,
+          "materials": [
+            "M_ed9111336fa655b9"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.1714285910129547,
+        -0.8571428656578064,
+        0.48571425676345825
+      ],
+      "source_up": [
+        0.09525640308856964,
+        0.4762820303440094,
+        0.8741176724433899
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "key": "M_4a12d6eea84ca011",
+      "source_name": "Painted copper fracture",
+      "paint_path": "paint/M_4a12d6eea84ca011.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "c1cfe53b9153406bfe084950b2fd84bb6febc7e543e084d83dc7ff13b0cf709d"
+    },
+    {
+      "key": "M_7b071352c986f4e4",
+      "source_name": "Fitted graphite fracture strokes",
+      "paint_path": "",
+      "color": [
+        0.017999999225139618,
+        0.014000000432133675,
+        0.027000000700354576,
+        1.0
+      ]
+    },
+    {
+      "key": "M_da3f590be757bf06",
+      "source_name": "Painted slate, approved Violet swatch",
+      "paint_path": "paint/M_da3f590be757bf06.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "c134a56e61e85f5b58c8c8aebc2469b81920ef5a29ee947a72eb530bb3810870"
+    },
+    {
+      "key": "M_709b0a7aa0263306",
+      "source_name": "Painted turquoise crust",
+      "paint_path": "paint/M_709b0a7aa0263306.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "a0650706b5f2ee01cb14a353f81c26424220d51cbd27d5a84381db0557250b0b"
+    },
+    {
+      "key": "M_9cbb6ed89eab62d6",
+      "source_name": "Copper",
+      "paint_path": "paint/M_9cbb6ed89eab62d6.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "c1cfe53b9153406bfe084950b2fd84bb6febc7e543e084d83dc7ff13b0cf709d"
+    },
+    {
+      "key": "M_48e099fdbf9aa840",
+      "source_name": "Graphite",
+      "paint_path": "",
+      "color": [
+        0.017999999225139618,
+        0.014000000432133675,
+        0.027000000700354576,
+        1.0
+      ]
+    },
+    {
+      "key": "M_ae64e09fc6602625",
+      "source_name": "Slate",
+      "paint_path": "paint/M_ae64e09fc6602625.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "c134a56e61e85f5b58c8c8aebc2469b81920ef5a29ee947a72eb530bb3810870"
+    },
+    {
+      "key": "M_0a7f1cdf2a042f3f",
+      "source_name": "Turquoise",
+      "paint_path": "paint/M_0a7f1cdf2a042f3f.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "a0650706b5f2ee01cb14a353f81c26424220d51cbd27d5a84381db0557250b0b"
+    },
+    {
+      "key": "M_100240458bd7268b",
+      "source_name": "Painted amethyst, source swatch",
+      "paint_path": "paint/M_100240458bd7268b.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "550e42402a3c6e74dafae34c065b4cc7ad0f33fe869b1435d939254b24bb6d99"
+    },
+    {
+      "key": "M_40c9ef353ed572a1",
+      "source_name": "Painted pale lavender edge accents",
+      "paint_path": "",
+      "color": [
+        0.6499999761581421,
+        0.4000000059604645,
+        0.8500000238418579,
+        1.0
+      ]
+    },
+    {
+      "key": "M_52ecbfc9915fcbae",
+      "source_name": "Warm broken mineral paint",
+      "paint_path": "paint/M_52ecbfc9915fcbae.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "e6fdaca5a40800583ca6cd53e199133d4d130907981d1091b77abbf6e0312ff8"
+    },
+    {
+      "key": "M_62a1b00f7333815e",
+      "source_name": "Painted slate, source swatch",
+      "paint_path": "paint/M_62a1b00f7333815e.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "fcf77534d40837a9ec904d6e5ccaed1e012228910298c62e84099b9ec8ee3d07"
+    },
+    {
+      "key": "M_c41bd7a0500e07fc",
+      "source_name": "Amethyst",
+      "paint_path": "paint/M_c41bd7a0500e07fc.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "711afb50b3ef53c584bd1c7c8c9a295bd148bfc6f2ca583c2d106803751d989f"
+    },
+    {
+      "key": "M_c77ef289175b5f96",
+      "source_name": "Pale lavender facet accent.001",
+      "paint_path": "",
+      "color": [
+        0.6499999761581421,
+        0.4000000059604645,
+        0.8500000238418579,
+        1.0
+      ]
+    },
+    {
+      "key": "M_316eda7924f52c64",
+      "source_name": "Slate",
+      "paint_path": "paint/M_316eda7924f52c64.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "fcf77534d40837a9ec904d6e5ccaed1e012228910298c62e84099b9ec8ee3d07"
+    },
+    {
+      "key": "M_1fb2519355690209",
+      "source_name": "Warm mineral",
+      "paint_path": "paint/M_1fb2519355690209.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "a85a2d53239e6774eed26873cb9ebce7aaa9c01237ae8e97fd2632b8169e6198"
+    },
+    {
+      "key": "M_86db1432573f7536",
+      "source_name": "Chalk stratum",
+      "paint_path": "paint/M_86db1432573f7536.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "a0664914bb0560b60b247c92340241506270cbc1f1f104b2ecf9d5a6702181d8"
+    },
+    {
+      "key": "M_bc4095c4fcb5582a",
+      "source_name": "Blue gray slate",
+      "paint_path": "paint/M_bc4095c4fcb5582a.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "9d7835a66fb16a38ea0fadec0534379f20512152036490c0b7320b0613fafcb7"
+    },
+    {
+      "key": "M_0bb8da91b5a51a5c",
+      "source_name": "Broken pale crust",
+      "paint_path": "paint/M_0bb8da91b5a51a5c.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "c810b8441fd9fbd57b7ccf0bba09bf356fcee35eacd134b17b77aa8cc0c17677"
+    },
+    {
+      "key": "M_0462500ceabd7bea",
+      "source_name": "Ochre seam",
+      "paint_path": "paint/M_0462500ceabd7bea.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "20af7bc594475360b95642d5ade4ee90f54ffc194569ec9e019bfe51cae981c9"
+    },
+    {
+      "key": "M_59ef414d21c3b348",
+      "source_name": "Dark mineral support",
+      "paint_path": "paint/M_59ef414d21c3b348.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "35fcf8add4521cdf55d879003b6e44a9fc4688b76a11dee8e3cbc5a4151671e7"
+    },
+    {
+      "key": "M_e2604e0d9a1a8cad",
+      "source_name": "Deep jade",
+      "paint_path": "paint/M_e2604e0d9a1a8cad.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "7f95949fa4ca24313278e77106cf33d76fabca8ca8a5045ebabe880589bf92d7"
+    },
+    {
+      "key": "M_a725fdc902f63201",
+      "source_name": "Green mineral band",
+      "paint_path": "paint/M_a725fdc902f63201.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "d28be67654d4667622116a62b8f064043d814e667c736e4bf31ac1a9804e0ec3"
+    },
+    {
+      "key": "M_f08361946eaceaec",
+      "source_name": "Pale olive band",
+      "paint_path": "paint/M_f08361946eaceaec.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "23fb7ce5a58bc53d8c1e2e53774fd33e1a107a09df7edefc3a4cd83aab187c24"
+    },
+    {
+      "key": "M_21b8963684f006bf",
+      "source_name": "Graphite",
+      "paint_path": "",
+      "color": [
+        0.04500000178813934,
+        0.0949999988079071,
+        0.1599999964237213,
+        1.0
+      ]
+    },
+    {
+      "key": "M_e78a88f1d7432a11",
+      "source_name": "Fresh pale ice",
+      "paint_path": "paint/M_e78a88f1d7432a11.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "af3049f90ea58188179889f1d9cbdf3853196ef73b627e942600152c050c1228"
+    },
+    {
+      "key": "M_f743235172ed41ea",
+      "source_name": "Frozen blue mantle",
+      "paint_path": "paint/M_f743235172ed41ea.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "598f7ff36b70a3200c7692e4a9e11522185b63830c6e80d576bc81745d98b640"
+    },
+    {
+      "key": "M_ed9111336fa655b9",
+      "source_name": "Embedded dark stone",
+      "paint_path": "paint/M_ed9111336fa655b9.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "5185c3281f079bfaa3589da2384ccb66940475bdbe5465ee5ecfbd5f0a0cc489"
+    }
+  ],
+  "color_workflow": "Blender Base Color emission bake, no lighting/AO; original images unchanged",
+  "axes": "FBX -Z forward, Y up",
+  "orientation_basis": "models/orientation-basis.fbx"
+}

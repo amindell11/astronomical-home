@@ -1,0 +1,292 @@
+{
+  "models": [
+    {
+      "id": "chalk-old-01",
+      "family": "chalk",
+      "locale": 3,
+      "fbx": "models/chalk-old-01.fbx",
+      "source_sha256": "89570c9029dcb3785be045e3cd90747b7ddddf8312b56bb9f6a844d8a87d0bc6",
+      "fbx_sha256": "fa951d15a077473074e07233b49f94b85b0275a51008ccad6bb014369cd33503",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Chalk stratum_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_86db1432573f7536"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Chalk stratum_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_86db1432573f7536"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Chalk stratum_FittedSections.002",
+          "ink": false,
+          "materials": [
+            "M_86db1432573f7536"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Drawing_MiddleFracture",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_Stratum_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_Stratum_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Drawing_Stratum_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Drawing_Stratum_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Drawing_Stratum_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Drawing_UpperFracture",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_bc4095c4fcb5582a"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.1714285910129547,
+        -0.8571428656578064,
+        0.48571425676345825
+      ],
+      "source_up": [
+        0.09525640308856964,
+        0.4762820303440094,
+        0.8741176724433899
+      ]
+    },
+    {
+      "id": "chalk-rebuilt-01",
+      "family": "chalk",
+      "locale": 3,
+      "fbx": "models/chalk-rebuilt-01.fbx",
+      "source_sha256": "52a9b91d52845dcff05ed864c9240551d65bd6d76e5663cc0d7c14ceb2dbb1dc",
+      "fbx_sha256": "3477951cd7d91526687806556c4c5f33b313ea4ea640e71b294c10f7864d9971",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Broken left chalk exposure",
+          "ink": false,
+          "materials": [
+            "M_dca2e38f02385780"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Chalk on rear fracture crown",
+          "ink": false,
+          "materials": [
+            "M_dca2e38f02385780"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Drawing_Fracture_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Drawing_Fracture_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_Fracture_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_Fracture_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Drawing_Fracture_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Drawing_Fracture_6",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Drawing_RearBreak",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Drawing_ShoulderSplit",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Pale forward terrace seam",
+          "ink": false,
+          "materials": [
+            "M_dca2e38f02385780"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_98a93e9dfcb52113"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.1714285910129547,
+        -0.8571428656578064,
+        0.48571425676345825
+      ],
+      "source_up": [
+        0.09525640308856964,
+        0.4762820303440094,
+        0.8741176724433899
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "key": "M_86db1432573f7536",
+      "source_name": "Chalk stratum",
+      "paint_path": "paint/M_86db1432573f7536.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "a0664914bb0560b60b247c92340241506270cbc1f1f104b2ecf9d5a6702181d8"
+    },
+    {
+      "key": "M_48e099fdbf9aa840",
+      "source_name": "Graphite",
+      "paint_path": "",
+      "color": [
+        0.017999999225139618,
+        0.014000000432133675,
+        0.027000000700354576,
+        1.0
+      ]
+    },
+    {
+      "key": "M_bc4095c4fcb5582a",
+      "source_name": "Blue gray slate",
+      "paint_path": "paint/M_bc4095c4fcb5582a.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "9d7835a66fb16a38ea0fadec0534379f20512152036490c0b7320b0613fafcb7"
+    },
+    {
+      "key": "M_dca2e38f02385780",
+      "source_name": "Warm chalk exposure",
+      "paint_path": "paint/M_dca2e38f02385780.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "e7fdf0f8ca8474701ab6c60b56656a390993d91a3dcde1486632e3e7ec37a6ca"
+    },
+    {
+      "key": "M_98a93e9dfcb52113",
+      "source_name": "Blue slate fracture",
+      "paint_path": "paint/M_98a93e9dfcb52113.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "070288b2223dda8438905cd78625728e6cd4d7b36a043de962123c86406f9120"
+    }
+  ],
+  "orientation_basis": "models/orientation-basis.fbx",
+  "color_workflow": "Blender Base Color emission bake, no lighting/AO; original images unchanged",
+  "axes": "FBX -Z forward, Y up"
+}

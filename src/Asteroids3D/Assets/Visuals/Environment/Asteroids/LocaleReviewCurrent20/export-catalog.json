@@ -1,0 +1,4311 @@
+{
+  "export_corrections": [
+    {
+      "model": "verdant-04",
+      "part": "Broken pale crust_FittedSections",
+      "correction": "Reverse inward winding in export copy only; source bytes, positions, UVs and material assignments preserved."
+    }
+  ],
+  "models": [
+    {
+      "id": "copper-01",
+      "family": "copper",
+      "locale": 1,
+      "fbx": "models/copper-01.fbx",
+      "source_sha256": "0c60959803e777bd116a11a1699edbcf182808b583cdeb9135c09a6623d7a694",
+      "fbx_sha256": "2ca8558e1de3057baf5ca08aab2984fcb4345c29c026dc5a316a981144ebf1f8",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Copper_Fracture_01",
+          "ink": false,
+          "materials": [
+            "M_4a12d6eea84ca011"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Copper_Fracture_02",
+          "ink": false,
+          "materials": [
+            "M_4a12d6eea84ca011"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Copper_Fracture_03",
+          "ink": false,
+          "materials": [
+            "M_4a12d6eea84ca011"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Drawing_Fracture_01",
+          "ink": true,
+          "materials": [
+            "M_7b071352c986f4e4"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_Fracture_02",
+          "ink": true,
+          "materials": [
+            "M_7b071352c986f4e4"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_Fracture_03",
+          "ink": true,
+          "materials": [
+            "M_7b071352c986f4e4"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Drawing_Fracture_04",
+          "ink": true,
+          "materials": [
+            "M_7b071352c986f4e4"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Drawing_Fracture_05",
+          "ink": true,
+          "materials": [
+            "M_7b071352c986f4e4"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Drawing_Fracture_06",
+          "ink": true,
+          "materials": [
+            "M_7b071352c986f4e4"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Drawing_Fracture_07",
+          "ink": true,
+          "materials": [
+            "M_7b071352c986f4e4"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Drawing_Fracture_08",
+          "ink": true,
+          "materials": [
+            "M_7b071352c986f4e4"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Drawing_LeftRoofToWall",
+          "ink": true,
+          "materials": [
+            "M_7b071352c986f4e4"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Drawing_RightRoofToWall",
+          "ink": true,
+          "materials": [
+            "M_7b071352c986f4e4"
+          ]
+        },
+        {
+          "name": "part_013",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_da3f590be757bf06"
+          ]
+        },
+        {
+          "name": "part_014",
+          "source_name": "Turquoise_LeftCleft",
+          "ink": false,
+          "materials": [
+            "M_709b0a7aa0263306"
+          ]
+        },
+        {
+          "name": "part_015",
+          "source_name": "Turquoise_LeftToe",
+          "ink": false,
+          "materials": [
+            "M_709b0a7aa0263306"
+          ]
+        },
+        {
+          "name": "part_016",
+          "source_name": "Turquoise_RearContact",
+          "ink": false,
+          "materials": [
+            "M_709b0a7aa0263306"
+          ]
+        },
+        {
+          "name": "part_017",
+          "source_name": "Turquoise_RightBlade",
+          "ink": false,
+          "materials": [
+            "M_709b0a7aa0263306"
+          ]
+        },
+        {
+          "name": "part_018",
+          "source_name": "Turquoise_RightTip",
+          "ink": false,
+          "materials": [
+            "M_709b0a7aa0263306"
+          ]
+        },
+        {
+          "name": "part_019",
+          "source_name": "Turquoise_UpperContact",
+          "ink": false,
+          "materials": [
+            "M_709b0a7aa0263306"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.1770169734954834,
+        -0.8611636161804199,
+        0.47651058435440063
+      ],
+      "source_up": [
+        0.0959433764219284,
+        0.46675175428390503,
+        0.8791687488555908
+      ]
+    },
+    {
+      "id": "copper-02",
+      "family": "copper",
+      "locale": 1,
+      "fbx": "models/copper-02.fbx",
+      "source_sha256": "d38b39d4b7d0c2356189a6631f6482b4d82343a4b80b008c3e83fa4107272c05",
+      "fbx_sha256": "b81b5e46765c0781fd146662c6911215fcf8132a90dc300553df2012b59755d3",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Copper_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_9cbb6ed89eab62d6"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Copper_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_9cbb6ed89eab62d6"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Drawing_Fracture_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Drawing_Fracture_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_Fracture_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_Fracture_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Drawing_Fracture_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Drawing_Fracture_6",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Drawing_LeftRoofCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Drawing_RightRoofCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_ae64e09fc6602625"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Turquoise_1",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Turquoise_2",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        },
+        {
+          "name": "part_013",
+          "source_name": "Turquoise_3",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        },
+        {
+          "name": "part_014",
+          "source_name": "Turquoise_4",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        },
+        {
+          "name": "part_015",
+          "source_name": "Turquoise_5",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.1714285910129547,
+        -0.8571428656578064,
+        0.48571425676345825
+      ],
+      "source_up": [
+        0.09525640308856964,
+        0.4762820303440094,
+        0.8741176724433899
+      ]
+    },
+    {
+      "id": "copper-03",
+      "family": "copper",
+      "locale": 1,
+      "fbx": "models/copper-03.fbx",
+      "source_sha256": "c4f7ab13c8118349f26db5b22e1b3996364750327e91896293d548856415951c",
+      "fbx_sha256": "48ffffda3b05676607e26d71a13c07aa4ef9c11c032b8d64316bab837bb5b9f9",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Copper_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_9cbb6ed89eab62d6"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Copper_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_9cbb6ed89eab62d6"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Copper_FittedSections.002",
+          "ink": false,
+          "materials": [
+            "M_9cbb6ed89eab62d6"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Copper_FittedSections.003",
+          "ink": false,
+          "materials": [
+            "M_9cbb6ed89eab62d6"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_Fracture_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_Fracture_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Drawing_Fracture_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Drawing_Fracture_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Drawing_Fracture_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Drawing_LowerCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Drawing_TabletCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_ae64e09fc6602625"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Turquoise_1",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        },
+        {
+          "name": "part_013",
+          "source_name": "Turquoise_2",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        },
+        {
+          "name": "part_014",
+          "source_name": "Turquoise_3",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        },
+        {
+          "name": "part_015",
+          "source_name": "Turquoise_4",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        },
+        {
+          "name": "part_016",
+          "source_name": "Turquoise_5",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.1714285910129547,
+        -0.8571428656578064,
+        0.48571425676345825
+      ],
+      "source_up": [
+        0.09525640308856964,
+        0.4762820303440094,
+        0.8741176724433899
+      ]
+    },
+    {
+      "id": "copper-04",
+      "family": "copper",
+      "locale": 1,
+      "fbx": "models/copper-04.fbx",
+      "source_sha256": "fcbca5c35fece9d074f6e1e4c2cc57f37c4ae85e2e5382be026d494d10583c53",
+      "fbx_sha256": "b18c3360b49190a01bfb3fb2579bbad06a685445d0d724f44d089b06983aadfd",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Copper_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_9cbb6ed89eab62d6"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Copper_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_9cbb6ed89eab62d6"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Drawing_CoreCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Drawing_Fracture_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_Fracture_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_Fracture_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Drawing_Fracture_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Drawing_Fracture_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_ae64e09fc6602625"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Turquoise_1",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Turquoise_2",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Turquoise_3",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Turquoise_4",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.1714285910129547,
+        -0.8571428656578064,
+        0.48571425676345825
+      ],
+      "source_up": [
+        0.09525640308856964,
+        0.4762820303440094,
+        0.8741176724433899
+      ]
+    },
+    {
+      "id": "copper-05",
+      "family": "copper",
+      "locale": 1,
+      "fbx": "models/copper-05.fbx",
+      "source_sha256": "8679f445b121702ae7397055cfd43870249b9c47be5d06b898eaf258004c3957",
+      "fbx_sha256": "1adf2fc763649d205213c8a7a65d7bc4c152b8a796b9a7cb368f27857199f1e7",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Copper_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_9cbb6ed89eab62d6"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Copper_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_9cbb6ed89eab62d6"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Drawing_BladeCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Drawing_EndCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_Fracture_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_Fracture_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Drawing_Fracture_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Drawing_Fracture_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Drawing_Fracture_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_ae64e09fc6602625"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Turquoise_1",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Turquoise_2",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Turquoise_3",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        },
+        {
+          "name": "part_013",
+          "source_name": "Turquoise_4",
+          "ink": false,
+          "materials": [
+            "M_0a7f1cdf2a042f3f"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.1714285910129547,
+        -0.8571428656578064,
+        0.48571425676345825
+      ],
+      "source_up": [
+        0.09525640308856964,
+        0.4762820303440094,
+        0.8741176724433899
+      ]
+    },
+    {
+      "id": "chalk-01",
+      "family": "chalk",
+      "locale": 3,
+      "fbx": "models/chalk-01.fbx",
+      "source_sha256": "66e6427a198b1735ce09de6174391e340872be40cd3fb90eba59af504640569f",
+      "fbx_sha256": "3f9684f40b7ed161baf28793643322e150f34fa84c294974d11d815a906400c5",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Broken rear chalk stratum",
+          "ink": false,
+          "materials": [
+            "M_dca2e38f02385780"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Drawing_Lamina_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Drawing_Lamina_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Drawing_Lamina_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_Lamina_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_Lamina_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Drawing_Lamina_6",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Drawing_Lamina_7",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Drawing_UpperCrossFracture",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Interrupted left pale exposure",
+          "ink": false,
+          "materials": [
+            "M_dca2e38f02385780"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_98a93e9dfcb52113"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Unequal lower pale layer",
+          "ink": false,
+          "materials": [
+            "M_dca2e38f02385780"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.1714285910129547,
+        -0.8571428656578064,
+        0.48571425676345825
+      ],
+      "source_up": [
+        0.09525640308856964,
+        0.4762820303440094,
+        0.8741176724433899
+      ]
+    },
+    {
+      "id": "chalk-02",
+      "family": "chalk",
+      "locale": 3,
+      "fbx": "models/chalk-02.fbx",
+      "source_sha256": "2c18f3dd9720cb387539bdf94b5680993b5317122c06d5969f5841b31dcc04a2",
+      "fbx_sha256": "2fcaf731f42440db0d851130b020ebf62ab42efb57b78823bc7f1e402dbad3dd",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Drawing_Lamina_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Drawing_Lamina_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Drawing_Lamina_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Drawing_Lamina_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_Lamina_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Pale broken right seam",
+          "ink": false,
+          "materials": [
+            "M_dca2e38f02385780"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_98a93e9dfcb52113"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.1714285910129547,
+        -0.8571428656578064,
+        0.48571425676345825
+      ],
+      "source_up": [
+        0.09525640308856964,
+        0.4762820303440094,
+        0.8741176724433899
+      ]
+    },
+    {
+      "id": "chalk-03",
+      "family": "chalk",
+      "locale": 3,
+      "fbx": "models/chalk-03.fbx",
+      "source_sha256": "3f8a961ca0a23416626f74c7c6cdfde10a51060a8712222876c440fe1bc4b6a1",
+      "fbx_sha256": "9fc12464d6fe564e0782b037833219dfcd3860e877c70c9dbe1e5fe29c00d8e5",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Cream middle fan face",
+          "ink": false,
+          "materials": [
+            "M_dca2e38f02385780"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Drawing_Lamina_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Drawing_Lamina_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Drawing_Lamina_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_Lamina_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_Lamina_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Lower fan broken pale toe",
+          "ink": false,
+          "materials": [
+            "M_dca2e38f02385780"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_98a93e9dfcb52113"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.1714285910129547,
+        -0.8571428656578064,
+        0.48571425676345825
+      ],
+      "source_up": [
+        0.09525640308856964,
+        0.4762820303440094,
+        0.8741176724433899
+      ]
+    },
+    {
+      "id": "chalk-04",
+      "family": "chalk",
+      "locale": 3,
+      "fbx": "models/chalk-04.fbx",
+      "source_sha256": "a9bc27a7884e16d718f4473aef87199d87c72569399a8272ad86fa8b74b1b6a6",
+      "fbx_sha256": "81c37748fe59ad09357b82b54b0b1a5079096c9d4f4050a533fffb9d71b91cf5",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Broad eroded cream body",
+          "ink": false,
+          "materials": [
+            "M_dca2e38f02385780"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Drawing_Lamina_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Drawing_Lamina_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Drawing_Lamina_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_Lamina_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_Lamina_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_98a93e9dfcb52113"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.1714285910129547,
+        -0.8571428656578064,
+        0.48571425676345825
+      ],
+      "source_up": [
+        0.09525640308856964,
+        0.4762820303440094,
+        0.8741176724433899
+      ]
+    },
+    {
+      "id": "chalk-05",
+      "family": "chalk",
+      "locale": 3,
+      "fbx": "models/chalk-05.fbx",
+      "source_sha256": "b82d736b53ed9b43cdf065d8c35cf23f2d5ea474b7a7dbd652318aa6fb1fcb5f",
+      "fbx_sha256": "91b29cffcfd80dd1aa83a8bb4a2652bcff4b2cbfcf9a8ce03ae21208ecaae239",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Drawing_Lamina_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Drawing_Lamina_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Drawing_Lamina_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Drawing_Lamina_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_Lamina_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Interrupted diagonal pale fault band",
+          "ink": false,
+          "materials": [
+            "M_dca2e38f02385780"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_98a93e9dfcb52113"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.1714285910129547,
+        -0.8571428656578064,
+        0.48571425676345825
+      ],
+      "source_up": [
+        0.09525640308856964,
+        0.4762820303440094,
+        0.8741176724433899
+      ]
+    },
+    {
+      "id": "verdant-01",
+      "family": "verdant",
+      "locale": 6,
+      "fbx": "models/verdant-01.fbx",
+      "source_sha256": "663269d1658edf7ee27892e2af46bf74d2dfe4c75dc3ced5bf946796d9c3504e",
+      "fbx_sha256": "55d939bf480b84852d3bb76b2092e98e94d79e0942dca5e033103f6d00d51bee",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Broken pale crust_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Broken pale crust_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Broken pale crust_FittedSections.002",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Broken pale crust_FittedSections.003",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Broken pale crust_FittedSections.004",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Broken pale crust_FittedSections.005",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Drawing_Crust_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Drawing_Crust_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Drawing_Crust_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Drawing_Crust_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Drawing_Crust_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Drawing_RightRindCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Ochre_Vein_1",
+          "ink": false,
+          "materials": [
+            "M_0462500ceabd7bea"
+          ]
+        },
+        {
+          "name": "part_013",
+          "source_name": "Ochre_Vein_2",
+          "ink": false,
+          "materials": [
+            "M_0462500ceabd7bea"
+          ]
+        },
+        {
+          "name": "part_014",
+          "source_name": "Ochre_Vein_3",
+          "ink": false,
+          "materials": [
+            "M_0462500ceabd7bea"
+          ]
+        },
+        {
+          "name": "part_015",
+          "source_name": "Partial crescent around intact stone center",
+          "ink": false,
+          "materials": [
+            "M_e2604e0d9a1a8cad",
+            "M_a725fdc902f63201"
+          ]
+        },
+        {
+          "name": "part_016",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.20290198922157288,
+        -0.8116077780723572,
+        0.5478353500366211
+      ],
+      "source_up": [
+        0.13286960124969482,
+        0.5314782857894897,
+        0.8365861773490906
+      ]
+    },
+    {
+      "id": "verdant-02",
+      "family": "verdant",
+      "locale": 6,
+      "fbx": "models/verdant-02.fbx",
+      "source_sha256": "b8d1b15e5f23b4d4a078ee2b7df85e4ecb0fa550332643b4efabee9f012d10aa",
+      "fbx_sha256": "45a13eed05ed026047d85518031f28380cdbb22f535dfaba20e89091d493453b",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Broken pale crust_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Broken pale crust_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Broken pale crust_FittedSections.002",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Broken pale crust_FittedSections.003",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Broken pale crust_FittedSections.004",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_Crust_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Drawing_Crust_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Drawing_Crust_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Drawing_Crust_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Drawing_Crust_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Drawing_RightCrustCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Narrow irregular jade vein",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348",
+            "M_e2604e0d9a1a8cad",
+            "M_a725fdc902f63201"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Ochre_Vein_1",
+          "ink": false,
+          "materials": [
+            "M_0462500ceabd7bea"
+          ]
+        },
+        {
+          "name": "part_013",
+          "source_name": "Ochre_Vein_2",
+          "ink": false,
+          "materials": [
+            "M_0462500ceabd7bea"
+          ]
+        },
+        {
+          "name": "part_014",
+          "source_name": "Ochre_Vein_3",
+          "ink": false,
+          "materials": [
+            "M_0462500ceabd7bea"
+          ]
+        },
+        {
+          "name": "part_015",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.20290198922157288,
+        -0.8116077780723572,
+        0.5478353500366211
+      ],
+      "source_up": [
+        0.13286960124969482,
+        0.5314782857894897,
+        0.8365861773490906
+      ]
+    },
+    {
+      "id": "verdant-03",
+      "family": "verdant",
+      "locale": 6,
+      "fbx": "models/verdant-03.fbx",
+      "source_sha256": "ed40d14415b7b36dbd9ea2cd948ee18dc138a5d3c062d637c5df456cf62680b2",
+      "fbx_sha256": "6a7fd01c92338213ddea515f1940c1292b673707e9b6c15aee6098e9e8b8ba4c",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Broken pale crust_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Broken pale crust_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Broken pale crust_FittedSections.002",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Drawing_BackRindCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_Crust_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_Crust_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Drawing_Crust_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Drawing_Crust_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Drawing_Crust_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Ochre_Vein_1",
+          "ink": false,
+          "materials": [
+            "M_0462500ceabd7bea"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Ochre_Vein_2",
+          "ink": false,
+          "materials": [
+            "M_0462500ceabd7bea"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Ochre_Vein_3",
+          "ink": false,
+          "materials": [
+            "M_0462500ceabd7bea"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Recessed_GreenMineral",
+          "ink": false,
+          "materials": [
+            "M_e2604e0d9a1a8cad",
+            "M_a725fdc902f63201"
+          ]
+        },
+        {
+          "name": "part_013",
+          "source_name": "Recessed_GreenMineral.001",
+          "ink": false,
+          "materials": [
+            "M_e2604e0d9a1a8cad",
+            "M_a725fdc902f63201",
+            "M_f08361946eaceaec"
+          ]
+        },
+        {
+          "name": "part_014",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.20290198922157288,
+        -0.8116077780723572,
+        0.5478353500366211
+      ],
+      "source_up": [
+        0.13286960124969482,
+        0.5314782857894897,
+        0.8365861773490906
+      ]
+    },
+    {
+      "id": "verdant-04",
+      "family": "verdant",
+      "locale": 6,
+      "fbx": "models/verdant-04.fbx",
+      "source_sha256": "b5edd0a0d91d14d305c61e7322c110bcbe2abf1ef34332d5a47e96926d8246da",
+      "fbx_sha256": "2016dc89bdaf2cf11e1e0655d0e3dc72b77eb65c1a818d660915a087b0b7e1f8",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Broken pale crust_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Broken pale crust_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Broken pale crust_FittedSections.002",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Dark mineral support_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Dark mineral support_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Dark mineral support_FittedSections.002",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Dark mineral support_FittedSections.003",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Dark mineral support_FittedSections.004",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Dark mineral support_FittedSections.005",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Dark mineral support_FittedSections.006",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Dark mineral support_FittedSections.007",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Dark mineral support_FittedSections.008",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Dark mineral support_FittedSections.009",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_013",
+          "source_name": "Dark mineral support_FittedSections.010",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_014",
+          "source_name": "Dark mineral support_FittedSections.011",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_015",
+          "source_name": "Dark mineral support_FittedSections.012",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_016",
+          "source_name": "Dark mineral support_FittedSections.013",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_017",
+          "source_name": "Dark mineral support_FittedSections.014",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_018",
+          "source_name": "Dark mineral support_FittedSections.015",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_019",
+          "source_name": "Dark mineral support_FittedSections.016",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_020",
+          "source_name": "Dark mineral support_FittedSections.017",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_021",
+          "source_name": "Dark mineral support_FittedSections.018",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_022",
+          "source_name": "Dark mineral support_FittedSections.019",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_023",
+          "source_name": "Dark mineral support_FittedSections.020",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_024",
+          "source_name": "Dark mineral support_FittedSections.021",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_025",
+          "source_name": "Dark mineral support_FittedSections.022",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_026",
+          "source_name": "Dark mineral support_FittedSections.023",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_027",
+          "source_name": "Dark mineral support_FittedSections.024",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_028",
+          "source_name": "Dark mineral support_FittedSections.025",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_029",
+          "source_name": "Dark mineral support_FittedSections.026",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_030",
+          "source_name": "Dark mineral support_FittedSections.027",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_031",
+          "source_name": "Dark mineral support_FittedSections.028",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_032",
+          "source_name": "Dark mineral support_FittedSections.029",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_033",
+          "source_name": "Dark mineral support_FittedSections.030",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_034",
+          "source_name": "Dark mineral support_FittedSections.031",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_035",
+          "source_name": "Dark mineral support_FittedSections.032",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_036",
+          "source_name": "Dark mineral support_FittedSections.033",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_037",
+          "source_name": "Dark mineral support_FittedSections.034",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_038",
+          "source_name": "Dark mineral support_FittedSections.035",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_039",
+          "source_name": "Dark mineral support_FittedSections.036",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_040",
+          "source_name": "Dark mineral support_FittedSections.037",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_041",
+          "source_name": "Dark mineral support_FittedSections.038",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_042",
+          "source_name": "Dark mineral support_FittedSections.039",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_043",
+          "source_name": "Dark mineral support_FittedSections.040",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_044",
+          "source_name": "Dark mineral support_FittedSections.041",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_045",
+          "source_name": "Dark mineral support_FittedSections.042",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_046",
+          "source_name": "Dark mineral support_FittedSections.043",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_047",
+          "source_name": "Dark mineral support_FittedSections.044",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_048",
+          "source_name": "Dark mineral support_FittedSections.045",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_049",
+          "source_name": "Dark mineral support_FittedSections.046",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_050",
+          "source_name": "Dark mineral support_FittedSections.047",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_051",
+          "source_name": "Dark mineral support_FittedSections.048",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_052",
+          "source_name": "Dark mineral support_FittedSections.049",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_053",
+          "source_name": "Dark mineral support_FittedSections.050",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_054",
+          "source_name": "Dark mineral support_FittedSections.051",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_055",
+          "source_name": "Dark mineral support_FittedSections.052",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_056",
+          "source_name": "Dark mineral support_FittedSections.053",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_057",
+          "source_name": "Dark mineral support_FittedSections.054",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_058",
+          "source_name": "Dark mineral support_FittedSections.055",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_059",
+          "source_name": "Dark mineral support_FittedSections.056",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_060",
+          "source_name": "Dark mineral support_FittedSections.057",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_061",
+          "source_name": "Dark mineral support_FittedSections.058",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_062",
+          "source_name": "Dark mineral support_FittedSections.059",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_063",
+          "source_name": "Dark mineral support_FittedSections.060",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_064",
+          "source_name": "Dark mineral support_FittedSections.061",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_065",
+          "source_name": "Dark mineral support_FittedSections.062",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_066",
+          "source_name": "Dark mineral support_FittedSections.063",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_067",
+          "source_name": "Dark mineral support_FittedSections.064",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_068",
+          "source_name": "Dark mineral support_FittedSections.065",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_069",
+          "source_name": "Dark mineral support_FittedSections.066",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_070",
+          "source_name": "Dark mineral support_FittedSections.067",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_071",
+          "source_name": "Dark mineral support_FittedSections.068",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_072",
+          "source_name": "Dark mineral support_FittedSections.069",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_073",
+          "source_name": "Dark mineral support_FittedSections.070",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_074",
+          "source_name": "Dark mineral support_FittedSections.071",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_075",
+          "source_name": "Dark mineral support_FittedSections.072",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_076",
+          "source_name": "Dark mineral support_FittedSections.073",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_077",
+          "source_name": "Dark mineral support_FittedSections.074",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_078",
+          "source_name": "Dark mineral support_FittedSections.075",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_079",
+          "source_name": "Dark mineral support_FittedSections.076",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_080",
+          "source_name": "Dark mineral support_FittedSections.077",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_081",
+          "source_name": "Dark mineral support_FittedSections.078",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_082",
+          "source_name": "Dark mineral support_FittedSections.079",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_083",
+          "source_name": "Dark mineral support_FittedSections.080",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_084",
+          "source_name": "Dark mineral support_FittedSections.081",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_085",
+          "source_name": "Dark mineral support_FittedSections.082",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_086",
+          "source_name": "Dark mineral support_FittedSections.083",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_087",
+          "source_name": "Dark mineral support_FittedSections.084",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_088",
+          "source_name": "Dark mineral support_FittedSections.085",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_089",
+          "source_name": "Dark mineral support_FittedSections.086",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_090",
+          "source_name": "Dark mineral support_FittedSections.087",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_091",
+          "source_name": "Dark mineral support_FittedSections.088",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_092",
+          "source_name": "Dark mineral support_FittedSections.089",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_093",
+          "source_name": "Dark mineral support_FittedSections.090",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_094",
+          "source_name": "Dark mineral support_FittedSections.091",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_095",
+          "source_name": "Dark mineral support_FittedSections.092",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_096",
+          "source_name": "Dark mineral support_FittedSections.093",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_097",
+          "source_name": "Dark mineral support_FittedSections.094",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_098",
+          "source_name": "Dark mineral support_FittedSections.095",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_099",
+          "source_name": "Dark mineral support_FittedSections.096",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_100",
+          "source_name": "Dark mineral support_FittedSections.097",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_101",
+          "source_name": "Dark mineral support_FittedSections.098",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_102",
+          "source_name": "Dark mineral support_FittedSections.099",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_103",
+          "source_name": "Dark mineral support_FittedSections.100",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_104",
+          "source_name": "Dark mineral support_FittedSections.101",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_105",
+          "source_name": "Dark mineral support_FittedSections.102",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_106",
+          "source_name": "Dark mineral support_FittedSections.103",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_107",
+          "source_name": "Dark mineral support_FittedSections.104",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_108",
+          "source_name": "Dark mineral support_FittedSections.105",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_109",
+          "source_name": "Dark mineral support_FittedSections.106",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_110",
+          "source_name": "Dark mineral support_FittedSections.107",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_111",
+          "source_name": "Dark mineral support_FittedSections.108",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_112",
+          "source_name": "Dark mineral support_FittedSections.109",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_113",
+          "source_name": "Dark mineral support_FittedSections.110",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_114",
+          "source_name": "Dark mineral support_FittedSections.111",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_115",
+          "source_name": "Dark mineral support_FittedSections.112",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_116",
+          "source_name": "Dark mineral support_FittedSections.113",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_117",
+          "source_name": "Dark mineral support_FittedSections.114",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_118",
+          "source_name": "Dark mineral support_FittedSections.115",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_119",
+          "source_name": "Dark mineral support_FittedSections.116",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_120",
+          "source_name": "Dark mineral support_FittedSections.117",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_121",
+          "source_name": "Dark mineral support_FittedSections.118",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_122",
+          "source_name": "Dark mineral support_FittedSections.119",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_123",
+          "source_name": "Dark mineral support_FittedSections.120",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_124",
+          "source_name": "Dark mineral support_FittedSections.121",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_125",
+          "source_name": "Dark mineral support_FittedSections.122",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_126",
+          "source_name": "Dark mineral support_FittedSections.123",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_127",
+          "source_name": "Dark mineral support_FittedSections.124",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_128",
+          "source_name": "Dark mineral support_FittedSections.125",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_129",
+          "source_name": "Dark mineral support_FittedSections.126",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_130",
+          "source_name": "Dark mineral support_FittedSections.127",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_131",
+          "source_name": "Dark mineral support_FittedSections.128",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_132",
+          "source_name": "Dark mineral support_FittedSections.129",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_133",
+          "source_name": "Dark mineral support_FittedSections.130",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_134",
+          "source_name": "Dark mineral support_FittedSections.131",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_135",
+          "source_name": "Dark mineral support_FittedSections.132",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_136",
+          "source_name": "Dark mineral support_FittedSections.133",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_137",
+          "source_name": "Dark mineral support_FittedSections.134",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_138",
+          "source_name": "Dark mineral support_FittedSections.135",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_139",
+          "source_name": "Dark mineral support_FittedSections.136",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_140",
+          "source_name": "Dark mineral support_FittedSections.137",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_141",
+          "source_name": "Dark mineral support_FittedSections.138",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_142",
+          "source_name": "Dark mineral support_FittedSections.139",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_143",
+          "source_name": "Dark mineral support_FittedSections.140",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_144",
+          "source_name": "Dark mineral support_FittedSections.141",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_145",
+          "source_name": "Dark mineral support_FittedSections.142",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_146",
+          "source_name": "Dark mineral support_FittedSections.143",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_147",
+          "source_name": "Dark mineral support_FittedSections.144",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_148",
+          "source_name": "Dark mineral support_FittedSections.145",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_149",
+          "source_name": "Dark mineral support_FittedSections.146",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_150",
+          "source_name": "Dark mineral support_FittedSections.147",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_151",
+          "source_name": "Dark mineral support_FittedSections.148",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_152",
+          "source_name": "Dark mineral support_FittedSections.149",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_153",
+          "source_name": "Dark mineral support_FittedSections.150",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_154",
+          "source_name": "Dark mineral support_FittedSections.151",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_155",
+          "source_name": "Dark mineral support_FittedSections.152",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_156",
+          "source_name": "Dark mineral support_FittedSections.153",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_157",
+          "source_name": "Dark mineral support_FittedSections.154",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_158",
+          "source_name": "Dark mineral support_FittedSections.155",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_159",
+          "source_name": "Dark mineral support_FittedSections.156",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_160",
+          "source_name": "Dark mineral support_FittedSections.157",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_161",
+          "source_name": "Dark mineral support_FittedSections.158",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_162",
+          "source_name": "Dark mineral support_FittedSections.159",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_163",
+          "source_name": "Dark mineral support_FittedSections.160",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_164",
+          "source_name": "Dark mineral support_FittedSections.161",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_165",
+          "source_name": "Dark mineral support_FittedSections.162",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_166",
+          "source_name": "Dark mineral support_FittedSections.163",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_167",
+          "source_name": "Dark mineral support_FittedSections.164",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_168",
+          "source_name": "Dark mineral support_FittedSections.165",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_169",
+          "source_name": "Dark mineral support_FittedSections.166",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_170",
+          "source_name": "Dark mineral support_FittedSections.167",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_171",
+          "source_name": "Dark mineral support_FittedSections.168",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_172",
+          "source_name": "Dark mineral support_FittedSections.169",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_173",
+          "source_name": "Dark mineral support_FittedSections.170",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_174",
+          "source_name": "Dark mineral support_FittedSections.171",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_175",
+          "source_name": "Dark mineral support_FittedSections.172",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_176",
+          "source_name": "Dark mineral support_FittedSections.173",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_177",
+          "source_name": "Dark mineral support_FittedSections.174",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_178",
+          "source_name": "Dark mineral support_FittedSections.175",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_179",
+          "source_name": "Dark mineral support_FittedSections.176",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_180",
+          "source_name": "Dark mineral support_FittedSections.177",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_181",
+          "source_name": "Dark mineral support_FittedSections.178",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_182",
+          "source_name": "Dark mineral support_FittedSections.179",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_183",
+          "source_name": "Dark mineral support_FittedSections.180",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_184",
+          "source_name": "Dark mineral support_FittedSections.181",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_185",
+          "source_name": "Dark mineral support_FittedSections.182",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_186",
+          "source_name": "Dark mineral support_FittedSections.183",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_187",
+          "source_name": "Dark mineral support_FittedSections.184",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_188",
+          "source_name": "Dark mineral support_FittedSections.185",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_189",
+          "source_name": "Dark mineral support_FittedSections.186",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_190",
+          "source_name": "Dark mineral support_FittedSections.187",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_191",
+          "source_name": "Dark mineral support_FittedSections.188",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_192",
+          "source_name": "Dark mineral support_FittedSections.189",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        },
+        {
+          "name": "part_193",
+          "source_name": "Drawing_Crust_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_194",
+          "source_name": "Drawing_Crust_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_195",
+          "source_name": "Drawing_Crust_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_196",
+          "source_name": "Drawing_Crust_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_197",
+          "source_name": "Drawing_Crust_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_198",
+          "source_name": "Drawing_LeftRindCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_199",
+          "source_name": "Ochre_Vein_1",
+          "ink": false,
+          "materials": [
+            "M_0462500ceabd7bea"
+          ]
+        },
+        {
+          "name": "part_200",
+          "source_name": "Ochre_Vein_2",
+          "ink": false,
+          "materials": [
+            "M_0462500ceabd7bea"
+          ]
+        },
+        {
+          "name": "part_201",
+          "source_name": "Ochre_Vein_3",
+          "ink": false,
+          "materials": [
+            "M_0462500ceabd7bea"
+          ]
+        },
+        {
+          "name": "part_202",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_bcb61f1c1ebd3357"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.20290198922157288,
+        -0.8116077780723572,
+        0.5478353500366211
+      ],
+      "source_up": [
+        0.13286960124969482,
+        0.5314782857894897,
+        0.8365861773490906
+      ]
+    },
+    {
+      "id": "verdant-05",
+      "family": "verdant",
+      "locale": 6,
+      "fbx": "models/verdant-05.fbx",
+      "source_sha256": "89edb4582fd5cb83995d33d8fb8ab920694b520f520e075cded3da68415c4507",
+      "fbx_sha256": "801942bde9e9db109da71d178179732515515487c2f26572994ff3476c8a03a5",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Broken pale crust_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Broken pale crust_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_0bb8da91b5a51a5c"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Drawing_Crust_1",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Drawing_Crust_2",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_Crust_3",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_Crust_4",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Drawing_Crust_5",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Drawing_RearRindCrack",
+          "ink": true,
+          "materials": [
+            "M_48e099fdbf9aa840"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Ochre_Vein_1",
+          "ink": false,
+          "materials": [
+            "M_0462500ceabd7bea"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Ochre_Vein_2",
+          "ink": false,
+          "materials": [
+            "M_0462500ceabd7bea"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Ochre_Vein_3",
+          "ink": false,
+          "materials": [
+            "M_0462500ceabd7bea"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Recessed_GreenMineral",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348",
+            "M_e2604e0d9a1a8cad",
+            "M_a725fdc902f63201",
+            "M_f08361946eaceaec"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Rock_Host",
+          "ink": false,
+          "materials": [
+            "M_59ef414d21c3b348"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.20290198922157288,
+        -0.8116077780723572,
+        0.5478353500366211
+      ],
+      "source_up": [
+        0.13286960124969482,
+        0.5314782857894897,
+        0.8365861773490906
+      ]
+    },
+    {
+      "id": "ice-01",
+      "family": "ice",
+      "locale": 7,
+      "fbx": "models/ice-01.fbx",
+      "source_sha256": "e57eb089b83521ba3408e6200abe11ea9f2f4c6b95165d8d4daa9545d482a87f",
+      "fbx_sha256": "3f2278e413deb2b85e44109343d703ca78b10a6c3d0e5d3691669a1efd940f17",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Drawing_IceCrack",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Drawing_IceFracture_1",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Drawing_IceFracture_2",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Drawing_IceFracture_3",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_IceFracture_4",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_IceFracture_5",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Fresh pale ice_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Fresh pale ice_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Fresh pale ice_FittedSections.002",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Fresh pale ice_FittedSections.003",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Fresh pale ice_FittedSections.004",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Ice_Host",
+          "ink": false,
+          "materials": [
+            "M_f743235172ed41ea"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Rock crossing front fracture",
+          "ink": false,
+          "materials": [
+            "M_ed9111336fa655b9"
+          ]
+        },
+        {
+          "name": "part_013",
+          "source_name": "Stone_RightPlate",
+          "ink": false,
+          "materials": [
+            "M_ed9111336fa655b9"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.1714285910129547,
+        -0.8571428656578064,
+        0.48571425676345825
+      ],
+      "source_up": [
+        0.09525640308856964,
+        0.4762820303440094,
+        0.8741176724433899
+      ]
+    },
+    {
+      "id": "ice-02",
+      "family": "ice",
+      "locale": 7,
+      "fbx": "models/ice-02.fbx",
+      "source_sha256": "aee6ad8ad12a8ec0adee5b7d92d5ead676035c7ec37902abc80e947ea0f8e4f0",
+      "fbx_sha256": "2a99f261868ba40b160b9827bd78c080115b8a3475330d1f8482d0deb7c93d09",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Drawing_IceCrack",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Drawing_IceFracture_1",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Drawing_IceFracture_2",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Drawing_IceFracture_3",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_IceFracture_4",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_IceFracture_5",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Exposed stone spine",
+          "ink": false,
+          "materials": [
+            "M_ed9111336fa655b9"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Fresh pale ice_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Fresh pale ice_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Fresh pale ice_FittedSections.002",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Ice_Host",
+          "ink": false,
+          "materials": [
+            "M_f743235172ed41ea"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.1714285910129547,
+        -0.8571428656578064,
+        0.48571425676345825
+      ],
+      "source_up": [
+        0.09525640308856964,
+        0.4762820303440094,
+        0.8741176724433899
+      ]
+    },
+    {
+      "id": "ice-03",
+      "family": "ice",
+      "locale": 7,
+      "fbx": "models/ice-03.fbx",
+      "source_sha256": "f7a34a6762e3999f514a445337436cf2a9b53d9a5a244a11ec1586526d976fd0",
+      "fbx_sha256": "29886813a578ec6702f876976bff45472384ddf54bc6a41e92aac089b89b24d2",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Drawing_IceCrack",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Drawing_IceFracture_1",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Drawing_IceFracture_2",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Drawing_IceFracture_3",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_IceFracture_4",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_IceFracture_5",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Far horn rock section",
+          "ink": false,
+          "materials": [
+            "M_ed9111336fa655b9"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Fresh pale ice_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Fresh pale ice_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Fresh pale ice_FittedSections.002",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Fresh pale ice_FittedSections.003",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Fresh pale ice_FittedSections.004",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Fresh pale ice_FittedSections.005",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_013",
+          "source_name": "Ice_Host",
+          "ink": false,
+          "materials": [
+            "M_f743235172ed41ea"
+          ]
+        },
+        {
+          "name": "part_014",
+          "source_name": "Rock root in inner bend",
+          "ink": false,
+          "materials": [
+            "M_ed9111336fa655b9"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.1714285910129547,
+        -0.8571428656578064,
+        0.48571425676345825
+      ],
+      "source_up": [
+        0.09525640308856964,
+        0.4762820303440094,
+        0.8741176724433899
+      ]
+    },
+    {
+      "id": "ice-04",
+      "family": "ice",
+      "locale": 7,
+      "fbx": "models/ice-04.fbx",
+      "source_sha256": "2824c69cd69921c1166a978818c9810d3835128e5cb4755587fe9d9b68869ed9",
+      "fbx_sha256": "0cd57faa09078e6b2d42fedb5463f6890d3f568cc4cdb26a7ef2f52497c4e230",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Drawing_IceCrack",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Drawing_IceFracture_1",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Drawing_IceFracture_2",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Drawing_IceFracture_3",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_IceFracture_4",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_IceFracture_5",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Fresh pale ice_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Fresh pale ice_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Fresh pale ice_FittedSections.002",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Fresh pale ice_FittedSections.003",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Ice_Host",
+          "ink": false,
+          "materials": [
+            "M_f743235172ed41ea"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Stone crossing lower split",
+          "ink": false,
+          "materials": [
+            "M_ed9111336fa655b9"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Upper frozen stone section",
+          "ink": false,
+          "materials": [
+            "M_ed9111336fa655b9"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.1714285910129547,
+        -0.8571428656578064,
+        0.48571425676345825
+      ],
+      "source_up": [
+        0.09525640308856964,
+        0.4762820303440094,
+        0.8741176724433899
+      ]
+    },
+    {
+      "id": "ice-05",
+      "family": "ice",
+      "locale": 7,
+      "fbx": "models/ice-05.fbx",
+      "source_sha256": "dfcd1c63128626c793560186a3698f9e9f922c8830e5654823bcab7e314240f6",
+      "fbx_sha256": "6ecf51a7d42359dc9dc9a6ddf68a2a0c3fc36091c2c04378b4015222f88b3065",
+      "parts": [
+        {
+          "name": "part_000",
+          "source_name": "Drawing_IceCrack",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_001",
+          "source_name": "Drawing_IceFracture_1",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_002",
+          "source_name": "Drawing_IceFracture_2",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_003",
+          "source_name": "Drawing_IceFracture_3",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_004",
+          "source_name": "Drawing_IceFracture_4",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_005",
+          "source_name": "Drawing_IceFracture_5",
+          "ink": true,
+          "materials": [
+            "M_21b8963684f006bf"
+          ]
+        },
+        {
+          "name": "part_006",
+          "source_name": "Fresh pale ice_FittedSections",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_007",
+          "source_name": "Fresh pale ice_FittedSections.001",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_008",
+          "source_name": "Fresh pale ice_FittedSections.002",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_009",
+          "source_name": "Fresh pale ice_FittedSections.003",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_010",
+          "source_name": "Fresh pale ice_FittedSections.004",
+          "ink": false,
+          "materials": [
+            "M_e78a88f1d7432a11"
+          ]
+        },
+        {
+          "name": "part_011",
+          "source_name": "Ice_Host",
+          "ink": false,
+          "materials": [
+            "M_f743235172ed41ea"
+          ]
+        },
+        {
+          "name": "part_012",
+          "source_name": "Long slab buried left rib",
+          "ink": false,
+          "materials": [
+            "M_ed9111336fa655b9"
+          ]
+        },
+        {
+          "name": "part_013",
+          "source_name": "Right step enclosed stone",
+          "ink": false,
+          "materials": [
+            "M_ed9111336fa655b9"
+          ]
+        }
+      ],
+      "source_view": [
+        -0.1714285910129547,
+        -0.8571428656578064,
+        0.48571425676345825
+      ],
+      "source_up": [
+        0.09525640308856964,
+        0.4762820303440094,
+        0.8741176724433899
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "key": "M_4a12d6eea84ca011",
+      "source_name": "Painted copper fracture",
+      "review_role": "surface",
+      "paint_path": "paint/M_4a12d6eea84ca011.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "c1cfe53b9153406bfe084950b2fd84bb6febc7e543e084d83dc7ff13b0cf709d"
+    },
+    {
+      "key": "M_7b071352c986f4e4",
+      "source_name": "Fitted graphite fracture strokes",
+      "review_role": "ink",
+      "paint_path": "",
+      "color": [
+        0.017999999225139618,
+        0.014000000432133675,
+        0.027000000700354576,
+        1.0
+      ]
+    },
+    {
+      "key": "M_da3f590be757bf06",
+      "source_name": "Painted slate, approved Violet swatch",
+      "review_role": "surface",
+      "paint_path": "paint/M_da3f590be757bf06.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "c134a56e61e85f5b58c8c8aebc2469b81920ef5a29ee947a72eb530bb3810870"
+    },
+    {
+      "key": "M_709b0a7aa0263306",
+      "source_name": "Painted turquoise crust",
+      "review_role": "surface",
+      "paint_path": "paint/M_709b0a7aa0263306.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "a0650706b5f2ee01cb14a353f81c26424220d51cbd27d5a84381db0557250b0b"
+    },
+    {
+      "key": "M_9cbb6ed89eab62d6",
+      "source_name": "Copper",
+      "review_role": "surface",
+      "paint_path": "paint/M_9cbb6ed89eab62d6.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "c1cfe53b9153406bfe084950b2fd84bb6febc7e543e084d83dc7ff13b0cf709d"
+    },
+    {
+      "key": "M_48e099fdbf9aa840",
+      "source_name": "Graphite",
+      "review_role": "ink",
+      "paint_path": "",
+      "color": [
+        0.017999999225139618,
+        0.014000000432133675,
+        0.027000000700354576,
+        1.0
+      ]
+    },
+    {
+      "key": "M_ae64e09fc6602625",
+      "source_name": "Slate",
+      "review_role": "surface",
+      "paint_path": "paint/M_ae64e09fc6602625.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "c134a56e61e85f5b58c8c8aebc2469b81920ef5a29ee947a72eb530bb3810870"
+    },
+    {
+      "key": "M_0a7f1cdf2a042f3f",
+      "source_name": "Turquoise",
+      "review_role": "surface",
+      "paint_path": "paint/M_0a7f1cdf2a042f3f.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "a0650706b5f2ee01cb14a353f81c26424220d51cbd27d5a84381db0557250b0b"
+    },
+    {
+      "key": "M_dca2e38f02385780",
+      "source_name": "Warm chalk exposure",
+      "review_role": "surface",
+      "paint_path": "paint/M_dca2e38f02385780.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "e7fdf0f8ca8474701ab6c60b56656a390993d91a3dcde1486632e3e7ec37a6ca"
+    },
+    {
+      "key": "M_98a93e9dfcb52113",
+      "source_name": "Blue slate fracture",
+      "review_role": "surface",
+      "paint_path": "paint/M_98a93e9dfcb52113.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "070288b2223dda8438905cd78625728e6cd4d7b36a043de962123c86406f9120"
+    },
+    {
+      "key": "M_0bb8da91b5a51a5c",
+      "source_name": "Broken pale crust",
+      "review_role": "pale_crust",
+      "paint_path": "paint/M_0bb8da91b5a51a5c.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "c810b8441fd9fbd57b7ccf0bba09bf356fcee35eacd134b17b77aa8cc0c17677"
+    },
+    {
+      "key": "M_0462500ceabd7bea",
+      "source_name": "Ochre seam",
+      "review_role": "ochre",
+      "paint_path": "paint/M_0462500ceabd7bea.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "20af7bc594475360b95642d5ade4ee90f54ffc194569ec9e019bfe51cae981c9"
+    },
+    {
+      "key": "M_e2604e0d9a1a8cad",
+      "source_name": "Deep jade",
+      "review_role": "verdant_dark",
+      "paint_path": "paint/M_e2604e0d9a1a8cad.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "7f95949fa4ca24313278e77106cf33d76fabca8ca8a5045ebabe880589bf92d7"
+    },
+    {
+      "key": "M_a725fdc902f63201",
+      "source_name": "Green mineral band",
+      "review_role": "verdant_dark",
+      "paint_path": "paint/M_a725fdc902f63201.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "d28be67654d4667622116a62b8f064043d814e667c736e4bf31ac1a9804e0ec3"
+    },
+    {
+      "key": "M_59ef414d21c3b348",
+      "source_name": "Dark mineral support",
+      "review_role": "verdant_dark",
+      "paint_path": "paint/M_59ef414d21c3b348.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "35fcf8add4521cdf55d879003b6e44a9fc4688b76a11dee8e3cbc5a4151671e7"
+    },
+    {
+      "key": "M_f08361946eaceaec",
+      "source_name": "Pale olive band",
+      "review_role": "verdant_dark",
+      "paint_path": "paint/M_f08361946eaceaec.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "23fb7ce5a58bc53d8c1e2e53774fd33e1a107a09df7edefc3a4cd83aab187c24"
+    },
+    {
+      "key": "M_bcb61f1c1ebd3357",
+      "source_name": "Exposed mineral core",
+      "review_role": "verdant_dark",
+      "paint_path": "paint/M_bcb61f1c1ebd3357.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "d3b3ff97b99c11d25781d07d2ebbd77f70afe5817cc10a35cc8f1c38bf04d539"
+    },
+    {
+      "key": "M_21b8963684f006bf",
+      "source_name": "Graphite",
+      "review_role": "ink",
+      "paint_path": "",
+      "color": [
+        0.04500000178813934,
+        0.0949999988079071,
+        0.1599999964237213,
+        1.0
+      ]
+    },
+    {
+      "key": "M_e78a88f1d7432a11",
+      "source_name": "Fresh pale ice",
+      "review_role": "surface",
+      "paint_path": "paint/M_e78a88f1d7432a11.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "af3049f90ea58188179889f1d9cbdf3853196ef73b627e942600152c050c1228"
+    },
+    {
+      "key": "M_f743235172ed41ea",
+      "source_name": "Frozen blue mantle",
+      "review_role": "surface",
+      "paint_path": "paint/M_f743235172ed41ea.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "598f7ff36b70a3200c7692e4a9e11522185b63830c6e80d576bc81745d98b640"
+    },
+    {
+      "key": "M_ed9111336fa655b9",
+      "source_name": "Embedded dark stone",
+      "review_role": "surface",
+      "paint_path": "paint/M_ed9111336fa655b9.png",
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "paint_sha256": "5185c3281f079bfaa3589da2384ccb66940475bdbe5465ee5ecfbd5f0a0cc489"
+    }
+  ],
+  "orientation_basis": "models/orientation-basis.fbx",
+  "color_workflow": "Blender Base Color emission bake, no lighting/AO; original images unchanged",
+  "axes": "FBX -Z forward, Y up"
+}
