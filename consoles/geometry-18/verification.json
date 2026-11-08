@@ -1,0 +1,20 @@
+{
+  "result": "pass",
+  "geometry17ObjectsPreserved": 324,
+  "geometry15VerticesUnchanged": 32994,
+  "armorFacesAndFoldEdgesUnchanged": true,
+  "newClosedHousings": {
+    "18 | Projector control and Launch seat": {
+      "nonManifoldEdges": 0,
+      "volume": 2.0751117189913773,
+      "faces": 172
+    },
+    "18 | Lower tray mounting return": {
+      "nonManifoldEdges": 0,
+      "volume": 0.020347630848815978,
+      "faces": 47
+    }
+  },
+  "errors": [],
+  "visualApproval": "pending"
+}

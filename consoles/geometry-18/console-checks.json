@@ -1,0 +1,26 @@
+{
+  "source": "D:\\amind\\scratch\\ui-mockups-20261029-console\\consoles\\geometry-17\\console.blend",
+  "sourceSha256": "5c4947c6d515bb0f71b978ad1c95ac9ce5dc69ad17d7c294f85bde44f962c9ba",
+  "existingObjectsUnmoved": 324,
+  "allExistingMeshVerticesUnchanged": true,
+  "replacedSheets": [
+    "17 | Ridge to control transition",
+    "17 | Apron upper connection",
+    "17 | Apron control connection",
+    "17 | Apron lower connection",
+    "17 | Existing armor seam closure",
+    "17 | Control front left return",
+    "17 | Control front middle return",
+    "17 | Control front right return",
+    "17 | Control corner inner closure",
+    "17 | Control corner outer closure",
+    "17 | Lower join flange front",
+    "17 | Lower join flange rear",
+    "17 | Lower join end return"
+  ],
+  "newHousings": [
+    "18 | Projector control and Launch seat",
+    "18 | Lower tray mounting return"
+  ],
+  "visualApproval": "pending"
+}
