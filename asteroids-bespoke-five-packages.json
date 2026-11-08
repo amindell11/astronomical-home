@@ -1,0 +1,54 @@
+{
+  "model_count": 25,
+  "accepted_immutable": 2,
+  "new_candidates": 23,
+  "curated_file_count": 229,
+  "total_uncompressed_bytes": 187310492,
+  "source_verdict": "PASS_WITH_DOCUMENTED_ACCEPTED_EXCEPTION",
+  "archives": [
+    {
+      "group": "copper",
+      "file": "asteroids-bespoke-five-copper.zip",
+      "file_count": 42,
+      "bytes": 42886672,
+      "sha256": "5cdc61bf8def96b433cd24d10edb94daba2d5326a6a8194c90a79d7204984cf4"
+    },
+    {
+      "group": "violet",
+      "file": "asteroids-bespoke-five-violet.zip",
+      "file_count": 41,
+      "bytes": 39117968,
+      "sha256": "248fe41235cfb29d436cbf975880e753859cc134f47f6cad543c14e19bd2bb54"
+    },
+    {
+      "group": "chalk",
+      "file": "asteroids-bespoke-five-chalk.zip",
+      "file_count": 38,
+      "bytes": 25753816,
+      "sha256": "dd126e897720b79a9ecb3e736a411a9f76779e069818015f3f6207c5cf6e261a"
+    },
+    {
+      "group": "verdant",
+      "file": "asteroids-bespoke-five-verdant.zip",
+      "file_count": 38,
+      "bytes": 37428959,
+      "sha256": "b3add6b0f3ca79b9e6725015310d7897a994f52086268880472b727cb79c257d"
+    },
+    {
+      "group": "ice",
+      "file": "asteroids-bespoke-five-ice.zip",
+      "file_count": 38,
+      "bytes": 24055744,
+      "sha256": "7e3b5050d1ee1a3a50cba6f9a571a31f3f19b12b4a1b3e6309eba1f33347c72b"
+    },
+    {
+      "group": "shared",
+      "file": "asteroids-bespoke-five-shared.zip",
+      "file_count": 32,
+      "bytes": 16518784,
+      "sha256": "2bccad4d4e8a1a034e7c1d739259f58efdf6169b2dba96eb197ab4cdd6732066"
+    }
+  ],
+  "extraction": "Extract the shared archive and any family archives into the same folder. All use the same asteroid-locales-bespoke-five root. Each .blend packs its textures and opens independently; shared archive supplies external maps, provenance, authoring scripts and complete catalog.",
+  "durable_source": "D:\\amind\\scratch\\asteroid-locale-concepts-20261106\\bespoke-five\\complete-set"
+}

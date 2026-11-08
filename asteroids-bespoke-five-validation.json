@@ -1,0 +1,100 @@
+{
+  "model_count": 25,
+  "source_checks_complete": true,
+  "closed_nondegenerate_solids": true,
+  "primary_hosts_single_component": true,
+  "new_buried_roots_pass": true,
+  "all_images_packed": true,
+  "all_source_hashes_match": true,
+  "accepted_sources_exact": {
+    "copper-01": "0c60959803e777bd116a11a1699edbcf182808b583cdeb9135c09a6623d7a694",
+    "violet-01": "74a075325a1f30d9e4de1777d1992d01b06cc080c6315d81efe557bf1668726b"
+  },
+  "accepted_exception": "Violet01 retained unchanged, historical 9/24 root-ring sample exception. No new roots are exempt.",
+  "intentional_open_geometry": "Fitted internal drawing ribbons and pale accents are intentionally open, excluded from solid closure checks.",
+  "visual_review": "Family boards and targeted side views reviewed by root; Copper01 and Violet01 accepted by owner. New23 remain art candidates, no claim of concept parity or production readiness.",
+  "family_summaries": [
+    {
+      "family": "copper",
+      "model_count": 5,
+      "solid_issues": {},
+      "new_root_issues": {},
+      "host_component_counts": {
+        "copper-01": 1,
+        "copper-02": 1,
+        "copper-03": 1,
+        "copper-04": 1,
+        "copper-05": 1
+      },
+      "all_images_packed": true,
+      "all_source_hashes_match": true,
+      "accepted_exception": null
+    },
+    {
+      "family": "violet",
+      "model_count": 5,
+      "solid_issues": {},
+      "new_root_issues": {},
+      "host_component_counts": {
+        "violet-01": 1,
+        "violet-02": 1,
+        "violet-03": 1,
+        "violet-04": 1,
+        "violet-05": 1
+      },
+      "all_images_packed": true,
+      "all_source_hashes_match": true,
+      "accepted_exception": "Violet01 historical root-ring exception preserved"
+    },
+    {
+      "family": "chalk",
+      "model_count": 5,
+      "solid_issues": {},
+      "new_root_issues": {},
+      "host_component_counts": {
+        "chalk-01": 1,
+        "chalk-02": 1,
+        "chalk-03": 1,
+        "chalk-04": 1,
+        "chalk-05": 1
+      },
+      "all_images_packed": true,
+      "all_source_hashes_match": true,
+      "accepted_exception": null
+    },
+    {
+      "family": "verdant",
+      "model_count": 5,
+      "solid_issues": {},
+      "new_root_issues": {},
+      "host_component_counts": {
+        "verdant-01": 1,
+        "verdant-02": 1,
+        "verdant-03": 1,
+        "verdant-04": 1,
+        "verdant-05": 1
+      },
+      "all_images_packed": true,
+      "all_source_hashes_match": true,
+      "accepted_exception": null
+    },
+    {
+      "family": "ice",
+      "model_count": 5,
+      "solid_issues": {},
+      "new_root_issues": {},
+      "host_component_counts": {
+        "ice-01": 1,
+        "ice-02": 1,
+        "ice-03": 1,
+        "ice-04": 1,
+        "ice-05": 1
+      },
+      "all_images_packed": true,
+      "all_source_hashes_match": true,
+      "accepted_exception": null
+    }
+  ],
+  "scope": "Blender art sources and previews only; no Unity, runtime, export or debris work.",
+  "source_verdict": "PASS_WITH_DOCUMENTED_ACCEPTED_EXCEPTION"
+}

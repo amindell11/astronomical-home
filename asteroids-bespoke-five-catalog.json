@@ -1,0 +1,770 @@
+{
+  "title": "Five bespoke asteroids per locale",
+  "model_count": 25,
+  "accepted_immutable_count": 2,
+  "new_candidate_count": 23,
+  "families": [
+    {
+      "family": "copper",
+      "locale_id": 1,
+      "locale_name": "Copper / turquoise",
+      "model_count": 5,
+      "board": "copper/copper-board.png",
+      "validation_summary": "copper/copper-validation-summary.json",
+      "validation_report": "copper/copper-validation.json"
+    },
+    {
+      "family": "violet",
+      "locale_id": 2,
+      "locale_name": "Violet nebula",
+      "model_count": 5,
+      "board": "violet/violet-board.png",
+      "validation_summary": "violet/violet-validation-summary.json",
+      "validation_report": "violet/violet-validation.json"
+    },
+    {
+      "family": "chalk",
+      "locale_id": 3,
+      "locale_name": "Illustrated blue / Chalk",
+      "model_count": 5,
+      "board": "chalk/chalk-board.png",
+      "validation_summary": "chalk/chalk-validation-summary.json",
+      "validation_report": "chalk/chalk-validation.json"
+    },
+    {
+      "family": "verdant",
+      "locale_id": 6,
+      "locale_name": "Verdant Giant",
+      "model_count": 5,
+      "board": "verdant/verdant-board.png",
+      "validation_summary": "verdant/verdant-validation-summary.json",
+      "validation_report": "verdant/verdant-validation.json"
+    },
+    {
+      "family": "ice",
+      "locale_id": 7,
+      "locale_name": "Blue Crescent / Ice",
+      "model_count": 5,
+      "board": "ice/ice-board.png",
+      "validation_summary": "ice/ice-validation-summary.json",
+      "validation_report": "ice/ice-validation.json"
+    }
+  ],
+  "boards": [
+    "asteroid-set-overview.png",
+    "copper/copper-board.png",
+    "violet/violet-board.png",
+    "chalk/chalk-board.png",
+    "verdant/verdant-board.png",
+    "ice/ice-board.png"
+  ],
+  "models": [
+    {
+      "id": "copper-01",
+      "family": "copper",
+      "locale_id": 1,
+      "display_name": "Accepted copper shear",
+      "status": "accepted_immutable",
+      "geometry_distinction": "Accepted individually authored prototype",
+      "source": "copper/copper-01/copper-painted.blend",
+      "source_sha256": "0c60959803e777bd116a11a1699edbcf182808b583cdeb9135c09a6623d7a694",
+      "previews": {
+        "hero": "copper/copper-01/copper-01-hero.png",
+        "native150": "copper/copper-01/copper-01-150.png",
+        "clay": "copper/copper-01/copper-01-clay.png",
+        "side": "copper/copper-01/copper-01-side.png",
+        "reverse": "copper/copper-01/copper-01-reverse.png"
+      },
+      "preview_canvas": [
+        640,
+        440
+      ],
+      "native_canvas": [
+        150,
+        110
+      ],
+      "metadata": "copper/copper-01/model.json",
+      "source_support_files": [
+        "copper/copper-01/paint/copper-paint.png",
+        "copper/copper-01/paint/slate-paint.png",
+        "copper/copper-01/paint/texture-provenance.json",
+        "copper/copper-01/paint/turquoise-paint.png"
+      ]
+    },
+    {
+      "id": "copper-02",
+      "family": "copper",
+      "locale_id": 1,
+      "display_name": "Forked shear ridge",
+      "status": "new_candidate",
+      "geometry_distinction": "Two unequal raised ridges diverge from a thick low root; short left toe and long lowered right fork.",
+      "source": "copper/copper-02/copper-02.blend",
+      "source_sha256": "d38b39d4b7d0c2356189a6631f6482b4d82343a4b80b008c3e83fa4107272c05",
+      "previews": {
+        "hero": "copper/copper-02/copper-02-hero.png",
+        "native150": "copper/copper-02/copper-02-150.png",
+        "clay": "copper/copper-02/copper-02-clay.png",
+        "side": "copper/copper-02/copper-02-side.png",
+        "reverse": "copper/copper-02/copper-02-reverse.png"
+      },
+      "preview_canvas": [
+        640,
+        440
+      ],
+      "native_canvas": [
+        150,
+        110
+      ],
+      "metadata": "copper/copper-02/model.json"
+    },
+    {
+      "id": "copper-03",
+      "family": "copper",
+      "locale_id": 1,
+      "display_name": "Offset copper tablet",
+      "status": "new_candidate",
+      "geometry_distinction": "Long canted upper tablet overlaps a broad low front ledge; one raised rear-left shoulder breaks the staggered profile.",
+      "source": "copper/copper-03/copper-03.blend",
+      "source_sha256": "c4f7ab13c8118349f26db5b22e1b3996364750327e91896293d548856415951c",
+      "previews": {
+        "hero": "copper/copper-03/copper-03-hero.png",
+        "native150": "copper/copper-03/copper-03-150.png",
+        "clay": "copper/copper-03/copper-03-clay.png",
+        "side": "copper/copper-03/copper-03-side.png",
+        "reverse": "copper/copper-03/copper-03-reverse.png"
+      },
+      "preview_canvas": [
+        640,
+        440
+      ],
+      "native_canvas": [
+        150,
+        110
+      ],
+      "metadata": "copper/copper-03/model.json"
+    },
+    {
+      "id": "copper-04",
+      "family": "copper",
+      "locale_id": 1,
+      "display_name": "Stepped copper core",
+      "status": "new_candidate",
+      "geometry_distinction": "Single dominant left/back peak with a low right shelf tucked underneath and a broad off-center front-right setback.",
+      "source": "copper/copper-04/copper-04.blend",
+      "source_sha256": "fcbca5c35fece9d074f6e1e4c2cc57f37c4ae85e2e5382be026d494d10583c53",
+      "previews": {
+        "hero": "copper/copper-04/copper-04-hero.png",
+        "native150": "copper/copper-04/copper-04-150.png",
+        "clay": "copper/copper-04/copper-04-clay.png",
+        "side": "copper/copper-04/copper-04-side.png",
+        "reverse": "copper/copper-04/copper-04-reverse.png"
+      },
+      "preview_canvas": [
+        640,
+        440
+      ],
+      "native_canvas": [
+        150,
+        110
+      ],
+      "metadata": "copper/copper-04/model.json"
+    },
+    {
+      "id": "copper-05",
+      "family": "copper",
+      "locale_id": 1,
+      "display_name": "Broken copper blade",
+      "status": "new_candidate",
+      "geometry_distinction": "Narrow long diagonal blade with a blunt broken nose, displaced central shear, and a shorter dark rear spine.",
+      "source": "copper/copper-05/copper-05.blend",
+      "source_sha256": "8679f445b121702ae7397055cfd43870249b9c47be5d06b898eaf258004c3957",
+      "previews": {
+        "hero": "copper/copper-05/copper-05-hero.png",
+        "native150": "copper/copper-05/copper-05-150.png",
+        "clay": "copper/copper-05/copper-05-clay.png",
+        "side": "copper/copper-05/copper-05-side.png",
+        "reverse": "copper/copper-05/copper-05-reverse.png"
+      },
+      "preview_canvas": [
+        640,
+        440
+      ],
+      "native_canvas": [
+        150,
+        110
+      ],
+      "metadata": "copper/copper-05/model.json"
+    },
+    {
+      "id": "violet-01",
+      "family": "violet",
+      "locale_id": 2,
+      "display_name": "Accepted violet pocket",
+      "status": "accepted_immutable",
+      "geometry_distinction": "Accepted individually authored prototype",
+      "source": "violet/violet-01/violet-painted.blend",
+      "source_sha256": "74a075325a1f30d9e4de1777d1992d01b06cc080c6315d81efe557bf1668726b",
+      "previews": {
+        "hero": "violet/violet-01/violet-01-hero.png",
+        "native150": "violet/violet-01/violet-01-150.png",
+        "clay": "violet/violet-01/violet-01-clay.png",
+        "side": "violet/violet-01/violet-01-side.png",
+        "reverse": "violet/violet-01/violet-01-reverse.png"
+      },
+      "preview_canvas": [
+        640,
+        440
+      ],
+      "native_canvas": [
+        150,
+        110
+      ],
+      "metadata": "violet/violet-01/model.json",
+      "source_support_files": [
+        "violet/violet-01/paint/texture-provenance.json",
+        "violet/violet-01/paint/violet-crystal-paint.png",
+        "violet/violet-01/paint/violet-rock-paint.png"
+      ]
+    },
+    {
+      "id": "violet-02",
+      "family": "violet",
+      "locale_id": 2,
+      "display_name": "Split amethyst spine",
+      "status": "new_candidate",
+      "geometry_distinction": "Tall asymmetric left spine and heavy rear shoulder enclose a narrow crystal-filled cleft above an uneven low jaw.",
+      "source": "violet/violet-02/violet-02.blend",
+      "source_sha256": "ef490222f328c0833e7e8950d8bcc7466264ff4c72ba9a15d003d2f126bf1cb3",
+      "previews": {
+        "hero": "violet/violet-02/violet-02-hero.png",
+        "native150": "violet/violet-02/violet-02-150.png",
+        "clay": "violet/violet-02/violet-02-clay.png",
+        "side": "violet/violet-02/violet-02-side.png",
+        "reverse": "violet/violet-02/violet-02-reverse.png"
+      },
+      "preview_canvas": [
+        640,
+        440
+      ],
+      "native_canvas": [
+        150,
+        110
+      ],
+      "metadata": "violet/violet-02/model.json"
+    },
+    {
+      "id": "violet-03",
+      "family": "violet",
+      "locale_id": 2,
+      "display_name": "Flat broken amethyst jaw",
+      "status": "new_candidate",
+      "geometry_distinction": "Wide low host with a shallow overhanging left roof, broken front jaw and three broad short crystals clustered toward the right.",
+      "source": "violet/violet-03/violet-03.blend",
+      "source_sha256": "22c8f22f724b35f478c50108960f0b9e053c5b85ce2403d0f6d9f0d2643e2236",
+      "previews": {
+        "hero": "violet/violet-03/violet-03-hero.png",
+        "native150": "violet/violet-03/violet-03-150.png",
+        "clay": "violet/violet-03/violet-03-clay.png",
+        "side": "violet/violet-03/violet-03-side.png",
+        "reverse": "violet/violet-03/violet-03-reverse.png"
+      },
+      "preview_canvas": [
+        640,
+        440
+      ],
+      "native_canvas": [
+        150,
+        110
+      ],
+      "metadata": "violet/violet-03/model.json"
+    },
+    {
+      "id": "violet-04",
+      "family": "violet",
+      "locale_id": 2,
+      "display_name": "Offset amethyst ridges",
+      "status": "new_candidate",
+      "geometry_distinction": "Two offset angular roof ridges enclose a diagonal exposure; a dominant broad crystal leans across the opening with smaller buried supports.",
+      "source": "violet/violet-04/violet-04.blend",
+      "source_sha256": "7fb66c7fb44067ce583903b4be3854bd6641c27e161df7c6a99616100d9415a2",
+      "previews": {
+        "hero": "violet/violet-04/violet-04-hero.png",
+        "native150": "violet/violet-04/violet-04-150.png",
+        "clay": "violet/violet-04/violet-04-clay.png",
+        "side": "violet/violet-04/violet-04-side.png",
+        "reverse": "violet/violet-04/violet-04-reverse.png"
+      },
+      "preview_canvas": [
+        640,
+        440
+      ],
+      "native_canvas": [
+        150,
+        110
+      ],
+      "metadata": "violet/violet-04/model.json"
+    },
+    {
+      "id": "violet-05",
+      "family": "violet",
+      "locale_id": 2,
+      "display_name": "Side-pocket amethyst shard",
+      "status": "new_candidate",
+      "geometry_distinction": "Long narrow slate shard carries one compact side opening near its broken right end; two stout crystals emerge sideways beneath the roof.",
+      "source": "violet/violet-05/violet-05.blend",
+      "source_sha256": "03a67fa091714b4b13f5ccdcdfc7a4c1a6e40885061273f1766a4963ef6afc5c",
+      "previews": {
+        "hero": "violet/violet-05/violet-05-hero.png",
+        "native150": "violet/violet-05/violet-05-150.png",
+        "clay": "violet/violet-05/violet-05-clay.png",
+        "side": "violet/violet-05/violet-05-side.png",
+        "reverse": "violet/violet-05/violet-05-reverse.png"
+      },
+      "preview_canvas": [
+        640,
+        440
+      ],
+      "native_canvas": [
+        150,
+        110
+      ],
+      "metadata": "violet/violet-05/model.json"
+    },
+    {
+      "id": "chalk-01",
+      "family": "chalk",
+      "locale_id": 3,
+      "display_name": "Broken chalk fan",
+      "status": "new_candidate",
+      "geometry_distinction": "Three unequal broad layers fan outward at different angles, exposing cream tops and slate fracture sides with a short broken rear plate.",
+      "source": "chalk/chalk-01/chalk-01.blend",
+      "source_sha256": "89570c9029dcb3785be045e3cd90747b7ddddf8312b56bb9f6a844d8a87d0bc6",
+      "previews": {
+        "hero": "chalk/chalk-01/chalk-01-hero.png",
+        "native150": "chalk/chalk-01/chalk-01-150.png",
+        "clay": "chalk/chalk-01/chalk-01-clay.png",
+        "side": "chalk/chalk-01/chalk-01-side.png",
+        "reverse": "chalk/chalk-01/chalk-01-reverse.png"
+      },
+      "preview_canvas": [
+        640,
+        440
+      ],
+      "native_canvas": [
+        150,
+        110
+      ],
+      "metadata": "chalk/chalk-01/model.json"
+    },
+    {
+      "id": "chalk-02",
+      "family": "chalk",
+      "locale_id": 3,
+      "display_name": "Long stepped chalk tablet",
+      "status": "new_candidate",
+      "geometry_distinction": "Two broad unequal strata form a long low tablet; the upper layer shifts back and right, exposing a wide pale left-front ledge.",
+      "source": "chalk/chalk-02/chalk-02.blend",
+      "source_sha256": "ea1d189e74f0c4095de56a744664f6013debc04c1633ecb1c0ca2490168e34a7",
+      "previews": {
+        "hero": "chalk/chalk-02/chalk-02-hero.png",
+        "native150": "chalk/chalk-02/chalk-02-150.png",
+        "clay": "chalk/chalk-02/chalk-02-clay.png",
+        "side": "chalk/chalk-02/chalk-02-side.png",
+        "reverse": "chalk/chalk-02/chalk-02-reverse.png"
+      },
+      "preview_canvas": [
+        640,
+        440
+      ],
+      "native_canvas": [
+        150,
+        110
+      ],
+      "metadata": "chalk/chalk-02/model.json"
+    },
+    {
+      "id": "chalk-03",
+      "family": "chalk",
+      "locale_id": 3,
+      "display_name": "Split chalk ridge",
+      "status": "new_candidate",
+      "geometry_distinction": "Two canted chalk ridges meet across an oblique break above one thick irregular slate footing; the pale faces cross the exposed wall.",
+      "source": "chalk/chalk-03/chalk-03.blend",
+      "source_sha256": "9006fc6337ba604f158cf3506db8435f48597e5aa967b1c9b1c16a8ca251b5d4",
+      "previews": {
+        "hero": "chalk/chalk-03/chalk-03-hero.png",
+        "native150": "chalk/chalk-03/chalk-03-150.png",
+        "clay": "chalk/chalk-03/chalk-03-clay.png",
+        "side": "chalk/chalk-03/chalk-03-side.png",
+        "reverse": "chalk/chalk-03/chalk-03-reverse.png"
+      },
+      "preview_canvas": [
+        640,
+        440
+      ],
+      "native_canvas": [
+        150,
+        110
+      ],
+      "metadata": "chalk/chalk-03/model.json"
+    },
+    {
+      "id": "chalk-04",
+      "family": "chalk",
+      "locale_id": 3,
+      "display_name": "Canted chalk stack",
+      "status": "new_candidate",
+      "geometry_distinction": "Compact steeply canted strata rise toward a blunt right shoulder; unequal pale overhangs and a broad slate center interrupt the stacked profile.",
+      "source": "chalk/chalk-04/chalk-04.blend",
+      "source_sha256": "98c830636bde62511faa1407e04abc85d8e7b4a88a16ff15ed067330993b5aec",
+      "previews": {
+        "hero": "chalk/chalk-04/chalk-04-hero.png",
+        "native150": "chalk/chalk-04/chalk-04-150.png",
+        "clay": "chalk/chalk-04/chalk-04-clay.png",
+        "side": "chalk/chalk-04/chalk-04-side.png",
+        "reverse": "chalk/chalk-04/chalk-04-reverse.png"
+      },
+      "preview_canvas": [
+        640,
+        440
+      ],
+      "native_canvas": [
+        150,
+        110
+      ],
+      "metadata": "chalk/chalk-04/model.json"
+    },
+    {
+      "id": "chalk-05",
+      "family": "chalk",
+      "locale_id": 3,
+      "display_name": "Thin broken chalk flake",
+      "status": "new_candidate",
+      "geometry_distinction": "Thin shale flake with half-height strata and a missing oblique upper-left end that exposes a large wedge of the lower plate.",
+      "source": "chalk/chalk-05/chalk-05.blend",
+      "source_sha256": "af3411f3024d642721b7018d2b3c12a590ab0fa1bb69dfa5e0a92a250e38b1eb",
+      "previews": {
+        "hero": "chalk/chalk-05/chalk-05-hero.png",
+        "native150": "chalk/chalk-05/chalk-05-150.png",
+        "clay": "chalk/chalk-05/chalk-05-clay.png",
+        "side": "chalk/chalk-05/chalk-05-side.png",
+        "reverse": "chalk/chalk-05/chalk-05-reverse.png"
+      },
+      "preview_canvas": [
+        640,
+        440
+      ],
+      "native_canvas": [
+        150,
+        110
+      ],
+      "metadata": "chalk/chalk-05/model.json"
+    },
+    {
+      "id": "verdant-01",
+      "family": "verdant",
+      "locale_id": 6,
+      "display_name": "Low jade basin",
+      "status": "new_candidate",
+      "geometry_distinction": "Rounded unequal double lobe with an off-center low recessed jade basin, interrupted curved mineral bands and a rooted pale crust.",
+      "source": "verdant/verdant-01/verdant-01.blend",
+      "source_sha256": "11ab6b34daf8ad6221116dedf3d243ae2331fa57b55f8b01d29118b431dccd18",
+      "previews": {
+        "hero": "verdant/verdant-01/verdant-01-hero.png",
+        "native150": "verdant/verdant-01/verdant-01-150.png",
+        "clay": "verdant/verdant-01/verdant-01-clay.png",
+        "side": "verdant/verdant-01/verdant-01-side.png",
+        "reverse": "verdant/verdant-01/verdant-01-reverse.png"
+      },
+      "preview_canvas": [
+        640,
+        440
+      ],
+      "native_canvas": [
+        150,
+        110
+      ],
+      "metadata": "verdant/verdant-01/model.json"
+    },
+    {
+      "id": "verdant-02",
+      "family": "verdant",
+      "locale_id": 6,
+      "display_name": "Diagonal jade trough",
+      "status": "new_candidate",
+      "geometry_distinction": "Long uneven double lobe with a diagonal eroded mineral trough opening through its clipped left end and a heavy right crust shoulder.",
+      "source": "verdant/verdant-02/verdant-02.blend",
+      "source_sha256": "e5e32b08bde8548b5ec954e5086806ca60da4eedbf12e18a590a41856a54df62",
+      "previews": {
+        "hero": "verdant/verdant-02/verdant-02-hero.png",
+        "native150": "verdant/verdant-02/verdant-02-150.png",
+        "clay": "verdant/verdant-02/verdant-02-clay.png",
+        "side": "verdant/verdant-02/verdant-02-side.png",
+        "reverse": "verdant/verdant-02/verdant-02-reverse.png"
+      },
+      "preview_canvas": [
+        640,
+        440
+      ],
+      "native_canvas": [
+        150,
+        110
+      ],
+      "metadata": "verdant/verdant-02/model.json"
+    },
+    {
+      "id": "verdant-03",
+      "family": "verdant",
+      "locale_id": 6,
+      "display_name": "Notched jade core",
+      "status": "new_candidate",
+      "geometry_distinction": "Compact heavy nodule with a deep off-center green opening, a broad clipped front-right wall and a small lower side lobe.",
+      "source": "verdant/verdant-03/verdant-03.blend",
+      "source_sha256": "aee13be9c6fc90577b69f0230fb6ea795192ca518cba8c16dda50cef0ec107eb",
+      "previews": {
+        "hero": "verdant/verdant-03/verdant-03-hero.png",
+        "native150": "verdant/verdant-03/verdant-03-150.png",
+        "clay": "verdant/verdant-03/verdant-03-clay.png",
+        "side": "verdant/verdant-03/verdant-03-side.png",
+        "reverse": "verdant/verdant-03/verdant-03-reverse.png"
+      },
+      "preview_canvas": [
+        640,
+        440
+      ],
+      "native_canvas": [
+        150,
+        110
+      ],
+      "metadata": "verdant/verdant-03/model.json"
+    },
+    {
+      "id": "verdant-04",
+      "family": "verdant",
+      "locale_id": 6,
+      "display_name": "Uplifted jade center",
+      "status": "new_candidate",
+      "geometry_distinction": "Low left lobe joins a high right mineral core; the right-hand recess contains an uplifted irregular green center beneath broken cream crust.",
+      "source": "verdant/verdant-04/verdant-04.blend",
+      "source_sha256": "94e2d28b3161737a4dfb6e96c18d12ad573c6049db680ea2a22bd4163e42977a",
+      "previews": {
+        "hero": "verdant/verdant-04/verdant-04-hero.png",
+        "native150": "verdant/verdant-04/verdant-04-150.png",
+        "clay": "verdant/verdant-04/verdant-04-clay.png",
+        "side": "verdant/verdant-04/verdant-04-side.png",
+        "reverse": "verdant/verdant-04/verdant-04-reverse.png"
+      },
+      "preview_canvas": [
+        640,
+        440
+      ],
+      "native_canvas": [
+        150,
+        110
+      ],
+      "metadata": "verdant/verdant-04/model.json"
+    },
+    {
+      "id": "verdant-05",
+      "family": "verdant",
+      "locale_id": 6,
+      "display_name": "Long curved jade fracture",
+      "status": "new_candidate",
+      "geometry_distinction": "Flattened unequal lobes carry a long shallow green crescent across the front, with a shifted core and broken crust mainly on the rear shoulders.",
+      "source": "verdant/verdant-05/verdant-05.blend",
+      "source_sha256": "a3c78e4b7243eb63679b444e8dd329f3346f3da3465b47d0353f51bddbb17ac0",
+      "previews": {
+        "hero": "verdant/verdant-05/verdant-05-hero.png",
+        "native150": "verdant/verdant-05/verdant-05-150.png",
+        "clay": "verdant/verdant-05/verdant-05-clay.png",
+        "side": "verdant/verdant-05/verdant-05-side.png",
+        "reverse": "verdant/verdant-05/verdant-05-reverse.png"
+      },
+      "preview_canvas": [
+        640,
+        440
+      ],
+      "native_canvas": [
+        150,
+        110
+      ],
+      "metadata": "verdant/verdant-05/model.json"
+    },
+    {
+      "id": "ice-01",
+      "family": "ice",
+      "locale_id": 7,
+      "display_name": "Broad frozen mantle",
+      "status": "new_candidate",
+      "geometry_distinction": "Thick broad ice mantle consists of crossing offset fracture plates; shallow dark inclusions are enclosed by pale ice on the top and broken edge.",
+      "source": "ice/ice-01/ice-01.blend",
+      "source_sha256": "e57eb089b83521ba3408e6200abe11ea9f2f4c6b95165d8d4daa9545d482a87f",
+      "previews": {
+        "hero": "ice/ice-01/ice-01-hero.png",
+        "native150": "ice/ice-01/ice-01-150.png",
+        "clay": "ice/ice-01/ice-01-clay.png",
+        "side": "ice/ice-01/ice-01-side.png",
+        "reverse": "ice/ice-01/ice-01-reverse.png"
+      },
+      "preview_canvas": [
+        640,
+        440
+      ],
+      "native_canvas": [
+        150,
+        110
+      ],
+      "metadata": "ice/ice-01/model.json"
+    },
+    {
+      "id": "ice-02",
+      "family": "ice",
+      "locale_id": 7,
+      "display_name": "Ice blade and stone spine",
+      "status": "new_candidate",
+      "geometry_distinction": "Slender canted ice blade breaks along a long irregular embedded rock spine; a lower opposite ice shard closes the root.",
+      "source": "ice/ice-02/ice-02.blend",
+      "source_sha256": "aee6ad8ad12a8ec0adee5b7d92d5ead676035c7ec37902abc80e947ea0f8e4f0",
+      "previews": {
+        "hero": "ice/ice-02/ice-02-hero.png",
+        "native150": "ice/ice-02/ice-02-150.png",
+        "clay": "ice/ice-02/ice-02-clay.png",
+        "side": "ice/ice-02/ice-02-side.png",
+        "reverse": "ice/ice-02/ice-02-reverse.png"
+      },
+      "preview_canvas": [
+        640,
+        440
+      ],
+      "native_canvas": [
+        150,
+        110
+      ],
+      "metadata": "ice/ice-02/model.json"
+    },
+    {
+      "id": "ice-03",
+      "family": "ice",
+      "locale_id": 7,
+      "display_name": "Broken frozen arc",
+      "status": "new_candidate",
+      "geometry_distinction": "A thick bent ice mass wraps a broken inner notch, with one high rear arm and a lower forward ice horn enclosing a rock root.",
+      "source": "ice/ice-03/ice-03.blend",
+      "source_sha256": "f7a34a6762e3999f514a445337436cf2a9b53d9a5a244a11ec1586526d976fd0",
+      "previews": {
+        "hero": "ice/ice-03/ice-03-hero.png",
+        "native150": "ice/ice-03/ice-03-150.png",
+        "clay": "ice/ice-03/ice-03-clay.png",
+        "side": "ice/ice-03/ice-03-side.png",
+        "reverse": "ice/ice-03/ice-03-reverse.png"
+      },
+      "preview_canvas": [
+        640,
+        440
+      ],
+      "native_canvas": [
+        150,
+        110
+      ],
+      "metadata": "ice/ice-03/model.json"
+    },
+    {
+      "id": "ice-04",
+      "family": "ice",
+      "locale_id": 7,
+      "display_name": "Split frozen peak",
+      "status": "new_candidate",
+      "geometry_distinction": "Compact high ice peak splits into two unequal broad fracture masses, with dark rock crossing the lower cleft and a small upper stone exposure.",
+      "source": "ice/ice-04/ice-04.blend",
+      "source_sha256": "2824c69cd69921c1166a978818c9810d3835128e5cb4755587fe9d9b68869ed9",
+      "previews": {
+        "hero": "ice/ice-04/ice-04-hero.png",
+        "native150": "ice/ice-04/ice-04-150.png",
+        "clay": "ice/ice-04/ice-04-clay.png",
+        "side": "ice/ice-04/ice-04-side.png",
+        "reverse": "ice/ice-04/ice-04-reverse.png"
+      },
+      "preview_canvas": [
+        640,
+        440
+      ],
+      "native_canvas": [
+        150,
+        110
+      ],
+      "metadata": "ice/ice-04/model.json"
+    },
+    {
+      "id": "ice-05",
+      "family": "ice",
+      "locale_id": 7,
+      "display_name": "Stepped frozen slab",
+      "status": "new_candidate",
+      "geometry_distinction": "Long low frozen slab has a broad broken central step and an unequal uplifted end; buried rock is exposed in an oblique end fracture.",
+      "source": "ice/ice-05/ice-05.blend",
+      "source_sha256": "dfcd1c63128626c793560186a3698f9e9f922c8830e5654823bcab7e314240f6",
+      "previews": {
+        "hero": "ice/ice-05/ice-05-hero.png",
+        "native150": "ice/ice-05/ice-05-150.png",
+        "clay": "ice/ice-05/ice-05-clay.png",
+        "side": "ice/ice-05/ice-05-side.png",
+        "reverse": "ice/ice-05/ice-05-reverse.png"
+      },
+      "preview_canvas": [
+        640,
+        440
+      ],
+      "native_canvas": [
+        150,
+        110
+      ],
+      "metadata": "ice/ice-05/model.json"
+    }
+  ],
+  "shared_paint": [
+    {
+      "path": "paint/chalk-paint.png",
+      "sha256": "911de62bf07062c3d5dfd88d90bab3f51a50167be948a5d3f765c331a9c9c026"
+    },
+    {
+      "path": "paint/copper-paint.png",
+      "sha256": "1d689e1fbbd3f4f7feec548b09f6dec4fd8d47439b57d4c8b6a8b2d0a9344b50"
+    },
+    {
+      "path": "paint/ice-paint.png",
+      "sha256": "72700ff928ff8f201e3e508f82a43f2a472c040301ef3ebf12f2cb1e033ff828"
+    },
+    {
+      "path": "paint/slate-paint.png",
+      "sha256": "9e4336635de9663b81dce150a6bf681e3fcc7dfef7e514188992a3b6e8663bcf"
+    },
+    {
+      "path": "paint/turquoise-paint.png",
+      "sha256": "e24d598f159f01b98fd836e39a1741b035895ed0d5f1e5faa4817d05c64727b8"
+    },
+    {
+      "path": "paint/verdant-paint.png",
+      "sha256": "f26079301ec215356348fdd15c43fd4894da4a0c6bfd59b5863bd5e38b5a9309"
+    },
+    {
+      "path": "paint/violet-crystal-paint.png",
+      "sha256": "8fe751933c2f03fd1a6a0c397c2aed545b73b8c505372f3fcf5ea4d2e1dd5b28"
+    }
+  ],
+  "paint_provenance": [
+    "paint/texture-provenance.json",
+    "violet/violet-01/paint/texture-provenance.json",
+    "copper/copper-01/paint/texture-provenance.json"
+  ],
+  "references": [
+    "references/reference-copper.png",
+    "references/reference-violet.png",
+    "references/reference-chalk.png",
+    "references/reference-verdant.png",
+    "references/reference-ice.png"
+  ],
+  "source_hashes": "source-hashes.json",
+  "validation": "validation-summary.json",
+  "delivery_file_list": "deliverable-files.json",
+  "file_hashes": "file-hashes.json"
+}
