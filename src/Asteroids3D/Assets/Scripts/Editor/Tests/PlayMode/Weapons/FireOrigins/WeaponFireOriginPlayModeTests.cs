@@ -11,13 +11,8 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace Tests.PlayMode.Weapons
+namespace Tests.PlayMode.Weapons.FireOrigins
 {
-    /// <summary>
-    /// Where shots leave the hull: a single-fire weapon fires every shot from the centre socket, a
-    /// dual-fire weapon alternates left and right with one shot and one fire event each, and a
-    /// controller without all three sockets refuses to mount anything.
-    /// </summary>
     [Category("Weapons")]
     public class WeaponFireOriginPlayModeTests : PlayModeWorldFixture
     {
