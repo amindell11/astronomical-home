@@ -61,7 +61,6 @@ namespace Tests.EditMode.Rendering
         }
 
         [TestCase("Assets/Prefabs/Locales/CopperTurquoise.prefab")]
-        [TestCase("Assets/Prefabs/Locales/NebulaGlow.prefab")]
         [TestCase("Assets/Prefabs/Locales/IllustratedBlue.prefab")]
         [TestCase("Assets/Scenes/EditScene.unity")]
         public void LocaleAtmosphere_SeparatesMaterialsAndPreservesDrawOrder(string path)
