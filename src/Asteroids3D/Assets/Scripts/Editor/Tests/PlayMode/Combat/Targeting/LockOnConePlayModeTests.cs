@@ -1,5 +1,6 @@
 using System.Collections;
 using Combat.Targeting;
+using Combat.Weapons;
 using NUnit.Framework;
 using Ships;
 using Ships.Registry;
@@ -52,8 +53,8 @@ namespace Tests.PlayMode
             var sensor = shooter.Targeting;
             Assert.IsNotNull(sensor, "Vanguard mounts missiles");
             var halfCone = sensor.lockOnConeAngle / 2f;
-            Assert.Greater(Vector3.Angle(shooter.transform.up, targetPos - sensor.transform.position), halfCone,
-                "test premise: measured from the missile mount, the target sits outside the lock-on cone");
+            Assert.Greater(Vector3.Angle(shooter.transform.up, targetPos - sensor.GetComponent<WeaponComponent>().FireOrigin), halfCone,
+                "test premise: measured from the missile's fire point, the target sits outside the lock-on cone");
 
             sensor.SetRegistry(registry);
             yield return new WaitForFixedUpdate();
