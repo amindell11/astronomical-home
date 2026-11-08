@@ -21,7 +21,8 @@ namespace Substrate.Sectors.Elements.Phases
         [Stat, Min(0f)] public float hullWeight = 1f;
 
         [Tooltip("Lean the roll toward the hull patch while the hero's hull is low.")]
-        [Stat] public bool leanToHull;
+        // No [Stat]: the stat hash reads numbers and references, never a flag.
+        public bool leanToHull;
 
         [Tooltip("Hull fraction the hero must be below for the lean to apply.")]
         [Stat, Range(0f, 1f)] public float lowHullThreshold = .35f;
