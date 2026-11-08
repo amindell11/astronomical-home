@@ -414,30 +414,63 @@ namespace Tests.PlayMode.Preview
 
         [UnityTest]
         [Timeout(180000)]
-        public IEnumerator Playtest_Boss_RunsOnlyTheBossFixture_AndDropsStraightIntoTheElite()
+        public IEnumerator Playtest_EliteFixture_RunsOnlyThatFixture_AndDropsStraightIntoTheElite(
+            [ValueSource(nameof(EliteFixtures))] EliteFixtureCase fixture)
         {
-            var root = new GameObject("Boss playtest test");
+            var root = new GameObject($"{fixture.Name} playtest test");
             root.SetActive(false);
             host = root.AddComponent<PreviewHost>();
-            host.entry = PreviewEntry.Boss;
+            host.entry = fixture.Entry;
             host.gameHostPrefab = TestAssets.Load<GameHost>("Assets/Prefabs/Game/GameHost.prefab");
             host.sessionProfile = new SessionProfile();
-            host.bossSector = new SectorEntry
+            var sector = new SectorEntry
             {
-                prefab = TestAssets.Load<Sector>("Assets/Prefabs/Sectors/Preview/BossSector.prefab"),
+                prefab = TestAssets.Load<Sector>($"Assets/Prefabs/Sectors/Preview/{fixture.Name}.prefab"),
                 locale = TestAssets.Load<LocaleSky>("Assets/Prefabs/Locales/IllustratedBlue.prefab")
             };
+            switch (fixture.Entry)
+            {
+                case PreviewEntry.Boss:
+                    host.bossSector = sector;
+                    break;
+                case PreviewEntry.Sector1Elite:
+                    host.sector1EliteSector = sector;
+                    break;
+                case PreviewEntry.Sector2Elite:
+                    host.sector2EliteSector = sector;
+                    break;
+            }
             root.SetActive(true);
 
-            var boss = host.Playtest;
-            yield return LaunchFromHangar(boss);
-            Assert.That(boss.sessionProfile.run.Sectors, Is.EqualTo(new[] { host.bossSector }));
-            Assert.That(boss.ActiveSector.name, Does.StartWith("BossSector"));
-            var spine = boss.ActiveSector.Module<PhaseSpineModule>();
-            var objectives = boss.GetComponent<ObjectiveService>();
+            var game = host.Playtest;
+            yield return LaunchFromHangar(game);
+            Assert.That(game.sessionProfile.run.Sectors, Is.EqualTo(new[] { sector }));
+            Assert.That(game.ActiveSector.name, Does.StartWith(fixture.Name));
+            var spine = game.ActiveSector.Module<PhaseSpineModule>();
+            var objectives = game.GetComponent<ObjectiveService>();
             yield return AsyncAssert.WaitUntil(
                 () => objectives.SpineStep == PhaseSpineModule.StepElite && spine.Elite.Present, 15f,
-                "the boss fixture summons its elite at once");
+                "the fixture summons its elite at once");
+        }
+
+        private static System.Collections.IEnumerable EliteFixtures()
+        {
+            yield return new EliteFixtureCase(PreviewEntry.Boss, "BossSector");
+            yield return new EliteFixtureCase(PreviewEntry.Sector1Elite, "EliteSector1");
+            yield return new EliteFixtureCase(PreviewEntry.Sector2Elite, "EliteSector2");
+        }
+
+        public sealed class EliteFixtureCase
+        {
+            public EliteFixtureCase(PreviewEntry entry, string name)
+            {
+                Entry = entry;
+                Name = name;
+            }
+
+            public PreviewEntry Entry { get; }
+            public string Name { get; }
+            public override string ToString() => Name;
         }
 
         private static IEnumerator LaunchFromHangar(GameHost game)

@@ -88,6 +88,35 @@ namespace Tests.PlayMode.Prompts
         }
 
         [UnityTest]
+        public IEnumerator WaitingPrompt_StaysHidden_ThenShows()
+        {
+            var waiting = true;
+            var prompt = Show(() => false, () => waiting);
+            Assert.AreEqual(0f, Alpha(prompt), "a prompt that waits starts hidden");
+            yield return null;
+            yield return null;
+            Assert.AreEqual(0f, Alpha(prompt), "a prompt stays hidden while it waits");
+
+            waiting = false;
+            yield return null;
+            Assert.AreEqual(1f, Alpha(prompt), "the prompt shows once it stops waiting");
+        }
+
+        [UnityTest]
+        public IEnumerator DismissedWhileWaiting_GoesUnseen()
+        {
+            var dismissed = false;
+            var prompt = Show(() => dismissed, () => true);
+            yield return null;
+            Assert.AreEqual(0f, Alpha(prompt), "test premise: the prompt waits hidden");
+
+            dismissed = true;
+            yield return null;
+            yield return null;
+            Assert.IsFalse(prompt, "a prompt dismissed while it waits goes without ever showing");
+        }
+
+        [UnityTest]
         [Category("RequiresGraphics")]
         public IEnumerator Rig_ShowsThePromptAtTheFirstSectorItEntersOnly()
         {
@@ -120,8 +149,8 @@ namespace Tests.PlayMode.Prompts
                 "the first sector's lull after its first sector phase ends the prompt");
         }
 
-        private KeystonePrompt Show(Func<bool> dismissed) => KeystonePrompt.Create(hud.transform,
-            TestAssets.Load<Font>(KeyFontPath), TestAssets.Load<Font>(WordFontPath), null, reader, "Blink", dismissed);
+        private KeystonePrompt Show(Func<bool> dismissed, Func<bool> waiting = null) => KeystonePrompt.Create(hud.transform,
+            TestAssets.Load<Font>(KeyFontPath), TestAssets.Load<Font>(WordFontPath), null, reader, "Blink", dismissed, waiting ?? (() => false));
 
         private static float Alpha(KeystonePrompt prompt) => prompt.GetComponent<CanvasGroup>().alpha;
 
