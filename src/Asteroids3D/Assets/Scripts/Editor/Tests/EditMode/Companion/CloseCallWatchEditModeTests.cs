@@ -98,8 +98,8 @@ namespace Tests.EditMode.Companion
             mod.name = "Overclock";
             try
             {
-                Assert.AreEqual("Overclock", new LullPickTaken(mod).Facts["mod"]);
-                Assert.AreEqual(LullPickTaken.PickSlot, new LullPickTaken(mod).Slot);
+                Assert.AreEqual("Overclock", new ModPicked(mod).Facts["mod"]);
+                Assert.AreEqual(ModPicked.PickSlot, new ModPicked(mod).Slot);
             }
             finally
             {

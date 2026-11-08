@@ -488,7 +488,7 @@ namespace Game
                 if (!shutdownRequested && screen.Choice is int pick && pick != LullPickScreen.Skip)
                 {
                     rigInstance.PickMod(offers[pick]);
-                    moments.Raise(new LullPickTaken(offers[pick]));
+                    moments.Raise(new ModPicked(offers[pick]));
                 }
             }
             finally
