@@ -51,7 +51,7 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   difficulty: 1
   combatExitDelay: 3
-  aimSettings: {fileID: 11400000, guid: 422a8f35adcc471699e62938dbdf3cc2, type: 2}
+  aimSettings: {fileID: 11400000, guid: d0843c321eab4c569ba57b8e2d88958c, type: 2}
 --- !u!114 &-1070365238870678526
 MonoBehaviour:
   m_ObjectHideFlags: 0

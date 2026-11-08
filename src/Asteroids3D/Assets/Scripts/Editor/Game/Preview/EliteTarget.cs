@@ -8,23 +8,31 @@ using UnityEngine;
 
 namespace Game.Preview
 {
-    internal sealed class BossTarget : TuningTarget
+    internal sealed class EliteTarget : TuningTarget
     {
-        private const string BossSectorPath = "Assets/Prefabs/Sectors/Preview/BossSector.prefab";
+        private readonly string name;
+        private readonly string fixturePath;
 
-        public override string Name => "Boss";
-        public override IReadOnlyList<PreviewEntry> Entries { get; } = new[] { PreviewEntry.Boss };
-        public override IEnumerable<ScriptableObject> Profiles(GameHost game) => new ScriptableObject[] { Boss() };
+        public EliteTarget(string name, PreviewEntry entry, string fixturePath)
+        {
+            this.name = name;
+            this.fixturePath = fixturePath;
+            Entries = new[] { entry };
+        }
+
+        public override string Name => name;
+        public override IReadOnlyList<PreviewEntry> Entries { get; }
+        public override IEnumerable<ScriptableObject> Profiles(GameHost game) => new ScriptableObject[] { Profile() };
 
         // Read through serialization so game types grow no preview member.
-        private static EliteProfile Boss()
+        private EliteProfile Profile()
         {
-            var sector = AssetDatabase.LoadAssetAtPath<Sector>(BossSectorPath);
+            var sector = AssetDatabase.LoadAssetAtPath<Sector>(fixturePath);
             var spine = sector ? sector.Module<PhaseSpineModule>() : null;
             var encounter = spine ? Reference<EliteEncounter>(spine, "elite") : null;
             var profile = encounter ? Reference<EliteProfile>(encounter, "profile") : null;
             if (!profile)
-                throw new InvalidOperationException($"The boss fixture '{BossSectorPath}' must wire an elite with a profile.");
+                throw new InvalidOperationException($"The elite fixture '{fixturePath}' must wire an elite with a profile.");
             return profile;
         }
 

@@ -18,3 +18,4 @@ MonoBehaviour:
   routeSpeed: 8
   routeStartPass: 25
   arrivalRadius: 15
+  patrolsPerSector: 010000000200000002000000
