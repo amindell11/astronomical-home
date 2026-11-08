@@ -10,7 +10,8 @@ namespace Tests.EditMode.Rendering.Locales
 {
     /// <summary>
     /// The boot scene carries no sky, so every look the player sees comes from a locale prefab: each
-    /// row of an authored sector run names one, and the host names the idle locale shown between sectors.
+    /// row of an authored sector run names one or draws one from its pool of them, and the host names the
+    /// idle locale shown between sectors.
     /// Runs built at runtime (headless and RL sessions, which never show locales) are exempt.
     /// </summary>
     [Category("Sectors")]
@@ -20,12 +21,15 @@ namespace Tests.EditMode.Rendering.Locales
             .Select(AssetDatabase.GUIDToAssetPath).ToArray();
 
         [TestCaseSource(nameof(SectorRunPaths))]
-        public void AuthoredSectorRun_NamesALocalePrefabOnEveryRow(string runPath)
+        public void AuthoredSectorRun_NamesALocalePrefabOnEveryNamedRowAndPoolEntry(string runPath)
         {
             var run = AssetDatabase.LoadAssetAtPath<SectorRun>(runPath);
             Assert.That(run.Sectors, Is.Not.Empty, $"{runPath}: an authored run flies at least one sector.");
             for (var i = 0; i < run.Sectors.Count; i++)
-                AssertLocalePrefab(run.Sectors[i].locale, $"{runPath} row {i}");
+                if (!run.Sectors[i].random)
+                    AssertLocalePrefab(run.Sectors[i].locale, $"{runPath} row {i}");
+            for (var i = 0; i < run.LocalePool.Count; i++)
+                AssertLocalePrefab(run.LocalePool[i], $"{runPath} pool entry {i}");
         }
 
         [Test]

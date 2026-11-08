@@ -139,11 +139,16 @@ namespace Game.Preview
 
         private SessionProfile ReplayProfile() => new()
         {
-            run = SectorRun.Create(sessionProfile.run.Sectors.Append(hudQuietSector).Append(hudExtractionSector).ToArray()),
+            run = SectorRun.Create(sessionProfile.run.Sectors.Select(row => Named(sessionProfile.run, row))
+                .Append(hudQuietSector).Append(hudExtractionSector).ToArray()),
             idleLocale = sessionProfile.idleLocale,
             presentation = sessionProfile.presentation,
             offset = sessionProfile.offset
         };
+
+        // Replays and fixtures draw nothing, so a Random row shows its pool's first locale there.
+        internal static SectorEntry Named(SectorRun run, SectorEntry row) =>
+            row.random ? new SectorEntry { prefab = row.prefab, locale = run.LocalePool[0] } : row;
 
         // GameHost reads its configuration in Awake, so the overrides land while the copy is staged inactive.
         private void BuildPlaytest(PreviewEntry composed)

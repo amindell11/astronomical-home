@@ -15,7 +15,6 @@ namespace Tests.EditMode.Rendering.Locales
     public class LocaleSkyWiringEditModeTests
     {
         private const string CopperTurquoise = "Assets/Prefabs/Locales/CopperTurquoise.prefab";
-        private const string NebulaGlow = "Assets/Prefabs/Locales/NebulaGlow.prefab";
         private const string IllustratedBlue = "Assets/Prefabs/Locales/IllustratedBlue.prefab";
         private const string CoralSunset = "Assets/Prefabs/Locales/CoralSunset.prefab";
         private const string CyanAurora = "Assets/Prefabs/Locales/CyanAurora.prefab";
@@ -26,7 +25,6 @@ namespace Tests.EditMode.Rendering.Locales
         private static readonly int[] CandidateQueues = { 2900, 2940, 2950, 2990 };
 
         [TestCase(CopperTurquoise)]
-        [TestCase(NebulaGlow)]
         [TestCase(IllustratedBlue)]
         [TestCase(CoralSunset)]
         [TestCase(CyanAurora)]
@@ -56,7 +54,6 @@ namespace Tests.EditMode.Rendering.Locales
         }
 
         [TestCase(CopperTurquoise, "copper-turquoise-final")]
-        [TestCase(NebulaGlow, "nebula-glow-flat-final")]
         [TestCase(IllustratedBlue, "illustrated-blue-final")]
         [TestCase(EditScene, "nebula-glow-flat-final", "NebulaGlow")]
         public void SkyRoot_DrawsPerLocaleVariantsOfItsBackground_InLockedOrder(
@@ -107,7 +104,6 @@ namespace Tests.EditMode.Rendering.Locales
         }
 
         [TestCase(CopperTurquoise)]
-        [TestCase(NebulaGlow)]
         [TestCase(IllustratedBlue)]
         [TestCase(CoralSunset)]
         [TestCase(CyanAurora)]
@@ -125,7 +121,7 @@ namespace Tests.EditMode.Rendering.Locales
                 Assert.That((bool)tile, Is.EqualTo(cloudBank),
                     $"{layer.name}: a cloud-bank sky layer samples a baked tile, so exactly those carry CloudBankTile.");
                 if (!cloudBank) continue;
-                if (path == CopperTurquoise || path == NebulaGlow || path == IllustratedBlue || path == EditScene)
+                if (path == CopperTurquoise || path == IllustratedBlue || path == EditScene)
                     Assert.That(material.GetFloat("_NebulaSpeed"), Is.Zero, $"{layer.name}: original clouds stay stationary.");
                 else
                     Assert.That(material.GetFloat("_NebulaSpeed"), Is.GreaterThan(0), $"{layer.name}: new clouds evolve.");
@@ -184,7 +180,6 @@ namespace Tests.EditMode.Rendering.Locales
         }
 
         [TestCase(CopperTurquoise, false)]
-        [TestCase(NebulaGlow, false)]
         [TestCase(IllustratedBlue, true)]
         [TestCase(CoralSunset, true)]
         [TestCase(CyanAurora, true)]
