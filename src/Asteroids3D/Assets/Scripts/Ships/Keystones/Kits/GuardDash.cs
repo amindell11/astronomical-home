@@ -9,7 +9,7 @@ namespace Ships.Keystones.Kits
         [Tooltip("Seconds after activation during which every hit on the ship is dropped.")]
         [Stat, SerializeField] private float window = 0.4f;
 
-        public override string DisplayName => "Guard Dash";
+        public override string DisplayName => "Dash";
         public float Window => window;
         public bool Guarding => SinceActivation < window;
 

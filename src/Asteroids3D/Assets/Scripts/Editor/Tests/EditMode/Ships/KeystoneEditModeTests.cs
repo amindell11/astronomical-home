@@ -348,6 +348,7 @@ namespace Tests.EditMode.Ships
             var catalog = AssetDatabase.LoadAssetAtPath<ItemCatalog>(ItemCatalog.AssetPath);
             var guard = catalog.Chassis.Single(c => c.name == "Vanguard").KeystonePrefab as GuardDash;
             Assert.That(guard, Is.Not.Null, "Vanguard's kit is the Guard Dash");
+            Assert.That(guard.DisplayName, Is.EqualTo("Dash"));
             Assert.That(guard.Window, Is.EqualTo(0.4f));
             Assert.That(guard.GetComponent<KeystoneFlash>(), Is.Not.Null, "the kit carries its tell");
         }
@@ -364,6 +365,29 @@ namespace Tests.EditMode.Ships
             Assert.That(dash.name, Is.EqualTo($"{chassis.Split('_')[0]}_Dash"), $"{chassis}: its own kit prefab");
             Assert.That(dash.Impulse, Is.EqualTo(impulse), $"{chassis}: impulse");
             Assert.That(dash.Cooldown, Is.EqualTo(cooldown), $"{chassis}: cooldown");
+        }
+
+        [Test, Category("RequiresLfsPng")]
+        public void Kits_AuthorTheirHudIcons()
+        {
+            AssertIcon("Vanguard_Dash", "Assets/Visuals/Ui/Keystones/Generated/dash.png");
+            AssertIcon("Bulwark_Dash", "Assets/Visuals/Ui/Keystones/Generated/ram.png");
+            AssertIcon("Valis_Overdrive", "Assets/Visuals/Ui/Keystones/Generated/overdrive.png");
+            AssertIcon("Crimson_Blink", "Assets/Visuals/Ui/Keystones/Generated/blink.png");
+            AssertIcon("Nightshade_Stealth", "Assets/Visuals/Ui/Keystones/Generated/stealth.png");
+            AssertIcon("Junker_Dash", "Assets/Visuals/Ui/Crosshair/Generated/keystone-placeholder.png");
+            Assert.That(AssetDatabase.AssetPathToGUID(
+                    "Assets/Visuals/Ui/Crosshair/Generated/keystone-placeholder.png"),
+                Is.EqualTo("9f5919c47706b7f438d1531e6e55719d"));
+        }
+
+        private static void AssertIcon(string prefab, string spritePath)
+        {
+            var kit = AssetDatabase.LoadAssetAtPath<Keystone>($"Assets/Prefabs/Keystones/{prefab}.prefab");
+            var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(spritePath);
+            Assert.That(kit, Is.Not.Null, prefab);
+            Assert.That(sprite, Is.Not.Null, spritePath);
+            Assert.That(kit.Icon, Is.SameAs(sprite), prefab);
         }
     }
 }

@@ -136,7 +136,7 @@ namespace UI
             if (readoutBuilder)
                 readoutBuilder.Build(binding.Weapons);
             crosshair.Initialize(binding.Status, gameplayCamera);
-            weaponResources.Initialize(binding.Weapons);
+            weaponResources.Initialize(binding.Weapons, binding.KeystoneIcon);
 
             if (chargeMarkers)
                 chargeMarkers.Initialize(binding.Weapons);
@@ -155,6 +155,7 @@ namespace UI
             if (!objectiveMarkers || !minimapRect)
                 throw new InvalidOperationException($"Overlay on '{name}' needs its objective markers and minimap wired.");
             objectiveMarkers.Initialize(objectives, worldCamera, minimapCamera, minimapRect, canvases[0], projection, () => IsVisible);
+            FindPointers.Create(minimapRect, projection, () => IsVisible).Initialize(objectives, minimapCamera);
             ObjectiveStatusReadout.Create(transform, labelFont, headingFont, timerFont, readoutFont, textMaterial,
                 projection, () => IsVisible).Initialize(objectives);
         }

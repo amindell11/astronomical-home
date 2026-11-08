@@ -45,4 +45,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cooldown: 5
+  icon: {fileID: 21300000, guid: 9f5919c47706b7f438d1531e6e55719d, type: 3}
   impulse: 15000

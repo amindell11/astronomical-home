@@ -10,7 +10,7 @@ namespace Game.Preview
         public override string Name => "Asteroids";
         public override IReadOnlyList<PreviewEntry> Entries { get; } = new[] { PreviewEntry.Combat };
 
-        public override IEnumerable<ScriptableObject> Profiles(GameHost game) => game.sessionProfile.sectors
+        public override IEnumerable<ScriptableObject> Profiles(GameHost game) => game.sessionProfile.run.Sectors
             .Select(sector => sector.prefab.GetComponentInChildren<UpdatingAsteroidField>(true).settings)
             .Distinct();
     }

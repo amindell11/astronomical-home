@@ -32,6 +32,12 @@
   **domain** category (`Sectors`, `Weapons`, `MPC`, …) plus optional
   `Smoke`/`Slow`; run a feature slice with `-TestCategory <Domain>` instead of
   the whole suite. Give new fixtures exactly one domain tag.
+- **A test that reads LFS-backed PNG art carries `RequiresLfsPng`.** The
+  hosted headless suite pulls only Assets meshes and models (`.fbx`, `.obj`,
+  `.onnx`), so it skips the tag; local runs include it. A PR that touches a
+  tagged test or the PNGs it reads lists an owed-local `unity` item:
+  `run-tests <slot> -Mode Both -TestCategory RequiresLfsPng`. Details:
+  `TESTING.md` § `RequiresLfsPng`.
 - **Performance/benchmark sweeps run SOLO** — a parallel Unity on the machine
   contaminates timing metrics (solve-ms in particular).
 - **Never leave eval or benchmark artifacts only in a pool slot** — slot

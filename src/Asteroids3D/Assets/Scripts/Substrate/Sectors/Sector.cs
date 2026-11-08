@@ -25,7 +25,7 @@ namespace Substrate.Sectors
         [Stat, SerializeField] private SectorSpawner[] spawners = Array.Empty<SectorSpawner>();
 
         [Tooltip("Behavior modules (root components) set up after content in list order; teardown reverse.")]
-        [SerializeField] private SectorModule[] modules = Array.Empty<SectorModule>();
+        [Stat, SerializeField] private SectorModule[] modules = Array.Empty<SectorModule>();
 
         [Tooltip("The authored asteroid field AI ships sense in this sector (none = a world with no rocks).")]
         [SerializeField] private Asteroids.Fields.UpdatingAsteroidField obstacleField;

@@ -5,6 +5,7 @@ using Combat.Weapons;
 using Combat.Weapons.Conditions;
 using NUnit.Framework;
 using Ships.Command;
+using Ships.Keystones;
 using Tests.Common;
 using UI.PlayerState;
 using UI.Weapons;
@@ -19,7 +20,7 @@ using UnityEditor;
 
 namespace Tests.PlayMode.Crosshairs
 {
-    [Category("Weapons")]
+    [Category("Weapons"), Category("RequiresLfsPng")]
     public sealed class AimCrosshairPlayModeTests : InputTestFixture
     {
         private sealed class Ammo : IAmmoReadout
@@ -58,6 +59,7 @@ namespace Tests.PlayMode.Crosshairs
         private StubShipStatus ship;
         private AimCrosshair crosshair;
         private WeaponResourceHud weaponHud;
+        private Sprite keystoneIcon;
         private Mouse mouse;
         private Ammo ammo;
         private bool cursorWasVisible;
@@ -86,7 +88,8 @@ namespace Tests.PlayMode.Crosshairs
             crosshair.gameObject.SetActive(true);
             weaponHud = Object.Instantiate(AssetDatabase.LoadAssetAtPath<WeaponResourceHud>(
                 "Assets/Prefabs/UI/Crosshair/WeaponKeystoneHud.prefab"), root.transform);
-            weaponHud.Initialize(new WeaponSources(ammo));
+            keystoneIcon = AssetDatabase.LoadAssetAtPath<Keystone>("Assets/Prefabs/Keystones/Vanguard_Dash.prefab").Icon;
+            weaponHud.Initialize(new WeaponSources(ammo), keystoneIcon);
             weaponHud.GetComponentInChildren<BoostGaugeUI>(true).Initialize(ship);
             weaponHud.gameObject.SetActive(true);
 #else
@@ -136,7 +139,7 @@ namespace Tests.PlayMode.Crosshairs
             Press(mouse.rightButton);
             Draw();
             Assert.IsTrue(Visible("SecondaryResources"));
-            weaponHud.Initialize(null);
+            weaponHud.Initialize(null, keystoneIcon);
             Draw();
             Assert.IsFalse(Visible("PrimaryResources"));
             Assert.IsFalse(Visible("SecondaryResources"));
@@ -222,7 +225,7 @@ namespace Tests.PlayMode.Crosshairs
             var rounds = shipRoot.AddComponent<Rounds>();
             rounds.Configure(2, 10f, Rounds.RefillMode.Sequential);
             rounds.enabled = false;
-            weaponHud.Initialize(new WeaponSources(rounds));
+            weaponHud.Initialize(new WeaponSources(rounds), keystoneIcon);
             yield return null;
             rounds.ProcessFire();
             rounds.Tick(5f);
@@ -289,6 +292,55 @@ namespace Tests.PlayMode.Crosshairs
             Assert.That(fill.fillAmount, Is.EqualTo(1f));
             Assert.That(((RectTransform)weaponHud.transform).sizeDelta, Is.EqualTo(new Vector2(92f, 92f)));
             Assert.That(((RectTransform)weaponHud.transform).anchoredPosition, Is.EqualTo(new Vector2(0f, 58.5f)));
+        }
+
+        [Test]
+        public void KeystoneGlyph_SwapsWithTheBoundKit_WithoutChangingTheRing()
+        {
+#if !UNITY_EDITOR
+            Assert.Ignore("Requires the authored keystone prefabs.");
+#else
+            var gauge = weaponHud.GetComponentInChildren<BoostGaugeUI>();
+            var fill = gauge.GetComponent<Image>();
+            var glyph = weaponHud.transform.Find("KeystonePlaceholder").GetComponent<Image>();
+            var ring = fill.sprite;
+            Assert.That(glyph, Is.Not.SameAs(fill));
+            Assert.That(glyph.rectTransform.anchorMin, Is.EqualTo(new Vector2(.5f, .5f)));
+            Assert.That(glyph.rectTransform.anchorMax, Is.EqualTo(new Vector2(.5f, .5f)));
+            Assert.That(glyph.rectTransform.sizeDelta, Is.EqualTo(new Vector2(48f, 48f)));
+
+            var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+            typeof(BoostGaugeUI).GetField("coolingColor", flags).SetValue(gauge, new Color(.25f, .45f, .6f, .6f));
+            typeof(BoostGaugeUI).GetField("readyColor", flags).SetValue(gauge, new Color(.1f, .9f, 1f, .9f));
+            ship.BoostAvailable = false;
+            ship.BoostCooldownPct = .75f;
+            gauge.SendMessage("Update");
+            var fillAmount = fill.fillAmount;
+            var fillColor = fill.color;
+            Assert.That(fillAmount, Is.EqualTo(.25f));
+
+            var dash = AssetDatabase.LoadAssetAtPath<Keystone>("Assets/Prefabs/Keystones/Vanguard_Dash.prefab");
+            var ram = AssetDatabase.LoadAssetAtPath<Keystone>("Assets/Prefabs/Keystones/Bulwark_Dash.prefab");
+            weaponHud.Initialize(new WeaponSources(ammo), dash.Icon);
+            Assert.That(glyph.sprite, Is.SameAs(dash.Icon));
+            Assert.That(fill.sprite, Is.SameAs(ring));
+            Assert.That(fill.fillAmount, Is.EqualTo(fillAmount));
+            Assert.That(fill.color, Is.EqualTo(fillColor));
+
+            weaponHud.Initialize(new WeaponSources(ammo), ram.Icon);
+            Assert.That(glyph.sprite, Is.SameAs(ram.Icon));
+            Assert.That(fill.sprite, Is.SameAs(ring));
+            Assert.That(fill.fillAmount, Is.EqualTo(fillAmount));
+            Assert.That(fill.color, Is.EqualTo(fillColor));
+
+            ship.BoostAvailable = true;
+            ship.BoostCooldownPct = 0f;
+            gauge.SendMessage("Update");
+            Assert.That(fill.fillAmount, Is.EqualTo(1f));
+            Assert.That(fill.color, Is.Not.EqualTo(fillColor));
+            Assert.That(fill.sprite, Is.SameAs(ring));
+            Assert.That(glyph.sprite, Is.SameAs(ram.Icon));
+#endif
         }
 
         private void AssertPointer(Vector2 aim)

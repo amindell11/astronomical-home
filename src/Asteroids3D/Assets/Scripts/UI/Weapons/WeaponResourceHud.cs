@@ -11,6 +11,7 @@ namespace UI.Weapons
     public sealed class WeaponResourceHud : MonoBehaviour
     {
         [SerializeField] private Image resourceTemplate;
+        [SerializeField] private Image keystoneGlyph;
         [SerializeField] private Color ink = new(.953f, .949f, .875f);
         [SerializeField] private Color track = new(.639f, .651f, .667f, .3f);
         [SerializeField] private Color empty = new(.639f, .651f, .667f, .3f);
@@ -35,10 +36,15 @@ namespace UI.Weapons
         {
             if (!resourceTemplate)
                 throw new InvalidOperationException("WeaponResourceHud requires its resource image template.");
+            if (!keystoneGlyph)
+                throw new InvalidOperationException("WeaponResourceHud requires its keystone glyph.");
         }
 
-        public void Initialize(IWeaponReadouts weapons)
+        public void Initialize(IWeaponReadouts weapons, Sprite keystoneIcon)
         {
+            if (!keystoneIcon)
+                throw new InvalidOperationException("WeaponResourceHud requires a keystone icon.");
+            keystoneGlyph.sprite = keystoneIcon;
             readouts = weapons;
             foreach (var resource in resources)
             {
@@ -148,7 +154,7 @@ namespace UI.Weapons
         {
             if (resources.Exists(resource => resource.Source is IAmmoReadout { Refill: Rounds.RefillMode.Sequential } ammo
                     && resource.Capacity != ammo.MaxAmmo))
-                Initialize(readouts);
+                Initialize(readouts, keystoneGlyph.sprite);
             var now = Time.unscaledTime;
             foreach (var resource in resources)
             {

@@ -271,7 +271,7 @@ namespace Tests.PlayMode.Preview
             Assert.That(flight.Holding, Is.True);
             Assert.That(flight.State.Distance, Is.GreaterThan(distance));
             Assert.That(flight.State.LocaleBlend, Is.EqualTo(1f));
-            Assert.That(LocaleInstances.Shown(), Is.EqualTo("Locale_1"));
+            Assert.That(LocaleInstances.Shown(), Is.EqualTo("CopperTurquoise"));
             AssertProtected(player);
 
             var recap = game.GetComponentInChildren<RunRecapScreen>();
@@ -290,8 +290,8 @@ namespace Tests.PlayMode.Preview
             Assert.That(game.ActiveSector.GetComponent<CrowdedJumpGateModule>(), Is.Null);
             Assert.That(recap == null, Is.True);
             Assert.That(Time.timeScale, Is.EqualTo(1f));
-            Assert.That(LocaleInstances.Shown(), Is.EqualTo("Locale_1"));
-            yield return AsyncAssert.WaitUntil(() => !LocaleInstances.Loaded("Locale_3"),
+            Assert.That(LocaleInstances.Shown(), Is.EqualTo("CopperTurquoise"));
+            yield return AsyncAssert.WaitUntil(() => !LocaleInstances.Loaded("IllustratedBlue"),
                 15f, "the outgoing locale is destroyed after arrival");
         }
 
@@ -310,7 +310,7 @@ namespace Tests.PlayMode.Preview
                 while (flight)
                 {
                     var shown = LocaleInstances.Shown();
-                    preloaded |= shown == "Locale_3" && LocaleInstances.Loaded("Locale_1");
+                    preloaded |= shown == "IllustratedBlue" && LocaleInstances.Loaded("CopperTurquoise");
                     foreach (var locale in LocaleInstances.All())
                         if (!locale.Shown && locale.GetComponentsInChildren<Volume>().Any(volume => volume.enabled))
                             strays.Add($"{locale.name} while {shown} is shown");
@@ -323,7 +323,7 @@ namespace Tests.PlayMode.Preview
             yield return AsyncAssert.WaitUntil(() => !flight, 30f, "travel finishes after Continue");
             Assert.That(preloaded, Is.True, "test premise: the destination loads before the locale switch");
             Assert.That(strays, Is.Empty, "only the shown locale's volume grades the world");
-            Assert.That(LocaleInstances.All().Where(locale => locale.name == "Locale_1")
+            Assert.That(LocaleInstances.All().Where(locale => locale.name == "CopperTurquoise")
                     .SelectMany(locale => locale.GetComponentsInChildren<Volume>()).Select(volume => volume.enabled),
                 Is.EqualTo(new[] { true }), "the destination's volume grades the world after arrival");
         }
@@ -345,7 +345,7 @@ namespace Tests.PlayMode.Preview
             yield return new WaitForSecondsRealtime(1f);
             var prepared = game.ActiveSector.GetComponent<CrowdedJumpGateModule>() == null;
             var blended = game.Jump.State.LocaleBlend;
-            var strayLights = LocaleInstances.All().Where(locale => locale.name == "Locale_3")
+            var strayLights = LocaleInstances.All().Where(locale => locale.name == "IllustratedBlue")
                 .SelectMany(locale => locale.GetComponentsInChildren<Light>()).Where(light => light.enabled).ToArray();
             var clickedAt = Time.realtimeSinceStartup;
             yield return ClickContinue(recap);
@@ -398,8 +398,8 @@ namespace Tests.PlayMode.Preview
                 yield return WaitForFlight();
                 Assert.That(previous == null, Is.True);
                 Assert.That(Time.timeScale, Is.EqualTo(1f));
-                Assert.That(LocaleInstances.Loaded("Locale_1"), Is.False);
-                Assert.That(LocaleInstances.Shown(), Is.EqualTo("Locale_3"));
+                Assert.That(LocaleInstances.Loaded("CopperTurquoise"), Is.False);
+                Assert.That(LocaleInstances.Shown(), Is.EqualTo("IllustratedBlue"));
                 Assert.That(InputSystem.ListEnabledActions().Count(action => action.name == "Jump"), Is.EqualTo(1));
                 Assert.That(Object.FindObjectsByType<GameHost>(FindObjectsSortMode.None).Length, Is.EqualTo(1));
                 Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None).Length, Is.EqualTo(1));
@@ -409,12 +409,12 @@ namespace Tests.PlayMode.Preview
             yield return WaitForHold();
             yield return ClickContinue(host.Playtest.GetComponentInChildren<RunRecapScreen>());
             yield return AsyncAssert.WaitUntil(() => host.Playtest.Jump && !host.Playtest.Jump.Holding &&
-                LocaleInstances.Shown() == "Locale_1", 30f, "arrival has begun");
+                LocaleInstances.Shown() == "CopperTurquoise", 30f, "arrival has begun");
             AssertProtected(rig.Player);
             yield return host.Shutdown();
             Assert.That(Time.timeScale, Is.EqualTo(1f));
-            Assert.That(LocaleInstances.Loaded("Locale_1"), Is.False);
-            Assert.That(LocaleInstances.Loaded("Locale_3"), Is.False);
+            Assert.That(LocaleInstances.Loaded("CopperTurquoise"), Is.False);
+            Assert.That(LocaleInstances.Loaded("IllustratedBlue"), Is.False);
             Assert.That(Object.FindObjectsByType<GameHost>(FindObjectsSortMode.None), Is.Empty);
             Assert.That(Object.FindObjectsByType<ObserverCam>(FindObjectsSortMode.None), Is.Empty);
             Assert.That(Object.FindObjectsByType<SectorJumpFlight>(FindObjectsSortMode.None), Is.Empty);
@@ -514,7 +514,8 @@ namespace Tests.PlayMode.Preview
             feel.hudFadeIn = .2f;
             var profile = new SessionProfile
             {
-                sectors = new[] { Entry("CrowdedJumpDeparture"), Entry("CrowdedJumpArrival") }
+                run = SectorRun.Create(Entry("CrowdedJumpDeparture", "IllustratedBlue"),
+                    Entry("CrowdedJumpArrival", "CopperTurquoise"))
             };
             var template = new GameObject("Crowded jump game host template");
             template.SetActive(false);
@@ -534,8 +535,10 @@ namespace Tests.PlayMode.Preview
             host.entry = PreviewEntry.CrowdedJumpGate;
             host.gameHostPrefab = gameHost;
             host.sessionProfile = profile;
-            host.crowdedJumpSectors = profile.sectors;
-            host.jumpDestination = TestAssets.Load<LocaleSky>("Assets/Prefabs/Locales/Locale_1.prefab");
+            host.crowdedJumpSectors = profile.run.Sectors.ToArray();
+            host.hudQuietSector = TestAssets.HudFixture("HudQuietSector");
+            host.hudExtractionSector = TestAssets.HudFixture("HudExtractionSector");
+            host.jumpDestination = TestAssets.Load<LocaleSky>("Assets/Prefabs/Locales/CopperTurquoise.prefab");
             root.SetActive(true);
         }
 
@@ -547,14 +550,14 @@ namespace Tests.PlayMode.Preview
             serialized.ApplyModifiedProperties();
         }
 
-        private static SectorEntry Entry(string name)
+        private static SectorEntry Entry(string name, string locale)
         {
             var entry = new SectorEntry
             {
                 prefab = TestAssets.Load<Sector>($"Assets/Prefabs/Sectors/Preview/{name}.prefab"),
-                config = TestAssets.Load<SectorSettings>($"Assets/Settings/Game/Preview/{name}.asset")
+                locale = TestAssets.Load<LocaleSky>($"Assets/Prefabs/Locales/{locale}.prefab")
             };
-            Assert.That(entry.prefab && entry.config, Is.True, "Crowded jump fixture assets must exist before PlayMode");
+            Assert.That(entry.prefab && entry.locale, Is.True, "Crowded jump fixture assets must exist before PlayMode");
             return entry;
         }
     }
