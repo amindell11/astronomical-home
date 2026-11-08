@@ -1,0 +1,18 @@
+[
+  {
+    "file": "gate1-r2-armory-spatial-rack.png",
+    "sha256": "d926e17d42a8eab54c0bf34540e19827e94c6b563102bf3f9f896e40ca78d5b2"
+  },
+  {
+    "file": "gate1-r2-cache-split-capsule.png",
+    "sha256": "4bf6e198cddf378ea49fa14200e8cc6d7cc6864c9ded12338dd4ba8bc6af6854"
+  },
+  {
+    "file": "gate1-r2-cache-split-pod.png",
+    "sha256": "61bc9a8afb9cf5e69bc319057e8fb13ae433182d2a63a43e78156eb747db2a1e"
+  },
+  {
+    "file": "gate1-r2-repair-broken-ring.png",
+    "sha256": "f246c4d808eb3025790337b0c6d1c441c9cb1d317368d86362071a73b9507d5c"
+  }
+]

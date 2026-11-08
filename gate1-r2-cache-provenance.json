@@ -1,0 +1,35 @@
+{
+  "date": "2026-11-08",
+  "timezone": "America/Los_Angeles",
+  "issue": 1384,
+  "arc": 1381,
+  "stage": "Gate 1, concept round 2",
+  "direction": "Cache / split cargo pod",
+  "file": "gate1-r2-cache-split-pod.png",
+  "prompt": "gate1-r2-cache-prompt.txt",
+  "generator": "Built-in image_gen imagegen tool",
+  "model": "Not exposed by tool",
+  "owner_feedback": "https://github.com/amindell11/astronomical-home/issues/1384#issuecomment-6726743192",
+  "status": "Awaiting owner verdict; role assignment provisional",
+  "references": [
+    {
+      "role": "Prior broken ring to rework for repair; finish and inhabited-light evidence for the other types. Flat deck and top cabin were rejected.",
+      "url": "https://media.githubusercontent.com/media/amindell11/astronomical-home/824a1c19388a3c15d9c1d82dc54a092db14cdb69/gate1-b-broken-ring-roadhouse.png"
+    },
+    {
+      "role": "Drawn linework and simplified dimensional shading only.",
+      "url": "https://media.githubusercontent.com/media/amindell11/astronomical-home/945c2ed4cf2b0ed556c87d26b25fd7c929be9c5c/consoles/concepts/02-ink-drawn.png"
+    },
+    {
+      "role": "Dark warm-neutral hardware lit by inhabitants and electronics.",
+      "url": "https://media.githubusercontent.com/media/amindell11/astronomical-home/945c2ed4cf2b0ed556c87d26b25fd7c929be9c5c/consoles/lighting-01/electronic-light-contrast-nb2.jpg"
+    }
+  ],
+  "edits_after_generation": "None",
+  "limitations": [
+    "These are image-model concepts, not a single 3D model turned around. View-to-view geometry and lighting can drift.",
+    "Distance views are approximate visual studies, not calibrated game-distance captures.",
+    "No runtime rotation test, collider, mesh, triangle count, texture, locale or integration proof."
+  ],
+  "review": "Shown to owner first. Agent found silhouette too close to another ring; retained alongside the subsequent split-capsule option. No owner rejection of this round is inferred."
+}

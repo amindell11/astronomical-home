@@ -1,0 +1,27 @@
+{
+  "date": "2026-11-08",
+  "timezone": "America/Los_Angeles",
+  "issue": 1384,
+  "arc": 1381,
+  "stage": "Gate 1, concept round 2",
+  "direction": "Cache / split capsule",
+  "file": "gate1-r2-cache-split-capsule.png",
+  "prompt": "gate1-r2-cache2-prompt.txt",
+  "generator": "Built-in image_gen imagegen tool",
+  "model": "Not exposed by tool",
+  "owner_feedback": "https://github.com/amindell11/astronomical-home/issues/1384#issuecomment-6726743192",
+  "status": "Awaiting owner verdict; role assignment provisional",
+  "references": [
+    {
+      "role": "Edit target. Preserve finish and sheet layout; change ring-like geometry into long split capsule.",
+      "file": "gate1-r2-cache-split-pod.png"
+    }
+  ],
+  "edits_after_generation": "None",
+  "limitations": [
+    "These are image-model concepts, not a single 3D model turned around. View-to-view geometry and lighting can drift.",
+    "Distance views are approximate visual studies, not calibrated game-distance captures.",
+    "No runtime rotation test, collider, mesh, triangle count, texture, locale or integration proof."
+  ],
+  "review": "One geometry-only follow-up after showing the first cache result. Requested compound twist and range of small-view angles are only partly realized."
+}
