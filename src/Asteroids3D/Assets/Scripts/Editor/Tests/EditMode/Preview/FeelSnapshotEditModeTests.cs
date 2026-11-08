@@ -164,7 +164,7 @@ namespace Tests.EditMode.Preview
             var export = AssetDatabase.LoadAssetAtPath<TextAsset>(
                 "Assets/Scripts/Editor/Tests/EditMode/Rendering/Projection/OwnerSettings.json").text;
             CanopyTunerSettings.Parse(export).Apply(asset, CanopyState.LowHull);
-            Assert.That(asset.lowHull.fields, Is.EqualTo(CanopyFields.All));
+            Assert.That(asset.lowHull.fields, Is.EqualTo(CanopyFields.Glow | CanopyTunerSettings.Fields));
             Assert.That(snapshot.HasUnsavedEdits(asset), Is.True, "an import is an unsaved edit");
             snapshot.Discard(asset);
             Assert.That(asset.Resolve(CanopyState.LowHull).glow, Is.EqualTo(1.7f));

@@ -14,24 +14,22 @@ namespace Tests.EditMode.Rendering.Locales
     [Category("Sectors")]
     public class LocaleSkyWiringEditModeTests
     {
-        private const string Locale1 = "Assets/Prefabs/Locales/Locale_1.prefab";
-        private const string Locale2 = "Assets/Prefabs/Locales/Locale_2.prefab";
-        private const string Locale3 = "Assets/Prefabs/Locales/Locale_3.prefab";
-        private const string Locale4 = "Assets/Prefabs/Locales/Locale_4.prefab";
-        private const string Locale5 = "Assets/Prefabs/Locales/Locale_5.prefab";
-        private const string Locale6 = "Assets/Prefabs/Locales/Locale_6.prefab";
-        private const string Locale7 = "Assets/Prefabs/Locales/Locale_7.prefab";
+        private const string CopperTurquoise = "Assets/Prefabs/Locales/CopperTurquoise.prefab";
+        private const string IllustratedBlue = "Assets/Prefabs/Locales/IllustratedBlue.prefab";
+        private const string CoralSunset = "Assets/Prefabs/Locales/CoralSunset.prefab";
+        private const string CyanAurora = "Assets/Prefabs/Locales/CyanAurora.prefab";
+        private const string VerdantGiant = "Assets/Prefabs/Locales/VerdantGiant.prefab";
+        private const string BlueCrescent = "Assets/Prefabs/Locales/BlueCrescent.prefab";
         private const string EditScene = "Assets/Scenes/EditScene.unity";
         private static readonly string[] CandidateLayers = { "Background", "FarNebula", "StarField", "CloseNebula" };
         private static readonly int[] CandidateQueues = { 2900, 2940, 2950, 2990 };
 
-        [TestCase(Locale1)]
-        [TestCase(Locale2)]
-        [TestCase(Locale3)]
-        [TestCase(Locale4)]
-        [TestCase(Locale5)]
-        [TestCase(Locale6)]
-        [TestCase(Locale7)]
+        [TestCase(CopperTurquoise)]
+        [TestCase(IllustratedBlue)]
+        [TestCase(CoralSunset)]
+        [TestCase(CyanAurora)]
+        [TestCase(VerdantGiant)]
+        [TestCase(BlueCrescent)]
         public void LocalePrefab_HasExactlyOneLocaleSky_AtItsRoot(string prefabPath)
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
@@ -55,10 +53,9 @@ namespace Tests.EditMode.Rendering.Locales
             }
         }
 
-        [TestCase(Locale1, "copper-turquoise-final")]
-        [TestCase(Locale2, "nebula-glow-flat-final")]
-        [TestCase(Locale3, "illustrated-blue-final")]
-        [TestCase(EditScene, "nebula-glow-flat-final", "Locale_2")]
+        [TestCase(CopperTurquoise, "copper-turquoise-final")]
+        [TestCase(IllustratedBlue, "illustrated-blue-final")]
+        [TestCase(EditScene, "nebula-glow-flat-final", "NebulaGlow")]
         public void SkyRoot_DrawsPerLocaleVariantsOfItsBackground_InLockedOrder(
             string path, string background, string localeFolder = null)
         {
@@ -68,13 +65,13 @@ namespace Tests.EditMode.Rendering.Locales
             Assert.IsTrue(locale.Root);
             Assert.IsTrue(root.gameObject.activeSelf, "The palette-driven sky is the live root.");
             var layers = root.GetComponentsInChildren<MeshRenderer>().Select(r => r.transform).ToArray();
-            var illustrated = locale.Name == "Locale_1" || locale.Name == "Locale_3";
+            var illustrated = locale.Name == "CopperTurquoise" || locale.Name == "IllustratedBlue";
             var names = illustrated
                 ? new[] { "Background", "DistantStars", "FarNebula", "StarField", "CloseNebula" }
                 : CandidateLayers;
             var queues = illustrated ? new[] { 2900, 2930, 2940, 2950, 2990 } : CandidateQueues;
 
-            if (locale.Name == "Locale_1")
+            if (locale.Name == "CopperTurquoise")
             {
                 names = new[] { "Background", "DistantStars", "FarNebula", "TurquoiseNebula", "StarField", "CloseNebula" };
                 queues = new[] { 2900, 2930, 2940, 2945, 2950, 2990 };
@@ -90,7 +87,7 @@ namespace Tests.EditMode.Rendering.Locales
             if (illustrated)
                 expectedParents = new[] { expectedParents[0], expectedParents[2], expectedParents[1],
                     expectedParents[2], expectedParents[3] };
-            if (locale.Name == "Locale_1")
+            if (locale.Name == "CopperTurquoise")
                 expectedParents = new[] { expectedParents[0], expectedParents[1], expectedParents[2],
                     expectedParents[2], expectedParents[3], expectedParents[4] };
             Assert.That(layers.Select(l => l.name), Is.EqualTo(names));
@@ -106,13 +103,12 @@ namespace Tests.EditMode.Rendering.Locales
             }
         }
 
-        [TestCase(Locale1)]
-        [TestCase(Locale2)]
-        [TestCase(Locale3)]
-        [TestCase(Locale4)]
-        [TestCase(Locale5)]
-        [TestCase(Locale6)]
-        [TestCase(Locale7)]
+        [TestCase(CopperTurquoise)]
+        [TestCase(IllustratedBlue)]
+        [TestCase(CoralSunset)]
+        [TestCase(CyanAurora)]
+        [TestCase(VerdantGiant)]
+        [TestCase(BlueCrescent)]
         [TestCase(EditScene)]
         public void CloudBankLayers_UseZoomFreeTilesAndPreserveOriginalStationaryLocales(string path)
         {
@@ -125,7 +121,7 @@ namespace Tests.EditMode.Rendering.Locales
                 Assert.That((bool)tile, Is.EqualTo(cloudBank),
                     $"{layer.name}: a cloud-bank sky layer samples a baked tile, so exactly those carry CloudBankTile.");
                 if (!cloudBank) continue;
-                if (path == Locale1 || path == Locale2 || path == Locale3 || path == EditScene)
+                if (path == CopperTurquoise || path == IllustratedBlue || path == EditScene)
                     Assert.That(material.GetFloat("_NebulaSpeed"), Is.Zero, $"{layer.name}: original clouds stay stationary.");
                 else
                     Assert.That(material.GetFloat("_NebulaSpeed"), Is.GreaterThan(0), $"{layer.name}: new clouds evolve.");
@@ -183,13 +179,12 @@ namespace Tests.EditMode.Rendering.Locales
             return new SerializedObject((Object)getter.Invoke(null, null)).FindProperty("m_LightingDataAsset");
         }
 
-        [TestCase(Locale1, false)]
-        [TestCase(Locale2, false)]
-        [TestCase(Locale3, true)]
-        [TestCase(Locale4, true)]
-        [TestCase(Locale5, true)]
-        [TestCase(Locale6, true)]
-        [TestCase(Locale7, true)]
+        [TestCase(CopperTurquoise, false)]
+        [TestCase(IllustratedBlue, true)]
+        [TestCase(CoralSunset, true)]
+        [TestCase(CyanAurora, true)]
+        [TestCase(VerdantGiant, true)]
+        [TestCase(BlueCrescent, true)]
         public void LocalePrefab_LightsFromFlatAmbientAndItsOwnReflectionCubemap(string prefabPath, bool hasSun)
         {
             var locale = AssetDatabase.LoadAssetAtPath<LocaleSky>(prefabPath);
@@ -220,7 +215,7 @@ namespace Tests.EditMode.Rendering.Locales
                 Assert.That(RenderSettings.defaultReflectionMode, Is.EqualTo(DefaultReflectionMode.Custom));
                 Assert.That(RenderSettings.customReflectionTexture, Is.InstanceOf<Cubemap>());
                 Assert.That(AssetDatabase.GetAssetPath(RenderSettings.customReflectionTexture),
-                    Does.StartWith("Assets/Visuals/Locales/Sky/Locales/Locale_2/"));
+                    Does.StartWith("Assets/Visuals/Locales/Sky/Locales/NebulaGlow/"));
             }
             finally
             {

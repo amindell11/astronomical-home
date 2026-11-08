@@ -8,6 +8,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 401323896909822848, guid: 09c73779418090c498dc37d26f9f005c,
+        type: 3}
+      propertyPath: hunt
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 1363294876955101281, guid: 09c73779418090c498dc37d26f9f005c,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -88,9 +93,9 @@ PrefabInstance:
       propertyPath: phases.Array.data[0].interval
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 8335538121620574034, guid: 09c73779418090c498dc37d26f9f005c,
+    - target: {fileID: 4920531093067800916, guid: 09c73779418090c498dc37d26f9f005c,
         type: 3}
-      propertyPath: patrolCount
+      propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8375463817979959823, guid: 09c73779418090c498dc37d26f9f005c,

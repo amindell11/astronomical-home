@@ -6,6 +6,11 @@ namespace UI.Projection
 {
     public sealed class CanopyTunerSettings
     {
+        public const CanopyFields Fields = CanopyFields.Glow | CanopyFields.Aberration | CanopyFields.BeamJitter
+            | CanopyFields.Afterglow | CanopyFields.Scanlines | CanopyFields.Flicker | CanopyFields.Warmth
+            | CanopyFields.Wear | CanopyFields.GlassDistortion | CanopyFields.DamageShudder
+            | CanopyFields.TransitionGlitch;
+
         public bool PersonalityEnabled { get; }
         public CanopySettings Settings { get; }
 
@@ -44,12 +49,13 @@ namespace UI.Projection
 
         public void Apply(CanopyProjectionProfile profile, CanopyState target)
         {
-            if (target == CanopyState.Base) profile.baseSettings = Settings;
+            var tuned = new CanopyStateOverride { fields = Fields, settings = Settings };
+            if (target == CanopyState.Base) profile.baseSettings = tuned.Apply(profile.baseSettings);
             else
             {
                 var block = profile.OverrideFor(target);
-                block.settings = Settings;
-                block.fields = CanopyFields.All;
+                block.settings = tuned.Apply(block.settings);
+                block.fields |= Fields;
             }
             profile.personalityEnabled = PersonalityEnabled;
         }

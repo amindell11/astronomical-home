@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using Damage;
 using Game.Player;
 using Ships.Loadout;
 using Ships.Registry;
+using Substrate.Services.Locales;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -71,6 +73,8 @@ namespace Game.Runs
         public int sectorsCleared;
         /// <summary>The sector the run ended in.</summary>
         public string sector;
+        /// <summary>The locale each of the run's sectors drew, in order; empty when the run was not presented.</summary>
+        public List<string> locales;
         public BuildIdentity buildIdentity;
         public string statFingerprint;
         public LoadoutRow player;
@@ -91,9 +95,9 @@ namespace Game.Runs
 
         /// <summary>A null <paramref name="killingBlow"/> is a run that extracted from its last sector.</summary>
         public static RunRecord Compose(DateTime endedUtc, int sectorsCleared, string sector,
-            BuildIdentity buildIdentity, string statFingerprint, ShipLoadout playerLoadout,
-            string playerLoadoutStatHash, IRunTally tally, DamageLedger ledger, SpawnLog spawnLog,
-            DamageInfo? killingBlow)
+            IReadOnlyList<LocaleSky> locales, BuildIdentity buildIdentity, string statFingerprint,
+            ShipLoadout playerLoadout, string playerLoadoutStatHash, IRunTally tally, DamageLedger ledger,
+            SpawnLog spawnLog, DamageInfo? killingBlow)
         {
             var entries = spawnLog.Entries();
             int SpawnOf(ShipId attacker) => entries.FindLastIndex(entry => entry.Id == attacker);
@@ -105,6 +109,7 @@ namespace Game.Runs
                 outcome = killingBlow.HasValue ? Died : Extracted,
                 sectorsCleared = sectorsCleared,
                 sector = sector,
+                locales = locales == null ? new List<string>() : locales.Select(NameOf).ToList(),
                 buildIdentity = buildIdentity,
                 statFingerprint = statFingerprint,
                 player = new LoadoutRow

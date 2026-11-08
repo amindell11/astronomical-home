@@ -18,18 +18,22 @@ using Utils.Coroutines;
 
 namespace Game.Preview
 {
-    public enum PreviewEntry { RunRecap, SectorJump, Combat, CrowdedJumpGate, Startup, LowHull, Damage, Extraction, EnemyDeath, Boss, CrowdedFight }
+    public enum PreviewEntry
+    {
+        RunRecap, SectorJump, Combat, CrowdedJumpGate, Startup, LowHull, Damage, Extraction, EnemyDeath, Boss, Sector1Elite,
+        Sector2Elite, CrowdedFight
+    }
 
     /// <summary>
     /// A Replay entry owns a session and a presentation subject driven by a transport; a Playtest entry
-    /// owns an instance of the game's GameHost prefab, overriding only its run records and, for the
-    /// crowded jump gate and the boss and crowded fight fixtures, its sectors. Replay takes its rig,
-    /// observer, jump shader and feel profiles from the same prefab, so both kinds of entry run on the
-    /// feel assets the game ships. A switch between Replay entries swaps only the subject; any other
-    /// switch or restart awaits the previous entry's teardown before composing the next. Only Replay
-    /// entries touch this host's clock: a scrubbing subject may freeze it, and while a subject that plays
-    /// from its start is selected, the host sets it from the transport. Restart and Loop re-compose such
-    /// a subject, keeping its fixture.
+    /// owns an instance of the game's GameHost prefab, overriding only its run records and, for the crowded
+    /// jump gate, the elite fixtures and the crowded fight fixture, its sectors. Replay takes its rig,
+    /// observer, jump shader and feel profiles from the same prefab, so both kinds of entry run on the feel
+    /// assets the game ships. A switch between Replay entries swaps only the subject; any other switch or
+    /// restart awaits the previous entry's teardown before composing the next. Only Replay entries touch
+    /// this host's clock: a scrubbing subject may freeze it, and while a subject that plays from its start
+    /// is selected, the host sets it from the transport. Restart and Loop re-compose such a subject,
+    /// keeping its fixture.
     /// A throw while composing, replacing or tearing down faults the host: every later request refuses,
     /// Shutdown rethrows instead of tearing down, and only destroying the host recovers.
     /// https://github.com/amindell11/astronomical-home/issues/1151
@@ -44,6 +48,8 @@ namespace Game.Preview
         [SerializeField] internal SectorEntry hudQuietSector;
         [SerializeField] internal SectorEntry hudExtractionSector;
         [SerializeField] internal SectorEntry bossSector;
+        [SerializeField] internal SectorEntry sector1EliteSector;
+        [SerializeField] internal SectorEntry sector2EliteSector;
         [SerializeField] internal SectorEntry crowdedFightSector;
         [SerializeField] internal LocaleSky jumpDestination;
         [SerializeField] internal PreviewEntry entry;
@@ -81,7 +87,8 @@ namespace Game.Preview
         {
             PreviewEntry.RunRecap or PreviewEntry.SectorJump or PreviewEntry.Startup or PreviewEntry.LowHull
                 or PreviewEntry.Damage or PreviewEntry.Extraction or PreviewEntry.EnemyDeath => false,
-            PreviewEntry.Combat or PreviewEntry.CrowdedJumpGate or PreviewEntry.Boss or PreviewEntry.CrowdedFight => true,
+            PreviewEntry.Combat or PreviewEntry.CrowdedJumpGate or PreviewEntry.Boss
+                or PreviewEntry.Sector1Elite or PreviewEntry.Sector2Elite or PreviewEntry.CrowdedFight => true,
             _ => throw new ArgumentOutOfRangeException(nameof(entry), entry, "Unknown preview entry.")
         };
 
@@ -133,11 +140,16 @@ namespace Game.Preview
 
         private SessionProfile ReplayProfile() => new()
         {
-            sectors = sessionProfile.sectors.Append(hudQuietSector).Append(hudExtractionSector).ToArray(),
+            run = SectorRun.Create(sessionProfile.run.Sectors.Select(row => Named(sessionProfile.run, row))
+                .Append(hudQuietSector).Append(hudExtractionSector).ToArray()),
             idleLocale = sessionProfile.idleLocale,
             presentation = sessionProfile.presentation,
             offset = sessionProfile.offset
         };
+
+        // Replays and fixtures draw nothing, so a Random row shows its pool's first locale there.
+        internal static SectorEntry Named(SectorRun run, SectorEntry row) =>
+            row.random ? new SectorEntry { prefab = row.prefab, locale = run.LocalePool[0] } : row;
 
         // GameHost reads its configuration in Awake, so the overrides land while the copy is staged inactive.
         private void BuildPlaytest(PreviewEntry composed)
@@ -146,11 +158,10 @@ namespace Game.Preview
             staging.SetActive(false);
             playtest = Instantiate(gameHostPrefab, staging.transform);
             if (composed == PreviewEntry.CrowdedJumpGate)
-                playtest.sessionProfile.sectors = crowdedJumpSectors;
-            if (composed == PreviewEntry.Boss)
-                playtest.sessionProfile.sectors = new[] { bossSector };
-            if (composed == PreviewEntry.CrowdedFight)
-                playtest.sessionProfile.sectors = new[] { crowdedFightSector };
+                playtest.sessionProfile.run = SectorRun.Create(crowdedJumpSectors);
+            var fixture = PlaytestFixture(composed);
+            if (fixture != null)
+                playtest.sessionProfile.run = SectorRun.Create(fixture);
             playtest.runRecordPath = Path.Combine(ResultsRoot.Folder("preview"),
                 Guid.NewGuid().ToString("N"), RunRecordStore.FileName);
             playtest.transform.SetParent(null, false);
@@ -236,9 +247,9 @@ namespace Game.Preview
             PreviewEntry.SectorJump => new SectorJumpPreviewSubject(gameHostPrefab.jumpFeel, gameHostPrefab.jumpFeature,
                 jumpDestination),
             PreviewEntry.Startup => new HudReplaySubject(composed, 0),
-            PreviewEntry.LowHull or PreviewEntry.Damage => new HudReplaySubject(composed, sessionProfile.sectors.Length),
-            PreviewEntry.Extraction => new HudReplaySubject(composed, sessionProfile.sectors.Length + 1),
-            PreviewEntry.EnemyDeath => new EnemyDeathSubject(gameHostPrefab.hangarOffer.ships, sessionProfile.sectors.Length,
+            PreviewEntry.LowHull or PreviewEntry.Damage => new HudReplaySubject(composed, sessionProfile.run.Sectors.Count),
+            PreviewEntry.Extraction => new HudReplaySubject(composed, sessionProfile.run.Sectors.Count + 1),
+            PreviewEntry.EnemyDeath => new EnemyDeathSubject(gameHostPrefab.hangarOffer.ships, sessionProfile.run.Sectors.Count,
                 fixture),
             _ => throw new ArgumentOutOfRangeException(nameof(composed), composed, "Not a Replay entry.")
         };
@@ -329,10 +340,22 @@ namespace Game.Preview
             if (selected == PreviewEntry.EnemyDeath &&
                 !(hudQuietSector?.prefab && gameHostPrefab.hangarOffer && gameHostPrefab.hangarOffer.ships is { Length: > 0 }))
                 throw new InvalidOperationException("The enemy death replay requires its fixture sector and the hangar's ships.");
-            if (selected == PreviewEntry.Boss && !bossSector?.prefab)
-                throw new InvalidOperationException("The boss playtest requires its fixture sector.");
-            if (selected == PreviewEntry.CrowdedFight && !crowdedFightSector?.prefab)
-                throw new InvalidOperationException("The crowded fight playtest requires its fixture sector.");
+            PlaytestFixture(selected);
+        }
+
+        private SectorEntry PlaytestFixture(PreviewEntry entry)
+        {
+            var (sector, name) = entry switch
+            {
+                PreviewEntry.Boss => (bossSector, "boss"),
+                PreviewEntry.Sector1Elite => (sector1EliteSector, "sector 1 elite"),
+                PreviewEntry.Sector2Elite => (sector2EliteSector, "sector 2 elite"),
+                PreviewEntry.CrowdedFight => (crowdedFightSector, "crowded fight"),
+                _ => (null, null)
+            };
+            if (name != null && !sector?.prefab)
+                throw new InvalidOperationException($"The {name} playtest requires its fixture sector.");
+            return sector;
         }
 
         private void RequireAvailable()

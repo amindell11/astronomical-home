@@ -60,9 +60,8 @@ namespace Tests.EditMode.Rendering
             Object.DestroyImmediate(material);
         }
 
-        [TestCase("Assets/Prefabs/Locales/Locale_1.prefab")]
-        [TestCase("Assets/Prefabs/Locales/Locale_2.prefab")]
-        [TestCase("Assets/Prefabs/Locales/Locale_3.prefab")]
+        [TestCase("Assets/Prefabs/Locales/CopperTurquoise.prefab")]
+        [TestCase("Assets/Prefabs/Locales/IllustratedBlue.prefab")]
         [TestCase("Assets/Scenes/EditScene.unity")]
         public void LocaleAtmosphere_SeparatesMaterialsAndPreservesDrawOrder(string path)
         {

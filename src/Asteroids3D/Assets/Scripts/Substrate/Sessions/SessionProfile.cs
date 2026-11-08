@@ -1,4 +1,3 @@
-using Substrate.Sectors;
 using Substrate.Services.Locales;
 using UnityEngine;
 
@@ -12,8 +11,8 @@ namespace Substrate.Sessions
     [System.Serializable]
     public class SessionProfile
     {
-        [Tooltip("The sectors to load, in order; the host decides when to move to the next.")]
-        public SectorEntry[] sectors;
+        [Tooltip("The sector run to load: its sectors in order, each with its locale.")]
+        public SectorRun run;
 
         [Tooltip("Locale shown while no sector is loaded; a sector naming the same locale keeps its instance. " +
                  "Unassigned → no sky, under the session scene's default lighting.")]
@@ -26,12 +25,5 @@ namespace Substrate.Sessions
         [Tooltip("This session's in-plane frame offset. Zero for the single-arena game; multi-session " +
                  "hosts supply a per-session offset.")]
         public Vector2 offset;
-    }
-
-    [System.Serializable]
-    public class SectorEntry
-    {
-        public SectorSettings config;
-        public Sector prefab;
     }
 }

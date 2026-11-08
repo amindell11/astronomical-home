@@ -31,14 +31,26 @@ namespace Tests.EditMode.Bootstrap
             Assert.AreEqual(PreviewHostBootstrap.GameHostPath, AssetDatabase.GetAssetPath(host.gameHostPrefab),
                 "Playtest runs the GameHost prefab the boot scene instances");
             Assert.IsTrue(host.sessionProfile.presentation, "the preview shows presentation");
-            Assert.IsTrue(host.sessionProfile.sectors[0].prefab, "replay sector prefab assigned");
-            Assert.IsTrue(host.sessionProfile.sectors[0].config, "replay sector config assigned");
+            var run = host.gameHostPrefab.sessionProfile.run;
+            Assert.That(host.sessionProfile.run, Is.SameAs(run), "Replay flies the game's own sector run");
             Assert.That(host.crowdedJumpSectors.Select(entry => entry.prefab.name),
                 Is.EqualTo(new[] { "CrowdedJumpDeparture", "CrowdedJumpArrival" }));
-            Assert.That(host.crowdedJumpSectors.All(entry => entry.config), Is.True, "crowded jump configs assigned");
+            Assert.That(host.crowdedJumpSectors.Select(entry => entry.locale.name),
+                Is.EqualTo(new[] { "IllustratedBlue", "CopperTurquoise" }));
             var hud = new[] { host.hudQuietSector, host.hudExtractionSector };
             Assert.That(hud.Select(entry => entry.prefab.name), Is.EqualTo(new[] { "HudQuietSector", "HudExtractionSector" }));
-            Assert.That(hud.All(entry => entry.config), Is.True, "HUD fixture configs assigned");
+            Assert.That(run.Sectors.Select(row => row.random), Is.All.True, "test premise: the shipped rows say Random");
+            Assert.That(hud.Select(entry => entry.locale), Is.All.SameAs(run.LocalePool[0]),
+                "the HUD fixtures stand in for the run's Random first row with its pool's first locale");
+            Assert.That(host.bossSector.locale, Is.SameAs(run.LocalePool[0]), "so does the boss for the last row");
+            Assert.IsTrue(host.sector1EliteSector.prefab, "sector 1's elite fixture loads");
+            Assert.AreEqual("EliteSector1", host.sector1EliteSector.prefab.name);
+            Assert.That(host.sector1EliteSector.locale, Is.SameAs(run.LocalePool[0]),
+                "sector 1's elite stands in for the first row too");
+            Assert.IsTrue(host.sector2EliteSector.prefab, "sector 2's elite fixture loads");
+            Assert.AreEqual("EliteSector2", host.sector2EliteSector.prefab.name);
+            Assert.That(host.sector2EliteSector.locale, Is.SameAs(run.LocalePool[0]),
+                "and sector 2's elite for the second row");
         }
 
         [Test]

@@ -47,7 +47,7 @@ namespace Tests.PlayMode.Bootstrap
     {
         private const string RigPrefabPath = "Assets/Prefabs/MiscObjects/PlayerRig.prefab";
         private const string ObserverCamPrefabPath = "Assets/Prefabs/Cameras/Main Camera.prefab";
-        private const string SectorConfigPath = "Assets/Settings/Game/DefaultSectorConfig.asset";
+        private const string LocalePath = "Assets/Prefabs/Locales/IllustratedBlue.prefab";
         private const string RecapFeelPath = "Assets/Settings/UI/RecapFeel.asset";
         private const float StepTimeoutSec = 30f;
 
@@ -153,6 +153,7 @@ namespace Tests.PlayMode.Bootstrap
             Assert.AreEqual(RunRecord.Died, record.outcome);
             Assert.AreEqual(1, record.sectorsCleared);
             Assert.AreEqual("SectorB", record.sector);
+            Assert.That(record.locales, Is.Empty, "a run without presentation draws no locales");
         }
 
         [UnityTest]
@@ -280,6 +281,35 @@ namespace Tests.PlayMode.Bootstrap
 
         [UnityTest]
         [Category("RequiresGraphics")]
+        public IEnumerator RandomRows_ShowDistinctPoolLocales_TheJumpBlendsToTheNext_AndTheRecordNotesBoth()
+        {
+            var pool = new[] { LocalePath, "Assets/Prefabs/Locales/CopperTurquoise.prefab" }
+                .Select(path => AssetDatabase.LoadAssetAtPath<LocaleSky>(path)).ToArray();
+            yield return BootToTheFirstSector(_ => { }, presentation: true, jumpTravel: true, localePool: pool);
+            var first = LocaleInstances.Shown();
+            Assert.That(pool.Select(locale => locale.name), Has.Member(first), "the first sector draws from the pool");
+            var second = pool.Single(locale => locale.name != first).name;
+
+            host.ActiveSector.GetComponent<ExtractOnCueModule>().Extract();
+            yield return WaitFor(() => host.Jump && host.Jump.Holding && hostGo.GetComponentInChildren<RunRecapScreen>(),
+                "the extracted recap appears in hyperspace");
+            Assert.IsTrue(LocaleInstances.Loaded(second), "the jump backdrop holds the next sector's drawn locale");
+            var button = hostGo.GetComponentInChildren<RunRecapScreen>().transform.Find("Panels/Recap/Continue")
+                .GetComponent<Button>();
+            yield return WaitFor(button.IsInteractable, "Continue waits for the destination and its locale blend");
+            Assert.That(LocaleInstances.Shown(), Is.EqualTo(second), "the next sector shows the jump's locale");
+            button.onClick.Invoke();
+            yield return WaitFor(() => !host.Jump, "Continue completes arrival");
+
+            host.ActiveSector.GetComponent<ExtractOnCueModule>().Extract();
+            yield return WaitFor(() => File.Exists(recordPath), "the finished run is recorded");
+            var record = JsonUtility.FromJson<RunRecord>(File.ReadAllLines(recordPath)[0]);
+            Assert.That(record.locales, Is.EqualTo(new[] { first, second }));
+            yield return host.Shutdown();
+        }
+
+        [UnityTest]
+        [Category("RequiresGraphics")]
         public IEnumerator FailedSectorWithJumpTravel_TakesTheRecapPathWithoutAJump()
         {
             PlayerRig rig = null;
@@ -335,11 +365,11 @@ namespace Tests.PlayMode.Bootstrap
         [Category("RequiresGraphics")]
         public IEnumerator SectorLocaleUnlikeTheIdleLocale_KeepsTheShipLockLayer_AndTheWaveCap()
         {
-            var idle = AssetDatabase.LoadAssetAtPath<LocaleSky>("Assets/Prefabs/Locales/Locale_1.prefab");
+            var idle = AssetDatabase.LoadAssetAtPath<LocaleSky>("Assets/Prefabs/Locales/CopperTurquoise.prefab");
             PlayerRig rig = null;
             yield return BootToTheFirstSector(built => rig = built, presentation: true, productionJump: true,
                 idleLocale: idle);
-            Assert.AreNotSame(idle, host.sessionProfile.sectors[0].config.Locale,
+            Assert.AreNotSame(idle, host.sessionProfile.run.Sectors[0].locale,
                 "test premise: the sector's locale differs from the idle locale");
             for (var frame = 0; frame < 30; frame++) yield return null;
             Assert.IsTrue(GameObject.Find("Ship lock overlay"), "the ship lock layer outlives the idle locale");
@@ -456,10 +486,10 @@ namespace Tests.PlayMode.Bootstrap
         }
 
         private IEnumerator BootToTheFirstSector(Action<PlayerRig> onBuilt, bool presentation = false,
-            bool productionJump = false, bool jumpTravel = false, ItemSubset hangarOffer = null, LocaleSky idleLocale = null)
+            bool productionJump = false, bool jumpTravel = false, ItemSubset hangarOffer = null,
+            LocaleSky idleLocale = null, LocaleSky[] localePool = null)
         {
-            var config = AssetDatabase.LoadAssetAtPath<SectorSettings>(productionJump
-                ? "Assets/Settings/Game/SurvivalTrialConfig.asset" : SectorConfigPath);
+            var locale = AssetDatabase.LoadAssetAtPath<LocaleSky>(LocalePath);
             hostGo = new GameObject("TestHost");
             hostGo.SetActive(false);
             templates = productionJump
@@ -470,13 +500,18 @@ namespace Tests.PlayMode.Bootstrap
             host = hostGo.AddComponent<GameHost>();
             host.sessionProfile = new SessionProfile
             {
-                sectors = productionJump
+                run = SectorRun.Create(localePool ?? Array.Empty<LocaleSky>(), productionJump
                     ? new[] { "TrialSector", "TrialSector2" }.Select(name => new SectorEntry
                     {
                         prefab = AssetDatabase.LoadAssetAtPath<Sector>($"Assets/Prefabs/Sectors/{name}.prefab"),
-                        config = config
+                        locale = locale
                     }).ToArray()
-                    : Array.ConvertAll(templates, t => new SectorEntry { prefab = t.GetComponent<Sector>(), config = config }),
+                    : Array.ConvertAll(templates, t => new SectorEntry
+                    {
+                        prefab = t.GetComponent<Sector>(),
+                        locale = localePool == null ? locale : null,
+                        random = localePool != null
+                    })),
                 idleLocale = idleLocale,
                 presentation = presentation
             };

@@ -58,6 +58,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1227466035045939097, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: hunt
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
         type: 3}
       propertyPath: hunt
@@ -88,9 +93,9 @@ PrefabInstance:
       propertyPath: phases.Array.data[0].interval
       value: 2
       objectReference: {fileID: 0}
-    - target: {fileID: 7436810692243587915, guid: 35f72eeaa8adb4c43832be646409d034,
+    - target: {fileID: 5823190446372318541, guid: 35f72eeaa8adb4c43832be646409d034,
         type: 3}
-      propertyPath: patrolCount
+      propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6963272944453637654, guid: 35f72eeaa8adb4c43832be646409d034,

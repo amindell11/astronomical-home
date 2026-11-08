@@ -8,9 +8,11 @@ using UnityEngine;
 namespace Game.Preview
 {
     /// <summary>
-    /// Builds the preview host in an empty scene around the game's GameHost prefab, with one trial
-    /// sector for Replay, the HUD replays' two fixture sectors, the two-sector crowded jump fixture, the
-    /// boss fixture and the crowded fight fixture.
+    /// Builds the preview host in an empty scene around the game's GameHost prefab. Replay flies the first
+    /// row of the prefab's sector run; the HUD replays' two fixture sectors, sector 1's elite fixture and
+    /// the crowded fight fixture take that row's locale, sector 2's elite fixture the second row's and the
+    /// boss fixture the last row's, a Random row standing in as its pool's first locale, while the
+    /// two-sector crowded jump fixture keeps its own two locales.
     /// The chosen entry is assigned before activation, so Playtest never composes a Replay session.
     /// The host waits inactive through the play-mode reload; entering play mode snapshots every tuning
     /// target's feel profiles, then activates it, so the panel tunes those assets in place.
@@ -19,9 +21,8 @@ namespace Game.Preview
     public static class PreviewHostBootstrap
     {
         internal const string GameHostPath = "Assets/Prefabs/Game/GameHost.prefab";
-        private const string SectorPrefabPath = "Assets/Prefabs/Sectors/TrialSector.prefab";
-        private const string SectorConfigPath = "Assets/Settings/Game/SurvivalTrialConfig.asset";
-        private const string JumpDestinationPath = "Assets/Prefabs/Locales/Locale_1.prefab";
+        private const string IllustratedBluePath = "Assets/Prefabs/Locales/IllustratedBlue.prefab";
+        private const string CopperTurquoisePath = "Assets/Prefabs/Locales/CopperTurquoise.prefab";
 
         static PreviewHostBootstrap() => EditorApplication.playModeStateChanged += ActivateWaitingHost;
 
@@ -41,24 +42,20 @@ namespace Game.Preview
             root.SetActive(false);
             var host = root.AddComponent<PreviewHost>();
             host.gameHostPrefab = AssetDatabase.LoadAssetAtPath<GameHost>(GameHostPath);
-            host.sessionProfile = new SessionProfile
+            var run = host.gameHostPrefab.sessionProfile.run;
+            host.sessionProfile = new SessionProfile { run = run, presentation = true };
+            host.crowdedJumpSectors = new[]
             {
-                sectors = new[]
-                {
-                    new SectorEntry
-                    {
-                        prefab = AssetDatabase.LoadAssetAtPath<Sector>(SectorPrefabPath),
-                        config = AssetDatabase.LoadAssetAtPath<SectorSettings>(SectorConfigPath)
-                    }
-                },
-                presentation = true
+                FixtureSector("CrowdedJumpDeparture", Locale(IllustratedBluePath)),
+                FixtureSector("CrowdedJumpArrival", Locale(CopperTurquoisePath))
             };
-            host.crowdedJumpSectors = new[] { JumpEntry("CrowdedJumpDeparture"), JumpEntry("CrowdedJumpArrival") };
-            host.hudQuietSector = FixtureSector("HudQuietSector", SectorConfigPath);
-            host.hudExtractionSector = FixtureSector("HudExtractionSector", SectorConfigPath);
-            host.bossSector = FixtureSector("BossSector", SectorConfigPath);
-            host.crowdedFightSector = FixtureSector("CrowdedFightSector", SectorConfigPath);
-            host.jumpDestination = AssetDatabase.LoadAssetAtPath<LocaleSky>(JumpDestinationPath);
+            host.hudQuietSector = FixtureSector("HudQuietSector", RowLocale(run, 0));
+            host.hudExtractionSector = FixtureSector("HudExtractionSector", RowLocale(run, 0));
+            host.bossSector = FixtureSector("BossSector", RowLocale(run, run.Sectors.Count - 1));
+            host.sector1EliteSector = FixtureSector("EliteSector1", RowLocale(run, 0));
+            host.sector2EliteSector = FixtureSector("EliteSector2", RowLocale(run, 1));
+            host.crowdedFightSector = FixtureSector("CrowdedFightSector", RowLocale(run, 0));
+            host.jumpDestination = Locale(CopperTurquoisePath);
             host.entry = entry;
             return host;
         }
@@ -76,13 +73,14 @@ namespace Game.Preview
             if (host && !host.gameObject.activeSelf) Activate(host, FeelSnapshot.instance);
         }
 
-        private static SectorEntry JumpEntry(string name) =>
-            FixtureSector(name, $"Assets/Settings/Game/Preview/{name}.asset");
-
-        private static SectorEntry FixtureSector(string name, string configPath) => new()
+        private static SectorEntry FixtureSector(string name, LocaleSky locale) => new()
         {
             prefab = AssetDatabase.LoadAssetAtPath<Sector>($"Assets/Prefabs/Sectors/Preview/{name}.prefab"),
-            config = AssetDatabase.LoadAssetAtPath<SectorSettings>(configPath)
+            locale = locale
         };
+
+        private static LocaleSky Locale(string path) => AssetDatabase.LoadAssetAtPath<LocaleSky>(path);
+
+        private static LocaleSky RowLocale(SectorRun run, int row) => PreviewHost.Named(run, run.Sectors[row]).locale;
     }
 }

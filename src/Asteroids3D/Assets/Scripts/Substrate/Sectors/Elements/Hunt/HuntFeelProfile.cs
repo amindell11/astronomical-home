@@ -14,5 +14,17 @@ namespace Substrate.Sectors.Elements.Hunt
 
         [Tooltip("Seconds from a patrol first seeing the player to the alarm. Killing the patrol in that time cancels it.")]
         [Stat, Min(0f)] public float callInSeconds = 3f;
+
+        [Tooltip("Speed, in units per second, an unaware patrol flies its route at. Keep it below the patrol ship's top speed.")]
+        [Stat, Min(0f)] public float routeSpeed = 8f;
+
+        [Tooltip("Distance, in units, beside the player's start that a patrol's route passes. Keep it inside the sight radius.")]
+        [Stat, Min(0f)] public float routeStartPass = 25f;
+
+        [Tooltip("Distance, in units, at which a patrol counts a route waypoint as reached and turns for the next.")]
+        [Stat, Min(0f)] public float arrivalRadius = 15f;
+
+        [Tooltip("Patrols the hunt spawns in each sector of the run, the first sector first.")]
+        [Stat(Ordered = true), Min(0)] public int[] patrolsPerSector = { 2, 3, 3 };
     }
 }

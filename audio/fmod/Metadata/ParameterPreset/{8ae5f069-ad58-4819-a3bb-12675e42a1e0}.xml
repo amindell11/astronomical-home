@@ -16,7 +16,7 @@
 			<value>2</value>
 		</property>
 		<property name="maximum">
-			<value>6</value>
+			<value>7</value>
 		</property>
 		<property name="enumerationLabels">
 			<value>Hangar</value>
@@ -25,6 +25,7 @@
 			<value>Recap</value>
 			<value>Victory</value>
 			<value>Defeat</value>
+			<value>Elite</value>
 		</property>
 	</object>
 </objects>
