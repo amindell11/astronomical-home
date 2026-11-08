@@ -63,7 +63,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **pool** | worktree pool · ship resource pool (`PoolDifferential`) · self-play snapshot pool · object pool (`SimplePool`) · Dev Pool issue labels (`mid-dev-pool`/`high-dev-pool`, ex-board columns) | Always qualified. |
 | **token** | bus/signal token · obs obstacle token (`ObstacleTokenCap`) · threat token · LLM context token | Always qualified. |
 | **term** | intent/cost term (a weighted sentence-slot cost the MPC solves — #485) · activation term (`ActivationTerm`, the AND-ed predicate atoms of sector activation rules) · reward term (a `RewardSpec` component, e.g. the reward spine's outcome term) | Always qualified. An intent-grammar doc may read bare "term" = intent/cost term only after declaring the carve-out (Stage A brief precedent). |
-| **slot** | worktree slot (`agent-N`) · weapon/mount slot · ONNX import slot · obs slot-block grammar · MPC terminal-cost slot · sentence slot, instance or class (a typed intent-sentence position) · anatomy slot (§2 → *anatomy*) · keystone slot (§2 → *keystone*) · line slot (a moment's lines on the companion's line sheet) | Qualify outside pool-loop context; bare "slot" = worktree slot in workflow text only. |
+| **slot** | worktree slot (`agent-N`) · weapon slot · ordnance slot (§2 → *weapon slot*, *ordnance slot*) · ONNX import slot · obs slot-block grammar · MPC terminal-cost slot · sentence slot, instance or class (a typed intent-sentence position) · anatomy slot (§2 → *anatomy*) · keystone slot (§2 → *keystone*) · line slot (a moment's lines on the companion's line sheet) | Qualify outside pool-loop context; bare "slot" = worktree slot in workflow text only. |
 | **pin** | pin test (freeze a value) · pinned seeds/hypers · ram-pin exploit | Qualify. "ram-pin" always hyphenated for the physics exploit. |
 | **fixture** | NUnit test fixture · sector fixture · ONNX smoke/eval fixture | Always qualified — all three appear within a page of each other in the RL docs. |
 | **seed** | RNG seed · `SeedScope` stream · eval seed set (2001+) · sealed held-out seeds (1001–1020) · seed checkpoint · `SeedMode.BorderEscape` | Bare "seed" = RNG seed. Checkpoints are "seed checkpoints". |
@@ -803,6 +803,15 @@ Format: **term** — definition. *(authority)*
   it reaches the brain on `AIContext`, never on `IShipStatus`, because it is
   how the AI uses a weapon, not a fact about the ship. Not a firing range.
   *(`WeaponComponent.HoldRange`; #1139)*
+- **weapon slot** — a ship's first mount: one weapon (Lasers, TurboLasers, Rippers or
+  Railgun) or nothing, never an ordnance. Left mouse fires it, and its weapon is the one
+  whose lead, hold range and aim the AI reads. The code still calls it
+  `WeaponSlot.Primary`; the rename waits for after M1 (#1418).
+  *(`WeaponsController.RequireKinds`; #1410)*
+- **ordnance slot** — a ship's second mount: one ordnance (Missiles or Concussion) or
+  nothing. An item's kind comes from its class, so nothing is authored and no prefab can
+  carry the wrong one. Regular enemies leave the slot empty. The code still calls it
+  `WeaponSlot.Secondary`. *(`WeaponComponent.IsOrdnance`; #1410)*
 - **single fire** — a weapon fires every shot from the hull's centre socket, on its
   centreline at the nose. Every weapon that is not dual fire fires this way.
   *(`WeaponComponent.DualFire`; #1410)*
@@ -988,11 +997,11 @@ Format: **term** — definition. *(authority)*
   closes unclaimed; a new beacon's opening closes the one
   before it, so beacons never stack. The sector's opening lull gets none.
   *(PhaseSpineModule, ExtractionZone)*
-- **weapon pick** — the sector-break choice of one weapon the player does not
-  carry, from up to three, or a skip, then the mount it replaces; held in
-  hyperspace after the extraction recap. The swap keeps hull, shield and the run
-  clocks, and the hangar's kit stays the next run's. *(WeaponPickScreen,
-  PlayerRig.SwapWeapon)*
+- **weapon pick** — the sector-break choice of one weapon or ordnance the player
+  does not carry, from up to three, or a skip; the pick replaces the mount in the
+  slot its kind fills. Held in hyperspace after the extraction recap. The swap
+  keeps hull, shield and the run clocks, and the hangar's kit stays the next
+  run's. *(WeaponPickScreen, PlayerRig.SwapWeapon)*
 - **keystone** — the locked ability in a ship's keystone slot, one kit per ship
   (`Keystone`; `Dash` today). Not a ship module: a kit prefab the ship
   instantiates, because a kit keeps per-ship runtime state (its cooldown clock,

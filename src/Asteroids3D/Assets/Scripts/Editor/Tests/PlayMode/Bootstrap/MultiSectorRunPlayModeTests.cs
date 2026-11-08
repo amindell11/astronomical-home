@@ -16,6 +16,7 @@ using Game.Travel;
 using Objectives;
 using Ships.Command;
 using Ships.Loadout;
+using Ships.Weapons;
 using Substrate.Services.Objectives;
 using UI.Hangar;
 using NUnit.Framework;
@@ -145,7 +146,7 @@ namespace Tests.PlayMode.Bootstrap
             var hangarPrimary = rig.Loadout.PrimaryWeapon;
             var clockBefore = rig.Tally.SecondsSurvived;
 
-            rig.SwapWeapon(WeaponSlot.Primary, railgun);
+            rig.SwapWeapon(railgun);
 
             Assert.AreSame(railgun, rig.Player.Weapons.PrimaryMountPrefab);
             Assert.IsInstanceOf<Railguns>(rig.Player.Weapons.Primary);
@@ -270,8 +271,7 @@ namespace Tests.PlayMode.Bootstrap
             yield return BootToTheFirstSector(built => rig = built, presentation: true, jumpTravel: true,
                 hangarOffer: pool);
             rig.Player.Damage.Health.SetFraction(.6f);
-            var secondary = rig.Player.Weapons.SecondaryMountPrefab;
-            var carried = new[] { rig.Player.Weapons.PrimaryMountPrefab, secondary };
+            var carried = new[] { rig.Player.Weapons.PrimaryMountPrefab, rig.Player.Weapons.SecondaryMountPrefab };
             host.ActiveSector.GetComponent<ExtractOnCueModule>().Extract();
             yield return WaitFor(() => host.Jump && host.Jump.Holding && hostGo.GetComponentInChildren<RunRecapScreen>(),
                 "the extracted recap appears in hyperspace");
@@ -287,14 +287,15 @@ namespace Tests.PlayMode.Bootstrap
             Assert.IsNull(pick.transform.Find("Ships"), "a sector with no wave director names no threat");
             var offered = pick.transform.Find("Offers/Cards/Card1/Name").GetComponent<Text>().text;
             pick.ChooseOffer(0);
-            pick.ChooseSlot(WeaponSlot.Primary);
 
             yield return WaitFor(() => !host.Jump, "the pick resumes arrival");
-            var mounted = rig.Player.Weapons.PrimaryMountPrefab;
-            CollectionAssert.DoesNotContain(carried, mounted, "offers are weapons the player does not carry");
-            CollectionAssert.Contains(pool.weapons, mounted);
-            Assert.AreEqual(offered, mounted.DisplayName.ToUpperInvariant());
-            Assert.AreSame(secondary, rig.Player.Weapons.SecondaryMountPrefab);
+            var picked = pool.weapons.Single(weapon => weapon.DisplayName.ToUpperInvariant() == offered);
+            CollectionAssert.DoesNotContain(carried, picked, "offers are weapons the player does not carry");
+            var weapons = rig.Player.Weapons;
+            var kind = WeaponsController.SlotFor(picked) == WeaponSlot.Primary ? 0 : 1;
+            var mounted = new[] { weapons.PrimaryMountPrefab, weapons.SecondaryMountPrefab };
+            Assert.AreSame(picked, mounted[kind], "the pick replaces the slot its kind fills");
+            Assert.AreSame(carried[1 - kind], mounted[1 - kind], "the other slot keeps its mount");
             Assert.AreEqual(.6f, rig.Player.Damage.Health.Pct, .02f, "hull carries across the swap");
             Assert.AreEqual(1f, Time.timeScale);
             Assert.IsFalse(hostGo.GetComponentInChildren<WeaponPickScreen>());

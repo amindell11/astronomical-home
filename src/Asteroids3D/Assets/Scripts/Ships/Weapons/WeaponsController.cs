@@ -50,6 +50,7 @@ namespace Ships.Weapons
             RequireSocket(centreSocket, "Centre");
             RequireSocket(leftSocket, "Left");
             RequireSocket(rightSocket, "Right");
+            RequireKinds(name, primaryMount, secondaryMount);
             Primary = ReplaceMount(null, primaryMount);
             Secondary = ReplaceMount(null, secondaryMount);
             Sensor = FindMountSensor();
@@ -61,9 +62,28 @@ namespace Ships.Weapons
                 throw new InvalidOperationException($"{name}: WeaponsController needs the hull's {side} socket (Hardpoints/{side}).");
         }
 
+        /// <summary>The slot <paramref name="item"/>'s kind fills: an ordnance the ordnance slot, anything else the weapon slot.</summary>
+        public static WeaponSlot SlotFor(WeaponComponent item) => item.IsOrdnance ? WeaponSlot.Secondary : WeaponSlot.Primary;
+
+        /// <summary>The slot rule: throws unless the weapon slot gets a non-ordnance or nothing and the ordnance slot an ordnance or nothing.</summary>
+        public static void RequireKinds(string owner, WeaponComponent primary, WeaponComponent secondary)
+        {
+            RequireKind(owner, WeaponSlot.Primary, primary);
+            RequireKind(owner, WeaponSlot.Secondary, secondary);
+        }
+
+        private static void RequireKind(string owner, WeaponSlot slot, WeaponComponent item)
+        {
+            if (!item || SlotFor(item) == slot) return;
+            throw new InvalidOperationException(slot == WeaponSlot.Primary
+                ? $"{owner}: the weapon slot ({slot}) takes a weapon, not the ordnance '{item.name}'."
+                : $"{owner}: the ordnance slot ({slot}) takes an ordnance, not the weapon '{item.name}'.");
+        }
+
         /// <summary>Mount swap (null = empty slot): unchanged slots keep their live instance, changed slots re-instantiate and the context refreshes in place so held references stay valid.</summary>
         public void Reequip(WeaponComponent newPrimary, WeaponComponent newSecondary)
         {
+            RequireKinds(name, newPrimary, newSecondary);
             var changed = false;
 
             if (newPrimary != primaryMount)

@@ -12,6 +12,7 @@ using Game.Player;
 using Ships;
 using Ships.Loadout;
 using Ships.Command;
+using Ships.Weapons;
 using UI;
 using UI.Projection;
 using UnityEngine;
@@ -220,10 +221,11 @@ namespace Game
         /// <summary>Adds a lull pick to the run; the bound player applies it at once.</summary>
         public void PickMod(LullMod mod) => Mods.Add(mod);
 
-        /// <summary>Mounts a sector-break pick mid-run; unlike <see cref="ApplyLoadout"/>, vitals, run clocks and hangar loadout stay.</summary>
-        public void SwapWeapon(WeaponSlot slot, WeaponComponent weapon)
+        /// <summary>Mounts a sector-break pick mid-run in the slot its kind fills; unlike <see cref="ApplyLoadout"/>, vitals, run clocks and hangar loadout stay.</summary>
+        public void SwapWeapon(WeaponComponent weapon)
         {
             var weapons = Player.Weapons;
+            var slot = WeaponsController.SlotFor(weapon);
             weapons.Reequip(slot == WeaponSlot.Primary ? weapon : weapons.PrimaryMountPrefab,
                 slot == WeaponSlot.Secondary ? weapon : weapons.SecondaryMountPrefab);
             units.WireShipDependencies(Player, field: null);

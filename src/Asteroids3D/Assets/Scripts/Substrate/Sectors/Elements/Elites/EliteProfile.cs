@@ -3,6 +3,7 @@ using Combat.Weapons;
 using Combat.Weapons.Mods;
 using Loot;
 using Ships.Loadout;
+using Ships.Weapons;
 using UnityEngine;
 
 namespace Substrate.Sectors.Elements.Elites
@@ -14,9 +15,9 @@ namespace Substrate.Sectors.Elements.Elites
         [SerializeField] private string displayName;
         [Tooltip("Size of the elite's hull and the stat retune that size needs.")]
         [SerializeField] private ShipScale scale = new();
-        [Tooltip("Heavy primary weapon the elite carries in place of its chassis' authored one. Required.")]
+        [Tooltip("Heavy weapon for the weapon slot, in place of its chassis' authored one; never an ordnance. Required.")]
         [SerializeField] private WeaponComponent primary;
-        [Tooltip("Heavy secondary weapon; regular enemies never carry one. Empty leaves the mount unarmed.")]
+        [Tooltip("Ordnance for the ordnance slot; regular enemies never carry one. Empty leaves the slot unarmed.")]
         [SerializeField] private WeaponComponent secondary;
         [Tooltip("Run mods stacked on the elite when it spawns; ship mods retune its hull, engine and shield.")]
         [SerializeField] private LullMod[] mods = Array.Empty<LullMod>();
@@ -36,6 +37,7 @@ namespace Substrate.Sectors.Elements.Elites
                 throw new InvalidOperationException($"Elite profile '{name}' needs a display name.");
             if (!primary)
                 throw new InvalidOperationException($"Elite profile '{name}' needs a primary weapon.");
+            WeaponsController.RequireKinds($"Elite profile '{name}'", primary, secondary);
             if (Array.Exists(mods, mod => !mod))
                 throw new InvalidOperationException($"Elite profile '{name}' has an empty mod slot.");
             for (var i = 0; i < escalation.Length; i++)

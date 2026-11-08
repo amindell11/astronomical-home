@@ -134,11 +134,11 @@ namespace Tests.PlayMode
         [Test]
         public void ArmedShooter_ContextCarriesItsPrimaryWeaponsHoldRange_NoneWhenTheWeaponDeclaresNone()
         {
-            var grenades = TrainingBootstrap.CatalogWeapons().FirstOrDefault(w => w.name == "Grenades");
-            Assert.IsNotNull(grenades, "the item catalog must list the Grenades weapon prefab");
-            Assert.IsNotNull(grenades.HoldRange, "Grenades declare a hold range");
+            var railgun = TrainingBootstrap.CatalogWeapons().FirstOrDefault(w => w.name == "Railgun");
+            Assert.IsNotNull(railgun, "the item catalog must list the Railgun weapon prefab");
+            Assert.IsNotNull(railgun.HoldRange, "the Railgun declares a hold range");
 
-            Assert.AreEqual(grenades.HoldRange, ShooterHoldRange(grenades));
+            Assert.AreEqual(railgun.HoldRange, ShooterHoldRange(railgun));
             Assert.IsNull(ShooterHoldRange(lasers), "Lasers declare none, so the pilot keeps its own range");
         }
 

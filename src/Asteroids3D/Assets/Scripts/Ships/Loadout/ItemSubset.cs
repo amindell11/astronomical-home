@@ -19,8 +19,8 @@ namespace Ships.Loadout
         [Tooltip("Ship prefabs selectable in the hangar's Ship slot (the chassis choice).")]
         [Stat] public Ship[] ships;
 
-        [Tooltip("Weapon prefabs selectable in either weapon slot — one shared pool; the two mounts " +
-                 "are identical hardware, only their trigger bindings differ.")]
+        [Tooltip("Weapons and ordnance in one pool: the hangar's WEAPON row offers the weapons, its " +
+                 "ORDNANCE row the ordnance, and the weapon pick draws from both.")]
         [Stat] public WeaponComponent[] weapons;
     }
 }

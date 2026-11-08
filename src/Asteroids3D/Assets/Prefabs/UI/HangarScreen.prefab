@@ -1724,7 +1724,7 @@ GameObject:
   - component: {fileID: 5223841771030064103}
   - component: {fileID: 5223841771030064104}
   m_Layer: 0
-  m_Name: PRIMARYLabel
+  m_Name: WEAPONLabel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1790,7 +1790,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: PRIMARY
+  m_Text: WEAPON
 --- !u!1 &5223841771030064105
 GameObject:
   m_ObjectHideFlags: 0
@@ -1913,7 +1913,7 @@ GameObject:
   - component: {fileID: 5223841771030064110}
   - component: {fileID: 5223841771030064111}
   m_Layer: 0
-  m_Name: SECONDARYLabel
+  m_Name: ORDNANCELabel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1979,7 +1979,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: SECONDARY
+  m_Text: ORDNANCE
 --- !u!1 &5223841771030064112
 GameObject:
   m_ObjectHideFlags: 0
