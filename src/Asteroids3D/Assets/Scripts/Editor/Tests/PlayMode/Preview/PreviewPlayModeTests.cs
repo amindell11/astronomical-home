@@ -473,6 +473,41 @@ namespace Tests.PlayMode.Preview
             public override string ToString() => Name;
         }
 
+        [UnityTest]
+        [Timeout(180000)]
+        public IEnumerator Playtest_CombatFliesItsSectorAndLocalePicks_AndRestartFliesAChangedPick()
+        {
+            var shipped = TestAssets.Load<GameHost>("Assets/Prefabs/Game/GameHost.prefab");
+            var root = new GameObject("Combat picks playtest test");
+            root.SetActive(false);
+            host = root.AddComponent<PreviewHost>();
+            host.entry = PreviewEntry.Combat;
+            host.gameHostPrefab = shipped;
+            host.sessionProfile = new SessionProfile();
+            host.combatSector = 1;
+            host.combatLocale = TestAssets.Load<LocaleSky>("Assets/Prefabs/Locales/CoralSunset.prefab");
+            root.SetActive(true);
+
+            var picked = host.Playtest;
+            yield return LaunchFromHangar(picked);
+            var second = shipped.sessionProfile.run.Sectors[1].prefab;
+            Assert.That(picked.sessionProfile.run.Sectors.Select(row => row.prefab), Is.EqualTo(new[] { second }),
+                "the Sector pick flies alone");
+            Assert.That(picked.ActiveSector.name, Does.StartWith(second.name));
+            Assert.That(LocaleInstances.Shown(), Is.EqualTo("CoralSunset"));
+
+            host.combatSector = PreviewHost.WholeRun;
+            host.combatLocale = TestAssets.Load<LocaleSky>("Assets/Prefabs/Locales/BlueCrescent.prefab");
+            host.RestartPlaytest();
+            yield return AsyncAssert.WaitUntil(() => host.IsReady && host.Playtest != picked, 30f,
+                "Restart Playtest builds the changed pick");
+            var whole = host.Playtest;
+            yield return LaunchFromHangar(whole);
+            Assert.That(whole.sessionProfile.run.Sectors.Select(row => row.prefab),
+                Is.EqualTo(shipped.sessionProfile.run.Sectors.Select(row => row.prefab)), "Whole run flies every row");
+            Assert.That(LocaleInstances.Shown(), Is.EqualTo("BlueCrescent"));
+        }
+
         private static IEnumerator LaunchFromHangar(GameHost game)
         {
             HangarScreen hangar = null;
@@ -516,13 +551,11 @@ namespace Tests.PlayMode.Preview
             sectorObject.transform.SetParent(template.transform, false);
             var sector = sectorObject.AddComponent<Sector>();
             sector.SetManifest(null, null, System.Array.Empty<SectorModule>());
+            // A Random row over a one-locale pool: the playtest draws it and the Replays stand it in.
+            var pool = new[] { TestAssets.Load<LocaleSky>("Assets/Prefabs/Locales/IllustratedBlue.prefab") };
             var profile = new SessionProfile
             {
-                run = SectorRun.Create(new SectorEntry
-                {
-                    prefab = sector,
-                    locale = TestAssets.Load<LocaleSky>("Assets/Prefabs/Locales/IllustratedBlue.prefab")
-                })
+                run = SectorRun.Create(pool, new SectorEntry { prefab = sector, random = true })
             };
             var game = new GameObject("Playtest game host");
             game.transform.SetParent(template.transform, false);

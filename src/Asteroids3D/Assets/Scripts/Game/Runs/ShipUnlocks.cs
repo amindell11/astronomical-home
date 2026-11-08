@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using Game.Player;
 using Ships;
-using UnityEngine;
 
 namespace Game.Runs
 {
@@ -28,35 +26,12 @@ namespace Game.Runs
         public void Read()
         {
             earned.Clear();
-            if (!File.Exists(recordsPath)) return;
+            var records = Scoreboard.ReadRecords(recordsPath);
+            if (records == null) return;
 
-            string[] lines;
-            try
+            foreach (var record in records)
             {
-                lines = File.ReadAllLines(recordsPath);
-            }
-            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
-            {
-                Debug.LogError($"Ship unlocks not read from '{recordsPath}': {e.Message}");
-                return;
-            }
-
-            foreach (var line in lines)
-            {
-                // JsonUtility unboxes an empty line to a null struct, which throws NullReferenceException.
-                if (string.IsNullOrWhiteSpace(line)) continue;
-
-                RunRecord record;
-                try
-                {
-                    record = JsonUtility.FromJson<RunRecord>(line);
-                }
-                catch (ArgumentException)
-                {
-                    continue;
-                }
-                if (record.schema != RunRecord.SchemaId || record.spawns == null) continue;
-
+                if (record.spawns == null) continue;
                 foreach (var spawn in record.spawns)
                     if (spawn.elite && spawn.killedByPlayer)
                         earned.Add(spawn.loadout.chassis);

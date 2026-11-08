@@ -114,6 +114,18 @@ MonoBehaviour:
   - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
       type: 3}
     pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660, type: 3}
+  - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
+      type: 3}
+    pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e, type: 3}
+  - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
+      type: 3}
+    pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764, type: 3}
+  - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
+      type: 3}
+    pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e, type: 3}
+  - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
+      type: 3}
+    pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764, type: 3}
   faction: {fileID: 4667602915908898981}
   team: 1
   phases:
@@ -459,6 +471,7 @@ GameObject:
   - component: {fileID: 9090061438643016835}
   - component: {fileID: 1227466035045939097}
   - component: {fileID: 4667602915908898981}
+  - component: {fileID: 8194898144890016393}
   m_Layer: 0
   m_Name: TrialSector
   m_TagString: Untagged
@@ -508,6 +521,7 @@ MonoBehaviour:
   - {fileID: 7436810692243587915}
   modules:
   - {fileID: 1227466035045939097}
+  - {fileID: 8194898144890016393}
   - {fileID: 4667602915908898981}
   - {fileID: 7190434448910481471}
   obstacleField: {fileID: 393807887964278560}
@@ -876,3 +890,17 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 8932119515631255331}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &8194898144890016393
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6963272944453637654}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df946ad5c10340b3b24a43333e3f9e87, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  feel: {fileID: 11400000, guid: 91bd476364e9492dac4fee8fc0b3afb6, type: 2}
+  spine: {fileID: 1227466035045939097}

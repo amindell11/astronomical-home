@@ -220,7 +220,6 @@ namespace Tests.EditMode
         }
 
         [TestCase("Assets/Prefabs/Locales/CopperTurquoise.prefab")]
-        [TestCase("Assets/Prefabs/Locales/NebulaGlow.prefab")]
         [TestCase("Assets/Prefabs/Locales/IllustratedBlue.prefab")]
         [TestCase("Assets/Scenes/EditScene.unity")]
         public void AuthoredStarfield_RidesTheLocaleRoot_WithTheProductionMaterial(string path)

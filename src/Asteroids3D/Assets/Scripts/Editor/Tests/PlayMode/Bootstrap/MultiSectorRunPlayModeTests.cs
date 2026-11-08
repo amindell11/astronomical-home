@@ -3,12 +3,14 @@ using System;
 using System.Collections;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using Cameras;
 using Combat.Weapons;
 using Combat.Weapons.Arsenal;
 using Combat.Weapons.Mods;
 using Game;
+using Game.Moments;
 using Game.Runs;
 using Game.Travel;
 using Objectives;
@@ -111,6 +113,25 @@ namespace Tests.PlayMode.Bootstrap
         }
 
         [UnityTest]
+        public IEnumerator EachSectorEntry_ReachesTheStream_AndALowCarriedHullIsNoNewCloseCall()
+        {
+            PlayerRig rig = null;
+            yield return BootToTheFirstSector(built => rig = built);
+            var moments = (RunMomentStream)typeof(GameHost)
+                .GetField("moments", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(host);
+
+            rig.Player.Damage.Health.SetFraction(0.2f);
+            host.ActiveSector.GetComponent<ExtractOnCueModule>().Extract();
+            yield return WaitFor(() => InSector("SectorB"), "extracting from the first sector loads the second");
+            yield return WaitFor(() => Mathf.Abs(rig.Player.Damage.Health.Pct - 0.2f) < 1e-3f,
+                "hull carries into the next sector");
+
+            CollectionAssert.AreEqual(new[] { 1, 2 }, moments.Moments.OfType<SectorEntered>().Select(m => m.Sector));
+            Assert.AreEqual(1, moments.Moments.OfType<CloseCall>().Single().Sector,
+                "the reset and carry at the second sector's load are not a new dip");
+        }
+
+        [UnityTest]
         public IEnumerator SwapWeapon_MidRun_KeepsHullShieldAndClocks_AndRehandsTheRunsMods()
         {
             PlayerRig rig = null;
@@ -153,6 +174,7 @@ namespace Tests.PlayMode.Bootstrap
             Assert.AreEqual(RunRecord.Died, record.outcome);
             Assert.AreEqual(1, record.sectorsCleared);
             Assert.AreEqual("SectorB", record.sector);
+            Assert.That(record.locales, Is.Empty, "a run without presentation draws no locales");
         }
 
         [UnityTest]
@@ -276,6 +298,35 @@ namespace Tests.PlayMode.Bootstrap
             Assert.AreEqual(.6f, rig.Player.Damage.Health.Pct, .02f, "hull carries across the swap");
             Assert.AreEqual(1f, Time.timeScale);
             Assert.IsFalse(hostGo.GetComponentInChildren<WeaponPickScreen>());
+        }
+
+        [UnityTest]
+        [Category("RequiresGraphics")]
+        public IEnumerator RandomRows_ShowDistinctPoolLocales_TheJumpBlendsToTheNext_AndTheRecordNotesBoth()
+        {
+            var pool = new[] { LocalePath, "Assets/Prefabs/Locales/CopperTurquoise.prefab" }
+                .Select(path => AssetDatabase.LoadAssetAtPath<LocaleSky>(path)).ToArray();
+            yield return BootToTheFirstSector(_ => { }, presentation: true, jumpTravel: true, localePool: pool);
+            var first = LocaleInstances.Shown();
+            Assert.That(pool.Select(locale => locale.name), Has.Member(first), "the first sector draws from the pool");
+            var second = pool.Single(locale => locale.name != first).name;
+
+            host.ActiveSector.GetComponent<ExtractOnCueModule>().Extract();
+            yield return WaitFor(() => host.Jump && host.Jump.Holding && hostGo.GetComponentInChildren<RunRecapScreen>(),
+                "the extracted recap appears in hyperspace");
+            Assert.IsTrue(LocaleInstances.Loaded(second), "the jump backdrop holds the next sector's drawn locale");
+            var button = hostGo.GetComponentInChildren<RunRecapScreen>().transform.Find("Panels/Recap/Continue")
+                .GetComponent<Button>();
+            yield return WaitFor(button.IsInteractable, "Continue waits for the destination and its locale blend");
+            Assert.That(LocaleInstances.Shown(), Is.EqualTo(second), "the next sector shows the jump's locale");
+            button.onClick.Invoke();
+            yield return WaitFor(() => !host.Jump, "Continue completes arrival");
+
+            host.ActiveSector.GetComponent<ExtractOnCueModule>().Extract();
+            yield return WaitFor(() => File.Exists(recordPath), "the finished run is recorded");
+            var record = JsonUtility.FromJson<RunRecord>(File.ReadAllLines(recordPath)[0]);
+            Assert.That(record.locales, Is.EqualTo(new[] { first, second }));
+            yield return host.Shutdown();
         }
 
         [UnityTest]
@@ -456,7 +507,8 @@ namespace Tests.PlayMode.Bootstrap
         }
 
         private IEnumerator BootToTheFirstSector(Action<PlayerRig> onBuilt, bool presentation = false,
-            bool productionJump = false, bool jumpTravel = false, ItemSubset hangarOffer = null, LocaleSky idleLocale = null)
+            bool productionJump = false, bool jumpTravel = false, ItemSubset hangarOffer = null,
+            LocaleSky idleLocale = null, LocaleSky[] localePool = null)
         {
             var locale = AssetDatabase.LoadAssetAtPath<LocaleSky>(LocalePath);
             hostGo = new GameObject("TestHost");
@@ -469,13 +521,18 @@ namespace Tests.PlayMode.Bootstrap
             host = hostGo.AddComponent<GameHost>();
             host.sessionProfile = new SessionProfile
             {
-                run = SectorRun.Create(productionJump
+                run = SectorRun.Create(localePool ?? Array.Empty<LocaleSky>(), productionJump
                     ? new[] { "TrialSector", "TrialSector2" }.Select(name => new SectorEntry
                     {
                         prefab = AssetDatabase.LoadAssetAtPath<Sector>($"Assets/Prefabs/Sectors/{name}.prefab"),
                         locale = locale
                     }).ToArray()
-                    : Array.ConvertAll(templates, t => new SectorEntry { prefab = t.GetComponent<Sector>(), locale = locale })),
+                    : Array.ConvertAll(templates, t => new SectorEntry
+                    {
+                        prefab = t.GetComponent<Sector>(),
+                        locale = localePool == null ? locale : null,
+                        random = localePool != null
+                    })),
                 idleLocale = idleLocale,
                 presentation = presentation
             };

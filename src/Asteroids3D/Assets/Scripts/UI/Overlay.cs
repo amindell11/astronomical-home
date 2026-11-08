@@ -1,6 +1,7 @@
 using Combat.Targeting;
 using UnityEngine;
 using UI.Audio;
+using UI.Comms;
 using UI.Elites;
 using UI.Markers;
 using UI.PlayerState;
@@ -53,6 +54,7 @@ namespace UI
         private string keystoneName;
         private EliteReadout eliteReadout;
 
+        public CommLine CommLine { get; private set; }
         public Camera WorldCamera => canvases[0].worldCamera;
         public bool IsVisible => visible && visibility.alpha > 0f;
 
@@ -69,6 +71,7 @@ namespace UI
             readoutBuilder = GetComponentInChildren<WeaponReadoutBuilder>(true);
             objectiveMarkers = GetComponentInChildren<ObjectiveMarkers>(true);
             chargeMarkers = GetComponentInChildren<ChargeTargetMarkers>(true);
+            CommLine = CommLine.Create(transform, labelFont, textMaterial);
         }
 
         public void ConfigureCameras(Camera uiCamera, Camera gameplayCamera, CanopyProjection projection = null)
@@ -83,7 +86,7 @@ namespace UI
         /// Toggles every canvas under the overlay, and the world-space charge markers — nested
         /// canvases (minimap) keep rendering when only the root canvas is disabled, and disabling
         /// GameObjects would break the HUD audio binders, which unsubscribe in OnDisable and never
-        /// resubscribe.
+        /// resubscribe. The comm line keeps its own canvas, which this leaves alone.
         /// </summary>
         public void SetVisible(bool visible)
         {
@@ -158,6 +161,7 @@ namespace UI
             FindPointers.Create(minimapRect, projection, () => IsVisible).Initialize(objectives, minimapCamera);
             ObjectiveStatusReadout.Create(transform, labelFont, headingFont, timerFont, readoutFont, textMaterial,
                 projection, () => IsVisible).Initialize(objectives);
+            BoostReadout.Create(transform, labelFont, textMaterial, projection, () => IsVisible).Initialize(objectives);
         }
 
         public void BindElite(IEliteStatus elite)
@@ -168,6 +172,7 @@ namespace UI
         }
 
         public void ShowKeystonePrompt(Func<bool> dismissed) =>
-            KeystonePrompt.Create(transform, readoutFont, labelFont, textMaterial, flightInput, keystoneName, dismissed);
+            KeystonePrompt.Create(transform, readoutFont, labelFont, textMaterial, flightInput, keystoneName, dismissed,
+                () => CommLine.Speaking);
     }
 }

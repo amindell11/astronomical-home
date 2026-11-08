@@ -7,10 +7,10 @@ using Ships.Mods;
 namespace Loot
 {
     /// <summary>
-    /// The lull mods a run has picked, in pick order. Mods ride the run, not the part: a mount's view
-    /// (<see cref="For"/>) and the ship's (<see cref="ForShip"/>) are rebuilt on every read, and
-    /// <see cref="Changed"/> tells the bound ship to re-read, so a pick that fits nothing carried stays
-    /// held and idle until a fitting weapon is mounted.
+    /// The lull mods a run has picked, in pick order, plus any a sector grants and takes back. Mods
+    /// ride the run, not the part: a mount's view (<see cref="For"/>) and the ship's (<see cref="ForShip"/>)
+    /// are rebuilt on every read, and <see cref="Changed"/> tells the bound ship to re-read, so a pick that
+    /// fits nothing carried stays held and idle until a fitting weapon is mounted.
     /// </summary>
     public sealed class LullModStack
     {
@@ -22,6 +22,16 @@ namespace Loot
         {
             if (!mod) throw new ArgumentNullException(nameof(mod));
             picks.Add(mod);
+            Changed?.Invoke();
+        }
+
+        /// <summary>Takes back the last-added <paramref name="mod"/>; one never held is a wiring bug.</summary>
+        public void Remove(LullMod mod)
+        {
+            var index = picks.LastIndexOf(mod);
+            if (index < 0)
+                throw new InvalidOperationException($"Lull mod '{(mod ? mod.name : "null")}' is not held, so it cannot be removed.");
+            picks.RemoveAt(index);
             Changed?.Invoke();
         }
 
