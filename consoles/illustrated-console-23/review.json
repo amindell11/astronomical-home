@@ -1,0 +1,39 @@
+{
+  "reviewer": "gpt-6.1-sol",
+  "scope": "Warmer and brighter electronic lighting, more hand-drawn terminal treatment and purposeful visible surface detail. Geometry and camera remain fixed.",
+  "standingInstruction": "Iterate with Sol until no actionable feedback remains before handing the result back.",
+  "rounds": [
+    {
+      "candidate": "Initial comparison of22 with both illustrated references",
+      "feedback": "Earlier clearances judged narrow fixes and missed the overall gap. Electronics must light the housings; use finer interior ink and purposeful medium-scale surface drawing.",
+      "action": "Changed warm light and phosphor, painted midtones and ink hierarchy. Added local surface markings."
+    },
+    {
+      "candidate": "draft-01",
+      "feedback": "Substantial improvement in warmth and readability. Correct floating beam hotspot, brown graphite, wood-like grain, faint labels and white projector lens.",
+      "action": "Moved beam brightness toward its source through material falloff, reduced scattering, restored charcoal separation, used broad paint variation, strengthened subtle labels and added an amber lens edge."
+    },
+    {
+      "candidate": "draft-02",
+      "feedback": "Closer, but the thick uniform terminal recess still reads molded. Fins and cable remain too brown, and one forearm brush mark reads as a smudge stamp.",
+      "action": "Added selective inner-bezel light strokes and corner hatching, neutralized graphite faces, removed the stamp-like mark and drew slots on existing fasteners."
+    },
+    {
+      "candidate": "draft-03",
+      "feedback": "The overall lighting, body and detail now meet the reference direction within fixed geometry. No remaining actionable lighting or body feedback.",
+      "action": "Kept the treatment and replaced temporary stroke lettering with the shared Rajdhani-Medium stencil masks."
+    },
+    {
+      "candidate": "draft-04",
+      "feedback": "Clear candidate04. No remaining actionable feedback within the fixed-geometry scope. Compared with22 and both references, it now has warmer, brighter electronic lighting, distinct cream and charcoal materials, and convincing painted/ink detail at normal viewing scale. The shared-font labels stay subtle and legible. Camera and neutral inspection both support the illustrated treatment.",
+      "action": "Saved the reviewed scene byte-for-byte as console.blend."
+    }
+  ],
+  "previewValidation": "One full-image tool preview omitted the HUD, but original03/04 PNGs each contain6787 bright UI pixels with alpha255. An exact-source diagnostic crop confirms intact content. No render changes were made for that preview issue.",
+  "finalSha256": {
+    "blend": "249a6a9830b899b1943bedeee39a19316651e0d046407bc7fa6afe5cdc3a2346",
+    "camera": "fc813abcc357ee60b27ad7b1dc2eb5c1f90ad401787145b273e6e7575864575b",
+    "inspection": "90ea1440f195b66917fecd3bb8e7cf07b681e37dc61b34ba7912d0c0058167a8"
+  },
+  "status": "Sol review complete with no remaining actionable feedback. User review pending."
+}
