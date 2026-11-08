@@ -5,11 +5,7 @@ namespace Substrate.Sectors.Elements.Stations
 {
     public static class SpacedPoint
     {
-        /// <summary>
-        /// A random plane point between the two distances from <paramref name="center"/> with none of
-        /// <paramref name="spacedFrom"/> within <paramref name="spacing"/>; the last point tried when none of the
-        /// attempts is spaced.
-        /// </summary>
+        // Falls back to the last point tried, so a crowded ring still places every station.
         public static Vector3 Around(Vector2 center, float minDistance, float maxDistance, int attempts,
             IReadOnlyList<Vector3> spacedFrom, float spacing)
         {
