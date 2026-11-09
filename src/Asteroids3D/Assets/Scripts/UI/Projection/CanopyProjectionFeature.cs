@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.Universal;
 
 namespace UI.Projection
@@ -24,10 +23,7 @@ namespace UI.Projection
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
             if (sources.TryGetValue(renderingData.cameraData.camera, out var source))
-            {
-                renderingData.cameraData.cameraTargetDescriptor.graphicsFormat = GraphicsFormat.R16G16B16A16_SFloat;
                 renderer.EnqueuePass(source.Pass);
-            }
         }
     }
 }
