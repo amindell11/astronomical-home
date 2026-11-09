@@ -1049,10 +1049,9 @@ Format: **term** — definition. *(authority)*
   *(PhaseSpineModule, ExtractionZone)*
 - **weapon pick** — the *armory*'s choice of one weapon or ordnance the player
   does not carry, from up to three, or a skip; the pick replaces the mount in the
-  slot its kind fills. The offer always holds the sector faction's answer
-  weapon unless the player carries it. The clock stops while it is up. The swap
-  keeps hull, shield and the run clocks, and the hangar's kit stays the next
-  run's. *(WeaponPickScreen, PlayerRig.SwapWeapon, LootOffers.DrawWith)*
+  slot its kind fills. The clock stops while it is up. The swap keeps hull,
+  shield and the run clocks, and the hangar's kit stays the next run's.
+  *(WeaponPickScreen, PlayerRig.SwapWeapon)*
 - **keystone** — the locked ability in a ship's keystone slot, one kit per ship
   (`Keystone`; `Dash` today). Not a ship module: a kit prefab the ship
   instantiates, because a kit keeps per-ship runtime state (its cooldown clock,

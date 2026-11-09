@@ -15,7 +15,6 @@ using Ships.Loadout;
 using Substrate;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements.Stations;
-using Substrate.Sectors.Factions;
 using Substrate.Services.Locales;
 using Substrate.Services.Units;
 using Substrate.Sessions;
@@ -32,9 +31,8 @@ namespace Tests.PlayMode.Bootstrap
 {
     /// <summary>
     /// A real host on a trial sector whose armory places one station: a fly-in opens the weapon pick with time
-    /// stopped and controls off, the offer holds the faction's answer unless it is equipped, a take fills the
-    /// matching slot, spends the armory and raises armory-pick, a skip leaves it open for another fly-in, and a
-    /// headless host claims it with no pick. The rig is built without its HUD, so the presenting host needs no
+    /// stopped and controls off, offering nothing equipped; a take fills the matching slot, spends the armory and
+    /// raises armory-pick, a skip leaves it open for another fly-in, and a headless host claims it with no pick. The rig is built without its HUD, so the presenting host needs no
     /// graphics device.
     /// </summary>
     [Category("Bootstrap")]
@@ -78,34 +76,36 @@ namespace Tests.PlayMode.Bootstrap
 
         [UnityTest]
         [Timeout(180000)]
-        public IEnumerator AFlyIn_OpensThePickWithTheAnswer_AndATakeFillsItsSlotAndSpendsTheArmory()
+        public IEnumerator AFlyIn_OpensThePick_AndATakeFillsItsSlotAndSpendsTheArmory()
         {
             yield return BootToTheTrialSector(presentation: true);
             var armory = ArmoryPlaced();
-            var answer = Answer();
-            Assert.IsTrue(answer, "test premise: the trial sector's faction names an answer");
-            Assert.IsFalse(Equipped().Contains(answer), "test premise: the starting kit lacks the answer");
+            var pool = AssetDatabase.LoadAssetAtPath<ItemSubset>(PoolPath);
             yield return WaitFor(() => armory.Stations.Count == 1 && armory.Stations[0].Body.activeSelf,
                 "the armory is placed");
             Assert.IsFalse(Pick(), "no pick before a fly-in");
+            var carried = Equipped();
 
             yield return FlyInto(armory.Stations[0]);
             yield return WaitFor(() => Pick(), "the fly-in opens the weapon pick");
             Assert.AreEqual(0f, Time.timeScale, "the pick stops time");
             Assert.IsFalse(rig.Player.Commander.enabled, "the pick holds the controls");
             var offered = Offered();
-            Assert.AreEqual(1, offered.Count(name => name == Name(answer)), "the offer holds the answer once");
-            var kept = Equipped().First(weapon => WeaponsSlot(weapon) != WeaponsSlot(answer));
+            foreach (var weapon in carried)
+                CollectionAssert.DoesNotContain(offered, Name(weapon), "nothing equipped is offered");
+            var picked = pool.weapons.Single(weapon => Name(weapon) == offered[0]);
 
-            Pick().ChooseOffer(Array.IndexOf(offered, Name(answer)));
+            Pick().ChooseOffer(0);
             yield return WaitFor(() => !Pick() && Time.timeScale > 0f, "the take closes the pick and time runs on");
             Assert.IsTrue(rig.Player.Commander.enabled, "controls come back");
-            CollectionAssert.Contains(Equipped(), answer, "the answer fills its slot");
-            CollectionAssert.Contains(Equipped(), kept, "the other slot keeps its mount");
+            var kind = WeaponsSlot(picked) == Ships.Command.WeaponSlot.Primary ? 0 : 1;
+            var mounted = Equipped();
+            Assert.AreSame(picked, mounted[kind], "the pick replaces the slot its kind fills");
+            Assert.AreSame(carried[1 - kind], mounted[1 - kind], "the other slot keeps its mount");
             Assert.IsTrue(armory.Stations[0].Spent, "a take spends the armory");
-            var picked = Moments().OfType<ArmoryPicked>().Single();
-            Assert.AreSame(answer, picked.Weapon);
-            Assert.AreEqual(1, picked.Sector);
+            var moment = Moments().OfType<ArmoryPicked>().Single();
+            Assert.AreSame(picked, moment.Weapon);
+            Assert.AreEqual(1, moment.Sector);
 
             yield return FlyOut(armory.Stations[0]);
             yield return FlyInto(armory.Stations[0]);
@@ -136,24 +136,6 @@ namespace Tests.PlayMode.Bootstrap
             yield return FlyOut(armory.Stations[0]);
             yield return FlyInto(armory.Stations[0]);
             yield return WaitFor(() => Pick(), "flying back in reopens the pick");
-        }
-
-        [UnityTest]
-        [Timeout(180000)]
-        public IEnumerator AnEquippedAnswer_IsNotOffered()
-        {
-            yield return BootToTheTrialSector(presentation: true);
-            var armory = ArmoryPlaced();
-            var answer = Answer();
-            rig.SwapWeapon(answer);
-            yield return WaitFor(() => armory.Stations.Count == 1 && armory.Stations[0].Body.activeSelf,
-                "the armory is placed");
-
-            yield return FlyInto(armory.Stations[0]);
-            yield return WaitFor(() => Pick(), "the fly-in opens the weapon pick");
-            CollectionAssert.DoesNotContain(Offered(), Name(answer), "an equipped answer is not offered");
-            foreach (var weapon in Equipped())
-                CollectionAssert.DoesNotContain(Offered(), Name(weapon), "nothing equipped is offered");
         }
 
         [UnityTest]
@@ -239,8 +221,6 @@ namespace Tests.PlayMode.Bootstrap
         private Sector ActiveSector() => hostGo.GetComponent<GameHost>().ActiveSector;
 
         private Armory ArmoryPlaced() => ActiveSector().Module<Armory>();
-
-        private WeaponComponent Answer() => ActiveSector().Module<SectorFaction>().Faction.answer;
 
         private WeaponComponent[] Equipped() =>
             new[] { rig.Player.Weapons.PrimaryMountPrefab, rig.Player.Weapons.SecondaryMountPrefab };

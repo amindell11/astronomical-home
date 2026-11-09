@@ -17,7 +17,6 @@ using Substrate.Presentation;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Elements.Stations;
-using Substrate.Sectors.Factions;
 using Substrate.Sessions;
 using Ships.Loadout;
 using UI;
@@ -458,10 +457,8 @@ namespace Game
             if (!weapons) yield break;
             var primary = weapons.PrimaryMountPrefab;
             var secondary = weapons.SecondaryMountPrefab;
-            var faction = session.ActiveSector.Module<SectorFaction>();
-            var offers = LootOffers.DrawWith(hangarOffer.weapons, faction ? faction.Faction.answer : null,
-                weapon => weapon != primary && weapon != secondary, WeaponPickScreen.MaxOffers,
-                n => UnityEngine.Random.Range(0, n));
+            var offers = LootOffers.Draw(hangarOffer.weapons, weapon => weapon != primary && weapon != secondary,
+                WeaponPickScreen.MaxOffers, n => UnityEngine.Random.Range(0, n));
             if (offers.Count == 0) yield break;
 
             PauseClock();
