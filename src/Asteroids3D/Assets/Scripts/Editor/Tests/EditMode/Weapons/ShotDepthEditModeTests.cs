@@ -64,7 +64,8 @@ namespace Tests.EditMode.Weapons
                 foreach (var renderer in visuals)
                 {
                     // A view-facing particle is flat to the top-down camera, so its emitter's depth is its depth.
-                    var nearest = renderer is ParticleSystemRenderer ? renderer.transform.position : renderer.bounds.min;
+                    var particles = renderer as ParticleSystemRenderer;
+                    var nearest = particles ? renderer.transform.position : renderer.bounds.min;
                     Assert.That(Depth(nearest), Is.GreaterThanOrEqualTo(ShotDepth.BelowPlane - Tolerance),
                         $"{path}: '{renderer.name}' draws above the shot depth, so it would show over a hull");
                 }
@@ -105,13 +106,14 @@ namespace Tests.EditMode.Weapons
 
         private static float Depth(Vector3 world) => Vector3.Dot(world - GamePlane.Origin, GamePlane.Normal);
 
-        private static Vector3 Centre(Collider collider) => collider.transform.TransformPoint(collider switch
+        private static Vector3 Centre(Collider collider)
         {
-            SphereCollider sphere => sphere.center,
-            CapsuleCollider capsule => capsule.center,
-            BoxCollider box => box.center,
-            _ => Vector3.zero,
-        });
+            var sphere = collider as SphereCollider;
+            var capsule = collider as CapsuleCollider;
+            var box = collider as BoxCollider;
+            var local = sphere ? sphere.center : capsule ? capsule.center : box ? box.center : Vector3.zero;
+            return collider.transform.TransformPoint(local);
+        }
 
         // Placed as a spawn places it: the root on the plane in the plane pose.
         private static void WithPlaced(string path, System.Action<GameObject> check)
