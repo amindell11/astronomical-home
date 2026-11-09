@@ -166,7 +166,6 @@ namespace Game.Preview
             var staging = new GameObject("Preview Playtest staging");
             staging.SetActive(false);
             playtest = Instantiate(gameHostPrefab, staging.transform);
-            if (playerInvulnerable) playtest.GetComponent<UnitService>().OnShipSpawned += Protect;
             if (composed == PreviewEntry.Combat)
                 playtest.sessionProfile.run = CombatRun();
             if (composed == PreviewEntry.CrowdedJumpGate)
@@ -177,6 +176,8 @@ namespace Game.Preview
             playtest.runRecordPath = Path.Combine(ResultsRoot.Folder("preview"),
                 Guid.NewGuid().ToString("N"), RunRecordStore.FileName);
             playtest.transform.SetParent(null, false);
+            // Its Awake has run, and its run spawns the player only after its first yield.
+            if (playerInvulnerable) playtest.Units.OnShipSpawned += Protect;
             Destroy(staging);
         }
 
