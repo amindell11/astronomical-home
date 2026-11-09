@@ -1,0 +1,17 @@
+{
+  "reviewer": "gpt-6.1-sol",
+  "scope": "Slightly brighter window perimeter etchings, preserving the accepted nebula and console",
+  "rounds": [
+    {
+      "candidate": "27",
+      "feedback": "27 edge-only review passes. Perimeter etches are slightly easier to see over26's bright nebula, especially the upper corners and lower/right border, while remaining secondary. Center stays clear and the hologram/console balance is retained. No actionable feedback on this narrow change."
+    }
+  ],
+  "finalSha256": {
+    "blend": "4955d32af4549007a2eacaa2d8a73eddb96e76c6f7029c9eb18b8805e414ab7e",
+    "camera": "1cf7565246ad104f2b2d49235ff9557092f3b8766ea26b124e215bc898614422",
+    "inspection": "786accc3fa8291cfaa39736755133f5c33fa38483638a066b83385d209264583"
+  },
+  "inspection": "Reused from26 because this view hides glass",
+  "status": "Sol review complete. Combined tube-port-28 review follows."
+}

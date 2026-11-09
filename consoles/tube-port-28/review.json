@@ -1,0 +1,17 @@
+{
+  "reviewer": "gpt-6.1-sol",
+  "scope": "Fitted visible tube entry plus slightly brighter window etchings; preserve accepted console",
+  "rounds": [
+    {
+      "candidate": "28",
+      "feedback": "Clear28. No remaining actionable feedback. Both camera and angled inspection show the twin tubes entering a fitted socket cleanly. Its scale, materials and ink treatment integrate with the console, while the brighter window edges and accepted nebula remain balanced."
+    }
+  ],
+  "finalSha256": {
+    "blend": "48eb8725ec47e7696c3fc6cc0855c14b0d6163233d74679949d38e939d5ee86e",
+    "camera": "dbad94c27fde187ad1d20e086293f51142dfa2b709c962c4da01a1b5a3e6a41c",
+    "inspection": "e93391342aa5ea072a4d7c4618a9b9435ff5cb1a00a8e5d89c51cb9a286575cb"
+  },
+  "status": "Sol review complete. Owner review pending.",
+  "unity": "Owner is planning Unity work. No imports or game changes."
+}
