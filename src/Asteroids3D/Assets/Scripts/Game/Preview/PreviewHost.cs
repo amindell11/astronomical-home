@@ -22,20 +22,20 @@ namespace Game.Preview
     public enum PreviewEntry
     {
         RunRecap, SectorJump, Combat, CrowdedJumpGate, Startup, LowHull, Damage, Extraction, EnemyDeath, Boss, Sector1Elite,
-        Sector2Elite
+        Sector2Elite, CrowdedFight
     }
 
     /// <summary>
     /// A Replay entry owns a session and a presentation subject driven by a transport; a Playtest entry
     /// owns an instance of the game's GameHost prefab, overriding only its run records and, for some
-    /// entries, its sectors: the crowded jump gate and the elite entries fly their fixtures, and Combat flies
-    /// its Sector and Locale picks, read again at each restart. Replay takes its rig, observer, jump shader
-    /// and feel profiles from the same prefab, so both kinds of entry run on the feel assets the game
-    /// ships. A switch between Replay entries swaps only the subject; any other switch or restart awaits
-    /// the previous entry's teardown before composing the next. Only Replay entries touch this host's
-    /// clock: a scrubbing subject may freeze it, and while a subject that plays from its start is
-    /// selected, the host sets it from the transport. Restart and Loop re-compose such a subject,
-    /// keeping its fixture.
+    /// entries, its sectors: the crowded jump gate, the elite entries and the crowded fight fly their
+    /// fixtures, and Combat flies its Sector and Locale picks, read again at each restart. Replay takes
+    /// its rig, observer, jump shader and feel profiles from the same prefab, so both kinds of entry
+    /// run on the feel assets the game ships. A switch between Replay entries swaps only the subject;
+    /// any other switch or restart awaits the previous entry's teardown before composing the next. Only
+    /// Replay entries touch this host's clock: a scrubbing subject may freeze it, and while a subject
+    /// that plays from its start is selected, the host sets it from the transport. Restart and Loop
+    /// re-compose such a subject, keeping its fixture.
     /// A throw while composing, replacing or tearing down faults the host: every later request refuses,
     /// Shutdown rethrows instead of tearing down, and only destroying the host recovers.
     /// https://github.com/amindell11/astronomical-home/issues/1151
@@ -54,6 +54,7 @@ namespace Game.Preview
         [SerializeField] internal SectorEntry bossSector;
         [SerializeField] internal SectorEntry sector1EliteSector;
         [SerializeField] internal SectorEntry sector2EliteSector;
+        [SerializeField] internal SectorEntry crowdedFightSector;
         [SerializeField] internal LocaleSky jumpDestination;
         [SerializeField] internal PreviewEntry entry;
         [SerializeField] internal int combatSector = WholeRun;
@@ -93,7 +94,7 @@ namespace Game.Preview
             PreviewEntry.RunRecap or PreviewEntry.SectorJump or PreviewEntry.Startup or PreviewEntry.LowHull
                 or PreviewEntry.Damage or PreviewEntry.Extraction or PreviewEntry.EnemyDeath => false,
             PreviewEntry.Combat or PreviewEntry.CrowdedJumpGate or PreviewEntry.Boss
-                or PreviewEntry.Sector1Elite or PreviewEntry.Sector2Elite => true,
+                or PreviewEntry.Sector1Elite or PreviewEntry.Sector2Elite or PreviewEntry.CrowdedFight => true,
             _ => throw new ArgumentOutOfRangeException(nameof(entry), entry, "Unknown preview entry.")
         };
 
@@ -367,6 +368,7 @@ namespace Game.Preview
                 PreviewEntry.Boss => (bossSector, "boss"),
                 PreviewEntry.Sector1Elite => (sector1EliteSector, "sector 1 elite"),
                 PreviewEntry.Sector2Elite => (sector2EliteSector, "sector 2 elite"),
+                PreviewEntry.CrowdedFight => (crowdedFightSector, "crowded fight"),
                 _ => (null, null)
             };
             if (name != null && !sector?.prefab)

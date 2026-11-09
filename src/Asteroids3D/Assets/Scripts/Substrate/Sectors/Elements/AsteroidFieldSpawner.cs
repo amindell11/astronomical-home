@@ -1,14 +1,21 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using Asteroids.Fields.Core;
+using Substrate.Sectors.Elements.Stations;
 using Substrate.Sessions;
 using UnityEngine;
 
 namespace Substrate.Sectors.Elements
 {
-    /// <summary>Bridges the sector lifecycle to an <see cref="Asteroids.Fields.AsteroidField"/> sibling (its base class blocks deriving <see cref="SectorSpawner"/>); the sector builds under an inactive holder, so the field's Awake has not run during <see cref="Produce"/> — only pre-Awake-safe stashes here, wiring runs in the field's Start. A field that names no preset of its own takes the run row's.</summary>
+    /// <summary>Bridges the sector lifecycle to an <see cref="Asteroids.Fields.AsteroidField"/> sibling (its base class blocks deriving <see cref="SectorSpawner"/>); the sector builds under an inactive holder, so the field's Awake has not run during <see cref="Produce"/> — only pre-Awake-safe stashes here, wiring runs in the field's Start. A field that names no preset of its own takes the run row's. The station clearings are handed over as a source because the station modules pick their points after spawners produce, and the field reads it at Start.</summary>
     public class AsteroidFieldSpawner : SectorSpawner, ISectorRowReader
     {
         [SerializeField] private Asteroids.Fields.AsteroidField field;
+        [Tooltip("The sector's repair stations, read for their points and clear radius; unset for none.")]
+        [SerializeField] private RepairStation repairs;
+        [Tooltip("The sector's mod stations, read for their points and clear radius; unset for none.")]
+        [SerializeField] private ModStation mods;
 
         public void CheckRow(SectorEntry row)
         {
@@ -30,9 +37,25 @@ namespace Substrate.Sectors.Elements
                 updating.SetAnchor(ctx.Hero ? ctx.Hero.transform : null);
                 // Declared even in spectator/headless runs so the layout is identical regardless of who is flying.
                 if (ctx.Sector) updating.SetStartPoint(ctx.Sector.StartPoint);
+                updating.SetExclusionVolumes(StationClearings);
             }
             yield break;
         }
+
+        private ExclusionVolume[] StationClearings()
+        {
+            var volumes = new List<ExclusionVolume>();
+            if (repairs)
+                foreach (var station in repairs.Stations)
+                    volumes.Add(Clearing(station.Position, repairs.ClearRadius));
+            if (mods)
+                foreach (var station in mods.Stations)
+                    volumes.Add(Clearing(station.Position, mods.ClearRadius));
+            return volumes.ToArray();
+        }
+
+        private static ExclusionVolume Clearing(Vector3 position, float radius) =>
+            new() { Center = GamePlane.WorldPointToPlane(position), Radius = radius };
 
         protected override IEnumerator OnTeardown(SectorBuildContext ctx)
         {

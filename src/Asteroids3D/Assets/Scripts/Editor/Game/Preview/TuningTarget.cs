@@ -17,7 +17,7 @@ namespace Game.Preview
             new EliteTarget("Sector 1 elite", PreviewEntry.Sector1Elite, "EliteSector1"),
             new EliteTarget("Sector 2 elite", PreviewEntry.Sector2Elite, "EliteSector2"),
             new EliteTarget("Boss", PreviewEntry.Boss, "BossSector"),
-            new CompanionTarget()
+            new CompanionTarget(), new TacticsTarget()
         };
 
         public abstract string Name { get; }

@@ -51,6 +51,7 @@ namespace Game.Preview
             host.bossSector = FixtureRow("BossSector");
             host.sector1EliteSector = FixtureRow("EliteSector1");
             host.sector2EliteSector = FixtureRow("EliteSector2");
+            host.crowdedFightSector = FixtureRow("CrowdedFightSector");
             host.jumpDestination = Locale(CopperTurquoisePath);
             host.entry = entry;
             host.combatSector = combatSector;

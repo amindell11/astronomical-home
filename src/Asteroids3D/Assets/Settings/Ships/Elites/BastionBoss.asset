@@ -20,8 +20,7 @@ MonoBehaviour:
     torque: 5
     hull: 5
   primary: {fileID: 918213022752191143, guid: b0f5486eb29ea024da3b9a9978de5236, type: 3}
-  secondary: {fileID: -8301958025146036882, guid: 3fc089f1b126427bbc347956f599714b,
-    type: 3}
+  secondary: {fileID: 1100000000000000202, guid: 4c9a03fda4724848a895b5640634048a, type: 3}
   mods:
   - {fileID: 11400000, guid: 6bf807ec046b4a198fcb265b90c43394, type: 2}
   - {fileID: 11400000, guid: de1bcf784de74a1780b063dfcb4e56c9, type: 2}

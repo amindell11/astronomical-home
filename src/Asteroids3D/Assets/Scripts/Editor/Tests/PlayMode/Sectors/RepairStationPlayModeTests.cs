@@ -6,6 +6,7 @@ using System.Linq;
 using NUnit.Framework;
 using Ships;
 using Substrate;
+using Substrate.Sectors;
 using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sectors.Elements.Stations;
@@ -33,12 +34,14 @@ namespace Tests.PlayMode.Sectors
         private readonly List<Object> _created = new();
         private readonly List<string> _beats = new();
         private ObjectiveService _objectives;
+        private Sector _sector;
 
         [SetUp]
         public override void SetUp()
         {
             base.SetUp();
             _objectives = Track(new GameObject("Objectives")).AddComponent<ObjectiveService>();
+            _sector = Track(new GameObject("Sector")).AddComponent<Sector>();
         }
 
         [TearDown]
@@ -302,7 +305,7 @@ namespace Tests.PlayMode.Sectors
         }
 
         private SectorBuildContext Context(Ship hero) =>
-            new(null, _objectives, true, null, default, hero: hero, sectorIndex: SectorIndex, row: new SectorEntry());
+            new(null, _objectives, true, _sector, default, hero: hero, sectorIndex: SectorIndex, row: new SectorEntry());
 
         // Exactly the live stations are finds, with the module's icon and find-layer markers.
         private void AssertFinds(RepairStation module, params RepairStation.Station[] live)

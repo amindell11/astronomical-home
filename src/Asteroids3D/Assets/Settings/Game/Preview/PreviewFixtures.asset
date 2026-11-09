@@ -265,4 +265,48 @@ MonoBehaviour:
     phases: []
     patrols: 0
     field: {fileID: 0}
+  - prefab: {fileID: 19402951431243477, guid: 6070e8d7339d411c9e8584227c25613e, type: 3}
+    locale: {fileID: 836507228316825353, guid: efda15947979b3345b239b9741b2c488, type: 3}
+    random: 0
+    faction: {fileID: 11400000, guid: b8e87030f2d54df6bf6f209b2666c769, type: 2}
+    elite: {fileID: 11400000, guid: 6eb906335616460983af1abe9f7c5ea2, type: 2}
+    roster:
+    - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
+        type: 3}
+      pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
+        type: 3}
+    - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
+        type: 3}
+      pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
+        type: 3}
+    - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
+        type: 3}
+      pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
+        type: 3}
+    - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
+        type: 3}
+      pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
+        type: 3}
+    - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
+        type: 3}
+      pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
+        type: 3}
+    - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
+        type: 3}
+      pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
+        type: 3}
+    - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
+        type: 3}
+      pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
+        type: 3}
+    - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
+        type: 3}
+      pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
+        type: 3}
+    phases:
+    - seconds: 60
+      interval: 2
+      cap: 6
+    patrols: 0
+    field: {fileID: 11400000, guid: 65c274c56b444d04a85ecd6e8e524e72, type: 2}
   localePool: []

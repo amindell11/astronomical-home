@@ -51,7 +51,8 @@ namespace Tests.EditMode.Bootstrap
             Assert.AreEqual("BossSector", host.bossSector.prefab.name);
             var fixtures = AssetDatabase.LoadAssetAtPath<SectorRun>(PreviewHostBootstrap.FixturesPath).Sectors;
             var flown = host.crowdedJumpSectors.Concat(hud)
-                .Append(host.bossSector).Append(host.sector1EliteSector).Append(host.sector2EliteSector).ToArray();
+                .Append(host.bossSector).Append(host.sector1EliteSector).Append(host.sector2EliteSector)
+                .Append(host.crowdedFightSector).ToArray();
             Assert.That(flown, Is.EquivalentTo(fixtures), "each fixture flies its own row of the fixtures run");
             Assert.That(fixtures.Where(row => row.prefab.name != "CrowdedJumpArrival").Select(row => row.locale),
                 Is.All.SameAs(run.LocalePool[0]), "every fixture but the jump's arrival shows the run pool's first locale");

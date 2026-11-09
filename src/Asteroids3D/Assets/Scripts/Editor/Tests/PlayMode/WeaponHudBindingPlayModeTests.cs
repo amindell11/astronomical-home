@@ -142,7 +142,7 @@ namespace Tests.PlayMode
         public void ConcussionLoadout_DoesNotLeaveAnEmptyCornerPanel()
         {
             var controller = CreateController(
-                LoadWeaponPrefab<Grenades>("Assets/Prefabs/Weapons/Grenades.prefab"), null);
+                null, LoadWeaponPrefab<Grenades>("Assets/Prefabs/Weapons/Grenades.prefab"));
             var builder = CreateBuilder();
 
             builder.Build(controller.ReadoutContext);

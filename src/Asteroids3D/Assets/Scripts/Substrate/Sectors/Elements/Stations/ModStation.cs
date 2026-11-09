@@ -5,16 +5,16 @@ using Balance;
 using Objectives;
 using Ships;
 using Substrate.Sectors.Elements.Hunt;
-using Substrate.Sectors.Elements.Placement;
 using Substrate.Services.Objectives;
 using UnityEngine;
 
 namespace Substrate.Sectors.Elements.Stations
 {
     /// <summary>
-    /// A sector's mod stations: the authored body plus copies of it, as many as the feel asks for. Once the
-    /// sector's repair stations show, each moves on a tick to its own clear point away from the hero's start,
-    /// spaced from the other mod stations and from those repair stations, and shows as a find until it goes
+    /// A sector's mod stations: the authored body plus copies of it, as many as the feel asks for. At setup,
+    /// after the sector's repair stations pick theirs, each picks its own point away from the sector's start,
+    /// spaced from the other mod stations and from those repair stations; the asteroid field reads those points
+    /// and leaves a clearing of the station's clear radius. On the first tick each shows as a find until it goes
     /// dark. The hero's first fly-in claims it: <see cref="Claims"/> counts up, which the host reads to open
     /// one lull pick per claim, and the station goes dark. The hunt's alarm darkens unclaimed stations.
     /// A sector with no hunt keeps them live.
@@ -28,7 +28,7 @@ namespace Substrate.Sectors.Elements.Stations
         [SerializeField] private ModStationBody body;
         [Tooltip("The sector's opening hunt, read for its alarm, which darkens every unclaimed station; unset for none.")]
         [SerializeField] private SectorHunt hunt;
-        [Tooltip("The sector's repair stations, read for their placed points so no mod station lands beside one; unset for none.")]
+        [Tooltip("The sector's repair stations, read at setup for their points so no mod station lands beside one; unset for none.")]
         [SerializeField] private RepairStation repairs;
         [Tooltip("The find icon its minimap marker and edge pointer show.")]
         [SerializeField] private Sprite icon;
@@ -39,10 +39,9 @@ namespace Substrate.Sectors.Elements.Stations
         [SerializeField, Min(0f)] private float distanceMax = 180f;
         [Tooltip("Least plane distance from a mod station to another mod station or a repair station.")]
         [SerializeField, Min(0f)] private float spacing = 60f;
-        [Tooltip("A candidate point with an asteroid within this radius is passed over.")]
-        [SerializeField, Min(0f)] private float clearanceRadius = 35f;
-        [SerializeField] private LayerMask asteroidMask = 1 << 8;
-        [Tooltip("Random points tried; the last one tried is used when none is clear.")]
+        [Tooltip("Plane radius around each station the asteroid field leaves empty.")]
+        [SerializeField, Min(0f)] private float clearRadius = 35f;
+        [Tooltip("Random points tried; the last one tried is used when none is spaced.")]
         [SerializeField, Min(1)] private int placementAttempts = 8;
 
         private readonly List<Station> stations = new();
@@ -50,7 +49,7 @@ namespace Substrate.Sectors.Elements.Stations
         private Ship hero;
         private IObjectiveService objectives;
         private int sectorIndex;
-        private bool placed;
+        private bool shown;
 
         /// <summary>The hero reached a station for the first time: station kind, sector index.</summary>
         public event Action<StationKind, int> Arrived;
@@ -62,27 +61,36 @@ namespace Substrate.Sectors.Elements.Stations
 
         public IReadOnlyList<Station> Stations => stations;
 
+        public float ClearRadius => clearRadius;
+
         /// <summary>Stations claimed this sector; the host opens one lull pick per claim.</summary>
         public int Claims { get; private set; }
 
         public override IEnumerator Setup(SectorBuildContext ctx)
         {
-            if (!feel || !body || !body.Zone || !body.Lit || !icon || ctx.Objectives == null
+            if (!feel || !body || !body.Zone || !body.Lit || !icon || ctx.Objectives == null || !ctx.Sector
                 || !body.Zone.transform.IsChildOf(body.transform) || !body.Lit.transform.IsChildOf(body.transform))
                 throw new InvalidOperationException(
-                    $"ModStation on '{name}' needs its feel profile, icon, objective service, body, and a zone and lit parts under the body.");
+                    $"ModStation on '{name}' needs its feel profile, icon, objective service, sector, body, and a zone and lit parts under the body.");
 
             hero = ctx.Hero;
             objectives = ctx.Objectives;
             sectorIndex = ctx.SectorIndex;
-            placed = false;
+            shown = false;
             Claims = 0;
             ClearStations();
             body.gameObject.SetActive(false);
+            var taken = new List<Vector3>();
+            if (repairs)
+                foreach (var repair in repairs.Stations)
+                    taken.Add(repair.Position);
             for (var i = 0; i < feel.stationsPerSector; i++)
             {
                 var station = i == 0 ? new Station(body) : Copy();
-                station.Reset(hero);
+                var point = SpacedPoint.Around(ctx.Sector.StartPoint, distanceMin, distanceMax, placementAttempts,
+                    taken, spacing);
+                taken.Add(point);
+                station.Reset(hero, point);
                 stations.Add(station);
             }
             yield break;
@@ -105,9 +113,9 @@ namespace Substrate.Sectors.Elements.Stations
 
         private void Tick()
         {
-            if (!placed)
+            if (!shown)
             {
-                if (RepairsPlaced()) Place();
+                Show();
                 return;
             }
 
@@ -124,30 +132,11 @@ namespace Substrate.Sectors.Elements.Stations
             }
         }
 
-        // A repair body shows only once placed, so mod stations read final points.
-        private bool RepairsPlaced()
+        private void Show()
         {
-            if (!repairs) return true;
-            foreach (var repair in repairs.Stations)
-                if (!repair.Body.activeSelf) return false;
-            return true;
-        }
-
-        private void Place()
-        {
-            var start = GamePlane.WorldPointToPlane(hero.transform.position);
-            var taken = new List<Vector3>();
-            if (repairs)
-                foreach (var repair in repairs.Stations)
-                    taken.Add(repair.Position);
             foreach (var station in stations)
-            {
-                var point = ClearPoint.Around(start, distanceMin, distanceMax, clearanceRadius, asteroidMask,
-                    placementAttempts, taken, spacing);
-                taken.Add(point);
-                station.Show(point, objectives.MarkFind(station.Body.transform, icon));
-            }
-            placed = true;
+                station.Show(objectives.MarkFind(station.Body.transform, icon));
+            shown = true;
         }
 
         private void Claim(Station station)
@@ -199,10 +188,12 @@ namespace Substrate.Sectors.Elements.Stations
             /// <summary>Claimed, or darkened by the alarm.</summary>
             public bool Spent { get; private set; }
 
-            public Vector3 Position => Body.transform.position;
+            /// <summary>The point picked at setup; the body moves there when it shows.</summary>
+            public Vector3 Position { get; private set; }
 
-            internal void Reset(Ship hero)
+            internal void Reset(Ship hero, Vector3 position)
             {
+                Position = position;
                 Spent = false;
                 Zone.BindPlayer(hero ? hero.Body : null);
                 Zone.Disarm();
@@ -210,9 +201,9 @@ namespace Substrate.Sectors.Elements.Stations
                 Lit.SetActive(true);
             }
 
-            internal void Show(Vector3 position, FindMarker marker)
+            internal void Show(FindMarker marker)
             {
-                Body.transform.position = position;
+                Body.transform.position = Position;
                 Body.SetActive(true);
                 Zone.Arm();
                 find = marker;

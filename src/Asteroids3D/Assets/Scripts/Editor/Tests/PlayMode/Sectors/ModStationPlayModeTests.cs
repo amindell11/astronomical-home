@@ -5,6 +5,7 @@ using System.Linq;
 using NUnit.Framework;
 using Ships;
 using Substrate;
+using Substrate.Sectors;
 using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sectors.Elements.Stations;
@@ -18,7 +19,7 @@ using Substrate.Sessions;
 
 namespace Tests.PlayMode.Sectors
 {
-    /// <summary>The shipped mod station prefab with a scratch feel: a station shows its distance from the hero's start as a find, the hero's first fly-in counts one claim and raises the arrival events once, the station then goes dark, teardown clears the claims and finds, the alarm darkens unclaimed stations, a sector with no hunt keeps them live, and stations wait for the sector's repair stations and place spaced from them and from each other.</summary>
+    /// <summary>The shipped mod station prefab with a scratch feel: a station shows its distance from the hero's start as a find, the hero's first fly-in counts one claim and raises the arrival events once, the station then goes dark, teardown clears the claims and finds, the alarm darkens unclaimed stations, a sector with no hunt keeps them live, and at setup the stations pick points spaced from the sector's repair stations, which pick first, and from each other.</summary>
     [TestFixture]
     [Category("Sectors")]
     [Category("RequiresLfsPng")]
@@ -33,12 +34,14 @@ namespace Tests.PlayMode.Sectors
         private readonly List<Object> _created = new();
         private readonly List<string> _beats = new();
         private ObjectiveService _objectives;
+        private Sector _sector;
 
         [SetUp]
         public override void SetUp()
         {
             base.SetUp();
             _objectives = Track(new GameObject("Objectives")).AddComponent<ObjectiveService>();
+            _sector = Track(new GameObject("Sector")).AddComponent<Sector>();
         }
 
         [TearDown]
@@ -171,7 +174,7 @@ namespace Tests.PlayMode.Sectors
 
         [UnityTest]
         [Timeout(60000)]
-        public IEnumerator ModStations_WaitForTheRepairStations_ThenPlaceSpacedFromThemAndEachOther()
+        public IEnumerator AtSetup_ModStationsPickSpacedFromTheRepairStationsAndEachOther()
         {
             Random.InitState(1402);
             var hero = SpawnHero();
@@ -179,20 +182,16 @@ namespace Tests.PlayMode.Sectors
             var module = NewModStation(count: 2, spacing: Spacing, repairs: repairs);
             Drive(repairs.Setup(Context(hero)));
             Drive(module.Setup(Context(hero)));
-            repairs.enabled = false;
-            yield return null;
-            yield return null;
+            var picked = module.Stations.Select(station => station.Position).ToList();
             Assert.IsTrue(module.Stations.All(station => !station.Body.activeSelf),
-                "The mod stations wait while the repair stations are unplaced.");
-            Assert.IsEmpty(_objectives.Finds);
+                "The stations pick at setup and hide until a tick shows them.");
 
-            repairs.enabled = true;
-            yield return null;
             yield return null;
             yield return null;
             Assert.IsTrue(repairs.Stations.All(station => station.Body.activeSelf));
-            Assert.IsTrue(module.Stations.All(station => station.Body.activeSelf),
-                "The mod stations place once the repair stations show.");
+            Assert.IsTrue(module.Stations.All(station => station.Body.activeSelf));
+            CollectionAssert.AreEqual(picked, module.Stations.Select(station => station.Body.transform.position),
+                "Each station shows at the point it picked at setup.");
             var points = repairs.Stations.Select(station => station.Position)
                 .Concat(module.Stations.Select(station => station.Position)).ToList();
             for (var i = 0; i < points.Count; i++)
@@ -247,7 +246,7 @@ namespace Tests.PlayMode.Sectors
         }
 
         private SectorBuildContext Context(Ship hero) =>
-            new(null, _objectives, true, null, default, hero: hero, sectorIndex: SectorIndex, row: new SectorEntry());
+            new(null, _objectives, true, _sector, default, hero: hero, sectorIndex: SectorIndex, row: new SectorEntry());
 
         // Exactly the live stations are finds, with the module's icon and find-layer markers.
         private void AssertFinds(ModStation module, params ModStation.Station[] live)
