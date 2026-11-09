@@ -41,7 +41,7 @@ namespace Substrate.Sectors.Elements.Stations
             float spacing = 0f)
         {
             this.feel = feel;
-            ConfigurePlacement(distance, hunt, spacing, null);
+            ConfigurePlacement(distance, hunt, spacing);
         }
 #endif
     }

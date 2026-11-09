@@ -13,9 +13,9 @@ using UnityEngine.UI;
 namespace UI.Screens
 {
     /// <summary>
-    /// The sector-break weapon pick's uGUI: up to three cards, each naming the mount it replaces (the one
+    /// The armory's weapon pick uGUI: up to three cards, each naming the mount it replaces (the one
     /// in the slot its kind fills), the held mods it would use and the held mods the swap would idle.
-    /// The next sector's ships and weapons head the screen. Keyed (1, 2, 3, Space) and clickable,
+    /// The sector's ships and weapons head the screen. Keyed (1, 2, 3, Space) and clickable,
     /// answered through <see cref="Choice"/>; the host holds the clock and applies the swap.
     /// How it was ruled to read: https://github.com/amindell11/astronomical-home/issues/1224#issuecomment-6475710068
     /// </summary>

@@ -14,9 +14,7 @@ using Game.Moments;
 using Game.Runs;
 using Game.Travel;
 using Objectives;
-using Ships.Command;
 using Ships.Loadout;
-using Ships.Weapons;
 using Substrate.Services.Objectives;
 using UI.Hangar;
 using NUnit.Framework;
@@ -42,7 +40,7 @@ namespace Tests.PlayMode.Bootstrap
 {
     /// <summary>
     /// A real host over two sectors checks run records, carried hull, the mid-run weapon swap and the return
-    /// to play. Graphics cases cover recap timing, the weapon pick in hyperspace, death effects, HUD
+    /// to play. Graphics cases cover recap timing, a jump with no weapon pick, death effects, HUD
     /// visibility and camera restoration.
     /// </summary>
     [Category("Bootstrap")]
@@ -264,13 +262,12 @@ namespace Tests.PlayMode.Bootstrap
 
         [UnityTest]
         [Category("RequiresGraphics")]
-        public IEnumerator JumpTravel_WithAWeaponPool_PicksAfterTheRecap_AndArrivesWithTheSwap()
+        public IEnumerator JumpTravel_WithAWeaponPool_ShowsNoWeaponPick_AndArrivesWithTheSameKit()
         {
             PlayerRig rig = null;
             var pool = AssetDatabase.LoadAssetAtPath<ItemSubset>("Assets/Settings/Ships/PlayerLoadout.asset");
             yield return BootToTheFirstSector(built => rig = built, presentation: true, jumpTravel: true,
                 hangarOffer: pool);
-            rig.Player.Damage.Health.SetFraction(.6f);
             var carried = new[] { rig.Player.Weapons.PrimaryMountPrefab, rig.Player.Weapons.SecondaryMountPrefab };
             host.ActiveSector.GetComponent<ExtractOnCueModule>().Extract();
             yield return WaitFor(() => host.Jump && host.Jump.Holding && hostGo.GetComponentInChildren<RunRecapScreen>(),
@@ -280,25 +277,11 @@ namespace Tests.PlayMode.Bootstrap
             yield return WaitFor(button.IsInteractable, "Continue waits for the destination");
             button.onClick.Invoke();
 
-            yield return WaitFor(() => hostGo.GetComponentInChildren<WeaponPickScreen>(), "the weapon pick follows the recap");
-            var pick = hostGo.GetComponentInChildren<WeaponPickScreen>();
-            Assert.IsTrue(host.Jump.Holding, "arrival waits for the pick");
-            Assert.AreEqual(0f, Time.timeScale);
-            Assert.IsNull(pick.transform.Find("Ships"), "a sector with no wave director names no threat");
-            var offered = pick.transform.Find("Offers/Cards/Card1/Name").GetComponent<Text>().text;
-            pick.ChooseOffer(0);
-
-            yield return WaitFor(() => !host.Jump, "the pick resumes arrival");
-            var picked = pool.weapons.Single(weapon => weapon.DisplayName.ToUpperInvariant() == offered);
-            CollectionAssert.DoesNotContain(carried, picked, "offers are weapons the player does not carry");
-            var weapons = rig.Player.Weapons;
-            var kind = WeaponsController.SlotFor(picked) == WeaponSlot.Primary ? 0 : 1;
-            var mounted = new[] { weapons.PrimaryMountPrefab, weapons.SecondaryMountPrefab };
-            Assert.AreSame(picked, mounted[kind], "the pick replaces the slot its kind fills");
-            Assert.AreSame(carried[1 - kind], mounted[1 - kind], "the other slot keeps its mount");
-            Assert.AreEqual(.6f, rig.Player.Damage.Health.Pct, .02f, "hull carries across the swap");
+            yield return WaitFor(() => !host.Jump, "Continue completes arrival with no pick between");
+            Assert.IsFalse(hostGo.GetComponentInChildren<WeaponPickScreen>(), "the jump holds no weapon pick");
+            CollectionAssert.AreEqual(carried,
+                new[] { rig.Player.Weapons.PrimaryMountPrefab, rig.Player.Weapons.SecondaryMountPrefab });
             Assert.AreEqual(1f, Time.timeScale);
-            Assert.IsFalse(hostGo.GetComponentInChildren<WeaponPickScreen>());
         }
 
         [UnityTest]

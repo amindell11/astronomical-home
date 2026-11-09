@@ -35,7 +35,9 @@ namespace Tests.EditMode.Sectors
             Assert.AreEqual(180f, serialized.FindProperty("distanceMax").floatValue);
             Assert.AreSame(prefab.GetComponentInChildren<SectorHunt>(true), serialized.FindProperty("hunt").objectReferenceValue,
                 "The mod stations read the sector's own hunt for its alarm.");
-            Assert.AreSame(repairs, serialized.FindProperty("spacedFrom").objectReferenceValue,
+            var spacedFrom = serialized.FindProperty("spacedFrom");
+            Assert.AreEqual(1, spacedFrom.arraySize);
+            Assert.AreSame(repairs, spacedFrom.GetArrayElementAtIndex(0).objectReferenceValue,
                 "The mod stations keep their spacing from the sector's own repair stations.");
 
             var body = (FindStationBody)serialized.FindProperty("body").objectReferenceValue;

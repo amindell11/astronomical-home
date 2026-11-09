@@ -47,7 +47,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   body: {fileID: 4845027710301920509}
   hunt: {fileID: 0}
-  spacedFrom: {fileID: 0}
+  spacedFrom: []
   icon: {fileID: 21300000, guid: 83d825df171043e2aa1dc2be671e5898, type: 3}
   distanceMin: 120
   distanceMax: 180

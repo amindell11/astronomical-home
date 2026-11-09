@@ -689,8 +689,13 @@ Format: **term** — definition. *(authority)*
   The first fly-in opens one *lull pick*, then the station goes dark; the
   hunt's alarm darkens an unclaimed one, and its pick is lost. Headless and RL
   runs claim it with no pick. *(ModStation, ModStationFeelProfile)*
+- **armory** — the third *station* kind: a *find* in sectors 2 and 3, one each,
+  none in sector 1, spaced from the repair and mod stations. Each fly-in opens
+  the *weapon pick*. Taking a weapon spends it; a skip leaves it live to come
+  back to. The hunt's alarm darkens it like any find, and its swap is lost.
+  Headless and RL runs get no pick. *(Armory, ArmoryFeelProfile)*
 - **find** — a sector object the player goes looking for and uses once:
-  repair and mod stations now, the armory next. A live find registers
+  repair stations, mod stations and armories. A live find registers
   with the objective service. In range the minimap shows the find's own
   marker; out of range, an *edge pointer* (its icon pinned to the minimap rim,
   aimed at it). Patrols get no edge pointer. One find colour for every kind,
@@ -1042,11 +1047,12 @@ Format: **term** — definition. *(authority)*
   closes unclaimed; a new beacon's opening closes the one
   before it, so beacons never stack. The sector's opening lull gets none.
   *(PhaseSpineModule, ExtractionZone)*
-- **weapon pick** — the sector-break choice of one weapon or ordnance the player
+- **weapon pick** — the *armory*'s choice of one weapon or ordnance the player
   does not carry, from up to three, or a skip; the pick replaces the mount in the
-  slot its kind fills. Held in hyperspace after the extraction recap. The swap
+  slot its kind fills. The offer always holds the sector faction's answer
+  weapon unless the player carries it. The clock stops while it is up. The swap
   keeps hull, shield and the run clocks, and the hangar's kit stays the next
-  run's. *(WeaponPickScreen, PlayerRig.SwapWeapon)*
+  run's. *(WeaponPickScreen, PlayerRig.SwapWeapon, LootOffers.DrawWith)*
 - **keystone** — the locked ability in a ship's keystone slot, one kit per ship
   (`Keystone`; `Dash` today). Not a ship module: a kit prefab the ship
   instantiates, because a kit keeps per-ship runtime state (its cooldown clock,

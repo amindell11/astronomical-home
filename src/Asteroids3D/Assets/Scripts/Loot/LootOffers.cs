@@ -22,5 +22,19 @@ namespace Loot
             }
             return offer;
         }
+
+        /// <summary>
+        /// <see cref="Draw{T}"/>, plus <paramref name="sure"/> whenever it is eligible: added to a short offer, or in
+        /// place of one random card of a full one.
+        /// </summary>
+        public static List<T> DrawWith<T>(IReadOnlyList<T> pool, T sure, Func<T, bool> eligible, int count,
+            Func<int, int> randomBelow) where T : UnityEngine.Object
+        {
+            var offer = Draw(pool, item => item != sure && eligible(item), count, randomBelow);
+            if (!sure || !eligible(sure)) return offer;
+            if (offer.Count < count) offer.Add(sure);
+            else offer[randomBelow(offer.Count)] = sure;
+            return offer;
+        }
     }
 }

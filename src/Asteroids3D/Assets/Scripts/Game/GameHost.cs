@@ -17,6 +17,7 @@ using Substrate.Presentation;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Elements.Stations;
+using Substrate.Sectors.Factions;
 using Substrate.Sessions;
 using Ships.Loadout;
 using UI;
@@ -42,7 +43,7 @@ namespace Game
     /// Presentation is read once alongside the session's snapshot.
     /// Shutdown finishes the current setup operation, releases input waits, then tears down the owned world.
     /// A fault in the run's coroutine stack is logged, and Shutdown rethrows it instead of tearing down.
-    /// An optional jump profile enables protected travel with the extraction recap and weapon pick held in hyperspace.
+    /// An optional jump profile enables protected travel with the extraction recap held in hyperspace.
     /// The hangar, recap and restart stand in for Home Base and player progress.
     /// https://github.com/amindell11/astronomical-home/issues/295#issuecomment-5787867584
     /// </summary>
@@ -86,7 +87,7 @@ namespace Game
                  "when presentation is off.")]
         [SerializeField] internal DriftCam hangarCameraPrefab;
 
-        [Tooltip("Modules the hangar offers per slot; its weapons are also the sector-break weapon pick's pool. " +
+        [Tooltip("Modules the hangar offers per slot; its weapons are also the armory's weapon pick pool. " +
                  "Null → no hangar choices (the player flies its prefab-authored modules) and no weapon pick.")]
         [SerializeField] internal ItemSubset hangarOffer;
 
@@ -304,6 +305,9 @@ namespace Game
                     var modStations = presentation && lullMods && rigInstance
                         ? session.ActiveSector.Module<ModStation>() : null;
                     var picksOpened = 0;
+                    var armory = presentation && hangarOffer && rigInstance
+                        ? session.ActiveSector.Module<Armory>() : null;
+                    var armoryPicks = 0;
                     var caches = presentation && rigInstance ? session.ActiveSector.Module<BeaconCache>() : null;
                     var cachesClaimed = 0;
                     var closeCalls = rigInstance
@@ -315,6 +319,11 @@ namespace Game
                         {
                             picksOpened++;
                             yield return RunLullPick();
+                        }
+                        if (armory && armory.Claims > armoryPicks)
+                        {
+                            armoryPicks++;
+                            yield return RunWeaponPick(armory, index);
                         }
                         if (caches && caches.Claims > cachesClaimed)
                         {
@@ -421,7 +430,6 @@ namespace Game
                 if (recap != null) yield return recap;
                 if (continued && !shutdownRequested)
                 {
-                    yield return RunWeaponPick(destination);
                     jump.ResumeArrival();
                     RestoreClock();
                 }
@@ -443,29 +451,39 @@ namespace Game
             yield return null;
         }
 
-        // Inside the hyperspace hold: the clock is already stopped and the jump owns controls.
-        private IEnumerator RunWeaponPick(int destination)
+        // Like the lull pick, the clock stops for it; only a taken weapon spends the armory.
+        private IEnumerator RunWeaponPick(Armory armory, int index)
         {
             var weapons = rigInstance.Player.Weapons;
-            if (!hangarOffer || !weapons) yield break;
+            if (!weapons) yield break;
             var primary = weapons.PrimaryMountPrefab;
             var secondary = weapons.SecondaryMountPrefab;
-            var offers = LootOffers.Draw(hangarOffer.weapons, weapon => weapon != primary && weapon != secondary,
-                WeaponPickScreen.MaxOffers, n => UnityEngine.Random.Range(0, n));
+            var faction = session.ActiveSector.Module<SectorFaction>();
+            var offers = LootOffers.DrawWith(hangarOffer.weapons, faction ? faction.Faction.answer : null,
+                weapon => weapon != primary && weapon != secondary, WeaponPickScreen.MaxOffers,
+                n => UnityEngine.Random.Range(0, n));
             if (offers.Count == 0) yield break;
 
-            var spine = sessionProfile.run.Sectors[destination].prefab.Module<PhaseSpineModule>();
-            var screen = WeaponPickScreen.Create(ui, destination + 1, spine ? spine.Threat() : null, offers,
+            PauseClock();
+            rigInstance.SetInputEnabled(false);
+            var spine = session.ActiveSector.Module<PhaseSpineModule>();
+            var screen = WeaponPickScreen.Create(ui, index + 1, spine ? spine.Threat() : null, offers,
                 primary, secondary, rigInstance.Mods);
             try
             {
                 while (!screen.Choice.HasValue && !shutdownRequested) yield return null;
                 if (!shutdownRequested && screen.Choice is int pick && pick != WeaponPickScreen.Skip)
+                {
                     rigInstance.SwapWeapon(offers[pick]);
+                    armory.Take();
+                    moments.Raise(new ArmoryPicked(index + 1, offers[pick]));
+                }
             }
             finally
             {
                 Destroy(screen.gameObject);
+                rigInstance.SetInputEnabled(true);
+                RestoreClock();
             }
         }
 

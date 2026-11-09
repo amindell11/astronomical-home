@@ -37,6 +37,9 @@ MonoBehaviour:
   - moment: mod-pick
     mustSay: 0
     lines: []
+  - moment: armory-pick
+    mustSay: 0
+    lines: []
   - moment: close-call
     mustSay: 0
     lines: []
