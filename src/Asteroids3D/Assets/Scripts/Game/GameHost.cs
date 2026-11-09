@@ -461,7 +461,7 @@ namespace Game
             {
                 while (!screen.Choice.HasValue && !shutdownRequested) yield return null;
                 if (!shutdownRequested && screen.Choice is int pick && pick != WeaponPickScreen.Skip)
-                    rigInstance.SwapWeapon(screen.Slot, offers[pick]);
+                    rigInstance.SwapWeapon(offers[pick]);
             }
             finally
             {

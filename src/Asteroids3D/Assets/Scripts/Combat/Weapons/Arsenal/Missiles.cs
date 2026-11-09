@@ -33,6 +33,7 @@ namespace Combat.Weapons.Arsenal
         public float SplashDamage => projectilePrefab.SplashDamage;
 
         public override ILockStateSource LockSource => targetingComputer;
+        public override bool IsOrdnance => true;
 
         // Missiles are semi-auto: one launch per trigger press, not a held stream.
         public override bool AutoFire => false;

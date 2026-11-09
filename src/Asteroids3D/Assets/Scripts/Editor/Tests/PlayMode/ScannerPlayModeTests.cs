@@ -67,8 +67,8 @@ public class ScannerPlayModeTests : PlayModeWorldFixture
     {
         var rock = new DetectedObstacle(ship.transform.position + GamePlane.PlaneDirToWorld(Vector2.up * 8f), 3f, null);
         ObstacleField.Inner = new StubObstacleField(rock);
-        ship.Reequip(TestAssets.Load<Grenades>(GrenadesPrefabPath), null);
-        var launcher = (Grenades)ship.Weapons.Primary;
+        ship.Reequip(null, TestAssets.Load<Grenades>(GrenadesPrefabPath));
+        var launcher = (Grenades)ship.Weapons.Secondary;
 
         Grenade charge = null;
         launcher.Launched += flight => charge = (Grenade)flight;
