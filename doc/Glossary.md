@@ -967,7 +967,7 @@ Format: **term** — definition. *(authority)*
   - *flank*: circle toward the target's open side, firing once my firing lane
     clears;
   - *stand off*: hold just outside the target's real primary gun range, firing
-    once it turns away;
+    once it turns away and my firing lane is clear;
   - *break off*: flee with guns cold until the shield is back.
 
   A ship picks by *ordered rules*, the first rule that fires winning: break off,

@@ -266,7 +266,8 @@ namespace RL.Opponents
                 Tactic.Flank => Pack(ctx.Self, ArchetypeLaws.OrbitVelocity(in self, them, gunRange, flankSign,
                     shape.speedFraction, maxSpeed), engages: situation.alliesInLane == 0),
                 Tactic.StandOff => Pack(ctx.Self, RangerBrain.HoldRangeVelocity(in self, them,
-                    situation.targetRange + tactics.standOffMargin, speed), engages: !situation.inTargetsCone),
+                    situation.targetRange + tactics.standOffMargin, speed),
+                    engages: !situation.inTargetsCone && situation.alliesInLane == 0),
                 Tactic.BreakOff => Pack(ctx.Self, FleeVelocity(self.pos, speed), engages: false),
                 _ => throw new ArgumentOutOfRangeException(nameof(tactic), tactic, null),
             };
