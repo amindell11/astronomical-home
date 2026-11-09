@@ -29,7 +29,7 @@ namespace Tests.EditMode.Tactics
         [TearDown]
         public void TearDown() => Object.DestroyImmediate(settings);
 
-        // In the target's cone at 15 u; its guns reach 20 u, so the cone alone decides exposure.
+        // 15 u sits inside the target's 20 u guns, so the cone alone decides exposure.
         private static Situation Fight(float shield = Full, float sinceHit = Fresh, int allies = 0,
             bool openSide = false, bool inCone = false) =>
             new(shield, 1f, sinceHit, hasTarget: true, distance: 15f, targetRange: 20f, inTargetsCone: inCone,
@@ -119,7 +119,7 @@ namespace Tests.EditMode.Tactics
         [TestCase(Tactic.AttackRun)]
         public void EveryTactic_HoldsForTheMinimumHold_EvenWithItsReasonGone(Tactic tactic)
         {
-            // A full shield and a clear shot end the other three; an ally in the lane ends the attack run.
+            // A full shield and clear shot end the other three; a lane ally ends the attack run.
             var situation = tactic == Tactic.AttackRun ? Fight(allies: 1) : Fight();
             var otherwise = TacticRules.Next(tactic, 2f, situation, settings);
 
