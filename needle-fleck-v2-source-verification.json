@@ -1,0 +1,115 @@
+{
+  "impactComparisons": [
+    {
+      "name": "TurboLaserImpact",
+      "byteIdentical": true,
+      "sha256": "2881019a9e2aa0f7dc6596eb5ed9fce27073de2ceed9342ac416aa3922c22979"
+    },
+    {
+      "name": "RipperImpact",
+      "byteIdentical": true,
+      "sha256": "f7d43d0fbd9524ad6363802d6a0c1bfe38a7ea2fec7a4d73507fc056f500f42b"
+    }
+  ],
+  "width": 1536,
+  "height": 512,
+  "cells": [
+    {
+      "index": 0,
+      "worldLength": 0.75,
+      "widthScale": 1,
+      "angleDegrees": 0,
+      "brightness": 1,
+      "edgeAlpha": 0,
+      "halfAlphaBounds": {
+        "minX": 109,
+        "maxX": 153,
+        "minY": 33,
+        "maxY": 475
+      },
+      "sha256": "d85696b7762cd15567c289128265047be62c03bdf74d76d1b7ba94b995a17030"
+    },
+    {
+      "index": 1,
+      "worldLength": 0.6000000000000001,
+      "widthScale": 0.94,
+      "angleDegrees": -1.5,
+      "brightness": 0.96,
+      "edgeAlpha": 0,
+      "halfAlphaBounds": {
+        "minX": 107,
+        "maxX": 149,
+        "minY": 77,
+        "maxY": 420
+      },
+      "sha256": "fd81e579c70a6d02e2fca6bf3fcc67ce4918fb534d017952c0e0481320a5c2a6"
+    },
+    {
+      "index": 2,
+      "worldLength": 0.6900000000000001,
+      "widthScale": 1.08,
+      "angleDegrees": 1.2,
+      "brightness": 0.98,
+      "edgeAlpha": 0,
+      "halfAlphaBounds": {
+        "minX": 111,
+        "maxX": 158,
+        "minY": 50,
+        "maxY": 452
+      },
+      "sha256": "43f7cf126f4665d0a63f178c3fe09063d5f830fc63e1fe56d17304edbe4bdb18"
+    },
+    {
+      "index": 3,
+      "worldLength": 0.645,
+      "widthScale": 0.9,
+      "angleDegrees": 2,
+      "brightness": 0.94,
+      "edgeAlpha": 0,
+      "halfAlphaBounds": {
+        "minX": 103,
+        "maxX": 145,
+        "minY": 64,
+        "maxY": 438
+      },
+      "sha256": "dd110938d6a040c27ad125dfb66d2df5e2d962a9ad66f87abab22dc8dbd76b5f"
+    },
+    {
+      "index": 4,
+      "worldLength": 0.72,
+      "widthScale": 1.1,
+      "angleDegrees": -2,
+      "brightness": 0.97,
+      "edgeAlpha": 0,
+      "halfAlphaBounds": {
+        "minX": 102,
+        "maxX": 157,
+        "minY": 41,
+        "maxY": 464
+      },
+      "sha256": "f11e621cbf918ee1b2b8cdbe4245c259471ace40204c7ce8c9ded3bc296c4f8a"
+    },
+    {
+      "index": 5,
+      "worldLength": 0.615,
+      "widthScale": 1.02,
+      "angleDegrees": 0.8,
+      "brightness": 1,
+      "edgeAlpha": 0,
+      "halfAlphaBounds": {
+        "minX": 101,
+        "maxX": 144,
+        "minY": 72,
+        "maxY": 428
+      },
+      "sha256": "91d240be8bdc1f0b5c4c042dbce195364d82f755d6c56c3392675e1508c63d48"
+    }
+  ],
+  "manifestSlug": {
+    "texture": "RipperSlug.png",
+    "frames": 6,
+    "solidLengthFraction": 0.875,
+    "worldLength": 0.75
+  },
+  "uniqueFrames": 6
+}
