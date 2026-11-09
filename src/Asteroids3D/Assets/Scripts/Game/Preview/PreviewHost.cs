@@ -183,7 +183,7 @@ namespace Game.Preview
         // The hangar can rebuild the player, so each player ship the playtest spawns is covered.
         private static void Protect(Ship ship)
         {
-            if (ship.Commander is PlayerCommander) ship.Damage.AlwaysInvulnerable = true;
+            if (ship.Commander as PlayerCommander) ship.Damage.AlwaysInvulnerable = true;
         }
 
         // New rows, so a Locale pick never writes to the run asset.
