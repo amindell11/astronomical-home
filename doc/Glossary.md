@@ -59,7 +59,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | Word | Live senses | Rule |
 |---|---|---|
 | **gate** | merge gate · eval gate (`eval_gate.py`) · gate score · cost gate (fix-ladder rung 3) · go/no-go gate · curriculum lesson gate · anti-churn gate · scoping gate · owner's gate (a ship art stage approval) · "gated off" code conditionals | Always qualified. Bare "the gate" is legal only in pool-merge context (= merge gate) and RL-run context (= eval gate), and never in a title. |
-| **lane** | boot lane · remote lane (the second Unity box, `remote_lane.sh`) · harness lane · curriculum lane · watch/capture lane · audit lane · teacher-tuning lane · access-queue lane · firing lane (lane clearing) · decision lane (nav / fire / ability — the three seams a `BrainDecision` carries) · LANE slot (the MPC sentence term, always caps) | Always qualified. |
+| **lane** | boot lane · remote lane (the second Unity box, `remote_lane.sh`) · harness lane · curriculum lane · watch/capture lane · audit lane · teacher-tuning lane · access-queue lane · firing lane (lane clearing; a situation's allies in lane) · decision lane (nav / fire / ability — the three seams a `BrainDecision` carries) · LANE slot (the MPC sentence term, always caps) | Always qualified. |
 | **pool** | worktree pool · ship resource pool (`PoolDifferential`) · self-play snapshot pool · object pool (`SimplePool`) · Dev Pool issue labels (`mid-dev-pool`/`high-dev-pool`, ex-board columns) | Always qualified. |
 | **token** | bus/signal token · obs obstacle token (`ObstacleTokenCap`) · threat token · LLM context token | Always qualified. |
 | **term** | intent/cost term (a weighted sentence-slot cost the MPC solves — #485) · activation term (`ActivationTerm`, the AND-ed predicate atoms of sector activation rules) · reward term (a `RewardSpec` component, e.g. the reward spine's outcome term) | Always qualified. An intent-grammar doc may read bare "term" = intent/cost term only after declaring the carve-out (Stage A brief precedent). |
@@ -968,6 +968,17 @@ Format: **term** — definition. *(authority)*
   rather than synonyms.
   ⚠ Not to be confused with `PilotCommand`/`IPilot`, which are the actuator end.
   *(Brain, BrainDecision)*
+- **tactic**. What a ship picks to fight with: attack run, flank, stand off or
+  break off. A ship picks for its own sake, the best shot for the least risk,
+  and never knows it paces the player. "Beat" is the retired name. Owner rulings
+  on #1349. Every setting of the brain that picks tactics lives on one asset.
+  *(TacticsSettings)*
+- **situation**. What one ship reads about its fight before it picks a tactic,
+  from its own sensors only. The owner's picks on #1349: allies count by where
+  they are, never by asking another ship's brain, so the elite counts whatever it
+  flies; *exposed* means inside the target's real primary gun range and its
+  exposure cone, never a fixed distance; the hit clock on `AIContext` is the only
+  state kept between reads. Not the retired *exposure arc*. *(Situation.Read)*
 - **presentation** — the per-session axis deciding whether visuals and audio
   exist. Two things a reader needs: it is applied by the owning spawn seams,
   never by per-component globals; and it is **not** the same axis as the deleted

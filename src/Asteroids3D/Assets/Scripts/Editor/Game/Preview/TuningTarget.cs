@@ -19,7 +19,7 @@ namespace Game.Preview
             new EliteTarget("Sector 2 elite", PreviewEntry.Sector2Elite,
                 "Assets/Prefabs/Sectors/Preview/EliteSector2.prefab"),
             new EliteTarget("Boss", PreviewEntry.Boss, "Assets/Prefabs/Sectors/Preview/BossSector.prefab"),
-            new CompanionTarget()
+            new CompanionTarget(), new TacticsTarget()
         };
 
         public abstract string Name { get; }

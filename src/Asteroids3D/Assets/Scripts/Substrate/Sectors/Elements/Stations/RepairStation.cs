@@ -5,16 +5,15 @@ using Balance;
 using Objectives;
 using Ships;
 using Substrate.Sectors.Elements.Hunt;
-using Substrate.Sectors.Elements.Placement;
 using Substrate.Services.Objectives;
 using UnityEngine;
 
 namespace Substrate.Sectors.Elements.Stations
 {
     /// <summary>
-    /// A sector's repair stations: the authored body plus copies of it, as many as the feel asks for. On the
-    /// first tick each moves to its own clear point away from the hero's start, spaced from the others, and
-    /// shows, marked as a find (its minimap marker in range, an edge pointer out of it) until it goes dark.
+    /// A sector's repair stations: the authored body plus copies of it, as many as the feel asks for. At setup
+    /// each picks its own point away from the sector's start, spaced from the others; the asteroid field reads
+    /// those points and leaves a clearing of the station's clear radius. On the first tick each shows, marked as a find (its minimap marker in range, an edge pointer out of it) until it goes dark.
     /// While the hero sits in one it restores hull at the feel's rate from that station's supply, which drains
     /// only by what it heals, and the station goes dark (glow and minimap marker off) when its supply is spent,
     /// or when the sector's hunt raises its alarm, losing whatever supply is left. A sector with no hunt keeps
@@ -42,10 +41,9 @@ namespace Substrate.Sectors.Elements.Stations
         [SerializeField, Min(0f)] private float distanceMax = 180f;
         [Tooltip("Least plane distance between two of the sector's stations.")]
         [SerializeField, Min(0f)] private float spacing = 60f;
-        [Tooltip("A candidate point with an asteroid within this radius is passed over.")]
-        [SerializeField, Min(0f)] private float clearanceRadius = 35f;
-        [SerializeField] private LayerMask asteroidMask = 1 << 8;
-        [Tooltip("Random points tried; the last one tried is used when none is clear.")]
+        [Tooltip("Plane radius around each station the asteroid field leaves empty.")]
+        [SerializeField, Min(0f)] private float clearRadius = 35f;
+        [Tooltip("Random points tried; the last one tried is used when none is spaced.")]
         [SerializeField, Min(1)] private int placementAttempts = 8;
 
         private readonly List<Station> stations = new();
@@ -53,7 +51,7 @@ namespace Substrate.Sectors.Elements.Stations
         private Ship hero;
         private IObjectiveService objectives;
         private int sectorIndex;
-        private bool placed;
+        private bool shown;
 
         /// <summary>The hero reached a station for the first time: station kind, sector index.</summary>
         public event Action<StationKind, int> Arrived;
@@ -65,23 +63,29 @@ namespace Substrate.Sectors.Elements.Stations
 
         public IReadOnlyList<Station> Stations => stations;
 
+        public float ClearRadius => clearRadius;
+
         public override IEnumerator Setup(SectorBuildContext ctx)
         {
-            if (!feel || !zone || !body || !lit || !icon || ctx.Objectives == null
+            if (!feel || !zone || !body || !lit || !icon || ctx.Objectives == null || !ctx.Sector
                 || !zone.transform.IsChildOf(body.transform) || !lit.transform.IsChildOf(body.transform))
                 throw new InvalidOperationException(
-                    $"RepairStation on '{name}' needs its feel profile, icon, objective service, body, and a zone and lit parts under the body.");
+                    $"RepairStation on '{name}' needs its feel profile, icon, objective service, sector, body, and a zone and lit parts under the body.");
 
             hero = ctx.Hero;
             objectives = ctx.Objectives;
             sectorIndex = ctx.SectorIndex;
-            placed = false;
+            shown = false;
             ClearStations();
             body.SetActive(false);
+            var taken = new List<Vector3>(feel.stationsPerSector);
             for (var i = 0; i < feel.stationsPerSector; i++)
             {
                 var station = i == 0 ? new Station(body, zone, lit) : Copy();
-                station.Reset(feel.supply, hero);
+                var point = SpacedPoint.Around(ctx.Sector.StartPoint, distanceMin, distanceMax, placementAttempts,
+                    taken, spacing);
+                taken.Add(point);
+                station.Reset(feel.supply, hero, point);
                 stations.Add(station);
             }
             yield break;
@@ -104,9 +108,9 @@ namespace Substrate.Sectors.Elements.Stations
 
         private void Tick(float deltaTime)
         {
-            if (!placed)
+            if (!shown)
             {
-                Place();
+                Show();
                 return;
             }
 
@@ -131,18 +135,11 @@ namespace Substrate.Sectors.Elements.Stations
             }
         }
 
-        private void Place()
+        private void Show()
         {
-            var start = GamePlane.WorldPointToPlane(hero.transform.position);
-            var taken = new List<Vector3>(stations.Count);
             foreach (var station in stations)
-            {
-                var point = ClearPoint.Around(start, distanceMin, distanceMax, clearanceRadius, asteroidMask,
-                    placementAttempts, taken, spacing);
-                taken.Add(point);
-                station.Show(point, objectives.MarkFind(station.Body.transform, icon));
-            }
-            placed = true;
+                station.Show(objectives.MarkFind(station.Body.transform, icon));
+            shown = true;
         }
 
         private Station Copy()
@@ -193,10 +190,12 @@ namespace Substrate.Sectors.Elements.Stations
 
             public bool Spent => SupplyLeft <= 0f;
 
-            public Vector3 Position => Body.transform.position;
+            /// <summary>The point picked at setup; the body moves there when it shows.</summary>
+            public Vector3 Position { get; private set; }
 
-            internal void Reset(float supply, Ship hero)
+            internal void Reset(float supply, Ship hero, Vector3 position)
             {
+                Position = position;
                 SupplyLeft = supply;
                 HasArrived = false;
                 Zone.BindPlayer(hero ? hero.Body : null);
@@ -205,9 +204,9 @@ namespace Substrate.Sectors.Elements.Stations
                 Lit.SetActive(true);
             }
 
-            internal void Show(Vector3 position, FindMarker marker)
+            internal void Show(FindMarker marker)
             {
-                Body.transform.position = position;
+                Body.transform.position = Position;
                 Body.SetActive(true);
                 Zone.Arm();
                 find = marker;

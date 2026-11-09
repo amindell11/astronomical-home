@@ -149,7 +149,7 @@ public class ObstacleFieldQueryPlayModeTests : PlayModeWorldFixture
         var clearingA = new Vector2(30f, 0f);
         var clearingB = new Vector2(-40f, 25f);
         const float radius = 25f;
-        field.SetExclusionVolumes(new[]
+        field.SetExclusionVolumes(() => new[]
         {
             new Asteroids.Fields.Core.ExclusionVolume { Center = clearingA, Radius = radius },
             new Asteroids.Fields.Core.ExclusionVolume { Center = clearingB, Radius = radius },
