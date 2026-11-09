@@ -4,6 +4,7 @@ using Combat.Weapons;
 using Combat.Weapons.Mods;
 using Loot;
 using Ships.Command;
+using Ships.Weapons;
 using Substrate.Sectors.Elements;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -12,10 +13,10 @@ using UnityEngine.UI;
 namespace UI.Screens
 {
     /// <summary>
-    /// The sector-break weapon pick's uGUI, in two steps: up to three weapon cards, each with the held
-    /// mods it would use, then the mount it replaces, each with the held mods that swap would idle. The
-    /// next sector's ships and weapons head the screen. Keyed (1, 2, 3, Space) and clickable, answered
-    /// through <see cref="Choice"/> and <see cref="Slot"/>; the host holds the clock and applies the swap.
+    /// The sector-break weapon pick's uGUI: up to three cards, each naming the mount it replaces (the one
+    /// in the slot its kind fills), the held mods it would use and the held mods the swap would idle.
+    /// The next sector's ships and weapons head the screen. Keyed (1, 2, 3, Space) and clickable,
+    /// answered through <see cref="Choice"/>; the host holds the clock and applies the swap.
     /// How it was ruled to read: https://github.com/amindell11/astronomical-home/issues/1224#issuecomment-6475710068
     /// </summary>
     public sealed class WeaponPickScreen : MonoBehaviour
@@ -35,10 +36,10 @@ namespace UI.Screens
         private static readonly string[] Keys = { "<Keyboard>/1", "<Keyboard>/2", "<Keyboard>/3" };
         private static readonly string[] PadButtons =
             { "<Gamepad>/buttonWest", "<Gamepad>/buttonNorth", "<Gamepad>/buttonEast" };
-        private static readonly WeaponSlot[] Slots = { WeaponSlot.Primary, WeaponSlot.Secondary };
         private const float CardWidth = 300f;
-        private const float CardHeight = 190f;
+        private const float CardHeight = 228f;
         private const float CardGap = 24f;
+        private const float CardsY = -16f;
 
         private readonly List<InputAction> actions = new();
         private Font font;
@@ -46,15 +47,9 @@ namespace UI.Screens
         private WeaponComponent primary;
         private WeaponComponent secondary;
         private LullModStack mods;
-        private RectTransform offerStep;
-        private RectTransform mountStep;
-        private int? offered;
 
         /// <summary>Null until answered; then the picked offer's index, or <see cref="Skip"/>.</summary>
         public int? Choice { get; private set; }
-
-        /// <summary>The mount the picked offer replaces; meaningful once <see cref="Choice"/> holds an offer.</summary>
-        public WeaponSlot Slot { get; private set; }
 
         public static WeaponPickScreen Create(Transform parent, int sector, SectorThreat? threat,
             IReadOnlyList<WeaponComponent> offers, WeaponComponent primary, WeaponComponent secondary,
@@ -86,32 +81,10 @@ namespace UI.Screens
         {
             if (index < 0 || index >= offers.Count)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Not an offered card.");
-            if (Choice.HasValue || offered.HasValue) return;
-            offered = index;
-            BuildMountStep(offers[index]);
-            offerStep.gameObject.SetActive(false);
+            Choice ??= index;
         }
 
-        public void ChooseSlot(WeaponSlot slot)
-        {
-            if (Choice.HasValue || !offered.HasValue) return;
-            Slot = slot;
-            Choice = offered;
-        }
-
-        public void SkipOrBack()
-        {
-            if (Choice.HasValue) return;
-            if (!offered.HasValue)
-            {
-                Choice = Skip;
-                return;
-            }
-            offered = null;
-            Destroy(mountStep.gameObject);
-            mountStep = null;
-            offerStep.gameObject.SetActive(true);
-        }
+        public void ChooseSkip() => Choice ??= Skip;
 
         private void Awake() => font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
@@ -140,47 +113,32 @@ namespace UI.Screens
                     "WEAPONS   " + Names(sends.Weapons, weapon => weapon.DisplayName), 13, Ink, TextAnchor.MiddleCenter);
             }
 
-            offerStep = Centered(transform, "Offers", 0f, 0f, 0f);
-            Label(Centered(offerStep, "Hint", 600f, 20f, 120f), "PICK A WEAPON: CLICK A CARD OR PRESS ITS KEY", 12,
+            var offerRow = Centered(transform, "Offers", 0f, 0f, 0f);
+            Label(Centered(offerRow, "Hint", 600f, 20f, 120f), "PICK A WEAPON: CLICK A CARD OR PRESS ITS KEY", 12,
                 Muted, TextAnchor.MiddleCenter);
             var count = offers.Count;
-            var cards = Centered(offerStep, "Cards", count * CardWidth + (count - 1) * CardGap, CardHeight, 0f);
+            var cards = Centered(offerRow, "Cards", count * CardWidth + (count - 1) * CardGap, CardHeight, CardsY);
             for (var i = 0; i < count; i++)
                 BuildOfferCard(cards, i, offers[i]);
-            BuildKeyButton(Centered(offerStep, "Skip", 216f, 38f, -CardHeight / 2f - 44f), "SKIP", SkipOrBack);
+            BuildKeyButton(Centered(offerRow, "Skip", 216f, 38f, CardsY - CardHeight / 2f - 44f), "SKIP", ChooseSkip);
         }
 
         private void BuildOfferCard(RectTransform cards, int index, WeaponComponent weapon)
         {
+            var fillsWeaponSlot = WeaponsController.SlotFor(weapon) == WeaponSlot.Primary;
+            var replaced = fillsWeaponSlot ? primary : secondary;
+            var kept = fillsWeaponSlot ? secondary : primary;
             var card = Card(cards, $"Card{index + 1}", index, index + 1, weapon.DisplayName, () => ChooseOffer(index));
-            Label(Box(card, "UsesLabel", 18, 76, 264, 18), "USES YOUR MODS", 11, Muted);
+            Label(Box(card, "Replaces", 18, 66, 264, 18),
+                "REPLACES  " + (replaced ? replaced.DisplayName.ToUpperInvariant() : "EMPTY"), 11, Muted);
+            Label(Box(card, "UsesLabel", 18, 92, 264, 18), "USES YOUR MODS", 11, Muted);
             var uses = mods.Using(weapon);
-            Label(Box(card, "Uses", 18, 98, 264, 76), uses.Count == 0 ? "NONE" : Names(uses, held => held.Label), 14,
+            Label(Box(card, "Uses", 18, 112, 264, 36), uses.Count == 0 ? "NONE" : Names(uses, held => held.Label), 14,
                 uses.Count == 0 ? Muted : Gain, TextAnchor.UpperLeft);
-        }
-
-        private void BuildMountStep(WeaponComponent weapon)
-        {
-            mountStep = Centered(transform, "Mount", 0f, 0f, 0f);
-            Label(Centered(mountStep, "Hint", 600f, 20f, 120f),
-                $"MOUNT {weapon.DisplayName.ToUpperInvariant()}: CLICK A SLOT OR PRESS ITS KEY", 12, Muted,
-                TextAnchor.MiddleCenter);
-            var cards = Centered(mountStep, "Cards", 2 * CardWidth + CardGap, CardHeight, 0f);
-            for (var i = 0; i < Slots.Length; i++)
-            {
-                var slot = Slots[i];
-                var replaced = slot == WeaponSlot.Primary ? primary : secondary;
-                var kept = slot == WeaponSlot.Primary ? secondary : primary;
-                var name = slot == WeaponSlot.Primary ? "PRIMARY · LEFT MOUSE" : "SECONDARY · RIGHT MOUSE";
-                var card = Card(cards, $"Card{i + 1}", i, i + 1, name, () => ChooseSlot(slot));
-                Label(Box(card, "Replaces", 18, 76, 264, 18),
-                    "REPLACES  " + (replaced ? replaced.DisplayName.ToUpperInvariant() : "EMPTY"), 11, Muted);
-                Label(Box(card, "IdleLabel", 18, 102, 264, 18), "GOES IDLE", 11, Muted);
-                var idles = mods.IdledBy(replaced, weapon, kept);
-                Label(Box(card, "Idles", 18, 122, 264, 52), idles.Count == 0 ? "NOTHING" : Names(idles, held => held.Label),
-                    14, idles.Count == 0 ? Muted : Loss, TextAnchor.UpperLeft);
-            }
-            BuildKeyButton(Centered(mountStep, "Back", 216f, 38f, -CardHeight / 2f - 44f), "BACK", SkipOrBack);
+            Label(Box(card, "IdleLabel", 18, 156, 264, 18), "GOES IDLE", 11, Muted);
+            var idles = mods.IdledBy(replaced, weapon, kept);
+            Label(Box(card, "Idles", 18, 176, 264, 36), idles.Count == 0 ? "NOTHING" : Names(idles, held => held.Label),
+                14, idles.Count == 0 ? Muted : Loss, TextAnchor.UpperLeft);
         }
 
         private RectTransform Card(RectTransform cards, string name, int column, int key, string title, Action pick)
@@ -232,7 +190,6 @@ namespace UI.Screens
             button.onClick.AddListener(() => press());
         }
 
-        // One action per key across both steps, so a step-changing press never repeats.
         private void BindKeys()
         {
             for (var i = 0; i < Keys.Length; i++)
@@ -245,21 +202,16 @@ namespace UI.Screens
                 actions.Add(action);
             }
 
-            var space = new InputAction("SkipOrBack", InputActionType.Button, "<Keyboard>/space");
+            var space = new InputAction("Skip", InputActionType.Button, "<Keyboard>/space");
             space.AddBinding("<Gamepad>/buttonSouth");
-            space.performed += _ => SkipOrBack();
+            space.performed += _ => ChooseSkip();
             space.Enable();
             actions.Add(space);
         }
 
         private void PressKey(int index)
         {
-            if (!offered.HasValue)
-            {
-                if (index < offers.Count) ChooseOffer(index);
-                return;
-            }
-            if (index < Slots.Length) ChooseSlot(Slots[index]);
+            if (index < offers.Count) ChooseOffer(index);
         }
 
         private static string Names<T>(IReadOnlyList<T> items, Func<T, string> name)

@@ -7,6 +7,8 @@ using Balance;
 using Damage;
 using Ships;
 using Ships.Loadout;
+using Ships.Presentation;
+using Substrate.Sectors.Elements.Placement;
 using Substrate.Sectors.Factions;
 using Substrate.Services.Units;
 using UnityEngine;
@@ -17,12 +19,14 @@ namespace Substrate.Sectors.Elements.Hunt
     public enum HuntAlarmReason { Patrol, SearchClock }
 
     /// <summary>
-    /// A sector's opening hunt. Patrols spawn on clear points away from the hero and roam with their scouts
-    /// unaware, so they acquire no enemy and hold fire. A patrol that sees the hero (inside the sight radius,
-    /// no asteroid in between, not concealed) or is hit by it starts calling the hero in; the alarm sounds when
-    /// a call-in runs out, or when the search clock does, and a patrol killed first cancels its call-in. At the
-    /// alarm every live patrol's scout wakes, so it fights like a wave ship. The wave director holds its
-    /// opening lull until <see cref="Alarmed"/>. The events are plain C#, for listeners outside the sector.
+    /// A sector's opening hunt. Patrols spawn on clear points away from the hero and fly a looped route past
+    /// the hero's start, through the sector center and back, their scouts unaware, so they acquire no enemy and
+    /// hold fire. A patrol that sees the hero (inside the sight radius, no asteroid in between, not concealed)
+    /// or is hit by it starts calling the hero in, its minimap marker pulsing; the alarm sounds when a call-in
+    /// runs out, or when the search clock does, and a patrol killed first cancels its call-in. At the alarm
+    /// every live patrol leaves its route and its scout wakes, so it fights like a wave ship. The wave director
+    /// holds its opening lull until <see cref="Alarmed"/> and counts <see cref="LivePatrols"/> against its cap.
+    /// The events are plain C#, for listeners outside the sector.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1319
     /// </summary>
     public class SectorHunt : SectorSpawner
@@ -32,7 +36,6 @@ namespace Substrate.Sectors.Elements.Hunt
         [Tooltip("The sector's faction: every patrol flies its common ship, on its kit and in its skin.")]
         [Stat, SerializeField] private SectorFaction faction;
         [Stat, SerializeField] private AICommander patrolPilot;
-        [Stat, SerializeField, Min(0)] private int patrolCount = 1;
         [SerializeField] private int team = 1;
 
         [Header("Placement")]
@@ -51,7 +54,9 @@ namespace Substrate.Sectors.Elements.Hunt
         private IUnitService units;
         private IObstacleField field;
         private Ship hero;
+        private Sector sector;
         private int sectorIndex;
+        private int patrolCount;
         private bool started;
         private float startTime;
 
@@ -66,6 +71,8 @@ namespace Substrate.Sectors.Elements.Hunt
 
         public bool Alarmed { get; private set; }
 
+        public int LivePatrols => patrols.Count;
+
         public float SearchSecondsLeft { get; private set; }
 
         /// <summary>The soonest call-in's seconds to the alarm; null while no patrol is calling.</summary>
@@ -76,13 +83,20 @@ namespace Substrate.Sectors.Elements.Hunt
             products.Clear();
             patrols.Clear();
             Spawned = products;
-            if (!feel || patrolCount > 0 && (!faction || !patrolPilot))
+            if (!feel)
+                throw new InvalidOperationException($"SectorHunt on '{name}' needs its feel profile.");
+            if (ctx.SectorIndex < 0 || ctx.SectorIndex >= feel.patrolsPerSector.Length)
                 throw new InvalidOperationException(
-                    $"SectorHunt on '{name}' needs its feel profile, and a faction and patrol pilot when it spawns patrols.");
+                    $"'{feel.name}' lists patrols for {feel.patrolsPerSector.Length} sectors, not for sector {ctx.SectorIndex}.");
+            patrolCount = feel.patrolsPerSector[ctx.SectorIndex];
+            if (patrolCount > 0 && (!faction || !patrolPilot || !ctx.Sector))
+                throw new InvalidOperationException(
+                    $"SectorHunt on '{name}' needs a faction, patrol pilot and sector when it spawns patrols.");
 
             units = ctx.Units;
             field = ctx.Field;
             hero = ctx.Hero;
+            sector = ctx.Sector;
             sectorIndex = ctx.SectorIndex;
             started = false;
             Alarmed = false;
@@ -93,9 +107,14 @@ namespace Substrate.Sectors.Elements.Hunt
 
         protected override IEnumerator OnTeardown(SectorBuildContext ctx)
         {
-            foreach (var patrol in patrols) patrol.Ship.Damage.OnDamaged -= patrol.OnDamaged;
+            foreach (var patrol in patrols)
+            {
+                patrol.Ship.Damage.OnDamaged -= patrol.OnDamaged;
+                patrol.Release();
+            }
             patrols.Clear();
             hero = null;
+            sector = null;
             var teardown = base.OnTeardown(ctx);
             while (teardown.MoveNext()) yield return teardown.Current;
             products.Clear();
@@ -121,6 +140,7 @@ namespace Substrate.Sectors.Elements.Hunt
             DespawnDead();
             if (Alarmed) return;
 
+            foreach (var patrol in patrols) patrol.FlyRoute(feel.routeSpeed, feel.arrivalRadius);
             foreach (var patrol in patrols)
                 if (!patrol.CallingIn && Sees(patrol.Ship)) BeginCallIn(patrol, now);
 
@@ -152,6 +172,7 @@ namespace Substrate.Sectors.Elements.Hunt
         private void BeginCallIn(Patrol patrol, float now)
         {
             patrol.CallInEndsAt = now + feel.callInSeconds;
+            if (patrol.Rig) patrol.Rig.PulseMinimapMarker(true);
             PatrolSpotted?.Invoke(sectorIndex, patrol.Ship);
         }
 
@@ -159,7 +180,11 @@ namespace Substrate.Sectors.Elements.Hunt
         {
             Alarmed = true;
             CallInSecondsLeft = null;
-            foreach (var patrol in patrols) patrol.Scout.Unaware = false;
+            foreach (var patrol in patrols)
+            {
+                patrol.Release();
+                patrol.Scout.Unaware = false;
+            }
             AlarmRaised?.Invoke(sectorIndex, reason, caller);
         }
 
@@ -171,11 +196,15 @@ namespace Substrate.Sectors.Elements.Hunt
                 var angle = UnityEngine.Random.Range(0f, 2f * Mathf.PI);
                 var heading = GamePlane.PlaneDirToWorld(new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)));
                 var patrolShip = faction.Faction.common.ship;
-                var ship = units.SpawnShip(patrolShip, patrolPilot, team, ClearPointAround(center),
+                var position = ClearPoint.Around(center, spawnDistanceMin, spawnDistanceMax, clearanceRadius,
+                    asteroidMask, placementAttempts);
+                var ship = units.SpawnShip(patrolShip, patrolPilot, team, position,
                     GamePlane.PlanePose(GamePlane.Normal, heading), field,
                     new ShipLoadout(patrolShip, faction.Faction.KitFor(patrolShip), null));
                 faction.Faction.Dress(patrolShip, ship, elite: false);
-                var patrol = new Patrol(ship, ((AICommander)ship.Commander).Scout);
+                var route = PatrolRoute.Waypoints(center, GamePlane.WorldPointToPlane(sector.transform.position),
+                    GamePlane.WorldPointToPlane(position), feel.routeStartPass);
+                var patrol = new Patrol(ship, (AICommander)ship.Commander, route);
                 patrol.Scout.Unaware = true;
                 patrol.OnDamaged = hit =>
                 {
@@ -186,19 +215,6 @@ namespace Substrate.Sectors.Elements.Hunt
                 patrols.Add(patrol);
                 products.Add(ship);
             }
-        }
-
-        private Vector3 ClearPointAround(Vector2 center)
-        {
-            var position = Vector3.zero;
-            for (var attempt = 0; attempt < placementAttempts; attempt++)
-            {
-                var angle = UnityEngine.Random.Range(0f, 2f * Mathf.PI);
-                var distance = UnityEngine.Random.Range(spawnDistanceMin, spawnDistanceMax);
-                position = GamePlane.PlanePointToWorld(center + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * distance);
-                if (!Physics.CheckSphere(position, clearanceRadius, asteroidMask)) break;
-            }
-            return position;
         }
 
         private void DespawnDead()
@@ -212,6 +228,7 @@ namespace Substrate.Sectors.Elements.Hunt
                 products.Remove(ship);
                 if (!ship) continue;
                 ship.Damage.OnDamaged -= patrol.OnDamaged;
+                patrol.Release();
                 if (!Alarmed) PatrolSilenced?.Invoke(sectorIndex, ship);
                 units.DespawnShip(ship);
             }
@@ -220,27 +237,47 @@ namespace Substrate.Sectors.Elements.Hunt
         private sealed class Patrol
         {
             public readonly Ship Ship;
+            public readonly AICommander Commander;
             public readonly Scout Scout;
+            // A presentation-less ship has no rig, or a dark one: nothing pulses.
+            public readonly ShipVisualRig Rig;
+            private readonly Vector2[] route;
+            private int leg;
             public Action<AppliedDamage> OnDamaged;
             public float CallInEndsAt = float.PositiveInfinity;
 
-            public Patrol(Ship ship, Scout scout)
+            public Patrol(Ship ship, AICommander commander, Vector2[] route)
             {
                 Ship = ship;
-                Scout = scout;
+                Commander = commander;
+                Scout = commander.Scout;
+                Rig = ship.VisualRig;
+                this.route = route;
             }
 
             public bool CallingIn => !float.IsPositiveInfinity(CallInEndsAt);
+
+            public void FlyRoute(float speed, float arrivalRadius)
+            {
+                var here = GamePlane.WorldPointToPlane(Ship.transform.position);
+                if ((route[leg] - here).sqrMagnitude <= arrivalRadius * arrivalRadius) leg = (leg + 1) % route.Length;
+                Commander.SteerTo(route[leg], speed);
+            }
+
+            public void Release()
+            {
+                Commander.ClearSteer();
+                if (Rig) Rig.PulseMinimapMarker(false);
+            }
         }
 
 #if UNITY_EDITOR
-        internal void Configure(HuntFeelProfile feel, SectorFaction faction, AICommander patrolPilot, int patrolCount,
+        internal void Configure(HuntFeelProfile feel, SectorFaction faction, AICommander patrolPilot,
             float spawnDistance)
         {
             this.feel = feel;
             this.faction = faction;
             this.patrolPilot = patrolPilot;
-            this.patrolCount = patrolCount;
             spawnDistanceMin = spawnDistanceMax = spawnDistance;
         }
 #endif

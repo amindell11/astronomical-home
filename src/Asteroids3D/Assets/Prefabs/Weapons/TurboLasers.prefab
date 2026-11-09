@@ -10,6 +10,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8301958025146036882, guid: a17b4473baa216a4eba58800a76acfc3,
         type: 3}
+      propertyPath: dualFire
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8301958025146036882, guid: a17b4473baa216a4eba58800a76acfc3,
+        type: 3}
       propertyPath: ventTo
       value: 0
       objectReference: {fileID: 0}

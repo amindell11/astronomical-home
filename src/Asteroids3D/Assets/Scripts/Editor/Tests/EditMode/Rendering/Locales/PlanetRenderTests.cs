@@ -152,11 +152,11 @@ namespace Tests.EditMode.Rendering.Locales
                 "Looking away from a fixed sphere must remove it from view.");
         }
 
-        [TestCase(6)]
-        [TestCase(7)]
-        public void OrdinaryTravelKeepsPlanetBetweenDistantLayersAndForegroundAndReturns(int number)
+        [TestCase("VerdantGiant")]
+        [TestCase("BlueCrescent")]
+        public void OrdinaryTravelKeepsPlanetBetweenDistantLayersAndForegroundAndReturns(string locale)
         {
-            var folder = $"Assets/Visuals/Locales/Sky/Locales/Locale_{number}/";
+            var folder = $"Assets/Visuals/Locales/Sky/Locales/{locale}/";
             Object.DestroyImmediate(material);
             material = new Material(AssetDatabase.LoadAssetAtPath<Material>(folder + "Planet.mat"));
             var initial = Render(Color.clear, cameraZ: -100);

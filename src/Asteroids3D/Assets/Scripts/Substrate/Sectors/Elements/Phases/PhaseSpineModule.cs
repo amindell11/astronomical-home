@@ -18,8 +18,8 @@ namespace Substrate.Sectors.Elements.Phases
     /// point away from the hero. The hero's jump request inside commits extraction. Shortly before a
     /// sector phase that a lull follows ends, a lull beacon opens on a clear point away from the hero
     /// the same way and stays through the lull and a grace window into the next phase; flying into it
-    /// claims that lull's pick (<see cref="BeaconClaimed"/>, read by the host), and an unclaimed one
-    /// closes when its grace runs out or the next beacon opens. While the sector's hunt runs, the HUD's
+    /// claims it (<see cref="BeaconClaimed"/>), and an unclaimed one closes when its grace runs out or
+    /// the next beacon opens. While the sector's hunt runs, the HUD's
     /// countdown reads the hunt instead. The director and the hunt are held to observe, never commanded.
     /// With an elite wired, the phases' end summons the elite instead, and extraction opens on its
     /// death; the spine owns the elite encounter and drives it.
@@ -69,7 +69,7 @@ namespace Substrate.Sectors.Elements.Phases
 
         public IEliteStatus Elite => elite ? elite : null;
 
-        /// <summary>True from a lull beacon's claim until the next opens; the host picks on its rising edge.</summary>
+        /// <summary>True from a lull beacon's claim until the next opens.</summary>
         public bool BeaconClaimed { get; private set; }
 
         /// <summary>What this sector's director can send, readable off the sector prefab before it loads.</summary>

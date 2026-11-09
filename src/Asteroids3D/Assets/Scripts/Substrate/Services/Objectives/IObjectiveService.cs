@@ -37,6 +37,14 @@ namespace Substrate.Services.Objectives
 
         IReadOnlyList<LocalObjectiveHandle> Locals { get; }
 
+        FindMarker MarkFind(Transform target, Sprite icon);
+
+        IReadOnlyList<FindMarker> Finds { get; }
+
+        SectorBoost ShowBoost(string label, float endsAt);
+
+        IReadOnlyList<SectorBoost> Boosts { get; }
+
         void ClearAll();
     }
 }

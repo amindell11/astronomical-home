@@ -25,5 +25,5 @@ MonoBehaviour:
   maxLead: 20
   leadSmoothTime: 0.8
   cursorLead: 6
-  cursorDeadZone: 0.2
+  cursorDeadZone: 0.4
   cursorLeadSmoothTime: 0.4

@@ -1,7 +1,11 @@
 using Game;
 using Substrate.Sectors;
+using Substrate.Services.Locales;
+using Substrate.Services.Objectives;
+using Substrate.Services.Units;
 using Substrate.Sessions;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 
 namespace Tests.EditMode
@@ -9,6 +13,40 @@ namespace Tests.EditMode
     [Category("Bootstrap")]
     public class SessionContractsEditModeTests
     {
+        private const string SectorPath = "Assets/Prefabs/Sectors/TrialSector.prefab";
+        private const string LocalePath = "Assets/Prefabs/Locales/IllustratedBlue.prefab";
+        private const string OtherLocalePath = "Assets/Prefabs/Locales/CoralSunset.prefab";
+
+        private GameObject owner;
+        private SectorRun run;
+
+        [TearDown]
+        public void TearDown()
+        {
+            if (owner) Object.DestroyImmediate(owner);
+            if (run) Object.DestroyImmediate(run);
+        }
+
+        private void Construct(SectorEntry second, bool presentation) =>
+            Construct(presentation, System.Array.Empty<LocaleSky>(), NamedRow(), second);
+
+        // A throw at construction precedes the session scene, so edit mode can host it.
+        private void Construct(bool presentation, LocaleSky[] pool, params SectorEntry[] rows)
+        {
+            owner = new GameObject("Session owner");
+            run = SectorRun.Create(pool, rows);
+            _ = new Session(new SessionProfile { run = run, presentation = presentation }, owner,
+                owner.AddComponent<UnitService>(), owner.AddComponent<ObjectiveService>());
+        }
+
+        private static SectorEntry NamedRow() => new() { prefab = SectorPrefab(), locale = Locale(LocalePath) };
+
+        private static SectorEntry RandomRow() => new() { prefab = SectorPrefab(), random = true };
+
+        private static Sector SectorPrefab() => AssetDatabase.LoadAssetAtPath<Sector>(SectorPath);
+
+        private static LocaleSky Locale(string path) => AssetDatabase.LoadAssetAtPath<LocaleSky>(path);
+
         [Test]
         public void ISector_DeclaresItsLifecycleMembers()
         {
@@ -16,12 +54,37 @@ namespace Tests.EditMode
                 Assert.IsNotNull(typeof(ISector).GetMethod(name), $"ISector must declare {name}");
         }
 
-        [Test]
-        public void SectorSettings_HasExpectedProperties()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Session_RefusesARunRowWithNoSector(bool presentation)
         {
-            var type = typeof(SectorSettings);
-            Assert.IsNotNull(type.GetProperty("DisplayName"), "Must have DisplayName");
-            Assert.IsNotNull(type.GetProperty("DifficultySeed"), "Must have DifficultySeed");
+            var row = new SectorEntry { locale = AssetDatabase.LoadAssetAtPath<LocaleSky>(LocalePath) };
+            Assert.That(() => Construct(row, presentation),
+                Throws.ArgumentException.With.Message.Contains("Row 1 of sector run").And.Message.Contains("no sector"));
+        }
+
+        [Test]
+        public void Session_RefusesAPresentedRunRowWithNoLocale()
+        {
+            var row = new SectorEntry { prefab = AssetDatabase.LoadAssetAtPath<Sector>(SectorPath) };
+            Assert.That(() => Construct(row, presentation: true),
+                Throws.ArgumentException.With.Message.Contains("Row 1 of sector run").And.Message.Contains("no locale"));
+        }
+
+        [Test]
+        public void Session_RefusesAPresentedLocalePoolWithAnEmptyEntry()
+        {
+            var pool = new[] { Locale(OtherLocalePath), null };
+            Assert.That(() => Construct(true, pool, NamedRow(), RandomRow()),
+                Throws.ArgumentException.With.Message.Contains("an empty entry in its locale pool"));
+        }
+
+        [Test]
+        public void Session_RefusesAPoolThatCannotGiveEachRandomRowItsOwnLocale_LeavingOutNamedRowLocales()
+        {
+            var pool = new[] { Locale(LocalePath), Locale(OtherLocalePath) };
+            Assert.That(() => Construct(true, pool, NamedRow(), RandomRow(), RandomRow()),
+                Throws.ArgumentException.With.Message.Contains("its 2 Random rows").And.Message.Contains("has 1 left"));
         }
 
         [Test]

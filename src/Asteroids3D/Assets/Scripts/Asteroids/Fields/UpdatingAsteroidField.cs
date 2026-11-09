@@ -28,7 +28,7 @@ namespace Asteroids.Fields
         private Vector2? startPointPlane;
         private float densityScale = 1f;
         private float lethalityScale = 1f;
-        private ExclusionVolume[] hostExclusionsPlane;
+        private Func<ExclusionVolume[]> hostExclusionsPlane;
         internal ChunkStreamer streamer;
         internal Vector2 fieldOriginPlane;
         internal bool initialized;
@@ -107,11 +107,12 @@ namespace Asteroids.Fields
         }
 
         /// <summary>
-        /// Host-declared no-spawn clearings (absolute plane space); same pre-rebuild contract as
-        /// <see cref="SetLayoutSeed"/>. Centers derived from runtime occupancy need a full rebuild —
+        /// Host-declared source of no-spawn clearings (absolute plane space), read once each time the layout
+        /// builds, so a host can hand it over before the clearings it reports are chosen. Same pre-rebuild
+        /// contract as <see cref="SetLayoutSeed"/>. Centers derived from runtime occupancy need a full rebuild —
         /// dynamic state must never bake into the live baseline.
         /// </summary>
-        public void SetExclusionVolumes(ExclusionVolume[] absolutePlaneVolumes) =>
+        public void SetExclusionVolumes(Func<ExclusionVolume[]> absolutePlaneVolumes) =>
             hostExclusionsPlane = absolutePlaneVolumes;
 
         protected override void CacheSettings()
@@ -181,7 +182,8 @@ namespace Asteroids.Fields
         private ExclusionVolume[] BuildExclusionVolumes()
         {
             var startCount = startPointPlane.HasValue && settings.startClearRadius > 0f ? 1 : 0;
-            var hostCount = hostExclusionsPlane?.Length ?? 0;
+            var host = hostExclusionsPlane?.Invoke();
+            var hostCount = host?.Length ?? 0;
             if (startCount + hostCount == 0) return null;
 
             var volumes = new ExclusionVolume[startCount + hostCount];
@@ -190,8 +192,8 @@ namespace Asteroids.Fields
             for (var i = 0; i < hostCount; i++)
                 volumes[startCount + i] = new ExclusionVolume
                 {
-                    Center = hostExclusionsPlane[i].Center - fieldOriginPlane,
-                    Radius = hostExclusionsPlane[i].Radius
+                    Center = host[i].Center - fieldOriginPlane,
+                    Radius = host[i].Radius
                 };
             return volumes;
         }

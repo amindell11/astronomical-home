@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Substrate;
 using Substrate.Presentation;
+using Ships.Visuals;
 
 namespace Ships.Presentation
 {
@@ -22,6 +23,7 @@ namespace Ships.Presentation
         private IWearsLivery[] liveryParts;
         private Ship ship;
         private CanvasGroup hud;
+        private MinimapShipMarker minimapMarker;
 
         public IReadOnlyList<Renderer> Silhouette => silhouette;
 
@@ -31,9 +33,16 @@ namespace Ships.Presentation
             liveryParts = GetComponentsInChildren<IWearsLivery>(true);
             ship = GetComponentInParent<Ship>();
             hud = gameObject.AddComponent<CanvasGroup>();
+            minimapMarker = GetComponentInChildren<MinimapShipMarker>(true);
         }
 
         public void SetHudOpacity(float opacity) => hud.alpha = opacity;
+
+        // A dark rig never woke, so it has no marker to pulse.
+        public void PulseMinimapMarker(bool pulsing)
+        {
+            if (minimapMarker) minimapMarker.Pulsing = pulsing;
+        }
 
         public void Wear(in ShipLivery livery)
         {
@@ -73,8 +82,7 @@ namespace Ships.Presentation
                 () => ship.Movement.CurrentCommand,
                 ship.Lock,
                 ship.CompareTag(TagNames.Player),
-                ship.Body,
-                () => ship.BoostAvailable));
+                ship.Body));
         }
 
         public void Bind(in ShipView view)

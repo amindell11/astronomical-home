@@ -4,6 +4,7 @@ using Combat.Weapons.Conditions;
 using Combat.Weapons.Mods;
 using Loot;
 using NUnit.Framework;
+using Ships.Keystones;
 using Ships.Weapons;
 using Tests.PlayMode.Common;
 using UI.Weapons;
@@ -16,11 +17,12 @@ using UnityEditor;
 
 namespace Tests.PlayMode.Crosshairs
 {
-    [Category("Weapons")]
+    [Category("Weapons"), Category("RequiresLfsPng")]
     public sealed class WeaponResourceHudPlayModeTests : PlayModeWorldFixture
     {
         private GameObject root;
         private WeaponResourceHud hud;
+        private Sprite keystoneIcon;
         private WeaponReadoutBuilder builder;
 
         [SetUp]
@@ -29,6 +31,7 @@ namespace Tests.PlayMode.Crosshairs
             root = new GameObject("Weapon HUD test", typeof(RectTransform), typeof(Canvas));
             root.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
             hud = Object.Instantiate(LoadPrefab<WeaponResourceHud>("UI/Crosshair/WeaponKeystoneHud"), root.transform);
+            keystoneIcon = LoadPrefab<Keystone>("Keystones/Vanguard_Dash").Icon;
             builder = root.AddComponent<WeaponReadoutBuilder>();
             var authoredBuilder = LoadPrefab<WeaponReadoutBuilder>("UI/UIOverlay");
             builder.panelPrefab = authoredBuilder.panelPrefab;
@@ -54,14 +57,18 @@ namespace Tests.PlayMode.Crosshairs
 #endif
         }
 
+        // The other slot carries a partner of the other kind that draws no corner panel.
         private WeaponsController Bind(string weaponName)
         {
+            var weapon = LoadPrefab<WeaponComponent>("Weapons/" + weaponName);
+            var partner = LoadPrefab<WeaponComponent>(weapon.IsOrdnance ? "Weapons/Lasers" : "Weapons/Grenades");
             var mounts = new GameObject("Mounts");
             mounts.transform.SetParent(root.transform);
             mounts.SetActive(false);
             var controller = mounts.AddComponent<WeaponsController>();
-            controller.primaryMount = LoadPrefab<WeaponComponent>("Weapons/" + weaponName);
-            controller.secondaryMount = controller.primaryMount;
+            controller.centreSocket = controller.leftSocket = controller.rightSocket = mounts.transform;
+            controller.primaryMount = weapon.IsOrdnance ? partner : weapon;
+            controller.secondaryMount = weapon.IsOrdnance ? weapon : partner;
             mounts.SetActive(true);
             controller.Initialize(() => default);
             Rebind(controller);
@@ -70,7 +77,7 @@ namespace Tests.PlayMode.Crosshairs
 
         private void Rebind(WeaponsController controller)
         {
-            hud.Initialize(controller.ReadoutContext);
+            hud.Initialize(controller.ReadoutContext, keystoneIcon);
             hud.gameObject.SetActive(true);
             builder.Build(controller.ReadoutContext);
             Draw();
@@ -79,24 +86,26 @@ namespace Tests.PlayMode.Crosshairs
         private void Draw() => hud.SendMessage("LateUpdate");
         private Image ImageAt(string path) => hud.transform.Find(path).GetComponent<Image>();
 
-        [TestCase("Lasers", "lasers")]
-        [TestCase("TurboLasers", "turbo-lasers")]
-        [TestCase("Railgun", "railgun")]
-        [TestCase("Rippers", "rippers")]
-        [TestCase("Missiles", "missiles")]
-        [TestCase("Grenades", "concussion")]
-        public void AuthoredWeapon_HasItsGlyphAndIndependentResourcesInBothPositions(string weaponName, string glyph)
+        [TestCase("Lasers", "lasers", "Primary")]
+        [TestCase("TurboLasers", "turbo-lasers", "Primary")]
+        [TestCase("Railgun", "railgun", "Primary")]
+        [TestCase("Rippers", "rippers", "Primary")]
+        [TestCase("Missiles", "missiles", "Secondary")]
+        [TestCase("Grenades", "concussion", "Secondary")]
+        public void AuthoredWeapon_HasItsGlyphInItsSlotsPosition_AndIndependentResourcesInBoth(string weaponName,
+            string glyph, string position)
         {
             Bind(weaponName);
             Assert.IsTrue(hud.transform.Find("PrimaryResources").gameObject.activeInHierarchy);
             Assert.IsTrue(hud.transform.Find("SecondaryResources").gameObject.activeInHierarchy);
             Assert.IsNull(hud.transform.Find("PrimaryResources/ReloadFill"));
             Assert.IsNull(hud.transform.Find("SecondaryResources/ReloadFill"));
-            Assert.That(builder.Panels.Count, Is.EqualTo(weaponName == "Missiles" ? 2 : 0));
+            Assert.That(builder.Panels.Count, Is.EqualTo(weaponName == "Missiles" ? 1 : 0));
             var primary = ImageAt("PrimaryIcon");
             var secondary = ImageAt("SecondaryIcon");
-            Assert.That(primary.sprite.name, Is.EqualTo(glyph));
-            Assert.That(secondary.sprite, Is.SameAs(primary.sprite));
+            Assert.That(ImageAt(position + "Icon").sprite.name, Is.EqualTo(glyph));
+            Assert.That((position == "Primary" ? secondary : primary).sprite.name,
+                Is.EqualTo(position == "Primary" ? "concussion" : "lasers"), "the other position shows its partner's glyph");
             Assert.That(primary.rectTransform.anchoredPosition.x, Is.LessThan(0f));
             Assert.That(secondary.rectTransform.anchoredPosition.x, Is.EqualTo(-primary.rectTransform.anchoredPosition.x));
             foreach (var slot in new[] { "Primary", "Secondary" })
@@ -163,11 +172,12 @@ namespace Tests.PlayMode.Crosshairs
             var charge = controller.Primary.GetComponent<ChargeTime>();
             var fill = ImageAt("PrimaryResources/Fill");
             var track = ImageAt("PrimaryResources/Track");
+            var other = ImageAt("SecondaryResources/Fill").fillAmount;
             Assert.That(fill.fillAmount, Is.Zero);
             charge.HandleTrigger(true, charge.FullChargeTime * .5f);
             Draw();
             Assert.That(fill.fillAmount, Is.EqualTo(track.fillAmount * .5f).Within(.001f));
-            Assert.That(ImageAt("SecondaryResources/Fill").fillAmount, Is.Zero);
+            Assert.That(ImageAt("SecondaryResources/Fill").fillAmount, Is.EqualTo(other), "the charge fills only its own arc");
             charge.HandleTrigger(true, charge.FullChargeTime * .5f);
             Draw();
             Assert.That(fill.fillAmount, Is.EqualTo(track.fillAmount).Within(.001f));
@@ -184,7 +194,7 @@ namespace Tests.PlayMode.Crosshairs
         public void AuthoredLaunchers_UseTenSecondSharedRecharge(string weaponName, int capacity)
         {
             var controller = Bind(weaponName);
-            var rounds = controller.Primary.GetComponent<Rounds>();
+            var rounds = controller.Secondary.GetComponent<Rounds>();
             Assert.That(rounds.Refill, Is.EqualTo(Rounds.RefillMode.Sequential));
             Assert.That(rounds.ReloadTime, Is.EqualTo(10f));
             Assert.That(rounds.MaxAmmo, Is.EqualTo(capacity));
@@ -196,13 +206,10 @@ namespace Tests.PlayMode.Crosshairs
             Assert.That(rounds.AmmoCount, Is.Zero);
             Assert.That(rounds.ReloadProgress, Is.EqualTo(capacity / 10f).Within(.001f));
             Draw();
-            Assert.That(ImageAt("PrimaryResources/Fill").fillAmount, Is.EqualTo(1f / 30f).Within(.001f));
+            Assert.That(ImageAt("SecondaryResources/Fill").fillAmount, Is.EqualTo(1f / 30f).Within(.001f));
             for (var threshold = 1; threshold < capacity; threshold++)
-            {
-                Assert.That(ImageAt("PrimaryResources/Threshold" + threshold).fillAmount, Is.EqualTo(2f / 360f));
                 Assert.That(ImageAt("SecondaryResources/Threshold" + threshold).fillAmount, Is.EqualTo(2f / 360f));
-            }
-            Assert.IsNull(hud.transform.Find("PrimaryResources/Round0"));
+            Assert.IsNull(hud.transform.Find("SecondaryResources/Round0"));
             rounds.Tick(9.9f - capacity);
             Assert.That(rounds.AmmoCount, Is.Zero);
             rounds.Tick(.1f);
@@ -212,7 +219,7 @@ namespace Tests.PlayMode.Crosshairs
                 Draw();
                 Assert.That(rounds.AmmoCount, Is.EqualTo(loaded));
                 Assert.That(rounds.IsReloading, Is.EqualTo(loaded < capacity));
-                Assert.That(ImageAt("PrimaryResources/Fill").fillAmount,
+                Assert.That(ImageAt("SecondaryResources/Fill").fillAmount,
                     Is.EqualTo(loaded / (3f * capacity)).Within(.001f));
             }
         }
@@ -221,7 +228,7 @@ namespace Tests.PlayMode.Crosshairs
         public IEnumerator MissileCapacityUpgrade_AddsAThreshold_AndPreservesSharedRecharge()
         {
             var controller = Bind("Missiles");
-            var rounds = controller.Primary.GetComponent<Rounds>();
+            var rounds = controller.Secondary.GetComponent<Rounds>();
             rounds.enabled = false;
             rounds.ProcessFire();
             rounds.Tick(5f);
@@ -237,13 +244,13 @@ namespace Tests.PlayMode.Crosshairs
                 Assert.That(rounds.AmmoCount, Is.EqualTo(8));
                 Assert.That(rounds.MaxAmmo, Is.EqualTo(9));
                 Assert.That(rounds.ReloadProgress, Is.EqualTo(.5f));
-                Assert.IsNotNull(hud.transform.Find("PrimaryResources/Threshold8"));
-                var first = ImageAt("PrimaryResources/Threshold1");
-                var second = ImageAt("PrimaryResources/Threshold2");
+                Assert.IsNotNull(hud.transform.Find("SecondaryResources/Threshold8"));
+                var first = ImageAt("SecondaryResources/Threshold1");
+                var second = ImageAt("SecondaryResources/Threshold2");
                 Assert.That(first.fillAmount, Is.EqualTo(second.fillAmount));
                 Assert.That(Quaternion.Angle(first.transform.localRotation, second.transform.localRotation),
                     Is.EqualTo(120f / 9f).Within(.001f));
-                Assert.That(ImageAt("PrimaryResources/Fill").fillAmount, Is.EqualTo(8.5f / 27f).Within(.001f));
+                Assert.That(ImageAt("SecondaryResources/Fill").fillAmount, Is.EqualTo(8.5f / 27f).Within(.001f));
                 rounds.Tick(5f);
                 Assert.That(rounds.AmmoCount, Is.EqualTo(9));
                 Assert.IsFalse(rounds.IsReloading);
@@ -274,9 +281,9 @@ namespace Tests.PlayMode.Crosshairs
         }
 
         [UnityTest]
-        public IEnumerator WeaponSwap_ReplacesAmmoSegmentsWithCharge_AndClearsTheEmptyPosition()
+        public IEnumerator WeaponSwap_ReplacesAmmoWithCharge_AndClearsTheEmptyPosition()
         {
-            var controller = Bind("Grenades");
+            var controller = Bind("Rippers");
             var oldResources = hud.transform.Find("PrimaryResources").gameObject;
             var oldIcon = ImageAt("PrimaryIcon").gameObject;
             controller.Reequip(LoadPrefab<WeaponComponent>("Weapons/Railgun"), null);

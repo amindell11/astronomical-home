@@ -59,11 +59,11 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | Word | Live senses | Rule |
 |---|---|---|
 | **gate** | merge gate · eval gate (`eval_gate.py`) · gate score · cost gate (fix-ladder rung 3) · go/no-go gate · curriculum lesson gate · anti-churn gate · scoping gate · owner's gate (a ship art stage approval) · "gated off" code conditionals | Always qualified. Bare "the gate" is legal only in pool-merge context (= merge gate) and RL-run context (= eval gate), and never in a title. |
-| **lane** | boot lane · remote lane (the second Unity box, `remote_lane.sh`) · harness lane · curriculum lane · watch/capture lane · audit lane · teacher-tuning lane · access-queue lane · firing lane (lane clearing) · decision lane (nav / fire / ability — the three seams a `BrainDecision` carries) · LANE slot (the MPC sentence term, always caps) | Always qualified. |
+| **lane** | boot lane · remote lane (the second Unity box, `remote_lane.sh`) · harness lane · curriculum lane · watch/capture lane · audit lane · teacher-tuning lane · access-queue lane · firing lane (lane clearing; a situation's allies in lane) · decision lane (nav / fire / ability — the three seams a `BrainDecision` carries) · LANE slot (the MPC sentence term, always caps) | Always qualified. |
 | **pool** | worktree pool · ship resource pool (`PoolDifferential`) · self-play snapshot pool · object pool (`SimplePool`) · Dev Pool issue labels (`mid-dev-pool`/`high-dev-pool`, ex-board columns) | Always qualified. |
 | **token** | bus/signal token · obs obstacle token (`ObstacleTokenCap`) · threat token · LLM context token | Always qualified. |
 | **term** | intent/cost term (a weighted sentence-slot cost the MPC solves — #485) · activation term (`ActivationTerm`, the AND-ed predicate atoms of sector activation rules) · reward term (a `RewardSpec` component, e.g. the reward spine's outcome term) | Always qualified. An intent-grammar doc may read bare "term" = intent/cost term only after declaring the carve-out (Stage A brief precedent). |
-| **slot** | worktree slot (`agent-N`) · weapon/mount slot · ONNX import slot · obs slot-block grammar · MPC terminal-cost slot · sentence slot, instance or class (a typed intent-sentence position) · anatomy slot (§2 → *anatomy*) · keystone slot (§2 → *keystone*) | Qualify outside pool-loop context; bare "slot" = worktree slot in workflow text only. |
+| **slot** | worktree slot (`agent-N`) · weapon slot · ordnance slot (§2 → *weapon slot*, *ordnance slot*) · ONNX import slot · obs slot-block grammar · MPC terminal-cost slot · sentence slot, instance or class (a typed intent-sentence position) · anatomy slot (§2 → *anatomy*) · keystone slot (§2 → *keystone*) · line slot (a moment's lines on the companion's line sheet) | Qualify outside pool-loop context; bare "slot" = worktree slot in workflow text only. |
 | **pin** | pin test (freeze a value) · pinned seeds/hypers · ram-pin exploit | Qualify. "ram-pin" always hyphenated for the physics exploit. |
 | **fixture** | NUnit test fixture · sector fixture · ONNX smoke/eval fixture | Always qualified — all three appear within a page of each other in the RL docs. |
 | **seed** | RNG seed · `SeedScope` stream · eval seed set (2001+) · sealed held-out seeds (1001–1020) · seed checkpoint · `SeedMode.BorderEscape` | Bare "seed" = RNG seed. Checkpoints are "seed checkpoints". |
@@ -663,6 +663,36 @@ Format: **term** — definition. *(authority)*
 - **unlocked ship** — a ship the hangar lets the player fly: the starter plus
   every elite chassis the player killed in any run record. No save file; a kill
   counts once its run's record is written. *(ShipUnlocks, ItemSubset.starter)*
+- **repair station** — a fly-in zone each combat sector places, two by default,
+  each on its own clear point away from the start, marked as a *find*. While the
+  player sits in it, it repairs hull from a supply of about one hull, then goes
+  dark. The hunt's alarm darkens it too, and whatever supply was left is lost.
+  Hull carries into the next sector. The first *station* kind. *(RepairStation,
+  RepairStationFeelProfile)*
+- **beacon cache** — what a lull beacon's claim grants:
+  one roll among the authored mod bonuses that fit the hero (damage, fire
+  rate, shield regen) and the *hull patch*, all weighted alike. A bonus joins
+  the run's mods for 20 s by default, adding to lull picks rather than
+  multiplying them, and the HUD lists it with its seconds left. Each claim's
+  bonus runs on its own clock, and sector teardown takes back any still
+  running. The hull patch restores 30% of a full hull at once, touches no mods,
+  and wastes what passes full. A low-hull lean, off by default, multiplies the
+  patch's weight while the hero's hull is below a threshold. No beacon, no
+  cache: headless and RL sectors never grant one. *(BeaconCache,
+  BeaconCacheFeelProfile, IObjectiveService.ShowBoost)*
+- **mod station** — the second *station* kind: a *find* each combat sector
+  places, two by default, spaced from each other and from the repair stations.
+  The first fly-in opens one *lull pick*, then the station goes dark; the
+  hunt's alarm darkens an unclaimed one, and its pick is lost. Headless and RL
+  runs claim it with no pick. *(ModStation, ModStationFeelProfile)*
+- **find** — a sector object the player goes looking for and uses once:
+  repair and mod stations now, the armory next. A live find registers
+  with the objective service. In range the minimap shows the find's own
+  marker; out of range, an *edge pointer* (its icon pinned to the minimap rim,
+  aimed at it). Patrols get no edge pointer. One find colour for every kind,
+  apart from ship markers. Spent or shut by the hunt's alarm, it closes its
+  registration and both go.
+  *(IObjectiveService.MarkFind, FindMarker, FindPointers)*
 - **sector fixture** — a world object present at spawn, sector-owned, independent
   of encounter state.
 - **signal / SignalPort** — the bus coupling seam. ⚠ **Designed, not built** —
@@ -677,8 +707,20 @@ Format: **term** — definition. *(authority)*
   instantiates it under the session's `Locale` root and writes those values to
   the *session scene*'s `RenderSettings`, so showing a locale never changes the
   active scene or the boot scene's lighting. The boot scene carries none: every
-  authored sector names one, and the session shows its idle locale between
-  sectors.
+  authored sector names one or draws one, and the session shows its idle locale
+  between sectors.
+- **sector run** — the ordered sectors one run flies, one row each: the sector
+  prefab and the locale it shows, or Random. Authored as one asset edited as a
+  table, so a locale change never edits a prefab; tests, the preview and the
+  headless lane build theirs with `SectorRun.Create`. Random rows draw from the
+  run's locale pool at each run's start, never repeating within the run and
+  leaving out the locales named rows use. The draw takes a `System.Random`
+  because the sim reads `UnityEngine.Random`, and a headless run draws nothing.
+  The host hands each drawn locale to the load and the jump backdrop that show
+  it; the session keeps no draw. A presentation session refuses, at
+  construction, a named row with no locale and a pool that can't serve its
+  Random rows. *(`SectorRun.DrawLocales`, `SessionProfile.run`,
+  `Settings/Game/SurvivalTrialRun.asset`)*
 - **idle locale** — the locale a presentation session shows while no sector is
   loaded (the hangar's backdrop). A sector naming the same locale keeps its
   instance across the hand-off. *(`SessionProfile.idleLocale`)*
@@ -761,6 +803,34 @@ Format: **term** — definition. *(authority)*
   it reaches the brain on `AIContext`, never on `IShipStatus`, because it is
   how the AI uses a weapon, not a fact about the ship. Not a firing range.
   *(`WeaponComponent.HoldRange`; #1139)*
+- **weapon slot** — a ship's first mount: one weapon (Lasers, TurboLasers, Rippers or
+  Railgun) or nothing, never an ordnance. Left mouse fires it, and its weapon is the one
+  whose lead, hold range and aim the AI reads. The code still calls it
+  `WeaponSlot.Primary`; the rename waits for after M1 (#1418).
+  *(`WeaponsController.RequireKinds`; #1410)*
+- **ordnance slot** — a ship's second mount: one ordnance (Missiles or Concussion) or
+  nothing. An item's kind comes from its class, so nothing is authored and no prefab can
+  carry the wrong one. Regular enemies leave the slot empty. The code still calls it
+  `WeaponSlot.Secondary`. *(`WeaponComponent.IsOrdnance`; #1410)*
+- **single fire** — a weapon fires every shot from the hull's centre socket, on its
+  centreline at the nose. Every weapon that is not dual fire fires this way.
+  *(`WeaponComponent.FirePattern`; #1410)*
+- **dual fire** — a weapon fires from the hull's left and right sockets instead of the
+  centre, in one of two forms, alternating fire or volley fire. Left and right are the
+  sides the player sees with the prow up under the game camera, so left is the hull's
+  local -X. The weapon's class owns the form, so Missiles, Concussion and the Railgun
+  have nothing to author. Rippers always fire volleys, and the TurboLasers variant
+  turns on the Lasers switch for alternating fire. *(`WeaponComponent.FirePattern`; #1410)*
+- **alternating fire** — dual fire from one side socket per shot, switching sides each
+  shot. Each shot is one projectile at the weapon's own fire rate, and its fire sound
+  plays at the side that fired. The owner ruled it for TurboLasers (2026-11-08).
+  *(`FirePattern.Alternating`; #1410)*
+- **volley fire** — dual fire from both side sockets together on every shot. Each shot
+  launches one projectile from each side but spends one round and plays one fire sound.
+  The fire sound and the gunsight's line of sight read the centre socket, which sits on
+  the centreline between the two muzzles. The owner ruled it for Rippers at full damage
+  per projectile (2026-11-08), so ripper damage output doubles.
+  *(`FirePattern.Volley`; #1422)*
 - **velocity reference / feasibility tracker** — the RL↔MPC boundary: the policy
   emits a planar velocity and MPC is demoted to a ~2s tracker (feasibility, aim,
   velocity-track).
@@ -898,6 +968,17 @@ Format: **term** — definition. *(authority)*
   rather than synonyms.
   ⚠ Not to be confused with `PilotCommand`/`IPilot`, which are the actuator end.
   *(Brain, BrainDecision)*
+- **tactic**. What a ship picks to fight with: attack run, flank, stand off or
+  break off. A ship picks for its own sake, the best shot for the least risk,
+  and never knows it paces the player. "Beat" is the retired name. Owner rulings
+  on #1349. Every setting of the brain that picks tactics lives on one asset.
+  *(TacticsSettings)*
+- **situation**. What one ship reads about its fight before it picks a tactic,
+  from its own sensors only. The owner's picks on #1349: allies count by where
+  they are, never by asking another ship's brain, so the elite counts whatever it
+  flies; *exposed* means inside the target's real primary gun range and its
+  exposure cone, never a fixed distance; the hit clock on `AIContext` is the only
+  state kept between reads. Not the retired *exposure arc*. *(Situation.Read)*
 - **presentation** — the per-session axis deciding whether visuals and audio
   exist. Two things a reader needs: it is applied by the owning spawn seams,
   never by per-component globals; and it is **not** the same axis as the deleted
@@ -927,20 +1008,20 @@ Format: **term** — definition. *(authority)*
   ship once; the ship re-reads it on every resolve and on every change.
   *(LullMod, LullModPool, LullModStack, Ship.BindMods)*
 - **lull pick** — the time-stopped choice of one lull mod from up to three,
-  or a skip, when the player claims the lull beacon; the clock runs on after
+  or a skip, when the player claims a *mod station*; the clock runs on after
   it. *(LullPickScreen, GameHost)*
 - **lull beacon** — the zone the sector spine places on a clear point away from
   the hero shortly before a sector phase that a lull follows ends, so its
-  marker shows during the fight; flying into it claims that lull's pick. It
+  marker shows during the fight; flying into it claims it. It
   stays through the lull and a grace window into the next sector phase, then
-  closes unclaimed (that pick is lost); a new beacon's opening closes the one
+  closes unclaimed; a new beacon's opening closes the one
   before it, so beacons never stack. The sector's opening lull gets none.
   *(PhaseSpineModule, ExtractionZone)*
-- **weapon pick** — the sector-break choice of one weapon the player does not
-  carry, from up to three, or a skip, then the mount it replaces; held in
-  hyperspace after the extraction recap. The swap keeps hull, shield and the run
-  clocks, and the hangar's kit stays the next run's. *(WeaponPickScreen,
-  PlayerRig.SwapWeapon)*
+- **weapon pick** — the sector-break choice of one weapon or ordnance the player
+  does not carry, from up to three, or a skip; the pick replaces the mount in the
+  slot its kind fills. Held in hyperspace after the extraction recap. The swap
+  keeps hull, shield and the run clocks, and the hangar's kit stays the next
+  run's. *(WeaponPickScreen, PlayerRig.SwapWeapon)*
 - **keystone** — the locked ability in a ship's keystone slot, one kit per ship
   (`Keystone`; `Dash` today). Not a ship module: a kit prefab the ship
   instantiates, because a kit keeps per-ship runtime state (its cooldown clock,
@@ -1064,6 +1145,18 @@ Format: **term** — definition. *(authority)*
   explosion finishes, then the banner and the breakdown card; presentation-gated, so a
   game host with presentation off goes straight to the unload.
   *(RunRecapScreen, GameHost.RunRecap)*
+- **run moment stream** — one per run, created by the game host before the first
+  sector loads and handed down through Initialize or a build context, never a
+  static (owner ruling 2026-11-03 on #1321). Moments are data; the companion owns
+  every line of text. *(RunMomentStream, IRunMoment)*
+- **line sheet** — the companion's lines, one line slot per moment. The owner
+  writes every line and agents write none (owner ruling 2026-11-03); an empty
+  line slot shows nothing in player builds; the editor and development builds show
+  a bracketed debug label of its id and facts instead (owner ruling 2026-11-04).
+  *(CompanionLineSheet, CompanionVoice.DebugLabel)*
+- **nag budget** — the companion speaks at most one line per interval; must-say
+  line slots skip the wait, and a line that cannot show before it goes stale is
+  dropped, never queued. *(NagBudget, CompanionFeelProfile)*
 - **presentation module** — a presentation (the recap outcome sequence first)
   exposed as a pure function of a *feel profile*, an immutable *context* and a
   time, rendered by one renderer whichever host drives the time; a

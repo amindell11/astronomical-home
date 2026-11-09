@@ -263,19 +263,20 @@ namespace Tests.PlayMode
             var ship = Object.Instantiate(TestAssets.LoadCrimsonPrefab(), Vector3.zero, GamePlane.Rotation);
             spawned.Add(ship.gameObject);
             ship.Initialize(0, 0, Projectiles);
-            var rippers = TestAssets.Load<Rippers>(RippersPrefabPath);
-            ship.Reequip(rippers, rippers);
+            ship.Reequip(TestAssets.Load<Rippers>(RippersPrefabPath), TestAssets.Load<Missiles>(MissilesPrefabPath));
             var primary = ((Rippers)ship.Weapons.Primary).Rounds;
-            var secondary = ((Rippers)ship.Weapons.Secondary).Rounds;
             primary.ProcessFire();
-            secondary.ProcessFire();
+            var weapons = ship.Weapons.Arm(Projectiles);
 
-            ship.Weapons.Arm(Projectiles).Fire(WeaponSlot.Secondary, new WeaponCommand { reload = true });
+            weapons.Fire(WeaponSlot.Secondary, new WeaponCommand { reload = true });
 
-            Assert.IsTrue(secondary.IsReloading, "The secondary ripper reloads.");
-            Assert.AreEqual(0, secondary.AmmoCount);
-            Assert.IsFalse(primary.IsReloading, "The primary ripper is untouched.");
+            Assert.IsFalse(primary.IsReloading, "The secondary's reload leaves the primary ripper untouched.");
             Assert.AreEqual(primary.MaxAmmo - 1, primary.AmmoCount);
+
+            weapons.Fire(WeaponSlot.Primary, new WeaponCommand { reload = true });
+
+            Assert.IsTrue(primary.IsReloading, "The primary ripper reloads.");
+            Assert.AreEqual(0, primary.AmmoCount);
         }
 
         private sealed class FakeWeaponContext : IWeaponContext

@@ -12,7 +12,7 @@ using Object = UnityEngine.Object;
 
 namespace Tests.EditMode.Sectors
 {
-    /// <summary>The shipped sectors and hangar offer, read as assets: each trial sector ends at an elite flown from its own faction and watched by its wave director, sectors 1 and 2 at a 1.5x elite with no escalation, the HUD fixtures at none, and the hangar offers Vanguard as its starter and never Crimson.</summary>
+    /// <summary>The shipped sectors and hangar offer, read as assets: each trial sector ends at an elite flown from its own faction and watched by its wave director, sectors 1 and 2 at a 1.5x elite with no escalation, the HUD fixtures at none, and the hangar offers Vanguard as its starter and Crimson locked, since no trial sector's elite flies it.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class SectorElitesEditModeTests
@@ -50,12 +50,18 @@ namespace Tests.EditMode.Sectors
         }
 
         [Test]
-        public void HangarOffer_StartsOnVanguard_AndNeverOffersCrimson()
+        public void HangarOffer_StartsOnVanguard_AndOffersCrimsonThatNoEliteUnlocks()
         {
             var offer = Load<ItemSubset>(HangarOfferPath);
+            var crimson = Load<Ship>("Assets/Prefabs/Ships/Crimson.prefab");
             Assert.AreSame(Load<Ship>("Assets/Prefabs/Ships/Vanguard.prefab"), offer.starter);
             CollectionAssert.Contains(offer.ships, offer.starter, "the starter is an offered ship");
-            CollectionAssert.DoesNotContain(offer.ships, Load<Ship>("Assets/Prefabs/Ships/Crimson.prefab"));
+            CollectionAssert.Contains(offer.ships, crimson, "Crimson is offered, shown locked");
+            foreach (var sector in new[] { "TrialSector", "TrialSector2", "TrialSector3" })
+            {
+                var faction = Load<Sector>($"Assets/Prefabs/Sectors/{sector}.prefab").Module<SectorFaction>();
+                Assert.AreNotSame(crimson, faction.Faction.EliteShip, $"{sector}'s elite would unlock Crimson");
+            }
         }
 
         private static T Load<T>(string path) where T : Object

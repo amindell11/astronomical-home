@@ -28,6 +28,7 @@ namespace Tests.PlayMode
         private const string LasersPrefabPath = "Assets/Prefabs/Weapons/Lasers.prefab";
         private const string RippersPrefabPath = "Assets/Prefabs/Weapons/Rippers.prefab";
         private const string MissilesPrefabPath = "Assets/Prefabs/Weapons/Missiles.prefab";
+        private const string GrenadesPrefabPath = "Assets/Prefabs/Weapons/Grenades.prefab";
         private const string JunkerPrefabPath = "Assets/Prefabs/Ships/Cargo Ships/Junker_1.prefab";
 
         private Ship ship;
@@ -62,11 +63,11 @@ namespace Tests.PlayMode
             var commanderView = ship.Weapons.Context;
 
             var rippers = LoadWeapon<Rippers>(RippersPrefabPath);
-            var lasers = LoadWeapon<Lasers>(LasersPrefabPath);
-            ship.Reequip(rippers, lasers);
+            var grenades = LoadWeapon<Grenades>(GrenadesPrefabPath);
+            ship.Reequip(rippers, grenades);
 
             Assert.IsInstanceOf<Rippers>(ship.Weapons.Primary, "primary mount replaced by the ripper");
-            Assert.IsInstanceOf<Lasers>(ship.Weapons.Secondary, "secondary mount replaced by the laser");
+            Assert.IsInstanceOf<Grenades>(ship.Weapons.Secondary, "secondary mount replaced by the concussion");
             Assert.AreSame(rippers, ship.Weapons.PrimaryMountPrefab, "source prefab tracks the new module");
 
             // The context object commanders/HUD hold is the SAME instance, refreshed in place.
@@ -99,7 +100,7 @@ namespace Tests.PlayMode
             ship.Damage.Shield.SetFraction(.3f);
             Assert.AreEqual(.3f, ship.ShieldPct, 1e-3f, "test premise: the shield is drained before the swap");
 
-            ship.Reequip(LoadWeapon<Rippers>(RippersPrefabPath), LoadWeapon<Lasers>(LasersPrefabPath));
+            ship.Reequip(LoadWeapon<Rippers>(RippersPrefabPath), LoadWeapon<Grenades>(GrenadesPrefabPath));
 
             Assert.AreEqual(1f, ship.ShieldPct, 1e-3f, "vitals refill on a between-run equip swap");
             Assert.AreEqual(baselineRadius, ship.Stats.shipRadius, 1e-4f,
@@ -117,8 +118,7 @@ namespace Tests.PlayMode
 
             // Swap the missiles away → the ship no longer has a lock sensor.
             var lasers = LoadWeapon<Lasers>(LasersPrefabPath);
-            var rippers = LoadWeapon<Rippers>(RippersPrefabPath);
-            ship.Reequip(lasers, rippers);
+            ship.Reequip(lasers, LoadWeapon<Grenades>(GrenadesPrefabPath));
             Assert.IsNull(ship.Targeting, "targeting cache cleared when no mount carries a sensor");
 
             // Swap missiles back in → the cache points at the NEW mount's sensor, ready for re-wiring.

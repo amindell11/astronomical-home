@@ -11,6 +11,13 @@ namespace UI.PlayerState
 {
     public sealed class ObjectiveStatusReadout : MonoBehaviour
     {
+        private const float BannerSeconds = 2.05f;
+        private const float BannerFadeIn = .22f;
+        private const float BannerFadeOut = .45f;
+        private static readonly Color SpottedRed = new(1f, .25f, .2f);
+
+        private enum Banner { None, Opening, Spotted, Coming }
+
         private Text label;
         private Text clock;
         private int clockSeconds = -1;
@@ -24,7 +31,10 @@ namespace UI.PlayerState
         private ObjectiveTracker announcedTracker;
         private ObjectiveType announcedState;
         private Transform announcedTarget;
-        private float openedAt;
+        private Banner banner;
+        private float bannerAt;
+        private ObjectiveTracker huntTracker;
+        private HuntReading lastHunt;
 
         public static ObjectiveStatusReadout Create(Transform parent, Font labelFont, Font headingFont, Font timerFont,
             Font keyFont, Material textMaterial, CanopyProjection projection = null, Func<bool> isVisible = null)
@@ -107,6 +117,8 @@ namespace UI.PlayerState
         {
             this.objectives = objectives ?? throw new ArgumentNullException(nameof(objectives));
             announcedTracker = null;
+            huntTracker = null;
+            banner = Banner.None;
             enabled = true;
             Apply();
         }
@@ -121,22 +133,30 @@ namespace UI.PlayerState
             var target = objectives.SpineTarget;
             // A survive-state target is a lull beacon; extraction retargets without replaying its opening.
             var open = target && (state is ObjectiveType.Survive or ObjectiveType.ExtractionChallenge);
-            if (!open) announcedTracker = null;
+            if (!open)
+            {
+                announcedTracker = null;
+                if (banner == Banner.Opening) banner = Banner.None;
+            }
             else if (tracker != announcedTracker || state != announcedState
                      || state == ObjectiveType.Survive && target != announcedTarget)
             {
                 announcedTracker = tracker;
                 announcedState = state.Value;
                 announcedTarget = target;
-                openedAt = Time.unscaledTime;
-                announcement.text = state == ObjectiveType.Survive ? "MOD BEACON" : "EXTRACTION OPEN";
+                Show(Banner.Opening, state == ObjectiveType.Survive ? "MOD BEACON" : "EXTRACTION OPEN");
             }
 
-            var elapsed = Time.unscaledTime - openedAt;
-            var opening = open && elapsed < 2.05f;
-            var openingAlpha = Mathf.Clamp01(Mathf.Min(elapsed / .22f, (2.05f - elapsed) / .45f));
-            announcement.enabled = opening;
-            announcement.color = new Color(1f, 1f, 1f, openingAlpha);
+            ReadHunt(tracker, progress);
+            var elapsed = Time.unscaledTime - bannerAt;
+            var held = banner == Banner.Spotted;
+            if (held) announcement.text = $"SPOTTED  {Clock(progress.Value.SecondsLeft)}";
+            announcement.enabled = held || banner != Banner.None && elapsed < BannerSeconds;
+            var tint = held ? SpottedRed : Color.white;
+            tint.a = Mathf.Clamp01(held
+                ? elapsed / BannerFadeIn
+                : Mathf.Min(elapsed / BannerFadeIn, (BannerSeconds - elapsed) / BannerFadeOut));
+            announcement.color = tint;
             var prompt = tracker?.CurrentPrompt;
             if (progress.HasValue && tracker.CurrentState is ObjectiveType.Survive or ObjectiveType.ExtractionChallenge)
             {
@@ -153,6 +173,32 @@ namespace UI.PlayerState
             label.rectTransform.sizeDelta = new Vector2(420f, 28f);
             label.text = tracker?.CurrentStatusLine ?? string.Empty;
             ShowPrompt(prompt, label);
+        }
+
+        private void Show(Banner shown, string text)
+        {
+            banner = shown;
+            bannerAt = Time.unscaledTime;
+            announcement.text = text;
+        }
+
+        // Only the hunt ending on the tracker that ran it is the alarm; a tracker change or lost progress is not.
+        private void ReadHunt(ObjectiveTracker tracker, SectorPhaseProgress? progress)
+        {
+            var hunt = progress?.Hunt ?? HuntReading.None;
+            var previous = tracker == huntTracker ? lastHunt : HuntReading.None;
+            huntTracker = tracker;
+            lastHunt = hunt;
+            if (banner == Banner.Spotted && hunt != HuntReading.Spotted) banner = Banner.None;
+            if (hunt == previous) return;
+            if (hunt == HuntReading.Spotted) Show(Banner.Spotted, string.Empty);
+            else if (hunt == HuntReading.None && progress.HasValue) Show(Banner.Coming, "THEY'RE COMING");
+        }
+
+        private static string Clock(float secondsLeft)
+        {
+            var seconds = Mathf.CeilToInt(secondsLeft);
+            return $"{seconds / 60}:{seconds % 60:00}";
         }
 
         private void ShowPrompt(InteractionPrompt? prompt, Text replaced)
@@ -178,7 +224,7 @@ namespace UI.PlayerState
             if (seconds != clockSeconds)
             {
                 clockSeconds = seconds;
-                clock.text = $"{seconds / 60}:{seconds % 60:00}";
+                clock.text = Clock(phase.SecondsLeft);
             }
             caption.text = phase.ExtractionOpen ? instruction : phase.Hunt switch
             {

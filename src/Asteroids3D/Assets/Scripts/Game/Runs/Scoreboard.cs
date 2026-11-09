@@ -22,13 +22,16 @@ namespace Game.Runs
             public readonly int Kills;
             public readonly float SecondsSurvived;
             public readonly DateTime EndedUtc;
+            public readonly LoadoutRow Player;
 
-            public Row(int sectorsCleared, int kills, float secondsSurvived, DateTime endedUtc)
+            public Row(int sectorsCleared, int kills, float secondsSurvived, DateTime endedUtc,
+                LoadoutRow player = default)
             {
                 SectorsCleared = sectorsCleared;
                 Kills = kills;
                 SecondsSurvived = secondsSurvived;
                 EndedUtc = endedUtc;
+                Player = player;
             }
         }
 
@@ -67,7 +70,28 @@ namespace Game.Runs
                     ? row
                     : throw new ArgumentException("This run's record is not a readable run-record-v2.", nameof(thisRun));
 
-            if (!File.Exists(path)) return new Scoreboard(Array.Empty<Row>(), mine);
+            var runs = ReadRuns(path);
+            return runs == null
+                ? new Scoreboard(Array.Empty<Row>(), null)
+                : new Scoreboard(runs.ConvertAll(run => run.Row), mine);
+        }
+
+        /// <summary>Every readable run in file order; null when the file cannot be read, which is logged.</summary>
+        internal static List<(RunRecord Record, Row Row)> ReadRuns(string path)
+        {
+            var records = ReadRecords(path);
+            if (records == null) return null;
+
+            var runs = new List<(RunRecord, Row)>(records.Count);
+            foreach (var record in records)
+                if (TryRead(record, out var row)) runs.Add((record, row));
+            return runs;
+        }
+
+        /// <summary>Every run-record-v2 line in file order; null when the file cannot be read, which is logged.</summary>
+        internal static List<RunRecord> ReadRecords(string path)
+        {
+            if (!File.Exists(path)) return new List<RunRecord>();
 
             string[] lines;
             try
@@ -76,23 +100,22 @@ namespace Game.Runs
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {
-                Debug.LogError($"Scoreboard not read from '{path}': {e.Message}");
-                return new Scoreboard(Array.Empty<Row>(), null);
+                Debug.LogError($"Run records not read from '{path}': {e.Message}");
+                return null;
             }
 
-            var recorded = new List<Row>(lines.Length);
+            var records = new List<RunRecord>(lines.Length);
             foreach (var line in lines)
-                if (TryParse(line, out var row)) recorded.Add(row);
-            return new Scoreboard(recorded, mine);
+                if (TryParse(line, out var record)) records.Add(record);
+            return records;
         }
 
-        private static bool TryParse(string line, out Row row)
+        private static bool TryParse(string line, out RunRecord record)
         {
-            row = default;
+            record = default;
             // JsonUtility unboxes an empty line to a null struct, which throws NullReferenceException.
             if (string.IsNullOrWhiteSpace(line)) return false;
 
-            RunRecord record;
             try
             {
                 record = JsonUtility.FromJson<RunRecord>(line);
@@ -101,7 +124,7 @@ namespace Game.Runs
             {
                 return false;
             }
-            return TryRead(record, out row);
+            return record.schema == RunRecord.SchemaId;
         }
 
         private static bool TryRead(in RunRecord record, out Row row)
@@ -112,7 +135,7 @@ namespace Game.Runs
                     DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var ended))
                 return false;
 
-            row = new Row(record.sectorsCleared, record.kills, record.secondsSurvived, ended);
+            row = new Row(record.sectorsCleared, record.kills, record.secondsSurvived, ended, record.player);
             return true;
         }
     }

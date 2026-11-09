@@ -6,6 +6,7 @@ using Game;
 using NUnit.Framework;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
+using Substrate.Services.Locales;
 using Substrate.Sessions;
 using Tests.PlayMode.Common;
 using UnityEditor;
@@ -114,14 +115,11 @@ namespace Tests.PlayMode.Preview
             host.sessionProfile = new SessionProfile
             {
                 presentation = false,
-                sectors = new[]
+                run = SectorRun.Create(new SectorEntry
                 {
-                    new SectorEntry
-                    {
-                        prefab = sector,
-                        config = AssetDatabase.LoadAssetAtPath<SectorSettings>("Assets/Settings/Game/DefaultSectorConfig.asset")
-                    }
-                }
+                    prefab = sector,
+                    locale = AssetDatabase.LoadAssetAtPath<LocaleSky>("Assets/Prefabs/Locales/IllustratedBlue.prefab")
+                })
             };
             host.observerCamPrefab = AssetDatabase.LoadAssetAtPath<ObserverCam>("Assets/Prefabs/Cameras/Main Camera.prefab");
             if (withPlayer)

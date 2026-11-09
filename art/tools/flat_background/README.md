@@ -87,10 +87,10 @@ the remaining fields are interpreted. The report is printed as
 sidecar's `provenance.migration`; a version 2 preset reports nothing. Saving
 always writes version 2.
 
-## Illustrated blue (Locale_3)
+## Illustrated blue (IllustratedBlue)
 
 `illustrated-blue.json` supplies the cool palette and subdued generated texture
-used by `Locale_3`. Its Background material adds a Solid Base and reduces
+used by the `IllustratedBlue` locale. Its Background material adds a Solid Base and reduces
 Cloud Texture Strength; the main visible cloud banks are the locale's FarNebula
 material. Cloud Bank Opacity enables shaded, partially opaque banks; zero keeps
 the additive wisps treatment. Coverage, Direction and Stretch shape the banks.

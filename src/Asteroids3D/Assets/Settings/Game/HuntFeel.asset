@@ -15,3 +15,7 @@ MonoBehaviour:
   searchSeconds: 45
   sightRadius: 50
   callInSeconds: 3
+  routeSpeed: 8
+  routeStartPass: 25
+  arrivalRadius: 15
+  patrolsPerSector: 010000000200000002000000

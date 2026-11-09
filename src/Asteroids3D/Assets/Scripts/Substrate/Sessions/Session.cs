@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Linq;
 using Substrate.Sectors;
 using Substrate.Services;
 using Ships;
@@ -67,6 +68,7 @@ namespace Substrate.Sessions
             this.units = units ? units : throw new ArgumentNullException(nameof(units));
             this.objectives = objectives ? objectives : throw new ArgumentNullException(nameof(objectives));
             presentation = profile.presentation;
+            RequireRows(profile);
             Frame = new SessionFrame(profile.offset);
 
             var previous = SceneManager.GetActiveScene();
@@ -103,22 +105,28 @@ namespace Substrate.Sessions
         /// Load the profile's sector at <paramref name="index"/>, inject the host's hero into it, subscribe
         /// <paramref name="onSectorComplete"/> for the life of this load, and reset the hero to the
         /// sector's declared start. The hero is the main character the sector lays out around — the
-        /// player today, possibly an AI; the sector side still names it the player. Every argument is
-        /// optional: a headless session loads its first sector with none.
+        /// player today, possibly an AI; the sector side still names it the player. A Random row shows
+        /// <paramref name="drawnLocale"/>, the locale its run drew; a named row shows its own. Every
+        /// argument is optional: a headless session loads its first sector with none.
         /// </summary>
-        public IEnumerator LoadSector(int index = 0, Ship hero = null, Action<SectorResult> onSectorComplete = null)
+        public IEnumerator LoadSector(int index = 0, Ship hero = null, Action<SectorResult> onSectorComplete = null,
+            LocaleSky drawnLocale = null)
         {
             Require(Phase.Composed, nameof(LoadSector));
-            var sectors = profile.sectors;
-            var entry = sectors != null && index >= 0 && index < sectors.Length ? sectors[index] : null;
-            if (!entry?.prefab)
-                throw new InvalidOperationException($"No sector entry {index} configured on the session profile.");
-            if (!entry.config)
-                throw new InvalidOperationException($"Sector entry {index} has no settings.");
+            var sectors = profile.run ? profile.run.Sectors : Array.Empty<SectorEntry>();
+            if (index < 0 || index >= sectors.Count)
+                throw new InvalidOperationException($"No sector entry {index} in the session profile's run.");
+            var entry = sectors[index];
 
-            // Show the sector's locale before content builds; skipped headless, where a config may leave it unassigned.
+            // Show the sector's locale before content builds; skipped headless, where a row may leave it unassigned.
             if (presentation)
-                locale.Show(entry.config.Locale);
+            {
+                var shown = entry.random ? drawnLocale : entry.locale;
+                if (!shown)
+                    throw new InvalidOperationException(
+                        $"Row {index} is Random; a presented load shows the locale its run drew, and none was passed.");
+                locale.Show(shown);
+            }
 
             // Inactive holder under the sector root: authored children Awake only after adoption wires them.
             var holder = new GameObject("SectorLoad") { hideFlags = HideFlags.HideAndDontSave };
@@ -157,11 +165,12 @@ namespace Substrate.Sessions
                 locale.ShowIdle();
         }
 
-        public IEnumerator TransferSector(int index, Ship hero, Action<SectorResult> onComplete)
+        public IEnumerator TransferSector(int index, Ship hero, Action<SectorResult> onComplete,
+            LocaleSky drawnLocale = null)
         {
             Require(Phase.Loaded, nameof(TransferSector));
             yield return UnloadContent();
-            yield return LoadSector(index, hero, onComplete);
+            yield return LoadSector(index, hero, onComplete, drawnLocale);
         }
 
         private IEnumerator UnloadContent()
@@ -202,6 +211,31 @@ namespace Substrate.Sessions
             var child = new GameObject(name).transform;
             child.SetParent(root, false);
             return child;
+        }
+
+        private static void RequireRows(SessionProfile profile)
+        {
+            var run = profile.run;
+            if (!run) return;
+            for (var i = 0; i < run.Sectors.Count; i++)
+            {
+                var row = run.Sectors[i];
+                if (row == null || !row.prefab)
+                    throw new ArgumentException($"Row {i} of sector run '{run.name}' has no sector.", nameof(profile));
+                if (profile.presentation && !row.random && !row.locale)
+                    throw new ArgumentException(
+                        $"Row {i} of sector run '{run.name}' has no locale; a presented session shows one.", nameof(profile));
+            }
+            if (!profile.presentation) return;
+            if (run.LocalePool.Any(pooled => !pooled))
+                throw new ArgumentException($"Sector run '{run.name}' has an empty entry in its locale pool.",
+                    nameof(profile));
+            var randomRows = run.Sectors.Count(row => row.random);
+            var drawable = run.DrawableLocales().Count;
+            if (drawable < randomRows)
+                throw new ArgumentException(
+                    $"Sector run '{run.name}' can't give its {randomRows} Random rows a locale each without repeats: " +
+                    $"its pool has {drawable} left after the locales named rows use.", nameof(profile));
         }
 
         private void Require(Phase expected, string operation)
