@@ -31,7 +31,7 @@ namespace AI
 
         private static TacticsSettings settings;
 
-        internal static TacticsSettings Settings
+        private static TacticsSettings Settings
         {
             get
             {

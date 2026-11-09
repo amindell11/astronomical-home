@@ -14,8 +14,6 @@ using Object = UnityEngine.Object;
 
 namespace Tests.EditMode.Sectors
 {
-    /// <summary>The shipped run's sectors and the crowded fight, read as assets with every variant override applied:
-    /// roster ships and hunt patrols fly the wave temper, the elite the elite temper, its escorts the escort temper.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class SectorTempersEditModeTests

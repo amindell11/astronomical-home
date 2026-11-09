@@ -2,9 +2,9 @@ using UnityEngine;
 
 namespace AI.Tactics
 {
-    /// <summary>Every setting of the brain that picks tactics, a header per piece. Each kind of ship flies its own
-    /// asset, its temper: wave ships, the elite and its escorts.</summary>
-    [CreateAssetMenu(fileName = "TacticsSettings", menuName = "AI/Tactics Settings")]
+    /// <summary>Every setting of the brain that picks tactics. Each kind of ship flies its own asset, its temper:
+    /// wave ships, the elite and its escorts.</summary>
+    [CreateAssetMenu(fileName = "Temper", menuName = "AI/Tactics Settings")]
     public class TacticsSettings : ScriptableObject
     {
         [Header("Situation")]

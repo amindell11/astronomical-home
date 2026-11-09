@@ -327,7 +327,7 @@ namespace Tests.EditMode
 
         private static UnityEngine.Object AuthoredTactics(string path)
         {
-            var pilot = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            var pilot = AssetDatabase.LoadMainAssetAtPath(path) as GameObject;
             Assert.IsNotNull(pilot, $"Missing prefab: {path}");
             return new SerializedObject(pilot.GetComponent<ArchetypeBrain>()).FindProperty("tactics")
                 .objectReferenceValue;
