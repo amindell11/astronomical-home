@@ -10,12 +10,12 @@ namespace AI
     [InitializeOnLoad]
     internal static class SituationGizmos
     {
-        private const string SettingsPath = "Assets/Settings/AI/Tactics/TacticsSettings.asset";
+        private const string SettingsPath = "Assets/Settings/AI/Tactics/WaveTemper.asset";
 
         static SituationGizmos() =>
             GizmoView.Register(typeof(AICommander), "situation", "Situation",
                 "firing lane to the target (red, with a count, when allies are in it); exposed (red) or clear " +
-                "(green) ring; dotted line to the target's open side", "Combat");
+                "(green) ring; dotted line to the target's open side; the tactic it flies", "Combat");
 
         private const float MarkRadius = 2.5f;
         private const float OpenSideRadius = 1.2f;
@@ -26,11 +26,12 @@ namespace AI
         private static readonly Color Exposed = new(1f, 0.2f, 0.15f);
         private static readonly Color Clear = new(0.3f, 1f, 0.35f);
         private static readonly Color OpenSide = new(0.2f, 0.85f, 1f);
+        private static readonly Color TacticLabel = new(1f, 0.9f, 0.4f);
         private static readonly Vector3 PlaneNormal = GamePlane.Rotation * Vector3.forward;
 
         private static TacticsSettings settings;
 
-        internal static TacticsSettings Settings
+        private static TacticsSettings Settings
         {
             get
             {
@@ -55,6 +56,10 @@ namespace AI
             var target = commander.context.Combat.EnemyPos;
             DrawLane(me, target, tuned.laneWidth, situation.alliesInLane);
             Ring(me, MarkRadius, situation.exposed ? Exposed : Clear, 3f);
+            if (commander.Brain && commander.Brain.CurrentTactic is { } tactic)
+                Handles.Label(GamePlane.PlanePointToWorld(me + Vector2.up * (MarkRadius + 1f)),
+                    ObjectNames.NicifyVariableName(tactic.ToString()),
+                    new GUIStyle { normal = { textColor = TacticLabel }, fontSize = 12 });
             if (situation.openSide == Vector2.zero) return;
 
             var flank = target + situation.openSide * situation.distance;

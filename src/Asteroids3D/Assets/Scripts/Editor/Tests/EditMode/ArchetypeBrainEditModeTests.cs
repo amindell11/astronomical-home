@@ -2,6 +2,7 @@
 using System;
 using AI;
 using AI.Context;
+using AI.Tactics;
 using Movement;
 using AI.Navigation.MPC;
 using NUnit.Framework;
@@ -16,7 +17,7 @@ using Combat.Targeting;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the collapsed archetype seam: the enum → law dispatch through Configure/Decide (both the episode roster and the authored pilot ride the same component), the Dummy's no-target constant, the unknown-enum failure, the ArchetypePilot authoring that makes an archetype flyable in a live sector, the waypoint roam a live-targeting pilot flies once its target is gone, and the pure missile-evasion laws.</summary>
+    /// <summary>Pins the collapsed archetype seam: the enum → law dispatch through Configure/Decide (both the episode roster and the authored pilot ride the same component), the Dummy's no-target constant, the unknown-enum failure, the ArchetypePilot authoring that makes an archetype flyable in a live sector, the waypoint roam a live-targeting pilot flies once its target is gone, the tactics switch (each shipped pilot flies its kind's temper), and the pure missile-evasion laws.</summary>
     [Category("AI")]
     public class ArchetypeBrainEditModeTests
     {
@@ -272,6 +273,64 @@ namespace Tests.EditMode
             Assert.IsInstanceOf<ArchetypeBrain>(brain);
             Assert.IsTrue(new SerializedObject(brain).FindProperty("liveTargeting").boolValue,
                 "an authored pilot without the live bit idles: nothing pins its target");
+        }
+
+        [Test]
+        public void Decide_TacticsOff_PicksNoTactic()
+        {
+            var brain = NewBrain(OpponentArchetype.Aggressor, targetHost.AddComponent<Ship>());
+
+            Assert.IsTrue(brain.Decide(Ctx(default)).HasValue);
+            Assert.IsNull(brain.CurrentTactic, "without tactics settings the brain flies its archetype alone");
+        }
+
+        [Test]
+        public void Decide_TacticsOn_FliesTheAttackRunInsteadOfTheArchetypesLaw()
+        {
+            var target = targetHost.AddComponent<Ship>();
+            var brain = NewBrain(OpponentArchetype.Evader, target);
+            var tactics = ScriptableObject.CreateInstance<TacticsSettings>();
+            try
+            {
+                var serialized = new SerializedObject(brain);
+                serialized.FindProperty("tactics").objectReferenceValue = tactics;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+                var self = new Kinematics(new Vector2(3f, -4f), new Vector2(1f, 2f), 0f, 0f, 0f);
+                var shape = Shape();
+
+                var decision = brain.Decide(Ctx(self));
+
+                Assert.AreEqual(Tactic.AttackRun, brain.CurrentTactic, "a full shield with nothing in the way presses");
+                Assert.IsTrue(decision.HasValue);
+                Assert.AreEqual(RangerBrain.HoldRangeVelocity(in self, target.Kinematics, shape.desiredRange,
+                    shape.speedFraction * Dynamics.Default.maxSpeed), decision.Value.nav.planarVelocity,
+                    "the attack run flies the Aggressor's hold-range law");
+                Assert.IsTrue(decision.Value.engagePrimary, "the Evader never fires; its attack run does");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(tactics);
+            }
+        }
+
+        [TestCase(ArchetypePilotPath, "Wave")]
+        [TestCase("Assets/Prefabs/Pilots/AggressorPilot.prefab", "Wave")]
+        [TestCase("Assets/Prefabs/Pilots/KiterPilot.prefab", "Wave")]
+        [TestCase("Assets/Prefabs/Pilots/OrbiterPilot.prefab", "Wave")]
+        [TestCase("Assets/Prefabs/Pilots/ElitePilot.prefab", "Elite")]
+        [TestCase("Assets/Prefabs/Pilots/EscortPilot.prefab", "Escort")]
+        public void ShippedPilots_FlyTheirKindsTemper(string path, string kind)
+        {
+            Assert.AreEqual($"Assets/Settings/AI/Tactics/{kind}Temper.asset",
+                AssetDatabase.GetAssetPath(AuthoredTactics(path)));
+        }
+
+        private static UnityEngine.Object AuthoredTactics(string path)
+        {
+            var pilot = AssetDatabase.LoadMainAssetAtPath(path) as GameObject;
+            Assert.IsNotNull(pilot, $"Missing prefab: {path}");
+            return new SerializedObject(pilot.GetComponent<ArchetypeBrain>()).FindProperty("tactics")
+                .objectReferenceValue;
         }
 
         [Test]

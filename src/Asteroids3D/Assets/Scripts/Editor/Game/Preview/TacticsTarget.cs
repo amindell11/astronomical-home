@@ -1,5 +1,8 @@
+using System;
 using System.Collections.Generic;
-using AI;
+using System.Linq;
+using AI.Tactics;
+using UnityEditor;
 using UnityEngine;
 
 namespace Game.Preview
@@ -9,8 +12,15 @@ namespace Game.Preview
         public override string Name => "Tactics";
         public override IReadOnlyList<PreviewEntry> Entries { get; } = new[] { PreviewEntry.CrowdedFight };
 
-        // No shipped prefab reads the asset, so this tunes the one the situation overlay loads.
         public override IEnumerable<ScriptableObject> Profiles(GameHost game) =>
-            new ScriptableObject[] { SituationGizmos.Settings };
+            new[] { "Wave", "Elite", "Escort" }.Select(Temper);
+
+        private static ScriptableObject Temper(string kind)
+        {
+            var path = $"Assets/Settings/AI/Tactics/{kind}Temper.asset";
+            var temper = AssetDatabase.LoadAssetAtPath<TacticsSettings>(path);
+            if (!temper) throw new InvalidOperationException($"The {kind.ToLowerInvariant()} temper '{path}' is missing.");
+            return temper;
+        }
     }
 }

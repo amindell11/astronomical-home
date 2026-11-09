@@ -12,8 +12,6 @@ GameObject:
   - component: {fileID: 1100000000000000003}
   - component: {fileID: 1100000000000000004}
   - component: {fileID: 1100000000000000005}
-  - component: {fileID: 1100000000000000006}
-  - component: {fileID: 1100000000000000007}
   - component: {fileID: 4296478870442968351}
   m_Layer: 6
   m_Name: GrenadeCharge
@@ -34,7 +32,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 6596177498422687592}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!54 &1100000000000000003
@@ -95,8 +94,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3b46121225f74b86b8a93461e1b87359, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   damage: 0
   maxDistance: 25
   mass: 0.5
@@ -105,21 +104,73 @@ MonoBehaviour:
   proximityRadius: 4
   wavePrefab: {fileID: 1100000000000000102, guid: 07872014d0f2483cbe5d4223faa4d2ca,
     type: 3}
---- !u!33 &1100000000000000006
+--- !u!114 &4296478870442968351
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1100000000000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5b379886e004361821e2205340b06cd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  detonateEvent:
+    Guid:
+      Data1: 2080964515
+      Data2: 1308868412
+      Data3: -469746515
+      Data4: -1554198125
+    Path: event:/Weapons/Grenade/Detonate
+--- !u!1 &2164724194357654538
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6596177498422687592}
+  - component: {fileID: 6269109671090287881}
+  - component: {fileID: 5939671386651315578}
+  m_Layer: 6
+  m_Name: Charge
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6596177498422687592
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2164724194357654538}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 1.2}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1100000000000000002}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &6269109671090287881
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1100000000000000001}
+  m_GameObject: {fileID: 2164724194357654538}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &1100000000000000007
+--- !u!23 &5939671386651315578
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1100000000000000001}
+  m_GameObject: {fileID: 2164724194357654538}
   m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0
@@ -158,22 +209,3 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &4296478870442968351
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1100000000000000001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a5b379886e004361821e2205340b06cd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  detonateEvent:
-    Guid:
-      Data1: 2080964515
-      Data2: 1308868412
-      Data3: -469746515
-      Data4: -1554198125
-    Path: event:/Weapons/Grenade/Detonate
