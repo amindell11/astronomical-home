@@ -7,7 +7,7 @@ namespace Combat.Projectiles.Visual
     /// Stand-in tracking readout until the shooter-feedback slice of #958 lands: the missile body
     /// turns red while it flies without a target — a dumbfire launch, or a missile that lost track.
     /// </summary>
-    [RequireComponent(typeof(Missile), typeof(MeshRenderer))]
+    [RequireComponent(typeof(Missile))]
     public sealed class MissileTrackingTint : MonoBehaviour, IPresentationPart
     {
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
@@ -19,7 +19,7 @@ namespace Combat.Projectiles.Visual
         private void Awake()
         {
             missile = GetComponent<Missile>();
-            body = GetComponent<MeshRenderer>();
+            body = GetComponentInChildren<MeshRenderer>();
             block = new MaterialPropertyBlock();
             block.SetColor(BaseColorId, Color.red);
         }
