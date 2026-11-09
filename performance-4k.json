@@ -1,0 +1,75 @@
+{
+  "commit": "1be669f97fbb6d27a8a5357f5446abd37e414b51",
+  "width": 3840,
+  "height": 2160,
+  "unity": "6000.1.8f1",
+  "method": "Unity Editor Game View. High Fidelity, render scale 1, VSync off. One coordinated Editor, no Blender or tests running. Same hangar and fixed sky position with only console camera and composite layer toggled. Three seconds warmup, seven seconds sampling, unique delayed frame timings from SRP callbacks. GPU profiler enabled identically in all runs. No image acquisition during measurement.",
+  "limitation": "Editor measurements include profiling overhead and editor activity. They are not standalone-player benchmarks. The saved project settings are unchanged.",
+  "results": [
+    {
+      "label": "perf-4k-profiler-on",
+      "hardwareEnabled": true,
+      "quality": "High Fidelity",
+      "pipeline": "URP-HighFidelity",
+      "renderScale": 1,
+      "graphics": "NVIDIA RTX 2000 Ada Generation Laptop GPU",
+      "api": "Direct3D11",
+      "sampleCount": 333,
+      "validGpuCount": 333,
+      "cpuMedianMs": 11.067,
+      "cpuP95Ms": 14.0932,
+      "gpuMedianMs": 11.020288,
+      "gpuP95Ms": 11.546368
+    },
+    {
+      "label": "perf-4k-profiler-off",
+      "hardwareEnabled": false,
+      "quality": "High Fidelity",
+      "pipeline": "URP-HighFidelity",
+      "renderScale": 1,
+      "graphics": "NVIDIA RTX 2000 Ada Generation Laptop GPU",
+      "api": "Direct3D11",
+      "sampleCount": 417,
+      "validGpuCount": 416,
+      "cpuMedianMs": 9.6495,
+      "cpuP95Ms": 12.297,
+      "gpuMedianMs": 9.700096,
+      "gpuP95Ms": 10.181632
+    },
+    {
+      "label": "perf-4k-profiler-on-repeat",
+      "hardwareEnabled": true,
+      "quality": "High Fidelity",
+      "pipeline": "URP-HighFidelity",
+      "renderScale": 1,
+      "graphics": "NVIDIA RTX 2000 Ada Generation Laptop GPU",
+      "api": "Direct3D11",
+      "sampleCount": 323,
+      "validGpuCount": 323,
+      "cpuMedianMs": 11.0095,
+      "cpuP95Ms": 12.4647,
+      "gpuMedianMs": 10.971136,
+      "gpuP95Ms": 11.515904
+    },
+    {
+      "label": "perf-4k-profiler-off-repeat",
+      "hardwareEnabled": false,
+      "quality": "High Fidelity",
+      "pipeline": "URP-HighFidelity",
+      "renderScale": 1,
+      "graphics": "NVIDIA RTX 2000 Ada Generation Laptop GPU",
+      "api": "Direct3D11",
+      "sampleCount": 345,
+      "validGpuCount": 345,
+      "cpuMedianMs": 9.5583,
+      "cpuP95Ms": 10.9231,
+      "gpuMedianMs": 9.502464,
+      "gpuP95Ms": 10.042368
+    }
+  ],
+  "deltaMedianGpuMs": [
+    1.3201920000000005,
+    1.4686719999999998
+  ],
+  "discarded": "Earlier GPU counters returned zero at 4K until the GPU profiler was enabled. Those runs are excluded."
+}

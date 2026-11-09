@@ -1,0 +1,114 @@
+{
+  "generatedAt": "2026-11-08T21:27:03.3509051-08:00",
+  "projectPath": "D:\\amind\\git\\agent-8\\src\\Asteroids3D",
+  "unityPath": "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+  "mode": "Both",
+  "selection": {
+    "scopeType": "Workspace",
+    "scopeName": "",
+    "scopeResolved": false,
+    "testFilter": "Hangar",
+    "testCategory": "",
+    "excludeCategory": "",
+    "categoryFilter": "",
+    "assemblyNames": "",
+    "orderedTestListFile": "",
+    "rerunFailedFrom": "",
+    "auto": null,
+    "withGraphics": false,
+    "captureScenario": ""
+  },
+  "status": "failed",
+  "totals": {
+    "total": 47,
+    "passed": 46,
+    "failed": 1,
+    "skipped": 0,
+    "durationSec": 30.48
+  },
+  "runs": [
+    {
+      "platform": "EditMode",
+      "xmlPath": "",
+      "logPath": "",
+      "unityExitCode": 0,
+      "status": "failed",
+      "total": 17,
+      "passed": 16,
+      "failed": 1,
+      "skipped": 0,
+      "durationSec": 2.72,
+      "failures": [
+        {
+          "name": "ControlsHaveIndependentUnitScalePivotsAndRealMeshes",
+          "fullName": "Tests.EditMode.Hangar.HangarConsoleEditModeTests.ControlsHaveIndependentUnitScalePivotsAndRealMeshes",
+          "durationSec": 0.0079527,
+          "message": "SelectorKnob pivot Expected: less than 0.5f But was: 0.684802055f",
+          "topStack": "at Tests.EditMode.Hangar.HangarConsoleEditModeTests.ControlsHaveIndependentUnitScalePivotsAndRealMeshes () [0x00155] in D:\\amind\\git\\agent-8\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode\\Hangar\\HangarConsoleEditModeTests.cs:36"
+        }
+      ],
+      "truncatedFailures": 0,
+      "selection": {
+        "scopeType": "Workspace",
+        "scopeName": "",
+        "scopeResolved": false,
+        "testFilter": "Hangar",
+        "testCategory": "",
+        "excludeCategory": "",
+        "categoryFilter": "",
+        "assemblyNames": "",
+        "orderedTestListFile": "",
+        "rerunFailedFrom": "",
+        "auto": null,
+        "withGraphics": false,
+        "captureScenario": ""
+      }
+    },
+    {
+      "platform": "PlayMode",
+      "xmlPath": "",
+      "logPath": "",
+      "unityExitCode": 0,
+      "status": "passed",
+      "total": 30,
+      "passed": 30,
+      "failed": 0,
+      "skipped": 0,
+      "durationSec": 27.76,
+      "failures": [],
+      "truncatedFailures": 0,
+      "selection": {
+        "scopeType": "Workspace",
+        "scopeName": "",
+        "scopeResolved": false,
+        "testFilter": "Hangar",
+        "testCategory": "",
+        "excludeCategory": "",
+        "categoryFilter": "",
+        "assemblyNames": "",
+        "orderedTestListFile": "",
+        "rerunFailedFrom": "",
+        "auto": null,
+        "withGraphics": false,
+        "captureScenario": ""
+      }
+    }
+  ],
+  "wallTiming": {
+    "elapsedSec": 53.204,
+    "startupToFirstTestSec": null,
+    "executionSec": null,
+    "remainingSec": null,
+    "unavailableReason": "resident-editor transport has no cold-process timestamps"
+  },
+  "coverage": {
+    "verdict": "partial",
+    "reason": "transport=routed (warm-editor run; merge-grade proof requires a cold-process run)"
+  },
+  "memory": {
+    "processes": [],
+    "unavailableReason": "resident-editor transport launches no process to sample"
+  },
+  "transport": "routed",
+  "editorPid": 22220
+}
