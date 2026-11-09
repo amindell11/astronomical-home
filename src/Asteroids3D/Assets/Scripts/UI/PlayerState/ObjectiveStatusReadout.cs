@@ -20,6 +20,7 @@ namespace UI.PlayerState
 
         private Text label;
         private Text clock;
+        private int clockSeconds = -1;
         private Text caption;
         private Text announcement;
         private KeyPrompt keyPrompt;
@@ -219,7 +220,12 @@ namespace UI.PlayerState
             label.alignment = TextAnchor.UpperCenter;
             label.rectTransform.sizeDelta = new Vector2(420f, 28f);
             label.text = "EXTRACTION OPEN";
-            clock.text = Clock(phase.SecondsLeft);
+            var seconds = Mathf.CeilToInt(phase.SecondsLeft);
+            if (seconds != clockSeconds)
+            {
+                clockSeconds = seconds;
+                clock.text = Clock(phase.SecondsLeft);
+            }
             caption.text = phase.ExtractionOpen ? instruction : phase.Hunt switch
             {
                 HuntReading.Searching => "SEARCHING",

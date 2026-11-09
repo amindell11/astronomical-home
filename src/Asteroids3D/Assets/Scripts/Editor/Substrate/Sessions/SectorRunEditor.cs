@@ -8,12 +8,15 @@ namespace Substrate.Sessions
     public sealed class SectorRunEditor : UnityEditor.Editor
     {
         private const float IndexWidth = 24f;
+        private const float RandomWidth = 72f;
         private const float Gap = 6f;
 
         private ReorderableList table;
+        private SerializedProperty localePool;
 
         private void OnEnable()
         {
+            localePool = serializedObject.FindProperty("localePool");
             table = new ReorderableList(serializedObject, serializedObject.FindProperty("sectors"), true, true, true, true)
             {
                 drawHeaderCallback = rect =>
@@ -31,7 +34,12 @@ namespace Substrate.Sessions
                     var (index, sector, locale) = Columns(rect);
                     EditorGUI.LabelField(index, (i + 1).ToString());
                     EditorGUI.PropertyField(sector, row.FindPropertyRelative(nameof(SectorEntry.prefab)), GUIContent.none);
-                    EditorGUI.PropertyField(locale, row.FindPropertyRelative(nameof(SectorEntry.locale)), GUIContent.none);
+                    var random = row.FindPropertyRelative(nameof(SectorEntry.random));
+                    random.boolValue = EditorGUI.ToggleLeft(new Rect(locale.x, locale.y, RandomWidth, locale.height),
+                        "Random", random.boolValue);
+                    if (random.boolValue) return;
+                    var named = new Rect(locale.x + RandomWidth, locale.y, locale.width - RandomWidth, locale.height);
+                    EditorGUI.PropertyField(named, row.FindPropertyRelative(nameof(SectorEntry.locale)), GUIContent.none);
                 }
             };
         }
@@ -40,6 +48,7 @@ namespace Substrate.Sessions
         {
             serializedObject.Update();
             table.DoLayoutList();
+            EditorGUILayout.PropertyField(localePool, true);
             serializedObject.ApplyModifiedProperties();
         }
 

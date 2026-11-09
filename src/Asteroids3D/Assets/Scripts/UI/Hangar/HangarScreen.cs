@@ -4,7 +4,9 @@ using Combat.Weapons;
 using Combat.Weapons.Arsenal;
 using Combat.Weapons.Conditions;
 using Ships;
+using Ships.Command;
 using Ships.Loadout;
+using Ships.Weapons;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -88,9 +90,9 @@ namespace UI.Hangar
                     Reseed(s);
                     if (previewStage) previewStage.Show(loadout, backwards: step < 0);
                 }, Describe, ship => !gated || Selectable(ship) ? ship.name : $"{ship.name} (locked)");
-                BindRow(primaryWeaponRow, offer.weapons, () => loadout.PrimaryWeapon,
+                BindRow(primaryWeaponRow, Filling(WeaponSlot.Primary, offer.weapons), () => loadout.PrimaryWeapon,
                     (w, _) => loadout.PrimaryWeapon = w, Describe, WeaponLabel);
-                BindRow(secondaryWeaponRow, offer.weapons, () => loadout.SecondaryWeapon,
+                BindRow(secondaryWeaponRow, Filling(WeaponSlot.Secondary, offer.weapons), () => loadout.SecondaryWeapon,
                     (w, _) => loadout.SecondaryWeapon = w, Describe, WeaponLabel);
             }
 
@@ -210,7 +212,7 @@ namespace UI.Hangar
 
             var rippers = weapon as Rippers;
             if (rippers)
-                return $"Damage {rippers.Damage:0}{Rate(rippers.ShotsPerSecond)}" +
+                return $"Damage {rippers.Damage:0} per slug   |   2 slugs per shot{Rate(rippers.ShotsPerSecond)}" +
                        (rippers.Rounds ? $"   |   Mag {rippers.Rounds.MaxAmmo}{Refill(rippers.Rounds)}" : "") +
                        $"   |   Speed {rippers.ProjectileSpeed:0}";
 
@@ -242,6 +244,10 @@ namespace UI.Hangar
             : $" (reload {rounds.ReloadTime:0.#}s)";
 
         private static string WeaponLabel(WeaponComponent weapon) => weapon.DisplayName;
+
+        // A null pool stays null, so BindRow leaves the row unbound as it does for any unset list.
+        private static WeaponComponent[] Filling(WeaponSlot slot, WeaponComponent[] pool) =>
+            pool == null ? null : Array.FindAll(pool, weapon => weapon && WeaponsController.SlotFor(weapon) == slot);
 
         private void Refresh()
         {

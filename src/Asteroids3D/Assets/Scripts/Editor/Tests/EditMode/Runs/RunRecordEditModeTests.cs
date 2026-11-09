@@ -9,6 +9,7 @@ using Ships;
 using Ships.Loadout;
 using Ships.Registry;
 using Substrate.Sectors.Elements.Elites;
+using Substrate.Services.Locales;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -22,6 +23,7 @@ namespace Tests.EditMode.Runs
         private const string HangarOfferPath = "Assets/Settings/Ships/PlayerLoadout.asset";
         private const string PlayerHash = "a1b2c3d4e5f60718";
         private const string Fingerprint = "f0e1d2c3b4a59687";
+        private static readonly string[] LocaleNames = { "IllustratedBlue", "CoralSunset" };
 
         // Distinctive values, so a leaked instance id would be findable in the text.
         private static readonly ShipId Player = new(555000111);
@@ -68,6 +70,8 @@ namespace Tests.EditMode.Runs
         private RunRecord Compose(DamageLedger ledger, SpawnLog spawns, int sectorsCleared, DamageInfo? killingBlow) =>
             RunRecord.Compose(
                 new DateTime(2026, 10, 1, 12, 34, 56, DateTimeKind.Utc), sectorsCleared, "TrialSector",
+                Array.ConvertAll(LocaleNames,
+                    name => AssetDatabase.LoadAssetAtPath<LocaleSky>($"Assets/Prefabs/Locales/{name}.prefab")),
                 new BuildIdentity { commit = "abc123", dirty = true }, Fingerprint,
                 new ShipLoadout(offer.ships[0], offer.weapons[0], null), PlayerHash,
                 new FixedTally(), ledger, spawns, killingBlow);
@@ -110,6 +114,7 @@ namespace Tests.EditMode.Runs
             Assert.AreEqual(RunRecord.Died, read.outcome);
             Assert.AreEqual(1, read.sectorsCleared);
             Assert.AreEqual("TrialSector", read.sector);
+            Assert.That(read.locales, Is.EqualTo(LocaleNames), "the locale each sector drew, in run order");
             Assert.AreEqual("abc123", read.buildIdentity.commit);
             Assert.IsTrue(read.buildIdentity.dirty);
             Assert.AreEqual(Fingerprint, read.statFingerprint);

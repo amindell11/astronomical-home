@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.ExceptionServices;
@@ -21,19 +22,20 @@ namespace Game.Preview
     public enum PreviewEntry
     {
         RunRecap, SectorJump, Combat, CrowdedJumpGate, Startup, LowHull, Damage, Extraction, EnemyDeath, Boss, Sector1Elite,
-        Sector2Elite
+        Sector2Elite, CrowdedFight
     }
 
     /// <summary>
     /// A Replay entry owns a session and a presentation subject driven by a transport; a Playtest entry
-    /// owns an instance of the game's GameHost prefab, overriding only its run records and, for the
-    /// crowded jump gate and the elite fixtures, its sectors. Replay takes its rig, observer, jump shader
-    /// and feel profiles from the same prefab, so both kinds of entry run on the feel assets the game
-    /// ships. A switch between Replay entries swaps only the subject; any other switch or restart awaits
-    /// the previous entry's teardown before composing the next. Only Replay entries touch this host's
-    /// clock: a scrubbing subject may freeze it, and while a subject that plays from its start is
-    /// selected, the host sets it from the transport. Restart and Loop re-compose such a subject,
-    /// keeping its fixture.
+    /// owns an instance of the game's GameHost prefab, overriding only its run records and, for some
+    /// entries, its sectors: the crowded jump gate, the elite entries and the crowded fight fly their
+    /// fixtures, and Combat flies its Sector and Locale picks, read again at each restart. Replay takes
+    /// its rig, observer, jump shader and feel profiles from the same prefab, so both kinds of entry
+    /// run on the feel assets the game ships. A switch between Replay entries swaps only the subject;
+    /// any other switch or restart awaits the previous entry's teardown before composing the next. Only
+    /// Replay entries touch this host's clock: a scrubbing subject may freeze it, and while a subject
+    /// that plays from its start is selected, the host sets it from the transport. Restart and Loop
+    /// re-compose such a subject, keeping its fixture.
     /// A throw while composing, replacing or tearing down faults the host: every later request refuses,
     /// Shutdown rethrows instead of tearing down, and only destroying the host recovers.
     /// https://github.com/amindell11/astronomical-home/issues/1151
@@ -42,6 +44,8 @@ namespace Game.Preview
     [RequireComponent(typeof(ObjectiveService))]
     public sealed class PreviewHost : MonoBehaviour
     {
+        internal const int WholeRun = -1;
+
         [SerializeField] internal GameHost gameHostPrefab;
         [SerializeField] internal SessionProfile sessionProfile;
         [SerializeField] internal SectorEntry[] crowdedJumpSectors;
@@ -50,8 +54,11 @@ namespace Game.Preview
         [SerializeField] internal SectorEntry bossSector;
         [SerializeField] internal SectorEntry sector1EliteSector;
         [SerializeField] internal SectorEntry sector2EliteSector;
+        [SerializeField] internal SectorEntry crowdedFightSector;
         [SerializeField] internal LocaleSky jumpDestination;
         [SerializeField] internal PreviewEntry entry;
+        [SerializeField] internal int combatSector = WholeRun;
+        [SerializeField] internal LocaleSky combatLocale;
 
         private UnitService unitService;
         private ObjectiveService objectiveService;
@@ -87,7 +94,7 @@ namespace Game.Preview
             PreviewEntry.RunRecap or PreviewEntry.SectorJump or PreviewEntry.Startup or PreviewEntry.LowHull
                 or PreviewEntry.Damage or PreviewEntry.Extraction or PreviewEntry.EnemyDeath => false,
             PreviewEntry.Combat or PreviewEntry.CrowdedJumpGate or PreviewEntry.Boss
-                or PreviewEntry.Sector1Elite or PreviewEntry.Sector2Elite => true,
+                or PreviewEntry.Sector1Elite or PreviewEntry.Sector2Elite or PreviewEntry.CrowdedFight => true,
             _ => throw new ArgumentOutOfRangeException(nameof(entry), entry, "Unknown preview entry.")
         };
 
@@ -139,11 +146,16 @@ namespace Game.Preview
 
         private SessionProfile ReplayProfile() => new()
         {
-            run = SectorRun.Create(sessionProfile.run.Sectors.Append(hudQuietSector).Append(hudExtractionSector).ToArray()),
+            run = SectorRun.Create(sessionProfile.run.Sectors.Select(row => Named(sessionProfile.run, row))
+                .Append(hudQuietSector).Append(hudExtractionSector).ToArray()),
             idleLocale = sessionProfile.idleLocale,
             presentation = sessionProfile.presentation,
             offset = sessionProfile.offset
         };
+
+        // Replays and fixtures draw nothing, so a Random row shows its pool's first locale there.
+        internal static SectorEntry Named(SectorRun run, SectorEntry row) =>
+            row.random ? new SectorEntry { prefab = row.prefab, locale = run.LocalePool[0] } : row;
 
         // GameHost reads its configuration in Awake, so the overrides land while the copy is staged inactive.
         private void BuildPlaytest(PreviewEntry composed)
@@ -151,6 +163,8 @@ namespace Game.Preview
             var staging = new GameObject("Preview Playtest staging");
             staging.SetActive(false);
             playtest = Instantiate(gameHostPrefab, staging.transform);
+            if (composed == PreviewEntry.Combat)
+                playtest.sessionProfile.run = CombatRun();
             if (composed == PreviewEntry.CrowdedJumpGate)
                 playtest.sessionProfile.run = SectorRun.Create(crowdedJumpSectors);
             var fixture = PlaytestFixture(composed);
@@ -160,6 +174,20 @@ namespace Game.Preview
                 Guid.NewGuid().ToString("N"), RunRecordStore.FileName);
             playtest.transform.SetParent(null, false);
             Destroy(staging);
+        }
+
+        // New rows, so a Locale pick never writes to the run asset.
+        internal SectorRun CombatRun()
+        {
+            var run = gameHostPrefab.sessionProfile.run;
+            if (combatSector == WholeRun && !combatLocale) return run;
+            IEnumerable<SectorEntry> rows = combatSector == WholeRun ? run.Sectors : new[] { run.Sectors[combatSector] };
+            return SectorRun.Create(run.LocalePool.ToArray(), rows.Select(row => new SectorEntry
+            {
+                prefab = row.prefab,
+                locale = combatLocale ? combatLocale : row.locale,
+                random = !combatLocale && row.random
+            }).ToArray());
         }
 
         public void Select(PreviewEntry selected)
@@ -344,6 +372,7 @@ namespace Game.Preview
                 PreviewEntry.Boss => (bossSector, "boss"),
                 PreviewEntry.Sector1Elite => (sector1EliteSector, "sector 1 elite"),
                 PreviewEntry.Sector2Elite => (sector2EliteSector, "sector 2 elite"),
+                PreviewEntry.CrowdedFight => (crowdedFightSector, "crowded fight"),
                 _ => (null, null)
             };
             if (name != null && !sector?.prefab)

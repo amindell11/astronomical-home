@@ -21,11 +21,15 @@
 {f433dc01-5853-499e-8966-cddc3914df43} event:/HUD/Overheat
 {7fa9d96b-2619-473f-9f3c-419ebc11bf4a} event:/HUD/ShieldDepleted
 {ba5c4b18-d151-4f71-bd3b-1226138a8257} event:/Music/Game
-{3feb78c4-655b-4afc-9025-7fed168b1842} event:/Ships/Boost
 {19c92f81-7f0e-467b-b37f-6e2d0da8accb} event:/Ships/CollisionDeath
 {7c0c63f8-f749-4942-9fe7-e92086f2a826} event:/Ships/Death
 {c720fa5a-068b-4d37-92fc-04a6e34bf8f4} event:/Ships/Engine
 {fa8883ae-ad86-41fa-9be8-6cf16ba6c077} event:/Ships/HullHit
+{cd93c27c-7377-4515-8792-5151e99a06fa} event:/Ships/Keystones/Blink
+{3feb78c4-655b-4afc-9025-7fed168b1842} event:/Ships/Keystones/Dash
+{288f320c-495d-4347-bead-a6773b641eb7} event:/Ships/Keystones/Overdrive
+{34ac3a79-8993-4f84-bd40-5fa1dc8142de} event:/Ships/Keystones/Ram
+{a33010a0-b7d5-4ffd-83bc-d5ec3fa2a0a9} event:/Ships/Keystones/Stealth
 {1feb766a-ca1f-4ee1-a0a5-9591cf3ff89e} event:/Ships/ShieldHit
 {02407836-9e22-442e-ba8f-26cd90bbedaf} event:/Weapons/ChargeLaser/Fire
 {e6607cac-8c37-4cd3-9cc3-4c573c3cdbae} event:/Weapons/ChargeLaser/Impact

@@ -26,7 +26,7 @@ using Object = UnityEngine.Object;
 
 namespace Tests.PlayMode.Sectors
 {
-    /// <summary>A sector's hunt with real patrols: unaware, flying a route that brings one into sight of a still hero, until one sees the hero (or is hit by it), then a call-in, its marker pulsing, that sounds the alarm, hands the patrols back to their brains and opens phase one with the HUD reading the search and then the call-in; asteroids hide the hero, and killing the caller inside its call-in silences it, leaving the search clock to end the hunt.</summary>
+    /// <summary>A sector's hunt with real patrols: unaware, flying a route that brings one into sight of a still hero, until one sees the hero (or is hit by it), then a call-in, its marker pulsing, that sounds the alarm, hands the patrols back to their brains and opens phase one with the HUD reading the search and then the call-in; live patrols take the director's slots under its cap until they die; asteroids hide the hero, and killing the caller inside its call-in silences it, leaving the search clock to end the hunt.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class SectorHuntPlayModeTests : PlayModeWorldFixture
@@ -195,16 +195,53 @@ namespace Tests.PlayMode.Sectors
             Assert.IsTrue(Commander(Patrol(hunt)).Steered, "A calling patrol keeps flying its route.");
         }
 
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator LivePatrols_TakeTheDirectorsSlots_AndADeadOneFreesItsSlot()
+        {
+            const int cap = 3;
+            var hero = SpawnHero();
+            var hunt = NewHunt(sightRadius: 5f, callInSeconds: 30f, searchSeconds: .5f, patrols: 2);
+            var template = ShipTestFactory.CreateKinematicPrimitiveShipAt(new Vector2(500f, 500f));
+            Track(template.gameObject);
+            var sectorGO = Track(new GameObject("HuntedSector"));
+            hunt.transform.SetParent(sectorGO.transform, false);
+            var director = Child(sectorGO, "WaveDirector").AddComponent<WaveDirector>();
+            director.Configure(new[] { new WaveDirector.RosterEntry { template = template } },
+                new[] { new SectorPhase { seconds = 60f, interval = .25f, cap = cap } }, openingLullSeconds: 5f,
+                hunt: hunt);
+            var sector = sectorGO.AddComponent<Sector>();
+            sector.SetManifest(null, new SectorSpawner[] { director, hunt }, null);
+            sector.Initialize(_unitService, _objectives, true, default, hero, SectorIndex);
+
+            yield return sector.Setup();
+            yield return WaitSeconds(() => director.Spawned.Count > 0, 3f);
+            Assert.IsTrue(hunt.Alarmed);
+            Assert.AreEqual(2, hunt.LivePatrols);
+            Assert.AreEqual(cap - 2, director.Spawned.Count, "Phase one's opening fills only the slots the patrols leave.");
+
+            yield return WaitSeconds(() => false, 1f);
+            Assert.AreEqual(cap - 2, director.Spawned.Count, "No due spawn passes the cap while both patrols live.");
+
+            var patrol = hunt.Spawned[0];
+            patrol.Damage.TakeDamage(new DamageInfo(1e6f, DamageKind.Laser, hero.Id, 0f, Vector3.zero, patrol.transform.position));
+            yield return WaitSeconds(() => director.Spawned.Count > cap - 2, 2f);
+            Assert.AreEqual(1, hunt.LivePatrols, "The dead patrol stops counting.");
+            Assert.AreEqual(cap - 1, director.Spawned.Count, "The dead patrol's slot goes to the director.");
+
+            yield return sector.Teardown();
+        }
+
         private Ship SpawnHero() => Track(ShipTestFactory.CreateKinematicPrimitiveShipAt(Vector2.zero).gameObject).GetComponent<Ship>();
 
         private SectorHunt NewHunt(float sightRadius, float callInSeconds, float searchSeconds,
-            float spawnDistance = SpawnDistance)
+            float spawnDistance = SpawnDistance, int patrols = 1)
         {
             var feel = Track(ScriptableObject.CreateInstance<HuntFeelProfile>());
             feel.sightRadius = sightRadius;
             feel.callInSeconds = callInSeconds;
             feel.searchSeconds = searchSeconds;
-            feel.patrolsPerSector = new[] { 0, 1 };
+            feel.patrolsPerSector = new[] { 0, patrols };
             var hunt = Track(new GameObject("Hunt")).AddComponent<SectorHunt>();
             var faction = Track(ScriptableObject.CreateInstance<Faction>());
             faction.common = new FactionShip

@@ -62,6 +62,7 @@ namespace Tests.PlayMode
             spawned.Add(go);
             go.SetActive(false);
             var controller = go.AddComponent<WeaponsController>();
+            controller.centreSocket = controller.leftSocket = controller.rightSocket = go.transform;
             controller.primaryMount = primary;
             controller.secondaryMount = secondary;
             go.SetActive(true);
@@ -141,7 +142,7 @@ namespace Tests.PlayMode
         public void ConcussionLoadout_DoesNotLeaveAnEmptyCornerPanel()
         {
             var controller = CreateController(
-                LoadWeaponPrefab<Grenades>("Assets/Prefabs/Weapons/Grenades.prefab"), null);
+                null, LoadWeaponPrefab<Grenades>("Assets/Prefabs/Weapons/Grenades.prefab"));
             var builder = CreateBuilder();
 
             builder.Build(controller.ReadoutContext);

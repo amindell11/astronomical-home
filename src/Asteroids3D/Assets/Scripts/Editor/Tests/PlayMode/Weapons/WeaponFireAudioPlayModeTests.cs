@@ -44,18 +44,29 @@ namespace Tests.PlayMode.Weapons
         }
 
         [UnityTest]
-        public IEnumerator RipperShot_StartsOneFireInstance()
+        public IEnumerator RipperVolley_StartsOneFireInstance()
         {
             var rippers = Mount<Rippers>(RippersPrefabPath);
+            var ship = rippers.transform.parent;
+            rippers.Initialize(ship, Side(ship, -0.5f), Side(ship, 0.5f));
             var fire = Fresh(RipperFire);
 
             Assert.IsNotNull(rippers.Fire(Ahead(rippers, 10f), Projectiles), "shot refused");
+            Assert.AreEqual(2, Projectiles.ActiveCount, "the shot is a two-slug volley");
             yield return Flush();
 
             var instances = Instances(fire);
             Debug.Log($"[FMOD] {RipperFire} instances={instances.Length}");
-            Assert.AreEqual(1, instances.Length, "ripper fire instances after one shot");
+            Assert.AreEqual(1, instances.Length, "ripper fire instances after one volley");
             AssertPlaying(instances[0], "the shot still sounds a frame later");
+        }
+
+        private static Transform Side(Transform ship, float x)
+        {
+            var socket = new GameObject("Side").transform;
+            socket.SetParent(ship, false);
+            socket.localPosition = new Vector3(x, 0f, 0f);
+            return socket;
         }
 
         [UnityTest]
