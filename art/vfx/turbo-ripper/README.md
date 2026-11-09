@@ -2,7 +2,7 @@
 
 `draw.js` is the native ripper source. `settings.json` owns its warm palette and sizes, plus the turbo hue and narrower spread. `bake.cjs` also reads the unchanged source and motion in `../laser-impact/`.
 
-The owner chose a compact solid ripper slug with a short tracer and a simpler impact. The warmer palette distinguishes its ammunition from energy weapons. Turbo keeps the first laser's length and timing with a 25 percent narrower fan. Its magenta palette follows a capture of the actual turbo projectile through the game's camera and postprocessing. The decisions and flight evidence are on [the hit-effects issue](https://github.com/amindell11/astronomical-home/issues/792#issuecomment-6704847365).
+The ripper projectile uses the [approved pale gold needle fleck](https://github.com/amindell11/astronomical-home/blob/6e6b69feef17175c38b3225f3748e6c857ae8b10/history/14-ripper-needle-fleck/selected-source.json). Its 22 reference pixels span 1.1 world units. The narrow glow scales with the bake resolution. Ripper keeps its simpler impact. Turbo keeps the first laser's length and timing with a 25 percent narrower fan. Its magenta palette follows a capture of the actual turbo projectile through the game's camera and postprocessing. The decisions and flight evidence are on [the hit-effects issue](https://github.com/amindell11/astronomical-home/issues/792#issuecomment-6704847365).
 
 ## Regenerate
 

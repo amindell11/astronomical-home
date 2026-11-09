@@ -29,7 +29,9 @@ const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypt
     }
     result[kind]=png(atlas);
    }
-   const slug=canvas(256,512),sc=slug.getContext('2d');sc.translate(128,256);sc.rotate(Math.PI/2);sc.scale(448/28,448/28);sc.translate(-14,0);RipperDrawing.slug(sc,settings.slug.colors);result.slug=png(slug);
+   const slug=canvas(256,512),sc=slug.getContext('2d'),slugScale=448/22;
+   sc.translate(128,256);sc.rotate(-Math.PI/2);sc.scale(slugScale,slugScale);sc.translate(11,0);
+   RipperDrawing.slug(sc,settings.slug.colors,settings.slug.shadowBlur*slugScale);result.slug=png(slug);
    return result;
   },{source:'data:image/png;base64,'+source.toString('base64'),settings,baseline});
   const names={turbo:'TurboLaserImpact.png',ripper:'RipperImpact.png',slug:'RipperSlug.png'};
