@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 2984417602718356061}
   - component: {fileID: 5512903418735166201}
   - component: {fileID: 3361187402269917645}
+  - component: {fileID: 5653732871112655559}
   m_Layer: 0
   m_Name: Valis_Overdrive
   m_TagString: Untagged
@@ -66,3 +67,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   keystone: {fileID: 5512903418735166201}
   color: {r: 0.2, g: 0.9, b: 1, a: 1}
+--- !u!114 &5653732871112655559
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7781260934417810432}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c7f085adf5b454fa9b759c4bec16ba7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  keystone: {fileID: 5512903418735166201}
+  activationEvent:
+    Guid:
+      Data1: 680473100
+      Data2: 1128745309
+      Data3: 2007412158
+      Data4: -1222745029
+    Path: event:/Ships/Keystones/Overdrive
