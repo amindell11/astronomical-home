@@ -59,7 +59,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | Word | Live senses | Rule |
 |---|---|---|
 | **gate** | merge gate · eval gate (`eval_gate.py`) · gate score · cost gate (fix-ladder rung 3) · go/no-go gate · curriculum lesson gate · anti-churn gate · scoping gate · owner's gate (a ship art stage approval) · "gated off" code conditionals | Always qualified. Bare "the gate" is legal only in pool-merge context (= merge gate) and RL-run context (= eval gate), and never in a title. |
-| **lane** | boot lane · remote lane (the second Unity box, `remote_lane.sh`) · harness lane · curriculum lane · watch/capture lane · audit lane · teacher-tuning lane · access-queue lane · firing lane (lane clearing) · decision lane (nav / fire / ability — the three seams a `BrainDecision` carries) · LANE slot (the MPC sentence term, always caps) | Always qualified. |
+| **lane** | boot lane · remote lane (the second Unity box, `remote_lane.sh`) · harness lane · curriculum lane · watch/capture lane · audit lane · teacher-tuning lane · access-queue lane · firing lane (lane clearing; a situation's allies in lane) · decision lane (nav / fire / ability — the three seams a `BrainDecision` carries) · LANE slot (the MPC sentence term, always caps) | Always qualified. |
 | **pool** | worktree pool · ship resource pool (`PoolDifferential`) · self-play snapshot pool · object pool (`SimplePool`) · Dev Pool issue labels (`mid-dev-pool`/`high-dev-pool`, ex-board columns) | Always qualified. |
 | **token** | bus/signal token · obs obstacle token (`ObstacleTokenCap`) · threat token · LLM context token | Always qualified. |
 | **term** | intent/cost term (a weighted sentence-slot cost the MPC solves — #485) · activation term (`ActivationTerm`, the AND-ed predicate atoms of sector activation rules) · reward term (a `RewardSpec` component, e.g. the reward spine's outcome term) | Always qualified. An intent-grammar doc may read bare "term" = intent/cost term only after declaring the carve-out (Stage A brief precedent). |
@@ -819,14 +819,23 @@ Format: **term** — definition. *(authority)*
   `WeaponSlot.Secondary`. *(`WeaponComponent.IsOrdnance`; #1410)*
 - **single fire** — a weapon fires every shot from the hull's centre socket, on its
   centreline at the nose. Every weapon that is not dual fire fires this way.
-  *(`WeaponComponent.DualFire`; #1410)*
-- **dual fire** — a weapon alternates its shots between the hull's left and right
-  sockets, one projectile per shot at the weapon's own fire rate. The owner ruled
-  alternation over both sides at once (2026-11-08). Left and right are the sides the
-  player sees with the prow up under the game camera, so left is the hull's local -X.
-  The weapon's class owns the choice, so Missiles, Concussion and the Railgun have no
-  switch to author: Rippers are always dual fire, and the TurboLasers variant turns
-  on the Lasers switch. *(`WeaponComponent.DualFire`; #1410)*
+  *(`WeaponComponent.FirePattern`; #1410)*
+- **dual fire** — a weapon fires from the hull's left and right sockets instead of the
+  centre, in one of two forms, alternating fire or volley fire. Left and right are the
+  sides the player sees with the prow up under the game camera, so left is the hull's
+  local -X. The weapon's class owns the form, so Missiles, Concussion and the Railgun
+  have nothing to author. Rippers always fire volleys, and the TurboLasers variant
+  turns on the Lasers switch for alternating fire. *(`WeaponComponent.FirePattern`; #1410)*
+- **alternating fire** — dual fire from one side socket per shot, switching sides each
+  shot. Each shot is one projectile at the weapon's own fire rate, and its fire sound
+  plays at the side that fired. The owner ruled it for TurboLasers (2026-11-08).
+  *(`FirePattern.Alternating`; #1410)*
+- **volley fire** — dual fire from both side sockets together on every shot. Each shot
+  launches one projectile from each side but spends one round and plays one fire sound.
+  The fire sound and the gunsight's line of sight read the centre socket, which sits on
+  the centreline between the two muzzles. The owner ruled it for Rippers at full damage
+  per projectile (2026-11-08), so ripper damage output doubles.
+  *(`FirePattern.Volley`; #1422)*
 - **velocity reference / feasibility tracker** — the RL↔MPC boundary: the policy
   emits a planar velocity and MPC is demoted to a ~2s tracker (feasibility, aim,
   velocity-track).
@@ -964,6 +973,17 @@ Format: **term** — definition. *(authority)*
   rather than synonyms.
   ⚠ Not to be confused with `PilotCommand`/`IPilot`, which are the actuator end.
   *(Brain, BrainDecision)*
+- **tactic**. What a ship picks to fight with: attack run, flank, stand off or
+  break off. A ship picks for its own sake, the best shot for the least risk,
+  and never knows it paces the player. "Beat" is the retired name. Owner rulings
+  on #1349. Every setting of the brain that picks tactics lives on one asset.
+  *(TacticsSettings)*
+- **situation**. What one ship reads about its fight before it picks a tactic,
+  from its own sensors only. The owner's picks on #1349: allies count by where
+  they are, never by asking another ship's brain, so the elite counts whatever it
+  flies; *exposed* means inside the target's real primary gun range and its
+  exposure cone, never a fixed distance; the hit clock on `AIContext` is the only
+  state kept between reads. Not the retired *exposure arc*. *(Situation.Read)*
 - **presentation** — the per-session axis deciding whether visuals and audio
   exist. Two things a reader needs: it is applied by the owning spawn seams,
   never by per-component globals; and it is **not** the same axis as the deleted

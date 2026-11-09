@@ -212,7 +212,7 @@ namespace UI.Hangar
 
             var rippers = weapon as Rippers;
             if (rippers)
-                return $"Damage {rippers.Damage:0}{Rate(rippers.ShotsPerSecond)}" +
+                return $"Damage {rippers.Damage:0} per slug   |   2 slugs per shot{Rate(rippers.ShotsPerSecond)}" +
                        (rippers.Rounds ? $"   |   Mag {rippers.Rounds.MaxAmmo}{Refill(rippers.Rounds)}" : "") +
                        $"   |   Speed {rippers.ProjectileSpeed:0}";
 

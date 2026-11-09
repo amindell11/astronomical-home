@@ -268,7 +268,7 @@ namespace Tests.PlayMode
         [TestCase("Assets/Prefabs/Weapons/Railgun.prefab",
             @"Damage \d+", @"Range \d+", @"Full charge [\d.]+s", "Hitscan")]
         [TestCase("Assets/Prefabs/Weapons/Rippers.prefab",
-            @"Damage \d+", @"Rate [\d.]+/s", @"Mag \d+ \(reload [\d.]+s\)", @"Speed \d+")]
+            @"Damage \d+ per slug", "2 slugs per shot", @"Rate [\d.]+/s", @"Mag \d+ \(reload [\d.]+s\)", @"Speed \d+")]
         [TestCase("Assets/Prefabs/Weapons/Missiles.prefab",
             @"Damage \d+ \+ \d+ splash", @"\d+ rounds \(shared recharge [\d.]+s/round\)", "Lock-on homing",
             "Direct hit skips shields")]

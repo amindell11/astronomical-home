@@ -24,7 +24,7 @@ namespace Combat.Weapons.Arsenal
 
         private bool venting;
 
-        public override bool DualFire => dualFire;
+        public override FirePattern FirePattern => dualFire ? FirePattern.Alternating : FirePattern.Single;
         public override float ProjectileSpeed => projectilePrefab.LaserSpeed;
         public override float FireRange => fireDistance;
         public Heat Heat => heat;

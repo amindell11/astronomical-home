@@ -1,9 +1,13 @@
 #if UNITY_EDITOR
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
+using Combat.Projectiles;
 using Combat.Weapons;
+using Combat.Weapons.Arsenal;
 using NUnit.Framework;
+using Ships.Command;
 using Ships.Weapons;
 using Substrate;
 using Tests.PlayMode.Common;
@@ -31,15 +35,15 @@ namespace Tests.PlayMode.Weapons.FireOrigins
             base.TearDown();
         }
 
-        [TestCase("Lasers", false)]
-        [TestCase("TurboLasers", true)]
-        [TestCase("Rippers", true)]
-        [TestCase("Railgun", false)]
-        [TestCase("Missiles", false)]
-        [TestCase("Grenades", false)]
-        public void OnlyTurboLasersAndRippersAreDualFire(string weapon, bool dualFire)
+        [TestCase("Lasers", FirePattern.Single)]
+        [TestCase("TurboLasers", FirePattern.Alternating)]
+        [TestCase("Rippers", FirePattern.Volley)]
+        [TestCase("Railgun", FirePattern.Single)]
+        [TestCase("Missiles", FirePattern.Single)]
+        [TestCase("Grenades", FirePattern.Single)]
+        public void OnlyTurboLasersAlternate_AndOnlyRippersFireVolleys(string weapon, FirePattern pattern)
         {
-            Assert.That(Prefab(weapon).DualFire, Is.EqualTo(dualFire));
+            Assert.That(Prefab(weapon).FirePattern, Is.EqualTo(pattern));
         }
 
         [UnityTest]
@@ -51,8 +55,36 @@ namespace Tests.PlayMode.Weapons.FireOrigins
             ShotsLeaveFrom("TurboLasers", "Left", "Right", "Left", "Right");
 
         [UnityTest]
-        public IEnumerator Rippers_AlternateLeftAndRight() =>
-            ShotsLeaveFrom("Rippers", "Left", "Right", "Left", "Right");
+        public IEnumerator Rippers_FireBothSidesEveryShot_OnOneRoundAndOneFireEvent()
+        {
+            var controller = NewRig(Prefab("Rippers"));
+            controller.gameObject.SetActive(true);
+            controller.Initialize(() => default);
+            var rippers = (Rippers)controller.Primary;
+            var fireEvents = new List<Vector3>();
+            rippers.OnFire += () => fireEvents.Add(rippers.firePoint.position);
+            var centre = SocketPosition(controller, "Centre");
+
+            Assert.That(Vector3.Distance(controller.Context.Sight(WeaponSlot.Primary).FirePoint, centre), Is.LessThan(1e-4f),
+                "the gunsight sights a volley from the centre");
+
+            for (var shot = 0; shot < 2; shot++)
+            {
+                yield return UntilFirable(rippers);
+                var rounds = rippers.Rounds.AmmoCount;
+                var before = Live();
+                Assert.That(rippers.Fire(Ahead, Projectiles), Is.Not.Null, $"Rippers refused shot {shot}.");
+                var slugs = Live().Except(before).Cast<ProjectileBase>().ToList();
+
+                Assert.That(slugs.Select(slug => SideAt(controller, slug.transform.position)),
+                    Is.EquivalentTo(new[] { "Left", "Right" }), $"shot {shot} leaves from both sides");
+                foreach (var slug in slugs)
+                    Assert.That(slug.Damage * slug.DamageScale, Is.EqualTo(rippers.Damage), "each slug does full damage");
+                Assert.That(rippers.Rounds.AmmoCount, Is.EqualTo(rounds - 1), "a volley spends one round");
+                Assert.That(fireEvents.Count, Is.EqualTo(shot + 1), "one fire event per volley");
+                Assert.That(Vector3.Distance(fireEvents[shot], centre), Is.LessThan(1e-4f), "a volley sounds at the centre");
+            }
+        }
 
         [TestCase("Centre")]
         [TestCase("Left")]
@@ -84,12 +116,13 @@ namespace Tests.PlayMode.Weapons.FireOrigins
 
             for (var shot = 0; shot < sides.Length; shot++)
             {
-                for (var step = 0; !weapon.CanFire() && step < ShotTimeoutSteps; step++)
-                    yield return new WaitForFixedUpdate();
-                var socket = controller.transform.Find(sides[shot]).position;
+                yield return UntilFirable(weapon);
+                var socket = SocketPosition(controller, sides[shot]);
+                var before = Live();
                 var projectile = weapon.Fire(Ahead, Projectiles);
 
                 Assert.That(projectile, Is.Not.Null, $"{weaponName} refused shot {shot}.");
+                Assert.That(Live().Except(before).Count(), Is.EqualTo(1), "one projectile per shot");
                 Assert.That(fireEvents.Count, Is.EqualTo(shot + 1), "one fire event per shot");
                 Assert.That(Vector3.Distance(projectile.transform.position, socket), Is.LessThan(1e-4f),
                     $"{weaponName} shot {shot} leaves from {sides[shot]}.");
@@ -97,6 +130,25 @@ namespace Tests.PlayMode.Weapons.FireOrigins
                     $"{weaponName} shot {shot} sounds at {sides[shot]}.");
             }
         }
+
+        private static IEnumerator UntilFirable(WeaponComponent weapon)
+        {
+            for (var step = 0; !weapon.CanFire() && step < ShotTimeoutSteps; step++)
+                yield return new WaitForFixedUpdate();
+        }
+
+        private List<MonoBehaviour> Live()
+        {
+            var live = new List<MonoBehaviour>();
+            Projectiles.ForEachLive(live.Add);
+            return live;
+        }
+
+        private static Vector3 SocketPosition(WeaponsController rig, string side) => rig.transform.Find(side).position;
+
+        private static string SideAt(WeaponsController rig, Vector3 position) =>
+            new[] { "Centre", "Left", "Right" }.FirstOrDefault(side =>
+                Vector3.Distance(SocketPosition(rig, side), position) < 1e-4f);
 
         private WeaponsController NewRig(WeaponComponent primary)
         {
