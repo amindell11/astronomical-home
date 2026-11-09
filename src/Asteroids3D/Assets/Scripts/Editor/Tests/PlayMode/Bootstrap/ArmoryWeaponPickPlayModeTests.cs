@@ -249,6 +249,8 @@ namespace Tests.PlayMode.Bootstrap
             player.Body.position = position;
             player.Body.linearVelocity = Vector3.zero;
             Physics.SyncTransforms();
+            // The zone sees an exit or entry only on a physics step, which ten fast frames can miss.
+            yield return new WaitForFixedUpdate();
             yield return Settle();
         }
 
