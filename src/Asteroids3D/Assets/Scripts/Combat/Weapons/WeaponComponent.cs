@@ -38,7 +38,7 @@ namespace Combat.Weapons
     {
         public Transform firePoint;
         private Transform otherSide;
-        // A volley's muzzles flank its fire point, the centre its sound and sight read.
+        // A volley's muzzles flank its fire point, which stays centred for its sound and gunsight.
         private Transform[] muzzles;
 
         public Vector3 FireOrigin => GamePlane.WorldPointOnPlane((firePoint ? firePoint : transform).position);
@@ -128,7 +128,7 @@ namespace Combat.Weapons
             return null;
         }
 
-        /// <summary>Fires one shot at <paramref name="targetPoint"/> and returns its first projectile; the registry holds both of a volley's slugs. The live-projectile registry is a per-call capability, never stored — a call site without one in hand cannot compile.</summary>
+        /// <summary>Fires one shot at <paramref name="targetPoint"/>, registering every projectile and returning the first; never store the registry.</summary>
         public abstract ProjectileBase Fire(Vector3 targetPoint, IProjectileService projectiles);
 
         /// <summary>Muzzle speed of this weapon's projectile, used for AI intercept lead. 0 if not applicable.</summary>
