@@ -9,6 +9,7 @@ using Ships.Loadout;
 using Ships.Registry;
 using Substrate.Sectors.Factions;
 using Substrate.Services.Units;
+using Substrate.Sessions;
 using UnityEngine;
 
 namespace Substrate.Sectors.Elements.Elites
@@ -19,16 +20,13 @@ namespace Substrate.Sectors.Elements.Elites
     /// it (Begin, Summon, End), so it is neither a spawner nor a module in the sector's manifest. As the
     /// elite's hull falls through its profile's escalation steps, it calls escorts and stacks heavier
     /// fire. Its ships come from the sector's faction: the elite flies the signature ship in the elite
-    /// skin, escorts the common ship. <see cref="Announced"/> and <see cref="Beaten"/> carry data only,
-    /// with no display strings.
+    /// skin, escorts the common ship. Its profile is the run row's elite, read at <see cref="Begin"/>.
+    /// <see cref="Announced"/> and <see cref="Beaten"/> carry data only, with no display strings.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1318
     /// </summary>
-    public sealed class EliteEncounter : MonoBehaviour, IEliteStatus
+    public sealed class EliteEncounter : MonoBehaviour, IEliteStatus, ISectorRowReader
     {
         private const float EscortDistanceInEliteRadii = 3f;
-
-        [Tooltip("The elite's name, size, heavy weapons, mods and escalation.")]
-        [SerializeField] private EliteProfile profile;
 
         [Header("Ships")]
         [Tooltip("The sector's faction. The elite flies its signature ship in the elite skin; escorts fly its common " +
@@ -51,6 +49,7 @@ namespace Substrate.Sectors.Elements.Elites
         [SerializeField, Min(1)] private int placementAttempts = 8;
 
         private readonly List<Ship> escorts = new();
+        private EliteProfile profile;
         private IUnitService units;
         private IObstacleField field;
         private Ship hero;
@@ -71,11 +70,18 @@ namespace Substrate.Sectors.Elements.Elites
         public float HullPct => Present ? elite.HealthPct : 0f;
         public float ShieldPct => Present ? elite.ShieldPct : 0f;
 
+        public void CheckRow(SectorEntry row)
+        {
+            if (!row.elite)
+                throw new InvalidOperationException($"EliteEncounter on '{name}' reads the row's elite, and the row names none.");
+        }
+
         public void Begin(SectorBuildContext ctx)
         {
-            if (!profile || !faction || !faction.Faction || !pilot || !escortPilot)
+            profile = ctx.Row.elite;
+            if (!profile || !faction || !pilot || !escortPilot)
                 throw new InvalidOperationException(
-                    $"EliteEncounter on '{name}' needs its profile, a sector faction naming a faction, and elite and escort pilots wired.");
+                    $"EliteEncounter on '{name}' needs the row's elite, a sector faction, and elite and escort pilots wired.");
             try
             {
                 profile.Validate();
@@ -188,9 +194,8 @@ namespace Substrate.Sectors.Elements.Elites
         }
 
 #if UNITY_EDITOR
-        internal void Configure(EliteProfile profile, SectorFaction faction, Commander pilot, Commander escortPilot)
+        internal void Configure(SectorFaction faction, Commander pilot, Commander escortPilot)
         {
-            this.profile = profile;
             this.faction = faction;
             this.pilot = pilot;
             this.escortPilot = escortPilot;

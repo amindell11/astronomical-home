@@ -1,29 +1,23 @@
 using System.Linq;
 using NUnit.Framework;
-using Substrate.Sectors;
-using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Factions;
+using Substrate.Sessions;
 using UnityEditor;
 
 namespace Tests.EditMode.Factions
 {
-    /// <summary>The three trial sector prefabs, read as assets: each names its own faction in run order, and its roster flies only that faction's signature and common ships on their kits, and draws the signature ship three times as often as the common one.</summary>
+    /// <summary>The shipped run's three rows, read as assets: each names its own faction in run order, and its roster flies only that faction's signature and common ships on their kits, and draws the signature ship three times as often as the common one.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class FactionSectorsEditModeTests
     {
-        private static readonly string[] TrialSectorPaths =
-        {
-            "Assets/Prefabs/Sectors/TrialSector.prefab",
-            "Assets/Prefabs/Sectors/TrialSector2.prefab",
-            "Assets/Prefabs/Sectors/TrialSector3.prefab",
-        };
+        private const string RunPath = "Assets/Settings/Game/SurvivalTrialRun.asset";
 
         [Test]
-        public void EachTrialSector_NamesADifferentFaction_InRunOrder()
+        public void EachTrialRow_NamesADifferentFaction_InRunOrder()
         {
-            var ids = TrialSectorPaths.Select(path => FactionOf(Load(path)).id).ToArray();
+            var ids = Rows().Select(row => FactionOf(row).id).ToArray();
 
             CollectionAssert.AreEqual(new[] { "shoal", "veil", "bastion" }, ids);
         }
@@ -31,51 +25,44 @@ namespace Tests.EditMode.Factions
         [Test]
         public void EachTrialRoster_FliesOnlyItsFactionsSignatureAndCommonShips_OnTheirKits()
         {
-            foreach (var path in TrialSectorPaths)
+            foreach (var (row, i) in Rows().Select((row, i) => (row, i)))
             {
-                var sector = Load(path);
-                var faction = FactionOf(sector);
-                var threat = sector.Module<PhaseSpineModule>().Threat();
+                var faction = FactionOf(row);
+                var threat = row.prefab.Module<PhaseSpineModule>().Threat(row);
 
-                CollectionAssert.AreEquivalent(new[] { faction.signature.ship, faction.common.ship }, threat.Ships, path);
+                CollectionAssert.AreEquivalent(new[] { faction.signature.ship, faction.common.ship }, threat.Ships, $"row {i}");
                 CollectionAssert.AreEquivalent(new[] { faction.signature.kit, faction.common.kit }.Distinct(),
-                    threat.Weapons, path);
+                    threat.Weapons, $"row {i}");
             }
         }
 
         [Test]
         public void EachTrialRoster_DrawsItsSignatureShip_ThreeTimesAsOftenAsItsCommonShip()
         {
-            foreach (var path in TrialSectorPaths)
+            foreach (var (row, i) in Rows().Select((row, i) => (row, i)))
             {
-                var sector = Load(path);
-                var faction = FactionOf(sector);
-                var roster = new SerializedObject(sector.GetComponentInChildren<WaveDirector>(true))
-                    .FindProperty("roster");
-                var templates = Enumerable.Range(0, roster.arraySize)
-                    .Select(i => roster.GetArrayElementAtIndex(i).FindPropertyRelative("template").objectReferenceValue)
-                    .ToArray();
+                var faction = FactionOf(row);
+                var templates = row.roster.Select(entry => entry.template).ToArray();
 
                 var common = templates.Count(t => t == faction.common.ship);
-                Assert.Greater(common, 0, $"{path}: the common ship still flies.");
+                Assert.Greater(common, 0, $"row {i}: the common ship still flies.");
                 Assert.AreEqual(3 * common, templates.Count(t => t == faction.signature.ship),
-                    $"{path}: the director draws uniformly over entries, so entry counts set the mix.");
+                    $"row {i}: the director draws uniformly over entries, so entry counts set the mix.");
             }
         }
 
-        private static Sector Load(string path)
+        private static SectorEntry[] Rows()
         {
-            var sector = AssetDatabase.LoadAssetAtPath<Sector>(path);
-            Assert.IsNotNull(sector, $"Sector prefab missing at {path}");
-            return sector;
+            var run = AssetDatabase.LoadAssetAtPath<SectorRun>(RunPath);
+            Assert.IsNotNull(run, $"Sector run missing at {RunPath}");
+            return run.Sectors.ToArray();
         }
 
-        private static Faction FactionOf(Sector sector)
+        private static Faction FactionOf(SectorEntry row)
         {
-            var named = sector.Module<SectorFaction>();
-            Assert.IsNotNull(named, $"{sector.name} carries no SectorFaction module.");
-            Assert.IsNotNull(named.Faction, $"{sector.name} names no faction.");
-            return named.Faction;
+            Assert.IsNotNull(row.prefab.Module<SectorFaction>(), $"{row.prefab.name} carries no SectorFaction module.");
+            Assert.IsNotNull(row.faction, "the row names no faction.");
+            return row.faction;
         }
     }
 }

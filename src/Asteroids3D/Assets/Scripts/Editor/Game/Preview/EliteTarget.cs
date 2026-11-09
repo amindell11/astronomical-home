@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Substrate.Sectors;
 using Substrate.Sectors.Elements.Elites;
-using Substrate.Sectors.Elements.Phases;
-using UnityEditor;
 using UnityEngine;
 
 namespace Game.Preview
@@ -11,12 +8,12 @@ namespace Game.Preview
     internal sealed class EliteTarget : TuningTarget
     {
         private readonly string name;
-        private readonly string fixturePath;
+        private readonly string fixture;
 
-        public EliteTarget(string name, PreviewEntry entry, string fixturePath)
+        public EliteTarget(string name, PreviewEntry entry, string fixture)
         {
             this.name = name;
-            this.fixturePath = fixturePath;
+            this.fixture = fixture;
             Entries = new[] { entry };
         }
 
@@ -24,22 +21,12 @@ namespace Game.Preview
         public override IReadOnlyList<PreviewEntry> Entries { get; }
         public override IEnumerable<ScriptableObject> Profiles(GameHost game) => new ScriptableObject[] { Profile() };
 
-        // Read through serialization so game types grow no preview member.
         private EliteProfile Profile()
         {
-            var sector = AssetDatabase.LoadAssetAtPath<Sector>(fixturePath);
-            var spine = sector ? sector.Module<PhaseSpineModule>() : null;
-            var encounter = spine ? Reference<EliteEncounter>(spine, "elite") : null;
-            var profile = encounter ? Reference<EliteProfile>(encounter, "profile") : null;
+            var profile = PreviewHostBootstrap.FixtureRow(fixture).elite;
             if (!profile)
-                throw new InvalidOperationException($"The elite fixture '{fixturePath}' must wire an elite with a profile.");
+                throw new InvalidOperationException($"The {fixture} fixture row must name an elite.");
             return profile;
-        }
-
-        private static T Reference<T>(UnityEngine.Object owner, string field) where T : UnityEngine.Object
-        {
-            using var serialized = new SerializedObject(owner);
-            return (T)serialized.FindProperty(field).objectReferenceValue;
         }
     }
 }

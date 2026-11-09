@@ -11,6 +11,7 @@ using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sectors.Elements.Stations;
 using Substrate.Services.Objectives;
+using Substrate.Sessions;
 using Tests.PlayMode.Common;
 using UnityEditor;
 using UnityEngine;
@@ -175,7 +176,6 @@ namespace Tests.PlayMode.Sectors
         {
             var feel = Track(ScriptableObject.CreateInstance<HuntFeelProfile>());
             feel.searchSeconds = 1000f;
-            feel.patrolsPerSector = new[] { 0, 0, 0 };
             var hunt = Track(new GameObject("Hunt")).AddComponent<SectorHunt>();
             hunt.Configure(feel, null, null, 0f);
             Drive(hunt.Build(Context(hero, 1)));
@@ -214,7 +214,7 @@ namespace Tests.PlayMode.Sectors
         }
 
         private SectorBuildContext Context(Ship hero, int sectorIndex) =>
-            new(null, _objectives, true, _sector, default, hero: hero, sectorIndex: sectorIndex);
+            new(null, _objectives, true, _sector, default, hero: hero, sectorIndex: sectorIndex, row: new SectorEntry());
 
         // Exactly the live armories are finds, with the armory's own icon.
         private void AssertFinds(Armory armory, params FindStation.Station[] live)

@@ -635,8 +635,8 @@ Format: **term** — definition. *(authority)*
 - **survival trial** — a sector whose goal is surviving its sector phases and
   then reaching the extraction zone (`PhaseSpineModule`). A run chains three,
   each faster-paced: extracting moves the run on, extracting from the last wins
-  it, and the game host's player-death path ends it.
-  *(TrialSector, TrialSector2, TrialSector3 prefabs)*
+  it, and the game host's player-death path ends it. All three fly one layout,
+  and their rows hold what differs. *(TrialSector prefab, `SurvivalTrialRun`)*
 - **hunt** — a combat sector's opening, before its first sector phase: patrols
   roam unaware of the player until the alarm. A patrol that sees the player
   (short radius, asteroids are cover) or is hit by it starts a call-in, and the
@@ -719,17 +719,29 @@ Format: **term** — definition. *(authority)*
   authored sector names one or draws one, and the session shows its idle locale
   between sectors.
 - **sector run** — the ordered sectors one run flies, one row each: the sector
-  prefab and the locale it shows, or Random. Authored as one asset edited as a
-  table, so a locale change never edits a prefab; tests, the preview and the
-  headless lane build theirs with `SectorRun.Create`. Random rows draw from the
-  run's locale pool at each run's start, never repeating within the run and
-  leaving out the locales named rows use. The draw takes a `System.Random`
-  because the sim reads `UnityEngine.Random`, and a headless run draws nothing.
+  prefab (the layout), the locale it shows or Random, and the values the
+  layout's parts read: faction, elite, roster, sector phases, patrol count and
+  field preset. The parts take these values from the row and keep no copy.
+  Authored as one asset edited as a table, so a locale or pacing change never
+  edits a prefab; tests and the headless lane build theirs with
+  `SectorRun.Create`, from the shipped run's rows when they fly the trial
+  layout. The preview's fixtures are rows of their own run asset, found by
+  their layout's name (`Settings/Game/Preview/PreviewFixtures.asset`).
+  Random rows draw from the run's locale pool at each run's start, never
+  repeating within the run and leaving out the locales named rows use. The
+  draw takes a `System.Random` because the sim reads `UnityEngine.Random`, and
+  a headless run draws nothing.
   The host hands each drawn locale to the load and the jump backdrop that show
-  it; the session keeps no draw. A presentation session refuses, at
-  construction, a named row with no locale and a pool that can't serve its
-  Random rows. *(`SectorRun.DrawLocales`, `SessionProfile.run`,
+  it; the session keeps no draw. A session refuses, at construction, a row
+  missing a value its layout reads, and a presentation session also refuses a
+  named row with no locale and a pool that can't serve its Random rows.
+  *(`SectorRun.DrawLocales`, `ISectorRowReader`, `SessionProfile.run`,
   `Settings/Game/SurvivalTrialRun.asset`)*
+- **field preset** — a named asteroid field settings asset (sparse, medium,
+  dense) a run row picks, as it picks a faction. A layout's field either names
+  its own preset or takes the row's, so the session refuses a row naming one for
+  a field with its own, or none for a field without. *(`SectorEntry.field`,
+  `Settings/Asteroids/SparseField.asset`)*
 - **idle locale** — the locale a presentation session shows while no sector is
   loaded (the hangar's backdrop). A sector naming the same locale keeps its
   instance across the hand-off. *(`SessionProfile.idleLocale`)*
@@ -1224,7 +1236,8 @@ Format: **term** — definition. *(authority)*
   EnemyDeathSubject)*
 - **preview Playtest** — the panel section and kind of preview entry that runs
   the shipped game host prefab for the owner to fly, with preview run records
-  and at most swapped sectors. Bare "Playtest" is legal in preview context;
+  and at most swapped rows. A picked sector flies its whole run row, and a
+  fixture flies its row of the fixtures run. Bare "Playtest" is legal in preview context;
   elsewhere "playtest" is the owner playing the game.
   *(PreviewEntry.Combat, PreviewEntry.CrowdedJumpGate, PreviewEntry.Boss)*
 - **preview subject** — a presentation module with a chosen context (a fixture

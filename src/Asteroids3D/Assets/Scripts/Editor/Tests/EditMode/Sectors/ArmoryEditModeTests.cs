@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Tests.EditMode.Sectors
 {
-    /// <summary>Each trial sector carries one armory module on the shipped feel, set up after its repair and mod stations, reading the sector's own hunt and spaced from both, with its own find icon and a find-layer minimap marker that goes dark with its glow.</summary>
+    /// <summary>The trial sector, which every survival trial row flies, carries one armory module on the shipped feel, set up after its repair and mod stations, reading the sector's own hunt and spaced from both, with its own find icon and a find-layer minimap marker that goes dark with its glow.</summary>
     [TestFixture]
     [Category("Sectors")]
     [Category("RequiresLfsPng")]
@@ -16,12 +16,10 @@ namespace Tests.EditMode.Sectors
     {
         private const string FeelPath = "Assets/Settings/Game/ArmoryFeel.asset";
 
-        [TestCase("TrialSector")]
-        [TestCase("TrialSector2")]
-        [TestCase("TrialSector3")]
-        public void TrialSector_CarriesOneArmory_AfterItsRepairAndModStations(string sector)
+        [Test]
+        public void TrialSector_CarriesOneArmory_AfterItsRepairAndModStations()
         {
-            var prefab = AssetDatabase.LoadAssetAtPath<Sector>($"Assets/Prefabs/Sectors/{sector}.prefab");
+            var prefab = AssetDatabase.LoadAssetAtPath<Sector>("Assets/Prefabs/Sectors/TrialSector.prefab");
             var armory = prefab.Modules.OfType<Armory>().Single();
             var repairs = prefab.Modules.OfType<RepairStation>().Single();
             var mods = prefab.Modules.OfType<ModStation>().Single();

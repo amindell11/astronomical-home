@@ -17,8 +17,6 @@ namespace Tests.EditMode.Sectors
         private const string FeelPath = "Assets/Settings/Game/ModStationFeel.asset";
 
         [TestCase("TrialSector")]
-        [TestCase("TrialSector2")]
-        [TestCase("TrialSector3")]
         public void TrialSector_CarriesOneModStation_AfterItsRepairStations(string sector)
         {
             var prefab = AssetDatabase.LoadAssetAtPath<Sector>($"Assets/Prefabs/Sectors/{sector}.prefab");

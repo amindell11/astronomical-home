@@ -104,7 +104,7 @@ namespace Tests.PlayMode.Bootstrap
             var record = JsonUtility.FromJson<RunRecord>(File.ReadAllLines(recordPath)[0]);
             Assert.AreEqual(RunRecord.Extracted, record.outcome);
             Assert.AreEqual(2, record.sectorsCleared);
-            Assert.AreEqual("SectorB", record.sector);
+            Assert.AreEqual("Sector 2", record.sector, "named by its run row");
             Assert.AreEqual(RunRecord.NoSpawn, record.killingBlow.spawn);
 
             yield return WaitFor(() => InSector("SectorA"), "the next run starts at the first sector");
@@ -172,7 +172,7 @@ namespace Tests.PlayMode.Bootstrap
             var record = JsonUtility.FromJson<RunRecord>(File.ReadAllLines(recordPath)[0]);
             Assert.AreEqual(RunRecord.Died, record.outcome);
             Assert.AreEqual(1, record.sectorsCleared);
-            Assert.AreEqual("SectorB", record.sector);
+            Assert.AreEqual("Sector 2", record.sector, "named by its run row");
             Assert.That(record.locales, Is.Empty, "a run without presentation draws no locales");
         }
 
@@ -379,9 +379,7 @@ namespace Tests.PlayMode.Bootstrap
             for (var frame = 0; frame < 30; frame++) yield return null;
             Assert.IsTrue(GameObject.Find("Ship lock overlay"), "the ship lock layer outlives the idle locale");
             var director = host.ActiveSector.GetComponentInChildren<WaveDirector>();
-            var phases = new SerializedObject(director).FindProperty("phases");
-            var cap = Enumerable.Range(0, phases.arraySize)
-                .Max(i => phases.GetArrayElementAtIndex(i).FindPropertyRelative("cap").intValue);
+            var cap = host.sessionProfile.run.Sectors[0].phases.Max(phase => phase.cap);
             var patrols = host.ActiveSector.GetComponentInChildren<SectorHunt>().Spawned;
             var enemies = hostGo.GetComponent<UnitService>().ActiveRegistry.ActiveShips
                 .Count(ship => ship != rig.Player && !patrols.Contains(ship));
@@ -506,11 +504,7 @@ namespace Tests.PlayMode.Bootstrap
             host.sessionProfile = new SessionProfile
             {
                 run = SectorRun.Create(localePool ?? Array.Empty<LocaleSky>(), productionJump
-                    ? new[] { "TrialSector", "TrialSector2" }.Select(name => new SectorEntry
-                    {
-                        prefab = AssetDatabase.LoadAssetAtPath<Sector>($"Assets/Prefabs/Sectors/{name}.prefab"),
-                        locale = locale
-                    }).ToArray()
+                    ? new[] { 0, 1 }.Select(row => TestAssets.TrialRow(row).WithLocale(locale)).ToArray()
                     : Array.ConvertAll(templates, t => new SectorEntry
                     {
                         prefab = t.GetComponent<Sector>(),

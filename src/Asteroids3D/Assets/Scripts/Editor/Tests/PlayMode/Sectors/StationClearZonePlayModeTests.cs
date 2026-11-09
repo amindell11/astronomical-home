@@ -15,6 +15,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
+using Substrate.Sessions;
 
 namespace Tests.PlayMode.Sectors
 {
@@ -67,7 +68,7 @@ namespace Tests.PlayMode.Sectors
 
             sector.SetManifest(null, new SectorSpawner[] { spawner }, new SectorModule[] { repairs, mods }, field);
             sector.Initialize(Track(new GameObject("Units")).AddComponent<UnitService>(),
-                Track(new GameObject("Objectives")).AddComponent<ObjectiveService>(), false, default, null);
+                Track(new GameObject("Objectives")).AddComponent<ObjectiveService>(), false, default, null, new SectorEntry());
             yield return sector.Setup();
             holder.SetActive(true);
             yield return null;

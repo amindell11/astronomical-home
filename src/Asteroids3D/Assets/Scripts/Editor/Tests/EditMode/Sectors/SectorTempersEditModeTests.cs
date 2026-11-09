@@ -4,8 +4,6 @@ using Game;
 using Game.Preview;
 using NUnit.Framework;
 using RL.Opponents;
-using Substrate.Sectors;
-using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Hunt;
 using UnityEditor;
@@ -18,31 +16,27 @@ namespace Tests.EditMode.Sectors
     [Category("Sectors")]
     public class SectorTempersEditModeTests
     {
-        private const string CrowdedFightPath = "Assets/Prefabs/Sectors/Preview/CrowdedFightSector.prefab";
-
         [Test]
-        public void EveryShippedSector_AndTheCrowdedFight_FlyEachKindOfShipOnItsTemper()
+        public void EveryShippedRow_AndTheCrowdedFightRow_FlyEachKindOfShipOnItsTemper()
         {
-            var sectors = Load<GameHost>(PreviewHostBootstrap.GameHostPath).sessionProfile.run.Sectors
-                .Select(row => row.prefab)
-                .Append(Load<Sector>(CrowdedFightPath))
+            var rows = Load<GameHost>(PreviewHostBootstrap.GameHostPath).sessionProfile.run.Sectors
+                .Append(PreviewHostBootstrap.FixtureRow("CrowdedFightSector"))
                 .ToArray();
-            Assert.That(sectors, Has.Length.GreaterThan(1), "the run ships sectors");
+            Assert.That(rows, Has.Length.GreaterThan(1), "the run ships sectors");
 
-            foreach (var sector in sectors)
+            foreach (var (row, index) in rows.Select((row, index) => (row, index)))
             {
-                using var director = new SerializedObject(sector.Spawners.OfType<WaveDirector>().Single());
-                var roster = director.FindProperty("roster");
-                Assert.That(roster.arraySize, Is.GreaterThan(0), $"{sector.name} has a roster");
-                for (var i = 0; i < roster.arraySize; i++)
-                    AssertTemper("Wave", roster.GetArrayElementAtIndex(i).FindPropertyRelative("pilot").objectReferenceValue,
-                        $"{sector.name}'s roster ship {i}");
+                var sector = row.prefab;
+                var label = $"row {index} ({sector.name})";
+                Assert.That(row.roster, Is.Not.Empty, $"{label} has a roster");
+                for (var i = 0; i < row.roster.Length; i++)
+                    AssertTemper("Wave", row.roster[i].pilot, $"{label}'s roster ship {i}");
 
                 AssertTemper("Wave", Field(sector.GetComponentInChildren<SectorHunt>(true), "patrolPilot"),
-                    $"{sector.name}'s patrols");
+                    $"{label}'s patrols");
                 var elite = sector.GetComponentInChildren<EliteEncounter>(true);
-                AssertTemper("Elite", Field(elite, "pilot"), $"{sector.name}'s elite");
-                AssertTemper("Escort", Field(elite, "escortPilot"), $"{sector.name}'s escorts");
+                AssertTemper("Elite", Field(elite, "pilot"), $"{label}'s elite");
+                AssertTemper("Escort", Field(elite, "escortPilot"), $"{label}'s escorts");
             }
         }
 

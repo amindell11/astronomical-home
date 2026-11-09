@@ -138,7 +138,7 @@ namespace Substrate.Sessions
             // Loaded from here: a sector completing inside its own Setup must already be unloadable.
             phase = Phase.Loaded;
             // Inject the host's session-lifetime references — the sector reads them, never builds or owns them.
-            sector.Initialize(Units, Objectives, presentation, Frame, hero, index);
+            sector.Initialize(Units, Objectives, presentation, Frame, hero, entry, index);
 
             this.onSectorComplete = onSectorComplete;
             if (onSectorComplete != null)
@@ -222,6 +222,15 @@ namespace Substrate.Sessions
                 var row = run.Sectors[i];
                 if (row == null || !row.prefab)
                     throw new ArgumentException($"Row {i} of sector run '{run.name}' has no sector.", nameof(profile));
+                try
+                {
+                    row.prefab.CheckRow(row);
+                }
+                catch (InvalidOperationException missing)
+                {
+                    throw new ArgumentException($"Row {i} of sector run '{run.name}': {missing.Message}", nameof(profile),
+                        missing);
+                }
                 if (profile.presentation && !row.random && !row.locale)
                     throw new ArgumentException(
                         $"Row {i} of sector run '{run.name}' has no locale; a presented session shows one.", nameof(profile));

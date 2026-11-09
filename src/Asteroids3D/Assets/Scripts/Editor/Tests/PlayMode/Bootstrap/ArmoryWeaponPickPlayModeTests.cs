@@ -160,11 +160,7 @@ namespace Tests.PlayMode.Bootstrap
             var host = hostGo.AddComponent<GameHost>();
             host.sessionProfile = new SessionProfile
             {
-                run = SectorRun.Create(new SectorEntry
-                {
-                    prefab = SectorWithOneArmory(),
-                    locale = AssetDatabase.LoadAssetAtPath<LocaleSky>(LocalePath)
-                }),
+                run = SectorRun.Create(TrialRowWithOneArmory()),
                 presentation = presentation
             };
             host.playerRig = HudlessRig();
@@ -188,7 +184,14 @@ namespace Tests.PlayMode.Bootstrap
         }
 
         // The first sector places no armory as shipped, and the hunt's alarm would darken it mid-test.
-        private Sector SectorWithOneArmory()
+        private SectorEntry TrialRowWithOneArmory()
+        {
+            var row = TestAssets.TrialRow(0).WithLocale(AssetDatabase.LoadAssetAtPath<LocaleSky>(LocalePath));
+            row.prefab = TrialSectorWithOneArmory();
+            return row;
+        }
+
+        private Sector TrialSectorWithOneArmory()
         {
             feel = ScriptableObject.CreateInstance<ArmoryFeelProfile>();
             feel.stationsPerSector = new[] { 1 };

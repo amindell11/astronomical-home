@@ -10,17 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 05c351aee451e594c9ffd819289ea8d6, type: 3}
-  m_Name: Sector1FieldSettings
+  m_Name: MediumField
   m_EditorClassIdentifier: 
   chunkSize: 4.7
   noiseFrequency: 0.1
-  averageAsteroidsPerCell: 0.4
+  averageAsteroidsPerCell: 0.6
   densityMultiplierRange: {x: 0.05, y: 0.76}
   fieldRadius: 10000
   ambientDrift: 1
   packingMargin: 0
   minSpacing: 0
-  startClearRadius: 35
+  startClearRadius: 22
   noiseOctaves: 4
   noiseLacunarity: 2.97
   noisePersistence: 0.222

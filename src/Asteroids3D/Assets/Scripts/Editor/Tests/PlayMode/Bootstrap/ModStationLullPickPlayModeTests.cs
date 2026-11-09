@@ -11,7 +11,6 @@ using Game.Moments;
 using Game.Runs;
 using Loot;
 using NUnit.Framework;
-using Substrate.Sectors;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Elements.Stations;
 using Substrate.Services.Locales;
@@ -39,7 +38,6 @@ namespace Tests.PlayMode.Bootstrap
     {
         private const string RigPrefabPath = "Assets/Prefabs/MiscObjects/PlayerRig.prefab";
         private const string ObserverCamPrefabPath = "Assets/Prefabs/Cameras/Main Camera.prefab";
-        private const string SectorPrefabPath = "Assets/Prefabs/Sectors/TrialSector.prefab";
         private const string LocalePath = "Assets/Prefabs/Locales/IllustratedBlue.prefab";
         private const string RecapFeelPath = "Assets/Settings/UI/RecapFeel.asset";
         private const string LullModsPath = "Assets/Settings/Weapons/Mods/LullMods.asset";
@@ -153,11 +151,7 @@ namespace Tests.PlayMode.Bootstrap
             var host = hostGo.AddComponent<GameHost>();
             host.sessionProfile = new SessionProfile
             {
-                run = SectorRun.Create(new SectorEntry
-                {
-                    prefab = AssetDatabase.LoadAssetAtPath<Sector>(SectorPrefabPath),
-                    locale = AssetDatabase.LoadAssetAtPath<LocaleSky>(LocalePath)
-                }),
+                run = SectorRun.Create(TestAssets.TrialRow(0).WithLocale(AssetDatabase.LoadAssetAtPath<LocaleSky>(LocalePath))),
                 presentation = presentation
             };
             host.playerRig = HudlessRig();
