@@ -1,0 +1,129 @@
+{
+  "errors": [],
+  "motion": {
+    "automatic": true,
+    "pause": true,
+    "resume": true,
+    "reducedMotionMediaMatches": true,
+    "reducedMotionPaused": true
+  },
+  "paletteChangesDrawing": true,
+  "selected": {
+    "palette": "amber",
+    "selected": "F",
+    "rate": 1,
+    "playing": false,
+    "elapsed": 0.18
+  },
+  "playing": {
+    "palette": "amber",
+    "selected": "F",
+    "rate": 0.25,
+    "playing": true,
+    "elapsed": 0.21742500000000003
+  },
+  "sizes": [
+    {
+      "width": 736,
+      "scrollWidth": 736,
+      "panels": [
+        {
+          "width": 736,
+          "height": 88
+        },
+        {
+          "width": 363,
+          "height": 118
+        },
+        {
+          "width": 363,
+          "height": 118
+        },
+        {
+          "width": 363,
+          "height": 118
+        },
+        {
+          "width": 363,
+          "height": 118
+        },
+        {
+          "width": 363,
+          "height": 118
+        },
+        {
+          "width": 363,
+          "height": 118
+        }
+      ]
+    },
+    {
+      "width": 510,
+      "scrollWidth": 510,
+      "panels": [
+        {
+          "width": 510,
+          "height": 88
+        },
+        {
+          "width": 250,
+          "height": 118
+        },
+        {
+          "width": 250,
+          "height": 118
+        },
+        {
+          "width": 250,
+          "height": 118
+        },
+        {
+          "width": 250,
+          "height": 118
+        },
+        {
+          "width": 250,
+          "height": 118
+        },
+        {
+          "width": 250,
+          "height": 118
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "scrollWidth": 320,
+      "panels": [
+        {
+          "width": 320,
+          "height": 88
+        },
+        {
+          "width": 320,
+          "height": 118
+        },
+        {
+          "width": 320,
+          "height": 118
+        },
+        {
+          "width": 320,
+          "height": 118
+        },
+        {
+          "width": 320,
+          "height": 118
+        },
+        {
+          "width": 320,
+          "height": 118
+        },
+        {
+          "width": 320,
+          "height": 118
+        }
+      ]
+    }
+  ]
+}

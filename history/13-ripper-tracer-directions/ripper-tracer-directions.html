@@ -1,0 +1,327 @@
+<div id="ripper-directions-1108">
+  <div class="viz-controls">
+    <label class="form-label">Color
+      <select class="form-select" data-control="palette">
+        <option value="pale">Pale gold</option>
+        <option value="yellow">Clear yellow</option>
+        <option value="amber">Hot amber</option>
+        <option value="current">Current gold</option>
+      </select>
+    </label>
+    <label class="form-label">Playback
+      <select class="form-select" data-control="rate">
+        <option value="1">Normal speed</option>
+        <option value="0.25">Quarter speed</option>
+      </select>
+    </label>
+    <button class="btn" type="button" data-control="play">Pause</button>
+  </div>
+  <div class="ripper-block">
+    <div class="viz-row"><span>Current ripper</span><span class="text-small text-muted">Existing shape and color</span></div>
+    <canvas data-scene="current" role="img" aria-label="Current broad gold slug, enlarged and at reference scale."></canvas>
+  </div>
+  <div class="text-small text-muted">Each study: enlarged above, moving reference size below. All travel at the same speed.</div>
+  <div class="ripper-block" data-directions></div>
+  <div class="ripper-block">
+    <div class="viz-row"><span data-color-heading>Colors for B · Split scratch</span><span class="text-small text-muted">Enlarged</span></div>
+    <div class="ripper-block" data-colors></div>
+  </div>
+  <div class="text-small text-muted">Concept preview · 20 px per world unit · 40 world units/s · camera scale may differ in play</div>
+  <span class="sr-only" aria-live="polite" data-selection></span>
+</div>
+<style>
+  #ripper-directions-1108 { display: flex; flex-direction: column; gap: calc(var(--font-size-base) * .8); }
+  #ripper-directions-1108 .ripper-block { display: flex; flex-direction: column; gap: calc(var(--font-size-base) * .4); min-width: 0; }
+  #ripper-directions-1108 canvas { display: block; width: 100%; height: 118px; }
+  #ripper-directions-1108 canvas[data-scene="current"] { height: 88px; }
+  #ripper-directions-1108 canvas[data-color] { height: 62px; }
+</style>
+<script>
+(() => {
+  const root = document.getElementById('ripper-directions-1108');
+  const paletteControl = root.querySelector('[data-control="palette"]');
+  const rateControl = root.querySelector('[data-control="rate"]');
+  const playControl = root.querySelector('[data-control="play"]');
+  const palettes = {
+    pale: { name: 'Pale gold', rim: '#e7b443', body: '#ffe29a', core: '#fff9e4', tail: '#ffd46c' },
+    yellow: { name: 'Clear yellow', rim: '#e5bb29', body: '#ffe76a', core: '#fffbd4', tail: '#ffdf48' },
+    amber: { name: 'Hot amber', rim: '#e18c2e', body: '#ffc465', core: '#fff4d7', tail: '#f9ac3f' },
+    current: { name: 'Current gold', rim: '#9f7a35', body: '#e9c96d', core: '#fff5cf', tail: '#ffd262' }
+  };
+  const directions = [
+    { id: 'A', name: 'Needle fleck' },
+    { id: 'B', name: 'Split scratch' },
+    { id: 'C', name: 'Torn ribbon' },
+    { id: 'D', name: 'Ember stream' },
+    { id: 'E', name: 'Open chevron' },
+    { id: 'F', name: 'Hooked shaving' }
+  ];
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const state = { palette: 'pale', selected: 'B', rate: 1, playing: !reducedMotion };
+  const entries = [];
+  let elapsed = .18;
+  let previous = 0;
+  let animation = 0;
+
+  function appendPair(container, block) {
+    let row = container.lastElementChild;
+    if (!row || row.childElementCount === 2) {
+      row = document.createElement('div');
+      row.className = 'viz-grid';
+      container.append(row);
+    }
+    row.append(block);
+  }
+
+  function createStudy(direction) {
+    const block = document.createElement('div');
+    block.className = 'ripper-block';
+    const heading = document.createElement('div');
+    heading.className = 'viz-row';
+    const button = document.createElement('button');
+    button.className = 'btn';
+    button.type = 'button';
+    button.dataset.direction = direction.id;
+    button.textContent = direction.id + ' · ' + direction.name;
+    button.setAttribute('aria-pressed', String(direction.id === state.selected));
+    button.addEventListener('click', () => setSelected(direction.id, true));
+    heading.append(button);
+    const canvas = document.createElement('canvas');
+    canvas.dataset.scene = direction.id;
+    canvas.setAttribute('role', 'img');
+    canvas.setAttribute('aria-label', direction.name + ', enlarged above and moving at reference scale below.');
+    block.append(heading, canvas);
+    appendPair(root.querySelector('[data-directions]'), block);
+    entries.push({ canvas, id: direction.id });
+  }
+  directions.forEach(createStudy);
+  entries.unshift({ canvas: root.querySelector('[data-scene="current"]'), id: 'current' });
+
+  Object.entries(palettes).forEach(([key, palette]) => {
+    const block = document.createElement('div');
+    block.className = 'ripper-block';
+    const label = document.createElement('span');
+    label.textContent = palette.name;
+    const canvas = document.createElement('canvas');
+    canvas.dataset.color = key;
+    canvas.setAttribute('role', 'img');
+    canvas.setAttribute('aria-label', 'Selected tracer in ' + palette.name.toLowerCase() + '.');
+    block.append(label, canvas);
+    appendPair(root.querySelector('[data-colors]'), block);
+    entries.push({ canvas, color: key });
+  });
+
+  function polygon(ctx, points, color, alpha = 1) {
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    points.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
+    ctx.closePath();
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  function oldSlug(ctx) {
+    ctx.save();
+    ctx.scale(-.5, .5);
+    polygon(ctx, [[0,-1.5],[3,-4.3],[15,-3.4],[19,-1.4],[19,2.4],[14,4.1],[3,3.4],[0,1]], '#392d1b');
+    polygon(ctx, [[0,-1.5],[3,-4.3],[15,-3.4],[19,-1.4],[4,-1],[1,1.2]], '#e9c96d');
+    polygon(ctx, [[1,1.2],[4,-1],[18,-1.4],[16,1.3],[4,2.9]], '#9f7a35');
+    polygon(ctx, [[0,-1.5],[3,-4.3],[4,-2],[2,1.5],[0,1]], '#fff5cf');
+    polygon(ctx, [[19,-.7],[28,0],[19,1]], '#ffd262');
+    ctx.restore();
+  }
+
+  function drawShape(ctx, id, p, time) {
+    if (id === 'current') { oldSlug(ctx); return; }
+    const flicker = .86 + .14 * Math.sin(time * 47);
+    ctx.save();
+    ctx.shadowColor = p.tail;
+    ctx.shadowBlur = 1.1;
+    if (id === 'A') {
+      polygon(ctx, [[0,0],[-3.2,-.9],[-5.1,-.55],[-4.1,.55],[-2.4,.7]], p.body);
+      polygon(ctx, [[-.1,0],[-3.6,-.5],[-2.6,.25]], p.core);
+      polygon(ctx, [[-4.4,-.4],[-22,-.08],[-13.2,.35],[-5.5,.22]], p.tail, .85);
+      polygon(ctx, [[-7.1,-.2],[-18,-.1],[-9.2,.05]], p.core, .8);
+      polygon(ctx, [[-8.2,1.2],[-11.3,.8],[-10.4,1.3]], p.rim, .7);
+    } else if (id === 'B') {
+      polygon(ctx, [[0,0],[-3.3,-.55],[-5.8,.1],[-1.9,.65]], p.core);
+      polygon(ctx, [[-2.4,-.65],[-18,-1.3],[-9.2,-.48],[-5.2,-.5]], p.tail);
+      polygon(ctx, [[-5,.9],[-23,1.8],[-14,2.15],[-6.8,1.6]], p.body, .9);
+      polygon(ctx, [[-6,1.08],[-17.3,1.75],[-8.7,1.55]], p.core, .9);
+      polygon(ctx, [[-19,-1.33],[-24,-1.65],[-20.4,-1.05]], p.tail, .6 * flicker);
+    } else if (id === 'C') {
+      polygon(ctx, [[0,0],[-4,-.9],[-6.3,-.45],[-3.9,.65]], p.core);
+      polygon(ctx, [[-4.2,-.75],[-11,-1.4],[-8.6,-.3],[-5.7,.4]], p.body);
+      polygon(ctx, [[-8.8,.1],[-17,.7],[-13.8,1.6],[-8,.85]], p.tail, .95);
+      polygon(ctx, [[-14.4,-.7],[-22,-1],[-19.1,-.2],[-15.6,-.15]], p.body, .65 * flicker);
+      polygon(ctx, [[-20,.8],[-27,1.3],[-23,.5]], p.tail, .4);
+    } else if (id === 'D') {
+      polygon(ctx, [[0,0],[-2.5,-.85],[-4.2,-.25],[-2.2,.7]], p.core);
+      polygon(ctx, [[-2.1,-.5],[-6.8,-.2],[-4.8,.45]], p.body);
+      polygon(ctx, [[-7.5,.7],[-12.9,1.2],[-9,1.55]], p.tail);
+      polygon(ctx, [[-11.7,-1.4],[-16.4,-1.15],[-13,-.7]], p.body, .8);
+      polygon(ctx, [[-17.2,.3],[-22.9,.6],[-19.6,1]], p.tail, .65 * flicker);
+      polygon(ctx, [[-24,-.8],[-27.5,-.5],[-25.7,-.3]], p.rim, .5);
+    } else if (id === 'E') {
+      polygon(ctx, [[0,0],[-12.6,-2.4],[-8.8,-.5],[-3.2,.1]], p.body);
+      polygon(ctx, [[0,0],[-9.5,1.6],[-6.4,.3],[-2.2,-.05]], p.tail);
+      polygon(ctx, [[-.1,0],[-7.9,-1.2],[-3.4,-.12],[-6.8,.55]], p.core);
+      polygon(ctx, [[-12.2,-2.25],[-24.8,-2.4],[-17,-1.8]], p.tail, .65);
+      polygon(ctx, [[-9.7,1.55],[-18.8,1.95],[-14,1.3]], p.body, .55 * flicker);
+    } else if (id === 'F') {
+      polygon(ctx, [[0,0],[-3.7,-.6],[-8.5,-.35],[-13.3,-1.8],[-17.6,-3.2],[-24.5,-2.7],[-18,-2.25],[-13.2,-.5],[-8.3,.8],[-3.6,.5]], p.tail);
+      polygon(ctx, [[0,0],[-4.1,-.25],[-8.7,.05],[-13.3,-1],[-8.5,.45],[-4.2,.35]], p.core);
+      polygon(ctx, [[-15.3,-3],[-20.2,-3.8],[-25.2,-3.2],[-20.1,-3.3]], p.body, .6 * flicker);
+    }
+    ctx.restore();
+  }
+
+  function fitCanvas(canvas) {
+    const rect = canvas.getBoundingClientRect();
+    const ratio = Math.min(devicePixelRatio || 1, 2);
+    const width = Math.round(rect.width * ratio);
+    const height = Math.round(rect.height * ratio);
+    if (canvas.width !== width || canvas.height !== height) {
+      canvas.width = width;
+      canvas.height = height;
+    }
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    return { ctx, width: rect.width, height: rect.height };
+  }
+
+  function background(ctx, w, h, lane) {
+    ctx.clearRect(0, 0, w, h);
+    const backdrop = ctx.createLinearGradient(0, 0, w, h);
+    backdrop.addColorStop(0, '#071322');
+    backdrop.addColorStop(.65, '#101e37');
+    backdrop.addColorStop(1, '#172d4e');
+    ctx.fillStyle = backdrop;
+    ctx.fillRect(0, 0, w, h);
+    if (lane) {
+      ctx.fillStyle = '#25436b';
+      ctx.fillRect(0, h - 28, w, 28);
+    }
+    ctx.fillStyle = '#8199b8';
+    ctx.globalAlpha = .25;
+    for (let i = 0; i < 11; i++) {
+      const x = (i * 113.7 + 31) % w;
+      const y = 8 + ((i * 37.1) % (h - 12));
+      ctx.fillRect(x, y, i % 4 === 0 ? 1.3 : .8, .8);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawAt(ctx, id, palette, x, y, scale, time) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+    drawShape(ctx, id, palette, time);
+    ctx.restore();
+  }
+
+  function draw(time) {
+    entries.forEach(entry => {
+      const { ctx, width: w, height: h } = fitCanvas(entry.canvas);
+      if (w < 1) return;
+      const id = entry.color ? state.selected : entry.id;
+      const palette = palettes[entry.color || state.palette];
+      const isColor = Boolean(entry.color);
+      background(ctx, w, h, !isColor);
+      const length = id === 'current' ? 14 : id === 'A' ? 22 : 27.5;
+      const detailScale = Math.min(8, (w - 32) / 28);
+      const detailX = w / 2 + length * detailScale / 2;
+      drawAt(ctx, id, palette, detailX, isColor ? h / 2 + 3 : (h - 28) / 2, detailScale, time);
+      if (!isColor) {
+        const spacing = 112;
+        const phase = time * 800 % spacing;
+        for (let x = phase - spacing; x < w + 30; x += spacing) {
+          drawAt(ctx, id, palette, x, h - 14, 1, time + x / 800);
+        }
+      }
+    });
+  }
+
+  function syncControls() {
+    paletteControl.value = state.palette;
+    rateControl.value = String(state.rate);
+    playControl.textContent = state.playing ? 'Pause' : 'Play';
+    playControl.setAttribute('aria-pressed', String(state.playing));
+    root.querySelectorAll('[data-direction]').forEach(button => {
+      button.setAttribute('aria-pressed', String(button.dataset.direction === state.selected));
+    });
+    const selected = directions.find(direction => direction.id === state.selected);
+    root.querySelector('[data-color-heading]').textContent = 'Colors for ' + selected.id + ' · ' + selected.name;
+    root.querySelector('[data-selection]').textContent = selected.id + ', ' + selected.name + ', in ' + palettes[state.palette].name.toLowerCase() + '.';
+  }
+
+  function remember() {
+    if (!window.openai || !window.openai.setWidgetState) return;
+    window.openai.setWidgetState({
+      modelContent: { study: 'ripper-tracer-directions-2026-11-08', direction: state.selected, directionName: directions.find(d => d.id === state.selected).name, palette: state.palette },
+      privateContent: { rate: state.rate, playing: state.playing }
+    }).catch(() => {});
+  }
+
+  function setPalette(key, save = false) {
+    if (!(key in palettes)) return;
+    state.palette = key;
+    syncControls();
+    draw(elapsed);
+    if (save) remember();
+  }
+
+  function setSelected(id, save = false) {
+    if (!directions.some(direction => direction.id === id)) return;
+    state.selected = id;
+    syncControls();
+    draw(elapsed);
+    if (save) remember();
+  }
+
+  function restore(snapshot) {
+    if (!snapshot) return;
+    const choices = snapshot.modelContent || {};
+    const ui = snapshot.privateContent || {};
+    if (choices.palette in palettes) state.palette = choices.palette;
+    if (directions.some(d => d.id === choices.direction)) state.selected = choices.direction;
+    if (ui.rate === 1 || ui.rate === .25) state.rate = ui.rate;
+    if (typeof ui.playing === 'boolean' && !reducedMotion) state.playing = ui.playing;
+    syncControls();
+    draw(elapsed);
+  }
+
+  function tick(now) {
+    if (previous && state.playing) elapsed += Math.min((now - previous) / 1000, .1) * state.rate;
+    previous = now;
+    if (state.playing) draw(elapsed);
+    animation = requestAnimationFrame(tick);
+  }
+
+  paletteControl.addEventListener('change', () => setPalette(paletteControl.value, true));
+  rateControl.addEventListener('change', () => { state.rate = Number(rateControl.value); remember(); });
+  playControl.addEventListener('click', () => {
+    state.playing = !state.playing;
+    if (!animation) { previous = 0; animation = requestAnimationFrame(tick); }
+    syncControls();
+    remember();
+  });
+  window.addEventListener('openai:set_globals', event => restore(event.detail && event.detail.globals && event.detail.globals.widgetState));
+  new ResizeObserver(() => draw(elapsed)).observe(root);
+  syncControls();
+  restore(window.openai && window.openai.widgetState);
+  draw(elapsed);
+  animation = requestAnimationFrame(tick);
+  window.ripperStudy = {
+    renderAt(seconds) { elapsed = seconds; draw(seconds); },
+    setPalette,
+    setSelected,
+    stop() { state.playing = false; cancelAnimationFrame(animation); animation = 0; syncControls(); draw(elapsed); },
+    freeze() { cancelAnimationFrame(animation); animation = 0; },
+    getState() { return { ...state, elapsed }; },
+    palettes,
+    directions
+  };
+})();
+</script>

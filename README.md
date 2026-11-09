@@ -39,3 +39,7 @@ Browser checks: no page errors; time scrub updates the scene; speed and rapid-hi
 ## Turbolaser and ripper pass
 
 [Stage 10](history/10-turbo-ripper/README.md) records the 2026-11-07 combined pass. The owner selected a compact ripper slug with a short tracer. The current review candidate pairs it with a smaller, simpler hit and the approved laser hit recolored magenta for turbo. The artwork, proposed reference sizes and ripper timing await review before Unity integration. Generated refinements remain in the stage's rejected-generation folder because they added unwanted texture.
+
+## Ripper tracer revision
+
+After the combined pass shipped in [PR #1387](https://github.com/amindell11/astronomical-home/pull/1387), the owner asked for leaner, brighter ripper tracers and more color exploration. [Stage 13](history/13-ripper-tracer-directions/README.md) records that feedback and six new concept directions. The shape and palette choice remain open.
