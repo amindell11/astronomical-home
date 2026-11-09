@@ -473,7 +473,7 @@ namespace Tests.PlayMode.Preview
 
         [UnityTest]
         [Timeout(180000)]
-        public IEnumerator Playtest_CrowdedFight_RunsOnlyItsFixture_AndFillsWithArchetypePilots()
+        public IEnumerator Playtest_CrowdedFight_RunsOnlyItsFixture_AndItsShipsFlyTactics()
         {
             var root = new GameObject("Crowded fight playtest test");
             root.SetActive(false);
@@ -490,13 +490,13 @@ namespace Tests.PlayMode.Preview
             Assert.That(fight.ActiveSector.name, Does.StartWith("CrowdedFightSector"));
             var ships = fight.GetComponent<UnitService>().ActiveRegistry.ActiveShips;
             yield return AsyncAssert.WaitUntil(
-                () => ships.Count(FliesAnArchetype) >= 4, 15f, "the fixture's waves fill with today's archetype pilots");
+                () => ships.Count(FliesATactic) >= 4, 15f, "the fixture's waves fill with archetype pilots flying tactics");
         }
 
-        private static bool FliesAnArchetype(Ship ship)
+        private static bool FliesATactic(Ship ship)
         {
             var commander = ship.Commander as AI.AICommander;
-            return commander && commander.Brain as RL.Opponents.ArchetypeBrain;
+            return commander && commander.Brain as RL.Opponents.ArchetypeBrain && commander.Brain.CurrentTactic.HasValue;
         }
 
         [UnityTest]

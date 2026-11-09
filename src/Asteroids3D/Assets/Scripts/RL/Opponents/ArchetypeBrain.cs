@@ -1,7 +1,9 @@
 using System;
 using AI;
 using AI.Context;
+using AI.Tactics;
 using Combat.Targeting;
+using Movement;
 using Ships;
 using Ships.Command;
 using UnityEngine;
@@ -10,7 +12,8 @@ using AI.Strategy;
 namespace RL.Opponents
 {
     /// <summary>The one scripted opponent component, switched on <see cref="OpponentArchetype"/>: target validity, the 5 Hz recompute cache, the missile evasion blended over the law, and the border tangent-steer world-velocity pack. The roster Configures a pinned target per episode draw; an authored pilot serializes the same fields and can instead track the context's enemy.
-    /// With that enemy gone, a live-targeting pilot roams around its last live position (the wreck) through held waypoints: the Aggressor and Orbiter circle it loosely for a few laps, then wander as the Kiter and Evader do from the start.</summary>
+    /// With that enemy gone, a live-targeting pilot roams around its last live position (the wreck) through held waypoints: the Aggressor and Orbiter circle it loosely for a few laps, then wander as the Kiter and Evader do from the start.
+    /// A pilot authored with tactics settings flies a tactic instead of its archetype's law: <see cref="TacticRules"/> picks it from the ship's situation, and it flies one of the same laws through the same evasion and border pack.</summary>
     public sealed class ArchetypeBrain : Brain
     {
         private const int RecomputeIntervalTicks = 10;
@@ -35,6 +38,9 @@ namespace RL.Opponents
 
         [Tooltip("Track the context's enemy, resetting brain state whenever it changes; off flies the Configure-pinned target — the roster/trained behavior.")]
         [SerializeField] private bool liveTargeting;
+
+        [Tooltip("Pick a tactic from the ship's situation and fly it, with these settings. Empty flies the archetype alone — the roster/trained behavior.")]
+        [SerializeField] private TacticsSettings tactics;
 
         [Header("Missile evasion")]
         [Tooltip("Lean away from and boost clear of missiles tracking this ship. Off flies the archetype law alone. The Dummy never evades.")]
@@ -88,6 +94,9 @@ namespace RL.Opponents
         private ITrackingMissile evadedMissile;
         private int escapeSide;
 
+        private int tacticTick;
+        private int flankSign;
+
         // Outlives ResetState: the live-target change that resets the brain is when roaming begins.
         private Vector2? wreck;
 
@@ -129,6 +138,7 @@ namespace RL.Opponents
             threatSeenTick = -1;
             evadedMissile = null;
             roaming = false;
+            CurrentTactic = null;
         }
 
         public override BrainDecision? Decide(AIContext ctx)
@@ -212,6 +222,8 @@ namespace RL.Opponents
 
             var self = ctx.Self.Kinematics;
             var maxSpeed = ctx.Self.Dynamics.maxSpeed;
+            if (tactics) return FlyTactic(ctx, in self, maxSpeed);
+
             switch (archetype)
             {
                 case OpponentArchetype.Aggressor:
@@ -219,10 +231,7 @@ namespace RL.Opponents
                     return Pack(ctx.Self, RangerBrain.HoldRangeVelocity(in self, target.Kinematics,
                         ctx.HoldRange ?? shape.desiredRange, shape.speedFraction * maxSpeed), engages: true);
                 case OpponentArchetype.Evader:
-                    if (recomputes++ % jukeEveryRecomputes == 0)
-                        jukeSign = rng.Next(2) == 0 ? -1 : 1;
-                    return Pack(ctx.Self, ArchetypeLaws.FleeVelocity(self.pos, target.Kinematics.pos,
-                        jukeSign, shape.speedFraction * maxSpeed), engages: false);
+                    return Pack(ctx.Self, FleeVelocity(self.pos, shape.speedFraction * maxSpeed), engages: false);
                 case OpponentArchetype.Orbiter:
                     return Pack(ctx.Self, ArchetypeLaws.OrbitVelocity(in self, target.Kinematics,
                         shape.orbitRadius, shape.orbitDirection >= 0 ? 1 : -1, shape.speedFraction, maxSpeed),
@@ -230,6 +239,45 @@ namespace RL.Opponents
                 default:
                     throw new ArgumentOutOfRangeException(nameof(archetype), archetype, null);
             }
+        }
+
+        private BrainDecision FlyTactic(AIContext ctx, in Kinematics self, float maxSpeed)
+        {
+            var situation = Situation.Read(ctx, tactics);
+            // No tactic yet: an attack run past its hold ends on any rule, so this picks fresh.
+            var held = CurrentTactic.HasValue ? (tickCounter - tacticTick) * Time.fixedDeltaTime : float.PositiveInfinity;
+            var tactic = TacticRules.Next(CurrentTactic ?? Tactic.AttackRun, held, in situation, tactics);
+            if (tactic != CurrentTactic)
+            {
+                CurrentTactic = tactic;
+                tacticTick = tickCounter;
+            }
+
+            var them = target.Kinematics;
+            if (situation.openSide != Vector2.zero)
+                flankSign = Vector2.Dot(Vector2.Perpendicular(them.pos - self.pos), situation.openSide) >= 0f ? 1 : -1;
+
+            var speed = shape.speedFraction * maxSpeed;
+            var gunRange = ctx.HoldRange ?? shape.desiredRange;
+            return tactic switch
+            {
+                Tactic.AttackRun => Pack(ctx.Self, RangerBrain.HoldRangeVelocity(in self, them, gunRange, speed),
+                    engages: true),
+                Tactic.Flank => Pack(ctx.Self, ArchetypeLaws.OrbitVelocity(in self, them, gunRange, flankSign,
+                    shape.speedFraction, maxSpeed), engages: situation.alliesInLane == 0),
+                Tactic.StandOff => Pack(ctx.Self, RangerBrain.HoldRangeVelocity(in self, them,
+                    situation.targetRange + tactics.standOffMargin, speed),
+                    engages: !situation.inTargetsCone && situation.alliesInLane == 0),
+                Tactic.BreakOff => Pack(ctx.Self, FleeVelocity(self.pos, speed), engages: false),
+                _ => throw new ArgumentOutOfRangeException(nameof(tactic), tactic, null),
+            };
+        }
+
+        private Vector2 FleeVelocity(Vector2 selfPos, float speed)
+        {
+            if (recomputes++ % jukeEveryRecomputes == 0)
+                jukeSign = rng.Next(2) == 0 ? -1 : 1;
+            return ArchetypeLaws.FleeVelocity(selfPos, target.Kinematics.pos, jukeSign, speed);
         }
 
         private BrainDecision Pack(IShipStatus status, Vector2 lawVelocity, bool engages)

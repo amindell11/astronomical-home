@@ -64,7 +64,9 @@ namespace Tests.EditMode.Preview
                 AssetDatabase.LoadAssetAtPath<CompanionFeelProfile>("Assets/Settings/Game/Companion/CompanionFeel.asset"),
                 AssetDatabase.LoadAssetAtPath<CompanionLineSheet>("Assets/Settings/Game/Companion/CompanionLines.asset"));
             AssertTarget(Target<TacticsTarget>(), new[] { PreviewEntry.CrowdedFight },
-                AssetDatabase.LoadAssetAtPath<TacticsSettings>("Assets/Settings/AI/Tactics/TacticsSettings.asset"));
+                new[] { "Wave", "Elite", "Escort" }.Select(kind =>
+                    AssetDatabase.LoadAssetAtPath<TacticsSettings>($"Assets/Settings/AI/Tactics/{kind}Temper.asset"))
+                    .ToArray());
         }
 
         [Test]

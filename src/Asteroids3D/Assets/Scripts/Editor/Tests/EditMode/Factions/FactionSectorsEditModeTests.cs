@@ -7,7 +7,7 @@ using UnityEditor;
 
 namespace Tests.EditMode.Factions
 {
-    /// <summary>The shipped run's three rows, read as assets: each names its own faction in run order, and its roster flies only that faction's signature and common ships on their kits, none of which is the faction's answer weapon, and draws the signature ship three times as often as the common one.</summary>
+    /// <summary>The shipped run's three rows, read as assets: each names its own faction in run order, and its roster flies only that faction's signature and common ships on their kits, and draws the signature ship three times as often as the common one.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class FactionSectorsEditModeTests
@@ -33,8 +33,6 @@ namespace Tests.EditMode.Factions
                 CollectionAssert.AreEquivalent(new[] { faction.signature.ship, faction.common.ship }, threat.Ships, $"row {i}");
                 CollectionAssert.AreEquivalent(new[] { faction.signature.kit, faction.common.kit }.Distinct(),
                     threat.Weapons, $"row {i}");
-                CollectionAssert.DoesNotContain(threat.Weapons, faction.answer,
-                    $"row {i}: a kit never carries the weapon that answers its faction.");
             }
         }
 

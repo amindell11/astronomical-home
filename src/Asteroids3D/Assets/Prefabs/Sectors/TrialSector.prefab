@@ -45,8 +45,8 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier:
   faction: {fileID: 4667602915908898981}
-  pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660, type: 3}
-  escortPilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
+  pilot: {fileID: 6527632380461117599, guid: ca90568b3e304e35aad4aa9a5a1352a6, type: 3}
+  escortPilot: {fileID: 8168013727397211814, guid: 8cedfe54c7904845be57837aefd8fe05,
     type: 3}
   team: 1
   spawnRadius: 55
@@ -898,7 +898,7 @@ PrefabInstance:
       objectReference: {fileID: 7436810692243587915}
     - target: {fileID: 4771814285665531652, guid: bb9c514b575148c2b3b50d0f2f73110e,
         type: 3}
-      propertyPath: repairs
+      propertyPath: spacedFrom
       value: 
       objectReference: {fileID: 7190434448910481471}
     - target: {fileID: 8122136947576484882, guid: bb9c514b575148c2b3b50d0f2f73110e,

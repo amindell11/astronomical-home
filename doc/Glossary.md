@@ -649,8 +649,7 @@ Format: **term** — definition. *(authority)*
   **signature ship** is the faction's own chassis, and its elite flies it; the
   **common ship** is the chassis every faction flies. Each ship always carries
   its **faction kit**, one fixed primary, and wears the faction's paint, flame
-  and shield ring colour. The **answer weapon** is the weapon
-  that counters the faction's way of fighting, so no faction kit carries it.
+  and shield ring colour.
   The sector-to-faction mapping is ruled on #1320. *(Faction, SectorFaction)*
 - **elite** — a sector's end-of-sector enemy: its faction's signature ship made
   larger, with a heavy weapon pair and stacked run mods. The sector's phases
@@ -663,6 +662,11 @@ Format: **term** — definition. *(authority)*
 - **unlocked ship** — a ship the hangar lets the player fly: the starter plus
   every elite chassis the player killed in any run record. No save file; a kill
   counts once its run's record is written. *(ShipUnlocks, ItemSubset.starter)*
+- **station** — a *find* the player flies into. Every kind shares one core:
+  the placement, the clearing in the field, going dark at the hunt's alarm,
+  the find marker and the arrival events. A kind adds only its effect, which
+  draws on each station's supply; a station goes dark when its supply runs out.
+  *(FindStation, FindStationBody, StationKind)*
 - **repair station** — a fly-in zone each combat sector places, two by default,
   each on its own clear point away from the start, marked as a *find*. While the
   player sits in it, it repairs hull from a supply of about one hull, then goes
@@ -826,14 +830,23 @@ Format: **term** — definition. *(authority)*
   `WeaponSlot.Secondary`. *(`WeaponComponent.IsOrdnance`; #1410)*
 - **single fire** — a weapon fires every shot from the hull's centre socket, on its
   centreline at the nose. Every weapon that is not dual fire fires this way.
-  *(`WeaponComponent.DualFire`; #1410)*
-- **dual fire** — a weapon alternates its shots between the hull's left and right
-  sockets, one projectile per shot at the weapon's own fire rate. The owner ruled
-  alternation over both sides at once (2026-11-08). Left and right are the sides the
-  player sees with the prow up under the game camera, so left is the hull's local -X.
-  The weapon's class owns the choice, so Missiles, Concussion and the Railgun have no
-  switch to author: Rippers are always dual fire, and the TurboLasers variant turns
-  on the Lasers switch. *(`WeaponComponent.DualFire`; #1410)*
+  *(`WeaponComponent.FirePattern`; #1410)*
+- **dual fire** — a weapon fires from the hull's left and right sockets instead of the
+  centre, in one of two forms, alternating fire or volley fire. Left and right are the
+  sides the player sees with the prow up under the game camera, so left is the hull's
+  local -X. The weapon's class owns the form, so Missiles, Concussion and the Railgun
+  have nothing to author. Rippers always fire volleys, and the TurboLasers variant
+  turns on the Lasers switch for alternating fire. *(`WeaponComponent.FirePattern`; #1410)*
+- **alternating fire** — dual fire from one side socket per shot, switching sides each
+  shot. Each shot is one projectile at the weapon's own fire rate, and its fire sound
+  plays at the side that fired. The owner ruled it for TurboLasers (2026-11-08).
+  *(`FirePattern.Alternating`; #1410)*
+- **volley fire** — dual fire from both side sockets together on every shot. Each shot
+  launches one projectile from each side but spends one round and plays one fire sound.
+  The fire sound and the gunsight's line of sight read the centre socket, which sits on
+  the centreline between the two muzzles. The owner ruled it for Rippers at full damage
+  per projectile (2026-11-08), so ripper damage output doubles.
+  *(`FirePattern.Volley`; #1422)*
 - **velocity reference / feasibility tracker** — the RL↔MPC boundary: the policy
   emits a planar velocity and MPC is demoted to a ~2s tracker (feasibility, aim,
   velocity-track).
@@ -974,8 +987,29 @@ Format: **term** — definition. *(authority)*
 - **tactic**. What a ship picks to fight with: attack run, flank, stand off or
   break off. A ship picks for its own sake, the best shot for the least risk,
   and never knows it paces the player. "Beat" is the retired name. Owner rulings
-  on #1349. Every setting of the brain that picks tactics lives on one asset.
-  *(TacticsSettings)*
+  on #1349. Each tactic flies a law the archetype pilots already have:
+  - *attack run*: hold at my gun range and fire (the Aggressor's law);
+  - *flank*: circle toward the target's open side, firing once my firing lane
+    clears;
+  - *stand off*: hold just outside the target's real primary gun range, firing
+    once it turns away and my firing lane is clear;
+  - *break off*: flee with guns cold until the shield is back.
+
+  A ship picks by *ordered rules*, the first rule that fires winning: break off,
+  then flank or stand off, then the attack run. It keeps a tactic until the
+  reason it was picked ends, never for less than the *minimum hold*, break off
+  included.
+  Only a pilot authored with tactics settings (the *tactics switch*) picks one.
+  Every shipped pilot does, each on its kind's *temper*, and the RL roster never
+  does. *(TacticRules.Next, TacticsSettings)*
+- **temper**. One `TacticsSettings` asset per kind of ship: wave ships (every
+  roster ship and hunt patrol), the elite, and its escorts. Each pilot points at
+  its own. Owner ruling on #1349, 2026-11-09: the elite never breaks off and
+  always presses (break off 0%, nerve 0%), escorts never fly into the target's
+  guns (nerve 100%), and wave ships keep the numbers #1433 shipped. At 100%
+  nerve a ship shies at a full shield too, so 0% and 100% hold at every shield
+  level. No per-ship or per-run variation yet. *(WaveTemper, EliteTemper,
+  EscortTemper)*
 - **situation**. What one ship reads about its fight before it picks a tactic,
   from its own sensors only. The owner's picks on #1349: allies count by where
   they are, never by asking another ship's brain, so the elite counts whatever it
