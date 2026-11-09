@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using AI.Tactics;
 using Asteroids.Fields;
 using Cameras;
 using Game;
@@ -62,6 +63,8 @@ namespace Tests.EditMode.Preview
             AssertTarget(Target<CompanionTarget>(), new[] { PreviewEntry.Combat },
                 AssetDatabase.LoadAssetAtPath<CompanionFeelProfile>("Assets/Settings/Game/Companion/CompanionFeel.asset"),
                 AssetDatabase.LoadAssetAtPath<CompanionLineSheet>("Assets/Settings/Game/Companion/CompanionLines.asset"));
+            AssertTarget(Target<TacticsTarget>(), new[] { PreviewEntry.CrowdedFight },
+                AssetDatabase.LoadAssetAtPath<TacticsSettings>("Assets/Settings/AI/Tactics/TacticsSettings.asset"));
         }
 
         [Test]

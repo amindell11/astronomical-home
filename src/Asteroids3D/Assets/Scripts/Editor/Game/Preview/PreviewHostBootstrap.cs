@@ -10,10 +10,10 @@ namespace Game.Preview
 {
     /// <summary>
     /// Builds the preview host in an empty scene around the game's GameHost prefab. Replay flies the first
-    /// row of the prefab's sector run; the HUD replays' two fixture sectors and sector 1's elite fixture
-    /// take that row's locale, sector 2's elite fixture the second row's and the boss fixture the last
-    /// row's, a Random row standing in as its pool's first locale, while the two-sector crowded jump
-    /// fixture keeps its own two locales.
+    /// row of the prefab's sector run; the HUD replays' two fixture sectors, sector 1's elite fixture and
+    /// the crowded fight fixture take that row's locale, sector 2's elite fixture the second row's and the
+    /// boss fixture the last row's, a Random row standing in as its pool's first locale, while the
+    /// two-sector crowded jump fixture keeps its own two locales.
     /// The chosen entry is assigned before activation, so Playtest never composes a Replay session.
     /// The host waits inactive through the play-mode reload; entering play mode snapshots every tuning
     /// target's feel profiles, then activates it, so the panel tunes those assets in place.
@@ -58,6 +58,7 @@ namespace Game.Preview
             host.bossSector = FixtureSector("BossSector", RowLocale(run, run.Sectors.Count - 1));
             host.sector1EliteSector = FixtureSector("EliteSector1", RowLocale(run, 0));
             host.sector2EliteSector = FixtureSector("EliteSector2", RowLocale(run, 1));
+            host.crowdedFightSector = FixtureSector("CrowdedFightSector", RowLocale(run, 0));
             host.jumpDestination = Locale(CopperTurquoisePath);
             host.entry = entry;
             host.combatSector = combatSector;
