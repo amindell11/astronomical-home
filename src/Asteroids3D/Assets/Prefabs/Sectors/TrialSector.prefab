@@ -936,7 +936,7 @@ PrefabInstance:
       objectReference: {fileID: 7436810692243587915}
     - target: {fileID: 4771814285665531652, guid: bb9c514b575148c2b3b50d0f2f73110e,
         type: 3}
-      propertyPath: repairs
+      propertyPath: spacedFrom
       value: 
       objectReference: {fileID: 7190434448910481471}
     - target: {fileID: 8122136947576484882, guid: bb9c514b575148c2b3b50d0f2f73110e,

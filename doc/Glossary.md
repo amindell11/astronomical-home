@@ -649,8 +649,7 @@ Format: **term** — definition. *(authority)*
   **signature ship** is the faction's own chassis, and its elite flies it; the
   **common ship** is the chassis every faction flies. Each ship always carries
   its **faction kit**, one fixed primary, and wears the faction's paint, flame
-  and shield ring colour. The **answer weapon** is the weapon
-  that counters the faction's way of fighting, so no faction kit carries it.
+  and shield ring colour.
   The sector-to-faction mapping is ruled on #1320. *(Faction, SectorFaction)*
 - **elite** — a sector's end-of-sector enemy: its faction's signature ship made
   larger, with a heavy weapon pair and stacked run mods. The sector's phases
@@ -663,6 +662,11 @@ Format: **term** — definition. *(authority)*
 - **unlocked ship** — a ship the hangar lets the player fly: the starter plus
   every elite chassis the player killed in any run record. No save file; a kill
   counts once its run's record is written. *(ShipUnlocks, ItemSubset.starter)*
+- **station** — a *find* the player flies into. Every kind shares one core:
+  the placement, the clearing in the field, going dark at the hunt's alarm,
+  the find marker and the arrival events. A kind adds only its effect, which
+  draws on each station's supply; a station goes dark when its supply runs out.
+  *(FindStation, FindStationBody, StationKind)*
 - **repair station** — a fly-in zone each combat sector places, two by default,
   each on its own clear point away from the start, marked as a *find*. While the
   player sits in it, it repairs hull from a supply of about one hull, then goes
@@ -971,8 +975,21 @@ Format: **term** — definition. *(authority)*
 - **tactic**. What a ship picks to fight with: attack run, flank, stand off or
   break off. A ship picks for its own sake, the best shot for the least risk,
   and never knows it paces the player. "Beat" is the retired name. Owner rulings
-  on #1349. Every setting of the brain that picks tactics lives on one asset.
-  *(TacticsSettings)*
+  on #1349. Each tactic flies a law the archetype pilots already have:
+  - *attack run*: hold at my gun range and fire (the Aggressor's law);
+  - *flank*: circle toward the target's open side, firing once my firing lane
+    clears;
+  - *stand off*: hold just outside the target's real primary gun range, firing
+    once it turns away and my firing lane is clear;
+  - *break off*: flee with guns cold until the shield is back.
+
+  A ship picks by *ordered rules*, the first rule that fires winning: break off,
+  then flank or stand off, then the attack run. It keeps a tactic until the
+  reason it was picked ends, never for less than the *minimum hold*, break off
+  included.
+  Only a pilot authored with tactics settings (the *tactics switch*) picks one:
+  the shipped pilots and the RL roster never do. Every setting of the brain that
+  picks tactics lives on one asset. *(TacticRules.Next, TacticsSettings)*
 - **situation**. What one ship reads about its fight before it picks a tactic,
   from its own sensors only. The owner's picks on #1349: allies count by where
   they are, never by asking another ship's brain, so the elite counts whatever it
