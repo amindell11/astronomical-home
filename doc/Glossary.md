@@ -814,14 +814,23 @@ Format: **term** — definition. *(authority)*
   `WeaponSlot.Secondary`. *(`WeaponComponent.IsOrdnance`; #1410)*
 - **single fire** — a weapon fires every shot from the hull's centre socket, on its
   centreline at the nose. Every weapon that is not dual fire fires this way.
-  *(`WeaponComponent.DualFire`; #1410)*
-- **dual fire** — a weapon alternates its shots between the hull's left and right
-  sockets, one projectile per shot at the weapon's own fire rate. The owner ruled
-  alternation over both sides at once (2026-11-08). Left and right are the sides the
-  player sees with the prow up under the game camera, so left is the hull's local -X.
-  The weapon's class owns the choice, so Missiles, Concussion and the Railgun have no
-  switch to author: Rippers are always dual fire, and the TurboLasers variant turns
-  on the Lasers switch. *(`WeaponComponent.DualFire`; #1410)*
+  *(`WeaponComponent.FirePattern`; #1410)*
+- **dual fire** — a weapon fires from the hull's left and right sockets instead of the
+  centre, in one of two forms, alternating fire or volley fire. Left and right are the
+  sides the player sees with the prow up under the game camera, so left is the hull's
+  local -X. The weapon's class owns the form, so Missiles, Concussion and the Railgun
+  have nothing to author. Rippers always fire volleys, and the TurboLasers variant
+  turns on the Lasers switch for alternating fire. *(`WeaponComponent.FirePattern`; #1410)*
+- **alternating fire** — dual fire from one side socket per shot, switching sides each
+  shot. Each shot is one projectile at the weapon's own fire rate, and its fire sound
+  plays at the side that fired. The owner ruled it for TurboLasers (2026-11-08).
+  *(`FirePattern.Alternating`; #1410)*
+- **volley fire** — dual fire from both side sockets together on every shot. Each shot
+  launches one projectile from each side but spends one round and plays one fire sound.
+  The fire sound and the gunsight's line of sight read the centre socket, which sits on
+  the centreline between the two muzzles. The owner ruled it for Rippers at full damage
+  per projectile (2026-11-08), so ripper damage output doubles.
+  *(`FirePattern.Volley`; #1422)*
 - **velocity reference / feasibility tracker** — the RL↔MPC boundary: the policy
   emits a planar velocity and MPC is demoted to a ~2s tracker (feasibility, aim,
   velocity-track).

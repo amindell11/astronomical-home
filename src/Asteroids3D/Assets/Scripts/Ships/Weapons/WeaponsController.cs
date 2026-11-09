@@ -23,9 +23,9 @@ namespace Ships.Weapons
 
         [Tooltip("The hull's centreline socket at the nose; single-fire weapons fire every shot from it.")]
         [SerializeField] internal Transform centreSocket;
-        [Tooltip("The hull's left side socket; dual-fire weapons alternate shots between it and the right one.")]
+        [Tooltip("The hull's left side socket; dual-fire weapons fire from it and the right one, by turns or together.")]
         [SerializeField] internal Transform leftSocket;
-        [Tooltip("The hull's right side socket; dual-fire weapons alternate shots between it and the left one.")]
+        [Tooltip("The hull's right side socket; dual-fire weapons fire from it and the left one, by turns or together.")]
         [SerializeField] internal Transform rightSocket;
 
         public WeaponComponent Primary { get; private set; }
