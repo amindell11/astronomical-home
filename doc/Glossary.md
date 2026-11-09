@@ -663,6 +663,11 @@ Format: **term** — definition. *(authority)*
 - **unlocked ship** — a ship the hangar lets the player fly: the starter plus
   every elite chassis the player killed in any run record. No save file; a kill
   counts once its run's record is written. *(ShipUnlocks, ItemSubset.starter)*
+- **station** — a *find* the player flies into. Every kind shares one core:
+  the placement, the clearing in the field, going dark at the hunt's alarm,
+  the find marker and the arrival events. A kind adds only its effect, which
+  draws on each station's supply; a station goes dark when its supply runs out.
+  *(FindStation, FindStationBody, StationKind)*
 - **repair station** — a fly-in zone each combat sector places, two by default,
   each on its own clear point away from the start, marked as a *find*. While the
   player sits in it, it repairs hull from a supply of about one hull, then goes
