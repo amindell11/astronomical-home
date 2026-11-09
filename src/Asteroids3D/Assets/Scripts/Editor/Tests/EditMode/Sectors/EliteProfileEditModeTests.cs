@@ -54,5 +54,19 @@ namespace Tests.EditMode.Sectors
             var thrown = Assert.Throws<InvalidOperationException>(() => profile.Validate());
             StringAssert.Contains("TestElite", thrown.Message);
         }
+
+        [TestCase("Missiles", null, "weapon slot")]
+        [TestCase("TurboLasers", "Railgun", "ordnance slot")]
+        public void Validate_Throws_OnAKitThatBreaksTheSlotRule(string primary, string secondary, string slot)
+        {
+            profile.Configure("Test elite", ShipScale.One, Weapon(primary), Weapon(secondary));
+
+            var thrown = Assert.Throws<InvalidOperationException>(() => profile.Validate());
+            StringAssert.Contains("TestElite", thrown.Message);
+            StringAssert.Contains(slot, thrown.Message);
+        }
+
+        private static WeaponComponent Weapon(string name) => name == null ? null
+            : AssetDatabase.LoadAssetAtPath<WeaponComponent>($"Assets/Prefabs/Weapons/{name}.prefab");
     }
 }

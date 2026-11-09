@@ -26,10 +26,20 @@ namespace Combat.Weapons
             hasLineOfSight && distanceToTarget <= maxDistance && angleToTarget <= maxAngle;
     }
 
+    /// <summary>Which hull sockets a weapon's shots leave from: the centre, one side per shot, or both sides at once.</summary>
+    public enum FirePattern
+    {
+        Single,
+        Alternating,
+        Volley,
+    }
+
     public abstract class WeaponComponent : MonoBehaviour
     {
         public Transform firePoint;
         private Transform otherSide;
+        // A volley's muzzles flank its fire point, which stays centred for its sound and gunsight.
+        private Transform[] muzzles;
 
         public Vector3 FireOrigin => GamePlane.WorldPointOnPlane((firePoint ? firePoint : transform).position);
         public Vector3 FireDirection => GamePlane.WorldDirOnPlane((firePoint ? firePoint : transform).up);
@@ -53,6 +63,7 @@ namespace Combat.Weapons
             shooter = GetComponentInParent<IShooter>();
             conditions = GetComponents<WeaponCondition>();
             if (!firePoint) firePoint = transform;
+            muzzles ??= new[] { firePoint };
             foreach (var condition in conditions)
             {
                 condition.Initialize(this);
@@ -60,14 +71,20 @@ namespace Combat.Weapons
             }
         }
 
-        /// <summary>Alternates shots between the hull's left and right sockets; false fires every shot from the centre.</summary>
-        public virtual bool DualFire => false;
+        public virtual FirePattern FirePattern => FirePattern.Single;
+
+        /// <summary>An ordnance fills a ship's ordnance slot; every other weapon fills its weapon slot.</summary>
+        public virtual bool IsOrdnance => false;
 
         public void Initialize(Transform centre, Transform left, Transform right)
         {
-            firePoint = DualFire ? left : centre;
-            otherSide = DualFire ? right : null;
+            var alternating = FirePattern == FirePattern.Alternating;
+            firePoint = alternating ? left : centre;
+            otherSide = alternating ? right : null;
+            muzzles = FirePattern == FirePattern.Volley ? new[] { left, right } : new[] { firePoint };
         }
+
+        protected IReadOnlyList<Transform> Muzzles => muzzles;
 
         /// <summary>Puts <paramref name="mods"/> in force on this mount and its conditions; pre-Awake they are handed down in Awake.</summary>
         public void SetMods(WeaponMods mods)
@@ -111,7 +128,7 @@ namespace Combat.Weapons
             return null;
         }
 
-        /// <summary>Fires one shot at <paramref name="targetPoint"/>. The live-projectile registry is a per-call capability, never stored — a call site without one in hand cannot compile.</summary>
+        /// <summary>Fires one shot at <paramref name="targetPoint"/>, registering every projectile and returning the first; never store the registry.</summary>
         public abstract ProjectileBase Fire(Vector3 targetPoint, IProjectileService projectiles);
 
         /// <summary>Muzzle speed of this weapon's projectile, used for AI intercept lead. 0 if not applicable.</summary>
@@ -212,7 +229,9 @@ namespace Combat.Weapons
         {
             OnFire?.Invoke();
             // After the handlers, so the fire sound plays at the side that fired.
-            if (otherSide) (firePoint, otherSide) = (otherSide, firePoint);
+            if (!otherSide) return;
+            (firePoint, otherSide) = (otherSide, firePoint);
+            muzzles[0] = firePoint;
         }
     }
 }

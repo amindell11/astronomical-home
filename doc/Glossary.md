@@ -59,11 +59,11 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | Word | Live senses | Rule |
 |---|---|---|
 | **gate** | merge gate · eval gate (`eval_gate.py`) · gate score · cost gate (fix-ladder rung 3) · go/no-go gate · curriculum lesson gate · anti-churn gate · scoping gate · owner's gate (a ship art stage approval) · "gated off" code conditionals | Always qualified. Bare "the gate" is legal only in pool-merge context (= merge gate) and RL-run context (= eval gate), and never in a title. |
-| **lane** | boot lane · remote lane (the second Unity box, `remote_lane.sh`) · harness lane · curriculum lane · watch/capture lane · audit lane · teacher-tuning lane · access-queue lane · firing lane (lane clearing) · decision lane (nav / fire / ability — the three seams a `BrainDecision` carries) · LANE slot (the MPC sentence term, always caps) | Always qualified. |
+| **lane** | boot lane · remote lane (the second Unity box, `remote_lane.sh`) · harness lane · curriculum lane · watch/capture lane · audit lane · teacher-tuning lane · access-queue lane · firing lane (lane clearing; a situation's allies in lane) · decision lane (nav / fire / ability — the three seams a `BrainDecision` carries) · LANE slot (the MPC sentence term, always caps) | Always qualified. |
 | **pool** | worktree pool · ship resource pool (`PoolDifferential`) · self-play snapshot pool · object pool (`SimplePool`) · Dev Pool issue labels (`mid-dev-pool`/`high-dev-pool`, ex-board columns) | Always qualified. |
 | **token** | bus/signal token · obs obstacle token (`ObstacleTokenCap`) · threat token · LLM context token | Always qualified. |
 | **term** | intent/cost term (a weighted sentence-slot cost the MPC solves — #485) · activation term (`ActivationTerm`, the AND-ed predicate atoms of sector activation rules) · reward term (a `RewardSpec` component, e.g. the reward spine's outcome term) | Always qualified. An intent-grammar doc may read bare "term" = intent/cost term only after declaring the carve-out (Stage A brief precedent). |
-| **slot** | worktree slot (`agent-N`) · weapon/mount slot · ONNX import slot · obs slot-block grammar · MPC terminal-cost slot · sentence slot, instance or class (a typed intent-sentence position) · anatomy slot (§2 → *anatomy*) · keystone slot (§2 → *keystone*) · line slot (a moment's lines on the companion's line sheet) | Qualify outside pool-loop context; bare "slot" = worktree slot in workflow text only. |
+| **slot** | worktree slot (`agent-N`) · weapon slot · ordnance slot (§2 → *weapon slot*, *ordnance slot*) · ONNX import slot · obs slot-block grammar · MPC terminal-cost slot · sentence slot, instance or class (a typed intent-sentence position) · anatomy slot (§2 → *anatomy*) · keystone slot (§2 → *keystone*) · line slot (a moment's lines on the companion's line sheet) | Qualify outside pool-loop context; bare "slot" = worktree slot in workflow text only. |
 | **pin** | pin test (freeze a value) · pinned seeds/hypers · ram-pin exploit | Qualify. "ram-pin" always hyphenated for the physics exploit. |
 | **fixture** | NUnit test fixture · sector fixture · ONNX smoke/eval fixture | Always qualified — all three appear within a page of each other in the RL docs. |
 | **seed** | RNG seed · `SeedScope` stream · eval seed set (2001+) · sealed held-out seeds (1001–1020) · seed checkpoint · `SeedMode.BorderEscape` | Bare "seed" = RNG seed. Checkpoints are "seed checkpoints". |
@@ -803,16 +803,34 @@ Format: **term** — definition. *(authority)*
   it reaches the brain on `AIContext`, never on `IShipStatus`, because it is
   how the AI uses a weapon, not a fact about the ship. Not a firing range.
   *(`WeaponComponent.HoldRange`; #1139)*
+- **weapon slot** — a ship's first mount: one weapon (Lasers, TurboLasers, Rippers or
+  Railgun) or nothing, never an ordnance. Left mouse fires it, and its weapon is the one
+  whose lead, hold range and aim the AI reads. The code still calls it
+  `WeaponSlot.Primary`; the rename waits for after M1 (#1418).
+  *(`WeaponsController.RequireKinds`; #1410)*
+- **ordnance slot** — a ship's second mount: one ordnance (Missiles or Concussion) or
+  nothing. An item's kind comes from its class, so nothing is authored and no prefab can
+  carry the wrong one. Regular enemies leave the slot empty. The code still calls it
+  `WeaponSlot.Secondary`. *(`WeaponComponent.IsOrdnance`; #1410)*
 - **single fire** — a weapon fires every shot from the hull's centre socket, on its
   centreline at the nose. Every weapon that is not dual fire fires this way.
-  *(`WeaponComponent.DualFire`; #1410)*
-- **dual fire** — a weapon alternates its shots between the hull's left and right
-  sockets, one projectile per shot at the weapon's own fire rate. The owner ruled
-  alternation over both sides at once (2026-11-08). Left and right are the sides the
-  player sees with the prow up under the game camera, so left is the hull's local -X.
-  The weapon's class owns the choice, so Missiles, Concussion and the Railgun have no
-  switch to author: Rippers are always dual fire, and the TurboLasers variant turns
-  on the Lasers switch. *(`WeaponComponent.DualFire`; #1410)*
+  *(`WeaponComponent.FirePattern`; #1410)*
+- **dual fire** — a weapon fires from the hull's left and right sockets instead of the
+  centre, in one of two forms, alternating fire or volley fire. Left and right are the
+  sides the player sees with the prow up under the game camera, so left is the hull's
+  local -X. The weapon's class owns the form, so Missiles, Concussion and the Railgun
+  have nothing to author. Rippers always fire volleys, and the TurboLasers variant
+  turns on the Lasers switch for alternating fire. *(`WeaponComponent.FirePattern`; #1410)*
+- **alternating fire** — dual fire from one side socket per shot, switching sides each
+  shot. Each shot is one projectile at the weapon's own fire rate, and its fire sound
+  plays at the side that fired. The owner ruled it for TurboLasers (2026-11-08).
+  *(`FirePattern.Alternating`; #1410)*
+- **volley fire** — dual fire from both side sockets together on every shot. Each shot
+  launches one projectile from each side but spends one round and plays one fire sound.
+  The fire sound and the gunsight's line of sight read the centre socket, which sits on
+  the centreline between the two muzzles. The owner ruled it for Rippers at full damage
+  per projectile (2026-11-08), so ripper damage output doubles.
+  *(`FirePattern.Volley`; #1422)*
 - **velocity reference / feasibility tracker** — the RL↔MPC boundary: the policy
   emits a planar velocity and MPC is demoted to a ~2s tracker (feasibility, aim,
   velocity-track).
@@ -950,6 +968,17 @@ Format: **term** — definition. *(authority)*
   rather than synonyms.
   ⚠ Not to be confused with `PilotCommand`/`IPilot`, which are the actuator end.
   *(Brain, BrainDecision)*
+- **tactic**. What a ship picks to fight with: attack run, flank, stand off or
+  break off. A ship picks for its own sake, the best shot for the least risk,
+  and never knows it paces the player. "Beat" is the retired name. Owner rulings
+  on #1349. Every setting of the brain that picks tactics lives on one asset.
+  *(TacticsSettings)*
+- **situation**. What one ship reads about its fight before it picks a tactic,
+  from its own sensors only. The owner's picks on #1349: allies count by where
+  they are, never by asking another ship's brain, so the elite counts whatever it
+  flies; *exposed* means inside the target's real primary gun range and its
+  exposure cone, never a fixed distance; the hit clock on `AIContext` is the only
+  state kept between reads. Not the retired *exposure arc*. *(Situation.Read)*
 - **presentation** — the per-session axis deciding whether visuals and audio
   exist. Two things a reader needs: it is applied by the owning spawn seams,
   never by per-component globals; and it is **not** the same axis as the deleted
@@ -988,11 +1017,11 @@ Format: **term** — definition. *(authority)*
   closes unclaimed; a new beacon's opening closes the one
   before it, so beacons never stack. The sector's opening lull gets none.
   *(PhaseSpineModule, ExtractionZone)*
-- **weapon pick** — the sector-break choice of one weapon the player does not
-  carry, from up to three, or a skip, then the mount it replaces; held in
-  hyperspace after the extraction recap. The swap keeps hull, shield and the run
-  clocks, and the hangar's kit stays the next run's. *(WeaponPickScreen,
-  PlayerRig.SwapWeapon)*
+- **weapon pick** — the sector-break choice of one weapon or ordnance the player
+  does not carry, from up to three, or a skip; the pick replaces the mount in the
+  slot its kind fills. Held in hyperspace after the extraction recap. The swap
+  keeps hull, shield and the run clocks, and the hangar's kit stays the next
+  run's. *(WeaponPickScreen, PlayerRig.SwapWeapon)*
 - **keystone** — the locked ability in a ship's keystone slot, one kit per ship
   (`Keystone`; `Dash` today). Not a ship module: a kit prefab the ship
   instantiates, because a kit keeps per-ship runtime state (its cooldown clock,

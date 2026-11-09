@@ -475,6 +475,38 @@ namespace Tests.PlayMode.Preview
 
         [UnityTest]
         [Timeout(180000)]
+        public IEnumerator Playtest_CrowdedFight_RunsOnlyItsFixture_AndFillsWithArchetypePilots()
+        {
+            var root = new GameObject("Crowded fight playtest test");
+            root.SetActive(false);
+            host = root.AddComponent<PreviewHost>();
+            host.entry = PreviewEntry.CrowdedFight;
+            host.gameHostPrefab = TestAssets.Load<GameHost>("Assets/Prefabs/Game/GameHost.prefab");
+            host.sessionProfile = new SessionProfile();
+            host.crowdedFightSector = new SectorEntry
+            {
+                prefab = TestAssets.Load<Sector>("Assets/Prefabs/Sectors/Preview/CrowdedFightSector.prefab"),
+                locale = TestAssets.Load<LocaleSky>("Assets/Prefabs/Locales/IllustratedBlue.prefab")
+            };
+            root.SetActive(true);
+
+            var fight = host.Playtest;
+            yield return LaunchFromHangar(fight);
+            Assert.That(fight.sessionProfile.run.Sectors, Is.EqualTo(new[] { host.crowdedFightSector }));
+            Assert.That(fight.ActiveSector.name, Does.StartWith("CrowdedFightSector"));
+            var ships = fight.GetComponent<UnitService>().ActiveRegistry.ActiveShips;
+            yield return AsyncAssert.WaitUntil(
+                () => ships.Count(FliesAnArchetype) >= 4, 15f, "the fixture's waves fill with today's archetype pilots");
+        }
+
+        private static bool FliesAnArchetype(Ship ship)
+        {
+            var commander = ship.Commander as AI.AICommander;
+            return commander && commander.Brain as RL.Opponents.ArchetypeBrain;
+        }
+
+        [UnityTest]
+        [Timeout(180000)]
         public IEnumerator Playtest_CombatFliesItsSectorAndLocalePicks_AndRestartFliesAChangedPick()
         {
             var shipped = TestAssets.Load<GameHost>("Assets/Prefabs/Game/GameHost.prefab");

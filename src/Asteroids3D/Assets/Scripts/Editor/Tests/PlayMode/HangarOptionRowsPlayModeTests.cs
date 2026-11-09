@@ -33,6 +33,7 @@ namespace Tests.PlayMode
             "Assets/Prefabs/Weapons/Missiles.prefab",
             "Assets/Prefabs/Weapons/Railgun.prefab",
             "Assets/Prefabs/Weapons/Rippers.prefab",
+            "Assets/Prefabs/Weapons/Grenades.prefab",
         };
 
         private HangarScreen screen;
@@ -93,24 +94,32 @@ namespace Tests.PlayMode
         private static void Next(OptionCycler row) => row.nextButton.onClick.Invoke();
         private static void Previous(OptionCycler row) => row.previousButton.onClick.Invoke();
 
+        private static WeaponComponent[] OfKind(WeaponComponent[] pool, bool ordnance) =>
+            System.Array.FindAll(pool, weapon => weapon.IsOrdnance == ordnance);
+
         [Test]
-        public void WeaponRows_CycleThroughCatalogAndWrap_WithDisplayNames()
+        public void WeaponRows_EachCycleTheirKindAndWrap_WithDisplayNames()
         {
             ShowScreen(out _);
 
-            foreach (var row in new[] { screen.primaryWeaponRow, screen.secondaryWeaponRow })
+            foreach (var (row, kind) in new[]
+                     {
+                         (screen.primaryWeaponRow, OfKind(catalog.weapons, ordnance: false)),
+                         (screen.secondaryWeaponRow, OfKind(catalog.weapons, ordnance: true)),
+                     })
             {
-                for (var i = 0; i < catalog.weapons.Length; i++)
+                Assert.That(kind.Length, Is.GreaterThan(1), "test premise: the row has a cycle to wrap");
+                for (var i = 0; i < kind.Length; i++)
                 {
                     Next(row);
-                    Assert.AreEqual(catalog.weapons[i].DisplayName, row.label.text,
-                        $"{row.name} step {i + 1} shows weapon {i} by its display name");
+                    Assert.AreEqual(kind[i].DisplayName, row.label.text,
+                        $"{row.name} step {i + 1} shows its kind's item {i} by its display name");
                 }
 
                 Next(row);
-                Assert.AreEqual(catalog.weapons[0].DisplayName, row.label.text, $"{row.name} wraps past the last weapon");
+                Assert.AreEqual(kind[0].DisplayName, row.label.text, $"{row.name} wraps past its kind's last item");
                 Previous(row);
-                Assert.AreEqual(catalog.weapons[^1].DisplayName, row.label.text, $"{row.name} wraps back past the first");
+                Assert.AreEqual(kind[^1].DisplayName, row.label.text, $"{row.name} wraps back past its kind's first");
             }
         }
 
@@ -121,22 +130,53 @@ namespace Tests.PlayMode
 
             Previous(screen.primaryWeaponRow);
 
-            Assert.AreSame(catalog.weapons[^1], loadout.PrimaryWeapon);
+            Assert.AreSame(OfKind(catalog.weapons, ordnance: false)[^1], loadout.PrimaryWeapon);
         }
 
         [Test]
         public void WeaponStep_WritesOnlyItsOwnSlot()
         {
             var loadout = ShowScreen(out _);
+            var weapons = OfKind(catalog.weapons, ordnance: false);
+            var ordnance = OfKind(catalog.weapons, ordnance: true);
 
             Next(screen.primaryWeaponRow);
-            Assert.AreSame(catalog.weapons[0], loadout.PrimaryWeapon, "primary step sets the primary slot");
-            Assert.IsNull(loadout.SecondaryWeapon, "primary step leaves the secondary slot alone");
+            Assert.AreSame(weapons[0], loadout.PrimaryWeapon, "the weapon step sets the weapon slot");
+            Assert.IsNull(loadout.SecondaryWeapon, "the weapon step leaves the ordnance slot alone");
 
             Next(screen.secondaryWeaponRow);
             Next(screen.secondaryWeaponRow);
-            Assert.AreSame(catalog.weapons[1], loadout.SecondaryWeapon, "secondary steps set the secondary slot");
-            Assert.AreSame(catalog.weapons[0], loadout.PrimaryWeapon, "secondary steps leave the primary slot alone");
+            Assert.AreSame(ordnance[1], loadout.SecondaryWeapon, "ordnance steps set the ordnance slot");
+            Assert.AreSame(weapons[0], loadout.PrimaryWeapon, "ordnance steps leave the weapon slot alone");
+        }
+
+        [Test]
+        public void RealCatalog_TheWeaponRowOffersOnlyWeapons_AndTheOrdnanceRowOnlyOrdnance()
+        {
+            var offer = Load<ItemSubset>(RealCatalogPath);
+            var loadout = new ShipLoadout(offer.ships[0], null, null);
+            Show(offer, loadout);
+            Assert.AreEqual("WEAPON", screen.transform.Find("Panel/WEAPONLabel").GetComponent<Text>().text);
+            Assert.AreEqual("ORDNANCE", screen.transform.Find("Panel/ORDNANCELabel").GetComponent<Text>().text);
+
+            var weapons = OfKind(offer.weapons, ordnance: false);
+            var ordnance = OfKind(offer.weapons, ordnance: true);
+            Assert.IsNotEmpty(weapons, "test premise: the offer holds weapons");
+            Assert.IsNotEmpty(ordnance, "test premise: the offer holds ordnance");
+            CollectionAssert.AreEqual(weapons, Cycle(screen.primaryWeaponRow, weapons.Length, () => loadout.PrimaryWeapon));
+            CollectionAssert.AreEqual(ordnance, Cycle(screen.secondaryWeaponRow, ordnance.Length, () => loadout.SecondaryWeapon));
+        }
+
+        private static WeaponComponent[] Cycle(OptionCycler row, int steps, System.Func<WeaponComponent> current)
+        {
+            var seen = new WeaponComponent[steps + 1];
+            for (var i = 0; i <= steps; i++)
+            {
+                Next(row);
+                seen[i] = current();
+            }
+            Assert.AreSame(seen[0], seen[steps], $"{row.name} wraps after its {steps} items");
+            return seen[..steps];
         }
 
         [Test]
@@ -208,12 +248,14 @@ namespace Tests.PlayMode
             var trigger = screen.primaryWeaponRow.GetComponent<EventTrigger>();
             var pointer = new PointerEventData(null);
 
-            Next(screen.primaryWeaponRow);
-            trigger.OnPointerEnter(pointer);
-            Assert.AreEqual(HangarScreen.Describe(catalog.weapons[0]), stats.text, "hover shows the current pick");
+            var weapons = OfKind(catalog.weapons, ordnance: false);
 
             Next(screen.primaryWeaponRow);
-            Assert.AreEqual(HangarScreen.Describe(catalog.weapons[1]), stats.text, "a step while hovered updates the readout");
+            trigger.OnPointerEnter(pointer);
+            Assert.AreEqual(HangarScreen.Describe(weapons[0]), stats.text, "hover shows the current pick");
+
+            Next(screen.primaryWeaponRow);
+            Assert.AreEqual(HangarScreen.Describe(weapons[1]), stats.text, "a step while hovered updates the readout");
 
             trigger.OnPointerExit(pointer);
             Assert.AreEqual("", stats.text, "leaving the row clears the readout");
@@ -226,7 +268,7 @@ namespace Tests.PlayMode
         [TestCase("Assets/Prefabs/Weapons/Railgun.prefab",
             @"Damage \d+", @"Range \d+", @"Full charge [\d.]+s", "Hitscan")]
         [TestCase("Assets/Prefabs/Weapons/Rippers.prefab",
-            @"Damage \d+", @"Rate [\d.]+/s", @"Mag \d+ \(reload [\d.]+s\)", @"Speed \d+")]
+            @"Damage \d+ per slug", "2 slugs per shot", @"Rate [\d.]+/s", @"Mag \d+ \(reload [\d.]+s\)", @"Speed \d+")]
         [TestCase("Assets/Prefabs/Weapons/Missiles.prefab",
             @"Damage \d+ \+ \d+ splash", @"\d+ rounds \(shared recharge [\d.]+s/round\)", "Lock-on homing",
             "Direct hit skips shields")]
