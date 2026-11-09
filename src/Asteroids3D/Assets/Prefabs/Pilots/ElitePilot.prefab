@@ -8,11 +8,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 6880428161490311760, guid: 2a67010d59bac134caa6a455f8ef2660,
-        type: 3}
-      propertyPath: m_Name
-      value: ElitePilot
-      objectReference: {fileID: 0}
     - target: {fileID: 5196882810687186728, guid: 2a67010d59bac134caa6a455f8ef2660,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -62,6 +57,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6880428161490311760, guid: 2a67010d59bac134caa6a455f8ef2660,
+        type: 3}
+      propertyPath: m_Name
+      value: ElitePilot
       objectReference: {fileID: 0}
     - target: {fileID: 8039754676777876555, guid: 2a67010d59bac134caa6a455f8ef2660,
         type: 3}
