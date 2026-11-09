@@ -21,8 +21,6 @@ namespace Tests.EditMode.Rendering.Locales
         private const string VerdantGiant = "Assets/Prefabs/Locales/VerdantGiant.prefab";
         private const string BlueCrescent = "Assets/Prefabs/Locales/BlueCrescent.prefab";
         private const string EditScene = "Assets/Scenes/EditScene.unity";
-        private static readonly string[] CandidateLayers = { "Background", "FarNebula", "StarField", "CloseNebula" };
-        private static readonly int[] CandidateQueues = { 2900, 2940, 2950, 2990 };
 
         [TestCase(CopperTurquoise)]
         [TestCase(IllustratedBlue)]
@@ -55,21 +53,16 @@ namespace Tests.EditMode.Rendering.Locales
 
         [TestCase(CopperTurquoise, "copper-turquoise-final")]
         [TestCase(IllustratedBlue, "illustrated-blue-final")]
-        [TestCase(EditScene, "nebula-glow-flat-final", "NebulaGlow")]
-        public void SkyRoot_DrawsPerLocaleVariantsOfItsBackground_InLockedOrder(
-            string path, string background, string localeFolder = null)
+        [TestCase(EditScene, "illustrated-blue-final")]
+        public void SkyRoot_DrawsPerLocaleVariantsOfItsBackground_InLockedOrder(string path, string background)
         {
             using var locale = new OpenLocale(path);
-            localeFolder ??= locale.Name;
             var root = locale.Sky;
             Assert.IsTrue(locale.Root);
             Assert.IsTrue(root.gameObject.activeSelf, "The palette-driven sky is the live root.");
             var layers = root.GetComponentsInChildren<MeshRenderer>().Select(r => r.transform).ToArray();
-            var illustrated = locale.Name == "CopperTurquoise" || locale.Name == "IllustratedBlue";
-            var names = illustrated
-                ? new[] { "Background", "DistantStars", "FarNebula", "StarField", "CloseNebula" }
-                : CandidateLayers;
-            var queues = illustrated ? new[] { 2900, 2930, 2940, 2950, 2990 } : CandidateQueues;
+            var names = new[] { "Background", "DistantStars", "FarNebula", "StarField", "CloseNebula" };
+            var queues = new[] { 2900, 2930, 2940, 2950, 2990 };
 
             if (locale.Name == "CopperTurquoise")
             {
@@ -84,9 +77,8 @@ namespace Tests.EditMode.Rendering.Locales
                 "Assets/Visuals/Locales/Sky/StarFieldMaterial.mat",
                 PaletteParents.PathFor(sidecar, "CloseNebula"),
             };
-            if (illustrated)
-                expectedParents = new[] { expectedParents[0], expectedParents[2], expectedParents[1],
-                    expectedParents[2], expectedParents[3] };
+            expectedParents = new[] { expectedParents[0], expectedParents[2], expectedParents[1],
+                expectedParents[2], expectedParents[3] };
             if (locale.Name == "CopperTurquoise")
                 expectedParents = new[] { expectedParents[0], expectedParents[1], expectedParents[2],
                     expectedParents[2], expectedParents[3], expectedParents[4] };
@@ -96,7 +88,7 @@ namespace Tests.EditMode.Rendering.Locales
                 var material = layers[i].GetComponent<MeshRenderer>().sharedMaterial;
                 Assert.That(layers[i].gameObject.layer, Is.EqualTo(LayerIds.Sky), $"{layers[i].name} layer");
                 Assert.That(AssetDatabase.GetAssetPath(material),
-                    Does.StartWith($"Assets/Visuals/Locales/Sky/Locales/{localeFolder}/"),
+                    Does.StartWith($"Assets/Visuals/Locales/Sky/Locales/{locale.Name}/"),
                     $"The {layers[i].name} sky layer must use a per-locale material variant.");
                 Assert.That(AssetDatabase.GetAssetPath(material.parent), Is.EqualTo(expectedParents[i]));
                 Assert.That(material.renderQueue, Is.EqualTo(queues[i]), $"{layers[i].name} draw order");
@@ -215,7 +207,7 @@ namespace Tests.EditMode.Rendering.Locales
                 Assert.That(RenderSettings.defaultReflectionMode, Is.EqualTo(DefaultReflectionMode.Custom));
                 Assert.That(RenderSettings.customReflectionTexture, Is.InstanceOf<Cubemap>());
                 Assert.That(AssetDatabase.GetAssetPath(RenderSettings.customReflectionTexture),
-                    Does.StartWith("Assets/Visuals/Locales/Sky/Locales/NebulaGlow/"));
+                    Does.StartWith("Assets/Visuals/Locales/Sky/Locales/IllustratedBlue/"));
             }
             finally
             {
