@@ -9,7 +9,7 @@ namespace Substrate.Sectors.Factions
 {
     /// <summary>
     /// One faction's facts, and the one place sector content reads them from: the two ships it flies,
-    /// the fixed kit each carries, the weapon that answers it, and the skin its ships wear. A sector
+    /// the fixed kit each carries, and the skin its ships wear. A sector
     /// names its faction through <see cref="SectorFaction"/>. The elite flies the signature ship in the
     /// skin's elite set; the rest of what makes an elite lives with the elite profile, not here.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1320
@@ -30,9 +30,6 @@ namespace Substrate.Sectors.Factions
 
         [Tooltip("The chassis every faction flies, in its own colours.")]
         [Stat] public FactionShip common;
-
-        [Tooltip("The weapon that answers this faction's way of fighting.")]
-        public WeaponComponent answer;
 
         [Header("Skin")]
         [Tooltip("Thrust flame every faction ship wears. Unset → today's flame.")]
