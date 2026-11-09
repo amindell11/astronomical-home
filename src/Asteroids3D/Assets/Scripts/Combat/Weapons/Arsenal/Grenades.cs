@@ -39,6 +39,7 @@ namespace Combat.Weapons.Arsenal
         private readonly Dictionary<MonoBehaviour, Action> live = new();
 
         public override bool AutoFire => false;
+        public override bool IsOrdnance => true;
         public override float? HoldRange => holdRange;
         public Rounds Rounds => rounds;
         protected override WeaponCondition[] AuthoredConditions => new WeaponCondition[] { rounds, cooldown };

@@ -62,25 +62,25 @@ namespace Tests.PlayMode.Weapons
             yield return null;
 
             var lasers = LoadWeapon<Lasers>(LasersPrefabPath);
-            var rippers = LoadWeapon<Rippers>(RippersPrefabPath);
-            ship.Reequip(lasers, rippers);
+            var missiles = LoadWeapon<Missiles>(MissilesPrefabPath);
+            ship.Reequip(lasers, missiles);
             yield return null;
 
             var authoredHeat = lasers.GetComponent<Heat>().MaxHeat;
-            var authoredMagazine = rippers.GetComponent<Rounds>().MaxAmmo;
-            var authoredInterval = rippers.GetComponent<Cooldown>().SecondsBetweenShots;
+            var authoredMagazine = missiles.GetComponent<Rounds>().MaxAmmo;
+            var authoredInterval = missiles.GetComponent<Cooldown>().SecondsBetweenShots;
 
             var stack = new LullModStack();
             stack.Add(Mod("Heat sink", WeaponModField.HeatCapacity, 0.25f));
             stack.Add(Mod("Heat sink", WeaponModField.HeatCapacity, 0.25f));
-            stack.Add(Mod("Deep magazine", WeaponModField.Magazine, 6f, rippers));
+            stack.Add(Mod("Deep rack", WeaponModField.Magazine, 6f, missiles));
             stack.Add(Mod("Rapid fire", WeaponModField.FireRate, 0.25f));
             ship.Weapons.SetMods(stack);
 
             var heat = ship.Weapons.Primary.GetComponent<Heat>();
             var rounds = ship.Weapons.Secondary.GetComponent<Rounds>();
             Assert.AreEqual(authoredHeat * 1.5f, heat.MaxHeat, 1e-3f, "two heat sinks sum to +50%");
-            Assert.AreEqual(authoredMagazine + 6, rounds.MaxAmmo, "the deep magazine adds its rounds");
+            Assert.AreEqual(authoredMagazine + 6, rounds.MaxAmmo, "the deep rack adds its rounds");
             Assert.AreEqual(rounds.MaxAmmo, rounds.AmmoCount, "added rounds arrive loaded");
             Assert.AreEqual(authoredInterval / 1.25f, ship.Weapons.Secondary.GetComponent<Cooldown>().SecondsBetweenShots,
                 1e-4f, "rapid fire shortens the interval on every carried weapon");
@@ -90,11 +90,13 @@ namespace Tests.PlayMode.Weapons
             Assert.AreEqual(authoredHeat * 1.5f, heat.MaxHeat, 1e-3f, "the sector-load reset keeps the mods");
             Assert.AreEqual(authoredMagazine + 6, rounds.AmmoCount, "a reset refills to the modded magazine");
 
-            ship.Reequip(rippers, lasers);
+            ship.Reequip(null, null);
+            ship.Reequip(lasers, missiles);
             yield return null;
-            Assert.AreEqual(authoredMagazine + 6, ship.Weapons.Primary.GetComponent<Rounds>().MaxAmmo,
+            Assert.AreNotSame(heat, ship.Weapons.Primary.GetComponent<Heat>(), "test premise: fresh mounts");
+            Assert.AreEqual(authoredMagazine + 6, ship.Weapons.Secondary.GetComponent<Rounds>().MaxAmmo,
                 "a fresh mount reads the same picks");
-            Assert.AreEqual(authoredHeat * 1.5f, ship.Weapons.Secondary.GetComponent<Heat>().MaxHeat, 1e-3f);
+            Assert.AreEqual(authoredHeat * 1.5f, ship.Weapons.Primary.GetComponent<Heat>().MaxHeat, 1e-3f);
         }
 
         [UnityTest]

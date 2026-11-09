@@ -78,7 +78,7 @@ Notes on the judgement calls:
 |---|---|---|---|
 | **Engine** | 1 | the chassis's own engine module — locked to the ship, not a hangar pick (#1028) | **built** |
 | **Shield** | 1 | the chassis's own shield module — locked to the ship, not a hangar pick (#1254) | **built** |
-| **Weapon** | 2 (fixed for now) | [[Weapons]] | **exists**, frozen at two mounts |
+| **Weapon** | 2 (fixed for now): one weapon slot, one ordnance slot | [[Weapons]]: the weapon slot takes a weapon (Lasers, TurboLasers, Rippers, Railgun), the ordnance slot an ordnance (Missiles, Concussion) (#1410) | **exists**, frozen at one weapon and one ordnance |
 | **Utility** | N | consumables, mines, countermeasures, trinkets | **designed, deferred** |
 | **Keystone** | 1 | the chassis's own keystone kit — locked to the ship; every ship carries a Dash today (#1028) | **built** |
 | **Passive** | 1 | a passive | **designed, deferred** |
