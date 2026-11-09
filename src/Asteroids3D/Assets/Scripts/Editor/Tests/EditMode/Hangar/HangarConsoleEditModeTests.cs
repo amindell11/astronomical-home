@@ -66,6 +66,34 @@ namespace Tests.EditMode.Hangar
         }
 
         [Test]
+        public void TallerViewAddsSpaceBelowTheApprovedFrame()
+        {
+            var instance = Object.Instantiate(AssetDatabase.LoadAssetAtPath<HangarConsole>(PrefabPath));
+            try
+            {
+                instance.Resize(new Vector2Int(1920, 1080));
+                var camera = instance.HardwareCamera;
+                var top = camera.ViewportToWorldPoint(new Vector3(.5f, 1f, 10f));
+                var bottom = camera.ViewportToWorldPoint(new Vector3(.5f, 0f, 10f));
+
+                instance.Resize(new Vector2Int(1920, 1200));
+                Assert.That(camera.WorldToViewportPoint(top).y, Is.EqualTo(1f).Within(.0001f));
+                Assert.That(camera.WorldToViewportPoint(bottom).y, Is.EqualTo(.1f).Within(.0001f));
+
+                foreach (var size in new[] { new Vector2Int(2520, 1080), new Vector2Int(1920, 1080) })
+                {
+                    instance.Resize(size);
+                    Assert.That(camera.WorldToViewportPoint(top).y, Is.EqualTo(1f).Within(.0001f));
+                    Assert.That(camera.WorldToViewportPoint(bottom).y, Is.EqualTo(0f).Within(.0001f));
+                }
+            }
+            finally
+            {
+                Object.DestroyImmediate(instance.gameObject);
+            }
+        }
+
+        [Test]
         public void CameraMatchesTheApprovedLensAndPose()
         {
             var console = AssetDatabase.LoadAssetAtPath<HangarConsole>(PrefabPath);

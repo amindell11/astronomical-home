@@ -42,6 +42,10 @@ namespace UI.Hangar.Hardware
             var halfHeight = Mathf.Tan(referenceVerticalFov * Mathf.Deg2Rad * .5f);
             hardwareCamera.fieldOfView = 2f * Mathf.Atan(halfHeight *
                 Mathf.Max(1f, ReferenceAspect / aspect)) * Mathf.Rad2Deg;
+            var projection = Matrix4x4.Perspective(hardwareCamera.fieldOfView, aspect,
+                hardwareCamera.nearClipPlane, hardwareCamera.farClipPlane);
+            projection.m12 = -Mathf.Max(0f, 1f - aspect / ReferenceAspect);
+            hardwareCamera.projectionMatrix = projection;
             if (texture && texture.width == pixels.x && texture.height == pixels.y) return;
 
             ReleaseTexture();
