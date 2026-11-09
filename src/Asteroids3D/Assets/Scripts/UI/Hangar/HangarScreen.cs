@@ -39,6 +39,8 @@ namespace UI.Hangar
         [SerializeField] internal RawImage previewImage;
         [Tooltip("The square inside the preview image where the selected ship settles.")]
         [SerializeField] internal RectTransform previewFrame;
+        [Tooltip("The hologram set preview copies wear, the image's opacity and the projector cone.")]
+        [SerializeField] internal HangarHologramProfile hologram;
 
         private HangarPreviewStage previewStage;
         private readonly List<Action> refreshers = new();
@@ -52,6 +54,8 @@ namespace UI.Hangar
                 throw new InvalidOperationException("HangarScreen previewImage must ignore pointer hits.");
             if (previewImage && !previewFrame)
                 throw new InvalidOperationException("HangarScreen previewImage needs a previewFrame to settle the ship in.");
+            if (previewImage && !hologram)
+                throw new InvalidOperationException("HangarScreen previewImage needs a hologram profile for its preview copies.");
         }
 
         /// <summary>Mutates <paramref name="loadout"/> in place as options are picked.</summary>
@@ -78,7 +82,7 @@ namespace UI.Hangar
                 // Beside the screen, not under it: the overlay canvas's pixel-space transform would drag the stage.
                 var (surface, frame) = PreviewLayout();
                 previewStage = HangarPreviewStage.Create(transform.parent, surface, frame,
-                    offer ? offer.ships : Array.Empty<Ship>());
+                    offer ? offer.ships : Array.Empty<Ship>(), hologram);
                 previewImage.texture = previewStage.Texture;
                 previewStage.Show(loadout, backwards: false);
             }
@@ -120,6 +124,9 @@ namespace UI.Hangar
             var (surface, frame) = PreviewLayout();
             previewStage.Resize(surface, frame);
             previewImage.texture = previewStage.Texture;
+            var color = previewImage.color;
+            color.a = hologram.LayerOpacity;
+            previewImage.color = color;
         }
 
         // Overlay canvas: world corners are screen pixels.

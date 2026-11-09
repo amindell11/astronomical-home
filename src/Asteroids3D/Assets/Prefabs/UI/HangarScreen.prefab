@@ -2369,6 +2369,7 @@ MonoBehaviour:
   statsText: {fileID: 5773993104800550558}
   previewImage: {fileID: 608798650406521308}
   previewFrame: {fileID: 4815162342001059002}
+  hologram: {fileID: 11400000, guid: 139f3b001547c5f4a9b4bf5d249e3e68, type: 2}
   continueSpinOnSwitch: 0
 --- !u!1 &7620016938028786715
 GameObject:

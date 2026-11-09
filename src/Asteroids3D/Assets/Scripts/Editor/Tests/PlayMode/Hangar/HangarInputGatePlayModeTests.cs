@@ -134,7 +134,8 @@ namespace Tests.PlayMode.Hangar
         [Test]
         public void Preview_StaysWithin224MiB_WhenRequestedAt4K()
         {
-            var stage = HangarPreviewStage.Create(null, new Vector2Int(4096, 2304), new Rect(.36f, 0f, .62f, 1f), Enumerable.Empty<Ships.Ship>());
+            var stage = HangarPreviewStage.Create(null, new Vector2Int(4096, 2304), new Rect(.36f, 0f, .62f, 1f), Enumerable.Empty<Ships.Ship>(),
+                AssetDatabase.LoadAssetAtPath<HangarHologramProfile>("Assets/Settings/UI/HangarHologram.asset"));
             try
             {
                 var texture = (RenderTexture)stage.Texture;

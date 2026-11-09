@@ -34,7 +34,8 @@ namespace Tests.PlayMode.Hangar
         {
             valis = AssetDatabase.LoadAssetAtPath<Ship>(ShipPaths[0]);
             nightshade = AssetDatabase.LoadAssetAtPath<Ship>(ShipPaths[1]);
-            stage = HangarPreviewStage.Create(null, new Vector2Int(256, 256), new Rect(0f, 0f, 1f, 1f), new[] { valis, nightshade });
+            stage = HangarPreviewStage.Create(null, new Vector2Int(256, 256), new Rect(0f, 0f, 1f, 1f), new[] { valis, nightshade },
+                AssetDatabase.LoadAssetAtPath<HangarHologramProfile>("Assets/Settings/UI/HangarHologram.asset"));
         }
 
         [TearDown]

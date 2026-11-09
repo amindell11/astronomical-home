@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using Ships;
 using Ships.Loadout;
 using Ships.Presentation;
 using Ships.Visuals;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace UI.Hangar
 {
@@ -12,6 +14,8 @@ namespace UI.Hangar
     /// on the isolated ShipPreview layer. The texture spans the whole surface ships fly across; an off-axis camera
     /// holds the settled ship inside a framing square on it. The camera never moves; each clone is scaled to one
     /// framing sphere, so every hull fills the same share of the square. A <see cref="HangarCarousel"/> places the clones.
+    /// Each clone wears the <see cref="HangarHologramProfile"/> material set, and the profile's projector cone sits
+    /// under the anchor where the ship settles.
     /// </summary>
     public sealed class HangarPreviewStage : MonoBehaviour
     {
@@ -28,6 +32,7 @@ namespace UI.Hangar
         private const float FramedRadius = 1f;
         private static readonly int ContourPixelsId = Shader.PropertyToID("_ContourPixels");
         private readonly Dictionary<Ship, HangarPreviewFlight> clones = new();
+        private HangarHologramProfile hologram;
         private HangarCarousel carousel;
         private Camera stageCamera;
         private Transform anchor;
@@ -38,12 +43,14 @@ namespace UI.Hangar
         public Texture Texture => texture;
 
         public static HangarPreviewStage Create(Transform parent, Vector2Int surfacePixels, Rect frame,
-            IEnumerable<Ship> offeredShips)
+            IEnumerable<Ship> offeredShips, HangarHologramProfile hologram)
         {
+            if (!hologram) throw new ArgumentNullException(nameof(hologram));
             var go = new GameObject("HangarPreviewStage");
             go.transform.SetParent(parent, false);
             go.transform.position = new Vector3(0f, -1000f, 0f);
             var stage = go.AddComponent<HangarPreviewStage>();
+            stage.hologram = hologram;
             stage.BuildStage(surfacePixels, frame);
             var offered = 0;
             foreach (var ship in offeredShips)
@@ -75,6 +82,10 @@ namespace UI.Hangar
             anchor = new GameObject("Anchor").transform;
             anchor.SetParent(transform, false);
             anchor.gameObject.layer = layer;
+
+            var cone = Instantiate(hologram.ProjectorCone, anchor, false).transform;
+            cone.localScale *= FramedRadius;
+            SetLayerRecursive(cone, layer);
 
             var camGo = new GameObject("PreviewCamera");
             camGo.layer = layer;
@@ -152,6 +163,64 @@ namespace UI.Hangar
             }
         }
 
+        // Clearing first drops the colors HullVisuals wrote while it was destroyed.
+        private void WearHologram(Component rig)
+        {
+            var block = new MaterialPropertyBlock();
+            foreach (var r in rig.GetComponentsInChildren<Renderer>(true))
+            {
+                r.SetPropertyBlock(null);
+                var materials = r.sharedMaterials;
+                for (var i = 0; i < materials.Length; i++)
+                {
+                    r.SetPropertyBlock(null, i);
+                    var counterpart = materials[i] ? hologram.CounterpartOf(materials[i].shader) : null;
+                    if (!counterpart) continue;
+                    block.Clear();
+                    Carry(materials[i], counterpart.shader, block);
+                    r.SetPropertyBlock(block, i);
+                    materials[i] = counterpart;
+                }
+                r.sharedMaterials = materials;
+            }
+        }
+
+        private static void Carry(Material ship, Shader counterpart, MaterialPropertyBlock block)
+        {
+            for (var i = 0; i < counterpart.GetPropertyCount(); i++)
+            {
+                var flags = counterpart.GetPropertyFlags(i);
+                var id = counterpart.GetPropertyNameId(i);
+                if ((flags & ShaderPropertyFlags.PerRendererData) == 0 || !ship.HasProperty(id)) continue;
+                switch (counterpart.GetPropertyType(i))
+                {
+                    case ShaderPropertyType.Color:
+                        block.SetColor(id, ship.GetColor(id));
+                        break;
+                    case ShaderPropertyType.Vector:
+                        block.SetVector(id, ship.GetVector(id));
+                        break;
+                    case ShaderPropertyType.Float:
+                    case ShaderPropertyType.Range:
+                        block.SetFloat(id, ship.GetFloat(id));
+                        break;
+                    case ShaderPropertyType.Int:
+                        block.SetInteger(id, ship.GetInteger(id));
+                        break;
+                    case ShaderPropertyType.Texture:
+                        var texture = ship.GetTexture(id);
+                        if (!texture) break;
+                        block.SetTexture(id, texture);
+                        if ((flags & ShaderPropertyFlags.NoScaleOffset) != 0) break;
+                        var scale = ship.GetTextureScale(id);
+                        var offset = ship.GetTextureOffset(id);
+                        block.SetVector(counterpart.GetPropertyName(i) + "_ST",
+                            new Vector4(scale.x, scale.y, offset.x, offset.y));
+                        break;
+                }
+            }
+        }
+
         /// <summary>The first call plays the entry swoop; later calls step the carousel toward the new pick.</summary>
         public void Show(ShipLoadout loadout, bool backwards)
         {
@@ -195,6 +264,7 @@ namespace UI.Hangar
             root.gameObject.name = ship.name + "_Preview";
             StripNonHull(clone);
             SetLayerRecursive(root, gameObject.layer);
+            WearHologram(root);
             ScaleInk(root);
 
             // The prefab root's scale, which the visual-only clone leaves behind, fitted to the framing sphere.
@@ -264,6 +334,9 @@ namespace UI.Hangar
             foreach (var minimap in rig.GetComponentsInChildren<MinimapShipMarker>(true))
                 if (minimap && minimap.gameObject != rig.gameObject)
                     DestroyImmediate(minimap.gameObject);
+            // Its OnDisable repaints ship colors, which every pool cycle would lay over the hologram.
+            foreach (var hull in rig.GetComponentsInChildren<HullVisuals>(true))
+                DestroyImmediate(hull);
         }
 
         private static void SetLayerRecursive(Transform root, int layer)
