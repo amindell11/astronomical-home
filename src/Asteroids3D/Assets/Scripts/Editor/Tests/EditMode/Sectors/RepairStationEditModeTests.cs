@@ -1,6 +1,5 @@
 using System.Linq;
 using NUnit.Framework;
-using Objectives;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sectors.Elements.Stations;
@@ -32,10 +31,10 @@ namespace Tests.EditMode.Sectors
             Assert.AreSame(prefab.GetComponentInChildren<SectorHunt>(true), serialized.FindProperty("hunt").objectReferenceValue,
                 "The station reads the sector's own hunt for its alarm.");
 
-            var body = (GameObject)serialized.FindProperty("body").objectReferenceValue;
-            var lit = (GameObject)serialized.FindProperty("lit").objectReferenceValue;
-            var zone = (ExtractionZone)serialized.FindProperty("zone").objectReferenceValue;
-            Assert.AreSame(body, zone.gameObject, "The zone hides and shows with the body.");
+            var body = (FindStationBody)serialized.FindProperty("body").objectReferenceValue;
+            var lit = body.Lit;
+            var zone = body.Zone;
+            Assert.AreSame(body.gameObject, zone.gameObject, "The zone hides and shows with the body.");
             Assert.IsTrue(zone.GetComponent<Collider>().isTrigger);
             Assert.IsTrue(lit.transform.IsChildOf(body.transform));
             Assert.That(lit.GetComponentsInChildren<Renderer>(true).Select(r => r.gameObject.layer),
