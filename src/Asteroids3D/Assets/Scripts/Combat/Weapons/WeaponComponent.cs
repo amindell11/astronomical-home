@@ -63,6 +63,9 @@ namespace Combat.Weapons
         /// <summary>Alternates shots between the hull's left and right sockets; false fires every shot from the centre.</summary>
         public virtual bool DualFire => false;
 
+        /// <summary>An ordnance fills a ship's ordnance slot; every other weapon fills its weapon slot.</summary>
+        public virtual bool IsOrdnance => false;
+
         public void Initialize(Transform centre, Transform left, Transform right)
         {
             firePoint = DualFire ? left : centre;

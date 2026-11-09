@@ -136,7 +136,7 @@
 	</object>
 	<object class="EventMixerMaster" id="{a0c74206-e684-4867-92c7-90cc64336cf0}">
 		<property name="volume">
-			<value>-6</value>
+			<value>-28.5</value>
 		</property>
 		<property name="maxInstances">
 			<value>12</value>

@@ -54,7 +54,7 @@ namespace RL.Arena
             var volumes = new ExclusionVolume[clearings.Length];
             for (var i = 0; i < clearings.Length; i++)
                 volumes[i] = new ExclusionVolume { Center = clearings[i], Radius = SpawnClearRadius };
-            Field.SetExclusionVolumes(volumes);
+            Field.SetExclusionVolumes(() => volumes);
             Field.SetLayoutSeed(layoutSeed);
             // Pre-Start this is a no-op and Start builds once with the staged seed/clearings.
             Field.RebuildField();
