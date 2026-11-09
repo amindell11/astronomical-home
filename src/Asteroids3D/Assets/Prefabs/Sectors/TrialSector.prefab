@@ -44,7 +44,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b57ff78bd184a9c995eb88f434af7cc, type: 3}
   m_Name:
   m_EditorClassIdentifier:
-  profile: {fileID: 11400000, guid: 6eb906335616460983af1abe9f7c5ea2, type: 2}
   faction: {fileID: 4667602915908898981}
   pilot: {fileID: 6527632380461117599, guid: ca90568b3e304e35aad4aa9a5a1352a6, type: 3}
   escortPilot: {fileID: 8168013727397211814, guid: 8cedfe54c7904845be57837aefd8fe05,
@@ -101,43 +100,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   activationToken: 
-  roster:
-  - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-      type: 3}
-    pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e, type: 3}
-  - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-      type: 3}
-    pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764, type: 3}
-  - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-      type: 3}
-    pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764, type: 3}
-  - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-      type: 3}
-    pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660, type: 3}
-  - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-      type: 3}
-    pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e, type: 3}
-  - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-      type: 3}
-    pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764, type: 3}
-  - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-      type: 3}
-    pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e, type: 3}
-  - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-      type: 3}
-    pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764, type: 3}
   faction: {fileID: 4667602915908898981}
   team: 1
-  phases:
-  - seconds: 40
-    interval: 8
-    cap: 1
-  - seconds: 30
-    interval: 6
-    cap: 2
-  - seconds: 20
-    interval: 5
-    cap: 3
   lullSeconds: 12
   openingLullSeconds: 5
   hunt: {fileID: 7436810692243587915}
@@ -566,7 +530,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b40e078c827947c4972f959411f79cd4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  faction: {fileID: 11400000, guid: b8e87030f2d54df6bf6f209b2666c769, type: 2}
 --- !u!1 &8433355183706691782
 GameObject:
   m_ObjectHideFlags: 0
@@ -779,8 +742,7 @@ PrefabInstance:
         type: 3}
       propertyPath: settings
       value: 
-      objectReference: {fileID: 11400000, guid: 65c274c56b444d04a85ecd6e8e524e72,
-        type: 2}
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

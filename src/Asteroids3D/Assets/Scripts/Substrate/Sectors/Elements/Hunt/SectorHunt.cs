@@ -11,6 +11,7 @@ using Ships.Presentation;
 using Substrate.Sectors.Elements.Placement;
 using Substrate.Sectors.Factions;
 using Substrate.Services.Units;
+using Substrate.Sessions;
 using UnityEngine;
 using Utils;
 
@@ -19,17 +20,17 @@ namespace Substrate.Sectors.Elements.Hunt
     public enum HuntAlarmReason { Patrol, SearchClock }
 
     /// <summary>
-    /// A sector's opening hunt. Patrols spawn on clear points away from the hero and fly a looped route past
-    /// the hero's start, through the sector center and back, their scouts unaware, so they acquire no enemy and
-    /// hold fire. A patrol that sees the hero (inside the sight radius, no asteroid in between, not concealed)
-    /// or is hit by it starts calling the hero in, its minimap marker pulsing; the alarm sounds when a call-in
+    /// A sector's opening hunt. Patrols, as many as the run row names, spawn on clear points away from the hero
+    /// and fly a looped route past the hero's start, through the sector center and back, their scouts unaware,
+    /// so they acquire no enemy and hold fire. A patrol that sees the hero (inside the sight radius, no asteroid
+    /// in between, not concealed) or is hit by it starts calling the hero in, its minimap marker pulsing; the alarm sounds when a call-in
     /// runs out, or when the search clock does, and a patrol killed first cancels its call-in. At the alarm
     /// every live patrol leaves its route and its scout wakes, so it fights like a wave ship. The wave director
     /// holds its opening lull until <see cref="Alarmed"/> and counts <see cref="LivePatrols"/> against its cap.
     /// The events are plain C#, for listeners outside the sector.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1319
     /// </summary>
-    public class SectorHunt : SectorSpawner
+    public class SectorHunt : SectorSpawner, ISectorRowReader
     {
         [Tooltip("Search clock, sight and call-in timing.")]
         [Stat, SerializeField] private HuntFeelProfile feel;
@@ -85,10 +86,7 @@ namespace Substrate.Sectors.Elements.Hunt
             Spawned = products;
             if (!feel)
                 throw new InvalidOperationException($"SectorHunt on '{name}' needs its feel profile.");
-            if (ctx.SectorIndex < 0 || ctx.SectorIndex >= feel.patrolsPerSector.Length)
-                throw new InvalidOperationException(
-                    $"'{feel.name}' lists patrols for {feel.patrolsPerSector.Length} sectors, not for sector {ctx.SectorIndex}.");
-            patrolCount = feel.patrolsPerSector[ctx.SectorIndex];
+            patrolCount = ctx.Row.patrols;
             if (patrolCount > 0 && (!faction || !patrolPilot || !ctx.Sector))
                 throw new InvalidOperationException(
                     $"SectorHunt on '{name}' needs a faction, patrol pilot and sector when it spawns patrols.");
@@ -103,6 +101,12 @@ namespace Substrate.Sectors.Elements.Hunt
             SearchSecondsLeft = feel.searchSeconds;
             CallInSecondsLeft = null;
             yield break;
+        }
+
+        public void CheckRow(SectorEntry row)
+        {
+            if (row.patrols < 0)
+                throw new InvalidOperationException($"SectorHunt on '{name}' spawns the row's patrols, and the row asks for {row.patrols}.");
         }
 
         protected override IEnumerator OnTeardown(SectorBuildContext ctx)

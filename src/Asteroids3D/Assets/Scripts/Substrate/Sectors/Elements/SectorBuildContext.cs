@@ -9,8 +9,9 @@ namespace Substrate.Sectors.Elements
 {
     /// <summary>
     /// Build/teardown context for spawners and modules — no static lookups. The frame, the sector's
-    /// obstacle field and the hero are injected at runtime from the host through the session
-    /// (all null for headless/RL), the dependencies that cannot be dragged as serialized references.
+    /// obstacle field, the hero and the run row are injected at runtime from the host through the
+    /// session (the field and hero null for headless/RL), the dependencies that cannot be dragged as
+    /// serialized references.
     /// </summary>
     public readonly struct SectorBuildContext
     {
@@ -26,10 +27,12 @@ namespace Substrate.Sectors.Elements
         public readonly SectorEventBus Bus;
         /// <summary>This sector's position in the session profile's run, from 0.</summary>
         public readonly int SectorIndex;
+        /// <summary>The run row the sector loaded from, whose values its parts read at setup.</summary>
+        public readonly SectorEntry Row;
 
         public SectorBuildContext(IUnitService units, IObjectiveService objectives, bool presentationEnabled,
             Sector sector, SessionFrame frame, IObstacleField field = null,
-            Ship hero = null, SectorEventBus bus = null, int sectorIndex = 0)
+            Ship hero = null, SectorEventBus bus = null, int sectorIndex = 0, SectorEntry row = null)
         {
             Units = units;
             Objectives = objectives;
@@ -40,6 +43,7 @@ namespace Substrate.Sectors.Elements
             Hero = hero;
             Bus = bus;
             SectorIndex = sectorIndex;
+            Row = row;
         }
     }
 }

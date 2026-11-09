@@ -10,10 +10,12 @@ using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Factions;
 using UnityEditor;
 using UnityEngine;
+using Game.Preview;
+using Substrate.Sessions;
 
 namespace Tests.EditMode.Sectors
 {
-    /// <summary>The hunt's search clock with injected time, and the wave director holding its opening lull for it: with no patrol calling, the clock sounds the alarm itself, and phase one opens at the alarm keeping index 0, then the table runs as authored. A patrol's route passes beside the start on its own side. The trial sectors wire a hunt of one patrol, then two, flying Crimson, and the HUD fixtures opt out.</summary>
+    /// <summary>The hunt's search clock with injected time, and the wave director holding its opening lull for it: with no patrol calling, the clock sounds the alarm itself, and phase one opens at the alarm keeping index 0, then the table runs as authored. A patrol's route passes beside the start on its own side. The trial rows ask for a hunt of one patrol, then two, flying Crimson, and the fixtures opt out.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class SectorHuntEditModeTests
@@ -38,11 +40,11 @@ namespace Tests.EditMode.Sectors
         {
             var feel = Track(ScriptableObject.CreateInstance<HuntFeelProfile>());
             feel.searchSeconds = SearchSeconds;
-            feel.patrolsPerSector = new[] { 0, 0, 0 };
             hunt = Track(new GameObject("Hunt")).AddComponent<SectorHunt>();
             hunt.Configure(feel, null, null, 0f);
             var hero = Track(new GameObject("Hero")).AddComponent<Ship>();
-            Drive(hunt.Build(new SectorBuildContext(null, null, true, null, default, hero: hero, sectorIndex: 2)));
+            Drive(hunt.Build(new SectorBuildContext(null, null, true, null, default, hero: hero, sectorIndex: 2,
+                row: new SectorEntry())));
             hunt.AlarmRaised += (sector, reason, caller) => alarms.Add((sector, reason, caller));
 
             director = Track(new GameObject("WaveDirector")).AddComponent<WaveDirector>();
@@ -121,17 +123,17 @@ namespace Tests.EditMode.Sectors
             Assert.AreEqual(50f, Vector2.Distance(east[0], west[0]), 1e-4f, "Patrols on opposite bearings pass on opposite sides.");
         }
 
-        [TestCase("TrialSector", 0, 1)]
-        [TestCase("TrialSector2", 1, 2)]
-        [TestCase("TrialSector3", 2, 2)]
-        public void TrialSector_HoldsForItsHunt_OfItsPatrolCount_FlyingItsFactionsCommonShip(string sector, int index,
-            int patrols)
+        [TestCase(0, 1)]
+        [TestCase(1, 2)]
+        [TestCase(2, 2)]
+        public void TrialRow_HoldsForItsHunt_OfItsPatrolCount_FlyingItsFactionsCommonShip(int index, int patrols)
         {
-            var prefab = AssetDatabase.LoadAssetAtPath<Sector>($"Assets/Prefabs/Sectors/{sector}.prefab");
+            var row = AssetDatabase.LoadAssetAtPath<SectorRun>("Assets/Settings/Game/SurvivalTrialRun.asset").Sectors[index];
+            var prefab = row.prefab;
             var hunt = prefab.Spawners.OfType<SectorHunt>().Single();
             using var serialized = new SerializedObject(hunt);
-            var feel = (HuntFeelProfile)serialized.FindProperty("feel").objectReferenceValue;
-            Assert.AreEqual(patrols, feel.patrolsPerSector[index], "The hunt feel sets each sector's patrol count.");
+            Assert.AreEqual(patrols, row.patrols, "The row sets its sector's patrol count.");
+            Assert.IsTrue(serialized.FindProperty("feel").objectReferenceValue, "The hunt reads its feel.");
             Assert.AreSame(prefab.Module<SectorFaction>(), serialized.FindProperty("faction").objectReferenceValue,
                 "Patrols fly the sector's faction.");
             Assert.IsTrue(serialized.FindProperty("patrolPilot").objectReferenceValue, "Patrols fly a wave pilot.");
@@ -150,6 +152,7 @@ namespace Tests.EditMode.Sectors
             Assert.IsNull(Field(prefab.Spawners.OfType<WaveDirector>().Single(), "hunt"));
             Assert.IsNull(Field(prefab.GetComponent<PhaseSpineModule>(), "hunt"));
             Assert.IsFalse(prefab.GetComponentInChildren<SectorHunt>(true).gameObject.activeSelf);
+            Assert.AreEqual(0, PreviewHostBootstrap.FixtureRow(sector).patrols, "Its row asks for no patrols.");
         }
 
         private static Object Field(Object owner, string field)

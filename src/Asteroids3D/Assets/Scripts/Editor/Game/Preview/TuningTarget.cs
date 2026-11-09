@@ -14,11 +14,9 @@ namespace Game.Preview
         {
             new SectorJumpTarget(), new RunRecapTarget(), new HudTarget(), new ShipDeathTarget(), new FlightCameraTarget(),
             new AsteroidsTarget(), new FlightAssistTarget(), new HuntTarget(),
-            new EliteTarget("Sector 1 elite", PreviewEntry.Sector1Elite,
-                "Assets/Prefabs/Sectors/Preview/EliteSector1.prefab"),
-            new EliteTarget("Sector 2 elite", PreviewEntry.Sector2Elite,
-                "Assets/Prefabs/Sectors/Preview/EliteSector2.prefab"),
-            new EliteTarget("Boss", PreviewEntry.Boss, "Assets/Prefabs/Sectors/Preview/BossSector.prefab"),
+            new EliteTarget("Sector 1 elite", PreviewEntry.Sector1Elite, "EliteSector1"),
+            new EliteTarget("Sector 2 elite", PreviewEntry.Sector2Elite, "EliteSector2"),
+            new EliteTarget("Boss", PreviewEntry.Boss, "BossSector"),
             new CompanionTarget(), new TacticsTarget()
         };
 

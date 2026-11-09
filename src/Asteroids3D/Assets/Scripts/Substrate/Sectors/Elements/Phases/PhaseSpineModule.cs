@@ -8,6 +8,7 @@ using Ships;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Hunt;
 using Substrate.Services.Objectives;
+using Substrate.Sessions;
 using UnityEngine;
 
 namespace Substrate.Sectors.Elements.Phases
@@ -25,7 +26,7 @@ namespace Substrate.Sectors.Elements.Phases
     /// death; the spine owns the elite encounter and drives it.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1051
     /// </summary>
-    public class PhaseSpineModule : SectorModule
+    public class PhaseSpineModule : SectorModule, ISectorRowReader
     {
         public const string StepSurvive = "survive";
         public const string StepElite = "elite";
@@ -72,8 +73,13 @@ namespace Substrate.Sectors.Elements.Phases
         /// <summary>True from a lull beacon's claim until the next opens.</summary>
         public bool BeaconClaimed { get; private set; }
 
-        /// <summary>What this sector's director can send, readable off the sector prefab before it loads.</summary>
-        public SectorThreat Threat() => director.Threat();
+        /// <summary>What this sector's director can send from <paramref name="row"/>, readable off the sector prefab before it loads.</summary>
+        public SectorThreat Threat(SectorEntry row) => director.Threat(row);
+
+        public void CheckRow(SectorEntry row)
+        {
+            if (elite) elite.CheckRow(row);
+        }
 
         public override IEnumerator Setup(SectorBuildContext ctx)
         {

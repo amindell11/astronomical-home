@@ -18,6 +18,7 @@ using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
+using Substrate.Sessions;
 
 namespace Tests.PlayMode
 {
@@ -81,10 +82,14 @@ namespace Tests.PlayMode
             var directorGO = new GameObject("WaveDirector");
             directorGO.transform.SetParent(sectorGO.transform, false);
             var director = directorGO.AddComponent<WaveDirector>();
-            director.Configure(new[] { new WaveDirector.RosterEntry { template = template } },
-                new[] { new SectorPhase { seconds = 100f, interval = 100f, cap = 1 } }, spawnRadius: SpawnRadius);
+            var row = new SectorEntry
+            {
+                roster = new[] { new WaveDirector.RosterEntry { template = template } },
+                phases = new[] { new SectorPhase { seconds = 100f, interval = 100f, cap = 1 } }
+            };
+            director.Configure(row.roster, row.phases, spawnRadius: SpawnRadius);
             sector.SetManifest(null, new SectorSpawner[] { director }, null);
-            sector.Initialize(_unitService, _objectives, true, default, player);
+            sector.Initialize(_unitService, _objectives, true, default, player, row);
             return director;
         }
 

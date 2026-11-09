@@ -21,6 +21,7 @@ using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
+using Substrate.Sessions;
 
 namespace Tests.PlayMode.Sectors
 {
@@ -94,23 +95,28 @@ namespace Tests.PlayMode.Sectors
             var sectorGO = Track(new GameObject("EliteSector"));
             var sector = sectorGO.AddComponent<Sector>();
             var sectorFaction = sectorGO.AddComponent<SectorFaction>();
-            sectorFaction.Bind(faction);
             var directorGO = new GameObject("WaveDirector");
             directorGO.transform.SetParent(sectorGO.transform, false);
             var director = directorGO.AddComponent<WaveDirector>();
             var eliteGO = new GameObject("Elite");
             eliteGO.transform.SetParent(sectorGO.transform, false);
             var encounter = eliteGO.AddComponent<EliteEncounter>();
-            encounter.Configure(profile, sectorFaction, pilot, pilot);
-            director.Configure(new[] { new WaveDirector.RosterEntry { template = wave } },
-                new[] { new SectorPhase { seconds = 1f, interval = 1f, cap = waveCap } }, lullSeconds: 0f, elite: encounter);
+            encounter.Configure(sectorFaction, pilot, pilot);
+            var row = new SectorEntry
+            {
+                faction = faction,
+                elite = profile,
+                roster = new[] { new WaveDirector.RosterEntry { template = wave } },
+                phases = new[] { new SectorPhase { seconds = 1f, interval = 1f, cap = waveCap } }
+            };
+            director.Configure(row.roster, row.phases, lullSeconds: 0f, elite: encounter);
 
             var zone = NewZone(sectorGO.transform, "Zone");
             var spine = sectorGO.AddComponent<PhaseSpineModule>();
             spine.Bind(director, zone, NewZone(sectorGO.transform, "Beacon"), elite: spineOwnsElite ? encounter : null);
 
             sector.SetManifest(null, new SectorSpawner[] { director }, new SectorModule[] { sectorFaction, spine });
-            sector.Initialize(_unitService, _objectives, true, default, hero, sectorIndex);
+            sector.Initialize(_unitService, _objectives, true, default, hero, row, sectorIndex);
             return (sector, spine, encounter, zone);
         }
 

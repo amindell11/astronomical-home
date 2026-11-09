@@ -19,6 +19,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
+using Substrate.Sessions;
 
 namespace Tests.PlayMode.Sectors
 {
@@ -193,9 +194,13 @@ namespace Tests.PlayMode.Sectors
             directorGO.transform.SetParent(sectorGO.transform, false);
             var director = directorGO.AddComponent<WaveDirector>();
             // One-second phases sit inside the beacon's lead, so each lull's beacon opens as the last lull ends.
-            director.Configure(new[] { new WaveDirector.RosterEntry { template = template } },
-                Enumerable.Range(0, phases).Select(_ => new SectorPhase { seconds = 1f, interval = 1f, cap = 0 }).ToArray(),
-                lullSeconds: 1f);
+            var row = new SectorEntry
+            {
+                roster = new[] { new WaveDirector.RosterEntry { template = template } },
+                phases = Enumerable.Range(0, phases).Select(_ => new SectorPhase { seconds = 1f, interval = 1f, cap = 0 })
+                    .ToArray()
+            };
+            director.Configure(row.roster, row.phases, lullSeconds: 1f);
 
             var beacon = NewZone(sectorGO.transform, "Beacon");
             var spine = sectorGO.AddComponent<PhaseSpineModule>();
@@ -204,7 +209,7 @@ namespace Tests.PlayMode.Sectors
             cache.Configure(feel, spine);
 
             sector.SetManifest(null, new SectorSpawner[] { director }, new SectorModule[] { spine, cache });
-            sector.Initialize(_unitService, _objectives, presentation, default, hero);
+            sector.Initialize(_unitService, _objectives, presentation, default, hero, row);
             return new World { Sector = sector, Spine = spine, Beacon = beacon };
         }
 
