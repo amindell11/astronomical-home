@@ -976,8 +976,21 @@ Format: **term** — definition. *(authority)*
 - **tactic**. What a ship picks to fight with: attack run, flank, stand off or
   break off. A ship picks for its own sake, the best shot for the least risk,
   and never knows it paces the player. "Beat" is the retired name. Owner rulings
-  on #1349. Every setting of the brain that picks tactics lives on one asset.
-  *(TacticsSettings)*
+  on #1349. Each tactic flies a law the archetype pilots already have:
+  - *attack run*: hold at my gun range and fire (the Aggressor's law);
+  - *flank*: circle toward the target's open side, firing once my firing lane
+    clears;
+  - *stand off*: hold just outside the target's real primary gun range, firing
+    once it turns away and my firing lane is clear;
+  - *break off*: flee with guns cold until the shield is back.
+
+  A ship picks by *ordered rules*, the first rule that fires winning: break off,
+  then flank or stand off, then the attack run. It keeps a tactic until the
+  reason it was picked ends, never for less than the *minimum hold*, break off
+  included.
+  Only a pilot authored with tactics settings (the *tactics switch*) picks one:
+  the shipped pilots and the RL roster never do. Every setting of the brain that
+  picks tactics lives on one asset. *(TacticRules.Next, TacticsSettings)*
 - **situation**. What one ship reads about its fight before it picks a tactic,
   from its own sensors only. The owner's picks on #1349: allies count by where
   they are, never by asking another ship's brain, so the elite counts whatever it

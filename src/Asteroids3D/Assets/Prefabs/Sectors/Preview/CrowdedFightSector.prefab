@@ -65,6 +65,54 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
         type: 3}
+      propertyPath: roster.Array.data[0].pilot
+      value: 
+      objectReference: {fileID: 8791132454171549637, guid: 74ad8f34811745e59f7d1be54af1394c,
+        type: 3}
+    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: roster.Array.data[1].pilot
+      value: 
+      objectReference: {fileID: 8791132454171549637, guid: 74ad8f34811745e59f7d1be54af1394c,
+        type: 3}
+    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: roster.Array.data[2].pilot
+      value: 
+      objectReference: {fileID: 8791132454171549637, guid: 74ad8f34811745e59f7d1be54af1394c,
+        type: 3}
+    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: roster.Array.data[3].pilot
+      value: 
+      objectReference: {fileID: 8791132454171549637, guid: 74ad8f34811745e59f7d1be54af1394c,
+        type: 3}
+    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: roster.Array.data[4].pilot
+      value: 
+      objectReference: {fileID: 8791132454171549637, guid: 74ad8f34811745e59f7d1be54af1394c,
+        type: 3}
+    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: roster.Array.data[5].pilot
+      value: 
+      objectReference: {fileID: 8791132454171549637, guid: 74ad8f34811745e59f7d1be54af1394c,
+        type: 3}
+    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: roster.Array.data[6].pilot
+      value: 
+      objectReference: {fileID: 8791132454171549637, guid: 74ad8f34811745e59f7d1be54af1394c,
+        type: 3}
+    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: roster.Array.data[7].pilot
+      value: 
+      objectReference: {fileID: 8791132454171549637, guid: 74ad8f34811745e59f7d1be54af1394c,
+        type: 3}
+    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
       propertyPath: hunt
       value: 
       objectReference: {fileID: 0}
@@ -93,6 +141,18 @@ PrefabInstance:
       propertyPath: phases.Array.data[0].interval
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 4201520510818603066, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: escortPilot
+      value: 
+      objectReference: {fileID: 8791132454171549637, guid: 74ad8f34811745e59f7d1be54af1394c,
+        type: 3}
+    - target: {fileID: 4201520510818603066, guid: 35f72eeaa8adb4c43832be646409d034,
+        type: 3}
+      propertyPath: pilot
+      value: 
+      objectReference: {fileID: 8791132454171549637, guid: 74ad8f34811745e59f7d1be54af1394c,
+        type: 3}
     - target: {fileID: 5823190446372318541, guid: 35f72eeaa8adb4c43832be646409d034,
         type: 3}
       propertyPath: m_IsActive

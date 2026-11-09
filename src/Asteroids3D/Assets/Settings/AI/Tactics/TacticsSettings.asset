@@ -14,3 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   exposureCone: 60
   laneWidth: 4
+  breakOffShield: 25
+  resumeShield: 80
+  hitWithin: 2
+  nerveShield: 50
+  standOffMargin: 5
+  minimumHold: 2
