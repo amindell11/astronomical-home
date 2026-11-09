@@ -1,0 +1,23 @@
+{
+  "errors": [],
+  "autoplay": true,
+  "pause": true,
+  "resume": true,
+  "quarterSpeed": true,
+  "reducedMotionPaused": true,
+  "selectedPaletteFixed": true,
+  "exactGeometry": true,
+  "exactGlow": true,
+  "sizes": [
+    {
+      "width": 736,
+      "scrollWidth": 736,
+      "height": 422.34375
+    },
+    {
+      "width": 320,
+      "scrollWidth": 320,
+      "height": 484.34375
+    }
+  ]
+}

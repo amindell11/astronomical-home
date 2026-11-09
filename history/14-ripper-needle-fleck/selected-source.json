@@ -1,0 +1,124 @@
+{
+  "study": "needle-fleck-pale-gold-2026-11-08",
+  "direction": "A",
+  "name": "Needle fleck",
+  "palette": {
+    "key": "pale",
+    "name": "Pale gold",
+    "rim": "#e7b443",
+    "body": "#ffe29a",
+    "core": "#fff9e4",
+    "tail": "#ffd46c"
+  },
+  "coordinateUnits": "Reference pixels at 20 pixels per world unit",
+  "forwardAxis": "+X",
+  "referencePixelsPerWorldUnit": 20,
+  "travelWorldUnitsPerSecond": 40,
+  "comparisonSpacingPixels": 112,
+  "shadowBlur": 1.1,
+  "shadowColor": "tail",
+  "layers": [
+    {
+      "color": "body",
+      "alpha": 1,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          -3.2,
+          -0.9
+        ],
+        [
+          -5.1,
+          -0.55
+        ],
+        [
+          -4.1,
+          0.55
+        ],
+        [
+          -2.4,
+          0.7
+        ]
+      ]
+    },
+    {
+      "color": "core",
+      "alpha": 1,
+      "points": [
+        [
+          -0.1,
+          0
+        ],
+        [
+          -3.6,
+          -0.5
+        ],
+        [
+          -2.6,
+          0.25
+        ]
+      ]
+    },
+    {
+      "color": "tail",
+      "alpha": 0.85,
+      "points": [
+        [
+          -4.4,
+          -0.4
+        ],
+        [
+          -22,
+          -0.08
+        ],
+        [
+          -13.2,
+          0.35
+        ],
+        [
+          -5.5,
+          0.22
+        ]
+      ]
+    },
+    {
+      "color": "core",
+      "alpha": 0.8,
+      "points": [
+        [
+          -7.1,
+          -0.2
+        ],
+        [
+          -18,
+          -0.1
+        ],
+        [
+          -9.2,
+          0.05
+        ]
+      ]
+    },
+    {
+      "color": "rim",
+      "alpha": 0.7,
+      "points": [
+        [
+          -8.2,
+          1.2
+        ],
+        [
+          -11.3,
+          0.8
+        ],
+        [
+          -10.4,
+          1.3
+        ]
+      ]
+    }
+  ]
+}

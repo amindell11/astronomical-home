@@ -1,0 +1,175 @@
+<div id="ripper-needle-fleck-1108">
+  <div class="viz-row"><span>Needle fleck · Pale gold</span><span class="text-small text-muted">Selected direction</span></div>
+  <div class="viz-controls">
+    <label class="form-label">Playback
+      <select class="form-select" data-rate>
+        <option value="1">Normal speed</option>
+        <option value="0.25">Quarter speed</option>
+      </select>
+    </label>
+    <button class="btn" type="button" data-play>Pause</button>
+  </div>
+  <div class="needle-view">
+    <span class="text-small text-muted">Enlarged</span>
+    <canvas data-detail role="img" aria-label="The selected needle fleck in pale gold, enlarged. A tiny angular hot tip, narrow tapered tail, and one detached fleck."></canvas>
+  </div>
+  <div class="needle-view">
+    <span class="text-small text-muted">In motion · reference size</span>
+    <canvas data-flight role="img" aria-label="Pale gold needle flecks moving across a blue space backdrop at equal speed and reference size."></canvas>
+  </div>
+  <div class="text-small text-muted">Concept preview · 20 px per world unit · 40 world units/s · not Unity footage</div>
+  <span class="sr-only" aria-live="polite" data-status></span>
+</div>
+<style>
+  #ripper-needle-fleck-1108 { display: flex; flex-direction: column; gap: calc(var(--font-size-base) * .7); }
+  #ripper-needle-fleck-1108 .needle-view { display: flex; flex-direction: column; gap: calc(var(--font-size-base) * .3); min-width: 0; }
+  #ripper-needle-fleck-1108 canvas { display: block; width: 100%; }
+  #ripper-needle-fleck-1108 [data-detail] { height: 92px; }
+  #ripper-needle-fleck-1108 [data-flight] { height: 132px; }
+</style>
+<script>
+(() => {
+  const root = document.getElementById('ripper-needle-fleck-1108');
+  const playControl = root.querySelector('[data-play]');
+  const rateControl = root.querySelector('[data-rate]');
+  const source = {
+    study: 'needle-fleck-pale-gold-2026-11-08',
+    direction: 'A',
+    name: 'Needle fleck',
+    palette: { key: 'pale', name: 'Pale gold', rim: '#e7b443', body: '#ffe29a', core: '#fff9e4', tail: '#ffd46c' },
+    coordinateUnits: 'Reference pixels at 20 pixels per world unit',
+    forwardAxis: '+X',
+    referencePixelsPerWorldUnit: 20,
+    travelWorldUnitsPerSecond: 40,
+    comparisonSpacingPixels: 112,
+    shadowBlur: 1.1,
+    shadowColor: 'tail',
+    layers: [
+      { color: 'body', alpha: 1, points: [[0,0],[-3.2,-.9],[-5.1,-.55],[-4.1,.55],[-2.4,.7]] },
+      { color: 'core', alpha: 1, points: [[-.1,0],[-3.6,-.5],[-2.6,.25]] },
+      { color: 'tail', alpha: .85, points: [[-4.4,-.4],[-22,-.08],[-13.2,.35],[-5.5,.22]] },
+      { color: 'core', alpha: .8, points: [[-7.1,-.2],[-18,-.1],[-9.2,.05]] },
+      { color: 'rim', alpha: .7, points: [[-8.2,1.2],[-11.3,.8],[-10.4,1.3]] }
+    ]
+  };
+  const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
+  const state = { rate: 1, playing: !motionPreference.matches };
+  let elapsed = .18;
+  let previous = 0;
+  let animation = 0;
+
+  function needle(ctx) {
+    ctx.save();
+    ctx.shadowColor = source.palette[source.shadowColor];
+    ctx.shadowBlur = source.shadowBlur;
+    source.layers.forEach(layer => {
+      ctx.globalAlpha = layer.alpha;
+      ctx.fillStyle = source.palette[layer.color];
+      ctx.beginPath();
+      layer.points.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
+      ctx.closePath();
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    });
+    ctx.restore();
+  }
+
+  function prepare(canvas, flight) {
+    const rect = canvas.getBoundingClientRect();
+    const ratio = Math.min(devicePixelRatio || 1, 2);
+    const width = Math.round(rect.width * ratio);
+    const height = Math.round(rect.height * ratio);
+    if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; }
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    ctx.clearRect(0, 0, rect.width, rect.height);
+    const backdrop = ctx.createLinearGradient(0, 0, rect.width, rect.height);
+    backdrop.addColorStop(0, flight ? '#203b62' : '#071322');
+    backdrop.addColorStop(.65, flight ? '#25436b' : '#101e37');
+    backdrop.addColorStop(1, flight ? '#2e4d75' : '#172d4e');
+    ctx.fillStyle = backdrop;
+    ctx.fillRect(0, 0, rect.width, rect.height);
+    ctx.fillStyle = '#8199b8';
+    ctx.globalAlpha = .25;
+    for (let i = 0; i < 14; i++) ctx.fillRect((i * 113.7 + 31) % rect.width, 8 + ((i * 37.1) % (rect.height - 12)), i % 4 === 0 ? 1.3 : .8, .8);
+    ctx.globalAlpha = 1;
+    return { ctx, width: rect.width, height: rect.height };
+  }
+
+  function render(time) {
+    const detail = prepare(root.querySelector('[data-detail]'), false);
+    const scale = Math.min(8, (detail.width - 40) / 22);
+    detail.ctx.save();
+    detail.ctx.translate(detail.width / 2 + 11 * scale, detail.height / 2);
+    detail.ctx.scale(scale, scale);
+    needle(detail.ctx);
+    detail.ctx.restore();
+    const flight = prepare(root.querySelector('[data-flight]'), true);
+    const speed = source.travelWorldUnitsPerSecond * source.referencePixelsPerWorldUnit;
+    const spacing = source.comparisonSpacingPixels;
+    for (let row = 0; row < 3; row++) {
+      const phase = (time * speed + row * spacing / 3) % spacing;
+      for (let x = phase - spacing; x < flight.width + 24; x += spacing) {
+        flight.ctx.save();
+        flight.ctx.translate(x, 28 + row * 38);
+        needle(flight.ctx);
+        flight.ctx.restore();
+      }
+    }
+  }
+
+  function syncControls() {
+    rateControl.value = String(state.rate);
+    playControl.textContent = state.playing ? 'Pause' : 'Play';
+    playControl.setAttribute('aria-pressed', String(state.playing));
+    root.querySelector('[data-status]').textContent = state.playing ? 'Playing needle fleck in pale gold.' : 'Paused.';
+  }
+
+  function remember() {
+    if (!window.openai || !window.openai.setWidgetState) return;
+    window.openai.setWidgetState({
+      modelContent: { study: source.study, direction: source.direction, directionName: source.name, palette: 'pale' },
+      privateContent: { rate: state.rate, playing: state.playing }
+    }).catch(() => {});
+  }
+
+  function restore(snapshot) {
+    if (!snapshot || !snapshot.modelContent || snapshot.modelContent.study !== source.study) return;
+    const ui = snapshot.privateContent || {};
+    if (ui.rate === 1 || ui.rate === .25) state.rate = ui.rate;
+    if (!motionPreference.matches && typeof ui.playing === 'boolean') state.playing = ui.playing;
+    syncControls();
+  }
+
+  function tick(now) {
+    if (previous && state.playing) elapsed += Math.min((now - previous) / 1000, .1) * state.rate;
+    previous = now;
+    if (state.playing) render(elapsed);
+    animation = requestAnimationFrame(tick);
+  }
+
+  playControl.addEventListener('click', () => {
+    state.playing = !state.playing;
+    if (!animation) { previous = 0; animation = requestAnimationFrame(tick); }
+    syncControls();
+    remember();
+  });
+  rateControl.addEventListener('change', () => { state.rate = Number(rateControl.value); remember(); });
+  motionPreference.addEventListener('change', event => {
+    if (event.matches) { state.playing = false; syncControls(); }
+  });
+  window.addEventListener('openai:set_globals', event => restore(event.detail && event.detail.globals && event.detail.globals.widgetState));
+  new ResizeObserver(() => render(elapsed)).observe(root);
+  syncControls();
+  restore(window.openai && window.openai.widgetState);
+  render(elapsed);
+  animation = requestAnimationFrame(tick);
+  window.needleFleckStudy = {
+    renderAt(time) { elapsed = time; render(time); },
+    freeze() { cancelAnimationFrame(animation); animation = 0; },
+    stop() { state.playing = false; cancelAnimationFrame(animation); animation = 0; syncControls(); render(elapsed); },
+    getState() { return { ...state, elapsed, direction: 'A', palette: 'pale' }; },
+    getSource() { return JSON.parse(JSON.stringify(source)); }
+  };
+})();
+</script>

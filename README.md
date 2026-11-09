@@ -42,4 +42,4 @@ Browser checks: no page errors; time scrub updates the scene; speed and rapid-hi
 
 ## Ripper tracer revision
 
-After the combined pass shipped in [PR #1387](https://github.com/amindell11/astronomical-home/pull/1387), the owner asked for leaner, brighter ripper tracers and more color exploration. [Stage 13](history/13-ripper-tracer-directions/README.md) records that feedback and six new concept directions. The shape and palette choice remain open.
+After the combined pass shipped in [PR #1387](https://github.com/amindell11/astronomical-home/pull/1387), the owner asked for leaner, brighter ripper tracers and more color exploration. [Stage 13](history/13-ripper-tracer-directions/README.md) records that feedback and six new concept directions. The owner selected needle fleck in pale gold. [Stage 14](history/14-ripper-needle-fleck/README.md) preserves that exact combination and its focused motion preview.
