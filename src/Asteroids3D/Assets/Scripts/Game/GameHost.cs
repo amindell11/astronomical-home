@@ -16,6 +16,7 @@ using Substrate;
 using Substrate.Presentation;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements.Phases;
+using Substrate.Sectors.Elements.Stations;
 using Substrate.Sessions;
 using Ships.Loadout;
 using UI;
@@ -108,7 +109,7 @@ namespace Game
         [SerializeField, Range(0f, 1f)] private float killHullRestore = 0.25f;
 
         [Header("Lull pick")]
-        [Tooltip("Lull mods offered when the player claims a lull beacon, three at a time with time stopped. " +
+        [Tooltip("Lull mods offered when the player claims a mod station, three at a time with time stopped. " +
                  "Null → no lull picks.")]
         [SerializeField] internal LullModPool lullMods;
 
@@ -295,24 +296,34 @@ namespace Game
                         playerLoadoutStatHash = rigInstance ? BeginRun() : null;
                     else if (rigInstance)
                         rigInstance.Player.Damage.Health.SetFraction(hull);
+                    moments.Raise(new SectorEntered(index + 1));
                     SetSplashVisible(false);
                     if (music) music.EnterSector(session.ActiveSector);
                     if (rigInstance) rigInstance.EnterSector(session.ActiveSector.Module<PhaseSpineModule>());
                     var sectorStartTime = Time.time;
-                    var beacons = presentation && lullMods && rigInstance
-                        ? session.ActiveSector.Module<PhaseSpineModule>() : null;
-                    var beaconClaimed = false;
+                    var modStations = presentation && lullMods && rigInstance
+                        ? session.ActiveSector.Module<ModStation>() : null;
+                    var picksOpened = 0;
+                    var caches = presentation && rigInstance ? session.ActiveSector.Module<BeaconCache>() : null;
+                    var cachesClaimed = 0;
+                    var closeCalls = rigInstance
+                        ? new CloseCallWatch(rigInstance.Player.Damage.Health, moments, index + 1) : null;
 
                     while (!playerDied && !sectorEnded && !shutdownRequested)
                     {
-                        if (beacons)
+                        if (modStations && modStations.Claims > picksOpened)
                         {
-                            var claimed = beacons.BeaconClaimed;
-                            if (claimed && !beaconClaimed) yield return RunLullPick();
-                            beaconClaimed = claimed;
+                            picksOpened++;
+                            yield return RunLullPick();
+                        }
+                        if (caches && caches.Claims > cachesClaimed)
+                        {
+                            cachesClaimed++;
+                            moments.Raise(new CacheClaimed(index + 1, caches.LastBonus));
                         }
                         yield return null;
                     }
+                    closeCalls?.Dispose();
                     if (shutdownRequested) yield break;
 
                     if (playerDied || index == sessionProfile.run.Sectors.Count - 1) break;
@@ -473,7 +484,10 @@ namespace Game
             {
                 while (!screen.Choice.HasValue && !shutdownRequested) yield return null;
                 if (!shutdownRequested && screen.Choice is int pick && pick != LullPickScreen.Skip)
+                {
                     rigInstance.PickMod(offers[pick]);
+                    moments.Raise(new ModPicked(offers[pick]));
+                }
             }
             finally
             {

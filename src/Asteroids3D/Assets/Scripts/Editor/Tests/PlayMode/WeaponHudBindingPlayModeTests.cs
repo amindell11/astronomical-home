@@ -62,6 +62,7 @@ namespace Tests.PlayMode
             spawned.Add(go);
             go.SetActive(false);
             var controller = go.AddComponent<WeaponsController>();
+            controller.centreSocket = controller.leftSocket = controller.rightSocket = go.transform;
             controller.primaryMount = primary;
             controller.secondaryMount = secondary;
             go.SetActive(true);

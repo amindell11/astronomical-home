@@ -6,12 +6,13 @@ using UnityEngine;
 
 namespace Substrate.Services.Objectives
 {
-    /// <summary>Owns the spine tracker plus open local trackers, which it ticks itself via Update, and the open find markers.</summary>
+    /// <summary>Owns the spine tracker plus open local trackers, which it ticks itself via Update, the open find markers and the timed boosts in force.</summary>
     public class ObjectiveService : MonoBehaviour, IObjectiveService
     {
         private readonly List<LocalObjectiveHandle> locals = new();
         private readonly List<LocalObjectiveHandle> tickBuffer = new();
         private readonly List<FindMarker> finds = new();
+        private readonly List<SectorBoost> boosts = new();
         private SpineObjectiveHandle currentSpine;
 
         public ObjectiveTracker SpineTracker { get; private set; }
@@ -20,6 +21,7 @@ namespace Substrate.Services.Objectives
         public Transform SpineTarget { get; private set; }
         public IReadOnlyList<LocalObjectiveHandle> Locals => locals;
         public IReadOnlyList<FindMarker> Finds => finds;
+        public IReadOnlyList<SectorBoost> Boosts => boosts;
 
         public event Action<ObjectiveType, ObjectiveType> OnSpineStateChanged;
         public event Action<string> OnSpineStepChanged;
@@ -73,12 +75,22 @@ namespace Substrate.Services.Objectives
             return find;
         }
 
+        public SectorBoost ShowBoost(string label, float endsAt)
+        {
+            if (string.IsNullOrEmpty(label)) throw new ArgumentException("A boost shows a label.", nameof(label));
+            var boost = new SectorBoost(label, endsAt, CloseBoost);
+            boosts.Add(boost);
+            return boost;
+        }
+
         public void ClearAll()
         {
             while (locals.Count > 0)
                 locals[locals.Count - 1].Close();
             while (finds.Count > 0)
                 finds[finds.Count - 1].Close();
+            while (boosts.Count > 0)
+                boosts[boosts.Count - 1].Close();
             CloseSpineCore();
         }
 
@@ -123,6 +135,8 @@ namespace Substrate.Services.Objectives
         }
 
         private void CloseFind(FindMarker find) => finds.Remove(find);
+
+        private void CloseBoost(SectorBoost boost) => boosts.Remove(boost);
 
         private void ForwardSpineStateChanged(ObjectiveType from, ObjectiveType to)
         {

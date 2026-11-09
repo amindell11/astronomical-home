@@ -178,5 +178,28 @@ namespace Tests.EditMode.Ships
             Assert.AreEqual(2, raised);
             Assert.AreSame(ShipMods.None, stack.ForShip(), "an emptied stack reads authored");
         }
+
+        [Test]
+        public void Stack_Remove_TakesBackOneHeldMod_RaisesChanged_AndLeavesTheRest()
+        {
+            var stack = new LullModStack();
+            var pick = WeaponMod("Hot rounds", WeaponModField.Damage, 0.25f);
+            var grant = WeaponMod("Cache boost", WeaponModField.Damage, 0.25f);
+            stack.Add(pick);
+            stack.Add(grant);
+            stack.Add(grant);
+            var raised = 0;
+            stack.Changed += () => raised++;
+
+            stack.Remove(grant);
+            Assert.AreEqual(1, raised);
+            var lasers = AssetDatabase.LoadAssetAtPath<Combat.Weapons.WeaponComponent>("Assets/Prefabs/Weapons/Lasers.prefab");
+            Assert.AreEqual(1.5f, stack.For(lasers, lasers).Factor(WeaponModField.Damage), 1e-5f, "one of the two grants is taken back");
+
+            stack.Remove(grant);
+            Assert.AreEqual(1.25f, stack.For(lasers, lasers).Factor(WeaponModField.Damage), 1e-5f, "the pick stays");
+            Assert.Throws<System.InvalidOperationException>(() => stack.Remove(grant), "removing a mod not held is a wiring bug");
+            Assert.AreEqual(2, raised, "a refused remove changes nothing");
+        }
     }
 }

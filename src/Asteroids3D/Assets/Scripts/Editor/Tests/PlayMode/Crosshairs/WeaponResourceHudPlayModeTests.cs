@@ -63,6 +63,7 @@ namespace Tests.PlayMode.Crosshairs
             mounts.transform.SetParent(root.transform);
             mounts.SetActive(false);
             var controller = mounts.AddComponent<WeaponsController>();
+            controller.centreSocket = controller.leftSocket = controller.rightSocket = mounts.transform;
             controller.primaryMount = LoadPrefab<WeaponComponent>("Weapons/" + weaponName);
             controller.secondaryMount = controller.primaryMount;
             mounts.SetActive(true);

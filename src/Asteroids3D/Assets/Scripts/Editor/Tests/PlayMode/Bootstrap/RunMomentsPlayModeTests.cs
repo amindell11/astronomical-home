@@ -24,7 +24,8 @@ namespace Tests.PlayMode.Bootstrap
 {
     /// <summary>
     /// A real host with presentation off: each run gets its own moment stream, which opens on a run start
-    /// read from the run-record store and carries the player's death.
+    /// read from the run-record store, then the first sector's entry, and carries a close call and the
+    /// player's death.
     /// </summary>
     [Category("Bootstrap")]
     public class RunMomentsPlayModeTests : PlayModeWorldFixture
@@ -69,7 +70,7 @@ namespace Tests.PlayMode.Bootstrap
         }.ToJsonLine();
 
         [UnityTest]
-        public IEnumerator EachRun_StreamsItsStartAndThePlayersDeath()
+        public IEnumerator EachRun_StreamsItsStartEntryCloseCallAndThePlayersDeath()
         {
             Directory.CreateDirectory(dir);
             File.WriteAllLines(recordPath, new[] { Died(1, "Laser"), Died(5, "Missile") });
@@ -86,6 +87,12 @@ namespace Tests.PlayMode.Bootstrap
             Assert.AreEqual("Missile", last.KillingBlowKind);
             Assert.AreEqual(1, last.Sector);
             Assert.IsTrue(last.WasBest, "the seeded last run outranks the one before it");
+            Assert.AreEqual(1, ((SectorEntered)first.Moments[1]).Sector);
+
+            var hull = rig.Player.Damage.Health;
+            hull.ApplyDamage(hull.CurrentValue - .1f * hull.MaxValue);
+            hull.ApplyDamage(.05f * hull.MaxValue);
+            Assert.AreEqual(1, first.Moments.OfType<CloseCall>().Single().Sector, "one dip, one close call");
 
             var ships = hostGo.GetComponent<UnitService>().ActiveRegistry.ActiveShips;
             TestDamage.Kill(rig.Player, ships.First(ship => ship.teamNumber != rig.Player.teamNumber));
