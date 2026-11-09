@@ -33,11 +33,6 @@ namespace Game.Preview
             }
         }
 
-        // Read through serialization, so the screen grows no member for the preview.
-        private static HangarHologramProfile Hologram(GameHost game)
-        {
-            using var screen = new SerializedObject(game.hangarScreenPrefab);
-            return (HangarHologramProfile)screen.FindProperty("hologram").objectReferenceValue;
-        }
+        private static HangarHologramProfile Hologram(GameHost game) => game.hangarScreenPrefab.hologram;
     }
 }

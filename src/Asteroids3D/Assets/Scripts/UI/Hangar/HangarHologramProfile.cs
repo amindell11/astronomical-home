@@ -7,7 +7,7 @@ namespace UI.Hangar
     /// <summary>
     /// The hangar preview's hologram set. The stage swaps every copy material whose shader has a counterpart
     /// here; the counterpart's shader receives the ship material's value for each property it tags
-    /// <c>[PerRendererData]</c>. The stage keeps driving <c>_DebrisVisibility</c> (swoop fade) and
+    /// <c>[PerRendererData]</c>. The preview keeps driving <c>_DebrisVisibility</c> (swoop fade) and
     /// <c>_ContourPixels</c> (ink scale) per copy, so a counterpart shader that wants them declares those
     /// names. The projector cone is authored in framing-radius units.
     /// </summary>
