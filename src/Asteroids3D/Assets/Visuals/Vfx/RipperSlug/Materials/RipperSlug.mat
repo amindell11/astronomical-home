@@ -36,7 +36,7 @@ Material:
     - _Crossfade: 0
     - _Ease: 1
     - _Fps: 0
-    - _Frames: 1
+    - _Frames: 6
     - _Phase: 0
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
