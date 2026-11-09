@@ -1,0 +1,20 @@
+{
+    "shotsFired": 14,
+    "brightenedPixels": 179,
+    "warmPixels": 20,
+    "projectileSpeed": 60.0,
+    "frame": "f_00096.png",
+    "frameDirectory": "D:\\amind\\git\\agent-4\\results\\capture\\frames\\20261109-084003-559-needle-fleck-flight",
+    "materials": [
+        {
+            "name": "RipperSlug",
+            "shader": "Astronomical/Vfx/Crackle Flipbook",
+            "emission": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 1.0
+            }
+        }
+    ]
+}

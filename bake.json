@@ -1,0 +1,26 @@
+{
+  "sourceHash": "0eb51ba237edc0a04427f49863250b4d234705e9a07e1de12a1da3061c9e6108",
+  "turbo": {
+    "texture": "TurboLaserImpact.png",
+    "columns": 5,
+    "rows": 4,
+    "durationSeconds": 0.34,
+    "solidWidthFraction": 0.375,
+    "worldLength": 1.2,
+    "fadeInTexture": false
+  },
+  "ripper": {
+    "texture": "RipperImpact.png",
+    "columns": 5,
+    "rows": 4,
+    "durationSeconds": 0.18,
+    "solidWidthFraction": 0.27068014705882354,
+    "worldLength": 0.85,
+    "fadeInTexture": true
+  },
+  "slug": {
+    "texture": "RipperSlug.png",
+    "solidLengthFraction": 0.875,
+    "worldLength": 1.1
+  }
+}

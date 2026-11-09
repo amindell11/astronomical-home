@@ -1,0 +1,15 @@
+{
+  "exactLayers": true,
+  "exactGlow": true,
+  "textureWidth": 256,
+  "textureHeight": 512,
+  "solidBoundsAboveHalfAlpha": {
+    "minX": 109,
+    "maxX": 153,
+    "minY": 33,
+    "maxY": 475
+  },
+  "edgeAlpha": 0,
+  "worldLength": 1.1,
+  "referenceSolidLength": 22
+}
