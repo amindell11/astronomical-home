@@ -110,6 +110,8 @@ namespace Tests.PlayMode.Sectors
             Assert.IsFalse(Commander(patrol).Steered, "The alarm hands the patrol back to its brain.");
             Assert.IsFalse(Marker(patrol).Pulsing, "The alarm stops the pulse.");
             Assert.AreEqual(HuntReading.None, Progress().Hunt);
+            yield return WaitSeconds(() => Commander(patrol).Brain.CurrentTactic.HasValue, 2f);
+            Assert.IsNotNull(Commander(patrol).Brain.CurrentTactic, "The woken patrol picks a tactic.");
 
             yield return sector.Teardown();
             yield return null;

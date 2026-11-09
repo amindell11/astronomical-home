@@ -2,7 +2,8 @@ using UnityEngine;
 
 namespace AI.Tactics
 {
-    /// <summary>Every setting of the brain that picks tactics lives on this one asset, a header per piece.</summary>
+    /// <summary>Every setting of the brain that picks tactics, a header per piece. Each kind of ship flies its own
+    /// asset, its temper: wave ships, the elite and its escorts.</summary>
     [CreateAssetMenu(fileName = "TacticsSettings", menuName = "AI/Tactics Settings")]
     public class TacticsSettings : ScriptableObject
     {
@@ -21,7 +22,8 @@ namespace AI.Tactics
         [Range(0f, 100f)] public float resumeShield = 80f;
         [Tooltip("Seconds since the ship was last hit within which a low shield makes it break off.")]
         [Min(0f)] public float hitWithin = 2f;
-        [Tooltip("Shield %, below which a ship in the target's guns flanks or stands off instead of pressing.")]
+        [Tooltip("Shield %, below which a ship in the target's guns flanks or stands off instead of pressing. " +
+                 "At 0 it always presses; at 100 it never flies into the guns, even with a full shield.")]
         [Range(0f, 100f)] public float nerveShield = 50f;
         [Tooltip("Units outside the target's primary gun range at which a ship standing off waits.")]
         [Min(0f)] public float standOffMargin = 5f;

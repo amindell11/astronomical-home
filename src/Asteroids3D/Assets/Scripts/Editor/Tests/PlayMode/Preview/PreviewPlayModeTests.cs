@@ -475,7 +475,7 @@ namespace Tests.PlayMode.Preview
 
         [UnityTest]
         [Timeout(180000)]
-        public IEnumerator Playtest_CrowdedFight_RunsOnlyItsFixture_AndFillsWithTacticsPilots()
+        public IEnumerator Playtest_CrowdedFight_RunsOnlyItsFixture_AndItsShipsFlyTactics()
         {
             var root = new GameObject("Crowded fight playtest test");
             root.SetActive(false);

@@ -29,10 +29,13 @@ namespace AI.Tactics
             var shield = situation.shieldPct * 100f;
             if (shield < settings.breakOffShield && situation.secondsSinceHit <= settings.hitWithin)
                 return Tactic.BreakOff;
-            if (situation.alliesInLane > 0 || (situation.exposed && shield < settings.nerveShield))
+            if (situation.alliesInLane > 0 || (situation.exposed && Shies(shield, settings.nerveShield)))
                 return situation.openSide != Vector2.zero ? Tactic.Flank : Tactic.StandOff;
             return Tactic.AttackRun;
         }
+
+        // Strictly below, so 0 always presses; 100 must shy at a full shield too.
+        private static bool Shies(float shield, float nerve) => nerve >= 100f || shield < nerve;
 
         private static bool Holds(Tactic tactic, in Situation situation, TacticsSettings settings) => tactic switch
         {

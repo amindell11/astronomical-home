@@ -17,12 +17,11 @@ using Combat.Targeting;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the collapsed archetype seam: the enum → law dispatch through Configure/Decide (both the episode roster and the authored pilot ride the same component), the Dummy's no-target constant, the unknown-enum failure, the ArchetypePilot authoring that makes an archetype flyable in a live sector, the waypoint roam a live-targeting pilot flies once its target is gone, the tactics switch (off on every shipped pilot, on only on the preview copy), and the pure missile-evasion laws.</summary>
+    /// <summary>Pins the collapsed archetype seam: the enum → law dispatch through Configure/Decide (both the episode roster and the authored pilot ride the same component), the Dummy's no-target constant, the unknown-enum failure, the ArchetypePilot authoring that makes an archetype flyable in a live sector, the waypoint roam a live-targeting pilot flies once its target is gone, the tactics switch (each shipped pilot flies its kind's temper), and the pure missile-evasion laws.</summary>
     [Category("AI")]
     public class ArchetypeBrainEditModeTests
     {
         private const string ArchetypePilotPath = "Assets/Prefabs/Pilots/ArchetypePilot.prefab";
-        private const string TacticsPilotPath = "Assets/Prefabs/Pilots/Preview/TacticsPilot.prefab";
         private const int JukeSeed = 7;
 
         private static OpponentDraw Shape() => new()
@@ -314,20 +313,16 @@ namespace Tests.EditMode
             }
         }
 
-        [TestCase(ArchetypePilotPath)]
-        [TestCase("Assets/Prefabs/Pilots/AggressorPilot.prefab")]
-        [TestCase("Assets/Prefabs/Pilots/KiterPilot.prefab")]
-        [TestCase("Assets/Prefabs/Pilots/OrbiterPilot.prefab")]
-        public void ShippedPilots_AuthorNoTactics(string path)
+        [TestCase(ArchetypePilotPath, "Wave")]
+        [TestCase("Assets/Prefabs/Pilots/AggressorPilot.prefab", "Wave")]
+        [TestCase("Assets/Prefabs/Pilots/KiterPilot.prefab", "Wave")]
+        [TestCase("Assets/Prefabs/Pilots/OrbiterPilot.prefab", "Wave")]
+        [TestCase("Assets/Prefabs/Pilots/ElitePilot.prefab", "Elite")]
+        [TestCase("Assets/Prefabs/Pilots/EscortPilot.prefab", "Escort")]
+        public void ShippedPilots_FlyTheirKindsTemper(string path, string kind)
         {
-            Assert.IsNull(AuthoredTactics(path), "shipped pilots fly their archetype; only preview copies fly tactics");
-        }
-
-        [Test]
-        public void TacticsPilot_AuthorsTheTacticsSettingsAsset()
-        {
-            Assert.AreEqual("Assets/Settings/AI/Tactics/TacticsSettings.asset",
-                AssetDatabase.GetAssetPath(AuthoredTactics(TacticsPilotPath)));
+            Assert.AreEqual($"Assets/Settings/AI/Tactics/{kind}Temper.asset",
+                AssetDatabase.GetAssetPath(AuthoredTactics(path)));
         }
 
         private static UnityEngine.Object AuthoredTactics(string path)

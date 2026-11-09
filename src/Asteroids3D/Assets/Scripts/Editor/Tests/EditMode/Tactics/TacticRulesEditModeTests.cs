@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using AI.Tactics;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 
 namespace Tests.EditMode.Tactics
@@ -125,6 +126,34 @@ namespace Tests.EditMode.Tactics
 
             Assert.AreEqual(tactic, TacticRules.Next(tactic, 1.9f, situation, settings));
             Assert.AreNotEqual(tactic, otherwise, "past the hold, the ended reason re-picks");
+        }
+
+        [TestCase(0f)]
+        [TestCase(Shaken)]
+        [TestCase(Full)]
+        public void EscortTemper_InTheTargetsGuns_FlanksOrStandsOff_AtEveryShield(float shield)
+        {
+            var escort = Temper("Escort");
+
+            Assert.AreEqual(Tactic.Flank, TacticRules.Next(Tactic.AttackRun, Fresh,
+                Fight(shield, openSide: true, inCone: true), escort));
+            Assert.AreEqual(Tactic.StandOff, TacticRules.Next(Tactic.AttackRun, Fresh, Fight(shield, inCone: true), escort));
+        }
+
+        [TestCase(0f)]
+        [TestCase(Low)]
+        [TestCase(Full)]
+        public void EliteTemper_InTheTargetsGunsJustHit_Presses_AtEveryShield(float shield)
+        {
+            Assert.AreEqual(Tactic.AttackRun, TacticRules.Next(Tactic.AttackRun, Fresh,
+                Fight(shield, sinceHit: 0f, openSide: true, inCone: true), Temper("Elite")));
+        }
+
+        private static TacticsSettings Temper(string kind)
+        {
+            var temper = AssetDatabase.LoadAssetAtPath<TacticsSettings>($"Assets/Settings/AI/Tactics/{kind}Temper.asset");
+            Assert.IsNotNull(temper, $"the {kind} temper ships");
+            return temper;
         }
     }
 }
