@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8122136947576484882}
-  - component: {fileID: 4804695900734937818}
+  - component: {fileID: 5438553933294243525}
   m_Layer: 0
   m_Name: Armory
   m_TagString: Untagged
@@ -33,7 +33,7 @@ Transform:
   - {fileID: 8207894190967914303}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4804695900734937818
+--- !u!114 &5438553933294243525
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
