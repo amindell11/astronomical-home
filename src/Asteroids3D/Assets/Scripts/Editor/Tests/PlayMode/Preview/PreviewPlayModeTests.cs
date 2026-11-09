@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Cameras;
+using Damage;
 using Game;
 using Game.Audio;
 using Game.Preview;
@@ -12,6 +13,7 @@ using Game.Travel;
 using NUnit.Framework;
 using Ships;
 using Ships.Loadout;
+using Ships.Registry;
 using Ships.Visuals.Breakup;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
@@ -540,6 +542,44 @@ namespace Tests.PlayMode.Preview
             Assert.That(LocaleInstances.Shown(), Is.EqualTo("BlueCrescent"));
         }
 
+        [UnityTest]
+        public IEnumerator Playtest_PlayerInvulnerable_BlocksEveryHitThroughARestart_AndUntickedHitsLand()
+        {
+            BuildPreview(playerInvulnerable: true);
+            yield return WaitForFlight();
+            var first = rig.Player;
+            AssertKillBlocked(first);
+
+            var ticked = host.Playtest;
+            host.RestartPlaytest();
+            yield return AsyncAssert.WaitUntil(() => host.Playtest != ticked, 30f, "Restart Playtest builds a fresh run");
+            yield return WaitForFlight();
+            Assert.That(rig.Player, Is.Not.SameAs(first));
+            AssertKillBlocked(rig.Player);
+
+            host.playerInvulnerable = false;
+            var unticked = host.Playtest;
+            host.RestartPlaytest();
+            yield return AsyncAssert.WaitUntil(() => host.Playtest != unticked, 30f, "Restart Playtest builds a fresh run");
+            yield return WaitForFlight();
+            var player = rig.Player;
+            var amount = player.Damage.Shield.MaxValue + 10f;
+            player.Damage.TakeDamage(new DamageInfo(amount, DamageKind.Laser, ShipId.Invalid, 0f, Vector3.zero, Vector3.zero));
+            Assert.That(player.Damage.Shield.CurrentValue, Is.EqualTo(0f));
+            Assert.That(player.Damage.Health.CurrentValue, Is.LessThan(player.Damage.Health.MaxValue));
+        }
+
+        private static void AssertKillBlocked(Ship player)
+        {
+            var blocks = 0;
+            player.Damage.OnBlocked += _ => blocks++;
+            TestDamage.Kill(player);
+            Assert.That(player.gameObject.activeInHierarchy, Is.True);
+            Assert.That(player.Damage.Health.Pct, Is.EqualTo(1f));
+            Assert.That(player.Damage.Shield.CurrentValue, Is.EqualTo(player.Damage.Shield.MaxValue));
+            Assert.That(blocks, Is.GreaterThan(0));
+        }
+
         private static IEnumerator LaunchFromHangar(GameHost game)
         {
             HangarScreen hangar = null;
@@ -574,7 +614,8 @@ namespace Tests.PlayMode.Preview
                 15f, "the real recap consumes the fresh press");
         }
 
-        private void BuildPreview(PreviewEntry entry = PreviewEntry.Combat, bool jumpFeature = true)
+        private void BuildPreview(PreviewEntry entry = PreviewEntry.Combat, bool jumpFeature = true,
+            bool playerInvulnerable = false)
         {
             template = new GameObject("Preview test templates");
             template.SetActive(false);
@@ -608,6 +649,7 @@ namespace Tests.PlayMode.Preview
             host.jumpDestination = TestAssets.Load<LocaleSky>("Assets/Prefabs/Locales/CopperTurquoise.prefab");
             host.hudQuietSector = TestAssets.HudFixture("HudQuietSector");
             host.hudExtractionSector = TestAssets.HudFixture("HudExtractionSector");
+            host.playerInvulnerable = playerInvulnerable;
             root.SetActive(true);
         }
 
