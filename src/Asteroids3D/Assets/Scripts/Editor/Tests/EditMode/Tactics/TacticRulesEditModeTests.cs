@@ -126,6 +126,28 @@ namespace Tests.EditMode.Tactics
             Assert.AreEqual(tactic, TacticRules.Next(tactic, 1.9f, situation, settings));
             Assert.AreNotEqual(tactic, otherwise, "past the hold, the ended reason re-picks");
         }
+
+        [TestCase(0f)]
+        [TestCase(Shaken)]
+        [TestCase(Full)]
+        public void NerveAt100_InTheTargetsGuns_FlanksOrStandsOff_AtEveryShield(float shield)
+        {
+            settings.nerveShield = 100f;
+
+            Assert.AreEqual(Tactic.Flank, Pick(Fight(shield, openSide: true, inCone: true)));
+            Assert.AreEqual(Tactic.StandOff, Pick(Fight(shield, inCone: true)));
+        }
+
+        [TestCase(0f)]
+        [TestCase(Low)]
+        [TestCase(Full)]
+        public void BreakOffAndNerveAt0_InTheTargetsGunsJustHit_Presses_AtEveryShield(float shield)
+        {
+            settings.breakOffShield = 0f;
+            settings.nerveShield = 0f;
+
+            Assert.AreEqual(Tactic.AttackRun, Pick(Fight(shield, sinceHit: 0f, openSide: true, inCone: true)));
+        }
     }
 }
 #endif
