@@ -47,7 +47,6 @@ MonoBehaviour:
     - {fileID: 2100000, guid: ec1e92eddee8c274ba934d9f29d1fc52, type: 2}
     - {fileID: 2100000, guid: 386c1df99eb548ac9748c6d872a8680b, type: 2}
     - {fileID: 2100000, guid: 89b3b30dd92ee8e468cc5400ff623197, type: 2}
-  answer: {fileID: -8301958025146036882, guid: 3fc089f1b126427bbc347956f599714b, type: 3}
   flame: {fileID: 2100000, guid: 2eb3caeab93746ce83e028188297baec, type: 2}
   eliteFlame: {fileID: 2100000, guid: 361c2fabb726455cb13b67b0c6af7406, type: 2}
   shieldRing: {r: 0.99607843, g: 0.5254902, b: 0.101960786, a: 1}

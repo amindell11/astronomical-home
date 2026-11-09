@@ -649,8 +649,7 @@ Format: **term** — definition. *(authority)*
   **signature ship** is the faction's own chassis, and its elite flies it; the
   **common ship** is the chassis every faction flies. Each ship always carries
   its **faction kit**, one fixed primary, and wears the faction's paint, flame
-  and shield ring colour. The **answer weapon** is the weapon
-  that counters the faction's way of fighting, so no faction kit carries it.
+  and shield ring colour.
   The sector-to-faction mapping is ruled on #1320. *(Faction, SectorFaction)*
 - **elite** — a sector's end-of-sector enemy: its faction's signature ship made
   larger, with a heavy weapon pair and stacked run mods. The sector's phases
