@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using Combat.Projectiles.Visual;
 using Combat.Weapons.Arsenal;
 using Substrate.Presentation;
 using UnityEngine;
@@ -144,8 +145,8 @@ namespace Combat.Weapons
 
         private void Draw(Vector3 start, Vector3 end, float width, float opacity)
         {
-            line.SetPosition(0, start);
-            line.SetPosition(1, end);
+            line.SetPosition(0, start + ShotDepth.Offset);
+            line.SetPosition(1, end + ShotDepth.Offset);
             line.widthMultiplier = width;
             properties.SetFloat(BeamLengthId, Vector3.Distance(start, end));
             properties.SetFloat(LineWidthId, width);

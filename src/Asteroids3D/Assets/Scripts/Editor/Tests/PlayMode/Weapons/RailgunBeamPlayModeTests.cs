@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System.Collections;
 using System.Collections.Generic;
+using Combat.Projectiles.Visual;
 using Combat.Weapons;
 using Combat.Weapons.Arsenal;
 using Damage;
@@ -196,15 +197,15 @@ namespace Tests.PlayMode.Weapons
             Assert.AreEqual(1f, line.startColor.a);
             Assert.AreEqual(1f, VisualProperty(line, "_Shot"));
             Assert.That(peakWidth, Is.GreaterThan(3f));
-            Assert.Less(Vector3.Distance(line.GetPosition(0), beamStart), 0.001f);
-            Assert.Less(Vector3.Distance(line.GetPosition(1), beamEnd), 0.001f);
+            Assert.Less(Vector3.Distance(line.GetPosition(0), beamStart + ShotDepth.Offset), 0.001f);
+            Assert.Less(Vector3.Distance(line.GetPosition(1), beamEnd + ShotDepth.Offset), 0.001f);
 
             for (var frame = 0; frame < 2; frame++) yield return null;
             Assert.AreEqual(1f, line.startColor.a, "the initial flash holds its brightness");
             for (var frame = 0; frame < 8; frame++) yield return null;
             Assert.That(line.startColor.a, Is.GreaterThan(0f).And.LessThan(0.9f));
             Assert.That(line.widthMultiplier, Is.LessThan(peakWidth));
-            Assert.Less(Vector3.Distance(line.GetPosition(1), beamEnd), 0.001f);
+            Assert.Less(Vector3.Distance(line.GetPosition(1), beamEnd + ShotDepth.Offset), 0.001f);
             Assert.That(VisualProperty(line, "_ShotAge"), Is.GreaterThan(0.1f));
 
             for (var frame = 0; frame < 16; frame++) yield return null;

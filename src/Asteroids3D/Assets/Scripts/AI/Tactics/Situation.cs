@@ -21,6 +21,9 @@ namespace AI.Tactics
         /// <summary>Positive while the gap to the target shrinks.</summary>
         public readonly float closingSpeed;
         public readonly bool inMyRange;
+        public readonly float targetRange;
+        /// <summary>Inside the exposure cone off the target's nose, at any distance.</summary>
+        public readonly bool inTargetsCone;
         public readonly bool exposed;
         public readonly int alliesInLane;
         /// <summary>Unit direction off the target toward its open side; zero when neither side is open.</summary>
@@ -29,26 +32,30 @@ namespace AI.Tactics
         public readonly float hullPct;
         public readonly float secondsSinceHit;
 
-        private Situation(AIContext context, bool hasTarget = false, float distance = 0f, float closingSpeed = 0f,
-            bool inMyRange = false, bool exposed = false, int alliesInLane = 0, Vector2 openSide = default)
+        internal Situation(float shieldPct, float hullPct, float secondsSinceHit, bool hasTarget = false,
+            float distance = 0f, float closingSpeed = 0f, bool inMyRange = false, float targetRange = 0f,
+            bool inTargetsCone = false, int alliesInLane = 0, Vector2 openSide = default)
         {
             this.hasTarget = hasTarget;
             this.distance = distance;
             this.closingSpeed = closingSpeed;
             this.inMyRange = inMyRange;
-            this.exposed = exposed;
+            this.targetRange = targetRange;
+            this.inTargetsCone = inTargetsCone;
+            exposed = inTargetsCone && distance <= targetRange;
             this.alliesInLane = alliesInLane;
             this.openSide = openSide;
-            shieldPct = context.Self.ShieldPct;
-            hullPct = context.Self.HealthPct;
-            secondsSinceHit = context.SecondsSinceHit;
+            this.shieldPct = shieldPct;
+            this.hullPct = hullPct;
+            this.secondsSinceHit = secondsSinceHit;
         }
 
         public static Situation Read(AIContext context, TacticsSettings settings)
         {
-            if (!context.Combat.HasEnemy) return new Situation(context);
+            var self = context.Self;
+            if (!context.Combat.HasEnemy) return new Situation(self.ShieldPct, self.HealthPct, context.SecondsSinceHit);
 
-            var me = context.Self.Kinematics;
+            var me = self.Kinematics;
             var target = context.Combat.Enemy;
             var them = target.Kinematics;
             var toTarget = them.pos - me.pos;
@@ -56,12 +63,13 @@ namespace AI.Tactics
             var line = toTarget.normalized;
             var halfCone = settings.exposureCone * 0.5f;
 
-            return new Situation(context,
+            return new Situation(self.ShieldPct, self.HealthPct, context.SecondsSinceHit,
                 hasTarget: true,
                 distance: distance,
                 closingSpeed: Vector2.Dot(me.vel - them.vel, line),
                 inMyRange: distance <= PrimaryRange(Myself(context)),
-                exposed: distance <= PrimaryRange(target) && Vector2.Angle(them.Forward, -line) <= halfCone,
+                targetRange: PrimaryRange(target),
+                inTargetsCone: Vector2.Angle(them.Forward, -line) <= halfCone,
                 alliesInLane: AlliesInLane(context, me.pos, them.pos, settings.laneWidth),
                 openSide: OpenSide(context, them, distance, -line, halfCone, settings.laneWidth));
         }

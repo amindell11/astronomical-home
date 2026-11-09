@@ -10,7 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e3777d449c154c4bb988d364d23c15cc, type: 3}
-  m_Name: TacticsSettings
+  m_Name: WaveTemper
   m_EditorClassIdentifier:
   exposureCone: 60
   laneWidth: 4
+  breakOffShield: 25
+  resumeShield: 80
+  hitWithin: 2
+  nerveShield: 50
+  standOffMargin: 5
+  minimumHold: 2
