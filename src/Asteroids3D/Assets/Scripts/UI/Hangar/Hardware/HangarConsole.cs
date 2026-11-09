@@ -6,6 +6,8 @@ namespace UI.Hangar.Hardware
     public sealed class HangarConsole : MonoBehaviour
     {
         public const float ReferenceAspect = 16f / 9f;
+        private const float TallerViewVerticalBias = .36f;
+        private const float TallerViewOverscan = 1.01f;
 
         [SerializeField] private Camera hardwareCamera;
         [SerializeField] private float referenceVerticalFov = 34.11393f;
@@ -44,7 +46,13 @@ namespace UI.Hangar.Hardware
                 Mathf.Max(1f, ReferenceAspect / aspect)) * Mathf.Rad2Deg;
             var projection = Matrix4x4.Perspective(hardwareCamera.fieldOfView, aspect,
                 hardwareCamera.nearClipPlane, hardwareCamera.farClipPlane);
-            projection.m12 = -Mathf.Max(0f, 1f - aspect / ReferenceAspect);
+            if (aspect < ReferenceAspect)
+            {
+                // Keep both finite silhouette edges beyond the frame in taller views.
+                projection.m12 = -(1f - aspect / ReferenceAspect) * TallerViewVerticalBias;
+                projection.m00 *= TallerViewOverscan;
+                projection.m11 *= TallerViewOverscan;
+            }
             hardwareCamera.projectionMatrix = projection;
             if (texture && texture.width == pixels.x && texture.height == pixels.y) return;
 

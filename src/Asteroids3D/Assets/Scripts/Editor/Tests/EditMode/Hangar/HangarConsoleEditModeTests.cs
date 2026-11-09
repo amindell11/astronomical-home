@@ -66,7 +66,7 @@ namespace Tests.EditMode.Hangar
         }
 
         [Test]
-        public void TallerViewAddsSpaceBelowTheApprovedFrame()
+        public void TallerViewKeepsHeaderAndDeckCoveringTheFrame()
         {
             var instance = Object.Instantiate(AssetDatabase.LoadAssetAtPath<HangarConsole>(PrefabPath));
             try
@@ -75,10 +75,13 @@ namespace Tests.EditMode.Hangar
                 var camera = instance.HardwareCamera;
                 var top = camera.ViewportToWorldPoint(new Vector3(.5f, 1f, 10f));
                 var bottom = camera.ViewportToWorldPoint(new Vector3(.5f, 0f, 10f));
+                // Source-camera silhouette measurements constrain the finite header and deck.
+                var headerEdge = camera.ViewportToWorldPoint(new Vector3(.5f, 1.035f, 10f));
+                var deckEdge = camera.ViewportToWorldPoint(new Vector3(.5f, -.076f, 10f));
 
                 instance.Resize(new Vector2Int(1920, 1200));
-                Assert.That(camera.WorldToViewportPoint(top).y, Is.EqualTo(1f).Within(.0001f));
-                Assert.That(camera.WorldToViewportPoint(bottom).y, Is.EqualTo(.1f).Within(.0001f));
+                Assert.That(camera.WorldToViewportPoint(headerEdge).y, Is.InRange(1f, 1.01f));
+                Assert.That(camera.WorldToViewportPoint(deckEdge).y, Is.InRange(-.01f, 0f));
 
                 foreach (var size in new[] { new Vector2Int(2520, 1080), new Vector2Int(1920, 1080) })
                 {
