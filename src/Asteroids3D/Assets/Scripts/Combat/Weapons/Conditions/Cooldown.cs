@@ -9,9 +9,10 @@ namespace Combat.Weapons.Conditions
     {
         [Stat, SerializeField] private float fireRate = 0.2f;
 
-        // Internal dt-driven clock: resets with the weapon, so pacing replays identically regardless of absolute session time. Ticks on fixed steps because firing does.
+        // Resettable fixed-step time keeps firing independent of the session's absolute clock.
         private float clock;
         private float nextFireTime;
+        private bool hasFired;
         private bool wasOnCooldown;
 
         public event Action OnCooldownStart;
@@ -20,6 +21,7 @@ namespace Combat.Weapons.Conditions
         public float SecondsBetweenShots => mods.Apply(WeaponModField.FireRate, fireRate);
         public float CooldownRemaining => Mathf.Max(0, nextFireTime - clock);
         public float CooldownPercentage => SecondsBetweenShots > 0 ? CooldownRemaining / SecondsBetweenShots : 0f;
+        public bool StartsNewCadence { get; private set; }
 
         private void FixedUpdate()
         {
@@ -43,7 +45,9 @@ namespace Combat.Weapons.Conditions
 
         public override void ProcessFire()
         {
-            nextFireTime = clock + SecondsBetweenShots;
+            StartsNewCadence = !hasFired || clock > nextFireTime + Time.fixedDeltaTime;
+            nextFireTime = (StartsNewCadence ? clock : nextFireTime) + SecondsBetweenShots;
+            hasFired = true;
             OnCooldownStart?.Invoke();
             wasOnCooldown = true;
         }
@@ -52,7 +56,9 @@ namespace Combat.Weapons.Conditions
         {
             clock = 0;
             nextFireTime = 0;
+            hasFired = false;
             wasOnCooldown = false;
+            StartsNewCadence = false;
         }
     }
 }

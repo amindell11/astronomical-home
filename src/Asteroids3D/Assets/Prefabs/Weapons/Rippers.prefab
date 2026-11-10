@@ -47,7 +47,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: edf82047f2d64a919057c88845dba2f7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fireRate: 0.1
+  fireRate: 0.05
 --- !u!114 &6448982411033854647
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -60,7 +60,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb3d9ab589c328c4da4b908bdc0ea750, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxAmmo: 24
+  maxAmmo: 48
   reloadTime: 1.5
   refill: 0
 --- !u!114 &-8301958025146036882

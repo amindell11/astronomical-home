@@ -7,7 +7,7 @@ namespace Combat.Weapons.Arsenal
 {
     public class Lasers : WeaponBase<Laser>
     {
-        [Tooltip("Alternate shots between the hull's left and right sockets instead of firing each from the centre.")]
+        [Tooltip("Fire the hull's left and right sockets together on each shot instead of firing from the centre.")]
         [SerializeField] private bool dualFire;
 
         [Header("AI Firing")]
@@ -24,7 +24,7 @@ namespace Combat.Weapons.Arsenal
 
         private bool venting;
 
-        public override FirePattern FirePattern => dualFire ? FirePattern.Alternating : FirePattern.Single;
+        public override FirePattern FirePattern => dualFire ? FirePattern.Volley : FirePattern.Single;
         public override float ProjectileSpeed => projectilePrefab.LaserSpeed;
         public override float FireRange => fireDistance;
         public Heat Heat => heat;

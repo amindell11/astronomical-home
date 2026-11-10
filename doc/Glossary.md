@@ -823,17 +823,16 @@ Format: **term** — definition. *(authority)*
   centre, in one of two forms, alternating fire or volley fire. Left and right are the
   sides the player sees with the prow up under the game camera, so left is the hull's
   local -X. The weapon's class owns the form, so Missiles, Concussion and the Railgun
-  have nothing to author. Rippers always fire volleys, and the TurboLasers variant
-  turns on the Lasers switch for alternating fire. *(`WeaponComponent.FirePattern`; #1410)*
+  have nothing to author. Rippers always alternate, and the TurboLasers variant
+  turns on the Lasers switch for volley fire. *(`WeaponComponent.FirePattern`; #1410)*
 - **alternating fire** — dual fire from one side socket per shot, switching sides each
   shot. Each shot is one projectile at the weapon's own fire rate, and its fire sound
-  plays at the side that fired. The owner ruled it for TurboLasers (2026-11-08).
+  plays at the side that fired.
   *(`FirePattern.Alternating`; #1410)*
 - **volley fire** — dual fire from both side sockets together on every shot. Each shot
-  launches one projectile from each side but spends one round and plays one fire sound.
-  The fire sound and the gunsight's line of sight read the centre socket, which sits on
-  the centreline between the two muzzles. The owner ruled it for Rippers at full damage
-  per projectile (2026-11-08), so ripper damage output doubles.
+  launches one projectile from each side, spends one shot's worth of ammo or heat, and
+  plays one fire sound. The fire sound and the gunsight's line of sight read the centre
+  socket, which sits on the centreline between the two muzzles.
   *(`FirePattern.Volley`; #1422)*
 - **velocity reference / feasibility tracker** — the RL↔MPC boundary: the policy
   emits a planar velocity and MPC is demoted to a ~2s tracker (feasibility, aim,

@@ -10,7 +10,6 @@ namespace Combat.Weapons.Audio
         private const string FirstShotParameter = "FirstShot";
 
         private Cooldown cooldown;
-        private float previousShotTime = float.NegativeInfinity;
 
         protected override void Awake()
         {
@@ -18,13 +17,7 @@ namespace Combat.Weapons.Audio
             cooldown = GetComponent<Cooldown>();
         }
 
-        // Held fire lands one cooldown apart, rounded to a fixed step; anything later follows a gap.
-        protected override void SetParameters(EventInstance instance)
-        {
-            var now = Time.fixedTime;
-            var firstShot = now - previousShotTime > cooldown.SecondsBetweenShots + Time.fixedDeltaTime * 0.5f;
-            previousShotTime = now;
-            instance.setParameterByName(FirstShotParameter, firstShot ? 1f : 0f);
-        }
+        protected override void SetParameters(EventInstance instance) =>
+            instance.setParameterByName(FirstShotParameter, cooldown.StartsNewCadence ? 1f : 0f);
     }
 }

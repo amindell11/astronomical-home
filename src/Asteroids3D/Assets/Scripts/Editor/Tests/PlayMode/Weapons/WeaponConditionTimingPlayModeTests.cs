@@ -16,12 +16,13 @@ using Object = UnityEngine.Object;
 namespace Tests.PlayMode.Weapons
 {
     /// <summary>
-    /// Timed weapon conditions fire on the fixed step their authored values imply: a made-up weapon is
-    /// triggered once per step, and the steps it launches on are checked to within half a step.
+    /// Timed weapon conditions run through real fixed steps with one rendered frame per step.
+    /// Single-event checks allow half a step; sustained-fire checks bound cumulative cadence drift.
     /// </summary>
     [Category("Weapons")]
     public class WeaponConditionTimingPlayModeTests : PlayModeWorldFixture
     {
+        private static readonly float[] SustainedIntervals = { 0.1f, 0.05f, 0.075f };
         private readonly List<GameObject> spawned = new();
         private float savedTimeScale;
         private float savedCaptureDelta;
@@ -95,6 +96,46 @@ namespace Tests.PlayMode.Weapons
                     launches.Add(Time.fixedTime - start);
             }
             TestContext.WriteLine($"{template.name} launched at: {string.Join(", ", launches)}");
+        }
+
+        [UnityTest]
+        public IEnumerator Cooldown_SustainedFirePreservesAverageCadence(
+            [ValueSource(nameof(SustainedIntervals))] float interval)
+        {
+            var rippers = Template<Rippers>();
+            rippers.projectilePrefab = Bolt();
+            AddCooldown(rippers, interval);
+            rippers.gameObject.AddComponent<Rounds>().Configure(maxAmmo: 100, reloadTime: 1f);
+
+            var launches = new List<float>();
+            yield return Fire(rippers, _ => true, seconds: 22f * interval, launches);
+
+            Assert.That(launches.Count, Is.GreaterThanOrEqualTo(21));
+            Assert.AreEqual(20f * interval, launches[20] - launches[0], Time.fixedDeltaTime,
+                "twenty shot intervals must retain the configured average cadence");
+        }
+
+        [UnityTest]
+        public IEnumerator Cooldown_AfterPauseFiresImmediatelyWithoutCatchingUp()
+        {
+            const float interval = 0.05f;
+            const int resumeStep = 26;
+            var rippers = Template<Rippers>();
+            rippers.projectilePrefab = Bolt();
+            AddCooldown(rippers, interval);
+            rippers.gameObject.AddComponent<Rounds>().Configure(maxAmmo: 100, reloadTime: 1f);
+
+            var launches = new List<float>();
+            var step = 0;
+            yield return Fire(rippers, _ => ++step == 1 || step >= resumeStep, seconds: 1.8f, launches);
+
+            Assert.That(launches.Count, Is.GreaterThanOrEqualTo(22));
+            Assert.AreEqual((resumeStep - 1) * Time.fixedDeltaTime, launches[1] - launches[0], HalfStep,
+                "the first resumed trigger fires immediately");
+            Assert.AreEqual(20f * interval, launches[21] - launches[1], Time.fixedDeltaTime,
+                "resumed fire starts a fresh cadence without catching up missed shots");
+            for (var shot = 2; shot <= 21; shot++)
+                Assert.That(launches[shot] - launches[shot - 1], Is.GreaterThan(interval - Time.fixedDeltaTime));
         }
 
         [UnityTest]

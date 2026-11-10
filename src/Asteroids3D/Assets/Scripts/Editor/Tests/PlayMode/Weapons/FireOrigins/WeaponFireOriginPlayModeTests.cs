@@ -36,14 +36,30 @@ namespace Tests.PlayMode.Weapons.FireOrigins
         }
 
         [TestCase("Lasers", FirePattern.Single)]
-        [TestCase("TurboLasers", FirePattern.Alternating)]
-        [TestCase("Rippers", FirePattern.Volley)]
+        [TestCase("TurboLasers", FirePattern.Volley)]
+        [TestCase("Rippers", FirePattern.Alternating)]
         [TestCase("Railgun", FirePattern.Single)]
         [TestCase("Missiles", FirePattern.Single)]
         [TestCase("Grenades", FirePattern.Single)]
-        public void OnlyTurboLasersAlternate_AndOnlyRippersFireVolleys(string weapon, FirePattern pattern)
+        public void Prefab_AuthorsItsFirePattern(string weapon, FirePattern pattern)
         {
             Assert.That(Prefab(weapon).FirePattern, Is.EqualTo(pattern));
+        }
+
+        [Test]
+        public void Rippers_AuthorIntervalCapacityAndReload()
+        {
+            var rippers = (Rippers)Prefab("Rippers");
+            Assert.That(rippers.ShotsPerSecond.Value, Is.EqualTo(1f / 0.05f).Within(1e-4f));
+            Assert.That(rippers.Rounds.MaxAmmo, Is.EqualTo(48));
+            Assert.That(rippers.Rounds.ReloadTime, Is.EqualTo(1.5f));
+        }
+
+        [Test]
+        public void TurboLasers_AuthorTheirFireInterval()
+        {
+            var lasers = (Lasers)Prefab("TurboLasers");
+            Assert.That(lasers.ShotsPerSecond.Value, Is.EqualTo(1f / 0.075f).Within(1e-4f));
         }
 
         [UnityTest]
@@ -51,18 +67,43 @@ namespace Tests.PlayMode.Weapons.FireOrigins
             ShotsLeaveFrom("Lasers", "Centre", "Centre", "Centre");
 
         [UnityTest]
-        public IEnumerator TurboLasers_AlternateLeftAndRight() =>
-            ShotsLeaveFrom("TurboLasers", "Left", "Right", "Left", "Right");
-
-        [UnityTest]
-        public IEnumerator Rippers_FireBothSidesEveryShot_OnOneRoundAndOneFireEvent()
+        public IEnumerator Rippers_AlternateLeftAndRight_OneSlugOneRoundOneEvent()
         {
             var controller = NewRig(Prefab("Rippers"));
             controller.gameObject.SetActive(true);
-            controller.Initialize(() => default);
             var rippers = (Rippers)controller.Primary;
             var fireEvents = new List<Vector3>();
             rippers.OnFire += () => fireEvents.Add(rippers.firePoint.position);
+            var sides = new[] { "Left", "Right", "Left" };
+
+            for (var shot = 0; shot < sides.Length; shot++)
+            {
+                yield return UntilFirable(rippers);
+                var rounds = rippers.Rounds.AmmoCount;
+                var socket = SocketPosition(controller, sides[shot]);
+                var before = Live();
+                Assert.That(rippers.Fire(Ahead, Projectiles), Is.Not.Null, $"Rippers refused shot {shot}.");
+                var slugs = Live().Except(before).ToList();
+
+                Assert.That(slugs, Has.Count.EqualTo(1), "one slug per event");
+                Assert.That(Vector3.Distance(slugs[0].transform.position, socket), Is.LessThan(1e-4f),
+                    $"shot {shot} leaves from {sides[shot]}");
+                Assert.That(rippers.Rounds.AmmoCount, Is.EqualTo(rounds - 1), "one round per event");
+                Assert.That(fireEvents.Count, Is.EqualTo(shot + 1), "one fire event per shot");
+                Assert.That(Vector3.Distance(fireEvents[shot], socket), Is.LessThan(1e-4f),
+                    $"shot {shot} sounds at {sides[shot]}");
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator TurboLasers_FireBothSidesEveryShot_OnOneHeatChargeAndOneFireEvent()
+        {
+            var controller = NewRig(Prefab("TurboLasers"));
+            controller.gameObject.SetActive(true);
+            controller.Initialize(() => default);
+            var lasers = (Lasers)controller.Primary;
+            var fireEvents = new List<Vector3>();
+            lasers.OnFire += () => fireEvents.Add(lasers.firePoint.position);
             var centre = SocketPosition(controller, "Centre");
 
             Assert.That(Vector3.Distance(controller.Context.Sight(WeaponSlot.Primary).FirePoint, centre), Is.LessThan(1e-4f),
@@ -70,17 +111,18 @@ namespace Tests.PlayMode.Weapons.FireOrigins
 
             for (var shot = 0; shot < 2; shot++)
             {
-                yield return UntilFirable(rippers);
-                var rounds = rippers.Rounds.AmmoCount;
+                yield return UntilFirable(lasers);
+                var heat = lasers.Heat.CurrentHeat;
                 var before = Live();
-                Assert.That(rippers.Fire(Ahead, Projectiles), Is.Not.Null, $"Rippers refused shot {shot}.");
-                var slugs = Live().Except(before).Cast<ProjectileBase>().ToList();
+                Assert.That(lasers.Fire(Ahead, Projectiles), Is.Not.Null, $"TurboLasers refused shot {shot}.");
+                var bolts = Live().Except(before).Cast<ProjectileBase>().ToList();
 
-                Assert.That(slugs.Select(slug => SideAt(controller, slug.transform.position)),
+                Assert.That(bolts.Select(bolt => SideAt(controller, bolt.transform.position)),
                     Is.EquivalentTo(new[] { "Left", "Right" }), $"shot {shot} leaves from both sides");
-                foreach (var slug in slugs)
-                    Assert.That(slug.Damage * slug.DamageScale, Is.EqualTo(rippers.Damage), "each slug does full damage");
-                Assert.That(rippers.Rounds.AmmoCount, Is.EqualTo(rounds - 1), "a volley spends one round");
+                foreach (var bolt in bolts)
+                    Assert.That(bolt.Damage * bolt.DamageScale, Is.EqualTo(lasers.Damage), "each bolt does full damage");
+                Assert.That(lasers.Heat.CurrentHeat - heat, Is.EqualTo(lasers.Heat.HeatPerShot).Within(1e-4f),
+                    "a volley spends one heat charge");
                 Assert.That(fireEvents.Count, Is.EqualTo(shot + 1), "one fire event per volley");
                 Assert.That(Vector3.Distance(fireEvents[shot], centre), Is.LessThan(1e-4f), "a volley sounds at the centre");
             }

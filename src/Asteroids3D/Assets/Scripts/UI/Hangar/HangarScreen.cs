@@ -203,8 +203,13 @@ namespace UI.Hangar
         {
             var lasers = weapon as Lasers;
             if (lasers)
-                return $"Damage {lasers.Damage:0}{Rate(lasers.ShotsPerSecond)}   |   Speed {lasers.ProjectileSpeed:0}" +
+            {
+                var damage = lasers.FirePattern == FirePattern.Volley
+                    ? $"Damage {lasers.Damage:0} per bolt   |   2 bolts per shot"
+                    : $"Damage {lasers.Damage:0}";
+                return $"{damage}{Rate(lasers.ShotsPerSecond)}   |   Speed {lasers.ProjectileSpeed:0}" +
                        (lasers.ShotsToOverheat is int shots ? $"   |   Overheats after {shots} shots" : "");
+            }
 
             var railguns = weapon as Railguns;
             if (railguns)
@@ -212,7 +217,7 @@ namespace UI.Hangar
 
             var rippers = weapon as Rippers;
             if (rippers)
-                return $"Damage {rippers.Damage:0} per slug   |   2 slugs per shot{Rate(rippers.ShotsPerSecond)}" +
+                return $"Damage {rippers.Damage:0} per slug{Rate(rippers.ShotsPerSecond)}" +
                        (rippers.Rounds ? $"   |   Mag {rippers.Rounds.MaxAmmo}{Refill(rippers.Rounds)}" : "") +
                        $"   |   Speed {rippers.ProjectileSpeed:0}";
 
