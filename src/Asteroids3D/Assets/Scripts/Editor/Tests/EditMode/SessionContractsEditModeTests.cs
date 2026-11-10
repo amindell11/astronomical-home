@@ -7,13 +7,17 @@ using Substrate.Sessions;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
+using Ships;
+using Substrate.Sectors.Elements;
+using Substrate.Sectors.Elements.Phases;
 
 namespace Tests.EditMode
 {
     [Category("Bootstrap")]
     public class SessionContractsEditModeTests
     {
-        private const string SectorPath = "Assets/Prefabs/Sectors/TrialSector.prefab";
+        private const string RunPath = "Assets/Settings/Game/SurvivalTrialRun.asset";
+        private const string ArenaPath = "Assets/Prefabs/Sectors/ArenaSector.prefab";
         private const string LocalePath = "Assets/Prefabs/Locales/IllustratedBlue.prefab";
         private const string OtherLocalePath = "Assets/Prefabs/Locales/CoralSunset.prefab";
 
@@ -39,11 +43,12 @@ namespace Tests.EditMode
                 owner.AddComponent<UnitService>(), owner.AddComponent<ObjectiveService>());
         }
 
-        private static SectorEntry NamedRow() => new() { prefab = SectorPrefab(), locale = Locale(LocalePath) };
+        private static SectorEntry NamedRow() => TrialRow().WithLocale(Locale(LocalePath));
 
-        private static SectorEntry RandomRow() => new() { prefab = SectorPrefab(), random = true };
+        private static SectorEntry RandomRow() => TrialRow().WithLocale(null, drawn: true);
 
-        private static Sector SectorPrefab() => AssetDatabase.LoadAssetAtPath<Sector>(SectorPath);
+        // A copy, so a test that blanks a value never edits the run asset.
+        private static SectorEntry TrialRow() => AssetDatabase.LoadAssetAtPath<SectorRun>(RunPath).Sectors[0].WithLocale(null);
 
         private static LocaleSky Locale(string path) => AssetDatabase.LoadAssetAtPath<LocaleSky>(path);
 
@@ -66,10 +71,49 @@ namespace Tests.EditMode
         [Test]
         public void Session_RefusesAPresentedRunRowWithNoLocale()
         {
-            var row = new SectorEntry { prefab = AssetDatabase.LoadAssetAtPath<Sector>(SectorPath) };
+            var row = TrialRow();
             Assert.That(() => Construct(row, presentation: true),
                 Throws.ArgumentException.With.Message.Contains("Row 1 of sector run").And.Message.Contains("no locale"));
         }
+
+        [TestCase("faction", "the row's faction")]
+        [TestCase("elite", "EliteEncounter")]
+        [TestCase("roster", "WaveDirector")]
+        [TestCase("phases", "WaveDirector")]
+        [TestCase("field", "asteroid field")]
+        public void Session_RefusesARowMissingAValueItsLayoutReads(string value, string reader)
+        {
+            var row = TrialRow();
+            switch (value)
+            {
+                case "faction": row.faction = null; break;
+                case "elite": row.elite = null; break;
+                case "roster": row.roster = System.Array.Empty<WaveDirector.RosterEntry>(); break;
+                case "phases": row.phases = System.Array.Empty<SectorPhase>(); break;
+                case "field": row.field = null; break;
+            }
+            Assert.That(() => Construct(row, presentation: false),
+                Throws.ArgumentException.With.Message.Contains("Row 1 of sector run").And.Message.Contains(reader));
+        }
+
+        [Test]
+        public void Session_RefusesARosterShipTheRowsFactionDoesNotFly()
+        {
+            var row = TrialRow();
+            row.roster = new[] { new WaveDirector.RosterEntry { template = TestShip("Bulwark") } };
+            Assert.That(() => Construct(row, presentation: false),
+                Throws.ArgumentException.With.Message.Contains("Row 1 of sector run").And.Message.Contains("doesn't fly 'Bulwark'"));
+        }
+
+        [Test]
+        public void Session_RefusesAFieldPresetOnARow_WhoseLayoutsFieldNamesItsOwn()
+        {
+            var row = new SectorEntry { prefab = AssetDatabase.LoadAssetAtPath<Sector>(ArenaPath), field = TrialRow().field };
+            Assert.That(() => Construct(row, presentation: false),
+                Throws.ArgumentException.With.Message.Contains("Row 1 of sector run").And.Message.Contains("names its own preset"));
+        }
+
+        private static Ship TestShip(string name) => AssetDatabase.LoadAssetAtPath<Ship>($"Assets/Prefabs/Ships/{name}.prefab");
 
         [Test]
         public void Session_RefusesAPresentedLocalePoolWithAnEmptyEntry()

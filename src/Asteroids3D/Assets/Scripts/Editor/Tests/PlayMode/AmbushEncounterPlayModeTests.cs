@@ -15,6 +15,7 @@ using Substrate.Services.Objectives;
 using Substrate.Sectors.Elements;
 using Substrate.Sectors.Activation;
 using Substrate;
+using Substrate.Sessions;
 
 namespace Tests.PlayMode
 {
@@ -110,7 +111,7 @@ namespace Tests.PlayMode
         {
             var go = TrackGO(new GameObject("AmbushSector"));
             var sector = go.AddComponent<BusProbeSector>();
-            sector.Initialize(_unitService, _objectives, true, default, player);
+            sector.Initialize(_unitService, _objectives, true, default, player, new SectorEntry());
             return sector;
         }
 

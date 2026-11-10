@@ -1,0 +1,117 @@
+{
+  "source": "console.blend",
+  "sourceEvidenceCommit": "3b14f5d5a51d86463aba0922497b6377865ab38d",
+  "camera": {
+    "position": [
+      0.0,
+      -18.0,
+      6.800000190734863
+    ],
+    "forward": [
+      -0.0,
+      0.9935770630836487,
+      -0.11315740644931793
+    ],
+    "up": [
+      0.0,
+      0.11315740644931793,
+      0.9935770630836487
+    ],
+    "verticalFieldOfView": 34.11393115323413,
+    "referenceAspect": 1.7777777777777777
+  },
+  "parts": [
+    {
+      "name": "MainScreenGlass",
+      "vertices": 192,
+      "triangles": 380,
+      "pivot": [
+        -5.368378162384033,
+        -1.1328661441802979,
+        2.9400219917297363
+      ]
+    },
+    {
+      "name": "DetailScreenGlass",
+      "vertices": 192,
+      "triangles": 380,
+      "pivot": [
+        -5.001487731933594,
+        -2.498483896255493,
+        0.8476914167404175
+      ]
+    },
+    {
+      "name": "SelectorKnob",
+      "vertices": 368,
+      "triangles": 728,
+      "pivot": [
+        -7.575831413269043,
+        -2.4158785343170166,
+        3.0957391262054443
+      ]
+    },
+    {
+      "name": "PreviousButton",
+      "vertices": 226,
+      "triangles": 436,
+      "pivot": [
+        -7.488700866699219,
+        -2.77968168258667,
+        2.249380350112915
+      ]
+    },
+    {
+      "name": "NextButton",
+      "vertices": 226,
+      "triangles": 436,
+      "pivot": [
+        -7.410958290100098,
+        -3.0690505504608154,
+        1.8060238361358643
+      ]
+    },
+    {
+      "name": "LaunchButton",
+      "vertices": 208,
+      "triangles": 412,
+      "pivot": [
+        6.474295616149902,
+        -2.2187750339508057,
+        1.029488205909729
+      ]
+    },
+    {
+      "name": "LaunchLegend",
+      "vertices": 758,
+      "triangles": 748,
+      "pivot": [
+        6.458803176879883,
+        -2.253838300704956,
+        1.1802408695220947
+      ]
+    },
+    {
+      "name": "ProjectorLens",
+      "vertices": 208,
+      "triangles": 412,
+      "pivot": [
+        2.3499999046325684,
+        0.010463442653417587,
+        1.6260253190994263
+      ]
+    },
+    {
+      "name": "ConsoleBody",
+      "vertices": 17788,
+      "triangles": 35152,
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  ],
+  "paint": "Authored color graph and fixed-camera Freestyle ink. No scene lighting, sky, ship or cone.",
+  "screens": "Static reference artwork; no live UI."
+}

@@ -1,5 +1,4 @@
 using System.Linq;
-using Substrate.Sectors;
 using Substrate.Services.Locales;
 using Substrate.Sessions;
 using UnityEditor;
@@ -10,10 +9,8 @@ namespace Game.Preview
 {
     /// <summary>
     /// Builds the preview host in an empty scene around the game's GameHost prefab. Replay flies the first
-    /// row of the prefab's sector run; the HUD replays' two fixture sectors, sector 1's elite fixture and
-    /// the crowded fight fixture take that row's locale, sector 2's elite fixture the second row's and the
-    /// boss fixture the last row's, a Random row standing in as its pool's first locale, while the
-    /// two-sector crowded jump fixture keeps its own two locales.
+    /// row of the prefab's sector run, and each fixture its own row of the preview fixtures run, found by
+    /// the name of the layout it flies.
     /// The chosen entry is assigned before activation, so Playtest never composes a Replay session.
     /// The host waits inactive through the play-mode reload; entering play mode snapshots every tuning
     /// target's feel profiles, then activates it, so the panel tunes those assets in place.
@@ -22,8 +19,8 @@ namespace Game.Preview
     public static class PreviewHostBootstrap
     {
         internal const string GameHostPath = "Assets/Prefabs/Game/GameHost.prefab";
+        internal const string FixturesPath = "Assets/Settings/Game/Preview/PreviewFixtures.asset";
         private const string LocalesFolder = "Assets/Prefabs/Locales";
-        private const string IllustratedBluePath = "Assets/Prefabs/Locales/IllustratedBlue.prefab";
         private const string CopperTurquoisePath = "Assets/Prefabs/Locales/CopperTurquoise.prefab";
 
         static PreviewHostBootstrap() => EditorApplication.playModeStateChanged += ActivateWaitingHost;
@@ -48,17 +45,13 @@ namespace Game.Preview
             host.gameHostPrefab = AssetDatabase.LoadAssetAtPath<GameHost>(GameHostPath);
             var run = host.gameHostPrefab.sessionProfile.run;
             host.sessionProfile = new SessionProfile { run = run, presentation = true };
-            host.crowdedJumpSectors = new[]
-            {
-                FixtureSector("CrowdedJumpDeparture", Locale(IllustratedBluePath)),
-                FixtureSector("CrowdedJumpArrival", Locale(CopperTurquoisePath))
-            };
-            host.hudQuietSector = FixtureSector("HudQuietSector", RowLocale(run, 0));
-            host.hudExtractionSector = FixtureSector("HudExtractionSector", RowLocale(run, 0));
-            host.bossSector = FixtureSector("BossSector", RowLocale(run, run.Sectors.Count - 1));
-            host.sector1EliteSector = FixtureSector("EliteSector1", RowLocale(run, 0));
-            host.sector2EliteSector = FixtureSector("EliteSector2", RowLocale(run, 1));
-            host.crowdedFightSector = FixtureSector("CrowdedFightSector", RowLocale(run, 0));
+            host.crowdedJumpSectors = new[] { FixtureRow("CrowdedJumpDeparture"), FixtureRow("CrowdedJumpArrival") };
+            host.hudQuietSector = FixtureRow("HudQuietSector");
+            host.hudExtractionSector = FixtureRow("HudExtractionSector");
+            host.bossSector = FixtureRow("BossSector");
+            host.sector1EliteSector = FixtureRow("EliteSector1");
+            host.sector2EliteSector = FixtureRow("EliteSector2");
+            host.crowdedFightSector = FixtureRow("CrowdedFightSector");
             host.jumpDestination = Locale(CopperTurquoisePath);
             host.entry = entry;
             host.combatSector = combatSector;
@@ -85,14 +78,13 @@ namespace Game.Preview
             if (host && !host.gameObject.activeSelf) Activate(host, FeelSnapshot.instance);
         }
 
-        private static SectorEntry FixtureSector(string name, LocaleSky locale) => new()
+        internal static SectorEntry FixtureRow(string layout)
         {
-            prefab = AssetDatabase.LoadAssetAtPath<Sector>($"Assets/Prefabs/Sectors/Preview/{name}.prefab"),
-            locale = locale
-        };
+            var row = AssetDatabase.LoadAssetAtPath<SectorRun>(FixturesPath).Sectors
+                .SingleOrDefault(fixture => fixture.prefab && fixture.prefab.name == layout);
+            return row ?? throw new System.InvalidOperationException($"'{FixturesPath}' has no row flying the {layout} layout.");
+        }
 
         private static LocaleSky Locale(string path) => AssetDatabase.LoadAssetAtPath<LocaleSky>(path);
-
-        private static LocaleSky RowLocale(SectorRun run, int row) => PreviewHost.Named(run, run.Sectors[row]).locale;
     }
 }

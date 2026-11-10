@@ -14,8 +14,6 @@ namespace Tests.EditMode.Sectors
     public class StationClearZoneEditModeTests
     {
         [TestCase("TrialSector")]
-        [TestCase("TrialSector2")]
-        [TestCase("TrialSector3")]
         public void TrialSector_TheFieldReadsItsOwnStations(string sector)
         {
             var prefab = AssetDatabase.LoadAssetAtPath<Sector>($"Assets/Prefabs/Sectors/{sector}.prefab");

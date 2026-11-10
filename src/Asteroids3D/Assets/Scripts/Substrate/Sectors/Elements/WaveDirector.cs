@@ -12,6 +12,7 @@ using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Factions;
 using Substrate.Services.Units;
+using Substrate.Sessions;
 using UnityEngine;
 
 namespace Substrate.Sectors.Elements
@@ -24,13 +25,14 @@ namespace Substrate.Sectors.Elements
     /// index 0) and the lull before each later one spawn nothing, and once the table is done the last
     /// phase's pacing holds, so the hero leaves under pursuit; the sector's elite arriving stops spawning
     /// for good. Ships ring the hero just off screen, facing it, on the first angle clear of asteroids,
-    /// each flying its sector faction's kit for its ship and wearing the faction's skin.
+    /// each flying its sector faction's kit for its ship and wearing the faction's skin. The roster and
+    /// the phase table are the run row's, read at Build.
     /// Dead products are despawned on the tick, and the tick idles while the hero is inactive (the
     /// recap hold). Nothing spawns in Build: the sector builds under an inactive holder and the
     /// asteroid field lays out at its Start, so a Build-time clearance check would see no rocks.
     /// The base class's "produce exactly once" is about the activation token, not lifetime.
     /// </summary>
-    public class WaveDirector : SectorSpawner
+    public class WaveDirector : SectorSpawner, ISectorRowReader
     {
         [Serializable]
         public struct RosterEntry
@@ -39,16 +41,12 @@ namespace Substrate.Sectors.Elements
             [Stat] public Commander pilot;
         }
 
-        [Tooltip("Ships the director draws from, picked uniformly per spawn.")]
-        [Stat, SerializeField] private RosterEntry[] roster = Array.Empty<RosterEntry>();
         [Tooltip("The sector's faction: every roster ship must be its signature or common ship, and flies that ship's faction kit. " +
                  "Unset → products fly their template's authored build.")]
-        [Stat, SerializeField] private SectorFaction faction;
+        [SerializeField] private SectorFaction faction;
         [SerializeField] private int team = 1;
 
         [Header("Sector phases")]
-        [Tooltip("Phases in run order; the clock starts on the first tick with an active hero.")]
-        [Stat(Ordered = true), SerializeField] private SectorPhase[] phases = Array.Empty<SectorPhase>();
         [Tooltip("Seconds between one phase's end and the next phase's opening, with nothing spawning.")]
         [Stat, SerializeField, Min(0f)] private float lullSeconds = 5f;
         [Tooltip("Seconds from the sector's start to phase one's opening, with nothing spawning.")]
@@ -68,6 +66,8 @@ namespace Substrate.Sectors.Elements
         [SerializeField, Min(1)] private int placementAttempts = 4;
 
         private readonly List<Ship> products = new();
+        private RosterEntry[] roster = Array.Empty<RosterEntry>();
+        private SectorPhase[] phases = Array.Empty<SectorPhase>();
         private IUnitService units;
         private IObstacleField field;
         private Ship hero;
@@ -84,10 +84,25 @@ namespace Substrate.Sectors.Elements
 
         public int PhaseCount => phases.Length;
 
+        /// <summary>A roster ship the row's faction doesn't fly fails the session's start, not the first spawn.</summary>
+        public void CheckRow(SectorEntry row)
+        {
+            if (row.roster.Length == 0 || Array.Exists(row.roster, entry => !entry.template) || row.phases.Length == 0)
+                throw new InvalidOperationException(
+                    $"WaveDirector on '{name}' reads the row's roster and phases, and the row has an empty or unset one.");
+            if (!faction) return;
+            if (!row.faction)
+                throw new InvalidOperationException($"WaveDirector on '{name}' flies the row's faction, and the row names none.");
+            foreach (var entry in row.roster)
+                row.faction.KitFor(entry.template);
+        }
+
         protected override IEnumerator Produce(SectorBuildContext ctx)
         {
             products.Clear();
             Spawned = products;
+            roster = ctx.Row.roster;
+            phases = ctx.Row.phases;
 
             if (!ctx.Hero || roster.Length == 0 || Array.Exists(roster, e => !e.template))
             {
@@ -95,9 +110,6 @@ namespace Substrate.Sectors.Elements
                 yield break;
             }
 
-            // A roster ship the faction doesn't fly fails the load, not the first spawn.
-            foreach (var entry in roster)
-                KitFor(entry.template);
             BuildSchedule();
 
             units = ctx.Units;
@@ -194,11 +206,11 @@ namespace Substrate.Sectors.Elements
 
         internal void ScheduleNext(float now) => nextSpawnTime = now + phases[Phase.Index].interval;
 
-        /// <summary>Reads only serialized data, so a prefab asset answers too.</summary>
-        public SectorThreat Threat()
+        /// <summary>Reads only serialized data and the row, so a prefab asset answers too.</summary>
+        public SectorThreat Threat(SectorEntry row)
         {
             var ships = new List<Ship>();
-            foreach (var entry in roster)
+            foreach (var entry in row.roster)
                 AddDistinct(ships, entry.template);
 
             var weapons = new List<WeaponComponent>();
@@ -206,7 +218,7 @@ namespace Substrate.Sectors.Elements
             {
                 if (faction)
                 {
-                    AddDistinct(weapons, KitFor(ship));
+                    AddDistinct(weapons, row.faction.KitFor(ship));
                     continue;
                 }
                 AddDistinct(weapons, ship.Weapons ? ship.Weapons.PrimaryMountPrefab : null);

@@ -20,8 +20,6 @@ namespace Tests.EditMode.Sectors
         private const string FeelPath = "Assets/Settings/Game/BeaconCacheFeel.asset";
 
         [TestCase("TrialSector")]
-        [TestCase("TrialSector2")]
-        [TestCase("TrialSector3")]
         public void TrialSector_CarriesOneBeaconCache_AfterItsSpine(string sector)
         {
             var prefab = AssetDatabase.LoadAssetAtPath<Sector>($"Assets/Prefabs/Sectors/{sector}.prefab");

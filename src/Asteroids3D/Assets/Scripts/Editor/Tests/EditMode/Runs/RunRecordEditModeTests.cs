@@ -69,7 +69,7 @@ namespace Tests.EditMode.Runs
 
         private RunRecord Compose(DamageLedger ledger, SpawnLog spawns, int sectorsCleared, DamageInfo? killingBlow) =>
             RunRecord.Compose(
-                new DateTime(2026, 10, 1, 12, 34, 56, DateTimeKind.Utc), sectorsCleared, "TrialSector",
+                new DateTime(2026, 10, 1, 12, 34, 56, DateTimeKind.Utc), sectorsCleared, 1,
                 Array.ConvertAll(LocaleNames,
                     name => AssetDatabase.LoadAssetAtPath<LocaleSky>($"Assets/Prefabs/Locales/{name}.prefab")),
                 new BuildIdentity { commit = "abc123", dirty = true }, Fingerprint,
@@ -113,7 +113,7 @@ namespace Tests.EditMode.Runs
             Assert.AreEqual("2026-10-01T12:34:56Z", read.endedUtc);
             Assert.AreEqual(RunRecord.Died, read.outcome);
             Assert.AreEqual(1, read.sectorsCleared);
-            Assert.AreEqual("TrialSector", read.sector);
+            Assert.AreEqual("Sector 2", read.sector, "named by its run row, the run's second");
             Assert.That(read.locales, Is.EqualTo(LocaleNames), "the locale each sector drew, in run order");
             Assert.AreEqual("abc123", read.buildIdentity.commit);
             Assert.IsTrue(read.buildIdentity.dirty);
