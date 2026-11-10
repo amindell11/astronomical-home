@@ -1,0 +1,136 @@
+{
+    "generatedAt":  "2026-11-09T23:34:29.6433570-08:00",
+    "projectPath":  "D:\\amind\\git\\agent-4\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "Both",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "scopeResolved":  false,
+                      "testFilter":  "",
+                      "testCategory":  "",
+                      "excludeCategory":  "RequiresGraphics",
+                      "categoryFilter":  "!RequiresGraphics",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  "",
+                      "auto":  null,
+                      "withGraphics":  false,
+                      "captureScenario":  ""
+                  },
+    "status":  "failed",
+    "totals":  {
+                   "total":  1756,
+                   "passed":  1753,
+                   "failed":  1,
+                   "skipped":  2,
+                   "durationSec":  139.363
+               },
+    "runs":  [
+                 {
+                     "platform":  "EditMode",
+                     "xmlPath":  "D:\\amind\\git\\agent-4\\results\\unity-tests-agent\\20261109-233050-EditMode.xml",
+                     "logPath":  "D:\\amind\\git\\agent-4\\results\\unity-tests-agent\\20261109-233050-Both.log",
+                     "unityExitCode":  0,
+                     "status":  "passed",
+                     "total":  1231,
+                     "passed":  1231,
+                     "failed":  0,
+                     "skipped":  0,
+                     "durationSec":  26.4483742,
+                     "failures":  [
+
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "captureScenario":  "",
+                                       "auto":  null,
+                                       "scopeResolved":  false,
+                                       "excludeCategory":  "RequiresGraphics",
+                                       "scopeType":  "Workspace",
+                                       "assemblyNames":  "",
+                                       "rerunFailedFrom":  "",
+                                       "scopeName":  "",
+                                       "orderedTestListFile":  "",
+                                       "testCategory":  "",
+                                       "withGraphics":  false,
+                                       "testFilter":  "",
+                                       "categoryFilter":  "!RequiresGraphics"
+                                   },
+                     "startedAt":  "2026-11-10 07:31:55Z",
+                     "finishedAt":  "2026-11-10 07:32:21Z"
+                 },
+                 {
+                     "platform":  "PlayMode",
+                     "xmlPath":  "D:\\amind\\git\\agent-4\\results\\unity-tests-agent\\20261109-233050-PlayMode.xml",
+                     "logPath":  "D:\\amind\\git\\agent-4\\results\\unity-tests-agent\\20261109-233050-Both.log",
+                     "unityExitCode":  0,
+                     "status":  "unknown",
+                     "total":  525,
+                     "passed":  522,
+                     "failed":  1,
+                     "skipped":  2,
+                     "durationSec":  112.9150664,
+                     "failures":  [
+                                      {
+                                          "name":  "RipperMagazine_ReloadFillsItsAmmoArcThroughCompletion",
+                                          "fullName":  "Tests.PlayMode.Crosshairs.WeaponResourceHudPlayModeTests.RipperMagazine_ReloadFillsItsAmmoArcThroughCompletion",
+                                          "durationSec":  0.012634,
+                                          "message":  "Expected: 0.319444448f +/- 0.00100000005f But was: 0.326388896f",
+                                          "topStack":  "at Tests.PlayMode.Crosshairs.WeaponResourceHudPlayModeTests.RipperMagazine_ReloadFillsItsAmmoArcThroughCompletion () [0x0003f] in D:\\amind\\git\\agent-4\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\PlayMode\\Crosshairs\\WeaponResourceHudPlayMode..."
+                                      }
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "captureScenario":  "",
+                                       "auto":  null,
+                                       "scopeResolved":  false,
+                                       "excludeCategory":  "RequiresGraphics",
+                                       "scopeType":  "Workspace",
+                                       "assemblyNames":  "",
+                                       "rerunFailedFrom":  "",
+                                       "scopeName":  "",
+                                       "orderedTestListFile":  "",
+                                       "testCategory":  "",
+                                       "withGraphics":  false,
+                                       "testFilter":  "",
+                                       "categoryFilter":  "!RequiresGraphics"
+                                   },
+                     "startedAt":  "2026-11-10 07:32:30Z",
+                     "finishedAt":  "2026-11-10 07:34:23Z"
+                 }
+             ],
+    "wallTiming":  {
+                       "elapsedSec":  219.025,
+                       "startupToFirstTestSec":  59.8,
+                       "executionSec":  139,
+                       "remainingSec":  20.226,
+                       "unavailableReason":  ""
+                   },
+    "coverage":  {
+                     "verdict":  "partial",
+                     "reason":  "status=failed"
+                 },
+    "memory":  {
+                   "processes":  [
+                                     {
+                                         "pid":  25900,
+                                         "rootPeakPrivateGB":  4.139,
+                                         "rootPeakWorkingSetGB":  4.005,
+                                         "treePeakSampledPrivateGB":  4.397,
+                                         "treePeakSampledWorkingSetGB":  4.364,
+                                         "treeSumOfPeaksPrivateGB":  5.274,
+                                         "commitHeadroomAtLaunchGB":  27.53,
+                                         "commitHeadroomMinGB":  23.2,
+                                         "availablePhysicalAtLaunchGB":  6.3,
+                                         "availablePhysicalMinGB":  2.52,
+                                         "bootLaneReleasedAtSec":  7.954,
+                                         "treePeakAtSec":  206.288,
+                                         "samples":  33,
+                                         "samplesFailed":  0,
+                                         "unavailableReason":  ""
+                                     }
+                                 ],
+                   "unavailableReason":  ""
+               }
+}
