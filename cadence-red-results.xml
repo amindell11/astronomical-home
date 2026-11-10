@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="4" result="Failed(Child)" total="4" passed="3" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-10 02:58:14Z" end-time="2026-11-10 02:58:15Z" duration="0.9693571">
+  <test-suite type="TestSuite" id="1790" name="Astronomical" fullname="Astronomical" runstate="Runnable" testcasecount="598" result="Failed" site="Child" start-time="2026-11-10 02:58:14Z" end-time="2026-11-10 02:58:15Z" duration="0.969357" total="4" passed="3" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1749" name="Tests.PlayMode.dll" fullname="D:/amind/git/agent-4/src/Asteroids3D/Library/ScriptAssemblies/Tests.PlayMode.dll" runstate="Runnable" testcasecount="594" result="Failed" site="Child" start-time="2026-11-10 02:58:14Z" end-time="2026-11-10 02:58:15Z" duration="0.941429" total="4" passed="3" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="4968" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1750" name="Tests" fullname="Tests" runstate="Runnable" testcasecount="594" result="Failed" site="Child" start-time="2026-11-10 02:58:14Z" end-time="2026-11-10 02:58:15Z" duration="0.923985" total="4" passed="3" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1751" name="PlayMode" fullname="Tests.PlayMode" runstate="Runnable" testcasecount="594" result="Failed" site="Child" start-time="2026-11-10 02:58:14Z" end-time="2026-11-10 02:58:15Z" duration="0.914465" total="4" passed="3" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1752" name="Weapons" fullname="Tests.PlayMode.Weapons" runstate="Runnable" testcasecount="66" result="Failed" site="Child" start-time="2026-11-10 02:58:14Z" end-time="2026-11-10 02:58:15Z" duration="0.870823" total="4" passed="3" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestFixture" id="1333" name="WeaponConditionTimingPlayModeTests" fullname="Tests.PlayMode.Weapons.WeaponConditionTimingPlayModeTests" classname="Tests.PlayMode.Weapons.WeaponConditionTimingPlayModeTests" runstate="Runnable" testcasecount="4" result="Failed" site="Child" start-time="2026-11-10 02:58:14Z" end-time="2026-11-10 02:58:15Z" duration="0.866567" total="4" passed="3" failed="1" inconclusive="0" skipped="0" asserts="0">
+              <properties>
+                <property name="Category" value="Weapons" />
+              </properties>
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-suite type="ParameterizedMethod" id="1336" name="Cooldown_SustainedFirePreservesAverageCadence" fullname="Tests.PlayMode.Weapons.WeaponConditionTimingPlayModeTests.Cooldown_SustainedFirePreservesAverageCadence" classname="Tests.PlayMode.Weapons.WeaponConditionTimingPlayModeTests" runstate="Runnable" testcasecount="2" result="Failed" site="Child" start-time="2026-11-10 02:58:14Z" end-time="2026-11-10 02:58:15Z" duration="0.505831" total="2" passed="1" failed="1" inconclusive="0" skipped="0" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <failure>
+                  <message><![CDATA[One or more child tests had errors]]></message>
+                </failure>
+                <test-case id="1334" name="Cooldown_SustainedFirePreservesAverageCadence(0.1f)" fullname="Tests.PlayMode.Weapons.WeaponConditionTimingPlayModeTests.Cooldown_SustainedFirePreservesAverageCadence(0.1f)" methodname="Cooldown_SustainedFirePreservesAverageCadence" classname="Tests.PlayMode.Weapons.WeaponConditionTimingPlayModeTests" runstate="Runnable" seed="1080629295" result="Passed" start-time="2026-11-10 02:58:14Z" end-time="2026-11-10 02:58:15Z" duration="0.372253" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[Rippers launched at: 0.01999998, 0.1199999, 0.2199999, 0.3199999, 0.4199999, 0.5199999, 0.6199998, 0.7199997, 0.8199997, 0.9199996, 1.02, 1.12, 1.22, 1.319999, 1.419999, 1.519999, 1.619999, 1.719999, 1.819999, 1.919999, 2.019999, 2.119999, 2.219999
+]]></output>
+                </test-case>
+                <test-case id="1335" name="Cooldown_SustainedFirePreservesAverageCadence(0.05f)" fullname="Tests.PlayMode.Weapons.WeaponConditionTimingPlayModeTests.Cooldown_SustainedFirePreservesAverageCadence(0.05f)" methodname="Cooldown_SustainedFirePreservesAverageCadence" classname="Tests.PlayMode.Weapons.WeaponConditionTimingPlayModeTests" runstate="Runnable" seed="1830281012" result="Failed" start-time="2026-11-10 02:58:15Z" end-time="2026-11-10 02:58:15Z" duration="0.118363" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <failure>
+                    <message><![CDATA[  Expected: greater than or equal to 21
+  But was:  20
+]]></message>
+                    <stack-trace><![CDATA[at Tests.PlayMode.Weapons.WeaponConditionTimingPlayModeTests+<Cooldown_SustainedFirePreservesAverageCadence>d__13.MoveNext () [0x000b1] in D:\amind\git\agent-4\src\Asteroids3D\Assets\Scripts\Editor\Tests\PlayMode\Weapons\WeaponConditionTimingPlayModeTests.cs:113
+at UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0003a] in .\Library\PackageCache\com.unity.test-framework@7056e7f856e9\UnityEngine.TestRunner\NUnitExtensions\Attributes\TestEnumerator.cs:44
+]]></stack-trace>
+                  </failure>
+                  <output><![CDATA[Rippers launched at: 0.01999998, 0.07999992, 0.1399999, 0.1999998, 0.2599998, 0.3199997, 0.3799996, 0.4399998, 0.4999998, 0.5599997, 0.6199996, 0.6799996, 0.7399995, 0.7999997, 0.8599997, 0.9199996, 0.9799995, 1.02, 1.059999, 1.099999
+]]></output>
+                </test-case>
+              </test-suite>
+              <test-case id="1338" name="Heat_OverheatsAndRecoversOnTheAuthoredSteps" fullname="Tests.PlayMode.Weapons.WeaponConditionTimingPlayModeTests.Heat_OverheatsAndRecoversOnTheAuthoredSteps" methodname="Heat_OverheatsAndRecoversOnTheAuthoredSteps" classname="Tests.PlayMode.Weapons.WeaponConditionTimingPlayModeTests" runstate="Runnable" seed="1754809556" result="Passed" start-time="2026-11-10 02:58:15Z" end-time="2026-11-10 02:58:15Z" duration="0.196427" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Lasers launched at: 0.02000022, 0.1200001, 0.22, 0.3199999, 1.819999, 1.919999, 2.019999, 2.119999
+]]></output>
+              </test-case>
+              <test-case id="1337" name="Magazine_DumpsAndReloadsOnTheAuthoredSteps" fullname="Tests.PlayMode.Weapons.WeaponConditionTimingPlayModeTests.Magazine_DumpsAndReloadsOnTheAuthoredSteps" methodname="Magazine_DumpsAndReloadsOnTheAuthoredSteps" classname="Tests.PlayMode.Weapons.WeaponConditionTimingPlayModeTests" runstate="Runnable" seed="1779702916" result="Passed" start-time="2026-11-10 02:58:15Z" end-time="2026-11-10 02:58:15Z" duration="0.145401" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Rippers launched at: 0.01999998, 0.2199998, 0.4199996, 0.6199994, 1.619999, 1.819999, 2.019999
+Saving results to: C:/Users/amind/AppData/LocalLow/AryeGames/Astronomical\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

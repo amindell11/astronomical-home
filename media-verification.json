@@ -1,0 +1,26 @@
+[
+  {
+    "weapon": "Rippers",
+    "frames": 51,
+    "size": [
+      1280,
+      720
+    ],
+    "duration_ms": 2040,
+    "sample_intervals": 20,
+    "sample_seconds": 0.9999992847442627,
+    "average_seconds": 0.04999996423721313
+  },
+  {
+    "weapon": "TurboLasers",
+    "frames": 51,
+    "size": [
+      1280,
+      720
+    ],
+    "duration_ms": 2040,
+    "sample_intervals": 16,
+    "sample_seconds": 1.1999988555908203,
+    "average_seconds": 0.07499992847442627
+  }
+]
