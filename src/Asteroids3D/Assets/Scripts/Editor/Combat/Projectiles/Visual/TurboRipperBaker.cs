@@ -90,7 +90,7 @@ namespace Combat.Projectiles.Visual
             var material = Material("RipperSlug", "LaserBolt/Shaders/CrackleFlipbook.shader");
             material.SetTexture(BaseMap, texture);
             material.SetTexture(GlowMap, Texture2D.blackTexture);
-            material.SetColor(BaseColor, Color.white);
+            material.SetColor(BaseColor, new Color(1.5f, 1.5f, 1.5f, 1f));
             material.SetFloat(Frames, settings.frames);
             material.SetFloat(Fps, 0f);
             material.SetFloat(Crossfade, 0f);
