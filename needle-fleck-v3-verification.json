@@ -1,0 +1,139 @@
+{
+  "previousCommit": "682fe0532566dc2fdfbaff46a4b092c6fa50c161",
+  "metric": "Mean alpha-weighted linear RGB luminance in fixed source-space head and tail regions",
+  "headRegion": {
+    "x": [
+      -4,
+      0
+    ],
+    "y": [
+      -1.1,
+      1.1
+    ]
+  },
+  "tailRegion": {
+    "x": [
+      -20,
+      -7
+    ],
+    "y": [
+      -2.5,
+      2.5
+    ]
+  },
+  "geometryUnchanged": true,
+  "variantsUnchanged": true,
+  "worldLengthUnchanged": true,
+  "impactComparisons": [
+    {
+      "name": "TurboLaserImpact",
+      "byteIdentical": true,
+      "sha256": "2881019a9e2aa0f7dc6596eb5ed9fce27073de2ceed9342ac416aa3922c22979"
+    },
+    {
+      "name": "RipperImpact",
+      "byteIdentical": true,
+      "sha256": "f7d43d0fbd9524ad6363802d6a0c1bfe38a7ea2fec7a4d73507fc056f500f42b"
+    }
+  ],
+  "frames": [
+    {
+      "frame": 0,
+      "head": {
+        "before": 0.47597830886199116,
+        "after": 0.49995465338555806,
+        "ratio": 1.0503727671559058
+      },
+      "tail": {
+        "before": 0.11149456168833959,
+        "after": 0.014288442988396302,
+        "ratio": 0.12815372132980568
+      },
+      "headToTailBefore": 4.2690719767345415,
+      "headToTailAfter": 34.990142298329715,
+      "edgeAlpha": 0
+    },
+    {
+      "frame": 1,
+      "head": {
+        "before": 0.46248729950024337,
+        "after": 0.48627372625317666,
+        "ratio": 1.0514315242356633
+      },
+      "tail": {
+        "before": 0.10777656684800248,
+        "after": 0.01390335288188414,
+        "ratio": 0.12900163076721555
+      },
+      "headToTailBefore": 4.291167486829398,
+      "headToTailAfter": 34.9752847665101,
+      "edgeAlpha": 0
+    },
+    {
+      "frame": 2,
+      "head": {
+        "before": 0.46552438890133485,
+        "after": 0.48902756615573056,
+        "ratio": 1.0504875315122901
+      },
+      "tail": {
+        "before": 0.11002831901178448,
+        "after": 0.014318794387181573,
+        "ratio": 0.1301373547808903
+      },
+      "headToTailBefore": 4.230950659634047,
+      "headToTailAfter": 34.15284506030175,
+      "edgeAlpha": 0
+    },
+    {
+      "frame": 3,
+      "head": {
+        "before": 0.45638831637372956,
+        "after": 0.48014652155907767,
+        "ratio": 1.0520569969321758
+      },
+      "tail": {
+        "before": 0.10908377108345109,
+        "after": 0.01379293419215249,
+        "ratio": 0.12644350351254946
+      },
+      "headToTailBefore": 4.183833322232545,
+      "headToTailAfter": 34.81104998182749,
+      "edgeAlpha": 0
+    },
+    {
+      "frame": 4,
+      "head": {
+        "before": 0.46240282861749926,
+        "after": 0.4851218692725722,
+        "ratio": 1.0491325728326506
+      },
+      "tail": {
+        "before": 0.10699142215607811,
+        "after": 0.013791270992684958,
+        "ratio": 0.12890071666274683
+      },
+      "headToTailBefore": 4.321868232978063,
+      "headToTailAfter": 35.17600876162075,
+      "edgeAlpha": 0
+    },
+    {
+      "frame": 5,
+      "head": {
+        "before": 0.4691291686495322,
+        "after": 0.4925439730566912,
+        "ratio": 1.0499112099010224
+      },
+      "tail": {
+        "before": 0.11086253740741032,
+        "after": 0.014251389443197194,
+        "ratio": 0.12855009254230362
+      },
+      "headToTailBefore": 4.23162936389885,
+      "headToTailAfter": 34.56111946276254,
+      "edgeAlpha": 0
+    }
+  ],
+  "width": 1536,
+  "height": 512
+}

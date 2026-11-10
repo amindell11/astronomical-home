@@ -1,11 +1,9 @@
-# Needle fleck flight check
+# Ripper bullet emphasis
 
-The owner selected needle fleck in pale gold on 2026-11-08 and requested an in-game trial on 2026-11-09. This checks the replacement implemented in commit `6d7464e42cf3e4a182c5e439f8253a426fccbfb7`.
+The owner requested a much dimmer trail and a slightly brighter bullet so the pale-gold Rippers read less like streaks. This follow-up changes only the native drawing, two palette colors, and the regenerated projectile atlas.
 
-The actual Rippers weapon fires the authored projectile through the game's presented GameHost and ObserverCam, against IllustratedBlue. The visible streak is 1.1 world units long. The current game's 60-unit-per-second speed is preserved. The pale palette and geometry follow [the approved source](https://github.com/amindell11/astronomical-home/blob/6e6b69feef17175c38b3225f3748e6c857ae8b10/history/14-ripper-needle-fleck/selected-source.json).
+The six variants retain their geometry, 0.60–0.75-unit lengths, selection, and gameplay. Both trailing layers use one fifth of their earlier opacity, without the soft halo. The detached fleck is subdued. The body and core remain pale gold with a modest brightness increase.
 
-The capture fired 14 shots and found bright warm pixels at the projected projectile positions. The source contains 101 rendered frames, with simulation time advancing by 0.02 seconds per frame. The MP4 plays at 50 frames per second. The GIF uses every second frame at 25 frames per second, so both show simulation-speed motion. Slow image acquisition made the wall-clock timestamps unsuitable for judging weapon speed.
+Across all six frames, mean alpha-weighted linear source luminance is about 5% higher in the head and 87% lower in the trail. The verification file defines the sampled regions. Both impact atlases are byte-identical. The before/after image compares the previous atlas from commit `682fe0532566dc2fdfbaff46a4b092c6fa50c161` with the new bake at enlarged and reference size.
 
-The five existing LaserHitVfxPlayModeTests passed, including flight fade and pooled reuse. The capture scenario passed. Source baking preserved both impact textures byte-for-byte. The diff contains no C#; the ReSharper ratchet skipped it and the Size-S quality pass checked the six changed files directly.
-
-This is a scripted firing scene through the game camera. The separate playable build uses the normal InitScene and hangar for the owner's flight.
+This is a baked-texture comparison, without game postprocessing. The owner's main Unity Editor was open, so it remained untouched. A separate coordinated batch imported and built the update; its receipt is included. The previous game-camera proof is preserved at evidence commit `97a102acec0c24043a9bd586a8c3519063211a42` and predates this brightness adjustment.
