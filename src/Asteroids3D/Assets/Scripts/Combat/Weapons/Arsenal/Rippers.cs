@@ -18,7 +18,7 @@ namespace Combat.Weapons.Arsenal
         [Stat, SerializeField] private Rounds rounds;
         [Stat, SerializeField] private Cooldown cooldown;
 
-        public override FirePattern FirePattern => FirePattern.Volley;
+        public override FirePattern FirePattern => FirePattern.Alternating;
         public override float ProjectileSpeed => projectilePrefab.LaserSpeed;
         public override float FireRange => fireDistance;
         public Rounds Rounds => rounds;

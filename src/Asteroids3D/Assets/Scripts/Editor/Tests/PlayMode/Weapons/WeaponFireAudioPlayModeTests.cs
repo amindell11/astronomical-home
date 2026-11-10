@@ -44,7 +44,7 @@ namespace Tests.PlayMode.Weapons
         }
 
         [UnityTest]
-        public IEnumerator RipperVolley_StartsOneFireInstance()
+        public IEnumerator RipperShot_StartsOneFireInstance()
         {
             var rippers = Mount<Rippers>(RippersPrefabPath);
             var ship = rippers.transform.parent;
@@ -52,12 +52,12 @@ namespace Tests.PlayMode.Weapons
             var fire = Fresh(RipperFire);
 
             Assert.IsNotNull(rippers.Fire(Ahead(rippers, 10f), Projectiles), "shot refused");
-            Assert.AreEqual(2, Projectiles.ActiveCount, "the shot is a two-slug volley");
+            Assert.AreEqual(1, Projectiles.ActiveCount, "the shot fires one slug");
             yield return Flush();
 
             var instances = Instances(fire);
             Debug.Log($"[FMOD] {RipperFire} instances={instances.Length}");
-            Assert.AreEqual(1, instances.Length, "ripper fire instances after one volley");
+            Assert.AreEqual(1, instances.Length, "ripper fire instances after one shot");
             AssertPlaying(instances[0], "the shot still sounds a frame later");
         }
 
@@ -77,6 +77,7 @@ namespace Tests.PlayMode.Weapons
             Time.captureDeltaTime = Time.fixedDeltaTime;
             try
             {
+                const int heldShots = 7;
                 var rippers = Mount<Rippers>(RippersPrefabPath);
                 var interval = rippers.GetComponent<Cooldown>().SecondsBetweenShots;
                 var times = new List<float>();
@@ -84,17 +85,30 @@ namespace Tests.PlayMode.Weapons
 
                 yield return new WaitForFixedUpdate();
                 yield return RipperShot(rippers, times, firstShots);
+                for (var shot = 1; shot < heldShots; shot++)
+                {
+                    yield return UntilFirable(rippers);
+                    yield return RipperShot(rippers, times, firstShots);
+                }
                 yield return UntilFirable(rippers);
-                yield return RipperShot(rippers, times, firstShots);
-                yield return UntilFirable(rippers);
+                yield return new WaitForFixedUpdate();
                 yield return new WaitForFixedUpdate();
                 yield return RipperShot(rippers, times, firstShots);
 
                 Debug.Log($"[FMOD] {RipperFire} shots at {string.Join(", ", times)} FirstShot={string.Join(", ", firstShots)}");
-                var halfStep = Time.fixedDeltaTime * 0.5f;
-                Assert.AreEqual(interval, times[1] - times[0], halfStep, "the second shot is held fire");
-                Assert.AreEqual(interval + Time.fixedDeltaTime, times[2] - times[1], halfStep, "the third shot is one step late");
-                Assert.That(firstShots, Is.EqualTo(new[] { 1f, 0f, 1f }), "opening shot, held fire, shot after a gap");
+                var gaps = new List<float>();
+                for (var shot = 1; shot < heldShots; shot++)
+                {
+                    var gap = times[shot] - times[shot - 1];
+                    gaps.Add(gap);
+                    Assert.AreEqual(interval, gap, Time.fixedDeltaTime, "held fire rounds to a physics step");
+                }
+                Assert.That(gaps, Has.Some.LessThan(interval));
+                Assert.That(gaps, Has.Some.GreaterThan(interval));
+                Assert.AreEqual((heldShots - 1) * interval, times[heldShots - 1] - times[0], Time.fixedDeltaTime);
+                Assert.That(times[heldShots] - times[heldShots - 1], Is.GreaterThan(interval + Time.fixedDeltaTime));
+                Assert.That(firstShots, Is.EqualTo(new[] { 1f, 0f, 0f, 0f, 0f, 0f, 0f, 1f }),
+                    "opening shot, held fire, shot after a gap");
             }
             finally
             {
