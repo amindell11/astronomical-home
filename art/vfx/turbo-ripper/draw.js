@@ -8,11 +8,12 @@ const RipperDrawing = (() => {
     ctx.globalAlpha=variant.brightness;
     polygon(ctx,[[0,0],[-3.2,-.9],[-5.1,-.55],[-4.1,.55],[-2.4,.7]],colors.body);
     polygon(ctx,[[-.1,0],[-3.6,-.5],[-2.6,.25]],colors.core);
-    ctx.globalAlpha=.85*variant.brightness;
+    ctx.shadowBlur=0;
+    ctx.globalAlpha=.17*variant.brightness;
     polygon(ctx,[[-4.4,-.4],[-22,-.08],[-13.2,.35],[-5.5,.22]],colors.tail);
-    ctx.globalAlpha=.8*variant.brightness;
+    ctx.globalAlpha=.16*variant.brightness;
     polygon(ctx,[[-7.1,-.2],[-18,-.1],[-9.2,.05]],colors.core);
-    ctx.globalAlpha=.7*variant.brightness;
+    ctx.globalAlpha=.14*variant.brightness;
     polygon(ctx,variant.fleck,colors.rim);ctx.restore();
   }
   function impact(ctx, time, duration, colors) {
