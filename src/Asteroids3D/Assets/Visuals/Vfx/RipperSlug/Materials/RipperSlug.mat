@@ -39,6 +39,6 @@ Material:
     - _Frames: 6
     - _Phase: 0
     m_Colors:
-    - _BaseColor: {r: 1.5, g: 1.5, b: 1.5, a: 1}
+    - _BaseColor: {r: 1.5, g: 1.15, b: 0.45, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
