@@ -59,7 +59,6 @@ namespace Game.Preview
                 return;
             }
             var live = UnityEngine.Object.FindFirstObjectByType<PreviewHost>();
-            if (!live) return;
             live.combatSector = combatSector;
             live.combatLocale = combatLocale;
             live.playerInvulnerable = playerInvulnerable;

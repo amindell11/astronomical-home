@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Game;
 using Game.Preview.Fixtures;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Sessions;
@@ -63,14 +62,18 @@ namespace Game.Preview.Sectors
                 EditorGUILayout.HelpBox("The game host has no sector run.", MessageType.Info);
                 return;
             }
+            runObject.Update();
+            fixturesObject?.Update();
+            // The run inspector can add or remove rows under an open window.
+            var count = runObject.FindProperty("sectors").arraySize +
+                        (fixturesObject?.FindProperty("fixtures").arraySize ?? 0);
+            if (pages != null && pages.List.Count != count) pages = null;
             pages ??= SectorPages.Load();
             if (pages == null || pages.List.Count == 0)
             {
                 EditorGUILayout.HelpBox("The run has no sectors.", MessageType.Info);
                 return;
             }
-            runObject.Update();
-            fixturesObject?.Update();
             if (selected >= pages.List.Count) selected = pages.List.Count - 1;
             if (selected < 0) selected = 0;
             var page = pages.List[selected];

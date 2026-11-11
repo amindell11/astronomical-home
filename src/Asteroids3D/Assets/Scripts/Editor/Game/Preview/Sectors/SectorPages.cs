@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Game;
 using Game.Preview.Fixtures;
 using Objectives;
 using Substrate.Sectors;
@@ -37,8 +36,8 @@ namespace Game.Preview.Sectors
         {
             if (!run) throw new ArgumentNullException(nameof(run));
             this.run = run;
-            this.fixtures = fixtures ?? Array.Empty<PreviewFixture>();
-            this.layouts = layouts ?? Array.Empty<Sector>();
+            this.fixtures = fixtures;
+            this.layouts = layouts;
             for (var i = 0; i < run.Sectors.Count; i++)
                 pages.Add(new Page($"Sector {i + 1}", false, i));
             for (var i = 0; i < this.fixtures.Count; i++)
@@ -58,8 +57,7 @@ namespace Game.Preview.Sectors
 
         public IReadOnlyList<string> Checks(Page page)
         {
-            if (!TryResolve(page, out var layout, out var row, out var failure))
-                return string.IsNullOrEmpty(failure) ? Array.Empty<string>() : new[] { failure };
+            if (!TryResolve(page, out var layout, out var row, out var failure)) return new[] { failure };
             if (!layout || row == null) return Array.Empty<string>();
             try
             {
@@ -164,25 +162,23 @@ namespace Game.Preview.Sectors
             failure = null;
             layout = null;
             row = null;
+            if (!page.Fixture)
+            {
+                row = run.Sectors[page.Index];
+                layout = row == null ? null : row.prefab;
+                return true;
+            }
+            var fixture = fixtures[page.Index];
+            if (fixture == null) return true;
+            layout = fixture.layout;
             try
             {
-                if (!page.Fixture)
-                {
-                    row = run.Sectors[page.Index];
-                    layout = row == null ? null : row.prefab;
-                    return true;
-                }
-                var fixture = fixtures[page.Index];
-                if (fixture == null) return true;
-                layout = fixture.layout;
                 row = fixture.Resolve(run);
                 return true;
             }
             catch (InvalidOperationException ex)
             {
                 failure = ex.Message;
-                if (page.Fixture) layout = fixtures[page.Index]?.layout;
-                row = null;
                 return false;
             }
         }
@@ -190,14 +186,9 @@ namespace Game.Preview.Sectors
         private string Label(Object asset)
         {
             var names = new List<string>();
-            var runUsers = 0;
             for (var i = 0; i < run.Sectors.Count; i++)
-            {
-                if (!SectorUses(run.Sectors[i], asset)) continue;
-                names.Add($"Sector {i + 1}");
-                runUsers++;
-            }
-            if (run.Sectors.Count > 0 && runUsers == run.Sectors.Count) return "all sectors";
+                if (SectorUses(run.Sectors[i], asset)) names.Add($"Sector {i + 1}");
+            if (run.Sectors.Count > 0 && names.Count == run.Sectors.Count) return "all sectors";
             foreach (var fixture in fixtures)
                 if (FixtureUses(fixture, asset)) AddName(names, FixtureName(fixture));
             foreach (var layout in layouts)
@@ -348,15 +339,9 @@ namespace Game.Preview.Sectors
             public Object Target => parts.Count == 0 ? null : parts[0].Target;
             public IReadOnlyList<Part> Parts => parts;
 
-            public void AddWhole(Object target)
-            {
-                if (target) parts.Add(new Part(target, null));
-            }
+            public void AddWhole(Object target) => parts.Add(new Part(target, null));
 
-            public void Add(Object target, string[] properties)
-            {
-                if (target && properties.Length > 0) parts.Add(new Part(target, properties));
-            }
+            public void Add(Object target, string[] properties) => parts.Add(new Part(target, properties));
         }
 
         internal readonly struct Part
