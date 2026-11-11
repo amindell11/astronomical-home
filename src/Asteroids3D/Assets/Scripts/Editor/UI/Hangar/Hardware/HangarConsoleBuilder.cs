@@ -139,7 +139,7 @@ namespace UI.Hangar.Hardware
                     AssetDatabase.LoadAssetAtPath<GameObject>(ProjectorPath));
                 projectorObject.transform.SetParent(root.transform, false);
                 projectorObject.transform.position = lens.position;
-                projectorObject.transform.rotation = Quaternion.LookRotation(lens.position - camera.transform.position, Vector3.up);
+                projectorObject.transform.rotation = camera.transform.rotation;
 
                 foreach (var child in root.GetComponentsInChildren<Transform>(true))
                     child.gameObject.layer = 5;
