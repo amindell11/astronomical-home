@@ -131,7 +131,7 @@ namespace UI.Hangar.Hardware
                     AssetDatabase.LoadAssetAtPath<GameObject>(ProjectorPath));
                 projectorObject.transform.SetParent(root.transform, false);
                 projectorObject.transform.position = lens.position;
-                projectorObject.transform.rotation = Quaternion.LookRotation(lens.position - camera.transform.position, Vector3.up);
+                projectorObject.transform.rotation = camera.transform.rotation;
 
                 var feature = CanopyFeature();
                 var mainView = HangarDisplayBuilder.BuildMain(root.transform, new Vector3(0f, -300f, 0f),

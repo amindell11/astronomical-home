@@ -130,10 +130,12 @@ namespace Tests.PlayMode.Hangar
             console.transform.position = new Vector3(0f, -2000f, 0f);
             var valis = AssetDatabase.LoadAssetAtPath<Ship>(ValisPath);
             var projector = console.Projector;
+            using var wiring = new SerializedObject(projector);
+            wiring.FindProperty("profile").objectReferenceValue = profile;
+            wiring.ApplyModifiedPropertiesWithoutUndo();
             projector.Open(new[] { valis }, valis);
             yield return new WaitForSeconds(EntrySeconds);
 
-            using var wiring = new SerializedObject(projector);
             var surface = (Renderer)wiring.FindProperty("surface").objectReferenceValue;
             var cone = projector.GetComponentsInChildren<Renderer>(true)
                 .Where(r => r != surface && !r.GetComponentInParent<HangarPreviewFlight>(true)).ToArray();

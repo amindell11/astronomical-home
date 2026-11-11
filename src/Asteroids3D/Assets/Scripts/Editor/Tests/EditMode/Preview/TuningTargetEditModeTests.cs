@@ -66,7 +66,7 @@ namespace Tests.EditMode.Preview
                 AssetDatabase.LoadAssetAtPath<CompanionFeelProfile>("Assets/Settings/Game/Companion/CompanionFeel.asset"),
                 AssetDatabase.LoadAssetAtPath<CompanionLineSheet>("Assets/Settings/Game/Companion/CompanionLines.asset"));
             AssertTarget(Target<HangarHologramTarget>(), new[] { PreviewEntry.Combat },
-                AssetDatabase.LoadAssetAtPath<HangarHologramProfile>("Assets/Settings/UI/HangarHologram.asset"));
+                AssetDatabase.LoadAssetAtPath<HangarHologramProfile>("Assets/Settings/UI/HangarHologramPlain.asset"));
             AssertTarget(Target<HangarDisplayTarget>(), new[] { PreviewEntry.Combat },
                 AssetDatabase.LoadAssetAtPath<HangarDisplayProfile>("Assets/Settings/UI/HangarDisplayProfile.asset"));
             AssertTarget(Target<TacticsTarget>(), new[] { PreviewEntry.CrowdedFight },
