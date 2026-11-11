@@ -84,6 +84,9 @@ namespace Substrate.Sessions
         [Tooltip("Patrols the sector's opening hunt spawns.")]
         [Stat, Min(0)] public int patrols;
 
+        [Tooltip("Armories the sector places; each opens the weapon pick.")]
+        [Stat, Min(0)] public int armories;
+
         [Tooltip("Asteroid field preset, for a layout whose field names none of its own.")]
         public AsteroidFieldSettings field;
 

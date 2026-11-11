@@ -43,7 +43,7 @@ namespace Substrate.Sectors.Elements.Stations
             float spacing = 0f, RepairStation repairs = null)
         {
             this.feel = feel;
-            ConfigurePlacement(distance, hunt, spacing, repairs);
+            ConfigurePlacement(distance, hunt, spacing, repairs ? new FindStation[] { repairs } : Array.Empty<FindStation>());
         }
 #endif
     }
