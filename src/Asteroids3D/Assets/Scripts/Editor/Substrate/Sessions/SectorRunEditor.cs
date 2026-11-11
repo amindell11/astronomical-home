@@ -28,12 +28,13 @@ namespace Substrate.Sessions
                 drawHeaderCallback = rect =>
                 {
                     var line = new Rect(rect.x, rect.y, rect.width, EditorGUIUtility.singleLineHeight);
-                    var (index, sector, faction, elite, patrols, field) = Columns(line);
+                    var (index, sector, faction, elite, patrols, armories, field) = Columns(line);
                     EditorGUI.LabelField(index, "#");
                     EditorGUI.LabelField(sector, "Sector");
                     EditorGUI.LabelField(faction, "Faction");
                     EditorGUI.LabelField(elite, "Elite");
                     EditorGUI.LabelField(patrols, "Patrols");
+                    EditorGUI.LabelField(armories, "Armories");
                     EditorGUI.LabelField(field, "Field");
                     line.y += Line;
                     EditorGUI.LabelField(LocaleLine(line), "Locale");
@@ -54,12 +55,13 @@ namespace Substrate.Sessions
         private static void DrawRow(Rect rect, int i, SerializedProperty row)
         {
             var line = new Rect(rect.x, rect.y + 2f, rect.width, EditorGUIUtility.singleLineHeight);
-            var (index, sector, faction, elite, patrols, field) = Columns(line);
+            var (index, sector, faction, elite, patrols, armories, field) = Columns(line);
             EditorGUI.LabelField(index, (i + 1).ToString());
             Draw(sector, row, nameof(SectorEntry.prefab));
             Draw(faction, row, nameof(SectorEntry.faction));
             Draw(elite, row, nameof(SectorEntry.elite));
             Draw(patrols, row, nameof(SectorEntry.patrols));
+            Draw(armories, row, nameof(SectorEntry.armories));
             Draw(field, row, nameof(SectorEntry.field));
 
             line.y += Line;
@@ -102,9 +104,9 @@ namespace Substrate.Sessions
         private static Rect LocaleLine(Rect line) =>
             new(line.x + IndexWidth + Gap, line.y, line.width - IndexWidth - Gap, line.height);
 
-        private static (Rect index, Rect sector, Rect faction, Rect elite, Rect patrols, Rect field) Columns(Rect rect)
+        private static (Rect index, Rect sector, Rect faction, Rect elite, Rect patrols, Rect armories, Rect field) Columns(Rect rect)
         {
-            var column = (rect.width - IndexWidth - PatrolsWidth - (WideColumns + 1) * Gap) / WideColumns;
+            var column = (rect.width - IndexWidth - 2f * PatrolsWidth - (WideColumns + 1) * Gap) / WideColumns;
             var x = rect.x;
             Rect Next(float width)
             {
@@ -112,7 +114,7 @@ namespace Substrate.Sessions
                 x += width + Gap;
                 return next;
             }
-            return (Next(IndexWidth), Next(column), Next(column), Next(column), Next(PatrolsWidth), Next(column));
+            return (Next(IndexWidth), Next(column), Next(column), Next(column), Next(PatrolsWidth), Next(PatrolsWidth), Next(column));
         }
     }
 }

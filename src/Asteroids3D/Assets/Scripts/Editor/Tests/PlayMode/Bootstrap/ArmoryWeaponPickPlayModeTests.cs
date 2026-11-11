@@ -53,7 +53,6 @@ namespace Tests.PlayMode.Bootstrap
 
         private GameObject hostGo;
         private GameObject templateRoot;
-        private ArmoryFeelProfile feel;
         private PlayerRig rig;
         private string dir;
 
@@ -68,7 +67,6 @@ namespace Tests.PlayMode.Bootstrap
             if (hostGo) hostGo.GetComponent<UnitService>().Clear();
             DestroyTestObject(hostGo);
             DestroyTestObject(templateRoot);
-            if (feel) Object.DestroyImmediate(feel);
             if (Directory.Exists(dir)) Directory.Delete(dir, true);
             Time.timeScale = 1f;
             base.TearDown();
@@ -187,17 +185,15 @@ namespace Tests.PlayMode.Bootstrap
         private SectorEntry TrialRowWithOneArmory()
         {
             var row = TestAssets.TrialRow(0).WithLocale(AssetDatabase.LoadAssetAtPath<LocaleSky>(LocalePath));
+            row.armories = 1;
             row.prefab = TrialSectorWithOneArmory();
             return row;
         }
 
         private Sector TrialSectorWithOneArmory()
         {
-            feel = ScriptableObject.CreateInstance<ArmoryFeelProfile>();
-            feel.stationsPerSector = new[] { 1 };
             var sector = Object.Instantiate(AssetDatabase.LoadAssetAtPath<Sector>(SectorPrefabPath), TemplateRoot());
             using var serialized = new SerializedObject(sector.Modules.OfType<Armory>().Single());
-            serialized.FindProperty("feel").objectReferenceValue = feel;
             serialized.FindProperty("hunt").objectReferenceValue = null;
             serialized.ApplyModifiedPropertiesWithoutUndo();
             return sector;

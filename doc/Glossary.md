@@ -689,11 +689,11 @@ Format: **term** — definition. *(authority)*
   The first fly-in opens one *lull pick*, then the station goes dark; the
   hunt's alarm darkens an unclaimed one, and its pick is lost. Headless and RL
   runs claim it with no pick. *(ModStation, ModStationFeelProfile)*
-- **armory** — the third *station* kind: a *find* in sectors 2 and 3, one each,
-  none in sector 1, spaced from the repair and mod stations. Each fly-in opens
+- **armory** — the third *station* kind: a *find* whose count per sector its run
+  row names, spaced from the repair and mod stations. Each fly-in opens
   the *weapon pick*. Taking a weapon spends it; a skip leaves it live to come
   back to. The hunt's alarm darkens it like any find, and its swap is lost.
-  Headless and RL runs get no pick. *(Armory, ArmoryFeelProfile)*
+  Headless and RL runs get no pick. *(Armory, `SectorEntry.armories`)*
 - **find** — a sector object the player goes looking for and uses once:
   repair stations, mod stations and armories. A live find registers
   with the objective service. In range the minimap shows the find's own

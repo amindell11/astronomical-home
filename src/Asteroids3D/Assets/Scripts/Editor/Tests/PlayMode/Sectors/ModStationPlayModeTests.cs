@@ -76,7 +76,7 @@ namespace Tests.PlayMode.Sectors
             ShipTestFactory.MoveKinematicShip(hero, station.Position);
             yield return new WaitForFixedUpdate();
             yield return null;
-            Assert.AreEqual(new[] { $"arrived Mod {SectorIndex}", "claimed Mod" }, _beats);
+            Assert.AreEqual(new[] { "arrived Mod", "claimed Mod" }, _beats);
             Assert.AreEqual(1, module.Claims, "The fly-in counts one claim.");
             Assert.IsTrue(station.Spent);
             Assert.IsFalse(station.Lit.activeSelf, "A claimed station goes dark.");
@@ -230,7 +230,7 @@ namespace Tests.PlayMode.Sectors
             var prefab = AssetDatabase.LoadAssetAtPath<ModStation>(ModStationPath);
             var module = Track(Object.Instantiate(prefab.gameObject)).GetComponent<ModStation>();
             module.Configure(feel, Distance, hunt, spacing, repairs);
-            module.Arrived += (kind, sector) => _beats.Add($"arrived {kind} {sector}");
+            module.Arrived += kind => _beats.Add($"arrived {kind}");
             module.FindClaimed += kind => _beats.Add($"claimed {kind}");
             return module;
         }

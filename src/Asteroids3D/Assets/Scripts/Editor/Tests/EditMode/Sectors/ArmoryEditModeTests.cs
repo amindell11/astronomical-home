@@ -3,18 +3,19 @@ using NUnit.Framework;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sectors.Elements.Stations;
+using Substrate.Sessions;
 using UnityEditor;
 using UnityEngine;
 
 namespace Tests.EditMode.Sectors
 {
-    /// <summary>The trial sector, which every survival trial row flies, carries one armory module on the shipped feel, set up after its repair and mod stations, reading the sector's own hunt and spaced from both, with its own find icon and a find-layer minimap marker that goes dark with its glow.</summary>
+    /// <summary>The trial sector, which every survival trial row flies, carries one armory module, set up after its repair and mod stations, reading the sector's own hunt and spaced from both, with its own find icon and a find-layer minimap marker that goes dark with its glow. The trial run's rows place no armory, then one, then one.</summary>
     [TestFixture]
     [Category("Sectors")]
     [Category("RequiresLfsPng")]
     public class ArmoryEditModeTests
     {
-        private const string FeelPath = "Assets/Settings/Game/ArmoryFeel.asset";
+        private const string RunPath = "Assets/Settings/Game/SurvivalTrialRun.asset";
 
         [Test]
         public void TrialSector_CarriesOneArmory_AfterItsRepairAndModStations()
@@ -28,8 +29,6 @@ namespace Tests.EditMode.Sectors
                 "The armory sets up after the stations it is spaced from, so it never reads a previous sector's.");
 
             using var serialized = new SerializedObject(armory);
-            Assert.AreSame(AssetDatabase.LoadAssetAtPath<ArmoryFeelProfile>(FeelPath),
-                serialized.FindProperty("feel").objectReferenceValue);
             Assert.AreSame(prefab.GetComponentInChildren<SectorHunt>(true), serialized.FindProperty("hunt").objectReferenceValue,
                 "The armory reads the sector's own hunt for its alarm.");
             var spacedFrom = serialized.FindProperty("spacedFrom");
@@ -52,10 +51,10 @@ namespace Tests.EditMode.Sectors
         }
 
         [Test]
-        public void TheFeel_PlacesNoneInSectorOne_AndOneInSectorsTwoAndThree()
+        public void TheTrialRun_PlacesNoneInSectorOne_AndOneInSectorsTwoAndThree()
         {
-            CollectionAssert.AreEqual(new[] { 0, 1, 1 },
-                AssetDatabase.LoadAssetAtPath<ArmoryFeelProfile>(FeelPath).stationsPerSector);
+            var rows = AssetDatabase.LoadAssetAtPath<SectorRun>(RunPath).Sectors;
+            CollectionAssert.AreEqual(new[] { 0, 1, 1 }, rows.Select(row => row.armories).ToArray());
         }
     }
 }

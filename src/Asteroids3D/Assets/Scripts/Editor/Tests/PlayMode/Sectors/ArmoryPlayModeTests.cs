@@ -21,7 +21,7 @@ using Random = UnityEngine.Random;
 
 namespace Tests.PlayMode.Sectors
 {
-    /// <summary>The shipped armory prefab: the shipped feel places none in sector 1 and one in sectors 2 and 3; every fly-in counts a claim, only a take spends the armory and darkens it, the alarm darkens an untaken one, and it picks its point spaced from the repair and mod stations.</summary>
+    /// <summary>The shipped armory prefab: a one-row run at sector index 0 places the one armory its row asks for; every fly-in counts a claim, only a take spends the armory and darkens it, the alarm darkens an untaken one, and it picks its point spaced from the repair and mod stations.</summary>
     [TestFixture]
     [Category("Sectors")]
     [Category("RequiresLfsPng")]
@@ -30,7 +30,6 @@ namespace Tests.PlayMode.Sectors
         private const string ArmoryPath = "Assets/Prefabs/Objectives/Armory.prefab";
         private const string RepairStationPath = "Assets/Prefabs/Objectives/Repair Station.prefab";
         private const string ModStationPath = "Assets/Prefabs/Objectives/Mod Station.prefab";
-        private const string FeelPath = "Assets/Settings/Game/ArmoryFeel.asset";
         private const float Distance = 40f;
         private const float Spacing = 20f;
 
@@ -58,20 +57,14 @@ namespace Tests.PlayMode.Sectors
         }
 
         [Test]
-        public void TheShippedFeel_PlacesNoneInSectorOne_AndOneInSectorsTwoAndThree()
+        public void AOneRowRun_AtSectorIndexZero_PlacesTheOneArmoryItsRowAsksFor()
         {
             var hero = SpawnHero();
-            var armory = NewArmory(AssetDatabase.LoadAssetAtPath<ArmoryFeelProfile>(FeelPath));
-            var placed = new List<int>();
-            for (var index = 0; index < 3; index++)
-            {
-                Drive(armory.Setup(Context(hero, index)));
-                placed.Add(armory.Stations.Count);
-                Drive(armory.Teardown(Context(hero, index)));
-            }
-            CollectionAssert.AreEqual(new[] { 0, 1, 1 }, placed);
-            Assert.Throws<InvalidOperationException>(() => Drive(armory.Setup(Context(hero, 3))),
-                "A sector the feel does not list is an authoring error.");
+            var run = Track(SectorRun.Create(new SectorEntry { armories = 1 }));
+            var armory = NewArmory();
+            Drive(armory.Setup(Context(hero, 0, run.Sectors[0])));
+            Assert.AreEqual(1, run.Sectors.Count);
+            Assert.AreEqual(1, armory.Stations.Count, "Sector index 0 places the row's one armory.");
         }
 
         [UnityTest]
@@ -79,7 +72,7 @@ namespace Tests.PlayMode.Sectors
         public IEnumerator EachFlyIn_Claims_AndOnlyATakeSpendsTheArmory()
         {
             var hero = SpawnHero();
-            var armory = NewArmory(ScratchFeel());
+            var armory = NewArmory();
             Drive(armory.Setup(Context(hero, 1)));
             yield return null;
             yield return null;
@@ -88,7 +81,7 @@ namespace Tests.PlayMode.Sectors
 
             yield return MoveTo(hero, station.Position);
             Assert.AreEqual(1, armory.Claims, "A fly-in counts a claim.");
-            Assert.AreEqual(new[] { "arrived Armory 1", "claimed Armory" }, _beats);
+            Assert.AreEqual(new[] { "arrived Armory", "claimed Armory" }, _beats);
             yield return null;
             Assert.AreEqual(1, armory.Claims, "Sitting in the armory claims nothing more.");
             Assert.IsFalse(station.Spent, "A claim alone leaves the armory live.");
@@ -116,7 +109,7 @@ namespace Tests.PlayMode.Sectors
         {
             var hero = SpawnHero();
             var hunt = NewHunt(hero);
-            var armory = NewArmory(ScratchFeel(), hunt);
+            var armory = NewArmory(hunt);
             Drive(armory.Setup(Context(hero, 1)));
             yield return null;
             yield return null;
@@ -140,7 +133,7 @@ namespace Tests.PlayMode.Sectors
             var hero = SpawnHero();
             var repairs = NewRepairStations();
             var mods = NewModStations(repairs);
-            var armory = NewArmory(ScratchFeel(), spacing: Spacing, spacedFrom: new FindStation[] { repairs, mods });
+            var armory = NewArmory(spacing: Spacing, spacedFrom: new FindStation[] { repairs, mods });
             Drive(repairs.Setup(Context(hero, 1)));
             Drive(mods.Setup(Context(hero, 1)));
             Drive(armory.Setup(Context(hero, 1)));
@@ -165,13 +158,6 @@ namespace Tests.PlayMode.Sectors
             yield return null;
         }
 
-        private ArmoryFeelProfile ScratchFeel()
-        {
-            var feel = Track(ScriptableObject.CreateInstance<ArmoryFeelProfile>());
-            feel.stationsPerSector = new[] { 0, 1 };
-            return feel;
-        }
-
         private SectorHunt NewHunt(Ship hero)
         {
             var feel = Track(ScriptableObject.CreateInstance<HuntFeelProfile>());
@@ -182,13 +168,12 @@ namespace Tests.PlayMode.Sectors
             return hunt;
         }
 
-        private Armory NewArmory(ArmoryFeelProfile feel, SectorHunt hunt = null, float spacing = 0f,
-            params FindStation[] spacedFrom)
+        private Armory NewArmory(SectorHunt hunt = null, float spacing = 0f, params FindStation[] spacedFrom)
         {
             var prefab = AssetDatabase.LoadAssetAtPath<Armory>(ArmoryPath);
             var armory = Track(Object.Instantiate(prefab.gameObject)).GetComponent<Armory>();
-            armory.Configure(feel, Distance, hunt, spacing, spacedFrom);
-            armory.Arrived += (kind, sector) => _beats.Add($"arrived {kind} {sector}");
+            armory.Configure(Distance, hunt, spacing, spacedFrom);
+            armory.Arrived += kind => _beats.Add($"arrived {kind}");
             armory.FindClaimed += kind => _beats.Add($"claimed {kind}");
             return armory;
         }
@@ -213,8 +198,9 @@ namespace Tests.PlayMode.Sectors
             return mods;
         }
 
-        private SectorBuildContext Context(Ship hero, int sectorIndex) =>
-            new(null, _objectives, true, _sector, default, hero: hero, sectorIndex: sectorIndex, row: new SectorEntry());
+        private SectorBuildContext Context(Ship hero, int sectorIndex = 0, SectorEntry row = null) =>
+            new(null, _objectives, true, _sector, default, hero: hero, sectorIndex: sectorIndex,
+                row: row ?? new SectorEntry { armories = 1 });
 
         // Exactly the live armories are finds, with the armory's own icon.
         private void AssertFinds(Armory armory, params FindStation.Station[] live)

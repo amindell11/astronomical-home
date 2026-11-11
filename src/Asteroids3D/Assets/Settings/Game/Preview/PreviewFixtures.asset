@@ -63,6 +63,7 @@ MonoBehaviour:
       interval: 5
       cap: 3
     patrols: 0
+    armories: 0
     field: {fileID: 11400000, guid: 65c274c56b444d04a85ecd6e8e524e72, type: 2}
   - prefab: {fileID: 5635113095588088862, guid: f723c6016bd24885ac1e93945c2abb22,
       type: 3}
@@ -108,6 +109,7 @@ MonoBehaviour:
       interval: 8
       cap: 0
     patrols: 0
+    armories: 0
     field: {fileID: 11400000, guid: 65c274c56b444d04a85ecd6e8e524e72, type: 2}
   - prefab: {fileID: 1519815187641978970, guid: 2f9d8deb03b03e34b9dbd850cb4838ec,
       type: 3}
@@ -153,6 +155,7 @@ MonoBehaviour:
       interval: 1
       cap: 0
     patrols: 0
+    armories: 1
     field: {fileID: 11400000, guid: a0fc7334cfbc685438c4771846e9c413, type: 2}
   - prefab: {fileID: 5422950104811178362, guid: a7c3e91b4d2f48a0b6e15c9d37f0842a,
       type: 3}
@@ -198,6 +201,7 @@ MonoBehaviour:
       interval: 1
       cap: 0
     patrols: 0
+    armories: 0
     field: {fileID: 11400000, guid: 65c274c56b444d04a85ecd6e8e524e72, type: 2}
   - prefab: {fileID: 2158550228056517816, guid: e2b84f6c1a9053d7b4e8c0f29a6d1735,
       type: 3}
@@ -243,6 +247,7 @@ MonoBehaviour:
       interval: 1
       cap: 0
     patrols: 0
+    armories: 1
     field: {fileID: 11400000, guid: ec31aa679f82416fb7b89fe199eb3ccb, type: 2}
   - prefab: {fileID: 5118994164757538795, guid: b3d3522379e400e44a8538125a81b289,
       type: 3}
@@ -253,6 +258,7 @@ MonoBehaviour:
     roster: []
     phases: []
     patrols: 0
+    armories: 0
     field: {fileID: 0}
   - prefab: {fileID: 3455886813209594610, guid: abcb4c3e297233a41bdfaed93bb9015b,
       type: 3}
@@ -264,6 +270,7 @@ MonoBehaviour:
     roster: []
     phases: []
     patrols: 0
+    armories: 0
     field: {fileID: 0}
   - prefab: {fileID: 19402951431243477, guid: 6070e8d7339d411c9e8584227c25613e, type: 3}
     locale: {fileID: 836507228316825353, guid: efda15947979b3345b239b9741b2c488, type: 3}
@@ -308,5 +315,6 @@ MonoBehaviour:
       interval: 2
       cap: 6
     patrols: 0
+    armories: 0
     field: {fileID: 11400000, guid: 65c274c56b444d04a85ecd6e8e524e72, type: 2}
   localePool: []

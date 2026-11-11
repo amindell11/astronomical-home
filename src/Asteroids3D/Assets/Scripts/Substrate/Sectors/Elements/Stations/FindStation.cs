@@ -45,11 +45,10 @@ namespace Substrate.Sectors.Elements.Stations
         private readonly List<GameObject> copies = new();
         private Ship hero;
         private IObjectiveService objectives;
-        private int sectorIndex;
         private bool shown;
 
-        /// <summary>The hero reached a station for the first time: station kind, sector index.</summary>
-        public event Action<StationKind, int> Arrived;
+        /// <summary>The hero reached a station for the first time: station kind.</summary>
+        public event Action<StationKind> Arrived;
 
         /// <summary>The hero claimed a find, on its first arrival: station kind.</summary>
         public event Action<StationKind> FindClaimed;
@@ -59,8 +58,6 @@ namespace Substrate.Sectors.Elements.Stations
         public IReadOnlyList<Station> Stations => stations;
 
         public float ClearRadius => clearRadius;
-
-        protected int SectorIndex => sectorIndex;
 
         protected abstract int StationsPerSector { get; }
 
@@ -84,7 +81,6 @@ namespace Substrate.Sectors.Elements.Stations
 
             hero = ctx.Hero;
             objectives = ctx.Objectives;
-            sectorIndex = ctx.SectorIndex;
             shown = false;
             ClearStations();
             body.gameObject.SetActive(false);
@@ -143,7 +139,7 @@ namespace Substrate.Sectors.Elements.Stations
                 if (!station.HasArrived)
                 {
                     station.HasArrived = true;
-                    Arrived?.Invoke(Kind, sectorIndex);
+                    Arrived?.Invoke(Kind);
                     FindClaimed?.Invoke(Kind);
                 }
                 if (entered) Enter(station);

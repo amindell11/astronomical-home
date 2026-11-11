@@ -50,7 +50,6 @@ namespace Tests.EditMode.Preview
                 AssetDatabase.LoadAssetAtPath<HuntFeelProfile>("Assets/Settings/Game/HuntFeel.asset"),
                 AssetDatabase.LoadAssetAtPath<RepairStationFeelProfile>("Assets/Settings/Game/RepairStationFeel.asset"),
                 AssetDatabase.LoadAssetAtPath<ModStationFeelProfile>("Assets/Settings/Game/ModStationFeel.asset"),
-                AssetDatabase.LoadAssetAtPath<ArmoryFeelProfile>("Assets/Settings/Game/ArmoryFeel.asset"),
                 AssetDatabase.LoadAssetAtPath<BeaconCacheFeelProfile>("Assets/Settings/Game/BeaconCacheFeel.asset"),
                 AssetDatabase.LoadAssetAtPath<UnityEngine.ScriptableObject>("Assets/Settings/Game/BeaconCache/DamageSurge.asset"),
                 AssetDatabase.LoadAssetAtPath<UnityEngine.ScriptableObject>("Assets/Settings/Game/BeaconCache/FireRateSurge.asset"),
