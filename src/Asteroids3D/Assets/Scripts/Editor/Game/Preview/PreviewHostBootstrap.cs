@@ -27,17 +27,19 @@ namespace Game.Preview
 
         /// <summary>False when the user kept an unsaved scene open instead.</summary>
         public static bool EnterPlayMode(PreviewEntry entry = PreviewEntry.RunRecap,
-            int combatSector = PreviewHost.WholeRun, LocaleSky combatLocale = null)
+            int combatSector = PreviewHost.WholeRun, LocaleSky combatLocale = null,
+            bool playerInvulnerable = false)
         {
             if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return false;
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-            BuildHost(entry, combatSector, combatLocale);
+            BuildHost(entry, combatSector, combatLocale, playerInvulnerable);
             EditorApplication.EnterPlaymode();
             return true;
         }
 
         internal static PreviewHost BuildHost(PreviewEntry entry = PreviewEntry.RunRecap,
-            int combatSector = PreviewHost.WholeRun, LocaleSky combatLocale = null)
+            int combatSector = PreviewHost.WholeRun, LocaleSky combatLocale = null,
+            bool playerInvulnerable = false)
         {
             var root = new GameObject("PreviewHost");
             root.SetActive(false);
@@ -56,6 +58,7 @@ namespace Game.Preview
             host.entry = entry;
             host.combatSector = combatSector;
             host.combatLocale = combatLocale;
+            host.playerInvulnerable = playerInvulnerable;
             return host;
         }
 
