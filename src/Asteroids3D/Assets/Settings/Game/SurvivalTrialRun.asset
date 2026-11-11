@@ -115,6 +115,7 @@ MonoBehaviour:
       breather: 4
       longestWait: 12
     patrols: 1
+    armories: 0
     field: {fileID: 11400000, guid: 65c274c56b444d04a85ecd6e8e524e72, type: 2}
   - prefab: {fileID: 9090061438643016835, guid: 35f72eeaa8adb4c43832be646409d034,
       type: 3}
@@ -259,6 +260,7 @@ MonoBehaviour:
       breather: 4
       longestWait: 12
     patrols: 2
+    armories: 1
     field: {fileID: 11400000, guid: ec31aa679f82416fb7b89fe199eb3ccb, type: 2}
   - prefab: {fileID: 9090061438643016835, guid: 35f72eeaa8adb4c43832be646409d034,
       type: 3}
@@ -439,6 +441,7 @@ MonoBehaviour:
       breather: 4
       longestWait: 12
     patrols: 2
+    armories: 1
     field: {fileID: 11400000, guid: a0fc7334cfbc685438c4771846e9c413, type: 2}
   localePool:
   - {fileID: 836507228316825353, guid: efda15947979b3345b239b9741b2c488, type: 3}

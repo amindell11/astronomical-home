@@ -77,7 +77,7 @@ namespace Tests.PlayMode.Sectors
             ShipTestFactory.MoveKinematicShip(hero, station.Position);
             yield return new WaitForFixedUpdate();
             yield return null;
-            Assert.AreEqual(new[] { $"arrived Repair {SectorIndex}", "claimed Repair" }, _beats);
+            Assert.AreEqual(new[] { "arrived Repair", "claimed Repair" }, _beats);
 
             var before = hero.Damage.Health.Pct;
             yield return null;
@@ -251,7 +251,7 @@ namespace Tests.PlayMode.Sectors
             Assert.AreEqual(.2f, second.SupplyLeft, "The other station keeps its own supply.");
             Assert.IsTrue(second.Lit.activeSelf);
             AssertFinds(module, second);
-            Assert.AreEqual(new[] { $"arrived Repair {SectorIndex}", "claimed Repair" }, _beats);
+            Assert.AreEqual(new[] { "arrived Repair", "claimed Repair" }, _beats);
 
             ShipTestFactory.MoveKinematicShip(hero, second.Position);
             yield return new WaitForFixedUpdate();
@@ -299,7 +299,7 @@ namespace Tests.PlayMode.Sectors
             var prefab = AssetDatabase.LoadAssetAtPath<RepairStation>(StationPath);
             var station = Track(Object.Instantiate(prefab.gameObject)).GetComponent<RepairStation>();
             station.Configure(feel, Distance, hunt, spacing);
-            station.Arrived += (kind, sector) => _beats.Add($"arrived {kind} {sector}");
+            station.Arrived += kind => _beats.Add($"arrived {kind}");
             station.FindClaimed += kind => _beats.Add($"claimed {kind}");
             return station;
         }

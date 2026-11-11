@@ -124,7 +124,7 @@ namespace Tests.EditMode.Companion
 
             foreach (var moment in new[]
                      {
-                         SectorEntered.SectorSlot, CacheClaimed.CacheSlot, ModPicked.PickSlot,
+                         SectorEntered.SectorSlot, CacheClaimed.CacheSlot, ModPicked.PickSlot, ArmoryPicked.PickSlot,
                          CloseCall.CloseCallSlot,
                      })
                 Assert.DoesNotThrow(() => sheet.Find(moment), $"{moment} has a line slot");

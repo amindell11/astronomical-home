@@ -12,6 +12,7 @@ namespace Tests.EditMode.Sectors
     {
         [TestCase("Assets/Prefabs/Objectives/Repair Station.prefab")]
         [TestCase("Assets/Prefabs/Objectives/Mod Station.prefab")]
+        [TestCase("Assets/Prefabs/Objectives/Armory.prefab")]
         public void ACopiedBody_PointsAtItsOwnParts(string path)
         {
             var module = AssetDatabase.LoadAssetAtPath<GameObject>(path).GetComponent<FindStation>();

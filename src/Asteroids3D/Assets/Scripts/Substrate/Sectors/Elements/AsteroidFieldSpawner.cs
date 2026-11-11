@@ -16,6 +16,8 @@ namespace Substrate.Sectors.Elements
         [SerializeField] private RepairStation repairs;
         [Tooltip("The sector's mod stations, read for their points and clear radius; unset for none.")]
         [SerializeField] private ModStation mods;
+        [Tooltip("The sector's armories, read for their points and clear radius; unset for none.")]
+        [SerializeField] private Armory armories;
 
         public void CheckRow(SectorEntry row)
         {
@@ -51,6 +53,9 @@ namespace Substrate.Sectors.Elements
             if (mods)
                 foreach (var station in mods.Stations)
                     volumes.Add(Clearing(station.Position, mods.ClearRadius));
+            if (armories)
+                foreach (var station in armories.Stations)
+                    volumes.Add(Clearing(station.Position, armories.ClearRadius));
             return volumes.ToArray();
         }
 
