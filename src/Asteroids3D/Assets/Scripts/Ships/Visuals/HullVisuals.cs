@@ -25,6 +25,7 @@ namespace Ships.Visuals
         private readonly List<Color> contourColors = new();
         private MaterialPropertyBlock block;
         private ShipVisualRig rig;
+        private Renderer[] renderers;
         private IDamageEvents source;
         private bool subscribed;
         private bool flashHeld;
@@ -33,6 +34,7 @@ namespace Ships.Visuals
         private void Awake()
         {
             rig = GetComponentInParent<ShipVisualRig>(true);
+            renderers = rig.GetComponentsInChildren<Renderer>(true);
             block = new MaterialPropertyBlock();
             Scan();
         }
@@ -46,9 +48,10 @@ namespace Ships.Visuals
             surfaces.AddRange(rig.Silhouette);
             foreach (var surface in surfaces)
                 surfaceColors.Add(Worn(surface, BaseColor));
-            foreach (var renderer in rig.GetComponentsInChildren<Renderer>(true))
+            // The hangar preview strips rig parts between Awake and its wear.
+            foreach (var renderer in renderers)
             {
-                if (!renderer.sharedMaterial || !renderer.sharedMaterial.HasProperty(ContourColor)) continue;
+                if (!renderer || !renderer.sharedMaterial || !renderer.sharedMaterial.HasProperty(ContourColor)) continue;
                 contours.Add(renderer);
                 contourColors.Add(Worn(renderer, ContourColor));
             }

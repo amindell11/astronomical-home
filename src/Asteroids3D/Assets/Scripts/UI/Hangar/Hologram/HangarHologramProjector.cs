@@ -79,10 +79,7 @@ namespace UI.Hangar.Hologram
                 min = Vector2.Min(min, screen);
                 max = Vector2.Max(max, screen);
             }
-            var pixels = Vector2Int.CeilToInt(max - min);
-            if (pixels.x < 1) pixels.x = 1;
-            if (pixels.y < 1) pixels.y = 1;
-            stage.Resize(pixels, frame);
+            stage.Resize(Vector2Int.CeilToInt(max - min), frame);
         }
 
         private void LateUpdate()

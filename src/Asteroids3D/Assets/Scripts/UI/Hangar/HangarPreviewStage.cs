@@ -24,7 +24,7 @@ namespace UI.Hangar
         // The approved ink weight: contour widths as drawn on the original 768 px preview texture.
         private const float InkReferenceTextureSize = 768f;
         private const float FramingMargin = 1.05f;
-        // The framing square's side, in framing radii, at the anchor's depth.
+        // Measured at the anchor's depth.
         internal static readonly float FrameSideInRadii =
             2f * FramingMargin / Mathf.Cos(CameraFovDeg * .5f * Mathf.Deg2Rad);
         private const float MinFramedRadius = 0.5f;

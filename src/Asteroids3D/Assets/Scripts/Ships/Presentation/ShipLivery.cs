@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Ships.Presentation
 {
-    /// <summary>The colours a ship wears over its authored paint, pushed once at spawn through <see cref="ShipVisualRig.Wear"/>.</summary>
+    /// <summary>The colours and shaders a ship wears over its authored paint, pushed once at spawn through <see cref="ShipVisualRig.Wear"/>.</summary>
     public readonly struct ShipLivery
     {
         /// <summary>Every hull material slot in silhouette order; empty keeps the authored paint.</summary>

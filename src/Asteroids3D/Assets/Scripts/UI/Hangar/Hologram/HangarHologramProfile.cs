@@ -7,7 +7,7 @@ namespace UI.Hangar.Hologram
     /// <summary>
     /// Dresses hangar preview copies through its restyle. <c>_DebrisVisibility</c> (swoop fade) and
     /// <c>_ContourPixels</c> (ink scale) stay driven per copy, so a counterpart shader that wants them
-    /// declares those names. The cone prefab is authored in framing-radius units with its base at the origin.
+    /// declares those names.
     /// </summary>
     [CreateAssetMenu(menuName = "Astronomical/UI/Hangar hologram")]
     public sealed class HangarHologramProfile : ScriptableObject
