@@ -17,6 +17,7 @@ using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
+using Substrate.Sessions;
 
 namespace Tests.PlayMode
 {
@@ -95,8 +96,12 @@ namespace Tests.PlayMode
             var directorGO = new GameObject("WaveDirector");
             directorGO.transform.SetParent(sectorGO.transform, false);
             var director = directorGO.AddComponent<WaveDirector>();
-            director.Configure(new[] { new WaveDirector.RosterEntry { template = template } },
-                new[] { new SectorPhase { seconds = 1f, interval = 1f, cap = 0 } }, lullSeconds: 0f);
+            var row = new SectorEntry
+            {
+                roster = new[] { new WaveDirector.RosterEntry { template = template } },
+                phases = new[] { new SectorPhase { seconds = 1f, interval = 1f, cap = 0 } }
+            };
+            director.Configure(row.roster, row.phases, lullSeconds: 0f);
 
             var zone = NewZone(sectorGO.transform, "Zone");
 
@@ -104,7 +109,7 @@ namespace Tests.PlayMode
             spine.Bind(director, zone, NewZone(sectorGO.transform, "Beacon"));
 
             sector.SetManifest(null, new SectorSpawner[] { director }, new SectorModule[] { spine });
-            sector.Initialize(_unitService, _objectives, true, default, player);
+            sector.Initialize(_unitService, _objectives, true, default, player, row);
             SectorResult? got = null;
             ((ISector)sector).OnSectorComplete += r => got = r;
 
@@ -154,18 +159,23 @@ namespace Tests.PlayMode
             directorGO.transform.SetParent(sectorGO.transform, false);
             var director = directorGO.AddComponent<WaveDirector>();
             // One-second phases sit inside the default lead, so the beacon opens with the sector.
-            director.Configure(new[] { new WaveDirector.RosterEntry { template = template } }, new[]
+            var row = new SectorEntry
             {
-                new SectorPhase { seconds = 1f, interval = 1f, cap = 0 },
-                new SectorPhase { seconds = 1f, interval = 1f, cap = 0 },
-            }, lullSeconds: 5f);
+                roster = new[] { new WaveDirector.RosterEntry { template = template } },
+                phases = new[]
+                {
+                    new SectorPhase { seconds = 1f, interval = 1f, cap = 0 },
+                    new SectorPhase { seconds = 1f, interval = 1f, cap = 0 },
+                }
+            };
+            director.Configure(row.roster, row.phases, lullSeconds: 5f);
 
             var beacon = NewZone(sectorGO.transform, "Beacon");
             var spine = sectorGO.AddComponent<PhaseSpineModule>();
             spine.Bind(director, NewZone(sectorGO.transform, "Zone"), beacon);
 
             sector.SetManifest(null, new SectorSpawner[] { director }, new SectorModule[] { spine });
-            sector.Initialize(_unitService, _objectives, true, default, player);
+            sector.Initialize(_unitService, _objectives, true, default, player, row);
 
             yield return sector.Setup();
             yield return WaitSeconds(() => _objectives.SpineTarget == beacon.transform, 5f);

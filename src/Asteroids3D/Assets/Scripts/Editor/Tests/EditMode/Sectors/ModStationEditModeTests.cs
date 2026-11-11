@@ -17,8 +17,6 @@ namespace Tests.EditMode.Sectors
         private const string FeelPath = "Assets/Settings/Game/ModStationFeel.asset";
 
         [TestCase("TrialSector")]
-        [TestCase("TrialSector2")]
-        [TestCase("TrialSector3")]
         public void TrialSector_CarriesOneModStation_AfterItsRepairStations(string sector)
         {
             var prefab = AssetDatabase.LoadAssetAtPath<Sector>($"Assets/Prefabs/Sectors/{sector}.prefab");
@@ -35,10 +33,10 @@ namespace Tests.EditMode.Sectors
             Assert.AreEqual(180f, serialized.FindProperty("distanceMax").floatValue);
             Assert.AreSame(prefab.GetComponentInChildren<SectorHunt>(true), serialized.FindProperty("hunt").objectReferenceValue,
                 "The mod stations read the sector's own hunt for its alarm.");
-            Assert.AreSame(repairs, serialized.FindProperty("repairs").objectReferenceValue,
+            Assert.AreSame(repairs, serialized.FindProperty("spacedFrom").objectReferenceValue,
                 "The mod stations keep their spacing from the sector's own repair stations.");
 
-            var body = (ModStationBody)serialized.FindProperty("body").objectReferenceValue;
+            var body = (FindStationBody)serialized.FindProperty("body").objectReferenceValue;
             var lit = body.Lit;
             var zone = body.Zone;
             Assert.AreSame(body.gameObject, zone.gameObject, "The zone hides and shows with the body.");

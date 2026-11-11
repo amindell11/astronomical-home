@@ -7,6 +7,7 @@ using Ships;
 using Ships.Command;
 using Ships.Loadout;
 using Ships.Weapons;
+using UI.Hangar.Hardware;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -40,7 +41,12 @@ namespace UI.Hangar
         [Tooltip("The square inside the preview image where the selected ship settles.")]
         [SerializeField] internal RectTransform previewFrame;
 
+        [Header("Console hardware")]
+        [SerializeField] private HangarConsole consolePrefab;
+        [SerializeField] private RawImage hardwareImage;
+
         private HangarPreviewStage previewStage;
+        private HangarConsole console;
         private readonly List<Action> refreshers = new();
         private readonly Vector3[] previewCorners = new Vector3[4];
         private readonly Vector3[] frameCorners = new Vector3[4];
@@ -52,6 +58,8 @@ namespace UI.Hangar
                 throw new InvalidOperationException("HangarScreen previewImage must ignore pointer hits.");
             if (previewImage && !previewFrame)
                 throw new InvalidOperationException("HangarScreen previewImage needs a previewFrame to settle the ship in.");
+            if ((bool)consolePrefab != (bool)hardwareImage)
+                throw new InvalidOperationException("HangarScreen console prefab and hardware image must be assigned together.");
         }
 
         /// <summary>Mutates <paramref name="loadout"/> in place as options are picked.</summary>
@@ -72,6 +80,13 @@ namespace UI.Hangar
             }
 
             if (gated && !Selectable(loadout.Ship)) Reseed(offer.starter);
+
+            if (consolePrefab)
+            {
+                console = Instantiate(consolePrefab, transform.parent);
+                console.transform.position = new Vector3(0f, -2000f, 0f);
+                ResizeConsole();
+            }
 
             if (previewImage)
             {
@@ -116,10 +131,19 @@ namespace UI.Hangar
         // Resolution and layout can change while the hangar is open; the preview follows its on-screen size.
         private void LateUpdate()
         {
+            if (console) ResizeConsole();
             if (!previewStage) return;
             var (surface, frame) = PreviewLayout();
             previewStage.Resize(surface, frame);
             previewImage.texture = previewStage.Texture;
+        }
+
+        private void ResizeConsole()
+        {
+            hardwareImage.rectTransform.GetWorldCorners(previewCorners);
+            var pixels = Vector2Int.CeilToInt(previewCorners[2] - previewCorners[0]);
+            console.Resize(pixels);
+            hardwareImage.texture = console.Texture;
         }
 
         // Overlay canvas: world corners are screen pixels.
@@ -203,8 +227,13 @@ namespace UI.Hangar
         {
             var lasers = weapon as Lasers;
             if (lasers)
-                return $"Damage {lasers.Damage:0}{Rate(lasers.ShotsPerSecond)}   |   Speed {lasers.ProjectileSpeed:0}" +
+            {
+                var damage = lasers.FirePattern == FirePattern.Volley
+                    ? $"Damage {lasers.Damage:0} per bolt   |   2 bolts per shot"
+                    : $"Damage {lasers.Damage:0}";
+                return $"{damage}{Rate(lasers.ShotsPerSecond)}   |   Speed {lasers.ProjectileSpeed:0}" +
                        (lasers.ShotsToOverheat is int shots ? $"   |   Overheats after {shots} shots" : "");
+            }
 
             var railguns = weapon as Railguns;
             if (railguns)
@@ -212,7 +241,7 @@ namespace UI.Hangar
 
             var rippers = weapon as Rippers;
             if (rippers)
-                return $"Damage {rippers.Damage:0} per slug   |   2 slugs per shot{Rate(rippers.ShotsPerSecond)}" +
+                return $"Damage {rippers.Damage:0} per slug{Rate(rippers.ShotsPerSecond)}" +
                        (rippers.Rounds ? $"   |   Mag {rippers.Rounds.MaxAmmo}{Refill(rippers.Rounds)}" : "") +
                        $"   |   Speed {rippers.ProjectileSpeed:0}";
 
@@ -257,6 +286,7 @@ namespace UI.Hangar
 
         private void OnDestroy()
         {
+            if (console) Destroy(console.gameObject);
             if (previewStage)
                 Destroy(previewStage.gameObject);
         }

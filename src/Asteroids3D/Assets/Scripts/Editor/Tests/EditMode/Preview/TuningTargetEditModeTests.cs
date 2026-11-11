@@ -41,8 +41,8 @@ namespace Tests.EditMode.Preview
                 AssetDatabase.LoadAssetAtPath<DeathFeelProfile>("Assets/Settings/Ships/DeathFeel.asset"), game.recapFeel);
             AssertTarget(Target<FlightCameraTarget>(), new[] { PreviewEntry.Combat },
                 AssetDatabase.LoadAssetAtPath<FlightCameraProfile>("Assets/Settings/Cameras/FlightCamera.asset"));
-            var fields = new[] { "Sector1", "Sector2", "Big" }.Select(field =>
-                AssetDatabase.LoadAssetAtPath<AsteroidFieldSettings>($"Assets/Settings/Asteroids/{field}FieldSettings.asset"));
+            var fields = new[] { "SparseField", "MediumField", "DenseField" }.Select(field =>
+                AssetDatabase.LoadAssetAtPath<AsteroidFieldSettings>($"Assets/Settings/Asteroids/{field}.asset"));
             AssertTarget(Target<AsteroidsTarget>(), new[] { PreviewEntry.Combat }, fields.ToArray());
             AssertTarget(Target<FlightAssistTarget>(), new[] { PreviewEntry.Combat },
                 AssetDatabase.LoadAssetAtPath<FlightAssistProfile>("Assets/Settings/Game/FlightAssist.asset"));
@@ -64,7 +64,9 @@ namespace Tests.EditMode.Preview
                 AssetDatabase.LoadAssetAtPath<CompanionFeelProfile>("Assets/Settings/Game/Companion/CompanionFeel.asset"),
                 AssetDatabase.LoadAssetAtPath<CompanionLineSheet>("Assets/Settings/Game/Companion/CompanionLines.asset"));
             AssertTarget(Target<TacticsTarget>(), new[] { PreviewEntry.CrowdedFight },
-                AssetDatabase.LoadAssetAtPath<TacticsSettings>("Assets/Settings/AI/Tactics/TacticsSettings.asset"));
+                new[] { "Wave", "Elite", "Escort" }.Select(kind =>
+                    AssetDatabase.LoadAssetAtPath<TacticsSettings>($"Assets/Settings/AI/Tactics/{kind}Temper.asset"))
+                    .ToArray());
         }
 
         [Test]

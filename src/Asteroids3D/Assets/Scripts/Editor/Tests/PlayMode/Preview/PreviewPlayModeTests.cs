@@ -38,6 +38,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
+using Substrate.Sectors.Elements.Hunt;
 
 namespace Tests.PlayMode.Preview
 {
@@ -425,11 +426,8 @@ namespace Tests.PlayMode.Preview
             host.entry = fixture.Entry;
             host.gameHostPrefab = TestAssets.Load<GameHost>("Assets/Prefabs/Game/GameHost.prefab");
             host.sessionProfile = new SessionProfile();
-            var sector = new SectorEntry
-            {
-                prefab = TestAssets.Load<Sector>($"Assets/Prefabs/Sectors/Preview/{fixture.Name}.prefab"),
-                locale = TestAssets.Load<LocaleSky>("Assets/Prefabs/Locales/IllustratedBlue.prefab")
-            };
+            var sector = TestAssets.FixtureRow(fixture.Name)
+                .WithLocale(TestAssets.Load<LocaleSky>("Assets/Prefabs/Locales/IllustratedBlue.prefab"));
             switch (fixture.Entry)
             {
                 case PreviewEntry.Boss:
@@ -477,7 +475,7 @@ namespace Tests.PlayMode.Preview
 
         [UnityTest]
         [Timeout(180000)]
-        public IEnumerator Playtest_CrowdedFight_RunsOnlyItsFixture_AndFillsWithArchetypePilots()
+        public IEnumerator Playtest_CrowdedFight_RunsOnlyItsFixture_AndItsShipsFlyTactics()
         {
             var root = new GameObject("Crowded fight playtest test");
             root.SetActive(false);
@@ -485,11 +483,7 @@ namespace Tests.PlayMode.Preview
             host.entry = PreviewEntry.CrowdedFight;
             host.gameHostPrefab = TestAssets.Load<GameHost>("Assets/Prefabs/Game/GameHost.prefab");
             host.sessionProfile = new SessionProfile();
-            host.crowdedFightSector = new SectorEntry
-            {
-                prefab = TestAssets.Load<Sector>("Assets/Prefabs/Sectors/Preview/CrowdedFightSector.prefab"),
-                locale = TestAssets.Load<LocaleSky>("Assets/Prefabs/Locales/IllustratedBlue.prefab")
-            };
+            host.crowdedFightSector = TestAssets.FixtureRow("CrowdedFightSector");
             root.SetActive(true);
 
             var fight = host.Playtest;
@@ -498,13 +492,13 @@ namespace Tests.PlayMode.Preview
             Assert.That(fight.ActiveSector.name, Does.StartWith("CrowdedFightSector"));
             var ships = fight.GetComponent<UnitService>().ActiveRegistry.ActiveShips;
             yield return AsyncAssert.WaitUntil(
-                () => ships.Count(FliesAnArchetype) >= 4, 15f, "the fixture's waves fill with today's archetype pilots");
+                () => ships.Count(FliesATactic) >= 4, 15f, "the fixture's waves fill with archetype pilots flying tactics");
         }
 
-        private static bool FliesAnArchetype(Ship ship)
+        private static bool FliesATactic(Ship ship)
         {
             var commander = ship.Commander as AI.AICommander;
-            return commander && commander.Brain as RL.Opponents.ArchetypeBrain;
+            return commander && commander.Brain as RL.Opponents.ArchetypeBrain && commander.Brain.CurrentTactic.HasValue;
         }
 
         [UnityTest]
@@ -524,11 +518,16 @@ namespace Tests.PlayMode.Preview
 
             var picked = host.Playtest;
             yield return LaunchFromHangar(picked);
-            var second = shipped.sessionProfile.run.Sectors[1].prefab;
-            Assert.That(picked.sessionProfile.run.Sectors.Select(row => row.prefab), Is.EqualTo(new[] { second }),
+            var second = shipped.sessionProfile.run.Sectors[1];
+            Assert.That(picked.sessionProfile.run.Sectors.Select(row => row.prefab), Is.EqualTo(new[] { second.prefab }),
                 "the Sector pick flies alone");
-            Assert.That(picked.ActiveSector.name, Does.StartWith(second.name));
+            Assert.That(picked.ActiveSector.name, Does.StartWith(second.prefab.name));
             Assert.That(LocaleInstances.Shown(), Is.EqualTo("CoralSunset"));
+            var hunt = picked.ActiveSector.GetComponentInChildren<SectorHunt>();
+            Assert.That(second.patrols, Is.Not.EqualTo(shipped.sessionProfile.run.Sectors[0].patrols),
+                "test premise: sectors 1 and 2 ask for different patrol counts");
+            yield return AsyncAssert.WaitUntil(() => hunt.Spawned.Count > 0, 10f, "the hunt spawns its patrols");
+            Assert.That(hunt.Spawned.Count, Is.EqualTo(second.patrols), "a sector flown alone flies its own patrol count");
 
             host.combatSector = PreviewHost.WholeRun;
             host.combatLocale = TestAssets.Load<LocaleSky>("Assets/Prefabs/Locales/BlueCrescent.prefab");

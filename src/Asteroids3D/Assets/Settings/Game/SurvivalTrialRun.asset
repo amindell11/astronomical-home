@@ -11,20 +11,161 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5ff6a407a5e94238a299908e425a3664, type: 3}
   m_Name: SurvivalTrialRun
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   sectors:
   - prefab: {fileID: 9090061438643016835, guid: 35f72eeaa8adb4c43832be646409d034,
       type: 3}
     locale: {fileID: 0}
     random: 1
-  - prefab: {fileID: 2953836036986906632, guid: bec7b7260051bcf4a820bf8a41c799e4,
+    faction: {fileID: 11400000, guid: b8e87030f2d54df6bf6f209b2666c769, type: 2}
+    elite: {fileID: 11400000, guid: 6eb906335616460983af1abe9f7c5ea2, type: 2}
+    roster:
+    - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
+        type: 3}
+      pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
+        type: 3}
+    - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
+        type: 3}
+      pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
+        type: 3}
+    - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
+        type: 3}
+      pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
+        type: 3}
+    - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
+        type: 3}
+      pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
+        type: 3}
+    - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
+        type: 3}
+      pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
+        type: 3}
+    - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
+        type: 3}
+      pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
+        type: 3}
+    - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
+        type: 3}
+      pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
+        type: 3}
+    - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
+        type: 3}
+      pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
+        type: 3}
+    phases:
+    - seconds: 40
+      interval: 8
+      cap: 1
+    - seconds: 30
+      interval: 6
+      cap: 2
+    - seconds: 20
+      interval: 5
+      cap: 3
+    patrols: 1
+    field: {fileID: 11400000, guid: 65c274c56b444d04a85ecd6e8e524e72, type: 2}
+  - prefab: {fileID: 9090061438643016835, guid: 35f72eeaa8adb4c43832be646409d034,
       type: 3}
     locale: {fileID: 0}
     random: 1
-  - prefab: {fileID: 7692005886971173018, guid: 09c73779418090c498dc37d26f9f005c,
+    faction: {fileID: 11400000, guid: d2f3d0db478d4212936af9c856faf5c8, type: 2}
+    elite: {fileID: 11400000, guid: 21315f95bf1e425ba68af48ed9c9bee1, type: 2}
+    roster:
+    - template: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637,
+        type: 3}
+      pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
+        type: 3}
+    - template: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637,
+        type: 3}
+      pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
+        type: 3}
+    - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
+        type: 3}
+      pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
+        type: 3}
+    - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
+        type: 3}
+      pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
+        type: 3}
+    - template: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637,
+        type: 3}
+      pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
+        type: 3}
+    - template: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637,
+        type: 3}
+      pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
+        type: 3}
+    - template: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637,
+        type: 3}
+      pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
+        type: 3}
+    - template: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637,
+        type: 3}
+      pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
+        type: 3}
+    phases:
+    - seconds: 40
+      interval: 5
+      cap: 3
+    - seconds: 30
+      interval: 4
+      cap: 4
+    - seconds: 20
+      interval: 3.5
+      cap: 5
+    patrols: 2
+    field: {fileID: 11400000, guid: ec31aa679f82416fb7b89fe199eb3ccb, type: 2}
+  - prefab: {fileID: 9090061438643016835, guid: 35f72eeaa8adb4c43832be646409d034,
       type: 3}
     locale: {fileID: 0}
     random: 1
+    faction: {fileID: 11400000, guid: 899c66c060c147a0bc54fc07a43d283b, type: 2}
+    elite: {fileID: 11400000, guid: d0bcf0c7e3eb9754dabe2ed134c1ecd2, type: 2}
+    roster:
+    - template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
+        type: 3}
+      pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
+        type: 3}
+    - template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
+        type: 3}
+      pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
+        type: 3}
+    - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
+        type: 3}
+      pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
+        type: 3}
+    - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
+        type: 3}
+      pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
+        type: 3}
+    - template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
+        type: 3}
+      pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
+        type: 3}
+    - template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
+        type: 3}
+      pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
+        type: 3}
+    - template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
+        type: 3}
+      pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
+        type: 3}
+    - template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
+        type: 3}
+      pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
+        type: 3}
+    phases:
+    - seconds: 40
+      interval: 4
+      cap: 4
+    - seconds: 30
+      interval: 3.5
+      cap: 5
+    - seconds: 20
+      interval: 3
+      cap: 6
+    patrols: 2
+    field: {fileID: 11400000, guid: a0fc7334cfbc685438c4771846e9c413, type: 2}
   localePool:
   - {fileID: 836507228316825353, guid: efda15947979b3345b239b9741b2c488, type: 3}
   - {fileID: 1719099133570245750, guid: 299ed7319f205e940ad8b61b4d851b30, type: 3}

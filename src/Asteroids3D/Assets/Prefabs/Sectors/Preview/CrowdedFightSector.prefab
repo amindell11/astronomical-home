@@ -58,11 +58,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1227466035045939097, guid: 35f72eeaa8adb4c43832be646409d034,
-        type: 3}
-      propertyPath: hunt
-      value: 
-      objectReference: {fileID: 0}
     - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
         type: 3}
       propertyPath: hunt
@@ -73,25 +68,10 @@ PrefabInstance:
       propertyPath: openingLullSeconds
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
+    - target: {fileID: 1227466035045939097, guid: 35f72eeaa8adb4c43832be646409d034,
         type: 3}
-      propertyPath: phases.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
-        type: 3}
-      propertyPath: phases.Array.data[0].cap
-      value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
-        type: 3}
-      propertyPath: phases.Array.data[0].seconds
-      value: 60
-      objectReference: {fileID: 0}
-    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
-        type: 3}
-      propertyPath: phases.Array.data[0].interval
-      value: 2
+      propertyPath: hunt
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 5823190446372318541, guid: 35f72eeaa8adb4c43832be646409d034,
         type: 3}

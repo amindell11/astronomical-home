@@ -29,13 +29,20 @@ const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypt
     }
     result[kind]=png(atlas);
    }
-   const slug=canvas(256,512),sc=slug.getContext('2d');sc.translate(128,256);sc.rotate(Math.PI/2);sc.scale(448/28,448/28);sc.translate(-14,0);RipperDrawing.slug(sc,settings.slug.colors);result.slug=png(slug);
+   const slug=canvas(256*settings.slug.variants.length,512),sc=slug.getContext('2d'),slugScale=448/22;
+   settings.slug.variants.forEach((variant,index)=>{
+    const frame=canvas(256,512),fc=frame.getContext('2d');
+    fc.translate(128,256);fc.rotate(-Math.PI/2);fc.scale(slugScale,slugScale);
+    fc.rotate(variant.angleDegrees*Math.PI/180);fc.scale(variant.lengthScale,variant.widthScale);fc.translate(11,0);
+    RipperDrawing.slug(fc,settings.slug.colors,settings.slug.shadowBlur*slugScale,variant);
+    sc.drawImage(frame,index*256,0);
+   });result.slug=png(slug);
    return result;
   },{source:'data:image/png;base64,'+source.toString('base64'),settings,baseline});
   const names={turbo:'TurboLaserImpact.png',ripper:'RipperImpact.png',slug:'RipperSlug.png'};
   for(const [key,name] of Object.entries(names))fs.writeFileSync(path.join(output,name),Buffer.from(images[key],'base64'));
   const effect=(kind,duration,fraction,fadeInTexture)=>({texture:names[kind],columns:5,rows:4,durationSeconds:duration/1000,solidWidthFraction:fraction,worldLength:settings[kind].worldLength,fadeInTexture});
-  const manifest={sourceHash,turbo:effect('turbo',baseline.durationMs,96/256,false),ripper:effect('ripper',settings.ripper.durationMs,76*31/34/256,true),slug:{texture:names.slug,solidLengthFraction:448/512,worldLength:settings.slug.worldLength}};
+  const manifest={sourceHash,turbo:effect('turbo',baseline.durationMs,96/256,false),ripper:effect('ripper',settings.ripper.durationMs,76*31/34/256,true),slug:{texture:names.slug,frames:settings.slug.variants.length,solidLengthFraction:448/512,worldLength:settings.slug.worldLength}};
   const manifestPath=path.join(output,'bake.json');fs.writeFileSync(manifestPath,JSON.stringify(manifest,null,2)+'\n');
   process.stdout.write(JSON.stringify({manifest:manifestPath,textures:Object.values(names).map(name=>path.join(output,name)),...manifest})+'\n');
  }finally{await browser.close();}

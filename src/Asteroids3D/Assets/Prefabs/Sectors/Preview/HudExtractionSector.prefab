@@ -63,21 +63,6 @@ PrefabInstance:
       propertyPath: openingLullSeconds
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
-        type: 3}
-      propertyPath: phases.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
-        type: 3}
-      propertyPath: phases.Array.data[0].seconds
-      value: 1.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
-        type: 3}
-      propertyPath: phases.Array.data[0].cap
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 1227466035045939097, guid: 35f72eeaa8adb4c43832be646409d034,
         type: 3}
       propertyPath: zoneDistance

@@ -1,13 +1,15 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Asteroids.Fields.Core;
 using Substrate.Sectors.Elements.Stations;
+using Substrate.Sessions;
 using UnityEngine;
 
 namespace Substrate.Sectors.Elements
 {
-    /// <summary>Bridges the sector lifecycle to an <see cref="Asteroids.Fields.AsteroidField"/> sibling (its base class blocks deriving <see cref="SectorSpawner"/>); the sector builds under an inactive holder, so the field's Awake has not run during <see cref="Produce"/> — only pre-Awake-safe stashes here, wiring runs in the field's Start. The station clearings are handed over as a source because the station modules pick their points after spawners produce, and the field reads it at Start.</summary>
-    public class AsteroidFieldSpawner : SectorSpawner
+    /// <summary>Bridges the sector lifecycle to an <see cref="Asteroids.Fields.AsteroidField"/> sibling (its base class blocks deriving <see cref="SectorSpawner"/>); the sector builds under an inactive holder, so the field's Awake has not run during <see cref="Produce"/> — only pre-Awake-safe stashes here, wiring runs in the field's Start. A field that names no preset of its own takes the run row's. The station clearings are handed over as a source because the station modules pick their points after spawners produce, and the field reads it at Start.</summary>
+    public class AsteroidFieldSpawner : SectorSpawner, ISectorRowReader
     {
         [SerializeField] private Asteroids.Fields.AsteroidField field;
         [Tooltip("The sector's repair stations, read for their points and clear radius; unset for none.")]
@@ -15,9 +17,19 @@ namespace Substrate.Sectors.Elements
         [Tooltip("The sector's mod stations, read for their points and clear radius; unset for none.")]
         [SerializeField] private ModStation mods;
 
+        public void CheckRow(SectorEntry row)
+        {
+            var ownPreset = field && field.settings;
+            if (ownPreset == (bool)row.field)
+                throw new InvalidOperationException(ownPreset
+                    ? $"The asteroid field on '{name}' names its own preset, and the row names another."
+                    : $"The asteroid field on '{name}' takes the row's preset, and the row names none.");
+        }
+
         protected override IEnumerator Produce(SectorBuildContext ctx)
         {
             if (!field) field = GetComponent<Asteroids.Fields.AsteroidField>();
+            if (field && ctx.Row.field) field.settings = ctx.Row.field;
             if (field) field.SetPresentation(ctx.PresentationEnabled);
             if (field is Asteroids.Fields.UpdatingAsteroidField updating)
             {

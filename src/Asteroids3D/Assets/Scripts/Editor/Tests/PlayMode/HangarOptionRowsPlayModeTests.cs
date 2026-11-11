@@ -265,10 +265,12 @@ namespace Tests.PlayMode
         // Patterns, not values, so balance tuning never breaks it.
         [TestCase("Assets/Prefabs/Weapons/Lasers.prefab",
             @"Damage \d+", @"Rate [\d.]+/s", @"Speed \d+", @"Overheats after \d+ shots")]
+        [TestCase("Assets/Prefabs/Weapons/TurboLasers.prefab",
+            @"Damage \d+ per bolt", "2 bolts per shot", @"Rate [\d.]+/s", @"Speed \d+", @"Overheats after \d+ shots")]
         [TestCase("Assets/Prefabs/Weapons/Railgun.prefab",
             @"Damage \d+", @"Range \d+", @"Full charge [\d.]+s", "Hitscan")]
         [TestCase("Assets/Prefabs/Weapons/Rippers.prefab",
-            @"Damage \d+ per slug", "2 slugs per shot", @"Rate [\d.]+/s", @"Mag \d+ \(reload [\d.]+s\)", @"Speed \d+")]
+            @"Damage \d+ per slug", @"Rate [\d.]+/s", @"Mag \d+ \(reload [\d.]+s\)", @"Speed \d+")]
         [TestCase("Assets/Prefabs/Weapons/Missiles.prefab",
             @"Damage \d+ \+ \d+ splash", @"\d+ rounds \(shared recharge [\d.]+s/round\)", "Lock-on homing",
             "Direct hit skips shields")]

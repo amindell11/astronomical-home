@@ -88,7 +88,7 @@ namespace Tests.PlayMode.Bootstrap
 
             var record = JsonUtility.FromJson<RunRecord>(lines[0]);
             Assert.AreEqual(RunRecord.SchemaId, record.schema);
-            Assert.AreEqual(sectorPrefab.name, record.sector);
+            Assert.AreEqual("Sector 1", record.sector, "named by its run row");
             Assert.AreEqual(TestCommit, record.buildIdentity.commit);
             StringAssert.IsMatch(StatHashShape.ToString(), record.statFingerprint);
             Assert.AreEqual(playerHash, record.player.statHash, "the player's hash is the one taken at run begin");

@@ -1,11 +1,10 @@
 using System;
+using System.Linq;
 using AI;
 using Capture;
 using Capture.Recording;
 using Game.Player;
 using Ships;
-using Substrate.Sectors;
-using Substrate.Services.Locales;
 using Substrate.Sessions;
 using UnityEngine;
 #if UNITY_EDITOR
@@ -26,7 +25,8 @@ public static class TestAssets
     private const string TestPilotMpcPath = "Assets/Prefabs/Pilots/TestPilotMPC.prefab";
     private const string PlayerPilotPath = "Assets/Prefabs/Pilots/PlayerPilot.prefab";
     private const string ObserverCamPrefabPath = "Assets/Prefabs/Cameras/Main Camera.prefab";
-    private const string HudFixtureLocalePath = "Assets/Prefabs/Locales/IllustratedBlue.prefab";
+    private const string TrialRunPath = "Assets/Settings/Game/SurvivalTrialRun.asset";
+    private const string PreviewFixturesPath = "Assets/Settings/Game/Preview/PreviewFixtures.asset";
 
     public static Ship LoadCrimsonPrefab() => Load<Ship>(CrimsonPrefabPath);
 
@@ -35,11 +35,15 @@ public static class TestAssets
     public static PlayerCommander LoadPlayerPilot() => Load<PlayerCommander>(PlayerPilotPath);
 
     // Replay appends both HUD rows to its run, so every test preview host needs them.
-    public static SectorEntry HudFixture(string name) => new()
-    {
-        prefab = Load<Sector>($"Assets/Prefabs/Sectors/Preview/{name}.prefab"),
-        locale = Load<LocaleSky>(HudFixtureLocalePath)
-    };
+    public static SectorEntry HudFixture(string name) => FixtureRow(name);
+
+    /// <summary>The preview fixtures run's row flying the fixture layout named <paramref name="layout"/>.</summary>
+    public static SectorEntry FixtureRow(string layout) =>
+        Load<SectorRun>(PreviewFixturesPath).Sectors.SingleOrDefault(row => row.prefab && row.prefab.name == layout)
+        ?? throw new InvalidOperationException($"'{PreviewFixturesPath}' has no row flying the {layout} layout.");
+
+    /// <summary>The shipped run's row at <paramref name="index"/>, the way a test flies the trial layout.</summary>
+    public static SectorEntry TrialRow(int index) => Load<SectorRun>(TrialRunPath).Sectors[index];
 
     public static T Load<T>(string assetPath) where T : UnityEngine.Object
     {

@@ -180,10 +180,8 @@ jobs:
               curl -sSL https://dot.net/v1/dotnet-install.sh -o /tmp/di.sh
               bash /tmp/di.sh --channel 9.0 --install-dir /tmp/dotnet --no-path
               bash /tmp/di.sh --channel 8.0 --runtime dotnet --install-dir /tmp/dotnet --no-path
-              mkdir -p /tmp/pwsh
-              curl -sSL https://github.com/PowerShell/PowerShell/releases/download/v7.4.6/powershell-7.4.6-linux-x64.tar.gz | tar -xz -C /tmp/pwsh
-              chmod +x /tmp/pwsh/pwsh
               export DOTNET_ROOT=/tmp/dotnet PATH=/tmp/dotnet:/tmp/pwsh:$PATH
+              dotnet tool install PowerShell --version 7.4.6 --tool-path /tmp/pwsh
               # The container is root on a runner-owned mount: every git call fails without this.
               git config --global --add safe.directory /github/workspace
               pwsh -NoProfile -File scripts/resharper_ratchet.ps1 -BaseRef origin/main -SolutionReady

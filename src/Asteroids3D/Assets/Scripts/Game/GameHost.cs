@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Linq;
 using System.Runtime.ExceptionServices;
 using Balance;
 using Cameras;
@@ -455,8 +454,9 @@ namespace Game
                 WeaponPickScreen.MaxOffers, n => UnityEngine.Random.Range(0, n));
             if (offers.Count == 0) yield break;
 
-            var spine = sessionProfile.run.Sectors[destination].prefab.Module<PhaseSpineModule>();
-            var screen = WeaponPickScreen.Create(ui, destination + 1, spine ? spine.Threat() : null, offers,
+            var row = sessionProfile.run.Sectors[destination];
+            var spine = row.prefab.Module<PhaseSpineModule>();
+            var screen = WeaponPickScreen.Create(ui, destination + 1, spine ? spine.Threat(row) : null, offers,
                 primary, secondary, rigInstance.Mods);
             try
             {
@@ -594,11 +594,10 @@ namespace Game
                 return Scoreboard.Read(runRecords.Path, null);
             }
 
-            var sectors = sessionProfile.run.Sectors.Select(entry => entry.prefab).ToArray();
             var sectorsCleared = killingBlow.HasValue ? endedIn : endedIn + 1;
-            var record = RunRecord.Compose(DateTime.UtcNow, sectorsCleared, sectors[endedIn].name, locales, identity,
-                StatHash.OfSetting(hangarOffer, sectors, killHullRestore), rigInstance.Loadout, playerLoadoutStatHash,
-                rigInstance.Tally, rigInstance.Ledger, rigInstance.Spawns, killingBlow);
+            var record = RunRecord.Compose(DateTime.UtcNow, sectorsCleared, endedIn, locales, identity,
+                StatHash.OfSetting(hangarOffer, sessionProfile.run.Sectors, killHullRestore), rigInstance.Loadout,
+                playerLoadoutStatHash, rigInstance.Tally, rigInstance.Ledger, rigInstance.Spawns, killingBlow);
             var board = Scoreboard.Read(runRecords.Path, record);
             return runRecords.Append(record) ? board : Scoreboard.Read(runRecords.Path, null);
         }

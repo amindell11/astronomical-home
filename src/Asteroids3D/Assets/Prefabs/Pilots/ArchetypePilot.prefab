@@ -145,6 +145,7 @@ MonoBehaviour:
   jukeSeed: 1
   borderRadius: 500
   liveTargeting: 1
+  tactics: {fileID: 11400000, guid: d2f17eabe14a41288e6fe539086406e8, type: 2}
   evadeMissiles: 1
   reactionDelay: 0.4
   closingSpeedFloor: 15

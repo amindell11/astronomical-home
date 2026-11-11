@@ -31,6 +31,7 @@ namespace Combat.Projectiles.Visual
         [Serializable] private sealed class Slug
         {
             public string texture;
+            public int frames;
             public float solidLengthFraction;
             public float worldLength;
         }
@@ -89,8 +90,8 @@ namespace Combat.Projectiles.Visual
             var material = Material("RipperSlug", "LaserBolt/Shaders/CrackleFlipbook.shader");
             material.SetTexture(BaseMap, texture);
             material.SetTexture(GlowMap, Texture2D.blackTexture);
-            material.SetColor(BaseColor, Color.white);
-            material.SetFloat(Frames, 1f);
+            material.SetColor(BaseColor, new Color(1.5f, 1.15f, 0.45f, 1f));
+            material.SetFloat(Frames, settings.frames);
             material.SetFloat(Fps, 0f);
             material.SetFloat(Crossfade, 0f);
             EditorUtility.SetDirty(material);
@@ -108,7 +109,7 @@ namespace Combat.Projectiles.Visual
                 }
                 visual.gameObject.layer = root.layer;
                 var height = settings.worldLength / settings.solidLengthFraction;
-                visual.localScale = new Vector3(height * texture.width / texture.height / root.transform.localScale.x,
+                visual.localScale = new Vector3(height * texture.width / settings.frames / texture.height / root.transform.localScale.x,
                     height / root.transform.localScale.y, 1f / root.transform.localScale.z);
                 var renderer = visual.GetComponent<MeshRenderer>();
                 renderer.sharedMaterial = material;

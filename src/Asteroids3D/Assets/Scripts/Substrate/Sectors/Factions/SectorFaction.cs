@@ -1,27 +1,30 @@
 using System;
 using System.Collections;
-using Balance;
 using Substrate.Sectors.Elements;
-using UnityEngine;
+using Substrate.Sessions;
 
 namespace Substrate.Sectors.Factions
 {
-    public class SectorFaction : SectorModule
+    public class SectorFaction : SectorModule, ISectorRowReader
     {
-        [Tooltip("The faction this sector belongs to: its wave director and hunt field that faction's ships.")]
-        [Stat, SerializeField] private Faction faction;
+        /// <summary>The faction this sector's wave director, hunt and elite fly; the row's, from this module's setup on.</summary>
+        public Faction Faction { get; private set; }
 
-        public Faction Faction => faction;
+        public void CheckRow(SectorEntry row)
+        {
+            if (!row.faction)
+                throw new InvalidOperationException($"SectorFaction on '{name}' reads the row's faction, and the row names none.");
+        }
 
         public override IEnumerator Setup(SectorBuildContext ctx)
         {
-            if (!faction)
-                throw new InvalidOperationException($"SectorFaction on '{name}' names no faction.");
+            CheckRow(ctx.Row);
+            Faction = ctx.Row.faction;
             yield break;
         }
 
 #if UNITY_EDITOR
-        internal void Bind(Faction faction) => this.faction = faction;
+        internal void Bind(Faction faction) => Faction = faction;
 #endif
     }
 }

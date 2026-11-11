@@ -109,9 +109,15 @@ namespace Tests.PlayMode
                 yield return new WaitForFixedUpdate();
         }
 
+        private static void AddTrackingTint(Missile target)
+        {
+            new GameObject("Body").AddComponent<MeshRenderer>().transform.SetParent(target.transform, false);
+            target.gameObject.AddComponent<MissileTrackingTint>();
+        }
+
         private bool BodyTintedRed()
         {
-            var body = missile.GetComponent<MeshRenderer>();
+            var body = missile.GetComponentInChildren<MeshRenderer>();
             if (!body.HasPropertyBlock()) return false;
             var block = new MaterialPropertyBlock();
             body.GetPropertyBlock(block);
@@ -244,7 +250,7 @@ namespace Tests.PlayMode
         public void Dumbfire_TintsBodyRed()
         {
             missile = CreateTestMissile(GamePlane.PlanePointToWorld(Vector2.zero));
-            missile.gameObject.AddComponent<MissileTrackingTint>();
+            AddTrackingTint(missile);
 
             shooter = new GameObject("Shooter").AddComponent<StubShooter>();
             LaunchAt(missile, Vector2.up, shooter);
@@ -256,7 +262,7 @@ namespace Tests.PlayMode
         public IEnumerator LockedLaunch_TintsBodyRedOnlyAfterLosingTrack()
         {
             missile = CreateTestMissile(GamePlane.PlanePointToWorld(Vector2.zero));
-            missile.gameObject.AddComponent<MissileTrackingTint>();
+            AddTrackingTint(missile);
             targetGo = CreateTarget(new Vector2(0, -15));
 
             shooter = new GameObject("Shooter").AddComponent<StubShooter>();

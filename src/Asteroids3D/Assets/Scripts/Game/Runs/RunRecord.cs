@@ -71,7 +71,7 @@ namespace Game.Runs
         public string endedUtc;
         public string outcome;
         public int sectorsCleared;
-        /// <summary>The sector the run ended in.</summary>
+        /// <summary>The sector the run ended in, named by its run row: "Sector 2" is the run's second row.</summary>
         public string sector;
         /// <summary>The locale each of the run's sectors drew, in order; empty when the run was not presented.</summary>
         public List<string> locales;
@@ -94,7 +94,7 @@ namespace Game.Runs
         public string ToJsonLine() => JsonUtility.ToJson(this);
 
         /// <summary>A null <paramref name="killingBlow"/> is a run that extracted from its last sector.</summary>
-        public static RunRecord Compose(DateTime endedUtc, int sectorsCleared, string sector,
+        public static RunRecord Compose(DateTime endedUtc, int sectorsCleared, int endedInSector,
             IReadOnlyList<LocaleSky> locales, BuildIdentity buildIdentity, string statFingerprint,
             ShipLoadout playerLoadout, string playerLoadoutStatHash, IRunTally tally, DamageLedger ledger,
             SpawnLog spawnLog, DamageInfo? killingBlow)
@@ -108,7 +108,7 @@ namespace Game.Runs
                 endedUtc = endedUtc.ToString(EndedUtcFormat, CultureInfo.InvariantCulture),
                 outcome = killingBlow.HasValue ? Died : Extracted,
                 sectorsCleared = sectorsCleared,
-                sector = sector,
+                sector = $"Sector {endedInSector + 1}",
                 locales = locales == null ? new List<string>() : locales.Select(NameOf).ToList(),
                 buildIdentity = buildIdentity,
                 statFingerprint = statFingerprint,
