@@ -14,7 +14,7 @@ A thing is tunable when all three hold:
 
 ## Adding a target
 
-1. Add one editor class beside `HudTarget`: its name, its entries, its profiles resolved from the `GameHost` prefab, and `DrawControls` only for a control no profile owns.
+1. Add one editor class beside `HudTarget`: its name, its entries, its profiles resolved from the `GameHost` prefab, and `DrawControls` only for a control no profile owns. A material's inspector is one (`HangarHologramTarget`): its edits write the material asset at once, outside Save, Discard and the exit prompt.
 2. Register it in `TuningTarget.All`. The bootstrap snapshots every target's profiles on entry, so Save, Discard and the exit prompt cover it with no further wiring.
 3. A new entry goes in `PreviewEntry` and gets classified in `PreviewHost.IsPlaytest`. The host composes entries and stays blind to targets.
 4. Pin its entries and profiles in `TuningTargetEditModeTests`.

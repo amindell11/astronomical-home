@@ -15,11 +15,15 @@ namespace Ships.Presentation
 
         public readonly Color ShieldRing;
 
-        public ShipLivery(IReadOnlyList<Material> hull, Material flame, Color shieldRing)
+        /// <summary>Null keeps the authored shaders.</summary>
+        public readonly MaterialRestyle Restyle;
+
+        public ShipLivery(IReadOnlyList<Material> hull, Material flame, Color shieldRing, MaterialRestyle restyle = null)
         {
             Hull = hull ?? Array.Empty<Material>();
             Flame = flame;
             ShieldRing = shieldRing;
+            Restyle = restyle;
         }
     }
 

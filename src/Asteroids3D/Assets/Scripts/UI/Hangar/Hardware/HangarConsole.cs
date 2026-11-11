@@ -1,11 +1,19 @@
 using System;
+using UI.Hangar.Hologram;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace UI.Hangar.Hardware
 {
+    /// <summary>
+    /// The hangar console's own world, camera and composite image.
+    /// The hologram projector is its part at the lens.
+    /// </summary>
     public sealed class HangarConsole : MonoBehaviour
     {
         public const float ReferenceAspect = 16f / 9f;
+        // Below the hangar menu's canvas.
+        public const int CompositeSortingOrder = 50;
         private const float TallerViewVerticalBias = .36f;
         private const float TallerViewOverscan = 1.01f;
 
@@ -18,8 +26,11 @@ namespace UI.Hangar.Hardware
         [SerializeField] private Transform nextButton;
         [SerializeField] private Transform launchButton;
         [SerializeField] private MeshRenderer projectorLens;
+        [SerializeField] private RawImage compositeImage;
+        [SerializeField] private HangarHologramProjector projector;
 
         private RenderTexture texture;
+        private readonly Vector3[] corners = new Vector3[4];
 
         public Camera HardwareCamera => hardwareCamera;
         public MeshRenderer MainScreenGlass => mainScreenGlass;
@@ -29,13 +40,22 @@ namespace UI.Hangar.Hardware
         public Transform NextButton => nextButton;
         public Transform LaunchButton => launchButton;
         public MeshRenderer ProjectorLens => projectorLens;
+        public HangarHologramProjector Projector => projector;
         public Texture Texture => texture;
 
         private void Awake()
         {
             if (!hardwareCamera || !mainScreenGlass || !detailScreenGlass || !selectorKnob ||
-                !previousButton || !nextButton || !launchButton || !projectorLens)
-                throw new InvalidOperationException("HangarConsole needs its camera, glass, controls and projector lens.");
+                !previousButton || !nextButton || !launchButton || !projectorLens || !compositeImage || !projector)
+                throw new InvalidOperationException(
+                    "HangarConsole needs its camera, glass, controls, projector lens, composite image and projector.");
+        }
+
+        private void LateUpdate()
+        {
+            compositeImage.rectTransform.GetWorldCorners(corners);
+            Resize(Vector2Int.CeilToInt(corners[2] - corners[0]));
+            compositeImage.texture = texture;
         }
 
         public void Resize(Vector2Int pixels)
@@ -54,6 +74,7 @@ namespace UI.Hangar.Hardware
                 projection.m11 *= TallerViewOverscan;
             }
             hardwareCamera.projectionMatrix = projection;
+            projector.Fit(hardwareCamera);
             if (texture && texture.width == pixels.x && texture.height == pixels.y) return;
 
             ReleaseTexture();

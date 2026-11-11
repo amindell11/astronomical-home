@@ -103,8 +103,8 @@ namespace Game.Preview
             }
             else
                 DrawTransport(host);
-            Target.DrawControls(host);
             scroll = EditorGUILayout.BeginScrollView(scroll);
+            Target.DrawControls(host);
             foreach (var profile in Target.Profiles(host.gameHostPrefab)) DrawKnobs(profile);
             EditorGUILayout.EndScrollView();
         }
