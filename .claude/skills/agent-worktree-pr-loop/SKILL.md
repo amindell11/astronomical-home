@@ -227,7 +227,17 @@ a slot. A full pool parks the longest-idle slot that has no Unity editor and no 
 A build worker — Grok by default, an Opus subagent as the fallback — writes the
 implementation from the session's build brief: owner rulings, design path,
 files, tests, the verify command, and the closing `STATUS: DONE | BLOCKED` /
-`CHANGED:` / `VERIFIED:` / `NOTICED:` block. Run Grok with
+`CHANGED:` / `VERIFIED:` / `NOTICED:` block. A Grok round only edits files:
+its allow list permits no git writes, scripts or Unity, and `--verify` checks
+the edits after the round. Split the slice around that:
+- A rebase or main-merge round: integrate main yourself first (`revise`, or a
+  fetch plus a merge or rebase that takes main's side on Unity YAML), then
+  brief Grok on the integrated tree.
+- Asset, prefab and other Unity YAML changes are yours, made through the
+  editor, never as hand-written YAML.
+- Grok gets the C# and text edits.
+
+Run Grok with
 `python scripts/grok_worker.py --slot <slot> --brief <file> --verify "<cmd>"`
 with `run_in_background: true` and wait for its notification; never poll its
 output. `<cmd>` exits 0 on pass, 1 when the change is wrong, and anything else
