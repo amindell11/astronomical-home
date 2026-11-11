@@ -11,8 +11,6 @@ namespace Game.Moments
         public const string ModSlot = "station-arrived-mod";
         public const string ArmorySlot = "station-arrived-armory";
 
-        public StationKind Kind { get; }
-
         /// <summary>1-based.</summary>
         public int Sector { get; }
         public string Slot { get; }
@@ -28,7 +26,6 @@ namespace Game.Moments
                 _ => throw new ArgumentOutOfRangeException(nameof(kind), kind,
                     $"No line slot for station kind '{kind}'.")
             };
-            Kind = kind;
             Sector = sector;
             Facts = new Dictionary<string, string>
             {
