@@ -91,7 +91,7 @@ namespace Tests.PlayMode.Rendering.Projection
         private (PhaseSpineModule, WaveDirector) Phase()
         {
             var director = Child("Director").AddComponent<WaveDirector>();
-            director.Configure(null, new[] { new SectorPhase { seconds = 40f }, new SectorPhase { seconds = 40f } }, 5f);
+            director.Configure(new[] { new SectorPhase { seconds = 40f }, new SectorPhase { seconds = 40f } }, 5f);
             director.BeginSchedule(0f);
             var module = Child("Phase").AddComponent<PhaseSpineModule>();
             module.Bind(director, null, null);

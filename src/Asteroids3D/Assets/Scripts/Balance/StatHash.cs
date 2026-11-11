@@ -18,7 +18,9 @@ namespace Balance
     /// weapon's or module's fields and works on a prefab asset, where Awake never ran. Every number
     /// becomes one <c>asset/Type.field=value</c> line and every reference one line naming what it
     /// points at; the sorted, de-duplicated lines are the text both hashes are taken over, so neither
-    /// depends on list order. Nothing about values is cached: an inspector edit gives a new hash.
+    /// depends on list order. A list nested in an entry sorts the same way and keeps repeats, so a
+    /// repeat moves the hash and the order does not. Nothing about values is cached: an inspector
+    /// edit gives a new hash.
     /// Why marks, and what each hash covers: https://github.com/amindell11/astronomical-home/issues/772#issuecomment-5905846586
     /// </summary>
     public static class StatHash
@@ -109,6 +111,12 @@ namespace Balance
                     if (!reference) return null;
                     Visit(reference, lines, visited);
                     return AssetName(reference);
+                case IList items:
+                    var entries = new List<string>(items.Count);
+                    foreach (var item in items)
+                        entries.Add(Text(key, item, lines, visited) ?? "");
+                    entries.Sort(StringComparer.Ordinal);
+                    return "[" + string.Join(",", entries) + "]";
             }
 
             var number = Format(value);

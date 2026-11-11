@@ -78,7 +78,7 @@ namespace Tests.EditMode
 
         [TestCase("faction", "the row's faction")]
         [TestCase("elite", "EliteEncounter")]
-        [TestCase("roster", "WaveDirector")]
+        [TestCase("groups", "WaveDirector")]
         [TestCase("phases", "WaveDirector")]
         [TestCase("field", "asteroid field")]
         public void Session_RefusesARowMissingAValueItsLayoutReads(string value, string reader)
@@ -88,7 +88,7 @@ namespace Tests.EditMode
             {
                 case "faction": row.faction = null; break;
                 case "elite": row.elite = null; break;
-                case "roster": row.roster = System.Array.Empty<WaveDirector.RosterEntry>(); break;
+                case "groups": row.phases = WithGroups(row.phases); break;
                 case "phases": row.phases = System.Array.Empty<SectorPhase>(); break;
                 case "field": row.field = null; break;
             }
@@ -100,7 +100,11 @@ namespace Tests.EditMode
         public void Session_RefusesARosterShipTheRowsFactionDoesNotFly()
         {
             var row = TrialRow();
-            row.roster = new[] { new WaveDirector.RosterEntry { template = TestShip("Bulwark") } };
+            var bulwark = new WaveGroup
+            {
+                ships = new[] { new WaveDirector.RosterEntry { template = TestShip("Bulwark") } },
+            };
+            row.phases = WithGroups(row.phases, bulwark);
             Assert.That(() => Construct(row, presentation: false),
                 Throws.ArgumentException.With.Message.Contains("Row 1 of sector run").And.Message.Contains("doesn't fly 'Bulwark'"));
         }
@@ -114,6 +118,17 @@ namespace Tests.EditMode
         }
 
         private static Ship TestShip(string name) => AssetDatabase.LoadAssetAtPath<Ship>($"Assets/Prefabs/Ships/{name}.prefab");
+
+        private static SectorPhase[] WithGroups(SectorPhase[] phases, params WaveGroup[] groups)
+        {
+            var copy = new SectorPhase[phases.Length];
+            for (var i = 0; i < phases.Length; i++)
+            {
+                copy[i] = phases[i];
+                copy[i].groups = groups;
+            }
+            return copy;
+        }
 
         [Test]
         public void Session_RefusesAPresentedLocalePoolWithAnEmptyEntry()

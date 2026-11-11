@@ -84,10 +84,22 @@ namespace Tests.PlayMode
             var director = directorGO.AddComponent<WaveDirector>();
             var row = new SectorEntry
             {
-                roster = new[] { new WaveDirector.RosterEntry { template = template } },
-                phases = new[] { new SectorPhase { seconds = 100f, interval = 100f, cap = 1 } }
+                phases = new[]
+                {
+                    new SectorPhase
+                    {
+                        seconds = 100f,
+                        cap = 1,
+                        breather = 100f,
+                        longestWait = 100f,
+                        groups = new[]
+                        {
+                            new WaveGroup { ships = new[] { new WaveDirector.RosterEntry { template = template } } },
+                        },
+                    },
+                },
             };
-            director.Configure(row.roster, row.phases, spawnRadius: SpawnRadius);
+            director.Configure(row.phases, spawnRadius: SpawnRadius);
             sector.SetManifest(null, new SectorSpawner[] { director }, null);
             sector.Initialize(_unitService, _objectives, true, default, player, row);
             return director;
@@ -110,7 +122,7 @@ namespace Tests.PlayMode
             tally.Begin(Time.time);
             for (var i = 0; i < 10 && director.Spawned.Count == 0; i++)
                 yield return null;
-            Assert.AreEqual(1, director.Spawned.Count, "The first phase opens by filling its cap.");
+            Assert.AreEqual(1, director.Spawned.Count, "The phase opens with its wave.");
             var enemy = director.Spawned[0];
             Assert.AreEqual(1, enemy.teamNumber, "Director products are hostile to the team-0 player.");
             Assert.AreEqual(SpawnRadius,

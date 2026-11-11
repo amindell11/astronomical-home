@@ -7,7 +7,7 @@ using UnityEditor;
 
 namespace Tests.EditMode.Factions
 {
-    /// <summary>The shipped run's three rows, read as assets: each names its own faction in run order, and its roster flies only that faction's signature and common ships on their kits, and draws the signature ship three times as often as the common one.</summary>
+    /// <summary>The shipped run's three rows, read as assets: each names its own faction in run order, its waves fly only that faction's signature and common ships on their kits, each phase's mean group is at least the previous phase's with the last larger than the first, and the signature ship flies more often than the common one.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class FactionSectorsEditModeTests
@@ -37,17 +37,23 @@ namespace Tests.EditMode.Factions
         }
 
         [Test]
-        public void EachTrialRoster_DrawsItsSignatureShip_ThreeTimesAsOftenAsItsCommonShip()
+        public void EachTrialRow_GrowsItsGroups_AndFliesItsSignatureShipMoreOftenThanItsCommonShip()
         {
             foreach (var (row, i) in Rows().Select((row, i) => (row, i)))
             {
                 var faction = FactionOf(row);
-                var templates = row.roster.Select(entry => entry.template).ToArray();
+                var means = row.phases.Select(phase => phase.groups.Average(group => (double)group.ships.Length)).ToArray();
+                for (var p = 1; p < means.Length; p++)
+                    Assert.That(means[p], Is.GreaterThanOrEqualTo(means[p - 1]),
+                        $"row {i} phase {p}: mean group size");
+                Assert.That(means[means.Length - 1], Is.GreaterThan(means[0]), $"row {i}: the last phase's groups are larger");
 
+                var templates = row.phases.SelectMany(phase => phase.groups).SelectMany(group => group.ships)
+                    .Select(ship => ship.template).ToArray();
                 var common = templates.Count(t => t == faction.common.ship);
                 Assert.Greater(common, 0, $"row {i}: the common ship still flies.");
-                Assert.AreEqual(3 * common, templates.Count(t => t == faction.signature.ship),
-                    $"row {i}: the director draws uniformly over entries, so entry counts set the mix.");
+                Assert.Greater(templates.Count(t => t == faction.signature.ship), common,
+                    $"row {i}: the signature ship flies more often than the common one.");
             }
         }
 

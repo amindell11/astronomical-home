@@ -31,8 +31,8 @@ namespace Tests.EditMode.Sectors
 
         private static SectorPhase[] Phases() => new[]
         {
-            new SectorPhase { seconds = 40f, interval = 6f, cap = 2 },
-            new SectorPhase { seconds = 30f, interval = 4f, cap = 3 },
+            new SectorPhase { seconds = 40f, cap = 2 },
+            new SectorPhase { seconds = 30f, cap = 3 },
         };
 
         [SetUp]
@@ -48,7 +48,7 @@ namespace Tests.EditMode.Sectors
             hunt.AlarmRaised += (sector, reason, caller) => alarms.Add((sector, reason, caller));
 
             director = Track(new GameObject("WaveDirector")).AddComponent<WaveDirector>();
-            director.Configure(null, Phases(), Lull, openingLullSeconds: OpeningLull, hunt: hunt);
+            director.Configure(Phases(), Lull, openingLullSeconds: OpeningLull, hunt: hunt);
             director.BeginSchedule(0f);
         }
 
