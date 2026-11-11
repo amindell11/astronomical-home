@@ -26,7 +26,7 @@ using Tests.PlayMode.Common;
 using Tests.PlayMode.Common.Locales;
 using Tests.PlayMode.Common.SimulatedInput;
 using UI;
-using UI.Hangar;
+using UI.Hangar.Hardware;
 using UI.PlayerState;
 using UI.Recap;
 using UI.Projection;
@@ -581,12 +581,12 @@ namespace Tests.PlayMode.Preview
 
         private static IEnumerator LaunchFromHangar(GameHost game)
         {
-            HangarScreen hangar = null;
-            yield return AsyncAssert.WaitUntil(() => (hangar = game.GetComponentInChildren<HangarScreen>()) != null, 45f,
+            HangarConsole hangar = null;
+            yield return AsyncAssert.WaitUntil(() => (hangar = game.GetComponentInChildren<HangarConsole>()) != null, 45f,
                 "the shipped run opens in the hangar");
             Assert.That(LocaleInstances.Shown(), Is.EqualTo(game.sessionProfile.idleLocale.name),
                 "the idle locale shows behind the hangar");
-            hangar.launchButton.onClick.Invoke();
+            hangar.Launch();
             yield return AsyncAssert.WaitUntil(() => game.ActiveSector != null, 45f, "Launch loads the first sector");
         }
 

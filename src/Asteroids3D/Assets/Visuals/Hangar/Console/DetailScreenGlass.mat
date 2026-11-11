@@ -24,18 +24,18 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _BaseMap:
-        m_Texture: {fileID: 2800000, guid: 5ca72f14e293c4e4cb6f7653dede8553, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _EmissionMap:
-        m_Texture: {fileID: 2800000, guid: 5ca72f14e293c4e4cb6f7653dede8553, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
     - _EmissionStrength: 1
     - _LightResponse: 0
-    - _UseEmissionAlpha: 1
+    - _UseEmissionAlpha: 0
     m_Colors:
     - _ConstantEmission: {r: 0, g: 0, b: 0, a: 1}
     - _EmissionTint: {r: 1, g: 0.84, b: 0.63, a: 1}

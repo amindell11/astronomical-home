@@ -60,8 +60,6 @@ MonoBehaviour:
     type: 3}
   musicPrefab: {fileID: 5100000000000000003, guid: f51cf8a4e76a4204a97924a22b457d84,
     type: 3}
-  hangarScreenPrefab: {fileID: 5835161239343422082, guid: d115d32348e1b3342a7379b8b1c74681,
-    type: 3}
   hangarConsolePrefab: {fileID: 4482956013910783870, guid: 636178ac893922c41a364c5a5362142c,
     type: 3}
   hangarCameraPrefab: {fileID: 6203917458810452105, guid: 6921a06a3ac74e6dac3d7c4325ce02d9,

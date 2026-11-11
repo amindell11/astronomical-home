@@ -20,7 +20,7 @@ using Substrate.Services.Units;
 using Substrate.Services.Locales;
 using Substrate.Sessions;
 using Tests.PlayMode.Common;
-using UI.Hangar;
+using UI.Hangar.Hardware;
 using UI.Screens;
 using UI.Recap;
 using UnityEditor;
@@ -38,7 +38,7 @@ namespace Tests.PlayMode.Audio
         private const string ObserverCamPrefabPath = "Assets/Prefabs/Cameras/Main Camera.prefab";
         private const string LocalePath = "Assets/Prefabs/Locales/IllustratedBlue.prefab";
         private const string RecapFeelPath = "Assets/Settings/UI/RecapFeel.asset";
-        private const string HangarScreenPrefabPath = "Assets/Prefabs/UI/HangarScreen.prefab";
+        private const string HangarConsolePrefabPath = "Assets/Prefabs/UI/HangarConsole.prefab";
         private const string MusicEvent = "event:/Music/Game";
         private const string MusicStateName = "MusicState";
         private const string PhaseName = "Phase";
@@ -169,7 +169,7 @@ namespace Tests.PlayMode.Audio
             PlayerRig rig = null;
             Boot(presentation: true);
 
-            yield return Until(() => hostGo.GetComponentInChildren<HangarScreen>(), "the hangar opens", description,
+            yield return Until(() => hostGo.GetComponentInChildren<HangarConsole>(), "the hangar opens", description,
                 seen, instanceCounts);
             Launch();
             yield return Until(() =>
@@ -189,7 +189,7 @@ namespace Tests.PlayMode.Audio
             yield return Until(() => hostGo.GetComponentInChildren<RunRecapScreen>(), "the victory recap shows",
                 description, seen, instanceCounts);
             Dismiss();
-            yield return Until(() => hostGo.GetComponentInChildren<HangarScreen>(), "the next run's hangar opens",
+            yield return Until(() => hostGo.GetComponentInChildren<HangarConsole>(), "the next run's hangar opens",
                 description, seen, instanceCounts);
             Launch();
             yield return Until(() => Loaded("SectorA"), "the next run's first sector loads", description, seen,
@@ -270,8 +270,8 @@ namespace Tests.PlayMode.Audio
             host.observerCamPrefab = AssetDatabase.LoadAssetAtPath<ObserverCam>(ObserverCamPrefabPath);
             host.musicPrefab = AssetDatabase.LoadAssetAtPath<GameMusic>(MusicPrefabPath);
             host.recapFeel = AssetDatabase.LoadAssetAtPath<RecapFeelProfile>(RecapFeelPath);
-            // Without a hangar screen the Hangar step lasts zero frames, too short to sample.
-            host.hangarScreenPrefab = AssetDatabase.LoadAssetAtPath<HangarScreen>(HangarScreenPrefabPath);
+            // Without a hangar console the Hangar step lasts zero frames, too short to sample.
+            host.hangarConsolePrefab = AssetDatabase.LoadAssetAtPath<HangarConsole>(HangarConsolePrefabPath);
             recordPath = Path.Combine(Path.GetTempPath(), "game-music-" + Guid.NewGuid().ToString("N") + ".jsonl");
             host.runRecordPath = recordPath;
             host.buildIdentity = (out BuildIdentity identity, out string failure) =>
@@ -306,7 +306,7 @@ namespace Tests.PlayMode.Audio
             recap.transform.Find("Panels/Recap/Continue").GetComponent<Button>().onClick.Invoke();
         }
 
-        private void Launch() => hostGo.GetComponentInChildren<HangarScreen>().launchButton.onClick.Invoke();
+        private void Launch() => hostGo.GetComponentInChildren<HangarConsole>().Launch();
 
         // Each frame until the condition holds, records the MusicState label whenever it changes.
         private static IEnumerator Until(Func<bool> condition, string what, EventDescription description,

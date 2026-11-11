@@ -5,7 +5,11 @@ using NUnit.Framework;
 using Ships;
 using Ships.Loadout;
 using UI.Hangar;
+using UI.Hangar.Displays;
+using UI.Hangar.Hardware;
 using UI.Hangar.Hologram;
+using UI.Hangar.Selection;
+using UnityEngine.UI;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -58,7 +62,7 @@ namespace Tests.PlayMode.Hangar
             {
                 var outgoing = Active().Single().transform;
                 var start = outgoing.localPosition;
-                (backwards ? screen.view.shipRow.previousButton : screen.view.shipRow.nextButton).onClick.Invoke();
+                screen.view.Selection.Step(backwards ? -1 : 1);
                 yield return new WaitForSeconds(OnPath);
                 var incoming = Active().Single(f => f.transform != outgoing);
                 var direction = backwards ? -1f : 1f;
@@ -127,10 +131,11 @@ namespace Tests.PlayMode.Hangar
             var index = 0;
             foreach (var step in Enumerable.Repeat(1, 15).Concat(Enumerable.Repeat(-1, 15)))
             {
-                (step < 0 ? screen.view.shipRow.previousButton : screen.view.shipRow.nextButton).onClick.Invoke();
+                screen.view.Selection.Step(step);
                 index = (index + step + ships.Length) % ships.Length;
                 Assert.That(loadout.Ship, Is.SameAs(ships[index]), "the selection follows the press on its frame");
-                Assert.That(screen.view.shipRow.label.text, Is.EqualTo(ships[index].name));
+                Assert.That(screen.view.GetComponentInChildren<HangarMainDisplayView>()[HangarSlot.Ship]
+                    .GetComponentInChildren<Text>().text, Is.EqualTo($"Ship\n{ships[index].name}"));
                 for (var end = Time.time + .1f; Time.time < end;)
                 {
                     yield return null;
@@ -176,24 +181,19 @@ namespace Tests.PlayMode.Hangar
             return bounds;
         }
 
-        private (HangarScreen view, ShipLoadout loadout) OpenScreen(params Ship[] ships)
+        private (HangarConsole view, ShipLoadout loadout) OpenScreen(params Ship[] ships)
         {
             Object.DestroyImmediate(stage.gameObject);
-            screenRoot = new GameObject("ScreenRoot");
-            var prefab = AssetDatabase.LoadAssetAtPath<HangarScreen>("Assets/Prefabs/UI/HangarScreen.prefab");
-            var screen = Object.Instantiate(prefab, screenRoot.transform);
+            var console = Object.Instantiate(AssetDatabase.LoadAssetAtPath<HangarConsole>("Assets/Prefabs/UI/HangarConsole.prefab"));
+            screenRoot = console.gameObject;
             offer = ScriptableObject.CreateInstance<ItemSubset>();
             offer.starter = ships[0];
             offer.ships = ships;
             var loadout = new ShipLoadout(ships[0], null, null);
-            screen.Show(offer, loadout, _ => true, null);
-            projector = Object.Instantiate(
-                AssetDatabase.LoadAssetAtPath<HangarHologramProjector>("Assets/Prefabs/UI/HangarProjector.prefab"),
-                screenRoot.transform);
-            projector.Open(ships, ships[0]);
-            screen.ShipSelected += projector.Select;
+            console.Show(offer, loadout, _ => true, null);
+            projector = console.Projector;
             stage = projector.Stage;
-            return (screen, loadout);
+            return (console, loadout);
         }
 
         private HangarPreviewFlight[] Active() => stage.GetComponentsInChildren<HangarPreviewFlight>();
