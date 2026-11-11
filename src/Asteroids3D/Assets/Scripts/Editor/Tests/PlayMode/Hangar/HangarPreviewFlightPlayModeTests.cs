@@ -5,6 +5,7 @@ using NUnit.Framework;
 using Ships;
 using Ships.Loadout;
 using UI.Hangar;
+using UI.Hangar.Hologram;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -24,6 +25,7 @@ namespace Tests.PlayMode.Hangar
         private const float OnPath = .15f;
 
         private HangarPreviewStage stage;
+        private HangarHologramProjector projector;
         private Ship valis;
         private Ship nightshade;
         private GameObject screenRoot;
@@ -132,13 +134,13 @@ namespace Tests.PlayMode.Hangar
                 for (var end = Time.time + .1f; Time.time < end;)
                 {
                     yield return null;
-                    AssertAShipInFrame(camera, screen.view);
+                    AssertAShipInFrame(camera);
                 }
             }
             for (var end = Time.time + 1.5f; Time.time < end;)
             {
                 yield return null;
-                AssertAShipInFrame(camera, screen.view);
+                AssertAShipInFrame(camera);
             }
 
             Assert.That(stage.GetComponentsInChildren<HangarPreviewFlight>(true), Is.EquivalentTo(pool),
@@ -146,17 +148,10 @@ namespace Tests.PlayMode.Hangar
             Assert.That(Active().Single().name, Is.EqualTo(ships[index].name + "_Preview"));
         }
 
-        // The stage camera's viewport is the preview image; the framing square is where the ship settles.
-        private void AssertAShipInFrame(Camera camera, HangarScreen screen)
+        // The stage camera's viewport is the projector surface; the framing square is where the ship settles.
+        private void AssertAShipInFrame(Camera camera)
         {
-            var image = new Vector3[4];
-            var square = new Vector3[4];
-            screen.previewImage.rectTransform.GetWorldCorners(image);
-            screen.previewFrame.GetWorldCorners(square);
-            var size = (Vector2)(image[2] - image[0]);
-            var min = (Vector2)(square[0] - image[0]) / size;
-            var max = (Vector2)(square[2] - image[0]) / size;
-            var frame = Rect.MinMaxRect(min.x, min.y, max.x, max.y);
+            var frame = projector.Frame;
             Assert.That(Active().Any(f => frame.Overlaps(ViewportBounds(camera, f))),
                 "some ship overlaps the preview on frame {0}", Time.frameCount);
         }
@@ -192,14 +187,18 @@ namespace Tests.PlayMode.Hangar
             offer.ships = ships;
             var loadout = new ShipLoadout(ships[0], null, null);
             screen.Show(offer, loadout, _ => true, null);
-            stage = screenRoot.GetComponentInChildren<HangarPreviewStage>();
+            projector = Object.Instantiate(
+                AssetDatabase.LoadAssetAtPath<HangarHologramProjector>("Assets/Prefabs/UI/HangarProjector.prefab"),
+                screenRoot.transform);
+            projector.Open(ships, ships[0]);
+            screen.ShipSelected += projector.Select;
+            stage = projector.Stage;
             return (screen, loadout);
         }
 
         private HangarPreviewFlight[] Active() => stage.GetComponentsInChildren<HangarPreviewFlight>();
 
-        private void Show(Ship ship, bool backwards = false) =>
-            stage.Show(new ShipLoadout(ship, null, null), backwards);
+        private void Show(Ship ship, bool backwards = false) => stage.Show(ship, backwards);
     }
 }
 #endif

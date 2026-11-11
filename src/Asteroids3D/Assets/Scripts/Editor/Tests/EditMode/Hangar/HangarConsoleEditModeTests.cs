@@ -1,6 +1,7 @@
 using System.Linq;
 using System.IO;
 using NUnit.Framework;
+using UI.Hangar;
 using UI.Hangar.Hardware;
 using UnityEditor;
 using UnityEngine;
@@ -94,6 +95,27 @@ namespace Tests.EditMode.Hangar
             {
                 Object.DestroyImmediate(instance.gameObject);
             }
+        }
+
+        [Test]
+        public void Projector_SitsOnTheLens_AndIsWired()
+        {
+            var console = AssetDatabase.LoadAssetAtPath<HangarConsole>(PrefabPath);
+            var projector = console.Projector;
+            Assert.IsTrue(projector, "the console wires its projector");
+            Assert.IsTrue(projector.transform.IsChildOf(console.transform), "the projector is nested in the console");
+            Assert.That(Vector3.Distance(projector.transform.position, console.ProjectorLens.transform.position),
+                Is.LessThan(0.01f));
+        }
+
+        [Test]
+        public void CompositeCanvas_SortsBelowTheHangarMenu()
+        {
+            var console = AssetDatabase.LoadAssetAtPath<HangarConsole>(PrefabPath);
+            var screen = AssetDatabase.LoadAssetAtPath<HangarScreen>("Assets/Prefabs/UI/HangarScreen.prefab");
+            var composite = console.GetComponentInChildren<Canvas>(true);
+            Assert.IsTrue(composite, "the console has a composite canvas");
+            Assert.That(composite.sortingOrder, Is.LessThan(screen.GetComponent<Canvas>().sortingOrder));
         }
 
         [Test]

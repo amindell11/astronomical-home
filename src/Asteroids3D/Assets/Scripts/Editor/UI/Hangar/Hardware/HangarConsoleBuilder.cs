@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UI.Hangar.Hologram;
 using UnityEngine.Rendering;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
@@ -13,7 +14,7 @@ namespace UI.Hangar.Hardware
     {
         public const string VisualsPath = "Assets/Visuals/Hangar/Console";
         public const string PrefabPath = "Assets/Prefabs/UI/HangarConsole.prefab";
-        private const string ScreenPath = "Assets/Prefabs/UI/HangarScreen.prefab";
+        private const string ProjectorPath = "Assets/Prefabs/UI/HangarProjector.prefab";
 
         [MenuItem("Tools/Hangar/Rebuild console hardware")]
         public static void Rebuild()
@@ -118,6 +119,28 @@ namespace UI.Hangar.Hardware
                     new Color(1f, .87f, .70f), 1.3f, 5f);
                 Light(root.transform, "LaunchSpill", new Vector3(6.5f, 4f, -2.3f),
                     new Color(1f, .87f, .70f), 2.5f, 6f);
+                var composite = new GameObject("Composite", typeof(RectTransform), typeof(Canvas));
+                composite.transform.SetParent(root.transform, false);
+                var canvas = composite.GetComponent<Canvas>();
+                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                canvas.sortingOrder = HangarConsole.CompositeSortingOrder;
+                var imageObject = new GameObject("CompositeImage", typeof(RectTransform), typeof(RawImage));
+                imageObject.transform.SetParent(composite.transform, false);
+                var image = imageObject.GetComponent<RawImage>();
+                var rect = image.rectTransform;
+                rect.anchorMin = Vector2.zero;
+                rect.anchorMax = Vector2.one;
+                rect.offsetMin = rect.offsetMax = Vector2.zero;
+                image.raycastTarget = false;
+                image.material = ShaderMaterial("ConsoleComposite", "Hangar/ConsoleComposite");
+
+                var lens = parts["ProjectorLens"].transform;
+                var projectorObject = (GameObject)PrefabUtility.InstantiatePrefab(
+                    AssetDatabase.LoadAssetAtPath<GameObject>(ProjectorPath));
+                projectorObject.transform.SetParent(root.transform, false);
+                projectorObject.transform.position = lens.position;
+                projectorObject.transform.rotation = Quaternion.LookRotation(lens.position - camera.transform.position, Vector3.up);
+
                 foreach (var child in root.GetComponentsInChildren<Transform>(true))
                     child.gameObject.layer = 5;
 
@@ -128,6 +151,8 @@ namespace UI.Hangar.Hardware
                     data.FindProperty(char.ToLowerInvariant(name[0]) + name.Substring(1)).objectReferenceValue = parts[name];
                 foreach (var name in new[] { "SelectorKnob", "PreviousButton", "NextButton", "LaunchButton" })
                     data.FindProperty(char.ToLowerInvariant(name[0]) + name.Substring(1)).objectReferenceValue = parts[name].transform;
+                data.FindProperty("compositeImage").objectReferenceValue = image;
+                data.FindProperty("projector").objectReferenceValue = projectorObject.GetComponent<HangarHologramProjector>();
                 data.ApplyModifiedPropertiesWithoutUndo();
                 root.SetActive(true);
                 PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
@@ -137,31 +162,6 @@ namespace UI.Hangar.Hardware
                 Object.DestroyImmediate(root);
             }
 
-            var screenRoot = PrefabUtility.LoadPrefabContents(ScreenPath);
-            try
-            {
-                var screen = screenRoot.GetComponent<HangarScreen>();
-                var existing = screenRoot.transform.Find("ConsoleHardware");
-                var image = existing ? existing.GetComponent<RawImage>()
-                    : new GameObject("ConsoleHardware", typeof(RectTransform), typeof(RawImage)).GetComponent<RawImage>();
-                var rect = image.rectTransform;
-                rect.SetParent(screenRoot.transform, false);
-                rect.anchorMin = Vector2.zero;
-                rect.anchorMax = Vector2.one;
-                rect.offsetMin = rect.offsetMax = Vector2.zero;
-                image.raycastTarget = false;
-                image.material = ShaderMaterial("ConsoleComposite", "Hangar/ConsoleComposite");
-                rect.SetSiblingIndex(screenRoot.transform.Find("ShipPreview").GetSiblingIndex() + 1);
-                var data = new SerializedObject(screen);
-                data.FindProperty("consolePrefab").objectReferenceValue = AssetDatabase.LoadAssetAtPath<HangarConsole>(PrefabPath);
-                data.FindProperty("hardwareImage").objectReferenceValue = image;
-                data.ApplyModifiedPropertiesWithoutUndo();
-                PrefabUtility.SaveAsPrefabAsset(screenRoot, ScreenPath);
-            }
-            finally
-            {
-                PrefabUtility.UnloadPrefabContents(screenRoot);
-            }
             AssetDatabase.SaveAssets();
         }
 

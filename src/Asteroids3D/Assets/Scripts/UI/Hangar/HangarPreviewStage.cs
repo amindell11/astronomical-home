@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Ships;
-using Ships.Loadout;
 using Ships.Presentation;
 using Ships.Visuals;
 using UnityEngine;
@@ -12,6 +11,7 @@ namespace UI.Hangar
     /// on the isolated ShipPreview layer. The texture spans the whole surface ships fly across; an off-axis camera
     /// holds the settled ship inside a framing square on it. The camera never moves; each clone is scaled to one
     /// framing sphere, so every hull fills the same share of the square. A <see cref="HangarCarousel"/> places the clones.
+    /// A restyle, when given, dresses each clone through its livery.
     /// </summary>
     public sealed class HangarPreviewStage : MonoBehaviour
     {
@@ -24,6 +24,9 @@ namespace UI.Hangar
         // The approved ink weight: contour widths as drawn on the original 768 px preview texture.
         private const float InkReferenceTextureSize = 768f;
         private const float FramingMargin = 1.05f;
+        // Measured at the anchor's depth.
+        internal static readonly float FrameSideInRadii =
+            2f * FramingMargin / Mathf.Cos(CameraFovDeg * .5f * Mathf.Deg2Rad);
         private const float MinFramedRadius = 0.5f;
         private const float FramedRadius = 1f;
         private static readonly int ContourPixelsId = Shader.PropertyToID("_ContourPixels");
@@ -34,16 +37,19 @@ namespace UI.Hangar
         private RenderTexture texture;
         private float inkFramePixels;
         private bool showing;
+        private MaterialRestyle restyle;
 
         public Texture Texture => texture;
 
         public static HangarPreviewStage Create(Transform parent, Vector2Int surfacePixels, Rect frame,
-            IEnumerable<Ship> offeredShips)
+            IEnumerable<Ship> offeredShips, MaterialRestyle restyle = null)
         {
             var go = new GameObject("HangarPreviewStage");
             go.transform.SetParent(parent, false);
-            go.transform.position = new Vector3(0f, -1000f, 0f);
+            // The camera poses in world space, so a tilted parent must not turn the ships.
+            go.transform.SetPositionAndRotation(new Vector3(0f, -1000f, 0f), Quaternion.identity);
             var stage = go.AddComponent<HangarPreviewStage>();
+            stage.restyle = restyle;
             stage.BuildStage(surfacePixels, frame);
             var offered = 0;
             foreach (var ship in offeredShips)
@@ -153,9 +159,8 @@ namespace UI.Hangar
         }
 
         /// <summary>The first call plays the entry swoop; later calls step the carousel toward the new pick.</summary>
-        public void Show(ShipLoadout loadout, bool backwards)
+        public void Show(Ship ship, bool backwards)
         {
-            var ship = loadout?.Ship;
             if (!showing)
             {
                 showing = true;
@@ -194,6 +199,7 @@ namespace UI.Hangar
             var root = clone.transform;
             root.gameObject.name = ship.name + "_Preview";
             StripNonHull(clone);
+            if (restyle != null) clone.Wear(new ShipLivery(null, null, default, restyle));
             SetLayerRecursive(root, gameObject.layer);
             ScaleInk(root);
 
