@@ -1,5 +1,6 @@
 using System;
 using Ships.Presentation;
+using UI.Projection;
 using UnityEngine;
 
 namespace UI.Hangar.Hologram
@@ -18,11 +19,15 @@ namespace UI.Hangar.Hologram
         [Tooltip("Opacity of the stage image on the projector surface.")]
         [SerializeField, Range(0f, 1f)] private float layerOpacity = .75f;
 
+        [Tooltip("Canopy effect strengths on the hologram image.")]
+        [SerializeField] private CanopySettings canopy = CanopySettings.Combat;
+
         [Tooltip("Cone placed at the lens. Authored in framing-radius units with its base at the origin.")]
         [SerializeField] private GameObject projectorCone;
 
         public MaterialRestyle Restyle => restyle;
         public float LayerOpacity => layerOpacity;
+        public CanopySettings Canopy => canopy;
         public GameObject ProjectorCone => projectorCone;
 
         private void OnValidate()

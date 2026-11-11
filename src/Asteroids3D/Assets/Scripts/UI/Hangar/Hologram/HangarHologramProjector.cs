@@ -1,14 +1,16 @@
 using System;
 using System.Collections.Generic;
 using Ships;
+using UI.Projection;
 using UnityEngine;
 
 namespace UI.Hangar.Hologram
 {
     /// <summary>
-    /// Owns the hangar preview stage and shows its image on the quad at the projector lens, at the
-    /// profile's opacity, and places the cone. The console hands it the hardware camera on
-    /// <see cref="Fit"/>. Ship steps from the hangar screen reach it through <see cref="Select"/>.
+    /// Owns the hangar preview stage and shows the canopy effect step's image of the stage on the
+    /// quad at the projector lens, at the profile's opacity, and places the cone. The camera handed
+    /// over on <see cref="Fit"/> also runs that image's pass. Ship steps from the hangar screen reach
+    /// it through <see cref="Select"/>.
     /// </summary>
     public sealed class HangarHologramProjector : MonoBehaviour
     {
@@ -28,6 +30,9 @@ namespace UI.Hangar.Hologram
         [Tooltip("Parent for the cone, at the lens. The cone prefab's base sits at this origin.")]
         [SerializeField] private Transform coneAnchor;
 
+        [Tooltip("Runs the canopy effect step on the stage image for the surface.")]
+        [SerializeField] private CanopyImage image;
+
         [Tooltip("Width and height of the quad, in world units.")]
         [SerializeField] private Vector2 surfaceSize = new(9f, 6f);
 
@@ -39,6 +44,7 @@ namespace UI.Hangar.Hologram
 
         private MaterialPropertyBlock block;
         private HangarPreviewStage stage;
+        private bool fitted;
         // Normalized on the surface; square on screen, as the stage's off-axis framing requires.
         private Rect frame;
 
@@ -47,9 +53,9 @@ namespace UI.Hangar.Hologram
 
         private void Awake()
         {
-            if (!profile || !surface || !coneAnchor)
+            if (!profile || !surface || !coneAnchor || !image)
                 throw new InvalidOperationException(
-                    "HangarHologramProjector needs a profile, surface and cone anchor.");
+                    "HangarHologramProjector needs a profile, surface, cone anchor and canopy image.");
             block = new MaterialPropertyBlock();
             var width = frameSide / surfaceSize.x;
             frame = new Rect(.5f - width * .5f, frameBottom, width, frameSide / surfaceSize.y);
@@ -71,6 +77,11 @@ namespace UI.Hangar.Hologram
         public void Fit(Camera camera)
         {
             if (!stage) return;
+            if (!fitted)
+            {
+                fitted = true;
+                image.Initialize(camera, () => stage.Texture, () => profile.Canopy);
+            }
             var min = new Vector2(float.PositiveInfinity, float.PositiveInfinity);
             var max = new Vector2(float.NegativeInfinity, float.NegativeInfinity);
             foreach (var corner in QuadCorners)
@@ -86,7 +97,7 @@ namespace UI.Hangar.Hologram
         {
             if (!stage) return;
             surface.GetPropertyBlock(block);
-            block.SetTexture(MainTexId, stage.Texture);
+            block.SetTexture(MainTexId, image.Output);
             block.SetFloat(OpacityId, profile.LayerOpacity);
             surface.SetPropertyBlock(block);
         }

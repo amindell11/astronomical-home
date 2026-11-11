@@ -142,6 +142,58 @@ namespace Tests.PlayMode.Rendering.Projection
             Assert.That(pixel.a, Is.EqualTo(.37f).Within(.001f));
         }
 
+        [Test]
+        public void ImagePass_EveryEffectAtMaximum_LeavesAnEmptyInputTransparent()
+        {
+            properties.SetVector("_Beam", new Vector4(2f, 12f, 4f, 0f));
+            properties.SetVector("_Phosphor", Vector4.one);
+            properties.SetVector("_Glass", new Vector4(1f, 18f, 1f, 0f));
+            properties.SetFloat("_AppearAge", .12f);
+            properties.SetFloat("_TransitionAge", .15f);
+            properties.SetFloat("_HitAge", .08f);
+            properties.SetFloat("_Clock", 12.3f);
+            properties.SetVector("_Halo", new Vector4(32f, 2f, 1f, 1f));
+            properties.SetVector("_Bleed", new Vector4(2f, 24f, 0f, 0f));
+            var pixels = Render(4);
+            for (var i = 0; i < pixels.Length; i++)
+            {
+                AssertColor(Color.black, pixels[i]);
+                Assert.That(pixels[i].a, Is.EqualTo(0f).Within(.001f));
+            }
+        }
+
+        [Test]
+        public void ImagePass_WithEffectsOff_IsThePremultipliedInput()
+        {
+            properties.SetFloat("_PersonalityEnabled", 0f);
+            properties.SetTexture("_PreviousInk", Texture(new Color(.5f, .25f, .1f, 1f)));
+            properties.SetTexture("_HudInk", Texture(new Color(0f, 0f, 0f, .6f)));
+            var expected = new Color(Mathf.GammaToLinearSpace(.5f), Mathf.GammaToLinearSpace(.25f),
+                Mathf.GammaToLinearSpace(.1f), 0f);
+            var pixels = Render(4);
+            for (var i = 0; i < pixels.Length; i++)
+            {
+                AssertColor(expected, pixels[i]);
+                Assert.That(pixels[i].a, Is.EqualTo(.6f).Within(.001f));
+            }
+        }
+
+        [Test]
+        public void ImagePass_LightPastTheInputsCoverage_AddsWithoutAlpha()
+        {
+            properties.SetTexture("_PreviousInk", Texture(new Color(.3f, .3f, .3f, 1f)));
+            properties.SetTexture("_HudInk", Texture(Color.clear));
+            properties.SetVector("_Bleed", new Vector4(2f, 24f, 0f, 0f));
+            var pixels = Render(4);
+            var spilled = false;
+            for (var i = 0; i < pixels.Length; i++)
+            {
+                Assert.That(pixels[i].a, Is.EqualTo(0f).Within(.001f));
+                spilled |= pixels[i].r > .01f;
+            }
+            Assert.That(spilled, Is.True);
+        }
+
 #if UNITY_EDITOR
         [UnityTest]
         public IEnumerator CameraPairRendersThroughTheFeature_AndResizesItsTarget()
