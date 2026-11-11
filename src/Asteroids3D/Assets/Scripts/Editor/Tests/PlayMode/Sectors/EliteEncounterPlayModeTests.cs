@@ -106,10 +106,28 @@ namespace Tests.PlayMode.Sectors
             {
                 faction = faction,
                 elite = profile,
-                roster = new[] { new WaveDirector.RosterEntry { template = wave } },
-                phases = new[] { new SectorPhase { seconds = 1f, interval = 1f, cap = waveCap } }
+                phases = new[]
+                {
+                    new SectorPhase
+                    {
+                        seconds = 1f,
+                        cap = waveCap,
+                        endsAt = 0,
+                        breather = 0f,
+                        longestWait = 0f,
+                        groups = waveCap == 0
+                            ? System.Array.Empty<WaveGroup>()
+                            : new[]
+                            {
+                                new WaveGroup
+                                {
+                                    ships = new[] { new WaveDirector.RosterEntry { template = wave } },
+                                },
+                            },
+                    },
+                },
             };
-            director.Configure(row.roster, row.phases, lullSeconds: 0f, elite: encounter);
+            director.Configure(row.phases, lullSeconds: 0f, elite: encounter);
 
             var zone = NewZone(sectorGO.transform, "Zone");
             var spine = sectorGO.AddComponent<PhaseSpineModule>();
@@ -238,7 +256,7 @@ namespace Tests.PlayMode.Sectors
             yield return sector.Setup();
             yield return AsyncAssert.WaitUntil(() => _objectives.SpineStep == PhaseSpineModule.StepElite, 5f,
                 "the phases' end summons the elite");
-            Assert.AreEqual(2, director.Spawned.Count, "test premise: the phase filled its cap before the elite");
+            Assert.AreEqual(2, director.Spawned.Count, "test premise: the phase's waves filled its cap before the elite");
             var downed = director.Spawned[0];
             var survivor = director.Spawned[1];
 
@@ -268,7 +286,7 @@ namespace Tests.PlayMode.Sectors
             yield return sector.Setup();
             yield return AsyncAssert.WaitUntil(() => _objectives.SpineStep == PhaseSpineModule.StepExtract, 5f,
                 "with no elite the phases' end opens extraction");
-            Assert.AreEqual(2, director.Spawned.Count, "test premise: the phase filled its cap");
+            Assert.AreEqual(2, director.Spawned.Count, "test premise: the phase's waves filled its cap");
             var downed = director.Spawned[0];
 
             StagedMoments.Kill(downed);
@@ -276,7 +294,7 @@ namespace Tests.PlayMode.Sectors
                 yield return null;
 
             Assert.IsFalse(director.Spawned.Contains(downed), "The director despawns its dead product.");
-            Assert.AreEqual(2, director.Spawned.Count, "The last phase's pacing refills the downed ship.");
+            Assert.AreEqual(2, director.Spawned.Count, "The last phase's waves replace the downed ship.");
 
             yield return sector.Teardown();
         }

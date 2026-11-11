@@ -70,13 +70,11 @@ namespace Tests.PlayMode.Sectors
         {
             var hero = SpawnHero();
             var hunt = NewHunt(sightRadius: 20f, callInSeconds: .5f, searchSeconds: 60f);
-            var template = ShipTestFactory.CreateKinematicPrimitiveShipAt(new Vector2(500f, 500f));
-            Track(template.gameObject).SetActive(false);
             var sectorGO = Track(new GameObject("HuntedSector"));
             hunt.transform.SetParent(sectorGO.transform, false);
             var director = Child(sectorGO, "WaveDirector").AddComponent<WaveDirector>();
-            var row = HuntRow(template, new SectorPhase { seconds = 30f, interval = 30f, cap = 0 });
-            director.Configure(row.roster, row.phases, openingLullSeconds: 5f, hunt: hunt);
+            var row = HuntRow(new SectorPhase { seconds = 30f, cap = 0, groups = System.Array.Empty<WaveGroup>() });
+            director.Configure(row.phases, openingLullSeconds: 5f, hunt: hunt);
             var spine = sectorGO.AddComponent<PhaseSpineModule>();
             spine.Bind(director, NewZone(sectorGO, "Zone"), NewZone(sectorGO, "Beacon"), hunt: hunt);
             var sector = sectorGO.AddComponent<Sector>();
@@ -209,8 +207,19 @@ namespace Tests.PlayMode.Sectors
             var sectorGO = Track(new GameObject("HuntedSector"));
             hunt.transform.SetParent(sectorGO.transform, false);
             var director = Child(sectorGO, "WaveDirector").AddComponent<WaveDirector>();
-            var row = HuntRow(template, new SectorPhase { seconds = 60f, interval = .25f, cap = cap });
-            director.Configure(row.roster, row.phases, openingLullSeconds: 5f, hunt: hunt);
+            var row = HuntRow(new SectorPhase
+            {
+                seconds = 60f,
+                cap = cap,
+                endsAt = 0,
+                breather = 0f,
+                longestWait = 0.25f,
+                groups = new[]
+                {
+                    new WaveGroup { ships = new[] { new WaveDirector.RosterEntry { template = template } } },
+                },
+            });
+            director.Configure(row.phases, openingLullSeconds: 5f, hunt: hunt);
             var sector = sectorGO.AddComponent<Sector>();
             sector.SetManifest(null, new SectorSpawner[] { director, hunt }, null);
             sector.Initialize(_unitService, _objectives, true, default, hero, row, SectorIndex);
@@ -219,16 +228,16 @@ namespace Tests.PlayMode.Sectors
             yield return WaitSeconds(() => director.Spawned.Count > 0, 3f);
             Assert.IsTrue(hunt.Alarmed);
             Assert.AreEqual(2, hunt.LivePatrols);
-            Assert.AreEqual(cap - 2, director.Spawned.Count, "Phase one's opening fills only the slots the patrols leave.");
+            Assert.AreEqual(cap - 2, director.Spawned.Count, "The opening wave takes the one slot the patrols leave.");
 
             yield return WaitSeconds(() => false, 1f);
-            Assert.AreEqual(cap - 2, director.Spawned.Count, "No due spawn passes the cap while both patrols live.");
+            Assert.AreEqual(cap - 2, director.Spawned.Count, "No wave passes the ceiling while both patrols live.");
 
             var patrol = hunt.Spawned[0];
             patrol.Damage.TakeDamage(new DamageInfo(1e6f, DamageKind.Laser, hero.Id, 0f, Vector3.zero, patrol.transform.position));
             yield return WaitSeconds(() => director.Spawned.Count > cap - 2, 2f);
             Assert.AreEqual(1, hunt.LivePatrols, "The dead patrol stops counting.");
-            Assert.AreEqual(cap - 1, director.Spawned.Count, "The dead patrol's slot goes to the director.");
+            Assert.AreEqual(cap - 1, director.Spawned.Count, "The dead patrol's slot goes to the next wave.");
 
             yield return sector.Teardown();
         }
@@ -259,9 +268,8 @@ namespace Tests.PlayMode.Sectors
             return hunt;
         }
 
-        private SectorEntry HuntRow(Ship template = null, SectorPhase phase = default) => new()
+        private SectorEntry HuntRow(SectorPhase phase = default) => new()
         {
-            roster = new[] { new WaveDirector.RosterEntry { template = template } },
             phases = new[] { phase },
             patrols = _patrols
         };

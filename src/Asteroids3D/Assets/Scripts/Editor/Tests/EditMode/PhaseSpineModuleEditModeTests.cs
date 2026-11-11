@@ -48,8 +48,8 @@ namespace Tests.EditMode
             var svc = NewGO("ObjectiveService").AddComponent<ObjectiveService>();
 
             var director = NewGO("WaveDirector").AddComponent<WaveDirector>();
-            director.Configure(null, Enumerable.Range(0, phaseCount)
-                .Select(_ => new SectorPhase { seconds = 40f, interval = 4f, cap = 3 }).ToArray(), lullSeconds: 5f,
+            director.Configure(Enumerable.Range(0, phaseCount)
+                .Select(_ => new SectorPhase { seconds = 40f, cap = 3 }).ToArray(), lullSeconds: 5f,
                 openingLullSeconds: openingLull);
             director.BeginSchedule(0f);
 

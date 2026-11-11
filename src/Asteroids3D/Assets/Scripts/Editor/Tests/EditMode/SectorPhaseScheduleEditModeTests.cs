@@ -14,7 +14,7 @@ namespace Tests.EditMode
             ScheduleWithOpening(0f, lull, seconds);
 
         private static SectorPhaseSchedule ScheduleWithOpening(float openingLull, float lull, params float[] seconds) =>
-            new(seconds.Select(s => new SectorPhase { seconds = s, interval = 1f, cap = 1 }).ToArray(), lull, openingLull);
+            new(seconds.Select(s => new SectorPhase { seconds = s, cap = 1 }).ToArray(), lull, openingLull);
 
         [Test]
         public void FirstPhase_RunsFromZero_WithNoLeadingLull()

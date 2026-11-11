@@ -162,7 +162,7 @@ namespace Tests.PlayMode.Prompts
             var go = new GameObject(name);
             go.transform.SetParent(servicesGo.transform, false);
             var director = go.AddComponent<WaveDirector>();
-            director.Configure(null, new[] { new SectorPhase { seconds = 40f }, new SectorPhase { seconds = 40f } }, 5f);
+            director.Configure(new[] { new SectorPhase { seconds = 40f }, new SectorPhase { seconds = 40f } }, 5f);
             director.BeginSchedule(0f);
             var module = go.AddComponent<PhaseSpineModule>();
             module.Bind(director, null, null);

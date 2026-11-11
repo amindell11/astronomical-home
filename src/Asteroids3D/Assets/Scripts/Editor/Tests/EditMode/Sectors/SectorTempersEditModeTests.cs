@@ -4,8 +4,10 @@ using Game;
 using Game.Preview;
 using NUnit.Framework;
 using RL.Opponents;
+using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Hunt;
+using Substrate.Sectors.Elements.Phases;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -28,9 +30,12 @@ namespace Tests.EditMode.Sectors
             {
                 var sector = row.prefab;
                 var label = $"row {index} ({sector.name})";
-                Assert.That(row.roster, Is.Not.Empty, $"{label} has a roster");
-                for (var i = 0; i < row.roster.Length; i++)
-                    AssertTemper("Wave", row.roster[i].pilot, $"{label}'s roster ship {i}");
+                var ships = row.phases.SelectMany(phase => phase.groups ?? System.Array.Empty<WaveGroup>())
+                    .SelectMany(group => group.ships ?? System.Array.Empty<WaveDirector.RosterEntry>())
+                    .ToArray();
+                Assert.That(ships, Is.Not.Empty, $"{label} has a wave ship");
+                for (var i = 0; i < ships.Length; i++)
+                    AssertTemper("Wave", ships[i].pilot, $"{label}'s wave ship {i}");
 
                 AssertTemper("Wave", Field(sector.GetComponentInChildren<SectorHunt>(true), "patrolPilot"),
                     $"{label}'s patrols");
