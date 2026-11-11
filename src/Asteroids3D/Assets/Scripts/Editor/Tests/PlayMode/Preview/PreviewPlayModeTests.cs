@@ -8,6 +8,7 @@ using Damage;
 using Game;
 using Game.Audio;
 using Game.Preview;
+using Game.Preview.Fixtures;
 using Game.Runs;
 using Game.Travel;
 using NUnit.Framework;
@@ -15,9 +16,13 @@ using Ships;
 using Ships.Loadout;
 using Ships.Registry;
 using Ships.Visuals.Breakup;
+using Asteroids.Fields;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
+using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Phases;
+using Substrate.Sectors.Elements.Hunt;
+using Substrate.Sectors.Factions;
 using Substrate.Services.Locales;
 using Substrate.Services.Objectives;
 using Substrate.Services.Units;
@@ -38,7 +43,6 @@ using UnityEngine.InputSystem;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
-using Substrate.Sectors.Elements.Hunt;
 
 namespace Tests.PlayMode.Preview
 {
@@ -385,10 +389,14 @@ namespace Tests.PlayMode.Preview
             host.gameHostPrefab = shipped;
             host.sessionProfile = new SessionProfile();
             host.crowdedJumpSectors = new[] { ("CrowdedJumpDeparture", "IllustratedBlue"), ("CrowdedJumpArrival", "CopperTurquoise") }
-                .Select(row => new SectorEntry
+                .Select(row => new PreviewFixture
                 {
-                    prefab = TestAssets.Load<Sector>($"Assets/Prefabs/Sectors/Preview/{row.Item1}.prefab"),
-                    locale = TestAssets.Load<LocaleSky>($"Assets/Prefabs/Locales/{row.Item2}.prefab")
+                    layout = TestAssets.Load<Sector>($"Assets/Prefabs/Sectors/Preview/{row.Item1}.prefab"),
+                    link = PreviewFixture.Unlinked,
+                    values = new SectorEntry
+                    {
+                        locale = TestAssets.Load<LocaleSky>($"Assets/Prefabs/Locales/{row.Item2}.prefab")
+                    }
                 }).ToArray();
             root.SetActive(true);
 
@@ -408,7 +416,8 @@ namespace Tests.PlayMode.Preview
             var crowded = host.Playtest;
             yield return LaunchFromHangar(crowded);
             Assert.That(combat == null, Is.True);
-            Assert.That(crowded.sessionProfile.run.Sectors, Is.EqualTo(host.crowdedJumpSectors));
+            Assert.That(crowded.sessionProfile.run.Sectors.Select(Shape),
+                Is.EqualTo(host.crowdedJumpSectors.Select(fixture => Shape(fixture.Resolve(shipped.sessionProfile.run)))));
             Assert.That(crowded.sessionProfile.idleLocale, Is.SameAs(shipped.sessionProfile.idleLocale));
             Assert.That(crowded.ActiveSector.name, Does.StartWith("CrowdedJumpDeparture"));
             Assert.That(Object.FindObjectsByType<GameHost>(FindObjectsSortMode.None).Length, Is.EqualTo(1));
@@ -426,25 +435,27 @@ namespace Tests.PlayMode.Preview
             host.entry = fixture.Entry;
             host.gameHostPrefab = TestAssets.Load<GameHost>("Assets/Prefabs/Game/GameHost.prefab");
             host.sessionProfile = new SessionProfile();
-            var sector = TestAssets.FixtureRow(fixture.Name)
+            var row = TestAssets.FixtureRow(fixture.Name)
                 .WithLocale(TestAssets.Load<LocaleSky>("Assets/Prefabs/Locales/IllustratedBlue.prefab"));
+            var entry = new PreviewFixture { layout = row.prefab, link = PreviewFixture.Unlinked, values = row };
             switch (fixture.Entry)
             {
                 case PreviewEntry.Boss:
-                    host.bossSector = sector;
+                    host.bossSector = entry;
                     break;
                 case PreviewEntry.Sector1Elite:
-                    host.sector1EliteSector = sector;
+                    host.sector1EliteSector = entry;
                     break;
                 case PreviewEntry.Sector2Elite:
-                    host.sector2EliteSector = sector;
+                    host.sector2EliteSector = entry;
                     break;
             }
             root.SetActive(true);
 
             var game = host.Playtest;
             yield return LaunchFromHangar(game);
-            Assert.That(game.sessionProfile.run.Sectors, Is.EqualTo(new[] { sector }));
+            Assert.That(game.sessionProfile.run.Sectors.Select(Shape), Is.EqualTo(new[] { Shape(row) }));
+            Assert.That(game.sessionProfile.run.LocalePool, Is.EqualTo(host.gameHostPrefab.sessionProfile.run.LocalePool));
             Assert.That(game.ActiveSector.name, Does.StartWith(fixture.Name));
             var spine = game.ActiveSector.Module<PhaseSpineModule>();
             var objectives = game.GetComponent<ObjectiveService>();
@@ -483,12 +494,15 @@ namespace Tests.PlayMode.Preview
             host.entry = PreviewEntry.CrowdedFight;
             host.gameHostPrefab = TestAssets.Load<GameHost>("Assets/Prefabs/Game/GameHost.prefab");
             host.sessionProfile = new SessionProfile();
-            host.crowdedFightSector = TestAssets.FixtureRow("CrowdedFightSector");
+            host.crowdedFightSector = TestAssets.Fixture("CrowdedFightSector");
             root.SetActive(true);
 
             var fight = host.Playtest;
             yield return LaunchFromHangar(fight);
-            Assert.That(fight.sessionProfile.run.Sectors, Is.EqualTo(new[] { host.crowdedFightSector }));
+            var gameRun = host.gameHostPrefab.sessionProfile.run;
+            Assert.That(fight.sessionProfile.run.Sectors.Select(Shape),
+                Is.EqualTo(new[] { Shape(host.crowdedFightSector.Resolve(gameRun)) }));
+            Assert.That(fight.sessionProfile.run.LocalePool, Is.EqualTo(gameRun.LocalePool));
             Assert.That(fight.ActiveSector.name, Does.StartWith("CrowdedFightSector"));
             var ships = fight.GetComponent<UnitService>().ActiveRegistry.ActiveShips;
             yield return AsyncAssert.WaitUntil(
@@ -670,5 +684,9 @@ namespace Tests.PlayMode.Preview
             serializedRig.ApplyModifiedPropertiesWithoutUndo();
             return rigTemplate;
         }
+
+        private static (Sector prefab, LocaleSky locale, bool random, Faction faction, EliteProfile elite,
+            SectorPhase[] phases, int patrols, AsteroidFieldSettings field) Shape(SectorEntry row) =>
+            (row.prefab, row.locale, row.random, row.faction, row.elite, row.phases, row.patrols, row.field);
     }
 }
