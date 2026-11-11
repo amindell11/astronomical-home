@@ -144,6 +144,25 @@ namespace Tests.EditMode.Preview
         }
 
         [Test]
+        public void UntickedArmories_FollowsTheLinkedRow()
+        {
+            row.armories = 3;
+            var fixture = Linked(new SectorEntry { armories = 9 });
+
+            var resolved = fixture.Resolve(run);
+            Assert.AreEqual(3, resolved.armories);
+
+            row.armories = 1;
+            resolved = fixture.Resolve(run);
+            Assert.AreEqual(1, resolved.armories);
+
+            fixture = Linked(new SectorEntry { armories = 9 }, PreviewFixtureOwn.Armories);
+            row.armories = 4;
+            resolved = fixture.Resolve(run);
+            Assert.AreEqual(9, resolved.armories);
+        }
+
+        [Test]
         public void UnlinkedFixture_ReadsNoRow()
         {
             var phases = new[] { new SectorPhase { seconds = 6 } };

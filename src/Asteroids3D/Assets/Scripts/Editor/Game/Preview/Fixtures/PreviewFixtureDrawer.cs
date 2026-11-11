@@ -15,6 +15,7 @@ namespace Game.Preview.Fixtures
             (PreviewFixtureOwn.Elite, "Elite", new[] { nameof(SectorEntry.elite) }),
             (PreviewFixtureOwn.Waves, "Waves", new[] { nameof(SectorEntry.phases) }),
             (PreviewFixtureOwn.Patrols, "Patrols", new[] { nameof(SectorEntry.patrols) }),
+            (PreviewFixtureOwn.Armories, "Armories", new[] { nameof(SectorEntry.armories) }),
             (PreviewFixtureOwn.Field, "Field", new[] { nameof(SectorEntry.field) }),
             (PreviewFixtureOwn.Locale, "Locale", new[] { nameof(SectorEntry.locale), nameof(SectorEntry.random) }),
         };

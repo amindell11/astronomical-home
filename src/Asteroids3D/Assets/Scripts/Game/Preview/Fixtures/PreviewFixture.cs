@@ -19,6 +19,7 @@ namespace Game.Preview.Fixtures
         Patrols = 1 << 3,
         Field = 1 << 4,
         Locale = 1 << 5,
+        Armories = 1 << 6,
     }
 
     /// <summary>
@@ -53,6 +54,7 @@ namespace Game.Preview.Fixtures
             if ((own & PreviewFixtureOwn.Elite) != 0) resolved.elite = values.elite;
             if ((own & PreviewFixtureOwn.Waves) != 0) resolved.phases = values.phases;
             if ((own & PreviewFixtureOwn.Patrols) != 0) resolved.patrols = values.patrols;
+            if ((own & PreviewFixtureOwn.Armories) != 0) resolved.armories = values.armories;
             if ((own & PreviewFixtureOwn.Field) != 0) resolved.field = values.field;
             if ((own & PreviewFixtureOwn.Locale) != 0)
             {
