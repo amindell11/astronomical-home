@@ -47,6 +47,8 @@ namespace Ships.Presentation
         public void Wear(in ShipLivery livery)
         {
             if (livery.Hull.Count > 0) PaintHull(livery.Hull);
+            if (livery.Restyle != null)
+                foreach (var surface in silhouette) livery.Restyle.Apply(surface);
             foreach (var part in liveryParts)
                 part.Wear(livery);
         }

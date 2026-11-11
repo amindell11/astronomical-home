@@ -87,9 +87,6 @@ namespace Tests.PlayMode
         {
             var player = SpawnKinematicShip(Vector2.zero);
             var pilot = JumpTestCommander.Fly(player);
-            var template = SpawnKinematicShip(new Vector2(500f, 500f));
-            template.gameObject.SetActive(false);
-
             var sectorGO = TrackGO(new GameObject("PhasedSector"));
             var sector = sectorGO.AddComponent<Sector>();
 
@@ -98,10 +95,9 @@ namespace Tests.PlayMode
             var director = directorGO.AddComponent<WaveDirector>();
             var row = new SectorEntry
             {
-                roster = new[] { new WaveDirector.RosterEntry { template = template } },
-                phases = new[] { new SectorPhase { seconds = 1f, interval = 1f, cap = 0 } }
+                phases = new[] { new SectorPhase { seconds = 1f, cap = 0, groups = System.Array.Empty<WaveGroup>() } }
             };
-            director.Configure(row.roster, row.phases, lullSeconds: 0f);
+            director.Configure(row.phases, lullSeconds: 0f);
 
             var zone = NewZone(sectorGO.transform, "Zone");
 
@@ -149,9 +145,6 @@ namespace Tests.PlayMode
         public IEnumerator PhaseEnd_OpensABeaconAwayFromTheHero_AndFlyingInClaimsIt()
         {
             var player = SpawnKinematicShip(Vector2.zero);
-            var template = SpawnKinematicShip(new Vector2(500f, 500f));
-            template.gameObject.SetActive(false);
-
             var sectorGO = TrackGO(new GameObject("LullSector"));
             var sector = sectorGO.AddComponent<Sector>();
 
@@ -161,14 +154,13 @@ namespace Tests.PlayMode
             // One-second phases sit inside the default lead, so the beacon opens with the sector.
             var row = new SectorEntry
             {
-                roster = new[] { new WaveDirector.RosterEntry { template = template } },
                 phases = new[]
                 {
-                    new SectorPhase { seconds = 1f, interval = 1f, cap = 0 },
-                    new SectorPhase { seconds = 1f, interval = 1f, cap = 0 },
+                    new SectorPhase { seconds = 1f, cap = 0, groups = System.Array.Empty<WaveGroup>() },
+                    new SectorPhase { seconds = 1f, cap = 0, groups = System.Array.Empty<WaveGroup>() },
                 }
             };
-            director.Configure(row.roster, row.phases, lullSeconds: 5f);
+            director.Configure(row.phases, lullSeconds: 5f);
 
             var beacon = NewZone(sectorGO.transform, "Beacon");
             var spine = sectorGO.AddComponent<PhaseSpineModule>();

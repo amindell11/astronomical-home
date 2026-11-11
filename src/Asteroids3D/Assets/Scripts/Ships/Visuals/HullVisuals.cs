@@ -7,10 +7,11 @@ using UnityEngine;
 namespace Ships.Visuals
 {
     /// <summary>
-    /// Owns hull hit flashes and held keystone colors across the authored hull surfaces.
+    /// Owns hull hit flashes and held keystone colors across the authored hull surfaces,
+    /// and re-reads its colors on every wear.
     /// A held color takes priority over damage, including on hulls whose other damage effects are disabled.
     /// </summary>
-    public sealed class HullVisuals : MonoBehaviour, IShipVisual
+    public sealed class HullVisuals : MonoBehaviour, IShipVisual, IWearsLivery
     {
         [SerializeField] private Color flashColor = new(1f, 0.65f, 0.32f);
         [SerializeField, Min(0.07f)] private float flashTime = 0.36f;
@@ -23,6 +24,8 @@ namespace Ships.Visuals
         private readonly List<Renderer> contours = new();
         private readonly List<Color> contourColors = new();
         private MaterialPropertyBlock block;
+        private ShipVisualRig rig;
+        private Renderer[] renderers;
         private IDamageEvents source;
         private bool subscribed;
         private bool flashHeld;
@@ -30,24 +33,39 @@ namespace Ships.Visuals
 
         private void Awake()
         {
+            rig = GetComponentInParent<ShipVisualRig>(true);
+            renderers = rig.GetComponentsInChildren<Renderer>(true);
             block = new MaterialPropertyBlock();
-            var rig = GetComponentInParent<ShipVisualRig>(true);
+            Scan();
+        }
+
+        private void Scan()
+        {
+            surfaces.Clear();
+            surfaceColors.Clear();
+            contours.Clear();
+            contourColors.Clear();
             surfaces.AddRange(rig.Silhouette);
             foreach (var surface in surfaces)
+                surfaceColors.Add(Worn(surface, BaseColor));
+            // The hangar preview strips rig parts between Awake and its wear.
+            foreach (var renderer in renderers)
             {
-                surface.GetPropertyBlock(block);
-                surfaceColors.Add(block.HasColor(BaseColor) ? block.GetColor(BaseColor)
-                    : surface.sharedMaterial.GetColor(BaseColor));
-            }
-            foreach (var renderer in rig.GetComponentsInChildren<Renderer>(true))
-            {
-                if (!renderer.sharedMaterial || !renderer.sharedMaterial.HasProperty(ContourColor)) continue;
+                if (!renderer || !renderer.sharedMaterial || !renderer.sharedMaterial.HasProperty(ContourColor)) continue;
                 contours.Add(renderer);
-                renderer.GetPropertyBlock(block);
-                contourColors.Add(block.HasColor(ContourColor) ? block.GetColor(ContourColor)
-                    : renderer.sharedMaterial.GetColor(ContourColor));
+                contourColors.Add(Worn(renderer, ContourColor));
             }
         }
+
+        // A restyled slot carries the ship's own color in its slot block.
+        private Color Worn(Renderer renderer, int color)
+        {
+            renderer.GetPropertyBlock(block, 0);
+            if (!block.HasColor(color)) renderer.GetPropertyBlock(block);
+            return block.HasColor(color) ? block.GetColor(color) : renderer.sharedMaterial.GetColor(color);
+        }
+
+        public void Wear(in ShipLivery livery) => Scan();
 
         public void Bind(in ShipView view)
         {

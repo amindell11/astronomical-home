@@ -3,12 +3,18 @@ const RipperDrawing = (() => {
     ctx.fillStyle=color;ctx.beginPath();
     points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();ctx.fill();
   }
-  function slug(ctx, colors) {
-    polygon(ctx,[[0,-1.5],[3,-4.3],[15,-3.4],[19,-1.4],[19,2.4],[14,4.1],[3,3.4],[0,1]],colors.shadow);
-    polygon(ctx,[[0,-1.5],[3,-4.3],[15,-3.4],[19,-1.4],[4,-1],[1,1.2]],colors.top);
-    polygon(ctx,[[1,1.2],[4,-1],[18,-1.4],[16,1.3],[4,2.9]],colors.side);
-    polygon(ctx,[[0,-1.5],[3,-4.3],[4,-2],[2,1.5],[0,1]],colors.nose);
-    polygon(ctx,[[19,-.7],[28,0],[19,1]],colors.tail);
+  function slug(ctx, colors, shadowBlur, variant) {
+    ctx.save();ctx.shadowColor=colors.tail;ctx.shadowBlur=shadowBlur;
+    ctx.globalAlpha=variant.brightness;
+    polygon(ctx,[[0,0],[-3.2,-.9],[-5.1,-.55],[-4.1,.55],[-2.4,.7]],colors.body);
+    polygon(ctx,[[-.1,0],[-3.6,-.5],[-2.6,.25]],colors.core);
+    ctx.shadowBlur=0;
+    ctx.globalAlpha=.17*variant.brightness;
+    polygon(ctx,[[-4.4,-.4],[-22,-.08],[-13.2,.35],[-5.5,.22]],colors.tail);
+    ctx.globalAlpha=.16*variant.brightness;
+    polygon(ctx,[[-7.1,-.2],[-18,-.1],[-9.2,.05]],colors.core);
+    ctx.globalAlpha=.14*variant.brightness;
+    polygon(ctx,variant.fleck,colors.rim);ctx.restore();
   }
   function impact(ctx, time, duration, colors) {
     const u=time/duration;if(u<0||u>=1)return;

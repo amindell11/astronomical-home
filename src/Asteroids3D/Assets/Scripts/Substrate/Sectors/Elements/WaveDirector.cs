@@ -18,19 +18,14 @@ using UnityEngine;
 namespace Substrate.Sectors.Elements
 {
     /// <summary>
-    /// Continuous producer for the survival trial, paced by a table of sector phases: each phase
-    /// opens by filling to its alive cap, then spawns one ship per interval while under it; the cap
-    /// counts the hunt's live patrols with the director's own ships. The opening
-    /// lull before the first phase (held until the alarm when the sector has a hunt, so phase one keeps
-    /// index 0) and the lull before each later one spawn nothing, and once the table is done the last
-    /// phase's pacing holds, so the hero leaves under pursuit; the sector's elite arriving stops spawning
-    /// for good. Ships ring the hero just off screen, facing it, on the first angle clear of asteroids,
-    /// each flying its sector faction's kit for its ship and wearing the faction's skin. The roster and
-    /// the phase table are the run row's, read at Build.
-    /// Dead products are despawned on the tick, and the tick idles while the hero is inactive (the
-    /// recap hold). Nothing spawns in Build: the sector builds under an inactive holder and the
-    /// asteroid field lays out at its Start, so a Build-time clearance check would see no rocks.
-    /// The base class's "produce exactly once" is about the activation token, not lifetime.
+    /// Sends waves of authored groups inside its sector phases: a phase opens with a wave, and the next
+    /// comes at its ends at after the breather, or at the longest wait. The cap is a ceiling a wave waits
+    /// under, counting the hunt's live patrols; nothing arrives in a lull, the done table keeps the last
+    /// phase's waves, and the elite arriving stops them. The opening lull is held for the hunt. Ships of
+    /// a wave arrive together just off screen, each facing the hero on its faction kit and skin. Dead
+    /// products despawn on the tick, and the tick idles while the hero is inactive. Nothing spawns in
+    /// Build, since the asteroid field lays out at its Start. The base class's "produce exactly once"
+    /// is about the activation token, not lifetime.
     /// </summary>
     public class WaveDirector : SectorSpawner, ISectorRowReader
     {
@@ -59,6 +54,8 @@ namespace Substrate.Sectors.Elements
         [Header("Placement")]
         [Tooltip("Plane distance from the hero; author it past the camera's widest view so ships arrive off screen.")]
         [SerializeField] private float spawnRadius = 55f;
+        [Tooltip("Distance along the ring between ships of one wave.")]
+        [SerializeField, Min(0f)] private float groupSpread = 8f;
         [Tooltip("A candidate point overlapping an asteroid within this radius is rejected.")]
         [SerializeField] private float clearanceRadius = 6f;
         [SerializeField] private LayerMask asteroidMask = 1 << 8;
@@ -66,47 +63,71 @@ namespace Substrate.Sectors.Elements
         [SerializeField, Min(1)] private int placementAttempts = 4;
 
         private readonly List<Ship> products = new();
-        private RosterEntry[] roster = Array.Empty<RosterEntry>();
         private SectorPhase[] phases = Array.Empty<SectorPhase>();
         private IUnitService units;
         private IObstacleField field;
         private Ship hero;
         private SectorPhaseSchedule schedule;
         private float startTime;
-        private float nextSpawnTime;
         private bool started;
         private bool huntReleased;
         private bool eliteArrived;
         private int openedPhase;
+        private RosterEntry[] pending;
+        private float lastWave;
+        private float settledSince = float.PositiveInfinity;
 
         /// <summary>Where the phase table stands as of the last tick.</summary>
         public SectorPhaseMark Phase { get; private set; }
 
         public int PhaseCount => phases.Length;
 
-        /// <summary>A roster ship the row's faction doesn't fly fails the session's start, not the first spawn.</summary>
+        /// <summary>A group ship the row's faction doesn't fly fails at session start, not the first wave.</summary>
         public void CheckRow(SectorEntry row)
         {
-            if (row.roster.Length == 0 || Array.Exists(row.roster, entry => !entry.template) || row.phases.Length == 0)
+            if (row.phases.Length == 0)
                 throw new InvalidOperationException(
-                    $"WaveDirector on '{name}' reads the row's roster and phases, and the row has an empty or unset one.");
+                    $"WaveDirector on '{name}' reads the row's phases, and the row has none.");
+            for (var i = 0; i < row.phases.Length; i++)
+            {
+                var phase = row.phases[i];
+                if (phase.cap > 0 && phase.groups.Length == 0)
+                    throw new InvalidOperationException(
+                        $"WaveDirector on '{name}' phase {i} has a cap and lists no groups.");
+                foreach (var group in phase.groups)
+                {
+                    if (group.ships.Length == 0)
+                        throw new InvalidOperationException(
+                            $"WaveDirector on '{name}' phase {i} has a group with no ships.");
+                    if (group.ships.Length > phase.cap)
+                        throw new InvalidOperationException(
+                            $"WaveDirector on '{name}' phase {i} has a group of {group.ships.Length} ships, past its cap of {phase.cap}.");
+                    foreach (var ship in group.ships)
+                        if (!ship.template)
+                            throw new InvalidOperationException(
+                                $"WaveDirector on '{name}' phase {i} has a group ship with no template.");
+                }
+            }
+
             if (!faction) return;
             if (!row.faction)
                 throw new InvalidOperationException($"WaveDirector on '{name}' flies the row's faction, and the row names none.");
-            foreach (var entry in row.roster)
-                row.faction.KitFor(entry.template);
+            foreach (var phase in row.phases)
+                foreach (var group in phase.groups)
+                    foreach (var ship in group.ships)
+                        row.faction.KitFor(ship.template);
         }
 
         protected override IEnumerator Produce(SectorBuildContext ctx)
         {
+            CheckRow(ctx.Row);
             products.Clear();
             Spawned = products;
-            roster = ctx.Row.roster;
             phases = ctx.Row.phases;
 
-            if (!ctx.Hero || roster.Length == 0 || Array.Exists(roster, e => !e.template))
+            if (!ctx.Hero)
             {
-                Debug.LogError($"WaveDirector on '{name}' has no hero or an empty/unset roster — director is inert.", this);
+                Debug.LogError($"WaveDirector on '{name}' has no hero — director is inert.", this);
                 yield break;
             }
 
@@ -146,24 +167,13 @@ namespace Substrate.Sectors.Elements
             DespawnDead();
             HoldForHunt(now);
             Advance(now);
-            if (Phase.InLull || eliteArrived) return;
-
-            var row = phases[Phase.Index];
-            if (OpensPhase())
-            {
-                for (var i = Alive; i < row.cap; i++)
-                    TrySpawn();
-                ScheduleNext(now);
-                return;
-            }
-
-            if (SpawnDue(now, Alive) && TrySpawn())
-                ScheduleNext(now);
+            var wave = WaveDue(now, Alive);
+            if (wave != null && TrySend(wave)) Arrived(now);
         }
 
         internal int Alive => products.Count + (hunt ? hunt.LivePatrols : 0);
 
-        private void OnEliteArrived(EliteMoment moment) => eliteArrived = true;
+        internal void OnEliteArrived(EliteMoment moment) => eliteArrived = true;
 
         private void OnValidate()
         {
@@ -180,6 +190,9 @@ namespace Substrate.Sectors.Elements
             startTime = now;
             openedPhase = -1;
             huntReleased = false;
+            pending = null;
+            lastWave = now;
+            settledSince = float.PositiveInfinity;
             Phase = schedule.At(0f);
         }
 
@@ -201,17 +214,46 @@ namespace Substrate.Sectors.Elements
             return true;
         }
 
-        internal bool SpawnDue(float now, int alive) =>
-            !Phase.InLull && now >= nextSpawnTime && alive < phases[Phase.Index].cap;
+        internal RosterEntry[] WaveDue(float now, int alive)
+        {
+            if (Phase.InLull || eliteArrived) return null;
+            var phase = phases[Phase.Index];
+            if (OpensPhase())
+                pending = Draw(phase);
+            else if (pending == null && Settled(now, alive, phase))
+                pending = Draw(phase);
+            return pending != null && alive + pending.Length <= phase.cap ? pending : null;
+        }
 
-        internal void ScheduleNext(float now) => nextSpawnTime = now + phases[Phase.Index].interval;
+        private bool Settled(float now, int alive, SectorPhase phase)
+        {
+            if (alive > phase.endsAt)
+                settledSince = float.PositiveInfinity;
+            else
+                settledSince = Mathf.Min(settledSince, now);
+            return now >= settledSince + phase.breather || now >= lastWave + phase.longestWait;
+        }
+
+        internal void Arrived(float now)
+        {
+            pending = null;
+            lastWave = now;
+            settledSince = float.PositiveInfinity;
+        }
+
+        private static RosterEntry[] Draw(SectorPhase phase) =>
+            phase.groups.Length == 0
+                ? null
+                : phase.groups[UnityEngine.Random.Range(0, phase.groups.Length)].ships;
 
         /// <summary>Reads only serialized data and the row, so a prefab asset answers too.</summary>
         public SectorThreat Threat(SectorEntry row)
         {
             var ships = new List<Ship>();
-            foreach (var entry in row.roster)
-                AddDistinct(ships, entry.template);
+            foreach (var phase in row.phases)
+                foreach (var group in phase.groups)
+                    foreach (var entry in group.ships)
+                        AddDistinct(ships, entry.template);
 
             var weapons = new List<WeaponComponent>();
             foreach (var ship in ships)
@@ -245,40 +287,58 @@ namespace Substrate.Sectors.Elements
             }
         }
 
-        private bool TrySpawn()
+        private bool TrySend(RosterEntry[] group)
         {
             var center = GamePlane.WorldPointToPlane(hero.transform.position);
             for (var attempt = 0; attempt < placementAttempts; attempt++)
             {
-                var angle = UnityEngine.Random.Range(0f, 2f * Mathf.PI);
-                var outward = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
-                var position = GamePlane.PlanePointToWorld(center + outward * spawnRadius);
-                if (Physics.CheckSphere(position, clearanceRadius, asteroidMask)) continue;
+                var bearing = UnityEngine.Random.Range(0f, 2f * Mathf.PI);
+                var slots = Slots(center, bearing, group.Length);
+                if (Array.Exists(slots, slot =>
+                        Physics.CheckSphere(GamePlane.PlanePointToWorld(slot), clearanceRadius, asteroidMask)))
+                    continue;
 
-                var entry = roster[UnityEngine.Random.Range(0, roster.Length)];
-                var facingHero = GamePlane.PlanePose(GamePlane.Normal, GamePlane.PlaneDirToWorld(-outward));
-                var loadout = faction ? new ShipLoadout(entry.template, KitFor(entry.template), null) : null;
-                var ship = units.SpawnShip(entry.template, entry.pilot, team, position, facingHero, field, loadout);
-                if (faction) faction.Faction.Dress(entry.template, ship, elite: false);
-                products.Add(ship);
+                for (var i = 0; i < group.Length; i++)
+                {
+                    var entry = group[i];
+                    var outward = (slots[i] - center).normalized;
+                    var facingHero = GamePlane.PlanePose(GamePlane.Normal, GamePlane.PlaneDirToWorld(-outward));
+                    var position = GamePlane.PlanePointToWorld(slots[i]);
+                    var loadout = faction ? new ShipLoadout(entry.template, KitFor(entry.template), null) : null;
+                    var ship = units.SpawnShip(entry.template, entry.pilot, team, position, facingHero, field, loadout);
+                    if (faction) faction.Faction.Dress(entry.template, ship, elite: false);
+                    products.Add(ship);
+                }
                 return true;
             }
             return false;
         }
 
+        internal Vector2[] Slots(Vector2 center, float bearing, int count)
+        {
+            var slots = new Vector2[count];
+            var step = groupSpread / spawnRadius;
+            for (var i = 0; i < count; i++)
+            {
+                var angle = bearing + (i - (count - 1) / 2f) * step;
+                slots[i] = center + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * spawnRadius;
+            }
+            return slots;
+        }
+
 #if UNITY_EDITOR
-        internal void Configure(RosterEntry[] roster, SectorPhase[] phases, float lullSeconds = 5f,
-            float spawnRadius = 55f, SectorFaction faction = null, float openingLullSeconds = 0f, SectorHunt hunt = null,
-            EliteEncounter elite = null)
+        internal void Configure(SectorPhase[] phases, float lullSeconds = 5f, float spawnRadius = 55f,
+            SectorFaction faction = null, float openingLullSeconds = 0f, SectorHunt hunt = null,
+            EliteEncounter elite = null, float groupSpread = 8f)
         {
             this.hunt = hunt;
             this.elite = elite;
-            this.roster = roster;
             this.faction = faction;
             this.phases = phases;
             this.lullSeconds = lullSeconds;
             this.openingLullSeconds = openingLullSeconds;
             this.spawnRadius = spawnRadius;
+            this.groupSpread = groupSpread;
             BuildSchedule();
         }
 #endif

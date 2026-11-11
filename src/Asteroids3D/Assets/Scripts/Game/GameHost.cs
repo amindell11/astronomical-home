@@ -17,9 +17,11 @@ using Substrate.Sectors;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Elements.Stations;
 using Substrate.Sessions;
+using Ships;
 using Ships.Loadout;
 using UI;
 using UI.Hangar;
+using UI.Hangar.Hardware;
 using UI.Recap;
 using UI.Screens;
 using UnityEngine;
@@ -79,6 +81,10 @@ namespace Game
         [Tooltip("Between-run hangar screen. Null → no interactive hangar (the standing loadout is " +
                  "applied silently).")]
         [SerializeField] internal HangarScreen hangarScreenPrefab;
+
+        [Tooltip("The 3D console the hangar shows behind its menu, with the ship hologram at its projector lens. " +
+                 "Null → no console and no hologram.")]
+        [SerializeField] internal HangarConsole hangarConsolePrefab;
 
         [Tooltip("Camera that shows the sky behind the hangar in place of the observer camera, drifting " +
                  "so its layers parallax. Null → the hangar shows the observer camera's view. Skipped " +
@@ -154,6 +160,7 @@ namespace Game
 
         public Sector ActiveSector => session?.ActiveSector;
         public SectorJumpFlight Jump => jump;
+        internal IUnitService Units => unitService;
 
         private void Awake()
         {
@@ -632,9 +639,20 @@ namespace Game
             var launched = false;
             screen.Show(hangarOffer, rig.Loadout, unlocks.Earned, () => launched = true);
 
+            HangarConsole console = null;
+            if (hangarConsolePrefab)
+            {
+                console = Instantiate(hangarConsolePrefab, uiRoot);
+                // Its own world, away from the sector and the preview stage.
+                console.transform.position = new Vector3(0f, -2000f, 0f);
+                console.Projector.Open(hangarOffer ? hangarOffer.ships : Array.Empty<Ship>(), rig.Loadout.Ship);
+                screen.ShipSelected += console.Projector.Select;
+            }
+
             yield return new WaitUntil(() => launched || shutdownRequested);
 
             if (!shutdownRequested) rig.ApplyLoadout();
+            if (console) Destroy(console.gameObject);
             Destroy(screen.gameObject);
         }
 

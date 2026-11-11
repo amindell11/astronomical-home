@@ -8,7 +8,6 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using Asteroids.Fields;
-using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Factions;
@@ -89,14 +88,14 @@ namespace Tests.EditMode.Bootstrap
             Assert.That(combat.Sectors.Select(row => row.random), Is.EqualTo(flown.Select(row => !picked && row.random)));
             Assert.That(combat.Sectors.Select(Values),
                 Is.EqualTo(sector == PreviewHost.WholeRun ? values : new[] { values[sector] }),
-                "each flown row carries its faction, elite, roster, phases, patrols and field");
+                "each flown row carries its faction, elite, phases, patrols and field");
             Assert.That(combat.LocalePool, Is.EqualTo(run.LocalePool));
             Assert.That(run.Sectors.Select(row => (row.prefab, row.locale, row.random)), Is.EqualTo(shipped), "a pick never writes to the run asset");
             Object.DestroyImmediate(combat);
         }
 
-        private static (Faction, EliteProfile, WaveDirector.RosterEntry[], SectorPhase[], int, AsteroidFieldSettings)
-            Values(SectorEntry row) => (row.faction, row.elite, row.roster, row.phases, row.patrols, row.field);
+        private static (Faction, EliteProfile, SectorPhase[], int, AsteroidFieldSettings)
+            Values(SectorEntry row) => (row.faction, row.elite, row.phases, row.patrols, row.field);
 
         [Test]
         public void Locales_ListsEveryLocalePrefabInTheLocalesFolder_ByName()

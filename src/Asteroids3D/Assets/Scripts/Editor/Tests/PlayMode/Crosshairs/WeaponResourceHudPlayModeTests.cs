@@ -267,7 +267,7 @@ namespace Tests.PlayMode.Crosshairs
             var span = ImageAt("PrimaryResources/Track").fillAmount;
             rounds.ProcessFire();
             Draw();
-            Assert.That(fill.fillAmount, Is.EqualTo(span * 23f / 24f).Within(.001f));
+            Assert.That(fill.fillAmount, Is.EqualTo(span * (rounds.MaxAmmo - 1f) / rounds.MaxAmmo).Within(.001f));
             while (rounds.AmmoCount > 0) rounds.ProcessFire();
             Draw();
             Assert.That(fill.fillAmount, Is.Zero);

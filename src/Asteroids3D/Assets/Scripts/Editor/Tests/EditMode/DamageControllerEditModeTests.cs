@@ -216,6 +216,75 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void AlwaysInvulnerable_BlocksTheHit_AndRaisesOnBlocked()
+        {
+            var dc = NewDamage();
+            dc.AlwaysInvulnerable = true;
+            var blocked = 0;
+            DamageInfo blockedHit = default;
+            var damaged = 0;
+            var died = false;
+            dc.OnBlocked += hit =>
+            {
+                blocked++;
+                blockedHit = hit;
+            };
+            dc.OnDamaged += _ => damaged++;
+            dc.OnDeath += (_, _) => died = true;
+
+            Assert.AreEqual(0f, dc.TakeDamage(Hit(500f)));
+            Assert.AreEqual(dc.Shield.MaxValue, dc.Shield.CurrentValue, 0.001f);
+            Assert.AreEqual(dc.Health.MaxValue, dc.Health.CurrentValue, 0.001f);
+            Assert.AreEqual(1, blocked);
+            Assert.AreEqual(500f, blockedHit.Amount, 0.001f);
+            Assert.AreEqual(0, damaged);
+            Assert.IsFalse(died);
+        }
+
+        [Test]
+        public void AlwaysInvulnerable_SurvivesResetsRefillsAndTheTimer()
+        {
+            var dc = NewDamage();
+            dc.AlwaysInvulnerable = true;
+            var stats = new ResolvedShipStats
+            {
+                maxHealth = 100f,
+                maxShield = 50f,
+                shieldRegenRate = 10f,
+                shieldRegenDelay = 0.5f,
+            };
+
+            void StillBlocks()
+            {
+                Assert.IsTrue(dc.AlwaysInvulnerable);
+                dc.TakeDamage(Hit(500f));
+                Assert.AreEqual(dc.Health.MaxValue, dc.Health.CurrentValue, 0.001f);
+                Assert.AreEqual(dc.Shield.MaxValue, dc.Shield.CurrentValue, 0.001f);
+            }
+
+            dc.ResetDamageState();
+            StillBlocks();
+            dc.PopulateSettings(stats);
+            StillBlocks();
+            dc.SetInvulnerability(float.PositiveInfinity);
+            dc.SetInvulnerability(0f);
+            StillBlocks();
+        }
+
+        [Test]
+        public void AlwaysInvulnerableOff_DamageLands()
+        {
+            var dc = NewDamage(maxShield: 50f);
+            dc.AlwaysInvulnerable = true;
+            dc.AlwaysInvulnerable = false;
+
+            Damage(dc, 80f);
+
+            Assert.AreEqual(0f, dc.Shield.CurrentValue, 0.001f);
+            Assert.AreEqual(70f, dc.Health.CurrentValue, 0.001f);
+        }
+
+        [Test]
         public void OnDeath_CarriesTheKillingBlow_AttackerAndKind()
         {
             var dc = NewDamage(maxHealth: 100f, maxShield: 50f);

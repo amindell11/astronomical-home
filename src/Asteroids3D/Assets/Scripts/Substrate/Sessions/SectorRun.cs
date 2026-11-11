@@ -4,7 +4,6 @@ using System.Linq;
 using Asteroids.Fields;
 using Balance;
 using Substrate.Sectors;
-using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Factions;
@@ -79,10 +78,7 @@ namespace Substrate.Sessions
         [Tooltip("The elite the sector ends at. None for a layout whose spine summons no elite.")]
         public EliteProfile elite;
 
-        [Tooltip("Ships the wave director draws from, picked uniformly per spawn.")]
-        [Stat] public WaveDirector.RosterEntry[] roster = Array.Empty<WaveDirector.RosterEntry>();
-
-        [Tooltip("The wave director's sector phases, in run order.")]
+        [Tooltip("The wave director's sector phases, in run order: each one's waves, timing and cap.")]
         [Stat(Ordered = true)] public SectorPhase[] phases = Array.Empty<SectorPhase>();
 
         [Tooltip("Patrols the sector's opening hunt spawns.")]

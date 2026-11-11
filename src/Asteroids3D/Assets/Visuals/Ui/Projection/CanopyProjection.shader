@@ -103,12 +103,9 @@ Shader "Hidden/UI/CanopyProjection"
             return float4(sum / weightSum, 1.0);
         }
 
-        float4 Composite(Varyings input) : SV_Target
+        float3 CanopyLight(float2 texcoord, out float2 p)
         {
-            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-            float3 sceneLinear = SAMPLE_TEXTURE2D_X(_SceneImage, sampler_LinearClamp, input.texcoord).rgb;
-            float3 scene = LinearToSRGB(sceneLinear);
-            float2 p = ImageUv(input.texcoord);
+            p = ImageUv(texcoord);
             float2 center = p - .5;
             float edge = smoothstep(.025, .45, dot(center, center));
             float pixelScale = _Resolution.x / 1600.0;
@@ -181,9 +178,33 @@ Shader "Hidden/UI/CanopyProjection"
                     light *= 1.0 - dip * flicker * .17;
                 }
             }
+            return light;
+        }
+
+        float Coverage(float2 p)
+        {
+            if (any(p < 0.0) || any(p > 1.0)) return 0.0;
+            return SAMPLE_TEXTURE2D(_HudInk, sampler_LinearClamp, ImageUv(p)).a;
+        }
+
+        float4 Composite(Varyings input) : SV_Target
+        {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+            float3 sceneLinear = SAMPLE_TEXTURE2D_X(_SceneImage, sampler_LinearClamp, input.texcoord).rgb;
+            float3 scene = LinearToSRGB(sceneLinear);
+            float2 p;
+            float3 light = CanopyLight(input.texcoord, p);
             // Subtract identical conversions so empty HUD light preserves the scene exactly.
             float3 lightDelta = SRGBToLinear(min(scene + max(light, 0.0), 1.0)) - SRGBToLinear(scene);
             return float4(sceneLinear + lightDelta, 1.0);
+        }
+
+        float4 Image(Varyings input) : SV_Target
+        {
+            float2 p;
+            float3 light = CanopyLight(input.texcoord, p);
+            // Premultiplied so light past the input's coverage adds over the surface.
+            return float4(SRGBToLinear(saturate(light)), Coverage(p));
         }
         ENDHLSL
 
@@ -217,6 +238,14 @@ Shader "Hidden/UI/CanopyProjection"
             HLSLPROGRAM
             #pragma vertex Vert
             #pragma fragment HaloBlur
+            ENDHLSL
+        }
+        Pass
+        {
+            Name "Canopy image"
+            HLSLPROGRAM
+            #pragma vertex Vert
+            #pragma fragment Image
             ENDHLSL
         }
     }

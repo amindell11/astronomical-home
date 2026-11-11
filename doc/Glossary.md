@@ -625,11 +625,22 @@ Format: **term** — definition. *(authority)*
 - **encounter** — the *fat* activation rule: rule + lazily-spawned content +
   local objective + on-complete events. A thin rule on a fixture is not an
   encounter.
-- **wave director** — the continuous sector spawner: ships ringing the hero
-  just off screen, paced by its sector phases, dead products despawned as it
-  goes. Content, not a sector module, so product ownership and teardown stay
-  the spawner's. *(WaveDirector)*
-- **sector phase** — one timed row of a wave director's pacing table. Bare
+- **wave director** — the continuous sector spawner. It sends waves inside its
+  sector phases. Dead products are despawned as it goes. Content, not a sector
+  module, so product ownership and teardown stay the spawner's. *(WaveDirector)*
+- **wave** — one group of ships arriving together from one bearing just off
+  screen, each on its own pilot. Each wave draws one of its sector phase's
+  groups uniformly. The cap counts the hunt's live patrols and a wave waits
+  under it. Nothing arrives in a lull, and survivors stay.
+  *(WaveGroup, WaveDirector.WaveDue)*
+- **ends at** — enemies alive, in whole ships, at or below which the next wave
+  comes after the breather. *(SectorPhase.endsAt)*
+- **breather** — seconds between enemies alive falling to ends at and the next
+  wave arriving. *(SectorPhase.breather)*
+- **longest wait** — most seconds after a wave arrives before the next one
+  comes, however many enemies are still alive. *(SectorPhase.longestWait)*
+- **sector phase** — one timed row of a wave director's table. The row holds
+  its groups, its cap and its wave timing. Bare
   *phase* is the RL run segment (§2) outside the wave director's code (§1
   *stage / phase* row). The player-facing HUD says "PHASE". *(SectorPhase)*
 - **survival trial** — a sector whose goal is surviving its sector phases and
@@ -720,8 +731,8 @@ Format: **term** — definition. *(authority)*
   between sectors.
 - **sector run** — the ordered sectors one run flies, one row each: the sector
   prefab (the layout), the locale it shows or Random, and the values the
-  layout's parts read: faction, elite, roster, sector phases, patrol count and
-  field preset. The parts take these values from the row and keep no copy.
+  layout's parts read: faction, elite, sector phases with their wave groups,
+  patrol count and field preset. The parts take these values from the row and keep no copy.
   Authored as one asset edited as a table, so a locale or pacing change never
   edits a prefab; tests and the headless lane build theirs with
   `SectorRun.Create`, from the shipped run's rows when they fly the trial
@@ -840,17 +851,16 @@ Format: **term** — definition. *(authority)*
   centre, in one of two forms, alternating fire or volley fire. Left and right are the
   sides the player sees with the prow up under the game camera, so left is the hull's
   local -X. The weapon's class owns the form, so Missiles, Concussion and the Railgun
-  have nothing to author. Rippers always fire volleys, and the TurboLasers variant
-  turns on the Lasers switch for alternating fire. *(`WeaponComponent.FirePattern`; #1410)*
+  have nothing to author. Rippers always alternate, and the TurboLasers variant
+  turns on the Lasers switch for volley fire. *(`WeaponComponent.FirePattern`; #1410)*
 - **alternating fire** — dual fire from one side socket per shot, switching sides each
   shot. Each shot is one projectile at the weapon's own fire rate, and its fire sound
-  plays at the side that fired. The owner ruled it for TurboLasers (2026-11-08).
+  plays at the side that fired.
   *(`FirePattern.Alternating`; #1410)*
 - **volley fire** — dual fire from both side sockets together on every shot. Each shot
-  launches one projectile from each side but spends one round and plays one fire sound.
-  The fire sound and the gunsight's line of sight read the centre socket, which sits on
-  the centreline between the two muzzles. The owner ruled it for Rippers at full damage
-  per projectile (2026-11-08), so ripper damage output doubles.
+  launches one projectile from each side, spends one shot's worth of ammo or heat, and
+  plays one fire sound. The fire sound and the gunsight's line of sight read the centre
+  socket, which sits on the centreline between the two muzzles.
   *(`FirePattern.Volley`; #1422)*
 - **velocity reference / feasibility tracker** — the RL↔MPC boundary: the policy
   emits a planar velocity and MPC is demoted to a ~2s tracker (feasibility, aim,
@@ -1008,7 +1018,7 @@ Format: **term** — definition. *(authority)*
   Every shipped pilot does, each on its kind's *temper*, and the RL roster never
   does. *(TacticRules.Next, TacticsSettings)*
 - **temper**. One `TacticsSettings` asset per kind of ship: wave ships (every
-  roster ship and hunt patrol), the elite, and its escorts. Each pilot points at
+  ship in a wave and every hunt patrol), the elite, and its escorts. Each pilot points at
   its own. Owner ruling on #1349, 2026-11-09: the elite never breaks off and
   always presses (break off 0%, nerve 0%), escorts never fly into the target's
   guns (nerve 100%), and wave ships keep the numbers #1433 shipped. At 100%
@@ -1146,11 +1156,12 @@ Format: **term** — definition. *(authority)*
   the weapon prefab, so an inspector edit to the prefab or to a module asset shows
   up and an edit to a live weapon instance does not. *(StatHash.OfLoadout, StatAttribute)*
 - **stat fingerprint** — a short hash of every balance number a run can draw from:
-  what the hangar offers, each run sector's wave director in run order (its pacing, its roster and
+  what the hangar offers, each run sector's wave director in run order (its pacing and groups, and
   the parts its enemies draw from) and the kill refill. Runs played against the
   same numbers share a fingerprint, so results are grouped by it. A number no run
   can reach does not move it, and neither does list order or listing a part twice,
   except in a list marked `[Stat(Ordered = true)]` such as the sector phase table.
+  Inside a list entry, such as a group's ships, order still does not move it, but a repeat does.
   Built from the `[Stat]` marks and keyed by name, so a rename moves it too.
   *(StatHash.OfSetting, StatAttribute)*
 - **run record**. One JSON line appended when a run ends, extracted from its last

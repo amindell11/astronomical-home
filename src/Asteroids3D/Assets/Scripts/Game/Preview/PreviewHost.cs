@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.ExceptionServices;
 using Cameras;
+using Game.Player;
 using Game.Runs;
 using Ships;
 using Substrate.Results;
@@ -35,7 +36,8 @@ namespace Game.Preview
     /// any other switch or restart awaits the previous entry's teardown before composing the next. Only
     /// Replay entries touch this host's clock: a scrubbing subject may freeze it, and while a subject
     /// that plays from its start is selected, the host sets it from the transport. Restart and Loop
-    /// re-compose such a subject, keeping its fixture.
+    /// re-compose such a subject, keeping its fixture. The Player invulnerable pick, read at each
+    /// Playtest compose, keeps every player ship that playtest spawns from taking damage.
     /// A throw while composing, replacing or tearing down faults the host: every later request refuses,
     /// Shutdown rethrows instead of tearing down, and only destroying the host recovers.
     /// https://github.com/amindell11/astronomical-home/issues/1151
@@ -59,6 +61,7 @@ namespace Game.Preview
         [SerializeField] internal PreviewEntry entry;
         [SerializeField] internal int combatSector = WholeRun;
         [SerializeField] internal LocaleSky combatLocale;
+        [SerializeField] internal bool playerInvulnerable;
 
         private UnitService unitService;
         private ObjectiveService objectiveService;
@@ -173,7 +176,15 @@ namespace Game.Preview
             playtest.runRecordPath = Path.Combine(ResultsRoot.Folder("preview"),
                 Guid.NewGuid().ToString("N"), RunRecordStore.FileName);
             playtest.transform.SetParent(null, false);
+            // Its Awake has run, and its run spawns the player only after its first yield.
+            if (playerInvulnerable) playtest.Units.OnShipSpawned += Protect;
             Destroy(staging);
+        }
+
+        // The hangar can rebuild the player, so each player ship the playtest spawns is covered.
+        private static void Protect(Ship ship)
+        {
+            if (ship.Commander as PlayerCommander) ship.Damage.AlwaysInvulnerable = true;
         }
 
         // New rows, so a Locale pick never writes to the run asset.

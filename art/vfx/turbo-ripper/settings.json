@@ -6,7 +6,16 @@
     "colors": { "rim": "#e7ab36", "inner": "#ffe5a1", "core": "#fff8de", "sparkLight": "#ffe2a0", "sparkGold": "#f6bb4f" }
   },
   "slug": {
-    "worldLength": 0.49,
-    "colors": { "shadow": "#392d1b", "top": "#e9c96d", "side": "#9f7a35", "nose": "#fff5cf", "tail": "#ffd262" }
+    "worldLength": 0.75,
+    "shadowBlur": 1.1,
+    "colors": { "rim": "#e7b443", "body": "#ffedb4", "core": "#fffdf0", "tail": "#ffd46c" },
+    "variants": [
+      { "lengthScale": 1, "widthScale": 1, "angleDegrees": 0, "brightness": 1, "fleck": [[-8.2,1.2],[-11.3,0.8],[-10.4,1.3]] },
+      { "lengthScale": 0.8, "widthScale": 0.94, "angleDegrees": -1.5, "brightness": 0.96, "fleck": [[-7.2,1.1],[-9.7,0.7],[-9.1,1.2]] },
+      { "lengthScale": 0.92, "widthScale": 1.08, "angleDegrees": 1.2, "brightness": 0.98, "fleck": [[-9.1,1],[-12.1,0.8],[-10.8,1.4]] },
+      { "lengthScale": 0.86, "widthScale": 0.9, "angleDegrees": 2, "brightness": 0.94, "fleck": [[-7.7,-1],[-10.8,-0.8],[-9.8,-1.4]] },
+      { "lengthScale": 0.96, "widthScale": 1.1, "angleDegrees": -2, "brightness": 0.97, "fleck": [[-8.5,1.25],[-10.5,0.85],[-9.9,1.4]] },
+      { "lengthScale": 0.82, "widthScale": 1.02, "angleDegrees": 0.8, "brightness": 1, "fleck": [[-9,-1.1],[-11.7,-0.85],[-11,-1.3]] }
+    ]
   }
 }
