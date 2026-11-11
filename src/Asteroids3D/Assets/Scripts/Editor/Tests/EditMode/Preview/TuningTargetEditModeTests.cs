@@ -13,6 +13,7 @@ using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Elements.Stations;
+using UI.Hangar.Hologram;
 using UI.Projection;
 using UnityEditor;
 
@@ -63,6 +64,8 @@ namespace Tests.EditMode.Preview
             AssertTarget(Target<CompanionTarget>(), new[] { PreviewEntry.Combat },
                 AssetDatabase.LoadAssetAtPath<CompanionFeelProfile>("Assets/Settings/Game/Companion/CompanionFeel.asset"),
                 AssetDatabase.LoadAssetAtPath<CompanionLineSheet>("Assets/Settings/Game/Companion/CompanionLines.asset"));
+            AssertTarget(Target<HangarHologramTarget>(), new[] { PreviewEntry.Combat },
+                AssetDatabase.LoadAssetAtPath<HangarHologramProfile>("Assets/Settings/UI/HangarHologram.asset"));
             AssertTarget(Target<TacticsTarget>(), new[] { PreviewEntry.CrowdedFight },
                 new[] { "Wave", "Elite", "Escort" }.Select(kind =>
                     AssetDatabase.LoadAssetAtPath<TacticsSettings>($"Assets/Settings/AI/Tactics/{kind}Temper.asset"))

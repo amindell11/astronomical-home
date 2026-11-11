@@ -87,11 +87,11 @@ namespace Tests.PlayMode.Audio
             var description = Fresh(MusicEvent);
             var objectives = New("Objectives").AddComponent<ObjectiveService>();
             var director = New("WaveDirector").AddComponent<WaveDirector>();
-            director.Configure(null, new[]
+            director.Configure(new[]
             {
-                new SectorPhase { seconds = 40f, interval = 6f, cap = 2 },
-                new SectorPhase { seconds = 40f, interval = 6f, cap = 2 },
-                new SectorPhase { seconds = 40f, interval = 6f, cap = 2 },
+                new SectorPhase { seconds = 40f, cap = 2 },
+                new SectorPhase { seconds = 40f, cap = 2 },
+                new SectorPhase { seconds = 40f, cap = 2 },
             }, lullSeconds: 5f);
             director.BeginSchedule(0f);
             var zone = New("Zone");

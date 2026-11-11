@@ -12,7 +12,7 @@ namespace Substrate.Sessions
         private const float PatrolsWidth = 48f;
         private const float Gap = 6f;
         private const int WideColumns = 4;
-        private static readonly string[] Unfolded = { nameof(SectorEntry.roster), nameof(SectorEntry.phases) };
+        private static readonly string[] Unfolded = { nameof(SectorEntry.phases) };
 
         private ReorderableList table;
         private SerializedProperty localePool;
@@ -72,7 +72,7 @@ namespace Substrate.Sessions
                     nameof(SectorEntry.locale));
 
             line.y += Line;
-            row.isExpanded = EditorGUI.Foldout(line, row.isExpanded, "Roster and phases", true);
+            row.isExpanded = EditorGUI.Foldout(line, row.isExpanded, "Phases and waves", true);
             if (!row.isExpanded) return;
             EditorGUI.indentLevel++;
             foreach (var name in Unfolded)

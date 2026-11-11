@@ -186,8 +186,6 @@ namespace Tests.PlayMode.Sectors
 
         private World BuildSector(Ship hero, BeaconCacheFeelProfile feel, bool presentation, int phases)
         {
-            var template = SpawnShip(new Vector2(500f, 500f));
-            template.gameObject.SetActive(false);
             var sectorGO = Track(new GameObject("LullSector"));
             var sector = sectorGO.AddComponent<Sector>();
             var directorGO = new GameObject("WaveDirector");
@@ -196,11 +194,11 @@ namespace Tests.PlayMode.Sectors
             // One-second phases sit inside the beacon's lead, so each lull's beacon opens as the last lull ends.
             var row = new SectorEntry
             {
-                roster = new[] { new WaveDirector.RosterEntry { template = template } },
-                phases = Enumerable.Range(0, phases).Select(_ => new SectorPhase { seconds = 1f, interval = 1f, cap = 0 })
+                phases = Enumerable.Range(0, phases)
+                    .Select(_ => new SectorPhase { seconds = 1f, cap = 0, groups = System.Array.Empty<WaveGroup>() })
                     .ToArray()
             };
-            director.Configure(row.roster, row.phases, lullSeconds: 1f);
+            director.Configure(row.phases, lullSeconds: 1f);
 
             var beacon = NewZone(sectorGO.transform, "Beacon");
             var spine = sectorGO.AddComponent<PhaseSpineModule>();

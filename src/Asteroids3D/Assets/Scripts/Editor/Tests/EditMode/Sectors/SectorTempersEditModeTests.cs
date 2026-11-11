@@ -28,9 +28,10 @@ namespace Tests.EditMode.Sectors
             {
                 var sector = row.prefab;
                 var label = $"row {index} ({sector.name})";
-                Assert.That(row.roster, Is.Not.Empty, $"{label} has a roster");
-                for (var i = 0; i < row.roster.Length; i++)
-                    AssertTemper("Wave", row.roster[i].pilot, $"{label}'s roster ship {i}");
+                var ships = row.phases.SelectMany(phase => phase.groups).SelectMany(group => group.ships).ToArray();
+                Assert.That(ships, Is.Not.Empty, $"{label} has a wave ship");
+                for (var i = 0; i < ships.Length; i++)
+                    AssertTemper("Wave", ships[i].pilot, $"{label}'s wave ship {i}");
 
                 AssertTemper("Wave", Field(sector.GetComponentInChildren<SectorHunt>(true), "patrolPilot"),
                     $"{label}'s patrols");
