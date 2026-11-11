@@ -44,7 +44,7 @@ namespace UI.Projection
 
         public override void RecordRenderGraph(RenderGraph graph, ContextContainer frameData)
         {
-            image?.Prepare();
+            if (image) image.Prepare();
             var descriptor = source.Ink.descriptor;
             descriptor.msaaSamples = 1;
             descriptor.bindMS = false;
