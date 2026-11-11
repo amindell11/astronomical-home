@@ -115,7 +115,7 @@ namespace Tests.EditMode.Hangar
             foreach (var name in new[]
                      {
                          "mainDisplay", "detailDisplay", "mainView", "detailView", "displayProfile",
-                         "selectorKnob", "previousButton", "nextButton", "launchButton"
+                         "selectorKnob", "knob", "previousButton", "nextButton", "launchButton", "launchLegend"
                      })
                 Assert.IsTrue(data.FindProperty(name).objectReferenceValue, name);
             Assert.IsTrue(console.GetComponent<HangarConsoleRaycaster>(), "the console raycasts its own pointers");

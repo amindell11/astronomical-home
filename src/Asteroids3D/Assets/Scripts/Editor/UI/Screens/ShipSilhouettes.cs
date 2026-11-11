@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Ships;
+using UI.Hangar.Displays;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -9,25 +10,30 @@ using Object = UnityEngine.Object;
 
 namespace UI.Screens
 {
-    public static class RecapSilhouettes
+    public static class ShipSilhouettes
     {
-        private const string Output = "Assets/Resources/" + RunRecapScreen.SilhouetteFolder;
-
         [MenuItem("Tools/UI/Bake recap silhouettes")]
-        public static void Bake()
+        public static void BakeRecap() => Bake(RunRecapScreen.SilhouetteFolder, 128);
+
+        [MenuItem("Tools/UI/Bake hangar silhouettes")]
+        public static void BakeHangar() => Bake(HangarMainDisplayView.SilhouetteFolder, 512);
+
+        // A white top-down silhouette of every ship, one square PNG per ship under Resources.
+        public static void Bake(string resourcesFolder, int size)
         {
-            Directory.CreateDirectory(Output);
+            var output = "Assets/Resources/" + resourcesFolder;
+            Directory.CreateDirectory(output);
             foreach (var guid in AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/Prefabs/Ships" }))
             {
                 var path = AssetDatabase.GUIDToAssetPath(guid);
                 var ship = AssetDatabase.LoadAssetAtPath<Ship>(path);
                 if (!ship || ship.name == "ShipBase") continue;
-                BakeShip(ship);
+                BakeShip(ship, output, size);
             }
             AssetDatabase.Refresh();
         }
 
-        private static void BakeShip(Ship ship)
+        private static void BakeShip(Ship ship, string output, int size)
         {
             IReadOnlyList<Renderer> renderers;
             if (ship.VisualRig)
@@ -35,9 +41,9 @@ namespace UI.Screens
             else if (Array.IndexOf(ShipLegacyList.Chassis, ship.name) >= 0)
                 renderers = ship.GetComponentsInChildren<MeshRenderer>(true);
             else
-                throw new InvalidOperationException($"{ship.name} needs a visual rig to bake its recap silhouette.");
+                throw new InvalidOperationException($"{ship.name} needs a visual rig to bake its silhouette.");
             if (renderers.Count == 0)
-                throw new InvalidOperationException($"{ship.name} needs hull renderers to bake its recap silhouette.");
+                throw new InvalidOperationException($"{ship.name} needs hull renderers to bake its silhouette.");
             var toShip = ship.transform.worldToLocalMatrix;
             var bounds = new Bounds(toShip.MultiplyPoint3x4(renderers[0].transform.position), Vector3.zero);
             foreach (var renderer in renderers)
@@ -57,9 +63,9 @@ namespace UI.Screens
             if (!shader) throw new InvalidOperationException("Silhouette baking requires Unlit/Color.");
             var material = new Material(shader) { color = Color.white };
             material.SetInt("_Cull", (int)CullMode.Off);
-            var target = RenderTexture.GetTemporary(128, 128, 24, RenderTextureFormat.ARGB32);
+            var target = RenderTexture.GetTemporary(size, size, 24, RenderTextureFormat.ARGB32);
             var previous = RenderTexture.active;
-            var texture = new Texture2D(128, 128, TextureFormat.RGBA32, false);
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
             RenderTexture.active = target;
             GL.PushMatrix();
             try
@@ -76,9 +82,9 @@ namespace UI.Screens
                         Graphics.DrawMeshNow(mesh, normalize * toShip * renderer.localToWorldMatrix, sub);
                     if (skinned) Object.DestroyImmediate(mesh);
                 }
-                texture.ReadPixels(new Rect(0, 0, 128, 128), 0, 0);
+                texture.ReadPixels(new Rect(0, 0, size, size), 0, 0);
                 texture.Apply();
-                var path = Output + "/" + ship.name + ".png";
+                var path = output + "/" + ship.name + ".png";
                 File.WriteAllBytes(path, texture.EncodeToPNG());
                 AssetDatabase.ImportAsset(path);
                 var importer = (TextureImporter)AssetImporter.GetAtPath(path);

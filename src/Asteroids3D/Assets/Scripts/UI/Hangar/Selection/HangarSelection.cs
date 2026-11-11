@@ -43,6 +43,7 @@ namespace UI.Hangar.Selection
 
         public HangarSlot Selected { get; private set; }
 
+        public IReadOnlyList<Ship> Ships => (IReadOnlyList<Ship>)ships ?? Array.Empty<Ship>();
         public Ship Ship => loadout.Ship;
         public WeaponComponent Weapon => loadout.PrimaryWeapon;
         public WeaponComponent Ordnance => loadout.SecondaryWeapon;

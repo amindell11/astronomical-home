@@ -8,8 +8,6 @@ using UI.Hangar;
 using UI.Hangar.Displays;
 using UI.Hangar.Hardware;
 using UI.Hangar.Hologram;
-using UI.Hangar.Selection;
-using UnityEngine.UI;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -134,8 +132,8 @@ namespace Tests.PlayMode.Hangar
                 screen.view.Selection.Step(step);
                 index = (index + step + ships.Length) % ships.Length;
                 Assert.That(loadout.Ship, Is.SameAs(ships[index]), "the selection follows the press on its frame");
-                Assert.That(screen.view.GetComponentInChildren<HangarMainDisplayView>()[HangarSlot.Ship]
-                    .GetComponentInChildren<Text>().text, Is.EqualTo($"Ship\n{ships[index].name}"));
+                Assert.That(screen.view.GetComponentInChildren<HangarMainDisplayView>().Title,
+                    Is.EqualTo(ships[index].name));
                 for (var end = Time.time + .1f; Time.time < end;)
                 {
                     yield return null;

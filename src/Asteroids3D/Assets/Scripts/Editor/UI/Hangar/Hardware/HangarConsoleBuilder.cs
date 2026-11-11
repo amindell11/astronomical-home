@@ -6,6 +6,7 @@ using UnityEngine;
 using UI.Hangar.Displays;
 using UI.Hangar.Hologram;
 using UI.Projection;
+using UI.Screens;
 using UnityEngine.Rendering;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
@@ -21,6 +22,7 @@ namespace UI.Hangar.Hardware
         [MenuItem("Tools/Hangar/Rebuild console hardware")]
         public static void Rebuild()
         {
+            ShipSilhouettes.BakeHangar();
             var manifestPath = Path.GetFullPath(Path.Combine(Application.dataPath,
                 "../../../art/environments/hangar-console/console-export.json"));
             var authored = JsonUtility.FromJson<ExportManifest>(File.ReadAllText(manifestPath)).camera;
@@ -138,10 +140,12 @@ namespace UI.Hangar.Hardware
                     ReferenceResolution("MainScreenReference"), feature);
                 var detailView = HangarDisplayBuilder.BuildDetail(root.transform, new Vector3(200f, -300f, 0f),
                     ReferenceResolution("DetailScreenReference"), feature);
-                var knob = parts["SelectorKnob"].gameObject.AddComponent<HangarControl>();
-                var previous = parts["PreviousButton"].gameObject.AddComponent<HangarControl>();
-                var next = parts["NextButton"].gameObject.AddComponent<HangarControl>();
-                var launch = parts["LaunchButton"].gameObject.AddComponent<HangarControl>();
+                var knobAxis = KnobAxis(parts["SelectorKnob"]);
+                var knob = Control(parts["SelectorKnob"], knobAxis, .2f, camera);
+                var turn = parts["SelectorKnob"].gameObject.AddComponent<HangarKnob>();
+                var previous = Control(parts["PreviousButton"], ThinAxis(parts["PreviousButton"]), .35f, camera);
+                var next = Control(parts["NextButton"], ThinAxis(parts["NextButton"]), .35f, camera);
+                var launch = Control(parts["LaunchButton"], ThinAxis(parts["LaunchButton"]), .35f, camera);
                 root.AddComponent<HangarConsoleRaycaster>();
 
                 foreach (var child in root.GetComponentsInChildren<Transform>(true))
@@ -153,9 +157,11 @@ namespace UI.Hangar.Hardware
                 foreach (var name in new[] { "MainScreenGlass", "DetailScreenGlass", "ProjectorLens" })
                     data.FindProperty(char.ToLowerInvariant(name[0]) + name.Substring(1)).objectReferenceValue = parts[name];
                 data.FindProperty("selectorKnob").objectReferenceValue = knob;
+                data.FindProperty("knob").objectReferenceValue = turn;
                 data.FindProperty("previousButton").objectReferenceValue = previous;
                 data.FindProperty("nextButton").objectReferenceValue = next;
                 data.FindProperty("launchButton").objectReferenceValue = launch;
+                data.FindProperty("launchLegend").objectReferenceValue = parts["LaunchLegend"];
                 data.FindProperty("compositeImage").objectReferenceValue = image;
                 data.FindProperty("projector").objectReferenceValue = projectorObject.GetComponent<HangarHologramProjector>();
                 data.FindProperty("mainDisplay").objectReferenceValue = mainView.GetComponent<HangarDisplay>();
@@ -163,7 +169,7 @@ namespace UI.Hangar.Hardware
                 data.FindProperty("mainView").objectReferenceValue = mainView;
                 data.FindProperty("detailView").objectReferenceValue = detailView;
                 data.FindProperty("displayProfile").objectReferenceValue = DisplayProfile();
-                data.FindProperty("knobAxis").vector3Value = KnobAxis(parts["SelectorKnob"]);
+                data.FindProperty("knobAxis").vector3Value = knobAxis;
                 data.FindProperty("knobDetentDegrees").floatValue = 40f;
                 data.ApplyModifiedPropertiesWithoutUndo();
                 root.SetActive(true);
@@ -218,6 +224,25 @@ namespace UI.Hangar.Hardware
             if (!feature)
                 throw new InvalidOperationException("The hangar projector's canopy image has no feature.");
             return feature;
+        }
+
+        // Pressed along the given local axis, into the console (away from the camera), a share of its own extent.
+        private static HangarControl Control(MeshRenderer part, Vector3 axis, float travelShare, Camera camera)
+        {
+            var control = part.gameObject.AddComponent<HangarControl>();
+            var inward = Vector3.Dot(part.transform.TransformDirection(axis), camera.transform.forward) >= 0f ? axis : -axis;
+            var extent = Vector3.Dot(Vector3.Scale(part.GetComponent<MeshFilter>().sharedMesh.bounds.size, inward), inward);
+            var data = new SerializedObject(control);
+            data.FindProperty("pressAxis").vector3Value = inward;
+            data.FindProperty("travel").floatValue = Mathf.Abs(extent) * travelShare;
+            data.ApplyModifiedPropertiesWithoutUndo();
+            return control;
+        }
+
+        private static Vector3 ThinAxis(MeshRenderer part)
+        {
+            var size = part.GetComponent<MeshFilter>().sharedMesh.bounds.size;
+            return size.x <= size.y && size.x <= size.z ? Vector3.right : size.y <= size.z ? Vector3.up : Vector3.forward;
         }
 
         private static Vector3 KnobAxis(MeshRenderer knob)
