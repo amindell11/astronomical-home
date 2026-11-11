@@ -1,6 +1,7 @@
 using System.Linq;
 using Game;
 using Game.Preview;
+using Game.Preview.Fixtures;
 using NUnit.Framework;
 using Substrate.Services.Locales;
 using UI.Projection;
@@ -39,23 +40,28 @@ namespace Tests.EditMode.Bootstrap
             Assert.IsTrue(host.sessionProfile.presentation, "the preview shows presentation");
             var run = host.gameHostPrefab.sessionProfile.run;
             Assert.That(host.sessionProfile.run, Is.SameAs(run), "Replay flies the game's own sector run");
-            Assert.That(host.crowdedJumpSectors.Select(entry => entry.prefab.name),
+            Assert.That(host.crowdedJumpSectors.Select(fixture => fixture.layout.name),
                 Is.EqualTo(new[] { "CrowdedJumpDeparture", "CrowdedJumpArrival" }));
-            Assert.That(host.crowdedJumpSectors.Select(entry => entry.locale.name),
+            Assert.That(host.crowdedJumpSectors.Select(fixture => fixture.Resolve(run).locale.name),
                 Is.EqualTo(new[] { "IllustratedBlue", "CopperTurquoise" }));
+            Assert.That(host.crowdedJumpSectors.Select(fixture => fixture.link), Is.All.EqualTo(PreviewFixture.Unlinked),
+                "the crowded jump's fixtures are unlinked");
             var hud = new[] { host.hudQuietSector, host.hudExtractionSector };
-            Assert.That(hud.Select(entry => entry.prefab.name), Is.EqualTo(new[] { "HudQuietSector", "HudExtractionSector" }));
-            Assert.AreEqual("EliteSector1", host.sector1EliteSector.prefab.name);
-            Assert.AreEqual("EliteSector2", host.sector2EliteSector.prefab.name);
-            Assert.AreEqual("BossSector", host.bossSector.prefab.name);
-            var fixtures = AssetDatabase.LoadAssetAtPath<SectorRun>(PreviewHostBootstrap.FixturesPath).Sectors;
+            Assert.That(hud.Select(fixture => fixture.layout.name),
+                Is.EqualTo(new[] { "HudQuietSector", "HudExtractionSector" }));
+            Assert.AreEqual("EliteSector1", host.sector1EliteSector.layout.name);
+            Assert.AreEqual("EliteSector2", host.sector2EliteSector.layout.name);
+            Assert.AreEqual("BossSector", host.bossSector.layout.name);
+            var fixtures = AssetDatabase.LoadAssetAtPath<PreviewFixtures>(PreviewHostBootstrap.FixturesPath).Entries;
             var flown = host.crowdedJumpSectors.Concat(hud)
                 .Append(host.bossSector).Append(host.sector1EliteSector).Append(host.sector2EliteSector)
                 .Append(host.crowdedFightSector).ToArray();
-            Assert.That(flown, Is.EquivalentTo(fixtures), "each fixture flies its own row of the fixtures run");
-            Assert.That(fixtures.Where(row => row.prefab.name != "CrowdedJumpArrival").Select(row => row.locale),
+            Assert.That(flown, Is.EquivalentTo(fixtures), "each host field is that layout's fixture entry");
+            Assert.That(fixtures.Where(fixture => fixture.layout.name != "CrowdedJumpArrival")
+                    .Select(fixture => fixture.Resolve(run).locale),
                 Is.All.SameAs(run.LocalePool[0]), "every fixture but the jump's arrival shows the run pool's first locale");
-            Assert.That(host.bossSector.elite.name, Is.EqualTo("BastionBoss"), "the boss fixture ends at sector 3's elite");
+            Assert.That(host.bossSector.Resolve(run).elite.name, Is.EqualTo("BastionBoss"),
+                "the boss fixture ends at sector 3's elite");
         }
 
         [Test]
