@@ -226,7 +226,6 @@ namespace UI.Hangar.Hardware
             return feature;
         }
 
-        // Pressed along the given local axis, into the console (away from the camera), a share of its own extent.
         private static HangarControl Control(MeshRenderer part, Vector3 axis, float travelShare, Camera camera)
         {
             var control = part.gameObject.AddComponent<HangarControl>();

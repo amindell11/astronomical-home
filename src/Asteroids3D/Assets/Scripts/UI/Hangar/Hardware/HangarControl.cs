@@ -23,13 +23,10 @@ namespace UI.Hangar.Hardware
 
         private Vector3 rest;
         private float since = float.PositiveInfinity;
-        private float depth;
 
         public event Action Pressed;
 
         public float Travel => travel;
-        public Vector3 PressAxis => pressAxis;
-        internal float Depth => depth;
         internal bool Moving => since < float.PositiveInfinity;
 
         private void Awake()
@@ -55,7 +52,7 @@ namespace UI.Hangar.Hardware
         {
             if (!Moving) return;
             since += Time.unscaledDeltaTime;
-            depth = DepthAt(since);
+            var depth = DepthAt(since);
             if (since > InSeconds + HoldSeconds && Mathf.Abs(depth) < SettledDepth)
             {
                 depth = 0f;

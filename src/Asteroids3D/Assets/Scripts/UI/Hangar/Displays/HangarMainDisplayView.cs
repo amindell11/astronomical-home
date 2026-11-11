@@ -108,10 +108,9 @@ namespace UI.Hangar.Displays
 
         private static string Number(float value, HangarStat stat)
         {
+            var number = value.ToString("0.#");
             var unit = HangarStats.Unit(stat);
-            return unit.Length == 0
-                ? HangarStats.Number(value)
-                : $"{HangarStats.Number(value)}<size=22><color=#9FB0BF>{unit}</color></size>";
+            return unit.Length == 0 ? number : $"{number}<size=22><color=#9FB0BF>{unit}</color></size>";
         }
 
         private static Texture2D Silhouette(Ship ship)

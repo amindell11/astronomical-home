@@ -23,7 +23,6 @@ namespace UI.Hangar.Displays
         private static readonly Color Amber = new(1f, .80f, .50f, 1f);
         private static readonly Color Label = new(.62f, .70f, .78f, 1f);
         private static readonly Color Line = new(.45f, .58f, .68f, 1f);
-        private static readonly Color Unlit = new(.26f, .31f, .37f, 1f);
         private static readonly Color Locked = new(1f, .42f, .32f, 1f);
         private static readonly Color Clear = new(0f, 0f, 0f, 0f);
 
@@ -127,13 +126,13 @@ namespace UI.Hangar.Displays
                 var anchor = right ? TextAnchor.UpperRight : TextAnchor.UpperLeft;
                 var row = Box(canvas, stat.ToString(), new Rect(x, y, BarWidth, 96f));
                 var label = Text(row, "Label", labels, 28, anchor, Label, new Rect(0f, -2f, BarWidth, 30f));
-                label.text = HangarStats.Label(stat);
+                label.text = stat.ToString();
                 var number = Text(row, "Number", numbers, 36, anchor, Amber, new Rect(0f, 24f, BarWidth, 48f));
                 bars[i] = Bar(row, number, new Vector2(0f, 76f));
                 var barEnd = right ? new Vector2(x - 10f, y + 80f) : new Vector2(x + BarWidth + 10f, y + 80f);
                 var hull = hullPoints[i % 3];
                 if (right) hull.x = width - hull.x;
-                Segment(canvas, stat + "Leader", barEnd, hull, 2f, Line);
+                Leader(canvas, stat + "Leader", barEnd, hull);
             }
 
             var glyphs = new Object[2];
@@ -149,7 +148,7 @@ namespace UI.Hangar.Displays
                 glyphs[i] = glyph;
                 names[i] = Text(canvas, slots[i + 1].name + "Name", labels, 28, TextAnchor.MiddleCenter, Label,
                     new Rect(centre - 80f, 540f, 160f, 30f));
-                Segment(canvas, slots[i + 1].name + "Leader", hardpoints[i], new Vector2(centre, 462f), 2f, Line);
+                Leader(canvas, slots[i + 1].name + "Leader", hardpoints[i], new Vector2(centre, 462f));
             }
 
             var silhouette = Box(canvas, "Silhouette", new Rect(250f, 170f, 240f, 240f)).gameObject.AddComponent<RawImage>();
@@ -162,7 +161,7 @@ namespace UI.Hangar.Displays
             keystoneIcon.raycastTarget = false;
             keystoneIcon.preserveAspect = true;
             var keystoneCooldown = Text(canvas, "KeystoneCooldown", numbers, 36, TextAnchor.MiddleCenter, Amber, new Rect(560f, 530f, 160f, 48f));
-            Segment(canvas, "KeystoneLeader", new Vector2(430f, 396f), new Vector2(604f, 488f), 2f, Line);
+            Leader(canvas, "KeystoneLeader", new Vector2(430f, 396f), new Vector2(604f, 488f));
 
             view.FindProperty("title").objectReferenceValue = title;
             view.FindProperty("lockTag").objectReferenceValue = lockTag;
@@ -193,7 +192,7 @@ namespace UI.Hangar.Displays
             {
                 var segment = Box(bar, "Segment", new Rect(i * (SegmentWidth + SegmentGap), 0f, SegmentWidth, BarHeight))
                     .gameObject.AddComponent<Image>();
-                segment.color = Unlit;
+                segment.color = HangarStatBar.Unlit;
                 segment.raycastTarget = false;
                 segments[i] = segment;
             }
@@ -228,8 +227,9 @@ namespace UI.Hangar.Displays
             image.raycastTarget = false;
         }
 
-        private static void Segment(RectTransform parent, string name, Vector2 from, Vector2 to, float thickness, Color color)
+        private static void Leader(RectTransform parent, string name, Vector2 from, Vector2 to)
         {
+            const float thickness = 2f;
             var delta = to - from;
             var length = delta.magnitude;
             var line = Box(parent, name, new Rect(from.x, from.y - thickness * .5f, length, thickness));
@@ -237,7 +237,7 @@ namespace UI.Hangar.Displays
             line.anchoredPosition = new Vector2(from.x, -from.y);
             line.localRotation = Quaternion.Euler(0f, 0f, -Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg);
             var image = line.gameObject.AddComponent<Image>();
-            image.color = color;
+            image.color = Line;
             image.raycastTarget = false;
         }
 
@@ -254,7 +254,6 @@ namespace UI.Hangar.Displays
             return text;
         }
 
-        // Top-left origin, y down: the grid the screen design was drawn on.
         private static RectTransform Box(RectTransform parent, string name, Rect rect)
         {
             var box = new GameObject(name, typeof(RectTransform));

@@ -37,19 +37,6 @@ namespace UI.Hangar.Displays
         public static float Fill(float value, float best) =>
             best <= 0f ? Floor : Floor + (1f - Floor) * Mathf.Clamp01(value / best);
 
-        public static string Label(HangarStat stat) => stat switch
-        {
-            HangarStat.Hull => "Hull",
-            HangarStat.Shield => "Shield",
-            HangarStat.Regen => "Regen",
-            HangarStat.Speed => "Speed",
-            HangarStat.Accel => "Accel",
-            HangarStat.Turn => "Turn",
-            _ => throw new ArgumentOutOfRangeException(nameof(stat), stat, null)
-        };
-
-        public static string Number(float value) => value.ToString("0.#");
-
         public static string Unit(HangarStat stat) => stat switch
         {
             HangarStat.Regen => "/s",

@@ -18,8 +18,7 @@ namespace UI.Screens
         [MenuItem("Tools/UI/Bake hangar silhouettes")]
         public static void BakeHangar() => Bake(HangarMainDisplayView.SilhouetteFolder, 512);
 
-        // A white top-down silhouette of every ship, one square PNG per ship under Resources.
-        public static void Bake(string resourcesFolder, int size)
+        private static void Bake(string resourcesFolder, int size)
         {
             var output = "Assets/Resources/" + resourcesFolder;
             Directory.CreateDirectory(output);
