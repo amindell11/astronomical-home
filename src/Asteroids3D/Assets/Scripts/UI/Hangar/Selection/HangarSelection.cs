@@ -5,7 +5,6 @@ using Ships;
 using Ships.Command;
 using Ships.Loadout;
 using Ships.Weapons;
-using UnityEngine;
 
 namespace UI.Hangar.Selection
 {
@@ -146,7 +145,6 @@ namespace UI.Hangar.Selection
             return list;
         }
 
-        // A null pool stays null, so the slot has no options.
         private static List<WeaponComponent> Filling(WeaponSlot slot, WeaponComponent[] pool)
         {
             if (pool == null) return null;

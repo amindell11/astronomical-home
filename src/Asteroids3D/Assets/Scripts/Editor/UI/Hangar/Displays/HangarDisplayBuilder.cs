@@ -10,7 +10,7 @@ namespace UI.Hangar.Displays
         private const string FontPath = "Assets/Visuals/Ui/Fonts/Rajdhani-Medium.ttf";
 
         public static HangarMainDisplayView BuildMain(Transform parent, Vector3 localPosition, Vector2Int resolution,
-            UnityEngine.Object feature)
+            Object feature)
         {
             var display = Rig(parent, "MainDisplay", localPosition, resolution, feature, out var canvas);
             LayoutMain(canvas, out var buttons, out var labels);
@@ -23,7 +23,7 @@ namespace UI.Hangar.Displays
         }
 
         public static HangarDetailDisplayView BuildDetail(Transform parent, Vector3 localPosition, Vector2Int resolution,
-            UnityEngine.Object feature)
+            Object feature)
         {
             var display = Rig(parent, "DetailDisplay", localPosition, resolution, feature, out var canvas);
             LayoutDetail(canvas, out var title, out var body);
@@ -36,7 +36,7 @@ namespace UI.Hangar.Displays
         }
 
         private static HangarDisplay Rig(Transform parent, string name, Vector3 localPosition, Vector2Int resolution,
-            UnityEngine.Object feature, out RectTransform canvasRect)
+            Object feature, out RectTransform canvasRect)
         {
             var root = new GameObject(name);
             root.transform.SetParent(parent, false);
@@ -116,17 +116,13 @@ namespace UI.Hangar.Displays
 
         private static Text Label(Transform parent, Font font, int size, TextAnchor alignment)
         {
-            var text = parent.GetComponent<Text>();
-            if (!text)
-            {
-                var row = new GameObject("Label", typeof(RectTransform));
-                row.transform.SetParent(parent, false);
-                var rect = row.GetComponent<RectTransform>();
-                rect.anchorMin = Vector2.zero;
-                rect.anchorMax = Vector2.one;
-                rect.offsetMin = rect.offsetMax = Vector2.zero;
-                text = row.AddComponent<Text>();
-            }
+            var row = new GameObject("Label", typeof(RectTransform));
+            row.transform.SetParent(parent, false);
+            var rect = row.GetComponent<RectTransform>();
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = rect.offsetMax = Vector2.zero;
+            var text = row.AddComponent<Text>();
             text.font = font;
             text.fontSize = size;
             text.alignment = alignment;

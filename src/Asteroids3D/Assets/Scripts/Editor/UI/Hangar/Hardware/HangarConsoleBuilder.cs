@@ -210,13 +210,13 @@ namespace UI.Hangar.Hardware
             return profile;
         }
 
-        private static UnityEngine.Object CanopyFeature()
+        private static Object CanopyFeature()
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(ProjectorPath);
             var image = prefab.GetComponentInChildren<CanopyImage>(true);
             var feature = new SerializedObject(image).FindProperty("feature").objectReferenceValue;
             if (!feature)
-                throw new System.InvalidOperationException("The hangar projector's canopy image has no feature.");
+                throw new InvalidOperationException("The hangar projector's canopy image has no feature.");
             return feature;
         }
 

@@ -17,7 +17,6 @@ using Substrate.Sectors;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Elements.Stations;
 using Substrate.Sessions;
-using Ships;
 using Ships.Loadout;
 using UI;
 using UI.Hangar.Hardware;
