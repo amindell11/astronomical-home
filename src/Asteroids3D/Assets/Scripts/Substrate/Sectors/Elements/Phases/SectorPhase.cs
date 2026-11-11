@@ -26,7 +26,7 @@ namespace Substrate.Sectors.Elements.Phases
         [Stat, Min(1f)] public float longestWait;
     }
 
-    /// <summary>One group a sector phase's waves draw. A struct because Unity cannot serialize a jagged array of ships.</summary>
+    /// <summary>Exists because Unity cannot serialize a jagged array of ships.</summary>
     [Serializable]
     public struct WaveGroup
     {

@@ -85,19 +85,18 @@ namespace Substrate.Sectors.Elements
         /// <summary>A group ship the row's faction doesn't fly fails at session start, not the first wave.</summary>
         public void CheckRow(SectorEntry row)
         {
-            if (row.phases == null || row.phases.Length == 0)
+            if (row.phases.Length == 0)
                 throw new InvalidOperationException(
                     $"WaveDirector on '{name}' reads the row's phases, and the row has none.");
             for (var i = 0; i < row.phases.Length; i++)
             {
                 var phase = row.phases[i];
-                if (phase.cap > 0 && (phase.groups == null || phase.groups.Length == 0))
+                if (phase.cap > 0 && phase.groups.Length == 0)
                     throw new InvalidOperationException(
                         $"WaveDirector on '{name}' phase {i} has a cap and lists no groups.");
-                if (phase.groups == null) continue;
                 foreach (var group in phase.groups)
                 {
-                    if (group.ships == null || group.ships.Length == 0)
+                    if (group.ships.Length == 0)
                         throw new InvalidOperationException(
                             $"WaveDirector on '{name}' phase {i} has a group with no ships.");
                     if (group.ships.Length > phase.cap)
@@ -114,12 +113,9 @@ namespace Substrate.Sectors.Elements
             if (!row.faction)
                 throw new InvalidOperationException($"WaveDirector on '{name}' flies the row's faction, and the row names none.");
             foreach (var phase in row.phases)
-            {
-                if (phase.groups == null) continue;
                 foreach (var group in phase.groups)
                     foreach (var ship in group.ships)
                         row.faction.KitFor(ship.template);
-            }
         }
 
         protected override IEnumerator Produce(SectorBuildContext ctx)
@@ -246,7 +242,7 @@ namespace Substrate.Sectors.Elements
         }
 
         private static RosterEntry[] Draw(SectorPhase phase) =>
-            phase.groups == null || phase.groups.Length == 0
+            phase.groups.Length == 0
                 ? null
                 : phase.groups[UnityEngine.Random.Range(0, phase.groups.Length)].ships;
 
@@ -254,13 +250,10 @@ namespace Substrate.Sectors.Elements
         public SectorThreat Threat(SectorEntry row)
         {
             var ships = new List<Ship>();
-            if (row.phases != null)
-                foreach (var phase in row.phases)
-                    if (phase.groups != null)
-                        foreach (var group in phase.groups)
-                            if (group.ships != null)
-                                foreach (var entry in group.ships)
-                                    AddDistinct(ships, entry.template);
+            foreach (var phase in row.phases)
+                foreach (var group in phase.groups)
+                    foreach (var entry in group.ships)
+                        AddDistinct(ships, entry.template);
 
             var weapons = new List<WeaponComponent>();
             foreach (var ship in ships)

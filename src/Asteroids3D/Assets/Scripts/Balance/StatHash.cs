@@ -112,7 +112,6 @@ namespace Balance
                     Visit(reference, lines, visited);
                     return AssetName(reference);
                 case IList items:
-                    // Sorted, so order inside the entry does not move the hash; repeats stay.
                     var entries = new List<string>(items.Count);
                     foreach (var item in items)
                         entries.Add(Text(key, item, lines, visited) ?? "");

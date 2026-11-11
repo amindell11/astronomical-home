@@ -88,7 +88,7 @@ namespace Tests.EditMode
             {
                 case "faction": row.faction = null; break;
                 case "elite": row.elite = null; break;
-                case "groups": row.phases = WithoutGroups(row.phases); break;
+                case "groups": row.phases = WithGroups(row.phases); break;
                 case "phases": row.phases = System.Array.Empty<SectorPhase>(); break;
                 case "field": row.field = null; break;
             }
@@ -104,13 +104,7 @@ namespace Tests.EditMode
             {
                 ships = new[] { new WaveDirector.RosterEntry { template = TestShip("Bulwark") } },
             };
-            var phases = new SectorPhase[row.phases.Length];
-            for (var i = 0; i < phases.Length; i++)
-            {
-                phases[i] = row.phases[i];
-                phases[i].groups = new[] { bulwark };
-            }
-            row.phases = phases;
+            row.phases = WithGroups(row.phases, bulwark);
             Assert.That(() => Construct(row, presentation: false),
                 Throws.ArgumentException.With.Message.Contains("Row 1 of sector run").And.Message.Contains("doesn't fly 'Bulwark'"));
         }
@@ -125,13 +119,13 @@ namespace Tests.EditMode
 
         private static Ship TestShip(string name) => AssetDatabase.LoadAssetAtPath<Ship>($"Assets/Prefabs/Ships/{name}.prefab");
 
-        private static SectorPhase[] WithoutGroups(SectorPhase[] phases)
+        private static SectorPhase[] WithGroups(SectorPhase[] phases, params WaveGroup[] groups)
         {
             var copy = new SectorPhase[phases.Length];
             for (var i = 0; i < phases.Length; i++)
             {
                 copy[i] = phases[i];
-                copy[i].groups = System.Array.Empty<WaveGroup>();
+                copy[i].groups = groups;
             }
             return copy;
         }
