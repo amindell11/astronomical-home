@@ -190,7 +190,7 @@ namespace Tests.PlayMode.Hangar
             projector.Open(ships, ships[0]);
             yield return new WaitForSeconds(EntrySeconds);
             AssertSurfaceShowsImage(projector);
-            Assert.That(Coverage(CanopyImageOf(projector).Output), Is.GreaterThan(.5f), "the ship");
+            Assert.That(PeakAlpha(CanopyImageOf(projector).Output), Is.GreaterThan(.5f), "the ship");
 
             projector.Select(ships[1], 1);
             yield return new WaitForSeconds(EntrySeconds);
@@ -217,7 +217,7 @@ namespace Tests.PlayMode.Hangar
             return (CanopyImage)wiring.FindProperty("image").objectReferenceValue;
         }
 
-        private static float Coverage(RenderTexture texture)
+        private static float PeakAlpha(RenderTexture texture)
         {
             var previous = RenderTexture.active;
             RenderTexture.active = texture;

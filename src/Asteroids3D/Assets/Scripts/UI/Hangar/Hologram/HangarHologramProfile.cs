@@ -16,7 +16,7 @@ namespace UI.Hangar.Hologram
         [Tooltip("Swaps each preview copy's materials for hologram counterparts and carries the ship's per-renderer values.")]
         [SerializeField] private MaterialRestyle restyle = new();
 
-        [Tooltip("Opacity of the stage image on the projector surface.")]
+        [Tooltip("Opacity of the hologram image on the projector surface.")]
         [SerializeField, Range(0f, 1f)] private float layerOpacity = .75f;
 
         [Tooltip("Canopy effect strengths on the hologram image.")]

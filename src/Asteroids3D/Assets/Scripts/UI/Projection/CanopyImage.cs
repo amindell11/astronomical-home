@@ -81,7 +81,7 @@ namespace UI.Projection
         private void OnDestroy()
         {
             inputHandle?.Release();
-            outputHandle?.Release();
+            outputHandle.Release();
             output.Release();
             Destroy(output);
         }

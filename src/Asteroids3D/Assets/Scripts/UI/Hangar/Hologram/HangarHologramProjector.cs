@@ -21,10 +21,10 @@ namespace UI.Hangar.Hologram
             new(-.5f, -.5f, 0f), new(-.5f, .5f, 0f), new(.5f, -.5f, 0f), new(.5f, .5f, 0f)
         };
 
-        [Tooltip("Hologram restyle, layer opacity and cone.")]
+        [Tooltip("Hologram restyle, layer opacity, canopy strengths and cone.")]
         [SerializeField] private HangarHologramProfile profile;
 
-        [Tooltip("Quad at the lens, parented here. A 1×1 centred mesh; the stage image is drawn on it.")]
+        [Tooltip("Quad at the lens, parented here. A 1×1 centred mesh; the hologram image is drawn on it.")]
         [SerializeField] private MeshRenderer surface;
 
         [Tooltip("Parent for the cone, at the lens. The cone prefab's base sits at this origin.")]
