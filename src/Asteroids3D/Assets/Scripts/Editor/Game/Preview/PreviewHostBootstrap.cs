@@ -1,4 +1,5 @@
 using System.Linq;
+using Game.Preview.Fixtures;
 using Substrate.Services.Locales;
 using Substrate.Sessions;
 using UnityEditor;
@@ -9,8 +10,8 @@ namespace Game.Preview
 {
     /// <summary>
     /// Builds the preview host in an empty scene around the game's GameHost prefab. Replay flies the first
-    /// row of the prefab's sector run, and each fixture its own row of the preview fixtures run, found by
-    /// the name of the layout it flies.
+    /// row of the prefab's sector run. The host stores fixture entries from the preview fixtures asset,
+    /// found by layout name, and resolves them against the game run when an entry composes.
     /// The chosen entry is assigned before activation, so Playtest never composes a Replay session.
     /// The host waits inactive through the play-mode reload; entering play mode snapshots every tuning
     /// target's feel profiles, then activates it, so the panel tunes those assets in place.
@@ -47,13 +48,13 @@ namespace Game.Preview
             host.gameHostPrefab = AssetDatabase.LoadAssetAtPath<GameHost>(GameHostPath);
             var run = host.gameHostPrefab.sessionProfile.run;
             host.sessionProfile = new SessionProfile { run = run, presentation = true };
-            host.crowdedJumpSectors = new[] { FixtureRow("CrowdedJumpDeparture"), FixtureRow("CrowdedJumpArrival") };
-            host.hudQuietSector = FixtureRow("HudQuietSector");
-            host.hudExtractionSector = FixtureRow("HudExtractionSector");
-            host.bossSector = FixtureRow("BossSector");
-            host.sector1EliteSector = FixtureRow("EliteSector1");
-            host.sector2EliteSector = FixtureRow("EliteSector2");
-            host.crowdedFightSector = FixtureRow("CrowdedFightSector");
+            host.crowdedJumpSectors = new[] { Fixture("CrowdedJumpDeparture"), Fixture("CrowdedJumpArrival") };
+            host.hudQuietSector = Fixture("HudQuietSector");
+            host.hudExtractionSector = Fixture("HudExtractionSector");
+            host.bossSector = Fixture("BossSector");
+            host.sector1EliteSector = Fixture("EliteSector1");
+            host.sector2EliteSector = Fixture("EliteSector2");
+            host.crowdedFightSector = Fixture("CrowdedFightSector");
             host.jumpDestination = Locale(CopperTurquoisePath);
             host.entry = entry;
             host.combatSector = combatSector;
@@ -81,11 +82,15 @@ namespace Game.Preview
             if (host && !host.gameObject.activeSelf) Activate(host, FeelSnapshot.instance);
         }
 
-        internal static SectorEntry FixtureRow(string layout)
+        internal static SectorEntry FixtureRow(string layout) =>
+            Fixture(layout).Resolve(AssetDatabase.LoadAssetAtPath<GameHost>(GameHostPath).sessionProfile.run);
+
+        private static PreviewFixture Fixture(string layout)
         {
-            var row = AssetDatabase.LoadAssetAtPath<SectorRun>(FixturesPath).Sectors
-                .SingleOrDefault(fixture => fixture.prefab && fixture.prefab.name == layout);
-            return row ?? throw new System.InvalidOperationException($"'{FixturesPath}' has no row flying the {layout} layout.");
+            var fixtures = AssetDatabase.LoadAssetAtPath<PreviewFixtures>(FixturesPath);
+            if (!fixtures)
+                throw new System.InvalidOperationException($"'{FixturesPath}' is not a {nameof(PreviewFixtures)} asset.");
+            return fixtures.Fixture(layout);
         }
 
         private static LocaleSky Locale(string path) => AssetDatabase.LoadAssetAtPath<LocaleSky>(path);
