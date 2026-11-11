@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Game.Preview;
+using Game.Preview.Sectors;
 using Game.Preview.Fixtures;
 using NUnit.Framework;
 using Substrate.Sectors;

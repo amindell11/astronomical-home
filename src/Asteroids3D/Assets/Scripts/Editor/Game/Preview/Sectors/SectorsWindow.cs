@@ -6,13 +6,14 @@ using Substrate.Sessions;
 using UnityEditor;
 using UnityEngine;
 
-namespace Game.Preview
+namespace Game.Preview.Sectors
 {
     internal sealed class SectorsWindow : EditorWindow
     {
         private static readonly string[] Timing =
         {
             nameof(SectorPhase.seconds),
+            nameof(SectorPhase.cap),
             nameof(SectorPhase.endsAt),
             nameof(SectorPhase.breather),
             nameof(SectorPhase.longestWait),
@@ -73,7 +74,7 @@ namespace Game.Preview
             if (selected >= pages.List.Count) selected = pages.List.Count - 1;
             if (selected < 0) selected = 0;
             var page = pages.List[selected];
-            DrawStrip(page.Fixture ? -1 : page.Index);
+            DrawStrip();
             var picked = selected;
             using (new EditorGUILayout.HorizontalScope())
             {
@@ -91,7 +92,7 @@ namespace Game.Preview
             fixturesObject?.ApplyModifiedProperties();
         }
 
-        private void DrawStrip(int selectedIndex)
+        private void DrawStrip()
         {
             var sectors = runObject.FindProperty("sectors");
             if (sectors == null) return;
@@ -109,7 +110,7 @@ namespace Game.Preview
             {
                 using (new EditorGUILayout.HorizontalScope())
                     for (var i = 0; i < sectors.arraySize; i++)
-                        DrawStripColumn(sectors.GetArrayElementAtIndex(i), i, selectedIndex);
+                        DrawStripColumn(sectors.GetArrayElementAtIndex(i), i);
             }
             finally
             {
@@ -118,39 +119,24 @@ namespace Game.Preview
             EditorGUILayout.EndScrollView();
         }
 
-        private static void DrawStripColumn(SerializedProperty row, int index, int selectedIndex)
+        private static void DrawStripColumn(SerializedProperty row, int index)
         {
-            var readOnly = index == selectedIndex;
             using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox, GUILayout.MinWidth(210f)))
             {
                 EditorGUILayout.LabelField($"Sector {index + 1}", EditorStyles.boldLabel);
-                DrawStripField(row, nameof(SectorEntry.faction), "Faction", readOnly);
-                DrawStripField(row, nameof(SectorEntry.elite), "Elite", readOnly);
-                DrawStripField(row, nameof(SectorEntry.patrols), "Patrols", readOnly);
-                DrawStripField(row, nameof(SectorEntry.armories), "Armories", readOnly);
-                DrawStripField(row, nameof(SectorEntry.field), "Field", readOnly);
+                DrawStripField(row, nameof(SectorEntry.faction), "Faction");
+                DrawStripField(row, nameof(SectorEntry.elite), "Elite");
+                DrawStripField(row, nameof(SectorEntry.patrols), "Patrols");
+                DrawStripField(row, nameof(SectorEntry.armories), "Armories");
+                DrawStripField(row, nameof(SectorEntry.field), "Field");
                 var phases = row.FindPropertyRelative(nameof(SectorEntry.phases));
                 for (var i = 0; i < phases.arraySize; i++)
-                    DrawStripField(phases.GetArrayElementAtIndex(i), nameof(SectorPhase.cap), $"Cap {i + 1}", false);
+                    DrawStripField(phases.GetArrayElementAtIndex(i), nameof(SectorPhase.cap), $"Cap {i + 1}");
             }
         }
 
-        private static void DrawStripField(SerializedProperty parent, string name, string label, bool readOnly)
-        {
-            var property = parent.FindPropertyRelative(name);
-            if (readOnly) EditorGUILayout.LabelField(label, Shown(property));
-            else EditorGUILayout.PropertyField(property, new GUIContent(label));
-        }
-
-        private static string Shown(SerializedProperty property) => property.propertyType switch
-        {
-            SerializedPropertyType.ObjectReference => property.objectReferenceValue
-                ? property.objectReferenceValue.name : "None",
-            SerializedPropertyType.Integer => property.intValue.ToString(),
-            SerializedPropertyType.Float => property.floatValue.ToString("0.##"),
-            SerializedPropertyType.Boolean => property.boolValue ? "Yes" : "No",
-            _ => property.displayName,
-        };
+        private static void DrawStripField(SerializedProperty parent, string name, string label) =>
+            EditorGUILayout.PropertyField(parent.FindPropertyRelative(name), new GUIContent(label));
 
         private void DrawPage(SectorPages.Page page)
         {

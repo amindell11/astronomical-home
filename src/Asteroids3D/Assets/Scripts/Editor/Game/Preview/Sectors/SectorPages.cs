@@ -12,7 +12,7 @@ using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Game.Preview
+namespace Game.Preview.Sectors
 {
     /// <summary>
     /// The Sectors window's list, checks and shared values, over a sector run,
@@ -104,29 +104,35 @@ namespace Game.Preview
         {
             var usedBy = Label(layout);
             var director = layout.GetComponentInChildren<WaveDirector>(true);
+            var spine = layout.GetComponentInChildren<PhaseSpineModule>(true);
             var lulls = new SharedValue("Lulls", usedBy);
             AddFields(lulls, director, "lullSeconds", "openingLullSeconds");
-            var beacon = FindNamed(layout.transform, "LullBeacon");
-            if (beacon)
-            {
-                AddFields(lulls, beacon.GetComponent<ExtractionZone>(), "blockDistance", "departureHeading");
-                AddFields(lulls, beacon.GetComponent<Collider>(), "m_Radius");
-            }
+            AddFields(lulls, spine, "beaconDistance");
+            AddZone(lulls, SpineZone(spine, "beaconZone"));
             if (lulls.Parts.Count > 0) list.Add(lulls);
 
-            var spine = layout.GetComponentInChildren<PhaseSpineModule>(true);
             AddGroup(list, "Beacon lead and grace", usedBy, spine, "beaconLeadSeconds", "beaconGraceSeconds");
 
-            var extraction = FindNamed(layout.transform, "ExtractionZone");
-            if (extraction)
-            {
-                var zone = new SharedValue("Extraction", usedBy);
-                AddFields(zone, extraction.GetComponent<ExtractionZone>(), "blockDistance", "departureHeading");
-                AddFields(zone, extraction.GetComponent<Collider>(), "m_Radius");
-                if (zone.Parts.Count > 0) list.Add(zone);
-            }
+            var extraction = new SharedValue("Extraction", usedBy);
+            AddFields(extraction, spine, "zoneDistance", "zoneClearance");
+            AddZone(extraction, SpineZone(spine, "extractionZone"));
+            if (extraction.Parts.Count > 0) list.Add(extraction);
 
             AddGroup(list, "Spawn rings", usedBy, director, "spawnRadius", "groupSpread");
+        }
+
+        private static ExtractionZone SpineZone(PhaseSpineModule spine, string field)
+        {
+            if (!spine) return null;
+            using var serialized = new SerializedObject(spine);
+            return serialized.FindProperty(field)?.objectReferenceValue as ExtractionZone;
+        }
+
+        private static void AddZone(SharedValue value, ExtractionZone zone)
+        {
+            if (!zone) return;
+            AddFields(value, zone, "blockDistance", "departureHeading");
+            AddFields(value, zone.GetComponent<SphereCollider>(), "m_Radius");
         }
 
         private static void AddGroup(List<SharedValue> list, string title, string usedBy, Object target,
@@ -151,13 +157,6 @@ namespace Game.Preview
             foreach (var name in names)
                 if (so.FindProperty(name) != null) found.Add(name);
             return found.ToArray();
-        }
-
-        private static Transform FindNamed(Transform root, string name)
-        {
-            foreach (var transform in root.GetComponentsInChildren<Transform>(true))
-                if (transform.name == name) return transform;
-            return null;
         }
 
         private bool TryResolve(Page page, out Sector layout, out SectorEntry row, out string failure)
@@ -220,8 +219,16 @@ namespace Game.Preview
         {
             if (fixture == null || !asset) return false;
             if (fixture.layout == asset) return true;
-            var values = fixture.values;
-            if (values != null && (values.faction == asset || values.elite == asset || values.field == asset))
+            SectorEntry row;
+            try
+            {
+                row = fixture.Resolve(run);
+            }
+            catch (InvalidOperationException)
+            {
+                row = null;
+            }
+            if (row != null && (row.faction == asset || row.elite == asset || row.field == asset))
                 return true;
             return LayoutUses(fixture.layout, asset);
         }

@@ -1,4 +1,4 @@
-using Game.Preview;
+using Game.Preview.Sectors;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
