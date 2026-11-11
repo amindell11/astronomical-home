@@ -36,7 +36,7 @@ using Utils.Coroutines;
 namespace Game
 {
     /// <summary>
-    /// Runs the interactive game over one session: hangar, sectors, extraction recaps, then final results.
+    /// Runs the interactive game over one session: an optional title, then hangar, sectors, extraction recaps, then final results.
     /// Owns the player rig, viewport, UI, music, companion, run records, each run's moment stream and clock;
     /// the session composes, loads and unloads.
     /// Hull carries between sectors. Death frames the explosion while surviving ships keep moving.
@@ -71,6 +71,12 @@ namespace Game
         [Tooltip("Full-screen splash shown over the non-interactive steps (boot, session compose, " +
                  "sector load/unload). Optional; skipped when presentation is off (headless/RL).")]
         [SerializeField] private LoadingSplash splashPrefab;
+
+        [Header("Title")]
+        [Tooltip("Opens the session on the title screen, over the hangar sky, before the first hangar. On in the " +
+                 "shipped prefab; the preview host turns it off, and hosts built in code leave it off. Skipped when " +
+                 "presentation is off.")]
+        [SerializeField] internal bool openOnTitle;
 
         [Header("Music")]
         [Tooltip("The run's music, built once for the session and told each run step's state. Optional; " +
@@ -225,6 +231,9 @@ namespace Game
             if (presentation && companionLines && rigInstance && rigInstance.Overlay)
                 voice = CompanionVoice.Create(transform, companionLines, companionFeel, rigInstance.Overlay.CommLine,
                     () => rigInstance.Overlay.IsVisible, Debug.isDebugBuild);
+
+            if (openOnTitle && presentation)
+                yield return RunTitle();
 
             yield return PlayRuns(presentation);
 
@@ -454,6 +463,35 @@ namespace Game
                 RestoreClock();
             }
             yield return null;
+        }
+
+        private IEnumerator RunTitle()
+        {
+            SetSplashVisible(false);
+            SetMusic(GameMusic.State.Hangar);
+            SetHangarViewVisible(true);
+            var screen = TitleScreen.Create(ui);
+            try
+            {
+                while (!screen.Choice.HasValue && !shutdownRequested) yield return null;
+                if (screen.Choice != TitleScreen.Option.Quit) yield break;
+                QuitGame();
+                // Quitting lands after this frame; the hangar must not open meanwhile.
+                while (!shutdownRequested) yield return null;
+            }
+            finally
+            {
+                Destroy(screen.gameObject);
+            }
+        }
+
+        private static void QuitGame()
+        {
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+            Application.Quit();
+#endif
         }
 
         // Like the lull pick, the clock stops for it; only a taken weapon spends the armory.

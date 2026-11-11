@@ -28,7 +28,7 @@ namespace Game.Preview
 
     /// <summary>
     /// A Replay entry owns a session and a presentation subject driven by a transport; a Playtest entry
-    /// owns an instance of the game's GameHost prefab, overriding only its run records and, for some
+    /// owns an instance of the game's GameHost prefab, overriding only its run records, its title (off) and, for some
     /// entries, its sectors: the crowded jump gate, the elite entries and the crowded fight fly their
     /// fixtures, and Combat flies its Sector and Locale picks, read again at each restart. Replay takes
     /// its rig, observer, jump shader and feel profiles from the same prefab, so both kinds of entry
@@ -166,6 +166,7 @@ namespace Game.Preview
             var staging = new GameObject("Preview Playtest staging");
             staging.SetActive(false);
             playtest = Instantiate(gameHostPrefab, staging.transform);
+            playtest.openOnTitle = false;
             if (composed == PreviewEntry.Combat)
                 playtest.sessionProfile.run = CombatRun();
             if (composed == PreviewEntry.CrowdedJumpGate)
