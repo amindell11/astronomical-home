@@ -160,6 +160,7 @@ namespace Game
 
         public Sector ActiveSector => session?.ActiveSector;
         public SectorJumpFlight Jump => jump;
+        internal IUnitService Units => unitService;
 
         private void Awake()
         {
