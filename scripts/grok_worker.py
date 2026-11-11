@@ -120,10 +120,15 @@ PREAMBLE = """You are the build worker for one change in the git worktree {slot}
 - Work only inside this workspace: read and write nothing outside it.
 - Leave every change uncommitted: no commit, branch, checkout, stash, reset or push.
 - Follow AGENTS.md in this workspace.
+- The caller verifies after this round: it runs the builds, tests and any verify command. Run no
+  builds, tests or scripts yourself, even ones the brief or AGENTS.md names; check your edits by
+  reading them.
+- Report STATUS: DONE once your edits are complete; checks you could not run never block.
+  BLOCKED means the edits themselves cannot be finished.
 - End your final message with exactly these four lines:
 STATUS: DONE | BLOCKED
 CHANGED: <files you changed>
-VERIFIED: <what you ran, and its result>
+VERIFIED: <what you checked by reading, or none>
 NOTICED: <anything surprising, or none>
 """
 
@@ -135,7 +140,8 @@ command, `{verify}`, then failed. The end of its output:
 {tail}
 ```
 
-Fix the cause of that failure within the brief's constraints.
+Fix the cause of that failure within the brief's constraints. The caller reruns the verify command
+after this round.
 """
 
 
