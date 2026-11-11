@@ -258,12 +258,12 @@ namespace Game.Preview.Sectors
                 if (!property.Next(true)) continue;
                 do
                 {
-                    if (property.propertyType != SerializedPropertyType.ObjectReference || !property.objectReferenceValue)
-                        continue;
-                    refs.Add(property.objectReferenceValue.GetInstanceID());
-                    if (property.objectReferenceValue is not ScriptableObject asset || !IsFeel(property.name, asset) ||
-                        !seen.Add(asset.GetInstanceID()))
-                        continue;
+                    if (property.propertyType != SerializedPropertyType.ObjectReference) continue;
+                    var reference = property.objectReferenceValue;
+                    if (!reference) continue;
+                    refs.Add(reference.GetInstanceID());
+                    var asset = reference as ScriptableObject;
+                    if (!asset || !IsFeel(property.name, asset) || !seen.Add(asset.GetInstanceID())) continue;
                     feels.Add(asset);
                 }
                 while (property.Next(true));
