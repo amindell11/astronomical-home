@@ -34,6 +34,40 @@ namespace Game.Preview
         [MenuItem("Window/Preview Host")]
         public static void Open() => GetWindow<PreviewControlPanel>("Preview Host");
 
+        internal static bool CanFlyCombat()
+        {
+            if (!EditorApplication.isPlaying) return true;
+            var live = UnityEngine.Object.FindFirstObjectByType<PreviewHost>();
+            return live && live.Fault == null && live.IsReady;
+        }
+
+        internal static void FlyCombat(int sectorIndex)
+        {
+            var open = Resources.FindObjectsOfTypeAll<PreviewControlPanel>();
+            var panel = open.Length > 0 ? open[0] : GetWindow<PreviewControlPanel>("Preview Host");
+            panel.Fly(sectorIndex);
+        }
+
+        private void Fly(int sectorIndex)
+        {
+            if (!CanFlyCombat()) return;
+            combatSector = sectorIndex;
+            selectedEntry = PreviewEntry.Combat;
+            if (!EditorApplication.isPlaying)
+            {
+                PreviewHostBootstrap.EnterPlayMode(PreviewEntry.Combat, combatSector, combatLocale, playerInvulnerable);
+                return;
+            }
+            var live = UnityEngine.Object.FindFirstObjectByType<PreviewHost>();
+            if (!live) return;
+            live.combatSector = combatSector;
+            live.combatLocale = combatLocale;
+            live.playerInvulnerable = playerInvulnerable;
+            if (live.Entry == PreviewEntry.Combat) live.RestartPlaytest();
+            else live.Select(PreviewEntry.Combat);
+            Repaint();
+        }
+
         private void Update()
         {
             if (EditorApplication.isPlaying) Repaint();
