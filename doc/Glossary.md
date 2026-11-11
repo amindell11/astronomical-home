@@ -648,13 +648,16 @@ Format: **term** — definition. *(authority)*
   each faster-paced: extracting moves the run on, extracting from the last wins
   it, and the game host's player-death path ends it. All three fly one layout,
   and their rows hold what differs. *(TrialSector prefab, `SurvivalTrialRun`)*
-- **hunt** — a combat sector's opening, before its first sector phase: patrols
-  roam unaware of the player until the alarm. A patrol that sees the player
-  (short radius, asteroids are cover) or is hit by it starts a call-in, and the
-  alarm sounds when the call-in runs out or the search clock does; killing the
-  calling patrol first cancels its call-in. The wave director holds its opening
-  lull until the alarm, so phase numbering is unchanged. *(SectorHunt,
-  HuntFeelProfile)*
+- **hunt** — a combat sector's opening, before its first sector phase. Patrols
+  roam unaware of the player until the alarm. A patrol sees the player inside a
+  close radius in every direction, or inside a longer radius and a forward cone,
+  when no asteroid is in between. One spotted meter fills while any patrol sees
+  the player and drains while none does. A hit on a patrol fills part of the
+  meter. The alarm sounds when the meter fills or the search clock runs out.
+  Killing a patrol leaves the meter to drain. A gap of seconds follows the
+  alarm; the hunt's *release* ends it. The wave director holds its opening lull
+  until the release, so phase numbering is unchanged, and stations stay lit
+  through the gap. *(SectorHunt, HuntFeelProfile)*
 - **faction** — the side a sector's enemies belong to; each survival trial
   names one, and its wave director and hunt field only that faction's ships. The
   **signature ship** is the faction's own chassis, and its elite flies it; the
@@ -674,14 +677,14 @@ Format: **term** — definition. *(authority)*
   every elite chassis the player killed in any run record. No save file; a kill
   counts once its run's record is written. *(ShipUnlocks, ItemSubset.starter)*
 - **station** — a *find* the player flies into. Every kind shares one core:
-  the placement, the clearing in the field, going dark at the hunt's alarm,
+  the placement, the clearing in the field, going dark at the hunt's release,
   the find marker and the arrival events. A kind adds only its effect, which
   draws on each station's supply; a station goes dark when its supply runs out.
   *(FindStation, FindStationBody, StationKind)*
 - **repair station** — a fly-in zone each combat sector places, two by default,
   each on its own clear point away from the start, marked as a *find*. While the
   player sits in it, it repairs hull from a supply of about one hull, then goes
-  dark. The hunt's alarm darkens it too, and whatever supply was left is lost.
+  dark. The hunt's release darkens it too, and whatever supply was left is lost.
   Hull carries into the next sector. The first *station* kind. *(RepairStation,
   RepairStationFeelProfile)*
 - **beacon cache** — what a lull beacon's claim grants:
@@ -698,12 +701,12 @@ Format: **term** — definition. *(authority)*
 - **mod station** — the second *station* kind: a *find* each combat sector
   places, two by default, spaced from each other and from the repair stations.
   The first fly-in opens one *lull pick*, then the station goes dark; the
-  hunt's alarm darkens an unclaimed one, and its pick is lost. Headless and RL
+  hunt's release darkens an unclaimed one, and its pick is lost. Headless and RL
   runs claim it with no pick. *(ModStation, ModStationFeelProfile)*
 - **armory** — the third *station* kind: a *find* whose count per sector its run
   row names, spaced from the repair and mod stations. Each fly-in opens
   the *weapon pick*. Taking a weapon spends it; a skip leaves it live to come
-  back to. The hunt's alarm darkens it like any find, and its swap is lost.
+  back to. The hunt's release darkens it like any find, and its swap is lost.
   Headless and RL runs get no pick. *(Armory, `SectorEntry.armories`)*
 - **find** — a sector object the player goes looking for and uses once:
   repair stations, mod stations and armories. A live find registers

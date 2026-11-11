@@ -22,21 +22,24 @@ namespace Substrate.Sectors.Elements.Hunt
     /// <summary>
     /// A sector's opening hunt. Patrols, as many as the run row names, spawn on clear points away from the hero
     /// and fly a looped route past the hero's start, through the sector center and back, their scouts unaware,
-    /// so they acquire no enemy and hold fire. A patrol that sees the hero (inside the sight radius, no asteroid
-    /// in between, not concealed) or is hit by it starts calling the hero in, its minimap marker pulsing; the alarm sounds when a call-in
-    /// runs out, or when the search clock does, and a patrol killed first cancels its call-in. At the alarm
-    /// every live patrol leaves its route and its scout wakes, so it fights like a wave ship. The wave director
-    /// holds its opening lull until <see cref="Alarmed"/> and counts <see cref="LivePatrols"/> against its cap.
-    /// The events are plain C#, for listeners outside the sector.
+    /// so they acquire no enemy and hold fire. One spotted meter fills while any patrol sees the hero, inside
+    /// the close radius all around or inside the sight radius and the forward cone, clear of asteroids and not
+    /// concealed, and drains while none does. A hero hit adds its share. The alarm sounds when the meter fills
+    /// or the search clock runs out. A patrol's marker pulses, and its sight wedge turns red, while it sees the
+    /// hero. At the alarm every live patrol leaves its route and its scout wakes, and the first wave waits out
+    /// the gap. The wave director holds its opening lull until <see cref="Released"/> and counts
+    /// <see cref="LivePatrols"/> against its cap. The events are plain C#, for listeners outside the sector.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1319
     /// </summary>
     public class SectorHunt : SectorSpawner, ISectorRowReader
     {
-        [Tooltip("Search clock, sight and call-in timing.")]
+        [Tooltip("Search clock, sight cone and spotted-meter timing.")]
         [Stat, SerializeField] private HuntFeelProfile feel;
         [Tooltip("The sector's faction: every patrol flies its common ship, on its kit and in its skin.")]
         [Stat, SerializeField] private SectorFaction faction;
         [Stat, SerializeField] private AICommander patrolPilot;
+        [Tooltip("Material for each patrol's sight wedge on the minimap. Tinted per patrol, one instance each.")]
+        [SerializeField] private Material sightWedge;
         [SerializeField] private int team = 1;
 
         [Header("Placement")]
@@ -59,25 +62,34 @@ namespace Substrate.Sectors.Elements.Hunt
         private int sectorIndex;
         private int patrolCount;
         private bool started;
+        private bool hasTicked;
         private float startTime;
+        private float lastNow;
+        private float alarmAt;
 
-        /// <summary>A patrol saw the hero, or took its hit, and starts calling: sector index, patrol.</summary>
+        /// <summary>A patrol went from not seeing the hero to seeing it: sector index, patrol.</summary>
         public event Action<int, Ship> PatrolSpotted;
 
-        /// <summary>The hunt ends: sector index, reason, calling patrol (null when the search clock ran out).</summary>
+        /// <summary>The hunt ends: sector index, reason, the patrol that filled the meter (null when the search clock ran out).</summary>
         public event Action<int, HuntAlarmReason, Ship> AlarmRaised;
 
-        /// <summary>A patrol died before the alarm, cancelling any call-in: sector index, patrol.</summary>
+        /// <summary>A patrol died before the alarm: sector index, patrol.</summary>
         public event Action<int, Ship> PatrolSilenced;
 
         public bool Alarmed { get; private set; }
+
+        /// <summary>True once <see cref="GraceSecondsLeft"/> has run out after the alarm. The first wave waits for it.</summary>
+        public bool Released { get; private set; }
 
         public int LivePatrols => patrols.Count;
 
         public float SearchSecondsLeft { get; private set; }
 
-        /// <summary>The soonest call-in's seconds to the alarm; null while no patrol is calling.</summary>
-        public float? CallInSecondsLeft { get; private set; }
+        /// <summary>The spotted meter, 0 empty to 1 at the alarm. Patrols that see the hero do not stack.</summary>
+        public float SpottedFill { get; private set; }
+
+        /// <summary>Seconds from the alarm until <see cref="Released"/>. The full gap before the alarm.</summary>
+        public float GraceSecondsLeft { get; private set; }
 
         protected override IEnumerator Produce(SectorBuildContext ctx)
         {
@@ -90,6 +102,9 @@ namespace Substrate.Sectors.Elements.Hunt
             if (patrolCount > 0 && (!faction || !patrolPilot || !ctx.Sector))
                 throw new InvalidOperationException(
                     $"SectorHunt on '{name}' needs a faction, patrol pilot and sector when it spawns patrols.");
+            if (patrolCount > 0 && !sightWedge)
+                throw new InvalidOperationException(
+                    $"SectorHunt on '{name}' needs its sight wedge when it spawns patrols.");
 
             units = ctx.Units;
             field = ctx.Field;
@@ -97,9 +112,12 @@ namespace Substrate.Sectors.Elements.Hunt
             sector = ctx.Sector;
             sectorIndex = ctx.SectorIndex;
             started = false;
+            hasTicked = false;
             Alarmed = false;
+            Released = false;
+            SpottedFill = 0f;
             SearchSecondsLeft = feel.searchSeconds;
-            CallInSecondsLeft = null;
+            GraceSecondsLeft = feel.alarmGraceSeconds;
             yield break;
         }
 
@@ -115,6 +133,7 @@ namespace Substrate.Sectors.Elements.Hunt
             {
                 patrol.Ship.Damage.OnDamaged -= patrol.OnDamaged;
                 patrol.Release();
+                DestroyWedge(patrol);
             }
             patrols.Clear();
             hero = null;
@@ -141,27 +160,49 @@ namespace Substrate.Sectors.Elements.Hunt
                 SpawnPatrols();
             }
 
+            var dt = hasTicked ? now - lastNow : 0f;
+            hasTicked = true;
+            lastNow = now;
+
             DespawnDead();
-            if (Alarmed) return;
+            if (Alarmed)
+            {
+                if (!Released)
+                {
+                    GraceSecondsLeft = Mathf.Max(0f, alarmAt + feel.alarmGraceSeconds - now);
+                    if (GraceSecondsLeft <= 0f) Released = true;
+                }
+                return;
+            }
 
             foreach (var patrol in patrols) patrol.FlyRoute(feel.routeSpeed, feel.arrivalRadius);
-            foreach (var patrol in patrols)
-                if (!patrol.CallingIn && Sees(patrol.Ship)) BeginCallIn(patrol, now);
-
-            CallInSecondsLeft = null;
+            var seen = false;
             foreach (var patrol in patrols)
             {
-                if (!patrol.CallingIn) continue;
-                if (now >= patrol.CallInEndsAt)
-                {
-                    Sound(HuntAlarmReason.Patrol, patrol.Ship);
-                    return;
-                }
-                CallInSecondsLeft = Mathf.Min(CallInSecondsLeft ?? float.MaxValue, patrol.CallInEndsAt - now);
+                Watch(patrol);
+                if (patrol.Seeing) seen = true;
+            }
+
+            if (seen)
+                SpottedFill = feel.spotFillSeconds <= 0f
+                    ? 1f
+                    : Mathf.Min(1f, SpottedFill + dt / feel.spotFillSeconds);
+            else
+                SpottedFill = feel.spotDrainSeconds <= 0f
+                    ? 0f
+                    : Mathf.Max(0f, SpottedFill - dt / feel.spotDrainSeconds);
+
+            if (SpottedFill >= 1f)
+            {
+                Ship caller = null;
+                foreach (var patrol in patrols)
+                    if (patrol.Seeing) { caller = patrol.Ship; break; }
+                Sound(HuntAlarmReason.Patrol, caller, now);
+                return;
             }
 
             SearchSecondsLeft = Mathf.Max(0f, feel.searchSeconds - (now - startTime));
-            if (SearchSecondsLeft <= 0f) Sound(HuntAlarmReason.SearchClock, null);
+            if (SearchSecondsLeft <= 0f) Sound(HuntAlarmReason.SearchClock, null, now);
         }
 
         private bool Sees(Ship patrol)
@@ -169,25 +210,34 @@ namespace Substrate.Sectors.Elements.Hunt
             if (hero.Lock.IsConcealed) return false;
             var from = patrol.transform.position;
             var to = hero.transform.position;
-            return (to - from).sqrMagnitude <= feel.sightRadius * feel.sightRadius
-                && LineOfSight.IsClear(from, to, hero.transform, asteroidMask);
+            var offset = GamePlane.WorldPointToPlane(to) - GamePlane.WorldPointToPlane(from);
+            var distance = offset.magnitude;
+            var inSight = distance <= feel.closeSightRadius || distance <= feel.sightRadius
+                && Vector2.Angle(GamePlane.WorldDirToPlane(patrol.transform.up), offset) <= feel.coneDegrees * .5f;
+            return inSight && LineOfSight.IsClear(from, to, hero.transform, asteroidMask);
         }
 
-        private void BeginCallIn(Patrol patrol, float now)
+        private void Watch(Patrol patrol)
         {
-            patrol.CallInEndsAt = now + feel.callInSeconds;
-            if (patrol.Rig) patrol.Rig.PulseMinimapMarker(true);
-            PatrolSpotted?.Invoke(sectorIndex, patrol.Ship);
+            var sees = Sees(patrol.Ship);
+            if (sees == patrol.Seeing) return;
+            patrol.Seeing = sees;
+            if (patrol.Rig) patrol.Rig.PulseMinimapMarker(sees);
+            patrol.Wedge.SetSeeing(sees);
+            if (sees) PatrolSpotted?.Invoke(sectorIndex, patrol.Ship);
         }
 
-        private void Sound(HuntAlarmReason reason, Ship caller)
+        private void Sound(HuntAlarmReason reason, Ship caller, float now)
         {
             Alarmed = true;
-            CallInSecondsLeft = null;
+            alarmAt = now;
+            GraceSecondsLeft = feel.alarmGraceSeconds;
+            Released = GraceSecondsLeft <= 0f;
             foreach (var patrol in patrols)
             {
                 patrol.Release();
                 patrol.Scout.Unaware = false;
+                DestroyWedge(patrol);
             }
             AlarmRaised?.Invoke(sectorIndex, reason, caller);
         }
@@ -210,15 +260,34 @@ namespace Substrate.Sectors.Elements.Hunt
                     GamePlane.WorldPointToPlane(position), feel.routeStartPass);
                 var patrol = new Patrol(ship, (AICommander)ship.Commander, route);
                 patrol.Scout.Unaware = true;
+                patrol.Wedge = SpawnWedge(ship);
                 patrol.OnDamaged = hit =>
                 {
-                    if (!Alarmed && !patrol.CallingIn && hero && hit.Info.AttackerId == hero.Id)
-                        BeginCallIn(patrol, Time.time);
+                    if (Alarmed || !hero || hit.Info.AttackerId != hero.Id) return;
+                    SpottedFill = Mathf.Min(1f, SpottedFill + feel.hitFill);
+                    if (SpottedFill >= 1f) Sound(HuntAlarmReason.Patrol, patrol.Ship, lastNow);
                 };
                 ship.Damage.OnDamaged += patrol.OnDamaged;
                 patrols.Add(patrol);
                 products.Add(ship);
             }
+        }
+
+        private PatrolSightWedge SpawnWedge(Ship ship)
+        {
+            var wedgeObject = new GameObject("Patrol sight");
+            wedgeObject.transform.SetParent(ship.transform, false);
+            var wedge = wedgeObject.AddComponent<PatrolSightWedge>();
+            wedge.Build(feel, sightWedge);
+            return wedge;
+        }
+
+        private static void DestroyWedge(Patrol patrol)
+        {
+            if (!patrol.Wedge) return;
+            var wedge = patrol.Wedge.gameObject;
+            patrol.Wedge = null;
+            Destroy(wedge);
         }
 
         private void DespawnDead()
@@ -233,6 +302,7 @@ namespace Substrate.Sectors.Elements.Hunt
                 if (!ship) continue;
                 ship.Damage.OnDamaged -= patrol.OnDamaged;
                 patrol.Release();
+                DestroyWedge(patrol);
                 if (!Alarmed) PatrolSilenced?.Invoke(sectorIndex, ship);
                 units.DespawnShip(ship);
             }
@@ -248,7 +318,8 @@ namespace Substrate.Sectors.Elements.Hunt
             private readonly Vector2[] route;
             private int leg;
             public Action<AppliedDamage> OnDamaged;
-            public float CallInEndsAt = float.PositiveInfinity;
+            public PatrolSightWedge Wedge;
+            public bool Seeing;
 
             public Patrol(Ship ship, AICommander commander, Vector2[] route)
             {
@@ -258,8 +329,6 @@ namespace Substrate.Sectors.Elements.Hunt
                 Rig = ship.VisualRig;
                 this.route = route;
             }
-
-            public bool CallingIn => !float.IsPositiveInfinity(CallInEndsAt);
 
             public void FlyRoute(float speed, float arrivalRadius)
             {
@@ -277,12 +346,13 @@ namespace Substrate.Sectors.Elements.Hunt
 
 #if UNITY_EDITOR
         internal void Configure(HuntFeelProfile feel, SectorFaction faction, AICommander patrolPilot,
-            float spawnDistance)
+            float spawnDistance, Material sightWedge = null)
         {
             this.feel = feel;
             this.faction = faction;
             this.patrolPilot = patrolPilot;
             spawnDistanceMin = spawnDistanceMax = spawnDistance;
+            this.sightWedge = sightWedge;
         }
 #endif
     }

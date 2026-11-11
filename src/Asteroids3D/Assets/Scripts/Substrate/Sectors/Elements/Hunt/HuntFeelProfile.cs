@@ -6,14 +6,29 @@ namespace Substrate.Sectors.Elements.Hunt
     [CreateAssetMenu(fileName = "HuntFeel", menuName = "Sectors/Hunt Feel Profile")]
     public sealed class HuntFeelProfile : ScriptableObject
     {
-        [Tooltip("Seconds the hunt lasts with no patrol calling the player in; then the alarm sounds anyway.")]
+        [Tooltip("Seconds from the hunt's start to the alarm when the spotted meter never fills.")]
         [Stat, Min(0f)] public float searchSeconds = 45f;
 
-        [Tooltip("Distance, in units, at which a patrol sees the player, given no asteroid in between.")]
+        [Tooltip("Distance, in units, at which a patrol can see the player inside its forward cone, given no asteroid in between.")]
         [Stat, Min(0f)] public float sightRadius = 50f;
 
-        [Tooltip("Seconds from a patrol first seeing the player to the alarm. Killing the patrol in that time cancels it.")]
-        [Stat, Min(0f)] public float callInSeconds = 3f;
+        [Tooltip("Full angle, in degrees, of a patrol's forward sight cone.")]
+        [Stat, Range(0f, 360f)] public float coneDegrees = 90f;
+
+        [Tooltip("Distance, in units, inside which a patrol sees the player in every direction.")]
+        [Stat, Min(0f)] public float closeSightRadius = 12f;
+
+        [Tooltip("Seconds of continuous sight that fill the spotted meter from empty. Patrols that see the player do not stack.")]
+        [Stat, Min(0f)] public float spotFillSeconds = 2f;
+
+        [Tooltip("Seconds for a full spotted meter to drain once no patrol sees the player.")]
+        [Stat, Min(0f)] public float spotDrainSeconds = 3f;
+
+        [Tooltip("Share of the spotted meter a hit by the player on a patrol adds. 1 alarms on that hit.")]
+        [Stat, Range(0f, 1f)] public float hitFill = .5f;
+
+        [Tooltip("Seconds from the alarm to the first wave. Stations stay lit until then.")]
+        [Stat, Min(0f)] public float alarmGraceSeconds = 5f;
 
         [Tooltip("Speed, in units per second, an unaware patrol flies its route at. Keep it below the patrol ship's top speed.")]
         [Stat, Min(0f)] public float routeSpeed = 8f;
