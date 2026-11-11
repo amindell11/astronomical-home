@@ -9,27 +9,45 @@ namespace UI.Projection
 {
     internal sealed class CanopyProjectionPass : ScriptableRenderPass, IDisposable
     {
-        private readonly CanopyProjection source;
+        private readonly ICanopySource source;
+        private readonly CanopyImage image;
         private readonly Material material;
         private static readonly string[] HistoryNames = { "Canopy history 0", "Canopy history 1" };
         private readonly RTHandle[] history = new RTHandle[2];
         private int previous;
         private bool historyValid;
 
-        internal CanopyProjectionPass(CanopyProjection source, Shader shader)
+        private CanopyProjectionPass(ICanopySource source, Shader shader, CanopyImage image)
         {
             this.source = source;
+            this.image = image;
             material = CoreUtils.CreateEngineMaterial(shader);
-            renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing;
-            requiresIntermediateTexture = true;
+        }
+
+        internal static CanopyProjectionPass ToScreen(ICanopySource source, Shader shader)
+        {
+            var pass = new CanopyProjectionPass(source, shader, null);
+            pass.renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing;
+            pass.requiresIntermediateTexture = true;
+            return pass;
+        }
+
+        internal static CanopyProjectionPass ToImage(CanopyImage image, Shader shader)
+        {
+            var pass = new CanopyProjectionPass(image, shader, image);
+            pass.renderPassEvent = RenderPassEvent.BeforeRenderingOpaques;
+            pass.requiresIntermediateTexture = false;
+            return pass;
         }
 
         internal void ResetHistory() => historyValid = false;
 
         public override void RecordRenderGraph(RenderGraph graph, ContextContainer frameData)
         {
-            var resources = frameData.Get<UniversalResourceData>();
-            var descriptor = source.Ink.rt.descriptor;
+            if (image) image.Prepare();
+            var descriptor = source.Ink.descriptor;
+            descriptor.msaaSamples = 1;
+            descriptor.bindMS = false;
             // Floating-point history keeps faint afterglow decaying.
             descriptor.graphicsFormat = GraphicsFormat.R16G16B16A16_SFloat;
             descriptor.depthStencilFormat = GraphicsFormat.None;
@@ -40,11 +58,11 @@ namespace UI.Projection
 
             var ink = graph.ImportTexture(source.InkColor, new RenderTargetInfo
             {
-                width = source.Ink.rt.width,
-                height = source.Ink.rt.height,
+                width = source.Ink.width,
+                height = source.Ink.height,
                 volumeDepth = 1,
                 msaaSamples = 1,
-                format = source.Ink.rt.graphicsFormat
+                format = source.Ink.graphicsFormat
             });
             var old = graph.ImportTexture(history[previous]);
             var next = graph.ImportTexture(history[1 - previous]);
@@ -61,8 +79,8 @@ namespace UI.Projection
                 builder.SetRenderFunc((PassData pass, RasterGraphContext context) => Draw(pass, context, 0));
             }
 
-            var w = Mathf.Max(1, source.Ink.rt.width / 4);
-            var h = Mathf.Max(1, source.Ink.rt.height / 4);
+            var w = Mathf.Max(1, source.Ink.width / 4);
+            var h = Mathf.Max(1, source.Ink.height / 4);
             var haloDescriptor = new TextureDesc(w, h)
             {
                 colorFormat = GraphicsFormat.R16G16B16A16_SFloat,
@@ -100,25 +118,45 @@ namespace UI.Projection
                 builder.SetRenderFunc((PassData pass, RasterGraphContext context) => Draw(pass, context, 3));
             }
 
-            var scene = resources.activeColorTexture;
-            var outputDescriptor = graph.GetTextureDesc(scene);
-            outputDescriptor.name = "Canopy composite";
-            outputDescriptor.clearBuffer = false;
-            var output = graph.CreateTexture(outputDescriptor);
-            using (var builder = graph.AddRasterRenderPass<PassData>("Canopy projection", out var data))
+            if (image == null)
             {
-                Fill(data, settings);
-                data.previous = next;
-                data.scene = scene;
-                data.halo = haloA;
-                builder.UseTexture(ink, AccessFlags.Read);
-                builder.UseTexture(next, AccessFlags.Read);
-                builder.UseTexture(scene, AccessFlags.Read);
-                builder.UseTexture(haloA, AccessFlags.Read);
-                builder.SetRenderAttachment(output, 0, AccessFlags.Write);
-                builder.SetRenderFunc((PassData pass, RasterGraphContext context) => Draw(pass, context, 1));
+                var resources = frameData.Get<UniversalResourceData>();
+                var scene = resources.activeColorTexture;
+                var outputDescriptor = graph.GetTextureDesc(scene);
+                outputDescriptor.name = "Canopy composite";
+                outputDescriptor.clearBuffer = false;
+                var output = graph.CreateTexture(outputDescriptor);
+                using (var builder = graph.AddRasterRenderPass<PassData>("Canopy projection", out var data))
+                {
+                    Fill(data, settings);
+                    data.previous = next;
+                    data.scene = scene;
+                    data.halo = haloA;
+                    builder.UseTexture(ink, AccessFlags.Read);
+                    builder.UseTexture(next, AccessFlags.Read);
+                    builder.UseTexture(scene, AccessFlags.Read);
+                    builder.UseTexture(haloA, AccessFlags.Read);
+                    builder.SetRenderAttachment(output, 0, AccessFlags.Write);
+                    builder.SetRenderFunc((PassData pass, RasterGraphContext context) => Draw(pass, context, 1));
+                }
+                resources.cameraColor = output;
             }
-            resources.cameraColor = output;
+            else
+            {
+                var target = graph.ImportTexture(image.OutputHandle);
+                using (var builder = graph.AddRasterRenderPass<PassData>("Canopy image", out var data))
+                {
+                    Fill(data, settings);
+                    data.previous = next;
+                    data.halo = haloA;
+                    builder.UseTexture(ink, AccessFlags.Read);
+                    builder.UseTexture(next, AccessFlags.Read);
+                    builder.UseTexture(haloA, AccessFlags.Read);
+                    builder.SetRenderAttachment(target, 0, AccessFlags.Write);
+                    builder.AllowPassCulling(false);
+                    builder.SetRenderFunc((PassData pass, RasterGraphContext context) => Draw(pass, context, 4));
+                }
+            }
             previous = 1 - previous;
             historyValid = true;
         }
@@ -131,9 +169,9 @@ namespace UI.Projection
             data.haloTexel = Vector4.zero;
             data.decay = 0f;
             data.material = material;
-            data.ink = source.Ink.rt;
+            data.ink = source.Ink;
             data.settings = settings;
-            data.resolution = new Vector4(source.Ink.rt.width, source.Ink.rt.height, 0f, 0f);
+            data.resolution = new Vector4(source.Ink.width, source.Ink.height, 0f, 0f);
             data.time = Time.unscaledTime;
             data.enabled = source.EffectsEnabled;
             data.appearanceAge = -1f;

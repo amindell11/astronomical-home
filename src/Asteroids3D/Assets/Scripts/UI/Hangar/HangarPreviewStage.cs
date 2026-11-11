@@ -39,7 +39,7 @@ namespace UI.Hangar
         private bool showing;
         private MaterialRestyle restyle;
 
-        public Texture Texture => texture;
+        public RenderTexture Texture => texture;
 
         public static HangarPreviewStage Create(Transform parent, Vector2Int surfacePixels, Rect frame,
             IEnumerable<Ship> offeredShips, MaterialRestyle restyle = null)

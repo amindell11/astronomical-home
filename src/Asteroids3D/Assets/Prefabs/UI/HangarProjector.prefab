@@ -127,6 +127,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5270092983387141279}
   - component: {fileID: 7211845587134389233}
+  - component: {fileID: 1704173541430187468}
   m_Layer: 5
   m_Name: HangarProjector
   m_TagString: Untagged
@@ -166,6 +167,20 @@ MonoBehaviour:
   profile: {fileID: 11400000, guid: d40480ea4433aa04a8b6e44c8a8a5f5e, type: 2}
   surface: {fileID: 5607365768433403601}
   coneAnchor: {fileID: 2160622699355246981}
+  image: {fileID: 1704173541430187468}
   surfaceSize: {x: 18, y: 7.2}
   frameSide: 4
   frameBottom: 0.1
+--- !u!114 &1704173541430187468
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5583123721630357666}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20bb73314e344885934219b7324d5106, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  feature: {fileID: 11400000, guid: dea76f2bcef175644aa5613aab932000, type: 2}

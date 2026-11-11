@@ -10,6 +10,7 @@ using Ships.Visuals;
 using UI.Hangar;
 using UI.Hangar.Hardware;
 using UI.Hangar.Hologram;
+using UI.Projection;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -28,6 +29,7 @@ namespace Tests.PlayMode.Hangar
         private const float EntrySeconds = 1.8f;
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
         private static readonly int OpacityId = Shader.PropertyToID("_Opacity");
+        private static readonly int MainTexId = Shader.PropertyToID("_MainTex");
 
         private HangarHologramProfile profile;
         private HangarHologramProfile runtimeProfile;
@@ -175,6 +177,65 @@ namespace Tests.PlayMode.Hangar
                 Assert.That(hologram.renderQueue, Is.GreaterThan(material.renderQueue), material.name);
             Assert.That(console.HardwareCamera.cullingMask & (1 << surface.gameObject.layer), Is.Not.Zero,
                 "the console camera draws the surface");
+        }
+
+        [UnityTest]
+        public IEnumerator Surface_ShowsTheCanopyImage_ThroughAShipStep()
+        {
+            var console = Object.Instantiate(AssetDatabase.LoadAssetAtPath<HangarConsole>(ConsolePath));
+            instance = console.gameObject;
+            console.transform.position = new Vector3(0f, -2000f, 0f);
+            var ships = AssetDatabase.LoadAssetAtPath<GameHost>(GameHostPath).hangarOffer.ships;
+            var projector = console.Projector;
+            projector.Open(ships, ships[0]);
+            yield return new WaitForSeconds(EntrySeconds);
+            AssertSurfaceShowsImage(projector);
+            Assert.That(PeakAlpha(CanopyImageOf(projector).Output), Is.GreaterThan(.5f), "the ship");
+
+            projector.Select(ships[1], 1);
+            yield return new WaitForSeconds(EntrySeconds);
+            AssertSurfaceShowsImage(projector);
+        }
+
+        private static void AssertSurfaceShowsImage(HangarHologramProjector projector)
+        {
+            using var wiring = new SerializedObject(projector);
+            var image = (CanopyImage)wiring.FindProperty("image").objectReferenceValue;
+            var surface = (Renderer)wiring.FindProperty("surface").objectReferenceValue;
+            var block = new MaterialPropertyBlock();
+            surface.GetPropertyBlock(block);
+            var shown = block.GetTexture(MainTexId);
+            Assert.That(shown, Is.SameAs(image.Output));
+            Assert.That(shown, Is.Not.SameAs(projector.Stage.Texture));
+            Assert.That(image.Output.width, Is.EqualTo(projector.Stage.Texture.width));
+            Assert.That(image.Output.height, Is.EqualTo(projector.Stage.Texture.height));
+        }
+
+        private static CanopyImage CanopyImageOf(HangarHologramProjector projector)
+        {
+            using var wiring = new SerializedObject(projector);
+            return (CanopyImage)wiring.FindProperty("image").objectReferenceValue;
+        }
+
+        private static float PeakAlpha(RenderTexture texture)
+        {
+            var previous = RenderTexture.active;
+            RenderTexture.active = texture;
+            var read = new Texture2D(texture.width, texture.height, TextureFormat.RGBAFloat, false, true);
+            try
+            {
+                read.ReadPixels(new Rect(0, 0, texture.width, texture.height), 0, 0);
+                read.Apply();
+                var peak = 0f;
+                foreach (var pixel in read.GetPixels())
+                    peak = Mathf.Max(peak, pixel.a);
+                return peak;
+            }
+            finally
+            {
+                RenderTexture.active = previous;
+                Object.DestroyImmediate(read);
+            }
         }
 
         private IEnumerator Settle(Ship ship)
