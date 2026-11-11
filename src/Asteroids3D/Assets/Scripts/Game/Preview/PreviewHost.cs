@@ -35,11 +35,11 @@ namespace Game.Preview
     /// picks, read again at each restart. Replay takes its rig, observer, jump shader and feel profiles
     /// from the same prefab, so both kinds of entry run on the feel assets the game ships. A switch
     /// between Replay entries swaps only the subject; any other switch or restart awaits the previous
-    /// entry's teardown before composing the next. Only
-    /// Replay entries touch this host's clock: a scrubbing subject may freeze it, and while a subject
-    /// that plays from its start is selected, the host sets it from the transport. Restart and Loop
-    /// re-compose such a subject, keeping its fixture. The Player invulnerable pick, read at each
-    /// Playtest compose, keeps every player ship that playtest spawns from taking damage.
+    /// entry's teardown before composing the next. Only Replay entries touch this host's clock: a
+    /// scrubbing subject may freeze it, and while a subject that plays from its start is selected, the
+    /// host sets it from the transport. Restart and Loop re-compose such a subject, keeping its fixture.
+    /// The Player invulnerable pick, read at each Playtest compose, keeps every player ship that
+    /// playtest spawns from taking damage.
     /// A throw while composing, replacing or tearing down faults the host: every later request refuses,
     /// Shutdown rethrows instead of tearing down, and only destroying the host recovers.
     /// https://github.com/amindell11/astronomical-home/issues/1151

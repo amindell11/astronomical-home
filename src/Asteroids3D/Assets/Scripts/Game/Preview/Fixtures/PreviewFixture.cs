@@ -47,7 +47,7 @@ namespace Game.Preview.Fixtures
             var index = link - 1;
             if (index < 0 || index >= run.Sectors.Count)
                 throw new InvalidOperationException(
-                    $"The {LayoutName} fixture links to index {index}, outside the run of {run.Sectors.Count} rows.");
+                    $"The {LayoutName} fixture links to Sector {link}, outside the run's {run.Sectors.Count} sectors.");
             var resolved = Copy(run.Sectors[index]);
             if ((own & PreviewFixtureOwn.Faction) != 0) resolved.faction = values.faction;
             if ((own & PreviewFixtureOwn.Elite) != 0) resolved.elite = values.elite;

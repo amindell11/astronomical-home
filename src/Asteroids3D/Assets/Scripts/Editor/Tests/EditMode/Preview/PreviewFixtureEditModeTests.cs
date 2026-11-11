@@ -227,7 +227,7 @@ namespace Tests.EditMode.Preview
         {
             var fixture = new PreviewFixture { layout = layout, link = 2, values = new SectorEntry() };
             var ex = Assert.Throws<InvalidOperationException>(() => fixture.Resolve(run));
-            Assert.That(ex.Message, Does.Contain("VeinLayout").And.Contain("index 1"));
+            Assert.That(ex.Message, Does.Contain("VeinLayout").And.Contain("Sector 2"));
             Assert.AreSame(rowLayout, row.prefab);
             Assert.AreEqual(2, row.patrols);
         }
@@ -252,7 +252,7 @@ namespace Tests.EditMode.Preview
             Assert.That(flown, Is.Not.SameAs(game.sessionProfile.run));
             Assert.That(flown.LocalePool, Is.EqualTo(game.sessionProfile.run.LocalePool));
             Assert.That(flown.LocalePool, Is.Not.SameAs(game.sessionProfile.run.LocalePool));
-            Assert.That(flown.Sectors, Has.Count.EqualTo(1));
+            Assert.That(flown.Sectors.Count, Is.EqualTo(1));
             Assert.That(flown.Sectors[0].prefab, Is.SameAs(layout));
         }
 

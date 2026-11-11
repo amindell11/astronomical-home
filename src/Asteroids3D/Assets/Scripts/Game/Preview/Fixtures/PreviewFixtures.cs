@@ -5,10 +5,7 @@ using UnityEngine;
 
 namespace Game.Preview.Fixtures
 {
-    /// <summary>
-    /// The preview fixture entries, looked up by layout name. A link indexes the game run;
-    /// this asset holds no run.
-    /// </summary>
+    /// <summary>Holds no run: each fixture's link indexes the game run.</summary>
     [CreateAssetMenu(fileName = "PreviewFixtures", menuName = "Game/Preview Fixtures")]
     public sealed class PreviewFixtures : ScriptableObject
     {
@@ -18,6 +15,6 @@ namespace Game.Preview.Fixtures
 
         public PreviewFixture Fixture(string layout) =>
             fixtures.SingleOrDefault(fixture => fixture.layout && fixture.layout.name == layout)
-            ?? throw new InvalidOperationException($"'{name}' has no row flying the {layout} layout.");
+            ?? throw new InvalidOperationException($"'{name}' has no fixture for the {layout} layout.");
     }
 }

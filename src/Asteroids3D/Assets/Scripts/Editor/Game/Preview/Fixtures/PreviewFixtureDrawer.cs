@@ -132,8 +132,7 @@ namespace Game.Preview.Fixtures
         private static void DrawSector(Rect rect, SerializedProperty link)
         {
             var count = GameRun().Sectors.Count;
-            var stored = link.intValue;
-            var selected = stored < PreviewFixture.Unlinked ? PreviewFixture.Unlinked : stored;
+            var selected = link.intValue;
             var labels = new string[Mathf.Max(count, selected) + 1];
             labels[0] = "None";
             for (var i = 1; i < labels.Length; i++) labels[i] = $"Sector {i}";
