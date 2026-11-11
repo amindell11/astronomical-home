@@ -7,7 +7,7 @@ using UnityEngine.Rendering.Universal;
 namespace UI.Projection
 {
     [RequireComponent(typeof(Camera), typeof(UniversalAdditionalCameraData))]
-    public sealed class CanopyProjection : MonoBehaviour
+    public sealed class CanopyProjection : MonoBehaviour, ICanopySource
     {
         [SerializeField] private CanopyProjectionFeature feature;
         [SerializeField] private CanopyProjectionProfile profile;
@@ -29,8 +29,8 @@ namespace UI.Projection
         public float TransitionAge { get; private set; } = -1f;
         public float HitAge { get; private set; } = -1f;
         internal CanopyProjectionPass Pass { get; private set; }
-        internal RTHandle Ink => ink;
-        internal RTHandle InkColor => inkColor;
+        RenderTexture ICanopySource.Ink => ink.rt;
+        RTHandle ICanopySource.InkColor => inkColor;
 
         private void Awake()
         {
@@ -59,8 +59,8 @@ namespace UI.Projection
 
         private void Bind()
         {
-            Pass = new CanopyProjectionPass(this, feature.ProjectionShader);
-            feature.Bind(sceneCamera, this);
+            Pass = CanopyProjectionPass.ToScreen(this, feature.ProjectionShader);
+            feature.Bind(sceneCamera, Pass);
             inkCamera.enabled = true;
             bound = true;
         }
@@ -117,7 +117,7 @@ namespace UI.Projection
         private void OnDisable()
         {
             if (!bound) return;
-            feature.Unbind(sceneCamera);
+            feature.Unbind(sceneCamera, Pass);
             bound = false;
             inkCamera.enabled = false;
             inkCamera.targetTexture = null;

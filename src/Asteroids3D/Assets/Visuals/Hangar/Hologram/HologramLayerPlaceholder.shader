@@ -48,8 +48,8 @@ Shader "Astronomical/Hangar/Hologram Layer Placeholder"
             {
                 half4 c = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv);
                 half edge = min(min(input.uv.x, 1 - input.uv.x), min(input.uv.y, 1 - input.uv.y));
-                half a = c.a * _Opacity * smoothstep(0, _EdgeFeather, edge);
-                return half4(c.rgb * a, a);
+                half fade = _Opacity * smoothstep(0, _EdgeFeather, edge);
+                return c * fade;
             }
             ENDHLSL
         }

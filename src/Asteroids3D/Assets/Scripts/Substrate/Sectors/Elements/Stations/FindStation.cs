@@ -11,8 +11,8 @@ namespace Substrate.Sectors.Elements.Stations
 {
     /// <summary>
     /// A sector's stations of one kind: the authored body plus copies of it, as many as the kind asks for. At
-    /// setup each picks its own point away from the sector's start, spaced from the others and from another
-    /// kind's stations, which pick first; the asteroid field reads those points and leaves a clearing of the clear
+    /// setup each picks its own point away from the sector's start, spaced from the others and from other
+    /// kinds' stations, which pick first; the asteroid field reads those points and leaves a clearing of the clear
     /// radius. On the first tick each shows, marked as a find, until it goes dark: when its supply is spent, or
     /// when the sector's hunt raises its alarm, losing whatever supply is left. A sector with no hunt keeps them
     /// live. The arrival events are plain C#, raised once per station on its first arrival. A kind supplies only
@@ -25,8 +25,8 @@ namespace Substrate.Sectors.Elements.Stations
         [SerializeField] private FindStationBody body;
         [Tooltip("The sector's opening hunt, read for its alarm, which darkens every live station; unset for none.")]
         [SerializeField] private SectorHunt hunt;
-        [Tooltip("Another kind's stations, read at setup for their points so none of these lands beside one; unset for none.")]
-        [SerializeField] private FindStation spacedFrom;
+        [Tooltip("Other kinds' stations, read at setup for their points so none of these lands beside one.")]
+        [SerializeField] private FindStation[] spacedFrom = { };
         [Tooltip("The find icon its minimap marker and edge pointer show.")]
         [SerializeField] private Sprite icon;
 
@@ -34,7 +34,7 @@ namespace Substrate.Sectors.Elements.Stations
         [Tooltip("Plane distances from the hero's start the stations are placed between.")]
         [SerializeField, Min(0f)] private float distanceMin = 120f;
         [SerializeField, Min(0f)] private float distanceMax = 180f;
-        [Tooltip("Least plane distance from a station to another of its kind or of the spaced-from kind.")]
+        [Tooltip("Least plane distance from a station to another of its kind or of a spaced-from kind.")]
         [SerializeField, Min(0f)] private float spacing = 60f;
         [Tooltip("Plane radius around each station the asteroid field leaves empty.")]
         [SerializeField, Min(0f)] private float clearRadius = 35f;
@@ -45,11 +45,10 @@ namespace Substrate.Sectors.Elements.Stations
         private readonly List<GameObject> copies = new();
         private Ship hero;
         private IObjectiveService objectives;
-        private int sectorIndex;
         private bool shown;
 
-        /// <summary>The hero reached a station for the first time: station kind, sector index.</summary>
-        public event Action<StationKind, int> Arrived;
+        /// <summary>The hero reached a station for the first time: station kind.</summary>
+        public event Action<StationKind> Arrived;
 
         /// <summary>The hero claimed a find, on its first arrival: station kind.</summary>
         public event Action<StationKind> FindClaimed;
@@ -65,6 +64,9 @@ namespace Substrate.Sectors.Elements.Stations
         /// <summary>What each station holds to give when it is placed.</summary>
         protected abstract float Supply { get; }
 
+        /// <summary>The hero flew into a live station this tick, the first time or back again, before its visit.</summary>
+        protected virtual void Enter(Station station) { }
+
         /// <summary>The hero sits in a live station this tick, after its arrival events.</summary>
         protected abstract void Visit(Station station, Ship hero, float deltaTime);
 
@@ -74,16 +76,17 @@ namespace Substrate.Sectors.Elements.Stations
                 || !body.Zone.transform.IsChildOf(body.transform) || !body.Lit.transform.IsChildOf(body.transform))
                 throw new InvalidOperationException(
                     $"{GetType().Name} on '{name}' needs its icon, objective service, sector, body, and a zone and lit parts under the body.");
+            if (Array.Exists(spacedFrom, other => !other))
+                throw new InvalidOperationException($"{GetType().Name} on '{name}' has an empty spaced-from entry.");
 
             hero = ctx.Hero;
             objectives = ctx.Objectives;
-            sectorIndex = ctx.SectorIndex;
             shown = false;
             ClearStations();
             body.gameObject.SetActive(false);
             var taken = new List<Vector3>();
-            if (spacedFrom)
-                foreach (var other in spacedFrom.Stations)
+            foreach (var kind in spacedFrom)
+                foreach (var other in kind.Stations)
                     taken.Add(other.Position);
             for (var i = 0; i < StationsPerSector; i++)
             {
@@ -129,14 +132,17 @@ namespace Substrate.Sectors.Elements.Stations
                     station.GoDark();
                     continue;
                 }
-                if (!station.Zone.IsPlayerInZone) continue;
+                var entered = station.Zone.IsPlayerInZone && !station.Inside;
+                station.Inside = station.Zone.IsPlayerInZone;
+                if (!station.Inside) continue;
 
                 if (!station.HasArrived)
                 {
                     station.HasArrived = true;
-                    Arrived?.Invoke(Kind, sectorIndex);
+                    Arrived?.Invoke(Kind);
                     FindClaimed?.Invoke(Kind);
                 }
+                if (entered) Enter(station);
                 Visit(station, hero, deltaTime);
             }
         }
@@ -178,6 +184,7 @@ namespace Substrate.Sectors.Elements.Stations
             internal readonly ExtractionZone Zone;
             internal readonly GameObject Lit;
             internal bool HasArrived;
+            internal bool Inside;
             private FindMarker find;
 
             internal Station(FindStationBody body)
@@ -201,6 +208,7 @@ namespace Substrate.Sectors.Elements.Stations
                 Position = position;
                 SupplyLeft = supply;
                 HasArrived = false;
+                Inside = false;
                 Zone.BindPlayer(hero ? hero.Body : null);
                 Zone.Disarm();
                 Body.SetActive(false);
@@ -237,7 +245,7 @@ namespace Substrate.Sectors.Elements.Stations
         }
 
 #if UNITY_EDITOR
-        protected void ConfigurePlacement(float distance, SectorHunt hunt, float spacing, FindStation spacedFrom)
+        protected void ConfigurePlacement(float distance, SectorHunt hunt, float spacing, params FindStation[] spacedFrom)
         {
             this.hunt = hunt;
             this.spacing = spacing;
