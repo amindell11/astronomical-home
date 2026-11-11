@@ -22,8 +22,12 @@ namespace Game.Preview
         [SerializeField] private PreviewEntry selectedEntry;
         [SerializeField] private int combatSector = PreviewHost.WholeRun;
         [SerializeField] private LocaleSky combatLocale;
+        [SerializeField] private bool playerInvulnerable;
         private LocaleSky[] locales;
         private Vector2 scroll;
+
+        private static readonly GUIContent PlayerInvulnerableLabel = new("Player invulnerable",
+            "Blocks every hit on the player. Takes effect when a Playtest starts or restarts.");
 
         private TuningTarget Target => TuningTarget.All[targetIndex];
 
@@ -62,6 +66,7 @@ namespace Game.Preview
             selectedEntry = host.Entry;
             combatSector = host.combatSector;
             combatLocale = host.combatLocale;
+            playerInvulnerable = host.playerInvulnerable;
             // Not ready, not just replacing: a Replay-to-Replay switch refuses while a compose is in flight.
             using (new EditorGUI.DisabledScope(!host.IsReady))
             {
@@ -79,6 +84,7 @@ namespace Game.Preview
                 var chosen = DrawSections(host.Entry, game.sessionProfile.run);
                 host.combatSector = combatSector;
                 host.combatLocale = combatLocale;
+                host.playerInvulnerable = playerInvulnerable;
                 if (chosen != host.Entry)
                 {
                     host.Select(chosen);
@@ -118,7 +124,7 @@ namespace Game.Preview
             var run = AssetDatabase.LoadAssetAtPath<GameHost>(PreviewHostBootstrap.GameHostPath).sessionProfile.run;
             selectedEntry = DrawSections(Target.EntryAfterSwitch(selectedEntry), run);
             if (GUILayout.Button("Enter preview"))
-                PreviewHostBootstrap.EnterPlayMode(selectedEntry, combatSector, combatLocale);
+                PreviewHostBootstrap.EnterPlayMode(selectedEntry, combatSector, combatLocale, playerInvulnerable);
         }
 
         private PreviewEntry DrawSections(PreviewEntry current, SectorRun run)
@@ -136,6 +142,7 @@ namespace Game.Preview
                         chosen = entry;
                     if (entry == PreviewEntry.Combat) DrawCombatPicks(run);
                 }
+                if (playtest) playerInvulnerable = EditorGUILayout.Toggle(PlayerInvulnerableLabel, playerInvulnerable);
             }
             return chosen;
         }

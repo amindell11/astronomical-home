@@ -27,7 +27,10 @@ namespace Ships.Damage
 
         private float invulnerableUntil;
         public bool IsInvulnerable { get; private set; }
-        
+
+        // ResetDamageState leaves it, so refits, respawns and jumps can't clear it.
+        public bool AlwaysInvulnerable { get; set; }
+
         public float InvulTimeLeft => invulnerableUntil - Time.time;
 
         private void Awake()
@@ -51,7 +54,7 @@ namespace Ships.Damage
         public float TakeDamage(in DamageInfo hit)
         {
             if (hit.Amount <= 0) return 0f;
-            if (IsInvulnerable || keystone && keystone.Blocks(in hit))
+            if (IsInvulnerable || AlwaysInvulnerable || keystone && keystone.Blocks(in hit))
             {
                 OnBlocked?.Invoke(hit);
                 return 0f;

@@ -296,6 +296,26 @@ namespace Tests.PlayMode.Preview
         }
 
         [UnityTest]
+        public IEnumerator PlayerInvulnerable_OutlastsTheJump()
+        {
+            BuildPreview(playerInvulnerable: true);
+            yield return WaitForFlight();
+            var game = host.Playtest;
+            var player = rig.Player;
+            PressJump();
+            yield return WaitForHold();
+            yield return ClickContinue(game.GetComponentInChildren<RunRecapScreen>());
+            yield return AsyncAssert.WaitUntil(() => !game.Jump, 30f, "travel finishes after Continue");
+            yield return null;
+            Assert.That(rig.Player, Is.SameAs(player));
+            Assert.That(player.Damage.IsInvulnerable, Is.False);
+            Assert.That(player.Damage.AlwaysInvulnerable, Is.True);
+            TestDamage.Kill(player);
+            Assert.That(player.gameObject.activeInHierarchy, Is.True);
+            Assert.That(player.Damage.Health.Pct, Is.EqualTo(1f));
+        }
+
+        [UnityTest]
         public IEnumerator PreloadedDestination_GradesTheWorldOnlyAfterArrival()
         {
             BuildPreview();
@@ -502,7 +522,7 @@ namespace Tests.PlayMode.Preview
             yield return null;
         }
 
-        private void BuildPreview(float turnSeconds = .35f)
+        private void BuildPreview(float turnSeconds = .35f, bool playerInvulnerable = false)
         {
             feel = Object.Instantiate(TestAssets.Load<SectorJumpProfile>("Assets/Settings/Game/SectorJumpTuning.asset"));
             feel.turnDuration = turnSeconds;
@@ -539,6 +559,7 @@ namespace Tests.PlayMode.Preview
             host.hudQuietSector = TestAssets.HudFixture("HudQuietSector");
             host.hudExtractionSector = TestAssets.HudFixture("HudExtractionSector");
             host.jumpDestination = TestAssets.Load<LocaleSky>("Assets/Prefabs/Locales/CopperTurquoise.prefab");
+            host.playerInvulnerable = playerInvulnerable;
             root.SetActive(true);
         }
 
