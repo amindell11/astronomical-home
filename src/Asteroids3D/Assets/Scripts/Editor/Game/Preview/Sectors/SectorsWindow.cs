@@ -19,6 +19,7 @@ namespace Game.Preview.Sectors
         };
 
         private readonly Dictionary<int, SerializedObject> editors = new();
+        private readonly HashSet<string> unfolded = new();
         [SerializeField] private int selected;
         [SerializeField] private bool usesOpen = true;
         private SectorPages pages;
@@ -113,7 +114,8 @@ namespace Game.Preview.Sectors
             {
                 using (new EditorGUILayout.HorizontalScope())
                     for (var i = 0; i < sectors.arraySize; i++)
-                        DrawStripColumn(sectors.GetArrayElementAtIndex(i), i);
+                        DrawStripColumn(sectors.GetArrayElementAtIndex(i), i,
+                            Mathf.Max(210f, (position.width - 30f) / sectors.arraySize - 4f));
             }
             finally
             {
@@ -122,9 +124,9 @@ namespace Game.Preview.Sectors
             EditorGUILayout.EndScrollView();
         }
 
-        private static void DrawStripColumn(SerializedProperty row, int index)
+        private static void DrawStripColumn(SerializedProperty row, int index, float width)
         {
-            using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox, GUILayout.MinWidth(210f)))
+            using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox, GUILayout.Width(width)))
             {
                 EditorGUILayout.LabelField($"Sector {index + 1}", EditorStyles.boldLabel);
                 DrawStripField(row, nameof(SectorEntry.faction), "Faction");
@@ -197,7 +199,7 @@ namespace Game.Preview.Sectors
                 EditorGUILayout.PropertyField(row.FindPropertyRelative(nameof(SectorEntry.locale)));
         }
 
-        private static void DrawWaves(SerializedProperty row)
+        private void DrawWaves(SerializedProperty row)
         {
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Waves", EditorStyles.boldLabel);
@@ -211,10 +213,20 @@ namespace Game.Preview.Sectors
                     foreach (var name in Timing)
                         EditorGUILayout.PropertyField(phase.FindPropertyRelative(name));
                     var groups = phase.FindPropertyRelative(nameof(SectorPhase.groups));
-                    if (!groups.isExpanded) groups.isExpanded = true;
+                    if (unfolded.Add(groups.propertyPath)) Unfold(groups);
                     EditorGUILayout.PropertyField(groups, true);
                 }
             }
+        }
+
+        // Opens each group down to its ships once, so a page shows the roster without clicks and still folds.
+        private static void Unfold(SerializedProperty groups)
+        {
+            groups.isExpanded = true;
+            var end = groups.GetEndProperty();
+            var child = groups.Copy();
+            while (child.NextVisible(true) && !SerializedProperty.EqualContents(child, end))
+                child.isExpanded = true;
         }
 
         private void DrawPart(SectorPages.Part part)
