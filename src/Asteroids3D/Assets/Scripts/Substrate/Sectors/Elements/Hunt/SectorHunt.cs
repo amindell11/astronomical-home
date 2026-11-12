@@ -185,7 +185,6 @@ namespace Substrate.Sectors.Elements.Hunt
                 if (patrol.Seeing) seen = true;
             }
 
-            var filled = SpottedFill;
             if (seen)
                 SpottedFill = feel.spotFillSeconds <= 0f
                     ? 1f
@@ -204,7 +203,7 @@ namespace Substrate.Sectors.Elements.Hunt
                 return;
             }
 
-            if (filled > 0f && SpottedFill <= 0f)
+            if (SpottedFill <= 0f)
                 foreach (var patrol in patrols) patrol.ReturnToRoute();
 
             foreach (var patrol in patrols) patrol.Fly(feel, hero);

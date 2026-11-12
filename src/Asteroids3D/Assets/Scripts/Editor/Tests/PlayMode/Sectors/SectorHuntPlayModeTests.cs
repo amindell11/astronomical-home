@@ -271,6 +271,27 @@ namespace Tests.PlayMode.Sectors
         }
 
         [UnityTest]
+        [Timeout(180000)]
+        public IEnumerator AHitWithNoShare_LeavesThePatrolOnItsRoute()
+        {
+            var hero = SpawnHero();
+            var hunt = NewHunt(sightRadius: 5f, searchSeconds: 60f, hitFill: 0f, seekSpeed: 18f);
+            yield return Build(hunt, hero);
+            yield return null;
+            var patrol = Patrol(hunt);
+
+            patrol.Damage.TakeDamage(new DamageInfo(1f, DamageKind.Laser, hero.Id, 0f, Vector3.zero, patrol.transform.position));
+            Assert.AreEqual(0f, hunt.SpottedFill, "A hit with no share leaves the meter empty.");
+            Assert.Greater(WedgeColor(patrol).a, .4f, "The hit starts a chase.");
+            yield return null;
+            Assert.Less(WedgeColor(patrol).a, .25f, "The next tick puts it back on its route.");
+            yield return new WaitForSeconds(1.5f);
+            Assert.Less(WedgeColor(patrol).a, .25f, "It does not chase or search.");
+            Assert.IsTrue(Scout(patrol).Unaware);
+            Assert.IsFalse(hunt.Alarmed);
+        }
+
+        [UnityTest]
         [Timeout(600000)]
         public IEnumerator AnUnawarePatrolFarOut_FliesItsRouteIntoSightOfAStillHero()
         {
@@ -399,7 +420,7 @@ namespace Tests.PlayMode.Sectors
 
             var before = PlaneOf(patrol);
             var toSeen = _lastSeen - before;
-            yield return new WaitForSeconds(1.5f);
+            yield return WaitSeconds(() => Vector2.Distance(PlaneOf(patrol), before) > 8f, 4f);
             var moved = PlaneOf(patrol) - before;
             Assert.Greater(moved.magnitude, 8f, "It keeps steering after sight breaks.");
             Assert.Greater(Vector2.Dot(moved.normalized, toSeen.normalized), .75f,
