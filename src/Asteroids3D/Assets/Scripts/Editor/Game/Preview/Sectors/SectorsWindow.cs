@@ -17,12 +17,16 @@ namespace Game.Preview.Sectors
     internal sealed class SectorsWindow : EditorWindow
     {
         private const float LabelWidth = 72f;
+        private const float PartLabelWidth = 170f;
         private const float ObjectFieldWidth = 260f;
         private const float NumberFieldWidth = 60f;
         private const float PageWidth = 720f;
         private const float ColumnWidth = LabelWidth + ObjectFieldWidth + 18f;
         private const float Gap = 4f;
         private const float DragHandle = 20f;
+        private const float ShipListWidth = DragHandle + ObjectFieldWidth * 2f + 8f + 12f;
+        private const float FixtureTabWidth = 180f;
+        private const float FixtureWidth = PartLabelWidth + ObjectFieldWidth + 24f;
         private const int PreviewLimit = 32;
 
         private readonly Dictionary<int, SerializedObject> editors = new();
@@ -142,7 +146,7 @@ namespace Game.Preview.Sectors
         private void DrawStrip(SerializedProperty sectors, int sectorCount)
         {
             var line = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-            stripScroll = EditorGUILayout.BeginScrollView(stripScroll, GUILayout.Height(line * 7f + 48f));
+            stripScroll = EditorGUILayout.BeginScrollView(stripScroll, GUILayout.Height(line * 7f + 24f));
             using (new EditorGUILayout.HorizontalScope())
             {
                 if (sectors != null)
@@ -244,7 +248,7 @@ namespace Game.Preview.Sectors
             }
             var names = new string[fixtureCount];
             for (var i = 0; i < fixtureCount; i++) names[i] = pages.List[sectorCount + i].Name;
-            var columns = Mathf.Clamp(Mathf.FloorToInt(PageWidth / 140f), 1, fixtureCount);
+            var columns = Mathf.Clamp(Mathf.FloorToInt(PageWidth / FixtureTabWidth), 1, fixtureCount);
             fixtureIndex = GUILayout.SelectionGrid(fixtureIndex, names, columns, EditorStyles.toolbarButton,
                 GUILayout.MaxWidth(PageWidth));
             GUILayout.Space(6);
@@ -376,7 +380,12 @@ namespace Game.Preview.Sectors
             var ships = groups.GetArrayElementAtIndex(index).FindPropertyRelative(nameof(WaveGroup.ships));
             if (ships == null) return false;
             EnsureGroupList(ships);
-            groupList.DoLayoutList();
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.Space(8);
+                using (new EditorGUILayout.VerticalScope(GUILayout.Width(ShipListWidth)))
+                    groupList.DoLayoutList();
+            }
             using (new EditorGUILayout.HorizontalScope())
             {
                 GUILayout.Space(8);
@@ -474,6 +483,7 @@ namespace Game.Preview.Sectors
                 using (new EditorGUI.IndentLevelScope())
                     foreach (var part in value.Parts)
                         DrawPart(part);
+                GUILayout.Space(6);
             }
         }
 
@@ -531,7 +541,8 @@ namespace Game.Preview.Sectors
             if (fixturesObject == null) return;
             var fixtures = fixturesObject.FindProperty("fixtures");
             if (fixtures == null || page.Index >= fixtures.arraySize) return;
-            EditorGUILayout.PropertyField(fixtures.GetArrayElementAtIndex(page.Index), GUIContent.none, true);
+            EditorGUILayout.PropertyField(fixtures.GetArrayElementAtIndex(page.Index), GUIContent.none, true,
+                GUILayout.Width(FixtureWidth));
         }
 
         private void DrawPart(SectorPages.Part part)
@@ -540,7 +551,7 @@ namespace Game.Preview.Sectors
             var serialized = EditorFor(part.Target);
             serialized.Update();
             var labelWidth = EditorGUIUtility.labelWidth;
-            EditorGUIUtility.labelWidth = LabelWidth;
+            EditorGUIUtility.labelWidth = PartLabelWidth;
             try
             {
                 if (part.Properties == null)
@@ -568,11 +579,8 @@ namespace Game.Preview.Sectors
 
         private static void DrawFixed(SerializedProperty property)
         {
-            var height = EditorGUI.GetPropertyHeight(property, true);
-            var single = height <= EditorGUIUtility.singleLineHeight + 1f;
-            var field = single && IsNumber(property) ? NumberFieldWidth : ObjectFieldWidth;
-            var width = single ? LabelWidth + field : PageWidth;
-            EditorGUILayout.PropertyField(property, true, GUILayout.Width(width));
+            var field = IsNumber(property) ? NumberFieldWidth : ObjectFieldWidth;
+            EditorGUILayout.PropertyField(property, true, GUILayout.Width(PartLabelWidth + field));
         }
 
         private static bool IsNumber(SerializedProperty property) =>
