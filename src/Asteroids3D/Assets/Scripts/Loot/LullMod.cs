@@ -13,7 +13,12 @@ namespace Loot
         [Tooltip("Name on the pick card. Empty = the asset name.")]
         [SerializeField] private string displayName;
 
+        [Tooltip("Badge art on the flight HUD. Empty = the name's initials.")]
+        [SerializeField] private Sprite icon;
+
         public string DisplayName => string.IsNullOrEmpty(displayName) ? name : displayName;
+
+        public Sprite Icon => icon;
 
         /// <summary>The card's effect line, read off the data so it cannot drift from it.</summary>
         public abstract string Effect { get; }

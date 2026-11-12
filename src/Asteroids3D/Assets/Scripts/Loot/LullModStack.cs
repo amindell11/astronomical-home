@@ -9,10 +9,10 @@ namespace Loot
     /// <summary>
     /// The lull mods a run has picked, in pick order, plus any a sector grants and takes back. Mods
     /// ride the run, not the part: a mount's view (<see cref="For"/>) and the ship's (<see cref="ForShip"/>)
-    /// are rebuilt on every read, and <see cref="Changed"/> tells the bound ship to re-read, so a pick that
+    /// are rebuilt on every read, and <see cref="Changed"/> tells the bound ship and the HUD to re-read, so a pick that
     /// fits nothing carried stays held and idle until a fitting weapon is mounted.
     /// </summary>
-    public sealed class LullModStack
+    public sealed class LullModStack : IHeldMods
     {
         private readonly List<LullMod> picks = new();
 
@@ -41,12 +41,16 @@ namespace Loot
             Changed?.Invoke();
         }
 
+        /// <summary>Every held mod, weapon or ship, once each with its copy count, in first-pick order.</summary>
+        public IReadOnlyList<HeldMod> All() => Held(_ => true);
+
         /// <summary>The held weapon mods that fit <paramref name="weapon"/>, a weapon prefab, for a weapon offer's card.</summary>
-        public IReadOnlyList<HeldMod> Using(WeaponComponent weapon) => Held(mod => Fits(mod, weapon));
+        public IReadOnlyList<HeldMod> Using(WeaponComponent weapon) =>
+            Held(mod => mod is WeaponMod w && Fits(w, weapon));
 
         /// <summary>The held weapon mods this swap would idle; all three arguments are prefabs, not live mounts.</summary>
         public IReadOnlyList<HeldMod> IdledBy(WeaponComponent replaced, WeaponComponent incoming, WeaponComponent kept) =>
-            Held(mod => Fits(mod, replaced) && !Fits(mod, incoming) && !Fits(mod, kept));
+            Held(mod => mod is WeaponMod w && Fits(w, replaced) && !Fits(w, incoming) && !Fits(w, kept));
 
         /// <summary>The picks that land on <paramref name="mount"/>, the live instance of <paramref name="prefab"/>, summed per field.</summary>
         public WeaponMods For(WeaponComponent mount, WeaponComponent prefab)
@@ -82,27 +86,33 @@ namespace Loot
 
         private static bool Fits(WeaponMod mod, WeaponComponent weapon) => mod.Fits(weapon, weapon);
 
-        private List<HeldMod> Held(Func<WeaponMod, bool> include)
+        private List<HeldMod> Held(Func<LullMod, bool> include)
         {
             var held = new List<HeldMod>();
             foreach (var pick in picks)
             {
-                var mod = pick as WeaponMod;
-                if (!mod || !include(mod)) continue;
-                var index = held.FindIndex(entry => entry.Mod == mod);
-                if (index < 0) held.Add(new HeldMod(mod, 1));
-                else held[index] = new HeldMod(mod, held[index].Count + 1);
+                if (!include(pick)) continue;
+                var index = held.FindIndex(entry => entry.Mod == pick);
+                if (index < 0) held.Add(new HeldMod(pick, 1));
+                else held[index] = new HeldMod(pick, held[index].Count + 1);
             }
             return held;
         }
     }
 
+    /// <summary>The HUD's read-only view of the run's held mods.</summary>
+    public interface IHeldMods
+    {
+        event Action Changed;
+        IReadOnlyList<HeldMod> All();
+    }
+
     public readonly struct HeldMod
     {
-        public WeaponMod Mod { get; }
+        public LullMod Mod { get; }
         public int Count { get; }
 
-        public HeldMod(WeaponMod mod, int count)
+        public HeldMod(LullMod mod, int count)
         {
             Mod = mod;
             Count = count;

@@ -1,4 +1,5 @@
 using Game.Player;
+using Loot;
 using Ships.Command;
 using Ships.Damage;
 using UnityEngine;
@@ -7,7 +8,7 @@ namespace UI
 {
     /// <summary>
     /// The read-only bundle the HUD binds to — the UI's counterpart of <see cref="ShipControl"/>:
-    /// narrow, event-driven surfaces of the ship it displays plus the run tally, the player's boost input
+    /// narrow, event-driven surfaces of the ship it displays plus the run tally and held mods, the player's boost input
     /// and its keystone's name and icon, assembled by the owning rig.
     /// The UI never sees the Ship or any sim MonoBehaviour behind these.
     /// </summary>
@@ -24,6 +25,9 @@ namespace UI
 
         public readonly IRunTally Tally;
 
+        /// <summary>The run's held lull mods, for the badge row beside the weapon readout.</summary>
+        public readonly IHeldMods Mods;
+
         /// <summary>The player's boost input, or null when no player commander flies the ship.</summary>
         public readonly IFlightInput Input;
 
@@ -31,12 +35,13 @@ namespace UI
         public readonly Sprite KeystoneIcon;
 
         public HudBinding(IShipStatus status, IDamageEvents damage, IWeaponReadouts weapons, IRunTally tally,
-            IFlightInput input, string keystoneName, Sprite keystoneIcon)
+            IHeldMods mods, IFlightInput input, string keystoneName, Sprite keystoneIcon)
         {
             Status = status;
             Damage = damage;
             Weapons = weapons;
             Tally = tally;
+            Mods = mods;
             Input = input;
             KeystoneName = keystoneName;
             KeystoneIcon = keystoneIcon;
