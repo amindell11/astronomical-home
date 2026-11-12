@@ -747,6 +747,9 @@ Format: **term** — definition. *(authority)*
   named row with no locale and a pool that can't serve its Random rows.
   *(`SectorRun.DrawLocales`, `ISectorRowReader`, `SessionProfile.run`,
   `Settings/Game/SurvivalTrialRun.asset`, `Settings/Game/Preview/PreviewFixtures.asset`)*
+- **Sectors window** — one page per game-run sector and per preview fixture.
+  The window moves no data. "used by" is found from asset references.
+  *(SectorsWindow, SectorPages)*
 - **field preset** — a named asteroid field settings asset (sparse, medium,
   dense) a run row picks, as it picks a faction. A layout's field either names
   its own preset or takes the row's, so the session refuses a row naming one for
