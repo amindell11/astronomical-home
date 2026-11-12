@@ -133,9 +133,9 @@ namespace Game.Preview.Sectors
             if (!pilot) return "none";
             var name = pilot.name;
             const string suffix = "Pilot";
-            if (name.EndsWith(suffix, StringComparison.Ordinal) && name.Length > suffix.Length)
-                name = name.Substring(0, name.Length - suffix.Length);
-            return string.IsNullOrEmpty(name) ? "none" : name;
+            return name.EndsWith(suffix, StringComparison.Ordinal) && name.Length > suffix.Length
+                ? name.Substring(0, name.Length - suffix.Length)
+                : name;
         }
 
         private void AddAsset(List<SharedValue> list, HashSet<int> seen, Object asset)

@@ -90,9 +90,8 @@ namespace Game.Preview.Sectors
             runObject.Update();
             fixturesObject?.Update();
             var sectors = runObject.FindProperty("sectors");
-            var fixtureCountOnAsset = fixturesObject?.FindProperty("fixtures")?.arraySize ?? 0;
             // The run inspector can add or remove rows under an open window.
-            var count = (sectors?.arraySize ?? 0) + fixtureCountOnAsset;
+            var count = sectors.arraySize + (fixturesObject?.FindProperty("fixtures").arraySize ?? 0);
             if (pages != null && pages.List.Count != count)
             {
                 pages = null;
@@ -106,7 +105,7 @@ namespace Game.Preview.Sectors
                 EditorGUILayout.HelpBox("The run has no sectors.", MessageType.Info);
                 return;
             }
-            var sectorCount = Mathf.Min(sectors?.arraySize ?? 0, pages.List.Count);
+            var sectorCount = sectors.arraySize;
             var fixtureCount = pages.List.Count - sectorCount;
             ClampSelection(sectorCount, fixtureCount);
             DrawStrip(sectors, sectorCount);
@@ -135,11 +134,11 @@ namespace Game.Preview.Sectors
                 sectorIndex = 0;
                 fixturesTab = fixtureCount > 0;
             }
-            else if (sectorIndex < 0 || sectorIndex >= sectorCount)
+            else
                 sectorIndex = Mathf.Clamp(sectorIndex, 0, sectorCount - 1);
             if (fixtureCount <= 0)
                 fixtureIndex = 0;
-            else if (fixtureIndex < 0 || fixtureIndex >= fixtureCount)
+            else
                 fixtureIndex = Mathf.Clamp(fixtureIndex, 0, fixtureCount - 1);
         }
 
@@ -149,12 +148,11 @@ namespace Game.Preview.Sectors
             stripScroll = EditorGUILayout.BeginScrollView(stripScroll, GUILayout.Height(line * 7f + 24f));
             using (new EditorGUILayout.HorizontalScope())
             {
-                if (sectors != null)
-                    for (var i = 0; i < sectorCount; i++)
-                    {
-                        if (i > 0) GUILayout.Space(Gap);
-                        DrawStripColumn(sectors.GetArrayElementAtIndex(i), i);
-                    }
+                for (var i = 0; i < sectorCount; i++)
+                {
+                    if (i > 0) GUILayout.Space(Gap);
+                    DrawStripColumn(sectors.GetArrayElementAtIndex(i), i);
+                }
                 GUILayout.Space(Gap);
                 DrawFixturesTab();
             }
@@ -212,7 +210,6 @@ namespace Game.Preview.Sectors
             var width = ColumnWidth - 12f;
             var row = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight, GUILayout.Width(width));
             EditorGUI.LabelField(Take(ref row, LabelWidth), "caps");
-            if (phases == null || !phases.isArray) return;
             for (var i = 0; i < phases.arraySize; i++)
             {
                 if (row.width < 28f) break;
@@ -261,8 +258,9 @@ namespace Game.Preview.Sectors
                 DrawFixture(page);
             else
             {
-                DrawLocaleLine(page);
-                DrawWaves(runObject.FindProperty("sectors").GetArrayElementAtIndex(page.Index));
+                var row = runObject.FindProperty("sectors").GetArrayElementAtIndex(page.Index);
+                DrawLocaleLine(row, page.Index);
+                DrawWaves(row);
             }
             DrawUses(page);
         }
@@ -273,9 +271,8 @@ namespace Game.Preview.Sectors
                 EditorGUILayout.HelpBox(message, MessageType.Error);
         }
 
-        private void DrawLocaleLine(SectorPages.Page page)
+        private static void DrawLocaleLine(SerializedProperty row, int sector)
         {
-            var row = runObject.FindProperty("sectors").GetArrayElementAtIndex(page.Index);
             var random = row.FindPropertyRelative(nameof(SectorEntry.random));
             var labelWidth = EditorGUIUtility.labelWidth;
             EditorGUIUtility.labelWidth = LabelWidth;
@@ -283,20 +280,15 @@ namespace Game.Preview.Sectors
             {
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    if (random.boolValue)
-                        random.boolValue = EditorGUILayout.ToggleLeft("Random", true,
-                            GUILayout.Width(84), GUILayout.ExpandWidth(false));
-                    else
-                    {
+                    if (!random.boolValue)
                         EditorGUILayout.PropertyField(row.FindPropertyRelative(nameof(SectorEntry.locale)),
                             GUILayout.Width(LabelWidth + ObjectFieldWidth), GUILayout.ExpandWidth(false));
-                        random.boolValue = EditorGUILayout.ToggleLeft("Random", false,
-                            GUILayout.Width(84), GUILayout.ExpandWidth(false));
-                    }
+                    random.boolValue = EditorGUILayout.ToggleLeft("Random", random.boolValue,
+                        GUILayout.Width(84), GUILayout.ExpandWidth(false));
                     GUILayout.Space(8);
                     using (new EditorGUI.DisabledScope(!PreviewControlPanel.CanFlyCombat()))
                         if (GUILayout.Button("Fly this sector", GUILayout.Width(124), GUILayout.ExpandWidth(false)))
-                            PreviewControlPanel.FlyCombat(page.Index);
+                            PreviewControlPanel.FlyCombat(sector);
                 }
             }
             finally
@@ -346,9 +338,7 @@ namespace Game.Preview.Sectors
 
         private void DrawGroups(SerializedProperty groups)
         {
-            if (groups == null) return;
-            var removed = false;
-            for (var i = 0; i < groups.arraySize && !removed; i++)
+            for (var i = 0; i < groups.arraySize; i++)
             {
                 var group = groups.GetArrayElementAtIndex(i);
                 var path = group.propertyPath;
@@ -358,10 +348,9 @@ namespace Game.Preview.Sectors
                     openGroup = open ? null : path;
                     groupList = null;
                 }
-                if (openGroup == path)
-                    removed = DrawGroupEditor(groups, i);
+                if (openGroup == path && DrawGroupEditor(groups, i)) return;
             }
-            if (!removed) DrawAddGroup(groups);
+            DrawAddGroup(groups);
         }
 
         private bool GroupLine(string summary, bool open)
@@ -378,7 +367,6 @@ namespace Game.Preview.Sectors
         private bool DrawGroupEditor(SerializedProperty groups, int index)
         {
             var ships = groups.GetArrayElementAtIndex(index).FindPropertyRelative(nameof(WaveGroup.ships));
-            if (ships == null) return false;
             EnsureGroupList(ships);
             using (new EditorGUILayout.HorizontalScope())
             {
@@ -408,19 +396,17 @@ namespace Game.Preview.Sectors
                         GUILayout.Width(72), GUILayout.ExpandWidth(false)))
                     return;
             }
-            var index = groups.arraySize;
             groups.arraySize++;
-            var ships = groups.GetArrayElementAtIndex(index).FindPropertyRelative(nameof(WaveGroup.ships));
-            if (ships != null) ships.arraySize = 0;
-            openGroup = groups.GetArrayElementAtIndex(index).propertyPath;
+            var group = groups.GetArrayElementAtIndex(groups.arraySize - 1);
+            // Growing the array copies the last group's ships into the new one.
+            group.FindPropertyRelative(nameof(WaveGroup.ships)).arraySize = 0;
+            openGroup = group.propertyPath;
             groupList = null;
         }
 
         private void EnsureGroupList(SerializedProperty ships)
         {
-            if (groupList != null && groupList.serializedProperty != null &&
-                groupList.serializedProperty.propertyPath == ships.propertyPath)
-                return;
+            if (groupList != null && groupList.serializedProperty.propertyPath == ships.propertyPath) return;
             groupList = new ReorderableList(ships.serializedObject, ships, true, true, true, true)
             {
                 headerHeight = EditorGUIUtility.singleLineHeight + 2f,
@@ -440,9 +426,7 @@ namespace Game.Preview.Sectors
 
         private void DrawShipRow(Rect rect, int index, bool active, bool focused)
         {
-            var ships = groupList.serializedProperty;
-            if (ships == null || index < 0 || index >= ships.arraySize) return;
-            var entry = ships.GetArrayElementAtIndex(index);
+            var entry = groupList.serializedProperty.GetArrayElementAtIndex(index);
             var height = EditorGUIUtility.singleLineHeight;
             EditorGUI.PropertyField(new Rect(rect.x, rect.y, ObjectFieldWidth, height),
                 entry.FindPropertyRelative(nameof(WaveDirector.RosterEntry.template)), GUIContent.none);
@@ -453,15 +437,14 @@ namespace Game.Preview.Sectors
         private static WaveGroup ReadGroup(SerializedProperty group)
         {
             var ships = group.FindPropertyRelative(nameof(WaveGroup.ships));
-            if (ships == null || !ships.isArray || ships.arraySize == 0) return default;
             var entries = new WaveDirector.RosterEntry[ships.arraySize];
             for (var i = 0; i < entries.Length; i++)
             {
                 var entry = ships.GetArrayElementAtIndex(i);
                 entries[i] = new WaveDirector.RosterEntry
                 {
-                    template = entry.FindPropertyRelative(nameof(WaveDirector.RosterEntry.template))?.objectReferenceValue as Ship,
-                    pilot = entry.FindPropertyRelative(nameof(WaveDirector.RosterEntry.pilot))?.objectReferenceValue as Commander,
+                    template = entry.FindPropertyRelative(nameof(WaveDirector.RosterEntry.template)).objectReferenceValue as Ship,
+                    pilot = entry.FindPropertyRelative(nameof(WaveDirector.RosterEntry.pilot)).objectReferenceValue as Commander,
                 };
             }
             return new WaveGroup { ships = entries };
@@ -490,8 +473,7 @@ namespace Game.Preview.Sectors
         private string UseLine(SectorPages.SharedValue value, bool open)
         {
             var marker = open ? "\u25be" : "\u203a";
-            var whole = value.Parts.Count > 0 && value.Parts[0].Properties == null && value.Target;
-            var detail = whole ? Kind(value.Target) : ValuePreview(value);
+            var detail = value.Parts[0].Properties == null ? Kind(value.Target) : ValuePreview(value);
             var head = string.IsNullOrEmpty(detail) ? value.Title : $"{value.Title} ({detail})";
             var used = string.IsNullOrEmpty(value.UsedBy) ? "" : $" \u00b7 used by {value.UsedBy}";
             return $"{head}{used} {marker}";
@@ -511,13 +493,11 @@ namespace Game.Preview.Sectors
             var bits = new List<string>();
             foreach (var part in value.Parts)
             {
-                if (!part.Target || part.Properties == null) return null;
                 var serialized = EditorFor(part.Target);
                 serialized.Update();
                 foreach (var name in part.Properties)
                 {
                     var property = serialized.FindProperty(name);
-                    if (property == null) continue;
                     switch (property.propertyType)
                     {
                         case SerializedPropertyType.Integer:
@@ -531,7 +511,6 @@ namespace Game.Preview.Sectors
                     }
                 }
             }
-            if (bits.Count == 0) return null;
             var text = string.Join(" / ", bits);
             return text.Length <= PreviewLimit ? text : null;
         }
@@ -564,10 +543,7 @@ namespace Game.Preview.Sectors
                 else
                 {
                     foreach (var name in part.Properties)
-                    {
-                        var property = serialized.FindProperty(name);
-                        if (property != null) DrawFixed(property);
-                    }
+                        DrawFixed(serialized.FindProperty(name));
                 }
             }
             finally
