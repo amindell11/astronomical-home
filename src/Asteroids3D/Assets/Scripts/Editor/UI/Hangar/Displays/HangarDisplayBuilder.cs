@@ -157,7 +157,7 @@ namespace UI.Hangar.Displays
             silhouette.raycastTarget = false;
             foreach (var bracket in brackets) ((GameObject)bracket).transform.SetAsLastSibling();
 
-            // One pair per slot, flanking the ship's name or the weapon's glyph; the view shows the selected pair.
+            // Each slot's pair flanks its name or glyph; the view shows only the selected pair.
             var arrowRows = new[] { 2f, 462f, 462f };
             var arrowFlanks = new[] { (left: 130f, right: width - 178f), (left: 118f, right: 234f), (left: 308f, right: 424f) };
             var previousArrows = new Object[slots.Length];

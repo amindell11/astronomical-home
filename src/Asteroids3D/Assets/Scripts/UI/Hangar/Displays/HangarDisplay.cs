@@ -42,9 +42,8 @@ namespace UI.Hangar.Displays
         public Canvas Canvas => canvas;
         public Vector2Int Resolution => resolution;
         public RenderTexture Texture => texture;
-        public float Level { get; private set; } = 1f;
-        public bool PoweringDown => !float.IsNegativeInfinity(powerDownAt);
-        internal bool Glitching => Time.unscaledTime - glitchAt < GlitchSeconds;
+        internal float Level { get; private set; } = 1f;
+        internal bool PoweringDown => !float.IsNegativeInfinity(powerDownAt);
 
         private void Awake()
         {
@@ -82,7 +81,6 @@ namespace UI.Hangar.Displays
 
         public void PowerDown()
         {
-            if (PoweringDown) return;
             powerDownAt = Time.unscaledTime;
             Glitch();
         }
@@ -98,7 +96,7 @@ namespace UI.Hangar.Displays
         {
             if (wired || !host) return;
             wired = true;
-            image.Initialize(host, () => texture, settings, Screen, TransitionAge);
+            image.Initialize(host, () => texture, settings, Footprint, TransitionAge);
         }
 
         private void LateUpdate()
@@ -127,8 +125,7 @@ namespace UI.Hangar.Displays
             return age < GlitchSeconds ? age : -1f;
         }
 
-        // The glass's screen footprint on the host camera, from its bounds' corners.
-        private CanopyScreen Screen()
+        private CanopyScreen Footprint()
         {
             var bounds = glass.bounds;
             var min = new Vector2(float.MaxValue, float.MaxValue);

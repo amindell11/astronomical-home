@@ -110,7 +110,7 @@ Shader "Hidden/UI/CanopyProjection"
             p = ImageUv(texcoord);
             float2 center = p - .5;
             float edge = smoothstep(.025, .45, dot(center, center));
-            // Pixel-sized terms are in screen pixels on a 1600-wide screen, converted to uv by the apparent size.
+            // Pixel terms are screen pixels at 1600 wide, converted to uv by the apparent size.
             float pixelScale = _Screen.z / 1600.0;
             float glow = _Beam.x;
             float aberration = _Beam.y * pixelScale;

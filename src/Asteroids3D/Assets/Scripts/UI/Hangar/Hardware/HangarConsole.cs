@@ -139,9 +139,7 @@ namespace UI.Hangar.Hardware
         {
             var started = Time.unscaledTime;
             while (Time.unscaledTime - started < HangarDisplay.PowerDownSeconds) yield return null;
-            var launch = onLaunch;
-            onLaunch = null;
-            launch?.Invoke();
+            onLaunch?.Invoke();
         }
 
         private void LateUpdate()
