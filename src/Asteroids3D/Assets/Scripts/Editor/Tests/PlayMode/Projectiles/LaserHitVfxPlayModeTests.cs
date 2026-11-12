@@ -139,6 +139,8 @@ namespace Tests.PlayMode.Projectiles
         [UnityTest]
         public IEnumerator Bolts_StayVisible_UntilTheyDespawnAtRangeEnd()
         {
+            var block = new MaterialPropertyBlock();
+            var baseColor = Shader.PropertyToID("_BaseColor");
             foreach (var name in new[] { "Laser", "TurboLaser", "RipperSlug" })
             {
                 var prefab = AssetDatabase.LoadAssetAtPath<Laser>($"Assets/Prefabs/Weapons/Projectiles/{name}.prefab");
@@ -148,8 +150,7 @@ namespace Tests.PlayMode.Projectiles
                 projectile.Initialize(shooter);
                 projectile.Launch(Vector3.up, Vector3.up * 50f);
 
-                var block = new MaterialPropertyBlock();
-                var baseColor = Shader.PropertyToID("_BaseColor");
+                var renderers = projectile.GetComponentsInChildren<Renderer>();
                 var minAlpha = 1f;
                 var lastNormalized = 0f;
                 var deadline = Time.time + 5f;
@@ -159,15 +160,14 @@ namespace Tests.PlayMode.Projectiles
                     if (!projectile.gameObject.activeSelf)
                         break;
                     lastNormalized = projectile.DistanceTraveled / projectile.MaxDistance;
-                    foreach (var renderer in projectile.GetComponentsInChildren<Renderer>())
+                    foreach (var renderer in renderers)
                     {
                         renderer.GetPropertyBlock(block);
                         minAlpha = Mathf.Min(minAlpha, block.GetColor(baseColor).a);
                     }
                 }
 
-                if (projectile.gameObject.activeSelf)
-                    Assert.Fail($"{name} did not despawn");
+                Assert.IsFalse(projectile.gameObject.activeSelf, $"{name} did not despawn");
                 Assert.That(lastNormalized, Is.GreaterThanOrEqualTo(0.9f), $"{name} samples must reach the end of range");
                 Assert.That(minAlpha, Is.GreaterThanOrEqualTo(LaserVisual.AlphaAtRangeEnd - 0.001f),
                     $"{name} must read until it despawns");
