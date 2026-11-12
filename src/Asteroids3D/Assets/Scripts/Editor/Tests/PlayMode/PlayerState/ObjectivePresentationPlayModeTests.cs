@@ -299,6 +299,55 @@ namespace Tests.PlayMode.PlayerState
             Assert.IsFalse(icon.enabled);
         }
 
+        [UnityTest]
+        public IEnumerator BeaconBerths_RingTracksTheGraceLeft_AndBlinkWhileExpiring()
+        {
+            CreateMarkers();
+            var target = Child("Beacon").transform;
+            target.position = new Vector3(8, 6, 0);
+            var phase = new SectorPhaseProgress(0, 2, 5f, false, beaconFill: .4f);
+            OpenPhases(target, () => phase);
+            yield return null;
+            var screen = canvas.transform.Find("Extraction direction").GetComponent<BerthGraphic>();
+            var map = canvas.transform.Find("Extraction minimap").GetComponent<BerthGraphic>();
+            var until = Time.realtimeSinceStartup + .6f;
+            while (Time.realtimeSinceStartup < until)
+            {
+                Assert.AreEqual(.4f, screen.RingFill);
+                Assert.AreEqual(.4f, map.RingFill);
+                Assert.AreEqual(1f, screen.canvasRenderer.GetAlpha());
+                Assert.AreEqual(1f, map.canvasRenderer.GetAlpha());
+                yield return null;
+            }
+
+            phase = new SectorPhaseProgress(0, 2, 5f, false, beaconFill: .25f);
+            yield return null;
+            Assert.AreEqual(.25f, screen.RingFill);
+            Assert.AreEqual(.25f, map.RingFill);
+
+            phase = new SectorPhaseProgress(0, 2, 5f, false, beaconFill: .25f, beaconExpiring: true);
+            var sawLit = false;
+            var sawDark = false;
+            until = Time.realtimeSinceStartup + .6f;
+            while (Time.realtimeSinceStartup < until)
+            {
+                yield return null;
+                var screenAlpha = screen.canvasRenderer.GetAlpha();
+                var mapAlpha = map.canvasRenderer.GetAlpha();
+                sawLit |= screenAlpha == 1f && mapAlpha == 1f;
+                sawDark |= screenAlpha == 0f && mapAlpha == 0f;
+            }
+
+            Assert.IsTrue(sawLit);
+            Assert.IsTrue(sawDark);
+            Open(target);
+            yield return null;
+            Assert.IsNull(screen.RingFill);
+            Assert.IsNull(map.RingFill);
+            Assert.AreEqual(1f, screen.canvasRenderer.GetAlpha());
+            Assert.AreEqual(1f, map.canvasRenderer.GetAlpha());
+        }
+
         private sealed class ExtractionState : ObjectiveState
         {
             public override ObjectiveType StateType => ObjectiveType.ExtractionChallenge;

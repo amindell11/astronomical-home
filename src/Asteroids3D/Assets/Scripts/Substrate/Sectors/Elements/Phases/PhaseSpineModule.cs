@@ -57,6 +57,8 @@ namespace Substrate.Sectors.Elements.Phases
         [SerializeField, Min(0f)] private float beaconLeadSeconds = 8f;
         [Tooltip("Seconds into the next sector phase an unclaimed beacon stays before it closes.")]
         [SerializeField, Min(0f)] private float beaconGraceSeconds = 10f;
+        [Tooltip("Seconds before an unclaimed beacon closes that its marker starts blinking.")]
+        [SerializeField, Min(0f)] private float beaconWarningSeconds = 3f;
 
         private SpineObjectiveHandle spine;
         private Ship hero;
@@ -198,6 +200,11 @@ namespace Substrate.Sectors.Elements.Phases
             if (spine.Target == beaconZone.transform) spine.Target = null;
         }
 
+        private float? BeaconGraceLeft(SectorPhaseMark mark) =>
+            beaconOpen && mark.Index == beaconLull && !mark.InLull
+                ? Mathf.Max(0f, beaconGraceSeconds - mark.ElapsedSeconds)
+                : null;
+
         private SectorPhaseProgress ReadPhaseProgress()
         {
             var mark = director.Phase;
@@ -207,8 +214,13 @@ namespace Substrate.Sectors.Elements.Phases
                 return new SectorPhaseProgress(-1, director.PhaseCount, callIn ?? hunt.SearchSecondsLeft, false,
                     callIn.HasValue ? HuntReading.Spotted : HuntReading.Searching);
             }
+
+            var graceLeft = BeaconGraceLeft(mark);
+            var beaconFill = graceLeft.HasValue && beaconGraceSeconds > 0f ? graceLeft.Value / beaconGraceSeconds : 1f;
+            var beaconExpiring = graceLeft <= beaconWarningSeconds;
             return new SectorPhaseProgress(mark.InLull ? mark.Index - 1 : mark.Index,
-                director.PhaseCount, mark.CountdownSeconds, mark.Done);
+                director.PhaseCount, mark.CountdownSeconds, mark.Done,
+                beaconFill: beaconFill, beaconExpiring: beaconExpiring);
         }
 
         private void OpenExtraction()
@@ -286,7 +298,7 @@ namespace Substrate.Sectors.Elements.Phases
 #if UNITY_EDITOR
         internal void Bind(WaveDirector director, ExtractionZone zone, ExtractionZone beacon,
             float? leadSeconds = null, float? graceSeconds = null, SectorHunt hunt = null,
-            EliteEncounter elite = null)
+            EliteEncounter elite = null, float? warningSeconds = null)
         {
             this.director = director;
             this.hunt = hunt;
@@ -295,6 +307,7 @@ namespace Substrate.Sectors.Elements.Phases
             this.elite = elite;
             if (leadSeconds.HasValue) beaconLeadSeconds = leadSeconds.Value;
             if (graceSeconds.HasValue) beaconGraceSeconds = graceSeconds.Value;
+            if (warningSeconds.HasValue) beaconWarningSeconds = warningSeconds.Value;
         }
 #endif
     }

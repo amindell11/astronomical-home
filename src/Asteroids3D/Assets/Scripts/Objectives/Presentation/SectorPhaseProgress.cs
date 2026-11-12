@@ -10,15 +10,19 @@ namespace Objectives.Presentation
         public float SecondsLeft { get; }
         public bool ExtractionOpen { get; }
         public HuntReading Hunt { get; }
+        public float BeaconFill { get; }
+        public bool BeaconExpiring { get; }
 
         public SectorPhaseProgress(int index, int count, float secondsLeft, bool extractionOpen,
-            HuntReading hunt = HuntReading.None)
+            HuntReading hunt = HuntReading.None, float beaconFill = 1f, bool beaconExpiring = false)
         {
             Index = index;
             Count = count;
             SecondsLeft = secondsLeft;
             ExtractionOpen = extractionOpen;
             Hunt = hunt;
+            BeaconFill = beaconFill;
+            BeaconExpiring = beaconExpiring;
         }
     }
 }

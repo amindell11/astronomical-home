@@ -11,6 +11,7 @@ namespace UI.Objectives
         private static readonly Color Ink = new(.015f, .045f, .065f, .85f);
         private bool minimap;
         private Color accent = ExtractionAccent;
+        private float? ringFill;
 
         public Color Accent
         {
@@ -19,6 +20,17 @@ namespace UI.Objectives
             {
                 if (accent == value) return;
                 accent = value;
+                SetVerticesDirty();
+            }
+        }
+
+        public float? RingFill
+        {
+            get => ringFill;
+            set
+            {
+                if (ringFill == value) return;
+                ringFill = value;
                 SetVerticesDirty();
             }
         }
@@ -46,15 +58,19 @@ namespace UI.Objectives
                 Disc(mesh, Vector2.zero, 11, new Color(Ink.r, Ink.g, Ink.b, .92f), scale);
                 Arch(mesh, 7, 5, 2.8f, scale);
                 Disc(mesh, new Vector2(0, -3), 2.1f, accent, scale);
-                return;
+            }
+            else
+            {
+                Disc(mesh, Vector2.zero, 27, new Color(.015f, .055f, .065f, .28f), scale);
+                Arch(mesh, 14, 10, 2.4f, scale);
+                Disc(mesh, new Vector2(-14, -11), 2.5f, accent, scale);
+                Disc(mesh, new Vector2(14, -11), 2.5f, accent, scale);
+                Disc(mesh, new Vector2(0, -15), 2.1f, accent, scale);
+                Disc(mesh, new Vector2(0, -24), 1.5f, new Color(accent.r, accent.g, accent.b, .5f), scale);
             }
 
-            Disc(mesh, Vector2.zero, 27, new Color(.015f, .055f, .065f, .28f), scale);
-            Arch(mesh, 14, 10, 2.4f, scale);
-            Disc(mesh, new Vector2(-14, -11), 2.5f, accent, scale);
-            Disc(mesh, new Vector2(14, -11), 2.5f, accent, scale);
-            Disc(mesh, new Vector2(0, -15), 2.1f, accent, scale);
-            Disc(mesh, new Vector2(0, -24), 1.5f, new Color(accent.r, accent.g, accent.b, .5f), scale);
+            if (ringFill is float fill)
+                Ring(mesh, minimap ? 12.5f : 29.5f, 1.5f, fill, accent, scale);
         }
 
         private static void Arch(VertexHelper mesh, float radius, float leg, float width, float scale)
@@ -88,6 +104,28 @@ namespace UI.Objectives
             mesh.AddVert((b - normal) * scale, tint, Vector2.zero);
             mesh.AddTriangle(start, start + 1, start + 2);
             mesh.AddTriangle(start, start + 2, start + 3);
+        }
+
+        private static void Ring(VertexHelper mesh, float radius, float width, float fill, Color tint, float scale)
+        {
+            var span = Mathf.Clamp01(fill) * 360f;
+            var step = 360f / 48f;
+            var outer = radius + width * .5f;
+            var inner = radius - width * .5f;
+            for (var i = 0; i < 48 && i * step < span; i++)
+            {
+                var a = (90f - i * step) * Mathf.Deg2Rad;
+                var b = (90f - Mathf.Min((i + 1) * step, span)) * Mathf.Deg2Rad;
+                var from = new Vector2(Mathf.Cos(a), Mathf.Sin(a));
+                var to = new Vector2(Mathf.Cos(b), Mathf.Sin(b));
+                var start = mesh.currentVertCount;
+                mesh.AddVert(from * inner * scale, tint, Vector2.zero);
+                mesh.AddVert(from * outer * scale, tint, Vector2.zero);
+                mesh.AddVert(to * outer * scale, tint, Vector2.zero);
+                mesh.AddVert(to * inner * scale, tint, Vector2.zero);
+                mesh.AddTriangle(start, start + 1, start + 2);
+                mesh.AddTriangle(start, start + 2, start + 3);
+            }
         }
 
         private static void Disc(VertexHelper mesh, Vector2 center, float radius, Color tint, float scale)

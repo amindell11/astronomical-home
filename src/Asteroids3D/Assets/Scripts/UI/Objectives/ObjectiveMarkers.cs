@@ -14,6 +14,7 @@ namespace UI.Objectives
         [SerializeField] private float pulseScale = .15f;
         [SerializeField] private Color baseColor = Color.yellow;
         [SerializeField] private Color beaconAccent = new(1f, .82f, .35f, 1f);
+        [SerializeField] private float expiryBlinkRate = 4f;
 
         private readonly Vector3[] corners = new Vector3[4];
         private IObjectiveService objectives;
@@ -55,6 +56,13 @@ namespace UI.Objectives
             screenBerth.enabled = minimapBerth.enabled = berth;
             screenBerth.Accent = minimapBerth.Accent =
                 state == ObjectiveType.Survive ? beaconAccent : BerthGraphic.ExtractionAccent;
+            var beacon = state == ObjectiveType.Survive && target;
+            var progress = beacon ? objectives.SpineTracker?.PhaseProgress : null;
+            screenBerth.RingFill = minimapBerth.RingFill = progress?.BeaconFill;
+            var expiring = progress?.BeaconExpiring == true;
+            var lit = !expiring || Mathf.Repeat(Time.time * expiryBlinkRate, 1f) < .5f;
+            screenBerth.canvasRenderer.SetAlpha(lit ? 1f : 0f);
+            minimapBerth.canvasRenderer.SetAlpha(lit ? 1f : 0f);
             icon.enabled = generic;
             if (!berth && !generic) return;
 
