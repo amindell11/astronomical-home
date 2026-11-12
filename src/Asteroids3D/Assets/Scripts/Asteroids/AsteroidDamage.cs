@@ -34,15 +34,10 @@ namespace Asteroids
         private void Awake()
         {
             controller = GetComponent<AsteroidController>();
+            DamageableColliders.Register(this, GetComponents<MeshCollider>());
         }
 
         private void OnDestroy() => DamageableColliders.Unregister(this);
-
-        internal void UseHitboxes(Collider[] hitboxes)
-        {
-            DamageableColliders.Unregister(this);
-            DamageableColliders.Register(this, hitboxes);
-        }
 
         public void Initialize(float volume, float lethality = 1f)
         {

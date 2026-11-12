@@ -123,15 +123,11 @@ namespace Combat.Weapons.Arsenal
             var shooterBody = shooter?.Body;
             for (var i = 0; i < count; i++)
             {
-                if (PassesThrough(beamHits[i], shooterBody)) continue;
+                if (shooterBody && beamHits[i].rigidbody == shooterBody) continue;
                 return OnBeamLine(origin, direction, StrikePoint(beamHits[i], origin));
             }
             return origin + direction * range;
         }
-
-        // The beam starts inside the firing ship, so it skips the shooter's own body.
-        private static bool PassesThrough(in RaycastHit hit, Rigidbody shooterBody) =>
-            (shooterBody && hit.rigidbody == shooterBody) || DamageableColliders.IsUnownedTrigger(hit.collider);
 
         private int CastBeam(Vector3 origin, Vector3 direction)
         {
@@ -157,6 +153,7 @@ namespace Combat.Weapons.Arsenal
             var end = origin + direction * range;
             var count = CastBeam(origin, direction);
 
+            // The beam starts inside the firing ship, so skip the shooter's own body.
             var shooterBody = shooter?.Body;
             var attackerId = shooter?.Id ?? Ships.Registry.ShipId.Invalid;
             var remaining = Mods.Apply(WeaponModField.Damage, damage);
@@ -164,7 +161,7 @@ namespace Combat.Weapons.Arsenal
             for (var i = 0; i < count; i++)
             {
                 var hit = beamHits[i];
-                if (PassesThrough(hit, shooterBody)) continue;
+                if (shooterBody && hit.rigidbody == shooterBody) continue;
                 DamageableColliders.TryGet(hit.collider, out var damageable);
                 if (damageable != null && !struck.Add(damageable)) continue;
 

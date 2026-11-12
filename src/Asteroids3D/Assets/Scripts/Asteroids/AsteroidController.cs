@@ -14,8 +14,6 @@ namespace Asteroids
         private MeshCollider meshCollider;
         private SphereCollider cheapCollider;
         private AsteroidDamage damage;
-        private Collider[] hullHitbox;
-        private Collider[] sphereHitbox;
 
 
         [Header("Performance Tuning")]
@@ -40,9 +38,9 @@ namespace Asteroids
         public Renderer Renderer { get; private set; }
         public Fragger Fragger { get; private set; }
         public AsteroidDamage Damage => damage;
-        /// <summary>Always-present cheap collider (attached to the rigidbody). Handed to
+        /// <summary>Whichever collider is live (the hull near the anchor, else the cheap sphere). Handed to
         /// obstacle-scan consumers that resolve mass/root through a collider reference.</summary>
-        public Collider SimpleCollider => cheapCollider;
+        public Collider SimpleCollider => cheapCollider.enabled ? cheapCollider : meshCollider;
         public Mesh CurrentMesh => meshFilter.sharedMesh;
         public int MeshIndex { get; private set; }
         public event Action<Vector3> OnDestroyed;
@@ -58,9 +56,7 @@ namespace Asteroids
             Renderer = GetComponent<Renderer>();
             damage = GetComponent<AsteroidDamage>();
             Rb.useGravity = false;
-            sphereHitbox = new Collider[] { cheapCollider };
-            if (meshCollider) hullHitbox = new Collider[] { meshCollider };
-            SetHullEnabled(meshCollider && meshCollider.enabled);
+            if (meshCollider) SetHullEnabled(meshCollider.enabled);
         }
 
         public void Initialize(
@@ -134,11 +130,11 @@ namespace Asteroids
             SetHullEnabled(false);
         }
 
-        // Weapons hit the hull where it is live; the sphere stands in while the LOD has it off.
+        // The sphere sticks out past elongated rocks, so it exists only where the hull is off.
         private void SetHullEnabled(bool hullOn)
         {
-            if (meshCollider) meshCollider.enabled = hullOn;
-            damage.UseHitboxes(meshCollider && hullOn ? hullHitbox : sphereHitbox);
+            meshCollider.enabled = hullOn;
+            cheapCollider.enabled = !hullOn;
         }
 
         internal void HandleDestroyed(HitData hit)
