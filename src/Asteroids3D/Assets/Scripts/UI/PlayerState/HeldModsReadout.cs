@@ -96,7 +96,7 @@ namespace UI.PlayerState
             rect.anchoredPosition = at;
             rect.sizeDelta = new Vector2(BadgeSize, BadgeSize);
 
-            var ink = held.Mod is ShipMod ? ShipInk : Ink;
+            var ink = held.Mod as ShipMod ? ShipInk : Ink;
             Fill(Paint(rect, "Backing", Backing).rectTransform);
             Edge(rect, "Top", new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, 1f), ink);
             Edge(rect, "Bottom", Vector2.zero, new Vector2(1f, 0f), new Vector2(0f, 1f), ink);
