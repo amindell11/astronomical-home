@@ -222,7 +222,7 @@ namespace Tests.PlayMode
             mounted.HandleTrigger(new WeaponCommand { pressed = false, held = true }, Projectiles);
 
             Assert.AreEqual(0f, ownRecorder.TotalDamage, 0.001f, "Never hit the ship that fired.");
-            Assert.AreEqual(45f, enemy.TotalDamage, 0.001f, "Beam continues past its own hull.");
+            Assert.AreEqual(mounted.Damage, enemy.TotalDamage, 0.001f, "Beam continues past its own hull.");
         }
 
         [UnityTest]
