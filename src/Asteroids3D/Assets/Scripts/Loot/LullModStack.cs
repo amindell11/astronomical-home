@@ -45,12 +45,11 @@ namespace Loot
         public IReadOnlyList<HeldMod> All() => Held(_ => true);
 
         /// <summary>The held weapon mods that fit <paramref name="weapon"/>, a weapon prefab, for a weapon offer's card.</summary>
-        public IReadOnlyList<HeldMod> Using(WeaponComponent weapon) =>
-            Held(mod => mod is WeaponMod w && Fits(w, weapon));
+        public IReadOnlyList<HeldMod> Using(WeaponComponent weapon) => Held(mod => Fits(mod, weapon));
 
         /// <summary>The held weapon mods this swap would idle; all three arguments are prefabs, not live mounts.</summary>
         public IReadOnlyList<HeldMod> IdledBy(WeaponComponent replaced, WeaponComponent incoming, WeaponComponent kept) =>
-            Held(mod => mod is WeaponMod w && Fits(w, replaced) && !Fits(w, incoming) && !Fits(w, kept));
+            Held(mod => Fits(mod, replaced) && !Fits(mod, incoming) && !Fits(mod, kept));
 
         /// <summary>The picks that land on <paramref name="mount"/>, the live instance of <paramref name="prefab"/>, summed per field.</summary>
         public WeaponMods For(WeaponComponent mount, WeaponComponent prefab)
@@ -84,7 +83,11 @@ namespace Loot
             return any ? new ShipMods(bonus) : ShipMods.None;
         }
 
-        private static bool Fits(WeaponMod mod, WeaponComponent weapon) => mod.Fits(weapon, weapon);
+        private static bool Fits(LullMod pick, WeaponComponent weapon)
+        {
+            var mod = pick as WeaponMod;
+            return mod && mod.Fits(weapon, weapon);
+        }
 
         private List<HeldMod> Held(Func<LullMod, bool> include)
         {
