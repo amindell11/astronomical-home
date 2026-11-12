@@ -182,7 +182,7 @@ namespace Substrate.Sectors.Elements.Stations
         public sealed class Station
         {
             private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
-            private static readonly MaterialPropertyBlock tint = new();
+            private static readonly MaterialPropertyBlock Tint = new();
 
             internal readonly GameObject Body;
             internal readonly ExtractionZone Zone;
@@ -227,8 +227,8 @@ namespace Substrate.Sectors.Elements.Stations
                 Body.SetActive(true);
                 Zone.Arm();
                 this.find = find;
-                tint.SetColor(BaseColor, find.Colour);
-                Marker.SetPropertyBlock(tint);
+                Tint.SetColor(BaseColor, find.Colour);
+                Marker.SetPropertyBlock(Tint);
             }
 
             internal void Draw(float amount)
