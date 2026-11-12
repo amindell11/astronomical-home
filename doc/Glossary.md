@@ -709,10 +709,10 @@ Format: **term** — definition. *(authority)*
   repair stations, mod stations and armories. A live find registers
   with the objective service. In range the minimap shows the find's own
   marker; out of range, an *edge pointer* (its icon pinned to the minimap rim,
-  aimed at it). Patrols get no edge pointer. One find colour for every kind,
-  apart from ship markers. Spent or shut by the hunt's alarm, it closes its
-  registration and both go.
-  *(IObjectiveService.MarkFind, FindMarker, FindPointers)*
+  aimed at it). Patrols get no edge pointer. Each kind has its own find
+  colour, apart from ship markers; the icons are white and take it as a tint.
+  Spent or shut by the hunt's alarm, it closes its registration and both go.
+  *(IObjectiveService.MarkFind, FindMarker, FindPointers, FindColours)*
 - **sector fixture** — a world object present at spawn, sector-owned, independent
   of encounter state.
 - **signal / SignalPort** — the bus coupling seam. ⚠ **Designed, not built** —

@@ -8,14 +8,13 @@ using UI.Projection;
 namespace UI.Objectives
 {
     /// <summary>
-    /// Pins each unused find that lies beyond the minimap's range to the minimap's rim, aimed at it: the find's
-    /// icon with a find-coloured arrowhead outside it. In range the find's own minimap marker shows instead.
+    /// Pins each unused find that lies beyond the minimap's range to the minimap's rim, aimed at it. The icon
+    /// and the arrowhead take the find's own colour. In range the find's own minimap marker shows instead.
     /// </summary>
     public sealed class FindPointers : MonoBehaviour
     {
         private const float IconSize = 22f;
         private const float ArrowSize = 9f;
-        internal static readonly Color FindColour = new(.72f, .48f, 1f, 1f);
 
         private readonly List<Pointer> pointers = new();
         private RectTransform minimap;
@@ -61,7 +60,7 @@ namespace UI.Objectives
                 var offset = new Vector2(point.x - .5f, point.y - .5f);
                 if (offset.sqrMagnitude <= .25f) continue;
                 if (shown == pointers.Count) pointers.Add(Pointer.Create(transform));
-                pointers[shown++].Show(finds[i].Icon, offset.normalized, radius);
+                pointers[shown++].Show(finds[i].Icon, finds[i].Colour, offset.normalized, radius);
             }
             for (var i = shown; i < pointers.Count; i++)
                 pointers[i].Hide();
@@ -79,13 +78,15 @@ namespace UI.Objectives
                 icon.transform.SetParent(parent, false);
                 icon.rectTransform.sizeDelta = Vector2.one * IconSize;
                 icon.raycastTarget = false;
-                var arrow = FindPointerArrow.Create(parent, ArrowSize, FindColour);
+                var arrow = FindPointerArrow.Create(parent, ArrowSize);
                 return new Pointer { icon = icon, arrow = arrow };
             }
 
-            public void Show(Sprite sprite, Vector2 direction, float radius)
+            public void Show(Sprite sprite, Color colour, Vector2 direction, float radius)
             {
                 icon.sprite = sprite;
+                icon.color = colour;
+                arrow.color = colour;
                 icon.rectTransform.anchoredPosition = direction * (radius - ArrowSize - 1f - IconSize * .5f);
                 arrow.rectTransform.anchoredPosition = direction * (radius - 1f - ArrowSize * .5f);
                 arrow.rectTransform.localEulerAngles =
