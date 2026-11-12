@@ -649,15 +649,19 @@ Format: **term** — definition. *(authority)*
   it, and the game host's player-death path ends it. All three fly one layout,
   and their rows hold what differs. *(TrialSector prefab, `SurvivalTrialRun`)*
 - **hunt** — a combat sector's opening, before its first sector phase. Patrols
-  roam unaware of the player until the alarm. A patrol sees the player inside a
+  fly a route and hold fire until the alarm. A patrol sees the player inside a
   close radius in every direction, or inside a longer radius and a forward cone,
   when no asteroid is in between. One spotted meter fills while any patrol sees
   the player and drains while none does. A hit on a patrol fills part of the
-  meter. The alarm sounds when the meter fills or the search clock runs out.
-  Killing a patrol leaves the meter to drain. A gap of seconds follows the
-  alarm; the hunt's *release* ends it. The wave director holds its opening lull
-  until the release, so phase numbering is unchanged, and stations stay lit
-  through the gap. *(SectorHunt, HuntFeelProfile)*
+  meter. A patrol that sees the player, or that the player hits, leaves its route
+  and chases. Once it loses the player it searches along the player's last heading
+  and then around that point. It keeps searching until the meter drains, then
+  returns to the nearest point on its route. Other patrols stay on their routes.
+  The alarm sounds when the meter fills or the search clock runs out. Killing a
+  patrol leaves the meter to drain. A gap of seconds follows the alarm; the hunt's
+  *release* ends it. The wave director holds its opening lull until the release,
+  so phase numbering is unchanged, and stations stay lit through the gap.
+  *(SectorHunt, HuntFeelProfile)*
 - **faction** — the side a sector's enemies belong to; each survival trial
   names one, and its wave director and hunt field only that faction's ships. The
   **signature ship** is the faction's own chassis, and its elite flies it; the

@@ -19,15 +19,18 @@ namespace Substrate.Sectors.Elements.Hunt
 {
     public enum HuntAlarmReason { Patrol, SearchClock }
 
+    public enum PatrolMode { Route, Chase, Search }
+
     /// <summary>
-    /// A sector's opening hunt. Patrols, as many as the run row names, spawn on clear points away from the hero
-    /// and fly a looped route past the hero's start, through the sector center and back, their scouts unaware,
-    /// so they acquire no enemy and hold fire. One spotted meter fills while any patrol sees the hero, inside
-    /// the close radius all around or inside the sight radius and the forward cone, clear of asteroids and not
-    /// concealed, and drains while none does. A hero hit adds its share. The alarm sounds when the meter fills
-    /// or the search clock runs out. A patrol's marker pulses, and its sight wedge turns red, while it sees the
-    /// hero. At the alarm every live patrol leaves its route and its scout wakes, and the first wave waits out
-    /// the gap. The wave director holds its opening lull until <see cref="Released"/> and counts
+    /// A sector's opening hunt. Patrols spawn clear of the hero and fly a looped route past the start, the
+    /// sector center and back, scouts unaware so they hold fire until the alarm. One spotted meter fills while
+    /// any patrol sees the hero, inside the close radius or the forward cone, clear of asteroids and not
+    /// concealed, and drains while none does. A hero hit adds its share. Seeing the hero, or a hero hit, pulls
+    /// that patrol off its route to chase. Losing the hero, it follows the last heading and circles there until
+    /// the meter empties, then takes the nearest waypoint of its own route. The alarm sounds when the meter
+    /// fills or the search clock runs out, and every live patrol wakes. The marker pulses while a patrol sees
+    /// the hero. The sight wedge is faint on the route, red while it sees, and amber while it chases or searches
+    /// blind. The wave director holds its opening lull until <see cref="Released"/> and counts
     /// <see cref="LivePatrols"/> against its cap. The events are plain C#, for listeners outside the sector.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1319
     /// </summary>
@@ -175,7 +178,6 @@ namespace Substrate.Sectors.Elements.Hunt
                 return;
             }
 
-            foreach (var patrol in patrols) patrol.FlyRoute(feel.routeSpeed, feel.arrivalRadius);
             var seen = false;
             foreach (var patrol in patrols)
             {
@@ -183,6 +185,7 @@ namespace Substrate.Sectors.Elements.Hunt
                 if (patrol.Seeing) seen = true;
             }
 
+            var filled = SpottedFill;
             if (seen)
                 SpottedFill = feel.spotFillSeconds <= 0f
                     ? 1f
@@ -200,6 +203,11 @@ namespace Substrate.Sectors.Elements.Hunt
                 Sound(HuntAlarmReason.Patrol, caller, now);
                 return;
             }
+
+            if (filled > 0f && SpottedFill <= 0f)
+                foreach (var patrol in patrols) patrol.ReturnToRoute();
+
+            foreach (var patrol in patrols) patrol.Fly(feel, hero);
 
             SearchSecondsLeft = Mathf.Max(0f, feel.searchSeconds - (now - startTime));
             if (SearchSecondsLeft <= 0f) Sound(HuntAlarmReason.SearchClock, null, now);
@@ -220,12 +228,24 @@ namespace Substrate.Sectors.Elements.Hunt
         private void Watch(Patrol patrol)
         {
             var sees = Sees(patrol.Ship);
-            if (sees == patrol.Seeing) return;
-            patrol.Seeing = sees;
-            if (patrol.Rig) patrol.Rig.PulseMinimapMarker(sees);
-            patrol.Wedge.SetSeeing(sees);
-            if (sees) PatrolSpotted?.Invoke(sectorIndex, patrol.Ship);
+            if (sees)
+                patrol.NoteSeen(GamePlane.WorldPointToPlane(hero.transform.position));
+            else if (patrol.Seeing)
+                patrol.NoteHeading(PlanarVelocity(hero));
+
+            if (sees != patrol.Seeing)
+            {
+                patrol.Seeing = sees;
+                if (sees) patrol.Chase();
+                if (patrol.Rig) patrol.Rig.PulseMinimapMarker(sees);
+                if (sees) PatrolSpotted?.Invoke(sectorIndex, patrol.Ship);
+            }
+
+            patrol.Show();
         }
+
+        private static Vector2 PlanarVelocity(Ship ship) =>
+            GamePlane.WorldDirToPlane(ship.Body.linearVelocity);
 
         private void Sound(HuntAlarmReason reason, Ship caller, float now)
         {
@@ -265,6 +285,8 @@ namespace Substrate.Sectors.Elements.Hunt
                 {
                     if (Alarmed || !hero || hit.Info.AttackerId != hero.Id) return;
                     SpottedFill = Mathf.Min(1f, SpottedFill + feel.hitFill);
+                    if (!patrol.Seeing)
+                        patrol.ChaseBlind(GamePlane.WorldPointToPlane(hero.transform.position), PlanarVelocity(hero));
                     if (SpottedFill >= 1f) Sound(HuntAlarmReason.Patrol, patrol.Ship, lastNow);
                 };
                 ship.Damage.OnDamaged += patrol.OnDamaged;
@@ -310,6 +332,10 @@ namespace Substrate.Sectors.Elements.Hunt
 
         private sealed class Patrol
         {
+            private const float StillSpeed = 1f;
+            // A short lead keeps the orbit near the circle.
+            private const float OrbitLead = 40f * Mathf.Deg2Rad;
+
             public readonly Ship Ship;
             public readonly AICommander Commander;
             public readonly Scout Scout;
@@ -317,6 +343,12 @@ namespace Substrate.Sectors.Elements.Hunt
             public readonly ShipVisualRig Rig;
             private readonly Vector2[] route;
             private int leg;
+            private PatrolMode mode;
+            private Vector2 lastSeen;
+            private Vector2 lastHeading;
+            private float lastSpeed;
+            private Vector2 searchCenter;
+            private bool circling;
             public Action<AppliedDamage> OnDamaged;
             public PatrolSightWedge Wedge;
             public bool Seeing;
@@ -330,9 +362,125 @@ namespace Substrate.Sectors.Elements.Hunt
                 this.route = route;
             }
 
-            public void FlyRoute(float speed, float arrivalRadius)
+            public void NoteSeen(Vector2 planePoint) => lastSeen = planePoint;
+
+            public void NoteHeading(Vector2 planarVelocity)
             {
-                var here = GamePlane.WorldPointToPlane(Ship.transform.position);
+                lastSpeed = planarVelocity.magnitude;
+                if (lastSpeed > 0f)
+                    lastHeading = planarVelocity / lastSpeed;
+            }
+
+            public void Chase()
+            {
+                mode = PatrolMode.Chase;
+                circling = false;
+            }
+
+            public void ChaseBlind(Vector2 planePoint, Vector2 planarVelocity)
+            {
+                Chase();
+                NoteSeen(planePoint);
+                NoteHeading(planarVelocity);
+                Show();
+            }
+
+            public void ReturnToRoute()
+            {
+                if (mode == PatrolMode.Route) return;
+                mode = PatrolMode.Route;
+                circling = false;
+                var here = Here();
+                var nearest = 0;
+                var best = float.PositiveInfinity;
+                for (var i = 0; i < route.Length; i++)
+                {
+                    var dist = (route[i] - here).sqrMagnitude;
+                    if (dist >= best) continue;
+                    best = dist;
+                    nearest = i;
+                }
+                leg = nearest;
+                Show();
+            }
+
+            public void Fly(HuntFeelProfile feel, Ship hero)
+            {
+                switch (mode)
+                {
+                    case PatrolMode.Route:
+                        FlyRoute(feel.routeSpeed, feel.arrivalRadius);
+                        break;
+                    case PatrolMode.Chase:
+                        FlyChase(feel, hero);
+                        break;
+                    case PatrolMode.Search:
+                        FlySearch(feel);
+                        break;
+                    default:
+                        throw new InvalidOperationException($"Patrol '{Ship.name}' has no fly for mode {mode}.");
+                }
+            }
+
+            public void Show()
+            {
+                if (Wedge) Wedge.SetMode(mode, Seeing);
+            }
+
+            private void FlyChase(HuntFeelProfile feel, Ship hero)
+            {
+                if (Seeing)
+                {
+                    Commander.SteerTo(GamePlane.WorldPointToPlane(hero.transform.position), feel.seekSpeed);
+                    return;
+                }
+
+                var here = Here();
+                if ((lastSeen - here).sqrMagnitude <= feel.arrivalRadius * feel.arrivalRadius)
+                {
+                    BeginSearch(feel, here);
+                    FlySearch(feel);
+                    return;
+                }
+
+                Commander.SteerTo(lastSeen, feel.seekSpeed);
+            }
+
+            private void BeginSearch(HuntFeelProfile feel, Vector2 here)
+            {
+                mode = PatrolMode.Search;
+                searchCenter = lastSpeed < StillSpeed ? lastSeen : lastSeen + lastHeading * feel.followDistance;
+                circling = (searchCenter - here).sqrMagnitude <= feel.arrivalRadius * feel.arrivalRadius;
+                Show();
+            }
+
+            private void FlySearch(HuntFeelProfile feel)
+            {
+                var here = Here();
+                if (!circling)
+                {
+                    if ((searchCenter - here).sqrMagnitude <= feel.arrivalRadius * feel.arrivalRadius)
+                        circling = true;
+                    else
+                    {
+                        Commander.SteerTo(searchCenter, feel.seekSpeed);
+                        return;
+                    }
+                }
+
+                var offset = here - searchCenter;
+                var bearing = Mathf.Atan2(offset.y, offset.x);
+                var ahead = bearing + OrbitLead;
+                Commander.SteerTo(
+                    searchCenter + new Vector2(Mathf.Cos(ahead), Mathf.Sin(ahead)) * feel.searchRadius,
+                    feel.seekSpeed);
+            }
+
+            private Vector2 Here() => GamePlane.WorldPointToPlane(Ship.transform.position);
+
+            private void FlyRoute(float speed, float arrivalRadius)
+            {
+                var here = Here();
                 if ((route[leg] - here).sqrMagnitude <= arrivalRadius * arrivalRadius) leg = (leg + 1) % route.Length;
                 Commander.SteerTo(route[leg], speed);
             }

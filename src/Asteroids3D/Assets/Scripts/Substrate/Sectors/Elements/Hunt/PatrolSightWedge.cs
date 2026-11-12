@@ -6,13 +6,15 @@ namespace Substrate.Sectors.Elements.Hunt
 {
     /// <summary>
     /// One patrol's sight on the minimap: a flat cone out to the sight radius and a disc of the close
-    /// radius, in the game plane, parented to the ship so it turns with the nose. <see cref="SetSeeing"/>
-    /// tints it while that patrol sees the hero.
+    /// radius, in the game plane, parented to the ship so it turns with the nose. <see cref="SetMode"/>
+    /// tints it faint on the route, red while that patrol sees the hero, and amber while it chases or
+    /// searches without sight.
     /// </summary>
     public sealed class PatrolSightWedge : MonoBehaviour
     {
-        private static readonly Color Idle = new(1f, .45f, .4f, .18f);
+        private static readonly Color Faint = new(1f, .45f, .4f, .18f);
         private static readonly Color Seeing = new(1f, .12f, .08f, .7f);
+        private static readonly Color Seeking = new(1f, .62f, .1f, .55f);
         private static readonly int ColorId = Shader.PropertyToID("_Color");
 
         private MeshFilter meshFilter;
@@ -32,12 +34,16 @@ namespace Substrate.Sectors.Elements.Hunt
             meshRenderer.shadowCastingMode = ShadowCastingMode.Off;
             meshRenderer.receiveShadows = false;
             gameObject.layer = LayerIds.MinimapEnemy;
-            SetSeeing(false);
+            SetMode(PatrolMode.Route, false);
         }
 
-        public void SetSeeing(bool seeing)
+        public void SetMode(PatrolMode mode, bool seeing)
         {
-            tint.SetColor(ColorId, seeing ? Seeing : Idle);
+            Color color;
+            if (seeing) color = Seeing;
+            else if (mode == PatrolMode.Route) color = Faint;
+            else color = Seeking;
+            tint.SetColor(ColorId, color);
         }
 
         private void OnDestroy()

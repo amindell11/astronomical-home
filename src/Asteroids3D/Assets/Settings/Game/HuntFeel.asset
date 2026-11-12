@@ -17,9 +17,12 @@ MonoBehaviour:
   coneDegrees: 90
   closeSightRadius: 12
   spotFillSeconds: 2
-  spotDrainSeconds: 3
+  spotDrainSeconds: 6
   hitFill: 0.5
   alarmGraceSeconds: 5
   routeSpeed: 8
+  seekSpeed: 14
+  followDistance: 30
+  searchRadius: 25
   routeStartPass: 25
   arrivalRadius: 15
