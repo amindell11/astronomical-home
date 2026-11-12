@@ -3,18 +3,19 @@ using NUnit.Framework;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sectors.Elements.Stations;
+using Substrate.Sessions;
 using UnityEditor;
 using UnityEngine;
 
 namespace Tests.EditMode.Sectors
 {
-    /// <summary>Each trial sector carries one mod station module on the shared feel of two stations, placed 120 to 180 u from the start, reading the sector's own hunt and its repair stations, set up after those stations, with its zone on the body, its own find icon, and a find-layer minimap marker among the parts that go dark.</summary>
+    /// <summary>Each trial sector carries one mod station module, placed 120 to 180 u from the start, reading the sector's own hunt and its repair stations, set up after those stations, with its zone on the body, its own find icon, and a find-layer minimap marker among the parts that go dark.</summary>
     [TestFixture]
     [Category("Sectors")]
     [Category("RequiresLfsPng")]
     public class ModStationEditModeTests
     {
-        private const string FeelPath = "Assets/Settings/Game/ModStationFeel.asset";
+        private const string RunPath = "Assets/Settings/Game/SurvivalTrialRun.asset";
 
         [TestCase("TrialSector")]
         public void TrialSector_CarriesOneModStation_AfterItsRepairStations(string sector)
@@ -27,8 +28,6 @@ namespace Tests.EditMode.Sectors
                 "The mod stations set up after the repair stations, so they never read a previous sector's.");
 
             using var serialized = new SerializedObject(mods);
-            Assert.AreSame(AssetDatabase.LoadAssetAtPath<ModStationFeelProfile>(FeelPath),
-                serialized.FindProperty("feel").objectReferenceValue);
             Assert.AreEqual(120f, serialized.FindProperty("distanceMin").floatValue);
             Assert.AreEqual(180f, serialized.FindProperty("distanceMax").floatValue);
             Assert.AreSame(prefab.GetComponentInChildren<SectorHunt>(true), serialized.FindProperty("hunt").objectReferenceValue,
@@ -56,9 +55,12 @@ namespace Tests.EditMode.Sectors
         }
 
         [Test]
-        public void TheFeel_PlacesTwoStationsPerSector()
+        public void TheTrialRun_SearchesThirtySecondsWithOneModStationAndNoRepairs_InSectorOne_AndKeepsTheDefaultsAfter()
         {
-            Assert.AreEqual(2, AssetDatabase.LoadAssetAtPath<ModStationFeelProfile>(FeelPath).stationsPerSector);
+            var rows = AssetDatabase.LoadAssetAtPath<SectorRun>(RunPath).Sectors;
+            CollectionAssert.AreEqual(new[] { 30f, 45f, 45f }, rows.Select(row => row.searchSeconds).ToArray());
+            CollectionAssert.AreEqual(new[] { 1, 2, 2 }, rows.Select(row => row.modStations).ToArray());
+            CollectionAssert.AreEqual(new[] { 0, 2, 2 }, rows.Select(row => row.repairStations).ToArray());
         }
     }
 }

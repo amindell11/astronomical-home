@@ -651,7 +651,8 @@ Format: **term** — definition. *(authority)*
 - **hunt** — a combat sector's opening, before its first sector phase: patrols
   roam unaware of the player until the alarm. A patrol that sees the player
   (short radius, asteroids are cover) or is hit by it starts a call-in, and the
-  alarm sounds when the call-in runs out or the search clock does; killing the
+  alarm sounds when the call-in runs out or the search clock does (its length
+  is the run row's); killing the
   calling patrol first cancels its call-in. The wave director holds its opening
   lull until the alarm, so phase numbering is unchanged. *(SectorHunt,
   HuntFeelProfile)*
@@ -678,12 +679,12 @@ Format: **term** — definition. *(authority)*
   the find marker and the arrival events. A kind adds only its effect, which
   draws on each station's supply; a station goes dark when its supply runs out.
   *(FindStation, FindStationBody, StationKind)*
-- **repair station** — a fly-in zone each combat sector places, two by default,
-  each on its own clear point away from the start, marked as a *find*. While the
+- **repair station** — a fly-in zone each combat sector places, as many as its
+  run row names, each on its own clear point away from the start, marked as a *find*. While the
   player sits in it, it repairs hull from a supply of about one hull, then goes
   dark. The hunt's alarm darkens it too, and whatever supply was left is lost.
   Hull carries into the next sector. The first *station* kind. *(RepairStation,
-  RepairStationFeelProfile)*
+  RepairStationFeelProfile, `SectorEntry.repairStations`)*
 - **beacon cache** — what a lull beacon's claim grants:
   one roll among the authored mod bonuses that fit the hero (damage, fire
   rate, shield regen) and the *hull patch*, all weighted alike. A bonus joins
@@ -696,10 +697,11 @@ Format: **term** — definition. *(authority)*
   cache: headless and RL sectors never grant one. *(BeaconCache,
   BeaconCacheFeelProfile, IObjectiveService.ShowBoost)*
 - **mod station** — the second *station* kind: a *find* each combat sector
-  places, two by default, spaced from each other and from the repair stations.
+  places, as many as its run row names, spaced from each other and from the
+  repair stations.
   The first fly-in opens one *lull pick*, then the station goes dark; the
   hunt's alarm darkens an unclaimed one, and its pick is lost. Headless and RL
-  runs claim it with no pick. *(ModStation, ModStationFeelProfile)*
+  runs claim it with no pick. *(ModStation, `SectorEntry.modStations`)*
 - **armory** — the third *station* kind: a *find* whose count per sector its run
   row names, spaced from the repair and mod stations. Each fly-in opens
   the *weapon pick*. Taking a weapon spends it; a skip leaves it live to come

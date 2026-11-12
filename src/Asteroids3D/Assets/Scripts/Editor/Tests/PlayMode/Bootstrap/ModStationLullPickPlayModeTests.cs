@@ -146,12 +146,14 @@ namespace Tests.PlayMode.Bootstrap
 
         private IEnumerator BootToTheTrialSector(bool presentation)
         {
+            var row = TestAssets.TrialRow(0).WithLocale(AssetDatabase.LoadAssetAtPath<LocaleSky>(LocalePath));
+            row.modStations = 2;
             hostGo = new GameObject("TestHost");
             hostGo.SetActive(false);
             var host = hostGo.AddComponent<GameHost>();
             host.sessionProfile = new SessionProfile
             {
-                run = SectorRun.Create(TestAssets.TrialRow(0).WithLocale(AssetDatabase.LoadAssetAtPath<LocaleSky>(LocalePath))),
+                run = SectorRun.Create(row),
                 presentation = presentation
             };
             host.playerRig = HudlessRig();

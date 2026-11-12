@@ -19,7 +19,7 @@ using Substrate.Sessions;
 
 namespace Tests.PlayMode.Sectors
 {
-    /// <summary>The shipped mod station prefab with a scratch feel: a station shows its distance from the hero's start as a find, the hero's first fly-in counts one claim and raises the arrival events once, the station then goes dark, teardown clears the claims and finds, the alarm darkens unclaimed stations, a sector with no hunt keeps them live, and at setup the stations pick points spaced from the sector's repair stations, which pick first, and from each other.</summary>
+    /// <summary>The shipped mod station prefab on a scratch row: a station shows its distance from the hero's start as a find, the hero's first fly-in counts one claim and raises the arrival events once, the station then goes dark, teardown clears the claims and finds, the alarm darkens unclaimed stations, a sector with no hunt keeps them live, and at setup the stations pick points spaced from the sector's repair stations, which pick first, and from each other.</summary>
     [TestFixture]
     [Category("Sectors")]
     [Category("RequiresLfsPng")]
@@ -35,6 +35,7 @@ namespace Tests.PlayMode.Sectors
         private readonly List<string> _beats = new();
         private ObjectiveService _objectives;
         private Sector _sector;
+        private SectorEntry _row;
 
         [SetUp]
         public override void SetUp()
@@ -42,6 +43,7 @@ namespace Tests.PlayMode.Sectors
             base.SetUp();
             _objectives = Track(new GameObject("Objectives")).AddComponent<ObjectiveService>();
             _sector = Track(new GameObject("Sector")).AddComponent<Sector>();
+            _row = new SectorEntry();
         }
 
         [TearDown]
@@ -209,7 +211,7 @@ namespace Tests.PlayMode.Sectors
         private SectorHunt NewHunt(Ship hero)
         {
             var feel = Track(ScriptableObject.CreateInstance<HuntFeelProfile>());
-            feel.searchSeconds = 1000f;
+            _row.searchSeconds = 1000f;
             var hunt = Track(new GameObject("Hunt")).AddComponent<SectorHunt>();
             hunt.Configure(feel, null, null, 0f);
             Drive(hunt.Build(Context(hero)));
@@ -225,11 +227,10 @@ namespace Tests.PlayMode.Sectors
         private ModStation NewModStation(SectorHunt hunt = null, int count = 1, float spacing = 0f,
             RepairStation repairs = null)
         {
-            var feel = Track(ScriptableObject.CreateInstance<ModStationFeelProfile>());
-            feel.stationsPerSector = count;
+            _row.modStations = count;
             var prefab = AssetDatabase.LoadAssetAtPath<ModStation>(ModStationPath);
             var module = Track(Object.Instantiate(prefab.gameObject)).GetComponent<ModStation>();
-            module.Configure(feel, Distance, hunt, spacing, repairs);
+            module.Configure(Distance, hunt, spacing, repairs);
             module.Arrived += kind => _beats.Add($"arrived {kind}");
             module.FindClaimed += kind => _beats.Add($"claimed {kind}");
             return module;
@@ -238,7 +239,7 @@ namespace Tests.PlayMode.Sectors
         private RepairStation NewRepairStations(int count)
         {
             var feel = Track(ScriptableObject.CreateInstance<RepairStationFeelProfile>());
-            feel.stationsPerSector = count;
+            _row.repairStations = count;
             var prefab = AssetDatabase.LoadAssetAtPath<RepairStation>(RepairStationPath);
             var repairs = Track(Object.Instantiate(prefab.gameObject)).GetComponent<RepairStation>();
             repairs.Configure(feel, Distance, spacing: Spacing);
@@ -246,7 +247,7 @@ namespace Tests.PlayMode.Sectors
         }
 
         private SectorBuildContext Context(Ship hero) =>
-            new(null, _objectives, true, _sector, default, hero: hero, sectorIndex: SectorIndex, row: new SectorEntry());
+            new(null, _objectives, true, _sector, default, hero: hero, sectorIndex: SectorIndex, row: _row);
 
         // Exactly the live stations are finds, with the module's icon and find-layer markers.
         private void AssertFinds(ModStation module, params ModStation.Station[] live)

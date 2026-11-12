@@ -39,12 +39,11 @@ namespace Tests.EditMode.Sectors
         public void SetUp()
         {
             var feel = Track(ScriptableObject.CreateInstance<HuntFeelProfile>());
-            feel.searchSeconds = SearchSeconds;
             hunt = Track(new GameObject("Hunt")).AddComponent<SectorHunt>();
             hunt.Configure(feel, null, null, 0f);
             var hero = Track(new GameObject("Hero")).AddComponent<Ship>();
             Drive(hunt.Build(new SectorBuildContext(null, null, true, null, default, hero: hero, sectorIndex: 2,
-                row: new SectorEntry())));
+                row: new SectorEntry { searchSeconds = SearchSeconds })));
             hunt.AlarmRaised += (sector, reason, caller) => alarms.Add((sector, reason, caller));
 
             director = Track(new GameObject("WaveDirector")).AddComponent<WaveDirector>();

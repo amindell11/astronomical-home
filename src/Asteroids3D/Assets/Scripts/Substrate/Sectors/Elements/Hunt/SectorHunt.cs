@@ -24,7 +24,7 @@ namespace Substrate.Sectors.Elements.Hunt
     /// and fly a looped route past the hero's start, through the sector center and back, their scouts unaware,
     /// so they acquire no enemy and hold fire. A patrol that sees the hero (inside the sight radius, no asteroid
     /// in between, not concealed) or is hit by it starts calling the hero in, its minimap marker pulsing; the alarm sounds when a call-in
-    /// runs out, or when the search clock does, and a patrol killed first cancels its call-in. At the alarm
+    /// runs out, or when the row's search clock does, and a patrol killed first cancels its call-in. At the alarm
     /// every live patrol leaves its route and its scout wakes, so it fights like a wave ship. The wave director
     /// holds its opening lull until <see cref="Alarmed"/> and counts <see cref="LivePatrols"/> against its cap.
     /// The events are plain C#, for listeners outside the sector.
@@ -32,7 +32,7 @@ namespace Substrate.Sectors.Elements.Hunt
     /// </summary>
     public class SectorHunt : SectorSpawner, ISectorRowReader
     {
-        [Tooltip("Search clock, sight and call-in timing.")]
+        [Tooltip("Sight, call-in timing and patrol routes.")]
         [Stat, SerializeField] private HuntFeelProfile feel;
         [Tooltip("The sector's faction: every patrol flies its common ship, on its kit and in its skin.")]
         [Stat, SerializeField] private SectorFaction faction;
@@ -58,6 +58,7 @@ namespace Substrate.Sectors.Elements.Hunt
         private Sector sector;
         private int sectorIndex;
         private int patrolCount;
+        private float searchSeconds;
         private bool started;
         private float startTime;
 
@@ -87,6 +88,7 @@ namespace Substrate.Sectors.Elements.Hunt
             if (!feel)
                 throw new InvalidOperationException($"SectorHunt on '{name}' needs its feel profile.");
             patrolCount = ctx.Row.patrols;
+            searchSeconds = ctx.Row.searchSeconds;
             if (patrolCount > 0 && (!faction || !patrolPilot || !ctx.Sector))
                 throw new InvalidOperationException(
                     $"SectorHunt on '{name}' needs a faction, patrol pilot and sector when it spawns patrols.");
@@ -98,7 +100,7 @@ namespace Substrate.Sectors.Elements.Hunt
             sectorIndex = ctx.SectorIndex;
             started = false;
             Alarmed = false;
-            SearchSecondsLeft = feel.searchSeconds;
+            SearchSecondsLeft = searchSeconds;
             CallInSecondsLeft = null;
             yield break;
         }
@@ -107,6 +109,8 @@ namespace Substrate.Sectors.Elements.Hunt
         {
             if (row.patrols < 0)
                 throw new InvalidOperationException($"SectorHunt on '{name}' spawns the row's patrols, and the row asks for {row.patrols}.");
+            if (row.searchSeconds < 0)
+                throw new InvalidOperationException($"SectorHunt on '{name}' runs the row's search clock, and the row asks for {row.searchSeconds} s.");
         }
 
         protected override IEnumerator OnTeardown(SectorBuildContext ctx)
@@ -160,7 +164,7 @@ namespace Substrate.Sectors.Elements.Hunt
                 CallInSecondsLeft = Mathf.Min(CallInSecondsLeft ?? float.MaxValue, patrol.CallInEndsAt - now);
             }
 
-            SearchSecondsLeft = Mathf.Max(0f, feel.searchSeconds - (now - startTime));
+            SearchSecondsLeft = Mathf.Max(0f, searchSeconds - (now - startTime));
             if (SearchSecondsLeft <= 0f) Sound(HuntAlarmReason.SearchClock, null);
         }
 
