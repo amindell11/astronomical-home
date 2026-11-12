@@ -786,12 +786,14 @@ Format: **term** — definition. *(authority)*
   *(`LockOnSensor.lockOnConeAngle`)*
 - **seeker cone** — the angle around a missile's nose within which it can see its
   target. A full angle, checked at half like `LockOnSensor.lockOnConeAngle`. *(`Missile.seekerConeAngle`)*
-- **lose track** — a missile drops its target for good and flies straight: on the
-  first physics step its target is outside the seeker cone, or an asteroid cuts one
-  thin ray to `ITargetable.TargetPoint`. Checked from launch, no arming delay; no
-  reacquire. *(`Missile.CanSeeTarget`)*
+- **lose track** — a missile drops its target and flies straight when its target is
+  outside the seeker cone, or an asteroid cuts the thin ray to `ITargetable.TargetPoint`.
+  Checked from launch, no arming delay. It re-acquires the same target, and only that
+  target, if the target comes back into the cone with a clear sightline before the
+  missile expires. A target that conceals itself is dropped for good. *(`Missile.CanSee`)*
 - **tracking missile** — a missile that has a target and hasn't lost track. The
-  target's lock channel lists it from launch until it loses track or leaves play.
+  target's lock channel lists it from launch until it loses track or leaves play,
+  and again when it re-acquires.
   *(`Missile.IsTracking`, `LockChannel.Trackers`, `IShipStatus.TrackingMissiles`)*
 - **missile evasion** — a scripted pilot leaning away from a tracking missile and
   boosting to escape it. Only missiles tracking its own ship count: a lost track ends

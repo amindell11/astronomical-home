@@ -170,7 +170,7 @@ namespace Tests.PlayMode
             railgun.HandleTrigger(new WeaponCommand { pressed = false, held = true }, Projectiles);
 
             Assert.AreEqual(1, fired, "One held step reaches full charge and auto-fires.");
-            Assert.AreEqual(45f, target.TotalDamage, 0.001f, "Beam applies the railgun's damage.");
+            Assert.AreEqual(railgun.Damage, target.TotalDamage, 0.001f, "Beam applies the railgun's damage.");
         }
 
         [Test]
