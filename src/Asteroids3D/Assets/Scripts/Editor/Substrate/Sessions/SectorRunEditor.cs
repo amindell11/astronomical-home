@@ -110,13 +110,10 @@ namespace Substrate.Sessions
         private static void Draw(Rect rect, SerializedProperty row, string name) =>
             EditorGUI.PropertyField(rect, row.FindPropertyRelative(name), GUIContent.none);
 
-        // The locale controls get a line of their own, so a docked Inspector never squeezes the Random toggle.
-        private static Rect LocaleLine(Rect line) =>
-            new(line.x + IndexWidth + Gap, line.y, line.width - IndexWidth - Gap, line.height);
-
+        // Locale shares its line only with narrow counts, so a docked Inspector never squeezes Random.
         private static (Rect locale, Rect search, Rect repairs, Rect mods) LocaleColumns(Rect line)
         {
-            var full = LocaleLine(line);
+            var full = new Rect(line.x + IndexWidth + Gap, line.y, line.width - IndexWidth - Gap, line.height);
             var locale = new Rect(full.x, full.y, full.width - 3 * (PatrolsWidth + Gap), full.height);
             var x = locale.xMax;
             Rect Next()

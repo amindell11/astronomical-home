@@ -652,10 +652,9 @@ Format: **term** — definition. *(authority)*
   roam unaware of the player until the alarm. A patrol that sees the player
   (short radius, asteroids are cover) or is hit by it starts a call-in, and the
   alarm sounds when the call-in runs out or the search clock does (its length
-  is the run row's); killing the
-  calling patrol first cancels its call-in. The wave director holds its opening
-  lull until the alarm, so phase numbering is unchanged. *(SectorHunt,
-  HuntFeelProfile)*
+  is the run row's); killing the calling patrol first cancels its call-in. The
+  wave director holds its opening lull until the alarm, so phase numbering is
+  unchanged. *(SectorHunt, HuntFeelProfile, `SectorEntry.searchSeconds`)*
 - **faction** — the side a sector's enemies belong to; each survival trial
   names one, and its wave director and hunt field only that faction's ships. The
   **signature ship** is the faction's own chassis, and its elite flies it; the
@@ -680,11 +679,11 @@ Format: **term** — definition. *(authority)*
   draws on each station's supply; a station goes dark when its supply runs out.
   *(FindStation, FindStationBody, StationKind)*
 - **repair station** — a fly-in zone each combat sector places, as many as its
-  run row names, each on its own clear point away from the start, marked as a *find*. While the
-  player sits in it, it repairs hull from a supply of about one hull, then goes
-  dark. The hunt's alarm darkens it too, and whatever supply was left is lost.
-  Hull carries into the next sector. The first *station* kind. *(RepairStation,
-  RepairStationFeelProfile, `SectorEntry.repairStations`)*
+  run row names, each on its own clear point away from the start, marked as a
+  *find*. While the player sits in it, it repairs hull from a supply of about
+  one hull, then goes dark. The hunt's alarm darkens it too, and whatever supply
+  was left is lost. Hull carries into the next sector. The first *station*
+  kind. *(RepairStation, RepairStationFeelProfile, `SectorEntry.repairStations`)*
 - **beacon cache** — what a lull beacon's claim grants:
   one roll among the authored mod bonuses that fit the hero (damage, fire
   rate, shield regen) and the *hull patch*, all weighted alike. A bonus joins
