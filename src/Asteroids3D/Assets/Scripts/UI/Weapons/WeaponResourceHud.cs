@@ -107,8 +107,6 @@ namespace UI.Weapons
             var left = slot == WeaponSlot.Primary;
             var flash = new Flash { Source = source, Root = root.gameObject };
             flash.Arc = AddArc(resourceTemplate, root, "Arc", left ? 120f : 60f, 120f, left, Color.clear);
-            flash.Arc.raycastTarget = false;
-            flash.Arc.enabled = false;
             flash.Trigger = () => flash.StartedAt = Time.unscaledTime;
             source.Recovered += flash.Trigger;
             return flash;
@@ -152,10 +150,9 @@ namespace UI.Weapons
         private Resource BuildResource(WeaponSlot slot, IWeaponReadout source, int index)
         {
             var resourceRect = InstrumentRoot(slot + "Resources", slot, 1f + index * .5f);
-            var go = resourceRect.gameObject;
             var left = slot == WeaponSlot.Primary;
             var start = left ? 120f : 60f;
-            var resource = new Resource { Source = source, Root = go };
+            var resource = new Resource { Source = source, Root = resourceRect.gameObject };
             if (source is IAmmoReadout { MaxAmmo: <= 8, Refill: not Rounds.RefillMode.Sequential } ammo)
             {
                 const float gap = 4f;

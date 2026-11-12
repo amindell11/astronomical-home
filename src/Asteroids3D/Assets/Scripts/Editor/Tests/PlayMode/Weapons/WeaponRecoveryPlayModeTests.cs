@@ -20,6 +20,13 @@ namespace Tests.PlayMode.Weapons
         private readonly List<GameObject> spawned = new();
         private int recoveries;
 
+        [SetUp]
+        public override void SetUp()
+        {
+            base.SetUp();
+            recoveries = 0;
+        }
+
         [TearDown]
         public override void TearDown()
         {
