@@ -145,7 +145,8 @@ namespace UI.Hangar.Hardware
                 var turn = parts["SelectorKnob"].gameObject.AddComponent<HangarKnob>();
                 var previous = Control(parts["PreviousButton"], AuthoredUp(parts["PreviousButton"]), .25f, camera);
                 var next = Control(parts["NextButton"], AuthoredUp(parts["NextButton"]), .25f, camera);
-                var launch = Control(parts["LaunchButton"], AuthoredUp(parts["LaunchButton"]), .35f, camera);
+                // A deeper press pushes the cap's bottom bevel through the socket's rounded floor edge.
+                var launch = Control(parts["LaunchButton"], AuthoredUp(parts["LaunchButton"]), .24f, camera);
                 root.AddComponent<HangarConsoleRaycaster>();
 
                 foreach (var child in root.GetComponentsInChildren<Transform>(true))
