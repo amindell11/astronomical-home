@@ -135,10 +135,10 @@ namespace Asteroids
         }
 
         // Weapons hit the hull where it is live; the sphere stands in while the LOD has it off.
-        private void SetHullEnabled(bool enabled)
+        private void SetHullEnabled(bool hullOn)
         {
-            if (meshCollider) meshCollider.enabled = enabled;
-            damage.UseHitboxes(meshCollider && enabled ? hullHitbox : sphereHitbox);
+            if (meshCollider) meshCollider.enabled = hullOn;
+            damage.UseHitboxes(meshCollider && hullOn ? hullHitbox : sphereHitbox);
         }
 
         internal void HandleDestroyed(HitData hit)

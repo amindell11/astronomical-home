@@ -62,7 +62,6 @@ namespace Damage
             return ownersByCollider.TryGetValue(collider.GetInstanceID(), out owner);
         }
 
-        /// <summary>A trigger no damageable owns: shots neither hit it nor stop at it.</summary>
         public static bool IsUnownedTrigger(Collider collider) =>
             collider.isTrigger && !ownersByCollider.ContainsKey(collider.GetInstanceID());
 

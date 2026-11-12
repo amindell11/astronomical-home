@@ -14,7 +14,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace Tests.PlayMode.Weapons
+namespace Tests.PlayMode
 {
     /// <summary>Pins that bolts and the railgun beam hit an asteroid's hull, never the trigger sphere poking past it.</summary>
     [Category("Weapons")]
@@ -27,7 +27,7 @@ namespace Tests.PlayMode.Weapons
         private const float HullHalfLength = 2f;
         private const float HullHalfWidth = 0.5f;
         private const float SphereRadius = 1.5f;
-        // Clears the hull for a bolt and for the railgun's 0.5 beam radius, yet crosses the sphere for both.
+        // Past the hull even with the railgun's 0.5 beam radius, yet inside the sphere.
         private const float PastHullInsideSphere = 1.25f;
         private const int MaxFlightSteps = 30;
 
@@ -134,7 +134,7 @@ namespace Tests.PlayMode.Weapons
             Assert.AreEqual(-HullHalfLength, Vector3.Dot(hits[0].point, Aim), 0.3f, "the hit lands at the hull's near face");
         }
 
-        // No spawner means no anchor, so the collider LOD keeps the hull live, as near the player.
+        // No spawner, no anchor: the collider LOD keeps the hull live, as near the player.
         private AsteroidController CreateRock(Vector3 position)
         {
             var go = new GameObject("ElongatedRock") { layer = LayerIds.Asteroid };
