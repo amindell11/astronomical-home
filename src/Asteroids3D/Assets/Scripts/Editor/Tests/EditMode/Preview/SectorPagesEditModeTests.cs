@@ -4,6 +4,8 @@ using System.Linq;
 using Game.Preview.Sectors;
 using Game.Preview.Fixtures;
 using NUnit.Framework;
+using Ships;
+using Ships.Command;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Elites;
@@ -88,7 +90,75 @@ namespace Tests.EditMode.Preview
             Assert.That(pages.Checks(pages.List[0]), Is.EqualTo(new[] { thrown.Message }));
         }
 
+        [Test]
+        public void GroupSummary_TwoShipsOfOneTemplate_CountsThemAndListsPilotsInOrder()
+        {
+            var nightshade = Hull("Nightshade");
+            var group = new WaveGroup
+            {
+                ships = new[]
+                {
+                    new WaveDirector.RosterEntry { template = nightshade, pilot = Pilot("OrbiterPilot") },
+                    new WaveDirector.RosterEntry { template = nightshade, pilot = Pilot("AggressorPilot") },
+                },
+            };
+            Assert.AreEqual("2\u00d7 Nightshade: Orbiter, Aggressor", SectorPages.GroupSummary(group));
+        }
+
+        [Test]
+        public void GroupSummary_TwoTemplates_JoinsOneShipEachInFirstSeenOrder()
+        {
+            var group = new WaveGroup
+            {
+                ships = new[]
+                {
+                    new WaveDirector.RosterEntry { template = Hull("Nightshade"), pilot = Pilot("OrbiterPilot") },
+                    new WaveDirector.RosterEntry { template = Hull("Warden"), pilot = Pilot("AggressorPilot") },
+                },
+            };
+            Assert.AreEqual("Nightshade (Orbiter) + Warden (Aggressor)", SectorPages.GroupSummary(group));
+        }
+
+        [Test]
+        public void GroupSummary_MissingPilot_ReadsNone()
+        {
+            var group = new WaveGroup
+            {
+                ships = new[] { new WaveDirector.RosterEntry { template = Hull("Nightshade") } },
+            };
+            Assert.AreEqual("Nightshade (none)", SectorPages.GroupSummary(group));
+        }
+
+        [Test]
+        public void GroupSummary_EmptyGroup_ReadsEmptyGroup()
+        {
+            Assert.AreEqual("empty group", SectorPages.GroupSummary(default));
+            Assert.AreEqual("empty group", SectorPages.GroupSummary(new WaveGroup
+            {
+                ships = Array.Empty<WaveDirector.RosterEntry>(),
+            }));
+        }
+
         private static SectorEntry Row(Faction faction, EliteProfile elite) => new() { faction = faction, elite = elite };
+
+        private Ship Hull(string name)
+        {
+            var host = Track(new GameObject(name));
+            host.SetActive(false);
+            return host.AddComponent<Ship>();
+        }
+
+        private Commander Pilot(string name)
+        {
+            var host = Track(new GameObject(name));
+            host.SetActive(false);
+            return host.AddComponent<NamedPilot>();
+        }
+
+        private sealed class NamedPilot : Commander
+        {
+            public override void Initialize(in ShipControl control) { }
+        }
 
         private Sector Layout(string name)
         {
