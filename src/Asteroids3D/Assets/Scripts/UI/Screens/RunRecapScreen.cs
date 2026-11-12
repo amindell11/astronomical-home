@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Game.Player;
 using Game.Runs;
+using Ships.Presentation;
 using UI.Recap;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,7 +16,7 @@ namespace UI.Screens
     /// </summary>
     public sealed class RunRecapScreen : MonoBehaviour
     {
-        internal const string SilhouetteFolder = "RunRecap/Ships";
+        internal const string SilhouetteFolder = ShipSilhouette.Folder;
         private static readonly Color Ink = new(.93f, .94f, .93f);
         private static readonly Color Muted = new(.70f, .74f, .81f);
         private static readonly Color Line = new(.84f, .87f, .93f, .25f);
@@ -178,7 +179,7 @@ namespace UI.Screens
                 var chassis = kills[i];
                 if (!textures.TryGetValue(chassis, out var texture))
                 {
-                    texture = Resources.Load<Texture2D>(SilhouetteFolder + "/" + chassis);
+                    texture = ShipSilhouette.Load(chassis);
                     if (!texture) throw new InvalidOperationException($"No recap silhouette for '{chassis}'.");
                     textures.Add(chassis, texture);
                 }
@@ -240,7 +241,7 @@ namespace UI.Screens
                     ? "Ship not recorded" : row.Player.chassis, 64, 0, 84, 24, 11, current ? outcomeColor : Ink);
                 Ellipsize(ship);
                 var texture = string.IsNullOrEmpty(row.Player.chassis) ? null
-                    : Resources.Load<Texture2D>(SilhouetteFolder + "/" + row.Player.chassis);
+                    : ShipSilhouette.Load(row.Player.chassis);
                 if (texture)
                 {
                     var icon = Box(cells, "Silhouette", 32, 0, 24, 24).gameObject.AddComponent<RawImage>();
