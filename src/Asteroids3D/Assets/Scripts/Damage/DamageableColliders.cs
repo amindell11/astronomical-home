@@ -5,7 +5,8 @@ using UnityEngine;
 namespace Damage
 {
     /// <summary>
-    /// Identity map from a collider to the damageable that owns it, filled in Awake.
+    /// Identity map from a collider to the damageable that owns it, filled as owners bind
+    /// their hitboxes (usually in Awake; asteroids re-bind when their collider LOD switches).
     /// A collider belongs to one entity in any arena, so this is not arena state.
     /// Registering a collider that already has an owner throws.
     /// </summary>
@@ -60,6 +61,10 @@ namespace Damage
 
             return ownersByCollider.TryGetValue(collider.GetInstanceID(), out owner);
         }
+
+        /// <summary>A trigger no damageable owns: shots neither hit it nor stop at it.</summary>
+        public static bool IsUnownedTrigger(Collider collider) =>
+            collider.isTrigger && !ownersByCollider.ContainsKey(collider.GetInstanceID());
 
         private static string Label(Component component) =>
             $"{component.GetType().Name} on '{component.name}'";

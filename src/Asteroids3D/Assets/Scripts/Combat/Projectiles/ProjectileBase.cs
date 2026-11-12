@@ -77,11 +77,28 @@ namespace Combat.Projectiles
             if (speed <= 0f) return;
 
             var direction = velocity / speed;
-            if (!rb.SweepTest(direction, out var hit, speed * Time.fixedDeltaTime, QueryTriggerInteraction.Collide)) return;
+            var distance = speed * Time.fixedDeltaTime;
+            if (!rb.SweepTest(direction, out var hit, distance, QueryTriggerInteraction.Collide)) return;
+            // SweepTest returns only the first hit; look past an unowned trigger to what lies behind.
+            if (DamageableColliders.IsUnownedTrigger(hit.collider)
+                && !TryNearestOwnedOrSolid(rb.SweepTestAll(direction, distance, QueryTriggerInteraction.Collide), out hit)) return;
             if (!TryGetHitTarget(hit.collider, out var target)) return;
 
             transform.position += direction * hit.distance;
             OnHit(target);
+        }
+
+        private static bool TryNearestOwnedOrSolid(RaycastHit[] hits, out RaycastHit nearest)
+        {
+            nearest = default;
+            var found = false;
+            foreach (var hit in hits)
+            {
+                if (DamageableColliders.IsUnownedTrigger(hit.collider) || (found && hit.distance >= nearest.distance)) continue;
+                nearest = hit;
+                found = true;
+            }
+            return found;
         }
 
         protected virtual void OnHit(IDamageable other)

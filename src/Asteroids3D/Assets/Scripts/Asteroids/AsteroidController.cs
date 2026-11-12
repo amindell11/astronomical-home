@@ -14,6 +14,8 @@ namespace Asteroids
         private MeshCollider meshCollider;
         private SphereCollider cheapCollider;
         private AsteroidDamage damage;
+        private Collider[] hullHitbox;
+        private Collider[] sphereHitbox;
 
 
         [Header("Performance Tuning")]
@@ -56,6 +58,9 @@ namespace Asteroids
             Renderer = GetComponent<Renderer>();
             damage = GetComponent<AsteroidDamage>();
             Rb.useGravity = false;
+            sphereHitbox = new Collider[] { cheapCollider };
+            if (meshCollider) hullHitbox = new Collider[] { meshCollider };
+            SetHullEnabled(meshCollider && meshCollider.enabled);
         }
 
         public void Initialize(
@@ -126,7 +131,14 @@ namespace Asteroids
             if (!meshCollider) return;
             if (meshCollider.sharedMesh != meshInfo.colliderMesh)
                 meshCollider.sharedMesh = meshInfo.colliderMesh;
-            meshCollider.enabled = false;
+            SetHullEnabled(false);
+        }
+
+        // Weapons hit the hull where it is live; the sphere stands in while the LOD has it off.
+        private void SetHullEnabled(bool enabled)
+        {
+            if (meshCollider) meshCollider.enabled = enabled;
+            damage.UseHitboxes(meshCollider && enabled ? hullHitbox : sphereHitbox);
         }
 
         internal void HandleDestroyed(HitData hit)
@@ -161,7 +173,7 @@ namespace Asteroids
                 shouldEnable = distSqr < detailedColliderEnableDistance * detailedColliderEnableDistance;
             }
             if (meshCollider.enabled != shouldEnable)
-                meshCollider.enabled = shouldEnable;
+                SetHullEnabled(shouldEnable);
         }
     }
 }
