@@ -28,7 +28,7 @@ using Substrate.Sessions;
 
 namespace Tests.PlayMode.Sectors
 {
-    /// <summary>A sector's hunt with real patrols: unaware, flying a route that brings one into sight of a still hero. Sight fills one meter, the marker pulses and the wedge turns while a patrol sees the hero, and the alarm waits until the meter is full. A patrol that sees the hero leaves its route to chase, then searches the last heading, and returns to its nearest waypoint when the meter empties. It holds fire until the alarm. A hit adds its share. The gap after the alarm holds the opening lull, then phase one opens. Asteroids and the cone hide the hero, breaking sight drains the meter, and killing a patrol leaves the meter to drain so the search clock ends the hunt.</summary>
+    /// <summary>A sector's hunt with real patrols: unaware, flying a route that brings one into sight of a still hero. Sight fills one meter, the marker pulses and the wedge turns while a patrol sees the hero, and the alarm waits until the meter is full. A patrol that sees the hero leaves its route to chase while the others keep theirs. Blind, it steers to the last-seen point past asteroids, follows the last heading and circles there, chases again on sight, and returns to its nearest waypoint when the meter empties. It holds fire until the alarm. A hit adds its share. The gap after the alarm holds the opening lull, then phase one opens. Asteroids and the cone hide the hero, breaking sight drains the meter, and killing a patrol leaves the meter to drain so the search clock ends the hunt.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class SectorHuntPlayModeTests : PlayModeWorldFixture

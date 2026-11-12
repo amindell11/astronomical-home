@@ -21,7 +21,7 @@ namespace Substrate.Sectors.Elements.Hunt
         [Tooltip("Seconds of continuous sight that fill the spotted meter from empty. Patrols that see the player do not stack.")]
         [Stat, Min(0f)] public float spotFillSeconds = 2f;
 
-        [Tooltip("Seconds for a full spotted meter to drain once no patrol sees the player, and how long a seeker searches after losing the player.")]
+        [Tooltip("Seconds for a full spotted meter to drain once no patrol sees the player, and so the longest a patrol searches after losing the player.")]
         [Stat, Min(0f)] public float spotDrainSeconds = 6f;
 
         [Tooltip("Share of the spotted meter a hit by the player on a patrol adds. 1 alarms on that hit.")]

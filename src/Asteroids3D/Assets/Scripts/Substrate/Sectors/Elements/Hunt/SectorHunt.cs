@@ -233,15 +233,12 @@ namespace Substrate.Sectors.Elements.Hunt
             else if (patrol.Seeing)
                 patrol.NoteHeading(PlanarVelocity(hero));
 
-            if (sees != patrol.Seeing)
-            {
-                patrol.Seeing = sees;
-                if (sees) patrol.Chase();
-                if (patrol.Rig) patrol.Rig.PulseMinimapMarker(sees);
-                if (sees) PatrolSpotted?.Invoke(sectorIndex, patrol.Ship);
-            }
-
+            if (sees == patrol.Seeing) return;
+            patrol.Seeing = sees;
+            if (sees) patrol.Chase();
+            if (patrol.Rig) patrol.Rig.PulseMinimapMarker(sees);
             patrol.Show();
+            if (sees) PatrolSpotted?.Invoke(sectorIndex, patrol.Ship);
         }
 
         private static Vector2 PlanarVelocity(Ship ship) =>
