@@ -12,6 +12,9 @@ namespace Combat.Projectiles.Visual
 
         private static readonly int PhaseId = Shader.PropertyToID("_Phase");
 
+        // The bolt can hit until despawn at range end, so it never fades fully.
+        internal const float AlphaAtRangeEnd = 0.4f;
+
         [Header("Fade Settings")]
         [SerializeField] private AnimationCurve fadeCurve = new(
             new Keyframe(0f, 0f),
@@ -63,7 +66,7 @@ namespace Combat.Projectiles.Visual
             if (maxDistance <= 0f) return;
 
             var normalized = Mathf.Clamp01(laser.DistanceTraveled / maxDistance);
-            var alphaFactor = 1f - fadeCurve.Evaluate(normalized);
+            var alphaFactor = Mathf.Lerp(1f, AlphaAtRangeEnd, fadeCurve.Evaluate(normalized));
             ApplyFade(alphaFactor);
         }
 
