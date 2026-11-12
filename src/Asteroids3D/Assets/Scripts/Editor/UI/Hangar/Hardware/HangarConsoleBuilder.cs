@@ -105,12 +105,8 @@ namespace UI.Hangar.Hardware
                 camera.allowMSAA = true;
                 camera.useOcclusionCulling = false;
                 camera.enabled = true;
-                Light(root.transform, "MainScreenSpill", new Vector3(-5.4f, 3.4f, -2.5f),
-                    new Color(1f, .87f, .70f), 4.55f, 8f);
                 Light(root.transform, "ProjectorSpill", new Vector3(2.4f, 4.4f, -.2f),
                     new Color(1f, .87f, .70f), 8.45f, 12f);
-                Light(root.transform, "DetailScreenSpill", new Vector3(-5f, 1.1f, -3f),
-                    new Color(1f, .87f, .70f), 1.3f, 5f);
                 Light(root.transform, "LaunchSpill", new Vector3(6.5f, 4f, -2.3f),
                     new Color(1f, .87f, .70f), 2.5f, 6f);
                 var composite = new GameObject("Composite", typeof(RectTransform), typeof(Canvas));
@@ -140,12 +136,16 @@ namespace UI.Hangar.Hardware
                     ReferenceResolution("MainScreenReference"), feature);
                 var detailView = HangarDisplayBuilder.BuildDetail(root.transform, new Vector3(200f, -300f, 0f),
                     ReferenceResolution("DetailScreenReference"), feature);
-                var knobAxis = KnobAxis(parts["SelectorKnob"]);
+                Spill(mainView.GetComponent<HangarDisplay>(), Light(root.transform, "MainScreenSpill",
+                    new Vector3(-5.4f, 3.4f, -2.5f), new Color(1f, .87f, .70f), 4.55f, 8f));
+                Spill(detailView.GetComponent<HangarDisplay>(), Light(root.transform, "DetailScreenSpill",
+                    new Vector3(-5f, 1.1f, -3f), new Color(1f, .87f, .70f), 1.3f, 5f));
+                var knobAxis = AuthoredUp(parts["SelectorKnob"]);
                 var knob = Control(parts["SelectorKnob"], knobAxis, .2f, camera);
                 var turn = parts["SelectorKnob"].gameObject.AddComponent<HangarKnob>();
-                var previous = Control(parts["PreviousButton"], ThinAxis(parts["PreviousButton"]), .35f, camera);
-                var next = Control(parts["NextButton"], ThinAxis(parts["NextButton"]), .35f, camera);
-                var launch = Control(parts["LaunchButton"], ThinAxis(parts["LaunchButton"]), .35f, camera);
+                var previous = Control(parts["PreviousButton"], AuthoredUp(parts["PreviousButton"]), .25f, camera);
+                var next = Control(parts["NextButton"], AuthoredUp(parts["NextButton"]), .25f, camera);
+                var launch = Control(parts["LaunchButton"], AuthoredUp(parts["LaunchButton"]), .35f, camera);
                 root.AddComponent<HangarConsoleRaycaster>();
 
                 foreach (var child in root.GetComponentsInChildren<Transform>(true))
@@ -238,28 +238,34 @@ namespace UI.Hangar.Hardware
             return control;
         }
 
-        private static Vector3 ThinAxis(MeshRenderer part)
+        // The exporter frames each control on its Blender object, whose up is the control's axis:
+        // a keycap's top and the knob's caps face it, so the mesh proves the frame still holds.
+        private static Vector3 AuthoredUp(MeshRenderer part)
         {
-            var size = part.GetComponent<MeshFilter>().sharedMesh.bounds.size;
-            return size.x <= size.y && size.x <= size.z ? Vector3.right : size.y <= size.z ? Vector3.up : Vector3.forward;
+            var mesh = part.GetComponent<MeshFilter>().sharedMesh;
+            var vertices = mesh.vertices;
+            var triangles = mesh.triangles;
+            var capArea = new float[3];
+            for (var i = 0; i < triangles.Length; i += 3)
+            {
+                var cross = Vector3.Cross(vertices[triangles[i + 1]] - vertices[triangles[i]],
+                    vertices[triangles[i + 2]] - vertices[triangles[i]]);
+                var area = cross.magnitude;
+                if (area <= 0f) continue;
+                var normal = cross / area;
+                for (var axis = 0; axis < 3; axis++)
+                    if (Mathf.Abs(normal[axis]) > .99f) capArea[axis] += area;
+            }
+            if (capArea[1] <= capArea[0] || capArea[1] <= capArea[2])
+                throw new InvalidOperationException($"{part.name}'s caps do not face its up axis; the export's pivot frame changed.");
+            return Vector3.up;
         }
 
-        private static Vector3 KnobAxis(MeshRenderer knob)
+        private static void Spill(HangarDisplay display, Light light)
         {
-            var size = knob.GetComponent<MeshFilter>().sharedMesh.bounds.size;
-            var extents = new[] { size.x, size.y, size.z };
-            var best = 0;
-            var bestScore = float.NegativeInfinity;
-            for (var i = 0; i < 3; i++)
-            {
-                var score = 0f;
-                for (var j = 0; j < 3; j++)
-                    if (j != i) score += Mathf.Abs(extents[i] - extents[j]);
-                if (score <= bestScore) continue;
-                bestScore = score;
-                best = i;
-            }
-            return best == 0 ? Vector3.right : best == 1 ? Vector3.up : Vector3.forward;
+            var data = new SerializedObject(display);
+            data.FindProperty("spill").objectReferenceValue = light;
+            data.ApplyModifiedPropertiesWithoutUndo();
         }
 
         private static Material Material(string name, string paint, string emission)
@@ -281,7 +287,7 @@ namespace UI.Hangar.Hardware
             return material;
         }
 
-        private static void Light(Transform parent, string name, Vector3 position, Color color, float intensity, float range)
+        private static Light Light(Transform parent, string name, Vector3 position, Color color, float intensity, float range)
         {
             var lightObject = new GameObject(name);
             lightObject.transform.SetParent(parent, false);
@@ -293,6 +299,7 @@ namespace UI.Hangar.Hardware
             light.range = range;
             light.cullingMask = 1 << 5;
             light.shadows = LightShadows.None;
+            return light;
         }
 
         private static Vector3 ToUnity(float[] value) => new(value[0], value[2], value[1]);

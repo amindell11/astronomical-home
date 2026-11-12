@@ -31,6 +31,7 @@ namespace UI.Projection
         internal CanopyProjectionPass Pass { get; private set; }
         RenderTexture ICanopySource.Ink => ink.rt;
         RTHandle ICanopySource.InkColor => inkColor;
+        CanopyScreen ICanopySource.Screen => CanopyScreen.Own(new Vector2(ink.rt.width, ink.rt.height));
 
         private void Awake()
         {

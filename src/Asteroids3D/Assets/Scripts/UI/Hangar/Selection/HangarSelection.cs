@@ -52,6 +52,8 @@ namespace UI.Hangar.Selection
 
         public event Action Changed;
         public event Action<Ship, int> ShipChanged;
+        // A stepped ship, weapon or ordnance; a slot selection is not one.
+        public event Action OptionChanged;
 
         public void Select(HangarSlot slot)
         {
@@ -88,6 +90,7 @@ namespace UI.Hangar.Selection
                 default:
                     throw new ArgumentOutOfRangeException(nameof(Selected), Selected, null);
             }
+            OptionChanged?.Invoke();
             Changed?.Invoke();
         }
 

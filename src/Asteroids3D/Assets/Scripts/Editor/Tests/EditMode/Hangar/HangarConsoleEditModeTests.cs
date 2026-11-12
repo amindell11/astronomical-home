@@ -2,6 +2,7 @@ using System.Linq;
 using NUnit.Framework;
 using UI.Hangar.Displays;
 using UI.Hangar.Hardware;
+using UI.Hangar.Selection;
 using UnityEditor;
 using UnityEngine;
 
@@ -123,6 +124,38 @@ namespace Tests.EditMode.Hangar
             Assert.That(console.GetComponentsInChildren<HangarDisplay>(true), Has.Length.EqualTo(2));
             foreach (var display in console.GetComponentsInChildren<HangarDisplay>(true))
                 Assert.IsNull(display.Canvas.GetComponent<UnityEngine.UI.GraphicRaycaster>(), display.name);
+        }
+
+        [Test]
+        public void ControlsPressAlongTheirAuthoredUp_AwayFromTheCamera_AndTheKnobTurnsAboutIt()
+        {
+            var console = AssetDatabase.LoadAssetAtPath<HangarConsole>(PrefabPath);
+            var camera = console.HardwareCamera.transform;
+            foreach (var part in new[] { console.SelectorKnob, console.PreviousButton, console.NextButton, console.LaunchButton })
+            {
+                var axis = new SerializedObject(part.GetComponent<HangarControl>()).FindProperty("pressAxis").vector3Value;
+                Assert.That(Vector3.Distance(axis, Vector3.down), Is.LessThan(.001f), part.name + " presses along its own down");
+                Assert.That(Vector3.Dot(part.TransformDirection(axis), camera.forward), Is.GreaterThan(0f), part.name + " presses away from the camera");
+            }
+            Assert.That(Vector3.Distance(console.KnobAxis, Vector3.up), Is.LessThan(.001f));
+            var grip = console.SelectorKnob.GetComponent<MeshFilter>().sharedMesh.bounds.center;
+            Assert.That(new Vector2(grip.x, grip.z).magnitude, Is.LessThan(.001f), "the knob's grip is centred on its pivot");
+        }
+
+        [Test]
+        public void EachSlotHasAnArrowPair_AndTheDisplaysDriveTheirSpillLights()
+        {
+            var console = AssetDatabase.LoadAssetAtPath<HangarConsole>(PrefabPath);
+            var view = console.GetComponentInChildren<HangarMainDisplayView>(true);
+            foreach (HangarSlot slot in System.Enum.GetValues(typeof(HangarSlot)))
+            foreach (var step in new[] { -1, 1 })
+            {
+                var arrow = view.Arrow(slot, step);
+                Assert.IsTrue(arrow, $"{slot} {step}");
+                Assert.IsTrue(arrow.targetGraphic && arrow.targetGraphic.raycastTarget, $"{slot} {step} arrow is clickable");
+            }
+            foreach (var display in console.GetComponentsInChildren<HangarDisplay>(true))
+                Assert.IsTrue(new SerializedObject(display).FindProperty("spill").objectReferenceValue, display.name + " spill");
         }
 
         [Test]

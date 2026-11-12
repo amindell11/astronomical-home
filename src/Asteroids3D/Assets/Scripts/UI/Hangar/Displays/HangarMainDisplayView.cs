@@ -9,8 +9,8 @@ namespace UI.Hangar.Displays
 {
     /// <summary>
     /// The hull diagram: the selected ship's silhouette ringed by its six stat bars, its two
-    /// weapons and its keystone. The three slots are buttons under that diagram, and the
-    /// selected one wears a bracket.
+    /// weapons and its keystone. The three slots are buttons under that diagram; the selected
+    /// one wears a bracket and a pair of arrows, which ask for a step through <see cref="ArrowPressed"/>.
     /// </summary>
     public sealed class HangarMainDisplayView : MonoBehaviour
     {
@@ -24,6 +24,8 @@ namespace UI.Hangar.Displays
         [SerializeField] private HangarStatBar[] bars;
         [SerializeField] private Button[] buttons;
         [SerializeField] private GameObject[] brackets;
+        [SerializeField] private Button[] previousArrows;
+        [SerializeField] private Button[] nextArrows;
         [SerializeField] private Image[] glyphs;
         [SerializeField] private Text[] names;
         [SerializeField] private Image keystoneIcon;
@@ -33,7 +35,10 @@ namespace UI.Hangar.Displays
         private readonly Dictionary<Ship, Texture2D> silhouettes = new();
         private HangarSelection selection;
 
+        public event Action<int> ArrowPressed;
+
         internal Button this[HangarSlot slot] => buttons[(int)slot];
+        internal Button Arrow(HangarSlot slot, int step) => (step < 0 ? previousArrows : nextArrows)[(int)slot];
         internal HangarStatBar Bar(HangarStat stat) => bars[(int)stat];
         internal string Title => title.text;
         internal bool Locked => lockTag.gameObject.activeSelf;
@@ -45,10 +50,12 @@ namespace UI.Hangar.Displays
                 bars == null || bars.Length != HangarStats.Count || Array.Exists(bars, bar => !bar) ||
                 buttons == null || buttons.Length != 3 || Array.Exists(buttons, button => !button) ||
                 brackets == null || brackets.Length != 3 || Array.Exists(brackets, bracket => !bracket) ||
+                previousArrows == null || previousArrows.Length != 3 || Array.Exists(previousArrows, arrow => !arrow) ||
+                nextArrows == null || nextArrows.Length != 3 || Array.Exists(nextArrows, arrow => !arrow) ||
                 glyphs == null || glyphs.Length != 2 || Array.Exists(glyphs, glyph => !glyph) ||
                 names == null || names.Length != 2 || Array.Exists(names, text => !text))
                 throw new InvalidOperationException(
-                    "HangarMainDisplayView needs its title, lock tag, silhouette, six bars, three slot buttons and brackets, two weapon glyphs and names, and the keystone's icon, name and cooldown.");
+                    "HangarMainDisplayView needs its title, lock tag, silhouette, six bars, three slot buttons, brackets and arrow pairs, two weapon glyphs and names, and the keystone's icon, name and cooldown.");
         }
 
         public void Bind(HangarSelection selection)
@@ -61,6 +68,8 @@ namespace UI.Hangar.Displays
             {
                 var slot = (HangarSlot)i;
                 buttons[i].onClick.AddListener(() => selection.Select(slot));
+                previousArrows[i].onClick.AddListener(() => ArrowPressed?.Invoke(-1));
+                nextArrows[i].onClick.AddListener(() => ArrowPressed?.Invoke(1));
             }
             selection.Changed += Refresh;
             Refresh();
@@ -96,7 +105,12 @@ namespace UI.Hangar.Displays
             keystoneName.text = keystone ? keystone.DisplayName : "";
             keystoneCooldown.text = keystone ? $"{keystone.Cooldown:0.#}<size=24> s</size>" : "";
             for (var i = 0; i < 3; i++)
-                brackets[i].SetActive((HangarSlot)i == selection.Selected);
+            {
+                var selected = (HangarSlot)i == selection.Selected;
+                brackets[i].SetActive(selected);
+                previousArrows[i].gameObject.SetActive(selected);
+                nextArrows[i].gameObject.SetActive(selected);
+            }
         }
 
         private void Glyph(int index, Sprite sprite, string label)

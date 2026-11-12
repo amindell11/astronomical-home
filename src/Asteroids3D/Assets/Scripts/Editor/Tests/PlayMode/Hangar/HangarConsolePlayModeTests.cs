@@ -24,6 +24,7 @@ namespace Tests.PlayMode.Hangar
         private HangarConsole console;
         private ItemSubset offer;
         private Quaternion knobRest;
+        private int launches;
 
         [TearDown]
         public void TearDown()
@@ -117,6 +118,53 @@ namespace Tests.PlayMode.Hangar
             Assert.IsTrue(console.LaunchLegendLit, "back on the starter the legend lights again");
         }
 
+        [UnityTest]
+        public IEnumerator Launch_LocksInput_PressesTheButton_PowersTheScreensDown_AndHandsOffOnce()
+        {
+            Open(_ => true, out _);
+            yield return null;
+            Assert.IsFalse(console.InputLocked);
+
+            console.Launch();
+            Assert.IsTrue(console.InputLocked, "an accepted launch locks the keys and the pointer");
+            Assert.IsFalse(console.GetComponent<HangarConsoleRaycaster>().enabled, "the pointer no longer reaches the console");
+            Assert.IsTrue(console.LaunchButton.GetComponent<HangarControl>().Moving, "the launch button plays its press");
+            Assert.IsTrue(console.MainDisplay.PoweringDown && console.DetailDisplay.PoweringDown, "both screens power down");
+            Assert.AreEqual(0, launches, "the hand-off waits for the power-down");
+            console.Launch();
+
+            var start = Time.unscaledTime;
+            var mainLit = float.MaxValue;
+            while (launches == 0 && Time.unscaledTime - start < SettleTimeout)
+            {
+                mainLit = Mathf.Min(mainLit, console.MainDisplay.Level);
+                yield return null;
+            }
+            Assert.AreEqual(1, launches, "the callback fires once the power-down is over");
+            Assert.That(Time.unscaledTime - start, Is.GreaterThanOrEqualTo(HangarDisplay.PowerDownSeconds * .8f), "not before the screens are dark");
+            Assert.That(console.MainDisplay.Level, Is.LessThan(.01f), "the main screen ends dark");
+            Assert.That(console.DetailDisplay.Level, Is.LessThan(.01f), "the detail screen ends dark");
+            console.Launch();
+            yield return new WaitForSecondsRealtime(HangarDisplay.PowerDownSeconds + .2f);
+            Assert.AreEqual(1, launches, "later launches do nothing");
+        }
+
+        [UnityTest]
+        public IEnumerator Launch_DoesNothing_WhileTheShipIsLocked()
+        {
+            Open(ship => ship.name == "Vanguard", out _);
+            yield return null;
+            console.Selection.Step(1);
+            Assert.IsTrue(console.Selection.ShipLocked, "test premise: the second ship is locked");
+
+            console.Launch();
+            Assert.IsFalse(console.InputLocked, "a refused launch leaves the console live");
+            Assert.IsFalse(console.MainDisplay.PoweringDown);
+            yield return new WaitForSecondsRealtime(HangarDisplay.PowerDownSeconds + .2f);
+            Assert.AreEqual(0, launches);
+            Assert.That(console.MainDisplay.Level, Is.GreaterThan(.8f), "the screen stays lit");
+        }
+
         private Ship Open(System.Func<Ship, bool> earned, out Ship second)
         {
             var vanguard = AssetDatabase.LoadAssetAtPath<Ship>(VanguardPath);
@@ -126,7 +174,8 @@ namespace Tests.PlayMode.Hangar
             offer.ships = new[] { vanguard, second };
             console = Object.Instantiate(AssetDatabase.LoadAssetAtPath<HangarConsole>(ConsolePath));
             knobRest = console.SelectorKnob.localRotation;
-            console.Show(offer, new ShipLoadout(vanguard, null, null), earned, null);
+            launches = 0;
+            console.Show(offer, new ShipLoadout(vanguard, null, null), earned, () => launches++);
             return vanguard;
         }
 

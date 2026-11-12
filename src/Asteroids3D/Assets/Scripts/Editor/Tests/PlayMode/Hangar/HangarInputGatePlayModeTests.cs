@@ -117,8 +117,7 @@ namespace Tests.PlayMode.Hangar
             Assert.AreNotSame(before, console.Selection.Weapon, "the next arrow steps the selected slot");
 
             console.Launch();
-
-            yield return null;
+            yield return AsyncAssert.WaitUntil(() => finished, 5f, "RunHangar completes after Launch's power-down");
             yield return null;
 
             Assert.IsTrue(finished, "RunHangar completed after Launch");

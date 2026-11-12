@@ -13,40 +13,40 @@ MonoBehaviour:
   m_Name: HangarDisplayProfile
   m_EditorClassIdentifier: 
   mainDisplay:
-    glow: 0.35
-    aberration: 0.8
-    beamJitter: 1.2
-    afterglow: 0.18
-    scanlines: 0.45
-    flicker: 0.25
-    warmth: 0.3
-    wear: 0.12
-    glassDistortion: 0.06
-    damageShudder: 3
-    transitionGlitch: 0.35
-    haloReach: 8
-    haloStrength: 0.4
-    textGlow: 0.15
-    halation: 0.5
+    glow: 0.434
+    aberration: 4.64
+    beamJitter: 0.267
+    afterglow: 0.009
+    scanlines: 0.915
+    flicker: 0.594
+    warmth: 0.878
+    wear: 0.294
+    glassDistortion: 0.12
+    damageShudder: 10.49
+    transitionGlitch: 0.474
+    haloReach: 10
+    haloStrength: 0.6
+    textGlow: 0
+    halation: 0.7
     coolTint: {r: 0.35, g: 0.62, b: 1, a: 1}
-    signalBleed: 0.5
-    bleedLength: 8
+    signalBleed: 0.8
+    bleedLength: 10
   detailDisplay:
-    glow: 0.35
-    aberration: 0.8
-    beamJitter: 1.2
-    afterglow: 0.18
-    scanlines: 0.4
-    flicker: 0.25
-    warmth: 0.3
-    wear: 0.12
-    glassDistortion: 0.06
-    damageShudder: 3
-    transitionGlitch: 0.35
-    haloReach: 8
-    haloStrength: 0.4
-    textGlow: 0.15
-    halation: 0.5
+    glow: 0.434
+    aberration: 4.64
+    beamJitter: 0.267
+    afterglow: 0.009
+    scanlines: 0.915
+    flicker: 0.594
+    warmth: 0.878
+    wear: 0.294
+    glassDistortion: 0.12
+    damageShudder: 10.49
+    transitionGlitch: 0.474
+    haloReach: 10
+    haloStrength: 0.6
+    textGlow: 0
+    halation: 0.7
     coolTint: {r: 0.35, g: 0.62, b: 1, a: 1}
-    signalBleed: 0.5
-    bleedLength: 8
+    signalBleed: 0.8
+    bleedLength: 10

@@ -44,9 +44,11 @@ namespace UI.Hangar.Hardware
 
         public void Press()
         {
-            since = 0f;
+            Move();
             Pressed?.Invoke();
         }
+
+        internal void Move() => since = 0f;
 
         private void Update()
         {
@@ -58,7 +60,7 @@ namespace UI.Hangar.Hardware
                 depth = 0f;
                 since = float.PositiveInfinity;
             }
-            transform.localPosition = rest + pressAxis.normalized * (travel * depth);
+            transform.localPosition = rest + transform.localRotation * pressAxis.normalized * (travel * depth);
         }
 
         // In fast, hold, then an underdamped return that lifts a hair past rest before settling.

@@ -19,10 +19,12 @@ namespace UI.Hangar.Displays
         private const float SegmentGap = 3f;
         private const float BarHeight = 8f;
         private const float BarWidth = Segments * SegmentWidth + (Segments - 1) * SegmentGap;
+        private const float ArrowWidth = 48f;
+        private const float ArrowHeight = 72f;
 
         private static readonly Color Amber = new(1f, .80f, .50f, 1f);
         private static readonly Color Label = new(.62f, .70f, .78f, 1f);
-        private static readonly Color Line = new(.45f, .58f, .68f, 1f);
+        private static readonly Color LeaderInk = new(.45f, .58f, .68f, 1f);
         private static readonly Color Locked = new(1f, .42f, .32f, 1f);
         private static readonly Color Clear = new(0f, 0f, 0f, 0f);
 
@@ -155,6 +157,17 @@ namespace UI.Hangar.Displays
             silhouette.raycastTarget = false;
             foreach (var bracket in brackets) ((GameObject)bracket).transform.SetAsLastSibling();
 
+            // One pair per slot, flanking the ship's name or the weapon's glyph; the view shows the selected pair.
+            var arrowRows = new[] { 2f, 462f, 462f };
+            var arrowFlanks = new[] { (left: 130f, right: width - 178f), (left: 118f, right: 234f), (left: 308f, right: 424f) };
+            var previousArrows = new Object[slots.Length];
+            var nextArrows = new Object[slots.Length];
+            for (var i = 0; i < slots.Length; i++)
+            {
+                previousArrows[i] = Arrow(canvas, slots[i].name + "Previous", new Rect(arrowFlanks[i].left, arrowRows[i], ArrowWidth, ArrowHeight), -1);
+                nextArrows[i] = Arrow(canvas, slots[i].name + "Next", new Rect(arrowFlanks[i].right, arrowRows[i], ArrowWidth, ArrowHeight), 1);
+            }
+
             var keystoneName = Text(canvas, "KeystoneName", labels, 28, TextAnchor.MiddleCenter, Label, new Rect(560f, 418f, 160f, 30f));
             var keystoneIcon = Box(canvas, "KeystoneIcon", new Rect(604f, 452f, 72f, 72f)).gameObject.AddComponent<Image>();
             keystoneIcon.color = Amber;
@@ -169,6 +182,8 @@ namespace UI.Hangar.Displays
             Assign(view.FindProperty("bars"), bars);
             Assign(view.FindProperty("buttons"), buttons);
             Assign(view.FindProperty("brackets"), brackets);
+            Assign(view.FindProperty("previousArrows"), previousArrows);
+            Assign(view.FindProperty("nextArrows"), nextArrows);
             Assign(view.FindProperty("glyphs"), glyphs);
             Assign(view.FindProperty("names"), names);
             view.FindProperty("keystoneIcon").objectReferenceValue = keystoneIcon;
@@ -220,6 +235,34 @@ namespace UI.Hangar.Displays
             return root.gameObject;
         }
 
+        // A chevron on a hit box; the box lights on hover and press, the chevron stays lit.
+        private static Button Arrow(RectTransform canvas, string name, Rect rect, int direction)
+        {
+            var root = Box(canvas, name, rect);
+            var fill = root.gameObject.AddComponent<Image>();
+            fill.color = Amber;
+            fill.raycastTarget = true;
+            var button = root.gameObject.AddComponent<Button>();
+            button.targetGraphic = fill;
+            button.transition = Selectable.Transition.ColorTint;
+            button.colors = new ColorBlock
+            {
+                normalColor = new Color(1f, 1f, 1f, 0f),
+                highlightedColor = new Color(1f, 1f, 1f, .3f),
+                pressedColor = new Color(1f, 1f, 1f, .7f),
+                selectedColor = new Color(1f, 1f, 1f, 0f),
+                disabledColor = new Color(1f, 1f, 1f, 0f),
+                colorMultiplier = 1f,
+                fadeDuration = .05f
+            };
+            var tip = new Vector2(direction < 0 ? 14f : rect.width - 14f, rect.height * .5f);
+            var tail = direction < 0 ? rect.width - 14f : 14f;
+            Line(root, "Arm", tip, new Vector2(tail, rect.height * .5f - 18f), 4f, Amber);
+            Line(root, "Arm", tip, new Vector2(tail, rect.height * .5f + 18f), 4f, Amber);
+            root.gameObject.SetActive(false);
+            return button;
+        }
+
         private static void Stroke(RectTransform parent, string name, Rect rect)
         {
             var image = Box(parent, name, rect).gameObject.AddComponent<Image>();
@@ -227,9 +270,11 @@ namespace UI.Hangar.Displays
             image.raycastTarget = false;
         }
 
-        private static void Leader(RectTransform parent, string name, Vector2 from, Vector2 to)
+        private static void Leader(RectTransform parent, string name, Vector2 from, Vector2 to) =>
+            Line(parent, name, from, to, 2f, LeaderInk);
+
+        private static void Line(RectTransform parent, string name, Vector2 from, Vector2 to, float thickness, Color color)
         {
-            const float thickness = 2f;
             var delta = to - from;
             var length = delta.magnitude;
             var line = Box(parent, name, new Rect(from.x, from.y - thickness * .5f, length, thickness));
@@ -237,7 +282,7 @@ namespace UI.Hangar.Displays
             line.anchoredPosition = new Vector2(from.x, -from.y);
             line.localRotation = Quaternion.Euler(0f, 0f, -Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg);
             var image = line.gameObject.AddComponent<Image>();
-            image.color = Line;
+            image.color = color;
             image.raycastTarget = false;
         }
 

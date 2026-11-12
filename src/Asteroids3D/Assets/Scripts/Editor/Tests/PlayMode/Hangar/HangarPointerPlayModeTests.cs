@@ -3,12 +3,15 @@ using System;
 using System.Collections;
 using System.Linq;
 using NUnit.Framework;
+using Ships.Loadout;
 using UI.Hangar.Displays;
 using UI.Hangar.Hardware;
 using UI.Hangar.Selection;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.TestTools;
+using UnityEngine.UI;
 
 namespace Tests.PlayMode.Hangar
 {
@@ -20,11 +23,13 @@ namespace Tests.PlayMode.Hangar
         private static readonly Vector2Int[] Views = { new(1920, 1080), new(1920, 1200), new(2520, 1080) };
 
         private HangarConsole console;
+        private GameObject eventSystemObject;
 
         [TearDown]
         public void TearDown()
         {
             if (console) UnityEngine.Object.Destroy(console.gameObject);
+            if (eventSystemObject) UnityEngine.Object.Destroy(eventSystemObject);
         }
 
         [UnityTest]
@@ -65,6 +70,61 @@ namespace Tests.PlayMode.Hangar
             }
 
             Assert.IsTrue(BodyMisses(console, raycaster), "a viewport point on the console body maps to nothing");
+        }
+
+        [UnityTest]
+        public IEnumerator AClickOnEitherScreenArrow_StepsTheSelectedSlotsOption(
+            [ValueSource(nameof(Views))] Vector2Int pixels)
+        {
+            var offer = AssetDatabase.LoadAssetAtPath<Game.GameHost>("Assets/Prefabs/Game/GameHost.prefab").hangarOffer;
+            console = UnityEngine.Object.Instantiate(AssetDatabase.LoadAssetAtPath<HangarConsole>(PrefabPath));
+            console.Show(offer, new ShipLoadout(offer.starter, null, null), _ => true, null);
+            var eventSystem = new GameObject("TestEventSystem").AddComponent<EventSystem>();
+            eventSystemObject = eventSystem.gameObject;
+            yield return null;
+
+            console.Resize(pixels);
+            console.MainDisplay.DisplayCamera.Render();
+            Canvas.ForceUpdateCanvases();
+            var raycaster = console.GetComponent<HangarConsoleRaycaster>();
+            var view = console.GetComponentInChildren<HangarMainDisplayView>();
+            foreach (HangarSlot slot in Enum.GetValues(typeof(HangarSlot)))
+            {
+                console.Selection.Select(slot);
+                yield return null;
+                console.Resize(pixels);
+                console.MainDisplay.DisplayCamera.Render();
+                Canvas.ForceUpdateCanvases();
+                foreach (var step in new[] { 1, -1 })
+                {
+                    var arrow = view.Arrow(slot, step);
+                    Assert.IsTrue(arrow.gameObject.activeInHierarchy, $"{slot} {step} arrow shows with its slot");
+                    var before = Option(slot);
+                    var hit = raycaster.HitAt(Viewport(arrow));
+                    Assert.AreEqual(arrow.gameObject, hit, $"{slot} {step}");
+                    var pointer = new PointerEventData(eventSystem) { button = PointerEventData.InputButton.Left };
+                    ExecuteEvents.Execute(hit, pointer, ExecuteEvents.pointerClickHandler);
+                    Assert.AreNotSame(before, Option(slot), $"{slot} {step} arrow steps the option");
+                }
+            }
+        }
+
+        private UnityEngine.Object Option(HangarSlot slot) => slot switch
+        {
+            HangarSlot.Ship => console.Selection.Ship,
+            HangarSlot.Weapon => console.Selection.Weapon,
+            _ => console.Selection.Ordnance
+        };
+
+        private Vector2 Viewport(Button button)
+        {
+            var rect = (RectTransform)button.transform;
+            var pixel = console.MainDisplay.DisplayCamera.WorldToScreenPoint(rect.TransformPoint(rect.rect.center));
+            var uv = new Vector2(pixel.x / console.MainDisplay.Resolution.x, pixel.y / console.MainDisplay.Resolution.y);
+            var glass = console.MainScreenGlass;
+            var surface = new MeshSurface(glass.GetComponent<MeshFilter>().sharedMesh);
+            var viewport = console.HardwareCamera.WorldToViewportPoint(glass.transform.TransformPoint(surface.LocalPoint(uv)));
+            return new Vector2(viewport.x, viewport.y);
         }
 
         private static bool BodyMisses(HangarConsole console, HangarConsoleRaycaster raycaster)

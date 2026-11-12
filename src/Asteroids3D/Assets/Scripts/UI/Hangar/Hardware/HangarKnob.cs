@@ -4,22 +4,28 @@ using UnityEngine;
 namespace UI.Hangar.Hardware
 {
     /// <summary>
-    /// The selector knob's turn: an underdamped spring from the current angle to the detent it is
-    /// handed, so it lands with a small overshoot. Its press travels through <see cref="HangarControl"/>.
+    /// The selector knob's turn: an underdamped spring from the angle and speed it had when the
+    /// detent was handed over, solved in closed form from the time since, so it lands with a small
+    /// overshoot at any frame time. Its press travels through <see cref="HangarControl"/>.
     /// </summary>
     public sealed class HangarKnob : MonoBehaviour
     {
         private const float Omega = 30f;
         private const float Damping = .5f;
         private const float SettledDegrees = .01f;
+        private static readonly float Ringing = Omega * Mathf.Sqrt(1f - Damping * Damping);
 
         private Quaternion rest;
         private Vector3 axis;
         private float angle;
-        private float target;
         private float velocity;
+        private float target;
+        private float offset;
+        private float swing;
+        private float elapsed;
 
         public bool Settled => angle == target;
+        internal float Angle => angle;
 
         private void Awake() => rest = transform.localRotation;
 
@@ -36,18 +42,33 @@ namespace UI.Hangar.Hardware
             Apply();
         }
 
-        public void Turn(float degrees) => target = degrees;
+        public void Turn(float degrees)
+        {
+            target = degrees;
+            offset = angle - target;
+            swing = (velocity + Damping * Omega * offset) / Ringing;
+            elapsed = 0f;
+        }
 
-        private void Update()
+        private void Update() => Step(Time.unscaledDeltaTime);
+
+        internal void Step(float seconds)
         {
             if (Settled) return;
-            var dt = Mathf.Min(Time.unscaledDeltaTime, .05f);
-            velocity += (Omega * Omega * (target - angle) - 2f * Damping * Omega * velocity) * dt;
-            angle += velocity * dt;
-            if (Mathf.Abs(target - angle) < SettledDegrees && Mathf.Abs(velocity) < SettledDegrees * 10f)
+            elapsed += seconds;
+            var envelope = Mathf.Exp(-Damping * Omega * elapsed);
+            if (envelope * (Mathf.Abs(offset) + Mathf.Abs(swing)) < SettledDegrees)
             {
                 angle = target;
                 velocity = 0f;
+            }
+            else
+            {
+                var cos = Mathf.Cos(Ringing * elapsed);
+                var sin = Mathf.Sin(Ringing * elapsed);
+                angle = target + envelope * (offset * cos + swing * sin);
+                velocity = envelope * ((Ringing * swing - Damping * Omega * offset) * cos
+                                       - (Ringing * offset + Damping * Omega * swing) * sin);
             }
             Apply();
         }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Ships;
 using Ships.Loadout;
@@ -13,7 +14,9 @@ namespace UI.Hangar.Hardware
 {
     /// <summary>
     /// The hangar: its console world, the composite image, and the choices on the two displays.
-    /// The hologram projector is its part at the lens. Launch hands the pending loadout to the caller.
+    /// The hologram projector is its part at the lens. An accepted Launch locks the keys and the
+    /// pointer, presses the button and powers both screens down before the caller is handed the
+    /// pending loadout, once.
     /// </summary>
     public sealed class HangarConsole : MonoBehaviour
     {
@@ -50,8 +53,10 @@ namespace UI.Hangar.Hardware
         private readonly List<InputAction> actions = new();
         private MaterialPropertyBlock legendBlock;
         private Color legendLit;
+        private HangarConsoleRaycaster raycaster;
         private HangarSelection selection;
         private Action onLaunch;
+        private bool launching;
 
         public Camera HardwareCamera => hardwareCamera;
         public MeshRenderer MainScreenGlass => mainScreenGlass;
@@ -70,6 +75,7 @@ namespace UI.Hangar.Hardware
         internal Vector3 KnobAxis => knobAxis;
         internal float KnobDetentDegrees => knobDetentDegrees;
         internal bool KnobSettled => knob.Settled;
+        internal bool InputLocked => launching;
         internal bool LaunchLegendLit => legendBlock.GetColor(ConstantEmissionId) == legendLit;
 
         private void Awake()
@@ -80,6 +86,9 @@ namespace UI.Hangar.Hardware
                 !displayProfile)
                 throw new InvalidOperationException(
                     "HangarConsole needs its camera, glass, controls, knob, launch legend, displays, profile, projector lens, composite image and projector.");
+            raycaster = GetComponent<HangarConsoleRaycaster>();
+            if (!raycaster)
+                throw new InvalidOperationException("HangarConsole needs its raycaster on the same object.");
             knob.Initialize(knobAxis);
             legendBlock = new MaterialPropertyBlock();
             legendLit = launchLegend.sharedMaterial.GetColor(ConstantEmissionId);
@@ -98,12 +107,15 @@ namespace UI.Hangar.Hardware
             selection.ShipChanged += projector.Select;
             mainView.Bind(selection);
             detailView.Bind(selection);
+            mainView.ArrowPressed += step => (step < 0 ? previousButton : nextButton).Press();
             previousButton.Pressed += () => selection.Step(-1);
             nextButton.Pressed += () => selection.Step(1);
             selectorKnob.Pressed += () => selection.Turn(1);
             launchButton.Pressed += Launch;
             selection.Changed += ApplyKnob;
             selection.Changed += ApplyLaunch;
+            selection.OptionChanged += mainDisplay.Glitch;
+            selection.OptionChanged += detailDisplay.Glitch;
             EnableKeys();
             knob.Snap(Detent());
             ApplyLaunch();
@@ -113,8 +125,23 @@ namespace UI.Hangar.Hardware
         {
             if (selection == null)
                 throw new InvalidOperationException("HangarConsole.Launch was called before Show.");
-            if (!selection.CanLaunch) return;
-            onLaunch?.Invoke();
+            if (!selection.CanLaunch || launching) return;
+            launching = true;
+            for (var i = 0; i < actions.Count; i++) actions[i].Disable();
+            raycaster.enabled = false;
+            launchButton.Move();
+            mainDisplay.PowerDown();
+            detailDisplay.PowerDown();
+            StartCoroutine(HandOff());
+        }
+
+        private IEnumerator HandOff()
+        {
+            var started = Time.unscaledTime;
+            while (Time.unscaledTime - started < HangarDisplay.PowerDownSeconds) yield return null;
+            var launch = onLaunch;
+            onLaunch = null;
+            launch?.Invoke();
         }
 
         private void LateUpdate()

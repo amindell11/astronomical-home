@@ -8,6 +8,7 @@ namespace UI.Projection
         RenderTexture Ink { get; }
         RTHandle InkColor { get; }
         CanopySettings Settings { get; }
+        CanopyScreen Screen { get; }
         bool EffectsEnabled { get; }
         float TransitionAge { get; }
         float HitAge { get; }
