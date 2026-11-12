@@ -481,9 +481,9 @@ namespace Game.Preview.Sectors
 
         private static string Kind(Object target)
         {
-            if (target is Faction) return "faction";
-            if (target is EliteProfile) return "elite";
-            if (target is AsteroidFieldSettings) return "field";
+            if (target as Faction) return "faction";
+            if (target as EliteProfile) return "elite";
+            if (target as AsteroidFieldSettings) return "field";
             if (target.GetType().Name.Contains("Feel")) return "feel";
             return ObjectNames.NicifyVariableName(target.GetType().Name).ToLowerInvariant();
         }
