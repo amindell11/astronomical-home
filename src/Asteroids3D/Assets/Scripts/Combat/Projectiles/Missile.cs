@@ -140,12 +140,8 @@ namespace Combat.Projectiles
             }
 
             var kin = kinematicsPoller.Kinematics;
-            if (target)
-            {
-                if (!CanSee(kin, target)) LoseTrack();
-            }
-            else if (lockedPoint && CanSee(kin, lockedPoint))
-                Track();
+            if (target && !CanSee(kin, target)) LoseTrack();
+            else if (!target && lockedPoint && CanSee(kin, lockedPoint)) Track();
             var desiredDir = GetDesiredDirection(kin);
 
             ApplyTurn(kin.Forward, desiredDir);
