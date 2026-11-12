@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System.Collections;
 using NUnit.Framework;
+using Tests.PlayMode.Common;
 using Tests.PlayMode.Common.SimulatedInput;
 using UI.Screens;
 using UnityEngine;
@@ -33,29 +34,38 @@ namespace Tests.PlayMode.Screens
             input.TearDown();
         }
 
-        private string Text(string path)
+        private TitleScreen CreateScreen() => TitleScreen.Create(root.transform,
+            TestAssets.Load<Font>("Assets/Visuals/Ui/Fonts/Michroma.ttf"),
+            TestAssets.Load<Font>("Assets/Visuals/Ui/Fonts/Rajdhani-Medium.ttf"));
+
+        private Text TextAt(string path)
         {
             var node = screen.transform.Find(path);
             Assert.IsNotNull(node, $"screen has {path}");
-            return node.GetComponent<Text>().text;
+            return node.GetComponent<Text>();
         }
+
+        private string Text(string path) => TextAt(path).text;
 
         [UnityTest]
         public IEnumerator Create_ShowsTheNameWithPlayAndQuit()
         {
-            screen = TitleScreen.Create(root.transform);
+            screen = CreateScreen();
             yield return null;
 
-            Assert.AreEqual("ASTRONOMICAL: SURVIVAL", Text("Title"));
+            Assert.AreEqual("ANDROMEDA", Text("Title"));
+            Assert.AreEqual("Michroma", TextAt("Title").font.name);
             Assert.AreEqual("PLAY", Text("Play/Option"));
             Assert.AreEqual("QUIT", Text("Quit/Option"));
+            Assert.AreEqual("Rajdhani-Medium", TextAt("Play/Option").font.name);
+            Assert.AreEqual("Rajdhani-Medium", TextAt("Quit/Option").font.name);
             Assert.IsFalse(screen.Choice.HasValue, "unanswered until a choice");
         }
 
         [UnityTest]
         public IEnumerator Click_PlayOrQuit_Answers()
         {
-            screen = TitleScreen.Create(root.transform);
+            screen = CreateScreen();
             yield return null;
 
             var play = screen.transform.Find("Play").GetComponent<Button>();
@@ -68,7 +78,7 @@ namespace Tests.PlayMode.Screens
             Assert.AreEqual(TitleScreen.Option.Play, screen.Choice, "the first answer stands");
 
             Object.Destroy(screen.gameObject);
-            screen = TitleScreen.Create(root.transform);
+            screen = CreateScreen();
             yield return null;
 
             screen.transform.Find("Quit").GetComponent<Button>().onClick.Invoke();
@@ -79,7 +89,7 @@ namespace Tests.PlayMode.Screens
         public IEnumerator Keys_EnterPlays_EscapeQuits()
         {
             var keyboard = InputSystem.AddDevice<Keyboard>();
-            screen = TitleScreen.Create(root.transform);
+            screen = CreateScreen();
             yield return null;
 
             input.Press(keyboard.enterKey);
@@ -88,7 +98,7 @@ namespace Tests.PlayMode.Screens
             Assert.AreEqual(TitleScreen.Option.Play, screen.Choice);
 
             Object.Destroy(screen.gameObject);
-            screen = TitleScreen.Create(root.transform);
+            screen = CreateScreen();
             yield return null;
 
             input.Press(keyboard.escapeKey);
@@ -101,7 +111,7 @@ namespace Tests.PlayMode.Screens
         public IEnumerator Gamepad_SouthPlays_EastQuits()
         {
             var gamepad = InputSystem.AddDevice<Gamepad>();
-            screen = TitleScreen.Create(root.transform);
+            screen = CreateScreen();
             yield return null;
 
             input.Press(gamepad.buttonSouth);
@@ -110,7 +120,7 @@ namespace Tests.PlayMode.Screens
             Assert.AreEqual(TitleScreen.Option.Play, screen.Choice);
 
             Object.Destroy(screen.gameObject);
-            screen = TitleScreen.Create(root.transform);
+            screen = CreateScreen();
             yield return null;
 
             input.Press(gamepad.buttonEast);

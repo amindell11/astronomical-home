@@ -11,7 +11,7 @@ namespace UI.Screens
     /// </summary>
     public sealed class TitleScreen : MonoBehaviour
     {
-        public const string GameName = "Astronomical: Survival";
+        public const string GameName = "Andromeda";
 
         public enum Option { Play, Quit }
 
@@ -23,12 +23,13 @@ namespace UI.Screens
         private static readonly Color Hover = new(1f, 1f, 1f, .08f);
 
         private readonly List<InputAction> actions = new();
-        private Font font;
+        private Font titleFont;
+        private Font labelFont;
 
         /// <summary>Null until answered; the first answer stands.</summary>
         public Option? Choice { get; private set; }
 
-        public static TitleScreen Create(Transform parent)
+        public static TitleScreen Create(Transform parent, Font titleFont, Font labelFont)
         {
             var go = new GameObject("TitleScreen", typeof(RectTransform));
             go.transform.SetParent(parent, false);
@@ -41,14 +42,14 @@ namespace UI.Screens
             scaler.matchWidthOrHeight = .5f;
             go.AddComponent<GraphicRaycaster>();
             var screen = go.AddComponent<TitleScreen>();
+            screen.titleFont = titleFont;
+            screen.labelFont = labelFont;
             screen.Build();
             screen.BindKeys();
             return screen;
         }
 
         public void Choose(Option option) => Choice ??= option;
-
-        private void Awake() => font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
         private void OnDestroy()
         {
@@ -59,7 +60,7 @@ namespace UI.Screens
         private void Build()
         {
             Label(Centered(transform, "Title", 1000f, 72f, 120f), GameName.ToUpperInvariant(), 56, Paint,
-                TextAnchor.MiddleCenter);
+                titleFont, TextAnchor.MiddleCenter);
             BuildOption("Play", "PLAY", "ENTER", -20f, Option.Play);
             BuildOption("Quit", "QUIT", "ESC", -70f, Option.Quit);
         }
@@ -74,8 +75,8 @@ namespace UI.Screens
             Fill(Box(box, "Bottom", 0, 37, 216, 1), Line);
             Fill(Box(box, "Left", 0, 0, 1, 38), Line);
             Fill(Box(box, "Right", 215, 0, 1, 38), Line);
-            Label(Box(box, "Option", 14, 0, 140, 38), caption, 11, Ink);
-            Label(Box(box, "Key", 140, 0, 62, 38), key, 11, Muted, TextAnchor.MiddleRight);
+            Label(Box(box, "Option", 14, 0, 140, 38), caption, 11, Ink, labelFont);
+            Label(Box(box, "Key", 140, 0, 62, 38), key, 11, Muted, labelFont, TextAnchor.MiddleRight);
         }
 
         private void Clickable(RectTransform rect, Option option)
@@ -141,7 +142,7 @@ namespace UI.Screens
             image.raycastTarget = false;
         }
 
-        private Text Label(RectTransform rect, string value, int size, Color color,
+        private Text Label(RectTransform rect, string value, int size, Color color, Font font,
             TextAnchor alignment = TextAnchor.MiddleLeft)
         {
             var text = rect.gameObject.AddComponent<Text>();

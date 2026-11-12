@@ -78,6 +78,12 @@ namespace Game
                  "presentation is off.")]
         [SerializeField] internal bool openOnTitle;
 
+        [Tooltip("The title screen's name face.")]
+        [SerializeField] internal Font titleFont;
+
+        [Tooltip("The title screen's Play and Quit face.")]
+        [SerializeField] internal Font titleLabelFont;
+
         [Header("Music")]
         [Tooltip("The run's music, built once for the session and told each run step's state. Optional; " +
                  "skipped when presentation is off (headless/RL).")]
@@ -470,7 +476,7 @@ namespace Game
             SetSplashVisible(false);
             SetMusic(GameMusic.State.Hangar);
             SetHangarViewVisible(true);
-            var screen = TitleScreen.Create(ui);
+            var screen = TitleScreen.Create(ui, titleFont, titleLabelFont);
             try
             {
                 while (!screen.Choice.HasValue && !shutdownRequested) yield return null;
