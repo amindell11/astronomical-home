@@ -125,6 +125,7 @@ for obj in moving:
 for lines in linesets:
     if lines == rim:
         continue
+    lines.select_by_collection = True
     lines.collection = own_ink
     if lines.select_silhouette:
         lines.linestyle.thickness_position = 'INSIDE'
