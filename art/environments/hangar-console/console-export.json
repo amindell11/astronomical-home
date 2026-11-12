@@ -53,8 +53,8 @@
     },
     {
       "name": "PreviousButton",
-      "vertices": 226,
-      "triangles": 436,
+      "vertices": 208,
+      "triangles": 412,
       "pivot": [
         -7.488700866699219,
         -2.77968168258667,
@@ -62,13 +62,33 @@
       ]
     },
     {
+      "name": "PreviousLegend",
+      "vertices": 18,
+      "triangles": 24,
+      "pivot": [
+        -7.469071388244629,
+        -2.8508849143981934,
+        2.29929518699646
+      ]
+    },
+    {
       "name": "NextButton",
-      "vertices": 226,
-      "triangles": 436,
+      "vertices": 208,
+      "triangles": 412,
       "pivot": [
         -7.410958290100098,
         -3.0690505504608154,
         1.8060238361358643
+      ]
+    },
+    {
+      "name": "NextLegend",
+      "vertices": 18,
+      "triangles": 24,
+      "pivot": [
+        -7.381683826446533,
+        -3.137120008468628,
+        1.8555845022201538
       ]
     },
     {
@@ -103,8 +123,8 @@
     },
     {
       "name": "ConsoleBody",
-      "vertices": 17788,
-      "triangles": 35152,
+      "vertices": 17764,
+      "triangles": 35104,
       "pivot": [
         0.0,
         0.0,
@@ -112,6 +132,6 @@
       ]
     }
   ],
-  "paint": "Authored color graph and fixed-camera Freestyle ink. No scene lighting, sky, ship or cone.",
+  "paint": "Authored color graph and fixed-camera Freestyle ink, one layer for the body and one the moving controls carry. No scene lighting, sky, ship or cone.",
   "screens": "Static reference artwork; no live UI."
 }
