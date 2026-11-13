@@ -42,6 +42,8 @@ namespace Tests.PlayMode.Audio
         private const string MusicEvent = "event:/Music/Game";
         private const string MusicStateName = "MusicState";
         private const string PhaseName = "Phase";
+        private const string LocaleName = "Locale";
+        private const string LocalesFolder = "Assets/Prefabs/Locales";
         private const float StepTimeoutSec = 30f;
 
         private readonly List<GameObject> created = new();
@@ -108,7 +110,7 @@ namespace Tests.PlayMode.Audio
 
             var music = NewMusic(objectives);
             yield return spine.Setup(ctx);
-            music.EnterSector(sector);
+            music.EnterSector(sector, AssetDatabase.LoadAssetAtPath<LocaleSky>(LocalePath));
             yield return null;
             yield return Flush();
             var instance = Instances(description)[0];
@@ -157,6 +159,53 @@ namespace Tests.PlayMode.Audio
             Assert.AreEqual(PhaseSpineModule.StepExtract, objectives.SpineStep);
             Assert.AreEqual(nameof(GameMusic.State.Elite), Label(description, instance),
                 "extraction after the elite keeps the elite's cue");
+        }
+
+        [UnityTest]
+        public IEnumerator EachSectorEntry_SetsLocaleToTheLabelOfItsLocalesName()
+        {
+            var description = Fresh(MusicEvent);
+            var music = NewMusic(New("Objectives").AddComponent<ObjectiveService>());
+            var sector = NewSectorTemplate("Sector").GetComponent<Sector>();
+            var first = AssetDatabase.LoadAssetAtPath<LocaleSky>(LocalePath);
+            var second = AssetDatabase.LoadAssetAtPath<LocaleSky>(LocalesFolder + "/CoralSunset.prefab");
+
+            music.EnterSector(sector, first);
+            yield return Flush();
+            var instance = Instances(description)[0];
+            var entered = Label(description, instance, LocaleName);
+            Assert.AreEqual(first.name, entered, "entering a sector");
+            Assert.AreEqual(1, Instances(description).Length, "one music instance");
+
+            music.EnterSector(sector, second);
+            yield return Flush();
+            var arrived = Label(description, instance, LocaleName);
+            Debug.Log($"[FMOD] EnterSector({first.name}): Locale={entered}; EnterSector({second.name}): Locale={arrived}");
+            Assert.AreEqual(second.name, arrived, "a jump's arrival in another locale");
+            Assert.AreEqual(1, Instances(description).Length, "still the one instance");
+        }
+
+        [UnityTest]
+        public IEnumerator EveryLocalePrefab_HasALocaleLabel()
+        {
+            var description = Fresh(MusicEvent);
+            yield return null;
+            var lookedUp = description.getParameterDescriptionByName(LocaleName, out var parameter);
+            Assert.AreEqual(FMOD.RESULT.OK, lookedUp, "event:/Music/Game has no Locale parameter");
+
+            var labels = new List<string>();
+            for (var i = 0; i <= (int)parameter.maximum; i++)
+                if (description.getParameterLabelByName(LocaleName, i, out var label) == FMOD.RESULT.OK)
+                    labels.Add(label);
+
+            var missing = new List<string>();
+            foreach (var guid in AssetDatabase.FindAssets("t:Prefab", new[] { LocalesFolder }))
+            {
+                var locale = AssetDatabase.LoadAssetAtPath<LocaleSky>(AssetDatabase.GUIDToAssetPath(guid));
+                if (!labels.Contains(locale.name))
+                    missing.Add(locale.name);
+            }
+            Assert.That(missing, Is.Empty, "locales with no Locale label in Studio");
         }
 
         [UnityTest]
@@ -246,9 +295,9 @@ namespace Tests.PlayMode.Audio
             return music;
         }
 
-        private static string Label(EventDescription description, EventInstance instance)
+        private static string Label(EventDescription description, EventInstance instance, string parameter = MusicStateName)
         {
-            description.getParameterLabelByName(MusicStateName, (int)Parameter(instance, MusicStateName), out var label);
+            description.getParameterLabelByName(parameter, (int)Parameter(instance, parameter), out var label);
             return label;
         }
 

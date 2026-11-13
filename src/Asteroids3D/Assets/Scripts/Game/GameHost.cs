@@ -340,7 +340,7 @@ namespace Game
                         rigInstance.Player.Damage.Health.SetFraction(hull);
                     moments.Raise(new SectorEntered(index + 1));
                     SetSplashVisible(false);
-                    if (music) music.EnterSector(session.ActiveSector);
+                    if (music) music.EnterSector(session.ActiveSector, session.ActiveLocale);
                     if (rigInstance) rigInstance.EnterSector(session.ActiveSector.Module<PhaseSpineModule>());
                     var sectorStartTime = Time.time;
                     var modStations = presentation && lullMods && rigInstance

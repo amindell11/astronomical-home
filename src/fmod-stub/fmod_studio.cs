@@ -21,6 +21,8 @@ namespace FMOD.Studio
 
         public RESULT setParameterByName(string name, float value, bool ignoreseekspeed = false) => RESULT.OK;
 
+        public RESULT setParameterByNameWithLabel(string name, string label, bool ignoreseekspeed = false) => RESULT.OK;
+
         public RESULT start() => RESULT.OK;
 
         public RESULT release() => RESULT.OK;
