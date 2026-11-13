@@ -14,6 +14,7 @@ namespace UI.PlayerState
         private const float BannerSeconds = 2.05f;
         private const float BannerFadeIn = .22f;
         private const float BannerFadeOut = .45f;
+        private const float SpotBarWidth = 160f;
         private static readonly Color SpottedRed = new(1f, .25f, .2f);
 
         private enum Banner { None, Opening, Spotted, Coming }
@@ -31,6 +32,7 @@ namespace UI.PlayerState
         private ObjectiveTracker announcedTracker;
         private ObjectiveType announcedState;
         private Transform announcedTarget;
+        private Image spotBar;
         private Banner banner;
         private float bannerAt;
         private ObjectiveTracker huntTracker;
@@ -67,6 +69,11 @@ namespace UI.PlayerState
             announcement.rectTransform.anchorMin = announcement.rectTransform.anchorMax = new Vector2(.5f, .5f);
             announcement.rectTransform.pivot = new Vector2(.5f, .5f);
             announcement.alignment = TextAnchor.MiddleCenter;
+            var spotBar = CreateImage(announcement.transform, "Spotted bar", new Vector2(SpotBarWidth, 2f), SpottedRed);
+            spotBar.rectTransform.anchorMin = spotBar.rectTransform.anchorMax = new Vector2(.5f, 0f);
+            spotBar.rectTransform.pivot = new Vector2(.5f, 1f);
+            spotBar.rectTransform.anchoredPosition = new Vector2(0f, -3f);
+            spotBar.enabled = false;
             InstrumentAppear.Attach(announcement.gameObject, projection,
                 () => announcement.enabled && announcement.color.a > 0f && (isVisible?.Invoke() ?? true));
             var readout = go.AddComponent<ObjectiveStatusReadout>();
@@ -74,6 +81,7 @@ namespace UI.PlayerState
             readout.clock = clock;
             readout.caption = caption;
             readout.announcement = announcement;
+            readout.spotBar = spotBar;
             readout.keyPrompt = keyPrompt;
             readout.display = display;
             readout.labelFont = labelFont;
@@ -148,15 +156,21 @@ namespace UI.PlayerState
             }
 
             ReadHunt(tracker, progress);
+            var hunt = progress?.Hunt ?? HuntReading.None;
             var elapsed = Time.unscaledTime - bannerAt;
-            var held = banner == Banner.Spotted;
-            if (held) announcement.text = $"SPOTTED  {Clock(progress.Value.SecondsLeft)}";
+            var spotted = banner == Banner.Spotted;
+            var held = spotted || banner == Banner.Coming && hunt == HuntReading.Coming;
             announcement.enabled = held || banner != Banner.None && elapsed < BannerSeconds;
-            var tint = held ? SpottedRed : Color.white;
+            var tint = spotted ? SpottedRed : Color.white;
             tint.a = Mathf.Clamp01(held
                 ? elapsed / BannerFadeIn
                 : Mathf.Min(elapsed / BannerFadeIn, (BannerSeconds - elapsed) / BannerFadeOut));
             announcement.color = tint;
+            var showBar = spotted && progress.HasValue;
+            spotBar.enabled = showBar;
+            if (showBar)
+                spotBar.rectTransform.sizeDelta = new Vector2(
+                    SpotBarWidth * Mathf.Clamp01(progress.Value.SpottedFill), 2f);
             var prompt = tracker?.CurrentPrompt;
             if (progress.HasValue && tracker.CurrentState is ObjectiveType.Survive or ObjectiveType.ExtractionChallenge)
             {
@@ -182,7 +196,7 @@ namespace UI.PlayerState
             announcement.text = text;
         }
 
-        // Only the hunt ending on the tracker that ran it is the alarm; a tracker change or lost progress is not.
+        // Fades when that tracker's gap ends, not when the tracker changes.
         private void ReadHunt(ObjectiveTracker tracker, SectorPhaseProgress? progress)
         {
             var hunt = progress?.Hunt ?? HuntReading.None;
@@ -190,9 +204,12 @@ namespace UI.PlayerState
             huntTracker = tracker;
             lastHunt = hunt;
             if (banner == Banner.Spotted && hunt != HuntReading.Spotted) banner = Banner.None;
+            // Already shown, so the fade-out clock starts after its fade-in.
+            if (banner == Banner.Coming && hunt != HuntReading.Coming && previous == HuntReading.Coming)
+                bannerAt = Time.unscaledTime - BannerFadeIn;
             if (hunt == previous) return;
-            if (hunt == HuntReading.Spotted) Show(Banner.Spotted, string.Empty);
-            else if (hunt == HuntReading.None && progress.HasValue) Show(Banner.Coming, "THEY'RE COMING");
+            if (hunt == HuntReading.Spotted) Show(Banner.Spotted, "SPOTTED");
+            else if (hunt == HuntReading.Coming) Show(Banner.Coming, "THEY'RE COMING");
         }
 
         private static string Clock(float secondsLeft)
@@ -230,6 +247,7 @@ namespace UI.PlayerState
             {
                 HuntReading.Searching => "SEARCHING",
                 HuntReading.Spotted => "SPOTTED",
+                HuntReading.Coming => "INCOMING",
                 _ => phase.Index == phase.Count - 1 ? "EXTRACTION" : "NEXT PHASE"
             };
             caption.fontSize = phase.ExtractionOpen ? 10 : 5;

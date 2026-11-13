@@ -52,6 +52,7 @@ MonoBehaviour:
   hunt: {fileID: 7436810692243587915}
   elite: {fileID: 4201520510818603066}
   spawnRadius: 55
+  groupSpread: 8
   clearanceRadius: 6
   asteroidMask:
     serializedVersion: 2
@@ -360,6 +361,7 @@ MonoBehaviour:
   faction: {fileID: 4667602915908898981}
   patrolPilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
     type: 3}
+  sightWedge: {fileID: 2100000, guid: 002bf586feb8a3c4f92ea111d6eb48a7, type: 2}
   team: 1
   spawnDistanceMin: 100
   spawnDistanceMax: 150

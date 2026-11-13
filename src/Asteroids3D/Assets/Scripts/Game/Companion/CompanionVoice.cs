@@ -8,9 +8,10 @@ namespace Game.Companion
 {
     /// <summary>
     /// Speaks for the run's moments: each raised moment picks a line from its line slot, fills in the
-    /// moment's facts and offers it to the nag budget, and a line the budget lets through shows on the comm
-    /// line. Built once per session; each run hands it that run's moment stream. With debug labels on, an
-    /// empty line slot speaks a bracketed label of its id and the moment's facts instead of staying silent.
+    /// moment's facts, prefixes the slot's speaker when one is named, and offers it to the nag budget. A
+    /// line the budget lets through shows on the comm line. Built once per session; each run hands it that
+    /// run's moment stream. With debug labels on, an empty line slot speaks a bracketed label of its id and
+    /// the moment's facts instead of staying silent, with that speaker prefix when the slot names one.
     /// </summary>
     public sealed class CompanionVoice : MonoBehaviour
     {
@@ -62,6 +63,8 @@ namespace Game.Companion
                 line = DebugLabel(moment);
             else
                 return;
+            if (!string.IsNullOrWhiteSpace(slot.Speaker))
+                line = slot.Speaker + ": " + line;
             budget.Offer(line, slot.MustSay, Time.unscaledTime);
             TrySpeak();
         }
