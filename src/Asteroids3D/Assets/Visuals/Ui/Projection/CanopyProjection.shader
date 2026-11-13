@@ -14,6 +14,8 @@ Shader "Hidden/UI/CanopyProjection"
         TEXTURE2D(_HaloLight);
         TEXTURE2D_X(_SceneImage);
         float2 _Resolution;
+        // xy: the pixels the image shows at on screen; zw: that screen's size.
+        float4 _Screen;
         float _Decay, _Clock, _PersonalityEnabled, _AppearAge, _TransitionAge, _HitAge;
         float4 _Beam, _Phosphor, _Glass;
         float4 _Halo, _Bleed, _CoolTint, _HaloTexel;
@@ -46,8 +48,8 @@ Shader "Hidden/UI/CanopyProjection"
                 CanopyRadius(p + float2(.0001, 0.0)) - CanopyRadius(p - float2(.0001, 0.0)),
                 CanopyRadius(p + float2(0.0, .0001)) - CanopyRadius(p - float2(0.0, .0001)));
             float rim = smoothstep(.26, 1.12, radius);
-            float pixels = strength * 30.0 * (_Resolution.x / 1600.0) * rim * rim;
-            return normalize(gradient / _Resolution) * pixels / _Resolution;
+            float pixels = strength * 30.0 * (_Screen.z / 1600.0) * rim * rim;
+            return normalize(gradient / _Resolution) * pixels / _Screen.xy;
         }
 
         float3 Ink(float2 p)
@@ -90,7 +92,7 @@ Shader "Hidden/UI/CanopyProjection"
 
         float4 HaloBlur(Varyings input) : SV_Target
         {
-            float sigma = _Halo.x * (_Resolution.x / 1600.0) / 4.0;
+            float sigma = _Halo.x * (_Screen.z / 1600.0) * (_Resolution.x / _Screen.x) / 4.0;
             float2 stepUv = _HaloTexel.xy * (sigma / 3.0);
             float3 sum = 0.0;
             float weightSum = 0.0;
@@ -108,7 +110,8 @@ Shader "Hidden/UI/CanopyProjection"
             p = ImageUv(texcoord);
             float2 center = p - .5;
             float edge = smoothstep(.025, .45, dot(center, center));
-            float pixelScale = _Resolution.x / 1600.0;
+            // Pixel terms are screen pixels at 1600 wide, converted to uv by the apparent size.
+            float pixelScale = _Screen.z / 1600.0;
             float glow = _Beam.x;
             float aberration = _Beam.y * pixelScale;
             float beamJitter = _Beam.z * pixelScale;
@@ -122,11 +125,11 @@ Shader "Hidden/UI/CanopyProjection"
             if (_PersonalityEnabled > .5)
             {
                 p += CanopyOffset(p, glassDistortion);
-                float band = floor(p.y * _Resolution.y / 3.0);
-                p.x += (Hash(float2(band, floor(_Clock * 11.0))) - .5) * beamJitter / _Resolution.x;
+                float band = floor(p.y * _Screen.y / 3.0);
+                p.x += (Hash(float2(band, floor(_Clock * 11.0))) - .5) * beamJitter / _Screen.x;
                 float kick = _HitAge >= 0.0 && _HitAge < .7 ? damageShudder * exp(-_HitAge * 7.0) : 0.0;
                 float2 shudder = float2(sin(_HitAge * 71.0), sin(_HitAge * 53.0) * .65) * kick;
-                p -= shudder / _Resolution;
+                p -= shudder / _Screen.xy;
                 if (_TransitionAge >= 0.0 && _TransitionAge < .35)
                 {
                     float tear = step(.75, Hash(float2(floor(p.y * 18.0), floor(_TransitionAge * 9.0))));
@@ -136,7 +139,7 @@ Shader "Hidden/UI/CanopyProjection"
             float3 light = Ink(p);
             if (_PersonalityEnabled > .5)
             {
-                float2 separation = normalize(center + float2(.0001, .0001)) * aberration * edge / _Resolution;
+                float2 separation = normalize(center + float2(.0001, .0001)) * aberration * edge / _Screen.xy;
                 float3 split = float3(Ink(p + separation).r, light.g, Ink(p - separation).b);
                 light = lerp(light, split, .88);
                 if (_Bleed.x > 0.0)
@@ -148,17 +151,17 @@ Shader "Hidden/UI/CanopyProjection"
                     {
                         float w = exp(-k / 4.0);
                         // Sampling left lays the trail to the right of strokes.
-                        float3 s = Ink(p - float2(k * stepPx / _Resolution.x, 0.0));
+                        float3 s = Ink(p - float2(k * stepPx / _Screen.x, 0.0));
                         trail += max(s.r, max(s.g, s.b)) * w;
                         weightSum += w;
                     }
                     light += _CoolTint.rgb * (trail / weightSum) * _Bleed.x;
                 }
-                float grain = Hash(floor(p * _Resolution * .8));
+                float grain = Hash(floor(p * _Screen.xy * .8));
                 light *= 1.0 - wear * .62 * (1.0 - grain);
-                light *= 1.0 - scanlines * .48 * (.5 + .5 * cos(p.y * _Resolution.y * 3.14159265));
+                light *= 1.0 - scanlines * .48 * (.5 + .5 * cos(p.y * _Screen.y * 3.14159265));
                 float radius = (1.5 + glow * 4.0) * pixelScale;
-                float2 d = radius / _Resolution;
+                float2 d = radius / _Screen.xy;
                 float3 halo = Bloom(p) * .16;
                 halo += (Bloom(p + float2(d.x, 0.0)) + Bloom(p - float2(d.x, 0.0))
                     + Bloom(p + float2(0.0, d.y)) + Bloom(p - float2(0.0, d.y))) * .12;

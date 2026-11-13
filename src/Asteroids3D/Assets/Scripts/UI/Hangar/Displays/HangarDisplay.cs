@@ -7,15 +7,24 @@ namespace UI.Hangar.Displays
 {
     /// <summary>
     /// One console screen. Its camera draws a canvas into a texture, the shared canopy effect
-    /// processes that texture, and the result is the glass emission.
+    /// processes that texture at the size the glass shows on the host camera, and the result is the
+    /// glass emission. One brightness level drives the glass and its spill light together: a
+    /// phosphor flicker, a flare on each glitch, and the collapse to black of a power-down.
     /// </summary>
     public sealed class HangarDisplay : MonoBehaviour
     {
+        public const float PowerDownSeconds = .5f;
+        private const float GlitchSeconds = .35f;
+        private const float FlickerDepth = .06f;
+        private const float FlareGain = .6f;
         private static readonly int EmissionMapId = Shader.PropertyToID("_EmissionMap");
+        private static readonly int EmissionStrengthId = Shader.PropertyToID("_EmissionStrength");
+        private static readonly int EmissionTintId = Shader.PropertyToID("_EmissionTint");
 
         [SerializeField] private Camera displayCamera;
         [SerializeField] private Canvas canvas;
         [SerializeField] private CanopyImage image;
+        [SerializeField] private Light spill;
         [SerializeField] private Vector2Int resolution;
 
         private RenderTexture texture;
@@ -23,6 +32,9 @@ namespace UI.Hangar.Displays
         private MeshRenderer glass;
         private Camera host;
         private Func<CanopySettings> settings;
+        private float spillIntensity;
+        private float glitchAt = float.NegativeInfinity;
+        private float powerDownAt = float.NegativeInfinity;
         private bool started;
         private bool wired;
 
@@ -30,13 +42,15 @@ namespace UI.Hangar.Displays
         public Canvas Canvas => canvas;
         public Vector2Int Resolution => resolution;
         public RenderTexture Texture => texture;
+        internal float Level { get; private set; } = 1f;
+        internal bool PoweringDown => !float.IsNegativeInfinity(powerDownAt);
 
         private void Awake()
         {
             var scaler = canvas ? canvas.GetComponent<CanvasScaler>() : null;
-            if (!displayCamera || !canvas || !scaler || !image || resolution.x < 1 || resolution.y < 1)
+            if (!displayCamera || !canvas || !scaler || !image || !spill || resolution.x < 1 || resolution.y < 1)
                 throw new InvalidOperationException(
-                    $"HangarDisplay on '{name}' needs a camera, canvas, scaler, canopy image and resolution.");
+                    $"HangarDisplay on '{name}' needs a camera, canvas, scaler, canopy image, spill light and resolution.");
             if (canvas.GetComponent<GraphicRaycaster>())
                 throw new InvalidOperationException($"HangarDisplay on '{name}' must not raycast on its own.");
             Configure(displayCamera, canvas, scaler, resolution);
@@ -48,6 +62,7 @@ namespace UI.Hangar.Displays
             };
             displayCamera.targetTexture = texture;
             block = new MaterialPropertyBlock();
+            spillIntensity = spill.intensity;
         }
 
         public void Initialize(Camera host, MeshRenderer glass, Func<CanopySettings> settings)
@@ -58,7 +73,16 @@ namespace UI.Hangar.Displays
             this.host = host;
             this.glass = glass;
             this.settings = settings;
+            spill.color = glass.sharedMaterial.GetColor(EmissionTintId);
             if (started) WireImage();
+        }
+
+        public void Glitch() => glitchAt = Time.unscaledTime;
+
+        public void PowerDown()
+        {
+            powerDownAt = Time.unscaledTime;
+            Glitch();
         }
 
         // Start, so CanopyImage.Awake has run and its OnEnable did not bind.
@@ -72,14 +96,49 @@ namespace UI.Hangar.Displays
         {
             if (wired || !host) return;
             wired = true;
-            image.Initialize(host, () => texture, settings);
+            image.Initialize(host, () => texture, settings, Footprint, TransitionAge);
         }
 
         private void LateUpdate()
         {
+            Level = LevelNow(Time.unscaledTime);
             glass.GetPropertyBlock(block);
             block.SetTexture(EmissionMapId, image.Output);
+            block.SetFloat(EmissionStrengthId, Level);
             glass.SetPropertyBlock(block);
+            spill.intensity = spillIntensity * Level;
+        }
+
+        private float LevelNow(float now)
+        {
+            var level = 1f - settings().flicker * FlickerDepth * Mathf.PerlinNoise(now * 9f, resolution.x * .37f);
+            var glitchAge = now - glitchAt;
+            if (glitchAge < GlitchSeconds) level *= 1f + FlareGain * (1f - glitchAge / GlitchSeconds);
+            if (!PoweringDown) return level;
+            var collapse = 1f - Mathf.Clamp01((now - powerDownAt) / PowerDownSeconds);
+            return level * collapse * collapse;
+        }
+
+        private float TransitionAge()
+        {
+            var age = Time.unscaledTime - glitchAt;
+            return age < GlitchSeconds ? age : -1f;
+        }
+
+        private CanopyScreen Footprint()
+        {
+            var bounds = glass.bounds;
+            var min = new Vector2(float.MaxValue, float.MaxValue);
+            var max = new Vector2(float.MinValue, float.MinValue);
+            for (var i = 0; i < 8; i++)
+            {
+                var corner = bounds.center + Vector3.Scale(bounds.extents,
+                    new Vector3((i & 1) == 0 ? -1f : 1f, (i & 2) == 0 ? -1f : 1f, (i & 4) == 0 ? -1f : 1f));
+                Vector2 pixel = host.WorldToScreenPoint(corner);
+                min = Vector2.Min(min, pixel);
+                max = Vector2.Max(max, pixel);
+            }
+            return new CanopyScreen(max - min, new Vector2(host.pixelWidth, host.pixelHeight));
         }
 
         private void OnDestroy()

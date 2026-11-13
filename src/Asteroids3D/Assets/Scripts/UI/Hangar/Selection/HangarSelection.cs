@@ -43,6 +43,7 @@ namespace UI.Hangar.Selection
 
         public HangarSlot Selected { get; private set; }
 
+        public IReadOnlyList<Ship> Ships => (IReadOnlyList<Ship>)ships ?? Array.Empty<Ship>();
         public Ship Ship => loadout.Ship;
         public WeaponComponent Weapon => loadout.PrimaryWeapon;
         public WeaponComponent Ordnance => loadout.SecondaryWeapon;
@@ -51,6 +52,8 @@ namespace UI.Hangar.Selection
 
         public event Action Changed;
         public event Action<Ship, int> ShipChanged;
+        // A stepped ship, weapon or ordnance; a slot selection is not one.
+        public event Action OptionChanged;
 
         public void Select(HangarSlot slot)
         {
@@ -87,6 +90,7 @@ namespace UI.Hangar.Selection
                 default:
                     throw new ArgumentOutOfRangeException(nameof(Selected), Selected, null);
             }
+            OptionChanged?.Invoke();
             Changed?.Invoke();
         }
 

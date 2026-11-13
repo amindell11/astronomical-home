@@ -58,7 +58,14 @@ namespace Tests.PlayMode.Hangar
             Press(keyboard.enterKey);
             InputSystem.Update();
             yield return null;
-            Assert.IsTrue(launched, "Enter launches");
+            Assert.IsTrue(console.InputLocked, "Enter locks the keys");
+            Press(keyboard.leftArrowKey);
+            InputSystem.Update();
+            yield return null;
+            Assert.AreSame(nightshade, console.Selection.Ship, "a key after Enter steps nothing");
+            var start = Time.unscaledTime;
+            while (!launched && Time.unscaledTime - start < 3f) yield return null;
+            Assert.IsTrue(launched, "Enter launches once the screens have powered down");
         }
     }
 }

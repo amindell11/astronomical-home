@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Ships;
 using Ships.Loadout;
@@ -13,7 +14,9 @@ namespace UI.Hangar.Hardware
 {
     /// <summary>
     /// The hangar: its console world, the composite image, and the choices on the two displays.
-    /// The hologram projector is its part at the lens. Launch hands the pending loadout to the caller.
+    /// The hologram projector is its part at the lens. An accepted Launch locks the keys and the
+    /// pointer, presses the button and powers both screens down before the caller is handed the
+    /// pending loadout, once.
     /// </summary>
     public sealed class HangarConsole : MonoBehaviour
     {
@@ -21,15 +24,19 @@ namespace UI.Hangar.Hardware
         public const int CompositeSortingOrder = 50;
         private const float TallerViewVerticalBias = .36f;
         private const float TallerViewOverscan = 1.01f;
+        private static readonly int ConstantEmissionId = Shader.PropertyToID("_ConstantEmission");
+        private const float LaunchDim = .1f;
 
         [SerializeField] private Camera hardwareCamera;
         [SerializeField] private float referenceVerticalFov = 34.11393f;
         [SerializeField] private MeshRenderer mainScreenGlass;
         [SerializeField] private MeshRenderer detailScreenGlass;
         [SerializeField] private HangarControl selectorKnob;
+        [SerializeField] private HangarKnob knob;
         [SerializeField] private HangarControl previousButton;
         [SerializeField] private HangarControl nextButton;
         [SerializeField] private HangarControl launchButton;
+        [SerializeField] private MeshRenderer launchLegend;
         [SerializeField] private MeshRenderer projectorLens;
         [SerializeField] private RawImage compositeImage;
         [SerializeField] private HangarHologramProjector projector;
@@ -44,9 +51,12 @@ namespace UI.Hangar.Hardware
         private RenderTexture texture;
         private readonly Vector3[] corners = new Vector3[4];
         private readonly List<InputAction> actions = new();
-        private Quaternion restRotation;
+        private MaterialPropertyBlock legendBlock;
+        private Color legendLit;
+        private HangarConsoleRaycaster raycaster;
         private HangarSelection selection;
         private Action onLaunch;
+        private bool launching;
 
         public Camera HardwareCamera => hardwareCamera;
         public MeshRenderer MainScreenGlass => mainScreenGlass;
@@ -64,15 +74,25 @@ namespace UI.Hangar.Hardware
         internal HangarSelection Selection => selection;
         internal Vector3 KnobAxis => knobAxis;
         internal float KnobDetentDegrees => knobDetentDegrees;
+        internal bool KnobSettled => knob.Settled;
+        internal bool InputLocked => launching;
+        internal bool LaunchLegendLit => legendBlock.GetColor(ConstantEmissionId) == legendLit;
 
         private void Awake()
         {
-            if (!hardwareCamera || !mainScreenGlass || !detailScreenGlass || !selectorKnob ||
-                !previousButton || !nextButton || !launchButton || !projectorLens || !compositeImage || !projector ||
-                !mainDisplay || !detailDisplay || !mainView || !detailView || !displayProfile)
+            if (!hardwareCamera || !mainScreenGlass || !detailScreenGlass || !selectorKnob || !knob ||
+                !previousButton || !nextButton || !launchButton || !launchLegend || !projectorLens ||
+                !compositeImage || !projector || !mainDisplay || !detailDisplay || !mainView || !detailView ||
+                !displayProfile)
                 throw new InvalidOperationException(
-                    "HangarConsole needs its camera, glass, controls, displays, profile, projector lens, composite image and projector.");
-            restRotation = selectorKnob.transform.localRotation;
+                    "HangarConsole needs its camera, glass, controls, knob, launch legend, displays, profile, projector lens, composite image and projector.");
+            raycaster = GetComponent<HangarConsoleRaycaster>();
+            if (!raycaster)
+                throw new InvalidOperationException("HangarConsole needs its raycaster on the same object.");
+            knob.Initialize(knobAxis);
+            legendBlock = new MaterialPropertyBlock();
+            legendLit = launchLegend.sharedMaterial.GetColor(ConstantEmissionId);
+            LightLegend(true);
             mainDisplay.Initialize(hardwareCamera, mainScreenGlass, () => displayProfile.MainDisplay);
             detailDisplay.Initialize(hardwareCamera, detailScreenGlass, () => displayProfile.DetailDisplay);
         }
@@ -87,20 +107,38 @@ namespace UI.Hangar.Hardware
             selection.ShipChanged += projector.Select;
             mainView.Bind(selection);
             detailView.Bind(selection);
+            mainView.ArrowPressed += step => (step < 0 ? previousButton : nextButton).Press();
             previousButton.Pressed += () => selection.Step(-1);
             nextButton.Pressed += () => selection.Step(1);
             selectorKnob.Pressed += () => selection.Turn(1);
             launchButton.Pressed += Launch;
             selection.Changed += ApplyKnob;
+            selection.Changed += ApplyLaunch;
+            selection.OptionChanged += mainDisplay.Glitch;
+            selection.OptionChanged += detailDisplay.Glitch;
             EnableKeys();
-            ApplyKnob();
+            knob.Snap(Detent());
+            ApplyLaunch();
         }
 
         public void Launch()
         {
             if (selection == null)
                 throw new InvalidOperationException("HangarConsole.Launch was called before Show.");
-            if (!selection.CanLaunch) return;
+            if (!selection.CanLaunch || launching) return;
+            launching = true;
+            for (var i = 0; i < actions.Count; i++) actions[i].Disable();
+            raycaster.enabled = false;
+            launchButton.Move();
+            mainDisplay.PowerDown();
+            detailDisplay.PowerDown();
+            StartCoroutine(HandOff());
+        }
+
+        private IEnumerator HandOff()
+        {
+            var started = Time.unscaledTime;
+            while (Time.unscaledTime - started < HangarDisplay.PowerDownSeconds) yield return null;
             onLaunch?.Invoke();
         }
 
@@ -139,16 +177,24 @@ namespace UI.Hangar.Hardware
             hardwareCamera.targetTexture = texture;
         }
 
-        private void ApplyKnob() =>
-            selectorKnob.transform.localRotation = restRotation *
-                Quaternion.AngleAxis(((int)selection.Selected - 1) * knobDetentDegrees, knobAxis);
+        private void ApplyKnob() => knob.Turn(Detent());
+
+        private float Detent() => ((int)selection.Selected - 1) * knobDetentDegrees;
+
+        private void ApplyLaunch() => LightLegend(selection.CanLaunch);
+
+        private void LightLegend(bool lit)
+        {
+            legendBlock.SetColor(ConstantEmissionId, lit ? legendLit : legendLit * LaunchDim);
+            launchLegend.SetPropertyBlock(legendBlock);
+        }
 
         private void EnableKeys()
         {
-            Key("StepBack", "<Keyboard>/leftArrow", "<Keyboard>/a", () => selection.Step(-1));
-            Key("StepForward", "<Keyboard>/rightArrow", "<Keyboard>/d", () => selection.Step(1));
+            Key("StepBack", "<Keyboard>/leftArrow", "<Keyboard>/a", previousButton.Press);
+            Key("StepForward", "<Keyboard>/rightArrow", "<Keyboard>/d", nextButton.Press);
             Key("TurnBack", "<Keyboard>/upArrow", "<Keyboard>/w", () => selection.Turn(-1));
-            Key("TurnForward", "<Keyboard>/downArrow", "<Keyboard>/s", () => selection.Turn(1));
+            Key("TurnForward", "<Keyboard>/downArrow", "<Keyboard>/s", selectorKnob.Press);
             // Scroll is a signed axis; a button binding ignores the negative half.
             var wheel = new InputAction("TurnWheel", InputActionType.Value, "<Mouse>/scroll/y");
             wheel.performed += context =>
@@ -162,7 +208,7 @@ namespace UI.Hangar.Hardware
             var launch = new InputAction("Launch", InputActionType.Button, "<Keyboard>/enter");
             launch.AddBinding("<Keyboard>/numpadEnter");
             launch.AddBinding("<Keyboard>/space");
-            launch.performed += _ => Launch();
+            launch.performed += _ => launchButton.Press();
             launch.Enable();
             actions.Add(launch);
         }

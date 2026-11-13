@@ -172,6 +172,8 @@ namespace UI.Projection
             data.ink = source.Ink;
             data.settings = settings;
             data.resolution = new Vector4(source.Ink.width, source.Ink.height, 0f, 0f);
+            var screen = source.Screen;
+            data.screen = new Vector4(screen.Apparent.x, screen.Apparent.y, screen.Frame.x, screen.Frame.y);
             data.time = Time.unscaledTime;
             data.enabled = source.EffectsEnabled;
             data.appearanceAge = -1f;
@@ -188,6 +190,7 @@ namespace UI.Projection
             if (data.scene.IsValid()) properties.SetTexture("_SceneImage", data.scene);
             if (data.halo.IsValid()) properties.SetTexture("_HaloLight", data.halo);
             properties.SetVector("_Resolution", data.resolution);
+            properties.SetVector("_Screen", data.screen);
             properties.SetVector("_Halo", new Vector4(data.settings.haloReach, data.settings.haloStrength,
                 data.settings.textGlow, data.settings.halation));
             properties.SetVector("_Bleed", new Vector4(data.settings.signalBleed, data.settings.bleedLength, 0f, 0f));
@@ -227,6 +230,7 @@ namespace UI.Projection
             public Vector4 haloTexel;
             public CanopySettings settings;
             public Vector4 resolution;
+            public Vector4 screen;
             public float decay;
             public float time;
             public bool enabled;

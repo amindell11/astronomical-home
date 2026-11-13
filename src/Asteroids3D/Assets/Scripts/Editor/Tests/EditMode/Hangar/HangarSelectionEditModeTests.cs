@@ -291,28 +291,49 @@ namespace Tests.EditMode.Hangar
         public void Describe_ShowsEveryStatOfCatalogWeaponAsset(string path, params string[] segmentPatterns)
         {
             var description = HangarDescriptions.Describe(Load<WeaponComponent>(path));
-            var segments = description.Split(new[] { "   |   " }, System.StringSplitOptions.None);
+            var segments = description.Split(new[] { HangarDescriptions.Separator }, System.StringSplitOptions.None);
             foreach (var pattern in segmentPatterns)
                 Assert.IsTrue(System.Array.Exists(segments, segment => Regex.IsMatch(segment, $"^{pattern}$")),
                     $"shows a segment matching `{pattern}` in: {description}");
         }
 
         [Test]
-        public void Describe_NamesTheChassisEngineShieldAndKeystone()
+        public void Describe_IsTwoLines_NamingTheChassisEngineShieldAndKeystone()
         {
             offer = Load<ItemSubset>(RealCatalogPath);
             for (var i = 0; i < offer.ships.Length; i++)
             {
                 var ship = offer.ships[i];
                 var lines = HangarDescriptions.Describe(ship).Split('\n');
-                var engine = $"Engine: {ship.Engine.DisplayName}";
-                var shield = $"Shield: {ship.Shield.DisplayName}";
-                StringAssert.StartsWith(engine, lines[1], $"ship {i + 1} names the chassis's engine");
-                StringAssert.StartsWith(shield, lines[2], $"ship {i + 1} names the chassis's shield");
-                StringAssert.StartsWith($"Keystone: {ship.KeystonePrefab.DisplayName}", lines[3],
-                    $"ship {i + 1} names the chassis's keystone");
-                StringAssert.DoesNotContain("_", engine + shield, $"ship {i + 1} shows authored names");
+                Assert.That(lines, Has.Length.EqualTo(2), $"ship {i + 1} fits the detail display");
+                StringAssert.StartsWith($"Hull {ship.maxHealth:0}{HangarDescriptions.Separator}Mass {ship.mass:0}", lines[0]);
+                var parts = lines[1].Split(new[] { HangarDescriptions.Separator }, System.StringSplitOptions.None);
+                Assert.AreEqual(ship.Engine.DisplayName, parts[0], $"ship {i + 1} names the chassis's engine");
+                Assert.AreEqual(ship.Shield.DisplayName, parts[1], $"ship {i + 1} names the chassis's shield");
+                StringAssert.StartsWith(ship.KeystonePrefab.DisplayName, parts[2], $"ship {i + 1} names the chassis's keystone");
+                StringAssert.EndsWith($"{ship.KeystonePrefab.Cooldown:0.#} s", parts[2], $"ship {i + 1} shows the keystone's cooldown");
+                StringAssert.DoesNotContain("_", lines[1], $"ship {i + 1} shows authored names");
             }
+        }
+
+        [Test]
+        public void Fill_MeasuresAgainstTheBest_WithAFloorForTheWeakest()
+        {
+            Assert.That(HangarStats.Fill(100f, 100f), Is.EqualTo(1f).Within(1e-5f));
+            Assert.That(HangarStats.Fill(0f, 100f), Is.EqualTo(HangarStats.Floor).Within(1e-5f));
+            Assert.That(HangarStats.Fill(50f, 100f), Is.EqualTo(HangarStats.Floor + (1f - HangarStats.Floor) * .5f).Within(1e-5f));
+            Assert.That(HangarStats.Fill(5f, 0f), Is.EqualTo(HangarStats.Floor).Within(1e-5f), "a stat nobody has still draws the floor");
+        }
+
+        [Test]
+        public void RealCatalog_EveryStatHasABest_AndAccelIsThrustOverMass()
+        {
+            offer = Load<ItemSubset>(RealCatalogPath);
+            foreach (var ship in offer.ships)
+                Assert.That(HangarStats.Value(ship, HangarStat.Accel),
+                    Is.EqualTo(ship.Engine.forwardForce / ship.mass).Within(1e-5f), ship.name);
+            for (var i = 0; i < HangarStats.Count; i++)
+                Assert.That(HangarStats.Best(offer.ships, (HangarStat)i), Is.GreaterThan(0f), ((HangarStat)i).ToString());
         }
 
         private HangarSelection WeaponOffer(out Ship vanguard, out ShipLoadout loadout)
