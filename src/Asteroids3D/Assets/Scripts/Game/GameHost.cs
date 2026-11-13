@@ -82,7 +82,7 @@ namespace Game
         [Tooltip("The title screen's name face.")]
         [SerializeField] internal Font titleFont;
 
-        [Tooltip("The face of the title and pause screens' buttons and labels.")]
+        [Tooltip("The face of the title, pause and settings screens' buttons and labels.")]
         [SerializeField] internal Font titleLabelFont;
 
         [Header("Music")]
@@ -219,6 +219,7 @@ namespace Game
                 music = Instantiate(musicPrefab, transform);
                 music.Initialize(objectiveService);
             }
+            if (presentation) VolumeSettings.Apply();
 
             SetSplashVisible(true);
             yield return null;
@@ -517,18 +518,25 @@ namespace Game
             SetSplashVisible(false);
             SetMusic(GameMusic.State.Hangar);
             SetHangarViewVisible(true);
-            var screen = TitleScreen.Create(ui, titleFont, titleLabelFont);
-            try
+            while (true)
             {
-                while (!screen.Choice.HasValue && !shutdownRequested) yield return null;
-                if (screen.Choice != TitleScreen.Option.Quit) yield break;
-                QuitGame();
-                // Quitting lands after this frame; the hangar must not open meanwhile.
-                while (!shutdownRequested) yield return null;
-            }
-            finally
-            {
-                Destroy(screen.gameObject);
+                var screen = TitleScreen.Create(ui, titleFont, titleLabelFont);
+                try
+                {
+                    while (!screen.Choice.HasValue && !shutdownRequested) yield return null;
+                    if (screen.Choice == TitleScreen.Option.Quit)
+                    {
+                        QuitGame();
+                        // Quitting lands after this frame; the hangar must not open meanwhile.
+                        while (!shutdownRequested) yield return null;
+                    }
+                    if (screen.Choice != TitleScreen.Option.Settings) yield break;
+                }
+                finally
+                {
+                    Destroy(screen.gameObject);
+                }
+                yield return RunSettings();
             }
         }
 
@@ -539,19 +547,42 @@ namespace Game
             rigInstance.SetInputEnabled(false);
             try
             {
-                var screen = PauseScreen.Create(ui, titleLabelFont);
-                try
+                // The screen under settings goes, so its Escape can't fire too; it is rebuilt after.
+                while (true)
                 {
-                    while (!screen.Choice.HasValue && !shutdownRequested) yield return null;
-                    quitRun = screen.Choice == PauseScreen.Option.QuitRun;
+                    var screen = PauseScreen.Create(ui, titleLabelFont);
+                    try
+                    {
+                        while (!screen.Choice.HasValue && !shutdownRequested) yield return null;
+                        quitRun = screen.Choice == PauseScreen.Option.QuitRun;
+                        if (screen.Choice != PauseScreen.Option.Settings) yield break;
+                    }
+                    finally { Destroy(screen.gameObject); }
+                    yield return RunSettings();
                 }
-                finally { Destroy(screen.gameObject); }
             }
             finally
             {
                 rigInstance.SetInputEnabled(true);
                 MixBuses.SetWorldPaused(false);
                 stop.Dispose();
+            }
+        }
+
+        private IEnumerator RunSettings()
+        {
+            var channels = VolumeSettings.Channels;
+            var screen = SettingsScreen.Create(ui, titleLabelFont,
+                Array.ConvertAll(channels, c => new SettingsScreen.Slider(VolumeSettings.Label(c), VolumeSettings.Get(c))),
+                (row, value) => VolumeSettings.Set(channels[row], value));
+            try
+            {
+                while (!screen.Closed && !shutdownRequested) yield return null;
+            }
+            finally
+            {
+                Destroy(screen.gameObject);
+                VolumeSettings.Save();
             }
         }
 

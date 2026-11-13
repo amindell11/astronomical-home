@@ -141,6 +141,28 @@ namespace Tests.PlayMode.Screens
             input.Release(gamepad.buttonEast);
             Assert.AreEqual(TitleScreen.Option.Quit, screen.Choice);
         }
+
+        [UnityTest]
+        public IEnumerator Settings_ClickOrS_Answers()
+        {
+            var keyboard = InputSystem.AddDevice<Keyboard>();
+            screen = CreateScreen();
+            yield return null;
+
+            Assert.AreEqual("SETTINGS", Text("Settings/Option"));
+            Assert.AreEqual("S", Text("Settings/Key"));
+            screen.transform.Find("Settings").GetComponent<Button>().onClick.Invoke();
+            Assert.AreEqual(TitleScreen.Option.Settings, screen.Choice);
+
+            Object.Destroy(screen.gameObject);
+            screen = CreateScreen();
+            yield return null;
+
+            input.Press(keyboard.sKey);
+            yield return null;
+            input.Release(keyboard.sKey);
+            Assert.AreEqual(TitleScreen.Option.Settings, screen.Choice);
+        }
     }
 }
 #endif

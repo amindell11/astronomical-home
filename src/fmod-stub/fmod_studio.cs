@@ -35,5 +35,7 @@ namespace FMOD.Studio
     public struct Bus
     {
         public RESULT setPaused(bool paused) => RESULT.OK;
+
+        public RESULT setVolume(float volume) => RESULT.OK;
     }
 }

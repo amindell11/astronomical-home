@@ -40,7 +40,7 @@ namespace Tests.PlayMode.Screens
         private string Text(string path) => screen.transform.Find(path).GetComponent<Text>().text;
 
         [UnityTest]
-        public IEnumerator Create_ShowsPausedAndBothCaptions()
+        public IEnumerator Create_ShowsPausedAndTheThreeCaptions()
         {
             screen = CreateScreen();
             yield return null;
@@ -48,8 +48,10 @@ namespace Tests.PlayMode.Screens
             Assert.AreEqual("PAUSED", Text("Title"));
             Assert.AreEqual("Rajdhani-Medium", screen.transform.Find("Title").GetComponent<Text>().font.name);
             Assert.AreEqual("RESUME", Text("Resume/Option"));
+            Assert.AreEqual("SETTINGS", Text("Settings/Option"));
             Assert.AreEqual("QUIT RUN", Text("QuitRun/Option"));
             Assert.AreEqual("ESC", Text("Resume/Key"));
+            Assert.AreEqual("S", Text("Settings/Key"));
             Assert.AreEqual("Q", Text("QuitRun/Key"));
             Assert.IsFalse(screen.Choice.HasValue, "unanswered until a choice");
         }
@@ -64,8 +66,14 @@ namespace Tests.PlayMode.Screens
             Assert.AreEqual(Navigation.Mode.None, resume.navigation.mode);
             resume.onClick.Invoke();
             Assert.AreEqual(PauseScreen.Option.Resume, screen.Choice);
-            screen.transform.Find("QuitRun").GetComponent<Button>().onClick.Invoke();
+            screen.transform.Find("Settings").GetComponent<Button>().onClick.Invoke();
             Assert.AreEqual(PauseScreen.Option.Resume, screen.Choice, "the first answer stands");
+
+            Object.Destroy(screen.gameObject);
+            screen = CreateScreen();
+            yield return null;
+            screen.transform.Find("Settings").GetComponent<Button>().onClick.Invoke();
+            Assert.AreEqual(PauseScreen.Option.Settings, screen.Choice);
 
             Object.Destroy(screen.gameObject);
             screen = CreateScreen();
@@ -75,7 +83,7 @@ namespace Tests.PlayMode.Screens
         }
 
         [UnityTest]
-        public IEnumerator Keys_EscapeResumes_QQuits()
+        public IEnumerator Keys_EscapeResumes_SOpensSettings_QQuits()
         {
             var keyboard = InputSystem.AddDevice<Keyboard>();
             screen = CreateScreen();
@@ -85,6 +93,15 @@ namespace Tests.PlayMode.Screens
             yield return null;
             input.Release(keyboard.escapeKey);
             Assert.AreEqual(PauseScreen.Option.Resume, screen.Choice);
+
+            Object.Destroy(screen.gameObject);
+            screen = CreateScreen();
+            yield return null;
+
+            input.Press(keyboard.sKey);
+            yield return null;
+            input.Release(keyboard.sKey);
+            Assert.AreEqual(PauseScreen.Option.Settings, screen.Choice);
 
             Object.Destroy(screen.gameObject);
             screen = CreateScreen();
