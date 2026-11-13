@@ -59,7 +59,7 @@ namespace Tests.PlayMode.Weapons.FireOrigins
         public void TurboLasers_AuthorTheirFireInterval()
         {
             var lasers = (Lasers)Prefab("TurboLasers");
-            Assert.That(lasers.ShotsPerSecond.Value, Is.EqualTo(1f / 0.2f).Within(1e-4f));
+            Assert.That(lasers.ShotsPerSecond.Value, Is.EqualTo(1f / 0.075f).Within(1e-4f));
         }
 
         [UnityTest]

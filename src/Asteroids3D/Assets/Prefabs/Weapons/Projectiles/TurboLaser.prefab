@@ -208,17 +208,17 @@ PrefabInstance:
     - target: {fileID: 5408995189547049293, guid: d4f6577bb30c48945a17243a523023ff,
         type: 3}
       propertyPath: damage
-      value: 12
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 5408995189547049293, guid: d4f6577bb30c48945a17243a523023ff,
         type: 3}
       propertyPath: laserSpeed
-      value: 80
+      value: 65
       objectReference: {fileID: 0}
     - target: {fileID: 5408995189547049293, guid: d4f6577bb30c48945a17243a523023ff,
         type: 3}
       propertyPath: maxDistance
-      value: 50
+      value: 35
       objectReference: {fileID: 0}
     - target: {fileID: 6189456180649817258, guid: d4f6577bb30c48945a17243a523023ff,
         type: 3}
