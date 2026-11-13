@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Combat;
 using Combat.Projectiles;
+using Combat.Projectiles.Visual;
 using Damage;
 using NUnit.Framework;
 using Ships.Registry;
@@ -133,6 +134,44 @@ namespace Tests.PlayMode.Projectiles
             renderer.GetPropertyBlock(block);
             Assert.Greater(block.GetColor(baseColor).a, .95f, "the reused child must regain full opacity");
             reused.ReturnToPoolImmediate();
+        }
+
+        [UnityTest]
+        public IEnumerator Bolts_StayVisible_UntilTheyDespawnAtRangeEnd()
+        {
+            var block = new MaterialPropertyBlock();
+            var baseColor = Shader.PropertyToID("_BaseColor");
+            foreach (var name in new[] { "Laser", "TurboLaser", "RipperSlug" })
+            {
+                var prefab = AssetDatabase.LoadAssetAtPath<Laser>($"Assets/Prefabs/Weapons/Projectiles/{name}.prefab");
+                var shooter = Track(new GameObject("Shooter")).AddComponent<Shooter>();
+                var projectile = SimplePool<Laser>.Get(prefab, Vector3.zero, Quaternion.identity);
+                Projectiles.Register(projectile, projectile.ReturnToPoolImmediate);
+                projectile.Initialize(shooter);
+                projectile.Launch(Vector3.up, Vector3.up * 50f);
+
+                var renderers = projectile.GetComponentsInChildren<Renderer>();
+                var minAlpha = 1f;
+                var lastNormalized = 0f;
+                var deadline = Time.time + 5f;
+                while (projectile.gameObject.activeSelf && Time.time < deadline)
+                {
+                    yield return null;
+                    if (!projectile.gameObject.activeSelf)
+                        break;
+                    lastNormalized = projectile.DistanceTraveled / projectile.MaxDistance;
+                    foreach (var renderer in renderers)
+                    {
+                        renderer.GetPropertyBlock(block);
+                        minAlpha = Mathf.Min(minAlpha, block.GetColor(baseColor).a);
+                    }
+                }
+
+                Assert.IsFalse(projectile.gameObject.activeSelf, $"{name} did not despawn");
+                Assert.That(lastNormalized, Is.GreaterThanOrEqualTo(0.9f), $"{name} samples must reach the end of range");
+                Assert.That(minAlpha, Is.GreaterThanOrEqualTo(LaserVisual.AlphaAtRangeEnd - 0.001f),
+                    $"{name} must read until it despawns");
+            }
         }
 
         private Laser Fire(string prefabName, Vector3 direction, ProjectileService projectiles)
