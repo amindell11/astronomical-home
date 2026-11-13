@@ -1,8 +1,8 @@
 using System.Linq;
-using System.IO;
 using NUnit.Framework;
-using UI.Hangar;
+using UI.Hangar.Displays;
 using UI.Hangar.Hardware;
+using UI.Hangar.Selection;
 using UnityEditor;
 using UnityEngine;
 
@@ -109,13 +109,53 @@ namespace Tests.EditMode.Hangar
         }
 
         [Test]
-        public void CompositeCanvas_SortsBelowTheHangarMenu()
+        public void DisplaysControlsAndRaycasterAreWired()
         {
             var console = AssetDatabase.LoadAssetAtPath<HangarConsole>(PrefabPath);
-            var screen = AssetDatabase.LoadAssetAtPath<HangarScreen>("Assets/Prefabs/UI/HangarScreen.prefab");
-            var composite = console.GetComponentInChildren<Canvas>(true);
-            Assert.IsTrue(composite, "the console has a composite canvas");
-            Assert.That(composite.sortingOrder, Is.LessThan(screen.GetComponent<Canvas>().sortingOrder));
+            var data = new SerializedObject(console);
+            foreach (var name in new[]
+                     {
+                         "mainDisplay", "detailDisplay", "mainView", "detailView", "displayProfile",
+                         "selectorKnob", "knob", "previousButton", "nextButton", "launchButton", "launchLegend"
+                     })
+                Assert.IsTrue(data.FindProperty(name).objectReferenceValue, name);
+            Assert.IsTrue(console.GetComponent<HangarConsoleRaycaster>(), "the console raycasts its own pointers");
+            Assert.That(console.GetComponentsInChildren<HangarControl>(true), Has.Length.EqualTo(4));
+            Assert.That(console.GetComponentsInChildren<HangarDisplay>(true), Has.Length.EqualTo(2));
+            foreach (var display in console.GetComponentsInChildren<HangarDisplay>(true))
+                Assert.IsNull(display.Canvas.GetComponent<UnityEngine.UI.GraphicRaycaster>(), display.name);
+        }
+
+        [Test]
+        public void ControlsPressAlongTheirAuthoredUp_AwayFromTheCamera_AndTheKnobTurnsAboutIt()
+        {
+            var console = AssetDatabase.LoadAssetAtPath<HangarConsole>(PrefabPath);
+            var camera = console.HardwareCamera.transform;
+            foreach (var part in new[] { console.SelectorKnob, console.PreviousButton, console.NextButton, console.LaunchButton })
+            {
+                var axis = new SerializedObject(part.GetComponent<HangarControl>()).FindProperty("pressAxis").vector3Value;
+                Assert.That(Vector3.Distance(axis, Vector3.down), Is.LessThan(.001f), part.name + " presses along its own down");
+                Assert.That(Vector3.Dot(part.TransformDirection(axis), camera.forward), Is.GreaterThan(0f), part.name + " presses away from the camera");
+            }
+            Assert.That(Vector3.Distance(console.KnobAxis, Vector3.up), Is.LessThan(.001f));
+            var grip = console.SelectorKnob.GetComponent<MeshFilter>().sharedMesh.bounds.center;
+            Assert.That(new Vector2(grip.x, grip.z).magnitude, Is.LessThan(.001f), "the knob's grip is centred on its pivot");
+        }
+
+        [Test]
+        public void EachSlotHasAnArrowPair_AndTheDisplaysDriveTheirSpillLights()
+        {
+            var console = AssetDatabase.LoadAssetAtPath<HangarConsole>(PrefabPath);
+            var view = console.GetComponentInChildren<HangarMainDisplayView>(true);
+            foreach (HangarSlot slot in System.Enum.GetValues(typeof(HangarSlot)))
+            foreach (var step in new[] { -1, 1 })
+            {
+                var arrow = view.Arrow(slot, step);
+                Assert.IsTrue(arrow, $"{slot} {step}");
+                Assert.IsTrue(arrow.targetGraphic && arrow.targetGraphic.raycastTarget, $"{slot} {step} arrow is clickable");
+            }
+            foreach (var display in console.GetComponentsInChildren<HangarDisplay>(true))
+                Assert.IsTrue(new SerializedObject(display).FindProperty("spill").objectReferenceValue, display.name + " spill");
         }
 
         [Test]
@@ -148,27 +188,46 @@ namespace Tests.EditMode.Hangar
 
         [Test]
         [Category("RequiresLfsPng")]
-        public void StaticDisplaysKeepTheirAuthoredPartialPixelCoverage()
+        public void GlassCarriesNoReference_AndItsDisplayIsTwiceTheReferencePicture()
         {
             var console = AssetDatabase.LoadAssetAtPath<HangarConsole>(PrefabPath);
-            foreach (var glass in new[] { console.MainScreenGlass, console.DetailScreenGlass })
+            foreach (var (glass, display) in new[]
+                     {
+                         (console.MainScreenGlass, console.MainDisplay),
+                         (console.DetailScreenGlass, console.DetailDisplay)
+                     })
             {
-                var material = glass.sharedMaterial;
-                var path = AssetDatabase.GetAssetPath(material.GetTexture("_EmissionMap"));
-                var importer = (TextureImporter)AssetImporter.GetAtPath(path);
-                Assert.That(importer.alphaSource, Is.EqualTo(TextureImporterAlphaSource.FromInput), glass.name);
-                Assert.That(material.GetFloat("_UseEmissionAlpha"), Is.EqualTo(1f), glass.name);
-                var texture = new Texture2D(2, 2);
-                try
+                Assert.IsNull(glass.sharedMaterial.GetTexture("_BaseMap"), glass.name);
+                Assert.IsNull(glass.sharedMaterial.GetTexture("_EmissionMap"), glass.name);
+                Assert.That(glass.sharedMaterial.GetFloat("_UseEmissionAlpha"), Is.EqualTo(0f), glass.name);
+                var reference = AssetDatabase.LoadAssetAtPath<Texture2D>(
+                    $"Assets/Visuals/Hangar/Console/{glass.name.Replace("Glass", "Reference")}.png");
+                Assert.AreEqual(new Vector2Int(reference.width * 2, reference.height * 2), display.Resolution, glass.name);
+            }
+        }
+
+        [TestCase(1920, 1080)]
+        [TestCase(1920, 1200)]
+        [TestCase(2520, 1080)]
+        public void DisplayRootsSitOutsideTheHardwareFrustum(int width, int height)
+        {
+            var instance = Object.Instantiate(AssetDatabase.LoadAssetAtPath<HangarConsole>(PrefabPath));
+            try
+            {
+                instance.Resize(new Vector2Int(width, height));
+                var planes = GeometryUtility.CalculateFrustumPlanes(instance.HardwareCamera);
+                foreach (var display in new[] { instance.MainDisplay, instance.DetailDisplay })
                 {
-                    ImageConversion.LoadImage(texture, File.ReadAllBytes(path));
-                    Assert.That(texture.GetPixels32().Count(pixel => pixel.a > 0 && pixel.a < 255),
-                        Is.GreaterThan(50), glass.name + " antialiased reference pixels");
+                    var corners = new Vector3[4];
+                    display.Canvas.GetComponent<RectTransform>().GetWorldCorners(corners);
+                    var bounds = new Bounds(corners[0], Vector3.zero);
+                    for (var i = 1; i < corners.Length; i++) bounds.Encapsulate(corners[i]);
+                    Assert.IsFalse(GeometryUtility.TestPlanesAABB(planes, bounds), display.name);
                 }
-                finally
-                {
-                    Object.DestroyImmediate(texture);
-                }
+            }
+            finally
+            {
+                Object.DestroyImmediate(instance.gameObject);
             }
         }
     }

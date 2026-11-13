@@ -480,6 +480,19 @@ namespace Asteroids.Fields
             return AI.Scanning.ObstacleSelection.KeepNearest(queryScratch, centerPlane, buffer);
         }
 
+        public bool AnyObstacleWithin(Vector2 centerPlane, float radius)
+        {
+            // Rocks drift off the home chunk, so this scans the live set.
+            foreach (var ast in homeChunkOf.Keys)
+            {
+                if (!ast) continue;
+                var delta = GamePlane.WorldPointToPlane(ast.transform.position) - centerPlane;
+                var reach = radius + ast.Radius;
+                if (delta.sqrMagnitude < reach * reach) return true;
+            }
+            return false;
+        }
+
         /// <summary>
         /// Projects an asteroid's baked mesh-local lobes to the plane (unconditionally — cheap;
         /// the MPC kill switch, not the field, decides whether to consume them). The primary
@@ -492,7 +505,7 @@ namespace Asteroids.Fields
             var healthPct = HealthFractionOf(ast);
             var lobes = ast.Lobes;
             if (lobes == null)
-                return new AI.Scanning.DetectedObstacle(ast.transform.position, ast.Radius, ast.SimpleCollider, velocity, healthPct, ast);
+                return new AI.Scanning.DetectedObstacle(ast.transform.position, ast.Radius, null, velocity, healthPct, ast);
 
             var n = Mathf.Min(lobes.Length, 3);
             var t = ast.transform;
@@ -500,7 +513,7 @@ namespace Asteroids.Fields
             var c0 = ProjectLobe(t, lobes[0], scale);
             var c1 = n > 1 ? ProjectLobe(t, lobes[1], scale) : default;
             var c2 = n > 2 ? ProjectLobe(t, lobes[2], scale) : default;
-            return new AI.Scanning.DetectedObstacle(t.position, ast.Radius, ast.SimpleCollider, c0, c1, c2, n, velocity, healthPct, ast);
+            return new AI.Scanning.DetectedObstacle(t.position, ast.Radius, null, c0, c1, c2, n, velocity, healthPct, ast);
         }
 
         private static AI.Scanning.DetectedObstacle.PlaneCircle ProjectLobe(

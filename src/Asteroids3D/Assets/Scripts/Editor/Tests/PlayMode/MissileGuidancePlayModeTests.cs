@@ -224,7 +224,7 @@ namespace Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator RockOnLineOfSight_LosesTrack()
+        public IEnumerator RockOnLineOfSight_LosesTrack_ThenReacquiresOnceClear()
         {
             var origin = GamePlane.PlanePointToWorld(Vector2.zero);
             missile = CreateTestMissile(origin);
@@ -233,7 +233,8 @@ namespace Tests.PlayMode
             rock = CreateRock(new Vector2(3, 3));
 
             shooter = new GameObject("Shooter").AddComponent<StubShooter>();
-            missile.SetTarget(new TestTargetable(targetGo.transform));
+            var targetable = new TestTargetable(targetGo.transform);
+            missile.SetTarget(targetable);
             LaunchAt(missile, Vector2.up, shooter);
 
             Assert.That(OffNoseAngle(), Is.LessThan(missile.seekerConeAngle * 0.5f),
@@ -242,8 +243,56 @@ namespace Tests.PlayMode
             yield return new WaitForFixedUpdate();
             Assert.That(missile.target, Is.Null, "Missile kept tracking a target hidden behind a rock");
 
-            yield return FlyFor(0.5f);
-            AssertFlewStraightUp();
+            yield return AsyncAssert.WaitUntil(
+                () => missile.IsTracking,
+                1f,
+                "Missile did not re-acquire once the rock no longer blocked the target",
+                useFixedUpdate: true);
+            Assert.That(targetable.Lock.Trackers, Is.EqualTo(new[] { missile }));
+        }
+
+        [UnityTest]
+        public IEnumerator TargetBackInCone_Reacquires()
+        {
+            var origin = GamePlane.PlanePointToWorld(Vector2.zero);
+            missile = CreateTestMissile(origin);
+            targetGo = CreateTarget(new Vector2(0, -15));
+            var targetable = new TestTargetable(targetGo.transform);
+
+            shooter = new GameObject("Shooter").AddComponent<StubShooter>();
+            missile.SetTarget(targetable);
+            LaunchAt(missile, Vector2.up, shooter);
+
+            yield return new WaitForFixedUpdate();
+            Assert.That(missile.target, Is.Null, "Missile kept tracking a target behind its seeker cone");
+
+            targetGo.transform.position = GamePlane.PlanePointToWorld(new Vector2(0, 20));
+            yield return new WaitForFixedUpdate();
+            Assert.That(missile.target, Is.EqualTo(targetGo.transform));
+            Assert.That(targetable.Lock.Trackers, Is.EqualTo(new[] { missile }));
+        }
+
+        [UnityTest]
+        public IEnumerator ConcealedTarget_StaysLostAfterReveal()
+        {
+            missile = CreateTestMissile(GamePlane.PlanePointToWorld(Vector2.zero));
+            targetGo = CreateTarget(new Vector2(0, 20));
+            var targetable = new TestTargetable(targetGo.transform);
+
+            shooter = new GameObject("Shooter").AddComponent<StubShooter>();
+            missile.SetTarget(targetable);
+            LaunchAt(missile, Vector2.up, shooter);
+
+            yield return new WaitForFixedUpdate();
+            Assert.That(missile.IsTracking, Is.True, "Precondition: the missile tracks a target ahead");
+
+            targetable.Lock.Conceal();
+            Assert.That(missile.IsTracking, Is.False, "A concealed target stayed tracked");
+            Assert.That(targetable.Lock.Trackers, Is.Empty, "A concealed target kept the missile on its trackers");
+
+            targetable.Lock.Reveal();
+            yield return FlyFor(0.3f);
+            Assert.That(missile.IsTracking, Is.False, "The missile re-acquired a target after it had concealed itself");
         }
 
         [Test]

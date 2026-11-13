@@ -312,16 +312,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Bulwark
       objectReference: {fileID: 0}
-    - target: {fileID: 1420000000000000006, guid: 6c5c44eda9b86054ba44bc3f0f758310,
-        type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 1.706
-      objectReference: {fileID: 0}
-    - target: {fileID: 1420000000000000006, guid: 6c5c44eda9b86054ba44bc3f0f758310,
-        type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -0.492
-      objectReference: {fileID: 0}
     - target: {fileID: 1420000000000000002, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -352,12 +342,37 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: -0.568
       objectReference: {fileID: 0}
+    - target: {fileID: 1420000000000000006, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.706
+      objectReference: {fileID: 0}
+    - target: {fileID: 1420000000000000006, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.492
+      objectReference: {fileID: 0}
     - target: {fileID: 1820339427924761457, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: -3298800115395149385, guid: 1b4a015e68a446b48a90e8baf47d290d,
         type: 3}
+    - target: {fileID: 2781440978256499436, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: m_LocalScale.x
+      value: 7.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2781440978256499436, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: m_LocalScale.y
+      value: 7.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2781440978256499436, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: m_LocalScale.z
+      value: 7.1
+      objectReference: {fileID: 0}
     - target: {fileID: 3817457565511291025, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: silhouette.Array.size
@@ -378,12 +393,6 @@ PrefabInstance:
       propertyPath: 'silhouette.Array.data[2]'
       value: 
       objectReference: {fileID: 5672750677440222542}
-    - target: {fileID: 5495579178143933876, guid: 6c5c44eda9b86054ba44bc3f0f758310,
-        type: 3}
-      propertyPath: m_Mesh
-      value: 
-      objectReference: {fileID: -3298800115395149385, guid: 1b4a015e68a446b48a90e8baf47d290d,
-        type: 3}
     - target: {fileID: 6567524228965887451, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -446,24 +455,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7184882482910536223, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
-      propertyPath: maxHealth
-      value: 160
-      objectReference: {fileID: 0}
-    - target: {fileID: 7184882482910536223, guid: 6c5c44eda9b86054ba44bc3f0f758310,
-        type: 3}
       propertyPath: engine
       value: 
-      objectReference: {fileID: 11400000, guid: d3531f882afd41e9b6d41310e4d056a9, type: 2}
-    - target: {fileID: 7184882482910536223, guid: 6c5c44eda9b86054ba44bc3f0f758310,
-        type: 3}
-      propertyPath: keystone
-      value: 
-      objectReference: {fileID: 5512903418735166201, guid: c35e8833433744a0bcce3e406a3841e0, type: 3}
+      objectReference: {fileID: 11400000, guid: d3531f882afd41e9b6d41310e4d056a9,
+        type: 2}
     - target: {fileID: 7184882482910536223, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: shield
       value: 
-      objectReference: {fileID: 11400000, guid: 1899585b4124451e90d1c53e17324d7b, type: 2}
+      objectReference: {fileID: 11400000, guid: 1899585b4124451e90d1c53e17324d7b,
+        type: 2}
+    - target: {fileID: 7184882482910536223, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: keystone
+      value: 
+      objectReference: {fileID: 5512903418735166201, guid: c35e8833433744a0bcce3e406a3841e0,
+        type: 3}
+    - target: {fileID: 7184882482910536223, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: maxHealth
+      value: 160
+      objectReference: {fileID: 0}
     - target: {fileID: 7501917339619365639, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_LocalPosition.x

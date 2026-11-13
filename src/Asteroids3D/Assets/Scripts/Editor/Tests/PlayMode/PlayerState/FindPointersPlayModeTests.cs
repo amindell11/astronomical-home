@@ -117,7 +117,7 @@ namespace Tests.PlayMode.PlayerState
         [UnityTest]
         public IEnumerator AnEnemyBeyondRange_PointsFromTheRim_AndInRangeConcealedOrGone_ShowsNone()
         {
-            ship =ShipTestFactory.CreateKinematicPrimitiveShipAt(Vector2.zero);
+            ship = ShipTestFactory.CreateKinematicPrimitiveShipAt(Vector2.zero);
             ship.transform.position = new Vector3(0f, 200f, 0f);
             ships.Add(ship);
             player = ShipTestFactory.CreateKinematicPrimitiveShipAt(Vector2.zero);

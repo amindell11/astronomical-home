@@ -10,5 +10,8 @@ namespace Tests.Common
 
         public int QueryObstacles(Vector2 centerPlane, float halfExtent, DetectedObstacle[] buffer) =>
             Inner?.QueryObstacles(centerPlane, halfExtent, buffer) ?? 0;
+
+        public bool AnyObstacleWithin(Vector2 centerPlane, float radius) =>
+            Inner != null && Inner.AnyObstacleWithin(centerPlane, radius);
     }
 }

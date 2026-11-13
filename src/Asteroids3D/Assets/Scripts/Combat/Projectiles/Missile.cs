@@ -15,7 +15,7 @@ namespace Combat.Projectiles
         [Header("Homing")]
         [Stat, SerializeField] private float homingSpeed    = 15f;
         [Stat, SerializeField] private float homingTurnRate = 90f;
-        [Tooltip("Full width (degrees) of the cone around the nose; a target outside it, or behind an asteroid, is lost for good.")]
+        [Tooltip("Full width (degrees) of the cone around the nose. A target outside it, or behind an asteroid, is lost until it comes back into view.")]
         [Stat, SerializeField] internal float seekerConeAngle = 140f;
         [Tooltip("Radius of the hitbox capsule in world units: how far off the missile's centreline a shot or ship still hits it.")]
         [Stat, SerializeField] internal float hitboxRadius = 0.3f;
@@ -33,7 +33,8 @@ namespace Combat.Projectiles
         [Stat, SerializeField] private float maxLifetime = 4f;
 
         internal Transform target;
-        private LockChannel targetChannel;
+        private Transform lockedPoint;
+        private LockChannel lockedChannel;
         private KinematicsPoller kinematicsPoller;
         private Vector2 prevLosDir;
         private bool hasLos;
@@ -47,10 +48,17 @@ namespace Combat.Projectiles
 
         public void SetTarget(ITargetable tgt)
         {
-            target = tgt.TargetPoint;
-            targetChannel = tgt.Lock;
-            targetChannel.AddTracker(this);
-            targetChannel.Concealed += LoseTrack;
+            lockedPoint = tgt.TargetPoint;
+            lockedChannel = tgt.Lock;
+            lockedChannel.Concealed += Forget;
+            Track();
+        }
+
+        private void Track()
+        {
+            target = lockedPoint;
+            hasLos = false;
+            lockedChannel.AddTracker(this);
             TrackingChanged?.Invoke();
         }
 
@@ -73,6 +81,17 @@ namespace Combat.Projectiles
         public float NormalizedSpeed => rb && homingSpeed > 0f
             ? Mathf.Clamp01(rb.linearVelocity.magnitude / homingSpeed)
             : 0f;
+
+        public float Reach
+        {
+            get
+            {
+                var rampTime = Mathf.Clamp((homingSpeed - initialSpeed) / acceleration, 0f, maxLifetime);
+                var flight = initialSpeed * rampTime + 0.5f * acceleration * rampTime * rampTime
+                             + homingSpeed * (maxLifetime - rampTime);
+                return Mathf.Min(maxDistance, flight);
+            }
+        }
 
         public event Action<Vector3> OnDetonated;
 
@@ -121,24 +140,31 @@ namespace Combat.Projectiles
             }
 
             var kin = kinematicsPoller.Kinematics;
-            if (target && !CanSeeTarget(kin)) LoseTrack();
+            if (target && !CanSee(kin, target)) LoseTrack();
+            else if (!target && lockedPoint && CanSee(kin, lockedPoint)) Track();
             var desiredDir = GetDesiredDirection(kin);
 
             ApplyTurn(kin.Forward, desiredDir);
             ApplyVelocitySteering(desiredDir);
         }
 
-        private bool CanSeeTarget(in Kinematics kin) =>
-            TargetingMath.AngleTo(kin, GamePlane.WorldPointToPlane(target.position)) <= seekerConeAngle * 0.5f
-            && TargetingMath.HasLineOfSight(kin, target.position);
+        private bool CanSee(in Kinematics kin, Transform point) =>
+            TargetingMath.AngleTo(kin, GamePlane.WorldPointToPlane(point.position)) <= seekerConeAngle * 0.5f
+            && TargetingMath.HasLineOfSight(kin, point.position);
 
         private void LoseTrack()
         {
             target = null;
-            targetChannel.Concealed -= LoseTrack;
-            targetChannel.RemoveTracker(this);
-            targetChannel = null;
+            lockedChannel.RemoveTracker(this);
             TrackingChanged?.Invoke();
+        }
+
+        private void Forget()
+        {
+            if (target) LoseTrack();
+            lockedChannel.Concealed -= Forget;
+            lockedChannel = null;
+            lockedPoint = null;
         }
 
         private Vector2 GetDesiredDirection(Kinematics kin)
@@ -231,12 +257,13 @@ namespace Combat.Projectiles
 
         protected override void OnReturnToPool()
         {
-            if (targetChannel != null)
+            if (lockedChannel != null)
             {
-                targetChannel.Concealed -= LoseTrack;
-                targetChannel.RemoveTracker(this);
+                lockedChannel.Concealed -= Forget;
+                lockedChannel.RemoveTracker(this);
             }
-            targetChannel = null;
+            lockedChannel = null;
+            lockedPoint = null;
             target = null;
             hasLos = false;
             aliveTime = 0f;

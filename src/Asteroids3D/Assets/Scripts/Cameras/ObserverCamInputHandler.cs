@@ -28,10 +28,8 @@ namespace Cameras
         {
             if (!observerCam) return;
             var scroll = controls.Camera.Zoom.ReadValue<float>();
-            if (scroll != 0f)
+            if (scroll != 0f && CameraSettings.ManualCamera)
                 observerCam.StepZoom(scroll);
-            if (controls.Camera.ToggleLock.WasPressedThisFrame())
-                observerCam.SetLockCameraToSubject(!observerCam.LockCameraToSubject);
             var point = controls.Camera.Point;
             observerCam.SetCursor(point.IsInProgress() ? point.ReadValue<Vector2>() : null);
         }

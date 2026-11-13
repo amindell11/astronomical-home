@@ -9,6 +9,7 @@ using Substrate.Services.Objectives;
 using Substrate.Services.Units;
 using Substrate.Sessions;
 using Tests.PlayMode.Common;
+using UI.Hangar.Hardware;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -45,7 +46,7 @@ namespace Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator RunHangar_HeadlessOrNoPlayer_CompletesWithoutScreen()
+        public IEnumerator RunHangar_HeadlessOrNoPlayer_CompletesWithoutConsole()
         {
             // Keep the host inactive so its Awake and flow never run — the hangar flow is
             // pumped in isolation. RequireComponent adds the sibling services on AddComponent.
@@ -65,8 +66,8 @@ namespace Tests.PlayMode
             finished = true;
 
             Assert.IsTrue(finished, "RunHangar completed without waiting for a Launch click");
-            Assert.IsNull(Object.FindFirstObjectByType<UI.Hangar.HangarScreen>(),
-                "no hangar screen was instantiated on the non-interactive path");
+            Assert.IsNull(Object.FindFirstObjectByType<HangarConsole>(),
+                "no hangar console was instantiated on the non-interactive path");
         }
 
         [UnityTest]

@@ -134,6 +134,8 @@ public class ScannerPlayModeTests : PlayModeWorldFixture
             buffer[0] = obstacle;
             return 1;
         }
+
+        public bool AnyObstacleWithin(Vector2 centerPlane, float radius) => false;
     }
 }
 

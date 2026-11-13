@@ -70,7 +70,7 @@ namespace Combat.Weapons.Arsenal
 
         private bool InLockCone(in TargetingContext context) =>
             targetingComputer
-            && context.Within(targetingComputer.maxLockDistance, targetingComputer.lockOnConeAngle * 0.5f);
+            && context.Within(targetingComputer.MaxLockDistance, targetingComputer.lockOnConeAngle * 0.5f);
 
         private bool InFallbackEnvelope(in TargetingContext context) =>
             context.Within(fallbackRange, fallbackAngleTolerance);

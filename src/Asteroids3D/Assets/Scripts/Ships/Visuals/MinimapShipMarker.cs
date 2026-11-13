@@ -6,13 +6,18 @@ using UnityEngine;
 namespace Ships.Visuals
 {
     /// <summary>
-    /// Place on a Ship's MapMesh child. Switches this GameObject to the Minimap_Enemy
-    /// layer for non-player ships. Player-ness is injected via <see cref="ShipView.IsPlayer"/>
-    /// at bind time (see <see cref="IShipVisual"/>) rather than discovered from the parent ship.
+    /// Sits on a ship rig's MinimapMarker quad and draws the ship's chassis silhouette
+    /// (<see cref="ShipSilhouette"/>), the art the run recap's kill markers use.
+    /// Switches this GameObject to the Minimap_Enemy layer for non-player ships.
+    /// Player-ness is injected via <see cref="ShipView.IsPlayer"/> at bind time
+    /// (see <see cref="IShipVisual"/>) rather than discovered from the parent ship.
     /// An enemy's marker hides while its ship is concealed, and pulses while its owner sets <see cref="Pulsing"/>.
     /// </summary>
     public class MinimapShipMarker : MonoBehaviour, IShipVisual
     {
+        // The minimap passes override the material with UI/Default, which samples _MainTex.
+        private static readonly int MainTexId = Shader.PropertyToID("_MainTex");
+
         private Renderer marker;
         private LockChannel enemyLock;
         private Vector3 authoredScale;
@@ -27,6 +32,9 @@ namespace Ships.Visuals
 
         public void Bind(in ShipView view)
         {
+            var block = new MaterialPropertyBlock();
+            block.SetTexture(MainTexId, ShipSilhouette.Of(view.Root));
+            marker.SetPropertyBlock(block);
             if (view.IsPlayer) return;
             enemyLock = view.Lock;
             var layer = LayerIds.MinimapEnemy;

@@ -8,7 +8,8 @@ namespace UI.Projection
     /// <summary>
     /// The image-output counterpart of <see cref="CanopyProjection"/>. Its pass runs on the host
     /// camera before that camera draws, writes the processed input premultiplied, and
-    /// <see cref="Output"/> keeps its identity across input resizes.
+    /// <see cref="Output"/> keeps its identity across input resizes. The owner may tell it where
+    /// the image shows and when it glitches; left untold, the image is its own screen and never glitches.
     /// </summary>
     public sealed class CanopyImage : MonoBehaviour, ICanopySource
     {
@@ -22,6 +23,8 @@ namespace UI.Projection
         private Camera host;
         private Func<RenderTexture> input;
         private Func<CanopySettings> settings;
+        private Func<CanopyScreen> screen;
+        private Func<float> transitionAge;
         private CanopyProjectionPass pass;
 
         public RenderTexture Output => output;
@@ -47,7 +50,8 @@ namespace UI.Projection
             outputHandle = RTHandles.Alloc(output);
         }
 
-        public void Initialize(Camera host, Func<RenderTexture> input, Func<CanopySettings> settings)
+        public void Initialize(Camera host, Func<RenderTexture> input, Func<CanopySettings> settings,
+            Func<CanopyScreen> screen = null, Func<float> transitionAge = null)
         {
             if (!host) throw new ArgumentNullException(nameof(host));
             if (input == null) throw new ArgumentNullException(nameof(input));
@@ -56,6 +60,8 @@ namespace UI.Projection
             this.host = host;
             this.input = input;
             this.settings = settings;
+            this.screen = screen ?? (() => CanopyScreen.Own(new Vector2(lastInput.width, lastInput.height)));
+            this.transitionAge = transitionAge ?? (() => -1f);
             Bind();
         }
 
@@ -111,8 +117,9 @@ namespace UI.Projection
         RenderTexture ICanopySource.Ink => lastInput;
         RTHandle ICanopySource.InkColor => inputHandle;
         CanopySettings ICanopySource.Settings => settings();
+        CanopyScreen ICanopySource.Screen => screen();
         bool ICanopySource.EffectsEnabled => true;
-        float ICanopySource.TransitionAge => -1f;
+        float ICanopySource.TransitionAge => transitionAge();
         float ICanopySource.HitAge => -1f;
     }
 }

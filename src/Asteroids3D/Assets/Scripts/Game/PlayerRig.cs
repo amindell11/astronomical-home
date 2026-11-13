@@ -238,6 +238,12 @@ namespace Game
             if (Player && Player.Commander) Player.Commander.enabled = enabled;
         }
 
+        public void SetAssist(bool on)
+        {
+            var commander = Player.Commander as PlayerCommander;
+            if (commander) commander.SetAssist(on);
+        }
+
         /// <summary>
         /// Replace the persistent player with a fresh build of <paramref name="newTemplate"/>: despawn
         /// the old ship, re-run the standard player build/wiring (registry, camera subject, commander,
@@ -275,7 +281,7 @@ namespace Game
 
             if (!observer) return;
 
-            observer.SetSubject(Player.transform, Player.Rigidbody);
+            observer.SetSubject(Player.transform, Player.Rigidbody, newHull: Player);
             var screenCommander = Player.Commander as PlayerCommander;
             if (screenCommander)
                 screenCommander.SetScreenToGamePlane(pos =>
@@ -312,7 +318,7 @@ namespace Game
         {
             var commander = Player.Commander as PlayerCommander;
             return new HudBinding(Player, Player.Damage, Player.Weapons ? Player.Weapons.ReadoutContext : null, Tally,
-                commander ? commander.playerInput : null, Player.Keystone.DisplayName, Player.Keystone.Icon);
+                Mods, commander ? commander.playerInput : null, Player.Keystone.DisplayName, Player.Keystone.Icon);
         }
 
         private void WirePlayerDeath()

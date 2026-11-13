@@ -1,8 +1,6 @@
-// Clicks the hangar's Launch button (internal field → reflection). Returns what it found.
-var screens = UnityEngine.Object.FindObjectsByType<UI.Hangar.HangarScreen>(UnityEngine.FindObjectsInactive.Include, UnityEngine.FindObjectsSortMode.None);
-if (screens.Length == 0) return "no HangarScreen in scene";
-var f = typeof(UI.Hangar.HangarScreen).GetField("launchButton", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-var btn = (UnityEngine.UI.Button)f.GetValue(screens[0]);
-if (btn == null) return "launchButton null";
-btn.onClick.Invoke();
-return "launched via " + btn.name;
+// Clicks the hangar's Launch. Returns what it found.
+var consoles = UnityEngine.Object.FindObjectsByType<UI.Hangar.Hardware.HangarConsole>(
+    UnityEngine.FindObjectsInactive.Include, UnityEngine.FindObjectsSortMode.None);
+if (consoles.Length == 0) return "no HangarConsole in scene";
+consoles[0].Launch();
+return "launched";

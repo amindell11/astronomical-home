@@ -109,6 +109,8 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
             buffer[0] = new AI.Scanning.DetectedObstacle(position, radius, collider);
             return 1;
         }
+
+        public bool AnyObstacleWithin(Vector2 centerPlane, float radius) => false;
     }
 
     [UnityTest]

@@ -7,12 +7,10 @@ using Substrate;
 namespace Asteroids
 {
     [RequireComponent(typeof(AsteroidDamage))]
-    [RequireComponent(typeof(SphereCollider))]
     public class AsteroidController : MonoBehaviour
     {
         private MeshFilter meshFilter;
         private MeshCollider meshCollider;
-        private SphereCollider cheapCollider;
         private AsteroidDamage damage;
 
 
@@ -38,9 +36,6 @@ namespace Asteroids
         public Renderer Renderer { get; private set; }
         public Fragger Fragger { get; private set; }
         public AsteroidDamage Damage => damage;
-        /// <summary>Always-present cheap collider (attached to the rigidbody). Handed to
-        /// obstacle-scan consumers that resolve mass/root through a collider reference.</summary>
-        public Collider SimpleCollider => cheapCollider;
         public Mesh CurrentMesh => meshFilter.sharedMesh;
         public int MeshIndex { get; private set; }
         public event Action<Vector3> OnDestroyed;
@@ -52,7 +47,6 @@ namespace Asteroids
             Rb = GetComponent<Rigidbody>();
             meshFilter = GetComponent<MeshFilter>();
             meshCollider = GetComponent<MeshCollider>();
-            cheapCollider = GetComponent<SphereCollider>();
             Renderer = GetComponent<Renderer>();
             damage = GetComponent<AsteroidDamage>();
             Rb.useGravity = false;
@@ -91,12 +85,7 @@ namespace Asteroids
 
             UpdateMeshCollider(meshInfo);
 
-            // Stays local-space: the transform already carries `scale`, and SphereCollider
-            // .radius is scaled by it again — folding scale in here makes the world sphere
-            // and Radius come out scale² too big.
-            var localRadius = AsteroidGeometry.RadiusFromVolume(meshInfo.cachedVolume);
-            cheapCollider.radius = localRadius;
-            Radius = localRadius * transform.lossyScale.x;
+            Radius = AsteroidGeometry.RadiusFromVolume(meshInfo.cachedVolume) * transform.lossyScale.x;
 
             initialVelocity = velocity;
             initialAngularVelocity = angularVelocity;

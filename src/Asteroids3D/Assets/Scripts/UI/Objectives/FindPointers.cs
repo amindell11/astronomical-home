@@ -13,7 +13,8 @@ namespace UI.Objectives
     /// <summary>
     /// Pins unused finds and live, unconcealed enemies to the minimap rim when they sit beyond
     /// the map's range, and to the screen edge when they leave the world camera's view.
-    /// A find shows its icon with a find-coloured tab; an enemy shows only a tab in the enemy colour.
+    /// A find shows its icon and arrow tab in the find's own colour; an enemy shows only an arrow tab
+    /// in the minimap's enemy colour.
     /// </summary>
     public sealed class FindPointers : MonoBehaviour
     {

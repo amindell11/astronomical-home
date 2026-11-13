@@ -529,9 +529,10 @@ needs no scope-map upkeep:
 ### `RequiresLfsPng` (hosted skip)
 
 A test that reads LFS-backed PNG art under `src/Asteroids3D/Assets/` (HUD
-icons, recap silhouettes, planet textures) carries `RequiresLfsPng`. The
-hosted headless suite pulls only the meshes and models there, so it skips
-this tag next to `RequiresGraphics`. Local runs include it, so a local full
+icons, planet textures) carries `RequiresLfsPng`. The hosted headless suite
+pulls only the meshes, models and ship silhouettes there (every spawned ship's
+minimap marker loads its silhouette), so it skips this tag next to
+`RequiresGraphics`. Local runs include it, so a local full
 run still covers it. Tag the fixture when every test in it reads the art,
 otherwise the test or the test case. A PR that touches a tagged test or the
 PNGs it reads lists an owed-local item to run them:

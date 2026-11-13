@@ -21,6 +21,8 @@ namespace FMOD.Studio
 
         public RESULT setParameterByName(string name, float value, bool ignoreseekspeed = false) => RESULT.OK;
 
+        public RESULT setParameterByNameWithLabel(string name, string label, bool ignoreseekspeed = false) => RESULT.OK;
+
         public RESULT start() => RESULT.OK;
 
         public RESULT release() => RESULT.OK;
@@ -30,5 +32,12 @@ namespace FMOD.Studio
         public RESULT keyOff() => RESULT.OK;
 
         public bool isValid() => false;
+    }
+
+    public struct Bus
+    {
+        public RESULT setPaused(bool paused) => RESULT.OK;
+
+        public RESULT setVolume(float volume) => RESULT.OK;
     }
 }
