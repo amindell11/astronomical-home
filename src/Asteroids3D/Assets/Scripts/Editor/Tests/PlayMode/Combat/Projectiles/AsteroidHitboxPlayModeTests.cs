@@ -147,7 +147,7 @@ namespace Tests.PlayMode
             hull.sharedMesh = BoxMesh();
             var rock = go.AddComponent<AsteroidController>();
             go.SetActive(true);
-            rock.Damage.Initialize(volume: 1000f);
+            rock.Damage.Initialize(volume: 1000f, new CollisionDamageLaw(graceDeltaV: 5f, damagePerDeltaV: 3f, lethality: 1f));
             rock.Damage.OnHit += _ => rockHits++;
             Physics.SyncTransforms();
             return rock;

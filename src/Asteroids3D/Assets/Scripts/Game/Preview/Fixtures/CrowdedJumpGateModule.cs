@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Asteroids;
 using Asteroids.Spawning;
 using Objectives;
 using Objectives.States;
@@ -46,6 +47,7 @@ namespace Game.Preview.Fixtures
 
         private void Start()
         {
+            asteroids.SetCollisionDamageLaw(new CollisionDamageLaw(graceDeltaV: 5f, damagePerDeltaV: 3f, lethality: 1f));
             var settings = asteroids.Settings;
             for (var i = 0; i < rockPlacements.Length; i++)
             {

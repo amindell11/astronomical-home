@@ -31,7 +31,7 @@ namespace Asteroids.Spawning
         private int poolMaxSizeHint;
         private Func<Vector3?> anchorPosition;
         private Fragger fragger;
-        private float lethalityScale = 1f;
+        private CollisionDamageLaw damageLaw;
         private bool presentationEnabled = true;
 
         // Created lazily so the field can pre-size it (from the computed
@@ -57,11 +57,8 @@ namespace Asteroids.Spawning
         private void ApplyPresentation(AsteroidController ast) =>
             PresentationApplier.Apply(ast.gameObject, presentationEnabled);
 
-        /// <summary>Collision-damage multiplier for every later spawn, fragments included; staged by the owning field.</summary>
-        public void SetLethalityScale(float value)
-        {
-            lethalityScale = value;
-        }
+        /// <summary>Collision-damage law for every later spawn, fragments included.</summary>
+        public void SetCollisionDamageLaw(CollisionDamageLaw law) => damageLaw = law;
 
         /// <summary>
         /// Raises the pool's retained-object cap to the given worst-case count.
@@ -101,7 +98,7 @@ namespace Asteroids.Spawning
         public AsteroidController Spawn(Pose pose, in AsteroidAttributes attrs, uint breakSeed)
         {
             var ast = SpawnAtPose(pose);
-            ast.Initialize(this, fragger, attrs.MeshInfo, attrs.MeshIndex, attrs.Mass, attrs.Scale, attrs.Velocity, attrs.AngularVelocity, breakSeed, lethalityScale);
+            ast.Initialize(this, fragger, attrs.MeshInfo, attrs.MeshIndex, attrs.Mass, attrs.Scale, attrs.Velocity, attrs.AngularVelocity, breakSeed, damageLaw);
             registry.Register(ast);
             return ast;
         }

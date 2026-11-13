@@ -171,6 +171,7 @@ namespace Tests.PlayMode.Keystones
             var spawner = holder.AddComponent<AsteroidSpawner>();
             SetReference(spawner, "settings", settings);
             holder.SetActive(true);
+            spawner.SetCollisionDamageLaw(new CollisionDamageLaw(graceDeltaV: 5f, damagePerDeltaV: 3f, lethality: 1f));
             var info = settings.meshInfos[0];
             return spawner.Spawn(new Pose(at, Quaternion.identity), new AsteroidAttributes(info, 0, 20000f, 2.5f, Vector3.zero, Vector3.zero), 713);
         }

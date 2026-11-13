@@ -162,7 +162,8 @@ namespace Asteroids.Fields
             streamer = new ChunkStreamer(settings.chunkSize, loadRadius, unloadRadius);
 
             AsteroidSpawner.PreSizePool(Mathf.CeilToInt(settings.WorstCaseLoadedCount() * densityScale));
-            AsteroidSpawner.SetLethalityScale(lethalityScale);
+            AsteroidSpawner.SetCollisionDamageLaw(
+                new CollisionDamageLaw(settings.graceDeltaV, settings.damagePerDeltaV, lethalityScale));
             AsteroidSpawner.OnFragmentSpawned -= HandleFragmentSpawned;
             AsteroidSpawner.OnFragmentSpawned += HandleFragmentSpawned;
             appliedSettingsVersion = settings.Version;
