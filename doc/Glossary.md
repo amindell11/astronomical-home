@@ -1094,6 +1094,11 @@ Format: **term** — definition. *(authority)*
   player-readable counterpart (#488 §A8). It rides the kit prefab as a
   presentation part, so presentation-off sessions drop it. *(KeystoneFlash,
   HullVisuals.HoldFlash)*
+- **ready flash** — the HUD's brief brighten-and-fade over a weapon's arc when
+  the weapon recovers: an overheat lockout ends, a reload lands, a round comes
+  back, the railgun's cooldown ends. The HUD flashes on the domain's
+  `IRecoveryReadout.Recovered` and never reads thresholds itself. Its sound is
+  still to come (#1173). *(WeaponResourceHud, ReadyFlashProfile)*
 - **item** — anything that fills a loadout slot: a chassis (a prefab with a root
   `Ship`) or a weapon (a prefab with a root `WeaponComponent`). Engine and shield
   modules come with the chassis and fill no slot (#1073, #1254); projectiles,

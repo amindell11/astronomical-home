@@ -375,6 +375,7 @@ MonoBehaviour:
   empty: {r: 0.639, g: 0.651, b: 0.667, a: 0.3}
   threshold: {r: 0.04, g: 0.06, b: 0.1, a: 1}
   overheat: {r: 0.98, g: 0.41, b: 0.41, a: 1}
+  readyFlash: {fileID: 11400000, guid: 9f9c1f71aa08b8a4b82b750a642fcd15, type: 2}
 --- !u!1 &8651447687476948939
 GameObject:
   m_ObjectHideFlags: 0
