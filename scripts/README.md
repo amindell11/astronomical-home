@@ -22,6 +22,7 @@ Index only. Each script's contract (exit codes, machine channel, state files) li
 | `unity_test_scope_lib.ps1` | Scope map reading, Auto-scope resolution, filter-to-name conversion. | dot-source | function comments |
 | `unity_test_scopes.json` | The scope map: module path globs and authored test filters. | data | read by the scope lib |
 | `unity_doctor.ps1` | Preflight: live editor, project owner, domain-reload trap, BurstCache. | `[-Json] [-FailOnWarn]` | comment-help |
+| `build_game_player.ps1` | Build the worktree it sits in as a Windows game player into that worktree's `build/game/`, through one coordinated batch boot (its RunBatch child: `build_game_player_batch.ps1`). | `[-WaitSeconds n] [-AllowLowMemory]` | comment-help |
 
 ## Capture
 

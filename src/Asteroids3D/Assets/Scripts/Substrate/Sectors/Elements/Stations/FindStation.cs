@@ -14,7 +14,7 @@ namespace Substrate.Sectors.Elements.Stations
     /// setup each picks its own point away from the sector's start, spaced from the others and from other
     /// kinds' stations, which pick first; the asteroid field reads those points and leaves a clearing of the clear
     /// radius. On the first tick each shows, marked as a find, until it goes dark: when its supply is spent, or
-    /// when the sector's hunt raises its alarm, losing whatever supply is left. A sector with no hunt keeps them
+    /// when the sector's hunt releases, losing whatever supply is left. A sector with no hunt keeps them
     /// live. The arrival events are plain C#, raised once per station on its first arrival. A kind supplies only
     /// its effect: what a live station gives the hero sitting in it, drawn from that station's supply.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1319
@@ -23,7 +23,7 @@ namespace Substrate.Sectors.Elements.Stations
     {
         [Tooltip("The model with its zone and lit parts; copied per station and hidden until placed.")]
         [SerializeField] private FindStationBody body;
-        [Tooltip("The sector's opening hunt, read for its alarm, which darkens every live station; unset for none.")]
+        [Tooltip("The sector's opening hunt, read for its release, which darkens every live station; unset for none.")]
         [SerializeField] private SectorHunt hunt;
         [Tooltip("Other kinds' stations, read at setup for their points so none of these lands beside one.")]
         [SerializeField] private FindStation[] spacedFrom = { };
@@ -124,11 +124,11 @@ namespace Substrate.Sectors.Elements.Stations
                 return;
             }
 
-            var alarmed = hunt && hunt.Alarmed;
+            var released = hunt && hunt.Released;
             foreach (var station in stations)
             {
                 if (station.Spent) continue;
-                if (alarmed)
+                if (released)
                 {
                     station.GoDark();
                     continue;
@@ -203,7 +203,7 @@ namespace Substrate.Sectors.Elements.Stations
             /// <summary>What the station has left to give, in its kind's unit.</summary>
             public float SupplyLeft { get; private set; }
 
-            /// <summary>Drawn to nothing, or darkened by the alarm.</summary>
+            /// <summary>Drawn to nothing, or darkened when the hunt releases.</summary>
             public bool Spent => SupplyLeft <= 0f;
 
             /// <summary>The point picked at setup; the body moves there when it shows.</summary>
