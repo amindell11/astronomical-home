@@ -31,4 +31,9 @@ namespace FMOD.Studio
 
         public bool isValid() => false;
     }
+
+    public struct Bus
+    {
+        public RESULT setPaused(bool paused) => RESULT.OK;
+    }
 }

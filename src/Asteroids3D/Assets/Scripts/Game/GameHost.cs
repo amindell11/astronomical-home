@@ -26,6 +26,7 @@ using UI.Recap;
 using UI.Screens;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
 using Ships.Registry;
 using Substrate.Services.Units;
@@ -36,7 +37,7 @@ using Utils.Coroutines;
 namespace Game
 {
     /// <summary>
-    /// Runs the interactive game over one session: an optional title, then hangar, sectors, extraction recaps, then final results.
+    /// Runs the interactive game over one session: an optional title, then hangar, sectors (pausable in flight), extraction recaps, then final results.
     /// Owns the player rig, viewport, UI, music, companion, run records, each run's moment stream and clock;
     /// the session composes, loads and unloads.
     /// Hull carries between sectors. Death frames the explosion while surviving ships keep moving.
@@ -81,7 +82,7 @@ namespace Game
         [Tooltip("The title screen's name face.")]
         [SerializeField] internal Font titleFont;
 
-        [Tooltip("The title screen's Play and Quit face.")]
+        [Tooltip("The face of the title and pause screens' buttons and labels.")]
         [SerializeField] internal Font titleLabelFont;
 
         [Header("Music")]
@@ -148,7 +149,11 @@ namespace Game
         private bool playerDied;
         private bool sectorEnded;
         private float sectorEndTime;
-        private float? pausedTimeScale;
+        private readonly ClockStops clock = new();
+        private IDisposable recapStop;
+        private InputAction pauseKey;
+        private bool pauseRequested;
+        private bool quitRun;
         private bool shutdownRequested;
         private bool shutdownComplete;
         private int activeSectorIndex;
@@ -234,6 +239,13 @@ namespace Game
                 rigInstance.Tally.Killed += RefillPlayerHull;
                 rigInstance.Spawns.EliteKilled += unlocks.Claim;
             }
+            if (presentation && rigInstance)
+            {
+                pauseKey = new InputAction("Pause", InputActionType.Button, "<Keyboard>/escape");
+                pauseKey.AddBinding("<Gamepad>/start");
+                pauseKey.performed += _ => pauseRequested = true;
+                pauseKey.Enable();
+            }
             if (presentation && companionLines && rigInstance && rigInstance.Overlay)
                 voice = CompanionVoice.Create(transform, companionLines, companionFeel, rigInstance.Overlay.CommLine,
                     () => rigInstance.Overlay.IsVisible, Debug.isDebugBuild);
@@ -258,7 +270,7 @@ namespace Game
                 rigInstance.Tally.Killed -= RefillPlayerHull;
                 rigInstance.Teardown();
             }
-            RestoreClock();
+            clock.ReleaseAll();
             yield return session.Teardown();
             if (rigInstance) Destroy(rigInstance.gameObject);
             if (music) Destroy(music.gameObject);
@@ -343,23 +355,31 @@ namespace Game
                     foreach (var station in findStations)
                         if (station) station.Arrived += onStationArrived;
 
-                    while (!playerDied && !sectorEnded && !shutdownRequested)
+                    pauseRequested = false;
+                    while (!playerDied && !sectorEnded && !shutdownRequested && !quitRun)
                     {
-                        if (modStations && modStations.Claims > picksOpened)
+                        if (pauseRequested) yield return RunPause();
+                        else
                         {
-                            picksOpened++;
-                            yield return RunLullPick();
+                            if (modStations && modStations.Claims > picksOpened)
+                            {
+                                picksOpened++;
+                                yield return RunLullPick();
+                            }
+                            if (armory && armory.Claims > armoryPicks)
+                            {
+                                armoryPicks++;
+                                yield return RunWeaponPick(armory, index);
+                            }
+                            if (caches && caches.Claims > cachesClaimed)
+                            {
+                                cachesClaimed++;
+                                moments.Raise(new CacheClaimed(index + 1, caches.LastBonus));
+                            }
                         }
-                        if (armory && armory.Claims > armoryPicks)
-                        {
-                            armoryPicks++;
-                            yield return RunWeaponPick(armory, index);
-                        }
-                        if (caches && caches.Claims > cachesClaimed)
-                        {
-                            cachesClaimed++;
-                            moments.Raise(new CacheClaimed(index + 1, caches.LastBonus));
-                        }
+
+                        // Drops presses that arrived while a pick, pause or other screen blocked.
+                        pauseRequested = false;
                         yield return null;
                     }
                     foreach (var station in findStations)
@@ -367,7 +387,7 @@ namespace Game
                     closeCalls?.Dispose();
                     if (shutdownRequested) yield break;
 
-                    if (playerDied || index == sessionProfile.run.Sectors.Count - 1) break;
+                    if (playerDied || quitRun || index == sessionProfile.run.Sectors.Count - 1) break;
 
                     // The unload despawns this sector's ships, and the next load resets the player's hull.
                     if (rigInstance)
@@ -398,11 +418,14 @@ namespace Game
                 if (rigInstance)
                 {
                     if (!playerDied) EndRun();
-                    var board = AppendRunRecord(playerLoadoutStatHash, index, playerDied ? lastKillingBlow : null,
-                        locales);
-                    SetMusic(playerDied ? GameMusic.State.Defeat : GameMusic.State.Victory);
-                    if (presentation)
-                        yield return RunRecap(OutcomeContext(board, index));
+                    if (!quitRun)
+                    {
+                        var board = AppendRunRecord(playerLoadoutStatHash, index, playerDied ? lastKillingBlow : null,
+                            locales);
+                        SetMusic(playerDied ? GameMusic.State.Defeat : GameMusic.State.Victory);
+                        if (presentation)
+                            yield return RunRecap(OutcomeContext(board, index));
+                    }
                 }
                 if (shutdownRequested) yield break;
 
@@ -410,6 +433,11 @@ namespace Game
                 if (rigInstance) rigInstance.EnterSector(null);
                 yield return session.UnloadSector();
                 if (rigInstance) rigInstance.Park();
+                if (quitRun)
+                {
+                    quitRun = false;
+                    if (openOnTitle && presentation) yield return RunTitle();
+                }
             }
         }
 
@@ -428,6 +456,7 @@ namespace Game
             LocaleBackdropPair backdrop = null;
             var arrived = false;
             var exited = false;
+            IDisposable stop = null;
             try
             {
                 backdrop = session.PrepareTravelBackdrop(destinationLocale, transform);
@@ -441,7 +470,7 @@ namespace Game
                 var continued = false;
                 if (!shutdownRequested)
                 {
-                    PauseClock();
+                    stop = clock.Hold();
                     recap = StartCoroutine(RecapPlayback.RunScreen(new RecapOutcomeSequence(recapFeel, context), ui,
                         cancelled: () => shutdownRequested || exited,
                         ready: () => destinationReady && jump.State.LocaleBlend >= 1f,
@@ -463,7 +492,7 @@ namespace Game
                 if (continued && !shutdownRequested)
                 {
                     jump.ResumeArrival();
-                    RestoreClock();
+                    stop?.Dispose();
                 }
                 if (!shutdownRequested)
                 {
@@ -478,7 +507,7 @@ namespace Game
                 Destroy(jump.gameObject);
                 jump = null;
                 if (backdrop) Destroy(backdrop.gameObject);
-                RestoreClock();
+                stop?.Dispose();
             }
             yield return null;
         }
@@ -503,6 +532,29 @@ namespace Game
             }
         }
 
+        private IEnumerator RunPause()
+        {
+            var stop = clock.Hold();
+            MixBuses.SetWorldPaused(true);
+            rigInstance.SetInputEnabled(false);
+            try
+            {
+                var screen = PauseScreen.Create(ui, titleLabelFont);
+                try
+                {
+                    while (!screen.Choice.HasValue && !shutdownRequested) yield return null;
+                    quitRun = screen.Choice == PauseScreen.Option.QuitRun;
+                }
+                finally { Destroy(screen.gameObject); }
+            }
+            finally
+            {
+                rigInstance.SetInputEnabled(true);
+                MixBuses.SetWorldPaused(false);
+                stop.Dispose();
+            }
+        }
+
         private static void QuitGame()
         {
 #if UNITY_EDITOR
@@ -523,7 +575,7 @@ namespace Game
                 WeaponPickScreen.MaxOffers, n => UnityEngine.Random.Range(0, n));
             if (offers.Count == 0) yield break;
 
-            PauseClock();
+            var stop = clock.Hold();
             rigInstance.SetInputEnabled(false);
             var spine = session.ActiveSector.Module<PhaseSpineModule>();
             var screen = WeaponPickScreen.Create(ui, index + 1,
@@ -543,7 +595,7 @@ namespace Game
             {
                 Destroy(screen.gameObject);
                 rigInstance.SetInputEnabled(true);
-                RestoreClock();
+                stop.Dispose();
             }
         }
 
@@ -555,7 +607,7 @@ namespace Game
                 n => UnityEngine.Random.Range(0, n));
             if (offers.Count == 0) yield break;
 
-            PauseClock();
+            var stop = clock.Hold();
             rigInstance.SetInputEnabled(false);
             var screen = LullPickScreen.Create(ui, offers, mod => mod.Landing(player));
             try
@@ -571,7 +623,7 @@ namespace Game
             {
                 Destroy(screen.gameObject);
                 rigInstance.SetInputEnabled(true);
-                RestoreClock();
+                stop.Dispose();
             }
         }
 
@@ -740,30 +792,26 @@ namespace Game
             }
             finally
             {
-                RestoreClock();
+                recapStop?.Dispose();
+                recapStop = null;
                 presenter.Restore();
             }
         }
 
         private void SetRecapClock(bool frozen)
         {
-            if (frozen) PauseClock();
-            else RestoreClock();
+            if (frozen) recapStop ??= clock.Hold();
+            else
+            {
+                recapStop?.Dispose();
+                recapStop = null;
+            }
         }
 
-        private void PauseClock()
+        private void OnDestroy()
         {
-            pausedTimeScale ??= Time.timeScale;
-            Time.timeScale = 0f;
+            pauseKey?.Dispose();
+            clock.ReleaseAll();
         }
-
-        private void RestoreClock()
-        {
-            if (!pausedTimeScale.HasValue) return;
-            Time.timeScale = pausedTimeScale.Value;
-            pausedTimeScale = null;
-        }
-
-        private void OnDestroy() => RestoreClock();
     }
 }
