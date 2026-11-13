@@ -25,6 +25,9 @@ namespace Game.Companion
         [Tooltip("The id of the moment this line slot speaks for.")]
         [SerializeField] private string moment;
 
+        [Tooltip("Who says this slot's lines; blank is the companion.")]
+        [SerializeField] private string speaker;
+
         [Tooltip("Speaks without waiting out the nag budget's interval between lines.")]
         [SerializeField] private bool mustSay;
 
@@ -34,6 +37,7 @@ namespace Game.Companion
         [SerializeField, TextArea] private string[] lines = Array.Empty<string>();
 
         public string Moment => moment;
+        public string Speaker => speaker;
         public bool MustSay => mustSay;
         public IReadOnlyList<string> Lines => lines;
 

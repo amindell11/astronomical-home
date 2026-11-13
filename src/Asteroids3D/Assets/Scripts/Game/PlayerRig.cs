@@ -31,7 +31,7 @@ namespace Game
     /// player — ship, input and HUD — is parked (<see cref="Park"/>) from <see cref="Build"/> and
     /// from each sector's unload until <see cref="ApplyLoadout"/> unparks it at the end of the next
     /// hangar step, so the hangar never handles player presence. Pure mechanism with one exception, the
-    /// HUD's keystone prompt at the first sector it enters: the host injects the player-death behavior
+    /// HUD's first-run prompts at the first sector it enters: the host injects the player-death behavior
     /// via <see cref="Build"/> and the rig only wires it onto each player it builds. A host with no rig
     /// assigned has no player.
     /// </summary>
@@ -88,7 +88,7 @@ namespace Game
         private SessionFrame frame;
         private CanopyProjection projection;
         private CanopyPersonality personality;
-        private bool keystonePromptShown;
+        private bool firstRunPromptsShown;
 
         // The prefab the current Player instance was built from — a hangar ship change is detected
         // against this (the prefab is the archetype; see ShipLoadout.Ship).
@@ -298,9 +298,9 @@ namespace Game
             Spawns.Watch(phase ? phase.Elite : null);
             if (personality) personality.EnterSector(phase);
             if (Overlay) Overlay.BindElite(phase ? phase.Elite : null);
-            if (!phase || keystonePromptShown) return;
-            keystonePromptShown = true;
-            if (Overlay) Overlay.ShowKeystonePrompt(() => FirstSectorPhaseOver(phase));
+            if (!phase || firstRunPromptsShown) return;
+            firstRunPromptsShown = true;
+            if (Overlay) Overlay.ShowFirstRunPrompts(() => FirstSectorPhaseOver(phase));
         }
 
         // A lull's Index names the next sector phase; an unloaded sector has ended the first too.

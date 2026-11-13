@@ -66,11 +66,11 @@ namespace Substrate.Services.Objectives
             return handle;
         }
 
-        public FindMarker MarkFind(Transform target, Sprite icon)
+        public FindMarker MarkFind(Transform target, Sprite icon, Color colour)
         {
             if (!target) throw new ArgumentNullException(nameof(target));
             if (!icon) throw new ArgumentNullException(nameof(icon));
-            var find = new FindMarker(target, icon, CloseFind);
+            var find = new FindMarker(target, icon, colour, CloseFind);
             finds.Add(find);
             return find;
         }

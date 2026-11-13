@@ -274,6 +274,28 @@ namespace Tests.PlayMode.Crosshairs
             Assert.That(((RectTransform)weaponHud.transform).anchorMax, Is.EqualTo(new Vector2(.5f, 0f)));
         }
 
+        [UnityTest]
+        public IEnumerator Crosshair_StaysOnThePointer_WhileTheCanvasCameraMoves()
+        {
+            var canvas = root.GetComponent<Canvas>();
+            gameplayCamera.enabled = true;
+            canvas.renderMode = RenderMode.ScreenSpaceCamera;
+            canvas.worldCamera = gameplayCamera;
+            canvas.planeDistance = 5f;
+            Focus(true);
+            var aim = ScreenCentre + new Vector2(100f, 30f);
+            Set(mouse.position, aim);
+            yield return null;
+            for (var frame = 0; frame < 3; frame++)
+            {
+                gameplayCamera.transform.position += Vector3.right * 2f;
+                yield return null;
+                var circle = ImageAt("Circle").rectTransform;
+                var centre = RectTransformUtility.WorldToScreenPoint(gameplayCamera, circle.TransformPoint(Vector3.zero));
+                Assert.That(Vector2.Distance(centre, aim), Is.LessThan(1f), "A moving canvas camera does not drag the crosshair off the pointer");
+            }
+        }
+
         [Test]
         public void KeystoneRing_FillsAsCooldownExpires_AndRebindsToTheNewShip()
         {

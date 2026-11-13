@@ -404,7 +404,10 @@ MonoBehaviour:
   pulseSpeed: 4
   pulseScale: 0.15
   baseColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  beaconAccent: {r: 1, g: 0.82, b: 0.35, a: 1}
+  exitIcon: {fileID: 21300000, guid: 8c4182ee65e3a0441b04e24cdc04d7af, type: 3}
+  lullIcon: {fileID: 21300000, guid: 1ee2a7c62072a9c44b81e82ab2bea7b7, type: 3}
+  exitColour: {r: 0.7490196, g: 0.95686275, b: 1, a: 1}
+  lullColour: {r: 0.8784314, g: 0.6509804, b: 1, a: 1}
 --- !u!1 &3835351784460794065
 GameObject:
   m_ObjectHideFlags: 0

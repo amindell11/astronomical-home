@@ -17,8 +17,10 @@ namespace Combat.Weapons.Arsenal
     /// and each kill's overkill (the return of <see cref="IDamageable.TakeDamage"/>) carries on to the
     /// next target until a survivor, or a collider that takes no damage, stops it. While it holds any
     /// charge it cuts its ship's engines (<see cref="CutsEngines"/>), so a shot costs the shooter its mobility.
+    /// Its cooldown is a recovery: no charge builds until it ends, and its end is the railgun's
+    /// <see cref="IRecoveryReadout.Recovered"/>.
     /// </summary>
-    public class Railguns : WeaponComponent
+    public class Railguns : WeaponComponent, IRecoveryReadout
     {
         [Header("Beam")]
         [Tooltip("Damage the beam carries. It pierces: each target it kills passes the leftover damage on to the next one behind it.")]
@@ -57,6 +59,12 @@ namespace Combat.Weapons.Arsenal
         [Header("Conditions")]
         [Stat, SerializeField] private ChargeTime charge;
         [Stat, SerializeField] private Cooldown cooldown;
+
+        event Action IRecoveryReadout.Recovered
+        {
+            add => cooldown.OnCooldownReady += value;
+            remove => cooldown.OnCooldownReady -= value;
+        }
 
         public ChargeTime Charge => charge;
         protected override WeaponCondition[] AuthoredConditions => new WeaponCondition[] { charge, cooldown };

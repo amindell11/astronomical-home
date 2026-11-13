@@ -15,6 +15,7 @@ using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Elements.Stations;
 using UI.Hangar.Hologram;
 using UI.Projection;
+using UI.Weapons;
 using UnityEditor;
 
 namespace Tests.EditMode.Preview
@@ -37,7 +38,7 @@ namespace Tests.EditMode.Preview
             AssertTarget(Target<HudTarget>(), new[]
             {
                 PreviewEntry.Startup, PreviewEntry.LowHull, PreviewEntry.Damage, PreviewEntry.Extraction, PreviewEntry.Combat
-            }, canopy);
+            }, canopy, AssetDatabase.LoadAssetAtPath<ReadyFlashProfile>("Assets/Settings/UI/ReadyFlash.asset"));
             AssertTarget(Target<ShipDeathTarget>(), new[] { PreviewEntry.EnemyDeath, PreviewEntry.RunRecap, PreviewEntry.Combat },
                 AssetDatabase.LoadAssetAtPath<DeathFeelProfile>("Assets/Settings/Ships/DeathFeel.asset"), game.recapFeel);
             AssertTarget(Target<FlightCameraTarget>(), new[] { PreviewEntry.Combat },
@@ -65,7 +66,7 @@ namespace Tests.EditMode.Preview
                 AssetDatabase.LoadAssetAtPath<CompanionFeelProfile>("Assets/Settings/Game/Companion/CompanionFeel.asset"),
                 AssetDatabase.LoadAssetAtPath<CompanionLineSheet>("Assets/Settings/Game/Companion/CompanionLines.asset"));
             AssertTarget(Target<HangarHologramTarget>(), new[] { PreviewEntry.Combat },
-                AssetDatabase.LoadAssetAtPath<HangarHologramProfile>("Assets/Settings/UI/HangarHologram.asset"));
+                AssetDatabase.LoadAssetAtPath<HangarHologramProfile>("Assets/Settings/UI/HangarHologramPlain.asset"));
             AssertTarget(Target<TacticsTarget>(), new[] { PreviewEntry.CrowdedFight },
                 new[] { "Wave", "Elite", "Escort" }.Select(kind =>
                     AssetDatabase.LoadAssetAtPath<TacticsSettings>($"Assets/Settings/AI/Tactics/{kind}Temper.asset"))

@@ -81,6 +81,9 @@ namespace Tests.EditMode
             var marker = NewGO("Marker").AddComponent<ObjectiveMarkers>();
             var serialized = new SerializedObject(marker);
             serialized.FindProperty("icon").objectReferenceValue = icon;
+            var beacon = Sprite.Create(new Texture2D(4, 4), new Rect(0, 0, 4, 4), Vector2.one * .5f);
+            serialized.FindProperty("exitIcon").objectReferenceValue = beacon;
+            serialized.FindProperty("lullIcon").objectReferenceValue = beacon;
             serialized.ApplyModifiedPropertiesWithoutUndo();
             marker.Initialize(svc, cam, cam, minimap, canvas);
             var lateUpdate = typeof(ObjectiveMarkers)

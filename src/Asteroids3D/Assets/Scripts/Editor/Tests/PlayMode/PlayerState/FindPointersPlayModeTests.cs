@@ -73,14 +73,17 @@ namespace Tests.PlayMode.PlayerState
             var icon = TestAssets.Load<Sprite>(IconPath);
             var target = Child("Station").transform;
             target.position = new Vector3(200, 100, 0);
-            var find = service.MarkFind(target, icon);
+            var colour = Color.cyan;
+            var find = service.MarkFind(target, icon, colour);
             yield return null;
 
             var pointer = minimap.Find("Find pointers/Find pointer").GetComponent<Image>();
-            var arrow = minimap.Find("Find pointers/Find pointer arrow").GetComponent<FindPointerArrow>();
+            var arrow = minimap.Find("Find pointers/Find pointer arrow").GetComponent<NavTab>();
             var direction = new Vector2(200, 100).normalized;
             Assert.IsTrue(pointer.enabled && arrow.enabled, "A find beyond range shows a pointer.");
             Assert.AreSame(icon, pointer.sprite, "The pointer shows the find's icon.");
+            Assert.AreEqual(colour, pointer.color, "The icon takes the find's colour.");
+            Assert.AreEqual(colour, arrow.color, "The arrowhead takes the find's colour.");
             Assert.Less(Vector2.Angle(pointer.rectTransform.anchoredPosition, direction), .5f, "The pointer sits toward the find.");
             Assert.That(pointer.rectTransform.anchoredPosition.magnitude, Is.InRange(70f, 100f), "The pointer sits on the rim.");
             Assert.Greater(arrow.rectTransform.anchoredPosition.magnitude, pointer.rectTransform.anchoredPosition.magnitude,
@@ -154,15 +157,15 @@ namespace Tests.PlayMode.PlayerState
             Assert.AreEqual(0, VisiblePointers().arrows.Count, "A removed enemy shows no pointer.");
         }
 
-        private (List<FindPointerArrow> arrows, List<Image> icons) VisiblePointers()
+        private (List<NavTab> arrows, List<Image> icons) VisiblePointers()
         {
-            var arrows = new List<FindPointerArrow>();
+            var arrows = new List<NavTab>();
             var icons = new List<Image>();
             var holder = minimap.Find("Find pointers");
             for (var i = 0; i < holder.childCount; i++)
             {
                 var child = holder.GetChild(i);
-                var arrow = child.GetComponent<FindPointerArrow>();
+                var arrow = child.GetComponent<NavTab>();
                 if (arrow && arrow.enabled)
                     arrows.Add(arrow);
                 var icon = child.GetComponent<Image>();

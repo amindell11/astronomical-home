@@ -26,7 +26,7 @@ namespace Combat.Weapons.Conditions
         event Action OnReloadCompleted;
     }
 
-    public class Rounds : WeaponCondition, IAmmoReadout
+    public class Rounds : WeaponCondition, IAmmoReadout, IRecoveryReadout
     {
         public enum RefillMode { Magazine = 0, PerRound = 1, Sequential = 2 }
 
@@ -44,6 +44,9 @@ namespace Combat.Weapons.Conditions
         public event Action<int> OnAmmoCountChanged;
         public event Action OnReloadStarted;
         public event Action OnReloadCompleted;
+
+        /// <summary>Raised once per tick in which the reload clock brings rounds back.</summary>
+        public event Action Recovered;
 
         public int AmmoCount { get; private set; }
         public int MaxAmmo => mods.Rounds(maxAmmo);
@@ -116,6 +119,7 @@ namespace Combat.Weapons.Conditions
                 OnReloadCompleted?.Invoke();
             }
             OnAmmoCountChanged?.Invoke(AmmoCount);
+            Recovered?.Invoke();
         }
 
         private void TickMagazine(float dt)
@@ -127,6 +131,7 @@ namespace Combat.Weapons.Conditions
             AmmoCount = MaxAmmo;
             OnReloadCompleted?.Invoke();
             OnAmmoCountChanged?.Invoke(AmmoCount);
+            Recovered?.Invoke();
         }
 
         private void TickPerRound(float dt)
@@ -148,6 +153,7 @@ namespace Combat.Weapons.Conditions
                 OnReloadCompleted?.Invoke();
             }
             OnAmmoCountChanged?.Invoke(AmmoCount);
+            Recovered?.Invoke();
         }
 
         public override void Reset()
