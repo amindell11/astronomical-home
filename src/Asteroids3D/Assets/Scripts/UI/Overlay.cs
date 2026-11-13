@@ -171,7 +171,7 @@ namespace UI
                     $"Overlay on '{name}' needs its objective markers, minimap and enemy marker material wired.");
             objectiveMarkers.Initialize(objectives, worldCamera, minimapCamera, minimapRect, canvases[0], projection, () => IsVisible);
             FindPointers.Create(minimapRect, projection, () => IsVisible)
-                .Initialize(objectives, minimapCamera, ships, enemyMarker.color);
+                .Initialize(objectives, minimapCamera, worldCamera, canvases[0], ships, enemyMarker.color);
             ObjectiveStatusReadout.Create(transform, labelFont, headingFont, timerFont, readoutFont, textMaterial,
                 projection, () => IsVisible).Initialize(objectives);
             BoostReadout.Create(transform, labelFont, textMaterial, projection, () => IsVisible).Initialize(objectives);

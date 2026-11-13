@@ -16,6 +16,7 @@ namespace Tests.PlayMode.PlayerState
     /// <summary>
     /// A find beyond the minimap's range points from the rim toward it with its icon; in range, or closed, it shows no pointer.
     /// A live unconcealed enemy beyond range points from the rim with only an arrowhead; in range, concealed, inactive or gone, it shows none.
+    /// Off the world camera's view, the same finds and enemies get a screen-edge pointer; a target in view, the player, and a concealed or destroyed ship get none.
     /// </summary>
     [Category("UI")]
     [Category("RequiresLfsPng")]
@@ -26,6 +27,7 @@ namespace Tests.PlayMode.PlayerState
 
         private GameObject root;
         private ObjectiveService service;
+        private Canvas canvas;
         private RectTransform minimap;
         private SubscribedSet<Ship> ships;
         private Ship ship;
@@ -36,7 +38,7 @@ namespace Tests.PlayMode.PlayerState
         {
             root = new GameObject("Find pointers");
             service = root.AddComponent<ObjectiveService>();
-            var canvas = Child("HUD").AddComponent<Canvas>();
+            canvas = Child("HUD").AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             minimap = (RectTransform)Child("Minimap").transform;
             minimap.SetParent(canvas.transform, false);
@@ -48,8 +50,15 @@ namespace Tests.PlayMode.PlayerState
             camera.orthographicSize = 56;
             camera.aspect = 1f;
             camera.enabled = false;
+
+            var worldCamera = Child("World camera").AddComponent<Camera>();
+            worldCamera.transform.position = Vector3.zero;
+            worldCamera.transform.rotation = Quaternion.identity;
+            worldCamera.fieldOfView = 60f;
+            worldCamera.aspect = 1f;
+            worldCamera.enabled = false;
             ships = new SubscribedSet<Ship>();
-            FindPointers.Create(minimap).Initialize(service, camera, ships, EnemyColour);
+            FindPointers.Create(minimap).Initialize(service, camera, worldCamera, canvas, ships, EnemyColour);
         }
 
         [TearDown]
@@ -157,11 +166,93 @@ namespace Tests.PlayMode.PlayerState
             Assert.AreEqual(0, VisiblePointers().arrows.Count, "A removed enemy shows no pointer.");
         }
 
-        private (List<NavTab> arrows, List<Image> icons) VisiblePointers()
+        [UnityTest]
+        public IEnumerator AnEnemyOffScreen_GetsOneEdgePointerOnItsSide_AndInViewConcealedOrDestroyedGetsNone()
+        {
+            ship = ShipTestFactory.CreateKinematicPrimitiveShipAt(Vector2.zero);
+            ship.transform.position = new Vector3(300f, 0f, 100f);
+            ships.Add(ship);
+            player = ShipTestFactory.CreateKinematicPrimitiveShipAt(Vector2.zero);
+            player.tag = "Player";
+            player.transform.position = new Vector3(0f, 400f, 100f);
+            ships.Add(player);
+            yield return null;
+
+            var holder = (RectTransform)canvas.transform.Find("Screen pointers");
+            var shown = VisibleScreenPointers();
+            Assert.AreEqual(1, shown.arrows.Count, "An enemy off the right edge shows one tab.");
+            Assert.AreEqual(0, shown.icons.Count, "An enemy pointer has no icon.");
+            Assert.AreEqual(EnemyColour, shown.arrows[0].color);
+            Assert.Greater(shown.arrows[0].rectTransform.anchoredPosition.x, holder.rect.width * .5f,
+                "The tab sits on the right half.");
+            Assert.Less(Vector2.Angle(shown.arrows[0].rectTransform.localRotation * Vector3.up, Vector2.right), 1f,
+                "The tab aims right.");
+
+            ship.transform.position = new Vector3(-300f, 0f, 100f);
+            yield return null;
+            shown = VisibleScreenPointers();
+            Assert.AreEqual(1, shown.arrows.Count, "An enemy off the left edge shows one tab.");
+            Assert.Less(shown.arrows[0].rectTransform.anchoredPosition.x, holder.rect.width * .5f,
+                "The tab sits on the left half.");
+            Assert.Less(Vector2.Angle(shown.arrows[0].rectTransform.localRotation * Vector3.up, Vector2.left), 1f,
+                "The tab aims left.");
+
+            ship.transform.position = new Vector3(0f, 0f, -100f);
+            yield return null;
+            Assert.AreEqual(1, VisibleScreenPointers().arrows.Count, "An enemy behind the camera is off-screen.");
+
+            ship.transform.position = new Vector3(0f, 0f, 100f);
+            yield return null;
+            Assert.AreEqual(0, VisibleScreenPointers().arrows.Count, "An enemy in view shows no screen pointer.");
+
+            ship.transform.position = new Vector3(300f, 0f, 100f);
+            yield return null;
+            Assert.AreEqual(1, VisibleScreenPointers().arrows.Count, "Back off-screen the edge pointer returns.");
+            ship.Lock.Conceal();
+            yield return null;
+            Assert.AreEqual(0, VisibleScreenPointers().arrows.Count, "A concealed enemy shows no screen pointer.");
+
+            ships.Remove(ship);
+            Object.Destroy(ship.gameObject);
+            yield return null;
+            Assert.AreEqual(0, VisibleScreenPointers().arrows.Count, "A removed enemy shows no screen pointer.");
+        }
+
+        [UnityTest]
+        public IEnumerator AFindOffScreen_GetsAnEdgePointerWithItsIcon()
+        {
+            var icon = TestAssets.Load<Sprite>(IconPath);
+            var target = Child("Station").transform;
+            target.position = new Vector3(0f, 300f, 100f);
+            var colour = Color.cyan;
+            service.MarkFind(target, icon, colour);
+            yield return null;
+
+            var shown = VisibleScreenPointers();
+            Assert.AreEqual(1, shown.arrows.Count, "A find above the view shows one screen pointer.");
+            Assert.AreEqual(1, shown.icons.Count, "The screen pointer shows the find's icon.");
+            Assert.AreSame(icon, shown.icons[0].sprite);
+            Assert.AreEqual(colour, shown.icons[0].color, "The icon takes the find's colour.");
+            Assert.Less(Vector2.Angle(shown.arrows[0].rectTransform.localRotation * Vector3.up, Vector2.up), 1f,
+                "The tab aims up.");
+
+            target.position = new Vector3(0f, 0f, 100f);
+            yield return null;
+            shown = VisibleScreenPointers();
+            Assert.AreEqual(0, shown.arrows.Count, "A find in view shows no screen pointer.");
+            Assert.AreEqual(0, shown.icons.Count);
+        }
+
+        private (List<NavTab> arrows, List<Image> icons) VisiblePointers() =>
+            VisibleUnder(minimap.Find("Find pointers"));
+
+        private (List<NavTab> arrows, List<Image> icons) VisibleScreenPointers() =>
+            VisibleUnder(canvas.transform.Find("Screen pointers"));
+
+        private static (List<NavTab> arrows, List<Image> icons) VisibleUnder(Transform holder)
         {
             var arrows = new List<NavTab>();
             var icons = new List<Image>();
-            var holder = minimap.Find("Find pointers");
             for (var i = 0; i < holder.childCount; i++)
             {
                 var child = holder.GetChild(i);
