@@ -91,6 +91,25 @@ namespace Tests.EditMode.Runs
         }
 
         [Test]
+        public void Read_CountsV2AndV3_AndSkipsAbandoned()
+        {
+            var abandoned = new RunRecord
+            {
+                schema = RunRecord.SchemaId,
+                outcome = RunRecord.Abandoned,
+                spawns = new List<SpawnRow> { Spawn("Bulwark", elite: true, killedByPlayer: true) },
+            };
+            var unlocks = Read(
+                Line(RunRecord.SchemaV2, Spawn("Valis", elite: true, killedByPlayer: true)),
+                Line(RunRecord.SchemaId, Spawn("Nightshade", elite: true, killedByPlayer: true)),
+                abandoned.ToJsonLine());
+
+            Assert.IsTrue(unlocks.Earned(ShipAsset("Valis")), "a v2 line counts");
+            Assert.IsTrue(unlocks.Earned(ShipAsset("Nightshade")), "a v3 line counts");
+            Assert.IsFalse(unlocks.Earned(ShipAsset("Bulwark")), "an abandoned line earns nothing");
+        }
+
+        [Test]
         public void Read_MissingFile_EarnsNothing()
         {
             var unlocks = new ShipUnlocks(path);

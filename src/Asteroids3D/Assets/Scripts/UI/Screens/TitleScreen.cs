@@ -6,14 +6,15 @@ using UnityEngine.UI;
 namespace UI.Screens
 {
     /// <summary>
-    /// The title's uGUI: the game's name with Play, Settings and Quit, clickable and keyed, answered through
-    /// <see cref="Choice"/>. The host shows it over the hangar sky and acts on the answer.
+    /// The title's uGUI: the game's name with Play, Settings, Export runs and Quit, clickable and
+    /// keyed, answered through <see cref="Choice"/>. The host shows it over the hangar sky and acts
+    /// on the answer. When the host has an export result, one line of it sits under the options.
     /// </summary>
     public sealed class TitleScreen : MonoBehaviour
     {
         public const string GameName = "Andromeda";
 
-        public enum Option { Play, Settings, Quit }
+        public enum Option { Play, Settings, Export, Quit }
 
         private static readonly Color Ink = new(.93f, .94f, .93f);
         private static readonly Color Muted = new(.70f, .74f, .81f);
@@ -25,11 +26,12 @@ namespace UI.Screens
         private readonly List<InputAction> actions = new();
         private Font titleFont;
         private Font labelFont;
+        private string exportResult;
 
         /// <summary>Null until answered; the first answer stands.</summary>
         public Option? Choice { get; private set; }
 
-        public static TitleScreen Create(Transform parent, Font titleFont, Font labelFont)
+        public static TitleScreen Create(Transform parent, Font titleFont, Font labelFont, string exportResult = null)
         {
             var go = new GameObject("TitleScreen", typeof(RectTransform));
             go.transform.SetParent(parent, false);
@@ -44,6 +46,7 @@ namespace UI.Screens
             var screen = go.AddComponent<TitleScreen>();
             screen.titleFont = titleFont;
             screen.labelFont = labelFont;
+            screen.exportResult = exportResult;
             screen.Build();
             screen.BindKeys();
             return screen;
@@ -63,7 +66,11 @@ namespace UI.Screens
                 titleFont, TextAnchor.MiddleCenter);
             BuildOption("Play", "PLAY", "ENTER", -20f, Option.Play);
             BuildOption("Settings", "SETTINGS", "S", -70f, Option.Settings);
-            BuildOption("Quit", "QUIT", "ESC", -120f, Option.Quit);
+            BuildOption("Export", "EXPORT RUNS", "E", -120f, Option.Export);
+            BuildOption("Quit", "QUIT", "ESC", -170f, Option.Quit);
+            if (!string.IsNullOrEmpty(exportResult))
+                Label(Centered(transform, "ExportResult", 720f, 24f, -224f), exportResult, 11, Ink,
+                    labelFont, TextAnchor.MiddleCenter);
         }
 
         private void BuildOption(string name, string caption, string key, float y, Option option)
@@ -114,6 +121,11 @@ namespace UI.Screens
             settings.performed += _ => Choose(Option.Settings);
             settings.Enable();
             actions.Add(settings);
+
+            var export = new InputAction(nameof(Option.Export), InputActionType.Button, "<Keyboard>/e");
+            export.performed += _ => Choose(Option.Export);
+            export.Enable();
+            actions.Add(export);
 
             var quit = new InputAction(nameof(Option.Quit), InputActionType.Button, "<Keyboard>/escape");
             quit.AddBinding("<Gamepad>/buttonEast");

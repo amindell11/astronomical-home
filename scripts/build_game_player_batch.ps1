@@ -4,7 +4,9 @@
 
 .DESCRIPTION
     Takes the config path that build_game_player.ps1 writes. The JSON object has
-    projectPath, buildDir, and logPath.
+    projectPath, buildDir, and logPath, plus buildLabel when the front door was
+    given -BuildLabel. buildLabel is forwarded to Unity as -gameBuildLabel,
+    beside -gameBuildDir.
 
     Runs Game.GamePlayerBuild.Build in one Unity batch boot, then exits with Unity's exit code.
 
@@ -40,6 +42,10 @@ $arguments = @(
     "-gameBuildDir", [string]$config.buildDir,
     "-logFile", [string]$config.logPath
 )
+if ($null -ne $config.PSObject.Properties["buildLabel"]) {
+    # Quoted so a space or an empty label arrives whole and the stamp refuses it.
+    $arguments += @("-gameBuildLabel", ('"{0}"' -f $config.buildLabel))
+}
 $process = Start-Process -FilePath $unity -ArgumentList $arguments -NoNewWindow -PassThru
 [void]$process.Handle
 $process.WaitForExit()

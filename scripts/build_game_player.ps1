@@ -17,8 +17,8 @@
                                        no stale exe. The exe is PlayerSettings.productName + ".exe".
       <worktree>/build/game-build.log  Unity log.
       <worktree>/build/game-build.json Config for the RunBatch child, UTF-8 without BOM, with
-                                       projectPath, buildDir, and logPath. The child is
-                                       build_game_player_batch.ps1.
+                                       projectPath, buildDir, logPath, and buildLabel when
+                                       -BuildLabel was passed. The child is build_game_player_batch.ps1.
 
     MACHINE CHANNEL
       Success writes exactly one compressed JSON line on stdout:
@@ -36,15 +36,24 @@
 .PARAMETER AllowLowMemory
     Passed through to the RunBatch boot. Pass it only after the user approved that specific boot.
 
+.PARAMETER BuildLabel
+    Optional name stamped into the build identity. Forwarded to Unity as
+    -gameBuildLabel. Omitted leaves the label empty. Unity fails the build when
+    the text is not 1 to 32 characters of A-Z, a-z, 0-9, dot, underscore or hyphen.
+
 .EXAMPLE
     powershell -NoProfile -ExecutionPolicy Bypass -File <worktree>/scripts/build_game_player.ps1
 
 .EXAMPLE
     powershell -NoProfile -ExecutionPolicy Bypass -File <worktree>/scripts/build_game_player.ps1 -WaitSeconds 600
+
+.EXAMPLE
+    powershell -NoProfile -ExecutionPolicy Bypass -File <worktree>/scripts/build_game_player.ps1 -BuildLabel friends-1
 #>
 param(
     [int]$WaitSeconds = 300,
-    [switch]$AllowLowMemory
+    [switch]$AllowLowMemory,
+    [string]$BuildLabel
 )
 
 Set-StrictMode -Version Latest
@@ -66,6 +75,9 @@ if (Test-Path -LiteralPath $buildDir) {
 New-Item -ItemType Directory -Force -Path $buildRoot | Out-Null
 
 $config = [ordered]@{ projectPath = $project; buildDir = $buildDir; logPath = $log }
+if ($PSBoundParameters.ContainsKey("BuildLabel")) {
+    $config.Add("buildLabel", $BuildLabel)
+}
 [System.IO.File]::WriteAllText($configPath, ($config | ConvertTo-Json), (New-Object System.Text.UTF8Encoding($false)))
 
 # Collect then index: a git pipe can kill the command mid-exit.

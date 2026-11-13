@@ -243,6 +243,34 @@ namespace Tests.EditMode.Runs
         }
 
         [Test]
+        public void SectorReads_ReportPlayerKillsAndWhetherTheEliteWasMetAndBeaten()
+        {
+            var hull = NewHull();
+            log.Begin(0f);
+            log.BeginSector();
+            log.Log(Enemy, hull, 0f);
+            log.MarkElite(new EliteMoment(0, "shoal", Enemy));
+            log.MarkDead(Enemy, BlowFrom(Player), 1f);
+            log.Log(OtherEnemy, hull, 1f);
+            log.MarkDead(OtherEnemy, BlowFrom(Enemy), 2f);
+
+            Assert.AreEqual(1, log.KillsSinceSectorStart());
+            Assert.IsTrue(log.EliteMet(0));
+            Assert.IsTrue(log.EliteBeaten(0));
+            Assert.IsFalse(log.EliteMet(1));
+
+            log.EndSector(3f);
+            log.BeginSector();
+            log.Log(Enemy, hull, 3f);
+            log.MarkElite(new EliteMoment(1, "veil", Enemy));
+
+            Assert.AreEqual(0, log.KillsSinceSectorStart());
+            Assert.IsTrue(log.EliteMet(1));
+            Assert.IsFalse(log.EliteBeaten(1));
+            Assert.IsTrue(log.EliteBeaten(0));
+        }
+
+        [Test]
         public void Reset_ClearsTheLog()
         {
             log.Begin(0f);

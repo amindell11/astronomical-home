@@ -678,8 +678,9 @@ Format: **term** — definition. *(authority)*
   spine owns it and drives it. *(EliteEncounter, EliteProfile,
   PhaseSpineModule.StepElite)*
 - **unlocked ship** — a ship the hangar lets the player fly: the starter plus
-  every elite chassis the player killed in any run record. No save file; a kill
-  counts once its run's record is written. *(ShipUnlocks, ItemSubset.starter)*
+  every elite chassis the player killed in a died or extracted run record. No save
+  file; a kill counts once that record is written. An abandoned run earns nothing
+  from the file. *(ShipUnlocks, ItemSubset.starter)*
 - **station** — a *find* the player flies into. Every kind shares one core:
   the placement, the clearing in the field, going dark at the hunt's release,
   the find marker and the arrival events. A kind adds only its effect, which
@@ -1184,11 +1185,17 @@ Format: **term** — definition. *(authority)*
   Built from the `[Stat]` marks and keyed by name, so a rename moves it too.
   *(StatHash.OfSetting, StatAttribute)*
 - **run record**. One JSON line appended when a run ends, extracted from its last
-  sector or dead: what it was played on (build identity, stat fingerprint), its
-  outcome, sectors cleared and the sector it ended in, the player's loadout, kills,
-  seconds survived, the damage-ledger rows, the killing blow (deaths only) and the
-  spawn log. Quitting mid-run writes nothing. `hasDamageSplit` distinguishes
-  measured shield/hull points from older v2 records whose split is unknown.
+  sector, dead, or abandoned. Abandoned is the pause screen's quit run, or shutdown
+  arriving while a run is open; it has no killing blow and no recap. The line holds
+  what the run was played on (build identity, stat fingerprint, editor or build),
+  its outcome, sectors cleared and the sector it ended in, the hangar loadout and
+  the loadout mounted at the end, the mods held, the pick screens, each sector
+  entered (seconds, player kills, hull and shield at entry and at the end, whether
+  its elite was announced and whether the player killed it), where that sector's
+  phase table stood, the damage taken, the damage the player dealt, the killing
+  blow (deaths only) and the spawn log. A new line is schema v3; stored v2 lines
+  still read. `hasDamageSplit` distinguishes measured shield/hull points from older
+  v2 records whose split is unknown.
   Every record goes to one append-only file under the results root, which in the
   editor is the worktree's own `results/`, so an agent's editor runs never land in
   the user's file. A failed write, or an unreadable build identity, is logged and
@@ -1197,6 +1204,7 @@ Format: **term** — definition. *(authority)*
 - **scoreboard**. Past-run rankings share one board across stat fingerprints.
   A sector counts only after extraction; dying in the first sector shows zero.
   Intermediate extraction has no scoreboard; victory and defeat do.
+  An abandoned run stays off the board.
   *(Scoreboard, RunRecapScreen, GameHost)*
 - **spawn log** — one entry per life of each ship spawned or sector-adopted in a
   run, other than the player (a respawn-policy revive opens a fresh entry): its
@@ -1206,13 +1214,17 @@ Format: **term** — definition. *(authority)*
   tally, never sim state. It exists because damage kind cannot say which weapon
   fired: Lasers and Rippers both fire the `Laser` projectile. A ship
   placed during the sector load reads as spawned at second 0. *(SpawnLog)*
-- **build identity** — the git side of what a run was played on: the commit and a
-  dirty flag (any tracked change or untracked file under `src/Asteroids3D/`). The
-  editor asks git at run end; a player build carries a file its pre-build hook
+- **build identity** — what a run was played on: the commit, a dirty flag for any
+  tracked change or untracked file under `src/Asteroids3D/`, and the build label.
+  The commit and the dirty flag are the git side. The editor asks git at run end
+  and leaves the label empty. A player build carries a file its pre-build hook
   stamped, and the game host throws at startup when that file is missing.
   Informational only: records are grouped by stat fingerprint and loadout stat
-  hash. "Build" in this term is the git side, never a ship's parts, which are its
-  loadout. *(BuildIdentity, BuildIdentityStamp)*
+  hash. "Build" here is never a ship's parts, which are its loadout. *(BuildIdentity, BuildIdentityStamp)*
+- **build label** — a short name the person starting a build gives it, such as
+  `friends-1` or `itch-1.0`, so builds handed to testers can be told apart
+  without reading commit hashes. Empty when the build was started without one.
+  *(BuildIdentity.label, BuildIdentity.TryAcceptLabel)*
 - **death recap** — the run outcome recap after a death: the HUD fades while the
   explosion finishes, then the banner and the breakdown card; presentation-gated, so a
   game host with presentation off goes straight to the unload.

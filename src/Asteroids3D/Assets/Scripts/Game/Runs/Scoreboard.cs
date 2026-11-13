@@ -8,10 +8,10 @@ using UnityEngine;
 namespace Game.Runs
 {
     /// <summary>
-    /// Every multi-sector run in the run-record store, best first, and where this run places among them.
-    /// Only <see cref="RunRecord.SchemaId"/> lines count, whatever their stat fingerprint; v1 lines and lines
-    /// that do not parse stay in the file and off the board. <see cref="Compare"/> is the whole ranking rule,
-    /// so a scoring system replaces that one method. The rule and what the board shows:
+    /// Every died or extracted v2 or v3 run in the run-record store, best first, and where this run places
+    /// among them. Abandoned lines, v1 lines and lines that do not parse stay in the file and off the board.
+    /// <see cref="Compare"/> is the whole ranking rule, so a scoring system replaces that one method.
+    /// The rule and what the board shows:
     /// https://github.com/amindell11/astronomical-home/issues/700#issuecomment-6307786977
     /// </summary>
     public sealed class Scoreboard
@@ -68,7 +68,7 @@ namespace Game.Runs
             if (thisRun is { } run)
                 mine = TryRead(run, out var row)
                     ? row
-                    : throw new ArgumentException("This run's record is not a readable run-record-v2.", nameof(thisRun));
+                    : throw new ArgumentException("This run's record is not a readable run record.", nameof(thisRun));
 
             var runs = ReadRuns(path);
             return runs == null
@@ -88,7 +88,7 @@ namespace Game.Runs
             return runs;
         }
 
-        /// <summary>Every run-record-v2 line in file order; null when the file cannot be read, which is logged.</summary>
+        /// <summary>Every v2 or v3 line that counts, in file order; null when the file cannot be read, which is logged.</summary>
         internal static List<RunRecord> ReadRecords(string path)
         {
             if (!File.Exists(path)) return new List<RunRecord>();
@@ -124,13 +124,13 @@ namespace Game.Runs
             {
                 return false;
             }
-            return record.schema == RunRecord.SchemaId;
+            return RunRecord.Counts(record.schema, record.outcome);
         }
 
         private static bool TryRead(in RunRecord record, out Row row)
         {
             row = default;
-            if (record.schema != RunRecord.SchemaId) return false;
+            if (!RunRecord.Counts(record.schema, record.outcome)) return false;
             if (!DateTime.TryParseExact(record.endedUtc, RunRecord.EndedUtcFormat, CultureInfo.InvariantCulture,
                     DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var ended))
                 return false;
