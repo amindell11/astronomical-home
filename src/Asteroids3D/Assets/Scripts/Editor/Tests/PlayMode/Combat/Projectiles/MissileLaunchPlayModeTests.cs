@@ -1,6 +1,7 @@
 using System.Collections;
 using Combat;
 using Combat.Projectiles;
+using Combat.Targeting;
 using Combat.Weapons.Arsenal;
 using NUnit.Framework;
 using Substrate;
@@ -16,7 +17,8 @@ namespace Tests.PlayMode
     /// <summary>
     /// Launch velocity of the shipped missile prefab from a moving shooter: the missile inherits only
     /// the shooter's motion along the aim, never a sideways or backward component, and the homing
-    /// speed cap still bounds it one physics step later. Arc: #576.
+    /// speed cap still bounds it one physics step later. The lock range equals the distance a missile
+    /// fired from a standstill covers before it expires. Arc: #576.
     /// </summary>
     [Category("Weapons")]
     public class MissileLaunchPlayModeTests : PlayModeWorldFixture
@@ -36,6 +38,9 @@ namespace Tests.PlayMode
 
         private Missile missile;
         private StubShooter shooter;
+        private Missiles weapon;
+
+        protected override bool AccelerateTime => true;
 
         private sealed class StubShooter : MonoBehaviour, IShooter
         {
@@ -49,6 +54,7 @@ namespace Tests.PlayMode
         public override void TearDown()
         {
             DestroyTestObject(missile);
+            DestroyTestObject(weapon);
             DestroyTestObject(shooter);
             base.TearDown();
         }
@@ -92,6 +98,35 @@ namespace Tests.PlayMode
                 "velocity lies in the plane at full speed along the aim");
 #else
             Assert.Ignore("Requires Unity Editor assets.");
+#endif
+        }
+
+        [UnityTest]
+        public IEnumerator LockRange_IsTheDistanceAShippedMissileFlies()
+        {
+            shooter = new GameObject("Shooter").AddComponent<StubShooter>();
+#if UNITY_EDITOR
+            var prefab = AssetDatabase.LoadAssetAtPath<Missiles>(MissilesPrefabPath);
+            Assert.IsNotNull(prefab, $"Failed to load {MissilesPrefabPath}");
+            weapon = Object.Instantiate(prefab, shooter.transform);
+            weapon.transform.SetPositionAndRotation(GamePlane.PlanePointToWorld(Vector2.zero), GamePlane.Rotation);
+
+            var lockRange = weapon.GetComponent<LockOnSensor>().MaxLockDistance;
+            var aim = GamePlane.PlaneDirToWorld(Aim);
+            missile = weapon.Fire(weapon.FireOrigin + aim, Projectiles) as Missile;
+            Assert.IsNotNull(missile, "the missile launched");
+
+            var start = missile.transform.position;
+            Vector3? end = null;
+            missile.OnDetonated += p => end = p;
+            for (var t = 0f; end == null && t < 4.5f; t += Time.fixedDeltaTime)
+                yield return new WaitForFixedUpdate();
+
+            Assert.That(end, Is.Not.Null, "Missile did not detonate within its lifetime");
+            Assert.That(Vector3.Distance(start, end.Value), Is.EqualTo(lockRange).Within(2f).Percent);
+#else
+            Assert.Ignore("Requires Unity Editor assets.");
+            yield break;
 #endif
         }
 

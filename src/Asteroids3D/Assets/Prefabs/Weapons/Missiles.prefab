@@ -101,5 +101,4 @@ MonoBehaviour:
   lockOnConeAngle: 60
   lockOnTime: 0.85
   lockExpiry: 3
-  maxLockDistance: 100
-  weapon: {fileID: 0}
+  weapon: {fileID: 2094418735087310904}

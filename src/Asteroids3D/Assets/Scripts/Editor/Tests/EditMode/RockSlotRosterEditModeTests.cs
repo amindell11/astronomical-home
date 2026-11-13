@@ -40,7 +40,7 @@ namespace Tests.EditMode
         {
             var buffer = new DetectedObstacle[rocks.Length];
             for (var i = 0; i < rocks.Length; i++)
-                buffer[i] = new DetectedObstacle(rocks[i].transform.position, 2f, rocks[i].SimpleCollider,
+                buffer[i] = new DetectedObstacle(rocks[i].transform.position, 2f, null,
                     default, 1f, rocks[i]);
             return new ObstacleScan(buffer, buffer.Length);
         }

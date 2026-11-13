@@ -15,5 +15,7 @@ namespace FMODUnity
         public static void PlayOneShot(EventReference eventReference, Vector3 position = new Vector3()) { }
 
         public static void PlayOneShotAttached(EventReference eventReference, GameObject gameObject) { }
+
+        public static FMOD.Studio.Bus GetBus(string path) => default;
     }
 }

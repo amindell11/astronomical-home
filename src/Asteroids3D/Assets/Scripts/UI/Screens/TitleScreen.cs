@@ -6,14 +6,14 @@ using UnityEngine.UI;
 namespace UI.Screens
 {
     /// <summary>
-    /// The title's uGUI: the game's name with Play and Quit, clickable and keyed, answered through
+    /// The title's uGUI: the game's name with Play, Settings and Quit, clickable and keyed, answered through
     /// <see cref="Choice"/>. The host shows it over the hangar sky and acts on the answer.
     /// </summary>
     public sealed class TitleScreen : MonoBehaviour
     {
         public const string GameName = "Andromeda";
 
-        public enum Option { Play, Quit }
+        public enum Option { Play, Settings, Quit }
 
         private static readonly Color Ink = new(.93f, .94f, .93f);
         private static readonly Color Muted = new(.70f, .74f, .81f);
@@ -62,7 +62,8 @@ namespace UI.Screens
             Label(Centered(transform, "Title", 1000f, 72f, 120f), GameName.ToUpperInvariant(), 56, Paint,
                 titleFont, TextAnchor.MiddleCenter);
             BuildOption("Play", "PLAY", "ENTER", -20f, Option.Play);
-            BuildOption("Quit", "QUIT", "ESC", -70f, Option.Quit);
+            BuildOption("Settings", "SETTINGS", "S", -70f, Option.Settings);
+            BuildOption("Quit", "QUIT", "ESC", -120f, Option.Quit);
         }
 
         private void BuildOption(string name, string caption, string key, float y, Option option)
@@ -107,6 +108,12 @@ namespace UI.Screens
             play.performed += _ => Choose(Option.Play);
             play.Enable();
             actions.Add(play);
+
+            var settings = new InputAction(nameof(Option.Settings), InputActionType.Button, "<Keyboard>/s");
+            settings.AddBinding("<Gamepad>/buttonNorth");
+            settings.performed += _ => Choose(Option.Settings);
+            settings.Enable();
+            actions.Add(settings);
 
             var quit = new InputAction(nameof(Option.Quit), InputActionType.Button, "<Keyboard>/escape");
             quit.AddBinding("<Gamepad>/buttonEast");

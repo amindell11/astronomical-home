@@ -54,6 +54,9 @@ namespace Substrate.Sessions
 
         public Sector ActiveSector { get; private set; }
 
+        /// <summary>The locale the active sector shows; null headless or with no sector loaded.</summary>
+        public LocaleSky ActiveLocale { get; private set; }
+
         public LocaleBackdropPair PrepareTravelBackdrop(LocaleSky destination, Transform parent)
         {
             Require(Phase.Loaded, nameof(PrepareTravelBackdrop));
@@ -126,6 +129,7 @@ namespace Substrate.Sessions
                     throw new InvalidOperationException(
                         $"Row {index} is Random; a presented load shows the locale its run drew, and none was passed.");
                 locale.Show(shown);
+                ActiveLocale = shown;
             }
 
             // Inactive holder under the sector root: authored children Awake only after adoption wires them.
@@ -267,6 +271,7 @@ namespace Substrate.Sessions
 
             UnityEngine.Object.Destroy(sector.gameObject);
             ActiveSector = null;
+            ActiveLocale = null;
         }
     }
 

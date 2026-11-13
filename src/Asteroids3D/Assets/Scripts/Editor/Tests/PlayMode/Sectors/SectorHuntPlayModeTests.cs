@@ -43,6 +43,7 @@ namespace Tests.PlayMode.Sectors
         private readonly List<Object> _created = new();
         private readonly List<string> _beats = new();
         private int _patrols;
+        private float _searchSeconds;
 
         [SetUp]
         public override void SetUp()
@@ -641,7 +642,6 @@ namespace Tests.PlayMode.Sectors
         {
             var feel = Track(ScriptableObject.CreateInstance<HuntFeelProfile>());
             feel.sightRadius = sightRadius;
-            feel.searchSeconds = searchSeconds;
             feel.coneDegrees = coneDegrees;
             feel.closeSightRadius = closeSightRadius;
             feel.spotFillSeconds = spotFillSeconds;
@@ -655,6 +655,7 @@ namespace Tests.PlayMode.Sectors
             feel.arrivalRadius = arrivalRadius;
             feel.routeStartPass = routeStartPass;
             _patrols = patrols;
+            _searchSeconds = searchSeconds;
             var hunt = Track(new GameObject("Hunt")).AddComponent<SectorHunt>();
             var faction = Track(ScriptableObject.CreateInstance<Faction>());
             faction.common = new FactionShip
@@ -677,7 +678,8 @@ namespace Tests.PlayMode.Sectors
         private SectorEntry HuntRow(SectorPhase phase = default) => new()
         {
             phases = new[] { phase },
-            patrols = _patrols
+            patrols = _patrols,
+            searchSeconds = _searchSeconds
         };
 
         private IEnumerator Build(SectorHunt hunt, Ship hero, IObstacleField field = null) =>
@@ -828,6 +830,9 @@ namespace Tests.PlayMode.Sectors
                 buffer[0] = new DetectedObstacle(Collider.transform.position, Radius, Collider);
                 return 1;
             }
+
+            public bool AnyObstacleWithin(Vector2 centerPlane, float radius) =>
+                Collider && Vector2.Distance(GamePlane.WorldPointToPlane(Collider.transform.position), centerPlane) <= radius + Radius;
         }
 
         private GameObject Child(GameObject parent, string name)

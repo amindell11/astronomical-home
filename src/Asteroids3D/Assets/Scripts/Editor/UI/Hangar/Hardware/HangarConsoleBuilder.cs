@@ -3,7 +3,10 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UI.Hangar.Displays;
 using UI.Hangar.Hologram;
+using UI.Projection;
+using UI.Screens;
 using UnityEngine.Rendering;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
@@ -19,6 +22,7 @@ namespace UI.Hangar.Hardware
         [MenuItem("Tools/Hangar/Rebuild console hardware")]
         public static void Rebuild()
         {
+            ShipSilhouettes.BakeHangar();
             var manifestPath = Path.GetFullPath(Path.Combine(Application.dataPath,
                 "../../../art/environments/hangar-console/console-export.json"));
             var authored = JsonUtility.FromJson<ExportManifest>(File.ReadAllText(manifestPath)).camera;
@@ -46,7 +50,7 @@ namespace UI.Hangar.Hardware
             modelImporter.importCameras = false;
             modelImporter.importLights = false;
             modelImporter.importAnimation = false;
-            modelImporter.isReadable = false;
+            modelImporter.isReadable = true;
             modelImporter.SaveAndReimport();
 
             var root = new GameObject("HangarConsole");
@@ -68,18 +72,8 @@ namespace UI.Hangar.Hardware
                 glass.GetComponentInChildren<MeshRenderer>().sharedMaterial = windowMaterial;
                 var paint = Material("ConsolePaint", "ConsolePaint", "ConsoleEmission");
                 paint.SetColor("_Starlight", new Color(.18f, .20f, .24f).gamma);
-                var main = Material("MainScreenGlass", "MainScreenReference", "MainScreenReference");
-                var detail = Material("DetailScreenGlass", "DetailScreenReference", "DetailScreenReference");
-                main.SetColor("_Starlight", Color.black);
-                main.SetFloat("_LightResponse", 0f);
-                detail.SetColor("_Starlight", Color.black);
-                detail.SetFloat("_LightResponse", 0f);
-                main.SetColor("_EmissionTint", new Color(1f, .84f, .63f));
-                detail.SetColor("_EmissionTint", new Color(1f, .84f, .63f));
-                main.SetFloat("_EmissionStrength", 1f);
-                detail.SetFloat("_EmissionStrength", 1f);
-                main.SetFloat("_UseEmissionAlpha", 1f);
-                detail.SetFloat("_UseEmissionAlpha", 1f);
+                var main = Glass("MainScreenGlass");
+                var detail = Glass("DetailScreenGlass");
                 var parts = model.GetComponentsInChildren<MeshRenderer>().ToDictionary(renderer => renderer.name);
                 foreach (var renderer in parts.Values)
                 {
@@ -93,8 +87,11 @@ namespace UI.Hangar.Hardware
                 legend.SetColor("_Starlight", Color.black);
                 legend.SetFloat("_LightResponse", 0f);
                 legend.SetColor("_ConstantEmission", new Color(1f, .88f, .70f));
-                parts["LaunchLegend"].sharedMaterial = legend;
-                parts["LaunchLegend"].transform.SetParent(parts["LaunchButton"].transform, true);
+                foreach (var control in new[] { "Launch", "Previous", "Next" })
+                {
+                    parts[control + "Legend"].sharedMaterial = legend;
+                    parts[control + "Legend"].transform.SetParent(parts[control + "Button"].transform, true);
+                }
 
                 var cameraObject = new GameObject("HardwareCamera");
                 cameraObject.transform.SetParent(root.transform, false);
@@ -111,12 +108,8 @@ namespace UI.Hangar.Hardware
                 camera.allowMSAA = true;
                 camera.useOcclusionCulling = false;
                 camera.enabled = true;
-                Light(root.transform, "MainScreenSpill", new Vector3(-5.4f, 3.4f, -2.5f),
-                    new Color(1f, .87f, .70f), 4.55f, 8f);
                 Light(root.transform, "ProjectorSpill", new Vector3(2.4f, 4.4f, -.2f),
                     new Color(1f, .87f, .70f), 8.45f, 12f);
-                Light(root.transform, "DetailScreenSpill", new Vector3(-5f, 1.1f, -3f),
-                    new Color(1f, .87f, .70f), 1.3f, 5f);
                 Light(root.transform, "LaunchSpill", new Vector3(6.5f, 4f, -2.3f),
                     new Color(1f, .87f, .70f), 2.5f, 6f);
                 var composite = new GameObject("Composite", typeof(RectTransform), typeof(Canvas));
@@ -141,6 +134,23 @@ namespace UI.Hangar.Hardware
                 projectorObject.transform.position = lens.position;
                 projectorObject.transform.rotation = camera.transform.rotation;
 
+                var feature = CanopyFeature();
+                var mainView = HangarDisplayBuilder.BuildMain(root.transform, new Vector3(0f, -300f, 0f),
+                    ReferenceResolution("MainScreenReference"), feature);
+                var detailView = HangarDisplayBuilder.BuildDetail(root.transform, new Vector3(200f, -300f, 0f),
+                    ReferenceResolution("DetailScreenReference"), feature);
+                Spill(mainView.GetComponent<HangarDisplay>(), Light(root.transform, "MainScreenSpill",
+                    new Vector3(-5.4f, 3.4f, -2.5f), new Color(1f, .87f, .70f), 4.55f, 8f));
+                Spill(detailView.GetComponent<HangarDisplay>(), Light(root.transform, "DetailScreenSpill",
+                    new Vector3(-5f, 1.1f, -3f), new Color(1f, .87f, .70f), 1.3f, 5f));
+                var knobAxis = AuthoredUp(parts["SelectorKnob"]);
+                var knob = Control(parts["SelectorKnob"], knobAxis, .2f, camera);
+                var turn = parts["SelectorKnob"].gameObject.AddComponent<HangarKnob>();
+                var previous = Control(parts["PreviousButton"], AuthoredUp(parts["PreviousButton"]), .28f, camera);
+                var next = Control(parts["NextButton"], AuthoredUp(parts["NextButton"]), .28f, camera);
+                var launch = Control(parts["LaunchButton"], AuthoredUp(parts["LaunchButton"]), .35f, camera);
+                root.AddComponent<HangarConsoleRaycaster>();
+
                 foreach (var child in root.GetComponentsInChildren<Transform>(true))
                     child.gameObject.layer = 5;
 
@@ -149,12 +159,25 @@ namespace UI.Hangar.Hardware
                 data.FindProperty("referenceVerticalFov").floatValue = authored.verticalFieldOfView;
                 foreach (var name in new[] { "MainScreenGlass", "DetailScreenGlass", "ProjectorLens" })
                     data.FindProperty(char.ToLowerInvariant(name[0]) + name.Substring(1)).objectReferenceValue = parts[name];
-                foreach (var name in new[] { "SelectorKnob", "PreviousButton", "NextButton", "LaunchButton" })
-                    data.FindProperty(char.ToLowerInvariant(name[0]) + name.Substring(1)).objectReferenceValue = parts[name].transform;
+                data.FindProperty("selectorKnob").objectReferenceValue = knob;
+                data.FindProperty("knob").objectReferenceValue = turn;
+                data.FindProperty("previousButton").objectReferenceValue = previous;
+                data.FindProperty("nextButton").objectReferenceValue = next;
+                data.FindProperty("launchButton").objectReferenceValue = launch;
+                data.FindProperty("launchLegend").objectReferenceValue = parts["LaunchLegend"];
                 data.FindProperty("compositeImage").objectReferenceValue = image;
                 data.FindProperty("projector").objectReferenceValue = projectorObject.GetComponent<HangarHologramProjector>();
+                data.FindProperty("mainDisplay").objectReferenceValue = mainView.GetComponent<HangarDisplay>();
+                data.FindProperty("detailDisplay").objectReferenceValue = detailView.GetComponent<HangarDisplay>();
+                data.FindProperty("mainView").objectReferenceValue = mainView;
+                data.FindProperty("detailView").objectReferenceValue = detailView;
+                data.FindProperty("displayProfile").objectReferenceValue = DisplayProfile();
+                data.FindProperty("knobAxis").vector3Value = knobAxis;
+                data.FindProperty("knobDetentDegrees").floatValue = 40f;
                 data.ApplyModifiedPropertiesWithoutUndo();
                 root.SetActive(true);
+                foreach (var display in root.GetComponentsInChildren<HangarDisplay>(true))
+                    display.DisplayCamera.targetTexture = null;
                 PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
             }
             finally
@@ -163,6 +186,89 @@ namespace UI.Hangar.Hardware
             }
 
             AssetDatabase.SaveAssets();
+        }
+
+        // Twice the reference picture's pixels: the grid the screen design was drawn on.
+        private static Vector2Int ReferenceResolution(string name)
+        {
+            var reference = AssetDatabase.LoadAssetAtPath<Texture2D>($"{VisualsPath}/{name}.png");
+            return new Vector2Int(reference.width * 2, reference.height * 2);
+        }
+
+        private static Material Glass(string name)
+        {
+            var material = ShaderMaterial(name, "Hangar/ConsolePaint");
+            material.SetTexture("_BaseMap", null);
+            material.SetTexture("_EmissionMap", null);
+            material.SetColor("_Starlight", Color.black);
+            material.SetFloat("_LightResponse", 0f);
+            material.SetColor("_EmissionTint", new Color(1f, .84f, .63f));
+            material.SetFloat("_EmissionStrength", 1f);
+            material.SetFloat("_UseEmissionAlpha", 0f);
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
+        private static HangarDisplayProfile DisplayProfile()
+        {
+            const string path = "Assets/Settings/UI/HangarDisplayProfile.asset";
+            var profile = AssetDatabase.LoadAssetAtPath<HangarDisplayProfile>(path);
+            if (profile) return profile;
+            profile = ScriptableObject.CreateInstance<HangarDisplayProfile>();
+            AssetDatabase.CreateAsset(profile, path);
+            return profile;
+        }
+
+        private static Object CanopyFeature()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(ProjectorPath);
+            var image = prefab.GetComponentInChildren<CanopyImage>(true);
+            var feature = new SerializedObject(image).FindProperty("feature").objectReferenceValue;
+            if (!feature)
+                throw new InvalidOperationException("The hangar projector's canopy image has no feature.");
+            return feature;
+        }
+
+        private static HangarControl Control(MeshRenderer part, Vector3 axis, float travelShare, Camera camera)
+        {
+            var control = part.gameObject.AddComponent<HangarControl>();
+            var inward = Vector3.Dot(part.transform.TransformDirection(axis), camera.transform.forward) >= 0f ? axis : -axis;
+            var extent = Vector3.Dot(Vector3.Scale(part.GetComponent<MeshFilter>().sharedMesh.bounds.size, inward), inward);
+            var data = new SerializedObject(control);
+            data.FindProperty("pressAxis").vector3Value = inward;
+            data.FindProperty("travel").floatValue = Mathf.Abs(extent) * travelShare;
+            data.ApplyModifiedPropertiesWithoutUndo();
+            return control;
+        }
+
+        // The exporter frames each control on its Blender object, whose up is the control's axis:
+        // a keycap's top and the knob's caps face it, so the mesh proves the frame still holds.
+        private static Vector3 AuthoredUp(MeshRenderer part)
+        {
+            var mesh = part.GetComponent<MeshFilter>().sharedMesh;
+            var vertices = mesh.vertices;
+            var triangles = mesh.triangles;
+            var capArea = new float[3];
+            for (var i = 0; i < triangles.Length; i += 3)
+            {
+                var cross = Vector3.Cross(vertices[triangles[i + 1]] - vertices[triangles[i]],
+                    vertices[triangles[i + 2]] - vertices[triangles[i]]);
+                var area = cross.magnitude;
+                if (area <= 0f) continue;
+                var normal = cross / area;
+                for (var axis = 0; axis < 3; axis++)
+                    if (Mathf.Abs(normal[axis]) > .99f) capArea[axis] += area;
+            }
+            if (capArea[1] <= capArea[0] || capArea[1] <= capArea[2])
+                throw new InvalidOperationException($"{part.name}'s caps do not face its up axis; the export's pivot frame changed.");
+            return Vector3.up;
+        }
+
+        private static void Spill(HangarDisplay display, Light light)
+        {
+            var data = new SerializedObject(display);
+            data.FindProperty("spill").objectReferenceValue = light;
+            data.ApplyModifiedPropertiesWithoutUndo();
         }
 
         private static Material Material(string name, string paint, string emission)
@@ -184,7 +290,7 @@ namespace UI.Hangar.Hardware
             return material;
         }
 
-        private static void Light(Transform parent, string name, Vector3 position, Color color, float intensity, float range)
+        private static Light Light(Transform parent, string name, Vector3 position, Color color, float intensity, float range)
         {
             var lightObject = new GameObject(name);
             lightObject.transform.SetParent(parent, false);
@@ -196,6 +302,7 @@ namespace UI.Hangar.Hardware
             light.range = range;
             light.cullingMask = 1 << 5;
             light.shadows = LightShadows.None;
+            return light;
         }
 
         private static Vector3 ToUnity(float[] value) => new(value[0], value[2], value[1]);

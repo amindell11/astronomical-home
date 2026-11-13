@@ -68,7 +68,8 @@ namespace Tests.PlayMode.Sectors
 
             sector.SetManifest(null, new SectorSpawner[] { spawner }, new SectorModule[] { repairs, mods }, field);
             sector.Initialize(Track(new GameObject("Units")).AddComponent<UnitService>(),
-                Track(new GameObject("Objectives")).AddComponent<ObjectiveService>(), false, default, null, new SectorEntry());
+                Track(new GameObject("Objectives")).AddComponent<ObjectiveService>(), false, default, null,
+                new SectorEntry { repairStations = 2, modStations = 2 });
             yield return sector.Setup();
             holder.SetActive(true);
             yield return null;
@@ -107,7 +108,6 @@ namespace Tests.PlayMode.Sectors
         private RepairStation NewRepairStations(Transform parent)
         {
             var feel = Track(ScriptableObject.CreateInstance<RepairStationFeelProfile>());
-            feel.stationsPerSector = 2;
             var repairs = Object.Instantiate(AssetDatabase.LoadAssetAtPath<RepairStation>(RepairStationPath), parent);
             repairs.Configure(feel, Distance, spacing: Spacing);
             SetClearRadius(repairs, RepairClearRadius);
@@ -116,10 +116,8 @@ namespace Tests.PlayMode.Sectors
 
         private ModStation NewModStations(Transform parent, RepairStation repairs)
         {
-            var feel = Track(ScriptableObject.CreateInstance<ModStationFeelProfile>());
-            feel.stationsPerSector = 2;
             var mods = Object.Instantiate(AssetDatabase.LoadAssetAtPath<ModStation>(ModStationPath), parent);
-            mods.Configure(feel, Distance, spacing: Spacing, repairs: repairs);
+            mods.Configure(Distance, spacing: Spacing, repairs: repairs);
             SetClearRadius(mods, ModClearRadius);
             return mods;
         }

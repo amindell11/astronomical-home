@@ -13,13 +13,12 @@ namespace Game.Preview
         public override string Name => "Hunt";
         public override IReadOnlyList<PreviewEntry> Entries { get; } = new[] { PreviewEntry.Combat };
 
-        // A sector may lack a hunt, a repair or mod station, or a beacon cache; each missing one gives no profile.
+        // A sector may lack a hunt, a repair station or a beacon cache; each missing one gives no profile.
         public override IEnumerable<ScriptableObject> Profiles(GameHost game) => game.sessionProfile.run.Sectors
             .SelectMany(sector => new Object[]
             {
                 sector.prefab.GetComponentInChildren<SectorHunt>(true),
                 sector.prefab.GetComponentInChildren<RepairStation>(true),
-                sector.prefab.GetComponentInChildren<ModStation>(true),
                 sector.prefab.GetComponentInChildren<BeaconCache>(true)
             })
             .Where(owner => owner)

@@ -12,7 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bb5b48e9b23144c0bc8f1b23d6f0449f, type: 3}
   m_Name: HuntFeel
   m_EditorClassIdentifier: 
-  searchSeconds: 45
   sightRadius: 50
   coneDegrees: 90
   closeSightRadius: 12

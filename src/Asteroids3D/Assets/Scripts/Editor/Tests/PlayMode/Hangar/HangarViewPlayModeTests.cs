@@ -27,7 +27,6 @@ namespace Tests.PlayMode.Hangar
         private const string RigPrefabPath = "Assets/Prefabs/MiscObjects/PlayerRig.prefab";
         private const string ObserverCamPrefabPath = "Assets/Prefabs/Cameras/Main Camera.prefab";
         private const string HangarCameraPrefabPath = "Assets/Prefabs/Cameras/Hangar Camera.prefab";
-        private const string HangarScreenPath = "Assets/Prefabs/UI/HangarScreen.prefab";
         private const string HangarConsolePath = "Assets/Prefabs/UI/HangarConsole.prefab";
         private const string OfferPath = "Assets/Settings/Ships/PlayerLoadout.asset";
         private const string RecapFeelPath = "Assets/Settings/UI/RecapFeel.asset";
@@ -79,27 +78,22 @@ namespace Tests.PlayMode.Hangar
             host.playerRig = AssetDatabase.LoadAssetAtPath<PlayerRig>(RigPrefabPath);
             host.observerCamPrefab = AssetDatabase.LoadAssetAtPath<ObserverCam>(ObserverCamPrefabPath);
             host.hangarCameraPrefab = AssetDatabase.LoadAssetAtPath<DriftCam>(HangarCameraPrefabPath);
-            host.hangarScreenPrefab = AssetDatabase.LoadAssetAtPath<HangarScreen>(HangarScreenPath);
             host.hangarConsolePrefab = AssetDatabase.LoadAssetAtPath<HangarConsole>(HangarConsolePath);
             host.hangarOffer = AssetDatabase.LoadAssetAtPath<ItemSubset>(OfferPath);
             host.recapFeel = AssetDatabase.LoadAssetAtPath<RecapFeelProfile>(RecapFeelPath);
             Assert.IsTrue(host.hangarCameraPrefab, $"hangar camera prefab loads from {HangarCameraPrefabPath}");
             hostGo.SetActive(true);
 
-            HangarScreen screen = null;
+            HangarConsole console = null;
             var deadline = Time.realtimeSinceStartup + TimeoutSec;
-            while (!screen && Time.realtimeSinceStartup < deadline)
+            while (!console && Time.realtimeSinceStartup < deadline)
             {
                 yield return null;
-                screen = Object.FindFirstObjectByType<HangarScreen>();
+                console = Object.FindFirstObjectByType<HangarConsole>();
             }
-            Assert.IsTrue(screen, "the host reached the hangar");
-
-            var consoles = Object.FindObjectsByType<HangarConsole>(FindObjectsSortMode.None);
-            Assert.That(consoles, Has.Length.EqualTo(1), "the hangar shows one console");
-            var console = consoles[0];
-            Assert.That(console.GetComponentInChildren<Canvas>().sortingOrder,
-                Is.LessThan(screen.GetComponent<Canvas>().sortingOrder));
+            Assert.IsTrue(console, "the host reached the hangar");
+            Assert.That(Object.FindObjectsByType<HangarConsole>(FindObjectsSortMode.None), Has.Length.EqualTo(1),
+                "the hangar shows one console");
 
             var hangarCamera = hostGo.GetComponentInChildren<DriftCam>();
             var observer = hostGo.GetComponentInChildren<ObserverCam>();
@@ -118,7 +112,7 @@ namespace Tests.PlayMode.Hangar
             Assert.That(console.Projector.Stage.GetComponentsInChildren<HangarPreviewFlight>().Select(flight => flight.name),
                 Does.Contain(worn), "the projector shows the worn ship");
 
-            screen.launchButton.onClick.Invoke();
+            console.Launch();
             deadline = Time.realtimeSinceStartup + TimeoutSec;
             while (!host.ActiveSector && Time.realtimeSinceStartup < deadline)
                 yield return null;

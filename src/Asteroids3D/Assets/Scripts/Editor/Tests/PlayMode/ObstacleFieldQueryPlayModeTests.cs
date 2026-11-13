@@ -70,8 +70,8 @@ public class ObstacleFieldQueryPlayModeTests : PlayModeWorldFixture
         Assert.Greater(firstCount, 0, "Query should report live asteroids in the dense field");
 
         // Destroy one reported asteroid; the query must drop it (destroyed objects are never reported).
-        var victim = buffer[0].collider;
-        Assert.IsNotNull(victim, "Reported obstacle should carry the asteroid collider");
+        var victim = buffer[0].source;
+        Assert.IsNotNull(victim, "Reported obstacle should carry its asteroid");
         Object.DestroyImmediate(victim.gameObject);
 
         var secondCount = field.QueryObstacles(center, halfExtent, buffer);

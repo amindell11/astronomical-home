@@ -44,7 +44,6 @@ namespace Substrate.Sectors.Elements.Elites
         [Tooltip("A candidate point with an asteroid within this radius, times the elite's size, is passed over. " +
                  "Escorts use it unscaled.")]
         [SerializeField] private float clearanceRadius = 6f;
-        [SerializeField] private LayerMask asteroidMask = 1 << 8;
         [Tooltip("Random angles tried for a clear point; the last one tried is used when none is clear.")]
         [SerializeField, Min(1)] private int placementAttempts = 8;
 
@@ -181,8 +180,9 @@ namespace Substrate.Sectors.Elements.Elites
             {
                 var angle = UnityEngine.Random.Range(0f, 2f * Mathf.PI);
                 var outward = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
-                position = GamePlane.PlanePointToWorld(center + outward * distance);
-                if (!Physics.CheckSphere(position, clearance, asteroidMask)) break;
+                var planePoint = center + outward * distance;
+                position = GamePlane.PlanePointToWorld(planePoint);
+                if (Placement.ClearPoint.IsClear(field, planePoint, clearance)) break;
             }
             return position;
         }

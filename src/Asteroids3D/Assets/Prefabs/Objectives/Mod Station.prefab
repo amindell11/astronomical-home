@@ -54,7 +54,6 @@ MonoBehaviour:
   spacing: 60
   clearRadius: 35
   placementAttempts: 8
-  feel: {fileID: 11400000, guid: eb4bd271d500464589256008797cda29, type: 2}
 --- !u!1 &2064291225595691423
 GameObject:
   m_ObjectHideFlags: 0

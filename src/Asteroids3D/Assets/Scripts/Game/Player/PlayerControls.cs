@@ -454,15 +454,6 @@ namespace Game.Player
             ""id"": ""1b644a57-b5c1-48d4-8769-ee879b1c3d4c"",
             ""actions"": [
                 {
-                    ""name"": ""ToggleLock"",
-                    ""type"": ""Button"",
-                    ""id"": ""a46a254e-364e-4a65-9112-a37d3f546434"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
                     ""name"": ""Zoom"",
                     ""type"": ""Value"",
                     ""id"": ""9732ab76-5df1-4058-9c8b-8c349018aed7"",
@@ -482,17 +473,6 @@ namespace Game.Player
                 }
             ],
             ""bindings"": [
-                {
-                    ""name"": """",
-                    ""id"": ""d3bd41bd-a5a7-4493-8e33-0c86e93a5f78"",
-                    ""path"": ""<Keyboard>/c"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""ToggleLock"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
                 {
                     ""name"": """",
                     ""id"": ""0798f9a9-0be1-4d82-a129-7484d188364c"",
@@ -535,7 +515,6 @@ namespace Game.Player
             m_Flight_ToggleAssist = m_Flight.FindAction("ToggleAssist", throwIfNotFound: true);
             // Camera
             m_Camera = asset.FindActionMap("Camera", throwIfNotFound: true);
-            m_Camera_ToggleLock = m_Camera.FindAction("ToggleLock", throwIfNotFound: true);
             m_Camera_Zoom = m_Camera.FindAction("Zoom", throwIfNotFound: true);
             m_Camera_Point = m_Camera.FindAction("Point", throwIfNotFound: true);
         }
@@ -825,7 +804,6 @@ namespace Game.Player
         // Camera
         private readonly InputActionMap m_Camera;
         private List<ICameraActions> m_CameraActionsCallbackInterfaces = new List<ICameraActions>();
-        private readonly InputAction m_Camera_ToggleLock;
         private readonly InputAction m_Camera_Zoom;
         private readonly InputAction m_Camera_Point;
         /// <summary>
@@ -839,10 +817,6 @@ namespace Game.Player
             /// Construct a new instance of the input action map wrapper class.
             /// </summary>
             public CameraActions(@PlayerControls wrapper) { m_Wrapper = wrapper; }
-            /// <summary>
-            /// Provides access to the underlying input action "Camera/ToggleLock".
-            /// </summary>
-            public InputAction @ToggleLock => m_Wrapper.m_Camera_ToggleLock;
             /// <summary>
             /// Provides access to the underlying input action "Camera/Zoom".
             /// </summary>
@@ -877,9 +851,6 @@ namespace Game.Player
             {
                 if (instance == null || m_Wrapper.m_CameraActionsCallbackInterfaces.Contains(instance)) return;
                 m_Wrapper.m_CameraActionsCallbackInterfaces.Add(instance);
-                @ToggleLock.started += instance.OnToggleLock;
-                @ToggleLock.performed += instance.OnToggleLock;
-                @ToggleLock.canceled += instance.OnToggleLock;
                 @Zoom.started += instance.OnZoom;
                 @Zoom.performed += instance.OnZoom;
                 @Zoom.canceled += instance.OnZoom;
@@ -897,9 +868,6 @@ namespace Game.Player
             /// <seealso cref="CameraActions" />
             private void UnregisterCallbacks(ICameraActions instance)
             {
-                @ToggleLock.started -= instance.OnToggleLock;
-                @ToggleLock.performed -= instance.OnToggleLock;
-                @ToggleLock.canceled -= instance.OnToggleLock;
                 @Zoom.started -= instance.OnZoom;
                 @Zoom.performed -= instance.OnZoom;
                 @Zoom.canceled -= instance.OnZoom;
@@ -1031,13 +999,6 @@ namespace Game.Player
         /// <seealso cref="CameraActions.RemoveCallbacks(ICameraActions)" />
         public interface ICameraActions
         {
-            /// <summary>
-            /// Method invoked when associated input action "ToggleLock" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-            /// </summary>
-            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-            void OnToggleLock(InputAction.CallbackContext context);
             /// <summary>
             /// Method invoked when associated input action "Zoom" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
             /// </summary>

@@ -11,10 +11,14 @@ using NUnit.Framework;
 using Ships.Loadout;
 using Tests.PlayMode.Common;
 using UI.Hangar;
+using UI.Hangar.Displays;
+using UI.Hangar.Hardware;
+using UI.Hangar.Selection;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.TestTools;
+using UnityEngine.UI;
 using Substrate.Services;
 using Substrate.Services.Units;
 using Substrate.Services.Objectives;
@@ -22,17 +26,18 @@ using Substrate.Services.Objectives;
 namespace Tests.PlayMode.Hangar
 {
     /// <summary>
-    /// While the hangar screen is open the player's commander must be inactive — primary fire shares
-    /// the left mouse button with UI clicks, so a live commander turns every hangar button press into a
-    /// weapon shot on the ship behind the screen — and its HUD hidden. Launch must bring both back.
-    /// The visible preview must leave option clicks reachable and stay within its rendering budget.
+    /// While the hangar console is open the player's commander must be inactive — primary fire shares
+    /// the left mouse button with UI clicks, so a live commander turns every hangar press into a
+    /// weapon shot on the ship behind the console — and its HUD hidden. Launch must bring both back.
+    /// A click on the console must reach the display under that glass, and the preview stays in budget.
     /// </summary>
     // Real PlayerRig cameras: URP render loop cannot create RTs under -nographics.
+    [Category("UI")]
     [Category("RequiresGraphics")]
     public class HangarInputGatePlayModeTests : PlayModeWorldFixture
     {
         private const string RigPrefabPath = "Assets/Prefabs/MiscObjects/PlayerRig.prefab";
-        private const string HangarScreenPath = "Assets/Prefabs/UI/HangarScreen.prefab";
+        private const string HangarConsolePath = "Assets/Prefabs/UI/HangarConsole.prefab";
         private const string OfferPath = "Assets/Settings/Ships/PlayerLoadout.asset";
 
         private GameObject servicesGo;
@@ -44,8 +49,8 @@ namespace Tests.PlayMode.Hangar
 
         public override void TearDown()
         {
-            var screen = Object.FindFirstObjectByType<HangarScreen>();
-            if (screen) DestroyTestObject(screen.gameObject);
+            var console = Object.FindFirstObjectByType<HangarConsole>();
+            if (console) DestroyTestObject(console.gameObject);
             if (rig) rig.Teardown();
             if (unitService) unitService.Clear();
             DestroyTestObject(hostGo);
@@ -78,7 +83,7 @@ namespace Tests.PlayMode.Hangar
             hostGo = new GameObject("TestHost");
             hostGo.SetActive(false);
             var host = hostGo.AddComponent<GameHost>();
-            host.hangarScreenPrefab = AssetDatabase.LoadAssetAtPath<HangarScreen>(HangarScreenPath);
+            host.hangarConsolePrefab = AssetDatabase.LoadAssetAtPath<HangarConsole>(HangarConsolePath);
             host.hangarOffer = AssetDatabase.LoadAssetAtPath<ItemSubset>(OfferPath);
             host.unlocks = new ShipUnlocks(Path.Combine(Application.temporaryCachePath, "no-run-records.jsonl"));
 
@@ -91,44 +96,69 @@ namespace Tests.PlayMode.Hangar
             rig.StartCoroutine(Run());
             yield return null;
 
-            var screen = Object.FindFirstObjectByType<HangarScreen>();
-            Assert.IsNotNull(screen, "interactive path instantiated the hangar screen");
+            var console = Object.FindFirstObjectByType<HangarConsole>();
+            Assert.IsNotNull(console, "interactive path instantiated the hangar console");
             Assert.IsFalse(rig.Player.Commander.isActiveAndEnabled,
-                "player input is disconnected while the hangar screen is open");
-            Assert.IsFalse(HudVisible(), "the HUD is hidden while the hangar screen is open");
-
-            var eventSystem = new GameObject("TestEventSystem").AddComponent<EventSystem>();
-            eventSystemGo = eventSystem.gameObject;
-            Canvas.ForceUpdateCanvases();
-            var rows = new[] { screen.shipRow,
-                screen.primaryWeaponRow, screen.secondaryWeaponRow };
-            var buttons = rows.SelectMany(row => new[] { row.previousButton, row.nextButton })
-                .Append(screen.launchButton);
-            foreach (var button in buttons)
-            {
-                var rect = (RectTransform)button.transform;
-                var pointer = new PointerEventData(eventSystem)
-                {
-                    position = RectTransformUtility.WorldToScreenPoint(null, rect.TransformPoint(rect.rect.center))
-                };
-                var hits = new List<RaycastResult>();
-                eventSystem.RaycastAll(pointer, hits);
-                Assert.IsNotEmpty(hits, $"{button.name} receives pointer hits");
-                Assert.IsTrue(hits[0].gameObject.transform.IsChildOf(button.transform),
-                    $"{button.transform.parent.name}/{button.name} is covered by {hits[0].gameObject.name}");
-            }
-
-            var launchButton = screen.launchButton;
-            Assert.IsNotNull(launchButton, "hangar screen has a launch button");
-            launchButton.onClick.Invoke();
+                "player input is disconnected while the hangar console is open");
+            Assert.IsFalse(HudVisible(), "the HUD is hidden while the hangar console is open");
 
             yield return null;
+            Canvas.ForceUpdateCanvases();
+            var eventSystem = new GameObject("TestEventSystem").AddComponent<EventSystem>();
+            eventSystemGo = eventSystem.gameObject;
+            var weapon = console.GetComponentInChildren<HangarMainDisplayView>()[HangarSlot.Weapon];
+            var weaponHit = Click(eventSystem, ScreenPoint(console, ButtonOnGlass(console, weapon)));
+            Assert.AreEqual(weapon.gameObject, weaponHit.gameObject, "the weapon slot is the top hit");
+            Assert.AreEqual(HangarSlot.Weapon, console.Selection.Selected, "clicking the slot selects it");
+
+            var before = console.Selection.Weapon;
+            var nextHit = Click(eventSystem, ScreenPoint(console, console.NextButton.GetComponent<Renderer>().bounds.center));
+            Assert.AreEqual(console.NextButton.gameObject, nextHit.gameObject, "the next arrow is the top hit");
+            Assert.AreNotSame(before, console.Selection.Weapon, "the next arrow steps the selected slot");
+
+            console.Launch();
+            yield return AsyncAssert.WaitUntil(() => finished, 5f, "RunHangar completes after Launch's power-down");
             yield return null;
 
             Assert.IsTrue(finished, "RunHangar completed after Launch");
             Assert.IsTrue(rig.Player.Commander.isActiveAndEnabled, "player input is restored after launch");
             Assert.IsTrue(HudVisible(), "the HUD is back after launch");
-            Assert.IsTrue(screen == null, "hangar screen was destroyed on launch");
+            Assert.IsTrue(console == null, "hangar console was destroyed on launch");
+        }
+
+        private static RaycastResult Click(EventSystem eventSystem, Vector2 screen)
+        {
+            var pointer = new PointerEventData(eventSystem)
+            {
+                position = screen,
+                button = PointerEventData.InputButton.Left
+            };
+            var hits = new List<RaycastResult>();
+            eventSystem.RaycastAll(pointer, hits);
+            Assert.IsNotEmpty(hits, "the console receives the pointer");
+            ExecuteEvents.ExecuteHierarchy(hits[0].gameObject, pointer, ExecuteEvents.pointerClickHandler);
+            return hits[0];
+        }
+
+        private static Vector3 ButtonOnGlass(HangarConsole console, Button button)
+        {
+            var display = console.MainDisplay;
+            var rect = (RectTransform)button.transform;
+            var pixel = display.DisplayCamera.WorldToScreenPoint(rect.TransformPoint(rect.rect.center));
+            var uv = new Vector2(pixel.x / display.Resolution.x, pixel.y / display.Resolution.y);
+            var glass = console.MainScreenGlass;
+            var surface = new MeshSurface(glass.GetComponent<MeshFilter>().sharedMesh);
+            return glass.transform.TransformPoint(surface.LocalPoint(uv));
+        }
+
+        private static Vector2 ScreenPoint(HangarConsole console, Vector3 world)
+        {
+            var viewport = console.HardwareCamera.WorldToViewportPoint(world);
+            var rect = console.CompositeImage.rectTransform;
+            var local = new Vector2(
+                Mathf.Lerp(rect.rect.xMin, rect.rect.xMax, viewport.x),
+                Mathf.Lerp(rect.rect.yMin, rect.rect.yMax, viewport.y));
+            return RectTransformUtility.WorldToScreenPoint(null, rect.TransformPoint(local));
         }
 
         [Test]

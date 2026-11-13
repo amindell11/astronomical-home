@@ -20,6 +20,9 @@ namespace Game.Preview.Fixtures
         Field = 1 << 4,
         Locale = 1 << 5,
         Armories = 1 << 6,
+        SearchSeconds = 1 << 7,
+        RepairStations = 1 << 8,
+        ModStations = 1 << 9,
     }
 
     /// <summary>
@@ -55,6 +58,9 @@ namespace Game.Preview.Fixtures
             if ((own & PreviewFixtureOwn.Waves) != 0) resolved.phases = values.phases;
             if ((own & PreviewFixtureOwn.Patrols) != 0) resolved.patrols = values.patrols;
             if ((own & PreviewFixtureOwn.Armories) != 0) resolved.armories = values.armories;
+            if ((own & PreviewFixtureOwn.SearchSeconds) != 0) resolved.searchSeconds = values.searchSeconds;
+            if ((own & PreviewFixtureOwn.RepairStations) != 0) resolved.repairStations = values.repairStations;
+            if ((own & PreviewFixtureOwn.ModStations) != 0) resolved.modStations = values.modStations;
             if ((own & PreviewFixtureOwn.Field) != 0) resolved.field = values.field;
             if ((own & PreviewFixtureOwn.Locale) != 0)
             {

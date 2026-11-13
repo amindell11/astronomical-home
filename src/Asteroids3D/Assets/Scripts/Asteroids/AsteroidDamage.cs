@@ -34,7 +34,7 @@ namespace Asteroids
         private void Awake()
         {
             controller = GetComponent<AsteroidController>();
-            DamageableColliders.Register(this, GetComponentsInChildren<Collider>(true));
+            DamageableColliders.Register(this, GetComponents<MeshCollider>());
         }
 
         private void OnDestroy() => DamageableColliders.Unregister(this);

@@ -43,6 +43,8 @@ namespace Game.Player
             hasScreenProjector = true;
         }
 
+        public void SetAssist(bool on) => assistOn = on;
+
         public override void Initialize(in ShipControl control)
         {
             context = control.Ship;

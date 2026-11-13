@@ -11,10 +11,10 @@ namespace Tests.EditMode.Audio
 {
     /// <summary>
     /// The FMOD wiring rules the hosted suite enforces without the package: every event path the
-    /// game references and every parameter name a constant carries exist in the committed GUIDs
-    /// export (a Studio rename is otherwise caught only by the local evidence tests), and no prefab
-    /// or scene carries a missing script (an FMOD component placed without FMOD's own script GUID
-    /// shows up as one against the FMOD stub).
+    /// game references, every bus path a script names and every parameter name a constant carries
+    /// exist in the committed GUIDs export (a Studio rename is otherwise caught only by the local
+    /// evidence tests), and no prefab or scene carries a missing script (an FMOD component placed
+    /// without FMOD's own script GUID shows up as one against the FMOD stub).
     /// </summary>
     [Category("Audio")]
     public sealed class FmodWiringEditModeTests
@@ -22,11 +22,13 @@ namespace Tests.EditMode.Audio
         private static readonly string GuidsPath = Path.GetFullPath(
             Path.Combine(Application.dataPath, "..", "..", "..", "audio", "fmod", "Build", "GUIDs.txt"));
 
-        // Assembled from pieces so this file's own text never scans as a referenced event or parameter.
+        // Assembled from pieces so this file's own text never scans as a referenced event, bus or parameter.
         private static readonly string EventPrefix = "event" + ":/";
         private static readonly Regex EventPath = new Regex(Regex.Escape(EventPrefix) + "[^\\s\"'`<>]+");
         private static readonly string ParameterPrefix = "parameter" + ":/";
         private static readonly Regex ParameterConstant = new Regex(@"const\s+string\s+\w+Param" + @"eter\s*=\s*""([^""]+)""");
+        private static readonly string BusPrefix = "bus" + ":/";
+        private static readonly Regex BusPath = new Regex("\"(" + Regex.Escape(BusPrefix) + "[^\"]*)\"");
 
         [Test]
         public void ReferencedEventPaths_ExistInGuidsExport()
@@ -45,6 +47,16 @@ namespace Tests.EditMode.Audio
             Assert.That(known, Is.Not.Empty, GuidsPath);
             var referenced = ReferencedParameterNames();
             Assert.That(referenced, Is.Not.Empty, "no parameter constant found: the scan is broken");
+            Assert.That(MissingPaths(referenced, known), Is.Empty);
+        }
+
+        [Test]
+        public void BusPathConstants_ExistInGuidsExport()
+        {
+            var known = KnownPaths(BusPrefix);
+            Assert.That(known, Is.Not.Empty, GuidsPath);
+            var referenced = ReferencedBusPaths();
+            Assert.That(referenced, Is.Not.Empty, "nothing names a bus path: the scan is broken");
             Assert.That(MissingPaths(referenced, known), Is.Empty);
         }
 
@@ -125,6 +137,15 @@ namespace Tests.EditMode.Audio
             foreach (var file in ScriptFiles())
                 foreach (Match match in ParameterConstant.Matches(File.ReadAllText(file)))
                     found.Add((ParameterPrefix + match.Groups[1].Value, RelativePath(file)));
+            return found;
+        }
+
+        private static List<(string path, string file)> ReferencedBusPaths()
+        {
+            var found = new List<(string, string)>();
+            foreach (var file in ScriptFiles())
+                foreach (Match match in BusPath.Matches(File.ReadAllText(file)))
+                    found.Add((match.Groups[1].Value, RelativePath(file)));
             return found;
         }
 
