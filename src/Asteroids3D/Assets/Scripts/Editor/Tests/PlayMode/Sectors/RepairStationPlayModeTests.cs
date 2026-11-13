@@ -332,7 +332,7 @@ namespace Tests.PlayMode.Sectors
         private SectorBuildContext Context(Ship hero) =>
             new(null, _objectives, true, _sector, default, hero: hero, sectorIndex: SectorIndex, row: _row);
 
-        // Exactly the live stations are finds, with the module's icon and find-layer markers.
+        // Exactly the live stations are finds, in the kind's colour, with the module's icon and find-layer markers.
         private void AssertFinds(RepairStation module, params RepairStation.Station[] live)
         {
             using var serialized = new SerializedObject(module);
@@ -340,13 +340,24 @@ namespace Tests.PlayMode.Sectors
             Assert.IsTrue(icon, "The module carries its find icon.");
             CollectionAssert.AreEquivalent(live.Select(station => station.Body.transform),
                 _objectives.Finds.Select(find => find.Target), "Exactly the live stations are finds.");
+            var colour = FindColours.Of(module.Kind);
             foreach (var find in _objectives.Finds)
+            {
                 Assert.AreSame(icon, find.Icon);
+                Assert.AreEqual(colour, find.Colour);
+            }
             foreach (var station in live)
             {
-                var marker = station.Lit.GetComponentInChildren<MeshRenderer>(true);
+                var marker = station.Marker;
                 Assert.IsTrue(marker.enabled && marker.gameObject.activeInHierarchy, "A live find shows its minimap marker.");
                 Assert.AreEqual(LayerMask.NameToLayer("Minimap_Find"), marker.gameObject.layer);
+                var block = new MaterialPropertyBlock();
+                marker.GetPropertyBlock(block);
+                var tint = block.GetColor("_BaseColor");
+                Assert.AreEqual(colour.r, tint.r, 1e-3f);
+                Assert.AreEqual(colour.g, tint.g, 1e-3f);
+                Assert.AreEqual(colour.b, tint.b, 1e-3f);
+                Assert.AreEqual(colour.a, tint.a, 1e-3f);
             }
         }
 

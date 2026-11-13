@@ -12,14 +12,13 @@ namespace UI.Objectives
 {
     /// <summary>
     /// Pins unused finds and live, unconcealed enemies beyond the minimap's range to the rim.
-    /// A find shows its icon with a find-coloured arrowhead; an enemy shows only an arrowhead
+    /// A find shows its icon and arrowhead in the find's own colour; an enemy shows only an arrowhead
     /// in the minimap's enemy colour.
     /// </summary>
     public sealed class FindPointers : MonoBehaviour
     {
         private const float IconSize = 22f;
         private const float ArrowSize = 9f;
-        internal static readonly Color FindColour = new(.72f, .48f, 1f, 1f);
 
         private readonly List<Pointer> pointers = new();
         private RectTransform minimap;
@@ -64,7 +63,7 @@ namespace UI.Objectives
             var radius = Mathf.Min(minimap.rect.width, minimap.rect.height) * .5f;
             shown = 0;
             for (var i = 0; i < finds.Count; i++)
-                ShowBeyondRim(finds[i].Target.position, finds[i].Icon, FindColour, radius);
+                ShowBeyondRim(finds[i].Target.position, finds[i].Icon, finds[i].Colour, radius);
             foreach (var ship in ships)
             {
                 if (ship.CompareTag(TagNames.Player) || !ship.gameObject.activeInHierarchy || ship.Lock.IsConcealed)
@@ -96,13 +95,14 @@ namespace UI.Objectives
                 icon.transform.SetParent(parent, false);
                 icon.rectTransform.sizeDelta = Vector2.one * IconSize;
                 icon.raycastTarget = false;
-                var arrow = FindPointerArrow.Create(parent, ArrowSize, FindColour);
+                var arrow = FindPointerArrow.Create(parent, ArrowSize);
                 return new Pointer { icon = icon, arrow = arrow };
             }
 
             public void Show(Sprite sprite, Color colour, Vector2 direction, float radius)
             {
                 icon.sprite = sprite;
+                icon.color = colour;
                 arrow.color = colour;
                 icon.rectTransform.anchoredPosition = direction * (radius - ArrowSize - 1f - IconSize * .5f);
                 arrow.rectTransform.anchoredPosition = direction * (radius - 1f - ArrowSize * .5f);

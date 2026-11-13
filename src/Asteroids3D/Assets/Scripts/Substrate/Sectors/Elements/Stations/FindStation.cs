@@ -72,10 +72,11 @@ namespace Substrate.Sectors.Elements.Stations
 
         public override IEnumerator Setup(SectorBuildContext ctx)
         {
-            if (!body || !body.Zone || !body.Lit || !icon || ctx.Objectives == null || !ctx.Sector
-                || !body.Zone.transform.IsChildOf(body.transform) || !body.Lit.transform.IsChildOf(body.transform))
+            if (!body || !body.Zone || !body.Lit || !body.Marker || !icon || ctx.Objectives == null || !ctx.Sector
+                || !body.Zone.transform.IsChildOf(body.transform) || !body.Lit.transform.IsChildOf(body.transform)
+                || !body.Marker.transform.IsChildOf(body.Lit.transform))
                 throw new InvalidOperationException(
-                    $"{GetType().Name} on '{name}' needs its icon, objective service, sector, body, and a zone and lit parts under the body.");
+                    $"{GetType().Name} on '{name}' needs its icon, objective service, sector, body, a zone and lit parts under the body, and a marker under the lit parts.");
             if (Array.Exists(spacedFrom, other => !other))
                 throw new InvalidOperationException($"{GetType().Name} on '{name}' has an empty spaced-from entry.");
 
@@ -150,7 +151,7 @@ namespace Substrate.Sectors.Elements.Stations
         private void Show()
         {
             foreach (var station in stations)
-                station.Show(objectives.MarkFind(station.Body.transform, icon));
+                station.Show(objectives.MarkFind(station.Body.transform, icon, FindColours.Of(Kind)));
             shown = true;
         }
 
@@ -180,9 +181,13 @@ namespace Substrate.Sectors.Elements.Stations
         /// <summary>One placed station of the sector's set, with its own supply.</summary>
         public sealed class Station
         {
+            private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
+            private static readonly MaterialPropertyBlock Tint = new();
+
             internal readonly GameObject Body;
             internal readonly ExtractionZone Zone;
             internal readonly GameObject Lit;
+            internal readonly Renderer Marker;
             internal bool HasArrived;
             internal bool Inside;
             private FindMarker find;
@@ -192,6 +197,7 @@ namespace Substrate.Sectors.Elements.Stations
                 Body = body.gameObject;
                 Zone = body.Zone;
                 Lit = body.Lit;
+                Marker = body.Marker;
             }
 
             /// <summary>What the station has left to give, in its kind's unit.</summary>
@@ -215,12 +221,14 @@ namespace Substrate.Sectors.Elements.Stations
                 Lit.SetActive(true);
             }
 
-            internal void Show(FindMarker marker)
+            internal void Show(FindMarker find)
             {
                 Body.transform.position = Position;
                 Body.SetActive(true);
                 Zone.Arm();
-                find = marker;
+                this.find = find;
+                Tint.SetColor(BaseColor, find.Colour);
+                Marker.SetPropertyBlock(Tint);
             }
 
             internal void Draw(float amount)
