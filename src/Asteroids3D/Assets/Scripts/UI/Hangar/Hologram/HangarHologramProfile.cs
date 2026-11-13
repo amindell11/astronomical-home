@@ -1,4 +1,3 @@
-using System;
 using Ships.Presentation;
 using UI.Projection;
 using UnityEngine;
@@ -22,7 +21,7 @@ namespace UI.Hangar.Hologram
         [Tooltip("Canopy effect strengths on the hologram image.")]
         [SerializeField] private CanopySettings canopy = CanopySettings.Combat;
 
-        [Tooltip("Cone placed at the lens. Authored in framing-radius units with its base at the origin.")]
+        [Tooltip("Cone placed at the lens; none leaves the lens bare. Authored in framing-radius units with its base at the origin.")]
         [SerializeField] private GameObject projectorCone;
 
         public MaterialRestyle Restyle => restyle;
@@ -30,11 +29,6 @@ namespace UI.Hangar.Hologram
         public CanopySettings Canopy => canopy;
         public GameObject ProjectorCone => projectorCone;
 
-        private void OnValidate()
-        {
-            restyle.Validate(name);
-            if (!projectorCone)
-                throw new InvalidOperationException($"'{name}' needs a projector cone.");
-        }
+        private void OnValidate() => restyle.Validate(name);
     }
 }

@@ -8,9 +8,9 @@ namespace UI.Hangar.Hologram
 {
     /// <summary>
     /// Owns the hangar preview stage and shows the canopy effect step's image of the stage on the
-    /// quad at the projector lens, at the profile's opacity, and places the cone. The camera handed
-    /// over on <see cref="Fit"/> also runs that image's pass. Ship steps from the hangar screen reach
-    /// it through <see cref="Select"/>.
+    /// quad, which sits at an offset from the projector lens, at the profile's opacity. A profile
+    /// with a cone has it placed at the lens. The camera handed over on <see cref="Fit"/> also runs
+    /// that image's pass. Ship steps reach it through <see cref="Select"/>.
     /// </summary>
     public sealed class HangarHologramProjector : MonoBehaviour
     {
@@ -36,11 +36,14 @@ namespace UI.Hangar.Hologram
         [Tooltip("Width and height of the quad, in world units.")]
         [SerializeField] private Vector2 surfaceSize = new(9f, 6f);
 
-        [Tooltip("Side of the settled ship's square, in world units. It sits centred on the surface, its bottom at the lens.")]
+        [Tooltip("Side of the settled ship's square, in world units. It sits horizontally centred on the surface.")]
         [SerializeField, Min(.01f)] private float frameSide = 4f;
 
         [Tooltip("Height of the square's bottom edge above the surface's bottom, as a share of the surface height.")]
         [SerializeField, Range(0f, 1f)] private float frameBottom = .1f;
+
+        [Tooltip("Where the square's bottom centre sits from the lens, in world units.")]
+        [SerializeField] private Vector2 frameOffset;
 
         private MaterialPropertyBlock block;
         private HangarPreviewStage stage;
@@ -60,15 +63,19 @@ namespace UI.Hangar.Hologram
             var width = frameSide / surfaceSize.x;
             frame = new Rect(.5f - width * .5f, frameBottom, width, frameSide / surfaceSize.y);
             surface.transform.localScale = new Vector3(surfaceSize.x, surfaceSize.y, 1f);
-            surface.transform.localPosition = new Vector3(0f, (.5f - frameBottom) * surfaceSize.y, 0f);
+            surface.transform.localPosition = new Vector3(frameOffset.x,
+                frameOffset.y + (.5f - frameBottom) * surfaceSize.y, 0f);
         }
 
         public void Open(IEnumerable<Ship> offered, Ship selected)
         {
             stage = HangarPreviewStage.Create(transform, new Vector2Int(64, 64), frame, offered, profile.Restyle);
-            var cone = Instantiate(profile.ProjectorCone, coneAnchor);
-            cone.transform.localPosition = Vector3.zero;
-            cone.transform.localScale *= frameSide / HangarPreviewStage.FrameSideInRadii;
+            if (profile.ProjectorCone)
+            {
+                var cone = Instantiate(profile.ProjectorCone, coneAnchor);
+                cone.transform.localPosition = Vector3.zero;
+                cone.transform.localScale *= frameSide / HangarPreviewStage.FrameSideInRadii;
+            }
             stage.Show(selected, backwards: false);
         }
 

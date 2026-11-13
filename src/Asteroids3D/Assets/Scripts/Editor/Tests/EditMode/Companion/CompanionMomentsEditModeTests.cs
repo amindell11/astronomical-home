@@ -8,6 +8,7 @@ using Game.Companion;
 using Game.Moments;
 using Game.Runs;
 using NUnit.Framework;
+using Substrate.Sectors.Elements.Stations;
 using UnityEditor;
 
 namespace Tests.EditMode.Companion
@@ -108,6 +109,36 @@ namespace Tests.EditMode.Companion
         }
 
         [Test]
+        public void StationArrived_MapsEachKindToItsSlotAndCarriesTheSector()
+        {
+            var repair = new StationArrived(StationKind.Repair, 2);
+            Assert.AreEqual("station-arrived-repair", StationArrived.RepairSlot);
+            Assert.AreEqual(StationArrived.RepairSlot, repair.Slot);
+            Assert.AreEqual(2, repair.Sector);
+            Assert.AreEqual("2", repair.Facts["sector"]);
+
+            var mod = new StationArrived(StationKind.Mod, 1);
+            Assert.AreEqual("station-arrived-mod", StationArrived.ModSlot);
+            Assert.AreEqual(StationArrived.ModSlot, mod.Slot);
+            Assert.AreEqual("1", mod.Facts["sector"]);
+
+            var armory = new StationArrived(StationKind.Armory, 4);
+            Assert.AreEqual("station-arrived-armory", StationArrived.ArmorySlot);
+            Assert.AreEqual(StationArrived.ArmorySlot, armory.Slot);
+            Assert.AreEqual("4", armory.Facts["sector"]);
+        }
+
+        [Test]
+        public void StationArrived_UnmappedKind_ThrowsNamingTheKind()
+        {
+            var kind = (StationKind)99;
+            var thrown = Assert.Throws<ArgumentOutOfRangeException>(() => new StationArrived(kind, 1));
+
+            Assert.AreEqual("kind", thrown.ParamName);
+            StringAssert.Contains(kind.ToString(), thrown.Message);
+        }
+
+        [Test]
         public void ShippedSheet_HasAMustSayLineSlotForEveryMoment()
         {
             var sheet = AssetDatabase.LoadAssetAtPath<CompanionLineSheet>(SheetPath);
@@ -125,7 +156,8 @@ namespace Tests.EditMode.Companion
             foreach (var moment in new[]
                      {
                          SectorEntered.SectorSlot, CacheClaimed.CacheSlot, ModPicked.PickSlot, ArmoryPicked.PickSlot,
-                         CloseCall.CloseCallSlot,
+                         CloseCall.CloseCallSlot, StationArrived.RepairSlot, StationArrived.ModSlot,
+                         StationArrived.ArmorySlot,
                      })
                 Assert.DoesNotThrow(() => sheet.Find(moment), $"{moment} has a line slot");
         }

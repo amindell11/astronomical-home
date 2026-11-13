@@ -3,6 +3,7 @@ using Ships;
 using Substrate;
 using System.Collections.Generic;
 using UnityEngine;
+using UI.Placement;
 using UI.Projection;
 using System;
 
@@ -45,7 +46,6 @@ namespace UI.PlayerState
         private void Awake()
         {
             rect = GetComponent<RectTransform>();
-            rect.anchorMin = rect.anchorMax = Vector2.zero;
             visibility = GetComponent<CanvasGroup>();
             visibility.blocksRaycasts = false;
             visibility.interactable = false;
@@ -102,8 +102,7 @@ namespace UI.PlayerState
                     new Vector3(bounds.center.x, bounds.max.y, bounds.center.z)).y);
             }
             point.y = top + 12f;
-            // Screen pixels, not the canvas transform: that trails the moving camera until after LateUpdate.
-            rect.anchoredPosition = point / canvas.scaleFactor;
+            ScreenPin.Place(rect, canvas, point);
             rect.localScale = Vector3.one * Mathf.Clamp(17f / worldCamera.orthographicSize, .8f, 1.15f);
         }
     }

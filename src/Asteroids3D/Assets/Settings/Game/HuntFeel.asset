@@ -11,10 +11,18 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bb5b48e9b23144c0bc8f1b23d6f0449f, type: 3}
   m_Name: HuntFeel
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   searchSeconds: 45
   sightRadius: 50
-  callInSeconds: 3
+  coneDegrees: 90
+  closeSightRadius: 12
+  spotFillSeconds: 2
+  spotDrainSeconds: 6
+  hitFill: 0.5
+  alarmGraceSeconds: 5
   routeSpeed: 8
+  seekSpeed: 14
+  followDistance: 30
+  searchRadius: 25
   routeStartPass: 25
   arrivalRadius: 15

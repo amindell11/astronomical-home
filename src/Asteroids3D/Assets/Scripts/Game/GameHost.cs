@@ -317,6 +317,16 @@ namespace Game
                     var cachesClaimed = 0;
                     var closeCalls = rigInstance
                         ? new CloseCallWatch(rigInstance.Player.Damage.Health, moments, index + 1) : null;
+                    Action<StationKind> onStationArrived =
+                        kind => moments.Raise(new StationArrived(kind, index + 1));
+                    var findStations = new FindStation[]
+                    {
+                        session.ActiveSector.Module<RepairStation>(),
+                        session.ActiveSector.Module<ModStation>(),
+                        session.ActiveSector.Module<Armory>(),
+                    };
+                    foreach (var station in findStations)
+                        if (station) station.Arrived += onStationArrived;
 
                     while (!playerDied && !sectorEnded && !shutdownRequested)
                     {
@@ -337,6 +347,8 @@ namespace Game
                         }
                         yield return null;
                     }
+                    foreach (var station in findStations)
+                        if (station) station.Arrived -= onStationArrived;
                     closeCalls?.Dispose();
                     if (shutdownRequested) yield break;
 
