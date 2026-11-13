@@ -6,7 +6,7 @@ namespace AI.Scanning
     {
         int QueryObstacles(Vector2 centerPlane, float halfExtent, DetectedObstacle[] buffer);
 
-        /// <summary>True when a rock's radius reaches within <paramref name="radius"/> of the point.</summary>
+        /// <summary>True when any rock's surface lies within <paramref name="radius"/> of the point.</summary>
         bool AnyObstacleWithin(Vector2 centerPlane, float radius);
     }
 }
