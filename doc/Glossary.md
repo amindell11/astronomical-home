@@ -848,7 +848,7 @@ Format: **term** — definition. *(authority)*
   it reaches the brain on `AIContext`, never on `IShipStatus`, because it is
   how the AI uses a weapon, not a fact about the ship. Not a firing range.
   *(`WeaponComponent.HoldRange`; #1139)*
-- **weapon slot** — a ship's first mount: one weapon (Lasers, TurboLasers, Rippers or
+- **weapon slot** — a ship's first mount: one weapon (Lasers, TurboLasers, Rippers, Scattergun or
   Railgun) or nothing, never an ordnance. Left mouse fires it, and its weapon is the one
   whose lead, hold range and aim the AI reads. The code still calls it
   `WeaponSlot.Primary`; the rename waits for after M1 (#1418).

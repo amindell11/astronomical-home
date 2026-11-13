@@ -177,6 +177,12 @@ namespace UI.Hangar
                        (rippers.Rounds ? $"   |   Mag {rippers.Rounds.MaxAmmo}{Refill(rippers.Rounds)}" : "") +
                        $"   |   Speed {rippers.ProjectileSpeed:0}";
 
+            var scatterguns = weapon as Scatterguns;
+            if (scatterguns)
+                return $"Damage {scatterguns.Damage:0} x {scatterguns.Pellets} pellets over {scatterguns.SpreadDegrees:0} deg{Rate(scatterguns.ShotsPerSecond)}" +
+                       (scatterguns.Rounds ? $"   |   {scatterguns.Rounds.MaxAmmo} shells{Refill(scatterguns.Rounds)}" : "") +
+                       $"   |   Range {scatterguns.Range:0}u   |   Knockback";
+
             var missiles = weapon as Missiles;
             if (missiles)
                 return $"Damage {missiles.Damage:0} + {missiles.SplashDamage:0} splash" +
