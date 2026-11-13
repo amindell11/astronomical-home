@@ -1,5 +1,7 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.ExceptionServices;
 using Balance;
 using Cameras;
@@ -7,7 +9,9 @@ using Combat.Weapons;
 using Damage;
 using Game.Audio;
 using Game.Companion;
+using Game.Display;
 using Game.Moments;
+using Game.Player;
 using Game.Runs;
 using Game.Travel;
 using Loot;
@@ -219,7 +223,11 @@ namespace Game
                 music = Instantiate(musicPrefab, transform);
                 music.Initialize(objectiveService);
             }
-            if (presentation) VolumeSettings.Apply();
+            if (presentation)
+            {
+                VolumeSettings.Apply();
+                DisplaySettings.Apply();
+            }
 
             SetSplashVisible(true);
             yield return null;
@@ -571,10 +579,23 @@ namespace Game
 
         private IEnumerator RunSettings()
         {
-            var channels = VolumeSettings.Channels;
-            var screen = SettingsScreen.Create(ui, titleLabelFont,
-                Array.ConvertAll(channels, c => new SettingsScreen.Slider(VolumeSettings.Label(c), VolumeSettings.Get(c))),
-                (row, value) => VolumeSettings.Set(channels[row], value));
+            var resolutions = DisplaySettings.Resolutions();
+            var rows = new List<SettingsRow>();
+            foreach (var channel in VolumeSettings.Channels)
+                rows.Add(SettingsRow.Slider(VolumeSettings.Label(channel), VolumeSettings.Get(channel),
+                    v => VolumeSettings.Set(channel, v)));
+            rows.Add(SettingsRow.Toggle("FLIGHT ASSIST", AssistSetting.On, on =>
+            {
+                AssistSetting.Set(on);
+                if (rigInstance) rigInstance.SetAssist(on);
+            }));
+            rows.Add(SettingsRow.Toggle("FULLSCREEN", DisplaySettings.Fullscreen,
+                on => DisplaySettings.Set(DisplaySettings.Resolution, on)));
+            rows.Add(SettingsRow.Choice("RESOLUTION", resolutions.Select(DisplaySettings.Label).ToList(),
+                DisplaySettings.IndexOf(resolutions, DisplaySettings.Resolution),
+                i => DisplaySettings.Set(resolutions[i], DisplaySettings.Fullscreen)));
+
+            var screen = SettingsScreen.Create(ui, titleLabelFont, rows);
             try
             {
                 while (!screen.Closed && !shutdownRequested) yield return null;
@@ -582,7 +603,7 @@ namespace Game
             finally
             {
                 Destroy(screen.gameObject);
-                VolumeSettings.Save();
+                PlayerPrefs.Save();
             }
         }
 
@@ -734,6 +755,7 @@ namespace Game
         {
             rigInstance.Tally.Begin(Time.time);
             rigInstance.Spawns.Begin(Time.time);
+            rigInstance.SetAssist(AssistSetting.On);
             moments.Raise(new RunStarted(PastRuns.Read(runRecords.Path)));
             return StatHash.OfLoadout(rigInstance.Player);
         }

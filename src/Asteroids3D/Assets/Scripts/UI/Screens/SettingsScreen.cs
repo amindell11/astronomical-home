@@ -7,46 +7,33 @@ using UnityEngine.UI;
 namespace UI.Screens
 {
     /// <summary>
-    /// The settings' uGUI: the sliders it was given and Back, keyed. It owns only its controls; the host
-    /// persists and applies the values through the callback.
+    /// The settings' uGUI: the rows it was given and Back, keyed. It owns only its controls; the host
+    /// persists and applies each value through that row's callback.
     /// </summary>
     public sealed class SettingsScreen : MonoBehaviour
     {
-        public readonly struct Slider
-        {
-            public readonly string Label;
-            public readonly float Value;
-
-            public Slider(string label, float value)
-            {
-                Label = label;
-                Value = value;
-            }
-        }
-
         private readonly List<InputAction> actions = new();
-        private UnityEngine.UI.Slider[] rowSliders = Array.Empty<UnityEngine.UI.Slider>();
+        private SettingsRow[] rows = Array.Empty<SettingsRow>();
+        private Slider[] rowSliders = Array.Empty<Slider>();
+        private Text[] values = Array.Empty<Text>();
         private GameObject[] markers = Array.Empty<GameObject>();
         private Font font;
-        private Action<int, float> changed;
 
         public bool Closed { get; private set; }
 
         public int Selected { get; private set; }
 
-        public static SettingsScreen Create(Transform parent, Font font, IReadOnlyList<Slider> sliders,
-            Action<int, float> changed)
+        public static SettingsScreen Create(Transform parent, Font font, IReadOnlyList<SettingsRow> rows)
         {
-            if (sliders == null || sliders.Count == 0)
-                throw new ArgumentException("At least one slider is required.", nameof(sliders));
+            if (rows == null || rows.Count == 0)
+                throw new ArgumentException("At least one row is required.", nameof(rows));
 
             var go = new GameObject("SettingsScreen", typeof(RectTransform));
             go.transform.SetParent(parent, false);
             ScreenKit.Canvas(go);
             var screen = go.AddComponent<SettingsScreen>();
             screen.font = font;
-            screen.changed = changed;
-            screen.Build(sliders);
+            screen.Build(rows);
             screen.BindKeys();
             return screen;
         }
@@ -56,12 +43,19 @@ namespace UI.Screens
         public void Step(int direction)
         {
             var slider = rowSliders[Selected];
-            slider.value = Mathf.Clamp01(slider.value + direction * 0.1f);
+            if (slider)
+            {
+                slider.value = Mathf.Clamp01(slider.value + direction * 0.1f);
+                return;
+            }
+
+            rows[Selected].Step(direction);
+            values[Selected].text = rows[Selected].ValueText;
         }
 
         public void Select(int row)
         {
-            Selected = Mathf.Clamp(row, 0, rowSliders.Length - 1);
+            Selected = Mathf.Clamp(row, 0, rows.Length - 1);
             for (var i = 0; i < markers.Length; i++)
                 markers[i].SetActive(i == Selected);
         }
@@ -72,35 +66,57 @@ namespace UI.Screens
             actions.Clear();
         }
 
-        private void Build(IReadOnlyList<Slider> sliders)
+        private void Build(IReadOnlyList<SettingsRow> specs)
         {
             ScreenKit.Dim(transform);
-            ScreenKit.Label(ScreenKit.Centered(transform, "Title", 1000f, 72f, 130f), "SETTINGS", 40,
+            ScreenKit.Label(ScreenKit.Centered(transform, "Title", 1000f, 72f, 250f), "SETTINGS", 40,
                 ScreenKit.Paint, font, TextAnchor.MiddleCenter);
 
-            rowSliders = new UnityEngine.UI.Slider[sliders.Count];
-            markers = new GameObject[sliders.Count];
-            for (var i = 0; i < sliders.Count; i++)
+            var count = specs.Count;
+            rows = new SettingsRow[count];
+            rowSliders = new Slider[count];
+            values = new Text[count];
+            markers = new GameObject[count];
+            for (var i = 0; i < count; i++)
             {
-                var rowIndex = i;
-                var row = ScreenKit.Centered(transform, "Row" + i, 420f, 38f, 50f - i * 50f);
+                var spec = specs[i];
+                rows[i] = spec;
+                var row = ScreenKit.Centered(transform, "Row" + i, 420f, 38f, 180f - i * 44f);
                 ScreenKit.Fill(row, ScreenKit.Backing);
                 var marker = ScreenKit.Box(row, "Marker", 0, 0, 2, 38);
                 ScreenKit.Fill(marker, ScreenKit.Paint);
                 marker.gameObject.SetActive(i == 0);
                 markers[i] = marker.gameObject;
-                ScreenKit.Label(ScreenKit.Box(row, "Label", 14, 0, 110, 38), sliders[i].Label, 11, ScreenKit.Ink,
-                    font);
-                var valueText = ScreenKit.Label(ScreenKit.Box(row, "Value", 340, 0, 66, 38), Percent(sliders[i].Value),
-                    11, ScreenKit.Muted, font, TextAnchor.MiddleRight);
-                rowSliders[i] = BuildSlider(row, sliders[i].Value, value =>
+                ScreenKit.Label(ScreenKit.Box(row, "Label", 14, 0, 110, 38), spec.Label, 11, ScreenKit.Ink, font);
+
+                Text valueText;
+                if (spec.IsSlider)
                 {
-                    valueText.text = Percent(value);
-                    changed(rowIndex, value);
-                });
+                    valueText = ScreenKit.Label(ScreenKit.Box(row, "Value", 340, 0, 66, 38), spec.ValueText,
+                        11, ScreenKit.Muted, font, TextAnchor.MiddleRight);
+                    rowSliders[i] = BuildSlider(row, spec.SliderValue, value =>
+                    {
+                        spec.OnSlider(value);
+                        valueText.text = spec.ValueText;
+                    });
+                }
+                else
+                {
+                    var control = ScreenKit.Box(row, "Control", 130, 0, 276, 38);
+                    valueText = ScreenKit.Label(ScreenKit.Box(row, "Value", 130, 0, 276, 38), spec.ValueText,
+                        11, ScreenKit.Muted, font, TextAnchor.MiddleRight);
+                    ScreenKit.Button(control, () =>
+                    {
+                        spec.Click();
+                        valueText.text = spec.ValueText;
+                    });
+                }
+
+                values[i] = valueText;
             }
 
-            var back = ScreenKit.Centered(transform, "Back", 216f, 38f, 50f - sliders.Count * 50f - 20f);
+            var lastRowY = 180f - (count - 1) * 44f;
+            var back = ScreenKit.Centered(transform, "Back", 216f, 38f, lastRowY - 38f - 30f);
             ScreenKit.Fill(back, ScreenKit.Backing);
             ScreenKit.Button(back, Close);
             ScreenKit.Frame(back);
@@ -109,7 +125,7 @@ namespace UI.Screens
                 TextAnchor.MiddleRight);
         }
 
-        private static UnityEngine.UI.Slider BuildSlider(RectTransform row, float value, Action<float> onChanged)
+        private static Slider BuildSlider(RectTransform row, float value, Action<float> onChanged)
         {
             var rect = ScreenKit.Box(row, "Slider", 130, 0, 200, 38);
             var background = ScreenKit.Box(rect, "Background", 0, 18, 200, 2);
@@ -129,11 +145,11 @@ namespace UI.Screens
             var handleImage = handle.gameObject.AddComponent<Image>();
             handleImage.color = ScreenKit.Ink;
 
-            var slider = rect.gameObject.AddComponent<UnityEngine.UI.Slider>();
+            var slider = rect.gameObject.AddComponent<Slider>();
             slider.targetGraphic = handleImage;
             slider.fillRect = fill;
             slider.handleRect = handle;
-            slider.direction = UnityEngine.UI.Slider.Direction.LeftToRight;
+            slider.direction = Slider.Direction.LeftToRight;
             slider.minValue = 0f;
             slider.maxValue = 1f;
             slider.wholeNumbers = false;
@@ -144,8 +160,6 @@ namespace UI.Screens
             slider.onValueChanged.AddListener(v => onChanged(v));
             return slider;
         }
-
-        private static string Percent(float value) => Mathf.RoundToInt(value * 100f) + "%";
 
         private void BindKeys()
         {

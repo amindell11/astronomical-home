@@ -33,7 +33,7 @@ namespace Tests.PlayMode.Audio
         public void Set_PersistsAndClamps()
         {
             VolumeSettings.Set(VolumeSettings.Channel.Music, .3f);
-            VolumeSettings.Save();
+            PlayerPrefs.Save();
 
             Assert.AreEqual(.3f, PlayerPrefs.GetFloat(VolumeSettings.Key(VolumeSettings.Channel.Music)));
             Assert.AreEqual(.3f, VolumeSettings.Get(VolumeSettings.Channel.Music));
