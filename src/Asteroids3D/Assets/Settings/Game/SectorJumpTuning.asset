@@ -62,7 +62,7 @@ MonoBehaviour:
   arrivalSpeedFraction: 0.526
   worldBlendDuration: 0.4
   rawBackgroundBlend: 0.169
-  skyTravelDistance: 800
+  skyTravelDistance: 100
   streakDensity: 39
   streakLength: 0.184
   streakWidthPixels: 0.3
@@ -81,12 +81,12 @@ MonoBehaviour:
   shipBlurLength: 1.4
   shipBlurFalloff: 1.47
   shipCoreSharpness: 0.571
-  shipImageHeight: 0.1714
+  shipImageHeight: 0.2784
   chargeZoom: 0.2632
   travelPullback: 0.3
   exhaustLength: 0
   exhaustBrightness: 0.57
   exhaustColor: {r: 1, g: 0.18, b: 0.06, a: 1}
-  vignetteStrength: 0.144
+  vignetteStrength: 0.475
   hudFadeOut: 0.3
   hudFadeIn: 0.35
