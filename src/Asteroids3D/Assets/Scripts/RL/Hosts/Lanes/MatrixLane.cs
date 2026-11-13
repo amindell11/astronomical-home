@@ -54,6 +54,16 @@ namespace RL.Hosts.Lanes
             return spec;
         }
 
+        // Authored pilots steer off their own border, so only a death or the timeout ends a roster fight.
+        public static RewardSpec RosterSpec()
+        {
+            var spec = MatrixSpec();
+            spec.arenaRadius = float.MaxValue;
+            return spec;
+        }
+
+        private static bool IsRoster(HarnessSpec spec) => spec.matrixRoster is { Length: > 0 };
+
         public static string PairLabel(WeaponComponent weaponA, WeaponComponent weaponB) =>
             $"{weaponA.name}-{weaponB.name}";
 
@@ -74,7 +84,7 @@ namespace RL.Hosts.Lanes
 
         public static IEnumerator RunLane(HarnessHost host, HarnessSpec spec)
         {
-            var baseSpec = MatrixSpec();
+            var baseSpec = IsRoster(spec) ? RosterSpec() : MatrixSpec();
             var jsonlPath = EpisodeJsonl.NewRunPath(spec.tag, CheckpointEvaluator.ResultsFolder, spec.outDir);
             var matchups = Matchups(host, spec);
             var blocks = new BlockSummary[matchups.Count];
@@ -119,7 +129,7 @@ namespace RL.Hosts.Lanes
             HarnessHost host, HarnessSpec spec)
         {
             var matchups = new List<(OpponentSpec, Func<RewardSpec, IHarnessComposition>)>();
-            if (spec.matrixRoster != null)
+            if (IsRoster(spec))
             {
                 var reference = spec.matrixReference;
                 foreach (var roster in spec.matrixRoster)

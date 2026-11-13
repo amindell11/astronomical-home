@@ -139,7 +139,7 @@ namespace Tests.PlayMode
             var host = hostObject.AddComponent<HarnessHost>();
             host.Initialize(spec, assets, unitService, projectiles);
 
-            var seedSpec = MatrixLane.MatrixSpec();
+            var seedSpec = MatrixLane.RosterSpec();
             seedSpec.runSeed = spec.seeds[0];
             var jsonlPath = EpisodeJsonl.NewRunPath(spec.tag, CheckpointEvaluator.ResultsFolder, spec.outDir);
             var composition = host.NewMatrixComposition(in seedSpec, reference, roster);
@@ -150,6 +150,8 @@ namespace Tests.PlayMode
             composition.Dispose();
             host.SummarizeProbes(jsonlPath);
             StringAssert.Contains("\"archetype\":\"AggressorPilot\"", File.ReadAllText(jsonlPath));
+            StringAssert.DoesNotContain("ExitedBounds\":true", File.ReadAllText(jsonlPath),
+                "a roster episode ends on a death or the timeout, never at the arena edge");
 
             var probeLines = File.ReadAllLines(jsonlPath.Replace(".jsonl", "-matrix.jsonl"));
             Assert.AreEqual(spec.episodesPerSeed, probeLines.Length, "one matrix row per episode");
