@@ -459,16 +459,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Vanguard
       objectReference: {fileID: 0}
-    - target: {fileID: 1420000000000000006, guid: 6c5c44eda9b86054ba44bc3f0f758310,
-        type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1420000000000000006, guid: 6c5c44eda9b86054ba44bc3f0f758310,
-        type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0.181
-      objectReference: {fileID: 0}
     - target: {fileID: 1420000000000000002, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -499,11 +489,36 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: 0.142
       objectReference: {fileID: 0}
+    - target: {fileID: 1420000000000000006, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1420000000000000006, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.181
+      objectReference: {fileID: 0}
     - target: {fileID: 1820339427924761457, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 4300000, guid: e785e7f9b86bc69499b33ef303615eb4, type: 2}
+    - target: {fileID: 2781440978256499436, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: m_LocalScale.x
+      value: 4.48
+      objectReference: {fileID: 0}
+    - target: {fileID: 2781440978256499436, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: m_LocalScale.y
+      value: 4.48
+      objectReference: {fileID: 0}
+    - target: {fileID: 2781440978256499436, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: m_LocalScale.z
+      value: 4.48
+      objectReference: {fileID: 0}
     - target: {fileID: 3817457565511291025, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: silhouette.Array.size
@@ -529,11 +544,6 @@ PrefabInstance:
       propertyPath: 'silhouette.Array.data[3]'
       value: 
       objectReference: {fileID: 3343740435894989148}
-    - target: {fileID: 5495579178143933876, guid: 6c5c44eda9b86054ba44bc3f0f758310,
-        type: 3}
-      propertyPath: m_Mesh
-      value: 
-      objectReference: {fileID: 4300000, guid: e785e7f9b86bc69499b33ef303615eb4, type: 2}
     - target: {fileID: 6567524228965887451, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_LocalScale.x
@@ -611,19 +621,21 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7184882482910536223, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
-      propertyPath: maxHealth
-      value: 100
-      objectReference: {fileID: 0}
-    - target: {fileID: 7184882482910536223, guid: 6c5c44eda9b86054ba44bc3f0f758310,
-        type: 3}
       propertyPath: engine
       value: 
-      objectReference: {fileID: 11400000, guid: 181a834995a6454bbb47dc7480fb44c5, type: 2}
+      objectReference: {fileID: 11400000, guid: 181a834995a6454bbb47dc7480fb44c5,
+        type: 2}
     - target: {fileID: 7184882482910536223, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: keystone
       value: 
-      objectReference: {fileID: 5512903418735166201, guid: 2f670f74921442afa35a8d12f18317cf, type: 3}
+      objectReference: {fileID: 5512903418735166201, guid: 2f670f74921442afa35a8d12f18317cf,
+        type: 3}
+    - target: {fileID: 7184882482910536223, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: maxHealth
+      value: 100
+      objectReference: {fileID: 0}
     - target: {fileID: 7501917339619365639, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_LocalPosition.x

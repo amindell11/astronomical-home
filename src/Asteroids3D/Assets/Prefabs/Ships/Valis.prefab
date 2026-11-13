@@ -319,16 +319,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Valis
       objectReference: {fileID: 0}
-    - target: {fileID: 1420000000000000006, guid: 6c5c44eda9b86054ba44bc3f0f758310,
-        type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0.93
-      objectReference: {fileID: 0}
-    - target: {fileID: 1420000000000000006, guid: 6c5c44eda9b86054ba44bc3f0f758310,
-        type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0.059
-      objectReference: {fileID: 0}
     - target: {fileID: 1420000000000000002, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -359,6 +349,16 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: 0.061
       objectReference: {fileID: 0}
+    - target: {fileID: 1420000000000000006, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.93
+      objectReference: {fileID: 0}
+    - target: {fileID: 1420000000000000006, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.059
+      objectReference: {fileID: 0}
     - target: {fileID: 1820339427924761457, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_Mesh
@@ -383,6 +383,21 @@ PrefabInstance:
         type: 3}
       propertyPath: InitialModule.startColor.maxColor.r
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2781440978256499436, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: m_LocalScale.x
+      value: 4.78
+      objectReference: {fileID: 0}
+    - target: {fileID: 2781440978256499436, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: m_LocalScale.y
+      value: 4.78
+      objectReference: {fileID: 0}
+    - target: {fileID: 2781440978256499436, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: m_LocalScale.z
+      value: 4.78
       objectReference: {fileID: 0}
     - target: {fileID: 3817457565511291025, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
@@ -414,11 +429,6 @@ PrefabInstance:
       propertyPath: InitialModule.startColor.maxColor.r
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 5495579178143933876, guid: 6c5c44eda9b86054ba44bc3f0f758310,
-        type: 3}
-      propertyPath: m_Mesh
-      value: 
-      objectReference: {fileID: 4300000, guid: f562fe322e3a24b46815e639a99dbde5, type: 2}
     - target: {fileID: 6567524228965887451, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_LocalScale.x
@@ -491,19 +501,21 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7184882482910536223, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
-      propertyPath: maxHealth
-      value: 80
-      objectReference: {fileID: 0}
-    - target: {fileID: 7184882482910536223, guid: 6c5c44eda9b86054ba44bc3f0f758310,
-        type: 3}
       propertyPath: engine
       value: 
-      objectReference: {fileID: 11400000, guid: 38dc83ab82ec4474b14ad0c81115379e, type: 2}
+      objectReference: {fileID: 11400000, guid: 38dc83ab82ec4474b14ad0c81115379e,
+        type: 2}
     - target: {fileID: 7184882482910536223, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: keystone
       value: 
-      objectReference: {fileID: 5512903418735166201, guid: b64c454ae5ac494db3caf3c314153dc4, type: 3}
+      objectReference: {fileID: 5512903418735166201, guid: b64c454ae5ac494db3caf3c314153dc4,
+        type: 3}
+    - target: {fileID: 7184882482910536223, guid: 6c5c44eda9b86054ba44bc3f0f758310,
+        type: 3}
+      propertyPath: maxHealth
+      value: 80
+      objectReference: {fileID: 0}
     - target: {fileID: 7604545048589130545, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_ImplicitTensor
