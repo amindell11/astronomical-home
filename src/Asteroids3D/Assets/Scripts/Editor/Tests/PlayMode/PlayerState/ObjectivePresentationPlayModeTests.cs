@@ -145,10 +145,14 @@ namespace Tests.PlayMode.PlayerState
             yield return null;
             Assert.AreEqual("0:45", clock.text);
             Assert.AreEqual("SEARCHING", caption.text, "The hunt's search clock reads as the search.");
-            phase = new SectorPhaseProgress(-1, 1, 2.1f, false, HuntReading.Spotted);
+            phase = new SectorPhaseProgress(-1, 1, 2.1f, false, HuntReading.Spotted, .4f);
             yield return null;
             Assert.AreEqual("0:03", clock.text);
-            Assert.AreEqual("SPOTTED", caption.text, "A patrol's call-in reads as spotted.");
+            Assert.AreEqual("SPOTTED", caption.text, "A filling meter reads as spotted.");
+            phase = new SectorPhaseProgress(-1, 1, 4.2f, false, HuntReading.Coming);
+            yield return null;
+            Assert.AreEqual("0:05", clock.text);
+            Assert.AreEqual("INCOMING", caption.text, "The gap after the alarm reads as incoming.");
         }
 
         private SpineObjectiveHandle OpenPhases(Transform target, Func<SectorPhaseProgress> progress) =>
@@ -161,36 +165,52 @@ namespace Tests.PlayMode.PlayerState
                 }, target, progress);
 
         [UnityTest]
-        public IEnumerator HuntBanners_HoldSpottedWithItsCountdown_ClearOnSilence_AndAnnounceTheAlarm()
+        public IEnumerator HuntBanners_HoldSpottedOverItsBar_ClearWhenTheMeterEmpties_AndHoldComingThroughTheGap()
         {
             var phase = new SectorPhaseProgress(-1, 2, 40f, false, HuntReading.Searching);
             var readout = CreateReadout();
             readout.Initialize(service);
             var announcement = readout.transform.Find("Extraction announcement").GetComponent<Text>();
+            var bar = readout.transform.Find("Extraction announcement/Spotted bar").GetComponent<Image>();
             OpenPhases(null, () => phase);
             yield return null;
             Assert.IsFalse(announcement.enabled, "Searching announces nothing.");
+            Assert.IsFalse(bar.enabled);
 
-            phase = new SectorPhaseProgress(-1, 2, 2.1f, false, HuntReading.Spotted);
+            phase = new SectorPhaseProgress(-1, 2, 40f, false, HuntReading.Spotted, .25f);
             yield return null;
             yield return new WaitForSecondsRealtime(2.5f);
-            Assert.IsTrue(announcement.enabled, "SPOTTED holds for as long as the call-in lasts.");
-            Assert.AreEqual("SPOTTED  0:03", announcement.text);
+            Assert.IsTrue(announcement.enabled, "SPOTTED holds for as long as the meter is up.");
+            Assert.AreEqual("SPOTTED", announcement.text);
             Assert.AreEqual(1f, announcement.color.a, .01f);
             Assert.Greater(announcement.color.r, announcement.color.g, "SPOTTED reads red.");
+            Assert.IsTrue(bar.enabled, "The spotted banner shows its meter.");
+            Assert.Greater(bar.color.r, bar.color.g);
+            var quarter = bar.rectTransform.sizeDelta.x;
+            Assert.Greater(quarter, 0f);
+
+            phase = new SectorPhaseProgress(-1, 2, 40f, false, HuntReading.Spotted, 1f);
+            yield return null;
+            Assert.AreEqual(quarter * 4f, bar.rectTransform.sizeDelta.x, .05f, "The bar width is the fill.");
 
             phase = new SectorPhaseProgress(-1, 2, 30f, false, HuntReading.Searching);
             yield return null;
-            Assert.IsFalse(announcement.enabled, "Silencing the caller clears the banner at once.");
+            Assert.IsFalse(announcement.enabled, "An empty meter clears the banner at once.");
+            Assert.IsFalse(bar.enabled);
 
-            phase = new SectorPhaseProgress(-1, 2, 1f, false, HuntReading.Spotted);
+            phase = new SectorPhaseProgress(-1, 2, 4f, false, HuntReading.Coming);
             yield return null;
+            yield return new WaitForSecondsRealtime(2.5f);
+            Assert.IsTrue(announcement.enabled, "THEY'RE COMING holds through the gap.");
+            Assert.AreEqual("THEY'RE COMING", announcement.text);
+            Assert.AreEqual(Color.white, new Color(announcement.color.r, announcement.color.g, announcement.color.b));
+            Assert.IsFalse(bar.enabled);
+
             phase = new SectorPhaseProgress(0, 2, 30f, false);
             yield return null;
             yield return new WaitForSecondsRealtime(.3f);
             Assert.IsTrue(announcement.enabled);
             Assert.AreEqual("THEY'RE COMING", announcement.text);
-            Assert.AreEqual(Color.white, new Color(announcement.color.r, announcement.color.g, announcement.color.b));
             yield return new WaitForSecondsRealtime(2.2f);
             Assert.IsFalse(announcement.enabled, "The alarm banner fades like the other announcements.");
 

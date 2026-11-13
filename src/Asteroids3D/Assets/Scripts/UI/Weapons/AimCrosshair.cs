@@ -1,6 +1,7 @@
 using System;
 using Game.Player;
 using Ships.Command;
+using UI.Placement;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,7 +14,6 @@ namespace UI.Weapons
         private PlayerControls controls;
         private Canvas rootCanvas;
         private RectTransform rect;
-        private RectTransform parentRect;
         private Graphic[] artwork;
         private IShipStatus ship;
         private Camera gameplayCamera;
@@ -24,7 +24,6 @@ namespace UI.Weapons
             if (!pointer) throw new InvalidOperationException("AimCrosshair requires its pointer.");
             rootCanvas = GetComponentInParent<Canvas>().rootCanvas;
             rect = (RectTransform)transform;
-            parentRect = (RectTransform)transform.parent;
             artwork = GetComponentsInChildren<Graphic>(true);
             controls = new PlayerControls();
         }
@@ -60,9 +59,7 @@ namespace UI.Weapons
             Cursor.visible = !overGame;
             foreach (var graphic in artwork)
                 graphic.enabled = overGame;
-            var uiCamera = rootCanvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : rootCanvas.worldCamera;
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(parentRect, aim, uiCamera, out var point);
-            rect.localPosition = point;
+            ScreenPin.Place(rect, rootCanvas, aim);
             var direction = aim - (Vector2)gameplayCamera.WorldToScreenPoint(ship.Transform.position);
             if (direction.sqrMagnitude > .0001f)
                 pointer.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90f);

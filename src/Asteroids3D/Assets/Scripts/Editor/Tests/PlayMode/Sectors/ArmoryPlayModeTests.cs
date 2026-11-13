@@ -21,7 +21,7 @@ using Random = UnityEngine.Random;
 
 namespace Tests.PlayMode.Sectors
 {
-    /// <summary>The shipped armory prefab: a one-row run at sector index 0 places the one armory its row asks for; every fly-in counts a claim, only a take spends the armory and darkens it, the alarm darkens an untaken one, and it picks its point spaced from the repair and mod stations.</summary>
+    /// <summary>The shipped armory prefab: a one-row run at sector index 0 places the one armory its row asks for; every fly-in counts a claim, only a take spends the armory and darkens it, the hunt's release darkens an untaken one, and it picks its point spaced from the repair and mod stations.</summary>
     [TestFixture]
     [Category("Sectors")]
     [Category("RequiresLfsPng")]
@@ -32,11 +32,13 @@ namespace Tests.PlayMode.Sectors
         private const string ModStationPath = "Assets/Prefabs/Objectives/Mod Station.prefab";
         private const float Distance = 40f;
         private const float Spacing = 20f;
+        private const float AlarmGrace = 5f;
 
         private readonly List<Object> _created = new();
         private readonly List<string> _beats = new();
         private ObjectiveService _objectives;
         private Sector _sector;
+        private float alarmAt;
 
         [SetUp]
         public override void SetUp()
@@ -117,10 +119,17 @@ namespace Tests.PlayMode.Sectors
             yield return MoveTo(hero, station.Position);
             Assert.AreEqual(1, armory.Claims);
 
-            hunt.Tick(Time.time + 2000f);
+            alarmAt = Time.time + 2000f;
+            hunt.Tick(alarmAt);
             Assert.IsTrue(hunt.Alarmed, "The search clock ran out.");
+            Assert.IsFalse(hunt.Released, "The gap after the alarm has not elapsed.");
             yield return null;
-            Assert.IsTrue(station.Spent, "The alarm spends a claimed but untaken armory.");
+            Assert.IsFalse(station.Spent, "The gap leaves a claimed but untaken armory.");
+            Assert.IsTrue(station.Lit.activeSelf, "The armory stays lit through the gap.");
+            hunt.Tick(alarmAt + AlarmGrace);
+            Assert.IsTrue(hunt.Released, "The gap after the alarm has elapsed.");
+            yield return null;
+            Assert.IsTrue(station.Spent, "The release spends a claimed but untaken armory.");
             Assert.IsFalse(station.Lit.activeSelf);
             AssertFinds(armory);
         }
@@ -162,6 +171,7 @@ namespace Tests.PlayMode.Sectors
         {
             var feel = Track(ScriptableObject.CreateInstance<HuntFeelProfile>());
             feel.searchSeconds = 1000f;
+            feel.alarmGraceSeconds = AlarmGrace;
             var hunt = Track(new GameObject("Hunt")).AddComponent<SectorHunt>();
             hunt.Configure(feel, null, null, 0f);
             Drive(hunt.Build(Context(hero, 1)));
