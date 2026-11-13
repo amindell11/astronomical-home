@@ -6,11 +6,7 @@
     Takes the config path that build_game_player.ps1 writes. The JSON object has
     projectPath, buildDir, and logPath.
 
-    One Unity boot, then this process exits with Unity's exit code:
-
-        -batchmode -nographics -quit -projectPath <projectPath>
-        -executeMethod Game.GamePlayerBuild.Build
-        -gameBuildDir <buildDir> -logFile <logPath>
+    Runs Game.GamePlayerBuild.Build in one Unity batch boot, then exits with Unity's exit code.
 
     A missing ConfigPath or a missing Unity executable throws, which exits 1.
 

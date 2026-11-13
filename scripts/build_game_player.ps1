@@ -27,7 +27,6 @@
 
     EXIT CODES
       0  built. The coordinator status is batch_complete and the Unity child exited 0.
-         batch_complete alone is not success: that status exits 0 even when the child failed.
       1  anything else. The stderr message carries the coordinator exit, the coordinator status,
          the Unity exit code, and the log path.
 
@@ -61,7 +60,6 @@ $buildDir = Join-Path $buildRoot "game"
 $log = Join-Path $buildRoot "game-build.log"
 $configPath = Join-Path $buildRoot "game-build.json"
 
-# Emptied first so a renamed product leaves no stale exe.
 if (Test-Path -LiteralPath $buildDir) {
     Remove-Item -Recurse -Force -LiteralPath $buildDir
 }
@@ -98,6 +96,7 @@ if ($null -ne $result) {
     $exitProp = $result.PSObject.Properties["exitCode"]
     if ($null -ne $exitProp) { $unityExit = $exitProp.Value }
 }
+# batch_complete exits 0 even when the child failed, so the Unity exit is checked too.
 if ($call.exitCode -ne 0 -or $null -eq $result -or $status -ne "batch_complete" -or $null -eq $unityExit -or [int]$unityExit -ne 0) {
     throw "Game player build failed: coordinator exit=$($call.exitCode) status=$status unity exit=$unityExit log=$log $($call.stderr)"
 }
