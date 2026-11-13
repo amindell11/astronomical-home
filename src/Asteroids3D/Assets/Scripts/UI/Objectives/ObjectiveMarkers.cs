@@ -99,11 +99,7 @@ namespace UI.Objectives
             }
             if (!berth) return;
 
-            minimapRect.GetWorldCorners(corners);
-            var canvasRect = (RectTransform)canvas.transform;
-            var lower = (Vector2)canvasRect.InverseTransformPoint(corners[0]) - canvasRect.rect.min;
-            var upper = (Vector2)canvasRect.InverseTransformPoint(corners[2]) - canvasRect.rect.min;
-            var mapBounds = Rect.MinMaxRect(lower.x, lower.y, upper.x, upper.y);
+            var mapBounds = MapBounds(minimapRect, canvas, corners);
             var radius = Mathf.Min(mapBounds.width, mapBounds.height) * .5f;
             var offset = mapOffset * radius * 2f;
             var inset = MapIconSize * .5f + 1f;
@@ -123,6 +119,27 @@ namespace UI.Objectives
             var projected = worldCamera.WorldToScreenPoint(target.position);
             screenBerth.enabled = projected.z > 0f;
             var viewport = worldCamera.pixelRect;
+            var offScreen = PinToScreenEdge(projected, viewport, canvas, mapBounds, out var canvasPosition);
+            screenBerth.rectTransform.anchoredPosition = canvasPosition;
+            if (screenBerth.enabled && offScreen)
+                screenTab.Aim(Vector2.zero, ((Vector2)projected - viewport.center).normalized,
+                    ScreenIconSize, reach, colour);
+            else
+                screenTab.enabled = false;
+        }
+
+        internal static Rect MapBounds(RectTransform minimap, Canvas canvas, Vector3[] corners)
+        {
+            minimap.GetWorldCorners(corners);
+            var canvasRect = (RectTransform)canvas.transform;
+            var lower = (Vector2)canvasRect.InverseTransformPoint(corners[0]) - canvasRect.rect.min;
+            var upper = (Vector2)canvasRect.InverseTransformPoint(corners[2]) - canvasRect.rect.min;
+            return Rect.MinMaxRect(lower.x, lower.y, upper.x, upper.y);
+        }
+
+        internal static bool PinToScreenEdge(Vector2 projected, Rect viewport, Canvas canvas, Rect mapBounds,
+            out Vector2 canvasPosition)
+        {
             var padding = 40f * canvas.scaleFactor;
             var safe = Rect.MinMaxRect(viewport.xMin + padding, viewport.yMin + padding,
                 viewport.xMax - padding, viewport.yMax - 70f * canvas.scaleFactor);
@@ -130,12 +147,8 @@ namespace UI.Objectives
             var offScreen = !safe.Contains(projected);
             if (offScreen && mapBounds.Contains(location / canvas.scaleFactor))
                 location.y = mapBounds.yMin * canvas.scaleFactor - padding;
-            screenBerth.rectTransform.anchoredPosition = location / canvas.scaleFactor;
-            if (screenBerth.enabled && offScreen)
-                screenTab.Aim(Vector2.zero, ((Vector2)projected - viewport.center).normalized,
-                    ScreenIconSize, reach, colour);
-            else
-                screenTab.enabled = false;
+            canvasPosition = location / canvas.scaleFactor;
+            return offScreen;
         }
 
         internal static Vector2 ClampToEdge(Vector2 point, Vector2 center, Rect bounds)
