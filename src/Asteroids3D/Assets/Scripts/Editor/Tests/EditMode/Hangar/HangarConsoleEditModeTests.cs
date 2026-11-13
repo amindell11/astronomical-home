@@ -154,6 +154,7 @@ namespace Tests.EditMode.Hangar
         }
 
         [Test]
+        [Category("RequiresLfsPng")]
         public void GlassCarriesNoReference_AndItsDisplayIsTwiceTheReferencePicture()
         {
             var console = AssetDatabase.LoadAssetAtPath<HangarConsole>(PrefabPath);
