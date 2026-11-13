@@ -91,7 +91,7 @@ namespace Asteroids
             initialAngularVelocity = angularVelocity;
             this.breakSeed = breakSeed;
 
-            damage?.Initialize(Volume, law);
+            if (damage) damage.Initialize(Volume, law);
 
             Physics.SyncTransforms();
             Physics.autoSyncTransforms = prevAutoSync;
