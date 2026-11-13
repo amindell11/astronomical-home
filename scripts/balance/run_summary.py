@@ -40,6 +40,7 @@ from collections import defaultdict
 SCHEMAS = ("run-record-v3", "run-record-v2", "run-record-v1")
 V1 = "run-record-v1"
 EXTRACTED = "extracted"
+DIED = "died"
 ABANDONED = "abandoned"
 NO_SPAWN = -1
 PARTS = ("chassis", "engine", "shield", "primary", "secondary")
@@ -165,7 +166,7 @@ def pooled_sections(records):
             entry = damage[attacker(record, row["spawn"], row["source"]) + (row["kind"],)]
             entry[0] += row["total"]
             entry[1] += row["hits"]
-        if record["outcome"] != "died":
+        if record["outcome"] != DIED:
             continue
         blow = record["killingBlow"]
         blows[attacker(record, blow["spawn"], "") + (blow["kind"],)] += 1

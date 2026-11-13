@@ -150,7 +150,7 @@ namespace Game.Runs
         public const int NoSpawn = -1;
         public const string EndedUtcFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 
-        /// <summary>A v2 or v3 line that finished died or extracted. Abandoned stays in the file and off every reader.</summary>
+        /// <summary>Abandoned lines stay in the file but off every reader.</summary>
         public static bool Counts(string schema, string outcome) =>
             (schema == SchemaId || schema == SchemaV2) && outcome != Abandoned;
 

@@ -319,12 +319,10 @@ namespace Game
                 playerDied = false;
                 moments = new RunMomentStream();
                 if (voice) voice.Initialize(moments);
-                string playerLoadoutStatHash = null;
                 var hull = 1f;
                 var index = 0;
                 var transferred = false;
-                var locales = presentation ? sessionProfile.run.DrawLocales(new System.Random()) : null;
-                runLocales = locales;
+                runLocales = presentation ? sessionProfile.run.DrawLocales(new System.Random()) : null;
                 while (true)
                 {
                     if (!transferred)
@@ -334,12 +332,12 @@ namespace Game
                         activeSectorIndex = index;
                         if (rigInstance) rigInstance.BeginSector(index + 1);
                         yield return session.LoadSector(index, rigInstance ? rigInstance.Player : null, OnSectorComplete,
-                            locales?[index]);
+                            runLocales?[index]);
                     }
                     transferred = false;
                     if (shutdownRequested) yield break;
                     if (index == 0)
-                        playerLoadoutStatHash = runLoadoutHash = rigInstance ? BeginRun() : null;
+                        runLoadoutHash = rigInstance ? BeginRun() : null;
                     else if (rigInstance)
                         rigInstance.Player.Damage.Health.SetFraction(hull);
                     moments.Raise(new SectorEntered(index + 1));
@@ -413,7 +411,7 @@ namespace Game
                     }
                     if (jump)
                     {
-                        yield return RunJump(ExtractionContext(index, sectorStartTime), index + 1, locales[index + 1],
+                        yield return RunJump(ExtractionContext(index, sectorStartTime), index + 1, runLocales[index + 1],
                             hull);
                         transferred = true;
                     }
@@ -434,8 +432,8 @@ namespace Game
                 {
                     if (!playerDied) EndRun();
                     runOpen = false;
-                    var board = AppendRunRecord(playerLoadoutStatHash, index,
-                        quitRun || !playerDied ? (DamageInfo?)null : lastKillingBlow, locales, quitRun);
+                    var board = AppendRunRecord(runLoadoutHash, index,
+                        quitRun || !playerDied ? (DamageInfo?)null : lastKillingBlow, runLocales, quitRun);
                     if (!quitRun)
                     {
                         SetMusic(playerDied ? GameMusic.State.Defeat : GameMusic.State.Victory);
@@ -657,7 +655,7 @@ namespace Game
                     armory.Take();
                     moments.Raise(new ArmoryPicked(index + 1, chosen));
                 }
-                course?.NotePick(RunRecord.PickWeapon, index + 1, rigInstance.Tally.SecondsSurvived,
+                course.NotePick(RunRecord.PickWeapon, index + 1, rigInstance.Tally.SecondsSurvived,
                     AssetNames(offers), taken, replaced);
             }
             finally
@@ -691,7 +689,7 @@ namespace Game
                     rigInstance.PickMod(offers[pick]);
                     moments.Raise(new ModPicked(offers[pick]));
                 }
-                course?.NotePick(RunRecord.PickMod, sector, rigInstance.Tally.SecondsSurvived,
+                course.NotePick(RunRecord.PickMod, sector, rigInstance.Tally.SecondsSurvived,
                     AssetNames(offers), taken, string.Empty);
             }
             finally
@@ -803,7 +801,7 @@ namespace Game
             runOpen = false;
             EndRun();
             CloseOpenSector();
-            var endedIn = course != null && course.Sectors.Count > 0
+            var endedIn = course.Sectors.Count > 0
                 ? course.Sectors[course.Sectors.Count - 1].sector - 1
                 : activeSectorIndex;
             AppendRunRecord(runLoadoutHash, endedIn, null, runLocales, true);
@@ -828,7 +826,7 @@ namespace Game
 
         // An unreadable build identity leaves the run unrecorded, like a failed write.
         private Scoreboard AppendRunRecord(string playerLoadoutStatHash, int endedIn, DamageInfo? killingBlow,
-            LocaleSky[] locales, bool abandoned = false)
+            LocaleSky[] locales, bool abandoned)
         {
             if (!buildIdentity(out var identity, out var failure))
             {

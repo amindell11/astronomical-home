@@ -68,11 +68,7 @@ namespace Game.Player
 
         internal void Watch(IDamageEvents damage, ShipId victim) => damage.OnDamaged += hit => Record(victim, hit);
 
-        private void OnShipSpawned(Ship ship)
-        {
-            var victim = ship.Id;
-            ship.Damage.OnDamaged += hit => Record(victim, hit);
-        }
+        private void OnShipSpawned(Ship ship) => Watch(ship.Damage, ship.Id);
 
         private void Record(ShipId victim, AppliedDamage damage)
         {
