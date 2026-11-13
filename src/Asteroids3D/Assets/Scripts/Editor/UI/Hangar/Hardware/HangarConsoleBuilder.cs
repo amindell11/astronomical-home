@@ -87,8 +87,11 @@ namespace UI.Hangar.Hardware
                 legend.SetColor("_Starlight", Color.black);
                 legend.SetFloat("_LightResponse", 0f);
                 legend.SetColor("_ConstantEmission", new Color(1f, .88f, .70f));
-                parts["LaunchLegend"].sharedMaterial = legend;
-                parts["LaunchLegend"].transform.SetParent(parts["LaunchButton"].transform, true);
+                foreach (var control in new[] { "Launch", "Previous", "Next" })
+                {
+                    parts[control + "Legend"].sharedMaterial = legend;
+                    parts[control + "Legend"].transform.SetParent(parts[control + "Button"].transform, true);
+                }
 
                 var cameraObject = new GameObject("HardwareCamera");
                 cameraObject.transform.SetParent(root.transform, false);
@@ -143,10 +146,9 @@ namespace UI.Hangar.Hardware
                 var knobAxis = AuthoredUp(parts["SelectorKnob"]);
                 var knob = Control(parts["SelectorKnob"], knobAxis, .2f, camera);
                 var turn = parts["SelectorKnob"].gameObject.AddComponent<HangarKnob>();
-                var previous = Control(parts["PreviousButton"], AuthoredUp(parts["PreviousButton"]), .25f, camera);
-                var next = Control(parts["NextButton"], AuthoredUp(parts["NextButton"]), .25f, camera);
-                // A deeper press pushes the cap's bottom bevel through the socket's rounded floor edge.
-                var launch = Control(parts["LaunchButton"], AuthoredUp(parts["LaunchButton"]), .24f, camera);
+                var previous = Control(parts["PreviousButton"], AuthoredUp(parts["PreviousButton"]), .28f, camera);
+                var next = Control(parts["NextButton"], AuthoredUp(parts["NextButton"]), .28f, camera);
+                var launch = Control(parts["LaunchButton"], AuthoredUp(parts["LaunchButton"]), .35f, camera);
                 root.AddComponent<HangarConsoleRaycaster>();
 
                 foreach (var child in root.GetComponentsInChildren<Transform>(true))

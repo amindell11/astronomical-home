@@ -43,12 +43,16 @@ part_names = {
     'MainScreenGlass': ['07 | Main rectangular display'],
     'DetailScreenGlass': ['07 | Detail rectangular display'],
     'SelectorKnob': ['08 | Selector faceted grip', '08 | Selector pointer'],
-    'PreviousButton': ['08 | Previous chunky keycap', '08 | Previous inlaid chevron'],
-    'NextButton': ['08 | Next chunky keycap', '08 | Next inlaid chevron'],
+    'PreviousButton': ['08 | Previous chunky keycap'],
+    'PreviousLegend': ['08 | Previous inlaid chevron'],
+    'NextButton': ['08 | Next chunky keycap'],
+    'NextLegend': ['08 | Next inlaid chevron'],
     'LaunchButton': ['08 | Launch broad beveled button'],
     'LaunchLegend': ['19 | Launch legend'],
     'ProjectorLens': ['09 | Projector lens'],
 }
+moving_parts = ('SelectorKnob', 'PreviousButton', 'NextButton', 'LaunchButton')
+legend_parts = ('PreviousLegend', 'NextLegend', 'LaunchLegend')
 pivot_names = {
     'SelectorKnob': '08 | Selector faceted grip', 'PreviousButton': '08 | Previous chunky keycap',
     'NextButton': '08 | Next chunky keycap', 'LaunchButton': '08 | Launch broad beveled button',
@@ -94,12 +98,40 @@ scene.view_settings.look = 'None'
 for lines in bpy.context.view_layer.freestyle_settings.linesets:
     lines.linestyle.color = (.009, .004, .002)
     lines.linestyle.thickness *= 4096 / 1672
-scene.render.filepath = str(scratch / 'console-ink.png')
-if not args.reuse_ink:
-    bpy.ops.render.render(write_still=True)
+
+
+def render_ink(name):
+    scene.render.filepath = str(scratch / name)
+    if not args.reuse_ink:
+        bpy.ops.render.render(write_still=True)
+    return bpy.data.images.load(str(scratch / name), check_existing=False)
+
+
+# A control that moves wears only its own outline, drawn inside its edge, so the ink travels
+# with it. The body is inked with the controls away, so nothing of theirs stays behind.
+moving = [o for name in moving_parts for o in groups[name]]
+carried = moving + [o for name in legend_parts for o in groups[name]]
+for obj in carried:
+    obj.hide_render = True
+body_ink = render_ink('console-ink-body.png')
+for obj in carried:
+    obj.hide_render = False
+linesets = bpy.context.view_layer.freestyle_settings.linesets
+rim = linesets['Lit legend rim']
+own_ink = bpy.data.collections.new('Moving control ink')
+for obj in moving:
+    if obj.name not in rim.collection.objects:
+        own_ink.objects.link(obj)
+for lines in linesets:
+    if lines == rim:
+        continue
+    lines.select_by_collection = True
+    lines.collection = own_ink
+    if lines.select_silhouette:
+        lines.linestyle.thickness_position = 'INSIDE'
+control_ink = render_ink('console-ink-controls.png')
 bpy.context.view_layer.material_override = None
 scene.render.use_freestyle = False
-ink = bpy.data.images.load(str(scratch / 'console-ink.png'), check_existing=False)
 
 worlds = {obj: obj.matrix_world.copy() for obj in hardware}
 for obj in hardware:
@@ -143,10 +175,12 @@ for obj in paint_objects:
     minimum = Vector(tuple(min(v.co[axis] for v in obj.data.vertices) for axis in range(3)))
     maximum = Vector(tuple(max(v.co[axis] for v in obj.data.vertices) for axis in range(3)))
     size = maximum - minimum
+    own = obj.data.attributes.new('ConsoleCarriedInk', 'FLOAT', 'POINT')
     for vertex, value in zip(obj.data.vertices, coordinates.data):
         value.vector = tuple((vertex.co[axis] - minimum[axis]) / size[axis] if size[axis] else 0
                              for axis in range(3))
         object_coordinates.data[vertex.index].vector = vertex.co
+        own.data[vertex.index].value = 1 if obj in carried else 0
     for polygon in obj.data.polygons:
         if not obj.data.materials[polygon.material_index]:
             raise RuntimeError('Unassigned source material: ' + obj.name)
@@ -205,11 +239,20 @@ def projected_ink(material):
         multiply_add.inputs[2].default_value = .5
         links.new(divide.outputs[0], multiply_add.inputs[0])
         links.new(multiply_add.outputs[0], combine.inputs[i])
-    texture = nodes.new('ShaderNodeTexImage')
-    texture.image = ink
-    texture.extension = 'EXTEND'
-    links.new(combine.outputs[0], texture.inputs['Vector'])
-    return texture.outputs['Color']
+    layers = []
+    for image in (body_ink, control_ink):
+        texture = nodes.new('ShaderNodeTexImage')
+        texture.image = image
+        texture.extension = 'EXTEND'
+        links.new(combine.outputs[0], texture.inputs['Vector'])
+        layers.append(texture.outputs['Color'])
+    own = nodes.new('ShaderNodeAttribute')
+    own.attribute_name = 'ConsoleCarriedInk'
+    pick = nodes.new('ShaderNodeMixRGB')
+    links.new(own.outputs['Fac'], pick.inputs[0])
+    links.new(layers[0], pick.inputs[1])
+    links.new(layers[1], pick.inputs[2])
+    return pick.outputs[0]
 
 
 for material in materials:
@@ -352,7 +395,8 @@ manifest = {
     'parts': [{'name': obj.name, 'vertices': len(obj.data.vertices),
                'triangles': sum(len(p.vertices) - 2 for p in obj.data.polygons),
                'pivot': list(obj.matrix_world.translation)} for obj in exported],
-    'paint': 'Authored color graph and fixed-camera Freestyle ink. No scene lighting, sky, ship or cone.',
+    'paint': 'Authored color graph and fixed-camera Freestyle ink, one layer for the body and one the '
+             'moving controls carry. No scene lighting, sky, ship or cone.',
     'screens': 'Static reference artwork; no live UI.',
 }
 (Path(__file__).parent / 'console-export.json').write_text(json.dumps(manifest, indent=2))
