@@ -17,6 +17,7 @@ namespace UI.Weapons
         [SerializeField] private Color empty = new(.639f, .651f, .667f, .3f);
         [SerializeField] private Color threshold = new(.04f, .06f, .1f);
         [SerializeField] private Color overheat = new(.98f, .41f, .41f);
+        [SerializeField] private ReadyFlashProfile readyFlash;
 
         private sealed class Resource
         {
@@ -28,7 +29,17 @@ namespace UI.Weapons
             public int Capacity;
         }
 
+        private sealed class Flash
+        {
+            public IRecoveryReadout Source;
+            public GameObject Root;
+            public Image Arc;
+            public float StartedAt = float.NegativeInfinity;
+            public Action Trigger;
+        }
+
         private readonly List<Resource> resources = new();
+        private readonly List<Flash> flashes = new();
         private readonly List<Image> icons = new();
         private IWeaponReadouts readouts;
 
@@ -38,6 +49,16 @@ namespace UI.Weapons
                 throw new InvalidOperationException("WeaponResourceHud requires its resource image template.");
             if (!keystoneGlyph)
                 throw new InvalidOperationException("WeaponResourceHud requires its keystone glyph.");
+            if (!readyFlash)
+                throw new InvalidOperationException("WeaponResourceHud requires its ready flash profile.");
+        }
+
+        private void OnDestroy() => Unsubscribe();
+
+        private void Unsubscribe()
+        {
+            foreach (var flash in flashes)
+                flash.Source.Recovered -= flash.Trigger;
         }
 
         public void Initialize(IWeaponReadouts weapons, Sprite keystoneIcon)
@@ -58,6 +79,13 @@ namespace UI.Weapons
                 Destroy(icon.gameObject);
             }
             icons.Clear();
+            Unsubscribe();
+            foreach (var flash in flashes)
+            {
+                flash.Root.SetActive(false);
+                Destroy(flash.Root);
+            }
+            flashes.Clear();
             if (weapons == null) return;
             foreach (var slot in weapons.Slots)
             {
@@ -66,7 +94,33 @@ namespace UI.Weapons
                 foreach (var readout in weapons.Readouts(slot))
                     if (readout is IHeatReadout or IAmmoReadout or IChargeReadout)
                         resources.Add(BuildResource(slot, readout, index++));
+                foreach (var readout in weapons.Readouts(slot))
+                    if (readout is IRecoveryReadout recovery)
+                        flashes.Add(BuildFlash(slot, recovery));
             }
+        }
+
+        // Drawn over the slot's arcs, so one treatment serves heat, rounds and charge alike.
+        private Flash BuildFlash(WeaponSlot slot, IRecoveryReadout source)
+        {
+            var root = InstrumentRoot(slot + "ReadyFlash", slot, 1f);
+            var left = slot == WeaponSlot.Primary;
+            var flash = new Flash { Source = source, Root = root.gameObject };
+            flash.Arc = AddArc(resourceTemplate, root, "Arc", left ? 120f : 60f, 120f, left, Color.clear);
+            flash.Trigger = () => flash.StartedAt = Time.unscaledTime;
+            source.Recovered += flash.Trigger;
+            return flash;
+        }
+
+        private RectTransform InstrumentRoot(string name, WeaponSlot slot, float scale)
+        {
+            var rect = (RectTransform)new GameObject(name, typeof(RectTransform)).transform;
+            rect.SetParent(transform, false);
+            rect.anchorMin = rect.anchorMax = new Vector2(.5f, .5f);
+            rect.anchoredPosition = InstrumentCenter(slot);
+            rect.sizeDelta = new Vector2(60f, 60f);
+            rect.localScale = Vector3.one * scale;
+            return rect;
         }
 
         private Image BuildIcon(WeaponSlot slot, Sprite sprite)
@@ -95,16 +149,10 @@ namespace UI.Weapons
 
         private Resource BuildResource(WeaponSlot slot, IWeaponReadout source, int index)
         {
-            var go = new GameObject(slot + "Resources", typeof(RectTransform));
-            var resourceRect = (RectTransform)go.transform;
-            resourceRect.SetParent(transform, false);
-            resourceRect.anchorMin = resourceRect.anchorMax = new Vector2(.5f, .5f);
-            resourceRect.anchoredPosition = InstrumentCenter(slot);
-            resourceRect.sizeDelta = new Vector2(60f, 60f);
-            resourceRect.localScale = Vector3.one * (1f + index * .5f);
+            var resourceRect = InstrumentRoot(slot + "Resources", slot, 1f + index * .5f);
             var left = slot == WeaponSlot.Primary;
             var start = left ? 120f : 60f;
-            var resource = new Resource { Source = source, Root = go };
+            var resource = new Resource { Source = source, Root = resourceRect.gameObject };
             if (source is IAmmoReadout { MaxAmmo: <= 8, Refill: not Rounds.RefillMode.Sequential } ammo)
             {
                 const float gap = 4f;
@@ -183,6 +231,14 @@ namespace UI.Weapons
                         resource.Fill.fillAmount = 120f / 360f * progress;
                         break;
                 }
+            }
+            foreach (var flash in flashes)
+            {
+                var weight = readyFlash.Intensity * Mathf.Clamp01(1f - (now - flash.StartedAt) / readyFlash.Seconds);
+                flash.Arc.enabled = weight > 0f;
+                var color = ink;
+                color.a = ink.a * weight;
+                flash.Arc.color = color;
             }
         }
     }

@@ -1,16 +1,17 @@
 using System;
 using System.Text;
 using Substrate.Services.Objectives;
-using UI.Objectives;
 using UI.Projection;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace UI.PlayerState
 {
-    /// <summary>Lists the timed boosts in force under the phase display, each with its whole seconds left, in the find colour.</summary>
+    /// <summary>Lists the timed boosts in force under the phase display, each with its whole seconds left.</summary>
     public sealed class BoostReadout : MonoBehaviour
     {
+        private static readonly Color Colour = new(.72f, .48f, 1f, 1f);
+
         private readonly StringBuilder lines = new();
         private Text text;
         private IObjectiveService objectives;
@@ -28,7 +29,7 @@ namespace UI.PlayerState
             text.font = font;
             text.material = material;
             text.fontSize = 9;
-            text.color = FindPointers.FindColour;
+            text.color = Colour;
             text.alignment = TextAnchor.UpperCenter;
             text.raycastTarget = false;
             text.enabled = false;

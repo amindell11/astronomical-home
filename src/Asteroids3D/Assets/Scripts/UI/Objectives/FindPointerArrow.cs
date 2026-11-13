@@ -6,13 +6,12 @@ namespace UI.Objectives
     [RequireComponent(typeof(CanvasRenderer))]
     public sealed class FindPointerArrow : MaskableGraphic
     {
-        public static FindPointerArrow Create(Transform parent, float size, Color tint)
+        public static FindPointerArrow Create(Transform parent, float size)
         {
             var arrow = new GameObject("Find pointer arrow", typeof(RectTransform)).AddComponent<FindPointerArrow>();
             arrow.gameObject.layer = parent.gameObject.layer;
             arrow.transform.SetParent(parent, false);
             arrow.rectTransform.sizeDelta = Vector2.one * size;
-            arrow.color = tint;
             arrow.raycastTarget = false;
             return arrow;
         }
