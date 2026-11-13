@@ -59,6 +59,12 @@ namespace Asteroids.Fields
         [Tooltip("Editor-time warning threshold only. There is deliberately no runtime clamp — clipping content by count would reintroduce load-order nondeterminism.")]
         public int maxAsteroids = 300;
 
+        [Header("Ship Collision Damage")]
+        [Tooltip("Ship delta-v at or below this is a free knock: no damage.")]
+        public float graceDeltaV = 5f;
+        [Tooltip("Damage per unit of ship delta-v above the grace.")]
+        public float damagePerDeltaV = 3f;
+
         public float UnloadRadius => loadRadius * unloadRadiusMultiplier;
 
         /// <summary>
