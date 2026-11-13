@@ -157,15 +157,15 @@ namespace Tests.PlayMode.PlayerState
             Assert.AreEqual(0, VisiblePointers().arrows.Count, "A removed enemy shows no pointer.");
         }
 
-        private (List<FindPointerArrow> arrows, List<Image> icons) VisiblePointers()
+        private (List<NavTab> arrows, List<Image> icons) VisiblePointers()
         {
-            var arrows = new List<FindPointerArrow>();
+            var arrows = new List<NavTab>();
             var icons = new List<Image>();
             var holder = minimap.Find("Find pointers");
             for (var i = 0; i < holder.childCount; i++)
             {
                 var child = holder.GetChild(i);
-                var arrow = child.GetComponent<FindPointerArrow>();
+                var arrow = child.GetComponent<NavTab>();
                 if (arrow && arrow.enabled)
                     arrows.Add(arrow);
                 var icon = child.GetComponent<Image>();
