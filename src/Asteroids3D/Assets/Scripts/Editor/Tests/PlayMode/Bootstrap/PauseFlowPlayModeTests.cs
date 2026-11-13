@@ -2,8 +2,10 @@
 using System;
 using System.Collections;
 using System.IO;
+using System.Reflection;
 using Cameras;
 using Game;
+using Game.Player;
 using Game.Runs;
 using NUnit.Framework;
 using Substrate.Sectors;
@@ -47,9 +49,13 @@ namespace Tests.PlayMode.Bootstrap
         private string dir;
         private string recordPath;
         private LightingSnapshot bootLighting;
+        private bool assistHad;
+        private int assistStored;
 
         public override void SetUp()
         {
+            assistHad = PlayerPrefs.HasKey("flight.assist");
+            if (assistHad) assistStored = PlayerPrefs.GetInt("flight.assist");
             input.Setup();
             base.SetUp();
             bootLighting = LightingSnapshot.Capture();
@@ -60,6 +66,9 @@ namespace Tests.PlayMode.Bootstrap
 
         public override void TearDown()
         {
+            if (assistHad) PlayerPrefs.SetInt("flight.assist", assistStored);
+            else PlayerPrefs.DeleteKey("flight.assist");
+            PlayerPrefs.Save();
             if (hostGo) hostGo.GetComponent<UnitService>().Clear();
             DestroyTestObject(hostGo);
             if (templates != null)
@@ -136,6 +145,54 @@ namespace Tests.PlayMode.Bootstrap
 
             yield return WaitFor(() => hostGo.GetComponentInChildren<PauseScreen>(), "closing settings returns to pause");
             Assert.AreEqual(0f, Time.timeScale);
+        }
+
+        [UnityTest]
+        public IEnumerator AssistToggle_InSettings_SetsTheLiveShip()
+        {
+            AssistSetting.Set(true);
+            yield return BootToFlight();
+
+            TapEscape();
+            yield return WaitFor(() => hostGo.GetComponentInChildren<PauseScreen>(), "escape opens pause");
+            hostGo.GetComponentInChildren<PauseScreen>().transform.Find("Settings").GetComponent<Button>().onClick.Invoke();
+            yield return WaitFor(() => hostGo.GetComponentInChildren<SettingsScreen>()
+                && !hostGo.GetComponentInChildren<PauseScreen>(), "settings replaces pause");
+
+            var row = FlightAssistRow(hostGo.GetComponentInChildren<SettingsScreen>());
+            Assert.IsNotNull(row);
+            Assert.AreEqual("ON", row.Find("Value").GetComponent<Text>().text);
+            Assert.IsTrue(AssistOn(rig));
+            row.Find("Control").GetComponent<Button>().onClick.Invoke();
+            Assert.AreEqual("OFF", row.Find("Value").GetComponent<Text>().text);
+            Assert.IsFalse(AssistOn(rig));
+        }
+
+        [UnityTest]
+        public IEnumerator AssistOff_BeforeBoot_StartsTheFirstSectorOff()
+        {
+            AssistSetting.Set(false);
+            yield return BootToFlight();
+            Assert.IsFalse(AssistOn(rig));
+        }
+
+        private static Transform FlightAssistRow(SettingsScreen settings)
+        {
+            for (var i = 0; ; i++)
+            {
+                var row = settings.transform.Find("Row" + i);
+                if (!row) return null;
+                if (row.Find("Label").GetComponent<Text>().text == "FLIGHT ASSIST") return row;
+            }
+        }
+
+        private static bool AssistOn(PlayerRig playerRig)
+        {
+            var commander = playerRig.Player.Commander as PlayerCommander;
+            Assert.IsNotNull(commander);
+            return (bool)typeof(PlayerCommander)
+                .GetField("assistOn", BindingFlags.Instance | BindingFlags.NonPublic)
+                .GetValue(commander);
         }
 
         private void TapEscape()

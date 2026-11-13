@@ -238,6 +238,12 @@ namespace Game
             if (Player && Player.Commander) Player.Commander.enabled = enabled;
         }
 
+        public void SetAssist(bool on)
+        {
+            var commander = Player.Commander as PlayerCommander;
+            if (commander) commander.SetAssist(on);
+        }
+
         /// <summary>
         /// Replace the persistent player with a fresh build of <paramref name="newTemplate"/>: despawn
         /// the old ship, re-run the standard player build/wiring (registry, camera subject, commander,

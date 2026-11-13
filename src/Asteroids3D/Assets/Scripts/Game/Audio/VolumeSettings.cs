@@ -38,8 +38,6 @@ namespace Game.Audio
                 ApplyBuses(channel, Get(channel));
         }
 
-        public static void Save() => PlayerPrefs.Save();
-
         internal static string Key(Channel channel) => channel switch
         {
             Channel.Master => MasterKey,
