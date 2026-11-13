@@ -9,12 +9,11 @@ namespace UI.Objectives
 {
     /// <summary>
     /// Pins each unused find that lies beyond the minimap's range to the minimap's rim, aimed at it. The icon
-    /// and the arrowhead take the find's own colour. In range the find's own minimap marker shows instead.
+    /// and the arrow tab take the find's own colour. In range the find's own minimap marker shows instead.
     /// </summary>
     public sealed class FindPointers : MonoBehaviour
     {
         private const float IconSize = 22f;
-        private const float ArrowSize = 9f;
 
         private readonly List<Pointer> pointers = new();
         private RectTransform minimap;
@@ -69,7 +68,7 @@ namespace UI.Objectives
         private sealed class Pointer
         {
             private Image icon;
-            private FindPointerArrow arrow;
+            private NavTab arrow;
 
             public static Pointer Create(Transform parent)
             {
@@ -78,7 +77,7 @@ namespace UI.Objectives
                 icon.transform.SetParent(parent, false);
                 icon.rectTransform.sizeDelta = Vector2.one * IconSize;
                 icon.raycastTarget = false;
-                var arrow = FindPointerArrow.Create(parent, ArrowSize);
+                var arrow = NavTab.Create(parent, "Find pointer arrow");
                 return new Pointer { icon = icon, arrow = arrow };
             }
 
@@ -86,12 +85,10 @@ namespace UI.Objectives
             {
                 icon.sprite = sprite;
                 icon.color = colour;
-                arrow.color = colour;
-                icon.rectTransform.anchoredPosition = direction * (radius - ArrowSize - 1f - IconSize * .5f);
-                arrow.rectTransform.anchoredPosition = direction * (radius - 1f - ArrowSize * .5f);
-                arrow.rectTransform.localEulerAngles =
-                    new Vector3(0f, 0f, Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90f);
-                icon.enabled = arrow.enabled = true;
+                var centre = direction * (radius - 1f - NavTab.Extent(IconSize, NavTab.FindReach));
+                icon.rectTransform.anchoredPosition = centre;
+                arrow.Aim(centre, direction, IconSize, NavTab.FindReach, colour);
+                icon.enabled = true;
             }
 
             public void Hide() => icon.enabled = arrow.enabled = false;
