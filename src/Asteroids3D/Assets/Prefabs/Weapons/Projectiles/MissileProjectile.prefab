@@ -83,17 +83,17 @@ MonoBehaviour:
   maxDistance: 1000
   mass: 0.1
   homingSpeed: 25
-  homingTurnRate: 40
-  seekerConeAngle: 70
-  hitboxRadius: 0.3
+  homingTurnRate: 60
+  seekerConeAngle: 110
+  hitboxRadius: 0.2
   explosionRadius: 1
   splashDamage: 15
   damageLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
   initialSpeed: 1
-  acceleration: 12
-  maxLifetime: 2
+  acceleration: 20
+  maxLifetime: 3.5
 --- !u!114 &5555555555555555555
 MonoBehaviour:
   m_ObjectHideFlags: 0

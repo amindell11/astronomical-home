@@ -44,8 +44,8 @@ namespace Combat.Targeting
             var stateColor = StateColor(sensor.State);
 
             DrawCone(sensor, origin, forward, stateColor);
-            Ring(origin, sensor.maxLockDistance, new Color(stateColor.r, stateColor.g, stateColor.b, 0.3f));
-            Line(origin, origin + forward * sensor.maxLockDistance, stateColor);
+            Ring(origin, sensor.MaxLockDistance, new Color(stateColor.r, stateColor.g, stateColor.b, 0.3f));
+            Line(origin, origin + forward * sensor.MaxLockDistance, stateColor);
             DrawTarget(sensor, origin, stateColor);
             if (sensor.State == LockState.Locking) DrawProgressArc(origin, sensor.LockProgress);
 
@@ -60,7 +60,7 @@ namespace Combat.Targeting
         {
             var halfAngle = sensor.lockOnConeAngle / 2f;
             var faint = new Color(color.r, color.g, color.b, 0.1f);
-            var range = sensor.maxLockDistance;
+            var range = sensor.MaxLockDistance;
 
             Line(origin, origin + Rotate(forward, -halfAngle) * range, faint);
             Line(origin, origin + Rotate(forward, halfAngle) * range, faint);
