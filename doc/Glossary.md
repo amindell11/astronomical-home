@@ -65,7 +65,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **term** | intent/cost term (a weighted sentence-slot cost the MPC solves — #485) · activation term (`ActivationTerm`, the AND-ed predicate atoms of sector activation rules) · reward term (a `RewardSpec` component, e.g. the reward spine's outcome term) | Always qualified. An intent-grammar doc may read bare "term" = intent/cost term only after declaring the carve-out (Stage A brief precedent). |
 | **slot** | worktree slot (`agent-N`) · weapon slot · ordnance slot (§2 → *weapon slot*, *ordnance slot*) · ONNX import slot · obs slot-block grammar · MPC terminal-cost slot · sentence slot, instance or class (a typed intent-sentence position) · anatomy slot (§2 → *anatomy*) · keystone slot (§2 → *keystone*) · line slot (a moment's lines on the companion's line sheet) | Qualify outside pool-loop context; bare "slot" = worktree slot in workflow text only. |
 | **pin** | pin test (freeze a value) · pinned seeds/hypers · ram-pin exploit | Qualify. "ram-pin" always hyphenated for the physics exploit. |
-| **fixture** | NUnit test fixture · sector fixture · ONNX smoke/eval fixture | Always qualified — all three appear within a page of each other in the RL docs. |
+| **fixture** | NUnit test fixture · sector fixture · fixture link (§2 → *fixture link*) · ONNX smoke/eval fixture | Always qualified. The NUnit, sector, and ONNX senses meet in the RL docs. |
 | **seed** | RNG seed · `SeedScope` stream · eval seed set (2001+) · sealed held-out seeds (1001–1020) · seed checkpoint · `SeedMode.BorderEscape` | Bare "seed" = RNG seed. Checkpoints are "seed checkpoints". |
 | **rung / tier** | fix-ladder rung · curriculum ladder · screening ladder (Tier 0–3) | "Rung" is fix-ladder-only. The curriculum has *lessons*; screening has *tiers*. |
 | **archetype** | opponent archetype (Aggressor/Evader/Orbiter/Kiter/Dummy) · chassis archetype · ship-prefab archetype | Qualify — the first two both feed the matchup matrix. |
@@ -743,8 +743,7 @@ Format: **term** — definition. *(authority)*
   Authored as one asset edited as a table, so a locale or pacing change never
   edits a prefab; tests and the headless lane build theirs with
   `SectorRun.Create`, from the shipped run's rows when they fly the trial
-  layout. The preview's fixtures are rows of their own run asset, found by
-  their layout's name (`Settings/Game/Preview/PreviewFixtures.asset`).
+  layout. A preview fixture names one of these rows. See *fixture link*.
   Random rows draw from the run's locale pool at each run's start, never
   repeating within the run and leaving out the locales named rows use. The
   draw takes a `System.Random` because the sim reads `UnityEngine.Random`, and
@@ -754,7 +753,10 @@ Format: **term** — definition. *(authority)*
   missing a value its layout reads, and a presentation session also refuses a
   named row with no locale and a pool that can't serve its Random rows.
   *(`SectorRun.DrawLocales`, `ISectorRowReader`, `SessionProfile.run`,
-  `Settings/Game/SurvivalTrialRun.asset`)*
+  `Settings/Game/SurvivalTrialRun.asset`, `Settings/Game/Preview/PreviewFixtures.asset`)*
+- **Sectors window** — one page per game-run sector and per preview fixture.
+  The window moves no data. "used by" is found from asset references.
+  *(SectorsWindow, SectorPages)*
 - **field preset** — a named asteroid field settings asset (sparse, medium,
   dense) a run row picks, as it picks a faction. A layout's field either names
   its own preset or takes the row's, so the session refuses a row naming one for
@@ -1255,9 +1257,12 @@ Format: **term** — definition. *(authority)*
 - **preview Playtest** — the panel section and kind of preview entry that runs
   the shipped game host prefab for the owner to fly, with preview run records
   and at most swapped rows. A picked sector flies its whole run row, and a
-  fixture flies its row of the fixtures run. Bare "Playtest" is legal in preview context;
+  fixture flies the row its fixture link resolves to. Bare "Playtest" is legal in preview context;
   elsewhere "playtest" is the owner playing the game.
   *(PreviewEntry.Combat, PreviewEntry.CrowdedJumpGate, PreviewEntry.Boss)*
+- **fixture link** — a preview fixture's pick of one row of the game's run, by
+  position. Reordering the run's rows moves every link with the positions, and
+  an unticked field reads its linked row at each compose. *(`PreviewFixture`)*
 - **preview subject** — a presentation module with a chosen context (a fixture
   built from constants, or any context a scenario builds), hosted by the preview
   host. *(IPreviewSubject, RecapPreviewSubject, RecapFixtures)*

@@ -21,9 +21,11 @@ namespace Game.Preview
             using var projector = Projector(host.gameHostPrefab);
             var hologram = (HangarHologramProfile)projector.FindProperty("profile").objectReferenceValue;
             var surface = (MeshRenderer)projector.FindProperty("surface").objectReferenceValue;
+            var cone = hologram.ProjectorCone
+                ? hologram.ProjectorCone.GetComponentsInChildren<Renderer>(true).SelectMany(r => r.sharedMaterials)
+                : Enumerable.Empty<Material>();
             var materials = hologram.Restyle.Counterparts.Select(counterpart => counterpart.counterpart)
-                .Concat(hologram.ProjectorCone.GetComponentsInChildren<Renderer>(true)
-                    .SelectMany(r => r.sharedMaterials))
+                .Concat(cone)
                 .Concat(surface.sharedMaterials)
                 .Where(material => material).Distinct();
             foreach (var material in materials)

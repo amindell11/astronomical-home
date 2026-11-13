@@ -555,7 +555,12 @@ namespace Tests.PlayMode.Preview
             host.entry = PreviewEntry.CrowdedJumpGate;
             host.gameHostPrefab = gameHost;
             host.sessionProfile = profile;
-            host.crowdedJumpSectors = profile.run.Sectors.ToArray();
+            host.crowdedJumpSectors = profile.run.Sectors.Select(row => new PreviewFixture
+            {
+                layout = row.prefab,
+                link = PreviewFixture.Unlinked,
+                values = row
+            }).ToArray();
             host.hudQuietSector = TestAssets.HudFixture("HudQuietSector");
             host.hudExtractionSector = TestAssets.HudFixture("HudExtractionSector");
             host.jumpDestination = TestAssets.Load<LocaleSky>("Assets/Prefabs/Locales/CopperTurquoise.prefab");

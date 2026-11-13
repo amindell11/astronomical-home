@@ -11,35 +11,57 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a8da22e263364f888fb11bcb9f62d6eb, type: 3}
   m_Name: CompanionLines
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   slots:
   - moment: run-start.first-launch
+    speaker: 
     mustSay: 1
     lines: []
   - moment: run-start.after-death
+    speaker: 
     mustSay: 1
     lines: []
   - moment: run-start.after-extraction
+    speaker: 
     mustSay: 1
     lines: []
   - moment: run-start.after-best
+    speaker: 
     mustSay: 1
     lines: []
   - moment: death
+    speaker: 
     mustSay: 1
     lines: []
   - moment: sector-entered
+    speaker: 
     mustSay: 0
     lines: []
   - moment: cache-claimed
+    speaker: 
     mustSay: 0
     lines: []
   - moment: mod-pick
+    speaker: 
     mustSay: 0
     lines: []
   - moment: armory-pick
+    speaker: 
     mustSay: 0
     lines: []
   - moment: close-call
+    speaker: 
+    mustSay: 0
+    lines: []
+  - moment: station-arrived-repair
+    speaker: Repair crew
+    mustSay: 0
+    lines: []
+  - moment: station-arrived-mod
+    speaker: Mod crew
+    mustSay: 0
+    lines: []
+  - moment: station-arrived-armory
+    speaker: Armory crew
     mustSay: 0
     lines: []
