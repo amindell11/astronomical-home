@@ -1,5 +1,7 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.ExceptionServices;
 using Balance;
 using Cameras;
@@ -7,7 +9,9 @@ using Combat.Weapons;
 using Damage;
 using Game.Audio;
 using Game.Companion;
+using Game.Display;
 using Game.Moments;
+using Game.Player;
 using Game.Runs;
 using Game.Travel;
 using Loot;
@@ -17,15 +21,14 @@ using Substrate.Sectors;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Elements.Stations;
 using Substrate.Sessions;
-using Ships;
 using Ships.Loadout;
 using UI;
-using UI.Hangar;
 using UI.Hangar.Hardware;
 using UI.Recap;
 using UI.Screens;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
 using Ships.Registry;
 using Substrate.Services.Units;
@@ -36,7 +39,7 @@ using Utils.Coroutines;
 namespace Game
 {
     /// <summary>
-    /// Runs the interactive game over one session: an optional title, then hangar, sectors, extraction recaps, then final results.
+    /// Runs the interactive game over one session: an optional title, then hangar, sectors (pausable in flight), extraction recaps, then final results.
     /// Owns the player rig, viewport, UI, music, companion, run records, each run's moment stream and clock;
     /// the session composes, loads and unloads.
     /// Hull carries between sectors. Death frames the explosion while surviving ships keep moving.
@@ -81,7 +84,7 @@ namespace Game
         [Tooltip("The title screen's name face.")]
         [SerializeField] internal Font titleFont;
 
-        [Tooltip("The title screen's Play and Quit face.")]
+        [Tooltip("The face of the title, pause and settings screens' buttons and labels.")]
         [SerializeField] internal Font titleLabelFont;
 
         [Header("Music")]
@@ -90,12 +93,8 @@ namespace Game
         [SerializeField] internal GameMusic musicPrefab;
 
         [Header("Hangar")]
-        [Tooltip("Between-run hangar screen. Null → no interactive hangar (the standing loadout is " +
-                 "applied silently).")]
-        [SerializeField] internal HangarScreen hangarScreenPrefab;
-
-        [Tooltip("The 3D console the hangar shows behind its menu, with the ship hologram at its projector lens. " +
-                 "Null → no console and no hologram.")]
+        [Tooltip("Between-run hangar: the console, its displays and the ship hologram. " +
+                 "Null → no interactive hangar (the standing loadout is applied silently).")]
         [SerializeField] internal HangarConsole hangarConsolePrefab;
 
         [Tooltip("Camera that shows the sky behind the hangar in place of the observer camera, drifting " +
@@ -148,7 +147,11 @@ namespace Game
         private bool playerDied;
         private bool sectorEnded;
         private float sectorEndTime;
-        private float? pausedTimeScale;
+        private readonly ClockStops clock = new();
+        private IDisposable recapStop;
+        private InputAction pauseKey;
+        private bool pauseRequested;
+        private bool quitRun;
         private bool shutdownRequested;
         private bool shutdownComplete;
         private int activeSectorIndex;
@@ -214,6 +217,11 @@ namespace Game
                 music = Instantiate(musicPrefab, transform);
                 music.Initialize(objectiveService);
             }
+            if (presentation)
+            {
+                VolumeSettings.Apply();
+                DisplaySettings.Apply();
+            }
 
             SetSplashVisible(true);
             yield return null;
@@ -233,6 +241,13 @@ namespace Game
                     observer, ui, session.Frame, BuildDeathCallback());
                 rigInstance.Tally.Killed += RefillPlayerHull;
                 rigInstance.Spawns.EliteKilled += unlocks.Claim;
+            }
+            if (presentation && rigInstance)
+            {
+                pauseKey = new InputAction("Pause", InputActionType.Button, "<Keyboard>/escape");
+                pauseKey.AddBinding("<Gamepad>/start");
+                pauseKey.performed += _ => pauseRequested = true;
+                pauseKey.Enable();
             }
             if (presentation && companionLines && rigInstance && rigInstance.Overlay)
                 voice = CompanionVoice.Create(transform, companionLines, companionFeel, rigInstance.Overlay.CommLine,
@@ -258,7 +273,7 @@ namespace Game
                 rigInstance.Tally.Killed -= RefillPlayerHull;
                 rigInstance.Teardown();
             }
-            RestoreClock();
+            clock.ReleaseAll();
             yield return session.Teardown();
             if (rigInstance) Destroy(rigInstance.gameObject);
             if (music) Destroy(music.gameObject);
@@ -319,7 +334,7 @@ namespace Game
                         rigInstance.Player.Damage.Health.SetFraction(hull);
                     moments.Raise(new SectorEntered(index + 1));
                     SetSplashVisible(false);
-                    if (music) music.EnterSector(session.ActiveSector);
+                    if (music) music.EnterSector(session.ActiveSector, session.ActiveLocale);
                     if (rigInstance) rigInstance.EnterSector(session.ActiveSector.Module<PhaseSpineModule>());
                     var sectorStartTime = Time.time;
                     var modStations = presentation && lullMods && rigInstance
@@ -343,23 +358,31 @@ namespace Game
                     foreach (var station in findStations)
                         if (station) station.Arrived += onStationArrived;
 
-                    while (!playerDied && !sectorEnded && !shutdownRequested)
+                    pauseRequested = false;
+                    while (!playerDied && !sectorEnded && !shutdownRequested && !quitRun)
                     {
-                        if (modStations && modStations.Claims > picksOpened)
+                        if (pauseRequested) yield return RunPause();
+                        else
                         {
-                            picksOpened++;
-                            yield return RunLullPick();
+                            if (modStations && modStations.Claims > picksOpened)
+                            {
+                                picksOpened++;
+                                yield return RunLullPick();
+                            }
+                            if (armory && armory.Claims > armoryPicks)
+                            {
+                                armoryPicks++;
+                                yield return RunWeaponPick(armory, index);
+                            }
+                            if (caches && caches.Claims > cachesClaimed)
+                            {
+                                cachesClaimed++;
+                                moments.Raise(new CacheClaimed(index + 1, caches.LastBonus));
+                            }
                         }
-                        if (armory && armory.Claims > armoryPicks)
-                        {
-                            armoryPicks++;
-                            yield return RunWeaponPick(armory, index);
-                        }
-                        if (caches && caches.Claims > cachesClaimed)
-                        {
-                            cachesClaimed++;
-                            moments.Raise(new CacheClaimed(index + 1, caches.LastBonus));
-                        }
+
+                        // Drops presses that arrived while a pick, pause or other screen blocked.
+                        pauseRequested = false;
                         yield return null;
                     }
                     foreach (var station in findStations)
@@ -367,7 +390,7 @@ namespace Game
                     closeCalls?.Dispose();
                     if (shutdownRequested) yield break;
 
-                    if (playerDied || index == sessionProfile.run.Sectors.Count - 1) break;
+                    if (playerDied || quitRun || index == sessionProfile.run.Sectors.Count - 1) break;
 
                     // The unload despawns this sector's ships, and the next load resets the player's hull.
                     if (rigInstance)
@@ -398,11 +421,14 @@ namespace Game
                 if (rigInstance)
                 {
                     if (!playerDied) EndRun();
-                    var board = AppendRunRecord(playerLoadoutStatHash, index, playerDied ? lastKillingBlow : null,
-                        locales);
-                    SetMusic(playerDied ? GameMusic.State.Defeat : GameMusic.State.Victory);
-                    if (presentation)
-                        yield return RunRecap(OutcomeContext(board, index));
+                    if (!quitRun)
+                    {
+                        var board = AppendRunRecord(playerLoadoutStatHash, index, playerDied ? lastKillingBlow : null,
+                            locales);
+                        SetMusic(playerDied ? GameMusic.State.Defeat : GameMusic.State.Victory);
+                        if (presentation)
+                            yield return RunRecap(OutcomeContext(board, index));
+                    }
                 }
                 if (shutdownRequested) yield break;
 
@@ -410,6 +436,11 @@ namespace Game
                 if (rigInstance) rigInstance.EnterSector(null);
                 yield return session.UnloadSector();
                 if (rigInstance) rigInstance.Park();
+                if (quitRun)
+                {
+                    quitRun = false;
+                    if (openOnTitle && presentation) yield return RunTitle();
+                }
             }
         }
 
@@ -428,6 +459,7 @@ namespace Game
             LocaleBackdropPair backdrop = null;
             var arrived = false;
             var exited = false;
+            IDisposable stop = null;
             try
             {
                 backdrop = session.PrepareTravelBackdrop(destinationLocale, transform);
@@ -441,7 +473,7 @@ namespace Game
                 var continued = false;
                 if (!shutdownRequested)
                 {
-                    PauseClock();
+                    stop = clock.Hold();
                     recap = StartCoroutine(RecapPlayback.RunScreen(new RecapOutcomeSequence(recapFeel, context), ui,
                         cancelled: () => shutdownRequested || exited,
                         ready: () => destinationReady && jump.State.LocaleBlend >= 1f,
@@ -463,7 +495,7 @@ namespace Game
                 if (continued && !shutdownRequested)
                 {
                     jump.ResumeArrival();
-                    RestoreClock();
+                    stop?.Dispose();
                 }
                 if (!shutdownRequested)
                 {
@@ -478,7 +510,7 @@ namespace Game
                 Destroy(jump.gameObject);
                 jump = null;
                 if (backdrop) Destroy(backdrop.gameObject);
-                RestoreClock();
+                stop?.Dispose();
             }
             yield return null;
         }
@@ -488,18 +520,84 @@ namespace Game
             SetSplashVisible(false);
             SetMusic(GameMusic.State.Hangar);
             SetHangarViewVisible(true);
-            var screen = TitleScreen.Create(ui, titleFont, titleLabelFont);
+            while (true)
+            {
+                var screen = TitleScreen.Create(ui, titleFont, titleLabelFont);
+                try
+                {
+                    while (!screen.Choice.HasValue && !shutdownRequested) yield return null;
+                    if (screen.Choice == TitleScreen.Option.Quit)
+                    {
+                        QuitGame();
+                        // Quitting lands after this frame; the hangar must not open meanwhile.
+                        while (!shutdownRequested) yield return null;
+                    }
+                    if (screen.Choice != TitleScreen.Option.Settings) yield break;
+                }
+                finally
+                {
+                    Destroy(screen.gameObject);
+                }
+                yield return RunSettings();
+            }
+        }
+
+        private IEnumerator RunPause()
+        {
+            var stop = clock.Hold();
+            MixBuses.SetWorldPaused(true);
+            rigInstance.SetInputEnabled(false);
             try
             {
-                while (!screen.Choice.HasValue && !shutdownRequested) yield return null;
-                if (screen.Choice != TitleScreen.Option.Quit) yield break;
-                QuitGame();
-                // Quitting lands after this frame; the hangar must not open meanwhile.
-                while (!shutdownRequested) yield return null;
+                // The screen under settings goes, so its Escape can't fire too; it is rebuilt after.
+                while (true)
+                {
+                    var screen = PauseScreen.Create(ui, titleLabelFont);
+                    try
+                    {
+                        while (!screen.Choice.HasValue && !shutdownRequested) yield return null;
+                        quitRun = screen.Choice == PauseScreen.Option.QuitRun;
+                        if (screen.Choice != PauseScreen.Option.Settings) yield break;
+                    }
+                    finally { Destroy(screen.gameObject); }
+                    yield return RunSettings();
+                }
+            }
+            finally
+            {
+                rigInstance.SetInputEnabled(true);
+                MixBuses.SetWorldPaused(false);
+                stop.Dispose();
+            }
+        }
+
+        private IEnumerator RunSettings()
+        {
+            var resolutions = DisplaySettings.Resolutions();
+            var rows = new List<SettingsRow>();
+            foreach (var channel in VolumeSettings.Channels)
+                rows.Add(SettingsRow.Slider(VolumeSettings.Label(channel), VolumeSettings.Get(channel),
+                    v => VolumeSettings.Set(channel, v)));
+            rows.Add(SettingsRow.Toggle("FLIGHT ASSIST", AssistSetting.On, on =>
+            {
+                AssistSetting.Set(on);
+                if (rigInstance) rigInstance.SetAssist(on);
+            }));
+            rows.Add(SettingsRow.Toggle("FULLSCREEN", DisplaySettings.Fullscreen,
+                on => DisplaySettings.Set(DisplaySettings.Resolution, on)));
+            rows.Add(SettingsRow.Choice("RESOLUTION", resolutions.Select(DisplaySettings.Label).ToList(),
+                DisplaySettings.IndexOf(resolutions, DisplaySettings.Resolution),
+                i => DisplaySettings.Set(resolutions[i], DisplaySettings.Fullscreen)));
+
+            var screen = SettingsScreen.Create(ui, titleLabelFont, rows);
+            try
+            {
+                while (!screen.Closed && !shutdownRequested) yield return null;
             }
             finally
             {
                 Destroy(screen.gameObject);
+                PlayerPrefs.Save();
             }
         }
 
@@ -523,7 +621,7 @@ namespace Game
                 WeaponPickScreen.MaxOffers, n => UnityEngine.Random.Range(0, n));
             if (offers.Count == 0) yield break;
 
-            PauseClock();
+            var stop = clock.Hold();
             rigInstance.SetInputEnabled(false);
             var spine = session.ActiveSector.Module<PhaseSpineModule>();
             var screen = WeaponPickScreen.Create(ui, index + 1,
@@ -543,7 +641,7 @@ namespace Game
             {
                 Destroy(screen.gameObject);
                 rigInstance.SetInputEnabled(true);
-                RestoreClock();
+                stop.Dispose();
             }
         }
 
@@ -555,7 +653,7 @@ namespace Game
                 n => UnityEngine.Random.Range(0, n));
             if (offers.Count == 0) yield break;
 
-            PauseClock();
+            var stop = clock.Hold();
             rigInstance.SetInputEnabled(false);
             var screen = LullPickScreen.Create(ui, offers, mod => mod.Landing(player));
             try
@@ -571,7 +669,7 @@ namespace Game
             {
                 Destroy(screen.gameObject);
                 rigInstance.SetInputEnabled(true);
-                RestoreClock();
+                stop.Dispose();
             }
         }
 
@@ -651,6 +749,7 @@ namespace Game
         {
             rigInstance.Tally.Begin(Time.time);
             rigInstance.Spawns.Begin(Time.time);
+            rigInstance.SetAssist(AssistSetting.On);
             moments.Raise(new RunStarted(PastRuns.Read(runRecords.Path)));
             return StatHash.OfLoadout(rigInstance.Player);
         }
@@ -685,31 +784,22 @@ namespace Game
         internal IEnumerator RunHangar(PlayerRig rig, bool presentationEnabled, Transform uiRoot)
         {
             unlocks.Read();
-            if (!rig || !rig.Player || rig.Loadout == null || !hangarScreenPrefab || !presentationEnabled)
+            if (!rig || !rig.Player || rig.Loadout == null || !hangarConsolePrefab || !presentationEnabled)
             {
                 if (rig) rig.ApplyLoadout();
                 yield break;
             }
 
-            var screen = Instantiate(hangarScreenPrefab, uiRoot);
+            var console = Instantiate(hangarConsolePrefab, uiRoot);
+            // Its own world, away from the sector and the preview stage.
+            console.transform.position = new Vector3(0f, -2000f, 0f);
             var launched = false;
-            screen.Show(hangarOffer, rig.Loadout, unlocks.Earned, () => launched = true);
-
-            HangarConsole console = null;
-            if (hangarConsolePrefab)
-            {
-                console = Instantiate(hangarConsolePrefab, uiRoot);
-                // Its own world, away from the sector and the preview stage.
-                console.transform.position = new Vector3(0f, -2000f, 0f);
-                console.Projector.Open(hangarOffer ? hangarOffer.ships : Array.Empty<Ship>(), rig.Loadout.Ship);
-                screen.ShipSelected += console.Projector.Select;
-            }
+            console.Show(hangarOffer, rig.Loadout, unlocks.Earned, () => launched = true);
 
             yield return new WaitUntil(() => launched || shutdownRequested);
 
             if (!shutdownRequested) rig.ApplyLoadout();
-            if (console) Destroy(console.gameObject);
-            Destroy(screen.gameObject);
+            Destroy(console.gameObject);
         }
 
         private RecapOutcomeContext ExtractionContext(int index, float sectorStartTime) =>
@@ -740,30 +830,26 @@ namespace Game
             }
             finally
             {
-                RestoreClock();
+                recapStop?.Dispose();
+                recapStop = null;
                 presenter.Restore();
             }
         }
 
         private void SetRecapClock(bool frozen)
         {
-            if (frozen) PauseClock();
-            else RestoreClock();
+            if (frozen) recapStop ??= clock.Hold();
+            else
+            {
+                recapStop?.Dispose();
+                recapStop = null;
+            }
         }
 
-        private void PauseClock()
+        private void OnDestroy()
         {
-            pausedTimeScale ??= Time.timeScale;
-            Time.timeScale = 0f;
+            pauseKey?.Dispose();
+            clock.ReleaseAll();
         }
-
-        private void RestoreClock()
-        {
-            if (!pausedTimeScale.HasValue) return;
-            Time.timeScale = pausedTimeScale.Value;
-            pausedTimeScale = null;
-        }
-
-        private void OnDestroy() => RestoreClock();
     }
 }

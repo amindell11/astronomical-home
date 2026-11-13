@@ -42,7 +42,7 @@ namespace Tests.EditMode.Ships
             ("", typeof(Rigidbody), "m_InertiaRotation"),
             ("", typeof(Rigidbody), "m_ImplicitTensor"),
             ("Mesh", typeof(MeshCollider), "m_Mesh"),
-            (Rig + "/MinimapMarker", typeof(MeshFilter), "m_Mesh"),
+            (Rig + "/MinimapMarker", typeof(Transform), "m_LocalScale"),
             (Rig, typeof(HullVisuals), "m_Enabled"),
             (Rig, typeof(ShipBreakupVisual), "hull"),
             (Rig, typeof(ShipBreakupVisual), "debrisPrefab"),
@@ -81,7 +81,8 @@ namespace Tests.EditMode.Ships
             Assert.That(PrefabUtility.GetPrefabAssetType(root), Is.EqualTo(PrefabAssetType.Regular));
             Assert.That(root.transform.Find("Mesh").GetComponent<MeshCollider>().sharedMesh, Is.Null, "The base collider slot is empty.");
             Assert.That(root.transform.Find(HullSlot).GetComponentsInChildren<Renderer>(true), Is.Empty, "The base hull slot is empty.");
-            Assert.That(root.transform.Find(Rig + "/MinimapMarker").GetComponent<MeshFilter>().sharedMesh, Is.Null);
+            Assert.That(root.transform.Find(Rig + "/MinimapMarker").GetComponent<MeshFilter>().sharedMesh, Is.EqualTo(Resources.GetBuiltinResource<Mesh>("Quad.fbx")),
+                "Every chassis's minimap marker is the base quad its silhouette is drawn on.");
             Assert.That(AssetDatabase.GetAssetPath(PrefabUtility.GetCorrespondingObjectFromSource(root.transform.Find(Rig).gameObject)), Is.EqualTo(BaseRigPath));
             foreach (var socket in Sockets.Append(TwinExhaust))
                 Assert.That(root.transform.Find(socket).localPosition, Is.EqualTo(Vector3.zero), socket);
@@ -182,7 +183,6 @@ namespace Tests.EditMode.Ships
             Assert.That(collider.sharedMesh, Is.Not.Null, "The collider slot is filled.");
             if (!ShipLegacyList.SavedColliderMeshes.Contains(root.name))
                 Assert.That(AssetDatabase.GetAssetPath(collider.sharedMesh), Is.EqualTo(fbx), "The collider comes from the Collider role.");
-            Assert.That(root.transform.Find(Rig + "/MinimapMarker").GetComponent<MeshFilter>().sharedMesh, Is.Not.Null, "The minimap slot is filled.");
             var breakup = new SerializedObject(root.transform.Find(Rig).GetComponent<ShipBreakupVisual>());
             Assert.That(breakup.FindProperty("debrisPrefab").objectReferenceValue, Is.Not.Null, "The breakup slot is filled.");
             var breakupHull = (Transform)breakup.FindProperty("hull").objectReferenceValue;

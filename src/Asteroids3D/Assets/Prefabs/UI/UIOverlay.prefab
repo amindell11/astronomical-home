@@ -619,6 +619,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   minimapRect: {fileID: 4171153274029429517}
+  enemyMarker: {fileID: 2100000, guid: 002bf586feb8a3c4f92ea111d6eb48a7, type: 2}
   textMaterial: {fileID: 2100000, guid: 9b40b60b37593de4bb769186332c3e17, type: 2}
   crosshair: {fileID: 5249252180489586146}
   weaponResources: {fileID: 976607762061257238}

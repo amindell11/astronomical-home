@@ -13,6 +13,7 @@ using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Elements.Stations;
+using UI.Hangar.Displays;
 using UI.Hangar.Hologram;
 using UI.Projection;
 using UI.Weapons;
@@ -51,7 +52,6 @@ namespace Tests.EditMode.Preview
             AssertTarget(Target<HuntTarget>(), new[] { PreviewEntry.Combat },
                 AssetDatabase.LoadAssetAtPath<HuntFeelProfile>("Assets/Settings/Game/HuntFeel.asset"),
                 AssetDatabase.LoadAssetAtPath<RepairStationFeelProfile>("Assets/Settings/Game/RepairStationFeel.asset"),
-                AssetDatabase.LoadAssetAtPath<ModStationFeelProfile>("Assets/Settings/Game/ModStationFeel.asset"),
                 AssetDatabase.LoadAssetAtPath<BeaconCacheFeelProfile>("Assets/Settings/Game/BeaconCacheFeel.asset"),
                 AssetDatabase.LoadAssetAtPath<UnityEngine.ScriptableObject>("Assets/Settings/Game/BeaconCache/DamageSurge.asset"),
                 AssetDatabase.LoadAssetAtPath<UnityEngine.ScriptableObject>("Assets/Settings/Game/BeaconCache/FireRateSurge.asset"),
@@ -67,6 +67,8 @@ namespace Tests.EditMode.Preview
                 AssetDatabase.LoadAssetAtPath<CompanionLineSheet>("Assets/Settings/Game/Companion/CompanionLines.asset"));
             AssertTarget(Target<HangarHologramTarget>(), new[] { PreviewEntry.Combat },
                 AssetDatabase.LoadAssetAtPath<HangarHologramProfile>("Assets/Settings/UI/HangarHologramPlain.asset"));
+            AssertTarget(Target<HangarDisplayTarget>(), new[] { PreviewEntry.Combat },
+                AssetDatabase.LoadAssetAtPath<HangarDisplayProfile>("Assets/Settings/UI/HangarDisplayProfile.asset"));
             AssertTarget(Target<TacticsTarget>(), new[] { PreviewEntry.CrowdedFight },
                 new[] { "Wave", "Elite", "Escort" }.Select(kind =>
                     AssetDatabase.LoadAssetAtPath<TacticsSettings>($"Assets/Settings/AI/Tactics/{kind}Temper.asset"))

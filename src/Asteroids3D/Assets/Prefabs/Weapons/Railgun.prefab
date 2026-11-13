@@ -80,7 +80,7 @@ MonoBehaviour:
   firePoint: {fileID: 0}
   displayName: Railgun
   hudIcon: {fileID: 21300000, guid: 6032c7af754a15f459f554ae853d29ce, type: 3}
-  damage: 45
+  damage: 75
   range: 60
   beamRadius: 0.5
   impactSpeed: 120

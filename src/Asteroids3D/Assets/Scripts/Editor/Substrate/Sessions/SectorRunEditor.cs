@@ -38,7 +38,11 @@ namespace Substrate.Sessions
                     EditorGUI.LabelField(armories, "Armories");
                     EditorGUI.LabelField(field, "Field");
                     line.y += Line;
-                    EditorGUI.LabelField(LocaleLine(line), "Locale");
+                    var (locale, search, repairs, mods) = LocaleColumns(line);
+                    EditorGUI.LabelField(locale, "Locale");
+                    EditorGUI.LabelField(search, "Search");
+                    EditorGUI.LabelField(repairs, "Repairs");
+                    EditorGUI.LabelField(mods, "Mods");
                 },
                 elementHeightCallback = i => RowHeight(table.serializedProperty.GetArrayElementAtIndex(i)),
                 drawElementCallback = (rect, i, _, _) => DrawRow(rect, i, table.serializedProperty.GetArrayElementAtIndex(i))
@@ -68,13 +72,16 @@ namespace Substrate.Sessions
             Draw(field, row, nameof(SectorEntry.field));
 
             line.y += Line;
-            var locale = LocaleLine(line);
+            var (locale, search, repairs, mods) = LocaleColumns(line);
             var random = row.FindPropertyRelative(nameof(SectorEntry.random));
             random.boolValue = EditorGUI.ToggleLeft(new Rect(locale.x, locale.y, RandomWidth, locale.height),
                 "Random", random.boolValue);
             if (!random.boolValue)
                 Draw(new Rect(locale.x + RandomWidth, locale.y, locale.width - RandomWidth, locale.height), row,
                     nameof(SectorEntry.locale));
+            Draw(search, row, nameof(SectorEntry.searchSeconds));
+            Draw(repairs, row, nameof(SectorEntry.repairStations));
+            Draw(mods, row, nameof(SectorEntry.modStations));
 
             line.y += Line;
             row.isExpanded = EditorGUI.Foldout(line, row.isExpanded, "Phases and waves", true);
@@ -103,9 +110,21 @@ namespace Substrate.Sessions
         private static void Draw(Rect rect, SerializedProperty row, string name) =>
             EditorGUI.PropertyField(rect, row.FindPropertyRelative(name), GUIContent.none);
 
-        // The locale controls get a line of their own, so a docked Inspector never squeezes the Random toggle.
-        private static Rect LocaleLine(Rect line) =>
-            new(line.x + IndexWidth + Gap, line.y, line.width - IndexWidth - Gap, line.height);
+        // Locale shares its line only with narrow counts, so a docked Inspector never squeezes Random.
+        private static (Rect locale, Rect search, Rect repairs, Rect mods) LocaleColumns(Rect line)
+        {
+            var full = new Rect(line.x + IndexWidth + Gap, line.y, line.width - IndexWidth - Gap, line.height);
+            var locale = new Rect(full.x, full.y, full.width - 3 * (PatrolsWidth + Gap), full.height);
+            var x = locale.xMax;
+            Rect Next()
+            {
+                x += Gap;
+                var next = new Rect(x, full.y, PatrolsWidth, full.height);
+                x += PatrolsWidth;
+                return next;
+            }
+            return (locale, Next(), Next(), Next());
+        }
 
         private static (Rect index, Rect sector, Rect faction, Rect elite, Rect patrols, Rect armories, Rect field) Columns(Rect rect)
         {

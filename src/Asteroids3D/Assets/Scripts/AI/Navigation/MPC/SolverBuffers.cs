@@ -284,7 +284,7 @@ namespace AI.Navigation.MPC
             for (var i = 0; i < rawCount; i++)
             {
                 var obs = scan.buffer[i];
-                var rb = obs.collider ? obs.collider.attachedRigidbody : null;
+                var rb = obs.source ? obs.source.Rb : obs.collider ? obs.collider.attachedRigidbody : null;
                 var weight = (rb ? rb.mass : shipMass) * invShipMass;
 
                 if (obs.UsesLobes(multiSphereObstacles))

@@ -32,7 +32,6 @@ namespace Tests.PlayMode.Bootstrap
         private const string RigPrefabPath = "Assets/Prefabs/MiscObjects/PlayerRig.prefab";
         private const string ObserverCamPrefabPath = "Assets/Prefabs/Cameras/Main Camera.prefab";
         private const string HangarCameraPrefabPath = "Assets/Prefabs/Cameras/Hangar Camera.prefab";
-        private const string HangarScreenPath = "Assets/Prefabs/UI/HangarScreen.prefab";
         private const string HangarConsolePath = "Assets/Prefabs/UI/HangarConsole.prefab";
         private const string OfferPath = "Assets/Settings/Ships/PlayerLoadout.asset";
         private const string RecapFeelPath = "Assets/Settings/UI/RecapFeel.asset";
@@ -73,14 +72,14 @@ namespace Tests.PlayMode.Bootstrap
 
             yield return AsyncAssert.WaitUntil(() => hostGo.GetComponentInChildren<TitleScreen>(), 60f,
                 "the host opens on the title");
-            Assert.IsNull(Object.FindFirstObjectByType<HangarScreen>(), "the hangar has not opened");
+            Assert.IsNull(Object.FindFirstObjectByType<HangarConsole>(), "the hangar has not opened");
             var hangarCamera = hostGo.GetComponentInChildren<DriftCam>();
             Assert.IsTrue(hangarCamera && hangarCamera.Cam.isActiveAndEnabled, "the hangar camera renders");
             Assert.IsNull(host.ActiveSector);
 
             hostGo.GetComponentInChildren<TitleScreen>().transform.Find("Play").GetComponent<Button>().onClick.Invoke();
 
-            yield return AsyncAssert.WaitUntil(() => hostGo.GetComponentInChildren<HangarScreen>(), 60f,
+            yield return AsyncAssert.WaitUntil(() => hostGo.GetComponentInChildren<HangarConsole>(), 60f,
                 "Play opens the hangar");
             yield return null;
             Assert.IsNull(Object.FindFirstObjectByType<TitleScreen>(), "the title is gone");
@@ -118,7 +117,6 @@ namespace Tests.PlayMode.Bootstrap
             host.playerRig = AssetDatabase.LoadAssetAtPath<PlayerRig>(RigPrefabPath);
             host.observerCamPrefab = AssetDatabase.LoadAssetAtPath<ObserverCam>(ObserverCamPrefabPath);
             host.hangarCameraPrefab = AssetDatabase.LoadAssetAtPath<DriftCam>(HangarCameraPrefabPath);
-            host.hangarScreenPrefab = AssetDatabase.LoadAssetAtPath<HangarScreen>(HangarScreenPath);
             host.hangarConsolePrefab = AssetDatabase.LoadAssetAtPath<HangarConsole>(HangarConsolePath);
             host.hangarOffer = AssetDatabase.LoadAssetAtPath<ItemSubset>(OfferPath);
             host.recapFeel = AssetDatabase.LoadAssetAtPath<RecapFeelProfile>(RecapFeelPath);

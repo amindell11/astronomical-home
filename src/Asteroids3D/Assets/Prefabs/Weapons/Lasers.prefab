@@ -47,7 +47,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: edf82047f2d64a919057c88845dba2f7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fireRate: 0.3
+  fireRate: 0.4
+  spinUpTime: 0
+  coldFireRate: 0.2
+  spinDownTime: 0.4
 --- !u!114 &6448982411033854647
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -61,7 +64,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHeat: 100
-  heatPerShot: 10
+  heatPerShot: 15
   coolingRate: 30
   coolDownDelay: 0.2
   overheatPenaltyTime: 0

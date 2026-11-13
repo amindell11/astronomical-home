@@ -25,10 +25,10 @@ namespace Combat.Targeting
         [Stat, SerializeField] private float lockOnTime = 0.6f;
         [Tooltip("Seconds an acquired lock is held before it drops and must be re-acquired.")]
         [Stat, SerializeField] private float lockExpiry = 3f;
-        [Tooltip("Max distance from the ship's centre at which a target can be locked.")]
-        [Stat, SerializeField] internal float maxLockDistance = 100f;
 
         [SerializeField] internal WeaponBase<Missile> weapon;
+
+        internal float MaxLockDistance => weapon.projectilePrefab.Reach;
 
         private readonly Collider[] fanHits = new Collider[64];
         private TargetLock targetLock;
@@ -194,7 +194,7 @@ namespace Combat.Targeting
         private static Vector2 PlanePoint(ITargetable t) => GamePlane.WorldPointToPlane(t.TargetPoint.position);
 
         private bool InRange(in Kinematics pose, Vector2 target) =>
-            TargetingMath.DistanceTo(pose, target) <= maxLockDistance;
+            TargetingMath.DistanceTo(pose, target) <= MaxLockDistance;
 
         private bool InCone(in Kinematics pose, Vector2 target) =>
             TargetingMath.AngleTo(pose, target) <= lockOnConeAngle / 2f;
@@ -211,7 +211,7 @@ namespace Combat.Targeting
             var colliderCount = RayFanSensor.Detect(
                 GamePlane.PlanePointToWorld(pose.pos),
                 GamePlane.PlaneDirToWorld(pose.Forward),
-                maxLockDistance,
+                MaxLockDistance,
                 lockOnConeAngle,
                 FanRayStepDeg,
                 FanSphereRadius,

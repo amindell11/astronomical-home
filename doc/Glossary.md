@@ -657,11 +657,11 @@ Format: **term** — definition. *(authority)*
   and chases. Once it loses the player it searches along the player's last heading
   and then around that point. It keeps searching until the meter drains, then
   returns to the nearest point on its route. Other patrols stay on their routes.
-  The alarm sounds when the meter fills or the search clock runs out. Killing a
+  The alarm sounds when the meter fills or the search clock runs out (its length is the run row's). Killing a
   patrol leaves the meter to drain. A gap of seconds follows the alarm; the hunt's
   *release* ends it. The wave director holds its opening lull until the release,
   so phase numbering is unchanged, and stations stay lit through the gap.
-  *(SectorHunt, HuntFeelProfile)*
+  *(SectorHunt, HuntFeelProfile, `SectorEntry.searchSeconds`)*
 - **faction** — the side a sector's enemies belong to; each survival trial
   names one, and its wave director and hunt field only that faction's ships. The
   **signature ship** is the faction's own chassis, and its elite flies it; the
@@ -685,12 +685,12 @@ Format: **term** — definition. *(authority)*
   the find marker and the arrival events. A kind adds only its effect, which
   draws on each station's supply; a station goes dark when its supply runs out.
   *(FindStation, FindStationBody, StationKind)*
-- **repair station** — a fly-in zone each combat sector places, two by default,
-  each on its own clear point away from the start, marked as a *find*. While the
-  player sits in it, it repairs hull from a supply of about one hull, then goes
-  dark. The hunt's release darkens it too, and whatever supply was left is lost.
-  Hull carries into the next sector. The first *station* kind. *(RepairStation,
-  RepairStationFeelProfile)*
+- **repair station** — a fly-in zone each combat sector places, as many as its
+  run row names, each on its own clear point away from the start, marked as a
+  *find*. While the player sits in it, it repairs hull from a supply of about
+  one hull, then goes dark. The hunt's release darkens it too, and whatever supply
+  was left is lost. Hull carries into the next sector. The first *station*
+  kind. *(RepairStation, RepairStationFeelProfile, `SectorEntry.repairStations`)*
 - **beacon cache** — what a lull beacon's claim grants:
   one roll among the authored mod bonuses that fit the hero (damage, fire
   rate, shield regen) and the *hull patch*, all weighted alike. A bonus joins
@@ -703,10 +703,11 @@ Format: **term** — definition. *(authority)*
   cache: headless and RL sectors never grant one. *(BeaconCache,
   BeaconCacheFeelProfile, IObjectiveService.ShowBoost)*
 - **mod station** — the second *station* kind: a *find* each combat sector
-  places, two by default, spaced from each other and from the repair stations.
+  places, as many as its run row names, spaced from each other and from the
+  repair stations.
   The first fly-in opens one *lull pick*, then the station goes dark; the
   hunt's release darkens an unclaimed one, and its pick is lost. Headless and RL
-  runs claim it with no pick. *(ModStation, ModStationFeelProfile)*
+  runs claim it with no pick. *(ModStation, `SectorEntry.modStations`)*
 - **armory** — the third *station* kind: a *find* whose count per sector its run
   row names, spaced from the repair and mod stations. Each fly-in opens
   the *weapon pick*. Taking a weapon spends it; a skip leaves it live to come
@@ -716,9 +717,11 @@ Format: **term** — definition. *(authority)*
   repair stations, mod stations and armories. A live find registers
   with the objective service. In range the minimap shows the find's own
   marker; out of range, an *edge pointer* (its icon pinned to the minimap rim,
-  aimed at it). Patrols get no edge pointer. Each kind has its own find
-  colour, apart from ship markers; the icons are white and take it as a tint.
-  Spent or shut by the hunt's alarm, it closes its registration and both go.
+  aimed at it). Live enemies, patrols included, get an edge pointer too: an
+  arrowhead alone, in the minimap's enemy red; a concealed one gets none.
+  Each kind has its own find colour, apart from ship markers; the icons are
+  white and take it as a tint. Spent or shut by the hunt's alarm, it closes
+  its registration and both go.
   *(IObjectiveService.MarkFind, FindMarker, FindPointers, FindColours)*
 - **sector fixture** — a world object present at spawn, sector-owned, independent
   of encounter state.
@@ -793,12 +796,14 @@ Format: **term** — definition. *(authority)*
   *(`LockOnSensor.lockOnConeAngle`)*
 - **seeker cone** — the angle around a missile's nose within which it can see its
   target. A full angle, checked at half like `LockOnSensor.lockOnConeAngle`. *(`Missile.seekerConeAngle`)*
-- **lose track** — a missile drops its target for good and flies straight: on the
-  first physics step its target is outside the seeker cone, or an asteroid cuts one
-  thin ray to `ITargetable.TargetPoint`. Checked from launch, no arming delay; no
-  reacquire. *(`Missile.CanSeeTarget`)*
+- **lose track** — a missile drops its target and flies straight when its target is
+  outside the seeker cone, or an asteroid cuts the thin ray to `ITargetable.TargetPoint`.
+  Checked from launch, no arming delay. It re-acquires the same target, and only that
+  target, if the target comes back into the cone with a clear sightline before the
+  missile expires. A target that conceals itself is dropped for good. *(`Missile.CanSee`)*
 - **tracking missile** — a missile that has a target and hasn't lost track. The
-  target's lock channel lists it from launch until it loses track or leaves play.
+  target's lock channel lists it from launch until it loses track or leaves play,
+  and again when it re-acquires.
   *(`Missile.IsTracking`, `LockChannel.Trackers`, `IShipStatus.TrackingMissiles`)*
 - **missile evasion** — a scripted pilot leaning away from a tracking missile and
   boosting to escape it. Only missiles tracking its own ship count: a lost track ends
@@ -844,7 +849,7 @@ Format: **term** — definition. *(authority)*
   it reaches the brain on `AIContext`, never on `IShipStatus`, because it is
   how the AI uses a weapon, not a fact about the ship. Not a firing range.
   *(`WeaponComponent.HoldRange`; #1139)*
-- **weapon slot** — a ship's first mount: one weapon (Lasers, TurboLasers, Rippers or
+- **weapon slot** — a ship's first mount: one weapon (Lasers, TurboLasers, Rippers, Scattergun or
   Railgun) or nothing, never an ordnance. Left mouse fires it, and its weapon is the one
   whose lead, hold range and aim the AI reads. The code still calls it
   `WeaponSlot.Primary`; the rename waits for after M1 (#1418).

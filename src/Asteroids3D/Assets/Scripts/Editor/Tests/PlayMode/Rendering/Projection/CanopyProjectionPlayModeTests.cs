@@ -30,6 +30,7 @@ namespace Tests.PlayMode.Rendering.Projection
             material = Own(new Material(Shader.Find("Hidden/UI/CanopyProjection")));
             properties = new MaterialPropertyBlock();
             properties.SetVector("_Resolution", new Vector4(Width, Height, 0f, 0f));
+            properties.SetVector("_Screen", new Vector4(Width, Height, Width, Height));
             properties.SetVector("_BlitScaleBias", new Vector4(1f, 1f, 0f, 0f));
             properties.SetFloat("_PersonalityEnabled", 1f);
             properties.SetFloat("_AppearAge", -1f);
@@ -80,6 +81,28 @@ namespace Tests.PlayMode.Rendering.Projection
                 brighter |= lit[i].r > pixels[i].r + .01f;
             }
             Assert.That(brighter, Is.True);
+        }
+
+        [Test]
+        public void ScanlinesAreSizedInScreenPixels_SoAnImageThatIsItsOwnScreenKeepsTheHudsFlatResponse_AndOneShownAtHalfSizeGetsLinesFourPixelsApart()
+        {
+            properties.SetTexture("_PreviousInk", Texture(new Color(.5f, .5f, .5f, 1f)));
+            properties.SetVector("_Phosphor", new Vector4(1f, 0f, 0f, 0f));
+            var own = Render(1);
+            for (var y = 1; y < Height; y++)
+                AssertColor(own[Width / 2], own[y * Width + Width / 2]);
+            properties.SetVector("_Screen", new Vector4(Width * .5f, Height * .5f, Width, Height));
+            var half = Render(1);
+            var troughs = new System.Collections.Generic.List<int>();
+            for (var y = 1; y < Height - 1; y++)
+            {
+                var above = half[(y - 1) * Width + Width / 2].r;
+                var here = half[y * Width + Width / 2].r;
+                var below = half[(y + 1) * Width + Width / 2].r;
+                if (here < above - .001f && here <= below) troughs.Add(y);
+            }
+            Assert.That(troughs.Count, Is.GreaterThan(1), "scanlines leave troughs");
+            Assert.That(troughs[1] - troughs[0], Is.EqualTo(4));
         }
 
         [Test]

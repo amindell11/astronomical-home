@@ -25,6 +25,8 @@ namespace UI
     {
         [Header("Minimap")]
         [SerializeField] private RectTransform minimapRect;
+        [Tooltip("The minimap's enemy-ship material; edge pointers to enemies take its colour.")]
+        [SerializeField] private Material enemyMarker;
         [SerializeField] private Material textMaterial;
         [SerializeField] private AimCrosshair crosshair;
         [SerializeField] private WeaponResourceHud weaponResources;
@@ -55,6 +57,7 @@ namespace UI
         private string keystoneName;
         private IWeaponReadouts weapons;
         private EliteReadout eliteReadout;
+        private HeldModsReadout heldMods;
 
         public CommLine CommLine { get; private set; }
         public Camera WorldCamera => canvases[0].worldCamera;
@@ -154,14 +157,21 @@ namespace UI
 
             if (lockOnAudio)
                 lockOnAudio.Initialize(readoutBuilder ? readoutBuilder.FirstReadout<ILockStateSource>() : null);
+
+            if (!heldMods)
+                heldMods = HeldModsReadout.Create(transform, labelFont, textMaterial, projection, () => IsVisible);
+            heldMods.Initialize(binding.Mods);
         }
 
-        public void BindObjectives(IObjectiveService objectives, Camera worldCamera, Camera minimapCamera)
+        public void BindObjectives(IObjectiveService objectives, Camera worldCamera, Camera minimapCamera,
+            SubscribedSet<Ship> ships)
         {
-            if (!objectiveMarkers || !minimapRect)
-                throw new InvalidOperationException($"Overlay on '{name}' needs its objective markers and minimap wired.");
+            if (!objectiveMarkers || !minimapRect || !enemyMarker)
+                throw new InvalidOperationException(
+                    $"Overlay on '{name}' needs its objective markers, minimap and enemy marker material wired.");
             objectiveMarkers.Initialize(objectives, worldCamera, minimapCamera, minimapRect, canvases[0], projection, () => IsVisible);
-            FindPointers.Create(minimapRect, projection, () => IsVisible).Initialize(objectives, minimapCamera);
+            FindPointers.Create(minimapRect, projection, () => IsVisible)
+                .Initialize(objectives, minimapCamera, ships, enemyMarker.color);
             ObjectiveStatusReadout.Create(transform, labelFont, headingFont, timerFont, readoutFont, textMaterial,
                 projection, () => IsVisible).Initialize(objectives);
             BoostReadout.Create(transform, labelFont, textMaterial, projection, () => IsVisible).Initialize(objectives);

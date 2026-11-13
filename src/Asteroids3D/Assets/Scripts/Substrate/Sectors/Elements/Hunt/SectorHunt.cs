@@ -36,7 +36,7 @@ namespace Substrate.Sectors.Elements.Hunt
     /// </summary>
     public class SectorHunt : SectorSpawner, ISectorRowReader
     {
-        [Tooltip("Search clock, sight cone and spotted-meter timing.")]
+        [Tooltip("Sight cone and spotted-meter timing.")]
         [Stat, SerializeField] private HuntFeelProfile feel;
         [Tooltip("The sector's faction: every patrol flies its common ship, on its kit and in its skin.")]
         [Stat, SerializeField] private SectorFaction faction;
@@ -51,7 +51,7 @@ namespace Substrate.Sectors.Elements.Hunt
         [SerializeField, Min(0f)] private float spawnDistanceMax = 150f;
         [Tooltip("A candidate point with an asteroid within this radius is passed over.")]
         [SerializeField, Min(0f)] private float clearanceRadius = 10f;
-        [Tooltip("Asteroids: spawn clearance and cover from a patrol's sight.")]
+        [Tooltip("Asteroids that give cover from a patrol's sight.")]
         [SerializeField] private LayerMask asteroidMask = 1 << 8;
         [Tooltip("Random points tried per patrol; the last one tried is used when none is clear.")]
         [SerializeField, Min(1)] private int placementAttempts = 8;
@@ -64,6 +64,7 @@ namespace Substrate.Sectors.Elements.Hunt
         private Sector sector;
         private int sectorIndex;
         private int patrolCount;
+        private float searchSeconds;
         private bool started;
         private bool hasTicked;
         private float startTime;
@@ -102,6 +103,7 @@ namespace Substrate.Sectors.Elements.Hunt
             if (!feel)
                 throw new InvalidOperationException($"SectorHunt on '{name}' needs its feel profile.");
             patrolCount = ctx.Row.patrols;
+            searchSeconds = ctx.Row.searchSeconds;
             if (patrolCount > 0 && (!faction || !patrolPilot || !ctx.Sector))
                 throw new InvalidOperationException(
                     $"SectorHunt on '{name}' needs a faction, patrol pilot and sector when it spawns patrols.");
@@ -119,7 +121,7 @@ namespace Substrate.Sectors.Elements.Hunt
             Alarmed = false;
             Released = false;
             SpottedFill = 0f;
-            SearchSecondsLeft = feel.searchSeconds;
+            SearchSecondsLeft = searchSeconds;
             GraceSecondsLeft = feel.alarmGraceSeconds;
             yield break;
         }
@@ -128,6 +130,8 @@ namespace Substrate.Sectors.Elements.Hunt
         {
             if (row.patrols < 0)
                 throw new InvalidOperationException($"SectorHunt on '{name}' spawns the row's patrols, and the row asks for {row.patrols}.");
+            if (row.searchSeconds < 0)
+                throw new InvalidOperationException($"SectorHunt on '{name}' runs the row's search clock, and the row asks for {row.searchSeconds} s.");
         }
 
         protected override IEnumerator OnTeardown(SectorBuildContext ctx)
@@ -208,7 +212,7 @@ namespace Substrate.Sectors.Elements.Hunt
 
             foreach (var patrol in patrols) patrol.Fly(feel, hero);
 
-            SearchSecondsLeft = Mathf.Max(0f, feel.searchSeconds - (now - startTime));
+            SearchSecondsLeft = Mathf.Max(0f, searchSeconds - (now - startTime));
             if (SearchSecondsLeft <= 0f) Sound(HuntAlarmReason.SearchClock, null, now);
         }
 
@@ -267,7 +271,7 @@ namespace Substrate.Sectors.Elements.Hunt
                 var heading = GamePlane.PlaneDirToWorld(new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)));
                 var patrolShip = faction.Faction.common.ship;
                 var position = ClearPoint.Around(center, spawnDistanceMin, spawnDistanceMax, clearanceRadius,
-                    asteroidMask, placementAttempts);
+                    field, placementAttempts);
                 var ship = units.SpawnShip(patrolShip, patrolPilot, team, position,
                     GamePlane.PlanePose(GamePlane.Normal, heading), field,
                     new ShipLoadout(patrolShip, faction.Faction.KitFor(patrolShip), null));

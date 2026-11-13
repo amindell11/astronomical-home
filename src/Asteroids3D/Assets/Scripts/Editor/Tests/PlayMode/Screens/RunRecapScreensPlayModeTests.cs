@@ -63,7 +63,7 @@ namespace Tests.PlayMode.Screens
         public void RecordedWeaponIcons_MatchEveryAuthoredWeaponHudIcon()
         {
             var catalog = RecapWeaponIcons.Load();
-            foreach (var weaponName in new[] { "Lasers", "TurboLasers", "Rippers", "Railgun", "Missiles", "Grenades" })
+            foreach (var weaponName in new[] { "Lasers", "TurboLasers", "Rippers", "Scattergun", "Railgun", "Missiles", "Grenades" })
             {
                 var weapon = AssetDatabase.LoadAssetAtPath<WeaponComponent>($"Assets/Prefabs/Weapons/{weaponName}.prefab");
                 Assert.IsNotNull(weapon.HudIcon, weaponName);

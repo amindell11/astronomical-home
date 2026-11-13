@@ -11,6 +11,7 @@ namespace Tests.EditMode.Weapons
         [TestCase("Assets/Prefabs/Weapons/Railgun.prefab", 30f)]
         [TestCase("Assets/Prefabs/Weapons/Missiles.prefab", 13f)]
         [TestCase("Assets/Prefabs/Weapons/Grenades.prefab", 18f)]
+        [TestCase("Assets/Prefabs/Weapons/Scattergun.prefab", 8f)]
         public void Prefab_DeclaresHoldRange(string path, float expected)
         {
             var weapon = Load(path);

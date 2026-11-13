@@ -5,26 +5,38 @@ namespace Cameras
     [CreateAssetMenu(fileName = "FlightCamera", menuName = "Cameras/Flight Camera Profile")]
     public sealed class FlightCameraProfile : ScriptableObject
     {
-        [Tooltip("Narrowest orthographic size while locked on the player: half the view height, in world units. Speed and nearby enemies widen it from here.")]
+        [Tooltip("Narrowest orthographic size while locked on a hull flying at referenceHullSpeed: half the view height, in world units. The hull's top speed shifts it; speed and nearby enemies widen it from there.")]
         [Min(0.01f)] public float zoom = 15f;
 
-        [Tooltip("How much wider than zoom speed may widen the locked view, in orthographic size units.")]
-        [Min(0f)] public float maxWiden = 7f;
+        [Tooltip("How much wider than the hull's base zoom speed may widen the locked view, in orthographic size units.")]
+        [Min(0f)] public float maxWiden = 10f;
 
         [Tooltip("Extra orthographic size per unit of the player's speed.")]
-        [Min(0f)] public float zoomPerSpeed = 0.15f;
+        [Min(0f)] public float zoomPerSpeed = 0.35f;
 
-        [Tooltip("Enemies closer to the player than this count as being fought, and the view widens and pulls toward them to keep them in frame. In world units.")]
+        [Tooltip("Hull top speed, in world units per second, that flies at exactly zoom. Faster hulls start wider and slower ones narrower.")]
+        [Min(0f)] public float referenceHullSpeed = 25f;
+
+        [Tooltip("Extra orthographic size per unit of hull top speed above referenceHullSpeed, less below it. Faster ships see further even at rest.")]
+        [Min(0f)] public float zoomPerHullSpeed = 0.2f;
+
+        [Tooltip("Enemies closer to the player than this count as being fought: the camera's center shifts toward them and the view widens to keep them in frame. In world units.")]
         [Min(0f)] public float fightRadius = 30f;
 
         [Tooltip("An enemy being fought stops counting once it is this far beyond fightRadius, in world units.")]
         [Min(0f)] public float releaseMargin = 10f;
 
-        [Tooltip("How much wider than zoom the view may get to fit the enemies being fought, in orthographic size units.")]
-        [Min(0f)] public float fightMaxWiden = 7f;
+        [Tooltip("Most enemies framed at once: the nearest this many inside fightRadius.")]
+        [Min(1)] public int fightCount = 3;
 
-        [Tooltip("How hard the camera pulls toward the enemies being fought, from 0 to 1. At 1 it shifts just enough to fit them within fightMaxWiden; at 0 it never shifts.")]
-        [Range(0f, 1f)] public float fightPull = 1f;
+        [Tooltip("Widest the flight camera frames on its own, in orthographic size units. Speed and the enemies being fought widen the view up to here and no further.")]
+        [Min(0.01f)] public float maxZoomOut = 25f;
+
+        [Tooltip("How far the camera's center moves from the player toward the middle of the player and the enemies being fought, from 0 to 1. It shifts further when that is the only way to fit them within maxZoomOut.")]
+        [Range(0f, 1f)] public float fightCenterBias = 0.5f;
+
+        [Tooltip("Seconds the center takes to follow a change in the fight.")]
+        [Min(0f)] public float fightShiftTime = 0.8f;
 
         [Tooltip("Seconds the zoom takes to widen.")]
         [Min(0f)] public float widenTime = 0.4f;
@@ -38,7 +50,7 @@ namespace Cameras
         [Tooltip("Cap on the lead distance, in world units.")]
         [Min(0f)] public float maxLead = 8f;
 
-        [Tooltip("Seconds the velocity lead takes to follow a change in the player's velocity, and the fight pull a change in the fight.")]
+        [Tooltip("Seconds the velocity lead takes to follow a change in the player's velocity.")]
         [Min(0f)] public float leadSmoothTime = 0.5f;
 
         [Tooltip("How far the camera leads toward the cursor with it at the screen edge, in world units. Adds to the velocity lead.")]

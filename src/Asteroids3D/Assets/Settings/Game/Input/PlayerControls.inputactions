@@ -367,15 +367,6 @@
             "id": "1b644a57-b5c1-48d4-8769-ee879b1c3d4c",
             "actions": [
                 {
-                    "name": "ToggleLock",
-                    "type": "Button",
-                    "id": "a46a254e-364e-4a65-9112-a37d3f546434",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
                     "name": "Zoom",
                     "type": "Value",
                     "id": "9732ab76-5df1-4058-9c8b-8c349018aed7",
@@ -395,17 +386,6 @@
                 }
             ],
             "bindings": [
-                {
-                    "name": "",
-                    "id": "d3bd41bd-a5a7-4493-8e33-0c86e93a5f78",
-                    "path": "<Keyboard>/c",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "ToggleLock",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
                 {
                     "name": "",
                     "id": "0798f9a9-0be1-4d82-a129-7484d188364c",
