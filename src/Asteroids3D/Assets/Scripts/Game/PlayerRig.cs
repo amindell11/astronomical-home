@@ -138,7 +138,7 @@ namespace Game
                 Overlay.ConfigureCameras(uiCam, observer.Cam, projection);
                 Overlay.Initialize(BuildHudBinding());
                 var minimapCam = Instantiate(minimapCamPrefab, observer.transform);
-                Overlay.BindObjectives(objectives, observer.Cam, minimapCam);
+                Overlay.BindObjectives(objectives, observer.Cam, minimapCam, units.ActiveRegistry.ActiveShips);
                 Overlay.BindShips(units.ActiveRegistry.ActiveShips, observer.Cam);
             }
 

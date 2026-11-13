@@ -1,15 +1,19 @@
 using System;
 using System.Collections.Generic;
+using Ships;
+using Substrate;
 using Substrate.Services.Objectives;
 using UnityEngine;
 using UnityEngine.UI;
 using UI.Projection;
+using Utils;
 
 namespace UI.Objectives
 {
     /// <summary>
-    /// Pins each unused find that lies beyond the minimap's range to the minimap's rim, aimed at it: the find's
-    /// icon with a find-coloured arrowhead outside it. In range the find's own minimap marker shows instead.
+    /// Pins unused finds and live, unconcealed enemies beyond the minimap's range to the rim.
+    /// A find shows its icon with a find-coloured arrowhead; an enemy shows only an arrowhead
+    /// in the minimap's enemy colour.
     /// </summary>
     public sealed class FindPointers : MonoBehaviour
     {
@@ -21,6 +25,8 @@ namespace UI.Objectives
         private RectTransform minimap;
         private IObjectiveService objectives;
         private Camera minimapCamera;
+        private SubscribedSet<Ship> ships;
+        private Color enemyColour;
         private int shown;
 
         public static FindPointers Create(RectTransform minimap, CanopyProjection projection = null,
@@ -41,12 +47,14 @@ namespace UI.Objectives
 
         private void Awake() => enabled = false;
 
-        public void Initialize(IObjectiveService source, Camera map)
+        public void Initialize(IObjectiveService source, Camera map, SubscribedSet<Ship> ships, Color enemyColour)
         {
-            if (source == null || !map)
-                throw new InvalidOperationException($"FindPointers on '{name}' needs its objective source and minimap camera.");
+            if (source == null || !map || ships == null)
+                throw new InvalidOperationException($"FindPointers on '{name}' needs its objective source, minimap camera and ships.");
             objectives = source;
             minimapCamera = map;
+            this.ships = ships;
+            this.enemyColour = enemyColour;
             enabled = true;
         }
 
@@ -56,15 +64,24 @@ namespace UI.Objectives
             var radius = Mathf.Min(minimap.rect.width, minimap.rect.height) * .5f;
             shown = 0;
             for (var i = 0; i < finds.Count; i++)
+                ShowBeyondRim(finds[i].Target.position, finds[i].Icon, FindColour, radius);
+            foreach (var ship in ships)
             {
-                var point = minimapCamera.WorldToViewportPoint(finds[i].Target.position);
-                var offset = new Vector2(point.x - .5f, point.y - .5f);
-                if (offset.sqrMagnitude <= .25f) continue;
-                if (shown == pointers.Count) pointers.Add(Pointer.Create(transform));
-                pointers[shown++].Show(finds[i].Icon, offset.normalized, radius);
+                if (ship.CompareTag(TagNames.Player) || !ship.gameObject.activeInHierarchy || ship.Lock.IsConcealed)
+                    continue;
+                ShowBeyondRim(ship.transform.position, null, enemyColour, radius);
             }
             for (var i = shown; i < pointers.Count; i++)
                 pointers[i].Hide();
+        }
+
+        private void ShowBeyondRim(Vector3 world, Sprite sprite, Color colour, float radius)
+        {
+            var point = minimapCamera.WorldToViewportPoint(world);
+            var offset = new Vector2(point.x - .5f, point.y - .5f);
+            if (offset.sqrMagnitude <= .25f) return;
+            if (shown == pointers.Count) pointers.Add(Pointer.Create(transform));
+            pointers[shown++].Show(sprite, colour, offset.normalized, radius);
         }
 
         private sealed class Pointer
@@ -83,14 +100,16 @@ namespace UI.Objectives
                 return new Pointer { icon = icon, arrow = arrow };
             }
 
-            public void Show(Sprite sprite, Vector2 direction, float radius)
+            public void Show(Sprite sprite, Color colour, Vector2 direction, float radius)
             {
                 icon.sprite = sprite;
+                arrow.color = colour;
                 icon.rectTransform.anchoredPosition = direction * (radius - ArrowSize - 1f - IconSize * .5f);
                 arrow.rectTransform.anchoredPosition = direction * (radius - 1f - ArrowSize * .5f);
                 arrow.rectTransform.localEulerAngles =
                     new Vector3(0f, 0f, Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90f);
-                icon.enabled = arrow.enabled = true;
+                icon.enabled = sprite;
+                arrow.enabled = true;
             }
 
             public void Hide() => icon.enabled = arrow.enabled = false;

@@ -1,25 +1,35 @@
 using System.Collections;
+using System.Collections.Generic;
 using NUnit.Framework;
+using Ships;
 using Substrate.Services.Objectives;
 using Tests.PlayMode.Common;
 using UI.Objectives;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
+using Utils;
 using Object = UnityEngine.Object;
 
 namespace Tests.PlayMode.PlayerState
 {
-    /// <summary>A find beyond the minimap's range points from the rim toward it with its icon; in range, or closed, it shows no pointer.</summary>
+    /// <summary>
+    /// A find beyond the minimap's range points from the rim toward it with its icon; in range, or closed, it shows no pointer.
+    /// A live unconcealed enemy beyond range points from the rim with only an arrowhead; in range, concealed, inactive or gone, it shows none.
+    /// </summary>
     [Category("UI")]
     [Category("RequiresLfsPng")]
     public class FindPointersPlayModeTests
     {
         private const string IconPath = "Assets/Visuals/Ui/Minimap/Finds/RepairFind.png";
+        private static readonly Color EnemyColour = new Color(1f, .2f, .1f, 1f);
 
         private GameObject root;
         private ObjectiveService service;
         private RectTransform minimap;
+        private SubscribedSet<Ship> ships;
+        private Ship ship;
+        private Ship player;
 
         [SetUp]
         public void SetUp()
@@ -38,11 +48,17 @@ namespace Tests.PlayMode.PlayerState
             camera.orthographicSize = 56;
             camera.aspect = 1f;
             camera.enabled = false;
-            FindPointers.Create(minimap).Initialize(service, camera);
+            ships = new SubscribedSet<Ship>();
+            FindPointers.Create(minimap).Initialize(service, camera, ships, EnemyColour);
         }
 
         [TearDown]
-        public void TearDown() => Object.DestroyImmediate(root);
+        public void TearDown()
+        {
+            ShipTestFactory.DestroyShip(ship);
+            ShipTestFactory.DestroyShip(player);
+            Object.DestroyImmediate(root);
+        }
 
         private GameObject Child(string name)
         {
@@ -84,6 +100,77 @@ namespace Tests.PlayMode.PlayerState
             find.Close();
             yield return null;
             Assert.IsFalse(pointer.enabled || arrow.enabled, "A closed find drops its pointer.");
+        }
+
+        [UnityTest]
+        public IEnumerator AnEnemyBeyondRange_PointsFromTheRim_AndInRangeConcealedOrGone_ShowsNone()
+        {
+            ship = ShipTestFactory.CreateKinematicPrimitiveShipAt(Vector2.zero);
+            ship.transform.position = new Vector3(0f, 200f, 0f);
+            ships.Add(ship);
+            player = ShipTestFactory.CreateKinematicPrimitiveShipAt(Vector2.zero);
+            player.tag = "Player";
+            player.transform.position = new Vector3(0f, -200f, 0f);
+            ships.Add(player);
+
+            yield return null;
+            var shown = VisiblePointers();
+            Assert.AreEqual(1, shown.arrows.Count, "An enemy beyond range shows one arrowhead.");
+            Assert.AreEqual(EnemyColour, shown.arrows[0].color);
+            Assert.Less(Vector2.Angle(shown.arrows[0].rectTransform.anchoredPosition, Vector2.up), .5f,
+                "The arrowhead sits toward the enemy.");
+            Assert.That(shown.arrows[0].rectTransform.anchoredPosition.magnitude, Is.InRange(70f, 100f),
+                "The arrowhead sits on the rim.");
+            Assert.AreEqual(0, shown.icons.Count, "An enemy pointer has no icon.");
+
+            ship.transform.position = new Vector3(0f, 20f, 0f);
+            yield return null;
+            Assert.AreEqual(0, VisiblePointers().arrows.Count, "In range an enemy shows no pointer.");
+
+            ship.transform.position = new Vector3(200f, 0f, 0f);
+            yield return null;
+            shown = VisiblePointers();
+            Assert.AreEqual(1, shown.arrows.Count);
+            Assert.Less(Vector2.Angle(shown.arrows[0].rectTransform.anchoredPosition, Vector2.right), .5f,
+                "The arrowhead aims right.");
+
+            ship.Lock.Conceal();
+            yield return null;
+            Assert.AreEqual(0, VisiblePointers().arrows.Count, "A concealed enemy shows no pointer.");
+            ship.Lock.Reveal();
+            yield return null;
+            Assert.AreEqual(1, VisiblePointers().arrows.Count, "A revealed enemy shows its pointer again.");
+
+            ship.gameObject.SetActive(false);
+            yield return null;
+            Assert.AreEqual(0, VisiblePointers().arrows.Count, "An inactive enemy shows no pointer.");
+            ship.gameObject.SetActive(true);
+            yield return null;
+            Assert.AreEqual(1, VisiblePointers().arrows.Count, "A reactivated enemy shows its pointer again.");
+
+            ships.Remove(ship);
+            Object.Destroy(ship.gameObject);
+            yield return null;
+            Assert.AreEqual(0, VisiblePointers().arrows.Count, "A removed enemy shows no pointer.");
+        }
+
+        private (List<FindPointerArrow> arrows, List<Image> icons) VisiblePointers()
+        {
+            var arrows = new List<FindPointerArrow>();
+            var icons = new List<Image>();
+            var holder = minimap.Find("Find pointers");
+            for (var i = 0; i < holder.childCount; i++)
+            {
+                var child = holder.GetChild(i);
+                var arrow = child.GetComponent<FindPointerArrow>();
+                if (arrow && arrow.enabled)
+                    arrows.Add(arrow);
+                var icon = child.GetComponent<Image>();
+                if (icon && icon.enabled)
+                    icons.Add(icon);
+            }
+
+            return (arrows, icons);
         }
     }
 }
