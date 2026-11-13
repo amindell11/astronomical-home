@@ -329,6 +329,57 @@ namespace Tests.PlayMode.PlayerState
         }
 
         [UnityTest]
+        public IEnumerator BeaconBerths_RingTracksTheGraceLeft_AndBlinkWhileExpiring()
+        {
+            CreateMarkers();
+            var target = Child("Beacon").transform;
+            target.position = new Vector3(8, 6, 0);
+            var phase = new SectorPhaseProgress(0, 2, 5f, false, beaconFill: .4f);
+            OpenPhases(target, () => phase);
+            yield return null;
+            var screen = canvas.transform.Find("Extraction direction").GetComponent<Image>();
+            var map = canvas.transform.Find("Extraction minimap").GetComponent<Image>();
+            var screenRing = screen.GetComponentInChildren<NavRing>(true);
+            var mapRing = map.GetComponentInChildren<NavRing>(true);
+            var until = Time.realtimeSinceStartup + .6f;
+            while (Time.realtimeSinceStartup < until)
+            {
+                Assert.AreEqual(.4f, screenRing.Fill);
+                Assert.AreEqual(.4f, mapRing.Fill);
+                Assert.AreEqual(1f, screen.canvasRenderer.GetAlpha());
+                Assert.AreEqual(1f, map.canvasRenderer.GetAlpha());
+                yield return null;
+            }
+
+            phase = new SectorPhaseProgress(0, 2, 5f, false, beaconFill: .25f);
+            yield return null;
+            Assert.AreEqual(.25f, screenRing.Fill);
+            Assert.AreEqual(.25f, mapRing.Fill);
+
+            phase = new SectorPhaseProgress(0, 2, 5f, false, beaconFill: .25f, beaconExpiring: true);
+            var sawLit = false;
+            var sawDark = false;
+            until = Time.realtimeSinceStartup + .6f;
+            while (Time.realtimeSinceStartup < until)
+            {
+                yield return null;
+                var screenAlpha = screen.canvasRenderer.GetAlpha();
+                var mapAlpha = map.canvasRenderer.GetAlpha();
+                sawLit |= screenAlpha == 1f && mapAlpha == 1f;
+                sawDark |= screenAlpha == 0f && mapAlpha == 0f;
+            }
+
+            Assert.IsTrue(sawLit);
+            Assert.IsTrue(sawDark);
+            Open(target);
+            yield return null;
+            Assert.IsNull(screenRing.Fill);
+            Assert.IsNull(mapRing.Fill);
+            Assert.AreEqual(1f, screen.canvasRenderer.GetAlpha());
+            Assert.AreEqual(1f, map.canvasRenderer.GetAlpha());
+        }
+
+        [UnityTest]
         public IEnumerator Markers_BeyondMinimapRange_PinTheBeaconToTheRimWithATab()
         {
             CreateMarkers();

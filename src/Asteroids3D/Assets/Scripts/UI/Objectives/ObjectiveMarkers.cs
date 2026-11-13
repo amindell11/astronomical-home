@@ -13,6 +13,7 @@ namespace UI.Objectives
         [SerializeField] private float pulseSpeed = 4f;
         [SerializeField] private float pulseScale = .15f;
         [SerializeField] private Color baseColor = Color.yellow;
+        [SerializeField] private float expiryBlinkRate = 4f;
         [SerializeField] private Sprite exitIcon;
         [SerializeField] private Sprite lullIcon;
         [SerializeField] private Color exitColour = new Color32(0xBF, 0xF4, 0xFF, 0xFF);
@@ -31,6 +32,9 @@ namespace UI.Objectives
         private Image minimapBerth;
         private NavTab screenTab;
         private NavTab mapTab;
+        private NavRing screenRing;
+        private NavRing mapRing;
+        private Graphic[] blinkParts;
 
         private void Awake() => enabled = false;
 
@@ -48,6 +52,9 @@ namespace UI.Objectives
             canvas = hud;
             screenBerth = Beacon(hud.transform, "Extraction direction", ScreenIconSize, out screenTab);
             minimapBerth = Beacon(hud.transform, "Extraction minimap", MapIconSize, out mapTab);
+            screenRing = NavRing.Create(screenBerth.rectTransform, NavTab.LullReach);
+            mapRing = NavRing.Create(minimapBerth.rectTransform, NavTab.LullReach);
+            blinkParts = new Graphic[] { screenBerth, screenTab, screenRing, minimapBerth, mapTab, mapRing };
             InstrumentAppear.Attach(screenBerth.gameObject, projection,
                 () => screenBerth.enabled && (isVisible?.Invoke() ?? true));
             InstrumentAppear.Attach(minimapBerth.gameObject, projection,
@@ -85,6 +92,14 @@ namespace UI.Objectives
             screenBerth.enabled = minimapBerth.enabled = berth;
             if (!berth)
                 screenTab.enabled = mapTab.enabled = false;
+            screenRing.enabled = mapRing.enabled = berth;
+            var progress = lull && target ? objectives.SpineTracker?.PhaseProgress : null;
+            screenRing.Fill = mapRing.Fill = progress?.BeaconFill;
+            screenRing.color = mapRing.color = colour;
+            var expiring = progress?.BeaconExpiring == true;
+            var alpha = !expiring || Mathf.Repeat(Time.time * expiryBlinkRate, 1f) < .5f ? 1f : 0f;
+            foreach (var part in blinkParts)
+                part.canvasRenderer.SetAlpha(alpha);
             icon.enabled = generic;
             if (!berth && !generic) return;
 
@@ -126,6 +141,8 @@ namespace UI.Objectives
                     ScreenIconSize, reach, colour);
             else
                 screenTab.enabled = false;
+            screenRing.enabled = screenBerth.enabled;
+            mapRing.enabled = minimapBerth.enabled;
         }
 
         internal static Rect MapBounds(RectTransform minimap, Canvas canvas, Vector3[] corners)
