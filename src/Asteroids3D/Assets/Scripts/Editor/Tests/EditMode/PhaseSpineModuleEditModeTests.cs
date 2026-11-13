@@ -14,7 +14,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>PhaseSpineModule against the objective service: the survive step reads the director's phase into its status line, extraction opens only once the phases are done (zone shown, armed and targeted), a beacon opens within the lead of a phase's end, outlives its lull into the next phase's grace, and the next beacon or the table's end closes it unclaimed, and teardown closes the spine.</summary>
+    /// <summary>PhaseSpineModule against the objective service: the survive step reads the director's phase into its status line, extraction opens only once the phases are done (zone shown, armed and targeted), a beacon opens within the lead of a phase's end, outlives its lull into the next phase's grace, whose fill drains across it and whose warning starts three seconds before it closes, and the next beacon or the table's end closes it unclaimed, and teardown closes the spine.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class PhaseSpineModuleEditModeTests
@@ -154,6 +154,52 @@ namespace Tests.EditMode
             Assert.IsFalse(beacon.gameObject.activeSelf);
             Assert.IsNull(svc.SpineTarget);
             Assert.IsFalse(module.BeaconClaimed);
+        }
+
+        [Test]
+        public void Beacon_GraceFillDrainsAcrossTheGrace_AndExpiringStartsThreeSecondsBeforeItCloses()
+        {
+            var (module, director, _, beacon, svc, ctx) = Build(NewGO("Hero").AddComponent<Ship>());
+            Run(module.Setup(ctx));
+
+            director.Advance(32.5f);
+            module.Tick();
+            var progress = svc.SpineTracker.PhaseProgress.Value;
+            Assert.AreEqual(1f, progress.BeaconFill);
+            Assert.IsFalse(progress.BeaconExpiring);
+
+            director.Advance(44f);
+            module.Tick();
+            progress = svc.SpineTracker.PhaseProgress.Value;
+            Assert.AreEqual(1f, progress.BeaconFill);
+            Assert.IsFalse(progress.BeaconExpiring);
+
+            director.Advance(47.5f);
+            module.Tick();
+            progress = svc.SpineTracker.PhaseProgress.Value;
+            Assert.AreEqual(0.75f, progress.BeaconFill, 1e-4f);
+            Assert.IsFalse(progress.BeaconExpiring);
+
+            director.Advance(51.999f);
+            module.Tick();
+            Assert.IsFalse(svc.SpineTracker.PhaseProgress.Value.BeaconExpiring);
+
+            director.Advance(52f);
+            module.Tick();
+            Assert.IsTrue(svc.SpineTracker.PhaseProgress.Value.BeaconExpiring);
+
+            director.Advance(54.5f);
+            module.Tick();
+            progress = svc.SpineTracker.PhaseProgress.Value;
+            Assert.AreEqual(0.05f, progress.BeaconFill, 1e-4f);
+            Assert.IsTrue(progress.BeaconExpiring);
+
+            director.Advance(55.5f);
+            module.Tick();
+            Assert.IsFalse(beacon.gameObject.activeSelf);
+            progress = svc.SpineTracker.PhaseProgress.Value;
+            Assert.IsFalse(progress.BeaconExpiring);
+            Assert.AreEqual(1f, progress.BeaconFill);
         }
 
         [Test]
