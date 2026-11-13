@@ -113,8 +113,18 @@ namespace RL.Hosts
             new DuelComposition(units, Offset, Projectiles, assets, in seedSpec, weapon);
 
         internal IHarnessComposition NewMatrixComposition(in RewardSpec seedSpec, WeaponComponent weaponA,
-            WeaponComponent weaponB) =>
-            new MatrixComposition(units, Offset, Projectiles, assets, in seedSpec, weaponA, weaponB);
+            WeaponComponent weaponB)
+        {
+            var hull = assets.ShipPrefab;
+            var pilot = assets.AgentPilot;
+            return new MatrixComposition(units, Offset, Projectiles, in seedSpec,
+                new MatrixSide { chassis = hull, pilot = pilot, weapon = weaponA },
+                new MatrixSide { chassis = hull, pilot = pilot, weapon = weaponB },
+                installAggressor: true);
+        }
+
+        internal IHarnessComposition NewMatrixComposition(in RewardSpec seedSpec, MatrixSide reference, MatrixSide roster) =>
+            new MatrixComposition(units, Offset, Projectiles, in seedSpec, reference, roster, installAggressor: false);
 
         /// <summary>Episodes 0..N-1 against one opponent config — the index restarts per block, so blocks on one seed are a controlled comparison over the same poses and field layouts. When the spec records, each selected episode films through a per-episode recorder wired here.</summary>
         internal IEnumerator RunBlock(IHarnessComposition composition, OpponentSpec opponent, int episodes,

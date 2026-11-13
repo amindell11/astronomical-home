@@ -104,6 +104,63 @@ namespace Tests.PlayMode
             Assert.IsEmpty(Directory.GetFiles(outDir, "*-summary.json"),
                 "eval_lane.py expects exactly one *-summary.json per run: the lane's, never a probe file");
         }
+
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator RosterBlock_RunsAuthoredPilotsOnDifferentChassis()
+        {
+            var chassis = TrainingBootstrap.CatalogChassis();
+            var pilots = TrainingBootstrap.CatalogPilots();
+            var crimson = chassis.FirstOrDefault(ship => ship.name == "Crimson");
+            var vanguard = chassis.FirstOrDefault(ship => ship.name == "Vanguard");
+            var kiter = pilots.FirstOrDefault(pilot => pilot.name == "KiterPilot");
+            var aggressor = pilots.FirstOrDefault(pilot => pilot.name == "AggressorPilot");
+            Assert.IsNotNull(crimson, "the item catalog must list the Crimson chassis");
+            Assert.IsNotNull(vanguard, "the item catalog must list the Vanguard chassis");
+            Assert.IsNotNull(kiter, "Assets/Prefabs/Pilots must include KiterPilot");
+            Assert.IsNotNull(aggressor, "Assets/Prefabs/Pilots must include AggressorPilot");
+            var reference = new MatrixSide { chassis = crimson, pilot = kiter, weapon = lasers };
+            var roster = new MatrixSide { chassis = vanguard, pilot = aggressor, weapon = lasers };
+
+            var spec = new HarnessSpec
+            {
+                lane = HarnessLane.Matrix,
+                seeds = new[] { 3001 },
+                tag = "matrix-roster-test",
+                episodesPerSeed = 1,
+                probes = new[] { ProbeSpec.Named(MatrixProbe.ProbeName) },
+                matrixReference = reference,
+                matrixRoster = new[] { roster },
+                outDir = outDir,
+            };
+            var hostObject = new GameObject("[HarnessHost]");
+            hostObject.transform.SetParent(arenaHost.transform, false);
+            hostObject.SetActive(false);
+            var host = hostObject.AddComponent<HarnessHost>();
+            host.Initialize(spec, assets, unitService, projectiles);
+
+            var seedSpec = MatrixLane.MatrixSpec();
+            seedSpec.runSeed = spec.seeds[0];
+            var jsonlPath = EpisodeJsonl.NewRunPath(spec.tag, CheckpointEvaluator.ResultsFolder, spec.outDir);
+            var composition = host.NewMatrixComposition(in seedSpec, reference, roster);
+            yield return host.RunBlock(composition, MatrixLane.Block(reference, roster), spec.episodesPerSeed,
+                seedSpec, jsonlPath, null);
+            Assert.That(composition.Pair.Agent.name, Does.StartWith("Crimson"));
+            Assert.That(composition.Pair.Baseline.name, Does.StartWith("Vanguard"));
+            composition.Dispose();
+            host.SummarizeProbes(jsonlPath);
+            StringAssert.Contains("\"archetype\":\"AggressorPilot\"", File.ReadAllText(jsonlPath));
+
+            var probeLines = File.ReadAllLines(jsonlPath.Replace(".jsonl", "-matrix.jsonl"));
+            Assert.AreEqual(spec.episodesPerSeed, probeLines.Length, "one matrix row per episode");
+            var row = JsonUtility.FromJson<MatrixRow>(probeLines[0]);
+            Assert.AreEqual(MatrixRow.SchemaId, row.schema);
+            Assert.AreEqual("Crimson-KiterPilot-Lasers_vs_Vanguard-AggressorPilot-Lasers", row.pair);
+            Assert.AreEqual("Lasers", row.tallyA.weapon);
+            Assert.AreEqual("Lasers", row.tallyB.weapon);
+            Assert.Greater(row.tallyA.fired, 0, "the reference ship fired its primary");
+            Assert.Greater(row.tallyB.fired, 0, "the roster ship fired its primary");
+        }
     }
 }
 #endif

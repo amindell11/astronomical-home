@@ -54,6 +54,44 @@ namespace Tests.EditMode
             StringAssert.Contains("| Missiles | 0.75 (2) | - | 0.75 |", table);
         }
 
+        [Test]
+        public void DamagePerMinuteUsesAliveSecondsAndASideThatNeverDiesHasNoTimeToDie()
+        {
+            var rows = new[]
+            {
+                Lived("Lasers-Missiles", "Lasers", "Missiles", damageA: 60f, aliveA: 10f, diedA: true,
+                    damageB: 0f, aliveB: 10f, diedB: false),
+                Lived("Lasers-Missiles", "Lasers", "Missiles", damageA: 60f, aliveA: 30f, diedA: false,
+                    damageB: 0f, aliveB: 30f, diedB: false),
+            };
+
+            var pair = MatrixProbe.Score(rows).pairs[0];
+
+            Assert.AreEqual(180f, pair.damagePerMinuteA, 1e-3f, "120 damage over 40 alive seconds, per minute");
+            Assert.AreEqual(1, pair.deathsA);
+            Assert.AreEqual(10f, pair.meanSecondsToDieA, 1e-4f);
+            Assert.AreEqual(0f, pair.damagePerMinuteB, 1e-4f);
+            Assert.AreEqual(0, pair.deathsB);
+            Assert.AreEqual(0f, pair.meanSecondsToDieB, 1e-4f, "a side that never died has no time to die");
+
+            StringAssert.Contains("180.0 | 1 | 10.0 | 0.0 | 0 |", MatrixProbe.MarkdownTable(MatrixProbe.Score(rows)));
+        }
+
+        private static MatrixRow Lived(string pair, string weaponA, string weaponB, float damageA, float aliveA,
+            bool diedA, float damageB, float aliveB, bool diedB) => new()
+        {
+            schema = MatrixRow.SchemaId,
+            pair = pair,
+            winner = MatrixProbe.Draw,
+            simSeconds = 100f,
+            diedA = diedA,
+            diedB = diedB,
+            aliveSecondsA = aliveA,
+            aliveSecondsB = aliveB,
+            tallyA = new MarksmanshipTally { weapon = weaponA, damageDealt = damageA },
+            tallyB = new MarksmanshipTally { weapon = weaponB, damageDealt = damageB },
+        };
+
         private static MatrixRow Row(string pair, string weaponA, string weaponB, string winner, float simSeconds,
             int firedA, int hitsA, float damageA, int firedB, int hitsB, float damageB) => new()
         {

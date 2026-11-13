@@ -9,12 +9,12 @@ using Utils;
 using Substrate;
 using Substrate.Services.Units;
 using Substrate.Services.Projectiles;
-using RL.Arena;
+using RL.Hosts;
 using RL.Reward;
 
 namespace RL.Episodes
 {
-    /// <summary>Spawns the matrix lane's pair: both ships on the harness hull and TestPilotMPC, default engine and shield, one weapon in the primary slot. Each weapon is equipped before wiring, because the commander captures muzzle speed once at init.</summary>
+    /// <summary>Spawns the matrix lane's pair. Each side is a chassis prefab, a pilot prefab, and one primary weapon. The weapon is equipped before wiring, because the commander captures muzzle speed once at init.</summary>
     internal static class MatrixSpawner
     {
         // EpisodePair's armed-pair streams. A seed's decision noise matches that spawn.
@@ -22,15 +22,14 @@ namespace RL.Episodes
         private const uint BaselineSeedStream = 202;
 
         public static EpisodePair Spawn(UnitService units, Vector2 offset, IObstacleField field,
-            IProjectileService projectiles, in RewardSpec spec, HarnessAssets assets,
-            WeaponComponent weaponA, WeaponComponent weaponB)
+            IProjectileService projectiles, in RewardSpec spec, MatrixSide sideA, MatrixSide sideB)
         {
             var poses = EpisodePoses.Derive(in spec, 0, offset);
             var root = new SeedScope(spec.runSeed);
-            var shipA = SpawnShip(units, projectiles, assets.ShipPrefab, assets.AgentPilot,
-                poses.agentPos, poses.agentRotDeg, team: 0, root.Derive(AgentSeedStream).ToSeed(), weaponA);
-            var shipB = SpawnShip(units, projectiles, assets.ShipPrefab, assets.AgentPilot,
-                poses.baselinePos, poses.baselineRotDeg, team: 1, root.Derive(BaselineSeedStream).ToSeed(), weaponB);
+            var shipA = SpawnShip(units, projectiles, sideA.chassis, sideA.pilot,
+                poses.agentPos, poses.agentRotDeg, team: 0, root.Derive(AgentSeedStream).ToSeed(), sideA.weapon);
+            var shipB = SpawnShip(units, projectiles, sideB.chassis, sideB.pilot,
+                poses.baselinePos, poses.baselineRotDeg, team: 1, root.Derive(BaselineSeedStream).ToSeed(), sideB.weapon);
             units.WireShipDependencies(shipA, field);
             units.WireShipDependencies(shipB, field);
             return Seal(units, projectiles, offset, shipA, shipB);

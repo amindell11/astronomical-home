@@ -61,7 +61,8 @@ namespace Tests.EditMode.RLHarness
                 {
                     opponentSource = s;
                     return null;
-                }, TrainingBootstrap.CatalogWeapons, () => hasGraphics);
+                }, TrainingBootstrap.CatalogWeapons, TrainingBootstrap.CatalogChassis, TrainingBootstrap.CatalogPilots,
+                () => hasGraphics);
         }
 
         private HarnessSpec ParsePlayer(params string[] keyValuePairs)
@@ -428,6 +429,88 @@ namespace Tests.EditMode.RLHarness
         }
 
         [Test]
+        public void MatrixRoster_ParsesAReferenceAndEachRosterSide()
+        {
+            var spec = Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "crimson:kiterpilot:lasers",
+                "RL_HARNESS_MATRIX_ROSTER", "vanguard:aggressorpilot:lasers, nightshade:orbiterpilot:turbolasers",
+                "RL_HARNESS_SEEDS", "3001");
+
+            Assert.AreEqual(HarnessLane.Matrix, spec.lane);
+            Assert.AreEqual("matrix-custom", spec.tag);
+            Assert.IsNull(spec.matrixWeapons);
+            Assert.AreEqual(new[] { MatrixProbe.ProbeName }, Names(spec.probes));
+            Assert.AreEqual("Crimson", spec.matrixReference.chassis.name);
+            Assert.AreEqual("KiterPilot", spec.matrixReference.pilot.name);
+            Assert.AreEqual("Lasers", spec.matrixReference.weapon.name);
+            Assert.AreEqual("Crimson-KiterPilot-Lasers", spec.matrixReference.Label);
+            Assert.AreEqual(2, spec.matrixRoster.Length);
+            Assert.AreEqual("Vanguard-AggressorPilot-Lasers", spec.matrixRoster[0].Label);
+            Assert.AreEqual("Nightshade-OrbiterPilot-TurboLasers", spec.matrixRoster[1].Label);
+        }
+
+        [Test]
+        public void MatrixRoster_RequiresBothVariablesAndRefusesTheOtherLanes()
+        {
+            Assert.Throws<ArgumentException>(() =>
+                Parse("RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers"));
+            Assert.Throws<ArgumentException>(() =>
+                Parse("RL_HARNESS_MATRIX_ROSTER", "Crimson:KiterPilot:Lasers"));
+            Assert.Throws<ArgumentException>(() => Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers",
+                "RL_HARNESS_MATRIX_ROSTER", "Vanguard:AggressorPilot:Lasers",
+                "RL_HARNESS_MATRIX", "Lasers"));
+            Assert.Throws<ArgumentException>(() => Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers",
+                "RL_HARNESS_MATRIX_ROSTER", "Vanguard:AggressorPilot:Lasers",
+                "RL_HARNESS_DUEL", "Missiles"));
+            Assert.Throws<ArgumentException>(() => Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers",
+                "RL_HARNESS_MATRIX_ROSTER", "Vanguard:AggressorPilot:Lasers",
+                "RL_HARNESS_SENTENCE", "all"));
+            Assert.Throws<ArgumentException>(() => Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers",
+                "RL_HARNESS_MATRIX_ROSTER", "Vanguard:AggressorPilot:Lasers",
+                "RL_HARNESS_ONNX", "ckpt.onnx"));
+            Assert.Throws<ArgumentException>(() => Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers",
+                "RL_HARNESS_MATRIX_ROSTER", "Vanguard:AggressorPilot:Lasers",
+                "RL_HARNESS_OPPONENT", "dummy"));
+            Assert.Throws<ArgumentException>(() => Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers",
+                "RL_HARNESS_MATRIX_ROSTER", "Vanguard:AggressorPilot:Lasers",
+                "RL_HARNESS_LANE", "capture"));
+            Assert.Throws<ArgumentException>(() => Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers",
+                "RL_HARNESS_MATRIX_ROSTER", "Crimson:KiterPilot:Lasers, crimson:kiterpilot:lasers"));
+        }
+
+        [Test]
+        public void MatrixRoster_RefusesUnknownChassisPilotAndWeapon()
+        {
+            var chassis = Assert.Throws<ArgumentException>(() => Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "Nope:KiterPilot:Lasers",
+                "RL_HARNESS_MATRIX_ROSTER", "Crimson:AggressorPilot:Lasers"));
+            StringAssert.Contains("'Nope'", chassis.Message);
+            foreach (var ship in TrainingBootstrap.CatalogChassis())
+                StringAssert.Contains(ship.name, chassis.Message);
+
+            var pilot = Assert.Throws<ArgumentException>(() => Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:NopePilot:Lasers",
+                "RL_HARNESS_MATRIX_ROSTER", "Vanguard:AggressorPilot:Lasers"));
+            StringAssert.Contains("'NopePilot'", pilot.Message);
+            foreach (var commander in TrainingBootstrap.CatalogPilots())
+                StringAssert.Contains(commander.name, pilot.Message);
+
+            var weapon = Assert.Throws<ArgumentException>(() => Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Nope",
+                "RL_HARNESS_MATRIX_ROSTER", "Vanguard:AggressorPilot:Lasers"));
+            StringAssert.Contains("'Nope'", weapon.Message);
+            foreach (var item in TrainingBootstrap.CatalogWeapons())
+                StringAssert.Contains(item.name, weapon.Message);
+        }
+
+        [Test]
         public void DuelBlockLabels_NameTheWeaponAndTheTarget()
         {
             var railgun = TrainingBootstrap.CatalogWeapons().First(w => w.name == "Railgun");
@@ -595,6 +678,12 @@ namespace Tests.EditMode.RLHarness
                 "RL_HARNESS_ONNX", "run/ShipCombat-42.onnx", "RL_HARNESS_DUEL", "Lasers"), "duel lane");
             Assert.Throws<ArgumentException>(() => ParsePlayer("RL_HARNESS_BUNDLE", "run/eval-models.bundle",
                 "RL_HARNESS_ONNX", "run/ShipCombat-42.onnx", "RL_HARNESS_MATRIX", "Lasers"), "matrix lane");
+            Assert.Throws<ArgumentException>(() => ParsePlayer("RL_HARNESS_BUNDLE", "run/eval-models.bundle",
+                "RL_HARNESS_ONNX", "run/ShipCombat-42.onnx",
+                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers"), "roster matrix");
+            Assert.Throws<ArgumentException>(() => ParsePlayer("RL_HARNESS_BUNDLE", "run/eval-models.bundle",
+                "RL_HARNESS_ONNX", "run/ShipCombat-42.onnx",
+                "RL_HARNESS_MATRIX_ROSTER", "Crimson:KiterPilot:Lasers"), "roster matrix");
         }
 
         [Test]

@@ -2,9 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using AI;
 using Capture;
 using Capture.Recording;
 using Combat.Weapons;
+using Ships;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -48,7 +50,8 @@ namespace RL.Hosts
         public static void RunHarness()
         {
             var spec = HarnessSpec.ParseEval(Environment.GetEnvironmentVariable, ResolveEvalCandidate,
-                ResolveEvalOpponent, CatalogWeapons, () => SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Null);
+                ResolveEvalOpponent, CatalogWeapons, CatalogChassis, CatalogPilots,
+                () => SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Null);
 
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             var host = new GameObject("[HarnessHost]").AddComponent<HarnessHost>();
@@ -83,6 +86,21 @@ namespace RL.Hosts
 
         internal static IReadOnlyList<WeaponComponent> CatalogWeapons() =>
             AssetDatabase.LoadAssetAtPath<ItemCatalog>(ItemCatalog.AssetPath).Weapons;
+
+        internal static IReadOnlyList<Ship> CatalogChassis() =>
+            AssetDatabase.LoadAssetAtPath<ItemCatalog>(ItemCatalog.AssetPath).Chassis;
+
+        internal static IReadOnlyList<AICommander> CatalogPilots()
+        {
+            var pilots = new List<AICommander>();
+            foreach (var guid in AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/Prefabs/Pilots" }))
+            {
+                var pilot = AssetDatabase.LoadAssetAtPath<AICommander>(AssetDatabase.GUIDToAssetPath(guid));
+                if (pilot) pilots.Add(pilot);
+            }
+            pilots.Sort((a, b) => string.Compare(a.name, b.name, StringComparison.OrdinalIgnoreCase));
+            return pilots;
+        }
 
         private static Unity.InferenceEngine.ModelAsset LoadModelAsset(string assetPath)
         {

@@ -1,9 +1,11 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using Combat.Weapons;
 using UnityEngine;
 using RL.Episodes;
+using RL.Episodes.Compositions;
 using RL.Hosts;
 using RL.Opponents;
 using RL.Probes;
@@ -11,7 +13,7 @@ using RL.Reward;
 
 namespace RL.Hosts.Lanes
 {
-    /// <summary>The matrix lane client: for each seed, one harness composition per unordered weapon pair, a weapon against itself included. Both ships are scripted. The matrix probe's sidecar is the instrument; this summary fingerprints the run.</summary>
+    /// <summary>The matrix lane client. For each seed, one block per unordered weapon pair, or one block per roster ship against a fixed reference. Both ships are scripted. The matrix probe's sidecar is the instrument; this summary fingerprints the run.</summary>
     public sealed class MatrixLane : ILaneClient
     {
         IEnumerator ILaneClient.Run(HarnessHost host, HarnessSpec spec) => RunLane(host, spec);
@@ -62,34 +64,36 @@ namespace RL.Hosts.Lanes
             labelOverride = PairLabel(weaponA, weaponB),
         };
 
+        public static string RosterBlockLabel(MatrixSide reference, MatrixSide roster) =>
+            reference.Label + "_vs_" + roster.Label;
+
+        public static OpponentSpec Block(MatrixSide reference, MatrixSide roster) => new()
+        {
+            labelOverride = RosterBlockLabel(reference, roster),
+        };
+
         public static IEnumerator RunLane(HarnessHost host, HarnessSpec spec)
         {
             var baseSpec = MatrixSpec();
             var jsonlPath = EpisodeJsonl.NewRunPath(spec.tag, CheckpointEvaluator.ResultsFolder, spec.outDir);
-            var weapons = spec.matrixWeapons;
-            var blocks = new BlockSummary[weapons.Length * (weapons.Length + 1) / 2];
-            var cursor = 0;
-            for (var i = 0; i < weapons.Length; i++)
-                for (var j = i; j < weapons.Length; j++)
-                    blocks[cursor++].label = Block(weapons[i], weapons[j]).Label;
+            var matchups = Matchups(host, spec);
+            var blocks = new BlockSummary[matchups.Count];
+            for (var i = 0; i < matchups.Count; i++)
+                blocks[i].label = matchups[i].block.Label;
 
             foreach (var seed in spec.seeds)
             {
                 var seedSpec = baseSpec;
                 seedSpec.runSeed = seed;
-                // One composition per pair: the loadout binds at spawn, so a weapon change is a fresh pair.
-                var index = 0;
-                for (var i = 0; i < weapons.Length; i++)
+                // One composition per block: the loadout binds at spawn, so a side change is a fresh pair.
+                for (var i = 0; i < matchups.Count; i++)
                 {
-                    for (var j = i; j < weapons.Length; j++)
-                    {
-                        var blockIndex = index++;
-                        var composition = host.NewMatrixComposition(in seedSpec, weapons[i], weapons[j]);
-                        yield return host.RunBlock(composition, Block(weapons[i], weapons[j]), spec.episodesPerSeed,
-                            seedSpec, jsonlPath, _ => blocks[blockIndex].episodes++);
-                        composition.Dispose();
-                        host.Projectiles.ReturnAllToPool();
-                    }
+                    var blockIndex = i;
+                    var composition = matchups[i].spawn(seedSpec);
+                    yield return host.RunBlock(composition, matchups[i].block, spec.episodesPerSeed,
+                        seedSpec, jsonlPath, _ => blocks[blockIndex].episodes++);
+                    composition.Dispose();
+                    host.Projectiles.ReturnAllToPool();
                 }
             }
 
@@ -109,6 +113,33 @@ namespace RL.Hosts.Lanes
             foreach (var block in summary.blocks)
                 Debug.Log($"[MatrixLane] {block.label}: episodes={block.episodes}");
             Debug.Log($"[MatrixLane] summary → {summaryPath}");
+        }
+
+        private static List<(OpponentSpec block, Func<RewardSpec, IHarnessComposition> spawn)> Matchups(
+            HarnessHost host, HarnessSpec spec)
+        {
+            var matchups = new List<(OpponentSpec, Func<RewardSpec, IHarnessComposition>)>();
+            if (spec.matrixRoster != null)
+            {
+                var reference = spec.matrixReference;
+                foreach (var roster in spec.matrixRoster)
+                    matchups.Add((Block(reference, roster),
+                        seedSpec => host.NewMatrixComposition(in seedSpec, reference, roster)));
+                return matchups;
+            }
+
+            var weapons = spec.matrixWeapons;
+            for (var i = 0; i < weapons.Length; i++)
+            {
+                for (var j = i; j < weapons.Length; j++)
+                {
+                    var weaponA = weapons[i];
+                    var weaponB = weapons[j];
+                    matchups.Add((Block(weaponA, weaponB),
+                        seedSpec => host.NewMatrixComposition(in seedSpec, weaponA, weaponB)));
+                }
+            }
+            return matchups;
         }
     }
 }

@@ -1,10 +1,8 @@
 using AI;
-using Combat.Weapons;
 using Ships;
 using UnityEngine;
 using Substrate.Services.Units;
 using Substrate.Services.Projectiles;
-using RL.Arena;
 using RL.Episodes;
 using RL.Hosts;
 using RL.Hosts.Lanes;
@@ -13,7 +11,7 @@ using RL.Reward;
 
 namespace RL.Episodes.Compositions
 {
-    /// <summary>The matrix lane's harness composition. Both ships carry one primary weapon and fly a fixed Aggressor at each other on TestPilotMPC. The loadout binds at spawn, so one seed's episodes share the pair and an odd episode only swaps poses.</summary>
+    /// <summary>The matrix lane's harness composition. Each side brings its chassis, pilot, and one primary weapon. The weapon-pair path installs a fixed Aggressor on both ships; a roster side flies the pilot prefab's authored brain. The loadout binds at spawn, so one seed's episodes share the pair and an odd episode only swaps poses.</summary>
     internal sealed class MatrixComposition : IHarnessComposition
     {
         // DuelComposition's fixed Aggressor: hold 10, speed fraction 0.85.
@@ -25,6 +23,8 @@ namespace RL.Episodes.Compositions
         private readonly UnitService units;
         private readonly AICommander agentCommander;
         private readonly AICommander baselineCommander;
+        private readonly bool installAggressor;
+        private readonly string rosterPilotName;
         private readonly Vector2 arenaCenter;
         private SpawnPoses poses;
         private bool swapPending;
@@ -32,11 +32,13 @@ namespace RL.Episodes.Compositions
         private int respawnCount;
 
         public MatrixComposition(UnitService units, Vector2 offset, IProjectileService projectiles,
-            HarnessAssets assets, in RewardSpec spec, WeaponComponent weaponA, WeaponComponent weaponB)
+            in RewardSpec spec, MatrixSide sideA, MatrixSide sideB, bool installAggressor)
         {
             this.units = units;
+            this.installAggressor = installAggressor;
+            rosterPilotName = sideB.pilot.name;
             arenaCenter = offset;
-            Pair = MatrixSpawner.Spawn(units, offset, field: null, projectiles, in spec, assets, weaponA, weaponB);
+            Pair = MatrixSpawner.Spawn(units, offset, field: null, projectiles, in spec, sideA, sideB);
             agentCommander = Pair.Agent.GetComponentInChildren<AICommander>();
             baselineCommander = Pair.Baseline.GetComponentInChildren<AICommander>();
             Driver = new EpisodeLoopDriver(Pair, agent: null, offset);
@@ -45,22 +47,32 @@ namespace RL.Episodes.Compositions
 
         public OpponentDraw InstallOpponent(in OpponentSpec opponent, in RewardSpec spec, int episodeIndex)
         {
-            var arenaRadius = spec.arenaRadius;
-            agentCommander.InstallBrain<ArchetypeBrain>()
-                .Configure(Pair.Baseline, OpponentArchetype.Aggressor, in ShooterShape, jukeSeed: 0,
-                    arenaCenter, arenaRadius);
-            baselineCommander.InstallBrain<ArchetypeBrain>()
-                .Configure(Pair.Agent, OpponentArchetype.Aggressor, in ShooterShape, jukeSeed: 0,
-                    arenaCenter, arenaRadius);
+            OpponentDraw draw;
+            if (installAggressor)
+            {
+                var arenaRadius = spec.arenaRadius;
+                agentCommander.InstallBrain<ArchetypeBrain>()
+                    .Configure(Pair.Baseline, OpponentArchetype.Aggressor, in ShooterShape, jukeSeed: 0,
+                        arenaCenter, arenaRadius);
+                baselineCommander.InstallBrain<ArchetypeBrain>()
+                    .Configure(Pair.Agent, OpponentArchetype.Aggressor, in ShooterShape, jukeSeed: 0,
+                        arenaCenter, arenaRadius);
+                draw = new OpponentDraw
+                {
+                    archetype = OpponentArchetype.Aggressor.ToString(),
+                    desiredRange = ShooterShape.desiredRange,
+                    speedFraction = ShooterShape.speedFraction,
+                };
+            }
+            else
+            {
+                draw = new OpponentDraw { archetype = rosterPilotName };
+            }
+
             poses = EpisodePoses.Derive(in spec, MatrixLane.PoseIndex(episodeIndex), arenaCenter);
             swapPending = MatrixLane.SidesSwapped(episodeIndex);
             respawnCount = 0;
-            return new OpponentDraw
-            {
-                archetype = OpponentArchetype.Aggressor.ToString(),
-                desiredRange = ShooterShape.desiredRange,
-                speedFraction = ShooterShape.speedFraction,
-            };
+            return draw;
         }
 
         public void Dispose()
