@@ -6,7 +6,9 @@ using Substrate;
 namespace Cameras
 {
     /// <summary>
-    /// Multi-target camera that follows all active ships with optional player-lock modes.
+    /// Follows the player (the flight camera), framing the nearest enemies being fought
+    /// unless the player chose the manual camera (<see cref="CameraSettings"/>).
+    /// Fits all active ships when unlocked or without a subject.
     /// Manual framing remains available after the last ship deactivates.
     /// </summary>
     public class ObserverCam : SmoothCamera
@@ -14,7 +16,7 @@ namespace Cameras
         [Header("Focus Behavior")]
         [SerializeField] private bool lockCameraToSubject;
         [SerializeField] private bool lockZoomToSubject;
-        [Tooltip("Adaptive zoom, velocity lead, cursor lead and fight pull while locked on the subject.")]
+        [Tooltip("Adaptive zoom, velocity lead, cursor lead and fight framing while locked on the subject.")]
         [SerializeField] private FlightCameraProfile feel;
 
         [Header("Player Tracking")]
@@ -22,11 +24,11 @@ namespace Cameras
         [SerializeField] private bool keepSubjectInView = true;
 
         [Header("Player Zoom")]
-        [Tooltip("Factor the auto-fit or lock-zoom framing scales by per scroll-wheel notch.")]
+        [Tooltip("Factor the manual camera's framing scales by per scroll-wheel notch.")]
         [SerializeField, Min(1f)] private float zoomStep = 1.1f;
-        [Tooltip("Closest the player can zoom in, as a multiple of the auto-fit or lock-zoom framing.")]
+        [Tooltip("Closest the manual camera can zoom in, as a multiple of its framing.")]
         [SerializeField] private float minZoomScale = 0.6f;
-        [Tooltip("Widest the player can zoom out, as a multiple of the auto-fit or lock-zoom framing.")]
+        [Tooltip("Widest the manual camera can zoom out, as a multiple of its framing.")]
         [SerializeField] private float maxZoomScale = 2f;
 
         private HashSet<Transform> secondarySubjects;
@@ -41,6 +43,8 @@ namespace Cameras
         private Vector2 fightShiftVelocity;
         private HashSet<Transform> engaged;
         private HashSet<Transform> nextEngaged;
+        private List<Transform> fightCandidates;
+        private Comparison<Transform> byDistanceFromSubject;
         private float lockedZoom;
         private float lockedZoomVelocity;
         private Vector2? manualCenter;
@@ -52,6 +56,7 @@ namespace Cameras
         public Vector2? ManualCenter => manualCenter;
         public float? ManualZoom => manualZoom;
         public float ZoomScale => zoomScale;
+        internal float AppliedZoomScale => CameraSettings.ManualCamera ? zoomScale : 1f;
 
         protected override void Awake()
         {
@@ -62,6 +67,8 @@ namespace Cameras
             secondarySubjects = new HashSet<Transform>();
             engaged = new HashSet<Transform>();
             nextEngaged = new HashSet<Transform>();
+            fightCandidates = new List<Transform>();
+            byDistanceFromSubject = CompareDistanceFromSubject;
         }
 
         protected override void ComputeDesiredCameraState(out Vector2? desiredCenter, out float? desiredSize)
@@ -114,11 +121,19 @@ namespace Cameras
         private Vector2 StepFightShift(Vector2 center)
         {
             var target = TryGetFightBounds(out var min, out var max)
-                ? feel.fightPull * (CameraUtils.ShiftToFitBounds(center, min, max, feel.zoom + feel.fightMaxWiden, Cam.aspect, padding) - center)
+                ? FightFocus(center, min, max) - center
                 : Vector2.zero;
-            fightShift = Vector2.SmoothDamp(fightShift, target, ref fightShiftVelocity, feel.leadSmoothTime,
+            fightShift = Vector2.SmoothDamp(fightShift, target, ref fightShiftVelocity, feel.fightShiftTime,
                 float.PositiveInfinity, Time.unscaledDeltaTime);
             return fightShift;
+        }
+
+        private Vector2 FightFocus(Vector2 center, Vector2 min, Vector2 max)
+        {
+            var biased = Vector2.Lerp(center, CameraUtils.BoundsCenter(min, max), feel.fightCenterBias);
+            var fitted = CameraUtils.ShiftToFitBounds(biased, min, max, feel.maxZoomOut, Cam.aspect, padding);
+            var player = GamePlane.WorldPointToPlane(subject.position);
+            return CameraUtils.ShiftToKeepPointInView(fitted, player - fitted, feel.maxZoomOut, Cam.aspect, padding);
         }
 
         private Vector2 LeadBodyVelocity => leadBody && leadBody.gameObject.activeInHierarchy
@@ -130,15 +145,15 @@ namespace Cameras
             if (manualZoom.HasValue)
                 return manualZoom.Value;
             if (lockZoomToSubject && lockCameraToSubject)
-                return StepLockedZoom(center) * zoomScale;
+                return StepLockedZoom(center) * AppliedZoomScale;
             var preferredSize = CameraUtils.ZoomToFitBounds(center, boundsMin, boundsMax, padding, Cam.aspect);
-            return ClampZoom(preferredSize) * zoomScale;
+            return ClampZoom(preferredSize) * AppliedZoomScale;
         }
 
         private float StepLockedZoom(Vector2 center)
         {
-            var target = Mathf.Max(Mathf.Clamp(SpeedZoom, feel.zoom, feel.zoom + feel.maxWiden),
-                Mathf.Min(FightZoom(center), feel.zoom + feel.fightMaxWiden));
+            var target = Mathf.Min(Mathf.Max(Mathf.Clamp(SpeedZoom, feel.zoom, feel.zoom + feel.maxWiden),
+                FightZoom(center)), feel.maxZoomOut);
             lockedZoom = CameraUtils.SmoothZoom(lockedZoom, target, ref lockedZoomVelocity,
                 feel.widenTime, feel.narrowTime, Time.unscaledDeltaTime);
             return lockedZoom;
@@ -147,12 +162,28 @@ namespace Cameras
         private void StepEngaged()
         {
             nextEngaged.Clear();
-            foreach (var ship in secondarySubjects)
+            if (!CameraSettings.ManualCamera && subject)
             {
-                if (IsEngaged(ship))
-                    nextEngaged.Add(ship);
+                fightCandidates.Clear();
+                foreach (var ship in secondarySubjects)
+                {
+                    if (IsEngaged(ship))
+                        fightCandidates.Add(ship);
+                }
+                fightCandidates.Sort(byDistanceFromSubject);
+                var count = Mathf.Min(fightCandidates.Count, feel.fightCount);
+                for (var i = 0; i < count; i++)
+                    nextEngaged.Add(fightCandidates[i]);
             }
             (engaged, nextEngaged) = (nextEngaged, engaged);
+        }
+
+        private int CompareDistanceFromSubject(Transform a, Transform b)
+        {
+            var origin = GamePlane.WorldPointToPlane(subject.position);
+            var aDistance = Vector2.Distance(origin, GamePlane.WorldPointToPlane(a.position));
+            var bDistance = Vector2.Distance(origin, GamePlane.WorldPointToPlane(b.position));
+            return aDistance.CompareTo(bDistance);
         }
 
         private bool IsEngaged(Transform ship)

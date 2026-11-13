@@ -23,10 +23,12 @@ namespace Tests.PlayMode.Cameras
         private Mouse mouse;
         private ObserverCam cam;
         private GameObject subject;
+        private bool previousManual;
 
         public override void Setup()
         {
             base.Setup();
+            previousManual = CameraSettings.ManualCamera;
             keyboard = InputSystem.AddDevice<Keyboard>();
             mouse = InputSystem.AddDevice<Mouse>();
             cam = TestAssets.NewObserverCam();
@@ -36,31 +38,31 @@ namespace Tests.PlayMode.Cameras
         {
             if (subject) Object.DestroyImmediate(subject);
             if (cam) Object.DestroyImmediate(cam.gameObject);
+            CameraSettings.ManualCamera = previousManual;
             base.TearDown();
         }
 
         [UnityTest]
-        public IEnumerator C_TogglesLockToSubject_OncePerPress()
+        public IEnumerator C_NoLongerSwitchesTheCameraMode()
         {
             var locked = cam.LockCameraToSubject;
+            var manual = CameraSettings.ManualCamera;
 
             Press(keyboard.cKey);
             yield return null;
-            Assert.AreEqual(!locked, cam.LockCameraToSubject, "pressing C flips the lock");
-
             yield return null;
-            Assert.AreEqual(!locked, cam.LockCameraToSubject, "holding C does not flip it again");
-
             Release(keyboard.cKey);
-            yield return null;
             Press(keyboard.cKey);
             yield return null;
-            Assert.AreEqual(locked, cam.LockCameraToSubject, "a fresh press flips it back");
+
+            Assert.AreEqual(locked, cam.LockCameraToSubject, "C no longer switches the lock");
+            Assert.AreEqual(manual, CameraSettings.ManualCamera, "C no longer switches the manual camera");
         }
 
         [UnityTest]
-        public IEnumerator ScrollWheel_ZoomsOneEqualStepPerNotch()
+        public IEnumerator ManualCamera_ScrollWheel_ZoomsOneEqualStepPerNotch()
         {
+            CameraSettings.ManualCamera = true;
             yield return Scroll(1f);
             var oneNotchIn = cam.ZoomScale;
             Assert.Less(oneNotchIn, 1f, "scrolling up zooms in");
@@ -73,8 +75,9 @@ namespace Tests.PlayMode.Cameras
         }
 
         [UnityTest]
-        public IEnumerator ScrollWheel_StopsAtTheZoomLimits()
+        public IEnumerator ManualCamera_ScrollWheel_StopsAtTheZoomLimits()
         {
+            CameraSettings.ManualCamera = true;
             yield return Scroll(100f);
             var closest = cam.ZoomScale;
             yield return Scroll(1f);
@@ -89,8 +92,9 @@ namespace Tests.PlayMode.Cameras
         }
 
         [UnityTest]
-        public IEnumerator ScrollWheel_ScalesTheAutoFitFraming()
+        public IEnumerator ManualCamera_ScrollWheel_ScalesTheAutoFitFraming()
         {
+            CameraSettings.ManualCamera = true;
             subject = new GameObject("Subject");
             cam.SetSubject(subject.transform);
             cam.SetLockCameraToSubject(false);
@@ -107,8 +111,9 @@ namespace Tests.PlayMode.Cameras
         }
 
         [UnityTest]
-        public IEnumerator ScrolledFraming_HoldsUnderAManualZoom()
+        public IEnumerator ManualCamera_ScrolledFraming_HoldsUnderAManualZoom()
         {
+            CameraSettings.ManualCamera = true;
             subject = new GameObject("Subject");
             cam.SetSubject(subject.transform);
             yield return Scroll(100f);
@@ -120,6 +125,24 @@ namespace Tests.PlayMode.Cameras
             yield return AsyncAssert.AssertRemainsFalseFor(
                 () => Mathf.Abs(cam.Cam.orthographicSize - scrolledSize) > SizeTolerance,
                 "pinning the live size as a manual zoom, as the defeat recap does, moved the framing",
+                minFrames: 30,
+                minUnscaledSeconds: 0.35f);
+        }
+
+        [UnityTest]
+        public IEnumerator AutoCamera_ScrollWheel_LeavesTheZoomAlone()
+        {
+            CameraSettings.ManualCamera = false;
+            subject = new GameObject("Subject");
+            cam.SetSubject(subject.transform);
+            yield return new WaitForSecondsRealtime(SettleSec);
+            var settled = cam.Cam.orthographicSize;
+
+            yield return Scroll(-3f);
+            Assert.AreEqual(1f, cam.ZoomScale);
+            yield return AsyncAssert.AssertRemainsFalseFor(
+                () => Mathf.Abs(cam.Cam.orthographicSize - settled) > SizeTolerance,
+                "the wheel moved the auto camera's zoom",
                 minFrames: 30,
                 minUnscaledSeconds: 0.35f);
         }
