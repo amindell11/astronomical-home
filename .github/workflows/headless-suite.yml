@@ -22,8 +22,9 @@ env:
   # Same editor as unityVersion below; the hosted ratchet needs its reference assemblies, not a licence.
   EDITOR_IMAGE: unityci/editor:ubuntu-6000.1.8f1-linux-il2cpp-3
   RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-  # Meshes and models only. PNG art stays a pointer file; tests that read it carry RequiresLfsPng.
-  LFS_INCLUDE: src/Asteroids3D/Assets/**/*.fbx,src/Asteroids3D/Assets/**/*.FBX,src/Asteroids3D/Assets/**/*.obj,src/Asteroids3D/Assets/**/*.onnx
+  # Meshes, models and ship silhouettes (every spawned ship's minimap marker loads one). Other PNG
+  # art stays a pointer file; tests that read it carry RequiresLfsPng.
+  LFS_INCLUDE: src/Asteroids3D/Assets/**/*.fbx,src/Asteroids3D/Assets/**/*.FBX,src/Asteroids3D/Assets/**/*.obj,src/Asteroids3D/Assets/**/*.onnx,src/Asteroids3D/Assets/Resources/RunRecap/Ships/*.png
 
 jobs:
   headless:

@@ -34,7 +34,8 @@
   the whole suite. Give new fixtures exactly one domain tag.
 - **A test that reads LFS-backed PNG art carries `RequiresLfsPng`.** The
   hosted headless suite pulls only Assets meshes and models (`.fbx`, `.obj`,
-  `.onnx`), so it skips the tag; local runs include it. A PR that touches a
+  `.onnx`) and the ship silhouettes under `Resources/RunRecap/Ships/`, so it
+  skips the tag; local runs include it. A PR that touches a
   tagged test or the PNGs it reads lists an owed-local `unity` item:
   `run-tests <slot> -Mode Both -TestCategory RequiresLfsPng`. Details:
   `TESTING.md` § `RequiresLfsPng`.
