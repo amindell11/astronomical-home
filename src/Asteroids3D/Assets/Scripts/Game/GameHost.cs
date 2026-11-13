@@ -142,6 +142,8 @@ namespace Game
 
         internal string runRecordPath;
         internal BuildIdentitySource buildIdentity;
+        internal string runExportFolder;
+        internal Action<string> revealExportedRun;
         internal ShipUnlocks unlocks;
 
         private RunRecordStore runRecords;
@@ -531,9 +533,10 @@ namespace Game
             SetSplashVisible(false);
             SetMusic(GameMusic.State.Hangar);
             SetHangarViewVisible(true);
+            string exportResult = null;
             while (true)
             {
-                var screen = TitleScreen.Create(ui, titleFont, titleLabelFont);
+                var screen = TitleScreen.Create(ui, titleFont, titleLabelFont, exportResult);
                 try
                 {
                     while (!screen.Choice.HasValue && !shutdownRequested) yield return null;
@@ -543,14 +546,57 @@ namespace Game
                         // Quitting lands after this frame; the hangar must not open meanwhile.
                         while (!shutdownRequested) yield return null;
                     }
+
+                    if (screen.Choice == TitleScreen.Option.Export)
+                    {
+                        exportResult = ExportRuns();
+                        continue;
+                    }
+
                     if (screen.Choice != TitleScreen.Option.Settings) yield break;
                 }
                 finally
                 {
                     Destroy(screen.gameObject);
                 }
+
+                exportResult = null;
                 yield return RunSettings();
             }
+        }
+
+        private string ExportRuns()
+        {
+            if (!buildIdentity(out var identity, out var failure))
+            {
+                Debug.LogError($"Runs not exported, build identity unreadable: {failure}", this);
+                return "Could not save the runs file";
+            }
+
+            var folder = string.IsNullOrEmpty(runExportFolder)
+                ? Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory)
+                : runExportFolder;
+            var export = runRecords.Export(folder, identity);
+            if (export.Outcome == RunRecordExport.Kind.Saved)
+            {
+                (revealExportedRun ?? RevealExportedFile)(export.WrittenPath);
+                return "Saved to Desktop: " + System.IO.Path.GetFileName(export.WrittenPath);
+            }
+
+            if (export.Outcome == RunRecordExport.Kind.NothingYet)
+                return "No runs recorded yet";
+            return "Could not save the runs file";
+        }
+
+        private static void RevealExportedFile(string path)
+        {
+            if (Application.platform != RuntimePlatform.WindowsPlayer)
+                return;
+            var start = new System.Diagnostics.ProcessStartInfo("explorer.exe", "/select,\"" + path + "\"")
+            {
+                UseShellExecute = true,
+            };
+            using var explorer = System.Diagnostics.Process.Start(start);
         }
 
         private IEnumerator RunPause()
