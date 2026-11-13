@@ -7,8 +7,8 @@ using Substrate.Services.Projectiles;
 
 namespace Combat.Weapons.Arsenal
 {
-    /// <summary>Short-range spread gun: one trigger pull fans its pellets across a cone and spends one shell; each pellet knocks back what it hits.</summary>
-    public class Scatterguns : WeaponBase<Pellet>
+    /// <summary>Short-range spread gun: one trigger pull fans its pellets across a cone and spends one shell.</summary>
+    public class Scatterguns : WeaponBase<Laser>
     {
         [Header("Spread")]
         [Tooltip("Pellets per trigger pull.")]
@@ -36,7 +36,6 @@ namespace Combat.Weapons.Arsenal
         protected override WeaponCondition[] AuthoredConditions => new WeaponCondition[] { rounds, cooldown };
         public float Damage => projectilePrefab.Damage;
         public float Range => projectilePrefab.MaxDistance;
-        public float Knockback => projectilePrefab.Knockback;
         public int Pellets => pellets;
         public float SpreadDegrees => spreadDegrees;
         public float? ShotsPerSecond =>
@@ -55,7 +54,7 @@ namespace Combat.Weapons.Arsenal
             if (!TrySpendFireConditions()) return null;
 
             var muzzle = Muzzles[0];
-            Pellet first = null;
+            Laser first = null;
             var half = spreadDegrees * 0.5f;
             var last = pellets - 1;
             for (var i = 0; i < pellets; i++)

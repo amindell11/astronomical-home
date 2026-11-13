@@ -181,7 +181,7 @@ namespace UI.Hangar
             if (scatterguns)
                 return $"Damage {scatterguns.Damage:0} x {scatterguns.Pellets} pellets over {scatterguns.SpreadDegrees:0} deg{Rate(scatterguns.ShotsPerSecond)}" +
                        (scatterguns.Rounds ? $"   |   {scatterguns.Rounds.MaxAmmo} shells{Refill(scatterguns.Rounds)}" : "") +
-                       $"   |   Range {scatterguns.Range:0}u   |   Knockback {scatterguns.Knockback:0} per pellet";
+                       $"   |   Range {scatterguns.Range:0}u   |   Knockback";
 
             var missiles = weapon as Missiles;
             if (missiles)

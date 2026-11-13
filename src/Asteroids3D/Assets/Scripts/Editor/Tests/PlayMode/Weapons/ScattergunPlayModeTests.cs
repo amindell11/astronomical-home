@@ -13,6 +13,7 @@ using Substrate;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
+using Utils;
 using Object = UnityEngine.Object;
 
 namespace Tests.PlayMode.Weapons
@@ -109,6 +110,11 @@ namespace Tests.PlayMode.Weapons
 
             Assert.AreEqual(gun.Pellets, liveShortOfRange, "still in flight well short of range");
             Assert.AreEqual(0, Projectiles.ActiveCount);
+
+            var parked = SimplePool<Laser>.PoolSize;
+            yield return Until(() => gun.CanFire(), Mathf.CeilToInt(1f / Time.fixedDeltaTime));
+            Assert.IsNotNull(gun.Fire(Ahead(gun), Projectiles));
+            Assert.AreEqual(parked - gun.Pellets, SimplePool<Laser>.PoolSize, "the next pull reuses the returned pellets");
         }
 
         [UnityTest]
@@ -181,7 +187,6 @@ namespace Tests.PlayMode.Weapons
             shooter.Initialize(0, 0, Projectiles);
             shooter.Reequip(TestAssets.Load<Scatterguns>(PrefabPath), null);
             var gun = (Scatterguns)shooter.Weapons.Primary;
-            Assert.Greater(gun.Knockback, 0f);
 
             var target = Object.Instantiate(TestAssets.LoadCrimsonPrefab(),
                 gun.FireOrigin + gun.FireDirection * 6f, GamePlane.Rotation);

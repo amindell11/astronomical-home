@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Combat.Projectiles
 {
-    /// <summary>A scattergun pellet: a laser-class slug that also shoves what it hits.</summary>
+    // A Laser to its pool too: weapons fire it as WeaponBase<Laser>, matching Laser's sealed pool return.
     public class Pellet : Laser
     {
         [Tooltip("Impulse (N·s) this pellet gives its target at the contact point, along its flight.")]
