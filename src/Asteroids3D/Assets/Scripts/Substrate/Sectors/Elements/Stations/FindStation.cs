@@ -14,7 +14,7 @@ namespace Substrate.Sectors.Elements.Stations
     /// setup each picks its own point away from the sector's start, spaced from the others and from other
     /// kinds' stations, which pick first; the asteroid field reads those points and leaves a clearing of the clear
     /// radius. On the first tick each shows, marked as a find, until it goes dark: when its supply is spent, or
-    /// when the sector's hunt raises its alarm, losing whatever supply is left. A sector with no hunt keeps them
+    /// when the sector's hunt releases, losing whatever supply is left. A sector with no hunt keeps them
     /// live. The arrival events are plain C#, raised once per station on its first arrival. A kind supplies only
     /// its effect: what a live station gives the hero sitting in it, drawn from that station's supply.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1319
@@ -23,7 +23,7 @@ namespace Substrate.Sectors.Elements.Stations
     {
         [Tooltip("The model with its zone and lit parts; copied per station and hidden until placed.")]
         [SerializeField] private FindStationBody body;
-        [Tooltip("The sector's opening hunt, read for its alarm, which darkens every live station; unset for none.")]
+        [Tooltip("The sector's opening hunt, read for its release, which darkens every live station; unset for none.")]
         [SerializeField] private SectorHunt hunt;
         [Tooltip("Other kinds' stations, read at setup for their points so none of these lands beside one.")]
         [SerializeField] private FindStation[] spacedFrom = { };
@@ -72,10 +72,11 @@ namespace Substrate.Sectors.Elements.Stations
 
         public override IEnumerator Setup(SectorBuildContext ctx)
         {
-            if (!body || !body.Zone || !body.Lit || !icon || ctx.Objectives == null || !ctx.Sector
-                || !body.Zone.transform.IsChildOf(body.transform) || !body.Lit.transform.IsChildOf(body.transform))
+            if (!body || !body.Zone || !body.Lit || !body.Marker || !icon || ctx.Objectives == null || !ctx.Sector
+                || !body.Zone.transform.IsChildOf(body.transform) || !body.Lit.transform.IsChildOf(body.transform)
+                || !body.Marker.transform.IsChildOf(body.Lit.transform))
                 throw new InvalidOperationException(
-                    $"{GetType().Name} on '{name}' needs its icon, objective service, sector, body, and a zone and lit parts under the body.");
+                    $"{GetType().Name} on '{name}' needs its icon, objective service, sector, body, a zone and lit parts under the body, and a marker under the lit parts.");
             if (Array.Exists(spacedFrom, other => !other))
                 throw new InvalidOperationException($"{GetType().Name} on '{name}' has an empty spaced-from entry.");
 
@@ -123,11 +124,11 @@ namespace Substrate.Sectors.Elements.Stations
                 return;
             }
 
-            var alarmed = hunt && hunt.Alarmed;
+            var released = hunt && hunt.Released;
             foreach (var station in stations)
             {
                 if (station.Spent) continue;
-                if (alarmed)
+                if (released)
                 {
                     station.GoDark();
                     continue;
@@ -150,7 +151,7 @@ namespace Substrate.Sectors.Elements.Stations
         private void Show()
         {
             foreach (var station in stations)
-                station.Show(objectives.MarkFind(station.Body.transform, icon));
+                station.Show(objectives.MarkFind(station.Body.transform, icon, FindColours.Of(Kind)));
             shown = true;
         }
 
@@ -180,9 +181,13 @@ namespace Substrate.Sectors.Elements.Stations
         /// <summary>One placed station of the sector's set, with its own supply.</summary>
         public sealed class Station
         {
+            private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
+            private static readonly MaterialPropertyBlock Tint = new();
+
             internal readonly GameObject Body;
             internal readonly ExtractionZone Zone;
             internal readonly GameObject Lit;
+            internal readonly Renderer Marker;
             internal bool HasArrived;
             internal bool Inside;
             private FindMarker find;
@@ -192,12 +197,13 @@ namespace Substrate.Sectors.Elements.Stations
                 Body = body.gameObject;
                 Zone = body.Zone;
                 Lit = body.Lit;
+                Marker = body.Marker;
             }
 
             /// <summary>What the station has left to give, in its kind's unit.</summary>
             public float SupplyLeft { get; private set; }
 
-            /// <summary>Drawn to nothing, or darkened by the alarm.</summary>
+            /// <summary>Drawn to nothing, or darkened when the hunt releases.</summary>
             public bool Spent => SupplyLeft <= 0f;
 
             /// <summary>The point picked at setup; the body moves there when it shows.</summary>
@@ -215,12 +221,14 @@ namespace Substrate.Sectors.Elements.Stations
                 Lit.SetActive(true);
             }
 
-            internal void Show(FindMarker marker)
+            internal void Show(FindMarker find)
             {
                 Body.transform.position = Position;
                 Body.SetActive(true);
                 Zone.Arm();
-                find = marker;
+                this.find = find;
+                Tint.SetColor(BaseColor, find.Colour);
+                Marker.SetPropertyBlock(Tint);
             }
 
             internal void Draw(float amount)

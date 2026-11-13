@@ -10,11 +10,13 @@ namespace Substrate.Services.Objectives
 
         public Transform Target { get; }
         public Sprite Icon { get; }
+        public Color Colour { get; }
 
-        internal FindMarker(Transform target, Sprite icon, Action<FindMarker> close)
+        internal FindMarker(Transform target, Sprite icon, Color colour, Action<FindMarker> close)
         {
             Target = target;
             Icon = icon;
+            Colour = colour;
             this.close = close;
         }
 

@@ -21,7 +21,7 @@ using Random = UnityEngine.Random;
 
 namespace Tests.PlayMode.Sectors
 {
-    /// <summary>The shipped armory prefab: a one-row run at sector index 0 places the one armory its row asks for; every fly-in counts a claim, only a take spends the armory and darkens it, the alarm darkens an untaken one, and it picks its point spaced from the repair and mod stations.</summary>
+    /// <summary>The shipped armory prefab: a one-row run at sector index 0 places the one armory its row asks for; every fly-in counts a claim, only a take spends the armory and darkens it, the hunt's release darkens an untaken one, and it picks its point spaced from the repair and mod stations.</summary>
     [TestFixture]
     [Category("Sectors")]
     [Category("RequiresLfsPng")]
@@ -32,11 +32,13 @@ namespace Tests.PlayMode.Sectors
         private const string ModStationPath = "Assets/Prefabs/Objectives/Mod Station.prefab";
         private const float Distance = 40f;
         private const float Spacing = 20f;
+        private const float AlarmGrace = 5f;
 
         private readonly List<Object> _created = new();
         private readonly List<string> _beats = new();
         private ObjectiveService _objectives;
         private Sector _sector;
+        private float alarmAt;
 
         [SetUp]
         public override void SetUp()
@@ -117,10 +119,17 @@ namespace Tests.PlayMode.Sectors
             yield return MoveTo(hero, station.Position);
             Assert.AreEqual(1, armory.Claims);
 
-            hunt.Tick(Time.time + 2000f);
+            alarmAt = Time.time + 2000f;
+            hunt.Tick(alarmAt);
             Assert.IsTrue(hunt.Alarmed, "The search clock ran out.");
+            Assert.IsFalse(hunt.Released, "The gap after the alarm has not elapsed.");
             yield return null;
-            Assert.IsTrue(station.Spent, "The alarm spends a claimed but untaken armory.");
+            Assert.IsFalse(station.Spent, "The gap leaves a claimed but untaken armory.");
+            Assert.IsTrue(station.Lit.activeSelf, "The armory stays lit through the gap.");
+            hunt.Tick(alarmAt + AlarmGrace);
+            Assert.IsTrue(hunt.Released, "The gap after the alarm has elapsed.");
+            yield return null;
+            Assert.IsTrue(station.Spent, "The release spends a claimed but untaken armory.");
             Assert.IsFalse(station.Lit.activeSelf);
             AssertFinds(armory);
         }
@@ -161,6 +170,7 @@ namespace Tests.PlayMode.Sectors
         private SectorHunt NewHunt(Ship hero)
         {
             var feel = Track(ScriptableObject.CreateInstance<HuntFeelProfile>());
+            feel.alarmGraceSeconds = AlarmGrace;
             var hunt = Track(new GameObject("Hunt")).AddComponent<SectorHunt>();
             hunt.Configure(feel, null, null, 0f);
             Drive(hunt.Build(Context(hero, 1)));
@@ -204,7 +214,7 @@ namespace Tests.PlayMode.Sectors
                     modStations = 2
                 });
 
-        // Exactly the live armories are finds, with the armory's own icon.
+        // Exactly the live armories are finds, in the armory colour, with the armory's own icon.
         private void AssertFinds(Armory armory, params FindStation.Station[] live)
         {
             using var serialized = new SerializedObject(armory);
@@ -212,8 +222,12 @@ namespace Tests.PlayMode.Sectors
             Assert.IsTrue(icon, "The armory carries its find icon.");
             CollectionAssert.AreEquivalent(live.Select(station => station.Body.transform),
                 _objectives.Finds.Select(find => find.Target), "Exactly the live armories are finds.");
+            var colour = FindColours.Of(armory.Kind);
             foreach (var find in _objectives.Finds)
+            {
                 Assert.AreSame(icon, find.Icon);
+                Assert.AreEqual(colour, find.Colour);
+            }
         }
 
         private static float PlaneDistance(Vector3 a, Vector3 b) => Vector2.Distance(

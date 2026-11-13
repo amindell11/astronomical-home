@@ -323,6 +323,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   zone: {fileID: 8044714544803237901}
   lit: {fileID: 8596565270731034227}
+  marker: {fileID: 7749946922443441563}
 --- !u!1 &8596565270731034227
 GameObject:
   m_ObjectHideFlags: 0

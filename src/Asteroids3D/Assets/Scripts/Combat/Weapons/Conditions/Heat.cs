@@ -20,7 +20,7 @@ namespace Combat.Weapons.Conditions
         event Action OnCooldownStart;
     }
 
-    public class Heat : WeaponCondition, IHeatReadout
+    public class Heat : WeaponCondition, IHeatReadout, IRecoveryReadout
     {
         [Header("Heat System")]
         [Stat, SerializeField] private float maxHeat = 100f;
@@ -38,6 +38,13 @@ namespace Combat.Weapons.Conditions
         public event Action OnOverheat;
         public event Action OnCooldownStart;
         public event Action<float, float> OnHeatChanged;
+
+        // The lockout's end is the heat's recovery.
+        event Action IRecoveryReadout.Recovered
+        {
+            add => OnCooldownStart += value;
+            remove => OnCooldownStart -= value;
+        }
 
         public float CurrentHeat { get; private set; }
         public float MaxHeat => mods.Apply(WeaponModField.HeatCapacity, maxHeat);

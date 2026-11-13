@@ -20,7 +20,7 @@ using Substrate.Sessions;
 
 namespace Tests.PlayMode.Sectors
 {
-    /// <summary>The shipped repair station prefab with a scratch feel: it shows on a point its distance from the hero's start, repairs hull at the feel's rate while the hero sits in it, draws on its supply only for what it heals, goes dark when the supply is spent or the sector's hunt raises its alarm, places a set of stations apart with a supply each, stays live in a sector with no hunt, raises its arrival events once, and is a find on the objective service from placement until it goes dark.</summary>
+    /// <summary>The shipped repair station prefab with a scratch feel: it shows on a point its distance from the hero's start, repairs hull at the feel's rate while the hero sits in it, draws on its supply only for what it heals, goes dark when the supply is spent or the sector's hunt releases, places a set of stations apart with a supply each, stays live in a sector with no hunt, raises its arrival events once, and is a find on the objective service from placement until it goes dark.</summary>
     [TestFixture]
     [Category("Sectors")]
     [Category("RequiresLfsPng")]
@@ -30,11 +30,13 @@ namespace Tests.PlayMode.Sectors
         private const float Distance = 40f;
         private const int SectorIndex = 2;
         private const float Spacing = 40f;
+        private const float AlarmGrace = 5f;
 
         private readonly List<Object> _created = new();
         private readonly List<string> _beats = new();
         private ObjectiveService _objectives;
         private Sector _sector;
+        private float alarmAt;
         private SectorEntry _row;
 
         [SetUp]
@@ -150,8 +152,12 @@ namespace Tests.PlayMode.Sectors
 
             RaiseAlarm(hunt);
             yield return null;
-            Assert.IsTrue(station.Spent, "The alarm takes the whole supply.");
-            Assert.IsFalse(station.Lit.activeSelf, "The alarm darkens the station.");
+            Assert.IsFalse(station.Spent, "The gap leaves the supply.");
+            Assert.IsTrue(station.Lit.activeSelf, "The station stays lit through the gap.");
+            ReleaseHunt(hunt);
+            yield return null;
+            Assert.IsTrue(station.Spent, "The release takes the whole supply.");
+            Assert.IsFalse(station.Lit.activeSelf, "The release darkens the station.");
             AssertFinds(module);
 
             hero.Damage.Health.SetFraction(.5f);
@@ -184,8 +190,12 @@ namespace Tests.PlayMode.Sectors
 
             RaiseAlarm(hunt);
             yield return null;
-            Assert.IsTrue(station.Spent, "The alarm takes what was left of the supply.");
-            Assert.IsFalse(station.Lit.activeSelf, "The alarm darkens a half-used station.");
+            Assert.IsFalse(station.Spent, "The gap leaves what supply remains.");
+            Assert.IsTrue(station.Lit.activeSelf, "The station stays lit through the gap.");
+            ReleaseHunt(hunt);
+            yield return null;
+            Assert.IsTrue(station.Spent, "The release takes what was left of the supply.");
+            Assert.IsFalse(station.Lit.activeSelf, "The release darkens a half-used station.");
 
             var hull = hero.Damage.Health.Pct;
             Assert.Less(hull, 1f);
@@ -264,10 +274,14 @@ namespace Tests.PlayMode.Sectors
 
             RaiseAlarm(hunt);
             yield return null;
+            Assert.IsFalse(second.Spent, "A station with supply left stays live through the gap.");
+            Assert.IsTrue(second.Lit.activeSelf, "The station stays lit through the gap.");
+            ReleaseHunt(hunt);
+            yield return null;
             foreach (var station in module.Stations)
             {
-                Assert.IsTrue(station.Spent, "The alarm takes every station's supply.");
-                Assert.IsFalse(station.Lit.activeSelf, "The alarm darkens every station.");
+                Assert.IsTrue(station.Spent, "The release takes every station's supply.");
+                Assert.IsFalse(station.Lit.activeSelf, "The release darkens every station.");
             }
             AssertFinds(module);
         }
@@ -279,16 +293,25 @@ namespace Tests.PlayMode.Sectors
         {
             var feel = Track(ScriptableObject.CreateInstance<HuntFeelProfile>());
             _row.searchSeconds = 1000f;
+            feel.alarmGraceSeconds = AlarmGrace;
             var hunt = Track(new GameObject("Hunt")).AddComponent<SectorHunt>();
             hunt.Configure(feel, null, null, 0f);
             Drive(hunt.Build(Context(hero)));
             return hunt;
         }
 
-        private static void RaiseAlarm(SectorHunt hunt)
+        private void RaiseAlarm(SectorHunt hunt)
         {
-            hunt.Tick(Time.time + 2000f);
+            alarmAt = Time.time + 2000f;
+            hunt.Tick(alarmAt);
             Assert.IsTrue(hunt.Alarmed, "The search clock ran out.");
+            Assert.IsFalse(hunt.Released, "The gap after the alarm has not elapsed.");
+        }
+
+        private void ReleaseHunt(SectorHunt hunt)
+        {
+            hunt.Tick(alarmAt + AlarmGrace);
+            Assert.IsTrue(hunt.Released, "The gap after the alarm has elapsed.");
         }
 
         private RepairStation NewStation(float repairPerSecond, float supply, SectorHunt hunt = null, int count = 1,
@@ -309,7 +332,7 @@ namespace Tests.PlayMode.Sectors
         private SectorBuildContext Context(Ship hero) =>
             new(null, _objectives, true, _sector, default, hero: hero, sectorIndex: SectorIndex, row: _row);
 
-        // Exactly the live stations are finds, with the module's icon and find-layer markers.
+        // Exactly the live stations are finds, in the kind's colour, with the module's icon and find-layer markers.
         private void AssertFinds(RepairStation module, params RepairStation.Station[] live)
         {
             using var serialized = new SerializedObject(module);
@@ -317,13 +340,24 @@ namespace Tests.PlayMode.Sectors
             Assert.IsTrue(icon, "The module carries its find icon.");
             CollectionAssert.AreEquivalent(live.Select(station => station.Body.transform),
                 _objectives.Finds.Select(find => find.Target), "Exactly the live stations are finds.");
+            var colour = FindColours.Of(module.Kind);
             foreach (var find in _objectives.Finds)
+            {
                 Assert.AreSame(icon, find.Icon);
+                Assert.AreEqual(colour, find.Colour);
+            }
             foreach (var station in live)
             {
-                var marker = station.Lit.GetComponentInChildren<MeshRenderer>(true);
+                var marker = station.Marker;
                 Assert.IsTrue(marker.enabled && marker.gameObject.activeInHierarchy, "A live find shows its minimap marker.");
                 Assert.AreEqual(LayerMask.NameToLayer("Minimap_Find"), marker.gameObject.layer);
+                var block = new MaterialPropertyBlock();
+                marker.GetPropertyBlock(block);
+                var tint = block.GetColor("_BaseColor");
+                Assert.AreEqual(colour.r, tint.r, 1e-3f);
+                Assert.AreEqual(colour.g, tint.g, 1e-3f);
+                Assert.AreEqual(colour.b, tint.b, 1e-3f);
+                Assert.AreEqual(colour.a, tint.a, 1e-3f);
             }
         }
 

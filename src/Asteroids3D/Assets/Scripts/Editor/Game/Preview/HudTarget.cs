@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UI.Projection;
+using UI.Weapons;
 using UnityEditor;
 using UnityEngine;
 
@@ -12,7 +13,7 @@ namespace Game.Preview
         {
             PreviewEntry.Startup, PreviewEntry.LowHull, PreviewEntry.Damage, PreviewEntry.Extraction, PreviewEntry.Combat
         };
-        public override IEnumerable<ScriptableObject> Profiles(GameHost game) => new ScriptableObject[] { CanopyProfile(game) };
+        public override IEnumerable<ScriptableObject> Profiles(GameHost game) => new ScriptableObject[] { CanopyProfile(game), ReadyFlash(game) };
 
         public override void DrawControls(PreviewHost host)
         {
@@ -24,6 +25,14 @@ namespace Game.Preview
         {
             using var rig = new SerializedObject(game.playerRig);
             return ((CanopyProjection)rig.FindProperty("uiCamPrefab").objectReferenceValue).Profile;
+        }
+
+        internal static ReadyFlashProfile ReadyFlash(GameHost game)
+        {
+            using var rig = new SerializedObject(game.playerRig);
+            using var overlay = new SerializedObject(rig.FindProperty("overlayPrefab").objectReferenceValue);
+            using var hud = new SerializedObject(overlay.FindProperty("weaponResources").objectReferenceValue);
+            return (ReadyFlashProfile)hud.FindProperty("readyFlash").objectReferenceValue;
         }
     }
 }

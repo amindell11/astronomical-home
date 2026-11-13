@@ -37,7 +37,7 @@ namespace Substrate.Services.Objectives
 
         IReadOnlyList<LocalObjectiveHandle> Locals { get; }
 
-        FindMarker MarkFind(Transform target, Sprite icon);
+        FindMarker MarkFind(Transform target, Sprite icon, Color colour);
 
         IReadOnlyList<FindMarker> Finds { get; }
 

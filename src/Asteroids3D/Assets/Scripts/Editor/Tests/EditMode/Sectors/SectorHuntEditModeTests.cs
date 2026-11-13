@@ -15,12 +15,13 @@ using Substrate.Sessions;
 
 namespace Tests.EditMode.Sectors
 {
-    /// <summary>The hunt's search clock with injected time, and the wave director holding its opening lull for it: with no patrol calling, the clock sounds the alarm itself, and phase one opens at the alarm keeping index 0, then the table runs as authored. A patrol's route passes beside the start on its own side. The trial rows ask for a hunt of one patrol, then two, flying Crimson, and the fixtures opt out.</summary>
+    /// <summary>The hunt's search clock with injected time, and the wave director holding its opening lull through the gap after it: with no patrol seeing, the clock sounds the alarm itself, and phase one opens when the gap ends, keeping index 0, then the table runs as authored. A patrol's route passes beside the start on its own side. The trial rows ask for a hunt of one patrol, then two, flying Crimson, and the fixtures opt out.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class SectorHuntEditModeTests
     {
         private const float SearchSeconds = 45f;
+        private const float AlarmGrace = 5f;
         private const float OpeningLull = 5f;
         private const float Lull = 12f;
 
@@ -39,6 +40,7 @@ namespace Tests.EditMode.Sectors
         public void SetUp()
         {
             var feel = Track(ScriptableObject.CreateInstance<HuntFeelProfile>());
+            feel.alarmGraceSeconds = AlarmGrace;
             hunt = Track(new GameObject("Hunt")).AddComponent<SectorHunt>();
             hunt.Configure(feel, null, null, 0f);
             var hero = Track(new GameObject("Hero")).AddComponent<Ship>();
@@ -67,17 +69,27 @@ namespace Tests.EditMode.Sectors
             Tick(SearchSeconds - .1f);
             Assert.IsFalse(hunt.Alarmed);
             Assert.AreEqual(.1f, hunt.SearchSecondsLeft, 1e-3f);
-            Assert.IsNull(hunt.CallInSecondsLeft, "With no patrol calling there is no call-in.");
+            Assert.AreEqual(0f, hunt.SpottedFill, "With no patrol seeing, the meter stays empty.");
 
             Tick(SearchSeconds);
             Assert.IsTrue(hunt.Alarmed);
+            Assert.IsFalse(hunt.Released, "The gap starts at the alarm.");
+            Assert.AreEqual(AlarmGrace, hunt.GraceSecondsLeft, 1e-3f);
             Assert.AreEqual(new[] { (2, HuntAlarmReason.SearchClock, (Ship)null) }, alarms);
-            Tick(SearchSeconds + 1f);
+
+            Tick(SearchSeconds + AlarmGrace - .1f);
+            Assert.IsFalse(hunt.Released);
+            Assert.AreEqual(.1f, hunt.GraceSecondsLeft, 1e-3f);
+
+            Tick(SearchSeconds + AlarmGrace);
+            Assert.IsTrue(hunt.Released);
+            Assert.AreEqual(0f, hunt.GraceSecondsLeft, 1e-4f);
+            Tick(SearchSeconds + AlarmGrace + 1f);
             Assert.AreEqual(1, alarms.Count, "The alarm sounds once.");
         }
 
         [Test]
-        public void Director_HoldsTheOpeningLullThroughTheHunt_ThenPhaseOneOpensAtTheAlarmAsIndexZero()
+        public void Director_HoldsTheOpeningLullThroughTheGap_ThenPhaseOneOpensAtTheReleaseAsIndexZero()
         {
             Tick(0f);
             Tick(30f);
@@ -85,13 +97,20 @@ namespace Tests.EditMode.Sectors
             Assert.IsFalse(director.OpensPhase());
 
             Tick(SearchSeconds);
-            Assert.IsFalse(director.Phase.InLull, "Phase one opens at the alarm.");
+            Assert.IsTrue(hunt.Alarmed);
+            Assert.IsFalse(hunt.Released);
+            Assert.IsTrue(director.Phase.InOpeningLull, "The opening lull holds through the gap.");
+            Assert.IsFalse(director.OpensPhase());
+
+            Tick(SearchSeconds + AlarmGrace);
+            Assert.IsTrue(hunt.Released);
+            Assert.IsFalse(director.Phase.InLull, "Phase one opens when the gap ends.");
             Assert.AreEqual(0, director.Phase.Index, "The hunt adds no sector phase.");
             Assert.IsTrue(director.OpensPhase());
 
-            Tick(SearchSeconds + 39f);
-            Assert.AreEqual(0, director.Phase.Index, "Phase one runs its authored length from the alarm.");
-            Tick(SearchSeconds + 41f);
+            Tick(SearchSeconds + AlarmGrace + 39f);
+            Assert.AreEqual(0, director.Phase.Index, "Phase one runs its authored length from the release.");
+            Tick(SearchSeconds + AlarmGrace + 41f);
             Assert.IsTrue(director.Phase.InLull);
             Assert.AreEqual(1, director.Phase.Index);
         }
@@ -136,6 +155,7 @@ namespace Tests.EditMode.Sectors
             Assert.AreSame(prefab.Module<SectorFaction>(), serialized.FindProperty("faction").objectReferenceValue,
                 "Patrols fly the sector's faction.");
             Assert.IsTrue(serialized.FindProperty("patrolPilot").objectReferenceValue, "Patrols fly a wave pilot.");
+            Assert.IsTrue(serialized.FindProperty("sightWedge").objectReferenceValue, "Patrols draw their sight wedge.");
             Assert.AreSame(hunt, Field(prefab.Spawners.OfType<WaveDirector>().Single(), "hunt"));
             Assert.AreSame(hunt, Field(prefab.GetComponent<PhaseSpineModule>(), "hunt"));
         }
