@@ -1,3 +1,4 @@
+using Game.Preview.Sectors;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -46,6 +47,8 @@ namespace Substrate.Sessions
 
         public override void OnInspectorGUI()
         {
+            if (GUILayout.Button("Open in Sectors window"))
+                SectorsWindow.Open();
             serializedObject.Update();
             table.DoLayoutList();
             EditorGUILayout.PropertyField(localePool, true);
