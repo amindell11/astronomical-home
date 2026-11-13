@@ -51,7 +51,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   damage: 6
-  maxDistance: 40
+  maxDistance: 30
   mass: 0.01
   laserSpeed: 60
 --- !u!114 &1111111111111111111
