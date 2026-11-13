@@ -93,7 +93,7 @@ PrefabInstance:
     - target: {fileID: 6448982411033854647, guid: a17b4473baa216a4eba58800a76acfc3,
         type: 3}
       propertyPath: heatPerShot
-      value: 5
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 6448982411033854647, guid: a17b4473baa216a4eba58800a76acfc3,
         type: 3}
@@ -104,6 +104,11 @@ PrefabInstance:
         type: 3}
       propertyPath: fireRate
       value: 0.075
+      objectReference: {fileID: 0}
+    - target: {fileID: 8105349543242701031, guid: a17b4473baa216a4eba58800a76acfc3,
+        type: 3}
+      propertyPath: spinUpTime
+      value: 1.5
       objectReference: {fileID: 0}
     - target: {fileID: 8653804347652268947, guid: a17b4473baa216a4eba58800a76acfc3,
         type: 3}
