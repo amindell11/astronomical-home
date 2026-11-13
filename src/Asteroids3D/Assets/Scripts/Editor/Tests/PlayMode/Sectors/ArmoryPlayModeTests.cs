@@ -212,7 +212,7 @@ namespace Tests.PlayMode.Sectors
             new(null, _objectives, true, _sector, default, hero: hero, sectorIndex: sectorIndex,
                 row: row ?? new SectorEntry { armories = 1 });
 
-        // Exactly the live armories are finds, with the armory's own icon.
+        // Exactly the live armories are finds, in the armory colour, with the armory's own icon.
         private void AssertFinds(Armory armory, params FindStation.Station[] live)
         {
             using var serialized = new SerializedObject(armory);
@@ -220,8 +220,12 @@ namespace Tests.PlayMode.Sectors
             Assert.IsTrue(icon, "The armory carries its find icon.");
             CollectionAssert.AreEquivalent(live.Select(station => station.Body.transform),
                 _objectives.Finds.Select(find => find.Target), "Exactly the live armories are finds.");
+            var colour = FindColours.Of(armory.Kind);
             foreach (var find in _objectives.Finds)
+            {
                 Assert.AreSame(icon, find.Icon);
+                Assert.AreEqual(colour, find.Colour);
+            }
         }
 
         private static float PlaneDistance(Vector3 a, Vector3 b) => Vector2.Distance(
