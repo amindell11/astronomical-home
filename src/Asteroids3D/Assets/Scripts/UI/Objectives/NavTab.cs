@@ -11,7 +11,7 @@ namespace UI.Objectives
     {
         private const float Length = .36f;
         private const float WidthRatio = 1.24f;
-        private const float Gap = 4f / 64f;
+        internal const float Gap = 4f / 64f;
 
         public const float FindReach = 29.5f / 64f;
         public const float ExitReach = 27f / 64f;
