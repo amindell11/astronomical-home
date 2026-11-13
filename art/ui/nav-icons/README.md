@@ -5,8 +5,9 @@ the exit and lull beacons on the minimap and at the screen edge, and the enemy
 pointer the off-screen enemy work picks up later. The container tells the role
 (finds are diamonds, exit is a circle, lull is a hexagon, enemy is a triangle);
 the dark glyph tells the kind; each kind has its own colour.
-The PR that shipped it holds the rejected options:
-[#1516](https://github.com/amindell11/astronomical-home/issues/1516) links it.
+The before lineup, the shape sketches and the in-game stills live on the `evidence/nav-icons`
+branch: [design history](https://github.com/amindell11/astronomical-home/tree/566557a0397cc92f996c518345a864de2b0398e1).
+The PR that shipped it holds the rejected options.
 
 ## Files
 
