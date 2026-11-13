@@ -121,8 +121,8 @@ namespace Cameras
             Rect(GamePlane.WorldPointToPlane(cam.transform.position), shape * cam.Cam.orthographicSize, LiveView);
 
             var p = GamePlane.WorldPointToPlane(cam.Subject.position) + cam.VelocityLead + cam.CursorLead + cam.FightShift;
-            var floor = feel.zoom;
-            var speedCap = feel.zoom + feel.maxWiden;
+            var floor = cam.BaseZoom;
+            var speedCap = cam.BaseZoom + feel.maxWiden;
             var fightCap = feel.maxZoomOut;
             var fightZoom = cam.FightZoom(p);
             var speed = Mathf.Clamp(cam.SpeedZoom, floor, speedCap);

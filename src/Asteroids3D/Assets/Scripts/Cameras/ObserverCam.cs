@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Ships.Command;
 using UnityEngine;
 using Substrate;
 
@@ -34,6 +35,7 @@ namespace Cameras
         private HashSet<Transform> secondarySubjects;
         private Transform subject;
         private Rigidbody leadBody;
+        private IShipStatus hull;
         private Vector2 lead;
         private Vector2 leadVelocity;
         private Vector2? cursor;
@@ -152,7 +154,7 @@ namespace Cameras
 
         private float StepLockedZoom(Vector2 center)
         {
-            var target = Mathf.Min(Mathf.Max(Mathf.Clamp(SpeedZoom, feel.zoom, feel.zoom + feel.maxWiden),
+            var target = Mathf.Min(Mathf.Max(Mathf.Clamp(SpeedZoom, BaseZoom, BaseZoom + feel.maxWiden),
                 FightZoom(center)), feel.maxZoomOut);
             lockedZoom = CameraUtils.SmoothZoom(lockedZoom, target, ref lockedZoomVelocity,
                 feel.widenTime, feel.narrowTime, Time.unscaledDeltaTime);
@@ -233,7 +235,11 @@ namespace Cameras
         internal Vector2 CursorLead => cursorLead;
         internal Vector2 FightShift => fightShift;
         internal IReadOnlyCollection<Transform> Engaged => engaged;
-        internal float SpeedZoom => feel.zoom + feel.zoomPerSpeed * LeadBodyVelocity.magnitude;
+        internal float BaseZoom => hull != null
+            ? Mathf.Max(0.01f, feel.zoom + feel.zoomPerHullSpeed * (hull.MaxSpeed - feel.referenceHullSpeed))
+            : feel.zoom;
+
+        internal float SpeedZoom => BaseZoom + feel.zoomPerSpeed * LeadBodyVelocity.magnitude;
 
         internal bool TryGetBoundaryAroundAllSubjects(out Vector2 min, out Vector2 max)
         {
@@ -254,13 +260,14 @@ namespace Cameras
 
         public void SetLockCameraToSubject(bool value) => lockCameraToSubject = value;
         public void SetLockZoomToSubject(bool value) => lockZoomToSubject = value;
-        public void SetSubject(Transform newSubject, Rigidbody newLeadBody = null, bool removeOldSubject = true)
+        public void SetSubject(Transform newSubject, Rigidbody newLeadBody = null, bool removeOldSubject = true, IShipStatus newHull = null)
         {
             if (subject && removeOldSubject)
                 secondarySubjects.Remove(subject);
             
             subject = newSubject;
             leadBody = newLeadBody;
+            hull = newHull;
             
             if (newSubject)
                 secondarySubjects.Add(newSubject);

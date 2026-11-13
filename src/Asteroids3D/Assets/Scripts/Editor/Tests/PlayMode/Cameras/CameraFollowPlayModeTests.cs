@@ -2,7 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Cameras;
+using Combat.Targeting;
+using Movement;
 using NUnit.Framework;
+using Ships.Command;
+using Ships.Registry;
 using Tests.PlayMode.Common;
 using UnityEditor;
 using UnityEngine;
@@ -191,6 +195,20 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
     }
 
     [UnityTest]
+    public IEnumerator Locked_AFasterHullGetsAWiderBaseZoomAtRest()
+    {
+        Assume.That(feel.zoomPerHullSpeed, Is.GreaterThan(0f), "this tuning turns the hull-speed zoom off");
+        cam.SetSubject(subject.transform, newHull: new HullStub(feel.referenceHullSpeed + 10f));
+
+        var expected = Mathf.Min(feel.zoom + feel.zoomPerHullSpeed * 10f, feel.maxZoomOut);
+        Assume.That(expected, Is.GreaterThan(feel.zoom + SizeTolerance));
+        yield return ZoomSettlesOn(expected);
+
+        cam.SetSubject(subject.transform, newHull: new HullStub(feel.referenceHullSpeed));
+        yield return ZoomSettlesOn(feel.zoom);
+    }
+
+    [UnityTest]
     public IEnumerator Locked_ZoomWidensToFitANearbyEnemy()
     {
         cam.SetSubject(subject.transform);
@@ -245,7 +263,7 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
     public IEnumerator Locked_PullsTowardAnEnemyBehindTheLead_SoItStaysInView()
     {
         cam.SetSubject(subject.transform, GiveSubjectVelocity(GamePlane.Forward * LeadSpeed));
-        var behind = feel.fightRadius / 2f;
+        var behind = 0.9f * feel.fightRadius;
         var enemy = AddEnemy(OnForward(-behind));
 
         var lead = Mathf.Min(LeadSpeed * feel.leadSeconds, feel.maxLead);
@@ -402,6 +420,26 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
             failureMessage,
             minFrames: NegativeProofFrames,
             minUnscaledSeconds: Mathf.Max(0.35f, feel.widenTime));
+
+    private sealed class HullStub : IShipStatus
+    {
+        private readonly float maxSpeed;
+
+        public HullStub(float maxSpeed) => this.maxSpeed = maxSpeed;
+
+        public ShipId Id => default;
+        public Transform Transform => null;
+        public Kinematics Kinematics => default;
+        public Dynamics Dynamics => default;
+        public float HealthPct => default;
+        public float ShieldPct => default;
+        public bool BoostAvailable => default;
+        public float BoostCooldownRemaining => default;
+        public float BoostCooldownPct => default;
+        public float MaxSpeed => maxSpeed;
+        public float MaxYawRate => default;
+        public IReadOnlyList<ITrackingMissile> TrackingMissiles => null;
+    }
 }
 
 } // namespace Tests.PlayMode.Cameras
