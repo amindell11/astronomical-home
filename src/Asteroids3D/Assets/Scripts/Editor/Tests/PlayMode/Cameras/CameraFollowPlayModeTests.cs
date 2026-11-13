@@ -1,7 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Cameras;
+using Combat.Targeting;
+using Movement;
 using NUnit.Framework;
+using Ships.Command;
+using Ships.Registry;
 using Tests.PlayMode.Common;
 using UnityEditor;
 using UnityEngine;
@@ -19,6 +24,7 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
     private HashSet<GameObject> secondarySubjects;
     private GameObject subject;
     private SimulationMode simulationMode;
+    private bool previousManual;
 
     // Deterministic timeout — camera follow should settle well within this.
     private const float FollowTimeoutSec = 3f;
@@ -35,6 +41,8 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
     public override void SetUp()
     {
         base.SetUp();
+        previousManual = CameraSettings.ManualCamera;
+        CameraSettings.ManualCamera = false;
         simulationMode = Physics.simulationMode;
         
         cam = TestAssets.NewObserverCam();
@@ -63,6 +71,7 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
         foreach (var s in secondarySubjects) 
             DestroyTestObject(s);
         Physics.simulationMode = simulationMode;
+        CameraSettings.ManualCamera = previousManual;
         base.TearDown();
     }
 
@@ -186,12 +195,26 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
     }
 
     [UnityTest]
+    public IEnumerator Locked_AFasterHullGetsAWiderBaseZoomAtRest()
+    {
+        Assume.That(feel.zoomPerHullSpeed, Is.GreaterThan(0f), "this tuning turns the hull-speed zoom off");
+        cam.SetSubject(subject.transform, newHull: new HullStub(feel.referenceHullSpeed + 10f));
+
+        var expected = Mathf.Min(feel.zoom + feel.zoomPerHullSpeed * 10f, feel.maxZoomOut);
+        Assume.That(expected, Is.GreaterThan(feel.zoom + SizeTolerance));
+        yield return ZoomSettlesOn(expected);
+
+        cam.SetSubject(subject.transform, newHull: new HullStub(feel.referenceHullSpeed));
+        yield return ZoomSettlesOn(feel.zoom);
+    }
+
+    [UnityTest]
     public IEnumerator Locked_ZoomWidensToFitANearbyEnemy()
     {
         cam.SetSubject(subject.transform);
-        var enemy = AddEngagedEnemyNeeding(feel.zoom + feel.fightMaxWiden / 2f);
+        var enemy = AddEngagedEnemyNeeding(feel.zoom + (FightCap - feel.zoom) / 2f);
 
-        yield return ZoomSettlesOn(FitWith(enemy));
+        yield return ZoomSettlesOn(Mathf.Clamp(FitWith(enemy), feel.zoom, FightCap));
     }
 
     [UnityTest]
@@ -216,10 +239,22 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
     }
 
     [UnityTest]
-    public IEnumerator Locked_ZoomWidensNoFurtherThanTheCap()
+    public IEnumerator Auto_ZoomNeverExceedsTheMax()
     {
-        cam.SetSubject(subject.transform);
-        AddEngagedEnemyNeeding(feel.zoom + 2f * feel.fightMaxWiden);
+        Assume.That(feel.zoomPerSpeed, Is.GreaterThan(0f), "this tuning turns the speed zoom off");
+        var distance = 0.9f * feel.fightRadius;
+        cam.SetSubject(subject.transform, GiveSubjectVelocity(GamePlane.Right * (FightCap / feel.zoomPerSpeed)));
+        AddEnemy(OnForward(distance));
+        AddEnemy(OnForward(-distance));
+        Assume.That(2f * distance + 2f * Padding, Is.GreaterThan(2f * FightCap), "this tuning fits both enemies");
+
+        var until = Time.realtimeSinceStartup + FollowTimeoutSec;
+        while (Time.realtimeSinceStartup < until)
+        {
+            Assert.That(cam.Cam.orthographicSize, Is.LessThanOrEqualTo(FightCap + SizeTolerance),
+                "the zoom passed the max zoom-out");
+            yield return null;
+        }
 
         yield return ZoomSettlesOn(FightCap);
     }
@@ -228,32 +263,88 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
     public IEnumerator Locked_PullsTowardAnEnemyBehindTheLead_SoItStaysInView()
     {
         cam.SetSubject(subject.transform, GiveSubjectVelocity(GamePlane.Forward * LeadSpeed));
-        var behind = feel.fightRadius / 2f;
+        var behind = 0.9f * feel.fightRadius;
         var enemy = AddEnemy(OnForward(-behind));
 
         var lead = Mathf.Min(LeadSpeed * feel.leadSeconds, feel.maxLead);
-        Assume.That(feel.fightPull, Is.GreaterThan(0f), "this tuning turns the fight pull off");
         Assume.That(lead + behind, Is.GreaterThan(FightCap - Padding), "this tuning frames the enemy without a pull");
         Assume.That(behind + 2f * Padding, Is.LessThanOrEqualTo(2f * FightCap), "this tuning cannot fit the enemy at all");
 
         var subjectCenter = GamePlane.WorldPointToPlane(subject.transform.position);
         var enemyCenter = GamePlane.WorldPointToPlane(enemy.position);
         var leadCenter = subjectCenter + GamePlane.WorldDirToPlane(GamePlane.Forward) * lead;
-        var fit = CameraUtils.ShiftToFitBounds(leadCenter, Vector2.Min(subjectCenter, enemyCenter),
-            Vector2.Max(subjectCenter, enemyCenter), FightCap, cam.Cam.aspect, Padding);
-        // Heading out to the lead the camera crosses the pulled center; the widen outlasts that.
-        yield return ZoomSettlesOn(FightCap);
-        yield return CameraSettlesOn(leadCenter + feel.fightPull * (fit - leadCenter));
+        var min = Vector2.Min(subjectCenter, enemyCenter);
+        var max = Vector2.Max(subjectCenter, enemyCenter);
+        var focus = FightFocus(leadCenter, min, max);
+        var needed = CameraUtils.ZoomToFitBounds(focus, min, max, Padding, cam.Cam.aspect);
+        var speedZoom = feel.zoom + feel.zoomPerSpeed * LeadSpeed;
+        yield return ZoomSettlesOn(Mathf.Min(Mathf.Max(
+            Mathf.Clamp(speedZoom, feel.zoom, feel.zoom + feel.maxWiden), needed), FightCap));
+        yield return CameraSettlesOn(focus);
 
-        Assume.That(feel.fightPull, Is.EqualTo(1f), "this tuning pulls part way, so the enemy may stay out of view");
         var offset = enemyCenter - GamePlane.WorldPointToPlane(cam.transform.position);
-        // The zoom only approaches the cap, so the view gets the zoom's settle tolerance too.
+        // The zoom only approaches its target, so the view gets the settle tolerance too.
         var reach = new Vector2(cam.Cam.aspect, 1f) * (cam.Cam.orthographicSize + SizeTolerance) - Vector2.one * Padding;
         Assert.That(Mathf.Abs(offset.x), Is.LessThanOrEqualTo(reach.x + FollowThreshold), "the enemy is off the side of the view");
         Assert.That(Mathf.Abs(offset.y), Is.LessThanOrEqualTo(reach.y + FollowThreshold), "the enemy is off the end of the view");
     }
 
-    private float FightCap => feel.zoom + feel.fightMaxWiden;
+    [UnityTest]
+    public IEnumerator Auto_ShiftsTowardAnEnemyOffToOneSide_AndKeepsBothInView()
+    {
+        Assume.That(feel.fightCenterBias, Is.GreaterThan(0f));
+        cam.SetSubject(subject.transform);
+        var enemy = AddEnemy(subject.transform.position + GamePlane.Right * (feel.fightRadius / 2f));
+
+        yield return ZoomSettlesOn(Mathf.Clamp(FitWith(enemy), feel.zoom, FightCap));
+
+        var subjectCenter = GamePlane.WorldPointToPlane(subject.transform.position);
+        var enemyCenter = GamePlane.WorldPointToPlane(enemy.position);
+        var min = Vector2.Min(subjectCenter, enemyCenter);
+        var max = Vector2.Max(subjectCenter, enemyCenter);
+        yield return CameraSettlesOn(FightFocus(subjectCenter, min, max));
+
+        var center = GamePlane.WorldPointToPlane(cam.transform.position);
+        Assert.That(Vector2.Dot(center - subjectCenter, GamePlane.WorldDirToPlane(GamePlane.Right)),
+            Is.GreaterThan(FollowThreshold), "the camera's center did not shift toward the enemy");
+        foreach (var point in new[] { subjectCenter, enemyCenter })
+        {
+            var offset = point - center;
+            Assert.That(Mathf.Abs(offset.x), Is.LessThanOrEqualTo(
+                cam.Cam.aspect * (cam.Cam.orthographicSize + SizeTolerance) - Padding + FollowThreshold));
+            Assert.That(Mathf.Abs(offset.y), Is.LessThanOrEqualTo(
+                cam.Cam.orthographicSize + SizeTolerance - Padding + FollowThreshold));
+        }
+    }
+
+    [UnityTest]
+    public IEnumerator Auto_FramesOnlyTheNearestFightCountEnemies()
+    {
+        cam.SetSubject(subject.transform);
+        Transform farthest = null;
+        for (var i = 0; i < feel.fightCount + 1; i++)
+            farthest = AddEnemy(OnForward(feel.fightRadius * (i + 1) / (feel.fightCount + 2)));
+
+        yield return new WaitForSecondsRealtime(SettleSec);
+
+        Assert.That(cam.Engaged.Count, Is.EqualTo(feel.fightCount));
+        // NUnit compares Transforms as child collections, so membership goes through the set.
+        Assert.IsFalse(cam.Engaged.Contains(farthest), "the farthest enemy was framed past fightCount");
+    }
+
+    [UnityTest]
+    public IEnumerator ManualCamera_IgnoresANearbyEnemy()
+    {
+        CameraSettings.ManualCamera = true;
+        cam.SetSubject(subject.transform);
+        AddEnemy(OnForward(feel.fightRadius / 2f));
+
+        yield return ZoomSettlesOn(feel.zoom);
+        yield return CameraSettlesOn(GamePlane.WorldPointToPlane(subject.transform.position));
+        Assert.That(cam.Engaged, Is.Empty);
+    }
+
+    private float FightCap => feel.maxZoomOut;
     private float Padding
     {
         get
@@ -291,11 +382,21 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
         return AddEnemy(OnForward(distance));
     }
 
+    private Vector2 FightFocus(Vector2 center, Vector2 min, Vector2 max)
+    {
+        var biased = Vector2.Lerp(center, CameraUtils.BoundsCenter(min, max), feel.fightCenterBias);
+        var fitted = CameraUtils.ShiftToFitBounds(biased, min, max, FightCap, cam.Cam.aspect, Padding);
+        var player = GamePlane.WorldPointToPlane(subject.transform.position);
+        return CameraUtils.ShiftToKeepPointInView(fitted, player - fitted, FightCap, cam.Cam.aspect, Padding);
+    }
+
     private float FitWith(Transform enemy)
     {
         var center = GamePlane.WorldPointToPlane(subject.transform.position);
         var at = GamePlane.WorldPointToPlane(enemy.position);
-        return CameraUtils.ZoomToFitBounds(center, Vector2.Min(center, at), Vector2.Max(center, at), Padding, cam.Cam.aspect);
+        var min = Vector2.Min(center, at);
+        var max = Vector2.Max(center, at);
+        return CameraUtils.ZoomToFitBounds(FightFocus(center, min, max), min, max, Padding, cam.Cam.aspect);
     }
 
     private IEnumerator CameraSettlesOn(Vector2 center)
@@ -307,7 +408,7 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
 
     private IEnumerator ZoomSettlesOn(float size)
     {
-        var expected = size * cam.ZoomScale;
+        var expected = size * cam.AppliedZoomScale;
         float Miss() => Mathf.Abs(cam.Cam.orthographicSize - expected);
         yield return AsyncAssert.WaitUntilThen(() => Miss() < SizeTolerance, FollowTimeoutSec + 5f * feel.widenTime,
             () => Assert.AreEqual(expected, cam.Cam.orthographicSize, SizeTolerance));
@@ -315,10 +416,30 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
 
     private IEnumerator ZoomHolds(float size, string failureMessage) =>
         AsyncAssert.AssertRemainsFalseFor(
-            () => Mathf.Abs(cam.Cam.orthographicSize - size * cam.ZoomScale) > SizeTolerance,
+            () => Mathf.Abs(cam.Cam.orthographicSize - size * cam.AppliedZoomScale) > SizeTolerance,
             failureMessage,
             minFrames: NegativeProofFrames,
             minUnscaledSeconds: Mathf.Max(0.35f, feel.widenTime));
+
+    private sealed class HullStub : IShipStatus
+    {
+        private readonly float maxSpeed;
+
+        public HullStub(float maxSpeed) => this.maxSpeed = maxSpeed;
+
+        public ShipId Id => default;
+        public Transform Transform => null;
+        public Kinematics Kinematics => default;
+        public Dynamics Dynamics => default;
+        public float HealthPct => default;
+        public float ShieldPct => default;
+        public bool BoostAvailable => default;
+        public float BoostCooldownRemaining => default;
+        public float BoostCooldownPct => default;
+        public float MaxSpeed => maxSpeed;
+        public float MaxYawRate => default;
+        public IReadOnlyList<ITrackingMissile> TrackingMissiles => null;
+    }
 }
 
 } // namespace Tests.PlayMode.Cameras
