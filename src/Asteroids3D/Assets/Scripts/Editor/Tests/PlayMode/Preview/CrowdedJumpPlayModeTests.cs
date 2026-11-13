@@ -133,9 +133,10 @@ namespace Tests.PlayMode.Preview
             Object.Destroy(missile.gameObject);
 
             var rock = host.Playtest.ActiveSector.GetComponentInChildren<AsteroidController>();
-            Assert.That(rock.SimpleCollider.enabled, Is.True, "the obstruction remains physically solid");
             rock.transform.position = crossing - Vector3.right * 10f;
             rock.Rb.position = rock.transform.position;
+            // The collider LOD would switch the hull on beside the player only at the next LateUpdate.
+            rock.GetComponent<MeshCollider>().enabled = true;
             rock.UpdateKinematics(Vector3.right * 100f, Vector3.zero);
             Physics.SyncTransforms();
             yield return AsyncAssert.WaitUntil(() => rock.Rb.position.x > crossing.x + 10f,

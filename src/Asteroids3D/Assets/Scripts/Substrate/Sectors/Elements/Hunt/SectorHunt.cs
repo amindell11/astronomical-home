@@ -51,7 +51,7 @@ namespace Substrate.Sectors.Elements.Hunt
         [SerializeField, Min(0f)] private float spawnDistanceMax = 150f;
         [Tooltip("A candidate point with an asteroid within this radius is passed over.")]
         [SerializeField, Min(0f)] private float clearanceRadius = 10f;
-        [Tooltip("Asteroids: spawn clearance and cover from a patrol's sight.")]
+        [Tooltip("Asteroids that give cover from a patrol's sight.")]
         [SerializeField] private LayerMask asteroidMask = 1 << 8;
         [Tooltip("Random points tried per patrol; the last one tried is used when none is clear.")]
         [SerializeField, Min(1)] private int placementAttempts = 8;
@@ -267,7 +267,7 @@ namespace Substrate.Sectors.Elements.Hunt
                 var heading = GamePlane.PlaneDirToWorld(new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)));
                 var patrolShip = faction.Faction.common.ship;
                 var position = ClearPoint.Around(center, spawnDistanceMin, spawnDistanceMax, clearanceRadius,
-                    asteroidMask, placementAttempts);
+                    field, placementAttempts);
                 var ship = units.SpawnShip(patrolShip, patrolPilot, team, position,
                     GamePlane.PlanePose(GamePlane.Normal, heading), field,
                     new ShipLoadout(patrolShip, faction.Faction.KitFor(patrolShip), null));

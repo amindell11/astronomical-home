@@ -10,6 +10,7 @@ using Ships.Loadout;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sectors.Elements.Phases;
+using Substrate.Sectors.Elements.Placement;
 using Substrate.Sectors.Factions;
 using Substrate.Services.Units;
 using Substrate.Sessions;
@@ -58,7 +59,6 @@ namespace Substrate.Sectors.Elements
         [SerializeField, Min(0f)] private float groupSpread = 8f;
         [Tooltip("A candidate point overlapping an asteroid within this radius is rejected.")]
         [SerializeField] private float clearanceRadius = 6f;
-        [SerializeField] private LayerMask asteroidMask = 1 << 8;
         [Tooltip("Random angles tried per spawn; none clear skips this tick.")]
         [SerializeField, Min(1)] private int placementAttempts = 4;
 
@@ -294,8 +294,7 @@ namespace Substrate.Sectors.Elements
             {
                 var bearing = UnityEngine.Random.Range(0f, 2f * Mathf.PI);
                 var slots = Slots(center, bearing, group.Length);
-                if (Array.Exists(slots, slot =>
-                        Physics.CheckSphere(GamePlane.PlanePointToWorld(slot), clearanceRadius, asteroidMask)))
+                if (Array.Exists(slots, slot => !ClearPoint.IsClear(field, slot, clearanceRadius)))
                     continue;
 
                 for (var i = 0; i < group.Length; i++)

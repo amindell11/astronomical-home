@@ -1,12 +1,14 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using AI.Scanning;
 using Objectives;
 using Objectives.Presentation;
 using Objectives.States;
 using Ships;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Hunt;
+using Substrate.Sectors.Elements.Placement;
 using Substrate.Services.Objectives;
 using Substrate.Sessions;
 using UnityEngine;
@@ -45,7 +47,6 @@ namespace Substrate.Sectors.Elements.Phases
         [SerializeField, Min(0f)] private float zoneDistance = 150f;
         [Tooltip("A candidate point with an asteroid within this radius is passed over.")]
         [SerializeField, Min(0f)] private float zoneClearance = 35f;
-        [SerializeField] private LayerMask asteroidMask = 1 << 8;
         [Tooltip("Random angles tried for a clear point; the last one tried is used when none is clear.")]
         [SerializeField, Min(1)] private int placementAttempts = 8;
 
@@ -60,6 +61,7 @@ namespace Substrate.Sectors.Elements.Phases
 
         private SpineObjectiveHandle spine;
         private Ship hero;
+        private IObstacleField field;
         private ExtractionJumpState extraction;
         private bool beaconsEnabled;
         private bool beaconOpen;
@@ -88,6 +90,7 @@ namespace Substrate.Sectors.Elements.Phases
                     $"PhaseSpineModule on '{name}' needs its wave director, extraction zone and beacon zone wired.");
 
             hero = ctx.Hero;
+            field = ctx.Field;
             extractionZone.BindPlayer(hero ? hero.Body : null);
             extractionZone.gameObject.SetActive(false);
             beaconZone.BindPlayer(hero ? hero.Body : null);
@@ -132,6 +135,7 @@ namespace Substrate.Sectors.Elements.Phases
             spine?.Close();
             spine = null;
             hero = null;
+            field = null;
             yield break;
         }
 
@@ -230,8 +234,9 @@ namespace Substrate.Sectors.Elements.Phases
             {
                 var angle = UnityEngine.Random.Range(0f, 2f * Mathf.PI);
                 var outward = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
-                position = GamePlane.PlanePointToWorld(center + outward * distance);
-                if (!Physics.CheckSphere(position, zoneClearance, asteroidMask)) break;
+                var planePoint = center + outward * distance;
+                position = GamePlane.PlanePointToWorld(planePoint);
+                if (ClearPoint.IsClear(field, planePoint, zoneClearance)) break;
             }
             return position;
         }

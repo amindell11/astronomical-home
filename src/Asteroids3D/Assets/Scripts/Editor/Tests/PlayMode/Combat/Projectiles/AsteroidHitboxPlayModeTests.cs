@@ -16,7 +16,7 @@ using UnityEngine.TestTools;
 
 namespace Tests.PlayMode
 {
-    /// <summary>Pins that bolts and the railgun beam hit an asteroid's hull, never the trigger sphere poking past it.</summary>
+    /// <summary>Pins that bolts and the railgun beam hit an asteroid's hull and nothing beyond it.</summary>
     [Category("Weapons")]
     public class AsteroidHitboxPlayModeTests : PlayModeWorldFixture
     {
@@ -26,9 +26,9 @@ namespace Tests.PlayMode
 
         private const float HullHalfLength = 2f;
         private const float HullHalfWidth = 0.5f;
-        private const float SphereRadius = 1.5f;
-        // Past the hull even with the railgun's 0.5 beam radius, yet inside the sphere.
-        private const float PastHullInsideSphere = 1.25f;
+        private const float VolumeRadius = 1.5f;
+        // Past the hull even with the railgun's 0.5 beam radius, yet inside the volume radius.
+        private const float PastHullInsideVolumeRadius = 1.25f;
         private const int MaxFlightSteps = 30;
 
         private static readonly Vector3 Aim = GamePlane.PlaneDirToWorld(Vector2.up);
@@ -63,11 +63,11 @@ namespace Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator Laser_ThroughTheSpherePastTheHull_DealsNoDamageAndRaisesNoHit() =>
+        public IEnumerator Laser_PastTheHull_DealsNoDamageAndRaisesNoHit() =>
             BoltPastTheHull(LaserPrefabPath);
 
         [UnityTest]
-        public IEnumerator RipperSlug_ThroughTheSpherePastTheHull_DealsNoDamageAndRaisesNoHit() =>
+        public IEnumerator RipperSlug_PastTheHull_DealsNoDamageAndRaisesNoHit() =>
             BoltPastTheHull(RipperSlugPrefabPath);
 
         [UnityTest]
@@ -77,9 +77,9 @@ namespace Tests.PlayMode
         public IEnumerator RipperSlug_IntoTheHull_HitsAtTheHullFace() => BoltIntoTheHull(RipperSlugPrefabPath);
 
         [Test]
-        public void Railgun_ThroughTheSpherePastTheHull_PassesUnharmed()
+        public void Railgun_PastTheHull_PassesUnharmed()
         {
-            CreateRock(Aim * 10f + Across * PastHullInsideSphere);
+            CreateRock(Aim * 10f + Across * PastHullInsideVolumeRadius);
             var railgun = SpawnRailgun(out var hits, out var beam);
 
             Fire(railgun);
@@ -105,16 +105,16 @@ namespace Tests.PlayMode
         private IEnumerator BoltPastTheHull(string prefabPath)
         {
             CreateRock(Vector3.zero);
-            var bolt = FireBolt(prefabPath, Across * PastHullInsideSphere);
+            var bolt = FireBolt(prefabPath, Across * PastHullInsideVolumeRadius);
             var hits = 0;
             bolt.Hit += (_, _) => hits++;
 
-            for (var i = 0; i < MaxFlightSteps && Vector3.Dot(bolt.transform.position, Aim) <= HullHalfLength + SphereRadius; i++)
+            for (var i = 0; i < MaxFlightSteps && Vector3.Dot(bolt.transform.position, Aim) <= HullHalfLength + VolumeRadius; i++)
                 yield return new WaitForFixedUpdate();
 
             Assert.That(hits, Is.Zero, "the bolt raised no Hit");
             Assert.That(rockHits, Is.Zero, "the rock took no damage");
-            Assert.That(Vector3.Dot(bolt.transform.position, Aim), Is.GreaterThan(HullHalfLength + SphereRadius),
+            Assert.That(Vector3.Dot(bolt.transform.position, Aim), Is.GreaterThan(HullHalfLength + VolumeRadius),
                 "the bolt flew past the rock");
         }
 
@@ -146,9 +146,6 @@ namespace Tests.PlayMode
             hull.convex = true;
             hull.sharedMesh = BoxMesh();
             var rock = go.AddComponent<AsteroidController>();
-            var sphere = go.GetComponent<SphereCollider>();
-            sphere.isTrigger = true;
-            sphere.radius = SphereRadius;
             go.SetActive(true);
             rock.Damage.Initialize(volume: 1000f);
             rock.Damage.OnHit += _ => rockHits++;
@@ -186,7 +183,7 @@ namespace Tests.PlayMode
             spawned.Add(shooter.gameObject);
             shooter.transform.position = Across * 10f;
 
-            var start = acrossOffset - Aim * (HullHalfLength + SphereRadius + 1f);
+            var start = acrossOffset - Aim * (HullHalfLength + VolumeRadius + 1f);
             var bolt = Object.Instantiate(prefab, start, GamePlane.PlanePose(GamePlane.Normal, Aim));
             spawned.Add(bolt.gameObject);
             bolt.Initialize(shooter);
