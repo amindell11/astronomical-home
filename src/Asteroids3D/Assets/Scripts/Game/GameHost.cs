@@ -526,7 +526,6 @@ namespace Game
             while (true)
             {
                 var screen = TitleScreen.Create(ui, titleFont, titleLabelFont, exportResult);
-                var exporting = false;
                 try
                 {
                     while (!screen.Choice.HasValue && !shutdownRequested) yield return null;
@@ -537,19 +536,18 @@ namespace Game
                         while (!shutdownRequested) yield return null;
                     }
 
-                    exporting = screen.Choice == TitleScreen.Option.Export;
-                    if (exporting)
+                    if (screen.Choice == TitleScreen.Option.Export)
+                    {
                         exportResult = ExportRuns();
-                    else if (screen.Choice != TitleScreen.Option.Settings)
-                        yield break;
+                        continue;
+                    }
+
+                    if (screen.Choice != TitleScreen.Option.Settings) yield break;
                 }
                 finally
                 {
                     Destroy(screen.gameObject);
                 }
-
-                if (exporting)
-                    continue;
 
                 exportResult = null;
                 yield return RunSettings();
@@ -581,7 +579,7 @@ namespace Game
 
         private static void RevealExportedFile(string path)
         {
-            if (Application.isEditor || Application.platform != RuntimePlatform.WindowsPlayer)
+            if (Application.platform != RuntimePlatform.WindowsPlayer)
                 return;
             var start = new System.Diagnostics.ProcessStartInfo("explorer.exe", "/select,\"" + path + "\"")
             {

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace Game.Runs
@@ -11,9 +12,8 @@ namespace Game.Runs
     /// What a run was played on: the commit, whether the Unity project tree had uncommitted work,
     /// and the build label when the person starting the build gave one. The editor asks git on every
     /// read and leaves the label empty; a player build cannot ask git, so its pre-build hook stamps
-    /// a file into StreamingAssets that the player reads once. A stamped file with no label reads as
-    /// empty. Informational only: run records are grouped by the stat fingerprint and the loadout
-    /// stat hash, never by this.
+    /// a file into StreamingAssets that the player reads once. Informational only: run records are
+    /// grouped by the stat fingerprint and the loadout stat hash, never by this.
     /// </summary>
     [Serializable]
     public struct BuildIdentity
@@ -35,39 +35,14 @@ namespace Game.Runs
             var identity = JsonUtility.FromJson<BuildIdentity>(json);
             if (string.IsNullOrEmpty(identity.commit))
                 throw new FormatException($"Build identity has no commit: '{json}'.");
-            // JsonUtility leaves a missing string null.
-            if (identity.label == null)
-                identity.label = "";
             return identity;
         }
 
         public static bool TryAcceptLabel(string label, out string failure)
         {
-            if (IsLabel(label))
-            {
-                failure = null;
-                return true;
-            }
-
-            failure = LabelRule;
-            return false;
-        }
-
-        private static bool IsLabel(string label)
-        {
-            if (string.IsNullOrEmpty(label) || label.Length > 32)
-                return false;
-            for (var i = 0; i < label.Length; i++)
-            {
-                var c = label[i];
-                if (c >= 'A' && c <= 'Z') continue;
-                if (c >= 'a' && c <= 'z') continue;
-                if (c >= '0' && c <= '9') continue;
-                if (c == '.' || c == '_' || c == '-') continue;
-                return false;
-            }
-
-            return true;
+            var accepted = Regex.IsMatch(label, @"^[A-Za-z0-9._-]{1,32}\z");
+            failure = accepted ? null : LabelRule;
+            return accepted;
         }
 
         /// <summary>In a player this reads the stamped file, here, once, and throws when it is missing.</summary>
@@ -89,7 +64,7 @@ namespace Game.Runs
         /// <summary>Reads <c>git status --porcelain=v2 --branch</c> output: any line past the headers is a change.</summary>
         internal static BuildIdentity ParseGitStatus(string status)
         {
-            var identity = new BuildIdentity { label = "" };
+            var identity = new BuildIdentity();
             foreach (var line in status.Split('\n'))
             {
                 if (line.StartsWith(BranchOidHeader, StringComparison.Ordinal))

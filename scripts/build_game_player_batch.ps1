@@ -42,15 +42,9 @@ $arguments = @(
     "-gameBuildDir", [string]$config.buildDir,
     "-logFile", [string]$config.logPath
 )
-$label = $config.PSObject.Properties["buildLabel"]
-if ($null -ne $label) {
-    $text = [string]$label.Value
-    # A space must arrive whole, or the stamp cannot refuse it.
-    if ([string]::IsNullOrWhiteSpace($text) -or $text -match '\s') {
-        $arguments += @("-gameBuildLabel", ('"{0}"' -f $text))
-    } else {
-        $arguments += @("-gameBuildLabel", $text)
-    }
+if ($null -ne $config.PSObject.Properties["buildLabel"]) {
+    # Quoted so a space or an empty label arrives whole and the stamp refuses it.
+    $arguments += @("-gameBuildLabel", ('"{0}"' -f $config.buildLabel))
 }
 $process = Start-Process -FilePath $unity -ArgumentList $arguments -NoNewWindow -PassThru
 [void]$process.Handle

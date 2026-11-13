@@ -1210,10 +1210,9 @@ Format: **term** — definition. *(authority)*
   tracked change or untracked file under `src/Asteroids3D/`, and the build label.
   The commit and the dirty flag are the git side. The editor asks git at run end
   and leaves the label empty. A player build carries a file its pre-build hook
-  stamped, and the game host throws at startup when that file is missing. A file
-  stamped before labels existed still reads. Informational only: records are
-  grouped by stat fingerprint and loadout stat hash. "Build" here is never a
-  ship's parts, which are its loadout. *(BuildIdentity, BuildIdentityStamp)*
+  stamped, and the game host throws at startup when that file is missing.
+  Informational only: records are grouped by stat fingerprint and loadout stat
+  hash. "Build" here is never a ship's parts, which are its loadout. *(BuildIdentity, BuildIdentityStamp)*
 - **build label** — a short name the person starting a build gives it, such as
   `friends-1` or `itch-1.0`, so builds handed to testers can be told apart
   without reading commit hashes. Empty when the build was started without one.
