@@ -11,6 +11,7 @@ using Game.Player;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Services.Objectives;
 using Ships;
+using Ships.Command;
 using Utils;
 using System;
 using UI.Objectives;
@@ -52,6 +53,7 @@ namespace UI
         private CanopyProjection projection;
         private IFlightInput flightInput;
         private string keystoneName;
+        private IWeaponReadouts weapons;
         private EliteReadout eliteReadout;
 
         public CommLine CommLine { get; private set; }
@@ -123,6 +125,7 @@ namespace UI
         {
             flightInput = binding.Input;
             keystoneName = binding.KeystoneName;
+            weapons = binding.Weapons;
 
             if (healthAudio)
                 healthAudio.Initialize(binding.Damage);
@@ -171,8 +174,8 @@ namespace UI
             eliteReadout.Bind(elite);
         }
 
-        public void ShowKeystonePrompt(Func<bool> dismissed) =>
-            KeystonePrompt.Create(transform, readoutFont, labelFont, textMaterial, flightInput, keystoneName, dismissed,
-                () => CommLine.Speaking);
+        public void ShowFirstRunPrompts(Func<bool> dismissed) =>
+            FirstRunPrompt.Show(transform, readoutFont, labelFont, textMaterial, flightInput, keystoneName, weapons,
+                dismissed, () => CommLine.Speaking);
     }
 }

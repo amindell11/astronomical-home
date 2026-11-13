@@ -7,7 +7,7 @@ namespace UI
 {
     /// <summary>
     /// The read-only bundle the HUD binds to — the UI's counterpart of <see cref="ShipControl"/>:
-    /// narrow, event-driven surfaces of the ship it displays plus the run tally, the player's boost input
+    /// narrow, event-driven surfaces of the ship it displays plus the run tally, the player's flight input
     /// and its keystone's name and icon, assembled by the owning rig.
     /// The UI never sees the Ship or any sim MonoBehaviour behind these.
     /// </summary>
@@ -24,7 +24,7 @@ namespace UI
 
         public readonly IRunTally Tally;
 
-        /// <summary>The player's boost input, or null when no player commander flies the ship.</summary>
+        /// <summary>The player's boost and fire input, or null when no player commander flies the ship.</summary>
         public readonly IFlightInput Input;
 
         public readonly string KeystoneName;
