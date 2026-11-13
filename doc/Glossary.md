@@ -711,9 +711,8 @@ Format: **term** — definition. *(authority)*
   marker; out of range, an *edge pointer* (its icon pinned to the minimap rim,
   aimed at it). Live enemies, patrols included, get an edge pointer too: an
   arrowhead alone, in the minimap's enemy red; a concealed one gets none.
-  One find colour for every kind,
-  apart from ship markers. Spent or shut by the hunt's alarm, it closes its
-  registration and both go.
+  One find colour for every kind, apart from ship markers. Spent or shut by
+  the hunt's alarm, it closes its registration and both go.
   *(IObjectiveService.MarkFind, FindMarker, FindPointers)*
 - **sector fixture** — a world object present at spawn, sector-owned, independent
   of encounter state.
