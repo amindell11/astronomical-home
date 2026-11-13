@@ -55,6 +55,7 @@ namespace UI
         private string keystoneName;
         private IWeaponReadouts weapons;
         private EliteReadout eliteReadout;
+        private HeldModsReadout heldMods;
 
         public CommLine CommLine { get; private set; }
         public Camera WorldCamera => canvases[0].worldCamera;
@@ -154,6 +155,10 @@ namespace UI
 
             if (lockOnAudio)
                 lockOnAudio.Initialize(readoutBuilder ? readoutBuilder.FirstReadout<ILockStateSource>() : null);
+
+            if (!heldMods)
+                heldMods = HeldModsReadout.Create(transform, labelFont, textMaterial, projection, () => IsVisible);
+            heldMods.Initialize(binding.Mods);
         }
 
         public void BindObjectives(IObjectiveService objectives, Camera worldCamera, Camera minimapCamera)

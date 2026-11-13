@@ -25,6 +25,7 @@ using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sessions;
 using Substrate.Services.Locales;
 using Substrate.Services.Units;
+using UI.PlayerState;
 using UI.Recap;
 using UI.Screens;
 using Tests.PlayMode.Common;
@@ -209,6 +210,42 @@ namespace Tests.PlayMode.Bootstrap
             UnityEngine.Object.Destroy(hostGo);
             yield return null;
             Assert.AreEqual(1f, Time.timeScale, "tearing down a paused host restores the clock");
+        }
+
+        [UnityTest]
+        [Category("RequiresGraphics")]
+        public IEnumerator HeldMods_ShowOnTheHud_AndCarryIntoTheNextSector()
+        {
+            PlayerRig rig = null;
+            yield return BootToTheFirstSector(built => rig = built, presentation: true);
+            var hot = AssetDatabase.LoadAssetAtPath<WeaponMod>("Assets/Settings/Weapons/Mods/HotRounds.asset");
+            rig.PickMod(hot);
+            rig.PickMod(hot);
+            Assert.AreEqual("×2", HotRoundsCount(rig));
+
+            host.ActiveSector.GetComponent<ExtractOnCueModule>().Extract();
+            yield return WaitFor(() => hostGo.GetComponentInChildren<RunRecapScreen>(), "sector recap appears");
+            hostGo.GetComponentInChildren<RunRecapScreen>().transform.Find("Panels/Recap/Continue")
+                .GetComponent<Button>().onClick.Invoke();
+            yield return WaitFor(() => InSector("SectorB"), "the next sector loads after the recap");
+            Assert.AreEqual("×2", HotRoundsCount(rig));
+        }
+
+        private static string HotRoundsCount(PlayerRig rig)
+        {
+            var readout = rig.Overlay.GetComponentInChildren<HeldModsReadout>(true);
+            Assert.IsNotNull(readout);
+            GameObject badge = null;
+            for (var i = 0; i < readout.transform.childCount; i++)
+            {
+                var child = readout.transform.GetChild(i);
+                if (!child.gameObject.activeSelf || child.name != "Hot rounds") continue;
+                badge = child.gameObject;
+                break;
+            }
+
+            Assert.IsNotNull(badge, "the Hot rounds badge is showing");
+            return badge.transform.Find("Count").GetComponent<Text>().text;
         }
 
         [UnityTest]
