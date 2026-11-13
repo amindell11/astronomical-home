@@ -16,7 +16,7 @@ using Game.Travel;
 using Objectives;
 using Ships.Loadout;
 using Substrate.Services.Objectives;
-using UI.Hangar;
+using UI.Hangar.Hardware;
 using NUnit.Framework;
 using Substrate;
 using Substrate.Sectors;
@@ -568,13 +568,13 @@ namespace Tests.PlayMode.Bootstrap
                 host.jumpFeature = AssetDatabase.LoadAssetAtPath<SectorJumpFeature>("Assets/Settings/Rendering/SectorJumpFeature.asset");
             }
             if (productionJump)
-                host.hangarScreenPrefab = AssetDatabase.LoadAssetAtPath<HangarScreen>("Assets/Prefabs/UI/HangarScreen.prefab");
+                host.hangarConsolePrefab = AssetDatabase.LoadAssetAtPath<HangarConsole>("Assets/Prefabs/UI/HangarConsole.prefab");
             hostGo.SetActive(true);
             if (productionJump)
             {
-                yield return WaitFor(() => hostGo.GetComponentInChildren<HangarScreen>(), "the hangar opens");
+                yield return WaitFor(() => hostGo.GetComponentInChildren<HangarConsole>(), "the hangar opens");
                 Assert.IsNull(host.Jump);
-                hostGo.GetComponentInChildren<HangarScreen>().launchButton.onClick.Invoke();
+                hostGo.GetComponentInChildren<HangarConsole>().Launch();
             }
 
             PlayerRig rig = null;

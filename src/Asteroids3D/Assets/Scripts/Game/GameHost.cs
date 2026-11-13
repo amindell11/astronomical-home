@@ -21,10 +21,8 @@ using Substrate.Sectors;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Elements.Stations;
 using Substrate.Sessions;
-using Ships;
 using Ships.Loadout;
 using UI;
-using UI.Hangar;
 using UI.Hangar.Hardware;
 using UI.Recap;
 using UI.Screens;
@@ -95,12 +93,8 @@ namespace Game
         [SerializeField] internal GameMusic musicPrefab;
 
         [Header("Hangar")]
-        [Tooltip("Between-run hangar screen. Null → no interactive hangar (the standing loadout is " +
-                 "applied silently).")]
-        [SerializeField] internal HangarScreen hangarScreenPrefab;
-
-        [Tooltip("The 3D console the hangar shows behind its menu, with the ship hologram at its projector lens. " +
-                 "Null → no console and no hologram.")]
+        [Tooltip("Between-run hangar: the console, its displays and the ship hologram. " +
+                 "Null → no interactive hangar (the standing loadout is applied silently).")]
         [SerializeField] internal HangarConsole hangarConsolePrefab;
 
         [Tooltip("Camera that shows the sky behind the hangar in place of the observer camera, drifting " +
@@ -790,31 +784,22 @@ namespace Game
         internal IEnumerator RunHangar(PlayerRig rig, bool presentationEnabled, Transform uiRoot)
         {
             unlocks.Read();
-            if (!rig || !rig.Player || rig.Loadout == null || !hangarScreenPrefab || !presentationEnabled)
+            if (!rig || !rig.Player || rig.Loadout == null || !hangarConsolePrefab || !presentationEnabled)
             {
                 if (rig) rig.ApplyLoadout();
                 yield break;
             }
 
-            var screen = Instantiate(hangarScreenPrefab, uiRoot);
+            var console = Instantiate(hangarConsolePrefab, uiRoot);
+            // Its own world, away from the sector and the preview stage.
+            console.transform.position = new Vector3(0f, -2000f, 0f);
             var launched = false;
-            screen.Show(hangarOffer, rig.Loadout, unlocks.Earned, () => launched = true);
-
-            HangarConsole console = null;
-            if (hangarConsolePrefab)
-            {
-                console = Instantiate(hangarConsolePrefab, uiRoot);
-                // Its own world, away from the sector and the preview stage.
-                console.transform.position = new Vector3(0f, -2000f, 0f);
-                console.Projector.Open(hangarOffer ? hangarOffer.ships : Array.Empty<Ship>(), rig.Loadout.Ship);
-                screen.ShipSelected += console.Projector.Select;
-            }
+            console.Show(hangarOffer, rig.Loadout, unlocks.Earned, () => launched = true);
 
             yield return new WaitUntil(() => launched || shutdownRequested);
 
             if (!shutdownRequested) rig.ApplyLoadout();
-            if (console) Destroy(console.gameObject);
-            Destroy(screen.gameObject);
+            Destroy(console.gameObject);
         }
 
         private RecapOutcomeContext ExtractionContext(int index, float sectorStartTime) =>

@@ -13,7 +13,7 @@
   Plain C# types may use normal null syntax freely.
 - **Prefab-ASSET reads take a serialized reference, never a lookup in a property
   getter** — no `Awake` runs on an asset, and getter-side `GetComponent` was
-  rejected for the hangar weapon stats (#99), which `HangarScreen.Describe` reads
+  rejected for the hangar weapon stats (#99), which `HangarDescriptions.Describe` reads
   off assets (e.g. `Railguns.Charge`). Serialize the ref and wire it in the
   prefab; `Awake` is backfill-if-unwired only.
 - **Settings-driven behavior reads the `.asset`, not the C# default** — tuned

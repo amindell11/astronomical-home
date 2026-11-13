@@ -28,7 +28,7 @@ namespace Tests.EditMode.Weapons
                 if (projectile != null && !projectile.objectReferenceValue)
                     unwired.Add($"{path}: projectilePrefab is unassigned");
 
-                // HangarScreen.Describe reads the blast stats through the grenade's wave.
+                // HangarDescriptions.Describe reads the blast stats through the grenade's wave.
                 var grenades = weapon as Grenades;
                 if (grenades && grenades.projectilePrefab && !grenades.projectilePrefab.WavePrefab)
                     unwired.Add($"{path}: its projectile {AssetDatabase.GetAssetPath(grenades.projectilePrefab)} " +
