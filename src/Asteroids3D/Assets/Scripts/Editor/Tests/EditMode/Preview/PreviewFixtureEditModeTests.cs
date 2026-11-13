@@ -163,6 +163,38 @@ namespace Tests.EditMode.Preview
         }
 
         [Test]
+        public void UntickedSearchRepairsAndMods_FollowTheLinkedRow()
+        {
+            row.searchSeconds = 30f;
+            row.repairStations = 0;
+            row.modStations = 1;
+            var fixture = Linked(new SectorEntry { searchSeconds = 12f, repairStations = 4, modStations = 3 });
+
+            var resolved = fixture.Resolve(run);
+            Assert.AreEqual(30f, resolved.searchSeconds);
+            Assert.AreEqual(0, resolved.repairStations);
+            Assert.AreEqual(1, resolved.modStations);
+
+            row.searchSeconds = 45f;
+            row.repairStations = 2;
+            row.modStations = 2;
+            resolved = fixture.Resolve(run);
+            Assert.AreEqual(45f, resolved.searchSeconds);
+            Assert.AreEqual(2, resolved.repairStations);
+            Assert.AreEqual(2, resolved.modStations);
+
+            fixture = Linked(new SectorEntry { searchSeconds = 12f, repairStations = 4, modStations = 3 },
+                PreviewFixtureOwn.SearchSeconds | PreviewFixtureOwn.RepairStations | PreviewFixtureOwn.ModStations);
+            row.searchSeconds = 60f;
+            row.repairStations = 5;
+            row.modStations = 6;
+            resolved = fixture.Resolve(run);
+            Assert.AreEqual(12f, resolved.searchSeconds);
+            Assert.AreEqual(4, resolved.repairStations);
+            Assert.AreEqual(3, resolved.modStations);
+        }
+
+        [Test]
         public void UnlinkedFixture_ReadsNoRow()
         {
             var phases = new[] { new SectorPhase { seconds = 6 } };

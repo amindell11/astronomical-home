@@ -6,9 +6,6 @@ namespace Substrate.Sectors.Elements.Hunt
     [CreateAssetMenu(fileName = "HuntFeel", menuName = "Sectors/Hunt Feel Profile")]
     public sealed class HuntFeelProfile : ScriptableObject
     {
-        [Tooltip("Seconds from the hunt's start to the alarm when the spotted meter never fills.")]
-        [Stat, Min(0f)] public float searchSeconds = 45f;
-
         [Tooltip("Distance, in units, at which a patrol can see the player inside its forward cone, given no asteroid in between.")]
         [Stat, Min(0f)] public float sightRadius = 50f;
 

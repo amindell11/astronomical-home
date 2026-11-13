@@ -36,7 +36,7 @@ namespace Substrate.Sectors.Elements.Hunt
     /// </summary>
     public class SectorHunt : SectorSpawner, ISectorRowReader
     {
-        [Tooltip("Search clock, sight cone and spotted-meter timing.")]
+        [Tooltip("Sight cone and spotted-meter timing.")]
         [Stat, SerializeField] private HuntFeelProfile feel;
         [Tooltip("The sector's faction: every patrol flies its common ship, on its kit and in its skin.")]
         [Stat, SerializeField] private SectorFaction faction;
@@ -64,6 +64,7 @@ namespace Substrate.Sectors.Elements.Hunt
         private Sector sector;
         private int sectorIndex;
         private int patrolCount;
+        private float searchSeconds;
         private bool started;
         private bool hasTicked;
         private float startTime;
@@ -102,6 +103,7 @@ namespace Substrate.Sectors.Elements.Hunt
             if (!feel)
                 throw new InvalidOperationException($"SectorHunt on '{name}' needs its feel profile.");
             patrolCount = ctx.Row.patrols;
+            searchSeconds = ctx.Row.searchSeconds;
             if (patrolCount > 0 && (!faction || !patrolPilot || !ctx.Sector))
                 throw new InvalidOperationException(
                     $"SectorHunt on '{name}' needs a faction, patrol pilot and sector when it spawns patrols.");
@@ -119,7 +121,7 @@ namespace Substrate.Sectors.Elements.Hunt
             Alarmed = false;
             Released = false;
             SpottedFill = 0f;
-            SearchSecondsLeft = feel.searchSeconds;
+            SearchSecondsLeft = searchSeconds;
             GraceSecondsLeft = feel.alarmGraceSeconds;
             yield break;
         }
@@ -128,6 +130,8 @@ namespace Substrate.Sectors.Elements.Hunt
         {
             if (row.patrols < 0)
                 throw new InvalidOperationException($"SectorHunt on '{name}' spawns the row's patrols, and the row asks for {row.patrols}.");
+            if (row.searchSeconds < 0)
+                throw new InvalidOperationException($"SectorHunt on '{name}' runs the row's search clock, and the row asks for {row.searchSeconds} s.");
         }
 
         protected override IEnumerator OnTeardown(SectorBuildContext ctx)
@@ -208,7 +212,7 @@ namespace Substrate.Sectors.Elements.Hunt
 
             foreach (var patrol in patrols) patrol.Fly(feel, hero);
 
-            SearchSecondsLeft = Mathf.Max(0f, feel.searchSeconds - (now - startTime));
+            SearchSecondsLeft = Mathf.Max(0f, searchSeconds - (now - startTime));
             if (SearchSecondsLeft <= 0f) Sound(HuntAlarmReason.SearchClock, null, now);
         }
 

@@ -84,6 +84,15 @@ namespace Substrate.Sessions
         [Tooltip("Patrols the sector's opening hunt spawns.")]
         [Stat, Min(0)] public int patrols;
 
+        [Tooltip("Seconds the hunt lasts with no patrol calling the player in; then the alarm sounds anyway.")]
+        [Stat, Min(0f)] public float searchSeconds;
+
+        [Tooltip("Repair stations the sector places, each with its own supply.")]
+        [Stat, Min(0)] public int repairStations;
+
+        [Tooltip("Mod stations the sector places, each claimed once for one lull pick.")]
+        [Stat, Min(0)] public int modStations;
+
         [Tooltip("Armories the sector places; each opens the weapon pick.")]
         [Stat, Min(0)] public int armories;
 

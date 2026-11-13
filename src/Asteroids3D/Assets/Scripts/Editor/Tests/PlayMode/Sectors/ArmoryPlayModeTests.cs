@@ -170,7 +170,6 @@ namespace Tests.PlayMode.Sectors
         private SectorHunt NewHunt(Ship hero)
         {
             var feel = Track(ScriptableObject.CreateInstance<HuntFeelProfile>());
-            feel.searchSeconds = 1000f;
             feel.alarmGraceSeconds = AlarmGrace;
             var hunt = Track(new GameObject("Hunt")).AddComponent<SectorHunt>();
             hunt.Configure(feel, null, null, 0f);
@@ -191,7 +190,6 @@ namespace Tests.PlayMode.Sectors
         private RepairStation NewRepairStations()
         {
             var feel = Track(ScriptableObject.CreateInstance<RepairStationFeelProfile>());
-            feel.stationsPerSector = 2;
             var prefab = AssetDatabase.LoadAssetAtPath<RepairStation>(RepairStationPath);
             var repairs = Track(Object.Instantiate(prefab.gameObject)).GetComponent<RepairStation>();
             repairs.Configure(feel, Distance, spacing: Spacing);
@@ -200,17 +198,21 @@ namespace Tests.PlayMode.Sectors
 
         private ModStation NewModStations(RepairStation repairs)
         {
-            var feel = Track(ScriptableObject.CreateInstance<ModStationFeelProfile>());
-            feel.stationsPerSector = 2;
             var prefab = AssetDatabase.LoadAssetAtPath<ModStation>(ModStationPath);
             var mods = Track(Object.Instantiate(prefab.gameObject)).GetComponent<ModStation>();
-            mods.Configure(feel, Distance, spacing: Spacing, repairs: repairs);
+            mods.Configure(Distance, spacing: Spacing, repairs: repairs);
             return mods;
         }
 
         private SectorBuildContext Context(Ship hero, int sectorIndex = 0, SectorEntry row = null) =>
             new(null, _objectives, true, _sector, default, hero: hero, sectorIndex: sectorIndex,
-                row: row ?? new SectorEntry { armories = 1 });
+                row: row ?? new SectorEntry
+                {
+                    armories = 1,
+                    searchSeconds = 1000f,
+                    repairStations = 2,
+                    modStations = 2
+                });
 
         // Exactly the live armories are finds, with the armory's own icon.
         private void AssertFinds(Armory armory, params FindStation.Station[] live)

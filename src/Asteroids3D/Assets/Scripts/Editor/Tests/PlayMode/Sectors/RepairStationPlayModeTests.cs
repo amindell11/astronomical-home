@@ -37,6 +37,7 @@ namespace Tests.PlayMode.Sectors
         private ObjectiveService _objectives;
         private Sector _sector;
         private float alarmAt;
+        private SectorEntry _row;
 
         [SetUp]
         public override void SetUp()
@@ -44,6 +45,7 @@ namespace Tests.PlayMode.Sectors
             base.SetUp();
             _objectives = Track(new GameObject("Objectives")).AddComponent<ObjectiveService>();
             _sector = Track(new GameObject("Sector")).AddComponent<Sector>();
+            _row = new SectorEntry();
         }
 
         [TearDown]
@@ -290,7 +292,7 @@ namespace Tests.PlayMode.Sectors
         private SectorHunt NewHunt(Ship hero)
         {
             var feel = Track(ScriptableObject.CreateInstance<HuntFeelProfile>());
-            feel.searchSeconds = 1000f;
+            _row.searchSeconds = 1000f;
             feel.alarmGraceSeconds = AlarmGrace;
             var hunt = Track(new GameObject("Hunt")).AddComponent<SectorHunt>();
             hunt.Configure(feel, null, null, 0f);
@@ -318,7 +320,7 @@ namespace Tests.PlayMode.Sectors
             var feel = Track(ScriptableObject.CreateInstance<RepairStationFeelProfile>());
             feel.repairPerSecond = repairPerSecond;
             feel.supply = supply;
-            feel.stationsPerSector = count;
+            _row.repairStations = count;
             var prefab = AssetDatabase.LoadAssetAtPath<RepairStation>(StationPath);
             var station = Track(Object.Instantiate(prefab.gameObject)).GetComponent<RepairStation>();
             station.Configure(feel, Distance, hunt, spacing);
@@ -328,7 +330,7 @@ namespace Tests.PlayMode.Sectors
         }
 
         private SectorBuildContext Context(Ship hero) =>
-            new(null, _objectives, true, _sector, default, hero: hero, sectorIndex: SectorIndex, row: new SectorEntry());
+            new(null, _objectives, true, _sector, default, hero: hero, sectorIndex: SectorIndex, row: _row);
 
         // Exactly the live stations are finds, with the module's icon and find-layer markers.
         private void AssertFinds(RepairStation module, params RepairStation.Station[] live)
