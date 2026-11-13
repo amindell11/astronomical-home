@@ -10,9 +10,9 @@ namespace Substrate.Sectors.Elements.Stations
             // Shades step down in lightness so they stay apart under red-green colour blindness.
             return kind switch
             {
-                StationKind.Mod => new Color32(0xFF, 0xDA, 0x4A, 0xFF),
-                StationKind.Repair => new Color32(0x3C, 0xC0, 0x60, 0xFF),
-                StationKind.Armory => new Color32(0xB8, 0x18, 0x38, 0xFF),
+                StationKind.Mod => new Color32(0xFF, 0xD2, 0x7A, 0xFF),
+                StationKind.Repair => new Color32(0x5F, 0xE0, 0xC0, 0xFF),
+                StationKind.Armory => new Color32(0x8C, 0x9C, 0xFF, 0xFF),
                 _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "A station kind with no find colour.")
             };
         }

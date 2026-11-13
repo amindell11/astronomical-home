@@ -21,7 +21,7 @@ namespace Tests.EditMode.Sectors
         }
 
         [Test]
-        public void TheRuling_ModIsGold_RepairIsGreen_ArmoryIsRed()
+        public void TheRuling_ModIsGold_RepairIsTeal_ArmoryIsPeriwinkle()
         {
             var mod = FindColours.Of(StationKind.Mod);
             var repair = FindColours.Of(StationKind.Repair);
@@ -30,8 +30,8 @@ namespace Tests.EditMode.Sectors
             Assert.Greater(mod.g, mod.b);
             Assert.Greater(repair.g, repair.r);
             Assert.Greater(repair.g, repair.b);
-            Assert.Greater(armory.r, armory.g);
-            Assert.Greater(armory.r, armory.b);
+            Assert.Greater(armory.b, armory.r);
+            Assert.Greater(armory.b, armory.g);
         }
     }
 }

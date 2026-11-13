@@ -227,12 +227,13 @@ namespace Tests.PlayMode.PlayerState
             Assert.IsTrue(announcement.enabled, "The next beacon announces again.");
         }
 
-        private (ObjectiveMarkers markers, Image icon, Camera camera) CreateMarkers()
+        private (ObjectiveMarkers markers, Image icon, Camera camera, Sprite exit, Sprite lull) CreateMarkers()
         {
             var camera = Child("World camera").AddComponent<Camera>();
             camera.transform.position = new Vector3(0, 0, -50);
             camera.orthographic = true;
             camera.orthographicSize = 18;
+            camera.aspect = 1f;
             canvas.renderMode = RenderMode.ScreenSpaceCamera;
             canvas.worldCamera = camera;
             canvas.planeDistance = 1;
@@ -243,22 +244,26 @@ namespace Tests.PlayMode.PlayerState
             minimap.sizeDelta = new Vector2(200, 200);
             var icon = Child("Legacy objective").AddComponent<Image>();
             var markers = Child("Markers").AddComponent<ObjectiveMarkers>();
-            typeof(ObjectiveMarkers).GetField("icon", BindingFlags.Instance | BindingFlags.NonPublic)
-                .SetValue(markers, icon);
+            var exit = Sprite.Create(new Texture2D(4, 4), new Rect(0, 0, 4, 4), Vector2.one * .5f);
+            var lull = Sprite.Create(new Texture2D(4, 4), new Rect(0, 0, 4, 4), Vector2.one * .5f);
+            var flags = BindingFlags.Instance | BindingFlags.NonPublic;
+            typeof(ObjectiveMarkers).GetField("icon", flags).SetValue(markers, icon);
+            typeof(ObjectiveMarkers).GetField("exitIcon", flags).SetValue(markers, exit);
+            typeof(ObjectiveMarkers).GetField("lullIcon", flags).SetValue(markers, lull);
             markers.Initialize(service, camera, camera, minimap, canvas);
-            return (markers, icon, camera);
+            return (markers, icon, camera, exit, lull);
         }
 
         [UnityTest]
         public IEnumerator Markers_StaySmallAcrossZoom_AndHideWhenTheTargetIsDestroyed()
         {
-            var (_, icon, camera) = CreateMarkers();
+            var (_, icon, camera, _, _) = CreateMarkers();
             var target = Child("Destination").transform;
             target.position = new Vector3(8, 6, 0);
             Open(target);
             yield return null;
-            var screen = canvas.transform.Find("Extraction direction").GetComponent<BerthGraphic>();
-            var map = canvas.transform.Find("Extraction minimap").GetComponent<BerthGraphic>();
+            var screen = canvas.transform.Find("Extraction direction").GetComponent<Image>();
+            var map = canvas.transform.Find("Extraction minimap").GetComponent<Image>();
             Assert.IsTrue(screen.enabled && map.enabled);
             Assert.IsFalse(icon.enabled);
             var size = screen.rectTransform.rect.size;
@@ -268,6 +273,7 @@ namespace Tests.PlayMode.PlayerState
             Assert.AreEqual(Vector3.one, screen.rectTransform.localScale);
             Assert.Less(map.rectTransform.rect.width, screen.rectTransform.rect.width);
             Assert.AreEqual(Quaternion.identity, map.rectTransform.localRotation);
+            Assert.AreEqual(Quaternion.identity, screen.rectTransform.localRotation);
             var mapPosition = map.rectTransform.anchoredPosition;
             camera.transform.position += new Vector3(10, 7, 0);
             target.position += new Vector3(10, 7, 0);
@@ -281,22 +287,44 @@ namespace Tests.PlayMode.PlayerState
         }
 
         [UnityTest]
-        public IEnumerator Markers_InSurvive_DrawTheBerthsInTheBeaconAccent()
+        public IEnumerator Markers_InSurvive_ShowTheLullBeacon()
         {
-            var (markers, icon, _) = CreateMarkers();
-            var beaconAccent = (Color)typeof(ObjectiveMarkers)
-                .GetField("beaconAccent", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(markers);
+            var (markers, icon, _, _, lull) = CreateMarkers();
+            var flags = BindingFlags.Instance | BindingFlags.NonPublic;
+            var lullColour = (Color)typeof(ObjectiveMarkers).GetField("lullColour", flags).GetValue(markers);
+            var exitColour = (Color)typeof(ObjectiveMarkers).GetField("exitColour", flags).GetValue(markers);
             var target = Child("Beacon").transform;
             target.position = new Vector3(8, 6, 0);
             OpenPhases(target, () => new SectorPhaseProgress(0, 2, 5f, false));
             yield return null;
-            var screen = canvas.transform.Find("Extraction direction").GetComponent<BerthGraphic>();
-            var map = canvas.transform.Find("Extraction minimap").GetComponent<BerthGraphic>();
-            Assert.IsTrue(screen.enabled && map.enabled, "A survive-state target draws the berths.");
-            Assert.AreEqual(beaconAccent, screen.Accent);
-            Assert.AreEqual(beaconAccent, map.Accent);
-            Assert.AreNotEqual(BerthGraphic.ExtractionAccent, beaconAccent);
+            var screen = canvas.transform.Find("Extraction direction").GetComponent<Image>();
+            var map = canvas.transform.Find("Extraction minimap").GetComponent<Image>();
+            Assert.IsTrue(screen.enabled && map.enabled, "A survive-state target shows the lull beacon.");
+            Assert.AreSame(lull, screen.sprite);
+            Assert.AreSame(lull, map.sprite);
+            Assert.AreEqual(lullColour, screen.color);
+            Assert.AreEqual(lullColour, map.color);
+            Assert.AreNotEqual(lullColour, exitColour);
             Assert.IsFalse(icon.enabled);
+        }
+
+        [UnityTest]
+        public IEnumerator Markers_BeyondMinimapRange_PinTheBeaconToTheRimWithATab()
+        {
+            CreateMarkers();
+            var target = Child("Destination").transform;
+            target.position = new Vector3(400, 300, 0);
+            Open(target);
+            yield return null;
+            var map = canvas.transform.Find("Extraction minimap").GetComponent<Image>();
+            var tab = map.GetComponentInChildren<NavTab>();
+            var direction = new Vector2(400, 300).normalized;
+            Assert.IsTrue(tab.enabled, "A beacon beyond minimap range shows its tab.");
+            Assert.Less(Vector2.Angle(tab.rectTransform.localRotation * Vector3.up, direction), 1f,
+                "The tab aims at the beacon.");
+            target.position = new Vector3(2, 1, 0);
+            yield return null;
+            Assert.IsFalse(tab.enabled, "In minimap range the beacon has no tab.");
         }
 
         private sealed class ExtractionState : ObjectiveState
