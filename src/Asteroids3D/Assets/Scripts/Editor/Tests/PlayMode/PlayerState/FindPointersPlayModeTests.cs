@@ -29,7 +29,6 @@ namespace Tests.PlayMode.PlayerState
         private ObjectiveService service;
         private Canvas canvas;
         private RectTransform minimap;
-        private Camera worldCamera;
         private SubscribedSet<Ship> ships;
         private Ship ship;
         private Ship player;
@@ -52,7 +51,7 @@ namespace Tests.PlayMode.PlayerState
             camera.aspect = 1f;
             camera.enabled = false;
 
-            worldCamera = Child("World camera").AddComponent<Camera>();
+            var worldCamera = Child("World camera").AddComponent<Camera>();
             worldCamera.transform.position = Vector3.zero;
             worldCamera.transform.rotation = Quaternion.identity;
             worldCamera.fieldOfView = 60f;
@@ -80,7 +79,6 @@ namespace Tests.PlayMode.PlayerState
         [UnityTest]
         public IEnumerator AFindBeyondRange_PointsFromTheRim_AndInRangeOrClosed_ShowsNone()
         {
-            LeaveRimFixturesInView();
             var icon = TestAssets.Load<Sprite>(IconPath);
             var target = Child("Station").transform;
             target.position = new Vector3(200, 100, 0);
@@ -119,8 +117,7 @@ namespace Tests.PlayMode.PlayerState
         [UnityTest]
         public IEnumerator AnEnemyBeyondRange_PointsFromTheRim_AndInRangeConcealedOrGone_ShowsNone()
         {
-            LeaveRimFixturesInView();
-            ship = ShipTestFactory.CreateKinematicPrimitiveShipAt(Vector2.zero);
+            ship =ShipTestFactory.CreateKinematicPrimitiveShipAt(Vector2.zero);
             ship.transform.position = new Vector3(0f, 200f, 0f);
             ships.Add(ship);
             player = ShipTestFactory.CreateKinematicPrimitiveShipAt(Vector2.zero);
@@ -245,10 +242,6 @@ namespace Tests.PlayMode.PlayerState
             Assert.AreEqual(0, shown.arrows.Count, "A find in view shows no screen pointer.");
             Assert.AreEqual(0, shown.icons.Count);
         }
-
-        // Rim fixtures lie on z = 0, in front of this camera.
-        private void LeaveRimFixturesInView() =>
-            worldCamera.transform.position = new Vector3(0f, 0f, -1000f);
 
         private (List<NavTab> arrows, List<Image> icons) VisiblePointers() =>
             VisibleUnder(minimap.Find("Find pointers"));

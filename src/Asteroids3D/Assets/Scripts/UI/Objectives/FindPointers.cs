@@ -14,7 +14,6 @@ namespace UI.Objectives
     /// Pins unused finds and live, unconcealed enemies to the minimap rim when they sit beyond
     /// the map's range, and to the screen edge when they leave the world camera's view.
     /// A find shows its icon with a find-coloured tab; an enemy shows only a tab in the enemy colour.
-    /// The player, and concealed, inactive or removed ships, get neither.
     /// </summary>
     public sealed class FindPointers : MonoBehaviour
     {
@@ -50,7 +49,7 @@ namespace UI.Objectives
             pointers.minimap = minimap;
             pointers.projection = projection;
             pointers.isVisible = isVisible;
-            InstrumentAppear.Attach(go, projection, () => pointers.shown > 0 && (pointers.isVisible?.Invoke() ?? true));
+            InstrumentAppear.Attach(go, projection, () => pointers.shown > 0 && (isVisible?.Invoke() ?? true));
             return pointers;
         }
 
