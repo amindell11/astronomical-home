@@ -63,6 +63,19 @@ namespace Tests.PlayMode.Screens
         }
 
         [UnityTest]
+        [Category("RequiresGraphics")]
+        public IEnumerator Create_RendersEveryLetterOfTheName()
+        {
+            screen = CreateScreen();
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+
+            var title = TextAt("Title");
+            Assert.AreEqual(title.text.Length, title.cachedTextGenerator.characterCountVisible,
+                "every letter of the name is laid out, none truncated away");
+        }
+
+        [UnityTest]
         public IEnumerator Click_PlayOrQuit_Answers()
         {
             screen = CreateScreen();

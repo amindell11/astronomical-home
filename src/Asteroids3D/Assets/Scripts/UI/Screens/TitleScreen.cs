@@ -150,6 +150,8 @@ namespace UI.Screens
             text.fontSize = size;
             text.color = color;
             text.alignment = alignment;
+            // Truncate drops a whole line taller than its box; Michroma's line outgrows the title's.
+            text.verticalOverflow = VerticalWrapMode.Overflow;
             text.raycastTarget = false;
             text.text = value;
             return text;
