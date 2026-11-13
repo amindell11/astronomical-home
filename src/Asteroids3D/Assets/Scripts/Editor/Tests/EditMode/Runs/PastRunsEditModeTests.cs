@@ -91,6 +91,33 @@ namespace Tests.EditMode.Runs
         }
 
         [Test]
+        public void V2AndV3Count_AndAbandonedIsNotTheLastRun()
+        {
+            var v2 = new RunRecord
+            {
+                schema = RunRecord.SchemaV2,
+                endedUtc = Ended.ToString(RunRecord.EndedUtcFormat, CultureInfo.InvariantCulture),
+                outcome = RunRecord.Died,
+                sectorsCleared = 1,
+                kills = 4,
+                secondsSurvived = 60f,
+                killingBlow = new KillingBlowRow { kind = "Laser", spawn = RunRecord.NoSpawn },
+            };
+            File.WriteAllLines(path, new[]
+            {
+                v2.ToJsonLine(),
+                Record(RunRecord.Abandoned, 9, 99, "Ram"),
+                Extracted(3, 2),
+            });
+
+            var past = PastRuns.Read(path);
+
+            Assert.AreEqual(2, past.Count);
+            Assert.IsFalse(past.Last.Value.Died);
+            Assert.AreEqual(3, past.Last.Value.Sector);
+        }
+
+        [Test]
         public void UnreadableLines_AreNotCounted()
         {
             File.WriteAllLines(path, new[]

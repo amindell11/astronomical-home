@@ -678,8 +678,9 @@ Format: **term** — definition. *(authority)*
   spine owns it and drives it. *(EliteEncounter, EliteProfile,
   PhaseSpineModule.StepElite)*
 - **unlocked ship** — a ship the hangar lets the player fly: the starter plus
-  every elite chassis the player killed in any run record. No save file; a kill
-  counts once its run's record is written. *(ShipUnlocks, ItemSubset.starter)*
+  every elite chassis the player killed in a died or extracted run record. No save
+  file; a kill counts once that record is written. An abandoned run earns nothing
+  from the file. *(ShipUnlocks, ItemSubset.starter)*
 - **station** — a *find* the player flies into. Every kind shares one core:
   the placement, the clearing in the field, going dark at the hunt's release,
   the find marker and the arrival events. A kind adds only its effect, which
@@ -1184,11 +1185,17 @@ Format: **term** — definition. *(authority)*
   Built from the `[Stat]` marks and keyed by name, so a rename moves it too.
   *(StatHash.OfSetting, StatAttribute)*
 - **run record**. One JSON line appended when a run ends, extracted from its last
-  sector or dead: what it was played on (build identity, stat fingerprint), its
-  outcome, sectors cleared and the sector it ended in, the player's loadout, kills,
-  seconds survived, the damage-ledger rows, the killing blow (deaths only) and the
-  spawn log. Quitting mid-run writes nothing. `hasDamageSplit` distinguishes
-  measured shield/hull points from older v2 records whose split is unknown.
+  sector, dead, or abandoned. Abandoned is the pause screen's quit run, or shutdown
+  arriving while a run is open; it has no killing blow and no recap. The line holds
+  what the run was played on (build identity, stat fingerprint, editor or build),
+  its outcome, sectors cleared and the sector it ended in, the hangar loadout and
+  the loadout mounted at the end, the mods held, the pick screens, each sector
+  entered (seconds, player kills, hull and shield at entry and at the end, whether
+  its elite was announced and whether the player killed it), where that sector's
+  phase table stood, the damage taken, the damage the player dealt, the killing
+  blow (deaths only) and the spawn log. A new line is schema v3; stored v2 lines
+  still read. `hasDamageSplit` distinguishes measured shield/hull points from older
+  v2 records whose split is unknown.
   Every record goes to one append-only file under the results root, which in the
   editor is the worktree's own `results/`, so an agent's editor runs never land in
   the user's file. A failed write, or an unreadable build identity, is logged and
@@ -1197,6 +1204,7 @@ Format: **term** — definition. *(authority)*
 - **scoreboard**. Past-run rankings share one board across stat fingerprints.
   A sector counts only after extraction; dying in the first sector shows zero.
   Intermediate extraction has no scoreboard; victory and defeat do.
+  An abandoned run stays off the board.
   *(Scoreboard, RunRecapScreen, GameHost)*
 - **spawn log** — one entry per life of each ship spawned or sector-adopted in a
   run, other than the player (a respawn-policy revive opens a fresh entry): its

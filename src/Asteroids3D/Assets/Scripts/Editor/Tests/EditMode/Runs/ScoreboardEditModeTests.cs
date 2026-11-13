@@ -10,7 +10,7 @@ using UnityEngine.TestTools;
 
 namespace Tests.EditMode.Runs
 {
-    /// <summary>The scoreboard over a temp run-record file: only v2 lines reach it, it ranks by sectors cleared, then kills, then seconds survived, this run takes its place below the earlier runs it ties, and an unrecorded run or an unreadable file is not ranked.</summary>
+    /// <summary>The scoreboard over a temp run-record file: v2 and v3 lines reach it and abandoned lines do not, it ranks by sectors cleared, then kills, then seconds survived, this run takes its place below the earlier runs it ties, and an unrecorded run or an unreadable file is not ranked.</summary>
     [Category("Bootstrap")]
     public class ScoreboardEditModeTests
     {
@@ -89,6 +89,20 @@ namespace Tests.EditMode.Runs
                 Assert.AreEqual(expected.primary, actual.primary);
                 Assert.AreEqual(expected.secondary, actual.secondary);
             }
+        }
+
+        [Test]
+        public void Read_CountsV2AndV3_AndSkipsAbandoned()
+        {
+            var v2 = Record(2, 4, 30f);
+            v2.schema = RunRecord.SchemaV2;
+            var abandoned = Record(9, 99, 999f);
+            abandoned.outcome = RunRecord.Abandoned;
+            File.WriteAllLines(path, new[] { v2.ToJsonLine(), Record(1, 5, 60f).ToJsonLine(), abandoned.ToJsonLine() });
+
+            var board = Scoreboard.Read(path, null);
+
+            CollectionAssert.AreEqual(new[] { "2/4/30", "1/5/60" }, board.Rows.Select(Shape));
         }
 
         [Test]

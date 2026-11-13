@@ -125,7 +125,7 @@ namespace Tests.PlayMode.Bootstrap
             var append = typeof(GameHost).GetMethod("AppendRunRecord",
                 System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
             var board = (Scoreboard)append.Invoke(hostGo.GetComponent<GameHost>(),
-                new object[] { StatHash.OfLoadout(rig.Player), 0, null, null });
+                new object[] { StatHash.OfLoadout(rig.Player), 0, null, null, false });
 
             Assert.IsNull(board.Rank, "an unsaved run must not be ranked");
             Assert.IsEmpty(board.Rows);
@@ -152,6 +152,32 @@ namespace Tests.PlayMode.Bootstrap
             yield return WaitFor(() => !rig.Player.gameObject.activeSelf, "the player died");
             yield return WaitFor(() => rig.Player.gameObject.activeSelf, "the host reached the next run's hangar step");
             Assert.IsFalse(File.Exists(recordPath), "no record is written without a build identity");
+        }
+
+        [UnityTest]
+        public IEnumerator ShutdownMidRun_AppendsAnAbandonedRecord()
+        {
+            yield return BootToARunningSector(AssetDatabase.LoadAssetAtPath<Sector>(SectorPrefabPath),
+                (out BuildIdentity identity, out string failure) =>
+                {
+                    identity = new BuildIdentity { commit = TestCommit };
+                    failure = null;
+                    return true;
+                },
+                _ => { });
+
+            yield return hostGo.GetComponent<GameHost>().Shutdown();
+
+            var lines = File.ReadAllLines(recordPath);
+            Assert.AreEqual(1, lines.Length, "shutdown mid-run appends one record");
+            var record = JsonUtility.FromJson<RunRecord>(lines[0]);
+            Assert.AreEqual(RunRecord.SchemaId, record.schema);
+            Assert.AreEqual(RunRecord.Abandoned, record.outcome);
+            Assert.AreEqual(RunRecord.OriginEditor, record.origin);
+            Assert.AreEqual(string.Empty, record.killingBlow.kind);
+            Assert.AreEqual(RunRecord.NoSpawn, record.killingBlow.spawn);
+            Assert.AreEqual(1, record.sectors.Count);
+            Assert.AreEqual(1, record.sectors[0].sector);
         }
 
         private IEnumerator BootToARunningSector(Sector sectorPrefab, BuildIdentitySource buildIdentity,

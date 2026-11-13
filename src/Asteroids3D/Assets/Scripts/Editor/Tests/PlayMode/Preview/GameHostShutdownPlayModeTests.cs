@@ -3,6 +3,7 @@ using System.Collections;
 using System.IO;
 using Cameras;
 using Game;
+using Game.Runs;
 using NUnit.Framework;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
@@ -80,7 +81,7 @@ namespace Tests.PlayMode.Preview
         }
 
         [UnityTest]
-        public IEnumerator ShutdownDuringFlight_RemovesTheRigAndWorldWithoutRecordingAnInterruptedRun()
+        public IEnumerator ShutdownDuringFlight_RemovesTheRigAndWorld_AndRecordsAnAbandonedRun()
         {
             BuildHost(withPlayer: true, suspendSetup: false);
             PlayerRig rig = null;
@@ -96,7 +97,11 @@ namespace Tests.PlayMode.Preview
             Assert.That(rig == null, Is.True);
             Assert.That(observer == null, Is.True);
             Assert.That(host.transform.childCount, Is.Zero);
-            Assert.That(File.Exists(recordPath), Is.False);
+            var lines = File.ReadAllLines(recordPath);
+            Assert.AreEqual(1, lines.Length, "shutdown mid-run appends one record");
+            var record = JsonUtility.FromJson<RunRecord>(lines[0]);
+            Assert.AreEqual(RunRecord.Abandoned, record.outcome);
+            Assert.AreEqual(string.Empty, record.killingBlow.kind);
             Assert.That(Time.timeScale, Is.EqualTo(1f));
         }
 
@@ -125,6 +130,12 @@ namespace Tests.PlayMode.Preview
             if (withPlayer)
                 host.playerRig = AssetDatabase.LoadAssetAtPath<PlayerRig>("Assets/Prefabs/MiscObjects/PlayerRig.prefab");
             host.runRecordPath = recordPath;
+            host.buildIdentity = (out BuildIdentity identity, out string failure) =>
+            {
+                identity = new BuildIdentity { commit = "test-commit" };
+                failure = null;
+                return true;
+            };
             root.SetActive(true);
         }
     }

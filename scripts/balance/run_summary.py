@@ -6,16 +6,23 @@ append, and this script never looks for the store itself.
 
     python scripts/balance/run_summary.py <run-records.jsonl> [<more.jsonl> ...]
 
-Accepted schemas: "run-record-v2" (RunRecord.SchemaId) and "run-record-v1", one JSON object per
-line. A v1 record predates multi-sector runs and reads as a death with no sector cleared.
+Accepted schemas: "run-record-v3" (RunRecord.SchemaId), "run-record-v2", and "run-record-v1",
+one JSON object per line. A v1 record predates multi-sector runs and reads as a death with no
+sector cleared. A v2 or v1 record has none of the v3 fields.
 
 Output, on stdout, is for reading and carries no machine contract:
   - one Runs table per stat fingerprint, with each run's outcome and min / median /
     max of kills and of seconds survived below it, each on its own line. A run is
     marked mixed when one named loadout shows two loadout stat hashes inside it;
   - three tables pooled over every record handed in, keyed by loadout stat hash:
-    damage taken, killing blows (deaths only), ships spawned. "Runs seen" counts the records
-    whose spawn log holds that hash.
+    damage taken, killing blows (deaths only; an abandoned run is left out), ships spawned.
+    "Runs seen" counts the records whose spawn log holds that hash;
+  - four tables built only from records that carry the field: where runs ended (deaths and
+    abandoned runs per sector and phase, the phase named from the record's phase mark and the
+    sector's elite flags), picks (per offered item and
+    kind: times offered, times taken), sectors (per sector number: runs entered, median
+    seconds, median hull out, elite met, elite beaten), damage dealt (per damage kind:
+    total, hits, runs).
 No number combines two metrics.
 
 Exit codes:
@@ -30,9 +37,11 @@ import statistics
 import sys
 from collections import defaultdict
 
-SCHEMAS = ("run-record-v2", "run-record-v1")
+SCHEMAS = ("run-record-v3", "run-record-v2", "run-record-v1")
 V1 = "run-record-v1"
 EXTRACTED = "extracted"
+DIED = "died"
+ABANDONED = "abandoned"
 NO_SPAWN = -1
 PARTS = ("chassis", "engine", "shield", "primary", "secondary")
 
@@ -93,7 +102,7 @@ def mixed_loadouts(record):
 
 
 def killing_blow(record):
-    if record["outcome"] == EXTRACTED:
+    if record["outcome"] in (EXTRACTED, ABANDONED):
         return "-"
     blow = record["killingBlow"]
     if blow["spawn"] == NO_SPAWN:
@@ -165,7 +174,7 @@ def pooled_sections(records):
             entry = damage[attacker(record, row["spawn"], row["source"]) + (row["kind"],)]
             entry[0] += row["total"]
             entry[1] += row["hits"]
-        if record["outcome"] == EXTRACTED:
+        if record["outcome"] != DIED:
             continue
         blow = record["killingBlow"]
         blows[attacker(record, blow["spawn"], "") + (blow["kind"],)] += 1
@@ -192,6 +201,94 @@ def pooled_sections(records):
     ]
 
 
+def carried(record, key):
+    value = record.get(key)
+    return value if isinstance(value, list) else None
+
+
+def end_phase(mark, sector):
+    """Names the phase from the record's phase mark; the mark is done through the elite fight and extraction."""
+    if mark["done"]:
+        return "elite" if sector["eliteMet"] and not sector["eliteBeaten"] else "extraction"
+    if mark["inLull"]:
+        return "hunt" if mark["index"] == 0 else "lull before phase %d" % (mark["index"] + 1)
+    return "phase %d" % (mark["index"] + 1)
+
+
+def measured_sections(records):
+    offered = defaultdict(int)
+    taken = defaultdict(int)
+    for record in records:
+        picks = carried(record, "picks")
+        if picks is None:
+            continue
+        for pick in picks:
+            kind = pick["kind"]
+            for name in pick["offered"]:
+                offered[(name, kind)] += 1
+            got = pick.get("taken") or ""
+            if got:
+                taken[(got, kind)] += 1
+    pick_rows = [[name, kind, offered[(name, kind)], taken[(name, kind)]]
+                 for (name, kind) in sorted(offered, key=lambda item: (-offered[item], item[1], item[0]))]
+
+    by_sector = defaultdict(lambda: {"seconds": [], "hull": [], "met": 0, "beaten": 0})
+    for record in records:
+        sectors = carried(record, "sectors")
+        if sectors is None:
+            continue
+        for row in sectors:
+            bucket = by_sector[row["sector"]]
+            bucket["seconds"].append(row["seconds"])
+            bucket["hull"].append(row["hullOut"])
+            bucket["met"] += row["eliteMet"]
+            bucket["beaten"] += row["eliteBeaten"]
+    sector_rows = [[sector, len(bucket["seconds"]), number(statistics.median(bucket["seconds"])),
+                    number(statistics.median(bucket["hull"])), bucket["met"], bucket["beaten"]]
+                   for sector, bucket in sorted(by_sector.items())]
+
+    dealt = defaultdict(lambda: [0.0, 0, 0])
+    for record in records:
+        rows = carried(record, "dealt")
+        if rows is None:
+            continue
+        kinds = set()
+        for row in rows:
+            entry = dealt[row["kind"]]
+            entry[0] += row["total"]
+            entry[1] += row["hits"]
+            kinds.add(row["kind"])
+        for kind in kinds:
+            dealt[kind][2] += 1
+    dealt_rows = [[kind, number(total), hits, runs]
+                  for kind, (total, hits, runs) in sorted(dealt.items(), key=lambda item: (-item[1][0], item[0]))]
+
+    ended = defaultdict(int)
+    for record in records:
+        sectors = carried(record, "sectors")
+        if not sectors or record["outcome"] == EXTRACTED:
+            continue
+        ended[(sectors[-1]["sector"], end_phase(record["endPhase"], sectors[-1]), record["outcome"])] += 1
+    ended_rows = [[sector, phase, outcome, runs]
+                  for (sector, phase, outcome), runs in sorted(ended.items(), key=lambda item: (-item[1], item[0]))]
+
+    sections = []
+    if ended_rows:
+        sections.append("## Where runs ended\n\n" + table(
+            ["Sector", "Phase", "Outcome", "Runs"], ended_rows))
+    if pick_rows:
+        sections.append("## Picks\n\n" + table(
+            ["Item", "Kind", "Offered", "Taken"], pick_rows))
+    if sector_rows:
+        sections.append("## Sectors\n\n" + table(
+            ["Sector", "Runs entered", "Median seconds", "Median hull out", "Elite met", "Elite beaten"],
+            sector_rows))
+    if dealt_rows:
+        sections.append("## Damage dealt\n\n" + table(
+            ["Kind", "Total", "Hits", "Runs"], dealt_rows))
+    return sections
+
+
 def main():
     parser = argparse.ArgumentParser(description="Summarize run records as tables.")
     parser.add_argument("record_files", nargs="+", help="run-record files, one JSON object per line")
@@ -209,6 +306,7 @@ def main():
     sections = ["run records: %d, files: %d" % (len(records), len(args.record_files))]
     sections += [runs_section(fingerprint, runs) for fingerprint, runs in by_fingerprint.items()]
     sections += pooled_sections(records)
+    sections += measured_sections(records)
     print("\n\n".join(sections))
 
 
