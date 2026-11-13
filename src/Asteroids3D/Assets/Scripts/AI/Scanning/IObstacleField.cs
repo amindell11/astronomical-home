@@ -1,9 +1,12 @@
 using UnityEngine;
 namespace AI.Scanning
 {
-    /// <summary>Queries live asteroids in a fixed AABB around a point (plane coords).</summary>
+    /// <summary>Queries live asteroids around a point (plane coords).</summary>
     public interface IObstacleField
     {
         int QueryObstacles(Vector2 centerPlane, float halfExtent, DetectedObstacle[] buffer);
+
+        /// <summary>True when a rock's radius reaches within <paramref name="radius"/> of the point.</summary>
+        bool AnyObstacleWithin(Vector2 centerPlane, float radius);
     }
 }

@@ -23,6 +23,8 @@ namespace Tests.EditMode
                 buffer[0] = obstacle;
                 return 1;
             }
+
+            public bool AnyObstacleWithin(Vector2 centerPlane, float radius) => false;
         }
 
         private readonly List<GameObject> created = new();

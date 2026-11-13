@@ -7,12 +7,10 @@ using Substrate;
 namespace Asteroids
 {
     [RequireComponent(typeof(AsteroidDamage))]
-    [RequireComponent(typeof(SphereCollider))]
     public class AsteroidController : MonoBehaviour
     {
         private MeshFilter meshFilter;
         private MeshCollider meshCollider;
-        private SphereCollider cheapCollider;
         private AsteroidDamage damage;
 
 
@@ -38,9 +36,6 @@ namespace Asteroids
         public Renderer Renderer { get; private set; }
         public Fragger Fragger { get; private set; }
         public AsteroidDamage Damage => damage;
-        /// <summary>Whichever collider is live (the hull near the anchor, else the cheap sphere). Handed to
-        /// obstacle-scan consumers that resolve mass/root through a collider reference.</summary>
-        public Collider SimpleCollider => cheapCollider.enabled ? cheapCollider : meshCollider;
         public Mesh CurrentMesh => meshFilter.sharedMesh;
         public int MeshIndex { get; private set; }
         public event Action<Vector3> OnDestroyed;
@@ -52,11 +47,9 @@ namespace Asteroids
             Rb = GetComponent<Rigidbody>();
             meshFilter = GetComponent<MeshFilter>();
             meshCollider = GetComponent<MeshCollider>();
-            cheapCollider = GetComponent<SphereCollider>();
             Renderer = GetComponent<Renderer>();
             damage = GetComponent<AsteroidDamage>();
             Rb.useGravity = false;
-            if (meshCollider) SetHullEnabled(meshCollider.enabled);
         }
 
         public void Initialize(
@@ -92,12 +85,7 @@ namespace Asteroids
 
             UpdateMeshCollider(meshInfo);
 
-            // Stays local-space: the transform already carries `scale`, and SphereCollider
-            // .radius is scaled by it again — folding scale in here makes the world sphere
-            // and Radius come out scale² too big.
-            var localRadius = AsteroidGeometry.RadiusFromVolume(meshInfo.cachedVolume);
-            cheapCollider.radius = localRadius;
-            Radius = localRadius * transform.lossyScale.x;
+            Radius = AsteroidGeometry.RadiusFromVolume(meshInfo.cachedVolume) * transform.lossyScale.x;
 
             initialVelocity = velocity;
             initialAngularVelocity = angularVelocity;
@@ -127,14 +115,7 @@ namespace Asteroids
             if (!meshCollider) return;
             if (meshCollider.sharedMesh != meshInfo.colliderMesh)
                 meshCollider.sharedMesh = meshInfo.colliderMesh;
-            SetHullEnabled(false);
-        }
-
-        // The sphere sticks out past elongated rocks, so it exists only where the hull is off.
-        private void SetHullEnabled(bool hullOn)
-        {
-            meshCollider.enabled = hullOn;
-            cheapCollider.enabled = !hullOn;
+            meshCollider.enabled = false;
         }
 
         internal void HandleDestroyed(HitData hit)
@@ -169,7 +150,7 @@ namespace Asteroids
                 shouldEnable = distSqr < detailedColliderEnableDistance * detailedColliderEnableDistance;
             }
             if (meshCollider.enabled != shouldEnable)
-                SetHullEnabled(shouldEnable);
+                meshCollider.enabled = shouldEnable;
         }
     }
 }
