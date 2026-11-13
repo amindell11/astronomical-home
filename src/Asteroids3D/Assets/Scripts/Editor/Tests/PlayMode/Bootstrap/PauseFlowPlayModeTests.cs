@@ -28,7 +28,7 @@ namespace Tests.PlayMode.Bootstrap
 {
     /// <summary>
     /// A presenting host over two sectors, opened from the title with a HUD-less rig: pause holds the
-    /// flight, quit run returns to the title without a record, and pause stays out of the recap.
+    /// flight, quit run returns to the title with an abandoned record, and pause stays out of the recap.
     /// </summary>
     [Category("Bootstrap")]
     public class PauseFlowPlayModeTests : PlayModeWorldFixture
@@ -103,7 +103,7 @@ namespace Tests.PlayMode.Bootstrap
         }
 
         [UnityTest]
-        public IEnumerator QuitRun_LandsOnTheTitle_WithNoRecord()
+        public IEnumerator QuitRun_LandsOnTheTitle_AndAppendsAnAbandonedRecord()
         {
             yield return BootToFlight();
 
@@ -114,7 +114,13 @@ namespace Tests.PlayMode.Bootstrap
             yield return WaitFor(() => hostGo.GetComponentInChildren<TitleScreen>(), "quit run returns to the title");
             Assert.IsNull(host.ActiveSector);
             Assert.AreEqual(1f, Time.timeScale);
-            Assert.IsFalse(File.Exists(recordPath));
+            Assert.IsFalse(hostGo.GetComponentInChildren<RunRecapScreen>(), "an abandoned run has no recap");
+            var lines = File.ReadAllLines(recordPath);
+            Assert.AreEqual(1, lines.Length);
+            var record = JsonUtility.FromJson<RunRecord>(lines[0]);
+            Assert.AreEqual(RunRecord.Abandoned, record.outcome);
+            Assert.AreEqual(string.Empty, record.killingBlow.kind);
+            Assert.AreEqual(RunRecord.NoSpawn, record.killingBlow.spawn);
         }
 
         [UnityTest]

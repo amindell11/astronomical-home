@@ -44,6 +44,51 @@ namespace Game.Runs
     }
 
     [Serializable]
+    public struct PickRow
+    {
+        public string kind;
+        public int sector;
+        public float seconds;
+        public List<string> offered;
+        public string taken;
+        public string replaced;
+    }
+
+    [Serializable]
+    public struct SectorRow
+    {
+        public int sector;
+        public float seconds;
+        public int kills;
+        public float hullIn;
+        public float shieldIn;
+        public float hullOut;
+        public float shieldOut;
+        public bool eliteMet;
+        public bool eliteBeaten;
+    }
+
+    [Serializable]
+    public struct DealtRow
+    {
+        public int sector;
+        public string kind;
+        public float total;
+        public float shield;
+        public float hull;
+        public int hits;
+    }
+
+    [Serializable]
+    public struct EndPhaseRow
+    {
+        public int index;
+        public bool inLull;
+        public bool done;
+        public float elapsedSeconds;
+    }
+
+    [Serializable]
     public struct SpawnRow
     {
         public float spawnSeconds;
@@ -55,13 +100,14 @@ namespace Game.Runs
     }
 
     /// <summary>
-    /// One finished run as one JSON line: what it was played on (build identity, stat fingerprint),
-    /// what the player flew, how it went, what hurt the player, and every ship that spawned, its
-    /// sector's elite flagged. A run ends extracted from its last sector or dead; only a death carries
-    /// a killing blow.
+    /// One finished run as one JSON line. <see cref="player"/> is the hangar loadout at run start;
+    /// <see cref="playerEnd"/> is the loadout mounted when the run ended. The line also holds what
+    /// the run was played on, how it went, the picks and the sectors, what hurt the player and what
+    /// the player dealt, and every ship that spawned. A run ends extracted, dead, or abandoned; only
+    /// a death carries a killing blow.
     /// A damage row and the killing blow name their attacker as an index into <see cref="spawns"/>,
     /// <see cref="NoSpawn"/> when no logged ship dealt it, so no Unity instance id reaches the file.
-    /// Older v2 rows lack a measured shield/hull split; hasDamageSplit distinguishes those from zero damage.
+    /// Older v2 rows lack a measured shield/hull split; hasDamageSplit distinguishes those from zero.
     /// What a record holds and why: https://github.com/amindell11/astronomical-home/issues/772#issuecomment-5905712068
     /// </summary>
     [Serializable]
@@ -78,26 +124,45 @@ namespace Game.Runs
         public BuildIdentity buildIdentity;
         public string statFingerprint;
         public LoadoutRow player;
+        public LoadoutRow playerEnd;
+        public List<string> mods;
         public int kills;
         public float secondsSurvived;
         public List<DamageRow> damage;
         public bool hasDamageSplit;
         public KillingBlowRow killingBlow;
         public List<SpawnRow> spawns;
+        public List<PickRow> picks;
+        public List<SectorRow> sectors;
+        public List<DealtRow> dealt;
+        public EndPhaseRow endPhase;
+        public string origin;
 
-        public const string SchemaId = "run-record-v2";
+        public const string SchemaId = "run-record-v3";
+        public const string SchemaV2 = "run-record-v2";
         public const string Died = "died";
         public const string Extracted = "extracted";
+        public const string Abandoned = "abandoned";
+        public const string PickMod = "mod";
+        public const string PickWeapon = "weapon";
+        public const string OriginEditor = "editor";
+        public const string OriginBuild = "build";
         public const int NoSpawn = -1;
         public const string EndedUtcFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 
+        /// <summary>A v2 or v3 line that finished died or extracted. Abandoned stays in the file and off every reader.</summary>
+        public static bool Counts(string schema, string outcome) =>
+            (schema == SchemaId || schema == SchemaV2) && outcome != Abandoned;
+
         public string ToJsonLine() => JsonUtility.ToJson(this);
 
-        /// <summary>A null <paramref name="killingBlow"/> is a run that extracted from its last sector.</summary>
+        /// <summary>A null <paramref name="killingBlow"/> extracted, unless <paramref name="abandoned"/> is set.</summary>
         public static RunRecord Compose(DateTime endedUtc, int sectorsCleared, int endedInSector,
             IReadOnlyList<LocaleSky> locales, BuildIdentity buildIdentity, string statFingerprint,
             ShipLoadout playerLoadout, string playerLoadoutStatHash, IRunTally tally, DamageLedger ledger,
-            SpawnLog spawnLog, DamageInfo? killingBlow)
+            SpawnLog spawnLog, DamageInfo? killingBlow, RunCourse course = null, LoadoutRow playerEnd = default,
+            IReadOnlyList<string> mods = null, EndPhaseRow endPhase = default, string origin = null,
+            IReadOnlyList<DealtRow> dealt = null, bool abandoned = false)
         {
             var entries = spawnLog.Entries();
             int SpawnOf(ShipId attacker) => entries.FindLastIndex(entry => entry.Id == attacker);
@@ -106,7 +171,7 @@ namespace Game.Runs
             {
                 schema = SchemaId,
                 endedUtc = endedUtc.ToString(EndedUtcFormat, CultureInfo.InvariantCulture),
-                outcome = killingBlow.HasValue ? Died : Extracted,
+                outcome = abandoned ? Abandoned : killingBlow.HasValue ? Died : Extracted,
                 sectorsCleared = sectorsCleared,
                 sector = $"Sector {endedInSector + 1}",
                 locales = locales == null ? new List<string>() : locales.Select(NameOf).ToList(),
@@ -129,6 +194,13 @@ namespace Game.Runs
                     ? new KillingBlowRow { kind = blow.Kind.ToString(), spawn = SpawnOf(blow.AttackerId) }
                     : new KillingBlowRow { kind = string.Empty, spawn = NoSpawn },
                 spawns = new List<SpawnRow>(entries.Count),
+                playerEnd = playerEnd,
+                mods = mods == null ? new List<string>() : new List<string>(mods),
+                picks = course == null ? new List<PickRow>() : new List<PickRow>(course.Picks),
+                sectors = course == null ? new List<SectorRow>() : new List<SectorRow>(course.Sectors),
+                dealt = dealt == null ? new List<DealtRow>() : new List<DealtRow>(dealt),
+                endPhase = endPhase,
+                origin = origin ?? string.Empty,
             };
 
             // Re-aggregated from the hits, because a ledger row spans every life of its attacker.

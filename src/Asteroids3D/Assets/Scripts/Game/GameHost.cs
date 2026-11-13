@@ -21,7 +21,10 @@ using Substrate.Sectors;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Elements.Stations;
 using Substrate.Sessions;
+using Ships;
+using Ships.Command;
 using Ships.Loadout;
+using Ships.Weapons;
 using UI;
 using UI.Hangar.Hardware;
 using UI.Recap;
@@ -153,6 +156,11 @@ namespace Game
         private bool pauseRequested;
         private bool quitRun;
         private bool shutdownRequested;
+        private bool runOpen;
+        private int clearedSectors;
+        private RunCourse course;
+        private string runLoadoutHash;
+        private LocaleSky[] runLocales;
         private bool shutdownComplete;
         private int activeSectorIndex;
         private SectorJumpFlight jump;
@@ -257,6 +265,7 @@ namespace Game
                 yield return RunTitle();
 
             yield return PlayRuns(presentation);
+            RecordAbandonedRun();
 
             if (jump)
             {
@@ -315,6 +324,7 @@ namespace Game
                 var index = 0;
                 var transferred = false;
                 var locales = presentation ? sessionProfile.run.DrawLocales(new System.Random()) : null;
+                runLocales = locales;
                 while (true)
                 {
                     if (!transferred)
@@ -322,14 +332,14 @@ namespace Game
                         SetSplashVisible(true);
                         sectorEnded = false;
                         activeSectorIndex = index;
-                        if (rigInstance) rigInstance.Spawns.BeginSector();
+                        if (rigInstance) rigInstance.BeginSector(index + 1);
                         yield return session.LoadSector(index, rigInstance ? rigInstance.Player : null, OnSectorComplete,
                             locales?[index]);
                     }
                     transferred = false;
                     if (shutdownRequested) yield break;
                     if (index == 0)
-                        playerLoadoutStatHash = rigInstance ? BeginRun() : null;
+                        playerLoadoutStatHash = runLoadoutHash = rigInstance ? BeginRun() : null;
                     else if (rigInstance)
                         rigInstance.Player.Damage.Health.SetFraction(hull);
                     moments.Raise(new SectorEntered(index + 1));
@@ -337,6 +347,7 @@ namespace Game
                     if (music) music.EnterSector(session.ActiveSector, session.ActiveLocale);
                     if (rigInstance) rigInstance.EnterSector(session.ActiveSector.Module<PhaseSpineModule>());
                     var sectorStartTime = Time.time;
+                    OpenSector(index);
                     var modStations = presentation && lullMods && rigInstance
                         ? session.ActiveSector.Module<ModStation>() : null;
                     var picksOpened = 0;
@@ -367,7 +378,7 @@ namespace Game
                             if (modStations && modStations.Claims > picksOpened)
                             {
                                 picksOpened++;
-                                yield return RunLullPick();
+                                yield return RunLullPick(index + 1);
                             }
                             if (armory && armory.Claims > armoryPicks)
                             {
@@ -389,6 +400,7 @@ namespace Game
                         if (station) station.Arrived -= onStationArrived;
                     closeCalls?.Dispose();
                     if (shutdownRequested) yield break;
+                    CloseOpenSector();
 
                     if (playerDied || quitRun || index == sessionProfile.run.Sectors.Count - 1) break;
 
@@ -421,10 +433,11 @@ namespace Game
                 if (rigInstance)
                 {
                     if (!playerDied) EndRun();
+                    runOpen = false;
+                    var board = AppendRunRecord(playerLoadoutStatHash, index,
+                        quitRun || !playerDied ? (DamageInfo?)null : lastKillingBlow, locales, quitRun);
                     if (!quitRun)
                     {
-                        var board = AppendRunRecord(playerLoadoutStatHash, index, playerDied ? lastKillingBlow : null,
-                            locales);
                         SetMusic(playerDied ? GameMusic.State.Defeat : GameMusic.State.Victory);
                         if (presentation)
                             yield return RunRecap(OutcomeContext(board, index));
@@ -483,7 +496,7 @@ namespace Game
                 {
                     sectorEnded = false;
                     activeSectorIndex = destination;
-                    rigInstance.Spawns.BeginSector();
+                    rigInstance.BeginSector(destination + 1);
                     rigInstance.EnterSector(null);
                     yield return session.TransferSector(destination, rigInstance.Player, OnSectorComplete,
                         destinationLocale);
@@ -630,12 +643,22 @@ namespace Game
             try
             {
                 while (!screen.Choice.HasValue && !shutdownRequested) yield return null;
-                if (!shutdownRequested && screen.Choice is int pick && pick != WeaponPickScreen.Skip)
+                if (!screen.Choice.HasValue) yield break;
+                var pick = screen.Choice.Value;
+                var taken = string.Empty;
+                var replaced = string.Empty;
+                if (pick != WeaponPickScreen.Skip)
                 {
-                    rigInstance.SwapWeapon(offers[pick]);
+                    var chosen = offers[pick];
+                    var mount = WeaponsController.SlotFor(chosen) == WeaponSlot.Primary ? primary : secondary;
+                    replaced = mount ? mount.name : string.Empty;
+                    taken = chosen.name;
+                    rigInstance.SwapWeapon(chosen);
                     armory.Take();
-                    moments.Raise(new ArmoryPicked(index + 1, offers[pick]));
+                    moments.Raise(new ArmoryPicked(index + 1, chosen));
                 }
+                course?.NotePick(RunRecord.PickWeapon, index + 1, rigInstance.Tally.SecondsSurvived,
+                    AssetNames(offers), taken, replaced);
             }
             finally
             {
@@ -646,7 +669,7 @@ namespace Game
         }
 
         // The clock stops for the pick and runs on after it; a claim can land mid-phase.
-        private IEnumerator RunLullPick()
+        private IEnumerator RunLullPick(int sector)
         {
             var player = rigInstance.Player;
             var offers = LootOffers.Draw(lullMods.mods, mod => mod.Fits(player), LullPickScreen.MaxOffers,
@@ -659,11 +682,17 @@ namespace Game
             try
             {
                 while (!screen.Choice.HasValue && !shutdownRequested) yield return null;
-                if (!shutdownRequested && screen.Choice is int pick && pick != LullPickScreen.Skip)
+                if (!screen.Choice.HasValue) yield break;
+                var pick = screen.Choice.Value;
+                var taken = string.Empty;
+                if (pick != LullPickScreen.Skip)
                 {
+                    taken = offers[pick].name;
                     rigInstance.PickMod(offers[pick]);
                     moments.Raise(new ModPicked(offers[pick]));
                 }
+                course?.NotePick(RunRecord.PickMod, sector, rigInstance.Tally.SecondsSurvived,
+                    AssetNames(offers), taken, string.Empty);
             }
             finally
             {
@@ -749,6 +778,10 @@ namespace Game
         {
             rigInstance.Tally.Begin(Time.time);
             rigInstance.Spawns.Begin(Time.time);
+            rigInstance.Dealt.Begin();
+            course = new RunCourse();
+            clearedSectors = 0;
+            runOpen = true;
             rigInstance.SetAssist(AssistSetting.On);
             moments.Raise(new RunStarted(PastRuns.Read(runRecords.Path)));
             return StatHash.OfLoadout(rigInstance.Player);
@@ -758,11 +791,44 @@ namespace Game
         {
             rigInstance.Tally.End(Time.time);
             rigInstance.Spawns.End(Time.time);
+            rigInstance.Dealt.End();
+        }
+
+        // A window close never reaches Shutdown, so the run loop cannot write this itself.
+        private void OnApplicationQuit() => RecordAbandonedRun();
+
+        private void RecordAbandonedRun()
+        {
+            if (!runOpen || !rigInstance) return;
+            runOpen = false;
+            EndRun();
+            CloseOpenSector();
+            var endedIn = course != null && course.Sectors.Count > 0
+                ? course.Sectors[course.Sectors.Count - 1].sector - 1
+                : activeSectorIndex;
+            AppendRunRecord(runLoadoutHash, endedIn, null, runLocales, true);
+        }
+
+        private void OpenSector(int index)
+        {
+            if (course == null) return;
+            var damage = rigInstance.Player.Damage;
+            course.Enter(index + 1, Time.time, damage.Health.Pct, damage.Shield.Pct);
+        }
+
+        private void CloseOpenSector()
+        {
+            if (course == null || !course.IsOpen) return;
+            if (sectorEnded && !playerDied && !quitRun) clearedSectors = activeSectorIndex + 1;
+            var damage = rigInstance.Player.Damage;
+            course.End(sectorEnded ? sectorEndTime : Time.time, rigInstance.Spawns.KillsSinceSectorStart(),
+                damage.Health.Pct, damage.Shield.Pct, rigInstance.Spawns.EliteMet(activeSectorIndex),
+                rigInstance.Spawns.EliteBeaten(activeSectorIndex));
         }
 
         // An unreadable build identity leaves the run unrecorded, like a failed write.
         private Scoreboard AppendRunRecord(string playerLoadoutStatHash, int endedIn, DamageInfo? killingBlow,
-            LocaleSky[] locales)
+            LocaleSky[] locales, bool abandoned = false)
         {
             if (!buildIdentity(out var identity, out var failure))
             {
@@ -770,12 +836,74 @@ namespace Game
                 return Scoreboard.Read(runRecords.Path, null);
             }
 
-            var sectorsCleared = killingBlow.HasValue ? endedIn : endedIn + 1;
+            var sectorsCleared = abandoned ? clearedSectors : killingBlow.HasValue ? endedIn : endedIn + 1;
             var record = RunRecord.Compose(DateTime.UtcNow, sectorsCleared, endedIn, locales, identity,
                 StatHash.OfSetting(hangarOffer, sessionProfile.run.Sectors, killHullRestore), rigInstance.Loadout,
-                playerLoadoutStatHash, rigInstance.Tally, rigInstance.Ledger, rigInstance.Spawns, killingBlow);
+                playerLoadoutStatHash, rigInstance.Tally, rigInstance.Ledger, rigInstance.Spawns, killingBlow,
+                course, MountedLoadout(rigInstance.Player), rigInstance.Mods.PickedNames(), ReadEndPhase(),
+                Application.isEditor ? RunRecord.OriginEditor : RunRecord.OriginBuild, DealtRows(rigInstance.Dealt),
+                abandoned);
+            if (abandoned)
+            {
+                runRecords.Append(record);
+                return Scoreboard.Read(runRecords.Path, null);
+            }
+
             var board = Scoreboard.Read(runRecords.Path, record);
             return runRecords.Append(record) ? board : Scoreboard.Read(runRecords.Path, null);
+        }
+
+        private EndPhaseRow ReadEndPhase()
+        {
+            var sector = session != null ? session.ActiveSector : null;
+            var spine = sector ? sector.Module<PhaseSpineModule>() : null;
+            if (!spine) return default;
+            var mark = spine.Phase;
+            return new EndPhaseRow
+            {
+                index = mark.Index,
+                inLull = mark.InLull,
+                done = mark.Done,
+                elapsedSeconds = mark.ElapsedSeconds,
+            };
+        }
+
+        private static LoadoutRow MountedLoadout(Ship ship)
+        {
+            var weapons = ship.Weapons;
+            return new LoadoutRow
+            {
+                chassis = ship.name.Replace("(Clone)", string.Empty),
+                engine = ship.Engine ? ship.Engine.name : string.Empty,
+                shield = ship.Shield ? ship.Shield.name : string.Empty,
+                primary = weapons && weapons.PrimaryMountPrefab ? weapons.PrimaryMountPrefab.name : string.Empty,
+                secondary = weapons && weapons.SecondaryMountPrefab ? weapons.SecondaryMountPrefab.name : string.Empty,
+                statHash = StatHash.OfLoadout(ship),
+            };
+        }
+
+        private static List<DealtRow> DealtRows(DamageDealt dealt)
+        {
+            var rows = new List<DealtRow>(dealt.Rows.Count);
+            foreach (var row in dealt.Rows)
+                rows.Add(new DealtRow
+                {
+                    sector = row.Sector,
+                    kind = row.Kind.ToString(),
+                    total = row.Total,
+                    shield = row.Shield,
+                    hull = row.Hull,
+                    hits = row.Hits,
+                });
+            return rows;
+        }
+
+        private static List<string> AssetNames<T>(IReadOnlyList<T> assets) where T : UnityEngine.Object
+        {
+            var names = new List<string>(assets.Count);
+            foreach (var asset in assets)
+                names.Add(asset ? asset.name : string.Empty);
+            return names;
         }
 
         private void RefillPlayerHull() => rigInstance.Player.Damage.Health.RestoreFraction(killHullRestore);

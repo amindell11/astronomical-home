@@ -25,7 +25,7 @@ namespace Game
     /// <summary>
     /// Everything the interactive game puts into a session for the human: the player ship and its
     /// commander, the HUD (overlay, UI camera, minimap camera), the pending loadout, the damage
-    /// ledger, the run tally and the spawn log. Built <b>once</b> at session start against a viewport the host
+    /// ledger, the run tally, the spawn log and the damage dealt. Built <b>once</b> at session start against a viewport the host
     /// owns, and held for the whole session — sectors are swapped underneath it and reference the
     /// player by injection (<see cref="Sector.Initialize"/>), never building or clearing it. The
     /// player — ship, input and HUD — is parked (<see cref="Park"/>) from <see cref="Build"/> and
@@ -68,6 +68,9 @@ namespace Game
 
         /// <summary>Every other ship spawned this run and its fate; reset with the tally at the loadout step.</summary>
         public SpawnLog Spawns { get; } = new();
+
+        /// <summary>Damage the player dealt this run; reset with the tally at the loadout step.</summary>
+        public DamageDealt Dealt { get; } = new();
 
         /// <summary>The run's lull picks; cleared at the loadout step, bound to each player the rig builds.</summary>
         public LullModStack Mods { get; } = new();
@@ -114,6 +117,7 @@ namespace Game
             Func<ShipId> currentPlayerId = () => Player ? Player.Id : ShipId.Invalid;
             Tally.Bind(units, currentPlayerId);
             Spawns.Bind(units, currentPlayerId);
+            Dealt.Bind(units, currentPlayerId);
             BuildPlayer(playerTemplate);
 
             Ledger.Bind(Player.Damage, units.Registry);
@@ -154,6 +158,7 @@ namespace Game
             Ledger.Bind(null, null);
             Tally.Bind(null, null);
             Spawns.Bind(null, null);
+            Dealt.Bind(null, null);
             if (Overlay)
                 Destroy(Overlay.gameObject);
             if (projection)
@@ -201,6 +206,7 @@ namespace Game
             Ledger.Clear();
             Tally.Reset();
             Spawns.Reset();
+            Dealt.Reset();
             Mods.Clear();
 
             // The player is always parked here. Unpark it before applying so swapped-in weapon mounts
@@ -216,6 +222,12 @@ namespace Game
             // wired at spawn; ask it to re-wire (the player is never AI, so no field), then re-bind the HUD.
             units.WireShipDependencies(Player, field: null);
             RebindHud();
+        }
+
+        public void BeginSector(int sectorNumber)
+        {
+            Spawns.BeginSector();
+            Dealt.BeginSector(sectorNumber);
         }
 
         /// <summary>Adds a lull pick to the run; the bound player applies it at once.</summary>
