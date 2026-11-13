@@ -165,6 +165,85 @@ namespace Tests.PlayMode.Crosshairs
             Assert.That(fill.color, Is.EqualTo(ink));
         }
 
+#if UNITY_EDITOR
+        private ReadyFlashProfile Profile()
+        {
+            using var serialized = new SerializedObject(hud);
+            return (ReadyFlashProfile)serialized.FindProperty("readyFlash").objectReferenceValue;
+        }
+
+        private static void SetFireRate(Component weapon, float seconds)
+        {
+            using var serialized = new SerializedObject(weapon.GetComponent<Cooldown>());
+            serialized.FindProperty("fireRate").floatValue = seconds;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private bool Lit(string slot) => ImageAt(slot + "ReadyFlash/Arc").enabled;
+
+        [UnityTest]
+        public IEnumerator LaserRecovery_FlashesItsArc_ThenFades()
+        {
+            var controller = Bind("Lasers");
+            var profile = Profile();
+            Assert.IsNotNull(profile);
+            var heat = controller.Primary.GetComponent<Heat>();
+            heat.enabled = false;
+            heat.Configure(100f, 100f, 20f, 0f, 0f);
+            heat.ProcessFire();
+            heat.Tick(1f);
+            Draw();
+            Assert.IsFalse(Lit("Primary"), "an overheated laser is not ready");
+
+            heat.Tick(5f);
+            Draw();
+            var arc = ImageAt("PrimaryReadyFlash/Arc");
+            Assert.IsTrue(arc.enabled);
+            Assert.That(arc.color.a, Is.EqualTo(ImageAt("PrimaryIcon").color.a * profile.Intensity).Within(.05f));
+            Assert.That(arc.fillAmount, Is.EqualTo(ImageAt("PrimaryResources/Track").fillAmount));
+            Assert.IsFalse(Lit("Secondary"), "only the recovered weapon flashes");
+
+            var until = Time.realtimeSinceStartup + profile.Seconds + .05f;
+            while (Time.realtimeSinceStartup < until) yield return null;
+            Draw();
+            Assert.IsFalse(arc.enabled);
+        }
+
+        [Test]
+        public void MissileRoundRegained_FlashesTheOrdnanceArc()
+        {
+            var controller = Bind("Missiles");
+            var rounds = controller.Secondary.GetComponent<Rounds>();
+            rounds.enabled = false;
+            rounds.ProcessFire();
+            Draw();
+            Assert.IsFalse(Lit("Secondary"));
+            rounds.Tick(rounds.ReloadTime);
+            Draw();
+            Assert.IsTrue(Lit("Secondary"));
+            Assert.IsFalse(Lit("Primary"));
+        }
+
+        [UnityTest]
+        public IEnumerator RailgunCooldownEnd_FlashesItsArc()
+        {
+            var controller = Bind("Railgun");
+            SetFireRate(controller.Primary, .1f);
+            controller.Primary.GetComponent<Cooldown>().ProcessFire();
+            Draw();
+            Assert.IsFalse(Lit("Primary"), "a cooling railgun is not ready");
+            var lit = false;
+            var until = Time.realtimeSinceStartup + .4f;
+            while (Time.realtimeSinceStartup < until && !lit)
+            {
+                yield return null;
+                Draw();
+                lit = Lit("Primary");
+            }
+            Assert.IsTrue(lit);
+        }
+#endif
+
         [TestCase("Railgun")]
         public void HeldCharge_FillsTheWeaponArc_AndFiringClearsIt(string weaponName)
         {
@@ -286,10 +365,12 @@ namespace Tests.PlayMode.Crosshairs
             var controller = Bind("Rippers");
             var oldResources = hud.transform.Find("PrimaryResources").gameObject;
             var oldIcon = ImageAt("PrimaryIcon").gameObject;
+            var oldFlash = hud.transform.Find("PrimaryReadyFlash").gameObject;
             controller.Reequip(LoadPrefab<WeaponComponent>("Weapons/Railgun"), null);
             Rebind(controller);
             Assert.IsFalse(oldResources.activeSelf);
             Assert.IsFalse(oldIcon.activeSelf);
+            Assert.IsFalse(oldFlash.activeSelf);
             yield return null;
             Assert.IsNull(hud.transform.Find("SecondaryResources"));
             Assert.IsNull(hud.transform.Find("SecondaryIcon"));
