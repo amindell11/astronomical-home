@@ -19,7 +19,7 @@ using Substrate.Sessions;
 
 namespace Tests.PlayMode.Sectors
 {
-    /// <summary>The shipped mod station prefab with a scratch feel: a station shows its distance from the hero's start as a find, the hero's first fly-in counts one claim and raises the arrival events once, the station then goes dark, teardown clears the claims and finds, the alarm darkens unclaimed stations, a sector with no hunt keeps them live, and at setup the stations pick points spaced from the sector's repair stations, which pick first, and from each other.</summary>
+    /// <summary>The shipped mod station prefab with a scratch feel: a station shows its distance from the hero's start as a find, the hero's first fly-in counts one claim and raises the arrival events once, the station then goes dark, teardown clears the claims and finds, the hunt's release darkens unclaimed stations, a sector with no hunt keeps them live, and at setup the stations pick points spaced from the sector's repair stations, which pick first, and from each other.</summary>
     [TestFixture]
     [Category("Sectors")]
     [Category("RequiresLfsPng")]
@@ -30,11 +30,13 @@ namespace Tests.PlayMode.Sectors
         private const float Distance = 40f;
         private const int SectorIndex = 2;
         private const float Spacing = 20f;
+        private const float AlarmGrace = 5f;
 
         private readonly List<Object> _created = new();
         private readonly List<string> _beats = new();
         private ObjectiveService _objectives;
         private Sector _sector;
+        private float alarmAt;
 
         [SetUp]
         public override void SetUp()
@@ -141,8 +143,12 @@ namespace Tests.PlayMode.Sectors
 
             RaiseAlarm(hunt);
             yield return null;
-            Assert.IsTrue(unclaimed.Spent, "The alarm spends an unclaimed station.");
-            Assert.IsFalse(unclaimed.Lit.activeSelf, "The alarm darkens an unclaimed station.");
+            Assert.IsFalse(unclaimed.Spent, "The gap leaves an unclaimed station.");
+            Assert.IsTrue(unclaimed.Lit.activeSelf, "An unclaimed station stays lit through the gap.");
+            ReleaseHunt(hunt);
+            yield return null;
+            Assert.IsTrue(unclaimed.Spent, "The release spends an unclaimed station.");
+            Assert.IsFalse(unclaimed.Lit.activeSelf, "The release darkens an unclaimed station.");
             AssertFinds(module);
 
             ShipTestFactory.MoveKinematicShip(hero, unclaimed.Position);
@@ -210,16 +216,25 @@ namespace Tests.PlayMode.Sectors
         {
             var feel = Track(ScriptableObject.CreateInstance<HuntFeelProfile>());
             feel.searchSeconds = 1000f;
+            feel.alarmGraceSeconds = AlarmGrace;
             var hunt = Track(new GameObject("Hunt")).AddComponent<SectorHunt>();
             hunt.Configure(feel, null, null, 0f);
             Drive(hunt.Build(Context(hero)));
             return hunt;
         }
 
-        private static void RaiseAlarm(SectorHunt hunt)
+        private void RaiseAlarm(SectorHunt hunt)
         {
-            hunt.Tick(Time.time + 2000f);
+            alarmAt = Time.time + 2000f;
+            hunt.Tick(alarmAt);
             Assert.IsTrue(hunt.Alarmed, "The search clock ran out.");
+            Assert.IsFalse(hunt.Released, "The gap after the alarm has not elapsed.");
+        }
+
+        private void ReleaseHunt(SectorHunt hunt)
+        {
+            hunt.Tick(alarmAt + AlarmGrace);
+            Assert.IsTrue(hunt.Released, "The gap after the alarm has elapsed.");
         }
 
         private ModStation NewModStation(SectorHunt hunt = null, int count = 1, float spacing = 0f,
