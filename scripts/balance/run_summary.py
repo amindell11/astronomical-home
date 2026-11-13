@@ -101,6 +101,14 @@ def killing_blow(record):
     return "%s from %s" % (blow["kind"], label(record["spawns"][blow["spawn"]]["loadout"]))
 
 
+def build_identity(identity):
+    commit = identity["commit"][:8] + ("+dirty" if identity["dirty"] else "")
+    label = identity.get("label")
+    if label:
+        return "%s %s" % (label, commit)
+    return commit
+
+
 def runs_section(fingerprint, records):
     records = sorted(records, key=lambda record: record["endedUtc"])
     sectors = sorted({record["sector"] for record in records})
@@ -110,7 +118,7 @@ def runs_section(fingerprint, records):
         mixed = mixed_loadouts(record)
         rows.append([
             record["endedUtc"],
-            identity["commit"][:8] + ("+dirty" if identity["dirty"] else ""),
+            build_identity(identity),
             "%s [%s]" % (label(record["player"]), record["player"]["statHash"]),
             "%s (%d cleared)" % (record["outcome"], record["sectorsCleared"]),
             record["kills"],

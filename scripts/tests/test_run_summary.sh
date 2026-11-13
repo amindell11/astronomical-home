@@ -20,6 +20,7 @@ command -v "$PY" >/dev/null 2>&1 || fail "no python on PATH"
 
 # Three v1 deaths and one v2 extraction. The first two share a stat fingerprint; the second
 # spawns the Lasers loadout under a second loadout stat hash (3333…), which makes it mixed.
+# A fifth record carries a build label and its own fingerprint.
 PLAYER='{"chassis":"Vanguard","engine":"Default_Engine","shield":"Default_Shield","primary":"Lasers","secondary":"","statHash":"a1b2c3d4e5f60718"}'
 lasers() { echo '{"chassis":"Ship_2","engine":"Racer_Engine","shield":"Light_Shield","primary":"Lasers","secondary":"","statHash":"'"$1"'"}'; }
 RIPPERS='{"chassis":"Ship_2","engine":"Racer_Engine","shield":"Light_Shield","primary":"Rippers","secondary":"Missiles","statHash":"2222222222222222"}'
@@ -28,6 +29,7 @@ cat > "$TMP/run-records.jsonl" <<EOF
 {"schema":"run-record-v1","endedUtc":"2026-10-01T13:00:00Z","sector":"TrialSector","buildIdentity":{"commit":"abc123de4567890f","dirty":false},"statFingerprint":"f0e1d2c3b4a59687","player":$PLAYER,"kills":1,"secondsSurvived":21.5,"damage":[{"kind":"Laser","total":30.0,"hits":3,"source":"Ship_2","spawn":0}],"killingBlow":{"kind":"Collision","spawn":-1},"spawns":[{"spawnSeconds":0.0,"pilot":"AICommander","loadout":$(lasers 1111111111111111),"aliveSeconds":5.0,"killedByPlayer":true},{"spawnSeconds":13.5,"pilot":"AICommander","loadout":$(lasers 3333333333333333),"aliveSeconds":8.0,"killedByPlayer":false}]}
 {"schema":"run-record-v1","endedUtc":"2026-10-02T09:00:00Z","sector":"TrialSector","buildIdentity":{"commit":"0f9e8d7c6b5a4321","dirty":false},"statFingerprint":"0123456789abcdef","player":$PLAYER,"kills":5,"secondsSurvived":60.0,"damage":[{"kind":"Laser","total":12.5,"hits":1,"source":"Ship_2","spawn":0}],"killingBlow":{"kind":"Laser","spawn":0},"spawns":[{"spawnSeconds":4.0,"pilot":"AICommander","loadout":$RIPPERS,"aliveSeconds":30.5,"killedByPlayer":true}]}
 {"schema":"run-record-v2","endedUtc":"2026-10-03T10:00:00Z","outcome":"extracted","sectorsCleared":3,"sector":"Sector 3","buildIdentity":{"commit":"0f9e8d7c6b5a4321","dirty":false},"statFingerprint":"0123456789abcdef","player":$PLAYER,"kills":7,"secondsSurvived":480.0,"damage":[],"killingBlow":{"kind":"","spawn":-1},"spawns":[]}
+{"schema":"run-record-v2","endedUtc":"2026-10-04T08:00:00Z","outcome":"extracted","sectorsCleared":1,"sector":"Sector 1","buildIdentity":{"commit":"b1b1b1b1cccccccc","dirty":false,"label":"friends-1"},"statFingerprint":"fedcba9876543210","player":$PLAYER,"kills":4,"secondsSurvived":12.0,"damage":[],"killingBlow":{"kind":"","spawn":-1},"spawns":[]}
 EOF
 
 # Column padding squeezed to one space, so a row is asserted without its alignment.
@@ -47,6 +49,7 @@ has "| 2026-10-01T12:34:56Z | abc123de+dirty | $PLAYER_CELL | died (0 cleared) |
 has "| 2026-10-01T13:00:00Z | abc123de | $PLAYER_CELL | died (0 cleared) | 1 | 21.5 | Collision (no ship) | mixed |" "mixed run row"
 has "| 2026-10-02T09:00:00Z | 0f9e8d7c | $PLAYER_CELL | died (0 cleared) | 5 | 60 | Laser from $RIPPERS_CELL | |" "a v1 record reads as a death"
 has "| 2026-10-03T10:00:00Z | 0f9e8d7c | $PLAYER_CELL | extracted (3 cleared) | 7 | 480 | - | |" "an extracted run has no killing blow"
+has "| 2026-10-04T08:00:00Z | friends-1 b1b1b1b1 | $PLAYER_CELL | extracted (1 cleared) | 4 | 12 | - | |" "a build label prints before the commit"
 has "mixed 2026-10-01T13:00:00Z: $LASERS_CELL shows loadout stat hashes 1111111111111111, 3333333333333333" "mixed note"
 [[ "$(grep -c "| mixed |" <<< "$out")" -eq 1 ]] || fail "only the run with two hashes for one named loadout is mixed"$'\n'"$out"
 

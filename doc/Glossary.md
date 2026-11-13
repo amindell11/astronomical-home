@@ -1206,13 +1206,18 @@ Format: **term** — definition. *(authority)*
   tally, never sim state. It exists because damage kind cannot say which weapon
   fired: Lasers and Rippers both fire the `Laser` projectile. A ship
   placed during the sector load reads as spawned at second 0. *(SpawnLog)*
-- **build identity** — the git side of what a run was played on: the commit and a
-  dirty flag (any tracked change or untracked file under `src/Asteroids3D/`). The
-  editor asks git at run end; a player build carries a file its pre-build hook
-  stamped, and the game host throws at startup when that file is missing.
-  Informational only: records are grouped by stat fingerprint and loadout stat
-  hash. "Build" in this term is the git side, never a ship's parts, which are its
-  loadout. *(BuildIdentity, BuildIdentityStamp)*
+- **build identity** — what a run was played on: the commit, a dirty flag for any
+  tracked change or untracked file under `src/Asteroids3D/`, and the build label.
+  The commit and the dirty flag are the git side. The editor asks git at run end
+  and leaves the label empty. A player build carries a file its pre-build hook
+  stamped, and the game host throws at startup when that file is missing. A file
+  stamped before labels existed still reads. Informational only: records are
+  grouped by stat fingerprint and loadout stat hash. "Build" here is never a
+  ship's parts, which are its loadout. *(BuildIdentity, BuildIdentityStamp)*
+- **build label** — a short name the person starting a build gives it, such as
+  `friends-1` or `itch-1.0`, so builds handed to testers can be told apart
+  without reading commit hashes. Empty when the build was started without one.
+  *(BuildIdentity.label, BuildIdentity.TryAcceptLabel)*
 - **death recap** — the run outcome recap after a death: the HUD fades while the
   explosion finishes, then the banner and the breakdown card; presentation-gated, so a
   game host with presentation off goes straight to the unload.
