@@ -1,0 +1,304 @@
+<title>Nav Icon Tuner</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: knob rack on the left, instrument previews on the right; stacks on phones. Single dark look by choice: it mirrors the HUD. */
+:root {
+  --bg: #0b0f17; --panel: #121826; --line: #233047; --fg: #dbe4f0; --dim: #8796ab; --accent: #4fd8ff;
+  --field: #08101e;
+  --f-head: "Space Grotesk", "Segoe UI", sans-serif; --f-body: "Inter", "Segoe UI", sans-serif; --f-mono: "JetBrains Mono", Consolas, monospace;
+  color-scheme: dark;
+}
+html, body { background: var(--bg); color: var(--fg); }
+body { font-family: var(--f-body); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 40px; }
+h1 { font-family: var(--f-head); font-size: 22px; margin: 0; letter-spacing: .02em; }
+h2 { font-family: var(--f-head); font-size: 13px; text-transform: uppercase; letter-spacing: .12em; color: var(--dim); margin: 0 0 10px; font-weight: 500; }
+.top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 20px; margin-bottom: 18px; }
+.top p { margin: 0; color: var(--dim); max-width: 70ch; }
+.wrap { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .wrap { grid-template-columns: minmax(0, 1fr); } }
+.rack { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px; display: grid; gap: 16px; position: sticky; top: env(safe-area-inset-top, 0px); max-height: calc(100vh - 20px); overflow-y: auto; }
+@media (max-width: 860px) { .rack { position: static; max-height: none; } }
+fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 8px; }
+legend { font-family: var(--f-head); font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--accent); margin-bottom: 6px; padding: 0; }
+.knob { display: grid; grid-template-columns: 1fr 52px; gap: 2px 8px; align-items: center; }
+.knob label { font-family: var(--f-mono); font-size: 11.5px; color: var(--fg); }
+.knob .hint { grid-column: 1 / -1; font-size: 11px; color: var(--dim); }
+.knob input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); }
+.knob output, .knob .val { font-family: var(--f-mono); font-size: 11.5px; text-align: right; font-variant-numeric: tabular-nums; color: var(--accent); }
+.colour { display: grid; grid-template-columns: 34px 1fr auto; gap: 8px; align-items: center; }
+.colour input[type=color] { width: 34px; height: 24px; border: 1px solid var(--line); background: none; padding: 0; }
+.colour label { font-family: var(--f-mono); font-size: 11.5px; }
+.colour .lab { font-family: var(--f-mono); font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums; }
+select { background: var(--bg); color: var(--fg); border: 1px solid var(--line); font-family: var(--f-mono); font-size: 12px; padding: 3px; }
+.previews { display: grid; gap: 20px; min-width: 0; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px; min-width: 0; }
+.scroll { overflow-x: auto; }
+.row2 { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
+.note { font-size: 12px; color: var(--dim); margin: 8px 0 0; max-width: 70ch; }
+pre { font-family: var(--f-mono); font-size: 12px; background: var(--bg); border: 1px solid var(--line); padding: 10px; overflow-x: auto; margin: 0; }
+button { font-family: var(--f-head); font-size: 13px; background: var(--accent); color: #04121a; border: 0; border-radius: 4px; padding: 7px 14px; cursor: pointer; }
+button.ghost { background: transparent; color: var(--dim); border: 1px solid var(--line); }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btns { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+svg text { font-family: var(--f-mono); }
+</style>
+
+<div class="top">
+  <h1>Nav Icon Tuner</h1>
+  <p>Issue #1516. Four containers by role: finds are diamonds, exit is a circle, lull is a hexagon, enemy is a triangle (reserved for #1519). Every glyph is dark ink at one stroke width. Previews draw at in-game pixel size for the chosen screen.</p>
+</div>
+
+<div class="wrap">
+  <form class="rack" id="rack" onsubmit="return false"></form>
+  <div class="previews">
+    <section class="card"><h2>Family, large</h2><div class="scroll" id="large"></div></section>
+    <section class="card"><h2>Game scale on four backgrounds</h2><div class="scroll" id="grid"></div>
+      <p class="note">Left: the icon on the map. Right: the same icon as an edge pointer, with its arrow tab facing the target.</p></section>
+    <section class="card"><h2>Minimap mock</h2><div class="row2"><div class="scroll" id="map"></div><div class="scroll" id="map2"></div></div>
+      <p class="note">The minimap at true size: you in the middle, red enemy dots, finds and beacons in range, and pointers on the rim for things out of range. The right copy sits over bright nebula.</p></section>
+    <section class="card"><h2>With the HUD look</h2>
+      <div class="row2"><canvas id="fx1" aria-label="Minimap through the HUD look, over deep sky"></canvas><canvas id="fx2" aria-label="Minimap through the HUD look, over bright nebula"></canvas></div>
+      <div class="scroll" style="margin-top:12px"><canvas id="fxzoom" aria-label="Deep sky copy at 3x"></canvas></div>
+      <p class="note">The same minimap run through the game's canopy pass, using the live profile's resting values: colour split toward the screen corner, scanlines, grain, the near glow and the wide blue halo, the signal trail to the right, and warmth on white. In the game the HUD adds light on top of the scene. Dark ink adds nothing, so every dark glyph is a window onto the sky behind it. The bottom copy is the deep-sky one at 3x.</p></section>
+    <section class="card"><h2>Export</h2>
+      <div class="btns"><button type="button" id="copy">Copy settings</button><button type="button" class="ghost" id="reset">Reset to defaults</button></div>
+      <pre id="out"></pre>
+      <p class="note">Paste this back into the chat. The generator script reads the same block to write the SVGs and PNGs.</p></section>
+  </div>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="cb-protan"><feColorMatrix type="matrix" values="0.152286 1.052583 -0.204868 0 0  0.114503 0.786281 0.099216 0 0  -0.003882 -0.048116 1.051998 0 0  0 0 0 1 0"/></filter>
+  <filter id="cb-deutan"><feColorMatrix type="matrix" values="0.367322 0.860646 -0.227968 0 0  0.280085 0.672501 0.047413 0 0  -0.011820 0.042940 0.968881 0 0  0 0 0 1 0"/></filter>
+  <filter id="cb-tritan"><feColorMatrix type="matrix" values="1.255528 -0.076749 -0.178779 0 0  -0.078411 0.930809 0.147602 0 0  0.004733 0.691367 0.303900 0 0  0 0 0 1 0"/></filter>
+</svg>
+
+<script>
+/*NAV_ICONS_JS*/
+const DEFAULTS = /*DEFAULTS*/;
+const KNOBS = [
+  ["Shape", [
+    ["glyph_stroke", 3, 10, .25, "Ink stroke width for every glyph, in 64ths of the icon."],
+    ["glyph_scale", .6, 1.3, .01, "Glyph size inside its container."],
+    ["star_waist", 1.5, 8, .25, "Mod star: how far its inner corners sit from the centre. Sides are straight."],
+    ["corner_round", 0, 6, .25, "Rounds container corners."],
+    ["rim", 0, 4, .25, "Dark outline around each container, for bright sky."],
+  ]],
+  ["Container size (64ths)", [
+    ["find_diamond_half", 22, 32, .5, "Find diamond, centre to tip."],
+    ["exit_circle_r", 20, 32, .5, "Exit circle radius."],
+    ["lull_hex_r", 22, 32, .5, "Lull hexagon, centre to corner."],
+    ["enemy_tri_half", 22, 32, .5, "Enemy triangle half-width."],
+  ]],
+  ["Pointer tab", [
+    ["tab_size", .15, .6, .01, "Arrow tab length, as a share of the icon."],
+    ["tab_gap", 0, 12, .5, "Gap between container and tab, in 64ths."],
+  ]],
+  ["Scale", [
+    ["icon_canvas_units", 9, 22, .25, "Icon size on the HUD canvas. Today's finds and minimap beacons are 13.75."],
+  ]],
+];
+const PRESETS = {
+  instrument: { mod: "#F5C45A", repair: "#8FD3FF", armory: "#C79BFF", exit: "#E6F6F0", lull: "#6FE8D2", enemy: "#FF4A3D" },
+  nebula: { mod: "#FFD27A", repair: "#5FE0C0", armory: "#8C9CFF", exit: "#BFF4FF", lull: "#E0A6FF", enemy: "#FF4A3D" },
+  twotone: { mod: "#FFD66B", repair: "#F5B062", armory: "#E08A4F", exit: "#9EF0FF", lull: "#4FC3E8", enemy: "#FF3C2D" },
+  first: { mod: "#FFD23F", repair: "#3CC060", armory: "#C8203C", exit: "#4FD8FF", lull: "#B48CFF", enemy: "#FF3C2D" },
+};
+const COLOURS = ["mod", "repair", "armory", "exit", "lull", "enemy", "ink"];
+const KINDS = NAV_KINDS;
+const f = n => +n.toFixed(2);
+const BGS = [["minimap field", "#08101e"], ["deep sky", "#03050e"], ["nebula", "#261460"], ["bright nebula", "#145faa"]];
+
+let S = load();
+function load() { try { return Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem("navIconTuner./*SETTINGS_HASH*/") || "{}")); } catch { return { ...DEFAULTS }; } }
+function save() { try { localStorage.setItem("navIconTuner./*SETTINGS_HASH*/", JSON.stringify(S)); } catch {} }
+
+const N = () => NavIcons(S);
+function iconInner(i) { return N().iconInner(i); }
+function pointerInner(i, a) { return N().pointerInner(i, a); }
+function iconPx() { return S.icon_canvas_units * (S.screen_height * 16 / 9) / 800; }
+function simFilter() { return S.colour_sim === "none" ? "" : `filter="url(#cb-${S.colour_sim})"`; }
+
+function renderLarge() {
+  const size = 104, gap = 22, W = KINDS.length * (size + gap) + gap, H = size + 52;
+  let s = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><rect width="${W}" height="${H}" fill="${BGS[0][1]}"/><g ${simFilter()}>`;
+  KINDS.forEach(([k], i) => { const x = gap + i * (size + gap);
+    s += `<svg x="${x}" y="14" width="${size}" height="${size}" viewBox="0 0 64 64">${iconInner(i)}</svg>`; });
+  s += `</g>`;
+  KINDS.forEach(([k], i) => { const x = gap + i * (size + gap) + size / 2;
+    s += `<text x="${x}" y="${H - 12}" fill="#8796ab" font-size="11" text-anchor="middle">${k}${k === "enemy" ? " (later)" : ""}</text>`; });
+  document.getElementById("large").innerHTML = s + `</svg>`;
+}
+function renderGrid() {
+  const px = iconPx(), cell = Math.max(70, px * 2.6), lab = 100, W = lab + KINDS.length * cell, H = 22 + BGS.length * cell;
+  let s = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">`;
+  KINDS.forEach(([k], i) => s += `<text x="${lab + i * cell + cell / 2}" y="14" fill="#8796ab" font-size="11" text-anchor="middle">${k}</text>`);
+  BGS.forEach(([name, col], j) => {
+    const y = 22 + j * cell;
+    s += `<rect x="${lab}" y="${y}" width="${W - lab}" height="${cell}" fill="${col}"/><text x="0" y="${y + cell / 2 + 4}" fill="#8796ab" font-size="11">${name}</text><g ${simFilter()}>`;
+    KINDS.forEach((_, i) => {
+      const x = lab + i * cell;
+      s += `<svg x="${f(x + cell * .27 - px / 2)}" y="${f(y + cell / 2 - px / 2)}" width="${f(px)}" height="${f(px)}" viewBox="0 0 64 64">${iconInner(i)}</svg>`;
+      s += `<svg x="${f(x + cell * .7 - px)}" y="${f(y + cell / 2 - px)}" width="${f(px * 2)}" height="${f(px * 2)}" viewBox="0 0 128 128">${pointerInner(i, Math.PI / 4)}</svg>`;
+    });
+    s += `</g>`;
+  });
+  document.getElementById("grid").innerHTML = s + `</svg>`;
+}
+function renderMap(target, behind) {
+  const scale = (S.screen_height * 16 / 9) / 800, D = 110 * scale, px = iconPx(), pad = 10, W = D + pad * 2, c = W / 2, R = D / 2;
+  let s = `<svg width="${f(W)}" height="${f(W)}" viewBox="0 0 ${f(W)} ${f(W)}">${behind ? `<rect width="${f(W)}" height="${f(W)}" fill="${behind}"/>` : ""}`;
+  s += `<circle cx="${c}" cy="${c}" r="${R}" fill="#08101e" fill-opacity=".85"/><circle cx="${c}" cy="${c}" r="${R - 1}" fill="none" stroke="#ffffff" stroke-opacity=".35" stroke-width="1.5"/><g ${simFilter()}>`;
+  const at = (i, dx, dy) => s += `<svg x="${f(c + dx * R - px / 2)}" y="${f(c + dy * R - px / 2)}" width="${f(px)}" height="${f(px)}" viewBox="0 0 64 64">${iconInner(i)}</svg>`;
+  const rimPtr = (i, ang) => { const r = R - px * .95; const x = c + Math.cos(ang) * r, y = c - Math.sin(ang) * r;
+    s += `<svg x="${f(x - px)}" y="${f(y - px)}" width="${f(px * 2)}" height="${f(px * 2)}" viewBox="0 0 128 128">${pointerInner(i, ang)}</svg>`; };
+  at(0, -.42, -.28); at(3, .36, .34); at(4, -.18, .5);
+  rimPtr(1, Math.PI * .22); rimPtr(2, Math.PI * 1.1); rimPtr(5, Math.PI * .62);
+  [[.12, -.3], [.2, -.22], [.5, .02], [-.55, .25]].forEach(([dx, dy]) => s += `<circle cx="${c + dx * R}" cy="${c + dy * R}" r="${f(3 * scale / 2.4 * 1.2)}" fill="${S.enemy}"/>`);
+  s += `<path d="M${c} ${c - 7 * scale / 2.4} l${5 * scale / 2.4} ${12 * scale / 2.4} l${-5 * scale / 2.4} ${-3 * scale / 2.4} l${-5 * scale / 2.4} ${3 * scale / 2.4}Z" fill="#e8fcf5"/>`;
+  s += `</g></svg>`;
+  if (target) document.getElementById(target).innerHTML = s;
+  return s;
+}
+
+// The game's canopy HUD pass, ported from CanopyProjection.shader with the live profile's base settings.
+// HUD ink is light added over the scene, so dark ink shows the sky through it.
+const CANOPY = { glow: .434, aberration: 4.64, wear: .294, scanlines: .915, warmth: .878, haloReach: 10, haloStrength: .6,
+  halation: .7, cool: [.35, .62, 1], signalBleed: .8, bleedLength: 10, edge: .7 };
+let fxToken = 0;
+function renderFx() {
+  const token = ++fxToken, svg = renderMap(null, null);
+  const img = new Image();
+  img.onload = () => { if (token !== fxToken) return;
+    const W = img.width, H = img.height, cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+    const cx = cv.getContext("2d"); cx.drawImage(img, 0, 0);
+    const src = cx.getImageData(0, 0, W, H).data, n = W * H;
+    const ink = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) { const a = src[i * 4 + 3] / 255; for (let c = 0; c < 3; c++) ink[i * 3 + c] = src[i * 4 + c] / 255 * a; }
+    const light = canopy(ink, W, H);
+    [["fx1", "#03050e"], ["fx2", "#145faa"]].forEach(([id, bg]) => {
+      const b = [1, 3, 5].map(j => parseInt(bg.slice(j, j + 2), 16) / 255);
+      const out = cx.createImageData(W, H);
+      for (let i = 0; i < n; i++) { for (let c = 0; c < 3; c++) out.data[i * 4 + c] = Math.min(1, b[c] + Math.max(0, light[i * 3 + c])) * 255; out.data[i * 4 + 3] = 255; }
+      const el = document.getElementById(id); el.width = W; el.height = H; el.getContext("2d").putImageData(out, 0, 0);
+    });
+    const z = document.getElementById("fxzoom"), zc = z.getContext("2d"), src2 = document.getElementById("fx1");
+    z.width = W * 3; z.height = H * 3; zc.imageSmoothingEnabled = false; zc.drawImage(src2, 0, 0, W * 3, H * 3);
+  };
+  img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+}
+function canopy(ink, W, H) {
+  const C = CANOPY, ps = (S.screen_height * 16 / 9) / 1600, n = W * H;
+  const at = (x, y, c) => { x = Math.round(x); y = Math.round(y); return x < 0 || y < 0 || x >= W || y >= H ? 0 : ink[(y * W + x) * 3 + c]; };
+  const sep = C.aberration * ps * C.edge, sx = sep * .75, sy = -sep * .66;
+  const step = C.bleedLength * ps / 12, r = (1.5 + C.glow * 4) * ps;
+  const wide = blur(ink, W, H, C.haloReach * ps);
+  const hash = (x, y) => { const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return s - Math.floor(s); };
+  const out = new Float32Array(n * 3);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = (y * W + x) * 3;
+    let L = [ink[i], ink[i + 1], ink[i + 2]];
+    const split = [at(x + sx, y + sy, 0), L[1], at(x - sx, y - sy, 2)];
+    L = L.map((v, c) => v + (split[c] - v) * .88);
+    let trail = 0, ws = 0;
+    for (let k = 1; k <= 12; k++) { const w = Math.exp(-k / 4); trail += Math.max(at(x - k * step, y, 0), at(x - k * step, y, 1), at(x - k * step, y, 2)) * w; ws += w; }
+    L = L.map((v, c) => v + C.cool[c] * trail / ws * C.signalBleed);
+    const grain = hash(Math.floor(x * .8), Math.floor(y * .8));
+    const scan = 1 - C.scanlines * .48 * (.5 + .5 * Math.cos(y * Math.PI));
+    L = L.map(v => v * (1 - C.wear * .62 * (1 - grain)) * scan);
+    const halo = [0, 0, 0];
+    for (let c = 0; c < 3; c++) {
+      let h = at(x, y, c) * .16 + (at(x + r, y, c) + at(x - r, y, c) + at(x, y + r, c) + at(x, y - r, c)) * .12
+        + (at(x + r, y + r, c) + at(x - r, y - r, c) + at(x + r, y - r, c) + at(x - r, y + r, c)) * .09;
+      h = h * C.glow * .65 + wide[i + c] * C.haloStrength;
+      halo[c] = h * (1 + (C.cool[c] - 1) * C.halation);
+    }
+    L = L.map((v, c) => v + halo[c]);
+    const chroma = Math.max(...L) - Math.min(...L), t = Math.min(1, Math.max(0, (chroma - .06) / .24));
+    const warm = C.warmth * (1 - t * t * (3 - 2 * t)), tint = [1.08, 1, .67];
+    L = L.map((v, c) => v + (v * tint[c] - v) * warm);
+    out[i] = L[0]; out[i + 1] = L[1]; out[i + 2] = L[2];
+  }
+  return out;
+}
+function blur(src, W, H, sigma) {
+  const rad = Math.ceil(sigma * 2.5), k = []; let ks = 0;
+  for (let j = -rad; j <= rad; j++) { const w = Math.exp(-j * j / (2 * sigma * sigma)); k.push(w); ks += w; }
+  const pass = (a, dx, dy) => { const o = new Float32Array(a.length);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) for (let c = 0; c < 3; c++) {
+      let s = 0; for (let j = -rad; j <= rad; j++) { const xx = x + j * dx, yy = y + j * dy;
+        if (xx >= 0 && yy >= 0 && xx < W && yy < H) s += a[(yy * W + xx) * 3 + c] * k[j + rad]; }
+      o[(y * W + x) * 3 + c] = s / ks; }
+    return o; };
+  return pass(pass(src, 1, 0), 0, 1);
+}
+
+function lstar(hex) {
+  const v = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255).map(u => u <= .04045 ? u / 12.92 : ((u + .055) / 1.055) ** 2.4);
+  const Y = .2126 * v[0] + .7152 * v[1] + .0722 * v[2];
+  return { L: Y > 216 / 24389 ? 116 * Math.cbrt(Y) - 16 : Y * 24389 / 27, Y };
+}
+function contrast(a, b) { const A = lstar(a).Y, B = lstar(b).Y; return (Math.max(A, B) + .05) / (Math.min(A, B) + .05); }
+
+function buildRack() {
+  const rack = document.getElementById("rack");
+  let h = "";
+  KNOBS.forEach(([title, knobs]) => {
+    h += `<fieldset><legend>${title}</legend>`;
+    knobs.forEach(([key, min, max, step, hint]) => h += `<div class="knob"><label for="k-${key}">${key}</label><output id="o-${key}"></output><input type="range" id="k-${key}" data-key="${key}" min="${min}" max="${max}" step="${step}"><span class="hint">${hint}</span></div>`);
+    h += `</fieldset>`;
+  });
+  h += `<fieldset><legend>Palette</legend>
+    <div class="knob"><label for="k-palette_preset">palette_preset</label><span></span><select id="k-palette_preset" data-key="palette_preset" style="grid-column:1/-1">
+      <option value="instrument">Instrument: exit and lull in HUD ivory and mint, finds in gold, ice and lavender</option>
+      <option value="nebula">Cool nebula: teal, periwinkle, orchid and pale cyan, with one gold star</option>
+      <option value="twotone">Two-tone: warm finds, cyan beacons; shape does the sorting</option>
+      <option value="first">First draft (the rainbow)</option>
+      <option value="custom">Custom</option></select>
+      <span class="hint">Picking a preset overwrites the colours below. Editing a colour switches this to Custom.</span></div>`;
+  COLOURS.forEach(k => h += `<div class="colour"><input type="color" id="k-${k}" data-key="${k}"><label for="k-${k}">${k}</label><span class="lab" id="l-${k}"></span></div>`);
+  h += `<p class="note" style="margin:0">L* is lightness. The ratio is contrast against the minimap field.</p></fieldset>`;
+  h += `<fieldset><legend>Stroke ends</legend>
+    <div class="knob"><label for="k-glyph_cap">glyph_cap</label><span></span><select id="k-glyph_cap" data-key="glyph_cap" style="grid-column:1/-1"><option value="square">square</option><option value="butt">flat (cut at the end)</option><option value="round">round</option></select><span class="hint">Line ends on every glyph: plus, ring, arch, beacon arcs, enemy.</span></div>
+    <div class="knob"><label for="k-mod_glyph">mod_glyph</label><span></span><select id="k-mod_glyph" data-key="mod_glyph" style="grid-column:1/-1"><option value="star">star (four points)</option><option value="chip">chip (module with pins)</option><option value="upgrade">upgrade (double chevron up)</option><option value="bolt">bolt (lightning)</option><option value="gem">gem (diamond outline with a core)</option></select><span class="hint">Glyph inside the mod find's diamond.</span></div>
+    <div class="knob"><label for="k-enemy_glyph">enemy_glyph</label><span></span><select id="k-enemy_glyph" data-key="enemy_glyph" style="grid-column:1/-1"><option value="ship">ship (arrowhead silhouette)</option><option value="reticle">reticle (crosshair ticks)</option><option value="chevrons">chevrons (incoming)</option><option value="claws">claws (three slashes)</option><option value="bang">exclamation</option></select><span class="hint">Glyph inside the enemy triangle.</span></div>
+  </fieldset>`;
+  h += `<fieldset><legend>View</legend>
+    <div class="knob"><label for="k-screen_height">screen_height</label><span></span><select id="k-screen_height" data-key="screen_height" style="grid-column:1/-1"><option value="1080">1080p</option><option value="1440">1440p</option><option value="2160">2160p</option></select></div>
+    <div class="knob"><label for="k-colour_sim">colour_sim</label><span></span><select id="k-colour_sim" data-key="colour_sim" style="grid-column:1/-1"><option value="none">normal vision</option><option value="protan">protanopia</option><option value="deutan">deuteranopia</option><option value="tritan">tritanopia</option></select></div>
+  </fieldset>`;
+  rack.innerHTML = h;
+  rack.addEventListener("input", e => {
+    const key = e.target.dataset.key; if (!key) return;
+    S[key] = e.target.type === "range" || key === "screen_height" ? +e.target.value : e.target.value;
+    if (key === "palette_preset" && PRESETS[S[key]]) Object.assign(S, PRESETS[S[key]]);
+    if (COLOURS.includes(key) && key !== "ink") S.palette_preset = "custom";
+    save(); render();
+  });
+}
+function syncRack() {
+  document.querySelectorAll("[data-key]").forEach(el => {
+    const key = el.dataset.key; el.value = S[key];
+    const o = document.getElementById("o-" + key); if (o) o.textContent = S[key];
+  });
+  COLOURS.forEach(k => { const l = document.getElementById("l-" + k);
+    l.textContent = k === "ink" ? "" : `L* ${lstar(S[k]).L.toFixed(0).padStart(2)} · ${contrast(S[k], "#08101e").toFixed(1)}:1`; });
+}
+function exportBlock() {
+  const out = {}; Object.keys(DEFAULTS).forEach(k => { if (k !== "colour_sim" && k !== "palette_preset") out[k] = S[k]; });
+  return JSON.stringify(out, null, 2);
+}
+function render() {
+  syncRack(); renderLarge(); renderGrid(); renderMap("map", "#03050e"); renderMap("map2", "#145faa");
+  clearTimeout(render.fx); render.fx = setTimeout(renderFx, 150);
+  document.getElementById("out").textContent = exportBlock();
+}
+document.getElementById("copy").addEventListener("click", e => {
+  const t = exportBlock(), b = e.currentTarget;
+  navigator.clipboard.writeText(t).then(() => { b.textContent = "Copied"; setTimeout(() => b.textContent = "Copy settings", 1400); })
+    .catch(() => { const r = document.createRange(); r.selectNodeContents(document.getElementById("out")); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); b.textContent = "Selected, press Ctrl+C"; });
+});
+document.getElementById("reset").addEventListener("click", () => { S = { ...DEFAULTS }; save(); render(); });
+buildRack(); render();
+</script>
