@@ -6,12 +6,12 @@ using UnityEngine.InputSystem;
 namespace UI.Screens
 {
     /// <summary>
-    /// The pause's uGUI: Resume and Quit run, clickable and keyed, answered through
+    /// The pause's uGUI: Resume, Settings and Quit run, clickable and keyed, answered through
     /// <see cref="Choice"/>. The host stops the clock and acts on the answer.
     /// </summary>
     public sealed class PauseScreen : MonoBehaviour
     {
-        public enum Option { Resume, QuitRun }
+        public enum Option { Resume, Settings, QuitRun }
 
         private readonly List<InputAction> actions = new();
         private Font font;
@@ -45,7 +45,8 @@ namespace UI.Screens
             ScreenKit.Label(ScreenKit.Centered(transform, "Title", 1000f, 72f, 110f), "PAUSED", 40,
                 ScreenKit.Paint, font, TextAnchor.MiddleCenter);
             BuildOption("Resume", "RESUME", "ESC", 20f, Option.Resume);
-            BuildOption("QuitRun", "QUIT RUN", "Q", -30f, Option.QuitRun);
+            BuildOption("Settings", "SETTINGS", "S", -30f, Option.Settings);
+            BuildOption("QuitRun", "QUIT RUN", "Q", -80f, Option.QuitRun);
         }
 
         private void BuildOption(string name, string caption, string key, float y, Option option)
@@ -63,6 +64,8 @@ namespace UI.Screens
         {
             Listen(nameof(Option.Resume), "<Keyboard>/escape", () => Choose(Option.Resume),
                 "<Gamepad>/start", "<Gamepad>/buttonEast");
+            Listen(nameof(Option.Settings), "<Keyboard>/s", () => Choose(Option.Settings),
+                "<Gamepad>/buttonNorth");
             Listen(nameof(Option.QuitRun), "<Keyboard>/q", () => Choose(Option.QuitRun),
                 "<Gamepad>/buttonWest");
         }

@@ -120,6 +120,24 @@ namespace Tests.PlayMode.Bootstrap
             Assert.IsFalse(hostGo.GetComponentInChildren<PauseScreen>());
         }
 
+        [UnityTest]
+        public IEnumerator Settings_FromPause_ReturnsToPause()
+        {
+            yield return BootToFlight();
+
+            TapEscape();
+            yield return WaitFor(() => hostGo.GetComponentInChildren<PauseScreen>(), "escape opens pause");
+            hostGo.GetComponentInChildren<PauseScreen>().transform.Find("Settings").GetComponent<Button>().onClick.Invoke();
+
+            yield return WaitFor(() => hostGo.GetComponentInChildren<SettingsScreen>()
+                && !hostGo.GetComponentInChildren<PauseScreen>(), "settings replaces pause");
+            Assert.AreEqual(0f, Time.timeScale);
+            hostGo.GetComponentInChildren<SettingsScreen>().Close();
+
+            yield return WaitFor(() => hostGo.GetComponentInChildren<PauseScreen>(), "closing settings returns to pause");
+            Assert.AreEqual(0f, Time.timeScale);
+        }
+
         private void TapEscape()
         {
             input.Press(keyboard.escapeKey);
