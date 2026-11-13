@@ -34,13 +34,14 @@ namespace Combat.Weapons
             return first;
         }
 
-        private TProj Launch(Transform muzzle, Vector3 targetPoint, IProjectileService projectiles)
+        protected TProj Launch(Transform muzzle, Vector3 targetPoint, IProjectileService projectiles, float yawDegrees = 0f)
         {
-            var proj = SimplePool<TProj>.Get(projectilePrefab, GamePlane.WorldPointOnPlane(muzzle.position), muzzle.rotation);
+            var turn = Quaternion.AngleAxis(yawDegrees, GamePlane.Normal);
+            var proj = SimplePool<TProj>.Get(projectilePrefab, GamePlane.WorldPointOnPlane(muzzle.position), turn * muzzle.rotation);
             proj.Initialize(shooter);
             proj.SetDamageScale(Mods.Factor(WeaponModField.Damage));
             projectiles.Register(proj, proj.ReturnToPoolImmediate);
-            proj.Launch(GamePlane.WorldDirOnPlane(muzzle.up), targetPoint);
+            proj.Launch(GamePlane.WorldDirOnPlane(turn * muzzle.up), targetPoint);
             return proj;
         }
     }

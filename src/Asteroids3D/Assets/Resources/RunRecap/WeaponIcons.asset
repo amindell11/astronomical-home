@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff266d098eaa48b29db7cbb8ae86713c, type: 3}
   m_Name: WeaponIcons
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   entries:
   - weapon: Lasers
     icon: {fileID: 21300000, guid: 3866da317a5202f45b2a91ea4960b47d, type: 3}
@@ -19,6 +19,8 @@ MonoBehaviour:
     icon: {fileID: 21300000, guid: a046f8409137ac34e81fea137e7b5fca, type: 3}
   - weapon: Rippers
     icon: {fileID: 21300000, guid: d1b87bf203c8e924a9c1373a73959eb0, type: 3}
+  - weapon: Scattergun
+    icon: {fileID: 21300000, guid: f4237c4fe83c49f3ac9147dac71cc7e1, type: 3}
   - weapon: Railgun
     icon: {fileID: 21300000, guid: 6032c7af754a15f459f554ae853d29ce, type: 3}
   - weapon: Missiles

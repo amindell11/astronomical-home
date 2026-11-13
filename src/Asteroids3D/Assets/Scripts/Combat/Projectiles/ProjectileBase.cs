@@ -81,8 +81,10 @@ namespace Combat.Projectiles
             if (!TryGetHitTarget(hit.collider, out var target)) return;
 
             transform.position += direction * hit.distance;
-            OnHit(target);
+            OnHit(target, hit.collider);
         }
+
+        protected virtual void OnHit(IDamageable other, Collider collider) => OnHit(other);
 
         protected virtual void OnHit(IDamageable other)
         {
@@ -93,7 +95,7 @@ namespace Combat.Projectiles
 
         protected void OnTriggerEnter(Collider other)
         {
-            if (TryGetHitTarget(other, out var target)) OnHit(target);
+            if (TryGetHitTarget(other, out var target)) OnHit(target, other);
         }
 
         protected bool TryGetHitTarget(Collider other, out IDamageable target)
