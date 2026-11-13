@@ -34,7 +34,7 @@ namespace Substrate.Sectors.Elements.Phases
         public const string StepCompleted = "completed";
 
         [SerializeField] private WaveDirector director;
-        [Tooltip("The sector's opening hunt, read for the HUD's countdown until its alarm; unset for none.")]
+        [Tooltip("The sector's opening hunt, read for the HUD's countdown until the hunt releases; unset for none.")]
         [SerializeField] private SectorHunt hunt;
         [SerializeField] private ExtractionZone extractionZone;
         [Tooltip("The sector's elite, summoned when the phases run out; extraction opens on its death. Unset = extraction opens with the phases' end.")]
@@ -208,11 +208,14 @@ namespace Substrate.Sectors.Elements.Phases
         private SectorPhaseProgress ReadPhaseProgress()
         {
             var mark = director.Phase;
-            if (hunt && mark.InOpeningLull && !hunt.Alarmed)
+            if (hunt && mark.InOpeningLull)
             {
-                var callIn = hunt.CallInSecondsLeft;
-                return new SectorPhaseProgress(-1, director.PhaseCount, callIn ?? hunt.SearchSecondsLeft, false,
-                    callIn.HasValue ? HuntReading.Spotted : HuntReading.Searching);
+                if (!hunt.Alarmed)
+                    return new SectorPhaseProgress(-1, director.PhaseCount, hunt.SearchSecondsLeft, false,
+                        hunt.SpottedFill > 0f ? HuntReading.Spotted : HuntReading.Searching, hunt.SpottedFill);
+                if (!hunt.Released)
+                    return new SectorPhaseProgress(-1, director.PhaseCount, hunt.GraceSecondsLeft, false,
+                        HuntReading.Coming);
             }
 
             var graceLeft = BeaconGraceLeft(mark);

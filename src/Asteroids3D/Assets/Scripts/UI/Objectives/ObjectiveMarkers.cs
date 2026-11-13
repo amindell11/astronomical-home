@@ -13,8 +13,14 @@ namespace UI.Objectives
         [SerializeField] private float pulseSpeed = 4f;
         [SerializeField] private float pulseScale = .15f;
         [SerializeField] private Color baseColor = Color.yellow;
-        [SerializeField] private Color beaconAccent = new(1f, .82f, .35f, 1f);
         [SerializeField] private float expiryBlinkRate = 4f;
+        [SerializeField] private Sprite exitIcon;
+        [SerializeField] private Sprite lullIcon;
+        [SerializeField] private Color exitColour = new Color32(0xBF, 0xF4, 0xFF, 0xFF);
+        [SerializeField] private Color lullColour = new Color32(0xE0, 0xA6, 0xFF, 0xFF);
+
+        private const float ScreenIconSize = 22f;
+        private const float MapIconSize = 13.75f;
 
         private readonly Vector3[] corners = new Vector3[4];
         private IObjectiveService objectives;
@@ -22,8 +28,13 @@ namespace UI.Objectives
         private Camera minimapCamera;
         private Camera worldCamera;
         private Canvas canvas;
-        private BerthGraphic screenBerth;
-        private BerthGraphic minimapBerth;
+        private Image screenBerth;
+        private Image minimapBerth;
+        private NavTab screenTab;
+        private NavTab mapTab;
+        private NavRing screenRing;
+        private NavRing mapRing;
+        private Graphic[] blinkParts;
 
         private void Awake() => enabled = false;
 
@@ -32,13 +43,18 @@ namespace UI.Objectives
         {
             if (source == null || !world || !map || !minimap || !hud || !icon)
                 throw new InvalidOperationException($"ObjectiveMarkers on '{name}' needs its objective source, cameras, minimap, canvas and icon.");
+            if (!exitIcon || !lullIcon)
+                throw new InvalidOperationException($"ObjectiveMarkers on '{name}' needs its exit and lull beacon sprites.");
             objectives = source;
             worldCamera = world;
             minimapCamera = map;
             minimapRect = minimap;
             canvas = hud;
-            screenBerth = BerthGraphic.Create(hud.transform, false);
-            minimapBerth = BerthGraphic.Create(hud.transform, true);
+            screenBerth = Beacon(hud.transform, "Extraction direction", ScreenIconSize, out screenTab);
+            minimapBerth = Beacon(hud.transform, "Extraction minimap", MapIconSize, out mapTab);
+            screenRing = NavRing.Create(screenBerth.rectTransform, NavTab.LullReach);
+            mapRing = NavRing.Create(minimapBerth.rectTransform, NavTab.LullReach);
+            blinkParts = new Graphic[] { screenBerth, screenTab, screenRing, minimapBerth, mapTab, mapRing };
             InstrumentAppear.Attach(screenBerth.gameObject, projection,
                 () => screenBerth.enabled && (isVisible?.Invoke() ?? true));
             InstrumentAppear.Attach(minimapBerth.gameObject, projection,
@@ -47,22 +63,43 @@ namespace UI.Objectives
             enabled = true;
         }
 
+        private static Image Beacon(Transform hud, string name, float size, out NavTab tab)
+        {
+            var image = new GameObject(name, typeof(RectTransform)).AddComponent<Image>();
+            image.gameObject.layer = hud.gameObject.layer;
+            image.transform.SetParent(hud, false);
+            image.rectTransform.anchorMin = image.rectTransform.anchorMax = Vector2.zero;
+            image.rectTransform.sizeDelta = Vector2.one * size;
+            image.raycastTarget = false;
+            image.enabled = false;
+            tab = NavTab.Create(image.transform, name + " tab");
+            tab.enabled = false;
+            return image;
+        }
+
         private void LateUpdate()
         {
             var state = objectives.SpineState;
             var target = objectives.SpineTarget;
             var berth = (state == ObjectiveType.ExtractionChallenge || state == ObjectiveType.Survive) && target;
             var generic = (state == ObjectiveType.Explore || state == ObjectiveType.KeyAcquired) && target;
+            var lull = state == ObjectiveType.Survive;
+            var sprite = lull ? lullIcon : exitIcon;
+            var colour = lull ? lullColour : exitColour;
+            var reach = lull ? NavTab.LullReach : NavTab.ExitReach;
+            screenBerth.sprite = minimapBerth.sprite = sprite;
+            screenBerth.color = minimapBerth.color = colour;
             screenBerth.enabled = minimapBerth.enabled = berth;
-            screenBerth.Accent = minimapBerth.Accent =
-                state == ObjectiveType.Survive ? beaconAccent : BerthGraphic.ExtractionAccent;
-            var beacon = state == ObjectiveType.Survive && target;
-            var progress = beacon ? objectives.SpineTracker?.PhaseProgress : null;
-            screenBerth.RingFill = minimapBerth.RingFill = progress?.BeaconFill;
+            if (!berth)
+                screenTab.enabled = mapTab.enabled = false;
+            screenRing.enabled = mapRing.enabled = berth;
+            var progress = lull && target ? objectives.SpineTracker?.PhaseProgress : null;
+            screenRing.Fill = mapRing.Fill = progress?.BeaconFill;
+            screenRing.color = mapRing.color = colour;
             var expiring = progress?.BeaconExpiring == true;
-            var lit = !expiring || Mathf.Repeat(Time.time * expiryBlinkRate, 1f) < .5f;
-            screenBerth.canvasRenderer.SetAlpha(lit ? 1f : 0f);
-            minimapBerth.canvasRenderer.SetAlpha(lit ? 1f : 0f);
+            var alpha = !expiring || Mathf.Repeat(Time.time * expiryBlinkRate, 1f) < .5f ? 1f : 0f;
+            foreach (var part in blinkParts)
+                part.canvasRenderer.SetAlpha(alpha);
             icon.enabled = generic;
             if (!berth && !generic) return;
 
@@ -83,9 +120,20 @@ namespace UI.Objectives
             var upper = (Vector2)canvasRect.InverseTransformPoint(corners[2]) - canvasRect.rect.min;
             var mapBounds = Rect.MinMaxRect(lower.x, lower.y, upper.x, upper.y);
             var radius = Mathf.Min(mapBounds.width, mapBounds.height) * .5f;
-            var inset = minimapBerth.rectTransform.rect.width * .5f + 1f;
-            minimapBerth.rectTransform.anchoredPosition = (mapBounds.center +
-                Vector2.ClampMagnitude(mapOffset * radius * 2f, radius - inset));
+            var offset = mapOffset * radius * 2f;
+            var inset = MapIconSize * .5f + 1f;
+            if (offset.magnitude > radius - inset)
+            {
+                var dir = offset.normalized;
+                minimapBerth.rectTransform.anchoredPosition =
+                    mapBounds.center + dir * (radius - 1f - NavTab.Extent(MapIconSize, reach));
+                mapTab.Aim(Vector2.zero, dir, MapIconSize, reach, colour);
+            }
+            else
+            {
+                minimapBerth.rectTransform.anchoredPosition = mapBounds.center + offset;
+                mapTab.enabled = false;
+            }
 
             var projected = worldCamera.WorldToScreenPoint(target.position);
             screenBerth.enabled = projected.z > 0f;
@@ -94,12 +142,17 @@ namespace UI.Objectives
             var safe = Rect.MinMaxRect(viewport.xMin + padding, viewport.yMin + padding,
                 viewport.xMax - padding, viewport.yMax - 70f * canvas.scaleFactor);
             var location = ClampToEdge(projected, viewport.center, safe);
-            if (!safe.Contains(projected) && mapBounds.Contains(location / canvas.scaleFactor))
+            var offScreen = !safe.Contains(projected);
+            if (offScreen && mapBounds.Contains(location / canvas.scaleFactor))
                 location.y = mapBounds.yMin * canvas.scaleFactor - padding;
             screenBerth.rectTransform.anchoredPosition = location / canvas.scaleFactor;
-            var direction = (Vector2)projected - viewport.center;
-            screenBerth.rectTransform.localEulerAngles = new Vector3(0, 0,
-                Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90f);
+            if (screenBerth.enabled && offScreen)
+                screenTab.Aim(Vector2.zero, ((Vector2)projected - viewport.center).normalized,
+                    ScreenIconSize, reach, colour);
+            else
+                screenTab.enabled = false;
+            screenRing.enabled = screenBerth.enabled;
+            mapRing.enabled = minimapBerth.enabled;
         }
 
         internal static Vector2 ClampToEdge(Vector2 point, Vector2 center, Rect bounds)

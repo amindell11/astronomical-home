@@ -46,7 +46,7 @@ namespace Substrate.Sectors.Elements
         [Stat, SerializeField, Min(0f)] private float lullSeconds = 5f;
         [Tooltip("Seconds from the sector's start to phase one's opening, with nothing spawning.")]
         [Stat, SerializeField, Min(0f)] private float openingLullSeconds = 5f;
-        [Tooltip("The sector's opening hunt. Set, the opening lull lasts until its alarm; unset, the seconds above.")]
+        [Tooltip("The sector's opening hunt. Set, the opening lull lasts until the hunt releases; unset, the seconds above.")]
         [SerializeField] private SectorHunt hunt;
         [Tooltip("The elite the sector's spine summons. Set, spawning stops when it arrives; it must be the spine's own elite.")]
         [SerializeField] private EliteEncounter elite;
@@ -196,11 +196,11 @@ namespace Substrate.Sectors.Elements
             Phase = schedule.At(0f);
         }
 
-        /// <summary>Holds the opening lull at its start until the hunt's alarm, then ends it, once.</summary>
+        /// <summary>Holds the opening lull at its start until the hunt releases, then ends it, once.</summary>
         internal void HoldForHunt(float now)
         {
             if (!hunt || huntReleased || !Phase.InOpeningLull) return;
-            huntReleased = hunt.Alarmed;
+            huntReleased = hunt.Released;
             startTime = huntReleased ? now - openingLullSeconds : now;
         }
 
