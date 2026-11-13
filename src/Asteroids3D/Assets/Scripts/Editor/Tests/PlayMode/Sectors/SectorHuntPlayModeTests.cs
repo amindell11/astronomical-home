@@ -830,6 +830,9 @@ namespace Tests.PlayMode.Sectors
                 buffer[0] = new DetectedObstacle(Collider.transform.position, Radius, Collider);
                 return 1;
             }
+
+            public bool AnyObstacleWithin(Vector2 centerPlane, float radius) =>
+                Collider && Vector2.Distance(GamePlane.WorldPointToPlane(Collider.transform.position), centerPlane) <= radius + Radius;
         }
 
         private GameObject Child(GameObject parent, string name)
