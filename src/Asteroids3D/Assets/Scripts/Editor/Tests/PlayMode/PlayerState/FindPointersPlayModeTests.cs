@@ -78,7 +78,7 @@ namespace Tests.PlayMode.PlayerState
             yield return null;
 
             var pointer = minimap.Find("Find pointers/Find pointer").GetComponent<Image>();
-            var arrow = minimap.Find("Find pointers/Find pointer arrow").GetComponent<FindPointerArrow>();
+            var arrow = minimap.Find("Find pointers/Find pointer arrow").GetComponent<NavTab>();
             var direction = new Vector2(200, 100).normalized;
             Assert.IsTrue(pointer.enabled && arrow.enabled, "A find beyond range shows a pointer.");
             Assert.AreSame(icon, pointer.sprite, "The pointer shows the find's icon.");
