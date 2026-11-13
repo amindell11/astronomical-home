@@ -2,6 +2,7 @@ using FMOD.Studio;
 using FMODUnity;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements.Phases;
+using Substrate.Services.Locales;
 using Substrate.Services.Objectives;
 using UnityEngine;
 using STOP_MODE = FMOD.Studio.STOP_MODE;
@@ -9,8 +10,8 @@ using STOP_MODE = FMOD.Studio.STOP_MODE;
 namespace Game.Audio
 {
     /// <summary>
-    /// The run's music: one Studio event held for the session, told the run's state and the active
-    /// sector's survive phase. Studio owns every transition between states. <see cref="GameHost"/>'s
+    /// The run's music: one Studio event held for the session, told the run's state, the active
+    /// sector's locale and survive phase. Studio owns every transition between states. <see cref="GameHost"/>'s
     /// run loop sets the state, except the elite fight and extraction, which follow the sector spine's step;
     /// extraction after an elite stays on Elite, so its cue carries on without restarting.
     /// </summary>
@@ -21,8 +22,9 @@ namespace Game.Audio
 
         private const string MusicStateParameter = "MusicState";
         private const string PhaseParameter = "Phase";
+        private const string LocaleParameter = "Locale";
 
-        [Tooltip("Looping 2D FMOD event fed the run's MusicState and the survive phase's index as Phase.")]
+        [Tooltip("Looping 2D FMOD event fed the run's MusicState, the sector's locale as the Locale label, and the survive phase's index as Phase.")]
         [SerializeField] private EventReference musicEvent;
 
         private IObjectiveService objectives;
@@ -40,10 +42,11 @@ namespace Game.Audio
 
         public void Set(State state) => music.setParameterByName(MusicStateParameter, (float)state);
 
-        /// <summary>Combat, with Phase following the sector's survive phases when it has them.</summary>
-        public void EnterSector(Sector sector)
+        /// <summary>Combat, with Locale the sector's locale and Phase following its survive phases, if any.</summary>
+        public void EnterSector(Sector sector, LocaleSky locale)
         {
             phases = sector.Module<PhaseSpineModule>();
+            music.setParameterByNameWithLabel(LocaleParameter, locale.name);
             Set(State.Combat);
         }
 

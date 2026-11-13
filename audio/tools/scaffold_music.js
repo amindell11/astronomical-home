@@ -3,6 +3,7 @@
 //   event:/Music/Game   2D loop, one instance held for the session
 //     MusicState        labelled: Hangar, Combat, Extract, Recap, Victory, Defeat, Elite
 //     Phase             discrete, the survive phase's 0-based index
+//     Locale            labelled, one label per locale prefab's name; the code sets it by label
 // The placeholder is the owner's hangar track, imported in place, because an empty event stops on
 // its first update. The owner builds the states and transitions in Studio. Idempotent: anything
 // already present is left as the designer has it, except that labels missing from the end of
@@ -19,6 +20,7 @@ var assetDir = __dirname + "/../fmod/Assets/";
 var placeholder = "Hero's_Landing_3.wav";
 var states = ["Hangar", "Combat", "Extract", "Recap", "Victory", "Defeat", "Elite"];
 var lastPhase = 7;
+var locales = ["BlueCrescent", "CopperTurquoise", "CoralSunset", "CyanAurora", "IllustratedBlue", "VerdantGiant"];
 
 var musicBus = project.lookup("bus:/Music");
 if (!musicBus) throw new Error("bus:/Music is missing: run scaffold_hud.js first");
@@ -149,6 +151,7 @@ ensureParameter(game, { name: "MusicState", type: project.parameterType.UserEnum
 ensureTrailingLabels("MusicState", states);
 ensureCopiedCue(game, "MusicState", states.indexOf("Extract"), states.indexOf("Elite"));
 ensureParameter(game, { name: "Phase", type: project.parameterType.UserDiscrete, min: 0, max: lastPhase });
+ensureParameter(game, { name: "Locale", type: project.parameterType.UserEnumeration, enumerationLabels: locales });
 
 if (!project.save()) throw new Error("project save failed");
 console.log("saved " + project.filePath);
