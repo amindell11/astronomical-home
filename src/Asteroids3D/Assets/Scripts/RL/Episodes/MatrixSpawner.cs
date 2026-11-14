@@ -15,7 +15,7 @@ using RL.Reward;
 
 namespace RL.Episodes
 {
-    /// <summary>Spawns the matrix lane's pair. Each side is a chassis prefab, a pilot prefab, and one primary weapon. A named shield is copied onto an inactive chassis instance and that instance is the spawn template. The weapon is equipped before wiring, because the commander captures muzzle speed once at init.</summary>
+    /// <summary>Spawns the matrix lane's pair. Each side is a chassis prefab, a pilot prefab, and one primary weapon. A named shield or numeric capacity/delay/rate replaces the chassis module on an inactive copy used as the spawn template. The weapon is equipped before wiring, because the commander captures muzzle speed once at init.</summary>
     internal static class MatrixSpawner
     {
         // EpisodePair's armed-pair streams. A seed's decision noise matches that spawn.
@@ -23,39 +23,49 @@ namespace RL.Episodes
         private const uint BaselineSeedStream = 202;
 
         public static EpisodePair Spawn(UnitService units, Vector2 offset, IObstacleField field,
-            IProjectileService projectiles, in RewardSpec spec, MatrixSide sideA, MatrixSide sideB)
+            IProjectileService projectiles, in RewardSpec spec, MatrixSide sideA, MatrixSide sideB,
+            out ShieldModule runtimeShieldA, out ShieldModule runtimeShieldB)
         {
             var poses = EpisodePoses.Derive(in spec, 0, offset);
             var root = new SeedScope(spec.runSeed);
-            var shipA = SpawnShip(units, projectiles, sideA.chassis, sideA.pilot,
-                poses.agentPos, poses.agentRotDeg, team: 0, root.Derive(AgentSeedStream).ToSeed(), sideA.weapon,
-                sideA.shield);
-            var shipB = SpawnShip(units, projectiles, sideB.chassis, sideB.pilot,
-                poses.baselinePos, poses.baselineRotDeg, team: 1, root.Derive(BaselineSeedStream).ToSeed(), sideB.weapon,
-                sideB.shield);
+            var shipA = SpawnShip(units, projectiles, sideA,
+                poses.agentPos, poses.agentRotDeg, team: 0, root.Derive(AgentSeedStream).ToSeed(), out runtimeShieldA);
+            var shipB = SpawnShip(units, projectiles, sideB,
+                poses.baselinePos, poses.baselineRotDeg, team: 1, root.Derive(BaselineSeedStream).ToSeed(),
+                out runtimeShieldB);
             units.WireShipDependencies(shipA, field);
             units.WireShipDependencies(shipB, field);
             return Seal(units, projectiles, offset, shipA, shipB);
         }
 
-        private static Ship SpawnShip(UnitService units, IProjectileService projectiles, Ship shipPrefab,
-            AICommander pilot, Vector2 planePos, float rotDeg, int team, int decisionSeed, WeaponComponent primary,
-            ShieldModule shield)
+        private static Ship SpawnShip(UnitService units, IProjectileService projectiles, in MatrixSide side,
+            Vector2 planePos, float rotDeg, int team, int decisionSeed, out ShieldModule runtimeShield)
         {
-            var template = ChassisTemplate(shipPrefab, shield);
+            var shield = side.shield;
+            runtimeShield = null;
+            if (side.shieldNumbers)
+            {
+                runtimeShield = ScriptableObject.CreateInstance<ShieldModule>();
+                runtimeShield.hideFlags = HideFlags.HideAndDontSave;
+                runtimeShield.maxShield = side.shieldCapacity;
+                runtimeShield.shieldRegenDelay = side.shieldDelay;
+                runtimeShield.shieldRegenRate = side.shieldRate;
+                shield = runtimeShield;
+            }
+            var template = ChassisTemplate(side.chassis, shield);
             try
             {
-                var ship = Factory.CreateShip(template, pilot, team, decisionSeed, projectiles,
+                var ship = Factory.CreateShip(template, side.pilot, team, decisionSeed, projectiles,
                     GamePlane.PlanePointToWorld(planePos),
                     GamePlane.Rotation * Quaternion.AngleAxis(rotDeg, Vector3.forward));
                 ship.transform.SetParent(units.UnitsRoot, true);
                 units.ActiveRegistry.ActiveShips.Add(ship);
-                ship.Reequip(primary, null);
+                ship.Reequip(side.weapon, null);
                 return ship;
             }
             finally
             {
-                if (template != shipPrefab)
+                if (template != side.chassis)
                     UnityEngine.Object.DestroyImmediate(template.transform.parent.gameObject);
             }
         }

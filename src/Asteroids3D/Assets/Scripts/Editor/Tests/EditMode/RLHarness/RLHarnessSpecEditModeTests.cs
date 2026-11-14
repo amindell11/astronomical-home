@@ -541,6 +541,83 @@ namespace Tests.EditMode.RLHarness
         }
 
         [Test]
+        public void MatrixRoster_ParsesNumericShieldNumbers()
+        {
+            var spec = Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "crimson:kiterpilot:lasers",
+                "RL_HARNESS_MATRIX_ROSTER", "crimson:aggressorpilot:lasers:32/2/10",
+                "RL_HARNESS_SEEDS", "3001");
+
+            var side = spec.matrixRoster[0];
+            Assert.IsTrue(side.shieldNumbers);
+            Assert.IsTrue(side.shield == null);
+            Assert.AreEqual(32f, side.shieldCapacity);
+            Assert.AreEqual(2f, side.shieldDelay);
+            Assert.AreEqual(10f, side.shieldRate);
+            Assert.AreEqual("Crimson-AggressorPilot-Lasers-S32_2_10", side.Label);
+            Assert.AreEqual("Crimson-KiterPilot-Lasers", spec.matrixReference.Label);
+
+            var fractional = Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "crimson:kiterpilot:lasers:28/3.5/12",
+                "RL_HARNESS_MATRIX_ROSTER", "vanguard:aggressorpilot:lasers",
+                "RL_HARNESS_SEEDS", "3001");
+            Assert.AreEqual(28f, fractional.matrixReference.shieldCapacity);
+            Assert.AreEqual(3.5f, fractional.matrixReference.shieldDelay);
+            Assert.AreEqual(12f, fractional.matrixReference.shieldRate);
+            Assert.IsTrue(fractional.matrixReference.shield == null);
+            Assert.AreEqual("Crimson-KiterPilot-Lasers-S28_3.5_12", fractional.matrixReference.Label);
+            Assert.AreEqual("Vanguard-AggressorPilot-Lasers", fractional.matrixRoster[0].Label);
+
+            var zeros = Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "crimson:kiterpilot:lasers:32/0/0",
+                "RL_HARNESS_MATRIX_ROSTER", "vanguard:aggressorpilot:lasers",
+                "RL_HARNESS_SEEDS", "3001");
+            Assert.IsTrue(zeros.matrixReference.shieldNumbers);
+            Assert.AreEqual(0f, zeros.matrixReference.shieldDelay);
+            Assert.AreEqual(0f, zeros.matrixReference.shieldRate);
+            Assert.AreEqual("Crimson-KiterPilot-Lasers-S32_0_0", zeros.matrixReference.Label);
+
+            var distinct = Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers:32/2/10",
+                "RL_HARNESS_MATRIX_ROSTER",
+                "Crimson:KiterPilot:Lasers:32/3/10, Crimson:KiterPilot:Lasers:32/2/10",
+                "RL_HARNESS_SEEDS", "3001");
+            Assert.AreEqual(2, distinct.matrixRoster.Length);
+
+            Assert.Throws<ArgumentException>(() => Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers",
+                "RL_HARNESS_MATRIX_ROSTER",
+                "Vanguard:AggressorPilot:Lasers:32/2/10, vanguard:aggressorpilot:lasers:32/2/10"));
+            Assert.Throws<ArgumentException>(() => Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers:32/2",
+                "RL_HARNESS_MATRIX_ROSTER", "Vanguard:AggressorPilot:Lasers"));
+            Assert.Throws<ArgumentException>(() => Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers:32/2/10/1",
+                "RL_HARNESS_MATRIX_ROSTER", "Vanguard:AggressorPilot:Lasers"));
+            Assert.Throws<ArgumentException>(() => Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers:32/nope/10",
+                "RL_HARNESS_MATRIX_ROSTER", "Vanguard:AggressorPilot:Lasers"));
+            Assert.Throws<ArgumentException>(() => Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers:NaN/2/10",
+                "RL_HARNESS_MATRIX_ROSTER", "Vanguard:AggressorPilot:Lasers"));
+            Assert.Throws<ArgumentException>(() => Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers:Infinity/2/10",
+                "RL_HARNESS_MATRIX_ROSTER", "Vanguard:AggressorPilot:Lasers"));
+            Assert.Throws<ArgumentException>(() => Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers:0/2/10",
+                "RL_HARNESS_MATRIX_ROSTER", "Vanguard:AggressorPilot:Lasers"));
+            Assert.Throws<ArgumentException>(() => Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers:-1/2/10",
+                "RL_HARNESS_MATRIX_ROSTER", "Vanguard:AggressorPilot:Lasers"));
+            Assert.Throws<ArgumentException>(() => Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers:32/-1/10",
+                "RL_HARNESS_MATRIX_ROSTER", "Vanguard:AggressorPilot:Lasers"));
+            Assert.Throws<ArgumentException>(() => Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers:32/2/-1",
+                "RL_HARNESS_MATRIX_ROSTER", "Vanguard:AggressorPilot:Lasers"));
+        }
+
+        [Test]
         public void MatrixRoster_KitsOffParsesAndRefusesOtherLanes()
         {
             var spec = Parse(
