@@ -84,14 +84,7 @@ namespace Tests.EditMode.Rendering.Locales
         [Test]
         public void SurfaceRotatesWhileTheSilhouetteStaysFixed()
         {
-            for (var y = 0; y < planet.height; y++)
-            for (var x = 0; x < planet.width; x++)
-            {
-                var color = planet.GetPixel(x, y);
-                color.r *= .6f + .4f * Mathf.Sin(x * Mathf.PI * 8 / planet.width);
-                planet.SetPixel(x, y, color);
-            }
-            planet.Apply();
+            PaintLongitudeStripes();
             material.SetFloat("_RotationSpeed", .05f);
             var initial = Render(Color.clear);
             material.SetFloat("_SurfaceLongitude", 45);
@@ -104,6 +97,41 @@ namespace Tests.EditMode.Rendering.Locales
                 "Surface rotation must move cloud markings across the visible hemisphere.");
             Assert.That(initial.Select(c => c.a), Is.EqualTo(rotated.Select(c => c.a)),
                 "Surface rotation must not translate or deform the planet silhouette.");
+        }
+
+        [Test]
+        public void FlowMovesCloudMarkingsWhileTheSilhouetteStaysFixed()
+        {
+            PaintLongitudeStripes();
+            material.SetFloat("_RotationSpeed", 0);
+            var settled = Render(Color.clear, time: 0);
+            Assert.That(Difference(settled, Render(Color.clear, time: 3)), Is.Zero,
+                "With the flow off and no rotation, time must not change the surface.");
+            material.SetFloat("_BandStreaming", .05f);
+            material.SetFloat("_StormChurn", .05f);
+            var initial = Render(Color.clear, time: 0);
+            var flowed = Render(Color.clear, time: 3);
+            Assert.That(Difference(initial, flowed), Is.GreaterThan(.02f),
+                "The flow must move cloud markings across the visible hemisphere.");
+            Assert.That(initial.Select(c => c.a), Is.EqualTo(flowed.Select(c => c.a)),
+                "The flow must not translate or deform the planet silhouette.");
+        }
+
+        [Test]
+        public void HaloReachAndBrightnessSpreadTheGlowBeyondTheEdge()
+        {
+            material.SetColor("_AtmosphereColor", Color.white);
+            var defaults = Render(Color.clear);
+            material.SetFloat("_HaloWidth", .1f);
+            var wide = Render(Color.clear);
+            material.SetFloat("_HaloIntensity", 2f);
+            var bright = Render(Color.clear);
+            Assert.That(wide.Count(color => color.a > .01f && color.a < .9f),
+                Is.GreaterThan(defaults.Count(color => color.a > .01f && color.a < .9f) + 500),
+                "A wider halo must put glow on more of the sky beyond the edge.");
+            Assert.That(bright.Where(color => color.a < .5f).Sum(color => color.r),
+                Is.GreaterThan(2 * wide.Where(color => color.a < .5f).Sum(color => color.r)),
+                "Halo brightness must scale the glow beyond the edge.");
         }
 
         [Test]
@@ -201,6 +229,18 @@ namespace Tests.EditMode.Rendering.Locales
                     if (bank) Object.DestroyImmediate(bank);
                 }
             }
+        }
+
+        private void PaintLongitudeStripes()
+        {
+            for (var y = 0; y < planet.height; y++)
+            for (var x = 0; x < planet.width; x++)
+            {
+                var color = planet.GetPixel(x, y);
+                color.r *= .6f + .4f * Mathf.Sin(x * Mathf.PI * 8 / planet.width);
+                planet.SetPixel(x, y, color);
+            }
+            planet.Apply();
         }
 
         private static int FeatureTravel(Color[] before, Color[] after)
