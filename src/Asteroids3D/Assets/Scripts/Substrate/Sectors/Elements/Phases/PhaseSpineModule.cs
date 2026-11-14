@@ -227,7 +227,7 @@ namespace Substrate.Sectors.Elements.Phases
             var beaconExpiring = graceLeft <= beaconWarningSeconds;
             ReadCaption(mark, out var caption, out var captionSeconds);
             return new SectorPhaseProgress(mark.InLull ? mark.Index - 1 : mark.Index,
-                director.PhaseCount, director.SecondsToEnd, mark.Done,
+                director.PhaseCount, mark.SecondsToEnd, mark.Done,
                 beaconFill: beaconFill, beaconExpiring: beaconExpiring,
                 caption: caption, captionSeconds: captionSeconds);
         }

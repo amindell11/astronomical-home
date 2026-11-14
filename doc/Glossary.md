@@ -635,8 +635,8 @@ Format: **term** — definition. *(authority)*
   *(WaveGroup, WaveDirector.WaveDue)*
 - **wave every** — seconds between a sector phase's waves. The phase opens
   with one. *(SectorPhase.waveEvery)*
-- **earned lull** — the stretch between a phase's last wave dying and the phase's
-  scheduled end. Patrols count as alive. It moves no phase boundary.
+- **earned lull** — the rest of a sector phase once its last wave has arrived and
+  nothing is alive, patrols included. It moves no phase boundary.
   *(WaveDirector.EarnedLull)*
 - **sector phase** — one timed row of a wave director's table. The row holds
   its groups and its wave timing. Bare

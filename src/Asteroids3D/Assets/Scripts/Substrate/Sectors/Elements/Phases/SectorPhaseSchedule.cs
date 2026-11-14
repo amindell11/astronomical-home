@@ -12,6 +12,7 @@ namespace Substrate.Sectors.Elements.Phases
         private readonly SectorPhase[] phases;
         private readonly float lullSeconds;
         private readonly float openingLullSeconds;
+        private readonly float totalSeconds;
 
         public SectorPhaseSchedule(SectorPhase[] phases, float lullSeconds, float openingLullSeconds)
         {
@@ -20,23 +21,16 @@ namespace Substrate.Sectors.Elements.Phases
             this.phases = phases;
             this.lullSeconds = lullSeconds;
             this.openingLullSeconds = openingLullSeconds;
-            var total = openingLullSeconds;
-            for (var i = 0; i < phases.Length; i++)
-            {
-                if (i > 0) total += lullSeconds;
-                total += phases[i].seconds;
-            }
-            TotalSeconds = total;
+            totalSeconds = openingLullSeconds + lullSeconds * (phases.Length - 1);
+            foreach (var phase in phases)
+                totalSeconds += phase.seconds;
         }
 
         public int Count => phases.Length;
 
-        /// <summary>Opening lull, plus each phase, plus the lull between each pair.</summary>
-        private float TotalSeconds { get; }
-
         public SectorPhaseMark At(float elapsed)
         {
-            var secondsToEnd = Math.Max(0f, TotalSeconds - elapsed);
+            var secondsToEnd = Math.Max(0f, totalSeconds - elapsed);
             var start = 0f;
             for (var i = 0; i < phases.Length; i++)
             {

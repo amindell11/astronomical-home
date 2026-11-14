@@ -84,8 +84,6 @@ namespace Substrate.Sectors.Elements
 
         public bool WaveAhead { get; private set; }
 
-        public float SecondsToEnd => Phase.SecondsToEnd;
-
         public int PhaseCount => phases.Length;
 
         /// <summary>A group ship the row's faction doesn't fly fails at session start, not the first wave.</summary>
@@ -239,19 +237,16 @@ namespace Substrate.Sectors.Elements
         internal void Observe(float now, int alive)
         {
             var phase = phases[Phase.Index];
-            var hasGroups = phase.groups.Length > 0;
             var untilWave = lastWave + phase.waveEvery - now;
-            var waveFits = !Phase.InLull && !Phase.Done && !eliteArrived && hasGroups
-                && (pending != null || untilWave < Phase.SecondsLeft);
+            var inPhase = !Phase.InLull && !Phase.Done;
+            var waveLeft = phase.groups.Length > 0 && (pending != null || untilWave < Phase.SecondsLeft);
+            var waveFits = inPhase && !eliteArrived && waveLeft;
 
-            EarnedLull = !Phase.InLull && !Phase.Done && openedPhase == Phase.Index && pending == null && alive == 0
-                && (!hasGroups || untilWave >= Phase.SecondsLeft);
-            if (Phase.Done || (!waveFits && !Phase.InLull && Phase.Index == phases.Length - 1))
-                NextWaveSeconds = 0f;
-            else if (waveFits)
+            EarnedLull = inPhase && openedPhase == Phase.Index && alive == 0 && !waveLeft;
+            if (waveFits)
                 NextWaveSeconds = pending != null ? 0f : Mathf.Max(0f, untilWave);
             else
-                NextWaveSeconds = Phase.CountdownSeconds;
+                NextWaveSeconds = Phase.InLull || Phase.Index < phases.Length - 1 ? Phase.CountdownSeconds : 0f;
             WaveAhead = waveFits || LaterPhaseHasGroups();
         }
 

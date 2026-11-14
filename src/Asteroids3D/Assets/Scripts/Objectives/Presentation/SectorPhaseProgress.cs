@@ -11,7 +11,6 @@ namespace Objectives.Presentation
     /// <summary>
     /// What the HUD reads for the sector clock. SecondsLeft is the time until the phase table
     /// is done, except during a hunt reading, which keeps the search clock or the gap.
-    /// The caption names the next wave, a lull, the elite, or extraction.
     /// </summary>
     public readonly struct SectorPhaseProgress
     {
