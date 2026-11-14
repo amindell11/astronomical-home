@@ -64,9 +64,19 @@ namespace Tests.EditMode.Companion
         {
             BuildVoice(false, "Quartermaster", SectorEntered.SectorSlot, true, "in sector {sector}");
 
-            moments.Raise(new SectorEntered(3));
+            moments.Raise(new SectorEntered(3, ""));
 
             Assert.AreEqual("Quartermaster: in sector 3", display.Line);
+        }
+
+        [Test]
+        public void FactionFact_FillsTheLine()
+        {
+            BuildVoice(false, "", SectorEntered.SectorSlot, true, "{faction} space");
+
+            moments.Raise(new SectorEntered(2, "veil"));
+
+            Assert.AreEqual("veil space", display.Line);
         }
 
         [Test]
@@ -74,7 +84,7 @@ namespace Tests.EditMode.Companion
         {
             BuildVoice(false, "", SectorEntered.SectorSlot, true, "in sector {sector}");
 
-            moments.Raise(new SectorEntered(3));
+            moments.Raise(new SectorEntered(3, ""));
 
             Assert.AreEqual("in sector 3", display.Line);
         }
@@ -84,7 +94,7 @@ namespace Tests.EditMode.Companion
         {
             BuildVoice(true, "Quartermaster", SectorEntered.SectorSlot, true);
 
-            moments.Raise(new SectorEntered(3));
+            moments.Raise(new SectorEntered(3, ""));
 
             Assert.AreEqual("Quartermaster: [sector-entered] sector 3", display.Line);
         }
