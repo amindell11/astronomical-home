@@ -4,20 +4,20 @@ using System.Globalization;
 using Ships.Registry;
 using Substrate.Sectors.Elements.Elites;
 
-namespace Game.Moments
+namespace Game.Moments.Encounters
 {
-    public sealed class EliteAnnounced : IRunMoment
+    public sealed class EliteBeaten : IRunMoment
     {
-        public const string AnnouncedSlot = "elite-announced";
+        public const string BeatenSlot = "elite-beaten";
 
         /// <summary>1-based.</summary>
         public int Sector { get; }
         public string Faction { get; }
         public ShipId Ship { get; }
-        public string Slot => AnnouncedSlot;
+        public string Slot => BeatenSlot;
         public IReadOnlyDictionary<string, string> Facts { get; }
 
-        public EliteAnnounced(EliteMoment moment)
+        public EliteBeaten(EliteMoment moment)
         {
             if (moment.FactionId == null) throw new ArgumentNullException(nameof(moment));
             Sector = moment.SectorIndex + 1;

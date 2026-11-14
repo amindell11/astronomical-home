@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using Ships.Registry;
 
-namespace Game.Moments
+namespace Game.Moments.Encounters
 {
     public sealed class PatrolSilenced : IRunMoment
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using Game.Runs;
 
-namespace Game.Moments
+namespace Game.Moments.Encounters
 {
     public sealed class ShipEarned : IRunMoment
     {

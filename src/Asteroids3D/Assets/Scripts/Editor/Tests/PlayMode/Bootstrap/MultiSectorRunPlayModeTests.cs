@@ -11,6 +11,7 @@ using Combat.Weapons.Arsenal;
 using Combat.Weapons.Mods;
 using Game;
 using Game.Moments;
+using Game.Moments.Encounters;
 using Game.Runs;
 using Game.Travel;
 using Objectives;

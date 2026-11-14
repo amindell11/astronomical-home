@@ -4,7 +4,7 @@ using Ships.Registry;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Hunt;
 
-namespace Game.Moments
+namespace Game.Moments.Encounters
 {
     /// <summary>
     /// Bridges one sector's hunt and elite events onto the run's moment stream.

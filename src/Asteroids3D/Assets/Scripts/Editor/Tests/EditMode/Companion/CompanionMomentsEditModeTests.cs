@@ -6,6 +6,7 @@ using Damage;
 using Game;
 using Game.Companion;
 using Game.Moments;
+using Game.Moments.Encounters;
 using Game.Runs;
 using NUnit.Framework;
 using Ships.Registry;
@@ -319,6 +320,5 @@ namespace Tests.EditMode.Companion
             Assert.AreEqual(AssetDatabase.LoadAssetAtPath<CompanionFeelProfile>(FeelPath), host.companionFeel);
             Assert.IsTrue(host.companionLines && host.companionFeel, "test premise: both assets load");
         }
-
     }
 }

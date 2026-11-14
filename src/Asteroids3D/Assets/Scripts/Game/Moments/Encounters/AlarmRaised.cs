@@ -4,7 +4,7 @@ using System.Globalization;
 using Ships.Registry;
 using Substrate.Sectors.Elements.Hunt;
 
-namespace Game.Moments
+namespace Game.Moments.Encounters
 {
     public sealed class AlarmRaised : IRunMoment
     {
