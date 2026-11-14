@@ -78,8 +78,11 @@ namespace Substrate.Sessions
         [Tooltip("The elite the sector ends at. None for a layout whose spine summons no elite.")]
         public EliteProfile elite;
 
-        [Tooltip("The wave director's sector phases, in run order: each one's waves, timing and cap.")]
+        [Tooltip("The wave director's sector phases, in run order: each one's waves and timing.")]
         [Stat(Ordered = true)] public SectorPhase[] phases = Array.Empty<SectorPhase>();
+
+        [Tooltip("Most enemies alive, hunt patrols included, that this sector's waves fill to. A wave arrives trimmed to the room left; with none, it is dropped.")]
+        [Stat, Min(1)] public int waveCap = 5;
 
         [Tooltip("Patrols the sector's opening hunt spawns.")]
         [Stat, Min(0)] public int patrols;

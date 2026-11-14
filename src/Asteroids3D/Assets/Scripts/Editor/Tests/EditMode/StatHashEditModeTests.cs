@@ -200,6 +200,10 @@ namespace Tests.EditMode
             Assert.AreNotEqual(baseline,
                 StatHash.OfSetting(offer, new[] { ScratchRow(roster, PhaseWaveEvery + 1f) }, KillHullRestore),
                 "A pacing number on the row must move the fingerprint.");
+            var capped = ScratchRow(roster, PhaseWaveEvery);
+            capped.waveCap = sector.waveCap + 1;
+            Assert.AreNotEqual(baseline, StatHash.OfSetting(offer, new[] { capped }, KillHullRestore),
+                "The wave cap must move the fingerprint.");
             Assert.AreNotEqual(baseline, StatHash.OfSetting(offer, new[] { sector }, KillHullRestore + 0.05f),
                 "The kill refill must move the fingerprint.");
             Assert.AreNotEqual(baseline,
@@ -260,6 +264,7 @@ namespace Tests.EditMode
             var phase = lines.Single(line => line.StartsWith("sector[0]/row/SectorEntry.phases[0]={"));
             Assert.That(phase, Does.Contain("groups=["));
             Assert.That(lines, Has.Member($"sector[0]/row/SectorEntry.patrols={row.patrols}"));
+            Assert.That(lines, Has.Member($"sector[0]/row/SectorEntry.waveCap={row.waveCap}"));
             Assert.That(lines, Has.Some.StartsWith($"sector[0]/{director.name}/WaveDirector.lullSeconds="));
             Assert.That(lines, Has.Some.StartsWith("sector[0]/Shoal/Faction.signature={"));
             Assert.That(lines, Has.Some.StartsWith("sector[0]/Shoal/Faction.common={"));

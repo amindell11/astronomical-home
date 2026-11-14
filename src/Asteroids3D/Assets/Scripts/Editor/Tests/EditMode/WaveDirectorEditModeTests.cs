@@ -14,7 +14,7 @@ using Substrate.Sessions;
 
 namespace Tests.EditMode
 {
-    /// <summary>Wave director pacing over a sector phase table with injected time: a phase opens with a wave, and another comes on its wave-every beat. A lull, the opening one too, sends nothing, the elite stops them, and the done table keeps the last phase's waves. An earned lull, once the phase's last wave is out and nothing is alive, moves no phase boundary. The threat read lists each group ship once and the weapons they fly, their faction kits in group order, off a prefab asset too. A bad row fails CheckRow, and validation refuses a director that misses its spine's elite.</summary>
+    /// <summary>Wave director pacing over a sector phase table with injected time: a phase opens with a wave, and another comes on its wave-every beat. A wave that fits under the wave cap arrives whole, one that only partly fits is trimmed to the room left, and one with no room is dropped so the next waits for the beat. A lull, the opening one too, sends nothing, the elite stops them, and the done table keeps the last phase's waves. An earned lull, once the phase's last wave is out and nothing is alive, moves no phase boundary. The threat read lists each group ship once and the weapons they fly, their faction kits in group order, off a prefab asset too. A bad row fails CheckRow, and validation refuses a director that misses its spine's elite.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class WaveDirectorEditModeTests
@@ -103,6 +103,71 @@ namespace Tests.EditMode
             OpenAndArrive(0f);
 
             Assert.IsNull(_director.WaveDue(WaveEvery - .1f), "The beat has not arrived.");
+            Assert.IsTrue(IsOpenGroup(_director.WaveDue(WaveEvery)), "The next wave comes on the beat.");
+        }
+
+        [Test]
+        public void Wave_ArrivesWhole_WhileItFitsUnderTheWaveCap()
+        {
+            var ships = new[]
+            {
+                new WaveDirector.RosterEntry(), new WaveDirector.RosterEntry(),
+                new WaveDirector.RosterEntry(), new WaveDirector.RosterEntry(),
+            };
+            _director.Configure(new[]
+            {
+                new SectorPhase
+                {
+                    seconds = 40f, waveEvery = WaveEvery,
+                    groups = new[] { new WaveGroup { ships = ships } },
+                },
+            }, Lull, waveCap: 8);
+            _director.BeginSchedule(0f);
+            _director.Advance(0f);
+
+            var wave = _director.WaveDue(0f);
+            Assert.AreSame(ships, wave, "The due wave is the whole group.");
+            Assert.AreEqual(ships.Length, _director.Room(wave.Length, 2),
+                "A wave that fits under the wave cap arrives whole.");
+        }
+
+        [Test]
+        public void Wave_TrimsToTheRoomLeft_WhenOnlySomeFit()
+        {
+            var ships = new[]
+            {
+                new WaveDirector.RosterEntry(), new WaveDirector.RosterEntry(),
+                new WaveDirector.RosterEntry(), new WaveDirector.RosterEntry(),
+            };
+            _director.Configure(new[]
+            {
+                new SectorPhase
+                {
+                    seconds = 40f, waveEvery = WaveEvery,
+                    groups = new[] { new WaveGroup { ships = ships } },
+                },
+            }, Lull, waveCap: 6);
+            _director.BeginSchedule(0f);
+            _director.Advance(0f);
+
+            var wave = _director.WaveDue(0f);
+            Assert.AreSame(ships, wave, "The due wave stays the whole group.");
+            Assert.AreEqual(2, _director.Room(wave.Length, 4),
+                "Four alive under a wave cap of 6 leave room for two.");
+        }
+
+        [Test]
+        public void DroppedWave_IsNotHeld_AndTheNextComesOnTheBeat()
+        {
+            _director.Configure(_phases, Lull, waveCap: 3);
+            _director.BeginSchedule(0f);
+            _director.Advance(0f);
+            var wave = _director.WaveDue(0f);
+            Assert.AreEqual(0, _director.Room(wave.Length, 3), "With no room under the wave cap, Room is 0.");
+
+            _director.Arrived(0f);
+            Assert.IsNull(_director.WaveDue(0f), "A dropped wave is not held.");
+            Assert.IsNull(_director.WaveDue(WaveEvery - .1f), "Nothing is due again until the next beat.");
             Assert.IsTrue(IsOpenGroup(_director.WaveDue(WaveEvery)), "The next wave comes on the beat.");
         }
 
@@ -298,6 +363,16 @@ namespace Tests.EditMode
                 groups = new[] { new WaveGroup { ships = new[] { new WaveDirector.RosterEntry() } } },
             })));
             StringAssert.Contains("WaveDirector", ex.Message);
+        }
+
+        [Test]
+        public void CheckRow_RefusesAWaveCapOfZero()
+        {
+            var row = Row(new SectorPhase { groups = System.Array.Empty<WaveGroup>() });
+            row.waveCap = 0;
+            var ex = Assert.Throws<System.InvalidOperationException>(() => _director.CheckRow(row));
+            StringAssert.Contains("WaveDirector", ex.Message);
+            StringAssert.Contains("0", ex.Message);
         }
 
         [Test]

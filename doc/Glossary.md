@@ -631,14 +631,18 @@ Format: **term** — definition. *(authority)*
   module, so product ownership and teardown stay the spawner's. *(WaveDirector)*
 - **wave** — one group of ships arriving together from one bearing just off
   screen, each on its own pilot. Each wave draws one of its sector phase's
-  groups uniformly. Waves arrive on the phase's wave-every beat whatever is
-  alive. Nothing arrives in a lull, and survivors stay.
+  groups uniformly. Waves arrive on the phase's wave-every beat, trimmed to
+  the wave cap. Nothing arrives in a lull, and survivors stay.
   *(WaveGroup, WaveDirector.WaveDue)*
 - **wave every** — seconds between a sector phase's waves. The phase opens
   with one. *(SectorPhase.waveEvery)*
+- **wave cap** — the most enemies alive, hunt patrols included, that a
+  sector's waves fill to. A wave arrives trimmed to the room left, in its
+  group's listed order. A wave with no room is dropped. Nothing is held or
+  owed. *(SectorEntry.waveCap, WaveDirector.Room)*
 - **earned lull** — the rest of a sector phase once its last wave has arrived and
-  nothing is alive, patrols included. It moves no phase boundary.
-  *(WaveDirector.EarnedLull)*
+  nothing is alive, patrols included. A dropped wave counts as arrived. It moves
+  no phase boundary. *(WaveDirector.EarnedLull)*
 - **sector phase** — one timed row of a wave director's table. The row holds
   its groups and its wave timing. Bare
   *phase* is the RL run segment (§2) outside the wave director's code (§1
