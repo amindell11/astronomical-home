@@ -34,5 +34,8 @@ The owner reviews the breakup in game and approves it in chat. Piece count is th
 - **Hand animation.** Motion is defaults plus number overrides.
 - **Grouping pieces by object names in C#.** Grouping lives in the source's debris roles.
 - **A per-ship breakup builder.** Scratch goes to the evidence branch.
+- **Debris-only paint copies.** A debris slot that shows hull paint points at the ship's
+  own hull material, so the wreck wears whatever skin the hull wears. Soot and draw order
+  are the two numbers on the debris prefab (`ShipBreakupDebris`).
 - **Changing geometry.** `ship_lock --mode verify` opens the stage; a shape change is a
   reopen.
