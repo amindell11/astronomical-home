@@ -370,6 +370,7 @@ namespace Tests.PlayMode.Recording
                     : TrainingBootstrap.ImportEvalCandidate(source)),
                 source => LoadModel(TrainingBootstrap.ImportEvalOpponent(source)),
                 TrainingBootstrap.CatalogWeapons, TrainingBootstrap.CatalogChassis, TrainingBootstrap.CatalogPilots,
+                TrainingBootstrap.CatalogShields,
                 () => SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Null);
             if (string.IsNullOrEmpty(spec.outDir)) spec.outDir = outDir;
             outDir = spec.outDir;

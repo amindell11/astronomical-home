@@ -66,7 +66,7 @@ def compose_child_env(unity: Path, project: Path, log: Path, values: dict) -> di
 def run_eval_lane(*, project: Path, unity: Path, lease: str, out_dir: Path,
                   onnx=None, seeds=None, episodes_per_seed=None, density=None,
                   opponent=None, probes=None, sentence=None, duel=None, matrix=None,
-                  matrix_reference=None, matrix_roster=None,
+                  matrix_reference=None, matrix_roster=None, matrix_kits=None,
                   lease_wait: int = 1800) -> Path:
     """One eval-lane session through the coordinator; returns the summary path read back from out_dir.
 
@@ -89,6 +89,7 @@ def run_eval_lane(*, project: Path, unity: Path, lease: str, out_dir: Path,
         "RL_HARNESS_MATRIX": matrix,
         "RL_HARNESS_MATRIX_REFERENCE": matrix_reference,
         "RL_HARNESS_MATRIX_ROSTER": matrix_roster,
+        "RL_HARNESS_MATRIX_KITS": matrix_kits,
         "RL_HARNESS_OUT_DIR": out_dir,
     })
     code = run_batch(lease, project, HARNESS_CHILD, env, wait_seconds=lease_wait, log_path=log)
@@ -163,11 +164,14 @@ def main() -> None:
                              "a weapon against itself included) "
                              "instead of a checkpoint eval; the matrix table lands beside the summary")
     parser.add_argument("--matrix-reference", default=None,
-                        help="RL_HARNESS_MATRIX_REFERENCE: the fixed side of a roster matrix, one Chassis:Pilot:Weapon "
-                             "token. Requires --matrix-roster. Editor-only.")
+                        help="RL_HARNESS_MATRIX_REFERENCE: the fixed side of a roster matrix, one "
+                             "Chassis:Pilot:Weapon[:Shield] token. Requires --matrix-roster. Editor-only.")
     parser.add_argument("--matrix-roster", default=None,
-                        help="RL_HARNESS_MATRIX_ROSTER: comma-separated Chassis:Pilot:Weapon tokens. The reference "
-                             "fights each one. Requires --matrix-reference. Editor-only.")
+                        help="RL_HARNESS_MATRIX_ROSTER: comma-separated Chassis:Pilot:Weapon[:Shield] tokens. "
+                             "The reference fights each one. Requires --matrix-reference. Editor-only.")
+    parser.add_argument("--matrix-kits", default=None,
+                        help="RL_HARNESS_MATRIX_KITS: off flies the roster with keystone kits never activated. "
+                             "Requires --matrix-roster. Editor-only.")
     parser.add_argument("--exec", dest="exec_mode", choices=("editor", "player"), default="editor",
                         help="editor: the calibrated reference protocol, sim in the leased batch child; "
                              "player: leased convert step, then the sim in the dedicated headless exe "
@@ -197,12 +201,17 @@ def main() -> None:
             parser.error("--duel is editor-only; the duel lane has no player")
         if args.matrix:
             parser.error("--matrix is editor-only; the matrix lane has no player")
+        if args.matrix_kits:
+            parser.error("--matrix-kits is editor-only; the matrix lane has no player")
         if args.matrix_reference or args.matrix_roster:
             parser.error("--matrix-reference and --matrix-roster are editor-only; the matrix lane has no player")
         # Freshness is the operator's (run_parallel.py precedent) — no staleness oracle here.
         if not PLAYER_EXE.exists():
             sys.exit(f"FAIL: eval player exe missing at {PLAYER_EXE}; build it first "
                      "(-executeMethod RL.Hosts.PlayerEval.RLEvalPlayerBuild.Build via unity_access RunBatch)")
+
+    if args.matrix_kits and not args.matrix_roster:
+        parser.error("--matrix-kits requires --matrix-roster")
 
     unity = args.unity or default_unity_exe(args.project)
     if args.sentence:
@@ -231,7 +240,7 @@ def main() -> None:
                                 density=args.density, opponent=args.opponent, probes=args.probes,
                                 sentence=args.sentence, duel=args.duel, matrix=args.matrix,
                                 matrix_reference=args.matrix_reference, matrix_roster=args.matrix_roster,
-                                lease_wait=args.lease_wait)
+                                matrix_kits=args.matrix_kits, lease_wait=args.lease_wait)
     print(f"[eval-lane] summary {summary}")
 
 

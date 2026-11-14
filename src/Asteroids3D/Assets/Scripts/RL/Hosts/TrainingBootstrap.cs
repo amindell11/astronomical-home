@@ -50,7 +50,7 @@ namespace RL.Hosts
         public static void RunHarness()
         {
             var spec = HarnessSpec.ParseEval(Environment.GetEnvironmentVariable, ResolveEvalCandidate,
-                ResolveEvalOpponent, CatalogWeapons, CatalogChassis, CatalogPilots,
+                ResolveEvalOpponent, CatalogWeapons, CatalogChassis, CatalogPilots, CatalogShields,
                 () => SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Null);
 
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
@@ -100,6 +100,18 @@ namespace RL.Hosts
             }
             pilots.Sort((a, b) => string.Compare(a.name, b.name, StringComparison.OrdinalIgnoreCase));
             return pilots;
+        }
+
+        internal static IReadOnlyList<ShieldModule> CatalogShields()
+        {
+            var shields = new List<ShieldModule>();
+            foreach (var guid in AssetDatabase.FindAssets("t:ShieldModule", new[] { "Assets/Settings/Ships/Shields" }))
+            {
+                var shield = AssetDatabase.LoadAssetAtPath<ShieldModule>(AssetDatabase.GUIDToAssetPath(guid));
+                if (shield) shields.Add(shield);
+            }
+            shields.Sort((a, b) => string.Compare(a.name, b.name, StringComparison.OrdinalIgnoreCase));
+            return shields;
         }
 
         private static Unity.InferenceEngine.ModelAsset LoadModelAsset(string assetPath)

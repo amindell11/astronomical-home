@@ -10,6 +10,7 @@ using Capture.Recording;
 using System.Text.RegularExpressions;
 using Combat.Weapons;
 using Ships;
+using Ships.Loadout;
 using Unity.InferenceEngine;
 using UnityEngine;
 using RL.Episodes.Compositions;
@@ -130,6 +131,8 @@ namespace RL.Hosts
         public MatrixSide matrixReference;
         /// <summary>Matrix lane, roster mode: one block per entry, fought as side B against <see cref="matrixReference"/>.</summary>
         public MatrixSide[] matrixRoster;
+        /// <summary>Matrix lane, roster mode: both commanders hold the keystone off.</summary>
+        public bool matrixKitsOff;
 
         /// <summary>Visuals and audio exist iff the session records plain footage — profile rule: GizmoCaptureProfiles.PresentationFor.</summary>
         public bool Presentation => record.enabled && GizmoCaptureProfiles.PresentationFor(gizmoProfile);
@@ -155,14 +158,14 @@ namespace RL.Hosts
         public static HarnessSpec ParseEval(Func<string, string> getEnv, Func<string, ModelAsset> resolveCandidate,
             Func<string, ModelAsset> resolveOpponent, Func<IReadOnlyList<WeaponComponent>> catalogWeapons,
             Func<IReadOnlyList<Ship>> catalogChassis, Func<IReadOnlyList<AICommander>> catalogPilots,
-            Func<bool> hasGraphicsDevice)
+            Func<IReadOnlyList<ShieldModule>> catalogShields, Func<bool> hasGraphicsDevice)
         {
             // Retired-names rigor: the variable must never shift meaning with the session kind it lands in.
             if (getEnv("RL_HARNESS_BUNDLE") != null)
                 throw new ArgumentException(
                     "RL_HARNESS_BUNDLE names the player eval boot's model bundle; an editor session resolves RL_HARNESS_ONNX itself — unset it.");
             return Parse(getEnv, resolveCandidate, resolveOpponent, catalogWeapons, catalogChassis, catalogPilots,
-                hasGraphicsDevice, player: false);
+                catalogShields, hasGraphicsDevice, player: false);
         }
 
         // Player eval requires explicit checkpoint provenance and resolves bundle assets at boot.
@@ -176,13 +179,14 @@ namespace RL.Hosts
             return Parse(getEnv,
                 _ => loadBundleAsset(bundlePath, EvalModelBundle.CandidateAsset),
                 _ => loadBundleAsset(bundlePath, EvalModelBundle.OpponentAsset),
-                catalogWeapons: null, catalogChassis: null, catalogPilots: null, hasGraphicsDevice, player: true);
+                catalogWeapons: null, catalogChassis: null, catalogPilots: null, catalogShields: null,
+                hasGraphicsDevice, player: true);
         }
 
         private static HarnessSpec Parse(Func<string, string> getEnv, Func<string, ModelAsset> resolveCandidate,
             Func<string, ModelAsset> resolveOpponent, Func<IReadOnlyList<WeaponComponent>> catalogWeapons,
             Func<IReadOnlyList<Ship>> catalogChassis, Func<IReadOnlyList<AICommander>> catalogPilots,
-            Func<bool> hasGraphicsDevice, bool player)
+            Func<IReadOnlyList<ShieldModule>> catalogShields, Func<bool> hasGraphicsDevice, bool player)
         {
             ThrowOnRetiredNames(getEnv);
             var sentence = getEnv("RL_HARNESS_SENTENCE");
@@ -190,6 +194,7 @@ namespace RL.Hosts
             var matrix = getEnv("RL_HARNESS_MATRIX");
             var matrixReference = getEnv("RL_HARNESS_MATRIX_REFERENCE");
             var matrixRoster = getEnv("RL_HARNESS_MATRIX_ROSTER");
+            var matrixKits = getEnv("RL_HARNESS_MATRIX_KITS");
             var rosterMatrix = matrixReference != null || matrixRoster != null;
             var source = getEnv("RL_HARNESS_ONNX");
             if (player && sentence != null)
@@ -238,7 +243,12 @@ namespace RL.Hosts
                 throw new ArgumentException(
                     "RL_HARNESS_MATRIX implies its own lane; RL_HARNESS_LANE selects the eval/capture lanes.");
             if (rosterMatrix)
-                ThrowIfRosterMatrixConflicts(matrixReference, player, sentence, duel, matrix, source, getEnv);
+                ThrowIfRosterMatrixConflicts(
+                    matrixReference != null ? "RL_HARNESS_MATRIX_REFERENCE" : "RL_HARNESS_MATRIX_ROSTER",
+                    player, sentence, duel, matrix, source, getEnv);
+            if (matrixKits != null)
+                ThrowIfMatrixKits(matrixKits, player, sentence, duel, matrix, matrixReference, matrixRoster, source,
+                    getEnv);
             var lane = sentence != null ? HarnessLane.Sentence
                 : duel != null ? HarnessLane.Duel
                 : matrix != null || rosterMatrix ? HarnessLane.Matrix
@@ -285,10 +295,12 @@ namespace RL.Hosts
                 var chassis = catalogChassis();
                 var pilots = catalogPilots();
                 var weapons = catalogWeapons();
+                var shields = catalogShields();
                 spec.matrixReference = ParseSide("RL_HARNESS_MATRIX_REFERENCE", matrixReference.Trim(),
-                    chassis, pilots, weapons);
-                spec.matrixRoster = ParseRoster(matrixRoster, chassis, pilots, weapons);
-                spec.tag = "matrix-" + spec.tag;
+                    chassis, pilots, weapons, shields);
+                spec.matrixRoster = ParseRoster(matrixRoster, chassis, pilots, weapons, shields);
+                spec.matrixKitsOff = matrixKits != null;
+                spec.tag = (spec.matrixKitsOff ? "matrix-kitsoff-" : "matrix-") + spec.tag;
             }
             else
             {
@@ -467,10 +479,9 @@ namespace RL.Hosts
             return weapons.ToArray();
         }
 
-        private static void ThrowIfRosterMatrixConflicts(string reference, bool player, string sentence, string duel,
+        private static void ThrowIfRosterMatrixConflicts(string which, bool player, string sentence, string duel,
             string matrix, string source, Func<string, string> getEnv)
         {
-            var which = reference != null ? "RL_HARNESS_MATRIX_REFERENCE" : "RL_HARNESS_MATRIX_ROSTER";
             if (player)
                 throw new ArgumentException(
                     $"The matrix lane is editor-only; a player boot takes no {which}.");
@@ -495,21 +506,26 @@ namespace RL.Hosts
         }
 
         private static MatrixSide ParseSide(string variable, string token, IReadOnlyList<Ship> chassis,
-            IReadOnlyList<AICommander> pilots, IReadOnlyList<WeaponComponent> weapons)
+            IReadOnlyList<AICommander> pilots, IReadOnlyList<WeaponComponent> weapons,
+            IReadOnlyList<ShieldModule> shields)
         {
             var parts = token.Split(':');
-            if (parts.Length != 3)
-                throw new ArgumentException($"{variable}='{token}' is not Chassis:Pilot:Weapon.");
-            return new MatrixSide
+            if (parts.Length < 3 || parts.Length > 4)
+                throw new ArgumentException($"{variable}='{token}' is not Chassis:Pilot:Weapon[:Shield].");
+            var side = new MatrixSide
             {
                 chassis = ResolveNamed(variable, token, parts[0].Trim(), chassis),
                 pilot = ResolveNamed(variable, token, parts[1].Trim(), pilots),
                 weapon = ResolveNamed(variable, token, parts[2].Trim(), weapons),
             };
+            if (parts.Length == 4)
+                side.shield = ResolveNamed(variable, token, parts[3].Trim(), shields);
+            return side;
         }
 
         private static MatrixSide[] ParseRoster(string token, IReadOnlyList<Ship> chassis,
-            IReadOnlyList<AICommander> pilots, IReadOnlyList<WeaponComponent> weapons)
+            IReadOnlyList<AICommander> pilots, IReadOnlyList<WeaponComponent> weapons,
+            IReadOnlyList<ShieldModule> shields)
         {
             const string variable = "RL_HARNESS_MATRIX_ROSTER";
             var sides = new List<MatrixSide>();
@@ -517,14 +533,14 @@ namespace RL.Hosts
             {
                 var piece = raw.Trim();
                 if (piece.Length == 0) continue;
-                var side = ParseSide(variable, piece, chassis, pilots, weapons);
+                var side = ParseSide(variable, piece, chassis, pilots, weapons, shields);
                 if (sides.Exists(existing => SameSide(existing, side)))
                     throw new ArgumentException($"{variable}='{token}': duplicate side '{piece}'.");
                 sides.Add(side);
             }
             if (sides.Count == 0)
                 throw new ArgumentException(
-                    $"{variable}='{token}' selected no ships; use comma-separated Chassis:Pilot:Weapon tokens.");
+                    $"{variable}='{token}' selected no ships; use comma-separated Chassis:Pilot:Weapon[:Shield] tokens.");
             return sides.ToArray();
         }
 
@@ -539,7 +555,19 @@ namespace RL.Hosts
         }
 
         private static bool SameSide(MatrixSide a, MatrixSide b) =>
-            a.chassis == b.chassis && a.pilot == b.pilot && a.weapon == b.weapon;
+            a.chassis == b.chassis && a.pilot == b.pilot && a.weapon == b.weapon && a.shield == b.shield;
+
+        private static void ThrowIfMatrixKits(string value, bool player, string sentence, string duel, string matrix,
+            string reference, string roster, string source, Func<string, string> getEnv)
+        {
+            const string which = "RL_HARNESS_MATRIX_KITS";
+            if (!Matches(value, "off"))
+                throw new ArgumentException($"{which}='{value}' is not \"off\".");
+            ThrowIfRosterMatrixConflicts(which, player, sentence, duel, matrix, source, getEnv);
+            if (reference == null || roster == null)
+                throw new ArgumentException(
+                    $"{which} is valid only with RL_HARNESS_MATRIX_REFERENCE and RL_HARNESS_MATRIX_ROSTER.");
+        }
 
         // A stale script setting a retired name would otherwise silently reshape the session (eval the smoke fixture, or film plain footage).
         private static void ThrowOnRetiredNames(Func<string, string> getEnv)

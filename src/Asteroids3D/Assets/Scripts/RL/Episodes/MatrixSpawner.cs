@@ -4,6 +4,7 @@ using AI;
 using AI.Scanning;
 using Combat.Weapons;
 using Ships;
+using Ships.Loadout;
 using UnityEngine;
 using Utils;
 using Substrate;
@@ -14,7 +15,7 @@ using RL.Reward;
 
 namespace RL.Episodes
 {
-    /// <summary>Spawns the matrix lane's pair. Each side is a chassis prefab, a pilot prefab, and one primary weapon. The weapon is equipped before wiring, because the commander captures muzzle speed once at init.</summary>
+    /// <summary>Spawns the matrix lane's pair. Each side is a chassis prefab, a pilot prefab, and one primary weapon. A named shield is copied onto an inactive chassis instance and that instance is the spawn template. The weapon is equipped before wiring, because the commander captures muzzle speed once at init.</summary>
     internal static class MatrixSpawner
     {
         // EpisodePair's armed-pair streams. A seed's decision noise matches that spawn.
@@ -27,24 +28,48 @@ namespace RL.Episodes
             var poses = EpisodePoses.Derive(in spec, 0, offset);
             var root = new SeedScope(spec.runSeed);
             var shipA = SpawnShip(units, projectiles, sideA.chassis, sideA.pilot,
-                poses.agentPos, poses.agentRotDeg, team: 0, root.Derive(AgentSeedStream).ToSeed(), sideA.weapon);
+                poses.agentPos, poses.agentRotDeg, team: 0, root.Derive(AgentSeedStream).ToSeed(), sideA.weapon,
+                sideA.shield);
             var shipB = SpawnShip(units, projectiles, sideB.chassis, sideB.pilot,
-                poses.baselinePos, poses.baselineRotDeg, team: 1, root.Derive(BaselineSeedStream).ToSeed(), sideB.weapon);
+                poses.baselinePos, poses.baselineRotDeg, team: 1, root.Derive(BaselineSeedStream).ToSeed(), sideB.weapon,
+                sideB.shield);
             units.WireShipDependencies(shipA, field);
             units.WireShipDependencies(shipB, field);
             return Seal(units, projectiles, offset, shipA, shipB);
         }
 
         private static Ship SpawnShip(UnitService units, IProjectileService projectiles, Ship shipPrefab,
-            AICommander pilot, Vector2 planePos, float rotDeg, int team, int decisionSeed, WeaponComponent primary)
+            AICommander pilot, Vector2 planePos, float rotDeg, int team, int decisionSeed, WeaponComponent primary,
+            ShieldModule shield)
         {
-            var ship = Factory.CreateShip(shipPrefab, pilot, team, decisionSeed, projectiles,
-                GamePlane.PlanePointToWorld(planePos),
-                GamePlane.Rotation * Quaternion.AngleAxis(rotDeg, Vector3.forward));
-            ship.transform.SetParent(units.UnitsRoot, true);
-            units.ActiveRegistry.ActiveShips.Add(ship);
-            ship.Reequip(primary, null);
-            return ship;
+            var template = ChassisTemplate(shipPrefab, shield);
+            try
+            {
+                var ship = Factory.CreateShip(template, pilot, team, decisionSeed, projectiles,
+                    GamePlane.PlanePointToWorld(planePos),
+                    GamePlane.Rotation * Quaternion.AngleAxis(rotDeg, Vector3.forward));
+                ship.transform.SetParent(units.UnitsRoot, true);
+                units.ActiveRegistry.ActiveShips.Add(ship);
+                ship.Reequip(primary, null);
+                return ship;
+            }
+            finally
+            {
+                if (template != shipPrefab)
+                    UnityEngine.Object.DestroyImmediate(template.transform.parent.gameObject);
+            }
+        }
+
+        private static Ship ChassisTemplate(Ship prefab, ShieldModule shield)
+        {
+            if (!shield) return prefab;
+            var holder = new GameObject("matrix-chassis-template");
+            holder.hideFlags = HideFlags.HideAndDontSave;
+            holder.SetActive(false);
+            // Under an inactive holder the copy never wakes, so it stays a plain template.
+            var copy = UnityEngine.Object.Instantiate(prefab, holder.transform);
+            copy.shield = shield;
+            return copy;
         }
 
         private static EpisodePair Seal(UnitService units, IProjectileService projectiles, Vector2 arenaCenter,

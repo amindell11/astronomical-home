@@ -11,7 +11,7 @@ using RL.Reward;
 
 namespace RL.Episodes.Compositions
 {
-    /// <summary>The matrix lane's harness composition. Each side brings its chassis, pilot, and one primary weapon. The weapon-pair path installs a fixed Aggressor on both ships; a roster side flies the pilot prefab's authored brain. The loadout binds at spawn, so one seed's episodes share the pair and an odd episode only swaps poses.</summary>
+    /// <summary>The matrix lane's harness composition. Each side brings its chassis, pilot, and one primary weapon, and may name a shield that replaces the chassis module. The weapon-pair path installs a fixed Aggressor on both ships; a roster side flies the pilot prefab's authored brain. Kits-off holds both keystones. The loadout binds at spawn, so one seed's episodes share the pair and an odd episode only swaps poses.</summary>
     internal sealed class MatrixComposition : IHarnessComposition
     {
         // DuelComposition's fixed Aggressor: hold 10, speed fraction 0.85.
@@ -32,7 +32,7 @@ namespace RL.Episodes.Compositions
         private int respawnCount;
 
         public MatrixComposition(UnitService units, Vector2 offset, IProjectileService projectiles,
-            in RewardSpec spec, MatrixSide sideA, MatrixSide sideB, bool installAggressor)
+            in RewardSpec spec, MatrixSide sideA, MatrixSide sideB, bool installAggressor, bool kitsOff = false)
         {
             this.units = units;
             this.installAggressor = installAggressor;
@@ -41,6 +41,11 @@ namespace RL.Episodes.Compositions
             Pair = MatrixSpawner.Spawn(units, offset, field: null, projectiles, in spec, sideA, sideB);
             agentCommander = Pair.Agent.GetComponentInChildren<AICommander>();
             baselineCommander = Pair.Baseline.GetComponentInChildren<AICommander>();
+            if (kitsOff)
+            {
+                agentCommander.suppressKeystone = true;
+                baselineCommander.suppressKeystone = true;
+            }
             Driver = new EpisodeLoopDriver(Pair, agent: null, offset);
             units.OnShipRespawned += OnRespawned;
         }

@@ -74,12 +74,12 @@ namespace RL.Hosts.Lanes
             labelOverride = PairLabel(weaponA, weaponB),
         };
 
-        public static string RosterBlockLabel(MatrixSide reference, MatrixSide roster) =>
-            reference.Label + "_vs_" + roster.Label;
+        public static string RosterBlockLabel(MatrixSide reference, MatrixSide roster, bool kitsOff = false) =>
+            reference.Label + "_vs_" + roster.Label + (kitsOff ? "_kitsoff" : "");
 
-        public static OpponentSpec Block(MatrixSide reference, MatrixSide roster) => new()
+        public static OpponentSpec Block(MatrixSide reference, MatrixSide roster, bool kitsOff = false) => new()
         {
-            labelOverride = RosterBlockLabel(reference, roster),
+            labelOverride = RosterBlockLabel(reference, roster, kitsOff),
         };
 
         public static IEnumerator RunLane(HarnessHost host, HarnessSpec spec)
@@ -133,7 +133,7 @@ namespace RL.Hosts.Lanes
             {
                 var reference = spec.matrixReference;
                 foreach (var roster in spec.matrixRoster)
-                    matchups.Add((Block(reference, roster),
+                    matchups.Add((Block(reference, roster, spec.matrixKitsOff),
                         seedSpec => host.NewMatrixComposition(in seedSpec, reference, roster)));
                 return matchups;
             }
