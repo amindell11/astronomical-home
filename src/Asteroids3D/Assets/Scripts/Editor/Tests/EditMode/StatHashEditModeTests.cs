@@ -28,7 +28,7 @@ namespace Tests.EditMode
         private const string HangarOfferPath = "Assets/Settings/Ships/PlayerLoadout.asset";
         private const string RunPath = "Assets/Settings/Game/SurvivalTrialRun.asset";
         private const float KillHullRestore = 0.25f;
-        private const float PhaseLongestWait = 6f;
+        private const float PhaseWaveEvery = 6f;
 
         private sealed class ScratchCommander : Commander
         {
@@ -141,7 +141,7 @@ namespace Tests.EditMode
         public void OfSetting_IgnoresListOrder()
         {
             var offer = HangarOffer();
-            var baseline = StatHash.OfSetting(offer, new[] { ScratchRow(RosterOf(offer.ships), PhaseLongestWait) }, KillHullRestore);
+            var baseline = StatHash.OfSetting(offer, new[] { ScratchRow(RosterOf(offer.ships), PhaseWaveEvery) }, KillHullRestore);
 
             var reordered = Object.Instantiate(offer);
             scratch.Add(reordered);
@@ -150,7 +150,7 @@ namespace Tests.EditMode
             var reversedRoster = RosterOf(offer.ships.Reverse());
 
             Assert.AreEqual(baseline,
-                StatHash.OfSetting(reordered, new[] { ScratchRow(reversedRoster, PhaseLongestWait) }, KillHullRestore));
+                StatHash.OfSetting(reordered, new[] { ScratchRow(reversedRoster, PhaseWaveEvery) }, KillHullRestore));
         }
 
         [Test]
@@ -161,8 +161,8 @@ namespace Tests.EditMode
             var second = ScratchPilot("SecondPilot");
             WaveDirector.RosterEntry Entry(int hull, Commander pilot) => new() { template = offer.ships[hull], pilot = pilot };
 
-            var paired = ScratchRow(new[] { Entry(0, first), Entry(1, second) }, PhaseLongestWait);
-            var swapped = ScratchRow(new[] { Entry(0, second), Entry(1, first) }, PhaseLongestWait);
+            var paired = ScratchRow(new[] { Entry(0, first), Entry(1, second) }, PhaseWaveEvery);
+            var swapped = ScratchRow(new[] { Entry(0, second), Entry(1, first) }, PhaseWaveEvery);
 
             Assert.AreNotEqual(StatHash.OfSetting(offer, new[] { paired }, KillHullRestore),
                 StatHash.OfSetting(offer, new[] { swapped }, KillHullRestore),
@@ -178,13 +178,13 @@ namespace Tests.EditMode
             WaveDirector.RosterEntry Entry(int hull, Commander pilot) => new() { template = offer.ships[hull], pilot = pilot };
             var ordered = new[] { Entry(0, first), Entry(1, second) };
 
-            var baseline = StatHash.OfSetting(offer, new[] { ScratchRow(ordered, PhaseLongestWait) }, KillHullRestore);
+            var baseline = StatHash.OfSetting(offer, new[] { ScratchRow(ordered, PhaseWaveEvery) }, KillHullRestore);
             Assert.AreEqual(baseline,
-                StatHash.OfSetting(offer, new[] { ScratchRow(new[] { Entry(1, second), Entry(0, first) }, PhaseLongestWait) },
+                StatHash.OfSetting(offer, new[] { ScratchRow(new[] { Entry(1, second), Entry(0, first) }, PhaseWaveEvery) },
                     KillHullRestore),
                 "Order inside a group does not move the fingerprint.");
             Assert.AreNotEqual(baseline,
-                StatHash.OfSetting(offer, new[] { ScratchRow(new[] { Entry(0, first), Entry(1, second), Entry(0, first) }, PhaseLongestWait) },
+                StatHash.OfSetting(offer, new[] { ScratchRow(new[] { Entry(0, first), Entry(1, second), Entry(0, first) }, PhaseWaveEvery) },
                     KillHullRestore),
                 "A repeated ship changes the wave, so it moves the fingerprint.");
         }
@@ -194,16 +194,16 @@ namespace Tests.EditMode
         {
             var offer = HangarOffer();
             var roster = RosterOf(offer.ships);
-            var sector = ScratchRow(roster, PhaseLongestWait);
+            var sector = ScratchRow(roster, PhaseWaveEvery);
             var baseline = StatHash.OfSetting(offer, new[] { sector }, KillHullRestore);
 
             Assert.AreNotEqual(baseline,
-                StatHash.OfSetting(offer, new[] { ScratchRow(roster, PhaseLongestWait + 1f) }, KillHullRestore),
+                StatHash.OfSetting(offer, new[] { ScratchRow(roster, PhaseWaveEvery + 1f) }, KillHullRestore),
                 "A pacing number on the row must move the fingerprint.");
             Assert.AreNotEqual(baseline, StatHash.OfSetting(offer, new[] { sector }, KillHullRestore + 0.05f),
                 "The kill refill must move the fingerprint.");
             Assert.AreNotEqual(baseline,
-                StatHash.OfSetting(offer, new[] { sector, ScratchRow(roster, PhaseLongestWait + 1f) }, KillHullRestore),
+                StatHash.OfSetting(offer, new[] { sector, ScratchRow(roster, PhaseWaveEvery + 1f) }, KillHullRestore),
                 "A later sector's pacing must move the fingerprint.");
         }
 
@@ -214,12 +214,12 @@ namespace Tests.EditMode
             var roster = RosterOf(offer.ships);
             var early = new SectorPhase
             {
-                seconds = 40f, cap = 2, longestWait = 6f,
+                seconds = 40f, waveEvery = 6f,
                 groups = new[] { new WaveGroup { ships = roster } },
             };
             var late = new SectorPhase
             {
-                seconds = 40f, cap = 4, longestWait = 4f,
+                seconds = 40f, waveEvery = 4f,
                 groups = new[] { new WaveGroup { ships = roster } },
             };
 
@@ -236,8 +236,8 @@ namespace Tests.EditMode
         {
             var offer = HangarOffer();
             var roster = RosterOf(offer.ships);
-            var easy = ScratchRow(roster, PhaseLongestWait);
-            var hard = ScratchRow(roster, PhaseLongestWait - 2f);
+            var easy = ScratchRow(roster, PhaseWaveEvery);
+            var hard = ScratchRow(roster, PhaseWaveEvery - 2f);
 
             var baseline = StatHash.OfSetting(offer, new[] { easy, hard }, KillHullRestore);
 
@@ -326,7 +326,7 @@ namespace Tests.EditMode
             return StatHash.OfSetting(offer, new[] { row }, KillHullRestore);
         }
 
-        private SectorEntry ScratchRow(WaveDirector.RosterEntry[] ships, float longestWait)
+        private SectorEntry ScratchRow(WaveDirector.RosterEntry[] ships, float waveEvery)
         {
             var sector = new GameObject("ScratchSector").AddComponent<Sector>();
             scratch.Add(sector.gameObject);
@@ -341,8 +341,7 @@ namespace Tests.EditMode
                     new SectorPhase
                     {
                         seconds = 40f,
-                        cap = 2,
-                        longestWait = longestWait,
+                        waveEvery = waveEvery,
                         groups = new[] { new WaveGroup { ships = ships } },
                     },
                 },

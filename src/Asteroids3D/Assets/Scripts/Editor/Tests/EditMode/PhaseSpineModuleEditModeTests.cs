@@ -49,7 +49,7 @@ namespace Tests.EditMode
 
             var director = NewGO("WaveDirector").AddComponent<WaveDirector>();
             director.Configure(Enumerable.Range(0, phaseCount)
-                .Select(_ => new SectorPhase { seconds = 40f, cap = 3 }).ToArray(), lullSeconds: 5f,
+                .Select(_ => new SectorPhase { seconds = 40f }).ToArray(), lullSeconds: 5f,
                 openingLullSeconds: openingLull);
             director.BeginSchedule(0f);
 
@@ -77,7 +77,7 @@ namespace Tests.EditMode
 
             Assert.AreEqual(PhaseSpineModule.StepSurvive, svc.SpineStep);
             Assert.AreEqual("PHASE 1/2    0:40", svc.SpineTracker.CurrentStatusLine);
-            Assert.AreEqual(45f, svc.SpineTracker.PhaseProgress.Value.SecondsLeft);
+            Assert.AreEqual(85f, svc.SpineTracker.PhaseProgress.Value.SecondsLeft);
             Assert.AreEqual(2, svc.SpineTracker.PhaseProgress.Value.Count);
             Assert.IsFalse(zone.gameObject.activeSelf, "The zone stays hidden until extraction opens.");
             Assert.IsNull(svc.SpineTarget);
@@ -85,7 +85,7 @@ namespace Tests.EditMode
             director.Advance(41.5f);
             Assert.AreEqual("PHASE 2/2 IN 0:04", svc.SpineTracker.CurrentStatusLine, "A lull counts down to the phase it leads into.");
             Assert.AreEqual(0, svc.SpineTracker.PhaseProgress.Value.Index);
-            Assert.AreEqual(3.5f, svc.SpineTracker.PhaseProgress.Value.SecondsLeft);
+            Assert.AreEqual(43.5f, svc.SpineTracker.PhaseProgress.Value.SecondsLeft);
         }
 
         [Test]

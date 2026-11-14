@@ -14,7 +14,7 @@ namespace Tests.EditMode
             ScheduleWithOpening(0f, lull, seconds);
 
         private static SectorPhaseSchedule ScheduleWithOpening(float openingLull, float lull, params float[] seconds) =>
-            new(seconds.Select(s => new SectorPhase { seconds = s, cap = 1 }).ToArray(), lull, openingLull);
+            new(seconds.Select(s => new SectorPhase { seconds = s }).ToArray(), lull, openingLull);
 
         [Test]
         public void FirstPhase_RunsFromZero_WithNoLeadingLull()
@@ -37,6 +37,7 @@ namespace Tests.EditMode
             Assert.AreEqual(1, lull.Index);
             Assert.AreEqual(4f, lull.SecondsLeft, 1e-4f);
             Assert.AreEqual(1f, lull.ElapsedSeconds, 1e-4f);
+            Assert.AreEqual(34f, lull.SecondsToEnd, 1e-4f, "Seconds to the table's end keep counting through the lull.");
 
             var second = schedule.At(45f);
             Assert.IsFalse(second.InLull);

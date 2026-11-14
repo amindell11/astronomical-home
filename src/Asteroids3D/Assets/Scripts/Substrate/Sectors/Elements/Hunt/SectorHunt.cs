@@ -31,7 +31,7 @@ namespace Substrate.Sectors.Elements.Hunt
     /// fills or the search clock runs out, and every live patrol wakes. The marker pulses while a patrol sees
     /// the hero. The sight wedge is faint on the route, red while it sees, and amber while it chases or searches
     /// blind. The wave director holds its opening lull until <see cref="Released"/> and counts
-    /// <see cref="LivePatrols"/> against its cap. The events are plain C#, for listeners outside the sector.
+    /// <see cref="LivePatrols"/> as enemies alive. The events are plain C#, for listeners outside the sector.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1319
     /// </summary>
     public class SectorHunt : SectorSpawner, ISectorRowReader
