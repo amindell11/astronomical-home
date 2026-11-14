@@ -9,7 +9,7 @@
         "Unity.Mathematics",
         "Unity.Collections",
         "Tests.Common",
-        "RL",
+        "Harness",
         "Capture",
         "Capture.GameView.Editor",
         "Unity.InputSystem",

@@ -7,7 +7,7 @@ What stays launches the matrix lane through the unity-access coordinator:
 - `eval_lane.py` composes the lane's environment, runs the batch child and reads
   the summary back.
 - `harness_child.ps1` is that batch child: it carries the environment into
-  `-executeMethod RL.Hosts.TrainingBootstrap.RunHarness`.
+  `-executeMethod Harness.Hosts.HarnessBootstrap.RunHarness`.
 - `unity_access.py` is the coordinator client; `driver_common.py` finds the Unity exe.
 
 ## The `RL_HARNESS_*` grammar
