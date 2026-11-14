@@ -3,8 +3,8 @@ using Ships.Damage;
 namespace Game.Player
 {
     /// <summary>
-    /// Shield regeneration during one open sector. It samples; it subscribes to nothing and
-    /// changes no combat state. Samples outside <see cref="Open"/> and <see cref="Close"/> are ignored.
+    /// Measures the player's shield regeneration over one open sector for its run-record row.
+    /// It only samples: it subscribes to nothing and changes no combat state.
     /// </summary>
     public sealed class ShieldRecovery
     {
@@ -104,8 +104,6 @@ namespace Game.Player
         private void Clear()
         {
             haveSample = false;
-            lastRegenerating = false;
-            lastShield = 0f;
             regenSeconds = 0f;
             regenStarts = 0;
             shieldRefills = 0;

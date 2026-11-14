@@ -3,7 +3,6 @@ using NUnit.Framework;
 
 namespace Tests.EditMode.Runs
 {
-    /// <summary>Shield regeneration samples between Open and Close: seconds, starts, one refill, restored points, time at zero, and the contested split.</summary>
     [Category("Bootstrap")]
     public class ShieldRecoveryEditModeTests
     {

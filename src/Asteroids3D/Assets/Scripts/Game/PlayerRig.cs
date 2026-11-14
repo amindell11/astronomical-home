@@ -25,8 +25,8 @@ namespace Game
     /// <summary>
     /// Everything the interactive game puts into a session for the human: the player ship and its
     /// commander, the HUD (overlay, UI camera, minimap camera), the pending loadout, the damage
-    /// ledger, the run tally, the spawn log, the damage dealt and the shield recovery. Built <b>once</b> at session start against a viewport the host
-    /// owns, and held for the whole session — sectors are swapped underneath it and reference the
+    /// ledger, the run tally, the spawn log, the damage dealt and the shield recovery. Built
+    /// <b>once</b> at session start against a viewport the host owns, and held for the whole session — sectors are swapped underneath it and reference the
     /// player by injection (<see cref="Sector.Initialize"/>), never building or clearing it. The
     /// player — ship, input and HUD — is parked (<see cref="Park"/>) from <see cref="Build"/> and
     /// from each sector's unload until <see cref="ApplyLoadout"/> unparks it at the end of the next

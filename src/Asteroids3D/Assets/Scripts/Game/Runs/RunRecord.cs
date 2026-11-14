@@ -109,9 +109,9 @@ namespace Game.Runs
     /// <summary>
     /// One finished run as one JSON line. <see cref="player"/> is the hangar loadout at run start;
     /// <see cref="playerEnd"/> is the loadout mounted when the run ended. The line also holds what
-    /// the run was played on, how it went, the picks and the sectors with their shield recovery, what hurt the player and what
-    /// the player dealt, and every ship that spawned. A run ends extracted, dead, or abandoned; only
-    /// a death carries a killing blow.
+    /// the run was played on, how it went, the picks and the sectors with their shield recovery,
+    /// what hurt the player and what the player dealt, and every ship that spawned. A run ends
+    /// extracted, dead, or abandoned; only a death carries a killing blow.
     /// A damage row and the killing blow name their attacker as an index into <see cref="spawns"/>,
     /// <see cref="NoSpawn"/> when no logged ship dealt it, so no Unity instance id reaches the file.
     /// Older v2 rows lack a measured shield/hull split; hasDamageSplit distinguishes those from zero.
