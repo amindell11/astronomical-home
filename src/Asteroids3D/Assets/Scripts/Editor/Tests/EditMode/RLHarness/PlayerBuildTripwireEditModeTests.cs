@@ -8,7 +8,6 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.Compilation;
 using UnityEngine;
-using RL.Hosts;
 
 namespace Tests.EditMode
 {
@@ -102,7 +101,7 @@ namespace Tests.EditMode
 
             Assert.IsEmpty(violations,
                 "player-included assemblies reference assemblies a player build drops; "
-                + "the next RLTraining player build fails with CS0246 while every editor gate stays green:\n"
+                + "the next player build fails with CS0246 while every editor gate stays green:\n"
                 + string.Join("\n", violations));
         }
 
@@ -117,14 +116,16 @@ namespace Tests.EditMode
         // #185's shape: the scene's own component assembly dropped from the player. Asmdef
         // references never see it — the scene-to-script edge lives in the asset database.
         [Test]
-        public void TrainingSceneScriptDependencies_SurvivePlayerBuild()
+        public void GameSceneScriptDependencies_SurvivePlayerBuild()
         {
             var byPath = LoadProjectAsmdefs().ToDictionary(a => a.Path);
-            var scripts = AssetDatabase.GetDependencies(RLTrainingPlayerBuild.Scene, true)
+            var scenes = EditorBuildSettingsScene.GetActiveSceneList(EditorBuildSettings.scenes);
+            Assert.IsNotEmpty(scenes, "the game build lists no active scenes — the tripwire has lost its subject");
+            var scripts = AssetDatabase.GetDependencies(scenes, true)
                 .Where(p => p.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
                 .ToArray();
             Assert.IsNotEmpty(scripts,
-                $"{RLTrainingPlayerBuild.Scene} resolved zero script dependencies — the tripwire has lost its subject");
+                "the game build's scenes resolved zero script dependencies — the tripwire has lost its subject");
 
             var violations = new List<string>();
             foreach (var script in scripts)
@@ -139,7 +140,7 @@ namespace Tests.EditMode
             }
 
             Assert.IsEmpty(violations,
-                "the RLTraining scene depends on scripts a player build drops; "
+                "the game build's scenes depend on scripts a player build drops; "
                 + "the built player loses these components while every editor gate stays green:\n"
                 + string.Join("\n", violations));
         }
