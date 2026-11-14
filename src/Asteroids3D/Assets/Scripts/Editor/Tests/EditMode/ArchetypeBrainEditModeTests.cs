@@ -58,6 +58,7 @@ namespace Tests.EditMode
 
         private GameObject brainHost;
         private GameObject targetHost;
+        private readonly List<TacticsSettings> createdTempers = new();
 
         [SetUp]
         public void SetUp()
@@ -71,6 +72,8 @@ namespace Tests.EditMode
         {
             if (brainHost) UnityEngine.Object.DestroyImmediate(brainHost);
             if (targetHost) UnityEngine.Object.DestroyImmediate(targetHost);
+            foreach (var temper in createdTempers)
+                if (temper) UnityEngine.Object.DestroyImmediate(temper);
         }
 
         private ArchetypeBrain NewBrain(OpponentArchetype archetype, Ship target, bool liveTargeting = false,
@@ -79,7 +82,10 @@ namespace Tests.EditMode
             var brain = (host ? host : brainHost).AddComponent<ArchetypeBrain>();
             if (liveTargeting)
             {
+                var temper = ScriptableObject.CreateInstance<TacticsSettings>();
+                createdTempers.Add(temper);
                 var serialized = new SerializedObject(brain);
+                serialized.FindProperty("tactics").objectReferenceValue = temper;
                 serialized.FindProperty("liveTargeting").boolValue = true;
                 serialized.ApplyModifiedPropertiesWithoutUndo();
             }
@@ -87,6 +93,21 @@ namespace Tests.EditMode
             brain.Configure(target, archetype, in shape, JukeSeed, Vector2.zero, borderRadius: 500f);
             return brain;
         }
+
+        private ArchetypeBrain BrainWithMargin(Ship target, float attackRunMargin)
+        {
+            var brain = NewBrain(OpponentArchetype.Aggressor, target);
+            var temper = ScriptableObject.CreateInstance<TacticsSettings>();
+            temper.attackRunMargin = attackRunMargin;
+            createdTempers.Add(temper);
+            var serialized = new SerializedObject(brain);
+            serialized.FindProperty("tactics").objectReferenceValue = temper;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            return brain;
+        }
+
+        private static TacticsSettings TemperOf(ArchetypeBrain brain) =>
+            (TacticsSettings)new SerializedObject(brain).FindProperty("tactics").objectReferenceValue;
 
         private AIContext Ctx(Kinematics self, float? holdRange = null) =>
             new(new StubStatus { Kinematics = self }, brainHost.AddComponent<AI.Scout>(), holdRange);
@@ -177,18 +198,18 @@ namespace Tests.EditMode
             Assert.IsFalse(noseTurned.Value.engageSecondary);
         }
 
-        [TestCase(OpponentArchetype.Aggressor, true, 35f, 60f)]
-        [TestCase(OpponentArchetype.Orbiter, true, 35f, 60f)]
-        [TestCase(OpponentArchetype.Kiter, false, 0f, 120f)]
-        public void Roam_AggressorAndOrbiterCircle_KiterWanders(OpponentArchetype archetype, bool circles,
-            float minDistance, float maxDistance)
+        [TestCase(true, 35f, 60f)]
+        [TestCase(false, 0f, 120f)]
+        public void Roam_TemperCirclesTheWreckOrWandersFromTheStart(bool circlesWreck, float minDistance,
+            float maxDistance)
         {
-            var brain = NewBrain(archetype, targetHost.AddComponent<Ship>(), liveTargeting: true);
+            var brain = NewBrain(OpponentArchetype.Aggressor, targetHost.AddComponent<Ship>(), liveTargeting: true);
+            TemperOf(brain).circlesWreck = circlesWreck;
             targetHost.SetActive(false);
 
             brain.Decide(Ctx(new Kinematics(new Vector2(3f, -4f), Vector2.zero, 0f, 0f, 0f)));
 
-            Assert.AreEqual(circles, brain.RoamCircling);
+            Assert.AreEqual(circlesWreck, brain.RoamCircling);
             Assert.That(Vector2.Distance(brain.RoamWaypoint, brain.RoamCenter),
                 Is.InRange(minDistance - 1e-3f, maxDistance + 1e-3f));
         }
@@ -313,10 +334,37 @@ namespace Tests.EditMode
             }
         }
 
-        [TestCase(ArchetypePilotPath, "Wave")]
-        [TestCase("Assets/Prefabs/Pilots/AggressorPilot.prefab", "Wave")]
-        [TestCase("Assets/Prefabs/Pilots/KiterPilot.prefab", "Wave")]
-        [TestCase("Assets/Prefabs/Pilots/OrbiterPilot.prefab", "Wave")]
+        [Test]
+        public void AttackRun_Margin_BacksOffBetweenTheHoldRangeAndTheMargin()
+        {
+            const float holdRange = 10f;
+            const float margin = 8f;
+            var target = targetHost.AddComponent<Ship>();
+            var atHold = BrainWithMargin(target, 0f);
+            var further = BrainWithMargin(target, margin);
+            var between = holdRange + margin * 0.5f;
+            var self = new Kinematics(new Vector2(between, 0f), Vector2.zero, 0f, 0f, 0f);
+
+            var closing = atHold.Decide(Ctx(self, holdRange));
+            var backing = further.Decide(Ctx(self, holdRange));
+
+            Assert.IsTrue(closing.HasValue && backing.HasValue);
+            var toward = (target.Kinematics.pos - self.pos).normalized;
+            Assert.Greater(Vector2.Dot(closing.Value.nav.planarVelocity, toward), 0f,
+                "no margin, outside the hold range, closes");
+            Assert.Less(Vector2.Dot(backing.Value.nav.planarVelocity, toward), 0f,
+                "between the hold range and the margin, backs off");
+            var speed = Shape().speedFraction * Dynamics.Default.maxSpeed;
+            Assert.AreEqual(RangerBrain.HoldRangeVelocity(in self, target.Kinematics, holdRange, speed),
+                closing.Value.nav.planarVelocity);
+            Assert.AreEqual(RangerBrain.HoldRangeVelocity(in self, target.Kinematics, holdRange + margin, speed),
+                backing.Value.nav.planarVelocity);
+        }
+
+        [TestCase("Assets/Prefabs/Pilots/AggressorPilot.prefab", "Aggressor")]
+        [TestCase("Assets/Prefabs/Pilots/OrbiterPilot.prefab", "Orbiter")]
+        [TestCase("Assets/Prefabs/Pilots/KiterPilot.prefab", "Kiter")]
+        [TestCase("Assets/Prefabs/Pilots/LurkerPilot.prefab", "Lurker")]
         [TestCase("Assets/Prefabs/Pilots/ElitePilot.prefab", "Elite")]
         [TestCase("Assets/Prefabs/Pilots/EscortPilot.prefab", "Escort")]
         public void ShippedPilots_FlyTheirKindsTemper(string path, string kind)
