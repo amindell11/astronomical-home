@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Ships;
 using UnityEngine;
 using RL.Episodes;
 using RL.Opponents;
@@ -16,9 +17,10 @@ namespace RL.Probes
         public readonly int episodeIndex;
         public readonly OpponentDraw draw;
         public readonly string opponentLabel;
+        public readonly Ship[] extraOpponents;
 
         public ProbeContext(EpisodePair pair, Vector2 arenaCenter, in RewardSpec spec, int episodeIndex,
-            in OpponentDraw draw, string opponentLabel)
+            in OpponentDraw draw, string opponentLabel, Ship[] extraOpponents)
         {
             this.pair = pair;
             this.arenaCenter = arenaCenter;
@@ -26,6 +28,7 @@ namespace RL.Probes
             this.episodeIndex = episodeIndex;
             this.draw = draw;
             this.opponentLabel = opponentLabel;
+            this.extraOpponents = extraOpponents ?? throw new ArgumentNullException(nameof(extraOpponents));
         }
     }
 

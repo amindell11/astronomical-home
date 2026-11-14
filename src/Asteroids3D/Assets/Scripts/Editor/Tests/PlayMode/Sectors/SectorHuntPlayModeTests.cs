@@ -76,7 +76,7 @@ namespace Tests.PlayMode.Sectors
             var sectorGO = Track(new GameObject("HuntedSector"));
             hunt.transform.SetParent(sectorGO.transform, false);
             var director = Child(sectorGO, "WaveDirector").AddComponent<WaveDirector>();
-            var row = HuntRow(new SectorPhase { seconds = 30f, cap = 0, groups = System.Array.Empty<WaveGroup>() });
+            var row = HuntRow(new SectorPhase { seconds = 30f, groups = System.Array.Empty<WaveGroup>() });
             director.Configure(row.phases, openingLullSeconds: 5f, hunt: hunt);
             var spine = sectorGO.AddComponent<PhaseSpineModule>();
             spine.Bind(director, NewZone(sectorGO, "Zone"), NewZone(sectorGO, "Beacon"), hunt: hunt);
@@ -312,53 +312,6 @@ namespace Tests.PlayMode.Sectors
             yield return WaitSeconds(() => PlaneDistance(patrol, hero) < gap - 4f, 8f);
             Assert.Less(PlaneDistance(patrol, hero), gap, "Seeing the hero pulls the patrol off its route.");
             Assert.IsTrue(Commander(patrol).Steered);
-        }
-
-        [UnityTest]
-        [Timeout(600000)]
-        public IEnumerator LivePatrols_TakeTheDirectorsSlots_AndADeadOneFreesItsSlot()
-        {
-            const int cap = 3;
-            var hero = SpawnHero();
-            var hunt = NewHunt(sightRadius: 5f, searchSeconds: .5f, patrols: 2);
-            var template = ShipTestFactory.CreateKinematicPrimitiveShipAt(new Vector2(500f, 500f));
-            Track(template.gameObject);
-            var sectorGO = Track(new GameObject("HuntedSector"));
-            hunt.transform.SetParent(sectorGO.transform, false);
-            var director = Child(sectorGO, "WaveDirector").AddComponent<WaveDirector>();
-            var row = HuntRow(new SectorPhase
-            {
-                seconds = 60f,
-                cap = cap,
-                endsAt = 0,
-                breather = 0f,
-                longestWait = 0.25f,
-                groups = new[]
-                {
-                    new WaveGroup { ships = new[] { new WaveDirector.RosterEntry { template = template } } },
-                },
-            });
-            director.Configure(row.phases, openingLullSeconds: 5f, hunt: hunt);
-            var sector = sectorGO.AddComponent<Sector>();
-            sector.SetManifest(null, new SectorSpawner[] { director, hunt }, null);
-            sector.Initialize(_unitService, _objectives, true, default, hero, row, SectorIndex);
-
-            yield return sector.Setup();
-            yield return WaitSeconds(() => director.Spawned.Count > 0, 3f);
-            Assert.IsTrue(hunt.Alarmed);
-            Assert.AreEqual(2, hunt.LivePatrols);
-            Assert.AreEqual(cap - 2, director.Spawned.Count, "The opening wave takes the one slot the patrols leave.");
-
-            yield return WaitSeconds(() => false, 1f);
-            Assert.AreEqual(cap - 2, director.Spawned.Count, "No wave passes the ceiling while both patrols live.");
-
-            var patrol = hunt.Spawned[0];
-            patrol.Damage.TakeDamage(new DamageInfo(1e6f, DamageKind.Laser, hero.Id, 0f, Vector3.zero, patrol.transform.position));
-            yield return WaitSeconds(() => director.Spawned.Count > cap - 2, 2f);
-            Assert.AreEqual(1, hunt.LivePatrols, "The dead patrol stops counting.");
-            Assert.AreEqual(cap - 1, director.Spawned.Count, "The dead patrol's slot goes to the next wave.");
-
-            yield return sector.Teardown();
         }
 
         [UnityTest]

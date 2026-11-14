@@ -1,4 +1,5 @@
 using System.Collections;
+using Ships;
 using UnityEngine;
 using RL.Reward;
 
@@ -10,6 +11,12 @@ namespace RL.Episodes
         private readonly EpisodePair pair;
         private readonly Vector2 arenaCenter;
         private readonly WaitForFixedUpdate waitFixed = new();
+        private Ship[] extraOpponents = System.Array.Empty<Ship>();
+
+        public Ship[] ExtraOpponents => extraOpponents;
+
+        public void TrackExtraOpponents(Ship[] opponents) =>
+            extraOpponents = opponents ?? throw new System.ArgumentNullException(nameof(opponents));
 
         public EpisodeRunner Runner { get; private set; }
 
@@ -25,6 +32,7 @@ namespace RL.Episodes
         {
             pair.Reset(in spec, episodeIndex);
             Runner = new EpisodeRunner(pair.Agent, pair.Baseline, spec, episodeIndex, arenaCenter);
+            Runner.TrackExtraOpponents(extraOpponents);
             Runner.Begin();
             onBegin?.Invoke();
 

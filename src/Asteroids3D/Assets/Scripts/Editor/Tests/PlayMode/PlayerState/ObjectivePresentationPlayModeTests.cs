@@ -97,7 +97,7 @@ namespace Tests.PlayMode.PlayerState
         [UnityTest]
         public IEnumerator PhaseDisplay_UsesTheSchedule_AndRebindsAfterExtraction()
         {
-            var phase = new SectorPhaseProgress(1, 4, 35f, false);
+            var phase = new SectorPhaseProgress(1, 4, 35f, false, caption: PhaseCaption.NextWave, captionSeconds: 8f);
             var readout = CreateReadout();
             readout.Initialize(service);
             var target = Child("Destination").transform;
@@ -110,14 +110,14 @@ namespace Tests.PlayMode.PlayerState
                 Assert.That(text.material, Is.SameAs(TestAssets.Load<Material>("Assets/Visuals/Ui/Projection/CanopyText.mat")));
             Assert.AreEqual("0:35", clock.text);
             Assert.AreEqual("Orbitron-Medium", clock.font.name);
-            Assert.AreEqual("NEXT PHASE", caption.text);
+            Assert.AreEqual("NEXT WAVE 0:08", caption.text);
             Assert.Greater(readout.transform.Find("Phase display/Sector phase 2").GetComponent<RectTransform>().sizeDelta.x,
                 readout.transform.Find("Phase display/Sector phase 1").GetComponent<RectTransform>().sizeDelta.x);
             Assert.AreEqual(.32f, readout.transform.Find("Phase display/Sector phase 4").GetComponent<Image>().color.a);
-            phase = new SectorPhaseProgress(3, 4, .5f, false);
+            phase = new SectorPhaseProgress(3, 4, .5f, false, caption: PhaseCaption.Lull, captionSeconds: 14f);
             yield return null;
             Assert.AreEqual("0:01", clock.text);
-            Assert.AreEqual("EXTRACTION", caption.text);
+            Assert.AreEqual("LULL 0:14", caption.text);
             phase = new SectorPhaseProgress(3, 4, 0f, true);
             yield return null;
             yield return new WaitForSecondsRealtime(.3f);
@@ -134,12 +134,15 @@ namespace Tests.PlayMode.PlayerState
             yield return null;
             Assert.IsEmpty(label.text);
             Assert.IsFalse(caption.enabled);
-            phase = new SectorPhaseProgress(0, 1, 60f, false);
+            phase = new SectorPhaseProgress(0, 1, 60f, false, caption: PhaseCaption.Extraction);
             OpenPhases(target, () => phase);
             yield return null;
             yield return null;
             Assert.AreEqual("1:00", clock.text);
             Assert.AreEqual("EXTRACTION", caption.text);
+            phase = new SectorPhaseProgress(0, 1, 60f, false, caption: PhaseCaption.Elite);
+            yield return null;
+            Assert.AreEqual("ELITE", caption.text);
             Assert.IsNull(readout.transform.Find("Phase display/Sector phase 2"));
             phase = new SectorPhaseProgress(-1, 1, 44.2f, false, HuntReading.Searching);
             yield return null;

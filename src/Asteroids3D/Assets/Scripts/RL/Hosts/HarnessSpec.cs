@@ -88,6 +88,11 @@ namespace RL.Hosts
         public MatrixSide[] matrixRoster;
         /// <summary>Roster mode: both commanders hold the keystone off.</summary>
         public bool matrixKitsOff;
+        /// <summary>Matrix lane, roster mode: copies of the roster ship in the block, 1 to 3.</summary>
+        public int matrixEnemies;
+        /// <summary>Matrix lane, roster mode: <see cref="matrixReferenceBreakOff"/> replaces the reference pilot's break-off shield. Unset leaves the authored settings; 0 is a legal value, so the flag is the presence bit.</summary>
+        public bool matrixReferenceBreakOffSet;
+        public float matrixReferenceBreakOff;
 
         /// <summary>Visuals and audio exist iff the session records plain footage — profile rule: GizmoCaptureProfiles.PresentationFor.</summary>
         public bool Presentation => record.enabled && GizmoCaptureProfiles.PresentationFor(gizmoProfile);
@@ -123,12 +128,18 @@ namespace RL.Hosts
             var matrixReference = getEnv("RL_HARNESS_MATRIX_REFERENCE");
             var matrixRoster = getEnv("RL_HARNESS_MATRIX_ROSTER");
             var matrixKits = getEnv("RL_HARNESS_MATRIX_KITS");
+            var matrixEnemies = getEnv("RL_HARNESS_MATRIX_ENEMIES");
+            var matrixBreakOff = getEnv("RL_HARNESS_MATRIX_REFERENCE_BREAKOFF");
             var rosterMatrix = matrixReference != null || matrixRoster != null;
             if (rosterMatrix && matrix != null)
                 throw new ArgumentException(
                     $"{(matrixReference != null ? "RL_HARNESS_MATRIX_REFERENCE" : "RL_HARNESS_MATRIX_ROSTER")} and RL_HARNESS_MATRIX select different matrix modes; set one.");
             if (matrixKits != null)
                 ThrowIfMatrixKits(matrixKits, matrix, matrixReference, matrixRoster);
+            if (matrixEnemies != null)
+                ThrowIfRosterOnly("RL_HARNESS_MATRIX_ENEMIES", matrix, matrixReference, matrixRoster);
+            if (matrixBreakOff != null)
+                ThrowIfRosterOnly("RL_HARNESS_MATRIX_REFERENCE_BREAKOFF", matrix, matrixReference, matrixRoster);
             if (matrix == null && !rosterMatrix)
                 throw new ArgumentException(
                     "The matrix lane needs RL_HARNESS_MATRIX, or RL_HARNESS_MATRIX_REFERENCE with RL_HARNESS_MATRIX_ROSTER.");
@@ -159,6 +170,10 @@ namespace RL.Hosts
                     chassis, pilots, weapons, shields);
                 spec.matrixRoster = ParseRoster(matrixRoster, chassis, pilots, weapons, shields);
                 spec.matrixKitsOff = matrixKits != null;
+                spec.matrixEnemies = matrixEnemies == null ? 1 : ParseMatrixEnemies(matrixEnemies);
+                spec.matrixReferenceBreakOffSet = matrixBreakOff != null;
+                if (spec.matrixReferenceBreakOffSet)
+                    spec.matrixReferenceBreakOff = ParseBreakOff(matrixBreakOff);
                 spec.tag = (spec.matrixKitsOff ? "matrix-kitsoff-" : "matrix-") + tag;
             }
             spec.record = ParseRecord(getEnv, spec.episodesPerSeed, hasGraphicsDevice);
@@ -307,8 +322,37 @@ namespace RL.Hosts
                 weapon = ResolveNamed(variable, token, parts[2].Trim(), weapons),
             };
             if (parts.Length == 4)
-                side.shield = ResolveNamed(variable, token, parts[3].Trim(), shields);
+            {
+                var fourth = parts[3].Trim();
+                if (fourth.Contains("/")) ParseShieldNumbers(variable, token, fourth, ref side);
+                else side.shield = ResolveNamed(variable, token, fourth, shields);
+            }
             return side;
+        }
+
+        private static void ParseShieldNumbers(string variable, string token, string text, ref MatrixSide side)
+        {
+            var pieces = text.Split('/');
+            if (pieces.Length != 3)
+                throw new ArgumentException($"{variable}='{token}': '{text}' is not capacity/delay/rate.");
+            var capacity = ShieldNumber(variable, token, pieces[0]);
+            var delay = ShieldNumber(variable, token, pieces[1]);
+            var rate = ShieldNumber(variable, token, pieces[2]);
+            if (capacity <= 0f || delay < 0f || rate < 0f)
+                throw new ArgumentException(
+                    $"{variable}='{token}': '{text}' needs capacity > 0, delay >= 0, rate >= 0.");
+            side.shieldNumbers = true;
+            side.shieldCapacity = capacity;
+            side.shieldDelay = delay;
+            side.shieldRate = rate;
+        }
+
+        private static float ShieldNumber(string variable, string token, string text)
+        {
+            if (!float.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var value)
+                || !float.IsFinite(value))
+                throw new ArgumentException($"{variable}='{token}': '{text.Trim()}' is not a finite number.");
+            return value;
         }
 
         private static MatrixSide[] ParseRoster(string token, IReadOnlyList<Ship> chassis,
@@ -343,18 +387,43 @@ namespace RL.Hosts
         }
 
         private static bool SameSide(MatrixSide a, MatrixSide b) =>
-            a.chassis == b.chassis && a.pilot == b.pilot && a.weapon == b.weapon && a.shield == b.shield;
+            a.chassis == b.chassis && a.pilot == b.pilot && a.weapon == b.weapon && a.shield == b.shield
+            && a.shieldNumbers == b.shieldNumbers && a.shieldCapacity == b.shieldCapacity
+            && a.shieldDelay == b.shieldDelay && a.shieldRate == b.shieldRate;
 
         private static void ThrowIfMatrixKits(string value, string matrix, string reference, string roster)
         {
             const string which = "RL_HARNESS_MATRIX_KITS";
             if (!Matches(value, "off"))
                 throw new ArgumentException($"{which}='{value}' is not \"off\".");
+            ThrowIfRosterOnly(which, matrix, reference, roster);
+        }
+
+        private static void ThrowIfRosterOnly(string which, string matrix, string reference, string roster)
+        {
             if (matrix != null)
                 throw new ArgumentException($"{which} and RL_HARNESS_MATRIX select different matrix modes; set one.");
             if (reference == null || roster == null)
                 throw new ArgumentException(
                     $"{which} is valid only with RL_HARNESS_MATRIX_REFERENCE and RL_HARNESS_MATRIX_ROSTER.");
+        }
+
+        private static int ParseMatrixEnemies(string value)
+        {
+            if (!int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var count)
+                || count < 1 || count > 3)
+                throw new ArgumentException(
+                    $"RL_HARNESS_MATRIX_ENEMIES='{value}' is not an integer from 1 to 3.");
+            return count;
+        }
+
+        private static float ParseBreakOff(string value)
+        {
+            if (!float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var number)
+                || !float.IsFinite(number) || number < 0f || number > 100f)
+                throw new ArgumentException(
+                    $"RL_HARNESS_MATRIX_REFERENCE_BREAKOFF='{value}' is not a finite number from 0 to 100.");
+            return number;
         }
 
         // A stale script setting a retired name would otherwise silently reshape the session.

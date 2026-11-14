@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using AI;
+using AI.Tactics;
 using Ships;
 using UnityEngine;
 using RL.Episodes;
@@ -26,13 +28,23 @@ namespace RL.Probes
         public float aliveSecondsB;
         public MarksmanshipTally tallyA;
         public MarksmanshipTally tallyB;
+        public int enemies;
+        public int enemiesKilled;
+        public float damageTakenA;
+        public float damageDealtA;
+        public int stepsA;
+        public int breakOffStepsA;
+        public int regenStepsA;
+        public int breakOffStepsEnemies;
+        public int stepsEnemies;
+        public bool timedOut;
 
-        public const string SchemaId = "matrix-v2";
+        public const string SchemaId = "matrix-v3";
 
         public string ToJsonLine() => JsonUtility.ToJson(this);
     }
 
-    /// <summary>One pair's episodes. A's win rate counts a draw as half a win. Time to kill is the mean sim time of the fights that named a winner. Damage per minute alive divides the damage that side dealt by the seconds it was alive. Mean seconds to die averages only the episodes that side died in.</summary>
+    /// <summary>One pair's episodes. A's win rate counts a draw as half a win. Time to kill is the mean sim time of the fights that named a winner. Damage per minute alive divides the damage that side dealt by the seconds it was alive. Mean seconds to die averages only the episodes that side died in. Damage taken per kill pools every episode's damage and kills. Break-off and regen shares count only the steps that side was alive.</summary>
     [Serializable]
     public struct MatrixPairSummary
     {
@@ -49,6 +61,12 @@ namespace RL.Probes
         public float damagePerMinuteB;
         public int deathsB;
         public float meanSecondsToDieB;
+        public int enemies;
+        public float meanEnemiesKilled;
+        public float damageTakenPerKillA;
+        public float breakOffShareA;
+        public float regenShareA;
+        public float breakOffShareEnemies;
     }
 
     /// <summary>One weapon across the fights it appeared in. The win rate leaves out fights against itself. Hit rate and damage per second pool every side, self fights included.</summary>
@@ -66,11 +84,11 @@ namespace RL.Probes
         public float damagePerSecond;
     }
 
-    /// <summary>The armed-matrix instrument: one marksmanship sampler on each ship, a winner read from which ship is still alive, and a sidecar of pair rates, per-side damage per minute alive, and weapon rates. The markdown table beside the sidecar is those same numbers.</summary>
+    /// <summary>The armed-matrix instrument: marksmanship samplers between side A and each enemy, a winner read from which side still has a ship alive, and a sidecar of pair rates, per-side damage per minute alive, and weapon rates. The markdown table beside the sidecar is those same numbers.</summary>
     public sealed class MatrixProbe : IHarnessProbe
     {
         public const string ProbeName = "matrix";
-        public const string SummarySchemaId = "matrix-summary-v2";
+        public const string SummarySchemaId = "matrix-summary-v3";
         public const string SideA = "A";
         public const string SideB = "B";
         public const string Draw = "draw";
@@ -86,11 +104,23 @@ namespace RL.Probes
         private readonly List<MatrixRow> rows = new();
         private MarksmanshipSampler samplerA;
         private MarksmanshipSampler samplerB;
+        private MarksmanshipSampler[] dealtToExtras = Array.Empty<MarksmanshipSampler>();
+        private MarksmanshipSampler[] takenFromExtras = Array.Empty<MarksmanshipSampler>();
         private EpisodePair pair;
+        private Ship[] extras = Array.Empty<Ship>();
+        private Brain referenceBrain;
+        private Brain baselineBrain;
+        private Brain[] extraBrains = Array.Empty<Brain>();
         private string label;
         private int seed;
         private int episodeIndex;
         private bool swapped;
+        private int stepsA;
+        private int breakOffStepsA;
+        private int regenStepsA;
+        private int breakOffStepsEnemies;
+        private int stepsEnemies;
+        private float shieldPrev;
 
         public string Name => ProbeName;
 
@@ -144,20 +174,63 @@ namespace RL.Probes
             episodeIndex = context.episodeIndex;
             swapped = MatrixLane.SidesSwapped(episodeIndex);
             pair = context.pair;
+            extras = context.extraOpponents;
             samplerA = new MarksmanshipSampler(pair.Agent, pair.Baseline);
             samplerB = new MarksmanshipSampler(pair.Baseline, pair.Agent);
+            dealtToExtras = new MarksmanshipSampler[extras.Length];
+            takenFromExtras = new MarksmanshipSampler[extras.Length];
+            extraBrains = new Brain[extras.Length];
+            for (var i = 0; i < extras.Length; i++)
+            {
+                dealtToExtras[i] = new MarksmanshipSampler(pair.Agent, extras[i]);
+                takenFromExtras[i] = new MarksmanshipSampler(extras[i], pair.Agent);
+                extraBrains[i] = BrainOf(extras[i]);
+            }
+            referenceBrain = BrainOf(pair.Agent);
+            baselineBrain = BrainOf(pair.Baseline);
+            stepsA = 0;
+            breakOffStepsA = 0;
+            regenStepsA = 0;
+            breakOffStepsEnemies = 0;
+            stepsEnemies = 0;
+            shieldPrev = pair.Agent.Damage.Shield.CurrentValue;
         }
 
         public void Sample()
         {
             samplerA.Sample();
             samplerB.Sample();
+            for (var i = 0; i < dealtToExtras.Length; i++)
+            {
+                dealtToExtras[i].Sample();
+                takenFromExtras[i].Sample();
+            }
+
+            if (Alive(pair.Agent))
+            {
+                stepsA++;
+                if (BreakingOff(referenceBrain)) breakOffStepsA++;
+                var shield = pair.Agent.Damage.Shield.CurrentValue;
+                if (shield > shieldPrev) regenStepsA++;
+                shieldPrev = shield;
+            }
+
+            CountEnemy(pair.Baseline, baselineBrain);
+            for (var i = 0; i < extras.Length; i++)
+                CountEnemy(extras[i], extraBrains[i]);
         }
 
         public string End(in EpisodeResult result)
         {
             var aAlive = Alive(pair.Agent);
             var bAlive = Alive(pair.Baseline);
+            var dealt = samplerA.Tally.damageDealt;
+            var taken = samplerB.Tally.damageDealt;
+            for (var i = 0; i < dealtToExtras.Length; i++)
+            {
+                dealt += dealtToExtras[i].Tally.damageDealt;
+                taken += takenFromExtras[i].Tally.damageDealt;
+            }
             var row = new MatrixRow
             {
                 schema = MatrixRow.SchemaId,
@@ -165,7 +238,7 @@ namespace RL.Probes
                 episodeIndex = episodeIndex,
                 pair = label,
                 swapped = swapped,
-                winner = Winner(aAlive, bAlive),
+                winner = Winner(aAlive, AnyEnemyAlive(bAlive)),
                 simSeconds = result.simSeconds,
                 diedA = !aAlive,
                 diedB = !bAlive,
@@ -173,6 +246,16 @@ namespace RL.Probes
                 aliveSecondsB = result.simSeconds,
                 tallyA = samplerA.Tally,
                 tallyB = samplerB.Tally,
+                enemies = 1 + extras.Length,
+                enemiesKilled = EnemiesKilled(bAlive),
+                damageTakenA = taken,
+                damageDealtA = dealt,
+                stepsA = stepsA,
+                breakOffStepsA = breakOffStepsA,
+                regenStepsA = regenStepsA,
+                breakOffStepsEnemies = breakOffStepsEnemies,
+                stepsEnemies = stepsEnemies,
+                timedOut = result.timedOut,
             };
             rows.Add(row);
             ReleaseSamplers();
@@ -213,20 +296,27 @@ namespace RL.Probes
             }
 
             table.Append("\n## Per pair\n\n");
-            table.Append("| Pair | Episodes | A win rate | Decided | Mean TTK (s) | A dmg/min | A deaths | A sec to die | B dmg/min | B deaths | B sec to die |\n");
-            table.Append("|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|\n");
+            table.Append("| Pair | Episodes | A win rate | Decided | Mean TTK (s) | A dmg/min | A deaths | A sec to die | B dmg/min | B deaths | B sec to die | Enemies | Mean killed | A dmg taken/kill | A break-off | A regen | Enemy break-off |\n");
+            table.Append("|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|\n");
             foreach (var pairSummary in sidecar.pairs)
             {
                 var ttk = pairSummary.decidedFights > 0 ? Number(pairSummary.meanTimeToKill, "0.0") : "";
                 var dieA = pairSummary.deathsA > 0 ? Number(pairSummary.meanSecondsToDieA, "0.0") : "";
                 var dieB = pairSummary.deathsB > 0 ? Number(pairSummary.meanSecondsToDieB, "0.0") : "";
+                var perKill = pairSummary.meanEnemiesKilled > 0f
+                    ? Number(pairSummary.damageTakenPerKillA, "0.0") : "";
                 table.Append("| ").Append(pairSummary.pair).Append(" | ").Append(Count(pairSummary.episodes))
                     .Append(" | ").Append(Number(pairSummary.aWinRate, "0.00")).Append(" | ")
                     .Append(Count(pairSummary.decidedFights)).Append(" | ").Append(ttk).Append(" | ")
                     .Append(Number(pairSummary.damagePerMinuteA, "0.0")).Append(" | ")
                     .Append(Count(pairSummary.deathsA)).Append(" | ").Append(dieA).Append(" | ")
                     .Append(Number(pairSummary.damagePerMinuteB, "0.0")).Append(" | ")
-                    .Append(Count(pairSummary.deathsB)).Append(" | ").Append(dieB).Append(" |\n");
+                    .Append(Count(pairSummary.deathsB)).Append(" | ").Append(dieB).Append(" | ")
+                    .Append(Count(pairSummary.enemies)).Append(" | ")
+                    .Append(Number(pairSummary.meanEnemiesKilled, "0.00")).Append(" | ").Append(perKill)
+                    .Append(" | ").Append(Number(pairSummary.breakOffShareA, "0.00")).Append(" | ")
+                    .Append(Number(pairSummary.regenShareA, "0.00")).Append(" | ")
+                    .Append(Number(pairSummary.breakOffShareEnemies, "0.00")).Append(" |\n");
             }
 
             table.Append("\n## Per weapon\n\n");
@@ -255,6 +345,13 @@ namespace RL.Probes
             var deathsB = 0;
             var dieSecondsA = 0f;
             var dieSecondsB = 0f;
+            var taken = 0f;
+            var killed = 0;
+            var breakOffA = 0;
+            var stepsRef = 0;
+            var regenA = 0;
+            var breakOffEnemies = 0;
+            var stepsEnemy = 0;
             foreach (var row in pairRows)
             {
                 score += SideScore(row.winner, sideIsA: true);
@@ -262,6 +359,13 @@ namespace RL.Probes
                 damageB += row.tallyB.damageDealt;
                 aliveA += row.aliveSecondsA;
                 aliveB += row.aliveSecondsB;
+                taken += row.damageTakenA;
+                killed += row.enemiesKilled;
+                breakOffA += row.breakOffStepsA;
+                stepsRef += row.stepsA;
+                regenA += row.regenStepsA;
+                breakOffEnemies += row.breakOffStepsEnemies;
+                stepsEnemy += row.stepsEnemies;
                 if (row.diedA)
                 {
                     deathsA++;
@@ -291,6 +395,12 @@ namespace RL.Probes
                 damagePerMinuteB = aliveB > 0f ? damageB / aliveB * 60f : 0f,
                 deathsB = deathsB,
                 meanSecondsToDieB = deathsB > 0 ? dieSecondsB / deathsB : 0f,
+                enemies = pairRows[0].enemies,
+                meanEnemiesKilled = (float)killed / pairRows.Count,
+                damageTakenPerKillA = killed > 0 ? taken / killed : 0f,
+                breakOffShareA = stepsRef > 0 ? (float)breakOffA / stepsRef : 0f,
+                regenShareA = stepsRef > 0 ? (float)regenA / stepsRef : 0f,
+                breakOffShareEnemies = stepsEnemy > 0 ? (float)breakOffEnemies / stepsEnemy : 0f,
             };
         }
 
@@ -380,12 +490,52 @@ namespace RL.Probes
 
         private static bool Alive(Ship ship) => ship && ship.Damage.Health.CurrentValue > 0f;
 
+        private static bool BreakingOff(Brain brain) => brain && brain.CurrentTactic == Tactic.BreakOff;
+
+        private static Brain BrainOf(Ship ship)
+        {
+            var commander = ship.Commander as AICommander;
+            return commander ? commander.Brain : null;
+        }
+
+        private void CountEnemy(Ship ship, Brain brain)
+        {
+            if (!Alive(ship)) return;
+            stepsEnemies++;
+            if (BreakingOff(brain)) breakOffStepsEnemies++;
+        }
+
+        private bool AnyEnemyAlive(bool baselineAlive)
+        {
+            if (baselineAlive) return true;
+            for (var i = 0; i < extras.Length; i++)
+                if (Alive(extras[i])) return true;
+            return false;
+        }
+
+        private int EnemiesKilled(bool baselineAlive)
+        {
+            var killed = baselineAlive ? 0 : 1;
+            for (var i = 0; i < extras.Length; i++)
+                if (!Alive(extras[i])) killed++;
+            return killed;
+        }
+
         private void ReleaseSamplers()
         {
             samplerA?.Dispose();
             samplerB?.Dispose();
             samplerA = null;
             samplerB = null;
+            DisposeSamplers(dealtToExtras);
+            DisposeSamplers(takenFromExtras);
+            dealtToExtras = Array.Empty<MarksmanshipSampler>();
+            takenFromExtras = Array.Empty<MarksmanshipSampler>();
+        }
+
+        private static void DisposeSamplers(MarksmanshipSampler[] samplers)
+        {
+            for (var i = 0; i < samplers.Length; i++) samplers[i]?.Dispose();
         }
 
         private static string Count(int value) => value.ToString(CultureInfo.InvariantCulture);

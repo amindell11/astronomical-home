@@ -8,8 +8,8 @@ using UnityEngine;
 namespace Game.Runs
 {
     /// <summary>
-    /// Every died or extracted v2 or v3 run in the run-record store, best first, and where this run places
-    /// among them. Abandoned lines, v1 lines and lines that do not parse stay in the file and off the board.
+    /// Every died or extracted v2, v3 or v4 run in the run-record store, best first, and where this
+    /// run places among them. Abandoned lines, v1 lines and lines that do not parse stay in the file and off the board.
     /// <see cref="Compare"/> is the whole ranking rule, so a scoring system replaces that one method.
     /// The rule and what the board shows:
     /// https://github.com/amindell11/astronomical-home/issues/700#issuecomment-6307786977
@@ -88,7 +88,7 @@ namespace Game.Runs
             return runs;
         }
 
-        /// <summary>Every v2 or v3 line that counts, in file order; null when the file cannot be read, which is logged.</summary>
+        /// <summary>Every v2, v3 or v4 line that counts, in file order; null when the file cannot be read, which is logged.</summary>
         internal static List<RunRecord> ReadRecords(string path)
         {
             if (!File.Exists(path)) return new List<RunRecord>();
