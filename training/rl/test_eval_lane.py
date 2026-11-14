@@ -82,6 +82,14 @@ class LauncherEnvComposition(unittest.TestCase):
                          env["RL_HARNESS_MATRIX_ROSTER"])
         self.assertNotIn("RL_HARNESS_MATRIX", env)
 
+    def test_numeric_shield_token_passes_through_unchanged(self):
+        self.launch(seeds="3001", matrix_reference="Crimson:AggressorPilot:Lasers:32/2/10",
+                    matrix_roster="Vanguard:AggressorPilot:Lasers:28/3.5/12")
+
+        env = self.captured["env"]
+        self.assertEqual("Crimson:AggressorPilot:Lasers:32/2/10", env["RL_HARNESS_MATRIX_REFERENCE"])
+        self.assertEqual("Vanguard:AggressorPilot:Lasers:28/3.5/12", env["RL_HARNESS_MATRIX_ROSTER"])
+
     def test_matrix_kits_param_becomes_harness_env(self):
         self.launch(seeds="3001", matrix_reference="Crimson:KiterPilot:Lasers",
                     matrix_roster="Vanguard:AggressorPilot:Lasers", matrix_kits="off")
@@ -203,6 +211,35 @@ class MatrixKitsCli(unittest.TestCase):
                 "--matrix-kits", "off",
             ])
         self.assertIn("--matrix-kits is editor-only", message)
+
+
+class NumericShieldStem(unittest.TestCase):
+    def _run(self, reference, roster):
+        project = Path(tempfile.mkdtemp())
+        self.addCleanup(project.rmdir)
+        captured = {}
+
+        def fake_run_eval_lane(**kwargs):
+            captured.update(kwargs)
+            return project / "summary.json"
+
+        argv = [
+            "eval_lane.py", "--seeds", "3001", "--project", str(project), "--unity", "Unity.exe",
+            "--matrix-reference", reference, "--matrix-roster", roster,
+        ]
+        with mock.patch.object(sys, "argv", argv), \
+                mock.patch.object(eval_lane, "HARNESS_CHILD", Path(__file__)), \
+                mock.patch.object(eval_lane, "run_eval_lane", fake_run_eval_lane):
+            eval_lane.main()
+        return captured
+
+    def test_slash_in_the_reference_does_not_split_the_out_dir(self):
+        captured = self._run("Crimson:AggressorPilot:Lasers:32/2/10", "Vanguard:AggressorPilot:Lasers")
+
+        out_dir = captured["out_dir"]
+        self.assertEqual(eval_lane.MANUAL_ROOT, out_dir.parent)
+        self.assertTrue(out_dir.name.startswith("matrix-roster-crimson-aggressorpilot-lasers-32-2-10-"))
+        self.assertEqual("Crimson:AggressorPilot:Lasers:32/2/10", captured["matrix_reference"])
 
 
 if __name__ == "__main__":

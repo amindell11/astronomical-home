@@ -1,5 +1,6 @@
 using AI;
 using Ships;
+using Ships.Loadout;
 using UnityEngine;
 using Substrate.Services.Units;
 using Substrate.Services.Projectiles;
@@ -11,7 +12,7 @@ using RL.Reward;
 
 namespace RL.Episodes.Compositions
 {
-    /// <summary>The matrix lane's harness composition. Each side brings its chassis, pilot, and one primary weapon, and may name a shield that replaces the chassis module. The weapon-pair path installs a fixed Aggressor on both ships; a roster side flies the pilot prefab's authored brain. Kits-off holds both keystones. The loadout binds at spawn, so one seed's episodes share the pair and an odd episode only swaps poses.</summary>
+    /// <summary>The matrix lane's harness composition. Each side brings its chassis, pilot, and one primary weapon, and may replace the chassis shield with a named module or capacity/delay/rate numbers. The weapon-pair path installs a fixed Aggressor on both ships; a roster side flies the pilot prefab's authored brain. Kits-off holds both keystones. The loadout binds at spawn, so one seed's episodes share the pair and an odd episode only swaps poses.</summary>
     internal sealed class MatrixComposition : IHarnessComposition
     {
         // DuelComposition's fixed Aggressor: hold 10, speed fraction 0.85.
@@ -26,6 +27,8 @@ namespace RL.Episodes.Compositions
         private readonly bool installAggressor;
         private readonly string rosterPilotName;
         private readonly Vector2 arenaCenter;
+        private readonly ShieldModule runtimeShieldA;
+        private readonly ShieldModule runtimeShieldB;
         private SpawnPoses poses;
         private bool swapPending;
         private bool applyingSwap;
@@ -38,7 +41,8 @@ namespace RL.Episodes.Compositions
             this.installAggressor = installAggressor;
             rosterPilotName = sideB.pilot.name;
             arenaCenter = offset;
-            Pair = MatrixSpawner.Spawn(units, offset, field: null, projectiles, in spec, sideA, sideB);
+            Pair = MatrixSpawner.Spawn(units, offset, field: null, projectiles, in spec, sideA, sideB,
+                out runtimeShieldA, out runtimeShieldB);
             agentCommander = Pair.Agent.GetComponentInChildren<AICommander>();
             baselineCommander = Pair.Baseline.GetComponentInChildren<AICommander>();
             if (kitsOff)
@@ -84,6 +88,8 @@ namespace RL.Episodes.Compositions
         {
             if (units) units.OnShipRespawned -= OnRespawned;
             Pair.Dispose();
+            if (runtimeShieldA) UnityEngine.Object.DestroyImmediate(runtimeShieldA);
+            if (runtimeShieldB) UnityEngine.Object.DestroyImmediate(runtimeShieldB);
         }
 
         // Odd episodes swap sides after Reset seats weapon A on the agent pose.
