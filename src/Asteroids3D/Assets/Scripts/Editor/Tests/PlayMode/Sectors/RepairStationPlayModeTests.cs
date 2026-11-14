@@ -305,6 +305,7 @@ namespace Tests.PlayMode.Sectors
             yield return null;
             Assert.IsTrue(station.Lit.activeSelf, "The station is live before the alarm.");
 
+            RaiseAlarm(hunt);
             ReleaseHunt(hunt);
             yield return null;
             Assert.IsFalse(station.Spent, "The release leaves the supply.");

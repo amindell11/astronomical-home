@@ -57,7 +57,8 @@ namespace Substrate.Sectors.Elements.Phases
                     elapsed - start, secondsToEnd);
             }
 
-            return new SectorPhaseMark(phases.Length - 1, false, false, true, 0f, 0f, elapsed - start, secondsToEnd);
+            return new SectorPhaseMark(phases.Length - 1, false, false, true, 0f, 0f,
+                elapsed - start - closingLullSeconds, secondsToEnd);
         }
     }
 
