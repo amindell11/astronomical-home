@@ -280,7 +280,6 @@ namespace Tests.EditMode
             }
         }
 
-        [TestCase("Assets/Prefabs/Pilots/AgentPilot.prefab")]
         [TestCase("Assets/Prefabs/Pilots/ArchetypePilot.prefab")]
         [TestCase("Assets/Prefabs/Pilots/AggressorPilot.prefab")]
         [TestCase("Assets/Prefabs/Pilots/KiterPilot.prefab")]

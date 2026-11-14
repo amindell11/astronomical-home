@@ -18,7 +18,7 @@ namespace RL.Episodes
     /// <summary>Spawns the matrix lane's ships. A named shield or numeric capacity/delay/rate replaces the chassis module on an inactive copy used as the spawn template. The weapon is equipped before wiring, because the commander captures muzzle speed once at init.</summary>
     internal static class MatrixSpawner
     {
-        // EpisodePair's armed-pair streams. A seed's decision noise matches that spawn.
+        // Per-side decision-seed streams, so a seed replays the same decision noise.
         private const uint AgentSeedStream = 101;
         private const uint BaselineSeedStream = 202;
         private const uint FirstExtraSeedStream = 303;

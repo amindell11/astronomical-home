@@ -18,7 +18,7 @@ namespace Tests.PlayMode.Recording
 /// <summary>Scenarios either use the runner's diagnostic session or compose their own preview. Film prepares a diagnostic view; preview scenarios record their existing view directly. The runner finishes and disposes an active recording when Run returns.</summary>
 public abstract class CaptureScenario : IDisposable
 {
-    private const string CombatPilotPath = "Assets/Prefabs/Pilots/AgentPilot.prefab";
+    private const string CombatPilotPath = "Assets/Prefabs/Pilots/AggressorPilot.prefab";
 
     /// <summary>The headless session the runner composed — real services and UnitService, with <see cref="SectorEntry"/>'s sector loaded when one is named.</summary>
     public Session Session { get; internal set; }
@@ -67,7 +67,7 @@ public abstract class CaptureScenario : IDisposable
         }
     }
 
-    /// <summary>Spawns a Crimson running the production policy-pilot combat brain through the session's UnitService — full game wiring, arena-root parenting, spawn-order-derived decision seed; torn down with the session. The ship senses the loaded sector's rocks, none when sector-less.</summary>
+    /// <summary>Spawns a Crimson running the authored Aggressor pilot through the session's UnitService — full game wiring, arena-root parenting, spawn-order-derived decision seed; torn down with the session. The ship senses the loaded sector's rocks, none when sector-less.</summary>
     protected (Ship ship, AICommander cmdr) SpawnCombatShip(Vector2 planePos, float rotDeg, int team)
     {
         var pilot = TestAssets.Load<AICommander>(CombatPilotPath);

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace RL.Arena
 {
-    /// <summary>Serialized catalog of the prefabs the episode composition instantiates, so the harness spawns from typed references (baked into the training player build) instead of editor-only AssetDatabase path loads. One asset at <see cref="AssetPath"/> is the single source of truth every host — training scene, tests, eval — shares.</summary>
+    /// <summary>Serialized catalog of the prefabs the matrix lane's weapon-pair compositions instantiate, so the harness spawns from typed references. One asset at <see cref="AssetPath"/> is the single source of truth the harness host and the tests share.</summary>
     [CreateAssetMenu(fileName = "HarnessAssets", menuName = "RL/Harness Assets")]
     public sealed class HarnessAssets : ScriptableObject
     {
@@ -12,12 +12,8 @@ namespace RL.Arena
 
         [SerializeField] private Ship shipPrefab;
         [SerializeField] private AICommander agentPilot;
-        [SerializeField] private AICommander baselinePilot;
-        [SerializeField] private GameObject fieldPrefab;
 
         public Ship ShipPrefab => shipPrefab;
         public AICommander AgentPilot => agentPilot;
-        public AICommander BaselinePilot => baselinePilot;
-        public GameObject FieldPrefab => fieldPrefab;
     }
 }
