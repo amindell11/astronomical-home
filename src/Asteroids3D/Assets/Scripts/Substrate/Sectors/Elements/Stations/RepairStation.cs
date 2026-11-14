@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using Balance;
 using Ships;
-using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sessions;
 using UnityEngine;

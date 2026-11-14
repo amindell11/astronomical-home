@@ -165,7 +165,7 @@ namespace Substrate.Sectors.Elements.Phases
         }
 
         // The lull in progress, or the one within the lead of this phase's end.
-        // The closing lull's number is PhaseCount, so it misses the lull before the last phase.
+        // The closing lull is numbered PhaseCount, apart from the lull before the last phase.
         private int LullAhead(SectorPhaseMark mark)
         {
             if (mark.Done || mark.InOpeningLull) return -1;
@@ -175,14 +175,13 @@ namespace Substrate.Sectors.Elements.Phases
             return lullFollows && mark.SecondsLeft <= beaconLeadSeconds ? mark.Index + 1 : -1;
         }
 
-        private bool BeaconExpired(SectorPhaseMark mark)
-        {
-            if (mark.InLull) return false;
-            if (mark.Done)
-                return beaconLull != director.PhaseCount || mark.ElapsedSeconds >= beaconGraceSeconds;
-            return mark.Index > beaconLull
-                || mark.Index == beaconLull && mark.ElapsedSeconds >= beaconGraceSeconds;
-        }
+        private bool InBeaconGrace(SectorPhaseMark mark) =>
+            !mark.InLull && (mark.Done ? beaconLull == director.PhaseCount : mark.Index == beaconLull);
+
+        private bool BeaconExpired(SectorPhaseMark mark) =>
+            InBeaconGrace(mark)
+                ? mark.ElapsedSeconds >= beaconGraceSeconds
+                : !mark.InLull && (mark.Done || mark.Index > beaconLull);
 
         private void OpenBeacon(int lull)
         {
@@ -210,12 +209,10 @@ namespace Substrate.Sectors.Elements.Phases
             if (spine.Target == beaconZone.transform) spine.Target = null;
         }
 
-        private float? BeaconGraceLeft(SectorPhaseMark mark)
-        {
-            if (!beaconOpen || mark.InLull) return null;
-            var inGrace = mark.Done ? beaconLull == director.PhaseCount : mark.Index == beaconLull;
-            return inGrace ? Mathf.Max(0f, beaconGraceSeconds - mark.ElapsedSeconds) : null;
-        }
+        private float? BeaconGraceLeft(SectorPhaseMark mark) =>
+            beaconOpen && InBeaconGrace(mark)
+                ? Mathf.Max(0f, beaconGraceSeconds - mark.ElapsedSeconds)
+                : null;
 
         private SectorPhaseProgress ReadPhaseProgress()
         {

@@ -73,7 +73,6 @@ namespace Substrate.Sectors.Elements
         private bool started;
         private bool huntReleased;
         private bool eliteArrived;
-        private bool closingLull;
         private int openedPhase;
         private RosterEntry[] pending;
         private float lastWave;
@@ -88,15 +87,15 @@ namespace Substrate.Sectors.Elements
         public bool WaveAhead { get; private set; }
 
         /// <summary>True when a lull follows this sector's last phase, before its elite.</summary>
-        public bool ClosingLull => closingLull;
+        public bool ClosingLull { get; private set; }
 
-        /// <summary>True in a lull that follows a phase, scheduled or earned, and for graceSeconds after one ends.</summary>
+        /// <summary>In a lull after a phase, scheduled or earned, or the graceSeconds after one ends.</summary>
         public bool InLullWindow(float graceSeconds)
         {
             if (EarnedLull) return true;
             if (Phase.InOpeningLull) return false;
             if (Phase.InLull) return true;
-            if (Phase.Done) return closingLull && Phase.ElapsedSeconds < graceSeconds;
+            if (Phase.Done) return ClosingLull && Phase.ElapsedSeconds < graceSeconds;
             return Phase.Index > 0 && Phase.ElapsedSeconds < graceSeconds;
         }
 
@@ -211,7 +210,7 @@ namespace Substrate.Sectors.Elements
         private void BuildSchedule()
         {
             var closing = elite ? lullSeconds : 0f;
-            closingLull = closing > 0f;
+            ClosingLull = closing > 0f;
             schedule = new SectorPhaseSchedule(phases, lullSeconds, openingLullSeconds, closing);
         }
 

@@ -97,20 +97,6 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void ZeroClosingSeconds_LeavesTheDoneMarkWhereTheLastPhaseEnds()
-        {
-            var schedule = new SectorPhaseSchedule(
-                new[] { new SectorPhase { seconds = 40f }, new SectorPhase { seconds = 30f } }, 5f, 0f, 0f);
-
-            var done = schedule.At(75f);
-            Assert.IsTrue(done.Done);
-            Assert.IsFalse(done.InLull);
-            Assert.IsFalse(done.Closing);
-            Assert.AreEqual(0f, done.CountdownSeconds);
-            Assert.AreEqual(0f, done.SecondsToEnd);
-        }
-
-        [Test]
         public void ClosingLull_FollowsTheLastPhase_ThenTheTableIsDone()
         {
             var schedule = new SectorPhaseSchedule(

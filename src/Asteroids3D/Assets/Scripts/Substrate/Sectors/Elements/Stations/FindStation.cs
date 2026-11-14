@@ -129,17 +129,17 @@ namespace Substrate.Sectors.Elements.Stations
                 return;
             }
 
+            var open = Open;
             foreach (var station in stations)
             {
                 if (station.Spent) continue;
-                if (!Open)
+                if (!open)
                 {
                     if (!station.Closed) CloseStation(station);
                     continue;
                 }
 
-                if (station.Closed)
-                    station.Reopen(objectives.MarkFind(station.Body.transform, icon, FindColours.Of(Kind)));
+                if (station.Closed) station.Reopen(MarkFind(station));
 
                 var entered = station.Zone.IsPlayerInZone && !station.Inside;
                 station.Inside = station.Zone.IsPlayerInZone;
@@ -159,9 +159,12 @@ namespace Substrate.Sectors.Elements.Stations
         private void Show()
         {
             foreach (var station in stations)
-                station.Show(objectives.MarkFind(station.Body.transform, icon, FindColours.Of(Kind)));
+                station.Show(MarkFind(station));
             shown = true;
         }
+
+        private FindMarker MarkFind(Station station) =>
+            objectives.MarkFind(station.Body.transform, icon, FindColours.Of(Kind));
 
         private Station Copy()
         {
@@ -235,16 +238,13 @@ namespace Substrate.Sectors.Elements.Stations
             {
                 Body.transform.position = Position;
                 Body.SetActive(true);
-                Zone.Arm();
-                Mark(find);
+                LightUp(find);
             }
 
             internal void Reopen(FindMarker find)
             {
                 Closed = false;
-                Zone.Arm();
-                Lit.SetActive(true);
-                Mark(find);
+                LightUp(find);
             }
 
             internal void Draw(float amount)
@@ -265,8 +265,10 @@ namespace Substrate.Sectors.Elements.Stations
                 Closed = true;
             }
 
-            private void Mark(FindMarker find)
+            private void LightUp(FindMarker find)
             {
+                Zone.Arm();
+                Lit.SetActive(true);
                 this.find = find;
                 Tint.SetColor(BaseColor, find.Colour);
                 Marker.SetPropertyBlock(Tint);

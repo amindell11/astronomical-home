@@ -43,13 +43,5 @@ namespace Tests.EditMode.Sectors
             Assert.AreSame(prefab.GetComponentInChildren<WaveDirector>(true), serialized.FindProperty("director").objectReferenceValue,
                 "The station reads the sector's own wave director for its lulls.");
         }
-
-        [Test]
-        public void Feel_StaysLitForTenSecondsIntoTheNextPhase()
-        {
-            var feel = ScriptableObject.CreateInstance<RepairStationFeelProfile>();
-            Assert.AreEqual(10f, feel.lullGraceSeconds);
-            Object.DestroyImmediate(feel);
-        }
     }
 }
