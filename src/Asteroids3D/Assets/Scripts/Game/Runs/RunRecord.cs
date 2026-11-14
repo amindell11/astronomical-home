@@ -66,6 +66,13 @@ namespace Game.Runs
         public float shieldOut;
         public bool eliteMet;
         public bool eliteBeaten;
+        public float regenSeconds;
+        public int regenStarts;
+        public int shieldRefills;
+        public float shieldRestored;
+        public float shieldDownSeconds;
+        public float contestedRegenSeconds;
+        public float contestedShieldRestored;
     }
 
     [Serializable]
@@ -102,7 +109,7 @@ namespace Game.Runs
     /// <summary>
     /// One finished run as one JSON line. <see cref="player"/> is the hangar loadout at run start;
     /// <see cref="playerEnd"/> is the loadout mounted when the run ended. The line also holds what
-    /// the run was played on, how it went, the picks and the sectors, what hurt the player and what
+    /// the run was played on, how it went, the picks and the sectors with their shield recovery, what hurt the player and what
     /// the player dealt, and every ship that spawned. A run ends extracted, dead, or abandoned; only
     /// a death carries a killing blow.
     /// A damage row and the killing blow name their attacker as an index into <see cref="spawns"/>,
@@ -138,7 +145,8 @@ namespace Game.Runs
         public EndPhaseRow endPhase;
         public string origin;
 
-        public const string SchemaId = "run-record-v3";
+        public const string SchemaId = "run-record-v4";
+        public const string SchemaV3 = "run-record-v3";
         public const string SchemaV2 = "run-record-v2";
         public const string Died = "died";
         public const string Extracted = "extracted";
@@ -152,7 +160,7 @@ namespace Game.Runs
 
         /// <summary>Abandoned lines stay in the file but off every reader.</summary>
         public static bool Counts(string schema, string outcome) =>
-            (schema == SchemaId || schema == SchemaV2) && outcome != Abandoned;
+            (schema == SchemaId || schema == SchemaV3 || schema == SchemaV2) && outcome != Abandoned;
 
         public string ToJsonLine() => JsonUtility.ToJson(this);
 

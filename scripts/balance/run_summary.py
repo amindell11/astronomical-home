@@ -6,9 +6,10 @@ append, and this script never looks for the store itself.
 
     python scripts/balance/run_summary.py <run-records.jsonl> [<more.jsonl> ...]
 
-Accepted schemas: "run-record-v3" (RunRecord.SchemaId), "run-record-v2", and "run-record-v1",
-one JSON object per line. A v1 record predates multi-sector runs and reads as a death with no
-sector cleared. A v2 or v1 record has none of the v3 fields.
+Accepted schemas: "run-record-v4" (RunRecord.SchemaId), "run-record-v3", "run-record-v2", and
+"run-record-v1", one JSON object per line. A v1 record predates multi-sector runs and reads as a
+death with no sector cleared. A v2 or v1 record has none of the v3 fields. A record older than v4
+has no shield recovery fields on its sector rows.
 
 Output, on stdout, is for reading and carries no machine contract:
   - one Runs table per stat fingerprint, with each run's outcome and min / median /
@@ -17,13 +18,17 @@ Output, on stdout, is for reading and carries no machine contract:
   - three tables pooled over every record handed in, keyed by loadout stat hash:
     damage taken, killing blows (deaths only; an abandoned run is left out), ships spawned.
     "Runs seen" counts the records whose spawn log holds that hash;
-  - four tables built only from records that carry the field: where runs ended (deaths and
+  - five tables built only from records that carry the field: where runs ended (deaths and
     abandoned runs per sector and phase, the phase named from the record's phase mark and the
     sector's elite flags), picks (per offered item and
     kind: times offered, times taken), sectors (per sector number: runs entered, median
-    seconds, median hull out, elite met, elite beaten), damage dealt (per damage kind:
-    total, hits, runs).
-No number combines two metrics.
+    seconds, median hull out, elite met, elite beaten), shield recovery (per sector number,
+    from sector rows that carry regenSeconds: median regenerating seconds, contested
+    regenerating seconds, regen starts, refills, restored points, contested restored points,
+    restored per start, shield-down seconds), damage dealt (per damage kind: total, hits, runs).
+Median restored per start is restored points divided by regen starts on that row. A row with no
+start is left out of that median, and the cell is "-" when none remain.
+No other number combines two metrics.
 
 Exit codes:
   0  the tables were printed.
@@ -37,7 +42,7 @@ import statistics
 import sys
 from collections import defaultdict
 
-SCHEMAS = ("run-record-v3", "run-record-v2", "run-record-v1")
+SCHEMAS = ("run-record-v4", "run-record-v3", "run-record-v2", "run-record-v1")
 V1 = "run-record-v1"
 EXTRACTED = "extracted"
 DIED = "died"
@@ -215,6 +220,53 @@ def end_phase(mark, sector):
     return "phase %d" % (mark["index"] + 1)
 
 
+def shield_recovery_rows(records):
+    buckets = defaultdict(lambda: {
+        "regen": [],
+        "contested_regen": [],
+        "starts": [],
+        "refills": [],
+        "restored": [],
+        "contested_restored": [],
+        "per_start": [],
+        "down": [],
+    })
+    for record in records:
+        sectors = carried(record, "sectors")
+        if sectors is None:
+            continue
+        for row in sectors:
+            if "regenSeconds" not in row:
+                continue
+            bucket = buckets[row["sector"]]
+            bucket["regen"].append(row["regenSeconds"])
+            bucket["contested_regen"].append(row["contestedRegenSeconds"])
+            bucket["starts"].append(row["regenStarts"])
+            bucket["refills"].append(row["shieldRefills"])
+            bucket["restored"].append(row["shieldRestored"])
+            bucket["contested_restored"].append(row["contestedShieldRestored"])
+            bucket["down"].append(row["shieldDownSeconds"])
+            starts = row["regenStarts"]
+            if starts:
+                bucket["per_start"].append(row["shieldRestored"] / starts)
+    rows = []
+    for sector, bucket in sorted(buckets.items()):
+        per_start = "-" if not bucket["per_start"] else number(statistics.median(bucket["per_start"]))
+        rows.append([
+            sector,
+            len(bucket["regen"]),
+            number(statistics.median(bucket["regen"])),
+            number(statistics.median(bucket["contested_regen"])),
+            number(statistics.median(bucket["starts"])),
+            number(statistics.median(bucket["refills"])),
+            number(statistics.median(bucket["restored"])),
+            number(statistics.median(bucket["contested_restored"])),
+            per_start,
+            number(statistics.median(bucket["down"])),
+        ])
+    return rows
+
+
 def measured_sections(records):
     offered = defaultdict(int)
     taken = defaultdict(int)
@@ -283,6 +335,13 @@ def measured_sections(records):
         sections.append("## Sectors\n\n" + table(
             ["Sector", "Runs entered", "Median seconds", "Median hull out", "Elite met", "Elite beaten"],
             sector_rows))
+    recovery_rows = shield_recovery_rows(records)
+    if recovery_rows:
+        sections.append("## Shield recovery\n\n" + table(
+            ["Sector", "Rows", "Median regen seconds", "Median contested regen seconds",
+             "Median regen starts", "Median refills", "Median restored", "Median contested restored",
+             "Median restored per start", "Median shield-down seconds"],
+            recovery_rows))
     if dealt_rows:
         sections.append("## Damage dealt\n\n" + table(
             ["Kind", "Total", "Hits", "Runs"], dealt_rows))
