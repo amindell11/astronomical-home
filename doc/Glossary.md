@@ -1018,7 +1018,8 @@ Format: **term** — definition. *(authority)*
   break off. A ship picks for its own sake, the best shot for the least risk,
   and never knows it paces the player. "Beat" is the retired name. Owner rulings
   on #1349. Each tactic flies a law the archetype pilots already have:
-  - *attack run*: hold at my gun range and fire (the Aggressor's law);
+  - *attack run*: hold at the gun hold range plus the temper's attack-run margin
+    and fire (the Aggressor's law);
   - *flank*: circle toward the target's open side, firing once my firing lane
     clears;
   - *stand off*: hold just outside the target's real primary gun range, firing
@@ -1026,20 +1027,24 @@ Format: **term** — definition. *(authority)*
   - *break off*: flee with guns cold until the shield is back.
 
   A ship picks by *ordered rules*, the first rule that fires winning: break off,
-  then flank or stand off, then the attack run. It keeps a tactic until the
-  reason it was picked ends, never for less than the *minimum hold*, break off
-  included.
+  then flank or stand off, then its *home tactic*, the tactic it flies when no
+  rule overrides it. It keeps a tactic until the reason it was picked ends, and
+  never for less than the *minimum hold*, break off included. A home tactic also
+  holds while the rules still pick it.
   Only a pilot authored with tactics settings (the *tactics switch*) picks one.
-  Every shipped pilot does, each on its kind's *temper*, and the RL roster never
+  Every shipped pilot does, each on its own *temper*, and the RL roster never
   does. *(TacticRules.Next, TacticsSettings)*
-- **temper**. One `TacticsSettings` asset per kind of ship: wave ships (every
-  ship in a wave and every hunt patrol), the elite, and its escorts. Each pilot points at
-  its own. Owner ruling on #1349, 2026-11-09: the elite never breaks off and
-  always presses (break off 0%, nerve 0%), escorts never fly into the target's
-  guns (nerve 100%), and wave ships keep the numbers #1433 shipped. At 100%
-  nerve a ship shies at a full shield too, so 0% and 100% hold at every shield
-  level. No per-ship or per-run variation yet. *(WaveTemper, EliteTemper,
-  EscortTemper)*
+- **temper**. One `TacticsSettings` asset per pilot: Aggressor (home attack run;
+  hunt patrols fly it too), Orbiter (home flank), Kiter (attack run from further
+  out), Lurker (home stand off), the elite, and its escorts. The temper also
+  records whether the ship circles the wreck before it wanders. A pilot with a
+  temper never reads `archetype`. The owner ruled on #1349, 2026-11-09, that
+  the elite never breaks off and always presses (break off 0%, nerve 0%) and
+  escorts never fly into the target's guns (nerve 100%). On #1556, 2026-11-13,
+  the owner left the elite and escort numbers as they were. At 100% nerve a
+  ship shies at a full shield too, so 0% and 100% hold at every shield level.
+  No per-ship or per-run variation yet. *(AggressorTemper, OrbiterTemper,
+  KiterTemper, LurkerTemper, EliteTemper, EscortTemper)*
 - **situation**. What one ship reads about its fight before it picks a tactic,
   from its own sensors only. The owner's picks on #1349: allies count by where
   they are, never by asking another ship's brain, so the elite counts whatever it

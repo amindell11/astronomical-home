@@ -70,7 +70,7 @@ namespace Tests.EditMode.Preview
             AssertTarget(Target<HangarDisplayTarget>(), new[] { PreviewEntry.Combat },
                 AssetDatabase.LoadAssetAtPath<HangarDisplayProfile>("Assets/Settings/UI/HangarDisplayProfile.asset"));
             AssertTarget(Target<TacticsTarget>(), new[] { PreviewEntry.CrowdedFight },
-                new[] { "Wave", "Elite", "Escort" }.Select(kind =>
+                new[] { "Aggressor", "Orbiter", "Kiter", "Lurker", "Elite", "Escort" }.Select(kind =>
                     AssetDatabase.LoadAssetAtPath<TacticsSettings>($"Assets/Settings/AI/Tactics/{kind}Temper.asset"))
                     .ToArray());
         }

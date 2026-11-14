@@ -148,6 +148,36 @@ namespace Tests.EditMode.Tactics
 
             Assert.AreEqual(Tactic.AttackRun, Pick(Fight(shield, sinceHit: 0f, openSide: true, inCone: true)));
         }
+
+        [TestCase(Tactic.AttackRun)]
+        [TestCase(Tactic.Flank)]
+        [TestCase(Tactic.StandOff)]
+        public void PlainFight_PicksTheHome(Tactic home)
+        {
+            settings.home = home;
+
+            Assert.AreEqual(home, Pick(Fight()));
+        }
+
+        [Test]
+        public void HomeFlankAndHomeStandOff_HoldPastTheMinimumHold_WithNothingButBeingHome()
+        {
+            settings.home = Tactic.Flank;
+            Assert.AreEqual(Tactic.Flank, TacticRules.Next(Tactic.Flank, 10f, Fight(), settings));
+
+            settings.home = Tactic.StandOff;
+            Assert.AreEqual(Tactic.StandOff, TacticRules.Next(Tactic.StandOff, 10f, Fight(), settings));
+        }
+
+        [Test]
+        public void ARuleOverridesTheHome()
+        {
+            settings.home = Tactic.StandOff;
+
+            Assert.AreEqual(Tactic.BreakOff, Pick(Fight(Low, sinceHit: 1f)), "a low shield just hit breaks off");
+            Assert.AreEqual(Tactic.Flank, Pick(Fight(allies: 1, openSide: true)),
+                "an ally in the lane with an open side flanks");
+        }
     }
 }
 #endif

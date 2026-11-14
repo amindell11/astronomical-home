@@ -64,7 +64,7 @@ MonoBehaviour:
             type: 3}
         - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
             type: 3}
-          pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
+          pilot: {fileID: 8104806860084415427, guid: ce502418980ffbd45a1aad18f3b9a7b7,
             type: 3}
       endsAt: 0
       breather: 4
@@ -109,7 +109,7 @@ MonoBehaviour:
             type: 3}
         - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
             type: 3}
-          pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
+          pilot: {fileID: 8104806860084415427, guid: ce502418980ffbd45a1aad18f3b9a7b7,
             type: 3}
       endsAt: 0
       breather: 4
@@ -200,7 +200,7 @@ MonoBehaviour:
             type: 3}
         - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
             type: 3}
-          pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
+          pilot: {fileID: 8104806860084415427, guid: ce502418980ffbd45a1aad18f3b9a7b7,
             type: 3}
       endsAt: 1
       breather: 4
@@ -236,7 +236,7 @@ MonoBehaviour:
             type: 3}
         - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
             type: 3}
-          pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
+          pilot: {fileID: 8104806860084415427, guid: ce502418980ffbd45a1aad18f3b9a7b7,
             type: 3}
         - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
             type: 3}
@@ -315,7 +315,7 @@ MonoBehaviour:
             type: 3}
         - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
             type: 3}
-          pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
+          pilot: {fileID: 8104806860084415427, guid: ce502418980ffbd45a1aad18f3b9a7b7,
             type: 3}
       endsAt: 1
       breather: 4
@@ -351,7 +351,7 @@ MonoBehaviour:
             type: 3}
         - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
             type: 3}
-          pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
+          pilot: {fileID: 8104806860084415427, guid: ce502418980ffbd45a1aad18f3b9a7b7,
             type: 3}
         - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
             type: 3}
@@ -437,7 +437,7 @@ MonoBehaviour:
             type: 3}
         - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
             type: 3}
-          pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
+          pilot: {fileID: 8104806860084415427, guid: ce502418980ffbd45a1aad18f3b9a7b7,
             type: 3}
         - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
             type: 3}

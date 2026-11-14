@@ -13,7 +13,8 @@ namespace AI.Tactics
 
     /// <summary>
     /// Situation in, tactic out, at each brain recompute. A tactic holds while the reason it was picked
-    /// holds, and always for the minimum hold; once it ends, the ordered rules pick again.
+    /// holds, a home tactic also while the rules still pick it, and always for the minimum hold; once
+    /// it ends, the ordered rules pick again.
     /// https://github.com/amindell11/astronomical-home/issues/1349
     /// </summary>
     public static class TacticRules
@@ -31,20 +32,26 @@ namespace AI.Tactics
                 return Tactic.BreakOff;
             if (situation.alliesInLane > 0 || (situation.exposed && Shies(shield, settings.nerveShield)))
                 return situation.openSide != Vector2.zero ? Tactic.Flank : Tactic.StandOff;
-            return Tactic.AttackRun;
+            return settings.home;
         }
 
         // Strictly below, so 0 always presses; 100 must shy at a full shield too.
         private static bool Shies(float shield, float nerve) => nerve >= 100f || shield < nerve;
 
-        private static bool Holds(Tactic tactic, in Situation situation, TacticsSettings settings) => tactic switch
+        private static bool Holds(Tactic tactic, in Situation situation, TacticsSettings settings)
         {
-            Tactic.BreakOff => situation.shieldPct * 100f < settings.resumeShield,
-            Tactic.Flank => situation.openSide != Vector2.zero && (situation.alliesInLane > 0 || situation.exposed),
-            Tactic.StandOff => situation.openSide == Vector2.zero
-                && (situation.alliesInLane > 0 || situation.inTargetsCone),
-            Tactic.AttackRun => Pick(situation, settings) == Tactic.AttackRun,
-            _ => throw new ArgumentOutOfRangeException(nameof(tactic), tactic, null),
-        };
+            var reason = tactic switch
+            {
+                Tactic.BreakOff => situation.shieldPct * 100f < settings.resumeShield,
+                Tactic.Flank => situation.openSide != Vector2.zero && (situation.alliesInLane > 0 || situation.exposed),
+                Tactic.StandOff => situation.openSide == Vector2.zero
+                    && (situation.alliesInLane > 0 || situation.inTargetsCone),
+                // No reason of its own, so a non-home attack run ends with the minimum hold.
+                Tactic.AttackRun => false,
+                _ => throw new ArgumentOutOfRangeException(nameof(tactic), tactic, null),
+            };
+            return reason
+                || (tactic != Tactic.BreakOff && tactic == settings.home && Pick(situation, settings) == tactic);
+        }
     }
 }

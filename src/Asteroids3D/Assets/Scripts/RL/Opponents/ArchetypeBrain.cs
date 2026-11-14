@@ -11,14 +11,14 @@ using AI.Strategy;
 
 namespace RL.Opponents
 {
-    /// <summary>The one scripted opponent component, switched on <see cref="OpponentArchetype"/>: target validity, the 5 Hz recompute cache, the missile evasion blended over the law, and the border tangent-steer world-velocity pack. The roster Configures a pinned target per episode draw; an authored pilot serializes the same fields and can instead track the context's enemy.
-    /// With that enemy gone, a live-targeting pilot roams around its last live position (the wreck) through held waypoints: the Aggressor and Orbiter circle it loosely for a few laps, then wander as the Kiter and Evader do from the start.
-    /// A pilot authored with tactics settings flies a tactic instead of its archetype's law: <see cref="TacticRules"/> picks it from the ship's situation, and it flies one of the same laws through the same evasion and border pack.</summary>
+    /// <summary>The one scripted opponent component: target validity, the 5 Hz recompute cache, the missile evasion blended over the law, and the border tangent-steer world-velocity pack. The roster Configures a pinned target per episode draw and flies <see cref="OpponentArchetype"/>; an authored pilot serializes the same fields and can instead track the context's enemy.
+    /// With that enemy gone, a live-targeting pilot roams around its last live position (the wreck) through held waypoints. A temper that circles the wreck does so for a few laps, then wanders. Otherwise the ship wanders from the start.
+    /// A pilot with tactics settings never reads <c>archetype</c>. Its temper names its home tactic and how it roams. <see cref="TacticRules"/> picks the tactic from the ship's situation, and the ship flies one of the same laws through the same evasion and border pack.</summary>
     public sealed class ArchetypeBrain : Brain
     {
         private const int RecomputeIntervalTicks = 10;
 
-        [Tooltip("Which archetype to fly. Aggressor and Kiter hold a range and fire, Orbiter circles and fires, Evader flees and never fires, Dummy sits still.")]
+        [Tooltip("Which archetype to fly. A pilot with tactics settings never reads this. Its temper names its home tactic and how it roams. Aggressor and Kiter hold a range and fire, Orbiter circles and fires, Evader flees and never fires, Dummy sits still.")]
         [SerializeField] private OpponentArchetype archetype = OpponentArchetype.Aggressor;
 
         [SerializeField] private OpponentDraw shape = new()
@@ -39,7 +39,7 @@ namespace RL.Opponents
         [Tooltip("Track the context's enemy, resetting brain state whenever it changes; off flies the Configure-pinned target — the roster/trained behavior.")]
         [SerializeField] private bool liveTargeting;
 
-        [Tooltip("Pick a tactic from the ship's situation and fly it, with these settings. Empty flies the archetype alone — the roster/trained behavior.")]
+        [Tooltip("This pilot's temper: its home tactic and how it roams. A pilot with these settings never reads its archetype. Empty flies the archetype alone, the roster and trained behavior.")]
         [SerializeField] private TacticsSettings tactics;
 
         [Header("Missile evasion")]
@@ -71,7 +71,7 @@ namespace RL.Opponents
         [Tooltip("With the target gone: the farthest distance (u) from the wreck at which circling waypoints are drawn.")]
         [SerializeField, Min(0f)] private float roamRingMax = 60f;
 
-        [Tooltip("Laps the Aggressor and Orbiter circle the wreck before they switch to wandering.")]
+        [Tooltip("Laps a ship whose temper circles the wreck flies before it switches to wandering.")]
         [SerializeField, Min(0f)] private float roamLaps = 2f;
 
         [Tooltip("Radius (u) of the disc around the wreck that wander waypoints are drawn in.")]
@@ -191,7 +191,7 @@ namespace RL.Opponents
         {
             roaming = true;
             roamCenter = wreck ?? pos;
-            roamCircling = archetype is OpponentArchetype.Aggressor or OpponentArchetype.Orbiter;
+            roamCircling = tactics.circlesWreck;
             var radial = pos - roamCenter;
             roamLane = radial.x * vel.y - radial.y * vel.x >= 0f ? 1 : -1;
             roamAngle = Mathf.Atan2(radial.y, radial.x) * Mathf.Rad2Deg;
@@ -244,9 +244,8 @@ namespace RL.Opponents
         private BrainDecision FlyTactic(AIContext ctx, in Kinematics self, float maxSpeed)
         {
             var situation = Situation.Read(ctx, tactics);
-            // No tactic yet: an attack run past its hold ends on any rule, so this picks fresh.
             var held = CurrentTactic.HasValue ? (tickCounter - tacticTick) * Time.fixedDeltaTime : float.PositiveInfinity;
-            var tactic = TacticRules.Next(CurrentTactic ?? Tactic.AttackRun, held, in situation, tactics);
+            var tactic = TacticRules.Next(CurrentTactic ?? tactics.home, held, in situation, tactics);
             if (tactic != CurrentTactic)
             {
                 CurrentTactic = tactic;
@@ -259,11 +258,12 @@ namespace RL.Opponents
 
             var speed = shape.speedFraction * maxSpeed;
             var gunRange = ctx.HoldRange ?? shape.desiredRange;
+            var flankSide = flankSign != 0 ? flankSign : (shape.orbitDirection >= 0 ? 1 : -1);
             return tactic switch
             {
-                Tactic.AttackRun => Pack(ctx.Self, RangerBrain.HoldRangeVelocity(in self, them, gunRange, speed),
-                    engages: true),
-                Tactic.Flank => Pack(ctx.Self, ArchetypeLaws.OrbitVelocity(in self, them, gunRange, flankSign,
+                Tactic.AttackRun => Pack(ctx.Self, RangerBrain.HoldRangeVelocity(in self, them,
+                    gunRange + tactics.attackRunMargin, speed), engages: true),
+                Tactic.Flank => Pack(ctx.Self, ArchetypeLaws.OrbitVelocity(in self, them, gunRange, flankSide,
                     shape.speedFraction, maxSpeed), engages: situation.alliesInLane == 0),
                 Tactic.StandOff => Pack(ctx.Self, RangerBrain.HoldRangeVelocity(in self, them,
                     situation.targetRange + tactics.standOffMargin, speed),
@@ -319,6 +319,13 @@ namespace RL.Opponents
 
             escapeHeading = ArchetypeLaws.EscapeHeading(self.pos, missilePos, escapeSide);
             return ArchetypeLaws.EvasionUrgency(timeToImpact, urgencyFarTime, urgencyNearTime);
+        }
+
+        // Awake, not OnValidate: the base pilot prefab is authored without a temper so no variant inherits one.
+        private void Awake()
+        {
+            if (!liveTargeting || tactics) return;
+            throw new InvalidOperationException($"{name}: a live-targeting pilot must name its temper");
         }
     }
 }
