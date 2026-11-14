@@ -84,25 +84,29 @@ namespace Tests.PlayMode.Rendering.Projection
         }
 
         [Test]
-        public void ScanlinesAreSizedInScreenPixels_SoAnImageThatIsItsOwnScreenKeepsTheHudsFlatResponse_AndOneShownAtHalfSizeGetsLinesFourPixelsApart()
+        public void ScanlinesAreSizedInScreenPixels_TwoApartOnAnImageThatIsItsOwnScreen_FourAtHalfSize_AndFiveOnA3840WideScreen()
         {
             properties.SetTexture("_PreviousInk", Texture(new Color(.5f, .5f, .5f, 1f)));
             properties.SetVector("_Phosphor", new Vector4(1f, 0f, 0f, 0f));
-            var own = Render(1);
-            for (var y = 1; y < Height; y++)
-                AssertColor(own[Width / 2], own[y * Width + Width / 2]);
+            Assert.That(TroughSpacing(Render(1)), Is.EqualTo(2), "an image that is its own screen, as the HUD is");
             properties.SetVector("_Screen", new Vector4(Width * .5f, Height * .5f, Width, Height));
-            var half = Render(1);
-            var troughs = new System.Collections.Generic.List<int>();
+            Assert.That(TroughSpacing(Render(1)), Is.EqualTo(4), "an image shown at half its size");
+            properties.SetVector("_Screen", new Vector4(Width, Height, 3840f, 2160f));
+            Assert.That(TroughSpacing(Render(1)), Is.EqualTo(5), "an image that fills a 3840-wide screen");
+        }
+
+        private static int TroughSpacing(Color[] pixels)
+        {
+            var troughs = new List<int>();
             for (var y = 1; y < Height - 1; y++)
             {
-                var above = half[(y - 1) * Width + Width / 2].r;
-                var here = half[y * Width + Width / 2].r;
-                var below = half[(y + 1) * Width + Width / 2].r;
+                var above = pixels[(y - 1) * Width + Width / 2].r;
+                var here = pixels[y * Width + Width / 2].r;
+                var below = pixels[(y + 1) * Width + Width / 2].r;
                 if (here < above - .001f && here <= below) troughs.Add(y);
             }
             Assert.That(troughs.Count, Is.GreaterThan(1), "scanlines leave troughs");
-            Assert.That(troughs[1] - troughs[0], Is.EqualTo(4));
+            return troughs[1] - troughs[0];
         }
 
         [Test]

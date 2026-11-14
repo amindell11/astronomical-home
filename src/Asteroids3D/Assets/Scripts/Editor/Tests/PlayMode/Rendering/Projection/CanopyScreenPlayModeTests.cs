@@ -10,8 +10,8 @@ using UnityEngine.TestTools;
 namespace Tests.PlayMode.Rendering.Projection
 {
     /// <summary>
-    /// The HUD is its own screen, so its pixel effects stay as they were; an image is its own
-    /// screen until its owner says where it shows.
+    /// The HUD is its own screen, and an image is its own screen until its owner says where it
+    /// shows.
     /// </summary>
     [Category("UI")]
     [Category("RequiresGraphics")]

@@ -159,7 +159,11 @@ Shader "Hidden/UI/CanopyProjection"
                 }
                 float grain = Hash(floor(p * _Screen.xy * .8));
                 light *= 1.0 - wear * .62 * (1.0 - grain);
-                light *= 1.0 - scanlines * .48 * (.5 + .5 * cos(p.y * _Screen.y * 3.14159265));
+                // 1.9 pixels apart at 1600 wide, in whole pixels so rows never beat against the lines.
+                float linePeriod = max(2.0, round(1.9 * pixelScale));
+                // Pixel centres sit half a pixel past each row, where a bare cosine crosses zero.
+                float row = p.y * _Screen.y - .5;
+                light *= 1.0 - scanlines * .48 * (.5 + .5 * cos(row * 6.2831853 / linePeriod));
                 float radius = (1.5 + glow * 4.0) * pixelScale;
                 float2 d = radius / _Screen.xy;
                 float3 halo = Bloom(p) * .16;
