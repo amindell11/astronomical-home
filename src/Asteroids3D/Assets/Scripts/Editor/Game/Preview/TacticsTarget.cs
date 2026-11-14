@@ -13,7 +13,7 @@ namespace Game.Preview
         public override IReadOnlyList<PreviewEntry> Entries { get; } = new[] { PreviewEntry.CrowdedFight };
 
         public override IEnumerable<ScriptableObject> Profiles(GameHost game) =>
-            new[] { "Wave", "Elite", "Escort" }.Select(Temper);
+            new[] { "Aggressor", "Orbiter", "Kiter", "Lurker", "Elite", "Escort" }.Select(Temper);
 
         private static ScriptableObject Temper(string kind)
         {

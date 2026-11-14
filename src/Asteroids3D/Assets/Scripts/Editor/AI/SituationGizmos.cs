@@ -10,7 +10,7 @@ namespace AI
     [InitializeOnLoad]
     internal static class SituationGizmos
     {
-        private const string SettingsPath = "Assets/Settings/AI/Tactics/WaveTemper.asset";
+        private const string SettingsPath = "Assets/Settings/AI/Tactics/AggressorTemper.asset";
 
         static SituationGizmos() =>
             GizmoView.Register(typeof(AICommander), "situation", "Situation",
