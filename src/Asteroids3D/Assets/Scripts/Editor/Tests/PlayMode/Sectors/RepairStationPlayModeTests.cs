@@ -9,6 +9,7 @@ using Substrate;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Hunt;
+using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Elements.Stations;
 using Substrate.Services.Objectives;
 using Tests.PlayMode.Common;
@@ -20,7 +21,7 @@ using Substrate.Sessions;
 
 namespace Tests.PlayMode.Sectors
 {
-    /// <summary>The shipped repair station prefab with a scratch feel: it shows on a point its distance from the hero's start, repairs hull at the feel's rate while the hero sits in it, draws on its supply only for what it heals, goes dark when the supply is spent or the sector's hunt releases, places a set of stations apart with a supply each, stays live in a sector with no hunt, raises its arrival events once, and is a find on the objective service from placement until it goes dark.</summary>
+    /// <summary>The shipped repair station prefab with a scratch feel: it shows on a point its distance from the hero's start, repairs hull at the feel's rate while the hero sits in it, draws on its supply only for what it heals, and goes dark when the supply is spent. The hunt's release darkens it and the supply stays; a lull window lights it and it repairs, then it goes dark when the window ends. It places a set of stations apart with a supply each, stays live in a sector with no hunt, raises its arrival events once, and is a find on the objective service while it is lit.</summary>
     [TestFixture]
     [Category("Sectors")]
     [Category("RequiresLfsPng")]
@@ -156,7 +157,8 @@ namespace Tests.PlayMode.Sectors
             Assert.IsTrue(station.Lit.activeSelf, "The station stays lit through the gap.");
             ReleaseHunt(hunt);
             yield return null;
-            Assert.IsTrue(station.Spent, "The release takes the whole supply.");
+            Assert.IsFalse(station.Spent, "The release leaves the supply.");
+            Assert.AreEqual(1f, station.SupplyLeft);
             Assert.IsFalse(station.Lit.activeSelf, "The release darkens the station.");
             AssertFinds(module);
 
@@ -171,7 +173,7 @@ namespace Tests.PlayMode.Sectors
 
         [UnityTest]
         [Timeout(60000)]
-        public IEnumerator TheAlarm_DarkensAHalfUsedStation_AndWhatWasLeftIsLost()
+        public IEnumerator TheAlarm_DarkensAHalfUsedStation_AndTheSupplyStays()
         {
             var hero = SpawnHero();
             var hunt = NewHunt(hero);
@@ -192,9 +194,11 @@ namespace Tests.PlayMode.Sectors
             yield return null;
             Assert.IsFalse(station.Spent, "The gap leaves what supply remains.");
             Assert.IsTrue(station.Lit.activeSelf, "The station stays lit through the gap.");
+            var left = station.SupplyLeft;
             ReleaseHunt(hunt);
             yield return null;
-            Assert.IsTrue(station.Spent, "The release takes what was left of the supply.");
+            Assert.IsFalse(station.Spent, "The release keeps what supply remains.");
+            Assert.AreEqual(left, station.SupplyLeft);
             Assert.IsFalse(station.Lit.activeSelf, "The release darkens a half-used station.");
 
             var hull = hero.Damage.Health.Pct;
@@ -276,14 +280,67 @@ namespace Tests.PlayMode.Sectors
             yield return null;
             Assert.IsFalse(second.Spent, "A station with supply left stays live through the gap.");
             Assert.IsTrue(second.Lit.activeSelf, "The station stays lit through the gap.");
+            var left = second.SupplyLeft;
             ReleaseHunt(hunt);
             yield return null;
-            foreach (var station in module.Stations)
-            {
-                Assert.IsTrue(station.Spent, "The release takes every station's supply.");
-                Assert.IsFalse(station.Lit.activeSelf, "The release darkens every station.");
-            }
+            Assert.IsTrue(first.Spent, "A station already spent stays spent.");
+            Assert.IsFalse(first.Lit.activeSelf);
+            Assert.IsFalse(second.Spent, "The release leaves the other station's supply.");
+            Assert.AreEqual(left, second.SupplyLeft);
+            Assert.IsFalse(second.Lit.activeSelf, "The release darkens every live station.");
             AssertFinds(module);
+        }
+
+        [UnityTest]
+        [Timeout(60000)]
+        public IEnumerator ALullWindow_RelightsAClosedStation_AndItRepairs_ThenGoesDarkAgain()
+        {
+            var hero = SpawnHero();
+            var hunt = NewHunt(hero);
+            var director = NewDirector();
+            var module = NewStation(repairPerSecond: .5f, supply: 1f, hunt, director: director);
+            Drive(module.Setup(Context(hero)));
+            var station = module.Stations[0];
+            yield return null;
+            yield return null;
+            Assert.IsTrue(station.Lit.activeSelf, "The station is live before the alarm.");
+
+            ReleaseHunt(hunt);
+            yield return null;
+            Assert.IsFalse(station.Spent, "The release leaves the supply.");
+            Assert.AreEqual(1f, station.SupplyLeft);
+            Assert.IsFalse(station.Lit.activeSelf, "The release darkens the station.");
+            AssertFinds(module);
+
+            director.Advance(41f);
+            director.Observe(41f, 0);
+            yield return null;
+            Assert.IsTrue(director.Phase.InLull);
+            Assert.IsTrue(station.Lit.activeSelf, "A lull window lights the station.");
+            Assert.AreEqual(1f, station.SupplyLeft);
+            AssertFinds(module, station);
+
+            hero.Damage.Health.SetFraction(.5f);
+            ShipTestFactory.MoveKinematicShip(hero, station.Position);
+            yield return new WaitForFixedUpdate();
+            yield return null;
+            Assert.Greater(hero.Damage.Health.Pct, .5f, "A relit station repairs.");
+            Assert.Less(station.SupplyLeft, 1f);
+            Assert.AreEqual(new[] { "arrived Repair", "claimed Repair" }, _beats);
+
+            var hull = hero.Damage.Health.Pct;
+            var left = station.SupplyLeft;
+            director.Advance(56f);
+            director.Observe(56f, 1);
+            yield return null;
+            Assert.IsFalse(director.InLullWindow(10f));
+            Assert.IsFalse(station.Lit.activeSelf, "The station goes dark when the window ends.");
+            Assert.IsFalse(station.Spent);
+            Assert.AreEqual(left, station.SupplyLeft, "Going dark again keeps the supply.");
+            AssertFinds(module);
+            yield return null;
+            Assert.AreEqual(hull, hero.Damage.Health.Pct, 1e-4f, "A dark station repairs nothing.");
+            Assert.AreEqual(2, _beats.Count, "Relighting raises no second arrival.");
         }
 
         private Ship SpawnHero() =>
@@ -314,16 +371,29 @@ namespace Tests.PlayMode.Sectors
             Assert.IsTrue(hunt.Released, "The gap after the alarm has elapsed.");
         }
 
+        private WaveDirector NewDirector()
+        {
+            var director = Track(new GameObject("WaveDirector")).AddComponent<WaveDirector>();
+            director.Configure(new[]
+            {
+                new SectorPhase { seconds = 40f, waveEvery = 20f, groups = Array.Empty<WaveGroup>() },
+                new SectorPhase { seconds = 40f, waveEvery = 20f, groups = Array.Empty<WaveGroup>() },
+            }, lullSeconds: 5f);
+            director.BeginSchedule(0f);
+            return director;
+        }
+
         private RepairStation NewStation(float repairPerSecond, float supply, SectorHunt hunt = null, int count = 1,
-            float spacing = 0f)
+            float spacing = 0f, WaveDirector director = null)
         {
             var feel = Track(ScriptableObject.CreateInstance<RepairStationFeelProfile>());
             feel.repairPerSecond = repairPerSecond;
             feel.supply = supply;
+            feel.lullGraceSeconds = 10f;
             _row.repairStations = count;
             var prefab = AssetDatabase.LoadAssetAtPath<RepairStation>(StationPath);
             var station = Track(Object.Instantiate(prefab.gameObject)).GetComponent<RepairStation>();
-            station.Configure(feel, Distance, hunt, spacing);
+            station.Configure(feel, Distance, hunt, spacing, director);
             station.Arrived += kind => _beats.Add($"arrived {kind}");
             station.FindClaimed += kind => _beats.Add($"claimed {kind}");
             return station;

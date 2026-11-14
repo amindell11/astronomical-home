@@ -21,11 +21,12 @@ namespace Substrate.Sectors.Elements
     /// <summary>
     /// Sends waves of authored groups on each sector phase's wave-every beat, trimmed to the wave cap,
     /// which counts the hunt's live patrols, and a wave with no room is dropped. A phase opens with one.
-    /// Nothing arrives in a lull or after the elite. The done table keeps the last phase's waves, and the
-    /// opening lull is held for the hunt. Ships arrive together just off screen, facing the hero on their
-    /// faction kit and skin. Dead products despawn on the tick, which idles while the hero is inactive.
-    /// Nothing spawns in Build, since the asteroid field lays out at its Start. The base class's "produce
-    /// exactly once" is about the activation token, not lifetime.
+    /// Nothing arrives in a lull or after the elite. With an elite, a closing lull follows the last phase;
+    /// without one, the done table keeps the last phase's waves. The opening lull is held for the hunt.
+    /// Ships arrive together just off screen, facing the hero on their faction kit and skin. Dead products
+    /// despawn on the tick, which idles while the hero is inactive. Nothing spawns in Build, since the
+    /// asteroid field lays out at its Start. The base class's "produce exactly once" is about the
+    /// activation token, not lifetime.
     /// </summary>
     public class WaveDirector : SectorSpawner, ISectorRowReader
     {
@@ -72,6 +73,7 @@ namespace Substrate.Sectors.Elements
         private bool started;
         private bool huntReleased;
         private bool eliteArrived;
+        private bool closingLull;
         private int openedPhase;
         private RosterEntry[] pending;
         private float lastWave;
@@ -84,6 +86,19 @@ namespace Substrate.Sectors.Elements
         public float NextWaveSeconds { get; private set; }
 
         public bool WaveAhead { get; private set; }
+
+        /// <summary>True when a lull follows this sector's last phase, before its elite.</summary>
+        public bool ClosingLull => closingLull;
+
+        /// <summary>True in a lull that follows a phase, scheduled or earned, and for graceSeconds after one ends.</summary>
+        public bool InLullWindow(float graceSeconds)
+        {
+            if (EarnedLull) return true;
+            if (Phase.InOpeningLull) return false;
+            if (Phase.InLull) return true;
+            if (Phase.Done) return closingLull && Phase.ElapsedSeconds < graceSeconds;
+            return Phase.Index > 0 && Phase.ElapsedSeconds < graceSeconds;
+        }
 
         public int PhaseCount => phases.Length;
 
@@ -193,7 +208,12 @@ namespace Substrate.Sectors.Elements
                     $"WaveDirector on '{name}' must watch its spine's elite '{owned.name}', so the waves stop when it arrives.");
         }
 
-        private void BuildSchedule() => schedule = new SectorPhaseSchedule(phases, lullSeconds, openingLullSeconds);
+        private void BuildSchedule()
+        {
+            var closing = elite ? lullSeconds : 0f;
+            closingLull = closing > 0f;
+            schedule = new SectorPhaseSchedule(phases, lullSeconds, openingLullSeconds, closing);
+        }
 
         internal void BeginSchedule(float now)
         {
@@ -257,13 +277,15 @@ namespace Substrate.Sectors.Elements
             if (waveFits)
                 NextWaveSeconds = pending != null ? 0f : Mathf.Max(0f, untilWave);
             else
-                NextWaveSeconds = Phase.InLull || Phase.Index < phases.Length - 1 ? Phase.CountdownSeconds : 0f;
+                NextWaveSeconds = !Phase.Closing && (Phase.InLull || Phase.Index < phases.Length - 1)
+                    ? Phase.CountdownSeconds
+                    : 0f;
             WaveAhead = waveFits || LaterPhaseHasGroups();
         }
 
         private bool LaterPhaseHasGroups()
         {
-            if (Phase.Done || eliteArrived) return false;
+            if (Phase.Done || Phase.Closing || eliteArrived) return false;
             var from = Phase.InLull ? Phase.Index : Phase.Index + 1;
             for (var i = from; i < phases.Length; i++)
                 if (phases[i].groups.Length > 0) return true;

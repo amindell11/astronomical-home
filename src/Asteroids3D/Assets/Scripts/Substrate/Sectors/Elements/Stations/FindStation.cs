@@ -13,9 +13,10 @@ namespace Substrate.Sectors.Elements.Stations
     /// A sector's stations of one kind: the authored body plus copies of it, as many as the kind asks for. At
     /// setup each picks its own point away from the sector's start, spaced from the others and from other
     /// kinds' stations, which pick first; the asteroid field reads those points and leaves a clearing of the clear
-    /// radius. On the first tick each shows, marked as a find, until it goes dark: when its supply is spent, or
-    /// when the sector's hunt releases, losing whatever supply is left. A sector with no hunt keeps them
-    /// live. The arrival events are plain C#, raised once per station on its first arrival. A kind supplies only
+    /// radius. On the first tick each shows, marked as a find, until it closes: when its supply is spent, or
+    /// when the sector's hunt releases. The release spends the supply unless the kind keeps it and opens
+    /// again. A sector with no hunt keeps them live. The arrival events are plain C#, raised once per
+    /// station on its first arrival. A kind supplies only
     /// its effect: what a live station gives the hero sitting in it, drawn from that station's supply.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1319
     /// </summary>
@@ -69,6 +70,10 @@ namespace Substrate.Sectors.Elements.Stations
 
         /// <summary>The hero sits in a live station this tick, after its arrival events.</summary>
         protected abstract void Visit(Station station, Ship hero, float deltaTime);
+
+        protected virtual bool Open => !(hunt && hunt.Released);
+
+        protected virtual void CloseStation(Station station) => station.GoDark();
 
         public override IEnumerator Setup(SectorBuildContext ctx)
         {
@@ -124,15 +129,18 @@ namespace Substrate.Sectors.Elements.Stations
                 return;
             }
 
-            var released = hunt && hunt.Released;
             foreach (var station in stations)
             {
                 if (station.Spent) continue;
-                if (released)
+                if (!Open)
                 {
-                    station.GoDark();
+                    if (!station.Closed) CloseStation(station);
                     continue;
                 }
+
+                if (station.Closed)
+                    station.Reopen(objectives.MarkFind(station.Body.transform, icon, FindColours.Of(Kind)));
+
                 var entered = station.Zone.IsPlayerInZone && !station.Inside;
                 station.Inside = station.Zone.IsPlayerInZone;
                 if (!station.Inside) continue;
@@ -190,6 +198,7 @@ namespace Substrate.Sectors.Elements.Stations
             internal readonly Renderer Marker;
             internal bool HasArrived;
             internal bool Inside;
+            internal bool Closed { get; private set; }
             private FindMarker find;
 
             internal Station(FindStationBody body)
@@ -203,7 +212,7 @@ namespace Substrate.Sectors.Elements.Stations
             /// <summary>What the station has left to give, in its kind's unit.</summary>
             public float SupplyLeft { get; private set; }
 
-            /// <summary>Drawn to nothing, or darkened when the hunt releases.</summary>
+            /// <summary>The station's supply is gone.</summary>
             public bool Spent => SupplyLeft <= 0f;
 
             /// <summary>The point picked at setup; the body moves there when it shows.</summary>
@@ -215,6 +224,7 @@ namespace Substrate.Sectors.Elements.Stations
                 SupplyLeft = supply;
                 HasArrived = false;
                 Inside = false;
+                Closed = false;
                 Zone.BindPlayer(hero ? hero.Body : null);
                 Zone.Disarm();
                 Body.SetActive(false);
@@ -226,9 +236,15 @@ namespace Substrate.Sectors.Elements.Stations
                 Body.transform.position = Position;
                 Body.SetActive(true);
                 Zone.Arm();
-                this.find = find;
-                Tint.SetColor(BaseColor, find.Colour);
-                Marker.SetPropertyBlock(Tint);
+                Mark(find);
+            }
+
+            internal void Reopen(FindMarker find)
+            {
+                Closed = false;
+                Zone.Arm();
+                Lit.SetActive(true);
+                Mark(find);
             }
 
             internal void Draw(float amount)
@@ -240,9 +256,28 @@ namespace Substrate.Sectors.Elements.Stations
             internal void GoDark()
             {
                 SupplyLeft = 0f;
+                Extinguish();
+            }
+
+            internal void Close()
+            {
+                Extinguish();
+                Closed = true;
+            }
+
+            private void Mark(FindMarker find)
+            {
+                this.find = find;
+                Tint.SetColor(BaseColor, find.Colour);
+                Marker.SetPropertyBlock(Tint);
+            }
+
+            private void Extinguish()
+            {
                 Zone.Disarm();
                 Lit.SetActive(false);
                 Unmark();
+                Inside = false;
             }
 
             internal void Unmark()

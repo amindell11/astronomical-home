@@ -645,6 +645,9 @@ Format: **term** — definition. *(authority)*
 - **earned lull** — the rest of a sector phase once its last wave has arrived and
   nothing is alive, patrols included. A dropped wave counts as arrived. It moves
   no phase boundary. *(WaveDirector.EarnedLull)*
+- **closing lull** — the scheduled lull after a sector's last phase, before its
+  elite. A sector with no elite has none.
+  *(SectorPhaseSchedule, SectorPhaseMark.Closing)*
 - **sector phase** — one timed row of a wave director's table. The row holds
   its groups and its wave timing. Bare
   *phase* is the RL run segment (§2) outside the wave director's code (§1
@@ -676,9 +679,10 @@ Format: **term** — definition. *(authority)*
   and shield ring colour.
   The sector-to-faction mapping is ruled on #1320. *(Faction, SectorFaction)*
 - **elite** — a sector's end-of-sector enemy: its faction's signature ship made
-  larger, with a heavy weapon pair and stacked run mods. The sector's phases
-  ending summon it, and extraction opens on its death. Sector 3's elite is the
-  boss, which escalates at hull thresholds (escorts, heavier fire).
+  larger, with a heavy weapon pair and stacked run mods. A lull follows the
+  last phase, and the elite is summoned when that lull ends. Extraction opens
+  on its death. Sector 3's elite is the boss, which escalates at hull
+  thresholds (escorts, heavier fire).
   An escalation step stacks weapon mods only, so the dynamics the AI captured at
   spawn stay true. Not an *encounter*: no activation rule arms it; the sector
   spine owns it and drives it. *(EliteEncounter, EliteProfile,
@@ -688,25 +692,30 @@ Format: **term** — definition. *(authority)*
   file; a kill counts once that record is written. An abandoned run earns nothing
   from the file. *(ShipUnlocks, ItemSubset.starter)*
 - **station** — a *find* the player flies into. Every kind shares one core:
-  the placement, the clearing in the field, going dark at the hunt's release,
-  the find marker and the arrival events. A kind adds only its effect, which
-  draws on each station's supply; a station goes dark when its supply runs out.
+  the placement, the clearing in the field, the find marker and the arrival
+  events. Going dark at the hunt's release is the default. A kind may keep its
+  supply and relight. A kind adds only its effect, which draws on each station's
+  supply; a station goes dark when its supply runs out.
   *(FindStation, FindStationBody, StationKind)*
 - **repair station** — a fly-in zone each combat sector places, as many as its
   run row names, each on its own clear point away from the start, marked as a
   *find*. While the player sits in it, it repairs hull from a supply of about
-  one hull, then goes dark. The hunt's release darkens it too, and whatever supply
-  was left is lost. Hull carries into the next sector. The first *station*
-  kind. *(RepairStation, RepairStationFeelProfile, `SectorEntry.repairStations`)*
+  one hull, then goes dark. The hunt's release darkens it, and its supply stays
+  for the whole sector. It relights in each lull, scheduled or earned, and stays
+  lit for a grace window into the next phase. Hull carries into the next sector.
+  The first *station* kind. *(RepairStation, RepairStationFeelProfile,
+  `SectorEntry.repairStations`)*
 - **beacon cache** — what a lull beacon's claim grants:
   one roll among the authored mod bonuses that fit the hero (damage, fire
-  rate, shield regen) and the *hull patch*, all weighted alike. A bonus joins
+  rate, shield regen), all weighted alike. A bonus joins
   the run's mods for 20 s by default, adding to lull picks rather than
   multiplying them, and the HUD lists it with its seconds left. Each claim's
   bonus runs on its own clock, and sector teardown takes back any still
-  running. The hull patch restores 30% of a full hull at once, touches no mods,
-  and wastes what passes full. A low-hull lean, off by default, multiplies the
-  patch's weight while the hero's hull is below a threshold. No beacon, no
+  running. The *hull patch* is a further roll that ships with a weight of 0, so
+  no claim rolls it and repair stations are the sector's hull repair. Weighted
+  in, it restores 30% of a full hull at once, touches no mods, and wastes what
+  passes full. A low-hull lean, off by default, multiplies the patch's weight
+  while the hero's hull is below a threshold. No beacon, no
   cache: headless and RL sectors never grant one. *(BeaconCache,
   BeaconCacheFeelProfile, IObjectiveService.ShowBoost)*
 - **mod station** — the second *station* kind: a *find* each combat sector
@@ -1095,7 +1104,9 @@ Format: **term** — definition. *(authority)*
   marker shows during the fight; flying into it claims it. It
   stays through the lull and a grace window into the next sector phase, then
   closes unclaimed; a new beacon's opening closes the one
-  before it, so beacons never stack. The sector's opening lull gets none.
+  before it, so beacons never stack. The lull before the elite gets one too,
+  and that one stays its grace into the elite fight. The sector's opening lull
+  gets none.
   *(PhaseSpineModule, ExtractionZone)*
 - **weapon pick** — the *armory*'s choice of one weapon or ordnance the player
   does not carry, from up to three, or a skip; the pick replaces the mount in the
