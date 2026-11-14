@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Damage;
 using Ships.Damage;
 using Ships.Presentation;
@@ -33,17 +34,7 @@ namespace Ships.Visuals.Breakup
                 if (!pose)
                     throw new InvalidOperationException("Ship breakup requires every authored pose source.");
 
-            var count = 0;
-            foreach (var surface in rig.Silhouette)
-                count += surface.sharedMaterials.Length;
-            authoredPaint = new Material[count];
-            var next = 0;
-            foreach (var surface in rig.Silhouette)
-            {
-                var materials = surface.sharedMaterials;
-                for (var i = 0; i < materials.Length; i++)
-                    authoredPaint[next++] = materials[i];
-            }
+            authoredPaint = SilhouettePaint();
         }
 
         public void Bind(in ShipView view)
@@ -89,14 +80,13 @@ namespace Ships.Visuals.Breakup
         private Dictionary<Material, Material> WornPaint()
         {
             var worn = new Dictionary<Material, Material>();
-            var next = 0;
-            foreach (var surface in rig.Silhouette)
-            {
-                var materials = surface.sharedMaterials;
-                for (var i = 0; i < materials.Length; i++)
-                    worn[authoredPaint[next++]] = materials[i];
-            }
+            var now = SilhouettePaint();
+            for (var i = 0; i < now.Length; i++)
+                worn[authoredPaint[i]] = now[i];
             return worn;
         }
+
+        private Material[] SilhouettePaint() =>
+            rig.Silhouette.SelectMany(surface => surface.sharedMaterials).ToArray();
     }
 }
