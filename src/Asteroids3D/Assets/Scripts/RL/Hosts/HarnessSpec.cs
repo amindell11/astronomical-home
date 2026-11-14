@@ -519,8 +519,37 @@ namespace RL.Hosts
                 weapon = ResolveNamed(variable, token, parts[2].Trim(), weapons),
             };
             if (parts.Length == 4)
-                side.shield = ResolveNamed(variable, token, parts[3].Trim(), shields);
+            {
+                var fourth = parts[3].Trim();
+                if (fourth.Contains("/")) ParseShieldNumbers(variable, token, fourth, ref side);
+                else side.shield = ResolveNamed(variable, token, fourth, shields);
+            }
             return side;
+        }
+
+        private static void ParseShieldNumbers(string variable, string token, string text, ref MatrixSide side)
+        {
+            var pieces = text.Split('/');
+            if (pieces.Length != 3)
+                throw new ArgumentException($"{variable}='{token}': '{text}' is not capacity/delay/rate.");
+            var capacity = ShieldNumber(variable, token, pieces[0]);
+            var delay = ShieldNumber(variable, token, pieces[1]);
+            var rate = ShieldNumber(variable, token, pieces[2]);
+            if (capacity <= 0f || delay < 0f || rate < 0f)
+                throw new ArgumentException(
+                    $"{variable}='{token}': '{text}' needs capacity > 0, delay >= 0, rate >= 0.");
+            side.shieldNumbers = true;
+            side.shieldCapacity = capacity;
+            side.shieldDelay = delay;
+            side.shieldRate = rate;
+        }
+
+        private static float ShieldNumber(string variable, string token, string text)
+        {
+            if (!float.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var value)
+                || !float.IsFinite(value))
+                throw new ArgumentException($"{variable}='{token}': '{text.Trim()}' is not a finite number.");
+            return value;
         }
 
         private static MatrixSide[] ParseRoster(string token, IReadOnlyList<Ship> chassis,
@@ -555,7 +584,9 @@ namespace RL.Hosts
         }
 
         private static bool SameSide(MatrixSide a, MatrixSide b) =>
-            a.chassis == b.chassis && a.pilot == b.pilot && a.weapon == b.weapon && a.shield == b.shield;
+            a.chassis == b.chassis && a.pilot == b.pilot && a.weapon == b.weapon && a.shield == b.shield
+            && a.shieldNumbers == b.shieldNumbers && a.shieldCapacity == b.shieldCapacity
+            && a.shieldDelay == b.shieldDelay && a.shieldRate == b.shieldRate;
 
         private static void ThrowIfMatrixKits(string value, bool player, string sentence, string duel, string matrix,
             string reference, string roster, string source, Func<string, string> getEnv)

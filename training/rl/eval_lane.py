@@ -221,7 +221,7 @@ def main() -> None:
     elif args.matrix:
         stem = f"matrix-{args.matrix.lower().replace(',', '+')}"
     elif args.matrix_reference or args.matrix_roster:
-        reference = (args.matrix_reference or "").lower().replace(":", "-").replace(",", "-")
+        reference = (args.matrix_reference or "").lower().replace(":", "-").replace(",", "-").replace("/", "-")
         stem = f"matrix-roster-{reference}"
     else:
         stem = args.onnx.stem if args.onnx else SMOKE_FIXTURE_STEM
