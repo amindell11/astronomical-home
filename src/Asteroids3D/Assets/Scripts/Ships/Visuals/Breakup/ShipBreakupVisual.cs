@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Damage;
 using Ships.Damage;
 using Ships.Presentation;
@@ -15,19 +17,24 @@ namespace Ships.Visuals.Breakup
         [SerializeField] private Transform[] poseSources = Array.Empty<Transform>();
         [SerializeField] private DeathFeelProfile feel;
         private Rigidbody body;
+        private ShipVisualRig rig;
+        private Material[] authoredPaint;
         private IDamageEvents source;
         private bool subscribed;
 
         private void Awake()
         {
             body = GetComponentInParent<Rigidbody>();
-            if (!hull || !debrisPrefab || !feel)
-                throw new InvalidOperationException("Ship breakup requires an intact hull, debris prefab and death feel profile.");
+            rig = GetComponentInParent<ShipVisualRig>(true);
+            if (!hull || !debrisPrefab || !feel || !rig)
+                throw new InvalidOperationException("Ship breakup requires an intact hull, debris prefab, death feel profile and visual rig.");
             if (poseSources.Length != debrisPrefab.PoseCount)
                 throw new InvalidOperationException("Ship breakup pose sources must match the debris pose roots.");
             foreach (var pose in poseSources)
                 if (!pose)
                     throw new InvalidOperationException("Ship breakup requires every authored pose source.");
+
+            authoredPaint = SilhouettePaint();
         }
 
         public void Bind(in ShipView view)
@@ -66,8 +73,20 @@ namespace Ships.Visuals.Breakup
             var debris = Instantiate(debrisPrefab, hull.position, hull.rotation);
             SceneManager.MoveGameObjectToScene(debris.gameObject, gameObject.scene);
             debris.transform.localScale = hull.lossyScale;
-            debris.Initialize(body.linearVelocity, poseSources, feel);
+            debris.Initialize(body.linearVelocity, poseSources, feel, WornPaint());
             hull.gameObject.SetActive(false);
         }
+
+        private Dictionary<Material, Material> WornPaint()
+        {
+            var worn = new Dictionary<Material, Material>();
+            var now = SilhouettePaint();
+            for (var i = 0; i < now.Length; i++)
+                worn[authoredPaint[i]] = now[i];
+            return worn;
+        }
+
+        private Material[] SilhouettePaint() =>
+            rig.Silhouette.SelectMany(surface => surface.sharedMaterials).ToArray();
     }
 }
