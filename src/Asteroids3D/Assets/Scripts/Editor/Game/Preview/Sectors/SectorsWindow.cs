@@ -145,7 +145,7 @@ namespace Game.Preview.Sectors
         private void DrawStrip(SerializedProperty sectors, int sectorCount)
         {
             var line = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-            stripScroll = EditorGUILayout.BeginScrollView(stripScroll, GUILayout.Height(line * 7f + 24f));
+            stripScroll = EditorGUILayout.BeginScrollView(stripScroll, GUILayout.Height(line * 6f + 24f));
             using (new EditorGUILayout.HorizontalScope())
             {
                 for (var i = 0; i < sectorCount; i++)
@@ -175,7 +175,6 @@ namespace Game.Preview.Sectors
                     DrawStripField(row, nameof(SectorEntry.patrols), "Patrols", NumberFieldWidth);
                     DrawStripField(row, nameof(SectorEntry.armories), "Armories", NumberFieldWidth);
                     DrawStripField(row, nameof(SectorEntry.field), "Field", ObjectFieldWidth);
-                    DrawCaps(row.FindPropertyRelative(nameof(SectorEntry.phases)));
                 }
                 finally
                 {
@@ -203,20 +202,6 @@ namespace Game.Preview.Sectors
             var property = parent.FindPropertyRelative(name);
             EditorGUILayout.PropertyField(property, new GUIContent(label, property.tooltip),
                 GUILayout.Width(LabelWidth + fieldWidth), GUILayout.ExpandWidth(false));
-        }
-
-        private static void DrawCaps(SerializedProperty phases)
-        {
-            var width = ColumnWidth - 12f;
-            var row = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight, GUILayout.Width(width));
-            EditorGUI.LabelField(Take(ref row, LabelWidth), "caps");
-            for (var i = 0; i < phases.arraySize; i++)
-            {
-                if (row.width < 28f) break;
-                if (i > 0) EditorGUI.LabelField(Take(ref row, 10f), "/");
-                var cap = phases.GetArrayElementAtIndex(i).FindPropertyRelative(nameof(SectorPhase.cap));
-                EditorGUI.PropertyField(Take(ref row, Mathf.Min(40f, row.width)), cap, GUIContent.none);
-            }
         }
 
         private void DrawFixturesTab()
@@ -318,17 +303,14 @@ namespace Game.Preview.Sectors
             Number(ref row, phase, nameof(SectorPhase.seconds));
             EditorGUI.LabelField(Take(ref row, 14f), "s");
             Dot(ref row);
-            EditorGUI.LabelField(Take(ref row, 28f), "cap");
-            Number(ref row, phase, nameof(SectorPhase.cap));
+            EditorGUI.LabelField(Take(ref row, 78f), "wave every");
+            Number(ref row, phase, nameof(SectorPhase.waveEvery));
+            EditorGUI.LabelField(Take(ref row, 14f), "s");
+            var every = phase.FindPropertyRelative(nameof(SectorPhase.waveEvery)).floatValue;
+            if (every <= 0f) return;
             Dot(ref row);
-            EditorGUI.LabelField(Take(ref row, 58f), "ends at");
-            Number(ref row, phase, nameof(SectorPhase.endsAt));
-            Dot(ref row);
-            EditorGUI.LabelField(Take(ref row, 66f), "breather");
-            Number(ref row, phase, nameof(SectorPhase.breather));
-            Dot(ref row);
-            EditorGUI.LabelField(Take(ref row, 34f), "wait");
-            Number(ref row, phase, nameof(SectorPhase.longestWait));
+            var waves = Mathf.CeilToInt(phase.FindPropertyRelative(nameof(SectorPhase.seconds)).floatValue / every);
+            EditorGUI.LabelField(Take(ref row, 72f), $"{waves} waves");
         }
 
         private static void Number(ref Rect row, SerializedProperty phase, string name) =>
