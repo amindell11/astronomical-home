@@ -19,14 +19,13 @@ using UnityEngine;
 namespace Substrate.Sectors.Elements
 {
     /// <summary>
-    /// Sends waves of authored groups inside its sector phases: a phase opens with a wave, and the next
-    /// comes at its ends at after the breather, or at the longest wait. The cap is a ceiling a wave waits
-    /// under, counting the hunt's live patrols; nothing arrives in a lull, the done table keeps the last
-    /// phase's waves, and the elite arriving stops them. The opening lull is held for the hunt. Ships of
-    /// a wave arrive together just off screen, each facing the hero on its faction kit and skin. Dead
-    /// products despawn on the tick, and the tick idles while the hero is inactive. Nothing spawns in
-    /// Build, since the asteroid field lays out at its Start. The base class's "produce exactly once"
-    /// is about the activation token, not lifetime.
+    /// Sends waves of authored groups on each sector phase's wave-every beat, whatever is alive. A phase
+    /// opens with one, and another comes on that beat while the phase has time left. Nothing arrives in a
+    /// lull or after the elite. The done table keeps the last phase's waves, and the opening lull is held
+    /// for the hunt. Ships of a wave arrive together just off screen, each facing the hero on its faction
+    /// kit and skin. Dead products despawn on the tick, and the tick idles while the hero is inactive.
+    /// Nothing spawns in Build, since the asteroid field lays out at its Start. The base class's "produce
+    /// exactly once" is about the activation token, not lifetime.
     /// </summary>
     public class WaveDirector : SectorSpawner, ISectorRowReader
     {
@@ -75,10 +74,17 @@ namespace Substrate.Sectors.Elements
         private int openedPhase;
         private RosterEntry[] pending;
         private float lastWave;
-        private float settledSince = float.PositiveInfinity;
 
         /// <summary>Where the phase table stands as of the last tick.</summary>
         public SectorPhaseMark Phase { get; private set; }
+
+        public bool EarnedLull { get; private set; }
+
+        public float NextWaveSeconds { get; private set; }
+
+        public bool WaveAhead { get; private set; }
+
+        public float SecondsToEnd => Phase.SecondsToEnd;
 
         public int PhaseCount => phases.Length;
 
@@ -91,17 +97,11 @@ namespace Substrate.Sectors.Elements
             for (var i = 0; i < row.phases.Length; i++)
             {
                 var phase = row.phases[i];
-                if (phase.cap > 0 && phase.groups.Length == 0)
-                    throw new InvalidOperationException(
-                        $"WaveDirector on '{name}' phase {i} has a cap and lists no groups.");
                 foreach (var group in phase.groups)
                 {
                     if (group.ships.Length == 0)
                         throw new InvalidOperationException(
                             $"WaveDirector on '{name}' phase {i} has a group with no ships.");
-                    if (group.ships.Length > phase.cap)
-                        throw new InvalidOperationException(
-                            $"WaveDirector on '{name}' phase {i} has a group of {group.ships.Length} ships, past its cap of {phase.cap}.");
                     foreach (var ship in group.ships)
                         if (!ship.template)
                             throw new InvalidOperationException(
@@ -167,8 +167,9 @@ namespace Substrate.Sectors.Elements
             DespawnDead();
             HoldForHunt(now);
             Advance(now);
-            var wave = WaveDue(now, Alive);
+            var wave = WaveDue(now);
             if (wave != null && TrySend(wave)) Arrived(now);
+            Observe(now, Alive);
         }
 
         internal int Alive => products.Count + (hunt ? hunt.LivePatrols : 0);
@@ -192,8 +193,10 @@ namespace Substrate.Sectors.Elements
             huntReleased = false;
             pending = null;
             lastWave = now;
-            settledSince = float.PositiveInfinity;
             Phase = schedule.At(0f);
+            EarnedLull = false;
+            WaveAhead = false;
+            NextWaveSeconds = 0f;
         }
 
         /// <summary>Holds the opening lull at its start until the hunt releases, then ends it, once.</summary>
@@ -214,31 +217,51 @@ namespace Substrate.Sectors.Elements
             return true;
         }
 
-        internal RosterEntry[] WaveDue(float now, int alive)
+        internal RosterEntry[] WaveDue(float now)
         {
-            if (Phase.InLull || eliteArrived) return null;
+            if (Phase.InLull || eliteArrived)
+                return null;
+
             var phase = phases[Phase.Index];
             if (OpensPhase())
                 pending = Draw(phase);
-            else if (pending == null && Settled(now, alive, phase))
+            else if (pending == null && now >= lastWave + phase.waveEvery)
                 pending = Draw(phase);
-            return pending != null && alive + pending.Length <= phase.cap ? pending : null;
-        }
-
-        private bool Settled(float now, int alive, SectorPhase phase)
-        {
-            if (alive > phase.endsAt)
-                settledSince = float.PositiveInfinity;
-            else
-                settledSince = Mathf.Min(settledSince, now);
-            return now >= settledSince + phase.breather || now >= lastWave + phase.longestWait;
+            return pending;
         }
 
         internal void Arrived(float now)
         {
             pending = null;
             lastWave = now;
-            settledSince = float.PositiveInfinity;
+        }
+
+        internal void Observe(float now, int alive)
+        {
+            var phase = phases[Phase.Index];
+            var hasGroups = phase.groups.Length > 0;
+            var untilWave = lastWave + phase.waveEvery - now;
+            var waveFits = !Phase.InLull && !Phase.Done && !eliteArrived && hasGroups
+                && (pending != null || untilWave < Phase.SecondsLeft);
+
+            EarnedLull = !Phase.InLull && !Phase.Done && openedPhase == Phase.Index && pending == null && alive == 0
+                && (!hasGroups || untilWave >= Phase.SecondsLeft);
+            if (Phase.Done || (!waveFits && !Phase.InLull && Phase.Index == phases.Length - 1))
+                NextWaveSeconds = 0f;
+            else if (waveFits)
+                NextWaveSeconds = pending != null ? 0f : Mathf.Max(0f, untilWave);
+            else
+                NextWaveSeconds = Phase.CountdownSeconds;
+            WaveAhead = waveFits || LaterPhaseHasGroups();
+        }
+
+        private bool LaterPhaseHasGroups()
+        {
+            if (Phase.Done || eliteArrived) return false;
+            var from = Phase.InLull ? Phase.Index : Phase.Index + 1;
+            for (var i = from; i < phases.Length; i++)
+                if (phases[i].groups.Length > 0) return true;
+            return false;
         }
 
         private static RosterEntry[] Draw(SectorPhase phase) =>

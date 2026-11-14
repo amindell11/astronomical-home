@@ -1,6 +1,7 @@
 using System;
 using Balance;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Substrate.Sectors.Elements.Phases
 {
@@ -10,20 +11,11 @@ namespace Substrate.Sectors.Elements.Phases
         [Tooltip("How long this phase runs before the lull that leads into the next one.")]
         [Stat, Min(1f)] public float seconds;
 
-        [Tooltip("Most enemies alive at once, hunt patrols included. A wave that would pass it waits until it fits.")]
-        [Stat, Min(0)] public int cap;
-
-        [Tooltip("The groups this phase's waves draw from, one per wave, picked uniformly. A phase with a cap of 0 lists none.")]
+        [Tooltip("The groups this phase's waves draw from, one per wave, picked uniformly. A phase that lists none sends no waves.")]
         [Stat] public WaveGroup[] groups;
 
-        [Tooltip("Enemies alive, in whole ships, at or below which the next wave comes after the breather.")]
-        [Stat, Min(0)] public int endsAt;
-
-        [Tooltip("Seconds between enemies alive falling to Ends At and the next wave arriving.")]
-        [Stat, Min(0f)] public float breather;
-
-        [Tooltip("Most seconds after a wave arrives before the next one comes, however many enemies are still alive.")]
-        [Stat, Min(1f)] public float longestWait;
+        [Tooltip("Seconds between this phase's waves. The phase opens with one, and another comes on this beat while the phase has time left.")]
+        [Stat, Min(1f), FormerlySerializedAs("longestWait")] public float waveEvery;
     }
 
     /// <summary>Exists because Unity cannot serialize a jagged array of ships.</summary>

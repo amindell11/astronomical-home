@@ -195,7 +195,7 @@ namespace Tests.PlayMode.Sectors
             var row = new SectorEntry
             {
                 phases = Enumerable.Range(0, phases)
-                    .Select(_ => new SectorPhase { seconds = 1f, cap = 0, groups = System.Array.Empty<WaveGroup>() })
+                    .Select(_ => new SectorPhase { seconds = 1f, groups = System.Array.Empty<WaveGroup>() })
                     .ToArray()
             };
             director.Configure(row.phases, lullSeconds: 1f);

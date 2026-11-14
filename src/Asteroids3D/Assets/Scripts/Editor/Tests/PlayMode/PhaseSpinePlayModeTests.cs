@@ -95,7 +95,7 @@ namespace Tests.PlayMode
             var director = directorGO.AddComponent<WaveDirector>();
             var row = new SectorEntry
             {
-                phases = new[] { new SectorPhase { seconds = 1f, cap = 0, groups = System.Array.Empty<WaveGroup>() } }
+                phases = new[] { new SectorPhase { seconds = 1f, groups = System.Array.Empty<WaveGroup>() } }
             };
             director.Configure(row.phases, lullSeconds: 0f);
 
@@ -156,8 +156,8 @@ namespace Tests.PlayMode
             {
                 phases = new[]
                 {
-                    new SectorPhase { seconds = 1f, cap = 0, groups = System.Array.Empty<WaveGroup>() },
-                    new SectorPhase { seconds = 1f, cap = 0, groups = System.Array.Empty<WaveGroup>() },
+                    new SectorPhase { seconds = 1f, groups = System.Array.Empty<WaveGroup>() },
+                    new SectorPhase { seconds = 1f, groups = System.Array.Empty<WaveGroup>() },
                 }
             };
             director.Configure(row.phases, lullSeconds: 5f);

@@ -91,9 +91,9 @@ namespace Tests.PlayMode.Audio
             var director = New("WaveDirector").AddComponent<WaveDirector>();
             director.Configure(new[]
             {
-                new SectorPhase { seconds = 40f, cap = 2 },
-                new SectorPhase { seconds = 40f, cap = 2 },
-                new SectorPhase { seconds = 40f, cap = 2 },
+                new SectorPhase { seconds = 40f },
+                new SectorPhase { seconds = 40f },
+                new SectorPhase { seconds = 40f },
             }, lullSeconds: 5f);
             director.BeginSchedule(0f);
             var zone = New("Zone");

@@ -225,9 +225,31 @@ namespace Substrate.Sectors.Elements.Phases
             var graceLeft = BeaconGraceLeft(mark);
             var beaconFill = graceLeft.HasValue && beaconGraceSeconds > 0f ? graceLeft.Value / beaconGraceSeconds : 1f;
             var beaconExpiring = graceLeft <= beaconWarningSeconds;
+            ReadCaption(mark, out var caption, out var captionSeconds);
             return new SectorPhaseProgress(mark.InLull ? mark.Index - 1 : mark.Index,
-                director.PhaseCount, mark.CountdownSeconds, mark.Done,
-                beaconFill: beaconFill, beaconExpiring: beaconExpiring);
+                director.PhaseCount, director.SecondsToEnd, mark.Done,
+                beaconFill: beaconFill, beaconExpiring: beaconExpiring,
+                caption: caption, captionSeconds: captionSeconds);
+        }
+
+        private void ReadCaption(SectorPhaseMark mark, out PhaseCaption caption, out float seconds)
+        {
+            if (mark.InLull || director.EarnedLull)
+            {
+                caption = PhaseCaption.Lull;
+                seconds = mark.CountdownSeconds;
+                return;
+            }
+
+            if (director.WaveAhead)
+            {
+                caption = PhaseCaption.NextWave;
+                seconds = director.NextWaveSeconds;
+                return;
+            }
+
+            caption = elite ? PhaseCaption.Elite : PhaseCaption.Extraction;
+            seconds = 0f;
         }
 
         private void OpenExtraction()

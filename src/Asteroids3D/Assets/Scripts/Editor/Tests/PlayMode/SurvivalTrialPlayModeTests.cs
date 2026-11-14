@@ -89,9 +89,7 @@ namespace Tests.PlayMode
                     new SectorPhase
                     {
                         seconds = 100f,
-                        cap = 1,
-                        breather = 100f,
-                        longestWait = 100f,
+                        waveEvery = 100f,
                         groups = new[]
                         {
                             new WaveGroup { ships = new[] { new WaveDirector.RosterEntry { template = template } } },

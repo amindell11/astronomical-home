@@ -630,17 +630,16 @@ Format: **term** — definition. *(authority)*
   module, so product ownership and teardown stay the spawner's. *(WaveDirector)*
 - **wave** — one group of ships arriving together from one bearing just off
   screen, each on its own pilot. Each wave draws one of its sector phase's
-  groups uniformly. The cap counts the hunt's live patrols and a wave waits
-  under it. Nothing arrives in a lull, and survivors stay.
+  groups uniformly. Waves arrive on the phase's wave-every beat whatever is
+  alive. Nothing arrives in a lull, and survivors stay.
   *(WaveGroup, WaveDirector.WaveDue)*
-- **ends at** — enemies alive, in whole ships, at or below which the next wave
-  comes after the breather. *(SectorPhase.endsAt)*
-- **breather** — seconds between enemies alive falling to ends at and the next
-  wave arriving. *(SectorPhase.breather)*
-- **longest wait** — most seconds after a wave arrives before the next one
-  comes, however many enemies are still alive. *(SectorPhase.longestWait)*
+- **wave every** — seconds between a sector phase's waves. The phase opens
+  with one. *(SectorPhase.waveEvery)*
+- **earned lull** — the stretch between a phase's last wave dying and the phase's
+  scheduled end. Patrols count as alive. It moves no phase boundary.
+  *(WaveDirector.EarnedLull)*
 - **sector phase** — one timed row of a wave director's table. The row holds
-  its groups, its cap and its wave timing. Bare
+  its groups and its wave timing. Bare
   *phase* is the RL run segment (§2) outside the wave director's code (§1
   *stage / phase* row). The player-facing HUD says "PHASE". *(SectorPhase)*
 - **survival trial** — a sector whose goal is surviving its sector phases and

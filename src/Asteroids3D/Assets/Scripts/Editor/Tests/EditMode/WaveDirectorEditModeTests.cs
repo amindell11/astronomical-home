@@ -14,14 +14,13 @@ using Substrate.Sessions;
 
 namespace Tests.EditMode
 {
-    /// <summary>Wave director pacing over a sector phase table with injected time: a phase opens with a wave, the next comes at ends at after the breather or at the longest wait, the cap holds that drawn group until it fits, a lull (the opening one too) sends nothing, and the done table keeps the last phase's waves. The threat read lists each group ship once and the weapons they fly, their faction kits in group order, off a prefab asset too. A bad row fails CheckRow, and validation refuses a director that misses its spine's elite.</summary>
+    /// <summary>Wave director pacing over a sector phase table with injected time: a phase opens with a wave, and another comes on its wave-every beat. A lull, the opening one too, sends nothing, the elite stops them, and the done table keeps the last phase's waves. An earned lull, once the last wave is clear and nothing is alive, leaves the phase mark on the clock. The threat read lists each group ship once and the weapons they fly, their faction kits in group order, off a prefab asset too. A bad row fails CheckRow, and validation refuses a director that misses its spine's elite.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class WaveDirectorEditModeTests
     {
         private const float Lull = 5f;
-        private const float Breather = 4f;
-        private const float LongestWait = 20f;
+        private const float WaveEvery = 20f;
 
         private WaveDirector.RosterEntry[] _openA;
         private WaveDirector.RosterEntry[] _openB;
@@ -41,12 +40,12 @@ namespace Tests.EditMode
             {
                 new SectorPhase
                 {
-                    seconds = 40f, cap = 3, endsAt = 1, breather = Breather, longestWait = LongestWait,
+                    seconds = 40f, waveEvery = WaveEvery,
                     groups = new[] { new WaveGroup { ships = _openA }, new WaveGroup { ships = _openB } },
                 },
                 new SectorPhase
                 {
-                    seconds = 40f, cap = 4, endsAt = 1, breather = Breather, longestWait = LongestWait,
+                    seconds = 40f, waveEvery = WaveEvery,
                     groups = new[] { new WaveGroup { ships = _late } },
                 },
             };
@@ -90,58 +89,105 @@ namespace Tests.EditMode
             _director.BeginSchedule(0f);
 
             _director.Advance(4f);
-            Assert.IsNull(_director.WaveDue(4f, 0), "The opening lull sends nothing.");
+            Assert.IsNull(_director.WaveDue(4f), "The opening lull sends nothing.");
 
             _director.Advance(5f);
-            var wave = _director.WaveDue(5f, 0);
+            var wave = _director.WaveDue(5f);
             Assert.IsTrue(wave == _openA || wave == _openB, "Phase one draws a whole group from its list.");
-            Assert.AreSame(wave, _director.WaveDue(5f, 0));
+            Assert.AreSame(wave, _director.WaveDue(5f));
         }
 
         [Test]
-        public void EndsAt_SendsTheNextWaveAfterTheBreather_AndAClimbResetsIt()
+        public void WaveEvery_SendsOnItsBeat()
         {
             OpenAndArrive(0f);
 
-            Assert.IsNull(_director.WaveDue(10f, 2), "Above ends at, time alone does not send a wave.");
-            Assert.IsNull(_director.WaveDue(10f, 1), "The breather starts when alive falls to ends at.");
-            Assert.IsNull(_director.WaveDue(13.9f, 1));
-            Assert.IsTrue(IsOpenGroup(_director.WaveDue(14f, 1)), "The next wave comes at ends at plus the breather.");
-
-            _director.Arrived(0f);
-            Assert.IsNull(_director.WaveDue(10f, 1));
-            Assert.IsNull(_director.WaveDue(12f, 2), "Climbing back above ends at resets the breather.");
-            Assert.IsNull(_director.WaveDue(14f, 1), "The reset breather has not run out.");
-            Assert.IsNull(_director.WaveDue(17.9f, 1));
-            Assert.IsTrue(IsOpenGroup(_director.WaveDue(18f, 1)));
+            Assert.IsNull(_director.WaveDue(WaveEvery - .1f), "The beat has not arrived.");
+            Assert.IsTrue(IsOpenGroup(_director.WaveDue(WaveEvery)), "The next wave comes on the beat.");
         }
 
         [Test]
-        public void LongestWait_SendsTheNextWaveWhileEnemiesStayUp()
+        public void EarnedLull_IsFalseWhileAWaveFitsOrAnythingIsAlive()
         {
             OpenAndArrive(0f);
+            _director.Advance(10f);
+            Assert.IsNull(_director.WaveDue(10f));
+            _director.Observe(10f, 0);
+            Assert.IsFalse(_director.EarnedLull, "A further wave still fits.");
 
-            Assert.IsNull(_director.WaveDue(19.9f, 2), "Alive stays above ends at and under the ceiling.");
-            Assert.IsTrue(IsOpenGroup(_director.WaveDue(20f, 2)), "The longest wait sends the next wave.");
-        }
+            _director.Advance(WaveEvery);
+            Assert.IsNotNull(_director.WaveDue(WaveEvery));
+            _director.Arrived(WaveEvery);
+            _director.Observe(WaveEvery, 0);
+            Assert.IsTrue(_director.EarnedLull, "The last wave is sent and nothing is alive.");
 
-        [Test]
-        public void Cap_HoldsTheSameGroupUntilAliveFits_AndAliveCountsTheHuntsPatrols()
-        {
+            _director.Advance(WaveEvery);
+            _director.Observe(WaveEvery, 1);
+            Assert.IsFalse(_director.EarnedLull, "Any alive count above zero holds the lull.");
+
+            _director.Advance(WaveEvery);
+            _director.Observe(WaveEvery, 0);
+            Assert.IsTrue(_director.EarnedLull);
+
+            _director.Configure(new[]
+            {
+                new SectorPhase
+                {
+                    seconds = 40f, waveEvery = WaveEvery, groups = System.Array.Empty<WaveGroup>(),
+                },
+            }, Lull);
+            _director.BeginSchedule(0f);
             _director.Advance(0f);
-            Assert.IsNull(_director.WaveDue(0f, _phases[0].cap),
-                "Alive, which counts the hunt's patrols, leaves no room for the drawn group.");
+            Assert.IsNull(_director.WaveDue(0f));
+            _director.Observe(0f, 0);
+            Assert.IsTrue(_director.EarnedLull, "A phase with no groups earns the lull while nothing is alive.");
+        }
 
-            var held = _director.WaveDue(0f, 0);
-            Assert.IsTrue(held == _openA || held == _openB);
-            for (var i = 0; i < 12; i++)
-                Assert.AreSame(held, _director.WaveDue(i, 0), "The waiting group is not redrawn.");
+        [Test]
+        public void EarnedLull_DoesNotMoveThePhaseBoundary()
+        {
+            OpenAndArrive(0f);
+            _director.Advance(WaveEvery);
+            Assert.IsNotNull(_director.WaveDue(WaveEvery));
+            _director.Arrived(WaveEvery);
+            _director.Observe(WaveEvery, 0);
+            Assert.IsTrue(_director.EarnedLull);
+
+            var earned = _director.Phase;
+            var clock = new GameObject("Clock");
+            clock.transform.SetParent(_go.transform);
+            var other = clock.AddComponent<WaveDirector>();
+            other.Configure(_phases, Lull);
+            other.BeginSchedule(0f);
+            other.Advance(WaveEvery);
+            other.Observe(WaveEvery, 0);
+
+            Assert.IsFalse(other.EarnedLull);
+            Assert.AreEqual(earned.Index, other.Phase.Index);
+            Assert.AreEqual(earned.InLull, other.Phase.InLull);
+            Assert.AreEqual(earned.SecondsLeft, other.Phase.SecondsLeft, 1e-4f);
+            Assert.AreEqual(earned.CountdownSeconds, other.Phase.CountdownSeconds, 1e-4f);
+            Assert.AreEqual(earned.Done, other.Phase.Done);
+
+            _director.Advance(40f);
+            other.Advance(40f);
+            Assert.IsTrue(_director.Phase.InLull, "The scheduled lull starts when the phase's seconds run out.");
+            Assert.AreEqual(other.Phase.Index, _director.Phase.Index);
+            Assert.AreEqual(other.Phase.InLull, _director.Phase.InLull);
+            Assert.AreEqual(other.Phase.SecondsLeft, _director.Phase.SecondsLeft, 1e-4f);
+
+            _director.Advance(45f);
+            other.Advance(45f);
+            Assert.AreEqual(1, _director.Phase.Index);
+            Assert.IsFalse(_director.Phase.InLull);
+            Assert.AreEqual(other.Phase.Index, _director.Phase.Index);
+            Assert.AreEqual(other.Phase.InLull, _director.Phase.InLull);
         }
 
         [Test]
         public void Alive_WithNoHunt_CountsOnlyTheDirectorsShips()
         {
-            Assert.AreEqual(0, _director.Alive, "With no hunt, no patrol takes a slot.");
+            Assert.AreEqual(0, _director.Alive, "With no hunt, only the director's ships count.");
         }
 
         [Test]
@@ -157,14 +203,14 @@ namespace Tests.EditMode
             {
                 new SectorPhase
                 {
-                    seconds = 40f, cap = 3, endsAt = 1, breather = Breather, longestWait = LongestWait,
+                    seconds = 40f, waveEvery = WaveEvery,
                     groups = new[] { new WaveGroup { ships = ships } },
                 },
             }, Lull, spawnRadius: radius, groupSpread: spread);
             _director.BeginSchedule(0f);
             _director.Advance(0f);
 
-            Assert.AreSame(ships, _director.WaveDue(0f, 0), "A wave is the whole group at once.");
+            Assert.AreSame(ships, _director.WaveDue(0f), "A wave is the whole group at once.");
 
             var center = new Vector2(3f, 4f);
             const float bearing = 0.4f;
@@ -190,10 +236,10 @@ namespace Tests.EditMode
             OpenAndArrive(0f);
             _director.Advance(41f);
             Assert.IsTrue(_director.Phase.InLull);
-            Assert.IsNull(_director.WaveDue(1000f, 0), "A lull sends nothing, however long the breather and the wait.");
+            Assert.IsNull(_director.WaveDue(1000f), "A scheduled lull sends nothing.");
 
             _director.Advance(45f);
-            Assert.AreSame(_late, _director.WaveDue(45f, 0), "The next phase opens with a group from its own list.");
+            Assert.AreSame(_late, _director.WaveDue(45f), "The next phase opens with a group from its own list.");
         }
 
         [Test]
@@ -207,7 +253,7 @@ namespace Tests.EditMode
             Assert.IsFalse(_director.OpensPhase(), "The opening lull opens nothing.");
             _director.Advance(4.9f);
             Assert.IsFalse(_director.OpensPhase());
-            Assert.IsNull(_director.WaveDue(4.9f, 0), "The opening lull sends nothing, whatever is due.");
+            Assert.IsNull(_director.WaveDue(4.9f), "The opening lull sends nothing, whatever is due.");
 
             _director.Advance(5f);
             Assert.AreEqual(0, _director.Phase.Index);
@@ -219,8 +265,8 @@ namespace Tests.EditMode
         {
             _director.Advance(0f);
             _director.OnEliteArrived(default);
-            Assert.IsNull(_director.WaveDue(0f, 0), "The elite stops waves even when one is due.");
-            Assert.IsNull(_director.WaveDue(100f, 0));
+            Assert.IsNull(_director.WaveDue(0f), "The elite stops waves even when one is due.");
+            Assert.IsNull(_director.WaveDue(100f));
         }
 
         [Test]
@@ -230,17 +276,8 @@ namespace Tests.EditMode
             Assert.IsTrue(_director.Phase.Done);
             _director.Arrived(500f);
 
-            Assert.IsNull(_director.WaveDue(519f, 2));
-            Assert.IsNull(_director.WaveDue(520f, _phases[1].cap), "The last phase's cap still holds the wave.");
-            Assert.AreSame(_late, _director.WaveDue(520f, 2), "Pursuit keeps the last phase's groups and longest wait.");
-        }
-
-        [Test]
-        public void CheckRow_RefusesACappedPhaseWithNoGroups()
-        {
-            var ex = Assert.Throws<System.InvalidOperationException>(() =>
-                _director.CheckRow(Row(new SectorPhase { cap = 1, groups = System.Array.Empty<WaveGroup>() })));
-            StringAssert.Contains("WaveDirector", ex.Message);
+            Assert.IsNull(_director.WaveDue(519f));
+            Assert.AreSame(_late, _director.WaveDue(520f), "The done table keeps the last phase's groups and wave every.");
         }
 
         [Test]
@@ -248,22 +285,7 @@ namespace Tests.EditMode
         {
             var ex = Assert.Throws<System.InvalidOperationException>(() => _director.CheckRow(Row(new SectorPhase
             {
-                cap = 1,
                 groups = new[] { new WaveGroup { ships = System.Array.Empty<WaveDirector.RosterEntry>() } },
-            })));
-            StringAssert.Contains("WaveDirector", ex.Message);
-        }
-
-        [Test]
-        public void CheckRow_RefusesAGroupBiggerThanItsCap()
-        {
-            var ex = Assert.Throws<System.InvalidOperationException>(() => _director.CheckRow(Row(new SectorPhase
-            {
-                cap = 1,
-                groups = new[]
-                {
-                    new WaveGroup { ships = new[] { new WaveDirector.RosterEntry(), new WaveDirector.RosterEntry() } },
-                },
             })));
             StringAssert.Contains("WaveDirector", ex.Message);
         }
@@ -273,17 +295,16 @@ namespace Tests.EditMode
         {
             var ex = Assert.Throws<System.InvalidOperationException>(() => _director.CheckRow(Row(new SectorPhase
             {
-                cap = 1,
                 groups = new[] { new WaveGroup { ships = new[] { new WaveDirector.RosterEntry() } } },
             })));
             StringAssert.Contains("WaveDirector", ex.Message);
         }
 
         [Test]
-        public void CheckRow_AllowsACapOfZeroWithNoGroups()
+        public void CheckRow_AllowsAPhaseWithNoGroups()
         {
             Assert.DoesNotThrow(() =>
-                _director.CheckRow(Row(new SectorPhase { cap = 0, groups = System.Array.Empty<WaveGroup>() })));
+                _director.CheckRow(Row(new SectorPhase { groups = System.Array.Empty<WaveGroup>() })));
         }
 
         [Test]
@@ -395,7 +416,7 @@ namespace Tests.EditMode
         private void OpenAndArrive(float now)
         {
             _director.Advance(now);
-            Assert.IsNotNull(_director.WaveDue(now, 0));
+            Assert.IsNotNull(_director.WaveDue(now));
             _director.Arrived(now);
         }
 

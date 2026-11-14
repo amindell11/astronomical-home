@@ -78,7 +78,6 @@ namespace Tests.EditMode
 
         [TestCase("faction", "the row's faction")]
         [TestCase("elite", "EliteEncounter")]
-        [TestCase("groups", "WaveDirector")]
         [TestCase("phases", "WaveDirector")]
         [TestCase("field", "asteroid field")]
         public void Session_RefusesARowMissingAValueItsLayoutReads(string value, string reader)
@@ -88,7 +87,6 @@ namespace Tests.EditMode
             {
                 case "faction": row.faction = null; break;
                 case "elite": row.elite = null; break;
-                case "groups": row.phases = WithGroups(row.phases); break;
                 case "phases": row.phases = System.Array.Empty<SectorPhase>(); break;
                 case "field": row.field = null; break;
             }

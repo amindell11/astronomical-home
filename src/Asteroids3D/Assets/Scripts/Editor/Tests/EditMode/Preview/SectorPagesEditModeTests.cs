@@ -81,7 +81,13 @@ namespace Tests.EditMode.Preview
             var row = new SectorEntry
             {
                 prefab = sector,
-                phases = new[] { new SectorPhase { cap = 1, groups = Array.Empty<WaveGroup>() } },
+                phases = new[]
+                {
+                    new SectorPhase
+                    {
+                        groups = new[] { new WaveGroup { ships = Array.Empty<WaveDirector.RosterEntry>() } },
+                    },
+                },
             };
             var run = Track(SectorRun.Create(row));
             var thrown = Assert.Throws<InvalidOperationException>(() => sector.CheckRow(row));

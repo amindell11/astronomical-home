@@ -20,27 +20,38 @@ namespace Substrate.Sectors.Elements.Phases
             this.phases = phases;
             this.lullSeconds = lullSeconds;
             this.openingLullSeconds = openingLullSeconds;
+            var total = openingLullSeconds;
+            for (var i = 0; i < phases.Length; i++)
+            {
+                if (i > 0) total += lullSeconds;
+                total += phases[i].seconds;
+            }
+            TotalSeconds = total;
         }
 
         public int Count => phases.Length;
 
+        /// <summary>Opening lull, plus each phase, plus the lull between each pair.</summary>
+        private float TotalSeconds { get; }
+
         public SectorPhaseMark At(float elapsed)
         {
+            var secondsToEnd = Math.Max(0f, TotalSeconds - elapsed);
             var start = 0f;
             for (var i = 0; i < phases.Length; i++)
             {
                 var lullEnd = start + (i == 0 ? openingLullSeconds : lullSeconds);
                 if (elapsed < lullEnd) return new SectorPhaseMark(i, true, false, lullEnd - elapsed,
-                    lullEnd - elapsed, elapsed - start);
+                    lullEnd - elapsed, elapsed - start, secondsToEnd);
                 start = lullEnd;
 
                 var end = start + phases[i].seconds;
                 if (elapsed < end) return new SectorPhaseMark(i, false, false, end - elapsed,
-                    end - elapsed + (i < phases.Length - 1 ? lullSeconds : 0f), elapsed - start);
+                    end - elapsed + (i < phases.Length - 1 ? lullSeconds : 0f), elapsed - start, secondsToEnd);
                 start = end;
             }
 
-            return new SectorPhaseMark(phases.Length - 1, false, true, 0f, 0f, elapsed - start);
+            return new SectorPhaseMark(phases.Length - 1, false, true, 0f, 0f, elapsed - start, secondsToEnd);
         }
     }
 
@@ -54,11 +65,12 @@ namespace Substrate.Sectors.Elements.Phases
         public float CountdownSeconds { get; }
         // Seconds into this sector phase or lull; once done, since the table finished.
         public float ElapsedSeconds { get; }
+        public float SecondsToEnd { get; }
 
         public bool InOpeningLull => InLull && Index == 0;
 
         public SectorPhaseMark(int index, bool inLull, bool done, float secondsLeft, float countdownSeconds,
-            float elapsedSeconds)
+            float elapsedSeconds, float secondsToEnd)
         {
             Index = index;
             InLull = inLull;
@@ -66,6 +78,7 @@ namespace Substrate.Sectors.Elements.Phases
             SecondsLeft = secondsLeft;
             CountdownSeconds = countdownSeconds;
             ElapsedSeconds = elapsedSeconds;
+            SecondsToEnd = secondsToEnd;
         }
     }
 }
