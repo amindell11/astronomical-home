@@ -2,26 +2,19 @@ using Capture.Views;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using AI;
-using Capture;
-using Capture.Recording;
 using System.Text.RegularExpressions;
 using Combat.Weapons;
 using Ships;
 using Ships.Loadout;
-using Unity.InferenceEngine;
-using UnityEngine;
-using RL.Episodes.Compositions;
-using RL.Hosts.PlayerEval;
 using RL.Opponents;
 using RL.Probes;
 
 namespace RL.Hosts
 {
     /// <summary>Which lane client the host runs; every other axis of a harness run is a spec field.</summary>
-    public enum HarnessLane { Eval, Capture, Sentence, Duel, Matrix }
+    public enum HarnessLane { Matrix }
 
     /// <summary>The recording axis, parsed once at the batch boundary. Off by default; enabled records every episode (<see cref="all"/>) or the listed per-block indices. Carried into play mode as a serialized field on the spec.</summary>
     [Serializable]
@@ -38,36 +31,13 @@ namespace RL.Hosts
             enabled && (all || (episodes != null && Array.IndexOf(episodes, episode) >= 0));
     }
 
-    public enum OpponentKind { Roster, Archetype, Mirror, Checkpoint }
-
-    /// <summary>One block's opponent config: a pinned scripted archetype, the candidate's own mirror, or a second frozen checkpoint.</summary>
+    /// <summary>One block's opponent label: the matchup the block names, else the archetype's name.</summary>
     public struct OpponentSpec
     {
-        public const string MirrorLabel = "Mirror";
-
-        public OpponentKind kind;
         public OpponentArchetype archetype;
-        public string checkpointStem;
-        // Two sentence rows can stage the same archetype; probe pools key on the label.
         public string labelOverride;
 
-        public static readonly OpponentSpec Mirror = new() { kind = OpponentKind.Mirror };
-
-        public static OpponentSpec Pinned(OpponentArchetype archetype) =>
-            new() { kind = OpponentKind.Archetype, archetype = archetype };
-
-        public static OpponentSpec Sentence(OpponentArchetype archetype, string rowLabel) =>
-            new() { kind = OpponentKind.Archetype, archetype = archetype, labelOverride = rowLabel };
-
-        public static OpponentSpec Checkpoint(string stem) =>
-            new() { kind = OpponentKind.Checkpoint, checkpointStem = stem };
-
-        public string Label => !string.IsNullOrEmpty(labelOverride) ? labelOverride : kind switch
-        {
-            OpponentKind.Mirror => MirrorLabel,
-            OpponentKind.Checkpoint => checkpointStem,
-            _ => archetype.ToString(),
-        };
+        public string Label => !string.IsNullOrEmpty(labelOverride) ? labelOverride : archetype.ToString();
     }
 
     /// <summary>One selected probe with its parsed params — parallel key/value arrays because Dictionary is not Unity-serializable.</summary>
@@ -94,10 +64,7 @@ namespace RL.Hosts
     [Serializable]
     public sealed class HarnessSpec
     {
-        public const string RosterToken = "roster";
-        public const string MirrorToken = "mirror";
-        public const string EvalLaneToken = "eval";
-        public const string CaptureLaneToken = "capture";
+        public const string MatrixLaneToken = "matrix";
         public const string RecordAllToken = "all";
         public const int DefaultEpisodesPerSeed = 5;
         public const int DefaultRecordWidth = 960;
@@ -105,189 +72,81 @@ namespace RL.Hosts
         public const int DefaultRecordEvery = 5;
 
         public HarnessLane lane;
-        public ModelAsset model;
-        public string onnxSourcePath;
         public int[] seeds;
         public string tag;
         public int episodesPerSeed;
-        public float fieldDensityScale;
-        public OpponentKind opponentKind;
-        public OpponentArchetype opponentArchetype;
-        public ModelAsset opponentModel;
-        public string opponentOnnxSourcePath;
-        public string opponentLabel;
         public ProbeSpec[] probes;
         public GizmoCaptureProfile gizmoProfile;
         public RecordPlan record;
         public string captureCommit;
         public string outDir;
-        /// <summary>Sentence lane only: the session bingo rows, each run as one block playing its fixed hand vector.</summary>
-        public SentenceRow[] sentenceRows;
-        /// <summary>Duel lane only: the weapon prefabs, each fought alone in the shooter's primary weapon slot.</summary>
-        public WeaponComponent[] duelWeapons;
-        /// <summary>Matrix lane only: the weapon prefabs. Each unordered pair, a weapon against itself included, is one block.</summary>
+        /// <summary>Weapon-pair mode: the weapon prefabs. Each unordered pair, a weapon against itself included, is one block.</summary>
         public WeaponComponent[] matrixWeapons;
-        /// <summary>Matrix lane, roster mode: the fixed side. Weapon-pair mode leaves it unset.</summary>
+        /// <summary>Roster mode: the fixed side. Weapon-pair mode leaves it unset.</summary>
         public MatrixSide matrixReference;
-        /// <summary>Matrix lane, roster mode: one block per entry, fought as side B against <see cref="matrixReference"/>.</summary>
+        /// <summary>Roster mode: one block per entry, fought as side B against <see cref="matrixReference"/>.</summary>
         public MatrixSide[] matrixRoster;
-        /// <summary>Matrix lane, roster mode: both commanders hold the keystone off.</summary>
+        /// <summary>Roster mode: both commanders hold the keystone off.</summary>
         public bool matrixKitsOff;
 
         /// <summary>Visuals and audio exist iff the session records plain footage — profile rule: GizmoCaptureProfiles.PresentationFor.</summary>
         public bool Presentation => record.enabled && GizmoCaptureProfiles.PresentationFor(gizmoProfile);
 
-        // Preserve the source stem because imported asset paths erase it.
-        public string CandidateStem => Path.GetFileNameWithoutExtension(
-            string.IsNullOrEmpty(onnxSourcePath) ? ShipAgentFactory.SmokeFixturePath : onnxSourcePath);
-
         // Each retired name carries its replacement, or null when it was removed with no successor.
         private static readonly (string name, string replacement)[] RetiredNames =
         {
-            ("RL_EVAL_ONNX", "RL_HARNESS_ONNX"),
             ("RL_EVAL_SEEDS", "RL_HARNESS_SEEDS"),
             ("RL_EVAL_EPISODES_PER_SEED", "RL_HARNESS_EPISODES_PER_SEED"),
-            ("RL_EVAL_DENSITY", "RL_HARNESS_DENSITY"),
-            ("RL_EVAL_OPPONENT", "RL_HARNESS_OPPONENT"),
             ("RL_EVAL_PROBES", "RL_HARNESS_PROBES"),
             ("RL_EVAL_OUT_DIR", "RL_HARNESS_OUT_DIR"),
             ("RL_HARNESS_PAINTERS", null),
         };
 
-        // A null source selects the smoke fixture; graphics detection is injected for tests.
-        public static HarnessSpec ParseEval(Func<string, string> getEnv, Func<string, ModelAsset> resolveCandidate,
-            Func<string, ModelAsset> resolveOpponent, Func<IReadOnlyList<WeaponComponent>> catalogWeapons,
+        // The trained-agent lanes' variables: a stale script setting one must not run a matrix in its place.
+        private static readonly string[] RemovedWithRl =
+        {
+            "RL_EVAL_ONNX", "RL_EVAL_DENSITY", "RL_EVAL_OPPONENT",
+            "RL_HARNESS_ONNX", "RL_HARNESS_OPPONENT", "RL_HARNESS_DENSITY", "RL_HARNESS_BUNDLE",
+            "RL_HARNESS_SENTENCE", "RL_HARNESS_DUEL",
+        };
+
+        private static readonly string[] RemovedLanes = { "eval", "capture", "sentence", "duel" };
+
+        // Graphics detection is injected for tests.
+        public static HarnessSpec Parse(Func<string, string> getEnv, Func<IReadOnlyList<WeaponComponent>> catalogWeapons,
             Func<IReadOnlyList<Ship>> catalogChassis, Func<IReadOnlyList<AICommander>> catalogPilots,
             Func<IReadOnlyList<ShieldModule>> catalogShields, Func<bool> hasGraphicsDevice)
         {
-            // Retired-names rigor: the variable must never shift meaning with the session kind it lands in.
-            if (getEnv("RL_HARNESS_BUNDLE") != null)
-                throw new ArgumentException(
-                    "RL_HARNESS_BUNDLE names the player eval boot's model bundle; an editor session resolves RL_HARNESS_ONNX itself — unset it.");
-            return Parse(getEnv, resolveCandidate, resolveOpponent, catalogWeapons, catalogChassis, catalogPilots,
-                catalogShields, hasGraphicsDevice, player: false);
-        }
-
-        // Player eval requires explicit checkpoint provenance and resolves bundle assets at boot.
-        public static HarnessSpec ParsePlayerEval(Func<string, string> getEnv,
-            Func<string, string, ModelAsset> loadBundleAsset, Func<bool> hasGraphicsDevice)
-        {
-            var bundlePath = getEnv("RL_HARNESS_BUNDLE");
-            if (string.IsNullOrEmpty(bundlePath) || string.IsNullOrEmpty(getEnv("RL_HARNESS_ONNX")))
-                throw new ArgumentException(
-                    "A player eval boot needs both RL_HARNESS_BUNDLE (the convert step's model bundle) and RL_HARNESS_ONNX (checkpoint provenance).");
-            return Parse(getEnv,
-                _ => loadBundleAsset(bundlePath, EvalModelBundle.CandidateAsset),
-                _ => loadBundleAsset(bundlePath, EvalModelBundle.OpponentAsset),
-                catalogWeapons: null, catalogChassis: null, catalogPilots: null, catalogShields: null,
-                hasGraphicsDevice, player: true);
-        }
-
-        private static HarnessSpec Parse(Func<string, string> getEnv, Func<string, ModelAsset> resolveCandidate,
-            Func<string, ModelAsset> resolveOpponent, Func<IReadOnlyList<WeaponComponent>> catalogWeapons,
-            Func<IReadOnlyList<Ship>> catalogChassis, Func<IReadOnlyList<AICommander>> catalogPilots,
-            Func<IReadOnlyList<ShieldModule>> catalogShields, Func<bool> hasGraphicsDevice, bool player)
-        {
             ThrowOnRetiredNames(getEnv);
-            var sentence = getEnv("RL_HARNESS_SENTENCE");
-            var duel = getEnv("RL_HARNESS_DUEL");
+            var lane = ParseLane(getEnv("RL_HARNESS_LANE"));
             var matrix = getEnv("RL_HARNESS_MATRIX");
             var matrixReference = getEnv("RL_HARNESS_MATRIX_REFERENCE");
             var matrixRoster = getEnv("RL_HARNESS_MATRIX_ROSTER");
             var matrixKits = getEnv("RL_HARNESS_MATRIX_KITS");
             var rosterMatrix = matrixReference != null || matrixRoster != null;
-            var source = getEnv("RL_HARNESS_ONNX");
-            if (player && sentence != null)
+            if (rosterMatrix && matrix != null)
                 throw new ArgumentException(
-                    "The sentence lane is editor-only; a player boot takes no RL_HARNESS_SENTENCE.");
-            if (sentence != null && source != null)
-                throw new ArgumentException(
-                    "RL_HARNESS_SENTENCE plays scripted sentences; RL_HARNESS_ONNX has no role in the sentence lane.");
-            if (sentence != null && getEnv("RL_HARNESS_OPPONENT") != null)
-                throw new ArgumentException(
-                    "Each sentence row stages its own opponent; RL_HARNESS_OPPONENT selects eval-lane opponents.");
-            if (sentence != null && getEnv("RL_HARNESS_LANE") != null)
-                throw new ArgumentException(
-                    "RL_HARNESS_SENTENCE implies its own lane; RL_HARNESS_LANE selects the eval/capture lanes.");
-            if (player && duel != null)
-                throw new ArgumentException(
-                    "The duel lane is editor-only; a player boot takes no RL_HARNESS_DUEL.");
-            if (duel != null && sentence != null)
-                throw new ArgumentException(
-                    "RL_HARNESS_DUEL and RL_HARNESS_SENTENCE each imply their own lane; set one.");
-            if (duel != null && source != null)
-                throw new ArgumentException(
-                    "RL_HARNESS_DUEL fights two scripted ships; RL_HARNESS_ONNX has no role in the duel lane.");
-            if (duel != null && getEnv("RL_HARNESS_OPPONENT") != null)
-                throw new ArgumentException(
-                    "The duel lane stages its own targets; RL_HARNESS_OPPONENT selects eval-lane opponents.");
-            if (duel != null && getEnv("RL_HARNESS_LANE") != null)
-                throw new ArgumentException(
-                    "RL_HARNESS_DUEL implies its own lane; RL_HARNESS_LANE selects the eval/capture lanes.");
-            if (player && matrix != null)
-                throw new ArgumentException(
-                    "The matrix lane is editor-only; a player boot takes no RL_HARNESS_MATRIX.");
-            if (matrix != null && sentence != null)
-                throw new ArgumentException(
-                    "RL_HARNESS_MATRIX and RL_HARNESS_SENTENCE each imply their own lane; set one.");
-            if (matrix != null && duel != null)
-                throw new ArgumentException(
-                    "RL_HARNESS_MATRIX and RL_HARNESS_DUEL each imply their own lane; set one.");
-            if (matrix != null && source != null)
-                throw new ArgumentException(
-                    "RL_HARNESS_MATRIX fights two scripted ships; RL_HARNESS_ONNX has no role in the matrix lane.");
-            if (matrix != null && getEnv("RL_HARNESS_OPPONENT") != null)
-                throw new ArgumentException(
-                    "The matrix lane stages its own ships; RL_HARNESS_OPPONENT selects eval-lane opponents.");
-            if (matrix != null && getEnv("RL_HARNESS_LANE") != null)
-                throw new ArgumentException(
-                    "RL_HARNESS_MATRIX implies its own lane; RL_HARNESS_LANE selects the eval/capture lanes.");
-            if (rosterMatrix)
-                ThrowIfRosterMatrixConflicts(
-                    matrixReference != null ? "RL_HARNESS_MATRIX_REFERENCE" : "RL_HARNESS_MATRIX_ROSTER",
-                    player, sentence, duel, matrix, source, getEnv);
+                    $"{(matrixReference != null ? "RL_HARNESS_MATRIX_REFERENCE" : "RL_HARNESS_MATRIX_ROSTER")} and RL_HARNESS_MATRIX select different matrix modes; set one.");
             if (matrixKits != null)
-                ThrowIfMatrixKits(matrixKits, player, sentence, duel, matrix, matrixReference, matrixRoster, source,
-                    getEnv);
-            var lane = sentence != null ? HarnessLane.Sentence
-                : duel != null ? HarnessLane.Duel
-                : matrix != null || rosterMatrix ? HarnessLane.Matrix
-                : ParseLane(getEnv("RL_HARNESS_LANE"));
+                ThrowIfMatrixKits(matrixKits, matrix, matrixReference, matrixRoster);
+            if (matrix == null && !rosterMatrix)
+                throw new ArgumentException(
+                    "The matrix lane needs RL_HARNESS_MATRIX, or RL_HARNESS_MATRIX_REFERENCE with RL_HARNESS_MATRIX_ROSTER.");
             var spec = new HarnessSpec
             {
                 lane = lane,
-                onnxSourcePath = source,
-                model = resolveCandidate(source),
                 episodesPerSeed = ParseEpisodes(getEnv("RL_HARNESS_EPISODES_PER_SEED")),
-                fieldDensityScale = ParseDensity(getEnv("RL_HARNESS_DENSITY")),
-                probes = ParseProbes(getEnv("RL_HARNESS_PROBES"), lane),
+                probes = ParseProbes(getEnv("RL_HARNESS_PROBES")),
                 gizmoProfile = ParseGizmoProfile(getEnv("RL_HARNESS_GIZMOS")),
                 outDir = getEnv("RL_HARNESS_OUT_DIR"),
             };
             spec.seeds = ParseSeeds(getEnv("RL_HARNESS_SEEDS"), out var tag);
-            // A non-canonical density (the 3.0 stretch) marks its artifacts so it can never pass as the canonical eval.
-            spec.tag = Mathf.Approximately(spec.fieldDensityScale, EvalProtocol.CanonicalFieldDensityScale)
-                ? tag
-                : tag + "-d" + spec.fieldDensityScale.ToString("0.##", CultureInfo.InvariantCulture).Replace('.', '_');
-            if (player && spec.lane != HarnessLane.Eval)
-                throw new ArgumentException(
-                    "The capture lane is editor-only; a player boot runs the eval lane (leave RL_HARNESS_LANE unset).");
-            if (sentence != null)
-            {
-                spec.ParseSentence(sentence);
-                spec.tag = "sentence-" + spec.tag;
-            }
-            else if (duel != null)
-            {
-                spec.duelWeapons = ParseWeapons("RL_HARNESS_DUEL", duel, catalogWeapons());
-                spec.tag = "duel-" + spec.tag;
-            }
-            else if (matrix != null)
+            if (matrix != null)
             {
                 spec.matrixWeapons = ParseWeapons("RL_HARNESS_MATRIX", matrix, catalogWeapons());
-                spec.tag = "matrix-" + spec.tag;
+                spec.tag = "matrix-" + tag;
             }
-            else if (rosterMatrix)
+            else
             {
                 if (matrixReference == null || matrixRoster == null)
                     throw new ArgumentException(
@@ -300,11 +159,7 @@ namespace RL.Hosts
                     chassis, pilots, weapons, shields);
                 spec.matrixRoster = ParseRoster(matrixRoster, chassis, pilots, weapons, shields);
                 spec.matrixKitsOff = matrixKits != null;
-                spec.tag = (spec.matrixKitsOff ? "matrix-kitsoff-" : "matrix-") + spec.tag;
-            }
-            else
-            {
-                spec.ParseOpponent(getEnv("RL_HARNESS_OPPONENT"), resolveOpponent);
+                spec.tag = (spec.matrixKitsOff ? "matrix-kitsoff-" : "matrix-") + tag;
             }
             spec.record = ParseRecord(getEnv, spec.episodesPerSeed, hasGraphicsDevice);
             if (spec.record.enabled)
@@ -313,31 +168,18 @@ namespace RL.Hosts
                 if (spec.captureCommit == null || !Regex.IsMatch(spec.captureCommit, "^[0-9a-fA-F]{40}$"))
                     throw new ArgumentException("RL_HARNESS_CAPTURE_COMMIT must name the launcher's 40-character hexadecimal SHA when recording.");
             }
-            spec.ValidateLane();
             spec.ValidateCaptureSelector();
             return spec;
         }
 
         private static HarnessLane ParseLane(string value)
         {
-            if (string.IsNullOrEmpty(value) || Matches(value, EvalLaneToken)) return HarnessLane.Eval;
-            if (Matches(value, CaptureLaneToken)) return HarnessLane.Capture;
-            throw new ArgumentException($"RL_HARNESS_LANE='{value}' is not \"{EvalLaneToken}\" or \"{CaptureLaneToken}\".");
-        }
-
-        // The capture client is the frozen "once" protocol: one seed, one opponent block. Roster stratification is an eval concept.
-        private void ValidateLane()
-        {
-            if (lane != HarnessLane.Capture) return;
-            if (seeds.Length != 1)
+            if (string.IsNullOrEmpty(value) || Matches(value, MatrixLaneToken)) return HarnessLane.Matrix;
+            if (RemovedLanes.Any(removed => Matches(value, removed)))
                 throw new ArgumentException(
-                    $"RL_HARNESS_LANE=capture films exactly one seed; RL_HARNESS_SEEDS resolved to {seeds.Length}.");
-            if (opponentKind == OpponentKind.Roster)
-                throw new ArgumentException(
-                    "RL_HARNESS_LANE=capture needs a single opponent block; set RL_HARNESS_OPPONENT to an archetype, "
-                    + "\"mirror\", or a checkpoint path (roster stratification is an eval concept).");
+                    $"RL_HARNESS_LANE='{value}': that lane was removed with the RL training stack; only \"{MatrixLaneToken}\" remains.");
+            throw new ArgumentException($"RL_HARNESS_LANE='{value}' is not \"{MatrixLaneToken}\".");
         }
-
 
         private static GizmoCaptureProfile ParseGizmoProfile(string value)
         {
@@ -352,8 +194,6 @@ namespace RL.Hosts
         private void ValidateCaptureSelector()
         {
             if (gizmoProfile == GizmoCaptureProfile.None) return;
-            if (lane != HarnessLane.Capture)
-                throw new ArgumentException("RL_HARNESS_GIZMOS is available only on RL_HARNESS_LANE=capture.");
             if (!record.enabled)
                 throw new ArgumentException("RL_HARNESS_GIZMOS needs RL_HARNESS_RECORD to select filmed episodes.");
         }
@@ -429,32 +269,6 @@ namespace RL.Hosts
             return every;
         }
 
-        /// <summary>Grammar: "all" (the six session rows) or comma-separated distinct row tokens.</summary>
-        private void ParseSentence(string token)
-        {
-            if (Matches(token, "all"))
-            {
-                sentenceRows = (SentenceRow[])SentenceRows.SessionRows.Clone();
-                return;
-            }
-            var rows = new List<SentenceRow>();
-            foreach (var raw in token.Split(','))
-            {
-                var name = raw.Trim();
-                if (name.Length == 0) continue;
-                if (!SentenceRows.TryParse(name, out var row))
-                    throw new ArgumentException(
-                        $"RL_HARNESS_SENTENCE='{token}': '{name}' is not \"all\" or one of {SentenceRows.RowTokens}.");
-                if (rows.Contains(row))
-                    throw new ArgumentException($"RL_HARNESS_SENTENCE='{token}': duplicate row '{name}'.");
-                rows.Add(row);
-            }
-            if (rows.Count == 0)
-                throw new ArgumentException(
-                    $"RL_HARNESS_SENTENCE='{token}' selected no rows; use \"all\" or comma-separated row tokens.");
-            sentenceRows = rows.ToArray();
-        }
-
         /// <summary>Grammar: "all" (the item catalog's weapons, in catalog order) or comma-separated distinct catalog weapon names.</summary>
         private static WeaponComponent[] ParseWeapons(string variable, string token,
             IReadOnlyList<WeaponComponent> catalogWeapons)
@@ -477,32 +291,6 @@ namespace RL.Hosts
                 throw new ArgumentException(
                     $"{variable}='{token}' selected no weapons; use \"all\" or comma-separated weapon names.");
             return weapons.ToArray();
-        }
-
-        private static void ThrowIfRosterMatrixConflicts(string which, bool player, string sentence, string duel,
-            string matrix, string source, Func<string, string> getEnv)
-        {
-            if (player)
-                throw new ArgumentException(
-                    $"The matrix lane is editor-only; a player boot takes no {which}.");
-            if (sentence != null)
-                throw new ArgumentException(
-                    $"{which} and RL_HARNESS_SENTENCE each imply their own lane; set one.");
-            if (duel != null)
-                throw new ArgumentException(
-                    $"{which} and RL_HARNESS_DUEL each imply their own lane; set one.");
-            if (matrix != null)
-                throw new ArgumentException(
-                    $"{which} and RL_HARNESS_MATRIX each imply their own lane; set one.");
-            if (source != null)
-                throw new ArgumentException(
-                    $"{which} fights two scripted ships; RL_HARNESS_ONNX has no role in the matrix lane.");
-            if (getEnv("RL_HARNESS_OPPONENT") != null)
-                throw new ArgumentException(
-                    "The matrix lane stages its own ships; RL_HARNESS_OPPONENT selects eval-lane opponents.");
-            if (getEnv("RL_HARNESS_LANE") != null)
-                throw new ArgumentException(
-                    $"{which} implies its own lane; RL_HARNESS_LANE selects the eval/capture lanes.");
         }
 
         private static MatrixSide ParseSide(string variable, string token, IReadOnlyList<Ship> chassis,
@@ -557,19 +345,19 @@ namespace RL.Hosts
         private static bool SameSide(MatrixSide a, MatrixSide b) =>
             a.chassis == b.chassis && a.pilot == b.pilot && a.weapon == b.weapon && a.shield == b.shield;
 
-        private static void ThrowIfMatrixKits(string value, bool player, string sentence, string duel, string matrix,
-            string reference, string roster, string source, Func<string, string> getEnv)
+        private static void ThrowIfMatrixKits(string value, string matrix, string reference, string roster)
         {
             const string which = "RL_HARNESS_MATRIX_KITS";
             if (!Matches(value, "off"))
                 throw new ArgumentException($"{which}='{value}' is not \"off\".");
-            ThrowIfRosterMatrixConflicts(which, player, sentence, duel, matrix, source, getEnv);
+            if (matrix != null)
+                throw new ArgumentException($"{which} and RL_HARNESS_MATRIX select different matrix modes; set one.");
             if (reference == null || roster == null)
                 throw new ArgumentException(
                     $"{which} is valid only with RL_HARNESS_MATRIX_REFERENCE and RL_HARNESS_MATRIX_ROSTER.");
         }
 
-        // A stale script setting a retired name would otherwise silently reshape the session (eval the smoke fixture, or film plain footage).
+        // A stale script setting a retired name would otherwise silently reshape the session.
         private static void ThrowOnRetiredNames(Func<string, string> getEnv)
         {
             foreach (var (name, replacement) in RetiredNames)
@@ -577,6 +365,10 @@ namespace RL.Hosts
                     throw new ArgumentException(replacement != null
                         ? $"{name} is retired; set {replacement} instead."
                         : $"{name} is retired and removed with no replacement.");
+            foreach (var name in RemovedWithRl)
+                if (getEnv(name) != null)
+                    throw new ArgumentException(
+                        $"{name} was removed with the RL training stack; only the matrix lane remains — unset it.");
         }
 
         private static int ParseEpisodes(string value)
@@ -586,14 +378,6 @@ namespace RL.Hosts
                 || episodes < 1)
                 throw new ArgumentException($"RL_HARNESS_EPISODES_PER_SEED='{value}' is not a positive episode count.");
             return episodes;
-        }
-
-        private static float ParseDensity(string value)
-        {
-            if (string.IsNullOrEmpty(value)) return EvalProtocol.CanonicalFieldDensityScale;
-            if (!float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var density))
-                throw new ArgumentException($"RL_HARNESS_DENSITY='{value}' is not a number.");
-            return density;
         }
 
         private static int[] ParseSeeds(string selector, out string tag)
@@ -609,21 +393,10 @@ namespace RL.Hosts
             }
         }
 
-        /// <summary>Grammar: comma-separated `name` or `name(key=value,…)` tokens — the split is paren-aware, so commas inside parens separate params, not probes. The default set is per-lane: a probe reading an instrument the lane's brains don't carry would just throw.</summary>
-        private static ProbeSpec[] ParseProbes(string value, HarnessLane lane)
+        /// <summary>Grammar: comma-separated `name` or `name(key=value,…)` tokens — the split is paren-aware, so commas inside parens separate params, not probes. Unset selects the matrix probe.</summary>
+        private static ProbeSpec[] ParseProbes(string value)
         {
-            if (value == null)
-                return lane switch
-                {
-                    HarnessLane.Sentence => new[] { ProbeSpec.Named(ControllerProbe.ProbeName) },
-                    HarnessLane.Duel => new[] { ProbeSpec.Named(MarksmanshipProbe.ProbeName) },
-                    HarnessLane.Matrix => new[] { ProbeSpec.Named(MatrixProbe.ProbeName) },
-                    _ => new[]
-                    {
-                        ProbeSpec.Named(ArchetypeGateProbe.ProbeName),
-                        ProbeSpec.Named(CombatTelemetryProbe.ProbeName),
-                    },
-                };
+            if (value == null) return new[] { ProbeSpec.Named(MatrixProbe.ProbeName) };
             var entries = new List<ProbeSpec>();
             var depth = 0;
             var start = 0;
@@ -637,23 +410,6 @@ namespace RL.Hosts
                 start = i + 1;
             }
             if (depth != 0) throw ProbeError(value, "unbalanced '('");
-            // The sentence brain exposes no policy readout (facing).
-            if (lane == HarnessLane.Sentence)
-                foreach (var entry in entries)
-                    if (entry.name == FacingProbe.ProbeName)
-                        throw ProbeError(entry.name,
-                            "the sentence lane's brain carries no policy readout");
-            // The combat probe normalizes by the primary FireRange; Missiles and Grenades report 0.
-            if (lane == HarnessLane.Duel)
-                foreach (var entry in entries)
-                    if (entry.name == CombatTelemetryProbe.ProbeName)
-                        throw ProbeError(entry.name,
-                            "the duel lane's weapons need not report a fire range");
-            if (lane == HarnessLane.Matrix)
-                foreach (var entry in entries)
-                    if (entry.name == CombatTelemetryProbe.ProbeName)
-                        throw ProbeError(entry.name,
-                            "the matrix lane's weapons need not report a fire range");
             return entries.ToArray();
         }
 
@@ -700,34 +456,6 @@ namespace RL.Hosts
 
         private static ArgumentException ProbeError(string token, string reason) =>
             new($"RL_HARNESS_PROBES token '{token.Trim()}': {reason}.");
-
-        private void ParseOpponent(string token, Func<string, ModelAsset> resolveOpponent)
-        {
-            if (string.IsNullOrEmpty(token) || Matches(token, RosterToken)) return;
-            if (Matches(token, MirrorToken))
-            {
-                opponentKind = OpponentKind.Mirror;
-                return;
-            }
-            if (token.EndsWith(".onnx", StringComparison.OrdinalIgnoreCase))
-            {
-                var stem = Path.GetFileNameWithoutExtension(token);
-                if (!CaptureArtifacts.IsSafeName(stem))
-                    throw new ArgumentException(
-                        $"RL_HARNESS_OPPONENT checkpoint stem '{stem}' must be filesystem-safe [A-Za-z0-9_-] "
-                        + "(it names clip dirs and artifact files) — rename the checkpoint.");
-                opponentKind = OpponentKind.Checkpoint;
-                opponentOnnxSourcePath = token;
-                opponentModel = resolveOpponent(token);
-                opponentLabel = stem;
-                return;
-            }
-            if (!Enum.TryParse<OpponentArchetype>(token, ignoreCase: true, out var archetype))
-                throw new ArgumentException($"RL_HARNESS_OPPONENT='{token}' is not \"{RosterToken}\", \"{MirrorToken}\", "
-                    + $"a checkpoint path ending .onnx, or one of {string.Join(", ", Enum.GetNames(typeof(OpponentArchetype)))}.");
-            opponentKind = OpponentKind.Archetype;
-            opponentArchetype = archetype;
-        }
 
         private static bool Matches(string token, string keyword) =>
             string.Equals(token, keyword, StringComparison.OrdinalIgnoreCase);

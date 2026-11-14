@@ -35,10 +35,10 @@ class LauncherEnvComposition(unittest.TestCase):
                                            lease="test-lease", out_dir=self.out_dir, **kwargs)
 
     def test_passed_params_become_harness_env_as_strings(self):
-        self.launch(onnx="ckpt/ShipCombat-42.onnx", seeds="2001,2002", episodes_per_seed=3)
+        self.launch(matrix="Lasers", seeds="2001,2002", episodes_per_seed=3)
 
         env = self.captured["env"]
-        self.assertEqual("ckpt/ShipCombat-42.onnx", env["RL_HARNESS_ONNX"])
+        self.assertEqual("Lasers", env["RL_HARNESS_MATRIX"])
         self.assertEqual("2001,2002", env["RL_HARNESS_SEEDS"])
         self.assertEqual("3", env["RL_HARNESS_EPISODES_PER_SEED"])
         self.assertEqual(str(self.out_dir), env["RL_HARNESS_OUT_DIR"])
@@ -50,22 +50,10 @@ class LauncherEnvComposition(unittest.TestCase):
         self.launch(seeds="2001,2002")
 
         env = self.captured["env"]
-        for absent in ("RL_HARNESS_ONNX", "RL_HARNESS_EPISODES_PER_SEED", "RL_HARNESS_DENSITY",
-                       "RL_HARNESS_OPPONENT", "RL_HARNESS_PROBES", "RL_HARNESS_SENTENCE",
-                       "RL_HARNESS_DUEL", "RL_HARNESS_MATRIX",
+        for absent in ("RL_HARNESS_EPISODES_PER_SEED", "RL_HARNESS_PROBES", "RL_HARNESS_MATRIX",
                        "RL_HARNESS_MATRIX_REFERENCE", "RL_HARNESS_MATRIX_ROSTER",
                        "RL_HARNESS_MATRIX_KITS"):
             self.assertNotIn(absent, env)
-
-    def test_sentence_param_becomes_harness_env(self):
-        self.launch(seeds="2001", sentence="orbit,drift-hold")
-
-        self.assertEqual("orbit,drift-hold", self.captured["env"]["RL_HARNESS_SENTENCE"])
-
-    def test_duel_param_becomes_harness_env(self):
-        self.launch(seeds="3001", duel="Lasers,Missiles")
-
-        self.assertEqual("Lasers,Missiles", self.captured["env"]["RL_HARNESS_DUEL"])
 
     def test_matrix_param_becomes_harness_env(self):
         self.launch(seeds="3001", matrix="Lasers,Missiles")
@@ -123,63 +111,6 @@ class LauncherEnvComposition(unittest.TestCase):
                                         lease="test-lease", out_dir=self.out_dir, seeds="2001")
 
 
-class PlayerLaneComposition(unittest.TestCase):
-    """Player mode leases conversion, then runs the simulation lease-free."""
-
-    def setUp(self):
-        self.out_dir = Path(tempfile.mkdtemp())
-        self.captured = {}
-
-    def fake_run_batch(self, lease, project, batch_script, env, wait_seconds, log_path):
-        self.captured.update(batch_script=batch_script, env=env)
-        return 0
-
-    def test_convert_step_runs_the_convert_child_with_bundle_inputs(self):
-        with mock.patch.object(eval_lane, "run_batch", self.fake_run_batch):
-            bundle = eval_lane.run_convert_step(project=Path("proj"), unity=Path("unity.exe"),
-                                                lease="test-lease", out_dir=self.out_dir,
-                                                onnx="ckpt/ShipCombat-42.onnx", opponent="mirror")
-
-        self.assertEqual(eval_lane.CONVERT_CHILD, self.captured["batch_script"])
-        env = self.captured["env"]
-        self.assertEqual("ckpt/ShipCombat-42.onnx", env["RL_HARNESS_ONNX"])
-        self.assertEqual("mirror", env["RL_HARNESS_OPPONENT"])
-        expected = self.out_dir / "eval-models.bundle"
-        self.assertEqual(str(expected), env["RL_HARNESS_BUNDLE"])
-        self.assertEqual(expected, bundle)
-
-    def test_player_launch_is_lease_free_and_carries_the_bundle_var(self):
-        def fake_run(cmd, env):
-            self.captured.update(cmd=cmd, env=env)
-            (self.out_dir / "20260731-120000-heldout-summary.json").write_text("{}")
-            return mock.Mock(returncode=0)
-
-        with mock.patch.object(eval_lane.subprocess, "run", fake_run):
-            summary = eval_lane.run_player_eval(exe=Path("RLHarnessEval.exe"),
-                                                bundle=self.out_dir / "eval-models.bundle",
-                                                out_dir=self.out_dir, onnx="ckpt/ShipCombat-42.onnx",
-                                                seeds="2001,2002")
-
-        self.assertEqual(["RLHarnessEval.exe", "-batchmode", "-nographics",
-                          "-logFile", str(self.out_dir / "player.log")], self.captured["cmd"])
-        env = self.captured["env"]
-        self.assertEqual(str(self.out_dir / "eval-models.bundle"), env["RL_HARNESS_BUNDLE"])
-        self.assertEqual("ckpt/ShipCombat-42.onnx", env["RL_HARNESS_ONNX"])
-        self.assertEqual("2001,2002", env["RL_HARNESS_SEEDS"])
-        self.assertEqual(str(self.out_dir), env["RL_HARNESS_OUT_DIR"])
-        self.assertNotIn("HARNESS_UNITY", env, "editor-child plumbing must not reach the player")
-        self.assertEqual(self.out_dir / "20260731-120000-heldout-summary.json", summary)
-
-    def test_player_nonzero_exit_fails_loud(self):
-        with mock.patch.object(eval_lane.subprocess, "run",
-                               lambda cmd, env: mock.Mock(returncode=1)):
-            with self.assertRaises(SystemExit):
-                eval_lane.run_player_eval(exe=Path("RLHarnessEval.exe"),
-                                          bundle=self.out_dir / "eval-models.bundle",
-                                          out_dir=self.out_dir, onnx="ckpt/ShipCombat-42.onnx",
-                                          seeds="2001")
-
-
 class MatrixKitsCli(unittest.TestCase):
     def _main(self, argv):
         stderr = io.StringIO()
@@ -194,15 +125,9 @@ class MatrixKitsCli(unittest.TestCase):
         message = self._main(["eval_lane.py", "--seeds", "3001", "--matrix-kits", "off"])
         self.assertIn("--matrix-kits requires --matrix-roster", message)
 
-    def test_refused_with_player_exec(self):
-        with tempfile.NamedTemporaryFile(suffix=".onnx") as onnx:
-            message = self._main([
-                "eval_lane.py", "--seeds", "3001", "--exec", "player", "--onnx", onnx.name,
-                "--matrix-reference", "Crimson:KiterPilot:Lasers",
-                "--matrix-roster", "Vanguard:AggressorPilot:Lasers",
-                "--matrix-kits", "off",
-            ])
-        self.assertIn("--matrix-kits is editor-only", message)
+    def test_refused_without_a_matrix_selection(self):
+        message = self._main(["eval_lane.py", "--seeds", "3001"])
+        self.assertIn("select a matrix", message)
 
 
 if __name__ == "__main__":

@@ -18,7 +18,7 @@ namespace RL.Episodes
     /// <summary>Spawns the matrix lane's pair. Each side is a chassis prefab, a pilot prefab, and one primary weapon. A named shield is copied onto an inactive chassis instance and that instance is the spawn template. The weapon is equipped before wiring, because the commander captures muzzle speed once at init.</summary>
     internal static class MatrixSpawner
     {
-        // EpisodePair's armed-pair streams. A seed's decision noise matches that spawn.
+        // Per-side decision-seed streams, so a seed replays the same decision noise.
         private const uint AgentSeedStream = 101;
         private const uint BaselineSeedStream = 202;
 

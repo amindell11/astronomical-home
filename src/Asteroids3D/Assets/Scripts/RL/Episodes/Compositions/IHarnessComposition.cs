@@ -1,5 +1,4 @@
 using RL.Episodes;
-using RL.Hosts;
 using RL.Opponents;
 using RL.Reward;
 
@@ -9,6 +8,6 @@ namespace RL.Episodes.Compositions
     internal interface IHarnessComposition : IEpisodeComposition
     {
         EpisodePair Pair { get; }
-        OpponentDraw InstallOpponent(in OpponentSpec opponent, in RewardSpec spec, int episodeIndex);
+        OpponentDraw InstallOpponent(in RewardSpec spec, int episodeIndex);
     }
 }

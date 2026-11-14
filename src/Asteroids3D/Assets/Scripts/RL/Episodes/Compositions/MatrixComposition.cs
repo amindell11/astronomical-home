@@ -14,7 +14,6 @@ namespace RL.Episodes.Compositions
     /// <summary>The matrix lane's harness composition. Each side brings its chassis, pilot, and one primary weapon, and may name a shield that replaces the chassis module. The weapon-pair path installs a fixed Aggressor on both ships; a roster side flies the pilot prefab's authored brain. Kits-off holds both keystones. The loadout binds at spawn, so one seed's episodes share the pair and an odd episode only swaps poses.</summary>
     internal sealed class MatrixComposition : IHarnessComposition
     {
-        // DuelComposition's fixed Aggressor: hold 10, speed fraction 0.85.
         private static readonly OpponentDraw ShooterShape = new() { desiredRange = 10f, speedFraction = 0.85f };
 
         public EpisodeLoopDriver Driver { get; }
@@ -46,11 +45,11 @@ namespace RL.Episodes.Compositions
                 agentCommander.suppressKeystone = true;
                 baselineCommander.suppressKeystone = true;
             }
-            Driver = new EpisodeLoopDriver(Pair, agent: null, offset);
+            Driver = new EpisodeLoopDriver(Pair, offset);
             units.OnShipRespawned += OnRespawned;
         }
 
-        public OpponentDraw InstallOpponent(in OpponentSpec opponent, in RewardSpec spec, int episodeIndex)
+        public OpponentDraw InstallOpponent(in RewardSpec spec, int episodeIndex)
         {
             OpponentDraw draw;
             if (installAggressor)

@@ -113,8 +113,8 @@ namespace Tests.EditMode
             return byName.TryGetValue(reference, out var n) ? n : null;
         }
 
-        // #185's shape: the scene's own component assembly dropped from the player. Asmdef
-        // references never see it — the scene-to-script edge lives in the asset database.
+        // A built scene's own component assembly dropped from the player. Asmdef references
+        // never see it — the scene-to-script edge lives in the asset database.
         [Test]
         public void GameSceneScriptDependencies_SurvivePlayerBuild()
         {

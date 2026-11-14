@@ -2,9 +2,9 @@
 
 The Python side of the harness lanes. The trainer, its configs and the eval gate
 were removed with RL (#853); the `rl-seed` tag marks the last commit that has them.
-What stays launches the scripted lanes through the unity-access coordinator:
+What stays launches the matrix lane through the unity-access coordinator:
 
-- `eval_lane.py` composes a lane's environment, runs the batch child and reads
+- `eval_lane.py` composes the lane's environment, runs the batch child and reads
   the summary back.
 - `harness_child.ps1` is that batch child: it carries the environment into
   `-executeMethod RL.Hosts.TrainingBootstrap.RunHarness`.
@@ -13,35 +13,36 @@ What stays launches the scripted lanes through the unity-access coordinator:
 ## The `RL_HARNESS_*` grammar
 
 The `RL_HARNESS_*` family is the harness-run grammar, parsed once by `HarnessSpec` (C#)
-at the batch boundary — a retired `RL_EVAL_*` name present in the environment
-throws there, naming its replacement:
+at the batch boundary. The matrix lane is the only lane left. A retired `RL_EVAL_*`
+name throws there, naming its replacement, and a variable of a removed lane
+(`RL_HARNESS_ONNX`, `_OPPONENT`, `_DENSITY`, `_BUNDLE`, `_SENTENCE`, `_DUEL`) throws as removed:
 
 ```powershell
-$env:RL_HARNESS_ONNX = "results/rl-training/<run-id>/ShipCombat.onnx"   # default: the smoke fixture
-$env:RL_HARNESS_EPISODES_PER_SEED = "5"
-$env:RL_HARNESS_SEEDS = "train"   # checkpoint selection; omit (or "held-out") for the sealed set, or pass "7,42,99"
-$env:RL_HARNESS_DENSITY = "3.0"   # stretch/diagnostic only; omit for the canonical eval env
-$env:RL_HARNESS_OPPONENT = "mirror"   # "roster" (default: stratified archetype blocks) / an archetype name / "mirror" (checkpoint vs itself) / a path ending .onnx (checkpoint vs checkpoint; blocks labeled by its stem)
-$env:RL_HARNESS_PROBES = "gate,facing(wFacing=5)"   # comma-separated "name" or "name(key=value,...)" probe tokens writing per-probe sidecars; "" for none; omit for the default "gate,combat"
-                                                    # registered: gate, combat, contact, facing (wFacing >= 0 scales the measured agent's facing authority; default 1)
-$env:RL_HARNESS_LANE = "capture"   # "eval" (default: scripted/roster W/L/D + summary) / "capture" (film one seed against one opponent block, no summary)
+# One matrix mode is required:
+$env:RL_HARNESS_MATRIX = "Lasers,Missiles"   # weapon-pair mode: "all" or catalog weapon names; every unordered pair, a weapon against itself included, is one block
+$env:RL_HARNESS_MATRIX_REFERENCE = "Crimson:KiterPilot:Lasers"   # roster mode: the fixed side, Chassis:Pilot:Weapon[:Shield]
+$env:RL_HARNESS_MATRIX_ROSTER = "Vanguard:AggressorPilot:Lasers,Nightshade:OrbiterPilot:TurboLasers"   # roster mode: one block per side against the reference
+$env:RL_HARNESS_MATRIX_KITS = "off"   # roster mode only: both commanders hold the keystone off
+
+$env:RL_HARNESS_LANE = "matrix"   # optional; any removed lane name (eval, capture, sentence, duel) throws
+$env:RL_HARNESS_SEEDS = "3001,3002"   # omit (or "held-out") for 1001-1020, "train" for seed 1, or a comma list
+$env:RL_HARNESS_EPISODES_PER_SEED = "4"   # omit for 5; odd episodes replay the previous pose with sides swapped
+$env:RL_HARNESS_PROBES = "matrix"   # comma-separated probe tokens writing per-probe sidecars; "" for none; omit for "matrix"
 $env:RL_HARNESS_RECORD = "all"   # omit/"" = off; "all" or comma indices (0-based, < episodes/seed) select which episodes film. Recording forces a graphics device — the batch child drops -nographics
 $env:RL_HARNESS_RECORD_SIZE = "960x540"   # clip WxH, positive + even (yuv420p); omit for 960x540
 $env:RL_HARNESS_RECORD_EVERY = "5"   # capture cadence in fixed steps; omit for 5
-$env:RL_HARNESS_GIZMOS = "combat"   # native gizmo capture profile filmed through the Game View: steering / combat / everything. Capture lane + RL_HARNESS_RECORD only; films collider silhouettes without presentation meshes. Omit to film plain gameplay with presentation on
-$env:RL_HARNESS_OUT_DIR = "..."   # caller-owned artifact dir; omit for results/rl-eval/ (capture writes rl-capture/)
+$env:RL_HARNESS_GIZMOS = "combat"   # native gizmo capture profile filmed through the Game View: steering / combat / everything. Needs RL_HARNESS_RECORD; films collider silhouettes without presentation meshes. Omit to film plain gameplay with presentation on
+$env:RL_HARNESS_OUT_DIR = "..."   # caller-owned artifact dir; omit for results/rl-eval/
 ```
 
-Recording is orthogonal to the lane: `RL_HARNESS_RECORD` on the eval lane films
-a scored eval (the rules-change telemetry instrument); the capture lane runs the
-"once" protocol — exactly one seed, one opponent block (`roster` is refused —
-five archetype films are five sessions), JSONL rows kept as clip fingerprints,
-no summary. Clips land beside their JSONL under `RL_HARNESS_OUT_DIR` (or
-`results/rl-capture/`): `frames/<jsonl-stem>-s<seed>-<opponent>-ep<NN>/`.
+Each run writes the episode JSONL, the matrix probe's `-matrix.jsonl` rows and
+its `-matrix-probe.json` sidecar with a markdown table beside it, and the lane's
+`-summary.json`. With `RL_HARNESS_RECORD` set, clips land beside the JSONL:
+`frames/<jsonl-stem>-s<seed>-<block>-ep<NN>/`.
 
 The shared `harness_child.ps1` launcher stamps `RL_HARNESS_CAPTURE_COMMIT` from
 the selected project's Git HEAD before starting a recording run. Direct callers
-of `HarnessSpec.ParseEval` must supply that provenance when recording is enabled.
+of `HarnessSpec.Parse` must supply that provenance when recording is enabled.
 Each completed clip has exact PNG identities and unscaled/simulation timestamps
 in its manifest-named frame metadata. The caller prepares the diagnostic view
 and pacing before episode reset; recording starts at the existing `onBegin`
@@ -58,12 +59,14 @@ named under `results/rl-eval/manual/` in the primary tree:
 
 ```powershell
 cd training/rl
-python eval_lane.py --seeds 2001,2002,2003,2004,2005 --episodes-per-seed 3
+python eval_lane.py --matrix Lasers,Missiles --seeds 3001,3002 --episodes-per-seed 4
+python eval_lane.py --matrix-reference Crimson:KiterPilot:Lasers --matrix-roster Vanguard:AggressorPilot:Lasers --seeds 3001
 ```
 
 Point `--project` at a free pool slot; values pass through as strings —
-`HarnessSpec` is the single grammar authority.
+`HarnessSpec` is the single grammar authority. The launcher does not pass
+`RL_HARNESS_RECORD`; a filmed run sets the environment by hand and runs
+`harness_child.ps1` through the coordinator.
 
-The seed selection tags the run's JSONL/summary artifacts (`train` /
-`held-out` / `custom`); a density-overridden run suffixes the tag
-(e.g. `train-d3`) and records its env in the summary JSON.
+The seed selection tags the run's artifacts (`matrix-train` / `matrix-held-out` /
+`matrix-custom`, with `matrix-kitsoff-` for a kits-off roster).

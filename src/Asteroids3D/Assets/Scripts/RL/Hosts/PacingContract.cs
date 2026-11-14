@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace RL.Hosts
 {
-    /// <summary>The one sim-semantics rule for all RL runs: every rendered frame advances exactly one fixed step, so Update-driven systems (Scout scanning, shield regen) tick once per fixed step at any speed. The trainer's engine-config defaults (time_scale 20, capture_frame_rate 60) violate this at the 50 Hz fixed step — the YAML must pin engine_settings and the host asserts the resolved Time settings.</summary>
+    /// <summary>The one sim-semantics rule for harness runs: every rendered frame advances exactly one fixed step, so Update-driven systems (Scout scanning, shield regen) tick once per fixed step at any speed. The host applies it and asserts the resolved Time settings.</summary>
     public static class PacingContract
     {
         public static void Apply()
@@ -18,8 +18,7 @@ namespace RL.Hosts
             if (Mathf.Abs(simPerFrame - Time.fixedDeltaTime) > 1e-6f)
                 throw new InvalidOperationException(
                     $"Pacing contract violated: captureDeltaTime ({Time.captureDeltaTime}) × timeScale ({Time.timeScale}) "
-                    + $"must equal fixedDeltaTime ({Time.fixedDeltaTime}). Pin engine_settings in the trainer YAML "
-                    + $"(time_scale: 1, capture_frame_rate: {Mathf.RoundToInt(1f / Time.fixedDeltaTime)}).");
+                    + $"must equal fixedDeltaTime ({Time.fixedDeltaTime}). Something changed Time after PacingContract.Apply.");
         }
     }
 }

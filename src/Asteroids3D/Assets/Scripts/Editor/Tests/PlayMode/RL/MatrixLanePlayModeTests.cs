@@ -76,7 +76,7 @@ namespace Tests.PlayMode
 
             var seedSpec = MatrixLane.MatrixSpec();
             seedSpec.runSeed = spec.seeds[0];
-            var jsonlPath = EpisodeJsonl.NewRunPath(spec.tag, CheckpointEvaluator.ResultsFolder, spec.outDir);
+            var jsonlPath = EpisodeJsonl.NewRunPath(spec.tag, MatrixLane.ResultsFolder, spec.outDir);
             var composition = host.NewMatrixComposition(in seedSpec, lasers, lasers);
             yield return host.RunBlock(composition, MatrixLane.Block(lasers, lasers), spec.episodesPerSeed,
                 seedSpec, jsonlPath, null);
@@ -141,7 +141,7 @@ namespace Tests.PlayMode
 
             var seedSpec = MatrixLane.RosterSpec();
             seedSpec.runSeed = spec.seeds[0];
-            var jsonlPath = EpisodeJsonl.NewRunPath(spec.tag, CheckpointEvaluator.ResultsFolder, spec.outDir);
+            var jsonlPath = EpisodeJsonl.NewRunPath(spec.tag, MatrixLane.ResultsFolder, spec.outDir);
             var composition = host.NewMatrixComposition(in seedSpec, reference, roster);
             yield return host.RunBlock(composition, MatrixLane.Block(reference, roster), spec.episodesPerSeed,
                 seedSpec, jsonlPath, null);
@@ -251,7 +251,7 @@ namespace Tests.PlayMode
 
             var seedSpec = MatrixLane.RosterSpec();
             seedSpec.runSeed = spec.seeds[0];
-            var jsonlPath = EpisodeJsonl.NewRunPath(spec.tag, CheckpointEvaluator.ResultsFolder, spec.outDir);
+            var jsonlPath = EpisodeJsonl.NewRunPath(spec.tag, MatrixLane.ResultsFolder, spec.outDir);
             var block = MatrixLane.Block(reference, roster, kitsOff: true);
             var composition = host.NewMatrixComposition(in seedSpec, reference, roster);
             yield return host.RunBlock(composition, block, spec.episodesPerSeed, seedSpec, jsonlPath, null);
