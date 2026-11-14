@@ -13,13 +13,12 @@ using RL.Arena;
 using RL.Episodes;
 using RL.Episodes.Compositions;
 using RL.Hosts.Lanes;
-using RL.Opponents;
 using RL.Probes;
 using RL.Reward;
 
 namespace RL.Hosts
 {
-    /// <summary>Scene entry point for one offline harness run, composed by TrainingBootstrap.RunHarness in batch mode. It owns the measurement arena and two primitives — <see cref="NewComposition"/> (one per seed, so every RNG stream replays from that seed) and <see cref="RunBlock"/> (N consecutive episodes against one opponent config) — and the spec's lane client sequences them.</summary>
+    /// <summary>Scene entry point for one offline harness run, composed by TrainingBootstrap.RunHarness in batch mode. It owns the measurement arena and two primitives — NewMatrixComposition (one per seed and block, so every RNG stream replays from that seed) and <see cref="RunBlock"/> (N consecutive episodes against one opponent config) — and the spec's lane client sequences them.</summary>
     public sealed class HarnessHost : MonoBehaviour
     {
         [SerializeField] internal HarnessSpec spec;
@@ -29,13 +28,11 @@ namespace RL.Hosts
 
         /// <summary>The measurement arena sits at the plane origin; lanes and compositions place their world from this.</summary>
         internal Vector2 Offset => Vector2.zero;
-        internal HarnessAssets Assets => assets;
         internal IProjectileService Projectiles { get; private set; }
 
         private UnitService units;
         private IHarnessProbe[] probes;
         private IEpisodeCapture episodeCapture;
-        internal bool HasEpisodeCapture => episodeCapture != null;
 
         // Resolved lazily: the bootstrap assigns captureModule AFTER AddComponent has already run
         // Awake, and the play-mode domain reload destroys the edit-mode HideAndDontSave instance
@@ -92,26 +89,6 @@ namespace RL.Hosts
                 probes[i] = HarnessProbes.Create(harnessSpec.probes[i].name, harnessSpec.probes[i].ToParameters());
         }
 
-        internal IHarnessComposition NewComposition(in RewardSpec seedSpec, OpponentKind opponent, HarnessField field)
-        {
-            return opponent switch
-            {
-                OpponentKind.Mirror => new PolicyPairComposition(units, Offset, Projectiles, assets, in seedSpec,
-                    spec.model, spec.model, field),
-                OpponentKind.Checkpoint => new PolicyPairComposition(units, Offset, Projectiles, assets, in seedSpec,
-                    spec.model, spec.opponentModel, field),
-                _ => new InferenceRosterComposition(units, Offset, Projectiles, assets, in seedSpec,
-                    spec.model, field),
-            };
-        }
-
-        internal IHarnessComposition NewSentenceComposition(in RewardSpec seedSpec, HarnessField field,
-            SentenceRow row) =>
-            new SentenceComposition(units, Offset, Projectiles, assets, in seedSpec, field, row);
-
-        internal IHarnessComposition NewDuelComposition(in RewardSpec seedSpec, WeaponComponent weapon) =>
-            new DuelComposition(units, Offset, Projectiles, assets, in seedSpec, weapon);
-
         internal IHarnessComposition NewMatrixComposition(in RewardSpec seedSpec, WeaponComponent weaponA,
             WeaponComponent weaponB)
         {
@@ -129,7 +106,7 @@ namespace RL.Hosts
                 installAggressor: false, kitsOff: spec.matrixKitsOff, enemies: enemies,
                 breakOffSet: breakOffSet, breakOff: breakOff);
 
-        /// <summary>Episodes 0..N-1 against one opponent config — the index restarts per block, so blocks on one seed are a controlled comparison over the same poses and field layouts. When the spec records, each selected episode films through a per-episode recorder wired here.</summary>
+        /// <summary>Episodes 0..N-1 against one opponent config — the index restarts per block, so blocks on one seed are a controlled comparison over the same poses. When the spec records, each selected episode films through a per-episode recorder wired here.</summary>
         internal IEnumerator RunBlock(IHarnessComposition composition, OpponentSpec opponent, int episodes,
             RewardSpec episodeSpec, string jsonlPath, Action<EpisodeResult> onEpisode)
         {
@@ -150,9 +127,9 @@ namespace RL.Hosts
                     : null;
                 if (recording != null) yield return recording.Ready;
                 // Pinned install before RunEpisode's pair-reset (the respawn re-inits the brain).
-                var draw = composition.InstallOpponent(in opponent, in episodeSpec, episode);
+                var draw = composition.InstallOpponent(in episodeSpec, episode);
                 var context = new ProbeContext(composition.Pair, Offset, in episodeSpec, episode, in draw,
-                    opponent.Label, composition.Driver);
+                    opponent.Label, composition.Driver.ExtraOpponents);
                 yield return composition.Driver.RunEpisode(episodeSpec, episode,
                     onBegin: () =>
                     {
@@ -180,7 +157,7 @@ namespace RL.Hosts
             var artifacts = new ProbeArtifacts[probes.Length];
             for (var i = 0; i < probes.Length; i++)
             {
-                // Not "-summary.json": eval_gate globs *-summary.json expecting exactly the one eval summary.
+                // Not "-summary.json": eval_lane.py reads back exactly one *-summary.json, the lane's.
                 var summaryPath = ProbePath(jsonlPath, probes[i].Name, "-probe.json");
                 probes[i].Summarize(summaryPath);
                 artifacts[i] = new ProbeArtifacts
@@ -197,10 +174,6 @@ namespace RL.Hosts
 
         private static ILaneClient Client(HarnessLane lane) => lane switch
         {
-            HarnessLane.Eval => new CheckpointEvaluator(),
-            HarnessLane.Capture => new CaptureClient(),
-            HarnessLane.Sentence => new SentenceLane(),
-            HarnessLane.Duel => new DuelLane(),
             HarnessLane.Matrix => new MatrixLane(),
             _ => throw new NotSupportedException($"No lane client for {lane}."),
         };

@@ -145,7 +145,7 @@ namespace Game.Preview.Sectors
         private void DrawStrip(SerializedProperty sectors, int sectorCount)
         {
             var line = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-            stripScroll = EditorGUILayout.BeginScrollView(stripScroll, GUILayout.Height(line * 6f + 24f));
+            stripScroll = EditorGUILayout.BeginScrollView(stripScroll, GUILayout.Height(line * 7f + 24f));
             using (new EditorGUILayout.HorizontalScope())
             {
                 for (var i = 0; i < sectorCount; i++)
@@ -173,6 +173,7 @@ namespace Game.Preview.Sectors
                     DrawStripField(row, nameof(SectorEntry.faction), "Faction", ObjectFieldWidth);
                     DrawStripField(row, nameof(SectorEntry.elite), "Elite", ObjectFieldWidth);
                     DrawStripField(row, nameof(SectorEntry.patrols), "Patrols", NumberFieldWidth);
+                    DrawStripField(row, nameof(SectorEntry.waveCap), "Wave cap", NumberFieldWidth);
                     DrawStripField(row, nameof(SectorEntry.armories), "Armories", NumberFieldWidth);
                     DrawStripField(row, nameof(SectorEntry.field), "Field", ObjectFieldWidth);
                 }

@@ -1,6 +1,6 @@
 ---
 name: game-capture
-description: Record footage of any game situation, with native gizmo diagnostics drawn over it, and hand the user a clip. Use when footage is the deliverable — showing a behavior, visually diagnosing a sim bug, demoing a feature, recording RL episodes — or showing a visual finding (mesh, collider, layout) as a still.
+description: Record footage of any game situation, with native gizmo diagnostics drawn over it, and hand the user a clip. Use when footage is the deliverable — showing a behavior, visually diagnosing a sim bug, demoing a feature, recording harness matrix episodes — or showing a visual finding (mesh, collider, layout) as a still.
 metadata:
   project: astronomical-home
 ---
@@ -30,19 +30,18 @@ structural, not a preference: Unity never resumes `WaitForEndOfFrame` under
 - **Repeatable scenario** → promote: move the file to
   `src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/Scenarios/`, commit with its
   generated `.meta`. Sample/living doc: `TwoShipSkirmishScenario.cs`.
-- **RL episodes / trained checkpoints** → the **harness capture lane** (env-configured,
-  not a test flag). Set `RL_HARNESS_LANE=capture` + `RL_HARNESS_RECORD=all` (or
-  comma indices), one seed (`RL_HARNESS_SEEDS`), and one opponent block
-  (`RL_HARNESS_OPPONENT=aggressor|mirror|<ckpt>.onnx` — `roster` is refused: five
-  archetype films are five sessions). `RL_HARNESS_ONNX` names the candidate
-  checkpoint (default: the smoke fixture); `RL_HARNESS_GIZMOS` picks one gizmo capture
+- **Matrix-lane episodes** → set `RL_HARNESS_RECORD=all` (or comma indices) on a
+  harness matrix run (`RL_HARNESS_MATRIX`, or `RL_HARNESS_MATRIX_REFERENCE` +
+  `RL_HARNESS_MATRIX_ROSTER`) — env-configured, not a test flag. Every selected
+  episode of every block films, so narrow the run with `RL_HARNESS_SEEDS` and
+  `RL_HARNESS_EPISODES_PER_SEED`. `RL_HARNESS_GIZMOS` picks one gizmo capture
   profile (`steering`, `combat`, `everything`). A profile films with presentation off —
   collider silhouettes plus gizmo geometry; **unset films plain gameplay with
   presentation on**. Full `RL_HARNESS_*` grammar in `training/rl/README.md`. The session
   needs a graphics device, so it runs **without** `-nographics` — never the merge
   gate. Clips land beside their JSONL under `RL_HARNESS_OUT_DIR` (or
-  `results/rl-capture/`). A one-command `eval_lane.py` capture preset is a later
-  leaf; for now set the env and run the harness batch through the coordinator.
+  `results/rl-eval/`). `eval_lane.py` does not pass `RL_HARNESS_RECORD`: set the env
+  and run `training/rl/harness_child.ps1` through the coordinator.
 
 ## Author a scenario
 
@@ -132,19 +131,6 @@ only when the whole board is the point.
 relevant profile in `GizmoCaptureProfiles` — never a capture-only overlay. That is the
 whole point of the painter removal (#376): one place to author a diagnostic, seen
 identically in the live Editor and on film.
-
-## Film a trained checkpoint (policy vs archetype)
-
-The harness capture lane (above) covers the standard case: `RL_HARNESS_LANE=capture`
-with `RL_HARNESS_ONNX=<ckpt>.onnx` and `RL_HARNESS_OPPONENT=<archetype|mirror|ckpt>`,
-`RL_HARNESS_GIZMOS=combat` (unset films plain gameplay). An
-absolute checkpoint path is imported into the fixture slot automatically. For
-compositions the lane can't express (bespoke overlays, non-archetype opponents),
-author a scratch scenario mirroring
-`CaptureClient`'s composition: `host.NewComposition` (or `EpisodePair.SpawnWithAgentChooser`
-→ `ShipAgentFactory.ComposeInferenceOnly` → `EpisodeLoopDriver`), pumping the episode
-enumerator after recording readiness. Start recording at the episode's existing
-`onBegin` boundary, after reset; preparation must finish before episode progression.
 
 ## Warm lane (attach to a resident editor)
 
@@ -292,9 +278,9 @@ everything and exits nonzero.
   never changes either. Cross a rendered frame after changing pacing before starting
   time-sensitive animation, so the first unscaled timestamp uses the new clock.
 - **A recording harness run holds the machine-wide boot lane ~10× longer**
-  than a headless eval — synchronous PNG render/readback runs at wall clock, not
-  the sped-up sim. Expect a capture lane to occupy Unity access far longer than
-  the same eval; plan the coordinator lease accordingly.
+  than a headless run — synchronous PNG render/readback runs at wall clock, not
+  the sped-up sim. Expect a recording run to occupy Unity access far longer than
+  the same run headless; plan the coordinator lease accordingly.
 - **Aim visuals use the public `Gunner.AimPoint(...)` static** — the same lead the
   AI uses. RLHarness has no internals access to GameCore; `AssemblyInfo.cs` is the
   unlock if ever needed.
@@ -309,9 +295,3 @@ everything and exits nonzero.
   scenario, don't catch the exception.
 - **Wait for `Ready` before `Start`.** Readiness includes the prepared Game View's
   first rendered frame at the requested dimensions.
-- **Never run a capture/eval play session while an ML-Agents trainer is attached on
-  this machine** — every Academy play mode touches the trainer's port-5004 handshake
-  and can sever the live training connection (killed the 2026-07-20 run mid-flight
-  at 534k). Record from checkpoints after the run ends. If it happens anyway: the
-  trainer survives — kill the orphaned editor and relaunch with `--resume`; zero
-  steps lost.

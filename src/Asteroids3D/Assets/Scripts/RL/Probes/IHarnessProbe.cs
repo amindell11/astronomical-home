@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Ships;
 using UnityEngine;
 using RL.Episodes;
 using RL.Opponents;
@@ -16,10 +17,10 @@ namespace RL.Probes
         public readonly int episodeIndex;
         public readonly OpponentDraw draw;
         public readonly string opponentLabel;
-        public readonly IStepSnapshotSource snapshots;
+        public readonly Ship[] extraOpponents;
 
         public ProbeContext(EpisodePair pair, Vector2 arenaCenter, in RewardSpec spec, int episodeIndex,
-            in OpponentDraw draw, string opponentLabel, IStepSnapshotSource snapshots)
+            in OpponentDraw draw, string opponentLabel, Ship[] extraOpponents)
         {
             this.pair = pair;
             this.arenaCenter = arenaCenter;
@@ -27,7 +28,7 @@ namespace RL.Probes
             this.episodeIndex = episodeIndex;
             this.draw = draw;
             this.opponentLabel = opponentLabel;
-            this.snapshots = snapshots;
+            this.extraOpponents = extraOpponents ?? throw new ArgumentNullException(nameof(extraOpponents));
         }
     }
 
@@ -57,16 +58,7 @@ namespace RL.Probes
         private static readonly Dictionary<string, (Func<IReadOnlyDictionary<string, float>, IHarnessProbe> factory,
             string[] knownKeys)> Factories = new()
         {
-            [ArchetypeGateProbe.ProbeName] = (_ => new ArchetypeGateProbe(), Array.Empty<string>()),
-            [CombatTelemetryProbe.ProbeName] = (_ => new CombatTelemetryProbe(), Array.Empty<string>()),
-            [ContactProbe.ProbeName] = (_ => new ContactProbe(), Array.Empty<string>()),
-            [ControllerProbe.ProbeName] = (parameters => new ControllerProbe(parameters),
-                new[] { ControllerProbe.YawRateDeadbandKey, ControllerProbe.TorqueDeadbandKey }),
-            [FacingProbe.ProbeName] = (parameters => new FacingProbe(parameters),
-                new[] { FacingProbe.AuthorityScaleKey }),
-            [MarksmanshipProbe.ProbeName] = (_ => new MarksmanshipProbe(), Array.Empty<string>()),
             [MatrixProbe.ProbeName] = (_ => new MatrixProbe(), Array.Empty<string>()),
-            [SentenceProbe.ProbeName] = (_ => new SentenceProbe(), Array.Empty<string>()),
         };
 
         public static string RegisteredNames => string.Join(", ", Factories.Keys);

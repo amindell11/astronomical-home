@@ -3,12 +3,10 @@ using Capture.Views;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Capture;
 using NUnit.Framework;
 using RL.Episodes;
 using RL.Hosts;
 using RL.Hosts.Lanes;
-using RL.Opponents;
 using RL.Probes;
 using RL.Reward;
 using Ships.Loadout;
@@ -17,23 +15,15 @@ using UnityEngine;
 
 namespace Tests.EditMode.RLHarness
 {
-    /// <summary>Pins the harness parse boundary: the environment parses ONCE, before play mode, so every illegal value fails there instead of silently reshaping a running eval.</summary>
+    /// <summary>Pins the harness parse boundary: the environment parses ONCE, before play mode, so every illegal value fails there instead of silently reshaping a running matrix.</summary>
     [Category("AI")]
     public class RLHarnessSpecEditModeTests
     {
-        private bool candidateResolved;
-        private string candidateSource;
-        private string opponentSource;
-        private readonly List<(string bundle, string asset)> bundleLoads = new();
-
-        [SetUp]
-        public void SetUp()
+        private static readonly string[] MatrixSelectors =
         {
-            candidateResolved = false;
-            candidateSource = null;
-            opponentSource = null;
-            bundleLoads.Clear();
-        }
+            "RL_HARNESS_MATRIX", "RL_HARNESS_MATRIX_REFERENCE", "RL_HARNESS_MATRIX_ROSTER", "RL_HARNESS_MATRIX_KITS",
+            "RL_HARNESS_MATRIX_ENEMIES", "RL_HARNESS_MATRIX_REFERENCE_BREAKOFF",
+        };
 
         [Test]
         public void RecordingRequiresLauncherProvenance()
@@ -45,35 +35,17 @@ namespace Tests.EditMode.RLHarness
 
         private HarnessSpec Parse(params string[] keyValuePairs) => Parse(true, keyValuePairs);
 
+        // A null value leaves the variable unset; with no matrix selector given, a Lasers weapon pair is selected.
         private HarnessSpec Parse(bool hasGraphics, params string[] keyValuePairs)
         {
             var env = ToEnv(keyValuePairs);
             if (!env.ContainsKey("RL_HARNESS_CAPTURE_COMMIT"))
                 env["RL_HARNESS_CAPTURE_COMMIT"] = new string('a', 40);
-            return HarnessSpec.ParseEval(k => env.TryGetValue(k, out var v) ? v : null,
-                s =>
-                {
-                    candidateResolved = true;
-                    candidateSource = s;
-                    return null;
-                },
-                s =>
-                {
-                    opponentSource = s;
-                    return null;
-                }, TrainingBootstrap.CatalogWeapons, TrainingBootstrap.CatalogChassis, TrainingBootstrap.CatalogPilots,
+            if (!MatrixSelectors.Any(env.ContainsKey))
+                env["RL_HARNESS_MATRIX"] = "Lasers";
+            return HarnessSpec.Parse(k => env.TryGetValue(k, out var v) ? v : null,
+                TrainingBootstrap.CatalogWeapons, TrainingBootstrap.CatalogChassis, TrainingBootstrap.CatalogPilots,
                 TrainingBootstrap.CatalogShields, () => hasGraphics);
-        }
-
-        private HarnessSpec ParsePlayer(params string[] keyValuePairs)
-        {
-            var env = ToEnv(keyValuePairs);
-            return HarnessSpec.ParsePlayerEval(k => env.TryGetValue(k, out var v) ? v : null,
-                (bundle, asset) =>
-                {
-                    bundleLoads.Add((bundle, asset));
-                    return null;
-                }, () => false);
         }
 
         private static Dictionary<string, string> ToEnv(string[] keyValuePairs)
@@ -86,265 +58,75 @@ namespace Tests.EditMode.RLHarness
         private static string[] Names(ProbeSpec[] probes) => Array.ConvertAll(probes, p => p.name);
 
         [Test]
-        public void Defaults_AreTodaysEvalLane()
+        public void Defaults_AreTheMatrixLane()
         {
             var spec = Parse();
 
-            Assert.AreEqual(HarnessLane.Eval, spec.lane);
-            Assert.IsTrue(candidateResolved && candidateSource == null,
-                "no RL_HARNESS_ONNX: the boundary resolves a null source (the smoke fixture)");
-            Assert.AreEqual("ShipCombat-smoke", spec.CandidateStem);
-            Assert.IsNull(spec.onnxSourcePath);
+            Assert.AreEqual(HarnessLane.Matrix, spec.lane);
             Assert.AreEqual(EvalProtocol.HeldOutSeeds, spec.seeds);
-            Assert.AreEqual("held-out", spec.tag);
+            Assert.AreEqual("matrix-held-out", spec.tag);
             Assert.AreEqual(HarnessSpec.DefaultEpisodesPerSeed, spec.episodesPerSeed);
-            Assert.AreEqual(EvalProtocol.CanonicalFieldDensityScale, spec.fieldDensityScale);
-            Assert.AreEqual(OpponentKind.Roster, spec.opponentKind);
-            Assert.IsNull(spec.opponentOnnxSourcePath);
-            Assert.AreEqual(new[] { ArchetypeGateProbe.ProbeName, CombatTelemetryProbe.ProbeName }, Names(spec.probes));
+            Assert.AreEqual(new[] { MatrixProbe.ProbeName }, Names(spec.probes));
             Assert.AreEqual(GizmoCaptureProfile.None, spec.gizmoProfile);
+            Assert.IsFalse(spec.record.enabled);
             Assert.IsNull(spec.outDir);
         }
 
         [Test]
-        public void CheckpointSource_IsResolvedAndRecorded()
+        public void NoMatrixSelector_ThrowsAtParse()
         {
-            var spec = Parse("RL_HARNESS_ONNX", "results/rl-training/run/ShipCombat-42.onnx");
-
-            Assert.AreEqual("results/rl-training/run/ShipCombat-42.onnx", candidateSource,
-                "the boundary resolver receives the source it must import");
-            Assert.AreEqual("results/rl-training/run/ShipCombat-42.onnx", spec.onnxSourcePath,
-                "the summary carries provenance the resolved asset erases");
-            Assert.AreEqual("ShipCombat-42", spec.CandidateStem, "Python keys on the stem");
+            var thrown = Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_MATRIX", null),
+                "with every other lane gone, an unselected matrix has nothing to run");
+            StringAssert.Contains("RL_HARNESS_MATRIX", thrown.Message);
         }
 
         [Test]
-        public void NonCanonicalDensity_MarksTheArtifactTag()
+        public void LaneSelector_TakesMatrixAndRefusesRemovedLanesByName()
         {
-            Assert.AreEqual("custom-d3", Parse("RL_HARNESS_SEEDS", "7,8", "RL_HARNESS_DENSITY", "3.0").tag);
-            Assert.AreEqual("held-out", Parse("RL_HARNESS_DENSITY", "2.0").tag, "the canonical density never suffixes");
+            Assert.AreEqual(HarnessLane.Matrix, Parse("RL_HARNESS_LANE", "matrix").lane);
+            Assert.AreEqual(HarnessLane.Matrix, Parse("RL_HARNESS_LANE", "MATRIX").lane);
+            foreach (var removed in new[] { "eval", "capture", "sentence", "duel" })
+            {
+                var thrown = Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_LANE", removed));
+                StringAssert.Contains("removed with the RL training stack", thrown.Message);
+            }
+            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_LANE", "film"), "unknown lane");
         }
 
         [Test]
-        public void OpponentGrammar_ResolvesRosterArchetypeAndMirror()
+        public void RemovedRlVariables_ThrowNamingTheRemoval()
         {
-            Assert.AreEqual(OpponentKind.Roster, Parse().opponentKind);
-            Assert.AreEqual(OpponentKind.Roster, Parse("RL_HARNESS_OPPONENT", "roster").opponentKind);
-            Assert.AreEqual(OpponentKind.Mirror, Parse("RL_HARNESS_OPPONENT", "mirror").opponentKind);
-
-            var pinned = Parse("RL_HARNESS_OPPONENT", "evader");
-            Assert.AreEqual(OpponentKind.Archetype, pinned.opponentKind);
-            Assert.AreEqual(OpponentArchetype.Evader, pinned.opponentArchetype);
-        }
-
-        [Test]
-        public void OpponentGrammar_RoutesACheckpointPathToTheSecondSlot()
-        {
-            var spec = Parse("RL_HARNESS_OPPONENT", "frozen/ShipCombat-999950.onnx");
-
-            Assert.AreEqual(OpponentKind.Checkpoint, spec.opponentKind);
-            Assert.AreEqual("frozen/ShipCombat-999950.onnx", spec.opponentOnnxSourcePath,
-                "the summary carries slot-2 provenance the resolved asset erases");
-            Assert.AreEqual("frozen/ShipCombat-999950.onnx", opponentSource,
-                "the opponent resolver must receive the opponent source, never the candidate's");
-            Assert.AreEqual("ShipCombat-999950", spec.opponentLabel, "summary blocks are labeled by the stem");
-        }
-
-        [Test]
-        public void OpponentCheckpointImport_MissingFileFailsAtTheBoundary()
-        {
-            Assert.Throws<System.IO.FileNotFoundException>(() =>
-                TrainingBootstrap.ImportEvalOpponent("missing-opponent.onnx"));
-        }
-
-        [Test]
-        public void OpponentGrammar_RefusesAnUnknownTokenNamingTheLegalSet()
-        {
-            var thrown = Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_OPPONENT", "brawler"));
-            StringAssert.Contains("Aggressor", thrown.Message);
-            StringAssert.Contains("mirror", thrown.Message);
-        }
-
-        [Test]
-        public void OpponentGrammar_RefusesAHostileCheckpointStemBeforeResolving()
-        {
-            var thrown = Assert.Throws<ArgumentException>(() =>
-                Parse("RL_HARNESS_OPPONENT", "frozen/Ship Combat.v2.onnx"));
-            StringAssert.Contains("Ship Combat.v2", thrown.Message);
-            Assert.IsNull(opponentSource, "a hostile stem must fail before the opponent import runs");
+            foreach (var name in new[]
+                     {
+                         "RL_HARNESS_ONNX", "RL_HARNESS_OPPONENT", "RL_HARNESS_DENSITY", "RL_HARNESS_BUNDLE",
+                         "RL_HARNESS_SENTENCE", "RL_HARNESS_DUEL", "RL_EVAL_ONNX",
+                     })
+            {
+                var thrown = Assert.Throws<ArgumentException>(() => Parse(name, "stale"),
+                    $"a stale {name} must not run a matrix in its place");
+                StringAssert.Contains(name, thrown.Message);
+                StringAssert.Contains("removed with the RL training stack", thrown.Message);
+            }
         }
 
         [Test]
         public void ProbeSelection_IsByNameAndAnEmptyListMeansNone()
         {
-            Assert.AreEqual(new[] { ArchetypeGateProbe.ProbeName }, Names(Parse("RL_HARNESS_PROBES", "gate").probes));
+            Assert.AreEqual(new[] { MatrixProbe.ProbeName }, Names(Parse("RL_HARNESS_PROBES", "matrix").probes));
             Assert.IsEmpty(Parse("RL_HARNESS_PROBES", "").probes, "an explicit empty selection runs no probes");
-            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_PROBES", "heat"),
-                "an unregistered probe must fail at the boundary, not run an eval with no instrument");
-        }
-
-        [Test]
-        public void ProbeParams_ParseInlineAndSurviveWhitespace()
-        {
-            var probes = Parse("RL_HARNESS_PROBES", "gate, facing( wFacing = 5 )").probes;
-
-            Assert.AreEqual(new[] { ArchetypeGateProbe.ProbeName, FacingProbe.ProbeName }, Names(probes));
-            Assert.AreEqual(new[] { FacingProbe.AuthorityScaleKey }, probes[1].keys);
-            Assert.AreEqual(new[] { 5f }, probes[1].values);
-            Assert.IsEmpty(probes[0].keys);
-        }
-
-        [Test]
-        public void ProbeParams_CommasInsideParensSeparateParamsNotProbes()
-        {
-            var probes = Parse("RL_HARNESS_PROBES", "facing(wFacing=1,wFacing=2),gate").probes;
-
-            Assert.AreEqual(new[] { FacingProbe.ProbeName, ArchetypeGateProbe.ProbeName }, Names(probes));
-            Assert.AreEqual(new[] { FacingProbe.AuthorityScaleKey, FacingProbe.AuthorityScaleKey }, probes[0].keys);
-            Assert.AreEqual(new[] { 1f, 2f }, probes[0].values);
+            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_PROBES", "gate"),
+                "an unregistered probe must fail at the boundary, not run a matrix with no instrument");
         }
 
         [Test]
         public void ProbeParams_MalformedTokensThrowAtTheBoundary()
         {
-            var unknownKey = Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_PROBES", "facing(wFacig=5)"));
-            StringAssert.Contains(FacingProbe.AuthorityScaleKey, unknownKey.Message,
-                "an unknown param key must name the legal set");
+            var unknownKey = Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_PROBES", "matrix(x=5)"));
+            StringAssert.Contains("no params", unknownKey.Message, "a param on a paramless probe must say so");
 
-            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_PROBES", "gate,gate"), "duplicate probe name");
-            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_PROBES", "facing(wFacing=abc)"), "non-float value");
-            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_PROBES", "facing("), "unbalanced paren");
-            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_PROBES", "facing(wFacing=NaN)"), "non-finite value");
-            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_PROBES", "facing(wFacing=Infinity)"),
-                "non-finite value");
-        }
-
-        [Test]
-        public void FacingProbe_RefusesANonFiniteOrNegativeAuthorityScaleAtCreation()
-        {
-            Assert.Throws<ArgumentException>(() => HarnessProbes.Create(FacingProbe.ProbeName,
-                new Dictionary<string, float> { [FacingProbe.AuthorityScaleKey] = -1f }));
-            Assert.Throws<ArgumentException>(() => HarnessProbes.Create(FacingProbe.ProbeName,
-                new Dictionary<string, float> { [FacingProbe.AuthorityScaleKey] = float.NaN }));
-        }
-
-        [Test]
-        public void SentenceGrammar_SelectsTheLaneAndItsRows()
-        {
-            var all = Parse("RL_HARNESS_SENTENCE", "all");
-            Assert.AreEqual(HarnessLane.Sentence, all.lane);
-            Assert.AreEqual(SentenceRows.SessionRows, all.sentenceRows);
-            StringAssert.StartsWith("sentence-", all.tag, "sentence artifacts must never pass as an eval");
-
-            var subset = Parse("RL_HARNESS_SENTENCE", "orbit,drift-hold");
-            Assert.AreEqual(new[] { SentenceRow.Orbit, SentenceRow.DriftHold }, subset.sentenceRows);
-        }
-
-        [Test]
-        public void SentenceLane_DefaultsToTheControllerProbe()
-        {
-            Assert.AreEqual(new[] { ControllerProbe.ProbeName },
-                Names(Parse("RL_HARNESS_SENTENCE", "all").probes),
-                "the eval-lane default probes would throw on a composition with no policy agent");
-        }
-
-        [Test]
-        public void SentenceGrammar_RefusesUnknownsAndConflictingSelectors()
-        {
-            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_SENTENCE", "brawl"));
-            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_SENTENCE", ""));
-            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_SENTENCE", "orbit,orbit"));
-            Assert.Throws<ArgumentException>(() =>
-                Parse("RL_HARNESS_SENTENCE", "all", "RL_HARNESS_ONNX", "ckpt.onnx"));
-            Assert.Throws<ArgumentException>(() =>
-                Parse("RL_HARNESS_SENTENCE", "all", "RL_HARNESS_OPPONENT", "mirror"));
-            Assert.Throws<ArgumentException>(() =>
-                Parse("RL_HARNESS_SENTENCE", "all", "RL_HARNESS_LANE", "capture"));
-        }
-
-        [Test]
-        public void SentenceLane_RefusesTheProbesItsBrainCannotFeed()
-        {
-            Assert.Throws<ArgumentException>(() =>
-                Parse("RL_HARNESS_SENTENCE", "all", "RL_HARNESS_PROBES", FacingProbe.ProbeName));
-            Assert.AreEqual(new[] { ControllerProbe.ProbeName, ContactProbe.ProbeName },
-                Names(Parse("RL_HARNESS_SENTENCE", "all", "RL_HARNESS_PROBES", "controller,contact").probes),
-                "probes that read ships rather than the policy stay selectable");
-        }
-
-        [Test]
-        public void SentenceBlockLabels_CarryTheRowNotTheArchetype()
-        {
-            var block = SentenceRows.Block(SentenceRow.DriftHold);
-            Assert.AreEqual(OpponentKind.Archetype, block.kind);
-            Assert.AreEqual(OpponentArchetype.Dummy, block.archetype);
-            Assert.AreEqual("drift-hold", block.Label,
-                "two rows stage the Dummy — probe pools key on the row token");
-            Assert.AreEqual("Orbiter", OpponentSpec.Pinned(OpponentArchetype.Orbiter).Label,
-                "eval-lane labels are unchanged");
-        }
-
-        [Test]
-        public void DuelGrammar_SelectsTheLaneAndResolvesItsWeaponPrefabs()
-        {
-            var spec = Parse("RL_HARNESS_DUEL", "Lasers, Missiles", "RL_HARNESS_SEEDS", "3001");
-
-            Assert.AreEqual(HarnessLane.Duel, spec.lane);
-            Assert.AreEqual(new[] { "Lasers", "Missiles" }, Array.ConvertAll(spec.duelWeapons, w => w.name));
-            Assert.AreEqual("duel-custom", spec.tag, "duel artifacts must never pass as an eval");
-            Assert.AreEqual(new[] { MarksmanshipProbe.ProbeName }, Names(spec.probes),
-                "the eval-lane default probes would throw on a weapon with no fire range");
-        }
-
-        [Test]
-        public void DuelGrammar_AllSelectsTheCatalogsWeaponsInCatalogOrder()
-        {
-            var catalog = AssetDatabase.LoadAssetAtPath<ItemCatalog>(ItemCatalog.AssetPath);
-            Assert.IsNotEmpty(catalog.Weapons);
-
-            CollectionAssert.AreEqual(catalog.Weapons, Parse("RL_HARNESS_DUEL", "all").duelWeapons);
-            CollectionAssert.AreEqual(catalog.Weapons, Parse("RL_HARNESS_DUEL", "ALL").duelWeapons);
-        }
-
-        [Test]
-        public void DuelGrammar_ResolvesANameWithoutRegardToCase()
-        {
-            Assert.AreEqual(new[] { "Lasers" },
-                Array.ConvertAll(Parse("RL_HARNESS_DUEL", "lasers").duelWeapons, w => w.name),
-                "block labels come from the prefab's own name, not the typed token");
-        }
-
-        [Test]
-        public void DuelGrammar_RefusesNamesTheCatalogDoesNotListAndConflictingSelectors()
-        {
-            var projectile = Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_DUEL", "Lasers,Laser"),
-                "Laser.prefab is a projectile, not a weapon");
-            StringAssert.Contains("'Laser'", projectile.Message);
-            foreach (var weapon in TrainingBootstrap.CatalogWeapons())
-                StringAssert.Contains(weapon.name, projectile.Message, "a refused name must list the legal set");
-            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_DUEL", "all,Lasers"),
-                "\"all\" is the whole value, never a list entry");
-            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_DUEL", ""));
-            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_DUEL", "Lasers,Lasers"));
-            Assert.Throws<ArgumentException>(() =>
-                Parse("RL_HARNESS_DUEL", "Lasers", "RL_HARNESS_ONNX", "ckpt.onnx"));
-            Assert.Throws<ArgumentException>(() =>
-                Parse("RL_HARNESS_DUEL", "Lasers", "RL_HARNESS_OPPONENT", "dummy"));
-            Assert.Throws<ArgumentException>(() =>
-                Parse("RL_HARNESS_DUEL", "Lasers", "RL_HARNESS_LANE", "capture"));
-            Assert.Throws<ArgumentException>(() =>
-                Parse("RL_HARNESS_DUEL", "Lasers", "RL_HARNESS_SENTENCE", "all"));
-        }
-
-        [Test]
-        public void DuelLane_RefusesTheCombatProbe()
-        {
-            var thrown = Assert.Throws<ArgumentException>(() =>
-                Parse("RL_HARNESS_DUEL", "Missiles", "RL_HARNESS_PROBES", "marksmanship,combat"));
-            StringAssert.Contains(CombatTelemetryProbe.ProbeName, thrown.Message);
-            Assert.AreEqual(new[] { MarksmanshipProbe.ProbeName, ContactProbe.ProbeName },
-                Names(Parse("RL_HARNESS_DUEL", "Missiles", "RL_HARNESS_PROBES", "marksmanship,contact").probes),
-                "probes that need no fire range stay selectable");
+            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_PROBES", "matrix,matrix"), "duplicate probe name");
+            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_PROBES", "matrix("), "unbalanced paren");
+            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_PROBES", "matrix)"), "unbalanced paren");
         }
 
         [Test]
@@ -354,7 +136,7 @@ namespace Tests.EditMode.RLHarness
 
             Assert.AreEqual(HarnessLane.Matrix, spec.lane);
             Assert.AreEqual(new[] { "Lasers", "Missiles" }, Array.ConvertAll(spec.matrixWeapons, w => w.name));
-            Assert.AreEqual("matrix-custom", spec.tag, "matrix artifacts must never pass as an eval");
+            Assert.AreEqual("matrix-custom", spec.tag);
             Assert.AreEqual(new[] { MatrixProbe.ProbeName }, Names(spec.probes));
         }
 
@@ -376,7 +158,7 @@ namespace Tests.EditMode.RLHarness
         }
 
         [Test]
-        public void MatrixGrammar_RefusesNamesTheCatalogDoesNotListAndConflictingSelectors()
+        public void MatrixGrammar_RefusesNamesTheCatalogDoesNotList()
         {
             var projectile = Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_MATRIX", "Lasers,Laser"));
             StringAssert.Contains("'Laser'", projectile.Message);
@@ -385,16 +167,6 @@ namespace Tests.EditMode.RLHarness
             Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_MATRIX", "all,Lasers"));
             Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_MATRIX", ""));
             Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_MATRIX", "Lasers,Lasers"));
-            Assert.Throws<ArgumentException>(() =>
-                Parse("RL_HARNESS_MATRIX", "Lasers", "RL_HARNESS_ONNX", "ckpt.onnx"));
-            Assert.Throws<ArgumentException>(() =>
-                Parse("RL_HARNESS_MATRIX", "Lasers", "RL_HARNESS_OPPONENT", "dummy"));
-            Assert.Throws<ArgumentException>(() =>
-                Parse("RL_HARNESS_MATRIX", "Lasers", "RL_HARNESS_LANE", "capture"));
-            Assert.Throws<ArgumentException>(() =>
-                Parse("RL_HARNESS_MATRIX", "Lasers", "RL_HARNESS_SENTENCE", "all"));
-            Assert.Throws<ArgumentException>(() =>
-                Parse("RL_HARNESS_MATRIX", "Lasers", "RL_HARNESS_DUEL", "Missiles"));
         }
 
         [Test]
@@ -416,16 +188,6 @@ namespace Tests.EditMode.RLHarness
             Assert.AreEqual(first.baselinePos, swapped.baselinePos);
             Assert.AreEqual(first.agentRotDeg, swapped.agentRotDeg);
             Assert.AreNotEqual(first.agentPos, next.agentPos);
-        }
-
-        [Test]
-        public void MatrixLane_RefusesTheCombatProbe()
-        {
-            var thrown = Assert.Throws<ArgumentException>(() =>
-                Parse("RL_HARNESS_MATRIX", "Missiles", "RL_HARNESS_PROBES", "matrix,combat"));
-            StringAssert.Contains(CombatTelemetryProbe.ProbeName, thrown.Message);
-            Assert.AreEqual(new[] { MatrixProbe.ProbeName, ContactProbe.ProbeName },
-                Names(Parse("RL_HARNESS_MATRIX", "Missiles", "RL_HARNESS_PROBES", "matrix,contact").probes));
         }
 
         [Test]
@@ -451,36 +213,17 @@ namespace Tests.EditMode.RLHarness
         }
 
         [Test]
-        public void MatrixRoster_RequiresBothVariablesAndRefusesTheOtherLanes()
+        public void MatrixRoster_RequiresBothVariablesAndRefusesWeaponPairMode()
         {
             Assert.Throws<ArgumentException>(() =>
                 Parse("RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers"));
             Assert.Throws<ArgumentException>(() =>
                 Parse("RL_HARNESS_MATRIX_ROSTER", "Crimson:KiterPilot:Lasers"));
-            Assert.Throws<ArgumentException>(() => Parse(
+            var paired = Assert.Throws<ArgumentException>(() => Parse(
                 "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers",
                 "RL_HARNESS_MATRIX_ROSTER", "Vanguard:AggressorPilot:Lasers",
                 "RL_HARNESS_MATRIX", "Lasers"));
-            Assert.Throws<ArgumentException>(() => Parse(
-                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers",
-                "RL_HARNESS_MATRIX_ROSTER", "Vanguard:AggressorPilot:Lasers",
-                "RL_HARNESS_DUEL", "Missiles"));
-            Assert.Throws<ArgumentException>(() => Parse(
-                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers",
-                "RL_HARNESS_MATRIX_ROSTER", "Vanguard:AggressorPilot:Lasers",
-                "RL_HARNESS_SENTENCE", "all"));
-            Assert.Throws<ArgumentException>(() => Parse(
-                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers",
-                "RL_HARNESS_MATRIX_ROSTER", "Vanguard:AggressorPilot:Lasers",
-                "RL_HARNESS_ONNX", "ckpt.onnx"));
-            Assert.Throws<ArgumentException>(() => Parse(
-                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers",
-                "RL_HARNESS_MATRIX_ROSTER", "Vanguard:AggressorPilot:Lasers",
-                "RL_HARNESS_OPPONENT", "dummy"));
-            Assert.Throws<ArgumentException>(() => Parse(
-                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers",
-                "RL_HARNESS_MATRIX_ROSTER", "Vanguard:AggressorPilot:Lasers",
-                "RL_HARNESS_LANE", "capture"));
+            StringAssert.Contains("select different matrix modes", paired.Message);
             Assert.Throws<ArgumentException>(() => Parse(
                 "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers",
                 "RL_HARNESS_MATRIX_ROSTER", "Crimson:KiterPilot:Lasers, crimson:kiterpilot:lasers"));
@@ -618,7 +361,7 @@ namespace Tests.EditMode.RLHarness
         }
 
         [Test]
-        public void MatrixRoster_KitsOffParsesAndRefusesOtherLanes()
+        public void MatrixRoster_KitsOffParsesAndRefusesWeaponPairMode()
         {
             var spec = Parse(
                 "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers",
@@ -641,7 +384,7 @@ namespace Tests.EditMode.RLHarness
             var paired = Assert.Throws<ArgumentException>(() => Parse(
                 "RL_HARNESS_MATRIX_KITS", "off",
                 "RL_HARNESS_MATRIX", "Lasers"));
-            StringAssert.Contains("and RL_HARNESS_MATRIX each imply", paired.Message);
+            StringAssert.Contains("and RL_HARNESS_MATRIX select different matrix modes", paired.Message);
         }
 
         [Test]
@@ -715,13 +458,12 @@ namespace Tests.EditMode.RLHarness
             var withWeapons = Assert.Throws<ArgumentException>(() => Parse(
                 "RL_HARNESS_MATRIX_ENEMIES", "3",
                 "RL_HARNESS_MATRIX", "Lasers"));
-            StringAssert.Contains("and RL_HARNESS_MATRIX each imply", withWeapons.Message);
+            StringAssert.Contains("and RL_HARNESS_MATRIX select different matrix modes", withWeapons.Message);
             var alone = Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_MATRIX_ENEMIES", "2"));
             StringAssert.Contains("valid only with", alone.Message);
-            var breakOffLane = Assert.Throws<ArgumentException>(() => Parse(
-                "RL_HARNESS_MATRIX_REFERENCE_BREAKOFF", "50",
-                "RL_HARNESS_LANE", "capture"));
-            StringAssert.Contains("RL_HARNESS_LANE", breakOffLane.Message);
+            var breakOffAlone = Assert.Throws<ArgumentException>(() =>
+                Parse("RL_HARNESS_MATRIX_REFERENCE_BREAKOFF", "50"));
+            StringAssert.Contains("valid only with", breakOffAlone.Message);
         }
 
         [Test]
@@ -752,21 +494,11 @@ namespace Tests.EditMode.RLHarness
             new(-Mathf.Sin(rotDeg * Mathf.Deg2Rad), Mathf.Cos(rotDeg * Mathf.Deg2Rad));
 
         [Test]
-        public void DuelBlockLabels_NameTheWeaponAndTheTarget()
-        {
-            var railgun = TrainingBootstrap.CatalogWeapons().First(w => w.name == "Railgun");
-            var block = DuelLane.Block(railgun, OpponentArchetype.Orbiter);
-            Assert.AreEqual(OpponentKind.Archetype, block.kind);
-            Assert.AreEqual(OpponentArchetype.Orbiter, block.archetype);
-            Assert.AreEqual("Railgun-Orbiter", block.Label, "every weapon meets the same targets — probe pools key on the label");
-        }
-
-        [Test]
         public void RetiredEnvName_ThrowsNamingItsReplacement()
         {
-            var thrown = Assert.Throws<ArgumentException>(() => Parse("RL_EVAL_ONNX", "stale-script.onnx"),
-                "a stale script's retired name must not silently eval the smoke fixture");
-            StringAssert.Contains("RL_HARNESS_ONNX", thrown.Message);
+            var thrown = Assert.Throws<ArgumentException>(() => Parse("RL_EVAL_SEEDS", "7,8"),
+                "a stale script's retired name must not be silently ignored");
+            StringAssert.Contains("RL_HARNESS_SEEDS", thrown.Message);
         }
 
         [Test]
@@ -783,7 +515,6 @@ namespace Tests.EditMode.RLHarness
         {
             Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_EPISODES_PER_SEED", "abc"));
             Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_EPISODES_PER_SEED", "0"));
-            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_DENSITY", "dense"));
             Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_SEEDS", "1001,oops"));
         }
 
@@ -846,104 +577,11 @@ namespace Tests.EditMode.RLHarness
         }
 
         [Test]
-        public void LaneSelector_DefaultsEvalAndSelectsCapture()
-        {
-            Assert.AreEqual(HarnessLane.Eval, Parse().lane);
-            Assert.AreEqual(HarnessLane.Eval, Parse("RL_HARNESS_LANE", "eval").lane);
-            Assert.AreEqual(HarnessLane.Capture,
-                Parse("RL_HARNESS_LANE", "capture", "RL_HARNESS_SEEDS", "2001", "RL_HARNESS_OPPONENT", "aggressor").lane);
-            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_LANE", "film"), "unknown lane");
-        }
-
-        [Test]
-        public void CaptureLane_RefusesMultiSeedAndRoster()
-        {
-            Assert.Throws<ArgumentException>(() =>
-                    Parse("RL_HARNESS_LANE", "capture", "RL_HARNESS_SEEDS", "2001,2002", "RL_HARNESS_OPPONENT", "mirror"),
-                "capture films exactly one seed");
-            Assert.Throws<ArgumentException>(() =>
-                    Parse("RL_HARNESS_LANE", "capture", "RL_HARNESS_SEEDS", "2001"),
-                "capture forbids the default roster (single block only)");
-            Assert.Throws<ArgumentException>(() =>
-                    Parse("RL_HARNESS_LANE", "capture", "RL_HARNESS_SEEDS", "2001", "RL_HARNESS_OPPONENT", "roster"),
-                "capture forbids explicit roster too");
-        }
-
-        [Test]
-        public void BundleVar_InAnEditorSessionThrowsAtParse()
-        {
-            var thrown = Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_BUNDLE", "run/eval-models.bundle"),
-                "RL_HARNESS_BUNDLE must never silently shift meaning inside an editor session");
-            StringAssert.Contains("player", thrown.Message);
-        }
-
-        [Test]
-        public void PlayerParse_RequiresBothBundleVars()
-        {
-            Assert.Throws<ArgumentException>(() => ParsePlayer(), "no bundle vars at all");
-            Assert.Throws<ArgumentException>(() => ParsePlayer("RL_HARNESS_BUNDLE", "run/eval-models.bundle"),
-                "RL_HARNESS_ONNX missing: a player has no smoke default");
-            Assert.Throws<ArgumentException>(() => ParsePlayer("RL_HARNESS_ONNX", "run/ShipCombat-42.onnx"),
-                "RL_HARNESS_BUNDLE missing: the player has nothing to resolve models from");
-        }
-
-        [Test]
-        public void PlayerParse_ResolvesModelsFromTheBundleUnderFixedNames()
-        {
-            var spec = ParsePlayer("RL_HARNESS_BUNDLE", "run/eval-models.bundle",
-                "RL_HARNESS_ONNX", "run/ShipCombat-42.onnx");
-
-            Assert.AreEqual(new[] { ("run/eval-models.bundle", "candidate") }, bundleLoads,
-                "a roster eval resolves exactly the candidate slot");
-            Assert.AreEqual("run/ShipCombat-42.onnx", spec.onnxSourcePath, "provenance rides the env, not the bundle");
-            Assert.AreEqual("ShipCombat-42", spec.CandidateStem);
-
-            bundleLoads.Clear();
-            var slot2 = ParsePlayer("RL_HARNESS_BUNDLE", "run/eval-models.bundle",
-                "RL_HARNESS_ONNX", "run/ShipCombat-42.onnx",
-                "RL_HARNESS_OPPONENT", "frozen/ShipCombat-999950.onnx");
-            Assert.AreEqual(new[] { ("run/eval-models.bundle", "candidate"), ("run/eval-models.bundle", "opponent") },
-                bundleLoads);
-            Assert.AreEqual(OpponentKind.Checkpoint, slot2.opponentKind);
-            Assert.AreEqual("ShipCombat-999950", slot2.opponentLabel);
-        }
-
-        [Test]
-        public void PlayerParse_RefusesEditorOnlyLanes()
-        {
-            Assert.Throws<ArgumentException>(() => ParsePlayer("RL_HARNESS_BUNDLE", "run/eval-models.bundle",
-                "RL_HARNESS_ONNX", "run/ShipCombat-42.onnx", "RL_HARNESS_LANE", "capture"), "capture lane");
-            Assert.Throws<ArgumentException>(() => ParsePlayer("RL_HARNESS_BUNDLE", "run/eval-models.bundle",
-                "RL_HARNESS_ONNX", "run/ShipCombat-42.onnx", "RL_HARNESS_SENTENCE", "all"), "sentence lane");
-            Assert.Throws<ArgumentException>(() => ParsePlayer("RL_HARNESS_BUNDLE", "run/eval-models.bundle",
-                "RL_HARNESS_ONNX", "run/ShipCombat-42.onnx", "RL_HARNESS_DUEL", "Lasers"), "duel lane");
-            Assert.Throws<ArgumentException>(() => ParsePlayer("RL_HARNESS_BUNDLE", "run/eval-models.bundle",
-                "RL_HARNESS_ONNX", "run/ShipCombat-42.onnx", "RL_HARNESS_MATRIX", "Lasers"), "matrix lane");
-            Assert.Throws<ArgumentException>(() => ParsePlayer("RL_HARNESS_BUNDLE", "run/eval-models.bundle",
-                "RL_HARNESS_ONNX", "run/ShipCombat-42.onnx",
-                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers"), "roster matrix");
-            Assert.Throws<ArgumentException>(() => ParsePlayer("RL_HARNESS_BUNDLE", "run/eval-models.bundle",
-                "RL_HARNESS_ONNX", "run/ShipCombat-42.onnx",
-                "RL_HARNESS_MATRIX_ROSTER", "Crimson:KiterPilot:Lasers"), "roster matrix");
-            Assert.Throws<ArgumentException>(() => ParsePlayer("RL_HARNESS_BUNDLE", "run/eval-models.bundle",
-                "RL_HARNESS_ONNX", "run/ShipCombat-42.onnx",
-                "RL_HARNESS_MATRIX_KITS", "off"), "kits off");
-            Assert.Throws<ArgumentException>(() => ParsePlayer("RL_HARNESS_BUNDLE", "run/eval-models.bundle",
-                "RL_HARNESS_ONNX", "run/ShipCombat-42.onnx",
-                "RL_HARNESS_MATRIX_ENEMIES", "3"), "enemy count");
-            Assert.Throws<ArgumentException>(() => ParsePlayer("RL_HARNESS_BUNDLE", "run/eval-models.bundle",
-                "RL_HARNESS_ONNX", "run/ShipCombat-42.onnx",
-                "RL_HARNESS_MATRIX_REFERENCE_BREAKOFF", "0"), "break-off override");
-        }
-
-        [Test]
         public void GizmoProfile_SelectsOneCodeDefinedCaptureProfile()
         {
             var prefix = new[]
             {
-                "RL_HARNESS_LANE", "capture",
                 "RL_HARNESS_SEEDS", "2001",
-                "RL_HARNESS_OPPONENT", "mirror",
                 "RL_HARNESS_RECORD", "all",
             };
 
@@ -965,13 +603,8 @@ namespace Tests.EditMode.RLHarness
         {
             Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_GIZMOS", "heatmap"));
             Assert.Throws<ArgumentException>(() => Parse(
-                "RL_HARNESS_LANE", "capture",
                 "RL_HARNESS_SEEDS", "2001",
-                "RL_HARNESS_OPPONENT", "mirror",
                 "RL_HARNESS_GIZMOS", "steering"), "profile without recorded episodes");
-            Assert.Throws<ArgumentException>(() => Parse(
-                "RL_HARNESS_RECORD", "all",
-                "RL_HARNESS_GIZMOS", "steering"), "profile outside the capture lane");
         }
     }
 }

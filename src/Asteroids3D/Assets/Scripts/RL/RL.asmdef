@@ -3,10 +3,7 @@
     "rootNamespace": "",
     "references": [
         "Core",
-        "RL.Runtime",
         "Capture",
-        "Unity.ML-Agents",
-        "Unity.InferenceEngine",
         "Unity.Mathematics"
     ],
     "includePlatforms": [

@@ -174,9 +174,7 @@ namespace RL.Probes
             episodeIndex = context.episodeIndex;
             swapped = MatrixLane.SidesSwapped(episodeIndex);
             pair = context.pair;
-            if (context.snapshots is not EpisodeLoopDriver driver)
-                throw new InvalidOperationException("The matrix probe reads extra enemies from the episode driver.");
-            extras = driver.ExtraOpponents;
+            extras = context.extraOpponents;
             samplerA = new MarksmanshipSampler(pair.Agent, pair.Baseline);
             samplerB = new MarksmanshipSampler(pair.Baseline, pair.Agent);
             dealtToExtras = new MarksmanshipSampler[extras.Length];

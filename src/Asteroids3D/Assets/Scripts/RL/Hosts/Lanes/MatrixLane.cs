@@ -20,6 +20,7 @@ namespace RL.Hosts.Lanes
         IEnumerator ILaneClient.Run(HarnessHost host, HarnessSpec spec) => RunLane(host, spec);
 
         public const string SchemaId = "matrix-lane-v1";
+        public const string ResultsFolder = "rl-eval";
         /// <summary>An episode ends on a death or here: 90 sim-seconds.</summary>
         public const int TimeoutDecisions = 450;
 
@@ -70,7 +71,6 @@ namespace RL.Hosts.Lanes
 
         public static OpponentSpec Block(WeaponComponent weaponA, WeaponComponent weaponB) => new()
         {
-            kind = OpponentKind.Archetype,
             archetype = OpponentArchetype.Aggressor,
             labelOverride = PairLabel(weaponA, weaponB),
         };
@@ -94,7 +94,7 @@ namespace RL.Hosts.Lanes
         public static IEnumerator RunLane(HarnessHost host, HarnessSpec spec)
         {
             var baseSpec = IsRoster(spec) ? RosterSpec() : MatrixSpec();
-            var jsonlPath = EpisodeJsonl.NewRunPath(spec.tag, CheckpointEvaluator.ResultsFolder, spec.outDir);
+            var jsonlPath = EpisodeJsonl.NewRunPath(spec.tag, ResultsFolder, spec.outDir);
             var matchups = Matchups(host, spec);
             var blocks = new BlockSummary[matchups.Count];
             for (var i = 0; i < matchups.Count; i++)
