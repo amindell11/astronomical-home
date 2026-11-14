@@ -50,8 +50,7 @@ namespace AI.Tactics
                 Tactic.AttackRun => false,
                 _ => throw new ArgumentOutOfRangeException(nameof(tactic), tactic, null),
             };
-            return reason
-                || (tactic != Tactic.BreakOff && tactic == settings.home && Pick(situation, settings) == tactic);
+            return reason || (tactic == settings.home && Pick(situation, settings) == tactic);
         }
     }
 }

@@ -321,7 +321,7 @@ namespace RL.Opponents
             return ArchetypeLaws.EvasionUrgency(timeToImpact, urgencyFarTime, urgencyNearTime);
         }
 
-        // Awake, not OnValidate: the base pilot prefab is authored without a temper so no variant inherits one.
+        // Awake, not OnValidate: the base pilot prefab has no temper, so variants inherit none.
         private void Awake()
         {
             if (!liveTargeting || tactics) return;

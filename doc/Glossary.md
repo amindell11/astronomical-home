@@ -1034,9 +1034,11 @@ Format: **term** — definition. *(authority)*
   Only a pilot authored with tactics settings (the *tactics switch*) picks one.
   Every shipped pilot does, each on its own *temper*, and the RL roster never
   does. *(TacticRules.Next, TacticsSettings)*
-- **temper**. One `TacticsSettings` asset per pilot: Aggressor (home attack run;
-  hunt patrols fly it too), Orbiter (home flank), Kiter (attack run from further
-  out), Lurker (home stand off), the elite, and its escorts. The temper also
+- **temper**. One `TacticsSettings` asset per pilot: the Aggressor, Orbiter,
+  Kiter, Lurker, the elite, and its escorts. The Aggressor's home tactic is the
+  attack run, and hunt patrols fly its temper too. The Orbiter's is flank, the
+  Lurker's is stand off, and the Kiter flies the attack run from further out.
+  The temper also
   records whether the ship circles the wreck before it wanders. A pilot with a
   temper never reads `archetype`. The owner ruled on #1349, 2026-11-09, that
   the elite never breaks off and always presses (break off 0%, nerve 0%) and
