@@ -65,3 +65,27 @@ MonoBehaviour:
     speaker: Armory crew
     mustSay: 0
     lines: []
+  - moment: patrol-spotted
+    speaker: 
+    mustSay: 0
+    lines: []
+  - moment: alarm-raised
+    speaker: 
+    mustSay: 0
+    lines: []
+  - moment: patrol-silenced
+    speaker: 
+    mustSay: 0
+    lines: []
+  - moment: elite-announced
+    speaker: 
+    mustSay: 0
+    lines: []
+  - moment: elite-beaten
+    speaker: 
+    mustSay: 0
+    lines: []
+  - moment: ship-unlocked
+    speaker: 
+    mustSay: 0
+    lines: []

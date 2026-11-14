@@ -74,6 +74,8 @@ namespace Substrate.Sectors.Elements.Phases
 
         public IEliteStatus Elite => elite ? elite : null;
 
+        public SectorHunt Hunt => hunt ? hunt : null;
+
         /// <summary>True from a lull beacon's claim until the next opens.</summary>
         public bool BeaconClaimed { get; private set; }
 

@@ -21,7 +21,9 @@ using NUnit.Framework;
 using Substrate;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
+using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Hunt;
+using Substrate.Sectors.Factions;
 using Substrate.Sessions;
 using Substrate.Services.Locales;
 using Substrate.Services.Units;
@@ -299,6 +301,57 @@ namespace Tests.PlayMode.Bootstrap
 
         [UnityTest]
         [Category("RequiresGraphics")]
+        public IEnumerator FirstProductionSector_CarriesFactionEliteAndUnlock_ThenDropsTheDeadSector()
+        {
+            var keyboard = InputSystem.AddDevice<Keyboard>();
+            PlayerRig rig = null;
+            yield return BootToTheFirstSector(built => rig = built, productionJump: true, presentation: true);
+            var moments = (RunMomentStream)typeof(GameHost)
+                .GetField("moments", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(host);
+
+            var entered = moments.Moments.OfType<SectorEntered>().First();
+            var faction = host.ActiveSector.GetComponentInChildren<SectorFaction>().Faction.id;
+            Assert.AreEqual(1, entered.Sector);
+            Assert.IsNotEmpty(entered.Faction);
+            Assert.AreEqual(faction, entered.Faction);
+
+            var hunt = host.ActiveSector.GetComponentInChildren<SectorHunt>();
+            var elite = host.ActiveSector.GetComponentInChildren<EliteEncounter>();
+            var first = host.ActiveSector;
+            yield return EnterProductionZone(rig, creditPlayer: true);
+
+            var announced = moments.Moments.OfType<EliteAnnounced>().Single();
+            var beaten = moments.Moments.OfType<EliteBeaten>().Single();
+            Assert.AreEqual(1, announced.Sector);
+            Assert.AreEqual(1, beaten.Sector);
+            Assert.AreEqual(faction, announced.Faction);
+            Assert.AreEqual(faction, beaten.Faction);
+            var earned = moments.Moments.OfType<ShipEarned>().Single();
+            Assert.AreEqual(1, earned.Sector);
+            Assert.AreEqual(faction, earned.Faction);
+
+            input.Press(keyboard.fKey);
+            InputSystem.Update();
+            Assert.IsNotNull(host.Jump, "The production spine commits in the F callback.");
+            input.Release(keyboard.fKey);
+            InputSystem.Update();
+            yield return WaitFor(() => host.Jump && host.Jump.Holding && hostGo.GetComponentInChildren<RunRecapScreen>(),
+                "the extracted recap appears in hyperspace");
+            var button = hostGo.GetComponentInChildren<RunRecapScreen>().transform.Find("Panels/Recap/Continue")
+                .GetComponent<Button>();
+            yield return WaitFor(button.IsInteractable, "the next sector is loaded");
+            Assert.AreNotSame(first, host.ActiveSector);
+
+            AssertNoSectorMoments(typeof(SectorHunt), hunt, "PatrolSpotted");
+            AssertNoSectorMoments(typeof(SectorHunt), hunt, "AlarmRaised");
+            AssertNoSectorMoments(typeof(SectorHunt), hunt, "PatrolSilenced");
+            AssertNoSectorMoments(typeof(EliteEncounter), elite, "Announced");
+            AssertNoSectorMoments(typeof(EliteEncounter), elite, "Beaten");
+            yield return host.Shutdown();
+        }
+
+        [UnityTest]
+        [Category("RequiresGraphics")]
         public IEnumerator JumpTravel_WithAWeaponPool_ShowsNoWeaponPick_AndArrivesWithTheSameKit()
         {
             PlayerRig rig = null;
@@ -424,7 +477,7 @@ namespace Tests.PlayMode.Bootstrap
             Assert.AreEqual(enemies, director.Spawned.Count, "the director records every ship it spawns");
         }
 
-        private IEnumerator EnterProductionZone(PlayerRig rig)
+        private IEnumerator EnterProductionZone(PlayerRig rig, bool creditPlayer = false)
         {
             var director = host.ActiveSector.GetComponentInChildren<WaveDirector>();
             director.BeginSchedule(Time.time - 500f);
@@ -434,7 +487,7 @@ namespace Tests.PlayMode.Bootstrap
             var elite = rig.Spawns.Entries().FindLast(entry => entry.Elite);
             Assert.IsTrue(elite.Elite, "Completed production phases summon the sector's elite.");
             Assert.IsTrue(hostGo.GetComponent<UnitService>().ActiveRegistry.TryGetShip(elite.Id, out var eliteShip));
-            TestDamage.Kill(eliteShip);
+            TestDamage.Kill(eliteShip, creditPlayer ? rig.Player : null);
             objectives.Tick(0f);
             var zone = host.ActiveSector.GetComponentInChildren<ExtractionZone>();
             Assert.IsNotNull(zone, "The elite's death exposes the extraction zone.");
@@ -594,6 +647,15 @@ namespace Tests.PlayMode.Bootstrap
             var sector = go.AddComponent<Sector>();
             sector.SetManifest(null, null, new SectorModule[] { go.AddComponent<ExtractOnCueModule>() });
             return go;
+        }
+
+        private static void AssertNoSectorMoments(Type owner, object source, string eventName)
+        {
+            var field = owner.GetField(eventName, BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.IsNotNull(field, eventName);
+            var handler = (Delegate)field.GetValue(source);
+            if (handler == null) return;
+            Assert.IsFalse(handler.GetInvocationList().Any(listener => listener.Target is SectorMoments), eventName);
         }
 
         private static IEnumerator WaitFor(Func<bool> condition, string what) =>
