@@ -60,11 +60,11 @@
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/ScannerPlayModeTests.cs*"
       ]
     },
-    "rlharness": {
+    "harness": {
       "paths": [
-        "src/Asteroids3D/Assets/Scripts/RL/**",
-        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/RL*",
-        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/RL*"
+        "src/Asteroids3D/Assets/Scripts/Harness/**",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/Harness/**",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/Harness/**"
       ]
     },
     "mpc": {

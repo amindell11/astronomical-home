@@ -3,7 +3,7 @@ using AI.Tactics;
 using Game;
 using Game.Preview;
 using NUnit.Framework;
-using RL.Opponents;
+using AI.Pilots;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Hunt;
 using UnityEditor;

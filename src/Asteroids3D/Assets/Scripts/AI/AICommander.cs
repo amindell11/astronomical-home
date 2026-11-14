@@ -17,7 +17,7 @@ namespace AI
     [RequireComponent(typeof(Navigator))]
     [RequireComponent(typeof(Scout))]
 
-    // After the ML-Agents Academy stepper (0) — reads the RL boundary action same-tick; before MovementController (50).
+    // Before MovementController (50), so the pilot command drives the same physics tick.
     [DefaultExecutionOrder(10)]
     public class AICommander : Commander
     {
