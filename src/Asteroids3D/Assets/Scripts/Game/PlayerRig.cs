@@ -25,8 +25,8 @@ namespace Game
     /// <summary>
     /// Everything the interactive game puts into a session for the human: the player ship and its
     /// commander, the HUD (overlay, UI camera, minimap camera), the pending loadout, the damage
-    /// ledger, the run tally, the spawn log and the damage dealt. Built <b>once</b> at session start against a viewport the host
-    /// owns, and held for the whole session — sectors are swapped underneath it and reference the
+    /// ledger, the run tally, the spawn log, the damage dealt and the shield recovery. Built
+    /// <b>once</b> at session start against a viewport the host owns, and held for the whole session — sectors are swapped underneath it and reference the
     /// player by injection (<see cref="Sector.Initialize"/>), never building or clearing it. The
     /// player — ship, input and HUD — is parked (<see cref="Park"/>) from <see cref="Build"/> and
     /// from each sector's unload until <see cref="ApplyLoadout"/> unparks it at the end of the next
@@ -71,6 +71,9 @@ namespace Game
 
         /// <summary>Damage the player dealt this run; reset with the tally at the loadout step.</summary>
         public DamageDealt Dealt { get; } = new();
+
+        /// <summary>Shield regeneration for the open sector; reset with the tally at the loadout step.</summary>
+        public ShieldRecovery Recovery { get; } = new();
 
         /// <summary>The run's lull picks; cleared at the loadout step, bound to each player the rig builds.</summary>
         public LullModStack Mods { get; } = new();
@@ -207,6 +210,7 @@ namespace Game
             Tally.Reset();
             Spawns.Reset();
             Dealt.Reset();
+            Recovery.Reset();
             Mods.Clear();
 
             // The player is always parked here. Unpark it before applying so swapped-in weapon mounts
@@ -228,6 +232,13 @@ namespace Game
         {
             Spawns.BeginSector();
             Dealt.BeginSector(sectorNumber);
+        }
+
+        private void Update()
+        {
+            // A parked player is inactive, so its shield clock stays frozen.
+            if (!Player || !Player.gameObject.activeInHierarchy) return;
+            Recovery.Tick(Player.Damage.Shield, Spawns.AnyOtherAlive(), Time.deltaTime);
         }
 
         /// <summary>Adds a lull pick to the run; the bound player applies it at once.</summary>

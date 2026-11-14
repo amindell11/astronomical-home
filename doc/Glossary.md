@@ -1200,10 +1200,13 @@ Format: **term** — definition. *(authority)*
   its outcome, sectors cleared and the sector it ended in, the hangar loadout and
   the loadout mounted at the end, the mods held, the pick screens, each sector
   entered (seconds, player kills, hull and shield at entry and at the end, whether
-  its elite was announced and whether the player killed it), where that sector's
+  its elite was announced and whether the player killed it, seconds the shield spent
+  regenerating, times regeneration began, times regeneration filled the shield,
+  shield points restored, seconds the shield spent at zero, and the regenerating
+  seconds and restored points while another ship was alive), where that sector's
   phase table stood, the damage taken, the damage the player dealt, the killing
-  blow (deaths only) and the spawn log. A new line is schema v3; stored v2 lines
-  still read. `hasDamageSplit` distinguishes measured shield/hull points from older
+  blow (deaths only) and the spawn log. A new line is schema v4; stored v2 and v3
+  lines still read. `hasDamageSplit` distinguishes measured shield/hull points from older
   v2 records whose split is unknown.
   Every record goes to one append-only file under the results root, which in the
   editor is the worktree's own `results/`, so an agent's editor runs never land in

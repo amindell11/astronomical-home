@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Game.Player;
 
 namespace Game.Runs
 {
@@ -47,7 +48,8 @@ namespace Game.Runs
             shieldIn = shield;
         }
 
-        public void End(float now, int kills, float hull, float shield, bool eliteMet, bool eliteBeaten)
+        public void End(float now, int kills, float hull, float shield, bool eliteMet, bool eliteBeaten,
+            ShieldRecovery.Tally recovery)
         {
             if (!open) throw new InvalidOperationException("No sector row is open.");
             sectors.Add(new SectorRow
@@ -61,6 +63,13 @@ namespace Game.Runs
                 shieldOut = shield,
                 eliteMet = eliteMet,
                 eliteBeaten = eliteBeaten,
+                regenSeconds = recovery.RegenSeconds,
+                regenStarts = recovery.RegenStarts,
+                shieldRefills = recovery.ShieldRefills,
+                shieldRestored = recovery.ShieldRestored,
+                shieldDownSeconds = recovery.ShieldDownSeconds,
+                contestedRegenSeconds = recovery.ContestedRegenSeconds,
+                contestedShieldRestored = recovery.ContestedShieldRestored,
             });
             open = false;
         }
