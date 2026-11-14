@@ -20,15 +20,19 @@ namespace RL.Probes
         public bool swapped;
         public string winner;
         public float simSeconds;
+        public bool diedA;
+        public bool diedB;
+        public float aliveSecondsA;
+        public float aliveSecondsB;
         public MarksmanshipTally tallyA;
         public MarksmanshipTally tallyB;
 
-        public const string SchemaId = "matrix-v1";
+        public const string SchemaId = "matrix-v2";
 
         public string ToJsonLine() => JsonUtility.ToJson(this);
     }
 
-    /// <summary>One unordered pair's episodes. A's win rate counts a draw as half a win. Time to kill is the mean sim time of the fights that named a winner.</summary>
+    /// <summary>One pair's episodes. A's win rate counts a draw as half a win. Time to kill is the mean sim time of the fights that named a winner. Damage per minute alive divides the damage that side dealt by the seconds it was alive. Mean seconds to die averages only the episodes that side died in.</summary>
     [Serializable]
     public struct MatrixPairSummary
     {
@@ -39,6 +43,12 @@ namespace RL.Probes
         public float aWinRate;
         public int decidedFights;
         public float meanTimeToKill;
+        public float damagePerMinuteA;
+        public int deathsA;
+        public float meanSecondsToDieA;
+        public float damagePerMinuteB;
+        public int deathsB;
+        public float meanSecondsToDieB;
     }
 
     /// <summary>One weapon across the fights it appeared in. The win rate leaves out fights against itself. Hit rate and damage per second pool every side, self fights included.</summary>
@@ -56,11 +66,11 @@ namespace RL.Probes
         public float damagePerSecond;
     }
 
-    /// <summary>The armed-matrix instrument: one marksmanship sampler on each ship, a winner read from which ship is still alive, and a sidecar of pair and weapon rates. The markdown table beside the sidecar is those same numbers.</summary>
+    /// <summary>The armed-matrix instrument: one marksmanship sampler on each ship, a winner read from which ship is still alive, and a sidecar of pair rates, per-side damage per minute alive, and weapon rates. The markdown table beside the sidecar is those same numbers.</summary>
     public sealed class MatrixProbe : IHarnessProbe
     {
         public const string ProbeName = "matrix";
-        public const string SummarySchemaId = "matrix-summary-v1";
+        public const string SummarySchemaId = "matrix-summary-v2";
         public const string SideA = "A";
         public const string SideB = "B";
         public const string Draw = "draw";
@@ -146,6 +156,8 @@ namespace RL.Probes
 
         public string End(in EpisodeResult result)
         {
+            var aAlive = Alive(pair.Agent);
+            var bAlive = Alive(pair.Baseline);
             var row = new MatrixRow
             {
                 schema = MatrixRow.SchemaId,
@@ -153,8 +165,12 @@ namespace RL.Probes
                 episodeIndex = episodeIndex,
                 pair = label,
                 swapped = swapped,
-                winner = Winner(Alive(pair.Agent), Alive(pair.Baseline)),
+                winner = Winner(aAlive, bAlive),
                 simSeconds = result.simSeconds,
+                diedA = !aAlive,
+                diedB = !bAlive,
+                aliveSecondsA = result.simSeconds,
+                aliveSecondsB = result.simSeconds,
                 tallyA = samplerA.Tally,
                 tallyB = samplerB.Tally,
             };
@@ -197,14 +213,20 @@ namespace RL.Probes
             }
 
             table.Append("\n## Per pair\n\n");
-            table.Append("| Pair | Episodes | A win rate | Decided | Mean TTK (s) |\n");
-            table.Append("|---|--:|--:|--:|--:|\n");
+            table.Append("| Pair | Episodes | A win rate | Decided | Mean TTK (s) | A dmg/min | A deaths | A sec to die | B dmg/min | B deaths | B sec to die |\n");
+            table.Append("|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|\n");
             foreach (var pairSummary in sidecar.pairs)
             {
                 var ttk = pairSummary.decidedFights > 0 ? Number(pairSummary.meanTimeToKill, "0.0") : "";
+                var dieA = pairSummary.deathsA > 0 ? Number(pairSummary.meanSecondsToDieA, "0.0") : "";
+                var dieB = pairSummary.deathsB > 0 ? Number(pairSummary.meanSecondsToDieB, "0.0") : "";
                 table.Append("| ").Append(pairSummary.pair).Append(" | ").Append(Count(pairSummary.episodes))
                     .Append(" | ").Append(Number(pairSummary.aWinRate, "0.00")).Append(" | ")
-                    .Append(Count(pairSummary.decidedFights)).Append(" | ").Append(ttk).Append(" |\n");
+                    .Append(Count(pairSummary.decidedFights)).Append(" | ").Append(ttk).Append(" | ")
+                    .Append(Number(pairSummary.damagePerMinuteA, "0.0")).Append(" | ")
+                    .Append(Count(pairSummary.deathsA)).Append(" | ").Append(dieA).Append(" | ")
+                    .Append(Number(pairSummary.damagePerMinuteB, "0.0")).Append(" | ")
+                    .Append(Count(pairSummary.deathsB)).Append(" | ").Append(dieB).Append(" |\n");
             }
 
             table.Append("\n## Per weapon\n\n");
@@ -225,9 +247,31 @@ namespace RL.Probes
             var score = 0f;
             var decided = 0;
             var killSeconds = 0f;
+            var damageA = 0f;
+            var damageB = 0f;
+            var aliveA = 0f;
+            var aliveB = 0f;
+            var deathsA = 0;
+            var deathsB = 0;
+            var dieSecondsA = 0f;
+            var dieSecondsB = 0f;
             foreach (var row in pairRows)
             {
                 score += SideScore(row.winner, sideIsA: true);
+                damageA += row.tallyA.damageDealt;
+                damageB += row.tallyB.damageDealt;
+                aliveA += row.aliveSecondsA;
+                aliveB += row.aliveSecondsB;
+                if (row.diedA)
+                {
+                    deathsA++;
+                    dieSecondsA += row.aliveSecondsA;
+                }
+                if (row.diedB)
+                {
+                    deathsB++;
+                    dieSecondsB += row.aliveSecondsB;
+                }
                 if (row.winner != SideA && row.winner != SideB) continue;
                 decided++;
                 killSeconds += row.simSeconds;
@@ -241,6 +285,12 @@ namespace RL.Probes
                 aWinRate = score / pairRows.Count,
                 decidedFights = decided,
                 meanTimeToKill = decided > 0 ? killSeconds / decided : 0f,
+                damagePerMinuteA = aliveA > 0f ? damageA / aliveA * 60f : 0f,
+                deathsA = deathsA,
+                meanSecondsToDieA = deathsA > 0 ? dieSecondsA / deathsA : 0f,
+                damagePerMinuteB = aliveB > 0f ? damageB / aliveB * 60f : 0f,
+                deathsB = deathsB,
+                meanSecondsToDieB = deathsB > 0 ? dieSecondsB / deathsB : 0f,
             };
         }
 

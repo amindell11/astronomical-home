@@ -503,10 +503,11 @@ Format: **term** — definition. *(authority)*
   target, so a missile's contact and splash are not told apart, and a shot
   still in flight when the target dies is fired and never hits.
   *(MarksmanshipProbe, MarksmanshipSampler)*
-- **matrix lane** — the harness lane that fights two scripted ships, one weapon
-  each. Its rows are a snapshot, not a constant: judge a change by running the
-  lane on the base and the head with the same seeds, and quote the replicate
-  gap between two identical runs as the noise. *(#1120 · MatrixLane.cs)*
+- **matrix lane** — the harness lane that fights two scripted ships, either as a
+  weapon pair or as one reference ship against each ship in a roster. Its rows
+  are a snapshot, not a constant: judge a change by running the lane on the base
+  and the head with the same seeds, and quote the replicate gap between two
+  identical runs as the noise. *(#1120 · MatrixLane.cs)*
 - **armed matrix** — every unordered pair from the weapons a matrix lane was
   given, a weapon against itself included. A draw counts half a win, and a
   weapon's rate against the others leaves its self pair out.
@@ -1017,7 +1018,8 @@ Format: **term** — definition. *(authority)*
   break off. A ship picks for its own sake, the best shot for the least risk,
   and never knows it paces the player. "Beat" is the retired name. Owner rulings
   on #1349. Each tactic flies a law the archetype pilots already have:
-  - *attack run*: hold at my gun range and fire (the Aggressor's law);
+  - *attack run*: hold at the gun hold range plus the temper's attack-run margin
+    and fire (the Aggressor's law);
   - *flank*: circle toward the target's open side, firing once my firing lane
     clears;
   - *stand off*: hold just outside the target's real primary gun range, firing
@@ -1025,20 +1027,26 @@ Format: **term** — definition. *(authority)*
   - *break off*: flee with guns cold until the shield is back.
 
   A ship picks by *ordered rules*, the first rule that fires winning: break off,
-  then flank or stand off, then the attack run. It keeps a tactic until the
-  reason it was picked ends, never for less than the *minimum hold*, break off
-  included.
+  then flank or stand off, then its *home tactic*, the tactic it flies when no
+  rule overrides it. It keeps a tactic until the reason it was picked ends, and
+  never for less than the *minimum hold*, break off included. A home tactic also
+  holds while the rules still pick it.
   Only a pilot authored with tactics settings (the *tactics switch*) picks one.
-  Every shipped pilot does, each on its kind's *temper*, and the RL roster never
+  Every shipped pilot does, each on its own *temper*, and the RL roster never
   does. *(TacticRules.Next, TacticsSettings)*
-- **temper**. One `TacticsSettings` asset per kind of ship: wave ships (every
-  ship in a wave and every hunt patrol), the elite, and its escorts. Each pilot points at
-  its own. Owner ruling on #1349, 2026-11-09: the elite never breaks off and
-  always presses (break off 0%, nerve 0%), escorts never fly into the target's
-  guns (nerve 100%), and wave ships keep the numbers #1433 shipped. At 100%
-  nerve a ship shies at a full shield too, so 0% and 100% hold at every shield
-  level. No per-ship or per-run variation yet. *(WaveTemper, EliteTemper,
-  EscortTemper)*
+- **temper**. One `TacticsSettings` asset per pilot: the Aggressor, Orbiter,
+  Kiter, Lurker, the elite, and its escorts. The Aggressor's home tactic is the
+  attack run, and hunt patrols fly its temper too. The Orbiter's is flank, the
+  Lurker's is stand off, and the Kiter flies the attack run from further out.
+  The temper also
+  records whether the ship circles the wreck before it wanders. A pilot with a
+  temper never reads `archetype`. The owner ruled on #1349, 2026-11-09, that
+  the elite never breaks off and always presses (break off 0%, nerve 0%) and
+  escorts never fly into the target's guns (nerve 100%). On #1556, 2026-11-13,
+  the owner left the elite and escort numbers as they were. At 100% nerve a
+  ship shies at a full shield too, so 0% and 100% hold at every shield level.
+  No per-ship or per-run variation yet. *(AggressorTemper, OrbiterTemper,
+  KiterTemper, LurkerTemper, EliteTemper, EscortTemper)*
 - **situation**. What one ship reads about its fight before it picks a tactic,
   from its own sensors only. The owner's picks on #1349: allies count by where
   they are, never by asking another ship's brain, so the elite counts whatever it

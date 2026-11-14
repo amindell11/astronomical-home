@@ -3,7 +3,10 @@
     cd training/rl
     .venv\\Scripts\\python -m unittest test_eval_lane -v
 """
+import contextlib
+import io
 import json
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -49,7 +52,9 @@ class LauncherEnvComposition(unittest.TestCase):
         env = self.captured["env"]
         for absent in ("RL_HARNESS_ONNX", "RL_HARNESS_EPISODES_PER_SEED", "RL_HARNESS_DENSITY",
                        "RL_HARNESS_OPPONENT", "RL_HARNESS_PROBES", "RL_HARNESS_SENTENCE",
-                       "RL_HARNESS_DUEL", "RL_HARNESS_MATRIX"):
+                       "RL_HARNESS_DUEL", "RL_HARNESS_MATRIX",
+                       "RL_HARNESS_MATRIX_REFERENCE", "RL_HARNESS_MATRIX_ROSTER",
+                       "RL_HARNESS_MATRIX_KITS"):
             self.assertNotIn(absent, env)
 
     def test_sentence_param_becomes_harness_env(self):
@@ -66,6 +71,22 @@ class LauncherEnvComposition(unittest.TestCase):
         self.launch(seeds="3001", matrix="Lasers,Missiles")
 
         self.assertEqual("Lasers,Missiles", self.captured["env"]["RL_HARNESS_MATRIX"])
+
+    def test_matrix_roster_params_become_harness_env(self):
+        self.launch(seeds="3001", matrix_reference="Crimson:KiterPilot:Lasers",
+                    matrix_roster="Vanguard:AggressorPilot:Lasers,Nightshade:OrbiterPilot:TurboLasers")
+
+        env = self.captured["env"]
+        self.assertEqual("Crimson:KiterPilot:Lasers", env["RL_HARNESS_MATRIX_REFERENCE"])
+        self.assertEqual("Vanguard:AggressorPilot:Lasers,Nightshade:OrbiterPilot:TurboLasers",
+                         env["RL_HARNESS_MATRIX_ROSTER"])
+        self.assertNotIn("RL_HARNESS_MATRIX", env)
+
+    def test_matrix_kits_param_becomes_harness_env(self):
+        self.launch(seeds="3001", matrix_reference="Crimson:KiterPilot:Lasers",
+                    matrix_roster="Vanguard:AggressorPilot:Lasers", matrix_kits="off")
+
+        self.assertEqual("off", self.captured["env"]["RL_HARNESS_MATRIX_KITS"])
 
     def test_inherited_harness_and_retired_eval_names_are_stripped(self):
         inherited = {
@@ -157,6 +178,31 @@ class PlayerLaneComposition(unittest.TestCase):
                                           bundle=self.out_dir / "eval-models.bundle",
                                           out_dir=self.out_dir, onnx="ckpt/ShipCombat-42.onnx",
                                           seeds="2001")
+
+
+class MatrixKitsCli(unittest.TestCase):
+    def _main(self, argv):
+        stderr = io.StringIO()
+        with mock.patch.object(sys, "argv", argv):
+            with self.assertRaises(SystemExit) as caught:
+                with contextlib.redirect_stderr(stderr):
+                    eval_lane.main()
+        self.assertEqual(2, caught.exception.code)
+        return stderr.getvalue()
+
+    def test_refused_without_matrix_roster(self):
+        message = self._main(["eval_lane.py", "--seeds", "3001", "--matrix-kits", "off"])
+        self.assertIn("--matrix-kits requires --matrix-roster", message)
+
+    def test_refused_with_player_exec(self):
+        with tempfile.NamedTemporaryFile(suffix=".onnx") as onnx:
+            message = self._main([
+                "eval_lane.py", "--seeds", "3001", "--exec", "player", "--onnx", onnx.name,
+                "--matrix-reference", "Crimson:KiterPilot:Lasers",
+                "--matrix-roster", "Vanguard:AggressorPilot:Lasers",
+                "--matrix-kits", "off",
+            ])
+        self.assertIn("--matrix-kits is editor-only", message)
 
 
 if __name__ == "__main__":
