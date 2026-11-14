@@ -133,6 +133,11 @@ namespace RL.Hosts
         public MatrixSide[] matrixRoster;
         /// <summary>Matrix lane, roster mode: both commanders hold the keystone off.</summary>
         public bool matrixKitsOff;
+        /// <summary>Matrix lane, roster mode: copies of the roster ship in the block, 1 to 3.</summary>
+        public int matrixEnemies;
+        /// <summary>Matrix lane, roster mode: <see cref="matrixReferenceBreakOff"/> replaces the reference pilot's break-off shield. Unset leaves the authored settings; 0 is a legal value, so the flag is the presence bit.</summary>
+        public bool matrixReferenceBreakOffSet;
+        public float matrixReferenceBreakOff;
 
         /// <summary>Visuals and audio exist iff the session records plain footage — profile rule: GizmoCaptureProfiles.PresentationFor.</summary>
         public bool Presentation => record.enabled && GizmoCaptureProfiles.PresentationFor(gizmoProfile);
@@ -195,6 +200,8 @@ namespace RL.Hosts
             var matrixReference = getEnv("RL_HARNESS_MATRIX_REFERENCE");
             var matrixRoster = getEnv("RL_HARNESS_MATRIX_ROSTER");
             var matrixKits = getEnv("RL_HARNESS_MATRIX_KITS");
+            var matrixEnemies = getEnv("RL_HARNESS_MATRIX_ENEMIES");
+            var matrixBreakOff = getEnv("RL_HARNESS_MATRIX_REFERENCE_BREAKOFF");
             var rosterMatrix = matrixReference != null || matrixRoster != null;
             var source = getEnv("RL_HARNESS_ONNX");
             if (player && sentence != null)
@@ -249,6 +256,12 @@ namespace RL.Hosts
             if (matrixKits != null)
                 ThrowIfMatrixKits(matrixKits, player, sentence, duel, matrix, matrixReference, matrixRoster, source,
                     getEnv);
+            if (matrixEnemies != null)
+                ThrowIfRosterOnly("RL_HARNESS_MATRIX_ENEMIES", player, sentence, duel, matrix, matrixReference,
+                    matrixRoster, source, getEnv);
+            if (matrixBreakOff != null)
+                ThrowIfRosterOnly("RL_HARNESS_MATRIX_REFERENCE_BREAKOFF", player, sentence, duel, matrix,
+                    matrixReference, matrixRoster, source, getEnv);
             var lane = sentence != null ? HarnessLane.Sentence
                 : duel != null ? HarnessLane.Duel
                 : matrix != null || rosterMatrix ? HarnessLane.Matrix
@@ -300,6 +313,10 @@ namespace RL.Hosts
                     chassis, pilots, weapons, shields);
                 spec.matrixRoster = ParseRoster(matrixRoster, chassis, pilots, weapons, shields);
                 spec.matrixKitsOff = matrixKits != null;
+                spec.matrixEnemies = matrixEnemies == null ? 1 : ParseMatrixEnemies(matrixEnemies);
+                spec.matrixReferenceBreakOffSet = matrixBreakOff != null;
+                if (spec.matrixReferenceBreakOffSet)
+                    spec.matrixReferenceBreakOff = ParseBreakOff(matrixBreakOff);
                 spec.tag = (spec.matrixKitsOff ? "matrix-kitsoff-" : "matrix-") + spec.tag;
             }
             else
@@ -594,10 +611,34 @@ namespace RL.Hosts
             const string which = "RL_HARNESS_MATRIX_KITS";
             if (!Matches(value, "off"))
                 throw new ArgumentException($"{which}='{value}' is not \"off\".");
+            ThrowIfRosterOnly(which, player, sentence, duel, matrix, reference, roster, source, getEnv);
+        }
+
+        private static void ThrowIfRosterOnly(string which, bool player, string sentence, string duel, string matrix,
+            string reference, string roster, string source, Func<string, string> getEnv)
+        {
             ThrowIfRosterMatrixConflicts(which, player, sentence, duel, matrix, source, getEnv);
             if (reference == null || roster == null)
                 throw new ArgumentException(
                     $"{which} is valid only with RL_HARNESS_MATRIX_REFERENCE and RL_HARNESS_MATRIX_ROSTER.");
+        }
+
+        private static int ParseMatrixEnemies(string value)
+        {
+            if (!int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var count)
+                || count < 1 || count > 3)
+                throw new ArgumentException(
+                    $"RL_HARNESS_MATRIX_ENEMIES='{value}' is not an integer from 1 to 3.");
+            return count;
+        }
+
+        private static float ParseBreakOff(string value)
+        {
+            if (!float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var number)
+                || !float.IsFinite(number) || number < 0f || number > 100f)
+                throw new ArgumentException(
+                    $"RL_HARNESS_MATRIX_REFERENCE_BREAKOFF='{value}' is not a finite number from 0 to 100.");
+            return number;
         }
 
         // A stale script setting a retired name would otherwise silently reshape the session (eval the smoke fixture, or film plain footage).

@@ -77,6 +77,69 @@ namespace Tests.EditMode
             StringAssert.Contains("180.0 | 1 | 10.0 | 0.0 | 0 |", MatrixProbe.MarkdownTable(MatrixProbe.Score(rows)));
         }
 
+        [Test]
+        public void DamageTakenPerKillBlanksWhenThereAreNoKillsAndSharesUseTheStepTotals()
+        {
+            var rows = new[]
+            {
+                Reading(enemies: 3, killed: 0, taken: 40f, steps: 100, breakOff: 40, regen: 10,
+                    enemySteps: 300, enemyBreakOff: 30),
+                Reading(enemies: 3, killed: 0, taken: 20f, steps: 100, breakOff: 0, regen: 0,
+                    enemySteps: 200, enemyBreakOff: 10),
+            };
+
+            var pair = MatrixProbe.Score(rows).pairs[0];
+
+            Assert.AreEqual(3, pair.enemies);
+            Assert.AreEqual(0f, pair.meanEnemiesKilled, 1e-5f);
+            Assert.AreEqual(0f, pair.damageTakenPerKillA, 1e-5f);
+            Assert.AreEqual(0.20f, pair.breakOffShareA, 1e-5f);
+            Assert.AreEqual(0.05f, pair.regenShareA, 1e-5f);
+            Assert.AreEqual(0.08f, pair.breakOffShareEnemies, 1e-5f);
+            StringAssert.Contains("| 3 | 0.00 |  | 0.20 | 0.05 | 0.08 |",
+                MatrixProbe.MarkdownTable(MatrixProbe.Score(rows)));
+        }
+
+        [Test]
+        public void DamageTakenPerKillDividesTotalDamageByTotalKills()
+        {
+            var rows = new[]
+            {
+                Reading(enemies: 3, killed: 2, taken: 30f, steps: 100, breakOff: 50, regen: 25,
+                    enemySteps: 100, enemyBreakOff: 50),
+                Reading(enemies: 3, killed: 1, taken: 30f, steps: 100, breakOff: 50, regen: 25,
+                    enemySteps: 100, enemyBreakOff: 0),
+            };
+
+            var pair = MatrixProbe.Score(rows).pairs[0];
+
+            Assert.AreEqual(1.5f, pair.meanEnemiesKilled, 1e-5f);
+            Assert.AreEqual(20f, pair.damageTakenPerKillA, 1e-4f);
+            Assert.AreEqual(0.50f, pair.breakOffShareA, 1e-5f);
+            Assert.AreEqual(0.25f, pair.regenShareA, 1e-5f);
+            Assert.AreEqual(0.25f, pair.breakOffShareEnemies, 1e-5f);
+            StringAssert.Contains("| 3 | 1.50 | 20.0 | 0.50 | 0.25 | 0.25 |",
+                MatrixProbe.MarkdownTable(MatrixProbe.Score(rows)));
+        }
+
+        private static MatrixRow Reading(int enemies, int killed, float taken, int steps, int breakOff, int regen,
+            int enemySteps, int enemyBreakOff) => new()
+        {
+            schema = MatrixRow.SchemaId,
+            pair = "Crimson_vs_Vanguard",
+            winner = MatrixProbe.Draw,
+            enemies = enemies,
+            enemiesKilled = killed,
+            damageTakenA = taken,
+            stepsA = steps,
+            breakOffStepsA = breakOff,
+            regenStepsA = regen,
+            stepsEnemies = enemySteps,
+            breakOffStepsEnemies = enemyBreakOff,
+            tallyA = new MarksmanshipTally { weapon = "Lasers" },
+            tallyB = new MarksmanshipTally { weapon = "Lasers" },
+        };
+
         private static MatrixRow Lived(string pair, string weaponA, string weaponB, float damageA, float aliveA,
             bool diedA, float damageB, float aliveB, bool diedB) => new()
         {

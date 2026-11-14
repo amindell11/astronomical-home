@@ -67,6 +67,7 @@ def run_eval_lane(*, project: Path, unity: Path, lease: str, out_dir: Path,
                   onnx=None, seeds=None, episodes_per_seed=None, density=None,
                   opponent=None, probes=None, sentence=None, duel=None, matrix=None,
                   matrix_reference=None, matrix_roster=None, matrix_kits=None,
+                  matrix_enemies=None, matrix_reference_breakoff=None,
                   lease_wait: int = 1800) -> Path:
     """One eval-lane session through the coordinator; returns the summary path read back from out_dir.
 
@@ -90,6 +91,8 @@ def run_eval_lane(*, project: Path, unity: Path, lease: str, out_dir: Path,
         "RL_HARNESS_MATRIX_REFERENCE": matrix_reference,
         "RL_HARNESS_MATRIX_ROSTER": matrix_roster,
         "RL_HARNESS_MATRIX_KITS": matrix_kits,
+        "RL_HARNESS_MATRIX_ENEMIES": matrix_enemies,
+        "RL_HARNESS_MATRIX_REFERENCE_BREAKOFF": matrix_reference_breakoff,
         "RL_HARNESS_OUT_DIR": out_dir,
     })
     code = run_batch(lease, project, HARNESS_CHILD, env, wait_seconds=lease_wait, log_path=log)
@@ -172,6 +175,12 @@ def main() -> None:
     parser.add_argument("--matrix-kits", default=None,
                         help="RL_HARNESS_MATRIX_KITS: off flies the roster with keystone kits never activated. "
                              "Requires --matrix-roster. Editor-only.")
+    parser.add_argument("--matrix-enemies", default=None,
+                        help="RL_HARNESS_MATRIX_ENEMIES: 1, 2, or 3 copies of each roster ship. "
+                             "Requires --matrix-roster. Editor-only.")
+    parser.add_argument("--matrix-reference-breakoff", default=None,
+                        help="RL_HARNESS_MATRIX_REFERENCE_BREAKOFF: the reference pilot's break-off shield, "
+                             "a number from 0 to 100. Requires --matrix-roster. Editor-only.")
     parser.add_argument("--exec", dest="exec_mode", choices=("editor", "player"), default="editor",
                         help="editor: the calibrated reference protocol, sim in the leased batch child; "
                              "player: leased convert step, then the sim in the dedicated headless exe "
@@ -203,6 +212,10 @@ def main() -> None:
             parser.error("--matrix is editor-only; the matrix lane has no player")
         if args.matrix_kits:
             parser.error("--matrix-kits is editor-only; the matrix lane has no player")
+        if args.matrix_enemies:
+            parser.error("--matrix-enemies is editor-only; the matrix lane has no player")
+        if args.matrix_reference_breakoff:
+            parser.error("--matrix-reference-breakoff is editor-only; the matrix lane has no player")
         if args.matrix_reference or args.matrix_roster:
             parser.error("--matrix-reference and --matrix-roster are editor-only; the matrix lane has no player")
         # Freshness is the operator's (run_parallel.py precedent) — no staleness oracle here.
@@ -212,6 +225,10 @@ def main() -> None:
 
     if args.matrix_kits and not args.matrix_roster:
         parser.error("--matrix-kits requires --matrix-roster")
+    if args.matrix_enemies and not args.matrix_roster:
+        parser.error("--matrix-enemies requires --matrix-roster")
+    if args.matrix_reference_breakoff and not args.matrix_roster:
+        parser.error("--matrix-reference-breakoff requires --matrix-roster")
 
     unity = args.unity or default_unity_exe(args.project)
     if args.sentence:
@@ -240,7 +257,9 @@ def main() -> None:
                                 density=args.density, opponent=args.opponent, probes=args.probes,
                                 sentence=args.sentence, duel=args.duel, matrix=args.matrix,
                                 matrix_reference=args.matrix_reference, matrix_roster=args.matrix_roster,
-                                matrix_kits=args.matrix_kits, lease_wait=args.lease_wait)
+                                matrix_kits=args.matrix_kits, matrix_enemies=args.matrix_enemies,
+                                matrix_reference_breakoff=args.matrix_reference_breakoff,
+                                lease_wait=args.lease_wait)
     print(f"[eval-lane] summary {summary}")
 
 

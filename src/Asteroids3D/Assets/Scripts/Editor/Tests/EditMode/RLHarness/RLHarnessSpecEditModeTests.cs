@@ -645,6 +645,113 @@ namespace Tests.EditMode.RLHarness
         }
 
         [Test]
+        public void MatrixRoster_ParsesEnemyCountAndBreakOffAndRefusesThemElsewhere()
+        {
+            var plain = Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers",
+                "RL_HARNESS_MATRIX_ROSTER", "Vanguard:AggressorPilot:Lasers",
+                "RL_HARNESS_SEEDS", "3001");
+            Assert.AreEqual(1, plain.matrixEnemies);
+            Assert.IsFalse(plain.matrixReferenceBreakOffSet);
+            Assert.AreEqual(
+                "Crimson-KiterPilot-Lasers_vs_Vanguard-AggressorPilot-Lasers",
+                MatrixLane.RosterBlockLabel(plain.matrixReference, plain.matrixRoster[0]));
+
+            var spec = Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers",
+                "RL_HARNESS_MATRIX_ROSTER", "Vanguard:AggressorPilot:Lasers",
+                "RL_HARNESS_MATRIX_ENEMIES", "3",
+                "RL_HARNESS_MATRIX_REFERENCE_BREAKOFF", "0",
+                "RL_HARNESS_SEEDS", "3001");
+            Assert.AreEqual(3, spec.matrixEnemies);
+            Assert.IsTrue(spec.matrixReferenceBreakOffSet);
+            Assert.AreEqual(0f, spec.matrixReferenceBreakOff);
+            Assert.AreEqual(
+                "Crimson-KiterPilot-Lasers_vs_Vanguard-AggressorPilot-Lasers_x3_bo0",
+                MatrixLane.RosterBlockLabel(spec.matrixReference, spec.matrixRoster[0],
+                    enemies: spec.matrixEnemies, breakOffSet: true, breakOff: spec.matrixReferenceBreakOff));
+            Assert.AreEqual(
+                "Crimson-KiterPilot-Lasers_vs_Vanguard-AggressorPilot-Lasers_bo50",
+                MatrixLane.RosterBlockLabel(spec.matrixReference, spec.matrixRoster[0],
+                    breakOffSet: true, breakOff: 50f));
+            Assert.AreEqual(
+                "Crimson-KiterPilot-Lasers_vs_Vanguard-AggressorPilot-Lasers_bo12.5",
+                MatrixLane.RosterBlockLabel(spec.matrixReference, spec.matrixRoster[0],
+                    breakOffSet: true, breakOff: 12.5f));
+
+            var hundred = Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers",
+                "RL_HARNESS_MATRIX_ROSTER", "Vanguard:AggressorPilot:Lasers",
+                "RL_HARNESS_MATRIX_REFERENCE_BREAKOFF", "100",
+                "RL_HARNESS_SEEDS", "3001");
+            Assert.AreEqual(100f, hundred.matrixReferenceBreakOff);
+            Assert.AreEqual(1, hundred.matrixEnemies);
+
+            Assert.Throws<ArgumentException>(() => Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers",
+                "RL_HARNESS_MATRIX_ROSTER", "Vanguard:AggressorPilot:Lasers",
+                "RL_HARNESS_MATRIX_ENEMIES", "0"));
+            Assert.Throws<ArgumentException>(() => Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers",
+                "RL_HARNESS_MATRIX_ROSTER", "Vanguard:AggressorPilot:Lasers",
+                "RL_HARNESS_MATRIX_ENEMIES", "4"));
+            Assert.Throws<ArgumentException>(() => Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers",
+                "RL_HARNESS_MATRIX_ROSTER", "Vanguard:AggressorPilot:Lasers",
+                "RL_HARNESS_MATRIX_ENEMIES", "2.5"));
+            Assert.Throws<ArgumentException>(() => Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers",
+                "RL_HARNESS_MATRIX_ROSTER", "Vanguard:AggressorPilot:Lasers",
+                "RL_HARNESS_MATRIX_REFERENCE_BREAKOFF", "-0.1"));
+            Assert.Throws<ArgumentException>(() => Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers",
+                "RL_HARNESS_MATRIX_ROSTER", "Vanguard:AggressorPilot:Lasers",
+                "RL_HARNESS_MATRIX_REFERENCE_BREAKOFF", "101"));
+            Assert.Throws<ArgumentException>(() => Parse(
+                "RL_HARNESS_MATRIX_REFERENCE", "Crimson:KiterPilot:Lasers",
+                "RL_HARNESS_MATRIX_ROSTER", "Vanguard:AggressorPilot:Lasers",
+                "RL_HARNESS_MATRIX_REFERENCE_BREAKOFF", "NaN"));
+
+            var withWeapons = Assert.Throws<ArgumentException>(() => Parse(
+                "RL_HARNESS_MATRIX_ENEMIES", "3",
+                "RL_HARNESS_MATRIX", "Lasers"));
+            StringAssert.Contains("and RL_HARNESS_MATRIX each imply", withWeapons.Message);
+            var alone = Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_MATRIX_ENEMIES", "2"));
+            StringAssert.Contains("valid only with", alone.Message);
+            var breakOffLane = Assert.Throws<ArgumentException>(() => Parse(
+                "RL_HARNESS_MATRIX_REFERENCE_BREAKOFF", "50",
+                "RL_HARNESS_LANE", "capture"));
+            StringAssert.Contains("RL_HARNESS_LANE", breakOffLane.Message);
+        }
+
+        [Test]
+        public void ExtraEnemies_SitOnTheBaselineCircleFacingTheReference()
+        {
+            var reference = new Vector2(3f, -5f);
+            var baseline = new Vector2(11f, 1f);
+            var plus = EpisodePoses.ExtraOnBaselineCircle(reference, baseline, 0);
+            var minus = EpisodePoses.ExtraOnBaselineCircle(reference, baseline, 1);
+            var radius = (baseline - reference).magnitude;
+
+            Assert.AreNotEqual(plus.pos, minus.pos);
+            Assert.AreNotEqual(plus.pos, baseline);
+            Assert.AreNotEqual(minus.pos, baseline);
+            Assert.AreEqual(radius, (plus.pos - reference).magnitude, 1e-4f);
+            Assert.AreEqual(radius, (minus.pos - reference).magnitude, 1e-4f);
+            Assert.AreEqual(EpisodePoses.ExtraEnemyOffsetDeg,
+                Vector2.Angle(baseline - reference, plus.pos - reference), 1e-3f);
+            Assert.AreEqual(EpisodePoses.ExtraEnemyOffsetDeg,
+                Vector2.Angle(baseline - reference, minus.pos - reference), 1e-3f);
+            Assert.AreEqual(1f, Vector2.Dot(ForwardOf(plus.rotDeg), (reference - plus.pos).normalized), 1e-4f);
+            Assert.AreEqual(1f, Vector2.Dot(ForwardOf(minus.rotDeg), (reference - minus.pos).normalized), 1e-4f);
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+                EpisodePoses.ExtraOnBaselineCircle(reference, baseline, 2));
+        }
+
+        private static Vector2 ForwardOf(float rotDeg) =>
+            new(-Mathf.Sin(rotDeg * Mathf.Deg2Rad), Mathf.Cos(rotDeg * Mathf.Deg2Rad));
+
+        [Test]
         public void DuelBlockLabels_NameTheWeaponAndTheTarget()
         {
             var railgun = TrainingBootstrap.CatalogWeapons().First(w => w.name == "Railgun");
@@ -821,6 +928,12 @@ namespace Tests.EditMode.RLHarness
             Assert.Throws<ArgumentException>(() => ParsePlayer("RL_HARNESS_BUNDLE", "run/eval-models.bundle",
                 "RL_HARNESS_ONNX", "run/ShipCombat-42.onnx",
                 "RL_HARNESS_MATRIX_KITS", "off"), "kits off");
+            Assert.Throws<ArgumentException>(() => ParsePlayer("RL_HARNESS_BUNDLE", "run/eval-models.bundle",
+                "RL_HARNESS_ONNX", "run/ShipCombat-42.onnx",
+                "RL_HARNESS_MATRIX_ENEMIES", "3"), "enemy count");
+            Assert.Throws<ArgumentException>(() => ParsePlayer("RL_HARNESS_BUNDLE", "run/eval-models.bundle",
+                "RL_HARNESS_ONNX", "run/ShipCombat-42.onnx",
+                "RL_HARNESS_MATRIX_REFERENCE_BREAKOFF", "0"), "break-off override");
         }
 
         [Test]
