@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using Combat.Weapons;
 using UnityEngine;
@@ -13,7 +14,7 @@ using RL.Reward;
 
 namespace RL.Hosts.Lanes
 {
-    /// <summary>The matrix lane client. For each seed, one block per unordered weapon pair, or one block per roster ship against a fixed reference. Both ships are scripted. The matrix probe's sidecar is the instrument; this summary fingerprints the run.</summary>
+    /// <summary>The matrix lane client. For each seed, one block per unordered weapon pair, or one block per roster ship against a fixed reference. A roster block fields 1, 2, or 3 copies of that ship, and can replace the reference pilot's break-off shield. Both sides are scripted. The matrix probe's sidecar is the instrument; this summary fingerprints the run.</summary>
     public sealed class MatrixLane : ILaneClient
     {
         IEnumerator ILaneClient.Run(HarnessHost host, HarnessSpec spec) => RunLane(host, spec);
@@ -74,12 +75,20 @@ namespace RL.Hosts.Lanes
             labelOverride = PairLabel(weaponA, weaponB),
         };
 
-        public static string RosterBlockLabel(MatrixSide reference, MatrixSide roster, bool kitsOff = false) =>
-            reference.Label + "_vs_" + roster.Label + (kitsOff ? "_kitsoff" : "");
-
-        public static OpponentSpec Block(MatrixSide reference, MatrixSide roster, bool kitsOff = false) => new()
+        public static string RosterBlockLabel(MatrixSide reference, MatrixSide roster, bool kitsOff = false,
+            int enemies = 1, bool breakOffSet = false, float breakOff = 0f)
         {
-            labelOverride = RosterBlockLabel(reference, roster, kitsOff),
+            var label = reference.Label + "_vs_" + roster.Label;
+            if (kitsOff) label += "_kitsoff";
+            if (enemies > 1) label += "_x" + enemies.ToString(CultureInfo.InvariantCulture);
+            if (breakOffSet) label += "_bo" + breakOff.ToString("0.########", CultureInfo.InvariantCulture);
+            return label;
+        }
+
+        public static OpponentSpec Block(MatrixSide reference, MatrixSide roster, bool kitsOff = false,
+            int enemies = 1, bool breakOffSet = false, float breakOff = 0f) => new()
+        {
+            labelOverride = RosterBlockLabel(reference, roster, kitsOff, enemies, breakOffSet, breakOff),
         };
 
         public static IEnumerator RunLane(HarnessHost host, HarnessSpec spec)
@@ -133,8 +142,10 @@ namespace RL.Hosts.Lanes
             {
                 var reference = spec.matrixReference;
                 foreach (var roster in spec.matrixRoster)
-                    matchups.Add((Block(reference, roster, spec.matrixKitsOff),
-                        seedSpec => host.NewMatrixComposition(in seedSpec, reference, roster)));
+                    matchups.Add((Block(reference, roster, spec.matrixKitsOff, spec.matrixEnemies,
+                            spec.matrixReferenceBreakOffSet, spec.matrixReferenceBreakOff),
+                        seedSpec => host.NewMatrixComposition(in seedSpec, reference, roster, spec.matrixEnemies,
+                            spec.matrixReferenceBreakOffSet, spec.matrixReferenceBreakOff)));
                 return matchups;
             }
 

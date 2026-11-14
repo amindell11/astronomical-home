@@ -271,6 +271,24 @@ namespace Tests.EditMode.Runs
         }
 
         [Test]
+        public void AnyOtherAlive_IgnoresThePlayerAndIsTrueUntilTheSpawnIsDeadOrHasLeft()
+        {
+            log.Begin(0f);
+            log.Log(Player, NewHull(), 0f);
+            Assert.IsFalse(log.AnyOtherAlive());
+
+            log.Log(Enemy, NewHull(), 0f);
+            Assert.IsTrue(log.AnyOtherAlive());
+            log.MarkDead(Enemy, BlowFrom(Player), 1f);
+            Assert.IsFalse(log.AnyOtherAlive());
+
+            log.Log(OtherEnemy, NewHull(), 2f);
+            Assert.IsTrue(log.AnyOtherAlive());
+            log.EndSector(3f);
+            Assert.IsFalse(log.AnyOtherAlive());
+        }
+
+        [Test]
         public void Reset_ClearsTheLog()
         {
             log.Begin(0f);

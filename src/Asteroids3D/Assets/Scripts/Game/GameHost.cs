@@ -858,6 +858,7 @@ namespace Game
             if (course == null) return;
             var damage = rigInstance.Player.Damage;
             course.Enter(index + 1, Time.time, damage.Health.Pct, damage.Shield.Pct);
+            rigInstance.Recovery.Open();
         }
 
         private void CloseOpenSector()
@@ -867,7 +868,7 @@ namespace Game
             var damage = rigInstance.Player.Damage;
             course.End(sectorEnded ? sectorEndTime : Time.time, rigInstance.Spawns.KillsSinceSectorStart(),
                 damage.Health.Pct, damage.Shield.Pct, rigInstance.Spawns.EliteMet(activeSectorIndex),
-                rigInstance.Spawns.EliteBeaten(activeSectorIndex));
+                rigInstance.Spawns.EliteBeaten(activeSectorIndex), rigInstance.Recovery.Close());
         }
 
         // An unreadable build identity leaves the run unrecorded, like a failed write.

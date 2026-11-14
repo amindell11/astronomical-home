@@ -103,6 +103,7 @@ namespace Tests.EditMode.Runs
         public void JsonLine_IsOneLineTaggedWithTheSchema()
         {
             StringAssert.DoesNotContain("\n", json);
+            Assert.AreEqual("run-record-v4", RunRecord.SchemaId);
             StringAssert.Contains("\"schema\":\"" + RunRecord.SchemaId + "\"", json);
             Assert.AreEqual(RunRecord.SchemaId, JsonUtility.FromJson<RunRecord>(json).schema);
         }
@@ -263,7 +264,8 @@ namespace Tests.EditMode.Runs
             course.NotePick(RunRecord.PickMod, 1, 4f, new[] { "Overcharge", "Cooling" }, "Overcharge", "");
             course.NotePick(RunRecord.PickWeapon, 2, 9f, new[] { "Missiles", "Rippers" }, "Missiles", "Lasers");
             course.Enter(1, 0f, 1f, 0.8f);
-            course.End(12f, 2, 0.5f, 0.25f, true, false);
+            var tally = new ShieldRecovery.Tally(4.5f, 2, 1, 30f, 3f, 1.5f, 10f);
+            course.End(12f, 2, 0.5f, 0.25f, true, false, tally);
             var end = new LoadoutRow { chassis = "Bulwark", primary = "Missiles", statHash = "end-hash" };
             var phase = new EndPhaseRow { index = 1, inLull = true, done = false, elapsedSeconds = 3.5f };
             var dealt = new List<DealtRow>
@@ -306,6 +308,13 @@ namespace Tests.EditMode.Runs
             Assert.AreEqual(0.25f, read.sectors[0].shieldOut, 1e-4f);
             Assert.IsTrue(read.sectors[0].eliteMet);
             Assert.IsFalse(read.sectors[0].eliteBeaten);
+            Assert.AreEqual(4.5f, read.sectors[0].regenSeconds, 1e-4f);
+            Assert.AreEqual(2, read.sectors[0].regenStarts);
+            Assert.AreEqual(1, read.sectors[0].shieldRefills);
+            Assert.AreEqual(30f, read.sectors[0].shieldRestored, 1e-4f);
+            Assert.AreEqual(3f, read.sectors[0].shieldDownSeconds, 1e-4f);
+            Assert.AreEqual(1.5f, read.sectors[0].contestedRegenSeconds, 1e-4f);
+            Assert.AreEqual(10f, read.sectors[0].contestedShieldRestored, 1e-4f);
             Assert.AreEqual(1, read.endPhase.index);
             Assert.IsTrue(read.endPhase.inLull);
             Assert.IsFalse(read.endPhase.done);
@@ -333,6 +342,16 @@ namespace Tests.EditMode.Runs
             Assert.AreEqual(RunRecord.Abandoned, read.outcome);
             Assert.AreEqual(string.Empty, read.killingBlow.kind);
             Assert.AreEqual(RunRecord.NoSpawn, read.killingBlow.spawn);
+        }
+
+        [Test]
+        public void Counts_AcceptsV2V3AndV4_AndSkipsAbandoned()
+        {
+            Assert.IsTrue(RunRecord.Counts(RunRecord.SchemaV2, RunRecord.Died));
+            Assert.IsTrue(RunRecord.Counts(RunRecord.SchemaV3, RunRecord.Extracted));
+            Assert.IsTrue(RunRecord.Counts(RunRecord.SchemaId, RunRecord.Died));
+            Assert.IsFalse(RunRecord.Counts(RunRecord.SchemaV3, RunRecord.Abandoned));
+            Assert.IsFalse(RunRecord.Counts("run-record-v1", RunRecord.Died));
         }
 
         private SpawnLog EmptySpawns()

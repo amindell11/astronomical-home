@@ -214,6 +214,68 @@ namespace Tests.PlayMode
             composition.Dispose();
         }
 
+        [Test]
+        public void RosterSide_NumericShieldOverridesTheChassisModule()
+        {
+            var chassis = TrainingBootstrap.CatalogChassis();
+            var pilots = TrainingBootstrap.CatalogPilots();
+            var crimson = chassis.FirstOrDefault(ship => ship.name == "Crimson");
+            var bulwark = chassis.FirstOrDefault(ship => ship.name == "Bulwark");
+            var kiter = pilots.FirstOrDefault(pilot => pilot.name == "KiterPilot");
+            var aggressor = pilots.FirstOrDefault(pilot => pilot.name == "AggressorPilot");
+            Assert.IsNotNull(crimson, "the item catalog must list the Crimson chassis");
+            Assert.IsNotNull(bulwark, "the item catalog must list the Bulwark chassis");
+            Assert.IsNotNull(kiter, "Assets/Prefabs/Pilots must include KiterPilot");
+            Assert.IsNotNull(aggressor, "Assets/Prefabs/Pilots must include AggressorPilot");
+            Assert.IsTrue(crimson.shield != null, "Crimson carries its own shield module");
+            Assert.IsTrue(bulwark.shield != null, "Bulwark carries its own shield module");
+            var reference = new MatrixSide { chassis = crimson, pilot = kiter, weapon = lasers };
+            var roster = new MatrixSide
+            {
+                chassis = bulwark,
+                pilot = aggressor,
+                weapon = lasers,
+                shieldNumbers = true,
+                shieldCapacity = 32f,
+                shieldDelay = 2f,
+                shieldRate = 10f,
+            };
+
+            var spec = new HarnessSpec
+            {
+                lane = HarnessLane.Matrix,
+                seeds = new[] { 3001 },
+                tag = "matrix-shield-numbers-test",
+                episodesPerSeed = 1,
+                probes = Array.Empty<ProbeSpec>(),
+                matrixReference = reference,
+                matrixRoster = new[] { roster },
+                outDir = outDir,
+            };
+            var hostObject = new GameObject("[HarnessHost]");
+            hostObject.transform.SetParent(arenaHost.transform, false);
+            hostObject.SetActive(false);
+            var host = hostObject.AddComponent<HarnessHost>();
+            host.Initialize(spec, assets, unitService, projectiles);
+
+            var seedSpec = MatrixLane.RosterSpec();
+            seedSpec.runSeed = spec.seeds[0];
+            var composition = host.NewMatrixComposition(in seedSpec, reference, roster);
+            var agent = composition.Pair.Agent;
+            var baseline = composition.Pair.Baseline;
+            Assert.AreEqual(crimson.shield, agent.Shield);
+            Assert.AreEqual(crimson.shield.maxShield, agent.Stats.maxShield, 1e-4f);
+            Assert.AreEqual(crimson.shield.shieldRegenDelay, agent.Stats.shieldRegenDelay, 1e-4f);
+            Assert.AreEqual(crimson.shield.shieldRegenRate, agent.Stats.shieldRegenRate, 1e-4f);
+            var module = baseline.Shield;
+            Assert.AreNotEqual(bulwark.shield, module);
+            Assert.AreEqual(32f, baseline.Stats.maxShield, 1e-4f);
+            Assert.AreEqual(2f, baseline.Stats.shieldRegenDelay, 1e-4f);
+            Assert.AreEqual(10f, baseline.Stats.shieldRegenRate, 1e-4f);
+            composition.Dispose();
+            Assert.IsTrue(module == null, "the runtime shield dies with the pair");
+        }
+
         [UnityTest]
         [Timeout(600000)]
         public IEnumerator RosterBlock_KitsOffFiresPrimariesAndNeverActivatesKeystones()
@@ -266,6 +328,104 @@ namespace Tests.PlayMode
             Assert.AreEqual("Crimson-KiterPilot-Lasers_vs_Vanguard-AggressorPilot-Lasers_kitsoff", row.pair);
             Assert.Greater(row.tallyA.fired, 0, "the reference ship fired its primary");
             Assert.Greater(row.tallyB.fired, 0, "the roster ship fired its primary");
+        }
+
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator RosterBlock_ThreeEnemiesEndsWhenTheReferenceOrEveryEnemyIsDead()
+        {
+            var (reference, roster) = RosterFixture();
+            var host = NewHost("matrix-x3-test");
+            var seedSpec = MatrixLane.RosterSpec();
+            seedSpec.runSeed = 3001;
+            var jsonlPath = EpisodeJsonl.NewRunPath("matrix-x3-test", CheckpointEvaluator.ResultsFolder, outDir);
+            var block = MatrixLane.Block(reference, roster, enemies: 3);
+            var composition = host.NewMatrixComposition(in seedSpec, reference, roster, enemies: 3);
+            yield return host.RunBlock(composition, block, 1, seedSpec, jsonlPath, null);
+            composition.Dispose();
+
+            var row = ReadRow(jsonlPath);
+            Assert.AreEqual(MatrixRow.SchemaId, row.schema);
+            Assert.AreEqual("Crimson-KiterPilot-Lasers_vs_Vanguard-AggressorPilot-Lasers_x3", row.pair);
+            Assert.AreEqual(3, row.enemies);
+            Assert.IsTrue(row.diedA || row.enemiesKilled == 3 || row.timedOut,
+                "the episode ended with the reference dead, every enemy dead, or the timeout");
+            Assert.Greater(row.tallyA.fired, 0, "the reference ship fired its primary");
+        }
+
+        [UnityTest]
+        [Timeout(1200000)]
+        public IEnumerator RosterBlock_BreakOffZeroNeverBreaksAndFullBreaksAfterAHit()
+        {
+            var (reference, roster) = RosterFixture();
+            var host = NewHost("matrix-breakoff-test");
+            var seedSpec = MatrixLane.RosterSpec();
+            seedSpec.runSeed = 3001;
+
+            var held = EpisodeJsonl.NewRunPath("matrix-bo0", CheckpointEvaluator.ResultsFolder, outDir);
+            var heldBlock = MatrixLane.Block(reference, roster, breakOffSet: true, breakOff: 0f);
+            var heldComposition = host.NewMatrixComposition(in seedSpec, reference, roster,
+                breakOffSet: true, breakOff: 0f);
+            yield return host.RunBlock(heldComposition, heldBlock, 1, seedSpec, held, null);
+            heldComposition.Dispose();
+            var zero = ReadRow(held);
+            Assert.AreEqual("Crimson-KiterPilot-Lasers_vs_Vanguard-AggressorPilot-Lasers_bo0", zero.pair);
+            Assert.Greater(zero.damageTakenA, 0f, "the reference was hit");
+            Assert.AreEqual(0, zero.breakOffStepsA);
+
+            var dropped = EpisodeJsonl.NewRunPath("matrix-bo100", CheckpointEvaluator.ResultsFolder, outDir);
+            var droppedBlock = MatrixLane.Block(reference, roster, breakOffSet: true, breakOff: 100f);
+            var droppedComposition = host.NewMatrixComposition(in seedSpec, reference, roster,
+                breakOffSet: true, breakOff: 100f);
+            yield return host.RunBlock(droppedComposition, droppedBlock, 1, seedSpec, dropped, null);
+            droppedComposition.Dispose();
+            var full = ReadRow(dropped);
+            Assert.AreEqual("Crimson-KiterPilot-Lasers_vs_Vanguard-AggressorPilot-Lasers_bo100", full.pair);
+            Assert.Greater(full.damageTakenA, 0f, "the reference was hit");
+            Assert.Greater(full.breakOffStepsA, 0, "a full break-off shield breaks off after a hit");
+        }
+
+        private (MatrixSide reference, MatrixSide roster) RosterFixture()
+        {
+            var chassis = TrainingBootstrap.CatalogChassis();
+            var pilots = TrainingBootstrap.CatalogPilots();
+            var crimson = chassis.FirstOrDefault(ship => ship.name == "Crimson");
+            var vanguard = chassis.FirstOrDefault(ship => ship.name == "Vanguard");
+            var kiter = pilots.FirstOrDefault(pilot => pilot.name == "KiterPilot");
+            var aggressor = pilots.FirstOrDefault(pilot => pilot.name == "AggressorPilot");
+            Assert.IsNotNull(crimson, "the item catalog must list the Crimson chassis");
+            Assert.IsNotNull(vanguard, "the item catalog must list the Vanguard chassis");
+            Assert.IsNotNull(kiter, "Assets/Prefabs/Pilots must include KiterPilot");
+            Assert.IsNotNull(aggressor, "Assets/Prefabs/Pilots must include AggressorPilot");
+            return (
+                new MatrixSide { chassis = crimson, pilot = kiter, weapon = lasers },
+                new MatrixSide { chassis = vanguard, pilot = aggressor, weapon = lasers });
+        }
+
+        private HarnessHost NewHost(string tag)
+        {
+            var spec = new HarnessSpec
+            {
+                lane = HarnessLane.Matrix,
+                seeds = new[] { 3001 },
+                tag = tag,
+                episodesPerSeed = 1,
+                probes = new[] { ProbeSpec.Named(MatrixProbe.ProbeName) },
+                outDir = outDir,
+            };
+            var hostObject = new GameObject("[HarnessHost]");
+            hostObject.transform.SetParent(arenaHost.transform, false);
+            hostObject.SetActive(false);
+            var host = hostObject.AddComponent<HarnessHost>();
+            host.Initialize(spec, assets, unitService, projectiles);
+            return host;
+        }
+
+        private static MatrixRow ReadRow(string jsonlPath)
+        {
+            var probeLines = File.ReadAllLines(jsonlPath.Replace(".jsonl", "-matrix.jsonl"));
+            Assert.AreEqual(1, probeLines.Length, "one matrix row per episode");
+            return JsonUtility.FromJson<MatrixRow>(probeLines[0]);
         }
     }
 }

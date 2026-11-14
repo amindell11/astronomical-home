@@ -1,5 +1,8 @@
+using System;
 using AI;
+using AI.Tactics;
 using Ships;
+using Ships.Loadout;
 using UnityEngine;
 using Substrate.Services.Units;
 using Substrate.Services.Projectiles;
@@ -11,7 +14,7 @@ using RL.Reward;
 
 namespace RL.Episodes.Compositions
 {
-    /// <summary>The matrix lane's harness composition. Each side brings its chassis, pilot, and one primary weapon, and may name a shield that replaces the chassis module. The weapon-pair path installs a fixed Aggressor on both ships; a roster side flies the pilot prefab's authored brain. Kits-off holds both keystones. The loadout binds at spawn, so one seed's episodes share the pair and an odd episode only swaps poses.</summary>
+    /// <summary>The matrix lane's harness composition. The weapon-pair path installs a fixed Aggressor on both ships; a roster side flies its pilot prefab's authored brain, and a break-off override hands the reference a runtime copy of its tactics. The loadout binds at spawn, so one seed's episodes share the ships and an odd episode only swaps poses.</summary>
     internal sealed class MatrixComposition : IHarnessComposition
     {
         // DuelComposition's fixed Aggressor: hold 10, speed fraction 0.85.
@@ -26,27 +29,37 @@ namespace RL.Episodes.Compositions
         private readonly bool installAggressor;
         private readonly string rosterPilotName;
         private readonly Vector2 arenaCenter;
+        private readonly ShieldModule runtimeShieldA;
+        private readonly ShieldModule runtimeShieldB;
+        private readonly Ship[] extras;
+        private readonly TacticsSettings breakOffClone;
         private SpawnPoses poses;
         private bool swapPending;
         private bool applyingSwap;
         private int respawnCount;
 
         public MatrixComposition(UnitService units, Vector2 offset, IProjectileService projectiles,
-            in RewardSpec spec, MatrixSide sideA, MatrixSide sideB, bool installAggressor, bool kitsOff = false)
+            in RewardSpec spec, MatrixSide sideA, MatrixSide sideB, bool installAggressor, bool kitsOff = false,
+            int enemies = 1, bool breakOffSet = false, float breakOff = 0f)
         {
             this.units = units;
             this.installAggressor = installAggressor;
             rosterPilotName = sideB.pilot.name;
             arenaCenter = offset;
-            Pair = MatrixSpawner.Spawn(units, offset, field: null, projectiles, in spec, sideA, sideB);
+            Pair = MatrixSpawner.Spawn(units, offset, field: null, projectiles, in spec, sideA, sideB,
+                enemies, out extras, out runtimeShieldA, out runtimeShieldB);
             agentCommander = Pair.Agent.GetComponentInChildren<AICommander>();
             baselineCommander = Pair.Baseline.GetComponentInChildren<AICommander>();
             if (kitsOff)
             {
                 agentCommander.suppressKeystone = true;
                 baselineCommander.suppressKeystone = true;
+                for (var i = 0; i < extras.Length; i++)
+                    extras[i].GetComponentInChildren<AICommander>().suppressKeystone = true;
             }
+            if (breakOffSet) breakOffClone = ApplyBreakOff(agentCommander, breakOff);
             Driver = new EpisodeLoopDriver(Pair, agent: null, offset);
+            Driver.TrackExtraOpponents(extras);
             units.OnShipRespawned += OnRespawned;
         }
 
@@ -83,20 +96,67 @@ namespace RL.Episodes.Compositions
         public void Dispose()
         {
             if (units) units.OnShipRespawned -= OnRespawned;
+            for (var i = 0; i < extras.Length; i++) Remove(extras[i]);
             Pair.Dispose();
+            if (runtimeShieldA) UnityEngine.Object.DestroyImmediate(runtimeShieldA);
+            if (runtimeShieldB) UnityEngine.Object.DestroyImmediate(runtimeShieldB);
+            if (breakOffClone) UnityEngine.Object.DestroyImmediate(breakOffClone);
         }
 
-        // Odd episodes swap sides after Reset seats weapon A on the agent pose.
-        private void OnRespawned(Ship _)
+        private static TacticsSettings ApplyBreakOff(AICommander commander, float breakOff)
         {
-            if (!swapPending || applyingSwap) return;
+            var brain = commander.Brain as ArchetypeBrain;
+            if (!brain)
+                throw new InvalidOperationException(
+                    $"{commander.name}: a break-off override needs an archetype brain");
+            if (!brain.AuthoredTactics)
+                throw new InvalidOperationException(
+                    $"{commander.name}: a break-off override needs authored tactics settings");
+            var clone = UnityEngine.Object.Instantiate(brain.AuthoredTactics);
+            clone.hideFlags = HideFlags.HideAndDontSave;
+            clone.breakOffShield = breakOff;
+            brain.ReplaceTactics(clone);
+            return clone;
+        }
+
+        private void Remove(Ship ship)
+        {
+            if (!ship) return;
+            units.ActiveRegistry.ActiveShips.Remove(ship);
+            UnityEngine.Object.DestroyImmediate(ship.gameObject);
+        }
+
+        // Odd episodes swap sides; extras then follow the baseline around the reference.
+        private void OnRespawned(Ship ship)
+        {
+            if (applyingSwap || IsExtra(ship)) return;
             if (++respawnCount < 2) return;
-            swapPending = false;
             respawnCount = 0;
+            if (!swapPending && extras.Length == 0) return;
             applyingSwap = true;
-            units.RespawnShip(Pair.Agent.Id, poses.baselinePos, poses.baselineRotDeg);
-            units.RespawnShip(Pair.Baseline.Id, poses.agentPos, poses.agentRotDeg);
+            var referencePos = poses.agentPos;
+            var baselinePos = poses.baselinePos;
+            if (swapPending)
+            {
+                swapPending = false;
+                units.RespawnShip(Pair.Agent.Id, poses.baselinePos, poses.baselineRotDeg);
+                units.RespawnShip(Pair.Baseline.Id, poses.agentPos, poses.agentRotDeg);
+                referencePos = poses.baselinePos;
+                baselinePos = poses.agentPos;
+            }
+            for (var i = 0; i < extras.Length; i++)
+            {
+                var pose = EpisodePoses.ExtraOnBaselineCircle(referencePos, baselinePos, i);
+                units.RespawnShip(extras[i].Id, pose.pos, pose.rotDeg);
+            }
             applyingSwap = false;
+        }
+
+        private bool IsExtra(Ship ship)
+        {
+            for (var i = 0; i < extras.Length; i++)
+                if (extras[i] == ship) return true;
+            return false;
         }
     }
 }
