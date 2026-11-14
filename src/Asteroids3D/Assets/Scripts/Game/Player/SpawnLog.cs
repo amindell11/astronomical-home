@@ -177,6 +177,14 @@ namespace Game.Player
             return false;
         }
 
+        public bool AnyOtherAlive()
+        {
+            var player = playerId();
+            foreach (var spawn in spawns)
+                if (spawn.Id != player && !spawn.Dead && !spawn.Left) return true;
+            return false;
+        }
+
         public void End(float now)
         {
             if (!running) return;

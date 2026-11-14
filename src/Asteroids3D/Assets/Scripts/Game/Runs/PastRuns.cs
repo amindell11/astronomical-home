@@ -26,7 +26,7 @@ namespace Game.Runs
             }
         }
 
-        /// <summary>Readable v2 and v3 runs in the store, abandoned excluded.</summary>
+        /// <summary>Readable v2, v3 and v4 runs in the store, abandoned excluded.</summary>
         public int Count { get; }
 
         /// <summary>Null when <see cref="Count"/> is 0.</summary>
