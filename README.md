@@ -87,17 +87,14 @@ and asteroids spin without losing the drawn look.
 ## Under the hood
 
 - **Engine:** Unity 6, a single `GameCore` assembly.
-- **Enemy AI:** a reinforcement-learning policy picks velocity, fire, and
-  boost commands. A model-predictive-control (MPC) layer turns those commands
-  into flyable thrust and handles intercept aim and obstacle avoidance.
-  Tactics like attacking, fleeing, orbiting, and kiting come from training,
-  not authored rules.
-- **Training:** Unity ML-Agents with PPO self-play, driven from `training/rl/`.
+- **Enemy AI:** scripted pilots. Each pilot's temper sets its tactics
+  (attacking, orbiting, kiting, lurking), and its brain turns them into
+  flight, fire and boost commands.
 
 ## Repository layout
 
 - `src/Asteroids3D/`: the Unity project.
-- `training/rl/`: Python ML-Agents training harness (configs, runners, Unity-access coordination). See [`training/rl/README.md`](training/rl/README.md).
+- `training/rl/`: Python launcher for the scripted balance lanes. See [`training/rl/README.md`](training/rl/README.md).
 - `doc/design/`: the game design vault (an Obsidian vault). Start at [`OVERVIEW.md`](doc/design/OVERVIEW.md).
 - `doc/`: also holds agent law (`doc/agents/`), the [glossary](doc/Glossary.md), and diagnosis recipes. Design briefs and records live on GitHub Issues (`design-record` label); code is the source of truth.
 - `art/`: WIP Blender sources, asset archives, and art-pipeline tools, kept outside `Assets/` so Unity never imports them.

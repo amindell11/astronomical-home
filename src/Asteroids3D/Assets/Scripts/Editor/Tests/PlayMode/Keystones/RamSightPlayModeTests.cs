@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using AI;
 using Damage;
 using NUnit.Framework;
-using RL.Opponents;
+using AI.Pilots;
 using Ships;
 using Ships.Keystones;
 using Ships.Keystones.Kits;

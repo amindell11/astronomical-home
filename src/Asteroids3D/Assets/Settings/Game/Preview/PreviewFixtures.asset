@@ -218,7 +218,8 @@ MonoBehaviour:
               type: 3}
         endsAt: 3
         breather: 1
-        longestWait: 30
+        longestWait: 5
+      waveCap: 6
       patrols: 0
       searchSeconds: 0
       repairStations: 0

@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace Tests.PlayMode.Scenarios
 {
-    /// <summary>Committed sample scenario (runner + render smoke, and the living doc for authoring new ones): two policy-pilot ships skirmish for a few seconds inside TuningSector's asteroid field, filmed through the Game View with every native gizmo on.</summary>
+    /// <summary>Committed sample scenario (runner + render smoke, and the living doc for authoring new ones): two Aggressor-pilot ships skirmish for a few seconds inside TuningSector's asteroid field, filmed through the Game View with every native gizmo on.</summary>
     public sealed class TwoShipSkirmishScenario : CaptureScenario
     {
         private const float SimSeconds = 8f;

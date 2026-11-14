@@ -4,7 +4,7 @@ using AI;
 using AI.Strategy;
 using AI.Tactics;
 using NUnit.Framework;
-using RL.Opponents;
+using AI.Pilots;
 using Substrate;
 using Tests.PlayMode.Common;
 using UnityEditor;

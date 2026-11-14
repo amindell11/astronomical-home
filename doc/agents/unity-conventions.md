@@ -50,7 +50,7 @@
   folder root it covers, its `.asmdef` file named exactly for it. `.Editor`
   means editor-only (`includePlatforms` is Editor alone) and never appears on
   an assembly that builds into a player; `.Runtime` marks the all-platform
-  inner assembly beneath a platform-gated root (`RL.Runtime` under `RL`).
+  inner assembly beneath a platform-gated root.
   Moving a file moves its namespace in the same diff; a namespace that names a
   folder that doesn't exist is the smell.
 - **Structure ratchet:** apply the two rules above to files and folders you
