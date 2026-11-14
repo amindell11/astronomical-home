@@ -19,11 +19,11 @@ using UnityEngine;
 namespace Substrate.Sectors.Elements
 {
     /// <summary>
-    /// Sends waves of authored groups on each sector phase's wave-every beat, whatever is alive. A phase
-    /// opens with one, and another comes on that beat while the phase has time left. Nothing arrives in a
-    /// lull or after the elite. The done table keeps the last phase's waves, and the opening lull is held
-    /// for the hunt. Ships of a wave arrive together just off screen, each facing the hero on its faction
-    /// kit and skin. Dead products despawn on the tick, and the tick idles while the hero is inactive.
+    /// Sends waves of authored groups on each sector phase's wave-every beat, trimmed to the wave cap,
+    /// which counts the hunt's live patrols, and a wave with no room is dropped. A phase opens with one.
+    /// Nothing arrives in a lull or after the elite. The done table keeps the last phase's waves, and the
+    /// opening lull is held for the hunt. Ships arrive together just off screen, facing the hero on their
+    /// faction kit and skin. Dead products despawn on the tick, which idles while the hero is inactive.
     /// Nothing spawns in Build, since the asteroid field lays out at its Start. The base class's "produce
     /// exactly once" is about the activation token, not lifetime.
     /// </summary>
@@ -63,6 +63,7 @@ namespace Substrate.Sectors.Elements
 
         private readonly List<Ship> products = new();
         private SectorPhase[] phases = Array.Empty<SectorPhase>();
+        private int waveCap;
         private IUnitService units;
         private IObstacleField field;
         private Ship hero;
@@ -92,6 +93,9 @@ namespace Substrate.Sectors.Elements
             if (row.phases.Length == 0)
                 throw new InvalidOperationException(
                     $"WaveDirector on '{name}' reads the row's phases, and the row has none.");
+            if (row.waveCap < 1)
+                throw new InvalidOperationException(
+                    $"WaveDirector on '{name}' reads the row's wave cap, and the row asks for {row.waveCap}.");
             for (var i = 0; i < row.phases.Length; i++)
             {
                 var phase = row.phases[i];
@@ -122,6 +126,7 @@ namespace Substrate.Sectors.Elements
             products.Clear();
             Spawned = products;
             phases = ctx.Row.phases;
+            waveCap = ctx.Row.waveCap;
 
             if (!ctx.Hero)
             {
@@ -166,11 +171,17 @@ namespace Substrate.Sectors.Elements
             HoldForHunt(now);
             Advance(now);
             var wave = WaveDue(now);
-            if (wave != null && TrySend(wave)) Arrived(now);
+            if (wave != null)
+            {
+                var count = Room(wave.Length, Alive);
+                if (count == 0 || TrySend(wave, count)) Arrived(now);
+            }
             Observe(now, Alive);
         }
 
         internal int Alive => products.Count + (hunt ? hunt.LivePatrols : 0);
+
+        internal int Room(int waveSize, int alive) => Mathf.Clamp(waveCap - alive, 0, waveSize);
 
         internal void OnEliteArrived(EliteMoment moment) => eliteArrived = true;
 
@@ -305,17 +316,17 @@ namespace Substrate.Sectors.Elements
             }
         }
 
-        private bool TrySend(RosterEntry[] group)
+        private bool TrySend(RosterEntry[] group, int count)
         {
             var center = GamePlane.WorldPointToPlane(hero.transform.position);
             for (var attempt = 0; attempt < placementAttempts; attempt++)
             {
                 var bearing = UnityEngine.Random.Range(0f, 2f * Mathf.PI);
-                var slots = Slots(center, bearing, group.Length);
+                var slots = Slots(center, bearing, count);
                 if (Array.Exists(slots, slot => !ClearPoint.IsClear(field, slot, clearanceRadius)))
                     continue;
 
-                for (var i = 0; i < group.Length; i++)
+                for (var i = 0; i < count; i++)
                 {
                     var entry = group[i];
                     var outward = (slots[i] - center).normalized;
@@ -346,12 +357,13 @@ namespace Substrate.Sectors.Elements
 #if UNITY_EDITOR
         internal void Configure(SectorPhase[] phases, float lullSeconds = 5f, float spawnRadius = 55f,
             SectorFaction faction = null, float openingLullSeconds = 0f, SectorHunt hunt = null,
-            EliteEncounter elite = null, float groupSpread = 8f)
+            EliteEncounter elite = null, float groupSpread = 8f, int waveCap = 5)
         {
             this.hunt = hunt;
             this.elite = elite;
             this.faction = faction;
             this.phases = phases;
+            this.waveCap = waveCap;
             this.lullSeconds = lullSeconds;
             this.openingLullSeconds = openingLullSeconds;
             this.spawnRadius = spawnRadius;

@@ -114,6 +114,7 @@ MonoBehaviour:
       endsAt: 0
       breather: 4
       longestWait: 12
+    waveCap: 5
     patrols: 1
     searchSeconds: 30
     repairStations: 0
@@ -262,6 +263,7 @@ MonoBehaviour:
       endsAt: 1
       breather: 4
       longestWait: 12
+    waveCap: 7
     patrols: 2
     searchSeconds: 45
     repairStations: 2
@@ -446,6 +448,7 @@ MonoBehaviour:
       endsAt: 1
       breather: 4
       longestWait: 12
+    waveCap: 8
     patrols: 2
     searchSeconds: 45
     repairStations: 2
