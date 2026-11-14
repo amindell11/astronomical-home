@@ -101,6 +101,7 @@ namespace Tests.PlayMode.Audio
             var spawner = holder.AddComponent<AsteroidSpawner>();
             SetReference(spawner, "settings", settings);
             holder.SetActive(true);
+            spawner.SetCollisionDamageLaw(new CollisionDamageLaw(graceDeltaV: 5f, damagePerDeltaV: 3f, lethality: 1f));
             return spawner;
         }
 

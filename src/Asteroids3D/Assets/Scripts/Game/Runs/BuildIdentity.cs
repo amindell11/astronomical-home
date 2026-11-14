@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace Game.Runs
@@ -8,20 +9,24 @@ namespace Game.Runs
     public delegate bool BuildIdentitySource(out BuildIdentity identity, out string failure);
 
     /// <summary>
-    /// The git side of what a run was played on: the commit, and whether the Unity project tree had
-    /// uncommitted work. The editor asks git on every read; a player build cannot, so its pre-build
-    /// hook stamps a file into StreamingAssets that the player reads once. Informational only: run
-    /// records are grouped by the stat fingerprint and the loadout stat hash, never by this.
+    /// What a run was played on: the commit, whether the Unity project tree had uncommitted work,
+    /// and the build label when the person starting the build gave one. The editor asks git on every
+    /// read and leaves the label empty; a player build cannot ask git, so its pre-build hook stamps
+    /// a file into StreamingAssets that the player reads once. Informational only: run records are
+    /// grouped by the stat fingerprint and the loadout stat hash, never by this.
     /// </summary>
     [Serializable]
     public struct BuildIdentity
     {
         public string commit;
         public bool dirty;
+        public string label;
 
         public const string FileName = "build-identity.json";
 
         private const string BranchOidHeader = "# branch.oid ";
+        private const string LabelRule =
+            "A build label is 1 to 32 characters of A-Z, a-z, 0-9, '.', '_' or '-'.";
 
         public string ToJson() => JsonUtility.ToJson(this);
 
@@ -31,6 +36,13 @@ namespace Game.Runs
             if (string.IsNullOrEmpty(identity.commit))
                 throw new FormatException($"Build identity has no commit: '{json}'.");
             return identity;
+        }
+
+        public static bool TryAcceptLabel(string label, out string failure)
+        {
+            var accepted = Regex.IsMatch(label, @"^[A-Za-z0-9._-]{1,32}\z");
+            failure = accepted ? null : LabelRule;
+            return accepted;
         }
 
         /// <summary>In a player this reads the stamped file, here, once, and throws when it is missing.</summary>

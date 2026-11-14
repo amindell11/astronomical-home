@@ -41,6 +41,14 @@ namespace Loot
             Changed?.Invoke();
         }
 
+        public List<string> PickedNames()
+        {
+            var names = new List<string>(picks.Count);
+            foreach (var pick in picks)
+                names.Add(pick.name);
+            return names;
+        }
+
         /// <summary>Every held mod, weapon or ship, once each with its copy count, in first-pick order.</summary>
         public IReadOnlyList<HeldMod> All() => Held(_ => true);
 

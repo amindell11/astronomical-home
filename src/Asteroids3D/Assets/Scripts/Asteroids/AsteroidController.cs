@@ -62,7 +62,7 @@ namespace Asteroids
             Vector3 velocity,
             Vector3 angularVelocity,
             uint breakSeed,
-            float lethality = 1f
+            CollisionDamageLaw law
         )
         {
             var prevAutoSync = Physics.autoSyncTransforms;
@@ -91,7 +91,7 @@ namespace Asteroids
             initialAngularVelocity = angularVelocity;
             this.breakSeed = breakSeed;
 
-            damage?.Initialize(Volume, lethality);
+            if (damage) damage.Initialize(Volume, law);
 
             Physics.SyncTransforms();
             Physics.autoSyncTransforms = prevAutoSync;

@@ -2,7 +2,8 @@ namespace Game.Runs
 {
     /// <summary>
     /// What the run-record store says about the runs before this one: how many there were and how the
-    /// last of them went. An unreadable store reads as no past runs; its reader has logged why.
+    /// last of them went. Abandoned lines are not runs here. An unreadable store reads as no past runs;
+    /// its reader has logged why.
     /// </summary>
     public sealed class PastRuns
     {
@@ -25,7 +26,7 @@ namespace Game.Runs
             }
         }
 
-        /// <summary>Readable run-record-v2 runs in the store.</summary>
+        /// <summary>Readable v2 and v3 runs in the store, abandoned excluded.</summary>
         public int Count { get; }
 
         /// <summary>Null when <see cref="Count"/> is 0.</summary>

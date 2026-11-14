@@ -155,6 +155,28 @@ namespace Game.Player
             return kills;
         }
 
+        public int KillsSinceSectorStart()
+        {
+            var kills = 0;
+            for (var i = sectorStart; i < spawns.Count; i++)
+                if (spawns[i].KilledByPlayer) kills++;
+            return kills;
+        }
+
+        public bool EliteMet(int sectorIndex)
+        {
+            foreach (var spawn in spawns)
+                if (spawn.Elite && spawn.SectorIndex == sectorIndex) return true;
+            return false;
+        }
+
+        public bool EliteBeaten(int sectorIndex)
+        {
+            foreach (var spawn in spawns)
+                if (spawn.Elite && spawn.SectorIndex == sectorIndex && spawn.KilledByPlayer) return true;
+            return false;
+        }
+
         public void End(float now)
         {
             if (!running) return;

@@ -9,15 +9,6 @@ namespace Asteroids
     [RequireComponent(typeof(AsteroidController))]
     public sealed class AsteroidDamage : MonoBehaviour, IDamageable
     {
-        [Header("Damage Tuning")]
-        [SerializeField]
-        [Tooltip("Damage per unit of ship velocity change (delta-v) from the collision.")]
-        private float damagePerDeltaV = 1.5f;
-
-        [SerializeField]
-        [Tooltip("Delta-v at or below this is a free tap: no damage.")]
-        private float graceDeltaV = 2f;
-
         [Header("Health")]
         [SerializeField]
         [Tooltip("Base health per unit volume. Total health = volume * this value.")]
@@ -25,7 +16,7 @@ namespace Asteroids
 
         private AsteroidController controller;
         private bool isDestroyed;
-        private float lethality = 1f;
+        private CollisionDamageLaw law;
 
         public float Health { get; private set; }
         public float MaxHealth { get; private set; }
@@ -39,10 +30,10 @@ namespace Asteroids
 
         private void OnDestroy() => DamageableColliders.Unregister(this);
 
-        public void Initialize(float volume, float lethality = 1f)
+        public void Initialize(float volume, CollisionDamageLaw law)
         {
             isDestroyed = false;
-            this.lethality = lethality;
+            this.law = law;
             MaxHealth = volume * healthPerUnitVolume;
             Health = MaxHealth;
         }
@@ -97,9 +88,6 @@ namespace Asteroids
                 controller.Mass, controller.Rb.linearVelocity, collision.GetContact(0).point));
         }
 
-        internal float CalcDamage(float deltaV)
-        {
-            return Mathf.Max(0f, deltaV - graceDeltaV) * damagePerDeltaV * lethality;
-        }
+        internal float CalcDamage(float deltaV) => law.Damage(deltaV);
     }
 }

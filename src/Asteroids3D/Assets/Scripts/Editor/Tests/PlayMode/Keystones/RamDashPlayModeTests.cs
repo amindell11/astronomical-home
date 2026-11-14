@@ -162,6 +162,7 @@ namespace Tests.PlayMode.Keystones
             SetReference(spawner, "settings", settings);
             if (onFragment != null) spawner.OnFragmentSpawned += _ => onFragment();
             holder.SetActive(true);
+            spawner.SetCollisionDamageLaw(new CollisionDamageLaw(graceDeltaV: 5f, damagePerDeltaV: 3f, lethality: 1f));
 
             var info = settings.meshInfos[0];
             var attributes = new AsteroidAttributes(info, 0, mass, RockScale, Vector3.zero, Vector3.zero);

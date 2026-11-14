@@ -6,9 +6,9 @@ using Ships;
 namespace Game.Runs
 {
     /// <summary>
-    /// Which ships the player has earned: every elite chassis a run record shows the player killing.
-    /// There is no save file; the run-record store is the record, so a kill counts once its run's
-    /// record is written. <see cref="Unlocked"/> fires at the kill itself, once per chassis ever.
+    /// Which ships the player has earned: every elite chassis a died or extracted run record shows
+    /// the player killing. There is no save file; the store is the record. An abandoned record
+    /// earns nothing. <see cref="Unlocked"/> fires at the kill itself, once per chassis ever.
     /// In the editor, <see cref="UnlockAllPref"/> earns every ship without touching the store.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1318
     /// </summary>

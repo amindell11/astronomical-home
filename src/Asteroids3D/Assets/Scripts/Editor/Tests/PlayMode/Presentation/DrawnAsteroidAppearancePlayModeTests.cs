@@ -52,6 +52,7 @@ namespace Tests.PlayMode.Presentation
                 Layer(rock, "Crease drawing").GetComponent<MeshFilter>().sharedMesh,
                 Layer(rock, "Outer contour").GetComponent<MeshFilter>().sharedMesh));
             holder.SetActive(true);
+            spawner.SetCollisionDamageLaw(new CollisionDamageLaw(graceDeltaV: 5f, damagePerDeltaV: 3f, lethality: 1f));
 
             var info = settings.meshInfos[0];
             const float scale = 1.65f;

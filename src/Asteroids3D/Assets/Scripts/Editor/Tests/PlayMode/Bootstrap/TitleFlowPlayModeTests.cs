@@ -42,6 +42,8 @@ namespace Tests.PlayMode.Bootstrap
         private GameHost host;
         private GameObject[] templates;
         private string recordPath;
+        private string exportFolder;
+        private string revealedExport;
         private LightingSnapshot bootLighting;
 
         public override void SetUp()
@@ -60,6 +62,7 @@ namespace Tests.PlayMode.Bootstrap
             if (templates != null)
                 foreach (var template in templates) DestroyTestObject(template);
             if (recordPath != null && File.Exists(recordPath)) File.Delete(recordPath);
+            if (exportFolder != null && Directory.Exists(exportFolder)) Directory.Delete(exportFolder, true);
             bootLighting.Restore();
             base.TearDown();
         }
@@ -78,6 +81,40 @@ namespace Tests.PlayMode.Bootstrap
             Assert.IsNull(host.ActiveSector);
 
             hostGo.GetComponentInChildren<TitleScreen>().transform.Find("Play").GetComponent<Button>().onClick.Invoke();
+
+            yield return AsyncAssert.WaitUntil(() => hostGo.GetComponentInChildren<HangarConsole>(), 60f,
+                "Play opens the hangar");
+            yield return null;
+            Assert.IsNull(Object.FindFirstObjectByType<TitleScreen>(), "the title is gone");
+        }
+
+        [UnityTest]
+        [Category("RequiresGraphics")]
+        public IEnumerator ExportRuns_CopiesIntoTheInjectedFolder_AndPlayOpensTheHangar()
+        {
+            BootPresented();
+            exportFolder = Path.Combine(Path.GetTempPath(), "title-export-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(exportFolder);
+            const string body = "{\"schema\":\"run-record-v2\"}\n";
+            File.WriteAllText(recordPath, body);
+            host.runExportFolder = exportFolder;
+            host.revealExportedRun = path => revealedExport = path;
+
+            yield return AsyncAssert.WaitUntil(() => hostGo.GetComponentInChildren<TitleScreen>(), 60f,
+                "the host opens on the title");
+            hostGo.GetComponentInChildren<TitleScreen>().transform.Find("Export").GetComponent<Button>().onClick.Invoke();
+
+            yield return AsyncAssert.WaitUntil(ExportResultShowing, 60f, "export returns to the title");
+            var titles = hostGo.GetComponentsInChildren<TitleScreen>();
+            Assert.AreEqual(1, titles.Length, "the title is still up");
+            Assert.IsNull(Object.FindFirstObjectByType<HangarConsole>(), "export does not open the hangar");
+            Assert.AreEqual(Path.GetFullPath(exportFolder), Path.GetFullPath(Path.GetDirectoryName(revealedExport)));
+            Assert.AreEqual(body, File.ReadAllText(revealedExport));
+            Assert.AreEqual(body, File.ReadAllText(recordPath));
+            Assert.AreEqual("Saved to Desktop: " + Path.GetFileName(revealedExport),
+                titles[0].transform.Find("ExportResult").GetComponent<Text>().text);
+
+            titles[0].transform.Find("Play").GetComponent<Button>().onClick.Invoke();
 
             yield return AsyncAssert.WaitUntil(() => hostGo.GetComponentInChildren<HangarConsole>(), 60f,
                 "Play opens the hangar");
@@ -157,6 +194,15 @@ namespace Tests.PlayMode.Bootstrap
                 failure = null;
                 return true;
             };
+        }
+
+        private bool ExportResultShowing()
+        {
+            var titles = hostGo.GetComponentsInChildren<TitleScreen>();
+            if (titles.Length != 1)
+                return false;
+            var result = titles[0].transform.Find("ExportResult");
+            return result && result.GetComponent<Text>().text.StartsWith("Saved to Desktop:");
         }
 
         // Inactive, so the template never runs; the session instantiates it like a sector prefab.

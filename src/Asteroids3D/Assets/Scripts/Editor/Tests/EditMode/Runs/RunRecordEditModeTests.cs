@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using Balance;
+using Combat.Weapons.Mods;
 using Damage;
 using Game.Player;
 using Game.Runs;
+using Loot;
 using NUnit.Framework;
 using Ships;
 using Ships.Loadout;
@@ -101,7 +103,7 @@ namespace Tests.EditMode.Runs
         public void JsonLine_IsOneLineTaggedWithTheSchema()
         {
             StringAssert.DoesNotContain("\n", json);
-            StringAssert.Contains("\"schema\":\"run-record-v2\"", json);
+            StringAssert.Contains("\"schema\":\"" + RunRecord.SchemaId + "\"", json);
             Assert.AreEqual(RunRecord.SchemaId, JsonUtility.FromJson<RunRecord>(json).schema);
         }
 
@@ -247,6 +249,99 @@ namespace Tests.EditMode.Runs
         {
             foreach (var id in new[] { Player, Laserer, Bystander })
                 StringAssert.DoesNotContain(id.Value.ToString(), json);
+        }
+
+        [Test]
+        public void V3Fields_RoundTrip()
+        {
+            var mod = ScriptableObject.CreateInstance<WeaponMod>();
+            mod.name = "Overcharge";
+            var stack = new LullModStack();
+            stack.Add(mod);
+
+            var course = new RunCourse();
+            course.NotePick(RunRecord.PickMod, 1, 4f, new[] { "Overcharge", "Cooling" }, "Overcharge", "");
+            course.NotePick(RunRecord.PickWeapon, 2, 9f, new[] { "Missiles", "Rippers" }, "Missiles", "Lasers");
+            course.Enter(1, 0f, 1f, 0.8f);
+            course.End(12f, 2, 0.5f, 0.25f, true, false);
+            var end = new LoadoutRow { chassis = "Bulwark", primary = "Missiles", statHash = "end-hash" };
+            var phase = new EndPhaseRow { index = 1, inLull = true, done = false, elapsedSeconds = 3.5f };
+            var dealt = new List<DealtRow>
+            {
+                new() { sector = 1, kind = "Laser", total = 40f, shield = 10f, hull = 30f, hits = 4 },
+            };
+
+            var composed = RunRecord.Compose(
+                new DateTime(2026, 10, 1, 12, 34, 56, DateTimeKind.Utc), 1, 1, null,
+                new BuildIdentity { commit = "abc123" }, Fingerprint,
+                new ShipLoadout(offer.ships[0], offer.weapons[0], null), PlayerHash,
+                new FixedTally(), new DamageLedger(), EmptySpawns(), null,
+                course, end, stack.PickedNames(), phase, RunRecord.OriginEditor, dealt);
+            var read = JsonUtility.FromJson<RunRecord>(composed.ToJsonLine());
+
+            Assert.AreEqual(RunRecord.SchemaId, read.schema);
+            Assert.AreEqual(RunRecord.OriginEditor, read.origin);
+            CollectionAssert.AreEqual(new[] { "Overcharge" }, read.mods);
+            Assert.AreEqual("Bulwark", read.playerEnd.chassis);
+            Assert.AreEqual("Missiles", read.playerEnd.primary);
+            Assert.AreEqual("end-hash", read.playerEnd.statHash);
+            Assert.AreEqual(offer.ships[0].name, read.player.chassis, "player stays the hangar loadout");
+            Assert.AreEqual(2, read.picks.Count);
+            Assert.AreEqual(RunRecord.PickMod, read.picks[0].kind);
+            Assert.AreEqual(1, read.picks[0].sector);
+            Assert.AreEqual(4f, read.picks[0].seconds, 1e-4f);
+            CollectionAssert.AreEqual(new[] { "Overcharge", "Cooling" }, read.picks[0].offered);
+            Assert.AreEqual("Overcharge", read.picks[0].taken);
+            Assert.AreEqual(string.Empty, read.picks[0].replaced);
+            Assert.AreEqual(RunRecord.PickWeapon, read.picks[1].kind);
+            Assert.AreEqual("Missiles", read.picks[1].taken);
+            Assert.AreEqual("Lasers", read.picks[1].replaced);
+            Assert.AreEqual(1, read.sectors.Count);
+            Assert.AreEqual(1, read.sectors[0].sector);
+            Assert.AreEqual(12f, read.sectors[0].seconds, 1e-4f);
+            Assert.AreEqual(2, read.sectors[0].kills);
+            Assert.AreEqual(1f, read.sectors[0].hullIn, 1e-4f);
+            Assert.AreEqual(0.8f, read.sectors[0].shieldIn, 1e-4f);
+            Assert.AreEqual(0.5f, read.sectors[0].hullOut, 1e-4f);
+            Assert.AreEqual(0.25f, read.sectors[0].shieldOut, 1e-4f);
+            Assert.IsTrue(read.sectors[0].eliteMet);
+            Assert.IsFalse(read.sectors[0].eliteBeaten);
+            Assert.AreEqual(1, read.endPhase.index);
+            Assert.IsTrue(read.endPhase.inLull);
+            Assert.IsFalse(read.endPhase.done);
+            Assert.AreEqual(3.5f, read.endPhase.elapsedSeconds, 1e-4f);
+            Assert.AreEqual(1, read.dealt.Count);
+            Assert.AreEqual(1, read.dealt[0].sector);
+            Assert.AreEqual("Laser", read.dealt[0].kind);
+            Assert.AreEqual(40f, read.dealt[0].total, 1e-4f);
+            Assert.AreEqual(10f, read.dealt[0].shield, 1e-4f);
+            Assert.AreEqual(30f, read.dealt[0].hull, 1e-4f);
+            Assert.AreEqual(4, read.dealt[0].hits);
+            Object.DestroyImmediate(mod);
+        }
+
+        [Test]
+        public void AbandonedRun_CarriesNoKillingBlow()
+        {
+            var read = JsonUtility.FromJson<RunRecord>(RunRecord.Compose(
+                new DateTime(2026, 10, 1, 12, 34, 56, DateTimeKind.Utc), 0, 0, null,
+                new BuildIdentity { commit = "abc123" }, Fingerprint,
+                new ShipLoadout(offer.ships[0], offer.weapons[0], null), PlayerHash,
+                new FixedTally(), new DamageLedger(), EmptySpawns(), null,
+                abandoned: true).ToJsonLine());
+
+            Assert.AreEqual(RunRecord.Abandoned, read.outcome);
+            Assert.AreEqual(string.Empty, read.killingBlow.kind);
+            Assert.AreEqual(RunRecord.NoSpawn, read.killingBlow.spawn);
+        }
+
+        private SpawnLog EmptySpawns()
+        {
+            var spawns = new SpawnLog();
+            spawns.Bind(null, () => Player);
+            spawns.Begin(0f);
+            spawns.End(1f);
+            return spawns;
         }
     }
 }

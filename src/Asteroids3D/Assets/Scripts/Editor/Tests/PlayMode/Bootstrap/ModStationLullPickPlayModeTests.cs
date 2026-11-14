@@ -144,6 +144,41 @@ namespace Tests.PlayMode.Bootstrap
             Assert.AreEqual(1f, Time.timeScale, "headless runs never stop time");
         }
 
+        [UnityTest]
+        [Timeout(180000)]
+        public IEnumerator ATakenPickAndASkippedPick_AreBothRecorded()
+        {
+            yield return BootToTheTrialSector(presentation: true);
+            var stations = StationsPlaced();
+            yield return WaitFor(() => stations.Stations.Count == 2 && stations.Stations[1].Body.activeSelf,
+                "both mod stations are placed");
+
+            yield return FlyInto(stations.Stations[0]);
+            yield return WaitFor(() => Card(), "the first claim opens the card");
+            Card().Choose(0);
+            yield return WaitFor(() => !Card(), "the taken pick closes");
+            var taken = rig.Mods.PickedNames().Single();
+
+            yield return FlyInto(stations.Stations[1]);
+            yield return WaitFor(() => Card(), "the second claim opens the card");
+            Card().Choose(LullPickScreen.Skip);
+            yield return WaitFor(() => !Card(), "the skipped pick closes");
+
+            TestDamage.Kill(rig.Player);
+            var recordPath = Path.Combine(dir, "run-records.jsonl");
+            yield return WaitFor(() => File.Exists(recordPath), "the death appends the run");
+            var record = JsonUtility.FromJson<RunRecord>(File.ReadAllLines(recordPath)[0]);
+            Assert.AreEqual(2, record.picks.Count, "each opened pick is a row");
+            Assert.AreEqual(RunRecord.PickMod, record.picks[0].kind);
+            Assert.AreEqual(1, record.picks[0].sector);
+            Assert.AreEqual(taken, record.picks[0].taken);
+            CollectionAssert.Contains(record.picks[0].offered, taken);
+            Assert.AreEqual(RunRecord.PickMod, record.picks[1].kind);
+            Assert.AreEqual(string.Empty, record.picks[1].taken);
+            Assert.IsNotEmpty(record.picks[1].offered);
+            CollectionAssert.AreEqual(new[] { taken }, record.mods);
+        }
+
         private IEnumerator BootToTheTrialSector(bool presentation)
         {
             var row = TestAssets.TrialRow(0).WithLocale(AssetDatabase.LoadAssetAtPath<LocaleSky>(LocalePath));
