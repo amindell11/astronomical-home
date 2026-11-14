@@ -54,7 +54,8 @@ class LauncherEnvComposition(unittest.TestCase):
                        "RL_HARNESS_OPPONENT", "RL_HARNESS_PROBES", "RL_HARNESS_SENTENCE",
                        "RL_HARNESS_DUEL", "RL_HARNESS_MATRIX",
                        "RL_HARNESS_MATRIX_REFERENCE", "RL_HARNESS_MATRIX_ROSTER",
-                       "RL_HARNESS_MATRIX_KITS"):
+                       "RL_HARNESS_MATRIX_KITS", "RL_HARNESS_MATRIX_ENEMIES",
+                       "RL_HARNESS_MATRIX_REFERENCE_BREAKOFF"):
             self.assertNotIn(absent, env)
 
     def test_sentence_param_becomes_harness_env(self):
@@ -95,6 +96,15 @@ class LauncherEnvComposition(unittest.TestCase):
                     matrix_roster="Vanguard:AggressorPilot:Lasers", matrix_kits="off")
 
         self.assertEqual("off", self.captured["env"]["RL_HARNESS_MATRIX_KITS"])
+
+    def test_matrix_enemies_and_breakoff_pass_through(self):
+        self.launch(seeds="3001", matrix_reference="Crimson:KiterPilot:Lasers",
+                    matrix_roster="Vanguard:AggressorPilot:Lasers",
+                    matrix_enemies=3, matrix_reference_breakoff="0")
+
+        env = self.captured["env"]
+        self.assertEqual("3", env["RL_HARNESS_MATRIX_ENEMIES"])
+        self.assertEqual("0", env["RL_HARNESS_MATRIX_REFERENCE_BREAKOFF"])
 
     def test_inherited_harness_and_retired_eval_names_are_stripped(self):
         inherited = {
@@ -211,6 +221,31 @@ class MatrixKitsCli(unittest.TestCase):
                 "--matrix-kits", "off",
             ])
         self.assertIn("--matrix-kits is editor-only", message)
+
+    def test_enemies_refused_without_matrix_roster(self):
+        message = self._main(["eval_lane.py", "--seeds", "3001", "--matrix-enemies", "3"])
+        self.assertIn("--matrix-enemies requires --matrix-roster", message)
+
+    def test_breakoff_refused_without_matrix_roster(self):
+        message = self._main(["eval_lane.py", "--seeds", "3001", "--matrix-reference-breakoff", "0"])
+        self.assertIn("--matrix-reference-breakoff requires --matrix-roster", message)
+
+    def test_enemies_and_breakoff_refused_with_player_exec(self):
+        with tempfile.NamedTemporaryFile(suffix=".onnx") as onnx:
+            enemies = self._main([
+                "eval_lane.py", "--seeds", "3001", "--exec", "player", "--onnx", onnx.name,
+                "--matrix-reference", "Crimson:KiterPilot:Lasers",
+                "--matrix-roster", "Vanguard:AggressorPilot:Lasers",
+                "--matrix-enemies", "3",
+            ])
+            breakoff = self._main([
+                "eval_lane.py", "--seeds", "3001", "--exec", "player", "--onnx", onnx.name,
+                "--matrix-reference", "Crimson:KiterPilot:Lasers",
+                "--matrix-roster", "Vanguard:AggressorPilot:Lasers",
+                "--matrix-reference-breakoff", "0",
+            ])
+        self.assertIn("--matrix-enemies is editor-only", enemies)
+        self.assertIn("--matrix-reference-breakoff is editor-only", breakoff)
 
 
 class NumericShieldStem(unittest.TestCase):

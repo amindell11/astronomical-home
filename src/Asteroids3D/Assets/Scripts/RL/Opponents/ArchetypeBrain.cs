@@ -113,6 +113,10 @@ namespace RL.Opponents
         internal Vector2 RoamWaypoint => roamWaypoint;
         internal bool RoamCircling => roamCircling;
 
+        internal TacticsSettings AuthoredTactics => tactics;
+
+        internal void ReplaceTactics(TacticsSettings replacement) => tactics = replacement;
+
         public void Configure(Ship target, OpponentArchetype archetype, in OpponentDraw shape, int jukeSeed,
             Vector2 arenaCenter, float borderRadius)
         {
