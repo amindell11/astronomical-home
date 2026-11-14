@@ -47,6 +47,7 @@ namespace AI
         private bool engageSecondary;
         // The ability lane, latched beside the triggers.
         private bool boost;
+        internal bool suppressKeystone;
         private bool hasAnchor;
         private ShipId anchorId;
         private EnemyTarget anchorTarget;
@@ -165,7 +166,7 @@ namespace AI
                 : Gunner.PrimaryAimReference());
             if (seeking) command.thrust = 1f;
             command.abilityTarget = Navigator.PlanEnd;
-            command.boost = boost || SightFires(keystone) ? 1f : 0f;
+            command.boost = !suppressKeystone && (boost || SightFires(keystone)) ? 1f : 0f;
             control.Pilot.Drive(command);
             if (Gunner) Gunner.Fire(engagePrimary, engageSecondary);
         }

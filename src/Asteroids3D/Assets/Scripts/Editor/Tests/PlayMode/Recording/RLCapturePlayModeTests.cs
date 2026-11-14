@@ -369,7 +369,8 @@ namespace Tests.PlayMode.Recording
                     ? ShipAgentFactory.SmokeFixturePath
                     : TrainingBootstrap.ImportEvalCandidate(source)),
                 source => LoadModel(TrainingBootstrap.ImportEvalOpponent(source)),
-                TrainingBootstrap.CatalogWeapons,
+                TrainingBootstrap.CatalogWeapons, TrainingBootstrap.CatalogChassis, TrainingBootstrap.CatalogPilots,
+                TrainingBootstrap.CatalogShields,
                 () => SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Null);
             if (string.IsNullOrEmpty(spec.outDir)) spec.outDir = outDir;
             outDir = spec.outDir;

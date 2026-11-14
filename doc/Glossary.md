@@ -503,10 +503,11 @@ Format: **term** — definition. *(authority)*
   target, so a missile's contact and splash are not told apart, and a shot
   still in flight when the target dies is fired and never hits.
   *(MarksmanshipProbe, MarksmanshipSampler)*
-- **matrix lane** — the harness lane that fights two scripted ships, one weapon
-  each. Its rows are a snapshot, not a constant: judge a change by running the
-  lane on the base and the head with the same seeds, and quote the replicate
-  gap between two identical runs as the noise. *(#1120 · MatrixLane.cs)*
+- **matrix lane** — the harness lane that fights two scripted ships, either as a
+  weapon pair or as one reference ship against each ship in a roster. Its rows
+  are a snapshot, not a constant: judge a change by running the lane on the base
+  and the head with the same seeds, and quote the replicate gap between two
+  identical runs as the noise. *(#1120 · MatrixLane.cs)*
 - **armed matrix** — every unordered pair from the weapons a matrix lane was
   given, a weapon against itself included. A draw counts half a win, and a
   weapon's rate against the others leaves its self pair out.
