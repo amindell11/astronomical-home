@@ -92,21 +92,7 @@ namespace Tests.PlayMode.Rendering.Projection
             properties.SetVector("_Screen", new Vector4(Width * .5f, Height * .5f, Width, Height));
             Assert.That(TroughSpacing(Render(1)), Is.EqualTo(4), "an image shown at half its size");
             properties.SetVector("_Screen", new Vector4(Width, Height, 3840f, 2160f));
-            Assert.That(TroughSpacing(Render(1)), Is.EqualTo(5), "an image that fills a 3840-wide screen");
-        }
-
-        private static int TroughSpacing(Color[] pixels)
-        {
-            var troughs = new List<int>();
-            for (var y = 1; y < Height - 1; y++)
-            {
-                var above = pixels[(y - 1) * Width + Width / 2].r;
-                var here = pixels[y * Width + Width / 2].r;
-                var below = pixels[(y + 1) * Width + Width / 2].r;
-                if (here < above - .001f && here <= below) troughs.Add(y);
-            }
-            Assert.That(troughs.Count, Is.GreaterThan(1), "scanlines leave troughs");
-            return troughs[1] - troughs[0];
+            Assert.That(TroughSpacing(Render(1)), Is.EqualTo(5), "an image shown at its own size on a 3840-wide screen");
         }
 
         [Test]
@@ -362,6 +348,20 @@ namespace Tests.PlayMode.Rendering.Projection
                 return image.GetPixels();
             }
             finally { RenderTexture.active = previous; }
+        }
+
+        private static int TroughSpacing(Color[] pixels)
+        {
+            var troughs = new List<int>();
+            for (var y = 1; y < Height - 1; y++)
+            {
+                var above = pixels[(y - 1) * Width + Width / 2].r;
+                var here = pixels[y * Width + Width / 2].r;
+                var below = pixels[(y + 1) * Width + Width / 2].r;
+                if (here < above - .001f && here <= below) troughs.Add(y);
+            }
+            Assert.That(troughs.Count, Is.GreaterThan(1), "scanlines leave troughs");
+            return troughs[1] - troughs[0];
         }
 
         private static void AssertColor(Color expected, Color actual)
