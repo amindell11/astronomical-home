@@ -63,7 +63,7 @@ namespace Substrate.Sectors.Elements
 
         private readonly List<Ship> products = new();
         private SectorPhase[] phases = Array.Empty<SectorPhase>();
-        private int waveCap = 5;
+        private int waveCap;
         private IUnitService units;
         private IObstacleField field;
         private Ship hero;

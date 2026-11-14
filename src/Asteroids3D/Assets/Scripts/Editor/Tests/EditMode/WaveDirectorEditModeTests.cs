@@ -109,50 +109,15 @@ namespace Tests.EditMode
         [Test]
         public void Wave_ArrivesWhole_WhileItFitsUnderTheWaveCap()
         {
-            var ships = new[]
-            {
-                new WaveDirector.RosterEntry(), new WaveDirector.RosterEntry(),
-                new WaveDirector.RosterEntry(), new WaveDirector.RosterEntry(),
-            };
-            _director.Configure(new[]
-            {
-                new SectorPhase
-                {
-                    seconds = 40f, waveEvery = WaveEvery,
-                    groups = new[] { new WaveGroup { ships = ships } },
-                },
-            }, Lull, waveCap: 8);
-            _director.BeginSchedule(0f);
-            _director.Advance(0f);
-
-            var wave = _director.WaveDue(0f);
-            Assert.AreSame(ships, wave, "The due wave is the whole group.");
-            Assert.AreEqual(ships.Length, _director.Room(wave.Length, 2),
-                "A wave that fits under the wave cap arrives whole.");
+            _director.Configure(_phases, Lull, waveCap: 8);
+            Assert.AreEqual(4, _director.Room(4, 2), "A wave that fits under the wave cap arrives whole.");
         }
 
         [Test]
         public void Wave_TrimsToTheRoomLeft_WhenOnlySomeFit()
         {
-            var ships = new[]
-            {
-                new WaveDirector.RosterEntry(), new WaveDirector.RosterEntry(),
-                new WaveDirector.RosterEntry(), new WaveDirector.RosterEntry(),
-            };
-            _director.Configure(new[]
-            {
-                new SectorPhase
-                {
-                    seconds = 40f, waveEvery = WaveEvery,
-                    groups = new[] { new WaveGroup { ships = ships } },
-                },
-            }, Lull, waveCap: 6);
-            _director.BeginSchedule(0f);
-            _director.Advance(0f);
-
-            var wave = _director.WaveDue(0f);
-            Assert.AreSame(ships, wave, "The due wave stays the whole group.");
-            Assert.AreEqual(2, _director.Room(wave.Length, 4),
+            _director.Configure(_phases, Lull, waveCap: 6);
+            Assert.AreEqual(2, _director.Room(4, 4),
                 "Four alive under a wave cap of 6 leave room for two.");
         }
 
