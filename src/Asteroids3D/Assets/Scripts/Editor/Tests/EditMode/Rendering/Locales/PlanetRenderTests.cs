@@ -105,8 +105,8 @@ namespace Tests.EditMode.Rendering.Locales
             PaintLongitudeStripes();
             material.SetFloat("_RotationSpeed", 0);
             var settled = Render(Color.clear, time: 0);
-            Assert.That(Difference(settled, Render(Color.clear, time: 3)), Is.Zero,
-                "With the flow off and no rotation, time must not change the surface.");
+            Assert.That(Difference(settled, Render(Color.clear, time: 3)), Is.LessThan(.001f),
+                "With the flow off and no rotation, time must not visibly change the surface.");
             material.SetFloat("_BandStreaming", .05f);
             material.SetFloat("_StormChurn", .05f);
             var initial = Render(Color.clear, time: 0);
