@@ -1,6 +1,7 @@
 #if UNITY_EDITOR && ASTRO_FMOD
 using System.Collections;
 using System.Linq;
+using Combat.Targeting;
 using FMOD.Studio;
 using Movement;
 using NUnit.Framework;
@@ -24,12 +25,25 @@ namespace Tests.PlayMode.Audio
 
         private static readonly Kinematics Still = new(Vector2.zero, Vector2.zero, 0f, 0f, 0f);
 
+        private static readonly Vector3 ShipVelocity = new(12f, -5f, 0f);
+
         private GameObject kitHost;
+        private GameObject ship;
+        private SimulationMode simulationMode;
+
+        [SetUp]
+        public override void SetUp()
+        {
+            base.SetUp();
+            simulationMode = Physics.simulationMode;
+        }
 
         [TearDown]
         public override void TearDown()
         {
             if (kitHost) Object.DestroyImmediate(kitHost);
+            if (ship) Object.DestroyImmediate(ship);
+            Physics.simulationMode = simulationMode;
             base.TearDown();
         }
 
@@ -102,6 +116,31 @@ namespace Tests.PlayMode.Audio
             yield return Flush();
             yield return Flush();
             Assert.AreEqual(0, Instances(description).Length, "a kit that never activates stays silent");
+        }
+
+        [UnityTest]
+        public IEnumerator Activation_CarriesTheShipsVelocity()
+        {
+            Physics.simulationMode = SimulationMode.Script;
+            var description = Fresh(OverdriveEvent);
+            ship = new GameObject("Ship");
+            var body = ship.AddComponent<Rigidbody>();
+            body.useGravity = false;
+            body.linearVelocity = ShipVelocity;
+
+            var kit = Kit();
+            kit.Initialize(new KeystoneHost(body, 1f, new LockChannel()));
+            Activate(kit);
+            yield return null;
+            yield return Flush();
+
+            var instances = Instances(description);
+            Assert.AreEqual(1, instances.Length, "one instance on activation");
+            var velocity = Velocity(instances[0]);
+            Debug.Log($"[FMOD] {OverdriveEvent} velocity={velocity}");
+            Assert.AreEqual(ShipVelocity.x, velocity.x, 1e-3f, "activation velocity");
+            Assert.AreEqual(ShipVelocity.y, velocity.y, 1e-3f, "activation velocity");
+            Assert.AreEqual(ShipVelocity.z, velocity.z, 1e-3f, "activation velocity");
         }
 
         [UnityTest]
