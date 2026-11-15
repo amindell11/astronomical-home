@@ -4,6 +4,7 @@ using Audio;
 using Cameras;
 using FMODUnity;
 using NUnit.Framework;
+using Substrate;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -61,11 +62,14 @@ namespace Tests.PlayMode.Audio
             RuntimeManager.StudioSystem.flushCommands();
             RuntimeManager.StudioSystem.getListenerAttributes(0, out var attributes);
             var heard = new Vector3(attributes.velocity.x, attributes.velocity.y, attributes.velocity.z);
-            Debug.Log($"[FMOD] listener velocity={heard}");
-            Assert.Greater(cam.Velocity.sqrMagnitude, 0f, "the camera is moving");
-            Assert.AreEqual(cam.Velocity.x, heard.x, 1e-3f, "listener velocity");
-            Assert.AreEqual(cam.Velocity.y, heard.y, 1e-3f, "listener velocity");
-            Assert.AreEqual(cam.Velocity.z, heard.z, 1e-3f, "listener velocity");
+            var inPlane = GamePlane.PlaneDirToWorld(GamePlane.WorldDirToPlane(cam.Velocity));
+            Debug.Log($"[FMOD] listener velocity={heard} camera velocity={cam.Velocity}");
+            Assert.Greater(inPlane.sqrMagnitude, 0f, "the camera moves across the plane");
+            Assert.Greater(Mathf.Abs(Vector3.Dot(cam.Velocity, GamePlane.Normal)), 0f,
+                "the camera also climbs to its follow height, which the listener must not hear");
+            Assert.AreEqual(inPlane.x, heard.x, 1e-3f, "listener velocity");
+            Assert.AreEqual(inPlane.y, heard.y, 1e-3f, "listener velocity");
+            Assert.AreEqual(inPlane.z, heard.z, 1e-3f, "listener velocity");
         }
     }
 }
