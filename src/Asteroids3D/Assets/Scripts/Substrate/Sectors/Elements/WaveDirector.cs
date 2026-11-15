@@ -21,12 +21,13 @@ namespace Substrate.Sectors.Elements
     /// <summary>
     /// Sends waves of authored groups on each sector phase's wave-every beat, trimmed to the wave cap,
     /// which counts the hunt's live patrols, and a wave with no room is dropped. A phase opens with one.
-    /// Nothing arrives in a lull, or once the table is done when an elite follows it. With an elite, a
-    /// closing lull follows the last phase; without one, the done table keeps the last phase's waves.
-    /// The opening lull is held for the hunt. Ships arrive together just off screen, facing the hero
-    /// on their faction kit and skin. Dead products despawn on the tick, which idles while the hero is
-    /// inactive. Nothing spawns in Build, since the asteroid field lays out at its Start. The base
-    /// class's "produce exactly once" is about the activation token, not lifetime.
+    /// Nothing arrives in a lull, or once the table is done when an elite follows it. With an elite the
+    /// director begins it, summons it on the tick the table is done, and ends it at teardown; a closing
+    /// lull follows the last phase, and without one the done table keeps the last phase's waves. Ships
+    /// arrive together just off screen, facing the hero on their faction kit and skin. The opening lull
+    /// is held for the hunt. Dead products despawn on the tick, which idles while the hero is inactive.
+    /// Nothing spawns in Build, since the asteroid field lays out at its Start. The base class's "produce
+    /// exactly once" is about the activation token, not lifetime.
     /// </summary>
     public class WaveDirector : SectorSpawner, ISectorRowReader
     {
@@ -49,7 +50,7 @@ namespace Substrate.Sectors.Elements
         [Stat, SerializeField, Min(0f)] private float openingLullSeconds = 5f;
         [Tooltip("The sector's opening hunt. Set, the opening lull lasts until the hunt releases; unset, the seconds above.")]
         [SerializeField] private SectorHunt hunt;
-        [Tooltip("The elite the sector's spine summons. Set, spawning stops when the table is done; it must be the spine's own elite.")]
+        [Tooltip("The sector's elite; set, a lull follows the last phase, and when the table is done the director summons it and sends no more waves.")]
         [SerializeField] private EliteEncounter elite;
 
         [Header("Placement")]
@@ -88,6 +89,8 @@ namespace Substrate.Sectors.Elements
         /// <summary>True when a lull follows this sector's last phase, before its elite.</summary>
         public bool ClosingLull { get; private set; }
 
+        public IEliteStatus Elite => elite ? elite : null;
+
         /// <summary>In a lull after a phase, scheduled or earned, or the graceSeconds after one ends.</summary>
         public bool InLullWindow(float graceSeconds)
         {
@@ -124,6 +127,7 @@ namespace Substrate.Sectors.Elements
                 }
             }
 
+            if (elite) elite.CheckRow(row);
             if (!faction) return;
             if (!row.faction)
                 throw new InvalidOperationException($"WaveDirector on '{name}' flies the row's faction, and the row names none.");
@@ -136,6 +140,7 @@ namespace Substrate.Sectors.Elements
         protected override IEnumerator Produce(SectorBuildContext ctx)
         {
             CheckRow(ctx.Row);
+            if (elite) elite.Begin(ctx);
             products.Clear();
             Spawned = products;
             phases = ctx.Row.phases;
@@ -158,6 +163,7 @@ namespace Substrate.Sectors.Elements
 
         protected override IEnumerator OnTeardown(SectorBuildContext ctx)
         {
+            if (elite) elite.End();
             hero = null;
             var teardown = base.OnTeardown(ctx);
             while (teardown.MoveNext()) yield return teardown.Current;
@@ -180,6 +186,7 @@ namespace Substrate.Sectors.Elements
             DespawnDead();
             HoldForHunt(now);
             Advance(now);
+            SummonElite();
             var wave = WaveDue(now);
             if (wave != null)
             {
@@ -192,14 +199,6 @@ namespace Substrate.Sectors.Elements
         internal int Alive => products.Count + (hunt ? hunt.LivePatrols : 0);
 
         internal int Room(int waveSize, int alive) => Mathf.Clamp(waveCap - alive, 0, waveSize);
-
-        private void OnValidate()
-        {
-            var spine = GetComponentInParent<PhaseSpineModule>(true);
-            if (spine && spine.Elite is EliteEncounter owned && owned != elite)
-                throw new InvalidOperationException(
-                    $"WaveDirector on '{name}' must watch its spine's elite '{owned.name}', so the waves stop when the table is done.");
-        }
 
         private void BuildSchedule()
         {
@@ -230,6 +229,11 @@ namespace Substrate.Sectors.Elements
         }
 
         internal void Advance(float now) => Phase = schedule.At(now - startTime);
+
+        private void SummonElite()
+        {
+            if (WavesOver && !elite.Summoned) elite.Summon();
+        }
 
         /// <summary>True once, on the first tick of each phase; a lull or the done table opens nothing.</summary>
         internal bool OpensPhase()

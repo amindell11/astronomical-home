@@ -22,12 +22,12 @@ namespace Substrate.Sectors.Elements.Phases
     /// through that lull and a grace window after it: into the next phase, or into the elite fight for
     /// the lull before the elite. Flying in claims it (<see cref="BeaconClaimed"/>); an unclaimed one
     /// closes when its grace runs out or the next beacon opens. While the hunt runs, the HUD countdown
-    /// reads the hunt. The director and the hunt are held to observe, never commanded. With an elite
-    /// wired, a lull follows the last phase and its end summons the elite; extraction opens on its
-    /// death. The spine owns the elite encounter and drives it.
+    /// reads the hunt. The director, the hunt and the elite are held to observe, never commanded. With
+    /// an elite, a lull follows the last phase; the director summons the elite when that lull ends, and
+    /// extraction opens on the elite's death.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1051
     /// </summary>
-    public class PhaseSpineModule : SectorModule, ISectorRowReader
+    public class PhaseSpineModule : SectorModule
     {
         public const string StepSurvive = "survive";
         public const string StepElite = "elite";
@@ -38,8 +38,6 @@ namespace Substrate.Sectors.Elements.Phases
         [Tooltip("The sector's opening hunt, read for the HUD's countdown until the hunt releases; unset for none.")]
         [SerializeField] private SectorHunt hunt;
         [SerializeField] private ExtractionZone extractionZone;
-        [Tooltip("The sector's elite, summoned when the lull after the last phase ends; extraction opens on its death. Unset = extraction opens with the phases' end.")]
-        [SerializeField] private EliteEncounter elite;
 
         [Header("Zone placement")]
         [Tooltip("Plane distance from the hero the zone appears at when extraction opens.")]
@@ -71,18 +69,13 @@ namespace Substrate.Sectors.Elements.Phases
 
         public SectorPhaseMark Phase => director.Phase;
 
-        public IEliteStatus Elite => elite ? elite : null;
+        public IEliteStatus Elite => director.Elite;
 
         /// <summary>True from a lull beacon's claim until the next opens.</summary>
         public bool BeaconClaimed { get; private set; }
 
         /// <summary>What this sector's director can send from <paramref name="row"/>, readable off the sector prefab before it loads.</summary>
         public SectorThreat Threat(SectorEntry row) => director.Threat(row);
-
-        public void CheckRow(SectorEntry row)
-        {
-            if (elite) elite.CheckRow(row);
-        }
 
         public override IEnumerator Setup(SectorBuildContext ctx)
         {
@@ -114,9 +107,9 @@ namespace Substrate.Sectors.Elements.Phases
                 [StepExtract] = () => extraction,
                 [StepCompleted] = () => new CompletedState()
             };
-            if (elite)
+            var elite = director.Elite;
+            if (elite != null)
             {
-                elite.Begin(ctx);
                 steps[StepSurvive] = StepElite;
                 steps[StepElite] = StepExtract;
                 builders[StepElite] = () => new EliteState(elite);
@@ -128,7 +121,6 @@ namespace Substrate.Sectors.Elements.Phases
 
         public override IEnumerator Teardown(SectorBuildContext ctx)
         {
-            if (elite) elite.End();
             ReleaseExtraction();
             if (extractionZone) extractionZone.Disarm();
             beaconsEnabled = false;
@@ -254,7 +246,7 @@ namespace Substrate.Sectors.Elements.Phases
                 return;
             }
 
-            caption = elite ? PhaseCaption.Elite : PhaseCaption.Extraction;
+            caption = director.Elite != null ? PhaseCaption.Elite : PhaseCaption.Extraction;
             seconds = 0f;
         }
 
@@ -285,9 +277,9 @@ namespace Substrate.Sectors.Elements.Phases
 
         private sealed class EliteState : ObjectiveState
         {
-            private readonly EliteEncounter elite;
+            private readonly IEliteStatus elite;
 
-            public EliteState(EliteEncounter elite) : base(elite.Summon) => this.elite = elite;
+            public EliteState(IEliteStatus elite) => this.elite = elite;
 
             public override ObjectiveType StateType => ObjectiveType.ClearHostiles;
 
@@ -343,13 +335,12 @@ namespace Substrate.Sectors.Elements.Phases
 #if UNITY_EDITOR
         internal void Bind(WaveDirector director, ExtractionZone zone, ExtractionZone beacon,
             float? leadSeconds = null, float? graceSeconds = null, SectorHunt hunt = null,
-            EliteEncounter elite = null, float? warningSeconds = null)
+            float? warningSeconds = null)
         {
             this.director = director;
             this.hunt = hunt;
             extractionZone = zone;
             beaconZone = beacon;
-            this.elite = elite;
             if (leadSeconds.HasValue) beaconLeadSeconds = leadSeconds.Value;
             if (graceSeconds.HasValue) beaconGraceSeconds = graceSeconds.Value;
             if (warningSeconds.HasValue) beaconWarningSeconds = warningSeconds.Value;
