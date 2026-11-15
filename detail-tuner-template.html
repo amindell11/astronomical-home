@@ -1,0 +1,381 @@
+<title>Station Light Tuner</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=Barlow:wght@400;500&display=swap">
+<style>
+/* Layout: a 16:9 game screen on the left, an instrument panel of knobs on the right; one column when narrow. */
+:root {
+  color-scheme: dark;
+  --bg: #0a0c1c;
+  --panel: #11142a;
+  --raised: #191d3a;
+  --line: #2b3154;
+  --fg: #e8e4d8;
+  --dim: #979db8;
+  --mark: #1affd9;
+  --display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --body: "Barlow", "Segoe UI", system-ui, sans-serif;
+}
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.45; }
+.wrap { max-width: 1500px; margin: 0 auto; padding-block: 20px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; margin-bottom: 14px; }
+h1 { font-family: var(--display); font-weight: 600; font-size: 30px; letter-spacing: 0.04em; text-transform: uppercase; margin: 0; }
+header p { margin: 0; color: var(--dim); max-width: 70ch; }
+.bench { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 18px; align-items: start; }
+.stage { min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+canvas#screen { width: 100%; aspect-ratio: 16 / 9; max-width: 100%; display: block; background: #05060f; border: 1px solid var(--line); }
+.row { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+.pick { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.pick > span { font-family: var(--display); font-size: 14px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); margin-right: 4px; }
+button { font: inherit; color: var(--fg); background: var(--raised); border: 1px solid var(--line); padding: 5px 11px; cursor: pointer; }
+button:hover { border-color: var(--dim); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
+button[aria-pressed="true"] { border-color: var(--mark); color: var(--mark); }
+.note { color: var(--dim); font-size: 13px; margin: 0; }
+.panel { background: var(--panel); border: 1px solid var(--line); padding: 14px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.group h2 { font-family: var(--display); font-weight: 500; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); margin: 0 0 8px; }
+.knob { display: grid; grid-template-columns: minmax(0, 1fr) 132px; gap: 10px; align-items: center; padding: 3px 0; }
+.knob label { min-width: 0; }
+.knob .ctl { display: flex; gap: 8px; align-items: center; justify-content: flex-end; }
+.knob output { font-variant-numeric: tabular-nums; color: var(--dim); font-size: 13px; width: 60px; text-align: right; }
+input[type="color"] { width: 44px; height: 26px; padding: 0; border: 1px solid var(--line); background: none; cursor: pointer; }
+input[type="range"] { width: 86px; accent-color: var(--mark); }
+.export { display: flex; flex-direction: column; gap: 8px; }
+pre { margin: 0; background: #070817; border: 1px solid var(--line); padding: 10px; font-size: 12px; line-height: 1.4; max-height: 260px; overflow: auto; white-space: pre; }
+@media (max-width: 900px) { .bench { grid-template-columns: minmax(0, 1fr); } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Station Light Tuner</h1>
+    <p>Gate 3 of the outpost kit. Turn a knob and the station redraws over a real game capture at true screen size. When it looks right, copy the settings block and paste it back to Claude.</p>
+  </header>
+
+  <div class="bench">
+    <section class="stage" aria-label="Game screen preview">
+      <canvas id="screen" width="1280" height="720"></canvas>
+      <div class="row">
+        <div class="pick" id="pick-station"><span>Station</span></div>
+        <div class="pick" id="pick-state"><span>State</span></div>
+      </div>
+      <div class="row">
+        <div class="pick" id="pick-locale"><span>Locale</span></div>
+        <div class="pick" id="pick-zoom"><span>Zoom</span></div>
+      </div>
+      <p class="note">The canvas is a 1280 by 720 screen. Closest zoom is the ship parked at the station; widest is the camera pulled back for a fight. The ship and rocks belong to the capture and stay at closest-zoom size. Shading, hatching and outline are a Blender preview, not the game's shaders. The brush texture is the ships' own tile.</p>
+    </section>
+
+    <aside class="panel" aria-label="Knobs">
+      <div id="knobs"></div>
+      <div class="export">
+        <div class="row">
+          <button id="copy" type="button">Copy settings</button>
+          <button id="reset" type="button">Back to Claude's proposal</button>
+        </div>
+        <pre id="settings" tabindex="0" aria-label="Settings block"></pre>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+const DATA = /*DATA*/null;
+
+const KNOBS = [
+  ["Hull", [
+    ["hull.bone", "Main plates", "color"],
+    ["hull.canvas", "Second plates", "color"],
+    ["hull.slate", "Frame and joints", "color"],
+    ["hull.ochre", "Patch plate, ochre", "color"],
+    ["hull.brick", "Patch plate, brick", "color"],
+    ["hull.blue", "Patch plate, blue", "color"],
+  ]],
+  ["Shading", [
+    ["shadow_depth", "Shadow depth (lower is darker)", "range", 0.15, 0.85, 0.01],
+    ["shadow_cool", "Shadow coolness", "range", 0, 0.4, 0.01],
+    ["mid_level", "Half-tone level", "range", 0.2, 0.9, 0.01],
+    ["ink", "Outline", "color"],
+  ]],
+  ["Lights", [
+    ["window", "Crew windows", "color"],
+    ["service.gimbal", "Repair lights", "color"],
+    ["service.kite", "Mod station lights", "color"],
+    ["service.drum", "Armory lights", "color"],
+    ["prize", "Mod station prize", "color"],
+    ["dark", "Lights when dark", "color"],
+  ]],
+  ["Ink weathering", [
+    ["hatch", "Shadow hatching", "range", 0, 1.5, 0.01],
+    ["brush", "Brush texture", "range", 0, 2, 0.01],
+  ]],
+  ["Glow", [
+    ["glow", "Bloom strength", "range", 0, 1.5, 0.01],
+    ["in_use_boost", "In-use flare", "range", 1, 3, 0.05],
+  ]],
+];
+const STATIONS = [["gimbal", "Repair"], ["kite", "Mod station"], ["drum", "Armory"]];
+const STATES = [["open", "Open"], ["in use", "In use"], ["dark", "Dark"]];
+const LOCALES = [["copper", "Copper Turquoise"], ["chalk", "Illustrated Blue"], ["verdant", "Verdant Giant"], ["ice", "Blue Crescent"], ["navy", "Plain"]];
+const ZOOMS = [["24", "Closest"], ["14.4", "Widest"]];
+const HULL = ["bone", "canvas", "slate", "ochre", "brick", "blue"];
+const SIZE = DATA.size, RENDER_PX_PER_UNIT = 24;
+
+let settings = structuredClone(DATA.defaults);
+const view = { station: "gimbal", state: "open", locale: "copper", zoom: "24" };
+try {
+  const saved = JSON.parse(localStorage.getItem("station-light-tuner") || "null");
+  if (saved && saved.hull && saved.service) settings = Object.assign(structuredClone(DATA.defaults), saved);
+} catch (e) { /* storage is optional */ }
+
+const get = (path) => path.split(".").reduce((o, k) => o[k], settings);
+const set = (path, value) => { const keys = path.split("."); const last = keys.pop(); keys.reduce((o, k) => o[k], settings)[last] = value; };
+const toLinear = (c) => (c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+const hexLinear = (h) => [1, 3, 5].map((i) => toLinear(parseInt(h.slice(i, i + 2), 16) / 255));
+const LUT = new Uint8Array(4097);
+for (let i = 0; i <= 4096; i++) { const c = i / 4096; LUT[i] = Math.round(255 * (c <= 0.0031308 ? c * 12.92 : 1.055 * Math.pow(c, 1 / 2.4) - 0.055)); }
+const encode = (c) => LUT[Math.max(0, Math.min(4096, (c * 4096) | 0))];
+const LIN = new Float32Array(256);
+for (let i = 0; i < 256; i++) LIN[i] = toLinear(i / 255);
+
+const loadImage = (src) => new Promise((resolve, reject) => { const im = new Image(); im.onload = () => resolve(im); im.onerror = reject; im.src = src; });
+const scratch = document.createElement("canvas");
+scratch.width = scratch.height = SIZE;
+const sctx = scratch.getContext("2d", { willReadFrequently: true });
+async function pixels(src) {
+  const im = await loadImage(src);
+  sctx.clearRect(0, 0, SIZE, SIZE);
+  sctx.drawImage(im, 0, 0);
+  return sctx.getImageData(0, 0, SIZE, SIZE).data;
+}
+
+// Per station: how much of each pixel is each hull colour in each shading band, each light, and outline.
+const masks = {};
+async function loadMasks(station) {
+  if (masks[station]) return masks[station];
+  const src = DATA.passes[station], n = SIZE * SIZE;
+  const m = { alpha: new Uint8Array(n), classes: [], names: [] };
+  const sum = new Float32Array(n);
+  for (const [group, keys] of [["A", HULL.slice(0, 3)], ["B", HULL.slice(3)]]) {
+    const cov = await pixels(src["cov" + group]), lit = await pixels(src["lit" + group]), mid = await pixels(src["mid" + group]);
+    for (let k = 0; k < 3; k++) {
+      const L = new Uint8Array(n), M = new Uint8Array(n), S = new Uint8Array(n);
+      for (let p = 0; p < n; p++) {
+        const a = cov[4 * p + 3];
+        if (!a) continue;
+        m.alpha[p] = a;
+        const c = LIN[cov[4 * p + k]] * a, l = LIN[lit[4 * p + k]] * lit[4 * p + 3], d = LIN[mid[4 * p + k]] * mid[4 * p + 3];
+        L[p] = l; M[p] = d; S[p] = Math.max(0, c - l - d);
+        sum[p] += c;
+      }
+      m.classes.push(L, M, S);
+      m.names.push(keys[k] + ".lit", keys[k] + ".mid", keys[k] + ".shade");
+    }
+  }
+  const em = await pixels(src.emis);
+  ["win", "svc", "core"].forEach((name, k) => {
+    const E = new Uint8Array(n);
+    for (let p = 0; p < n; p++) { const a = em[4 * p + 3]; if (a) { E[p] = LIN[em[4 * p + k]] * a; sum[p] += E[p]; } }
+    m.classes.push(E); m.names.push(name);
+  });
+  const ink = new Uint8Array(n);
+  for (let p = 0; p < n; p++) ink[p] = Math.max(0, m.alpha[p] - sum[p]);
+  m.classes.push(ink); m.names.push("ink");
+  // Per hull pixel: the ships' brush tile, and two sets of hatch strokes.
+  const hull = new Float32Array(n);
+  for (let c = 0; c < 18; c++) { const w = m.classes[c]; for (let p = 0; p < n; p++) hull[p] += w[p]; }
+  m.brush = new Uint8Array(n).fill(159); m.hatchA = new Uint8Array(n); m.hatchB = new Uint8Array(n);
+  if (src.brush) {
+    const br = await pixels(src.brush), ht = await pixels(src.hatch);
+    for (let p = 0; p < n; p++) {
+      if (hull[p] < 1) continue;
+      const q = 4 * p;
+      m.brush[p] = Math.min(255, 255 * LIN[br[q]] * br[q + 3] / hull[p]);
+      m.hatchA[p] = Math.min(255, 255 * LIN[ht[q]] * ht[q + 3] / hull[p]);
+      m.hatchB[p] = Math.min(255, 255 * LIN[ht[q + 1]] * ht[q + 3] / hull[p]);
+    }
+  }
+  masks[station] = m;
+  return m;
+}
+
+const hullCanvas = document.createElement("canvas"), glowCanvas = document.createElement("canvas"), flareCanvas = document.createElement("canvas");
+for (const c of [hullCanvas, glowCanvas, flareCanvas]) c.width = c.height = SIZE;
+const hctx = hullCanvas.getContext("2d"), gctx = glowCanvas.getContext("2d"), fctx = flareCanvas.getContext("2d");
+
+function colourStation(m) {
+  const s = settings, n = SIZE * SIZE, dark = view.state === "dark";
+  const tint = [s.shadow_depth, s.shadow_depth, s.shadow_depth + s.shadow_cool];
+  const lights = { win: hexLinear(s.window), svc: hexLinear(s.service[view.station]), core: hexLinear(s.prize) };
+  if (dark) for (const k in lights) lights[k] = hexLinear(s.dark);
+  const colours = m.names.map((name) => {
+    if (name === "ink") return hexLinear(s.ink);
+    if (lights[name]) return lights[name];
+    const [key, band] = name.split(".");
+    const base = hexLinear(s.hull[key]), shadow = base.map((c, i) => c * tint[i]);
+    if (band === "lit") return base;
+    if (band === "shade") return shadow;
+    return base.map((c, i) => shadow[i] + (c - shadow[i]) * s.mid_level);
+  });
+  const lightAt = m.names.map((name) => name in lights);
+  const out = hctx.createImageData(SIZE, SIZE), glow = gctx.createImageData(SIZE, SIZE), flare = fctx.createImageData(SIZE, SIZE);
+  const o = out.data, g = glow.data, f = flare.data, C = m.classes.length;
+  const svc = m.classes[m.names.indexOf("svc")], svcColour = lights.svc.map(encode);
+  const band = m.names.map((name) => (name.endsWith(".mid") ? 1 : name.endsWith(".shade") ? 2 : 0));
+  const inkColour = hexLinear(s.ink), brushGain = s.brush * 3.2 / 255;
+  for (let p = 0; p < n; p++) {
+    const a = m.alpha[p];
+    if (!a) continue;
+    let r = 0, gr = 0, b = 0, hull = 0, mid = 0, shade = 0;
+    for (let c = 0; c < 18; c++) {
+      const w = m.classes[c][p];
+      if (!w) continue;
+      const col = colours[c];
+      r += w * col[0]; gr += w * col[1]; b += w * col[2]; hull += w;
+      if (band[c] === 1) mid += w; else if (band[c] === 2) shade += w;
+    }
+    if (hull) {
+      const lift = 1 + brushGain * (m.brush[p] - 159.4);
+      let inked = s.hatch * (m.hatchA[p] * (mid + shade) + m.hatchB[p] * shade) / (255 * hull);
+      inked = inked > 1 ? 1 : inked;
+      r = r * lift * (1 - inked) + inkColour[0] * inked * hull;
+      gr = gr * lift * (1 - inked) + inkColour[1] * inked * hull;
+      b = b * lift * (1 - inked) + inkColour[2] * inked * hull;
+    }
+    let er = 0, eg = 0, eb = 0, ea = 0;
+    for (let c = 18; c < C; c++) {
+      const w = m.classes[c][p];
+      if (!w) continue;
+      const col = colours[c];
+      r += w * col[0]; gr += w * col[1]; b += w * col[2];
+      if (lightAt[c] && !dark) { er += w * col[0]; eg += w * col[1]; eb += w * col[2]; ea += w; }
+    }
+    const q = 4 * p;
+    o[q] = encode(r / a); o[q + 1] = encode(gr / a); o[q + 2] = encode(b / a); o[q + 3] = a;
+    if (ea) { g[q] = encode(er / ea); g[q + 1] = encode(eg / ea); g[q + 2] = encode(eb / ea); g[q + 3] = Math.min(255, ea); }
+    if (svc[p] && !dark) { f[q] = svcColour[0]; f[q + 1] = svcColour[1]; f[q + 2] = svcColour[2]; f[q + 3] = svc[p]; }
+  }
+  hctx.putImageData(out, 0, 0);
+  gctx.putImageData(glow, 0, 0);
+  fctx.putImageData(flare, 0, 0);
+}
+
+const halves = [document.createElement("canvas"), document.createElement("canvas")];
+function shrink(source, steps) {
+  let from = source, w = SIZE;
+  for (let i = 0; i < steps; i++) {
+    const to = halves[i % 2], half = Math.max(1, w >> 1);
+    to.width = to.height = half;
+    const c = to.getContext("2d");
+    c.imageSmoothingQuality = "high";
+    c.drawImage(from, 0, 0, w, w, 0, 0, half, half);
+    from = to; w = half;
+  }
+  return [from, w];
+}
+
+const screen = document.getElementById("screen"), ctx = screen.getContext("2d");
+const backdrops = {};
+let queued = false;
+function redraw() { if (!queued) { queued = true; requestAnimationFrame(draw); } }
+async function draw() {
+  queued = false;
+  const want = view.station;
+  const m = await loadMasks(want);
+  if (want !== view.station) return redraw();
+  colourStation(m);
+  ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
+  ctx.fillStyle = "#0a0c1c"; ctx.fillRect(0, 0, 1280, 720);
+  if (view.locale !== "navy") {
+    if (!backdrops[view.locale]) backdrops[view.locale] = await loadImage(DATA.backdrops[view.locale]);
+    ctx.drawImage(backdrops[view.locale], 0, 0, 1280, 720);
+  }
+  const k = Number(view.zoom) / RENDER_PX_PER_UNIT, size = SIZE * k;
+  const x = 640 + 130 * k - size / 2, y = 360 - 30 * k - size / 2;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(hullCanvas, x, y, size, size);
+  if (view.state !== "dark" && settings.glow > 0) {
+    // Bloom without canvas filters: halve the lights down to a few pixels, then stretch them back over the station.
+    ctx.globalCompositeOperation = "screen";
+    const halo = (source, strength) => {
+      for (const [steps, weight] of [[4, 0.9], [6, 0.6]]) {
+        const [soft, w] = shrink(source, steps);
+        let left = strength * weight;
+        while (left > 0) { ctx.globalAlpha = Math.min(1, left); ctx.drawImage(soft, 0, 0, w, w, x, y, size, size); left -= 1; }
+      }
+    };
+    halo(glowCanvas, settings.glow);
+    // In use, the service lights throw a stronger halo.
+    if (view.state === "in use") halo(flareCanvas, settings.glow * (settings.in_use_boost - 1));
+    ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
+  }
+}
+
+function showSettings() {
+  document.getElementById("settings").textContent = JSON.stringify(settings, null, 2);
+  try { localStorage.setItem("station-light-tuner", JSON.stringify(settings)); } catch (e) { /* storage is optional */ }
+}
+
+function buildKnobs() {
+  const host = document.getElementById("knobs");
+  host.textContent = "";
+  for (const [title, knobs] of KNOBS) {
+    const group = document.createElement("div");
+    group.className = "group";
+    group.innerHTML = `<h2>${title}</h2>`;
+    for (const [path, text, type, min, max, step] of knobs) {
+      const id = "knob-" + path.replace(/\W/g, "-");
+      const row = document.createElement("div");
+      row.className = "knob";
+      const value = get(path);
+      row.innerHTML = `<label for="${id}">${text}</label><div class="ctl"><input id="${id}" type="${type}"><output for="${id}"></output></div>`;
+      const input = row.querySelector("input"), output = row.querySelector("output");
+      if (type === "range") { input.min = min; input.max = max; input.step = step; }
+      input.value = value;
+      const show = () => { output.textContent = type === "range" ? Number(input.value).toFixed(2) : input.value.toUpperCase(); };
+      show();
+      input.addEventListener("input", () => {
+        set(path, type === "range" ? Number(input.value) : input.value.toUpperCase());
+        show(); showSettings(); redraw();
+      });
+      group.appendChild(row);
+    }
+    host.appendChild(group);
+  }
+}
+
+function buildPick(id, options, key) {
+  const host = document.getElementById(id);
+  for (const [value, text] of options) {
+    const b = document.createElement("button");
+    b.type = "button"; b.textContent = text; b.dataset.value = value;
+    b.setAttribute("aria-pressed", String(view[key] === value));
+    b.addEventListener("click", () => {
+      view[key] = value;
+      host.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.value === value)));
+      redraw();
+    });
+    host.appendChild(b);
+  }
+}
+
+document.getElementById("copy").addEventListener("click", async (event) => {
+  const text = JSON.stringify(settings, null, 2), button = event.currentTarget;
+  try { await navigator.clipboard.writeText(text); button.textContent = "Copied"; }
+  catch (e) {
+    const range = document.createRange(); range.selectNodeContents(document.getElementById("settings"));
+    const sel = getSelection(); sel.removeAllRanges(); sel.addRange(range);
+    button.textContent = "Selected: press Ctrl+C";
+  }
+  setTimeout(() => { button.textContent = "Copy settings"; }, 2200);
+});
+document.getElementById("reset").addEventListener("click", () => {
+  settings = structuredClone(DATA.defaults);
+  buildKnobs(); showSettings(); redraw();
+});
+
+buildPick("pick-station", STATIONS, "station");
+buildPick("pick-state", STATES, "state");
+buildPick("pick-locale", LOCALES, "locale");
+buildPick("pick-zoom", ZOOMS, "zoom");
+buildKnobs(); showSettings(); redraw();
+</script>
