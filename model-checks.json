@@ -1,0 +1,270 @@
+{
+  "left_terminal_unchanged": true,
+  "camera_unchanged": true,
+  "new_meshes": [
+    {
+      "name": "29 | Weapon terminal armor casting",
+      "vertices": 320,
+      "faces": 320,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Weapon terminal recessed gasket",
+      "vertices": 336,
+      "faces": 349,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Weapon terminal rear enclosure",
+      "vertices": 192,
+      "faces": 194,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Weapon terminal brow",
+      "vertices": 144,
+      "faces": 136,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Weapon terminal left shoulder",
+      "vertices": 167,
+      "faces": 162,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Weapon terminal right shoulder",
+      "vertices": 160,
+      "faces": 156,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Weapon terminal divider",
+      "vertices": 184,
+      "faces": 174,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Primary blank glass",
+      "vertices": 128,
+      "faces": 126,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Ordnance blank glass",
+      "vertices": 144,
+      "faces": 143,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Weapon key 1 deep socket",
+      "vertices": 208,
+      "faces": 202,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Weapon key 1 chunky keycap",
+      "vertices": 208,
+      "faces": 202,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Weapon key 1 inlaid chevron",
+      "vertices": 18,
+      "faces": 12,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Weapon key 2 deep socket",
+      "vertices": 208,
+      "faces": 202,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Weapon key 2 chunky keycap",
+      "vertices": 208,
+      "faces": 202,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Weapon key 2 inlaid chevron",
+      "vertices": 18,
+      "faces": 12,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Weapon key 3 deep socket",
+      "vertices": 208,
+      "faces": 202,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Weapon key 3 chunky keycap",
+      "vertices": 208,
+      "faces": 202,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Weapon key 3 inlaid chevron",
+      "vertices": 18,
+      "faces": 12,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Weapon key 4 deep socket",
+      "vertices": 208,
+      "faces": 202,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Weapon key 4 chunky keycap",
+      "vertices": 208,
+      "faces": 202,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Weapon key 4 inlaid chevron",
+      "vertices": 18,
+      "faces": 12,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Weapon fastener 1 socket",
+      "vertices": 120,
+      "faces": 102,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Weapon fastener 1 head",
+      "vertices": 180,
+      "faces": 162,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Weapon fastener 2 socket",
+      "vertices": 120,
+      "faces": 102,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Weapon fastener 2 head",
+      "vertices": 180,
+      "faces": 162,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Weapon fastener 3 socket",
+      "vertices": 120,
+      "faces": 102,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Weapon fastener 3 head",
+      "vertices": 180,
+      "faces": 162,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Weapon fastener 4 socket",
+      "vertices": 120,
+      "faces": 102,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Weapon fastener 4 head",
+      "vertices": 180,
+      "faces": 162,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Right Slanted cooling fin 1",
+      "vertices": 142,
+      "faces": 138,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Right Slanted cooling fin 2",
+      "vertices": 142,
+      "faces": 138,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Right Slanted cooling fin 3",
+      "vertices": 142,
+      "faces": 138,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Right Cooling bank angular shoulder",
+      "vertices": 256,
+      "faces": 250,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Right Cooling shoulder structural backing",
+      "vertices": 256,
+      "faces": 250,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Primary recessed screen rim",
+      "vertices": 256,
+      "faces": 256,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Ordnance recessed screen rim",
+      "vertices": 256,
+      "faces": 256,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Continuous folded desk shell",
+      "vertices": 154,
+      "faces": 145,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Left forearm armor",
+      "vertices": 76,
+      "faces": 72,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Right forearm armor",
+      "vertices": 102,
+      "faces": 95,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Projector mounting saddle",
+      "vertices": 104,
+      "faces": 98,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Recessed Launch armor bezel",
+      "vertices": 192,
+      "faces": 192,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Launch recess floor",
+      "vertices": 96,
+      "faces": 90,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Recessed tube tray armor",
+      "vertices": 160,
+      "faces": 160,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "29 | Tube tray dark well",
+      "vertices": 80,
+      "faces": 74,
+      "zero_area_faces": 0
+    }
+  ]
+}
