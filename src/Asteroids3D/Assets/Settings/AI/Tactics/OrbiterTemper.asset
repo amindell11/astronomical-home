@@ -17,9 +17,23 @@ MonoBehaviour:
   home: 1
   attackRunMargin: 0
   circlesWreck: 1
-  breakOffShield: 25
-  resumeShield: 80
   hitWithin: 2
   nerveShield: 50
   standOffMargin: 5
   minimumHold: 2
+  wounded: 3
+  woundedBy: 0
+  woundedBelow:
+    min: 20
+    max: 40
+  woundedEnds: 0
+  shieldBack:
+    min: 60
+    max: 90
+  woundedSeconds:
+    min: 5
+    max: 5
+  commits: 0
+  retreatsMin: 1
+  retreatsMax: 1
+  fallBackMargin: 1
