@@ -70,7 +70,7 @@ pre { margin: 0; background: #070817; border: 1px solid var(--line); padding: 10
       <div class="export">
         <div class="row">
           <button id="copy" type="button">Copy settings</button>
-          <button id="reset" type="button">Back to Claude's proposal</button>
+          <button id="reset" type="button">Back to saved settings</button>
         </div>
         <pre id="settings" tabindex="0" aria-label="Settings block"></pre>
       </div>
@@ -123,7 +123,7 @@ const SIZE = DATA.size, RENDER_PX_PER_UNIT = 24;
 let settings = structuredClone(DATA.defaults);
 const view = { station: "gimbal", state: "open", locale: "copper", zoom: "24" };
 try {
-  const saved = JSON.parse(localStorage.getItem("station-light-tuner") || "null");
+  const saved = JSON.parse(localStorage.getItem("station-light-tuner-2") || "null");
   if (saved && saved.hull && saved.service) settings = Object.assign(structuredClone(DATA.defaults), saved);
 } catch (e) { /* storage is optional */ }
 
@@ -312,7 +312,7 @@ async function draw() {
 
 function showSettings() {
   document.getElementById("settings").textContent = JSON.stringify(settings, null, 2);
-  try { localStorage.setItem("station-light-tuner", JSON.stringify(settings)); } catch (e) { /* storage is optional */ }
+  try { localStorage.setItem("station-light-tuner-2", JSON.stringify(settings)); } catch (e) { /* storage is optional */ }
 }
 
 function buildKnobs() {

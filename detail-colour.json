@@ -3,14 +3,14 @@
     "bone": "#DDD2BC",
     "canvas": "#9C927F",
     "slate": "#3B3F52",
-    "ochre": "#C7A25A",
+    "ochre": "#BB8925",
     "brick": "#B0705A",
     "blue": "#7088A6"
   },
-  "shadow_depth": 0.4,
-  "shadow_cool": 0.22,
-  "mid_level": 0.55,
-  "window": "#FFB347",
+  "shadow_depth": 0.18,
+  "shadow_cool": 0.13,
+  "mid_level": 0.38,
+  "window": "#FEAC39",
   "prize": "#FFE25A",
   "service": {
     "gimbal": "#5BFF86",
@@ -19,8 +19,8 @@
   },
   "dark": "#1E2030",
   "ink": "#0A0911",
-  "glow": 0.9,
+  "glow": 1.25,
   "in_use_boost": 1.8,
-  "brush": 0.6,
-  "hatch": 0.8
+  "brush": 1.62,
+  "hatch": 0.47
 }
