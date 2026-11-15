@@ -14,10 +14,6 @@ namespace AI.Tactics
             this.max = max;
         }
 
-        public float Draw(System.Random rng)
-        {
-            var unit = (float)rng.NextDouble();
-            return min == max ? min : min + unit * (max - min);
-        }
+        public float Draw(System.Random rng) => min + (float)rng.NextDouble() * (max - min);
     }
 }
