@@ -1,0 +1,52 @@
+{
+    "frame": 1396,
+    "elapsed": 3.039902687072754,
+    "width": 640,
+    "height": 480,
+    "cameraPosition": {
+        "x": 0.0,
+        "y": 6.800000190734863,
+        "z": -18.0
+    },
+    "cameraRotation": {
+        "x": 0.05666977912187576,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.9983929991722107
+    },
+    "verticalFieldOfView": 44.49803924560547,
+    "cameraAspect": 1.3333333730697632,
+    "lensWorld": {
+        "x": 9.147432256106924e-10,
+        "y": 1.6260253190994263,
+        "z": 0.010463442653417588
+    },
+    "lensViewport": {
+        "x": 0.5,
+        "y": 0.3377440869808197,
+        "z": 18.480257034301759
+    },
+    "launchWorld": {
+        "x": -3.965085682011704e-7,
+        "y": 1.02948796749115,
+        "z": -2.2187752723693849
+    },
+    "launchViewport": {
+        "x": 0.4999999403953552,
+        "y": 0.24663183093070985,
+        "z": 16.332839965820314
+    },
+    "projectorWorld": {
+        "x": 9.147432256106924e-10,
+        "y": 1.6260253190994263,
+        "z": 0.010463442653417588
+    },
+    "projectorLensDistance": 0.0,
+    "launchHit": "LaunchButton",
+    "launchHitMatches": true,
+    "minimumBrightness": 0.0,
+    "maximumBrightness": 0.9882352948188782,
+    "brightnessVariance": 0.02380414307117462,
+    "visiblePixels": 172020,
+    "totalPixels": 307200
+}
