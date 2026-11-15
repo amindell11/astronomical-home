@@ -49,7 +49,7 @@ namespace Ships.Audio
             if (instance.isValid())
                 Forget();
             instance = RuntimeManager.CreateInstance(activationEvent);
-            RuntimeManager.AttachInstanceToGameObject(instance, gameObject);
+            RuntimeManager.AttachInstanceToGameObject(instance, gameObject, keystone.Body);
             instance.start();
         }
 
