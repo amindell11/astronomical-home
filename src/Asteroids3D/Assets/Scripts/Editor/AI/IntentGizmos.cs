@@ -1,5 +1,4 @@
 using AI.Navigation.MPC;
-using AI.Strategy;
 using Diagnostics;
 using Substrate;
 using Unity.Mathematics;
@@ -8,7 +7,7 @@ using UnityEngine;
 
 namespace AI
 {
-    /// <summary>The intent sentence as the solver resolved it this tick: one element per armed slot, anchored to the slot's true bound referent, with |weight| driving visibility so near-zero slots vanish. Geometry comes from the solver's own step-0 resolution (Cost.EvalContext), never a drawer-side reconstruction — what draws is what the MPC chases (#481). The readout row prints the held sentence, so hand-authored rows read the same as a policy's; decision churn needs the brain's IPolicyReadout.</summary>
+    /// <summary>The intent sentence as the solver resolved it this tick: one element per armed slot, anchored to the slot's true bound referent, with |weight| driving visibility so near-zero slots vanish. Geometry comes from the solver's own step-0 resolution (Cost.EvalContext), never a drawer-side reconstruction — what draws is what the MPC chases (#481). The readout row prints the held sentence, so hand-authored rows read the same as a policy's.</summary>
     [InitializeOnLoad]
     internal static class IntentGizmos
     {
@@ -140,22 +139,9 @@ namespace AI
             var range = combat != null && combat.HasEnemy
                 ? Vector2.Distance(shipPos, combat.EnemyPos).ToString("F1")
                 : "-";
-            text += $"Rng {range}  Nose {nose}  Churn {Churn(commander)}";
+            text += $"Rng {range}  Nose {nose}";
 
             ShipReadout.Draw(shipPos, ShipReadoutRow.Policy, text, Color.white);
-        }
-
-        // Decision churn needs two decisions of history, which only a readout-capable brain keeps.
-        private static string Churn(AICommander commander)
-        {
-            if (!commander.Brain) return "-";
-            var readout = commander.Brain as IPolicyReadout;
-            if (readout == null || readout.Count < 2) return "-";
-            var a = readout.ActionFromNewest(0);
-            var prev = readout.ActionFromNewest(1);
-            return prev.aimReferent == a.aimReferent
-                ? Mathf.Abs(Mathf.DeltaAngle(prev.facingOffsetRad * Mathf.Rad2Deg, a.facingOffsetRad * Mathf.Rad2Deg)).ToString("F0") + "°"
-                : $"{R(prev.aimReferent)}→{R(a.aimReferent)}";
         }
 
         private static string R(int referent) => referent == 0 ? "E" : "R" + referent;

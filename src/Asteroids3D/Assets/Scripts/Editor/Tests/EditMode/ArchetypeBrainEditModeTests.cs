@@ -11,13 +11,13 @@ using Ships.Command;
 using UnityEditor;
 using UnityEngine;
 using Ships.Registry;
-using RL.Opponents;
+using AI.Pilots;
 using System.Collections.Generic;
 using Combat.Targeting;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the collapsed archetype seam: the enum → law dispatch through Configure/Decide (both the episode roster and the authored pilot ride the same component), the Dummy's no-target constant, the unknown-enum failure, the ArchetypePilot authoring that makes an archetype flyable in a live sector, the waypoint roam a live-targeting pilot flies once its target is gone, the tactics switch (each shipped pilot flies its kind's temper), and the pure missile-evasion laws.</summary>
+    /// <summary>Pins the collapsed archetype seam: the Aggressor law through Configure/Decide (the matrix lane and the authored pilot ride the same component), the Dummy's no-target constant, the unknown-enum failure, the ArchetypePilot authoring that makes an archetype flyable in a live sector, the waypoint roam a live-targeting pilot flies once its target is gone, the tactics switch (each shipped pilot flies its kind's temper), and the pure missile-evasion laws.</summary>
     [Category("AI")]
     public class ArchetypeBrainEditModeTests
     {
@@ -112,45 +112,12 @@ namespace Tests.EditMode
         private AIContext Ctx(Kinematics self, float? holdRange = null) =>
             new(new StubStatus { Kinematics = self }, brainHost.AddComponent<AI.Scout>(), holdRange);
 
-        [TestCase(OpponentArchetype.Aggressor)]
-        [TestCase(OpponentArchetype.Kiter)]
-        [TestCase(OpponentArchetype.Evader)]
-        [TestCase(OpponentArchetype.Orbiter)]
-        public void Decide_RoutesTheArchetypeToItsLaw(OpponentArchetype archetype)
+        [TestCase(18f)]
+        [TestCase(null)]
+        public void Decide_Aggressor_HoldsTheWeaponsDeclaredRange_ElseItsOwn(float? holdRange)
         {
             var target = targetHost.AddComponent<Ship>();
-            var brain = NewBrain(archetype, target);
-            // Self off-origin so the laws are distinguishable; target sits at the origin (default kinematics).
-            var self = new Kinematics(new Vector2(3f, -4f), new Vector2(1f, 2f), 0f, 0f, 0f);
-            var shape = Shape();
-            var speed = shape.speedFraction * Dynamics.Default.maxSpeed;
-
-            var decision = brain.Decide(Ctx(self));
-
-            Vector2 expected = archetype switch
-            {
-                OpponentArchetype.Evader => ArchetypeLaws.FleeVelocity(self.pos, target.Kinematics.pos,
-                    new System.Random(JukeSeed).Next(2) == 0 ? -1 : 1, speed),
-                OpponentArchetype.Orbiter => ArchetypeLaws.OrbitVelocity(in self, target.Kinematics,
-                    shape.orbitRadius, shape.orbitDirection, shape.speedFraction, Dynamics.Default.maxSpeed),
-                _ => RangerBrain.HoldRangeVelocity(in self, target.Kinematics, shape.desiredRange, speed),
-            };
-            Assert.IsTrue(decision.HasValue);
-            Assert.AreEqual(expected.x, decision.Value.nav.planarVelocity.x,
-                "exact-float: the dispatch must hand each archetype its own law and params");
-            Assert.AreEqual(expected.y, decision.Value.nav.planarVelocity.y);
-            Assert.IsTrue(decision.Value.nav.TryGetAnchorId(out _));
-            Assert.AreEqual(archetype != OpponentArchetype.Evader, decision.Value.engagePrimary,
-                "only the Evader never fires");
-        }
-
-        [TestCase(OpponentArchetype.Aggressor, 18f)]
-        [TestCase(OpponentArchetype.Kiter, 18f)]
-        [TestCase(OpponentArchetype.Aggressor, null)]
-        public void Decide_RangedArchetype_HoldsTheWeaponsDeclaredRange_ElseItsOwn(OpponentArchetype archetype, float? holdRange)
-        {
-            var target = targetHost.AddComponent<Ship>();
-            var brain = NewBrain(archetype, target);
+            var brain = NewBrain(OpponentArchetype.Aggressor, target);
             var self = new Kinematics(new Vector2(3f, -4f), new Vector2(1f, 2f), 0f, 0f, 0f);
             var shape = Shape();
 
@@ -309,7 +276,7 @@ namespace Tests.EditMode
         public void Decide_TacticsOn_FliesTheAttackRunInsteadOfTheArchetypesLaw()
         {
             var target = targetHost.AddComponent<Ship>();
-            var brain = NewBrain(OpponentArchetype.Evader, target);
+            var brain = NewBrain(OpponentArchetype.Aggressor, target);
             var tactics = ScriptableObject.CreateInstance<TacticsSettings>();
             try
             {
@@ -326,7 +293,7 @@ namespace Tests.EditMode
                 Assert.AreEqual(RangerBrain.HoldRangeVelocity(in self, target.Kinematics, shape.desiredRange,
                     shape.speedFraction * Dynamics.Default.maxSpeed), decision.Value.nav.planarVelocity,
                     "the attack run flies the Aggressor's hold-range law");
-                Assert.IsTrue(decision.Value.engagePrimary, "the Evader never fires; its attack run does");
+                Assert.IsTrue(decision.Value.engagePrimary, "the attack run fires");
             }
             finally
             {
