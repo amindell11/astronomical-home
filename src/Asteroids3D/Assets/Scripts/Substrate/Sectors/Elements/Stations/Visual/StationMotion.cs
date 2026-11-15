@@ -6,8 +6,9 @@ namespace Substrate.Sectors.Elements.Stations.Visual
     public enum StationLook { Open, InUse, Dark }
 
     /// <summary>
-    /// Visual-only motion and light looks of an outpost station. When it goes dark, every light
-    /// goes out at once and the parts coast to a stop.
+    /// Visual-only motion and light looks of an outpost station. It drifts a little about where it
+    /// was placed. When it goes dark, every light goes out at once, the parts coast to a stop, and
+    /// the drift goes on.
     /// </summary>
     public sealed class StationMotion : MonoBehaviour
     {
@@ -62,6 +63,15 @@ namespace Substrate.Sectors.Elements.Stations.Visual
         [Tooltip("Seconds the parts take to coast to a stop when the station goes dark, and to spin back up when it relights.")]
         [SerializeField] private float coastSeconds = 10f;
 
+        [Tooltip("Farthest the station wanders from where it was placed, in units.")]
+        [SerializeField] private float driftUnits = 0.4f;
+
+        [Tooltip("Largest wobble about each axis, in degrees.")]
+        [SerializeField] private float driftDegrees = 2f;
+
+        [Tooltip("Seconds over which the drift changes course. Larger is slower.")]
+        [SerializeField] private float driftSeconds = 20f;
+
         [Tooltip("Body colour of every light while the station is dark.")]
         [SerializeField] private Color darkColour = new Color32(0x1E, 0x20, 0x30, 0xFF);
 
@@ -72,6 +82,9 @@ namespace Substrate.Sectors.Elements.Stations.Visual
         private CachedLight[] steady;
         private CachedLight[][] bands;
         private float power;
+        private Vector3 restPosition;
+        private Quaternion restRotation;
+        private float driftSeed;
         private bool awake;
 
         private void Awake()
@@ -87,6 +100,10 @@ namespace Substrate.Sectors.Elements.Stations.Visual
                 bands[i] = Cache(chase[i].lamps, "chase lamp");
 
             power = look == StationLook.Dark ? 0f : 1f;
+            restPosition = transform.localPosition;
+            restRotation = transform.localRotation;
+            // Seeded from where it spawned, not UnityEngine.Random, so gameplay's random stream is untouched.
+            driftSeed = Mathf.Repeat(Mathf.Sin(Vector3.Dot(transform.position, new Vector3(12.9898f, 78.233f, 37.719f))) * 43758.5453f, 1f) * 1000f;
             awake = true;
         }
 
@@ -100,6 +117,10 @@ namespace Substrate.Sectors.Elements.Stations.Visual
 
         private void Update()
         {
+            var t = driftSeed + Time.time / driftSeconds;
+            transform.localPosition = restPosition + driftUnits * Wander(t, 0f);
+            transform.localRotation = restRotation * Quaternion.Euler(driftDegrees * Wander(t, 50f));
+
             var dark = look == StationLook.Dark;
             power = Mathf.MoveTowards(power, dark ? 0f : 1f, Time.deltaTime / coastSeconds);
             foreach (var spin in spins)
@@ -135,6 +156,11 @@ namespace Substrate.Sectors.Elements.Stations.Visual
                     Paint(lamps[j], dark);
             }
         }
+
+        private static Vector3 Wander(float t, float lane) => new(
+            Mathf.PerlinNoise(t, lane) * 2f - 1f,
+            Mathf.PerlinNoise(t, lane + 17f) * 2f - 1f,
+            Mathf.PerlinNoise(t, lane + 31f) * 2f - 1f);
 
         private CachedLight[] Cache(Renderer[] renderers, string kind)
         {
