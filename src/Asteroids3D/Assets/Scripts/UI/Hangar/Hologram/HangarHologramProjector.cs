@@ -74,19 +74,17 @@ namespace UI.Hangar.Hologram
             surface.transform.localScale = new Vector3(surfaceSize.x, surfaceSize.y, 1f);
             surface.transform.localPosition = new Vector3(frameOffset.x,
                 frameOffset.y + (.5f - frameBottom) * surfaceSize.y, 0f);
+            if (!profile.ProjectorCone) return;
+            var cone = Instantiate(profile.ProjectorCone, coneAnchor);
+            cone.transform.localPosition = Vector3.zero;
+            cone.transform.localScale = new Vector3(2f * frameSide, frameOffset.y + frameSide * .5f, 1f);
+            coneRenderers = cone.GetComponentsInChildren<Renderer>(true);
         }
 
         public void Open(IEnumerable<Ship> offered, Ship selected)
         {
             stage = HangarPreviewStage.Create(transform, new Vector2Int(64, 64), frame, offered, profile.Restyle,
                 profile.Resolve);
-            if (profile.ProjectorCone)
-            {
-                var cone = Instantiate(profile.ProjectorCone, coneAnchor);
-                cone.transform.localPosition = Vector3.zero;
-                cone.transform.localScale = new Vector3(2f * frameSide, frameOffset.y + frameSide * .5f, 1f);
-                coneRenderers = cone.GetComponentsInChildren<Renderer>(true);
-            }
             stage.Show(selected, backwards: false);
         }
 
