@@ -1,6 +1,7 @@
 using System.Linq;
 using NUnit.Framework;
 using Substrate.Sectors;
+using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sectors.Elements.Stations;
 using UnityEditor;
@@ -39,6 +40,8 @@ namespace Tests.EditMode.Sectors
                 Has.Member(LayerMask.NameToLayer("Minimap_Find")), "The find marker that shows on the minimap goes dark with the glow.");
             Assert.IsTrue(serialized.FindProperty("icon").objectReferenceValue as Sprite, "The station carries its find icon.");
             Assert.IsNotEmpty(lit.GetComponentsInChildren<Light>(true));
+            Assert.AreSame(prefab.GetComponentInChildren<WaveDirector>(true), serialized.FindProperty("director").objectReferenceValue,
+                "The station reads the sector's own wave director for its lulls.");
         }
     }
 }

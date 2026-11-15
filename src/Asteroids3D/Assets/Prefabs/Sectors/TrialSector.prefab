@@ -54,9 +54,6 @@ MonoBehaviour:
   spawnRadius: 55
   groupSpread: 8
   clearanceRadius: 6
-  asteroidMask:
-    serializedVersion: 2
-    m_Bits: 256
   placementAttempts: 4
 --- !u!1 &4210092014597554681
 GameObject:
@@ -459,14 +456,12 @@ MonoBehaviour:
   elite: {fileID: 4201520510818603066}
   zoneDistance: 150
   zoneClearance: 35
-  asteroidMask:
-    serializedVersion: 2
-    m_Bits: 256
   placementAttempts: 8
   beaconZone: {fileID: 7877101623167739606}
   beaconDistance: 150
   beaconLeadSeconds: 8
   beaconGraceSeconds: 10
+  beaconWarningSeconds: 3
 --- !u!114 &4667602915908898981
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -544,9 +539,6 @@ MonoBehaviour:
   team: 1
   spawnRadius: 55
   clearanceRadius: 6
-  asteroidMask:
-    serializedVersion: 2
-    m_Bits: 256
   placementAttempts: 8
 --- !u!1 &8433355183706691782
 GameObject:
@@ -610,6 +602,11 @@ PrefabInstance:
       propertyPath: hunt
       value: 
       objectReference: {fileID: 7436810692243587915}
+    - target: {fileID: 7893528099763759301, guid: a681f7ceb406f8a4fb3649e34c08c76e,
+        type: 3}
+      propertyPath: director
+      value: 
+      objectReference: {fileID: 1116166669378757183}
     - target: {fileID: 8122136947576484882, guid: a681f7ceb406f8a4fb3649e34c08c76e,
         type: 3}
       propertyPath: m_LocalPosition.x

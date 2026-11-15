@@ -266,6 +266,8 @@ namespace Tests.EditMode
             Assert.That(lines, Has.Member($"sector[0]/row/SectorEntry.patrols={row.patrols}"));
             Assert.That(lines, Has.Member($"sector[0]/row/SectorEntry.waveCap={row.waveCap}"));
             Assert.That(lines, Has.Some.StartsWith($"sector[0]/{director.name}/WaveDirector.lullSeconds="));
+            Assert.That(lines, Has.Some.StartsWith(
+                "sector[0]/RepairStationFeel/RepairStationFeelProfile.lullGraceSeconds="));
             Assert.That(lines, Has.Some.StartsWith("sector[0]/Shoal/Faction.signature={"));
             Assert.That(lines, Has.Some.StartsWith("sector[0]/Shoal/Faction.common={"));
             Assert.That(lines, Has.Some.StartsWith("PlayerLoadout/ItemSubset.ships="));

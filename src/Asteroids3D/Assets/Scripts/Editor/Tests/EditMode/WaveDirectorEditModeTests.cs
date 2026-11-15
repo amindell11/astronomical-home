@@ -14,7 +14,7 @@ using Substrate.Sessions;
 
 namespace Tests.EditMode
 {
-    /// <summary>Wave director pacing over a sector phase table with injected time: a phase opens with a wave, and another comes on its wave-every beat. A wave that fits under the wave cap arrives whole, one that only partly fits is trimmed to the room left, and one with no room is dropped so the next waits for the beat. A lull, the opening one too, sends nothing, the elite stops them, and the done table keeps the last phase's waves. An earned lull, once the phase's last wave is out and nothing is alive, moves no phase boundary. The threat read lists each group ship once and the weapons they fly, their faction kits in group order, off a prefab asset too. A bad row fails CheckRow, and validation refuses a director that misses its spine's elite.</summary>
+    /// <summary>Wave director pacing over a sector phase table with injected time: a phase opens with a wave, and another comes on its wave-every beat. A wave that fits under the wave cap arrives whole, one that only partly fits is trimmed to the room left, and one with no room is dropped so the next waits for the beat. A lull, the opening one too, sends nothing, the elite stops them, and the done table keeps the last phase's waves. A closing lull before the elite sends nothing. A lull window covers a following lull, its grace, and an earned lull, and stays shut for the opening lull and the first phase's first seconds. An earned lull, once the phase's last wave is out and nothing is alive, moves no phase boundary. The threat read lists each group ship once and the weapons they fly, their faction kits in group order, off a prefab asset too. A bad row fails CheckRow, and validation refuses a director that misses its spine's elite.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class WaveDirectorEditModeTests
@@ -288,6 +288,86 @@ namespace Tests.EditMode
             _director.Advance(5f);
             Assert.AreEqual(0, _director.Phase.Index);
             Assert.IsTrue(_director.OpensPhase(), "Phase one opens as the opening lull ends.");
+        }
+
+        [Test]
+        public void InLullWindow_CoversAFollowingLullItsGraceAndAnEarnedLull()
+        {
+            _director.Configure(_phases, Lull, openingLullSeconds: 5f);
+            _director.BeginSchedule(0f);
+            Assert.IsFalse(_director.ClosingLull);
+
+            _director.Advance(1f);
+            _director.Observe(1f, 0);
+            Assert.IsTrue(_director.Phase.InOpeningLull);
+            Assert.IsFalse(_director.InLullWindow(10f), "The opening lull stays dark.");
+
+            _director.Advance(5f);
+            _director.Observe(5f, 1);
+            Assert.AreEqual(0, _director.Phase.Index);
+            Assert.IsFalse(_director.Phase.InLull);
+            Assert.IsFalse(_director.InLullWindow(10f), "The first phase's first seconds stay dark.");
+
+            _director.Advance(46f);
+            _director.Observe(46f, 1);
+            Assert.IsTrue(_director.Phase.InLull);
+            Assert.IsFalse(_director.Phase.InOpeningLull);
+            Assert.IsTrue(_director.InLullWindow(10f), "A lull after a phase is a lull window.");
+
+            _director.Advance(50f);
+            _director.Observe(50f, 1);
+            Assert.IsFalse(_director.Phase.InLull);
+            Assert.AreEqual(1, _director.Phase.Index);
+            Assert.IsTrue(_director.InLullWindow(10f), "The grace into the next phase.");
+
+            _director.Advance(60f);
+            _director.Observe(60f, 1);
+            Assert.AreEqual(10f, _director.Phase.ElapsedSeconds, 1e-4f);
+            Assert.IsFalse(_director.InLullWindow(10f), "The grace has run out.");
+
+            _director.Configure(new[]
+            {
+                new SectorPhase
+                {
+                    seconds = 40f, waveEvery = WaveEvery, groups = System.Array.Empty<WaveGroup>(),
+                },
+            }, Lull);
+            _director.BeginSchedule(0f);
+            _director.Advance(1f);
+            Assert.IsNull(_director.WaveDue(1f));
+            _director.Observe(1f, 0);
+            Assert.IsTrue(_director.EarnedLull);
+            Assert.IsTrue(_director.InLullWindow(10f), "An earned lull is a lull window.");
+        }
+
+        [Test]
+        public void ClosingLull_SendsNothing_AndItsGraceRunsIntoTheElite()
+        {
+            var elite = _go.AddComponent<EliteEncounter>();
+            _director.Configure(_phases, Lull, elite: elite);
+            _director.BeginSchedule(0f);
+            Assert.IsTrue(_director.ClosingLull);
+
+            _director.Advance(86f);
+            Assert.IsTrue(_director.Phase.Closing);
+            Assert.IsTrue(_director.Phase.InLull);
+            Assert.AreEqual(1, _director.Phase.Index);
+            Assert.IsNull(_director.WaveDue(86f), "The closing lull sends nothing.");
+            _director.Observe(86f, 0);
+            Assert.IsFalse(_director.EarnedLull);
+            Assert.IsFalse(_director.WaveAhead, "No wave follows the closing lull.");
+            Assert.AreEqual(0f, _director.NextWaveSeconds, 1e-4f);
+            Assert.IsTrue(_director.InLullWindow(10f));
+
+            _director.Advance(90f);
+            Assert.IsTrue(_director.Phase.Done);
+            _director.Observe(90f, 0);
+            Assert.IsTrue(_director.InLullWindow(10f), "The grace after the closing lull.");
+
+            _director.Advance(100f);
+            _director.Observe(100f, 0);
+            Assert.AreEqual(10f, _director.Phase.ElapsedSeconds, 1e-4f);
+            Assert.IsFalse(_director.InLullWindow(10f));
         }
 
         [Test]

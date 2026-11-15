@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using Objectives;
+using Objectives.Presentation;
 using Ships;
+using Substrate.Sectors.Elements.Elites;
 using Substrate;
 using Substrate.Sectors.Activation;
 using Substrate.Sectors.Elements;
@@ -14,7 +16,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>PhaseSpineModule against the objective service: the survive step reads the director's phase into its status line, extraction opens only once the phases are done (zone shown, armed and targeted), a beacon opens within the lead of a phase's end, outlives its lull into the next phase's grace, whose fill drains across it and whose warning starts three seconds before it closes, and the next beacon or the table's end closes it unclaimed, and teardown closes the spine.</summary>
+    /// <summary>PhaseSpineModule against the objective service: the survive step reads the director's phase into its status line, extraction opens only once the phases are done (zone shown, armed and targeted), a beacon opens within the lead of a phase's end, outlives its lull into the next phase's grace, whose fill drains across it and whose warning starts three seconds before it closes, and the next beacon or, with no elite, the table's end closes it unclaimed. The closing lull before an elite gets its own beacon, which stays through that lull and its grace into the elite fight. Teardown closes the spine.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class PhaseSpineModuleEditModeTests
@@ -43,14 +45,14 @@ namespace Tests.EditMode
 
         private (PhaseSpineModule module, WaveDirector director, ExtractionZone zone, ExtractionZone beacon,
             ObjectiveService svc, SectorBuildContext ctx) Build(Ship hero = null, float lead = 8f, float grace = 10f,
-            int phaseCount = 2, float openingLull = 0f)
+            int phaseCount = 2, float openingLull = 0f, EliteEncounter elite = null)
         {
             var svc = NewGO("ObjectiveService").AddComponent<ObjectiveService>();
 
             var director = NewGO("WaveDirector").AddComponent<WaveDirector>();
             director.Configure(Enumerable.Range(0, phaseCount)
                 .Select(_ => new SectorPhase { seconds = 40f }).ToArray(), lullSeconds: 5f,
-                openingLullSeconds: openingLull);
+                openingLullSeconds: openingLull, elite: elite);
             director.BeginSchedule(0f);
 
             var zoneGO = NewGO("Zone");
@@ -251,6 +253,50 @@ namespace Tests.EditMode
             Assert.IsTrue(beacon.gameObject.activeSelf);
             Assert.AreEqual(150f, PlaneDistance(beacon.transform, hero.transform), 0.01f,
                 "The new lull's beacon is placed afresh.");
+            Assert.IsFalse(module.BeaconClaimed);
+        }
+
+        [Test]
+        public void ClosingLull_OpensABeacon_ThatStaysIntoTheElite()
+        {
+            var elite = NewGO("Elite").AddComponent<EliteEncounter>();
+            var (module, director, _, beacon, svc, ctx) = Build(NewGO("Hero").AddComponent<Ship>(), elite: elite);
+            Run(module.Setup(ctx));
+
+            director.Advance(76f);
+            module.Tick();
+            Assert.IsFalse(beacon.gameObject.activeSelf, "The closing beacon waits for the lead.");
+
+            director.Advance(77.5f);
+            module.Tick();
+            Assert.IsTrue(beacon.gameObject.activeSelf, "The last phase's end opens the closing lull's beacon.");
+
+            director.Advance(87f);
+            module.Tick();
+            Assert.IsTrue(director.Phase.Closing);
+            Assert.IsTrue(beacon.gameObject.activeSelf, "The closing lull keeps it.");
+            Assert.AreEqual("ELITE IN 0:03", svc.SpineTracker.CurrentStatusLine);
+            var progress = svc.SpineTracker.PhaseProgress.Value;
+            Assert.AreEqual(1, progress.Index, "The closing lull is still the last phase.");
+            Assert.AreEqual(PhaseCaption.Lull, progress.Caption);
+            Assert.AreEqual(3f, progress.CaptionSeconds, 1e-4f);
+
+            director.Advance(90f);
+            module.Tick();
+            Assert.IsTrue(director.Phase.Done);
+            Assert.IsTrue(beacon.gameObject.activeSelf, "The beacon outlives the table by its grace.");
+            Assert.AreEqual(1f, svc.SpineTracker.PhaseProgress.Value.BeaconFill, 1e-4f);
+
+            director.Advance(97f);
+            module.Tick();
+            Assert.IsTrue(beacon.gameObject.activeSelf);
+            progress = svc.SpineTracker.PhaseProgress.Value;
+            Assert.AreEqual(0.3f, progress.BeaconFill, 1e-4f);
+            Assert.IsTrue(progress.BeaconExpiring);
+
+            director.Advance(100f);
+            module.Tick();
+            Assert.IsFalse(beacon.gameObject.activeSelf, "The grace into the elite closes it.");
             Assert.IsFalse(module.BeaconClaimed);
         }
 

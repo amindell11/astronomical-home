@@ -117,7 +117,7 @@ MonoBehaviour:
     waveCap: 5
     patrols: 1
     searchSeconds: 30
-    repairStations: 0
+    repairStations: 1
     modStations: 1
     armories: 0
     field: {fileID: 11400000, guid: 65c274c56b444d04a85ecd6e8e524e72, type: 2}
