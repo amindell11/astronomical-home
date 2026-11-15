@@ -1,4 +1,6 @@
 using System;
+using System.Globalization;
+using AI.Pilots;
 using AI.Tactics;
 using Diagnostics;
 using Substrate;
@@ -14,8 +16,9 @@ namespace AI
 
         static SituationGizmos() =>
             GizmoView.Register(typeof(AICommander), "situation", "Situation",
-                "firing lane to the target (red, with a count, when allies are in it); exposed (red) or clear " +
-                "(green) ring; dotted line to the target's open side; the tactic it flies", "Combat");
+                "that ship's firing lane to the target (red, with a count, when allies are in it); exposed (red) or " +
+                "clear (green) ring; dotted line to the target's open side; the temper and tactic it flies " +
+                "(orange while wounded), and whether it is waiting, retreating, cautious, or committed", "Combat");
 
         private const float MarkRadius = 2.5f;
         private const float OpenSideRadius = 1.2f;
@@ -27,6 +30,7 @@ namespace AI
         private static readonly Color Clear = new(0.3f, 1f, 0.35f);
         private static readonly Color OpenSide = new(0.2f, 0.85f, 1f);
         private static readonly Color TacticLabel = new(1f, 0.9f, 0.4f);
+        private static readonly Color WoundedLabel = new(1f, 0.55f, 0.08f);
         private static readonly Vector3 PlaneNormal = GamePlane.Rotation * Vector3.forward;
 
         private static TacticsSettings settings;
@@ -48,7 +52,9 @@ namespace AI
             if (!GizmoView.IsOn(typeof(AICommander), "situation") || !GizmoView.InScope(commander)) return;
             if (!Application.isPlaying || commander.context?.Combat == null) return;
 
-            var tuned = Settings;
+            var archetype = commander.Brain as ArchetypeBrain;
+            var temper = archetype && archetype.AuthoredTactics ? archetype.AuthoredTactics : null;
+            var tuned = temper ? temper : Settings;
             var situation = Situation.Read(commander.context, tuned);
             if (!situation.hasTarget) return;
 
@@ -57,9 +63,15 @@ namespace AI
             DrawLane(me, target, tuned.laneWidth, situation.alliesInLane);
             Ring(me, MarkRadius, situation.exposed ? Exposed : Clear, 3f);
             if (commander.Brain && commander.Brain.CurrentTactic is { } tactic)
+            {
+                var wounded = temper && archetype.Wounded;
                 Handles.Label(GamePlane.PlanePointToWorld(me + Vector2.up * (MarkRadius + 1f)),
-                    ObjectNames.NicifyVariableName(tactic.ToString()),
-                    new GUIStyle { normal = { textColor = TacticLabel }, fontSize = 12 });
+                    Label(temper ? temper.name : null, tactic, temper, wounded,
+                        temper ? archetype.RespondingSeconds : null,
+                        temper ? archetype.RetreatsTaken : 0,
+                        temper ? archetype.Draw : null),
+                    new GUIStyle { normal = { textColor = wounded ? WoundedLabel : TacticLabel }, fontSize = 12 });
+            }
             if (situation.openSide == Vector2.zero) return;
 
             var flank = target + situation.openSide * situation.distance;
@@ -67,6 +79,54 @@ namespace AI
             Handles.DrawDottedLine(GamePlane.PlanePointToWorld(me), GamePlane.PlanePointToWorld(flank), DottedScreenSize);
             Ring(flank, OpenSideRadius, OpenSide, 2f);
         }
+
+        internal static string Label(string temperName, Tactic tactic, TacticsSettings temper, bool wounded,
+            float? respondingSeconds, int retreatsTaken, WoundedDraw? draw)
+        {
+            var tacticName = ObjectNames.NicifyVariableName(tactic.ToString());
+            var shown = ShownTemper(temperName);
+            var head = shown == null ? tacticName : $"{shown} · {tacticName}";
+            if (!temper) return head;
+
+            var second = SecondLine(temper, wounded, respondingSeconds, retreatsTaken, draw);
+            return second == null ? head : head + "\n" + second;
+        }
+
+        private static string ShownTemper(string temperName)
+        {
+            if (string.IsNullOrEmpty(temperName)) return null;
+            const string suffix = "Temper";
+            if (!temperName.EndsWith(suffix, StringComparison.Ordinal)) return temperName;
+            var stem = temperName.Substring(0, temperName.Length - suffix.Length);
+            return stem.Length == 0 ? temperName : stem;
+        }
+
+        private static string SecondLine(TacticsSettings temper, bool wounded, float? respondingSeconds,
+            int retreatsTaken, WoundedDraw? draw)
+        {
+            if (wounded)
+            {
+                var line = WoundedLine(temper.wounded, respondingSeconds);
+                if (line == null || !temper.commits || !draw.HasValue) return line;
+                var drawn = draw.Value.retreats;
+                return $"{line} · {drawn - retreatsTaken} of {drawn} left";
+            }
+
+            if (temper.commits && draw.HasValue && retreatsTaken >= draw.Value.retreats)
+                return "committed";
+            return null;
+        }
+
+        private static string WoundedLine(WoundedResponse response, float? respondingSeconds)
+        {
+            if (response == WoundedResponse.TurnCautious)
+                return $"wounded · cautious {OneDecimal(respondingSeconds ?? 0f)} s";
+            if (response != WoundedResponse.BreakOff && response != WoundedResponse.FallBack) return null;
+            if (!respondingSeconds.HasValue) return "wounded · waiting to retreat";
+            return $"wounded · retreating {OneDecimal(respondingSeconds.Value)} s";
+        }
+
+        private static string OneDecimal(float seconds) => seconds.ToString("0.0", CultureInfo.InvariantCulture);
 
         private static void DrawLane(Vector2 me, Vector2 target, float width, int allies)
         {
