@@ -1,4 +1,5 @@
 <div id="dash-look-preview">
+  <div class="dash-preview">
   <div class="dash-scene">
     <canvas role="img" aria-label="Vanguard dashing to the right, leaving an expanding cloud of painted wisps, sketched flecks, and fading afterimages"></canvas>
     <div class="dash-scene-label"><span>Vanguard</span><span class="text-small" data-phase>Ready</span></div>
@@ -13,32 +14,51 @@
     <span>Timeline <output class="tabular-nums" data-time>0 ms</output></span>
     <input class="form-range" type="range" min="0" max="1740" step="1" value="0" data-scrub>
   </label>
+  </div>
+  <div class="dash-controls" aria-label="Dash tuning controls">
   <hr>
+  <div class="viz-controls dash-transport">
+    <label class="form-label">Look <select class="form-select" data-preset></select></label>
+    <button class="btn" type="button" data-apply>Apply preset</button>
+    <button class="btn" type="button" data-variant>New variation</button>
+    <button class="btn" type="button" data-starting>Restore starting look</button>
+  </div>
+  <div class="viz-row" aria-label="Look snapshots">
+    <button class="btn" type="button" data-save="A">Save A</button>
+    <button class="btn" type="button" data-load="A" disabled>Recall A</button>
+    <button class="btn" type="button" data-save="B">Save B</button>
+    <button class="btn" type="button" data-load="B" disabled>Recall B</button>
+    <span class="text-small text-muted" aria-live="polite" data-feedback></span>
+  </div>
   <div class="dash-tuning">
-    <section aria-label="Engine burst">
-      <h3>Engine burst</h3>
-      <div data-controls="burst"></div>
-    </section>
-    <section aria-label="Afterimages">
-      <h3>Afterimages</h3>
-      <div data-controls="ghost"></div>
-    </section>
-    <section aria-label="Shockwave">
-      <h3>Shockwave</h3>
-      <div data-controls="wave"></div>
-    </section>
+    <details><summary class="cursor-interaction">Motion and timing</summary><div data-controls="motion"></div></details>
+    <details><summary class="cursor-interaction">Engines and flash</summary><div data-controls="burst"></div></details>
+    <details><summary class="cursor-interaction">Pressure cloud</summary><div data-controls="wave"></div></details>
+    <details><summary class="cursor-interaction">Afterimages</summary><div data-controls="ghost"></div></details>
+    <details><summary class="cursor-interaction">Drawing and palette</summary><div data-controls="drawing"></div><button class="btn" type="button" data-seed>Shuffle seed</button></details>
+    <details><summary class="cursor-interaction">Impact and camera</summary><div data-controls="impact"></div></details>
   </div>
   <div class="viz-row">
     <button class="btn" type="button" data-use>Use these settings</button>
-    <span class="text-small text-muted" aria-live="polite" data-feedback></span>
   </div>
-  <label class="form-label" data-copy hidden>Dash settings <textarea class="form-control" readonly rows="4"></textarea></label>
+  <details data-settings>
+    <summary class="cursor-interaction">Import or export settings</summary>
+    <label class="form-label" data-copy>Dash settings JSON <textarea class="form-control" rows="7" spellcheck="false"></textarea></label>
+    <div class="viz-row">
+      <button class="btn" type="button" data-export>Export current settings</button>
+      <button class="btn" type="button" data-import>Import settings</button>
+    </div>
+    <div class="text-small text-destructive" role="alert" data-error></div>
+  </details>
+  </div>
 </div>
 <style>
-  #dash-look-preview { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; gap: calc(var(--font-size-base, 14px) * .8); }
+  #dash-look-preview { display: flex; flex-direction: column; height: calc(100dvh - 2 * var(--visualize-paint-gutter, 0px)); min-width: 0; }
   #dash-look-preview > *, #dash-look-preview .dash-tuning > *, #dash-look-preview .dash-slider { min-width: 0; }
-  #dash-look-preview [data-copy][hidden] { display: none !important; }
-  #dash-look-preview .dash-scene { position: relative; width: 100%; aspect-ratio: 2.55; min-height: 155px; overflow: clip; }
+  #dash-look-preview .dash-preview { flex: none; display: grid; gap: .55em; padding-bottom: .35em; }
+  #dash-look-preview .dash-controls { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: .8em; padding-inline-end: .4em; padding-bottom: .6em; }
+  #dash-look-preview .dash-controls > * { flex: none; min-width: 0; }
+  #dash-look-preview .dash-scene { position: relative; width: 100%; height: clamp(120px, 38dvh, 320px); overflow: clip; }
   #dash-look-preview canvas { display: block; width: 100%; height: 100%; }
   #dash-look-preview .dash-scene-label { position: absolute; inset: .7em auto auto .85em; display: grid; gap: .15em; color: #e7eef8; pointer-events: none; }
   #dash-look-preview [data-phase] { color: #a6b9d1; }
@@ -46,10 +66,11 @@
   #dash-look-preview .dash-slider { display: grid; gap: .12em; }
   #dash-look-preview .dash-slider span { display: flex; justify-content: space-between; gap: .6em; }
   #dash-look-preview output { color: var(--muted-foreground); }
-  #dash-look-preview .dash-tuning { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: calc(var(--font-size-base, 14px) * 1.8); }
-  #dash-look-preview h3 { margin-bottom: .4em; }
-  #dash-look-preview [data-controls] { display: grid; gap: .32em; }
-  @media (max-width: 460px) { #dash-look-preview .dash-tuning { grid-template-columns: minmax(0, 1fr); gap: .7em; } }
+  #dash-look-preview .dash-tuning { display: grid; grid-template-columns: minmax(0, 1fr); gap: .35em; }
+  #dash-look-preview summary { color: var(--foreground); padding-block: .25em; }
+  #dash-look-preview [data-controls] { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 185px), 1fr)); align-items: start; gap: .38em 1em; margin-block: .4em; }
+  #dash-look-preview [data-controls] > * { min-width: 0; }
+  @media (max-width: 460px) { #dash-look-preview [data-controls] { grid-template-columns: minmax(0, 1fr); } }
 </style>
 <script>
 (() => {
@@ -63,51 +84,157 @@
   const viewControl = select('[data-view]');
   const phaseOutput = select('[data-phase]');
   const timeOutput = select('[data-time]');
-  const groupNames = { burst: 'Engine burst', ghost: 'Afterimage', wave: 'Shockwave' };
+  const range = (key, group, label, min, max, step, initial, unit = '') => ({ key, group, label, min, max, step, initial, unit });
+  const choice = (key, group, label, initial, options) => ({ key, group, label, initial, options });
+  const toggle = (key, group, label) => ({ key, group, label, initial: true });
+  const color = (key, label, initial) => ({ key, group: 'drawing', label, initial, color: true });
   const fields = [
+    range('dashDuration', 'motion', 'Dash duration', 90, 680, 5, 275, ' ms'),
+    range('distance', 'motion', 'Travel distance', 20, 70, 1, 52, '%'),
+    choice('acceleration', 'motion', 'Acceleration', 'ease', { snap: 'Snap', ease: 'Ease out', linear: 'Linear', late: 'Late surge' }),
+    range('leadIn', 'motion', 'Lead-in', 0, 900, 10, 300, ' ms'),
+    range('loopPause', 'motion', 'Loop pause', 100, 2200, 10, 1000, ' ms'),
+    choice('path', 'motion', 'Path', 'straight', { straight: 'Straight', arc: 'Arc', swerve: 'Swerve' }),
+    range('bend', 'motion', 'Path bend', -32, 32, 1, 14, '%'),
+    toggle('engines', 'burst', 'Engines on'),
     { key: 'burstStrength', group: 'burst', label: 'Strength', min: 0, max: 180, step: 5, initial: 100, unit: '%' },
     { key: 'burstLength', group: 'burst', label: 'Length', min: 20, max: 200, step: 5, initial: 100, unit: '%' },
     { key: 'burstDuration', group: 'burst', label: 'Duration', min: 40, max: 400, step: 5, initial: 180, unit: ' ms' },
     { key: 'flashStrength', group: 'burst', label: 'Flash strength', min: 0, max: 180, step: 5, initial: 100, unit: '%' },
     { key: 'flashDuration', group: 'burst', label: 'Flash duration', min: 30, max: 180, step: 5, initial: 90, unit: ' ms' },
-    { key: 'ghostCount', group: 'ghost', label: 'Count', min: 0, max: 5, step: 1, initial: 2, unit: '' },
-    { key: 'ghostSpacing', group: 'ghost', label: 'Spacing', min: 25, max: 120, step: 5, initial: 65, unit: ' ms' },
+    range('burstWidth', 'burst', 'Burst width', 25, 245, 5, 100, '%'),
+    choice('burstShape', 'burst', 'Burst shape', 'lance', { lance: 'Brush lance', fan: 'Flame fan', needle: 'Needle', comet: 'Comet' }),
+    range('flicker', 'burst', 'Exhaust flicker', 0, 100, 5, 0, '%'),
+    range('steadyExhaust', 'burst', 'Steady exhaust', 0, 200, 5, 100, '%'),
+    range('flashSize', 'burst', 'Flash size', 25, 250, 5, 100, '%'),
+    choice('flashShape', 'burst', 'Flash shape', 'brush', { star: 'Painted star', brush: 'Brush bloom', radial: 'Radial' }),
+    toggle('ghosts', 'ghost', 'Afterimages on'),
+    { key: 'ghostCount', group: 'ghost', label: 'Count', min: 0, max: 10, step: 1, initial: 2, unit: '' },
+    { key: 'ghostSpacing', group: 'ghost', label: 'Spacing', min: 5, max: 160, step: 5, initial: 65, unit: ' ms' },
     { key: 'ghostOpacity', group: 'ghost', label: 'Opacity', min: 0, max: 80, step: 1, initial: 32, unit: '%' },
     { key: 'ghostFade', group: 'ghost', label: 'Fade', min: 40, max: 500, step: 5, initial: 240, unit: ' ms' },
+    choice('ghostStyle', 'ghost', 'Drawing style', 'painted', { painted: 'Painted ship', silhouette: 'Tinted silhouette', outline: 'Outline' }),
+    range('ghostScale', 'ghost', 'Afterimage scale', 35, 155, 5, 100, '%'),
+    range('ghostScatter', 'ghost', 'Lateral scatter', 0, 50, 2, 0, '%'),
+    choice('ghostCurve', 'ghost', 'Fade curve', 'linear', { linear: 'Linear', quick: 'Fast falloff', hold: 'Slow falloff' }),
+    toggle('wave', 'wave', 'Pressure cloud on'),
+    choice('waveStyle', 'wave', 'Brush style', 'painted', { painted: 'Painted wisps', ink: 'Ink hatching', chalk: 'Chalk chips', strokes: 'Speed strokes', vapor: 'Soft vapor' }),
+    choice('waveShape', 'wave', 'Cloud shape', 'shell', { shell: 'Transverse shell', radial: 'Radial puff', cone: 'Rear cone', twin: 'Twin plumes' }),
     { key: 'waveSize', group: 'wave', label: 'Size', min: 35, max: 155, step: 5, initial: 100, unit: '%' },
     { key: 'waveStrength', group: 'wave', label: 'Strength', min: 0, max: 180, step: 5, initial: 100, unit: '%' },
     { key: 'waveDuration', group: 'wave', label: 'Duration', min: 80, max: 500, step: 5, initial: 240, unit: ' ms' },
+    range('waveCount', 'wave', 'Particle count', 8, 160, 1, 86),
+    range('waveSpread', 'wave', 'Transverse spread', 35, 175, 5, 100, '%'),
+    range('waveJitter', 'wave', 'Direction variation', 0, 200, 5, 100, '%'),
+    range('waveTurbulence', 'wave', 'Turbulence', 0, 100, 5, 0, '%'),
+    range('particleSize', 'wave', 'Particle size', 25, 230, 5, 100, '%'),
+    range('particleStretch', 'wave', 'Particle stretch', 30, 240, 5, 100, '%'),
+    range('particleRotation', 'wave', 'Particle rotation', 0, 240, 5, 100, '%'),
+    range('waveDelay', 'wave', 'Spawn delay', 0, 220, 5, 0, ' ms'),
+    range('expansionSpeed', 'wave', 'Expansion speed', 35, 225, 5, 100, '%'),
+    range('waveFade', 'wave', 'Fade power', 40, 300, 5, 130, '%'),
+    choice('waveAnchor', 'wave', 'Anchor', 'launch', { launch: 'Launch point', follow: 'Follow ship' }),
+    color('energyColor', 'Engine tint', '#40d5ff'),
+    color('cloudColor', 'Cloud tint', '#d1dadd'),
+    color('ghostColor', 'Afterimage tint', '#b9a6ff'),
+    range('roughness', 'drawing', 'Brush roughness', 0, 100, 5, 40, '%'),
+    range('lineWeight', 'drawing', 'Line weight', 30, 200, 5, 100, '%'),
+    range('grain', 'drawing', 'Paint grain', 0, 100, 5, 45, '%'),
+    range('seed', 'drawing', 'Seed', 0, 65535, 1, 9483),
+    range('shake', 'impact', 'Shake', 0, 30, 1, 0, ' px'),
+    range('shakeDuration', 'impact', 'Shake duration', 40, 400, 5, 145, ' ms'),
+    range('zoom', 'impact', 'Zoom kick', 0, 40, 1, 0, '%'),
+    range('wash', 'impact', 'Flash wash', 0, 55, 1, 0, '%'),
   ];
-  const settings = Object.fromEntries(fields.map(({ key, initial }) => [key, initial]));
-  const dashStart = 300;
-  const dashDuration = 275;
-  const loopDuration = 1740;
+  const defaults = Object.fromEntries(fields.map(({ key, initial }) => [key, initial]));
+  const settings = { ...defaults };
+  const presets = {
+    'Painted pressure': {},
+    'Ink snap': { dashDuration: 170, distance: 62, acceleration: 'snap', burstShape: 'needle', burstLength: 64, burstDuration: 100, flashShape: 'star', flashDuration: 50, waveStyle: 'ink', waveCount: 40, waveSize: 125, waveDuration: 190, particleStretch: 175, ghostStyle: 'outline', ghostCount: 3, ghostOpacity: 44, ghostSpacing: 45, ghostFade: 175, energyColor: '#e1eaf4', cloudColor: '#d7d8d4', ghostColor: '#efefeb', lineWeight: 145, shake: 5 },
+    'Chalk blast': { dashDuration: 350, distance: 43, acceleration: 'ease', burstShape: 'fan', burstWidth: 135, burstStrength: 75, burstDuration: 140, flashShape: 'brush', flashSize: 135, waveStyle: 'chalk', waveShape: 'radial', waveCount: 135, waveSize: 110, waveDuration: 365, particleSize: 135, waveSpread: 95, waveTurbulence: 45, ghostCount: 1, ghostOpacity: 25, roughness: 75, grain: 85, cloudColor: '#f0e9d7', energyColor: '#a7d9e0' },
+    'Manga break': { dashDuration: 140, distance: 65, acceleration: 'late', path: 'swerve', bend: 12, leadIn: 540, burstShape: 'needle', burstLength: 150, burstWidth: 45, flashShape: 'star', flashDuration: 55, flashSize: 170, waveStyle: 'strokes', waveShape: 'cone', waveCount: 50, waveDuration: 190, particleStretch: 200, ghostCount: 4, ghostStyle: 'outline', ghostSpacing: 30, ghostFade: 125, ghostOpacity: 52, energyColor: '#f3f5f6', cloudColor: '#eff1ed', ghostColor: '#f3f5f6', shake: 11, wash: 24, zoom: 13 },
+    'Comet kick': { dashDuration: 420, acceleration: 'snap', path: 'arc', bend: -16, distance: 58, burstShape: 'fan', burstWidth: 185, burstLength: 160, burstDuration: 310, flicker: 50, flashSize: 145, waveShape: 'cone', waveDuration: 310, waveCount: 100, waveSpread: 70, waveTurbulence: 25, ghostCount: 1, ghostFade: 290, energyColor: '#ff8a47', cloudColor: '#d7a683', zoom: 11 },
+    'Spectral echo': { dashDuration: 545, acceleration: 'linear', distance: 62, path: 'arc', bend: 13, engines: true, burstShape: 'comet', burstStrength: 55, burstWidth: 70, burstDuration: 230, flashDuration: 145, flashStrength: 50, waveCount: 21, waveSize: 70, waveStrength: 25, waveAnchor: 'follow', ghostStyle: 'silhouette', ghostCount: 9, ghostSpacing: 48, ghostOpacity: 56, ghostFade: 470, ghostScale: 90, ghostScatter: 12, ghostCurve: 'hold', energyColor: '#ad81ff', cloudColor: '#a6a5ff', ghostColor: '#bc87ff' },
+    'Vapor bloom': { dashDuration: 365, distance: 44, acceleration: 'ease', burstShape: 'comet', burstDuration: 220, burstLength: 65, flashShape: 'radial', flashSize: 130, waveStyle: 'vapor', waveShape: 'twin', waveCount: 125, waveDuration: 495, waveSize: 135, waveSpread: 135, waveTurbulence: 85, particleSize: 155, waveFade: 80, ghostCount: 2, ghostOpacity: 16, ghostFade: 340, energyColor: '#92e9ff', cloudColor: '#c2e7ee' },
+    'Minimal snap': { dashDuration: 130, distance: 55, acceleration: 'snap', leadIn: 160, loopPause: 480, burstShape: 'needle', burstLength: 45, burstWidth: 45, burstStrength: 130, burstDuration: 75, flashShape: 'star', flashDuration: 35, flashSize: 60, wave: false, ghosts: false, steadyExhaust: 50, energyColor: '#a9e5ff' },
+  };
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let playing = !reduced;
-  let time = reduced ? dashStart + 135 : 0;
+  let time = reduced ? defaults.leadIn + 135 : 0;
   let lastFrame;
   let frameRequest;
   let ship = null;
   let view = 'close';
   let speed = 1;
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+  let starting = null;
+  let snapshots = {};
+  const dashStart = () => settings.leadIn;
+  const dashDuration = () => settings.dashDuration;
+  const activeEnd = () => dashStart() + Math.max(
+    dashDuration(),
+    settings.wave && settings.waveStrength ? settings.waveDelay + settings.waveDuration : 0,
+    settings.engines ? Math.max(settings.burstStrength ? settings.burstDuration : 0, settings.flashStrength ? settings.flashDuration : 0) : 0,
+    settings.ghosts && settings.ghostOpacity && settings.ghostCount
+      ? (settings.ghostCount - 1) * settings.ghostSpacing + Math.max(22, settings.ghostSpacing * .62) + settings.ghostFade
+      : 0,
+    settings.shake || settings.zoom || settings.wash ? settings.shakeDuration : 0
+  );
+  const loopDuration = () => activeEnd() + settings.loopPause;
 
   function persist() {
-    window.openai?.setWidgetState?.({ modelContent: { ...settings }, privateContent: { speed, view } })?.catch(() => {});
+    window.openai?.setWidgetState?.({ modelContent: { ...settings }, privateContent: { speed, view, starting, snapshots } })?.catch(() => {});
+  }
+
+  function normalize(field, value) {
+    if (field.options) return typeof value === 'string' && Object.hasOwn(field.options, value) ? value : field.initial;
+    if (field.color) return typeof value === 'string' && /^#[a-f0-9]{6}$/i.test(value) ? value.toLowerCase() : field.initial;
+    if (typeof field.initial === 'boolean') return typeof value === 'boolean' ? value : field.initial;
+    return Number.isFinite(value) ? clamp(Math.round((value - field.min) / field.step) * field.step + field.min, field.min, field.max) : field.initial;
+  }
+
+  function clean(values) {
+    return Object.fromEntries(fields.map((field) => [field.key, normalize(field, values?.[field.key])]));
+  }
+
+  function rememberStarting() {
+    if (!starting) starting = { ...settings };
+  }
+
+  function syncControl(field) {
+    const value = settings[field.key];
+    if (typeof value === 'boolean') field.control.checked = value;
+    else field.control.value = value;
+    if (field.output) field.output.textContent = `${value}${field.unit}`;
   }
 
   for (const field of fields) {
     const label = document.createElement('label');
-    label.className = 'dash-slider';
-    label.innerHTML = `<span>${field.label} <output class="tabular-nums"></output></span><input class="form-range" type="range" min="${field.min}" max="${field.max}" step="${field.step}">`;
+    if (field.options) {
+      label.className = 'form-label';
+      label.innerHTML = `${field.label} <select class="form-select">${Object.entries(field.options).map(([value, name]) => `<option value="${value}">${name}</option>`).join('')}</select>`;
+    } else if (typeof field.initial === 'boolean') {
+      label.className = 'form-check';
+      label.innerHTML = `<input class="form-check-input" type="checkbox"> <span class="form-check-label">${field.label}</span>`;
+    } else if (field.color) {
+      label.className = 'form-label';
+      label.innerHTML = `${field.label} <input class="form-control form-control-color" type="color">`;
+    } else {
+      label.className = 'dash-slider';
+      label.innerHTML = `<span>${field.label} <output class="tabular-nums"></output></span><input class="form-range" type="range" min="${field.min}" max="${field.max}" step="${field.step}">`;
+    }
     field.output = label.querySelector('output');
-    field.control = label.querySelector('input');
+    field.control = label.querySelector('input, select');
+    field.control.dataset.setting = field.key;
+    field.control.setAttribute('aria-label', field.label);
     field.control.addEventListener('input', () => {
-      settings[field.key] = Number(field.control.value);
-      field.output.textContent = `${settings[field.key]}${field.unit}`;
-      if (field.key === 'ghostCount') syncSpacing();
+      rememberStarting();
+      const control = field.control;
+      const raw = control.type === 'range' ? Number(control.value) : control.type === 'checkbox' ? control.checked : control.value;
+      settings[field.key] = normalize(field, raw);
+      syncControl(field);
+      if (field.key === 'ghostCount' || field.key === 'dashDuration') syncSpacing();
       render();
-      refreshConfig();
     });
     field.control.addEventListener('change', persist);
     select(`[data-controls="${field.group}"]`).append(label);
@@ -116,30 +243,34 @@
   function syncSpacing() {
     const field = fields.find(({ key }) => key === 'ghostSpacing');
     const intervals = Math.max(1, settings.ghostCount - 1);
-    const max = Math.min(field.max, Math.floor((dashDuration - 35) / intervals / field.step) * field.step);
+    const max = Math.min(field.max, Math.floor((dashDuration() - 35) / intervals / field.step) * field.step);
     field.control.max = max;
     settings.ghostSpacing = Math.min(settings.ghostSpacing, max);
     field.control.value = settings.ghostSpacing;
     field.output.textContent = `${settings.ghostSpacing}${field.unit}`;
   }
 
-  function restore(state) {
-    for (const field of fields) {
-      const saved = state?.modelContent?.[field.key];
-      settings[field.key] = Number.isFinite(saved)
-        ? clamp(Math.round((saved - field.min) / field.step) * field.step + field.min, field.min, field.max)
-        : field.initial;
-      field.control.value = settings[field.key];
-      field.output.textContent = `${settings[field.key]}${field.unit}`;
-    }
+  function setLook(values) {
+    Object.assign(settings, clean(values));
     syncSpacing();
-    const savedSpeed = state?.privateContent?.speed;
+    for (const field of fields) syncControl(field);
+    render();
+  }
+
+  function restore(state) {
+    const privateState = state?.privateContent;
+    starting = privateState?.starting ? clean(privateState.starting) : null;
+    snapshots = {};
+    for (const slot of ['A', 'B']) {
+      if (privateState?.snapshots?.[slot]) snapshots[slot] = clean(privateState.snapshots[slot]);
+      select(`[data-load="${slot}"]`).disabled = !snapshots[slot];
+    }
+    const savedSpeed = privateState?.speed;
     speed = [.25, .5, 1].includes(savedSpeed) ? savedSpeed : 1;
-    view = state?.privateContent?.view === 'game' ? 'game' : 'close';
+    view = privateState?.view === 'game' ? 'game' : 'close';
     speedControl.value = speed;
     viewControl.value = view;
-    render();
-    refreshConfig();
+    setLook(state?.modelContent?.settings ?? state?.modelContent);
   }
 
   function extractShip(image) {
@@ -179,19 +310,51 @@
   }
 
   function shipPosition(at, width) {
-    const progress = clamp((at - dashStart) / dashDuration, 0, 1);
-    const travel = 1 - (1 - progress) ** 1.7;
-    return width * (.27 + .52 * travel);
+    const progress = clamp((at - dashStart()) / dashDuration(), 0, 1);
+    const curves = { snap: 1 - (1 - progress) ** 3.25, ease: 1 - (1 - progress) ** 1.7, linear: progress, late: progress ** 2.65 };
+    const start = Math.min(.27, .92 - settings.distance / 100);
+    return width * (start + settings.distance / 100 * curves[settings.acceleration]);
   }
 
-  function drawShip(x, y, hullSize, alpha) {
+  function shipHeight(at, height) {
+    const progress = clamp((at - dashStart()) / dashDuration(), 0, 1);
+    const path = settings.path === 'arc' ? Math.sin(progress * Math.PI) : settings.path === 'swerve' ? Math.sin(progress * Math.PI * 2) : 0;
+    return height * (.55 - settings.bend / 100 * path);
+  }
+
+  let ghostArt;
+  let ghostArtKey;
+  function ghostSprite() {
+    const key = settings.ghostStyle + settings.ghostColor + settings.lineWeight;
+    if (ghostArtKey === key) return ghostArt;
+    ghostArtKey = key;
+    ghostArt = document.createElement('canvas');
+    ghostArt.width = ship.width;
+    ghostArt.height = ship.height;
+    const brush = ghostArt.getContext('2d');
+    if (settings.ghostStyle === 'outline') {
+      const border = settings.lineWeight / 25;
+      for (const [x, y] of [[-border, 0], [border, 0], [0, -border], [0, border]]) brush.drawImage(ship, x, y);
+      brush.globalCompositeOperation = 'destination-out';
+      brush.drawImage(ship, 0, 0);
+    } else {
+      brush.drawImage(ship, 0, 0);
+    }
+    brush.globalCompositeOperation = 'source-in';
+    brush.fillStyle = settings.ghostColor;
+    brush.fillRect(0, 0, ship.width, ship.height);
+    return ghostArt;
+  }
+
+  function drawShip(x, y, hullSize, alpha, afterimage = false) {
     if (!ship) return;
     context.save();
     context.translate(x, y);
     context.rotate(Math.PI / 2);
     context.globalAlpha = alpha;
     const factor = hullSize / 325;
-    context.drawImage(ship, -135 * factor, -194 * factor, ship.width * factor, ship.height * factor);
+    const sprite = afterimage && settings.ghostStyle !== 'painted' ? ghostSprite() : ship;
+    context.drawImage(sprite, -135 * factor, -194 * factor, ship.width * factor, ship.height * factor);
     context.restore();
   }
 
@@ -206,14 +369,17 @@
   }
 
   function drawSteadyExhaust(x, y, hullSize) {
-    const length = hullSize * .22;
-    const width = hullSize * .025;
+    const level = settings.steadyExhaust / 100;
+    if (!level) return;
+    const length = hullSize * .22 * (.47 + .53 * level);
+    const width = hullSize * .025 * (.62 + .38 * level);
     drawAtEngineExits(x, y, hullSize, () => {
       const gradient = context.createLinearGradient(0, 0, -length, 0);
       gradient.addColorStop(0, '#b7f7ff');
-      gradient.addColorStop(.28, 'rgba(69,205,255,.78)');
-      gradient.addColorStop(1, 'rgba(18,134,255,0)');
+      gradient.addColorStop(.28, settings.energyColor + 'c7');
+      gradient.addColorStop(1, settings.energyColor + '00');
       context.fillStyle = gradient;
+      context.globalAlpha = Math.min(1, level);
       context.beginPath();
       context.moveTo(0, -width);
       context.quadraticCurveTo(-length * .65, -width * .55, -length, 0);
@@ -226,10 +392,11 @@
     const { burstDuration, burstStrength, burstLength } = settings;
     if (age < 0 || age >= burstDuration || burstStrength === 0) return;
     const ageRatio = age / burstDuration;
-    const pulse = (1 - ageRatio) ** 1.4;
+    const pulse = (1 - ageRatio) ** 1.4 * (1 - settings.flicker / 100 * .35 * (.5 + .5 * Math.sin(age * .57 + settings.seed)));
     const intensity = burstStrength / 100;
     const length = hullSize * .83 * burstLength / 100 * (.42 + .58 * pulse);
-    const spread = hullSize * (.028 + .053 * pulse);
+    const shapeWidths = { lance: 1, fan: 1.42, needle: .38, comet: .73 };
+    const spread = hullSize * (.028 + .053 * pulse) * settings.burstWidth / 100 * shapeWidths[settings.burstShape];
     drawAtEngineExits(x, y, hullSize, () => {
       function wedge(distance, width, alpha, colors) {
         const gradient = context.createLinearGradient(0, 0, -distance, 0);
@@ -238,15 +405,23 @@
         context.fillStyle = gradient;
         context.beginPath();
         context.moveTo(0, -width * .35);
-        context.lineTo(-distance * .21, -width);
-        context.lineTo(-distance, 0);
-        context.lineTo(-distance * .32, width * .72);
+        context.lineTo(-distance * (settings.burstShape === 'fan' ? .48 : .21), -width);
+        if (settings.burstShape === 'fan') {
+          context.lineTo(-distance * .91, -width * .68);
+          context.lineTo(-distance * .72, 0);
+          context.lineTo(-distance * .95, width * .52);
+        } else if (settings.burstShape === 'comet') {
+          context.quadraticCurveTo(-distance * .55, -width * .9, -distance, 0);
+        } else {
+          context.lineTo(-distance, 0);
+        }
+        context.lineTo(-distance * .32, width * (.72 + (settings.roughness - 40) / 160));
         context.lineTo(0, width * .33);
         context.closePath();
         context.fill();
       }
-      wedge(length, spread, pulse * intensity * .9, [[0, '#b5fcff'], [.18, '#52deff'], [.56, '#158fec'], [1, 'rgba(21,143,236,0)']]);
-      wedge(length * .67, spread * .36, pulse * intensity, [[0, '#ffffff'], [.31, '#ecfeff'], [.67, '#75eaff'], [1, 'rgba(117,234,255,0)']]);
+      wedge(length, spread, pulse * intensity * .9, [[0, '#b5fcff'], [.18, settings.energyColor], [.56, settings.energyColor + 'ba'], [1, settings.energyColor + '00']]);
+      wedge(length * .67, spread * .36, pulse * intensity, [[0, '#ffffff'], [.31, '#ecfeff'], [.67, settings.energyColor], [1, settings.energyColor + '00']]);
     });
   }
 
@@ -256,21 +431,31 @@
     const attack = clamp((age + 8) / 14, 0, 1);
     const pulse = attack * (1 - age / flashDuration) ** 1.35;
     const intensity = flashStrength / 100;
-    const radius = Math.max(4, hullSize * .145) * (.7 + .3 * pulse);
+    const radius = Math.max(3, hullSize * .145 * settings.flashSize / 100) * (.7 + .3 * pulse);
     drawAtEngineExits(x, y, hullSize, () => {
       context.translate(-hullSize * .018, 0);
       context.scale(1.22, 1);
       const bloom = context.createRadialGradient(0, 0, 0, 0, 0, radius);
       bloom.addColorStop(0, '#ffffff');
       bloom.addColorStop(.2, '#c3faff');
-      bloom.addColorStop(.48, 'rgba(49,206,255,.52)');
-      bloom.addColorStop(1, 'rgba(28,176,255,0)');
+      bloom.addColorStop(.48, settings.energyColor + '85');
+      bloom.addColorStop(1, settings.energyColor + '00');
       context.globalAlpha = clamp(pulse * intensity, 0, 1);
       context.fillStyle = bloom;
       context.fillRect(-radius, -radius, radius * 2, radius * 2);
       context.fillStyle = '#faffff';
       context.beginPath();
-      context.ellipse(0, 0, radius * .23, radius * .13, 0, 0, Math.PI * 2);
+      if (settings.flashShape === 'star') {
+        for (let point = 0; point < 16; point++) {
+          const angle = point * Math.PI / 8;
+          const reach = radius * (point % 2 ? .11 : point % 4 ? .40 : .78);
+          context.lineTo(Math.cos(angle) * reach, Math.sin(angle) * reach);
+        }
+        context.closePath();
+      } else {
+        const radial = settings.flashShape === 'radial';
+        context.ellipse(0, 0, radius * (radial ? .34 : .23), radius * (radial ? .34 : .13), 0, 0, Math.PI * 2);
+      }
       context.fill();
     });
   }
@@ -322,46 +507,142 @@
   });
 
   const cloudClusters = [-2.45, -1.55, -.43, .63, 1.42, 2.25, 3.04];
-  particleSeed = 9483;
-  const waveParticles = Array.from({ length: 86 }, (_, index) => {
-    const mote = index >= 68;
-    const angle = cloudClusters[index % cloudClusters.length] + (particleRandom() - .5) * .68;
-    return {
-      mote,
-      directionX: Math.cos(angle) * .39,
-      directionY: Math.sin(angle),
-      reach: .42 + particleRandom() * (mote ? .67 : .48),
-      drift: (particleRandom() - .55) * .2,
-      radius: mote ? .005 + particleRandom() * .01 : .036 + particleRandom() * .084,
-      shape: .44 + particleRandom() * .54,
-      angle: (particleRandom() - .5) * Math.PI,
-      opacity: .2 + particleRandom() * .37,
-      start: particleRandom() * .13,
-      span: .54 + particleRandom() * .45,
-      sprite: wavePuffs[Math.floor(particleRandom() * wavePuffs.length)],
-    };
-  });
+  let particleKey;
+  let waveParticles;
+  function currentParticles() {
+    const key = settings.seed + ':' + settings.waveCount;
+    if (particleKey === key) return waveParticles;
+    particleKey = key;
+    particleSeed = settings.seed;
+    waveParticles = Array.from({ length: settings.waveCount }, (_, index) => {
+      const mote = index >= Math.round(settings.waveCount * 68 / 86);
+      const angle = cloudClusters[index % cloudClusters.length] + (particleRandom() - .5) * .68;
+      return {
+        mote,
+        directionX: Math.cos(angle) * .39,
+        directionY: Math.sin(angle),
+        reach: .42 + particleRandom() * (mote ? .67 : .48),
+        drift: (particleRandom() - .55) * .2,
+        radius: mote ? .005 + particleRandom() * .01 : .036 + particleRandom() * .084,
+        shape: .44 + particleRandom() * .54,
+        angle: (particleRandom() - .5) * Math.PI,
+        opacity: .2 + particleRandom() * .37,
+        start: particleRandom() * .13,
+        span: .54 + particleRandom() * .45,
+        sprite: wavePuffs[Math.floor(particleRandom() * wavePuffs.length)],
+      };
+    });
+    return waveParticles;
+  }
+
+  let cloudArt;
+  let cloudArtKey;
+  function cloudSprites() {
+    const key = settings.waveStyle + settings.cloudColor;
+    if (key === cloudArtKey) return cloudArt;
+    cloudArtKey = key;
+    cloudArt = wavePuffs.map((source) => {
+      const sprite = document.createElement('canvas');
+      sprite.width = sprite.height = 64;
+      const brush = sprite.getContext('2d');
+      if (settings.waveStyle === 'vapor') {
+        const fog = brush.createRadialGradient(32, 32, 0, 32, 32, 32);
+        fog.addColorStop(0, settings.cloudColor);
+        fog.addColorStop(.45, settings.cloudColor + '96');
+        fog.addColorStop(1, settings.cloudColor + '00');
+        brush.fillStyle = fog;
+        brush.fillRect(0, 0, 64, 64);
+      } else {
+        brush.drawImage(source, 0, 0);
+        if (settings.cloudColor !== defaults.cloudColor) {
+          brush.globalCompositeOperation = 'source-atop';
+          brush.globalAlpha = .48;
+          brush.fillStyle = settings.cloudColor;
+          brush.fillRect(0, 0, 64, 64);
+        }
+      }
+      return sprite;
+    });
+    return cloudArt;
+  }
+
+  function paintCloudParticle(particle, radius, height, sprites) {
+    const line = settings.lineWeight / 100;
+    const grain = settings.grain / 100;
+    if (settings.waveStyle === 'painted' || settings.waveStyle === 'vapor') {
+      context.drawImage(sprites[wavePuffs.indexOf(particle.sprite)], -radius, -height, radius * 2, height * 2);
+      if (settings.waveStyle === 'painted' && grain > 0) {
+        context.globalAlpha *= grain * .42;
+        context.fillStyle = '#4c6270';
+        context.fillRect(-radius * .32, height * .17, radius * .46, Math.max(.45, height * .13 * line));
+      }
+      return;
+    }
+    context.fillStyle = settings.cloudColor;
+    if (settings.waveStyle === 'ink') {
+      context.strokeStyle = settings.cloudColor;
+      context.lineWidth = Math.max(.55, height * .15 * line);
+      context.beginPath();
+      for (let i = -2; i <= 2; i++) {
+        const y = i * height * .30;
+        const length = radius * (1 - Math.abs(i) * .17);
+        context.moveTo(-length, y + height * .32);
+        context.lineTo(length * .77, y - height * .33);
+      }
+      context.stroke();
+      return;
+    }
+    context.beginPath();
+    if (settings.waveStyle === 'chalk') {
+      context.moveTo(-radius, height * .15);
+      context.lineTo(-radius * .39, -height * .83);
+      context.lineTo(radius * .83, -height * .40);
+      context.lineTo(radius * .59, height * .32);
+      context.lineTo(radius * .18, height);
+      context.lineTo(-radius * .58, height * .64);
+    } else {
+      context.moveTo(-radius * 1.8, height * .2);
+      context.lineTo(radius * .52, -height * .41 * line);
+      context.lineTo(radius * 1.45, -height * .17);
+      context.lineTo(-radius * .24, height * .33);
+    }
+    context.fill();
+    if (settings.waveStyle === 'chalk' && grain > 0) {
+      context.globalAlpha *= grain;
+      context.fillStyle = '#647680';
+      context.fillRect(-radius * .42, -height * .15, radius * .73, Math.max(.36, height * .21));
+    }
+  }
 
   function drawShockwave(x, y, hullSize, age) {
     const { waveSize, waveStrength, waveDuration } = settings;
-    if (age < 0 || age >= waveDuration || waveStrength === 0) return;
+    if (!settings.wave || age < 0 || age >= waveDuration || waveStrength === 0) return;
     const progress = age / waveDuration;
-    const expansion = 1 - (1 - progress) ** 2.45;
+    const expansion = 1 - (1 - progress) ** (2.45 * settings.expansionSpeed / 100);
     const scale = hullSize * waveSize / 100;
     const strength = waveStrength / 100;
+    const spread = settings.waveSpread / 100;
+    const jitter = settings.waveJitter / 100;
+    const sprites = cloudSprites();
 
     context.save();
-    for (const particle of waveParticles) {
+    for (const particle of currentParticles()) {
       const life = (progress - particle.start) / particle.span;
       if (life < 0 || life >= 1) continue;
       const reach = scale * (.10 + expansion * particle.reach);
-      const px = x + reach * particle.directionX + scale * particle.drift * expansion;
-      const py = y + reach * particle.directionY;
-      const opacity = particle.opacity * Math.min(1, .3 + life * 9) * (1 - life) ** 1.3;
+      let dx = particle.directionX;
+      let dy = particle.directionY;
+      if (settings.waveShape === 'radial') dx *= 2.35;
+      if (settings.waveShape === 'cone') { dx = -.78 + dx * .69; dy *= .73; }
+      if (settings.waveShape === 'twin') { dx = -.48 + dx; dy = (dy < 0 ? -.39 : .39) + dy * .37; }
+      const turbulence = Math.sin(particle.angle * 8 + progress * 12) * expansion * scale * settings.waveTurbulence / 460;
+      const px = x + reach * dx + scale * particle.drift * expansion * jitter;
+      const py = y + reach * (dy * spread + particle.drift * (jitter - 1)) + turbulence;
+      const opacity = particle.opacity * Math.min(1, .3 + life * 9) * (1 - life) ** (settings.waveFade / 100);
       context.globalAlpha = clamp(strength * opacity, 0, 1);
       if (particle.mote) {
-        const size = Math.max(.8, scale * particle.radius);
-        context.fillStyle = '#deebf0';
+        const size = Math.max(.65, scale * particle.radius * settings.particleSize / 100);
+        context.fillStyle = settings.cloudColor;
         const driftX = particle.directionX * size * 3;
         const driftY = particle.directionY * size * 3;
         context.beginPath();
@@ -371,12 +652,12 @@
         context.lineTo(px + size * .45, py - size * .5);
         context.fill();
       } else {
-        const radius = Math.max(1.4, scale * particle.radius * (.75 + life * .85));
+        const radius = Math.max(1, scale * particle.radius * (.75 + life * .85) * settings.particleSize / 100);
         context.save();
         context.translate(px, py);
-        context.rotate(particle.angle);
+        context.rotate(particle.angle * settings.particleRotation / 100);
         const height = radius * particle.shape;
-        context.drawImage(particle.sprite, -radius, -height, radius * 2, height * 2);
+        paintCloudParticle(particle, radius * settings.particleStretch / 100, height, sprites);
         context.restore();
       }
     }
@@ -384,19 +665,24 @@
   }
 
   function drawAfterimages(w, h, hullSize) {
+    if (!settings.ghosts) return;
     const { ghostCount, ghostSpacing, ghostOpacity, ghostFade } = settings;
+    const fadePower = { linear: 1, quick: 2.5, hold: .47 }[settings.ghostCurve];
     for (let index = 0; index < ghostCount; index++) {
-      const sampleTime = dashStart + index * ghostSpacing;
+      const sampleTime = dashStart() + index * ghostSpacing;
       const appearAt = sampleTime + Math.max(22, ghostSpacing * .62);
       const age = time - appearAt;
       if (age < 0 || age >= ghostFade) continue;
-      drawShip(shipPosition(sampleTime, w), h * .55, hullSize, ghostOpacity / 100 * (1 - age / ghostFade));
+      const scatter = index === 0 ? 0 : Math.sin(index * 7.3 + settings.seed) * hullSize * settings.ghostScatter / 100;
+      drawShip(shipPosition(sampleTime, w), shipHeight(sampleTime, h) + scatter, hullSize * settings.ghostScale / 100, ghostOpacity / 100 * (1 - age / ghostFade) ** fadePower, true);
     }
   }
 
   function render() {
     const { width, height } = canvas.getBoundingClientRect();
     if (!width || !height) return;
+    const end = loopDuration();
+    time = Math.min(time, end);
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const pixelWidth = Math.round(width * dpr);
     const pixelHeight = Math.round(height * dpr);
@@ -419,29 +705,42 @@
     }
     const hullSize = view === 'close' ? Math.min(width * .23, height * .58, 158) : Math.min(width * .11, height * .29, 68);
     const x = shipPosition(time, width);
-    const y = height * .55;
+    const y = shipHeight(time, height);
+    const age = time - dashStart();
+    const impact = age < 0 ? 0 : clamp(1 - age / settings.shakeDuration, 0, 1) ** 2;
+    const zoom = 1 + settings.zoom / 100 * impact;
+    context.save();
+    context.translate(width * (1 - zoom) * .46 + Math.sin(age * .32) * impact * settings.shake,
+      height * (1 - zoom) * .54 + Math.sin(age * .42) * impact * settings.shake * .65);
+    context.scale(zoom, zoom);
     drawAfterimages(width, height, hullSize);
-    drawShockwave(shipPosition(dashStart, width) - hullSize * .29, y, hullSize, time - dashStart);
-    drawSteadyExhaust(x, y, hullSize);
-    drawBurst(x, y, hullSize, time - dashStart);
+    const follows = settings.waveAnchor === 'follow';
+    drawShockwave((follows ? x : shipPosition(dashStart(), width)) - hullSize * .29, follows ? y : height * .55, hullSize, age - settings.waveDelay);
+    if (settings.engines) {
+      drawSteadyExhaust(x, y, hullSize);
+      drawBurst(x, y, hullSize, age);
+    }
     drawShip(x, y, hullSize, 1);
-    drawEngineFlash(x, y, hullSize, time - dashStart);
+    if (settings.engines) drawEngineFlash(x, y, hullSize, age);
+    context.restore();
+    if (impact && settings.wash) {
+      context.save();
+      context.globalAlpha = settings.wash / 100 * impact;
+      context.fillStyle = '#f1f1ec';
+      context.fillRect(0, 0, width, height);
+      context.restore();
+    }
+    scrub.max = end;
     const rounded = Math.round(time);
     scrub.value = rounded;
     timeOutput.textContent = `${rounded} ms`;
-    const { ghostCount, ghostSpacing, ghostOpacity, ghostFade, burstDuration, burstStrength, waveDuration, waveStrength } = settings;
-    const afterimageEnd = ghostCount && ghostOpacity
-      ? dashStart + (ghostCount - 1) * ghostSpacing + Math.max(22, ghostSpacing * .62) + ghostFade
-      : 0;
-    const waveEnd = waveStrength ? dashStart + waveDuration : 0;
-    const activeEnd = Math.max(dashStart + dashDuration, burstStrength ? dashStart + burstDuration : 0, afterimageEnd, waveEnd);
-    phaseOutput.textContent = time < dashStart ? 'Ready' : time < dashStart + dashDuration ? 'Dash' : time < activeEnd ? 'Recovery' : 'Settled';
+    phaseOutput.textContent = age < 0 ? 'Ready' : age < dashDuration() ? 'Dash' : time < activeEnd() ? 'Recovery' : 'Settled';
   }
 
   function animate(stamp) {
     frameRequest = undefined;
     if (!playing) return;
-    if (lastFrame !== undefined) time = (time + Math.min(stamp - lastFrame, 100) * speed) % loopDuration;
+    if (lastFrame !== undefined) time = (time + Math.min(stamp - lastFrame, 100) * speed) % loopDuration();
     lastFrame = stamp;
     render();
     frameRequest = requestAnimationFrame(animate);
@@ -459,7 +758,7 @@
   }
 
   play.addEventListener('click', () => {
-    if (!playing && time >= loopDuration) time = 0;
+    if (!playing && time >= loopDuration()) time = 0;
     setPlaying(!playing);
   });
   select('[data-replay]').addEventListener('click', () => { time = 0; render(); setPlaying(true); });
@@ -467,23 +766,92 @@
   speedControl.addEventListener('change', () => { speed = Number(speedControl.value); persist(); });
   viewControl.addEventListener('change', () => { view = viewControl.value; render(); persist(); });
 
-  const copy = select('[data-copy]');
-  const config = copy.querySelector('textarea');
+  const config = select('[data-copy] textarea');
   const feedback = select('[data-feedback]');
-  function refreshConfig() {
-    config.value = fields.map(({ group, key, label, unit }) => `${groupNames[group]} ${label.toLowerCase()} = ${settings[key]}${unit}`).join('\n');
+  const error = select('[data-error]');
+  const preset = select('[data-preset]');
+  for (const name of Object.keys(presets)) preset.add(new Option(name, name));
+
+  function applyLook(values, message) {
+    rememberStarting();
+    setLook(values);
+    if (!playing) {
+      time = dashStart() + Math.min(dashDuration() * .48, settings.waveDelay + 65);
+      render();
+    }
+    feedback.textContent = message;
+    persist();
   }
+
+  select('[data-apply]').addEventListener('click', () => applyLook({ ...defaults, ...presets[preset.value] }, `${preset.value} applied.`));
+  select('[data-starting]').addEventListener('click', () => {
+    rememberStarting();
+    applyLook(starting, 'Starting look restored.');
+  });
+  select('[data-variant]').addEventListener('click', () => {
+    particleSeed = settings.seed;
+    const values = { ...settings, seed: Math.floor(particleRandom() * 65536) };
+    for (const key of ['dashDuration', 'distance', 'burstLength', 'burstWidth', 'burstDuration', 'flashSize', 'flashDuration', 'waveSize', 'waveCount', 'waveSpread', 'waveDuration', 'particleStretch', 'ghostSpacing', 'ghostOpacity', 'ghostFade']) {
+      values[key] *= .67 + .66 * particleRandom();
+    }
+    if (settings.ghosts && settings.ghostCount) values.ghostCount += particleRandom() > .52 ? 1 : -1;
+    applyLook(values, 'Variation applied.');
+  });
+  select('[data-seed]').addEventListener('click', () => {
+    particleSeed = settings.seed;
+    applyLook({ ...settings, seed: Math.floor(particleRandom() * 65536) }, 'Particle seed shuffled.');
+  });
+  for (const slot of ['A', 'B']) {
+    select(`[data-save="${slot}"]`).addEventListener('click', () => {
+      rememberStarting();
+      snapshots[slot] = { ...settings };
+      select(`[data-load="${slot}"]`).disabled = false;
+      feedback.textContent = `Look ${slot} saved.`;
+      persist();
+    });
+    select(`[data-load="${slot}"]`).addEventListener('click', () => applyLook(snapshots[slot], `Look ${slot} recalled.`));
+  }
+
+  function configText() {
+    return JSON.stringify({ version: 1, settings }, null, 2);
+  }
+
+  function exportConfig() {
+    select('[data-settings]').open = true;
+    error.textContent = '';
+    config.value = configText();
+    config.focus();
+    config.select();
+  }
+
+  select('[data-export]').addEventListener('click', exportConfig);
+  select('[data-import]').addEventListener('click', () => {
+    try {
+      const data = JSON.parse(config.value);
+      if (data.version !== undefined && data.version !== 1) throw new Error('Unsupported settings version.');
+      const values = data.settings ?? data;
+      if (!values || typeof values !== 'object' || Array.isArray(values) || !Object.keys(values).length) throw new Error('Enter a settings object.');
+      for (const [key, value] of Object.entries(values)) {
+        const field = fields.find((candidate) => candidate.key === key);
+        if (!field || normalize(field, value) !== (typeof value === 'string' && field.color ? value.toLowerCase() : value)) {
+          throw new Error(`Check the value for ${key}.`);
+        }
+      }
+      applyLook({ ...settings, ...values }, 'Settings imported.');
+      error.textContent = '';
+    } catch (problem) {
+      error.textContent = problem.message;
+    }
+  });
   select('[data-use]').addEventListener('click', async () => {
     persist();
     if (window.openai?.sendFollowUpMessage) {
       try {
-        await window.openai.sendFollowUpMessage({ title: 'Use Dash preview settings', prompt: `Use these settings for the Dash VFX direction:\n${config.value}` });
+        await window.openai.sendFollowUpMessage({ title: 'Use Dash preview settings', prompt: `Use these settings for the Dash VFX direction:\n${configText()}` });
         return;
       } catch { feedback.textContent = 'Copy the settings below.'; }
     }
-    copy.hidden = false;
-    config.focus();
-    config.select();
+    exportConfig();
   });
 
   window.addEventListener('openai:set_globals', (event) => {
