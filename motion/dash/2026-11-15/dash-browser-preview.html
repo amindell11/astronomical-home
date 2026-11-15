@@ -1929,6 +1929,8 @@ html&gt;body{padding:0}&lt;/style&gt;
     { key: &#x27;burstStrength&#x27;, group: &#x27;burst&#x27;, label: &#x27;Strength&#x27;, min: 0, max: 180, step: 5, initial: 100, unit: &#x27;%&#x27; },
     { key: &#x27;burstLength&#x27;, group: &#x27;burst&#x27;, label: &#x27;Length&#x27;, min: 20, max: 200, step: 5, initial: 100, unit: &#x27;%&#x27; },
     { key: &#x27;burstDuration&#x27;, group: &#x27;burst&#x27;, label: &#x27;Duration&#x27;, min: 40, max: 400, step: 5, initial: 180, unit: &#x27; ms&#x27; },
+    { key: &#x27;flashStrength&#x27;, group: &#x27;burst&#x27;, label: &#x27;Flash strength&#x27;, min: 0, max: 180, step: 5, initial: 100, unit: &#x27;%&#x27; },
+    { key: &#x27;flashDuration&#x27;, group: &#x27;burst&#x27;, label: &#x27;Flash duration&#x27;, min: 30, max: 180, step: 5, initial: 90, unit: &#x27; ms&#x27; },
     { key: &#x27;ghostCount&#x27;, group: &#x27;ghost&#x27;, label: &#x27;Count&#x27;, min: 0, max: 5, step: 1, initial: 2, unit: &#x27;&#x27; },
     { key: &#x27;ghostSpacing&#x27;, group: &#x27;ghost&#x27;, label: &#x27;Spacing&#x27;, min: 25, max: 120, step: 5, initial: 65, unit: &#x27; ms&#x27; },
     { key: &#x27;ghostOpacity&#x27;, group: &#x27;ghost&#x27;, label: &#x27;Opacity&#x27;, min: 0, max: 80, step: 1, initial: 32, unit: &#x27;%&#x27; },
@@ -2051,6 +2053,33 @@ html&gt;body{padding:0}&lt;/style&gt;
     context.restore();
   }
 
+  function drawAtEngineExits(x, y, hullSize, draw) {
+    for (const side of [-1, 1]) {
+      context.save();
+      context.translate(x - hullSize * .31, y + side * hullSize * .155);
+      context.globalCompositeOperation = &#x27;lighter&#x27;;
+      draw();
+      context.restore();
+    }
+  }
+
+  function drawSteadyExhaust(x, y, hullSize) {
+    const length = hullSize * .22;
+    const width = hullSize * .025;
+    drawAtEngineExits(x, y, hullSize, () =&gt; {
+      const gradient = context.createLinearGradient(0, 0, -length, 0);
+      gradient.addColorStop(0, &#x27;#b7f7ff&#x27;);
+      gradient.addColorStop(.28, &#x27;rgba(69,205,255,.78)&#x27;);
+      gradient.addColorStop(1, &#x27;rgba(18,134,255,0)&#x27;);
+      context.fillStyle = gradient;
+      context.beginPath();
+      context.moveTo(0, -width);
+      context.quadraticCurveTo(-length * .65, -width * .55, -length, 0);
+      context.quadraticCurveTo(-length * .65, width * .55, 0, width);
+      context.fill();
+    });
+  }
+
   function drawBurst(x, y, hullSize, age) {
     const { burstDuration, burstStrength, burstLength } = settings;
     if (age &lt; 0 || age &gt;= burstDuration || burstStrength === 0) return;
@@ -2059,12 +2088,7 @@ html&gt;body{padding:0}&lt;/style&gt;
     const intensity = burstStrength / 100;
     const length = hullSize * .83 * burstLength / 100 * (.42 + .58 * pulse);
     const spread = hullSize * (.028 + .053 * pulse);
-    for (const side of [-1, 1]) {
-      const jetY = y + side * hullSize * .155;
-      const origin = x - hullSize * .31;
-      context.save();
-      context.translate(origin, jetY);
-      context.globalCompositeOperation = &#x27;lighter&#x27;;
+    drawAtEngineExits(x, y, hullSize, () =&gt; {
       function wedge(distance, width, alpha, colors) {
         const gradient = context.createLinearGradient(0, 0, -distance, 0);
         colors.forEach(([fraction, color]) =&gt; gradient.addColorStop(fraction, color));
@@ -2081,8 +2105,32 @@ html&gt;body{padding:0}&lt;/style&gt;
       }
       wedge(length, spread, pulse * intensity * .9, [[0, &#x27;#b5fcff&#x27;], [.18, &#x27;#52deff&#x27;], [.56, &#x27;#158fec&#x27;], [1, &#x27;rgba(21,143,236,0)&#x27;]]);
       wedge(length * .67, spread * .36, pulse * intensity, [[0, &#x27;#ffffff&#x27;], [.31, &#x27;#ecfeff&#x27;], [.67, &#x27;#75eaff&#x27;], [1, &#x27;rgba(117,234,255,0)&#x27;]]);
-      context.restore();
-    }
+    });
+  }
+
+  function drawEngineFlash(x, y, hullSize, age) {
+    const { flashStrength, flashDuration } = settings;
+    if (age &lt; 0 || age &gt;= flashDuration || flashStrength === 0) return;
+    const attack = clamp((age + 8) / 14, 0, 1);
+    const pulse = attack * (1 - age / flashDuration) ** 1.35;
+    const intensity = flashStrength / 100;
+    const radius = Math.max(4, hullSize * .145) * (.7 + .3 * pulse);
+    drawAtEngineExits(x, y, hullSize, () =&gt; {
+      context.translate(-hullSize * .018, 0);
+      context.scale(1.22, 1);
+      const bloom = context.createRadialGradient(0, 0, 0, 0, 0, radius);
+      bloom.addColorStop(0, &#x27;#ffffff&#x27;);
+      bloom.addColorStop(.2, &#x27;#c3faff&#x27;);
+      bloom.addColorStop(.48, &#x27;rgba(49,206,255,.52)&#x27;);
+      bloom.addColorStop(1, &#x27;rgba(28,176,255,0)&#x27;);
+      context.globalAlpha = clamp(pulse * intensity, 0, 1);
+      context.fillStyle = bloom;
+      context.fillRect(-radius, -radius, radius * 2, radius * 2);
+      context.fillStyle = &#x27;#faffff&#x27;;
+      context.beginPath();
+      context.ellipse(0, 0, radius * .23, radius * .13, 0, 0, Math.PI * 2);
+      context.fill();
+    });
   }
 
   function drawAfterimages(w, h, hullSize) {
@@ -2123,8 +2171,10 @@ html&gt;body{padding:0}&lt;/style&gt;
     const x = shipPosition(time, width);
     const y = height * .55;
     drawAfterimages(width, height, hullSize);
+    drawSteadyExhaust(x, y, hullSize);
     drawBurst(x, y, hullSize, time - dashStart);
     drawShip(x, y, hullSize, 1);
+    drawEngineFlash(x, y, hullSize, time - dashStart);
     const rounded = Math.round(time);
     scrub.value = rounded;
     timeOutput.textContent = `${rounded} ms`;
