@@ -54,9 +54,6 @@ MonoBehaviour:
   spawnRadius: 55
   groupSpread: 8
   clearanceRadius: 6
-  asteroidMask:
-    serializedVersion: 2
-    m_Bits: 256
   placementAttempts: 4
 --- !u!1 &4210092014597554681
 GameObject:
@@ -459,14 +456,12 @@ MonoBehaviour:
   elite: {fileID: 4201520510818603066}
   zoneDistance: 150
   zoneClearance: 35
-  asteroidMask:
-    serializedVersion: 2
-    m_Bits: 256
   placementAttempts: 8
   beaconZone: {fileID: 7877101623167739606}
   beaconDistance: 150
   beaconLeadSeconds: 8
   beaconGraceSeconds: 10
+  beaconWarningSeconds: 3
 --- !u!114 &4667602915908898981
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -544,9 +539,6 @@ MonoBehaviour:
   team: 1
   spawnRadius: 55
   clearanceRadius: 6
-  asteroidMask:
-    serializedVersion: 2
-    m_Bits: 256
   placementAttempts: 8
 --- !u!1 &8433355183706691782
 GameObject:

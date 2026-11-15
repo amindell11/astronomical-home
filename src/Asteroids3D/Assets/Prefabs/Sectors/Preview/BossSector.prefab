@@ -65,12 +65,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
         type: 3}
-      propertyPath: openingLullSeconds
+      propertyPath: lullSeconds
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1116166669378757183, guid: 35f72eeaa8adb4c43832be646409d034,
         type: 3}
-      propertyPath: lullSeconds
+      propertyPath: openingLullSeconds
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1227466035045939097, guid: 35f72eeaa8adb4c43832be646409d034,
