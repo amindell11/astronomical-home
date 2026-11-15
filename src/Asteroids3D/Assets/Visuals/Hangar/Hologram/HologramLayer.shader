@@ -1,4 +1,4 @@
-Shader "Astronomical/Hangar/Hologram Layer Placeholder"
+Shader "Astronomical/Hangar/Hologram Layer"
 {
     Properties
     {

@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 6008686677571912583}
   - component: {fileID: 3344604667626119049}
   m_Layer: 5
-  m_Name: Projector Cone (placeholder)
+  m_Name: Projector Cone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

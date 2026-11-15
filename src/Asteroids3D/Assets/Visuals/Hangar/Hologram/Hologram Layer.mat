@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Hologram Layer (placeholder)
+  m_Name: Hologram Layer
   m_Shader: {fileID: 4800000, guid: eae56ff771f97444097add930ffbdf01, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0

@@ -111,6 +111,7 @@ namespace Tests.PlayMode.Hangar
             projector.Open(new[] { valis }, valis);
 
             using var knobs = new SerializedObject(runtimeProfile);
+            knobs.FindProperty("flickerDepth").floatValue = 0f;
             var block = new MaterialPropertyBlock();
             foreach (var opacity in new[] { .3f, .9f })
             {
@@ -147,9 +148,9 @@ namespace Tests.PlayMode.Hangar
             Assert.That(Vector3.Distance(root.position, console.ProjectorLens.transform.position), Is.LessThan(.01f));
 
             var side = wiring.FindProperty("surfaceSize").vector2Value.x * projector.Frame.width;
-            Assert.That(Vector3.Distance(root.localScale,
-                    profile.ProjectorCone.transform.localScale * (side / HangarPreviewStage.FrameSideInRadii)),
-                Is.LessThan(1e-4f), "the cone is authored in framing radii");
+            var frameOffset = wiring.FindProperty("frameOffset").vector2Value;
+            Assert.That(Vector3.Distance(root.localScale, new Vector3(2f * side, frameOffset.y + side * .5f, 1f)),
+                Is.LessThan(1e-4f), "the cone stretches from the lens to the settled ship");
 
             var beam = cone[0].bounds;
             foreach (var r in cone) beam.Encapsulate(r.bounds);
@@ -158,6 +159,39 @@ namespace Tests.PlayMode.Hangar
             var camera = console.HardwareCamera;
             Assert.That(camera.WorldToScreenPoint(new Vector3(beam.center.x, beam.max.y, beam.center.z)).y,
                 Is.LessThan(camera.WorldToScreenPoint(frameTop).y), "the cone's top sits below the frame's top");
+        }
+
+        [UnityTest]
+        public IEnumerator Stage_ResolvesTheShipToASeeThroughImage()
+        {
+            var valis = AssetDatabase.LoadAssetAtPath<Ship>(ValisPath);
+            stage = HangarPreviewStage.Create(null, new Vector2Int(256, 256), new Rect(0f, 0f, 1f, 1f),
+                new[] { valis }, profile.Restyle, profile.Resolve);
+            stage.Show(valis, backwards: false);
+            yield return new WaitForSeconds(EntrySeconds);
+
+            var previous = RenderTexture.active;
+            RenderTexture.active = stage.Texture;
+            var read = new Texture2D(stage.Texture.width, stage.Texture.height, TextureFormat.RGBAFloat, false, true);
+            try
+            {
+                read.ReadPixels(new Rect(0, 0, stage.Texture.width, stage.Texture.height), 0, 0);
+                read.Apply();
+                var seeThrough = false;
+                var peak = 0f;
+                foreach (var pixel in read.GetPixels())
+                {
+                    peak = Mathf.Max(peak, pixel.a);
+                    if (pixel.a > .3f && pixel.a < .95f) seeThrough = true;
+                }
+                Assert.That(seeThrough, Is.True, "the fill is see-through");
+                Assert.That(peak, Is.GreaterThan(.5f));
+            }
+            finally
+            {
+                RenderTexture.active = previous;
+                Object.DestroyImmediate(read);
+            }
         }
 
         [Test]
