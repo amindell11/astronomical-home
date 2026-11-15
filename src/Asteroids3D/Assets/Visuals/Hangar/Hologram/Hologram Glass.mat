@@ -27,7 +27,7 @@ Material:
     m_Floats:
     - _DamageFlash: 0
     - _DebrisVisibility: 1
-    - _GlassLight: 0.8
+    - _GlassLight: 1.088
     - _RimPower: 2.5
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}

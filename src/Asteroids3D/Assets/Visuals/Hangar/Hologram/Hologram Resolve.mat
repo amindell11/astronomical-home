@@ -25,19 +25,19 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _CreaseLight: 0.55
-    - _FillBody: 0.6
-    - _FillLight: 0.62
-    - _Lift: 0.08
-    - _LineBody: 0.85
+    - _CreaseLight: 0.27
+    - _FillBody: 0.75
+    - _FillLight: 0.78
+    - _Lift: 0.12
+    - _LineBody: 0.95
     - _LineLight: 1
-    - _PaintEdgeLight: 0.5
-    - _PigmentKeep: 0.6
+    - _PaintEdgeLight: 1.22
+    - _PigmentKeep: 0.67
     - _RimLight: 0.18
-    - _RimPower: 2.5
-    - _Saturation: 0.85
+    - _RimPower: 3.9
+    - _Saturation: 1.08
     m_Colors:
-    - _LineColor: {r: 1, g: 0.945, b: 0.839, a: 1}
-    - _Tint: {r: 0.91, g: 0.933, b: 0.973, a: 1}
+    - _LineColor: {r: 1, g: 0.94509804, b: 0.8392157, a: 1}
+    - _Tint: {r: 0.9098039, g: 0.93333334, b: 0.972549, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

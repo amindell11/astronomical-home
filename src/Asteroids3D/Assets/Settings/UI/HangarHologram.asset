@@ -19,27 +19,27 @@ MonoBehaviour:
     - drawn: {fileID: 4800000, guid: affa24b4d6e246de866922721692a87e, type: 3}
       counterpart: {fileID: 2100000, guid: 97b634db300f3fc42b6084ee0e2054d7, type: 2}
   resolve: {fileID: 2100000, guid: e667034c1fc2f5c4c89ec653c76c2c1f, type: 2}
-  layerOpacity: 0.95
-  flickerDepth: 0.05
+  layerOpacity: 0.9
+  flickerDepth: 0.125
   flickerRate: 9
   canopy:
-    glow: 0.3
+    glow: 0.38
     aberration: 1.3
-    beamJitter: 0.2
+    beamJitter: 0.7
     afterglow: 0.05
-    scanlines: 0.3
+    scanlines: 0.42
     flicker: 0.3
-    warmth: 0.2
+    warmth: 0.35
     wear: 0.08
     glassDistortion: 0
     damageShudder: 3
     transitionGlitch: 0.6
-    haloReach: 10
+    haloReach: 16
     haloStrength: 0.25
     textGlow: 0
-    halation: 0.3
-    coolTint: {r: 0.35, g: 0.62, b: 1, a: 1}
-    signalBleed: 0.1
+    halation: 0.54
+    coolTint: {r: 0.34901962, g: 0.61960787, b: 1, a: 1}
+    signalBleed: 0.32
     bleedLength: 10
   projectorCone: {fileID: 795247661687202296, guid: adfe92957729fa2479caee2cec721e15,
     type: 3}

@@ -26,7 +26,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _ContourMinimum: 0.25
-    - _ContourPixels: 1
+    - _ContourPixels: 1.6
     - _DebrisVisibility: 1
     - _UniformWidth: 1
     m_Colors:
