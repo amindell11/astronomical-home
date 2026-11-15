@@ -6,8 +6,8 @@ namespace Substrate.Sectors.Elements.Stations.Visual
     public enum StationLook { Open, InUse, Dark }
 
     /// <summary>
-    /// Visual-only motion and light looks of an outpost station. While it is dark, the parts
-    /// hold still and every light is out.
+    /// Visual-only motion and light looks of an outpost station. When it goes dark, every light
+    /// goes out at once and the parts coast to a stop.
     /// </summary>
     public sealed class StationMotion : MonoBehaviour
     {
@@ -59,6 +59,9 @@ namespace Substrate.Sectors.Elements.Stations.Visual
         [Tooltip("Service-lamp glow multiplier while the station is in use.")]
         [SerializeField] private float inUseBoost = 2.5f;
 
+        [Tooltip("Seconds the parts take to coast to a stop when the station goes dark, and to spin back up when it relights.")]
+        [SerializeField] private float coastSeconds = 10f;
+
         [Tooltip("Body colour of every light while the station is dark.")]
         [SerializeField] private Color darkColour = new Color32(0x1E, 0x20, 0x30, 0xFF);
 
@@ -68,6 +71,7 @@ namespace Substrate.Sectors.Elements.Stations.Visual
         private MaterialPropertyBlock block;
         private CachedLight[] steady;
         private CachedLight[][] bands;
+        private float power;
         private bool awake;
 
         private void Awake()
@@ -82,6 +86,7 @@ namespace Substrate.Sectors.Elements.Stations.Visual
             for (var i = 0; i < chase.Length; i++)
                 bands[i] = Cache(chase[i].lamps, "chase lamp");
 
+            power = look == StationLook.Dark ? 0f : 1f;
             awake = true;
         }
 
@@ -95,10 +100,11 @@ namespace Substrate.Sectors.Elements.Stations.Visual
 
         private void Update()
         {
-            if (look == StationLook.Dark) return;
-
+            var dark = look == StationLook.Dark;
+            power = Mathf.MoveTowards(power, dark ? 0f : 1f, Time.deltaTime / coastSeconds);
             foreach (var spin in spins)
-                spin.part.Rotate(spin.localAxis, 360f / spin.secondsPerTurn * Time.deltaTime, Space.Self);
+                spin.part.Rotate(spin.localAxis, 360f / spin.secondsPerTurn * power * Time.deltaTime, Space.Self);
+            if (dark) return;
 
             var p = Mathf.Repeat(Time.time / chaseSecondsPerSweep, 1f) * (chase.Length + 1);
             var flare = look == StationLook.InUse ? inUseBoost : 1f;

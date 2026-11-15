@@ -8,22 +8,22 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: blue
-    second: {fileID: 2100000, guid: dd4c2dda524479f43b2f5b7b4b893b4e, type: 2}
+    second: {fileID: 2100000, guid: 6084d606431bd8049badca7057ede53e, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: bone
-    second: {fileID: 2100000, guid: 53326256eb961b64ab1b3963d7edf2ee, type: 2}
+    second: {fileID: 2100000, guid: 84d102fa385f20a4ca91e8172bbcaeaa, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: brick
-    second: {fileID: 2100000, guid: 393ee7a112c33ef4db512c36c54b0321, type: 2}
+    second: {fileID: 2100000, guid: 52ee7eec8874bbb438dc22724a9484f1, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: canvas
-    second: {fileID: 2100000, guid: 68acb9291e4867a47b19f4612645d968, type: 2}
+    second: {fileID: 2100000, guid: a3a837780f0fb214eab3dfb93e043094, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
@@ -48,12 +48,12 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: ochre
-    second: {fileID: 2100000, guid: 161b7975bf0a5704d9fd50662c9630f9, type: 2}
+    second: {fileID: 2100000, guid: 743f426eb11e2534aa95f0652e03fac0, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: slate
-    second: {fileID: 2100000, guid: d19d8538858c8454e811cabbf2b81a57, type: 2}
+    second: {fileID: 2100000, guid: 232e2f54705ef8d458c4a035997afdef, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
