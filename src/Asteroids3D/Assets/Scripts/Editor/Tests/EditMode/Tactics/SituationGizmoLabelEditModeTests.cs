@@ -4,7 +4,7 @@ using AI.Tactics;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Tests.EditMode
+namespace Tests.EditMode.Tactics
 {
     [Category("AI")]
     public class SituationGizmoLabelEditModeTests

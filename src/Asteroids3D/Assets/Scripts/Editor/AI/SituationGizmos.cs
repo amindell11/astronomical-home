@@ -104,17 +104,13 @@ namespace AI
         private static string SecondLine(TacticsSettings temper, bool wounded, float? respondingSeconds,
             int retreatsTaken, WoundedDraw? draw)
         {
-            if (wounded)
-            {
-                var line = WoundedLine(temper.wounded, respondingSeconds);
-                if (line == null || !temper.commits || !draw.HasValue) return line;
-                var drawn = draw.Value.retreats;
-                return $"{line} · {drawn - retreatsTaken} of {drawn} left";
-            }
+            if (!wounded)
+                return temper.commits && draw.HasValue && retreatsTaken >= draw.Value.retreats ? "committed" : null;
 
-            if (temper.commits && draw.HasValue && retreatsTaken >= draw.Value.retreats)
-                return "committed";
-            return null;
+            var line = WoundedLine(temper.wounded, respondingSeconds);
+            if (line == null || !temper.commits || !draw.HasValue) return line;
+            var drawn = draw.Value.retreats;
+            return $"{line} · {drawn - retreatsTaken} of {drawn} left";
         }
 
         private static string WoundedLine(WoundedResponse response, float? respondingSeconds)
