@@ -1866,7 +1866,7 @@ html&gt;body{padding:0}&lt;/style&gt;
 &lt;/script&gt;
 &lt;div id=&quot;dash-look-preview&quot;&gt;
   &lt;div class=&quot;dash-scene&quot;&gt;
-    &lt;canvas role=&quot;img&quot; aria-label=&quot;Vanguard dashing to the right, with a cyan engine burst and fading copies of the ship&quot;&gt;&lt;/canvas&gt;
+    &lt;canvas role=&quot;img&quot; aria-label=&quot;Vanguard dashing to the right, leaving an expanding cyan shockwave and fading afterimages&quot;&gt;&lt;/canvas&gt;
     &lt;div class=&quot;dash-scene-label&quot;&gt;&lt;span&gt;Vanguard&lt;/span&gt;&lt;span class=&quot;text-small&quot; data-phase&gt;Ready&lt;/span&gt;&lt;/div&gt;
   &lt;/div&gt;
   &lt;div class=&quot;viz-controls dash-transport&quot;&gt;
@@ -1888,6 +1888,10 @@ html&gt;body{padding:0}&lt;/style&gt;
     &lt;section aria-label=&quot;Afterimages&quot;&gt;
       &lt;h3&gt;Afterimages&lt;/h3&gt;
       &lt;div data-controls=&quot;ghost&quot;&gt;&lt;/div&gt;
+    &lt;/section&gt;
+    &lt;section aria-label=&quot;Shockwave&quot;&gt;
+      &lt;h3&gt;Shockwave&lt;/h3&gt;
+      &lt;div data-controls=&quot;wave&quot;&gt;&lt;/div&gt;
     &lt;/section&gt;
   &lt;/div&gt;
   &lt;div class=&quot;viz-row&quot;&gt;
@@ -1925,6 +1929,7 @@ html&gt;body{padding:0}&lt;/style&gt;
   const viewControl = select(&#x27;[data-view]&#x27;);
   const phaseOutput = select(&#x27;[data-phase]&#x27;);
   const timeOutput = select(&#x27;[data-time]&#x27;);
+  const groupNames = { burst: &#x27;Engine burst&#x27;, ghost: &#x27;Afterimage&#x27;, wave: &#x27;Shockwave&#x27; };
   const fields = [
     { key: &#x27;burstStrength&#x27;, group: &#x27;burst&#x27;, label: &#x27;Strength&#x27;, min: 0, max: 180, step: 5, initial: 100, unit: &#x27;%&#x27; },
     { key: &#x27;burstLength&#x27;, group: &#x27;burst&#x27;, label: &#x27;Length&#x27;, min: 20, max: 200, step: 5, initial: 100, unit: &#x27;%&#x27; },
@@ -1935,6 +1940,9 @@ html&gt;body{padding:0}&lt;/style&gt;
     { key: &#x27;ghostSpacing&#x27;, group: &#x27;ghost&#x27;, label: &#x27;Spacing&#x27;, min: 25, max: 120, step: 5, initial: 65, unit: &#x27; ms&#x27; },
     { key: &#x27;ghostOpacity&#x27;, group: &#x27;ghost&#x27;, label: &#x27;Opacity&#x27;, min: 0, max: 80, step: 1, initial: 32, unit: &#x27;%&#x27; },
     { key: &#x27;ghostFade&#x27;, group: &#x27;ghost&#x27;, label: &#x27;Fade&#x27;, min: 40, max: 500, step: 5, initial: 240, unit: &#x27; ms&#x27; },
+    { key: &#x27;waveSize&#x27;, group: &#x27;wave&#x27;, label: &#x27;Size&#x27;, min: 35, max: 155, step: 5, initial: 100, unit: &#x27;%&#x27; },
+    { key: &#x27;waveStrength&#x27;, group: &#x27;wave&#x27;, label: &#x27;Strength&#x27;, min: 0, max: 180, step: 5, initial: 100, unit: &#x27;%&#x27; },
+    { key: &#x27;waveDuration&#x27;, group: &#x27;wave&#x27;, label: &#x27;Duration&#x27;, min: 80, max: 500, step: 5, initial: 240, unit: &#x27; ms&#x27; },
   ];
   const settings = Object.fromEntries(fields.map(({ key, initial }) =&gt; [key, initial]));
   const dashStart = 300;
@@ -2133,6 +2141,32 @@ html&gt;body{padding:0}&lt;/style&gt;
     });
   }
 
+  function drawShockwave(x, y, hullSize, age) {
+    const { waveSize, waveStrength, waveDuration } = settings;
+    if (age &lt; 0 || age &gt;= waveDuration || waveStrength === 0) return;
+    const progress = age / waveDuration;
+    const expansion = 1 - (1 - progress) ** 2.45;
+    const radius = hullSize * (.13 + .67 * expansion) * waveSize / 100;
+    const brightness = waveStrength / 100 * (1 - progress) ** 1.25;
+    const thickness = Math.max(1, hullSize * (.030 - .017 * progress));
+
+    context.save();
+    context.globalCompositeOperation = &#x27;lighter&#x27;;
+    function ring(scale, width, color, alpha) {
+      context.lineWidth = width;
+      context.strokeStyle = color;
+      context.globalAlpha = clamp(alpha, 0, 1);
+      context.beginPath();
+      context.ellipse(x, y, radius * scale * .31, radius * scale, 0, 0, Math.PI * 2);
+      context.stroke();
+    }
+    ring(.78, thickness * 1.6, &#x27;#22adf8&#x27;, brightness * .18 * Math.sin(Math.PI * progress));
+    ring(.94, thickness * 4.3, &#x27;#168ae5&#x27;, brightness * .23);
+    ring(1, thickness * 2.3, &#x27;#40d5ff&#x27;, brightness * .64);
+    ring(1, thickness, &#x27;#efffff&#x27;, brightness * 1.12);
+    context.restore();
+  }
+
   function drawAfterimages(w, h, hullSize) {
     const { ghostCount, ghostSpacing, ghostOpacity, ghostFade } = settings;
     for (let index = 0; index &lt; ghostCount; index++) {
@@ -2171,6 +2205,7 @@ html&gt;body{padding:0}&lt;/style&gt;
     const x = shipPosition(time, width);
     const y = height * .55;
     drawAfterimages(width, height, hullSize);
+    drawShockwave(shipPosition(dashStart, width) - hullSize * .29, y, hullSize, time - dashStart);
     drawSteadyExhaust(x, y, hullSize);
     drawBurst(x, y, hullSize, time - dashStart);
     drawShip(x, y, hullSize, 1);
@@ -2178,11 +2213,12 @@ html&gt;body{padding:0}&lt;/style&gt;
     const rounded = Math.round(time);
     scrub.value = rounded;
     timeOutput.textContent = `${rounded} ms`;
-    const { ghostCount, ghostSpacing, ghostOpacity, ghostFade, burstDuration, burstStrength } = settings;
+    const { ghostCount, ghostSpacing, ghostOpacity, ghostFade, burstDuration, burstStrength, waveDuration, waveStrength } = settings;
     const afterimageEnd = ghostCount &amp;&amp; ghostOpacity
       ? dashStart + (ghostCount - 1) * ghostSpacing + Math.max(22, ghostSpacing * .62) + ghostFade
       : 0;
-    const activeEnd = Math.max(dashStart + dashDuration, burstStrength ? dashStart + burstDuration : 0, afterimageEnd);
+    const waveEnd = waveStrength ? dashStart + waveDuration : 0;
+    const activeEnd = Math.max(dashStart + dashDuration, burstStrength ? dashStart + burstDuration : 0, afterimageEnd, waveEnd);
     phaseOutput.textContent = time &lt; dashStart ? &#x27;Ready&#x27; : time &lt; dashStart + dashDuration ? &#x27;Dash&#x27; : time &lt; activeEnd ? &#x27;Recovery&#x27; : &#x27;Settled&#x27;;
   }
 
@@ -2219,7 +2255,7 @@ html&gt;body{padding:0}&lt;/style&gt;
   const config = copy.querySelector(&#x27;textarea&#x27;);
   const feedback = select(&#x27;[data-feedback]&#x27;);
   function refreshConfig() {
-    config.value = fields.map(({ group, key, label, unit }) =&gt; `${group === &#x27;burst&#x27; ? &#x27;Engine burst&#x27; : &#x27;Afterimage&#x27;} ${label.toLowerCase()} = ${settings[key]}${unit}`).join(&#x27;\n&#x27;);
+    config.value = fields.map(({ group, key, label, unit }) =&gt; `${groupNames[group]} ${label.toLowerCase()} = ${settings[key]}${unit}`).join(&#x27;\n&#x27;);
   }
   select(&#x27;[data-use]&#x27;).addEventListener(&#x27;click&#x27;, async () =&gt; {
     persist();
