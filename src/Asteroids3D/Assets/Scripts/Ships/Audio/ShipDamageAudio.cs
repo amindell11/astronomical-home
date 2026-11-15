@@ -11,7 +11,7 @@ namespace Ships.Audio
     /// <summary>
     /// A ship's damage one-shots: shield hits, hull hits, and a death sound chosen by the killing
     /// blow's kind. Each one-shot plays at the ship's position with the ship's velocity at that
-    /// moment, still not attached because the ship deactivates in the same call that reports its death.
+    /// moment, not attached: the ship deactivates in the same call that reports its death.
     /// The damage surface is injected via <see cref="Bind"/>
     /// (see <see cref="IShipVisual"/>).
     /// </summary>
