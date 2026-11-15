@@ -27,9 +27,6 @@ namespace UI.Hangar
         // The approved ink weight: contour widths as drawn on the original 768 px preview texture.
         private const float InkReferenceTextureSize = 768f;
         private const float FramingMargin = 1.05f;
-        // Measured at the anchor's depth.
-        internal static readonly float FrameSideInRadii =
-            2f * FramingMargin / Mathf.Cos(CameraFovDeg * .5f * Mathf.Deg2Rad);
         private const float MinFramedRadius = 0.5f;
         private const float FramedRadius = 1f;
         private static readonly int ContourPixelsId = Shader.PropertyToID("_ContourPixels");
@@ -42,6 +39,7 @@ namespace UI.Hangar
         private bool showing;
         private MaterialRestyle restyle;
         private StageResolvePass resolvePass;
+        private UniversalAdditionalCameraData stageCameraData;
 
         public RenderTexture Texture => texture;
 
@@ -58,6 +56,7 @@ namespace UI.Hangar
             if (resolve)
             {
                 stage.resolvePass = new StageResolvePass(resolve);
+                stage.stageCameraData = stage.stageCamera.GetUniversalAdditionalCameraData();
                 RenderPipelineManager.beginCameraRendering += stage.EnqueueResolve;
             }
             var offered = 0;
@@ -291,7 +290,7 @@ namespace UI.Hangar
         private void EnqueueResolve(ScriptableRenderContext context, Camera camera)
         {
             if (camera != stageCamera) return;
-            camera.GetUniversalAdditionalCameraData().scriptableRenderer.EnqueuePass(resolvePass);
+            stageCameraData.scriptableRenderer.EnqueuePass(resolvePass);
         }
 
         private void OnDestroy()

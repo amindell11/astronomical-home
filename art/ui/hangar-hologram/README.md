@@ -4,7 +4,7 @@ The hologram the hangar console projects: the selected ship as painted glass, ov
 The ship keeps its own paint, thinned and see-through, under thin cream lines. One resolve pass on
 the hologram stage's camera draws it (`HologramResolve.shader`, run by `StageResolvePass`).
 The three takes the owner chose between, the mock-ups and the in-game stills live on the
-`evidence/hangar-hologram-look` branch: [design history](HISTORY_URL).
+`evidence/hangar-hologram-look` branch: [design history](https://github.com/amindell11/astronomical-home/tree/38d31e3af7e6671db0c80893df3aceca7c921a62).
 The PR that shipped it holds the rejected options.
 
 ## Files

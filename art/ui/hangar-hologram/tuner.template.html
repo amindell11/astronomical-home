@@ -354,7 +354,7 @@ function draw(time) {
     gl.uniform1f(P.u[u], S[k]);
   gl.uniform3fv(P.u.uCool, rgb(S.coolTint)); gl.uniform3fv(P.u.uConeColor, rgb(S.coneColor));
   const n = t => { const i = Math.floor(t), f = t - i, h = x => { const v = Math.sin(x * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); }; const s = f * f * (3 - 2 * f); return h(i) * (1 - s) + h(i + 1) * s; };
-  const dip = n(time * S.flickerRate) * .6 + (n(time * S.flickerRate * .23 + 40) > .82 ? .4 : 0);
+  const dip = n(time * S.flickerRate);
   gl.uniform1f(P.u.uLevel, 1 - S.flickerDepth * dip);
   gl.uniform4f(P.u.uLens, L.projector[0], L.projector[1], 0, 0);
   gl.uniform3f(P.u.uFrame, L.frame[0], L.frame[1], L.frame[2]);
