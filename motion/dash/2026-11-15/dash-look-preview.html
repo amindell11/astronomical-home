@@ -1,6 +1,6 @@
 <div id="dash-look-preview">
   <div class="dash-scene">
-    <canvas role="img" aria-label="Vanguard dashing to the right, with a cyan engine burst and fading copies of the ship"></canvas>
+    <canvas role="img" aria-label="Vanguard dashing to the right, leaving an expanding cyan shockwave and fading afterimages"></canvas>
     <div class="dash-scene-label"><span>Vanguard</span><span class="text-small" data-phase>Ready</span></div>
   </div>
   <div class="viz-controls dash-transport">
@@ -22,6 +22,10 @@
     <section aria-label="Afterimages">
       <h3>Afterimages</h3>
       <div data-controls="ghost"></div>
+    </section>
+    <section aria-label="Shockwave">
+      <h3>Shockwave</h3>
+      <div data-controls="wave"></div>
     </section>
   </div>
   <div class="viz-row">
@@ -59,6 +63,7 @@
   const viewControl = select('[data-view]');
   const phaseOutput = select('[data-phase]');
   const timeOutput = select('[data-time]');
+  const groupNames = { burst: 'Engine burst', ghost: 'Afterimage', wave: 'Shockwave' };
   const fields = [
     { key: 'burstStrength', group: 'burst', label: 'Strength', min: 0, max: 180, step: 5, initial: 100, unit: '%' },
     { key: 'burstLength', group: 'burst', label: 'Length', min: 20, max: 200, step: 5, initial: 100, unit: '%' },
@@ -69,6 +74,9 @@
     { key: 'ghostSpacing', group: 'ghost', label: 'Spacing', min: 25, max: 120, step: 5, initial: 65, unit: ' ms' },
     { key: 'ghostOpacity', group: 'ghost', label: 'Opacity', min: 0, max: 80, step: 1, initial: 32, unit: '%' },
     { key: 'ghostFade', group: 'ghost', label: 'Fade', min: 40, max: 500, step: 5, initial: 240, unit: ' ms' },
+    { key: 'waveSize', group: 'wave', label: 'Size', min: 35, max: 155, step: 5, initial: 100, unit: '%' },
+    { key: 'waveStrength', group: 'wave', label: 'Strength', min: 0, max: 180, step: 5, initial: 100, unit: '%' },
+    { key: 'waveDuration', group: 'wave', label: 'Duration', min: 80, max: 500, step: 5, initial: 240, unit: ' ms' },
   ];
   const settings = Object.fromEntries(fields.map(({ key, initial }) => [key, initial]));
   const dashStart = 300;
@@ -267,6 +275,32 @@
     });
   }
 
+  function drawShockwave(x, y, hullSize, age) {
+    const { waveSize, waveStrength, waveDuration } = settings;
+    if (age < 0 || age >= waveDuration || waveStrength === 0) return;
+    const progress = age / waveDuration;
+    const expansion = 1 - (1 - progress) ** 2.45;
+    const radius = hullSize * (.13 + .67 * expansion) * waveSize / 100;
+    const brightness = waveStrength / 100 * (1 - progress) ** 1.25;
+    const thickness = Math.max(1, hullSize * (.030 - .017 * progress));
+
+    context.save();
+    context.globalCompositeOperation = 'lighter';
+    function ring(scale, width, color, alpha) {
+      context.lineWidth = width;
+      context.strokeStyle = color;
+      context.globalAlpha = clamp(alpha, 0, 1);
+      context.beginPath();
+      context.ellipse(x, y, radius * scale * .31, radius * scale, 0, 0, Math.PI * 2);
+      context.stroke();
+    }
+    ring(.78, thickness * 1.6, '#22adf8', brightness * .18 * Math.sin(Math.PI * progress));
+    ring(.94, thickness * 4.3, '#168ae5', brightness * .23);
+    ring(1, thickness * 2.3, '#40d5ff', brightness * .64);
+    ring(1, thickness, '#efffff', brightness * 1.12);
+    context.restore();
+  }
+
   function drawAfterimages(w, h, hullSize) {
     const { ghostCount, ghostSpacing, ghostOpacity, ghostFade } = settings;
     for (let index = 0; index < ghostCount; index++) {
@@ -305,6 +339,7 @@
     const x = shipPosition(time, width);
     const y = height * .55;
     drawAfterimages(width, height, hullSize);
+    drawShockwave(shipPosition(dashStart, width) - hullSize * .29, y, hullSize, time - dashStart);
     drawSteadyExhaust(x, y, hullSize);
     drawBurst(x, y, hullSize, time - dashStart);
     drawShip(x, y, hullSize, 1);
@@ -312,11 +347,12 @@
     const rounded = Math.round(time);
     scrub.value = rounded;
     timeOutput.textContent = `${rounded} ms`;
-    const { ghostCount, ghostSpacing, ghostOpacity, ghostFade, burstDuration, burstStrength } = settings;
+    const { ghostCount, ghostSpacing, ghostOpacity, ghostFade, burstDuration, burstStrength, waveDuration, waveStrength } = settings;
     const afterimageEnd = ghostCount && ghostOpacity
       ? dashStart + (ghostCount - 1) * ghostSpacing + Math.max(22, ghostSpacing * .62) + ghostFade
       : 0;
-    const activeEnd = Math.max(dashStart + dashDuration, burstStrength ? dashStart + burstDuration : 0, afterimageEnd);
+    const waveEnd = waveStrength ? dashStart + waveDuration : 0;
+    const activeEnd = Math.max(dashStart + dashDuration, burstStrength ? dashStart + burstDuration : 0, afterimageEnd, waveEnd);
     phaseOutput.textContent = time < dashStart ? 'Ready' : time < dashStart + dashDuration ? 'Dash' : time < activeEnd ? 'Recovery' : 'Settled';
   }
 
@@ -353,7 +389,7 @@
   const config = copy.querySelector('textarea');
   const feedback = select('[data-feedback]');
   function refreshConfig() {
-    config.value = fields.map(({ group, key, label, unit }) => `${group === 'burst' ? 'Engine burst' : 'Afterimage'} ${label.toLowerCase()} = ${settings[key]}${unit}`).join('\n');
+    config.value = fields.map(({ group, key, label, unit }) => `${groupNames[group]} ${label.toLowerCase()} = ${settings[key]}${unit}`).join('\n');
   }
   select('[data-use]').addEventListener('click', async () => {
     persist();
