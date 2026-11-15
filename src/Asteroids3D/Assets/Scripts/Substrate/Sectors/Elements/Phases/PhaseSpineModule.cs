@@ -16,16 +16,15 @@ using UnityEngine;
 namespace Substrate.Sectors.Elements.Phases
 {
     /// <summary>
-    /// A sector spine over its wave director's sector phases: survive them, then reach
-    /// the extraction zone, which stays hidden until the phases are done and then appears on a clear
-    /// point away from the hero. The hero's jump request inside commits extraction. Shortly before a
-    /// sector phase that a lull follows ends, a lull beacon opens on a clear point away from the hero
-    /// the same way and stays through the lull and a grace window into the next phase; flying into it
-    /// claims it (<see cref="BeaconClaimed"/>), and an unclaimed one closes when its grace runs out or
-    /// the next beacon opens. While the sector's hunt runs, the HUD's
-    /// countdown reads the hunt instead. The director and the hunt are held to observe, never commanded.
-    /// With an elite wired, the phases' end summons the elite instead, and extraction opens on its
-    /// death; the spine owns the elite encounter and drives it.
+    /// A sector spine over its wave director's sector phases: survive them, then reach the extraction
+    /// zone, hidden until the table is done, then placed on a clear point away from the hero. A jump
+    /// request inside commits extraction. Shortly before a lull, a beacon opens the same way and stays
+    /// through that lull and a grace window after it: into the next phase, or into the elite fight for
+    /// the lull before the elite. Flying in claims it (<see cref="BeaconClaimed"/>); an unclaimed one
+    /// closes when its grace runs out or the next beacon opens. While the hunt runs, the HUD countdown
+    /// reads the hunt. The director and the hunt are held to observe, never commanded. With an elite
+    /// wired, a lull follows the last phase and its end summons the elite; extraction opens on its
+    /// death. The spine owns the elite encounter and drives it.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1051
     /// </summary>
     public class PhaseSpineModule : SectorModule, ISectorRowReader
@@ -39,7 +38,7 @@ namespace Substrate.Sectors.Elements.Phases
         [Tooltip("The sector's opening hunt, read for the HUD's countdown until the hunt releases; unset for none.")]
         [SerializeField] private SectorHunt hunt;
         [SerializeField] private ExtractionZone extractionZone;
-        [Tooltip("The sector's elite, summoned when the phases run out; extraction opens on its death. Unset = extraction opens with the phases' end.")]
+        [Tooltip("The sector's elite, summoned when the lull after the last phase ends; extraction opens on its death. Unset = extraction opens with the phases' end.")]
         [SerializeField] private EliteEncounter elite;
 
         [Header("Zone placement")]
@@ -166,17 +165,23 @@ namespace Substrate.Sectors.Elements.Phases
         }
 
         // The lull in progress, or the one within the lead of this phase's end.
+        // The closing lull is numbered PhaseCount, apart from the lull before the last phase.
         private int LullAhead(SectorPhaseMark mark)
         {
             if (mark.Done || mark.InOpeningLull) return -1;
-            if (mark.InLull) return mark.Index;
-            var lullFollows = mark.Index < director.PhaseCount - 1;
+            if (mark.InLull) return mark.Closing ? director.PhaseCount : mark.Index;
+            var last = mark.Index == director.PhaseCount - 1;
+            var lullFollows = !last || director.ClosingLull;
             return lullFollows && mark.SecondsLeft <= beaconLeadSeconds ? mark.Index + 1 : -1;
         }
 
+        private bool InBeaconGrace(SectorPhaseMark mark) =>
+            !mark.InLull && (mark.Done ? beaconLull == director.PhaseCount : mark.Index == beaconLull);
+
         private bool BeaconExpired(SectorPhaseMark mark) =>
-            mark.Done || !mark.InLull && (mark.Index > beaconLull
-                || mark.Index == beaconLull && mark.ElapsedSeconds >= beaconGraceSeconds);
+            InBeaconGrace(mark)
+                ? mark.ElapsedSeconds >= beaconGraceSeconds
+                : !mark.InLull && (mark.Done || mark.Index > beaconLull);
 
         private void OpenBeacon(int lull)
         {
@@ -205,7 +210,7 @@ namespace Substrate.Sectors.Elements.Phases
         }
 
         private float? BeaconGraceLeft(SectorPhaseMark mark) =>
-            beaconOpen && mark.Index == beaconLull && !mark.InLull
+            beaconOpen && InBeaconGrace(mark)
                 ? Mathf.Max(0f, beaconGraceSeconds - mark.ElapsedSeconds)
                 : null;
 
@@ -226,7 +231,8 @@ namespace Substrate.Sectors.Elements.Phases
             var beaconFill = graceLeft.HasValue && beaconGraceSeconds > 0f ? graceLeft.Value / beaconGraceSeconds : 1f;
             var beaconExpiring = graceLeft <= beaconWarningSeconds;
             ReadCaption(mark, out var caption, out var captionSeconds);
-            return new SectorPhaseProgress(mark.InLull ? mark.Index - 1 : mark.Index,
+            var index = mark.InLull && !mark.Closing ? mark.Index - 1 : mark.Index;
+            return new SectorPhaseProgress(index,
                 director.PhaseCount, mark.SecondsToEnd, mark.Done,
                 beaconFill: beaconFill, beaconExpiring: beaconExpiring,
                 caption: caption, captionSeconds: captionSeconds);
@@ -297,6 +303,7 @@ namespace Substrate.Sectors.Elements.Phases
             private int shownIndex = -1;
             private int shownSeconds = -1;
             private bool shownLull;
+            private bool shownClosing;
 
             public SurviveState(WaveDirector director) => this.director = director;
 
@@ -313,13 +320,21 @@ namespace Substrate.Sectors.Elements.Phases
                 {
                     var mark = director.Phase;
                     var seconds = Mathf.CeilToInt(mark.SecondsLeft);
-                    if (mark.Index == shownIndex && mark.InLull == shownLull && seconds == shownSeconds) return line;
+                    if (mark.Index == shownIndex && mark.InLull == shownLull && mark.Closing == shownClosing
+                        && seconds == shownSeconds)
+                        return line;
 
                     shownIndex = mark.Index;
                     shownLull = mark.InLull;
+                    shownClosing = mark.Closing;
                     shownSeconds = seconds;
-                    var phase = $"PHASE {mark.Index + 1}/{director.PhaseCount}";
-                    line = mark.InLull ? $"{phase} IN {Clock(seconds)}" : $"{phase}    {Clock(seconds)}";
+                    if (mark.Closing)
+                        line = $"ELITE IN {Clock(seconds)}";
+                    else
+                    {
+                        var phase = $"PHASE {mark.Index + 1}/{director.PhaseCount}";
+                        line = mark.InLull ? $"{phase} IN {Clock(seconds)}" : $"{phase}    {Clock(seconds)}";
+                    }
                     return line;
                 }
             }

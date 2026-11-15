@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using Utils;
 
@@ -18,7 +19,13 @@ namespace Ships.Visuals.Breakup
         [SerializeField] private Animation motion;
         [SerializeField, Min(.1f)] private float lifetime = 1.4f;
         [SerializeField, Min(.01f)] private float fadeDuration = .25f;
+        [Tooltip("Soot on the hull paint this debris wears.")]
+        [SerializeField, Range(0f, 1f)] private float soot;
+        [Tooltip("Render queue the worn hull paint draws at; above 3000 it draws in front of the death explosion. -1 keeps the paint's own.")]
+        [SerializeField] private int paintQueue = -1;
         private static readonly int Visibility = Shader.PropertyToID("_DebrisVisibility");
+        private static readonly int Soot = Shader.PropertyToID("_SootStrength");
+        private readonly List<Material> copies = new();
         private MaterialPropertyBlock block;
         private Vector3 velocity;
         private float pace;
@@ -39,8 +46,10 @@ namespace Ships.Visuals.Breakup
             block = new MaterialPropertyBlock();
         }
 
-        public void Initialize(Vector3 inheritedVelocity, Transform[] sourcePose, DeathFeelProfile feel)
+        public void Initialize(Vector3 inheritedVelocity, Transform[] sourcePose, DeathFeelProfile feel,
+            IReadOnlyDictionary<Material, Material> hullPaint)
         {
+            WearHullPaint(hullPaint);
             velocity = inheritedVelocity;
             pace = feel.Pace;
             for (var i = 0; i < poseRoots.Length; i++)
@@ -61,6 +70,49 @@ namespace Ships.Visuals.Breakup
                 piece.renderer.SetPropertyBlock(block);
             }
             if (age >= lifetime) Destroy(gameObject);
+        }
+
+        private void WearHullPaint(IReadOnlyDictionary<Material, Material> hullPaint)
+        {
+            if (hullPaint.Count == 0) return;
+
+            var treated = new Dictionary<Material, Material>();
+            foreach (var piece in pieces)
+            {
+                var materials = piece.renderer.sharedMaterials;
+                var dressed = false;
+                for (var i = 0; i < materials.Length; i++)
+                {
+                    if (!hullPaint.TryGetValue(materials[i], out var paint)) continue;
+                    materials[i] = Worn(paint, treated);
+                    dressed = true;
+                }
+                if (dressed) piece.renderer.sharedMaterials = materials;
+            }
+        }
+
+        private Material Worn(Material paint, Dictionary<Material, Material> treated)
+        {
+            if (treated.TryGetValue(paint, out var worn)) return worn;
+
+            if ((soot <= 0f && paintQueue < 0) || !paint.HasFloat(Soot))
+                worn = paint;
+            else
+            {
+                worn = new Material(paint);
+                worn.SetFloat(Soot, soot);
+                if (paintQueue >= 0) worn.renderQueue = paintQueue;
+                copies.Add(worn);
+            }
+
+            treated.Add(paint, worn);
+            return worn;
+        }
+
+        private void OnDestroy()
+        {
+            foreach (var material in copies)
+                Destroy(material);
         }
     }
 }

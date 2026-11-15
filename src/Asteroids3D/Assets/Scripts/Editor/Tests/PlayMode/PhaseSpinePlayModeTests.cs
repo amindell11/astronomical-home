@@ -9,6 +9,7 @@ using Ships;
 using Substrate;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
+using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Services;
 using Substrate.Services.Objectives;
@@ -21,7 +22,7 @@ using Substrate.Sessions;
 
 namespace Tests.PlayMode
 {
-    /// <summary>A phased sector end to end: the director's phases run out, the extraction zone appears at its distance from the hero, and a non-player hero's jump request inside ends the sector extracted; a beacon opens ahead of a lull at its distance and flying in claims it.</summary>
+    /// <summary>A phased sector end to end: the director's phases run out, the extraction zone appears at its distance from the hero, and a non-player hero's jump request inside ends the sector extracted; a beacon opens ahead of a lull at its distance and flying in claims it. The lull before an elite opens one too, and it stays its grace past the table's end.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class PhaseSpinePlayModeTests : PlayModeWorldFixture
@@ -187,6 +188,46 @@ namespace Tests.PlayMode
             Assert.IsNull(_objectives.SpineTarget);
             yield return null;
             Assert.IsFalse(beacon.gameObject.activeSelf, "A claimed lull's beacon stays closed.");
+
+            yield return sector.Teardown();
+        }
+
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator ClosingLull_OpensABeacon_ThatOutlivesTheTable()
+        {
+            var player = SpawnKinematicShip(Vector2.zero);
+            var sectorGO = TrackGO(new GameObject("ClosingLullSector"));
+            var sector = sectorGO.AddComponent<Sector>();
+
+            var directorGO = new GameObject("WaveDirector");
+            directorGO.transform.SetParent(sectorGO.transform, false);
+            var director = directorGO.AddComponent<WaveDirector>();
+            var elite = directorGO.AddComponent<EliteEncounter>();
+            var row = new SectorEntry
+            {
+                phases = new[] { new SectorPhase { seconds = 1f, groups = System.Array.Empty<WaveGroup>() } }
+            };
+            director.Configure(row.phases, lullSeconds: 1f, elite: elite);
+
+            var beacon = NewZone(sectorGO.transform, "Beacon");
+            var spine = sectorGO.AddComponent<PhaseSpineModule>();
+            spine.Bind(director, NewZone(sectorGO.transform, "Zone"), beacon, leadSeconds: 0f, graceSeconds: 2f);
+
+            sector.SetManifest(null, new SectorSpawner[] { director }, new SectorModule[] { spine });
+            sector.Initialize(_unitService, _objectives, true, default, player, row);
+
+            yield return sector.Setup();
+            yield return WaitSeconds(() => beacon.gameObject.activeSelf, 5f);
+            Assert.IsTrue(beacon.gameObject.activeSelf, "The closing lull opens a beacon.");
+            Assert.IsFalse(spine.BeaconClaimed);
+
+            yield return WaitSeconds(() => director.Phase.Done, 5f);
+            Assert.IsTrue(director.Phase.Done);
+            Assert.IsTrue(beacon.gameObject.activeSelf, "The beacon outlives the table by its grace.");
+
+            yield return WaitSeconds(() => !beacon.gameObject.activeSelf, 5f);
+            Assert.IsFalse(beacon.gameObject.activeSelf, "The grace into the elite closes it.");
 
             yield return sector.Teardown();
         }

@@ -273,7 +273,7 @@ everything and exits nonzero.
   drew.
 - **Never call `Gunsight.Evaluate()` from an overlay** — it mutates the firing path's
   LOS cache (observer effect on the sim). `InEnvelope()` only.
-- **The caller owns pacing.** The RL caller uses `CapturePacing.Locked` before
+- **The caller owns pacing.** The harness caller uses `CapturePacing.Locked` before
   readiness; preview hosts keep their own transport and simulation clock. Recording
   never changes either. Cross a rendered frame after changing pacing before starting
   time-sensitive animation, so the first unscaled timestamp uses the new clock.
@@ -282,8 +282,7 @@ everything and exits nonzero.
   the sped-up sim. Expect a recording run to occupy Unity access far longer than
   the same run headless; plan the coordinator lease accordingly.
 - **Aim visuals use the public `Gunner.AimPoint(...)` static** — the same lead the
-  AI uses. RLHarness has no internals access to GameCore; `AssemblyInfo.cs` is the
-  unlock if ever needed.
+  AI uses.
 - **Eyeball a mid-clip PNG (Read the file) before assembling** — compile-green
   says nothing about render output, a frame-count read-back cannot see a blank
   render, and the frames are gone once the clip verifies. For label checks,
