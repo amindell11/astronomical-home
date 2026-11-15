@@ -97,7 +97,8 @@ namespace AI.Pilots
         private int tacticTick;
         private int flankSign;
         private WoundedDraw? woundedDraw;
-        private int? woundedTick;
+        private bool wounded;
+        private int? respondingTick;
         // Outlives a live-target change: a ship that finds a new target keeps its spent retreats.
         private int retreatsTaken;
 
@@ -157,7 +158,8 @@ namespace AI.Pilots
             evadedMissile = null;
             roaming = false;
             CurrentTactic = null;
-            woundedTick = null;
+            wounded = false;
+            respondingTick = null;
         }
 
         public override BrainDecision? Decide(AIContext ctx)
@@ -258,18 +260,12 @@ namespace AI.Pilots
             var situation = Situation.Read(ctx, tactics);
             woundedDraw ??= WoundedDraw.From(tactics, ctx.TacticsSeed);
             var draw = woundedDraw.Value;
-            var woundedSeconds = woundedTick.HasValue
-                ? (tickCounter - woundedTick.Value) * Time.fixedDeltaTime
+            var respondingSeconds = respondingTick.HasValue
+                ? (tickCounter - respondingTick.Value) * Time.fixedDeltaTime
                 : 0f;
-            var wounded = WoundedRules.Next(woundedTick.HasValue, woundedSeconds, in situation, tactics,
-                in draw, retreatsTaken);
-            if (wounded && woundedTick == null)
-            {
-                woundedTick = tickCounter;
-                retreatsTaken++;
-            }
-            else if (!wounded)
-                woundedTick = null;
+            wounded = WoundedRules.Next(wounded, respondingSeconds, in situation, tactics, in draw, retreatsTaken);
+            if (!wounded)
+                respondingTick = null;
 
             var held = CurrentTactic.HasValue ? (tickCounter - tacticTick) * Time.fixedDeltaTime : float.PositiveInfinity;
             var tactic = TacticRules.Next(CurrentTactic ?? tactics.home, held, in situation, tactics, wounded);
@@ -277,6 +273,12 @@ namespace AI.Pilots
             {
                 CurrentTactic = tactic;
                 tacticTick = tickCounter;
+            }
+
+            if (wounded && respondingTick == null && WoundedRules.InEffect(tactics, tactic))
+            {
+                respondingTick = tickCounter;
+                retreatsTaken++;
             }
 
             var them = target.Kinematics;

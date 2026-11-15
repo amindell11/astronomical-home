@@ -16,17 +16,26 @@ namespace AI.Tactics
             return gauge < d.below && s.secondsSinceHit <= t.hitWithin;
         }
 
-        public static bool Ends(in Situation s, float woundedSeconds, TacticsSettings t, in WoundedDraw d) =>
+        public static bool Ends(in Situation s, float respondingSeconds, TacticsSettings t, in WoundedDraw d) =>
             t.woundedEnds switch
             {
                 WoundedEnds.WhenShieldIsBack => s.shieldPct * 100f >= d.shieldBack,
-                WoundedEnds.AfterSeconds => woundedSeconds >= d.seconds,
+                WoundedEnds.AfterSeconds => respondingSeconds >= d.seconds,
                 _ => throw new ArgumentOutOfRangeException(nameof(t.woundedEnds), t.woundedEnds, null),
             };
 
-        public static bool Next(bool wounded, float woundedSeconds, in Situation s, TacticsSettings t,
+        public static bool Next(bool wounded, float respondingSeconds, in Situation s, TacticsSettings t,
             in WoundedDraw d, int retreatsTaken) =>
-            wounded ? !Ends(in s, woundedSeconds, t, in d) : Starts(in s, t, in d, retreatsTaken);
+            wounded ? !Ends(in s, respondingSeconds, t, in d) : Starts(in s, t, in d, retreatsTaken);
+
+        public static bool InEffect(TacticsSettings t, Tactic flown) => t.wounded switch
+        {
+            WoundedResponse.BreakOff => flown == Tactic.BreakOff,
+            WoundedResponse.FallBack => flown == Tactic.FallBack,
+            WoundedResponse.TurnCautious => true,
+            WoundedResponse.Never => false,
+            _ => throw new ArgumentOutOfRangeException(nameof(t.wounded), t.wounded, null),
+        };
 
         private static float Gauge(in Situation s, WoundGauge gauge) => gauge switch
         {

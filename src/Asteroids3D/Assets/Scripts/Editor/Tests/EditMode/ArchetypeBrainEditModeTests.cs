@@ -433,6 +433,58 @@ namespace Tests.EditMode
             Assert.AreEqual(Tactic.BreakOff, brain.CurrentTactic, "a reset spends none of the new life");
         }
 
+        [Test]
+        public void Retreat_IsSpentWhenTheFallBackFlies()
+        {
+            var temper = ScriptableObject.CreateInstance<TacticsSettings>();
+            temper.wounded = WoundedResponse.FallBack;
+            temper.woundedSeconds = new Spread(0.4f, 0.4f);
+            temper.commits = true;
+            temper.retreatsMin = 1;
+            temper.retreatsMax = 1;
+            var (brain, status, ctx) = WoundedPilot(temper);
+            temper.minimumHold = 1f;
+            temper.woundedEnds = WoundedEnds.AfterSeconds;
+
+            Fly(brain, ctx);
+            Assert.AreEqual(Tactic.AttackRun, brain.CurrentTactic);
+
+            Hurt(status, ctx);
+            Fly(brain, ctx);
+            Fly(brain, ctx);
+            Assert.AreEqual(Tactic.AttackRun, brain.CurrentTactic, "the hold still has the attack run");
+
+            const int ticksPerFly = 10;
+            var heldTicks = 2 * ticksPerFly;
+            var flies = 0;
+            while (heldTicks * Time.fixedDeltaTime < temper.minimumHold)
+            {
+                Fly(brain, ctx);
+                heldTicks += ticksPerFly;
+                Assert.Less(++flies, 30, "the hold never released the attack run");
+            }
+
+            Assert.AreEqual(Tactic.FallBack, brain.CurrentTactic, "the fall back flies once the hold ends");
+
+            var flownTicks = 0;
+            flies = 0;
+            while (flownTicks * Time.fixedDeltaTime < temper.minimumHold
+                || flownTicks * Time.fixedDeltaTime < temper.woundedSeconds.min)
+            {
+                Fly(brain, ctx);
+                flownTicks += ticksPerFly;
+                Assert.Less(++flies, 30, "the fall back never ended");
+            }
+
+            Assert.AreEqual(Tactic.AttackRun, brain.CurrentTactic,
+                "its own hold and its drawn seconds have run out");
+
+            Heal(status, ctx);
+            Hurt(status, ctx);
+            Fly(brain, ctx);
+            Assert.AreEqual(Tactic.AttackRun, brain.CurrentTactic, "the one retreat is spent");
+        }
+
         [TestCase("Assets/Prefabs/Pilots/AggressorPilot.prefab", "Aggressor")]
         [TestCase("Assets/Prefabs/Pilots/OrbiterPilot.prefab", "Orbiter")]
         [TestCase("Assets/Prefabs/Pilots/KiterPilot.prefab", "Kiter")]

@@ -80,8 +80,8 @@ namespace Tests.EditMode.Tactics
         {
             settings.woundedEnds = WoundedEnds.WhenShieldIsBack;
 
-            Assert.IsFalse(WoundedRules.Ends(State(0.5f, 1f, 0f), woundedSeconds: 100f, settings, in draw));
-            Assert.IsTrue(WoundedRules.Ends(State(0.9f, 1f, 0f), woundedSeconds: 0f, settings, in draw));
+            Assert.IsFalse(WoundedRules.Ends(State(0.5f, 1f, 0f), respondingSeconds: 100f, settings, in draw));
+            Assert.IsTrue(WoundedRules.Ends(State(0.9f, 1f, 0f), respondingSeconds: 0f, settings, in draw));
         }
 
         [Test]
@@ -91,6 +91,38 @@ namespace Tests.EditMode.Tactics
 
             Assert.IsFalse(WoundedRules.Ends(State(1f, 1f, 0f), draw.seconds - 0.1f, settings, in draw));
             Assert.IsTrue(WoundedRules.Ends(State(0.1f, 1f, 0f), draw.seconds, settings, in draw));
+        }
+
+        [Test]
+        public void InEffect_OnlyWhileThatResponseIsFlown()
+        {
+            settings.wounded = WoundedResponse.BreakOff;
+            Assert.IsTrue(WoundedRules.InEffect(settings, Tactic.BreakOff));
+            Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.FallBack));
+            Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.AttackRun));
+            Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.Flank));
+            Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.StandOff));
+
+            settings.wounded = WoundedResponse.FallBack;
+            Assert.IsTrue(WoundedRules.InEffect(settings, Tactic.FallBack));
+            Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.BreakOff));
+            Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.AttackRun));
+            Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.Flank));
+            Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.StandOff));
+
+            settings.wounded = WoundedResponse.TurnCautious;
+            Assert.IsTrue(WoundedRules.InEffect(settings, Tactic.AttackRun), "any tactic");
+            Assert.IsTrue(WoundedRules.InEffect(settings, Tactic.Flank), "any tactic");
+            Assert.IsTrue(WoundedRules.InEffect(settings, Tactic.StandOff), "any tactic");
+            Assert.IsTrue(WoundedRules.InEffect(settings, Tactic.BreakOff), "any tactic");
+            Assert.IsTrue(WoundedRules.InEffect(settings, Tactic.FallBack), "any tactic");
+
+            settings.wounded = WoundedResponse.Never;
+            Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.AttackRun));
+            Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.Flank));
+            Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.StandOff));
+            Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.BreakOff));
+            Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.FallBack));
         }
     }
 }

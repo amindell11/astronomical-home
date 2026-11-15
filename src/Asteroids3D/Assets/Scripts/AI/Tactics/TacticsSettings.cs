@@ -44,7 +44,7 @@ namespace AI.Tactics
         public WoundedEnds woundedEnds = WoundedEnds.WhenShieldIsBack;
         [Tooltip("Shield %, at or above which a ship is no longer hurt, when the shield coming back ends it. Each ship draws its own level in this range.")]
         public Spread shieldBack = new(80f, 80f);
-        [Tooltip("Seconds a ship stays hurt, when seconds end it. Each ship draws its own length in this range.")]
+        [Tooltip("Seconds a ship flies its response before it stops being hurt, when seconds end it. Each ship draws its own length in this range.")]
         public Spread woundedSeconds = new(5f, 5f);
         [Tooltip("After its drawn number of retreats the ship is never hurt again. Off means no limit.")]
         public bool commits;

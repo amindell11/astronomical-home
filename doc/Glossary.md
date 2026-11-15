@@ -944,7 +944,9 @@ Format: **term** — definition. *(authority)*
   reads the ship's nerve as 100% so the flank-or-stand-off rule keeps it out of
   the target's guns. A ship is *wounded* from the hit that finds its trigger
   gauge, shield or hull, under its own point, until its own end condition: the
-  shield back to a level, or a number of seconds. Each ship draws its point,
+  shield back to a level, or a number of seconds. A retreat is spent, and its
+  seconds start, when the ship flies it: a held flank or stand off delays it,
+  because a tactic holds until its reason ends (#1349). Each ship draws its point,
   its end values and its retreat count once from its temper's ranges, off its
   decision seed, so a spawn slot draws the same numbers every run until arenas
   have seeds. A temper that *commits* is never wounded again once a ship has
