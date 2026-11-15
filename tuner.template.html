@@ -1,0 +1,348 @@
+<title>Planet Tuner</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&display=swap">
+<style>
+/* Layout: the game frame holds the left and stays in view; a narrow instrument column of knobs runs down the right. */
+:root {
+  color-scheme: dark;
+  --space: #05070d;
+  --panel: #0c1220;
+  --panel-raised: #121a2c;
+  --stroke: rgba(232, 230, 220, 0.16);
+  --stroke-strong: rgba(232, 230, 220, 0.42);
+  --ink: #e8e6dc;
+  --ink-dim: #8e96a8;
+  --signal: #7fd9cf;
+  --signal-ink: #04201d;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-label: "Barlow Semi Condensed", "Arial Narrow", "Segoe UI", sans-serif;
+  --font-data: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+html, body { background: var(--space); }
+body {
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.45;
+  padding-block: 20px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1500px; margin: 0 auto; display: grid; gap: 18px; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; }
+h1 { font-family: var(--font-label); font-weight: 600; font-size: 26px; letter-spacing: 0.04em; margin: 0; text-transform: uppercase; }
+header p { margin: 0; color: var(--ink-dim); max-width: 70ch; }
+.bench { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 18px; align-items: start; }
+.stage { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); display: grid; gap: 10px; min-width: 0; }
+.frame { position: relative; border: 1px solid var(--stroke); background: #000; }
+canvas { display: block; width: 100%; aspect-ratio: 16 / 9; max-width: 100%; }
+.frame-tag { position: absolute; left: 10px; bottom: 8px; font-family: var(--font-label); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink); opacity: 0.7; text-shadow: 0 0 4px #000; pointer-events: none; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.row + .row { margin-top: 0; }
+.row-label { font-family: var(--font-label); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-dim); min-width: 58px; }
+button {
+  font-family: var(--font-label); font-size: 14px; letter-spacing: 0.04em; color: var(--ink);
+  background: transparent; border: 1px solid var(--stroke-strong); padding: 6px 12px; cursor: pointer; border-radius: 2px;
+}
+button:hover { background: var(--panel-raised); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+button[aria-pressed="true"] { background: var(--signal); border-color: var(--signal); color: var(--signal-ink); font-weight: 600; }
+.note { color: var(--ink-dim); margin: 0; min-height: 1.45em; }
+.spacer { flex: 1 1 auto; }
+.clock { font-family: var(--font-data); font-size: 12px; color: var(--ink-dim); font-variant-numeric: tabular-nums; }
+.knobs { display: grid; gap: 16px; min-width: 0; }
+.group { background: var(--panel); border: 1px solid var(--stroke); padding: 14px 14px 6px; }
+.group h2 { font-family: var(--font-label); font-weight: 600; font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase; margin: 0 0 10px; color: var(--signal); }
+.knob { display: grid; grid-template-columns: 1fr auto; gap: 0 10px; padding-bottom: 10px; }
+.knob label { font-family: var(--font-label); font-weight: 500; font-size: 15px; }
+.knob output { font-family: var(--font-data); font-size: 12px; color: var(--ink); font-variant-numeric: tabular-nums; align-self: center; }
+.knob input { grid-column: 1 / -1; width: 100%; margin: 4px 0 2px; accent-color: var(--signal); }
+.knob small { grid-column: 1 / -1; color: var(--ink-dim); font-size: 12.5px; }
+.export { background: var(--panel); border: 1px solid var(--stroke); padding: 14px; display: grid; gap: 10px; }
+.export h2 { font-family: var(--font-label); font-weight: 600; font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase; margin: 0; color: var(--signal); }
+.export p { margin: 0; color: var(--ink-dim); font-size: 13px; }
+pre { margin: 0; font-family: var(--font-data); font-size: 12px; line-height: 1.5; background: var(--space); border: 1px solid var(--stroke); padding: 10px; overflow-x: auto; user-select: all; }
+.limits { color: var(--ink-dim); font-size: 13px; max-width: 80ch; }
+.limits h2 { font-family: var(--font-label); font-weight: 600; font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink); margin: 0 0 6px; }
+.limits ul { margin: 0; padding-left: 18px; }
+#fail { border: 1px solid var(--stroke-strong); padding: 14px; }
+@media (max-width: 980px) {
+  .bench { grid-template-columns: minmax(0, 1fr); }
+  .stage { position: static; }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Planet Tuner</h1>
+    <p>Issue #1481: clouds that move and a stronger atmosphere glow. The frame is the whole game screen, running the planet shader's own maths over a real in-game backdrop.</p>
+  </header>
+
+  <div id="fail" hidden>This page needs WebGL2 to draw the planet, and this browser did not provide it.</div>
+
+  <div class="bench" id="bench">
+    <section class="stage" aria-label="Game frame">
+      <div class="frame">
+        <canvas id="view" width="1280" height="720"></canvas>
+        <span class="frame-tag" id="frameTag"></span>
+      </div>
+      <div class="row" role="group" aria-label="Planet">
+        <span class="row-label">Planet</span>
+        <span id="planetButtons" class="row"></span>
+        <span class="spacer"></span>
+        <span class="row-label">Time</span>
+        <button id="pause" aria-pressed="false">Pause</button>
+        <span id="speedButtons" class="row"></span>
+        <span class="clock" id="clock"></span>
+      </div>
+      <div class="row" role="group" aria-label="Look">
+        <span class="row-label">Look</span>
+        <span id="lookButtons" class="row"></span>
+        <button id="compare" aria-pressed="false" title="Hold to see what ships today">Hold for today</button>
+      </div>
+      <p class="note" id="lookNote"></p>
+      <div class="limits">
+        <h2>What this frame leaves out</h2>
+        <ul>
+          <li>The game's bloom. Bright glow will bleed a little further in the build than it does here.</li>
+          <li>The foreground nebula wisps, which pass in front of the planet in play.</li>
+          <li>The ship is part of the backdrop photo, so a wide halo paints over it here. In the game the ship sits on top.</li>
+        </ul>
+      </div>
+    </section>
+
+    <aside class="knobs" aria-label="Knobs">
+      <div id="knobGroups" class="knobs"></div>
+      <div class="export">
+        <h2>Settings</h2>
+        <p>Send this block back in chat and it gets baked into the planet materials.</p>
+        <pre id="exportText" tabindex="0"></pre>
+        <div class="row"><button id="copy">Copy settings</button><span class="note" id="copyNote" role="status"></span></div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+const BAKED = /*__BAKED__*/;
+const SETTINGS = BAKED.settings;
+const STORE_KEY = "planet-tuner-1481";
+const knobIds = SETTINGS.knobs.map(k => k.id);
+const lookValues = id => Object.fromEntries(knobIds.map(k => [k, SETTINGS.looks[id][k]]));
+
+const state = { planet: "VerdantGiant", look: "b", knobs: lookValues("b"), time: 40, speed: 1, paused: false, holdToday: false };
+try {
+  const saved = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
+  if (saved && saved.knobs && knobIds.every(k => typeof saved.knobs[k] === "number")) {
+    state.knobs = saved.knobs; state.look = saved.look; state.planet = SETTINGS.planets[saved.planet] ? saved.planet : state.planet;
+  }
+} catch (error) { /* storage is a convenience only */ }
+if (matchMedia("(prefers-reduced-motion: reduce)").matches) state.paused = true;
+
+const canvas = document.getElementById("view");
+const gl = canvas.getContext("webgl2", { antialias: false, alpha: false });
+if (!gl) {
+  document.getElementById("fail").hidden = false;
+  document.getElementById("bench").hidden = true;
+} else {
+  start();
+}
+
+function start() {
+  const compile = (type, source) => {
+    const shader = gl.createShader(type);
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(shader));
+    return shader;
+  };
+  const program = gl.createProgram();
+  gl.attachShader(program, compile(gl.VERTEX_SHADER, "#version 300 es\nin vec2 position;\nvoid main() { gl_Position = vec4(position, 0.0, 1.0); }"));
+  gl.attachShader(program, compile(gl.FRAGMENT_SHADER, "#version 300 es\nprecision highp float;\nprecision highp sampler2D;\n" + BAKED.shader));
+  gl.linkProgram(program);
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program));
+  gl.useProgram(program);
+  const buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+  const position = gl.getAttribLocation(program, "position");
+  gl.enableVertexAttribArray(position);
+  gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+  const uniform = name => gl.getUniformLocation(program, name);
+
+  const textures = {};
+  const loadTexture = (key, surface) => {
+    const texture = gl.createTexture();
+    textures[key] = { texture, ready: false };
+    const image = new Image();
+    image.onload = () => {
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB8, gl.RGB, gl.UNSIGNED_BYTE, image);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, surface ? gl.REPEAT : gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      if (surface) {
+        gl.generateMipmap(gl.TEXTURE_2D);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        const sharp = gl.getExtension("EXT_texture_filter_anisotropic");
+        if (sharp) gl.texParameterf(gl.TEXTURE_2D, sharp.TEXTURE_MAX_ANISOTROPY_EXT, 8);
+      } else {
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      }
+      textures[key].ready = true;
+    };
+    image.src = BAKED.images[key];
+  };
+  for (const [id, planet] of Object.entries(SETTINGS.planets)) {
+    loadTexture(planet.texture, true);
+    loadTexture(id + "_backdrop", false);
+  }
+
+  const fit = () => {
+    const scale = Math.min(window.devicePixelRatio || 1, 2);
+    const width = Math.min(1920, Math.max(320, Math.round(canvas.clientWidth * scale)));
+    const height = Math.round(width * 9 / 16);
+    if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; }
+  };
+  new ResizeObserver(fit).observe(canvas);
+  fit();
+
+  const draw = () => {
+    const planet = SETTINGS.planets[state.planet];
+    const knobs = state.holdToday ? lookValues("now") : state.knobs;
+    const surface = textures[planet.texture], backdrop = textures[state.planet + "_backdrop"];
+    if (!surface.ready || !backdrop.ready) return;
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, surface.texture);
+    gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, backdrop.texture);
+    gl.uniform1i(uniform("uMain"), 0);
+    gl.uniform1i(uniform("uBackdrop"), 1);
+    gl.uniform1f(uniform("uUseBackdrop"), 1);
+    gl.uniform2f(uniform("uRes"), canvas.width, canvas.height);
+    gl.uniform1f(uniform("uTime"), state.time);
+    gl.uniform3fv(uniform("uCenter"), planet.center);
+    gl.uniform1f(uniform("uRadius"), planet.radius);
+    gl.uniform3fv(uniform("uLight"), planet.light);
+    gl.uniform3fv(uniform("uTint"), planet.tint);
+    gl.uniform3fv(uniform("uAtmo"), planet.atmo);
+    gl.uniform3fv(uniform("uSky"), planet.sky);
+    gl.uniform1f(uniform("uTilt"), planet.tilt);
+    gl.uniform1f(uniform("uLongitude"), planet.longitude);
+    gl.uniform1f(uniform("uRotSpeed"), planet.rotSpeed * knobs.rotScale);
+    const direct = { jet: "uJet", jetBands: "uJetBands", eddy: "uEddy", eddyScale: "uEddyScale", flowCycle: "uFlowCycle",
+      deck: "uDeck", deckCover: "uDeckCover", deckSpeed: "uDeckSpeed", deckShadow: "uDeckShadow", rimPower: "uRimPower",
+      rimIntensity: "uRimIntensity", haloWidth: "uHaloWidth", haloIntensity: "uHaloIntensity", haloFalloff: "uHaloFalloff",
+      nightGlow: "uNightGlow" };
+    for (const [knob, name] of Object.entries(direct)) gl.uniform1f(uniform(name), knobs[knob]);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  };
+
+  let last = performance.now();
+  const clock = document.getElementById("clock");
+  const tick = now => {
+    const delta = Math.min(0.1, (now - last) / 1000);
+    last = now;
+    if (!state.paused) state.time += delta * state.speed;
+    clock.textContent = "t " + state.time.toFixed(0).padStart(4, " ") + " s";
+    draw();
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+  buildControls();
+}
+
+function format(value, step) {
+  const places = step >= 1 ? 0 : step >= 0.1 ? 1 : step >= 0.01 ? 2 : 3;
+  return value.toFixed(places);
+}
+
+function buildControls() {
+  const pressed = (button, on) => button.setAttribute("aria-pressed", on ? "true" : "false");
+  const buttonRow = (hostId, entries, isOn, choose) => {
+    const host = document.getElementById(hostId);
+    const buttons = entries.map(([id, text]) => {
+      const button = document.createElement("button");
+      button.textContent = text;
+      button.id = hostId + "-" + id;
+      button.addEventListener("click", () => { choose(id); refresh(); });
+      host.appendChild(button);
+      return [id, button];
+    });
+    return () => buttons.forEach(([id, button]) => pressed(button, isOn(id)));
+  };
+
+  const refreshPlanets = buttonRow("planetButtons", Object.entries(SETTINGS.planets).map(([id, p]) => [id, p.label]),
+    id => state.planet === id, id => { state.planet = id; });
+  const refreshLooks = buttonRow("lookButtons", Object.entries(SETTINGS.looks).map(([id, l]) => [id, l.label]),
+    id => state.look === id, id => { state.look = id; state.knobs = lookValues(id); });
+  const refreshSpeeds = buttonRow("speedButtons", [[1, "Game speed"], [4, "4×"], [16, "16×"]],
+    id => state.speed === id, id => { state.speed = id; });
+
+  const pause = document.getElementById("pause");
+  pause.addEventListener("click", () => { state.paused = !state.paused; refresh(); });
+
+  const compare = document.getElementById("compare");
+  const hold = on => { state.holdToday = on; pressed(compare, on); };
+  compare.addEventListener("pointerdown", () => hold(true));
+  for (const name of ["pointerup", "pointerleave", "pointercancel", "blur"]) compare.addEventListener(name, () => hold(false));
+  compare.addEventListener("keydown", event => { if (event.key === " " || event.key === "Enter") hold(true); });
+  compare.addEventListener("keyup", () => hold(false));
+
+  const inputs = {};
+  const groups = document.getElementById("knobGroups");
+  for (const groupName of [...new Set(SETTINGS.knobs.map(k => k.group))]) {
+    const group = document.createElement("div");
+    group.className = "group";
+    const heading = document.createElement("h2");
+    heading.textContent = groupName;
+    group.appendChild(heading);
+    for (const knob of SETTINGS.knobs.filter(k => k.group === groupName)) {
+      const row = document.createElement("div");
+      row.className = "knob";
+      const label = document.createElement("label");
+      label.textContent = knob.label;
+      label.htmlFor = "knob-" + knob.id;
+      const output = document.createElement("output");
+      output.htmlFor = "knob-" + knob.id;
+      const input = document.createElement("input");
+      input.type = "range"; input.id = "knob-" + knob.id;
+      input.min = knob.min; input.max = knob.max; input.step = knob.step;
+      input.addEventListener("input", () => { state.knobs[knob.id] = Number(input.value); state.look = "custom"; refresh(); });
+      const hint = document.createElement("small");
+      hint.textContent = knob.hint;
+      row.append(label, output, input, hint);
+      group.appendChild(row);
+      inputs[knob.id] = { input, output, knob };
+    }
+    groups.appendChild(group);
+  }
+
+  const exportText = document.getElementById("exportText");
+  const copyNote = document.getElementById("copyNote");
+  document.getElementById("copy").addEventListener("click", () => {
+    const select = () => { getSelection().selectAllChildren(exportText); copyNote.textContent = "Selected. Press Ctrl+C to copy."; };
+    if (!navigator.clipboard) return select();
+    navigator.clipboard.writeText(exportText.textContent).then(() => { copyNote.textContent = "Copied."; }, select);
+  });
+
+  function refresh() {
+    refreshPlanets(); refreshLooks(); refreshSpeeds();
+    pressed(pause, state.paused);
+    pause.textContent = state.paused ? "Play" : "Pause";
+    for (const { input, output, knob } of Object.values(inputs)) {
+      input.value = state.knobs[knob.id];
+      output.textContent = format(state.knobs[knob.id], knob.step);
+    }
+    const look = SETTINGS.looks[state.look];
+    document.getElementById("lookNote").textContent = look ? look.note : "Your own settings.";
+    document.getElementById("frameTag").textContent = SETTINGS.planets[state.planet].label + " · " + (look ? look.label : "Custom");
+    const width = Math.max(...knobIds.map(k => k.length));
+    exportText.textContent = "# planet look, issue 1481\n# shown on " + state.planet + ", started from " + (look ? look.label : "custom") + "\n" +
+      SETTINGS.knobs.map(k => k.id.padEnd(width) + " = " + format(state.knobs[k.id], k.step)).join("\n");
+    copyNote.textContent = "";
+    try { localStorage.setItem(STORE_KEY, JSON.stringify({ knobs: state.knobs, look: state.look, planet: state.planet })); } catch (error) { /* optional */ }
+  }
+  refresh();
+}
+</script>

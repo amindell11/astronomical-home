@@ -1,0 +1,318 @@
+{
+  "planets": {
+    "VerdantGiant": {
+      "label": "Verdant Giant (bright)",
+      "texture": "GreenGasGiant",
+      "center": [
+        3500,
+        0,
+        6166.25
+      ],
+      "radius": 3750,
+      "light": [
+        -0.9,
+        0.25,
+        -0.1
+      ],
+      "tint": [
+        1.1875,
+        1.1875,
+        1.1875
+      ],
+      "atmo": [
+        0.14,
+        0.38,
+        0.32
+      ],
+      "sky": [
+        0.04,
+        0.015,
+        0.075
+      ],
+      "tilt": 45,
+      "longitude": -66,
+      "rotSpeed": 0.003
+    },
+    "BlueCrescent": {
+      "label": "Blue Crescent (dark)",
+      "texture": "BlueGasGiant",
+      "center": [
+        4687.5,
+        375,
+        6166.25
+      ],
+      "radius": 3562.5,
+      "light": [
+        -0.8,
+        0.15,
+        0.35
+      ],
+      "tint": [
+        1.125,
+        1.125,
+        1.125
+      ],
+      "atmo": [
+        0.12,
+        0.34,
+        0.55
+      ],
+      "sky": [
+        0.035,
+        0.04,
+        0.055
+      ],
+      "tilt": 13,
+      "longitude": 100,
+      "rotSpeed": 0.002
+    }
+  },
+  "knobs": [
+    {
+      "id": "rotScale",
+      "group": "Clouds",
+      "label": "Spin",
+      "hint": "whole-planet turn, as a multiple of today's speed",
+      "min": 0,
+      "max": 12,
+      "step": 0.1
+    },
+    {
+      "id": "jet",
+      "group": "Clouds",
+      "label": "Band streaming",
+      "hint": "bands slide past each other (rad/s)",
+      "min": 0,
+      "max": 0.06,
+      "step": 0.001
+    },
+    {
+      "id": "jetBands",
+      "group": "Clouds",
+      "label": "Band count",
+      "hint": "alternating bands, pole to pole",
+      "min": 2,
+      "max": 16,
+      "step": 1
+    },
+    {
+      "id": "eddy",
+      "group": "Clouds",
+      "label": "Storm churn",
+      "hint": "strokes circle inside storm cells (rad/s)",
+      "min": 0,
+      "max": 0.06,
+      "step": 0.001
+    },
+    {
+      "id": "eddyScale",
+      "group": "Clouds",
+      "label": "Storm cell size",
+      "hint": "higher is smaller cells",
+      "min": 2,
+      "max": 24,
+      "step": 0.5
+    },
+    {
+      "id": "flowCycle",
+      "group": "Clouds",
+      "label": "Flow cycle",
+      "hint": "seconds before the flow re-anchors to the painted map",
+      "min": 4,
+      "max": 60,
+      "step": 1
+    },
+    {
+      "id": "deck",
+      "group": "Clouds",
+      "label": "High deck",
+      "hint": "opacity of a second cloud layer drifting on top",
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "deckCover",
+      "group": "Clouds",
+      "label": "Deck cover",
+      "hint": "how much of the sky the high deck fills",
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "deckSpeed",
+      "group": "Clouds",
+      "label": "Deck drift",
+      "hint": "how fast the high deck slides over the surface (rad/s)",
+      "min": -0.06,
+      "max": 0.06,
+      "step": 0.001
+    },
+    {
+      "id": "deckShadow",
+      "group": "Clouds",
+      "label": "Deck shadow",
+      "hint": "darkness of the shadow under the high deck",
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "rimPower",
+      "group": "Glow",
+      "label": "Rim tightness",
+      "hint": "higher hugs the edge",
+      "min": 1,
+      "max": 12,
+      "step": 0.1
+    },
+    {
+      "id": "rimIntensity",
+      "group": "Glow",
+      "label": "Rim brightness",
+      "hint": "glow on the planet's own edge",
+      "min": 0,
+      "max": 8,
+      "step": 0.05
+    },
+    {
+      "id": "haloWidth",
+      "group": "Glow",
+      "label": "Halo reach",
+      "hint": "glow beyond the edge, fraction of the radius",
+      "min": 0.002,
+      "max": 0.3,
+      "step": 0.002
+    },
+    {
+      "id": "haloIntensity",
+      "group": "Glow",
+      "label": "Halo brightness",
+      "hint": "glow beyond the edge",
+      "min": 0,
+      "max": 8,
+      "step": 0.05
+    },
+    {
+      "id": "haloFalloff",
+      "group": "Glow",
+      "label": "Halo falloff",
+      "hint": "higher pulls the glow in toward the edge",
+      "min": 0.5,
+      "max": 6,
+      "step": 0.1
+    },
+    {
+      "id": "nightGlow",
+      "group": "Glow",
+      "label": "Night-side glow",
+      "hint": "how much glow survives on the unlit side",
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    }
+  ],
+  "looks": {
+    "now": {
+      "label": "Today",
+      "note": "What ships now.",
+      "rotScale": 1,
+      "jet": 0,
+      "jetBands": 7,
+      "eddy": 0,
+      "eddyScale": 8,
+      "flowCycle": 14,
+      "deck": 0,
+      "deckCover": 0.5,
+      "deckSpeed": 0.014,
+      "deckShadow": 0.6,
+      "rimPower": 8,
+      "rimIntensity": 1,
+      "haloWidth": 0.006,
+      "haloIntensity": 0.35,
+      "haloFalloff": 1,
+      "nightGlow": 0.15
+    },
+    "a": {
+      "label": "A · Jet streams",
+      "note": "Bands slide past each other. Thin bright edge.",
+      "rotScale": 3,
+      "jet": 0.008,
+      "jetBands": 7,
+      "eddy": 0,
+      "eddyScale": 8,
+      "flowCycle": 14,
+      "deck": 0,
+      "deckCover": 0.5,
+      "deckSpeed": 0.014,
+      "deckShadow": 0.6,
+      "rimPower": 5,
+      "rimIntensity": 2.5,
+      "haloWidth": 0.03,
+      "haloIntensity": 1.5,
+      "haloFalloff": 2,
+      "nightGlow": 0.15
+    },
+    "b": {
+      "label": "B · Drifting deck",
+      "note": "A second cloud layer drifts over the first and shades it. Soft wide atmosphere.",
+      "rotScale": 3,
+      "jet": 0,
+      "jetBands": 7,
+      "eddy": 0,
+      "eddyScale": 8,
+      "flowCycle": 14,
+      "deck": 0.75,
+      "deckCover": 0.7,
+      "deckSpeed": 0.014,
+      "deckShadow": 0.6,
+      "rimPower": 4,
+      "rimIntensity": 2,
+      "haloWidth": 0.1,
+      "haloIntensity": 2,
+      "haloFalloff": 2,
+      "nightGlow": 0.3
+    },
+    "c": {
+      "label": "C · Storm churn",
+      "note": "Strokes circle inside storm cells. Big corona that wraps the dark side.",
+      "rotScale": 4,
+      "jet": 0.003,
+      "jetBands": 7,
+      "eddy": 0.012,
+      "eddyScale": 9,
+      "flowCycle": 14,
+      "deck": 0,
+      "deckCover": 0.5,
+      "deckSpeed": 0.014,
+      "deckShadow": 0.6,
+      "rimPower": 3,
+      "rimIntensity": 2.5,
+      "haloWidth": 0.2,
+      "haloIntensity": 3,
+      "haloFalloff": 2.5,
+      "nightGlow": 0.6
+    },
+    "owner": {
+      "label": "Owner's pick",
+      "note": "The settings the owner sent back on 2026-11-14, now in the planet materials.",
+      "rotScale": 3.0,
+      "jet": 0.008,
+      "jetBands": 7,
+      "eddy": 0.015,
+      "eddyScale": 9.5,
+      "flowCycle": 14,
+      "deck": 0.0,
+      "deckCover": 0.5,
+      "deckSpeed": 0.014,
+      "deckShadow": 0.6,
+      "rimPower": 5.0,
+      "rimIntensity": 2.5,
+      "haloWidth": 0.03,
+      "haloIntensity": 2.95,
+      "haloFalloff": 2.0,
+      "nightGlow": 0.15
+    }
+  }
+}
