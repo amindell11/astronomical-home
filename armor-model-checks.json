@@ -1,0 +1,212 @@
+{
+  "protected_geometry_unchanged": true,
+  "camera_unchanged": true,
+  "screen_and_key_probe_count": 54,
+  "armor_obstructions": [],
+  "meshes": [
+    {
+      "name": "30 | Weapon terminal casting",
+      "faces": 318,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "30 | Primary fitted gasket",
+      "faces": 32,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "30 | Primary blank glass",
+      "faces": 10,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "30 | Primary Previous key",
+      "faces": 114,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "30 | Primary Previous ivory inlay",
+      "faces": 8,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "30 | Primary Next key",
+      "faces": 114,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "30 | Primary Next ivory inlay",
+      "faces": 8,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "30 | Ordnance fitted gasket",
+      "faces": 32,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "30 | Ordnance blank glass",
+      "faces": 10,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "30 | Ordnance Previous key",
+      "faces": 114,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "30 | Ordnance Previous ivory inlay",
+      "faces": 8,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "30 | Ordnance Next key",
+      "faces": 114,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "30 | Ordnance Next ivory inlay",
+      "faces": 8,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "30 | Captive screw 3",
+      "faces": 132,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "30 | Captive screw 4",
+      "faces": 132,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "30 | Tapered rear chassis",
+      "faces": 106,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "31 | Launch inset gasket",
+      "faces": 224,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "31 | Continuous desk casting",
+      "faces": 291,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "31 | Tube recessed floor",
+      "faces": 74,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "31 | Desk lower enclosure",
+      "faces": 137,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "31 | Terminal fitted lower skirt",
+      "faces": 106,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "32 | Broad brow cap",
+      "faces": 106,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "32 | Left corner armor",
+      "faces": 140,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "32 | Right corner armor",
+      "faces": 127,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "32 | Left side guard",
+      "faces": 106,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "32 | Right side guard",
+      "faces": 106,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "32 | Lower heel armor",
+      "faces": 106,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "32 | Left upper armor captive screw",
+      "faces": 132,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "32 | Right upper armor captive screw",
+      "faces": 132,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "32 | Launch surround armor",
+      "faces": 262,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "32 | Base armor 1 captive screw",
+      "faces": 132,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "32 | Base armor 2 captive screw",
+      "faces": 132,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "32 | Base armor 3 captive screw",
+      "faces": 132,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    },
+    {
+      "name": "32 | Base armor 4 captive screw",
+      "faces": 132,
+      "zero_area_faces": 0,
+      "nonmanifold_edges": 0
+    }
+  ]
+}
