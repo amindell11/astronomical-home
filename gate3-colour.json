@@ -1,0 +1,24 @@
+{
+  "hull": {
+    "bone": "#DDD2BC",
+    "canvas": "#9C927F",
+    "slate": "#3B3F52",
+    "ochre": "#C7A25A",
+    "brick": "#B0705A",
+    "blue": "#7088A6"
+  },
+  "shadow_depth": 0.4,
+  "shadow_cool": 0.22,
+  "mid_level": 0.55,
+  "window": "#FFB347",
+  "prize": "#FFE25A",
+  "service": {
+    "gimbal": "#5BFF86",
+    "kite": "#FFE25A",
+    "drum": "#FF3B52"
+  },
+  "dark": "#1E2030",
+  "ink": "#0A0911",
+  "glow": 0.9,
+  "in_use_boost": 1.8
+}
