@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Projector Cone (placeholder)
+  m_Name: Projector Cone
   m_Shader: {fileID: 4800000, guid: 8916387757eb39745b0c37a03b4cf06b, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -24,8 +24,18 @@ Material:
     serializedVersion: 3
     m_TexEnvs: []
     m_Ints: []
-    m_Floats: []
+    m_Floats:
+    - _BaseWidth: 0.14
+    - _ConeLight: 0.5
+    - _EdgeSoftness: 0.4
+    - _Falloff: 1.1
+    - _Lean: 0
+    - _LensGlow: 0.7
+    - _Level: 1
+    - _Rays: 0.3
+    - _Reach: 0.85
+    - _TopWidth: 0.35
     m_Colors:
-    - _BeamColor: {r: 0.39999998, g: 0.9, b: 1, a: 0.15}
+    - _ConeColor: {r: 1, g: 0.886, b: 0.69, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

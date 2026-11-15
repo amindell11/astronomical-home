@@ -8,14 +8,19 @@ namespace UI.Hangar.Hologram
 {
     /// <summary>
     /// Owns the hangar preview stage and shows the canopy effect step's image of the stage on the
-    /// quad, which sits at an offset from the projector lens, at the profile's opacity. A profile
-    /// with a cone has it placed at the lens. The camera handed over on <see cref="Fit"/> also runs
-    /// that image's pass. Ship steps reach it through <see cref="Select"/>.
+    /// quad, which sits at an offset from the projector lens, at the profile's opacity. It tells that
+    /// step where the image shows and when a ship switch happened, and flickers the image and the cone
+    /// together. A profile with a cone has it placed at the lens, stretched to the settled ship. The
+    /// camera handed over on <see cref="Fit"/> also runs that image's pass. Ship steps reach it through
+    /// <see cref="Select"/>.
     /// </summary>
     public sealed class HangarHologramProjector : MonoBehaviour
     {
+        private const float GlitchSeconds = .35f;
         private static readonly int MainTexId = Shader.PropertyToID("_MainTex");
         private static readonly int OpacityId = Shader.PropertyToID("_Opacity");
+        private static readonly int LevelId = Shader.PropertyToID("_Level");
+        private static readonly int LeanId = Shader.PropertyToID("_Lean");
         private static readonly Vector3[] QuadCorners =
         {
             new(-.5f, -.5f, 0f), new(-.5f, .5f, 0f), new(.5f, -.5f, 0f), new(.5f, .5f, 0f)
@@ -47,7 +52,11 @@ namespace UI.Hangar.Hologram
 
         private MaterialPropertyBlock block;
         private HangarPreviewStage stage;
+        private Renderer[] coneRenderers = Array.Empty<Renderer>();
+        private Camera host;
         private bool fitted;
+        private float switchedAt = float.NegativeInfinity;
+        private Vector2 apparent;
         // Normalized on the surface; square on screen, as the stage's off-axis framing requires.
         private Rect frame;
 
@@ -69,17 +78,23 @@ namespace UI.Hangar.Hologram
 
         public void Open(IEnumerable<Ship> offered, Ship selected)
         {
-            stage = HangarPreviewStage.Create(transform, new Vector2Int(64, 64), frame, offered, profile.Restyle);
+            stage = HangarPreviewStage.Create(transform, new Vector2Int(64, 64), frame, offered, profile.Restyle,
+                profile.Resolve);
             if (profile.ProjectorCone)
             {
                 var cone = Instantiate(profile.ProjectorCone, coneAnchor);
                 cone.transform.localPosition = Vector3.zero;
-                cone.transform.localScale *= frameSide / HangarPreviewStage.FrameSideInRadii;
+                cone.transform.localScale = new Vector3(2f * frameSide, frameOffset.y + frameSide * .5f, 1f);
+                coneRenderers = cone.GetComponentsInChildren<Renderer>(true);
             }
             stage.Show(selected, backwards: false);
         }
 
-        public void Select(Ship ship, int step) => stage.Show(ship, backwards: step < 0);
+        public void Select(Ship ship, int step)
+        {
+            switchedAt = Time.unscaledTime;
+            stage.Show(ship, backwards: step < 0);
+        }
 
         public void Fit(Camera camera)
         {
@@ -87,7 +102,8 @@ namespace UI.Hangar.Hologram
             if (!fitted)
             {
                 fitted = true;
-                image.Initialize(camera, () => stage.Texture, () => profile.Canopy);
+                host = camera;
+                image.Initialize(camera, () => stage.Texture, () => profile.Canopy, Footprint, TransitionAge);
             }
             var min = new Vector2(float.PositiveInfinity, float.PositiveInfinity);
             var max = new Vector2(float.NegativeInfinity, float.NegativeInfinity);
@@ -97,16 +113,35 @@ namespace UI.Hangar.Hologram
                 min = Vector2.Min(min, screen);
                 max = Vector2.Max(max, screen);
             }
-            stage.Resize(Vector2Int.CeilToInt(max - min), frame);
+            apparent = max - min;
+            stage.Resize(Vector2Int.CeilToInt(apparent), frame);
+        }
+
+        private CanopyScreen Footprint() =>
+            new(apparent, new Vector2(host.pixelWidth, host.pixelHeight));
+
+        private float TransitionAge()
+        {
+            var age = Time.unscaledTime - switchedAt;
+            return age < GlitchSeconds ? age : -1f;
         }
 
         private void LateUpdate()
         {
             if (!stage) return;
+            var level = 1f - profile.FlickerDepth * Mathf.PerlinNoise(Time.unscaledTime * profile.FlickerRate, 0f);
             surface.GetPropertyBlock(block);
             block.SetTexture(MainTexId, image.Output);
-            block.SetFloat(OpacityId, profile.LayerOpacity);
+            block.SetFloat(OpacityId, profile.LayerOpacity * level);
             surface.SetPropertyBlock(block);
+            var lean = frameOffset.x / frameSide;
+            foreach (var renderer in coneRenderers)
+            {
+                renderer.GetPropertyBlock(block);
+                block.SetFloat(LevelId, level);
+                block.SetFloat(LeanId, lean);
+                renderer.SetPropertyBlock(block);
+            }
         }
     }
 }

@@ -1,20 +1,19 @@
-Shader "Astronomical/Hangar/Hologram Contour Placeholder"
+Shader "Astronomical/Hangar/Hologram Contour"
 {
     Properties
     {
         [PerRendererData] _ContourColor ("Contour Color", Color) = (0.025,0.035,0.065,1)
-        _HologramInk ("Hologram Ink", Color) = (0.6,0.95,1,1)
         _DebrisVisibility ("Debris Visibility", Range(0,1)) = 1
-        _ContourPixels ("Contour Width (Pixels)", Range(0,12)) = 3.2
+        _ContourPixels ("Outline Width (Pixels At 768)", Range(0,12)) = 1
         _ContourMinimum ("Lit Side Width Fraction", Range(0,1)) = 0.25
-        _UniformWidth ("Uniform Screen Width", Range(0,1)) = 0
+        _UniformWidth ("Uniform Screen Width", Range(0,1)) = 1
     }
     SubShader
     {
         Tags { "RenderPipeline"="UniversalPipeline" "RenderType"="Opaque" "Queue"="Transparent-5" }
         Pass
         {
-            Name "DrawnContour"
+            Name "HologramContour"
             Tags { "LightMode"="SRPDefaultUnlit" }
             Stencil { Ref 1 ReadMask 1 WriteMask 0 Comp NotEqual }
             Cull Front
@@ -25,7 +24,6 @@ Shader "Astronomical/Hangar/Hologram Contour Placeholder"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             CBUFFER_START(UnityPerMaterial)
                 half4 _ContourColor;
-                half4 _HologramInk;
                 half _DebrisVisibility;
                 float _ContourPixels, _ContourMinimum, _UniformWidth;
             CBUFFER_END
@@ -54,7 +52,8 @@ Shader "Astronomical/Hangar/Hologram Contour Placeholder"
             half4 ContourFragment(float4 positionCS : SV_POSITION) : SV_Target
             {
                 clip(_DebrisVisibility - InterleavedGradientNoise(positionCS.xy, 0));
-                return _HologramInk;
+                // Magenta at half alpha marks outline pixels for the resolve pass.
+                return half4(1, 0, 1, 0.5);
             }
             ENDHLSL
         }

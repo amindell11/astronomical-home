@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Hologram Surface (placeholder)
+  m_Name: Hologram Glass
   m_Shader: {fileID: 4800000, guid: a9677fdb7fd2a0e48b7d3a4af50af1ac, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -22,17 +22,15 @@ Material:
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
-    m_TexEnvs:
-    - _BaseMap:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
+    m_TexEnvs: []
     m_Ints: []
     m_Floats:
     - _DamageFlash: 0
     - _DebrisVisibility: 1
+    - _GlassLight: 0.8
+    - _RimPower: 2.5
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
-    - _HologramColor: {r: 0.34999996, g: 0.85, b: 1, a: 1}
+    - _GlassColor: {r: 0.82, g: 0.9, b: 1, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

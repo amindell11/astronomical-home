@@ -1,9 +1,10 @@
-Shader "Astronomical/Hangar/Hologram Surface Placeholder"
+Shader "Astronomical/Hangar/Hologram Glass"
 {
     Properties
     {
-        _HologramColor ("Hologram Color", Color) = (0.35,0.85,1,1)
-        [PerRendererData] _BaseMap ("Ship Paint", 2D) = "white" {}
+        _GlassColor ("Glass Color", Color) = (0.82,0.9,1,1)
+        _GlassLight ("Glass Light", Range(0,2)) = 0.8
+        _RimPower ("Rim Power", Range(0.5,6)) = 2.5
         _DebrisVisibility ("Debris Visibility", Range(0,1)) = 1
         [PerRendererData] _BaseColor ("Ship Tint", Color) = (1,1,1,1)
         [PerRendererData] _DamageFlash ("Ship Flash", Float) = 0
@@ -14,45 +15,46 @@ Shader "Astronomical/Hangar/Hologram Surface Placeholder"
         HLSLINCLUDE
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         CBUFFER_START(UnityPerMaterial)
-            float4 _BaseMap_ST;
-            half4 _HologramColor;
-            half _DebrisVisibility;
+            half4 _GlassColor;
+            half _GlassLight, _RimPower, _DebrisVisibility;
             half4 _BaseColor;
             half _DamageFlash;
         CBUFFER_END
         ENDHLSL
         Pass
         {
-            Name "HologramSurface"
+            Name "HologramGlass"
             Stencil { Ref 1 WriteMask 1 Comp Always Pass Replace }
             Tags { "LightMode"="UniversalForwardOnly" }
             HLSLPROGRAM
-            #pragma vertex HologramVertex
-            #pragma fragment HologramFragment
-            TEXTURE2D(_BaseMap); SAMPLER(sampler_BaseMap);
-            struct HologramInput
+            #pragma vertex GlassVertex
+            #pragma fragment GlassFragment
+            struct GlassInput
             {
                 float4 positionOS : POSITION;
-                float2 uv : TEXCOORD0;
+                float3 normalOS : NORMAL;
             };
-            struct HologramOutput
+            struct GlassOutput
             {
                 float4 positionCS : SV_POSITION;
-                float2 uv : TEXCOORD0;
+                half3 normalWS : TEXCOORD0;
+                float3 positionWS : TEXCOORD1;
             };
-            HologramOutput HologramVertex(HologramInput input)
+            GlassOutput GlassVertex(GlassInput input)
             {
-                HologramOutput output;
-                output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
-                output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
+                GlassOutput output;
+                output.positionWS = TransformObjectToWorld(input.positionOS.xyz);
+                output.positionCS = TransformWorldToHClip(output.positionWS);
+                output.normalWS = TransformObjectToWorldNormal(input.normalOS);
                 return output;
             }
-            half4 HologramFragment(HologramOutput input) : SV_Target
+            half4 GlassFragment(GlassOutput input) : SV_Target
             {
                 clip(_DebrisVisibility - InterleavedGradientNoise(input.positionCS.xy, 0));
-                half3 paint = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv).rgb;
-                half luminance = dot(paint, half3(0.2126, 0.7152, 0.0722));
-                return half4(_HologramColor.rgb * lerp(0.55, 1, luminance), 1);
+                half3 normalWS = NormalizeNormalPerPixel(input.normalWS);
+                half facing = saturate(dot(normalWS, GetWorldSpaceNormalizeViewDir(input.positionWS)));
+                half rim = pow(1.0 - facing, _RimPower);
+                return half4(_GlassColor.rgb * _GlassLight * (0.35 + 0.65 * rim), 1);
             }
             ENDHLSL
         }
@@ -62,8 +64,8 @@ Shader "Astronomical/Hangar/Hologram Surface Placeholder"
             Tags { "LightMode"="DepthNormalsOnly" }
             ZWrite On
             HLSLPROGRAM
-            #pragma vertex HologramDepthVertex
-            #pragma fragment HologramDepthFragment
+            #pragma vertex GlassDepthVertex
+            #pragma fragment GlassDepthFragment
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
             struct DepthInput
             {
@@ -75,14 +77,14 @@ Shader "Astronomical/Hangar/Hologram Surface Placeholder"
                 float4 positionCS : SV_POSITION;
                 half3 normalWS : TEXCOORD0;
             };
-            DepthOutput HologramDepthVertex(DepthInput input)
+            DepthOutput GlassDepthVertex(DepthInput input)
             {
                 DepthOutput output;
                 output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
                 output.normalWS = TransformObjectToWorldNormal(input.normalOS);
                 return output;
             }
-            half4 HologramDepthFragment(DepthOutput input) : SV_Target
+            half4 GlassDepthFragment(DepthOutput input) : SV_Target
             {
                 clip(_DebrisVisibility - InterleavedGradientNoise(input.positionCS.xy, 0));
                 half3 normalWS = NormalizeNormalPerPixel(input.normalWS);
