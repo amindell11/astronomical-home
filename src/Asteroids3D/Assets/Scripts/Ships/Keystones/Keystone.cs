@@ -36,6 +36,7 @@ namespace Ships.Keystones
         public float CooldownPct => cooldown > 0f ? CooldownRemaining / cooldown : 0f;
         public int Activations { get; private set; }
         public int PaidActivations { get; private set; }
+        public Rigidbody Body => Host.Body;
 
         /// <summary>The kit's active state, which its tell shows.</summary>
         public virtual bool Active => false;

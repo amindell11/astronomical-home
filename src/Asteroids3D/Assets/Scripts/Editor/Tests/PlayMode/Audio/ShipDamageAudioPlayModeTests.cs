@@ -25,6 +25,7 @@ namespace Tests.PlayMode.Audio
         private const string CollisionDeathEvent = "event:/Ships/CollisionDeath";
 
         private static readonly Vector3 ShipPosition = new(3f, 0f, -2f);
+        private static readonly Vector3 ShipVelocity = new(12f, -5f, 0f);
 
         private sealed class FakeDamage : IDamageEvents
         {
@@ -38,26 +39,35 @@ namespace Tests.PlayMode.Audio
         }
 
         private GameObject host;
+        private SimulationMode simulationMode;
+
+        [SetUp]
+        public override void SetUp()
+        {
+            base.SetUp();
+            simulationMode = Physics.simulationMode;
+        }
 
         [TearDown]
         public override void TearDown()
         {
             if (host) Object.DestroyImmediate(host);
+            Physics.simulationMode = simulationMode;
             base.TearDown();
         }
 
         // The base rig cannot instantiate alone, so its authored values go onto a lone component.
-        private FakeDamage NewBoundDamageAudio()
+        private FakeDamage NewBoundDamageAudio(Rigidbody body = null)
         {
             var authored = AssetDatabase.LoadAssetAtPath<GameObject>(RigPrefabPath).GetComponentInChildren<ShipDamageAudio>(true);
             Assert.IsNotNull(authored, "the rig prefab carries ShipDamageAudio");
-            host = new GameObject("ShipDamageAudio");
+            host = body ? body.gameObject : new GameObject("ShipDamageAudio");
             host.transform.position = ShipPosition;
             var audio = host.AddComponent<ShipDamageAudio>();
             ComponentUtility.CopyComponent(authored);
             ComponentUtility.PasteComponentValues(audio);
             var damage = new FakeDamage();
-            audio.Bind(new ShipView(host.transform, damage, null, null, false));
+            audio.Bind(new ShipView(host.transform, damage, null, null, false, body));
             return damage;
         }
 
@@ -138,6 +148,37 @@ namespace Tests.PlayMode.Audio
             Assert.AreEqual(0, otherCount, $"a {killingBlow} kill plays no {otherEvent}");
             Assert.Less(Vector3.Distance(Position(played[0]), ShipPosition), 0.01f, "played where the ship died");
             AssertPlaying(played[0], "the death still sounds a frame later");
+        }
+
+        [UnityTest]
+        public IEnumerator Hits_CarryTheShipsVelocity()
+        {
+            Physics.simulationMode = SimulationMode.Script;
+            host = new GameObject("Ship");
+            var body = host.AddComponent<Rigidbody>();
+            body.useGravity = false;
+            body.linearVelocity = ShipVelocity;
+            var shieldHit = Fresh(ShieldHitEvent);
+            var hullHit = Fresh(HullHitEvent);
+            var damage = NewBoundDamageAudio(body);
+
+            damage.Shield.ApplyDamage(20f);
+            damage.Health.ApplyDamage(20f);
+            yield return Flush();
+
+            var shield = Instances(shieldHit);
+            var hull = Instances(hullHit);
+            Assert.AreEqual(1, shield.Length, "one shield hit");
+            Assert.AreEqual(1, hull.Length, "one hull hit");
+            var shieldVelocity = Velocity(shield[0]);
+            var hullVelocity = Velocity(hull[0]);
+            Debug.Log($"[FMOD] shield velocity={shieldVelocity} hull velocity={hullVelocity}");
+            Assert.AreEqual(ShipVelocity.x, shieldVelocity.x, 1e-3f, "shield hit velocity");
+            Assert.AreEqual(ShipVelocity.y, shieldVelocity.y, 1e-3f, "shield hit velocity");
+            Assert.AreEqual(ShipVelocity.z, shieldVelocity.z, 1e-3f, "shield hit velocity");
+            Assert.AreEqual(ShipVelocity.x, hullVelocity.x, 1e-3f, "hull hit velocity");
+            Assert.AreEqual(ShipVelocity.y, hullVelocity.y, 1e-3f, "hull hit velocity");
+            Assert.AreEqual(ShipVelocity.z, hullVelocity.z, 1e-3f, "hull hit velocity");
         }
 
         [UnityTest]

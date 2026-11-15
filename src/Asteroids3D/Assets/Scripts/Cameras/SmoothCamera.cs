@@ -20,6 +20,8 @@ namespace Cameras
         protected Vector3 dampVelocity;
         protected float zoomVelocity;
 
+        public Vector3 Velocity { get; private set; }
+
         protected override void Awake()
         {
             base.Awake();
@@ -52,6 +54,12 @@ namespace Cameras
                 transform.position = Vector3.SmoothDamp(
                     transform.position, desiredPos.Value, ref dampVelocity, smoothTime,
                     float.PositiveInfinity, Time.unscaledDeltaTime);
+                Velocity = dampVelocity;
+            }
+            else
+            {
+                // Holds still; dampVelocity keeps its stale value.
+                Velocity = Vector3.zero;
             }
 
             if (desiredSize.HasValue)
