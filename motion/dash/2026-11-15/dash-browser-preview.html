@@ -8,6 +8,7 @@
 <title>Dash Browser Fragment</title>
 <style>:root{color-scheme:light dark;background:light-dark(rgb(255 255 255), rgb(24 24 24))}html,body{margin:0}body{box-sizing:border-box;padding:1rem;background:inherit}iframe{display:block;width:100%;height:calc(100vh - 2rem);margin:0 auto;border:0}</style>
 
+<style>html,body{overflow:hidden}#codex-visualization{height:calc(100dvh - 2rem)}</style>
 </head>
 <body>
 <iframe id="codex-visualization" sandbox="allow-scripts" referrerpolicy="no-referrer" title="Dash Browser Fragment" data-srcdoc="&lt;!doctype html&gt;
@@ -1865,6 +1866,7 @@ html&gt;body{padding:0}&lt;/style&gt;
 })();
 &lt;/script&gt;
 &lt;div id=&quot;dash-look-preview&quot;&gt;
+  &lt;div class=&quot;dash-preview&quot;&gt;
   &lt;div class=&quot;dash-scene&quot;&gt;
     &lt;canvas role=&quot;img&quot; aria-label=&quot;Vanguard dashing to the right, leaving an expanding cloud of painted wisps, sketched flecks, and fading afterimages&quot;&gt;&lt;/canvas&gt;
     &lt;div class=&quot;dash-scene-label&quot;&gt;&lt;span&gt;Vanguard&lt;/span&gt;&lt;span class=&quot;text-small&quot; data-phase&gt;Ready&lt;/span&gt;&lt;/div&gt;
@@ -1879,32 +1881,51 @@ html&gt;body{padding:0}&lt;/style&gt;
     &lt;span&gt;Timeline &lt;output class=&quot;tabular-nums&quot; data-time&gt;0 ms&lt;/output&gt;&lt;/span&gt;
     &lt;input class=&quot;form-range&quot; type=&quot;range&quot; min=&quot;0&quot; max=&quot;1740&quot; step=&quot;1&quot; value=&quot;0&quot; data-scrub&gt;
   &lt;/label&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;dash-controls&quot; aria-label=&quot;Dash tuning controls&quot;&gt;
   &lt;hr&gt;
+  &lt;div class=&quot;viz-controls dash-transport&quot;&gt;
+    &lt;label class=&quot;form-label&quot;&gt;Look &lt;select class=&quot;form-select&quot; data-preset&gt;&lt;/select&gt;&lt;/label&gt;
+    &lt;button class=&quot;btn&quot; type=&quot;button&quot; data-apply&gt;Apply preset&lt;/button&gt;
+    &lt;button class=&quot;btn&quot; type=&quot;button&quot; data-variant&gt;New variation&lt;/button&gt;
+    &lt;button class=&quot;btn&quot; type=&quot;button&quot; data-starting&gt;Restore starting look&lt;/button&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;viz-row&quot; aria-label=&quot;Look snapshots&quot;&gt;
+    &lt;button class=&quot;btn&quot; type=&quot;button&quot; data-save=&quot;A&quot;&gt;Save A&lt;/button&gt;
+    &lt;button class=&quot;btn&quot; type=&quot;button&quot; data-load=&quot;A&quot; disabled&gt;Recall A&lt;/button&gt;
+    &lt;button class=&quot;btn&quot; type=&quot;button&quot; data-save=&quot;B&quot;&gt;Save B&lt;/button&gt;
+    &lt;button class=&quot;btn&quot; type=&quot;button&quot; data-load=&quot;B&quot; disabled&gt;Recall B&lt;/button&gt;
+    &lt;span class=&quot;text-small text-muted&quot; aria-live=&quot;polite&quot; data-feedback&gt;&lt;/span&gt;
+  &lt;/div&gt;
   &lt;div class=&quot;dash-tuning&quot;&gt;
-    &lt;section aria-label=&quot;Engine burst&quot;&gt;
-      &lt;h3&gt;Engine burst&lt;/h3&gt;
-      &lt;div data-controls=&quot;burst&quot;&gt;&lt;/div&gt;
-    &lt;/section&gt;
-    &lt;section aria-label=&quot;Afterimages&quot;&gt;
-      &lt;h3&gt;Afterimages&lt;/h3&gt;
-      &lt;div data-controls=&quot;ghost&quot;&gt;&lt;/div&gt;
-    &lt;/section&gt;
-    &lt;section aria-label=&quot;Shockwave&quot;&gt;
-      &lt;h3&gt;Shockwave&lt;/h3&gt;
-      &lt;div data-controls=&quot;wave&quot;&gt;&lt;/div&gt;
-    &lt;/section&gt;
+    &lt;details&gt;&lt;summary class=&quot;cursor-interaction&quot;&gt;Motion and timing&lt;/summary&gt;&lt;div data-controls=&quot;motion&quot;&gt;&lt;/div&gt;&lt;/details&gt;
+    &lt;details&gt;&lt;summary class=&quot;cursor-interaction&quot;&gt;Engines and flash&lt;/summary&gt;&lt;div data-controls=&quot;burst&quot;&gt;&lt;/div&gt;&lt;/details&gt;
+    &lt;details&gt;&lt;summary class=&quot;cursor-interaction&quot;&gt;Pressure cloud&lt;/summary&gt;&lt;div data-controls=&quot;wave&quot;&gt;&lt;/div&gt;&lt;/details&gt;
+    &lt;details&gt;&lt;summary class=&quot;cursor-interaction&quot;&gt;Afterimages&lt;/summary&gt;&lt;div data-controls=&quot;ghost&quot;&gt;&lt;/div&gt;&lt;/details&gt;
+    &lt;details&gt;&lt;summary class=&quot;cursor-interaction&quot;&gt;Drawing and palette&lt;/summary&gt;&lt;div data-controls=&quot;drawing&quot;&gt;&lt;/div&gt;&lt;button class=&quot;btn&quot; type=&quot;button&quot; data-seed&gt;Shuffle seed&lt;/button&gt;&lt;/details&gt;
+    &lt;details&gt;&lt;summary class=&quot;cursor-interaction&quot;&gt;Impact and camera&lt;/summary&gt;&lt;div data-controls=&quot;impact&quot;&gt;&lt;/div&gt;&lt;/details&gt;
   &lt;/div&gt;
   &lt;div class=&quot;viz-row&quot;&gt;
     &lt;button class=&quot;btn&quot; type=&quot;button&quot; data-use&gt;Show settings&lt;/button&gt;
-    &lt;span class=&quot;text-small text-muted&quot; aria-live=&quot;polite&quot; data-feedback&gt;&lt;/span&gt;
   &lt;/div&gt;
-  &lt;label class=&quot;form-label&quot; data-copy hidden&gt;Dash settings &lt;textarea class=&quot;form-control&quot; readonly rows=&quot;4&quot;&gt;&lt;/textarea&gt;&lt;/label&gt;
+  &lt;details data-settings&gt;
+    &lt;summary class=&quot;cursor-interaction&quot;&gt;Import or export settings&lt;/summary&gt;
+    &lt;label class=&quot;form-label&quot; data-copy&gt;Dash settings JSON &lt;textarea class=&quot;form-control&quot; rows=&quot;7&quot; spellcheck=&quot;false&quot;&gt;&lt;/textarea&gt;&lt;/label&gt;
+    &lt;div class=&quot;viz-row&quot;&gt;
+      &lt;button class=&quot;btn&quot; type=&quot;button&quot; data-export&gt;Export current settings&lt;/button&gt;
+      &lt;button class=&quot;btn&quot; type=&quot;button&quot; data-import&gt;Import settings&lt;/button&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;text-small text-destructive&quot; role=&quot;alert&quot; data-error&gt;&lt;/div&gt;
+  &lt;/details&gt;
+  &lt;/div&gt;
 &lt;/div&gt;
 &lt;style&gt;
-  #dash-look-preview { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; gap: calc(var(--font-size-base, 14px) * .8); }
+  #dash-look-preview { display: flex; flex-direction: column; height: calc(100dvh - 2 * var(--visualize-paint-gutter, 0px)); min-width: 0; }
   #dash-look-preview &gt; *, #dash-look-preview .dash-tuning &gt; *, #dash-look-preview .dash-slider { min-width: 0; }
-  #dash-look-preview [data-copy][hidden] { display: none !important; }
-  #dash-look-preview .dash-scene { position: relative; width: 100%; aspect-ratio: 2.55; min-height: 155px; overflow: clip; }
+  #dash-look-preview .dash-preview { flex: none; display: grid; gap: .55em; padding-bottom: .35em; }
+  #dash-look-preview .dash-controls { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: .8em; padding-inline-end: .4em; padding-bottom: .6em; }
+  #dash-look-preview .dash-controls &gt; * { flex: none; min-width: 0; }
+  #dash-look-preview .dash-scene { position: relative; width: 100%; height: clamp(120px, 38dvh, 320px); overflow: clip; }
   #dash-look-preview canvas { display: block; width: 100%; height: 100%; }
   #dash-look-preview .dash-scene-label { position: absolute; inset: .7em auto auto .85em; display: grid; gap: .15em; color: #e7eef8; pointer-events: none; }
   #dash-look-preview [data-phase] { color: #a6b9d1; }
@@ -1912,10 +1933,11 @@ html&gt;body{padding:0}&lt;/style&gt;
   #dash-look-preview .dash-slider { display: grid; gap: .12em; }
   #dash-look-preview .dash-slider span { display: flex; justify-content: space-between; gap: .6em; }
   #dash-look-preview output { color: var(--muted-foreground); }
-  #dash-look-preview .dash-tuning { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: calc(var(--font-size-base, 14px) * 1.8); }
-  #dash-look-preview h3 { margin-bottom: .4em; }
-  #dash-look-preview [data-controls] { display: grid; gap: .32em; }
-  @media (max-width: 460px) { #dash-look-preview .dash-tuning { grid-template-columns: minmax(0, 1fr); gap: .7em; } }
+  #dash-look-preview .dash-tuning { display: grid; grid-template-columns: minmax(0, 1fr); gap: .35em; }
+  #dash-look-preview summary { color: var(--foreground); padding-block: .25em; }
+  #dash-look-preview [data-controls] { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 185px), 1fr)); align-items: start; gap: .38em 1em; margin-block: .4em; }
+  #dash-look-preview [data-controls] &gt; * { min-width: 0; }
+  @media (max-width: 460px) { #dash-look-preview [data-controls] { grid-template-columns: minmax(0, 1fr); } }
 &lt;/style&gt;
 &lt;script&gt;
 (() =&gt; {
@@ -1929,51 +1951,157 @@ html&gt;body{padding:0}&lt;/style&gt;
   const viewControl = select(&#x27;[data-view]&#x27;);
   const phaseOutput = select(&#x27;[data-phase]&#x27;);
   const timeOutput = select(&#x27;[data-time]&#x27;);
-  const groupNames = { burst: &#x27;Engine burst&#x27;, ghost: &#x27;Afterimage&#x27;, wave: &#x27;Shockwave&#x27; };
+  const range = (key, group, label, min, max, step, initial, unit = &#x27;&#x27;) =&gt; ({ key, group, label, min, max, step, initial, unit });
+  const choice = (key, group, label, initial, options) =&gt; ({ key, group, label, initial, options });
+  const toggle = (key, group, label) =&gt; ({ key, group, label, initial: true });
+  const color = (key, label, initial) =&gt; ({ key, group: &#x27;drawing&#x27;, label, initial, color: true });
   const fields = [
+    range(&#x27;dashDuration&#x27;, &#x27;motion&#x27;, &#x27;Dash duration&#x27;, 90, 680, 5, 275, &#x27; ms&#x27;),
+    range(&#x27;distance&#x27;, &#x27;motion&#x27;, &#x27;Travel distance&#x27;, 20, 70, 1, 52, &#x27;%&#x27;),
+    choice(&#x27;acceleration&#x27;, &#x27;motion&#x27;, &#x27;Acceleration&#x27;, &#x27;ease&#x27;, { snap: &#x27;Snap&#x27;, ease: &#x27;Ease out&#x27;, linear: &#x27;Linear&#x27;, late: &#x27;Late surge&#x27; }),
+    range(&#x27;leadIn&#x27;, &#x27;motion&#x27;, &#x27;Lead-in&#x27;, 0, 900, 10, 300, &#x27; ms&#x27;),
+    range(&#x27;loopPause&#x27;, &#x27;motion&#x27;, &#x27;Loop pause&#x27;, 100, 2200, 10, 1000, &#x27; ms&#x27;),
+    choice(&#x27;path&#x27;, &#x27;motion&#x27;, &#x27;Path&#x27;, &#x27;straight&#x27;, { straight: &#x27;Straight&#x27;, arc: &#x27;Arc&#x27;, swerve: &#x27;Swerve&#x27; }),
+    range(&#x27;bend&#x27;, &#x27;motion&#x27;, &#x27;Path bend&#x27;, -32, 32, 1, 14, &#x27;%&#x27;),
+    toggle(&#x27;engines&#x27;, &#x27;burst&#x27;, &#x27;Engines on&#x27;),
     { key: &#x27;burstStrength&#x27;, group: &#x27;burst&#x27;, label: &#x27;Strength&#x27;, min: 0, max: 180, step: 5, initial: 100, unit: &#x27;%&#x27; },
     { key: &#x27;burstLength&#x27;, group: &#x27;burst&#x27;, label: &#x27;Length&#x27;, min: 20, max: 200, step: 5, initial: 100, unit: &#x27;%&#x27; },
     { key: &#x27;burstDuration&#x27;, group: &#x27;burst&#x27;, label: &#x27;Duration&#x27;, min: 40, max: 400, step: 5, initial: 180, unit: &#x27; ms&#x27; },
     { key: &#x27;flashStrength&#x27;, group: &#x27;burst&#x27;, label: &#x27;Flash strength&#x27;, min: 0, max: 180, step: 5, initial: 100, unit: &#x27;%&#x27; },
     { key: &#x27;flashDuration&#x27;, group: &#x27;burst&#x27;, label: &#x27;Flash duration&#x27;, min: 30, max: 180, step: 5, initial: 90, unit: &#x27; ms&#x27; },
-    { key: &#x27;ghostCount&#x27;, group: &#x27;ghost&#x27;, label: &#x27;Count&#x27;, min: 0, max: 5, step: 1, initial: 2, unit: &#x27;&#x27; },
-    { key: &#x27;ghostSpacing&#x27;, group: &#x27;ghost&#x27;, label: &#x27;Spacing&#x27;, min: 25, max: 120, step: 5, initial: 65, unit: &#x27; ms&#x27; },
+    range(&#x27;burstWidth&#x27;, &#x27;burst&#x27;, &#x27;Burst width&#x27;, 25, 245, 5, 100, &#x27;%&#x27;),
+    choice(&#x27;burstShape&#x27;, &#x27;burst&#x27;, &#x27;Burst shape&#x27;, &#x27;lance&#x27;, { lance: &#x27;Brush lance&#x27;, fan: &#x27;Flame fan&#x27;, needle: &#x27;Needle&#x27;, comet: &#x27;Comet&#x27; }),
+    range(&#x27;flicker&#x27;, &#x27;burst&#x27;, &#x27;Exhaust flicker&#x27;, 0, 100, 5, 0, &#x27;%&#x27;),
+    range(&#x27;steadyExhaust&#x27;, &#x27;burst&#x27;, &#x27;Steady exhaust&#x27;, 0, 200, 5, 100, &#x27;%&#x27;),
+    range(&#x27;flashSize&#x27;, &#x27;burst&#x27;, &#x27;Flash size&#x27;, 25, 250, 5, 100, &#x27;%&#x27;),
+    choice(&#x27;flashShape&#x27;, &#x27;burst&#x27;, &#x27;Flash shape&#x27;, &#x27;brush&#x27;, { star: &#x27;Painted star&#x27;, brush: &#x27;Brush bloom&#x27;, radial: &#x27;Radial&#x27; }),
+    toggle(&#x27;ghosts&#x27;, &#x27;ghost&#x27;, &#x27;Afterimages on&#x27;),
+    { key: &#x27;ghostCount&#x27;, group: &#x27;ghost&#x27;, label: &#x27;Count&#x27;, min: 0, max: 10, step: 1, initial: 2, unit: &#x27;&#x27; },
+    { key: &#x27;ghostSpacing&#x27;, group: &#x27;ghost&#x27;, label: &#x27;Spacing&#x27;, min: 5, max: 160, step: 5, initial: 65, unit: &#x27; ms&#x27; },
     { key: &#x27;ghostOpacity&#x27;, group: &#x27;ghost&#x27;, label: &#x27;Opacity&#x27;, min: 0, max: 80, step: 1, initial: 32, unit: &#x27;%&#x27; },
     { key: &#x27;ghostFade&#x27;, group: &#x27;ghost&#x27;, label: &#x27;Fade&#x27;, min: 40, max: 500, step: 5, initial: 240, unit: &#x27; ms&#x27; },
+    choice(&#x27;ghostStyle&#x27;, &#x27;ghost&#x27;, &#x27;Drawing style&#x27;, &#x27;painted&#x27;, { painted: &#x27;Painted ship&#x27;, silhouette: &#x27;Tinted silhouette&#x27;, outline: &#x27;Outline&#x27; }),
+    range(&#x27;ghostScale&#x27;, &#x27;ghost&#x27;, &#x27;Afterimage scale&#x27;, 35, 155, 5, 100, &#x27;%&#x27;),
+    range(&#x27;ghostScatter&#x27;, &#x27;ghost&#x27;, &#x27;Lateral scatter&#x27;, 0, 50, 2, 0, &#x27;%&#x27;),
+    choice(&#x27;ghostCurve&#x27;, &#x27;ghost&#x27;, &#x27;Fade curve&#x27;, &#x27;linear&#x27;, { linear: &#x27;Linear&#x27;, quick: &#x27;Fast falloff&#x27;, hold: &#x27;Slow falloff&#x27; }),
+    toggle(&#x27;wave&#x27;, &#x27;wave&#x27;, &#x27;Pressure cloud on&#x27;),
+    choice(&#x27;waveStyle&#x27;, &#x27;wave&#x27;, &#x27;Brush style&#x27;, &#x27;painted&#x27;, { painted: &#x27;Painted wisps&#x27;, ink: &#x27;Ink hatching&#x27;, chalk: &#x27;Chalk chips&#x27;, strokes: &#x27;Speed strokes&#x27;, vapor: &#x27;Soft vapor&#x27; }),
+    choice(&#x27;waveShape&#x27;, &#x27;wave&#x27;, &#x27;Cloud shape&#x27;, &#x27;shell&#x27;, { shell: &#x27;Transverse shell&#x27;, radial: &#x27;Radial puff&#x27;, cone: &#x27;Rear cone&#x27;, twin: &#x27;Twin plumes&#x27; }),
     { key: &#x27;waveSize&#x27;, group: &#x27;wave&#x27;, label: &#x27;Size&#x27;, min: 35, max: 155, step: 5, initial: 100, unit: &#x27;%&#x27; },
     { key: &#x27;waveStrength&#x27;, group: &#x27;wave&#x27;, label: &#x27;Strength&#x27;, min: 0, max: 180, step: 5, initial: 100, unit: &#x27;%&#x27; },
     { key: &#x27;waveDuration&#x27;, group: &#x27;wave&#x27;, label: &#x27;Duration&#x27;, min: 80, max: 500, step: 5, initial: 240, unit: &#x27; ms&#x27; },
+    range(&#x27;waveCount&#x27;, &#x27;wave&#x27;, &#x27;Particle count&#x27;, 8, 160, 1, 86),
+    range(&#x27;waveSpread&#x27;, &#x27;wave&#x27;, &#x27;Transverse spread&#x27;, 35, 175, 5, 100, &#x27;%&#x27;),
+    range(&#x27;waveJitter&#x27;, &#x27;wave&#x27;, &#x27;Direction variation&#x27;, 0, 200, 5, 100, &#x27;%&#x27;),
+    range(&#x27;waveTurbulence&#x27;, &#x27;wave&#x27;, &#x27;Turbulence&#x27;, 0, 100, 5, 0, &#x27;%&#x27;),
+    range(&#x27;particleSize&#x27;, &#x27;wave&#x27;, &#x27;Particle size&#x27;, 25, 230, 5, 100, &#x27;%&#x27;),
+    range(&#x27;particleStretch&#x27;, &#x27;wave&#x27;, &#x27;Particle stretch&#x27;, 30, 240, 5, 100, &#x27;%&#x27;),
+    range(&#x27;particleRotation&#x27;, &#x27;wave&#x27;, &#x27;Particle rotation&#x27;, 0, 240, 5, 100, &#x27;%&#x27;),
+    range(&#x27;waveDelay&#x27;, &#x27;wave&#x27;, &#x27;Spawn delay&#x27;, 0, 220, 5, 0, &#x27; ms&#x27;),
+    range(&#x27;expansionSpeed&#x27;, &#x27;wave&#x27;, &#x27;Expansion speed&#x27;, 35, 225, 5, 100, &#x27;%&#x27;),
+    range(&#x27;waveFade&#x27;, &#x27;wave&#x27;, &#x27;Fade power&#x27;, 40, 300, 5, 130, &#x27;%&#x27;),
+    choice(&#x27;waveAnchor&#x27;, &#x27;wave&#x27;, &#x27;Anchor&#x27;, &#x27;launch&#x27;, { launch: &#x27;Launch point&#x27;, follow: &#x27;Follow ship&#x27; }),
+    color(&#x27;energyColor&#x27;, &#x27;Engine tint&#x27;, &#x27;#40d5ff&#x27;),
+    color(&#x27;cloudColor&#x27;, &#x27;Cloud tint&#x27;, &#x27;#d1dadd&#x27;),
+    color(&#x27;ghostColor&#x27;, &#x27;Afterimage tint&#x27;, &#x27;#b9a6ff&#x27;),
+    range(&#x27;roughness&#x27;, &#x27;drawing&#x27;, &#x27;Brush roughness&#x27;, 0, 100, 5, 40, &#x27;%&#x27;),
+    range(&#x27;lineWeight&#x27;, &#x27;drawing&#x27;, &#x27;Line weight&#x27;, 30, 200, 5, 100, &#x27;%&#x27;),
+    range(&#x27;grain&#x27;, &#x27;drawing&#x27;, &#x27;Paint grain&#x27;, 0, 100, 5, 45, &#x27;%&#x27;),
+    range(&#x27;seed&#x27;, &#x27;drawing&#x27;, &#x27;Seed&#x27;, 0, 65535, 1, 9483),
+    range(&#x27;shake&#x27;, &#x27;impact&#x27;, &#x27;Shake&#x27;, 0, 30, 1, 0, &#x27; px&#x27;),
+    range(&#x27;shakeDuration&#x27;, &#x27;impact&#x27;, &#x27;Shake duration&#x27;, 40, 400, 5, 145, &#x27; ms&#x27;),
+    range(&#x27;zoom&#x27;, &#x27;impact&#x27;, &#x27;Zoom kick&#x27;, 0, 40, 1, 0, &#x27;%&#x27;),
+    range(&#x27;wash&#x27;, &#x27;impact&#x27;, &#x27;Flash wash&#x27;, 0, 55, 1, 0, &#x27;%&#x27;),
   ];
-  const settings = Object.fromEntries(fields.map(({ key, initial }) =&gt; [key, initial]));
-  const dashStart = 300;
-  const dashDuration = 275;
-  const loopDuration = 1740;
+  const defaults = Object.fromEntries(fields.map(({ key, initial }) =&gt; [key, initial]));
+  const settings = { ...defaults };
+  const presets = {
+    &#x27;Painted pressure&#x27;: {},
+    &#x27;Ink snap&#x27;: { dashDuration: 170, distance: 62, acceleration: &#x27;snap&#x27;, burstShape: &#x27;needle&#x27;, burstLength: 64, burstDuration: 100, flashShape: &#x27;star&#x27;, flashDuration: 50, waveStyle: &#x27;ink&#x27;, waveCount: 40, waveSize: 125, waveDuration: 190, particleStretch: 175, ghostStyle: &#x27;outline&#x27;, ghostCount: 3, ghostOpacity: 44, ghostSpacing: 45, ghostFade: 175, energyColor: &#x27;#e1eaf4&#x27;, cloudColor: &#x27;#d7d8d4&#x27;, ghostColor: &#x27;#efefeb&#x27;, lineWeight: 145, shake: 5 },
+    &#x27;Chalk blast&#x27;: { dashDuration: 350, distance: 43, acceleration: &#x27;ease&#x27;, burstShape: &#x27;fan&#x27;, burstWidth: 135, burstStrength: 75, burstDuration: 140, flashShape: &#x27;brush&#x27;, flashSize: 135, waveStyle: &#x27;chalk&#x27;, waveShape: &#x27;radial&#x27;, waveCount: 135, waveSize: 110, waveDuration: 365, particleSize: 135, waveSpread: 95, waveTurbulence: 45, ghostCount: 1, ghostOpacity: 25, roughness: 75, grain: 85, cloudColor: &#x27;#f0e9d7&#x27;, energyColor: &#x27;#a7d9e0&#x27; },
+    &#x27;Manga break&#x27;: { dashDuration: 140, distance: 65, acceleration: &#x27;late&#x27;, path: &#x27;swerve&#x27;, bend: 12, leadIn: 540, burstShape: &#x27;needle&#x27;, burstLength: 150, burstWidth: 45, flashShape: &#x27;star&#x27;, flashDuration: 55, flashSize: 170, waveStyle: &#x27;strokes&#x27;, waveShape: &#x27;cone&#x27;, waveCount: 50, waveDuration: 190, particleStretch: 200, ghostCount: 4, ghostStyle: &#x27;outline&#x27;, ghostSpacing: 30, ghostFade: 125, ghostOpacity: 52, energyColor: &#x27;#f3f5f6&#x27;, cloudColor: &#x27;#eff1ed&#x27;, ghostColor: &#x27;#f3f5f6&#x27;, shake: 11, wash: 24, zoom: 13 },
+    &#x27;Comet kick&#x27;: { dashDuration: 420, acceleration: &#x27;snap&#x27;, path: &#x27;arc&#x27;, bend: -16, distance: 58, burstShape: &#x27;fan&#x27;, burstWidth: 185, burstLength: 160, burstDuration: 310, flicker: 50, flashSize: 145, waveShape: &#x27;cone&#x27;, waveDuration: 310, waveCount: 100, waveSpread: 70, waveTurbulence: 25, ghostCount: 1, ghostFade: 290, energyColor: &#x27;#ff8a47&#x27;, cloudColor: &#x27;#d7a683&#x27;, zoom: 11 },
+    &#x27;Spectral echo&#x27;: { dashDuration: 545, acceleration: &#x27;linear&#x27;, distance: 62, path: &#x27;arc&#x27;, bend: 13, engines: true, burstShape: &#x27;comet&#x27;, burstStrength: 55, burstWidth: 70, burstDuration: 230, flashDuration: 145, flashStrength: 50, waveCount: 21, waveSize: 70, waveStrength: 25, waveAnchor: &#x27;follow&#x27;, ghostStyle: &#x27;silhouette&#x27;, ghostCount: 9, ghostSpacing: 48, ghostOpacity: 56, ghostFade: 470, ghostScale: 90, ghostScatter: 12, ghostCurve: &#x27;hold&#x27;, energyColor: &#x27;#ad81ff&#x27;, cloudColor: &#x27;#a6a5ff&#x27;, ghostColor: &#x27;#bc87ff&#x27; },
+    &#x27;Vapor bloom&#x27;: { dashDuration: 365, distance: 44, acceleration: &#x27;ease&#x27;, burstShape: &#x27;comet&#x27;, burstDuration: 220, burstLength: 65, flashShape: &#x27;radial&#x27;, flashSize: 130, waveStyle: &#x27;vapor&#x27;, waveShape: &#x27;twin&#x27;, waveCount: 125, waveDuration: 495, waveSize: 135, waveSpread: 135, waveTurbulence: 85, particleSize: 155, waveFade: 80, ghostCount: 2, ghostOpacity: 16, ghostFade: 340, energyColor: &#x27;#92e9ff&#x27;, cloudColor: &#x27;#c2e7ee&#x27; },
+    &#x27;Minimal snap&#x27;: { dashDuration: 130, distance: 55, acceleration: &#x27;snap&#x27;, leadIn: 160, loopPause: 480, burstShape: &#x27;needle&#x27;, burstLength: 45, burstWidth: 45, burstStrength: 130, burstDuration: 75, flashShape: &#x27;star&#x27;, flashDuration: 35, flashSize: 60, wave: false, ghosts: false, steadyExhaust: 50, energyColor: &#x27;#a9e5ff&#x27; },
+  };
   const reduced = window.matchMedia(&#x27;(prefers-reduced-motion: reduce)&#x27;).matches;
   let playing = !reduced;
-  let time = reduced ? dashStart + 135 : 0;
+  let time = reduced ? defaults.leadIn + 135 : 0;
   let lastFrame;
   let frameRequest;
   let ship = null;
   let view = &#x27;close&#x27;;
   let speed = 1;
   const clamp = (value, min, max) =&gt; Math.min(max, Math.max(min, value));
+  let starting = null;
+  let snapshots = {};
+  const dashStart = () =&gt; settings.leadIn;
+  const dashDuration = () =&gt; settings.dashDuration;
+  const activeEnd = () =&gt; dashStart() + Math.max(
+    dashDuration(),
+    settings.wave &amp;&amp; settings.waveStrength ? settings.waveDelay + settings.waveDuration : 0,
+    settings.engines ? Math.max(settings.burstStrength ? settings.burstDuration : 0, settings.flashStrength ? settings.flashDuration : 0) : 0,
+    settings.ghosts &amp;&amp; settings.ghostOpacity &amp;&amp; settings.ghostCount
+      ? (settings.ghostCount - 1) * settings.ghostSpacing + Math.max(22, settings.ghostSpacing * .62) + settings.ghostFade
+      : 0,
+    settings.shake || settings.zoom || settings.wash ? settings.shakeDuration : 0
+  );
+  const loopDuration = () =&gt; activeEnd() + settings.loopPause;
 
   function persist() {
-    window.openai?.setWidgetState?.({ modelContent: { ...settings }, privateContent: { speed, view } })?.catch(() =&gt; {});
+    window.openai?.setWidgetState?.({ modelContent: { ...settings }, privateContent: { speed, view, starting, snapshots } })?.catch(() =&gt; {});
+  }
+
+  function normalize(field, value) {
+    if (field.options) return typeof value === &#x27;string&#x27; &amp;&amp; Object.hasOwn(field.options, value) ? value : field.initial;
+    if (field.color) return typeof value === &#x27;string&#x27; &amp;&amp; /^#[a-f0-9]{6}$/i.test(value) ? value.toLowerCase() : field.initial;
+    if (typeof field.initial === &#x27;boolean&#x27;) return typeof value === &#x27;boolean&#x27; ? value : field.initial;
+    return Number.isFinite(value) ? clamp(Math.round((value - field.min) / field.step) * field.step + field.min, field.min, field.max) : field.initial;
+  }
+
+  function clean(values) {
+    return Object.fromEntries(fields.map((field) =&gt; [field.key, normalize(field, values?.[field.key])]));
+  }
+
+  function rememberStarting() {
+    if (!starting) starting = { ...settings };
+  }
+
+  function syncControl(field) {
+    const value = settings[field.key];
+    if (typeof value === &#x27;boolean&#x27;) field.control.checked = value;
+    else field.control.value = value;
+    if (field.output) field.output.textContent = `${value}${field.unit}`;
   }
 
   for (const field of fields) {
     const label = document.createElement(&#x27;label&#x27;);
-    label.className = &#x27;dash-slider&#x27;;
-    label.innerHTML = `&lt;span&gt;${field.label} &lt;output class=&quot;tabular-nums&quot;&gt;&lt;/output&gt;&lt;/span&gt;&lt;input class=&quot;form-range&quot; type=&quot;range&quot; min=&quot;${field.min}&quot; max=&quot;${field.max}&quot; step=&quot;${field.step}&quot;&gt;`;
+    if (field.options) {
+      label.className = &#x27;form-label&#x27;;
+      label.innerHTML = `${field.label} &lt;select class=&quot;form-select&quot;&gt;${Object.entries(field.options).map(([value, name]) =&gt; `&lt;option value=&quot;${value}&quot;&gt;${name}&lt;/option&gt;`).join(&#x27;&#x27;)}&lt;/select&gt;`;
+    } else if (typeof field.initial === &#x27;boolean&#x27;) {
+      label.className = &#x27;form-check&#x27;;
+      label.innerHTML = `&lt;input class=&quot;form-check-input&quot; type=&quot;checkbox&quot;&gt; &lt;span class=&quot;form-check-label&quot;&gt;${field.label}&lt;/span&gt;`;
+    } else if (field.color) {
+      label.className = &#x27;form-label&#x27;;
+      label.innerHTML = `${field.label} &lt;input class=&quot;form-control form-control-color&quot; type=&quot;color&quot;&gt;`;
+    } else {
+      label.className = &#x27;dash-slider&#x27;;
+      label.innerHTML = `&lt;span&gt;${field.label} &lt;output class=&quot;tabular-nums&quot;&gt;&lt;/output&gt;&lt;/span&gt;&lt;input class=&quot;form-range&quot; type=&quot;range&quot; min=&quot;${field.min}&quot; max=&quot;${field.max}&quot; step=&quot;${field.step}&quot;&gt;`;
+    }
     field.output = label.querySelector(&#x27;output&#x27;);
-    field.control = label.querySelector(&#x27;input&#x27;);
+    field.control = label.querySelector(&#x27;input, select&#x27;);
+    field.control.dataset.setting = field.key;
+    field.control.setAttribute(&#x27;aria-label&#x27;, field.label);
     field.control.addEventListener(&#x27;input&#x27;, () =&gt; {
-      settings[field.key] = Number(field.control.value);
-      field.output.textContent = `${settings[field.key]}${field.unit}`;
-      if (field.key === &#x27;ghostCount&#x27;) syncSpacing();
+      rememberStarting();
+      const control = field.control;
+      const raw = control.type === &#x27;range&#x27; ? Number(control.value) : control.type === &#x27;checkbox&#x27; ? control.checked : control.value;
+      settings[field.key] = normalize(field, raw);
+      syncControl(field);
+      if (field.key === &#x27;ghostCount&#x27; || field.key === &#x27;dashDuration&#x27;) syncSpacing();
       render();
-      refreshConfig();
     });
     field.control.addEventListener(&#x27;change&#x27;, persist);
     select(`[data-controls=&quot;${field.group}&quot;]`).append(label);
@@ -1982,30 +2110,34 @@ html&gt;body{padding:0}&lt;/style&gt;
   function syncSpacing() {
     const field = fields.find(({ key }) =&gt; key === &#x27;ghostSpacing&#x27;);
     const intervals = Math.max(1, settings.ghostCount - 1);
-    const max = Math.min(field.max, Math.floor((dashDuration - 35) / intervals / field.step) * field.step);
+    const max = Math.min(field.max, Math.floor((dashDuration() - 35) / intervals / field.step) * field.step);
     field.control.max = max;
     settings.ghostSpacing = Math.min(settings.ghostSpacing, max);
     field.control.value = settings.ghostSpacing;
     field.output.textContent = `${settings.ghostSpacing}${field.unit}`;
   }
 
-  function restore(state) {
-    for (const field of fields) {
-      const saved = state?.modelContent?.[field.key];
-      settings[field.key] = Number.isFinite(saved)
-        ? clamp(Math.round((saved - field.min) / field.step) * field.step + field.min, field.min, field.max)
-        : field.initial;
-      field.control.value = settings[field.key];
-      field.output.textContent = `${settings[field.key]}${field.unit}`;
-    }
+  function setLook(values) {
+    Object.assign(settings, clean(values));
     syncSpacing();
-    const savedSpeed = state?.privateContent?.speed;
+    for (const field of fields) syncControl(field);
+    render();
+  }
+
+  function restore(state) {
+    const privateState = state?.privateContent;
+    starting = privateState?.starting ? clean(privateState.starting) : null;
+    snapshots = {};
+    for (const slot of [&#x27;A&#x27;, &#x27;B&#x27;]) {
+      if (privateState?.snapshots?.[slot]) snapshots[slot] = clean(privateState.snapshots[slot]);
+      select(`[data-load=&quot;${slot}&quot;]`).disabled = !snapshots[slot];
+    }
+    const savedSpeed = privateState?.speed;
     speed = [.25, .5, 1].includes(savedSpeed) ? savedSpeed : 1;
-    view = state?.privateContent?.view === &#x27;game&#x27; ? &#x27;game&#x27; : &#x27;close&#x27;;
+    view = privateState?.view === &#x27;game&#x27; ? &#x27;game&#x27; : &#x27;close&#x27;;
     speedControl.value = speed;
     viewControl.value = view;
-    render();
-    refreshConfig();
+    setLook(state?.modelContent?.settings ?? state?.modelContent);
   }
 
   function extractShip(image) {
@@ -2045,19 +2177,51 @@ html&gt;body{padding:0}&lt;/style&gt;
   }
 
   function shipPosition(at, width) {
-    const progress = clamp((at - dashStart) / dashDuration, 0, 1);
-    const travel = 1 - (1 - progress) ** 1.7;
-    return width * (.27 + .52 * travel);
+    const progress = clamp((at - dashStart()) / dashDuration(), 0, 1);
+    const curves = { snap: 1 - (1 - progress) ** 3.25, ease: 1 - (1 - progress) ** 1.7, linear: progress, late: progress ** 2.65 };
+    const start = Math.min(.27, .92 - settings.distance / 100);
+    return width * (start + settings.distance / 100 * curves[settings.acceleration]);
   }
 
-  function drawShip(x, y, hullSize, alpha) {
+  function shipHeight(at, height) {
+    const progress = clamp((at - dashStart()) / dashDuration(), 0, 1);
+    const path = settings.path === &#x27;arc&#x27; ? Math.sin(progress * Math.PI) : settings.path === &#x27;swerve&#x27; ? Math.sin(progress * Math.PI * 2) : 0;
+    return height * (.55 - settings.bend / 100 * path);
+  }
+
+  let ghostArt;
+  let ghostArtKey;
+  function ghostSprite() {
+    const key = settings.ghostStyle + settings.ghostColor + settings.lineWeight;
+    if (ghostArtKey === key) return ghostArt;
+    ghostArtKey = key;
+    ghostArt = document.createElement(&#x27;canvas&#x27;);
+    ghostArt.width = ship.width;
+    ghostArt.height = ship.height;
+    const brush = ghostArt.getContext(&#x27;2d&#x27;);
+    if (settings.ghostStyle === &#x27;outline&#x27;) {
+      const border = settings.lineWeight / 25;
+      for (const [x, y] of [[-border, 0], [border, 0], [0, -border], [0, border]]) brush.drawImage(ship, x, y);
+      brush.globalCompositeOperation = &#x27;destination-out&#x27;;
+      brush.drawImage(ship, 0, 0);
+    } else {
+      brush.drawImage(ship, 0, 0);
+    }
+    brush.globalCompositeOperation = &#x27;source-in&#x27;;
+    brush.fillStyle = settings.ghostColor;
+    brush.fillRect(0, 0, ship.width, ship.height);
+    return ghostArt;
+  }
+
+  function drawShip(x, y, hullSize, alpha, afterimage = false) {
     if (!ship) return;
     context.save();
     context.translate(x, y);
     context.rotate(Math.PI / 2);
     context.globalAlpha = alpha;
     const factor = hullSize / 325;
-    context.drawImage(ship, -135 * factor, -194 * factor, ship.width * factor, ship.height * factor);
+    const sprite = afterimage &amp;&amp; settings.ghostStyle !== &#x27;painted&#x27; ? ghostSprite() : ship;
+    context.drawImage(sprite, -135 * factor, -194 * factor, ship.width * factor, ship.height * factor);
     context.restore();
   }
 
@@ -2072,14 +2236,17 @@ html&gt;body{padding:0}&lt;/style&gt;
   }
 
   function drawSteadyExhaust(x, y, hullSize) {
-    const length = hullSize * .22;
-    const width = hullSize * .025;
+    const level = settings.steadyExhaust / 100;
+    if (!level) return;
+    const length = hullSize * .22 * (.47 + .53 * level);
+    const width = hullSize * .025 * (.62 + .38 * level);
     drawAtEngineExits(x, y, hullSize, () =&gt; {
       const gradient = context.createLinearGradient(0, 0, -length, 0);
       gradient.addColorStop(0, &#x27;#b7f7ff&#x27;);
-      gradient.addColorStop(.28, &#x27;rgba(69,205,255,.78)&#x27;);
-      gradient.addColorStop(1, &#x27;rgba(18,134,255,0)&#x27;);
+      gradient.addColorStop(.28, settings.energyColor + &#x27;c7&#x27;);
+      gradient.addColorStop(1, settings.energyColor + &#x27;00&#x27;);
       context.fillStyle = gradient;
+      context.globalAlpha = Math.min(1, level);
       context.beginPath();
       context.moveTo(0, -width);
       context.quadraticCurveTo(-length * .65, -width * .55, -length, 0);
@@ -2092,10 +2259,11 @@ html&gt;body{padding:0}&lt;/style&gt;
     const { burstDuration, burstStrength, burstLength } = settings;
     if (age &lt; 0 || age &gt;= burstDuration || burstStrength === 0) return;
     const ageRatio = age / burstDuration;
-    const pulse = (1 - ageRatio) ** 1.4;
+    const pulse = (1 - ageRatio) ** 1.4 * (1 - settings.flicker / 100 * .35 * (.5 + .5 * Math.sin(age * .57 + settings.seed)));
     const intensity = burstStrength / 100;
     const length = hullSize * .83 * burstLength / 100 * (.42 + .58 * pulse);
-    const spread = hullSize * (.028 + .053 * pulse);
+    const shapeWidths = { lance: 1, fan: 1.42, needle: .38, comet: .73 };
+    const spread = hullSize * (.028 + .053 * pulse) * settings.burstWidth / 100 * shapeWidths[settings.burstShape];
     drawAtEngineExits(x, y, hullSize, () =&gt; {
       function wedge(distance, width, alpha, colors) {
         const gradient = context.createLinearGradient(0, 0, -distance, 0);
@@ -2104,15 +2272,23 @@ html&gt;body{padding:0}&lt;/style&gt;
         context.fillStyle = gradient;
         context.beginPath();
         context.moveTo(0, -width * .35);
-        context.lineTo(-distance * .21, -width);
-        context.lineTo(-distance, 0);
-        context.lineTo(-distance * .32, width * .72);
+        context.lineTo(-distance * (settings.burstShape === &#x27;fan&#x27; ? .48 : .21), -width);
+        if (settings.burstShape === &#x27;fan&#x27;) {
+          context.lineTo(-distance * .91, -width * .68);
+          context.lineTo(-distance * .72, 0);
+          context.lineTo(-distance * .95, width * .52);
+        } else if (settings.burstShape === &#x27;comet&#x27;) {
+          context.quadraticCurveTo(-distance * .55, -width * .9, -distance, 0);
+        } else {
+          context.lineTo(-distance, 0);
+        }
+        context.lineTo(-distance * .32, width * (.72 + (settings.roughness - 40) / 160));
         context.lineTo(0, width * .33);
         context.closePath();
         context.fill();
       }
-      wedge(length, spread, pulse * intensity * .9, [[0, &#x27;#b5fcff&#x27;], [.18, &#x27;#52deff&#x27;], [.56, &#x27;#158fec&#x27;], [1, &#x27;rgba(21,143,236,0)&#x27;]]);
-      wedge(length * .67, spread * .36, pulse * intensity, [[0, &#x27;#ffffff&#x27;], [.31, &#x27;#ecfeff&#x27;], [.67, &#x27;#75eaff&#x27;], [1, &#x27;rgba(117,234,255,0)&#x27;]]);
+      wedge(length, spread, pulse * intensity * .9, [[0, &#x27;#b5fcff&#x27;], [.18, settings.energyColor], [.56, settings.energyColor + &#x27;ba&#x27;], [1, settings.energyColor + &#x27;00&#x27;]]);
+      wedge(length * .67, spread * .36, pulse * intensity, [[0, &#x27;#ffffff&#x27;], [.31, &#x27;#ecfeff&#x27;], [.67, settings.energyColor], [1, settings.energyColor + &#x27;00&#x27;]]);
     });
   }
 
@@ -2122,21 +2298,31 @@ html&gt;body{padding:0}&lt;/style&gt;
     const attack = clamp((age + 8) / 14, 0, 1);
     const pulse = attack * (1 - age / flashDuration) ** 1.35;
     const intensity = flashStrength / 100;
-    const radius = Math.max(4, hullSize * .145) * (.7 + .3 * pulse);
+    const radius = Math.max(3, hullSize * .145 * settings.flashSize / 100) * (.7 + .3 * pulse);
     drawAtEngineExits(x, y, hullSize, () =&gt; {
       context.translate(-hullSize * .018, 0);
       context.scale(1.22, 1);
       const bloom = context.createRadialGradient(0, 0, 0, 0, 0, radius);
       bloom.addColorStop(0, &#x27;#ffffff&#x27;);
       bloom.addColorStop(.2, &#x27;#c3faff&#x27;);
-      bloom.addColorStop(.48, &#x27;rgba(49,206,255,.52)&#x27;);
-      bloom.addColorStop(1, &#x27;rgba(28,176,255,0)&#x27;);
+      bloom.addColorStop(.48, settings.energyColor + &#x27;85&#x27;);
+      bloom.addColorStop(1, settings.energyColor + &#x27;00&#x27;);
       context.globalAlpha = clamp(pulse * intensity, 0, 1);
       context.fillStyle = bloom;
       context.fillRect(-radius, -radius, radius * 2, radius * 2);
       context.fillStyle = &#x27;#faffff&#x27;;
       context.beginPath();
-      context.ellipse(0, 0, radius * .23, radius * .13, 0, 0, Math.PI * 2);
+      if (settings.flashShape === &#x27;star&#x27;) {
+        for (let point = 0; point &lt; 16; point++) {
+          const angle = point * Math.PI / 8;
+          const reach = radius * (point % 2 ? .11 : point % 4 ? .40 : .78);
+          context.lineTo(Math.cos(angle) * reach, Math.sin(angle) * reach);
+        }
+        context.closePath();
+      } else {
+        const radial = settings.flashShape === &#x27;radial&#x27;;
+        context.ellipse(0, 0, radius * (radial ? .34 : .23), radius * (radial ? .34 : .13), 0, 0, Math.PI * 2);
+      }
       context.fill();
     });
   }
@@ -2188,46 +2374,142 @@ html&gt;body{padding:0}&lt;/style&gt;
   });
 
   const cloudClusters = [-2.45, -1.55, -.43, .63, 1.42, 2.25, 3.04];
-  particleSeed = 9483;
-  const waveParticles = Array.from({ length: 86 }, (_, index) =&gt; {
-    const mote = index &gt;= 68;
-    const angle = cloudClusters[index % cloudClusters.length] + (particleRandom() - .5) * .68;
-    return {
-      mote,
-      directionX: Math.cos(angle) * .39,
-      directionY: Math.sin(angle),
-      reach: .42 + particleRandom() * (mote ? .67 : .48),
-      drift: (particleRandom() - .55) * .2,
-      radius: mote ? .005 + particleRandom() * .01 : .036 + particleRandom() * .084,
-      shape: .44 + particleRandom() * .54,
-      angle: (particleRandom() - .5) * Math.PI,
-      opacity: .2 + particleRandom() * .37,
-      start: particleRandom() * .13,
-      span: .54 + particleRandom() * .45,
-      sprite: wavePuffs[Math.floor(particleRandom() * wavePuffs.length)],
-    };
-  });
+  let particleKey;
+  let waveParticles;
+  function currentParticles() {
+    const key = settings.seed + &#x27;:&#x27; + settings.waveCount;
+    if (particleKey === key) return waveParticles;
+    particleKey = key;
+    particleSeed = settings.seed;
+    waveParticles = Array.from({ length: settings.waveCount }, (_, index) =&gt; {
+      const mote = index &gt;= Math.round(settings.waveCount * 68 / 86);
+      const angle = cloudClusters[index % cloudClusters.length] + (particleRandom() - .5) * .68;
+      return {
+        mote,
+        directionX: Math.cos(angle) * .39,
+        directionY: Math.sin(angle),
+        reach: .42 + particleRandom() * (mote ? .67 : .48),
+        drift: (particleRandom() - .55) * .2,
+        radius: mote ? .005 + particleRandom() * .01 : .036 + particleRandom() * .084,
+        shape: .44 + particleRandom() * .54,
+        angle: (particleRandom() - .5) * Math.PI,
+        opacity: .2 + particleRandom() * .37,
+        start: particleRandom() * .13,
+        span: .54 + particleRandom() * .45,
+        sprite: wavePuffs[Math.floor(particleRandom() * wavePuffs.length)],
+      };
+    });
+    return waveParticles;
+  }
+
+  let cloudArt;
+  let cloudArtKey;
+  function cloudSprites() {
+    const key = settings.waveStyle + settings.cloudColor;
+    if (key === cloudArtKey) return cloudArt;
+    cloudArtKey = key;
+    cloudArt = wavePuffs.map((source) =&gt; {
+      const sprite = document.createElement(&#x27;canvas&#x27;);
+      sprite.width = sprite.height = 64;
+      const brush = sprite.getContext(&#x27;2d&#x27;);
+      if (settings.waveStyle === &#x27;vapor&#x27;) {
+        const fog = brush.createRadialGradient(32, 32, 0, 32, 32, 32);
+        fog.addColorStop(0, settings.cloudColor);
+        fog.addColorStop(.45, settings.cloudColor + &#x27;96&#x27;);
+        fog.addColorStop(1, settings.cloudColor + &#x27;00&#x27;);
+        brush.fillStyle = fog;
+        brush.fillRect(0, 0, 64, 64);
+      } else {
+        brush.drawImage(source, 0, 0);
+        if (settings.cloudColor !== defaults.cloudColor) {
+          brush.globalCompositeOperation = &#x27;source-atop&#x27;;
+          brush.globalAlpha = .48;
+          brush.fillStyle = settings.cloudColor;
+          brush.fillRect(0, 0, 64, 64);
+        }
+      }
+      return sprite;
+    });
+    return cloudArt;
+  }
+
+  function paintCloudParticle(particle, radius, height, sprites) {
+    const line = settings.lineWeight / 100;
+    const grain = settings.grain / 100;
+    if (settings.waveStyle === &#x27;painted&#x27; || settings.waveStyle === &#x27;vapor&#x27;) {
+      context.drawImage(sprites[wavePuffs.indexOf(particle.sprite)], -radius, -height, radius * 2, height * 2);
+      if (settings.waveStyle === &#x27;painted&#x27; &amp;&amp; grain &gt; 0) {
+        context.globalAlpha *= grain * .42;
+        context.fillStyle = &#x27;#4c6270&#x27;;
+        context.fillRect(-radius * .32, height * .17, radius * .46, Math.max(.45, height * .13 * line));
+      }
+      return;
+    }
+    context.fillStyle = settings.cloudColor;
+    if (settings.waveStyle === &#x27;ink&#x27;) {
+      context.strokeStyle = settings.cloudColor;
+      context.lineWidth = Math.max(.55, height * .15 * line);
+      context.beginPath();
+      for (let i = -2; i &lt;= 2; i++) {
+        const y = i * height * .30;
+        const length = radius * (1 - Math.abs(i) * .17);
+        context.moveTo(-length, y + height * .32);
+        context.lineTo(length * .77, y - height * .33);
+      }
+      context.stroke();
+      return;
+    }
+    context.beginPath();
+    if (settings.waveStyle === &#x27;chalk&#x27;) {
+      context.moveTo(-radius, height * .15);
+      context.lineTo(-radius * .39, -height * .83);
+      context.lineTo(radius * .83, -height * .40);
+      context.lineTo(radius * .59, height * .32);
+      context.lineTo(radius * .18, height);
+      context.lineTo(-radius * .58, height * .64);
+    } else {
+      context.moveTo(-radius * 1.8, height * .2);
+      context.lineTo(radius * .52, -height * .41 * line);
+      context.lineTo(radius * 1.45, -height * .17);
+      context.lineTo(-radius * .24, height * .33);
+    }
+    context.fill();
+    if (settings.waveStyle === &#x27;chalk&#x27; &amp;&amp; grain &gt; 0) {
+      context.globalAlpha *= grain;
+      context.fillStyle = &#x27;#647680&#x27;;
+      context.fillRect(-radius * .42, -height * .15, radius * .73, Math.max(.36, height * .21));
+    }
+  }
 
   function drawShockwave(x, y, hullSize, age) {
     const { waveSize, waveStrength, waveDuration } = settings;
-    if (age &lt; 0 || age &gt;= waveDuration || waveStrength === 0) return;
+    if (!settings.wave || age &lt; 0 || age &gt;= waveDuration || waveStrength === 0) return;
     const progress = age / waveDuration;
-    const expansion = 1 - (1 - progress) ** 2.45;
+    const expansion = 1 - (1 - progress) ** (2.45 * settings.expansionSpeed / 100);
     const scale = hullSize * waveSize / 100;
     const strength = waveStrength / 100;
+    const spread = settings.waveSpread / 100;
+    const jitter = settings.waveJitter / 100;
+    const sprites = cloudSprites();
 
     context.save();
-    for (const particle of waveParticles) {
+    for (const particle of currentParticles()) {
       const life = (progress - particle.start) / particle.span;
       if (life &lt; 0 || life &gt;= 1) continue;
       const reach = scale * (.10 + expansion * particle.reach);
-      const px = x + reach * particle.directionX + scale * particle.drift * expansion;
-      const py = y + reach * particle.directionY;
-      const opacity = particle.opacity * Math.min(1, .3 + life * 9) * (1 - life) ** 1.3;
+      let dx = particle.directionX;
+      let dy = particle.directionY;
+      if (settings.waveShape === &#x27;radial&#x27;) dx *= 2.35;
+      if (settings.waveShape === &#x27;cone&#x27;) { dx = -.78 + dx * .69; dy *= .73; }
+      if (settings.waveShape === &#x27;twin&#x27;) { dx = -.48 + dx; dy = (dy &lt; 0 ? -.39 : .39) + dy * .37; }
+      const turbulence = Math.sin(particle.angle * 8 + progress * 12) * expansion * scale * settings.waveTurbulence / 460;
+      const px = x + reach * dx + scale * particle.drift * expansion * jitter;
+      const py = y + reach * (dy * spread + particle.drift * (jitter - 1)) + turbulence;
+      const opacity = particle.opacity * Math.min(1, .3 + life * 9) * (1 - life) ** (settings.waveFade / 100);
       context.globalAlpha = clamp(strength * opacity, 0, 1);
       if (particle.mote) {
-        const size = Math.max(.8, scale * particle.radius);
-        context.fillStyle = &#x27;#deebf0&#x27;;
+        const size = Math.max(.65, scale * particle.radius * settings.particleSize / 100);
+        context.fillStyle = settings.cloudColor;
         const driftX = particle.directionX * size * 3;
         const driftY = particle.directionY * size * 3;
         context.beginPath();
@@ -2237,12 +2519,12 @@ html&gt;body{padding:0}&lt;/style&gt;
         context.lineTo(px + size * .45, py - size * .5);
         context.fill();
       } else {
-        const radius = Math.max(1.4, scale * particle.radius * (.75 + life * .85));
+        const radius = Math.max(1, scale * particle.radius * (.75 + life * .85) * settings.particleSize / 100);
         context.save();
         context.translate(px, py);
-        context.rotate(particle.angle);
+        context.rotate(particle.angle * settings.particleRotation / 100);
         const height = radius * particle.shape;
-        context.drawImage(particle.sprite, -radius, -height, radius * 2, height * 2);
+        paintCloudParticle(particle, radius * settings.particleStretch / 100, height, sprites);
         context.restore();
       }
     }
@@ -2250,19 +2532,24 @@ html&gt;body{padding:0}&lt;/style&gt;
   }
 
   function drawAfterimages(w, h, hullSize) {
+    if (!settings.ghosts) return;
     const { ghostCount, ghostSpacing, ghostOpacity, ghostFade } = settings;
+    const fadePower = { linear: 1, quick: 2.5, hold: .47 }[settings.ghostCurve];
     for (let index = 0; index &lt; ghostCount; index++) {
-      const sampleTime = dashStart + index * ghostSpacing;
+      const sampleTime = dashStart() + index * ghostSpacing;
       const appearAt = sampleTime + Math.max(22, ghostSpacing * .62);
       const age = time - appearAt;
       if (age &lt; 0 || age &gt;= ghostFade) continue;
-      drawShip(shipPosition(sampleTime, w), h * .55, hullSize, ghostOpacity / 100 * (1 - age / ghostFade));
+      const scatter = index === 0 ? 0 : Math.sin(index * 7.3 + settings.seed) * hullSize * settings.ghostScatter / 100;
+      drawShip(shipPosition(sampleTime, w), shipHeight(sampleTime, h) + scatter, hullSize * settings.ghostScale / 100, ghostOpacity / 100 * (1 - age / ghostFade) ** fadePower, true);
     }
   }
 
   function render() {
     const { width, height } = canvas.getBoundingClientRect();
     if (!width || !height) return;
+    const end = loopDuration();
+    time = Math.min(time, end);
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const pixelWidth = Math.round(width * dpr);
     const pixelHeight = Math.round(height * dpr);
@@ -2285,29 +2572,42 @@ html&gt;body{padding:0}&lt;/style&gt;
     }
     const hullSize = view === &#x27;close&#x27; ? Math.min(width * .23, height * .58, 158) : Math.min(width * .11, height * .29, 68);
     const x = shipPosition(time, width);
-    const y = height * .55;
+    const y = shipHeight(time, height);
+    const age = time - dashStart();
+    const impact = age &lt; 0 ? 0 : clamp(1 - age / settings.shakeDuration, 0, 1) ** 2;
+    const zoom = 1 + settings.zoom / 100 * impact;
+    context.save();
+    context.translate(width * (1 - zoom) * .46 + Math.sin(age * .32) * impact * settings.shake,
+      height * (1 - zoom) * .54 + Math.sin(age * .42) * impact * settings.shake * .65);
+    context.scale(zoom, zoom);
     drawAfterimages(width, height, hullSize);
-    drawShockwave(shipPosition(dashStart, width) - hullSize * .29, y, hullSize, time - dashStart);
-    drawSteadyExhaust(x, y, hullSize);
-    drawBurst(x, y, hullSize, time - dashStart);
+    const follows = settings.waveAnchor === &#x27;follow&#x27;;
+    drawShockwave((follows ? x : shipPosition(dashStart(), width)) - hullSize * .29, follows ? y : height * .55, hullSize, age - settings.waveDelay);
+    if (settings.engines) {
+      drawSteadyExhaust(x, y, hullSize);
+      drawBurst(x, y, hullSize, age);
+    }
     drawShip(x, y, hullSize, 1);
-    drawEngineFlash(x, y, hullSize, time - dashStart);
+    if (settings.engines) drawEngineFlash(x, y, hullSize, age);
+    context.restore();
+    if (impact &amp;&amp; settings.wash) {
+      context.save();
+      context.globalAlpha = settings.wash / 100 * impact;
+      context.fillStyle = &#x27;#f1f1ec&#x27;;
+      context.fillRect(0, 0, width, height);
+      context.restore();
+    }
+    scrub.max = end;
     const rounded = Math.round(time);
     scrub.value = rounded;
     timeOutput.textContent = `${rounded} ms`;
-    const { ghostCount, ghostSpacing, ghostOpacity, ghostFade, burstDuration, burstStrength, waveDuration, waveStrength } = settings;
-    const afterimageEnd = ghostCount &amp;&amp; ghostOpacity
-      ? dashStart + (ghostCount - 1) * ghostSpacing + Math.max(22, ghostSpacing * .62) + ghostFade
-      : 0;
-    const waveEnd = waveStrength ? dashStart + waveDuration : 0;
-    const activeEnd = Math.max(dashStart + dashDuration, burstStrength ? dashStart + burstDuration : 0, afterimageEnd, waveEnd);
-    phaseOutput.textContent = time &lt; dashStart ? &#x27;Ready&#x27; : time &lt; dashStart + dashDuration ? &#x27;Dash&#x27; : time &lt; activeEnd ? &#x27;Recovery&#x27; : &#x27;Settled&#x27;;
+    phaseOutput.textContent = age &lt; 0 ? &#x27;Ready&#x27; : age &lt; dashDuration() ? &#x27;Dash&#x27; : time &lt; activeEnd() ? &#x27;Recovery&#x27; : &#x27;Settled&#x27;;
   }
 
   function animate(stamp) {
     frameRequest = undefined;
     if (!playing) return;
-    if (lastFrame !== undefined) time = (time + Math.min(stamp - lastFrame, 100) * speed) % loopDuration;
+    if (lastFrame !== undefined) time = (time + Math.min(stamp - lastFrame, 100) * speed) % loopDuration();
     lastFrame = stamp;
     render();
     frameRequest = requestAnimationFrame(animate);
@@ -2325,7 +2625,7 @@ html&gt;body{padding:0}&lt;/style&gt;
   }
 
   play.addEventListener(&#x27;click&#x27;, () =&gt; {
-    if (!playing &amp;&amp; time &gt;= loopDuration) time = 0;
+    if (!playing &amp;&amp; time &gt;= loopDuration()) time = 0;
     setPlaying(!playing);
   });
   select(&#x27;[data-replay]&#x27;).addEventListener(&#x27;click&#x27;, () =&gt; { time = 0; render(); setPlaying(true); });
@@ -2333,17 +2633,86 @@ html&gt;body{padding:0}&lt;/style&gt;
   speedControl.addEventListener(&#x27;change&#x27;, () =&gt; { speed = Number(speedControl.value); persist(); });
   viewControl.addEventListener(&#x27;change&#x27;, () =&gt; { view = viewControl.value; render(); persist(); });
 
-  const copy = select(&#x27;[data-copy]&#x27;);
-  const config = copy.querySelector(&#x27;textarea&#x27;);
+  const config = select(&#x27;[data-copy] textarea&#x27;);
   const feedback = select(&#x27;[data-feedback]&#x27;);
-  function refreshConfig() {
-    config.value = fields.map(({ group, key, label, unit }) =&gt; `${groupNames[group]} ${label.toLowerCase()} = ${settings[key]}${unit}`).join(&#x27;\n&#x27;);
-  }
-  select(&#x27;[data-use]&#x27;).addEventListener(&#x27;click&#x27;, async () =&gt; {
+  const error = select(&#x27;[data-error]&#x27;);
+  const preset = select(&#x27;[data-preset]&#x27;);
+  for (const name of Object.keys(presets)) preset.add(new Option(name, name));
+
+  function applyLook(values, message) {
+    rememberStarting();
+    setLook(values);
+    if (!playing) {
+      time = dashStart() + Math.min(dashDuration() * .48, settings.waveDelay + 65);
+      render();
+    }
+    feedback.textContent = message;
     persist();
-    copy.hidden = false;
+  }
+
+  select(&#x27;[data-apply]&#x27;).addEventListener(&#x27;click&#x27;, () =&gt; applyLook({ ...defaults, ...presets[preset.value] }, `${preset.value} applied.`));
+  select(&#x27;[data-starting]&#x27;).addEventListener(&#x27;click&#x27;, () =&gt; {
+    rememberStarting();
+    applyLook(starting, &#x27;Starting look restored.&#x27;);
+  });
+  select(&#x27;[data-variant]&#x27;).addEventListener(&#x27;click&#x27;, () =&gt; {
+    particleSeed = settings.seed;
+    const values = { ...settings, seed: Math.floor(particleRandom() * 65536) };
+    for (const key of [&#x27;dashDuration&#x27;, &#x27;distance&#x27;, &#x27;burstLength&#x27;, &#x27;burstWidth&#x27;, &#x27;burstDuration&#x27;, &#x27;flashSize&#x27;, &#x27;flashDuration&#x27;, &#x27;waveSize&#x27;, &#x27;waveCount&#x27;, &#x27;waveSpread&#x27;, &#x27;waveDuration&#x27;, &#x27;particleStretch&#x27;, &#x27;ghostSpacing&#x27;, &#x27;ghostOpacity&#x27;, &#x27;ghostFade&#x27;]) {
+      values[key] *= .67 + .66 * particleRandom();
+    }
+    if (settings.ghosts &amp;&amp; settings.ghostCount) values.ghostCount += particleRandom() &gt; .52 ? 1 : -1;
+    applyLook(values, &#x27;Variation applied.&#x27;);
+  });
+  select(&#x27;[data-seed]&#x27;).addEventListener(&#x27;click&#x27;, () =&gt; {
+    particleSeed = settings.seed;
+    applyLook({ ...settings, seed: Math.floor(particleRandom() * 65536) }, &#x27;Particle seed shuffled.&#x27;);
+  });
+  for (const slot of [&#x27;A&#x27;, &#x27;B&#x27;]) {
+    select(`[data-save=&quot;${slot}&quot;]`).addEventListener(&#x27;click&#x27;, () =&gt; {
+      rememberStarting();
+      snapshots[slot] = { ...settings };
+      select(`[data-load=&quot;${slot}&quot;]`).disabled = false;
+      feedback.textContent = `Look ${slot} saved.`;
+      persist();
+    });
+    select(`[data-load=&quot;${slot}&quot;]`).addEventListener(&#x27;click&#x27;, () =&gt; applyLook(snapshots[slot], `Look ${slot} recalled.`));
+  }
+
+  function configText() {
+    return JSON.stringify({ version: 1, settings }, null, 2);
+  }
+
+  function exportConfig() {
+    select(&#x27;[data-settings]&#x27;).open = true;
+    error.textContent = &#x27;&#x27;;
+    config.value = configText();
     config.focus();
     config.select();
+  }
+
+  select(&#x27;[data-export]&#x27;).addEventListener(&#x27;click&#x27;, exportConfig);
+  select(&#x27;[data-import]&#x27;).addEventListener(&#x27;click&#x27;, () =&gt; {
+    try {
+      const data = JSON.parse(config.value);
+      if (data.version !== undefined &amp;&amp; data.version !== 1) throw new Error(&#x27;Unsupported settings version.&#x27;);
+      const values = data.settings ?? data;
+      if (!values || typeof values !== &#x27;object&#x27; || Array.isArray(values) || !Object.keys(values).length) throw new Error(&#x27;Enter a settings object.&#x27;);
+      for (const [key, value] of Object.entries(values)) {
+        const field = fields.find((candidate) =&gt; candidate.key === key);
+        if (!field || normalize(field, value) !== (typeof value === &#x27;string&#x27; &amp;&amp; field.color ? value.toLowerCase() : value)) {
+          throw new Error(`Check the value for ${key}.`);
+        }
+      }
+      applyLook({ ...settings, ...values }, &#x27;Settings imported.&#x27;);
+      error.textContent = &#x27;&#x27;;
+    } catch (problem) {
+      error.textContent = problem.message;
+    }
+  });
+  select(&#x27;[data-use]&#x27;).addEventListener(&#x27;click&#x27;, async () =&gt; {
+    persist();
+    exportConfig();
   });
 
   window.addEventListener(&#x27;openai:set_globals&#x27;, (event) =&gt; {
@@ -3070,45 +3439,6 @@ html&gt;body{padding:0}&lt;/style&gt;
         id: data.id,
         ok,
       });
-      return;
-    }
-    if (data.type === "height") {
-      const height = data.height;
-      if (
-        typeof height !== "number" ||
-        !Number.isFinite(height) ||
-        height < 0
-      ) {
-        return;
-      }
-      if (height <= 10_000) {
-        const width = isShare && storage != null ? frame.clientWidth : null;
-        frame.style.height = Math.ceil(height) + "px";
-        if (isShare && storage != null) {
-          const size = JSON.stringify({
-            fingerprint: sizeFingerprint,
-            width,
-            viewportHeight: globalThis.innerHeight,
-            dark: globalThis.matchMedia("(prefers-color-scheme: dark)").matches,
-            scale: globalThis.devicePixelRatio,
-            height: Math.ceil(height),
-          });
-          if (size !== lastSize) {
-            lastSize = size;
-            pendingSize = size;
-            globalThis.clearTimeout(sizeWriteTimeout);
-            sizeWriteTimeout = globalThis.setTimeout(persistSize, 100);
-          }
-        }
-      }
-      if (isShare) {
-        // Keep unusually tall content accessible without accepting an unbounded height.
-        if (height > 10_000 && Number.parseFloat(frame.style.height) === 0) {
-          frame.style.removeProperty("height");
-        }
-        frame.scrolling = height > 10_000 ? "auto" : "no";
-        document.documentElement.classList.add("visualization-share-ready");
-      }
       return;
     }
     if (data.type === "scroll-to") {
