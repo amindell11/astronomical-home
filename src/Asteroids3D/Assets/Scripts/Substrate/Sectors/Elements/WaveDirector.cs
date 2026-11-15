@@ -21,13 +21,13 @@ namespace Substrate.Sectors.Elements
     /// <summary>
     /// Sends waves of authored groups on each sector phase's wave-every beat, trimmed to the wave cap,
     /// which counts the hunt's live patrols, and a wave with no room is dropped. A phase opens with one.
-    /// Nothing arrives in a lull, or once the table is done when an elite follows it. With an elite the
-    /// director begins it, summons it on the tick the table is done, and ends it at teardown; a closing
-    /// lull follows the last phase, and without one the done table keeps the last phase's waves. Ships
-    /// arrive together just off screen, facing the hero on their faction kit and skin. The opening lull
-    /// is held for the hunt. Dead products despawn on the tick, which idles while the hero is inactive.
-    /// Nothing spawns in Build, since the asteroid field lays out at its Start. The base class's "produce
-    /// exactly once" is about the activation token, not lifetime.
+    /// Nothing arrives in a lull, or once the table is done when an elite follows it. With an elite, a
+    /// closing lull follows the last phase; without one, the done table keeps the last phase's waves.
+    /// It begins its elite, summons it on the tick the table is done, and ends it at teardown.
+    /// The opening lull is held for the hunt. Ships arrive together just off screen, facing the hero
+    /// on their faction kit and skin. Dead products despawn on the tick, which idles while the hero is
+    /// inactive. Nothing spawns in Build, since the asteroid field lays out at its Start. The base
+    /// class's "produce exactly once" is about the activation token, not lifetime.
     /// </summary>
     public class WaveDirector : SectorSpawner, ISectorRowReader
     {

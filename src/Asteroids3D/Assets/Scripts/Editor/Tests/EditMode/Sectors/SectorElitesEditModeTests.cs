@@ -13,7 +13,7 @@ using Substrate.Sessions;
 
 namespace Tests.EditMode.Sectors
 {
-    /// <summary>The shipped run and hangar offer, read as assets: each trial row ends at an elite flown from its own faction and watched by its layout's wave director, sectors 1 and 2 at a 1.5x elite with no escalation, the HUD fixtures at none, and the hangar offers Vanguard as its starter and Crimson locked, since no trial row's elite flies it.</summary>
+    /// <summary>The shipped run and hangar offer, read as assets: each trial row ends at an elite flown from its own faction and owned by its layout's wave director, sectors 1 and 2 at a 1.5x elite with no escalation, the HUD fixtures at none, and the hangar offers Vanguard as its starter and Crimson locked, since no trial row's elite flies it.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class SectorElitesEditModeTests
