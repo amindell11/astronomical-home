@@ -112,7 +112,11 @@ namespace Harness.Episodes.Compositions
                     $"{commander.name}: a break-off override needs authored tactics settings");
             var clone = UnityEngine.Object.Instantiate(brain.AuthoredTactics);
             clone.hideFlags = HideFlags.HideAndDontSave;
-            clone.breakOffShield = breakOff;
+            clone.wounded = WoundedResponse.BreakOff;
+            clone.woundedBy = WoundGauge.Shield;
+            clone.woundedBelow = new Spread(breakOff, breakOff);
+            clone.woundedEnds = WoundedEnds.WhenShieldIsBack;
+            clone.commits = false;
             brain.ReplaceTactics(clone);
             return clone;
         }

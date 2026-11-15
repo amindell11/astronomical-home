@@ -46,7 +46,7 @@ See also: [[Flight]]
 - Enemy uses the same ship and controls as the player.
 - Flown by a **scripted pilot** whose temper picks its tactics (velocity commands + fire/boost), executed through the
   **MPC feasibility tracker** (velocity tracking, intercept aim, obstacle avoidance).
-- Tactics (attack run, flank, stand-off, break-off) come from authored rules over the ship's situation.
+- Tactics (attack run, flank, stand-off, fall-back, break-off) come from authored rules over the ship's situation.
 
 ## Open questions
 - What “escape” and “interdiction” tools exist (for player and AI), and how do they interact with Newtonian flight and hazards?

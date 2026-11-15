@@ -13,7 +13,7 @@ namespace AI.Pilots
 {
     /// <summary>The one scripted opponent component: target validity, the 5 Hz recompute cache, the missile evasion blended over the law, and the border tangent-steer world-velocity pack. The matrix lane Configures a pinned target and flies <see cref="OpponentArchetype"/>; an authored pilot serializes the same fields and can instead track the context's enemy.
     /// With that enemy gone, a live-targeting pilot roams around its last live position (the wreck) through held waypoints. A temper that circles the wreck does so for a few laps, then wanders. Otherwise the ship wanders from the start.
-    /// A pilot with tactics settings never reads <c>archetype</c>. Its temper names its home tactic and how it roams. <see cref="TacticRules"/> picks the tactic from the ship's situation, and the ship flies one of the same laws through the same evasion and border pack.</summary>
+    /// A pilot with tactics settings never reads <c>archetype</c>. Its temper names its home tactic, how it roams, and what it does when hurt. <see cref="TacticRules"/> picks the tactic from the ship's situation, and the ship flies one of the same laws through the same evasion and border pack.</summary>
     public sealed class ArchetypeBrain : Brain
     {
         private const int RecomputeIntervalTicks = 10;
@@ -96,6 +96,10 @@ namespace AI.Pilots
 
         private int tacticTick;
         private int flankSign;
+        private WoundedDraw? woundedDraw;
+        private int? woundedTick;
+        // Outlives a live-target change: a ship that finds a new target keeps its spent retreats.
+        private int retreatsTaken;
 
         // Outlives ResetState: the live-target change that resets the brain is when roaming begins.
         private Vector2? wreck;
@@ -115,7 +119,11 @@ namespace AI.Pilots
 
         internal TacticsSettings AuthoredTactics => tactics;
 
-        internal void ReplaceTactics(TacticsSettings replacement) => tactics = replacement;
+        internal void ReplaceTactics(TacticsSettings replacement)
+        {
+            tactics = replacement;
+            woundedDraw = null;
+        }
 
         public void Configure(Ship target, OpponentArchetype archetype, in OpponentDraw shape, int jukeSeed,
             Vector2 arenaCenter, float borderRadius)
@@ -132,6 +140,12 @@ namespace AI.Pilots
 
         public override void ResetState()
         {
+            ResetFlight();
+            retreatsTaken = 0;
+        }
+
+        private void ResetFlight()
+        {
             tickCounter = 0;
             cachedDecision = null;
             rng = new System.Random(jukeSeed);
@@ -143,6 +157,7 @@ namespace AI.Pilots
             evadedMissile = null;
             roaming = false;
             CurrentTactic = null;
+            woundedTick = null;
         }
 
         public override BrainDecision? Decide(AIContext ctx)
@@ -160,7 +175,7 @@ namespace AI.Pilots
             {
                 droppedTarget = target;
                 target = ctx.Combat.Enemy;
-                ResetState();
+                ResetFlight();
             }
 
             if (liveTargeting && !IsGone(target)) wreck = target.Kinematics.pos;
@@ -241,8 +256,23 @@ namespace AI.Pilots
         private BrainDecision FlyTactic(AIContext ctx, in Kinematics self, float maxSpeed)
         {
             var situation = Situation.Read(ctx, tactics);
+            woundedDraw ??= WoundedDraw.From(tactics, ctx.TacticsSeed);
+            var draw = woundedDraw.Value;
+            var woundedSeconds = woundedTick.HasValue
+                ? (tickCounter - woundedTick.Value) * Time.fixedDeltaTime
+                : 0f;
+            var wounded = WoundedRules.Next(woundedTick.HasValue, woundedSeconds, in situation, tactics,
+                in draw, retreatsTaken);
+            if (wounded && woundedTick == null)
+            {
+                woundedTick = tickCounter;
+                retreatsTaken++;
+            }
+            else if (!wounded)
+                woundedTick = null;
+
             var held = CurrentTactic.HasValue ? (tickCounter - tacticTick) * Time.fixedDeltaTime : float.PositiveInfinity;
-            var tactic = TacticRules.Next(CurrentTactic ?? tactics.home, held, in situation, tactics);
+            var tactic = TacticRules.Next(CurrentTactic ?? tactics.home, held, in situation, tactics, wounded);
             if (tactic != CurrentTactic)
             {
                 CurrentTactic = tactic;
@@ -255,6 +285,8 @@ namespace AI.Pilots
 
             var speed = shape.speedFraction * maxSpeed;
             var gunRange = ctx.HoldRange ?? shape.desiredRange;
+            var fallBackRange = Mathf.Max(situation.myRange - tactics.fallBackMargin,
+                gunRange + tactics.attackRunMargin);
             var flankSide = flankSign != 0 ? flankSign : (shape.orbitDirection >= 0 ? 1 : -1);
             return tactic switch
             {
@@ -266,6 +298,8 @@ namespace AI.Pilots
                     situation.targetRange + tactics.standOffMargin, speed),
                     engages: !situation.inTargetsCone && situation.alliesInLane == 0),
                 Tactic.BreakOff => Pack(ctx.Self, FleeVelocity(self.pos, speed), engages: false),
+                Tactic.FallBack => Pack(ctx.Self, RangerBrain.HoldRangeVelocity(in self, them, fallBackRange, speed),
+                    engages: situation.alliesInLane == 0),
                 _ => throw new ArgumentOutOfRangeException(nameof(tactic), tactic, null),
             };
         }

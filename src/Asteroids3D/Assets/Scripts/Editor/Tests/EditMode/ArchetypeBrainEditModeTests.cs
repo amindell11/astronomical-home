@@ -14,6 +14,7 @@ using Ships.Registry;
 using AI.Pilots;
 using System.Collections.Generic;
 using Combat.Targeting;
+using Utils;
 
 namespace Tests.EditMode
 {
@@ -39,8 +40,8 @@ namespace Tests.EditMode
             public ShipId Id => default;
             public Transform Transform => null;
             public Dynamics Dynamics => Movement.Dynamics.Default;
-            public float HealthPct => 1f;
-            public float ShieldPct => 1f;
+            public float HealthPct { get; set; } = 1f;
+            public float ShieldPct { get; set; } = 1f;
             public bool BoostAvailable => true;
             public float BoostCooldownRemaining => 0f;
             public float BoostCooldownPct => 0f;
@@ -110,7 +111,8 @@ namespace Tests.EditMode
             (TacticsSettings)new SerializedObject(brain).FindProperty("tactics").objectReferenceValue;
 
         private AIContext Ctx(Kinematics self, float? holdRange = null) =>
-            new(new StubStatus { Kinematics = self }, brainHost.AddComponent<AI.Scout>(), holdRange);
+            new(new StubStatus { Kinematics = self }, brainHost.AddComponent<AI.Scout>(), holdRange,
+                new SeedScope(1));
 
         [TestCase(18f)]
         [TestCase(null)]
@@ -326,6 +328,109 @@ namespace Tests.EditMode
                 closing.Value.nav.planarVelocity);
             Assert.AreEqual(RangerBrain.HoldRangeVelocity(in self, target.Kinematics, holdRange + margin, speed),
                 backing.Value.nav.planarVelocity);
+        }
+
+        private (ArchetypeBrain brain, StubStatus status, AIContext ctx) WoundedPilot(TacticsSettings temper)
+        {
+            temper.minimumHold = 0f;
+            temper.woundedBelow = new Spread(25f, 25f);
+            temper.shieldBack = new Spread(80f, 80f);
+            temper.woundedEnds = WoundedEnds.WhenShieldIsBack;
+            temper.hitWithin = 2f;
+            createdTempers.Add(temper);
+            var brain = NewBrain(OpponentArchetype.Aggressor, targetHost.AddComponent<Ship>());
+            var serialized = new SerializedObject(brain);
+            serialized.FindProperty("tactics").objectReferenceValue = temper;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            var status = new StubStatus();
+            var ctx = new AIContext(status, brainHost.AddComponent<Scout>(), null, new SeedScope(1));
+            return (brain, status, ctx);
+        }
+
+        private static void Fly(ArchetypeBrain brain, AIContext ctx)
+        {
+            for (var i = 0; i < 10; i++) brain.Decide(ctx);
+        }
+
+        private static void Hurt(StubStatus status, AIContext ctx)
+        {
+            status.ShieldPct = 0.1f;
+            ctx.Update(0.02f);
+        }
+
+        private static void Heal(StubStatus status, AIContext ctx)
+        {
+            status.ShieldPct = 1f;
+            ctx.Update(0.02f);
+        }
+
+        [Test]
+        public void OneWoundedStretch_CountsOneRetreat()
+        {
+            var temper = ScriptableObject.CreateInstance<TacticsSettings>();
+            temper.wounded = WoundedResponse.BreakOff;
+            temper.commits = true;
+            temper.retreatsMin = 2;
+            temper.retreatsMax = 2;
+            var (brain, status, ctx) = WoundedPilot(temper);
+
+            Hurt(status, ctx);
+            for (var i = 0; i < 4; i++) Fly(brain, ctx);
+            Assert.AreEqual(Tactic.BreakOff, brain.CurrentTactic, "still the one stretch");
+
+            Heal(status, ctx);
+            Fly(brain, ctx);
+            Assert.AreEqual(Tactic.AttackRun, brain.CurrentTactic, "the shield is back");
+
+            Hurt(status, ctx);
+            Fly(brain, ctx);
+            Assert.AreEqual(Tactic.BreakOff, brain.CurrentTactic,
+                "a second stretch is still allowed, so the first counted once");
+        }
+
+        [Test]
+        public void RetreatsSpent_Commits_StaysOnItsHomeAtALowShieldJustHit()
+        {
+            var temper = ScriptableObject.CreateInstance<TacticsSettings>();
+            temper.wounded = WoundedResponse.BreakOff;
+            temper.home = Tactic.StandOff;
+            temper.commits = true;
+            temper.retreatsMin = 1;
+            temper.retreatsMax = 1;
+            var (brain, status, ctx) = WoundedPilot(temper);
+
+            Hurt(status, ctx);
+            Fly(brain, ctx);
+            Assert.AreEqual(Tactic.BreakOff, brain.CurrentTactic);
+
+            Heal(status, ctx);
+            Fly(brain, ctx);
+            Hurt(status, ctx);
+            Fly(brain, ctx);
+            Assert.AreEqual(Tactic.StandOff, brain.CurrentTactic, "the retreat is spent and the temper commits");
+        }
+
+        [Test]
+        public void ResetState_ClearsTheRetreatCount()
+        {
+            var temper = ScriptableObject.CreateInstance<TacticsSettings>();
+            temper.wounded = WoundedResponse.BreakOff;
+            temper.commits = true;
+            temper.retreatsMin = 1;
+            temper.retreatsMax = 1;
+            var (brain, status, ctx) = WoundedPilot(temper);
+
+            Hurt(status, ctx);
+            Fly(brain, ctx);
+            Heal(status, ctx);
+            Fly(brain, ctx);
+            Hurt(status, ctx);
+            Fly(brain, ctx);
+            Assert.AreEqual(Tactic.AttackRun, brain.CurrentTactic, "spent");
+
+            brain.ResetState();
+            Fly(brain, ctx);
+            Assert.AreEqual(Tactic.BreakOff, brain.CurrentTactic, "a reset spends none of the new life");
         }
 
         [TestCase("Assets/Prefabs/Pilots/AggressorPilot.prefab", "Aggressor")]

@@ -68,7 +68,7 @@ namespace Tests.PlayMode.Tactics
         {
             yield return SpawnTarget();
             var offNose = 50f * Mathf.Deg2Rad;
-            var (_, inGuns) = Enemy(0.6f * range, 0f);
+            var (inGunsShip, inGuns) = Enemy(0.6f * range, 0f);
             var (_, aside) = Enemy(0.6f * range * Mathf.Cos(offNose), 0.6f * range * Mathf.Sin(offNose));
             var (_, outOfRange) = Enemy(range + 4f, 0f);
             Assert.Less(range + 4f, outOfRange.Scout.nearbyShipRadius, "test premise: the far ship still sees the target");
@@ -79,6 +79,8 @@ namespace Tests.PlayMode.Tactics
             Assert.IsFalse(Read(outOfRange).exposed, "past the target's gun range");
             Assert.IsTrue(Read(inGuns).inMyRange, "the same primary reaches back");
             Assert.IsFalse(Read(outOfRange).inMyRange);
+            Assert.AreEqual(inGunsShip.Weapons.Primary.FireRange, Read(inGuns).myRange,
+                "the ship's own primary range");
             Assert.AreEqual(range + 4f, Read(outOfRange).distance, 0.5f);
 
             settings.exposureCone = 120f;

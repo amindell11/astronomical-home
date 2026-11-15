@@ -8,8 +8,8 @@ namespace AI.Tactics
 {
     /// <summary>
     /// What one ship reads about its fight before it picks a tactic, from its own sensors only: its
-    /// target, whether it sits in the target's guns, the allies in its firing lane, the target's open
-    /// side, and its own shield, hull and hit clock. A pure read of <see cref="AIContext"/>: allies count
+    /// target, whether it sits in the target's guns, its own primary gun range, the allies in its firing
+    /// lane, the target's open side, and its own shield, hull and hit clock. A pure read of <see cref="AIContext"/>: allies count
     /// by where they are, never by what another ship's brain is doing, and the hit clock on the context
     /// is the only state kept between reads.
     /// https://github.com/amindell11/astronomical-home/issues/1349
@@ -20,6 +20,7 @@ namespace AI.Tactics
         public readonly float distance;
         /// <summary>Positive while the gap to the target shrinks.</summary>
         public readonly float closingSpeed;
+        public readonly float myRange;
         public readonly bool inMyRange;
         public readonly float targetRange;
         /// <summary>Inside the exposure cone off the target's nose, at any distance.</summary>
@@ -33,13 +34,14 @@ namespace AI.Tactics
         public readonly float secondsSinceHit;
 
         internal Situation(float shieldPct, float hullPct, float secondsSinceHit, bool hasTarget = false,
-            float distance = 0f, float closingSpeed = 0f, bool inMyRange = false, float targetRange = 0f,
+            float distance = 0f, float closingSpeed = 0f, float myRange = 0f, float targetRange = 0f,
             bool inTargetsCone = false, int alliesInLane = 0, Vector2 openSide = default)
         {
             this.hasTarget = hasTarget;
             this.distance = distance;
             this.closingSpeed = closingSpeed;
-            this.inMyRange = inMyRange;
+            this.myRange = myRange;
+            inMyRange = hasTarget && distance <= myRange;
             this.targetRange = targetRange;
             this.inTargetsCone = inTargetsCone;
             exposed = inTargetsCone && distance <= targetRange;
@@ -62,12 +64,13 @@ namespace AI.Tactics
             var distance = toTarget.magnitude;
             var line = toTarget.normalized;
             var halfCone = settings.exposureCone * 0.5f;
+            var myRange = PrimaryRange(Myself(context));
 
             return new Situation(self.ShieldPct, self.HealthPct, context.SecondsSinceHit,
                 hasTarget: true,
                 distance: distance,
                 closingSpeed: Vector2.Dot(me.vel - them.vel, line),
-                inMyRange: distance <= PrimaryRange(Myself(context)),
+                myRange: myRange,
                 targetRange: PrimaryRange(target),
                 inTargetsCone: Vector2.Angle(them.Forward, -line) <= halfCone,
                 alliesInLane: AlliesInLane(context, me.pos, them.pos, settings.laneWidth),
