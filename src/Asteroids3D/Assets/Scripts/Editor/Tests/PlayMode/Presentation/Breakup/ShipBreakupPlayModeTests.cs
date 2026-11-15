@@ -74,6 +74,14 @@ namespace Tests.PlayMode.Presentation.Breakup
         public IEnumerator FastDebris_FadesEveryPieceBeforeItsPacedLifetimeEnds() => PacedDebris(3f);
 
         [UnityTest]
+        public IEnumerator CrimsonDebris_WearsTheHullPaintScorched_InFrontOfTheExplosion() =>
+            ScorchedDebris("Crimson", .9f, 3100);
+
+        [UnityTest]
+        public IEnumerator NightshadeDebris_WearsTheHullPaintScorched_InFrontOfTheExplosion() =>
+            ScorchedDebris("Nightshade", .1f, 3100);
+
+        [UnityTest]
         public IEnumerator Bulwark_FliesFiresAndCollidesOnTheGameplayPlane()
         {
             var ship = Spawn("Bulwark");
@@ -110,7 +118,7 @@ namespace Tests.PlayMode.Presentation.Breakup
                 .Select(piece => ((Renderer)piece.FindPropertyRelative("renderer").objectReferenceValue,
                     piece.FindPropertyRelative("lifetime").floatValue))
                 .ToArray();
-            debris.Initialize(Vector3.zero, System.Array.Empty<Transform>(), feel);
+            debris.Initialize(Vector3.zero, System.Array.Empty<Transform>(), feel, new Dictionary<Material, Material>());
             // Summed like the debris's own age: late in a long run, Time.time differences lose precision.
             var elapsed = 0f;
             while (true)
@@ -123,6 +131,24 @@ namespace Tests.PlayMode.Presentation.Breakup
                         "each piece fades on the paced clock, inside its own lifetime");
             }
             Assert.That(elapsed, Is.InRange(pacedLifetime - .001f, pacedLifetime + 2f * Time.maximumDeltaTime));
+        }
+
+        private IEnumerator ScorchedDebris(string name, float soot, int queue)
+        {
+            var ship = Spawn(name);
+            yield return null;
+            Kill(ship);
+            var debris = Object.FindObjectsByType<ShipBreakupDebris>(FindObjectsSortMode.None).Single();
+            var seen = 0;
+            foreach (var renderer in debris.GetComponentsInChildren<Renderer>(true))
+                foreach (var material in renderer.sharedMaterials)
+                {
+                    if (!material.HasFloat("_SootStrength")) continue;
+                    Assert.That(material.GetFloat("_SootStrength"), Is.EqualTo(soot).Within(.0001f));
+                    Assert.That(material.renderQueue, Is.EqualTo(queue));
+                    seen++;
+                }
+            Assert.That(seen, Is.GreaterThan(0));
         }
 
         private static float VisibilityOf(Renderer renderer)

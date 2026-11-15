@@ -1,0 +1,170 @@
+#if UNITY_EDITOR
+using NUnit.Framework;
+using Harness.Probes;
+
+namespace Tests.EditMode
+{
+    /// <summary>The matrix sidecar's arithmetic: a draw is half a win, and a weapon's rate against the others skips fights against itself.</summary>
+    [Category("AI")]
+    public class MatrixSummaryEditModeTests
+    {
+        [Test]
+        public void DrawCountsHalfAndSelfIsExcludedFromAgainstOthers()
+        {
+            var rows = new[]
+            {
+                Row("Lasers-Lasers", "Lasers", "Lasers", MatrixProbe.SideA, simSeconds: 10f,
+                    firedA: 4, hitsA: 2, damageA: 40f, firedB: 4, hitsB: 1, damageB: 20f),
+                Row("Lasers-Missiles", "Lasers", "Missiles", MatrixProbe.Draw, simSeconds: 8f,
+                    firedA: 2, hitsA: 1, damageA: 10f, firedB: 1, hitsB: 0, damageB: 0f),
+                Row("Lasers-Missiles", "Lasers", "Missiles", MatrixProbe.SideB, simSeconds: 20f,
+                    firedA: 3, hitsA: 1, damageA: 5f, firedB: 2, hitsB: 2, damageB: 30f),
+            };
+
+            var sidecar = MatrixProbe.Score(rows);
+
+            Assert.AreEqual(MatrixProbe.SummarySchemaId, sidecar.schema);
+            var mirror = sidecar.pairs[0];
+            Assert.AreEqual(1f, mirror.aWinRate, 1e-5f);
+            Assert.AreEqual(1, mirror.decidedFights);
+            Assert.AreEqual(10f, mirror.meanTimeToKill, 1e-4f);
+
+            var cross = sidecar.pairs[1];
+            Assert.AreEqual(0.25f, cross.aWinRate, 1e-5f, "one draw and one B win: 0.5 of 2");
+            Assert.AreEqual(1, cross.decidedFights);
+            Assert.AreEqual(20f, cross.meanTimeToKill, 1e-4f, "the draw's time is not a time to kill");
+
+            var lasers = sidecar.weapons[0];
+            var missiles = sidecar.weapons[1];
+            Assert.AreEqual("Lasers", lasers.weapon);
+            Assert.AreEqual("Missiles", missiles.weapon);
+            Assert.AreEqual(2, lasers.againstOthers, "the Lasers mirror fight is not against others");
+            Assert.AreEqual(0.25f, lasers.winRateAgainstOthers, 1e-5f);
+            Assert.AreEqual(2, missiles.againstOthers);
+            Assert.AreEqual(0.75f, missiles.winRateAgainstOthers, 1e-5f, "Missiles took the draw's half and the win");
+
+            // Lasers fired 4+4 on the mirror and 2+3 on the cross. Hits 2+1+1+1.
+            Assert.AreEqual(13, lasers.fired);
+            Assert.AreEqual(5, lasers.hits);
+            Assert.AreEqual(5f / 13f, lasers.hitRate, 1e-5f);
+            Assert.AreEqual(75f, lasers.damageDealt, 1e-4f);
+
+            var table = MatrixProbe.MarkdownTable(sidecar);
+            StringAssert.Contains("| Lasers | 1.00 (1) | 0.25 (2) | 0.25 |", table);
+            StringAssert.Contains("| Missiles | 0.75 (2) | - | 0.75 |", table);
+        }
+
+        [Test]
+        public void DamagePerMinuteUsesAliveSecondsAndASideThatNeverDiesHasNoTimeToDie()
+        {
+            var rows = new[]
+            {
+                Lived("Lasers-Missiles", "Lasers", "Missiles", damageA: 60f, aliveA: 10f, diedA: true,
+                    damageB: 0f, aliveB: 10f, diedB: false),
+                Lived("Lasers-Missiles", "Lasers", "Missiles", damageA: 60f, aliveA: 30f, diedA: false,
+                    damageB: 0f, aliveB: 30f, diedB: false),
+            };
+
+            var pair = MatrixProbe.Score(rows).pairs[0];
+
+            Assert.AreEqual(180f, pair.damagePerMinuteA, 1e-3f, "120 damage over 40 alive seconds, per minute");
+            Assert.AreEqual(1, pair.deathsA);
+            Assert.AreEqual(10f, pair.meanSecondsToDieA, 1e-4f);
+            Assert.AreEqual(0f, pair.damagePerMinuteB, 1e-4f);
+            Assert.AreEqual(0, pair.deathsB);
+            Assert.AreEqual(0f, pair.meanSecondsToDieB, 1e-4f, "a side that never died has no time to die");
+
+            StringAssert.Contains("180.0 | 1 | 10.0 | 0.0 | 0 |", MatrixProbe.MarkdownTable(MatrixProbe.Score(rows)));
+        }
+
+        [Test]
+        public void DamageTakenPerKillBlanksWhenThereAreNoKillsAndSharesUseTheStepTotals()
+        {
+            var rows = new[]
+            {
+                Reading(enemies: 3, killed: 0, taken: 40f, steps: 100, breakOff: 40, regen: 10,
+                    enemySteps: 300, enemyBreakOff: 30),
+                Reading(enemies: 3, killed: 0, taken: 20f, steps: 100, breakOff: 0, regen: 0,
+                    enemySteps: 200, enemyBreakOff: 10),
+            };
+
+            var pair = MatrixProbe.Score(rows).pairs[0];
+
+            Assert.AreEqual(3, pair.enemies);
+            Assert.AreEqual(0f, pair.meanEnemiesKilled, 1e-5f);
+            Assert.AreEqual(0f, pair.damageTakenPerKillA, 1e-5f);
+            Assert.AreEqual(0.20f, pair.breakOffShareA, 1e-5f);
+            Assert.AreEqual(0.05f, pair.regenShareA, 1e-5f);
+            Assert.AreEqual(0.08f, pair.breakOffShareEnemies, 1e-5f);
+            StringAssert.Contains("| 3 | 0.00 |  | 0.20 | 0.05 | 0.08 |",
+                MatrixProbe.MarkdownTable(MatrixProbe.Score(rows)));
+        }
+
+        [Test]
+        public void DamageTakenPerKillDividesTotalDamageByTotalKills()
+        {
+            var rows = new[]
+            {
+                Reading(enemies: 3, killed: 2, taken: 30f, steps: 100, breakOff: 50, regen: 25,
+                    enemySteps: 100, enemyBreakOff: 50),
+                Reading(enemies: 3, killed: 1, taken: 30f, steps: 100, breakOff: 50, regen: 25,
+                    enemySteps: 100, enemyBreakOff: 0),
+            };
+
+            var pair = MatrixProbe.Score(rows).pairs[0];
+
+            Assert.AreEqual(1.5f, pair.meanEnemiesKilled, 1e-5f);
+            Assert.AreEqual(20f, pair.damageTakenPerKillA, 1e-4f);
+            Assert.AreEqual(0.50f, pair.breakOffShareA, 1e-5f);
+            Assert.AreEqual(0.25f, pair.regenShareA, 1e-5f);
+            Assert.AreEqual(0.25f, pair.breakOffShareEnemies, 1e-5f);
+            StringAssert.Contains("| 3 | 1.50 | 20.0 | 0.50 | 0.25 | 0.25 |",
+                MatrixProbe.MarkdownTable(MatrixProbe.Score(rows)));
+        }
+
+        private static MatrixRow Reading(int enemies, int killed, float taken, int steps, int breakOff, int regen,
+            int enemySteps, int enemyBreakOff) => new()
+        {
+            schema = MatrixRow.SchemaId,
+            pair = "Crimson_vs_Vanguard",
+            winner = MatrixProbe.Draw,
+            enemies = enemies,
+            enemiesKilled = killed,
+            damageTakenA = taken,
+            stepsA = steps,
+            breakOffStepsA = breakOff,
+            regenStepsA = regen,
+            stepsEnemies = enemySteps,
+            breakOffStepsEnemies = enemyBreakOff,
+            tallyA = new MarksmanshipTally { weapon = "Lasers" },
+            tallyB = new MarksmanshipTally { weapon = "Lasers" },
+        };
+
+        private static MatrixRow Lived(string pair, string weaponA, string weaponB, float damageA, float aliveA,
+            bool diedA, float damageB, float aliveB, bool diedB) => new()
+        {
+            schema = MatrixRow.SchemaId,
+            pair = pair,
+            winner = MatrixProbe.Draw,
+            simSeconds = 100f,
+            diedA = diedA,
+            diedB = diedB,
+            aliveSecondsA = aliveA,
+            aliveSecondsB = aliveB,
+            tallyA = new MarksmanshipTally { weapon = weaponA, damageDealt = damageA },
+            tallyB = new MarksmanshipTally { weapon = weaponB, damageDealt = damageB },
+        };
+
+        private static MatrixRow Row(string pair, string weaponA, string weaponB, string winner, float simSeconds,
+            int firedA, int hitsA, float damageA, int firedB, int hitsB, float damageB) => new()
+        {
+            schema = MatrixRow.SchemaId,
+            pair = pair,
+            winner = winner,
+            simSeconds = simSeconds,
+            tallyA = new MarksmanshipTally { weapon = weaponA, fired = firedA, hits = hitsA, damageDealt = damageA },
+            tallyB = new MarksmanshipTally { weapon = weaponB, fired = firedB, hits = hitsB, damageDealt = damageB },
+        };
+    }
+}
+#endif

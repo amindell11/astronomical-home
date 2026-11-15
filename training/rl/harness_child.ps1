@@ -13,6 +13,6 @@ else {
     }
     $env:RL_HARNESS_CAPTURE_COMMIT = $captureCommit
 }
-$unityArgs += @('-executeMethod', 'RL.Hosts.TrainingBootstrap.RunHarness', '-logFile', $env:HARNESS_LOG)
+$unityArgs += @('-executeMethod', 'Harness.Hosts.HarnessBootstrap.RunHarness', '-logFile', $env:HARNESS_LOG)
 & $env:HARNESS_UNITY @unityArgs
 exit $LASTEXITCODE
