@@ -1,0 +1,164 @@
+using System;
+using UnityEngine;
+
+namespace Substrate.Sectors.Elements.Stations.Visual
+{
+    public enum StationLook { Open, InUse, Dark }
+
+    /// <summary>
+    /// Visual-only motion and light looks of an outpost station. While it is dark, the parts
+    /// hold still and every light is out.
+    /// </summary>
+    public sealed class StationMotion : MonoBehaviour
+    {
+        [Serializable]
+        private struct Spin
+        {
+            [Tooltip("Part that turns.")]
+            public Transform part;
+
+            [Tooltip("Axis in the part's local space.")]
+            public Vector3 localAxis;
+
+            [Tooltip("Seconds for one full turn. Negative turns the other way.")]
+            public float secondsPerTurn;
+        }
+
+        [Serializable]
+        private struct ChaseBand
+        {
+            [Tooltip("Lamps in this band.")]
+            public Renderer[] lamps;
+        }
+
+        private struct CachedLight
+        {
+            public Renderer renderer;
+            public Vector4 linearEmission;
+            public Color paper;
+        }
+
+        private static readonly int EmissionColorId = Shader.PropertyToID("_EmissionColor");
+        private static readonly int PaperColorId = Shader.PropertyToID("_PaperColor");
+
+        [Tooltip("Parts that turn, each about its own local axis.")]
+        [SerializeField] private Spin[] spins;
+
+        [Tooltip("Windows and the prize. They glow at their material colour.")]
+        [SerializeField] private Renderer[] steadyLights;
+
+        [Tooltip("Service-light bands, outermost first. A brightness pulse steps through them toward the berth.")]
+        [SerializeField] private ChaseBand[] chase;
+
+        [Tooltip("Seconds for the pulse to cross every band once, plus one band of rest.")]
+        [SerializeField] private float chaseSecondsPerSweep = 2.4f;
+
+        [Tooltip("Extra brightness at the pulse peak. 1.5 reaches 2.5 times.")]
+        [SerializeField] private float chaseBoost = 1.5f;
+
+        [Tooltip("Service-lamp glow multiplier while the station is in use.")]
+        [SerializeField] private float inUseBoost = 2.5f;
+
+        [Tooltip("Body colour of every light while the station is dark.")]
+        [SerializeField] private Color darkColour = new Color32(0x1E, 0x20, 0x30, 0xFF);
+
+        [Tooltip("Light look. Applied at start, and live in the inspector during play.")]
+        [SerializeField] private StationLook look = StationLook.Open;
+
+        private MaterialPropertyBlock block;
+        private CachedLight[] steady;
+        private CachedLight[][] bands;
+        private bool awake;
+
+        private void Awake()
+        {
+            foreach (var spin in spins)
+                if (!spin.part)
+                    throw new InvalidOperationException($"StationMotion on '{name}' is missing a spin part.");
+
+            block = new MaterialPropertyBlock();
+            steady = Cache(steadyLights, "steady light");
+            bands = new CachedLight[chase.Length][];
+            for (var i = 0; i < chase.Length; i++)
+                bands[i] = Cache(chase[i].lamps, "chase lamp");
+
+            awake = true;
+        }
+
+        private void Start() => Show(look);
+
+        private void OnValidate()
+        {
+            if (Application.isPlaying && awake)
+                Show(look);
+        }
+
+        private void Update()
+        {
+            if (look == StationLook.Dark) return;
+
+            foreach (var spin in spins)
+                spin.part.Rotate(spin.localAxis, 360f / spin.secondsPerTurn * Time.deltaTime, Space.Self);
+
+            var p = Mathf.Repeat(Time.time / chaseSecondsPerSweep, 1f) * (chase.Length + 1);
+            var flare = look == StationLook.InUse ? inUseBoost : 1f;
+            for (var i = 0; i < bands.Length; i++)
+            {
+                var factor = (1f + chaseBoost * Mathf.Max(0f, 1f - Mathf.Abs(i + .5f - p))) * flare;
+                var lamps = bands[i];
+                for (var j = 0; j < lamps.Length; j++)
+                {
+                    var lamp = lamps[j];
+                    lamp.renderer.GetPropertyBlock(block);
+                    block.SetVector(EmissionColorId, lamp.linearEmission * factor);
+                    lamp.renderer.SetPropertyBlock(block);
+                }
+            }
+        }
+
+        public void Show(StationLook next)
+        {
+            look = next;
+            var dark = next == StationLook.Dark;
+            for (var i = 0; i < steady.Length; i++)
+                Paint(steady[i], dark);
+            for (var i = 0; i < bands.Length; i++)
+            {
+                var lamps = bands[i];
+                for (var j = 0; j < lamps.Length; j++)
+                    Paint(lamps[j], dark);
+            }
+        }
+
+        private CachedLight[] Cache(Renderer[] renderers, string kind)
+        {
+            var cached = new CachedLight[renderers.Length];
+            for (var i = 0; i < renderers.Length; i++)
+            {
+                var renderer = renderers[i];
+                if (!renderer)
+                    throw new InvalidOperationException($"StationMotion on '{name}' is missing a {kind}.");
+                var material = renderer.sharedMaterial;
+                if (!material)
+                    throw new InvalidOperationException(
+                        $"StationMotion on '{name}' is missing a {kind}'s material.");
+                cached[i] = new CachedLight
+                {
+                    renderer = renderer,
+                    linearEmission = material.GetColor(EmissionColorId).linear,
+                    paper = material.GetColor(PaperColorId)
+                };
+            }
+
+            return cached;
+        }
+
+        private void Paint(CachedLight light, bool dark)
+        {
+            light.renderer.GetPropertyBlock(block);
+            block.SetVector(EmissionColorId, dark ? Vector4.zero : light.linearEmission);
+            block.SetColor(PaperColorId, dark ? darkColour : light.paper);
+            light.renderer.SetPropertyBlock(block);
+        }
+    }
+}
