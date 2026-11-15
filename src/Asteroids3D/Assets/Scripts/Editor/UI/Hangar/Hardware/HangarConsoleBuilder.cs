@@ -108,9 +108,9 @@ namespace UI.Hangar.Hardware
                 camera.allowMSAA = true;
                 camera.useOcclusionCulling = false;
                 camera.enabled = true;
-                Light(root.transform, "ProjectorSpill", new Vector3(2.4f, 4.4f, -.2f),
+                Light(root.transform, "ProjectorSpill", parts["ProjectorLens"].transform.position + new Vector3(.05f, 2.774f, -.21f),
                     new Color(1f, .87f, .70f), 8.45f, 12f);
-                Light(root.transform, "LaunchSpill", new Vector3(6.5f, 4f, -2.3f),
+                Light(root.transform, "LaunchSpill", parts["LaunchButton"].transform.position + new Vector3(.026f, 2.971f, -.081f),
                     new Color(1f, .87f, .70f), 2.5f, 6f);
                 var composite = new GameObject("Composite", typeof(RectTransform), typeof(Canvas));
                 composite.transform.SetParent(root.transform, false);
