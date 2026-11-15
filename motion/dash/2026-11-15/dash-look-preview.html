@@ -1,6 +1,6 @@
 <div id="dash-look-preview">
   <div class="dash-scene">
-    <canvas role="img" aria-label="Vanguard dashing to the right, leaving a diffuse cloud of expanding particles and fading afterimages"></canvas>
+    <canvas role="img" aria-label="Vanguard dashing to the right, leaving an expanding cloud of painted wisps, sketched flecks, and fading afterimages"></canvas>
     <div class="dash-scene-label"><span>Vanguard</span><span class="text-small" data-phase>Ready</span></div>
   </div>
   <div class="viz-controls dash-transport">
@@ -275,27 +275,54 @@
     });
   }
 
-  let particleSeed = 9483;
+  let particleSeed = 7311;
   function particleRandom() {
     particleSeed = (Math.imul(1664525, particleSeed) + 1013904223) >>> 0;
     return particleSeed / 4294967296;
   }
 
-  const wavePuffs = ['226,232,237', '183,201,214', '149,173,191'].map((color) => {
+  const wispContours = [
+    [[4,35],[11,28],[15,19],[24,21],[35,11],[47,14],[45,19],[57,20],[51,27],[61,30],[52,34],[50,41],[39,40],[31,51],[19,46],[14,49],[19,41],[7,41]],
+    [[3,34],[13,31],[23,19],[36,16],[34,12],[47,13],[49,19],[59,20],[55,24],[63,28],[48,31],[40,38],[30,38],[24,45],[13,46],[17,41],[6,40]],
+    [[4,24],[13,17],[22,20],[31,15],[43,17],[53,23],[49,27],[60,31],[57,36],[47,39],[39,46],[28,42],[25,36],[14,40],[15,33],[7,32]],
+    [[3,40],[12,32],[16,29],[22,28],[29,19],[43,14],[45,17],[54,14],[59,20],[48,26],[54,30],[44,33],[37,41],[24,45],[22,50],[12,50],[14,44]],
+    [[8,20],[15,23],[21,16],[30,20],[40,18],[45,24],[58,25],[54,31],[61,35],[51,41],[42,40],[39,48],[32,45],[20,48],[25,41],[12,37],[6,31]],
+    [[4,40],[15,33],[23,21],[33,19],[36,15],[47,19],[52,16],[59,21],[54,24],[59,29],[44,30],[35,39],[30,37],[20,48],[10,45],[15,41]],
+  ];
+  const wavePuffs = wispContours.map((contour, index) => {
     const sprite = document.createElement('canvas');
     sprite.width = sprite.height = 64;
     const brush = sprite.getContext('2d');
-    const fade = brush.createRadialGradient(32, 32, 0, 32, 32, 32);
-    fade.addColorStop(0, `rgba(${color},.87)`);
-    fade.addColorStop(.37, `rgba(${color},.62)`);
-    fade.addColorStop(.69, `rgba(${color},.21)`);
-    fade.addColorStop(1, `rgba(${color},0)`);
-    brush.fillStyle = fade;
-    brush.fillRect(0, 0, 64, 64);
+    function paint(points, color) {
+      brush.fillStyle = color;
+      brush.beginPath();
+      brush.moveTo(...points[0]);
+      for (const point of points.slice(1)) brush.lineTo(...point);
+      brush.closePath();
+      brush.fill();
+    }
+    paint(contour, index % 3 === 0 ? '#8097a5' : '#aebec6');
+    brush.save();
+    brush.clip();
+    const offset = (index % 3 - 1) * 3;
+    paint([[5,26 + offset],[22,20],[29,27],[43,19],[62,19],[50,29],[37,32],[30,38],[22,36],[9,42],[13,35]], '#d1dadd');
+    paint([[9,27 + offset],[25,22],[31,25],[40,21],[54,22],[45,26],[33,29],[24,32],[19,30],[7,35]], '#edf0eb');
+    brush.globalAlpha = .35;
+    paint([[13,41],[31,35],[43,35],[52,28],[44,38],[29,44],[18,46]], '#556b7b');
+    brush.globalCompositeOperation = 'destination-out';
+    for (let mark = 0; mark < 8; mark++) {
+      const x = 9 + particleRandom() * 39;
+      const y = 21 + particleRandom() * 22;
+      const length = 2 + particleRandom() * 11;
+      brush.globalAlpha = .36 + particleRandom() * .52;
+      paint([[x,y],[x + length,y - 3],[x + length * .72,y - .6],[x + 1,y + 1.5]], '#000000');
+    }
+    brush.restore();
     return sprite;
   });
 
   const cloudClusters = [-2.45, -1.55, -.43, .63, 1.42, 2.25, 3.04];
+  particleSeed = 9483;
   const waveParticles = Array.from({ length: 86 }, (_, index) => {
     const mote = index >= 68;
     const angle = cloudClusters[index % cloudClusters.length] + (particleRandom() - .5) * .68;
@@ -333,9 +360,16 @@
       const opacity = particle.opacity * Math.min(1, .3 + life * 9) * (1 - life) ** 1.3;
       context.globalAlpha = clamp(strength * opacity, 0, 1);
       if (particle.mote) {
-        const size = Math.max(.65, scale * particle.radius);
+        const size = Math.max(.8, scale * particle.radius);
         context.fillStyle = '#deebf0';
-        context.fillRect(px, py, size, size);
+        const driftX = particle.directionX * size * 3;
+        const driftY = particle.directionY * size * 3;
+        context.beginPath();
+        context.moveTo(px - driftX, py - driftY);
+        context.lineTo(px - size * .6, py + size * .35);
+        context.lineTo(px + driftX, py + driftY);
+        context.lineTo(px + size * .45, py - size * .5);
+        context.fill();
       } else {
         const radius = Math.max(1.4, scale * particle.radius * (.75 + life * .85));
         context.save();
