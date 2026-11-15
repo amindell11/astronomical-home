@@ -20,7 +20,7 @@
   "dark": "#1E2030",
   "ink": "#0A0911",
   "glow": 1.25,
-  "in_use_boost": 1.8,
-  "brush": 1.62,
-  "hatch": 0.47
+  "in_use_boost": 2.5,
+  "brush": 0.86,
+  "hatch": 0.13
 }
