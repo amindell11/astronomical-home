@@ -132,10 +132,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ebe652fc62ef484db237e58aa9aa854, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  feel: {fileID: 11400000, guid: 76b66edb0cbbd0d46a969d9e8e1d1269, type: 2}
   spins:
   - part: {fileID: 8063953685843735657}
     localAxis: {x: 1, y: 0, z: -0.00000007549789}
-    secondsPerTurn: 60
+    rate: 1
   steadyLights:
   - {fileID: 3630881560184822760}
   - {fileID: 4864353080507261429}
@@ -165,15 +166,6 @@ MonoBehaviour:
     - {fileID: 1884628670710976196}
     - {fileID: 1319826649847539322}
     - {fileID: 3372560747604540904}
-  chaseSecondsPerSweep: 2.4
-  chaseBoost: 1.5
-  inUseBoost: 2.5
-  coastSeconds: 10
-  driftUnits: 0.4
-  driftDegrees: 2
-  driftSeconds: 20
-  darkColour: {r: 0.11764706, g: 0.1254902, b: 0.1882353, a: 1}
-  look: 0
 --- !u!23 &2799132857652671596 stripped
 MeshRenderer:
   m_CorrespondingSourceObject: {fileID: 723539094581169924, guid: fd85ffe0d52c8594c95fd7c3a5445a2d,
