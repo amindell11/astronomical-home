@@ -1,19 +1,8 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
-using AI.Scanning;
 using Combat.Weapons;
-using Loot;
 using NUnit.Framework;
 using Ships;
-using Ships.Command;
-using Ships.Damage;
-using Ships.Loadout;
-using Ships.Presentation;
-using Ships.Registry;
 using Substrate.Sectors.Elements;
-using Substrate.Services.Units;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Factions;
@@ -24,7 +13,7 @@ using Substrate.Sessions;
 
 namespace Tests.EditMode
 {
-    /// <summary>Wave director pacing over a sector phase table with injected time: a phase opens with a wave, and another comes on its wave-every beat. A wave that fits under the wave cap arrives whole, one that only partly fits is trimmed to the room left, and one with no room is dropped so the next waits for the beat. A lull, the opening one too, sends nothing, a finished table with an elite sends nothing, and the done table keeps the last phase's waves. A closing lull before the elite sends nothing. A lull window covers a following lull, its grace, and an earned lull, and stays shut for the opening lull and the first phase's first seconds. An earned lull, once the phase's last wave is out and nothing is alive, moves no phase boundary. The threat read lists each group ship once and the weapons they fly, their faction kits in group order, off a prefab asset too. A bad row fails CheckRow. A product that raises JumpRequested is despawned on the next tick, counts as nothing alive, and does not die.</summary>
+    /// <summary>Wave director pacing over a sector phase table with injected time: a phase opens with a wave, and another comes on its wave-every beat. A wave that fits under the wave cap arrives whole, one that only partly fits is trimmed to the room left, and one with no room is dropped so the next waits for the beat. A lull, the opening one too, sends nothing, a finished table with an elite sends nothing, and the done table keeps the last phase's waves. A closing lull before the elite sends nothing. A lull window covers a following lull, its grace, and an earned lull, and stays shut for the opening lull and the first phase's first seconds. An earned lull, once the phase's last wave is out and nothing is alive, moves no phase boundary. The threat read lists each group ship once and the weapons they fly, their faction kits in group order, off a prefab asset too. A bad row fails CheckRow.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class WaveDirectorEditModeTests
@@ -514,84 +503,6 @@ namespace Tests.EditMode
             CollectionAssert.AllItemsAreUnique(threat.Weapons);
         }
 
-        [Test]
-        public void JumpRequested_DespawnsOnTheNextPass_CountsAsNothingAlive_AndFiresNoDeath()
-        {
-            var faction = ScriptableObject.CreateInstance<Faction>();
-            try
-            {
-                var templateGo = new GameObject("Template");
-                templateGo.transform.SetParent(_go.transform);
-                var template = templateGo.AddComponent<Ship>();
-                var kit = templateGo.AddComponent<PoolWeapon>();
-                var pilot = templateGo.AddComponent<IdleCommander>();
-                faction.signature = new FactionShip { ship = template, kit = kit, pilot = pilot };
-
-                var productGo = new GameObject("Product");
-                productGo.transform.SetParent(_go.transform);
-                var damage = productGo.AddComponent<DamageController>();
-                var product = productGo.AddComponent<Ship>();
-                var rig = new GameObject("Rig").AddComponent<ShipVisualRig>();
-                rig.transform.SetParent(productGo.transform);
-                var serialized = new SerializedObject(product);
-                serialized.FindProperty("visualRig").objectReferenceValue = rig;
-                serialized.ApplyModifiedPropertiesWithoutUndo();
-                var deaths = 0;
-                damage.OnDeath += (_, _) => deaths++;
-
-                var units = new SpawnService(product);
-                var sectorFaction = _go.AddComponent<SectorFaction>();
-                sectorFaction.Bind(faction);
-                var phase = new SectorPhase
-                {
-                    seconds = 40f,
-                    waveEvery = WaveEvery,
-                    groups = new[]
-                    {
-                        new WaveGroup { ships = new[] { new WaveDirector.RosterEntry { template = template } } },
-                    },
-                };
-                _director.Configure(new[] { phase }, Lull, faction: sectorFaction);
-                var hero = new GameObject("Hero");
-                hero.transform.SetParent(_go.transform);
-                var row = new SectorEntry
-                {
-                    faction = faction,
-                    waveCap = 5,
-                    phases = new[] { phase },
-                };
-                Drive(_director.Build(new SectorBuildContext(units, null, false, null, default,
-                    hero: hero.AddComponent<Ship>(), row: row)));
-
-                _director.Tick(0f);
-                Assert.AreEqual(1, units.Spawns);
-                Assert.AreEqual(1, _director.Alive);
-                Assert.IsEmpty(units.Despawned);
-                Assert.AreEqual(0, deaths);
-
-                ((IJumpDrive)product).RequestJump();
-                Assert.AreEqual(1, _director.Alive, "the request only marks the ship");
-                Assert.IsEmpty(units.Despawned);
-
-                _director.Tick(0f);
-                Assert.AreEqual(1, units.Spawns, "the next pass does not send a replacement");
-                Assert.AreEqual(0, _director.Alive);
-                Assert.AreEqual(1, units.Despawned.Count);
-                Assert.AreSame(product, units.Despawned[0]);
-                Assert.AreEqual(0, deaths);
-                Assert.IsTrue(product.gameObject.activeInHierarchy);
-            }
-            finally
-            {
-                if (faction) UnityEngine.Object.DestroyImmediate(faction);
-            }
-        }
-
-        private static void Drive(IEnumerator routine)
-        {
-            while (routine.MoveNext()) { }
-        }
-
         private void OpenAndArrive(float now)
         {
             _director.Advance(now);
@@ -612,43 +523,6 @@ namespace Tests.EditMode
         private sealed class PoolWeapon : WeaponComponent
         {
             public override Combat.Projectiles.ProjectileBase Fire(UnityEngine.Vector3 targetPoint, Substrate.Services.Projectiles.IProjectileService projectiles) => null;
-        }
-
-        private sealed class IdleCommander : Commander
-        {
-            public override void Initialize(in ShipControl control) { }
-        }
-
-        private sealed class SpawnService : IUnitService
-        {
-            private readonly Ship product;
-
-            public SpawnService(Ship product) => this.product = product;
-
-            public int Spawns { get; private set; }
-            public List<Ship> Despawned { get; } = new();
-
-            public IShipRegistry Registry => null;
-            public ShipRegistry ActiveRegistry => null;
-
-            public Ship SpawnShip(Ship template, Commander commander, int team, Vector3 position, Quaternion rotation,
-                IObstacleField field, ShipLoadout loadout = null, ShipScale scale = null, LullModStack mods = null)
-            {
-                Spawns++;
-                return product;
-            }
-
-            public void DespawnShip(Ship ship) => Despawned.Add(ship);
-
-            public Ship AdoptShip(Ship ship, IObstacleField field) => throw new NotImplementedException();
-            public void Clear() => throw new NotImplementedException();
-            public event Action<Ship> OnShipSpawned { add { } remove { } }
-            public event Action<Ship> OnShipRespawned { add { } remove { } }
-            public void RespawnShip(ShipId ship, Vector2 pos, float rotation) => throw new NotImplementedException();
-            public void WaitAndRespawnShip(ShipId ship, Vector2 pos, float rotation, float delay) =>
-                throw new NotImplementedException();
-            public void CancelPendingRespawns() => throw new NotImplementedException();
-            public void WireShipDependencies(Ship ship, IObstacleField field) => throw new NotImplementedException();
         }
     }
 }

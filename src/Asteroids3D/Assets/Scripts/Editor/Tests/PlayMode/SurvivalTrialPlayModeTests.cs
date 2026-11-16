@@ -1,12 +1,14 @@
 #if UNITY_EDITOR
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using AI;
 using Combat.Weapons;
 using Damage;
 using Game.Player;
 using NUnit.Framework;
 using Ships;
+using Ships.Command;
 using Ships.Loadout;
 using Ships.Presentation;
 using Substrate;
@@ -26,7 +28,7 @@ using Substrate.Sessions;
 
 namespace Tests.PlayMode
 {
-    /// <summary>Survival trial end to end on primitives: the wave director's first-tick opening spawn rings the hero on the chassis's own engine, the player's killing blow lands on the run tally, and the director despawns its dead product.</summary>
+    /// <summary>Survival trial end to end on primitives: the wave director's first-tick opening spawn rings the hero on the chassis's own engine, the player's killing blow lands on the run tally, and the director despawns its dead product. A product that requests a jump is despawned over the next frames, counts as nothing alive, and records no kill.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class SurvivalTrialPlayModeTests : PlayModeWorldFixture
@@ -103,6 +105,7 @@ namespace Tests.PlayMode
                 pilot = TestAssets.LoadTestPilotMpc(),
             };
             var sectorFaction = sectorGO.AddComponent<SectorFaction>();
+            sectorFaction.Bind(faction);
             var row = new SectorEntry
             {
                 faction = faction,
@@ -178,6 +181,39 @@ namespace Tests.PlayMode
             var product = director.Spawned[0];
             Assert.AreEqual(_chassisEngine, product.Engine, "A wave product flies its chassis's own engine.");
             Assert.AreEqual(_chassisShield, product.Shield, "A wave product flies its chassis's own shield.");
+
+            yield return sector.Teardown();
+        }
+
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator JumpRequested_DespawnsOnTheNextPass_CountsAsNothingAlive_AndFiresNoDeath()
+        {
+            var template = NewTemplate();
+            var tally = new RunTally();
+            Ship player = null;
+            tally.Bind(_unitService, () => player.Id);
+            player = _unitService.SpawnShip(template, null, 0, GamePlane.PlanePointToWorld(Vector2.zero),
+                GamePlane.Rotation, null);
+            var director = NewTrial(template, player, out var sector);
+
+            yield return sector.Setup();
+            tally.Begin(Time.time);
+            for (var i = 0; i < 10 && director.Spawned.Count == 0; i++)
+                yield return null;
+            Assert.AreEqual(1, director.Spawned.Count, "test premise: the opening wave spawned one product");
+            var product = director.Spawned[0];
+
+            ((IJumpDrive)product).RequestJump();
+            for (var i = 0; i < 10 && director.Spawned.Contains(product); i++)
+                yield return null;
+            // Object.Destroy lands at end of frame.
+            yield return null;
+
+            Assert.IsFalse(director.Spawned.Contains(product), "The director drops a product that requested a jump.");
+            Assert.AreEqual(0, director.Alive, "A jumped product counts as nothing alive.");
+            Assert.AreEqual(0, tally.Kills, "A jump records no kill.");
+            Assert.IsFalse(product, "The despawned product is destroyed.");
 
             yield return sector.Teardown();
         }

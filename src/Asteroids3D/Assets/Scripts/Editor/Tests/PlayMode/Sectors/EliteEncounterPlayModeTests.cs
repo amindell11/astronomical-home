@@ -98,6 +98,7 @@ namespace Tests.PlayMode.Sectors
             var sectorGO = Track(new GameObject("EliteSector"));
             var sector = sectorGO.AddComponent<Sector>();
             var sectorFaction = sectorGO.AddComponent<SectorFaction>();
+            sectorFaction.Bind(faction);
             var directorGO = new GameObject("WaveDirector");
             directorGO.transform.SetParent(sectorGO.transform, false);
             var director = directorGO.AddComponent<WaveDirector>();
