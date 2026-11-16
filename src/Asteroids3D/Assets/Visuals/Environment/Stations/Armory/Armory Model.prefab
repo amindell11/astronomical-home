@@ -169,6 +169,9 @@ MonoBehaviour:
   chaseBoost: 1.5
   inUseBoost: 2.5
   coastSeconds: 10
+  driftUnits: 0.4
+  driftDegrees: 2
+  driftSeconds: 20
   darkColour: {r: 0.11764706, g: 0.1254902, b: 0.1882353, a: 1}
   look: 0
 --- !u!23 &2799132857652671596 stripped

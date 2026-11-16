@@ -91,7 +91,7 @@ Material:
     - _LineThreshold: 0.12
     - _PaintDetailMip: 5
     - _PaintEmissionBlend: 0
-    - _PaintInkStrength: 0.26
+    - _PaintInkStrength: 1
     - _PaintLayers: 1
     - _PaintLightStrength: 0.86
     - _PaintLightingBias: 1.2

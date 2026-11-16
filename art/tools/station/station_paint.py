@@ -1,13 +1,14 @@
-"""Bake a station's brush and hatching into the drawn shader's Shadow, Light and Ink masks.
+"""Bake a station's brush, hatching and hash marks into the drawn shader's Shadow, Light and Ink masks.
 
 CLI: blender -b --factory-startup --python-exit-code 1 -P station_paint.py -- --station BLEND
 --out DIR [--unity DIR]
 Needs station_uv's PaintUV layer and never saves the .blend. Every hull mesh bakes (Cycles, emission)
 in its own local space with the outpost preview's brush and hatch node setups, so the pattern lands
-where the preview drew it. Written to layers/ beside the source, 8-bit grey on the PaintUV atlas,
-0 away from the islands:
-  Shadow = clamp(3.2 * (0.625 - brush))   Light = clamp(3.2 * (brush - 0.625))   Ink = (hatch r + hatch g) / 2
-Strengths stay on the Unity material. --unity also writes the three masks into DIR. The review image
+where the preview drew it. The hash-mark meshes bake onto the hull in world space, selected to active.
+Written to layers/ beside the source, 8-bit grey on the PaintUV atlas, 0 away from the islands:
+  Shadow = clamp(3.2 * (0.625 - brush))   Light = clamp(3.2 * (brush - 0.625))
+  Ink = max(hatch * (hatch r + hatch g), marks), hatch from outpost-colour.json
+Brush strength stays on the Unity material; ink strength there is 1. --unity also writes the three masks into DIR. The review image
 <out>/<station>-flat.png shades the hull with ../outpost-colour.json the
 way the shader does, top view beside a tilted one. Prose to stderr; stdout trailers
 STATION_MASKS=<layers dir>, STATION_PREVIEW=<png>. Exit 0 written, 1 error.
@@ -38,6 +39,9 @@ BRUSH_TILE = 7.0  # world units one repeat of the brush tile covers
 HATCH_SCALE = 0.9  # wave scale: strokes about 0.4 units apart
 BRUSH_CONTRAST = 3.2  # the ships' contrast for the same tile
 BAKE_MARGIN = 16
+MARK_SUPERSAMPLE = 2  # marks bake at twice the atlas size and box-filter down, so strokes come out antialiased
+MARK_CAGE = 0.1  # marks float 0.035 u off the plate and are 0.03 u thick
+MARK_REACH = 0.12
 MASKS = ("Shadow", "Light", "Ink")
 PREVIEW_SIZE = 1520  # 40 px per unit at the station camera's 38 unit frame
 TILTED = Euler((math.radians(-55), math.radians(15), math.radians(30)))
@@ -121,7 +125,63 @@ def bake_surface(objects, material):
     return scene, surface
 
 
-def bake_masks(objects):
+def world_join(scene, objects, label):
+    """Copies of the objects with their transforms applied, joined into one mesh of `scene`."""
+    copies = []
+    for obj in objects:
+        mesh = obj.data.copy()
+        mesh.transform(obj.matrix_world)
+        copy = bpy.data.objects.new(f"{label} {obj.name}", mesh)
+        scene.collection.objects.link(copy)
+        copies.append(copy)
+    bpy.context.window.scene = scene
+    for obj in scene.objects:
+        obj.select_set(obj in copies)
+    bpy.context.view_layer.objects.active = copies[0]
+    bpy.ops.object.join()
+    joined = bpy.context.view_layer.objects.active
+    joined.data.materials.clear()
+    joined.data.polygons.foreach_set("material_index", np.zeros(len(joined.data.polygons), np.int32))
+    return joined
+
+
+def bake_marks(objects, marks):
+    """Hash-mark coverage on PaintUV: the mark meshes baked onto the hull, selected to active."""
+    scene = bpy.data.scenes.new("mark bake")
+    surface = world_join(scene, objects, "hull")
+    strokes = world_join(scene, marks, "marks")
+    size = station_uv.TEXTURE_SIZE * MARK_SUPERSAMPLE
+    image = bpy.data.images.new("mark bake", size, size, alpha=False, float_buffer=True)
+    image.colorspace_settings.name = "Non-Color"
+    target = bpy.data.materials.new("mark target")
+    g = ship_paint.Graph(target)
+    g.tree.nodes.active = g.node("ShaderNodeTexImage", name="BAKE TARGET", image=image)
+    surface.data.materials.append(target)
+    ink = bpy.data.materials.new("mark ink")
+    g = ship_paint.Graph(ink)
+    g.tree.links.new(g.node("ShaderNodeEmission").outputs[0], g.node("ShaderNodeOutputMaterial").inputs["Surface"])
+    strokes.data.materials.append(ink)
+    layer = surface.data.uv_layers[contract.PAINT_UV]
+    surface.data.uv_layers.active = layer
+    layer.active_render = True
+    scene.render.engine = "CYCLES"
+    scene.cycles.samples = 1
+    scene.cycles.use_denoising = False
+    scene.cycles.device = "CPU"
+    for obj in scene.objects:
+        obj.select_set(True)
+    bpy.context.view_layer.objects.active = surface
+    # No margin: texels whose rays miss stay unwritten, and a margin would smear the marks across them.
+    bpy.ops.object.bake(type="EMIT", use_clear=True, margin=0,
+                        use_selected_to_active=True, cage_extrusion=MARK_CAGE, max_ray_distance=MARK_REACH)
+    pixels = np.empty(len(image.pixels), np.float32)
+    image.pixels.foreach_get(pixels)
+    coverage = pixels.reshape(size, size, 4)[..., 0]
+    atlas = station_uv.TEXTURE_SIZE
+    return coverage.reshape(atlas, MARK_SUPERSAMPLE, atlas, MARK_SUPERSAMPLE).mean(axis=(1, 3))
+
+
+def bake_masks(objects, marks, hatch_strength):
     brush_image = bpy.data.images.load(str(BRUSH_IMAGE), check_existing=False)
     brush_image.colorspace_settings.name = "Non-Color"
     material, graph = bake_material(brush_image)
@@ -135,7 +195,7 @@ def bake_masks(objects):
     baked = hatch[..., 2] > 0.5
     masks = {"Shadow": np.clip(BRUSH_CONTRAST * (ship_paint.BRUSH_MID - brush), 0, 1),
              "Light": np.clip(BRUSH_CONTRAST * (brush - ship_paint.BRUSH_MID), 0, 1),
-             "Ink": (hatch[..., 0] + hatch[..., 1]) / 2}
+             "Ink": np.maximum(hatch_strength * (hatch[..., 0] + hatch[..., 1]), bake_marks(objects, marks))}
     return {name: np.rint(np.where(baked, mask, 0) * 255).astype(np.uint8) for name, mask in masks.items()}, baked
 
 
@@ -153,7 +213,7 @@ def preview_material(key, settings, images):
     base = settings["hull"][key]
     albedo = g.vector("SCALE", base, scale=g.math("SUBTRACT", 1.0, sample("Shadow", settings["brush"])))
     albedo = g.mix_colour(sample("Light", settings["brush"]), albedo, tuple(min(1.0, 2 * c) for c in base))
-    albedo = g.mix_colour(sample("Ink", 2 * settings["hatch"]), albedo, settings["ink"])
+    albedo = g.mix_colour(sample("Ink", 1.0), albedo, settings["ink"])
     diffuse = g.node("ShaderNodeBsdfDiffuse")
     g.feed(diffuse.inputs["Color"], albedo)
     g.tree.links.new(diffuse.outputs[0], g.node("ShaderNodeOutputMaterial").inputs["Surface"])
@@ -215,9 +275,12 @@ def main(argv):
     if missing:
         raise contract.UsageError(f"{len(missing)} hull meshes have no {contract.PAINT_UV} (run station_uv): {missing[:3]}")
     settings = load_settings(settings_path, sorted({o["key"] for o in objects}))
+    marks = [o for o in scene.objects if o.type == "MESH" and o.get("key") == "mark"]
+    if not marks:
+        raise contract.UsageError(f"No hash-mark meshes (key mark) in {source}")
 
     started = time.perf_counter()
-    masks, baked = bake_masks(objects)
+    masks, baked = bake_masks(objects, marks, settings["hatch"])
     seconds = time.perf_counter() - started
     layers = source.parent / contract.LAYERS_DIR
     layers.mkdir(exist_ok=True)
@@ -229,7 +292,7 @@ def main(argv):
     if args.unity:
         for name in MASKS:
             shutil.copyfile(layers / f"{name}.png", Path(args.unity) / f"{name}.png")
-    print(f"{source.name}: baked {len(objects)} hull meshes at {station_uv.TEXTURE_SIZE} in {seconds:.1f} s, "
+    print(f"{source.name}: baked {len(objects)} hull meshes and {len(marks)} mark meshes at {station_uv.TEXTURE_SIZE} in {seconds:.1f} s, "
           f"{baked.mean():.3f} of the atlas baked", file=sys.stderr)
     preview = Path(args.out).resolve() / f"{source.stem}-flat.png"
     render_preview(scene, objects, settings, layers, preview)

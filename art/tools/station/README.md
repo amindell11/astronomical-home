@@ -1,6 +1,6 @@
 # Station paint tools
 
-Bake the outpost stations' brush texture and hatching into the drawn shader's paint masks
+Bake the outpost stations' brush texture, hatching and hash marks into the drawn shader's paint masks
 (`_PaintShadowMap`, `_PaintLightMap`, `_PaintInkMap`, read through UV0). Each station gets its
 own UV layout, saved in its `.blend`, and its own mask set.
 
@@ -28,14 +28,15 @@ as stdout trailers (`STATION_TEXELS_PER_UNIT`, `STATION_FILL`, `STATION_DENSITY_
 ## station_paint
 
 Never saves the `.blend`. Bakes (Cycles, emission, via `ship_paint.bake`) the outpost preview's
-brush and hatch node setups, in each mesh's Object coordinates, onto `PaintUV` at 2048, then writes
-8-bit grey masks to `layers/` beside the source:
+brush and hatch node setups, in each mesh's Object coordinates, onto `PaintUV` at 2048. The hash
+marks (meshes keyed `mark`) bake onto the hull in world space, selected to active, at 4096 and
+filtered down to 2048. Then it writes 8-bit grey masks to `layers/` beside the source:
 
 | Mask | Value |
 |---|---|
 | `Shadow.png` | `clamp(3.2 * (0.625 - brush), 0, 1)` |
 | `Light.png` | `clamp(3.2 * (brush - 0.625), 0, 1)` |
-| `Ink.png` | `(hatch red + hatch green) / 2`: 0.5 on one stroke set, 1 where the sets cross |
+| `Ink.png` | `max(hatch * (hatch red + hatch green), marks)`: `hatch` on one stroke set, twice that where the sets cross, 1 on a mark |
 
 Texels away from any island stay 0. `--unity <dir>` also writes the three masks into an existing
 folder, overwriting in place (Unity owns the `.meta` files). The review image
@@ -44,16 +45,17 @@ and tilted, shaded the way the shader composes the masks with the colours in
 `art/stations/outpost-colour.json`. Stdout trailers: `STATION_MASKS=<layers dir>`,
 `STATION_PREVIEW=<png>`.
 
-## Strengths live on the material
+## Strengths
 
-The masks carry no strength, so the look can be tuned in Unity without a rebake. From
-`outpost-colour.json`:
+The brush masks carry no strength, so the brush can be tuned in Unity without a rebake. The Ink
+mask carries the hatch strength, because the marks need full ink from the same mask; changing
+`hatch` means a rebake. From `outpost-colour.json`:
 
 | Material field | Value |
 |---|---|
 | `_PaintShadowStrength` | `brush` |
 | `_PaintLightStrength` | `brush` |
-| `_PaintInkStrength` | `2 * hatch` |
+| `_PaintInkStrength` | `1` |
 | `_PaintLightColor` | `2 * base`, in linear, each channel clamped to 1 |
 
 ## Contract

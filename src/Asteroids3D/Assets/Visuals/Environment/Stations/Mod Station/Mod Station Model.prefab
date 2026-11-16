@@ -90,6 +90,12 @@ MeshRenderer:
     type: 3}
   m_PrefabInstance: {fileID: 7838104391925091079}
   m_PrefabAsset: {fileID: 0}
+--- !u!23 &2288693009449582566 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 8288198090380719329, guid: a6efe5976816f774094973085ab9a1ba,
+    type: 3}
+  m_PrefabInstance: {fileID: 7838104391925091079}
+  m_PrefabAsset: {fileID: 0}
 --- !u!23 &2457703847061683594 stripped
 MeshRenderer:
   m_CorrespondingSourceObject: {fileID: 5682714565660849805, guid: a6efe5976816f774094973085ab9a1ba,
@@ -168,6 +174,7 @@ MonoBehaviour:
   - lamps:
     - {fileID: 4591514365028460419}
     - {fileID: 4451176477183760525}
+    - {fileID: 2288693009449582566}
     - {fileID: 7783817691924320187}
   - lamps:
     - {fileID: 8741014335346621321}
@@ -175,6 +182,9 @@ MonoBehaviour:
   chaseBoost: 1.5
   inUseBoost: 2.5
   coastSeconds: 10
+  driftUnits: 0.4
+  driftDegrees: 2
+  driftSeconds: 20
   darkColour: {r: 0.11764706, g: 0.1254902, b: 0.1882353, a: 1}
   look: 0
 --- !u!23 &6956104058743479738 stripped
