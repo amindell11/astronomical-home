@@ -904,7 +904,7 @@ Format: **term** — definition. *(authority)*
   ⚠ Not to be confused with `PilotCommand`/`IPilot`, which are the actuator end.
   *(Brain, BrainDecision)*
 - **tactic**. What a ship picks to fight with: attack run, flank, stand off,
-  fall back or break off. A ship picks for its own sake, the best shot for the least risk,
+  fall back, break off or charge. A ship picks for its own sake, the best shot for the least risk,
   and never knows it paces the player. "Beat" is the retired name. Owner rulings
   on #1349. Each tactic flies a law the archetype pilots already have:
   - *attack run*: hold at the gun hold range plus the temper's attack-run margin
@@ -915,46 +915,60 @@ Format: **term** — definition. *(authority)*
     once it turns away and my firing lane is clear;
   - *fall back*: hold near the far edge of my own primary gun range, never
     closer than my attack run, firing while my firing lane is clear;
-  - *break off*: flee with guns cold.
+  - *break off*: flee with guns cold;
+  - *charge*: hold at the temper's charge range, point-blank, and fire
+    whatever the ship's shield. Only a last stand flies it.
 
   A ship picks by *ordered rules*, the first rule that fires winning: the
-  retreat its *wounded response* names while it is wounded (break off or fall
-  back), then flank or stand off, then its *home tactic*, the tactic it flies when no
+  tactic its *wounded response* names while it is wounded (break off, fall
+  back or charge), then flank or stand off, then its *home tactic*, the tactic it flies when no
   rule overrides it. It keeps a tactic until the reason it was picked ends, and
   never for less than the *minimum hold*, break off included. A home tactic also
   holds while the rules still pick it.
   Only a pilot authored with tactics settings (the *tactics switch*) picks one.
   Every shipped pilot does, each on its own *temper*; the matrix lane's
   weapon-pair shooters never do. *(TacticRules.Next, TacticsSettings)*
-- **temper**. One `TacticsSettings` asset per pilot: the Aggressor, Orbiter,
-  Kiter, Lurker, the elite, and its escorts. The Aggressor's home tactic is the
-  attack run, and hunt patrols fly its temper too. The Orbiter's is flank, the
-  Lurker's is stand off, and the Kiter flies the attack run from further out.
-  The temper also
-  records whether the ship circles the wreck before it wanders. A pilot with a
-  temper never reads `archetype`. The owner ruled on #1349, 2026-11-09, that
-  the elite never breaks off and always presses (never wounded, nerve 0%) and
-  escorts never fly into the target's guns (nerve 100%). On #1556, 2026-11-13,
-  the owner left the elite and escort numbers as they were. At 100% nerve a
-  ship shies at a full shield too, so 0% and 100% hold at every shield level.
-  Each temper also holds its *wounded response*. *(AggressorTemper, OrbiterTemper,
-  KiterTemper, LurkerTemper, EliteTemper, EscortTemper)*
+- **temper**. One `TacticsSettings` asset per pilot. A faction's ships fly
+  the pilot its `Faction` asset names for each hull (`Faction.PilotFor`), so a
+  temper belongs to a faction and a hull: Shoal's Valis and Crimson, Veil's
+  Nightshade and Crimson, Bastion's Bulwark and Crimson. Hunt patrols fly the
+  common ship's pilot, and no roster can name a pilot. Both of a faction's
+  tempers carry the faction's wounded response, ruled on #1589, 2026-11-16:
+  Veil never breaks, Shoal jumps out, and Bastion makes a last stand. The
+  elite and its escorts keep their own pilots. The owner ruled on #1349,
+  2026-11-09, that the elite never breaks off and always presses (never
+  wounded, nerve 0%) and escorts never fly into the target's guns (nerve
+  100%). On #1556, 2026-11-13, the owner left the elite and escort numbers as
+  they were. At 100% nerve a ship shies at a full shield too, so 0% and 100%
+  hold at every shield level. The temper also records whether the ship circles
+  the wreck before it wanders. A pilot with a temper never reads `archetype`.
+  *(Faction.PilotFor; Settings/AI/Tactics/Factions; EliteTemper, EscortTemper)*
 - **wounded response**. What a temper says its ships do when hurt: never
-  retreat, break off, fall back, or *turn cautious*, which adds no tactic and
-  reads the ship's nerve as 100% so the flank-or-stand-off rule keeps it out of
-  the target's guns. A ship is *wounded* from the hit that finds its trigger
-  gauge, shield or hull, under its own point, until its own end condition: the
-  shield back to a level, or a number of seconds. A retreat is spent, and its
-  seconds start, when the ship flies it: a held flank or stand off delays it,
-  because a tactic holds until its reason ends (#1349). Each ship draws its point,
-  its end values and its retreat count once from its temper's ranges, off its
-  decision seed, so a spawn slot draws the same numbers every run until arenas
-  have seeds. A temper that *commits* is never wounded again once a ship has
-  spent its drawn retreats. Owner rulings on #1579, 2026-11-15: one wave temper
-  leaves with guns cold. The Aggressor and the elite never retreat, the Orbiter
-  turns cautious, the Kiter falls back, the Lurker breaks off once on hull, and
-  the escort breaks off as before. Fall back leaves the 2026-11-09 hold-fire
-  ruling on stand off as it was. *(WoundedRules, WoundedDraw, TacticsSettings)*
+  retreat, break off, fall back, *turn cautious*, make a *last stand*, or *jump
+  out*. Turn cautious adds no tactic and reads the ship's nerve as 100%, so the
+  flank-or-stand-off rule keeps it out of the target's guns. A last stand
+  charges until the ship dies. A jump out breaks off for good, and once the ship
+  is farther from its target than the temper's jump distance it asks its ship
+  to jump; the spawner that made the ship removes it, so no kill counts. A ship
+  is *wounded* from the hit that finds its trigger gauge, shield or hull, under
+  its temper's point, until its temper's end condition: the shield back to a
+  level, or a number of seconds. A last stand and a jump out never end. A
+  retreat is spent, and its seconds start, when the ship flies it: a held flank
+  or stand off delays it, because a tactic holds until its reason ends (#1349).
+  Every ship of one temper breaks at the same numbers. The owner ruled on
+  #1589, 2026-11-16, that no per-ship draw decides them, which replaced #1579's
+  draws. A temper that *commits* is never wounded again once a ship has spent
+  its retreats. #1579's rulings, 2026-11-15, still set the role tempers: the
+  Aggressor and the elite never retreat, the Orbiter turns cautious, the Kiter
+  falls back, the Lurker breaks off once on hull, and the escort breaks off.
+  Fall back leaves the 2026-11-09 hold-fire ruling on stand off as it was.
+  *(WoundedRules, TacticsSettings)*
+- **limp**. An enemy ship low on hull flies slower and never boosts. Its pilot
+  plans and commands as if its ship were slower; nothing clamps the ship's
+  velocity, and the player's ship never limps. The owner ruled on #1589,
+  2026-11-16, that the limp comes from damage, not from the decision to run, and
+  that it adds no smoke or sputter of its own. *(AICommander's limp settings,
+  LimpingShip)*
 - **situation**. What one ship reads about its fight before it picks a tactic,
   from its own sensors only. The owner's picks on #1349: allies count by where
   they are, never by asking another ship's brain, so the elite counts whatever it

@@ -13,7 +13,7 @@ namespace Tests.EditMode.Sectors
     /// <summary>
     /// Each shipped faction's signature and common ship flies a pilot whose temper is set, and the two
     /// hulls fly different pilots. Both tempers of a faction share one wounded response: Veil never,
-    /// Shoal break off, Bastion last stand. No sector prefab names a patrol pilot of its own.
+    /// Shoal jump out, Bastion last stand. No sector prefab names a patrol pilot of its own.
     /// </summary>
     [TestFixture]
     [Category("Sectors")]
@@ -42,7 +42,7 @@ namespace Tests.EditMode.Sectors
         public void BothTempersOfAFaction_ShareOneWoundedResponse()
         {
             AssertResponse("Veil", WoundedResponse.Never);
-            AssertResponse("Shoal", WoundedResponse.BreakOff);
+            AssertResponse("Shoal", WoundedResponse.JumpOut);
             AssertResponse("Bastion", WoundedResponse.LastStand);
         }
 

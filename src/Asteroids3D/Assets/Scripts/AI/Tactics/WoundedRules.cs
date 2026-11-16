@@ -18,7 +18,7 @@ namespace AI.Tactics
 
         public static bool Ends(in Situation s, float respondingSeconds, TacticsSettings t)
         {
-            if (t.wounded == WoundedResponse.LastStand) return false;
+            if (t.wounded == WoundedResponse.LastStand || t.wounded == WoundedResponse.JumpOut) return false;
             return t.woundedEnds switch
             {
                 WoundedEnds.WhenShieldIsBack => s.shieldPct * 100f >= t.shieldBack,
@@ -37,6 +37,7 @@ namespace AI.Tactics
             WoundedResponse.FallBack => flown == Tactic.FallBack,
             WoundedResponse.TurnCautious => true,
             WoundedResponse.LastStand => flown == Tactic.Charge,
+            WoundedResponse.JumpOut => flown == Tactic.BreakOff,
             WoundedResponse.Never => false,
             _ => throw new ArgumentOutOfRangeException(nameof(t.wounded), t.wounded, null),
         };

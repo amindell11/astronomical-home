@@ -79,6 +79,17 @@ namespace Tests.EditMode.Tactics
         }
 
         [Test]
+        public void WoundedJumpOut_BreaksOff_EvenExposedWithAnOpenSide_AndHoldsPastTheMinimumHold()
+        {
+            settings.wounded = WoundedResponse.JumpOut;
+
+            Assert.AreEqual(Tactic.BreakOff,
+                Pick(Fight(allies: 2, openSide: true, inCone: true), wounded: true));
+            Assert.AreEqual(Tactic.BreakOff,
+                TacticRules.Next(Tactic.BreakOff, 10f, Fight(), settings, wounded: true));
+        }
+
+        [Test]
         public void TurnCautious_WhenWounded_FlanksOrStandsOffWhileExposed_AndHomesWhenNot()
         {
             settings.wounded = WoundedResponse.TurnCautious;
@@ -94,6 +105,7 @@ namespace Tests.EditMode.Tactics
         [TestCase(WoundedResponse.BreakOff)]
         [TestCase(WoundedResponse.FallBack)]
         [TestCase(WoundedResponse.TurnCautious)]
+        [TestCase(WoundedResponse.JumpOut)]
         public void NotWounded_NeverBreaksOffOrFallsBack(WoundedResponse response)
         {
             settings.wounded = response;

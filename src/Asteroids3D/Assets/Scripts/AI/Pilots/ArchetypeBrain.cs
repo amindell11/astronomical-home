@@ -296,7 +296,10 @@ namespace AI.Pilots
                 Tactic.StandOff => Pack(ctx.Self, RangerBrain.HoldRangeVelocity(in self, them,
                     situation.targetRange + tactics.standOffMargin, speed),
                     engages: !situation.inTargetsCone && situation.alliesInLane == 0),
-                Tactic.BreakOff => Pack(ctx.Self, FleeVelocity(self.pos, speed), engages: false),
+                Tactic.BreakOff => Pack(ctx.Self, FleeVelocity(self.pos, speed), engages: false,
+                    keepBorder: tactics.wounded != WoundedResponse.JumpOut,
+                    jump: wounded && tactics.wounded == WoundedResponse.JumpOut
+                        && Vector2.Distance(self.pos, them.pos) > tactics.jumpsBeyond),
                 Tactic.FallBack => Pack(ctx.Self, RangerBrain.HoldRangeVelocity(in self, them, fallBackRange, speed),
                     engages: situation.alliesInLane == 0),
                 Tactic.Charge => Pack(ctx.Self, RangerBrain.HoldRangeVelocity(in self, them, tactics.chargeRange, speed),
@@ -312,18 +315,21 @@ namespace AI.Pilots
             return ArchetypeLaws.FleeVelocity(selfPos, target.Kinematics.pos, jukeSign, speed);
         }
 
-        private BrainDecision Pack(IShipStatus status, Vector2 lawVelocity, bool engages)
+        private BrainDecision Pack(IShipStatus status, Vector2 lawVelocity, bool engages, bool keepBorder = true,
+            bool jump = false)
         {
             var self = status.Kinematics;
             var urgency = Evade(status, out var escapeHeading);
             var velocity = ArchetypeLaws.EvasionVelocity(lawVelocity, escapeHeading, status.Dynamics.maxSpeed, urgency);
-            var worldVelocity = ArchetypeSteering.BorderTangentSteer(self.pos, velocity, arenaCenter, borderRadius,
-                ArchetypeSteering.BorderMargin);
+            var worldVelocity = keepBorder
+                ? ArchetypeSteering.BorderTangentSteer(self.pos, velocity, arenaCenter, borderRadius,
+                    ArchetypeSteering.BorderMargin)
+                : velocity;
             var builder = NavObjective.Anchored(target.Id).Planar(worldVelocity);
             if (engages) builder = builder.Facing(0f, 1f - urgency);
             var boost = urgency > 0f && urgency >= boostUrgency
                 && Vector2.Angle(self.Forward, escapeHeading) <= boostAlignment;
-            return new BrainDecision(builder, engages, engages, boost);
+            return new BrainDecision(builder, engages, engages, boost, jump);
         }
 
         private float Evade(IShipStatus status, out Vector2 escapeHeading)

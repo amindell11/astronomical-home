@@ -14,7 +14,7 @@ namespace AI.Tactics
     }
 
     /// <summary>
-    /// Situation in, tactic out, at each brain recompute. Wounded, last stand, break off and fall back come before
+    /// Situation in, tactic out, at each brain recompute. Wounded, last stand, break off, jump out and fall back come before
     /// any other rule, and turn cautious reads a full nerve. A tactic holds while the reason it was
     /// picked holds, a home tactic also while the rules still pick it, and always for the minimum hold;
     /// once it ends, the ordered rules pick again.
@@ -31,6 +31,7 @@ namespace AI.Tactics
         private static Tactic Pick(in Situation situation, TacticsSettings settings, bool wounded)
         {
             if (wounded && settings.wounded == WoundedResponse.LastStand) return Tactic.Charge;
+            if (wounded && settings.wounded == WoundedResponse.JumpOut) return Tactic.BreakOff;
             if (wounded && settings.wounded == WoundedResponse.BreakOff) return Tactic.BreakOff;
             if (wounded && settings.wounded == WoundedResponse.FallBack) return Tactic.FallBack;
             var nerve = wounded && settings.wounded == WoundedResponse.TurnCautious ? 100f : settings.nerveShield;
@@ -48,7 +49,8 @@ namespace AI.Tactics
             var reason = tactic switch
             {
                 Tactic.Charge => wounded && settings.wounded == WoundedResponse.LastStand,
-                Tactic.BreakOff => wounded && settings.wounded == WoundedResponse.BreakOff,
+                Tactic.BreakOff => wounded && (settings.wounded == WoundedResponse.BreakOff
+                    || settings.wounded == WoundedResponse.JumpOut),
                 Tactic.FallBack => wounded && settings.wounded == WoundedResponse.FallBack,
                 Tactic.Flank => situation.openSide != Vector2.zero && (situation.alliesInLane > 0 || situation.exposed),
                 Tactic.StandOff => situation.openSide == Vector2.zero

@@ -7,5 +7,6 @@ namespace AI.Tactics
         FallBack,
         TurnCautious,
         LastStand,
+        JumpOut,
     }
 }

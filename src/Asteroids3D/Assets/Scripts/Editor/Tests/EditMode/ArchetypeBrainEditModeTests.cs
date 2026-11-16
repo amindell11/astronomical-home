@@ -12,6 +12,7 @@ using UnityEditor;
 using UnityEngine;
 using Ships.Registry;
 using AI.Pilots;
+using AI.Strategy;
 using System.Collections.Generic;
 using Combat.Targeting;
 using Utils;
@@ -479,6 +480,28 @@ namespace Tests.EditMode
             Hurt(status, ctx);
             Fly(brain, ctx);
             Assert.AreEqual(Tactic.AttackRun, brain.CurrentTactic, "the one retreat is spent");
+        }
+
+        [Test]
+        public void JumpOut_SetsJumpBeyondJumpsBeyond_AndABreakOffShipNeverDoes()
+        {
+            Assert.IsFalse(FlyWounded(WoundedResponse.JumpOut, 69f).jump);
+            Assert.IsTrue(FlyWounded(WoundedResponse.JumpOut, 71f).jump);
+            Assert.IsFalse(FlyWounded(WoundedResponse.BreakOff, 200f).jump);
+        }
+
+        private BrainDecision FlyWounded(WoundedResponse response, float distance)
+        {
+            var temper = ScriptableObject.CreateInstance<TacticsSettings>();
+            temper.wounded = response;
+            temper.jumpsBeyond = 70f;
+            var (brain, status, ctx) = WoundedPilot(temper);
+            status.Kinematics = new Kinematics(new Vector2(distance, 0f), Vector2.zero, 0f, 0f, 0f);
+            Hurt(status, ctx);
+            var decision = brain.Decide(ctx);
+            Assert.AreEqual(Tactic.BreakOff, brain.CurrentTactic);
+            Assert.IsTrue(decision.HasValue);
+            return decision.Value;
         }
 
         [TestCase("Assets/Prefabs/Pilots/AggressorPilot.prefab", "Aggressor")]

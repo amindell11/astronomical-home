@@ -57,6 +57,7 @@ namespace Substrate.Sectors.Elements.Hunt
 
         private readonly List<Ship> products = new();
         private readonly List<Patrol> patrols = new();
+        private readonly List<Ship> jumped = new();
         private IUnitService units;
         private IObstacleField field;
         private Ship hero;
@@ -98,6 +99,7 @@ namespace Substrate.Sectors.Elements.Hunt
         {
             products.Clear();
             patrols.Clear();
+            jumped.Clear();
             Spawned = products;
             if (!feel)
                 throw new InvalidOperationException($"SectorHunt on '{name}' needs its feel profile.");
@@ -137,11 +139,13 @@ namespace Substrate.Sectors.Elements.Hunt
         {
             foreach (var patrol in patrols)
             {
+                if (patrol.Ship) patrol.Ship.JumpRequested -= patrol.jumpHandler;
                 patrol.Ship.Damage.OnDamaged -= patrol.OnDamaged;
                 patrol.Release();
                 DestroyWedge(patrol);
             }
             patrols.Clear();
+            jumped.Clear();
             hero = null;
             sector = null;
             var teardown = base.OnTeardown(ctx);
@@ -289,6 +293,8 @@ namespace Substrate.Sectors.Elements.Hunt
                     if (SpottedFill >= 1f) Sound(HuntAlarmReason.Patrol, patrol.Ship, lastNow);
                 };
                 ship.Damage.OnDamaged += patrol.OnDamaged;
+                patrol.jumpHandler = () => jumped.Add(ship);
+                ship.JumpRequested += patrol.jumpHandler;
                 patrols.Add(patrol);
                 products.Add(ship);
             }
@@ -317,16 +323,31 @@ namespace Substrate.Sectors.Elements.Hunt
             {
                 var patrol = patrols[i];
                 var ship = patrol.Ship;
-                if (ship && ship.gameObject.activeInHierarchy) continue;
+                if (ship && ship.gameObject.activeInHierarchy && !IsJumped(ship)) continue;
                 patrols.RemoveAt(i);
                 products.Remove(ship);
+                DropJumped(ship);
                 if (!ship) continue;
+                ship.JumpRequested -= patrol.jumpHandler;
                 ship.Damage.OnDamaged -= patrol.OnDamaged;
                 patrol.Release();
                 DestroyWedge(patrol);
                 if (!Alarmed) PatrolSilenced?.Invoke(sectorIndex, ship);
                 units.DespawnShip(ship);
             }
+        }
+
+        private bool IsJumped(Ship ship)
+        {
+            for (var i = 0; i < jumped.Count; i++)
+                if (ReferenceEquals(jumped[i], ship)) return true;
+            return false;
+        }
+
+        private void DropJumped(Ship ship)
+        {
+            for (var i = jumped.Count - 1; i >= 0; i--)
+                if (ReferenceEquals(jumped[i], ship)) jumped.RemoveAt(i);
         }
 
         private sealed class Patrol
@@ -350,6 +371,7 @@ namespace Substrate.Sectors.Elements.Hunt
             private bool circling;
             public Action<AppliedDamage> OnDamaged;
             public PatrolSightWedge Wedge;
+            public Action jumpHandler;
             public bool Seeing;
 
             public Patrol(Ship ship, AICommander commander, Vector2[] route)

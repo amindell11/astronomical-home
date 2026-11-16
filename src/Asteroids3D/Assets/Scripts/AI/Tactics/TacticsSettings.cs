@@ -34,13 +34,13 @@ namespace AI.Tactics
         [Min(0f)] public float minimumHold = 2f;
 
         [Header("When hurt")]
-        [Tooltip("What a hurt ship does. Break off stops firing. Fall back keeps firing. Turn cautious stays out of the target's guns. Last stand closes to point-blank and presses, firing, until it dies. Never ignores the wound.")]
+        [Tooltip("What a hurt ship does. Break off stops firing. Fall back keeps firing. Turn cautious stays out of the target's guns. Last stand closes to point-blank and presses, firing, until it dies. Jump out flies straight away and leaves the sector past a distance. Never ignores the wound.")]
         public WoundedResponse wounded = WoundedResponse.BreakOff;
         [Tooltip("Shield or hull, the gauge a ship reads to decide it is hurt.")]
         public WoundGauge woundedBy = WoundGauge.Shield;
         [Tooltip("Gauge %, below which a ship hit within the last 'hit within' seconds is hurt.")]
         [Range(0f, 100f)] public float woundedBelow = 25f;
-        [Tooltip("What ends being hurt: the shield coming back, or a fixed number of seconds. A last stand never ends.")]
+        [Tooltip("What ends being hurt: the shield coming back, or a fixed number of seconds. A last stand or a jump out never ends.")]
         public WoundedEnds woundedEnds = WoundedEnds.WhenShieldIsBack;
         [Tooltip("Shield %, at or above which a ship is no longer hurt, when the shield coming back ends it.")]
         [Range(0f, 100f)] public float shieldBack = 80f;
@@ -54,6 +54,8 @@ namespace AI.Tactics
         [Min(0f)] public float fallBackMargin = 1f;
         [Tooltip("Units from its target at which a ship making its last stand holds and fires.")]
         [Min(0f)] public float chargeRange = 6f;
+        [Tooltip("Units from its target beyond which a ship that jumps out leaves the sector.")]
+        [Min(0f)] public float jumpsBeyond = 70f;
 
         private void OnValidate()
         {

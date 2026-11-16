@@ -24,7 +24,7 @@ namespace Substrate.Sectors.Elements
     /// closing lull follows the last phase; without one, the done table keeps the last phase's waves.
     /// It begins its elite, summons it on the tick the table is done, and ends it at teardown.
     /// The opening lull is held for the hunt. Ships arrive together just off screen, facing the hero
-    /// on their faction kit, pilot and skin. Dead products despawn on the tick, which idles while the hero is
+    /// on their faction kit, pilot and skin. Dead products and a ship that jumps out despawn on the tick, which idles while the hero is
     /// inactive. Nothing spawns in Build, since the asteroid field lays out at its Start. The base
     /// class's "produce exactly once" is about the activation token, not lifetime.
     /// </summary>
@@ -61,6 +61,8 @@ namespace Substrate.Sectors.Elements
         [SerializeField, Min(1)] private int placementAttempts = 4;
 
         private readonly List<Ship> products = new();
+        private readonly List<Ship> jumped = new();
+        private readonly List<Action> jumpHandlers = new();
         private SectorPhase[] phases = Array.Empty<SectorPhase>();
         private int waveCap;
         private IUnitService units;
@@ -143,6 +145,8 @@ namespace Substrate.Sectors.Elements
             CheckRow(ctx.Row);
             if (elite) elite.Begin(ctx);
             products.Clear();
+            jumped.Clear();
+            jumpHandlers.Clear();
             Spawned = products;
             phases = ctx.Row.phases;
             waveCap = ctx.Row.waveCap;
@@ -166,6 +170,10 @@ namespace Substrate.Sectors.Elements
         {
             if (elite) elite.End();
             hero = null;
+            for (var i = 0; i < products.Count; i++)
+                if (products[i]) products[i].JumpRequested -= jumpHandlers[i];
+            jumpHandlers.Clear();
+            jumped.Clear();
             var teardown = base.OnTeardown(ctx);
             while (teardown.MoveNext()) yield return teardown.Current;
             products.Clear();
@@ -176,8 +184,11 @@ namespace Substrate.Sectors.Elements
         private void Update()
         {
             if (!hero || !hero.gameObject.activeInHierarchy) return;
+            Tick(Time.time);
+        }
 
-            var now = Time.time;
+        internal void Tick(float now)
+        {
             if (!started)
             {
                 started = true;
@@ -324,10 +335,34 @@ namespace Substrate.Sectors.Elements
             for (var i = products.Count - 1; i >= 0; i--)
             {
                 var ship = products[i];
-                if (ship && ship.gameObject.activeInHierarchy) continue;
+                if (ship && ship.gameObject.activeInHierarchy && !IsJumped(ship)) continue;
+                if (ship) ship.JumpRequested -= jumpHandlers[i];
+                jumpHandlers.RemoveAt(i);
+                DropJumped(ship);
                 if (ship) units.DespawnShip(ship);
                 products.RemoveAt(i);
             }
+        }
+
+        private void Track(Ship ship)
+        {
+            Action handler = () => jumped.Add(ship);
+            ship.JumpRequested += handler;
+            jumpHandlers.Add(handler);
+            products.Add(ship);
+        }
+
+        private bool IsJumped(Ship ship)
+        {
+            for (var i = 0; i < jumped.Count; i++)
+                if (ReferenceEquals(jumped[i], ship)) return true;
+            return false;
+        }
+
+        private void DropJumped(Ship ship)
+        {
+            for (var i = jumped.Count - 1; i >= 0; i--)
+                if (ReferenceEquals(jumped[i], ship)) jumped.RemoveAt(i);
         }
 
         private bool TrySend(RosterEntry[] group, int count)
@@ -350,7 +385,7 @@ namespace Substrate.Sectors.Elements
                     var ship = units.SpawnShip(entry.template, faction.Faction.PilotFor(entry.template), team,
                         position, facingHero, field, loadout);
                     faction.Faction.Dress(entry.template, ship, elite: false);
-                    products.Add(ship);
+                    Track(ship);
                 }
                 return true;
             }

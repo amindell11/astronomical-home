@@ -38,6 +38,13 @@ namespace AI
         [Tooltip("How well this pilot's Gunner sees its target. An armed pilot without one fails at spawn.")]
         [SerializeField] internal AimSettings aimSettings;
 
+        [Header("Limp")]
+        [Tooltip("Hull % below which this pilot flies its ship slower and never boosts. 0 never limps.")]
+        [SerializeField, Range(0f, 100f)] private float limpBelowHull;
+
+        [Tooltip("Fraction of its ship's top speed and thrust a limping pilot flies at.")]
+        [SerializeField, Range(0.1f, 1f)] private float limpScale = 0.6f;
+
         protected ShipControl control;
         protected IShipRegistry registry;
         protected IObstacleField field;
@@ -58,6 +65,8 @@ namespace AI
         private float steerSpeed;
 
         internal AIContext context;
+        private LimpingShip limpingShip;
+        private bool jumpRequested;
 
         public Scout Scout { get; private set; }
         public Navigator Navigator { get; private set; }
@@ -114,18 +123,19 @@ namespace AI
         {
             if (systemsInitialized || control.Ship == null || !sensingWired) return;
             var self = control.Ship;
+            limpingShip = new LimpingShip(self, limpBelowHull, limpScale);
             Func<Kinematics> pose = () => self.Kinematics;
             var seed = control.DecisionSeed;
 
             // Dynamics is captured by value: an AI ship cannot live-re-equip.
             Scout.Initialize(self.Transform, self.Id, PeakDynamics(self), registry, field, control.Weapons);
-            Navigator.Initialize(self, self.Dynamics, Scout, seed.Derive(NavStream),
+            Navigator.Initialize(limpingShip, limpingShip.Dynamics, Scout, seed.Derive(NavStream),
                 control.Weapons?.ProjectileSpeed(WeaponSlot.Primary) ?? 0f);
             if (Gunner && control.IsArmed)
                 Gunner.Initialize(control.Weapons, control.WeaponActuator, pose, aimSettings,
                     seed.Derive(GunnerStream));
 
-            context = new AIContext(self, Scout, PrimaryHoldRange(), seed.Derive(TacticsStream), combatExitDelay);
+            context = new AIContext(limpingShip, Scout, PrimaryHoldRange(), seed.Derive(TacticsStream), combatExitDelay);
 
             systemsInitialized = true;
         }
@@ -140,9 +150,10 @@ namespace AI
             engagePrimary = false;
             engageSecondary = false;
             boost = false;
+            jumpRequested = false;
             hasAnchor = false;
             steerPoint = null;
-            context = new AIContext(control.Ship, Scout, PrimaryHoldRange(),
+            context = new AIContext(limpingShip, Scout, PrimaryHoldRange(),
                 control.DecisionSeed.Derive(TacticsStream), combatExitDelay);
             if (Brain) Brain.ResetState();
         }
@@ -170,6 +181,11 @@ namespace AI
             if (seeking) command.thrust = 1f;
             command.abilityTarget = Navigator.PlanEnd;
             command.boost = !suppressKeystone && (boost || SightFires(keystone)) ? 1f : 0f;
+            if (limpingShip.Limping)
+            {
+                if (command.thrust > 0f) command.thrust *= limpScale;
+                command.boost = 0f;
+            }
             control.Pilot.Drive(command);
             if (Gunner) Gunner.Fire(engagePrimary, engageSecondary);
         }
@@ -206,6 +222,11 @@ namespace AI
             boost = decided.boost;
             hasAnchor = nav.TryGetAnchorId(out anchorId);
             anchorTarget = anchor;
+            if (decided.jump && !jumpRequested)
+            {
+                jumpRequested = true;
+                control.Jump.RequestJump();
+            }
 
             if (!Gunner) return;
             var aim = nav.sentence.aim;

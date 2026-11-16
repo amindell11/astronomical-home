@@ -146,6 +146,27 @@ namespace Tests.EditMode.Tactics
         }
 
         [Test]
+        public void JumpOut_NeverEnds_AndIsInEffectOnlyWhileBreakingOff()
+        {
+            settings.wounded = WoundedResponse.JumpOut;
+            settings.woundedEnds = WoundedEnds.WhenShieldIsBack;
+
+            Assert.IsFalse(WoundedRules.Ends(State(1f, 1f, 0f), respondingSeconds: 0f, settings),
+                "a full shield does not end a jump out");
+
+            settings.woundedEnds = WoundedEnds.AfterSeconds;
+            Assert.IsFalse(WoundedRules.Ends(State(0.1f, 1f, 0f), respondingSeconds: 100f, settings),
+                "seconds passed do not end a jump out");
+
+            Assert.IsTrue(WoundedRules.InEffect(settings, Tactic.BreakOff));
+            Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.Charge));
+            Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.FallBack));
+            Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.AttackRun));
+            Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.Flank));
+            Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.StandOff));
+        }
+
+        [Test]
         public void LastStand_IsInEffectOnlyWhileCharging()
         {
             settings.wounded = WoundedResponse.LastStand;
