@@ -118,6 +118,13 @@ namespace AI.Pilots
         internal Vector2 RoamWaypoint => roamWaypoint;
         internal bool RoamCircling => roamCircling;
 
+        internal bool Wounded => wounded;
+        internal float? RespondingSeconds => respondingTick.HasValue
+            ? (tickCounter - respondingTick.Value) * Time.fixedDeltaTime
+            : null;
+        internal int RetreatsTaken => retreatsTaken;
+        internal WoundedDraw? Draw => woundedDraw;
+
         internal TacticsSettings AuthoredTactics => tactics;
 
         internal void ReplaceTactics(TacticsSettings replacement)
@@ -260,9 +267,7 @@ namespace AI.Pilots
             var situation = Situation.Read(ctx, tactics);
             woundedDraw ??= WoundedDraw.From(tactics, ctx.TacticsSeed);
             var draw = woundedDraw.Value;
-            var respondingSeconds = respondingTick.HasValue
-                ? (tickCounter - respondingTick.Value) * Time.fixedDeltaTime
-                : 0f;
+            var respondingSeconds = RespondingSeconds ?? 0f;
             wounded = WoundedRules.Next(wounded, respondingSeconds, in situation, tactics, in draw, retreatsTaken);
             if (!wounded)
                 respondingTick = null;

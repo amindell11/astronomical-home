@@ -111,6 +111,7 @@ namespace Harness.Episodes.Compositions
                 throw new InvalidOperationException(
                     $"{commander.name}: a break-off override needs authored tactics settings");
             var clone = UnityEngine.Object.Instantiate(brain.AuthoredTactics);
+            clone.name = brain.AuthoredTactics.name;
             clone.hideFlags = HideFlags.HideAndDontSave;
             clone.wounded = WoundedResponse.BreakOff;
             clone.woundedBy = WoundGauge.Shield;
