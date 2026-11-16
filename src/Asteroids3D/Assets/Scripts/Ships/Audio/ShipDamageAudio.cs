@@ -10,8 +10,9 @@ namespace Ships.Audio
 {
     /// <summary>
     /// A ship's damage one-shots: shield hits, hull hits, and a death sound chosen by the killing
-    /// blow's kind. Each plays at the ship's position, not attached: the ship deactivates in the same
-    /// call that reports its death. The damage surface is injected via <see cref="Bind"/>
+    /// blow's kind. Each one-shot plays at the ship's position with the ship's velocity at that
+    /// moment, not attached: the ship deactivates in the same call that reports its death.
+    /// The damage surface is injected via <see cref="Bind"/>
     /// (see <see cref="IShipVisual"/>).
     /// </summary>
     public sealed class ShipDamageAudio : MonoBehaviour, IShipVisual
@@ -26,11 +27,13 @@ namespace Ships.Audio
         [SerializeField] private EventReference collisionDeathEvent;
 
         private IDamageEvents damage;
+        private Rigidbody body;
         private bool subscribed;
 
         public void Bind(in ShipView view)
         {
             damage = view.Damage;
+            body = view.Body;
             if (isActiveAndEnabled) Subscribe();
         }
 
@@ -61,18 +64,26 @@ namespace Ships.Audio
 
         private void HandleShieldChanged(float current, float previous, float max)
         {
-            if (current < previous) RuntimeManager.PlayOneShot(shieldHitEvent, transform.position);
+            if (current < previous) Play(shieldHitEvent);
         }
 
         private void HandleHealthChanged(float current, float previous, float max)
         {
-            if (current < previous) RuntimeManager.PlayOneShot(hullHitEvent, transform.position);
+            if (current < previous) Play(hullHitEvent);
         }
 
         private void HandleDeath(ShipId _victimId, DamageInfo killingBlow)
         {
             var death = killingBlow.Kind == DamageKind.Collision ? collisionDeathEvent : deathEvent;
-            RuntimeManager.PlayOneShot(death, transform.position);
+            Play(death);
+        }
+
+        private void Play(EventReference sound)
+        {
+            var instance = RuntimeManager.CreateInstance(sound);
+            instance.set3DAttributes(RuntimeUtils.To3DAttributes(transform, body));
+            instance.start();
+            instance.release();
         }
     }
 }

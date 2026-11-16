@@ -6,11 +6,13 @@ using NUnit.Framework;
 using Objectives;
 using Objectives.Presentation;
 using Ships;
+using Ships.Loadout;
 using Substrate;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Phases;
+using Substrate.Sectors.Factions;
 using Substrate.Services;
 using Substrate.Services.Objectives;
 using Substrate.Services.Units;
@@ -33,6 +35,7 @@ namespace Tests.PlayMode
         private UnitService _unitService;
         private ObjectiveService _objectives;
         private readonly List<GameObject> _created = new();
+        private readonly List<Object> _assets = new();
 
         [SetUp]
         public override void SetUp()
@@ -56,10 +59,20 @@ namespace Tests.PlayMode
                 if (go != null) Object.DestroyImmediate(go);
             _created.Clear();
 
+            foreach (var asset in _assets)
+                if (asset) Object.DestroyImmediate(asset);
+            _assets.Clear();
+
             base.TearDown();
         }
 
         private GameObject TrackGO(GameObject go) { _created.Add(go); return go; }
+
+        private T TrackAsset<T>(T asset) where T : Object
+        {
+            _assets.Add(asset);
+            return asset;
+        }
 
         // Primitive test ship, not Ship_2: its layer-7 collider needs LFS geometry.
         private Ship SpawnKinematicShip(Vector2 planePos) =>
@@ -200,12 +213,27 @@ namespace Tests.PlayMode
             var sectorGO = TrackGO(new GameObject("ClosingLullSector"));
             var sector = sectorGO.AddComponent<Sector>();
 
+            var crimson = TestAssets.LoadCrimsonPrefab();
+            var vanguard = TestAssets.Load<Ship>("Assets/Prefabs/Ships/Vanguard.prefab");
+            var pilot = TestAssets.LoadTestPilotMpc();
+            var faction = TrackAsset(ScriptableObject.CreateInstance<Faction>());
+            faction.id = "shoal";
+            faction.signature = new FactionShip { ship = crimson, kit = crimson.Weapons.PrimaryMountPrefab };
+            faction.common = new FactionShip { ship = vanguard, kit = vanguard.Weapons.PrimaryMountPrefab };
+            var profile = TrackAsset(ScriptableObject.CreateInstance<EliteProfile>());
+            profile.name = "TestElite";
+            profile.Configure("Test elite", new ShipScale(1.5f, 1f, 1f, 1f, 1f), crimson.Weapons.PrimaryMountPrefab);
+
+            var sectorFaction = sectorGO.AddComponent<SectorFaction>();
             var directorGO = new GameObject("WaveDirector");
             directorGO.transform.SetParent(sectorGO.transform, false);
             var director = directorGO.AddComponent<WaveDirector>();
             var elite = directorGO.AddComponent<EliteEncounter>();
+            elite.Configure(sectorFaction, pilot, pilot);
             var row = new SectorEntry
             {
+                faction = faction,
+                elite = profile,
                 phases = new[] { new SectorPhase { seconds = 1f, groups = System.Array.Empty<WaveGroup>() } }
             };
             director.Configure(row.phases, lullSeconds: 1f, elite: elite);
@@ -214,7 +242,7 @@ namespace Tests.PlayMode
             var spine = sectorGO.AddComponent<PhaseSpineModule>();
             spine.Bind(director, NewZone(sectorGO.transform, "Zone"), beacon, leadSeconds: 0f, graceSeconds: 2f);
 
-            sector.SetManifest(null, new SectorSpawner[] { director }, new SectorModule[] { spine });
+            sector.SetManifest(null, new SectorSpawner[] { director }, new SectorModule[] { sectorFaction, spine });
             sector.Initialize(_unitService, _objectives, true, default, player, row);
 
             yield return sector.Setup();

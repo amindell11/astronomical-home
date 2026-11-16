@@ -11,6 +11,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using Ships.Registry;
 using AI.Strategy;
+using Utils;
 
 namespace AI
 {
@@ -23,6 +24,7 @@ namespace AI
     {
         private const uint NavStream = 1;
         private const uint GunnerStream = 2;
+        private const uint TacticsStream = 3;
 
         [Header("Difficulty")]
         [Tooltip("Bot skill level, typically set by curriculum (0.0 to 1.0)")]
@@ -123,7 +125,7 @@ namespace AI
                 Gunner.Initialize(control.Weapons, control.WeaponActuator, pose, aimSettings,
                     seed.Derive(GunnerStream));
 
-            context = new AIContext(self, Scout, PrimaryHoldRange(), combatExitDelay);
+            context = new AIContext(self, Scout, PrimaryHoldRange(), seed.Derive(TacticsStream), combatExitDelay);
 
             systemsInitialized = true;
         }
@@ -140,7 +142,8 @@ namespace AI
             boost = false;
             hasAnchor = false;
             steerPoint = null;
-            context = new AIContext(control.Ship, Scout, PrimaryHoldRange(), combatExitDelay);
+            context = new AIContext(control.Ship, Scout, PrimaryHoldRange(),
+                control.DecisionSeed.Derive(TacticsStream), combatExitDelay);
             if (Brain) Brain.ResetState();
         }
 

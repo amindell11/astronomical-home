@@ -16,7 +16,7 @@ namespace Substrate.Sectors.Elements.Elites
 {
     /// <summary>
     /// A sector's elite: one scaled, upgraded ship summoned once the sector's phases run out, whose
-    /// death opens extraction. The sector's <see cref="Phases.PhaseSpineModule"/> owns it and drives
+    /// death opens extraction. The sector's wave director (<see cref="WaveDirector"/>) owns it and drives
     /// it (Begin, Summon, End), so it is neither a spawner nor a module in the sector's manifest. As the
     /// elite's hull falls through its profile's escalation steps, it calls escorts and stacks heavier
     /// fire. Its ships come from the sector's faction: the elite flies the signature ship in the elite
@@ -57,12 +57,13 @@ namespace Substrate.Sectors.Elements.Elites
         private EliteMoment moment;
         private int sectorIndex;
         private int nextStep;
-        private bool summoned;
 
         public event Action<EliteMoment> Announced;
         public event Action<EliteMoment> Beaten;
 
         public bool IsBeaten { get; private set; }
+
+        public bool Summoned { get; private set; }
 
         public string Name => profile.DisplayName;
         public bool Present => elite && elite.gameObject.activeInHierarchy;
@@ -99,11 +100,11 @@ namespace Substrate.Sectors.Elements.Elites
 
         public void Summon()
         {
-            if (summoned)
+            if (Summoned)
                 throw new InvalidOperationException($"EliteEncounter on '{name}' already summoned its elite this sector.");
             if (!hero)
                 throw new InvalidOperationException($"EliteEncounter on '{name}' places its elite around the hero, and the sector has none.");
-            summoned = true;
+            Summoned = true;
 
             var center = GamePlane.WorldPointToPlane(hero.transform.position);
             var position = ClearPoint(center, spawnRadius, clearanceRadius * profile.Scale.Size);
@@ -138,7 +139,7 @@ namespace Substrate.Sectors.Elements.Elites
             elite = null;
             stack = null;
             nextStep = 0;
-            summoned = false;
+            Summoned = false;
             IsBeaten = false;
         }
 

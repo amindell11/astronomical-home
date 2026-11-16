@@ -1,5 +1,4 @@
 using System.Linq;
-using System.Text.RegularExpressions;
 using Combat.Weapons;
 using NUnit.Framework;
 using Ships;
@@ -9,12 +8,11 @@ using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Factions;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.TestTools;
 using Substrate.Sessions;
 
 namespace Tests.EditMode
 {
-    /// <summary>Wave director pacing over a sector phase table with injected time: a phase opens with a wave, and another comes on its wave-every beat. A wave that fits under the wave cap arrives whole, one that only partly fits is trimmed to the room left, and one with no room is dropped so the next waits for the beat. A lull, the opening one too, sends nothing, the elite stops them, and the done table keeps the last phase's waves. A closing lull before the elite sends nothing. A lull window covers a following lull, its grace, and an earned lull, and stays shut for the opening lull and the first phase's first seconds. An earned lull, once the phase's last wave is out and nothing is alive, moves no phase boundary. The threat read lists each group ship once and the weapons they fly, their faction kits in group order, off a prefab asset too. A bad row fails CheckRow, and validation refuses a director that misses its spine's elite.</summary>
+    /// <summary>Wave director pacing over a sector phase table with injected time: a phase opens with a wave, and another comes on its wave-every beat. A wave that fits under the wave cap arrives whole, one that only partly fits is trimmed to the room left, and one with no room is dropped so the next waits for the beat. A lull, the opening one too, sends nothing, a finished table with an elite sends nothing, and the done table keeps the last phase's waves. A closing lull before the elite sends nothing. A lull window covers a following lull, its grace, and an earned lull, and stays shut for the opening lull and the first phase's first seconds. An earned lull, once the phase's last wave is out and nothing is alive, moves no phase boundary. The threat read lists each group ship once and the weapons they fly, their faction kits in group order, off a prefab asset too. A bad row fails CheckRow.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class WaveDirectorEditModeTests
@@ -371,12 +369,16 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void EliteArrival_StopsWaves()
+        public void FinishedTable_SendsNothing_WhenAnEliteFollows()
         {
-            _director.Advance(0f);
-            _director.OnEliteArrived(default);
-            Assert.IsNull(_director.WaveDue(0f), "The elite stops waves even when one is due.");
-            Assert.IsNull(_director.WaveDue(100f));
+            var elite = _go.AddComponent<EliteEncounter>();
+            _director.Configure(_phases, Lull, elite: elite);
+            _director.BeginSchedule(0f);
+
+            _director.Advance(90f);
+            Assert.IsTrue(_director.Phase.Done);
+            Assert.IsNull(_director.WaveDue(90f), "A finished table with an elite sends nothing.");
+            Assert.IsNull(_director.WaveDue(500f));
         }
 
         [Test]
@@ -510,27 +512,6 @@ namespace Tests.EditMode
             Assert.IsNotEmpty(threat.Weapons);
             CollectionAssert.AllItemsAreUnique(threat.Ships);
             CollectionAssert.AllItemsAreUnique(threat.Weapons);
-        }
-
-        [Test]
-        public void Validation_RefusesADirectorThatMissesItsSpinesElite()
-        {
-            var sector = new GameObject("Sector");
-            _go.transform.SetParent(sector.transform, false);
-            var encounter = new GameObject("Elite").AddComponent<EliteEncounter>();
-            encounter.transform.SetParent(sector.transform, false);
-            sector.AddComponent<PhaseSpineModule>().Bind(_director, null, null, elite: encounter);
-            using var serialized = new SerializedObject(_director);
-
-            LogAssert.Expect(LogType.Exception, new Regex("must watch its spine's elite"));
-            serialized.FindProperty("team").intValue = 2;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-
-            serialized.FindProperty("elite").objectReferenceValue = encounter;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-            LogAssert.NoUnexpectedReceived();
-
-            Object.DestroyImmediate(sector);
         }
 
         private void OpenAndArrive(float now)
