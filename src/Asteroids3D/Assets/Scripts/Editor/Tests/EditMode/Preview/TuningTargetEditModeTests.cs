@@ -13,6 +13,7 @@ using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Elements.Stations;
+using Substrate.Sectors.Elements.Stations.Visual;
 using UI.Hangar.Displays;
 using UI.Hangar.Hologram;
 using UI.Projection;
@@ -73,6 +74,8 @@ namespace Tests.EditMode.Preview
                 new[] { "Aggressor", "Orbiter", "Kiter", "Lurker", "Elite", "Escort" }.Select(kind =>
                     AssetDatabase.LoadAssetAtPath<TacticsSettings>($"Assets/Settings/AI/Tactics/{kind}Temper.asset"))
                     .ToArray());
+            AssertTarget(Target<StationsTarget>(), new[] { PreviewEntry.Combat },
+                AssetDatabase.LoadAssetAtPath<StationMotionFeelProfile>("Assets/Settings/Game/StationMotionFeel.asset"));
         }
 
         [Test]

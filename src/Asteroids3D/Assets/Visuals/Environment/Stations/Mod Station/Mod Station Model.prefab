@@ -150,13 +150,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ebe652fc62ef484db237e58aa9aa854, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  feel: {fileID: 11400000, guid: 76b66edb0cbbd0d46a969d9e8e1d1269, type: 2}
   spins:
   - part: {fileID: 8481159732960857901}
     localAxis: {x: 1, y: 0, z: -0.00000007549788}
-    secondsPerTurn: 60
+    rate: 1
   - part: {fileID: 1446619653086466806}
     localAxis: {x: -0.000000015893235, y: 0, z: -1}
-    secondsPerTurn: -20
+    rate: -3
   steadyLights:
   - {fileID: 1549759481208725199}
   - {fileID: 1114712850377234210}
@@ -178,15 +179,6 @@ MonoBehaviour:
     - {fileID: 7783817691924320187}
   - lamps:
     - {fileID: 8741014335346621321}
-  chaseSecondsPerSweep: 2.4
-  chaseBoost: 1.5
-  inUseBoost: 2.5
-  coastSeconds: 10
-  driftUnits: 0.4
-  driftDegrees: 2
-  driftSeconds: 20
-  darkColour: {r: 0.11764706, g: 0.1254902, b: 0.1882353, a: 1}
-  look: 0
 --- !u!23 &6956104058743479738 stripped
 MeshRenderer:
   m_CorrespondingSourceObject: {fileID: 887070192101824189, guid: a6efe5976816f774094973085ab9a1ba,

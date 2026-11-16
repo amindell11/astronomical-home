@@ -44,8 +44,7 @@ namespace Tests.EditMode.Sectors
             Assert.IsTrue(zone.GetComponent<Collider>().isTrigger);
             Assert.IsTrue(lit.transform.IsChildOf(body.transform));
             Assert.That(lit.GetComponentsInChildren<Renderer>(true).Select(r => r.gameObject.layer),
-                Has.Member(LayerMask.NameToLayer("Minimap_Find")), "The find marker that shows on the minimap goes dark with the glow.");
-            Assert.IsNotEmpty(lit.GetComponentsInChildren<Light>(true));
+                Has.Member(LayerMask.NameToLayer("Minimap_Find")), "The find marker that shows on the minimap goes dark with the station.");
 
             var icon = serialized.FindProperty("icon").objectReferenceValue as Sprite;
             Assert.IsTrue(icon, "The mod station carries its find icon.");

@@ -3,12 +3,10 @@ using UnityEngine;
 
 namespace Substrate.Sectors.Elements.Stations.Visual
 {
-    public enum StationLook { Open, InUse, Dark }
-
     /// <summary>
-    /// Visual-only motion and light looks of an outpost station. It drifts a little about where it
-    /// was placed. When it goes dark, every light goes out at once, the parts coast to a stop, and
-    /// the drift goes on.
+    /// Visual-only motion and lights of an outpost station model. It watches its station body and is dark
+    /// while the body's lit parts are off. Each placed station sits at its own tilt and drifts about it.
+    /// When dark the lights go out at once and the parts coast to a stop while the drift goes on.
     /// </summary>
     public sealed class StationMotion : MonoBehaviour
     {
@@ -21,8 +19,8 @@ namespace Substrate.Sectors.Elements.Stations.Visual
             [Tooltip("Axis in the part's local space.")]
             public Vector3 localAxis;
 
-            [Tooltip("Seconds for one full turn. Negative turns the other way.")]
-            public float secondsPerTurn;
+            [Tooltip("Turns per family turn. 1 keeps the family's pace; negative turns the other way.")]
+            public float rate;
         }
 
         [Serializable]
@@ -42,6 +40,9 @@ namespace Substrate.Sectors.Elements.Stations.Visual
         private static readonly int EmissionColorId = Shader.PropertyToID("_EmissionColor");
         private static readonly int PaperColorId = Shader.PropertyToID("_PaperColor");
 
+        [Tooltip("The station family's motion and light knobs.")]
+        [SerializeField] private StationMotionFeelProfile feel;
+
         [Tooltip("Parts that turn, each about its own local axis.")]
         [SerializeField] private Spin[] spins;
 
@@ -51,44 +52,23 @@ namespace Substrate.Sectors.Elements.Stations.Visual
         [Tooltip("Service-light bands, outermost first. A brightness pulse steps through them toward the berth.")]
         [SerializeField] private ChaseBand[] chase;
 
-        [Tooltip("Seconds for the pulse to cross every band once, plus one band of rest.")]
-        [SerializeField] private float chaseSecondsPerSweep = 2.4f;
-
-        [Tooltip("Extra brightness at the pulse peak. 1.5 reaches 2.5 times.")]
-        [SerializeField] private float chaseBoost = 1.5f;
-
-        [Tooltip("Service-lamp glow multiplier while the station is in use.")]
-        [SerializeField] private float inUseBoost = 2.5f;
-
-        [Tooltip("Seconds the parts take to coast to a stop when the station goes dark, and to spin back up when it relights.")]
-        [SerializeField] private float coastSeconds = 10f;
-
-        [Tooltip("Farthest the station wanders from where it was placed, in units.")]
-        [SerializeField] private float driftUnits = 0.4f;
-
-        [Tooltip("Largest wobble about each axis, in degrees.")]
-        [SerializeField] private float driftDegrees = 2f;
-
-        [Tooltip("Seconds over which the drift changes course. Larger is slower.")]
-        [SerializeField] private float driftSeconds = 20f;
-
-        [Tooltip("Body colour of every light while the station is dark.")]
-        [SerializeField] private Color darkColour = new Color32(0x1E, 0x20, 0x30, 0xFF);
-
-        [Tooltip("Light look. Applied at start, and live in the inspector during play.")]
-        [SerializeField] private StationLook look = StationLook.Open;
-
         private MaterialPropertyBlock block;
         private CachedLight[] steady;
         private CachedLight[][] bands;
+        private FindStationBody body;
         private float power;
         private Vector3 restPosition;
         private Quaternion restRotation;
         private float driftSeed;
-        private bool awake;
 
         private void Awake()
         {
+            if (!feel)
+                throw new InvalidOperationException($"StationMotion on '{name}' needs its feel profile.");
+            body = GetComponentInParent<FindStationBody>(true);
+            if (!body)
+                throw new InvalidOperationException($"StationMotion on '{name}' needs a station body above it.");
+
             foreach (var spin in spins)
                 if (!spin.part)
                     throw new InvalidOperationException($"StationMotion on '{name}' is missing a spin part.");
@@ -99,61 +79,54 @@ namespace Substrate.Sectors.Elements.Stations.Visual
             for (var i = 0; i < chase.Length; i++)
                 bands[i] = Cache(chase[i].lamps, "chase lamp");
 
-            power = look == StationLook.Dark ? 0f : 1f;
             restPosition = transform.localPosition;
-            restRotation = transform.localRotation;
-            // Seeded from where it spawned, not UnityEngine.Random, so gameplay's random stream is untouched.
-            driftSeed = Mathf.Repeat(Mathf.Sin(Vector3.Dot(transform.position, new Vector3(12.9898f, 78.233f, 37.719f))) * 43758.5453f, 1f) * 1000f;
-            awake = true;
         }
 
-        private void Start() => Show(look);
-
-        private void OnValidate()
+        private void OnEnable()
         {
-            if (Application.isPlaying && awake)
-                Show(look);
+            // Seeded from where it spawned, not UnityEngine.Random, so gameplay's random stream is untouched.
+            var p = body.transform.position;
+            var u1 = Hash(p, new Vector3(12.9898f, 78.233f, 37.719f));
+            var u2 = Hash(p, new Vector3(39.3468f, 11.135f, 83.155f));
+            var u3 = Hash(p, new Vector3(73.156f, 52.235f, 9.151f));
+            driftSeed = u1 * 1000f;
+            var a = Mathf.Sqrt(1f - u1);
+            var b = Mathf.Sqrt(u1);
+            var t2 = 2f * Mathf.PI * u2;
+            var t3 = 2f * Mathf.PI * u3;
+            restRotation = new Quaternion(a * Mathf.Sin(t2), a * Mathf.Cos(t2), b * Mathf.Sin(t3), b * Mathf.Cos(t3));
+            transform.localPosition = restPosition;
+            transform.localRotation = restRotation;
+            var dark = !body.Lit.activeSelf;
+            power = dark ? 0f : 1f;
+            PaintLights(dark);
         }
 
         private void Update()
         {
-            var t = driftSeed + Time.time / driftSeconds;
-            transform.localPosition = restPosition + driftUnits * Wander(t, 0f);
-            transform.localRotation = restRotation * Quaternion.Euler(driftDegrees * Wander(t, 50f));
+            var t = driftSeed + Time.time / feel.driftSeconds;
+            transform.localPosition = restPosition + feel.driftUnits * Wander(t, 0f);
+            transform.localRotation = restRotation * Quaternion.Euler(feel.driftDegrees * Wander(t, 50f));
 
-            var dark = look == StationLook.Dark;
-            power = Mathf.MoveTowards(power, dark ? 0f : 1f, Time.deltaTime / coastSeconds);
+            var dark = !body.Lit.activeSelf;
+            power = Mathf.MoveTowards(power, dark ? 0f : 1f, Time.deltaTime / feel.coastSeconds);
             foreach (var spin in spins)
-                spin.part.Rotate(spin.localAxis, 360f / spin.secondsPerTurn * power * Time.deltaTime, Space.Self);
-            if (dark) return;
-
-            var p = Mathf.Repeat(Time.time / chaseSecondsPerSweep, 1f) * (chase.Length + 1);
-            var flare = look == StationLook.InUse ? inUseBoost : 1f;
-            for (var i = 0; i < bands.Length; i++)
-            {
-                var factor = (1f + chaseBoost * Mathf.Max(0f, 1f - Mathf.Abs(i + .5f - p))) * flare;
-                var lamps = bands[i];
-                for (var j = 0; j < lamps.Length; j++)
-                {
-                    var lamp = lamps[j];
-                    lamp.renderer.GetPropertyBlock(block);
-                    block.SetVector(EmissionColorId, lamp.linearEmission * factor);
-                    lamp.renderer.SetPropertyBlock(block);
-                }
-            }
+                spin.part.Rotate(spin.localAxis, 360f / feel.secondsPerTurn * spin.rate * power * Time.deltaTime, Space.Self);
+            PaintLights(dark);
         }
 
-        public void Show(StationLook next)
+        private void PaintLights(bool dark)
         {
-            look = next;
-            var dark = next == StationLook.Dark;
             for (var i = 0; i < steady.Length; i++)
-                Paint(steady[i], dark);
+                Paint(steady[i], dark, 1f);
+
+            var p = Mathf.Repeat(Time.time / feel.chaseSecondsPerSweep, 1f) * (chase.Length + 1);
             for (var i = 0; i < bands.Length; i++)
             {
+                var factor = 1f + feel.chaseBoost * Mathf.Max(0f, 1f - Mathf.Abs(i + .5f - p));
                 var lamps = bands[i];
                 for (var j = 0; j < lamps.Length; j++)
-                    Paint(lamps[j], dark);
+                    Paint(lamps[j], dark, factor);
             }
         }
 
@@ -161,6 +134,9 @@ namespace Substrate.Sectors.Elements.Stations.Visual
             Mathf.PerlinNoise(t, lane) * 2f - 1f,
             Mathf.PerlinNoise(t, lane + 17f) * 2f - 1f,
             Mathf.PerlinNoise(t, lane + 31f) * 2f - 1f);
+
+        private static float Hash(Vector3 p, Vector3 k) =>
+            Mathf.Repeat(Mathf.Sin(Vector3.Dot(p, k)) * 43758.5453f, 1f);
 
         private CachedLight[] Cache(Renderer[] renderers, string kind)
         {
@@ -185,11 +161,11 @@ namespace Substrate.Sectors.Elements.Stations.Visual
             return cached;
         }
 
-        private void Paint(CachedLight light, bool dark)
+        private void Paint(CachedLight light, bool dark, float emissionFactor)
         {
             light.renderer.GetPropertyBlock(block);
-            block.SetVector(EmissionColorId, dark ? Vector4.zero : light.linearEmission);
-            block.SetColor(PaperColorId, dark ? darkColour : light.paper);
+            block.SetVector(EmissionColorId, dark ? Vector4.zero : light.linearEmission * emissionFactor);
+            block.SetColor(PaperColorId, dark ? feel.darkColour : light.paper);
             light.renderer.SetPropertyBlock(block);
         }
     }

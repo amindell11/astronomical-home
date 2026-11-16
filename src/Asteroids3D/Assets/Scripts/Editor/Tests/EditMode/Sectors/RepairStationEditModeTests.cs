@@ -37,9 +37,8 @@ namespace Tests.EditMode.Sectors
             Assert.IsTrue(zone.GetComponent<Collider>().isTrigger);
             Assert.IsTrue(lit.transform.IsChildOf(body.transform));
             Assert.That(lit.GetComponentsInChildren<Renderer>(true).Select(r => r.gameObject.layer),
-                Has.Member(LayerMask.NameToLayer("Minimap_Find")), "The find marker that shows on the minimap goes dark with the glow.");
+                Has.Member(LayerMask.NameToLayer("Minimap_Find")), "The find marker that shows on the minimap goes dark with the station.");
             Assert.IsTrue(serialized.FindProperty("icon").objectReferenceValue as Sprite, "The station carries its find icon.");
-            Assert.IsNotEmpty(lit.GetComponentsInChildren<Light>(true));
             Assert.AreSame(prefab.GetComponentInChildren<WaveDirector>(true), serialized.FindProperty("director").objectReferenceValue,
                 "The station reads the sector's own wave director for its lulls.");
         }
