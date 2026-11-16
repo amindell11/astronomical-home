@@ -1,0 +1,18 @@
+Use your built-in image_gen tool to create ONE NEW 16:9 image, then copy the generated PNG into the current working directory as out.png and print its absolute source path. Do nothing else: no code, no other files. Three images are attached in order: Image 1, Image 2, Image 3.
+
+Reference roles:
+- Image 1 is the OBJECT reference: the Bulwark, a heavy armoured brawler, seen from directly above, nose up.
+- Image 2 is the game's STYLE FRAME: copy its painterly blue-violet nebula background and its hand-painted, ink-outlined illustration style. Do NOT copy its effects.
+- Image 3 is the chosen EFFECT LANGUAGE: copy the material of its glass panes exactly: HARD-LIGHT GLASS, flat translucent faceted panels, mostly see-through so the nebula shows through them, a faint tint, a thin crisp pale highlight along their edges, clean straight-edged angular shapes. Ignore its ship and layout.
+
+SHIP FIDELITY (most important rule): wherever the ship appears it must look exactly like Image 1: a blunt tan-and-brown armoured block with a dark cone at the centre of its front plate and two angular legs at the rear. Do not repaint, smooth, restyle or redesign it. The effect is a separate layer around the unchanged hull.
+
+STRICT: NO fire, NO flames, NO laser blades, NO white-hot cores, NO neon glow, NO electric sparks, NO smoke. Engines show only their normal small exhaust. All effect shapes are hard-light glass in the tint warm amber.
+
+Layout: four frames left to right, labelled small underneath, the ship pointing straight up and the same size in each. Below, a "Small-size check" strip repeats the two key frames at one fifth size, because in play the ship is only about 70 pixels tall; the glass must still read there, so panes are few and large, never fine slivers.
+
+Ability: RAM. The heavy ship lunges forward and for a moment its front becomes a weapon that smashes whatever it hits. Frames: "Brace", "Ram live", "Impact", "Spent".
+Brace: a thick faceted glass PROW starts forming ahead of the blunt front plate, two or three facets.
+Ram live: a solid, thick, multi-faceted hard-light glass WEDGE sits just ahead of the ship's front like a battering-ram prow: a wide pointed arrowhead of a dozen chunky facets, noticeably thicker and heavier-looking than the other abilities' glass, its swept-back edges running past the ship's front corners. This is the "danger, the ram is live" read.
+Impact: the wedge slams into a grey rock directly ahead and the glass shatters forward into a spray of large chunky angular shards; the rock cracks.
+Spent: the prow is gone; a few amber glass chunks tumble away behind.

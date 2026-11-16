@@ -1,0 +1,12 @@
+Use your built-in image_gen tool to create ONE NEW 16:9 image, then copy the generated PNG into the current working directory as out.png and print its absolute source path. Do nothing else: no code, no other files. Three images are attached in order: Image 1, Image 2, Image 3.
+
+Reference roles: Image 1 is the OBJECT reference: the Bulwark, a heavy armoured brawler seen from directly above, nose pointing up. Keep its exact silhouette, paint and proportions; do not redesign it. Image 2 and Image 3 are STYLE references for the effects ONLY: flat cel-shaded 2D game VFX, three to four hard-edged colour bands from a white-hot core out to a saturated rim, sharp angular jagged silhouettes, no outlines on effects, no soft airbrush gradients, no photoreal smoke, no lens flares. Do not copy their colours or shapes literally.
+
+Layout: a storyboard sheet for one ship ability in a top-down space shooter. Dark navy space background (#0d1220), no planets, no text except small labels. The ship points straight up and is the same size in every frame. Four frames left to right in one row, each labelled small underneath. Below the row, a "Small-size check" strip repeating the two most important frames at one fifth size, because in play the ship is only about 70 pixels tall: every effect shape must still read at that size, so no fine detail and no lines thinner than the ship's own trim stripes.
+
+Ability: RAM. The heavy armoured ship lunges forward and for a moment its nose becomes a weapon that smashes whatever it hits. Effect palette: white-hot core, pale yellow, hot orange, deep red rim.
+Frames: "Brace", "Charge", "Impact", "Spent".
+Brace: the engines flare white-hot; the ship's front armour edge glows a hard orange band.
+Charge: the space in front of the ship compresses into a BOW SHOCK: two or three nested, flat, cel-banded crescent arcs curving around the front of the hull like a shield being pushed ahead, white at the centre of the innermost arc, orange then deep red outward, their tips flicking backward along the ship's flanks as torn flame tongues. Long engine spike behind.
+Impact: the bow shock slams into a grey asteroid fragment directly ahead and bursts into a large jagged cel-banded impact star at the contact point, the crescents flattening and splashing sideways into sharp shards.
+Spent: the arcs are gone; a few cooling orange shards fall away behind; normal small engine flames.

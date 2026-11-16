@@ -1,0 +1,93 @@
+Traceback (most recent call last):
+  File "C:\Users\amind\AppData\Local\uv\cache\environments-v2\imagegen-2b5fb45083b6a5cd\Lib\site-packages\google\genai\_gaos\utils\unmarshal_json_response.py", line 58, in unmarshal_json_response
+    return unmarshal_json(body, typ)
+  File "C:\Users\amind\AppData\Local\uv\cache\environments-v2\imagegen-2b5fb45083b6a5cd\Lib\site-packages\google\genai\_gaos\utils\serializers.py", line 141, in unmarshal_json
+    return unmarshal(
+        from_json(raw), typ, coerce_iterables=False, allow_unknown_union_variants=True
+    )
+  File "C:\Users\amind\AppData\Local\uv\cache\environments-v2\imagegen-2b5fb45083b6a5cd\Lib\site-packages\google\genai\_gaos\utils\serializers.py", line 161, in unmarshal
+    m = unmarshaller.model_validate(
+        {"body": val}, context={ALLOW_UNKNOWN_UNION_VARIANTS: True}
+    )
+  File "C:\Users\amind\AppData\Local\uv\cache\environments-v2\imagegen-2b5fb45083b6a5cd\Lib\site-packages\pydantic\main.py", line 732, in model_validate
+    return cls.__pydantic_validator__.validate_python(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        obj,
+        ^^^^
+    ...<5 lines>...
+        by_name=by_name,
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for Unmarshaller
+body
+  Input should be a valid dictionary or instance of CreateInteractionClientErrorData [type=model_type, input_value=[{'error': {'code': 402, ... 'RESOURCE_EXHAUSTED'}}], input_type=list]
+    For further information visit https://errors.pydantic.dev/2.13/v/model_type
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\amind\AppData\Local\uv\cache\environments-v2\imagegen-2b5fb45083b6a5cd\Lib\site-packages\google\genai\_gaos\interactions.py", line 531, in _speakeasy_parse_response
+    response_data = unmarshal_json_response(
+        errors.CreateInteractionClientErrorData, http_res, http_res_text
+    )
+  File "C:\Users\amind\AppData\Local\uv\cache\environments-v2\imagegen-2b5fb45083b6a5cd\Lib\site-packages\google\genai\_gaos\utils\unmarshal_json_response.py", line 67, in unmarshal_json_response
+    raise errors.ResponseValidationError(
+    ...<4 lines>...
+    ) from e
+google.genai._gaos.errors.responsevalidationerror.ResponseValidationError: Response validation failed: 1 validation error for Unmarshaller
+body
+  Input should be a valid dictionary or instance of CreateInteractionClientErrorData [type=model_type, input_value=[{'error': {'code': 402, ... 'RESOURCE_EXHAUSTED'}}], input_type=list]
+    For further information visit https://errors.pydantic.dev/2.13/v/model_type
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\amind\AppData\Local\uv\cache\environments-v2\imagegen-2b5fb45083b6a5cd\Lib\site-packages\google\genai\_gaos\interactions.py", line 618, in create
+    return _speakeasy_parse_response(http_res)
+  File "C:\Users\amind\AppData\Local\uv\cache\environments-v2\imagegen-2b5fb45083b6a5cd\Lib\site-packages\google\genai\_gaos\interactions.py", line 538, in _speakeasy_parse_response
+    raise errors.GenAiDefaultError(
+    ...<3 lines>...
+    ) from e
+google.genai._gaos.errors.genaidefaulterror.GenAiDefaultError: Error response body did not match expected schema: Status 402 Content-Type "application/json; charset=UTF-8". Body: [{
+  "error": {
+    "code": 402,
+    "message": "Your prepayment credits are depleted. Please go to AI Studio at https://ai.studio/projects to manage your project and billing. Learn more at https://ai.google.dev/gemini-api/docs/billing#prepay. ",
+    "status": "RESOURCE_EXHAUSTED"
+  }
+}
+]
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\amind\git\astronomical-home\art\tools\imagegen\imagegen.py", line 135, in <module>
+    main(sys.argv[1:])
+    ~~~~^^^^^^^^^^^^^^
+  File "D:\amind\git\astronomical-home\art\tools\imagegen\imagegen.py", line 93, in main
+    interaction = client.interactions.create(
+        model=args.model_id,
+    ...<2 lines>...
+        **({"generation_config": {"thinking_level": args.thinking}} if args.thinking else {}),
+    )
+  File "C:\Users\amind\AppData\Local\uv\cache\environments-v2\imagegen-2b5fb45083b6a5cd\Lib\site-packages\google\genai\_gaos\google_genai.py", line 291, in create
+    response = wrap_sdk_call(
+        super().create,
+    ...<5 lines>...
+        timeout=timeout,
+    )
+  File "C:\Users\amind\AppData\Local\uv\cache\environments-v2\imagegen-2b5fb45083b6a5cd\Lib\site-packages\google\genai\_gaos\lib\compat_errors.py", line 369, in wrap_sdk_call
+    return fn(*args, **kwargs)
+  File "C:\Users\amind\AppData\Local\uv\cache\environments-v2\imagegen-2b5fb45083b6a5cd\Lib\site-packages\google\genai\_gaos\interactions.py", line 620, in create
+    response_helpers.raise_parse_error(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self.sdk_configuration.__dict__["_hooks"],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        parse_exc_,
+        ^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\amind\AppData\Local\uv\cache\environments-v2\imagegen-2b5fb45083b6a5cd\Lib\site-packages\google\genai\_gaos\utils\response_helpers.py", line 94, in raise_parse_error
+    raise parse_error from exc
+google.genai._gaos.lib.compat_errors.APIStatusError: Error code: 402 - [{'error': {'code': 402, 'message': 'Your prepayment credits are depleted. Please go to AI Studio at https://ai.studio/projects to manage your project and billing. Learn more at https://ai.google.dev/gemini-api/docs/billing#prepay. ', 'status': 'RESOURCE_EXHAUSTED'}}]

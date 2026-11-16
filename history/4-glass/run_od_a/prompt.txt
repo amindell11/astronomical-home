@@ -1,0 +1,18 @@
+Use your built-in image_gen tool to create ONE NEW 16:9 image, then copy the generated PNG into the current working directory as out.png and print its absolute source path. Do nothing else: no code, no other files. Three images are attached in order: Image 1, Image 2, Image 3.
+
+Reference roles:
+- Image 1 is the OBJECT reference: the Valis, a swept-wing interceptor, seen from directly above, nose up.
+- Image 2 is the game's STYLE FRAME: copy its painterly blue-violet nebula background and its hand-painted, ink-outlined illustration style. Do NOT copy its effects.
+- Image 3 is the chosen EFFECT LANGUAGE: copy the material of its glass panes exactly: HARD-LIGHT GLASS, flat translucent faceted panels, mostly see-through so the nebula shows through them, a faint tint, a thin crisp pale highlight along their edges, clean straight-edged angular shapes. Ignore its ship and layout.
+
+SHIP FIDELITY (most important rule): wherever the ship appears it must look exactly like Image 1: dark green hull, four long swept wings with pale pink tips, a black cockpit, two small pink lights. Do not repaint, smooth, restyle or redesign it. The effect is a separate layer around the unchanged hull.
+
+STRICT: NO fire, NO flames, NO laser blades, NO white-hot cores, NO neon glow, NO electric sparks, NO smoke. Engines show only their normal small exhaust. All effect shapes are hard-light glass in the tint pale pink.
+
+Layout: four frames left to right, labelled small underneath, the ship pointing straight up and the same size in each. Below, a "Small-size check" strip repeats the two key frames at one fifth size, because in play the ship is only about 70 pixels tall; the glass must still read there, so panes are few and large, never fine slivers.
+
+Ability: OVERDRIVE. For three seconds the ship is faster and more agile; players must see at a glance that it is still active, and see when it ends. Frames: "Engage", "Overdrive (cruise)", "Overdrive (turning)", "Expire".
+Engage: thin glass blades snap out from each wingtip.
+Overdrive (cruise): from each of the four wingtips a long ribbon of glass trails backward, made of a chain of narrow overlapping glass panes, each pane a long flat angular sliver as wide as the wingtip, the chain stretching two ship-lengths behind: a glass slipstream. Held steady for three seconds.
+Overdrive (turning): the ship banking right; the glass pane chains curve along its path behind it.
+Expire: the chains break apart into separate panes that crack and fall away; the wingtips are bare again.

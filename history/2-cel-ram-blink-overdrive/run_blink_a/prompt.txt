@@ -1,0 +1,12 @@
+Use your built-in image_gen tool to create ONE NEW 16:9 image, then copy the generated PNG into the current working directory as out.png and print its absolute source path. Do nothing else: no code, no other files. Three images are attached in order: Image 1, Image 2, Image 3.
+
+Reference roles: Image 1 is the OBJECT reference: the Crimson, a spiky assault fighter seen from directly above, nose pointing up. Keep its exact silhouette, paint and proportions; do not redesign it. Image 2 and Image 3 are STYLE references for the effects ONLY: flat cel-shaded 2D game VFX, three to four hard-edged colour bands from a white-hot core out to a saturated rim, sharp angular jagged silhouettes, no outlines on effects, no soft airbrush gradients, no photoreal smoke, no lens flares. Do not copy their colours or shapes literally.
+
+Layout: a storyboard sheet for one ship ability in a top-down space shooter. Dark navy space background (#0d1220), no planets, no text except small labels. The ship points straight up and is the same size in every frame. Four frames left to right in one row, each labelled small underneath. Below the row, a "Small-size check" strip repeating the two most important frames at one fifth size, because in play the ship is only about 70 pixels tall: every effect shape must still read at that size, so no fine detail and no lines thinner than the ship's own trim stripes.
+
+Ability: BLINK. After a quarter-second wind-up the ship vanishes and reappears a short distance ahead, keeping its speed. Effect palette: white core, hot pink, crimson red, dark wine rim.
+Frames: "Wind-up", "Vanish", "Arrive", "After".
+Wind-up: sharp crimson cel-banded crackle slivers converge inward on the ship from all sides, as if the ship is being pulled into a point; its outline glows a hard pink band.
+Vanish: the ship is gone; where it was, a tall narrow jagged vertical TEAR in space, cel-banded white core to crimson to dark wine edges, pinching closed, a few sharp slivers flicking outward.
+Arrive: further up the frame, a matching jagged tear is splitting open and the ship bursts out of it nose first, with sharp crimson shards spraying outward from the opening.
+After: the ship flies on; the arrival tear has shrunk to a few fading shards behind it; at the very bottom of the frame a last small crimson scar marks the departure point.

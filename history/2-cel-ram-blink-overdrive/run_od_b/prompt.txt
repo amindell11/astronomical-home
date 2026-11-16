@@ -1,0 +1,12 @@
+Use your built-in image_gen tool to create ONE NEW 16:9 image, then copy the generated PNG into the current working directory as out.png and print its absolute source path. Do nothing else: no code, no other files. Three images are attached in order: Image 1, Image 2, Image 3.
+
+Reference roles: Image 1 is the OBJECT reference: the Valis, a swept-wing interceptor seen from directly above, nose pointing up. Keep its exact silhouette, paint and proportions; do not redesign it. Image 2 and Image 3 are STYLE references for the effects ONLY: flat cel-shaded 2D game VFX, three to four hard-edged colour bands from a white-hot core out to a saturated rim, sharp angular jagged silhouettes, no outlines on effects, no soft airbrush gradients, no photoreal smoke, no lens flares. Do not copy their colours or shapes literally.
+
+Layout: a storyboard sheet for one ship ability in a top-down space shooter. Dark navy space background (#0d1220), no planets, no text except small labels. The ship points straight up and is the same size in every frame. Four frames left to right in one row, each labelled small underneath. Below the row, a "Small-size check" strip repeating the two most important frames at one fifth size, because in play the ship is only about 70 pixels tall: every effect shape must still read at that size, so no fine detail and no lines thinner than the ship's own trim stripes.
+
+Ability: OVERDRIVE. For three seconds the ship is faster and more agile; players must be able to tell at a glance that it is still active, and see when it ends. Effect palette: white core, pale pink, magenta, deep violet rim, matching the ship's pale pink trim.
+Frames: "Engage", "Overdrive (cruise)", "Overdrive (turning)", "Expire".
+Engage: a sharp cel-banded white-pink ring of jagged spikes bursts outward behind the ship, and the engine flame triples in length.
+Overdrive (cruise): the ship's pale pink trim lines glow hard hot pink, and a sleek cel-banded AURA hugs the whole ship's outline a little way out, sharp at the nose and drawn out backward into a long pointed tail of pink and magenta bands behind the ship, as if the ship is wrapped in a speed sheath.
+Overdrive (turning): the same ship banking right; the sheath's tail sweeps out and curves along the path.
+Expire: the sheath cracks into a few sharp pink shards that fall away behind; trim stops glowing; normal engine flame.

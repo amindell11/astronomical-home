@@ -1,0 +1,18 @@
+Use your built-in image_gen tool to create ONE NEW 16:9 image, then copy the generated PNG into the current working directory as out.png and print its absolute source path. Do nothing else: no code, no other files. Three images are attached in order: Image 1, Image 2, Image 3.
+
+Reference roles:
+- Image 1 is the OBJECT reference: the Crimson, a spiky assault fighter, seen from directly above, nose up.
+- Image 2 is the game's STYLE FRAME: copy its painterly blue-violet nebula background and its hand-painted, ink-outlined illustration style. Do NOT copy its effects.
+- Image 3 is the chosen EFFECT LANGUAGE: copy the material of its glass panes exactly: HARD-LIGHT GLASS, flat translucent faceted panels, mostly see-through so the nebula shows through them, a faint tint, a thin crisp pale highlight along their edges, clean straight-edged angular shapes. Ignore its ship and layout.
+
+SHIP FIDELITY (most important rule): wherever the ship appears it must look exactly like Image 1: mostly mid-grey armour plates, black recesses, thin red trim lines, a pale tan cockpit, outward-pointing red spikes on both sides. Do not repaint, smooth, restyle or redesign it. The effect is a separate layer around the unchanged hull.
+
+STRICT: NO fire, NO flames, NO laser blades, NO white-hot cores, NO neon glow, NO electric sparks, NO smoke. Engines show only their normal small exhaust. All effect shapes are hard-light glass in the tint rose red.
+
+Layout: four frames left to right, labelled small underneath, the ship pointing straight up and the same size in each. Below, a "Small-size check" strip repeats the two key frames at one fifth size, because in play the ship is only about 70 pixels tall; the glass must still read there, so panes are few and large, never fine slivers.
+
+Ability: BLINK. After a quarter-second wind-up the ship vanishes and reappears a short distance ahead, keeping its speed. Frames: "Wind-up", "Vanish", "Arrive", "After".
+Wind-up: the ship's outline is traced by a thin faceted glass skin, a low-poly glass copy of its silhouette laid exactly over the hull.
+Vanish: the ship is gone; its glass silhouette, now empty, shatters into a dozen large clean angular shards, the shards all streaking upward toward the destination.
+Arrive: further up, the shards fly together and lock into the ship's glass silhouette, and the real ship is inside it.
+After: the ship flies on; its glass skin cracks off in a few large shards behind; a faint row of shards marks the departure point at the bottom.

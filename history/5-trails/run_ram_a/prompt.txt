@@ -1,0 +1,20 @@
+Use your built-in image_gen tool to create ONE NEW 16:9 image, then copy the generated PNG into the current working directory as out.png and print its absolute source path. Do nothing else: no code, no other files. Three images are attached in order: Image 1, Image 2, Image 3.
+
+Reference roles:
+- Image 1 is the OBJECT reference: the Bulwark, a heavy armoured brawler, seen from directly above, nose up.
+- Image 2 is the game's STYLE FRAME: copy its painterly blue-violet nebula background and its hand-painted, ink-outlined illustration style. Do NOT copy its effects.
+- Image 3 is the chosen EFFECT LOOK: copy the look of the trail behind the ship in its middle frame: a TRAIL of flat, angular, translucent streaks with a faint tint and a thin crisp pale edge, overlapping and staggered along the path, mostly see-through so the nebula shows through. Ignore its ship and layout.
+
+The effect is a MOTION TRAIL, never an object. It only ever exists behind the ship or streaming backward along its path: no shells, cages, shields, walls, prows, wings, doorways or any structure around or in front of the ship. Do not draw it as glass or crystal; it is a streak of light-like translucent shapes, like the reference trail.
+
+SHIP FIDELITY (most important rule): wherever the ship appears it must look exactly like Image 1: a blunt tan-and-brown armoured block with a dark cone at the centre of its front plate and two angular legs at the rear. Do not repaint, smooth, restyle or redesign it. The trail is a separate layer behind the unchanged hull.
+
+STRICT: NO fire, NO flames, NO laser beams, NO white-hot cores, NO neon glow, NO electric sparks, NO smoke. Engines show only their normal small exhaust. All trail shapes are tinted warm amber.
+
+Layout: four frames left to right, labelled small underneath, the ship pointing straight up and the same size in each. Below, a "Small-size check" strip repeats the two key frames at one fifth size, because in play the ship is only about 70 pixels tall; the trail must still read there, so its streaks are few and broad, never fine slivers.
+
+Ability: RAM. The heavy ship lunges forward and for a moment its front smashes whatever it hits. Frames: "Brace", "Ram live", "Impact", "Spent".
+Brace: a short burst of streaks behind the tail.
+Ram live: broad, heavy angular streaks peel off the ship's two FRONT CORNERS and sweep backward along both flanks like a bow wake, plus a wide trail of thick, broad streaks behind, noticeably heavier and wider than a normal dash trail. This is the "danger, the ram is live" read.
+Impact: the ship hits a grey rock directly ahead; the bow-wake streaks splash outward sideways from the contact point; the rock cracks.
+Spent: the streaks fall away behind and fade.

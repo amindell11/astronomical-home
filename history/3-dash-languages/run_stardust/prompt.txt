@@ -1,0 +1,9 @@
+Use your built-in image_gen tool to create ONE NEW 16:9 image, then copy the generated PNG into the current working directory as out.png and print its absolute source path. Do nothing else: no code, no other files. Two images are attached in order: Image 1, Image 2.
+
+Reference roles: Image 1 is the OBJECT reference: the Vanguard fighter seen from directly above, nose up. Keep its exact silhouette, white-and-orange paint, grey panels and two round cyan lenses; do not redesign or repaint it. Image 2 is the game's STYLE FRAME: copy its painterly blue-violet nebula background and its hand-painted, ink-outlined illustration style for the whole picture. Do NOT copy the effects in Image 2.
+
+Subject: three frames, left to right, of the Vanguard performing DASH, a sudden short forward lunge, in a top-down space game. The ship points straight up and is the same size in each frame. Labels small underneath: "Launch", "Dashing", "Fading". Below, a "Small-size check" strip repeats Dashing at one fifth size, because in play the ship is only about 70 pixels tall; the effect must still read there.
+
+STRICT: NO fire, NO flames, NO glowing laser blades, NO white-hot cores, NO neon glow, NO electric sparks. The engines show only their normal small exhaust. The effect is described below and nothing else:
+
+STARDUST: the dash scatters glittering dust like a comet. Launch: a small bloom of tiny pale gold and white sparkle motes and a few four-pointed twinkle stars bursts at the tail. Dashing: a long tapering comet-tail sweep of glittering motes, densest near the ship, sparser further back, a handful of larger twinkles among them. Fading: the dust drifts and twinkles out, a few last motes.

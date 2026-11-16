@@ -1,0 +1,20 @@
+Use your built-in image_gen tool to create ONE NEW 16:9 image, then copy the generated PNG into the current working directory as out.png and print its absolute source path. Do nothing else: no code, no other files. Three images are attached in order: Image 1, Image 2, Image 3.
+
+Reference roles:
+- Image 1 is the OBJECT reference: the Crimson, a spiky assault fighter, seen from directly above, nose up.
+- Image 2 is the game's STYLE FRAME: copy its painterly blue-violet nebula background and its hand-painted, ink-outlined illustration style. Do NOT copy its effects.
+- Image 3 shows the chosen EFFECT MATERIAL: copy only the look of the streaks behind the ship in its middle frame: flat, angular, translucent streaks with a faint tint and a thin crisp pale edge, mostly see-through so the nebula shows through. Ignore its ship and layout, and do NOT copy its trail arrangement.
+
+Ability: BLINK, a TELEPORT, not a dash. After a quarter-second wind-up the ship vanishes and instantly reappears a short distance ahead, keeping its speed. Nothing travels between the two points: NO trail, NO streak or line connecting departure and arrival, NO motion blur. The effect happens only AT the departure point and AT the arrival point. The wind-up must be a clear warning that other players can read in a quarter of a second.
+
+SHIP FIDELITY (most important rule): wherever the ship appears it must look exactly like Image 1: mostly mid-grey armour plates, black recesses, thin red trim lines, a pale tan cockpit, outward-pointing red spikes on both sides. Do not repaint, smooth, restyle or redesign it. The effect is a separate layer.
+
+STRICT: NO fire, NO flames, NO laser beams, NO white-hot cores, NO neon glow, NO electric sparks, NO smoke, NO glass objects. All effect shapes are the translucent angular streaks of Image 3, tinted strong rose red, clearly red and not purple.
+
+Layout: four frames left to right, labelled small underneath: "Wind-up", "Vanish", "Arrive", "After". The ship points straight up and is the same size wherever it appears; in Vanish, Arrive and After show both the departure point (lower) and the arrival point (higher) in the same frame. Below, a "Small-size check" strip repeats Wind-up and Arrive at one fifth size, because in play the ship is only about 70 pixels tall; the effect must still read there, so its streaks are few and broad, never fine slivers.
+
+Concept: PINCH SHUT, SPLIT OPEN, with a destination mark.
+Wind-up: at the departure point two tall angular streaks close in on the ship from its left and right like closing doors, squeezing it. At the same moment, at the arrival point ahead, a faint hollow outline of the ship's silhouette drawn in a few broad red streaks appears: the mark showing where it will land.
+Vanish: the departure point has pinched down to a thin vertical sliver; the ship is gone. The outline mark is still at the arrival point.
+Arrive: the ship appears inside the outline, which splits open sideways as two tall angular streaks swinging outward left and right.
+After: the ship flies on; the two streaks fall away to each side and fade.
