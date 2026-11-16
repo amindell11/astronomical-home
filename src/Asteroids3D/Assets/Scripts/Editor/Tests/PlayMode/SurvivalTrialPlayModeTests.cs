@@ -2,19 +2,23 @@
 using System.Collections;
 using System.Collections.Generic;
 using AI;
+using Combat.Weapons;
 using Damage;
 using Game.Player;
 using NUnit.Framework;
 using Ships;
 using Ships.Loadout;
+using Ships.Presentation;
 using Substrate;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Phases;
+using Substrate.Sectors.Factions;
 using Substrate.Services;
 using Substrate.Services.Objectives;
 using Substrate.Services.Units;
 using Tests.PlayMode.Common;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
@@ -34,6 +38,7 @@ namespace Tests.PlayMode
         private EngineModule _chassisEngine;
         private ShieldModule _chassisShield;
         private readonly List<GameObject> _created = new();
+        private readonly List<Object> _assets = new();
 
         [SetUp]
         public override void SetUp()
@@ -59,6 +64,9 @@ namespace Tests.PlayMode
 
             if (_chassisEngine != null) { Object.DestroyImmediate(_chassisEngine); _chassisEngine = null; }
             if (_chassisShield != null) { Object.DestroyImmediate(_chassisShield); _chassisShield = null; }
+            foreach (var asset in _assets)
+                if (asset) Object.DestroyImmediate(asset);
+            _assets.Clear();
 
             base.TearDown();
         }
@@ -72,6 +80,10 @@ namespace Tests.PlayMode
                 .GetComponent<Ship>();
             template.engine = _chassisEngine;
             template.shield = _chassisShield;
+            var rig = template.gameObject.AddComponent<ShipVisualRig>();
+            var serialized = new SerializedObject(template);
+            serialized.FindProperty("visualRig").objectReferenceValue = rig;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
             return template;
         }
 
@@ -82,8 +94,18 @@ namespace Tests.PlayMode
             var directorGO = new GameObject("WaveDirector");
             directorGO.transform.SetParent(sectorGO.transform, false);
             var director = directorGO.AddComponent<WaveDirector>();
+            var faction = ScriptableObject.CreateInstance<Faction>();
+            _assets.Add(faction);
+            faction.signature = new FactionShip
+            {
+                ship = template,
+                kit = TestAssets.Load<WeaponComponent>("Assets/Prefabs/Weapons/Lasers.prefab"),
+                pilot = TestAssets.LoadTestPilotMpc(),
+            };
+            var sectorFaction = sectorGO.AddComponent<SectorFaction>();
             var row = new SectorEntry
             {
+                faction = faction,
                 phases = new[]
                 {
                     new SectorPhase
@@ -97,8 +119,8 @@ namespace Tests.PlayMode
                     },
                 },
             };
-            director.Configure(row.phases, spawnRadius: SpawnRadius);
-            sector.SetManifest(null, new SectorSpawner[] { director }, null);
+            director.Configure(row.phases, spawnRadius: SpawnRadius, faction: sectorFaction);
+            sector.SetManifest(null, new SectorSpawner[] { director }, new SectorModule[] { sectorFaction });
             sector.Initialize(_unitService, _objectives, true, default, player, row);
             return director;
         }

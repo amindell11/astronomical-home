@@ -423,10 +423,25 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void CheckRow_RefusesAnUnsetFaction()
+        {
+            var ex = Assert.Throws<System.InvalidOperationException>(() =>
+                _director.CheckRow(Row(new SectorPhase { groups = System.Array.Empty<WaveGroup>() })));
+            StringAssert.Contains(_director.name, ex.Message);
+        }
+
+        [Test]
         public void CheckRow_AllowsAPhaseWithNoGroups()
         {
-            Assert.DoesNotThrow(() =>
-                _director.CheckRow(Row(new SectorPhase { groups = System.Array.Empty<WaveGroup>() })));
+            var faction = ScriptableObject.CreateInstance<Faction>();
+            var sectorFaction = _go.AddComponent<SectorFaction>();
+            _director.Configure(_phases, Lull, faction: sectorFaction);
+            var row = Row(new SectorPhase { groups = System.Array.Empty<WaveGroup>() });
+            row.faction = faction;
+
+            Assert.DoesNotThrow(() => _director.CheckRow(row));
+
+            Object.DestroyImmediate(faction);
         }
 
         [Test]
@@ -473,33 +488,6 @@ namespace Tests.EditMode
             Object.DestroyImmediate(faction);
             Object.DestroyImmediate(valis.gameObject);
             Object.DestroyImmediate(crimson.gameObject);
-        }
-
-        [Test]
-        public void Threat_WithNoFaction_ListsTheGroupShipsAuthoredWeapons()
-        {
-            var ship = AssetDatabase.LoadAssetAtPath<Ship>("Assets/Prefabs/Ships/Vanguard.prefab");
-            var row = new SectorEntry
-            {
-                phases = new[]
-                {
-                    new SectorPhase
-                    {
-                        groups = new[]
-                        {
-                            new WaveGroup { ships = new[] { new WaveDirector.RosterEntry { template = ship } } },
-                        },
-                    },
-                },
-            };
-
-            var threat = _director.Threat(row);
-
-            CollectionAssert.AreEqual(new[] { ship }, threat.Ships);
-            CollectionAssert.AreEqual(
-                new[] { ship.Weapons.PrimaryMountPrefab, ship.Weapons.SecondaryMountPrefab }.Where(weapon => weapon),
-                threat.Weapons, "products fly their template's authored build");
-            Assert.IsNotEmpty(threat.Weapons);
         }
 
         [Test]

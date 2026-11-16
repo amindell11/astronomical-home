@@ -13,6 +13,7 @@ using Ships.Weapons;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Phases;
+using Substrate.Sectors.Factions;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -154,15 +155,16 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void OfSetting_MovesWhenTwoRosterEntriesSwapPilots()
+        public void OfSetting_MovesWhenAFactionsHullsSwapPilots()
         {
             var offer = HangarOffer();
             var first = ScratchPilot("FirstPilot");
             var second = ScratchPilot("SecondPilot");
-            WaveDirector.RosterEntry Entry(int hull, Commander pilot) => new() { template = offer.ships[hull], pilot = pilot };
-
-            var paired = ScratchRow(new[] { Entry(0, first), Entry(1, second) }, PhaseWaveEvery);
-            var swapped = ScratchRow(new[] { Entry(0, second), Entry(1, first) }, PhaseWaveEvery);
+            var hulls = RosterOf(new[] { offer.ships[0], offer.ships[1] });
+            var paired = ScratchRow(hulls, PhaseWaveEvery);
+            paired.faction = ScratchFaction(offer.ships[0], first, offer.ships[1], second);
+            var swapped = ScratchRow(hulls, PhaseWaveEvery);
+            swapped.faction = ScratchFaction(offer.ships[0], second, offer.ships[1], first);
 
             Assert.AreNotEqual(StatHash.OfSetting(offer, new[] { paired }, KillHullRestore),
                 StatHash.OfSetting(offer, new[] { swapped }, KillHullRestore),
@@ -173,18 +175,16 @@ namespace Tests.EditMode
         public void OfSetting_IgnoresShipOrderInsideAGroup_AndMovesWhenAShipRepeats()
         {
             var offer = HangarOffer();
-            var first = ScratchPilot("FirstPilot");
-            var second = ScratchPilot("SecondPilot");
-            WaveDirector.RosterEntry Entry(int hull, Commander pilot) => new() { template = offer.ships[hull], pilot = pilot };
-            var ordered = new[] { Entry(0, first), Entry(1, second) };
+            WaveDirector.RosterEntry Entry(int hull) => new() { template = offer.ships[hull] };
+            var ordered = new[] { Entry(0), Entry(1) };
 
             var baseline = StatHash.OfSetting(offer, new[] { ScratchRow(ordered, PhaseWaveEvery) }, KillHullRestore);
             Assert.AreEqual(baseline,
-                StatHash.OfSetting(offer, new[] { ScratchRow(new[] { Entry(1, second), Entry(0, first) }, PhaseWaveEvery) },
+                StatHash.OfSetting(offer, new[] { ScratchRow(new[] { Entry(1), Entry(0) }, PhaseWaveEvery) },
                     KillHullRestore),
                 "Order inside a group does not move the fingerprint.");
             Assert.AreNotEqual(baseline,
-                StatHash.OfSetting(offer, new[] { ScratchRow(new[] { Entry(0, first), Entry(1, second), Entry(0, first) }, PhaseWaveEvery) },
+                StatHash.OfSetting(offer, new[] { ScratchRow(new[] { Entry(0), Entry(1), Entry(0) }, PhaseWaveEvery) },
                     KillHullRestore),
                 "A repeated ship changes the wave, so it moves the fingerprint.");
         }
@@ -317,6 +317,15 @@ namespace Tests.EditMode
             var copy = Object.Instantiate(original);
             scratch.Add(copy.gameObject);
             return copy;
+        }
+
+        private Faction ScratchFaction(Ship signature, Commander signaturePilot, Ship common, Commander commonPilot)
+        {
+            var faction = ScriptableObject.CreateInstance<Faction>();
+            scratch.Add(faction);
+            faction.signature = new FactionShip { ship = signature, pilot = signaturePilot };
+            faction.common = new FactionShip { ship = common, pilot = commonPilot };
+            return faction;
         }
 
         private Commander ScratchPilot(string pilotName)

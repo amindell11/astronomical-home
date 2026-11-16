@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Asteroids.Fields;
 using Game.Preview.Fixtures;
 using Ships;
-using Ships.Command;
 using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Phases;
@@ -24,7 +23,7 @@ namespace Game.Preview.Sectors
         private const float ColumnWidth = LabelWidth + ObjectFieldWidth + 18f;
         private const float Gap = 4f;
         private const float DragHandle = 20f;
-        private const float ShipListWidth = DragHandle + ObjectFieldWidth * 2f + 8f + 12f;
+        private const float ShipListWidth = DragHandle + ObjectFieldWidth + 12f;
         private const float FixtureTabWidth = 180f;
         private const float FixtureWidth = PartLabelWidth + ObjectFieldWidth + 24f;
         private const int PreviewLimit = 32;
@@ -286,13 +285,14 @@ namespace Game.Preview.Sectors
         private void DrawWaves(SerializedProperty row)
         {
             Heading("Waves");
+            var faction = row.FindPropertyRelative(nameof(SectorEntry.faction)).objectReferenceValue as Faction;
             var phases = row.FindPropertyRelative(nameof(SectorEntry.phases));
             for (var i = 0; i < phases.arraySize; i++)
             {
                 if (i > 0) GUILayout.Space(8);
                 var phase = phases.GetArrayElementAtIndex(i);
                 DrawPhaseHeader(i + 1, phase);
-                DrawGroups(phase.FindPropertyRelative(nameof(SectorPhase.groups)));
+                DrawGroups(phase.FindPropertyRelative(nameof(SectorPhase.groups)), faction);
             }
         }
 
@@ -319,14 +319,14 @@ namespace Game.Preview.Sectors
 
         private static void Dot(ref Rect row) => EditorGUI.LabelField(Take(ref row, 12f), "\u00b7");
 
-        private void DrawGroups(SerializedProperty groups)
+        private void DrawGroups(SerializedProperty groups, Faction faction)
         {
             for (var i = 0; i < groups.arraySize; i++)
             {
                 var group = groups.GetArrayElementAtIndex(i);
                 var path = group.propertyPath;
                 var open = openGroup == path;
-                if (GroupLine(SectorPages.GroupSummary(ReadGroup(group)), open))
+                if (GroupLine(SectorPages.GroupSummary(ReadGroup(group), faction), open))
                 {
                     openGroup = open ? null : path;
                     groupList = null;
@@ -404,7 +404,6 @@ namespace Game.Preview.Sectors
             var x = rect.x + DragHandle;
             var height = EditorGUIUtility.singleLineHeight;
             EditorGUI.LabelField(new Rect(x, rect.y, ObjectFieldWidth, height), "Template");
-            EditorGUI.LabelField(new Rect(x + ObjectFieldWidth + 8f, rect.y, ObjectFieldWidth, height), "Pilot");
         }
 
         private void DrawShipRow(Rect rect, int index, bool active, bool focused)
@@ -413,8 +412,6 @@ namespace Game.Preview.Sectors
             var height = EditorGUIUtility.singleLineHeight;
             EditorGUI.PropertyField(new Rect(rect.x, rect.y, ObjectFieldWidth, height),
                 entry.FindPropertyRelative(nameof(WaveDirector.RosterEntry.template)), GUIContent.none);
-            EditorGUI.PropertyField(new Rect(rect.x + ObjectFieldWidth + 8f, rect.y, ObjectFieldWidth, height),
-                entry.FindPropertyRelative(nameof(WaveDirector.RosterEntry.pilot)), GUIContent.none);
         }
 
         private static WaveGroup ReadGroup(SerializedProperty group)
@@ -427,7 +424,6 @@ namespace Game.Preview.Sectors
                 entries[i] = new WaveDirector.RosterEntry
                 {
                     template = entry.FindPropertyRelative(nameof(WaveDirector.RosterEntry.template)).objectReferenceValue as Ship,
-                    pilot = entry.FindPropertyRelative(nameof(WaveDirector.RosterEntry.pilot)).objectReferenceValue as Commander,
                 };
             }
             return new WaveGroup { ships = entries };

@@ -38,9 +38,8 @@ namespace Substrate.Sectors.Elements.Hunt
     {
         [Tooltip("Sight cone and spotted-meter timing.")]
         [Stat, SerializeField] private HuntFeelProfile feel;
-        [Tooltip("The sector's faction: every patrol flies its common ship, on its kit and in its skin.")]
+        [Tooltip("The sector's faction: every patrol flies its common ship, on its kit and pilot and in its skin.")]
         [Stat, SerializeField] private SectorFaction faction;
-        [Stat, SerializeField] private AICommander patrolPilot;
         [Tooltip("Material for each patrol's sight wedge on the minimap. Tinted per patrol, one instance each.")]
         [SerializeField] private Material sightWedge;
         [SerializeField] private int team = 1;
@@ -104,9 +103,9 @@ namespace Substrate.Sectors.Elements.Hunt
                 throw new InvalidOperationException($"SectorHunt on '{name}' needs its feel profile.");
             patrolCount = ctx.Row.patrols;
             searchSeconds = ctx.Row.searchSeconds;
-            if (patrolCount > 0 && (!faction || !patrolPilot || !ctx.Sector))
+            if (patrolCount > 0 && (!faction || !ctx.Sector))
                 throw new InvalidOperationException(
-                    $"SectorHunt on '{name}' needs a faction, patrol pilot and sector when it spawns patrols.");
+                    $"SectorHunt on '{name}' needs a faction and sector when it spawns patrols.");
             if (patrolCount > 0 && !sightWedge)
                 throw new InvalidOperationException(
                     $"SectorHunt on '{name}' needs its sight wedge when it spawns patrols.");
@@ -272,7 +271,7 @@ namespace Substrate.Sectors.Elements.Hunt
                 var patrolShip = faction.Faction.common.ship;
                 var position = ClearPoint.Around(center, spawnDistanceMin, spawnDistanceMax, clearanceRadius,
                     field, placementAttempts);
-                var ship = units.SpawnShip(patrolShip, patrolPilot, team, position,
+                var ship = units.SpawnShip(patrolShip, faction.Faction.PilotFor(patrolShip), team, position,
                     GamePlane.PlanePose(GamePlane.Normal, heading), field,
                     new ShipLoadout(patrolShip, faction.Faction.KitFor(patrolShip), null));
                 faction.Faction.Dress(patrolShip, ship, elite: false);
@@ -493,12 +492,11 @@ namespace Substrate.Sectors.Elements.Hunt
         }
 
 #if UNITY_EDITOR
-        internal void Configure(HuntFeelProfile feel, SectorFaction faction, AICommander patrolPilot,
-            float spawnDistance, Material sightWedge = null)
+        internal void Configure(HuntFeelProfile feel, SectorFaction faction, float spawnDistance,
+            Material sightWedge = null)
         {
             this.feel = feel;
             this.faction = faction;
-            this.patrolPilot = patrolPilot;
             spawnDistanceMin = spawnDistanceMax = spawnDistance;
             this.sightWedge = sightWedge;
         }

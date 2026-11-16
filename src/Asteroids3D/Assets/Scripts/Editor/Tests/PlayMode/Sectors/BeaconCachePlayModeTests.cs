@@ -11,6 +11,7 @@ using Ships.Mods;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Phases;
+using Substrate.Sectors.Factions;
 using Substrate.Services;
 using Substrate.Services.Objectives;
 using Substrate.Services.Units;
@@ -194,11 +195,12 @@ namespace Tests.PlayMode.Sectors
             // One-second phases sit inside the beacon's lead, so each lull's beacon opens as the last lull ends.
             var row = new SectorEntry
             {
+                faction = Track(ScriptableObject.CreateInstance<Faction>()),
                 phases = Enumerable.Range(0, phases)
                     .Select(_ => new SectorPhase { seconds = 1f, groups = System.Array.Empty<WaveGroup>() })
                     .ToArray()
             };
-            director.Configure(row.phases, lullSeconds: 1f);
+            director.Configure(row.phases, lullSeconds: 1f, faction: sectorGO.AddComponent<SectorFaction>());
 
             var beacon = NewZone(sectorGO.transform, "Beacon");
             var spine = sectorGO.AddComponent<PhaseSpineModule>();

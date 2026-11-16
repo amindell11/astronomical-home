@@ -23,7 +23,7 @@ namespace AI.Tactics
         [Min(0f)] public float attackRunMargin;
         [Tooltip("With its target gone, circle the wreck for a few laps before wandering. Off wanders from the start.")]
         public bool circlesWreck = true;
-        [Tooltip("Seconds since the ship was last hit within which a gauge under its drawn point makes it hurt.")]
+        [Tooltip("Seconds since the ship was last hit within which a gauge under its breaking point makes it hurt.")]
         [Min(0f)] public float hitWithin = 2f;
         [Tooltip("Shield %, below which a ship in the target's guns flanks or stands off instead of pressing. " +
                  "At 0 it always presses; at 100 it never flies into the guns, even with a full shield.")]
@@ -34,39 +34,33 @@ namespace AI.Tactics
         [Min(0f)] public float minimumHold = 2f;
 
         [Header("When hurt")]
-        [Tooltip("What a hurt ship does. Break off stops firing. Fall back keeps firing. Turn cautious stays out of the target's guns. Never ignores the wound.")]
+        [Tooltip("What a hurt ship does. Break off stops firing. Fall back keeps firing. Turn cautious stays out of the target's guns. Last stand closes to point-blank and presses, firing, until it dies. Never ignores the wound.")]
         public WoundedResponse wounded = WoundedResponse.BreakOff;
         [Tooltip("Shield or hull, the gauge a ship reads to decide it is hurt.")]
         public WoundGauge woundedBy = WoundGauge.Shield;
-        [Tooltip("Gauge %, below which a ship hit within the last 'hit within' seconds is hurt. Each ship draws its own point in this range.")]
-        public Spread woundedBelow = new(25f, 25f);
-        [Tooltip("What ends being hurt: the shield coming back, or the ship's drawn number of seconds.")]
+        [Tooltip("Gauge %, below which a ship hit within the last 'hit within' seconds is hurt.")]
+        [Range(0f, 100f)] public float woundedBelow = 25f;
+        [Tooltip("What ends being hurt: the shield coming back, or a fixed number of seconds. A last stand never ends.")]
         public WoundedEnds woundedEnds = WoundedEnds.WhenShieldIsBack;
-        [Tooltip("Shield %, at or above which a ship is no longer hurt, when the shield coming back ends it. Each ship draws its own level in this range.")]
-        public Spread shieldBack = new(80f, 80f);
-        [Tooltip("Seconds a ship flies its response before it stops being hurt, when seconds end it. Each ship draws its own length in this range.")]
-        public Spread woundedSeconds = new(5f, 5f);
-        [Tooltip("After its drawn number of retreats the ship is never hurt again. Off means no limit.")]
+        [Tooltip("Shield %, at or above which a ship is no longer hurt, when the shield coming back ends it.")]
+        [Range(0f, 100f)] public float shieldBack = 80f;
+        [Tooltip("Seconds a ship flies its response before it stops being hurt, when seconds end it.")]
+        [Min(0f)] public float woundedSeconds = 5f;
+        [Tooltip("After its retreats the ship is never hurt again. Off means no limit.")]
         public bool commits;
-        [Tooltip("Fewest retreats a ship can draw.")]
-        [Min(1)] public int retreatsMin = 1;
-        [Tooltip("Most retreats a ship can draw.")]
-        [Min(1)] public int retreatsMax = 1;
+        [Tooltip("Retreats a committing ship takes before it is never hurt again.")]
+        [Min(1)] public int retreats = 1;
         [Tooltip("Units inside its own primary gun range at which a ship falling back holds.")]
         [Min(0f)] public float fallBackMargin = 1f;
+        [Tooltip("Units from its target at which a ship making its last stand holds and fires.")]
+        [Min(0f)] public float chargeRange = 6f;
 
         private void OnValidate()
         {
             if (home == Tactic.BreakOff)
                 throw new InvalidOperationException($"{name}: a ship cannot make breaking off its home tactic");
-            if (woundedBelow.min > woundedBelow.max)
-                throw new InvalidOperationException($"{name}: wounded below min is above its max");
-            if (shieldBack.min > shieldBack.max)
-                throw new InvalidOperationException($"{name}: shield back min is above its max");
-            if (woundedSeconds.min > woundedSeconds.max)
-                throw new InvalidOperationException($"{name}: wounded seconds min is above its max");
-            if (retreatsMin > retreatsMax)
-                throw new InvalidOperationException($"{name}: retreats min is above its max");
+            if (home == Tactic.Charge)
+                throw new InvalidOperationException($"{name}: a ship cannot make its last stand its home tactic");
         }
     }
 }

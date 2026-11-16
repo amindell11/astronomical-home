@@ -1,9 +1,15 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+using Ships;
+using Ships.Command;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Factions;
 using Substrate.Sessions;
 using UnityEditor;
+using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Tests.EditMode.Factions
 {
@@ -13,6 +19,56 @@ namespace Tests.EditMode.Factions
     public class FactionSectorsEditModeTests
     {
         private const string RunPath = "Assets/Settings/Game/SurvivalTrialRun.asset";
+
+        private readonly List<Object> trash = new();
+
+        [TearDown]
+        public void TearDown()
+        {
+            foreach (var item in trash)
+                if (item) Object.DestroyImmediate(item);
+            trash.Clear();
+        }
+
+        [Test]
+        public void PilotFor_ReturnsEachHullsPilot()
+        {
+            var signature = Hull("Signature");
+            var common = Hull("Common");
+            var signaturePilot = Pilot("SignaturePilot");
+            var commonPilot = Pilot("CommonPilot");
+            var faction = FactionOf(signature, signaturePilot, common, commonPilot);
+
+            Assert.AreSame(signaturePilot, faction.PilotFor(signature));
+            Assert.AreSame(commonPilot, faction.PilotFor(common));
+        }
+
+        [Test]
+        public void PilotFor_ThrowsForAHullTheFactionDoesNotFly()
+        {
+            var faction = FactionOf(Hull("Signature"), Pilot("SignaturePilot"), Hull("Common"), Pilot("CommonPilot"));
+            faction.name = "Shoal";
+            var other = Hull("Stranger");
+
+            var ex = Assert.Throws<InvalidOperationException>(() => faction.PilotFor(other));
+
+            StringAssert.Contains("Shoal", ex.Message);
+            StringAssert.Contains("Stranger", ex.Message);
+        }
+
+        [Test]
+        public void PilotFor_ThrowsForAHullWithNoPilot()
+        {
+            var signature = Hull("Signature");
+            var faction = Track(ScriptableObject.CreateInstance<Faction>());
+            faction.name = "Veil";
+            faction.signature = new FactionShip { ship = signature };
+
+            var ex = Assert.Throws<InvalidOperationException>(() => faction.PilotFor(signature));
+
+            StringAssert.Contains("Veil", ex.Message);
+            StringAssert.Contains("Signature", ex.Message);
+        }
 
         [Test]
         public void EachTrialRow_NamesADifferentFaction_InRunOrder()
@@ -62,6 +118,39 @@ namespace Tests.EditMode.Factions
             var run = AssetDatabase.LoadAssetAtPath<SectorRun>(RunPath);
             Assert.IsNotNull(run, $"Sector run missing at {RunPath}");
             return run.Sectors.ToArray();
+        }
+
+        private Faction FactionOf(Ship signature, Commander signaturePilot, Ship common, Commander commonPilot)
+        {
+            var faction = Track(ScriptableObject.CreateInstance<Faction>());
+            faction.signature = new FactionShip { ship = signature, pilot = signaturePilot };
+            faction.common = new FactionShip { ship = common, pilot = commonPilot };
+            return faction;
+        }
+
+        private Ship Hull(string hullName)
+        {
+            var host = Track(new GameObject(hullName));
+            host.SetActive(false);
+            return host.AddComponent<Ship>();
+        }
+
+        private Commander Pilot(string pilotName)
+        {
+            var host = Track(new GameObject(pilotName));
+            host.SetActive(false);
+            return host.AddComponent<StubCommander>();
+        }
+
+        private T Track<T>(T item) where T : Object
+        {
+            trash.Add(item);
+            return item;
+        }
+
+        private sealed class StubCommander : Commander
+        {
+            public override void Initialize(in ShipControl control) { }
         }
 
         private static Faction FactionOf(SectorEntry row)

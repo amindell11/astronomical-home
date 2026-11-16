@@ -1,117 +1,99 @@
-using System.Linq;
-using AI.Tactics;
-using Game;
-using Game.Preview;
-using NUnit.Framework;
 using AI.Pilots;
-using Substrate.Sectors.Elements.Elites;
+using AI.Tactics;
+using NUnit.Framework;
+using Ships;
+using Ships.Command;
 using Substrate.Sectors.Elements.Hunt;
+using Substrate.Sectors.Factions;
 using UnityEditor;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace Tests.EditMode.Sectors
 {
+    /// <summary>
+    /// Each shipped faction's signature and common ship flies a pilot whose temper is set, and the two
+    /// hulls fly different pilots. Both tempers of a faction share one wounded response: Veil never,
+    /// Shoal break off, Bastion last stand. No sector prefab names a patrol pilot of its own.
+    /// </summary>
     [TestFixture]
     [Category("Sectors")]
     public class SectorTempersEditModeTests
     {
         [Test]
-        public void EveryShippedRow_AndTheCrowdedFightRow_FlyEachKindOfShipOnItsTemper()
+        public void EachFactionsSignatureAndCommonShip_HasAPilotWhoseBrainCarriesATemper()
         {
-            var rows = Load<GameHost>(PreviewHostBootstrap.GameHostPath).sessionProfile.run.Sectors
-                .Append(PreviewHostBootstrap.FixtureRow("CrowdedFightSector"))
-                .ToArray();
-            Assert.That(rows, Has.Length.GreaterThan(1), "the run ships sectors");
-            var waveTempers = new[] { "Aggressor", "Orbiter", "Kiter", "Lurker" }
-                .Select(kind => Load<TacticsSettings>($"Assets/Settings/AI/Tactics/{kind}Temper.asset"))
-                .ToArray();
-
-            foreach (var (row, index) in rows.Select((row, index) => (row, index)))
+            foreach (var id in new[] { "Shoal", "Veil", "Bastion" })
             {
-                var sector = row.prefab;
-                var label = $"row {index} ({sector.name})";
-                var ships = row.phases.SelectMany(phase => phase.groups).SelectMany(group => group.ships).ToArray();
-                Assert.That(ships, Is.Not.Empty, $"{label} has a wave ship");
-                for (var i = 0; i < ships.Length; i++)
-                    AssertOneOf(waveTempers, ships[i].pilot, $"{label}'s wave ship {i}");
-
-                AssertTemper("Aggressor", Field(sector.GetComponentInChildren<SectorHunt>(true), "patrolPilot"),
-                    $"{label}'s patrols");
-                var elite = sector.GetComponentInChildren<EliteEncounter>(true);
-                AssertTemper("Elite", Field(elite, "pilot"), $"{label}'s elite");
-                AssertTemper("Escort", Field(elite, "escortPilot"), $"{label}'s escorts");
+                var faction = Load(id);
+                AssertTemper(faction, faction.signature.ship, $"{id} signature");
+                AssertTemper(faction, faction.common.ship, $"{id} common");
             }
         }
 
         [Test]
-        public void WavePilots_AreFourDifferentPilots()
+        public void OneFactionsTwoHulls_FlyDifferentPilotPrefabs()
         {
-            var tempers = new[] { "Aggressor", "Orbiter", "Kiter", "Lurker" }
-                .Select(kind => TemperOf($"Assets/Prefabs/Pilots/{kind}Pilot.prefab"))
-                .ToArray();
+            var faction = Load("Shoal");
 
-            Assert.AreEqual(4, tempers.Distinct().Count(), "four different temper assets");
-            for (var i = 0; i < tempers.Length; i++)
-                for (var j = i + 1; j < tempers.Length; j++)
-                    Assert.IsFalse(tempers[i].home == tempers[j].home
-                        && tempers[i].attackRunMargin == tempers[j].attackRunMargin,
-                        "no two wave pilots are the same pilot");
+            Assert.AreNotSame(faction.PilotFor(faction.signature.ship), faction.PilotFor(faction.common.ship));
         }
 
         [Test]
-        public void ShippedRun_FliesALurker()
+        public void BothTempersOfAFaction_ShareOneWoundedResponse()
         {
-            const string lurker = "Assets/Prefabs/Pilots/LurkerPilot.prefab";
-            Assert.IsNotNull(AssetDatabase.LoadMainAssetAtPath(lurker), $"asset missing at {lurker}");
-            var rows = Load<GameHost>(PreviewHostBootstrap.GameHostPath).sessionProfile.run.Sectors;
-            Assert.IsTrue(rows.SelectMany(row => row.phases)
-                .SelectMany(phase => phase.groups)
-                .SelectMany(group => group.ships)
-                .Any(ship => ship.pilot && AssetDatabase.GetAssetPath(ship.pilot) == lurker),
-                "at least one wave ship flies LurkerPilot");
+            AssertResponse("Veil", WoundedResponse.Never);
+            AssertResponse("Shoal", WoundedResponse.BreakOff);
+            AssertResponse("Bastion", WoundedResponse.LastStand);
         }
 
-        private static void AssertOneOf(TacticsSettings[] tempers, Object pilot, string ships)
+        [Test]
+        public void NoShippedSectorPrefab_SerializesAPatrolPilot()
         {
-            Assert.IsNotNull(pilot, $"{ships} have a pilot");
-            var brain = ((Component)pilot).GetComponent<ArchetypeBrain>();
-            Assert.IsNotNull(brain, $"{ships} fly an archetype brain");
-            var temper = Field(brain, "tactics") as TacticsSettings;
-            Assert.IsTrue(temper && tempers.Any(candidate => candidate == temper), $"{ships} fly a wave temper");
+            var guids = AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/Prefabs/Sectors" });
+            Assert.IsNotEmpty(guids, "the sector prefabs are in the tree");
+            foreach (var guid in guids)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guid);
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                Assert.IsTrue(prefab, path);
+                foreach (var hunt in prefab.GetComponentsInChildren<SectorHunt>(true))
+                {
+                    using var serialized = new SerializedObject(hunt);
+                    Assert.IsNull(serialized.FindProperty("patrolPilot"), $"{path} serializes a patrol pilot");
+                }
+            }
         }
 
-        private static TacticsSettings TemperOf(string path)
+        private static void AssertTemper(Faction faction, Ship hull, string label)
         {
-            var pilot = AssetDatabase.LoadMainAssetAtPath(path) as GameObject;
-            Assert.IsNotNull(pilot, $"Missing prefab: {path}");
-            var temper = Field(pilot.GetComponent<ArchetypeBrain>(), "tactics") as TacticsSettings;
-            Assert.IsNotNull(temper, $"{path} names a temper");
+            var pilot = faction.PilotFor(hull);
+            var brain = pilot.GetComponent<ArchetypeBrain>();
+            Assert.IsTrue(brain, $"{label} flies an archetype brain");
+            Assert.IsTrue(Temper(pilot), $"{label}'s pilot carries a temper");
+        }
+
+        private static void AssertResponse(string id, WoundedResponse response)
+        {
+            var faction = Load(id);
+            Assert.AreEqual(response, Temper(faction.PilotFor(faction.signature.ship)).wounded, $"{id} signature");
+            Assert.AreEqual(response, Temper(faction.PilotFor(faction.common.ship)).wounded, $"{id} common");
+        }
+
+        private static TacticsSettings Temper(Commander pilot)
+        {
+            var brain = pilot.GetComponent<ArchetypeBrain>();
+            Assert.IsTrue(brain, $"{pilot.name} flies an archetype brain");
+            var temper = new SerializedObject(brain).FindProperty("tactics").objectReferenceValue as TacticsSettings;
+            Assert.IsTrue(temper, $"{pilot.name} carries a temper");
             return temper;
         }
 
-        private static void AssertTemper(string kind, Object pilot, string ships)
+        private static Faction Load(string id)
         {
-            Assert.IsNotNull(pilot, $"{ships} have a pilot");
-            var brain = ((Component)pilot).GetComponent<ArchetypeBrain>();
-            Assert.IsNotNull(brain, $"{ships} fly an archetype brain");
-            Assert.AreSame(Load<TacticsSettings>($"Assets/Settings/AI/Tactics/{kind}Temper.asset"), Field(brain, "tactics"),
-                $"{ships} fly the {kind.ToLowerInvariant()} temper");
-        }
-
-        private static T Load<T>(string path) where T : Object
-        {
-            var asset = AssetDatabase.LoadAssetAtPath<T>(path);
-            Assert.IsNotNull(asset, $"asset missing at {path}");
-            return asset;
-        }
-
-        private static Object Field(Object owner, string field)
-        {
-            Assert.IsNotNull(owner, $"no component to read '{field}' from");
-            using var serialized = new SerializedObject(owner);
-            var value = serialized.FindProperty(field).objectReferenceValue;
-            return value ? value : null;
+            var path = $"Assets/Settings/Factions/{id}.asset";
+            var faction = AssetDatabase.LoadAssetAtPath<Faction>(path);
+            Assert.IsNotNull(faction, $"asset missing at {path}");
+            return faction;
         }
     }
 }

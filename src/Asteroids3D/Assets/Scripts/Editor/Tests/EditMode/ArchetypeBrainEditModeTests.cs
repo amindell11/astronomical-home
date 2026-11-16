@@ -333,8 +333,8 @@ namespace Tests.EditMode
         private (ArchetypeBrain brain, StubStatus status, AIContext ctx) WoundedPilot(TacticsSettings temper)
         {
             temper.minimumHold = 0f;
-            temper.woundedBelow = new Spread(25f, 25f);
-            temper.shieldBack = new Spread(80f, 80f);
+            temper.woundedBelow = 25f;
+            temper.shieldBack = 80f;
             temper.woundedEnds = WoundedEnds.WhenShieldIsBack;
             temper.hitWithin = 2f;
             createdTempers.Add(temper);
@@ -370,8 +370,7 @@ namespace Tests.EditMode
             var temper = ScriptableObject.CreateInstance<TacticsSettings>();
             temper.wounded = WoundedResponse.BreakOff;
             temper.commits = true;
-            temper.retreatsMin = 2;
-            temper.retreatsMax = 2;
+            temper.retreats = 2;
             var (brain, status, ctx) = WoundedPilot(temper);
 
             Hurt(status, ctx);
@@ -395,8 +394,7 @@ namespace Tests.EditMode
             temper.wounded = WoundedResponse.BreakOff;
             temper.home = Tactic.StandOff;
             temper.commits = true;
-            temper.retreatsMin = 1;
-            temper.retreatsMax = 1;
+            temper.retreats = 1;
             var (brain, status, ctx) = WoundedPilot(temper);
 
             Hurt(status, ctx);
@@ -416,8 +414,7 @@ namespace Tests.EditMode
             var temper = ScriptableObject.CreateInstance<TacticsSettings>();
             temper.wounded = WoundedResponse.BreakOff;
             temper.commits = true;
-            temper.retreatsMin = 1;
-            temper.retreatsMax = 1;
+            temper.retreats = 1;
             var (brain, status, ctx) = WoundedPilot(temper);
 
             Hurt(status, ctx);
@@ -438,10 +435,9 @@ namespace Tests.EditMode
         {
             var temper = ScriptableObject.CreateInstance<TacticsSettings>();
             temper.wounded = WoundedResponse.FallBack;
-            temper.woundedSeconds = new Spread(0.4f, 0.4f);
+            temper.woundedSeconds = 0.4f;
             temper.commits = true;
-            temper.retreatsMin = 1;
-            temper.retreatsMax = 1;
+            temper.retreats = 1;
             var (brain, status, ctx) = WoundedPilot(temper);
             temper.minimumHold = 1f;
             temper.woundedEnds = WoundedEnds.AfterSeconds;
@@ -469,7 +465,7 @@ namespace Tests.EditMode
             var flownTicks = 0;
             flies = 0;
             while (flownTicks * Time.fixedDeltaTime < temper.minimumHold
-                || flownTicks * Time.fixedDeltaTime < temper.woundedSeconds.min)
+                || flownTicks * Time.fixedDeltaTime < temper.woundedSeconds)
             {
                 Fly(brain, ctx);
                 flownTicks += ticksPerFly;

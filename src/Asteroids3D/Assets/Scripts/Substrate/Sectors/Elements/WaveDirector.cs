@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using AI.Scanning;
 using Combat.Weapons;
 using Ships;
-using Ships.Command;
 using Ships.Loadout;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Hunt;
@@ -25,7 +24,7 @@ namespace Substrate.Sectors.Elements
     /// closing lull follows the last phase; without one, the done table keeps the last phase's waves.
     /// It begins its elite, summons it on the tick the table is done, and ends it at teardown.
     /// The opening lull is held for the hunt. Ships arrive together just off screen, facing the hero
-    /// on their faction kit and skin. Dead products despawn on the tick, which idles while the hero is
+    /// on their faction kit, pilot and skin. Dead products despawn on the tick, which idles while the hero is
     /// inactive. Nothing spawns in Build, since the asteroid field lays out at its Start. The base
     /// class's "produce exactly once" is about the activation token, not lifetime.
     /// </summary>
@@ -35,11 +34,9 @@ namespace Substrate.Sectors.Elements
         public struct RosterEntry
         {
             [Stat] public Ship template;
-            [Stat] public Commander pilot;
         }
 
-        [Tooltip("The sector's faction: every roster ship must be its signature or common ship, and flies that ship's faction kit. " +
-                 "Unset → products fly their template's authored build.")]
+        [Tooltip("The sector's faction: every roster ship must be its signature or common ship, and flies that ship's faction kit and pilot.")]
         [SerializeField] private SectorFaction faction;
         [SerializeField] private int team = 1;
 
@@ -128,13 +125,17 @@ namespace Substrate.Sectors.Elements
             }
 
             if (elite) elite.CheckRow(row);
-            if (!faction) return;
+            if (!faction)
+                throw new InvalidOperationException($"WaveDirector on '{name}' needs its faction.");
             if (!row.faction)
                 throw new InvalidOperationException($"WaveDirector on '{name}' flies the row's faction, and the row names none.");
             foreach (var phase in row.phases)
                 foreach (var group in phase.groups)
                     foreach (var ship in group.ships)
+                    {
                         row.faction.KitFor(ship.template);
+                        row.faction.PilotFor(ship.template);
+                    }
         }
 
         protected override IEnumerator Produce(SectorBuildContext ctx)
@@ -307,15 +308,7 @@ namespace Substrate.Sectors.Elements
 
             var weapons = new List<WeaponComponent>();
             foreach (var ship in ships)
-            {
-                if (faction)
-                {
-                    AddDistinct(weapons, row.faction.KitFor(ship));
-                    continue;
-                }
-                AddDistinct(weapons, ship.Weapons ? ship.Weapons.PrimaryMountPrefab : null);
-                AddDistinct(weapons, ship.Weapons ? ship.Weapons.SecondaryMountPrefab : null);
-            }
+                AddDistinct(weapons, row.faction.KitFor(ship));
             return new SectorThreat(ships, weapons);
         }
 
@@ -324,7 +317,7 @@ namespace Substrate.Sectors.Elements
             if (item && !list.Contains(item)) list.Add(item);
         }
 
-        private WeaponComponent KitFor(Ship chassis) => faction ? faction.Faction.KitFor(chassis) : null;
+        private WeaponComponent KitFor(Ship chassis) => faction.Faction.KitFor(chassis);
 
         private void DespawnDead()
         {
@@ -353,9 +346,10 @@ namespace Substrate.Sectors.Elements
                     var outward = (slots[i] - center).normalized;
                     var facingHero = GamePlane.PlanePose(GamePlane.Normal, GamePlane.PlaneDirToWorld(-outward));
                     var position = GamePlane.PlanePointToWorld(slots[i]);
-                    var loadout = faction ? new ShipLoadout(entry.template, KitFor(entry.template), null) : null;
-                    var ship = units.SpawnShip(entry.template, entry.pilot, team, position, facingHero, field, loadout);
-                    if (faction) faction.Faction.Dress(entry.template, ship, elite: false);
+                    var loadout = new ShipLoadout(entry.template, KitFor(entry.template), null);
+                    var ship = units.SpawnShip(entry.template, faction.Faction.PilotFor(entry.template), team,
+                        position, facingHero, field, loadout);
+                    faction.Faction.Dress(entry.template, ship, elite: false);
                     products.Add(ship);
                 }
                 return true;

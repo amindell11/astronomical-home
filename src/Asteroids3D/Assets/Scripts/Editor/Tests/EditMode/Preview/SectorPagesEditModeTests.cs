@@ -97,52 +97,73 @@ namespace Tests.EditMode.Preview
         }
 
         [Test]
-        public void GroupSummary_TwoShipsOfOneTemplate_CountsThemAndListsPilotsInOrder()
+        public void GroupSummary_TwoShipsOfOneTemplate_CountsThemAndListsTheFactionsPilot()
         {
             var nightshade = Hull("Nightshade");
+            var faction = FactionOf((nightshade, Pilot("OrbiterPilot")));
             var group = new WaveGroup
             {
                 ships = new[]
                 {
-                    new WaveDirector.RosterEntry { template = nightshade, pilot = Pilot("OrbiterPilot") },
-                    new WaveDirector.RosterEntry { template = nightshade, pilot = Pilot("AggressorPilot") },
+                    new WaveDirector.RosterEntry { template = nightshade },
+                    new WaveDirector.RosterEntry { template = nightshade },
                 },
             };
-            Assert.AreEqual("2\u00d7 Nightshade: Orbiter, Aggressor", SectorPages.GroupSummary(group));
+            Assert.AreEqual("2\u00d7 Nightshade: Orbiter, Orbiter", SectorPages.GroupSummary(group, faction));
         }
 
         [Test]
         public void GroupSummary_TwoTemplates_JoinsOneShipEachInFirstSeenOrder()
         {
+            var nightshade = Hull("Nightshade");
+            var warden = Hull("Warden");
+            var faction = FactionOf((nightshade, Pilot("OrbiterPilot")), (warden, Pilot("AggressorPilot")));
             var group = new WaveGroup
             {
                 ships = new[]
                 {
-                    new WaveDirector.RosterEntry { template = Hull("Nightshade"), pilot = Pilot("OrbiterPilot") },
-                    new WaveDirector.RosterEntry { template = Hull("Warden"), pilot = Pilot("AggressorPilot") },
+                    new WaveDirector.RosterEntry { template = nightshade },
+                    new WaveDirector.RosterEntry { template = warden },
                 },
             };
-            Assert.AreEqual("Nightshade (Orbiter) + Warden (Aggressor)", SectorPages.GroupSummary(group));
+            Assert.AreEqual("Nightshade (Orbiter) + Warden (Aggressor)", SectorPages.GroupSummary(group, faction));
         }
 
         [Test]
-        public void GroupSummary_MissingPilot_ReadsNone()
+        public void GroupSummary_HullWithNoPilot_Throws()
         {
+            var nightshade = Hull("Nightshade");
+            var faction = Track(ScriptableObject.CreateInstance<Faction>());
+            faction.name = "Shoal";
+            faction.signature = new FactionShip { ship = nightshade };
             var group = new WaveGroup
             {
-                ships = new[] { new WaveDirector.RosterEntry { template = Hull("Nightshade") } },
+                ships = new[] { new WaveDirector.RosterEntry { template = nightshade } },
             };
-            Assert.AreEqual("Nightshade (none)", SectorPages.GroupSummary(group));
+
+            var ex = Assert.Throws<InvalidOperationException>(() => SectorPages.GroupSummary(group, faction));
+
+            StringAssert.Contains("Shoal", ex.Message);
+            StringAssert.Contains("Nightshade", ex.Message);
         }
 
         [Test]
         public void GroupSummary_EmptyGroup_ReadsEmptyGroup()
         {
-            Assert.AreEqual("empty group", SectorPages.GroupSummary(default));
+            Assert.AreEqual("empty group", SectorPages.GroupSummary(default, null));
             Assert.AreEqual("empty group", SectorPages.GroupSummary(new WaveGroup
             {
                 ships = Array.Empty<WaveDirector.RosterEntry>(),
-            }));
+            }, null));
+        }
+
+        private Faction FactionOf(params (Ship hull, Commander pilot)[] hulls)
+        {
+            var faction = Track(ScriptableObject.CreateInstance<Faction>());
+            faction.signature = new FactionShip { ship = hulls[0].hull, pilot = hulls[0].pilot };
+            if (hulls.Length > 1)
+                faction.common = new FactionShip { ship = hulls[1].hull, pilot = hulls[1].pilot };
+            return faction;
         }
 
         private static SectorEntry Row(Faction faction, EliteProfile elite) => new() { faction = faction, elite = elite };

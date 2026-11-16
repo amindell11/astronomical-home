@@ -8,6 +8,7 @@ using Ships.Command;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Phases;
+using Substrate.Sectors.Factions;
 using Substrate.Sessions;
 using UnityEditor;
 using UnityEngine;
@@ -92,7 +93,7 @@ namespace Game.Preview.Sectors
             return list;
         }
 
-        internal static string GroupSummary(WaveGroup group)
+        internal static string GroupSummary(WaveGroup group, Faction faction)
         {
             var ships = group.ships;
             if (ships == null || ships.Length == 0) return "empty group";
@@ -113,7 +114,7 @@ namespace Game.Preview.Sectors
                     templates.Add(ship.template);
                     pilots.Add(new List<string>());
                 }
-                pilots[found].Add(PilotName(ship.pilot));
+                pilots[found].Add(PilotName(faction.PilotFor(ship.template)));
             }
             var parts = new string[templates.Count];
             for (var i = 0; i < templates.Count; i++)

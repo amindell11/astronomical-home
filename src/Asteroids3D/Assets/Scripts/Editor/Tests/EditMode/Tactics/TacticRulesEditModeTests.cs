@@ -20,9 +20,9 @@ namespace Tests.EditMode.Tactics
         {
             settings = ScriptableObject.CreateInstance<TacticsSettings>();
             settings.wounded = WoundedResponse.BreakOff;
-            settings.woundedBelow = new Spread(25f, 25f);
+            settings.woundedBelow = 25f;
             settings.woundedEnds = WoundedEnds.WhenShieldIsBack;
-            settings.shieldBack = new Spread(80f, 80f);
+            settings.shieldBack = 80f;
             settings.hitWithin = 2f;
             settings.nerveShield = 50f;
             settings.minimumHold = 2f;
@@ -54,6 +54,28 @@ namespace Tests.EditMode.Tactics
 
             Assert.AreEqual(Tactic.FallBack,
                 Pick(Fight(allies: 2, openSide: true, inCone: true), wounded: true));
+        }
+
+        [Test]
+        public void WoundedLastStand_Charges_BeforeFlankOrStandOff_EvenExposedWithAnEmptyShield()
+        {
+            settings.wounded = WoundedResponse.LastStand;
+
+            Assert.AreEqual(Tactic.Charge,
+                Pick(Fight(shield: 0f, sinceHit: 0f, allies: 2, openSide: true, inCone: true), wounded: true),
+                "an open side would flank");
+            Assert.AreEqual(Tactic.Charge,
+                Pick(Fight(shield: 0f, sinceHit: 0f, allies: 2, inCone: true), wounded: true),
+                "no open side would stand off");
+        }
+
+        [Test]
+        public void LastStand_HoldsPastTheMinimumHold_WhileWounded()
+        {
+            settings.wounded = WoundedResponse.LastStand;
+
+            Assert.AreEqual(Tactic.Charge,
+                TacticRules.Next(Tactic.Charge, 10f, Fight(shield: 0f), settings, wounded: true));
         }
 
         [Test]

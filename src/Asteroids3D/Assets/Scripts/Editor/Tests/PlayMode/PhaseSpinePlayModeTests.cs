@@ -111,7 +111,9 @@ namespace Tests.PlayMode
             {
                 phases = new[] { new SectorPhase { seconds = 1f, groups = System.Array.Empty<WaveGroup>() } }
             };
-            director.Configure(row.phases, lullSeconds: 0f);
+            var faction = TrackAsset(ScriptableObject.CreateInstance<Faction>());
+            row.faction = faction;
+            director.Configure(row.phases, lullSeconds: 0f, faction: sectorGO.AddComponent<SectorFaction>());
 
             var zone = NewZone(sectorGO.transform, "Zone");
 
@@ -174,7 +176,9 @@ namespace Tests.PlayMode
                     new SectorPhase { seconds = 1f, groups = System.Array.Empty<WaveGroup>() },
                 }
             };
-            director.Configure(row.phases, lullSeconds: 5f);
+            var faction = TrackAsset(ScriptableObject.CreateInstance<Faction>());
+            row.faction = faction;
+            director.Configure(row.phases, lullSeconds: 5f, faction: sectorGO.AddComponent<SectorFaction>());
 
             var beacon = NewZone(sectorGO.transform, "Beacon");
             var spine = sectorGO.AddComponent<PhaseSpineModule>();
@@ -236,7 +240,7 @@ namespace Tests.PlayMode
                 elite = profile,
                 phases = new[] { new SectorPhase { seconds = 1f, groups = System.Array.Empty<WaveGroup>() } }
             };
-            director.Configure(row.phases, lullSeconds: 1f, elite: elite);
+            director.Configure(row.phases, lullSeconds: 1f, faction: sectorFaction, elite: elite);
 
             var beacon = NewZone(sectorGO.transform, "Beacon");
             var spine = sectorGO.AddComponent<PhaseSpineModule>();

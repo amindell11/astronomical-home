@@ -84,14 +84,16 @@ namespace Tests.PlayMode.Sectors
                 "test premise: Crimson carries a primary");
             Assert.IsTrue(vanguard && vanguard.Weapons && vanguard.Weapons.PrimaryMountPrefab,
                 "test premise: Vanguard carries a primary");
-            var wave = Track(ShipTestFactory.CreateKinematicPrimitiveShipAt(new Vector2(500f, 500f)).gameObject).GetComponent<Ship>();
-            // A clone of an inactive template is born inactive, and the director despawns it as dead.
-            wave.gameObject.SetActive(waveShips > 0);
-
             var faction = Track(ScriptableObject.CreateInstance<Faction>());
             faction.id = factionId;
-            faction.signature = new FactionShip { ship = crimson, kit = crimson.Weapons.PrimaryMountPrefab };
-            faction.common = new FactionShip { ship = vanguard, kit = vanguard.Weapons.PrimaryMountPrefab };
+            faction.signature = new FactionShip
+            {
+                ship = crimson, kit = crimson.Weapons.PrimaryMountPrefab, pilot = pilot,
+            };
+            faction.common = new FactionShip
+            {
+                ship = vanguard, kit = vanguard.Weapons.PrimaryMountPrefab, pilot = pilot,
+            };
 
             var sectorGO = Track(new GameObject("EliteSector"));
             var sector = sectorGO.AddComponent<Sector>();
@@ -120,13 +122,14 @@ namespace Tests.PlayMode.Sectors
                                 new WaveGroup
                                 {
                                     ships = Enumerable.Repeat(
-                                        new WaveDirector.RosterEntry { template = wave }, waveShips).ToArray(),
+                                        new WaveDirector.RosterEntry { template = crimson }, waveShips).ToArray(),
                                 },
                             },
                     },
                 },
             };
-            director.Configure(row.phases, lullSeconds: 0f, elite: withElite ? encounter : null);
+            director.Configure(row.phases, lullSeconds: 0f, faction: sectorFaction,
+                elite: withElite ? encounter : null);
 
             var zone = NewZone(sectorGO.transform, "Zone");
             var spine = sectorGO.AddComponent<PhaseSpineModule>();

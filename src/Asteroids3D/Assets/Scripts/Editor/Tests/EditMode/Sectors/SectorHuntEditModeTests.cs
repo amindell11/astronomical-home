@@ -42,7 +42,7 @@ namespace Tests.EditMode.Sectors
             var feel = Track(ScriptableObject.CreateInstance<HuntFeelProfile>());
             feel.alarmGraceSeconds = AlarmGrace;
             hunt = Track(new GameObject("Hunt")).AddComponent<SectorHunt>();
-            hunt.Configure(feel, null, null, 0f);
+            hunt.Configure(feel, null, 0f);
             var hero = Track(new GameObject("Hero")).AddComponent<Ship>();
             Drive(hunt.Build(new SectorBuildContext(null, null, true, null, default, hero: hero, sectorIndex: 2,
                 row: new SectorEntry { searchSeconds = SearchSeconds })));
@@ -154,7 +154,7 @@ namespace Tests.EditMode.Sectors
             Assert.IsTrue(serialized.FindProperty("feel").objectReferenceValue, "The hunt reads its feel.");
             Assert.AreSame(prefab.Module<SectorFaction>(), serialized.FindProperty("faction").objectReferenceValue,
                 "Patrols fly the sector's faction.");
-            Assert.IsTrue(serialized.FindProperty("patrolPilot").objectReferenceValue, "Patrols fly a wave pilot.");
+            Assert.IsNull(serialized.FindProperty("patrolPilot"), "The hunt names no patrol pilot of its own.");
             Assert.IsTrue(serialized.FindProperty("sightWedge").objectReferenceValue, "Patrols draw their sight wedge.");
             Assert.AreSame(hunt, Field(prefab.Spawners.OfType<WaveDirector>().Single(), "hunt"));
             Assert.AreSame(hunt, Field(prefab.GetComponent<PhaseSpineModule>(), "hunt"));

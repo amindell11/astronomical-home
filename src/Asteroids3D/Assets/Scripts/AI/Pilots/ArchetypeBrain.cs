@@ -96,7 +96,6 @@ namespace AI.Pilots
 
         private int tacticTick;
         private int flankSign;
-        private WoundedDraw? woundedDraw;
         private bool wounded;
         private int? respondingTick;
         // Outlives a live-target change: a ship that finds a new target keeps its spent retreats.
@@ -123,15 +122,10 @@ namespace AI.Pilots
             ? (tickCounter - respondingTick.Value) * Time.fixedDeltaTime
             : null;
         internal int RetreatsTaken => retreatsTaken;
-        internal WoundedDraw? Draw => woundedDraw;
 
         internal TacticsSettings AuthoredTactics => tactics;
 
-        internal void ReplaceTactics(TacticsSettings replacement)
-        {
-            tactics = replacement;
-            woundedDraw = null;
-        }
+        internal void ReplaceTactics(TacticsSettings replacement) => tactics = replacement;
 
         public void Configure(Ship target, OpponentArchetype archetype, in OpponentDraw shape, int jukeSeed,
             Vector2 arenaCenter, float borderRadius)
@@ -265,10 +259,8 @@ namespace AI.Pilots
         private BrainDecision FlyTactic(AIContext ctx, in Kinematics self, float maxSpeed)
         {
             var situation = Situation.Read(ctx, tactics);
-            woundedDraw ??= WoundedDraw.From(tactics, ctx.TacticsSeed);
-            var draw = woundedDraw.Value;
             var respondingSeconds = RespondingSeconds ?? 0f;
-            wounded = WoundedRules.Next(wounded, respondingSeconds, in situation, tactics, in draw, retreatsTaken);
+            wounded = WoundedRules.Next(wounded, respondingSeconds, in situation, tactics, retreatsTaken);
             if (!wounded)
                 respondingTick = null;
 
@@ -307,6 +299,8 @@ namespace AI.Pilots
                 Tactic.BreakOff => Pack(ctx.Self, FleeVelocity(self.pos, speed), engages: false),
                 Tactic.FallBack => Pack(ctx.Self, RangerBrain.HoldRangeVelocity(in self, them, fallBackRange, speed),
                     engages: situation.alliesInLane == 0),
+                Tactic.Charge => Pack(ctx.Self, RangerBrain.HoldRangeVelocity(in self, them, tactics.chargeRange, speed),
+                    engages: true),
                 _ => throw new ArgumentOutOfRangeException(nameof(tactic), tactic, null),
             };
         }

@@ -2,6 +2,7 @@ using System;
 using Balance;
 using Combat.Weapons;
 using Ships;
+using Ships.Command;
 using Ships.Presentation;
 using UnityEngine;
 
@@ -9,7 +10,7 @@ namespace Substrate.Sectors.Factions
 {
     /// <summary>
     /// One faction's facts, and the one place sector content reads them from: the two ships it flies,
-    /// the fixed kit each carries, and the skin its ships wear. A sector
+    /// the fixed kit and pilot each carries, and the skin its ships wear. A sector
     /// names its faction through <see cref="SectorFaction"/>. The elite flies the signature ship in the
     /// skin's elite set; the rest of what makes an elite lives with the elite profile, not here.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1320
@@ -52,6 +53,15 @@ namespace Substrate.Sectors.Factions
             return kit;
         }
 
+        /// <summary>The pilot <paramref name="chassis"/> flies for this faction.</summary>
+        public Commander PilotFor(Ship chassis)
+        {
+            var pilot = Entry(chassis).pilot;
+            if (!pilot)
+                throw new InvalidOperationException($"Faction '{name}' sets no pilot for '{chassis.name}'.");
+            return pilot;
+        }
+
         /// <summary>Puts the faction's skin on <paramref name="ship"/>, spawned from <paramref name="chassis"/>; the elite wears the elite set.</summary>
         public void Dress(Ship chassis, Ship ship, bool elite)
         {
@@ -76,6 +86,9 @@ namespace Substrate.Sectors.Factions
 
         [Tooltip("The one primary this ship always flies. No secondary: AI aim leads for the primary only.")]
         [Stat] public WeaponComponent kit;
+
+        [Tooltip("The pilot this hull flies for the faction; its temper is how the faction flies it.")]
+        [Stat] public Commander pilot;
 
         [Tooltip("Every hull material slot, in silhouette order, in faction paint. Empty → today's paint.")]
         public Material[] hull;

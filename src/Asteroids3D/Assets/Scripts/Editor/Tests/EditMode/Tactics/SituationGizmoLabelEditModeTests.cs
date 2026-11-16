@@ -29,7 +29,7 @@ namespace Tests.EditMode.Tactics
             temper.commits = true;
 
             var text = SituationGizmos.Label(temper.name, Tactic.FallBack, temper, wounded: false,
-                respondingSeconds: null, retreatsTaken: 0, draw: new WoundedDraw(25f, 80f, 5f, 3));
+                respondingSeconds: null, retreatsTaken: 0);
 
             Assert.AreEqual("Kiter · Fall Back", text, "a ship that is not wounded names its temper and its tactic");
         }
@@ -40,7 +40,7 @@ namespace Tests.EditMode.Tactics
             temper.wounded = WoundedResponse.FallBack;
 
             var text = SituationGizmos.Label(temper.name, Tactic.AttackRun, temper, wounded: true,
-                respondingSeconds: null, retreatsTaken: 0, draw: new WoundedDraw(25f, 80f, 5f, 3));
+                respondingSeconds: null, retreatsTaken: 0);
 
             Assert.AreEqual("Kiter · Attack Run\nwounded · waiting to retreat", text);
         }
@@ -50,9 +50,10 @@ namespace Tests.EditMode.Tactics
         {
             temper.wounded = WoundedResponse.BreakOff;
             temper.commits = true;
+            temper.retreats = 3;
 
             var text = SituationGizmos.Label(temper.name, Tactic.BreakOff, temper, wounded: true,
-                respondingSeconds: 3.2f, retreatsTaken: 1, draw: new WoundedDraw(25f, 80f, 5f, 3));
+                respondingSeconds: 3.2f, retreatsTaken: 1);
 
             Assert.AreEqual("Kiter · Break Off\nwounded · retreating 3.2 s · 2 of 3 left", text);
         }
@@ -63,7 +64,7 @@ namespace Tests.EditMode.Tactics
             temper.wounded = WoundedResponse.TurnCautious;
 
             var text = SituationGizmos.Label(temper.name, Tactic.Flank, temper, wounded: true,
-                respondingSeconds: 1.4f, retreatsTaken: 0, draw: null);
+                respondingSeconds: 1.4f, retreatsTaken: 0);
 
             Assert.AreEqual("Kiter · Flank\nwounded · cautious 1.4 s", text);
         }
@@ -72,9 +73,10 @@ namespace Tests.EditMode.Tactics
         public void RetreatsSpent_OnACommittingTemper_SaysCommitted()
         {
             temper.commits = true;
+            temper.retreats = 2;
 
             var text = SituationGizmos.Label(temper.name, Tactic.AttackRun, temper, wounded: false,
-                respondingSeconds: null, retreatsTaken: 2, draw: new WoundedDraw(25f, 80f, 5f, 2));
+                respondingSeconds: null, retreatsTaken: 2);
 
             Assert.AreEqual("Kiter · Attack Run\ncommitted", text);
         }
@@ -83,7 +85,7 @@ namespace Tests.EditMode.Tactics
         public void NoTemper_ShowsTheTacticAlone()
         {
             var text = SituationGizmos.Label(null, Tactic.FallBack, null, wounded: true,
-                respondingSeconds: 3.2f, retreatsTaken: 1, draw: new WoundedDraw(25f, 80f, 5f, 3));
+                respondingSeconds: 3.2f, retreatsTaken: 1);
 
             Assert.AreEqual("Fall Back", text);
         }

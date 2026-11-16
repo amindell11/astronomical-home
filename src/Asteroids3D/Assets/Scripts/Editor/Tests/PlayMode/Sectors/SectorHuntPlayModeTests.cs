@@ -77,7 +77,9 @@ namespace Tests.PlayMode.Sectors
             hunt.transform.SetParent(sectorGO.transform, false);
             var director = Child(sectorGO, "WaveDirector").AddComponent<WaveDirector>();
             var row = HuntRow(new SectorPhase { seconds = 30f, groups = System.Array.Empty<WaveGroup>() });
-            director.Configure(row.phases, openingLullSeconds: 5f, hunt: hunt);
+            row.faction = Track(ScriptableObject.CreateInstance<Faction>());
+            director.Configure(row.phases, openingLullSeconds: 5f, hunt: hunt,
+                faction: sectorGO.AddComponent<SectorFaction>());
             var spine = sectorGO.AddComponent<PhaseSpineModule>();
             spine.Bind(director, NewZone(sectorGO, "Zone"), NewZone(sectorGO, "Beacon"), hunt: hunt);
             var sector = sectorGO.AddComponent<Sector>();
@@ -613,14 +615,16 @@ namespace Tests.PlayMode.Sectors
             var faction = Track(ScriptableObject.CreateInstance<Faction>());
             faction.common = new FactionShip
             {
-                ship = TestAssets.LoadCrimsonPrefab(), kit = TestAssets.Load<WeaponComponent>(PatrolKitPath),
+                ship = TestAssets.LoadCrimsonPrefab(),
+                kit = TestAssets.Load<WeaponComponent>(PatrolKitPath),
+                pilot = TestAssets.Load<AICommander>(PatrolPilotPath),
             };
             var sectorFaction = Track(new GameObject("Faction")).AddComponent<SectorFaction>();
             sectorFaction.Bind(faction);
             var wedge = sightWedge
                 ? TestAssets.Load<Material>("Assets/Visuals/Ui/Minimap/UI_Minimap_Enemy.mat")
                 : null;
-            hunt.Configure(feel, sectorFaction, TestAssets.Load<AICommander>(PatrolPilotPath), spawnDistance, wedge);
+            hunt.Configure(feel, sectorFaction, spawnDistance, wedge);
             hunt.PatrolSpotted += (sector, patrol) => _beats.Add($"spotted {sector} {patrol.name}");
             hunt.PatrolSilenced += (sector, patrol) => _beats.Add($"silenced {sector} {patrol.name}");
             hunt.AlarmRaised += (sector, reason, caller) =>
