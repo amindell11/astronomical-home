@@ -23,17 +23,12 @@ MonoBehaviour:
   minimumHold: 2
   wounded: 0
   woundedBy: 0
-  woundedBelow:
-    min: 25
-    max: 25
+  woundedBelow: 25
   woundedEnds: 0
-  shieldBack:
-    min: 80
-    max: 80
-  woundedSeconds:
-    min: 5
-    max: 5
+  shieldBack: 80
+  woundedSeconds: 5
   commits: 0
-  retreatsMin: 1
-  retreatsMax: 1
+  retreats: 1
   fallBackMargin: 1
+  chargeRange: 6
+  jumpsBeyond: 70

@@ -47,11 +47,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4b8ea6c63245a6e4197204a7a6f71112, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   difficulty: 1
   combatExitDelay: 3
   aimSettings: {fileID: 11400000, guid: d0843c321eab4c569ba57b8e2d88958c, type: 2}
+  limpBelowHull: 30
+  limpScale: 0.6
 --- !u!114 &-1070365238870678526
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -62,8 +64,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5d4ac4b3b484be947a21a1f6bdfd3dae, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   lockedLocalPosition: {x: 0, y: 0, z: 0}
   lockRotation: 1
   lockScale: 1
@@ -77,20 +79,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f0f9ac3a41558b64f9a98d4dd5dbddb2, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   mpcSettings: {fileID: 11400000, guid: a3f18c2d94b6e7054a2c8f1d6b3e0972, type: 2}
   enableObstacleAvoidance: 1
-  labelStep: 5
   showCostBreakdown: 1
   costBreakdownMode: 0
   logSolverPerformance: 0
-  showObstacleCosts: 1
-  showTrajectoryCosts: 1
-  showControlInputs: 1
-  showCandidateTrajectories: 0
   candidateSampleCount: 32
   candidateAlphaFalloff: 2
+  labelStep: 5
   lastSolveTimeMs: 0
 --- !u!114 &2056539076943524747
 MonoBehaviour:
@@ -102,8 +100,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 672451d8ba1d1c24b95ea05b1fea1e71, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &606810096680689649
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -114,8 +112,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3358d33db4de47449a05f34455161639, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   nearbyShipRadius: 300
   asteroidCoverRadius: 15
   asteroidMask:
@@ -132,11 +130,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3dcd2384f40a41e098f68c8c4f6d5213, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   archetype: 0
   shape:
-    archetype:
+    archetype: 
     speedFraction: 0.85
     jukePeriod: 1.2
     orbitRadius: 16

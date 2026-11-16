@@ -18,6 +18,7 @@ MonoBehaviour:
   signature:
     ship: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637, type: 3}
     kit: {fileID: -8301958025146036882, guid: a8d8040d4d414a15a9db015021e2bed2, type: 3}
+    pilot: {fileID: 8419346158697591979, guid: 6e675e9e307831549aeef872be12f6ac, type: 3}
     hull:
     - {fileID: 2100000, guid: 62edce561b5043bd9598564fdc1aac23, type: 2}
     - {fileID: 2100000, guid: 3df8dd70ef6c43e0975c343017ca6dfa, type: 2}
@@ -41,6 +42,7 @@ MonoBehaviour:
   common:
     ship: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274, type: 3}
     kit: {fileID: -8301958025146036882, guid: a17b4473baa216a4eba58800a76acfc3, type: 3}
+    pilot: {fileID: 5985986810003856104, guid: 84c0f94b772df0748bcf796dafb39502, type: 3}
     hull:
     - {fileID: 2100000, guid: ec1e92eddee8c274ba934d9f29d1fc52, type: 2}
     - {fileID: 2100000, guid: 6a82540ff8124e12b91e336b15ab4111, type: 2}
