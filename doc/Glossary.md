@@ -579,8 +579,8 @@ Format: **term** — definition. *(authority)*
   on its death. Sector 3's elite is the boss, which escalates at hull
   thresholds (escorts, heavier fire).
   An escalation step stacks weapon mods only, so the dynamics the AI captured at
-  spawn stay true. Not an *encounter*: no activation rule arms it; the sector
-  spine owns it and drives it. *(EliteEncounter, EliteProfile,
+  spawn stay true. Not an *encounter*: no activation rule arms it; the wave
+  director owns it and drives it. *(EliteEncounter, EliteProfile,
   PhaseSpineModule.StepElite)*
 - **unlocked ship** — a ship the hangar lets the player fly: the starter plus
   every elite chassis the player killed in a died or extracted run record. No save

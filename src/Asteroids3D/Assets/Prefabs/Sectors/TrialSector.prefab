@@ -453,7 +453,6 @@ MonoBehaviour:
   director: {fileID: 1116166669378757183}
   hunt: {fileID: 7436810692243587915}
   extractionZone: {fileID: 1390678639999065524}
-  elite: {fileID: 4201520510818603066}
   zoneDistance: 150
   zoneClearance: 35
   placementAttempts: 8

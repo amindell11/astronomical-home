@@ -5,7 +5,6 @@ using Ships.Loadout;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Elites;
-using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Factions;
 using UnityEditor;
 using Object = UnityEngine.Object;
@@ -14,7 +13,7 @@ using Substrate.Sessions;
 
 namespace Tests.EditMode.Sectors
 {
-    /// <summary>The shipped run and hangar offer, read as assets: each trial row ends at an elite flown from its own faction and watched by its layout's wave director, sectors 1 and 2 at a 1.5x elite with no escalation, the HUD fixtures at none, and the hangar offers Vanguard as its starter and Crimson locked, since no trial row's elite flies it.</summary>
+    /// <summary>The shipped run and hangar offer, read as assets: each trial row ends at an elite flown from its own faction and owned by its layout's wave director, sectors 1 and 2 at a 1.5x elite with no escalation, the HUD fixtures at none, and the hangar offers Vanguard as its starter and Crimson locked, since no trial row's elite flies it.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class SectorElitesEditModeTests
@@ -29,10 +28,8 @@ namespace Tests.EditMode.Sectors
         {
             var row = Load<SectorRun>(RunPath).Sectors[index];
             var prefab = row.prefab;
-            var encounter = (EliteEncounter)Field(prefab.GetComponent<PhaseSpineModule>(), "elite");
-            Assert.IsNotNull(encounter, $"row {index}'s spine owns an elite");
-            Assert.AreSame(encounter, Field(prefab.Spawners.OfType<WaveDirector>().Single(), "elite"),
-                "the waves stop when the spine's elite arrives");
+            var encounter = (EliteEncounter)Field(prefab.Spawners.OfType<WaveDirector>().Single(), "elite");
+            Assert.IsNotNull(encounter, $"row {index}'s wave director owns an elite");
 
             var faction = (SectorFaction)Field(encounter, "faction");
             Assert.AreSame(prefab.Module<SectorFaction>(), faction, "the elite flies the sector's own faction");
@@ -50,7 +47,7 @@ namespace Tests.EditMode.Sectors
         public void HudFixtureSector_HasNoElite(string sector)
         {
             var prefab = Load<Sector>($"Assets/Prefabs/Sectors/Preview/{sector}.prefab");
-            Assert.IsNull(Field(prefab.GetComponent<PhaseSpineModule>(), "elite"));
+            Assert.IsNull(Field(prefab.Spawners.OfType<WaveDirector>().Single(), "elite"));
             Assert.IsNull(PreviewHostBootstrap.FixtureRow(sector).elite, "and its row names none");
         }
 

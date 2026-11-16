@@ -130,7 +130,7 @@ namespace Tests.PlayMode.Sectors
 
             var zone = NewZone(sectorGO.transform, "Zone");
             var spine = sectorGO.AddComponent<PhaseSpineModule>();
-            spine.Bind(director, zone, NewZone(sectorGO.transform, "Beacon"), elite: withElite ? encounter : null);
+            spine.Bind(director, zone, NewZone(sectorGO.transform, "Beacon"));
 
             sector.SetManifest(null, new SectorSpawner[] { director }, new SectorModule[] { sectorFaction, spine });
             sector.Initialize(_unitService, _objectives, true, default, hero, row, sectorIndex);
