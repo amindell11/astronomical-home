@@ -28,7 +28,7 @@ namespace AI.Context
         public Dynamics Dynamics => Limping ? inner.Dynamics.Scaled(limpScale, limpScale) : inner.Dynamics;
         public float HealthPct => inner.HealthPct;
         public float ShieldPct => inner.ShieldPct;
-        public bool BoostAvailable => Limping ? false : inner.BoostAvailable;
+        public bool BoostAvailable => !Limping && inner.BoostAvailable;
         public float BoostCooldownRemaining => inner.BoostCooldownRemaining;
         public float BoostCooldownPct => inner.BoostCooldownPct;
         public float MaxSpeed => Limping ? inner.MaxSpeed * limpScale : inner.MaxSpeed;

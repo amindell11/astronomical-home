@@ -13,7 +13,7 @@ namespace AI.Pilots
 {
     /// <summary>The one scripted opponent component: target validity, the 5 Hz recompute cache, the missile evasion blended over the law, and the border tangent-steer world-velocity pack. The matrix lane Configures a pinned target and flies <see cref="OpponentArchetype"/>; an authored pilot serializes the same fields and can instead track the context's enemy.
     /// With that enemy gone, a live-targeting pilot roams around its last live position (the wreck) through held waypoints. A temper that circles the wreck does so for a few laps, then wanders. Otherwise the ship wanders from the start.
-    /// A pilot with tactics settings never reads <c>archetype</c>. Its temper names its home tactic, how it roams, and what it does when hurt. <see cref="TacticRules"/> picks the tactic from the ship's situation, and the ship flies one of the same laws through the same evasion and border pack.</summary>
+    /// A pilot with tactics settings never reads <c>archetype</c>. Its temper names its home tactic, how it roams, and what it does when hurt. <see cref="TacticRules"/> picks the tactic from the ship's situation, and the ship flies one of the same laws through the same evasion and border pack. A ship that jumps out flees past the border and asks to jump beyond its temper's distance.</summary>
     public sealed class ArchetypeBrain : Brain
     {
         private const int RecomputeIntervalTicks = 10;

@@ -1,6 +1,5 @@
 using System;
 using Ships.Command;
-using Utils;
 
 namespace AI.Context
 {
@@ -8,9 +7,8 @@ namespace AI.Context
     /// The world model the AI reasons over for a single tick: the live views
     /// (<see cref="Self"/>, <see cref="Combat"/>) over the sensing tier
     /// (<see cref="Scout"/>), plus the distance its primary weapon asks it to hold
-    /// (<see cref="HoldRange"/>), how long since the ship was last hit
-    /// (<see cref="SecondsSinceHit"/>), and the seed its temper draws from
-    /// (<see cref="TacticsSeed"/>). Holds no actuators (navigator/gunner) — those are
+    /// (<see cref="HoldRange"/>) and how long since the ship was last hit
+    /// (<see cref="SecondsSinceHit"/>). Holds no actuators (navigator/gunner) — those are
     /// owned by the host that acts on the context.
     /// </summary>
     [Serializable]
@@ -22,14 +20,12 @@ namespace AI.Context
 
         public float? HoldRange { get; private set; }
 
-        public SeedScope TacticsSeed { get; private set; }
-
         public float SecondsSinceHit { get; private set; } = float.PositiveInfinity;
 
         private float lastHealthPct;
         private float lastShieldPct;
 
-        public AIContext(IShipStatus self, Scout scout, float? holdRange, SeedScope tacticsSeed,
+        public AIContext(IShipStatus self, Scout scout, float? holdRange,
             float combatExitDelay = 3f)
         {
             if (self == null || scout == null) return;
@@ -37,7 +33,6 @@ namespace AI.Context
             Self = self;
             Scout = scout;
             HoldRange = holdRange;
-            TacticsSeed = tacticsSeed;
             Combat = new EnemyTracker(scout, combatExitDelay);
             lastHealthPct = self.HealthPct;
             lastShieldPct = self.ShieldPct;

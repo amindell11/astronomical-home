@@ -15,7 +15,6 @@ using AI.Pilots;
 using AI.Strategy;
 using System.Collections.Generic;
 using Combat.Targeting;
-using Utils;
 
 namespace Tests.EditMode
 {
@@ -112,8 +111,7 @@ namespace Tests.EditMode
             (TacticsSettings)new SerializedObject(brain).FindProperty("tactics").objectReferenceValue;
 
         private AIContext Ctx(Kinematics self, float? holdRange = null) =>
-            new(new StubStatus { Kinematics = self }, brainHost.AddComponent<AI.Scout>(), holdRange,
-                new SeedScope(1));
+            new(new StubStatus { Kinematics = self }, brainHost.AddComponent<AI.Scout>(), holdRange);
 
         [TestCase(18f)]
         [TestCase(null)]
@@ -344,7 +342,7 @@ namespace Tests.EditMode
             serialized.FindProperty("tactics").objectReferenceValue = temper;
             serialized.ApplyModifiedPropertiesWithoutUndo();
             var status = new StubStatus();
-            var ctx = new AIContext(status, brainHost.AddComponent<Scout>(), null, new SeedScope(1));
+            var ctx = new AIContext(status, brainHost.AddComponent<Scout>(), null);
             return (brain, status, ctx);
         }
 
@@ -474,7 +472,7 @@ namespace Tests.EditMode
             }
 
             Assert.AreEqual(Tactic.AttackRun, brain.CurrentTactic,
-                "its own hold and its drawn seconds have run out");
+                "its own hold and its wounded seconds have run out");
 
             Heal(status, ctx);
             Hurt(status, ctx);

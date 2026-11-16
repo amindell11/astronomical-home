@@ -8,7 +8,7 @@ using Ships.Command;
 using Ships.Registry;
 using UnityEngine;
 
-namespace Tests.EditMode
+namespace Tests.EditMode.Tactics
 {
     [Category("AI")]
     public class LimpingShipEditModeTests

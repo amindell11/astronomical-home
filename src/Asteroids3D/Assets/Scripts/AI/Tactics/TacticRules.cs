@@ -14,10 +14,10 @@ namespace AI.Tactics
     }
 
     /// <summary>
-    /// Situation in, tactic out, at each brain recompute. Wounded, last stand, break off, jump out and fall back come before
-    /// any other rule, and turn cautious reads a full nerve. A tactic holds while the reason it was
-    /// picked holds, a home tactic also while the rules still pick it, and always for the minimum hold;
-    /// once it ends, the ordered rules pick again.
+    /// Situation in, tactic out, at each brain recompute. The wounded last stand, jump out, break off and
+    /// fall back come before any other rule, and turn cautious reads a full nerve. A tactic holds while
+    /// the reason it was picked holds, a home tactic also while the rules still pick it, and always for
+    /// the minimum hold; once it ends, the ordered rules pick again.
     /// https://github.com/amindell11/astronomical-home/issues/1349
     /// </summary>
     public static class TacticRules
