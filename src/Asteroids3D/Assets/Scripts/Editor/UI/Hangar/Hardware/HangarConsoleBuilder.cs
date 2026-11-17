@@ -140,9 +140,11 @@ namespace UI.Hangar.Hardware
                 var detailView = HangarDisplayBuilder.BuildDetail(root.transform, new Vector3(200f, -300f, 0f),
                     ReferenceResolution("DetailScreenReference"), feature);
                 Spill(mainView.GetComponent<HangarDisplay>(), Light(root.transform, "MainScreenSpill",
-                    new Vector3(-5.4f, 3.4f, -2.5f), new Color(1f, .87f, .70f), 4.55f, 8f));
+                    parts["MainScreenGlass"].transform.position + new Vector3(-.032f, .46f, -1.367f),
+                    new Color(1f, .87f, .70f), 4.55f, 8f));
                 Spill(detailView.GetComponent<HangarDisplay>(), Light(root.transform, "DetailScreenSpill",
-                    new Vector3(-5f, 1.1f, -3f), new Color(1f, .87f, .70f), 1.3f, 5f));
+                    parts["DetailScreenGlass"].transform.position + new Vector3(.0015f, .252f, -.502f),
+                    new Color(1f, .87f, .70f), 1.3f, 5f));
                 var knobAxis = AuthoredUp(parts["SelectorKnob"]);
                 var knob = Control(parts["SelectorKnob"], knobAxis, .2f, camera);
                 var turn = parts["SelectorKnob"].gameObject.AddComponent<HangarKnob>();
