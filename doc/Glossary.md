@@ -528,16 +528,17 @@ Format: **term** — definition. *(authority)*
 - **wave director** — the continuous sector spawner. It sends waves inside its
   sector phases. Dead products are despawned as it goes. Content, not a sector
   module, so product ownership and teardown stay the spawner's. *(WaveDirector)*
-- **wave** — one group of ships arriving together from one bearing just off
-  screen, each on its own pilot. Each wave draws one of its sector phase's
-  groups uniformly. Waves arrive on the phase's wave-every beat, trimmed to
-  the wave cap. Nothing arrives in a lull, and survivors stay.
-  *(WaveGroup, WaveDirector.WaveDue)*
+- **wave** — one rival leading minions, arriving together from one bearing just off
+  screen. The rival takes the arc's centre and the minions take the slots either side.
+  A phase that sends waves draws how many minions fly with the rival uniformly from
+  fewest to most, inclusive. Waves arrive on the phase's wave-every beat, trimmed to
+  the wave cap, and the trim keeps the rival. Nothing arrives in a lull, and survivors stay.
+  *(WaveDirector.WaveDue)*
 - **wave every** — seconds between a sector phase's waves. The phase opens
   with one. *(SectorPhase.waveEvery)*
 - **wave cap** — the most enemies alive, hunt patrols included, that a
-  sector's waves fill to. A wave arrives trimmed to the room left, in its
-  group's listed order. A wave with no room is dropped. Nothing is held or
+  sector's waves fill to. A wave arrives trimmed to the room left, and the trim
+  keeps the rival. A wave with no room is dropped. Nothing is held or
   owed. *(SectorEntry.waveCap, WaveDirector.Room)*
 - **earned lull** — the rest of a sector phase once its last wave has arrived and
   nothing is alive, patrols included. A dropped wave counts as arrived. It moves
@@ -546,7 +547,8 @@ Format: **term** — definition. *(authority)*
   elite. A sector with no elite has none.
   *(SectorPhaseSchedule, SectorPhaseMark.Closing)*
 - **sector phase** — one timed row of a wave director's table. The row holds
-  its groups and its wave timing. The player-facing HUD says "PHASE". *(SectorPhase)*
+  whether it sends waves, how many minions fly with each wave's rival, and its
+  wave timing. The player-facing HUD says "PHASE". *(SectorPhase)*
 - **survival trial** — a sector whose goal is surviving its sector phases and
   then reaching the extraction zone (`PhaseSpineModule`). A run chains three,
   each faster-paced: extracting moves the run on, extracting from the last wins
@@ -567,12 +569,13 @@ Format: **term** — definition. *(authority)*
   so phase numbering is unchanged, and stations stay lit through the gap.
   *(SectorHunt, HuntFeelProfile, `SectorEntry.searchSeconds`)*
 - **faction** — the side a sector's enemies belong to; each survival trial
-  names one, and its wave director and hunt field only that faction's ships. The
-  **signature ship** is the faction's own chassis, and its elite flies it; the
-  **common ship** is the chassis every faction flies. Each ship always carries
-  its **faction kit**, one fixed primary, and wears the faction's paint, flame
-  and shield ring colour.
-  The sector-to-faction mapping is ruled on #1320. *(Faction, SectorFaction)*
+  names one, and its wave director and hunt field only that faction's ships. It
+  flies one signature ship at three ranks. The **minion** is smaller, at 70% hull,
+  and never fires its keystone. Hunt patrols and elite escorts fly it. The
+  **rival** is the signature ship as the player flies it, and it leads every wave.
+  The **elite** is the third rank. Every rank wears the faction's paint. The ranks
+  are ruled on #1589. The sector-to-faction mapping is ruled on #1320.
+  *(Faction.Rival, Faction.Minion, FactionRank, SectorFaction)*
 - **elite** — a sector's end-of-sector enemy: its faction's signature ship made
   larger, with a heavy weapon pair and stacked run mods. A lull follows the
   last phase, and the elite is summoned when that lull ends. Extraction opens
@@ -652,7 +655,7 @@ Format: **term** — definition. *(authority)*
   between sectors.
 - **sector run** — the ordered sectors one run flies, one row each: the sector
   prefab (the layout), the locale it shows or Random, and the values the
-  layout's parts read: faction, elite, sector phases with their wave groups,
+  layout's parts read: faction, elite, sector phases with their minion counts,
   patrol count and field preset. The parts take these values from the row and keep no copy.
   Authored as one asset edited as a table, so a locale or pacing change never
   edits a prefab; tests and the headless lane build theirs with
@@ -928,11 +931,11 @@ Format: **term** — definition. *(authority)*
   Only a pilot authored with tactics settings (the *tactics switch*) picks one.
   Every shipped pilot does, each on its own *temper*; the matrix lane's
   weapon-pair shooters never do. *(TacticRules.Next, TacticsSettings)*
-- **temper**. One `TacticsSettings` asset per pilot. A faction's ships fly
-  the pilot its `Faction` asset names for each hull (`Faction.PilotFor`), so a
-  temper belongs to a faction and a hull: Shoal's Valis and Crimson, Veil's
-  Nightshade and Crimson, Bastion's Bulwark and Crimson. Hunt patrols fly the
-  common ship's pilot, and no roster can name a pilot. Both of a faction's
+- **temper**. One `TacticsSettings` asset per pilot. A faction's ranks fly
+  the pilots its `Faction` asset names (`Faction.Rival`, `Faction.Minion`), so a
+  temper belongs to a faction and a rank: Shoal's Valis and minion, Veil's
+  Nightshade and minion, Bastion's Bulwark and minion. Hunt patrols fly the
+  minion's pilot, and no roster can name a pilot. Both of a faction's
   tempers carry the faction's wounded response, ruled on #1589, 2026-11-16:
   Veil never breaks, Shoal jumps out, and Bastion makes a last stand. The
   elite and its escorts keep their own pilots. The owner ruled on #1349,
@@ -942,7 +945,7 @@ Format: **term** — definition. *(authority)*
   they were. At 100% nerve a ship shies at a full shield too, so 0% and 100%
   hold at every shield level. The temper also records whether the ship circles
   the wreck before it wanders. A pilot with a temper never reads `archetype`.
-  *(Faction.PilotFor; Settings/AI/Tactics/Factions; EliteTemper, EscortTemper)*
+  *(Faction.Rival, Faction.Minion; Settings/AI/Tactics/Factions; EliteTemper, EscortTemper)*
 - **wounded response**. What a temper says its ships do when hurt: never
   retreat, break off, fall back, *turn cautious*, make a *last stand*, or *jump
   out*. Turn cautious adds no tactic and reads the ship's nerve as 100%, so the
@@ -1106,12 +1109,12 @@ Format: **term** — definition. *(authority)*
   the weapon prefab, so an inspector edit to the prefab or to a module asset shows
   up and an edit to a live weapon instance does not. *(StatHash.OfLoadout, StatAttribute)*
 - **stat fingerprint** — a short hash of every balance number a run can draw from:
-  what the hangar offers, each run sector's wave director in run order (its pacing and groups, and
+  what the hangar offers, each run sector's wave director in run order (its pacing and minion counts, and
   the parts its enemies draw from) and the kill refill. Runs played against the
   same numbers share a fingerprint, so results are grouped by it. A number no run
   can reach does not move it, and neither does list order or listing a part twice,
   except in a list marked `[Stat(Ordered = true)]` such as the sector phase table.
-  Inside a list entry, such as a group's ships, order still does not move it, but a repeat does.
+  Inside a list entry, order still does not move it, but a repeat does.
   Built from the `[Stat]` marks and keyed by name, so a rename moves it too.
   *(StatHash.OfSetting, StatAttribute)*
 - **run record**. One JSON line appended when a run ends, extracted from its last

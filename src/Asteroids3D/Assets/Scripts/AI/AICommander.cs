@@ -32,6 +32,9 @@ namespace AI
         [Tooltip("Seconds after losing an enemy before exiting combat state.")]
         [SerializeField] private float combatExitDelay = 3f;
 
+        [Tooltip("Never fires the ship's keystone. Every minion pilot sets it.")]
+        [SerializeField] internal bool suppressKeystone;
+
         [Header("Gunnery")]
         [Tooltip("How well this pilot's Gunner sees its target. An armed pilot without one fails at spawn.")]
         [SerializeField] internal AimSettings aimSettings;
@@ -54,7 +57,6 @@ namespace AI
         private bool engageSecondary;
         // The ability lane, latched beside the triggers.
         private bool boost;
-        internal bool suppressKeystone;
         private bool hasAnchor;
         private ShipId anchorId;
         private EnemyTarget anchorTarget;

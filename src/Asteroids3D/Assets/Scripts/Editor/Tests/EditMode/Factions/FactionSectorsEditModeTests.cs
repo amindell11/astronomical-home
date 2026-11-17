@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Combat.Weapons;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;
+using Ships.Loadout;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Factions;
 using Substrate.Sessions;
@@ -13,7 +15,7 @@ using Object = UnityEngine.Object;
 
 namespace Tests.EditMode.Factions
 {
-    /// <summary>The shipped run's three rows, read as assets: each names its own faction in run order, its waves fly only that faction's signature and common ships on their kits, each phase's mean group is at least the previous phase's with the last larger than the first, and the signature ship flies more often than the common one.</summary>
+    /// <summary>The shipped run's three rows, read as assets: each names its own faction in run order, its waves fly that faction's signature ship on the rival's and minion's kits, and each phase that sends waves draws its minions from an ordered range. Rival and minion resolve the signature ship with each rank's kit, pilot and scale, and each throws naming the faction when its kit or pilot is missing.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class FactionSectorsEditModeTests
@@ -31,43 +33,66 @@ namespace Tests.EditMode.Factions
         }
 
         [Test]
-        public void PilotFor_ReturnsEachHullsPilot()
+        public void RivalAndMinion_ResolveTheSignatureShip_WithEachRanksKitPilotAndScale()
         {
-            var signature = Hull("Signature");
-            var common = Hull("Common");
-            var signaturePilot = Pilot("SignaturePilot");
-            var commonPilot = Pilot("CommonPilot");
-            var faction = FactionOf(signature, signaturePilot, common, commonPilot);
+            var ship = Hull("Valis");
+            var rivalKit = Kit();
+            var minionKit = Kit();
+            var rivalPilot = Pilot("RivalPilot");
+            var minionPilot = Pilot("MinionPilot");
+            var scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f);
+            var faction = FactionOf(ship, rivalKit, rivalPilot, minionKit, minionPilot, scale);
 
-            Assert.AreSame(signaturePilot, faction.PilotFor(signature));
-            Assert.AreSame(commonPilot, faction.PilotFor(common));
+            var rival = faction.Rival;
+            Assert.AreSame(ship, rival.ship);
+            Assert.AreSame(rivalKit, rival.kit);
+            Assert.AreSame(rivalPilot, rival.pilot);
+            Assert.AreSame(ShipScale.One, rival.scale);
+
+            var minion = faction.Minion;
+            Assert.AreSame(ship, minion.ship);
+            Assert.AreSame(minionKit, minion.kit);
+            Assert.AreSame(minionPilot, minion.pilot);
+            Assert.AreSame(scale, minion.scale);
         }
 
         [Test]
-        public void PilotFor_ThrowsForAHullTheFactionDoesNotFly()
+        public void Rival_ThrowsNamingTheFaction_WhenItsKitOrPilotIsMissing()
         {
-            var faction = FactionOf(Hull("Signature"), Pilot("SignaturePilot"), Hull("Common"), Pilot("CommonPilot"));
+            var ship = Hull("Valis");
+            var pilot = Pilot("RivalPilot");
+            var faction = Track(ScriptableObject.CreateInstance<Faction>());
             faction.name = "Shoal";
-            var other = Hull("Stranger");
+            faction.signature = new FactionShip { ship = ship, pilot = pilot };
 
-            var ex = Assert.Throws<InvalidOperationException>(() => faction.PilotFor(other));
+            var missingKit = Assert.Throws<InvalidOperationException>(() => _ = faction.Rival);
+            StringAssert.Contains("Shoal", missingKit.Message);
+            StringAssert.Contains("rival kit", missingKit.Message);
 
-            StringAssert.Contains("Shoal", ex.Message);
-            StringAssert.Contains("Stranger", ex.Message);
+            faction.signature = new FactionShip { ship = ship, kit = Kit() };
+            var missingPilot = Assert.Throws<InvalidOperationException>(() => _ = faction.Rival);
+            StringAssert.Contains("Shoal", missingPilot.Message);
+            StringAssert.Contains("rival pilot", missingPilot.Message);
         }
 
         [Test]
-        public void PilotFor_ThrowsForAHullWithNoPilot()
+        public void Minion_ThrowsNamingTheFaction_WhenItsKitOrPilotIsMissing()
         {
-            var signature = Hull("Signature");
+            var ship = Hull("Valis");
+            var scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f);
             var faction = Track(ScriptableObject.CreateInstance<Faction>());
             faction.name = "Veil";
-            faction.signature = new FactionShip { ship = signature };
+            faction.signature = new FactionShip { ship = ship };
+            faction.minion = new FactionMinion { pilot = Pilot("MinionPilot"), scale = scale };
 
-            var ex = Assert.Throws<InvalidOperationException>(() => faction.PilotFor(signature));
+            var missingKit = Assert.Throws<InvalidOperationException>(() => _ = faction.Minion);
+            StringAssert.Contains("Veil", missingKit.Message);
+            StringAssert.Contains("minion kit", missingKit.Message);
 
-            StringAssert.Contains("Veil", ex.Message);
-            StringAssert.Contains("Signature", ex.Message);
+            faction.minion = new FactionMinion { kit = Kit(), scale = scale };
+            var missingPilot = Assert.Throws<InvalidOperationException>(() => _ = faction.Minion);
+            StringAssert.Contains("Veil", missingPilot.Message);
+            StringAssert.Contains("minion pilot", missingPilot.Message);
         }
 
         [Test]
@@ -79,37 +104,29 @@ namespace Tests.EditMode.Factions
         }
 
         [Test]
-        public void EachTrialRoster_FliesOnlyItsFactionsSignatureAndCommonShips_OnTheirKits()
+        public void EachTrialRoster_FliesItsSignatureShip_OnTheRivalsAndMinionsKits()
         {
             foreach (var (row, i) in Rows().Select((row, i) => (row, i)))
             {
                 var faction = FactionOf(row);
                 var threat = row.prefab.Module<PhaseSpineModule>().Threat(row);
 
-                CollectionAssert.AreEquivalent(new[] { faction.signature.ship, faction.common.ship }, threat.Ships, $"row {i}");
-                CollectionAssert.AreEquivalent(new[] { faction.signature.kit, faction.common.kit }.Distinct(),
+                CollectionAssert.AreEquivalent(new[] { faction.Ship }, threat.Ships, $"row {i}");
+                CollectionAssert.AreEquivalent(new[] { faction.Rival.kit, faction.Minion.kit }.Distinct(),
                     threat.Weapons, $"row {i}");
             }
         }
 
         [Test]
-        public void EachTrialRow_GrowsItsGroups_AndFliesItsSignatureShipMoreOftenThanItsCommonShip()
+        public void EachTrialRow_SendsWaves_OnAnOrderedMinionRange()
         {
             foreach (var (row, i) in Rows().Select((row, i) => (row, i)))
             {
-                var faction = FactionOf(row);
-                var means = row.phases.Select(phase => phase.groups.Average(group => (double)group.ships.Length)).ToArray();
-                for (var p = 1; p < means.Length; p++)
-                    Assert.That(means[p], Is.GreaterThanOrEqualTo(means[p - 1]),
-                        $"row {i} phase {p}: mean group size");
-                Assert.That(means[means.Length - 1], Is.GreaterThan(means[0]), $"row {i}: the last phase's groups are larger");
-
-                var templates = row.phases.SelectMany(phase => phase.groups).SelectMany(group => group.ships)
-                    .Select(ship => ship.template).ToArray();
-                var common = templates.Count(t => t == faction.common.ship);
-                Assert.Greater(common, 0, $"row {i}: the common ship still flies.");
-                Assert.Greater(templates.Count(t => t == faction.signature.ship), common,
-                    $"row {i}: the signature ship flies more often than the common one.");
+                var sending = row.phases.Where(phase => phase.sendsWaves).ToArray();
+                Assert.IsNotEmpty(sending, $"row {i} sends waves");
+                foreach (var phase in sending)
+                    Assert.That(phase.fewestMinions, Is.InRange(0, phase.mostMinions), $"row {i}");
+                Assert.AreSame(FactionOf(row).Ship, FactionOf(row).Minion.ship, $"row {i}");
             }
         }
 
@@ -120,12 +137,20 @@ namespace Tests.EditMode.Factions
             return run.Sectors.ToArray();
         }
 
-        private Faction FactionOf(Ship signature, Commander signaturePilot, Ship common, Commander commonPilot)
+        private Faction FactionOf(Ship ship, WeaponComponent rivalKit, Commander rivalPilot,
+            WeaponComponent minionKit, Commander minionPilot, ShipScale scale)
         {
             var faction = Track(ScriptableObject.CreateInstance<Faction>());
-            faction.signature = new FactionShip { ship = signature, pilot = signaturePilot };
-            faction.common = new FactionShip { ship = common, pilot = commonPilot };
+            faction.signature = new FactionShip { ship = ship, kit = rivalKit, pilot = rivalPilot };
+            faction.minion = new FactionMinion { kit = minionKit, pilot = minionPilot, scale = scale };
             return faction;
+        }
+
+        private WeaponComponent Kit()
+        {
+            var host = Track(new GameObject("Kit"));
+            host.SetActive(false);
+            return host.AddComponent<StubWeapon>();
         }
 
         private Ship Hull(string hullName)
@@ -151,6 +176,12 @@ namespace Tests.EditMode.Factions
         private sealed class StubCommander : Commander
         {
             public override void Initialize(in ShipControl control) { }
+        }
+
+        private sealed class StubWeapon : WeaponComponent
+        {
+            public override Combat.Projectiles.ProjectileBase Fire(UnityEngine.Vector3 targetPoint,
+                Substrate.Services.Projectiles.IProjectileService projectiles) => null;
         }
 
         private static Faction FactionOf(SectorEntry row)

@@ -45,7 +45,9 @@ MonoBehaviour:
       elite: {fileID: 0}
       phases:
       - seconds: 1.5
-        groups: []
+        sendsWaves: 0
+        fewestMinions: 0
+        mostMinions: 0
         waveEvery: 20
       waveCap: 5
       patrols: 0
@@ -67,7 +69,9 @@ MonoBehaviour:
       elite: {fileID: 0}
       phases:
       - seconds: 0.5
-        groups: []
+        sendsWaves: 0
+        fewestMinions: 0
+        mostMinions: 0
         waveEvery: 20
       waveCap: 5
       patrols: 0
@@ -89,7 +93,9 @@ MonoBehaviour:
       elite: {fileID: 0}
       phases:
       - seconds: 0.5
-        groups: []
+        sendsWaves: 0
+        fewestMinions: 0
+        mostMinions: 0
         waveEvery: 20
       waveCap: 5
       patrols: 0
@@ -111,7 +117,9 @@ MonoBehaviour:
       elite: {fileID: 0}
       phases:
       - seconds: 0.5
-        groups: []
+        sendsWaves: 0
+        fewestMinions: 0
+        mostMinions: 0
         waveEvery: 20
       waveCap: 5
       patrols: 0
@@ -170,28 +178,9 @@ MonoBehaviour:
       elite: {fileID: 0}
       phases:
       - seconds: 60
-        groups:
-        - ships:
-          - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-              type: 3}
-          - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-              type: 3}
-          - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-              type: 3}
-        - ships:
-          - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-              type: 3}
-          - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-              type: 3}
-          - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-              type: 3}
-        - ships:
-          - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-              type: 3}
-          - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-              type: 3}
-          - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-              type: 3}
+        sendsWaves: 1
+        fewestMinions: 2
+        mostMinions: 2
         waveEvery: 5
       waveCap: 6
       patrols: 0

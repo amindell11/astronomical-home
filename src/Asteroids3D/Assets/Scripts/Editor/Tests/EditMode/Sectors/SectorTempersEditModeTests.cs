@@ -1,7 +1,6 @@
 using AI.Pilots;
 using AI.Tactics;
 using NUnit.Framework;
-using Ships;
 using Ships.Command;
 using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sectors.Factions;
@@ -11,31 +10,41 @@ using UnityEngine;
 namespace Tests.EditMode.Sectors
 {
     /// <summary>
-    /// Each shipped faction's signature and common ship flies a pilot whose temper is set, and the two
-    /// hulls fly different pilots. Both tempers of a faction share one wounded response: Veil never,
-    /// Shoal jump out, Bastion last stand. No sector prefab names a patrol pilot of its own.
+    /// Each shipped faction's rival and minion fly pilots whose tempers are set, and the two ranks fly
+    /// different pilots. The minion is the signature ship at 0.75 size and 0.7 hull, and its pilot never
+    /// fires the keystone. Both tempers of a faction share one wounded response: Veil never, Shoal jump
+    /// out, Bastion last stand. No sector prefab names a patrol pilot of its own.
     /// </summary>
     [TestFixture]
     [Category("Sectors")]
     public class SectorTempersEditModeTests
     {
         [Test]
-        public void EachFactionsSignatureAndCommonShip_HasAPilotWhoseBrainCarriesATemper()
+        public void EachFactionsRivalAndMinion_HasAPilotWhoseBrainCarriesATemper()
         {
             foreach (var id in new[] { "Shoal", "Veil", "Bastion" })
             {
                 var faction = Load(id);
-                AssertTemper(faction, faction.signature.ship, $"{id} signature");
-                AssertTemper(faction, faction.common.ship, $"{id} common");
+                AssertTemper(faction.Rival.pilot, $"{id} rival");
+                AssertTemper(faction.Minion.pilot, $"{id} minion");
+                Assert.AreEqual(0.75f, faction.Minion.scale.Size, 1e-4f, $"{id} minion size");
+                Assert.AreEqual(0.7f, faction.Minion.scale.Hull, 1e-4f, $"{id} minion hull");
+                Assert.AreEqual($"Assets/Prefabs/Pilots/Factions/{id}MinionPilot.prefab",
+                    AssetDatabase.GetAssetPath(faction.Minion.pilot), id);
+                Assert.AreEqual($"Assets/Settings/AI/Tactics/Factions/{id}MinionTemper.asset",
+                    AssetDatabase.GetAssetPath(Temper(faction.Minion.pilot)), id);
+                Assert.IsTrue(new SerializedObject(faction.Minion.pilot).FindProperty("suppressKeystone").boolValue,
+                    $"{id} minion holds its keystone");
             }
         }
 
         [Test]
-        public void OneFactionsTwoHulls_FlyDifferentPilotPrefabs()
+        public void OneFactionsTwoRanks_FlyDifferentPilotPrefabs()
         {
             var faction = Load("Shoal");
 
-            Assert.AreNotSame(faction.PilotFor(faction.signature.ship), faction.PilotFor(faction.common.ship));
+            Assert.AreNotSame(faction.Rival.pilot, faction.Minion.pilot);
+            Assert.AreSame(faction.Ship, faction.Minion.ship);
         }
 
         [Test]
@@ -64,9 +73,8 @@ namespace Tests.EditMode.Sectors
             }
         }
 
-        private static void AssertTemper(Faction faction, Ship hull, string label)
+        private static void AssertTemper(Commander pilot, string label)
         {
-            var pilot = faction.PilotFor(hull);
             var brain = pilot.GetComponent<ArchetypeBrain>();
             Assert.IsTrue(brain, $"{label} flies an archetype brain");
             Assert.IsTrue(Temper(pilot), $"{label}'s pilot carries a temper");
@@ -75,8 +83,8 @@ namespace Tests.EditMode.Sectors
         private static void AssertResponse(string id, WoundedResponse response)
         {
             var faction = Load(id);
-            Assert.AreEqual(response, Temper(faction.PilotFor(faction.signature.ship)).wounded, $"{id} signature");
-            Assert.AreEqual(response, Temper(faction.PilotFor(faction.common.ship)).wounded, $"{id} common");
+            Assert.AreEqual(response, Temper(faction.Rival.pilot).wounded, $"{id} rival");
+            Assert.AreEqual(response, Temper(faction.Minion.pilot).wounded, $"{id} minion");
         }
 
         private static TacticsSettings Temper(Commander pilot)

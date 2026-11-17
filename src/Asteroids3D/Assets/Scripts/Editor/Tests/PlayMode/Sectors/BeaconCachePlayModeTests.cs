@@ -7,6 +7,7 @@ using Loot;
 using NUnit.Framework;
 using Objectives;
 using Ships;
+using Ships.Loadout;
 using Ships.Mods;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
@@ -195,9 +196,9 @@ namespace Tests.PlayMode.Sectors
             // One-second phases sit inside the beacon's lead, so each lull's beacon opens as the last lull ends.
             var row = new SectorEntry
             {
-                faction = Track(ScriptableObject.CreateInstance<Faction>()),
+                faction = Arm(Track(ScriptableObject.CreateInstance<Faction>())),
                 phases = Enumerable.Range(0, phases)
-                    .Select(_ => new SectorPhase { seconds = 1f, groups = System.Array.Empty<WaveGroup>() })
+                    .Select(_ => new SectorPhase { seconds = 1f })
                     .ToArray()
             };
             director.Configure(row.phases, lullSeconds: 1f, faction: sectorGO.AddComponent<SectorFaction>());
@@ -267,6 +268,21 @@ namespace Tests.PlayMode.Sectors
             var deadline = Time.time + seconds;
             while (!done() && Time.time < deadline)
                 yield return null;
+        }
+
+        private static Faction Arm(Faction faction)
+        {
+            var ship = TestAssets.LoadCrimsonPrefab();
+            var kit = ship.Weapons.PrimaryMountPrefab;
+            var pilot = TestAssets.LoadTestPilotMpc();
+            faction.signature = new FactionShip { ship = ship, kit = kit, pilot = pilot };
+            faction.minion = new FactionMinion
+            {
+                kit = kit,
+                pilot = pilot,
+                scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f),
+            };
+            return faction;
         }
 
         private T Track<T>(T item) where T : Object

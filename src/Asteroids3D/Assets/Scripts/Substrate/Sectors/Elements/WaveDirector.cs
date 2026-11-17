@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using AI.Scanning;
 using Combat.Weapons;
 using Ships;
-using Ships.Loadout;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sectors.Elements.Phases;
@@ -18,25 +17,21 @@ using UnityEngine;
 namespace Substrate.Sectors.Elements
 {
     /// <summary>
-    /// Sends waves of authored groups on each sector phase's wave-every beat, trimmed to the wave cap,
-    /// which counts the hunt's live patrols, and a wave with no room is dropped. A phase opens with one.
+    /// Sends a rival leading minions on each sector phase's wave-every beat, trimmed to the wave cap,
+    /// which counts the hunt's live patrols. The rival takes the arc's centre slot and the minions the
+    /// slots either side. A wave with no room is dropped. A phase opens with one.
     /// Nothing arrives in a lull, or once the table is done when an elite follows it. With an elite, a
     /// closing lull follows the last phase; without one, the done table keeps the last phase's waves.
     /// It begins its elite, summons it on the tick the table is done, and ends it at teardown.
-    /// The opening lull is held for the hunt. Ships arrive together just off screen, facing the hero
-    /// on their faction kit, pilot and skin. Dead products and products that ask to jump despawn on the
-    /// tick, which idles while the hero is inactive. Nothing spawns in Build, since the asteroid field
-    /// lays out at its Start. The base class's "produce exactly once" is about the activation token, not lifetime.
+    /// The opening lull is held for the hunt. Ships arrive together just off screen, facing the hero,
+    /// each on its rank's kit, pilot, scale and the faction skin. Dead products and products that ask to
+    /// jump despawn on the tick, which idles while the hero is inactive. Nothing spawns in Build, since
+    /// the asteroid field lays out at its Start. The base class's "produce exactly once" is about the
+    /// activation token, not lifetime.
     /// </summary>
     public class WaveDirector : SectorSpawner, ISectorRowReader
     {
-        [Serializable]
-        public struct RosterEntry
-        {
-            [Stat] public Ship template;
-        }
-
-        [Tooltip("The sector's faction: every roster ship must be its signature or common ship, and flies that ship's faction kit and pilot.")]
+        [Tooltip("The sector's faction. Each wave is its rival leading minions, on that rank's kit, pilot and scale.")]
         [SerializeField] private SectorFaction faction;
         [SerializeField] private int team = 1;
 
@@ -73,7 +68,7 @@ namespace Substrate.Sectors.Elements
         private bool started;
         private bool huntReleased;
         private int openedPhase;
-        private RosterEntry[] pending;
+        private int? pending;
         private float lastWave;
 
         /// <summary>Where the phase table stands as of the last tick.</summary>
@@ -102,7 +97,7 @@ namespace Substrate.Sectors.Elements
 
         public int PhaseCount => phases.Length;
 
-        /// <summary>A group ship the row's faction doesn't fly fails at session start, not the first wave.</summary>
+        /// <summary>A phase whose minion range runs backwards, or a rank missing its kit, pilot or scale, fails at session start.</summary>
         public void CheckRow(SectorEntry row)
         {
             if (row.phases.Length == 0)
@@ -114,16 +109,10 @@ namespace Substrate.Sectors.Elements
             for (var i = 0; i < row.phases.Length; i++)
             {
                 var phase = row.phases[i];
-                foreach (var group in phase.groups)
-                {
-                    if (group.ships.Length == 0)
-                        throw new InvalidOperationException(
-                            $"WaveDirector on '{name}' phase {i} has a group with no ships.");
-                    foreach (var ship in group.ships)
-                        if (!ship.template)
-                            throw new InvalidOperationException(
-                                $"WaveDirector on '{name}' phase {i} has a group ship with no template.");
-                }
+                if (!phase.sendsWaves) continue;
+                if (phase.fewestMinions < 0 || phase.fewestMinions > phase.mostMinions)
+                    throw new InvalidOperationException(
+                        $"WaveDirector on '{name}' phase {i} asks for {phase.fewestMinions}..{phase.mostMinions} minions.");
             }
 
             if (elite) elite.CheckRow(row);
@@ -131,13 +120,8 @@ namespace Substrate.Sectors.Elements
                 throw new InvalidOperationException($"WaveDirector on '{name}' needs its faction.");
             if (!row.faction)
                 throw new InvalidOperationException($"WaveDirector on '{name}' flies the row's faction, and the row names none.");
-            foreach (var phase in row.phases)
-                foreach (var group in phase.groups)
-                    foreach (var ship in group.ships)
-                    {
-                        row.faction.KitFor(ship.template);
-                        row.faction.PilotFor(ship.template);
-                    }
+            _ = row.faction.Rival;
+            _ = row.faction.Minion;
         }
 
         protected override IEnumerator Produce(SectorBuildContext ctx)
@@ -199,11 +183,11 @@ namespace Substrate.Sectors.Elements
             HoldForHunt(now);
             Advance(now);
             SummonElite();
-            var wave = WaveDue(now);
-            if (wave != null)
+            var minions = WaveDue(now);
+            if (minions != null)
             {
-                var count = Room(wave.Length, Alive);
-                if (count == 0 || TrySend(wave, count)) Arrived(now);
+                var count = Room(1 + minions.Value, Alive);
+                if (count == 0 || TrySend(count)) Arrived(now);
             }
             Observe(now, Alive);
         }
@@ -257,7 +241,7 @@ namespace Substrate.Sectors.Elements
 
         private bool WavesOver => elite && Phase.Done;
 
-        internal RosterEntry[] WaveDue(float now)
+        internal int? WaveDue(float now)
         {
             if (Phase.InLull || WavesOver)
                 return null;
@@ -281,7 +265,7 @@ namespace Substrate.Sectors.Elements
             var phase = phases[Phase.Index];
             var untilWave = lastWave + phase.waveEvery - now;
             var inPhase = !Phase.InLull && !Phase.Done;
-            var waveLeft = phase.groups.Length > 0 && (pending != null || untilWave < Phase.SecondsLeft);
+            var waveLeft = phase.sendsWaves && (pending != null || untilWave < Phase.SecondsLeft);
             var waveFits = inPhase && waveLeft;
 
             EarnedLull = inPhase && openedPhase == Phase.Index && alive == 0 && !waveLeft;
@@ -291,35 +275,32 @@ namespace Substrate.Sectors.Elements
                 NextWaveSeconds = !Phase.Closing && (Phase.InLull || Phase.Index < phases.Length - 1)
                     ? Phase.CountdownSeconds
                     : 0f;
-            WaveAhead = waveFits || LaterPhaseHasGroups();
+            WaveAhead = waveFits || LaterPhaseSendsWaves();
         }
 
-        private bool LaterPhaseHasGroups()
+        private bool LaterPhaseSendsWaves()
         {
             if (Phase.Done || Phase.Closing) return false;
             var from = Phase.InLull ? Phase.Index : Phase.Index + 1;
             for (var i = from; i < phases.Length; i++)
-                if (phases[i].groups.Length > 0) return true;
+                if (phases[i].sendsWaves) return true;
             return false;
         }
 
-        private static RosterEntry[] Draw(SectorPhase phase) =>
-            phase.groups.Length == 0
-                ? null
-                : phase.groups[UnityEngine.Random.Range(0, phase.groups.Length)].ships;
+        private static int? Draw(SectorPhase phase) =>
+            phase.sendsWaves
+                ? UnityEngine.Random.Range(phase.fewestMinions, phase.mostMinions + 1)
+                : null;
 
         /// <summary>Reads only serialized data and the row, so a prefab asset answers too.</summary>
         public SectorThreat Threat(SectorEntry row)
         {
             var ships = new List<Ship>();
-            foreach (var phase in row.phases)
-                foreach (var group in phase.groups)
-                    foreach (var entry in group.ships)
-                        AddDistinct(ships, entry.template);
+            AddDistinct(ships, row.faction.Ship);
 
             var weapons = new List<WeaponComponent>();
-            foreach (var ship in ships)
-                AddDistinct(weapons, row.faction.KitFor(ship));
+            AddDistinct(weapons, row.faction.Rival.kit);
+            AddDistinct(weapons, row.faction.Minion.kit);
             return new SectorThreat(ships, weapons);
         }
 
@@ -350,7 +331,7 @@ namespace Substrate.Sectors.Elements
             products.Add(ship);
         }
 
-        private bool TrySend(RosterEntry[] group, int count)
+        private bool TrySend(int count)
         {
             var center = GamePlane.WorldPointToPlane(hero.transform.position);
             for (var attempt = 0; attempt < placementAttempts; attempt++)
@@ -360,16 +341,16 @@ namespace Substrate.Sectors.Elements
                 if (Array.Exists(slots, slot => !ClearPoint.IsClear(field, slot, clearanceRadius)))
                     continue;
 
+                var rivalSlot = (count - 1) / 2;
                 for (var i = 0; i < count; i++)
                 {
-                    var entry = group[i];
+                    var rank = i == rivalSlot ? faction.Faction.Rival : faction.Faction.Minion;
                     var outward = (slots[i] - center).normalized;
                     var facingHero = GamePlane.PlanePose(GamePlane.Normal, GamePlane.PlaneDirToWorld(-outward));
                     var position = GamePlane.PlanePointToWorld(slots[i]);
-                    var loadout = new ShipLoadout(entry.template, faction.Faction.KitFor(entry.template), null);
-                    var ship = units.SpawnShip(entry.template, faction.Faction.PilotFor(entry.template), team,
-                        position, facingHero, field, loadout);
-                    faction.Faction.Dress(entry.template, ship, elite: false);
+                    var ship = units.SpawnShip(rank.ship, rank.pilot, team, position, facingHero, field,
+                        rank.Loadout, rank.scale);
+                    faction.Faction.Dress(ship, elite: false);
                     Track(ship);
                 }
                 return true;

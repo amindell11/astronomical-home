@@ -109,9 +109,10 @@ namespace Tests.PlayMode
             var director = directorGO.AddComponent<WaveDirector>();
             var row = new SectorEntry
             {
-                phases = new[] { new SectorPhase { seconds = 1f, groups = System.Array.Empty<WaveGroup>() } }
+                phases = new[] { new SectorPhase { seconds = 1f } }
             };
             var faction = TrackAsset(ScriptableObject.CreateInstance<Faction>());
+            Arm(faction);
             row.faction = faction;
             director.Configure(row.phases, lullSeconds: 0f, faction: sectorGO.AddComponent<SectorFaction>());
 
@@ -172,11 +173,12 @@ namespace Tests.PlayMode
             {
                 phases = new[]
                 {
-                    new SectorPhase { seconds = 1f, groups = System.Array.Empty<WaveGroup>() },
-                    new SectorPhase { seconds = 1f, groups = System.Array.Empty<WaveGroup>() },
+                    new SectorPhase { seconds = 1f },
+                    new SectorPhase { seconds = 1f },
                 }
             };
             var faction = TrackAsset(ScriptableObject.CreateInstance<Faction>());
+            Arm(faction);
             row.faction = faction;
             director.Configure(row.phases, lullSeconds: 5f, faction: sectorGO.AddComponent<SectorFaction>());
 
@@ -218,12 +220,16 @@ namespace Tests.PlayMode
             var sector = sectorGO.AddComponent<Sector>();
 
             var crimson = TestAssets.LoadCrimsonPrefab();
-            var vanguard = TestAssets.Load<Ship>("Assets/Prefabs/Ships/Vanguard.prefab");
             var pilot = TestAssets.LoadTestPilotMpc();
             var faction = TrackAsset(ScriptableObject.CreateInstance<Faction>());
             faction.id = "shoal";
-            faction.signature = new FactionShip { ship = crimson, kit = crimson.Weapons.PrimaryMountPrefab };
-            faction.common = new FactionShip { ship = vanguard, kit = vanguard.Weapons.PrimaryMountPrefab };
+            faction.signature = new FactionShip { ship = crimson, kit = crimson.Weapons.PrimaryMountPrefab, pilot = pilot };
+            faction.minion = new FactionMinion
+            {
+                kit = crimson.Weapons.PrimaryMountPrefab,
+                pilot = pilot,
+                scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f),
+            };
             var profile = TrackAsset(ScriptableObject.CreateInstance<EliteProfile>());
             profile.name = "TestElite";
             profile.Configure("Test elite", new ShipScale(1.5f, 1f, 1f, 1f, 1f), crimson.Weapons.PrimaryMountPrefab);
@@ -238,7 +244,7 @@ namespace Tests.PlayMode
             {
                 faction = faction,
                 elite = profile,
-                phases = new[] { new SectorPhase { seconds = 1f, groups = System.Array.Empty<WaveGroup>() } }
+                phases = new[] { new SectorPhase { seconds = 1f } }
             };
             director.Configure(row.phases, lullSeconds: 1f, faction: sectorFaction, elite: elite);
 
@@ -262,6 +268,20 @@ namespace Tests.PlayMode
             Assert.IsFalse(beacon.gameObject.activeSelf, "The grace into the elite closes it.");
 
             yield return sector.Teardown();
+        }
+
+        private static void Arm(Faction faction)
+        {
+            var ship = TestAssets.LoadCrimsonPrefab();
+            var kit = ship.Weapons.PrimaryMountPrefab;
+            var pilot = TestAssets.LoadTestPilotMpc();
+            faction.signature = new FactionShip { ship = ship, kit = kit, pilot = pilot };
+            faction.minion = new FactionMinion
+            {
+                kit = kit,
+                pilot = pilot,
+                scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f),
+            };
         }
     }
 }

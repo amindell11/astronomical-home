@@ -15,7 +15,7 @@ using Substrate.Sessions;
 
 namespace Tests.EditMode.Sectors
 {
-    /// <summary>The hunt's search clock with injected time, and the wave director holding its opening lull through the gap after it: with no patrol seeing, the clock sounds the alarm itself, and phase one opens when the gap ends, keeping index 0, then the table runs as authored. A patrol's route passes beside the start on its own side. The trial rows ask for a hunt of one patrol, then two, flying Crimson, and the fixtures opt out.</summary>
+    /// <summary>The hunt's search clock with injected time, and the wave director holding its opening lull through the gap after it: with no patrol seeing, the clock sounds the alarm itself, and phase one opens when the gap ends, keeping index 0, then the table runs as authored. A patrol's route passes beside the start on its own side. The trial rows ask for a hunt of one patrol, then two, flying the minion rank, and the fixtures opt out.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class SectorHuntEditModeTests
@@ -144,7 +144,7 @@ namespace Tests.EditMode.Sectors
         [TestCase(0, 1)]
         [TestCase(1, 2)]
         [TestCase(2, 2)]
-        public void TrialRow_HoldsForItsHunt_OfItsPatrolCount_FlyingItsFactionsCommonShip(int index, int patrols)
+        public void TrialRow_HoldsForItsHunt_OfItsPatrolCount_FlyingItsFactionsMinion(int index, int patrols)
         {
             var row = AssetDatabase.LoadAssetAtPath<SectorRun>("Assets/Settings/Game/SurvivalTrialRun.asset").Sectors[index];
             var prefab = row.prefab;
@@ -154,6 +154,9 @@ namespace Tests.EditMode.Sectors
             Assert.IsTrue(serialized.FindProperty("feel").objectReferenceValue, "The hunt reads its feel.");
             Assert.AreSame(prefab.Module<SectorFaction>(), serialized.FindProperty("faction").objectReferenceValue,
                 "Patrols fly the sector's faction.");
+            Assert.AreSame(row.faction.Ship, row.faction.Minion.ship, "A patrol flies the signature ship at minion rank.");
+            Assert.AreEqual(0.75f, row.faction.Minion.scale.Size, 1e-4f);
+            Assert.AreEqual(0.7f, row.faction.Minion.scale.Hull, 1e-4f);
             Assert.IsNull(serialized.FindProperty("patrolPilot"), "The hunt names no patrol pilot of its own.");
             Assert.IsTrue(serialized.FindProperty("sightWedge").objectReferenceValue, "Patrols draw their sight wedge.");
             Assert.AreSame(hunt, Field(prefab.Spawners.OfType<WaveDirector>().Single(), "hunt"));

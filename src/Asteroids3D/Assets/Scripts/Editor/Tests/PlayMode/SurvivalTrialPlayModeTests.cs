@@ -89,7 +89,8 @@ namespace Tests.PlayMode
             return template;
         }
 
-        private WaveDirector NewTrial(Ship template, Ship player, out Sector sector)
+        private WaveDirector NewTrial(Ship template, Ship player, out Sector sector, bool sendsWaves = true,
+            int fewest = 0, int most = 0, int waveCap = 5, Commander rivalPilot = null, Commander minionPilot = null)
         {
             var sectorGO = TrackGO(new GameObject("TrialSector"));
             sector = sectorGO.AddComponent<Sector>();
@@ -98,31 +99,35 @@ namespace Tests.PlayMode
             var director = directorGO.AddComponent<WaveDirector>();
             var faction = ScriptableObject.CreateInstance<Faction>();
             _assets.Add(faction);
-            faction.signature = new FactionShip
+            var kit = TestAssets.Load<WeaponComponent>("Assets/Prefabs/Weapons/Lasers.prefab");
+            rivalPilot ??= TestAssets.LoadTestPilotMpc();
+            minionPilot ??= rivalPilot;
+            faction.signature = new FactionShip { ship = template, kit = kit, pilot = rivalPilot };
+            faction.minion = new FactionMinion
             {
-                ship = template,
-                kit = TestAssets.Load<WeaponComponent>("Assets/Prefabs/Weapons/Lasers.prefab"),
-                pilot = TestAssets.LoadTestPilotMpc(),
+                kit = kit,
+                pilot = minionPilot,
+                scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f),
             };
             var sectorFaction = sectorGO.AddComponent<SectorFaction>();
             sectorFaction.Bind(faction);
             var row = new SectorEntry
             {
                 faction = faction,
+                waveCap = waveCap,
                 phases = new[]
                 {
                     new SectorPhase
                     {
                         seconds = 100f,
                         waveEvery = 100f,
-                        groups = new[]
-                        {
-                            new WaveGroup { ships = new[] { new WaveDirector.RosterEntry { template = template } } },
-                        },
+                        sendsWaves = sendsWaves,
+                        fewestMinions = fewest,
+                        mostMinions = most,
                     },
                 },
             };
-            director.Configure(row.phases, spawnRadius: SpawnRadius, faction: sectorFaction);
+            director.Configure(row.phases, spawnRadius: SpawnRadius, faction: sectorFaction, waveCap: waveCap);
             sector.SetManifest(null, new SectorSpawner[] { director }, new SectorModule[] { sectorFaction });
             sector.Initialize(_unitService, _objectives, true, default, player, row);
             return director;
@@ -214,6 +219,76 @@ namespace Tests.PlayMode
             Assert.AreEqual(0, director.Alive, "A jumped product counts as nothing alive.");
             Assert.AreEqual(0, tally.Kills, "A jump records no kill.");
             Assert.IsFalse(product, "The despawned product is destroyed.");
+
+            yield return sector.Teardown();
+        }
+
+        [UnityTest]
+        public IEnumerator Wave_SendsOneRivalAtTheCentre_AndMinionsAtMinionScale()
+        {
+            var template = NewTemplate();
+            var player = _unitService.SpawnShip(template, null, 0, GamePlane.PlanePointToWorld(Vector2.zero),
+                GamePlane.Rotation, null);
+            var rivalPilot = TestAssets.LoadTestPilotMpc();
+            var minionPilot = TestAssets.Load<AICommander>("Assets/Prefabs/Pilots/AggressorPilot.prefab");
+            var director = NewTrial(template, player, out var sector, fewest: 2, most: 2,
+                rivalPilot: rivalPilot, minionPilot: minionPilot);
+
+            yield return sector.Setup();
+            for (var i = 0; i < 10 && director.Spawned.Count == 0; i++)
+                yield return null;
+
+            Assert.AreEqual(3, director.Spawned.Count, "The wave is one rival plus the phase's two minions.");
+            Assert.That(director.Spawned[1].Commander.name, Does.StartWith(rivalPilot.name),
+                "The rival takes the arc's centre slot.");
+            Assert.That(director.Spawned[0].Commander.name, Does.StartWith(minionPilot.name));
+            Assert.That(director.Spawned[2].Commander.name, Does.StartWith(minionPilot.name));
+            var rival = director.Spawned[1];
+            foreach (var minion in new[] { director.Spawned[0], director.Spawned[2] })
+            {
+                Assert.AreEqual(rival.transform.localScale.x * 0.75f, minion.transform.localScale.x, 1e-3f,
+                    "A minion is 0.75 of the rival's root scale.");
+                Assert.AreEqual(rival.Damage.maxHealth * 0.7f, minion.Damage.maxHealth, 1e-2f,
+                    "A minion has 0.7 of the rival's hull.");
+            }
+
+            yield return sector.Teardown();
+        }
+
+        [UnityTest]
+        public IEnumerator TrimmedToOneShip_SendsOnlyTheRival()
+        {
+            var template = NewTemplate();
+            var player = _unitService.SpawnShip(template, null, 0, GamePlane.PlanePointToWorld(Vector2.zero),
+                GamePlane.Rotation, null);
+            var rivalPilot = TestAssets.LoadTestPilotMpc();
+            var minionPilot = TestAssets.Load<AICommander>("Assets/Prefabs/Pilots/AggressorPilot.prefab");
+            var director = NewTrial(template, player, out var sector, fewest: 4, most: 4, waveCap: 1,
+                rivalPilot: rivalPilot, minionPilot: minionPilot);
+
+            yield return sector.Setup();
+            for (var i = 0; i < 10 && director.Spawned.Count == 0; i++)
+                yield return null;
+
+            Assert.AreEqual(1, director.Spawned.Count, "A trim to one ship keeps the rival.");
+            Assert.That(director.Spawned[0].Commander.name, Does.StartWith(rivalPilot.name));
+
+            yield return sector.Teardown();
+        }
+
+        [UnityTest]
+        public IEnumerator PhaseThatSendsNoWaves_SpawnsNothing()
+        {
+            var template = NewTemplate();
+            var player = _unitService.SpawnShip(template, null, 0, GamePlane.PlanePointToWorld(Vector2.zero),
+                GamePlane.Rotation, null);
+            var director = NewTrial(template, player, out var sector, sendsWaves: false);
+
+            yield return sector.Setup();
+            for (var i = 0; i < 5; i++)
+                yield return null;
+
+            Assert.AreEqual(0, director.Spawned.Count, "A phase with waves off sends nothing.");
 
             yield return sector.Teardown();
         }

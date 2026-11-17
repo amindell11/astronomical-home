@@ -10,6 +10,7 @@ using NUnit.Framework;
 using Objectives;
 using Objectives.Presentation;
 using Ships;
+using Ships.Loadout;
 using Ships.Visuals;
 using Substrate;
 using Substrate.Sectors;
@@ -44,6 +45,7 @@ namespace Tests.PlayMode.Sectors
         private readonly List<string> _beats = new();
         private int _patrols;
         private float _searchSeconds;
+        private Faction _faction;
 
         [SetUp]
         public override void SetUp()
@@ -76,8 +78,8 @@ namespace Tests.PlayMode.Sectors
             var sectorGO = Track(new GameObject("HuntedSector"));
             hunt.transform.SetParent(sectorGO.transform, false);
             var director = Child(sectorGO, "WaveDirector").AddComponent<WaveDirector>();
-            var row = HuntRow(new SectorPhase { seconds = 30f, groups = System.Array.Empty<WaveGroup>() });
-            row.faction = Track(ScriptableObject.CreateInstance<Faction>());
+            var row = HuntRow(new SectorPhase { seconds = 30f });
+            row.faction = _faction;
             director.Configure(row.phases, openingLullSeconds: 5f, hunt: hunt,
                 faction: sectorGO.AddComponent<SectorFaction>());
             var spine = sectorGO.AddComponent<PhaseSpineModule>();
@@ -90,6 +92,13 @@ namespace Tests.PlayMode.Sectors
             yield return null;
             yield return null;
             var patrol = Patrol(hunt);
+            var reference = _unitService.SpawnShip(TestAssets.LoadCrimsonPrefab(), null, 0,
+                GamePlane.PlanePointToWorld(new Vector2(900f, 900f)), GamePlane.Rotation, null);
+            Assert.AreEqual(reference.transform.localScale.x * 0.75f, patrol.transform.localScale.x, 1e-3f,
+                "A patrol spawns at the minion's size.");
+            Assert.AreEqual(reference.Damage.maxHealth * 0.7f, patrol.Damage.maxHealth, 1e-2f,
+                "A patrol spawns at the minion's hull.");
+            _unitService.DespawnShip(reference);
             var wedge = patrol.GetComponentInChildren<PatrolSightWedge>();
             Assert.AreEqual(SpawnDistance, PlaneDistance(patrol, hero), 2f, "The patrol spawns its distance from the start.");
             Assert.IsTrue(Scout(patrol).Unaware, "A patrol flies unaware of the hero.");
@@ -613,12 +622,17 @@ namespace Tests.PlayMode.Sectors
             _searchSeconds = searchSeconds;
             var hunt = Track(new GameObject("Hunt")).AddComponent<SectorHunt>();
             var faction = Track(ScriptableObject.CreateInstance<Faction>());
-            faction.common = new FactionShip
+            var ship = TestAssets.LoadCrimsonPrefab();
+            var kit = TestAssets.Load<WeaponComponent>(PatrolKitPath);
+            var pilot = TestAssets.Load<AICommander>(PatrolPilotPath);
+            faction.signature = new FactionShip { ship = ship, kit = kit, pilot = pilot };
+            faction.minion = new FactionMinion
             {
-                ship = TestAssets.LoadCrimsonPrefab(),
-                kit = TestAssets.Load<WeaponComponent>(PatrolKitPath),
-                pilot = TestAssets.Load<AICommander>(PatrolPilotPath),
+                kit = kit,
+                pilot = pilot,
+                scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f),
             };
+            _faction = faction;
             var sectorFaction = Track(new GameObject("Faction")).AddComponent<SectorFaction>();
             sectorFaction.Bind(faction);
             var wedge = sightWedge

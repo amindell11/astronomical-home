@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Game.Preview.Fixtures;
 using Objectives;
-using Ships;
 using Ships.Command;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
@@ -17,7 +16,7 @@ using Object = UnityEngine.Object;
 namespace Game.Preview.Sectors
 {
     /// <summary>
-    /// The Sectors window's pages, checks, shared values and wave-group lines,
+    /// The Sectors window's pages, checks, shared values and rank lines,
     /// over a sector run, its preview fixtures and the sector layouts. It writes
     /// nothing. <see cref="Sector.CheckRow"/> supplies a page's failure message,
     /// and a shared value's users are the run sectors, fixtures and other layouts
@@ -93,41 +92,12 @@ namespace Game.Preview.Sectors
             return list;
         }
 
-        internal static string GroupSummary(WaveGroup group, Faction faction)
+        internal static string RankPilots(Faction faction)
         {
-            var ships = group.ships;
-            if (ships == null || ships.Length == 0) return "empty group";
-            var templates = new List<Ship>();
-            var pilots = new List<List<string>>();
-            foreach (var ship in ships)
-            {
-                var found = -1;
-                for (var i = 0; i < templates.Count; i++)
-                {
-                    if (templates[i] != ship.template) continue;
-                    found = i;
-                    break;
-                }
-                if (found < 0)
-                {
-                    found = templates.Count;
-                    templates.Add(ship.template);
-                    pilots.Add(new List<string>());
-                }
-                pilots[found].Add(PilotName(faction.PilotFor(ship.template)));
-            }
-            var parts = new string[templates.Count];
-            for (var i = 0; i < templates.Count; i++)
-                parts[i] = FormatShips(TemplateName(templates[i]), pilots[i]);
-            return string.Join(" + ", parts);
+            var rival = faction.Rival;
+            var minion = faction.Minion;
+            return $"Rival ({PilotName(rival.pilot)}) \u00b7 Minion ({PilotName(minion.pilot)})";
         }
-
-        private static string FormatShips(string template, List<string> pilots) =>
-            pilots.Count == 1
-                ? $"{template} ({pilots[0]})"
-                : $"{pilots.Count}\u00d7 {template}: {string.Join(", ", pilots)}";
-
-        private static string TemplateName(Ship template) => template ? template.name : "none";
 
         private static string PilotName(Commander pilot)
         {

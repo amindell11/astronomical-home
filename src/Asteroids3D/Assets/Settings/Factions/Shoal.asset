@@ -37,18 +37,15 @@ MonoBehaviour:
     - {fileID: 2100000, guid: 4185c4dc92ca64f42b536453f090da55, type: 2}
     - {fileID: 2100000, guid: 6397d2da28e948018b60749fda79c6ef, type: 2}
     - {fileID: 2100000, guid: cd3c4da19d3ac8b4b83601d0d87c7659, type: 2}
-  common:
-    ship: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274, type: 3}
+  minion:
     kit: {fileID: -8301958025146036882, guid: a17b4473baa216a4eba58800a76acfc3, type: 3}
     pilot: {fileID: 5737641424197988005, guid: b5ae53d770a6de344858eb56eeeca029, type: 3}
-    hull:
-    - {fileID: 2100000, guid: ec1e92eddee8c274ba934d9f29d1fc52, type: 2}
-    - {fileID: 2100000, guid: 386c1df99eb548ac9748c6d872a8680b, type: 2}
-    - {fileID: 2100000, guid: 89b3b30dd92ee8e468cc5400ff623197, type: 2}
-    eliteHull:
-    - {fileID: 2100000, guid: ec1e92eddee8c274ba934d9f29d1fc52, type: 2}
-    - {fileID: 2100000, guid: 386c1df99eb548ac9748c6d872a8680b, type: 2}
-    - {fileID: 2100000, guid: 89b3b30dd92ee8e468cc5400ff623197, type: 2}
+    scale:
+      size: 0.75
+      mass: 1
+      thrust: 1
+      torque: 1
+      hull: 0.7
   flame: {fileID: 2100000, guid: 2eb3caeab93746ce83e028188297baec, type: 2}
   eliteFlame: {fileID: 2100000, guid: 361c2fabb726455cb13b67b0c6af7406, type: 2}
   shieldRing: {r: 0.99607843, g: 0.5254902, b: 0.101960786, a: 1}

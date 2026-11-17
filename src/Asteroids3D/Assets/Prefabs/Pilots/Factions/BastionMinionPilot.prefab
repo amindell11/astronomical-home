@@ -58,10 +58,15 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
+        type: 3}
+      propertyPath: suppressKeystone
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6880428161490311760, guid: 2a67010d59bac134caa6a455f8ef2660,
         type: 3}
       propertyPath: m_Name
-      value: BastionCrimsonPilot
+      value: BastionMinionPilot
       objectReference: {fileID: 0}
     - target: {fileID: 8039754676777876555, guid: 2a67010d59bac134caa6a455f8ef2660,
         type: 3}

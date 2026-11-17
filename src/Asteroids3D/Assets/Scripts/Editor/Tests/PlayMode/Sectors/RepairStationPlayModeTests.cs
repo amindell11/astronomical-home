@@ -377,8 +377,8 @@ namespace Tests.PlayMode.Sectors
             var director = Track(new GameObject("WaveDirector")).AddComponent<WaveDirector>();
             director.Configure(new[]
             {
-                new SectorPhase { seconds = 40f, waveEvery = 20f, groups = Array.Empty<WaveGroup>() },
-                new SectorPhase { seconds = 40f, waveEvery = 20f, groups = Array.Empty<WaveGroup>() },
+                new SectorPhase { seconds = 40f, waveEvery = 20f },
+                new SectorPhase { seconds = 40f, waveEvery = 20f },
             }, lullSeconds: 5f);
             director.BeginSchedule(0f);
             return director;

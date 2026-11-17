@@ -6,7 +6,6 @@ using AI.Scanning;
 using Balance;
 using Damage;
 using Ships;
-using Ships.Loadout;
 using Ships.Presentation;
 using Substrate.Sectors.Elements.Placement;
 using Substrate.Sectors.Factions;
@@ -38,7 +37,7 @@ namespace Substrate.Sectors.Elements.Hunt
     {
         [Tooltip("Sight cone and spotted-meter timing.")]
         [Stat, SerializeField] private HuntFeelProfile feel;
-        [Tooltip("The sector's faction: every patrol flies its common ship, on its kit and pilot and in its skin.")]
+        [Tooltip("The sector's faction. Every patrol flies its minion rank, on that rank's kit, pilot and scale, in the faction skin.")]
         [Stat, SerializeField] private SectorFaction faction;
         [Tooltip("Material for each patrol's sight wedge on the minimap. Tinted per patrol, one instance each.")]
         [SerializeField] private Material sightWedge;
@@ -269,13 +268,12 @@ namespace Substrate.Sectors.Elements.Hunt
             {
                 var angle = UnityEngine.Random.Range(0f, 2f * Mathf.PI);
                 var heading = GamePlane.PlaneDirToWorld(new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)));
-                var patrolShip = faction.Faction.common.ship;
+                var minion = faction.Faction.Minion;
                 var position = ClearPoint.Around(center, spawnDistanceMin, spawnDistanceMax, clearanceRadius,
                     field, placementAttempts);
-                var ship = units.SpawnShip(patrolShip, faction.Faction.PilotFor(patrolShip), team, position,
-                    GamePlane.PlanePose(GamePlane.Normal, heading), field,
-                    new ShipLoadout(patrolShip, faction.Faction.KitFor(patrolShip), null));
-                faction.Faction.Dress(patrolShip, ship, elite: false);
+                var ship = units.SpawnShip(minion.ship, minion.pilot, team, position,
+                    GamePlane.PlanePose(GamePlane.Normal, heading), field, minion.Loadout, minion.scale);
+                faction.Faction.Dress(ship, elite: false);
                 var route = PatrolRoute.Waypoints(center, GamePlane.WorldPointToPlane(sector.transform.position),
                     GamePlane.WorldPointToPlane(position), feel.routeStartPass);
                 var patrol = new Patrol(ship, (AICommander)ship.Commander, route);
