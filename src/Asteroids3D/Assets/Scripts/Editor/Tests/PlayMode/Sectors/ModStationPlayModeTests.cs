@@ -9,6 +9,7 @@ using Substrate.Sectors;
 using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sectors.Elements.Stations;
+using Substrate.Sectors.Factions;
 using Substrate.Services.Objectives;
 using Tests.PlayMode.Common;
 using UnityEditor;
@@ -45,7 +46,10 @@ namespace Tests.PlayMode.Sectors
             base.SetUp();
             _objectives = Track(new GameObject("Objectives")).AddComponent<ObjectiveService>();
             _sector = Track(new GameObject("Sector")).AddComponent<Sector>();
-            _row = new SectorEntry();
+            _row = new SectorEntry
+            {
+                faction = AssetDatabase.LoadAssetAtPath<Faction>("Assets/Settings/Factions/Shoal.asset")
+            };
         }
 
         [TearDown]
@@ -220,7 +224,7 @@ namespace Tests.PlayMode.Sectors
             _row.searchSeconds = 1000f;
             feel.alarmGraceSeconds = AlarmGrace;
             var hunt = Track(new GameObject("Hunt")).AddComponent<SectorHunt>();
-            hunt.Configure(feel, null, null, 0f);
+            hunt.Configure(feel, null, 0f);
             Drive(hunt.Build(Context(hero)));
             return hunt;
         }

@@ -54,6 +54,12 @@ namespace Tests.PlayMode.Audio
             return new Vector3(attributes.position.x, attributes.position.y, attributes.position.z);
         }
 
+        protected static Vector3 Velocity(EventInstance instance)
+        {
+            instance.get3DAttributes(out var attributes);
+            return new Vector3(attributes.velocity.x, attributes.velocity.y, attributes.velocity.z);
+        }
+
         protected static void AssertPlaying(EventInstance instance, string why) =>
             Assert.That(State(instance), Is.EqualTo(PLAYBACK_STATE.PLAYING).Or.EqualTo(PLAYBACK_STATE.STARTING), why);
     }

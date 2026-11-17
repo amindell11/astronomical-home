@@ -38,6 +38,7 @@ namespace Substrate.Sectors.Elements.Stations
             if (row.armories < 0)
                 throw new InvalidOperationException(
                     $"Armory on '{name}' places the row's armories, and the row asks for {row.armories}.");
+            CheckDress(row, row.armories);
         }
 
         /// <summary>The weapon pick for the latest claim was taken: that armory is spent.</summary>

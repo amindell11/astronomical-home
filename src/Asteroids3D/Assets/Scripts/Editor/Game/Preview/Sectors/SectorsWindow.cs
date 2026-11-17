@@ -1,15 +1,11 @@
 using System.Collections.Generic;
 using Asteroids.Fields;
 using Game.Preview.Fixtures;
-using Ships;
-using Ships.Command;
-using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Factions;
 using Substrate.Sessions;
 using UnityEditor;
-using UnityEditorInternal;
 using UnityEngine;
 
 namespace Game.Preview.Sectors
@@ -23,8 +19,6 @@ namespace Game.Preview.Sectors
         private const float PageWidth = 720f;
         private const float ColumnWidth = LabelWidth + ObjectFieldWidth + 18f;
         private const float Gap = 4f;
-        private const float DragHandle = 20f;
-        private const float ShipListWidth = DragHandle + ObjectFieldWidth * 2f + 8f + 12f;
         private const float FixtureTabWidth = 180f;
         private const float FixtureWidth = PartLabelWidth + ObjectFieldWidth + 24f;
         private const int PreviewLimit = 32;
@@ -33,9 +27,7 @@ namespace Game.Preview.Sectors
         [SerializeField] private int sectorIndex;
         [SerializeField] private int fixtureIndex;
         [SerializeField] private bool fixturesTab;
-        private string openGroup;
         private string openUse;
-        private ReorderableList groupList;
         private GUIStyle lineButton;
         private SectorPages pages;
         private SerializedObject runObject;
@@ -76,7 +68,6 @@ namespace Game.Preview.Sectors
         private void OnUndo()
         {
             pages = null;
-            groupList = null;
             Repaint();
         }
 
@@ -95,9 +86,7 @@ namespace Game.Preview.Sectors
             if (pages != null && pages.List.Count != count)
             {
                 pages = null;
-                openGroup = null;
                 openUse = null;
-                groupList = null;
             }
             pages ??= SectorPages.Load();
             if (pages == null || pages.List.Count == 0)
@@ -286,14 +275,32 @@ namespace Game.Preview.Sectors
         private void DrawWaves(SerializedProperty row)
         {
             Heading("Waves");
+            var faction = row.FindPropertyRelative(nameof(SectorEntry.faction)).objectReferenceValue as Faction;
+            if (faction)
+                EditorGUILayout.LabelField(SectorPages.RankPilots(faction), EditorStyles.miniLabel);
             var phases = row.FindPropertyRelative(nameof(SectorEntry.phases));
             for (var i = 0; i < phases.arraySize; i++)
             {
                 if (i > 0) GUILayout.Space(8);
                 var phase = phases.GetArrayElementAtIndex(i);
                 DrawPhaseHeader(i + 1, phase);
-                DrawGroups(phase.FindPropertyRelative(nameof(SectorPhase.groups)));
+                DrawMinions(phase);
             }
+        }
+
+        private static void DrawMinions(SerializedProperty phase)
+        {
+            var row = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight, GUILayout.Width(PageWidth));
+            row.x += 8f;
+            row.width -= 8f;
+            EditorGUI.PropertyField(Take(ref row, 16f), phase.FindPropertyRelative(nameof(SectorPhase.sendsWaves)),
+                GUIContent.none);
+            EditorGUI.LabelField(Take(ref row, 78f), "sends waves");
+            Dot(ref row);
+            EditorGUI.LabelField(Take(ref row, 52f), "minions");
+            Number(ref row, phase, nameof(SectorPhase.fewestMinions));
+            EditorGUI.LabelField(Take(ref row, 16f), "to");
+            Number(ref row, phase, nameof(SectorPhase.mostMinions));
         }
 
         private static void DrawPhaseHeader(int number, SerializedProperty phase)
@@ -318,120 +325,6 @@ namespace Game.Preview.Sectors
             EditorGUI.PropertyField(Take(ref row, NumberFieldWidth), phase.FindPropertyRelative(name), GUIContent.none);
 
         private static void Dot(ref Rect row) => EditorGUI.LabelField(Take(ref row, 12f), "\u00b7");
-
-        private void DrawGroups(SerializedProperty groups)
-        {
-            for (var i = 0; i < groups.arraySize; i++)
-            {
-                var group = groups.GetArrayElementAtIndex(i);
-                var path = group.propertyPath;
-                var open = openGroup == path;
-                if (GroupLine(SectorPages.GroupSummary(ReadGroup(group)), open))
-                {
-                    openGroup = open ? null : path;
-                    groupList = null;
-                }
-                if (openGroup == path && DrawGroupEditor(groups, i)) return;
-            }
-            DrawAddGroup(groups);
-        }
-
-        private bool GroupLine(string summary, bool open)
-        {
-            var marker = open ? "\u25be" : "\u203a";
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                GUILayout.Space(8);
-                return GUILayout.Button($"{summary} {marker}", LineButton,
-                    GUILayout.Height(EditorGUIUtility.singleLineHeight));
-            }
-        }
-
-        private bool DrawGroupEditor(SerializedProperty groups, int index)
-        {
-            var ships = groups.GetArrayElementAtIndex(index).FindPropertyRelative(nameof(WaveGroup.ships));
-            EnsureGroupList(ships);
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                GUILayout.Space(8);
-                using (new EditorGUILayout.VerticalScope(GUILayout.Width(ShipListWidth)))
-                    groupList.DoLayoutList();
-            }
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                GUILayout.Space(8);
-                if (!GUILayout.Button("remove group", EditorStyles.miniButton,
-                        GUILayout.Width(104), GUILayout.ExpandWidth(false)))
-                    return false;
-            }
-            groups.DeleteArrayElementAtIndex(index);
-            openGroup = null;
-            groupList = null;
-            return true;
-        }
-
-        private void DrawAddGroup(SerializedProperty groups)
-        {
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                GUILayout.Space(8);
-                if (!GUILayout.Button("+ group", EditorStyles.miniButton,
-                        GUILayout.Width(72), GUILayout.ExpandWidth(false)))
-                    return;
-            }
-            groups.arraySize++;
-            var group = groups.GetArrayElementAtIndex(groups.arraySize - 1);
-            // Growing the array copies the last group's ships into the new one.
-            group.FindPropertyRelative(nameof(WaveGroup.ships)).arraySize = 0;
-            openGroup = group.propertyPath;
-            groupList = null;
-        }
-
-        private void EnsureGroupList(SerializedProperty ships)
-        {
-            if (groupList != null && groupList.serializedProperty.propertyPath == ships.propertyPath) return;
-            groupList = new ReorderableList(ships.serializedObject, ships, true, true, true, true)
-            {
-                headerHeight = EditorGUIUtility.singleLineHeight + 2f,
-                elementHeight = EditorGUIUtility.singleLineHeight + 2f,
-                drawHeaderCallback = DrawShipHeader,
-                drawElementCallback = DrawShipRow,
-            };
-        }
-
-        private void DrawShipHeader(Rect rect)
-        {
-            var x = rect.x + DragHandle;
-            var height = EditorGUIUtility.singleLineHeight;
-            EditorGUI.LabelField(new Rect(x, rect.y, ObjectFieldWidth, height), "Template");
-            EditorGUI.LabelField(new Rect(x + ObjectFieldWidth + 8f, rect.y, ObjectFieldWidth, height), "Pilot");
-        }
-
-        private void DrawShipRow(Rect rect, int index, bool active, bool focused)
-        {
-            var entry = groupList.serializedProperty.GetArrayElementAtIndex(index);
-            var height = EditorGUIUtility.singleLineHeight;
-            EditorGUI.PropertyField(new Rect(rect.x, rect.y, ObjectFieldWidth, height),
-                entry.FindPropertyRelative(nameof(WaveDirector.RosterEntry.template)), GUIContent.none);
-            EditorGUI.PropertyField(new Rect(rect.x + ObjectFieldWidth + 8f, rect.y, ObjectFieldWidth, height),
-                entry.FindPropertyRelative(nameof(WaveDirector.RosterEntry.pilot)), GUIContent.none);
-        }
-
-        private static WaveGroup ReadGroup(SerializedProperty group)
-        {
-            var ships = group.FindPropertyRelative(nameof(WaveGroup.ships));
-            var entries = new WaveDirector.RosterEntry[ships.arraySize];
-            for (var i = 0; i < entries.Length; i++)
-            {
-                var entry = ships.GetArrayElementAtIndex(i);
-                entries[i] = new WaveDirector.RosterEntry
-                {
-                    template = entry.FindPropertyRelative(nameof(WaveDirector.RosterEntry.template)).objectReferenceValue as Ship,
-                    pilot = entry.FindPropertyRelative(nameof(WaveDirector.RosterEntry.pilot)).objectReferenceValue as Commander,
-                };
-            }
-            return new WaveGroup { ships = entries };
-        }
 
         private void DrawUses(SectorPages.Page page)
         {
@@ -589,8 +482,6 @@ namespace Game.Preview.Sectors
             foreach (var serialized in editors.Values) serialized.Dispose();
             editors.Clear();
             pages = null;
-            groupList = null;
-            openGroup = null;
             openUse = null;
             lineButton = null;
         }

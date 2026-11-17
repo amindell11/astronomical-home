@@ -237,6 +237,11 @@ the edits after the round. Split the slice around that:
   editor, never as hand-written YAML.
 - Grok gets the C# and text edits.
 
+Grok follows a brief nearly word for word, so the brief's defects ship. Before
+sending one, read it against AGENTS.md and, for a script change,
+`doc/agents/script-contracts.md`. Where it says to model on a file, check that
+seam's other callers first and model on the strictest.
+
 Run Grok with
 `python scripts/grok_worker.py --slot <slot> --brief <file> --verify "<cmd>"`
 with `run_in_background: true` and wait for its notification; never poll its
@@ -255,6 +260,9 @@ partial edits for it to keep or redo (exit 3 means the tree is untouched). Go
 straight to the Opus subagent when the slice needs judgment mid-build. Small
 fixes stay inline; `scripts/build_delegation_guard.py` denies inline slot source
 edits past its context and line budgets.
+
+Clear every NOTICED line the worker reports: fix it here or defer it to an
+issue, and record each outcome under the PR body's `## Scope check`.
 
 Clear `src/Asteroids3D/Library/BurstCache/` before test runs. Iterate
 with scoped runs (`-ScopeType Auto`, or Feature/Module scopes).

@@ -120,6 +120,15 @@ PREAMBLE = """You are the build worker for one change in the git worktree {slot}
 - Work only inside this workspace: read and write nothing outside it.
 - Leave every change uncommitted: no commit, branch, checkout, stash, reset or push.
 - Follow AGENTS.md in this workspace.
+- A value every production caller passes is required: no optional parameter, null default, `?.`,
+  `??` or empty fallback for it (a fix-ladder guard); update the test calls instead.
+- Before adding a helper, search for the logic or literal it would hold, base test fixtures
+  included, and reuse it; setup your new tests repeat goes in the fixture they extend.
+- Comments, summaries and glossary rows hold only what the code cannot say: never a member list,
+  schema-version list, tooltip text or "now"/"still" framing.
+- When you change what a field means or where it lives, search every reader, `scripts/` and
+  `Game/Preview/` included, and list each under NOTICED. A defect your own edit causes is never a
+  NOTICED note: fix it, or report BLOCKED.
 - The caller verifies after this round: it runs the builds, tests and any verify command. Run no
   builds, tests or scripts yourself, even ones the brief or AGENTS.md names; check your edits by
   reading them.

@@ -6,10 +6,13 @@ using NUnit.Framework;
 using Objectives;
 using Objectives.Presentation;
 using Ships;
+using Ships.Loadout;
 using Substrate;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
+using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Phases;
+using Substrate.Sectors.Factions;
 using Substrate.Services;
 using Substrate.Services.Objectives;
 using Substrate.Services.Units;
@@ -21,7 +24,7 @@ using Substrate.Sessions;
 
 namespace Tests.PlayMode
 {
-    /// <summary>A phased sector end to end: the director's phases run out, the extraction zone appears at its distance from the hero, and a non-player hero's jump request inside ends the sector extracted; a beacon opens ahead of a lull at its distance and flying in claims it.</summary>
+    /// <summary>A phased sector end to end: the director's phases run out, the extraction zone appears at its distance from the hero, and a non-player hero's jump request inside ends the sector extracted; a beacon opens ahead of a lull at its distance and flying in claims it. The lull before an elite opens one too, and it stays its grace past the table's end.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class PhaseSpinePlayModeTests : PlayModeWorldFixture
@@ -32,6 +35,7 @@ namespace Tests.PlayMode
         private UnitService _unitService;
         private ObjectiveService _objectives;
         private readonly List<GameObject> _created = new();
+        private readonly List<Object> _assets = new();
 
         [SetUp]
         public override void SetUp()
@@ -55,10 +59,20 @@ namespace Tests.PlayMode
                 if (go != null) Object.DestroyImmediate(go);
             _created.Clear();
 
+            foreach (var asset in _assets)
+                if (asset) Object.DestroyImmediate(asset);
+            _assets.Clear();
+
             base.TearDown();
         }
 
         private GameObject TrackGO(GameObject go) { _created.Add(go); return go; }
+
+        private T TrackAsset<T>(T asset) where T : Object
+        {
+            _assets.Add(asset);
+            return asset;
+        }
 
         // Primitive test ship, not Ship_2: its layer-7 collider needs LFS geometry.
         private Ship SpawnKinematicShip(Vector2 planePos) =>
@@ -95,9 +109,12 @@ namespace Tests.PlayMode
             var director = directorGO.AddComponent<WaveDirector>();
             var row = new SectorEntry
             {
-                phases = new[] { new SectorPhase { seconds = 1f, groups = System.Array.Empty<WaveGroup>() } }
+                phases = new[] { new SectorPhase { seconds = 1f } }
             };
-            director.Configure(row.phases, lullSeconds: 0f);
+            var faction = TrackAsset(ScriptableObject.CreateInstance<Faction>());
+            Arm(faction);
+            row.faction = faction;
+            director.Configure(row.phases, lullSeconds: 0f, faction: sectorGO.AddComponent<SectorFaction>());
 
             var zone = NewZone(sectorGO.transform, "Zone");
 
@@ -156,11 +173,14 @@ namespace Tests.PlayMode
             {
                 phases = new[]
                 {
-                    new SectorPhase { seconds = 1f, groups = System.Array.Empty<WaveGroup>() },
-                    new SectorPhase { seconds = 1f, groups = System.Array.Empty<WaveGroup>() },
+                    new SectorPhase { seconds = 1f },
+                    new SectorPhase { seconds = 1f },
                 }
             };
-            director.Configure(row.phases, lullSeconds: 5f);
+            var faction = TrackAsset(ScriptableObject.CreateInstance<Faction>());
+            Arm(faction);
+            row.faction = faction;
+            director.Configure(row.phases, lullSeconds: 5f, faction: sectorGO.AddComponent<SectorFaction>());
 
             var beacon = NewZone(sectorGO.transform, "Beacon");
             var spine = sectorGO.AddComponent<PhaseSpineModule>();
@@ -189,6 +209,79 @@ namespace Tests.PlayMode
             Assert.IsFalse(beacon.gameObject.activeSelf, "A claimed lull's beacon stays closed.");
 
             yield return sector.Teardown();
+        }
+
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator ClosingLull_OpensABeacon_ThatOutlivesTheTable()
+        {
+            var player = SpawnKinematicShip(Vector2.zero);
+            var sectorGO = TrackGO(new GameObject("ClosingLullSector"));
+            var sector = sectorGO.AddComponent<Sector>();
+
+            var crimson = TestAssets.LoadCrimsonPrefab();
+            var pilot = TestAssets.LoadTestPilotMpc();
+            var faction = TrackAsset(ScriptableObject.CreateInstance<Faction>());
+            faction.id = "shoal";
+            faction.signature = new FactionShip { ship = crimson, kit = crimson.Weapons.PrimaryMountPrefab, pilot = pilot };
+            faction.minion = new FactionMinion
+            {
+                kit = crimson.Weapons.PrimaryMountPrefab,
+                pilot = pilot,
+                scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f),
+            };
+            var profile = TrackAsset(ScriptableObject.CreateInstance<EliteProfile>());
+            profile.name = "TestElite";
+            profile.Configure("Test elite", new ShipScale(1.5f, 1f, 1f, 1f, 1f), crimson.Weapons.PrimaryMountPrefab);
+
+            var sectorFaction = sectorGO.AddComponent<SectorFaction>();
+            var directorGO = new GameObject("WaveDirector");
+            directorGO.transform.SetParent(sectorGO.transform, false);
+            var director = directorGO.AddComponent<WaveDirector>();
+            var elite = directorGO.AddComponent<EliteEncounter>();
+            elite.Configure(sectorFaction, pilot, pilot);
+            var row = new SectorEntry
+            {
+                faction = faction,
+                elite = profile,
+                phases = new[] { new SectorPhase { seconds = 1f } }
+            };
+            director.Configure(row.phases, lullSeconds: 1f, faction: sectorFaction, elite: elite);
+
+            var beacon = NewZone(sectorGO.transform, "Beacon");
+            var spine = sectorGO.AddComponent<PhaseSpineModule>();
+            spine.Bind(director, NewZone(sectorGO.transform, "Zone"), beacon, leadSeconds: 0f, graceSeconds: 2f);
+
+            sector.SetManifest(null, new SectorSpawner[] { director }, new SectorModule[] { sectorFaction, spine });
+            sector.Initialize(_unitService, _objectives, true, default, player, row);
+
+            yield return sector.Setup();
+            yield return WaitSeconds(() => beacon.gameObject.activeSelf, 5f);
+            Assert.IsTrue(beacon.gameObject.activeSelf, "The closing lull opens a beacon.");
+            Assert.IsFalse(spine.BeaconClaimed);
+
+            yield return WaitSeconds(() => director.Phase.Done, 5f);
+            Assert.IsTrue(director.Phase.Done);
+            Assert.IsTrue(beacon.gameObject.activeSelf, "The beacon outlives the table by its grace.");
+
+            yield return WaitSeconds(() => !beacon.gameObject.activeSelf, 5f);
+            Assert.IsFalse(beacon.gameObject.activeSelf, "The grace into the elite closes it.");
+
+            yield return sector.Teardown();
+        }
+
+        private static void Arm(Faction faction)
+        {
+            var ship = TestAssets.LoadCrimsonPrefab();
+            var kit = ship.Weapons.PrimaryMountPrefab;
+            var pilot = TestAssets.LoadTestPilotMpc();
+            faction.signature = new FactionShip { ship = ship, kit = kit, pilot = pilot };
+            faction.minion = new FactionMinion
+            {
+                kit = kit,
+                pilot = pilot,
+                scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f),
+            };
         }
     }
 }

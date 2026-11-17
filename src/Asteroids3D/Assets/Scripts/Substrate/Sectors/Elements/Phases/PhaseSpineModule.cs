@@ -16,19 +16,18 @@ using UnityEngine;
 namespace Substrate.Sectors.Elements.Phases
 {
     /// <summary>
-    /// A sector spine over its wave director's sector phases: survive them, then reach
-    /// the extraction zone, which stays hidden until the phases are done and then appears on a clear
-    /// point away from the hero. The hero's jump request inside commits extraction. Shortly before a
-    /// sector phase that a lull follows ends, a lull beacon opens on a clear point away from the hero
-    /// the same way and stays through the lull and a grace window into the next phase; flying into it
-    /// claims it (<see cref="BeaconClaimed"/>), and an unclaimed one closes when its grace runs out or
-    /// the next beacon opens. While the sector's hunt runs, the HUD's
-    /// countdown reads the hunt instead. The director and the hunt are held to observe, never commanded.
-    /// With an elite wired, the phases' end summons the elite instead, and extraction opens on its
-    /// death; the spine owns the elite encounter and drives it.
+    /// A sector spine over its wave director's sector phases: survive them, then reach the extraction
+    /// zone, hidden until the table is done, then placed on a clear point away from the hero. A jump
+    /// request inside commits extraction. Shortly before a lull, a beacon opens the same way and stays
+    /// through that lull and a grace window after it: into the next phase, or into the elite fight for
+    /// the lull before the elite. Flying in claims it (<see cref="BeaconClaimed"/>); an unclaimed one
+    /// closes when its grace runs out or the next beacon opens. While the hunt runs, the HUD countdown
+    /// reads the hunt. The director, the hunt and the elite are held to observe, never commanded. With
+    /// an elite, a lull follows the last phase; the director summons the elite when that lull ends, and
+    /// extraction opens on the elite's death.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1051
     /// </summary>
-    public class PhaseSpineModule : SectorModule, ISectorRowReader
+    public class PhaseSpineModule : SectorModule
     {
         public const string StepSurvive = "survive";
         public const string StepElite = "elite";
@@ -39,8 +38,6 @@ namespace Substrate.Sectors.Elements.Phases
         [Tooltip("The sector's opening hunt, read for the HUD's countdown until the hunt releases; unset for none.")]
         [SerializeField] private SectorHunt hunt;
         [SerializeField] private ExtractionZone extractionZone;
-        [Tooltip("The sector's elite, summoned when the phases run out; extraction opens on its death. Unset = extraction opens with the phases' end.")]
-        [SerializeField] private EliteEncounter elite;
 
         [Header("Zone placement")]
         [Tooltip("Plane distance from the hero the zone appears at when extraction opens.")]
@@ -72,18 +69,13 @@ namespace Substrate.Sectors.Elements.Phases
 
         public SectorPhaseMark Phase => director.Phase;
 
-        public IEliteStatus Elite => elite ? elite : null;
+        public IEliteStatus Elite => director.Elite;
 
         /// <summary>True from a lull beacon's claim until the next opens.</summary>
         public bool BeaconClaimed { get; private set; }
 
         /// <summary>What this sector's director can send from <paramref name="row"/>, readable off the sector prefab before it loads.</summary>
         public SectorThreat Threat(SectorEntry row) => director.Threat(row);
-
-        public void CheckRow(SectorEntry row)
-        {
-            if (elite) elite.CheckRow(row);
-        }
 
         public override IEnumerator Setup(SectorBuildContext ctx)
         {
@@ -115,9 +107,9 @@ namespace Substrate.Sectors.Elements.Phases
                 [StepExtract] = () => extraction,
                 [StepCompleted] = () => new CompletedState()
             };
-            if (elite)
+            var elite = director.Elite;
+            if (elite != null)
             {
-                elite.Begin(ctx);
                 steps[StepSurvive] = StepElite;
                 steps[StepElite] = StepExtract;
                 builders[StepElite] = () => new EliteState(elite);
@@ -129,7 +121,6 @@ namespace Substrate.Sectors.Elements.Phases
 
         public override IEnumerator Teardown(SectorBuildContext ctx)
         {
-            if (elite) elite.End();
             ReleaseExtraction();
             if (extractionZone) extractionZone.Disarm();
             beaconsEnabled = false;
@@ -166,17 +157,23 @@ namespace Substrate.Sectors.Elements.Phases
         }
 
         // The lull in progress, or the one within the lead of this phase's end.
+        // The closing lull is numbered PhaseCount, apart from the lull before the last phase.
         private int LullAhead(SectorPhaseMark mark)
         {
             if (mark.Done || mark.InOpeningLull) return -1;
-            if (mark.InLull) return mark.Index;
-            var lullFollows = mark.Index < director.PhaseCount - 1;
+            if (mark.InLull) return mark.Closing ? director.PhaseCount : mark.Index;
+            var last = mark.Index == director.PhaseCount - 1;
+            var lullFollows = !last || director.ClosingLull;
             return lullFollows && mark.SecondsLeft <= beaconLeadSeconds ? mark.Index + 1 : -1;
         }
 
+        private bool InBeaconGrace(SectorPhaseMark mark) =>
+            !mark.InLull && (mark.Done ? beaconLull == director.PhaseCount : mark.Index == beaconLull);
+
         private bool BeaconExpired(SectorPhaseMark mark) =>
-            mark.Done || !mark.InLull && (mark.Index > beaconLull
-                || mark.Index == beaconLull && mark.ElapsedSeconds >= beaconGraceSeconds);
+            InBeaconGrace(mark)
+                ? mark.ElapsedSeconds >= beaconGraceSeconds
+                : !mark.InLull && (mark.Done || mark.Index > beaconLull);
 
         private void OpenBeacon(int lull)
         {
@@ -205,7 +202,7 @@ namespace Substrate.Sectors.Elements.Phases
         }
 
         private float? BeaconGraceLeft(SectorPhaseMark mark) =>
-            beaconOpen && mark.Index == beaconLull && !mark.InLull
+            beaconOpen && InBeaconGrace(mark)
                 ? Mathf.Max(0f, beaconGraceSeconds - mark.ElapsedSeconds)
                 : null;
 
@@ -226,7 +223,8 @@ namespace Substrate.Sectors.Elements.Phases
             var beaconFill = graceLeft.HasValue && beaconGraceSeconds > 0f ? graceLeft.Value / beaconGraceSeconds : 1f;
             var beaconExpiring = graceLeft <= beaconWarningSeconds;
             ReadCaption(mark, out var caption, out var captionSeconds);
-            return new SectorPhaseProgress(mark.InLull ? mark.Index - 1 : mark.Index,
+            var index = mark.InLull && !mark.Closing ? mark.Index - 1 : mark.Index;
+            return new SectorPhaseProgress(index,
                 director.PhaseCount, mark.SecondsToEnd, mark.Done,
                 beaconFill: beaconFill, beaconExpiring: beaconExpiring,
                 caption: caption, captionSeconds: captionSeconds);
@@ -248,7 +246,7 @@ namespace Substrate.Sectors.Elements.Phases
                 return;
             }
 
-            caption = elite ? PhaseCaption.Elite : PhaseCaption.Extraction;
+            caption = director.Elite != null ? PhaseCaption.Elite : PhaseCaption.Extraction;
             seconds = 0f;
         }
 
@@ -279,9 +277,9 @@ namespace Substrate.Sectors.Elements.Phases
 
         private sealed class EliteState : ObjectiveState
         {
-            private readonly EliteEncounter elite;
+            private readonly IEliteStatus elite;
 
-            public EliteState(EliteEncounter elite) : base(elite.Summon) => this.elite = elite;
+            public EliteState(IEliteStatus elite) => this.elite = elite;
 
             public override ObjectiveType StateType => ObjectiveType.ClearHostiles;
 
@@ -297,6 +295,7 @@ namespace Substrate.Sectors.Elements.Phases
             private int shownIndex = -1;
             private int shownSeconds = -1;
             private bool shownLull;
+            private bool shownClosing;
 
             public SurviveState(WaveDirector director) => this.director = director;
 
@@ -313,13 +312,21 @@ namespace Substrate.Sectors.Elements.Phases
                 {
                     var mark = director.Phase;
                     var seconds = Mathf.CeilToInt(mark.SecondsLeft);
-                    if (mark.Index == shownIndex && mark.InLull == shownLull && seconds == shownSeconds) return line;
+                    if (mark.Index == shownIndex && mark.InLull == shownLull && mark.Closing == shownClosing
+                        && seconds == shownSeconds)
+                        return line;
 
                     shownIndex = mark.Index;
                     shownLull = mark.InLull;
+                    shownClosing = mark.Closing;
                     shownSeconds = seconds;
-                    var phase = $"PHASE {mark.Index + 1}/{director.PhaseCount}";
-                    line = mark.InLull ? $"{phase} IN {Clock(seconds)}" : $"{phase}    {Clock(seconds)}";
+                    if (mark.Closing)
+                        line = $"ELITE IN {Clock(seconds)}";
+                    else
+                    {
+                        var phase = $"PHASE {mark.Index + 1}/{director.PhaseCount}";
+                        line = mark.InLull ? $"{phase} IN {Clock(seconds)}" : $"{phase}    {Clock(seconds)}";
+                    }
                     return line;
                 }
             }
@@ -328,13 +335,12 @@ namespace Substrate.Sectors.Elements.Phases
 #if UNITY_EDITOR
         internal void Bind(WaveDirector director, ExtractionZone zone, ExtractionZone beacon,
             float? leadSeconds = null, float? graceSeconds = null, SectorHunt hunt = null,
-            EliteEncounter elite = null, float? warningSeconds = null)
+            float? warningSeconds = null)
         {
             this.director = director;
             this.hunt = hunt;
             extractionZone = zone;
             beaconZone = beacon;
-            this.elite = elite;
             if (leadSeconds.HasValue) beaconLeadSeconds = leadSeconds.Value;
             if (graceSeconds.HasValue) beaconGraceSeconds = graceSeconds.Value;
             if (warningSeconds.HasValue) beaconWarningSeconds = warningSeconds.Value;

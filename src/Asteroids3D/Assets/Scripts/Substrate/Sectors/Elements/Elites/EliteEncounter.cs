@@ -16,11 +16,12 @@ namespace Substrate.Sectors.Elements.Elites
 {
     /// <summary>
     /// A sector's elite: one scaled, upgraded ship summoned once the sector's phases run out, whose
-    /// death opens extraction. The sector's <see cref="Phases.PhaseSpineModule"/> owns it and drives
+    /// death opens extraction. The sector's wave director (<see cref="WaveDirector"/>) owns it and drives
     /// it (Begin, Summon, End), so it is neither a spawner nor a module in the sector's manifest. As the
     /// elite's hull falls through its profile's escalation steps, it calls escorts and stacks heavier
     /// fire. Its ships come from the sector's faction: the elite flies the signature ship in the elite
-    /// skin, escorts the common ship. Its profile is the run row's elite, read at <see cref="Begin"/>.
+    /// skin, escorts the minion rank with this encounter's escort pilot. Its profile is the run row's
+    /// elite, read at <see cref="Begin"/>.
     /// <see cref="Announced"/> and <see cref="Beaten"/> carry data only, with no display strings.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1318
     /// </summary>
@@ -29,8 +30,8 @@ namespace Substrate.Sectors.Elements.Elites
         private const float EscortDistanceInEliteRadii = 3f;
 
         [Header("Ships")]
-        [Tooltip("The sector's faction. The elite flies its signature ship in the elite skin; escorts fly its common " +
-                 "ship with the faction's kit.")]
+        [Tooltip("The sector's faction. The elite flies its signature ship in the elite skin. Escorts fly the " +
+                 "minion rank, with this encounter's escort pilot.")]
         [SerializeField] private SectorFaction faction;
         [Tooltip("The elite's pilot.")]
         [SerializeField] private Commander pilot;
@@ -57,12 +58,13 @@ namespace Substrate.Sectors.Elements.Elites
         private EliteMoment moment;
         private int sectorIndex;
         private int nextStep;
-        private bool summoned;
 
         public event Action<EliteMoment> Announced;
         public event Action<EliteMoment> Beaten;
 
         public bool IsBeaten { get; private set; }
+
+        public bool Summoned { get; private set; }
 
         public string Name => profile.DisplayName;
         public bool Present => elite && elite.gameObject.activeInHierarchy;
@@ -99,20 +101,20 @@ namespace Substrate.Sectors.Elements.Elites
 
         public void Summon()
         {
-            if (summoned)
+            if (Summoned)
                 throw new InvalidOperationException($"EliteEncounter on '{name}' already summoned its elite this sector.");
             if (!hero)
                 throw new InvalidOperationException($"EliteEncounter on '{name}' places its elite around the hero, and the sector has none.");
-            summoned = true;
+            Summoned = true;
 
             var center = GamePlane.WorldPointToPlane(hero.transform.position);
             var position = ClearPoint(center, spawnRadius, clearanceRadius * profile.Scale.Size);
             stack = new LullModStack();
             foreach (var mod in profile.Mods) stack.Add(mod);
-            var ship = faction.Faction.EliteShip;
+            var ship = faction.Faction.Ship;
             elite = units.SpawnShip(ship, pilot, team, position, FacingHero(position), field,
                 new ShipLoadout(ship, profile.Primary, profile.Secondary), profile.Scale, stack);
-            faction.Faction.Dress(ship, elite, elite: true);
+            faction.Faction.Dress(elite, elite: true);
             elite.Damage.OnDeath += OnEliteDeath;
             moment = new EliteMoment(sectorIndex, faction.Faction.id, elite.Id);
             Announced?.Invoke(moment);
@@ -138,7 +140,7 @@ namespace Substrate.Sectors.Elements.Elites
             elite = null;
             stack = null;
             nextStep = 0;
-            summoned = false;
+            Summoned = false;
             IsBeaten = false;
         }
 
@@ -154,13 +156,13 @@ namespace Substrate.Sectors.Elements.Elites
         {
             var center = GamePlane.WorldPointToPlane(elite.transform.position);
             var distance = EscortDistanceInEliteRadii * elite.ShipRadius;
-            var common = faction.Faction.common.ship;
+            var minion = faction.Faction.Minion;
             for (var i = 0; i < step.escorts; i++)
             {
                 var position = ClearPoint(center, distance, clearanceRadius);
-                var escort = units.SpawnShip(common, escortPilot, team, position, FacingHero(position), field,
-                    new ShipLoadout(common, faction.Faction.KitFor(common), null));
-                faction.Faction.Dress(common, escort, elite: false);
+                var escort = units.SpawnShip(minion.ship, escortPilot, team, position, FacingHero(position), field,
+                    minion.Loadout, minion.scale);
+                faction.Faction.Dress(escort, elite: false);
                 escorts.Add(escort);
             }
             if (step.fireMods == null) return;

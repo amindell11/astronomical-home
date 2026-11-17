@@ -126,6 +126,11 @@ namespace FMOD
         public int Data2;
         public int Data3;
         public int Data4;
+
+        public bool IsNull
+        {
+            get { return Data1 == 0 && Data2 == 0 && Data3 == 0 && Data4 == 0; }
+        }
     }
 
     public struct VECTOR

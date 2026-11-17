@@ -36,6 +36,7 @@ namespace Substrate.Sectors.Elements.Stations
             if (row.modStations < 0)
                 throw new InvalidOperationException(
                     $"ModStation on '{name}' places the row's mod stations, and the row asks for {row.modStations}.");
+            CheckDress(row, row.modStations);
         }
 
         protected override void Visit(Station station, Ship hero, float deltaTime)

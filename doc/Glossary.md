@@ -59,7 +59,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | Word | Live senses | Rule |
 |---|---|---|
 | **gate** | merge gate · cost gate (fix-ladder rung 3) · go/no-go gate · anti-churn gate · scoping gate · owner's gate (a ship art stage approval) · "gated off" code conditionals | Always qualified. Bare "the gate" is legal only in pool-merge context (= merge gate), and never in a title. |
-| **lane** | boot lane · remote lane (the second Unity box, `remote_lane.sh`) · harness lane · watch/capture lane · audit lane · access-queue lane · firing lane (lane clearing; a situation's allies in lane) · decision lane (nav / fire / ability — the three seams a `BrainDecision` carries) · LANE slot (the MPC sentence term, always caps) | Always qualified. |
+| **lane** | boot lane · remote lane (the second Unity box, `remote_lane.sh`) · harness lane · watch/capture lane · audit lane · access-queue lane · firing lane (lane clearing; a situation's allies in lane) · decision lane (nav, fire, ability, jump and recall, the lanes a `BrainDecision` carries) · LANE slot (the MPC sentence term, always caps) | Always qualified. |
 | **pool** | worktree pool · ship resource pool (`PoolDifferential`) · object pool (`SimplePool`) · Dev Pool issue labels (`mid-dev-pool`/`high-dev-pool`, ex-board columns) | Always qualified. |
 | **token** | bus/signal token · obs obstacle token (`ObstacleTokenCap`) · threat token · LLM context token | Always qualified. |
 | **term** | intent/cost term (a weighted sentence-slot cost the MPC solves — #485) · activation term (`ActivationTerm`, the AND-ed predicate atoms of sector activation rules) | Always qualified. An intent-grammar doc may read bare "term" = intent/cost term only after declaring the carve-out (Stage A brief precedent). |
@@ -528,22 +528,28 @@ Format: **term** — definition. *(authority)*
 - **wave director** — the continuous sector spawner. It sends waves inside its
   sector phases. Dead products are despawned as it goes. Content, not a sector
   module, so product ownership and teardown stay the spawner's. *(WaveDirector)*
-- **wave** — one group of ships arriving together from one bearing just off
-  screen, each on its own pilot. Each wave draws one of its sector phase's
-  groups uniformly. Waves arrive on the phase's wave-every beat, trimmed to
-  the wave cap. Nothing arrives in a lull, and survivors stay.
-  *(WaveGroup, WaveDirector.WaveDue)*
-- **wave every** — seconds between a sector phase's waves. The phase opens
-  with one. *(SectorPhase.waveEvery)*
+- **wave** — one rival leading minions, arriving together from one bearing just off
+  screen. The rival takes the arc's centre and the minions take the slots either side.
+  A rival whose temper ambushes arrives concealed ahead of the player instead, when
+  that point is clear. A phase that sends waves draws how many minions fly with the
+  rival uniformly from fewest to most, inclusive. Waves arrive on the phase's wave-every beat, trimmed to
+  the wave cap, and the trim keeps the rival. Nothing arrives in a lull, and survivors stay.
+  *(WaveDirector.WaveDue)*
+- **wave every** — the beat a sector phase sends its waves on.
+  *(SectorPhase.waveEvery)*
 - **wave cap** — the most enemies alive, hunt patrols included, that a
-  sector's waves fill to. A wave arrives trimmed to the room left, in its
-  group's listed order. A wave with no room is dropped. Nothing is held or
-  owed. *(SectorEntry.waveCap, WaveDirector.Room)*
+  sector's waves fill to. The trim keeps the rival. Nothing is held or owed:
+  a trimmed or dropped wave is not made up later.
+  *(SectorEntry.waveCap, WaveDirector.Room)*
 - **earned lull** — the rest of a sector phase once its last wave has arrived and
   nothing is alive, patrols included. A dropped wave counts as arrived. It moves
   no phase boundary. *(WaveDirector.EarnedLull)*
+- **closing lull** — the scheduled lull after a sector's last phase, before its
+  elite. A sector with no elite has none.
+  *(SectorPhaseSchedule, SectorPhaseMark.Closing)*
 - **sector phase** — one timed row of a wave director's table. The row holds
-  its groups and its wave timing. The player-facing HUD says "PHASE". *(SectorPhase)*
+  whether it sends waves, how many minions fly with each wave's rival, and its
+  wave timing. The player-facing HUD says "PHASE". *(SectorPhase)*
 - **survival trial** — a sector whose goal is surviving its sector phases and
   then reaching the extraction zone (`PhaseSpineModule`). A run chains three,
   each faster-paced: extracting moves the run on, extracting from the last wins
@@ -563,45 +569,72 @@ Format: **term** — definition. *(authority)*
   *release* ends it. The wave director holds its opening lull until the release,
   so phase numbering is unchanged, and stations stay lit through the gap.
   *(SectorHunt, HuntFeelProfile, `SectorEntry.searchSeconds`)*
+- **sight-limited** — a sector ship sees the player within its scout's sight
+  range when no rock is between them, and loses the player after the scout's
+  lose-sight seconds out of sight, or at once when the player conceals. It circles
+  the place it last had the player for its laps, then takes the player back unless
+  the player is dead or concealed. A ship that never came back would
+  stall the sector, because waves refill only while the count of live ships is
+  under the wave cap. WaveDirector asks when it sends a wave, and SectorHunt
+  asks when the alarm sounds. RingSpawner, the harness spawners and
+  EliteEncounter never ask, so their ships keep an enemy at any range. Ruled
+  on #1589.
+  *(EnemyTracker.LimitToSight, Scout.sightRange, Scout.loseSightAfter)*
 - **faction** — the side a sector's enemies belong to; each survival trial
-  names one, and its wave director and hunt field only that faction's ships. The
-  **signature ship** is the faction's own chassis, and its elite flies it; the
-  **common ship** is the chassis every faction flies. Each ship always carries
-  its **faction kit**, one fixed primary, and wears the faction's paint, flame
-  and shield ring colour.
-  The sector-to-faction mapping is ruled on #1320. *(Faction, SectorFaction)*
+  names one, and its wave director and hunt field only that faction's ships. It
+  flies one signature ship at three ranks. The **minion** is smaller, at 70% hull,
+  and never fires its keystone. Hunt patrols and elite escorts fly it. The
+  **rival** is the signature ship as the player flies it, and it leads every wave.
+  The **elite** is the third rank. Every rank wears the faction's paint. The ranks
+  are ruled on #1589. The sector-to-faction mapping is ruled on #1320.
+  *(Faction.Rival, Faction.Minion, FactionRank, SectorFaction)*
 - **elite** — a sector's end-of-sector enemy: its faction's signature ship made
-  larger, with a heavy weapon pair and stacked run mods. The sector's phases
-  ending summon it, and extraction opens on its death. Sector 3's elite is the
-  boss, which escalates at hull thresholds (escorts, heavier fire).
+  larger, with a heavy weapon pair and stacked run mods. A lull follows the
+  last phase, and the elite is summoned when that lull ends. Extraction opens
+  on its death. Sector 3's elite is the boss, which escalates at hull
+  thresholds (escorts, heavier fire).
   An escalation step stacks weapon mods only, so the dynamics the AI captured at
-  spawn stay true. Not an *encounter*: no activation rule arms it; the sector
-  spine owns it and drives it. *(EliteEncounter, EliteProfile,
+  spawn stay true. Not an *encounter*: no activation rule arms it; the wave
+  director owns it and drives it. *(EliteEncounter, EliteProfile,
   PhaseSpineModule.StepElite)*
 - **unlocked ship** — a ship the hangar lets the player fly: the starter plus
   every elite chassis the player killed in a died or extracted run record. No save
   file; a kill counts once that record is written. An abandoned run earns nothing
   from the file. *(ShipUnlocks, ItemSubset.starter)*
 - **station** — a *find* the player flies into. Every kind shares one core:
-  the placement, the clearing in the field, going dark at the hunt's release,
-  the find marker and the arrival events. A kind adds only its effect, which
-  draws on each station's supply; a station goes dark when its supply runs out.
+  the placement, the clearing in the field, the find marker and the arrival
+  events. Going dark at the hunt's release is the default. A kind may keep its
+  supply and relight. A kind adds only its effect, which draws on each station's
+  supply; a station goes dark when its supply runs out.
   *(FindStation, FindStationBody, StationKind)*
+- **station dress** — how the sector's faction dresses its *stations*: one
+  dressed model per kind, with the faction's parts and hatching baked in, and
+  palettes that each station rolls from its placed position, never from
+  `UnityEngine.Random`. The hatch strength lives in the model's Ink mask, so a
+  palette has no hatch field. Its window light is an emission calibrated against
+  the game's grading, not the target colour. No station is undressed in play: a
+  row that places stations its faction can't dress fails the row check. Service
+  lights keep their find colour in every dress.
+  *(StationDress, StationPalette, StationModel, `Faction.stationDress`)*
 - **repair station** — a fly-in zone each combat sector places, as many as its
   run row names, each on its own clear point away from the start, marked as a
   *find*. While the player sits in it, it repairs hull from a supply of about
-  one hull, then goes dark. The hunt's release darkens it too, and whatever supply
-  was left is lost. Hull carries into the next sector. The first *station*
-  kind. *(RepairStation, RepairStationFeelProfile, `SectorEntry.repairStations`)*
+  one hull, then goes dark. The hunt's release darkens it, and its supply stays
+  for the whole sector. It relights in each lull, scheduled or earned, and stays
+  lit for a grace window into the next phase. Hull carries into the next sector.
+  The first *station* kind. *(RepairStation, RepairStationFeelProfile,
+  `SectorEntry.repairStations`)*
 - **beacon cache** — what a lull beacon's claim grants:
   one roll among the authored mod bonuses that fit the hero (damage, fire
-  rate, shield regen) and the *hull patch*, all weighted alike. A bonus joins
+  rate, shield regen), all weighted alike. A bonus joins
   the run's mods for 20 s by default, adding to lull picks rather than
   multiplying them, and the HUD lists it with its seconds left. Each claim's
   bonus runs on its own clock, and sector teardown takes back any still
-  running. The hull patch restores 30% of a full hull at once, touches no mods,
-  and wastes what passes full. A low-hull lean, off by default, multiplies the
-  patch's weight while the hero's hull is below a threshold. No beacon, no
+  running. The *hull patch* is a further roll that ships with a weight of 0, so
+  no claim rolls it and repair stations are the sector's hull repair. Weighted
+  in, it restores 30% of a full hull at once, touches no mods, and wastes what
+  passes full. A low-hull lean, off by default, multiplies the patch's weight
+  while the hero's hull is below a threshold. No beacon, no
   cache: headless and harness sectors never grant one. *(BeaconCache,
   BeaconCacheFeelProfile, IObjectiveService.ShowBoost)*
 - **mod station** — the second *station* kind: a *find* each combat sector
@@ -643,7 +676,7 @@ Format: **term** — definition. *(authority)*
   between sectors.
 - **sector run** — the ordered sectors one run flies, one row each: the sector
   prefab (the layout), the locale it shows or Random, and the values the
-  layout's parts read: faction, elite, sector phases with their wave groups,
+  layout's parts read: faction, elite, sector phases with their minion counts,
   patrol count and field preset. The parts take these values from the row and keep no copy.
   Authored as one asset edited as a table, so a locale or pacing change never
   edits a prefab; tests and the headless lane build theirs with
@@ -894,8 +927,8 @@ Format: **term** — definition. *(authority)*
   rather than synonyms.
   ⚠ Not to be confused with `PilotCommand`/`IPilot`, which are the actuator end.
   *(Brain, BrainDecision)*
-- **tactic**. What a ship picks to fight with: attack run, flank, stand off or
-  break off. A ship picks for its own sake, the best shot for the least risk,
+- **tactic**. What a ship picks to fight with: attack run, flank, stand off,
+  fall back, break off, charge, ambush, or hold the line. A ship picks for its own sake, the best shot for the least risk,
   and never knows it paces the player. "Beat" is the retired name. Owner rulings
   on #1349. Each tactic flies a law the archetype pilots already have:
   - *attack run*: hold at the gun hold range plus the temper's attack-run margin
@@ -904,29 +937,76 @@ Format: **term** — definition. *(authority)*
     clears;
   - *stand off*: hold just outside the target's real primary gun range, firing
     once it turns away and my firing lane is clear;
-  - *break off*: flee with guns cold until the shield is back.
+  - *fall back*: hold near the far edge of my own primary gun range, never
+    closer than my attack run, firing while my firing lane is clear;
+  - *break off*: flee with guns cold;
+  - *charge*: hold at the temper's charge range, point-blank, and fire
+    whatever the ship's shield. Only a last stand flies it.
+  - *ambush*: fire the keystone when it is ready, fly hidden with guns cold to a
+    point ahead of the target's nose, and fire once the ship shows. It comes
+    first after the wounded rules.
+  - *hold the line*: hold a place on the leader's line, across the line to the
+    target, while the leader is there. It comes after ambush and before flank
+    or stand off.
 
-  A ship picks by *ordered rules*, the first rule that fires winning: break off,
-  then flank or stand off, then its *home tactic*, the tactic it flies when no
+  A ship picks by *ordered rules*, the first rule that fires winning: the
+  tactic its *wounded response* names while it is wounded (break off, fall
+  back or charge), then ambush, then hold the line, then flank or stand off, then its *home tactic*, the tactic it flies when no
   rule overrides it. It keeps a tactic until the reason it was picked ends, and
   never for less than the *minimum hold*, break off included. A home tactic also
   holds while the rules still pick it.
   Only a pilot authored with tactics settings (the *tactics switch*) picks one.
   Every shipped pilot does, each on its own *temper*; the matrix lane's
   weapon-pair shooters never do. *(TacticRules.Next, TacticsSettings)*
-- **temper**. One `TacticsSettings` asset per pilot: the Aggressor, Orbiter,
-  Kiter, Lurker, the elite, and its escorts. The Aggressor's home tactic is the
-  attack run, and hunt patrols fly its temper too. The Orbiter's is flank, the
-  Lurker's is stand off, and the Kiter flies the attack run from further out.
-  The temper also
-  records whether the ship circles the wreck before it wanders. A pilot with a
-  temper never reads `archetype`. The owner ruled on #1349, 2026-11-09, that
-  the elite never breaks off and always presses (break off 0%, nerve 0%) and
-  escorts never fly into the target's guns (nerve 100%). On #1556, 2026-11-13,
-  the owner left the elite and escort numbers as they were. At 100% nerve a
-  ship shies at a full shield too, so 0% and 100% hold at every shield level.
-  No per-ship or per-run variation yet. *(AggressorTemper, OrbiterTemper,
-  KiterTemper, LurkerTemper, EliteTemper, EscortTemper)*
+- **temper**. One `TacticsSettings` asset per pilot. A faction's ranks fly
+  the pilots its `Faction` asset names (`Faction.Rival`, `Faction.Minion`), so a
+  temper belongs to a faction and a rank: Shoal's Valis and minion, Veil's
+  Nightshade and minion, Bastion's Bulwark and minion. Hunt patrols fly the
+  minion's pilot. Both of a faction's
+  tempers carry the faction's wounded response, ruled on #1589, 2026-11-16:
+  Veil never breaks, Shoal jumps out, and Bastion makes a last stand. On the
+  same ruling the Veil rival ambushes and Bastion minions hold the line, and a
+  minion whose leader is lost flies its wounded response. The
+  elite and its escorts keep their own pilots. The owner ruled on #1349,
+  2026-11-09, that the elite never breaks off and always presses (never
+  wounded, nerve 0%) and escorts never fly into the target's guns (nerve
+  100%). On #1556, 2026-11-13, the owner left the elite and escort numbers as
+  they were. At 100% nerve a ship shies at a full shield too, so 0% and 100%
+  hold at every shield level. The temper also records whether the ship circles
+  the wreck before it wanders. A pilot with a temper never reads `archetype`.
+  *(Faction.Rival, Faction.Minion; Settings/AI/Tactics/Factions; EliteTemper, EscortTemper)*
+- **leader**. The rival a minion's wave flies with. The minion observes that
+  ship's position and velocity and nothing of its brain, and the leader never commands it.
+  When the leader is gone, the minion flies its wounded response.
+  *(AIContext.Leader, AICommander.FollowLeader)*
+- **place**. A minion's signed position along its leader's line, counted in
+  line spacings (..., -2, -1, +1, +2, ...). *(AIContext.Place, AICommander.FollowLeader)*
+- **wounded response**. What a temper says its ships do when hurt: never
+  retreat, break off, fall back, *turn cautious*, make a *last stand*, or *jump
+  out*. Turn cautious adds no tactic and reads the ship's nerve as 100%, so the
+  flank-or-stand-off rule keeps it out of the target's guns. A last stand
+  charges until the ship dies. A jump out breaks off for good, and once the ship
+  is farther from its target than the temper's jump distance it asks its ship
+  to jump; the spawner that made the ship removes it, so no kill counts. A ship
+  is *wounded* from the hit that finds its trigger gauge, shield or hull, under
+  its temper's point, until its temper's end condition: the shield back to a
+  level, or a number of seconds. A last stand and a jump out never end. A
+  retreat is spent, and its seconds start, when the ship flies it: a held flank
+  or stand off delays it, because a tactic holds until its reason ends (#1349).
+  Every ship of one temper breaks at the same numbers. The owner ruled on
+  #1589, 2026-11-16, that no per-ship draw decides them, which replaced #1579's
+  draws. A temper that *commits* is never wounded again once a ship has spent
+  its retreats. #1579's rulings, 2026-11-15, still set the role tempers: the
+  Aggressor and the elite never retreat, the Orbiter turns cautious, the Kiter
+  falls back, the Lurker breaks off once on hull, and the escort breaks off.
+  Fall back leaves the 2026-11-09 hold-fire ruling on stand off as it was.
+  *(WoundedRules, TacticsSettings)*
+- **limp**. An enemy ship low on hull flies slower and never boosts. Its pilot
+  plans and commands as if its ship were slower; nothing clamps the ship's
+  velocity, and the player's ship never limps. The owner ruled on #1589,
+  2026-11-16, that the limp comes from damage, not from the decision to run, and
+  that it adds no smoke or sputter of its own. *(AICommander's limp settings,
+  LimpingShip)*
 - **situation**. What one ship reads about its fight before it picks a tactic,
   from its own sensors only. The owner's picks on #1349: allies count by where
   they are, never by asking another ship's brain, so the elite counts whatever it
@@ -969,7 +1049,9 @@ Format: **term** — definition. *(authority)*
   marker shows during the fight; flying into it claims it. It
   stays through the lull and a grace window into the next sector phase, then
   closes unclaimed; a new beacon's opening closes the one
-  before it, so beacons never stack. The sector's opening lull gets none.
+  before it, so beacons never stack. The lull before the elite gets one too,
+  and that one stays its grace into the elite fight. The sector's opening lull
+  gets none.
   *(PhaseSpineModule, ExtractionZone)*
 - **weapon pick** — the *armory*'s choice of one weapon or ordnance the player
   does not carry, from up to three, or a skip; the pick replaces the mount in the
@@ -1062,29 +1144,18 @@ Format: **term** — definition. *(authority)*
   the weapon prefab, so an inspector edit to the prefab or to a module asset shows
   up and an edit to a live weapon instance does not. *(StatHash.OfLoadout, StatAttribute)*
 - **stat fingerprint** — a short hash of every balance number a run can draw from:
-  what the hangar offers, each run sector's wave director in run order (its pacing and groups, and
+  what the hangar offers, each run sector's wave director in run order (its pacing and minion counts, and
   the parts its enemies draw from) and the kill refill. Runs played against the
   same numbers share a fingerprint, so results are grouped by it. A number no run
   can reach does not move it, and neither does list order or listing a part twice,
   except in a list marked `[Stat(Ordered = true)]` such as the sector phase table.
-  Inside a list entry, such as a group's ships, order still does not move it, but a repeat does.
+  Inside a list entry, order still does not move it, but a repeat does.
   Built from the `[Stat]` marks and keyed by name, so a rename moves it too.
   *(StatHash.OfSetting, StatAttribute)*
 - **run record**. One JSON line appended when a run ends, extracted from its last
   sector, dead, or abandoned. Abandoned is the pause screen's quit run, or shutdown
-  arriving while a run is open; it has no killing blow and no recap. The line holds
-  what the run was played on (build identity, stat fingerprint, editor or build),
-  its outcome, sectors cleared and the sector it ended in, the hangar loadout and
-  the loadout mounted at the end, the mods held, the pick screens, each sector
-  entered (seconds, player kills, hull and shield at entry and at the end, whether
-  its elite was announced and whether the player killed it, seconds the shield spent
-  regenerating, times regeneration began, times regeneration filled the shield,
-  shield points restored, seconds the shield spent at zero, and the regenerating
-  seconds and restored points while another ship was alive), where that sector's
-  phase table stood, the damage taken, the damage the player dealt, the killing
-  blow (deaths only) and the spawn log. A new line is schema v4; stored v2 and v3
-  lines still read. `hasDamageSplit` distinguishes measured shield/hull points from older
-  v2 records whose split is unknown.
+  arriving while a run is open; it has no killing blow and no recap. What a line
+  holds is `RunRecord`, and which schemas still read is `RunRecord.Counts`.
   Every record goes to one append-only file under the results root, which in the
   editor is the worktree's own `results/`, so an agent's editor runs never land in
   the user's file. A failed write, or an unreadable build identity, is logged and

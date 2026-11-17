@@ -24,7 +24,8 @@ namespace Game.Preview
             var cone = hologram.ProjectorCone
                 ? hologram.ProjectorCone.GetComponentsInChildren<Renderer>(true).SelectMany(r => r.sharedMaterials)
                 : Enumerable.Empty<Material>();
-            var materials = hologram.Restyle.Counterparts.Select(counterpart => counterpart.counterpart)
+            var materials = new[] { hologram.Resolve }
+                .Concat(hologram.Restyle.Counterparts.Select(counterpart => counterpart.counterpart))
                 .Concat(cone)
                 .Concat(surface.sharedMaterials)
                 .Where(material => material).Distinct();

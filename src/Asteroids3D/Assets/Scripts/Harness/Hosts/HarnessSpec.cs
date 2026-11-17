@@ -90,7 +90,7 @@ namespace Harness.Hosts
         public bool matrixKitsOff;
         /// <summary>Matrix lane, roster mode: copies of the roster ship in the block, 1 to 3.</summary>
         public int matrixEnemies;
-        /// <summary>Matrix lane, roster mode: <see cref="matrixReferenceBreakOff"/> replaces the reference pilot's break-off shield. Unset leaves the authored settings; 0 is a legal value, so the flag is the presence bit.</summary>
+        /// <summary>Matrix lane, roster mode: <see cref="matrixReferenceBreakOff"/> is the shield % under which the reference pilot breaks off, with no range. Unset leaves the authored settings; 0 is a legal value, so the flag is the presence bit.</summary>
         public bool matrixReferenceBreakOffSet;
         public float matrixReferenceBreakOff;
 

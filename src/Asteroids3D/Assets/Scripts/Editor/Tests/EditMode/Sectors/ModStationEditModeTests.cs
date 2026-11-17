@@ -44,8 +44,7 @@ namespace Tests.EditMode.Sectors
             Assert.IsTrue(zone.GetComponent<Collider>().isTrigger);
             Assert.IsTrue(lit.transform.IsChildOf(body.transform));
             Assert.That(lit.GetComponentsInChildren<Renderer>(true).Select(r => r.gameObject.layer),
-                Has.Member(LayerMask.NameToLayer("Minimap_Find")), "The find marker that shows on the minimap goes dark with the glow.");
-            Assert.IsNotEmpty(lit.GetComponentsInChildren<Light>(true));
+                Has.Member(LayerMask.NameToLayer("Minimap_Find")), "The find marker that shows on the minimap goes dark with the station.");
 
             var icon = serialized.FindProperty("icon").objectReferenceValue as Sprite;
             Assert.IsTrue(icon, "The mod station carries its find icon.");
@@ -55,12 +54,12 @@ namespace Tests.EditMode.Sectors
         }
 
         [Test]
-        public void TheTrialRun_SearchesThirtySecondsWithOneModStationAndNoRepairs_InSectorOne_AndKeepsTheDefaultsAfter()
+        public void TheTrialRun_SearchesThirtySecondsWithOneModStationAndOneRepair_InSectorOne_AndKeepsTheDefaultsAfter()
         {
             var rows = AssetDatabase.LoadAssetAtPath<SectorRun>(RunPath).Sectors;
             CollectionAssert.AreEqual(new[] { 30f, 45f, 45f }, rows.Select(row => row.searchSeconds).ToArray());
             CollectionAssert.AreEqual(new[] { 1, 2, 2 }, rows.Select(row => row.modStations).ToArray());
-            CollectionAssert.AreEqual(new[] { 0, 2, 2 }, rows.Select(row => row.repairStations).ToArray());
+            CollectionAssert.AreEqual(new[] { 1, 2, 2 }, rows.Select(row => row.repairStations).ToArray());
         }
     }
 }

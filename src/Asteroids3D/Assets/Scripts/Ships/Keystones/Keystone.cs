@@ -1,3 +1,4 @@
+using System;
 using Balance;
 using Damage;
 using Movement;
@@ -12,7 +13,8 @@ namespace Ships.Keystones
     /// never <c>Time.time</c>, so pacing replays identically across respawns and arenas. A kit's
     /// effects beyond the activation impulse are state on the kit that other systems observe; the
     /// ship hands it what it owns (contacts, blocked hits, its own shots), and the kit decides what pays. An AI
-    /// commander also reads the kit's sight, which can fire it beside the brain's own request.
+    /// commander also reads the kit's sight, which can fire it beside the brain's own request. A ship that
+    /// should arrive with the kit already running calls <see cref="ActivateOnArrival"/> before its first step.
     /// Design: https://github.com/amindell11/astronomical-home/issues/1028
     /// </summary>
     public abstract class Keystone : MonoBehaviour
@@ -36,6 +38,7 @@ namespace Ships.Keystones
         public float CooldownPct => cooldown > 0f ? CooldownRemaining / cooldown : 0f;
         public int Activations { get; private set; }
         public int PaidActivations { get; private set; }
+        public Rigidbody Body => Host.Body;
 
         /// <summary>The kit's active state, which its tell shows.</summary>
         public virtual bool Active => false;
@@ -65,16 +68,27 @@ namespace Ships.Keystones
         {
             clock += dt;
             activated = Ready && input != 0f;
-            var effect = default(KeystoneEffect);
-            if (activated)
-            {
-                readyAt = clock + cooldown;
-                activatedAt = clock;
-                Activations++;
-                effect = Activate(in kinematics, target);
-            }
+            var effect = activated ? Commit(in kinematics, target) : default;
             Sustain(in kinematics, baseMaxSpeed);
             return effect;
+        }
+
+        public void ActivateOnArrival(in Kinematics kinematics)
+        {
+            if (!Ready)
+                throw new InvalidOperationException($"{name} is not ready to arrive already running.");
+            var effect = Commit(in kinematics, null);
+            if (effect.Impulse != Vector2.zero || effect.Displacement != Vector2.zero)
+                throw new InvalidOperationException(
+                    $"{name} cannot arrive already running: its activation moves the ship.");
+        }
+
+        private KeystoneEffect Commit(in Kinematics kinematics, Vector2? target)
+        {
+            readyAt = clock + cooldown;
+            activatedAt = clock;
+            Activations++;
+            return Activate(in kinematics, target);
         }
 
         public void ResetKeystone()

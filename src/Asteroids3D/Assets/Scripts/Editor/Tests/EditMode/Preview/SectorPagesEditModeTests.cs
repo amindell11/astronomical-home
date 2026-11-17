@@ -4,8 +4,10 @@ using System.Linq;
 using Game.Preview.Sectors;
 using Game.Preview.Fixtures;
 using NUnit.Framework;
+using Combat.Weapons;
 using Ships;
 using Ships.Command;
+using Ships.Loadout;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Elites;
@@ -83,10 +85,7 @@ namespace Tests.EditMode.Preview
                 prefab = sector,
                 phases = new[]
                 {
-                    new SectorPhase
-                    {
-                        groups = new[] { new WaveGroup { ships = Array.Empty<WaveDirector.RosterEntry>() } },
-                    },
+                    new SectorPhase { sendsWaves = true, fewestMinions = 2, mostMinions = 0 },
                 },
             };
             var run = Track(SectorRun.Create(row));
@@ -97,52 +96,43 @@ namespace Tests.EditMode.Preview
         }
 
         [Test]
-        public void GroupSummary_TwoShipsOfOneTemplate_CountsThemAndListsPilotsInOrder()
+        public void RankPilots_ListsTheRivalThenTheMinion()
         {
-            var nightshade = Hull("Nightshade");
-            var group = new WaveGroup
-            {
-                ships = new[]
-                {
-                    new WaveDirector.RosterEntry { template = nightshade, pilot = Pilot("OrbiterPilot") },
-                    new WaveDirector.RosterEntry { template = nightshade, pilot = Pilot("AggressorPilot") },
-                },
-            };
-            Assert.AreEqual("2\u00d7 Nightshade: Orbiter, Aggressor", SectorPages.GroupSummary(group));
+            var faction = FactionOf(Hull("Nightshade"), Pilot("OrbiterPilot"), Pilot("AggressorPilot"));
+
+            Assert.AreEqual("Rival (Orbiter) \u00b7 Minion (Aggressor)", SectorPages.RankPilots(faction));
         }
 
         [Test]
-        public void GroupSummary_TwoTemplates_JoinsOneShipEachInFirstSeenOrder()
+        public void RankPilots_MissingPilot_ThrowsNamingTheFaction()
         {
-            var group = new WaveGroup
-            {
-                ships = new[]
-                {
-                    new WaveDirector.RosterEntry { template = Hull("Nightshade"), pilot = Pilot("OrbiterPilot") },
-                    new WaveDirector.RosterEntry { template = Hull("Warden"), pilot = Pilot("AggressorPilot") },
-                },
-            };
-            Assert.AreEqual("Nightshade (Orbiter) + Warden (Aggressor)", SectorPages.GroupSummary(group));
+            var faction = Track(ScriptableObject.CreateInstance<Faction>());
+            faction.name = "Shoal";
+            faction.signature = new FactionShip { ship = Hull("Nightshade"), kit = Kit() };
+
+            var ex = Assert.Throws<InvalidOperationException>(() => SectorPages.RankPilots(faction));
+
+            StringAssert.Contains("Shoal", ex.Message);
+            StringAssert.Contains("rival pilot", ex.Message);
         }
 
-        [Test]
-        public void GroupSummary_MissingPilot_ReadsNone()
+        private Faction FactionOf(Ship ship, Commander rival, Commander minion)
         {
-            var group = new WaveGroup
+            var faction = Track(ScriptableObject.CreateInstance<Faction>());
+            var kit = Kit();
+            faction.signature = new FactionShip { ship = ship, kit = kit, pilot = rival };
+            faction.minion = new FactionMinion
             {
-                ships = new[] { new WaveDirector.RosterEntry { template = Hull("Nightshade") } },
+                kit = kit, pilot = minion, scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f),
             };
-            Assert.AreEqual("Nightshade (none)", SectorPages.GroupSummary(group));
+            return faction;
         }
 
-        [Test]
-        public void GroupSummary_EmptyGroup_ReadsEmptyGroup()
+        private WeaponComponent Kit()
         {
-            Assert.AreEqual("empty group", SectorPages.GroupSummary(default));
-            Assert.AreEqual("empty group", SectorPages.GroupSummary(new WaveGroup
-            {
-                ships = Array.Empty<WaveDirector.RosterEntry>(),
-            }));
+            var host = Track(new GameObject("Kit"));
+            host.SetActive(false);
+            return host.AddComponent<StubWeapon>();
         }
 
         private static SectorEntry Row(Faction faction, EliteProfile elite) => new() { faction = faction, elite = elite };
@@ -164,6 +154,12 @@ namespace Tests.EditMode.Preview
         private sealed class NamedPilot : Commander
         {
             public override void Initialize(in ShipControl control) { }
+        }
+
+        private sealed class StubWeapon : WeaponComponent
+        {
+            public override Combat.Projectiles.ProjectileBase Fire(UnityEngine.Vector3 targetPoint,
+                Substrate.Services.Projectiles.IProjectileService projectiles) => null;
         }
 
         private Sector Layout(string name)

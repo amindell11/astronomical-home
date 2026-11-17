@@ -13,6 +13,7 @@ using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Elements.Stations;
+using Substrate.Sectors.Elements.Stations.Visual;
 using UI.Hangar.Displays;
 using UI.Hangar.Hologram;
 using UI.Projection;
@@ -66,13 +67,15 @@ namespace Tests.EditMode.Preview
                 AssetDatabase.LoadAssetAtPath<CompanionFeelProfile>("Assets/Settings/Game/Companion/CompanionFeel.asset"),
                 AssetDatabase.LoadAssetAtPath<CompanionLineSheet>("Assets/Settings/Game/Companion/CompanionLines.asset"));
             AssertTarget(Target<HangarHologramTarget>(), new[] { PreviewEntry.Combat },
-                AssetDatabase.LoadAssetAtPath<HangarHologramProfile>("Assets/Settings/UI/HangarHologramPlain.asset"));
+                AssetDatabase.LoadAssetAtPath<HangarHologramProfile>("Assets/Settings/UI/HangarHologram.asset"));
             AssertTarget(Target<HangarDisplayTarget>(), new[] { PreviewEntry.Combat },
                 AssetDatabase.LoadAssetAtPath<HangarDisplayProfile>("Assets/Settings/UI/HangarDisplayProfile.asset"));
             AssertTarget(Target<TacticsTarget>(), new[] { PreviewEntry.CrowdedFight },
                 new[] { "Aggressor", "Orbiter", "Kiter", "Lurker", "Elite", "Escort" }.Select(kind =>
                     AssetDatabase.LoadAssetAtPath<TacticsSettings>($"Assets/Settings/AI/Tactics/{kind}Temper.asset"))
                     .ToArray());
+            AssertTarget(Target<StationsTarget>(), new[] { PreviewEntry.Combat },
+                AssetDatabase.LoadAssetAtPath<StationMotionFeelProfile>("Assets/Settings/Game/StationMotionFeel.asset"));
         }
 
         [Test]

@@ -13,6 +13,7 @@ using Ships.Weapons;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Phases;
+using Substrate.Sectors.Factions;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -141,73 +142,66 @@ namespace Tests.EditMode
         public void OfSetting_IgnoresListOrder()
         {
             var offer = HangarOffer();
-            var baseline = StatHash.OfSetting(offer, new[] { ScratchRow(RosterOf(offer.ships), PhaseWaveEvery) }, KillHullRestore);
+            var baseline = StatHash.OfSetting(offer, new[] { ScratchRow(PhaseWaveEvery) }, KillHullRestore);
 
             var reordered = Object.Instantiate(offer);
             scratch.Add(reordered);
             Array.Reverse(reordered.ships);
             Array.Reverse(reordered.weapons);
-            var reversedRoster = RosterOf(offer.ships.Reverse());
 
             Assert.AreEqual(baseline,
-                StatHash.OfSetting(reordered, new[] { ScratchRow(reversedRoster, PhaseWaveEvery) }, KillHullRestore));
+                StatHash.OfSetting(reordered, new[] { ScratchRow(PhaseWaveEvery) }, KillHullRestore));
         }
 
         [Test]
-        public void OfSetting_MovesWhenTwoRosterEntriesSwapPilots()
+        public void OfSetting_MovesWhenAFactionsRanksSwapPilots()
         {
             var offer = HangarOffer();
             var first = ScratchPilot("FirstPilot");
             var second = ScratchPilot("SecondPilot");
-            WaveDirector.RosterEntry Entry(int hull, Commander pilot) => new() { template = offer.ships[hull], pilot = pilot };
-
-            var paired = ScratchRow(new[] { Entry(0, first), Entry(1, second) }, PhaseWaveEvery);
-            var swapped = ScratchRow(new[] { Entry(0, second), Entry(1, first) }, PhaseWaveEvery);
+            var paired = ScratchRow(PhaseWaveEvery);
+            paired.faction = ScratchFaction(offer.ships[0], first, second);
+            var swapped = ScratchRow(PhaseWaveEvery);
+            swapped.faction = ScratchFaction(offer.ships[0], second, first);
 
             Assert.AreNotEqual(StatHash.OfSetting(offer, new[] { paired }, KillHullRestore),
                 StatHash.OfSetting(offer, new[] { swapped }, KillHullRestore),
-                "Which pilot flies which hull is part of what a run can draw from.");
+                "Which pilot flies which rank is part of what a run can draw from.");
         }
 
         [Test]
-        public void OfSetting_IgnoresShipOrderInsideAGroup_AndMovesWhenAShipRepeats()
+        public void OfSetting_MovesWhenAPhasesMinionRangeChanges()
         {
             var offer = HangarOffer();
-            var first = ScratchPilot("FirstPilot");
-            var second = ScratchPilot("SecondPilot");
-            WaveDirector.RosterEntry Entry(int hull, Commander pilot) => new() { template = offer.ships[hull], pilot = pilot };
-            var ordered = new[] { Entry(0, first), Entry(1, second) };
+            var baseline = StatHash.OfSetting(offer, new[] { ScratchRow(PhaseWaveEvery, fewest: 1, most: 3) },
+                KillHullRestore);
 
-            var baseline = StatHash.OfSetting(offer, new[] { ScratchRow(ordered, PhaseWaveEvery) }, KillHullRestore);
-            Assert.AreEqual(baseline,
-                StatHash.OfSetting(offer, new[] { ScratchRow(new[] { Entry(1, second), Entry(0, first) }, PhaseWaveEvery) },
-                    KillHullRestore),
-                "Order inside a group does not move the fingerprint.");
             Assert.AreNotEqual(baseline,
-                StatHash.OfSetting(offer, new[] { ScratchRow(new[] { Entry(0, first), Entry(1, second), Entry(0, first) }, PhaseWaveEvery) },
-                    KillHullRestore),
-                "A repeated ship changes the wave, so it moves the fingerprint.");
+                StatHash.OfSetting(offer, new[] { ScratchRow(PhaseWaveEvery, fewest: 2, most: 3) }, KillHullRestore),
+                "How few minions fly with the rival must move the fingerprint.");
+            Assert.AreNotEqual(baseline,
+                StatHash.OfSetting(offer, new[] { ScratchRow(PhaseWaveEvery, fewest: 1, most: 4) }, KillHullRestore),
+                "How many minions fly with the rival must move the fingerprint.");
         }
 
         [Test]
         public void OfSetting_MovesWithEverySectorsPacingAndKillRefill()
         {
             var offer = HangarOffer();
-            var roster = RosterOf(offer.ships);
-            var sector = ScratchRow(roster, PhaseWaveEvery);
+            var sector = ScratchRow(PhaseWaveEvery);
             var baseline = StatHash.OfSetting(offer, new[] { sector }, KillHullRestore);
 
             Assert.AreNotEqual(baseline,
-                StatHash.OfSetting(offer, new[] { ScratchRow(roster, PhaseWaveEvery + 1f) }, KillHullRestore),
+                StatHash.OfSetting(offer, new[] { ScratchRow(PhaseWaveEvery + 1f) }, KillHullRestore),
                 "A pacing number on the row must move the fingerprint.");
-            var capped = ScratchRow(roster, PhaseWaveEvery);
+            var capped = ScratchRow(PhaseWaveEvery);
             capped.waveCap = sector.waveCap + 1;
             Assert.AreNotEqual(baseline, StatHash.OfSetting(offer, new[] { capped }, KillHullRestore),
                 "The wave cap must move the fingerprint.");
             Assert.AreNotEqual(baseline, StatHash.OfSetting(offer, new[] { sector }, KillHullRestore + 0.05f),
                 "The kill refill must move the fingerprint.");
             Assert.AreNotEqual(baseline,
-                StatHash.OfSetting(offer, new[] { sector, ScratchRow(roster, PhaseWaveEvery + 1f) }, KillHullRestore),
+                StatHash.OfSetting(offer, new[] { sector, ScratchRow(PhaseWaveEvery + 1f) }, KillHullRestore),
                 "A later sector's pacing must move the fingerprint.");
         }
 
@@ -215,23 +209,20 @@ namespace Tests.EditMode
         public void OfSetting_MovesWhenSectorPhasesReorderOrRepeat()
         {
             var offer = HangarOffer();
-            var roster = RosterOf(offer.ships);
             var early = new SectorPhase
             {
-                seconds = 40f, waveEvery = 6f,
-                groups = new[] { new WaveGroup { ships = roster } },
+                seconds = 40f, waveEvery = 6f, sendsWaves = true, fewestMinions = 1, mostMinions = 2,
             };
             var late = new SectorPhase
             {
-                seconds = 40f, waveEvery = 4f,
-                groups = new[] { new WaveGroup { ships = roster } },
+                seconds = 40f, waveEvery = 4f, sendsWaves = true, fewestMinions = 1, mostMinions = 2,
             };
 
-            var baseline = PhasedSetting(offer, roster, early, late);
+            var baseline = PhasedSetting(offer, early, late);
 
-            Assert.AreNotEqual(baseline, PhasedSetting(offer, roster, late, early),
+            Assert.AreNotEqual(baseline, PhasedSetting(offer, late, early),
                 "Phase order is pacing, so a reordered table must move the fingerprint.");
-            Assert.AreNotEqual(baseline, PhasedSetting(offer, roster, early, early, late),
+            Assert.AreNotEqual(baseline, PhasedSetting(offer, early, early, late),
                 "A repeated phase lengthens the sector, so it must move the fingerprint.");
         }
 
@@ -239,9 +230,8 @@ namespace Tests.EditMode
         public void OfSetting_MovesWhenRunSectorsReorderOrRepeat()
         {
             var offer = HangarOffer();
-            var roster = RosterOf(offer.ships);
-            var easy = ScratchRow(roster, PhaseWaveEvery);
-            var hard = ScratchRow(roster, PhaseWaveEvery - 2f);
+            var easy = ScratchRow(PhaseWaveEvery);
+            var hard = ScratchRow(PhaseWaveEvery - 2f);
 
             var baseline = StatHash.OfSetting(offer, new[] { easy, hard }, KillHullRestore);
 
@@ -262,12 +252,15 @@ namespace Tests.EditMode
             var lines = StatHash.SettingLines(HangarOffer(), new[] { row }, KillHullRestore);
 
             var phase = lines.Single(line => line.StartsWith("sector[0]/row/SectorEntry.phases[0]={"));
-            Assert.That(phase, Does.Contain("groups=["));
+            Assert.That(phase, Does.Contain("sendsWaves="));
+            Assert.That(phase, Does.Contain("fewestMinions="));
             Assert.That(lines, Has.Member($"sector[0]/row/SectorEntry.patrols={row.patrols}"));
             Assert.That(lines, Has.Member($"sector[0]/row/SectorEntry.waveCap={row.waveCap}"));
             Assert.That(lines, Has.Some.StartsWith($"sector[0]/{director.name}/WaveDirector.lullSeconds="));
+            Assert.That(lines, Has.Some.StartsWith(
+                "sector[0]/RepairStationFeel/RepairStationFeelProfile.lullGraceSeconds="));
             Assert.That(lines, Has.Some.StartsWith("sector[0]/Shoal/Faction.signature={"));
-            Assert.That(lines, Has.Some.StartsWith("sector[0]/Shoal/Faction.common={"));
+            Assert.That(lines, Has.Some.StartsWith("sector[0]/Shoal/Faction.minion={"));
             Assert.That(lines, Has.Some.StartsWith("PlayerLoadout/ItemSubset.ships="));
             Assert.That(lines, Has.Member("setting/killHullRestore=0.25"));
         }
@@ -307,14 +300,20 @@ namespace Tests.EditMode
             Assert.That(StatHash.Lines(weapon), Has.Member(line), path);
         }
 
-        private static WaveDirector.RosterEntry[] RosterOf(IEnumerable<Ship> hulls) =>
-            hulls.Select(hull => new WaveDirector.RosterEntry { template = hull }).ToArray();
-
         private T Scratch<T>(T original) where T : Component
         {
             var copy = Object.Instantiate(original);
             scratch.Add(copy.gameObject);
             return copy;
+        }
+
+        private Faction ScratchFaction(Ship ship, Commander rivalPilot, Commander minionPilot)
+        {
+            var faction = ScriptableObject.CreateInstance<Faction>();
+            scratch.Add(faction);
+            faction.signature = new FactionShip { ship = ship, pilot = rivalPilot };
+            faction.minion = new FactionMinion { pilot = minionPilot };
+            return faction;
         }
 
         private Commander ScratchPilot(string pilotName)
@@ -324,14 +323,14 @@ namespace Tests.EditMode
             return pilot;
         }
 
-        private string PhasedSetting(ItemSubset offer, WaveDirector.RosterEntry[] ships, params SectorPhase[] phases)
+        private string PhasedSetting(ItemSubset offer, params SectorPhase[] phases)
         {
-            var row = ScratchRow(ships, 6f);
+            var row = ScratchRow(6f);
             row.phases = phases;
             return StatHash.OfSetting(offer, new[] { row }, KillHullRestore);
         }
 
-        private SectorEntry ScratchRow(WaveDirector.RosterEntry[] ships, float waveEvery)
+        private SectorEntry ScratchRow(float waveEvery, int fewest = 1, int most = 2)
         {
             var sector = new GameObject("ScratchSector").AddComponent<Sector>();
             scratch.Add(sector.gameObject);
@@ -347,7 +346,9 @@ namespace Tests.EditMode
                     {
                         seconds = 40f,
                         waveEvery = waveEvery,
-                        groups = new[] { new WaveGroup { ships = ships } },
+                        sendsWaves = true,
+                        fewestMinions = fewest,
+                        mostMinions = most,
                     },
                 },
             };

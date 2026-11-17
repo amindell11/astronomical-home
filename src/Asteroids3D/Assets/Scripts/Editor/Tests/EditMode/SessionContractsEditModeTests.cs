@@ -7,8 +7,6 @@ using Substrate.Sessions;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
-using Ships;
-using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Phases;
 
 namespace Tests.EditMode
@@ -95,16 +93,16 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void Session_RefusesARosterShipTheRowsFactionDoesNotFly()
+        public void Session_RefusesAPhaseWhoseMinionRangeRunsBackwards()
         {
             var row = TrialRow();
-            var bulwark = new WaveGroup
-            {
-                ships = new[] { new WaveDirector.RosterEntry { template = TestShip("Bulwark") } },
-            };
-            row.phases = WithGroups(row.phases, bulwark);
+            var phases = (SectorPhase[])row.phases.Clone();
+            phases[0].sendsWaves = true;
+            phases[0].fewestMinions = 3;
+            phases[0].mostMinions = 1;
+            row.phases = phases;
             Assert.That(() => Construct(row, presentation: false),
-                Throws.ArgumentException.With.Message.Contains("Row 1 of sector run").And.Message.Contains("doesn't fly 'Bulwark'"));
+                Throws.ArgumentException.With.Message.Contains("Row 1 of sector run").And.Message.Contains("phase 0"));
         }
 
         [Test]
@@ -113,19 +111,6 @@ namespace Tests.EditMode
             var row = new SectorEntry { prefab = AssetDatabase.LoadAssetAtPath<Sector>(ArenaPath), field = TrialRow().field };
             Assert.That(() => Construct(row, presentation: false),
                 Throws.ArgumentException.With.Message.Contains("Row 1 of sector run").And.Message.Contains("names its own preset"));
-        }
-
-        private static Ship TestShip(string name) => AssetDatabase.LoadAssetAtPath<Ship>($"Assets/Prefabs/Ships/{name}.prefab");
-
-        private static SectorPhase[] WithGroups(SectorPhase[] phases, params WaveGroup[] groups)
-        {
-            var copy = new SectorPhase[phases.Length];
-            for (var i = 0; i < phases.Length; i++)
-            {
-                copy[i] = phases[i];
-                copy[i].groups = groups;
-            }
-            return copy;
         }
 
         [Test]

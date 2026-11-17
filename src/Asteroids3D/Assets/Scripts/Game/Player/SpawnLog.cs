@@ -276,7 +276,7 @@ namespace Game.Player
 
         private void OnDeath(ShipId victim, DamageInfo killingBlow) => MarkDead(victim, killingBlow, Time.time);
 
-        private static string NameOf(Object part) =>
+        internal static string NameOf(Object part) =>
             part ? part.name.Replace(CloneSuffix, string.Empty) : string.Empty;
     }
 }

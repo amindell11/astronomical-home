@@ -21,13 +21,9 @@ namespace AI.Tactics
         public Tactic home = Tactic.AttackRun;
         [Tooltip("Units beyond its gun hold range at which the ship flies its attack run (0 = at the hold range).")]
         [Min(0f)] public float attackRunMargin;
-        [Tooltip("With its target gone, circle the wreck for a few laps before wandering. Off wanders from the start.")]
+        [Tooltip("With a dead target, circle the wreck for a few laps before wandering. Off, a dead target wanders from the start. A lost target is circled either way.")]
         public bool circlesWreck = true;
-        [Tooltip("Shield %, below which a ship hit within the last 'hit within' seconds breaks off.")]
-        [Range(0f, 100f)] public float breakOffShield = 25f;
-        [Tooltip("Shield %, at or above which a ship breaking off comes back to pick again.")]
-        [Range(0f, 100f)] public float resumeShield = 80f;
-        [Tooltip("Seconds since the ship was last hit within which a low shield makes it break off.")]
+        [Tooltip("Seconds since the ship was last hit within which a gauge under its breaking point makes it hurt.")]
         [Min(0f)] public float hitWithin = 2f;
         [Tooltip("Shield %, below which a ship in the target's guns flanks or stands off instead of pressing. " +
                  "At 0 it always presses; at 100 it never flies into the guns, even with a full shield.")]
@@ -37,10 +33,54 @@ namespace AI.Tactics
         [Tooltip("Seconds a ship holds every tactic it picks, break off included, before it can pick again.")]
         [Min(0f)] public float minimumHold = 2f;
 
+        [Header("Formation")]
+        [Tooltip("Holds its place on its leader's line, across the line to the target, while it has a leader. Off, it ignores the line.")]
+        public bool holdsLine;
+        [Tooltip("Units between neighbouring places on the line.")]
+        [Min(0f)] public float lineSpacing = 8f;
+
+        [Header("Ambush")]
+        [Tooltip("Each time its keystone is ready it fires it, flies hidden with guns cold to a point ahead of the target's nose, and fires once it shows.")]
+        public bool ambushes;
+        [Tooltip("Units ahead of the target's nose the ship flies to while hidden.")]
+        [Min(0f)] public float ambushAhead = 15f;
+        [Tooltip("Seconds the ambush holds from its start: the hidden run plus the strike after the ship shows.")]
+        [Min(0f)] public float ambushHold = 4f;
+
+        [Header("When hurt")]
+        [Tooltip("What a hurt ship does. Break off stops firing. Fall back keeps firing. Turn cautious stays out of the target's guns. Last stand closes to point-blank and presses, firing, until it dies. Jump out flies straight away and leaves the sector past a distance. Never ignores the wound.")]
+        public WoundedResponse wounded = WoundedResponse.BreakOff;
+        [Tooltip("Shield or hull, the gauge a ship reads to decide it is hurt.")]
+        public WoundGauge woundedBy = WoundGauge.Shield;
+        [Tooltip("Gauge %, below which a ship hit within the last 'hit within' seconds is hurt.")]
+        [Range(0f, 100f)] public float woundedBelow = 25f;
+        [Tooltip("What ends being hurt: the shield coming back, or a fixed number of seconds. A last stand or a jump out never ends.")]
+        public WoundedEnds woundedEnds = WoundedEnds.WhenShieldIsBack;
+        [Tooltip("Shield %, at or above which a ship is no longer hurt, when the shield coming back ends it.")]
+        [Range(0f, 100f)] public float shieldBack = 80f;
+        [Tooltip("Seconds a ship flies its response before it stops being hurt, when seconds end it.")]
+        [Min(0f)] public float woundedSeconds = 5f;
+        [Tooltip("After its retreats the ship is never hurt again. Off means no limit.")]
+        public bool commits;
+        [Tooltip("Retreats a committing ship takes before it is never hurt again.")]
+        [Min(1)] public int retreats = 1;
+        [Tooltip("Units inside its own primary gun range at which a ship falling back holds.")]
+        [Min(0f)] public float fallBackMargin = 1f;
+        [Tooltip("Units from its target at which a ship making its last stand holds and fires.")]
+        [Min(0f)] public float chargeRange = 6f;
+        [Tooltip("Units from its target beyond which a ship that jumps out leaves the sector.")]
+        [Min(0f)] public float jumpsBeyond = 70f;
+
         private void OnValidate()
         {
-            if (home != Tactic.BreakOff) return;
-            throw new InvalidOperationException($"{name}: a ship cannot make breaking off its home tactic");
+            if (home == Tactic.BreakOff)
+                throw new InvalidOperationException($"{name}: a ship cannot make breaking off its home tactic");
+            if (home == Tactic.Charge)
+                throw new InvalidOperationException($"{name}: a ship cannot make its last stand its home tactic");
+            if (home == Tactic.HoldLine)
+                throw new InvalidOperationException($"{name}: a ship cannot make holding the line its home tactic");
+            if (home == Tactic.Ambush)
+                throw new InvalidOperationException($"{name}: a ship cannot make ambushing its home tactic");
         }
     }
 }

@@ -3,6 +3,8 @@ using Ships;
 using Ships.Presentation;
 using Ships.Visuals;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 namespace UI.Hangar
 {
@@ -11,7 +13,8 @@ namespace UI.Hangar
     /// on the isolated ShipPreview layer. The texture spans the whole surface ships fly across; an off-axis camera
     /// holds the settled ship inside a framing square on it. The camera never moves; each clone is scaled to one
     /// framing sphere, so every hull fills the same share of the square. A <see cref="HangarCarousel"/> places the clones.
-    /// A restyle, when given, dresses each clone through its livery.
+    /// A restyle, when given, dresses each clone through its livery. A resolve material, when given, turns the
+    /// camera's picture of the ship into the hologram.
     /// </summary>
     public sealed class HangarPreviewStage : MonoBehaviour
     {
@@ -24,9 +27,6 @@ namespace UI.Hangar
         // The approved ink weight: contour widths as drawn on the original 768 px preview texture.
         private const float InkReferenceTextureSize = 768f;
         private const float FramingMargin = 1.05f;
-        // Measured at the anchor's depth.
-        internal static readonly float FrameSideInRadii =
-            2f * FramingMargin / Mathf.Cos(CameraFovDeg * .5f * Mathf.Deg2Rad);
         private const float MinFramedRadius = 0.5f;
         private const float FramedRadius = 1f;
         private static readonly int ContourPixelsId = Shader.PropertyToID("_ContourPixels");
@@ -38,11 +38,13 @@ namespace UI.Hangar
         private float inkFramePixels;
         private bool showing;
         private MaterialRestyle restyle;
+        private StageResolvePass resolvePass;
+        private UniversalAdditionalCameraData stageCameraData;
 
         public RenderTexture Texture => texture;
 
         public static HangarPreviewStage Create(Transform parent, Vector2Int surfacePixels, Rect frame,
-            IEnumerable<Ship> offeredShips, MaterialRestyle restyle = null)
+            IEnumerable<Ship> offeredShips, MaterialRestyle restyle = null, Material resolve = null)
         {
             var go = new GameObject("HangarPreviewStage");
             go.transform.SetParent(parent, false);
@@ -51,6 +53,12 @@ namespace UI.Hangar
             var stage = go.AddComponent<HangarPreviewStage>();
             stage.restyle = restyle;
             stage.BuildStage(surfacePixels, frame);
+            if (resolve)
+            {
+                stage.resolvePass = new StageResolvePass(resolve);
+                stage.stageCameraData = stage.stageCamera.GetUniversalAdditionalCameraData();
+                RenderPipelineManager.beginCameraRendering += stage.EnqueueResolve;
+            }
             var offered = 0;
             foreach (var ship in offeredShips)
             {
@@ -279,8 +287,16 @@ namespace UI.Hangar
                 SetLayerRecursive(root.GetChild(i), layer);
         }
 
+        private void EnqueueResolve(ScriptableRenderContext context, Camera camera)
+        {
+            if (camera != stageCamera) return;
+            stageCameraData.scriptableRenderer.EnqueuePass(resolvePass);
+        }
+
         private void OnDestroy()
         {
+            if (resolvePass != null)
+                RenderPipelineManager.beginCameraRendering -= EnqueueResolve;
             if (stageCamera) stageCamera.targetTexture = null;
             ReleaseTexture();
         }

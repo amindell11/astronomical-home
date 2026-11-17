@@ -11,6 +11,8 @@ namespace Substrate.Sectors.Elements.Elites
         /// <summary>True while an elite ship is alive in the sector.</summary>
         bool Present { get; }
 
+        bool IsBeaten { get; }
+
         float HullPct { get; }
         float ShieldPct { get; }
     }

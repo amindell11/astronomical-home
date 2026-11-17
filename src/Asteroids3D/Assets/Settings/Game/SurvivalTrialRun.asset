@@ -21,103 +21,24 @@ MonoBehaviour:
     elite: {fileID: 11400000, guid: 6eb906335616460983af1abe9f7c5ea2, type: 2}
     phases:
     - seconds: 40
-      cap: 1
-      groups:
-      - ships:
-        - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-            type: 3}
-          pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
-            type: 3}
-      - ships:
-        - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-            type: 3}
-          pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
-            type: 3}
-      endsAt: 0
-      breather: 4
-      longestWait: 20
+      sendsWaves: 1
+      fewestMinions: 1
+      mostMinions: 2
+      waveEvery: 20
     - seconds: 30
-      cap: 2
-      groups:
-      - ships:
-        - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-            type: 3}
-          pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
-            type: 3}
-        - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-            type: 3}
-          pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
-            type: 3}
-      - ships:
-        - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-            type: 3}
-          pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-            type: 3}
-          pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
-            type: 3}
-      - ships:
-        - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-            type: 3}
-          pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-            type: 3}
-          pilot: {fileID: 8104806860084415427, guid: ce502418980ffbd45a1aad18f3b9a7b7,
-            type: 3}
-      endsAt: 0
-      breather: 4
-      longestWait: 16
+      sendsWaves: 1
+      fewestMinions: 2
+      mostMinions: 3
+      waveEvery: 16
     - seconds: 20
-      cap: 3
-      groups:
-      - ships:
-        - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-            type: 3}
-          pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
-            type: 3}
-        - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-            type: 3}
-          pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-            type: 3}
-          pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
-            type: 3}
-      - ships:
-        - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-            type: 3}
-          pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
-            type: 3}
-        - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-            type: 3}
-          pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-            type: 3}
-          pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
-            type: 3}
-      - ships:
-        - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-            type: 3}
-          pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
-            type: 3}
-        - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-            type: 3}
-          pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
-            type: 3}
-        - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-            type: 3}
-          pilot: {fileID: 8104806860084415427, guid: ce502418980ffbd45a1aad18f3b9a7b7,
-            type: 3}
-      endsAt: 0
-      breather: 4
-      longestWait: 12
+      sendsWaves: 1
+      fewestMinions: 3
+      mostMinions: 4
+      waveEvery: 12
     waveCap: 5
     patrols: 1
     searchSeconds: 30
-    repairStations: 0
+    repairStations: 1
     modStations: 1
     armories: 0
     field: {fileID: 11400000, guid: 65c274c56b444d04a85ecd6e8e524e72, type: 2}
@@ -129,140 +50,20 @@ MonoBehaviour:
     elite: {fileID: 11400000, guid: 21315f95bf1e425ba68af48ed9c9bee1, type: 2}
     phases:
     - seconds: 40
-      cap: 3
-      groups:
-      - ships:
-        - template: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637,
-            type: 3}
-          pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637,
-            type: 3}
-          pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
-            type: 3}
-      - ships:
-        - template: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637,
-            type: 3}
-          pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-            type: 3}
-          pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
-            type: 3}
-      - ships:
-        - template: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637,
-            type: 3}
-          pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-            type: 3}
-          pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
-            type: 3}
-      endsAt: 1
-      breather: 4
-      longestWait: 20
+      sendsWaves: 1
+      fewestMinions: 1
+      mostMinions: 2
+      waveEvery: 20
     - seconds: 30
-      cap: 4
-      groups:
-      - ships:
-        - template: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637,
-            type: 3}
-          pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637,
-            type: 3}
-          pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-            type: 3}
-          pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
-            type: 3}
-      - ships:
-        - template: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637,
-            type: 3}
-          pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637,
-            type: 3}
-          pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-            type: 3}
-          pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
-            type: 3}
-      - ships:
-        - template: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637,
-            type: 3}
-          pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637,
-            type: 3}
-          pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-            type: 3}
-          pilot: {fileID: 8104806860084415427, guid: ce502418980ffbd45a1aad18f3b9a7b7,
-            type: 3}
-      endsAt: 1
-      breather: 4
-      longestWait: 16
+      sendsWaves: 1
+      fewestMinions: 2
+      mostMinions: 3
+      waveEvery: 16
     - seconds: 20
-      cap: 5
-      groups:
-      - ships:
-        - template: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637,
-            type: 3}
-          pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637,
-            type: 3}
-          pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637,
-            type: 3}
-          pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-            type: 3}
-          pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
-            type: 3}
-      - ships:
-        - template: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637,
-            type: 3}
-          pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637,
-            type: 3}
-          pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-            type: 3}
-          pilot: {fileID: 8104806860084415427, guid: ce502418980ffbd45a1aad18f3b9a7b7,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-            type: 3}
-          pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
-            type: 3}
-      - ships:
-        - template: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637,
-            type: 3}
-          pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637,
-            type: 3}
-          pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637,
-            type: 3}
-          pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-            type: 3}
-          pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
-            type: 3}
-      endsAt: 1
-      breather: 4
-      longestWait: 12
+      sendsWaves: 1
+      fewestMinions: 3
+      mostMinions: 4
+      waveEvery: 12
     waveCap: 7
     patrols: 2
     searchSeconds: 45
@@ -278,176 +79,20 @@ MonoBehaviour:
     elite: {fileID: 11400000, guid: d0bcf0c7e3eb9754dabe2ed134c1ecd2, type: 2}
     phases:
     - seconds: 40
-      cap: 4
-      groups:
-      - ships:
-        - template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
-            type: 3}
-          pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
-            type: 3}
-        - template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
-            type: 3}
-          pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-            type: 3}
-          pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
-            type: 3}
-      - ships:
-        - template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
-            type: 3}
-          pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
-            type: 3}
-        - template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
-            type: 3}
-          pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-            type: 3}
-          pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
-            type: 3}
-      - ships:
-        - template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
-            type: 3}
-          pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
-            type: 3}
-        - template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
-            type: 3}
-          pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-            type: 3}
-          pilot: {fileID: 8104806860084415427, guid: ce502418980ffbd45a1aad18f3b9a7b7,
-            type: 3}
-      endsAt: 1
-      breather: 4
-      longestWait: 20
+      sendsWaves: 1
+      fewestMinions: 1
+      mostMinions: 2
+      waveEvery: 20
     - seconds: 30
-      cap: 5
-      groups:
-      - ships:
-        - template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
-            type: 3}
-          pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
-            type: 3}
-        - template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
-            type: 3}
-          pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
-            type: 3}
-        - template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
-            type: 3}
-          pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-            type: 3}
-          pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
-            type: 3}
-      - ships:
-        - template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
-            type: 3}
-          pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
-            type: 3}
-        - template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
-            type: 3}
-          pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-            type: 3}
-          pilot: {fileID: 8104806860084415427, guid: ce502418980ffbd45a1aad18f3b9a7b7,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-            type: 3}
-          pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
-            type: 3}
-      - ships:
-        - template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
-            type: 3}
-          pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
-            type: 3}
-        - template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
-            type: 3}
-          pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
-            type: 3}
-        - template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
-            type: 3}
-          pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-            type: 3}
-          pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
-            type: 3}
-      endsAt: 1
-      breather: 4
-      longestWait: 16
+      sendsWaves: 1
+      fewestMinions: 2
+      mostMinions: 3
+      waveEvery: 16
     - seconds: 20
-      cap: 6
-      groups:
-      - ships:
-        - template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
-            type: 3}
-          pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
-            type: 3}
-        - template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
-            type: 3}
-          pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
-            type: 3}
-        - template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
-            type: 3}
-          pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
-            type: 3}
-        - template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
-            type: 3}
-          pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-            type: 3}
-          pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
-            type: 3}
-      - ships:
-        - template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
-            type: 3}
-          pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
-            type: 3}
-        - template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
-            type: 3}
-          pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
-            type: 3}
-        - template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
-            type: 3}
-          pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-            type: 3}
-          pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-            type: 3}
-          pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
-            type: 3}
-      - ships:
-        - template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
-            type: 3}
-          pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
-            type: 3}
-        - template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
-            type: 3}
-          pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
-            type: 3}
-        - template: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd,
-            type: 3}
-          pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-            type: 3}
-          pilot: {fileID: 8104806860084415427, guid: ce502418980ffbd45a1aad18f3b9a7b7,
-            type: 3}
-        - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-            type: 3}
-          pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
-            type: 3}
-      endsAt: 1
-      breather: 4
-      longestWait: 12
+      sendsWaves: 1
+      fewestMinions: 3
+      mostMinions: 4
+      waveEvery: 12
     waveCap: 8
     patrols: 2
     searchSeconds: 45

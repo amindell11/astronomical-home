@@ -30,8 +30,18 @@ Material:
     m_Ints: []
     m_Floats:
     - _AxialTilt: 13
+    - _BandCount: 7
+    - _BandStreaming: 0.008
+    - _FlowCycle: 14
+    - _HaloFalloff: 2
+    - _HaloIntensity: 2.95
+    - _HaloWidth: 0.03
     - _PlanetRadius: 3562.5
-    - _RotationSpeed: 0.002
+    - _RimIntensity: 2.5
+    - _RimPower: 5
+    - _RotationSpeed: 0.006
+    - _StormCellScale: 9.5
+    - _StormChurn: 0.015
     - _SurfaceLongitude: 100
     m_Colors:
     - _AtmosphereColor: {r: 0.12, g: 0.34, b: 0.55, a: 1}
