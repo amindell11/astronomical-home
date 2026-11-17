@@ -201,7 +201,7 @@ Commands:
       line entry that matches no file exits 1 before any file runs. The
       first line names the files that run; during a merge, journal event
       script-selection carries mode, reason, files and unlisted. The merge
-      gate runs this when the landing diff touches scripts/, handing it
+      gate runs this when the landing diff touches scripts/ or .githooks/, handing it
       the landing range so only the test files that range selects run
       (doc/agents/script-contracts.md sec.4).
 
@@ -246,7 +246,7 @@ Commands:
       refuse to start a proof-bearing run on a dirty worktree. The ONLY
       sanctioned merge path; it also requires the exact landing tree to pass
       the ReSharper ratchet, plus the scripts/tests suite when the landing
-      diff touches scripts/. Do not call 'gh pr merge' directly.
+      diff touches scripts/ or .githooks/. Do not call 'gh pr merge' directly.
       Either path accepts remote proof on the landing commit: a green
       merge-proof/headless status whose trailer stamps the landing tree, and
       for the ReSharper ratchet a green merge-proof/resharper status (the
@@ -267,7 +267,7 @@ Commands:
       boot here; without an acceptable merge-proof/resharper it refuses, and
       one stamping another baseTree means main moved: re-run
       'merge <slot> --remote'.
-      When the landing diff touches scripts/, the script suite starts at the
+      When the landing diff touches scripts/ or .githooks/, the script suite starts at the
       end of proof-check and runs beside the test run or hosted wait and the
       ratchet; the script-tests phase joins it. It runs only the test files
       whose covers line the landing diff touches (script-suite selection,
@@ -1504,7 +1504,7 @@ cmd_run_script_tests() (
     done
   done
   if [[ -n "$base_ref" ]]; then
-    diff_out="$(git -C "$dir" diff --name-only --no-renames "$base_ref" "$head_ref" -- scripts)" || {
+    diff_out="$(git -C "$dir" diff --name-only --no-renames "$base_ref" "$head_ref" -- scripts .githooks)" || {
       rc=$?
       echo "run-script-tests: could not compute the landing diff $base_ref..$head_ref (git exit $rc) — the suite did not run." >&2
       return 1
@@ -1652,8 +1652,9 @@ stop_script_suite() {
 # 0 = touched, 1 = untouched, 2 = the diff could not be computed. Fail closed: a
 # swallowed git error would read as "no change under <dir>" and skip the gate.
 landing_diff_touches() {
-  local path="$1" base_ref="$2" head_ref="$3" dir="$4" changed rc=0
-  changed="$(git -C "$path" diff --name-only "$base_ref" "$head_ref" -- "$dir")" || rc=$?
+  local path="$1" base_ref="$2" head_ref="$3" changed rc=0
+  shift 3
+  changed="$(git -C "$path" diff --name-only "$base_ref" "$head_ref" -- "$@")" || rc=$?
   if [[ "$rc" -ne 0 ]]; then
     echo "merge: could not compute the landing diff $base_ref..$head_ref (git exit $rc)." >&2
     return 2
@@ -2584,12 +2585,12 @@ merge_gate() {
     remote_reason="no remote proof: the landing diff touches .github/, so this merge needs the local run"
   fi
   local scripts_diff_rc=0
-  landing_diff_touches "$path" "$base_ref" "$slot" scripts || scripts_diff_rc=$?
+  landing_diff_touches "$path" "$base_ref" "$slot" scripts .githooks || scripts_diff_rc=$?
   [[ "$scripts_diff_rc" -ne 2 ]] || return 1
   # Needs only the landing tree, so it overlaps the test run, hosted wait and ratchet.
   # Depth is bounded: the suite runs the SLOT's scripts/tests, never this script's own tree.
   if [[ "$scripts_diff_rc" -eq 0 ]]; then
-    echo "Landing diff touches scripts/ — the script suite runs alongside the rest of the gate."
+    echo "Landing diff touches scripts/ or .githooks/ — the script suite runs alongside the rest of the gate."
     merge_journal_note "script suite started alongside the gate"
     start_script_suite "$path" "$base_ref" "$slot"
   fi
