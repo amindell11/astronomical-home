@@ -1,0 +1,140 @@
+<title>Keystone Trails Prototype</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+/* Layout: the flight view fills the left, a narrow knob rail on the right; stacks on phones. Single dark look by choice. */
+:root {
+  --bg: #0b0d16;
+  --panel: #12152290;
+  --panel-solid: #141827;
+  --line: #262b40;
+  --fg: #dfe3f0;
+  --muted: #8a90a8;
+  --accent: #7fd8ff;
+  --hot: #ffb86b;
+  --display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --body: "Inter", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body {
+  background: var(--bg); color: var(--fg); font: 14px/1.45 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 14px;
+  box-sizing: border-box;
+}
+.app { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; max-width: 1400px; margin: 0 auto; }
+@media (max-width: 900px) { .app { grid-template-columns: minmax(0, 1fr); } }
+header { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; }
+h1 { font: 600 20px/1.2 var(--display); margin: 0; letter-spacing: 0.01em; }
+header p { margin: 0; color: var(--muted); max-width: 70ch; }
+.stage { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.view { position: relative; width: 100%; aspect-ratio: 4 / 3; max-height: 72vh; border-radius: 6px; overflow: hidden; border: 1px solid var(--line); background: #070912; }
+canvas { display: block; width: 100%; height: 100%; }
+.hud { position: absolute; left: 10px; top: 8px; font: 12px/1.3 var(--mono); color: var(--fg); text-shadow: 0 1px 2px #000; pointer-events: none; }
+.hud b { color: var(--hot); font-weight: 400; }
+.bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { border: 0; border-right: 1px solid var(--line); border-radius: 0; }
+.seg button:last-child { border-right: 0; }
+button {
+  font: 500 13px/1 var(--body); color: var(--fg); background: var(--panel-solid);
+  border: 1px solid var(--line); border-radius: 6px; padding: 8px 11px; cursor: pointer;
+}
+button:hover { background: #1b2033; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #1d3446; color: var(--accent); }
+button.fire { background: #3a2712; border-color: #6b4518; color: var(--hot); font-weight: 600; }
+.rail { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.group { background: var(--panel-solid); border: 1px solid var(--line); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 9px; }
+.group h2 { font: 600 12px/1 var(--display); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 2px; }
+.knob { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px; align-items: center; }
+.knob label { font-size: 12.5px; }
+.knob output { font: 12px var(--mono); color: var(--accent); font-variant-numeric: tabular-nums; }
+.knob input { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); margin: 0; }
+.group h3.sub { font: 600 11px/1 var(--display); text-transform: uppercase; letter-spacing: 0.08em; color: var(--hot); margin: 8px 0 0; }
+/*UI-CSS*/.tools { display: flex; flex-direction: column; gap: 8px; padding: 10px; border: 1px solid var(--line); border-radius: 6px; background: #0f1220; }
+.tools .row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.chip { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.chip button { border: 0; border-radius: 0; padding: 6px 9px; }
+.chip .del { color: var(--muted); padding: 6px 7px; border-left: 1px solid var(--line); }
+button:disabled { opacity: 0.4; cursor: default; }
+details { border-top: 1px solid var(--line); padding-top: 6px; }
+summary { display: flex; align-items: center; gap: 6px; cursor: pointer; list-style: none; padding: 4px 0; }
+summary::-webkit-details-marker { display: none; }
+summary::before { content: "\25B8"; color: var(--muted); font-size: 11px; width: 10px; }
+details[open] > summary::before { content: "\25BE"; }
+.gname { font: 600 11px/1 var(--display); text-transform: uppercase; letter-spacing: 0.08em; color: var(--hot); flex: 1; }
+.count { font: 11px var(--mono); color: var(--muted); }
+summary button { padding: 4px 7px; font-size: 11.5px; }
+.gbody { display: flex; flex-direction: column; gap: 9px; padding: 6px 0 4px; }
+.knob { grid-template-columns: minmax(0, 1fr) auto auto; }
+.knob .lock { padding: 3px 5px; color: var(--muted); background: transparent; border-color: transparent; }
+.knob .lock[aria-pressed="true"] { color: var(--hot); }
+.glock { color: var(--muted); }
+.glock[aria-pressed="true"] { color: var(--hot); }
+.knob.locked input { opacity: 0.55; }
+.knob.amount, #worldKnobs .knob { grid-template-columns: minmax(0, 1fr) auto; }
+.presets { display: flex; flex-direction: column; gap: 6px; padding: 10px; border: 1px solid #6b4518; border-radius: 6px; background: #1a140c; }
+.ptitle { display: flex; justify-content: space-between; font: 600 11px/1 var(--display); text-transform: uppercase; letter-spacing: 0.08em; color: var(--hot); }
+.plist { display: flex; flex-direction: column; gap: 4px; }
+.prow { display: flex; align-items: center; gap: 4px; }
+.pname { flex: 1; font-size: 12.5px; }
+.plist button { padding: 5px 0; width: 30px; font-size: 12px; font-weight: 600; }
+.plist button[aria-pressed="true"] { background: #3a2712; border-color: var(--hot); color: var(--hot); }
+.pblurb { min-height: 2.6em; }
+/*UI-CSS-END*/.note { color: var(--muted); font-size: 12px; margin: 0; }
+textarea { width: 100%; box-sizing: border-box; height: 120px; resize: vertical; background: #0a0c14; color: var(--fg); border: 1px solid var(--line); border-radius: 6px; font: 11px/1.4 var(--mono); padding: 8px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; }
+</style>
+
+<div class="app">
+  <header>
+    <h1>Keystone Trails</h1>
+    <p>Throwaway motion sketch for #1574. Streak shapes come from the cleaned sources; knobs are named after Unity particle modules so values carry over roughly.</p>
+  </header>
+
+  <section class="stage">
+    <div class="bar">
+      <div class="seg" id="modes" role="group" aria-label="Ship and ability"></div>
+    </div>
+    <div class="view" id="view">
+      <canvas id="cv"></canvas>
+      <div class="hud" id="hud"></div>
+    </div>
+    <div class="bar">
+      <button class="fire" id="fire">Fire (Space)</button>
+      <button id="auto" aria-pressed="true">Auto-fire</button>
+      <button id="pause" aria-pressed="false">Pause</button>
+      <div class="seg" role="group" aria-label="Speed">
+        <button data-speed="1" aria-pressed="true">1×</button>
+        <button data-speed="0.25" aria-pressed="false">¼ speed</button>
+      </div>
+      <div class="seg" role="group" aria-label="Zoom">
+        <button data-zoom="1" aria-pressed="true">Game size</button>
+        <button data-zoom="2" aria-pressed="false">2×</button>
+        <button data-zoom="4" aria-pressed="false">4×</button>
+      </div>
+    </div>
+  </section>
+
+  <aside class="rail">
+    <div class="group" id="effectKnobs"><h2>Effect</h2></div>
+    <div class="group" id="blendKnobs"></div>
+    <div class="group" id="worldKnobs"><h2>Flight</h2></div>
+    <div class="group">
+      <h2>Export</h2>
+      <p class="note">Settings for every ship. Paste this back to Claude.</p>
+      <textarea id="export" readonly aria-label="Exported settings"></textarea>
+      <div class="row">
+        <button id="copy">Copy settings</button>
+        <button id="reset">Reset this ship</button>
+      </div>
+    </div>
+  </aside>
+</div>
+
