@@ -29,18 +29,20 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Additive: 0.7
-    - _Bands: 3
-    - _Fill: 0.57199997
+    - _Additive: 1
+    - _Bands: 0
+    - _Edge: 0.7
+    - _Fill: 0.26
     - _Gradient: 0.9
     - _Hatch: 0.12
     - _HatchAngle: 40
     - _HatchGap: 5
-    - _HotCore: 0.3
+    - _HotCore: 0.08
     - _InkOpacity: 0.55
-    - _InkWidth: 0.5
+    - _InkWidth: 0.28
     m_Colors:
-    - _BaseColor: {r: 1, g: 0.73333335, b: 0.35686272, a: 1}
+    - _Backdrop: {r: 0.15, g: 0.2, b: 0.41, a: 0}
+    - _BaseColor: {r: 1, g: 0.6666667, b: 0.19607843, a: 1}
     - _InkColor: {r: 0.093201794, g: 0.08610418, b: 0.11207492, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

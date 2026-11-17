@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System.Collections;
+using Capture.Recording;
 using Capture.Views;
 using NUnit.Framework;
 using Ships;
@@ -28,6 +29,8 @@ namespace Tests.PlayMode.Scenarios
         };
 
         public override GizmoCaptureProfile Profile => GizmoCaptureProfile.None;
+
+        protected override CaptureRequest Request => new("results/capture", GetType().Name, Commit, 1920, 1080);
 
         protected override DiagnosticViewConfig View => new() { minHalfHeight = 9f, padding = 5f };
 

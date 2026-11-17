@@ -12,6 +12,9 @@ namespace Ships.Keystones
         [Tooltip("Particle system this layer emits into. Simulated in world space.")]
         public ParticleSystem system;
 
+        [Tooltip("How the trail poses and lights this layer's particles.")]
+        public ShedKind kind;
+
         [Tooltip("Particles emitted per ship length travelled while the keystone is active.")]
         [Min(0f)] public float perShipLength;
 
@@ -30,10 +33,13 @@ namespace Ships.Keystones
         [Tooltip("Outward push along the outline normal, in ship lengths per second.")]
         public float kick;
 
-        [Tooltip("Particle start size, in ship lengths.")]
+        [Tooltip("Shape scale, in ship lengths.")]
         [Min(0f)] public float size;
 
-        [Tooltip("Random shrink of the start size. 0 keeps it exact; 1 can shrink it to nothing. Drawn size is size times a random value from (1 - this) to 1.")]
+        [Tooltip("Random shrink of the size. 0 keeps it exact; 1 can shrink it to nothing. Drawn size is size times a random value from (1 - this) to 1.")]
         [Range(0f, 1f)] public float sizeVariation;
+
+        [Tooltip("Quad width and height per unit of size, set by the atlas cell the shapes are baked into.")]
+        public Vector2 cell = Vector2.one;
     }
 }
