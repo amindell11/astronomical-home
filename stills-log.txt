@@ -1,0 +1,20 @@
+ships hidden 2, hud hidden
+copper sector Repair at (-123, 108, 0): models 1 Repair Station Bastion Model; rolled Bone hull
+copper sector Repair at (127, 91, 0): models 1 Repair Station Bastion Model; rolled Red hull
+copper sector Mod at (-111, -72, 0): models 1 Mod Station Bastion Model; rolled Red hull
+copper sector Mod at (165, -2, 0): models 1 Mod Station Bastion Model; rolled Red hull
+copper sector Armory at (131, -103, 0): models 1 Armory Bastion Model; rolled Red hull
+copper shoal done
+copper veil done
+copper bastion-red done
+copper bastion-bone done
+ships hidden 2, hud hidden
+verdant sector Repair at (126, 124, 0): models 1 Repair Station Bastion Model; rolled Red hull
+verdant sector Repair at (-13, -158, 0): models 1 Repair Station Bastion Model; rolled Red hull
+verdant sector Mod at (104, -101, 0): models 1 Mod Station Bastion Model; rolled Bone hull
+verdant sector Mod at (-158, -18, 0): models 1 Mod Station Bastion Model; rolled Bone hull
+verdant sector Armory at (-16, 157, 0): models 1 Armory Bastion Model; rolled Red hull
+verdant shoal done
+verdant veil done
+verdant bastion-red done
+verdant bastion-bone done
