@@ -33,6 +33,7 @@ namespace Tests.EditMode.Sectors
             using var motionSerialized = new SerializedObject(motion);
             Assert.AreSame(AssetDatabase.LoadAssetAtPath<StationMotionFeelProfile>(FeelPath),
                 motionSerialized.FindProperty("feel").objectReferenceValue, stationPath);
+            Assert.AreSame(motion.GetComponent<StationModel>(), body.Model, stationPath);
         }
 
         [TestCase("Assets/Prefabs/Objectives/Repair Station.prefab")]

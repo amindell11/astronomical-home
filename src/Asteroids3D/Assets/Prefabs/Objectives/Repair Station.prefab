@@ -229,6 +229,7 @@ MonoBehaviour:
   zone: {fileID: 8044714544803237901}
   lit: {fileID: 8596565270731034227}
   marker: {fileID: 7749946922443441563}
+  model: {fileID: 6006308998129547190}
 --- !u!1 &8596565270731034227
 GameObject:
   m_ObjectHideFlags: 0
@@ -335,3 +336,15 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 4732502036552627936}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &6006308998129547190 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1366714605450445142, guid: 1ab97f62c24a4e84dbf5c7d305f9d06a,
+    type: 3}
+  m_PrefabInstance: {fileID: 4732502036552627936}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 755a4f451ee74de49b2c9938f3ddb45f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

@@ -1,15 +1,15 @@
 """Bake a station's brush, hatching and hash marks into the drawn shader's Shadow, Light and Ink masks.
 
 CLI: blender -b --factory-startup --python-exit-code 1 -P station_paint.py -- --station BLEND
---out DIR [--unity DIR]
+--out DIR [--unity DIR] [--hatch STRENGTH]
 Needs station_uv's PaintUV layer and never saves the .blend. Every hull mesh bakes (Cycles, emission)
 in its own local space with the outpost preview's brush and hatch node setups, so the pattern lands
 where the preview drew it. The hash-mark meshes bake onto the hull in world space, selected to active.
 Written to layers/ beside the source, 8-bit grey on the PaintUV atlas, 0 away from the islands:
   Shadow = clamp(3.2 * (0.625 - brush))   Light = clamp(3.2 * (brush - 0.625))
-  Ink = max(hatch * (hatch r + hatch g), marks), hatch from outpost-colour.json
+  Ink = max(hatch * (hatch r + hatch g), marks), hatch from --hatch or the nearest outpost-colour.json
 Brush strength stays on the Unity material; ink strength there is 1. --unity also writes the three masks into DIR. The review image
-<out>/<station>-flat.png shades the hull with ../outpost-colour.json the
+<out>/<station>-flat.png shades the hull with the nearest outpost-colour.json the
 way the shader does, top view beside a tilted one. Prose to stderr; stdout trailers
 STATION_MASKS=<layers dir>, STATION_PREVIEW=<png>. Exit 0 written, 1 error.
 """
@@ -259,9 +259,11 @@ def main(argv):
     parser.add_argument("--station", required=True, help="Path to the station .blend (read only)")
     parser.add_argument("--unity", help="Existing folder that also receives the three masks")
     parser.add_argument("--out", required=True, help="Folder for the review image (outside the source tree)")
+    parser.add_argument("--hatch", type=float, help="Hatch strength baked into Ink, in place of outpost-colour.json's")
     args = parser.parse_args(argv)
     source = Path(args.station).resolve()
-    settings_path = source.parent.parent / "outpost-colour.json"
+    settings_path = next((folder / "outpost-colour.json" for folder in source.parents
+                          if (folder / "outpost-colour.json").is_file()), source.parent.parent / "outpost-colour.json")
     for path in (source, settings_path, BRUSH_IMAGE):
         if not path.is_file():
             raise contract.UsageError(f"Not found: {path}")
@@ -280,7 +282,9 @@ def main(argv):
         raise contract.UsageError(f"No hash-mark meshes (key mark) in {source}")
 
     started = time.perf_counter()
-    masks, baked = bake_masks(objects, marks, settings["hatch"])
+    hatch = settings["hatch"] if args.hatch is None else args.hatch
+    print(f"hatch strength {hatch}", file=sys.stderr)
+    masks, baked = bake_masks(objects, marks, hatch)
     seconds = time.perf_counter() - started
     layers = source.parent / contract.LAYERS_DIR
     layers.mkdir(exist_ok=True)

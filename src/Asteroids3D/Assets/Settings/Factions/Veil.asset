@@ -52,3 +52,19 @@ MonoBehaviour:
   flame: {fileID: 2100000, guid: dc73442ac6bb43f6a5846835e6252b1f, type: 2}
   eliteFlame: {fileID: 2100000, guid: 361c2fabb726455cb13b67b0c6af7406, type: 2}
   shieldRing: {r: 0.65882355, g: 0.9647059, b: 0.23137255, a: 1}
+  stationDress:
+    palettes:
+    - name: Veil
+      bone: {r: 0.32156864, g: 0.34509805, b: 0.39215687, a: 1}
+      canvas: {r: 0.22745098, g: 0.24705882, b: 0.2901961, a: 1}
+      slate: {r: 0.06666667, g: 0.07058824, b: 0.08627451, a: 1}
+      ochre: {r: 0.16862746, g: 0.18431373, b: 0.21568628, a: 1}
+      brick: {r: 0.6039216, g: 0.6392157, b: 0.7019608, a: 1}
+      blue: {r: 0.23921569, g: 0.28235295, b: 0.4, a: 1}
+      windowLight: {r: 0.6646597, g: 0.43611455, b: 1.4182411, a: 1}
+      brush: 0.45
+    repair: {fileID: 4149148802334895221, guid: 43ba6d616cae06a4fac3941c53da5719,
+      type: 3}
+    mod: {fileID: 4897386095779373250, guid: eb4cb143e570cbf4f9e7a915d90401b7, type: 3}
+    armory: {fileID: 2229004285683764813, guid: 47f4a8407e7478d4c851e91c7be94d83,
+      type: 3}
