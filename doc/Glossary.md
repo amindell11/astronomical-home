@@ -533,12 +533,11 @@ Format: **term** — definition. *(authority)*
   groups uniformly. Waves arrive on the phase's wave-every beat, trimmed to
   the wave cap. Nothing arrives in a lull, and survivors stay.
   *(WaveGroup, WaveDirector.WaveDue)*
-- **wave every** — seconds between a sector phase's waves. The phase opens
-  with one. *(SectorPhase.waveEvery)*
+- **wave every** — the beat a sector phase sends its waves on.
+  *(SectorPhase.waveEvery)*
 - **wave cap** — the most enemies alive, hunt patrols included, that a
-  sector's waves fill to. A wave arrives trimmed to the room left, in its
-  group's listed order. A wave with no room is dropped. Nothing is held or
-  owed. *(SectorEntry.waveCap, WaveDirector.Room)*
+  sector's waves fill to. Nothing is held or owed: a trimmed or dropped
+  wave is not made up later. *(SectorEntry.waveCap, WaveDirector.Room)*
 - **earned lull** — the rest of a sector phase once its last wave has arrived and
   nothing is alive, patrols included. A dropped wave counts as arrived. It moves
   no phase boundary. *(WaveDirector.EarnedLull)*
@@ -1111,19 +1110,8 @@ Format: **term** — definition. *(authority)*
   *(StatHash.OfSetting, StatAttribute)*
 - **run record**. One JSON line appended when a run ends, extracted from its last
   sector, dead, or abandoned. Abandoned is the pause screen's quit run, or shutdown
-  arriving while a run is open; it has no killing blow and no recap. The line holds
-  what the run was played on (build identity, stat fingerprint, editor or build),
-  its outcome, sectors cleared and the sector it ended in, the hangar loadout and
-  the loadout mounted at the end, the mods held, the pick screens, each sector
-  entered (seconds, player kills, hull and shield at entry and at the end, whether
-  its elite was announced and whether the player killed it, seconds the shield spent
-  regenerating, times regeneration began, times regeneration filled the shield,
-  shield points restored, seconds the shield spent at zero, and the regenerating
-  seconds and restored points while another ship was alive), where that sector's
-  phase table stood, the damage taken, the damage the player dealt, the killing
-  blow (deaths only) and the spawn log. A new line is schema v4; stored v2 and v3
-  lines still read. `hasDamageSplit` distinguishes measured shield/hull points from older
-  v2 records whose split is unknown.
+  arriving while a run is open; it has no killing blow and no recap. What a line
+  holds is `RunRecord`, and which schemas still read is `RunRecord.Counts`.
   Every record goes to one append-only file under the results root, which in the
   editor is the worktree's own `results/`, so an agent's editor runs never land in
   the user's file. A failed write, or an unreadable build identity, is logged and
