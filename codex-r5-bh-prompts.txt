@@ -1,0 +1,18 @@
+# preamble
+Use your built-in image_gen tool to create ONE NEW image: a full-screen 16:9 mockup of a space game's hangar screen. Four reference images are attached, and each has exactly one job:
+
+- Image 1, LAYOUT AND CAMERA: copy its composition. Looking slightly down at a round command table set into a station dock, the ship hologram floating large and centred over the table's central projector ring, curved displays set around the table's near rim (ship stats on the left arc, weapons on the right arc), physical knobs, switches and buttons along the rim, a big LAUNCH lever front and centre, and the space window beyond. Do not copy Image 1's ship, colours or materials.
+- Image 2, HARDWARE LOOK AND MOOD: build the table, its rim and its controls from this: cream and off-white moulded plastic with deep recessed bezels, square backlit chiclet buttons, toggle switches under hinged red covers, chunky knobs, green monochrome CRT phosphor screens behind thick curved glass, a few red warning lamps, warm tungsten light, scuffs and tape, and the station dock structure beyond the window. Do not copy Image 2's ship or its layout.
+- Image 3, THE SHIP: a reference sheet of the real ship, the Vanguard. The hologram MUST be exactly this ship: a long central hull with a rounded nose and canopy, two boxy side pods each with one round cyan lens, swept fins and rear tail spikes, grey and white panels with red stripes. The TOP view is for silhouette only; its colours are wrong. Do not invent a different fighter: no extra engines, no extra wings, no different nose.
+- Image 4, RENDERING STYLE: the game's real in-engine look. Draw the whole image in this style: hand-painted, ink-outlined, flat-shaded game illustration. Render the hologram the way Image 4 does: the ship's own paint visible through translucent glass, thin bright edges, and a soft cone of light from the projector.
+
+The screens carry this information, legibly, in short labels: the ship name "Vanguard" with left/right arrows; Hull 100, Shield 50, Regen 10/s, Speed 25, Accel 7, Turn 180°/s; "Dash 5 s"; PRIMARY "Lasers" with Damage, Fire rate and Heat bars; ORDNANCE "Missiles" with Homing, Splash and Shield bypass; and "LAUNCH" on the lever. No other text, no people, no logos, no watermark.
+
+Generate one image only, then copy the generated PNG into the current working directory as result.png and print its absolute path. Do nothing else.
+
+The hologram's pose for this image:
+
+# variants (name|prompt)
+bh-threequarter|Three-quarter view, nose angled down and to the left toward the viewer, matching the THREE-QUARTER view in Image 3.|FREIGHTER,SHIP,STYLE
+bh-side|Level flight seen side-on from its right, nose pointing right, matching the SIDE view in Image 3.|FREIGHTER,SHIP,STYLE
+bh-above|Seen from above at a steep angle, nose pointing up and away from the viewer, so the top silhouette reads clearly, matching the TOP view's shape in Image 3 but in the grey, white and red paint of the other views.|FREIGHTER,SHIP,STYLE
