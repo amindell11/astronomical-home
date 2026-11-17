@@ -27,6 +27,8 @@ namespace Tests.EditMode.Sectors
                 Assert.AreNotSame(body.Zone, copy.Zone);
                 Assert.AreNotSame(body.Lit, copy.Lit);
                 Assert.AreNotSame(body.Marker, copy.Marker);
+                Assert.IsTrue(copy.Model.transform.IsChildOf(copy.transform), "The copy's model is under the copy.");
+                Assert.AreNotSame(body.Model, copy.Model, "The copy's model is not the authored body's.");
             }
             finally
             {
