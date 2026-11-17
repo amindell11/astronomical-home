@@ -74,6 +74,7 @@ namespace Substrate.Sectors.Elements
         private float startTime;
         private bool started;
         private bool huntReleased;
+        private bool rivalAmbushes;
         private int openedPhase;
         private int? pending;
         private float lastWave;
