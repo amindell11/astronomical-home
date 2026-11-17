@@ -11,13 +11,15 @@ namespace AI.Context
     {
         private readonly IShipStatus inner;
         private readonly float limpBelowHull;
-        private readonly float limpScale;
+        private readonly float speedScale;
+        private readonly float thrustScale;
 
-        public LimpingShip(IShipStatus inner, float limpBelowHull, float limpScale)
+        public LimpingShip(IShipStatus inner, float limpBelowHull, float speedScale, float thrustScale)
         {
             this.inner = inner;
             this.limpBelowHull = limpBelowHull;
-            this.limpScale = limpScale;
+            this.speedScale = speedScale;
+            this.thrustScale = thrustScale;
         }
 
         public bool Limping => inner.HealthPct * 100f < limpBelowHull;
@@ -25,13 +27,13 @@ namespace AI.Context
         public ShipId Id => inner.Id;
         public Transform Transform => inner.Transform;
         public Kinematics Kinematics => inner.Kinematics;
-        public Dynamics Dynamics => Limping ? inner.Dynamics.Scaled(limpScale, limpScale) : inner.Dynamics;
+        public Dynamics Dynamics => Limping ? inner.Dynamics.Scaled(speedScale, thrustScale) : inner.Dynamics;
         public float HealthPct => inner.HealthPct;
         public float ShieldPct => inner.ShieldPct;
         public bool BoostAvailable => !Limping && inner.BoostAvailable;
         public float BoostCooldownRemaining => inner.BoostCooldownRemaining;
         public float BoostCooldownPct => inner.BoostCooldownPct;
-        public float MaxSpeed => Limping ? inner.MaxSpeed * limpScale : inner.MaxSpeed;
+        public float MaxSpeed => Limping ? inner.MaxSpeed * speedScale : inner.MaxSpeed;
         public float MaxYawRate => inner.MaxYawRate;
         public IReadOnlyList<ITrackingMissile> TrackingMissiles => inner.TrackingMissiles;
     }

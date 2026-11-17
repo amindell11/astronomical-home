@@ -35,8 +35,8 @@ namespace Tests.EditMode.Tactics
         public void AtOrAboveHull_PassesDynamicsMaxSpeedAndBoostThrough()
         {
             var inner = new Status { HealthPct = 0.5f, BoostAvailable = true };
-            var atLevel = new LimpingShip(inner, limpBelowHull: 50f, limpScale: Scale);
-            var above = new LimpingShip(inner, limpBelowHull: 40f, limpScale: Scale);
+            var atLevel = new LimpingShip(inner, limpBelowHull: 50f, speedScale: Scale, thrustScale: Scale);
+            var above = new LimpingShip(inner, limpBelowHull: 40f, speedScale: Scale, thrustScale: Scale);
 
             Assert.IsFalse(atLevel.Limping, "at the hull level it is not below");
             Assert.AreEqual(inner.Dynamics, atLevel.Dynamics);
@@ -53,7 +53,7 @@ namespace Tests.EditMode.Tactics
         public void BelowHull_ScalesTopSpeedAndForwardAcceleration_AndHasNoBoost()
         {
             var inner = new Status { HealthPct = 0.25f, BoostAvailable = true };
-            var limping = new LimpingShip(inner, limpBelowHull: 40f, limpScale: Scale);
+            var limping = new LimpingShip(inner, limpBelowHull: 40f, speedScale: Scale, thrustScale: Scale);
 
             Assert.IsTrue(limping.Limping);
             Assert.AreEqual(inner.Dynamics.Scaled(Scale, Scale), limping.Dynamics);
@@ -64,10 +64,23 @@ namespace Tests.EditMode.Tactics
         }
 
         [Test]
+        public void BelowHull_UnitSpeedScale_KeepsTheSpeedCap_AndScalesForwardAcceleration()
+        {
+            var inner = new Status { HealthPct = 0.25f, BoostAvailable = true };
+            var limping = new LimpingShip(inner, limpBelowHull: 40f, speedScale: 1f, thrustScale: Scale);
+
+            Assert.IsTrue(limping.Limping);
+            Assert.AreEqual(inner.Dynamics.maxSpeed, limping.Dynamics.maxSpeed, 1e-5f);
+            Assert.AreEqual(inner.MaxSpeed, limping.MaxSpeed, 1e-5f);
+            Assert.AreEqual(inner.Dynamics.forwardAcc * Scale, limping.Dynamics.forwardAcc, 1e-5f);
+            Assert.IsFalse(limping.BoostAvailable);
+        }
+
+        [Test]
         public void ZeroHullLevel_NeverLimps()
         {
             var inner = new Status { HealthPct = 0f, BoostAvailable = true };
-            var limping = new LimpingShip(inner, limpBelowHull: 0f, limpScale: Scale);
+            var limping = new LimpingShip(inner, limpBelowHull: 0f, speedScale: Scale, thrustScale: Scale);
 
             Assert.IsFalse(limping.Limping);
             Assert.AreEqual(inner.Dynamics, limping.Dynamics);

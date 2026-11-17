@@ -121,13 +121,15 @@ namespace AI
         {
             if (systemsInitialized || control.Ship == null || !sensingWired) return;
             var self = control.Ship;
-            limpingShip = new LimpingShip(self, limpBelowHull, limpScale);
+            limpingShip = new LimpingShip(self, limpBelowHull, limpScale, limpScale);
+            // The motion model keeps the hull's real speed cap; only the pilot's chosen speed drops.
+            var limpingHull = new LimpingShip(self, limpBelowHull, 1f, limpScale);
             Func<Kinematics> pose = () => self.Kinematics;
             var seed = control.DecisionSeed;
 
             // Dynamics is captured by value: an AI ship cannot live-re-equip.
             Scout.Initialize(self.Transform, self.Id, PeakDynamics(self), registry, field, control.Weapons);
-            Navigator.Initialize(limpingShip, limpingShip.Dynamics, Scout, seed.Derive(NavStream),
+            Navigator.Initialize(limpingHull, limpingHull.Dynamics, Scout, seed.Derive(NavStream),
                 control.Weapons?.ProjectileSpeed(WeaponSlot.Primary) ?? 0f);
             if (Gunner && control.IsArmed)
                 Gunner.Initialize(control.Weapons, control.WeaponActuator, pose, aimSettings,
