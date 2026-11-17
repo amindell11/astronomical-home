@@ -1,0 +1,76 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &337075478697557864
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 6252471410241619326, guid: ce502418980ffbd45a1aad18f3b9a7b7,
+        type: 3}
+      propertyPath: tactics
+      value: 
+      objectReference: {fileID: 11400000, guid: b32c9cb843a87654ea7b2322db86f5d3,
+        type: 2}
+    - target: {fileID: 7362258544292586341, guid: ce502418980ffbd45a1aad18f3b9a7b7,
+        type: 3}
+      propertyPath: m_Name
+      value: VeilNightshadePilot
+      objectReference: {fileID: 0}
+    - target: {fileID: 8162992814549523997, guid: ce502418980ffbd45a1aad18f3b9a7b7,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8162992814549523997, guid: ce502418980ffbd45a1aad18f3b9a7b7,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8162992814549523997, guid: ce502418980ffbd45a1aad18f3b9a7b7,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8162992814549523997, guid: ce502418980ffbd45a1aad18f3b9a7b7,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8162992814549523997, guid: ce502418980ffbd45a1aad18f3b9a7b7,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8162992814549523997, guid: ce502418980ffbd45a1aad18f3b9a7b7,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8162992814549523997, guid: ce502418980ffbd45a1aad18f3b9a7b7,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8162992814549523997, guid: ce502418980ffbd45a1aad18f3b9a7b7,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8162992814549523997, guid: ce502418980ffbd45a1aad18f3b9a7b7,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8162992814549523997, guid: ce502418980ffbd45a1aad18f3b9a7b7,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: ce502418980ffbd45a1aad18f3b9a7b7, type: 3}

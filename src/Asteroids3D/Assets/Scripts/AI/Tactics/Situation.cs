@@ -9,7 +9,8 @@ namespace AI.Tactics
     /// <summary>
     /// What one ship reads about its fight before it picks a tactic, from its own sensors only: its
     /// target, whether it sits in the target's guns, its own primary gun range, the allies in its firing
-    /// lane, the target's open side, and its own shield, hull and hit clock. A pure read of <see cref="AIContext"/>: allies count
+    /// lane, the target's open side, its own shield, hull and hit clock, its leader while that ship
+    /// is still there, and whether its own lock is concealed and its keystone is ready. A pure read of <see cref="AIContext"/>: allies count
     /// by where they are, never by what another ship's brain is doing, and the hit clock on the context
     /// is the only state kept between reads.
     /// https://github.com/amindell11/astronomical-home/issues/1349
@@ -32,10 +33,15 @@ namespace AI.Tactics
         public readonly float shieldPct;
         public readonly float hullPct;
         public readonly float secondsSinceHit;
+        public readonly bool hasLeader;
+        public readonly Kinematics leader;
+        public readonly bool selfConcealed;
+        public readonly bool kitReady;
 
         internal Situation(float shieldPct, float hullPct, float secondsSinceHit, bool hasTarget = false,
             float distance = 0f, float closingSpeed = 0f, float myRange = 0f, float targetRange = 0f,
-            bool inTargetsCone = false, int alliesInLane = 0, Vector2 openSide = default)
+            bool inTargetsCone = false, int alliesInLane = 0, Vector2 openSide = default,
+            bool hasLeader = false, Kinematics leader = default, bool selfConcealed = false, bool kitReady = false)
         {
             this.hasTarget = hasTarget;
             this.distance = distance;
@@ -50,12 +56,23 @@ namespace AI.Tactics
             this.shieldPct = shieldPct;
             this.hullPct = hullPct;
             this.secondsSinceHit = secondsSinceHit;
+            this.hasLeader = hasLeader;
+            this.leader = leader;
+            this.selfConcealed = selfConcealed;
+            this.kitReady = kitReady;
         }
 
         public static Situation Read(AIContext context, TacticsSettings settings)
         {
             var self = context.Self;
-            if (!context.Combat.HasEnemy) return new Situation(self.ShieldPct, self.HealthPct, context.SecondsSinceHit);
+            var leaderShip = context.Leader;
+            var hasLeader = leaderShip && leaderShip.gameObject.activeInHierarchy;
+            var leader = hasLeader ? leaderShip.Kinematics : default;
+            var selfConcealed = settings.ambushes && Myself(context).Lock.IsConcealed;
+            var kitReady = self.BoostAvailable;
+            if (!context.Combat.HasEnemy)
+                return new Situation(self.ShieldPct, self.HealthPct, context.SecondsSinceHit,
+                    hasLeader: hasLeader, leader: leader, selfConcealed: selfConcealed, kitReady: kitReady);
 
             var me = self.Kinematics;
             var target = context.Combat.Enemy;
@@ -74,7 +91,8 @@ namespace AI.Tactics
                 targetRange: PrimaryRange(target),
                 inTargetsCone: Vector2.Angle(them.Forward, -line) <= halfCone,
                 alliesInLane: AlliesInLane(context, me.pos, them.pos, settings.laneWidth),
-                openSide: OpenSide(context, them, distance, -line, halfCone, settings.laneWidth));
+                openSide: OpenSide(context, them, distance, -line, halfCone, settings.laneWidth),
+                hasLeader: hasLeader, leader: leader, selfConcealed: selfConcealed, kitReady: kitReady);
         }
 
         // A quarter turn each way at my distance; with both open, the tail-ward one wins.

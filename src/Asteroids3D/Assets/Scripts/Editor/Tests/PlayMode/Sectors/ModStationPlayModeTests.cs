@@ -224,7 +224,7 @@ namespace Tests.PlayMode.Sectors
             _row.searchSeconds = 1000f;
             feel.alarmGraceSeconds = AlarmGrace;
             var hunt = Track(new GameObject("Hunt")).AddComponent<SectorHunt>();
-            hunt.Configure(feel, null, null, 0f);
+            hunt.Configure(feel, null, 0f);
             Drive(hunt.Build(Context(hero)));
             return hunt;
         }

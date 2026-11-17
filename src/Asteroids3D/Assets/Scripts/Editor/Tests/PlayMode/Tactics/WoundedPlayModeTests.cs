@@ -30,8 +30,8 @@ namespace Tests.PlayMode.Tactics
             settings = ScriptableObject.CreateInstance<TacticsSettings>();
             settings.minimumHold = 0f;
             settings.hitWithin = 1000f;
-            settings.woundedBelow = new Spread(100f, 100f);
-            settings.shieldBack = new Spread(100f, 100f);
+            settings.woundedBelow = 100f;
+            settings.shieldBack = 100f;
             settings.woundedEnds = WoundedEnds.WhenShieldIsBack;
             settings.attackRunMargin = 0f;
             settings.fallBackMargin = 0f;
@@ -62,8 +62,7 @@ namespace Tests.PlayMode.Tactics
         {
             settings.wounded = WoundedResponse.BreakOff;
             settings.commits = true;
-            settings.retreatsMin = 1;
-            settings.retreatsMax = 1;
+            settings.retreats = 1;
 
             var (first, _) = CreateAIShip(Vector3.zero, team: 0);
             yield return new WaitForFixedUpdate();

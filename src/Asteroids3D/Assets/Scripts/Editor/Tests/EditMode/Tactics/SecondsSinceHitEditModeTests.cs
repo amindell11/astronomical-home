@@ -8,7 +8,6 @@ using NUnit.Framework;
 using Ships.Command;
 using Ships.Registry;
 using UnityEngine;
-using Utils;
 
 namespace Tests.EditMode.Tactics
 {
@@ -43,7 +42,7 @@ namespace Tests.EditMode.Tactics
         public void ZeroesOnAShieldOrHullLoss_AndCountsUpOtherwise()
         {
             var status = new StubStatus();
-            var context = new AIContext(status, host.AddComponent<Scout>(), holdRange: null, new SeedScope(1));
+            var context = new AIContext(status, host.AddComponent<Scout>(), holdRange: null);
             Assert.IsTrue(float.IsPositiveInfinity(context.SecondsSinceHit), "a ship never hit reads forever ago");
 
             status.ShieldPct = 0.5f;

@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Combat.Targeting;
 using Damage;
 using Movement;
 using NUnit.Framework;
@@ -379,6 +380,70 @@ namespace Tests.EditMode.Ships
             Assert.That(AssetDatabase.AssetPathToGUID(
                     "Assets/Visuals/Ui/Crosshair/Generated/keystone-placeholder.png"),
                 Is.EqualTo("9f5919c47706b7f438d1531e6e55719d"));
+        }
+
+        [Test]
+        public void ActivateOnArrival_ConcealsStealthAtOnce_AndThrowsWhenNotReady()
+        {
+            var channel = new LockChannel();
+            var kit = NewStealth();
+            kit.Initialize(new KeystoneHost(host.GetComponent<Rigidbody>(), 1f, channel));
+            var kin = Facing(0f);
+
+            kit.ActivateOnArrival(in kin);
+
+            Assert.That(kit.Active, Is.True);
+            Assert.That(channel.IsConcealed, Is.True);
+            Assert.That(kit.Ready, Is.False);
+            Assert.That(kit.CooldownRemaining, Is.EqualTo(kit.Cooldown).Within(1e-4f));
+            Assert.Throws<InvalidOperationException>(() => kit.ActivateOnArrival(in kin));
+        }
+
+        [Test]
+        public void ActivateOnArrival_ThrowsWhenTheActivationMovesTheShip()
+        {
+            var dash = NewDash();
+            var kin = Facing(0f);
+            Assert.Throws<InvalidOperationException>(() => dash.ActivateOnArrival(in kin));
+        }
+
+        [Test]
+        public void Telling_TurnsOnAtTheLead_AndOffWhenTheWindowEndsOrTheShipFires()
+        {
+            var kin = Facing(0f);
+            var kit = NewStealth(window: 1f, tellLead: 0.4f);
+            kit.ActivateOnArrival(in kin);
+            Assert.That(kit.Telling, Is.False, "the tell waits for the lead");
+
+            kit.Step(in kin, 0f, 0.5f, out _);
+            Assert.That(kit.Telling, Is.False, "still short of window - tellLead");
+            kit.Step(in kin, 0f, 0.2f, out _);
+            Assert.That(kit.Telling, Is.True, "the tell starts at window - tellLead");
+
+            kit.NotifyFired();
+            Assert.That(kit.Telling, Is.False, "firing ends the tell");
+
+            kit.ResetKeystone();
+            kit.ActivateOnArrival(in kin);
+            kit.Step(in kin, 0f, 0.7f, out _);
+            Assert.That(kit.Telling, Is.True);
+            kit.Step(in kin, 0f, 0.4f, out _);
+            Assert.That(kit.Active, Is.False);
+            Assert.That(kit.Telling, Is.False, "the window ending ends the tell");
+        }
+
+        private Stealth NewStealth(float window = 1f, float tellLead = 0.4f)
+        {
+            host = new GameObject("Stealth");
+            var body = host.AddComponent<Rigidbody>();
+            var kit = host.AddComponent<Stealth>();
+            var so = new SerializedObject(kit);
+            so.FindProperty("cooldown").floatValue = Cooldown;
+            so.FindProperty("window").floatValue = window;
+            so.FindProperty("tellLead").floatValue = tellLead;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            kit.Initialize(new KeystoneHost(body, 1f, new LockChannel()));
+            return kit;
         }
 
         private static void AssertIcon(string prefab, string spritePath)

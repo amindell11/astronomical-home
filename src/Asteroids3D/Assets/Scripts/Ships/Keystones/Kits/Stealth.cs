@@ -10,11 +10,15 @@ namespace Ships.Keystones.Kits
     /// lock and seeker on the ship lets go on the step it starts. Projectiles still hit; stealth
     /// hides the ship, it does not dodge, but it raises the cap and thrust like Overdrive so the
     /// ship can leave where it was last seen. It pays when it breaks a missile's track.
+    /// Over the last moments of the window the hull tells that the ship is about to show.
     /// </summary>
     public sealed class Stealth : Keystone
     {
         [Tooltip("Seconds the ship stays concealed unless it fires first.")]
         [Stat, SerializeField] private float window = 3f;
+
+        [Tooltip("Seconds before the window ends that the tell plays.")]
+        [Stat, SerializeField, Min(0f)] private float tellLead = 0.4f;
 
         [Tooltip("Shield fraction under which an engaged AI conceals itself.")]
         [Stat, SerializeField] private float sightShield = 0.3f;
@@ -29,6 +33,7 @@ namespace Ships.Keystones.Kits
 
         public override string DisplayName => "Stealth";
         public float Window => window;
+        public bool Telling => concealed && SinceActivation >= window - tellLead;
         public override bool Active => concealed;
         public override float SpeedScale => concealed ? speedScale : 1f;
         public override float ThrustScale => concealed ? thrustScale : 1f;

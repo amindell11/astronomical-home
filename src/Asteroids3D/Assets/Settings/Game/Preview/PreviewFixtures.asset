@@ -25,6 +25,7 @@ MonoBehaviour:
       faction: {fileID: 0}
       elite: {fileID: 0}
       phases: []
+      waveCap: 5
       patrols: 0
       searchSeconds: 0
       repairStations: 0
@@ -44,11 +45,11 @@ MonoBehaviour:
       elite: {fileID: 0}
       phases:
       - seconds: 1.5
-        cap: 0
-        groups: []
-        endsAt: 0
-        breather: 4
-        longestWait: 20
+        sendsWaves: 0
+        fewestMinions: 0
+        mostMinions: 0
+        waveEvery: 20
+      waveCap: 5
       patrols: 0
       searchSeconds: 0
       repairStations: 0
@@ -68,11 +69,11 @@ MonoBehaviour:
       elite: {fileID: 0}
       phases:
       - seconds: 0.5
-        cap: 0
-        groups: []
-        endsAt: 0
-        breather: 4
-        longestWait: 20
+        sendsWaves: 0
+        fewestMinions: 0
+        mostMinions: 0
+        waveEvery: 20
+      waveCap: 5
       patrols: 0
       searchSeconds: 0
       repairStations: 0
@@ -92,11 +93,11 @@ MonoBehaviour:
       elite: {fileID: 0}
       phases:
       - seconds: 0.5
-        cap: 0
-        groups: []
-        endsAt: 0
-        breather: 4
-        longestWait: 20
+        sendsWaves: 0
+        fewestMinions: 0
+        mostMinions: 0
+        waveEvery: 20
+      waveCap: 5
       patrols: 0
       searchSeconds: 0
       repairStations: 0
@@ -116,11 +117,11 @@ MonoBehaviour:
       elite: {fileID: 0}
       phases:
       - seconds: 0.5
-        cap: 0
-        groups: []
-        endsAt: 0
-        breather: 4
-        longestWait: 20
+        sendsWaves: 0
+        fewestMinions: 0
+        mostMinions: 0
+        waveEvery: 20
+      waveCap: 5
       patrols: 0
       searchSeconds: 0
       repairStations: 0
@@ -139,6 +140,7 @@ MonoBehaviour:
       faction: {fileID: 0}
       elite: {fileID: 0}
       phases: []
+      waveCap: 5
       patrols: 0
       searchSeconds: 0
       repairStations: 0
@@ -157,6 +159,7 @@ MonoBehaviour:
       faction: {fileID: 0}
       elite: {fileID: 0}
       phases: []
+      waveCap: 5
       patrols: 0
       searchSeconds: 0
       repairStations: 0
@@ -175,50 +178,10 @@ MonoBehaviour:
       elite: {fileID: 0}
       phases:
       - seconds: 60
-        cap: 6
-        groups:
-        - ships:
-          - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-              type: 3}
-            pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
-              type: 3}
-          - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-              type: 3}
-            pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
-              type: 3}
-          - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-              type: 3}
-            pilot: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
-              type: 3}
-        - ships:
-          - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-              type: 3}
-            pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
-              type: 3}
-          - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-              type: 3}
-            pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
-              type: 3}
-          - template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
-              type: 3}
-            pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
-              type: 3}
-        - ships:
-          - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-              type: 3}
-            pilot: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
-              type: 3}
-          - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-              type: 3}
-            pilot: {fileID: 6883434188155716917, guid: 29611708faad48a4cb102ac37384083e,
-              type: 3}
-          - template: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a,
-              type: 3}
-            pilot: {fileID: 8104806860084415427, guid: ce502418980ffbd45a1aad18f3b9a7b7,
-              type: 3}
-        endsAt: 3
-        breather: 1
-        longestWait: 5
+        sendsWaves: 1
+        fewestMinions: 2
+        mostMinions: 2
+        waveEvery: 5
       waveCap: 6
       patrols: 0
       searchSeconds: 0

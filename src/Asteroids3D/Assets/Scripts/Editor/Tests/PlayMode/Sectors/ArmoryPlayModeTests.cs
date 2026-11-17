@@ -177,7 +177,7 @@ namespace Tests.PlayMode.Sectors
             var feel = Track(ScriptableObject.CreateInstance<HuntFeelProfile>());
             feel.alarmGraceSeconds = AlarmGrace;
             var hunt = Track(new GameObject("Hunt")).AddComponent<SectorHunt>();
-            hunt.Configure(feel, null, null, 0f);
+            hunt.Configure(feel, null, 0f);
             Drive(hunt.Build(Context(hero, 1)));
             return hunt;
         }

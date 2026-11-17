@@ -68,8 +68,7 @@ namespace AI
                 Handles.Label(GamePlane.PlanePointToWorld(me + Vector2.up * (MarkRadius + 1f)),
                     Label(temper ? temper.name : null, tactic, temper, wounded,
                         temper ? archetype.RespondingSeconds : null,
-                        temper ? archetype.RetreatsTaken : 0,
-                        temper ? archetype.Draw : null),
+                        temper ? archetype.RetreatsTaken : 0),
                     new GUIStyle { normal = { textColor = wounded ? WoundedLabel : TacticLabel }, fontSize = 12 });
             }
             if (situation.openSide == Vector2.zero) return;
@@ -81,14 +80,14 @@ namespace AI
         }
 
         internal static string Label(string temperName, Tactic tactic, TacticsSettings temper, bool wounded,
-            float? respondingSeconds, int retreatsTaken, WoundedDraw? draw)
+            float? respondingSeconds, int retreatsTaken)
         {
             var tacticName = ObjectNames.NicifyVariableName(tactic.ToString());
             var shown = ShownTemper(temperName);
             var head = shown == null ? tacticName : $"{shown} · {tacticName}";
             if (!temper) return head;
 
-            var second = SecondLine(temper, wounded, respondingSeconds, retreatsTaken, draw);
+            var second = SecondLine(temper, wounded, respondingSeconds, retreatsTaken);
             return second == null ? head : head + "\n" + second;
         }
 
@@ -102,15 +101,14 @@ namespace AI
         }
 
         private static string SecondLine(TacticsSettings temper, bool wounded, float? respondingSeconds,
-            int retreatsTaken, WoundedDraw? draw)
+            int retreatsTaken)
         {
             if (!wounded)
-                return temper.commits && draw.HasValue && retreatsTaken >= draw.Value.retreats ? "committed" : null;
+                return temper.commits && retreatsTaken >= temper.retreats ? "committed" : null;
 
             var line = WoundedLine(temper.wounded, respondingSeconds);
-            if (line == null || !temper.commits || !draw.HasValue) return line;
-            var drawn = draw.Value.retreats;
-            return $"{line} · {drawn - retreatsTaken} of {drawn} left";
+            if (line == null || !temper.commits) return line;
+            return $"{line} · {temper.retreats - retreatsTaken} of {temper.retreats} left";
         }
 
         private static string WoundedLine(WoundedResponse response, float? respondingSeconds)

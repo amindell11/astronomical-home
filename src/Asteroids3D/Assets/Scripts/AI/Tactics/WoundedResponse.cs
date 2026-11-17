@@ -6,5 +6,7 @@ namespace AI.Tactics
         BreakOff,
         FallBack,
         TurnCautious,
+        LastStand,
+        JumpOut,
     }
 }

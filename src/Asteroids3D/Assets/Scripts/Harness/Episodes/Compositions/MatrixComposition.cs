@@ -115,7 +115,7 @@ namespace Harness.Episodes.Compositions
             clone.hideFlags = HideFlags.HideAndDontSave;
             clone.wounded = WoundedResponse.BreakOff;
             clone.woundedBy = WoundGauge.Shield;
-            clone.woundedBelow = new Spread(breakOff, breakOff);
+            clone.woundedBelow = breakOff;
             clone.woundedEnds = WoundedEnds.WhenShieldIsBack;
             clone.commits = false;
             brain.ReplaceTactics(clone);

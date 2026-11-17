@@ -139,6 +139,7 @@ namespace Balance
         {
             float number => number.ToString("R", CultureInfo.InvariantCulture),
             int number => number.ToString(CultureInfo.InvariantCulture),
+            bool flag => flag ? "true" : "false",
             Enum choice => choice.ToString(),
             _ => null,
         };
