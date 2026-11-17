@@ -4,7 +4,7 @@ using Substrate.Sectors.Elements.Stations.Visual;
 using UnityEditor;
 using UnityEngine;
 
-namespace Game.Preview
+namespace Game.Preview.Targets
 {
     internal sealed class StationsTarget : TuningTarget
     {
