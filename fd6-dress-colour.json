@@ -1,0 +1,67 @@
+{
+  "hull": {
+    "bone": "#DDD2BC",
+    "canvas": "#9C927F",
+    "slate": "#3B3F52",
+    "ochre": "#BB8925",
+    "brick": "#B0705A",
+    "blue": "#7088A6"
+  },
+  "shadow_depth": 0.18,
+  "shadow_cool": 0.13,
+  "mid_level": 0.38,
+  "window": "#FEAC39",
+  "prize": "#FFE25A",
+  "service": {
+    "gimbal": "#5FE0C0",
+    "kite": "#FFD27A",
+    "drum": "#8C9CFF"
+  },
+  "dark": "#1E2030",
+  "ink": "#0A0911",
+  "glow": 1.25,
+  "in_use_boost": 2.5,
+  "brush": 0.86,
+  "hatch": 0.13,
+  "factions": {
+    "shoal": {
+      "hull": {
+        "bone": "#A8714A",
+        "canvas": "#6E4B36",
+        "slate": "#261E1B",
+        "ochre": "#E8862A",
+        "brick": "#D8C29A",
+        "blue": "#5F7468"
+      },
+      "window": "#FF9548",
+      "brush": 1.2,
+      "hatch": 0.24
+    },
+    "veil": {
+      "hull": {
+        "bone": "#525864",
+        "canvas": "#3A3F4A",
+        "slate": "#111216",
+        "ochre": "#2B2F37",
+        "brick": "#56802A",
+        "blue": "#3D4866"
+      },
+      "window": "#BA82FF",
+      "brush": 0.45,
+      "hatch": 0.08
+    },
+    "bastion": {
+      "hull": {
+        "bone": "#EBCFA4",
+        "canvas": "#BFA57C",
+        "slate": "#241F22",
+        "ochre": "#8A2A38",
+        "brick": "#6A1E2A",
+        "blue": "#561A26"
+      },
+      "window": "#D7E6FF",
+      "brush": 0.7,
+      "hatch": 0.14
+    }
+  }
+}
