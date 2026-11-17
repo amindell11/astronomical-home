@@ -3,12 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using AI;
+using AI.Pilots;
+using AI.Tactics;
 using Combat.Weapons;
 using Damage;
 using Game.Player;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;
+using Ships.Keystones;
 using Ships.Loadout;
 using Ships.Presentation;
 using Substrate;
@@ -90,7 +93,8 @@ namespace Tests.PlayMode
         }
 
         private WaveDirector NewTrial(Ship template, Ship player, out Sector sector, bool sendsWaves = true,
-            int fewest = 0, int most = 0, int waveCap = 5, Commander rivalPilot = null, Commander minionPilot = null)
+            int fewest = 0, int most = 0, int waveCap = 5, Commander rivalPilot = null, Commander minionPilot = null,
+            float? spawnRadius = null, float? groupSpread = null)
         {
             var sectorGO = TrackGO(new GameObject("TrialSector"));
             sector = sectorGO.AddComponent<Sector>();
@@ -127,7 +131,8 @@ namespace Tests.PlayMode
                     },
                 },
             };
-            director.Configure(row.phases, spawnRadius: SpawnRadius, faction: sectorFaction, waveCap: waveCap);
+            director.Configure(row.phases, spawnRadius: spawnRadius ?? SpawnRadius, faction: sectorFaction,
+                waveCap: waveCap, groupSpread: groupSpread ?? 8f);
             sector.SetManifest(null, new SectorSpawner[] { director }, new SectorModule[] { sectorFaction });
             sector.Initialize(_unitService, _objectives, true, default, player, row);
             return director;
@@ -306,6 +311,109 @@ namespace Tests.PlayMode
             Assert.AreEqual(7f, ((AICommander)enemy.Commander).Navigator.dynamics.maxSpeed,
                 "The AI plans against the chassis's engine.");
             yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator Wave_MinionsFollowTheRival_AtTheirPlace()
+        {
+            var template = NewTemplate();
+            var player = _unitService.SpawnShip(template, null, 0, GamePlane.PlanePointToWorld(Vector2.zero),
+                GamePlane.Rotation, null);
+            var rivalPilot = TestAssets.LoadTestPilotMpc();
+            var minionPilot = TestAssets.Load<AICommander>("Assets/Prefabs/Pilots/AggressorPilot.prefab");
+            var spacing = minionPilot.GetComponent<ArchetypeBrain>().AuthoredTactics.lineSpacing;
+            Assert.Greater(spacing, 0f, "the minion temper's line spacing");
+            const float radius = 120f;
+            var director = NewTrial(template, player, out var sector, fewest: 2, most: 2,
+                rivalPilot: rivalPilot, minionPilot: minionPilot, spawnRadius: radius, groupSpread: spacing);
+
+            yield return sector.Setup();
+            for (var i = 0; i < 10 && director.Spawned.Count == 0; i++)
+                yield return null;
+
+            Assert.AreEqual(3, director.Spawned.Count);
+            var rival = director.Spawned[1];
+            Assert.That(rival.Commander.name, Does.StartWith(rivalPilot.name));
+            Assert.AreEqual(radius, Vector2.Distance(rival.Kinematics.pos, player.Kinematics.pos), 0.5f,
+                "A rival that does not ambush takes the arc's centre.");
+            Assert.IsNull(((AICommander)rival.Commander).context.Leader);
+
+            var plus = (AICommander)director.Spawned[2].Commander;
+            var minus = (AICommander)director.Spawned[0].Commander;
+            Assert.AreSame(rival, plus.context.Leader);
+            Assert.AreSame(rival, minus.context.Leader);
+            Assert.AreEqual(1, plus.context.Place);
+            Assert.AreEqual(-1, minus.context.Place);
+
+            var toTarget = (player.Kinematics.pos - rival.Kinematics.pos).normalized;
+            var point = rival.Kinematics.pos - Vector2.Perpendicular(toTarget) * plus.context.Place * spacing;
+            Assert.That(Vector2.Distance(director.Spawned[2].Kinematics.pos, point), Is.LessThan(1f),
+                "place +1 spawns on -Perpendicular(rival to hero)");
+
+            yield return sector.Teardown();
+        }
+
+        [UnityTest]
+        public IEnumerator AmbushingRival_ArrivesAhead_Concealed_AndMinionsKeepTheirPlaces()
+        {
+            var template = NewTemplate();
+            var player = _unitService.SpawnShip(template, null, 0, GamePlane.PlanePointToWorld(Vector2.zero),
+                GamePlane.Rotation, null);
+            CarryStealth(template);
+            var rivalPilot = AmbushPilot();
+            var minionPilot = TestAssets.Load<AICommander>("Assets/Prefabs/Pilots/AggressorPilot.prefab");
+            var director = NewTrial(template, player, out var sector, fewest: 2, most: 2,
+                rivalPilot: rivalPilot, minionPilot: minionPilot);
+
+            yield return sector.Setup();
+            for (var i = 0; i < 10 && director.Spawned.Count == 0; i++)
+                yield return null;
+
+            var rival = director.Spawned.Single(ship => ship.Commander.name.StartsWith(rivalPilot.name));
+            var ahead = new SerializedObject(director).FindProperty("ambushSpawnAhead").floatValue;
+            var expected = player.Kinematics.pos + player.Kinematics.Forward * ahead;
+            Assert.That(Vector2.Distance(rival.Kinematics.pos, expected), Is.LessThan(0.5f),
+                "an ambushing rival arrives ahead of the hero's nose");
+            Assert.IsTrue(rival.Lock.IsConcealed, "it is concealed on the spawn frame");
+            Assert.IsFalse(rival.Keystone.Ready, "arrival starts the kit's cooldown");
+
+            var places = director.Spawned.Where(ship => ship != rival)
+                .Select(ship => ((AICommander)ship.Commander).context)
+                .OrderBy(context => context.Place)
+                .ToArray();
+            Assert.AreEqual(2, places.Length, "minions still take the arc");
+            Assert.AreEqual(-1, places[0].Place);
+            Assert.AreEqual(1, places[1].Place);
+            Assert.AreSame(rival, places[0].Leader);
+            Assert.AreSame(rival, places[1].Leader);
+            foreach (var minion in director.Spawned.Where(ship => ship != rival))
+                Assert.AreEqual(SpawnRadius, Vector2.Distance(minion.Kinematics.pos, player.Kinematics.pos), 1f);
+
+            yield return sector.Teardown();
+        }
+
+        private Commander AmbushPilot()
+        {
+            var source = TestAssets.Load<AICommander>("Assets/Prefabs/Pilots/AggressorPilot.prefab");
+            var go = TrackGO(Object.Instantiate(source).gameObject);
+            go.name = "AmbushPilot";
+            var temper = ScriptableObject.CreateInstance<TacticsSettings>();
+            _assets.Add(temper);
+            temper.ambushes = true;
+            var serialized = new SerializedObject(go.GetComponent<ArchetypeBrain>());
+            serialized.FindProperty("tactics").objectReferenceValue = temper;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            return go.GetComponent<AICommander>();
+        }
+
+        private static void CarryStealth(Ship template)
+        {
+            var root = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Keystones/Nightshade_Stealth.prefab");
+            var stealth = root.GetComponent<Keystone>();
+            Assert.IsNotNull(stealth, "Nightshade's kit prefab");
+            var serialized = new SerializedObject(template);
+            serialized.FindProperty("keystone").objectReferenceValue = stealth;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
         }
     }
 }

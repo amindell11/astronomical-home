@@ -21,6 +21,11 @@ MonoBehaviour:
   nerveShield: 50
   standOffMargin: 5
   minimumHold: 2
+  holdsLine: 0
+  lineSpacing: 8
+  ambushes: 1
+  ambushAhead: 15
+  ambushHold: 4
   wounded: 0
   woundedBy: 1
   woundedBelow: 25

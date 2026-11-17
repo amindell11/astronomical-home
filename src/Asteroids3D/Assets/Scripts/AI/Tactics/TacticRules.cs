@@ -11,20 +11,22 @@ namespace AI.Tactics
         BreakOff,
         FallBack,
         Charge,
+        Ambush,
+        HoldLine,
     }
 
     /// <summary>
     /// Situation in, tactic out, at each brain recompute. The wounded last stand, jump out, break off and
-    /// fall back come before any other rule, and turn cautious reads a full nerve. A tactic holds while
-    /// the reason it was picked holds, a home tactic also while the rules still pick it, and always for
-    /// the minimum hold; once it ends, the ordered rules pick again.
+    /// fall back come before any other rule, then ambush, then hold the line, and turn cautious reads a
+    /// full nerve. A tactic holds while the reason it was picked holds, a home tactic also while the rules
+    /// still pick it, and always for the minimum hold; once it ends, the ordered rules pick again.
     /// https://github.com/amindell11/astronomical-home/issues/1349
     /// </summary>
     public static class TacticRules
     {
         public static Tactic Next(Tactic current, float heldSeconds, in Situation situation,
             TacticsSettings settings, bool wounded) =>
-            heldSeconds < settings.minimumHold || Holds(current, situation, settings, wounded)
+            heldSeconds < settings.minimumHold || Holds(current, heldSeconds, situation, settings, wounded)
                 ? current
                 : Pick(situation, settings, wounded);
 
@@ -34,6 +36,9 @@ namespace AI.Tactics
             if (wounded && settings.wounded == WoundedResponse.JumpOut) return Tactic.BreakOff;
             if (wounded && settings.wounded == WoundedResponse.BreakOff) return Tactic.BreakOff;
             if (wounded && settings.wounded == WoundedResponse.FallBack) return Tactic.FallBack;
+            if (settings.ambushes && situation.hasTarget && (situation.selfConcealed || situation.kitReady))
+                return Tactic.Ambush;
+            if (settings.holdsLine && situation.hasLeader && situation.hasTarget) return Tactic.HoldLine;
             var nerve = wounded && settings.wounded == WoundedResponse.TurnCautious ? 100f : settings.nerveShield;
             var shield = situation.shieldPct * 100f;
             if (situation.alliesInLane > 0 || (situation.exposed && Shies(shield, nerve)))
@@ -44,7 +49,8 @@ namespace AI.Tactics
         // Strictly below, so 0 always presses; 100 must shy at a full shield too.
         private static bool Shies(float shield, float nerve) => nerve >= 100f || shield < nerve;
 
-        private static bool Holds(Tactic tactic, in Situation situation, TacticsSettings settings, bool wounded)
+        private static bool Holds(Tactic tactic, float heldSeconds, in Situation situation, TacticsSettings settings,
+            bool wounded)
         {
             var reason = tactic switch
             {
@@ -52,6 +58,8 @@ namespace AI.Tactics
                 Tactic.BreakOff => wounded && (settings.wounded == WoundedResponse.BreakOff
                     || settings.wounded == WoundedResponse.JumpOut),
                 Tactic.FallBack => wounded && settings.wounded == WoundedResponse.FallBack,
+                Tactic.Ambush => settings.ambushes && (situation.selfConcealed || heldSeconds < settings.ambushHold),
+                Tactic.HoldLine => settings.holdsLine && situation.hasLeader && !wounded,
                 Tactic.Flank => situation.openSide != Vector2.zero && (situation.alliesInLane > 0 || situation.exposed),
                 Tactic.StandOff => situation.openSide == Vector2.zero
                     && (situation.alliesInLane > 0 || situation.inTargetsCone),

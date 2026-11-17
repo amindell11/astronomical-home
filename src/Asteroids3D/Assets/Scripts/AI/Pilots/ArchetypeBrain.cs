@@ -13,10 +13,11 @@ namespace AI.Pilots
 {
     /// <summary>The one scripted opponent component: target validity, the 5 Hz recompute cache, the missile evasion blended over the law, and the border tangent-steer world-velocity pack. The matrix lane Configures a pinned target and flies <see cref="OpponentArchetype"/>; an authored pilot serializes the same fields and can instead track the context's enemy.
     /// With that enemy gone, a live-targeting pilot roams around its last live position (the wreck) through held waypoints. A temper that circles the wreck does so for a few laps, then wanders. Otherwise the ship wanders from the start.
-    /// A pilot with tactics settings never reads <c>archetype</c>. Its temper names its home tactic, how it roams, and what it does when hurt. <see cref="TacticRules"/> picks the tactic from the ship's situation, and the ship flies one of the same laws through the same evasion and border pack. A ship that jumps out flees past the border and asks to jump beyond its temper's distance.</summary>
+    /// A pilot with tactics settings never reads <c>archetype</c>. Its temper names its home tactic, how it roams, and what it does when hurt. <see cref="TacticRules"/> picks the tactic from the ship's situation, and the ship flies one of the same laws through the same evasion and border pack. A ship that jumps out flees past the border and asks to jump beyond its temper's distance. A temper that ambushes cloaks and strikes when its keystone is ready, and one that holds the line keeps its place beside its leader. A minion whose leader is gone flies its wounded response.</summary>
     public sealed class ArchetypeBrain : Brain
     {
         private const int RecomputeIntervalTicks = 10;
+        private const float LineGain = 1f;
 
         [Tooltip("Which archetype to fly. A pilot with tactics settings never reads this. Its temper names its home tactic and how it roams. The Aggressor holds a range and fires, the Dummy sits still.")]
         [SerializeField] private OpponentArchetype archetype = OpponentArchetype.Aggressor;
@@ -97,6 +98,7 @@ namespace AI.Pilots
         private int tacticTick;
         private int flankSign;
         private bool wounded;
+        private bool leaderLost;
         private int? respondingTick;
         // Outlives a live-target change: a ship that finds a new target keeps its spent retreats.
         private int retreatsTaken;
@@ -144,6 +146,7 @@ namespace AI.Pilots
         {
             ResetFlight();
             retreatsTaken = 0;
+            leaderLost = false;
         }
 
         private void ResetFlight()
@@ -166,6 +169,10 @@ namespace AI.Pilots
         public override BrainDecision? Decide(AIContext ctx)
         {
             if (ctx?.Self == null) return null;
+
+            // A destroyed leader compares equal to null; the assigned reference is what counts.
+            if (!ReferenceEquals(ctx.Leader, null) && IsGone(ctx.Leader))
+                leaderLost = true;
 
             if (!borderAnchored)
             {
@@ -260,7 +267,7 @@ namespace AI.Pilots
         {
             var situation = Situation.Read(ctx, tactics);
             var respondingSeconds = RespondingSeconds ?? 0f;
-            wounded = WoundedRules.Next(wounded, respondingSeconds, in situation, tactics, retreatsTaken);
+            wounded = leaderLost || WoundedRules.Next(wounded, respondingSeconds, in situation, tactics, retreatsTaken);
             if (!wounded)
                 respondingTick = null;
 
@@ -304,8 +311,30 @@ namespace AI.Pilots
                     engages: situation.alliesInLane == 0),
                 Tactic.Charge => Pack(ctx.Self, RangerBrain.HoldRangeVelocity(in self, them, tactics.chargeRange, speed),
                     engages: true),
+                Tactic.HoldLine => Pack(ctx.Self, LineVelocity(in self, situation.leader, in them, ctx.Place, speed),
+                    engages: situation.alliesInLane == 0),
+                Tactic.Ambush => FlyAmbush(ctx.Self, in self, in them, in situation, speed, gunRange),
                 _ => throw new ArgumentOutOfRangeException(nameof(tactic), tactic, null),
             };
+        }
+
+        private Vector2 LineVelocity(in Kinematics self, in Kinematics leader, in Kinematics them, int place, float speed)
+        {
+            var point = leader.pos - Vector2.Perpendicular((them.pos - leader.pos).normalized) * place * tactics.lineSpacing;
+            return Vector2.ClampMagnitude(leader.vel + (point - self.pos) * LineGain, speed);
+        }
+
+        private BrainDecision FlyAmbush(IShipStatus status, in Kinematics self, in Kinematics them, in Situation situation,
+            float speed, float gunRange)
+        {
+            if (situation.selfConcealed || situation.kitReady)
+            {
+                var point = them.pos + them.Forward * tactics.ambushAhead;
+                return Pack(status, ArchetypeRoam.SeekVelocity(self.pos, point, speed), engages: false,
+                    boost: situation.kitReady && !situation.selfConcealed);
+            }
+
+            return Pack(status, RangerBrain.HoldRangeVelocity(in self, them, gunRange, speed), engages: true);
         }
 
         private Vector2 FleeVelocity(Vector2 selfPos, float speed)
@@ -316,7 +345,7 @@ namespace AI.Pilots
         }
 
         private BrainDecision Pack(IShipStatus status, Vector2 lawVelocity, bool engages, bool keepBorder = true,
-            bool jump = false)
+            bool jump = false, bool boost = false)
         {
             var self = status.Kinematics;
             var urgency = Evade(status, out var escapeHeading);
@@ -327,9 +356,9 @@ namespace AI.Pilots
                 : velocity;
             var builder = NavObjective.Anchored(target.Id).Planar(worldVelocity);
             if (engages) builder = builder.Facing(0f, 1f - urgency);
-            var boost = urgency > 0f && urgency >= boostUrgency
+            var evade = urgency > 0f && urgency >= boostUrgency
                 && Vector2.Angle(self.Forward, escapeHeading) <= boostAlignment;
-            return new BrainDecision(builder, engages, engages, boost, jump);
+            return new BrainDecision(builder, engages, engages, boost || evade, jump);
         }
 
         private float Evade(IShipStatus status, out Vector2 escapeHeading)

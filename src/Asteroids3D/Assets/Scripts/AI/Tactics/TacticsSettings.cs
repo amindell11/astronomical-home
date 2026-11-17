@@ -33,6 +33,20 @@ namespace AI.Tactics
         [Tooltip("Seconds a ship holds every tactic it picks, break off included, before it can pick again.")]
         [Min(0f)] public float minimumHold = 2f;
 
+        [Header("Formation")]
+        [Tooltip("Holds its place on its leader's line, across the line to the target, while it has a leader. Off, it ignores the line.")]
+        public bool holdsLine;
+        [Tooltip("Units between neighbouring places on the line.")]
+        [Min(0f)] public float lineSpacing = 8f;
+
+        [Header("Ambush")]
+        [Tooltip("Each time its keystone is ready it fires it, flies hidden with guns cold to a point ahead of the target's nose, and fires once it shows.")]
+        public bool ambushes;
+        [Tooltip("Units ahead of the target's nose the ship flies to while hidden.")]
+        [Min(0f)] public float ambushAhead = 15f;
+        [Tooltip("Seconds the ambush holds from its start: the hidden run plus the strike after the ship shows.")]
+        [Min(0f)] public float ambushHold = 4f;
+
         [Header("When hurt")]
         [Tooltip("What a hurt ship does. Break off stops firing. Fall back keeps firing. Turn cautious stays out of the target's guns. Last stand closes to point-blank and presses, firing, until it dies. Jump out flies straight away and leaves the sector past a distance. Never ignores the wound.")]
         public WoundedResponse wounded = WoundedResponse.BreakOff;
@@ -63,6 +77,10 @@ namespace AI.Tactics
                 throw new InvalidOperationException($"{name}: a ship cannot make breaking off its home tactic");
             if (home == Tactic.Charge)
                 throw new InvalidOperationException($"{name}: a ship cannot make its last stand its home tactic");
+            if (home == Tactic.HoldLine)
+                throw new InvalidOperationException($"{name}: a ship cannot make holding the line its home tactic");
+            if (home == Tactic.Ambush)
+                throw new InvalidOperationException($"{name}: a ship cannot make ambushing its home tactic");
         }
     }
 }

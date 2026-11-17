@@ -1,9 +1,11 @@
 #if UNITY_EDITOR
 using System;
+using System.Reflection;
 using AI;
 using AI.Context;
 using AI.Tactics;
 using Movement;
+using Substrate;
 using AI.Navigation.MPC;
 using NUnit.Framework;
 using Ships;
@@ -37,12 +39,12 @@ namespace Tests.EditMode
         private sealed class StubStatus : IShipStatus
         {
             public Kinematics Kinematics { get; set; }
-            public ShipId Id => default;
+            public ShipId Id { get; set; }
             public Transform Transform => null;
             public Dynamics Dynamics => Movement.Dynamics.Default;
             public float HealthPct { get; set; } = 1f;
             public float ShieldPct { get; set; } = 1f;
-            public bool BoostAvailable => true;
+            public bool BoostAvailable { get; set; } = true;
             public float BoostCooldownRemaining => 0f;
             public float BoostCooldownPct => 0f;
             public float MaxSpeed => 10f;
@@ -594,6 +596,140 @@ namespace Tests.EditMode
 
             Assert.AreEqual(expectedX, velocity.x, 1e-5f);
             Assert.AreEqual(expectedY, velocity.y, 1e-5f);
+        }
+
+        [Test]
+        public void LeaderLost_FliesTheWoundedResponse_AtFullHull()
+        {
+            FlyLostLeader(WoundedResponse.LastStand, Tactic.Charge, engages: true);
+            FlyLostLeader(WoundedResponse.JumpOut, Tactic.BreakOff, engages: false);
+            FlyLostLeader(WoundedResponse.Never, Tactic.AttackRun, engages: true);
+        }
+
+        [Test]
+        public void Ambush_BoostsWhileTheKitIsReady_AndHoldsFireWhileConcealed()
+        {
+            var temper = ScriptableObject.CreateInstance<TacticsSettings>();
+            temper.ambushes = true;
+            temper.ambushAhead = 15f;
+            temper.minimumHold = 0f;
+            createdTempers.Add(temper);
+            var target = targetHost.AddComponent<Ship>();
+            PinPose(target, new Vector2(20f, 0f));
+
+            var ready = DecideFight(temper, target, concealed: false, kitReady: true);
+            Assert.AreEqual(Tactic.Ambush, ready.brain.CurrentTactic);
+            Assert.IsTrue(ready.decision.boost, "a ready kit is fired to start the ambush");
+            Assert.IsFalse(ready.decision.engagePrimary, "guns stay cold while the ship is not yet shown");
+            Assert.IsFalse(ready.decision.engageSecondary);
+            var them = target.Kinematics;
+            var ahead = them.pos + them.Forward * temper.ambushAhead;
+            var speed = Shape().speedFraction * Dynamics.Default.maxSpeed;
+            Assert.AreEqual(ArchetypeRoam.SeekVelocity(Vector2.zero, ahead, speed), ready.decision.nav.planarVelocity);
+
+            var hidden = DecideFight(temper, target, concealed: true, kitReady: false);
+            Assert.AreEqual(Tactic.Ambush, hidden.brain.CurrentTactic);
+            Assert.IsFalse(hidden.decision.boost);
+            Assert.IsFalse(hidden.decision.engagePrimary, "a concealed ship holds its fire");
+            Assert.IsFalse(hidden.decision.engageSecondary);
+        }
+
+        [Test]
+        public void HoldLine_SteersTowardThePlace_OnTheMinusPerpendicularSide()
+        {
+            var temper = ScriptableObject.CreateInstance<TacticsSettings>();
+            temper.holdsLine = true;
+            temper.lineSpacing = 8f;
+            temper.minimumHold = 0f;
+            createdTempers.Add(temper);
+            var target = targetHost.AddComponent<Ship>();
+            var leader = new GameObject("Leader").AddComponent<Ship>();
+            leader.transform.SetParent(brainHost.transform);
+            PinPose(target, new Vector2(20f, 0f));
+            PinPose(leader, Vector2.zero);
+
+            var flown = DecideFight(temper, target, concealed: false, kitReady: false, leader: leader, place: 1);
+            Assert.AreEqual(Tactic.HoldLine, flown.brain.CurrentTactic);
+
+            var them = target.Kinematics;
+            var leaderKin = leader.Kinematics;
+            var toTarget = them.pos - leaderKin.pos;
+            Assert.Greater(toTarget.magnitude, 1f, "the target sits off the leader");
+            var point = leaderKin.pos - Vector2.Perpendicular(toTarget.normalized) * temper.lineSpacing;
+            Assert.Less(point.y, leaderKin.pos.y, "place +1 lies on -Perpendicular(to the target)");
+            var speed = Shape().speedFraction * Dynamics.Default.maxSpeed;
+            var expected = Vector2.ClampMagnitude(leaderKin.vel + (point - Vector2.zero), speed);
+            Assert.That(Vector2.Distance(flown.decision.nav.planarVelocity, expected), Is.LessThan(1e-3f));
+        }
+
+        private void FlyLostLeader(WoundedResponse response, Tactic tactic, bool engages)
+        {
+            var temper = ScriptableObject.CreateInstance<TacticsSettings>();
+            temper.wounded = response;
+            temper.minimumHold = 0f;
+            var (brain, status, ctx) = WoundedPilot(temper);
+            var ships = targetHost.GetComponents<Ship>();
+            PinPose(ships[ships.Length - 1], Vector2.zero);
+            var leader = new GameObject("Leader").AddComponent<Ship>();
+            leader.transform.SetParent(brainHost.transform);
+            ctx.FollowLeader(leader, 1);
+            leader.gameObject.SetActive(false);
+
+            Assert.AreEqual(1f, status.HealthPct, "the hull is full");
+            var decision = brain.Decide(ctx);
+
+            Assert.AreEqual(tactic, brain.CurrentTactic);
+            Assert.IsTrue(decision.HasValue);
+            Assert.AreEqual(engages, decision.Value.engagePrimary);
+        }
+
+        private (ArchetypeBrain brain, BrainDecision decision) DecideFight(TacticsSettings temper, Ship target,
+            bool concealed, bool kitReady, Ship leader = null, int place = 0)
+        {
+            var self = new GameObject("Self").AddComponent<Ship>();
+            self.transform.SetParent(brainHost.transform);
+            if (concealed) self.Lock.Conceal();
+            var status = new StubStatus
+            {
+                Kinematics = new Kinematics(Vector2.zero, Vector2.zero, 0f, 0f, 0f),
+                BoostAvailable = kitReady,
+            };
+            var ctx = Fighting(status, self, target);
+            if (leader) ctx.FollowLeader(leader, place);
+            var brain = NewBrain(OpponentArchetype.Aggressor, target);
+            var serialized = new SerializedObject(brain);
+            serialized.FindProperty("tactics").objectReferenceValue = temper;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            var decision = brain.Decide(ctx);
+            Assert.IsTrue(decision.HasValue);
+            return (brain, decision.Value);
+        }
+
+        private AIContext Fighting(StubStatus status, Ship self, Ship enemy)
+        {
+            var registry = new ShipRegistry();
+            // EditMode never wakes the ship, so its colliders and id are set here, as the registry keys them.
+            typeof(Ship).GetProperty(nameof(Ship.Colliders)).SetValue(self, self.GetComponentsInChildren<Collider>());
+            registry.ActiveShips.Add(self);
+            var id = new ShipId(self.GetInstanceID());
+            status.Id = id;
+            var scout = brainHost.AddComponent<Scout>();
+            scout.Initialize(self.transform, id, Dynamics.Default, registry, null, null);
+            var ctx = new AIContext(status, scout, null);
+            var seen = typeof(EnemyTracker).GetField("cachedEnemy", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.IsNotNull(seen);
+            seen.SetValue(ctx.Combat, enemy);
+            return ctx;
+        }
+
+        private static void PinPose(Ship ship, Vector2 pos)
+        {
+            ship.transform.SetPositionAndRotation(GamePlane.PlanePointToWorld(pos), GamePlane.Rotation);
+            // EditMode never wakes the ship, so its movement link and pose are set by hand.
+            var movement = ship.GetComponent<global::Ships.Movement.MovementController>();
+            typeof(Ship).GetProperty(nameof(Ship.Movement)).SetValue(ship, movement);
+            var pose = new Kinematics(pos, Vector2.zero, 0f, 0f, 0f);
+            movement.Initialize(null, () => pose, null, null);
         }
     }
 }

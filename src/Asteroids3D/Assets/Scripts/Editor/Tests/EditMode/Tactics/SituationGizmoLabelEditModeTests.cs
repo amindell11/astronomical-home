@@ -82,6 +82,15 @@ namespace Tests.EditMode.Tactics
         }
 
         [Test]
+        public void AmbushAndHoldLine_AreNamed()
+        {
+            Assert.AreEqual("Kiter · Ambush", SituationGizmos.Label(temper.name, Tactic.Ambush, temper,
+                wounded: false, respondingSeconds: null, retreatsTaken: 0));
+            Assert.AreEqual("Kiter · Hold Line", SituationGizmos.Label(temper.name, Tactic.HoldLine, temper,
+                wounded: false, respondingSeconds: null, retreatsTaken: 0));
+        }
+
+        [Test]
         public void NoTemper_ShowsTheTacticAlone()
         {
             var text = SituationGizmos.Label(null, Tactic.FallBack, null, wounded: true,

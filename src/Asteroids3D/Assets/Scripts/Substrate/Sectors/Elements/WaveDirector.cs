@@ -2,9 +2,12 @@ using Balance;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using AI;
+using AI.Pilots;
 using AI.Scanning;
 using Combat.Weapons;
 using Ships;
+using Ships.Command;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sectors.Elements.Phases;
@@ -18,12 +21,13 @@ namespace Substrate.Sectors.Elements
 {
     /// <summary>
     /// Sends a rival leading minions on each sector phase's wave-every beat, trimmed to the wave cap,
-    /// which counts the hunt's live patrols. The rival takes the arc's centre slot and the minions the
-    /// slots either side. A wave with no room is dropped. A phase opens with one.
+    /// which counts the hunt's live patrols. The rival takes the arc's centre slot, or arrives concealed
+    /// ahead of the hero when its temper ambushes and that point is clear, and the minions take the
+    /// slots either side, each following the rival at its place. A wave with no room is dropped. A phase opens with one.
     /// Nothing arrives in a lull, or once the table is done when an elite follows it. With an elite, a
     /// closing lull follows the last phase; without one, the done table keeps the last phase's waves.
     /// It begins its elite, summons it on the tick the table is done, and ends it at teardown.
-    /// The opening lull is held for the hunt. Ships arrive together just off screen, facing the hero,
+    /// The opening lull is held for the hunt. Ships arrive facing the hero,
     /// each on its rank's kit, pilot, scale and the faction skin. Dead products and products that ask to
     /// jump despawn on the tick, which idles while the hero is inactive. Nothing spawns in Build, since
     /// the asteroid field lays out at its Start. The base class's "produce exactly once" is about the
@@ -54,6 +58,8 @@ namespace Substrate.Sectors.Elements
         [SerializeField] private float clearanceRadius = 6f;
         [Tooltip("Random angles tried per spawn; none clear skips this tick.")]
         [SerializeField, Min(1)] private int placementAttempts = 4;
+        [Tooltip("Plane distance ahead of the hero's nose at which an ambushing rival arrives concealed.")]
+        [SerializeField] private float ambushSpawnAhead = 25f;
 
         private readonly List<Ship> products = new();
         private readonly HashSet<Ship> jumped = new();
@@ -341,21 +347,58 @@ namespace Substrate.Sectors.Elements
                 if (Array.Exists(slots, slot => !ClearPoint.IsClear(field, slot, clearanceRadius)))
                     continue;
 
-                var rivalSlot = (count - 1) / 2;
+                var centreIndex = (count - 1) / 2;
+                var rivalRank = faction.Faction.Rival;
+                Ship rival = null;
+                if (Ambushes(rivalRank.pilot))
+                {
+                    var ahead = center + hero.Kinematics.Forward * ambushSpawnAhead;
+                    if (ClearPoint.IsClear(field, ahead, clearanceRadius))
+                    {
+                        rival = Spawn(rivalRank, ahead, center);
+                        rival.Keystone.ActivateOnArrival(rival.Kinematics);
+                    }
+                }
+
+                var spawned = new Ship[count];
                 for (var i = 0; i < count; i++)
                 {
-                    var rank = i == rivalSlot ? faction.Faction.Rival : faction.Faction.Minion;
-                    var outward = (slots[i] - center).normalized;
-                    var facingHero = GamePlane.PlanePose(GamePlane.Normal, GamePlane.PlaneDirToWorld(-outward));
-                    var position = GamePlane.PlanePointToWorld(slots[i]);
-                    var ship = units.SpawnShip(rank.ship, rank.pilot, team, position, facingHero, field,
-                        rank.Loadout, rank.scale);
-                    faction.Faction.Dress(ship, elite: false);
-                    Track(ship);
+                    if (i == centreIndex && rival)
+                    {
+                        spawned[i] = rival;
+                        continue;
+                    }
+
+                    var rank = i == centreIndex ? rivalRank : faction.Faction.Minion;
+                    spawned[i] = Spawn(rank, slots[i], center);
+                    if (i == centreIndex) rival = spawned[i];
+                }
+
+                for (var i = 0; i < count; i++)
+                {
+                    if (i == centreIndex) continue;
+                    ((AICommander)spawned[i].Commander).FollowLeader(rival, i - centreIndex);
                 }
                 return true;
             }
             return false;
+        }
+
+        private Ship Spawn(FactionRank rank, Vector2 planePoint, Vector2 center)
+        {
+            var outward = (planePoint - center).normalized;
+            var facingHero = GamePlane.PlanePose(GamePlane.Normal, GamePlane.PlaneDirToWorld(-outward));
+            var ship = units.SpawnShip(rank.ship, rank.pilot, team, GamePlane.PlanePointToWorld(planePoint),
+                facingHero, field, rank.Loadout, rank.scale);
+            faction.Faction.Dress(ship, elite: false);
+            Track(ship);
+            return ship;
+        }
+
+        private static bool Ambushes(Commander pilot)
+        {
+            var brain = pilot.GetComponent<ArchetypeBrain>();
+            return brain && brain.AuthoredTactics && brain.AuthoredTactics.ambushes;
         }
 
         internal Vector2[] Slots(Vector2 center, float bearing, int count)

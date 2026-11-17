@@ -119,6 +119,8 @@ namespace Tests.EditMode.Tactics
             Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.Flank));
             Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.StandOff));
             Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.Charge));
+            Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.Ambush));
+            Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.HoldLine));
 
             settings.wounded = WoundedResponse.FallBack;
             Assert.IsTrue(WoundedRules.InEffect(settings, Tactic.FallBack));
@@ -127,6 +129,8 @@ namespace Tests.EditMode.Tactics
             Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.Flank));
             Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.StandOff));
             Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.Charge));
+            Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.Ambush));
+            Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.HoldLine));
 
             settings.wounded = WoundedResponse.TurnCautious;
             Assert.IsTrue(WoundedRules.InEffect(settings, Tactic.AttackRun), "any tactic");
@@ -135,6 +139,8 @@ namespace Tests.EditMode.Tactics
             Assert.IsTrue(WoundedRules.InEffect(settings, Tactic.BreakOff), "any tactic");
             Assert.IsTrue(WoundedRules.InEffect(settings, Tactic.FallBack), "any tactic");
             Assert.IsTrue(WoundedRules.InEffect(settings, Tactic.Charge), "any tactic");
+            Assert.IsTrue(WoundedRules.InEffect(settings, Tactic.Ambush), "any tactic");
+            Assert.IsTrue(WoundedRules.InEffect(settings, Tactic.HoldLine), "any tactic");
 
             settings.wounded = WoundedResponse.Never;
             Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.AttackRun));
@@ -143,6 +149,8 @@ namespace Tests.EditMode.Tactics
             Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.BreakOff));
             Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.FallBack));
             Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.Charge));
+            Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.Ambush));
+            Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.HoldLine));
         }
 
         [Test]
@@ -164,6 +172,8 @@ namespace Tests.EditMode.Tactics
             Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.AttackRun));
             Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.Flank));
             Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.StandOff));
+            Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.Ambush));
+            Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.HoldLine));
         }
 
         [Test]
@@ -177,6 +187,8 @@ namespace Tests.EditMode.Tactics
             Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.AttackRun));
             Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.Flank));
             Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.StandOff));
+            Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.Ambush));
+            Assert.IsFalse(WoundedRules.InEffect(settings, Tactic.HoldLine));
         }
     }
 }

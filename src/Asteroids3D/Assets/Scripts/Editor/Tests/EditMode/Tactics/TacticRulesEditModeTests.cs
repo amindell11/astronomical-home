@@ -33,9 +33,11 @@ namespace Tests.EditMode.Tactics
 
         // 15 u sits inside the target's 20 u guns, so the cone alone decides exposure.
         private static Situation Fight(float shield = Full, float sinceHit = Fresh, int allies = 0,
-            bool openSide = false, bool inCone = false) =>
+            bool openSide = false, bool inCone = false, bool hasLeader = false, bool concealed = false,
+            bool kitReady = false) =>
             new(shield, 1f, sinceHit, hasTarget: true, distance: 15f, targetRange: 20f, inTargetsCone: inCone,
-                alliesInLane: allies, openSide: openSide ? Vector2.right : Vector2.zero);
+                alliesInLane: allies, openSide: openSide ? Vector2.right : Vector2.zero,
+                hasLeader: hasLeader, selfConcealed: concealed, kitReady: kitReady);
 
         private Tactic Pick(in Situation situation, bool wounded) =>
             TacticRules.Next(Tactic.AttackRun, Fresh, situation, settings, wounded);
@@ -274,6 +276,48 @@ namespace Tests.EditMode.Tactics
                 "wounded on a break-off temper breaks off");
             Assert.AreEqual(Tactic.Flank, Pick(Fight(allies: 1, openSide: true), wounded: false),
                 "an ally in the lane with an open side flanks");
+        }
+
+        [Test]
+        public void Ambush_IsPickedWhenTheKitIsReadyOrTheShipIsConcealed_AndHeldUntilItShows()
+        {
+            settings.ambushes = true;
+            settings.ambushHold = 4f;
+
+            Assert.AreEqual(Tactic.Ambush, Pick(Fight(kitReady: true), wounded: false));
+            Assert.AreEqual(Tactic.Ambush, Pick(Fight(concealed: true), wounded: false));
+            Assert.AreEqual(Tactic.Ambush,
+                TacticRules.Next(Tactic.Ambush, 10f, Fight(concealed: true), settings, wounded: false),
+                "a concealed ship keeps the ambush past the hold");
+            Assert.AreEqual(Tactic.Ambush,
+                TacticRules.Next(Tactic.Ambush, 3.9f, Fight(), settings, wounded: false));
+            Assert.AreEqual(Tactic.AttackRun,
+                TacticRules.Next(Tactic.Ambush, 4f, Fight(), settings, wounded: false),
+                "shown, the ambush ends with its hold");
+
+            settings.ambushes = false;
+            Assert.AreNotEqual(Tactic.Ambush, Pick(Fight(kitReady: true, concealed: true), wounded: false));
+        }
+
+        [Test]
+        public void HoldLine_IsPickedWithALeaderAndATarget_AndWoundedRulesWinOverBoth()
+        {
+            settings.holdsLine = true;
+            settings.ambushes = true;
+            settings.ambushHold = 4f;
+
+            Assert.AreEqual(Tactic.HoldLine, Pick(Fight(hasLeader: true), wounded: false));
+            Assert.AreEqual(Tactic.Ambush, Pick(Fight(hasLeader: true, kitReady: true), wounded: false),
+                "ambush comes before hold the line");
+            Assert.AreNotEqual(Tactic.HoldLine, Pick(Fight(), wounded: false), "no leader, no line");
+            Assert.AreEqual(Tactic.AttackRun,
+                TacticRules.Next(Tactic.HoldLine, 10f, Fight(), settings, wounded: false),
+                "the line ends when the leader is gone");
+            Assert.AreEqual(Tactic.BreakOff,
+                TacticRules.Next(Tactic.HoldLine, 10f, Fight(hasLeader: true), settings, wounded: true));
+            Assert.AreEqual(Tactic.BreakOff,
+                Pick(Fight(hasLeader: true, kitReady: true, concealed: true), wounded: true),
+                "a wounded break off wins over ambush and the line");
         }
     }
 }

@@ -102,6 +102,13 @@ namespace AI
             steerSpeed = speed;
         }
 
+        internal void FollowLeader(Ship leader, int place)
+        {
+            if (!systemsInitialized)
+                throw new InvalidOperationException($"{name} cannot follow a leader before its systems initialise.");
+            context.FollowLeader(leader, place);
+        }
+
         public void ClearSteer() => steerPoint = null;
 
         /// <summary>What this ship senses: the registry it scans for ships and the obstacle field it scans for rocks (null for none). Set by the unit service at wiring, before the systems initialise.</summary>

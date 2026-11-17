@@ -907,7 +907,7 @@ Format: **term** — definition. *(authority)*
   ⚠ Not to be confused with `PilotCommand`/`IPilot`, which are the actuator end.
   *(Brain, BrainDecision)*
 - **tactic**. What a ship picks to fight with: attack run, flank, stand off,
-  fall back, break off or charge. A ship picks for its own sake, the best shot for the least risk,
+  fall back, break off, charge, ambush, or hold the line. A ship picks for its own sake, the best shot for the least risk,
   and never knows it paces the player. "Beat" is the retired name. Owner rulings
   on #1349. Each tactic flies a law the archetype pilots already have:
   - *attack run*: hold at the gun hold range plus the temper's attack-run margin
@@ -921,10 +921,16 @@ Format: **term** — definition. *(authority)*
   - *break off*: flee with guns cold;
   - *charge*: hold at the temper's charge range, point-blank, and fire
     whatever the ship's shield. Only a last stand flies it.
+  - *ambush*: fire the keystone when it is ready, fly hidden with guns cold to a
+    point ahead of the target's nose, and fire once the ship shows. It comes
+    first after the wounded rules.
+  - *hold the line*: hold a place on the leader's line, across the line to the
+    target, while the leader is there. It comes after ambush and before flank
+    or stand off.
 
   A ship picks by *ordered rules*, the first rule that fires winning: the
   tactic its *wounded response* names while it is wounded (break off, fall
-  back or charge), then flank or stand off, then its *home tactic*, the tactic it flies when no
+  back or charge), then ambush, then hold the line, then flank or stand off, then its *home tactic*, the tactic it flies when no
   rule overrides it. It keeps a tactic until the reason it was picked ends, and
   never for less than the *minimum hold*, break off included. A home tactic also
   holds while the rules still pick it.
@@ -937,7 +943,9 @@ Format: **term** — definition. *(authority)*
   Nightshade and minion, Bastion's Bulwark and minion. Hunt patrols fly the
   minion's pilot, and no roster can name a pilot. Both of a faction's
   tempers carry the faction's wounded response, ruled on #1589, 2026-11-16:
-  Veil never breaks, Shoal jumps out, and Bastion makes a last stand. The
+  Veil never breaks, Shoal jumps out, and Bastion makes a last stand. On the
+  same ruling the Veil rival ambushes and Bastion minions hold the line, and a
+  minion whose leader is lost flies its wounded response. The
   elite and its escorts keep their own pilots. The owner ruled on #1349,
   2026-11-09, that the elite never breaks off and always presses (never
   wounded, nerve 0%) and escorts never fly into the target's guns (nerve
@@ -946,6 +954,12 @@ Format: **term** — definition. *(authority)*
   hold at every shield level. The temper also records whether the ship circles
   the wreck before it wanders. A pilot with a temper never reads `archetype`.
   *(Faction.Rival, Faction.Minion; Settings/AI/Tactics/Factions; EliteTemper, EscortTemper)*
+- **leader**. The rival a minion's wave flies with. The minion observes that
+  ship's position and nothing of its brain, and the leader never commands it.
+  When the leader is gone, the minion flies its wounded response.
+  *(AIContext.Leader, AICommander.FollowLeader)*
+- **place**. A minion's signed position along its leader's line, counted in
+  line spacings (..., -2, -1, +1, +2, ...). *(AIContext.Place, AICommander.FollowLeader)*
 - **wounded response**. What a temper says its ships do when hurt: never
   retreat, break off, fall back, *turn cautious*, make a *last stand*, or *jump
   out*. Turn cautious adds no tactic and reads the ship's nerve as 100%, so the
