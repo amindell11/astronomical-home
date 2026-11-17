@@ -65,22 +65,28 @@ namespace UI.Screens
             var target = RenderTexture.GetTemporary(size, size, 24, RenderTextureFormat.ARGB32);
             var previous = RenderTexture.active;
             var texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
-            RenderTexture.active = target;
-            GL.PushMatrix();
+            var draws = new CommandBuffer { name = "Ship silhouette" };
+            var baked = new List<Mesh>();
             try
             {
-                GL.Clear(true, true, Color.clear);
-                GL.LoadOrtho();
+                draws.SetRenderTarget(target);
+                draws.ClearRenderTarget(true, true, Color.clear);
+                // Outside a camera render, mesh draws inherit any still-current camera's matrices.
+                draws.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.Ortho(0, 1, 0, 1, -1, 100));
                 foreach (var renderer in renderers)
                 {
                     var skinned = renderer as SkinnedMeshRenderer;
                     var mesh = skinned ? new Mesh() : renderer.GetComponent<MeshFilter>().sharedMesh;
-                    if (skinned) skinned.BakeMesh(mesh);
-                    material.SetPass(0);
+                    if (skinned)
+                    {
+                        skinned.BakeMesh(mesh);
+                        baked.Add(mesh);
+                    }
                     for (var sub = 0; sub < mesh.subMeshCount; sub++)
-                        Graphics.DrawMeshNow(mesh, normalize * toShip * renderer.localToWorldMatrix, sub);
-                    if (skinned) Object.DestroyImmediate(mesh);
+                        draws.DrawMesh(mesh, normalize * toShip * renderer.localToWorldMatrix, material, sub, 0);
                 }
+                Graphics.ExecuteCommandBuffer(draws);
+                RenderTexture.active = target;
                 texture.ReadPixels(new Rect(0, 0, size, size), 0, 0);
                 texture.Apply();
                 var path = output + "/" + ship.name + ".png";
@@ -94,7 +100,8 @@ namespace UI.Screens
             }
             finally
             {
-                GL.PopMatrix();
+                draws.Release();
+                foreach (var mesh in baked) Object.DestroyImmediate(mesh);
                 RenderTexture.active = previous;
                 RenderTexture.ReleaseTemporary(target);
                 Object.DestroyImmediate(texture);
