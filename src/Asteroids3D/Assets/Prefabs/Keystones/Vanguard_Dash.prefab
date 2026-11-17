@@ -17,7 +17,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &427092132780797167
 Transform:
   m_ObjectHideFlags: 0
@@ -4850,7 +4850,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &6024199619752395700
 Transform:
   m_ObjectHideFlags: 0
@@ -9676,6 +9676,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2161522300040444105}
   - component: {fileID: 1234239721068898040}
+  - component: {fileID: 5378893721229269402}
   m_Layer: 0
   m_Name: Trail
   m_TagString: Untagged
@@ -9779,40 +9780,7 @@ MonoBehaviour:
   - {x: -0.61425865, y: -0.63698566}
   - {x: -0.6258192, y: -0.72093594}
   - {x: -0.63737965, y: -0.8048858}
-  sheds:
-  - system: {fileID: 3317001904755546959}
-    kind: 0
-    perShipLength: 20
-    launchBurst: 10
-    regionY: -0.1
-    ahead: 0
-    inherit: 0.85
-    kick: 0.3
-    size: 0.72
-    sizeVariation: 0.33
-    cell: {x: 1.413, y: 1.7662}
-  - system: {fileID: 2867282012536765026}
-    kind: 1
-    perShipLength: 24
-    launchBurst: 0
-    regionY: -0.1
-    ahead: 0
-    inherit: 0.8925
-    kick: 0.120000005
-    size: 1.8199999
-    sizeVariation: 0.54
-    cell: {x: 0.83116883, y: 1.038961}
-  - system: {fileID: 1232378165327612360}
-    kind: 2
-    perShipLength: 8
-    launchBurst: 0
-    regionY: -0.1
-    ahead: 0
-    inherit: 0.68
-    kick: 0.48000002
-    size: 0.07
-    sizeVariation: 0.64
-    cell: {x: 3.047619, y: 3.8095238}
+  sheds: []
   pose:
     tint: 0.8
     flash: 0.75
@@ -9827,6 +9795,49 @@ MonoBehaviour:
     stretch: 1.3
     collapse: 0.5
   heldOverlays: []
+--- !u!114 &5378893721229269402
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3376467119972395923}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99c4b9c9d675bf24c81cf33d697a19a4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  keystone: {fileID: 5512903418735166201}
+  material: {fileID: 2100000, guid: 6fe6c272b2322e94c8fce93942542c00, type: 2}
+  localShipLength: 2
+  lifetime: 0.32
+  maxLength: 3.2
+  ribbons:
+  - anchor: {x: -0.56, y: -0.28}
+    width: 1.45
+    spread: 0.24
+    lengthScale: 0.95
+    atlasCell: 4
+    opacity: 1
+  - anchor: {x: 0.56, y: -0.28}
+    width: 1.45
+    spread: 0.24
+    lengthScale: 1
+    atlasCell: 2
+    opacity: 1
+  - anchor: {x: -0.28, y: -0.96}
+    width: 1.15
+    spread: 0.1
+    lengthScale: 0.9
+    atlasCell: 9
+    opacity: 1
+  - anchor: {x: 0.28, y: -0.96}
+    width: 1.15
+    spread: 0.1
+    lengthScale: 0.85
+    atlasCell: 6
+    opacity: 1
+  tint: 0.35
 --- !u!1 &5353937414800904326
 GameObject:
   m_ObjectHideFlags: 0
@@ -9844,7 +9855,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &5216450538856168242
 Transform:
   m_ObjectHideFlags: 0

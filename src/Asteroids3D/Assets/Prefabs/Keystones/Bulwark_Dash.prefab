@@ -17,7 +17,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &4952524040319060404
 Transform:
   m_ObjectHideFlags: 0
@@ -4850,7 +4850,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &4943168463121923228
 Transform:
   m_ObjectHideFlags: 0
@@ -9683,7 +9683,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &9165622783128586723
 Transform:
   m_ObjectHideFlags: 0
@@ -14509,6 +14509,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4444986815151764667}
   - component: {fileID: 2855805932632479753}
+  - component: {fileID: 5210832573810216584}
   m_Layer: 0
   m_Name: Trail
   m_TagString: Untagged
@@ -14615,62 +14616,7 @@ MonoBehaviour:
   - {x: -0.9291356, y: 0.97069484}
   - {x: -0.97072273, y: 0.84581566}
   - {x: -0.98656815, y: 0.7116966}
-  sheds:
-  - system: {fileID: 2500237705212785410}
-    kind: 0
-    perShipLength: 15
-    launchBurst: 4
-    regionY: -0.1
-    ahead: 0
-    inherit: 0.85
-    kick: 0.3
-    size: 0.72
-    sizeVariation: 0.33
-    cell: {x: 1.413, y: 1.7662}
-  - system: {fileID: 7422428422969776311}
-    kind: 1
-    perShipLength: 12
-    launchBurst: 0
-    regionY: -0.1
-    ahead: 0
-    inherit: 0.8925
-    kick: 0.120000005
-    size: 1.8199999
-    sizeVariation: 0.54
-    cell: {x: 0.83116883, y: 1.038961}
-  - system: {fileID: 7581295480033374696}
-    kind: 2
-    perShipLength: 6
-    launchBurst: 0
-    regionY: -0.1
-    ahead: 0
-    inherit: 0.68
-    kick: 0.48000002
-    size: 0.07
-    sizeVariation: 0.64
-    cell: {x: 3.047619, y: 3.8095238}
-  - system: {fileID: 8663615714501461264}
-    kind: 0
-    perShipLength: 8
-    launchBurst: 0
-    regionY: 0.3
-    ahead: 1
-    inherit: 1
-    kick: 1.8
-    size: 1.08
-    sizeVariation: 0.33
-    cell: {x: 1.413, y: 1.7662}
-  - system: {fileID: 1077177340539945493}
-    kind: 3
-    perShipLength: 0
-    launchBurst: 1
-    regionY: 0.45
-    ahead: 1
-    inherit: 1
-    kick: 0
-    size: 0.283005
-    sizeVariation: 0
-    cell: {x: 1.0491803, y: 1.3114754}
+  sheds: []
   pose:
     tint: 0.8
     flash: 0.7
@@ -14686,6 +14632,61 @@ MonoBehaviour:
     collapse: 0.5
   heldOverlays:
   - {fileID: 3273541644518738511}
+--- !u!114 &5210832573810216584
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6280443527919538071}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99c4b9c9d675bf24c81cf33d697a19a4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  keystone: {fileID: 5512903418735166201}
+  material: {fileID: 2100000, guid: 29b98a5ebd41df842aff462b2c4c07fb, type: 2}
+  localShipLength: 3.17131
+  lifetime: 0.32
+  maxLength: 3.2
+  ribbons:
+  - anchor: {x: -0.72, y: -0.9}
+    width: 1.9
+    spread: 0.34
+    lengthScale: 0.95
+    atlasCell: 4
+    opacity: 1
+  - anchor: {x: 0.72, y: -0.9}
+    width: 1.9
+    spread: 0.34
+    lengthScale: 1
+    atlasCell: 2
+    opacity: 1
+  - anchor: {x: -0.3, y: -1.46}
+    width: 1.5
+    spread: 0.14
+    lengthScale: 0.9
+    atlasCell: 9
+    opacity: 1
+  - anchor: {x: 0.3, y: -1.46}
+    width: 1.5
+    spread: 0.14
+    lengthScale: 0.85
+    atlasCell: 6
+    opacity: 1
+  - anchor: {x: -0.9, y: 0.99}
+    width: 2
+    spread: 1.05
+    lengthScale: 0.4
+    atlasCell: 16
+    opacity: 0.8
+  - anchor: {x: 0.9, y: 0.99}
+    width: 2
+    spread: 1.05
+    lengthScale: 0.4
+    atlasCell: 17
+    opacity: 0.8
+  tint: 0.35
 --- !u!1 &7781260934417810432
 GameObject:
   m_ObjectHideFlags: 0
@@ -14876,7 +14877,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &6336451648121114494
 Transform:
   m_ObjectHideFlags: 0
@@ -19709,7 +19710,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1346555740879915191
 Transform:
   m_ObjectHideFlags: 0
