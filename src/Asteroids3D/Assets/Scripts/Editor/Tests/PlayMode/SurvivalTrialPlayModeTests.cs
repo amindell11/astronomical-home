@@ -104,8 +104,8 @@ namespace Tests.PlayMode
             var faction = ScriptableObject.CreateInstance<Faction>();
             _assets.Add(faction);
             var kit = TestAssets.Load<WeaponComponent>("Assets/Prefabs/Weapons/Lasers.prefab");
-            rivalPilot ??= TestAssets.LoadTestPilotMpc();
-            minionPilot ??= rivalPilot;
+            if (!rivalPilot) rivalPilot = TestAssets.LoadTestPilotMpc();
+            if (!minionPilot) minionPilot = rivalPilot;
             faction.signature = new FactionShip { ship = template, kit = kit, pilot = rivalPilot };
             faction.minion = new FactionMinion
             {
