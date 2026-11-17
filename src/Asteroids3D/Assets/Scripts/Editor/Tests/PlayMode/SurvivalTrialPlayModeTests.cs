@@ -7,7 +7,7 @@ using AI.Pilots;
 using AI.Tactics;
 using Combat.Weapons;
 using Damage;
-using Game.Player;
+using Game.Player.Recorders;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;
