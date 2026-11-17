@@ -46,7 +46,7 @@ namespace Substrate.Sectors.Elements.Stations.Visual
         [Tooltip("Parts that turn, each about its own local axis.")]
         [SerializeField] private Spin[] spins;
 
-        [Tooltip("Windows and the prize. They glow at their material colour.")]
+        [Tooltip("Windows and the prize. Each glows at the emission its renderer carries when the model wakes: a worn palette's window light, else its material's.")]
         [SerializeField] private Renderer[] steadyLights;
 
         [Tooltip("Service-light bands, outermost first. A brightness pulse steps through them toward the berth.")]
@@ -86,9 +86,9 @@ namespace Substrate.Sectors.Elements.Stations.Visual
         {
             // Seeded from where it spawned, not UnityEngine.Random, so gameplay's random stream is untouched.
             var p = body.transform.position;
-            var u1 = Hash(p, new Vector3(12.9898f, 78.233f, 37.719f));
-            var u2 = Hash(p, new Vector3(39.3468f, 11.135f, 83.155f));
-            var u3 = Hash(p, new Vector3(73.156f, 52.235f, 9.151f));
+            var u1 = PlacedHash.Unit(p, new Vector3(12.9898f, 78.233f, 37.719f));
+            var u2 = PlacedHash.Unit(p, new Vector3(39.3468f, 11.135f, 83.155f));
+            var u3 = PlacedHash.Unit(p, new Vector3(73.156f, 52.235f, 9.151f));
             driftSeed = u1 * 1000f;
             var a = Mathf.Sqrt(1f - u1);
             var b = Mathf.Sqrt(u1);
@@ -135,9 +135,6 @@ namespace Substrate.Sectors.Elements.Stations.Visual
             Mathf.PerlinNoise(t, lane + 17f) * 2f - 1f,
             Mathf.PerlinNoise(t, lane + 31f) * 2f - 1f);
 
-        private static float Hash(Vector3 p, Vector3 k) =>
-            Mathf.Repeat(Mathf.Sin(Vector3.Dot(p, k)) * 43758.5453f, 1f);
-
         private CachedLight[] Cache(Renderer[] renderers, string kind)
         {
             var cached = new CachedLight[renderers.Length];
@@ -150,10 +147,14 @@ namespace Substrate.Sectors.Elements.Stations.Visual
                 if (!material)
                     throw new InvalidOperationException(
                         $"StationMotion on '{name}' is missing a {kind}'s material.");
+                renderer.GetPropertyBlock(block);
+                var emission = block.HasVector(EmissionColorId)
+                    ? block.GetVector(EmissionColorId)
+                    : (Vector4)material.GetColor(EmissionColorId).linear;
                 cached[i] = new CachedLight
                 {
                     renderer = renderer,
-                    linearEmission = material.GetColor(EmissionColorId).linear,
+                    linearEmission = emission,
                     paper = material.GetColor(PaperColorId)
                 };
             }

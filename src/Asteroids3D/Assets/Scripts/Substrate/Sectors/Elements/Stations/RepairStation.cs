@@ -47,6 +47,7 @@ namespace Substrate.Sectors.Elements.Stations
             if (row.repairStations < 0)
                 throw new InvalidOperationException(
                     $"RepairStation on '{name}' places the row's repair stations, and the row asks for {row.repairStations}.");
+            CheckDress(row, row.repairStations);
         }
 
         protected override void Visit(Station station, Ship hero, float deltaTime)

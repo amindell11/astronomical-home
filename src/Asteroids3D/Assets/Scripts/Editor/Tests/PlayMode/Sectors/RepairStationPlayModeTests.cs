@@ -11,6 +11,8 @@ using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Elements.Stations;
+using Substrate.Sectors.Elements.Stations.Visual;
+using Substrate.Sectors.Factions;
 using Substrate.Services.Objectives;
 using Tests.PlayMode.Common;
 using UnityEditor;
@@ -46,7 +48,10 @@ namespace Tests.PlayMode.Sectors
             base.SetUp();
             _objectives = Track(new GameObject("Objectives")).AddComponent<ObjectiveService>();
             _sector = Track(new GameObject("Sector")).AddComponent<Sector>();
-            _row = new SectorEntry();
+            _row = new SectorEntry
+            {
+                faction = AssetDatabase.LoadAssetAtPath<Faction>("Assets/Settings/Factions/Shoal.asset")
+            };
         }
 
         [TearDown]
@@ -67,6 +72,12 @@ namespace Tests.PlayMode.Sectors
             var module = NewStation(repairPerSecond: .5f, supply: .4f);
             Drive(module.Setup(Context(hero)));
             var station = module.Stations[0];
+            var models = station.Body.GetComponentsInChildren<StationModel>(true);
+            Assert.AreEqual(1, models.Length, "The station body holds the sector faction's dressed model.");
+            Assert.AreEqual(
+                AssetDatabase.LoadAssetAtPath<Faction>("Assets/Settings/Factions/Shoal.asset").stationDress
+                    .ModelFor(StationKind.Repair).name,
+                models[0].name, "Setup replaced the plain model with the sector faction's dressed repair dock.");
             Assert.IsFalse(station.Body.activeSelf, "The station hides until its first tick places it.");
             yield return null;
             yield return null;

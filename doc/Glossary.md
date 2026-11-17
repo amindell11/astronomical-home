@@ -607,6 +607,15 @@ Format: **term** — definition. *(authority)*
   supply and relight. A kind adds only its effect, which draws on each station's
   supply; a station goes dark when its supply runs out.
   *(FindStation, FindStationBody, StationKind)*
+- **station dress** — how the sector's faction dresses its *stations*: one
+  dressed model per kind, with the faction's parts and hatching baked in, and
+  palettes that each station rolls from its placed position, never from
+  `UnityEngine.Random`. The hatch strength lives in the model's Ink mask, so a
+  palette has no hatch field. Its window light is an emission calibrated against
+  the game's grading, not the target colour. No station is undressed in play: a
+  row that places stations its faction can't dress fails the row check. Service
+  lights keep their find colour in every dress.
+  *(StationDress, StationPalette, StationModel, `Faction.stationDress`)*
 - **repair station** — a fly-in zone each combat sector places, as many as its
   run row names, each on its own clear point away from the start, marked as a
   *find*. While the player sits in it, it repairs hull from a supply of about

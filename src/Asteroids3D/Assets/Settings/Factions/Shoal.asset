@@ -49,3 +49,19 @@ MonoBehaviour:
   flame: {fileID: 2100000, guid: 2eb3caeab93746ce83e028188297baec, type: 2}
   eliteFlame: {fileID: 2100000, guid: 361c2fabb726455cb13b67b0c6af7406, type: 2}
   shieldRing: {r: 0.99607843, g: 0.5254902, b: 0.101960786, a: 1}
+  stationDress:
+    palettes:
+    - name: Shoal
+      bone: {r: 0.65882355, g: 0.44313726, b: 0.2901961, a: 1}
+      canvas: {r: 0.43137255, g: 0.29411766, b: 0.21176471, a: 1}
+      slate: {r: 0.14901961, g: 0.11764706, b: 0.105882354, a: 1}
+      ochre: {r: 0.9098039, g: 0.5254902, b: 0.16470589, a: 1}
+      brick: {r: 0.84705883, g: 0.7607843, b: 0.6039216, a: 1}
+      blue: {r: 0.37254903, g: 0.45490196, b: 0.40784314, a: 1}
+      windowLight: {r: 1.5504067, g: 0.53053474, b: 0.21976328, a: 1}
+      brush: 1.2
+    repair: {fileID: 8830125240542592454, guid: 823687b57065f094da0dd2342b5fc0a2,
+      type: 3}
+    mod: {fileID: 8916139845929668984, guid: 11bb2fb628cd2fe4cb310f158b1e1d9b, type: 3}
+    armory: {fileID: 6527111072709949979, guid: c34661f56e1ffd34c8ce870449a7a38d,
+      type: 3}

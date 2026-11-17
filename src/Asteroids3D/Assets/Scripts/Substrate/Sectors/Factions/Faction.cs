@@ -5,6 +5,7 @@ using Ships;
 using Ships.Command;
 using Ships.Loadout;
 using Ships.Presentation;
+using Substrate.Sectors.Elements.Stations.Visual;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -12,9 +13,10 @@ namespace Substrate.Sectors.Factions
 {
     /// <summary>
     /// One faction's facts, and the one place sector content reads them from: one base ship flown at
-    /// three ranks (minion, rival, elite), and the skin every rank wears. A sector names its faction
-    /// through <see cref="SectorFaction"/>. The elite flies the signature ship in the skin's elite set;
-    /// the rest of what makes an elite lives with the elite profile, not here.
+    /// three ranks (minion, rival, elite), the skin every rank wears, and the dress its sectors' find
+    /// stations wear. A sector names its faction through <see cref="SectorFaction"/>. The elite flies
+    /// the signature ship in the skin's elite set; the rest of what makes an elite lives with the elite
+    /// profile, not here.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1320
     /// </summary>
     [CreateAssetMenu(fileName = "Faction", menuName = "Sector/Faction")]
@@ -43,6 +45,10 @@ namespace Substrate.Sectors.Factions
 
         [Tooltip("Shield ring colour every faction ship wears.")]
         public Color shieldRing = new(0.51f, 0.75f, 0.76f, 1f);
+
+        [Header("Stations")]
+        [Tooltip("How the find stations in this faction's sectors are dressed: a dressed model for each kind and the palettes they roll.")]
+        public StationDress stationDress;
 
         public Ship Ship => signature.ship;
 
