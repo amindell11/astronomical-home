@@ -21,7 +21,7 @@ namespace AI.Tactics
         public Tactic home = Tactic.AttackRun;
         [Tooltip("Units beyond its gun hold range at which the ship flies its attack run (0 = at the hold range).")]
         [Min(0f)] public float attackRunMargin;
-        [Tooltip("With its target gone, circle the wreck for a few laps before wandering. Off wanders from the start.")]
+        [Tooltip("With a dead target, circle the wreck for a few laps before wandering. Off, a dead target wanders from the start. A lost target is circled either way.")]
         public bool circlesWreck = true;
         [Tooltip("Seconds since the ship was last hit within which a gauge under its breaking point makes it hurt.")]
         [Min(0f)] public float hitWithin = 2f;

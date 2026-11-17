@@ -29,7 +29,7 @@ using Substrate.Sessions;
 
 namespace Tests.PlayMode.Sectors
 {
-    /// <summary>A sector's hunt with real patrols: unaware, flying a route that brings one into sight of a still hero. Sight fills one meter, the marker pulses and the wedge turns while a patrol sees the hero, and the alarm waits until the meter is full. A patrol that sees the hero leaves its route to chase while the others keep theirs. Blind, it steers to the last-seen point past asteroids, follows the last heading and circles there, chases again on sight, and returns to its nearest waypoint when the meter empties. It holds fire until the alarm. A hit adds its share. The gap after the alarm holds the opening lull, then phase one opens. Asteroids and the cone hide the hero, breaking sight drains the meter, and killing a patrol leaves the meter to drain so the search clock ends the hunt.</summary>
+    /// <summary>A sector's hunt with real patrols: unaware, flying a route that brings one into sight of a still hero. Sight fills one meter, the marker pulses and the wedge turns while a patrol sees the hero, and the alarm waits until the meter is full. A patrol that sees the hero leaves its route to chase while the others keep theirs. Blind, it steers to the last-seen point past asteroids, follows the last heading and circles there, chases again on sight, and returns to its nearest waypoint when the meter empties. It holds fire until the alarm. The alarm limits each live patrol to sight and hands it the hero. A hit adds its share. The gap after the alarm holds the opening lull, then phase one opens. Asteroids and the cone hide the hero, breaking sight drains the meter, and killing a patrol leaves the meter to drain so the search clock ends the hunt.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class SectorHuntPlayModeTests : PlayModeWorldFixture
@@ -102,6 +102,8 @@ namespace Tests.PlayMode.Sectors
             var wedge = patrol.GetComponentInChildren<PatrolSightWedge>();
             Assert.AreEqual(SpawnDistance, PlaneDistance(patrol, hero), 2f, "The patrol spawns its distance from the start.");
             Assert.IsTrue(Scout(patrol).Unaware, "A patrol flies unaware of the hero.");
+            Assert.IsFalse(Commander(patrol).context.Combat.SightLimited,
+                "Before the alarm a patrol is not limited to sight.");
             Assert.IsTrue(Commander(patrol).Steered, "An unaware patrol flies its route.");
             Assert.AreEqual(HuntReading.Searching, Progress().Hunt, "The countdown reads the search.");
             Assert.IsTrue(director.Phase.InOpeningLull);
@@ -129,6 +131,8 @@ namespace Tests.PlayMode.Sectors
             Assert.AreEqual(HuntReading.Coming, Progress().Hunt);
             Assert.That(Progress().SecondsLeft, Is.GreaterThan(0f).And.LessThanOrEqualTo(.5f));
             Assert.IsFalse(Scout(patrol).Unaware, "The alarm wakes the patrol.");
+            Assert.IsTrue(Commander(patrol).context.Combat.SightLimited, "The alarm limits the patrol to sight.");
+            Assert.AreSame(hero, Commander(patrol).context.Combat.Enemy, "The alarm hands the patrol the hero.");
             Assert.IsFalse(Commander(patrol).Steered, "The alarm hands the patrol back to its brain.");
             Assert.IsFalse(Marker(patrol).Pulsing, "The alarm stops the pulse.");
 
@@ -575,7 +579,13 @@ namespace Tests.PlayMode.Sectors
             Assert.IsFalse(hunt.Alarmed);
         }
 
-        private Ship SpawnHero() => Track(ShipTestFactory.CreateKinematicPrimitiveShipAt(Vector2.zero).gameObject).GetComponent<Ship>();
+        private Ship SpawnHero()
+        {
+            var hero = Track(ShipTestFactory.CreateKinematicPrimitiveShipAt(Vector2.zero).gameObject).GetComponent<Ship>();
+            // After the alarm the patrols hunt this hero by sight, so its kinematics must read.
+            hero.Movement.Initialize(null, () => hero.KinematicsPoller.Kinematics, null, null);
+            return hero;
+        }
 
         [UnityTest]
         public IEnumerator Produce_WithoutASightWedge_NamesTheMissingRef()

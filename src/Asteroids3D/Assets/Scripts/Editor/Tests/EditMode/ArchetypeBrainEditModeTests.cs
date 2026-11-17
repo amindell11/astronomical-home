@@ -185,6 +185,66 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void Roam_LostTarget_CirclesItsLaps_ThenRecallsOnce()
+        {
+            var brain = NewBrain(OpponentArchetype.Aggressor, targetHost.AddComponent<Ship>(), liveTargeting: true);
+            TemperOf(brain).circlesWreck = false;
+            var start = new Kinematics(new Vector2(3f, -4f), Vector2.zero, 0f, 0f, 0f);
+
+            var first = brain.Decide(Ctx(start));
+
+            Assert.IsTrue(first.HasValue);
+            Assert.IsFalse(first.Value.recall);
+            Assert.IsTrue(brain.RoamCircling, "a lost target is circled even when the temper does not circle a wreck");
+            Assert.That(Vector2.Distance(brain.RoamWaypoint, brain.RoamCenter),
+                Is.InRange(35f - 1e-3f, 60f + 1e-3f));
+
+            BrainDecision? finishing = null;
+            var ringWaypoints = 0;
+            while (brain.RoamCircling && ringWaypoints < 50)
+            {
+                ringWaypoints++;
+                finishing = brain.Decide(Ctx(new Kinematics(brain.RoamWaypoint, Vector2.zero, 0f, 0f, 0f)));
+            }
+
+            const float twoLaps = 720f;
+            Assert.That(ringWaypoints, Is.InRange(Mathf.CeilToInt(twoLaps / ArchetypeRoam.StepMaxDegrees),
+                Mathf.CeilToInt(twoLaps / ArchetypeRoam.StepMinDegrees)), "two laps at the ring's angular steps");
+            Assert.IsTrue(finishing.HasValue && finishing.Value.recall,
+                "finishing the laps asks for the lost target back");
+            Assert.IsFalse(brain.RoamCircling);
+
+            var again = brain.Decide(Ctx(new Kinematics(brain.RoamWaypoint, Vector2.zero, 0f, 0f, 0f)));
+            Assert.IsTrue(again.HasValue);
+            Assert.IsFalse(again.Value.recall, "a search recalls once");
+        }
+
+        [Test]
+        public void Roam_DeadTarget_WithCirclingOff_WandersAndNeverRecalls()
+        {
+            var brain = NewBrain(OpponentArchetype.Aggressor, targetHost.AddComponent<Ship>(), liveTargeting: true);
+            TemperOf(brain).circlesWreck = false;
+            targetHost.SetActive(false);
+            var center = new Vector2(3f, -4f);
+
+            var decision = brain.Decide(Ctx(new Kinematics(center, Vector2.zero, 0f, 0f, 0f)));
+            Assert.IsTrue(decision.HasValue);
+            Assert.IsFalse(brain.RoamCircling, "a dead target with circling off wanders from the start");
+            Assert.IsFalse(decision.Value.recall);
+            Assert.That(Vector2.Distance(brain.RoamWaypoint, brain.RoamCenter), Is.LessThanOrEqualTo(120f + 1e-3f));
+
+            for (var i = 0; i < 5; i++)
+            {
+                decision = brain.Decide(Ctx(new Kinematics(brain.RoamWaypoint, Vector2.zero, 0f, 0f, 0f)));
+                Assert.IsTrue(decision.HasValue);
+                Assert.IsFalse(brain.RoamCircling);
+                Assert.IsFalse(decision.Value.recall, "a dead target is never recalled");
+                Assert.That(Vector2.Distance(brain.RoamWaypoint, brain.RoamCenter),
+                    Is.LessThanOrEqualTo(120f + 1e-3f));
+            }
+        }
+
+        [Test]
         public void Roam_CirclesItsLaps_ThenWanders()
         {
             var brain = NewBrain(OpponentArchetype.Aggressor, targetHost.AddComponent<Ship>(), liveTargeting: true);

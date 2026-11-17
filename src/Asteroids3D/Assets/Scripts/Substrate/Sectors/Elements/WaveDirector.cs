@@ -376,8 +376,10 @@ namespace Substrate.Sectors.Elements
 
                 for (var i = 0; i < count; i++)
                 {
-                    if (i == centreIndex) continue;
-                    ((AICommander)spawned[i].Commander).FollowLeader(rival, i - centreIndex);
+                    var commander = (AICommander)spawned[i].Commander;
+                    if (i != centreIndex)
+                        commander.FollowLeader(rival, i - centreIndex);
+                    commander.HuntBySight(hero);
                 }
                 return true;
             }

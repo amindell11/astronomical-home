@@ -257,6 +257,14 @@ namespace Tests.PlayMode
                     "A minion has 0.7 of the rival's hull.");
             }
 
+            foreach (var ship in director.Spawned)
+            {
+                var commander = (AICommander)ship.Commander;
+                Assert.IsTrue(commander.context.Combat.SightLimited, $"{ship.Commander.name} hunts by sight.");
+                Assert.AreSame(player, commander.context.Combat.Enemy,
+                    $"{ship.Commander.name} starts holding the hero.");
+            }
+
             yield return sector.Teardown();
         }
 

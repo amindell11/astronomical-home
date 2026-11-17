@@ -59,7 +59,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | Word | Live senses | Rule |
 |---|---|---|
 | **gate** | merge gate · cost gate (fix-ladder rung 3) · go/no-go gate · anti-churn gate · scoping gate · owner's gate (a ship art stage approval) · "gated off" code conditionals | Always qualified. Bare "the gate" is legal only in pool-merge context (= merge gate), and never in a title. |
-| **lane** | boot lane · remote lane (the second Unity box, `remote_lane.sh`) · harness lane · watch/capture lane · audit lane · access-queue lane · firing lane (lane clearing; a situation's allies in lane) · decision lane (nav / fire / ability — the three seams a `BrainDecision` carries) · LANE slot (the MPC sentence term, always caps) | Always qualified. |
+| **lane** | boot lane · remote lane (the second Unity box, `remote_lane.sh`) · harness lane · watch/capture lane · audit lane · access-queue lane · firing lane (lane clearing; a situation's allies in lane) · decision lane (nav, fire, ability, jump and recall, the lanes a `BrainDecision` carries) · LANE slot (the MPC sentence term, always caps) | Always qualified. |
 | **pool** | worktree pool · ship resource pool (`PoolDifferential`) · object pool (`SimplePool`) · Dev Pool issue labels (`mid-dev-pool`/`high-dev-pool`, ex-board columns) | Always qualified. |
 | **token** | bus/signal token · obs obstacle token (`ObstacleTokenCap`) · threat token · LLM context token | Always qualified. |
 | **term** | intent/cost term (a weighted sentence-slot cost the MPC solves — #485) · activation term (`ActivationTerm`, the AND-ed predicate atoms of sector activation rules) | Always qualified. An intent-grammar doc may read bare "term" = intent/cost term only after declaring the carve-out (Stage A brief precedent). |
@@ -568,6 +568,16 @@ Format: **term** — definition. *(authority)*
   *release* ends it. The wave director holds its opening lull until the release,
   so phase numbering is unchanged, and stations stay lit through the gap.
   *(SectorHunt, HuntFeelProfile, `SectorEntry.searchSeconds`)*
+- **sight-limited** — a sector ship sees the player within its scout's sight
+  range when no rock is between them, and loses the player after the scout's
+  lose-sight seconds. It circles the place it last had the player for its laps,
+  and its commander hands it the player's position again. A ship that never came back would
+  stall the sector, because waves refill only while the count of live ships is
+  under the wave cap. WaveDirector asks when it sends a wave, and SectorHunt
+  asks when the alarm sounds. RingSpawner, the harness spawners and
+  EliteEncounter never ask, so their ships keep an enemy at any range. Ruled
+  on #1589.
+  *(EnemyTracker.LimitToSight, Scout.sightRange, Scout.loseSightAfter)*
 - **faction** — the side a sector's enemies belong to; each survival trial
   names one, and its wave director and hunt field only that faction's ships. It
   flies one signature ship at three ranks. The **minion** is smaller, at 70% hull,

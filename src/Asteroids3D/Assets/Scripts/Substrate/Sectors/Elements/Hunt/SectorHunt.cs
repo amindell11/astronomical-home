@@ -27,8 +27,8 @@ namespace Substrate.Sectors.Elements.Hunt
     /// concealed, and drains while none does. A hero hit adds its share. Seeing the hero, or a hero hit, pulls
     /// that patrol off its route to chase. Losing the hero, it follows the last heading and circles there until
     /// the meter empties, then takes the nearest waypoint of its own route. The alarm sounds when the meter
-    /// fills or the search clock runs out, and every live patrol wakes. The marker pulses while a patrol sees
-    /// the hero. The sight wedge is faint on the route, red while it sees, and amber while it chases or searches
+    /// fills or the search clock runs out, and every live patrol wakes and hunts the hero by sight. The marker
+    /// pulses while a patrol sees the hero. The sight wedge is faint on the route, red while it sees, and amber while it chases or searches
     /// blind. The wave director holds its opening lull until <see cref="Released"/> and counts
     /// <see cref="LivePatrols"/> as enemies alive. The events are plain C#, for listeners outside the sector.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1319
@@ -257,6 +257,8 @@ namespace Substrate.Sectors.Elements.Hunt
                 patrol.Release();
                 patrol.Scout.Unaware = false;
                 DestroyWedge(patrol);
+                if (patrol.Ship && patrol.Ship.gameObject.activeInHierarchy && !patrol.Jumped)
+                    patrol.Commander.HuntBySight(hero);
             }
             AlarmRaised?.Invoke(sectorIndex, reason, caller);
         }

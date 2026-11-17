@@ -109,6 +109,13 @@ namespace AI
             context.FollowLeader(leader, place);
         }
 
+        internal void HuntBySight(Ship known)
+        {
+            if (!systemsInitialized)
+                throw new InvalidOperationException($"{name} cannot hunt by sight before its systems initialise.");
+            context.Combat.LimitToSight(known);
+        }
+
         public void ClearSteer() => steerPoint = null;
 
         /// <summary>What this ship senses: the registry it scans for ships and the obstacle field it scans for rocks (null for none). Set by the unit service at wiring, before the systems initialise.</summary>
@@ -220,6 +227,8 @@ namespace AI
             }
 
             var decided = decision.Value;
+            if (decided.recall)
+                context.Combat.Recall();
             var nav = decided.nav;
             var seat1 = ResolveRock(nav.rockSeat1);
             var seat2 = ResolveRock(nav.rockSeat2);
