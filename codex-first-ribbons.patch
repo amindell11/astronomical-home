@@ -1,0 +1,566 @@
+From bb7f319a0c84bd5d86f5ba74e2fe8b853fd0e9d9 Mon Sep 17 00:00:00 2001
+From: Arye Mindell <arimindell@gmail.com>
+Date: Tue, 17 Nov 2026 03:46:53 -0800
+Subject: [PATCH] prototype(keystones): fixed hull ribbons for first visual
+ checkpoint
+
+---
+ .../Prefabs/Keystones/Bulwark_Dash.prefab     | 123 +++++-----
+ .../Prefabs/Keystones/Vanguard_Dash.prefab    |  85 ++++---
+ .../Ships/Keystones/KeystoneSlipstream.cs     | 219 ++++++++++++++++++
+ .../Keystones/KeystoneSlipstream.cs.meta      |   2 +
+ 4 files changed, 331 insertions(+), 98 deletions(-)
+ create mode 100644 src/Asteroids3D/Assets/Scripts/Ships/Keystones/KeystoneSlipstream.cs
+ create mode 100644 src/Asteroids3D/Assets/Scripts/Ships/Keystones/KeystoneSlipstream.cs.meta
+
+diff --git a/src/Asteroids3D/Assets/Prefabs/Keystones/Bulwark_Dash.prefab b/src/Asteroids3D/Assets/Prefabs/Keystones/Bulwark_Dash.prefab
+index 80bbdbbc8..f035fcec6 100644
+--- a/src/Asteroids3D/Assets/Prefabs/Keystones/Bulwark_Dash.prefab
++++ b/src/Asteroids3D/Assets/Prefabs/Keystones/Bulwark_Dash.prefab
+@@ -17,7 +17,7 @@ GameObject:
+   m_Icon: {fileID: 0}
+   m_NavMeshLayer: 0
+   m_StaticEditorFlags: 0
+-  m_IsActive: 1
++  m_IsActive: 0
+ --- !u!4 &4952524040319060404
+ Transform:
+   m_ObjectHideFlags: 0
+@@ -4850,7 +4850,7 @@ GameObject:
+   m_Icon: {fileID: 0}
+   m_NavMeshLayer: 0
+   m_StaticEditorFlags: 0
+-  m_IsActive: 1
++  m_IsActive: 0
+ --- !u!4 &4943168463121923228
+ Transform:
+   m_ObjectHideFlags: 0
+@@ -9683,7 +9683,7 @@ GameObject:
+   m_Icon: {fileID: 0}
+   m_NavMeshLayer: 0
+   m_StaticEditorFlags: 0
+-  m_IsActive: 1
++  m_IsActive: 0
+ --- !u!4 &9165622783128586723
+ Transform:
+   m_ObjectHideFlags: 0
+@@ -14509,6 +14509,7 @@ GameObject:
+   m_Component:
+   - component: {fileID: 4444986815151764667}
+   - component: {fileID: 2855805932632479753}
++  - component: {fileID: 5210832573810216584}
+   m_Layer: 0
+   m_Name: Trail
+   m_TagString: Untagged
+@@ -14615,62 +14616,7 @@ MonoBehaviour:
+   - {x: -0.9291356, y: 0.97069484}
+   - {x: -0.97072273, y: 0.84581566}
+   - {x: -0.98656815, y: 0.7116966}
+-  sheds:
+-  - system: {fileID: 2500237705212785410}
+-    kind: 0
+-    perShipLength: 15
+-    launchBurst: 4
+-    regionY: -0.1
+-    ahead: 0
+-    inherit: 0.85
+-    kick: 0.3
+-    size: 0.72
+-    sizeVariation: 0.33
+-    cell: {x: 1.413, y: 1.7662}
+-  - system: {fileID: 7422428422969776311}
+-    kind: 1
+-    perShipLength: 12
+-    launchBurst: 0
+-    regionY: -0.1
+-    ahead: 0
+-    inherit: 0.8925
+-    kick: 0.120000005
+-    size: 1.8199999
+-    sizeVariation: 0.54
+-    cell: {x: 0.83116883, y: 1.038961}
+-  - system: {fileID: 7581295480033374696}
+-    kind: 2
+-    perShipLength: 6
+-    launchBurst: 0
+-    regionY: -0.1
+-    ahead: 0
+-    inherit: 0.68
+-    kick: 0.48000002
+-    size: 0.07
+-    sizeVariation: 0.64
+-    cell: {x: 3.047619, y: 3.8095238}
+-  - system: {fileID: 8663615714501461264}
+-    kind: 0
+-    perShipLength: 8
+-    launchBurst: 0
+-    regionY: 0.3
+-    ahead: 1
+-    inherit: 1
+-    kick: 1.8
+-    size: 1.08
+-    sizeVariation: 0.33
+-    cell: {x: 1.413, y: 1.7662}
+-  - system: {fileID: 1077177340539945493}
+-    kind: 3
+-    perShipLength: 0
+-    launchBurst: 1
+-    regionY: 0.45
+-    ahead: 1
+-    inherit: 1
+-    kick: 0
+-    size: 0.283005
+-    sizeVariation: 0
+-    cell: {x: 1.0491803, y: 1.3114754}
++  sheds: []
+   pose:
+     tint: 0.8
+     flash: 0.7
+@@ -14686,6 +14632,61 @@ MonoBehaviour:
+     collapse: 0.5
+   heldOverlays:
+   - {fileID: 3273541644518738511}
++--- !u!114 &5210832573810216584
++MonoBehaviour:
++  m_ObjectHideFlags: 0
++  m_CorrespondingSourceObject: {fileID: 0}
++  m_PrefabInstance: {fileID: 0}
++  m_PrefabAsset: {fileID: 0}
++  m_GameObject: {fileID: 6280443527919538071}
++  m_Enabled: 1
++  m_EditorHideFlags: 0
++  m_Script: {fileID: 11500000, guid: 99c4b9c9d675bf24c81cf33d697a19a4, type: 3}
++  m_Name: 
++  m_EditorClassIdentifier: 
++  keystone: {fileID: 5512903418735166201}
++  material: {fileID: 2100000, guid: 29b98a5ebd41df842aff462b2c4c07fb, type: 2}
++  localShipLength: 3.17131
++  lifetime: 0.32
++  maxLength: 3.2
++  ribbons:
++  - anchor: {x: -0.72, y: -0.9}
++    width: 1.9
++    spread: 0.34
++    lengthScale: 0.95
++    atlasCell: 4
++    opacity: 1
++  - anchor: {x: 0.72, y: -0.9}
++    width: 1.9
++    spread: 0.34
++    lengthScale: 1
++    atlasCell: 2
++    opacity: 1
++  - anchor: {x: -0.3, y: -1.46}
++    width: 1.5
++    spread: 0.14
++    lengthScale: 0.9
++    atlasCell: 9
++    opacity: 1
++  - anchor: {x: 0.3, y: -1.46}
++    width: 1.5
++    spread: 0.14
++    lengthScale: 0.85
++    atlasCell: 6
++    opacity: 1
++  - anchor: {x: -0.9, y: 0.99}
++    width: 2
++    spread: 1.05
++    lengthScale: 0.4
++    atlasCell: 16
++    opacity: 0.8
++  - anchor: {x: 0.9, y: 0.99}
++    width: 2
++    spread: 1.05
++    lengthScale: 0.4
++    atlasCell: 17
++    opacity: 0.8
++  tint: 0.35
+ --- !u!1 &7781260934417810432
+ GameObject:
+   m_ObjectHideFlags: 0
+@@ -14876,7 +14877,7 @@ GameObject:
+   m_Icon: {fileID: 0}
+   m_NavMeshLayer: 0
+   m_StaticEditorFlags: 0
+-  m_IsActive: 1
++  m_IsActive: 0
+ --- !u!4 &6336451648121114494
+ Transform:
+   m_ObjectHideFlags: 0
+@@ -19709,7 +19710,7 @@ GameObject:
+   m_Icon: {fileID: 0}
+   m_NavMeshLayer: 0
+   m_StaticEditorFlags: 0
+-  m_IsActive: 1
++  m_IsActive: 0
+ --- !u!4 &1346555740879915191
+ Transform:
+   m_ObjectHideFlags: 0
+diff --git a/src/Asteroids3D/Assets/Prefabs/Keystones/Vanguard_Dash.prefab b/src/Asteroids3D/Assets/Prefabs/Keystones/Vanguard_Dash.prefab
+index 10183443b..e66642a83 100644
+--- a/src/Asteroids3D/Assets/Prefabs/Keystones/Vanguard_Dash.prefab
++++ b/src/Asteroids3D/Assets/Prefabs/Keystones/Vanguard_Dash.prefab
+@@ -17,7 +17,7 @@ GameObject:
+   m_Icon: {fileID: 0}
+   m_NavMeshLayer: 0
+   m_StaticEditorFlags: 0
+-  m_IsActive: 1
++  m_IsActive: 0
+ --- !u!4 &427092132780797167
+ Transform:
+   m_ObjectHideFlags: 0
+@@ -4850,7 +4850,7 @@ GameObject:
+   m_Icon: {fileID: 0}
+   m_NavMeshLayer: 0
+   m_StaticEditorFlags: 0
+-  m_IsActive: 1
++  m_IsActive: 0
+ --- !u!4 &6024199619752395700
+ Transform:
+   m_ObjectHideFlags: 0
+@@ -9676,6 +9676,7 @@ GameObject:
+   m_Component:
+   - component: {fileID: 2161522300040444105}
+   - component: {fileID: 1234239721068898040}
++  - component: {fileID: 5378893721229269402}
+   m_Layer: 0
+   m_Name: Trail
+   m_TagString: Untagged
+@@ -9779,40 +9780,7 @@ MonoBehaviour:
+   - {x: -0.61425865, y: -0.63698566}
+   - {x: -0.6258192, y: -0.72093594}
+   - {x: -0.63737965, y: -0.8048858}
+-  sheds:
+-  - system: {fileID: 3317001904755546959}
+-    kind: 0
+-    perShipLength: 20
+-    launchBurst: 10
+-    regionY: -0.1
+-    ahead: 0
+-    inherit: 0.85
+-    kick: 0.3
+-    size: 0.72
+-    sizeVariation: 0.33
+-    cell: {x: 1.413, y: 1.7662}
+-  - system: {fileID: 2867282012536765026}
+-    kind: 1
+-    perShipLength: 24
+-    launchBurst: 0
+-    regionY: -0.1
+-    ahead: 0
+-    inherit: 0.8925
+-    kick: 0.120000005
+-    size: 1.8199999
+-    sizeVariation: 0.54
+-    cell: {x: 0.83116883, y: 1.038961}
+-  - system: {fileID: 1232378165327612360}
+-    kind: 2
+-    perShipLength: 8
+-    launchBurst: 0
+-    regionY: -0.1
+-    ahead: 0
+-    inherit: 0.68
+-    kick: 0.48000002
+-    size: 0.07
+-    sizeVariation: 0.64
+-    cell: {x: 3.047619, y: 3.8095238}
++  sheds: []
+   pose:
+     tint: 0.8
+     flash: 0.75
+@@ -9827,6 +9795,49 @@ MonoBehaviour:
+     stretch: 1.3
+     collapse: 0.5
+   heldOverlays: []
++--- !u!114 &5378893721229269402
++MonoBehaviour:
++  m_ObjectHideFlags: 0
++  m_CorrespondingSourceObject: {fileID: 0}
++  m_PrefabInstance: {fileID: 0}
++  m_PrefabAsset: {fileID: 0}
++  m_GameObject: {fileID: 3376467119972395923}
++  m_Enabled: 1
++  m_EditorHideFlags: 0
++  m_Script: {fileID: 11500000, guid: 99c4b9c9d675bf24c81cf33d697a19a4, type: 3}
++  m_Name: 
++  m_EditorClassIdentifier: 
++  keystone: {fileID: 5512903418735166201}
++  material: {fileID: 2100000, guid: 6fe6c272b2322e94c8fce93942542c00, type: 2}
++  localShipLength: 2
++  lifetime: 0.32
++  maxLength: 3.2
++  ribbons:
++  - anchor: {x: -0.56, y: -0.28}
++    width: 1.45
++    spread: 0.24
++    lengthScale: 0.95
++    atlasCell: 4
++    opacity: 1
++  - anchor: {x: 0.56, y: -0.28}
++    width: 1.45
++    spread: 0.24
++    lengthScale: 1
++    atlasCell: 2
++    opacity: 1
++  - anchor: {x: -0.28, y: -0.96}
++    width: 1.15
++    spread: 0.1
++    lengthScale: 0.9
++    atlasCell: 9
++    opacity: 1
++  - anchor: {x: 0.28, y: -0.96}
++    width: 1.15
++    spread: 0.1
++    lengthScale: 0.85
++    atlasCell: 6
++    opacity: 1
++  tint: 0.35
+ --- !u!1 &5353937414800904326
+ GameObject:
+   m_ObjectHideFlags: 0
+@@ -9844,7 +9855,7 @@ GameObject:
+   m_Icon: {fileID: 0}
+   m_NavMeshLayer: 0
+   m_StaticEditorFlags: 0
+-  m_IsActive: 1
++  m_IsActive: 0
+ --- !u!4 &5216450538856168242
+ Transform:
+   m_ObjectHideFlags: 0
+diff --git a/src/Asteroids3D/Assets/Scripts/Ships/Keystones/KeystoneSlipstream.cs b/src/Asteroids3D/Assets/Scripts/Ships/Keystones/KeystoneSlipstream.cs
+new file mode 100644
+index 000000000..e2635cdff
+--- /dev/null
++++ b/src/Asteroids3D/Assets/Scripts/Ships/Keystones/KeystoneSlipstream.cs
+@@ -0,0 +1,219 @@
++using System;
++using System.Collections.Generic;
++using Substrate.Presentation;
++using UnityEngine;
++using UnityEngine.Rendering;
++
++namespace Ships.Keystones
++{
++    public sealed class KeystoneSlipstream : MonoBehaviour, IPresentationPart
++    {
++        [Serializable]
++        public struct Ribbon
++        {
++            public Vector2 anchor;
++            public float width;
++            public float spread;
++            public float lengthScale;
++            public int atlasCell;
++            public float opacity;
++        }
++
++        private struct Pose
++        {
++            public Vector3 position, right, up;
++            public float time, distance;
++
++            public static Pose Lerp(Pose a, Pose b, float t) => new Pose
++            {
++                position = Vector3.Lerp(a.position, b.position, t),
++                right = Vector3.Lerp(a.right, b.right, t),
++                up = Vector3.Lerp(a.up, b.up, t),
++                time = Mathf.Lerp(a.time, b.time, t),
++                distance = Mathf.Lerp(a.distance, b.distance, t)
++            };
++        }
++
++        private const int Capacity = 128;
++        [SerializeField] private Keystone keystone;
++        [SerializeField] private Material material;
++        [SerializeField] private float localShipLength = 2f;
++        [SerializeField] private float lifetime = 0.22f;
++        [Tooltip("Maximum retained path length, in ship lengths.")]
++        [SerializeField] private float maxLength = 3f;
++        [SerializeField] private Ribbon[] ribbons = Array.Empty<Ribbon>();
++        [Range(0f, 1f)] [SerializeField] private float tint = 0.35f;
++
++        private readonly Pose[] history = new Pose[Capacity];
++        private List<Vector3> vertices;
++        private List<Vector2> uvs;
++        private List<Color> colors;
++        private List<int> triangles;
++        private Mesh mesh;
++        private MeshRenderer meshRenderer;
++        private GameObject surface;
++        private int newest, count;
++        private bool wasActive;
++
++        private void Awake()
++        {
++            Validate();
++            var vertexCapacity = ribbons.Length * (Capacity + 1) * 2;
++            vertices = new List<Vector3>(vertexCapacity);
++            uvs = new List<Vector2>(vertexCapacity);
++            colors = new List<Color>(vertexCapacity);
++            triangles = new List<int>(ribbons.Length * Capacity * 6);
++            mesh = new Mesh { name = "Keystone slipstream" };
++            mesh.MarkDynamic();
++            surface = new GameObject("Slipstream") { layer = gameObject.layer };
++            surface.transform.SetParent(transform, false);
++            surface.AddComponent<MeshFilter>().sharedMesh = mesh;
++            meshRenderer = surface.AddComponent<MeshRenderer>();
++            meshRenderer.sharedMaterial = material;
++            meshRenderer.shadowCastingMode = ShadowCastingMode.Off;
++            meshRenderer.receiveShadows = false;
++            meshRenderer.enabled = false;
++        }
++
++        public void ApplyPresentation(bool visible) => enabled = visible;
++
++        private void OnDisable()
++        {
++            count = 0;
++            wasActive = false;
++            if (meshRenderer) meshRenderer.enabled = false;
++            if (mesh) mesh.Clear();
++        }
++
++        private void OnDestroy()
++        {
++            if (mesh) Destroy(mesh);
++            if (surface) Destroy(surface);
++        }
++
++        private Pose ReadPose() => new Pose
++        {
++            position = transform.position,
++            right = transform.TransformVector(Vector3.right),
++            up = transform.TransformVector(Vector3.up),
++            time = Time.time
++        };
++
++        private Pose At(int age) => history[(newest - age + Capacity) % Capacity];
++
++        private void Append(Pose pose)
++        {
++            newest = (newest + 1) % Capacity;
++            history[newest] = pose;
++            count = Mathf.Min(count + 1, Capacity);
++        }
++
++        private void LateUpdate()
++        {
++            var active = keystone.Active;
++            var current = ReadPose();
++            var shipLength = current.up.magnitude * localShipLength;
++            if (active && !wasActive) count = 0;
++            if (active)
++            {
++                if (count == 0) Append(current);
++                var last = At(0);
++                current.distance = last.distance + Vector3.Distance(current.position, last.position);
++                if (current.distance - last.distance >= shipLength * 0.025f) Append(current);
++            }
++            wasActive = active;
++            while (count > 0 && Time.time - At(count - 1).time > lifetime) count--;
++            var head = active ? current : count > 0 ? At(0) : current;
++            while (count > 1 && head.distance - At(count - 2).distance > shipLength * maxLength) count--;
++            Draw(head, shipLength * maxLength);
++        }
++
++        private void Draw(Pose head, float maximum)
++        {
++            vertices.Clear();
++            uvs.Clear();
++            colors.Clear();
++            triangles.Clear();
++            var worldToLocal = transform.worldToLocalMatrix;
++            if (count > 0)
++                foreach (var ribbon in ribbons)
++                    DrawRibbon(ribbon, head, maximum, worldToLocal);
++            mesh.Clear();
++            mesh.SetVertices(vertices);
++            mesh.SetUVs(0, uvs);
++            mesh.SetColors(colors);
++            mesh.SetTriangles(triangles, 0);
++            meshRenderer.enabled = triangles.Count > 0;
++        }
++
++        private void DrawRibbon(Ribbon ribbon, Pose head, float maximum, Matrix4x4 worldToLocal)
++        {
++            var length = Mathf.Min(head.distance - At(count - 1).distance, maximum * ribbon.lengthScale);
++            if (length <= 0f) return;
++            var start = vertices.Count;
++            AddSection(ribbon, head, 0f, worldToLocal);
++            var previous = head;
++            for (var i = 0; i < count; i++)
++            {
++                var pose = At(i);
++                var distance = head.distance - pose.distance;
++                if (distance <= 0f) continue;
++                if (distance >= length)
++                {
++                    var previousDistance = head.distance - previous.distance;
++                    pose = Pose.Lerp(previous, pose, (length - previousDistance) / (distance - previousDistance));
++                    AddSection(ribbon, pose, 1f, worldToLocal);
++                    break;
++                }
++                AddSection(ribbon, pose, distance / length, worldToLocal);
++                previous = pose;
++            }
++            for (var i = start; i + 3 < vertices.Count; i += 2)
++            {
++                triangles.Add(i);
++                triangles.Add(i + 2);
++                triangles.Add(i + 1);
++                triangles.Add(i + 1);
++                triangles.Add(i + 2);
++                triangles.Add(i + 3);
++            }
++        }
++
++        private void AddSection(Ribbon ribbon, Pose pose, float along, Matrix4x4 worldToLocal)
++        {
++            var outward = Mathf.Sign(ribbon.anchor.x) * ribbon.spread * along;
++            var center = pose.position + pose.right * (ribbon.anchor.x + outward) + pose.up * ribbon.anchor.y;
++            var shape = along < 0.25f ? Mathf.Lerp(0.55f, 1.15f, along * 4f) : 1.15f * (1f - along) / 0.75f;
++            var halfWidth = pose.right * (ribbon.width * shape * 0.5f);
++            vertices.Add(worldToLocal.MultiplyPoint3x4(center - halfWidth));
++            vertices.Add(worldToLocal.MultiplyPoint3x4(center + halfWidth));
++            var column = ribbon.atlasCell % 8;
++            var row = ribbon.atlasCell / 8;
++            var v = (4f - row - along) / 4f;
++            uvs.Add(new Vector2(column / 8f, v));
++            uvs.Add(new Vector2((column + 1f) / 8f, v));
++            var alpha = ribbon.opacity * Mathf.Clamp01(1f - (Time.time - pose.time) / lifetime);
++            var color = new Color(tint, tint * 0.2f, 0f, alpha);
++            colors.Add(color);
++            colors.Add(color);
++        }
++
++        private void Validate()
++        {
++            if (!keystone || !material)
++                throw new InvalidOperationException($"{nameof(KeystoneSlipstream)} on '{name}' needs its keystone and material.");
++            if (!(localShipLength > 0f) || !(lifetime > 0f) || !(maxLength > 0f))
++                throw new InvalidOperationException($"{nameof(KeystoneSlipstream)} on '{name}' needs positive length and lifetime.");
++            if (ribbons == null || ribbons.Length == 0)
++                throw new InvalidOperationException($"{nameof(KeystoneSlipstream)} on '{name}' needs ribbon descriptors.");
++            for (var i = 0; i < ribbons.Length; i++)
++            {
++                var ribbon = ribbons[i];
++                if (!(ribbon.width > 0f) || !(ribbon.lengthScale > 0f && ribbon.lengthScale <= 1f)
++                    || !(ribbon.spread >= 0f) || !(ribbon.opacity >= 0f && ribbon.opacity <= 1f)
++                    || ribbon.atlasCell < 0 || ribbon.atlasCell > 23)
++                    throw new InvalidOperationException($"{nameof(KeystoneSlipstream)} on '{name}' has invalid ribbon {i}.");
++            }
++        }
++    }
++}
+diff --git a/src/Asteroids3D/Assets/Scripts/Ships/Keystones/KeystoneSlipstream.cs.meta b/src/Asteroids3D/Assets/Scripts/Ships/Keystones/KeystoneSlipstream.cs.meta
+new file mode 100644
+index 000000000..0d661a2a6
+--- /dev/null
++++ b/src/Asteroids3D/Assets/Scripts/Ships/Keystones/KeystoneSlipstream.cs.meta
+@@ -0,0 +1,2 @@
++fileFormatVersion: 2
++guid: 99c4b9c9d675bf24c81cf33d697a19a4
+\ No newline at end of file
+-- 
+2.53.0.windows.1
+
