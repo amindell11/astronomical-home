@@ -583,7 +583,8 @@ Format: **term** — definition. *(authority)*
 - **faction** — the side a sector's enemies belong to; each survival trial
   names one, and its wave director and hunt field only that faction's ships. It
   flies one signature ship at three ranks. The **minion** is smaller, at 70% hull,
-  and never fires its keystone. Hunt patrols and elite escorts fly it. The
+  never fires its keystone, and aims worse than the other ranks (ruled on #1589,
+  2026-11-17). Hunt patrols and elite escorts fly it. The
   **rival** is the signature ship as the player flies it, and it leads every wave.
   The **elite** is the third rank. Every rank wears the faction's paint. The ranks
   are ruled on #1589. The sector-to-faction mapping is ruled on #1320.

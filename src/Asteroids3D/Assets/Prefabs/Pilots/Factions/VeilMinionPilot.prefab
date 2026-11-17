@@ -60,6 +60,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
         type: 3}
+      propertyPath: aimSettings
+      value: 
+      objectReference: {fileID: 11400000, guid: 6a5607888005d764e88b0af05c43c9d7,
+        type: 2}
+    - target: {fileID: 5273083163598828278, guid: 2a67010d59bac134caa6a455f8ef2660,
+        type: 3}
       propertyPath: suppressKeystone
       value: 1
       objectReference: {fileID: 0}

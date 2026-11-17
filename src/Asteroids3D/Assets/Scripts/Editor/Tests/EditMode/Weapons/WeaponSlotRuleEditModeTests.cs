@@ -42,8 +42,8 @@ namespace Tests.EditMode.Weapons
             }
         }
 
-        [TestCase("ShoalElite", "TurboLasers", "Missiles")]
-        [TestCase("VeilElite", "TurboLasers", "Missiles")]
+        [TestCase("ShoalElite", "TurboLasers", "EliteMissiles")]
+        [TestCase("VeilElite", "TurboLasers", "EliteMissiles")]
         [TestCase("BastionBoss", "TurboLasers", "Grenades")]
         public void EachTrialElite_FliesItsRuledKit(string profile, string weapon, string ordnance)
         {
