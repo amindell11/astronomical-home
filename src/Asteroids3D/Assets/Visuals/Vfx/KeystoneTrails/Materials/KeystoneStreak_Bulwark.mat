@@ -31,15 +31,15 @@ Material:
     m_Floats:
     - _Additive: 1
     - _Bands: 0
-    - _Edge: 0.7
-    - _Fill: 0.26
-    - _Gradient: 0.9
-    - _Hatch: 0.12
+    - _Edge: 0.8
+    - _Fill: 0.65
+    - _Gradient: 0.25
+    - _Hatch: 0.06
     - _HatchAngle: 40
     - _HatchGap: 5
     - _HotCore: 0.08
-    - _InkOpacity: 0.55
-    - _InkWidth: 0.28
+    - _InkOpacity: 0.35
+    - _InkWidth: 0.18
     m_Colors:
     - _Backdrop: {r: 0.15, g: 0.2, b: 0.41, a: 0}
     - _BaseColor: {r: 1, g: 0.6666667, b: 0.19607843, a: 1}

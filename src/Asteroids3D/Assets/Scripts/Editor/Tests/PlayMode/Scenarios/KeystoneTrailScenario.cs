@@ -25,14 +25,14 @@ namespace Tests.PlayMode.Scenarios
         private static readonly (string path, float x, float[] fireAt)[] Pilots =
         {
             ("Assets/Prefabs/Ships/Vanguard.prefab", -3.5f, new[] { 1.2f, 6.4f }),
-            ("Assets/Prefabs/Ships/Bulwark.prefab", 3.5f, new[] { 1.8f, 7f }),
+            ("Assets/Prefabs/Ships/Bulwark.prefab", 3.5f, new[] { 1.2f, 7f }),
         };
 
         public override GizmoCaptureProfile Profile => GizmoCaptureProfile.None;
 
         protected override CaptureRequest Request => new("results/capture", GetType().Name, Commit, 1920, 1080);
 
-        protected override DiagnosticViewConfig View => new() { minHalfHeight = 9f, padding = 5f };
+        protected override DiagnosticViewConfig View => new() { minHalfHeight = 22f, padding = 5f };
 
         public override SectorEntry SectorEntry
         {

@@ -14651,13 +14651,13 @@ MonoBehaviour:
   maxLength: 3.2
   ribbons:
   - anchor: {x: -0.72, y: -0.9}
-    width: 1.9
+    width: 2
     spread: 0.34
     lengthScale: 0.95
     atlasCell: 4
     opacity: 1
   - anchor: {x: 0.72, y: -0.9}
-    width: 1.9
+    width: 2
     spread: 0.34
     lengthScale: 1
     atlasCell: 2
@@ -14667,25 +14667,25 @@ MonoBehaviour:
     spread: 0.14
     lengthScale: 0.9
     atlasCell: 9
-    opacity: 1
+    opacity: 0.85
   - anchor: {x: 0.3, y: -1.46}
     width: 1.5
     spread: 0.14
     lengthScale: 0.85
     atlasCell: 6
-    opacity: 1
+    opacity: 0.85
   - anchor: {x: -0.9, y: 0.99}
-    width: 2
+    width: 4.2
     spread: 1.05
-    lengthScale: 0.4
+    lengthScale: 0.65
     atlasCell: 16
-    opacity: 0.8
+    opacity: 1
   - anchor: {x: 0.9, y: 0.99}
-    width: 2
+    width: 4.2
     spread: 1.05
-    lengthScale: 0.4
-    atlasCell: 17
-    opacity: 0.8
+    lengthScale: 0.65
+    atlasCell: 21
+    opacity: 1
   tint: 0.35
 --- !u!1 &7781260934417810432
 GameObject:

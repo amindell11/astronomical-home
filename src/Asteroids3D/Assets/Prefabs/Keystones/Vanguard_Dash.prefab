@@ -9814,29 +9814,29 @@ MonoBehaviour:
   maxLength: 3.2
   ribbons:
   - anchor: {x: -0.56, y: -0.28}
-    width: 1.45
+    width: 2
     spread: 0.24
     lengthScale: 0.95
     atlasCell: 4
     opacity: 1
   - anchor: {x: 0.56, y: -0.28}
-    width: 1.45
+    width: 2
     spread: 0.24
     lengthScale: 1
     atlasCell: 2
     opacity: 1
   - anchor: {x: -0.28, y: -0.96}
-    width: 1.15
+    width: 1.5
     spread: 0.1
     lengthScale: 0.9
     atlasCell: 9
-    opacity: 1
+    opacity: 0.85
   - anchor: {x: 0.28, y: -0.96}
-    width: 1.15
+    width: 1.5
     spread: 0.1
     lengthScale: 0.85
     atlasCell: 6
-    opacity: 1
+    opacity: 0.85
   tint: 0.35
 --- !u!1 &5353937414800904326
 GameObject:

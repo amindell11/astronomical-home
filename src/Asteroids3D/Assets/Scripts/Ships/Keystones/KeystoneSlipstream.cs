@@ -183,8 +183,7 @@ namespace Ships.Keystones
         {
             var outward = Mathf.Sign(ribbon.anchor.x) * ribbon.spread * along;
             var center = pose.position + pose.right * (ribbon.anchor.x + outward) + pose.up * ribbon.anchor.y;
-            var shape = along < 0.25f ? Mathf.Lerp(0.55f, 1.15f, along * 4f) : 1.15f * (1f - along) / 0.75f;
-            var halfWidth = pose.right * (ribbon.width * shape * 0.5f);
+            var halfWidth = pose.right * (ribbon.width * 0.5f);
             vertices.Add(worldToLocal.MultiplyPoint3x4(center - halfWidth));
             vertices.Add(worldToLocal.MultiplyPoint3x4(center + halfWidth));
             var column = ribbon.atlasCell % 8;
