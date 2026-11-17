@@ -13,8 +13,11 @@ Both tools run headless in Blender 5.1:
 blender -b --factory-startup --python-exit-code 1 -P art/tools/station/station_uv.py -- \
   --station art/stations/<station>/<station>.blend [--redo]
 blender -b --factory-startup --python-exit-code 1 -P art/tools/station/station_paint.py -- \
-  --station art/stations/<station>/<station>.blend --out <dir> [--unity <dir>]
+  --station art/stations/<station>/<station>.blend --out <dir> [--unity <dir>] [--hatch <strength>]
 ```
+
+A faction's dressed station has its own folder, `art/stations/<station>/<faction>/`, holding
+`<station>-<faction>.blend` and its `layers/`, and runs through both tools like the plain one.
 
 ## station_uv
 
@@ -41,15 +44,16 @@ filtered down to 2048. Then it writes 8-bit grey masks to `layers/` beside the s
 Texels away from any island stay 0. `--unity <dir>` also writes the three masks into an existing
 folder, overwriting in place (Unity owns the `.meta` files). The review image
 `<out>/<station>-flat.png` shows the station from the top
-and tilted, shaded the way the shader composes the masks with the colours in
-`art/stations/outpost-colour.json`. Stdout trailers: `STATION_MASKS=<layers dir>`,
+and tilted, shaded the way the shader composes the masks with the colours in the nearest
+`outpost-colour.json` above the source. Stdout trailers: `STATION_MASKS=<layers dir>`,
 `STATION_PREVIEW=<png>`.
 
 ## Strengths
 
 The brush masks carry no strength, so the brush can be tuned in Unity without a rebake. The Ink
 mask carries the hatch strength, because the marks need full ink from the same mask; changing
-`hatch` means a rebake. From `outpost-colour.json`:
+`hatch` means a rebake. So the hatch belongs to the baked model: a dressed station bakes at its
+faction's strength with `--hatch` (Shoal 0.24, Veil 0.08, Bastion 0.14). From `outpost-colour.json`:
 
 | Material field | Value |
 |---|---|

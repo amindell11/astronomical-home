@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using Objectives;
 using Ships;
 using Substrate.Sectors.Elements.Hunt;
+using Substrate.Sectors.Elements.Stations.Visual;
 using Substrate.Services.Objectives;
+using Substrate.Sessions;
 using UnityEngine;
 
 namespace Substrate.Sectors.Elements.Stations
@@ -13,7 +15,8 @@ namespace Substrate.Sectors.Elements.Stations
     /// A sector's stations of one kind: the authored body plus copies of it, as many as the kind asks for. At
     /// setup each picks its own point away from the sector's start, spaced from the others and from other
     /// kinds' stations, which pick first; the asteroid field reads those points and leaves a clearing of the clear
-    /// radius. On the first tick each shows, marked as a find, until it closes: when its supply is spent, or
+    /// radius. Each station wears the sector faction's dressed model for its kind and a palette rolled from its
+    /// placed point. On the first tick each shows, marked as a find, until it closes: when its supply is spent, or
     /// when the sector's hunt releases. The release spends the supply unless the kind keeps it and opens
     /// again. A sector with no hunt keeps them live. The arrival events are plain C#, raised once per
     /// station on its first arrival. A kind supplies only
@@ -71,6 +74,31 @@ namespace Substrate.Sectors.Elements.Stations
         /// <summary>The hero sits in a live station this tick, after its arrival events.</summary>
         protected abstract void Visit(Station station, Ship hero, float deltaTime);
 
+        protected void CheckDress(SectorEntry row, int count)
+        {
+            if (count > 0)
+                _ = DressOf(row);
+        }
+
+        private StationDress DressOf(SectorEntry row)
+        {
+            var faction = row.faction;
+            if (!faction)
+                throw new InvalidOperationException(
+                    $"{GetType().Name} on '{name}' places stations, and the row names no faction.");
+
+            var dress = faction.stationDress;
+            if (dress.palettes == null || dress.palettes.Length == 0)
+                throw new InvalidOperationException(
+                    $"{GetType().Name} on '{name}' places stations, and faction '{faction.name}' has no station palettes.");
+
+            var model = dress.ModelFor(Kind);
+            if (!model)
+                throw new InvalidOperationException(
+                    $"{GetType().Name} on '{name}' places {Kind} stations, and faction '{faction.name}' has no dressed model for them.");
+            return dress;
+        }
+
         protected virtual bool Open => !(hunt && hunt.Released);
 
         protected virtual void CloseStation(Station station) => station.GoDark();
@@ -90,6 +118,12 @@ namespace Substrate.Sectors.Elements.Stations
             shown = false;
             ClearStations();
             body.gameObject.SetActive(false);
+            StationDress dress = default;
+            if (StationsPerSector > 0)
+            {
+                dress = DressOf(ctx.Row);
+                body.SwapModel(dress.ModelFor(Kind));
+            }
             var taken = new List<Vector3>();
             foreach (var kind in spacedFrom)
                 foreach (var other in kind.Stations)
@@ -101,6 +135,7 @@ namespace Substrate.Sectors.Elements.Stations
                     taken, spacing);
                 taken.Add(point);
                 station.Reset(Supply, hero, point);
+                station.Model.Wear(dress.PaletteAt(point));
                 stations.Add(station);
             }
             yield break;
@@ -199,6 +234,7 @@ namespace Substrate.Sectors.Elements.Stations
             internal readonly ExtractionZone Zone;
             internal readonly GameObject Lit;
             internal readonly Renderer Marker;
+            internal readonly StationModel Model;
             internal bool HasArrived;
             internal bool Inside;
             internal bool Closed { get; private set; }
@@ -210,6 +246,7 @@ namespace Substrate.Sectors.Elements.Stations
                 Zone = body.Zone;
                 Lit = body.Lit;
                 Marker = body.Marker;
+                Model = body.Model;
             }
 
             /// <summary>What the station has left to give, in its kind's unit.</summary>
