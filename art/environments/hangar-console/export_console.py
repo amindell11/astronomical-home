@@ -142,6 +142,9 @@ for obj in list(bpy.data.objects):
         bpy.data.objects.remove(obj, do_unlink=True)
 print('Converting', len(hardware), 'hardware objects', flush=True)
 for index, obj in enumerate(hardware):
+    # Converting instanced meshes one user at a time grows without bound in Blender 5.1.
+    if obj.type == 'MESH' and obj.data.users > 1:
+        obj.data = obj.data.copy()
     for slot in obj.material_slots:
         actual = slot.material
         slot.link = 'DATA'
@@ -193,6 +196,13 @@ emission_inputs = {}
 
 def color_socket(material, purpose):
     nodes = material.node_tree.nodes
+    baked = nodes.get('Packed baked paint')
+    if baked:
+        if purpose == 'paint':
+            return baked.outputs['Color'], None
+        value = nodes.new('ShaderNodeRGB')
+        value.outputs[0].default_value = (0, 0, 0, 1)
+        return value.outputs[0], 0
     painted = nodes.get('Painted color independent of smooth reflections')
     if purpose == 'paint' and painted:
         return painted.inputs['Color'].links[0].from_socket, None
