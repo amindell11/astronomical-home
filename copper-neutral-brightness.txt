@@ -1,0 +1,8 @@
+Station brightness on Copper Turquoise, open, size 25, one run, same placement and tilt per kind.
+Luma (Rec. 709) over the 600x460 centre crop, counting only pixels that differ between the five columns (the station; the shared background drops out, and so do station pixels that are identical in every column, such as faces fully in shadow). Near-black: luma below 25.
+
+Repair: neutral 88.4 (3.9% near-black), shoal 61.6 (20.3%), veil 48.6 (42.8%), bastion red 62.0 (32.9%), bastion bone 86.2 (11.8%)
+Mod:    neutral 56.2 (28.8%), shoal 37.5 (60.8%), veil 28.8 (71.7%), bastion red 41.2 (58.6%), bastion bone 51.7 (34.6%)
+Armory: neutral 63.6 (16.7%), shoal 42.7 (46.9%), veil 32.3 (65.9%), bastion red 30.9 (70.0%), bastion bone 54.4 (29.8%)
+
+Copper's sun forward (-0.929, -0.308, 0.207), camera forward (0, 0, 1): a face turned to the camera gets about 0.21 of the light.

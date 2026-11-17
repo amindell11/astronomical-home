@@ -1,0 +1,15 @@
+ships hidden 2, hud hidden
+copper sector Repair at (149, 65, 0): models 1 Repair Station Bastion Model; rolled Red hull
+copper sector Repair at (-137, 59, 0): models 1 Repair Station Bastion Model; rolled Bone hull
+copper sector Mod at (2, -123, 0): models 1 Mod Station Bastion Model; rolled Red hull
+copper sector Mod at (154, -75, 0): models 1 Mod Station Bastion Model; rolled Bone hull
+copper sector Armory at (-81, -158, 0): models 1 Armory Bastion Model; rolled Red hull
+copper sun Sun forward (-0.929, -0.308, 0.207); camera forward (0.000, 0.000, 1.000)
+copper Repair at (149.44, 64.55, 0.00): model rotation (347.4, 83.1, 346.0)
+copper Mod at (1.83, -123.07, 0.00): model rotation (277.1, 82.7, 163.3)
+copper Armory at (-80.99, -157.58, 0.00): model rotation (58.9, 152.0, 100.7)
+copper neutral done
+copper shoal done
+copper veil done
+copper bastion-red done
+copper bastion-bone done
