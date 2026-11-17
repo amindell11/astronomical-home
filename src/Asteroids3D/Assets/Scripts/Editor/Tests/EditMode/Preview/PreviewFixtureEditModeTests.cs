@@ -163,6 +163,25 @@ namespace Tests.EditMode.Preview
         }
 
         [Test]
+        public void WaveCap_FollowsTheLinkedRowUntilTicked()
+        {
+            row.waveCap = 3;
+            var fixture = Linked(new SectorEntry { waveCap = 9 });
+
+            var resolved = fixture.Resolve(run);
+            Assert.AreEqual(3, resolved.waveCap);
+
+            row.waveCap = 1;
+            resolved = fixture.Resolve(run);
+            Assert.AreEqual(1, resolved.waveCap);
+
+            fixture = Linked(new SectorEntry { waveCap = 9 }, PreviewFixtureOwn.WaveCap);
+            row.waveCap = 4;
+            resolved = fixture.Resolve(run);
+            Assert.AreEqual(9, resolved.waveCap);
+        }
+
+        [Test]
         public void UntickedSearchRepairsAndMods_FollowTheLinkedRow()
         {
             row.searchSeconds = 30f;

@@ -23,6 +23,7 @@ namespace Game.Preview.Fixtures
         SearchSeconds = 1 << 7,
         RepairStations = 1 << 8,
         ModStations = 1 << 9,
+        WaveCap = 1 << 10,
     }
 
     /// <summary>
@@ -56,6 +57,7 @@ namespace Game.Preview.Fixtures
             if ((own & PreviewFixtureOwn.Faction) != 0) resolved.faction = values.faction;
             if ((own & PreviewFixtureOwn.Elite) != 0) resolved.elite = values.elite;
             if ((own & PreviewFixtureOwn.Waves) != 0) resolved.phases = values.phases;
+            if ((own & PreviewFixtureOwn.WaveCap) != 0) resolved.waveCap = values.waveCap;
             if ((own & PreviewFixtureOwn.Patrols) != 0) resolved.patrols = values.patrols;
             if ((own & PreviewFixtureOwn.Armories) != 0) resolved.armories = values.armories;
             if ((own & PreviewFixtureOwn.SearchSeconds) != 0) resolved.searchSeconds = values.searchSeconds;
