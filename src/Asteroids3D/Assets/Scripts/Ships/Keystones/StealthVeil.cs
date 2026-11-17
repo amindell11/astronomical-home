@@ -12,7 +12,7 @@ namespace Ships.Keystones
     /// Stealth's tell: while the kit is active the hull dithers out through the hull shader's dissolve,
     /// to half for the pilot's own ship and nearly gone for an enemy. Over the kit's tell the hull
     /// shimmers between that concealed value and a brighter one, and a one-shot plays as the shimmer
-    /// starts. The sound stays empty until it is authored. An enemy's minimap marker and
+    /// starts, unless the sound is unset. An enemy's minimap marker and
     /// status bars hide themselves off the same concealment flag.
     /// </summary>
     public sealed class StealthVeil : MonoBehaviour, IPresentationPart
@@ -91,7 +91,7 @@ namespace Ships.Keystones
 
         private void PlayTell()
         {
-            if (tellSound.IsNull || !ship) return;
+            if (tellSound.IsNull) return;
             var instance = RuntimeManager.CreateInstance(tellSound);
             instance.set3DAttributes(RuntimeUtils.To3DAttributes(ship.transform, ship.Rigidbody));
             instance.start();

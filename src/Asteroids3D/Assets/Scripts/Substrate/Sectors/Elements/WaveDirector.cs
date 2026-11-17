@@ -23,7 +23,8 @@ namespace Substrate.Sectors.Elements
     /// Sends a rival leading minions on each sector phase's wave-every beat, trimmed to the wave cap,
     /// which counts the hunt's live patrols. The rival takes the arc's centre slot, or arrives concealed
     /// ahead of the hero when its temper ambushes and that point is clear, and the minions take the
-    /// slots either side, each following the rival at its place. A wave with no room is dropped. A phase opens with one.
+    /// slots either side, each following the rival at its place. Every wave ship hunts the hero by sight.
+    /// A wave with no room is dropped. A phase opens with one.
     /// Nothing arrives in a lull, or once the table is done when an elite follows it. With an elite, a
     /// closing lull follows the last phase; without one, the done table keeps the last phase's waves.
     /// It begins its elite, summons it on the tick the table is done, and ends it at teardown.
@@ -133,6 +134,7 @@ namespace Substrate.Sectors.Elements
         protected override IEnumerator Produce(SectorBuildContext ctx)
         {
             CheckRow(ctx.Row);
+            rivalAmbushes = Ambushes(ctx.Row.faction.Rival.pilot);
             if (elite) elite.Begin(ctx);
             products.Clear();
             jumped.Clear();
@@ -349,8 +351,9 @@ namespace Substrate.Sectors.Elements
 
                 var centreIndex = (count - 1) / 2;
                 var rivalRank = faction.Faction.Rival;
+                var minionRank = faction.Faction.Minion;
                 Ship rival = null;
-                if (Ambushes(rivalRank.pilot))
+                if (rivalAmbushes)
                 {
                     var ahead = center + hero.Kinematics.Forward * ambushSpawnAhead;
                     if (ClearPoint.IsClear(field, ahead, clearanceRadius))
@@ -363,16 +366,10 @@ namespace Substrate.Sectors.Elements
                 var spawned = new Ship[count];
                 for (var i = 0; i < count; i++)
                 {
-                    if (i == centreIndex && rival)
-                    {
-                        spawned[i] = rival;
-                        continue;
-                    }
-
-                    var rank = i == centreIndex ? rivalRank : faction.Faction.Minion;
-                    spawned[i] = Spawn(rank, slots[i], center);
-                    if (i == centreIndex) rival = spawned[i];
+                    if (i != centreIndex) spawned[i] = Spawn(minionRank, slots[i], center);
+                    else spawned[i] = rival ? rival : Spawn(rivalRank, slots[i], center);
                 }
+                rival = spawned[centreIndex];
 
                 for (var i = 0; i < count; i++)
                 {

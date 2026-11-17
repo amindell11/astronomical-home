@@ -30,7 +30,7 @@ namespace AI.Context
         }
 
         public Ship Enemy => cachedEnemy;
-        public bool HasEnemy => cachedEnemy && cachedEnemy.gameObject.activeInHierarchy && !cachedEnemy.Lock.IsConcealed;
+        public bool HasEnemy => Alive(cachedEnemy);
         public bool InCombat => HasEnemy || TimeSinceCombat < combatExitDelay;
         public float TimeSinceCombat { get; private set; } = float.MaxValue;
         internal bool SightLimited { get; private set; }
@@ -110,20 +110,24 @@ namespace AI.Context
 
         private void AcquireEnemy()
         {
-            var registry = scout.Registry;
-            var enemyId = scout.Contacts.nearestEnemyId;
-            if (enemyId.IsValid && registry != null && registry.TryGetShip(enemyId, out var enemy))
+            if (TryNearestEnemy(out var enemy))
                 cachedEnemy = enemy;
         }
 
         private void AcquireSeen()
         {
-            var registry = scout.Registry;
-            var enemyId = scout.Contacts.nearestEnemyId;
-            if (!enemyId.IsValid || registry == null || !registry.TryGetShip(enemyId, out var enemy) || !Sees(enemy))
+            if (!TryNearestEnemy(out var enemy) || !Sees(enemy))
                 return;
             cachedEnemy = enemy;
             lastSeenTime = simTime;
+        }
+
+        private bool TryNearestEnemy(out Ship enemy)
+        {
+            enemy = null;
+            var registry = scout.Registry;
+            var enemyId = scout.Contacts.nearestEnemyId;
+            return enemyId.IsValid && registry != null && registry.TryGetShip(enemyId, out enemy);
         }
 
         private bool Sees(Ship enemy)

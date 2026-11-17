@@ -257,8 +257,7 @@ namespace Substrate.Sectors.Elements.Hunt
                 patrol.Release();
                 patrol.Scout.Unaware = false;
                 DestroyWedge(patrol);
-                if (patrol.Ship && patrol.Ship.gameObject.activeInHierarchy && !patrol.Jumped)
-                    patrol.Commander.HuntBySight(hero);
+                if (patrol.Live) patrol.Commander.HuntBySight(hero);
             }
             AlarmRaised?.Invoke(sectorIndex, reason, caller);
         }
@@ -319,8 +318,8 @@ namespace Substrate.Sectors.Elements.Hunt
             for (var i = patrols.Count - 1; i >= 0; i--)
             {
                 var patrol = patrols[i];
+                if (patrol.Live) continue;
                 var ship = patrol.Ship;
-                if (ship && ship.gameObject.activeInHierarchy && !patrol.Jumped) continue;
                 patrols.RemoveAt(i);
                 products.Remove(ship);
                 if (!ship) continue;
@@ -357,6 +356,8 @@ namespace Substrate.Sectors.Elements.Hunt
             public Action OnJumpRequested;
             public bool Seeing;
             public bool Jumped;
+
+            public bool Live => Ship && Ship.gameObject.activeInHierarchy && !Jumped;
 
             public Patrol(Ship ship, AICommander commander, Vector2[] route)
             {

@@ -101,7 +101,6 @@ namespace Game.Preview.Sectors
 
         private static string PilotName(Commander pilot)
         {
-            if (!pilot) return "none";
             var name = pilot.name;
             const string suffix = "Pilot";
             return name.EndsWith(suffix, StringComparison.Ordinal) && name.Length > suffix.Length

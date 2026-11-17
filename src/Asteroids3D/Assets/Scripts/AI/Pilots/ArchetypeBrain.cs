@@ -17,7 +17,6 @@ namespace AI.Pilots
     public sealed class ArchetypeBrain : Brain
     {
         private const int RecomputeIntervalTicks = 10;
-        private const float LineGain = 1f;
 
         [Tooltip("Which archetype to fly. A pilot with tactics settings never reads this. Its temper names its home tactic and how it roams. The Aggressor holds a range and fires, the Dummy sits still.")]
         [SerializeField] private OpponentArchetype archetype = OpponentArchetype.Aggressor;
@@ -204,7 +203,7 @@ namespace AI.Pilots
 
         private static bool IsConcealed(Ship ship) => !IsGone(ship) && ship.Lock.IsConcealed;
 
-        private bool LostTarget() => !IsGone(droppedTarget) && !IsConcealed(droppedTarget);
+        private bool LostTarget() => !IsGone(droppedTarget) && !droppedTarget.Lock.IsConcealed;
 
         private BrainDecision Roam(IShipStatus status)
         {
@@ -331,7 +330,7 @@ namespace AI.Pilots
         private Vector2 LineVelocity(in Kinematics self, in Kinematics leader, in Kinematics them, int place, float speed)
         {
             var point = leader.pos - Vector2.Perpendicular((them.pos - leader.pos).normalized) * place * tactics.lineSpacing;
-            return Vector2.ClampMagnitude(leader.vel + (point - self.pos) * LineGain, speed);
+            return Vector2.ClampMagnitude(leader.vel + (point - self.pos), speed);
         }
 
         private BrainDecision FlyAmbush(IShipStatus status, in Kinematics self, in Kinematics them, in Situation situation,

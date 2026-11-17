@@ -530,8 +530,9 @@ Format: **term** — definition. *(authority)*
   module, so product ownership and teardown stay the spawner's. *(WaveDirector)*
 - **wave** — one rival leading minions, arriving together from one bearing just off
   screen. The rival takes the arc's centre and the minions take the slots either side.
-  A phase that sends waves draws how many minions fly with the rival uniformly from
-  fewest to most, inclusive. Waves arrive on the phase's wave-every beat, trimmed to
+  A rival whose temper ambushes arrives concealed ahead of the player instead, when
+  that point is clear. A phase that sends waves draws how many minions fly with the
+  rival uniformly from fewest to most, inclusive. Waves arrive on the phase's wave-every beat, trimmed to
   the wave cap, and the trim keeps the rival. Nothing arrives in a lull, and survivors stay.
   *(WaveDirector.WaveDue)*
 - **wave every** — seconds between a sector phase's waves. The phase opens
@@ -570,8 +571,9 @@ Format: **term** — definition. *(authority)*
   *(SectorHunt, HuntFeelProfile, `SectorEntry.searchSeconds`)*
 - **sight-limited** — a sector ship sees the player within its scout's sight
   range when no rock is between them, and loses the player after the scout's
-  lose-sight seconds. It circles the place it last had the player for its laps,
-  and its commander hands it the player's position again. A ship that never came back would
+  lose-sight seconds out of sight, or at once when the player conceals. It circles
+  the place it last had the player for its laps, then takes the player back unless
+  the player is dead or concealed. A ship that never came back would
   stall the sector, because waves refill only while the count of live ships is
   under the wave cap. WaveDirector asks when it sends a wave, and SectorHunt
   asks when the alarm sounds. RingSpawner, the harness spawners and
@@ -951,7 +953,7 @@ Format: **term** — definition. *(authority)*
   the pilots its `Faction` asset names (`Faction.Rival`, `Faction.Minion`), so a
   temper belongs to a faction and a rank: Shoal's Valis and minion, Veil's
   Nightshade and minion, Bastion's Bulwark and minion. Hunt patrols fly the
-  minion's pilot, and no roster can name a pilot. Both of a faction's
+  minion's pilot. Both of a faction's
   tempers carry the faction's wounded response, ruled on #1589, 2026-11-16:
   Veil never breaks, Shoal jumps out, and Bastion makes a last stand. On the
   same ruling the Veil rival ambushes and Bastion minions hold the line, and a
@@ -965,7 +967,7 @@ Format: **term** — definition. *(authority)*
   the wreck before it wanders. A pilot with a temper never reads `archetype`.
   *(Faction.Rival, Faction.Minion; Settings/AI/Tactics/Factions; EliteTemper, EscortTemper)*
 - **leader**. The rival a minion's wave flies with. The minion observes that
-  ship's position and nothing of its brain, and the leader never commands it.
+  ship's position and velocity and nothing of its brain, and the leader never commands it.
   When the leader is gone, the minion flies its wounded response.
   *(AIContext.Leader, AICommander.FollowLeader)*
 - **place**. A minion's signed position along its leader's line, counted in

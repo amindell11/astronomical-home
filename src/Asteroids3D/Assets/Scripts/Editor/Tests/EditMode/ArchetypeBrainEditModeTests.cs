@@ -768,7 +768,7 @@ namespace Tests.EditMode
         private AIContext Fighting(StubStatus status, Ship self, Ship enemy)
         {
             var registry = new ShipRegistry();
-            // EditMode never wakes the ship, so its colliders and id are set here, as the registry keys them.
+            // EditMode never wakes the ship, so set the colliders and id the registry keys on.
             typeof(Ship).GetProperty(nameof(Ship.Colliders)).SetValue(self, self.GetComponentsInChildren<Collider>());
             registry.ActiveShips.Add(self);
             var id = new ShipId(self.GetInstanceID());

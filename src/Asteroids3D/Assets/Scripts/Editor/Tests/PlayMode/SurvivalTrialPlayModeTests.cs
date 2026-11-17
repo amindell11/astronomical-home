@@ -418,7 +418,7 @@ namespace Tests.PlayMode
         {
             var root = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Keystones/Nightshade_Stealth.prefab");
             var stealth = root.GetComponent<Keystone>();
-            Assert.IsNotNull(stealth, "Nightshade's kit prefab");
+            Assert.IsTrue(stealth, "Nightshade's kit prefab");
             var serialized = new SerializedObject(template);
             serialized.FindProperty("keystone").objectReferenceValue = stealth;
             serialized.ApplyModifiedPropertiesWithoutUndo();
