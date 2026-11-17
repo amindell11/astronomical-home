@@ -903,14 +903,8 @@ namespace Game
             var sector = session != null ? session.ActiveSector : null;
             var spine = sector ? sector.Module<PhaseSpineModule>() : null;
             if (!spine) return default;
-            var mark = spine.Phase;
-            return new EndPhaseRow
-            {
-                index = mark.Index,
-                inLull = mark.InLull,
-                done = mark.Done,
-                elapsedSeconds = mark.ElapsedSeconds,
-            };
+            return EndPhaseRow.Of(spine.Phase,
+                rigInstance.Spawns.EliteMet(activeSectorIndex) && !rigInstance.Spawns.EliteBeaten(activeSectorIndex));
         }
 
         private static LoadoutRow MountedLoadout(Ship ship)
@@ -918,11 +912,11 @@ namespace Game
             var weapons = ship.Weapons;
             return new LoadoutRow
             {
-                chassis = ship.name.Replace("(Clone)", string.Empty),
-                engine = ship.Engine ? ship.Engine.name : string.Empty,
-                shield = ship.Shield ? ship.Shield.name : string.Empty,
-                primary = weapons && weapons.PrimaryMountPrefab ? weapons.PrimaryMountPrefab.name : string.Empty,
-                secondary = weapons && weapons.SecondaryMountPrefab ? weapons.SecondaryMountPrefab.name : string.Empty,
+                chassis = SpawnLog.NameOf(ship),
+                engine = SpawnLog.NameOf(ship.Engine),
+                shield = SpawnLog.NameOf(ship.Shield),
+                primary = SpawnLog.NameOf(weapons ? weapons.PrimaryMountPrefab : null),
+                secondary = SpawnLog.NameOf(weapons ? weapons.SecondaryMountPrefab : null),
                 statHash = StatHash.OfLoadout(ship),
             };
         }

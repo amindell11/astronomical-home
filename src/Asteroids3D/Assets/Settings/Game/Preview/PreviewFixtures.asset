@@ -168,7 +168,7 @@ MonoBehaviour:
       field: {fileID: 0}
   - layout: {fileID: 19402951431243477, guid: 6070e8d7339d411c9e8584227c25613e, type: 3}
     link: 1
-    own: 44
+    own: 1068
     values:
       prefab: {fileID: 0}
       locale: {fileID: 836507228316825353, guid: efda15947979b3345b239b9741b2c488,

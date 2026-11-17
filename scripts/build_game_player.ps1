@@ -83,7 +83,10 @@ if ($PSBoundParameters.ContainsKey("BuildLabel")) {
 # Collect then index: a git pipe can kill the command mid-exit.
 $branchLines = @(& git -C $repo branch --show-current)
 $slot = if ($branchLines.Count -gt 0) { [string]$branchLines[0] } else { "" }
-if ([string]::IsNullOrWhiteSpace($slot)) { $slot = "main" }
+# A missing branch must not lease the primary tree.
+if ([string]::IsNullOrWhiteSpace($slot)) {
+    throw "Could not read the current branch under '$repo'; the Unity access slot is unknown (detached HEAD, or git failed)."
+}
 $lease = "game-build-$slot-$([guid]::NewGuid().ToString('N'))"
 
 $arguments = @(

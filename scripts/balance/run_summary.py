@@ -6,10 +6,11 @@ append, and this script never looks for the store itself.
 
     python scripts/balance/run_summary.py <run-records.jsonl> [<more.jsonl> ...]
 
-Accepted schemas: "run-record-v4" (RunRecord.SchemaId), "run-record-v3", "run-record-v2", and
-"run-record-v1", one JSON object per line. A v1 record predates multi-sector runs and reads as a
-death with no sector cleared. A v2 or v1 record has none of the v3 fields. A record older than v4
-has no shield recovery fields on its sector rows.
+Accepted schemas: "run-record-v5" (RunRecord.SchemaId), "run-record-v4", "run-record-v3",
+"run-record-v2", and "run-record-v1", one JSON object per line. A v1 record predates multi-sector
+runs and reads as a death with no sector cleared. A v2 or v1 record has none of the v3 fields. A
+record older than v4 has no shield recovery fields on its sector rows. A v3 or v4 record has its
+phase named from the mark's fields, which reads a closing lull as the lull before the last phase.
 
 Output, on stdout, is for reading and carries no machine contract:
   - one Runs table per stat fingerprint, with each run's outcome and min / median /
@@ -19,8 +20,7 @@ Output, on stdout, is for reading and carries no machine contract:
     damage taken, killing blows (deaths only; an abandoned run is left out), ships spawned.
     "Runs seen" counts the records whose spawn log holds that hash;
   - five tables built only from records that carry the field: where runs ended (deaths and
-    abandoned runs per sector and phase, the phase named from the record's phase mark and the
-    sector's elite flags), picks (per offered item and
+    abandoned runs per sector and phase, the stamped name), picks (per offered item and
     kind: times offered, times taken), sectors (per sector number: runs entered, median
     seconds, median hull out, elite met, elite beaten), shield recovery (per sector number,
     from sector rows that carry regenSeconds: median regenerating seconds, contested
@@ -42,7 +42,7 @@ import statistics
 import sys
 from collections import defaultdict
 
-SCHEMAS = ("run-record-v4", "run-record-v3", "run-record-v2", "run-record-v1")
+SCHEMAS = ("run-record-v5", "run-record-v4", "run-record-v3", "run-record-v2", "run-record-v1")
 V1 = "run-record-v1"
 EXTRACTED = "extracted"
 DIED = "died"
@@ -211,8 +211,11 @@ def carried(record, key):
     return value if isinstance(value, list) else None
 
 
-def end_phase(mark, sector):
-    """Names the phase from the record's phase mark; the mark is done through the elite fight and extraction."""
+def end_phase(record, sector):
+    """The stamped phase name. A v3 or v4 record is named from the mark's fields."""
+    mark = record["endPhase"]
+    if record["schema"] not in ("run-record-v3", "run-record-v4"):
+        return mark["phase"]
     if mark["done"]:
         return "elite" if sector["eliteMet"] and not sector["eliteBeaten"] else "extraction"
     if mark["inLull"]:
@@ -320,7 +323,7 @@ def measured_sections(records):
         sectors = carried(record, "sectors")
         if not sectors or record["outcome"] == EXTRACTED:
             continue
-        ended[(sectors[-1]["sector"], end_phase(record["endPhase"], sectors[-1]), record["outcome"])] += 1
+        ended[(sectors[-1]["sector"], end_phase(record, sectors[-1]), record["outcome"])] += 1
     ended_rows = [[sector, phase, outcome, runs]
                   for (sector, phase, outcome), runs in sorted(ended.items(), key=lambda item: (-item[1], item[0]))]
 
