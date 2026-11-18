@@ -108,6 +108,28 @@ namespace Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator Revive_ThenReequip_KeepsTheDerivedRadius()
+        {
+            ship = ShipTestFactory.CreateDefaultShip(Projectiles);
+            Assert.IsNotNull(ship, "ship created");
+            yield return null;
+
+            var derivedRadius = ship.Stats.shipRadius;
+            Assert.AreNotEqual(1f, derivedRadius, "test premise: the derived radius differs from the default");
+
+            ship.gameObject.SetActive(false);
+            ship.ResetShip();
+            yield return null;
+
+            Assert.AreEqual(derivedRadius, ship.Stats.shipRadius, 1e-4f, "the revive's resolve keeps the derived radius");
+
+            ship.Reequip(ship.Weapons.PrimaryMountPrefab, ship.Weapons.SecondaryMountPrefab);
+
+            Assert.AreEqual(derivedRadius, ship.Stats.shipRadius, 1e-4f, "stats keep the derived radius after the reequip");
+            Assert.AreEqual(derivedRadius, ship.Dynamics.shipRadius, 1e-4f, "dynamics keep the derived radius after the reequip");
+        }
+
+        [UnityTest]
         public IEnumerator Reequip_TargetingCache_FollowsTheMissileMount()
         {
             ship = ShipTestFactory.CreateDefaultShip(Projectiles);

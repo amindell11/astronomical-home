@@ -77,7 +77,7 @@ namespace Tests.PlayMode.Bootstrap
                 "the host opens on the title");
             Assert.IsNull(Object.FindFirstObjectByType<HangarConsole>(), "the hangar has not opened");
             var hangarCamera = hostGo.GetComponentInChildren<DriftCam>();
-            Assert.IsTrue(hangarCamera && hangarCamera.Cam.isActiveAndEnabled, "the hangar camera renders");
+            Assert.IsTrue(hangarCamera && hangarCamera.GetComponent<Camera>().isActiveAndEnabled, "the hangar camera renders");
             Assert.IsNull(host.ActiveSector);
 
             hostGo.GetComponentInChildren<TitleScreen>().transform.Find("Play").GetComponent<Button>().onClick.Invoke();

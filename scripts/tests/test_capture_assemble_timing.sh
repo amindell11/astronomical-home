@@ -119,3 +119,62 @@ if decoded_ids != expected_ids:
 PY
 
 echo "PASS: capture/assemble.py - high --fps preserves every source frame"
+
+"$PY" - "$ASSEMBLE" "$TMP/frames/uneven" <<'PY'
+import csv
+import importlib.util
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+from PIL import Image
+
+script, directory = sys.argv[1:]
+root = Path(directory)
+root.mkdir(parents=True)
+# Uneven intervals make ffmpeg infer a rate whose progress clock misstates the length.
+intervals = [0.199, 0.113, 0.103, 0.122, 0.509, 0.323, 0.098, 0.588, 0.598, 0.119, 0.060]
+times = [sum(intervals[:index]) for index in range(len(intervals) + 1)]
+with (root / "frames.csv").open("w", encoding="utf-8", newline="") as stream:
+    writer = csv.writer(stream)
+    writer.writerow(["frame_id", "filename", "unscaled_seconds", "sim_seconds"])
+    for index, time in enumerate(times, 1):
+        name = f"f_{index:05d}.png"
+        Image.new("RGB", (16, 16), (index * 20, 255 - index * 20, 90)).save(root / name)
+        writer.writerow([index, name, time, time])
+manifest = {"width": 16, "height": 16, "frameCount": len(times), "completed": True, "frameMetadata": "frames.csv"}
+(root / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+run = subprocess.run([sys.executable, script, str(root), "--keep-frames"], capture_output=True, text=True)
+if run.returncode:
+    raise SystemExit(f"uneven intervals must verify against their presentation timeline: {run.stderr}")
+
+spec = importlib.util.spec_from_file_location("assemble", script)
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+frames = sorted(map(str, root.glob("f_*.png")))
+durations = module.frame_intervals(str(root), frames, manifest)
+encode = subprocess.run
+
+
+def stretched(cmd, *args, **kwargs):
+    if "concat" in cmd:
+        concat_list = Path(cmd[cmd.index("-i") + 1])
+        lines = concat_list.read_text(encoding="utf-8").splitlines()
+        lines = [f"duration {float(line.split()[1]) * 1.1:.6f}" if line.startswith("duration ") else line
+                 for line in lines]
+        concat_list.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return encode(cmd, *args, **kwargs)
+
+
+subprocess.run = stretched
+try:
+    module.assemble_mp4(str(root), frames, 10.0, 1.0, 20, durations)
+except SystemExit as error:
+    if "duration" not in str(error):
+        raise SystemExit(f"a stretched clip must fail on duration, not: {error}")
+else:
+    raise SystemExit("a clip 10% longer than its source timeline must fail read-back")
+PY
+
+echo "PASS: capture/assemble.py - mp4 duration read from the presentation timeline"

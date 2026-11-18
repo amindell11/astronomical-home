@@ -6,7 +6,7 @@ using Ships.Registry;
 using Substrate.Services.Units;
 using UnityEngine;
 
-namespace Game.Player
+namespace Game.Player.Recorders
 {
     public interface IRunTally
     {

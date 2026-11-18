@@ -9,6 +9,7 @@ using Combat.Weapons.Conditions;
 using Movement;
 using NUnit.Framework;
 using Ships.Command;
+using Ships.Registry;
 using Substrate.Services.Projectiles;
 using Tests.Common;
 using Tests.PlayMode.Common;
@@ -96,7 +97,8 @@ namespace Tests.PlayMode
             spawned.Add(go);
             var gunner = go.AddComponent<Gunner>();
             mount = new PrimaryMount(weapon, NoseUpAtOrigin, Projectiles);
-            gunner.Initialize(mount, mount, NoseUpAtOrigin, TestAimSettings.Perfect, new SeedScope(1));
+            gunner.Initialize(mount, mount, NoseUpAtOrigin, TestAimSettings.Perfect, new SeedScope(1),
+                ShipId.Invalid, new StubShipRegistry());
             return gunner;
         }
 

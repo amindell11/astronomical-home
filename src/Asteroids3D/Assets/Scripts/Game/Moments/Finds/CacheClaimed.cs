@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace Game.Moments
+namespace Game.Moments.Finds
 {
     public sealed class CacheClaimed : IRunMoment
     {

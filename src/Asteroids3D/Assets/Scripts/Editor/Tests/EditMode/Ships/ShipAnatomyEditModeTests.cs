@@ -7,6 +7,7 @@ using Ships.Loadout;
 using Ships.Presentation;
 using Ships.Visuals;
 using Ships.Visuals.Breakup;
+using Ships.Weapons;
 using Substrate;
 using UnityEditor;
 using UnityEngine;
@@ -37,11 +38,13 @@ namespace Tests.EditMode.Ships
         {
             ("", typeof(Transform), "m_LocalScale"),
             ("", typeof(Ship), ""),
+            ("", typeof(WeaponsController), "primaryMount"),
             ("", typeof(Rigidbody), "m_Mass"),
             ("", typeof(Rigidbody), "m_InertiaTensor"),
             ("", typeof(Rigidbody), "m_InertiaRotation"),
             ("", typeof(Rigidbody), "m_ImplicitTensor"),
             ("Mesh", typeof(MeshCollider), "m_Mesh"),
+            ("Mesh", typeof(Transform), "m_LocalRotation"),
             (Rig + "/MinimapMarker", typeof(Transform), "m_LocalScale"),
             (Rig, typeof(HullVisuals), "m_Enabled"),
             (Rig, typeof(ShipBreakupVisual), "hull"),
