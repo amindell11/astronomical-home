@@ -5,6 +5,7 @@ using Combat.Weapons;
 using Movement;
 using NUnit.Framework;
 using Ships.Command;
+using Ships.Registry;
 using Substrate.Services.Projectiles;
 using Tests.Common;
 using UnityEngine;
@@ -26,7 +27,7 @@ namespace Tests.EditMode
             public override ProjectileBase Fire(Vector3 targetPoint, IProjectileService projectiles) => null;
         }
 
-        private sealed class PrimarySlotContext : IWeaponContext
+        internal sealed class PrimarySlotContext : IWeaponContext
         {
             private static readonly WeaponSlot[] slots = { WeaponSlot.Primary };
             public Gunsight sight;
@@ -40,7 +41,7 @@ namespace Tests.EditMode
             public Gunsight Sight(WeaponSlot slot) => sight;
         }
 
-        private sealed class CommandRecorder : IWeapons
+        internal sealed class CommandRecorder : IWeapons
         {
             public readonly List<WeaponCommand> Commands = new();
             public void Fire(WeaponSlot slot, in WeaponCommand cmd) => Commands.Add(cmd);
@@ -59,7 +60,7 @@ namespace Tests.EditMode
                 var recorder = new CommandRecorder();
                 var gunner = host.AddComponent<Gunner>();
                 gunner.Initialize(new PrimarySlotContext { sight = new Gunsight(weapon, Pose) }, recorder, Pose,
-                    TestAimSettings.Perfect, new SeedScope(1));
+                    TestAimSettings.Perfect, new SeedScope(1), ShipId.Invalid, new StubShipRegistry());
                 gunner.Aim(new Vector2(0f, 10f), Vector2.zero);
 
                 for (var i = 0; i < solution.Length; i++)

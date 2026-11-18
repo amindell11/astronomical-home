@@ -2,6 +2,7 @@ using System.Linq;
 using Game;
 using Game.Preview;
 using Game.Preview.Fixtures;
+using Game.Preview.Targets;
 using NUnit.Framework;
 using Substrate.Services.Locales;
 using UI.Projection;

@@ -9,7 +9,7 @@ using Substrate.Services.Units;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Game.Player
+namespace Game.Player.Recorders
 {
     /// <summary>
     /// What flew against the player this run: one entry per life of each ship the unit service
