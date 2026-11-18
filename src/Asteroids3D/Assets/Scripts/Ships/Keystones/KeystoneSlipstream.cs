@@ -81,10 +81,10 @@ namespace Ships.Keystones
             DrawWake(ref wakeStrokes[0], rear - shoulder, axis - 3f, length, age, 1f);
             DrawWake(ref wakeStrokes[1], rear + shoulder, axis + 5f, length * 0.81f, age - 0.035f, 0.64f);
             if (!crown) return;
-            var bow = transform.position + transform.up * (length * 0.35f);
+            var bow = transform.position + transform.up * (length * 0.46f);
             var scale = Mathf.Lerp(0.78f, 1f, Mathf.SmoothStep(0f, 1f, age / 0.12f));
             bowStroke[0].position = bow;
-            bowStroke[0].rotation3D = new Vector3(0f, 0f, transform.eulerAngles.z);
+            bowStroke[0].rotation3D = BillboardRotation(transform.eulerAngles.z);
             bowStroke[0].startSize3D = new Vector3(1.55f, 1.25f, 1f) * (length * scale);
             SetCel(ref bowStroke[0], ActiveCel(age * 0.78f), 0.92f);
         }
@@ -96,10 +96,13 @@ namespace Ships.Keystones
             var size = new Vector3(2.5f * stretch, 1.64f, 1f) * length;
             var rotation = Quaternion.AngleAxis(angle, Vector3.forward);
             stroke.position = root + rotation * new Vector3(0.38f * size.x, 0.04f * size.y, 0f);
-            stroke.rotation3D = new Vector3(0f, 0f, angle);
+            stroke.rotation3D = BillboardRotation(angle);
             stroke.startSize3D = size;
             SetCel(ref stroke, ActiveCel(age), age < 0f ? 0f : opacity);
         }
+
+        // World-aligned particle billboards rotate clockwise in the game plane.
+        private static Vector3 BillboardRotation(float worldDegrees) => new(0f, 0f, -worldDegrees);
 
         private static float ActiveCel(float age)
         {
