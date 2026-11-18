@@ -16,8 +16,11 @@ namespace Ships.Keystones
         /// <summary>How square the hit is: 1 head-on along the contact normal, 0 grazing.</summary>
         public readonly float ClosingFraction;
 
+        /// <summary>Speed of the collision: the bodies' relative speed at contact.</summary>
+        public readonly float RelativeSpeed;
+
         public KeystoneContact(ShipId self, float selfMass, Vector3 selfVelocity, Collider other, Rigidbody otherBody,
-            Vector3 point, float closingFraction)
+            Vector3 point, float closingFraction, float relativeSpeed)
         {
             Self = self;
             SelfMass = selfMass;
@@ -26,6 +29,7 @@ namespace Ships.Keystones
             OtherBody = otherBody;
             Point = point;
             ClosingFraction = closingFraction;
+            RelativeSpeed = relativeSpeed;
         }
     }
 }

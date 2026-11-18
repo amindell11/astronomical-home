@@ -167,6 +167,9 @@ namespace Tests.EditMode.Ships
             so.FindProperty("brake").floatValue = 0.3f;
             so.FindProperty("window").floatValue = 0.6f;
             so.FindProperty("sightAngle").floatValue = 15f;
+            so.FindProperty("surgeSpeedScale").floatValue = 1f;
+            so.FindProperty("surgeAcceleration").floatValue = 0f;
+            so.FindProperty("massScale").floatValue = 1f;
             so.ApplyModifiedPropertiesWithoutUndo();
             return ram;
         }
@@ -186,6 +189,56 @@ namespace Tests.EditMode.Ships
             Assert.That(ram.ShouldActivate(Sight(new Vector2(0f, 5f), selfVel: new Vector2(0f, -6f))), Is.True, "sliding away no longer spoils the ram: the brake stops it first");
             Assert.That(ram.ShouldActivate(Sight(new Vector2(0f, 6f), targetVel: new Vector2(0f, 21f), selfVel: new Vector2(0f, 21f))), Is.False,
                 "a target fleeing at the cap outruns a launch from rest");
+        }
+
+        [Test]
+        public void RamSight_BurnCarriesAStandstillRamTheLaunchMisses()
+        {
+            var ram = NewRam();
+            var so = new SerializedObject(ram);
+            so.FindProperty("surgeAcceleration").floatValue = 25f;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            Assert.That(ram.ShouldActivate(Sight(new Vector2(0f, 10f))), Is.True,
+                "the burn carries the ram 11.25 u in the window");
+        }
+
+        [Test]
+        public void RamDash_SurgesHeavyAlongTheLaunchLine_WhileLive()
+        {
+            var ram = NewRam();
+            var so = new SerializedObject(ram);
+            so.FindProperty("surgeSpeedScale").floatValue = 1.5f;
+            so.FindProperty("surgeAcceleration").floatValue = 25f;
+            so.FindProperty("massScale").floatValue = 2f;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            var kin = Facing(0f);
+            KeystoneEffect launch = default;
+            for (var n = 0; n < 40 && !ram.RamLive; n++)
+                launch = ram.Step(in kin, n == 0 ? 1f : 0f, Dt, out _);
+
+            Assert.That(ram.RamLive, Is.True);
+            Assert.That(Vector2.Distance(launch.Impulse, Facing(0f).Forward * (ram.Impulse * 2f)), Is.LessThan(1e-3f));
+            Assert.That(launch.Acceleration, Is.EqualTo(Vector2.zero));
+            Assert.That(ram.MassScale, Is.EqualTo(2f));
+            Assert.That(ram.SpeedScale, Is.EqualTo(1.5f));
+            Assert.That(ram.PeakSpeedScale, Is.EqualTo(1.5f));
+
+            var turned = Facing(90f);
+            var alongLaunch = Facing(0f).Forward * 25f;
+            var step = ram.Step(in turned, 0f, Dt, out _);
+            Assert.That(ram.RamLive, Is.True);
+            Assert.That(Vector2.Distance(step.Acceleration, alongLaunch), Is.LessThan(1e-3f));
+            while (ram.RamLive)
+            {
+                step = ram.Step(in turned, 0f, Dt, out _);
+                if (ram.RamLive)
+                    Assert.That(Vector2.Distance(step.Acceleration, alongLaunch), Is.LessThan(1e-3f));
+            }
+
+            Assert.That(ram.MassScale, Is.EqualTo(1f));
+            Assert.That(ram.SpeedScale, Is.EqualTo(1f));
+            Assert.That(step.Acceleration, Is.EqualTo(Vector2.zero));
         }
 
         [Test]

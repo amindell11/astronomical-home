@@ -59,6 +59,9 @@ namespace Ships.Keystones
         public virtual float ThrustScale => 1f;
         public virtual float ManeuverabilityScale => 1f;
 
+        /// <summary>Multiplier on the ship's mass, applied every step.</summary>
+        public virtual float MassScale => 1f;
+
         /// <summary>The largest scales the kit ever reports, so anything sized once at spawn covers them.</summary>
         public virtual float PeakSpeedScale => 1f;
         public virtual float PeakThrustScale => 1f;

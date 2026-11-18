@@ -67,7 +67,8 @@ namespace Tests.PlayMode.Keystones
         public IEnumerator HeavierRock_StopsTheBulwark_AndBothStayIntact()
         {
             yield return SpawnBulwark();
-            var rock = SpawnRock(Nose * 5f, mass: 20000f, onFragment: null);
+            var massScale = new SerializedObject(ram).FindProperty("massScale").floatValue;
+            var rock = SpawnRock(Nose * 5f, mass: 20000f * massScale, onFragment: null);
             var health = bulwark.Damage.Health.CurrentValue;
             var shield = bulwark.Damage.Shield.CurrentValue;
 
@@ -99,7 +100,10 @@ namespace Tests.PlayMode.Keystones
             Assert.That(hits, Has.Count.EqualTo(1), "one ram, one hit");
             Assert.That(hits[0].Info.Kind, Is.EqualTo(DamageKind.Collision));
             Assert.That(hits[0].Info.AttackerId, Is.EqualTo(bulwark.Id), "the ram carries the Bulwark's id");
-            Assert.That(hits[0].Info.Amount, Is.InRange(ram.ShipDamage * 0.8f, ram.ShipDamage), "a near head-on hit deals near full damage");
+            Assert.That(hits[0].Info.Amount, Is.InRange(ram.ShipDamage * 0.8f, ram.ShipDamage * 2f),
+                "a near head-on ram at surge speed deals at least full damage");
+            Assert.That(Vector3.Dot(target.Rigidbody.linearVelocity, Nose), Is.GreaterThan(5f),
+                "the ram knocks the target back");
             Assert.That(ram.PaidActivations, Is.EqualTo(1), "landing on a ship pays");
         }
 
