@@ -9683,7 +9683,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &9165622783128586723
 Transform:
   m_ObjectHideFlags: 0
@@ -9710,7 +9710,7 @@ ParticleSystem:
   lengthInSec: 1
   simulationSpeed: 1
   stopAction: 0
-  cullingMode: 0
+  cullingMode: 3
   ringBufferMode: 0
   ringBufferLoopRange: {x: 0, y: 1}
   emitterVelocityMode: 1
@@ -10270,7 +10270,7 @@ ParticleSystem:
         m_RotationOrder: 4
     randomizeRotationDirection: 0
     gravitySource: 0
-    maxNumParticles: 400
+    maxNumParticles: 2
     customEmitterVelocity: {x: 0, y: 0, z: 0}
     size3D: 1
     rotation3D: 1
@@ -10531,7 +10531,7 @@ ParticleSystem:
           m_PostInfinity: 2
           m_RotationOrder: 4
   EmissionModule:
-    enabled: 1
+    enabled: 0
     serializedVersion: 4
     rateOverTime:
       serializedVersion: 2
@@ -11040,8 +11040,8 @@ ParticleSystem:
     fps: 30
     frameOverTime:
       serializedVersion: 2
-      minMaxState: 0
-      scalar: 0
+      minMaxState: 1
+      scalar: 0.9999
       minScalar: 0.9999
       maxCurve:
         serializedVersion: 2
@@ -11053,8 +11053,8 @@ ParticleSystem:
           outSlope: 1
           tangentMode: 0
           weightedMode: 0
-          inWeight: 0.33333334
-          outWeight: 0.33333334
+          inWeight: 0
+          outWeight: 0
         - serializedVersion: 3
           time: 1
           value: 1
@@ -11062,8 +11062,8 @@ ParticleSystem:
           outSlope: 0
           tangentMode: 0
           weightedMode: 0
-          inWeight: 0.33333334
-          outWeight: 0.33333334
+          inWeight: 0
+          outWeight: 0
         m_PreInfinity: 2
         m_PostInfinity: 2
         m_RotationOrder: 4
@@ -11093,8 +11093,8 @@ ParticleSystem:
         m_RotationOrder: 4
     startFrame:
       serializedVersion: 2
-      minMaxState: 3
-      scalar: 0.4996875
+      minMaxState: 0
+      scalar: 0
       minScalar: 0.0003125
       maxCurve:
         serializedVersion: 2
@@ -11145,8 +11145,8 @@ ParticleSystem:
         m_PostInfinity: 2
         m_RotationOrder: 4
     speedRange: {x: 0, y: 1}
-    tilesX: 8
-    tilesY: 4
+    tilesX: 2
+    tilesY: 2
     animationType: 0
     rowIndex: 0
     cycles: 1
@@ -12079,7 +12079,7 @@ ParticleSystem:
       m_Bits: 4294967295
     influenceList: []
   ClampVelocityModule:
-    enabled: 1
+    enabled: 0
     x:
       serializedVersion: 2
       minMaxState: 0
@@ -14446,7 +14446,7 @@ ParticleSystemRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 29b98a5ebd41df842aff462b2c4c07fb, type: 2}
+  - {fileID: 2100000, guid: 721b7d0a0173b0243b2bee4eff527dad, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -14471,7 +14471,7 @@ ParticleSystemRenderer:
   m_MeshDistribution: 0
   m_SortMode: 0
   m_MinParticleSize: 0
-  m_MaxParticleSize: 0.5
+  m_MaxParticleSize: 1
   m_CameraVelocityScale: 0
   m_VelocityScale: 0
   m_LengthScale: 2
@@ -14479,15 +14479,15 @@ ParticleSystemRenderer:
   m_NormalDirection: 1
   m_ShadowBias: 0
   m_RenderAlignment: 1
-  m_Pivot: {x: 0, y: -0.4813, z: 0}
+  m_Pivot: {x: 0, y: 0, z: 0}
   m_Flip: {x: 0, y: 0, z: 0}
   m_EnableGPUInstancing: 1
   m_ApplyActiveColorSpace: 1
   m_AllowRoll: 1
   m_FreeformStretching: 0
   m_RotateWithStretchDirection: 1
-  m_UseCustomVertexStreams: 0
-  m_VertexStreams: 00010304
+  m_UseCustomVertexStreams: 1
+  m_VertexStreams: 0003040508
   m_UseCustomTrailVertexStreams: 0
   m_TrailVertexStreams: 00010304
   m_Mesh: {fileID: 0}
@@ -14645,96 +14645,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   keystone: {fileID: 5512903418735166201}
-  material: {fileID: 2100000, guid: 29b98a5ebd41df842aff462b2c4c07fb, type: 2}
+  wake: {fileID: 2500237705212785410}
+  crown: {fileID: 8663615714501461264}
   localShipLength: 3.17131
-  lifetime: 0.32
-  maxLength: 3.2
-  ribbons:
-  - anchor: {x: -0.7, y: -0.434}
-    width: 3.3000002
-    spread: 0.625
-    lengthScale: 1
-    atlasCell: 4
-    opacity: 0.55
-  - anchor: {x: 0.7, y: -0.434}
-    width: 3.3000002
-    spread: 0.625
-    lengthScale: 1
-    atlasCell: 9
-    opacity: 0.55
-  - anchor: {x: -0.55, y: -0.775}
-    width: 2.75
-    spread: 0.375
-    lengthScale: 0.82
-    atlasCell: 10
-    opacity: 0.75
-  - anchor: {x: 0.55, y: -0.775}
-    width: 2.75
-    spread: 0.375
-    lengthScale: 1
-    atlasCell: 2
-    opacity: 0.75
-  - anchor: {x: -0.375, y: -1.2709999}
-    width: 2.475
-    spread: 0.14999999
-    lengthScale: 0.72
-    atlasCell: 3
-    opacity: 0.95
-  - anchor: {x: 0.375, y: -1.2709999}
-    width: 2.475
-    spread: 0.14999999
-    lengthScale: 0.8
-    atlasCell: 8
-    opacity: 0.95
-  - anchor: {x: -0.29999998, y: -1.426}
-    width: 2.2
-    spread: 0.099999994
-    lengthScale: 0.9
-    atlasCell: 6
-    opacity: 0.85
-  - anchor: {x: 0.29999998, y: -1.426}
-    width: 2.2
-    spread: 0.099999994
-    lengthScale: 0.68
-    atlasCell: 9
-    opacity: 0.85
-  - anchor: {x: -0.5, y: -0.93}
-    width: 2.0625
-    spread: 0.22500001
-    lengthScale: 0.75
-    atlasCell: 0
-    opacity: 0.75
-  - anchor: {x: 0.5, y: -0.93}
-    width: 2.0625
-    spread: 0.22500001
-    lengthScale: 0.85
-    atlasCell: 1
-    opacity: 0.75
-  - anchor: {x: -0.9, y: 0.99}
-    width: 5
-    spread: 1.05
-    lengthScale: 1
-    atlasCell: 16
-    opacity: 0.85
-  - anchor: {x: 0.9, y: 0.99}
-    width: 5
-    spread: 1.05
-    lengthScale: 1
-    atlasCell: 21
-    opacity: 0.85
-  - anchor: {x: -0.86, y: 0.91}
-    width: 4.2
-    spread: 0.65
-    lengthScale: 0.65
-    atlasCell: 16
-    opacity: 1
-  - anchor: {x: 0.86, y: 0.91}
-    width: 4.2
-    spread: 0.65
-    lengthScale: 0.65
-    atlasCell: 21
-    opacity: 1
-  tint: 0.35
 --- !u!1 &7781260934417810432
 GameObject:
   m_ObjectHideFlags: 0
@@ -14839,7 +14752,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &3346597213612474803
 Transform:
   m_ObjectHideFlags: 0
@@ -14925,7 +14838,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &6336451648121114494
 Transform:
   m_ObjectHideFlags: 0
@@ -14952,7 +14865,7 @@ ParticleSystem:
   lengthInSec: 1
   simulationSpeed: 1
   stopAction: 0
-  cullingMode: 0
+  cullingMode: 3
   ringBufferMode: 0
   ringBufferLoopRange: {x: 0, y: 1}
   emitterVelocityMode: 1
@@ -15512,7 +15425,7 @@ ParticleSystem:
         m_RotationOrder: 4
     randomizeRotationDirection: 0
     gravitySource: 0
-    maxNumParticles: 200
+    maxNumParticles: 1
     customEmitterVelocity: {x: 0, y: 0, z: 0}
     size3D: 1
     rotation3D: 1
@@ -15773,7 +15686,7 @@ ParticleSystem:
           m_PostInfinity: 2
           m_RotationOrder: 4
   EmissionModule:
-    enabled: 1
+    enabled: 0
     serializedVersion: 4
     rateOverTime:
       serializedVersion: 2
@@ -16282,8 +16195,8 @@ ParticleSystem:
     fps: 30
     frameOverTime:
       serializedVersion: 2
-      minMaxState: 0
-      scalar: 0
+      minMaxState: 1
+      scalar: 0.9999
       minScalar: 0.9999
       maxCurve:
         serializedVersion: 2
@@ -16295,8 +16208,8 @@ ParticleSystem:
           outSlope: 1
           tangentMode: 0
           weightedMode: 0
-          inWeight: 0.33333334
-          outWeight: 0.33333334
+          inWeight: 0
+          outWeight: 0
         - serializedVersion: 3
           time: 1
           value: 1
@@ -16304,8 +16217,8 @@ ParticleSystem:
           outSlope: 0
           tangentMode: 0
           weightedMode: 0
-          inWeight: 0.33333334
-          outWeight: 0.33333334
+          inWeight: 0
+          outWeight: 0
         m_PreInfinity: 2
         m_PostInfinity: 2
         m_RotationOrder: 4
@@ -16335,8 +16248,8 @@ ParticleSystem:
         m_RotationOrder: 4
     startFrame:
       serializedVersion: 2
-      minMaxState: 3
-      scalar: 0.7496875
+      minMaxState: 0
+      scalar: 0
       minScalar: 0.5003125
       maxCurve:
         serializedVersion: 2
@@ -16387,8 +16300,8 @@ ParticleSystem:
         m_PostInfinity: 2
         m_RotationOrder: 4
     speedRange: {x: 0, y: 1}
-    tilesX: 8
-    tilesY: 4
+    tilesX: 2
+    tilesY: 2
     animationType: 0
     rowIndex: 0
     cycles: 1
@@ -17321,7 +17234,7 @@ ParticleSystem:
       m_Bits: 4294967295
     influenceList: []
   ClampVelocityModule:
-    enabled: 1
+    enabled: 0
     x:
       serializedVersion: 2
       minMaxState: 0
@@ -19688,7 +19601,7 @@ ParticleSystemRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 29b98a5ebd41df842aff462b2c4c07fb, type: 2}
+  - {fileID: 2100000, guid: 6b1379eb80c66f948a13b5215ab4b25d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -19713,7 +19626,7 @@ ParticleSystemRenderer:
   m_MeshDistribution: 0
   m_SortMode: 0
   m_MinParticleSize: 0
-  m_MaxParticleSize: 0.5
+  m_MaxParticleSize: 1
   m_CameraVelocityScale: 0
   m_VelocityScale: 0
   m_LengthScale: 2
@@ -19721,15 +19634,15 @@ ParticleSystemRenderer:
   m_NormalDirection: 1
   m_ShadowBias: 0
   m_RenderAlignment: 1
-  m_Pivot: {x: 0, y: -0.4813, z: 0}
+  m_Pivot: {x: 0, y: 0, z: 0}
   m_Flip: {x: 0, y: 0, z: 0}
   m_EnableGPUInstancing: 1
   m_ApplyActiveColorSpace: 1
   m_AllowRoll: 1
   m_FreeformStretching: 0
   m_RotateWithStretchDirection: 1
-  m_UseCustomVertexStreams: 0
-  m_VertexStreams: 00010304
+  m_UseCustomVertexStreams: 1
+  m_VertexStreams: 0003040508
   m_UseCustomTrailVertexStreams: 0
   m_TrailVertexStreams: 00010304
   m_Mesh: {fileID: 0}
