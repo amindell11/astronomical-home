@@ -37,7 +37,7 @@ namespace Tests.PlayMode.PlayerState
         }
 
         [Test]
-        public void Binding_PutsShieldLeftAndHullRight_UnderTheirLabels()
+        public void Binding_PutsShieldLeftAndHullRight_AboveTheirLabels()
         {
             readout.Initialize(new FakeDamage());
             var bars = readout.GetComponentsInChildren<StatusBarUI>();

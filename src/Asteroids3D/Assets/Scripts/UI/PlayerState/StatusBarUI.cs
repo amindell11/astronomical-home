@@ -33,7 +33,6 @@ namespace UI.PlayerState
             bar.source = resource;
             bar.pulsesWhenLow = pulsesWhenLow;
             if (bar.isActiveAndEnabled) resource.OnValueChanged += bar.OnResourceChanged;
-            bar.SetVerticesDirty();
             return bar;
         }
 
@@ -42,7 +41,6 @@ namespace UI.PlayerState
             base.OnEnable();
             if (source == null) return;
             source.OnValueChanged += OnResourceChanged;
-            SetVerticesDirty();
         }
 
         protected override void OnDisable()
@@ -67,7 +65,7 @@ namespace UI.PlayerState
             mesh.Clear();
             if (source == null) return;
             var half = size * .5f;
-            // Border and marks scale with the bar's height; an 8-tall bar keeps 1-unit lines.
+            // Border and marks scale with the bar's height; an 8-tall bar draws 1-unit lines.
             var line = size.y / 8f;
             Quad(mesh, -half.x - line, half.x + line, half.y + line, new Color(.02f, .04f, .08f, .92f));
             Quad(mesh, -half.x, half.x, half.y, new Color(.1f, .18f, .24f, 1f));

@@ -34,8 +34,7 @@ namespace UI.PlayerState
         {
             if (!reticlePrefab) throw new ArgumentNullException(nameof(reticlePrefab));
             if (!projection) throw new ArgumentNullException(nameof(projection));
-            var root = new GameObject("Ship status overlay", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler),
-                typeof(CanvasGroup));
+            var root = new GameObject("Ship status overlay", typeof(RectTransform), typeof(Canvas), typeof(CanvasGroup));
             root.layer = hud.gameObject.layer;
             root.transform.SetParent(hud.transform.parent, false);
             var overlay = root.AddComponent<ShipStatusOverlay>();
@@ -43,7 +42,7 @@ namespace UI.PlayerState
             overlay.canvas.worldCamera = hud.worldCamera;
             overlay.canvas.planeDistance = hud.worldCamera.nearClipPlane + .1f;
             overlay.canvas.sortingOrder = hud.sortingOrder - 1;
-            var scaler = root.GetComponent<CanvasScaler>();
+            var scaler = root.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920f, 1080f);
             scaler.matchWidthOrHeight = 1f;
