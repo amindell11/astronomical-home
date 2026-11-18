@@ -38,22 +38,9 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator TargetInConeFromShipCentre_StartsLock_ThoughOutsideItFromMount()
         {
-            var prefab = TestAssets.Load<Ship>(VanguardPrefabPath);
-            Assert.IsNotNull(prefab, "Vanguard prefab loads");
-
-            shooter = Factory.CreateShip(prefab, null, team: 0, decisionSeed: 0, Projectiles, Vector3.zero, Quaternion.identity);
-            var bearing = TargetBearingDeg * Mathf.Deg2Rad;
-            var targetPos = shooter.transform.position
-                + shooter.transform.up * (TargetRange * Mathf.Cos(bearing))
-                + shooter.transform.right * (TargetRange * Mathf.Sin(bearing));
-            target = Factory.CreateShip(prefab, null, team: 1, decisionSeed: 0, Projectiles, targetPos, Quaternion.identity);
-            registry.ActiveShips.Add(shooter);
-            registry.ActiveShips.Add(target);
-
-            var sensor = shooter.Targeting;
-            Assert.IsNotNull(sensor, "Vanguard mounts missiles");
+            var sensor = SpawnInCone(shooterTeam: 0, targetTeam: 1);
             var halfCone = sensor.lockOnConeAngle / 2f;
-            Assert.Greater(Vector3.Angle(shooter.transform.up, targetPos - sensor.GetComponent<WeaponComponent>().FireOrigin), halfCone,
+            Assert.Greater(Vector3.Angle(shooter.transform.up, target.transform.position - sensor.GetComponent<WeaponComponent>().FireOrigin), halfCone,
                 "test premise: measured from the missile's fire point, the target sits outside the lock-on cone");
 
             sensor.SetRegistry(registry);
@@ -62,6 +49,37 @@ namespace Tests.PlayMode
 
             Assert.AreEqual(LockState.Locking, sensor.State,
                 "a target inside the cone measured from the ship's centre starts a lock and holds it");
+        }
+
+        [UnityTest]
+        public IEnumerator SameTeamShipInCone_NeverStartsLock()
+        {
+            var sensor = SpawnInCone(shooterTeam: 1, targetTeam: 1);
+
+            sensor.SetRegistry(registry);
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+
+            Assert.AreEqual(LockState.Idle, sensor.State, "a wingmate in cone and range is never a lock candidate");
+        }
+
+        private LockOnSensor SpawnInCone(int shooterTeam, int targetTeam)
+        {
+            var prefab = TestAssets.Load<Ship>(VanguardPrefabPath);
+            Assert.IsNotNull(prefab, "Vanguard prefab loads");
+
+            shooter = Factory.CreateShip(prefab, null, team: shooterTeam, decisionSeed: 0, Projectiles, Vector3.zero, Quaternion.identity);
+            var bearing = TargetBearingDeg * Mathf.Deg2Rad;
+            var targetPos = shooter.transform.position
+                + shooter.transform.up * (TargetRange * Mathf.Cos(bearing))
+                + shooter.transform.right * (TargetRange * Mathf.Sin(bearing));
+            target = Factory.CreateShip(prefab, null, team: targetTeam, decisionSeed: 0, Projectiles, targetPos, Quaternion.identity);
+            registry.ActiveShips.Add(shooter);
+            registry.ActiveShips.Add(target);
+
+            var sensor = shooter.Targeting;
+            Assert.IsNotNull(sensor, "Vanguard mounts missiles");
+            return sensor;
         }
     }
 }
