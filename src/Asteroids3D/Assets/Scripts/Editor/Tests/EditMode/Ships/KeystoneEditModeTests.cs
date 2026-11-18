@@ -401,7 +401,7 @@ namespace Tests.EditMode.Ships
         }
 
         [TestCase("Vanguard", 9000f, 5f)]
-        [TestCase("Bulwark", 15000f, 5f)]
+        [TestCase("Bulwark", 19500f, 4.5f)]
         [TestCase("Junker_1", 15000f, 5f)]
         public void Chassis_CarriesItsOwnDash(string chassis, float impulse, float cooldown)
         {
