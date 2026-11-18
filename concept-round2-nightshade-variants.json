@@ -1,0 +1,99 @@
+{
+ "rival": {},
+ "A": {
+  "omit": [
+   "Rear swept wing pair",
+   "Tail fork armor",
+   "Tail joint beds",
+   "Tail tip armor",
+   "Tail ventral armor",
+   "Tail root armor",
+   "Tail root mounting blocks",
+   "Tail mount service panel"
+  ]
+ },
+ "A_fewer_plates": {
+  "omit": [
+   "Rear swept wing pair",
+   "Tail fork armor",
+   "Tail joint beds",
+   "Tail tip armor",
+   "Tail ventral armor",
+   "Tail root armor",
+   "Tail root mounting blocks",
+   "Tail mount service panel",
+   "Wing forward armor",
+   "Wing shoulder armor",
+   "Wing outer armor",
+   "Wing cooling louvers",
+   "Spine shoulder armor",
+   "Dorsal shield inset",
+   "Ventral shield inset"
+  ]
+ },
+ "A_bare_no_beds": {
+  "omit": [
+   "Rear swept wing pair",
+   "Tail fork armor",
+   "Tail joint beds",
+   "Tail tip armor",
+   "Tail ventral armor",
+   "Tail root armor",
+   "Tail root mounting blocks",
+   "Tail mount service panel",
+   "Wing forward armor",
+   "Wing shoulder armor",
+   "Wing outer armor",
+   "Wing cooling louvers",
+   "Spine shoulder armor",
+   "Dorsal shield inset",
+   "Ventral shield inset",
+   "Wing ventral armor",
+   "Wing ventral aft armor",
+   "Wing aft blade armor",
+   "Main wing joint beds"
+  ]
+ },
+ "A_plates_midnight": {
+  "omit": [
+   "Rear swept wing pair",
+   "Tail fork armor",
+   "Tail joint beds",
+   "Tail tip armor",
+   "Tail ventral armor",
+   "Tail root armor",
+   "Tail root mounting blocks",
+   "Tail mount service panel",
+   "Wing cooling louvers",
+   "Dorsal shield inset",
+   "Ventral shield inset"
+  ],
+  "recolor": {
+   "parts": [
+    "Wing aft blade armor",
+    "Wing ventral aft armor",
+    "Wing ventral armor",
+    "Upper fin armor",
+    "Lower fin armor",
+    "Wing forward armor",
+    "Wing shoulder armor",
+    "Main wing joint beds",
+    "Dorsal central blade",
+    "Ventral central blade",
+    "Dorsal shield cap",
+    "Ventral shield cap",
+    "Rebuilt pitched hull",
+    "Aft spine armor"
+   ],
+   "rgb": [
+    0.01,
+    0.03,
+    0.05
+   ],
+   "only": [
+    "Nightshade Violet",
+    "Nightshade Plum"
+   ]
+  }
+ }
+}

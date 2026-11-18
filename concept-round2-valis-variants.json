@@ -1,0 +1,86 @@
+{
+ "rival": {},
+ "D_original_prongs": {
+  "omit": [
+   "10 upper swept wings",
+   "11 upper wing gray planes",
+   "12 upper wing lavender tips",
+   "12 upper wing lavender tips underside",
+   "13 charcoal trailing spars",
+   "70 shoulder pivot housing",
+   "71 shoulder lavender cap",
+   "40 forward outriggers",
+   "41 outrigger lavender toes",
+   "42 outrigger inner sockets",
+   "51 midship auxiliary vanes",
+   "52 auxiliary vane feet",
+   "53 auxiliary vane roots",
+   "07 rear crest"
+  ]
+ },
+ "D_simple_prongs": {
+  "omit": [
+   "10 upper swept wings",
+   "11 upper wing gray planes",
+   "12 upper wing lavender tips",
+   "12 upper wing lavender tips underside",
+   "13 charcoal trailing spars",
+   "70 shoulder pivot housing",
+   "71 shoulder lavender cap",
+   "40 forward outriggers",
+   "41 outrigger lavender toes",
+   "42 outrigger inner sockets",
+   "51 midship auxiliary vanes",
+   "52 auxiliary vane feet",
+   "53 auxiliary vane roots",
+   "07 rear crest",
+   "50 aft split prongs"
+  ],
+  "prong": {
+   "part": "50 aft split prongs",
+   "length": 1.0
+  }
+ },
+ "D_short_prongs": {
+  "omit": [
+   "10 upper swept wings",
+   "11 upper wing gray planes",
+   "12 upper wing lavender tips",
+   "12 upper wing lavender tips underside",
+   "13 charcoal trailing spars",
+   "70 shoulder pivot housing",
+   "71 shoulder lavender cap",
+   "40 forward outriggers",
+   "41 outrigger lavender toes",
+   "42 outrigger inner sockets",
+   "51 midship auxiliary vanes",
+   "52 auxiliary vane feet",
+   "53 auxiliary vane roots",
+   "07 rear crest",
+   "50 aft split prongs"
+  ],
+  "prong": {
+   "part": "50 aft split prongs",
+   "length": 0.6
+  }
+ },
+ "D_no_prongs": {
+  "omit": [
+   "10 upper swept wings",
+   "11 upper wing gray planes",
+   "12 upper wing lavender tips",
+   "12 upper wing lavender tips underside",
+   "13 charcoal trailing spars",
+   "70 shoulder pivot housing",
+   "71 shoulder lavender cap",
+   "40 forward outriggers",
+   "41 outrigger lavender toes",
+   "42 outrigger inner sockets",
+   "51 midship auxiliary vanes",
+   "52 auxiliary vane feet",
+   "53 auxiliary vane roots",
+   "07 rear crest",
+   "50 aft split prongs"
+  ]
+ }
+}
