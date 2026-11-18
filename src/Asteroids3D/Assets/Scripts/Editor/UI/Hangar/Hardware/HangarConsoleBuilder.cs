@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UI.Hangar.Displays;
 using UI.Hangar.Hologram;
+using UI.Hangar.Selection;
 using UI.Projection;
 using UI.Screens;
 using UnityEngine.Rendering;
@@ -18,6 +20,7 @@ namespace UI.Hangar.Hardware
         public const string VisualsPath = "Assets/Visuals/Hangar/Console";
         public const string PrefabPath = "Assets/Prefabs/UI/HangarConsole.prefab";
         private const string ProjectorPath = "Assets/Prefabs/UI/HangarProjector.prefab";
+        private const int WeaponDisplayHeight = 300;
 
         [MenuItem("Tools/Hangar/Rebuild console hardware")]
         public static void Rebuild()
@@ -25,7 +28,8 @@ namespace UI.Hangar.Hardware
             ShipSilhouettes.BakeHangar();
             var manifestPath = Path.GetFullPath(Path.Combine(Application.dataPath,
                 "../../../art/environments/hangar-console/console-export.json"));
-            var authored = JsonUtility.FromJson<ExportManifest>(File.ReadAllText(manifestPath)).camera;
+            var manifest = JsonUtility.FromJson<ExportManifest>(File.ReadAllText(manifestPath));
+            var authored = manifest.camera;
             foreach (var filename in new[] { "ConsolePaint", "ConsoleEmission", "MainScreenReference", "DetailScreenReference", "WindowEtching" })
             {
                 var path = $"{VisualsPath}/{filename}.png";
@@ -74,11 +78,20 @@ namespace UI.Hangar.Hardware
                 paint.SetColor("_Starlight", new Color(.18f, .20f, .24f).gamma);
                 var main = Glass("MainScreenGlass");
                 var detail = Glass("DetailScreenGlass");
+                var primary = Glass("PrimaryScreenGlass");
+                var ordnance = Glass("OrdnanceScreenGlass");
                 var parts = model.GetComponentsInChildren<MeshRenderer>().ToDictionary(renderer => renderer.name);
+                var glassMaterials = new Dictionary<string, Material>
+                {
+                    { "MainScreenGlass", main },
+                    { "DetailScreenGlass", detail },
+                    { "PrimaryScreenGlass", primary },
+                    { "OrdnanceScreenGlass", ordnance },
+                };
                 foreach (var renderer in parts.Values)
                 {
-                    renderer.sharedMaterial = renderer.name == "MainScreenGlass" ? main
-                        : renderer.name == "DetailScreenGlass" ? detail : paint;
+                    renderer.sharedMaterial = glassMaterials.TryGetValue(renderer.name, out var glassMaterial)
+                        ? glassMaterial : paint;
                     renderer.shadowCastingMode = ShadowCastingMode.Off;
                     renderer.receiveShadows = false;
                 }
@@ -87,7 +100,11 @@ namespace UI.Hangar.Hardware
                 legend.SetColor("_Starlight", Color.black);
                 legend.SetFloat("_LightResponse", 0f);
                 legend.SetColor("_ConstantEmission", new Color(1f, .88f, .70f));
-                foreach (var control in new[] { "Launch", "Previous", "Next" })
+                foreach (var control in new[]
+                         {
+                             "Launch", "Previous", "Next", "PrimaryPrevious", "PrimaryNext", "OrdnancePrevious",
+                             "OrdnanceNext"
+                         })
                 {
                     parts[control + "Legend"].sharedMaterial = legend;
                     parts[control + "Legend"].transform.SetParent(parts[control + "Button"].transform, true);
@@ -139,18 +156,36 @@ namespace UI.Hangar.Hardware
                     ReferenceResolution("MainScreenReference"), feature);
                 var detailView = HangarDisplayBuilder.BuildDetail(root.transform, new Vector3(200f, -300f, 0f),
                     ReferenceResolution("DetailScreenReference"), feature);
+                var primaryView = HangarDisplayBuilder.BuildWeapon(root.transform, "PrimaryDisplay",
+                    new Vector3(400f, -300f, 0f), WeaponResolution(manifest, "PrimaryScreenGlass"), feature,
+                    HangarSlot.Weapon, "PRIMARY");
+                var ordnanceView = HangarDisplayBuilder.BuildWeapon(root.transform, "OrdnanceDisplay",
+                    new Vector3(600f, -300f, 0f), WeaponResolution(manifest, "OrdnanceScreenGlass"), feature,
+                    HangarSlot.Ordnance, "ORDNANCE");
                 Spill(mainView.GetComponent<HangarDisplay>(), Light(root.transform, "MainScreenSpill",
                     parts["MainScreenGlass"].transform.position + new Vector3(-.032f, .46f, -1.367f),
                     new Color(1f, .87f, .70f), 4.55f, 8f));
                 Spill(detailView.GetComponent<HangarDisplay>(), Light(root.transform, "DetailScreenSpill",
                     parts["DetailScreenGlass"].transform.position + new Vector3(.0015f, .252f, -.502f),
                     new Color(1f, .87f, .70f), 1.3f, 5f));
+                var primaryCentre = parts["PrimaryScreenGlass"].bounds.center;
+                Spill(primaryView.GetComponent<HangarDisplay>(), Light(root.transform, "PrimaryScreenSpill",
+                    primaryCentre + (camera.transform.position - primaryCentre).normalized * .5f,
+                    new Color(1f, .87f, .70f), 1.3f, 4f));
+                var ordnanceCentre = parts["OrdnanceScreenGlass"].bounds.center;
+                Spill(ordnanceView.GetComponent<HangarDisplay>(), Light(root.transform, "OrdnanceScreenSpill",
+                    ordnanceCentre + (camera.transform.position - ordnanceCentre).normalized * .5f,
+                    new Color(1f, .87f, .70f), 1.3f, 4f));
                 var knobAxis = AuthoredUp(parts["SelectorKnob"]);
                 var knob = Control(parts["SelectorKnob"], knobAxis, .2f, camera);
                 var turn = parts["SelectorKnob"].gameObject.AddComponent<HangarKnob>();
                 var previous = Control(parts["PreviousButton"], AuthoredUp(parts["PreviousButton"]), .28f, camera);
                 var next = Control(parts["NextButton"], AuthoredUp(parts["NextButton"]), .28f, camera);
                 var launch = Control(parts["LaunchButton"], AuthoredUp(parts["LaunchButton"]), .35f, camera);
+                var primaryPrevious = Control(parts["PrimaryPreviousButton"], AuthoredUp(parts["PrimaryPreviousButton"]), .28f, camera);
+                var primaryNext = Control(parts["PrimaryNextButton"], AuthoredUp(parts["PrimaryNextButton"]), .28f, camera);
+                var ordnancePrevious = Control(parts["OrdnancePreviousButton"], AuthoredUp(parts["OrdnancePreviousButton"]), .28f, camera);
+                var ordnanceNext = Control(parts["OrdnanceNextButton"], AuthoredUp(parts["OrdnanceNextButton"]), .28f, camera);
                 root.AddComponent<HangarConsoleRaycaster>();
 
                 foreach (var child in root.GetComponentsInChildren<Transform>(true))
@@ -159,20 +194,32 @@ namespace UI.Hangar.Hardware
                 var data = new SerializedObject(console);
                 data.FindProperty("hardwareCamera").objectReferenceValue = camera;
                 data.FindProperty("referenceVerticalFov").floatValue = authored.verticalFieldOfView;
-                foreach (var name in new[] { "MainScreenGlass", "DetailScreenGlass", "ProjectorLens" })
+                foreach (var name in new[]
+                         {
+                             "MainScreenGlass", "DetailScreenGlass", "PrimaryScreenGlass", "OrdnanceScreenGlass",
+                             "ProjectorLens"
+                         })
                     data.FindProperty(char.ToLowerInvariant(name[0]) + name.Substring(1)).objectReferenceValue = parts[name];
                 data.FindProperty("selectorKnob").objectReferenceValue = knob;
                 data.FindProperty("knob").objectReferenceValue = turn;
                 data.FindProperty("previousButton").objectReferenceValue = previous;
                 data.FindProperty("nextButton").objectReferenceValue = next;
                 data.FindProperty("launchButton").objectReferenceValue = launch;
+                data.FindProperty("primaryPreviousButton").objectReferenceValue = primaryPrevious;
+                data.FindProperty("primaryNextButton").objectReferenceValue = primaryNext;
+                data.FindProperty("ordnancePreviousButton").objectReferenceValue = ordnancePrevious;
+                data.FindProperty("ordnanceNextButton").objectReferenceValue = ordnanceNext;
                 data.FindProperty("launchLegend").objectReferenceValue = parts["LaunchLegend"];
                 data.FindProperty("compositeImage").objectReferenceValue = image;
                 data.FindProperty("projector").objectReferenceValue = projectorObject.GetComponent<HangarHologramProjector>();
                 data.FindProperty("mainDisplay").objectReferenceValue = mainView.GetComponent<HangarDisplay>();
                 data.FindProperty("detailDisplay").objectReferenceValue = detailView.GetComponent<HangarDisplay>();
+                data.FindProperty("primaryDisplay").objectReferenceValue = primaryView.GetComponent<HangarDisplay>();
+                data.FindProperty("ordnanceDisplay").objectReferenceValue = ordnanceView.GetComponent<HangarDisplay>();
                 data.FindProperty("mainView").objectReferenceValue = mainView;
                 data.FindProperty("detailView").objectReferenceValue = detailView;
+                data.FindProperty("primaryView").objectReferenceValue = primaryView;
+                data.FindProperty("ordnanceView").objectReferenceValue = ordnanceView;
                 data.FindProperty("displayProfile").objectReferenceValue = DisplayProfile();
                 data.FindProperty("knobAxis").vector3Value = knobAxis;
                 data.FindProperty("knobDetentDegrees").floatValue = 40f;
@@ -188,6 +235,19 @@ namespace UI.Hangar.Hardware
             }
 
             AssetDatabase.SaveAssets();
+        }
+
+        private static Vector2Int WeaponResolution(ExportManifest manifest, string glassName)
+        {
+            if (manifest.screenGlasses != null)
+                for (var i = 0; i < manifest.screenGlasses.Length; i++)
+                {
+                    var entry = manifest.screenGlasses[i];
+                    if (entry.name != glassName) continue;
+                    return new Vector2Int(Mathf.RoundToInt(WeaponDisplayHeight * entry.width / entry.height),
+                        WeaponDisplayHeight);
+                }
+            throw new InvalidOperationException($"The hangar console export names no screen glass '{glassName}'.");
         }
 
         // Twice the reference picture's pixels: the grid the screen design was drawn on.
@@ -313,6 +373,15 @@ namespace UI.Hangar.Hardware
         private sealed class ExportManifest
         {
             public ExportCamera camera;
+            public ExportScreenGlass[] screenGlasses;
+        }
+
+        [Serializable]
+        private sealed class ExportScreenGlass
+        {
+            public string name;
+            public float width;
+            public float height;
         }
 
         [Serializable]
