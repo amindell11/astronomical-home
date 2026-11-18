@@ -184,7 +184,7 @@ blender -b --factory-startup --python-exit-code 1 -P art/tools/ship/ship_X.py --
 
 | Tool | Options | Does |
 |---|---|---|
-| `ship_new` | `--top IMG`, `--side IMG` \| `--base SHIP_JSON [--omit PART ...]` | Creates the source: `SymmetryOrigin`, role and `ignore` collections, optional reference images (in `ignore`), ortho cameras, the flat review render preset. `--base` derives the source instead (Derived ships above): it links the base's `SymmetryOrigin` and its visual and socket parts except `--omit`. Refuses an existing file, an `--omit` name that is not such a part, and `--base` with `--top` or `--side`. |
+| `ship_new` | `--top IMG`, `--side IMG` \| `--base SHIP_JSON [--omit PART ...]` | Creates the source: `SymmetryOrigin`, role and `ignore` collections, optional reference images (in `ignore`), ortho cameras, the flat review render preset. `--base` derives the source instead (Derived ships above): it links the base's `SymmetryOrigin` and its visual and socket parts except `--omit`. Refuses an existing file, `--omit` without `--base` or naming no such part, and `--base` with `--top` or `--side`. |
 | `ship_check` | | Findings for the rules above plus per-part fingerprints. |
 | `ship_lock` | `--mode lock\|verify\|reopen` | Writes `lock.json` beside the source; `verify` fails on changed geometry; `reopen` reports changed parts and the stages they invalidate (`uv`, `masks`, `breakup`) and rewrites the lock. |
 | `ship_render` | `--set ortho\|turnaround\|sheet\|scale\|compare`, `--size N`, `--before BLEND`, `--textured` | Workbench review renders of the visual roles; `compare` renders `--before` beside the source and counts changed pixels; `--textured` shows each material's active image texture instead of its flat colour. |

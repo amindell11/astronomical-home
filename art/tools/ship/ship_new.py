@@ -27,7 +27,6 @@ CAMERAS = {
 
 
 def scaffold(ship):
-    """An empty ship scene with role, ignore and camera collections, cameras and the review preset."""
     bpy.ops.wm.read_factory_settings(use_empty=True)
     scene = bpy.context.scene
     scene.name = ship["name"]
