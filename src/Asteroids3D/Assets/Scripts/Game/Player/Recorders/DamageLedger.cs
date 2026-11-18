@@ -5,7 +5,7 @@ using Ships.Damage;
 using Ships.Registry;
 using UnityEngine;
 
-namespace Game.Player
+namespace Game.Player.Recorders
 {
     /// <summary>
     /// Records received shield and hull damage across the run, including sector changes and repairs.

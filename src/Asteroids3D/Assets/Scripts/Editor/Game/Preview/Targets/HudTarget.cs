@@ -4,7 +4,7 @@ using UI.Weapons;
 using UnityEditor;
 using UnityEngine;
 
-namespace Game.Preview
+namespace Game.Preview.Targets
 {
     internal sealed class HudTarget : TuningTarget
     {

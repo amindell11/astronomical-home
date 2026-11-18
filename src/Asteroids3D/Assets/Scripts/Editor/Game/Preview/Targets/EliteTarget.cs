@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Substrate.Sectors.Elements.Elites;
 using UnityEngine;
 
-namespace Game.Preview
+namespace Game.Preview.Targets
 {
     internal sealed class EliteTarget : TuningTarget
     {
