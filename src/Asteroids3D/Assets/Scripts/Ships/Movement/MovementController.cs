@@ -84,14 +84,13 @@ namespace Ships.Movement
             currentCommand.boost = activated ? 1f : 0f;
             if (effect.Displacement != Vector2.zero) Jump(effect.Displacement);
             ApplySpeedCap(Time.fixedDeltaTime);
-            var piloted = currentCommand;
             if (keystone.HoldsThrottle)
             {
-                piloted.thrust = 0f;
-                piloted.strafe = 0f;
+                currentCommand.thrust = 0f;
+                currentCommand.strafe = 0f;
             }
-            var outs = Forces.ComputeOutputs(kinematics, piloted, settings, keystone.SpeedScale);
-            var thrust = piloted.thrust > 0f ? outs.thrust * keystone.ThrustScale : outs.thrust;
+            var outs = Forces.ComputeOutputs(kinematics, currentCommand, settings, keystone.SpeedScale);
+            var thrust = currentCommand.thrust > 0f ? outs.thrust * keystone.ThrustScale : outs.thrust;
             var maneuverability = keystone.ManeuverabilityScale;
             rb.maxAngularVelocity = settings.maxYawRate * maneuverability * Mathf.Deg2Rad;
             ApplyForces(thrust, outs.strafe * maneuverability, effect.Impulse, outs.yawTorque * maneuverability, outs.bank,
