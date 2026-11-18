@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Loot;
 
-namespace Game.Moments
+namespace Game.Moments.Finds
 {
     public sealed class ModPicked : IRunMoment
     {
