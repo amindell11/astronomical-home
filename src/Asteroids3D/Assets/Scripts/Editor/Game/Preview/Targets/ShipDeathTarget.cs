@@ -5,7 +5,7 @@ using Ships.Visuals.Breakup;
 using UnityEditor;
 using UnityEngine;
 
-namespace Game.Preview
+namespace Game.Preview.Targets
 {
     internal sealed class ShipDeathTarget : TuningTarget
     {

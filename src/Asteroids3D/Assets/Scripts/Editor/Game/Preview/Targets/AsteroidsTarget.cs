@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace Game.Preview
+namespace Game.Preview.Targets
 {
     internal sealed class AsteroidsTarget : TuningTarget
     {
