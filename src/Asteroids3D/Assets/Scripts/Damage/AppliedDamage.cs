@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace Damage
 {
     public readonly struct AppliedDamage
@@ -12,5 +14,11 @@ namespace Damage
             Shield = shield;
             Hull = hull;
         }
+
+        // Shields soften a hit; a hit taking this share of max hull is full size.
+        private const float ShieldShare = .5f;
+        private const float FullHitShare = .25f;
+
+        public float HitSize(float maxHull) => Mathf.Clamp01((Hull + Shield * ShieldShare) / (maxHull * FullHitShare));
     }
 }

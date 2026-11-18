@@ -147,5 +147,55 @@ namespace Tests.EditMode
 
         private static void AssertLead(Vector2 expected, Vector2 actual) =>
             Assert.That(Vector2.Distance(expected, actual), Is.LessThan(1e-4f), $"lead {actual}, expected {expected}");
+
+        [Test]
+        public void ShakeNoise_StaysInRange_AndRepeatsForTheSameInputs()
+        {
+            const float frequency = 10f;
+            for (var channel = 0; channel < 3; channel++)
+            {
+                for (var step = 0; step <= 40; step++)
+                {
+                    var time = step * .25f;
+                    var sample = CameraUtils.ShakeNoise(channel, time, frequency);
+                    Assert.That(sample, Is.InRange(-1f, 1f));
+                    Assert.That(CameraUtils.ShakeNoise(channel, time, frequency), Is.EqualTo(sample));
+                }
+            }
+        }
+
+        [Test]
+        public void ShakeNoise_ChannelsDifferAtTheSameTime()
+        {
+            const float frequency = 10f;
+            var differed = false;
+            for (var step = 0; step <= 40; step++)
+            {
+                var time = step * .25f;
+                var first = CameraUtils.ShakeNoise(0, time, frequency);
+                var second = CameraUtils.ShakeNoise(1, time, frequency);
+                var third = CameraUtils.ShakeNoise(2, time, frequency);
+                differed |= first != second || second != third;
+            }
+            Assert.That(differed, Is.True);
+        }
+
+        [Test]
+        public void ShakenView_ZeroOffsetAndRoll_ReturnsTheInput()
+        {
+            var view = Matrix4x4.TRS(new Vector3(3f, -2f, 5f), Quaternion.Euler(10f, 20f, 30f), Vector3.one);
+            var shaken = CameraUtils.ShakenView(view, Vector2.zero, 0f);
+            for (var row = 0; row < 4; row++)
+                for (var column = 0; column < 4; column++)
+                    Assert.That(shaken[row, column], Is.EqualTo(view[row, column]).Within(1e-5f));
+        }
+
+        [Test]
+        public void ShakenView_Offset_MapsAPointByThatShift()
+        {
+            var point = new Vector3(4f, 7f, -2f);
+            var mapped = CameraUtils.ShakenView(Matrix4x4.identity, new Vector2(1f, 2f), 0f).MultiplyPoint(point);
+            Assert.That(Vector3.Distance(mapped, point - new Vector3(1f, 2f, 0f)), Is.LessThan(1e-5f));
+        }
     }
 }

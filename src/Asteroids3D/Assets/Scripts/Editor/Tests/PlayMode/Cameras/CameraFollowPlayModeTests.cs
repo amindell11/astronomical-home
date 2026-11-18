@@ -1,11 +1,14 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Cameras;
 using Combat.Targeting;
+using Damage;
 using Movement;
 using NUnit.Framework;
 using Ships.Command;
+using Ships.Damage;
 using Ships.Registry;
 using Tests.PlayMode.Common;
 using UnityEditor;
@@ -344,6 +347,82 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
         Assert.That(cam.Engaged, Is.Empty);
     }
 
+    [UnityTest]
+    public IEnumerator Hit_ShakesTheView_WithoutMovingTheTransform()
+    {
+        Assume.That(feel.traumaPerHit, Is.GreaterThan(0f), "this tuning turns hit shake off");
+        Assume.That(feel.maxShakeOffset + feel.maxShakeRoll, Is.GreaterThan(0f), "this tuning turns the shake amplitude off");
+        var damage = new DamageEventsStub();
+        cam.SetSubject(subject.transform, newDamage: damage);
+        cam.SetLockCameraToSubject(true);
+        var subjectAt = subject.transform.position;
+        var quiet = 0;
+        var held = cam.transform.position;
+        var until = Time.realtimeSinceStartup + FollowTimeoutSec;
+        while (Time.realtimeSinceStartup < until && quiet < 2)
+        {
+            yield return null;
+            var position = cam.transform.position;
+            quiet = Vector3.Distance(position, held) < 1e-4f ? quiet + 1 : 0;
+            held = position;
+        }
+        Assert.That(quiet, Is.EqualTo(2), "the camera did not settle");
+        Assert.That(subject.transform.position, Is.EqualTo(subjectAt));
+        damage.Hit(100f);
+        yield return null;
+        Assert.That(cam.Trauma, Is.GreaterThan(0f));
+        Assert.That(ViewDelta(cam.Cam.worldToCameraMatrix, UnshakenView()), Is.GreaterThan(1e-4f));
+        // The follow's residual drift is far below the shake's reach.
+        Assert.That(Vector3.Distance(cam.transform.position, held), Is.LessThan(.01f), "the shake moved the transform");
+        Assert.That(subject.transform.position, Is.EqualTo(subjectAt));
+    }
+
+    [UnityTest]
+    public IEnumerator Disabling_ClearsAShakeFromTheView()
+    {
+        var damage = new DamageEventsStub();
+        cam.SetSubject(subject.transform, newDamage: damage);
+        damage.Hit(100f);
+        yield return null;
+        cam.enabled = false;
+        Assert.That(ViewDelta(cam.Cam.worldToCameraMatrix, UnshakenView()), Is.LessThanOrEqualTo(1e-4f));
+    }
+
+    [UnityTest]
+    public IEnumerator Trauma_DrainsToZero_AndTheViewSteadies()
+    {
+        Assume.That(feel.traumaDecay, Is.GreaterThan(0f), "this tuning turns the shake drain off");
+        var damage = new DamageEventsStub();
+        cam.SetSubject(subject.transform, newDamage: damage);
+        damage.Hit(100f);
+        yield return new WaitForSecondsRealtime(1f / feel.traumaDecay + .2f);
+        Assert.That(cam.Trauma, Is.EqualTo(0f));
+        Assert.That(ViewDelta(cam.Cam.worldToCameraMatrix, UnshakenView()), Is.LessThanOrEqualTo(1e-4f));
+    }
+
+    [UnityTest]
+    public IEnumerator Death_AddsItsTrauma()
+    {
+        Assume.That(feel.deathTrauma, Is.GreaterThan(.05f), "this tuning turns death shake off");
+        var damage = new DamageEventsStub();
+        cam.SetSubject(subject.transform, newDamage: damage);
+        damage.Die();
+        Assert.That(cam.Trauma, Is.EqualTo(feel.deathTrauma).Within(1e-4f));
+        yield return null;
+    }
+
+    [UnityTest]
+    public IEnumerator Rebinding_IgnoresHitsOnThePreviousSource()
+    {
+        var first = new DamageEventsStub();
+        var second = new DamageEventsStub();
+        cam.SetSubject(subject.transform, newDamage: first);
+        cam.SetSubject(subject.transform, newDamage: second);
+        first.Hit(100f);
+        yield return null;
+        Assert.That(cam.Trauma, Is.EqualTo(0f));
+    }
+
     private float FightCap => feel.maxZoomOut;
     private float Padding
     {
@@ -420,6 +499,30 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
             failureMessage,
             minFrames: NegativeProofFrames,
             minUnscaledSeconds: Mathf.Max(0.35f, feel.widenTime));
+
+    private Matrix4x4 UnshakenView() =>
+        Matrix4x4.Scale(new Vector3(1f, 1f, -1f)) * cam.transform.worldToLocalMatrix;
+
+    private static float ViewDelta(Matrix4x4 actual, Matrix4x4 expected)
+    {
+        var delta = 0f;
+        for (var row = 0; row < 4; row++)
+            for (var column = 0; column < 4; column++)
+                delta = Mathf.Max(delta, Mathf.Abs(actual[row, column] - expected[row, column]));
+        return delta;
+    }
+
+    private sealed class DamageEventsStub : IDamageEvents
+    {
+        public event Action<AppliedDamage> OnDamaged;
+        public event Action<ShipId, DamageInfo> OnDeath;
+        public Resource Health { get; } = new(100f);
+        public RegenResource Shield { get; } = new(100f, 0f, 999f);
+
+        public void Hit(float hull) => OnDamaged?.Invoke(new AppliedDamage(default, 0f, hull));
+
+        public void Die() => OnDeath?.Invoke(default, default);
+    }
 
     private sealed class HullStub : IShipStatus
     {

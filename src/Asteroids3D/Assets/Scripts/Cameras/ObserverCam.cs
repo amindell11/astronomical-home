@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Damage;
 using Ships.Command;
+using Ships.Damage;
+using Ships.Registry;
 using UnityEngine;
 using Substrate;
 
@@ -11,6 +14,7 @@ namespace Cameras
     /// unless the player chose the manual camera (<see cref="CameraSettings"/>).
     /// Fits all active ships when unlocked or without a subject.
     /// Manual framing remains available after the last ship deactivates.
+    /// Shakes its view on the subject's hits and death without moving its transform.
     /// </summary>
     public class ObserverCam : SmoothCamera
     {
@@ -36,6 +40,8 @@ namespace Cameras
         private Transform subject;
         private Rigidbody leadBody;
         private IShipStatus hull;
+        private IDamageEvents damage;
+        private float trauma;
         private Vector2 lead;
         private Vector2 leadVelocity;
         private Vector2? cursor;
@@ -72,6 +78,42 @@ namespace Cameras
             fightCandidates = new List<Transform>();
             byDistanceFromSubject = CompareDistanceFromSubject;
         }
+
+        // The recap and the sector jump disable the camera mid-shake.
+        private void OnDisable() => Cam.ResetWorldToCameraMatrix();
+
+        private void OnDestroy()
+        {
+            if (damage == null) return;
+            damage.OnDamaged -= OnSubjectDamaged;
+            damage.OnDeath -= OnSubjectDeath;
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+            ApplyShake();
+        }
+
+        private void ApplyShake()
+        {
+            trauma = Mathf.Max(0f, trauma - feel.traumaDecay * Time.unscaledDeltaTime);
+            Cam.ResetWorldToCameraMatrix();
+            if (trauma <= 0f) return;
+            var amount = Mathf.Pow(trauma, feel.shakeExponent);
+            var time = Time.unscaledTime;
+            var reach = amount * feel.maxShakeOffset * Cam.orthographicSize;
+            var offset = new Vector2(CameraUtils.ShakeNoise(0, time, feel.shakeFrequency),
+                CameraUtils.ShakeNoise(1, time, feel.shakeFrequency)) * reach;
+            var roll = CameraUtils.ShakeNoise(2, time, feel.shakeFrequency) * amount * feel.maxShakeRoll;
+            // The view matrix carries the shake, so follow smoothing, children and listeners never see it.
+            Cam.worldToCameraMatrix = CameraUtils.ShakenView(Cam.worldToCameraMatrix, offset, roll);
+        }
+
+        private void OnSubjectDamaged(AppliedDamage hit) =>
+            trauma = Mathf.Clamp01(trauma + hit.HitSize(damage.Health.MaxValue) * feel.traumaPerHit);
+
+        private void OnSubjectDeath(ShipId victim, DamageInfo blow) => trauma = Mathf.Clamp01(trauma + feel.deathTrauma);
 
         protected override void ComputeDesiredCameraState(out Vector2? desiredCenter, out float? desiredSize)
         {
@@ -231,6 +273,7 @@ namespace Cameras
         }
 
         internal FlightCameraProfile Feel => feel;
+        internal float Trauma => trauma;
         internal Vector2 VelocityLead => lead;
         internal Vector2 CursorLead => cursorLead;
         internal Vector2 FightShift => fightShift;
@@ -260,7 +303,7 @@ namespace Cameras
 
         public void SetLockCameraToSubject(bool value) => lockCameraToSubject = value;
         public void SetLockZoomToSubject(bool value) => lockZoomToSubject = value;
-        public void SetSubject(Transform newSubject, Rigidbody newLeadBody = null, bool removeOldSubject = true, IShipStatus newHull = null)
+        public void SetSubject(Transform newSubject, Rigidbody newLeadBody = null, bool removeOldSubject = true, IShipStatus newHull = null, IDamageEvents newDamage = null)
         {
             if (subject && removeOldSubject)
                 secondarySubjects.Remove(subject);
@@ -271,6 +314,19 @@ namespace Cameras
             
             if (newSubject)
                 secondarySubjects.Add(newSubject);
+
+            if (ReferenceEquals(damage, newDamage)) return;
+            if (damage != null)
+            {
+                damage.OnDamaged -= OnSubjectDamaged;
+                damage.OnDeath -= OnSubjectDeath;
+            }
+            damage = newDamage;
+            if (damage != null)
+            {
+                damage.OnDamaged += OnSubjectDamaged;
+                damage.OnDeath += OnSubjectDeath;
+            }
         }
         public void AddSecondarySubject(Transform target)
         {
