@@ -11,7 +11,7 @@ namespace Ships.Keystones
     /// prefab and hands the instance to <see cref="Ships.Movement.MovementController"/>, which steps it
     /// every fixed step with the activation bit. The cooldown runs on the kit's own fixed-step clock,
     /// never <c>Time.time</c>, so pacing replays identically across respawns and arenas. A kit's
-    /// effects beyond the activation impulse are state on the kit that other systems observe; the
+    /// effects beyond what its steps push on the ship are state on the kit that other systems observe; the
     /// ship hands it what it owns (contacts, blocked hits, its own shots), and the kit decides what pays. An AI
     /// commander also reads the kit's sight, which can fire it beside the brain's own request. A ship that
     /// should arrive with the kit already running calls <see cref="ActivateOnArrival"/> before its first step.
@@ -49,6 +49,9 @@ namespace Ships.Keystones
         /// <summary>The kit attacks along the heading the navigator flies, so an aim servo must not yaw the ship.</summary>
         public virtual bool FliesNavigatorHeading => false;
 
+        /// <summary>The kit's autopilot has the throttle: the ship drops the pilot's thrust and strafe, keeping yaw.</summary>
+        public virtual bool HoldsThrottle => false;
+
         public virtual float SpeedScale => 1f;
         public virtual float ThrustScale => 1f;
         public virtual float ManeuverabilityScale => 1f;
@@ -69,8 +72,7 @@ namespace Ships.Keystones
             clock += dt;
             activated = Ready && input != 0f;
             var effect = activated ? Commit(in kinematics, target) : default;
-            Sustain(in kinematics, baseMaxSpeed);
-            return effect;
+            return effect + Sustain(in kinematics, dt, baseMaxSpeed);
         }
 
         public void ActivateOnArrival(in Kinematics kinematics)
@@ -78,7 +80,8 @@ namespace Ships.Keystones
             if (!Ready)
                 throw new InvalidOperationException($"{name} is not ready to arrive already running.");
             var effect = Commit(in kinematics, null);
-            if (effect.Impulse != Vector2.zero || effect.Displacement != Vector2.zero)
+            // A brake takes the throttle on the press and moves the ship on later steps.
+            if (effect.Impulse != Vector2.zero || effect.Displacement != Vector2.zero || HoldsThrottle)
                 throw new InvalidOperationException(
                     $"{name} cannot arrive already running: its activation moves the ship.");
         }
@@ -115,7 +118,7 @@ namespace Ships.Keystones
 
         protected abstract KeystoneEffect Activate(in Kinematics kinematics, Vector2? target);
 
-        protected virtual void Sustain(in Kinematics kinematics, float baseMaxSpeed) { }
+        protected virtual KeystoneEffect Sustain(in Kinematics kinematics, float dt, float baseMaxSpeed) => default;
 
         protected virtual void OnReset() { }
 

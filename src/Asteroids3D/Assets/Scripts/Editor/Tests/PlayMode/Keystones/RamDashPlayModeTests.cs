@@ -139,7 +139,12 @@ namespace Tests.PlayMode.Keystones
         {
             bulwark.Movement.Drive(new PilotCommand { boost = 1f });
             yield return new WaitForFixedUpdate();
-            Assert.That(ram.RamLive, Is.True, "the dash armed the ram");
+            for (var i = 0; i < MaxSteps && ram.Braking; i++)
+            {
+                bulwark.Movement.Drive(default);
+                yield return new WaitForFixedUpdate();
+            }
+            Assert.That(ram.RamLive, Is.True, "the launch armed the ram");
             for (var i = 0; i < MaxSteps && ram.RamLive; i++)
             {
                 bulwark.Movement.Drive(default);

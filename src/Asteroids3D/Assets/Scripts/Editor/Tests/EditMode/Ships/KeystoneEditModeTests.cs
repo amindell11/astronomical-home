@@ -101,13 +101,20 @@ namespace Tests.EditMode.Ships
         [Test]
         public void RamDash_BlocksOnlyCollisions_WhileLive()
         {
-            var ram = NewKit<RamDash>();
+            var ram = NewRam();
             var kin = Facing(0f);
             var collision = new DamageInfo(10f, DamageKind.Collision, ShipId.Invalid, 0f, Vector3.zero, Vector3.zero);
             Assert.That(ram.Blocks(in collision), Is.False, "not live before activating");
 
             ram.Step(in kin, 1f, Dt, out _);
-            Assert.That(ram.Active, Is.True);
+            Assert.That(ram.Braking, Is.True);
+            Assert.That(ram.Active, Is.False);
+            Assert.That(ram.Blocks(in collision), Is.False, "no protection during the brake");
+
+            while (ram.Braking)
+                ram.Step(in kin, 0f, Dt, out _);
+
+            Assert.That(ram.RamLive, Is.True);
             Assert.That(ram.Blocks(in collision), Is.True, "collision damage is dropped while the ram is live");
             Assert.That(ram.Blocks(in AnyHit), Is.False, "a missile still lands on a charging Bulwark");
 
@@ -116,11 +123,44 @@ namespace Tests.EditMode.Ships
             Assert.That(ram.Blocks(in collision), Is.False, "an unspent ram expires after its window");
         }
 
+        [Test]
+        public void RamDash_BrakesToAFullStop_ThenLaunchesAlongTheNoseAtThatMoment()
+        {
+            var ram = NewRam();
+            var vel = new Vector2(12f, -7f);
+            var yaw = 0f;
+            var brakeSteps = 0;
+            KeystoneEffect launch = default;
+            for (var n = 0; n < 20; n++)
+            {
+                if (brakeSteps == 10) yaw = 90f;
+                var kin = new Kinematics(Vector2.zero, vel, yaw, 0f, 0f);
+                var e = ram.Step(in kin, n == 0 ? 1f : 0f, Dt, out _);
+                if (brakeSteps == 15)
+                {
+                    launch = e;
+                    break;
+                }
+
+                Assert.That(e.Impulse, Is.EqualTo(Vector2.zero));
+                Assert.That(ram.HoldsThrottle, Is.True);
+                vel += e.Acceleration * Dt;
+                brakeSteps++;
+            }
+
+            Assert.That(brakeSteps, Is.EqualTo(15));
+            Assert.That(vel.magnitude, Is.LessThan(1e-4f));
+            Assert.That(Vector2.Distance(launch.Impulse, Facing(90f).Forward * ram.Impulse), Is.LessThan(1e-3f));
+            Assert.That(ram.RamLive, Is.True);
+            Assert.That(ram.HoldsThrottle, Is.False);
+        }
+
         private RamDash NewRam()
         {
             var ram = NewKit<RamDash>();
             var so = new SerializedObject(ram);
             so.FindProperty("impulse").floatValue = 13500f;
+            so.FindProperty("brake").floatValue = 0.3f;
             so.FindProperty("window").floatValue = 0.6f;
             so.FindProperty("sightAngle").floatValue = 15f;
             so.ApplyModifiedPropertiesWithoutUndo();
@@ -131,16 +171,17 @@ namespace Tests.EditMode.Ships
             new(new Kinematics(Vector2.zero, selfVel, 0f, 0f, 0f), 1200f, 21f, new Kinematics(targetPos, targetVel, 0f, 0f, 0f));
 
         [Test]
-        public void RamSight_FiresOnlyWhenAlignedNotOpeningAndInReach()
+        public void RamSight_FiresOnlyWhenAlignedAndInReachAfterTheBrake()
         {
             var ram = NewRam();
-            Assert.That(ram.ShouldActivate(Sight(new Vector2(0f, 5f))), Is.True, "on the nose, still, inside the 6.75 u a dash covers in the window");
+            Assert.That(ram.ShouldActivate(Sight(new Vector2(0f, 5f))), Is.True, "on the nose, inside the 6.75 u a launch from rest covers in the window");
             Assert.That(ram.ShouldActivate(Sight(new Vector2(5f, 5f))), Is.False, "45 degrees off the nose");
-            Assert.That(ram.ShouldActivate(Sight(new Vector2(0f, 5f), targetVel: new Vector2(0f, 10f))), Is.False, "pulling away");
+            Assert.That(ram.ShouldActivate(Sight(new Vector2(0f, 5f), targetVel: new Vector2(0f, 10f))), Is.False, "pulling away: 8 u off at launch, closing at 1.25");
             Assert.That(ram.ShouldActivate(Sight(new Vector2(0f, 10f))), Is.False, "out of reach from a standstill");
-            Assert.That(ram.ShouldActivate(Sight(new Vector2(0f, 10f), selfVel: new Vector2(0f, 10f))), Is.True, "closing speed extends the reach");
+            Assert.That(ram.ShouldActivate(Sight(new Vector2(0f, 8f), selfVel: new Vector2(0f, 10f))), Is.True, "speed into the brake carries Bulwark 1.5 u closer");
+            Assert.That(ram.ShouldActivate(Sight(new Vector2(0f, 5f), selfVel: new Vector2(0f, -6f))), Is.True, "sliding away no longer spoils the ram: the brake stops it first");
             Assert.That(ram.ShouldActivate(Sight(new Vector2(0f, 6f), targetVel: new Vector2(0f, 21f), selfVel: new Vector2(0f, 21f))), Is.False,
-                "at the speed cap the dash adds no closing speed, so a matched-speed target ahead is out of reach");
+                "a target fleeing at the cap outruns a launch from rest");
         }
 
         [Test]

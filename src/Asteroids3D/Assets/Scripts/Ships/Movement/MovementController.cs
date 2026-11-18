@@ -84,11 +84,18 @@ namespace Ships.Movement
             currentCommand.boost = activated ? 1f : 0f;
             if (effect.Displacement != Vector2.zero) Jump(effect.Displacement);
             ApplySpeedCap(Time.fixedDeltaTime);
-            var outs = Forces.ComputeOutputs(kinematics, currentCommand, settings, keystone.SpeedScale);
-            var thrust = currentCommand.thrust > 0f ? outs.thrust * keystone.ThrustScale : outs.thrust;
+            var piloted = currentCommand;
+            if (keystone.HoldsThrottle)
+            {
+                piloted.thrust = 0f;
+                piloted.strafe = 0f;
+            }
+            var outs = Forces.ComputeOutputs(kinematics, piloted, settings, keystone.SpeedScale);
+            var thrust = piloted.thrust > 0f ? outs.thrust * keystone.ThrustScale : outs.thrust;
             var maneuverability = keystone.ManeuverabilityScale;
             rb.maxAngularVelocity = settings.maxYawRate * maneuverability * Mathf.Deg2Rad;
-            ApplyForces(thrust, outs.strafe * maneuverability, effect.Impulse, outs.yawTorque * maneuverability, outs.bank);
+            ApplyForces(thrust, outs.strafe * maneuverability, effect.Impulse, outs.yawTorque * maneuverability, outs.bank,
+                effect.Acceleration);
             ConstrainRotation();
         }
 
@@ -113,11 +120,12 @@ namespace Ships.Movement
             rb.maxLinearVelocity = speedCap;
         }
 
-        private void ApplyForces(Vector2 thrust, Vector2 strafe, Vector2 boost, float yawTorque, float targetBank)
+        private void ApplyForces(Vector2 thrust, Vector2 strafe, Vector2 boost, float yawTorque, float targetBank, Vector2 brake)
         {
             rb.AddForce(GamePlane.PlaneDirToWorld(thrust), ForceMode.Force);
             rb.AddForce(GamePlane.PlaneDirToWorld(strafe), ForceMode.Force);
             rb.AddForce(GamePlane.PlaneDirToWorld(boost), ForceMode.Impulse);
+            rb.AddForce(GamePlane.PlaneDirToWorld(brake), ForceMode.Acceleration);
             rb.AddTorque(GamePlane.Normal * yawTorque, ForceMode.Force);
 
             var bankError = (targetBank - Kinematics.bank) * Mathf.Deg2Rad;
