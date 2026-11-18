@@ -17,10 +17,11 @@ namespace Ships.Keystones
 
         public static void Bake()
         {
-            var wake = Paint("IonWake", 0.7f);
+            var dash = Paint("VanguardWake", 0.7f);
+            var ram = Paint("IonWake", 0.7f);
             var crown = Paint("PressureCrown", 0.55f);
-            Wire("Vanguard", wake, null);
-            Wire("Bulwark", wake, crown);
+            Wire("Vanguard", dash, null);
+            Wire("Bulwark", ram, crown);
             AssetDatabase.SaveAssets();
             Debug.Log("Painted slipstream bake complete.");
         }
