@@ -14651,89 +14651,89 @@ MonoBehaviour:
   maxLength: 3.2
   ribbons:
   - anchor: {x: -0.7, y: -0.434}
-    width: 4.05
+    width: 3.3000002
     spread: 0.625
     lengthScale: 1
     atlasCell: 4
-    opacity: 0.7
+    opacity: 0.55
   - anchor: {x: 0.7, y: -0.434}
-    width: 4.05
+    width: 3.3000002
     spread: 0.625
     lengthScale: 1
     atlasCell: 9
-    opacity: 0.7
+    opacity: 0.55
   - anchor: {x: -0.55, y: -0.775}
-    width: 3.375
+    width: 2.75
     spread: 0.375
     lengthScale: 0.82
     atlasCell: 10
-    opacity: 0.9
+    opacity: 0.75
   - anchor: {x: 0.55, y: -0.775}
-    width: 3.375
+    width: 2.75
     spread: 0.375
     lengthScale: 1
     atlasCell: 2
-    opacity: 0.9
+    opacity: 0.75
   - anchor: {x: -0.375, y: -1.2709999}
-    width: 3.0375
+    width: 2.475
     spread: 0.14999999
     lengthScale: 0.72
     atlasCell: 3
     opacity: 0.95
   - anchor: {x: 0.375, y: -1.2709999}
-    width: 3.0375
+    width: 2.475
     spread: 0.14999999
     lengthScale: 0.8
     atlasCell: 8
     opacity: 0.95
   - anchor: {x: -0.29999998, y: -1.426}
-    width: 2.7
+    width: 2.2
     spread: 0.099999994
     lengthScale: 0.9
     atlasCell: 6
     opacity: 0.85
   - anchor: {x: 0.29999998, y: -1.426}
-    width: 2.7
+    width: 2.2
     spread: 0.099999994
     lengthScale: 0.68
     atlasCell: 9
     opacity: 0.85
   - anchor: {x: -0.5, y: -0.93}
-    width: 2.53125
+    width: 2.0625
     spread: 0.22500001
     lengthScale: 0.75
     atlasCell: 0
     opacity: 0.75
   - anchor: {x: 0.5, y: -0.93}
-    width: 2.53125
+    width: 2.0625
     spread: 0.22500001
     lengthScale: 0.85
     atlasCell: 1
     opacity: 0.75
   - anchor: {x: -0.9, y: 0.99}
-    width: 4.2
+    width: 5
     spread: 1.05
-    lengthScale: 0.65
+    lengthScale: 1
     atlasCell: 16
-    opacity: 0.7
+    opacity: 0.85
   - anchor: {x: 0.9, y: 0.99}
-    width: 4.2
+    width: 5
     spread: 1.05
+    lengthScale: 1
+    atlasCell: 21
+    opacity: 0.85
+  - anchor: {x: -0.86, y: 0.91}
+    width: 4.2
+    spread: 0.65
+    lengthScale: 0.65
+    atlasCell: 16
+    opacity: 1
+  - anchor: {x: 0.86, y: 0.91}
+    width: 4.2
+    spread: 0.65
     lengthScale: 0.65
     atlasCell: 21
-    opacity: 0.7
-  - anchor: {x: -0.86, y: 0.91}
-    width: 3.8
-    spread: 0.65
-    lengthScale: 0.42
-    atlasCell: 16
-    opacity: 0.9
-  - anchor: {x: 0.86, y: 0.91}
-    width: 3.8
-    spread: 0.65
-    lengthScale: 0.42
-    atlasCell: 21
-    opacity: 0.9
+    opacity: 1
   tint: 0.35
 --- !u!1 &7781260934417810432
 GameObject:

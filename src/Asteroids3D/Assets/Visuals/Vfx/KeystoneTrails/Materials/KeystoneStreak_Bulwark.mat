@@ -32,8 +32,8 @@ Material:
     - _Additive: 1
     - _Bands: 0
     - _Edge: 0.8
-    - _Fill: 0.8
-    - _Gradient: 0.05
+    - _Fill: 0.45
+    - _Gradient: 0.2
     - _Hatch: 0.06
     - _HatchAngle: 40
     - _HatchGap: 5
