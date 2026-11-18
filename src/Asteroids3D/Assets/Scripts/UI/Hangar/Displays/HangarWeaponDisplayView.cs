@@ -39,7 +39,6 @@ namespace UI.Hangar.Displays
         internal string DamageCaption => damageCaption.text;
         internal bool Bracketed => bracket.activeSelf;
         internal bool Dimmed => content.alpha < 1f;
-        internal bool IconShown => icon.enabled;
         internal int TagCount
         {
             get
