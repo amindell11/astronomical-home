@@ -790,10 +790,20 @@ Format: **term** — definition. *(authority)*
   whose lead, hold range and aim the AI reads. The code still calls it
   `WeaponSlot.Primary`; the rename waits for after M1 (#1418).
   *(`WeaponsController.RequireKinds`; #1410)*
-- **ordnance slot** — a ship's second mount: one ordnance (Missiles or Concussion) or
+- **ordnance slot** — a ship's second mount: one ordnance (Missiles, Concussion or Harpoon) or
   nothing. An item's kind comes from its class, so nothing is authored and no prefab can
   carry the wrong one. Regular enemies leave the slot empty. The code still calls it
   `WeaponSlot.Secondary`. *(`WeaponComponent.IsOrdnance`; #1410)*
+- **harpoon** — the ordnance whose shot hooks a ship or asteroid and holds a tether
+  on it while the trigger stays held. It deals no damage; a tow that ends in a rock
+  does. *(`Harpoons`, `Harpoon`)*
+- **tether** — the rope between a harpoon shooter's nose and its hook point. It pulls
+  only when taut, reels in to a minimum length, and ends on release, a time cap, a
+  snap, or an asteroid between its ends. Not "line" (companion lines) or "lock"
+  (missile lock). *(`Tether`, `TetherLaw`)*
+- **hooked** — a ship or asteroid with a tether on it.
+- **hook point** — where on a hooked body the tether attaches, fixed in that body's
+  frame.
 - **single fire** — a weapon fires every shot from the hull's centre socket, on its
   centreline at the nose. Every weapon that is not dual fire fires this way.
   *(`WeaponComponent.FirePattern`; #1410)*

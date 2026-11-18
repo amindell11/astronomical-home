@@ -20,6 +20,7 @@ namespace Asteroids
 
         public float Health { get; private set; }
         public float MaxHealth { get; private set; }
+        public int SpawnEpoch => controller.SpawnEpoch;
         public event Action<Vector3> OnHit;
 
         private void Awake()

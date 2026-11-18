@@ -20,6 +20,7 @@ namespace Tests.EditMode.Weapons
         [TestCase("Railgun", WeaponSlot.Primary)]
         [TestCase("Missiles", WeaponSlot.Secondary)]
         [TestCase("Grenades", WeaponSlot.Secondary)]
+        [TestCase("Harpoons", WeaponSlot.Secondary)]
         public void EachCatalogItem_FillsTheSlotItsKindNames(string item, WeaponSlot slot) =>
             Assert.AreEqual(slot, WeaponsController.SlotFor(Weapon(item)));
 
