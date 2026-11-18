@@ -76,16 +76,9 @@ namespace UI.Projection
             if (!low) lowHullAt = float.NegativeInfinity;
             else if (float.IsNegativeInfinity(lowHullAt)) lowHullAt = now;
             var hitAge = now - hitAt;
-            var size = hitSize;
-            if (low)
-            {
-                var pulse = LowHullHitAge(now - lowHullAt);
-                if (pulse < hitAge)
-                {
-                    hitAge = pulse;
-                    size = 1f;
-                }
-            }
+            var pulse = low ? LowHullHitAge(now - lowHullAt) : float.PositiveInfinity;
+            var size = pulse < hitAge ? 1f : hitSize;
+            hitAge = Mathf.Min(hitAge, pulse);
             var transitionAge = now - momentAt;
             return new CanopyFrame(CanopyStateBlend.Select(low, transitionAge < projection.Profile.bigMomentSeconds),
                 hitAge < .7f ? hitAge : -1f, size, transitionAge < .35f ? transitionAge : -1f);

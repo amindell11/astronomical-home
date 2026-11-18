@@ -386,6 +386,7 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
         yield return null;
         cam.enabled = false;
         Assert.That(ViewDelta(cam.Cam.worldToCameraMatrix, UnshakenView()), Is.LessThanOrEqualTo(1e-4f));
+        Assert.That(cam.Trauma, Is.EqualTo(0f), "a re-enabled camera would resume a stale shake");
     }
 
     [UnityTest]

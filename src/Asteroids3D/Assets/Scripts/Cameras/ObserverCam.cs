@@ -79,8 +79,12 @@ namespace Cameras
             byDistanceFromSubject = CompareDistanceFromSubject;
         }
 
-        // The recap and the sector jump disable the camera mid-shake.
-        private void OnDisable() => Cam.ResetWorldToCameraMatrix();
+        // A disabled camera must neither freeze a shaken frame nor resume a stale shake.
+        private void OnDisable()
+        {
+            trauma = 0f;
+            Cam.ResetWorldToCameraMatrix();
+        }
 
         private void OnDestroy()
         {
