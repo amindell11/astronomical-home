@@ -7,6 +7,8 @@ namespace Ships.Keystones
     public sealed class KeystoneSlipstream : MonoBehaviour, IPresentationPart
     {
         private const float ReleaseSeconds = 0.17f;
+        private const int Sections = 16;
+        private const int Capacity = 64;
         [SerializeField] private Keystone keystone;
         [SerializeField] private ParticleSystem wake;
         [SerializeField] private ParticleSystem crown;
@@ -14,13 +16,58 @@ namespace Ships.Keystones
 
         private readonly ParticleSystem.Particle[] wakeStrokes = new ParticleSystem.Particle[2];
         private readonly ParticleSystem.Particle[] bowStroke = new ParticleSystem.Particle[1];
+        private readonly FlowSample[] history = new FlowSample[Capacity];
+        private readonly Mesh[] strips = new Mesh[2];
+        private readonly Vector3[] vertices = new Vector3[Sections * 2];
+        private int newest, count;
+        private Vector3 tail;
         private float startedAt, lastActiveAt;
         private bool drawing;
+
+        private struct FlowSample
+        {
+            public Vector3 position, rear, tail;
+            public float distance;
+        }
 
         private void Awake()
         {
             if (!keystone || !wake || !(localShipLength > 0f))
                 throw new InvalidOperationException($"{name} needs a keystone, painted wake, and positive hull length.");
+            var uv = new Vector2[vertices.Length];
+            var triangles = new int[(Sections - 1) * 6];
+            for (var i = 0; i < Sections; i++)
+            {
+                var u = i / (float)(Sections - 1);
+                uv[i * 2] = new Vector2(u, 0f);
+                uv[i * 2 + 1] = new Vector2(u, 1f);
+                if (i == Sections - 1) break;
+                var a = i * 2;
+                var t = i * 6;
+                triangles[t] = a; triangles[t + 1] = a + 1; triangles[t + 2] = a + 2;
+                triangles[t + 3] = a + 2; triangles[t + 4] = a + 1; triangles[t + 5] = a + 3;
+            }
+            for (var i = 0; i < strips.Length; i++)
+            {
+                var mesh = new Mesh { name = "Painted wake" };
+                mesh.MarkDynamic();
+                mesh.vertices = vertices;
+                mesh.uv = uv;
+                mesh.triangles = triangles;
+                strips[i] = mesh;
+                wakeStrokes[i].SetMeshIndex(i);
+                wakeStrokes[i].startSize3D = Vector3.one;
+            }
+            var renderer = wake.GetComponent<ParticleSystemRenderer>();
+            renderer.renderMode = ParticleSystemRenderMode.Mesh;
+            renderer.enableGPUInstancing = false;
+            renderer.SetMeshes(strips);
+        }
+
+        private void OnDestroy()
+        {
+            foreach (var mesh in strips)
+                if (mesh) Destroy(mesh);
         }
 
         public void ApplyPresentation(bool visible) => enabled = visible;
@@ -44,6 +91,8 @@ namespace Ships.Keystones
             {
                 if (!drawing)
                 {
+                    count = 0;
+                    tail = -transform.up;
                     startedAt = Time.time;
                     wake.Play(false);
                     if (crown) crown.Play(false);
@@ -74,31 +123,71 @@ namespace Ships.Keystones
         {
             var length = transform.TransformVector(Vector3.up * localShipLength).magnitude;
             var velocity = (Vector2)keystone.Body.linearVelocity;
-            Vector2 tail = velocity.sqrMagnitude > 0.01f ? -velocity.normalized : -(Vector2)transform.up;
-            var axis = Mathf.Atan2(tail.y, tail.x) * Mathf.Rad2Deg;
-            var rear = transform.position - transform.up * (length * 0.31f);
-            var shoulder = transform.right * (length * 0.17f);
-            DrawWake(ref wakeStrokes[0], rear - shoulder, axis - 3f, length, age, 1f);
-            DrawWake(ref wakeStrokes[1], rear + shoulder, axis + 5f, length * 0.81f, age - 0.035f, 0.64f);
+            if (velocity.sqrMagnitude > 0.01f) tail = -velocity.normalized;
+            var acrossHull = Vector3.Dot(tail, transform.right);
+            var alongHull = Vector3.Dot(tail, transform.up);
+            var hullRadius = length / Mathf.Sqrt(acrossHull * acrossHull / (0.32f * 0.32f)
+                + alongHull * alongHull / (0.5f * 0.5f));
+            var head = new FlowSample { position = transform.position, tail = tail,
+                rear = transform.position + tail * (hullRadius * 0.74f) };
+            var step = count == 0 ? 0f : Vector3.Distance(head.position, history[newest].position);
+            head.distance = count == 0 ? 0f : history[newest].distance + step;
+            if (count == 0 || step >= length * 0.04f)
+            {
+                newest = (newest + 1) % Capacity;
+                history[newest] = head;
+                count = Mathf.Min(count + 1, Capacity);
+            }
+            DrawWake(0, head, length, age);
+            DrawWake(1, head, length, age - 0.035f);
             if (!crown) return;
-            var bow = transform.position + transform.up * (length * 0.46f);
+            var bow = transform.position - tail * (hullRadius * 0.92f);
             var scale = Mathf.Lerp(0.78f, 1f, Mathf.SmoothStep(0f, 1f, age / 0.12f));
             bowStroke[0].position = bow;
-            bowStroke[0].rotation3D = BillboardRotation(transform.eulerAngles.z);
+            bowStroke[0].rotation3D = BillboardRotation(Mathf.Atan2(tail.x, -tail.y) * Mathf.Rad2Deg);
             bowStroke[0].startSize3D = new Vector3(1.55f, 1.25f, 1f) * (length * scale);
             SetCel(ref bowStroke[0], ActiveCel(age * 0.78f), 0.92f);
         }
 
-        private static void DrawWake(ref ParticleSystem.Particle stroke, Vector3 root, float angle,
-            float length, float age, float opacity)
+        private void DrawWake(int index, FlowSample head, float shipLength, float age)
         {
+            var primary = index == 0;
+            var length = shipLength * (primary ? 1f : 0.81f);
             var stretch = Mathf.SmoothStep(0.35f, 1f, age / 0.115f);
-            var size = new Vector3(2.5f * stretch, 1.64f, 1f) * length;
-            var rotation = Quaternion.AngleAxis(angle, Vector3.forward);
-            stroke.position = root + rotation * new Vector3(0.38f * size.x, 0.04f * size.y, 0f);
-            stroke.rotation3D = BillboardRotation(angle);
-            stroke.startSize3D = size;
-            SetCel(ref stroke, ActiveCel(age), age < 0f ? 0f : opacity);
+            var height = length * 1.64f;
+            var cursor = 0;
+            var near = head;
+            for (var i = 0; i < Sections; i++)
+            {
+                // The painted root lies at (0.12, 0.46) inside each atlas cel.
+                var back = (i / (float)(Sections - 1) - 0.12f) * length * 2.5f * stretch;
+                var target = head.distance - back;
+                while (cursor < count)
+                {
+                    var next = history[(newest - cursor + Capacity) % Capacity];
+                    if (next.distance < target) break;
+                    near = next;
+                    cursor++;
+                }
+                var center = near.rear + near.tail * (near.distance - target);
+                var direction = near.tail;
+                if (back > 0f && cursor < count)
+                {
+                    var far = history[(newest - cursor + Capacity) % Capacity];
+                    var t = (near.distance - target) / (near.distance - far.distance);
+                    center = Vector3.Lerp(near.rear, far.rear, t);
+                    direction = Vector3.Lerp(near.tail, far.tail, t).normalized;
+                }
+                var across = new Vector3(-direction.y, direction.x, 0f);
+                var spread = primary ? -0.17f * shipLength - 0.052f * back : 0.17f * shipLength + 0.087f * back;
+                center += across * spread - head.rear;
+                vertices[i * 2] = center - across * (height * 0.46f);
+                vertices[i * 2 + 1] = center + across * (height * 0.54f);
+            }
+            strips[index].vertices = vertices;
+            strips[index].RecalculateBounds();
+            wakeStrokes[index].position = head.rear;
+            SetCel(ref wakeStrokes[index], ActiveCel(age), age < 0f ? 0f : primary ? 1f : 0.64f);
         }
 
         // World-aligned particle billboards rotate clockwise in the game plane.
