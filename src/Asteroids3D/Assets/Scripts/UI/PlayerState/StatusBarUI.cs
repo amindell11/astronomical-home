@@ -65,22 +65,35 @@ namespace UI.PlayerState
             mesh.Clear();
             if (source == null) return;
             var half = size * .5f;
-            // Border and marks scale with the bar's height; an 8-tall bar draws 1-unit lines.
+            // Border and gaps scale with the bar's height.
             var line = size.y / 8f;
             Quad(mesh, -half.x - line, half.x + line, half.y + line, new Color(.02f, .04f, .08f, .92f));
-            Quad(mesh, -half.x, half.x, half.y, new Color(.1f, .18f, .24f, 1f));
+            var max = source.MaxValue;
+            var unitWidth = size.x / max;
+            // A gap never takes more than 30% of a segment, so big hulls keep their fill.
+            var gap = Mathf.Min(2f * line, .3f * 25f * unitWidth);
             var fill = color;
             if (pulsing)
             {
                 var pulse = (1f - Mathf.Cos(2f * Mathf.PI * pulseTime / LowPulsePeriod)) * .5f;
                 fill = Color.Lerp(new Color(.73f, .24f, .26f, color.a), new Color(.98f, .41f, .41f, color.a), pulse);
             }
-            Quad(mesh, -half.x, -half.x + size.x * source.Pct, half.y, fill);
-            for (var unit = 25; unit < source.MaxValue; unit += 25)
+            var fillEnd = -half.x + size.x * source.Pct;
+            for (var unit = 0; unit < max; unit += 25)
+                Quad(mesh, SegmentLeft(unit), SegmentRight(unit), half.y, new Color(.1f, .18f, .24f, 1f));
+            for (var unit = 0; unit < max; unit += 25)
             {
-                var x = -half.x + size.x * unit / source.MaxValue;
-                Quad(mesh, x, x + (unit % 100 == 0 ? 2f : 1f) * line, half.y, new Color(.01f, .025f, .045f, .92f));
+                var right = Mathf.Min(SegmentRight(unit), fillEnd);
+                if (right > SegmentLeft(unit)) Quad(mesh, SegmentLeft(unit), right, half.y, fill);
             }
+
+            float SegmentLeft(int unit) => -half.x + unit * unitWidth + (unit > 0 ? Gap(unit) * .5f : 0f);
+            float SegmentRight(int unit)
+            {
+                var end = Mathf.Min(unit + 25, max);
+                return -half.x + end * unitWidth - (end < max ? Gap((int)end) * .5f : 0f);
+            }
+            float Gap(int unit) => unit % 100 == 0 ? 2f * gap : gap;
         }
 
         private static void Quad(VertexHelper mesh, float left, float right, float halfHeight, Color tint)

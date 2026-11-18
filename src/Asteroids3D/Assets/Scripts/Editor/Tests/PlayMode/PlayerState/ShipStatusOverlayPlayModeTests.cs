@@ -56,7 +56,7 @@ namespace Tests.PlayMode.PlayerState
         }
 
         [Test]
-        public void ResourceChanges_UpdateFillAndGraduations()
+        public void ResourceChanges_UpdateFillAndSegments()
         {
             var resource = new Resource(150f);
             resource.ApplyDamage(75f);
@@ -66,16 +66,19 @@ namespace Tests.PlayMode.PlayerState
                 typeof(StatusBarUI).GetMethod("OnPopulateMesh", BindingFlags.Instance | BindingFlags.NonPublic,
                         null, new[] { typeof(VertexHelper) }, null)
                     .Invoke(bar, new object[] { mesh });
-                Assert.AreEqual(32, mesh.currentVertCount, "Track, empty, fill and five 25-unit marks");
+                Assert.AreEqual(40, mesh.currentVertCount, "Backing, six 25-point track segments and three filled ones");
                 var vertex = new UIVertex();
-                mesh.PopulateUIVertex(ref vertex, 10);
-                Assert.AreEqual(0f, vertex.position.x, .001f, "The remaining fill ends halfway across");
-                mesh.PopulateUIVertex(ref vertex, 12);
-                Assert.AreEqual(-40f + 80f / 6f, vertex.position.x, .001f, "First mark is 25 of 150");
-                mesh.PopulateUIVertex(ref vertex, 24);
-                var left = vertex.position.x;
-                mesh.PopulateUIVertex(ref vertex, 26);
-                Assert.AreEqual(2f, vertex.position.x - left, .001f, "100-unit marks are heavier");
+                mesh.PopulateUIVertex(ref vertex, 6);
+                var firstRight = vertex.position.x;
+                Assert.AreEqual(-40f + 80f / 6f - 1f, firstRight, .001f, "The first segment stops half a gap before 25");
+                mesh.PopulateUIVertex(ref vertex, 8);
+                Assert.AreEqual(2f, vertex.position.x - firstRight, .001f, "A 2-unit gap at 25");
+                mesh.PopulateUIVertex(ref vertex, 18);
+                var beforeHundred = vertex.position.x;
+                mesh.PopulateUIVertex(ref vertex, 20);
+                Assert.AreEqual(4f, vertex.position.x - beforeHundred, .001f, "The gap at 100 is twice as wide");
+                mesh.PopulateUIVertex(ref vertex, mesh.currentVertCount - 2);
+                Assert.AreEqual(-1f, vertex.position.x, .001f, "The fill stops at the gap before the 75 mark");
             }
             Assert.IsEmpty(bar.GetComponentsInChildren<Text>(true), "Bars carry no numbers");
 
@@ -86,10 +89,10 @@ namespace Tests.PlayMode.PlayerState
                         null, new[] { typeof(VertexHelper) }, null)
                     .Invoke(wide, new object[] { mesh });
                 var vertex = new UIVertex();
-                mesh.PopulateUIVertex(ref vertex, 24);
-                var left = vertex.position.x;
-                mesh.PopulateUIVertex(ref vertex, 26);
-                Assert.AreEqual(4f, vertex.position.x - left, .001f, "Marks scale with the bar's height");
+                mesh.PopulateUIVertex(ref vertex, 6);
+                var firstRight = vertex.position.x;
+                mesh.PopulateUIVertex(ref vertex, 8);
+                Assert.AreEqual(4f, vertex.position.x - firstRight, .001f, "Gaps scale with the bar's height");
             }
         }
 
@@ -384,7 +387,8 @@ namespace Tests.PlayMode.PlayerState
                     null, new[] { typeof(VertexHelper) }, null)
                 .Invoke(bar, new object[] { mesh });
             var vertex = new UIVertex();
-            mesh.PopulateUIVertex(ref vertex, 10);
+            // The fill draws last, so the last quad's top-right corner is where it ends.
+            mesh.PopulateUIVertex(ref vertex, mesh.currentVertCount - 2);
             return vertex;
         }
     }

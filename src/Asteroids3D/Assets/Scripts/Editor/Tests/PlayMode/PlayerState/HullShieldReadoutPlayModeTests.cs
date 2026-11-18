@@ -108,12 +108,12 @@ namespace Tests.PlayMode.PlayerState
             yield return null;
             var bars = readout.GetComponentsInChildren<StatusBarUI>();
             Assert.AreEqual(2, bars.Length);
-            b.Health.SetFraction(.5f);
+            b.Health.SetFraction(.55f);
             StatusBarUI hull = null;
             foreach (var bar in bars)
                 if (bar.rectTransform.anchoredPosition.x > 0f) hull = bar;
             Assert.IsNotNull(hull);
-            Assert.AreEqual(0f, FillEdge(hull).position.x, .001f);
+            Assert.AreEqual(-44f + 88f * .55f, FillEdge(hull).position.x, .001f);
         }
 
         private static UIVertex FillEdge(StatusBarUI bar)
@@ -123,7 +123,8 @@ namespace Tests.PlayMode.PlayerState
                     null, new[] { typeof(VertexHelper) }, null)
                 .Invoke(bar, new object[] { mesh });
             var vertex = new UIVertex();
-            mesh.PopulateUIVertex(ref vertex, 10);
+            // The fill draws last, so the last quad's top-right corner is where it ends.
+            mesh.PopulateUIVertex(ref vertex, mesh.currentVertCount - 2);
             return vertex;
         }
 
