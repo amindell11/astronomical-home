@@ -4,7 +4,7 @@ using UI.Hangar.Hologram;
 using UnityEditor;
 using UnityEngine;
 
-namespace Game.Preview
+namespace Game.Preview.Targets
 {
     internal sealed class HangarHologramTarget : TuningTarget
     {

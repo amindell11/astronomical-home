@@ -140,6 +140,25 @@ or poll `editor_status`. A forced script reload (`RequestScriptReload`) makes
 `editor_status` fail for ~1 s rather than report `domainReloadInProgress:true`. After
 `editor_stop`, `delete_asset` and `editor_status` answered immediately.
 
+## Closing an editor
+
+Verified on CLI `1.0.0-beta.11` + Unity 6000.1.8f1:
+
+1. Run `editor_status`; continue only on `playMode: stopped`.
+2. Save in two evals — `UnityEditor.SceneManagement.EditorSceneManager.SaveOpenScenes();`,
+   then `UnityEditor.AssetDatabase.SaveAssets();` — because one snippet with both
+   exceeded eval's 5 s main-thread cap. Then read each open scene's `isDirty` to
+   confirm the save.
+3. Exit with `UnityEditor.EditorApplication.Exit(0);` as the whole snippet. The envelope
+   fails because the connection drops; the process exits within ~5 s.
+
+These do not close it:
+
+- `EditorApplication.Quit()` does not exist in this Unity version (compile error).
+- `EditorApplication.delayCall += () => EditorApplication.Exit(0);` returns success, but
+  an unfocused editor never ran the callback within 120 s; it waits for the next editor
+  update.
+
 ## Latency envelope
 
 End to end from the CLI, plain commands and warm evals both take ≈270–350 ms; the first
