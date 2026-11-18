@@ -15,7 +15,8 @@ mounts. All Unity wiring happens here, so paint later only swaps materials.
   place; the sidecar goes to `evidence/<name>`.
 - Unity wiring is a coding task in a pool slot (`agent-worktree-pr-loop`):
   - the chassis prefab `Assets/Prefabs/Ships/<Name>.prefab`, a depth-1 variant of
-    `ShipBase.prefab`;
+    `ShipBase.prefab`, or a faction minion's chassis that is a variant of its base
+    ship's chassis overriding only hull meshes, hull materials and the collider mesh;
   - the hull under the `ShipBaseRig/Hull` anatomy slot, referencing the FBX's sub-assets;
   - sockets, the collider from the `Collider` role, flat region colours and authored
     inertia;
@@ -45,6 +46,8 @@ geometry lock, the only approval a tool enforces.
   alter balance.
 - **Overrides outside the declared anatomy slots, or a variant of a variant.** A
   one-ship feature goes under `Hull`; anything else needs a new anatomy slot on the base,
-  in a reviewed base change.
+  in a reviewed base change. The one exception: a faction minion's chassis may be a variant
+  of its base ship's chassis, overriding only hull meshes, hull materials and the collider
+  mesh.
 - **A saved `Mesh` asset for the hull or collider, or the model prefab nested.** Both
   meshes come from the FBX's roles, and prefabs reference its sub-assets.

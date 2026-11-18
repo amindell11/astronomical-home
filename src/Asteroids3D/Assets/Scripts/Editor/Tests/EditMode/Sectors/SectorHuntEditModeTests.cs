@@ -154,7 +154,9 @@ namespace Tests.EditMode.Sectors
             Assert.IsTrue(serialized.FindProperty("feel").objectReferenceValue, "The hunt reads its feel.");
             Assert.AreSame(prefab.Module<SectorFaction>(), serialized.FindProperty("faction").objectReferenceValue,
                 "Patrols fly the sector's faction.");
-            Assert.AreSame(row.faction.Ship, row.faction.Minion.ship, "A patrol flies the signature ship at minion rank.");
+            Assert.AreNotSame(row.faction.Ship, row.faction.Minion.ship, "A patrol flies the minion chassis.");
+            Assert.AreEqual(row.faction.Ship.name + "Minion", row.faction.Minion.ship.name,
+                "A patrol flies the minion chassis.");
             Assert.AreEqual(0.75f, row.faction.Minion.scale.Size, 1e-4f);
             Assert.AreEqual(0.7f, row.faction.Minion.scale.Hull, 1e-4f);
             Assert.IsNull(serialized.FindProperty("patrolPilot"), "The hunt names no patrol pilot of its own.");

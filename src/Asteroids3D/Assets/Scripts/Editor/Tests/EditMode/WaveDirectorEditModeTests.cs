@@ -458,7 +458,7 @@ namespace Tests.EditMode
             var kit = _go.AddComponent<PoolWeapon>();
             var pilot = new GameObject("Rival").AddComponent<StubCommander>();
             faction.signature = new FactionShip { ship = ship, kit = kit, pilot = pilot };
-            faction.minion = new FactionMinion { kit = kit, scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f) };
+            faction.minion = new FactionMinion { ship = ship, kit = kit, scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f) };
             var sectorFaction = _go.AddComponent<SectorFaction>();
             _director.Configure(_phases, Lull, faction: sectorFaction);
             var row = Row(new SectorPhase { sendsWaves = true, fewestMinions = 0, mostMinions = 1 });
@@ -477,6 +477,7 @@ namespace Tests.EditMode
         public void Threat_ListsTheSignatureShipOnce_AndEachRanksKitOnce()
         {
             var valis = new GameObject("Valis").AddComponent<Ship>();
+            var minionShip = new GameObject("ValisMinion").AddComponent<Ship>();
             var lasers = _go.AddComponent<PoolWeapon>();
             var rippers = _go.AddComponent<PoolWeapon>();
             var rivalPilot = new GameObject("RivalPilot").AddComponent<StubCommander>();
@@ -485,7 +486,7 @@ namespace Tests.EditMode
             faction.signature = new FactionShip { ship = valis, kit = rippers, pilot = rivalPilot };
             faction.minion = new FactionMinion
             {
-                kit = lasers, pilot = minionPilot, scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f),
+                ship = minionShip, kit = lasers, pilot = minionPilot, scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f),
             };
             var sectorFaction = _go.AddComponent<SectorFaction>();
             var row = new SectorEntry { faction = faction, phases = new[] { new SectorPhase { sendsWaves = true } } };
@@ -493,12 +494,13 @@ namespace Tests.EditMode
 
             var threat = _director.Threat(row);
 
-            CollectionAssert.AreEqual(new[] { valis }, threat.Ships, "every rank flies the signature ship");
+            CollectionAssert.AreEqual(new[] { valis }, threat.Ships, "the threat names the faction's signature ship");
             CollectionAssert.AreEqual(new WeaponComponent[] { rippers, lasers }, threat.Weapons,
                 "the rival's kit, then the minion's");
 
             Object.DestroyImmediate(faction);
             Object.DestroyImmediate(valis.gameObject);
+            Object.DestroyImmediate(minionShip.gameObject);
             Object.DestroyImmediate(rivalPilot.gameObject);
             Object.DestroyImmediate(minionPilot.gameObject);
         }
@@ -534,7 +536,7 @@ namespace Tests.EditMode
             faction.signature = new FactionShip { ship = ship, kit = kit, pilot = pilot };
             faction.minion = new FactionMinion
             {
-                kit = kit, pilot = pilot, scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f),
+                ship = ship, kit = kit, pilot = pilot, scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f),
             };
             return faction;
         }

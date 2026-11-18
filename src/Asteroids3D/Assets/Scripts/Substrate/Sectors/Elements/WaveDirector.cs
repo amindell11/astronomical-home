@@ -390,7 +390,7 @@ namespace Substrate.Sectors.Elements
             var facingHero = GamePlane.PlanePose(GamePlane.Normal, GamePlane.PlaneDirToWorld(-outward));
             var ship = units.SpawnShip(rank.ship, rank.pilot, team, GamePlane.PlanePointToWorld(planePoint),
                 facingHero, field, rank.Loadout, rank.scale);
-            faction.Faction.Dress(ship, elite: false);
+            faction.Faction.Dress(ship, rank);
             Track(ship);
             return ship;
         }

@@ -114,7 +114,7 @@ namespace Substrate.Sectors.Elements.Elites
             var ship = faction.Faction.Ship;
             elite = units.SpawnShip(ship, pilot, team, position, FacingHero(position), field,
                 new ShipLoadout(ship, profile.Primary, profile.Secondary), profile.Scale, stack);
-            faction.Faction.Dress(elite, elite: true);
+            faction.Faction.DressElite(elite);
             elite.Damage.OnDeath += OnEliteDeath;
             moment = new EliteMoment(sectorIndex, faction.Faction.id, elite.Id);
             Announced?.Invoke(moment);
@@ -162,7 +162,7 @@ namespace Substrate.Sectors.Elements.Elites
                 var position = ClearPoint(center, distance, clearanceRadius);
                 var escort = units.SpawnShip(minion.ship, escortPilot, team, position, FacingHero(position), field,
                     minion.Loadout, minion.scale);
-                faction.Faction.Dress(escort, elite: false);
+                faction.Faction.Dress(escort, minion);
                 escorts.Add(escort);
             }
             if (step.fireMods == null) return;

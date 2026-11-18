@@ -56,7 +56,7 @@ namespace Tests.PlayMode.Factions
             var (faction, chassis) = NewFaction(TestAssets.LoadCrimsonPrefab());
             var ship = Spawn(chassis);
 
-            faction.Dress(ship, elite: false);
+            faction.Dress(ship, new FactionRank(chassis, null, null, null, faction.signature.hull));
             yield return null;
 
             CollectionAssert.AreEqual(faction.signature.hull, HullSlots(ship));
@@ -71,7 +71,7 @@ namespace Tests.PlayMode.Factions
             var (faction, chassis) = NewFaction(TestAssets.LoadCrimsonPrefab());
             var ship = Spawn(chassis);
 
-            faction.Dress(ship, elite: true);
+            faction.DressElite(ship);
             yield return null;
 
             CollectionAssert.AreEqual(faction.signature.eliteHull, HullSlots(ship));
@@ -90,7 +90,8 @@ namespace Tests.PlayMode.Factions
                     material.SetColor("_PaintRegionColor3", Color.cyan);
 
             var ship = Spawn(chassis);
-            faction.Dress(ship, elite);
+            if (elite) faction.DressElite(ship);
+            else faction.Dress(ship, new FactionRank(chassis, null, null, null, faction.signature.hull));
             yield return null;
             ship.Damage.TakeDamage(new DamageInfo(
                 100000f, DamageKind.Collision, ShipId.Invalid, 0f, Vector3.zero, ship.transform.position));
@@ -120,7 +121,7 @@ namespace Tests.PlayMode.Factions
             var chassis = AssetDatabase.LoadAssetAtPath<Ship>("Assets/Prefabs/Ships/Valis.prefab");
             var (faction, _) = NewFaction(chassis);
             var ship = Spawn(chassis);
-            faction.Dress(ship, elite: false);
+            faction.Dress(ship, new FactionRank(chassis, null, null, null, faction.signature.hull));
             yield return null;
             ship.Damage.TakeDamage(new DamageInfo(
                 100000f, DamageKind.Collision, ShipId.Invalid, 0f, Vector3.zero, ship.transform.position));

@@ -95,6 +95,7 @@ namespace Tests.PlayMode.Sectors
             };
             faction.minion = new FactionMinion
             {
+                ship = crimson,
                 kit = vanguard.Weapons.PrimaryMountPrefab,
                 pilot = pilot,
                 scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f),

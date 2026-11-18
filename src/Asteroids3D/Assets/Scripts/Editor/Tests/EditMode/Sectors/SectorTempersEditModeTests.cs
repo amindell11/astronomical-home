@@ -11,7 +11,7 @@ namespace Tests.EditMode.Sectors
 {
     /// <summary>
     /// Each shipped faction's rival and minion fly pilots whose tempers are set, and the two ranks fly
-    /// different pilots. The minion is the signature ship at 0.75 size and 0.7 hull, and its pilot never
+    /// different pilots. The minion flies its own chassis at 0.75 size and 0.7 hull, and its pilot never
     /// fires the keystone. Both tempers of a faction share one wounded response: Veil never, Shoal jump
     /// out, Bastion last stand. No sector prefab names a patrol pilot of its own.
     /// </summary>
@@ -44,7 +44,8 @@ namespace Tests.EditMode.Sectors
             var faction = Load("Shoal");
 
             Assert.AreNotSame(faction.Rival.pilot, faction.Minion.pilot);
-            Assert.AreSame(faction.Ship, faction.Minion.ship);
+            Assert.AreNotSame(faction.Ship, faction.Minion.ship, "The minion flies its own chassis.");
+            Assert.AreEqual(faction.Ship.name + "Minion", faction.Minion.ship.name, "The minion flies its own chassis.");
         }
 
         [Test]

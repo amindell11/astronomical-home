@@ -12,11 +12,11 @@ using UnityEngine.Serialization;
 namespace Substrate.Sectors.Factions
 {
     /// <summary>
-    /// One faction's facts, and the one place sector content reads them from: one base ship flown at
-    /// three ranks (minion, rival, elite), the skin every rank wears, and the dress its sectors' find
-    /// stations wear. A sector names its faction through <see cref="SectorFaction"/>. The elite flies
-    /// the signature ship in the skin's elite set; the rest of what makes an elite lives with the elite
-    /// profile, not here.
+    /// One faction's facts, and the one place sector content reads them from: the signature ship its
+    /// rival and elite fly, the minion chassis its minions fly, each rank's hull paint, and the dress
+    /// its sectors' find stations wear. A sector names its faction through <see cref="SectorFaction"/>.
+    /// The elite flies the signature ship in the skin's elite set; the rest of what makes an elite
+    /// lives with the elite profile, not here.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1320
     /// </summary>
     [CreateAssetMenu(fileName = "Faction", menuName = "Sector/Faction")]
@@ -30,7 +30,7 @@ namespace Substrate.Sectors.Factions
 
         public Color color = Color.white;
 
-        [Tooltip("The signature ship, and how the rival flies it. Every rank flies this ship and wears this paint.")]
+        [Tooltip("The signature ship, and how the rival flies it. The rival and the elite fly this ship.")]
         [Stat] public FactionShip signature;
 
         [FormerlySerializedAs("common")]
@@ -59,7 +59,7 @@ namespace Substrate.Sectors.Factions
                 Require(signature.ship, "signature ship");
                 Require(signature.kit, "rival kit");
                 Require(signature.pilot, "rival pilot");
-                return new FactionRank(signature.ship, signature.kit, signature.pilot, ShipScale.One);
+                return new FactionRank(signature.ship, signature.kit, signature.pilot, ShipScale.One, signature.hull);
             }
         }
 
@@ -67,20 +67,25 @@ namespace Substrate.Sectors.Factions
         {
             get
             {
-                Require(signature.ship, "signature ship");
+                Require(minion.ship, "minion ship");
                 Require(minion.kit, "minion kit");
                 Require(minion.pilot, "minion pilot");
                 if (minion.scale == null)
                     throw new InvalidOperationException($"Faction '{name}' sets no minion scale.");
-                return new FactionRank(signature.ship, minion.kit, minion.pilot, minion.scale);
+                return new FactionRank(minion.ship, minion.kit, minion.pilot, minion.scale, minion.hull);
             }
         }
 
-        /// <summary>Puts the faction's skin on <paramref name="ship"/>. The elite wears the elite set.</summary>
-        public void Dress(Ship ship, bool elite)
+        /// <summary>Puts <paramref name="rank"/>'s hull paint on <paramref name="ship"/>, with this faction's flame and shield ring.</summary>
+        public void Dress(Ship ship, in FactionRank rank)
         {
-            ship.VisualRig.Wear(new ShipLivery(elite ? signature.eliteHull : signature.hull, elite ? eliteFlame : flame,
-                shieldRing));
+            ship.VisualRig.Wear(new ShipLivery(rank.hull, flame, shieldRing));
+        }
+
+        /// <summary>Puts the elite hull paint and flame on <paramref name="ship"/>, with this faction's shield ring.</summary>
+        public void DressElite(Ship ship)
+        {
+            ship.VisualRig.Wear(new ShipLivery(signature.eliteHull, eliteFlame, shieldRing));
         }
 
         private void Require(UnityEngine.Object value, string field)

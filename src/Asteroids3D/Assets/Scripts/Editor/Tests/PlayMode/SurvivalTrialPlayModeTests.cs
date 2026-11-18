@@ -109,6 +109,7 @@ namespace Tests.PlayMode
             faction.signature = new FactionShip { ship = template, kit = kit, pilot = rivalPilot };
             faction.minion = new FactionMinion
             {
+                ship = template,
                 kit = kit,
                 pilot = minionPilot,
                 scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f),

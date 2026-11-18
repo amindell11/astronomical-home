@@ -14,7 +14,7 @@ One name per ship, used verbatim for every path and file prefix:
 
 | Path | Holds |
 |---|---|
-| `src/Asteroids3D/Assets/Prefabs/Ships/<Name>.prefab` | the **chassis prefab**: a depth-1 variant of `ShipBase.prefab`; what the catalog, sectors and tests reference |
+| `src/Asteroids3D/Assets/Prefabs/Ships/<Name>.prefab` | the **chassis prefab**: a depth-1 variant of `ShipBase.prefab`, or a faction minion's chassis that is a variant of its base ship's chassis overriding only hull meshes, hull materials and the collider mesh; what the catalog, sectors and tests reference |
 | `src/Asteroids3D/Assets/Visuals/Ships/<Name>/` | the **visuals folder**: `<Name>.fbx`, materials, paint, breakup |
 | `src/Asteroids3D/Assets/Visuals/Ships/_Shared/` | `ShipBaseRig.prefab`, rig parts, shared materials |
 | `art/ships/<name>/` | the **art folder**, lowercase: `ship.json`, the `.blend` source, approved concept views |

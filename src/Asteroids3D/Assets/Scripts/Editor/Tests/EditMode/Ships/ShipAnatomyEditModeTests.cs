@@ -17,8 +17,8 @@ namespace Tests.EditMode.Ships
 {
     /// <summary>
     /// The anatomy law, enforced on every chassis the catalog lists except the legacy
-    /// names: a depth-1 variant of ShipBase, the fixed slot set, overrides confined to declared
-    /// slots, sockets placed by the hull, and hull meshes that come from the ship's own FBX.
+    /// names: a variant of ShipBase or of one chassis that is, the fixed slot set, overrides
+    /// confined to declared slots, sockets placed by the hull, and hull meshes from the ship's own FBX.
     /// </summary>
     [Category("Ships")]
     public sealed class ShipAnatomyEditModeTests
@@ -93,12 +93,15 @@ namespace Tests.EditMode.Ships
         }
 
         [TestCaseSource(nameof(MigratedChassis))]
-        public void Chassis_IsADepthOneVariantOfShipBase(string path)
+        public void Chassis_IsAVariantOfShipBase_OrOfOneChassisThatIs(string path)
         {
             var root = Load(path);
             Assert.That(PrefabUtility.GetPrefabAssetType(root), Is.EqualTo(PrefabAssetType.Variant));
             var source = PrefabUtility.GetCorrespondingObjectFromSource(root);
-            Assert.That(AssetDatabase.GetAssetPath(source), Is.EqualTo(BasePath), "Every chassis is a variant of ShipBase, never of another ship.");
+            var ofShipBase = AssetDatabase.GetAssetPath(source) == BasePath;
+            var ofOneChassis = BaseChassisOf(root) != null;
+            Assert.That(ofShipBase || ofOneChassis, Is.True,
+                "Every chassis is a variant of ShipBase, or a variant of one chassis that is.");
             Assert.That(root.GetComponentsInChildren<ShipVisualRig>(true), Has.Length.EqualTo(1));
             Assert.That(root.GetComponentsInChildren<HullVisuals>(true), Has.Length.EqualTo(1));
         }
@@ -110,9 +113,16 @@ namespace Tests.EditMode.Ships
             Assert.That(PrefabUtility.GetRemovedComponents(root), Is.Empty, "A variant may not remove base components.");
             Assert.That(PrefabUtility.GetRemovedGameObjects(root), Is.Empty, "A variant may not remove base objects.");
             Assert.That(PrefabUtility.GetAddedComponents(root), Is.Empty, "A variant may not add components to the base.");
-            var slot = root.transform.Find(HullSlot);
-            foreach (var added in PrefabUtility.GetAddedGameObjects(root))
-                Assert.That(added.instanceGameObject.transform.parent, Is.EqualTo(slot), $"{added.instanceGameObject.name}: additions go under the Hull slot only.");
+            var baseChassis = BaseChassisOf(root);
+            var ofAnotherChassis = baseChassis != null;
+            if (ofAnotherChassis)
+                Assert.That(PrefabUtility.GetAddedGameObjects(root), Is.Empty, "A variant of another chassis adds no objects.");
+            else
+            {
+                var slot = root.transform.Find(HullSlot);
+                foreach (var added in PrefabUtility.GetAddedGameObjects(root))
+                    Assert.That(added.instanceGameObject.transform.parent, Is.EqualTo(slot), $"{added.instanceGameObject.name}: additions go under the Hull slot only.");
+            }
             var undeclared = new List<string>();
             foreach (var mod in PrefabUtility.GetPropertyModifications(root))
             {
@@ -121,25 +131,38 @@ namespace Tests.EditMode.Ships
                 Assert.That(instance, Is.Not.Null, $"stale override {mod.propertyPath} on {mod.target}");
                 var instancePath = PathOf(instance, root.transform);
                 var type = instance.GetType();
-                var declared = Slots.Any(s => s.path == instancePath && s.type.IsAssignableFrom(type) && mod.propertyPath.StartsWith(s.propertyPrefix))
-                    || IsSocket(instancePath) && type == typeof(Transform) && mod.propertyPath.StartsWith("m_Local")
-                    || IsFlameTuning(instance, mod.propertyPath);
+                bool declared;
+                if (ofAnotherChassis)
+                {
+                    var underHull = instancePath == HullSlot || instancePath.StartsWith(HullSlot + "/");
+                    declared = (underHull && type == typeof(MeshFilter) && mod.propertyPath.StartsWith("m_Mesh"))
+                        || (underHull && type == typeof(MeshRenderer) && mod.propertyPath.StartsWith("m_Materials"))
+                        || (instancePath == "Mesh" && type == typeof(MeshCollider) && mod.propertyPath.StartsWith("m_Mesh"));
+                }
+                else
+                    declared = Slots.Any(s => s.path == instancePath && s.type.IsAssignableFrom(type) && mod.propertyPath.StartsWith(s.propertyPrefix))
+                        || IsSocket(instancePath) && type == typeof(Transform) && mod.propertyPath.StartsWith("m_Local")
+                        || IsFlameTuning(instance, mod.propertyPath);
                 if (!declared) undeclared.Add($"{instancePath}#{type.Name}.{mod.propertyPath}");
             }
-            Assert.That(undeclared, Is.Empty, "Overrides outside the declared slots; a new difference needs a new slot on the base.");
+            Assert.That(undeclared, Is.Empty, ofAnotherChassis
+                ? "A variant of another chassis overrides only hull meshes, hull materials and the collider mesh."
+                : "Overrides outside the declared slots; a new difference needs a new slot on the base.");
         }
 
         [TestCaseSource(nameof(MigratedChassis))]
         public void Chassis_PlacesEverySocket(string path)
         {
             var root = Load(path);
-            var mods = PrefabUtility.GetPropertyModifications(root);
+            var socketOwner = BaseChassisOf(root);
+            if (!socketOwner) socketOwner = root;
+            var mods = PrefabUtility.GetPropertyModifications(socketOwner);
             var exhausts = root.transform.Find(TwinExhaust).gameObject.activeSelf ? new[] { Exhaust, TwinExhaust } : new[] { Exhaust };
             foreach (var socket in Sockets.Union(exhausts))
             {
-                var transform = root.transform.Find(socket);
+                var transform = socketOwner.transform.Find(socket);
                 Assert.That(transform, Is.Not.Null, socket);
-                var placed = mods.Any(m => m.propertyPath.StartsWith("m_LocalPosition") && InstanceObjectFor(root, m.target) == transform);
+                var placed = mods.Any(m => m.propertyPath.StartsWith("m_LocalPosition") && InstanceObjectFor(socketOwner, m.target) == transform);
                 Assert.That(placed, Is.True, $"{socket}: the hull must place every socket.");
             }
             var exhaust = root.transform.InverseTransformPoint(root.transform.Find(Exhaust).position);
@@ -231,6 +254,19 @@ namespace Tests.EditMode.Ships
                 }
             }
             return bounds;
+        }
+
+        private static GameObject BaseChassisOf(GameObject root)
+        {
+            var source = PrefabUtility.GetCorrespondingObjectFromSource(root) as GameObject;
+            if (!source) return null;
+            var sourcePath = AssetDatabase.GetAssetPath(source);
+            var catalog = AssetDatabase.LoadAssetAtPath<ItemCatalog>(ItemCatalog.AssetPath);
+            if (!catalog.Chassis.Any(chassis => chassis && AssetDatabase.GetAssetPath(chassis) == sourcePath))
+                return null;
+            var sourceOfSource = PrefabUtility.GetCorrespondingObjectFromSource(source);
+            if (AssetDatabase.GetAssetPath(sourceOfSource) != BasePath) return null;
+            return source;
         }
 
         private static Object InstanceObjectFor(GameObject root, Object source)
