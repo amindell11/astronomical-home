@@ -27,6 +27,7 @@ namespace UI.Hangar.Displays
         private static readonly Color Description = new(.88f, .92f, .97f, 1f);
         private static readonly Color LeaderInk = new(.45f, .58f, .68f, 1f);
         private static readonly Color Locked = new(1f, .42f, .32f, 1f);
+        private static readonly Color TagFill = new(.26f, .19f, .09f, 1f);
         private static readonly Color Clear = new(0f, 0f, 0f, 0f);
 
         public static HangarMainDisplayView BuildMain(Transform parent, Vector3 localPosition, Vector2Int resolution,
@@ -227,9 +228,9 @@ namespace UI.Hangar.Displays
             const float dividerThickness = 2f;
             const float descriptionX = 220f;
             const float descriptionY = 88f;
-            const float descriptionRight = 210f;
+            const float descriptionRight = 236f;
             const float descriptionHeight = 104f;
-            const int descriptionSize = 28;
+            const int descriptionSize = 30;
             const float descriptionLineSpacing = 1.05f;
             const float tagRowX = 220f;
             const float tagRowFromBottom = 62f;
@@ -238,18 +239,20 @@ namespace UI.Hangar.Displays
             const int tagPadX = 12;
             const int tagPadY = 2;
             const int tagCount = 3;
-            const int tagSize = 22;
-            const float tagAlpha = .16f;
+            const int tagSize = 24;
             const float damageRight = 210f;
             const float damageFromBottom = 122f;
             const float damageWidth = 182f;
             const float damageHeight = 64f;
             const int damageSize = 56;
             const float captionRight = 330f;
-            const float captionFromBottom = 56f;
+            const float captionFromBottom = 58f;
             const float captionWidth = 302f;
-            const float captionHeight = 26f;
-            const int captionSize = 20;
+            const float captionHeight = 30f;
+            const int captionSize = 24;
+            const float damageLabelFromBottom = 150f;
+            const float damageLabelHeight = 28f;
+            const int damageLabelSize = 22;
             const float bracketInset = 8f;
 
             var selectObject = Box(canvas, "Select", new Rect(0f, 0f, width, height)).gameObject;
@@ -293,12 +296,11 @@ namespace UI.Hangar.Displays
             rowLayout.childForceExpandHeight = false;
             var tags = new Object[tagCount];
             var tagLabels = new Object[tagCount];
-            var tagFill = new Color(Amber.r, Amber.g, Amber.b, tagAlpha);
             for (var i = 0; i < tagCount; i++)
             {
                 var tag = Box(tagRow, "Tag", new Rect(0f, 0f, 0f, 0f));
                 var tagImage = tag.gameObject.AddComponent<Image>();
-                tagImage.color = tagFill;
+                tagImage.color = TagFill;
                 tagImage.raycastTarget = false;
                 var tagLayout = tag.gameObject.AddComponent<HorizontalLayoutGroup>();
                 tagLayout.padding = new RectOffset(tagPadX, tagPadX, tagPadY, tagPadY);
@@ -313,6 +315,9 @@ namespace UI.Hangar.Displays
                 tagLabels[i] = label;
             }
 
+            var damageLabel = Text(content, "DamageLabel", labels, damageLabelSize, TextAnchor.MiddleRight, Label,
+                new Rect(width - damageRight, height - damageLabelFromBottom, damageWidth, damageLabelHeight));
+            damageLabel.text = "DAMAGE";
             var damage = Text(content, "Damage", numbers, damageSize, TextAnchor.MiddleRight, Amber,
                 new Rect(width - damageRight, height - damageFromBottom, damageWidth, damageHeight));
             var damageCaption = Text(content, "DamageCaption", labels, captionSize, TextAnchor.UpperRight, Label,

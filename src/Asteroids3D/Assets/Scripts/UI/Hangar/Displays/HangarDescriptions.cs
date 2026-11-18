@@ -20,7 +20,7 @@ namespace UI.Hangar.Displays
             var lasers = weapon as Lasers;
             if (lasers)
                 return ($"{lasers.Damage:0}",
-                    lasers.FirePattern == FirePattern.Volley ? "per bolt, 2 per shot" : "per bolt");
+                    lasers.FirePattern == FirePattern.Volley ? "per bolt x2" : "per bolt");
 
             var railguns = weapon as Railguns;
             if (railguns)
@@ -32,11 +32,11 @@ namespace UI.Hangar.Displays
 
             var scatterguns = weapon as Scatterguns;
             if (scatterguns)
-                return ($"{scatterguns.Damage:0}", $"per pellet, {scatterguns.Pellets} per shot");
+                return ($"{scatterguns.Damage:0}", $"per pellet x{scatterguns.Pellets}");
 
             var missiles = weapon as Missiles;
             if (missiles)
-                return ($"{missiles.Damage:0}", $"direct hit, +{missiles.SplashDamage:0} splash");
+                return ($"{missiles.Damage:0}", $"+{missiles.SplashDamage:0} splash");
 
             var grenades = weapon as Grenades;
             if (grenades)
