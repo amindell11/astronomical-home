@@ -3,7 +3,7 @@ using Game.Player;
 using UnityEditor;
 using UnityEngine;
 
-namespace Game.Preview
+namespace Game.Preview.Targets
 {
     internal sealed class FlightAssistTarget : TuningTarget
     {

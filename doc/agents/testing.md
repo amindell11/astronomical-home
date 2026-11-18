@@ -2,8 +2,9 @@
 
 > STATUS: living — branch-triggered reference for running Unity tests; pointed at from `AGENTS.md`. Suite guide: `TESTING.md`.
 
-- Standardize Unity test artifacts to `results/unity-tests-agent` (pass an
-  explicit `outDir`/`-OutDir`).
+- Unity test artifacts go to `results/unity-tests-agent`. Pool `run-tests`
+  sets `-OutDir` itself and refuses a caller's; any other runner call passes
+  an explicit `outDir`/`-OutDir`.
 - Unity access is coordinated per project through `scripts/unity_access.ps1`:
   runs on different worktree projects overlap, and only Unity startup
   serializes through a machine-wide boot lane. Prefer batch tests; they drive

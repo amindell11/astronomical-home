@@ -1,5 +1,6 @@
 using System.Linq;
 using Game.Preview.Fixtures;
+using Game.Preview.Targets;
 using Substrate.Services.Locales;
 using Substrate.Sessions;
 using UnityEditor;

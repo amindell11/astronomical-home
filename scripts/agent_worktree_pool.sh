@@ -149,6 +149,8 @@ Commands:
   run-tests <slot> [unity_test_agent.ps1 args...]
       Run Unity tests in that slot with standardized outDir:
       results/unity-tests-agent
+      The pool sets -OutDir itself; a caller's -OutDir is refused with exit 2
+      before the runner starts.
       Runs compile-check first and prints its trailer. On fail it exits 2
       before booting Unity, as the runner's own compile failure would; on
       any other verdict the tests run.
@@ -1306,7 +1308,15 @@ cmd_run_tests() {
     echo "run-tests: ignoring stray '--' — run-tests forwards test args directly; '--' is only for submit/revise." >&2
     shift
   fi
-  local path
+  local arg path
+  for arg in "$@"; do
+    case "${arg,,}" in
+      -outdir | -outdir:*)
+        echo "run-tests: the pool sets -OutDir $RUN_OUTDIR_REL itself and reads the run summary there; drop -OutDir from the args." >&2
+        return 2
+        ;;
+    esac
+  done
   path="$(slot_path "$slot")"
 
   (

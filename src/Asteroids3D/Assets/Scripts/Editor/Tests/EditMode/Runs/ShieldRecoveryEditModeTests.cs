@@ -1,4 +1,4 @@
-using Game.Player;
+using Game.Player.Recorders;
 using NUnit.Framework;
 
 namespace Tests.EditMode.Runs

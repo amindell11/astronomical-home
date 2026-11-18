@@ -2,7 +2,7 @@
 
 > STATUS: living — branch-triggered reference for making something tunable in the preview host; pointed at from `AGENTS.md`.
 
-A *tuning target* is one thing the owner tunes in the preview panel (`Window/Preview Host`): the sector jump, the run recap, the HUD. Each is one editor class beside `TuningTarget` in `Editor/Game/Preview/`, naming its feel profiles and its entries. The panel opens on a target and draws only its knobs.
+A *tuning target* is one thing the owner tunes in the preview panel (`Window/Preview Host`): the sector jump, the run recap, the HUD. Each is one editor class beside `TuningTarget` in `Editor/Game/Preview/Targets/`, naming its feel profiles and its entries. The panel opens on a target and draws only its knobs.
 
 ## What is tunable
 
