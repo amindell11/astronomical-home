@@ -9,6 +9,7 @@ using Movement;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;
+using Ships.Registry;
 using Tests.Common;
 using UnityEditor;
 using UnityEngine;
@@ -154,7 +155,8 @@ namespace Tests.EditMode
                 var self = new Kinematics(new Vector2(1f, -2f), new Vector2(0f, 4f), 20f, 0f, 0f);
                 var weapons = new StubWeaponContext();
                 var gunner = host.AddComponent<Gunner>();
-                gunner.Initialize(weapons, null, () => self, TestAimSettings.Perfect, new SeedScope(1));
+                gunner.Initialize(weapons, null, () => self, TestAimSettings.Perfect, new SeedScope(1),
+                    ShipId.Invalid, new StubShipRegistry());
                 Assert.IsFalse(gunner.PrimaryAimReference().live, "no target, no reference");
 
                 var targetPos = new Vector2(12f, 9f);
@@ -188,7 +190,8 @@ namespace Tests.EditMode
                 var targetVel = new Vector2(-3f, 2f);
                 var weapons = new StubWeaponContext();
                 var gunner = host.AddComponent<Gunner>();
-                gunner.Initialize(weapons, null, () => self, TestAimSettings.Perfect, new SeedScope(1));
+                gunner.Initialize(weapons, null, () => self, TestAimSettings.Perfect, new SeedScope(1),
+                    ShipId.Invalid, new StubShipRegistry());
                 gunner.Aim(targetPos, targetVel);
 
                 // Both ships coast and the shooter keeps its heading; the lead time still changes with range.
@@ -217,7 +220,8 @@ namespace Tests.EditMode
             {
                 var gunner = host.AddComponent<Gunner>();
                 gunner.Initialize(new HitscanContext(), null,
-                    () => new Kinematics(Vector2.zero, Vector2.zero, 0f, 0f, 0f), TestAimSettings.Perfect, new SeedScope(1));
+                    () => new Kinematics(Vector2.zero, Vector2.zero, 0f, 0f, 0f), TestAimSettings.Perfect, new SeedScope(1),
+                    ShipId.Invalid, new StubShipRegistry());
                 gunner.Aim(new Vector2(0f, 10f), new Vector2(-5f, 0f));
 
                 var reference = gunner.PrimaryAimReference();
