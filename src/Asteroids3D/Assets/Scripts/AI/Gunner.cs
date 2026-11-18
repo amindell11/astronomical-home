@@ -8,6 +8,7 @@ using Movement;
 using Ships.Command;
 using UnityEngine;
 using Combat.Targeting;
+using Ships.Registry;
 using Substrate;
 using Utils;
 
@@ -20,6 +21,10 @@ namespace AI
         private IWeapons actuator;
         private Func<Kinematics> pose;
         private AimPerception perception;
+        private IShipRegistry registry;
+        private ShipId selfId;
+        private int shipMask;
+        private readonly RaycastHit[] laneHits = new RaycastHit[16];
 
         private Vector2 targetPos;
         private Vector2 targetVel;
@@ -34,7 +39,7 @@ namespace AI
         private void ClearTarget() => Target = Vector3.zero;
 
         public void Initialize(IWeaponContext weapons, IWeapons actuator, Func<Kinematics> poseFunc,
-            AimSettings aimSettings, SeedScope aimScope)
+            AimSettings aimSettings, SeedScope aimScope, ShipId selfId, IShipRegistry registry)
         {
             if (!aimSettings)
                 throw new ArgumentNullException(nameof(aimSettings),
@@ -42,6 +47,9 @@ namespace AI
             this.weapons = weapons;
             this.actuator = actuator;
             pose = poseFunc;
+            this.selfId = selfId;
+            this.registry = registry;
+            shipMask = LayerIds.Mask(LayerIds.Ship);
             perception = new AimPerception(aimSettings, aimScope);
         }
 
@@ -68,10 +76,31 @@ namespace AI
                 var slot = slots[i];
                 var engage = slot == WeaponSlot.Primary ? engagePrimary : engageSecondary;
                 var aim = AimPointFor(slot);
-                var held = engage && hasTarget && (weapons.Sight(slot)?.Evaluate(aim) ?? false);
+                var sight = weapons.Sight(slot);
+                var held = engage && hasTarget && sight != null
+                    && !FriendlyInFiringLane(sight.FirePoint, aim) && sight.Evaluate(aim);
                 if (slot == WeaponSlot.Primary) FireSlot(slot, held, aim, ref prevPrimaryHeld);
                 else FireSlot(slot, held, aim, ref prevSecondaryHeld);
             }
+        }
+
+        /// <summary>Whether the nearest ship between fire point and aim, the shooter aside, is friendly.</summary>
+        private bool FriendlyInFiringLane(Vector3 from, Vector3 aim)
+        {
+            var toAim = aim - from;
+            var count = Physics.RaycastNonAlloc(from, toAim, laneHits, toAim.magnitude, shipMask,
+                QueryTriggerInteraction.Ignore);
+            var nearest = float.MaxValue;
+            var friendly = false;
+            for (var i = 0; i < count; i++)
+            {
+                var hit = laneHits[i];
+                var resolved = registry.TryGetShipId(hit.collider, out var id);
+                if ((resolved && id == selfId) || hit.distance >= nearest) continue;
+                nearest = hit.distance;
+                friendly = resolved && registry.IsFriendly(selfId, id);
+            }
+            return friendly;
         }
 
         private void FireSlot(WeaponSlot slot, bool held, Vector3 aim, ref bool prevHeld)

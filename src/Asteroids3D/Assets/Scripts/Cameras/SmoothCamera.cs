@@ -3,7 +3,8 @@ using Substrate;
 
 namespace Cameras
 {
-    public abstract class SmoothCamera : CameraController
+    [RequireComponent(typeof(Camera))]
+    public abstract class SmoothCamera : MonoBehaviour
     {
         [Header("Movement")]
         [SerializeField]
@@ -20,11 +21,12 @@ namespace Cameras
         protected Vector3 dampVelocity;
         protected float zoomVelocity;
 
+        public Camera Cam { get; private set; }
         public Vector3 Velocity { get; private set; }
 
-        protected override void Awake()
+        protected virtual void Awake()
         {
-            base.Awake();
+            Cam = GetComponent<Camera>();
             Cam.orthographic = true;
         }
     
