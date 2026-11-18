@@ -1,0 +1,74 @@
+{
+ "rival": {},
+ "B_original_prongs": {
+  "omit": [
+   "20 lower swept blades",
+   "21 lower blade lavender tips",
+   "21 lower blade lavender tips underside",
+   "22 lower blade dark inner facets",
+   "40 forward outriggers",
+   "41 outrigger lavender toes",
+   "42 outrigger inner sockets",
+   "51 midship auxiliary vanes",
+   "52 auxiliary vane feet",
+   "53 auxiliary vane roots",
+   "07 rear crest"
+  ]
+ },
+ "B_simple_prongs": {
+  "omit": [
+   "20 lower swept blades",
+   "21 lower blade lavender tips",
+   "21 lower blade lavender tips underside",
+   "22 lower blade dark inner facets",
+   "40 forward outriggers",
+   "41 outrigger lavender toes",
+   "42 outrigger inner sockets",
+   "51 midship auxiliary vanes",
+   "52 auxiliary vane feet",
+   "53 auxiliary vane roots",
+   "07 rear crest",
+   "50 aft split prongs"
+  ],
+  "prong": {
+   "part": "50 aft split prongs",
+   "length": 1.0
+  }
+ },
+ "B_short_prongs": {
+  "omit": [
+   "20 lower swept blades",
+   "21 lower blade lavender tips",
+   "21 lower blade lavender tips underside",
+   "22 lower blade dark inner facets",
+   "40 forward outriggers",
+   "41 outrigger lavender toes",
+   "42 outrigger inner sockets",
+   "51 midship auxiliary vanes",
+   "52 auxiliary vane feet",
+   "53 auxiliary vane roots",
+   "07 rear crest",
+   "50 aft split prongs"
+  ],
+  "prong": {
+   "part": "50 aft split prongs",
+   "length": 0.6
+  }
+ },
+ "B_no_prongs": {
+  "omit": [
+   "20 lower swept blades",
+   "21 lower blade lavender tips",
+   "21 lower blade lavender tips underside",
+   "22 lower blade dark inner facets",
+   "40 forward outriggers",
+   "41 outrigger lavender toes",
+   "42 outrigger inner sockets",
+   "51 midship auxiliary vanes",
+   "52 auxiliary vane feet",
+   "53 auxiliary vane roots",
+   "07 rear crest",
+   "50 aft split prongs"
+  ]
+ }
+}
