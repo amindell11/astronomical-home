@@ -1,0 +1,60 @@
+{
+ "rival": [],
+ "A_no_rear_wings": [
+  "Rear swept wing pair",
+  "Tail fork armor",
+  "Tail joint beds",
+  "Tail tip armor",
+  "Tail ventral armor",
+  "Tail root armor",
+  "Tail root mounting blocks",
+  "Tail mount service panel"
+ ],
+ "B_no_small_fins": [
+  "Upper small swept fins.001",
+  "Upper fin armor",
+  "Upper fin joint beds",
+  "Lower small swept fins",
+  "Lower fin armor",
+  "Lower fin joint beds"
+ ],
+ "C_no_rear_no_fins": [
+  "Rear swept wing pair",
+  "Tail fork armor",
+  "Tail joint beds",
+  "Tail tip armor",
+  "Tail ventral armor",
+  "Tail root armor",
+  "Tail root mounting blocks",
+  "Tail mount service panel",
+  "Upper small swept fins.001",
+  "Upper fin armor",
+  "Upper fin joint beds",
+  "Lower small swept fins",
+  "Lower fin armor",
+  "Lower fin joint beds"
+ ],
+ "D_bare": [
+  "Lower fin armor",
+  "Lower fin joint beds",
+  "Lower small swept fins",
+  "Rear swept wing pair",
+  "Tail fork armor",
+  "Tail joint beds",
+  "Tail mount service panel",
+  "Tail root armor",
+  "Tail root mounting blocks",
+  "Tail tip armor",
+  "Tail ventral armor",
+  "Upper fin armor",
+  "Upper fin joint beds",
+  "Upper small swept fins.001",
+  "Wing aft blade armor",
+  "Wing cooling louvers",
+  "Wing forward armor",
+  "Wing outer armor",
+  "Wing shoulder armor",
+  "Wing ventral aft armor",
+  "Wing ventral armor"
+ ]
+}

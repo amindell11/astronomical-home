@@ -1,0 +1,40 @@
+{
+ "rival": [],
+ "A_unarmoured": [
+  "Canisters - Metal side modules",
+  "Armor - Upper shoulder guards",
+  "Armor - Side plates",
+  "Armor - Front plate"
+ ],
+ "B_no_flaps": [
+  "Upper flaps - Fins",
+  "Upper flaps - Fixed brackets",
+  "Upper flaps - Moving leaves",
+  "Lower flaps - Fins",
+  "Lower flaps - Fixed brackets",
+  "Lower flaps - Moving leaves"
+ ],
+ "C_no_flaps_no_canisters": [
+  "Upper flaps - Fins",
+  "Upper flaps - Fixed brackets",
+  "Upper flaps - Moving leaves",
+  "Lower flaps - Fins",
+  "Lower flaps - Fixed brackets",
+  "Lower flaps - Moving leaves",
+  "Canisters - Metal side modules",
+  "Armor - Upper shoulder guards"
+ ],
+ "D_stripped": [
+  "Upper flaps - Fins",
+  "Upper flaps - Fixed brackets",
+  "Upper flaps - Moving leaves",
+  "Lower flaps - Fins",
+  "Lower flaps - Fixed brackets",
+  "Lower flaps - Moving leaves",
+  "Canisters - Metal side modules",
+  "Armor - Upper shoulder guards",
+  "Armor - Side plates",
+  "Armor - Front plate",
+  "Armor - Lower skids"
+ ]
+}

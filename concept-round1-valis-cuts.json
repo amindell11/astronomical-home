@@ -1,0 +1,47 @@
+{
+ "rival": [],
+ "A_no_lower_blades": [
+  "20 lower swept blades",
+  "21 lower blade lavender tips",
+  "21 lower blade lavender tips underside",
+  "22 lower blade dark inner facets"
+ ],
+ "B_bare_lower": [
+  "20 lower swept blades",
+  "21 lower blade lavender tips",
+  "21 lower blade lavender tips underside",
+  "22 lower blade dark inner facets",
+  "40 forward outriggers",
+  "41 outrigger lavender toes",
+  "42 outrigger inner sockets",
+  "51 midship auxiliary vanes",
+  "52 auxiliary vane feet",
+  "53 auxiliary vane roots",
+  "07 rear crest"
+ ],
+ "C_no_upper_wings": [
+  "10 upper swept wings",
+  "11 upper wing gray planes",
+  "12 upper wing lavender tips",
+  "12 upper wing lavender tips underside",
+  "13 charcoal trailing spars",
+  "70 shoulder pivot housing",
+  "71 shoulder lavender cap"
+ ],
+ "D_no_upper_wings_bare": [
+  "10 upper swept wings",
+  "11 upper wing gray planes",
+  "12 upper wing lavender tips",
+  "12 upper wing lavender tips underside",
+  "13 charcoal trailing spars",
+  "70 shoulder pivot housing",
+  "71 shoulder lavender cap",
+  "40 forward outriggers",
+  "41 outrigger lavender toes",
+  "42 outrigger inner sockets",
+  "51 midship auxiliary vanes",
+  "52 auxiliary vane feet",
+  "53 auxiliary vane roots",
+  "07 rear crest"
+ ]
+}
