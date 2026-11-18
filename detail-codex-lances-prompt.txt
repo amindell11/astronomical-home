@@ -1,0 +1,20 @@
+Use your image generation tool. Save every generated image as a PNG file into the folder ./out (relative to the current directory), named lance_01.png, lance_02.png, and so on. Do not edit or create any other files.
+
+Task: refine one chosen concept for the tail prongs of an enemy spaceship in a top-down / three-quarter-view arcade space shooter. On screen the ship is only about 36 pixels across, so each prong must stay readable at that size: two or three bold shapes at most, and a clear gap between each prong and the engine.
+
+The attached images:
+- Image 1 and Image 2 are the full ship ("Valis"), top view and three-quarter view, for style reference only.
+- Image 3 and Image 4 are the stripped-down MINION, top and three-quarter view, with no side prongs. This is the ship to design for. Everything in it stays exactly as it is, including the central engine.
+- Image 5 is the chosen direction, "Stub Lances": one short, narrow, straight spike on each side of the central engine, parallel to it, teal with a dark graphite edge and a small lavender tip, ending about where the engine ends. The owner likes this direction and wants it refined.
+
+Generate 6 refinements of Stub Lances. Each keeps the core idea (one short straight unforked spike per side, mirrored, close beside the engine) but resolves it more carefully. Vary one or two of these per image:
+- how the lance attaches: floating, a short graphite pylon or strut to the hull, or rooted into the hull's aft corner;
+- cross-section and silhouette: flat blade, raised diamond ridge, faceted wedge, a slight taper versus a sharp needle point;
+- length: ending level with the engine nozzle, or a little past it;
+- a slight toe-in or toe-out, or a small upward rake in the three-quarter view;
+- accent placement: lavender tip only, a lavender stripe along the inner edge, or a lavender band near the root.
+Make each lance look like a designed hard-surface part, with a clear panel split and a dark outline, not a plain extrusion.
+
+Keep the reference's style exactly: flat cel-shaded hard-surface panels in the same palette (teal plates, dark graphite structure, cool gray planes, lavender accents), thin dark outlines, no gradients, textures or background clutter.
+
+Each image shows the minion with its refined lances twice, side by side on a plain mid-gray background: a top view on the left and a three-quarter view on the right, using the same camera angles as Images 3 and 4. Also add, in the bottom-right corner, a tiny top view of the whole ship about 40 pixels across, so the design can be judged at game size. Under each image, write one line naming the refinement.
