@@ -1,6 +1,6 @@
 using Ships.Damage;
 
-namespace Game.Player
+namespace Game.Player.Recorders
 {
     /// <summary>
     /// Measures the player's shield regeneration over one open sector for its run-record row.

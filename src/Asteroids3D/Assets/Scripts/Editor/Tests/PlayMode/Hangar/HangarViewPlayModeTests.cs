@@ -97,7 +97,7 @@ namespace Tests.PlayMode.Hangar
 
             var hangarCamera = hostGo.GetComponentInChildren<DriftCam>();
             var observer = hostGo.GetComponentInChildren<ObserverCam>();
-            Assert.IsTrue(hangarCamera && hangarCamera.Cam.isActiveAndEnabled, "the hangar camera renders");
+            Assert.IsTrue(hangarCamera && hangarCamera.GetComponent<Camera>().isActiveAndEnabled, "the hangar camera renders");
             Assert.IsFalse(observer.Cam.enabled, "the observer camera is off behind the hangar");
 
             var start = hangarCamera.transform.position;
