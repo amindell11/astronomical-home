@@ -404,12 +404,18 @@ namespace Tests.EditMode.Hangar
 
         private static string DamageNumber(WeaponComponent weapon)
         {
-            if (weapon is Grenades grenades) return grenades.BlastDamage.ToString("0");
-            if (weapon is Railguns railguns) return railguns.Damage.ToString("0");
-            if (weapon is Rippers rippers) return rippers.Damage.ToString("0");
-            if (weapon is Scatterguns scatterguns) return scatterguns.Damage.ToString("0");
-            if (weapon is Missiles missiles) return missiles.Damage.ToString("0");
-            if (weapon is Lasers lasers) return lasers.Damage.ToString("0");
+            var grenades = weapon as Grenades;
+            if (grenades) return grenades.BlastDamage.ToString("0");
+            var railguns = weapon as Railguns;
+            if (railguns) return railguns.Damage.ToString("0");
+            var rippers = weapon as Rippers;
+            if (rippers) return rippers.Damage.ToString("0");
+            var scatterguns = weapon as Scatterguns;
+            if (scatterguns) return scatterguns.Damage.ToString("0");
+            var missiles = weapon as Missiles;
+            if (missiles) return missiles.Damage.ToString("0");
+            var lasers = weapon as Lasers;
+            if (lasers) return lasers.Damage.ToString("0");
             throw new System.InvalidOperationException(weapon.GetType().Name);
         }
 
