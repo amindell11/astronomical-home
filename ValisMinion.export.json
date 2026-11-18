@@ -1,0 +1,296 @@
+{
+  "schema_version": 1,
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "398170ac7e95358cd6e410e5d122c2eda40343557523d49b33da5114cc4137d6",
+  "name": "ValisMinion",
+  "set": "intact",
+  "fbx": "ValisMinion.fbx",
+  "fbx_sha256": "73244dd7e9f71d2b668abd70519ec2d20d7af6962403d70b01be2b50dea5c74d",
+  "axes": {
+    "forward": "-Z",
+    "up": "Y"
+  },
+  "roles": {
+    "Hull": {
+      "parts": [
+        "01 central fuselage",
+        "02 black canopy",
+        "03 canopy side cheeks",
+        "04 dorsal armor",
+        "05 dorsal shoulder bevel",
+        "06 dorsal lavender rails",
+        "08 ventral armor",
+        "10 upper swept wings",
+        "11 upper wing gray planes",
+        "12 upper wing lavender tips",
+        "12 upper wing lavender tips underside",
+        "13 charcoal trailing spars",
+        "50 aft talons",
+        "60 engine spine",
+        "61 engine side fairings",
+        "62 engine raised ribs",
+        "64 exhaust rim",
+        "70 shoulder pivot housing",
+        "71 shoulder lavender cap"
+      ],
+      "material_slots": [
+        "Canopy",
+        "Cool gray",
+        "Edge",
+        "Engine",
+        "Graphite",
+        "Ivory",
+        "Lavender",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "01 central fuselage": [
+          0,
+          88,
+          0,
+          172
+        ],
+        "02 black canopy": [
+          88,
+          40,
+          172,
+          76
+        ],
+        "03 canopy side cheeks": [
+          128,
+          88,
+          248,
+          168
+        ],
+        "04 dorsal armor": [
+          216,
+          20,
+          416,
+          36
+        ],
+        "05 dorsal shoulder bevel": [
+          236,
+          40,
+          452,
+          72
+        ],
+        "06 dorsal lavender rails": [
+          276,
+          12,
+          524,
+          16
+        ],
+        "08 ventral armor": [
+          288,
+          54,
+          540,
+          104
+        ],
+        "10 upper swept wings": [
+          342,
+          508,
+          644,
+          1008
+        ],
+        "11 upper wing gray planes": [
+          850,
+          400,
+          1652,
+          792
+        ],
+        "12 upper wing lavender tips": [
+          1250,
+          184,
+          2444,
+          360
+        ],
+        "12 upper wing lavender tips underside": [
+          1434,
+          184,
+          2804,
+          360
+        ],
+        "13 charcoal trailing spars": [
+          1618,
+          256,
+          3164,
+          504
+        ],
+        "50 aft talons": [
+          1874,
+          598,
+          3668,
+          1188
+        ],
+        "60 engine spine": [
+          2472,
+          32,
+          4856,
+          60
+        ],
+        "61 engine side fairings": [
+          2504,
+          24,
+          4916,
+          40
+        ],
+        "62 engine raised ribs": [
+          2528,
+          80,
+          4956,
+          152
+        ],
+        "64 exhaust rim": [
+          2608,
+          64,
+          5108,
+          96
+        ],
+        "70 shoulder pivot housing": [
+          2672,
+          48,
+          5204,
+          88
+        ],
+        "71 shoulder lavender cap": [
+          2720,
+          48,
+          5292,
+          88
+        ]
+      },
+      "contour": {
+        "01 central fuselage": [
+          2768,
+          88,
+          5380,
+          172
+        ],
+        "02 black canopy": [
+          2856,
+          40,
+          5552,
+          76
+        ],
+        "03 canopy side cheeks": [
+          2896,
+          88,
+          5628,
+          168
+        ],
+        "04 dorsal armor": [
+          2984,
+          20,
+          5796,
+          36
+        ],
+        "05 dorsal shoulder bevel": [
+          3004,
+          40,
+          5832,
+          72
+        ],
+        "06 dorsal lavender rails": [
+          3044,
+          12,
+          5904,
+          16
+        ],
+        "08 ventral armor": [
+          3056,
+          54,
+          5920,
+          104
+        ],
+        "10 upper swept wings": [
+          3110,
+          508,
+          6024,
+          1008
+        ],
+        "11 upper wing gray planes": [
+          3618,
+          400,
+          7032,
+          792
+        ],
+        "12 upper wing lavender tips": [
+          4018,
+          184,
+          7824,
+          360
+        ],
+        "12 upper wing lavender tips underside": [
+          4202,
+          184,
+          8184,
+          360
+        ],
+        "13 charcoal trailing spars": [
+          4386,
+          256,
+          8544,
+          504
+        ],
+        "50 aft talons": [
+          4642,
+          598,
+          9048,
+          1188
+        ],
+        "60 engine spine": [
+          5240,
+          32,
+          10236,
+          60
+        ],
+        "61 engine side fairings": [
+          5272,
+          24,
+          10296,
+          40
+        ],
+        "62 engine raised ribs": [
+          5296,
+          80,
+          10336,
+          152
+        ],
+        "64 exhaust rim": [
+          5376,
+          64,
+          10488,
+          96
+        ],
+        "70 shoulder pivot housing": [
+          5440,
+          48,
+          10584,
+          88
+        ],
+        "71 shoulder lavender cap": [
+          5488,
+          48,
+          10672,
+          88
+        ]
+      }
+    },
+    "Collider": {
+      "parts": [
+        "ValisMinion collider"
+      ],
+      "triangles": 180
+    }
+  },
+  "sockets": {},
+  "fingerprint": {
+    "geometry": "4967a2e7d500dec5419cd143d7f3dee75f992b3ad55c48bafa4121c8ad33d1f4",
+    "uv": "1277ab59aec86eb6c93ba2badda3552fe8489d6f35975097f7e86ae6c487b954",
+    "materials": "b0c92c6b6765045fe83846c5719be1a26cda11e7b94770cb2d9a572dcee34adb"
+  }
+}

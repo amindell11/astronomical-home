@@ -1,0 +1,498 @@
+{
+  "schema_version": 1,
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "3fbbad7f4243e06750f5db2f8b7a21b17ff721754de60fd13c56184fe85916fa",
+  "name": "NightshadeMinion",
+  "set": "intact",
+  "fbx": "NightshadeMinion.fbx",
+  "fbx_sha256": "1f03613426c9297ef84b2beb22620467f62e53da763fa5e530549382a9f7b35f",
+  "axes": {
+    "forward": "-Z",
+    "up": "Y"
+  },
+  "roles": {
+    "Hull": {
+      "parts": [
+        "Aft engine collar",
+        "Aft spine armor",
+        "Cockpit collar latch recess",
+        "Cockpit collar latch tongue",
+        "Cockpit forward latch",
+        "Cockpit inset secondary rail",
+        "Cockpit lower cradle plating",
+        "Cockpit lower glazing gasket",
+        "Cockpit lower retaining rail",
+        "Cockpit rear retaining collar",
+        "Cockpit shoulder latch",
+        "Cockpit upper cradle plating",
+        "Cockpit upper glazing gasket",
+        "Cockpit upper retaining rail",
+        "Dorsal bridge service cover",
+        "Dorsal central blade",
+        "Dorsal shield cap",
+        "Lower fin armor",
+        "Lower fin joint beds",
+        "Lower small swept fins",
+        "Main exhaust throat",
+        "Rebuilt main wing blades",
+        "Rebuilt pitched hull",
+        "Upper fin armor",
+        "Upper fin joint beds",
+        "Upper small swept fins.001",
+        "Upper spine joint beds",
+        "Ventral central blade",
+        "Ventral shield cap"
+      ],
+      "material_slots": [
+        "Nightshade Edge",
+        "Nightshade Midnight",
+        "Nightshade Plum",
+        "Nightshade Recess",
+        "Nightshade Violet",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "Aft engine collar": [
+          0,
+          64,
+          0,
+          110
+        ],
+        "Aft spine armor": [
+          64,
+          98,
+          110,
+          192
+        ],
+        "Cockpit collar latch recess": [
+          162,
+          16,
+          302,
+          24
+        ],
+        "Cockpit collar latch tongue": [
+          178,
+          16,
+          326,
+          24
+        ],
+        "Cockpit forward latch": [
+          194,
+          44,
+          350,
+          80
+        ],
+        "Cockpit inset secondary rail": [
+          238,
+          1544,
+          430,
+          3084
+        ],
+        "Cockpit lower cradle plating": [
+          1782,
+          976,
+          3514,
+          1928
+        ],
+        "Cockpit lower glazing gasket": [
+          2758,
+          524,
+          5442,
+          1044
+        ],
+        "Cockpit lower retaining rail": [
+          3282,
+          1064,
+          6486,
+          2108
+        ],
+        "Cockpit rear retaining collar": [
+          4346,
+          98,
+          8594,
+          192
+        ],
+        "Cockpit shoulder latch": [
+          4444,
+          44,
+          8786,
+          80
+        ],
+        "Cockpit upper cradle plating": [
+          4488,
+          976,
+          8866,
+          1928
+        ],
+        "Cockpit upper glazing gasket": [
+          5464,
+          524,
+          10794,
+          1044
+        ],
+        "Cockpit upper retaining rail": [
+          5988,
+          1064,
+          11838,
+          2108
+        ],
+        "Dorsal bridge service cover": [
+          7052,
+          44,
+          13946,
+          80
+        ],
+        "Dorsal central blade": [
+          7096,
+          154,
+          14026,
+          304
+        ],
+        "Dorsal shield cap": [
+          7250,
+          218,
+          14330,
+          432
+        ],
+        "Lower fin armor": [
+          7468,
+          280,
+          14762,
+          552
+        ],
+        "Lower fin joint beds": [
+          7748,
+          112,
+          15314,
+          216
+        ],
+        "Lower small swept fins": [
+          7860,
+          448,
+          15530,
+          888
+        ],
+        "Main exhaust throat": [
+          8308,
+          128,
+          16418,
+          256
+        ],
+        "Rebuilt main wing blades": [
+          8436,
+          784,
+          16674,
+          1588
+        ],
+        "Rebuilt pitched hull": [
+          9220,
+          800,
+          18262,
+          1600
+        ],
+        "Upper fin armor": [
+          10020,
+          260,
+          19862,
+          512
+        ],
+        "Upper fin joint beds": [
+          10280,
+          104,
+          20374,
+          200
+        ],
+        "Upper small swept fins.001": [
+          10384,
+          420,
+          20574,
+          832
+        ],
+        "Upper spine joint beds": [
+          10804,
+          104,
+          21406,
+          192
+        ],
+        "Ventral central blade": [
+          10908,
+          154,
+          21598,
+          304
+        ],
+        "Ventral shield cap": [
+          11062,
+          218,
+          21902,
+          432
+        ]
+      },
+      "contour": {
+        "Aft engine collar": [
+          11280,
+          64,
+          22334,
+          110
+        ],
+        "Aft spine armor": [
+          11344,
+          98,
+          22444,
+          192
+        ],
+        "Cockpit collar latch recess": [
+          11442,
+          16,
+          22636,
+          24
+        ],
+        "Cockpit collar latch tongue": [
+          11458,
+          16,
+          22660,
+          24
+        ],
+        "Cockpit forward latch": [
+          11474,
+          44,
+          22684,
+          80
+        ],
+        "Cockpit inset secondary rail": [
+          11518,
+          1544,
+          22764,
+          3084
+        ],
+        "Cockpit lower cradle plating": [
+          13062,
+          976,
+          25848,
+          1928
+        ],
+        "Cockpit lower glazing gasket": [
+          14038,
+          524,
+          27776,
+          1044
+        ],
+        "Cockpit lower retaining rail": [
+          14562,
+          1064,
+          28820,
+          2108
+        ],
+        "Cockpit rear retaining collar": [
+          15626,
+          98,
+          30928,
+          192
+        ],
+        "Cockpit shoulder latch": [
+          15724,
+          44,
+          31120,
+          80
+        ],
+        "Cockpit upper cradle plating": [
+          15768,
+          976,
+          31200,
+          1928
+        ],
+        "Cockpit upper glazing gasket": [
+          16744,
+          524,
+          33128,
+          1044
+        ],
+        "Cockpit upper retaining rail": [
+          17268,
+          1064,
+          34172,
+          2108
+        ],
+        "Dorsal bridge service cover": [
+          18332,
+          44,
+          36280,
+          80
+        ],
+        "Dorsal central blade": [
+          18376,
+          154,
+          36360,
+          304
+        ],
+        "Dorsal shield cap": [
+          18530,
+          218,
+          36664,
+          432
+        ],
+        "Lower fin armor": [
+          18748,
+          280,
+          37096,
+          552
+        ],
+        "Lower fin joint beds": [
+          19028,
+          112,
+          37648,
+          216
+        ],
+        "Lower small swept fins": [
+          19140,
+          448,
+          37864,
+          888
+        ],
+        "Main exhaust throat": [
+          19588,
+          128,
+          38752,
+          256
+        ],
+        "Rebuilt main wing blades": [
+          19716,
+          784,
+          39008,
+          1588
+        ],
+        "Rebuilt pitched hull": [
+          20500,
+          800,
+          40596,
+          1600
+        ],
+        "Upper fin armor": [
+          21300,
+          260,
+          42196,
+          512
+        ],
+        "Upper fin joint beds": [
+          21560,
+          104,
+          42708,
+          200
+        ],
+        "Upper small swept fins.001": [
+          21664,
+          420,
+          42908,
+          832
+        ],
+        "Upper spine joint beds": [
+          22084,
+          104,
+          43740,
+          192
+        ],
+        "Ventral central blade": [
+          22188,
+          154,
+          43932,
+          304
+        ],
+        "Ventral shield cap": [
+          22342,
+          218,
+          44236,
+          432
+        ]
+      }
+    },
+    "Canopy": {
+      "parts": [
+        "Lower canopy glazing",
+        "Upper canopy glazing"
+      ],
+      "material_slots": [
+        "Nightshade Glass"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "Lower canopy glazing": [
+          0,
+          13202,
+          0,
+          26400
+        ],
+        "Upper canopy glazing": [
+          13202,
+          13202,
+          26400,
+          26400
+        ]
+      },
+      "contour": {}
+    },
+    "Cores": {
+      "parts": [
+        "Main exhaust core"
+      ],
+      "material_slots": [
+        "Nightshade Recess"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "Main exhaust core": [
+          0,
+          17,
+          0,
+          16
+        ]
+      },
+      "contour": {}
+    },
+    "Collider": {
+      "parts": [
+        "NightshadeMinion collider"
+      ],
+      "triangles": 180
+    }
+  },
+  "sockets": {
+    "Engine.Main": [
+      [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0,
+        -0.5070000290870667
+      ],
+      [
+        0.0,
+        0.0,
+        1.0,
+        0.10999999940395355
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ]
+  },
+  "fingerprint": {
+    "geometry": "7087a25cc8875002697d3246a41e9c673d9f89c029481eab23f6d1318c0b070f",
+    "uv": "36fcc3d6781be9744ddc483a204625d0a31f42f5f3f8f750f28342f44132f3ff",
+    "materials": "755ef91996aff11d6bdcd6dff0e107690cbac17fa3ef0df711388caa7dd9968a"
+  }
+}

@@ -1,0 +1,400 @@
+{
+  "schema_version": 1,
+  "recipe": "ship-fp-1",
+  "blender_version": "5.1.2",
+  "source_sha256": "fa4b711f0f54f87260096982381a24fb350a2f5d30065ae4d9ac1d99458ec4c8",
+  "name": "BulwarkMinion",
+  "set": "intact",
+  "fbx": "BulwarkMinion.fbx",
+  "fbx_sha256": "ba171beff62efe0c3b962a4e1c60085c9448a92b014f9fbec102f66afe0e8c6d",
+  "axes": {
+    "forward": "-Z",
+    "up": "Y"
+  },
+  "roles": {
+    "Hull": {
+      "parts": [
+        "Armor - Lower skids",
+        "Cockpit - Seating rim",
+        "Engine - Shoulder booms",
+        "Engine - Shrouds",
+        "Hull - Aft bridge",
+        "Hull - Dorsal spine",
+        "Hull - Lower keel",
+        "Hull - Main deck",
+        "Hull - Ram nose",
+        "Lower flaps - Fins",
+        "Lower flaps - Fixed brackets",
+        "Lower flaps - Moving leaves",
+        "Upper flaps - Fins",
+        "Upper flaps - Fixed brackets",
+        "Upper flaps - Moving leaves"
+      ],
+      "material_slots": [
+        "Bulwark Armor Charcoal",
+        "Bulwark Bone",
+        "Bulwark EdgeCoat",
+        "Bulwark Flap",
+        "Bulwark Glass",
+        "Bulwark Guard Bone",
+        "Bulwark Guard Plum",
+        "Bulwark Metal",
+        "Bulwark Plum",
+        "Bulwark Structure",
+        "Contour"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "Armor - Lower skids": [
+          0,
+          136,
+          0,
+          264
+        ],
+        "Cockpit - Seating rim": [
+          136,
+          458,
+          264,
+          916
+        ],
+        "Engine - Shoulder booms": [
+          594,
+          130,
+          1180,
+          252
+        ],
+        "Engine - Shrouds": [
+          724,
+          200,
+          1432,
+          392
+        ],
+        "Hull - Aft bridge": [
+          924,
+          81,
+          1824,
+          158
+        ],
+        "Hull - Dorsal spine": [
+          1005,
+          110,
+          1982,
+          212
+        ],
+        "Hull - Lower keel": [
+          1115,
+          94,
+          2194,
+          184
+        ],
+        "Hull - Main deck": [
+          1209,
+          78,
+          2378,
+          152
+        ],
+        "Hull - Ram nose": [
+          1287,
+          70,
+          2530,
+          136
+        ],
+        "Lower flaps - Fins": [
+          1357,
+          66,
+          2666,
+          124
+        ],
+        "Lower flaps - Fixed brackets": [
+          1423,
+          536,
+          2790,
+          1024
+        ],
+        "Lower flaps - Moving leaves": [
+          1959,
+          462,
+          3814,
+          876
+        ],
+        "Upper flaps - Fins": [
+          2421,
+          80,
+          4690,
+          152
+        ],
+        "Upper flaps - Fixed brackets": [
+          2501,
+          544,
+          4842,
+          1040
+        ],
+        "Upper flaps - Moving leaves": [
+          3045,
+          468,
+          5882,
+          888
+        ]
+      },
+      "contour": {
+        "Armor - Lower skids": [
+          3513,
+          136,
+          6770,
+          264
+        ],
+        "Cockpit - Seating rim": [
+          3649,
+          458,
+          7034,
+          916
+        ],
+        "Engine - Shoulder booms": [
+          4107,
+          130,
+          7950,
+          252
+        ],
+        "Engine - Shrouds": [
+          4237,
+          200,
+          8202,
+          392
+        ],
+        "Hull - Aft bridge": [
+          4437,
+          81,
+          8594,
+          158
+        ],
+        "Hull - Dorsal spine": [
+          4518,
+          110,
+          8752,
+          212
+        ],
+        "Hull - Lower keel": [
+          4628,
+          94,
+          8964,
+          184
+        ],
+        "Hull - Main deck": [
+          4722,
+          78,
+          9148,
+          152
+        ],
+        "Hull - Ram nose": [
+          4800,
+          70,
+          9300,
+          136
+        ],
+        "Lower flaps - Fins": [
+          4870,
+          66,
+          9436,
+          124
+        ],
+        "Lower flaps - Fixed brackets": [
+          4936,
+          536,
+          9560,
+          1024
+        ],
+        "Lower flaps - Moving leaves": [
+          5472,
+          462,
+          10584,
+          876
+        ],
+        "Upper flaps - Fins": [
+          5934,
+          80,
+          11460,
+          152
+        ],
+        "Upper flaps - Fixed brackets": [
+          6014,
+          544,
+          11612,
+          1040
+        ],
+        "Upper flaps - Moving leaves": [
+          6558,
+          468,
+          12652,
+          888
+        ]
+      }
+    },
+    "Canopy": {
+      "parts": [
+        "Cockpit - Canopy"
+      ],
+      "material_slots": [
+        "Bulwark Bone",
+        "Bulwark Flap",
+        "Bulwark Glass",
+        "Bulwark Plum",
+        "Bulwark Structure"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "Cockpit - Canopy": [
+          0,
+          1277,
+          0,
+          2496
+        ]
+      },
+      "contour": {}
+    },
+    "Cores": {
+      "parts": [
+        "Engine - Recessed nozzles"
+      ],
+      "material_slots": [
+        "Bulwark Bone",
+        "Bulwark Flap",
+        "Bulwark Glass",
+        "Bulwark Plum",
+        "Bulwark Structure"
+      ],
+      "uv_layers": [
+        "PaintUV"
+      ],
+      "surface": {
+        "Engine - Recessed nozzles": [
+          0,
+          96,
+          0,
+          184
+        ]
+      },
+      "contour": {}
+    },
+    "Collider": {
+      "parts": [
+        "BulwarkMinion collider"
+      ],
+      "triangles": 180
+    }
+  },
+  "sockets": {
+    "Exhaust.L": [
+      [
+        1.0,
+        0.0,
+        0.0,
+        -1.149999976158142
+      ],
+      [
+        0.0,
+        1.0,
+        0.0,
+        -3.3499999046325684
+      ],
+      [
+        0.0,
+        0.0,
+        1.0,
+        2.5999999046325684
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "Exhaust.R": [
+      [
+        1.0,
+        0.0,
+        0.0,
+        1.149999976158142
+      ],
+      [
+        0.0,
+        1.0,
+        0.0,
+        -3.3499999046325684
+      ],
+      [
+        0.0,
+        0.0,
+        1.0,
+        2.5999999046325684
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "Primary": [
+      [
+        1.0,
+        0.0,
+        0.0,
+        3.0999999046325684
+      ],
+      [
+        0.0,
+        1.0,
+        0.0,
+        4.300000190734863
+      ],
+      [
+        0.0,
+        0.0,
+        1.0,
+        1.7000000476837158
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "Secondary": [
+      [
+        1.0,
+        0.0,
+        0.0,
+        -3.0999999046325684
+      ],
+      [
+        0.0,
+        1.0,
+        0.0,
+        4.300000190734863
+      ],
+      [
+        0.0,
+        0.0,
+        1.0,
+        1.7000000476837158
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ]
+  },
+  "fingerprint": {
+    "geometry": "2535adac355205184089f16e93cec4696c26e27adf661cc3222a04c5f99c039d",
+    "uv": "d5328341f903629185a43bf02bda6c0d881edd37ad00dd696706cc7606cc4823",
+    "materials": "aba02bcf6b5e36c05798119125818174b6967eab487892b0ef0f1474573af2fb"
+  }
+}
