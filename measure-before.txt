@@ -1,0 +1,9 @@
+rootScale (1.3500, 1.3500, 1.3500)
+com (-0.00326, -0.02636, -0.00869) implicitCom True constraints None
+collider mesh Collider verts 286 meshBounds c(0.00000, 0.00062, 0.00019) e(0.00739, 0.00782, 0.00197)
+collider in ship space min (-0.73943, -0.71925, -0.21583) max (0.73943, 0.84410, 0.17810)
+collider layer 7 lossy (135.000, 135.000, 135.000)
+hull Nightshade mesh Hull subs 7 verts 68033 meshExt (0.00739, 0.00782, 0.00197) shipCentre (0.00000, 0.06243, -0.01887) lossy (135.000, 135.000, 135.000) mats 7
+hull Canopy mesh Canopy subs 1 verts 29172 meshExt (0.00161, 0.00231, 0.00137) shipCentre (0.00000, 0.58455, 0.01463) lossy (135.000, 135.000, 135.000) mats 1
+hull Cores mesh Cores subs 1 verts 20 meshExt (0.00016, 0.00000, 0.00011) shipCentre (0.00000, -0.49950, -0.11000) lossy (135.000, 135.000, 135.000) mats 1
+
