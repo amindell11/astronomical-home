@@ -1,0 +1,25 @@
+{
+ "base": "nightshade",
+ "note": "Concept render: the base source with these parts hidden; 'prong' is a placeholder slab to be modelled at blockout.",
+ "omit": [
+  "Rear swept wing pair",
+  "Tail fork armor",
+  "Tail joint beds",
+  "Tail tip armor",
+  "Tail ventral armor",
+  "Tail root armor",
+  "Tail root mounting blocks",
+  "Tail mount service panel",
+  "Wing forward armor",
+  "Wing shoulder armor",
+  "Wing outer armor",
+  "Wing cooling louvers",
+  "Spine shoulder armor",
+  "Dorsal shield inset",
+  "Ventral shield inset",
+  "Wing ventral armor",
+  "Wing ventral aft armor",
+  "Wing aft blade armor",
+  "Main wing joint beds"
+ ]
+}
