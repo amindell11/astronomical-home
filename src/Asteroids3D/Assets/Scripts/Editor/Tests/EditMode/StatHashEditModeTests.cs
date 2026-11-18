@@ -5,6 +5,8 @@ using System.Linq;
 using Balance;
 using Combat.Weapons;
 using Combat.Weapons.Conditions;
+using Combat.Weapons.Mods;
+using Loot;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;
@@ -28,6 +30,7 @@ namespace Tests.EditMode
     {
         private const string HangarOfferPath = "Assets/Settings/Ships/PlayerLoadout.asset";
         private const string RunPath = "Assets/Settings/Game/SurvivalTrialRun.asset";
+        private const string LullModsPath = "Assets/Settings/Weapons/Mods/LullMods.asset";
         private const float KillHullRestore = 0.25f;
         private const float PhaseWaveEvery = 6f;
 
@@ -142,7 +145,7 @@ namespace Tests.EditMode
         public void OfSetting_IgnoresListOrder()
         {
             var offer = HangarOffer();
-            var baseline = StatHash.OfSetting(offer, new[] { ScratchRow(PhaseWaveEvery) }, KillHullRestore);
+            var baseline = StatHash.OfSetting(offer, null, new[] { ScratchRow(PhaseWaveEvery) }, KillHullRestore);
 
             var reordered = Object.Instantiate(offer);
             scratch.Add(reordered);
@@ -150,7 +153,7 @@ namespace Tests.EditMode
             Array.Reverse(reordered.weapons);
 
             Assert.AreEqual(baseline,
-                StatHash.OfSetting(reordered, new[] { ScratchRow(PhaseWaveEvery) }, KillHullRestore));
+                StatHash.OfSetting(reordered, null, new[] { ScratchRow(PhaseWaveEvery) }, KillHullRestore));
         }
 
         [Test]
@@ -164,8 +167,8 @@ namespace Tests.EditMode
             var swapped = ScratchRow(PhaseWaveEvery);
             swapped.faction = ScratchFaction(offer.ships[0], second, first);
 
-            Assert.AreNotEqual(StatHash.OfSetting(offer, new[] { paired }, KillHullRestore),
-                StatHash.OfSetting(offer, new[] { swapped }, KillHullRestore),
+            Assert.AreNotEqual(StatHash.OfSetting(offer, null, new[] { paired }, KillHullRestore),
+                StatHash.OfSetting(offer, null, new[] { swapped }, KillHullRestore),
                 "Which pilot flies which rank is part of what a run can draw from.");
         }
 
@@ -173,14 +176,14 @@ namespace Tests.EditMode
         public void OfSetting_MovesWhenAPhasesMinionRangeChanges()
         {
             var offer = HangarOffer();
-            var baseline = StatHash.OfSetting(offer, new[] { ScratchRow(PhaseWaveEvery, fewest: 1, most: 3) },
+            var baseline = StatHash.OfSetting(offer, null, new[] { ScratchRow(PhaseWaveEvery, fewest: 1, most: 3) },
                 KillHullRestore);
 
             Assert.AreNotEqual(baseline,
-                StatHash.OfSetting(offer, new[] { ScratchRow(PhaseWaveEvery, fewest: 2, most: 3) }, KillHullRestore),
+                StatHash.OfSetting(offer, null, new[] { ScratchRow(PhaseWaveEvery, fewest: 2, most: 3) }, KillHullRestore),
                 "How few minions fly with the rival must move the fingerprint.");
             Assert.AreNotEqual(baseline,
-                StatHash.OfSetting(offer, new[] { ScratchRow(PhaseWaveEvery, fewest: 1, most: 4) }, KillHullRestore),
+                StatHash.OfSetting(offer, null, new[] { ScratchRow(PhaseWaveEvery, fewest: 1, most: 4) }, KillHullRestore),
                 "How many minions fly with the rival must move the fingerprint.");
         }
 
@@ -189,20 +192,43 @@ namespace Tests.EditMode
         {
             var offer = HangarOffer();
             var sector = ScratchRow(PhaseWaveEvery);
-            var baseline = StatHash.OfSetting(offer, new[] { sector }, KillHullRestore);
+            var baseline = StatHash.OfSetting(offer, null, new[] { sector }, KillHullRestore);
 
             Assert.AreNotEqual(baseline,
-                StatHash.OfSetting(offer, new[] { ScratchRow(PhaseWaveEvery + 1f) }, KillHullRestore),
+                StatHash.OfSetting(offer, null, new[] { ScratchRow(PhaseWaveEvery + 1f) }, KillHullRestore),
                 "A pacing number on the row must move the fingerprint.");
             var capped = ScratchRow(PhaseWaveEvery);
             capped.waveCap = sector.waveCap + 1;
-            Assert.AreNotEqual(baseline, StatHash.OfSetting(offer, new[] { capped }, KillHullRestore),
+            Assert.AreNotEqual(baseline, StatHash.OfSetting(offer, null, new[] { capped }, KillHullRestore),
                 "The wave cap must move the fingerprint.");
-            Assert.AreNotEqual(baseline, StatHash.OfSetting(offer, new[] { sector }, KillHullRestore + 0.05f),
+            Assert.AreNotEqual(baseline, StatHash.OfSetting(offer, null, new[] { sector }, KillHullRestore + 0.05f),
                 "The kill refill must move the fingerprint.");
             Assert.AreNotEqual(baseline,
-                StatHash.OfSetting(offer, new[] { sector, ScratchRow(PhaseWaveEvery + 1f) }, KillHullRestore),
+                StatHash.OfSetting(offer, null, new[] { sector, ScratchRow(PhaseWaveEvery + 1f) }, KillHullRestore),
                 "A later sector's pacing must move the fingerprint.");
+        }
+
+        [Test]
+        public void OfSetting_MovesWhenALullModsMagnitudeChanges()
+        {
+            var offer = HangarOffer();
+            var rows = new[] { ScratchRow(PhaseWaveEvery) };
+            var pool = AssetDatabase.LoadAssetAtPath<LullModPool>(LullModsPath);
+            Assert.IsNotNull(pool, $"Lull mod pool missing at {LullModsPath}");
+            var mod = pool.mods.OfType<WeaponMod>().First();
+            var baseline = StatHash.OfSetting(offer, pool, rows, KillHullRestore);
+
+            var copy = Object.Instantiate(pool);
+            scratch.Add(copy);
+            var scratchMod = Object.Instantiate(mod);
+            scratch.Add(scratchMod);
+            copy.mods[Array.IndexOf(copy.mods, mod)] = scratchMod;
+            Assert.AreEqual(baseline, StatHash.OfSetting(offer, copy, rows, KillHullRestore),
+                "A copy with the same name and numbers is the same pool.");
+
+            SetSerialized(scratchMod, "amount", property => property.floatValue += 0.05f);
+            Assert.AreNotEqual(baseline, StatHash.OfSetting(offer, copy, rows, KillHullRestore),
+                "A lull mod's magnitude must move the fingerprint.");
         }
 
         [Test]
@@ -233,11 +259,11 @@ namespace Tests.EditMode
             var easy = ScratchRow(PhaseWaveEvery);
             var hard = ScratchRow(PhaseWaveEvery - 2f);
 
-            var baseline = StatHash.OfSetting(offer, new[] { easy, hard }, KillHullRestore);
+            var baseline = StatHash.OfSetting(offer, null, new[] { easy, hard }, KillHullRestore);
 
-            Assert.AreNotEqual(baseline, StatHash.OfSetting(offer, new[] { hard, easy }, KillHullRestore),
+            Assert.AreNotEqual(baseline, StatHash.OfSetting(offer, null, new[] { hard, easy }, KillHullRestore),
                 "Sector order sets the difficulty curve, so a reordered run must move the fingerprint.");
-            Assert.AreNotEqual(baseline, StatHash.OfSetting(offer, new[] { easy, hard, hard }, KillHullRestore),
+            Assert.AreNotEqual(baseline, StatHash.OfSetting(offer, null, new[] { easy, hard, hard }, KillHullRestore),
                 "A repeated sector lengthens the run, so it must move the fingerprint.");
         }
 
@@ -249,7 +275,7 @@ namespace Tests.EditMode
             var row = run.Sectors[0];
             var director = row.prefab.Spawners.OfType<WaveDirector>().Single();
 
-            var lines = StatHash.SettingLines(HangarOffer(), new[] { row }, KillHullRestore);
+            var lines = StatHash.SettingLines(HangarOffer(), null, new[] { row }, KillHullRestore);
 
             var phase = lines.Single(line => line.StartsWith("sector[0]/row/SectorEntry.phases[0]={"));
             Assert.That(phase, Does.Contain("sendsWaves="));
@@ -327,7 +353,7 @@ namespace Tests.EditMode
         {
             var row = ScratchRow(6f);
             row.phases = phases;
-            return StatHash.OfSetting(offer, new[] { row }, KillHullRestore);
+            return StatHash.OfSetting(offer, null, new[] { row }, KillHullRestore);
         }
 
         private SectorEntry ScratchRow(float waveEvery, int fewest = 1, int most = 2)
