@@ -1,0 +1,35 @@
+{
+  "before": {
+    "source": "native-game-view",
+    "dataKind": "png",
+    "timingBasis": "unscaled",
+    "width": 1920,
+    "height": 1080,
+    "qualityLevel": "Performant",
+    "commit": "38844f3870e75bb9ce8157f041b875fe4223bb56"
+  },
+  "after": {
+    "source": "native-game-view",
+    "dataKind": "png",
+    "timingBasis": "unscaled",
+    "width": 1920,
+    "height": 1080,
+    "qualityLevel": "Performant",
+    "commit": "f0ca38f4fb1322d715243e41659bfa81926f5af5"
+  },
+  "sourceFrames": [
+    310,
+    369
+  ],
+  "cropXYWH": [
+    961,
+    441,
+    304,
+    224
+  ],
+  "simulationFps": 50,
+  "guardOffFrame": 343,
+  "gameZoom": 22,
+  "scenario": "VanguardFanReview",
+  "matchedPhysicsEvents": 8
+}
