@@ -216,7 +216,8 @@ Commands:
       PR already exists for that head/base, prints URL. Exits 2 before
       anything runs when the body names #N with a closing keyword anywhere
       but a line-leading "Closes #N" (a negated or quoted keyword): GitHub
-      still closes #N (scripts/lib/negated_close.py).
+      still closes #N (scripts/lib/negated_close.py). Commits count against
+      the local base branch, else origin/<base>; a base on neither exits 1.
 
   submit <slot> [base_ref] --title "<text>" (--body "<text>" | --body-file <path>) [-- unity_test_agent.ps1 args...]
       Run tests and the ReSharper ratchet, push to a task-specific remote
@@ -1817,8 +1818,18 @@ cmd_create_pr() {
 
   git -C "$ROOT" fetch origin "$base" >/dev/null 2>&1 || true
 
+  # A stacked base often exists only as origin/<base>: the fetch above leaves no local branch.
+  local base_ref="$base"
+  if ! git -C "$ROOT" rev-parse --verify --quiet "refs/heads/$base" >/dev/null; then
+    base_ref="origin/$base"
+    git -C "$ROOT" rev-parse --verify --quiet "refs/remotes/$base_ref" >/dev/null || {
+      echo "create-pr: base '$base' exists neither as a local branch nor on origin" >&2
+      return 1
+    }
+  fi
+
   local ahead
-  ahead="$(git -C "$ROOT" rev-list --count "$base..$slot" 2>/dev/null || echo 0)"
+  ahead="$(git -C "$ROOT" rev-list --count "$base_ref..$slot" 2>/dev/null || echo 0)"
   if [[ "$ahead" -eq 0 ]]; then
     echo "Skipping $slot: no commits ahead of $base"
     return 0
