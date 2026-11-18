@@ -380,7 +380,7 @@ def bake(name, size, glow=False):
         shader = nodes.new('ShaderNodeEmission')
         socket, strength = emission_inputs[material] if glow else (paint_inputs[material], 1)
         links.new(socket, shader.inputs['Color'])
-        shader.inputs['Strength'].default_value = min(strength, 1) if glow else strength
+        shader.inputs['Strength'].default_value = min(strength, 1)
         links.new(shader.outputs[0], original_outputs[material].inputs['Surface'])
         target = nodes.new('ShaderNodeTexImage')
         target.image = image
