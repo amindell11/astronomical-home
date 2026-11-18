@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Substrate;
 using Substrate.Presentation;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -148,7 +149,7 @@ namespace Ships.Keystones
 
         private void DrawRibbon(Ribbon ribbon, Pose head, float maximum, Matrix4x4 worldToLocal)
         {
-            var length = Mathf.Min(head.distance - At(count - 1).distance, maximum * ribbon.lengthScale);
+            var length = Mathf.Min(head.distance - At(count - 1).distance, maximum) * ribbon.lengthScale;
             if (length <= 0f) return;
             var start = vertices.Count;
             AddSection(ribbon, head, 0f, worldToLocal);
@@ -168,6 +169,14 @@ namespace Ships.Keystones
                 AddSection(ribbon, pose, distance / length, worldToLocal);
                 previous = pose;
             }
+            var chord = transform.TransformVector(vertices[start] - vertices[vertices.Count - 1]);
+            var across = Vector3.Cross(chord, GamePlane.Normal).normalized;
+            var halfWidth = worldToLocal.MultiplyVector(across * (head.right.magnitude * ribbon.width * 0.5f));
+            for (var i = start; i < vertices.Count; i += 2)
+            {
+                vertices[i] -= halfWidth;
+                vertices[i + 1] += halfWidth;
+            }
             for (var i = start; i + 3 < vertices.Count; i += 2)
             {
                 triangles.Add(i);
@@ -183,15 +192,16 @@ namespace Ships.Keystones
         {
             var outward = Mathf.Sign(ribbon.anchor.x) * ribbon.spread * along;
             var center = pose.position + pose.right * (ribbon.anchor.x + outward) + pose.up * ribbon.anchor.y;
-            var halfWidth = pose.right * (ribbon.width * 0.5f);
-            vertices.Add(worldToLocal.MultiplyPoint3x4(center - halfWidth));
-            vertices.Add(worldToLocal.MultiplyPoint3x4(center + halfWidth));
+            var point = worldToLocal.MultiplyPoint3x4(center);
+            vertices.Add(point);
+            vertices.Add(point);
             var column = ribbon.atlasCell % 8;
             var row = ribbon.atlasCell / 8;
             var v = (4f - row - along) / 4f;
             uvs.Add(new Vector2(column / 8f, v));
             uvs.Add(new Vector2((column + 1f) / 8f, v));
-            var alpha = ribbon.opacity * Mathf.Clamp01(1f - (Time.time - pose.time) / lifetime);
+            var age = Mathf.Clamp01((Time.time - pose.time) / lifetime);
+            var alpha = ribbon.opacity * (1f - age * age);
             var color = new Color(tint, tint * 0.2f, 0f, alpha);
             colors.Add(color);
             colors.Add(color);

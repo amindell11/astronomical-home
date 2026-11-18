@@ -9814,30 +9814,66 @@ MonoBehaviour:
   maxLength: 3.2
   ribbons:
   - anchor: {x: -0.56, y: -0.28}
-    width: 2
-    spread: 0.24
-    lengthScale: 0.95
+    width: 3.2400002
+    spread: 0.5
+    lengthScale: 1
     atlasCell: 4
-    opacity: 1
+    opacity: 0.7
   - anchor: {x: 0.56, y: -0.28}
-    width: 2
-    spread: 0.24
+    width: 3.2400002
+    spread: 0.5
+    lengthScale: 1
+    atlasCell: 9
+    opacity: 0.7
+  - anchor: {x: -0.44, y: -0.5}
+    width: 2.7
+    spread: 0.3
+    lengthScale: 0.82
+    atlasCell: 10
+    opacity: 0.9
+  - anchor: {x: 0.44, y: -0.5}
+    width: 2.7
+    spread: 0.3
     lengthScale: 1
     atlasCell: 2
-    opacity: 1
-  - anchor: {x: -0.28, y: -0.96}
-    width: 1.5
-    spread: 0.1
+    opacity: 0.9
+  - anchor: {x: -0.3, y: -0.82}
+    width: 2.43
+    spread: 0.12
+    lengthScale: 0.72
+    atlasCell: 3
+    opacity: 0.95
+  - anchor: {x: 0.3, y: -0.82}
+    width: 2.43
+    spread: 0.12
+    lengthScale: 0.8
+    atlasCell: 8
+    opacity: 0.95
+  - anchor: {x: -0.24, y: -0.92}
+    width: 2.16
+    spread: 0.08
     lengthScale: 0.9
-    atlasCell: 9
-    opacity: 0.85
-  - anchor: {x: 0.28, y: -0.96}
-    width: 1.5
-    spread: 0.1
-    lengthScale: 0.85
     atlasCell: 6
     opacity: 0.85
-  tint: 0.35
+  - anchor: {x: 0.24, y: -0.92}
+    width: 2.16
+    spread: 0.08
+    lengthScale: 0.68
+    atlasCell: 9
+    opacity: 0.85
+  - anchor: {x: -0.4, y: -0.6}
+    width: 2.025
+    spread: 0.18
+    lengthScale: 0.75
+    atlasCell: 0
+    opacity: 0.75
+  - anchor: {x: 0.4, y: -0.6}
+    width: 2.025
+    spread: 0.18
+    lengthScale: 0.85
+    atlasCell: 1
+    opacity: 0.75
+  tint: 0.55
 --- !u!1 &5353937414800904326
 GameObject:
   m_ObjectHideFlags: 0
