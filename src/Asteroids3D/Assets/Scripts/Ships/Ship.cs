@@ -149,8 +149,13 @@ namespace Ships
             Subscribe();
         }
 
-        private void Resolve() =>
+        // Only Initialize derives the radius from geometry, so every resolve carries it forward.
+        private void Resolve()
+        {
+            var radius = Stats?.shipRadius ?? 1f;
             Stats = ResolvedShipStats.Resolve(this, engine, shield, mods?.ForShip() ?? ShipMods.None, scale);
+            Stats.shipRadius = radius;
+        }
 
         /// <summary>Authored stats, without run mods or instantiating; shipRadius stays default until <see cref="Initialize"/> derives it from live colliders.</summary>
         public ResolvedShipStats ResolveStats() => ResolvedShipStats.Resolve(this, engine, shield);
@@ -193,12 +198,9 @@ namespace Ships
         // Keep for live inspector tuning, Rescale for a lull pick, Refill for a hangar equip.
         private enum Vitals { Keep, Rescale, Refill }
 
-        // Module swaps don't change geometry, so the derived radius carries forward.
         private void ReResolve(Vitals vitals)
         {
-            var radius = Stats?.shipRadius ?? 1f;
             Resolve();
-            Stats.shipRadius = radius;
             if (Movement) Movement.PopulateSettings(Stats);
             if (Damage && vitals == Vitals.Refill) Damage.PopulateSettings(Stats);
             if (Damage && vitals == Vitals.Rescale) Damage.Rescale(Stats);
