@@ -111,13 +111,19 @@ namespace Substrate.Sectors.Factions
     [Serializable]
     public struct FactionMinion
     {
+        [Tooltip("The chassis this faction's minions fly: its signature ship with parts removed.")]
+        [Stat] public Ship ship;
+
         [Tooltip("The one primary this minion always flies. No secondary: AI aim leads for the primary only.")]
         [Stat] public WeaponComponent kit;
 
         [Tooltip("The minion's pilot. It never fires the ship's keystone.")]
         [Stat] public Commander pilot;
 
-        [Tooltip("Size and hull factors on the signature ship.")]
+        [Tooltip("Size and hull factors on the minion chassis.")]
         public ShipScale scale;
+
+        [Tooltip("Every hull material slot of the minion chassis, in silhouette order, in faction paint. Empty → today's paint.")]
+        public Material[] hull;
     }
 }

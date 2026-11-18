@@ -1,0 +1,104 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &5187862381914850902
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 297551287395951446, guid: f916ff84b95a82049bb516b94fb6d637,
+        type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 2728963856613279042, guid: e4a674c9ee71dc748adc5962d324c946,
+        type: 3}
+    - target: {fileID: 1576724491614118492, guid: f916ff84b95a82049bb516b94fb6d637,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 1576724491614118492, guid: f916ff84b95a82049bb516b94fb6d637,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1576724491614118492, guid: f916ff84b95a82049bb516b94fb6d637,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 1576724491614118492, guid: f916ff84b95a82049bb516b94fb6d637,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 1576724491614118492, guid: f916ff84b95a82049bb516b94fb6d637,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 1576724491614118492, guid: f916ff84b95a82049bb516b94fb6d637,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1576724491614118492, guid: f916ff84b95a82049bb516b94fb6d637,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1576724491614118492, guid: f916ff84b95a82049bb516b94fb6d637,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: 1576724491614118492, guid: f916ff84b95a82049bb516b94fb6d637,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1576724491614118492, guid: f916ff84b95a82049bb516b94fb6d637,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1740611963405572408, guid: f916ff84b95a82049bb516b94fb6d637,
+        type: 3}
+      propertyPath: m_Materials.Array.size
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 1740611963405572408, guid: f916ff84b95a82049bb516b94fb6d637,
+        type: 3}
+      propertyPath: 'm_Materials.Array.data[5]'
+      value: 
+      objectReference: {fileID: 2100000, guid: bfd639f9701aedb4595e5236e4c87018, type: 2}
+    - target: {fileID: 4895056461021699405, guid: f916ff84b95a82049bb516b94fb6d637,
+        type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: -4924319539231158634, guid: e4a674c9ee71dc748adc5962d324c946,
+        type: 3}
+    - target: {fileID: 5100611748941008240, guid: f916ff84b95a82049bb516b94fb6d637,
+        type: 3}
+      propertyPath: m_Name
+      value: NightshadeMinion
+      objectReference: {fileID: 0}
+    - target: {fileID: 6306741521816147190, guid: f916ff84b95a82049bb516b94fb6d637,
+        type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: -3298800115395149385, guid: e4a674c9ee71dc748adc5962d324c946,
+        type: 3}
+    - target: {fileID: 7271014997197276477, guid: f916ff84b95a82049bb516b94fb6d637,
+        type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: -6989282167128152099, guid: e4a674c9ee71dc748adc5962d324c946,
+        type: 3}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: f916ff84b95a82049bb516b94fb6d637, type: 3}
