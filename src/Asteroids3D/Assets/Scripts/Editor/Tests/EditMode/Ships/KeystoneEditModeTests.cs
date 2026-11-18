@@ -130,6 +130,7 @@ namespace Tests.EditMode.Ships
             var vel = new Vector2(12f, -7f);
             var yaw = 0f;
             var brakeSteps = 0;
+            var progress = 0f;
             KeystoneEffect launch = default;
             for (var n = 0; n < 20; n++)
             {
@@ -144,6 +145,8 @@ namespace Tests.EditMode.Ships
 
                 Assert.That(e.Impulse, Is.EqualTo(Vector2.zero));
                 Assert.That(ram.HoldsThrottle, Is.True);
+                Assert.That(ram.HoldProgress, Is.InRange(progress, 1f));
+                progress = ram.HoldProgress;
                 vel += e.Acceleration * Dt;
                 brakeSteps++;
             }
@@ -153,6 +156,7 @@ namespace Tests.EditMode.Ships
             Assert.That(Vector2.Distance(launch.Impulse, Facing(90f).Forward * ram.Impulse), Is.LessThan(1e-3f));
             Assert.That(ram.RamLive, Is.True);
             Assert.That(ram.HoldsThrottle, Is.False);
+            Assert.That(ram.HoldProgress, Is.EqualTo(0f));
         }
 
         private RamDash NewRam()
@@ -266,6 +270,7 @@ namespace Tests.EditMode.Ships
             var catalog = AssetDatabase.LoadAssetAtPath<ItemCatalog>(ItemCatalog.AssetPath);
             var ram = catalog.Chassis.Single(c => c.name == "Bulwark").KeystonePrefab as RamDash;
             Assert.That(ram, Is.Not.Null, "Bulwark's kit is the ram");
+            Assert.That(new SerializedObject(ram).FindProperty("brake").floatValue, Is.EqualTo(0.5f));
             Assert.That(ram.Window, Is.EqualTo(0.6f));
             Assert.That(ram.ShipDamage, Is.EqualTo(60f));
             Assert.That(ram.GetComponent<KeystoneFlash>(), Is.Not.Null, "the kit carries its tell");

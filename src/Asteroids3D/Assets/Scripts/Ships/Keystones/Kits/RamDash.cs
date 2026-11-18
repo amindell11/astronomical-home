@@ -15,7 +15,7 @@ namespace Ships.Keystones.Kits
     public sealed class RamDash : Dash
     {
         [Tooltip("Seconds the positioning thrusters brake the ship to a full stop before the ram launches.")]
-        [Stat, SerializeField] private float brake = 0.3f;
+        [Stat, SerializeField] private float brake = 0.5f;
 
         [Tooltip("Seconds after the launch during which the dash is a live ram, until its first contact.")]
         [Stat, SerializeField] private float window = 0.6f;
@@ -28,6 +28,7 @@ namespace Ships.Keystones.Kits
 
         // -1 idle, -2 not yet counted, 0 launches this step.
         private int brakeStepsLeft = -1;
+        private int brakeSteps;
         private bool launched;
         private float launchedAt;
         private bool resolved;
@@ -43,6 +44,7 @@ namespace Ships.Keystones.Kits
         public override bool SeeksContact => Braking || RamLive;
         public override bool FliesNavigatorHeading => true;
         public override bool HoldsThrottle => Braking;
+        public override float HoldProgress => Braking && brakeSteps > 0 ? 1f - (float)brakeStepsLeft / brakeSteps : 0f;
 
         public override bool Blocks(in DamageInfo hit) => hit.Kind == DamageKind.Collision && RamLive;
 
@@ -83,6 +85,7 @@ namespace Ships.Keystones.Kits
             resolved = false;
             launched = false;
             brakeStepsLeft = -2;
+            brakeSteps = 0;
             return default;
         }
 
@@ -90,7 +93,10 @@ namespace Ships.Keystones.Kits
         {
             if (brakeStepsLeft == -1) return default;
             if (brakeStepsLeft < 0)
+            {
                 brakeStepsLeft = Mathf.Max(1, Mathf.RoundToInt(brake / dt));
+                brakeSteps = brakeStepsLeft;
+            }
             if (brakeStepsLeft > 0)
             {
                 var accel = -kinematics.vel / (brakeStepsLeft * dt);
@@ -107,6 +113,7 @@ namespace Ships.Keystones.Kits
         protected override void OnReset()
         {
             brakeStepsLeft = -1;
+            brakeSteps = 0;
             launched = false;
             resolved = false;
         }

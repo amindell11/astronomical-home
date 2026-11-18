@@ -52,6 +52,9 @@ namespace Ships.Keystones
         /// <summary>The kit's autopilot has the throttle: the ship drops the pilot's thrust and strafe, keeping yaw.</summary>
         public virtual bool HoldsThrottle => false;
 
+        /// <summary>How far through its throttle hold the kit is, 0 to 1; 0 while it holds none.</summary>
+        public virtual float HoldProgress => 0f;
+
         public virtual float SpeedScale => 1f;
         public virtual float ThrustScale => 1f;
         public virtual float ManeuverabilityScale => 1f;
