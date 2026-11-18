@@ -149,7 +149,7 @@ namespace AI
                 control.Weapons?.ProjectileSpeed(WeaponSlot.Primary) ?? 0f);
             if (Gunner && control.IsArmed)
                 Gunner.Initialize(control.Weapons, control.WeaponActuator, pose, aimSettings,
-                    seed.Derive(GunnerStream));
+                    seed.Derive(GunnerStream), self.Id, registry);
 
             context = new AIContext(limpingShip, Scout, PrimaryHoldRange(), combatExitDelay);
 
