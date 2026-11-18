@@ -1,0 +1,234 @@
+{
+ "rival": {},
+ "F_spread12": {
+  "omit": [
+   "Wing forward armor",
+   "Wing shoulder armor",
+   "Wing outer armor",
+   "Wing cooling louvers",
+   "Wing ventral armor",
+   "Wing ventral aft armor",
+   "Wing aft blade armor",
+   "Main wing joint beds",
+   "Spine shoulder armor",
+   "Dorsal shield inset",
+   "Ventral shield inset"
+  ],
+  "ops": [
+   {
+    "op": "affine",
+    "parts": [
+     "Rebuilt main wing blades"
+    ],
+    "pivot": [
+     0.25,
+     0.3,
+     0.0
+    ],
+    "scale": [
+     0.82,
+     0.82,
+     0.82
+    ],
+    "rot_z": 12
+   }
+  ]
+ },
+ "G_spread22": {
+  "omit": [
+   "Wing forward armor",
+   "Wing shoulder armor",
+   "Wing outer armor",
+   "Wing cooling louvers",
+   "Wing ventral armor",
+   "Wing ventral aft armor",
+   "Wing aft blade armor",
+   "Main wing joint beds",
+   "Spine shoulder armor",
+   "Dorsal shield inset",
+   "Ventral shield inset"
+  ],
+  "ops": [
+   {
+    "op": "affine",
+    "parts": [
+     "Rebuilt main wing blades"
+    ],
+    "pivot": [
+     0.25,
+     0.3,
+     0.0
+    ],
+    "scale": [
+     0.78,
+     0.78,
+     0.78
+    ],
+    "rot_z": 22
+   }
+  ]
+ },
+ "H_spread_notail": {
+  "omit": [
+   "Rear swept wing pair",
+   "Tail fork armor",
+   "Tail joint beds",
+   "Tail tip armor",
+   "Tail ventral armor",
+   "Tail root armor",
+   "Tail root mounting blocks",
+   "Tail mount service panel",
+   "Wing forward armor",
+   "Wing shoulder armor",
+   "Wing outer armor",
+   "Wing cooling louvers",
+   "Wing ventral armor",
+   "Wing ventral aft armor",
+   "Wing aft blade armor",
+   "Main wing joint beds",
+   "Spine shoulder armor",
+   "Dorsal shield inset",
+   "Ventral shield inset"
+  ],
+  "ops": [
+   {
+    "op": "affine",
+    "parts": [
+     "Rebuilt main wing blades"
+    ],
+    "pivot": [
+     0.25,
+     0.3,
+     0.0
+    ],
+    "scale": [
+     0.82,
+     0.82,
+     0.82
+    ],
+    "rot_z": 16
+   }
+  ]
+ },
+ "I_cloak": {
+  "omit": [
+   "Wing forward armor",
+   "Wing shoulder armor",
+   "Wing outer armor",
+   "Wing cooling louvers",
+   "Wing ventral armor",
+   "Wing ventral aft armor",
+   "Wing aft blade armor",
+   "Main wing joint beds",
+   "Spine shoulder armor",
+   "Dorsal shield inset",
+   "Ventral shield inset"
+  ],
+  "ops": [
+   {
+    "op": "clip",
+    "parts": [
+     "Rebuilt main wing blades"
+    ],
+    "co": [
+     0.42,
+     -0.3,
+     0
+    ],
+    "no": [
+     -1.4,
+     -1,
+     0
+    ],
+    "cap": null
+   }
+  ]
+ },
+ "J_cloak_spread": {
+  "omit": [
+   "Wing forward armor",
+   "Wing shoulder armor",
+   "Wing outer armor",
+   "Wing cooling louvers",
+   "Wing ventral armor",
+   "Wing ventral aft armor",
+   "Wing aft blade armor",
+   "Main wing joint beds",
+   "Spine shoulder armor",
+   "Dorsal shield inset",
+   "Ventral shield inset"
+  ],
+  "ops": [
+   {
+    "op": "affine",
+    "parts": [
+     "Rebuilt main wing blades"
+    ],
+    "pivot": [
+     0.25,
+     0.3,
+     0.0
+    ],
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "rot_z": 10
+   },
+   {
+    "op": "clip",
+    "parts": [
+     "Rebuilt main wing blades"
+    ],
+    "co": [
+     0.5,
+     -0.22,
+     0
+    ],
+    "no": [
+     -1.2,
+     -1,
+     0
+    ],
+    "cap": null
+   }
+  ]
+ },
+ "K_dagger_fins": {
+  "omit": [
+   "Wing forward armor",
+   "Wing shoulder armor",
+   "Wing outer armor",
+   "Wing cooling louvers",
+   "Wing ventral armor",
+   "Wing ventral aft armor",
+   "Wing aft blade armor",
+   "Main wing joint beds",
+   "Spine shoulder armor",
+   "Dorsal shield inset",
+   "Ventral shield inset",
+   "Rebuilt main wing blades"
+  ],
+  "ops": [
+   {
+    "op": "affine",
+    "parts": [
+     "Upper small swept fins.001",
+     "Upper fin armor",
+     "Upper fin joint beds"
+    ],
+    "pivot": [
+     0.12,
+     0.3,
+     0.12
+    ],
+    "scale": [
+     1.5,
+     1.5,
+     1.5
+    ]
+   }
+  ]
+ }
+}

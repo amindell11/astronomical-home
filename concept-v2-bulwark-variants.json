@@ -1,0 +1,293 @@
+{
+ "rival": {},
+ "F_spear": {
+  "omit": [
+   "Canisters - Metal side modules",
+   "Armor - Upper shoulder guards",
+   "Armor - Side plates",
+   "Armor - Front plate"
+  ],
+  "ops": [
+   {
+    "op": "affine",
+    "parts": [
+     "Hull - Ram nose",
+     "Hull - Main deck",
+     "Hull - Lower keel",
+     "Armor - Lower skids"
+    ],
+    "scale": [
+     0.72,
+     1,
+     1
+    ]
+   },
+   {
+    "op": "affine",
+    "parts": [
+     "Engine - Shoulder booms",
+     "Engine - Shrouds",
+     "Engine - Recessed nozzles",
+     "Lower flaps - Fins",
+     "Lower flaps - Fixed brackets",
+     "Lower flaps - Moving leaves",
+     "Upper flaps - Fins",
+     "Upper flaps - Fixed brackets",
+     "Upper flaps - Moving leaves"
+    ],
+    "move": [
+     -0.45,
+     0,
+     0
+    ]
+   },
+   {
+    "op": "clip",
+    "parts": [
+     "Hull - Ram nose",
+     "Hull - Main deck",
+     "Hull - Lower keel"
+    ],
+    "co": [
+     0,
+     5.3,
+     0
+    ],
+    "no": [
+     1,
+     0.42,
+     0
+    ],
+    "cap": null
+   }
+  ]
+ },
+ "G_kite": {
+  "omit": [
+   "Canisters - Metal side modules",
+   "Armor - Upper shoulder guards",
+   "Armor - Side plates",
+   "Armor - Front plate"
+  ],
+  "ops": [
+   {
+    "op": "clip",
+    "parts": [
+     "Hull - Ram nose",
+     "Hull - Main deck",
+     "Hull - Lower keel"
+    ],
+    "co": [
+     0,
+     5.5,
+     0
+    ],
+    "no": [
+     1,
+     0.5,
+     0
+    ],
+    "cap": null
+   }
+  ]
+ },
+ "H_dart": {
+  "omit": [
+   "Canisters - Metal side modules",
+   "Armor - Upper shoulder guards",
+   "Armor - Side plates",
+   "Armor - Front plate",
+   "Upper flaps - Fins",
+   "Upper flaps - Fixed brackets",
+   "Upper flaps - Moving leaves"
+  ],
+  "ops": [
+   {
+    "op": "affine",
+    "parts": [
+     "Hull - Ram nose",
+     "Hull - Main deck",
+     "Hull - Lower keel",
+     "Armor - Lower skids"
+    ],
+    "scale": [
+     0.72,
+     1,
+     1
+    ]
+   },
+   {
+    "op": "affine",
+    "parts": [
+     "Engine - Shoulder booms",
+     "Engine - Shrouds",
+     "Engine - Recessed nozzles",
+     "Lower flaps - Fins",
+     "Lower flaps - Fixed brackets",
+     "Lower flaps - Moving leaves",
+     "Upper flaps - Fins",
+     "Upper flaps - Fixed brackets",
+     "Upper flaps - Moving leaves"
+    ],
+    "move": [
+     -0.72,
+     0,
+     0
+    ]
+   },
+   {
+    "op": "clip",
+    "parts": [
+     "Hull - Ram nose",
+     "Hull - Main deck",
+     "Hull - Lower keel"
+    ],
+    "co": [
+     0,
+     5.3,
+     0
+    ],
+    "no": [
+     1,
+     0.42,
+     0
+    ],
+    "cap": null
+   }
+  ]
+ },
+ "I_squat": {
+  "omit": [
+   "Canisters - Metal side modules",
+   "Armor - Upper shoulder guards",
+   "Armor - Side plates",
+   "Armor - Front plate"
+  ],
+  "ops": [
+   {
+    "op": "affine",
+    "parts": [
+     "Hull - Ram nose",
+     "Hull - Main deck",
+     "Hull - Lower keel",
+     "Cockpit - Seating rim",
+     "Cockpit - Canopy"
+    ],
+    "pivot": [
+     0,
+     -1.0,
+     0
+    ],
+    "scale": [
+     1,
+     0.68,
+     1
+    ]
+   }
+  ]
+ },
+ "J_bigfeet": {
+  "omit": [
+   "Canisters - Metal side modules",
+   "Armor - Upper shoulder guards",
+   "Armor - Side plates",
+   "Armor - Front plate"
+  ],
+  "ops": [
+   {
+    "op": "affine",
+    "parts": [
+     "Hull - Ram nose",
+     "Hull - Main deck",
+     "Hull - Lower keel",
+     "Armor - Lower skids"
+    ],
+    "scale": [
+     0.72,
+     1,
+     1
+    ]
+   },
+   {
+    "op": "affine",
+    "parts": [
+     "Engine - Shoulder booms",
+     "Engine - Shrouds",
+     "Engine - Recessed nozzles",
+     "Lower flaps - Fins",
+     "Lower flaps - Fixed brackets",
+     "Lower flaps - Moving leaves",
+     "Upper flaps - Fins",
+     "Upper flaps - Fixed brackets",
+     "Upper flaps - Moving leaves"
+    ],
+    "pivot": [
+     0,
+     -1.0,
+     2.2
+    ],
+    "scale": [
+     1.25,
+     1.25,
+     1.25
+    ],
+    "move": [
+     -0.75,
+     0,
+     0
+    ]
+   }
+  ]
+ },
+ "K_kite_single": {
+  "omit": [
+   "Canisters - Metal side modules",
+   "Armor - Upper shoulder guards",
+   "Armor - Side plates",
+   "Armor - Front plate",
+   "Upper flaps - Fins",
+   "Upper flaps - Fixed brackets",
+   "Upper flaps - Moving leaves"
+  ],
+  "ops": [
+   {
+    "op": "clip",
+    "parts": [
+     "Hull - Ram nose",
+     "Hull - Main deck",
+     "Hull - Lower keel"
+    ],
+    "co": [
+     0,
+     5.5,
+     0
+    ],
+    "no": [
+     1,
+     0.5,
+     0
+    ],
+    "cap": null
+   },
+   {
+    "op": "affine",
+    "parts": [
+     "Engine - Shoulder booms",
+     "Engine - Shrouds",
+     "Engine - Recessed nozzles",
+     "Lower flaps - Fins",
+     "Lower flaps - Fixed brackets",
+     "Lower flaps - Moving leaves",
+     "Upper flaps - Fins",
+     "Upper flaps - Fixed brackets",
+     "Upper flaps - Moving leaves"
+    ],
+    "move": [
+     -0.72,
+     0,
+     0
+    ]
+   }
+  ]
+ }
+}
