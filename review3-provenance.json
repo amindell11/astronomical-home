@@ -1,0 +1,9 @@
+{
+    "source": "native-game-view",
+    "dataKind": "png",
+    "timingBasis": "unscaled",
+    "width": 1920,
+    "height": 1080,
+    "qualityLevel": "Performant",
+    "commit": "92b11d97504c52989bba1be6ab69e262e2f94447"
+}
