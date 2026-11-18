@@ -63,7 +63,7 @@ why of *decisions* has three homes, none of them under `doc/`:
 ask the `design-lookup` agent (`.claude/agents/design-lookup.md`) a list of
 direct questions and take its cited answers; fetch a body yourself only for a
 citation you already hold (`gh issue view N --json body -q .body | awk
-'/^## <heading>/,/^## /'`). **Writing design.** A record or brief is
+'/^## <heading>/{f=1;print;next} /^## /{f=0} f'`). **Writing design.** A record or brief is
 sectioned by question — one `##` per ruling, result, or fork — so a citation
 names a section, not a document.
 
