@@ -54,8 +54,14 @@ def open_source(path):
 
 
 def ship_objects(scene):
-    """Every MESH and EMPTY in the ship scene, hidden, excluded and ignored ones included, sorted by name."""
-    return sorted((o for o in scene.objects if o.type in ("MESH", "EMPTY")), key=lambda o: o.name)
+    """Every MESH and EMPTY in the ship scene, hidden, excluded and ignored ones included, sorted by name.
+
+    Parts are keyed by name everywhere, so a local and a linked object sharing one is refused here."""
+    objects = sorted((o for o in scene.objects if o.type in ("MESH", "EMPTY")), key=lambda o: o.name)
+    shared = sorted({a.name for a, b in zip(objects, objects[1:]) if a.name == b.name})
+    if shared:
+        raise ValueError(f"Objects from different libraries share a name: {', '.join(shared)}")
+    return objects
 
 
 def _collections(scene):

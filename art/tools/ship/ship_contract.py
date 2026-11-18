@@ -27,6 +27,7 @@ EXIT_PASS, EXIT_ERROR, EXIT_FINDINGS = 0, 1, 3
 
 VISUAL_ROLES = {"hull": "Hull", "canopy": "Canopy", "cores": "Cores", "ink": "Ink"}
 STATIC_ROLES = {**VISUAL_ROLES, "collider": "Collider", "sockets": "Sockets"}
+LINKED_ROLES = (*VISUAL_ROLES, "sockets")
 RESERVED_ROLES = ("move", "debris")
 RULES = ("roles", "origin", "mirror", "modifier_order", "modifier_type", "scale", "ngon", "normals",
          "name", "visual_role", "collider", "missing_file", "unit_scale", "uv_layer", "uv_density")
@@ -129,6 +130,18 @@ def parse_ship(value):
             _text(part, f"{path}.parts")
         _text(exemption["reason"], f"{path}.reason")
     return json.loads(json.dumps(value))
+
+
+def derive_refusal(base, omit, images, parts):
+    """Why ship_new refuses its derive arguments, or None; `parts` are the base's linkable parts."""
+    if base is None:
+        return "--omit needs --base" if omit else None
+    if any(image is not None for image in images):
+        return "--base takes no --top or --side; a derived source carries no reference images"
+    unknown = sorted(set(omit) - set(parts))
+    if unknown:
+        return f"Not parts of the base's {', '.join(LINKED_ROLES)} roles: {', '.join(unknown)}"
+    return None
 
 
 def load_ship(path):
