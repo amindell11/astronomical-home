@@ -1,0 +1,257 @@
+{
+ "rival": {},
+ "H1": {
+  "omit": [
+   "20 lower swept blades",
+   "21 lower blade lavender tips",
+   "21 lower blade lavender tips underside",
+   "22 lower blade dark inner facets",
+   "40 forward outriggers",
+   "41 outrigger lavender toes",
+   "42 outrigger inner sockets",
+   "51 midship auxiliary vanes",
+   "52 auxiliary vane feet",
+   "53 auxiliary vane roots",
+   "07 rear crest"
+  ],
+  "ops": [
+   {
+    "op": "affine",
+    "parts": [
+     "10 upper swept wings",
+     "11 upper wing gray planes",
+     "12 upper wing lavender tips",
+     "12 upper wing lavender tips underside",
+     "13 charcoal trailing spars"
+    ],
+    "pivot": [
+     1.2,
+     1.05,
+     0.3
+    ],
+    "scale": [
+     0.8,
+     0.8,
+     0.8
+    ]
+   },
+   {
+    "op": "clip",
+    "parts": [
+     "50 aft split prongs"
+    ],
+    "co": [
+     0.9,
+     -3.25,
+     0.9
+    ],
+    "no": [
+     1.4,
+     -1,
+     0
+    ],
+    "cap": null
+   },
+   {
+    "op": "tint",
+    "parts": [
+     "50 aft split prongs"
+    ],
+    "co": [
+     0.8,
+     -2.85,
+     0
+    ],
+    "no": [
+     0.5,
+     -1,
+     0
+    ],
+    "material": "Lavender"
+   }
+  ]
+ },
+ "H2": {
+  "omit": [
+   "20 lower swept blades",
+   "21 lower blade lavender tips",
+   "21 lower blade lavender tips underside",
+   "22 lower blade dark inner facets",
+   "40 forward outriggers",
+   "41 outrigger lavender toes",
+   "42 outrigger inner sockets",
+   "51 midship auxiliary vanes",
+   "52 auxiliary vane feet",
+   "53 auxiliary vane roots",
+   "07 rear crest"
+  ],
+  "ops": [
+   {
+    "op": "affine",
+    "parts": [
+     "10 upper swept wings",
+     "11 upper wing gray planes",
+     "12 upper wing lavender tips",
+     "12 upper wing lavender tips underside",
+     "13 charcoal trailing spars"
+    ],
+    "pivot": [
+     1.2,
+     1.05,
+     0.3
+    ],
+    "scale": [
+     0.8,
+     0.8,
+     0.8
+    ]
+   },
+   {
+    "op": "clip",
+    "parts": [
+     "50 aft split prongs"
+    ],
+    "co": [
+     0.9,
+     -3.25,
+     0.9
+    ],
+    "no": [
+     1.4,
+     -1,
+     0
+    ],
+    "cap": null
+   },
+   {
+    "op": "tint",
+    "parts": [
+     "50 aft split prongs"
+    ],
+    "co": [
+     0.8,
+     -3.05,
+     0
+    ],
+    "no": [
+     0.9,
+     -1,
+     0
+    ],
+    "material": "Lavender"
+   }
+  ]
+ },
+ "H0": {
+  "omit": [
+   "20 lower swept blades",
+   "21 lower blade lavender tips",
+   "21 lower blade lavender tips underside",
+   "22 lower blade dark inner facets",
+   "40 forward outriggers",
+   "41 outrigger lavender toes",
+   "42 outrigger inner sockets",
+   "51 midship auxiliary vanes",
+   "52 auxiliary vane feet",
+   "53 auxiliary vane roots",
+   "07 rear crest"
+  ],
+  "ops": [
+   {
+    "op": "affine",
+    "parts": [
+     "10 upper swept wings",
+     "11 upper wing gray planes",
+     "12 upper wing lavender tips",
+     "12 upper wing lavender tips underside",
+     "13 charcoal trailing spars"
+    ],
+    "pivot": [
+     1.2,
+     1.05,
+     0.3
+    ],
+    "scale": [
+     0.8,
+     0.8,
+     0.8
+    ]
+   },
+   {
+    "op": "clip",
+    "parts": [
+     "50 aft split prongs"
+    ],
+    "co": [
+     0.9,
+     -3.25,
+     0.9
+    ],
+    "no": [
+     1.4,
+     -1,
+     0
+    ],
+    "cap": null
+   }
+  ]
+ },
+ "bolt": {
+  "omit": [
+   "20 lower swept blades",
+   "21 lower blade lavender tips",
+   "21 lower blade lavender tips underside",
+   "22 lower blade dark inner facets",
+   "40 forward outriggers",
+   "41 outrigger lavender toes",
+   "42 outrigger inner sockets",
+   "51 midship auxiliary vanes",
+   "52 auxiliary vane feet",
+   "53 auxiliary vane roots",
+   "07 rear crest"
+  ],
+  "ops": [
+   {
+    "op": "affine",
+    "parts": [
+     "10 upper swept wings",
+     "11 upper wing gray planes",
+     "12 upper wing lavender tips",
+     "12 upper wing lavender tips underside",
+     "13 charcoal trailing spars"
+    ],
+    "pivot": [
+     1.2,
+     1.05,
+     0.3
+    ],
+    "scale": [
+     0.8,
+     0.8,
+     0.8
+    ]
+   },
+   {
+    "op": "affine",
+    "parts": [
+     "50 aft split prongs"
+    ],
+    "pivot": [
+     0,
+     1.47,
+     0.3
+    ],
+    "scale": [
+     1,
+     0.72,
+     0.8
+    ],
+    "move": [
+     0.1,
+     0,
+     0
+    ]
+   }
+  ]
+ }
+}
