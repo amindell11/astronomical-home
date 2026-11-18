@@ -15,7 +15,7 @@ using Object = UnityEngine.Object;
 
 namespace Tests.EditMode.Factions
 {
-    /// <summary>The shipped run's three rows, read as assets: each names its own faction in run order, its waves fly that faction's signature ship on the rival's and minion's kits, and each phase that sends waves draws its minions from an ordered range. The rival resolves the signature ship and the minion its own chassis, each with its hull, kit, pilot and scale, and each throws naming the faction when its kit or pilot is missing.</summary>
+    /// <summary>The shipped run's three rows, read as assets: each names its own faction in run order, its threat names that faction's signature ship and the rival's and minion's kits, each phase that sends waves draws its minions from an ordered range, and its minions fly their own chassis with paint for every silhouette slot. The rival resolves the signature ship and the minion its own chassis, each with its hull, kit, pilot and scale, and each throws naming the faction when its kit or pilot is missing.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class FactionSectorsEditModeTests
