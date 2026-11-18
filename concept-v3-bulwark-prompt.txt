@@ -1,0 +1,16 @@
+Use your image generation tool. Save every generated image as a PNG file into the folder ./out (relative to the current directory), named minion_01.png, minion_02.png, and so on. Do not edit or create any other files.
+
+Task: concept art for the MINION version of an enemy spaceship in a top-down arcade space shooter. It must read at a distance. On screen the rival ship is about 48 pixels across and its minions about 36, and a wave is one rival leading four minions. The player has to tell rival from minion at a glance from the silhouette alone, and still see they are the same faction's ships.
+
+The attached images:
+- Image 1 and Image 2 are the RIVAL ship, "Bulwark", top view and three-quarter view. This is the ship to derive the minion from.
+- Image 3 is a rejected minion: the rival with parts simply removed. It is too similar to the rival. Removing parts is not enough.
+- Image 4 and Image 5 are an approved example from another faction, top views of that faction's rival and its minion. Note the relationship: the minion keeps the rival's head and body language, but its wing size, its tail and its proportions are changed, so it reads as a smaller, simpler sibling and not as a damaged copy.
+
+About the rival: Bulwark is the heavy faction's ship. A broad armoured slab of a hull with a flat ram nose and a teardrop canopy, dark armour plates along its sides, and two engine pods at the back that end in angled fins. Its character is weight and bluntness. The minion should still feel heavy for its size.
+
+Design 6 different minions for Bulwark. Each one keeps the rival's cockpit and its material language, and is simpler than the rival (fewer separate shapes, at most five or six bold shapes in the top view). Each one changes the SILHOUETTE in a clear way, by modifying the rival's own forms: change proportions, re-angle, shorten, lengthen, merge, split, taper or reshape its major parts, and drop its small ones. Make the six ideas genuinely different from each other, from cautious to bold. Avoid ideas that only delete parts.
+
+Keep the reference's style exactly: flat cel-shaded hard-surface panels in the same palette as Images 1 and 2, constant-width thin dark outlines, no gradients, no textures, no glow, no background clutter.
+
+Each image shows ONE minion idea twice, side by side on a plain mid-gray background: a top view on the left (nose up, as in Image 1) and a three-quarter view on the right (as in Image 2). Under each, write one short line naming the idea.
