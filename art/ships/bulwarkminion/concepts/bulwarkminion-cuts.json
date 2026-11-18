@@ -1,0 +1,10 @@
+{
+ "base": "bulwark",
+ "note": "Concept render: the base source with these parts hidden; 'prong' is a placeholder slab to be modelled at blockout.",
+ "omit": [
+  "Canisters - Metal side modules",
+  "Armor - Upper shoulder guards",
+  "Armor - Side plates",
+  "Armor - Front plate"
+ ]
+}
