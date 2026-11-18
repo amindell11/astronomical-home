@@ -41,7 +41,5 @@ namespace Combat.Projectiles
             Hooked?.Invoke(new HookTarget(collider.attachedRigidbody, other as AsteroidDamage), transform.position);
             Dispose();
         }
-
-        protected override void OnHit(IDamageable other) { }
     }
 }

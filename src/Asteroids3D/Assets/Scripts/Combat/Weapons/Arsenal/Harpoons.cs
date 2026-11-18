@@ -77,8 +77,7 @@ namespace Combat.Weapons.Arsenal
         private void FixedUpdate()
         {
             if (tether == null) return;
-            var spec = Spec;
-            if (tether.Step(Time.fixedDeltaTime, spec) != TetherEnd.None)
+            if (tether.Step(Time.fixedDeltaTime, Spec) != TetherEnd.None)
                 tether = null;
         }
 

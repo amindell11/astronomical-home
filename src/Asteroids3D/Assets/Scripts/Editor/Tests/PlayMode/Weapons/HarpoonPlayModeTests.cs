@@ -38,8 +38,10 @@ namespace Tests.PlayMode.Weapons
         private sealed class MovingShooter : MonoBehaviour, IShooter
         {
             public Vector3 Velocity { get; set; }
-            public Rigidbody Body => GetComponent<Rigidbody>();
+            public Rigidbody Body { get; private set; }
             public Ships.Registry.ShipId Id => Ships.Registry.ShipId.Invalid;
+
+            private void Awake() => Body = GetComponent<Rigidbody>();
         }
 
         private sealed class DamageRecorder : MonoBehaviour, IDamageable
@@ -60,8 +62,8 @@ namespace Tests.PlayMode.Weapons
             var ship = new GameObject("Shooter") { layer = LayerIds.Ship };
             spawned.Add(ship);
             ship.transform.SetPositionAndRotation(Vector3.zero, GamePlane.Rotation);
-            shooter = ship.AddComponent<MovingShooter>();
             shooterBody = Body(ship, ShooterMass, kinematic: false);
+            shooter = ship.AddComponent<MovingShooter>();
 
             var prefab = TestAssets.Load<Harpoons>(PrefabPath);
             Assert.IsNotNull(prefab, PrefabPath);

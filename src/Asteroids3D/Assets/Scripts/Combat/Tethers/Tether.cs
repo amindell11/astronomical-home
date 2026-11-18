@@ -8,7 +8,6 @@ namespace Combat.Tethers
 {
     public enum TetherEnd { None, TimedOut, Lost, Cut, Snapped }
 
-    /// <summary>The body a tether holds, and the epoch that identifies that body after a pool recycle.</summary>
     public readonly struct HookTarget
     {
         public readonly Rigidbody Body;
@@ -63,12 +62,13 @@ namespace Combat.Tethers
             elapsed += dt;
             if (elapsed >= spec.MaxSeconds) return TetherEnd.TimedOut;
             if (!shooter || !shooter.gameObject.activeInHierarchy || !target.Alive) return TetherEnd.Lost;
-            if (!LineOfSight.IsClear(NosePoint, HookPoint, target.Body.transform, AsteroidMask)) return TetherEnd.Cut;
-
-            Length = TetherLaw.Reel(Length, spec.ReelRate, spec.MinLength, dt);
 
             var nosePoint = NosePoint;
             var hookPoint = HookPoint;
+            if (!LineOfSight.IsClear(nosePoint, hookPoint, target.Body.transform, AsteroidMask)) return TetherEnd.Cut;
+
+            Length = TetherLaw.Reel(Length, spec.ReelRate, spec.MinLength, dt);
+
             var offset = hookPoint - nosePoint;
             var distance = offset.magnitude;
             if (distance <= 0f) return TetherEnd.None;
