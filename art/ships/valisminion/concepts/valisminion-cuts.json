@@ -1,6 +1,6 @@
 {
  "base": "valis",
- "note": "Concept render: the base source with these parts hidden; 'prong' is a placeholder slab to be modelled at blockout.",
+ "note": "Talon concept. 'omit' is what the source does not link from the base. 'wings' and 'talon' are the local parts: the base wing meshes at a smaller scale, and the base aft prong cut short with a tinted tip. Points and normals are in SymmetryOrigin space, +X side.",
  "omit": [
   "20 lower swept blades",
   "21 lower blade lavender tips",
@@ -13,10 +13,55 @@
   "52 auxiliary vane feet",
   "53 auxiliary vane roots",
   "07 rear crest",
+  "10 upper swept wings",
+  "11 upper wing gray planes",
+  "12 upper wing lavender tips",
+  "12 upper wing lavender tips underside",
+  "13 charcoal trailing spars",
   "50 aft split prongs"
  ],
- "prong": {
+ "wings": {
+  "parts": [
+   "10 upper swept wings",
+   "11 upper wing gray planes",
+   "12 upper wing lavender tips",
+   "12 upper wing lavender tips underside",
+   "13 charcoal trailing spars"
+  ],
+  "pivot": [
+   1.2,
+   1.05,
+   0.3
+  ],
+  "scale": 0.8
+ },
+ "talon": {
   "part": "50 aft split prongs",
-  "length": 0.6
+  "name": "50 aft talons",
+  "cut": {
+   "co": [
+    0.9,
+    -3.25,
+    0.9
+   ],
+   "no": [
+    1.4,
+    -1.0,
+    0.0
+   ]
+  },
+  "tip": {
+   "co": [
+    0.8,
+    -3.05,
+    0.0
+   ],
+   "no": [
+    0.9,
+    -1.0,
+    0.0
+   ],
+   "material": "Lavender"
+  }
  }
 }

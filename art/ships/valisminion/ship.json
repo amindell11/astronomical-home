@@ -29,6 +29,17 @@
       "reason": "Intermediate empty under SymmetryOrigin keeping the approved X scale and tilt; reparenting the parts out from under it would leave shear that object transforms cannot hold."
     },
     {
+      "rule": "scale",
+      "parts": [
+        "10 upper swept wings",
+        "11 upper wing gray planes",
+        "12 upper wing lavender tips",
+        "12 upper wing lavender tips underside",
+        "13 charcoal trailing spars"
+      ],
+      "reason": "The minion's wings are Valis's linked wing meshes on local objects at 0.8 scale, so a Valis wing edit still reaches them; applying the scale would need local mesh copies that stop following Valis."
+    },
+    {
       "rule": "ngon",
       "parts": [
         "01 central fuselage"
