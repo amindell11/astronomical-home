@@ -58,6 +58,7 @@ namespace UI
         private IWeaponReadouts weapons;
         private EliteReadout eliteReadout;
         private HeldModsReadout heldMods;
+        private HullShieldReadout hullShield;
 
         public CommLine CommLine { get; private set; }
         public Camera WorldCamera => canvases[0].worldCamera;
@@ -116,8 +117,7 @@ namespace UI
         }
 
         public void BindShips(SubscribedSet<Ship> ships, Camera worldCamera) =>
-            shipStatus = ShipStatusOverlay.Create(canvases[0], ships, worldCamera, readoutFont, textMaterial,
-                lockReticle, projection);
+            shipStatus = ShipStatusOverlay.Create(canvases[0], ships, worldCamera, lockReticle, projection);
 
         private void OnDestroy()
         {
@@ -158,6 +158,9 @@ namespace UI
             if (lockOnAudio)
                 lockOnAudio.Initialize(readoutBuilder ? readoutBuilder.FirstReadout<ILockStateSource>() : null);
 
+            if (!hullShield)
+                hullShield = HullShieldReadout.Create(transform, labelFont, textMaterial, projection, () => IsVisible);
+            hullShield.Initialize(binding.Damage);
             if (!heldMods)
                 heldMods = HeldModsReadout.Create(transform, labelFont, textMaterial, projection, () => IsVisible);
             heldMods.Initialize(binding.Mods);

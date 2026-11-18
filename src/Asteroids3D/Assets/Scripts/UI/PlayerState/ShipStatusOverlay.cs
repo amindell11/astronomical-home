@@ -4,6 +4,7 @@ using Game.Player;
 using Ships;
 using Substrate;
 using UnityEngine;
+using UnityEngine.UI;
 using Utils;
 using UI.Projection;
 using UI.Weapons;
@@ -22,15 +23,13 @@ namespace UI.PlayerState
         private SubscribedSet<Ship> ships;
         private Camera worldCamera;
         private Canvas canvas;
-        private Font font;
-        private Material textMaterial;
         private CanvasGroup visibility;
         private CanvasGroup worldVisibility;
         private LockOnIndicator reticlePrefab;
         private CanopyProjection projection;
         private PlayerControls controls;
 
-        public static ShipStatusOverlay Create(Canvas hud, SubscribedSet<Ship> ships, Camera worldCamera, Font font, Material textMaterial,
+        public static ShipStatusOverlay Create(Canvas hud, SubscribedSet<Ship> ships, Camera worldCamera,
             LockOnIndicator reticlePrefab, CanopyProjection projection)
         {
             if (!reticlePrefab) throw new ArgumentNullException(nameof(reticlePrefab));
@@ -43,13 +42,15 @@ namespace UI.PlayerState
             overlay.canvas.worldCamera = hud.worldCamera;
             overlay.canvas.planeDistance = hud.worldCamera.nearClipPlane + .1f;
             overlay.canvas.sortingOrder = hud.sortingOrder - 1;
+            var scaler = root.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920f, 1080f);
+            scaler.matchWidthOrHeight = 1f;
             overlay.worldCamera = worldCamera;
-            overlay.textMaterial = textMaterial;
             overlay.reticlePrefab = reticlePrefab;
             overlay.projection = projection;
             overlay.worldVisibility = new GameObject("Ship lock overlay").AddComponent<CanvasGroup>();
             overlay.worldVisibility.gameObject.layer = hud.gameObject.layer;
-            overlay.font = font;
             overlay.ships = ships;
             ships.OnAdd += overlay.Add;
             ships.OnRemove += overlay.Remove;
@@ -101,8 +102,8 @@ namespace UI.PlayerState
 
         private void Add(Ship ship)
         {
-            indicators.Add(ship, ShipStatusIndicator.Create(canvas, worldCamera, ship, font, textMaterial,
-                projection, () => visibility.alpha > 0f));
+            indicators.Add(ship, ShipStatusIndicator.Create(canvas, worldCamera, ship, projection,
+                () => visibility.alpha > 0f));
             LockOnIndicator reticle = null;
             var appearance = InstrumentAppear.Create(worldVisibility.transform, projection,
                 () => worldVisibility.alpha > 0f && reticle.Visible);
