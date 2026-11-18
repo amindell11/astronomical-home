@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace Game.Preview
+namespace Game.Preview.Targets
 {
     /// <summary>
     /// What the preview control panel tunes: the host entries that preview it and the feel profiles it

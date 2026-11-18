@@ -9,6 +9,7 @@ using Substrate.Sessions;
 using Substrate.Services.Units;
 using Substrate.Services.Objectives;
 using Game.Player;
+using Game.Player.Recorders;
 using Ships;
 using Ships.Loadout;
 using Ships.Command;
