@@ -120,12 +120,12 @@ namespace Ships.Movement
             rb.maxLinearVelocity = speedCap;
         }
 
-        private void ApplyForces(Vector2 thrust, Vector2 strafe, Vector2 boost, float yawTorque, float targetBank, Vector2 brake)
+        private void ApplyForces(Vector2 thrust, Vector2 strafe, Vector2 boost, float yawTorque, float targetBank, Vector2 acceleration)
         {
             rb.AddForce(GamePlane.PlaneDirToWorld(thrust), ForceMode.Force);
             rb.AddForce(GamePlane.PlaneDirToWorld(strafe), ForceMode.Force);
             rb.AddForce(GamePlane.PlaneDirToWorld(boost), ForceMode.Impulse);
-            rb.AddForce(GamePlane.PlaneDirToWorld(brake), ForceMode.Acceleration);
+            rb.AddForce(GamePlane.PlaneDirToWorld(acceleration), ForceMode.Acceleration);
             rb.AddTorque(GamePlane.Normal * yawTorque, ForceMode.Force);
 
             var bankError = (targetBank - Kinematics.bank) * Mathf.Deg2Rad;

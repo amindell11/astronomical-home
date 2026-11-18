@@ -34,7 +34,6 @@ namespace Ships.Keystones.Kits
         private float resolvedAt;
 
         public override string DisplayName => "Ram";
-        public float Brake => brake;
         public float Window => window;
         public float ShipDamage => shipDamage;
         public bool Braking => brakeStepsLeft != -1;
@@ -54,7 +53,7 @@ namespace Ships.Keystones.Kits
             if (range < 1e-3f) return false;
             var toward = offset / range;
             if (Vector2.Dot(context.Self.Forward, toward) < Mathf.Cos(sightAngle * Mathf.Deg2Rad)) return false;
-            // When the brake ends the target has flown on and Bulwark, slowing linearly, has covered half its speed.
+            // At launch the target has flown on; Bulwark, decelerating linearly, covered half its speed.
             var atLaunch = offset + (context.Target.vel - context.Self.vel * 0.5f) * brake;
             var reach = atLaunch.magnitude;
             if (reach < 1e-3f) return true;

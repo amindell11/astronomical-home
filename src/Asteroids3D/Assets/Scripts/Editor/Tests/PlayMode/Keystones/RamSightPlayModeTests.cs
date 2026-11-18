@@ -58,7 +58,7 @@ namespace Tests.PlayMode.Keystones
             for (var i = 0; i < steps && rammed.Count == 0; i++)
             {
                 yield return new WaitForFixedUpdate();
-                // The commander steers before the kit activates, so seeking starts exempt one tick later.
+                // The commander steers before the kit activates, so it first sees the ram seeking one tick later.
                 var activatedThisTick = ram.Activations != seenActivations;
                 seenActivations = ram.Activations;
                 if (ram.SeeksContact && !activatedThisTick && commander.Navigator.AvoidanceExempt != target.Id) exemptWhileLive = false;
