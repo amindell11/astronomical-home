@@ -9811,6 +9811,7 @@ MonoBehaviour:
   wake: {fileID: 3317001904755546959}
   crown: {fileID: 0}
   localShipLength: 2
+  releaseDrift: 0.52
 --- !u!1 &5353937414800904326
 GameObject:
   m_ObjectHideFlags: 0

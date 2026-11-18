@@ -20,8 +20,8 @@ namespace Ships.Keystones
             var dash = Paint("VanguardWake", 0.7f);
             var ram = Paint("IonWake", 0.7f);
             var crown = Paint("PressureCrown", 0.55f);
-            Wire("Vanguard", dash, null);
-            Wire("Bulwark", ram, crown);
+            Wire("Vanguard", dash, null, 0.52f);
+            Wire("Bulwark", ram, crown, 0f);
             AssetDatabase.SaveAssets();
             Debug.Log("Painted slipstream bake complete.");
         }
@@ -56,7 +56,7 @@ namespace Ships.Keystones
             return material;
         }
 
-        private static void Wire(string ship, Material wake, Material crown)
+        private static void Wire(string ship, Material wake, Material crown, float releaseDrift)
         {
             var path = $"Assets/Prefabs/Keystones/{ship}_Dash.prefab";
             var root = PrefabUtility.LoadPrefabContents(path);
@@ -66,6 +66,7 @@ namespace Ships.Keystones
                 var trail = slipstream.transform;
                 var serialized = new SerializedObject(slipstream);
                 serialized.FindProperty("wake").objectReferenceValue = Configure(trail.Find("Streaks"), wake, 2);
+                serialized.FindProperty("releaseDrift").floatValue = releaseDrift;
                 if (crown)
                 {
                     serialized.FindProperty("crown").objectReferenceValue = Configure(trail.Find("Bow"), crown, 1);

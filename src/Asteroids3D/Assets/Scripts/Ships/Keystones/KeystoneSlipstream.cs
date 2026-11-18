@@ -13,6 +13,8 @@ namespace Ships.Keystones
         [SerializeField] private ParticleSystem wake;
         [SerializeField] private ParticleSystem crown;
         [SerializeField] private float localShipLength = 2f;
+        [Tooltip("Hull lengths the released paint travels down the last flight path.")]
+        [SerializeField] private float releaseDrift;
 
         private readonly ParticleSystem.Particle[] wakeStrokes = new ParticleSystem.Particle[2];
         private readonly ParticleSystem.Particle[] bowStroke = new ParticleSystem.Particle[1];
@@ -21,6 +23,7 @@ namespace Ships.Keystones
         private readonly Vector3[] vertices = new Vector3[Sections * 2];
         private int newest, count;
         private Vector3 tail;
+        private Vector3 lastRoot, releaseTravel;
         private float startedAt, lastActiveAt;
         private bool drawing;
 
@@ -56,7 +59,6 @@ namespace Ships.Keystones
                 mesh.triangles = triangles;
                 strips[i] = mesh;
                 wakeStrokes[i].SetMeshIndex(i);
-                wakeStrokes[i].startSize3D = Vector3.one;
             }
             var renderer = wake.GetComponent<ParticleSystemRenderer>();
             renderer.renderMode = ParticleSystemRenderMode.Mesh;
@@ -111,8 +113,15 @@ namespace Ships.Keystones
                     return;
                 }
                 var fade = 1f - Mathf.SmoothStep(0f, 1f, release);
-                SetCel(ref wakeStrokes[0], 3f, fade);
-                SetCel(ref wakeStrokes[1], 3f, fade * 0.64f);
+                for (var i = 0; i < wakeStrokes.Length; i++)
+                {
+                    if (releaseDrift > 0f)
+                    {
+                        wakeStrokes[i].position = lastRoot + releaseTravel * release;
+                        wakeStrokes[i].startSize3D = Vector3.one * Mathf.Lerp(1f, 0.72f, release);
+                    }
+                    SetCel(ref wakeStrokes[i], 3f, fade * (i == 0 ? 1f : 0.64f));
+                }
                 if (crown) SetCel(ref bowStroke[0], 3f, fade * 0.9f);
             }
             wake.SetParticles(wakeStrokes, wakeStrokes.Length);
@@ -130,6 +139,8 @@ namespace Ships.Keystones
                 + alongHull * alongHull / (0.5f * 0.5f));
             var head = new FlowSample { position = transform.position, tail = tail,
                 rear = transform.position + tail * (hullRadius * 0.74f) };
+            lastRoot = head.rear;
+            releaseTravel = tail * (length * releaseDrift);
             var step = count == 0 ? 0f : Vector3.Distance(head.position, history[newest].position);
             head.distance = count == 0 ? 0f : history[newest].distance + step;
             if (count == 0 || step >= length * 0.04f)
@@ -187,6 +198,7 @@ namespace Ships.Keystones
             strips[index].vertices = vertices;
             strips[index].RecalculateBounds();
             wakeStrokes[index].position = head.rear;
+            wakeStrokes[index].startSize3D = Vector3.one;
             SetCel(ref wakeStrokes[index], ActiveCel(age), age < 0f ? 0f : primary ? 1f : 0.64f);
         }
 
