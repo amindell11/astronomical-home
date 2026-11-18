@@ -15,6 +15,7 @@ using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Elements.Stations;
 using Substrate.Sectors.Elements.Stations.Visual;
 using UI.Hangar.Displays;
+using UI.Hangar.Hardware;
 using UI.Hangar.Hologram;
 using UI.Projection;
 using UI.Weapons;
@@ -70,6 +71,8 @@ namespace Tests.EditMode.Preview
                 AssetDatabase.LoadAssetAtPath<HangarHologramProfile>("Assets/Settings/UI/HangarHologram.asset"));
             AssertTarget(Target<HangarDisplayTarget>(), new[] { PreviewEntry.Combat },
                 AssetDatabase.LoadAssetAtPath<HangarDisplayProfile>("Assets/Settings/UI/HangarDisplayProfile.asset"));
+            AssertTarget(Target<HangarLightTarget>(), new[] { PreviewEntry.Combat },
+                AssetDatabase.LoadAssetAtPath<HangarLightProfile>("Assets/Settings/UI/HangarLightProfile.asset"));
             AssertTarget(Target<TacticsTarget>(), new[] { PreviewEntry.CrowdedFight },
                 new[] { "Aggressor", "Orbiter", "Kiter", "Lurker", "Elite", "Escort" }.Select(kind =>
                     AssetDatabase.LoadAssetAtPath<TacticsSettings>($"Assets/Settings/AI/Tactics/{kind}Temper.asset"))

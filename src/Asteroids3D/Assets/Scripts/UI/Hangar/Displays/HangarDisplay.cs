@@ -32,7 +32,8 @@ namespace UI.Hangar.Displays
         private MeshRenderer glass;
         private Camera host;
         private Func<CanopySettings> settings;
-        private float spillIntensity;
+        private Func<float> spillIntensity;
+        private Func<Color> backing;
         private float glitchAt = float.NegativeInfinity;
         private float powerDownAt = float.NegativeInfinity;
         private bool started;
@@ -62,17 +63,21 @@ namespace UI.Hangar.Displays
             };
             displayCamera.targetTexture = texture;
             block = new MaterialPropertyBlock();
-            spillIntensity = spill.intensity;
         }
 
-        public void Initialize(Camera host, MeshRenderer glass, Func<CanopySettings> settings)
+        public void Initialize(Camera host, MeshRenderer glass, Func<CanopySettings> settings,
+            Func<float> spillIntensity, Func<Color> backing)
         {
             if (!host) throw new ArgumentNullException(nameof(host));
             if (!glass) throw new ArgumentNullException(nameof(glass));
             if (settings == null) throw new ArgumentNullException(nameof(settings));
+            if (spillIntensity == null) throw new ArgumentNullException(nameof(spillIntensity));
+            if (backing == null) throw new ArgumentNullException(nameof(backing));
             this.host = host;
             this.glass = glass;
             this.settings = settings;
+            this.spillIntensity = spillIntensity;
+            this.backing = backing;
             spill.color = glass.sharedMaterial.GetColor(EmissionTintId);
             if (started) WireImage();
         }
@@ -106,7 +111,8 @@ namespace UI.Hangar.Displays
             block.SetTexture(EmissionMapId, image.Output);
             block.SetFloat(EmissionStrengthId, Level);
             glass.SetPropertyBlock(block);
-            spill.intensity = spillIntensity * Level;
+            spill.intensity = spillIntensity() * Level;
+            displayCamera.backgroundColor = backing();
         }
 
         private float LevelNow(float now)

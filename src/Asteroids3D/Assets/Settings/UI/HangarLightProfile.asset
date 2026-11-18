@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93aa49ddc91188b44b97c86c7da9c59c, type: 3}
+  m_Name: HangarLightProfile
+  m_EditorClassIdentifier: 
+  ambient: {r: 0.3, g: 0.32, b: 0.38, a: 1}
+  emissionStrength: 1.15
+  lensTint: {r: 0.8, g: 0.95, b: 1.5, a: 1}
+  hologramSpillColor: {r: 0.72, g: 0.9, b: 1, a: 1}
+  hologramSpill: 9
+  launchSpillColor: {r: 1, g: 0.72, b: 0.45, a: 1}
+  launchSpill: 2.5
+  launchGlow: {r: 1.15, g: 0.82, b: 0.52, a: 1}
+  mainScreenSpill: 4.55
+  detailScreenSpill: 1.3
+  weaponScreenSpill: 1.3
+  displayBacking: {r: 0.025, g: 0.05, b: 0.2, a: 1}
+  lampGlow: 0.9
+  lampGlowSize: 0.55
+  downlightGlow: 0.8
+  downlightGlowSize: 1.1
+  coneStrength: 0.28
+  coneLength: 5.5
+  coneWidth: 3.4
+  coneTopShare: 0.3
+  coneFalloff: 1.9

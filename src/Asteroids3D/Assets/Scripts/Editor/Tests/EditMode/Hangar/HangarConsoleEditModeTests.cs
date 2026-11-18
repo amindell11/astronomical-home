@@ -120,7 +120,8 @@ namespace Tests.EditMode.Hangar
             foreach (var name in new[]
                      {
                          "mainDisplay", "detailDisplay", "primaryDisplay", "ordnanceDisplay",
-                         "mainView", "detailView", "primaryView", "ordnanceView", "displayProfile",
+                         "mainView", "detailView", "primaryView", "ordnanceView", "displayProfile", "lightProfile",
+                         "launchSurface", "projectorSpill", "launchSpill",
                          "selectorKnob", "knob", "previousButton", "nextButton", "launchButton", "launchLegend",
                          "primaryPreviousButton", "primaryNextButton", "ordnancePreviousButton", "ordnanceNextButton"
                      })
@@ -265,6 +266,26 @@ namespace Tests.EditMode.Hangar
             {
                 Object.DestroyImmediate(instance.gameObject);
             }
+        }
+
+        [Test]
+        public void GlowCardsMatchTheLampsAndDownlights()
+        {
+            var console = AssetDatabase.LoadAssetAtPath<HangarConsole>(PrefabPath);
+            var data = new SerializedObject(console);
+            var lamps = data.FindProperty("lampGlows");
+            var downlights = data.FindProperty("downlightGlows");
+            var cones = data.FindProperty("downlightCones");
+            Assert.That(lamps.arraySize, Is.EqualTo(10));
+            Assert.That(downlights.arraySize, Is.EqualTo(6));
+            Assert.That(cones.arraySize, Is.EqualTo(6));
+            foreach (var cards in new[] { lamps, downlights, cones })
+                for (var i = 0; i < cards.arraySize; i++)
+                    Assert.IsTrue(cards.GetArrayElementAtIndex(i).FindPropertyRelative("card").objectReferenceValue,
+                        cards.name);
+            for (var i = 0; i < lamps.arraySize; i++)
+                Assert.That(lamps.GetArrayElementAtIndex(i).FindPropertyRelative("color").colorValue,
+                    Is.Not.EqualTo(Color.black), "lamp " + i);
         }
     }
 }

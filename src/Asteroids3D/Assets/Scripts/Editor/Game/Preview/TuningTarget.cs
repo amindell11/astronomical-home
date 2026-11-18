@@ -18,7 +18,7 @@ namespace Game.Preview
             new EliteTarget("Sector 2 elite", PreviewEntry.Sector2Elite, "EliteSector2"),
             new EliteTarget("Boss", PreviewEntry.Boss, "BossSector"),
             new CompanionTarget(), new TacticsTarget(), new HangarHologramTarget(), new HangarDisplayTarget(),
-            new StationsTarget()
+            new HangarLightTarget(), new StationsTarget()
         };
 
         public abstract string Name { get; }
