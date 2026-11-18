@@ -1145,7 +1145,7 @@ Format: **term** — definition. *(authority)*
   the weapon prefab, so an inspector edit to the prefab or to a module asset shows
   up and an edit to a live weapon instance does not. *(StatHash.OfLoadout, StatAttribute)*
 - **stat fingerprint** — a short hash of every balance number a run can draw from:
-  what the hangar offers, each run sector's wave director in run order (its pacing and minion counts, and
+  what the hangar offers, the lull mod pool, each run sector's wave director in run order (its pacing and minion counts, and
   the parts its enemies draw from) and the kill refill. Runs played against the
   same numbers share a fingerprint, so results are grouped by it. A number no run
   can reach does not move it, and neither does list order or listing a part twice,
