@@ -27,6 +27,12 @@ Only `role.hull` is required. Any other `role.*` name is an error. Visual roles 
 other. Objects in the `ignore` collection are fingerprinted and never exported. Visibility
 never matters: hidden and excluded parts are checked, fingerprinted and exported.
 
+**Derived ships.** A source made by `ship_new --base` library-links the base's parts (relative
+path) into its own role collections; its local parts, collider included, live in its own file.
+An edit to the base reaches the derived ship on its next export. Its lock covers the linked
+parts, so a base edit fails the derived ship's `ship_lock --mode verify`. A local object may not
+share a name with a linked one; every tool fails (exit 1) on such a source.
+
 ## ship.json
 
 ```json
@@ -178,7 +184,7 @@ blender -b --factory-startup --python-exit-code 1 -P art/tools/ship/ship_X.py --
 
 | Tool | Options | Does |
 |---|---|---|
-| `ship_new` | `--top IMG`, `--side IMG` | Creates the source: `SymmetryOrigin`, role and `ignore` collections, optional reference images (in `ignore`), ortho cameras, the flat review render preset. Refuses an existing file. |
+| `ship_new` | `--top IMG`, `--side IMG` \| `--base SHIP_JSON [--omit PART ...]` | Creates the source: `SymmetryOrigin`, role and `ignore` collections, optional reference images (in `ignore`), ortho cameras, the flat review render preset. `--base` derives the source instead (Derived ships above): it links the base's `SymmetryOrigin` and its visual and socket parts except `--omit`. Refuses an existing file, an `--omit` name that is not such a part, and `--base` with `--top` or `--side`. |
 | `ship_check` | | Findings for the rules above plus per-part fingerprints. |
 | `ship_lock` | `--mode lock\|verify\|reopen` | Writes `lock.json` beside the source; `verify` fails on changed geometry; `reopen` reports changed parts and the stages they invalidate (`uv`, `masks`, `breakup`) and rewrites the lock. |
 | `ship_render` | `--set ortho\|turnaround\|sheet\|scale\|compare`, `--size N`, `--before BLEND`, `--textured` | Workbench review renders of the visual roles; `compare` renders `--before` beside the source and counts changed pixels; `--textured` shows each material's active image texture instead of its flat colour. |
