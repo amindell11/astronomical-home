@@ -3,7 +3,7 @@ using Cameras;
 using UnityEditor;
 using UnityEngine;
 
-namespace Game.Preview
+namespace Game.Preview.Targets
 {
     internal sealed class FlightCameraTarget : TuningTarget
     {

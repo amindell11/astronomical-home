@@ -6,7 +6,7 @@ using Ships.Damage;
 using Ships.Registry;
 using Substrate.Services.Units;
 
-namespace Game.Player
+namespace Game.Player.Recorders
 {
     /// <summary>
     /// Damage the player dealt this run, one row per sector and damage kind. Consumer-side

@@ -1,8 +1,10 @@
 #if UNITY_EDITOR
 using System.Collections;
+using System.Collections.Generic;
 using AI.Scanning;
 using Asteroids;
 using Asteroids.Fields;
+using Asteroids.Fields.Core;
 using NUnit.Framework;
 using Substrate;
 using Substrate.Sectors.Elements.Placement;
@@ -63,7 +65,7 @@ namespace Tests.PlayMode.Sectors
             Assert.That(rock.GetComponentsInChildren<SphereCollider>(true), Is.Empty);
             Assert.That(Physics.CheckSphere(rock.transform.position, 0.1f, LayerIds.Mask(LayerIds.Asteroid)), Is.False);
             Assert.That(ClearPoint.IsClear(field, rockPlane + Vector2.right * (0.5f * rock.Radius), 0.1f), Is.False);
-            Assert.That(ClearPoint.IsClear(field, new Vector2(5000f, 5000f), 6f), Is.True);
+            Assert.That(ClearPoint.IsClear(field, BeyondFieldRadius(field), 6f), Is.True);
             Assert.That(ClearPoint.IsClear(null, rockPlane, 6f), Is.True);
         }
 
@@ -80,7 +82,7 @@ namespace Tests.PlayMode.Sectors
             var rock = buffer[0].source;
             Assert.That(rock, Is.Not.Null);
 
-            var p = new Vector2(500f, 0f);
+            var p = BeyondFieldRadius(field);
             Assert.That(ClearPoint.IsClear(field, p, 6f), Is.True);
             var world = GamePlane.PlanePointToWorld(p);
             rock.Rb.position = world;
@@ -88,6 +90,31 @@ namespace Tests.PlayMode.Sectors
             Physics.SyncTransforms();
             Assert.That(ClearPoint.IsClear(field, p, 6f), Is.False);
         }
+
+        [UnityTest]
+        public IEnumerator UnloadedChunkRock_RefusesAPointOnIt()
+        {
+            var field = SpawnAnchoredField();
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+
+            var start = field.Model.Layout.CellOf(new Vector2(300f, 0f));
+            var specs = new List<FieldAsteroidSpec>();
+            for (var i = 0; i < 200 && specs.Count == 0; i++)
+            {
+                var chunk = start + new Vector2Int(i, 0);
+                Assert.That(field.streamer.IsLoaded(chunk), Is.False, "the chunk lies beyond the unload radius");
+                field.Model.GetChunkContents(chunk, specs);
+            }
+            Assert.That(specs, Is.Not.Empty, "a rock seeds in an unloaded chunk");
+
+            var rockPlane = specs[0].PlanePosition + GamePlane.WorldPointToPlane(field.transform.position);
+            Assert.That(field.AnyObstacleWithin(rockPlane, 0.1f), Is.True);
+        }
+
+        // Specs past the field radius are culled, so only out there is a point guaranteed clear.
+        private static Vector2 BeyondFieldRadius(UpdatingAsteroidField field) =>
+            new(field.Model.Layout.FieldRadius + 50f, 0f);
 
         private UpdatingAsteroidField SpawnAnchoredField()
         {

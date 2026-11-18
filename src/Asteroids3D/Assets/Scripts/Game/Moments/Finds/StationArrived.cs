@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using Substrate.Sectors.Elements.Stations;
 
-namespace Game.Moments
+namespace Game.Moments.Finds
 {
     public sealed class StationArrived : IRunMoment
     {
