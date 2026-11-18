@@ -7,5 +7,66 @@
   "contour_roles": [
     "hull"
   ],
-  "exemptions": []
+  "exemptions": [
+    {
+      "rule": "origin",
+      "parts": [
+        "Armor - Lower skids",
+        "Assembly - Dorsal spine",
+        "Assembly - Lower skids",
+        "Assembly - Main deck",
+        "Hull - Dorsal spine",
+        "Hull - Main deck",
+        "Mirror - Dorsal spine",
+        "Mirror - Lower flaps",
+        "Mirror - Lower skids",
+        "Mirror - Main deck",
+        "Pivot - Dorsal spine",
+        "Pivot - Lower skids",
+        "Pivot - Main deck"
+      ],
+      "reason": "Inherited from the linked Bulwark parts, which fail the same rule in Bulwark's own check; fixing them is a Bulwark reopen."
+    },
+    {
+      "rule": "scale",
+      "parts": [
+        "Armor - Lower skids",
+        "Assembly - Lower skids",
+        "Cockpit - Canopy",
+        "Engine - Recessed nozzles",
+        "Engine - Shoulder booms",
+        "Engine - Shrouds",
+        "Hull - Aft bridge",
+        "Hull - Dorsal spine",
+        "Hull - Lower keel",
+        "Hull - Main deck",
+        "Hull - Ram nose",
+        "Lower flaps - Fins",
+        "Upper flaps - Fins",
+        "Upper flaps - Fixed brackets",
+        "Upper flaps - Moving leaves"
+      ],
+      "reason": "Inherited from the linked Bulwark parts, which fail the same rule in Bulwark's own check; fixing them is a Bulwark reopen."
+    },
+    {
+      "rule": "mirror",
+      "parts": [
+        "Armor - Lower skids",
+        "Hull - Dorsal spine",
+        "Lower flaps - Fins"
+      ],
+      "reason": "Inherited from the linked Bulwark parts, which fail the same rule in Bulwark's own check; fixing them is a Bulwark reopen."
+    },
+    {
+      "rule": "ngon",
+      "parts": [
+        "Engine - Shoulder booms",
+        "Engine - Shrouds",
+        "Hull - Aft bridge",
+        "Hull - Lower keel",
+        "Hull - Ram nose"
+      ],
+      "reason": "Inherited from the linked Bulwark parts, which fail the same rule in Bulwark's own check; fixing them is a Bulwark reopen."
+    }
+  ]
 }
