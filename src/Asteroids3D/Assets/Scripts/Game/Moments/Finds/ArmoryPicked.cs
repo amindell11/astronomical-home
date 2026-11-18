@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using Combat.Weapons;
 
-namespace Game.Moments
+namespace Game.Moments.Finds
 {
     public sealed class ArmoryPicked : IRunMoment
     {

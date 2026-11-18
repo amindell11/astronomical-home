@@ -11,6 +11,7 @@ using Game.Audio;
 using Game.Companion;
 using Game.Display;
 using Game.Moments;
+using Game.Moments.Finds;
 using Game.Player;
 using Game.Runs;
 using Game.Travel;

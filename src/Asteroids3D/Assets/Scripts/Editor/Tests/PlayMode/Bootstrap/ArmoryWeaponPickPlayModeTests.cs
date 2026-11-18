@@ -9,6 +9,7 @@ using Cameras;
 using Combat.Weapons;
 using Game;
 using Game.Moments;
+using Game.Moments.Finds;
 using Game.Runs;
 using NUnit.Framework;
 using Ships.Loadout;
