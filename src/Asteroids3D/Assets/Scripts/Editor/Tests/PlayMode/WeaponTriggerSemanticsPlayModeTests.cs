@@ -9,6 +9,7 @@ using Movement;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;
+using Ships.Registry;
 using Tests.Common;
 using Tests.PlayMode.Common;
 using Substrate;
@@ -309,7 +310,8 @@ namespace Tests.PlayMode
             var gunner = go.AddComponent<AI.Gunner>();
 
             Kinematics Pose() => new(new Vector2(10f, 0f), Vector2.zero, 0f, 0f, 0f);
-            gunner.Initialize(new FakeWeaponContext(), new CommandRecorder(), Pose, TestAimSettings.Perfect, new SeedScope(1));
+            gunner.Initialize(new FakeWeaponContext(), new CommandRecorder(), Pose, TestAimSettings.Perfect, new SeedScope(1),
+                ShipId.Invalid, new StubShipRegistry());
             gunner.Aim(new AI.Context.EnemyTarget
             {
                 kinematics = new Kinematics(Vector2.zero, Vector2.zero, 0f, 0f, 0f),
@@ -329,7 +331,8 @@ namespace Tests.PlayMode
             var context = new FakeWeaponContext();
             var recorder = new CommandRecorder();
             Kinematics Pose() => new(Vector2.zero, Vector2.zero, 0f, 0f, 0f);
-            gunner.Initialize(context, recorder, Pose, TestAimSettings.Perfect, new SeedScope(1));
+            gunner.Initialize(context, recorder, Pose, TestAimSettings.Perfect, new SeedScope(1),
+                ShipId.Invalid, new StubShipRegistry());
 
             var enemyPos = new Vector2(10f, 0f);
             var enemyVel = new Vector2(0f, 5f);
