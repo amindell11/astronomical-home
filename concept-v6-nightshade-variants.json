@@ -1,0 +1,152 @@
+{
+ "N5": {
+  "ops": [
+   {
+    "op": "affine",
+    "parts": [
+     "Rebuilt main wing blades",
+     "Main wing joint beds",
+     "Wing aft blade armor",
+     "Wing cooling louvers",
+     "Wing forward armor",
+     "Wing outer armor",
+     "Wing shoulder armor",
+     "Wing ventral aft armor",
+     "Wing ventral armor"
+    ],
+    "pivot": [
+     0.25,
+     0.6,
+     0.0
+    ],
+    "scale": [
+     0.72,
+     0.68,
+     1.0
+    ],
+    "rot_z": -5
+   },
+   {
+    "op": "affine",
+    "parts": [
+     "Rear swept wing pair",
+     "Tail fork armor",
+     "Tail joint beds",
+     "Tail tip armor",
+     "Tail ventral armor",
+     "Tail root armor"
+    ],
+    "pivot": [
+     0.18,
+     0.1,
+     0.12
+    ],
+    "scale": [
+     1.0,
+     1.15,
+     1.0
+    ]
+   }
+  ]
+ },
+ "N6": {
+  "ops": [
+   {
+    "op": "affine",
+    "parts": [
+     "Rebuilt main wing blades",
+     "Main wing joint beds",
+     "Wing aft blade armor",
+     "Wing cooling louvers",
+     "Wing forward armor",
+     "Wing outer armor",
+     "Wing shoulder armor",
+     "Wing ventral aft armor",
+     "Wing ventral armor"
+    ],
+    "pivot": [
+     0.25,
+     0.6,
+     0.0
+    ],
+    "scale": [
+     0.76,
+     0.72,
+     1.0
+    ],
+    "rot_z": -7
+   },
+   {
+    "op": "affine",
+    "parts": [
+     "Rear swept wing pair",
+     "Tail fork armor",
+     "Tail joint beds",
+     "Tail tip armor",
+     "Tail ventral armor",
+     "Tail root armor"
+    ],
+    "pivot": [
+     0.18,
+     0.1,
+     0.12
+    ],
+    "scale": [
+     1.0,
+     1.22,
+     1.0
+    ]
+   }
+  ]
+ },
+ "N7": {
+  "ops": [
+   {
+    "op": "affine",
+    "parts": [
+     "Rebuilt main wing blades",
+     "Main wing joint beds",
+     "Wing aft blade armor",
+     "Wing cooling louvers",
+     "Wing forward armor",
+     "Wing outer armor",
+     "Wing shoulder armor",
+     "Wing ventral aft armor",
+     "Wing ventral armor"
+    ],
+    "pivot": [
+     0.25,
+     0.6,
+     0.0
+    ],
+    "scale": [
+     0.68,
+     0.66,
+     1.0
+    ],
+    "rot_z": -3
+   },
+   {
+    "op": "affine",
+    "parts": [
+     "Rear swept wing pair",
+     "Tail fork armor",
+     "Tail joint beds",
+     "Tail tip armor",
+     "Tail ventral armor",
+     "Tail root armor"
+    ],
+    "pivot": [
+     0.18,
+     0.1,
+     0.12
+    ],
+    "scale": [
+     0.95,
+     1.3,
+     1.0
+    ]
+   }
+  ]
+ }
+}
