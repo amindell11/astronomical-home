@@ -169,9 +169,9 @@ MonoBehaviour:
   coneAnchor: {fileID: 2160622699355246981}
   image: {fileID: 1704173541430187468}
   surfaceSize: {x: 21.5, y: 14}
-  frameSide: 12.6
+  frameSide: 11
   frameBottom: 0.05
-  frameOffset: {x: 1.115, y: -2.882}
+  frameOffset: {x: 0.35, y: -3.1}
 --- !u!114 &1704173541430187468
 MonoBehaviour:
   m_ObjectHideFlags: 0

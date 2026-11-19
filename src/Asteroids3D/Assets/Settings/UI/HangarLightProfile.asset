@@ -24,11 +24,11 @@ MonoBehaviour:
   detailScreenSpill: 1.3
   weaponScreenSpill: 1.6
   displayBacking: {r: 0.025, g: 0.05, b: 0.2, a: 1}
-  lampGlow: 0.9
-  lampGlowSize: 0.55
+  lampGlow: 1
+  lampGlowSize: 0.45
   downlightGlow: 0.8
-  downlightGlowSize: 1.1
-  coneStrength: 0.28
+  downlightGlowSize: 0.9
+  coneStrength: 0.2
   coneLength: 5.5
   coneWidth: 3.4
   coneTopShare: 0.3
