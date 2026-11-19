@@ -1,7 +1,7 @@
 """Reproduce and test exporter ink bounds without exporting or saving the scene.
 
 Run in headless Blender. Writes paired 21:9 paint-only previews and ink-verification.json.
-Exit 1 means the original bars did not reproduce, the fix retained bars, or the
+Exit 1 means the pre-bound bars did not reproduce, the bound retained bars, or the
 central 16:9 region changed. The temporary ink image stays under .temp.
 """
 from pathlib import Path
@@ -14,7 +14,6 @@ import numpy as np
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 from deck_projection import game_projection
-from export_deck import bounded_ink
 
 (ROOT / '.temp').mkdir(exist_ok=True)
 bpy.ops.wm.open_mainfile(filepath=str(ROOT / 'deck.blend'))
@@ -62,19 +61,22 @@ for material in {m for obj in scene.objects if obj.type == 'MESH' and not obj.hi
     multiply.blend_type = 'MULTIPLY'
     multiply.inputs[0].default_value = 1
     multiply.inputs[1].default_value = tuple(principled.inputs['Base Color'].default_value)
-    ink = projected_ink(material)
-    material.node_tree.links.new(ink, multiply.inputs[2])
+    bounded = projected_ink(material)
+    assert bounded.node.type == 'MIX_RGB', 'Shared projected ink must end with its bounds mix'
+    assert tuple(bounded.node.inputs[2].default_value) == (1, 1, 1, 1)
+    unbounded = bounded.node.inputs[1].links[0].from_socket
+    material.node_tree.links.new(unbounded, multiply.inputs[2])
     emission = nodes.new('ShaderNodeEmission')
     material.node_tree.links.new(multiply.outputs[0], emission.inputs[0])
     material.node_tree.links.new(emission.outputs[0], output.inputs[0])
-    graphs.append((material, ink, multiply))
+    graphs.append((material, bounded, multiply))
 background.inputs[0].default_value = (1, 0, 1, 1)
 game_projection(scene, camera, 2560, 1080)
 images = []
 for label in ('unbounded', 'bounded'):
     if label == 'bounded':
-        for material, ink, multiply in graphs:
-            material.node_tree.links.new(bounded_ink(material, ink), multiply.inputs[2])
+        for material, bounded, multiply in graphs:
+            material.node_tree.links.new(bounded, multiply.inputs[2])
     scene.render.filepath = str(ROOT / 'previews' / ('deck-ink-' + label + '-21x9.png'))
     bpy.ops.render.render(write_still=True)
     image = bpy.data.images.load(scene.render.filepath, check_existing=False)
@@ -90,7 +92,7 @@ report = {'black_bar_pixel_boxes_xyxy': [[0, 450, 80, 490], [2480, 450, 2560, 49
           'black_linear_rgb_max': .005, 'unbounded_black_pixels': counts[0],
           'bounded_black_pixels': counts[1],
           'central_16x9_changed_pixels': int(np.any(before[:, 320:2240] != after[:, 320:2240], axis=2).sum()),
-          'test': 'Exact projected ink shader graph; no atlas bake or Unity import'}
+          'test': 'Shared projected_ink return compared with its pre-bound input; AST function extraction only, no exporter top-level execution, atlas bake or Unity import'}
 (ROOT / 'previews/ink-verification.json').write_text(json.dumps(report, indent=2))
 assert min(counts[0]) > 2000, report
 assert counts[1] == [0, 0], report

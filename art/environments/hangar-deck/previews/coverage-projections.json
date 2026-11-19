@@ -14,7 +14,9 @@
     "lens_mm": 33.33000183105469,
     "sensor_fit": "HORIZONTAL",
     "matrix_max_error": 2.153803912996466e-07,
-    "image": "deck-coverage-16x10.png"
+    "image": "deck-coverage-16x10.png",
+    "coverage_samples": 16,
+    "coverage_denoising": false
   },
   "3x2": {
     "resolution": [
@@ -31,7 +33,9 @@
     "lens_mm": 33.33000183105469,
     "sensor_fit": "HORIZONTAL",
     "matrix_max_error": 2.913260841452825e-07,
-    "image": "deck-coverage-3x2.png"
+    "image": "deck-coverage-3x2.png",
+    "coverage_samples": 16,
+    "coverage_denoising": false
   },
   "4x3": {
     "resolution": [
@@ -48,7 +52,9 @@
     "lens_mm": 33.33000183105469,
     "sensor_fit": "HORIZONTAL",
     "matrix_max_error": 2.589565193389376e-07,
-    "image": "deck-coverage-4x3.png"
+    "image": "deck-coverage-4x3.png",
+    "coverage_samples": 16,
+    "coverage_denoising": false
   },
   "16x9": {
     "resolution": [
@@ -65,7 +71,9 @@
     "lens_mm": 33.0,
     "sensor_fit": "AUTO",
     "matrix_max_error": 3.9070986623812587e-07,
-    "image": "deck-coverage-16x9.png"
+    "image": "deck-coverage-16x9.png",
+    "coverage_samples": 16,
+    "coverage_denoising": false
   },
   "21x9": {
     "resolution": [
@@ -82,7 +90,9 @@
     "lens_mm": 24.75,
     "sensor_fit": "HORIZONTAL",
     "matrix_max_error": 3.9070986623812587e-07,
-    "image": "deck-coverage-21x9.png"
+    "image": "deck-coverage-21x9.png",
+    "coverage_samples": 16,
+    "coverage_denoising": false
   },
   "32x9": {
     "resolution": [
@@ -99,6 +109,8 @@
     "lens_mm": 16.5,
     "sensor_fit": "HORIZONTAL",
     "matrix_max_error": 3.9070986623812587e-07,
-    "image": "deck-coverage-32x9.png"
+    "image": "deck-coverage-32x9.png",
+    "coverage_samples": 16,
+    "coverage_denoising": false
   }
 }

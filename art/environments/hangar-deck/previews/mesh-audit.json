@@ -2,17 +2,17 @@
   "objects": [
     {
       "name": "Deck | joined closed structure",
-      "vertices": 3188,
-      "triangles": 6424,
+      "vertices": 3444,
+      "triangles": 6928,
       "closed_manifold": true,
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
       "consistent_winding": true,
       "degenerate_faces": 0,
-      "tiny_faces_below_1e10": 0,
-      "minimum_face_area": 1.5529738606190335e-10,
-      "signed_volume": 3880.225686617192,
+      "tiny_faces_below_1e10": 3,
+      "minimum_face_area": 3.637978807091713e-12,
+      "signed_volume": 4090.7027101418635,
       "modifiers": [],
       "role": "ConsoleBody"
     },
@@ -1243,7 +1243,7 @@
       ]
     }
   ],
-  "total_triangles": 7676,
+  "total_triangles": 8180,
   "camera": {
     "position": [
       0.0,
@@ -1318,7 +1318,7 @@
       "closed_manifold": true
     }
   ],
-  "scene_total_triangles": 8008,
+  "scene_total_triangles": 8512,
   "positive_volume_intersections": [],
   "pressed_intersections": [],
   "press_travel": [

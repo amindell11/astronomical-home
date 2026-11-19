@@ -733,6 +733,13 @@ for face_zero in [bm.faces[index] for index in tiny_indices]:
 bm.to_mesh(body.data)
 bm.free()
 body.data.update()
+for name, section, mat in [
+        ('header crown closure', [(3.35, 10.61), (7.65, 10.61), (7.65, 15), (3.35, 15)], face),
+        ('console lower skirt', [(-2.0, -5), (2.35, -5), (2.35, .65), (-2.0, .20)], paint)]:
+    extension = world_loft('Construction | ' + name,
+                           [[(x, y, z) for y, z in section] for x in (-27, 27)], mat)
+    combine(body, extension)
+repair(body, True)
 DEPARTURES.extend([
     'Pod faces stay at -0.10; unchanged glass outlines sit at -0.20 in 45-degree charcoal recesses, without raised lips.',
     'Mirrored upper inner housing chamfers follow the screen slope; the rear shell follows the same outline without the old notch.',

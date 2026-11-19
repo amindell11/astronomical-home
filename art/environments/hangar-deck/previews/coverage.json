@@ -1,8 +1,9 @@
 {
-  "band_fraction": 0.015,
-  "band_rounding": "ceil(height * .015)",
+  "band_fraction": 0.03,
+  "band_rounding": "ceil(height * .03)",
   "magenta_rule_srgb_8bit": "R > 180 and G < 80 and B > 180",
   "antialias_chroma_rule_srgb_8bit": "R-G > 40 and B-G > 40",
+  "window_boundary_method": "Frozen pre-change chroma components with height >= 20% and area >= 0.5% of frame; exactly three main windows, plus two side windows in wide views. Include frozen isolated baseline chroma pixels within 3px of those windows when every RGB channel is below 80; these are pre-existing antialias fringe. Header/console envelopes use first/last window pixel per column, interpolated across opaque struts and side walls. All sky outside the frozen components is also counted. One-pixel dilation is diagnostic only, never the pass criterion.",
   "views": {
     "16x10": {
       "resolution": [
@@ -20,14 +21,179 @@
       "sensor_fit": "HORIZONTAL",
       "matrix_max_error": 2.153803912996466e-07,
       "image": "deck-coverage-16x10.png",
-      "band_rows": 18,
+      "coverage_samples": 16,
+      "coverage_denoising": false,
+      "band_rows": 36,
       "top_magenta_pixels": 0,
       "bottom_magenta_pixels": 0,
       "top_chroma_pixels": 0,
       "bottom_chroma_pixels": 0,
-      "left_edge_magenta_pixels": 430,
-      "right_edge_magenta_pixels": 430,
-      "bands_pass": true
+      "left_edge_magenta_pixels": 348,
+      "right_edge_magenta_pixels": 348,
+      "reference_windows": {
+        "image": "coverage-reference/deck-coverage-16x10.png",
+        "sha256": "f9d8725169499d74cff89c224f4607e54d22ac07cbf98b6e50dd63772c5e2662",
+        "window_count": 3,
+        "window_components": [
+          {
+            "pixels": 638548,
+            "bounds_xy_inclusive": [
+              398,
+              125,
+              1520,
+              884
+            ]
+          },
+          {
+            "pixels": 168542,
+            "bounds_xy_inclusive": [
+              0,
+              191,
+              612,
+              855
+            ]
+          },
+          {
+            "pixels": 168028,
+            "bounds_xy_inclusive": [
+              1307,
+              191,
+              1919,
+              855
+            ]
+          }
+        ],
+        "frozen_antialias_fringe_pixels": [
+          {
+            "xy": [
+              1486,
+              167
+            ],
+            "reference_rgb": [
+              60,
+              13,
+              59
+            ],
+            "distance_to_connected_window_px": 2.0
+          },
+          {
+            "xy": [
+              142,
+              203
+            ],
+            "reference_rgb": [
+              56,
+              11,
+              55
+            ],
+            "distance_to_connected_window_px": 2.0
+          },
+          {
+            "xy": [
+              138,
+              204
+            ],
+            "reference_rgb": [
+              61,
+              9,
+              60
+            ],
+            "distance_to_connected_window_px": 2.0
+          },
+          {
+            "xy": [
+              87,
+              218
+            ],
+            "reference_rgb": [
+              57,
+              12,
+              56
+            ],
+            "distance_to_connected_window_px": 2.0
+          },
+          {
+            "xy": [
+              1895,
+              228
+            ],
+            "reference_rgb": [
+              59,
+              9,
+              58
+            ],
+            "distance_to_connected_window_px": 2.0
+          },
+          {
+            "xy": [
+              11,
+              230
+            ],
+            "reference_rgb": [
+              56,
+              9,
+              54
+            ],
+            "distance_to_connected_window_px": 2.0
+          },
+          {
+            "xy": [
+              1908,
+              230
+            ],
+            "reference_rgb": [
+              56,
+              9,
+              55
+            ],
+            "distance_to_connected_window_px": 2.0
+          },
+          {
+            "xy": [
+              1914,
+              231
+            ],
+            "reference_rgb": [
+              54,
+              11,
+              52
+            ],
+            "distance_to_connected_window_px": 2.0
+          }
+        ],
+        "header_lower_edge_rows_min_max": [
+          125.0,
+          269.0
+        ],
+        "console_upper_surface_rows_min_max": [
+          543.0,
+          884.0
+        ]
+      },
+      "above_header_magenta_pixels": 0,
+      "above_header_chroma_pixels": 0,
+      "above_header_chroma_bounds_xy_inclusive": null,
+      "below_console_magenta_pixels": 0,
+      "below_console_chroma_pixels": 0,
+      "below_console_chroma_bounds_xy_inclusive": null,
+      "outside_windows_magenta_pixels": 0,
+      "outside_windows_chroma_pixels": 0,
+      "outside_windows_chroma_bounds_xy_inclusive": null,
+      "raw_connected_window_counts": {
+        "above_header_chroma_pixels": 8,
+        "below_console_chroma_pixels": 0,
+        "outside_windows_chroma_pixels": 8
+      },
+      "frozen_antialias_fringe": {
+        "baseline_pixels": 8,
+        "current_chroma_pixels": 8,
+        "byte_identical_pixels": 8,
+        "maximum_channel_difference": 0
+      },
+      "outside_windows_chroma_beyond_1px_reference_boundary_pixels": 0,
+      "bands_pass": true,
+      "window_openings_pass": true,
+      "coverage_pass": true
     },
     "3x2": {
       "resolution": [
@@ -45,14 +211,143 @@
       "sensor_fit": "HORIZONTAL",
       "matrix_max_error": 2.913260841452825e-07,
       "image": "deck-coverage-3x2.png",
-      "band_rows": 17,
+      "coverage_samples": 16,
+      "coverage_denoising": false,
+      "band_rows": 33,
       "top_magenta_pixels": 0,
       "bottom_magenta_pixels": 0,
       "top_chroma_pixels": 0,
       "bottom_chroma_pixels": 0,
-      "left_edge_magenta_pixels": 362,
-      "right_edge_magenta_pixels": 362,
-      "bands_pass": true
+      "left_edge_magenta_pixels": 294,
+      "right_edge_magenta_pixels": 294,
+      "reference_windows": {
+        "image": "coverage-reference/deck-coverage-3x2.png",
+        "sha256": "c25eea2221317f5d25b828c1a3e607f64d74c883cb1ae4f85c04e041dc3e3f4a",
+        "window_count": 3,
+        "window_components": [
+          {
+            "pixels": 454546,
+            "bounds_xy_inclusive": [
+              335,
+              127,
+              1283,
+              767
+            ]
+          },
+          {
+            "pixels": 119972,
+            "bounds_xy_inclusive": [
+              0,
+              183,
+              516,
+              742
+            ]
+          },
+          {
+            "pixels": 119595,
+            "bounds_xy_inclusive": [
+              1103,
+              183,
+              1619,
+              742
+            ]
+          }
+        ],
+        "frozen_antialias_fringe_pixels": [
+          {
+            "xy": [
+              140,
+              187
+            ],
+            "reference_rgb": [
+              58,
+              9,
+              57
+            ],
+            "distance_to_connected_window_px": 2.0
+          },
+          {
+            "xy": [
+              137,
+              188
+            ],
+            "reference_rgb": [
+              54,
+              11,
+              52
+            ],
+            "distance_to_connected_window_px": 1.4142135623730951
+          },
+          {
+            "xy": [
+              99,
+              198
+            ],
+            "reference_rgb": [
+              66,
+              8,
+              66
+            ],
+            "distance_to_connected_window_px": 2.0
+          },
+          {
+            "xy": [
+              1146,
+              675
+            ],
+            "reference_rgb": [
+              53,
+              11,
+              52
+            ],
+            "distance_to_connected_window_px": 2.0
+          },
+          {
+            "xy": [
+              772,
+              689
+            ],
+            "reference_rgb": [
+              61,
+              17,
+              60
+            ],
+            "distance_to_connected_window_px": 1.4142135623730951
+          }
+        ],
+        "header_lower_edge_rows_min_max": [
+          127.0,
+          246.0
+        ],
+        "console_upper_surface_rows_min_max": [
+          479.0,
+          767.0
+        ]
+      },
+      "above_header_magenta_pixels": 0,
+      "above_header_chroma_pixels": 0,
+      "above_header_chroma_bounds_xy_inclusive": null,
+      "below_console_magenta_pixels": 0,
+      "below_console_chroma_pixels": 0,
+      "below_console_chroma_bounds_xy_inclusive": null,
+      "outside_windows_magenta_pixels": 0,
+      "outside_windows_chroma_pixels": 0,
+      "outside_windows_chroma_bounds_xy_inclusive": null,
+      "raw_connected_window_counts": {
+        "above_header_chroma_pixels": 3,
+        "below_console_chroma_pixels": 2,
+        "outside_windows_chroma_pixels": 5
+      },
+      "frozen_antialias_fringe": {
+        "baseline_pixels": 5,
+        "current_chroma_pixels": 5,
+        "byte_identical_pixels": 5,
+        "maximum_channel_difference": 0
+      },
+      "outside_windows_chroma_beyond_1px_reference_boundary_pixels": 0,
+      "bands_pass": true,
+      "window_openings_pass": true,
+      "coverage_pass": true
     },
     "4x3": {
       "resolution": [
@@ -70,14 +365,82 @@
       "sensor_fit": "HORIZONTAL",
       "matrix_max_error": 2.589565193389376e-07,
       "image": "deck-coverage-4x3.png",
-      "band_rows": 17,
+      "coverage_samples": 16,
+      "coverage_denoising": false,
+      "band_rows": 33,
       "top_magenta_pixels": 0,
       "bottom_magenta_pixels": 0,
       "top_chroma_pixels": 0,
       "bottom_chroma_pixels": 0,
-      "left_edge_magenta_pixels": 322,
-      "right_edge_magenta_pixels": 322,
-      "bands_pass": true
+      "left_edge_magenta_pixels": 261,
+      "right_edge_magenta_pixels": 261,
+      "reference_windows": {
+        "image": "coverage-reference/deck-coverage-4x3.png",
+        "sha256": "4c7878852d1dec3839ec979f027a42920e2f639b33472da8394551fbce0bf052",
+        "window_count": 3,
+        "window_components": [
+          {
+            "pixels": 359074,
+            "bounds_xy_inclusive": [
+              298,
+              151,
+              1140,
+              720
+            ]
+          },
+          {
+            "pixels": 94757,
+            "bounds_xy_inclusive": [
+              0,
+              201,
+              459,
+              697
+            ]
+          },
+          {
+            "pixels": 94449,
+            "bounds_xy_inclusive": [
+              980,
+              201,
+              1439,
+              698
+            ]
+          }
+        ],
+        "frozen_antialias_fringe_pixels": [],
+        "header_lower_edge_rows_min_max": [
+          151.0,
+          259.0
+        ],
+        "console_upper_surface_rows_min_max": [
+          464.0,
+          720.0
+        ]
+      },
+      "above_header_magenta_pixels": 0,
+      "above_header_chroma_pixels": 0,
+      "above_header_chroma_bounds_xy_inclusive": null,
+      "below_console_magenta_pixels": 0,
+      "below_console_chroma_pixels": 0,
+      "below_console_chroma_bounds_xy_inclusive": null,
+      "outside_windows_magenta_pixels": 0,
+      "outside_windows_chroma_pixels": 0,
+      "outside_windows_chroma_bounds_xy_inclusive": null,
+      "raw_connected_window_counts": {
+        "above_header_chroma_pixels": 0,
+        "below_console_chroma_pixels": 0,
+        "outside_windows_chroma_pixels": 0
+      },
+      "frozen_antialias_fringe": {
+        "baseline_pixels": 0,
+        "current_chroma_pixels": 0,
+        "byte_identical_pixels": 0,
+        "maximum_channel_difference": 0
+      },
+      "outside_windows_chroma_beyond_1px_reference_boundary_pixels": 0,
+      "bands_pass": true,
+      "window_openings_pass": true,
+      "coverage_pass": true
     },
     "16x9": {
       "resolution": [
@@ -95,14 +458,119 @@
       "sensor_fit": "AUTO",
       "matrix_max_error": 3.9070986623812587e-07,
       "image": "deck-coverage-16x9.png",
-      "band_rows": 17,
-      "top_magenta_pixels": 24960,
-      "bottom_magenta_pixels": 1709,
-      "top_chroma_pixels": 25993,
-      "bottom_chroma_pixels": 1975,
-      "left_edge_magenta_pixels": 356,
-      "right_edge_magenta_pixels": 357,
-      "bands_pass": false
+      "coverage_samples": 16,
+      "coverage_denoising": false,
+      "band_rows": 33,
+      "top_magenta_pixels": 0,
+      "bottom_magenta_pixels": 0,
+      "top_chroma_pixels": 0,
+      "bottom_chroma_pixels": 0,
+      "left_edge_magenta_pixels": 256,
+      "right_edge_magenta_pixels": 257,
+      "reference_windows": {
+        "image": "coverage-reference/deck-coverage-16x9.png",
+        "sha256": "6819597ef40a98b80e61265a03a2ae590932aecfbf84b4aae73d9c347f32988e",
+        "window_count": 3,
+        "window_components": [
+          {
+            "pixels": 626042,
+            "bounds_xy_inclusive": [
+              403,
+              91,
+              1515,
+              842
+            ]
+          },
+          {
+            "pixels": 168306,
+            "bounds_xy_inclusive": [
+              0,
+              157,
+              615,
+              813
+            ]
+          },
+          {
+            "pixels": 167780,
+            "bounds_xy_inclusive": [
+              1304,
+              157,
+              1919,
+              813
+            ]
+          }
+        ],
+        "frozen_antialias_fringe_pixels": [
+          {
+            "xy": [
+              471,
+              109
+            ],
+            "reference_rgb": [
+              56,
+              9,
+              55
+            ],
+            "distance_to_connected_window_px": 2.0
+          },
+          {
+            "xy": [
+              448,
+              117
+            ],
+            "reference_rgb": [
+              58,
+              9,
+              58
+            ],
+            "distance_to_connected_window_px": 2.0
+          },
+          {
+            "xy": [
+              403,
+              154
+            ],
+            "reference_rgb": [
+              65,
+              18,
+              66
+            ],
+            "distance_to_connected_window_px": 2.0
+          }
+        ],
+        "header_lower_edge_rows_min_max": [
+          91.0,
+          233.0
+        ],
+        "console_upper_surface_rows_min_max": [
+          468.0,
+          842.0
+        ]
+      },
+      "above_header_magenta_pixels": 0,
+      "above_header_chroma_pixels": 0,
+      "above_header_chroma_bounds_xy_inclusive": null,
+      "below_console_magenta_pixels": 0,
+      "below_console_chroma_pixels": 0,
+      "below_console_chroma_bounds_xy_inclusive": null,
+      "outside_windows_magenta_pixels": 0,
+      "outside_windows_chroma_pixels": 0,
+      "outside_windows_chroma_bounds_xy_inclusive": null,
+      "raw_connected_window_counts": {
+        "above_header_chroma_pixels": 2,
+        "below_console_chroma_pixels": 0,
+        "outside_windows_chroma_pixels": 3
+      },
+      "frozen_antialias_fringe": {
+        "baseline_pixels": 3,
+        "current_chroma_pixels": 3,
+        "byte_identical_pixels": 3,
+        "maximum_channel_difference": 0
+      },
+      "outside_windows_chroma_beyond_1px_reference_boundary_pixels": 0,
+      "bands_pass": true,
+      "window_openings_pass": true,
+      "coverage_pass": true
     },
     "21x9": {
       "resolution": [
@@ -120,14 +588,185 @@
       "sensor_fit": "HORIZONTAL",
       "matrix_max_error": 3.9070986623812587e-07,
       "image": "deck-coverage-21x9.png",
-      "band_rows": 17,
-      "top_magenta_pixels": 25063,
-      "bottom_magenta_pixels": 1712,
-      "top_chroma_pixels": 26090,
-      "bottom_chroma_pixels": 1979,
+      "coverage_samples": 16,
+      "coverage_denoising": false,
+      "band_rows": 33,
+      "top_magenta_pixels": 0,
+      "bottom_magenta_pixels": 0,
+      "top_chroma_pixels": 0,
+      "bottom_chroma_pixels": 0,
       "left_edge_magenta_pixels": 0,
       "right_edge_magenta_pixels": 0,
-      "bands_pass": false
+      "reference_windows": {
+        "image": "coverage-reference/deck-coverage-21x9.png",
+        "sha256": "4b22221e2cd57d52986402a06f9826b8e195288ae16a2374a313281a5dbd2c3f",
+        "window_count": 5,
+        "window_components": [
+          {
+            "pixels": 626047,
+            "bounds_xy_inclusive": [
+              723,
+              91,
+              1835,
+              842
+            ]
+          },
+          {
+            "pixels": 170443,
+            "bounds_xy_inclusive": [
+              304,
+              156,
+              935,
+              813
+            ]
+          },
+          {
+            "pixels": 169899,
+            "bounds_xy_inclusive": [
+              1624,
+              156,
+              2255,
+              814
+            ]
+          },
+          {
+            "pixels": 69723,
+            "bounds_xy_inclusive": [
+              66,
+              207,
+              290,
+              600
+            ]
+          },
+          {
+            "pixels": 69717,
+            "bounds_xy_inclusive": [
+              2269,
+              207,
+              2493,
+              600
+            ]
+          }
+        ],
+        "frozen_antialias_fringe_pixels": [
+          {
+            "xy": [
+              1726,
+              98
+            ],
+            "reference_rgb": [
+              56,
+              9,
+              55
+            ],
+            "distance_to_connected_window_px": 2.0
+          },
+          {
+            "xy": [
+              1802,
+              133
+            ],
+            "reference_rgb": [
+              60,
+              13,
+              59
+            ],
+            "distance_to_connected_window_px": 2.0
+          },
+          {
+            "xy": [
+              416,
+              183
+            ],
+            "reference_rgb": [
+              59,
+              9,
+              58
+            ],
+            "distance_to_connected_window_px": 2.0
+          },
+          {
+            "xy": [
+              115,
+              206
+            ],
+            "reference_rgb": [
+              62,
+              21,
+              63
+            ],
+            "distance_to_connected_window_px": 2.0
+          },
+          {
+            "xy": [
+              272,
+              216
+            ],
+            "reference_rgb": [
+              58,
+              16,
+              58
+            ],
+            "distance_to_connected_window_px": 2.0
+          },
+          {
+            "xy": [
+              285,
+              431
+            ],
+            "reference_rgb": [
+              67,
+              17,
+              68
+            ],
+            "distance_to_connected_window_px": 2.0
+          },
+          {
+            "xy": [
+              1338,
+              778
+            ],
+            "reference_rgb": [
+              66,
+              24,
+              69
+            ],
+            "distance_to_connected_window_px": 2.0
+          }
+        ],
+        "header_lower_edge_rows_min_max": [
+          91.0,
+          543.0
+        ],
+        "console_upper_surface_rows_min_max": [
+          213.0,
+          842.0
+        ]
+      },
+      "above_header_magenta_pixels": 0,
+      "above_header_chroma_pixels": 0,
+      "above_header_chroma_bounds_xy_inclusive": null,
+      "below_console_magenta_pixels": 0,
+      "below_console_chroma_pixels": 0,
+      "below_console_chroma_bounds_xy_inclusive": null,
+      "outside_windows_magenta_pixels": 0,
+      "outside_windows_chroma_pixels": 0,
+      "outside_windows_chroma_bounds_xy_inclusive": null,
+      "raw_connected_window_counts": {
+        "above_header_chroma_pixels": 6,
+        "below_console_chroma_pixels": 1,
+        "outside_windows_chroma_pixels": 7
+      },
+      "frozen_antialias_fringe": {
+        "baseline_pixels": 7,
+        "current_chroma_pixels": 7,
+        "byte_identical_pixels": 7,
+        "maximum_channel_difference": 0
+      },
+      "outside_windows_chroma_beyond_1px_reference_boundary_pixels": 0,
+      "bands_pass": true,
+      "window_openings_pass": true,
+      "coverage_pass": true
     },
     "32x9": {
       "resolution": [
@@ -145,26 +784,698 @@
       "sensor_fit": "HORIZONTAL",
       "matrix_max_error": 3.9070986623812587e-07,
       "image": "deck-coverage-32x9.png",
-      "band_rows": 17,
-      "top_magenta_pixels": 25064,
-      "bottom_magenta_pixels": 1709,
-      "top_chroma_pixels": 26082,
-      "bottom_chroma_pixels": 1972,
+      "coverage_samples": 16,
+      "coverage_denoising": false,
+      "band_rows": 33,
+      "top_magenta_pixels": 0,
+      "bottom_magenta_pixels": 0,
+      "top_chroma_pixels": 0,
+      "bottom_chroma_pixels": 0,
       "left_edge_magenta_pixels": 0,
       "right_edge_magenta_pixels": 0,
-      "bands_pass": false
+      "reference_windows": {
+        "image": "coverage-reference/deck-coverage-32x9.png",
+        "sha256": "e41bd37ae5698b1ff0a3497895794333800a0906ef4f9537d207d533d34550c3",
+        "window_count": 5,
+        "window_components": [
+          {
+            "pixels": 626046,
+            "bounds_xy_inclusive": [
+              1363,
+              91,
+              2475,
+              842
+            ]
+          },
+          {
+            "pixels": 170443,
+            "bounds_xy_inclusive": [
+              944,
+              156,
+              1575,
+              814
+            ]
+          },
+          {
+            "pixels": 169924,
+            "bounds_xy_inclusive": [
+              2264,
+              156,
+              2895,
+              813
+            ]
+          },
+          {
+            "pixels": 69723,
+            "bounds_xy_inclusive": [
+              706,
+              207,
+              930,
+              599
+            ]
+          },
+          {
+            "pixels": 69712,
+            "bounds_xy_inclusive": [
+              2909,
+              207,
+              3134,
+              600
+            ]
+          }
+        ],
+        "frozen_antialias_fringe_pixels": [
+          {
+            "xy": [
+              2368,
+              99
+            ],
+            "reference_rgb": [
+              58,
+              9,
+              58
+            ],
+            "distance_to_connected_window_px": 1.4142135623730951
+          },
+          {
+            "xy": [
+              2396,
+              112
+            ],
+            "reference_rgb": [
+              54,
+              11,
+              52
+            ],
+            "distance_to_connected_window_px": 2.0
+          },
+          {
+            "xy": [
+              1408,
+              117
+            ],
+            "reference_rgb": [
+              59,
+              10,
+              58
+            ],
+            "distance_to_connected_window_px": 2.0
+          },
+          {
+            "xy": [
+              2440,
+              132
+            ],
+            "reference_rgb": [
+              66,
+              14,
+              67
+            ],
+            "distance_to_connected_window_px": 2.23606797749979
+          },
+          {
+            "xy": [
+              1148,
+              158
+            ],
+            "reference_rgb": [
+              53,
+              10,
+              52
+            ],
+            "distance_to_connected_window_px": 2.0
+          },
+          {
+            "xy": [
+              2761,
+              177
+            ],
+            "reference_rgb": [
+              59,
+              9,
+              58
+            ],
+            "distance_to_connected_window_px": 2.0
+          },
+          {
+            "xy": [
+              2494,
+              180
+            ],
+            "reference_rgb": [
+              61,
+              20,
+              61
+            ],
+            "distance_to_connected_window_px": 2.0
+          },
+          {
+            "xy": [
+              1045,
+              185
+            ],
+            "reference_rgb": [
+              54,
+              10,
+              52
+            ],
+            "distance_to_connected_window_px": 1.4142135623730951
+          },
+          {
+            "xy": [
+              2851,
+              194
+            ],
+            "reference_rgb": [
+              53,
+              10,
+              52
+            ],
+            "distance_to_connected_window_px": 2.0
+          },
+          {
+            "xy": [
+              2870,
+              197
+            ],
+            "reference_rgb": [
+              54,
+              10,
+              52
+            ],
+            "distance_to_connected_window_px": 2.0
+          },
+          {
+            "xy": [
+              966,
+              198
+            ],
+            "reference_rgb": [
+              59,
+              12,
+              55
+            ],
+            "distance_to_connected_window_px": 1.4142135623730951
+          },
+          {
+            "xy": [
+              762,
+              206
+            ],
+            "reference_rgb": [
+              63,
+              21,
+              65
+            ],
+            "distance_to_connected_window_px": 2.0
+          },
+          {
+            "xy": [
+              929,
+              501
+            ],
+            "reference_rgb": [
+              58,
+              16,
+              57
+            ],
+            "distance_to_connected_window_px": 2.0
+          }
+        ],
+        "header_lower_edge_rows_min_max": [
+          91.0,
+          544.0
+        ],
+        "console_upper_surface_rows_min_max": [
+          211.0,
+          842.0
+        ]
+      },
+      "above_header_magenta_pixels": 0,
+      "above_header_chroma_pixels": 0,
+      "above_header_chroma_bounds_xy_inclusive": null,
+      "below_console_magenta_pixels": 0,
+      "below_console_chroma_pixels": 0,
+      "below_console_chroma_bounds_xy_inclusive": null,
+      "outside_windows_magenta_pixels": 0,
+      "outside_windows_chroma_pixels": 0,
+      "outside_windows_chroma_bounds_xy_inclusive": null,
+      "raw_connected_window_counts": {
+        "above_header_chroma_pixels": 13,
+        "below_console_chroma_pixels": 0,
+        "outside_windows_chroma_pixels": 13
+      },
+      "frozen_antialias_fringe": {
+        "baseline_pixels": 13,
+        "current_chroma_pixels": 13,
+        "byte_identical_pixels": 13,
+        "maximum_channel_difference": 0
+      },
+      "outside_windows_chroma_beyond_1px_reference_boundary_pixels": 0,
+      "bands_pass": true,
+      "window_openings_pass": true,
+      "coverage_pass": true
     }
   },
   "reference_16x9": {
     "reference_image": "coverage-reference/deck-camera.png",
     "reference_mask": "coverage-reference/deck-mask.png",
-    "hardware_intersection_over_union": 1.0,
-    "changed_pixels": 0,
+    "mask_threshold": "Saved 8-bit alpha > 127 (the 0.5 silhouette threshold).",
+    "hardware_intersection_over_union": 0.9704231931948543,
+    "changed_pixels": 32795,
     "image_pixels": 2073600,
-    "added_pixels": 0,
+    "added_pixels": 32795,
     "removed_pixels": 0,
-    "edge_distance_95_percentile_px": 0.0,
-    "edge_distance_max_px": 0.0
+    "removed_pixels_bounds_xy_inclusive": null,
+    "added_mask_pixels_inside_frozen_windows": 0,
+    "added_mask_pixels_inside_frozen_windows_bounds_xy_inclusive": null,
+    "added_mask_pixels_inside_frozen_connected_windows": 0,
+    "added_mask_pixels_inside_frozen_connected_windows_bounds_xy_inclusive": null,
+    "added_mask_pixels_inside_frozen_strict_magenta_windows": 0,
+    "added_mask_pixels_inside_frozen_strict_magenta_windows_bounds_xy_inclusive": null,
+    "edge_distance_95_percentile_px": 14.0,
+    "edge_distance_max_px": 65.0
+  },
+  "rendered_rgb_16x9": {
+    "reference_image": "coverage-reference/deck-camera.png",
+    "new_image": "deck-camera.png",
+    "reference_sha256": "cf8a2b20ece7810dd028bfff390af6f71fdf6126a64711a3939c6c47ae022776",
+    "new_sha256": "33eb4a0227d413a85e388fecb559061580e4d9fa3bd753f688d4b0a4502b06e8",
+    "comparison": "Exact saved RGB bytes, without tolerance or denoising exclusions.",
+    "allowed_change_rule": "Previously pure backdrop above header/below console becomes hardware; baseline mask alpha = 0, new alpha > 0.",
+    "image_pixels": 2073600,
+    "changed_pixels": 55172,
+    "changed_bounds_xy_inclusive": [
+      0,
+      0,
+      1919,
+      1079
+    ],
+    "changed_top_region_pixels": 25993,
+    "changed_top_region_bounds_xy_inclusive": [
+      0,
+      0,
+      1919,
+      13
+    ],
+    "changed_bottom_region_pixels": 5707,
+    "changed_bottom_region_bounds_xy_inclusive": [
+      0,
+      922,
+      1919,
+      1079
+    ],
+    "changed_window_pixels": 1037,
+    "changed_non_backdrop_pixels": 22435,
+    "changed_antialias_boundary_pixels": 0,
+    "disallowed_changed_pixels": 23472,
+    "disallowed_changed_bounds_xy_inclusive": [
+      0,
+      13,
+      1919,
+      1079
+    ],
+    "maximum_channel_difference": 72,
+    "disallowed_maximum_channel_difference_counts": {
+      "one": 18652,
+      "two_to_five": 1919,
+      "over_five": 2901,
+      "over_five_in_first_20_rows": 2863
+    },
+    "mean_maximum_channel_difference_over_changed_pixels": 21.269883274124556,
+    "scope_pass": false,
+    "changed_components": {
+      "component_count": 14475,
+      "largest_regions": [
+        {
+          "pixel_count": 31574,
+          "bounds_xy_inclusive": [
+            0,
+            0,
+            1919,
+            21
+          ]
+        },
+        {
+          "pixel_count": 2270,
+          "bounds_xy_inclusive": [
+            0,
+            919,
+            61,
+            1015
+          ]
+        },
+        {
+          "pixel_count": 1792,
+          "bounds_xy_inclusive": [
+            1887,
+            920,
+            1919,
+            1015
+          ]
+        },
+        {
+          "pixel_count": 1179,
+          "bounds_xy_inclusive": [
+            1294,
+            1066,
+            1472,
+            1079
+          ]
+        },
+        {
+          "pixel_count": 1172,
+          "bounds_xy_inclusive": [
+            455,
+            1065,
+            624,
+            1079
+          ]
+        },
+        {
+          "pixel_count": 37,
+          "bounds_xy_inclusive": [
+            1457,
+            917,
+            1462,
+            926
+          ]
+        },
+        {
+          "pixel_count": 31,
+          "bounds_xy_inclusive": [
+            235,
+            909,
+            243,
+            913
+          ]
+        },
+        {
+          "pixel_count": 24,
+          "bounds_xy_inclusive": [
+            1778,
+            870,
+            1785,
+            875
+          ]
+        },
+        {
+          "pixel_count": 23,
+          "bounds_xy_inclusive": [
+            9,
+            887,
+            16,
+            895
+          ]
+        },
+        {
+          "pixel_count": 22,
+          "bounds_xy_inclusive": [
+            22,
+            879,
+            27,
+            885
+          ]
+        },
+        {
+          "pixel_count": 18,
+          "bounds_xy_inclusive": [
+            1889,
+            961,
+            1893,
+            971
+          ]
+        },
+        {
+          "pixel_count": 17,
+          "bounds_xy_inclusive": [
+            63,
+            940,
+            67,
+            947
+          ]
+        },
+        {
+          "pixel_count": 14,
+          "bounds_xy_inclusive": [
+            1894,
+            979,
+            1897,
+            985
+          ]
+        },
+        {
+          "pixel_count": 13,
+          "bounds_xy_inclusive": [
+            25,
+            889,
+            31,
+            893
+          ]
+        },
+        {
+          "pixel_count": 13,
+          "bounds_xy_inclusive": [
+            13,
+            895,
+            17,
+            901
+          ]
+        },
+        {
+          "pixel_count": 12,
+          "bounds_xy_inclusive": [
+            1888,
+            952,
+            1891,
+            956
+          ]
+        },
+        {
+          "pixel_count": 12,
+          "bounds_xy_inclusive": [
+            1886,
+            954,
+            1888,
+            959
+          ]
+        },
+        {
+          "pixel_count": 12,
+          "bounds_xy_inclusive": [
+            1428,
+            1068,
+            1432,
+            1072
+          ]
+        },
+        {
+          "pixel_count": 11,
+          "bounds_xy_inclusive": [
+            12,
+            883,
+            15,
+            888
+          ]
+        },
+        {
+          "pixel_count": 11,
+          "bounds_xy_inclusive": [
+            21,
+            891,
+            24,
+            894
+          ]
+        }
+      ],
+      "remaining_component_pixels": 16915
+    },
+    "disallowed_components": {
+      "component_count": 14627,
+      "largest_regions": [
+        {
+          "pixel_count": 5581,
+          "bounds_xy_inclusive": [
+            0,
+            13,
+            1919,
+            21
+          ]
+        },
+        {
+          "pixel_count": 37,
+          "bounds_xy_inclusive": [
+            1457,
+            917,
+            1462,
+            926
+          ]
+        },
+        {
+          "pixel_count": 31,
+          "bounds_xy_inclusive": [
+            235,
+            909,
+            243,
+            913
+          ]
+        },
+        {
+          "pixel_count": 30,
+          "bounds_xy_inclusive": [
+            13,
+            980,
+            22,
+            990
+          ]
+        },
+        {
+          "pixel_count": 30,
+          "bounds_xy_inclusive": [
+            1906,
+            997,
+            1911,
+            1005
+          ]
+        },
+        {
+          "pixel_count": 25,
+          "bounds_xy_inclusive": [
+            43,
+            954,
+            52,
+            958
+          ]
+        },
+        {
+          "pixel_count": 24,
+          "bounds_xy_inclusive": [
+            1778,
+            870,
+            1785,
+            875
+          ]
+        },
+        {
+          "pixel_count": 23,
+          "bounds_xy_inclusive": [
+            9,
+            887,
+            16,
+            895
+          ]
+        },
+        {
+          "pixel_count": 22,
+          "bounds_xy_inclusive": [
+            22,
+            879,
+            27,
+            885
+          ]
+        },
+        {
+          "pixel_count": 19,
+          "bounds_xy_inclusive": [
+            563,
+            1068,
+            573,
+            1070
+          ]
+        },
+        {
+          "pixel_count": 18,
+          "bounds_xy_inclusive": [
+            1889,
+            961,
+            1893,
+            971
+          ]
+        },
+        {
+          "pixel_count": 18,
+          "bounds_xy_inclusive": [
+            1462,
+            1077,
+            1472,
+            1079
+          ]
+        },
+        {
+          "pixel_count": 17,
+          "bounds_xy_inclusive": [
+            63,
+            940,
+            67,
+            947
+          ]
+        },
+        {
+          "pixel_count": 16,
+          "bounds_xy_inclusive": [
+            469,
+            1074,
+            475,
+            1077
+          ]
+        },
+        {
+          "pixel_count": 15,
+          "bounds_xy_inclusive": [
+            28,
+            962,
+            32,
+            967
+          ]
+        },
+        {
+          "pixel_count": 14,
+          "bounds_xy_inclusive": [
+            1894,
+            979,
+            1897,
+            985
+          ]
+        },
+        {
+          "pixel_count": 14,
+          "bounds_xy_inclusive": [
+            1910,
+            1003,
+            1915,
+            1007
+          ]
+        },
+        {
+          "pixel_count": 14,
+          "bounds_xy_inclusive": [
+            1389,
+            1069,
+            1394,
+            1073
+          ]
+        },
+        {
+          "pixel_count": 14,
+          "bounds_xy_inclusive": [
+            456,
+            1076,
+            461,
+            1079
+          ]
+        },
+        {
+          "pixel_count": 13,
+          "bounds_xy_inclusive": [
+            25,
+            889,
+            31,
+            893
+          ]
+        }
+      ],
+      "remaining_component_pixels": 17497
+    }
   },
   "preservation": {
     "controls_unchanged": true,
@@ -179,10 +1490,12 @@
   },
   "mesh_totals": {
     "hardware_objects": 28,
-    "hardware_vertices": 3888,
-    "hardware_triangles": 7676,
-    "scene_triangles": 8008
+    "hardware_vertices": 4144,
+    "hardware_triangles": 8180,
+    "scene_triangles": 8512
   },
-  "all_bands_pass": false,
-  "limitation": "Existing sky gaps inside the protected 16:9 frustum remain; closing them requires changing the approved silhouette."
+  "all_bands_pass": true,
+  "all_window_openings_pass": true,
+  "all_coverage_pass": true,
+  "limitation": "The literal rendered camera PNG also changes pixels outside the permitted backdrop regions; see rendered_rgb_16x9. Geometry preservation does not imply identical rendered RGB."
 }

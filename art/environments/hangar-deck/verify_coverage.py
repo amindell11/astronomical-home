@@ -41,7 +41,7 @@ scene.render.resolution_percentage = 100
 scene.render.image_settings.color_mode = 'RGB'
 scene.view_settings.view_transform = 'Standard'
 scene.view_settings.look = 'None'
-scene.cycles.samples = 4 if baseline else 16
+scene.cycles.samples = 16
 scene.cycles.use_denoising = False
 records = {}
 for label, width, height in VIEWS:
@@ -53,6 +53,8 @@ for label, width, height in VIEWS:
     record['matrix_max_error'] = max(errors)
     assert max(errors) < 1e-6, (label, errors)
     record['image'] = 'deck-coverage-' + label + '.png'
+    record['coverage_samples'] = scene.cycles.samples
+    record['coverage_denoising'] = scene.cycles.use_denoising
     scene.render.filepath = str(out / record['image'])
     bpy.ops.render.render(write_still=True)
     records[label] = record

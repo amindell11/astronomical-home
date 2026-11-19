@@ -23,5 +23,5 @@
     0
   ],
   "central_16x9_changed_pixels": 0,
-  "test": "Exact projected ink shader graph; no atlas bake or Unity import"
+  "test": "Shared projected_ink return compared with its pre-bound input; AST function extraction only, no exporter top-level execution, atlas bake or Unity import"
 }

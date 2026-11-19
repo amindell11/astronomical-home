@@ -3,14 +3,14 @@
     {
       "name": "Deck | joined closed structure",
       "role": "ConsoleBody",
-      "triangles": 6424,
-      "vertices": 3188,
+      "triangles": 6928,
+      "vertices": 3444,
       "closed": true,
       "manifold": true,
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 3880.225686617192,
+      "volume": 4090.7027101418635,
       "planar_screen": false,
       "zero_area_faces": 0
     },
@@ -393,7 +393,7 @@
       "zero_area_faces": 0
     }
   ],
-  "triangles": 7676,
+  "triangles": 8180,
   "parts": {
     "MainScreenGlass": "07 | Main rectangular display",
     "DetailScreenGlass": "07 | Detail rectangular display",

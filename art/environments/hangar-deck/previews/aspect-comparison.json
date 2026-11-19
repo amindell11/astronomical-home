@@ -1,9 +1,9 @@
 {
-  "hardware_intersection_over_union": 0.9967218715504684,
-  "changed_pixels": 3531,
+  "hardware_intersection_over_union": 0.9672719278803965,
+  "changed_pixels": 36326,
   "image_pixels": 2073600,
-  "edge_distance_95_percentile_px": 2.0,
-  "edge_distance_max_px": 11.661903789690601,
+  "edge_distance_95_percentile_px": 14.0,
+  "edge_distance_max_px": 65.0,
   "camera_views": {
     "16x9": {
       "size": [
@@ -13,8 +13,8 @@
       "horizontal_fov_degrees": 57.22091760309944,
       "vertical_fov_degrees": 34.11393,
       "shift_y": 0.0,
-      "top_edge_sky_pixels": 1920,
-      "bottom_edge_sky_pixels": 346
+      "top_edge_sky_pixels": 0,
+      "bottom_edge_sky_pixels": 0
     },
     "21x9": {
       "size": [
@@ -24,8 +24,8 @@
       "horizontal_fov_degrees": 72.05474481398043,
       "vertical_fov_degrees": 34.11393,
       "shift_y": 0.0,
-      "top_edge_sky_pixels": 1930,
-      "bottom_edge_sky_pixels": 346
+      "top_edge_sky_pixels": 0,
+      "bottom_edge_sky_pixels": 0
     },
     "32x9": {
       "size": [
@@ -35,8 +35,8 @@
       "horizontal_fov_degrees": 94.97910379549666,
       "vertical_fov_degrees": 34.11393,
       "shift_y": 0.0,
-      "top_edge_sky_pixels": 1930,
-      "bottom_edge_sky_pixels": 346
+      "top_edge_sky_pixels": 0,
+      "bottom_edge_sky_pixels": 0
     },
     "16x10": {
       "size": [
