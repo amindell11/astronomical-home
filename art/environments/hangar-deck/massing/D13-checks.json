@@ -1,0 +1,320 @@
+{
+  "variant": "D13",
+  "locked_object_count": 57,
+  "changed_locked_objects": [],
+  "locked_signatures": {
+    "Left | independent slim canopy strut": "cbcd8e4fa3865d2539de780517dc6f2d926bd3574f36e3ddd01c83c04d558e1c",
+    "Left | strut blue insert": "0abe5c368724fae39b78bfa0ad276ffe19c05504ebf642576ca00b2459b4368c",
+    "Left | strut foot to rear dash": "464e6b421274bedfc44b87b1fd3826d1239f1c94f8384a792d206a4684011a59",
+    "Right | independent slim canopy strut": "f026a2298d8899bc5c51e720b0184bc623ef7764d992b49964f628edb5c933f3",
+    "Right | strut blue insert": "9e58c5a8104991e8e7e58a26e50a93703ac225e15091f39df793657c5ea6a933",
+    "Right | strut foot to rear dash": "2aa3811e63c402889e167f1f908fb50d459c44b531dd16ab90c59438db2d88ec",
+    "Left | slim continuous outer pillar": "dce42ae7d73e1406d0008df02678886f36ddbd4904eb07d2e695293832e205a2",
+    "Left | low dash side bolster": "454369f3fe71a946f077539f88125712349fc4ddc6ffd72543b00f0f75330c98",
+    "Right | slim continuous outer pillar": "b05a4fde36d1e3acc5ea575f320bfe192bd513a50db1f6548974d372116a9a47",
+    "Right | low dash side bolster": "1074ba7e32952825517e8cdfd31f4e12d15c79cc77c7f1bd41c4d4ba8848ae51",
+    "Canopy | C stepped faceted brow": "46f78a26f8ab468dc284b496a7c9f4bdaaf140b295e88d5f5938e067d349e0bd",
+    "Header | blue inlay -8.6 0": "b0e658c730a23198009f949cb530056ee1372401ef39a496c0c4fed11a6b2eed",
+    "Header | blue inlay 0 0": "fd8ff1ad11a2afea194ece229939eb44dd2a74bdde880a78cb4c0335730c8713",
+    "Header | blue inlay 0 1": "23d93b10d46a0be32625cfce0ac487436675780a46e2df72cf9ed504811149bc",
+    "Header | blue inlay 8.6 0": "84983815e4121d21a1fa837213b3526303970a6f17cc1f2b49d12edb4a7b0dda",
+    "Left | mirrored deep faceted housing": "4eed6672aaa2d048ca684b4f0a4eaef922d17d66807041e371168dbf6c943e76",
+    "Left | full face carrier": "212b404fddb978d6bbc90fa839bc0076c64a61f78c820346c6b23ce0b059a5a4",
+    "SHIP | aperture slope": "125a9d3f00deeace9d80396f5968ce1f17ca1ce6df309de1d8223d0f9685dc3b",
+    "SHIP | thin dark reveal": "680cc32f467cc24534420f57e782e33d69ea88124f220c291e06edb65b3bfbd1",
+    "DETAIL | aperture slope": "035055da315864eebb4f94d385a75328e0e8bc42138787924e4b0909513d786a",
+    "DETAIL | thin dark reveal": "681b77eece980c694084edc0c48ac2a22c27f3d2707c092d26dfbeb35236ded3",
+    "Left | mirrored outer insert": "c5830611c767ce7ba944758a138d22f5140b0f049c7e1e2fc6780d9c296801c9",
+    "Right | mirrored deep faceted housing": "1473690707c558739e85111449266745cacd0f02f73e3a98649c6f9e517ed6a0",
+    "Right | full face carrier": "ac2e16ee48b585d88c371534a09e7d14ee31aa5023512cc70340dc3de1e3a3db",
+    "PRIMARY | aperture slope": "f6d5410f75fb8f3396e94be411aef5d1069f09b1a72fc113c6512a5e2b2c2dcc",
+    "PRIMARY | thin dark reveal": "a78d5fa9a7fae26c5665b59034f3873dbb049066e9f44c53baaa7bb254283e49",
+    "ORDNANCE | aperture slope": "af8dd32aee42af351cc14782df3127f29220ecef2b269a3e7bb9e5dec6017de6",
+    "ORDNANCE | thin dark reveal": "ae9d43f71c11392fcbe6a678ba2279d711f2ef65caf5bb365586964bfcaac381",
+    "Right | mirrored outer insert": "e0048df52a3253ba14d04e186b31f6aa9e16ea8175ef91c31257a1ac7570b47a",
+    "SHIP | screen": "b3b99da46eea48c57056f1b8adca3e88a7038057866feddd7c28bdf665abb5e1",
+    "DETAIL | screen": "d0fe8ca772eec76c150fba10da481fce9ef9e5e6d20895dcc1c4aa9990fee8ee",
+    "PRIMARY | screen": "a29f35c8e8804936588028352d08907cc950dc814decffbba43633a88d788c8e",
+    "ORDNANCE | screen": "15e9ea2e5b9649bdeece11b89471aa6ce1252bb3eedd235ab0897a95112e5778",
+    "PRIMARY PREVIOUS": "47d9df498e2455ef33d91b0b14b07abf05ecdcbaa690e793f17c47ed81a83d8c",
+    "PRIMARY NEXT": "9994243903273473ce7dd044cab27780f5409d964a77bea9627d380d169a11dd",
+    "ORDNANCE PREVIOUS": "c5cad48a0d97ace7c63ceffff2da2a5d0ba6291dad8f41e67c152501e9736e8e",
+    "ORDNANCE NEXT": "9bfa1c63afdc2e8cb9585b5d1373837db7c42712399904001b314188f1cd2b84",
+    "Projector | dark rim": "a3c155f1e7cd804bbcccb8b56fd3713c90004f5613cbc92677082127069600e7",
+    "PROJECTOR LENS": "744cc5d52563cc1a46d6e1f3edb830cf42b558925b3722e5155b2abe085e2b74",
+    "Hologram | swept wing envelope": "0212349f65ccabbf7f66286ca1bb807afd9928e21e4f024dc58774265de354fe",
+    "Hologram | wing perimeter": "08f5d9bb472fd3a99b7892bb9cc9c70b97c5ee9c5ceeb6b05535fffe0566338f",
+    "Hologram | raised fuselage": "7f460c0a48ad26db908079688b9b71a26efcc7bbebfe994ab4cefdfd809e702b",
+    "Hologram | fuselage ridge": "34401b6e38ee6b167d3d023f783f064975cb95858c530fc60875fe548d6e0785",
+    "Hologram | fuselage ridge.001": "6481de735424db058318345ef5c74c9254b2a09f51ed1821cf1f004610751586",
+    "Hologram | tail fin": "e4d927e0b352262c2a9f1c362fe2b78b4a5a8c07bf0b5326f389cee4e39f7c80",
+    "Hologram | fin edges": "ae9e1a6fe3c11f76db83589babbe056ca1d4d6940dbc87f0e5b75755419aee7a",
+    "Hologram | tail fin.001": "2a5f093a57315a40b769c0f00e74de21d2fd14a88a93d362c8463db4f20354a8",
+    "Hologram | fin edges.001": "6779379a9a9aaec93ffa4681ac2b06a66b85f102249913774eb3dd0d2b34552b",
+    "Projector | faint light planes": "5ad220dadd95376b8c2c938fdfe5e01a056defa78f1c41e4e3e323e15abd32aa",
+    "Window | flat blue space": "d356a95379c35fc0e3598a68955ce2ba1ebd9712ec3b4d7668b639e32d06d0ed",
+    "D10 | FIXED GAME CAMERA": "7c75b1127a09554c1c114f377eb0a806bb21e06a8849e6407250df77ed45b7f0",
+    "D10 | three quarter": "ec3cc9ac54dce1c44d5a37507c7e6f0985ae152aa23cc0db2ed72327d8b8cd74",
+    "D10 | TOP orthographic": "3944eeff73254b59ebe574c13170ec104eb37f90e2a9b05d6939b86eeb5b7ac6",
+    "D10 | SIDE orthographic": "df8d84e7966f4d9f1f4a3f0838c563b76c9fc1e95797b9a7df363e6515dc4c51",
+    "D10 | FRONT orthographic from viewer": "09f38bc579bbfb3ce14e892d27c43eae9d9c953103448e0c813cc11d0c53a9f5",
+    "Key | centred in front of all screens": "bd95049a04eb8cdbef52cf58273d39768660b6f083b01dc49035b0ef5449e92a",
+    "Guide | 5 x 4 x 4 hologram clear volume": "8e3e89316d3dc632a66771ff952636201212ed405cabc2a4900261eb574a54e4"
+  },
+  "lens_centre": [
+    0.0,
+    0.0,
+    2.4800000190734863
+  ],
+  "camera": {
+    "position": [
+      0.0,
+      -18.0,
+      6.800000190734863
+    ],
+    "vertical_fov_degrees": 34.11
+  },
+  "controls": {
+    "SHIP PREVIOUS": {
+      "margin_pixels": 122.4588623046875,
+      "blocked_samples": 0,
+      "blockers": [],
+      "bounds": [
+        491.74267578125,
+        900.57666015625,
+        556.8179321289062,
+        957.5411376953125
+      ]
+    },
+    "SHIP NEXT": {
+      "margin_pixels": 129.3111572265625,
+      "blocked_samples": 0,
+      "blockers": [],
+      "bounds": [
+        568.7723388671875,
+        893.4488525390625,
+        633.1646118164062,
+        950.6888427734375
+      ]
+    },
+    "SELECTOR KNOB": {
+      "margin_pixels": 119.59375,
+      "blocked_samples": 0,
+      "blockers": [],
+      "bounds": [
+        1322.0048828125,
+        880.5540771484375,
+        1401.399658203125,
+        960.40625
+      ]
+    },
+    "WEAPON SWITCH 1": {
+      "margin_pixels": 112.3138427734375,
+      "blocked_samples": 0,
+      "blockers": [],
+      "bounds": [
+        1474.2264404296875,
+        920.6228637695312,
+        1523.3026123046875,
+        967.6861572265625
+      ]
+    },
+    "WEAPON SWITCH 2": {
+      "margin_pixels": 107.68634033203125,
+      "blocked_samples": 0,
+      "blockers": [],
+      "bounds": [
+        1525.4599609375,
+        925.3565673828125,
+        1575.302734375,
+        972.3136596679688
+      ]
+    },
+    "WEAPON SWITCH 3": {
+      "margin_pixels": 103.09820556640625,
+      "blocked_samples": 0,
+      "blockers": [],
+      "bounds": [
+        1576.2674560546875,
+        930.0509643554688,
+        1626.86181640625,
+        976.9017944335938
+      ]
+    },
+    "WEAPON SWITCH 4": {
+      "margin_pixels": 98.5487060546875,
+      "blocked_samples": 0,
+      "blockers": [],
+      "bounds": [
+        1626.65380859375,
+        934.7064819335938,
+        1677.9859619140625,
+        981.4512939453125
+      ]
+    },
+    "LEFT SYSTEM SWITCH 1": {
+      "margin_pixels": 98.5487060546875,
+      "blocked_samples": 0,
+      "blockers": [],
+      "bounds": [
+        242.01402282714844,
+        934.7064819335938,
+        293.34613037109375,
+        981.4512939453125
+      ]
+    },
+    "LEFT SYSTEM SWITCH 2": {
+      "margin_pixels": 103.09820556640625,
+      "blocked_samples": 0,
+      "blockers": [],
+      "bounds": [
+        293.1380615234375,
+        930.0509643554688,
+        343.7325744628906,
+        976.9017944335938
+      ]
+    },
+    "LEFT SYSTEM SWITCH 3": {
+      "margin_pixels": 107.68634033203125,
+      "blocked_samples": 0,
+      "blockers": [],
+      "bounds": [
+        344.6972961425781,
+        925.3565673828125,
+        394.53997802734375,
+        972.3136596679688
+      ]
+    },
+    "LEFT SYSTEM SWITCH 4": {
+      "margin_pixels": 112.3138427734375,
+      "blocked_samples": 0,
+      "blockers": [],
+      "bounds": [
+        396.69744873046875,
+        920.6228637695312,
+        445.77362060546875,
+        967.6861572265625
+      ]
+    },
+    "LAUNCH": {
+      "margin_pixels": 73.50006103515625,
+      "blocked_samples": 0,
+      "blockers": [],
+      "bounds": [
+        836.4031372070312,
+        924.3721923828125,
+        1083.596923828125,
+        1006.4999389648438
+      ]
+    }
+  },
+  "screens": {
+    "SHIP": {
+      "camera_blocked": 0,
+      "light_blocked": 0,
+      "camera_samples": 341,
+      "light_samples": 1026
+    },
+    "DETAIL": {
+      "camera_blocked": 0,
+      "light_blocked": 0,
+      "camera_samples": 337,
+      "light_samples": 1017
+    },
+    "PRIMARY": {
+      "camera_blocked": 0,
+      "light_blocked": 0,
+      "camera_samples": 335,
+      "light_samples": 1008
+    },
+    "ORDNANCE": {
+      "camera_blocked": 0,
+      "light_blocked": 0,
+      "camera_samples": 349,
+      "light_samples": 1053
+    }
+  },
+  "errors": [],
+  "raised_panels": {
+    "ship-key ramp": {
+      "size": [
+        1.85,
+        1.6
+      ],
+      "rake_degrees": 44.99999901942451,
+      "centre": [
+        -3.659372091293335,
+        -2.3322854042053223,
+        1.4635363817214966
+      ],
+      "centre_lift_normal": 0.3,
+      "face_vertical_extent": 1.316342055797577,
+      "rear_top_z": 2.1217074394226074,
+      "fold_spread": 0.27
+    },
+    "selector ramp": {
+      "size": [
+        1.85,
+        1.6
+      ],
+      "rake_degrees": 44.99999901942451,
+      "centre": [
+        3.659372091293335,
+        -2.3322854042053223,
+        1.4635363817214966
+      ],
+      "centre_lift_normal": 0.3,
+      "face_vertical_extent": 1.316342055797577,
+      "rear_top_z": 2.1217074394226074,
+      "fold_spread": 0.27
+    }
+  },
+  "strut_landings": {
+    "Left": {
+      "object": "Console D13 | Left strut socket shoulder grown into band",
+      "unchanged_strut_end": [
+        -3.8360064029693604,
+        2.6500000953674316,
+        1.2000000476837158
+      ],
+      "socket_top_z": 1.32,
+      "socket_size": [
+        0.88,
+        1.12
+      ],
+      "foot_camera_pixel": [
+        640.7649536132812,
+        808.5108642578125
+      ]
+    },
+    "Right": {
+      "object": "Console D13 | Right strut socket shoulder grown into band",
+      "unchanged_strut_end": [
+        3.836005687713623,
+        2.6500000953674316,
+        1.2000000476837158
+      ],
+      "socket_top_z": 1.32,
+      "socket_size": [
+        0.88,
+        1.12
+      ],
+      "foot_camera_pixel": [
+        1279.2349853515625,
+        808.5108642578125
+      ]
+    }
+  },
+  "launch": {
+    "button_size": [
+      2.08,
+      0.8640000000000001
+    ],
+    "housing_size": [
+      2.52,
+      1.2480000000000002
+    ],
+    "scale_from_D12": 0.8
+  },
+  "console_intrudes_hologram": []
+}
