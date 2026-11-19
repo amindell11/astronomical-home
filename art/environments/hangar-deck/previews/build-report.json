@@ -3,14 +3,14 @@
     {
       "name": "Deck | joined closed structure",
       "role": "ConsoleBody",
-      "triangles": 5124,
-      "vertices": 2557,
+      "triangles": 6430,
+      "vertices": 3194,
       "closed": true,
       "manifold": true,
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 163.69582518087097,
+      "volume": 1663.0417083758994,
       "planar_screen": false,
       "zero_area_faces": 0
     },
@@ -393,7 +393,7 @@
       "zero_area_faces": 0
     }
   ],
-  "triangles": 6376,
+  "triangles": 7682,
   "parts": {
     "MainScreenGlass": "07 | Main rectangular display",
     "DetailScreenGlass": "07 | Detail rectangular display",
@@ -889,6 +889,7 @@
     "Camera uses old console AUTO sensor, 36 x 24 mm and 33 mm lens: vertical FOV 34.113931 degrees.",
     "Ship, selector and launch well floors are -.125 in their local frames to clear existing press travel.",
     "Raised housing skirts terminate inside the band front return; eight decorative switches extend invisibly into their well floors.",
-    "Well cutter mouths expand 0.3 percent to prevent coincident edges at the bevel boundary."
+    "Well cutter mouths expand 0.3 percent to prevent coincident edges at the bevel boundary.",
+    "Header, pod shoulders, band and canopy side walls continue to X = +/-27 for wide cameras."
   ]
 }

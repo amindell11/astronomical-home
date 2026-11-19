@@ -1,7 +1,7 @@
-"""Build deck.blend and five previews from the approved local massing/build_D13.py.
+"""Build deck.blend, five camera shapes and four construction views from local D13.
 
 Run Blender with --python-exit-code 1 --python build_deck.py. Options after --:
---no-render saves geometry and its audit; --camera-only limits previews;
+--no-render saves geometry and its audit; --camera-only renders the five game views;
 --samples sets Cycles samples. Invalid geometry raises before saving.
 """
 from pathlib import Path
@@ -533,6 +533,67 @@ outline = [(math.cos(i * math.pi / 6) * .43, math.sin(i * math.pi / 6) * .43) fo
 lens = local_mesh('09 | Projector lens', outline, .0125, -.0125, projector_basis, cyan, parts_collection)
 register(lens, 'ProjectorLens')
 
+camera_forward = Vector((0, .9936, -.1132)).normalized()
+camera_up = Vector((0, -camera_forward.z, camera_forward.y))
+camera_eye = Vector((0, -18, 6.8))
+side_clip = world_loft('Construction | protected horizontal camera span', [
+    [camera_eye + camera_forward * depth + Vector((u * depth, 0, 0)) + camera_up * v * depth
+     for u, v in [(-18 / 33 * 1.0001, -10), (18 / 33 * 1.0001, -10),
+                  (18 / 33 * 1.0001, 10), (-18 / 33 * 1.0001, 10)]]
+    for depth in (1, 100)])
+
+
+def side_extension(obj, protect_camera_span=False):
+    if protect_camera_span:
+        subtract(obj, side_clip, True)
+    BODY.append(obj)
+
+
+for hand, label in ((-1, 'left'), (1, 'right')):
+    header_sections = []
+    for x, lower in ((12.35, 8.4132), (15.5, 8.40), (27, 8.40)):
+        header_sections.append([(hand * x, y, z) for y, z in [
+            (3.35, 10.62), (7.65, 10.62), (7.65, lower + .60),
+            (3.90, lower), (3.35, lower + .30)]])
+    side_extension(world_loft('Deck | ' + label + ' header continuation', header_sections,
+                            face, [0, 0, 3, 2, 1]))
+
+    band_sections = []
+    for x, y, z in ((8.80, -2.471, .5574), (11.3, -3.5, .35),
+                    (15.0, -4.5, .35), (27, -4.5, .35)):
+        section = [(hand * x, y + dy, z + dz) for dy, dz in D['BAND_SECTION']]
+        section += [(hand * x, 2.35, .86), (hand * x, 2.35, .64)]
+        section += [(hand * x, y + dy, z + dz - .22) for dy, dz in reversed(D['BAND_SECTION'][2:])]
+        band_sections.append(section)
+    side_extension(world_loft('Deck | ' + label + ' band continuation', band_sections,
+                            face, [0, 1, 1, 2, 1, 1, 0, 0, 0, 0, 0, 0]), True)
+
+    housing_sections = []
+    for x, front_y, shoulder_y, height in ((10.25, -2.0, .20, 4.36),
+                                           (11.3, -3.0, .30, 4.25),
+                                           (14.5, -4.4, -.80, 3.55),
+                                           (27, -4.4, -.80, 3.55)):
+        housing_sections.append([(hand * x, y, z) for y, z in [
+            (front_y, .10), (front_y, 1.0), (shoulder_y - .30, height - .20),
+            (shoulder_y, height), (2.55, height - .50), (2.55, .10)]])
+    side_extension(world_loft('Deck | ' + label + ' outer housing shoulder', housing_sections,
+                            face, [1, 1, 2, 3, 0, 0]), True)
+
+    wall_sections = []
+    for outer in (False, True):
+        wall_sections.append([(hand * x, y, z) for x, y, z in [
+            (27 if outer else 13.3, -4.0, -.5),
+            (27 if outer else 13.3, -4.0, 1.4),
+            (27 if outer else 14.4, -.6, 4.0),
+            (27 if outer else 15.4, 3.35, 8.75),
+            (27 if outer else 15.8, 4.15, 10.5),
+            (27 if outer else 15.8, 5.0, 10.5),
+            (27 if outer else 13.8, 3.3, -.5)]])
+    side_extension(world_loft('Deck | ' + label + ' canopy side wall', wall_sections,
+                            face, [0, 1, 2, 1, 0, 0, 0]))
+
+remove(side_clip)
+
 # A single union removes hidden interfaces between all intersecting structure pieces.
 body = BODY[0]
 body.name = 'Deck | joined closed structure'
@@ -582,6 +643,8 @@ for centre in (-8.6, 0, 8.6):
     accent('Deck | header cyan strip ' + str(centre), [(-.475, -.0325), (.475, -.0325), (.475, .0325), (-.475, .0325)],
            0, -.035, basis)
 
+
+
 repair(body, True)
 bm = bmesh.new()
 bm.from_mesh(body.data)
@@ -615,6 +678,7 @@ DEPARTURES.extend([
     'Raised housing skirts terminate inside the band front return; eight decorative switches extend invisibly into their well floors.',
     'Well cutter mouths expand 0.3 percent to prevent coincident edges at the bevel boundary.'
 ])
+DEPARTURES.append('Header, pod shoulders, band and canopy side walls continue to X = +/-27 for wide cameras.')
 
 freestyle = bpy.context.view_layer.freestyle_settings
 freestyle.crease_angle = math.radians(134.43)
@@ -650,6 +714,17 @@ gamecam.data.sensor_fit = 'AUTO'
 gamecam.location = (0, -18, 6.8)
 gamecam.rotation_euler = Vector((0, .9936, -.1132)).to_track_quat('-Z', 'Y').to_euler()
 scene.camera = gamecam
+bpy.context.view_layer.update()
+
+subject = [obj.matrix_world @ Vector(corner) for obj in scene.objects
+           if obj.type == 'MESH' and not obj.get('preview_only') for corner in obj.bound_box]
+for camera in (D['threecam'], D['topcam'], D['sidecam'], D['frontcam']):
+    inverse = camera.matrix_world.inverted()
+    local = [inverse @ p for p in subject]
+    xmin, xmax = min(p.x for p in local), max(p.x for p in local)
+    ymin, ymax = min(p.y for p in local), max(p.y for p in local)
+    camera.location += camera.matrix_world.to_3x3() @ Vector(((xmin + xmax) / 2, (ymin + ymax) / 2, 0))
+    camera.data.ortho_scale = max((xmax - xmin) / .89, (ymax - ymin) * (16 / 9) / .89)
 bpy.context.view_layer.update()
 
 
@@ -696,6 +771,16 @@ scene.render.filepath = str(PREVIEWS / 'deck-camera.png')
 bpy.ops.wm.save_as_mainfile(filepath=str(ROOT / 'deck.blend'))
 if not ARGS.no_render:
     bpy.ops.render.render(write_still=True)
+    for suffix, width, height in [('21x9', 2560, 1080), ('32x9', 3840, 1080),
+                                  ('16x10', 1920, 1200), ('4x3', 1440, 1080)]:
+        scene.render.resolution_x, scene.render.resolution_y = width, height
+        gamecam.data.sensor_fit = 'HORIZONTAL'
+        gamecam.data.lens = 33 * min(1, (16 / 9) / (width / height))
+        scene.render.filepath = str(PREVIEWS / ('deck-camera-' + suffix + '.png'))
+        bpy.ops.render.render(write_still=True)
+    scene.render.resolution_x, scene.render.resolution_y = 1920, 1080
+    gamecam.data.sensor_fit = 'AUTO'
+    gamecam.data.lens = 33
     if not ARGS.camera_only:
         backdrop = bpy.data.objects['19 | Distant space']
         backdrop.hide_render = True

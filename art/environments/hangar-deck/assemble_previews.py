@@ -1,4 +1,4 @@
-"""Assemble camera comparisons and a labelled exporter-parts sheet from local renders."""
+"""Assemble camera comparisons, aspect measurements and an exporter-parts sheet from local renders."""
 from pathlib import Path
 import json
 import numpy as np
@@ -105,3 +105,33 @@ overlay[a&~b]=[255,70,70]
 overlay[b&~a]=[40,255,220]
 Image.fromarray(overlay).save(OUT/'silhouette-difference.png')
 print(json.dumps(metrics))
+
+reference = np.array(Image.open(OUT/'reference/deck-mask.png'))[:, :, 3] > 127
+current = masks[1]
+old_edge = reference ^ binary_erosion(reference)
+new_edge = current ^ binary_erosion(current)
+distances = np.concatenate([distance_transform_edt(~old_edge)[new_edge],
+                            distance_transform_edt(~new_edge)[old_edge]])
+coverage = {'hardware_intersection_over_union': float((reference & current).sum() / (reference | current).sum()),
+            'changed_pixels': int((reference ^ current).sum()), 'image_pixels': int(reference.size),
+            'edge_distance_95_percentile_px': float(np.percentile(distances, 95)),
+            'edge_distance_max_px': float(distances.max()), 'camera_views': {}}
+for suffix in ('', '-21x9', '-32x9', '-16x10', '-4x3'):
+    mask = np.array(Image.open(OUT/('deck-mask' + suffix + '.png')))[:, :, 3] > 127
+    height, width = mask.shape
+    horizontal_tangent = 18 / 33 * max(1, (width / height) / (16 / 9))
+    coverage['camera_views'][suffix.lstrip('-') or '16x9'] = {
+        'size': [width, height],
+        'horizontal_fov_degrees': float(np.degrees(2 * np.arctan(horizontal_tangent))),
+        'vertical_fov_degrees': float(np.degrees(2 * np.arctan(horizontal_tangent * height / width))),
+        'top_edge_sky_pixels': int((~mask[0]).sum()),
+        'bottom_edge_sky_pixels': int((~mask[-1]).sum())}
+baseline_audit = json.loads((OUT/'reference/mesh-audit.json').read_text())
+coverage['moving_controls_unchanged'] = audit['controls'] == baseline_audit['controls']
+coverage['screen_glasses_unchanged'] = audit['screens'] == baseline_audit['screens']
+(OUT/'aspect-comparison.json').write_text(json.dumps(coverage, indent=2))
+overlay = np.array(deck)
+overlay[reference & ~current] = [255, 70, 70]
+overlay[current & ~reference] = [40, 255, 220]
+Image.fromarray(overlay).save(OUT/'deck-extension-difference.png')
+print(json.dumps(coverage))

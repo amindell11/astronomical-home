@@ -1,0 +1,61 @@
+{
+  "hardware_intersection_over_union": 1.0,
+  "changed_pixels": 0,
+  "image_pixels": 2073600,
+  "edge_distance_95_percentile_px": 0.0,
+  "edge_distance_max_px": 0.0,
+  "camera_views": {
+    "16x9": {
+      "size": [
+        1920,
+        1080
+      ],
+      "horizontal_fov_degrees": 57.22091933193043,
+      "vertical_fov_degrees": 34.11393115323412,
+      "top_edge_sky_pixels": 1920,
+      "bottom_edge_sky_pixels": 346
+    },
+    "21x9": {
+      "size": [
+        2560,
+        1080
+      ],
+      "horizontal_fov_degrees": 72.0547467702072,
+      "vertical_fov_degrees": 34.11393115323412,
+      "top_edge_sky_pixels": 2560,
+      "bottom_edge_sky_pixels": 346
+    },
+    "32x9": {
+      "size": [
+        3840,
+        1080
+      ],
+      "horizontal_fov_degrees": 94.97910584399831,
+      "vertical_fov_degrees": 34.11393115323412,
+      "top_edge_sky_pixels": 3840,
+      "bottom_edge_sky_pixels": 346
+    },
+    "16x10": {
+      "size": [
+        1920,
+        1200
+      ],
+      "horizontal_fov_degrees": 57.22091933193043,
+      "vertical_fov_degrees": 37.64942003648014,
+      "top_edge_sky_pixels": 1920,
+      "bottom_edge_sky_pixels": 1834
+    },
+    "4x3": {
+      "size": [
+        1440,
+        1080
+      ],
+      "horizontal_fov_degrees": 57.22091933193043,
+      "vertical_fov_degrees": 44.49804731442473,
+      "top_edge_sky_pixels": 1440,
+      "bottom_edge_sky_pixels": 1440
+    }
+  },
+  "moving_controls_unchanged": true,
+  "screen_glasses_unchanged": true
+}

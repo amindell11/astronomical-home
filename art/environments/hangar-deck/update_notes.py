@@ -8,6 +8,7 @@ audit=json.loads((OUT/'mesh-audit.json').read_text())
 build=json.loads((OUT/'build-report.json').read_text())
 rectangles=json.loads((OUT/'screen-rectangles.json').read_text())
 comparison=json.loads((OUT/'silhouette-comparison.json').read_text())
+aspect=json.loads((OUT/'aspect-comparison.json').read_text())
 def vec(values):
     return '('+', '.join(f'{v:.6f}' for v in values)+')'
 def name(value):
@@ -60,7 +61,19 @@ for d in build['departures']:
     lines.append('- '+d)
 lines += ['', 'The camera overlay is an exact 50% blend at 1920 by 1080. The comparison sheet places the two native-resolution renders side by side with labels. The false-colour parts sheet includes each exporter role and its corresponding index.',
           '', f'The unlit hardware masks have intersection-over-union {comparison["hardware_intersection_over_union"]*100:.4f}%. They differ at {comparison["changed_pixels"]:,} of {comparison["image_pixels"]:,} image pixels. The 95th-percentile boundary distance is {comparison["edge_distance_95_percentile_px"]:.3f} pixels; the largest is {comparison["edge_distance_max_px"]:.3f} pixels. These values include filled massing gaps. They are not a claim that every pixel is identical. See `previews/silhouette-comparison.json`, `previews/silhouette-difference.png` and the overlay for the exact comparison.',
-          '', '### Owner questions','', 'No owner decision is required to finish slice 1. The next slice can decide surface finish, lamps, panel lines, decals and the final screen artwork.', '']
+          '']
+lines += ['### Screen-shape extension', '',
+          'The header, outer pod housings and wraparound band continue to X = +/-27. Folded side walls join the header to the lower structure, leaving one additional side window on each side. These pieces are Boolean-unioned into the existing ConsoleBody object. The new lower pieces stop at the original horizontal camera span. The header continuation overlaps the existing beam behind its visible faces. The construction views are refitted to show the wider model.', '',
+          f'Against the saved original deck hardware mask, the 1920 by 1080 silhouette has intersection-over-union {aspect["hardware_intersection_over_union"]*100:.4f}%. Changed pixels: {aspect["changed_pixels"]:,} of {aspect["image_pixels"]:,}. The 95th-percentile boundary displacement is {aspect["edge_distance_95_percentile_px"]:.3f} pixels; the maximum is {aspect["edge_distance_max_px"]:.3f} pixels. This comparison uses `previews/reference/deck-mask.png`, not the older D13 massing. The original rendered camera view is preserved beside it. See `previews/aspect-comparison.json` and `previews/deck-extension-difference.png`.', '',
+          f'Moving-control frames and cap geometry are unchanged: {aspect["moving_controls_unchanged"]}. Screen-glass vertices, normals and frames are unchanged: {aspect["screen_glasses_unchanged"]}. The object names, part roles, palette, ink linesets and lamp-free construction remain intact.', '',
+          '| View | Resolution | Horizontal FOV | Vertical FOV |',
+          '|---|---|---:|---:|']
+for view, camera in aspect['camera_views'].items():
+    width, height = camera['size']
+    lines.append(f'| {view} | {width} x {height} | {camera["horizontal_fov_degrees"]:.6f} | {camera["vertical_fov_degrees"]:.6f} |')
+lines += ['', 'The wide views retain the 16:9 vertical FOV. The 16:10 and 4:3 views retain its horizontal FOV. All use the same camera position and direction.', '',
+          '### Pending height closure', '',
+          'The supplied 16:9 reference already exposes a 14-pixel sky strip above the header and small sky gaps along the bottom. Extending the header and apron across those rays would change that reference. The side extension is complete, but the header height and apron remain unchanged pending the owner\'s choice between exact 16:9 preservation and closing those existing edge gaps. The taller previews therefore still show sky above and below the model. This is not a completed height-coverage pass.', '']
 path=ROOT/'NOTES.md'
 text=path.read_text(encoding='utf-8').split('## Measured geometry')[0]
 path.write_text(text+'\n'.join(lines),encoding='utf-8')

@@ -4,6 +4,8 @@ The approved D13 outlines define this model. This slice adds closed construction
 
 All work was local. No exporter, builder, Unity asset or file outside `art/environments/hangar-deck/` was edited. No export into Unity was run.
 
+The width extension is complete through 32:9. Height closure remains pending because the approved 16:9 reference itself contains sky above the header and below parts of the band. See the measured comparison and pending-height section below.
+
 ## Rebuild and evidence
 
 Run at the repository root with Blender 5.1:
@@ -143,7 +145,7 @@ For a plane centre C and the listed unit vectors U, V and N, a glass point is C 
 
 | Object | Closed | Manifold | Triangles |
 |---|---|---|---:|
-| `Deck \| joined closed structure` | Yes | Yes | 5,124 |
+| `Deck \| joined closed structure` | Yes | Yes | 6,430 |
 | `07 \| Main rectangular display` | No, planar glass | No, planar glass | 6 |
 | `07 \| Detail rectangular display` | No, planar glass | No, planar glass | 6 |
 | `30 \| Primary blank glass` | No, planar glass | No, planar glass | 6 |
@@ -172,7 +174,7 @@ For a plane centre C and the listed unit vectors U, V and N, a glass point is C 
 | `Deck \| header cyan strip 0` | Yes | Yes | 12 |
 | `Deck \| header cyan strip 8.6` | Yes | Yes | 12 |
 
-The model has 28 mesh objects: 24 closed manifold solids and four intentional planar glasses. Hardware total: **6,376 triangles**. All solid windings are consistent and signed volumes are positive. There are no loose vertices or unapplied modifiers. Zero-area faces: 0.
+The model has 28 mesh objects: 24 closed manifold solids and four intentional planar glasses. Hardware total: **7,682 triangles**. All solid windings are consistent and signed volumes are positive. There are no loose vertices or unapplied modifiers. Zero-area faces: 0.
 
 An independent Boolean-volume audit checked 30 object pairs whose world bounding boxes overlap. It found 0 intersections above 0.0000001 cubic units. All eight moving controls and their carried legends were also checked against the body at half and full travel, using the existing builder's travel fractions: 0 intersections. The report is `previews/mesh-audit.json`.
 
@@ -194,7 +196,7 @@ The inherited hologram and backdrop below are preview objects, excluded by the o
 | `11 \| Neutral projector frustum` | No, preview surface | 2 |
 | `19 \| Distant space` | Yes | 12 |
 
-The entire scene, including evaluated preview curves and the backdrop, has **6,708 triangles**, below the 70,000-triangle limit.
+The entire scene, including evaluated preview curves and the backdrop, has **8,014 triangles**, below the 70,000-triangle limit.
 
 ### D13 departures and comparison
 
@@ -207,11 +209,30 @@ The entire scene, including evaluated preview curves and the backdrop, has **6,7
 - Ship, selector and launch well floors are -.125 in their local frames to clear existing press travel.
 - Raised housing skirts terminate inside the band front return; eight decorative switches extend invisibly into their well floors.
 - Well cutter mouths expand 0.3 percent to prevent coincident edges at the bevel boundary.
+- Header, pod shoulders, band and canopy side walls continue to X = +/-27 for wide cameras.
 
 The camera overlay is an exact 50% blend at 1920 by 1080. The comparison sheet places the two native-resolution renders side by side with labels. The false-colour parts sheet includes each exporter role and its corresponding index.
 
 The unlit hardware masks have intersection-over-union 99.5663%. They differ at 4,662 of 2,073,600 image pixels. The 95th-percentile boundary distance is 2.000 pixels; the largest is 74.000 pixels. These values include filled massing gaps. They are not a claim that every pixel is identical. See `previews/silhouette-comparison.json`, `previews/silhouette-difference.png` and the overlay for the exact comparison.
 
-### Owner questions
+### Screen-shape extension
 
-No owner decision is required to finish slice 1. The next slice can decide surface finish, lamps, panel lines, decals and the final screen artwork.
+The header, outer pod housings and wraparound band continue to X = +/-27. Folded side walls join the header to the lower structure, leaving one additional side window on each side. These pieces are Boolean-unioned into the existing ConsoleBody object. The new lower pieces stop at the original horizontal camera span. The header continuation overlaps the existing beam behind its visible faces. The construction views are refitted to show the wider model.
+
+Against the saved original deck hardware mask, the 1920 by 1080 silhouette has intersection-over-union 100.0000%. Changed pixels: 0 of 2,073,600. The 95th-percentile boundary displacement is 0.000 pixels; the maximum is 0.000 pixels. This comparison uses `previews/reference/deck-mask.png`, not the older D13 massing. The original rendered camera view is preserved beside it. See `previews/aspect-comparison.json` and `previews/deck-extension-difference.png`.
+
+Moving-control frames and cap geometry are unchanged: True. Screen-glass vertices, normals and frames are unchanged: True. The object names, part roles, palette, ink linesets and lamp-free construction remain intact.
+
+| View | Resolution | Horizontal FOV | Vertical FOV |
+|---|---|---:|---:|
+| 16x9 | 1920 x 1080 | 57.220919 | 34.113931 |
+| 21x9 | 2560 x 1080 | 72.054747 | 34.113931 |
+| 32x9 | 3840 x 1080 | 94.979106 | 34.113931 |
+| 16x10 | 1920 x 1200 | 57.220919 | 37.649420 |
+| 4x3 | 1440 x 1080 | 57.220919 | 44.498047 |
+
+The wide views retain the 16:9 vertical FOV. The 16:10 and 4:3 views retain its horizontal FOV. All use the same camera position and direction.
+
+### Pending height closure
+
+The supplied 16:9 reference already exposes a 14-pixel sky strip above the header and small sky gaps along the bottom. Extending the header and apron across those rays would change that reference. The side extension is complete, but the header height and apron remain unchanged pending the owner's choice between exact 16:9 preservation and closing those existing edge gaps. The taller previews therefore still show sky above and below the model. This is not a completed height-coverage pass.
