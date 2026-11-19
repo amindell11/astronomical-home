@@ -12,7 +12,9 @@ namespace Ships.Keystones.Kits
     /// keeps yaw, then dashes along the nose. While the ram is live the speed cap lifts, a burn
     /// drives along the launch line, and the ship is heavier. The first contact knocks the target
     /// back; a ship takes damage that grows with impact speed and how square the hit is, a lighter
-    /// rock shatters, a heavier one stops the ship. That contact's own step stays immune.
+    /// rock shatters, a heavier one stops the ship. That contact's own step stays immune. A ram that
+    /// makes contact refunds part of its cooldown; one that hits nothing keeps the full cooldown and
+    /// sheds its surge speed.
     /// </summary>
     public sealed class RamDash : Dash
     {
@@ -20,7 +22,13 @@ namespace Ships.Keystones.Kits
         [Stat, SerializeField] private float brake = 0.5f;
 
         [Tooltip("Seconds after the launch during which the dash is a live ram, until its first contact.")]
-        [Stat, SerializeField] private float window = 0.6f;
+        [Stat, SerializeField] private float window = 0.45f;
+
+        [Tooltip("Cooldown, in seconds from the press, once the ram makes contact; a ram that hits nothing keeps the full cooldown.")]
+        [Stat, SerializeField] private float hitCooldown = 3.5f;
+
+        [Tooltip("Seconds an unspent ram takes to shed its surge speed back to normal top speed.")]
+        [Stat, SerializeField] private float missDump = 0.3f;
 
         [Tooltip("Damage a head-on ram deals a ship at the reference impact speed; a faster hit deals more, a glancing hit less.")]
         [Stat, SerializeField] private float shipDamage = 60f;
@@ -40,6 +48,9 @@ namespace Ships.Keystones.Kits
         [Tooltip("Impulse (N·s) a head-on ram gives its target along the launch line; a glancing hit gives less.")]
         [Stat, SerializeField] private float knockback = 12000f;
 
+        [Tooltip("Most speed, in units per second, the knockback adds to its target.")]
+        [Stat, SerializeField] private float maxKnockbackSpeed = 15f;
+
         [Tooltip("Impact speed, in units per second, at which a head-on ram deals its ship damage.")]
         [Stat, SerializeField] private float damageReferenceSpeed = 16f;
 
@@ -51,6 +62,8 @@ namespace Ships.Keystones.Kits
         private bool resolved;
         private float resolvedAt;
         private Vector2 launchDirection;
+        private int dumpStepsLeft;
+        private bool missed;
 
         public override string DisplayName => "Ram";
         public float Window => window;
@@ -92,11 +105,13 @@ namespace Ships.Keystones.Kits
             if (!RamLive || resolved) return;
             resolved = true;
             resolvedAt = SinceLaunch;
+            ShortenCooldown(hitCooldown);
 
             if (!DamageableColliders.TryGet(contact.Other, out var target)) return;
             if (contact.OtherBody && !contact.OtherBody.isKinematic)
                 contact.OtherBody.AddForceAtPosition(
-                    GamePlane.PlaneDirToWorld(launchDirection) * (knockback * contact.ClosingFraction),
+                    GamePlane.PlaneDirToWorld(launchDirection) * Mathf.Min(
+                        knockback * contact.ClosingFraction, contact.OtherBody.mass * maxKnockbackSpeed),
                     contact.Point, ForceMode.Impulse);
             if (target is AsteroidDamage)
             {
@@ -116,15 +131,22 @@ namespace Ships.Keystones.Kits
             launchDirection = Vector2.zero;
             brakeStepsLeft = -2;
             brakeSteps = 0;
+            missed = false;
+            dumpStepsLeft = 0;
             return default;
         }
 
         protected override KeystoneEffect Sustain(in Kinematics kinematics, float dt, float baseMaxSpeed)
         {
-            if (brakeStepsLeft == -1)
-                return RamLive
-                    ? new KeystoneEffect(Vector2.zero, Vector2.zero, launchDirection * surgeAcceleration)
-                    : default;
+            if (brakeStepsLeft != -1)
+                return BrakeOrLaunch(in kinematics, dt);
+            if (RamLive)
+                return new KeystoneEffect(Vector2.zero, Vector2.zero, launchDirection * surgeAcceleration);
+            return ShedMiss(in kinematics, dt, baseMaxSpeed);
+        }
+
+        private KeystoneEffect BrakeOrLaunch(in Kinematics kinematics, float dt)
+        {
             if (brakeStepsLeft < 0)
             {
                 brakeStepsLeft = Mathf.Max(1, Mathf.RoundToInt(brake / dt));
@@ -145,6 +167,25 @@ namespace Ships.Keystones.Kits
             return kinematics.Forward * (Impulse * massScale);
         }
 
+        private KeystoneEffect ShedMiss(in Kinematics kinematics, float dt, float baseMaxSpeed)
+        {
+            if (!missed && launched && !resolved && SinceLaunch >= window)
+            {
+                missed = true;
+                if (missDump > 0f)
+                    dumpStepsLeft = Mathf.Max(1, Mathf.RoundToInt(missDump / dt));
+            }
+            if (dumpStepsLeft <= 0)
+                return default;
+
+            var speed = kinematics.vel.magnitude;
+            var accel = speed > baseMaxSpeed
+                ? -kinematics.vel / speed * ((speed - baseMaxSpeed) / (dumpStepsLeft * dt))
+                : Vector2.zero;
+            dumpStepsLeft--;
+            return new KeystoneEffect(Vector2.zero, Vector2.zero, accel);
+        }
+
         protected override void OnReset()
         {
             brakeStepsLeft = -1;
@@ -152,6 +193,8 @@ namespace Ships.Keystones.Kits
             launched = false;
             resolved = false;
             launchDirection = Vector2.zero;
+            missed = false;
+            dumpStepsLeft = 0;
         }
 
         private static DamageInfo Hit(float amount, in KeystoneContact contact) =>

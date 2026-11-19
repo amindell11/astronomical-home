@@ -24,11 +24,13 @@ namespace Tests.EditMode.Ships
         private const float Cooldown = 1f;
 
         private GameObject host;
+        private GameObject contact;
 
         [TearDown]
         public void TearDown()
         {
             if (host) Object.DestroyImmediate(host);
+            if (contact) Object.DestroyImmediate(contact);
         }
 
         private const float Window = 0.4f;
@@ -166,6 +168,8 @@ namespace Tests.EditMode.Ships
             so.FindProperty("impulse").floatValue = 13500f;
             so.FindProperty("brake").floatValue = 0.3f;
             so.FindProperty("window").floatValue = 0.6f;
+            so.FindProperty("hitCooldown").floatValue = Cooldown;
+            so.FindProperty("missDump").floatValue = 0f;
             so.FindProperty("sightAngle").floatValue = 15f;
             so.FindProperty("surgeSpeedScale").floatValue = 1f;
             so.FindProperty("surgeAcceleration").floatValue = 0f;
@@ -239,6 +243,74 @@ namespace Tests.EditMode.Ships
             Assert.That(ram.MassScale, Is.EqualTo(1f));
             Assert.That(ram.SpeedScale, Is.EqualTo(1f));
             Assert.That(step.Acceleration, Is.EqualTo(Vector2.zero));
+        }
+
+        [Test]
+        public void RamDash_Hit_ShortensTheCooldown_FromThePress()
+        {
+            var ram = NewRam();
+            var so = new SerializedObject(ram);
+            so.FindProperty("cooldown").floatValue = 7f;
+            so.FindProperty("hitCooldown").floatValue = 3.5f;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            contact = new GameObject("Ram contact");
+            var collider = contact.AddComponent<BoxCollider>();
+
+            var kin = Facing(0f);
+            ram.Step(in kin, 1f, Dt, out _);
+            var steps = 0;
+            while (ram.Braking)
+            {
+                ram.Step(in kin, 0f, Dt, out _);
+                steps++;
+            }
+
+            var before = ram.CooldownRemaining;
+            ram.OnContact(new KeystoneContact(
+                ShipId.Invalid, 0f, Vector3.zero, collider, null, Vector3.zero, 1f, 0f));
+            Assert.That(ram.CooldownRemaining, Is.LessThanOrEqualTo(before), "contact never lengthens the cooldown");
+            Assert.That(ram.CooldownRemaining, Is.EqualTo(3.5f - steps * Dt).Within(Dt),
+                "contact cuts the cooldown to hitCooldown from the press");
+        }
+
+        [Test]
+        public void RamDash_Miss_ShedsSurgeSpeed_ThenKeepsTheFullCooldown()
+        {
+            var ram = NewRam();
+            var so = new SerializedObject(ram);
+            so.FindProperty("cooldown").floatValue = 7f;
+            so.FindProperty("missDump").floatValue = 0.3f;
+            so.FindProperty("window").floatValue = 0.45f;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            var rest = Facing(0f);
+            ram.Step(in rest, 1f, Dt, out _, baseMaxSpeed: 21f);
+            var steps = 0;
+            while (ram.Braking)
+            {
+                ram.Step(in rest, 0f, Dt, out _, baseMaxSpeed: 21f);
+                steps++;
+            }
+
+            var vel = new Vector2(30f, 0f);
+            var dumpLimit = Mathf.RoundToInt(0.3f / Dt);
+            var dumped = 0;
+            for (var n = 0; dumped < dumpLimit && n < 80; n++)
+            {
+                var kin = new Kinematics(Vector2.zero, vel, 0f, 0f, 0f);
+                var effect = ram.Step(in kin, 0f, Dt, out _, baseMaxSpeed: 21f);
+                steps++;
+                if (ram.RamLive)
+                    continue;
+                vel += effect.Acceleration * Dt;
+                dumped++;
+                Assert.That(vel.magnitude, Is.GreaterThanOrEqualTo(21f - 1e-3f));
+            }
+
+            Assert.That(dumped, Is.EqualTo(dumpLimit), "the miss sheds within its dump");
+            Assert.That(vel.magnitude, Is.LessThanOrEqualTo(21f + 1e-3f));
+            Assert.That(ram.CooldownRemaining, Is.EqualTo(7f - steps * Dt).Within(Dt),
+                "a miss keeps the full cooldown");
         }
 
         [Test]
@@ -324,7 +396,7 @@ namespace Tests.EditMode.Ships
             var ram = catalog.Chassis.Single(c => c.name == "Bulwark").KeystonePrefab as RamDash;
             Assert.That(ram, Is.Not.Null, "Bulwark's kit is the ram");
             Assert.That(new SerializedObject(ram).FindProperty("brake").floatValue, Is.EqualTo(0.5f));
-            Assert.That(ram.Window, Is.EqualTo(0.6f));
+            Assert.That(ram.Window, Is.EqualTo(0.45f));
             Assert.That(ram.ShipDamage, Is.EqualTo(60f));
             Assert.That(ram.GetComponent<KeystoneFlash>(), Is.Not.Null, "the kit carries its tell");
         }
@@ -454,7 +526,7 @@ namespace Tests.EditMode.Ships
         }
 
         [TestCase("Vanguard", 9000f, 5f)]
-        [TestCase("Bulwark", 19500f, 4.5f)]
+        [TestCase("Bulwark", 19500f, 7f)]
         [TestCase("Junker_1", 15000f, 5f)]
         public void Chassis_CarriesItsOwnDash(string chassis, float impulse, float cooldown)
         {

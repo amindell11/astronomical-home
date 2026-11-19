@@ -128,6 +128,9 @@ namespace Ships.Keystones
 
         protected virtual void OnReset() { }
 
+        protected void ShortenCooldown(float secondsFromActivation) =>
+            readyAt = Mathf.Min(readyAt, activatedAt + secondsFromActivation);
+
         protected void CreditActivation()
         {
             if (creditedActivation == Activations) return;
