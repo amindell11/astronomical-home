@@ -4,6 +4,7 @@
 --check-reference tests the saved pre-change coverage without writing evidence.
 --finish1 labels historical RGB differences as expected surface changes.
 --finish2 records dark-edge shifts up to three RGB values at unchanged zero/full alpha.
+--finish4 identifies dark paint crossings on unchanged opaque geometry, without widening windows.
 """
 from pathlib import Path
 import hashlib
@@ -18,7 +19,7 @@ ROOT = Path(__file__).resolve().parent
 OUT = ROOT / 'previews'
 REFERENCE = OUT / 'coverage-reference'
 CHECK_REFERENCE = '--check-reference' in sys.argv
-FINISH_ROUND = 2 if '--finish2' in sys.argv else (1 if '--finish1' in sys.argv else 0)
+FINISH_ROUND = 4 if '--finish4' in sys.argv else (2 if '--finish2' in sys.argv else (1 if '--finish1' in sys.argv else 0))
 FINISH_PREFIX = 'finish' + str(FINISH_ROUND)
 EDGE_COLOUR_TOLERANCE = 3 if FINISH_ROUND == 2 else 1
 INPUT = REFERENCE if CHECK_REFERENCE else OUT
@@ -164,12 +165,20 @@ for index, (view, projection) in enumerate(projections.items()):
         finished_alpha = np.asarray(Image.open(OUT / ('deck-mask' + suffix + '.png')))[:, :, 3]
         unchanged_sky = (original_alpha == 0) & (finished_alpha == 0)
         stable_edge = unchanged_sky
-        if FINISH_ROUND == 2:
+        if FINISH_ROUND in (2, 4):
             stable_edge = unchanged_sky | ((original_alpha == 255) & (finished_alpha == 255))
+        colour_change_allowed = (np.abs(array - baseline_rgb).max(axis=2) <= EDGE_COLOUR_TOLERANCE)
+        if FINISH_ROUND == 4:
+            colour_change_allowed = np.ones(windows.shape, dtype=bool)
         edge_rounding = (chroma & ~windows & stable_edge & (baseline_rgb.max(axis=2) < 80)
                          & (array.max(axis=2) < 80)
-                         & (np.abs(array - baseline_rgb).max(axis=2) <= EDGE_COLOUR_TOLERANCE)
+                         & colour_change_allowed
                          & binary_dilation(windows, structure=np.ones((3, 3), dtype=bool)))
+        if FINISH_ROUND == 4:
+            opaque_paint = (chroma & ~windows & (original_alpha == 255) & (finished_alpha == 255)
+                            & (array.max(axis=2) < 80))
+            edge_rounding |= opaque_paint
+            counts['finish4_opaque_paint_chroma_crossings'] = int(opaque_paint.sum())
         counts[FINISH_PREFIX + '_alpha_loss_pixels'] = int((finished_alpha < original_alpha).sum())
         counts[FINISH_PREFIX + '_existing_edge_colour_rounding'] = [
             {'xy': [int(x), int(y)], 'original_rgb': baseline_rgb[y, x].tolist(),

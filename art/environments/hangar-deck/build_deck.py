@@ -80,19 +80,25 @@ def material(name, rgb, emission=0):
     return result
 
 
-paint = material('Deck | deep ink blue', (.019, .029, .045))
-face = material('Deck | blue grey front', (.040, .057, .078))
-shoulder = material('Deck | slate chamfers', (.073, .096, .124))
-top = material('Deck | cool upper planes', (.092, .119, .153))
-well = material('Deck | charcoal wells and bezels', (.006, .011, .019))
-keymat = material('Deck | cool grey controls', (.23, .29, .34))
+def srgb(rgb):
+    return tuple(value / 255 / 12.92 if value / 255 <= .04045
+                 else ((value / 255 + .055) / 1.055) ** 2.4 for value in rgb)
+
+
+paint = material('Deck | deep ink blue', srgb((22, 27, 36)))
+face = material('Deck | blue grey front', srgb((24, 30, 39)))
+shoulder = material('Deck | slate chamfers', srgb((28, 34, 43)))
+top = material('Deck | cool upper planes', srgb((30, 35, 44)))
+well = material('Deck | charcoal wells and bezels', srgb((8, 12, 18)))
+keymat = material('Deck | cool grey controls', srgb((88, 98, 112)))
 orange = material('Deck | orange launch resin', (.95, .20, .018), 1)
 cyan = material('Deck | emissive cyan accents', (.035, .48, .72), 1.65)
+cold_accent = material('Deck | cold blue-white structural accents', (.45, .72, 1.0), 1.65)
 screenmat = material('Deck | placeholder emissive blue', (.023, .105, .222), .8)
 legendmat = material('Deck | ivory inlaid legends', (.49, .65, .72), .3)
-for emissive in (orange, cyan, screenmat):
+for emissive in (orange, cyan, screenmat, cold_accent):
     emissive.node_tree.nodes.get('Principled BSDF').inputs['Base Color'].default_value = (0, 0, 0, 1)
-PALETTE = [paint, face, shoulder, top, well, keymat, orange, cyan, screenmat, legendmat]
+PALETTE = [paint, face, shoulder, top, well, keymat, orange, cyan, screenmat, legendmat, cold_accent]
 old_palette = {
     D['body']: paint, D['face']: face, D['shoulder']: shoulder, D['side']: face,
     D['top_mat']: top, D['dark']: well, D['cyan']: cyan, D['keytop']: keymat,
@@ -679,7 +685,7 @@ ink_collection.objects.link(body)
 
 
 def accent(name, outline, front, back, basis):
-    obj = local_mesh(name, outline, front, back, basis, cyan, accent_collection)
+    obj = local_mesh(name, outline, front, back, basis, cold_accent, accent_collection)
     subtract(body, obj, True)
     obj['export_role'] = 'ConsoleBody'
     ACCENTS.append(obj)
@@ -688,7 +694,7 @@ def accent(name, outline, front, back, basis):
 
 for hand, label in ((-1, 'Left'), (1, 'Right')):
     basis = shifted(D['pod_bases'][label][0], hand * (5.85 / 2 - .12), -.60, .02)
-    accent('Deck | ' + label.lower() + ' pod cyan strip', chamfer(.075, .66, .018), 0, -.15, basis)
+    accent('Deck | ' + label.lower() + ' pod cyan strip', chamfer(.075, .20, .018), 0, -.15, basis)
     lo = Vector(D['STRUT_LANDING_POINTS'][0 if hand < 0 else 1])
     hi = Vector(D['STRUT_TOP_POINTS'][0 if hand < 0 else 1])
     along = (hi - lo).normalized()
@@ -696,7 +702,7 @@ for hand, label in ((-1, 'Left'), (1, 'Right')):
     u = (u - along * u.dot(along)).normalized()
     normal = u.cross(along)
     basis = (hi - along * 2.05 + normal * (.15 + .008), u, along, normal)
-    accent('Deck | ' + label.lower() + ' strut cyan strip', chamfer(.045, .42, .012), 0, -.025, basis)
+    accent('Deck | ' + label.lower() + ' strut cyan strip', chamfer(.045, .16, .012), 0, -.025, basis)
 
 for centre in (-8.6, 0, 8.6):
     lo, hi = centre - .475, centre + .475
@@ -705,7 +711,7 @@ for centre in (-8.6, 0, 8.6):
     v = Vector((0, 0, 1))
     normal = Vector((0, -1, 0))
     basis = (Vector(((lo + hi) / 2, 3.335, (z0 + z1) / 2)), u, v, normal)
-    accent('Deck | header cyan strip ' + str(centre), [(-.475, -.0325), (.475, -.0325), (.475, .0325), (-.475, .0325)],
+    accent('Deck | header cyan strip ' + str(centre), [(-.10, -.0325), (.10, -.0325), (.10, .0325), (-.10, .0325)],
            0, -.035, basis)
 
 
@@ -755,16 +761,15 @@ DEPARTURES.extend([
 ])
 DEPARTURES.append('Header, pod shoulders, band and canopy side walls continue to X = +/-27 for wide cameras.')
 
-plate = material('Deck | secondary satin blue plate', (.055, .076, .102))
-inset = material('Deck | darker service plate', (.026, .040, .060))
-edgepaint = material('Deck | lightly rubbed paint', (.112, .141, .172))
-stencilpaint = material('Deck | muted service stencils', (.19, .23, .26))
-hazardpaint = material('Deck | muted amber caution paint', (.39, .24, .070))
+plate = material('Deck | secondary satin blue plate', srgb((26, 32, 41)))
+inset = material('Deck | darker service plate', srgb((18, 23, 32)))
+edgepaint = material('Deck | lightly rubbed paint', srgb((42, 49, 60)))
+stencilpaint = material('Deck | muted service stencils', srgb((48, 57, 70)))
 lamp_red = material('Deck | armed red emission', (1.0, .025, .008), 3.2)
 lamp_green = material('Deck | status green emission', (.025, .70, .055), 2.2)
-lamp_amber = material('Deck | status amber emission', (1.0, .28, .02), 1.8)
-lamp_white = material('Deck | warm white downlight emission', (1.0, .78, .48), 1.5)
-PALETTE.extend([plate, inset, edgepaint, stencilpaint, hazardpaint,
+lamp_amber = material('Deck | status amber emission', (.45, .72, 1.0), 1.8)
+lamp_white = material('Deck | warm white downlight emission', (.75, .86, 1.0), 1.5)
+PALETTE.extend([plate, inset, edgepaint, stencilpaint,
                 lamp_red, lamp_green, lamp_amber, lamp_white])
 for lamp_material in (lamp_red, lamp_green, lamp_amber, lamp_white):
     lamp_material.node_tree.nodes.get('Principled BSDF').inputs['Base Color'].default_value = (0, 0, 0, 1)
@@ -835,13 +840,13 @@ def stencil(name, basis, scale=1):
     finish_solids.append(obj)
 
 
-def lamp(name, basis, width, height, mat, depth=0, socket=True, socket_padding=.09, cap=.048):
+def lamp(name, basis, width, height, mat, depth=0, socket=True, socket_padding=.09, cap=.048, socket_scale=1):
     if socket:
-        finish_solid(name + ' socket', basis, width + .10, height + socket_padding,
-                     depth + .016, depth - .040, well, .045)
+        finish_solid(name + ' socket', basis, width + .10 * socket_scale, height + socket_padding * socket_scale,
+                     depth + .016, depth - .040, well, .045 * socket_scale)
         finish_ring(name + ' socket lip', basis,
-                    chamfer(width + .10, height + socket_padding, .035),
-                    chamfer(width + .035, height + .025, .018),
+                    chamfer(width + .10 * socket_scale, height + socket_padding * socket_scale, .035 * socket_scale),
+                    chamfer(width + .035 * socket_scale, height + .025 * socket_scale, .018 * socket_scale),
                     depth + .021, depth + .012, shoulder)
     obj = local_mesh('Deck | ' + name + ' lens', chamfer(width, height, min(.035, height / 3)),
                      depth + cap, depth + .018, basis, mat, lamp_collection)
@@ -872,15 +877,6 @@ for hand, label in ((-1, 'Left'), (1, 'Right')):
     finish_solid(label + ' service latch', shifted(outer_face, y=-.58), .15, .20,
                  .027, .012, shoulder, .025)
     stencil(label + ' pod maintenance code', shifted(outer_face, y=.35, d=.013), .58)
-    top_y = max(y for x, y in POD_RECORDS[0 if hand < 0 else 1]['profile'])
-    top_u = pb[1]
-    top_v = (rearward - top_u * rearward.dot(top_u)).normalized()
-    top_normal = top_u.cross(top_v).normalized()
-    brow_v = (top_v * .5 + top_normal * math.sqrt(.75)).normalized()
-    top_basis = (point(pb, hand * .65, top_y, POD_FACE_DEPTH) + rearward * .10 + top_normal * .024,
-                 top_u, brow_v, top_u.cross(brow_v))
-    lamp(label + ' pod amber brow', top_basis, .46, .07, lamp_amber, socket_padding=.035, cap=.036)
-
     lo = Vector(D['STRUT_LANDING_POINTS'][0 if hand < 0 else 1])
     hi = Vector(D['STRUT_TOP_POINTS'][0 if hand < 0 else 1])
     along = (hi - lo).normalized()
@@ -915,7 +911,7 @@ for hand, label, basis in ((-1, 'Left', ship_basis), (1, 'Right', selector_basis
     for index, (x, mat, colour) in enumerate(((-.27, lamp_green, 'green'),
                                              (0, lamp_green, 'green'), (.27, lamp_amber, 'amber')), 1):
         lamp(label + ' status ' + str(index) + ' ' + colour,
-             shifted(status_basis, x=x), .12, .095, mat)
+             shifted(status_basis, x=x), .06, .0475, mat, socket_scale=.5)
     for x in (-.73, .73):
         fastener(label + ' ramp upper screw', shifted(basis, x=x, y=.61), .041, .017)
     for x, y, width in ((-.52, -.62, .23), (-.21, -.65, .10), (.47, -.63, .17)):
@@ -931,15 +927,6 @@ for hand, label in ((-1, 'Left'), (1, 'Right')):
                .024, .45, edgepaint)
     lamp(label + ' Launch armed red', shifted(launch_basis, x=hand * 1.43, y=-.49),
          .15, .16, lamp_red, depth=.015)
-    caution_basis = shifted(launch_basis, x=hand * 1.77, y=-.02, d=-.058)
-    for index, y in enumerate((-.26, 0, .26)):
-        shape = [(-.07, y - .08), (.07, y), (-.07, y + .08),
-                 (-.07, y + .036), (.002, y), (-.07, y - .036)]
-        if hand < 0:
-            shape = [(-x, yy) for x, yy in reversed(shape)]
-        mark = local_mesh('Finish | ' + label + ' launch caution chevron ' + str(index),
-                          shape, .001, -.004, caution_basis, hazardpaint)
-        finish_solids.append(mark)
 
 for hand, label in ((-1, 'Left'), (1, 'Right')):
     basis = D['band_basis'](hand * 7.82, .016)
@@ -962,7 +949,6 @@ for bank_index, basis in enumerate(switch_bases):
 
 front_basis = (Vector((0, 3.35, 10.47)), Vector((1, 0, 0)),
                Vector((0, 0, 1)), Vector((0, -1, 0)))
-lamp('Header centre amber marker', front_basis, .42, .085, lamp_amber)
 for hand, label in ((-1, 'Left'), (1, 'Right')):
     basis = shifted(front_basis, x=hand * 3.05, y=.015)
     finish_solid(label + ' header long plate reveal', basis, 3.75, .14, .006, -.015, well, .025)
@@ -981,7 +967,7 @@ for index, x in enumerate((-8.2, -5.0, -2.3, 2.3, 5.0, 8.2), 1):
                basis, .56, .12, lamp_white, socket_padding=.035)
     light_data = bpy.data.lights.new('Preview | header warm pool ' + str(index), 'SPOT')
     light_data.energy = 165
-    light_data.color = (1.0, .78, .48)
+    light_data.color = (.75, .86, 1.0)
     light_data.spot_size = math.radians(66)
     light_data.spot_blend = .65
     light_data.shadow_soft_size = .22
@@ -1292,11 +1278,12 @@ for obj in finish_solids:
     obj.select_set(True)
 bpy.context.view_layer.objects.active = body
 bpy.ops.object.join()
-body['finish_slice'] = 'Clean light use; cyan structure, warm status'
+body['finish_slice'] = 'Near-black cold structure; small blue-white lights; orange launch'
 DEPARTURES.remove('Pedestal dark riser strips omitted as surface detail reserved for slice 2.')
 DEPARTURES.append('Finish detail uses closed shallow solids joined into ConsoleBody; original controls and glasses are unchanged.')
-DEPARTURES.append('Stencils, caution marks and local scuffs use flat material geometry, without textures or linked colour nodes.')
-DEPARTURES.append('Warm header spotlights are preview-only; named lamp lenses provide the exporter anchors and emission colours.')
+DEPARTURES.append('Cool stencils and local scuffs use flat material geometry, without textures or linked colour nodes.')
+DEPARTURES.append('Cool header spotlights are preview-only; named lamp lenses provide the exporter anchors and emission colours.')
+DEPARTURES.append('Amber brow and centre lamps with their sockets and launch caution chevrons are removed; guard rails remain.')
 
 freestyle = bpy.context.view_layer.freestyle_settings
 freestyle.crease_angle = math.radians(134.43)

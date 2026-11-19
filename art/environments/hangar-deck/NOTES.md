@@ -1,5 +1,130 @@
 # Hangar deck
 
+## Finish 4, cool near-black hardware
+
+This is the current finish. The earlier sections below record prior work; their warm palette and 17-lamp schedule are historical.
+
+The owner's colour reference is `previews/finish4-reference.png`. The structure now uses near-black blue-grey paint, with broad plates held close in value. Keys and switches use muted cool grey. Wear and service marks stay cold and subdued. LAUNCH and its two red armed lamps retain their original materials and geometry.
+
+The header centre marker and both pod brow lamps are gone, including their sockets and lips. The header marker's socket was its housing block; the existing plain fascia and centre dash remain. The six amber launch chevrons and their caution material are removed. Both guard rails remain.
+
+All seven structural accents remain as short cold dashes. Pod lengths change from 0.66 to 0.20 units, struts from 0.42 to 0.16, and header strips from 0.95 to 0.20. Their total face area falls by about 75%. Each status lens is half its previous width and height, one quarter of its face area. Its socket also halves in the face plane; positions and depth remain fixed. Each group has green, green and cold white. The six header downlights are cool white.
+
+Surviving object and material names remain stable. Names containing `cyan`, `amber` or `warm white` are legacy identifiers; the values below describe their current colours. The original cyan material now serves only the unchanged projector. Screens and the hologram remain preview placeholders. In-game screen colours belong to the separate game-code change.
+
+### Final material palette
+
+Values are 8-bit sRGB triples, converted from Blender's linear shader inputs. For emitting materials, the triple is the emission colour before strength; their base is black except for the inlaid legends. Painted materials use the base colour. These are material values, not sampled pixels after lighting and display contrast.
+
+| Material | sRGB R, G, B | Emission strength |
+|---|---|---|
+| `Deck \| armed red emission` | (255, 44, 22) | 3.20 |
+| `Deck \| blue grey front` | (24, 30, 39) | 0.00 |
+| `Deck \| charcoal wells and bezels` | (8, 12, 18) | 0.00 |
+| `Deck \| cold blue-white structural accents` | (179, 221, 255) | 1.65 |
+| `Deck \| cool grey controls` | (88, 98, 112) | 0.00 |
+| `Deck \| cool upper planes` | (30, 35, 44) | 0.00 |
+| `Deck \| darker service plate` | (18, 23, 32) | 0.00 |
+| `Deck \| deep ink blue` | (22, 27, 36) | 0.00 |
+| `Deck \| emissive cyan accents` | (53, 184, 221) | 1.65 |
+| `Deck \| ivory inlaid legends` | (186, 211, 221) | 0.30 |
+| `Deck \| lightly rubbed paint` | (42, 49, 60) | 0.00 |
+| `Deck \| muted service stencils` | (48, 57, 70) | 0.00 |
+| `Deck \| orange launch resin` | (249, 124, 36) | 1.00 |
+| `Deck \| placeholder emissive blue` | (42, 91, 130) | 0.80 |
+| `Deck \| secondary satin blue plate` | (26, 32, 41) | 0.00 |
+| `Deck \| slate chamfers` | (28, 34, 43) | 0.00 |
+| `Deck \| status amber emission` | (179, 221, 255) | 1.80 |
+| `Deck \| status green emission` | (44, 218, 66) | 2.20 |
+| `Deck \| warm white downlight emission` | (225, 239, 255) | 1.50 |
+
+The remaining scene materials are unchanged:
+
+| Material | sRGB R, G, B | Emission strength |
+|---|---|---|
+| `11 Window / flat night blue` | (16, 30, 48) | 1.00 |
+| `12 Hologram / translucent mass` | (44, 166, 206) | 1.00, opacity 0.20 |
+| `13 Projector / faint fan` | (39, 149, 188) | 1.00, opacity 0.025 |
+| `14 Hologram / edges` | (66, 188, 229) | 1.25 |
+| `25 \| Etched canopy perimeter` | (212, 234, 255) | 0.35 through the etch mask |
+
+The procedural window material's linear colour is (0.66, 0.82, 1.0). Its transparent background has no opaque paint colour. The three ink linesets retain their original settings.
+
+### Final lamp list
+
+Positions are Blender world coordinates at each lens or dash bounding-box centre. Colours are linear RGB before emission strength. The first table includes the fourteen exporter lamp anchors. The second includes the seven structural dashes and unchanged projector. Dashes remain ConsoleBody geometry, without separate lamp anchors.
+
+| Lamp object | Position X, Y, Z | Linear RGB |
+|---|---|---|
+| `Deck \| Left status 1 green lens` | (-3.9225, -1.8565, 1.8196) | (0.025, 0.700, 0.055) |
+| `Deck \| Left status 2 green lens` | (-3.6569, -1.8893, 1.8550) | (0.025, 0.700, 0.055) |
+| `Deck \| Left status 3 amber lens` | (-3.3912, -1.9221, 1.8904) | (0.450, 0.720, 1.000) |
+| `Deck \| Right status 1 green lens` | (3.3912, -1.9221, 1.8904) | (0.025, 0.700, 0.055) |
+| `Deck \| Right status 2 green lens` | (3.6569, -1.8893, 1.8550) | (0.025, 0.700, 0.055) |
+| `Deck \| Right status 3 amber lens` | (3.9225, -1.8565, 1.8196) | (0.450, 0.720, 1.000) |
+| `Deck \| Left Launch armed red lens` | (-1.4300, -3.8984, 1.3203) | (1.000, 0.025, 0.008) |
+| `Deck \| Right Launch armed red lens` | (1.4300, -3.8984, 1.3203) | (1.000, 0.025, 0.008) |
+| `Deck \| Header downlight 01 warm white lens` | (-8.2000, 3.8535, 9.0164) | (0.750, 0.860, 1.000) |
+| `Deck \| Header downlight 02 warm white lens` | (-5.0000, 3.8535, 9.7964) | (0.750, 0.860, 1.000) |
+| `Deck \| Header downlight 03 warm white lens` | (-2.3000, 3.8535, 9.7964) | (0.750, 0.860, 1.000) |
+| `Deck \| Header downlight 04 warm white lens` | (2.3000, 3.8535, 9.7964) | (0.750, 0.860, 1.000) |
+| `Deck \| Header downlight 05 warm white lens` | (5.0000, 3.8535, 9.7964) | (0.750, 0.860, 1.000) |
+| `Deck \| Header downlight 06 warm white lens` | (8.2000, 3.8535, 9.0164) | (0.750, 0.860, 1.000) |
+
+| Emissive structure or projector | Position X, Y, Z | Linear RGB |
+|---|---|---|
+| `09 \| Projector lens` | (0.0000, 0.0000, 2.4800) | (0.035, 0.480, 0.720) |
+| `Deck \| left pod cyan strip` | (-8.9580, -1.7306, 1.7903) | (0.450, 0.720, 1.000) |
+| `Deck \| left strut cyan strip` | (-7.3559, 5.9997, 8.4271) | (0.450, 0.720, 1.000) |
+| `Deck \| right pod cyan strip` | (8.9580, -1.7306, 1.7903) | (0.450, 0.720, 1.000) |
+| `Deck \| right strut cyan strip` | (7.3559, 5.9997, 8.4271) | (0.450, 0.720, 1.000) |
+| `Deck \| header cyan strip -8.6` | (-8.6000, 3.3525, 9.4500) | (0.450, 0.720, 1.000) |
+| `Deck \| header cyan strip 0` | (-0.0000, 3.3525, 10.2300) | (0.450, 0.720, 1.000) |
+| `Deck \| header cyan strip 8.6` | (8.6000, 3.3525, 9.4500) | (0.450, 0.720, 1.000) |
+
+The Blender lighting rig is preview-only and is not exported as hardware. Its final light objects are:
+
+| Preview light | Position X, Y, Z | Linear RGB | Energy |
+|---|---|---|---|
+| `Preview \| header warm pool 1` | (-8.2000, 3.8350, 8.9844) | (0.750, 0.860, 1.000) | 165.0 |
+| `Preview \| header warm pool 2` | (-5.0000, 3.8350, 9.7644) | (0.750, 0.860, 1.000) | 165.0 |
+| `Preview \| header warm pool 3` | (-2.3000, 3.8350, 9.7644) | (0.750, 0.860, 1.000) | 165.0 |
+| `Preview \| header warm pool 4` | (2.3000, 3.8350, 9.7644) | (0.750, 0.860, 1.000) | 165.0 |
+| `Preview \| header warm pool 5` | (5.0000, 3.8350, 9.7644) | (0.750, 0.860, 1.000) | 165.0 |
+| `Preview \| header warm pool 6` | (8.2000, 3.8350, 8.9844) | (0.750, 0.860, 1.000) | 165.0 |
+| `Key \| centred in front of all screens` | (0.0000, -10.0000, 10.8000) | (1.000, 1.000, 1.000) | 2100.0 |
+
+### Review and checks
+
+`previews/deck-finish4-compare.png` places the saved previous 16:9 render, current 16:9 render and owner reference side by side. Each image is 1080 pixels high. `previews/deck-finish4-21x9.png` is the wide view. The half-size view and detail crops use the same current render.
+
+The six game-camera views, four construction views, six masks, six coverage views, parts sheets, ink views and both window-etch previews are regenerated. Legacy finish1 and finish2 review filenames also show the current finish with explicit labels. Frozen originals, massing images and the two reference directories retain their historical pixels. The prior standard camera image predates the separate glass-preview pass; the window etching in the new image is unchanged scene content.
+
+`verify_finish4.py` compares the saved scene with `previews/finish4-baseline.json`. All 45 unaffected scene objects match, including moving controls, glasses, camera and preview geometry. Lamp removals, shortened accents, smaller status lenses and the joined body are explicit exceptions. Launch, legend and projector materials match the old values. The joined body is checked for closed solids and reviewed against the narrow generator diff, rather than claimed byte-identical.
+
+The hardware has 26,024 triangles and 42 meshes. The independent mesh audit found no intersections between separate hardware objects or during button travel. Every hardware solid remains manifold, consistently wound and positive-volume. The four screen glasses remain intentionally planar. The six-aspect coverage check has zero alpha loss, zero magenta outside the frozen window openings and zero unexplained chroma pixels. Screen-clearance and ink checks pass.
+
+Window glass remains 17 triangles. The rebaked etch mask has the same SHA-256 as the previous mask, `a011b0a4b2e01b25423251c0dd2a42810a46c2309a5a4f7efdfa8a0ac0133a0d`. The local glass exporter ran in memory and wrote only temporary files inside this directory.
+
+The headless build exited 0 and saved all ten views. Freestyle reported an empty stroke set in the side view and corrected two doubled edge pairs in the front view. Both images were inspected; mesh and ink checks pass. `previews/finish4-verification.json` records the final scene hash and preview checks.
+
+All writes stayed inside this directory. No Unity assets, network calls or git write commands were used. Temporary Blender resources, caches, export files and scratch folders were removed after completion.
+
+### Rebuild this finish
+
+Use the local Blender resource and temporary directories from the earlier rebuild recipe. With those environment variables set, run these scripts with headless Blender and `--python-exit-code 1`:
+
+1. `build_deck.py` regenerates the blend and ten camera/construction views.
+2. `verify_finish4.py`, without `--capture`, checks the frozen finish contract.
+3. `verify_deck.py` regenerates masks and the raw parts sheet.
+4. `verify_recess.py -- --finish4` checks recesses and screen visibility.
+5. `verify_coverage.py` regenerates six coverage views.
+6. `verify_ink.py` regenerates the bounded and unbounded ink views.
+7. Re-run the glass export recipe without saving the opened scene, then `verify_glass.py` and `render_glass.py`.
+8. Run `assemble_previews.py`, `assemble_coverage.py --require-closed --finish4` and `assemble_finish4.py` with ordinary Python.
+
+The finish4 coverage mode classifies dark colour-threshold crossings on unchanged opaque pixels as paint, using the geometry masks. Existing dark zero-alpha fringe pixels must still be within the frozen one-pixel window edge. It requires no alpha loss against the clean hardware, no magenta outside the frozen openings and no unexplained chroma crossings. Earlier finish verifiers assert obsolete palette and lamp counts; do not run them against this finish.
+
 ## Window etching, 2026-11-19
 
 The owner's ruling was to return the etching and re-cut it for the new canopy. `build_deck.py` now calls `build_glass.py` to add `25 | Viewport glass`. This is one mesh with five flat panes and one material. The centre pane follows the strut rake. The two side panes hinge beside those struts, and two outer panes continue behind the outer pillars into the wide-view windows. Their edges tuck under the existing header, sill and posts. The glass sits behind the visible hardware.

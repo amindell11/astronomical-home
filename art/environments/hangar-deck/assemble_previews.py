@@ -18,7 +18,7 @@ comparison.paste(massing,(0,60))
 comparison.paste(deck,(1920,60))
 draw = ImageDraw.Draw(comparison)
 draw.text((24,12),'D13 approved massing',font=font,fill='white')
-draw.text((1944,12),'Deck: finish 2, assembled plates and service hardware',font=font,fill='white')
+draw.text((1944,12),'Deck: finish 4, cool near-black hardware',font=font,fill='white')
 comparison.save(OUT/'deck-vs-massing.png')
 Image.blend(massing,deck,.5).save(OUT/'deck-camera-overlay.png')
 
@@ -146,7 +146,7 @@ comparison.paste(previous, (0, 60))
 comparison.paste(deck, (1920, 60))
 draw = ImageDraw.Draw(comparison)
 draw.text((24, 12), 'Previous: raised screen lips', font=font, fill='white')
-draw.text((1944, 12), 'Current: shallow recesses and finish 2 plates', font=font, fill='white')
+draw.text((1944, 12), 'Current: shallow recesses and finish 4 palette', font=font, fill='white')
 for column, (source, box, label) in enumerate([
         (previous, (300, 480, 580, 660), 'Left top inner corner, previous, 3x'),
         (deck, (300, 480, 580, 660), 'Left top inner corner, updated, 3x'),

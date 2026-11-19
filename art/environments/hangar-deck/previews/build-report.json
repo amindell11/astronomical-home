@@ -3,14 +3,14 @@
     {
       "name": "Deck | joined closed structure",
       "role": "ConsoleBody",
-      "triangles": 24780,
-      "vertices": 13254,
+      "triangles": 24380,
+      "vertices": 13036,
       "closed": true,
       "manifold": true,
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 4100.720470178986,
+      "volume": 4100.703702645785,
       "planar_screen": false,
       "zero_area_faces": 0
     },
@@ -304,7 +304,7 @@
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 0.007327800839343698,
+      "volume": 0.00215280020678938,
       "planar_screen": false,
       "zero_area_faces": 0
     },
@@ -318,7 +318,7 @@
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 0.00046530001362562166,
+      "volume": 0.00017280000837296275,
       "planar_screen": false,
       "zero_area_faces": 0
     },
@@ -332,7 +332,7 @@
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 0.007327800839343698,
+      "volume": 0.00215280020678938,
       "planar_screen": false,
       "zero_area_faces": 0
     },
@@ -346,7 +346,7 @@
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 0.00046530001362562166,
+      "volume": 0.00017280000837296275,
       "planar_screen": false,
       "zero_area_faces": 0
     },
@@ -360,7 +360,7 @@
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 0.0021612499028071767,
+      "volume": 0.00045499999202787845,
       "planar_screen": false,
       "zero_area_faces": 0
     },
@@ -374,7 +374,7 @@
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 0.0021612499028071767,
+      "volume": 0.00045499999202787845,
       "planar_screen": false,
       "zero_area_faces": 0
     },
@@ -388,35 +388,7 @@
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 0.0021612499028071767,
-      "planar_screen": false,
-      "zero_area_faces": 0
-    },
-    {
-      "name": "Deck | Left pod amber brow lens",
-      "role": "ConsoleBody",
-      "triangles": 28,
-      "vertices": 16,
-      "closed": true,
-      "manifold": true,
-      "boundary_edges": 0,
-      "nonmanifold_edges": 0,
-      "loose_vertices": 0,
-      "volume": 0.0005599999824497433,
-      "planar_screen": false,
-      "zero_area_faces": 0
-    },
-    {
-      "name": "Deck | Right pod amber brow lens",
-      "role": "ConsoleBody",
-      "triangles": 28,
-      "vertices": 16,
-      "closed": true,
-      "manifold": true,
-      "boundary_edges": 0,
-      "nonmanifold_edges": 0,
-      "loose_vertices": 0,
-      "volume": 0.0005599999824497433,
+      "volume": 0.00045499999202787845,
       "planar_screen": false,
       "zero_area_faces": 0
     },
@@ -430,7 +402,7 @@
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 0.0002818333376455635,
+      "volume": 7.045833441139088e-05,
       "planar_screen": false,
       "zero_area_faces": 0
     },
@@ -444,7 +416,7 @@
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 0.0002818333376455635,
+      "volume": 7.045833441139088e-05,
       "planar_screen": false,
       "zero_area_faces": 0
     },
@@ -458,7 +430,7 @@
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 0.0002818333376455635,
+      "volume": 7.045833441139088e-05,
       "planar_screen": false,
       "zero_area_faces": 0
     },
@@ -472,7 +444,7 @@
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 0.0002818333376455635,
+      "volume": 7.045833441139088e-05,
       "planar_screen": false,
       "zero_area_faces": 0
     },
@@ -486,7 +458,7 @@
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 0.0002818333376455635,
+      "volume": 7.045833441139088e-05,
       "planar_screen": false,
       "zero_area_faces": 0
     },
@@ -500,7 +472,7 @@
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 0.0002818333376455635,
+      "volume": 7.045833441139088e-05,
       "planar_screen": false,
       "zero_area_faces": 0
     },
@@ -529,20 +501,6 @@
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
       "volume": 0.0006465000375807293,
-      "planar_screen": false,
-      "zero_area_faces": 0
-    },
-    {
-      "name": "Deck | Header centre amber marker lens",
-      "role": "ConsoleBody",
-      "triangles": 28,
-      "vertices": 16,
-      "closed": true,
-      "manifold": true,
-      "boundary_edges": 0,
-      "nonmanifold_edges": 0,
-      "loose_vertices": 0,
-      "volume": 0.0010228333724285987,
       "planar_screen": false,
       "zero_area_faces": 0
     },
@@ -631,38 +589,8 @@
       "zero_area_faces": 0
     }
   ],
-  "triangles": 26508,
+  "triangles": 26024,
   "lamps": [
-    {
-      "name": "Deck | Left pod amber brow lens",
-      "anchor": "Left pod amber brow lens",
-      "position": [
-        -8.782958984375,
-        1.2737897634506226,
-        4.636005401611328
-      ],
-      "color": [
-        1.0,
-        0.2800000011920929,
-        0.019999999552965164
-      ],
-      "downlight": false
-    },
-    {
-      "name": "Deck | Right pod amber brow lens",
-      "anchor": "Right pod amber brow lens",
-      "position": [
-        8.782958984375,
-        1.2737897634506226,
-        4.636005401611328
-      ],
-      "color": [
-        1.0,
-        0.2800000011920929,
-        0.019999999552965164
-      ],
-      "downlight": false
-    },
     {
       "name": "Deck | Left status 1 green lens",
       "anchor": "Left status 1 green lens",
@@ -702,9 +630,9 @@
         1.8904404640197754
       ],
       "color": [
-        1.0,
-        0.2800000011920929,
-        0.019999999552965164
+        0.44999998807907104,
+        0.7200000286102295,
+        1.0
       ],
       "downlight": false
     },
@@ -747,9 +675,9 @@
         1.8196005821228027
       ],
       "color": [
-        1.0,
-        0.2800000011920929,
-        0.019999999552965164
+        0.44999998807907104,
+        0.7200000286102295,
+        1.0
       ],
       "downlight": false
     },
@@ -784,21 +712,6 @@
       "downlight": false
     },
     {
-      "name": "Deck | Header centre amber marker lens",
-      "anchor": "Header centre amber marker lens",
-      "position": [
-        -3.725290298461914e-09,
-        3.316999912261963,
-        10.470000267028809
-      ],
-      "color": [
-        1.0,
-        0.2800000011920929,
-        0.019999999552965164
-      ],
-      "downlight": false
-    },
-    {
       "name": "Deck | Header downlight 01 warm white lens",
       "anchor": "Header downlight 01 warm white lens",
       "position": [
@@ -807,9 +720,9 @@
         9.0164213180542
       ],
       "color": [
-        1.0,
-        0.7799999713897705,
-        0.47999998927116394
+        0.75,
+        0.8600000143051147,
+        1.0
       ],
       "downlight": true
     },
@@ -822,9 +735,9 @@
         9.79642105102539
       ],
       "color": [
-        1.0,
-        0.7799999713897705,
-        0.47999998927116394
+        0.75,
+        0.8600000143051147,
+        1.0
       ],
       "downlight": true
     },
@@ -837,9 +750,9 @@
         9.79642105102539
       ],
       "color": [
-        1.0,
-        0.7799999713897705,
-        0.47999998927116394
+        0.75,
+        0.8600000143051147,
+        1.0
       ],
       "downlight": true
     },
@@ -852,9 +765,9 @@
         9.79642105102539
       ],
       "color": [
-        1.0,
-        0.7799999713897705,
-        0.47999998927116394
+        0.75,
+        0.8600000143051147,
+        1.0
       ],
       "downlight": true
     },
@@ -867,9 +780,9 @@
         9.79642105102539
       ],
       "color": [
-        1.0,
-        0.7799999713897705,
-        0.47999998927116394
+        0.75,
+        0.8600000143051147,
+        1.0
       ],
       "downlight": true
     },
@@ -882,9 +795,9 @@
         9.0164213180542
       ],
       "color": [
-        1.0,
-        0.7799999713897705,
-        0.47999998927116394
+        0.75,
+        0.8600000143051147,
+        1.0
       ],
       "downlight": true
     }
@@ -1737,7 +1650,8 @@
     "Well cutter mouths expand 0.3 percent to prevent coincident edges at the bevel boundary.",
     "Header, pod shoulders, band and canopy side walls continue to X = +/-27 for wide cameras.",
     "Finish detail uses closed shallow solids joined into ConsoleBody; original controls and glasses are unchanged.",
-    "Stencils, caution marks and local scuffs use flat material geometry, without textures or linked colour nodes.",
-    "Warm header spotlights are preview-only; named lamp lenses provide the exporter anchors and emission colours."
+    "Cool stencils and local scuffs use flat material geometry, without textures or linked colour nodes.",
+    "Cool header spotlights are preview-only; named lamp lenses provide the exporter anchors and emission colours.",
+    "Amber brow and centre lamps with their sockets and launch caution chevrons are removed; guard rails remain."
   ]
 }
