@@ -3,14 +3,14 @@
     {
       "name": "Deck | joined closed structure",
       "role": "ConsoleBody",
-      "triangles": 11896,
-      "vertices": 6148,
+      "triangles": 24780,
+      "vertices": 13254,
       "closed": true,
       "manifold": true,
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 4091.1320757184617,
+      "volume": 4100.720470178986,
       "planar_screen": false,
       "zero_area_faces": 0
     },
@@ -631,7 +631,7 @@
       "zero_area_faces": 0
     }
   ],
-  "triangles": 13624,
+  "triangles": 26508,
   "lamps": [
     {
       "name": "Deck | Left pod amber brow lens",

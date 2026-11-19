@@ -992,6 +992,300 @@ for index, x in enumerate((-8.2, -5.0, -2.3, 2.3, 5.0, 8.2), 1):
     light_obj.rotation_euler = (target - light_obj.location).to_track_quat('-Z', 'Y').to_euler()
     light_obj['preview_only'] = True
 
+
+def clip_plate(outline, axis, limit, keep_less):
+    result = []
+    for a, b in zip(outline, outline[1:] + outline[:1]):
+        inside_a = (a[axis] <= limit) == keep_less
+        inside_b = (b[axis] <= limit) == keep_less
+        if inside_a:
+            result.append(a)
+        if inside_a != inside_b:
+            t = (limit - a[axis]) / (b[axis] - a[axis])
+            result.append(tuple(a[i] + (b[i] - a[i]) * t for i in range(2)))
+    return result
+
+
+def surface_plate(name, corners, mat=plate, margin=.025, relief=.03):
+    corners = [Vector(p) for p in corners]
+    origin = sum(corners, Vector()) / len(corners)
+    u = (corners[1] - corners[0]).normalized()
+    n = u.cross(corners[-1] - corners[0]).normalized()
+    v = n.cross(u)
+    basis = (origin, u, v, n)
+    outline = [((p - origin).dot(u), (p - origin).dot(v)) for p in corners]
+    outline = offset_outline(outline, -margin)
+    heights = [(p - origin).dot(n) for p in corners]
+    loops = [[point(basis, x, y, height + depth)
+              for (x, y), height in zip(outline, heights)] for depth in (-.006, relief)]
+    obj = world_loft('Finish 2 | ' + name, loops, mat)
+    finish_solids.append(obj)
+    return obj, basis
+
+
+def rubbed_paint(obj, basis, x_range, y_range):
+    frame = Matrix((basis[1], basis[2], basis[3])).transposed().to_4x4()
+    frame.translation = basis[0]
+    transform = frame.inverted() @ obj.matrix_world
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    bm.transform(transform)
+    for axis, bounds in ((0, x_range), (1, y_range)):
+        normal = Vector((1, 0, 0)) if axis == 0 else Vector((0, 1, 0))
+        for value in bounds:
+            bmesh.ops.bisect_plane(bm, geom=list(bm.verts)+list(bm.edges)+list(bm.faces),
+                                  dist=1e-7, plane_co=normal*value, plane_no=normal)
+    bm.normal_update()
+    for f in bm.faces:
+        centre = f.calc_center_median()
+        if (f.normal.z > .95 and x_range[0] < centre.x < x_range[1]
+                and y_range[0] < centre.y < y_range[1]):
+            f.material_index = PALETTE.index(edgepaint)
+    bm.transform(transform.inverted())
+    bm.to_mesh(obj.data)
+    bm.free()
+    repair(obj, True)
+
+
+def service_hatch(name, basis, width, height):
+    finish_solid(name + ' gasket', basis, width, height, .008, -.008, well, .09)
+    finish_solid(name + ' cover', basis, width - .09, height - .09, .025, .005, inset, .07)
+    for y in (-height * .29, height * .29):
+        finish_solid(name + ' hinge', shifted(basis, x=-width / 2 + .075, y=y),
+                     .15, .19, .052, .018, shoulder, .025)
+    finish_solid(name + ' latch', shifted(basis, x=width / 2 - .15),
+                 .15, .24, .055, .024, shoulder, .03)
+    stencil(name + ' code', shifted(basis, x=-.03, y=height * .27, d=.026), .85)
+
+
+def vent_grille(name, basis, width, height, rows=4):
+    finish_solid(name + ' recess', basis, width, height, .008, -.008, well, .045)
+    pitch = (height - .10) / rows
+    for row in range(rows):
+        finish_solid(name + ' slat ' + str(row),
+                     shifted(basis, y=(row - (rows - 1) / 2) * pitch),
+                     width - .12, pitch * .44, .032, .005, shoulder, .012)
+
+
+def trunk_segment(name, a, b, normal, width=.13, depth=.07):
+    a, b, normal = Vector(a), Vector(b), Vector(normal).normalized()
+    along = (b - a).normalized()
+    across = along.cross(normal).normalized()
+    basis = ((a + b) / 2, across, along, across.cross(along))
+    finish_solid(name, basis, width, (b - a).length, depth, -.012, inset, .035)
+    for y in (-(b - a).length * .32, (b - a).length * .32):
+        finish_solid(name + ' saddle', shifted(basis, y=y),
+                     width + .065, .10, depth + .018, -.016, shoulder, .018)
+
+
+for hand, label in ((-1, 'Left'), (1, 'Right')):
+    pb, _, rearward = D['pod_bases'][label]
+    record = POD_RECORDS[0 if hand < 0 else 1]
+    profile = offset_outline(record['profile'], -.035)
+    split_y = -.43 if hand < 0 else .95
+    for row, (low, high) in enumerate(((-3, split_y - .022), (split_y + .022, 4))):
+        for col, (left, right) in enumerate(((-4, -.022), (.022, 4))):
+            outline = profile
+            for axis, value, less in ((1, low, False), (1, high, True),
+                                      (0, left, False), (0, right, True)):
+                outline = clip_plate(outline, axis, value, less)
+            skin = local_mesh('Finish 2 | ' + label + ' frame plate', outline,
+                              POD_FACE_DEPTH + .028, POD_FACE_DEPTH - .006, pb,
+                              plate if (row + col) % 2 else shoulder)
+            for screen in SCREEN_RECORDS[0:2] if hand < 0 else SCREEN_RECORDS[2:4]:
+                sb = (Vector(screen['origin']), pb[1], pb[2], pb[3])
+                cutter = local_mesh('Construction | quiet screen border',
+                                   offset_outline(screen['mouth'], .035), .5, -.2, sb)
+                subtract(skin, cutter)
+            exclusions = [(hand * 2.55, .80, .53, 2.77),
+                          (hand * 2.805, -.60, .15, .74)]
+            if hand > 0:
+                exclusions.append((-2.65, .675, .64, 2.67))
+            for x, y, width, height in exclusions:
+                cutter = local_mesh('Construction | retained pod hardware',
+                                   chamfer(width, height, .04), .3, -.3, shifted(pb, x=x, y=y))
+                subtract(skin, cutter)
+            rubbed_paint(skin, pb, tuple(sorted((hand*2.845, hand*2.875))), (1.25, 1.65))
+            finish_solids.append(skin)
+
+    front = [Vector(p) for p in record['front_world']]
+    mid = [point(pb, x + (math.copysign(.20, x) if hand * x > 0 else 0), y, POD_FACE_DEPTH)
+           + rearward * .42 for x, y in record['profile']]
+    rear = [p + rearward * .83 for p in mid]
+    for index in (4, 2 if hand > 0 else 6):
+        j = (index + 1) % 8
+        for start, end in ((.035, .49), (.51, .965)):
+            a, b = mid[index].lerp(mid[j], start), mid[index].lerp(mid[j], end)
+            c, d = rear[index].lerp(rear[j], end), rear[index].lerp(rear[j], start)
+            panel_obj, basis = surface_plate(label + ' cap and flank plate', [b, a, d, c],
+                                              plate if start < .1 else inset, .035)
+            if index != 4 and start < .1:
+                vent_grille(label + ' flank cooling', shifted(basis, d=.031), 1.05, .49, 3)
+
+    x = hand * 2.31
+    trunk_segment(label + ' pod cable trunk', point(pb, x, -.90, -.055),
+                  point(pb, x, 2.18, -.055), pb[3], .095, .045)
+    finish_solid(label + ' upper corner block', shifted(pb, x=hand*2.70, y=2.42, d=-.10),
+                 .24, .22, .039, -.005, inset, .035)
+    fastener(label + ' corner captive screw', shifted(pb, x=hand*2.70, y=2.42, d=-.059), .036)
+    if hand < 0:
+        stencil(label + ' lower frame code', shifted(pb, x=2.57, y=-.80, d=-.070), .65)
+    else:
+        stencil(label + ' lower frame code', shifted(pb, x=.78, y=-1.25, d=-.070), 1.0)
+
+
+def band_point(x, section):
+    origin, _ = D['band_origin'](x)
+    dy, dz = D['BAND_SECTION'][section]
+    return origin + Vector((0, dy, dz))
+
+
+for segment, (a, b) in enumerate(zip(D['BAND_PATH'], D['BAND_PATH'][1:])):
+    divisions = 2 if b[0] - a[0] > 3 else 1
+    for division in range(divisions):
+        x0 = a[0] + (b[0] - a[0]) * division / divisions
+        x1 = a[0] + (b[0] - a[0]) * (division + 1) / divisions
+        for lower, upper in ((1, 2), (2, 3)):
+            obj, basis = surface_plate('band ' + str((segment, division, lower)),
+                                       [band_point(x0, lower), band_point(x1, lower),
+                                        band_point(x1, upper), band_point(x0, upper)],
+                                       plate if (segment + division) % 2 else face, .023)
+            if lower == 2:
+                for wb, mouth, floor, name in WELL_CUTS:
+                    cutter = local_mesh('Construction | control frame clearance',
+                                       offset_outline(mouth, .23), .8, -.8, wb)
+                    subtract(obj, cutter)
+            if lower == 1:
+                width = min(.55, (x1 - x0) * .35)
+                rubbed_paint(obj, basis, (-width/2, width/2), (.026, .054))
+
+for hand, label in ((-1, 'Left'), (1, 'Right')):
+    pb = D['pod_bases'][label][0]
+    join_v = D['POD_PROFILE_BOTTOM'] + (.50 if hand > 0 else 0)
+    upper = [point(pb, hand * u, join_v, -.10) for u in (-2.705, 2.705)]
+    edge = [Vector((hand * x, y, z)) for x, y, z in [(4.35, -.05, 1.24), (8.6, -2.55, .74)]]
+    middle = [p * .55 + q * .45 + Vector((0, 0, .06)) for p, q in zip(upper, edge)]
+    for row, (back, front) in enumerate(((upper, middle), (middle, edge))):
+        for low, high in ((.02, .49), (.51, .98)):
+            corners = [front[0].lerp(front[1], low), front[0].lerp(front[1], high),
+                       back[0].lerp(back[1], high), back[0].lerp(back[1], low)]
+            if hand < 0:
+                corners.reverse()
+            _, basis = surface_plate(label + ' wing plate', corners,
+                                     plate if row == 0 else inset, .025)
+            if row == 0 and low > .1:
+                stencil(label + ' wing code', shifted(basis, d=.031), 1.1)
+                for x in (-.62, .62):
+                    fastener(label + ' wing captive screw', shifted(basis, x=x, d=.03), .035)
+
+    bb = D['band_basis'](hand * 5.85, 0)
+    vent_grille(label + ' under-switch intake', shifted(bb, y=-.76, d=.052), 1.90, .30, 2)
+    for y in (-.96, .81):
+        stencil(label + ' intake identifier', shifted(bb, x=hand * 1.04, y=y, d=.02), .65)
+    for a, b in ((3.95, 5.25), (5.25, 7.1), (7.1, 8.25)):
+        aa = band_point(hand * a, 3) - bb[2] * .32
+        zz = band_point(hand * b, 3) - bb[2] * .32
+        trunk_segment(label + ' rear band cable trunk', aa, zz, bb[3], .13, .065)
+
+    x = D['STRUT_LANDING_POINTS'][0 if hand < 0 else 1][0]
+    base = []
+    for u, v in chamfer(1.90, 3.49, .32):
+        px, py = x + hand * .30 + u, 1.395 + v
+        base.append(Vector((px, py, D['band_surface_z'](px, min(py, 2.35)))))
+    cap = [Vector((x + u, 2.43 + v, 1.32)) for u, v in chamfer(.88, 1.12, .17)]
+    for i in (0, 1, 7):
+        j = (i + 1) % 8
+        corners = [base[i], base[j], cap[j], cap[i]]
+        _, basis = surface_plate(label + ' strut shoulder armour', corners, plate, .025)
+        if i == 0:
+            finish_solid(label + ' shoulder keeper', shifted(basis, d=.031), .34, .17,
+                         .025, -.008, inset)
+            fastener(label + ' shoulder pin', shifted(basis, d=.057), .047)
+
+for hand in (-1, 1):
+    w0, h0, z0 = D['PEDESTAL_LOOPS'][1]
+    w1, h1, z1 = D['PEDESTAL_LOOPS'][2]
+    side_corners = [(hand * w0 / 2, -.56, z0), (hand * w0 / 2, .56, z0),
+                    (hand * w1 / 2, .48, z1), (hand * w1 / 2, -.48, z1)]
+    if hand < 0:
+        side_corners.reverse()
+    _, basis = surface_plate('pedestal base cheek', side_corners, plate, .035)
+    finish_solid('pedestal base latch', shifted(basis, d=.031), .23, .12, .028, -.008, inset)
+
+header_basis = (Vector((0, 3.35, 0)), Vector((1, 0, 0)), Vector((0, 0, 1)), Vector((0, -1, 0)))
+for i, ((x0, z0), (x1, z1)) in enumerate(zip(D['HEADER_STATIONS'], D['HEADER_STATIONS'][1:])):
+    if abs(z1-z0) > .1:
+        hv = D['hv']
+        surface_plate('header stepped cheek', [hv[i*5+4], hv[(i+1)*5+4], hv[(i+1)*5], hv[i*5]],
+                      shoulder, .05, .025)
+for hand in (-1, 1):
+    for inner, outer in ((.58, 3.2), (3.2, 5.95), (7.5, 10.04), (10.04, 12.34),
+                         (12.42, 15.4), (15.4, 19.5), (19.5, 26.8)):
+        x0, x1 = sorted((hand * inner, hand * outer))
+        lower0 = D['brow_z'](x0) + (.32 if inner < 6 else .53) if abs(x0) < 12.4 else 8.94
+        lower1 = D['brow_z'](x1) + (.32 if inner < 6 else .53) if abs(x1) < 12.4 else 8.94
+        ceiling = 10.59
+        outline = [(x0 + .023, lower0), (x1 - .023, lower1),
+                   (x1 - .023, ceiling), (x0 + .023, ceiling)]
+        obj = local_mesh('Finish 2 | header broad face cassette', outline, .032, -.005,
+                         header_basis, plate if inner < 4 else inset)
+        if inner < 6:
+            for x, y, width, height in ((hand * 3.05, 10.485, 3.84, .20),
+                                         (hand * 4.08, 10.345, .52, .18)):
+                cutter = local_mesh('Construction | retained header trim', chamfer(width, height, .02),
+                                   .2, -.2, shifted(header_basis, x=x, y=y))
+                subtract(obj, cutter)
+        finish_solids.append(obj)
+        if inner > 7:
+            service_hatch('header junction access', shifted(header_basis, x=(x0+x1)/2,
+                                                            y=(max(lower0, lower1)+ceiling)/2, d=.033),
+                          min(1.35, outer-inner-.3), .55)
+    for x0, x1 in ((.15, 2.0), (2.65, 4.65), (5.35, 6.0), (8.7, 9.9)):
+        a, b = hand*x0, hand*x1
+        corners = [Vector((a, 3.90, D['brow_z'](a))), Vector((b, 3.90, D['brow_z'](b))),
+                   Vector((b, 3.35, D['brow_z'](b)+.30)), Vector((a, 3.35, D['brow_z'](a)+.30))]
+        if hand < 0:
+            corners.reverse()
+        _, basis = surface_plate('header underside cassette', corners, inset, .055, .025)
+        if x1-x0 > 1.8:
+            vent_grille('header underside cooling', shifted(basis, d=.026), .95, .26, 2)
+
+for hand, label in ((-1, 'Left'), (1, 'Right')):
+    for x0, x1, y0, y1, z0, z1, top0, top1 in (
+            (10.30, 11.3, -2.05, -3.0, 1.0, 1.0, .195, .30),
+            (11.3, 14.5, -3.0, -4.4, 1.0, 1.0, .30, -.80),
+            (14.5, 19.0, -4.4, -4.4, 1.0, 1.0, -.80, -.80),
+            (19.0, 26.8, -4.4, -4.4, 1.0, 1.0, -.80, -.80)):
+        height0 = 4.3547619 if x0 < 11 else (4.25 if x0 < 12 else 3.55)
+        height1 = 4.25 if x1 < 12 else 3.55
+        corners = [Vector((hand*x0, y0, z0)), Vector((hand*x1, y1, z1)),
+                   Vector((hand*x1, top1-.30, height1-.20)),
+                   Vector((hand*x0, top0-.30, height0-.20))]
+        if hand < 0:
+            corners.reverse()
+        for low, high in ((.025, .49), (.51, .975)):
+            a, b, c, d = corners
+            _, basis = surface_plate(label + ' side console cover',
+                                     [a.lerp(d, low), b.lerp(c, low), b.lerp(c, high), a.lerp(d, high)],
+                                     plate if low < .1 else inset, .035)
+            if x0 < 11 and low > .1:
+                service_hatch(label + ' inner console access', shifted(basis, d=.031), .68, .58)
+            elif x0 < 11:
+                for x in (-.30, .30):
+                    finish_solid(label + ' inner console grip foot', shifted(basis, x=x, d=.031),
+                                 .14, .22, .05, -.008, shoulder)
+                finish_solid(label + ' inner console grip', shifted(basis, d=.031), .71, .11,
+                             .10, .065, inset, .025)
+            elif x1-x0 > 2 and low > .1:
+                service_hatch(label + ' side console service', shifted(basis, x=-.48, d=.031), .95, .68)
+                vent_grille(label + ' side console exhaust', shifted(basis, x=.78, d=.031), .63, .60, 4)
+            elif x1-x0 > 2:
+                for x in (-.47, .47):
+                    finish_solid(label + ' side handhold foot', shifted(basis, x=x, d=.031),
+                                 .17, .24, .05, -.008, shoulder)
+                finish_solid(label + ' side handhold', shifted(basis, d=.031), 1.05, .12,
+                             .12, .07, inset, .025)
+
 bpy.ops.object.select_all(action='DESELECT')
 body.select_set(True)
 for obj in finish_solids:

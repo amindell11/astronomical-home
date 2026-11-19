@@ -1,23 +1,34 @@
 # Hangar deck
 
-## Finish 1, 2026-11-19
+## Finish 2, 2026-11-19
 
-The approved D13 shape is frozen. This finish adds shallow plate detail, pedestal riser slots, service plates and latches, restrained fasteners, vent grilles, strut channels and clamps, launch guards, flat stencil marks and light wear near the controls. The existing cyan strips stay cyan. Status lamps use red, green and amber; the header downlights use warm white.
+The approved D13 shape is frozen. Broad plates now divide the pod frames and caps, outer flanks, band top and front lip, wings, strut shoulders, pedestal base cheeks, header face and diagonal steps, and the wide-view side consoles. The joints are about 0.04 units across, with 0.025 to 0.032 units of relief. Existing slate, secondary blue and dark service paint separate the plates by value.
 
-The screen borders stay quiet. Wear is limited to small rubbed edges and short scuffs near the controls. New marks are abstract blocks and bars, with no new readable lettering. The existing LAUNCH legend and control chevrons are unchanged.
+Vents sit below the switch banks, on the pod flanks and between header downlights. Service covers have a latch and two hinges. Cable trunks follow the band behind the switches and climb the pods' outer sides. The side consoles have handholds, including the inner plates visible at 21:9. Short fastener rows and block-and-bar service marks stay off the glasses and moving control faces. Flush lighter paint patches on the pod edges and front lip avoid extra ink around wear.
 
-All finish geometry belongs to `Deck | joined closed structure`, except the 17 named lamp lenses. The detail consists of closed shallow solids joined into the body object. Some components overlap or meet the original shell internally; they do not replace its approved surfaces. Moving controls and their frames, the four glasses, the seven cyan strips, the camera and all three ink linesets match the recorded pre-finish model exactly.
+Every finish 1 lamp, socket, launch guard, caution chevron, pedestal slot, strut groove and clamp remains. The existing cyan strips stay cyan. Status lamps use red, green and amber; the header downlights use warm white.
+
+At full size, the plate edges follow the hardware's main directions and the service parts sit within them. At 960 by 540, the plate divisions and lamps remain legible. The vent slots stay grouped, with no dense hatching. The screen borders stay quiet. Wear is limited to small rubbed edges and short scuffs near the controls. New marks are abstract blocks and bars, with no new readable lettering. The existing LAUNCH legend and control chevrons are unchanged.
+
+All finish 1 and finish 2 geometry belongs to `Deck | joined closed structure`, except the 17 named lamp lenses. The detail consists of closed shallow solids joined into the body object. Some components overlap or meet the original shell internally; they do not replace its approved surfaces. Moving controls and their frames, the four glasses, the seven cyan strips, the camera and all three ink linesets match the recorded pre-finish model exactly.
 
 No Unity assets, shared exporter files or files outside this folder were edited. No network, export, commit, push or merge was used.
 
 ## Review images
+
+- `previews/deck-finish2-compare.png`: clean model, finish round 1 and finish round 2, each at 1920 by 1080.
+- `previews/deck-finish2-crops.png`: five 2x crops covering both pods, launch console and pedestal, header and strut joint, and the band with a wing.
+- `previews/deck-finish2-21x9.png`: current 2560 by 1080 camera render.
+- `previews/deck-finish2-half.png`: current 960 by 540 readability check.
+
+The following finish 1 images remain historical comparisons:
 
 - `previews/deck-finish1-compare.png`: previous and finished 1920 by 1080 camera renders, labelled side by side.
 - `previews/deck-finish1-crops.png`: 2x crops of both pods, the launch console and pedestal, and the header with a strut joint.
 - `previews/deck-finish1-21x9.png`: finished 2560 by 1080 camera render.
 - `previews/deck-finish1-half.png`: the 960 by 540 readability check.
 
-The six current camera views, four construction views, masks, parts sheet, coverage sheet and ink verification images were regenerated. Historical images under `reference/` and `coverage-reference/`, the recess original, the D13 images and the new finish original remain comparison references.
+The six current camera views, four construction views, masks, parts sheet, coverage sheet and ink verification images were regenerated. Historical images under `reference/` and `coverage-reference/`, the recess original, the D13 images and both finish originals remain comparison references. `deck-finish2-original.png` records round 1 for the three-way comparison.
 
 These are headless Blender renders. The blue screen glasses and simple hologram are preview placeholders. They do not show the current in-game UI or ship rendering.
 
@@ -31,7 +42,7 @@ The warm spotlights in the Blender scene are marked `preview_only`. They show re
 
 ## Lamp schedule
 
-Positions are Blender world coordinates, measured at each lens bounding-box centre by the shared exporter's `anchor` function. Colours are linear RGB values from the unlinked Emission Color input. Object names include the `Deck | ` prefix. Full precision and lens normals are in `previews/finish1-audit.json` and `previews/finish-lamps.json`.
+Positions are Blender world coordinates, measured at each lens bounding-box centre by the shared exporter's `anchor` function. Colours are linear RGB values from the unlinked Emission Color input. Object names include the `Deck | ` prefix. Full precision and lens normals are in `previews/finish2-audit.json` and `previews/finish-lamps.json`.
 
 | Lamp object | Position X, Y, Z | Linear emission RGB |
 |---|---|---|
@@ -55,11 +66,11 @@ Positions are Blender world coordinates, measured at each lens bounding-box cent
 
 ## Geometry and coverage
 
-The hardware has **13,624 triangles**, below the 40,000-triangle limit. It has 45 mesh objects, including four intentional planar glasses. Every other mesh is closed, manifold and consistently wound with positive signed volume. There are no loose vertices, zero-area faces or unapplied modifiers.
+The hardware has **26,508 triangles**, below the 40,000-triangle limit. It has 45 mesh objects, including four intentional planar glasses. Every other mesh is closed, manifold and consistently wound with positive signed volume. There are no loose vertices, zero-area faces or unapplied modifiers.
 
-The exact preservation check passes for all 27 original non-body hardware objects. The original structural construction still runs unchanged before finish additions. The independent Boolean audit finds no positive-volume intersections between hardware objects. There are no pressed-control intersections at half or full travel. Screen perimeter and interior checks sample 715 points per glass in each of the six aspect ratios; every sample remains visible.
+The exact preservation check passes for all 44 non-body hardware objects from round 1, including the 17 lamp lenses. Every original body face and its material assignment remains in the new body. Lamp positions, colours, sockets and viewing directions match round 1. The original structural construction still runs unchanged before finish additions. The independent Boolean audit finds no positive-volume intersections between hardware objects. There are no pressed-control intersections at half or full travel. Screen perimeter and interior checks sample 715 points per glass in each of the six aspect ratios; every sample remains visible.
 
-The finish changes the 16:9 hardware silhouette by 1,193 added pixels and 0 removed pixels. Its maximum edge displacement is 4.00 pixels; the 95th percentile is 0.00 pixels. The report is `previews/finish1-silhouette.json`.
+The finish changes the clean model's 16:9 hardware silhouette by 2,805 added pixels and 0 removed pixels. Its maximum edge displacement is 4.00 pixels. Relative to round 1, the maximum change is 3.00 pixels, with no removed pixels. The report is `previews/finish2-silhouette.json`.
 
 | View | Top 3% magenta | Bottom 3% magenta | Outside windows magenta |
 |---|---:|---:|---:|
@@ -70,9 +81,9 @@ The finish changes the 16:9 hardware silhouette by 1,193 added pixels and 0 remo
 | 21x9 | 0 | 0 | 0 |
 | 32x9 | 0 | 0 | 0 |
 
-The coverage test uses the same frozen window-opening masks as the preceding closure revision. Six dark antialias edge pixels cross the loose chroma threshold by one RGB value. Each was already transparent in the original geometry mask and remains transparent in the finished mask. The finish check records these six values and also verifies zero loss of alpha at every pixel across all six original and finished masks. It does not expand the window openings. The current finish intentionally changes rendered colours across the hardware, so the earlier gap-only `--require-preserved` RGB test does not apply. Run `--require-closed` for this slice.
+The coverage test uses the same frozen window-opening masks as the preceding closure revision. Twenty-eight dark boundary pixels cross the loose chroma threshold after changes of one to three RGB values. Twenty-seven remain at zero alpha in both the clean and finished geometry masks; one remains fully opaque. All lie within one pixel of the frozen boundary and have every RGB channel below 80. The finish 2 check records their exact colours and alpha, and verifies zero loss of alpha at every pixel across all six masks. It does not expand the window openings. Finish 2 intentionally changes hardware colours, so the earlier gap-only `--require-preserved` RGB test does not apply. Run `--require-closed --finish2` for this slice.
 
-`finish1-baseline.json` records the original geometry and ink settings. `finish1-audit.json` records the final geometry, material-reader checks, lamp positions and lens visibility. `mesh-audit.json` contains the independent mesh, intersection and press-travel checks. `recess-audit.json` retains the shallow-recess measurements and verifies current glass clearance. The earlier gap-closure and local-export reports are historical evidence, not checks of this finish.
+`finish1-baseline.json` and `finish1-audit.json` retain the clean-model and round 1 records. `finish2-baseline.json` freezes the complete round 1 geometry. `finish2-audit.json` records current geometry, round 1 face preservation, material-reader checks, lamp positions and lens visibility. `mesh-audit.json` contains the independent mesh, intersection and press-travel checks. `recess-audit.json` retains the shallow-recess measurements and verifies current glass clearance. The earlier gap-closure and local-export reports are historical evidence, not checks of this finish.
 
 ## Rebuild
 
@@ -86,17 +97,17 @@ $env:TEMP = Join-Path $deckRoot '.temp'
 $env:TMP = $env:TEMP
 $env:PYTHONDONTWRITEBYTECODE = '1'
 & 'C:/Program Files/Blender Foundation/Blender 5.1/blender.exe' -b --factory-startup --python-exit-code 1 --python art/environments/hangar-deck/build_deck.py
-& 'C:/Program Files/Blender Foundation/Blender 5.1/blender.exe' -b --factory-startup --python-exit-code 1 --python art/environments/hangar-deck/verify_finish1.py
+& 'C:/Program Files/Blender Foundation/Blender 5.1/blender.exe' -b --factory-startup --python-exit-code 1 --python art/environments/hangar-deck/verify_finish2.py
 & 'C:/Program Files/Blender Foundation/Blender 5.1/blender.exe' -b --factory-startup --python-exit-code 1 --python art/environments/hangar-deck/verify_deck.py
 & 'C:/Program Files/Blender Foundation/Blender 5.1/blender.exe' -b --factory-startup --python-exit-code 1 --python art/environments/hangar-deck/verify_recess.py -- --finish1
 & 'C:/Program Files/Blender Foundation/Blender 5.1/blender.exe' -b --factory-startup --python-exit-code 1 --python art/environments/hangar-deck/verify_coverage.py
 & 'C:/Program Files/Blender Foundation/Blender 5.1/blender.exe' -b --factory-startup --python-exit-code 1 --python art/environments/hangar-deck/verify_ink.py
 python art/environments/hangar-deck/assemble_previews.py
-python art/environments/hangar-deck/assemble_coverage.py --require-closed --finish1
-python art/environments/hangar-deck/assemble_finish1.py
+python art/environments/hangar-deck/assemble_coverage.py --require-closed --finish2
+python art/environments/hangar-deck/assemble_finish2.py
 ```
 
-The normal build uses 32 Cycles samples and regenerates all ten camera/construction renders. `--no-render` saves the model and build audit only. The original D13 generator is read and executed in memory; its output files remain untouched. Do not use `verify_finish1.py -- --capture` during a normal rebuild, because that replaces the frozen original reference. `update_notes.py` belongs to the prior shape revision and does not generate this finish record.
+The normal build uses 32 Cycles samples and regenerates all ten camera/construction renders. `--no-render` saves the model and build audit only. The original D13 generator is read and executed in memory; its output files remain untouched. Do not use either finish verifier with `-- --capture` during a normal rebuild. Those options replace frozen comparison records. `assemble_finish1.py` belongs to round 1 and must not be run against round 2 renders. `update_notes.py` belongs to the prior shape revision and does not generate this finish record.
 
 Remove local Blender resource, temporary, cache and scratch folders after Blender exits. No scratch folders remain in this delivery.
 
