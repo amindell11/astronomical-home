@@ -233,8 +233,9 @@ def main(argv):
         sockets = {name: evaluation.to_space(name) for name in sorted(roles.members.get("sockets", ()))
                    if scene.objects[name].type == "EMPTY"}
 
+    # Linked blocks keep their library's names, which never collide with the local export names.
     for block in list(bpy.data.objects) + list(bpy.data.meshes):
-        if block not in [mesh for _, mesh in built]:
+        if block.library is None and block not in [mesh for _, mesh in built]:
             block.name = "~source~" + block.name
     export_scene = bpy.data.scenes.new("ship export")
     root = bpy.data.objects.new(export_name, None)

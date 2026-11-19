@@ -11,7 +11,9 @@ using Game.Audio;
 using Game.Companion;
 using Game.Display;
 using Game.Moments;
+using Game.Moments.Finds;
 using Game.Player;
+using Game.Player.Recorders;
 using Game.Runs;
 using Game.Travel;
 using Loot;
@@ -883,7 +885,7 @@ namespace Game
 
             var sectorsCleared = abandoned ? clearedSectors : killingBlow.HasValue ? endedIn : endedIn + 1;
             var record = RunRecord.Compose(DateTime.UtcNow, sectorsCleared, endedIn, locales, identity,
-                StatHash.OfSetting(hangarOffer, sessionProfile.run.Sectors, killHullRestore), rigInstance.Loadout,
+                StatHash.OfSetting(hangarOffer, lullMods, sessionProfile.run.Sectors, killHullRestore), rigInstance.Loadout,
                 playerLoadoutStatHash, rigInstance.Tally, rigInstance.Ledger, rigInstance.Spawns, killingBlow,
                 course, MountedLoadout(rigInstance.Player), rigInstance.Mods.PickedNames(), ReadEndPhase(),
                 Application.isEditor ? RunRecord.OriginEditor : RunRecord.OriginBuild, DealtRows(rigInstance.Dealt),

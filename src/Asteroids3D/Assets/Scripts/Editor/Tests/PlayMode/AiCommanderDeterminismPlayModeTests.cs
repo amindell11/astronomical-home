@@ -67,9 +67,8 @@ namespace Tests.PlayMode
             var (_, cmdr) = CreateAIShip(Vector3.zero, team: 0);
             var (enemy, _) = CreateAIShip(new Vector3(12f, 0f, 0f), team: 1);
 
-            var deadline = Time.realtimeSinceStartup + 5f;
-            while (cmdr.context?.Combat.HasEnemy != true &&
-                   Time.realtimeSinceStartup < deadline)
+            var acquisitionSteps = Mathf.CeilToInt(5f / Time.fixedDeltaTime);
+            for (var step = 0; cmdr.context?.Combat.HasEnemy != true && step < acquisitionSteps; step++)
                 yield return new WaitForFixedUpdate();
 
             var ctx = cmdr.context;

@@ -56,40 +56,44 @@ namespace Tests.PlayMode.PlayerState
         }
 
         [Test]
-        public void ResourceChanges_UpdateFillGraduationsAndNumbers()
+        public void ResourceChanges_UpdateFillAndSegments()
         {
             var resource = new Resource(150f);
             resource.ApplyDamage(75f);
-            var bar = StatusBarUI.Create(root.transform, resource,
-                Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"), Color.cyan, 0f,
-                TestAssets.Load<Material>("Assets/Visuals/Ui/Projection/CanopyText.mat"));
-            var label = bar.GetComponentInChildren<Text>();
-            Assert.AreEqual("75/150", label.text);
+            var bar = StatusBarUI.Create(root.transform, resource, Color.cyan, Vector2.zero, new Vector2(80f, 8f));
             using (var mesh = new VertexHelper())
             {
                 typeof(StatusBarUI).GetMethod("OnPopulateMesh", BindingFlags.Instance | BindingFlags.NonPublic,
                         null, new[] { typeof(VertexHelper) }, null)
                     .Invoke(bar, new object[] { mesh });
-                Assert.AreEqual(32, mesh.currentVertCount, "Track, empty, fill and five 25-unit marks");
+                Assert.AreEqual(40, mesh.currentVertCount, "Backing, six 25-point track segments and three filled ones");
                 var vertex = new UIVertex();
-                mesh.PopulateUIVertex(ref vertex, 10);
-                Assert.AreEqual(0f, vertex.position.x, .001f, "The remaining fill ends halfway across");
-                mesh.PopulateUIVertex(ref vertex, 12);
-                Assert.AreEqual(-40f + 80f / 6f, vertex.position.x, .001f, "First mark is 25 of 150");
-                mesh.PopulateUIVertex(ref vertex, 24);
-                var left = vertex.position.x;
-                mesh.PopulateUIVertex(ref vertex, 26);
-                Assert.AreEqual(2f, vertex.position.x - left, .001f, "100-unit marks are heavier");
+                mesh.PopulateUIVertex(ref vertex, 6);
+                var firstRight = vertex.position.x;
+                Assert.AreEqual(-40f + 80f / 6f - 1f, firstRight, .001f, "The first segment stops half a gap before 25");
+                mesh.PopulateUIVertex(ref vertex, 8);
+                Assert.AreEqual(2f, vertex.position.x - firstRight, .001f, "A 2-unit gap at 25");
+                mesh.PopulateUIVertex(ref vertex, 18);
+                var beforeHundred = vertex.position.x;
+                mesh.PopulateUIVertex(ref vertex, 20);
+                Assert.AreEqual(4f, vertex.position.x - beforeHundred, .001f, "The gap at 100 is twice as wide");
+                mesh.PopulateUIVertex(ref vertex, mesh.currentVertCount - 2);
+                Assert.AreEqual(-1f, vertex.position.x, .001f, "The fill stops at the gap before the 75 mark");
             }
-            bar.gameObject.SetActive(false);
-            resource.Configure(400f);
-            resource.ApplyDamage(200f);
-            bar.gameObject.SetActive(true);
-            Assert.AreEqual("200/400", label.text);
-            resource.ApplyDamage(.2f);
-            Assert.AreEqual("200/400", label.text, "Round current value up");
-            resource.Configure(0f);
-            Assert.AreEqual("0/0", label.text);
+            Assert.IsEmpty(bar.GetComponentsInChildren<Text>(true), "Bars carry no numbers");
+
+            var wide = StatusBarUI.Create(root.transform, resource, Color.cyan, Vector2.zero, new Vector2(160f, 16f));
+            using (var mesh = new VertexHelper())
+            {
+                typeof(StatusBarUI).GetMethod("OnPopulateMesh", BindingFlags.Instance | BindingFlags.NonPublic,
+                        null, new[] { typeof(VertexHelper) }, null)
+                    .Invoke(wide, new object[] { mesh });
+                var vertex = new UIVertex();
+                mesh.PopulateUIVertex(ref vertex, 6);
+                var firstRight = vertex.position.x;
+                mesh.PopulateUIVertex(ref vertex, 8);
+                Assert.AreEqual(4f, vertex.position.x - firstRight, .001f, "Gaps scale with the bar's height");
+            }
         }
 
         [UnityTest]
@@ -102,9 +106,7 @@ namespace Tests.PlayMode.PlayerState
             canvas.transform.SetParent(root.transform);
             ship = ShipTestFactory.CreateShip(TestAssets.Load<Ship>("Assets/Prefabs/Ships/Vanguard.prefab"),
                 null, Projectiles, team: 1);
-            var bars = ShipStatusIndicator.Create(canvas, camera, ship,
-                Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"),
-                TestAssets.Load<Material>("Assets/Visuals/Ui/Projection/CanopyText.mat")).GetComponentsInChildren<StatusBarUI>();
+            var bars = ShipStatusIndicator.Create(canvas, camera, ship).GetComponentsInChildren<StatusBarUI>();
             var shieldColor = FillEdge(bars[0]).color;
             var healthColor = FillEdge(bars[1]).color;
 
@@ -115,7 +117,7 @@ namespace Tests.PlayMode.PlayerState
             yield return new WaitForSeconds(.6f);
             var later = FillEdge(bars[1]);
             Assert.Greater(later.color.r, first.r + 25, "The fill pulses brighter");
-            Assert.AreEqual(-40f + 80f * .2f, later.position.x, .001f, "The pulse never changes the quantity");
+            Assert.AreEqual(-80f + 160f * .2f, later.position.x, .001f, "The pulse never changes the quantity");
             Assert.AreEqual(shieldColor, FillEdge(bars[0]).color, "Shields never pulse");
 
             ship.ResetShip();
@@ -201,10 +203,14 @@ namespace Tests.PlayMode.PlayerState
             ship.Lock.Conceal();
             yield return null;
             Assert.AreEqual(0f, visibility.alpha);
+            ship.Lock.Reveal();
+            var enemyTag = ship.tag;
             ship.tag = "Player";
             yield return Pick();
-            Assert.AreEqual(1f, visibility.alpha, "Player bars remain readable while concealed");
-            ship.Lock.Reveal();
+            Assert.AreEqual(0f, visibility.alpha, "The player's own ship shows no floating bars");
+            ship.tag = enemyTag;
+            yield return Pick();
+            Assert.AreEqual(1f, visibility.alpha);
             mainHud.SetOpacity(.35f);
             Assert.AreEqual(.35f, overlay.GetComponent<CanvasGroup>().alpha, .001f,
                 "Travel fades and restores every HUD canvas through the same call");
@@ -233,18 +239,15 @@ namespace Tests.PlayMode.PlayerState
                 Assert.AreEqual(0f, visibility.alpha);
                 Assert.AreEqual(0f, lockVisibility.alpha);
                 ship.ResetShip();
-                yield return null;
+                yield return Pick();
                 Assert.AreEqual(1f, visibility.alpha);
                 ship.Lock.RaiseProgress(.5f);
                 yield return null;
                 Assert.AreEqual(1f, lockVisibility.alpha, "HUD reticles remain subscribed across ship reset");
                 ship.Lock.RaiseReleased();
                 Assert.AreEqual(0f, lockVisibility.alpha);
-                ship.Damage.Health.SetFraction(.5f);
-                var labels = indicator.GetComponentsInChildren<Text>();
-                Assert.AreEqual($"{Mathf.CeilToInt(ship.Damage.Health.CurrentValue)}/{ship.Damage.Health.MaxValue}",
-                    labels[1].text);
             }
+            Assert.IsEmpty(indicator.GetComponentsInChildren<Text>(true), "No bar shows numbers");
             ships.Remove(ship);
             yield return null;
             Assert.IsFalse(indicator);
@@ -261,7 +264,7 @@ namespace Tests.PlayMode.PlayerState
             yield return Pick();
             var cargoIndicator = overlay.GetComponentInChildren<ShipStatusIndicator>();
             Assert.AreEqual(1f, cargoIndicator.GetComponent<CanvasGroup>().alpha);
-            Assert.AreEqual("400/400", cargoIndicator.GetComponentsInChildren<Text>()[1].text);
+            Assert.IsEmpty(cargoIndicator.GetComponentsInChildren<Text>(true));
         }
 
         [UnityTest]
@@ -291,41 +294,28 @@ namespace Tests.PlayMode.PlayerState
             hud.gameObject.layer = LayerMask.NameToLayer("UIBloom");
             hud.worldCamera = camera;
             var overlay = ShipStatusOverlay.Create(hud, ships, camera,
-                Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"),
-                TestAssets.Load<Material>("Assets/Visuals/Ui/Projection/CanopyText.mat"),
                 TestAssets.Load<LockOnIndicator>("Assets/Prefabs/UI/UILockOnIndicator.prefab"),
                 Projection(pickRadius: .1f, hitBarsSeconds: .3f));
             var indicators = (Dictionary<Ship, ShipStatusIndicator>)typeof(ShipStatusOverlay)
                 .GetField("indicators", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(overlay);
             float Alpha(Ship target) => indicators[target].GetComponent<CanvasGroup>().alpha;
-            bool Numbers(Ship target)
-            {
-                var labels = indicators[target].GetComponentsInChildren<Text>(true);
-                Assert.AreEqual(labels[0].enabled, labels[1].enabled, "Shield and hull numbers show together");
-                return labels[0].enabled;
-            }
             Vector2 OnScreen(Ship target) => camera.WorldToScreenPoint(target.transform.position);
 
             input.Set(mouse.position, OnScreen(abeam));
             yield return Pick();
             Assert.AreEqual(1f, Alpha(abeam), "The enemy under the cursor shows its bars");
-            Assert.IsTrue(Numbers(abeam), "The enemy under the cursor shows its numbers");
             Assert.AreEqual(0f, Alpha(ahead), "Enemies away from the cursor stay hidden");
-            Assert.AreEqual(1f, Alpha(player));
-            Assert.IsTrue(Numbers(player));
+            Assert.AreEqual(0f, Alpha(player), "The player's own ship shows no floating bars");
 
             input.Set(mouse.position, OnScreen(ahead));
             yield return Pick();
             Assert.AreEqual(1f, Alpha(ahead));
-            Assert.IsTrue(Numbers(ahead));
-            Assert.IsFalse(Numbers(abeam), "Numbers leave with the cursor");
             Assert.That(Alpha(abeam), Is.GreaterThan(0f).And.LessThan(1f), "Bars fade rather than cut");
             yield return AsyncAssert.WaitUntil(() => Alpha(abeam) == 0f, 2f, "The old target's bars fade out");
 
             input.Set(mouse.position, new Vector2(5f, 5f));
             yield return AsyncAssert.WaitUntil(() => Alpha(ahead) == 0f, 2f, "Nothing under the cursor, no enemy bars");
-            Assert.AreEqual(1f, Alpha(player), "The player's own bars always show");
-            Assert.IsTrue(Numbers(player));
+            Assert.AreEqual(0f, Alpha(player), "The player's own ship shows no floating bars");
 
             abeam.Damage.SetInvulnerability(0f);
             abeam.Damage.TakeDamage(new DamageInfo(5f, DamageKind.Laser, player.Id, 0f, Vector3.zero, Vector3.zero));
@@ -333,7 +323,6 @@ namespace Tests.PlayMode.PlayerState
             ahead.Damage.TakeDamage(new DamageInfo(5f, DamageKind.Laser, ShipId.Invalid, 0f, Vector3.zero, Vector3.zero));
             yield return Pick();
             Assert.AreEqual(1f, Alpha(abeam), "An enemy the player hits shows its bars");
-            Assert.IsFalse(Numbers(abeam), "A hit shows bars without numbers");
             Assert.AreEqual(0f, Alpha(ahead), "Hits from anything but the player show nothing");
             yield return AsyncAssert.WaitUntil(() => Alpha(abeam) == 0f, 2f, "A hit's bars fade out");
 
@@ -363,8 +352,6 @@ namespace Tests.PlayMode.PlayerState
             Assert.AreEqual(LockState.Locking, player.Targeting.State, "test premise: the player locks the enemy ahead");
             yield return Pick();
             Assert.AreEqual(1f, Alpha(ahead), "The missile lock's target shows its bars");
-            Assert.IsTrue(Numbers(ahead));
-            Assert.IsFalse(Numbers(abeam), "The missile lock wins over the cursor");
         }
 
         // Tests resume after Update, so the overlay's pick sees a change one frame later.
@@ -400,7 +387,8 @@ namespace Tests.PlayMode.PlayerState
                     null, new[] { typeof(VertexHelper) }, null)
                 .Invoke(bar, new object[] { mesh });
             var vertex = new UIVertex();
-            mesh.PopulateUIVertex(ref vertex, 10);
+            // The fill draws last, so the last quad's top-right corner is where it ends.
+            mesh.PopulateUIVertex(ref vertex, mesh.currentVertCount - 2);
             return vertex;
         }
     }

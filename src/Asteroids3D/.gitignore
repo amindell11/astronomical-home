@@ -108,5 +108,8 @@ crashlytics-build.properties
 # FMOD for Unity rebuilds its editor event cache from the banks on every editor start
 /[Aa]ssets/Resources/FMOD/FMODStudioCache.asset
 /[Aa]ssets/Resources/FMOD/FMODStudioCache.asset.meta
+# FMOD for Unity copies the banks here at every player build and never removes them
+/[Aa]ssets/[Ss]treamingAssets/*.bank
+/[Aa]ssets/[Ss]treamingAssets/*.bank.meta
 # Wav Writer output lands in the Unity project folder
 /fmodoutput.wav

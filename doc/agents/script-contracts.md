@@ -42,7 +42,7 @@ one - `scripts/unity_access_client.ps1` for the Unity access coordinator.
 
 ## 4. Enforcement
 
-`scripts/tests/` runs in the merge gate whenever the landing diff touches `scripts/**`
+`scripts/tests/` runs in the merge gate whenever the landing diff touches `scripts/**` or `.githooks/**`
 (`agent_worktree_pool.sh run-script-tests <slot>`), under script-suite selection: the gate hands
 the runner its landing range, and only the test files that range selects run.
 
