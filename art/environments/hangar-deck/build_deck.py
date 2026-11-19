@@ -37,6 +37,7 @@ D = {'__file__': str(source), '__name__': '__deck_dimensions__'}
 exec(compile(text, str(source), 'exec'), D)
 sys.argv = saved_argv
 scene = bpy.context.scene
+bpy.context.preferences.filepaths.save_version = 0
 scene.render.use_file_extension = True
 scene.cycles.samples = ARGS.samples
 scene.render.threads = 10
@@ -754,6 +755,255 @@ DEPARTURES.extend([
 ])
 DEPARTURES.append('Header, pod shoulders, band and canopy side walls continue to X = +/-27 for wide cameras.')
 
+plate = material('Deck | secondary satin blue plate', (.055, .076, .102))
+inset = material('Deck | darker service plate', (.026, .040, .060))
+edgepaint = material('Deck | lightly rubbed paint', (.112, .141, .172))
+stencilpaint = material('Deck | muted service stencils', (.19, .23, .26))
+hazardpaint = material('Deck | muted amber caution paint', (.39, .24, .070))
+lamp_red = material('Deck | armed red emission', (1.0, .025, .008), 3.2)
+lamp_green = material('Deck | status green emission', (.025, .70, .055), 2.2)
+lamp_amber = material('Deck | status amber emission', (1.0, .28, .02), 1.8)
+lamp_white = material('Deck | warm white downlight emission', (1.0, .78, .48), 1.5)
+PALETTE.extend([plate, inset, edgepaint, stencilpaint, hazardpaint,
+                lamp_red, lamp_green, lamp_amber, lamp_white])
+for lamp_material in (lamp_red, lamp_green, lamp_amber, lamp_white):
+    lamp_material.node_tree.nodes.get('Principled BSDF').inputs['Base Color'].default_value = (0, 0, 0, 1)
+finish_solids = []
+finish_lamps = []
+lamp_collection = collection('04 | Warm status and header lamps')
+
+
+def finish_solid(name, basis, width, height, front=.014, back=-.018, mat=plate, clip=.035):
+    obj = local_mesh('Finish | ' + name, chamfer(width, height, min(clip, width / 4, height / 4)),
+                     front, back, basis, mat)
+    finish_solids.append(obj)
+    return obj
+
+
+def finish_ring(name, basis, outer, inner, front, back, mat):
+    count = len(outer)
+    vertices = [point(basis, x, y, z) for outline, z in
+                ((outer, front), (inner, front), (outer, back), (inner, back)) for x, y in outline]
+    faces = []
+    for i in range(count):
+        j = (i + 1) % count
+        faces.extend([(i, j, count + j, count + i),
+                      (count * 2 + i, count * 3 + i, count * 3 + j, count * 2 + j),
+                      (i, count * 2 + i, count * 2 + j, j),
+                      (count + i, count + j, count * 3 + j, count * 3 + i)])
+    obj = mesh('Finish | ' + name, vertices, faces, mat)
+    repair(obj, True)
+    finish_solids.append(obj)
+    return obj
+
+
+def fastener(name, basis, radius=.043, depth=.019):
+    outline = [(math.cos(i * math.pi / 3) * radius, math.sin(i * math.pi / 3) * radius)
+               for i in range(6)]
+    obj = local_mesh('Finish | ' + name, outline, depth, depth - .016, basis, shoulder)
+    finish_solids.append(obj)
+
+
+def paint_mark(name, basis, width, height, mat=stencilpaint):
+    return finish_solid(name, basis, width, height, .0006, -.002, mat, 0)
+
+
+def stencil(name, basis, scale=1):
+    xs = [-.25, -.20, -.04, .035, .22, .25]
+    ys = [-.07, -.026, -.012, .012, .026, .07]
+    count = len(xs) * len(ys)
+    vertices = [point(basis, x * scale, y * scale, depth)
+                for depth in (.0006, -.002) for y in ys for x in xs]
+    faces, ids = [], []
+    for j in range(len(ys) - 1):
+        for i in range(len(xs) - 1):
+            a = j * len(xs) + i
+            cap = (a, a + 1, a + len(xs) + 1, a + len(xs))
+            x, y = (xs[i] + xs[i + 1]) / 2, (ys[j] + ys[j + 1]) / 2
+            marked = (-.20 < x < -.04 and -.026 < y < .026) or (.035 < x < .22 and -.012 < y < .012)
+            faces.extend([cap, tuple(index + count for index in reversed(cap))])
+            ids.extend([PALETTE.index(stencilpaint if marked else inset), PALETTE.index(inset)])
+    perimeter = list(range(len(xs)))
+    perimeter += [j * len(xs) + len(xs) - 1 for j in range(1, len(ys))]
+    perimeter += [(len(ys) - 1) * len(xs) + i for i in range(len(xs) - 2, -1, -1)]
+    perimeter += [j * len(xs) for j in range(len(ys) - 2, 0, -1)]
+    for a, b in zip(perimeter, perimeter[1:] + perimeter[:1]):
+        faces.append((a, a + count, b + count, b))
+        ids.append(PALETTE.index(inset))
+    obj = mesh('Finish | ' + name, vertices, faces, inset, ids=ids)
+    repair(obj, True)
+    finish_solids.append(obj)
+
+
+def lamp(name, basis, width, height, mat, depth=0, socket=True, socket_padding=.09, cap=.048):
+    if socket:
+        finish_solid(name + ' socket', basis, width + .10, height + socket_padding,
+                     depth + .016, depth - .040, well, .045)
+        finish_ring(name + ' socket lip', basis,
+                    chamfer(width + .10, height + socket_padding, .035),
+                    chamfer(width + .035, height + .025, .018),
+                    depth + .021, depth + .012, shoulder)
+    obj = local_mesh('Deck | ' + name + ' lens', chamfer(width, height, min(.035, height / 3)),
+                     depth + cap, depth + .018, basis, mat, lamp_collection)
+    obj.data.materials.clear()
+    obj.data.materials.append(mat)
+    for poly in obj.data.polygons:
+        poly.material_index = 0
+    obj.active_material_index = 0
+    obj['export_role'] = 'ConsoleBody'
+    finish_lamps.append(obj)
+    return obj
+
+
+for record in SCREEN_RECORDS:
+    basis = (Vector(record['origin']) - Vector(record['normal']) * GLASS_DEPTH,
+             Vector(record['u']), Vector(record['v']), Vector(record['normal']))
+    finish_ring(record['label'] + ' thin stepped recess edge', basis,
+                offset_outline(record['mouth'], .017), offset_outline(record['mouth'], .004),
+                POD_FACE_DEPTH + .006, POD_FACE_DEPTH - .009, shoulder)
+
+for hand, label in ((-1, 'Left'), (1, 'Right')):
+    pb, _, rearward = D['pod_bases'][label]
+    outer_face = shifted(pb, x=hand * 2.55, y=.80, d=POD_FACE_DEPTH)
+    finish_solid(label + ' pod outer plate reveal', outer_face, .48, 2.70, .005, -.018, well)
+    finish_solid(label + ' pod outer service plate', outer_face, .40, 2.62, .013, .003, inset)
+    for y in (-1.12, 1.12):
+        fastener(label + ' outer plate captive screw', shifted(outer_face, y=y), .045, .021)
+    finish_solid(label + ' service latch', shifted(outer_face, y=-.58), .15, .20,
+                 .027, .012, shoulder, .025)
+    stencil(label + ' pod maintenance code', shifted(outer_face, y=.35, d=.013), .58)
+    top_y = max(y for x, y in POD_RECORDS[0 if hand < 0 else 1]['profile'])
+    top_u = pb[1]
+    top_v = (rearward - top_u * rearward.dot(top_u)).normalized()
+    top_normal = top_u.cross(top_v).normalized()
+    brow_v = (top_v * .5 + top_normal * math.sqrt(.75)).normalized()
+    top_basis = (point(pb, hand * .65, top_y, POD_FACE_DEPTH) + rearward * .10 + top_normal * .024,
+                 top_u, brow_v, top_u.cross(brow_v))
+    lamp(label + ' pod amber brow', top_basis, .46, .07, lamp_amber, socket_padding=.035, cap=.036)
+
+    lo = Vector(D['STRUT_LANDING_POINTS'][0 if hand < 0 else 1])
+    hi = Vector(D['STRUT_TOP_POINTS'][0 if hand < 0 else 1])
+    along = (hi - lo).normalized()
+    across = Vector((1, 0, 0))
+    across = (across - along * across.dot(along)).normalized()
+    normal = across.cross(along)
+    length = (hi - lo).length
+    groove_length = length - 3.55
+    strut_basis = (lo + along * (.75 + groove_length / 2) + normal * .15, across, along, normal)
+    finish_solid(label + ' strut centre channel', strut_basis, .055, groove_length,
+                 .004, -.012, well, .024)
+    for distance in (.48, length - .45):
+        clamp_basis = (lo + along * distance + normal * .15, across, along, normal)
+        finish_solid(label + ' strut clamp', clamp_basis, .38, .18, .025, -.014, shoulder, .025)
+        finish_solid(label + ' strut clamp inset', shifted(clamp_basis, y=.01), .20, .055,
+                     .030, .024, inset, .012)
+
+for index, start in enumerate((1, 3, 5), 1):
+    w0, h0, z0 = D['PEDESTAL_LOOPS'][start]
+    w1, h1, z1 = D['PEDESTAL_LOOPS'][start + 1]
+    v = Vector((0, (h0 - h1) / 2, z1 - z0)).normalized()
+    u = Vector((1, 0, 0))
+    basis = (Vector((0, -(h0 + h1) / 4, (z0 + z1) / 2)), u, v, u.cross(v))
+    finish_solid('pedestal riser slot ' + str(index), basis, (w0 + w1) * .29, .11,
+                 .005, -.018, well, .025)
+    for hand in (-1, 1):
+        fastener('pedestal riser screw', shifted(basis, x=hand * (w0 + w1) * .19), .035, .008)
+
+for hand, label, basis in ((-1, 'Left', ship_basis), (1, 'Right', selector_basis)):
+    status_basis = shifted(basis, y=.59, d=-.07)
+    finish_solid(label + ' status strip seat', status_basis, .92, .23, .010, -.060, inset)
+    for index, (x, mat, colour) in enumerate(((-.27, lamp_green, 'green'),
+                                             (0, lamp_green, 'green'), (.27, lamp_amber, 'amber')), 1):
+        lamp(label + ' status ' + str(index) + ' ' + colour,
+             shifted(status_basis, x=x), .12, .095, mat)
+    for x in (-.73, .73):
+        fastener(label + ' ramp upper screw', shifted(basis, x=x, y=.61), .041, .017)
+    for x, y, width in ((-.52, -.62, .23), (-.21, -.65, .10), (.47, -.63, .17)):
+        paint_mark(label + ' light control scuff', shifted(basis, x=x, y=y, d=.012),
+                   width, .015, edgepaint)
+    stencil(label + ' ramp service code', shifted(basis, x=.05, y=-.51, d=-.122), .65)
+
+for hand, label in ((-1, 'Left'), (1, 'Right')):
+    guard_basis = shifted(launch_basis, x=hand * 1.43, y=.11)
+    finish_solid(label + ' launch guard foot', guard_basis, .21, .97, .016, -.15, inset)
+    finish_solid(label + ' launch guard rail', guard_basis, .12, .83, .095, .012, shoulder, .040)
+    paint_mark(label + ' guard rubbed edge', shifted(guard_basis, y=.04, d=.095),
+               .024, .45, edgepaint)
+    lamp(label + ' Launch armed red', shifted(launch_basis, x=hand * 1.43, y=-.49),
+         .15, .16, lamp_red, depth=.015)
+    caution_basis = shifted(launch_basis, x=hand * 1.77, y=-.02, d=-.058)
+    for index, y in enumerate((-.26, 0, .26)):
+        shape = [(-.07, y - .08), (.07, y), (-.07, y + .08),
+                 (-.07, y + .036), (.002, y), (-.07, y - .036)]
+        if hand < 0:
+            shape = [(-x, yy) for x, yy in reversed(shape)]
+        mark = local_mesh('Finish | ' + label + ' launch caution chevron ' + str(index),
+                          shape, .001, -.004, caution_basis, hazardpaint)
+        finish_solids.append(mark)
+
+for hand, label in ((-1, 'Left'), (1, 'Right')):
+    basis = D['band_basis'](hand * 7.82, .016)
+    finish_solid(label + ' band utility plate reveal', basis, .98, 1.04, .008, -.022, well)
+    finish_solid(label + ' band utility plate', basis, .90, .96, .018, .006, plate)
+    vent_basis = shifted(basis, y=.06, d=.018)
+    finish_solid(label + ' vent recess', vent_basis, .59, .49, .003, -.010, well)
+    for index in range(4):
+        finish_solid(label + ' vent louvre ' + str(index), shifted(vent_basis, y=(index - 1.5) * .10),
+                     .53, .035, .024, .002, shoulder, .012)
+    for y in (-.38, .38):
+        fastener(label + ' utility plate screw', shifted(basis, x=hand * .34, y=y), .035, .025)
+    stencil(label + ' utility plate code', shifted(basis, y=-.32, d=.019), .65)
+
+for bank_index, basis in enumerate(switch_bases):
+    for index in range(3):
+        finish_solid('switch bank separator ' + str(bank_index) + ' ' + str(index),
+                     shifted(basis, x=(index - 1) * .52), .048, .46,
+                     -.035, -.083, shoulder, .012)
+
+front_basis = (Vector((0, 3.35, 10.47)), Vector((1, 0, 0)),
+               Vector((0, 0, 1)), Vector((0, -1, 0)))
+lamp('Header centre amber marker', front_basis, .42, .085, lamp_amber)
+for hand, label in ((-1, 'Left'), (1, 'Right')):
+    basis = shifted(front_basis, x=hand * 3.05, y=.015)
+    finish_solid(label + ' header long plate reveal', basis, 3.75, .14, .006, -.015, well, .025)
+    finish_solid(label + ' header long face plate', basis, 3.64, .09, .014, .004, plate, .018)
+    for x in (-1.68, 1.68):
+        fastener(label + ' header plate screw', shifted(basis, x=x), .030, .021)
+    stencil(label + ' header code', shifted(basis, x=hand * 1.03, y=-.14, d=.003), .80)
+
+for index, x in enumerate((-8.2, -5.0, -2.3, 2.3, 5.0, 8.2), 1):
+    y = 3.87
+    z = D['brow_z'](x) + .025
+    u = Vector((1, 0, 0))
+    v = Vector((0, -math.sqrt(.75), .5))
+    basis = (Vector((x, y, z)), u, v, u.cross(v))
+    obj = lamp('Header downlight ' + str(index).zfill(2) + ' warm white',
+               basis, .56, .12, lamp_white, socket_padding=.035)
+    light_data = bpy.data.lights.new('Preview | header warm pool ' + str(index), 'SPOT')
+    light_data.energy = 165
+    light_data.color = (1.0, .78, .48)
+    light_data.spot_size = math.radians(66)
+    light_data.spot_blend = .65
+    light_data.shadow_soft_size = .22
+    light_obj = bpy.data.objects.new(light_data.name, light_data)
+    scene.collection.objects.link(light_obj)
+    light_obj.location = point(basis, d=.07)
+    target = Vector((x * .75, -1.0, 1.25))
+    light_obj.rotation_euler = (target - light_obj.location).to_track_quat('-Z', 'Y').to_euler()
+    light_obj['preview_only'] = True
+
+bpy.ops.object.select_all(action='DESELECT')
+body.select_set(True)
+for obj in finish_solids:
+    obj.select_set(True)
+bpy.context.view_layer.objects.active = body
+bpy.ops.object.join()
+body['finish_slice'] = 'Clean light use; cyan structure, warm status'
+DEPARTURES.remove('Pedestal dark riser strips omitted as surface detail reserved for slice 2.')
+DEPARTURES.append('Finish detail uses closed shallow solids joined into ConsoleBody; original controls and glasses are unchanged.')
+DEPARTURES.append('Stencils, caution marks and local scuffs use flat material geometry, without textures or linked colour nodes.')
+DEPARTURES.append('Warm header spotlights are preview-only; named lamp lenses provide the exporter anchors and emission colours.')
+
 freestyle = bpy.context.view_layer.freestyle_settings
 freestyle.crease_angle = math.radians(134.43)
 for lineset in list(freestyle.linesets):
@@ -826,14 +1076,23 @@ def audit():
                         'boundary_edges': boundary, 'nonmanifold_edges': nonmanifold, 'loose_vertices': loose,
                         'volume': volume, 'planar_screen': bool(obj.get('planar_screen')),
                         'zero_area_faces': max(zero_area, sum(p.area == 0 for p in obj.data.polygons))})
-    report = {'mesh_objects': records, 'triangles': sum(r['triangles'] for r in records),
+    lamp_records = []
+    for obj in finish_lamps:
+        centre = obj.matrix_world @ (sum((Vector(corner) for corner in obj.bound_box), Vector()) / 8)
+        shader = obj.active_material.node_tree.nodes.get('Principled BSDF')
+        lamp_records.append({'name': obj.name, 'anchor': obj.name.split('| ', 1)[1],
+                             'position': list(centre),
+                             'color': list(shader.inputs['Emission Color'].default_value[:3]),
+                             'downlight': 'Header downlight' in obj.name})
+    (PREVIEWS / 'finish-lamps.json').write_text(json.dumps(lamp_records, indent=2), encoding='utf-8')
+    report = {'mesh_objects': records, 'triangles': sum(r['triangles'] for r in records), 'lamps': lamp_records,
               'parts': {role: obj.name for role, obj in PARTS.items()}, 'screens': SCREEN_RECORDS,
               'controls': CONTROL_RECORDS, 'pods': POD_RECORDS, 'departures': DEPARTURES}
     (PREVIEWS / 'build-report.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
     failures = [r['name'] for r in records if (not r['closed'] and not r['planar_screen'])
                 or r['loose_vertices'] or r['zero_area_faces']]
     assert not failures, failures
-    assert report['triangles'] < 70000, report['triangles']
+    assert report['triangles'] < 40000, report['triangles']
     print('MESH AUDIT', report['triangles'], 'triangles;', len(records), 'objects', flush=True)
 
 

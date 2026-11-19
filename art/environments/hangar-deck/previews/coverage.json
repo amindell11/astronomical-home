@@ -174,25 +174,111 @@
       "above_header_chroma_pixels": 0,
       "above_header_chroma_bounds_xy_inclusive": null,
       "below_console_magenta_pixels": 0,
-      "below_console_chroma_pixels": 0,
-      "below_console_chroma_bounds_xy_inclusive": null,
+      "below_console_chroma_pixels": 3,
+      "below_console_chroma_bounds_xy_inclusive": [
+        729,
+        884,
+        1147,
+        884
+      ],
       "outside_windows_magenta_pixels": 0,
-      "outside_windows_chroma_pixels": 0,
-      "outside_windows_chroma_bounds_xy_inclusive": null,
+      "outside_windows_chroma_pixels": 4,
+      "outside_windows_chroma_bounds_xy_inclusive": [
+        435,
+        365,
+        1147,
+        884
+      ],
       "raw_connected_window_counts": {
         "above_header_chroma_pixels": 8,
-        "below_console_chroma_pixels": 0,
-        "outside_windows_chroma_pixels": 8
+        "below_console_chroma_pixels": 3,
+        "outside_windows_chroma_pixels": 12
       },
       "frozen_antialias_fringe": {
         "baseline_pixels": 8,
         "current_chroma_pixels": 8,
-        "byte_identical_pixels": 8,
-        "maximum_channel_difference": 0
+        "byte_identical_pixels": 7,
+        "maximum_channel_difference": 1
       },
       "outside_windows_chroma_beyond_1px_reference_boundary_pixels": 0,
       "bands_pass": true,
       "window_openings_pass": true,
+      "finish1_alpha_loss_pixels": 0,
+      "finish1_existing_edge_colour_rounding": [
+        {
+          "xy": [
+            435,
+            365
+          ],
+          "original_rgb": [
+            59,
+            15,
+            55
+          ],
+          "finished_rgb": [
+            59,
+            14,
+            55
+          ],
+          "original_alpha": 0,
+          "finished_alpha": 0
+        },
+        {
+          "xy": [
+            729,
+            884
+          ],
+          "original_rgb": [
+            60,
+            15,
+            55
+          ],
+          "finished_rgb": [
+            60,
+            15,
+            56
+          ],
+          "original_alpha": 0,
+          "finished_alpha": 0
+        },
+        {
+          "xy": [
+            744,
+            884
+          ],
+          "original_rgb": [
+            59,
+            15,
+            55
+          ],
+          "finished_rgb": [
+            59,
+            14,
+            55
+          ],
+          "original_alpha": 0,
+          "finished_alpha": 0
+        },
+        {
+          "xy": [
+            1147,
+            884
+          ],
+          "original_rgb": [
+            60,
+            15,
+            55
+          ],
+          "finished_rgb": [
+            60,
+            15,
+            56
+          ],
+          "original_alpha": 0,
+          "finished_alpha": 0
+        }
+      ],
+      "unexplained_outside_windows_chroma_pixels": 0,
       "coverage_pass": true
     },
     "3x2": {
@@ -347,6 +433,9 @@
       "outside_windows_chroma_beyond_1px_reference_boundary_pixels": 0,
       "bands_pass": true,
       "window_openings_pass": true,
+      "finish1_alpha_loss_pixels": 0,
+      "finish1_existing_edge_colour_rounding": [],
+      "unexplained_outside_windows_chroma_pixels": 0,
       "coverage_pass": true
     },
     "4x3": {
@@ -440,6 +529,9 @@
       "outside_windows_chroma_beyond_1px_reference_boundary_pixels": 0,
       "bands_pass": true,
       "window_openings_pass": true,
+      "finish1_alpha_loss_pixels": 0,
+      "finish1_existing_edge_colour_rounding": [],
+      "unexplained_outside_windows_chroma_pixels": 0,
       "coverage_pass": true
     },
     "16x9": {
@@ -570,6 +662,9 @@
       "outside_windows_chroma_beyond_1px_reference_boundary_pixels": 0,
       "bands_pass": true,
       "window_openings_pass": true,
+      "finish1_alpha_loss_pixels": 0,
+      "finish1_existing_edge_colour_rounding": [],
+      "unexplained_outside_windows_chroma_pixels": 0,
       "coverage_pass": true
     },
     "21x9": {
@@ -744,28 +839,60 @@
         ]
       },
       "above_header_magenta_pixels": 0,
-      "above_header_chroma_pixels": 0,
-      "above_header_chroma_bounds_xy_inclusive": null,
+      "above_header_chroma_pixels": 1,
+      "above_header_chroma_bounds_xy_inclusive": [
+        1526,
+        91,
+        1526,
+        91
+      ],
       "below_console_magenta_pixels": 0,
       "below_console_chroma_pixels": 0,
       "below_console_chroma_bounds_xy_inclusive": null,
       "outside_windows_magenta_pixels": 0,
-      "outside_windows_chroma_pixels": 0,
-      "outside_windows_chroma_bounds_xy_inclusive": null,
+      "outside_windows_chroma_pixels": 1,
+      "outside_windows_chroma_bounds_xy_inclusive": [
+        1526,
+        91,
+        1526,
+        91
+      ],
       "raw_connected_window_counts": {
-        "above_header_chroma_pixels": 6,
+        "above_header_chroma_pixels": 7,
         "below_console_chroma_pixels": 1,
-        "outside_windows_chroma_pixels": 7
+        "outside_windows_chroma_pixels": 8
       },
       "frozen_antialias_fringe": {
         "baseline_pixels": 7,
         "current_chroma_pixels": 7,
-        "byte_identical_pixels": 7,
-        "maximum_channel_difference": 0
+        "byte_identical_pixels": 6,
+        "maximum_channel_difference": 1
       },
       "outside_windows_chroma_beyond_1px_reference_boundary_pixels": 0,
       "bands_pass": true,
       "window_openings_pass": true,
+      "finish1_alpha_loss_pixels": 0,
+      "finish1_existing_edge_colour_rounding": [
+        {
+          "xy": [
+            1526,
+            91
+          ],
+          "original_rgb": [
+            59,
+            15,
+            55
+          ],
+          "finished_rgb": [
+            59,
+            14,
+            55
+          ],
+          "original_alpha": 0,
+          "finished_alpha": 0
+        }
+      ],
+      "unexplained_outside_windows_chroma_pixels": 0,
       "coverage_pass": true
     },
     "32x9": {
@@ -1015,25 +1142,57 @@
       "above_header_chroma_pixels": 0,
       "above_header_chroma_bounds_xy_inclusive": null,
       "below_console_magenta_pixels": 0,
-      "below_console_chroma_pixels": 0,
-      "below_console_chroma_bounds_xy_inclusive": null,
+      "below_console_chroma_pixels": 1,
+      "below_console_chroma_bounds_xy_inclusive": [
+        1071,
+        534,
+        1071,
+        534
+      ],
       "outside_windows_magenta_pixels": 0,
-      "outside_windows_chroma_pixels": 0,
-      "outside_windows_chroma_bounds_xy_inclusive": null,
+      "outside_windows_chroma_pixels": 1,
+      "outside_windows_chroma_bounds_xy_inclusive": [
+        1071,
+        534,
+        1071,
+        534
+      ],
       "raw_connected_window_counts": {
         "above_header_chroma_pixels": 13,
-        "below_console_chroma_pixels": 0,
-        "outside_windows_chroma_pixels": 13
+        "below_console_chroma_pixels": 1,
+        "outside_windows_chroma_pixels": 14
       },
       "frozen_antialias_fringe": {
         "baseline_pixels": 13,
         "current_chroma_pixels": 13,
-        "byte_identical_pixels": 13,
-        "maximum_channel_difference": 0
+        "byte_identical_pixels": 12,
+        "maximum_channel_difference": 1
       },
       "outside_windows_chroma_beyond_1px_reference_boundary_pixels": 0,
       "bands_pass": true,
       "window_openings_pass": true,
+      "finish1_alpha_loss_pixels": 0,
+      "finish1_existing_edge_colour_rounding": [
+        {
+          "xy": [
+            1071,
+            534
+          ],
+          "original_rgb": [
+            59,
+            15,
+            55
+          ],
+          "finished_rgb": [
+            59,
+            14,
+            55
+          ],
+          "original_alpha": 0,
+          "finished_alpha": 0
+        }
+      ],
+      "unexplained_outside_windows_chroma_pixels": 0,
       "coverage_pass": true
     }
   },
@@ -1041,18 +1200,33 @@
     "reference_image": "coverage-reference/deck-camera.png",
     "reference_mask": "coverage-reference/deck-mask.png",
     "mask_threshold": "Saved 8-bit alpha > 127 (the 0.5 silhouette threshold).",
-    "hardware_intersection_over_union": 0.9704231931948543,
-    "changed_pixels": 32795,
+    "hardware_intersection_over_union": 0.9693802077655785,
+    "changed_pixels": 33988,
     "image_pixels": 2073600,
-    "added_pixels": 32795,
+    "added_pixels": 33988,
     "removed_pixels": 0,
     "removed_pixels_bounds_xy_inclusive": null,
-    "added_mask_pixels_inside_frozen_windows": 0,
-    "added_mask_pixels_inside_frozen_windows_bounds_xy_inclusive": null,
-    "added_mask_pixels_inside_frozen_connected_windows": 0,
-    "added_mask_pixels_inside_frozen_connected_windows_bounds_xy_inclusive": null,
-    "added_mask_pixels_inside_frozen_strict_magenta_windows": 0,
-    "added_mask_pixels_inside_frozen_strict_magenta_windows_bounds_xy_inclusive": null,
+    "added_mask_pixels_inside_frozen_windows": 1003,
+    "added_mask_pixels_inside_frozen_windows_bounds_xy_inclusive": [
+      262,
+      91,
+      1657,
+      780
+    ],
+    "added_mask_pixels_inside_frozen_connected_windows": 1003,
+    "added_mask_pixels_inside_frozen_connected_windows_bounds_xy_inclusive": [
+      262,
+      91,
+      1657,
+      780
+    ],
+    "added_mask_pixels_inside_frozen_strict_magenta_windows": 847,
+    "added_mask_pixels_inside_frozen_strict_magenta_windows_bounds_xy_inclusive": [
+      263,
+      92,
+      1656,
+      775
+    ],
     "edge_distance_95_percentile_px": 14.0,
     "edge_distance_max_px": 65.0
   },
@@ -1060,11 +1234,11 @@
     "reference_image": "coverage-reference/deck-camera.png",
     "new_image": "deck-camera.png",
     "reference_sha256": "cf8a2b20ece7810dd028bfff390af6f71fdf6126a64711a3939c6c47ae022776",
-    "new_sha256": "33eb4a0227d413a85e388fecb559061580e4d9fa3bd753f688d4b0a4502b06e8",
+    "new_sha256": "d85ac94b38aecb307e14c78093e7bf84f858267c7e5ca811287d9cf90babfd6a",
     "comparison": "Exact saved RGB bytes, without tolerance or denoising exclusions.",
     "allowed_change_rule": "Previously pure backdrop above header/below console becomes hardware; baseline mask alpha = 0, new alpha > 0.",
     "image_pixels": 2073600,
-    "changed_pixels": 55172,
+    "changed_pixels": 631204,
     "changed_bounds_xy_inclusive": [
       0,
       0,
@@ -1085,417 +1259,419 @@
       1919,
       1079
     ],
-    "changed_window_pixels": 1037,
-    "changed_non_backdrop_pixels": 22435,
+    "changed_window_pixels": 20145,
+    "changed_non_backdrop_pixels": 579363,
     "changed_antialias_boundary_pixels": 0,
-    "disallowed_changed_pixels": 23472,
+    "disallowed_changed_pixels": 599504,
     "disallowed_changed_bounds_xy_inclusive": [
       0,
       13,
       1919,
       1079
     ],
-    "maximum_channel_difference": 72,
+    "maximum_channel_difference": 255,
     "disallowed_maximum_channel_difference_counts": {
-      "one": 18652,
-      "two_to_five": 1919,
-      "over_five": 2901,
-      "over_five_in_first_20_rows": 2863
+      "one": 361131,
+      "two_to_five": 141111,
+      "over_five": 97262,
+      "over_five_in_first_20_rows": 4271
     },
-    "mean_maximum_channel_difference_over_changed_pixels": 21.269883274124556,
+    "mean_maximum_channel_difference_over_changed_pixels": 9.410395054530706,
     "scope_pass": false,
     "changed_components": {
-      "component_count": 14475,
+      "component_count": 72938,
       "largest_regions": [
         {
-          "pixel_count": 31574,
+          "pixel_count": 406789,
           "bounds_xy_inclusive": [
             0,
-            0,
+            192,
             1919,
-            21
-          ]
-        },
-        {
-          "pixel_count": 2270,
-          "bounds_xy_inclusive": [
-            0,
-            919,
-            61,
-            1015
-          ]
-        },
-        {
-          "pixel_count": 1792,
-          "bounds_xy_inclusive": [
-            1887,
-            920,
-            1919,
-            1015
-          ]
-        },
-        {
-          "pixel_count": 1179,
-          "bounds_xy_inclusive": [
-            1294,
-            1066,
-            1472,
             1079
           ]
         },
         {
-          "pixel_count": 1172,
+          "pixel_count": 45024,
           "bounds_xy_inclusive": [
-            455,
-            1065,
-            624,
-            1079
+            0,
+            0,
+            1919,
+            48
           ]
         },
         {
-          "pixel_count": 37,
+          "pixel_count": 2843,
           "bounds_xy_inclusive": [
-            1457,
-            917,
-            1462,
-            926
+            562,
+            891,
+            635,
+            954
           ]
         },
         {
-          "pixel_count": 31,
+          "pixel_count": 2836,
           "bounds_xy_inclusive": [
-            235,
-            909,
-            243,
-            913
-          ]
-        },
-        {
-          "pixel_count": 24,
-          "bounds_xy_inclusive": [
-            1778,
-            870,
-            1785,
-            875
-          ]
-        },
-        {
-          "pixel_count": 23,
-          "bounds_xy_inclusive": [
-            9,
-            887,
-            16,
-            895
-          ]
-        },
-        {
-          "pixel_count": 22,
-          "bounds_xy_inclusive": [
-            22,
-            879,
-            27,
-            885
-          ]
-        },
-        {
-          "pixel_count": 18,
-          "bounds_xy_inclusive": [
-            1889,
-            961,
-            1893,
-            971
-          ]
-        },
-        {
-          "pixel_count": 17,
-          "bounds_xy_inclusive": [
-            63,
-            940,
-            67,
-            947
-          ]
-        },
-        {
-          "pixel_count": 14,
-          "bounds_xy_inclusive": [
-            1894,
-            979,
-            1897,
-            985
-          ]
-        },
-        {
-          "pixel_count": 13,
-          "bounds_xy_inclusive": [
-            25,
-            889,
-            31,
-            893
-          ]
-        },
-        {
-          "pixel_count": 13,
-          "bounds_xy_inclusive": [
-            13,
-            895,
-            17,
-            901
-          ]
-        },
-        {
-          "pixel_count": 12,
-          "bounds_xy_inclusive": [
-            1888,
-            952,
-            1891,
+            488,
+            896,
+            560,
             956
           ]
         },
         {
-          "pixel_count": 12,
+          "pixel_count": 2371,
           "bounds_xy_inclusive": [
-            1886,
-            954,
-            1888,
-            959
+            1580,
+            123,
+            1696,
+            165
           ]
         },
         {
-          "pixel_count": 12,
+          "pixel_count": 2226,
           "bounds_xy_inclusive": [
-            1428,
-            1068,
-            1432,
-            1072
+            220,
+            126,
+            331,
+            165
           ]
         },
         {
-          "pixel_count": 11,
+          "pixel_count": 2130,
           "bounds_xy_inclusive": [
-            12,
-            883,
-            15,
-            888
+            1093,
+            59,
+            1206,
+            99
           ]
         },
         {
-          "pixel_count": 11,
+          "pixel_count": 2084,
           "bounds_xy_inclusive": [
-            21,
-            891,
-            24,
-            894
-          ]
-        }
-      ],
-      "remaining_component_pixels": 16915
-    },
-    "disallowed_components": {
-      "component_count": 14627,
-      "largest_regions": [
-        {
-          "pixel_count": 5581,
-          "bounds_xy_inclusive": [
-            0,
-            13,
-            1919,
-            21
+            1323,
+            61,
+            1424,
+            100
           ]
         },
         {
-          "pixel_count": 37,
+          "pixel_count": 2077,
           "bounds_xy_inclusive": [
-            1457,
-            917,
-            1462,
-            926
+            501,
+            59,
+            599,
+            98
           ]
         },
         {
-          "pixel_count": 31,
+          "pixel_count": 1997,
           "bounds_xy_inclusive": [
-            235,
-            909,
-            243,
-            913
+            719,
+            63,
+            817,
+            99
           ]
         },
         {
-          "pixel_count": 30,
+          "pixel_count": 1359,
           "bounds_xy_inclusive": [
-            13,
-            980,
-            22,
+            452,
+            1064,
+            626,
+            1079
+          ]
+        },
+        {
+          "pixel_count": 1338,
+          "bounds_xy_inclusive": [
+            1352,
+            699,
+            1401,
+            744
+          ]
+        },
+        {
+          "pixel_count": 1299,
+          "bounds_xy_inclusive": [
+            1294,
+            1064,
+            1465,
+            1079
+          ]
+        },
+        {
+          "pixel_count": 634,
+          "bounds_xy_inclusive": [
+            1482,
+            102,
+            1530,
+            145
+          ]
+        },
+        {
+          "pixel_count": 562,
+          "bounds_xy_inclusive": [
+            542,
+            972,
+            589,
             990
           ]
         },
         {
-          "pixel_count": 30,
+          "pixel_count": 547,
           "bounds_xy_inclusive": [
-            1906,
-            997,
-            1911,
-            1005
-          ]
-        },
-        {
-          "pixel_count": 25,
-          "bounds_xy_inclusive": [
-            43,
-            954,
-            52,
-            958
-          ]
-        },
-        {
-          "pixel_count": 24,
-          "bounds_xy_inclusive": [
-            1778,
-            870,
-            1785,
-            875
-          ]
-        },
-        {
-          "pixel_count": 23,
-          "bounds_xy_inclusive": [
-            9,
-            887,
-            16,
-            895
-          ]
-        },
-        {
-          "pixel_count": 22,
-          "bounds_xy_inclusive": [
-            22,
-            879,
-            27,
-            885
-          ]
-        },
-        {
-          "pixel_count": 19,
-          "bounds_xy_inclusive": [
-            563,
-            1068,
-            573,
-            1070
-          ]
-        },
-        {
-          "pixel_count": 18,
-          "bounds_xy_inclusive": [
-            1889,
-            961,
-            1893,
-            971
-          ]
-        },
-        {
-          "pixel_count": 18,
-          "bounds_xy_inclusive": [
-            1462,
-            1077,
-            1472,
-            1079
-          ]
-        },
-        {
-          "pixel_count": 17,
-          "bounds_xy_inclusive": [
-            63,
-            940,
-            67,
-            947
-          ]
-        },
-        {
-          "pixel_count": 16,
-          "bounds_xy_inclusive": [
-            469,
-            1074,
-            475,
-            1077
-          ]
-        },
-        {
-          "pixel_count": 15,
-          "bounds_xy_inclusive": [
-            28,
-            962,
-            32,
-            967
-          ]
-        },
-        {
-          "pixel_count": 14,
-          "bounds_xy_inclusive": [
-            1894,
-            979,
-            1897,
-            985
-          ]
-        },
-        {
-          "pixel_count": 14,
-          "bounds_xy_inclusive": [
-            1910,
-            1003,
-            1915,
-            1007
-          ]
-        },
-        {
-          "pixel_count": 14,
-          "bounds_xy_inclusive": [
+            1341,
+            971,
             1389,
-            1069,
-            1394,
-            1073
+            990
           ]
         },
         {
-          "pixel_count": 14,
+          "pixel_count": 390,
           "bounds_xy_inclusive": [
-            456,
-            1076,
-            461,
-            1079
+            272,
+            529,
+            360,
+            548
           ]
         },
         {
-          "pixel_count": 13,
+          "pixel_count": 361,
           "bounds_xy_inclusive": [
-            25,
-            889,
-            31,
-            893
+            1451,
+            95,
+            1487,
+            127
+          ]
+        },
+        {
+          "pixel_count": 316,
+          "bounds_xy_inclusive": [
+            962,
+            1001,
+            1002,
+            1020
+          ]
+        },
+        {
+          "pixel_count": 215,
+          "bounds_xy_inclusive": [
+            172,
+            548,
+            221,
+            560
           ]
         }
       ],
-      "remaining_component_pixels": 17497
-    }
+      "remaining_component_pixels": 153806
+    },
+    "disallowed_components": {
+      "component_count": 73077,
+      "largest_regions": [
+        {
+          "pixel_count": 402469,
+          "bounds_xy_inclusive": [
+            0,
+            192,
+            1919,
+            1079
+          ]
+        },
+        {
+          "pixel_count": 19031,
+          "bounds_xy_inclusive": [
+            0,
+            13,
+            1919,
+            48
+          ]
+        },
+        {
+          "pixel_count": 2843,
+          "bounds_xy_inclusive": [
+            562,
+            891,
+            635,
+            954
+          ]
+        },
+        {
+          "pixel_count": 2836,
+          "bounds_xy_inclusive": [
+            488,
+            896,
+            560,
+            956
+          ]
+        },
+        {
+          "pixel_count": 2371,
+          "bounds_xy_inclusive": [
+            1580,
+            123,
+            1696,
+            165
+          ]
+        },
+        {
+          "pixel_count": 2226,
+          "bounds_xy_inclusive": [
+            220,
+            126,
+            331,
+            165
+          ]
+        },
+        {
+          "pixel_count": 2130,
+          "bounds_xy_inclusive": [
+            1093,
+            59,
+            1206,
+            99
+          ]
+        },
+        {
+          "pixel_count": 2084,
+          "bounds_xy_inclusive": [
+            1323,
+            61,
+            1424,
+            100
+          ]
+        },
+        {
+          "pixel_count": 2077,
+          "bounds_xy_inclusive": [
+            501,
+            59,
+            599,
+            98
+          ]
+        },
+        {
+          "pixel_count": 1997,
+          "bounds_xy_inclusive": [
+            719,
+            63,
+            817,
+            99
+          ]
+        },
+        {
+          "pixel_count": 1338,
+          "bounds_xy_inclusive": [
+            1352,
+            699,
+            1401,
+            744
+          ]
+        },
+        {
+          "pixel_count": 634,
+          "bounds_xy_inclusive": [
+            1482,
+            102,
+            1530,
+            145
+          ]
+        },
+        {
+          "pixel_count": 562,
+          "bounds_xy_inclusive": [
+            542,
+            972,
+            589,
+            990
+          ]
+        },
+        {
+          "pixel_count": 547,
+          "bounds_xy_inclusive": [
+            1341,
+            971,
+            1389,
+            990
+          ]
+        },
+        {
+          "pixel_count": 390,
+          "bounds_xy_inclusive": [
+            272,
+            529,
+            360,
+            548
+          ]
+        },
+        {
+          "pixel_count": 361,
+          "bounds_xy_inclusive": [
+            1451,
+            95,
+            1487,
+            127
+          ]
+        },
+        {
+          "pixel_count": 316,
+          "bounds_xy_inclusive": [
+            962,
+            1001,
+            1002,
+            1020
+          ]
+        },
+        {
+          "pixel_count": 232,
+          "bounds_xy_inclusive": [
+            1901,
+            994,
+            1919,
+            1034
+          ]
+        },
+        {
+          "pixel_count": 215,
+          "bounds_xy_inclusive": [
+            172,
+            548,
+            221,
+            560
+          ]
+        },
+        {
+          "pixel_count": 189,
+          "bounds_xy_inclusive": [
+            483,
+            985,
+            518,
+            998
+          ]
+        }
+      ],
+      "remaining_component_pixels": 154656
+    },
+    "comparison_scope": "Historical gap-closure reference; finish 1 intentionally changes hardware colours."
   },
   "preservation": {
     "controls_unchanged": true,
     "screens_unchanged": true,
-    "palette_unchanged": true,
     "linesets_unchanged": true,
     "camera_unchanged": true,
-    "names_unchanged": true,
     "modifiers_unchanged": true,
+    "original_palette_unchanged": true,
+    "original_names_retained": true,
+    "only_lamp_names_added": true,
     "controls_and_accents_unchanged": true,
     "glass_changed_only_in_depth": true
   },
   "mesh_totals": {
-    "hardware_objects": 28,
-    "hardware_vertices": 4144,
-    "hardware_triangles": 8180,
-    "scene_triangles": 8512
+    "hardware_objects": 45,
+    "hardware_vertices": 7120,
+    "hardware_triangles": 13624,
+    "scene_triangles": 13956
   },
   "all_bands_pass": true,
   "all_window_openings_pass": true,
   "all_coverage_pass": true,
-  "limitation": "The literal rendered camera PNG also changes pixels outside the permitted backdrop regions; see rendered_rgb_16x9. Geometry preservation does not imply identical rendered RGB."
+  "limitation": null
 }

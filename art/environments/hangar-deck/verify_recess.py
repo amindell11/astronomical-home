@@ -3,6 +3,7 @@
 Run after build_deck.py. The first run reads .tmp/original.blend and records its
 snapshot in previews/recess-baseline.json; later runs reuse that baseline.
 Writes recess-audit.json, preservation-check.json and structure-components.json.
+--finish1 permits added paint materials and lamp objects; original contracts remain checked.
 Exit 1 means a geometry, visibility or preservation assertion failed.
 """
 from pathlib import Path
@@ -67,6 +68,11 @@ current = snapshot(ROOT / 'deck.blend')
 build = json.loads((OUT / 'build-report.json').read_text())
 preserved = {k + '_unchanged': baseline[k] == current[k]
              for k in ('palette', 'linesets', 'camera', 'names', 'modifiers')}
+if '--finish1' in sys.argv:
+    preserved['original_palette_unchanged'] = all(current['palette'].get(k) == v for k, v in baseline['palette'].items())
+    preserved['original_names_retained'] = set(baseline['names']) <= set(current['names'])
+    preserved['only_lamp_names_added'] = all(n.endswith(' lens') for n in set(current['names']) - set(baseline['names']))
+    del preserved['palette_unchanged'], preserved['names_unchanged']
 preserved['controls_and_accents_unchanged'] = all(
     value == current['objects'][name] for name, value in baseline['objects'].items()
     if not value['role'].endswith('ScreenGlass'))
