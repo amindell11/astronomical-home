@@ -51,16 +51,36 @@ part_names = {
     'LaunchLegend': ['19 | Launch legend'],
     'ProjectorLens': ['09 | Projector lens'],
 }
-moving_parts = ('SelectorKnob', 'PreviousButton', 'NextButton', 'LaunchButton')
-legend_parts = ('PreviousLegend', 'NextLegend', 'LaunchLegend')
+# Terminal parts are authored in their frame's space, so each pivots on its own centre.
+terminal_names = {}
+for screen in ('Primary', 'Ordnance'):
+    terminal_names[screen + 'ScreenGlass'] = '30 | ' + screen + ' blank glass'
+    for step in ('Previous', 'Next'):
+        terminal_names[screen + step + 'Button'] = '30 | ' + screen + ' ' + step + ' key'
+        terminal_names[screen + step + 'Legend'] = '30 | ' + screen + ' ' + step + ' ivory inlay'
+part_names.update({name: [source] for name, source in terminal_names.items()})
+moving_parts = ('SelectorKnob', 'PreviousButton', 'NextButton', 'LaunchButton') + tuple(
+    name for name in terminal_names if name.endswith('Button'))
+legend_parts = ('PreviousLegend', 'NextLegend', 'LaunchLegend') + tuple(
+    name for name in terminal_names if name.endswith('Legend'))
+glass_parts = ('MainScreenGlass', 'DetailScreenGlass', 'PrimaryScreenGlass', 'OrdnanceScreenGlass')
 pivot_names = {
     'SelectorKnob': '08 | Selector faceted grip', 'PreviousButton': '08 | Previous chunky keycap',
     'NextButton': '08 | Next chunky keycap', 'LaunchButton': '08 | Launch broad beveled button',
 }
+
+
+def centred(obj):
+    frame = obj.matrix_world.to_quaternion().to_matrix().to_4x4()
+    frame.translation = obj.matrix_world @ (sum((Vector(c) for c in obj.bound_box), Vector()) / 8)
+    return frame
+
+
 groups = {name: [bpy.data.objects[n] for n in names] for name, names in part_names.items()}
-pivots = {name: bpy.data.objects[pivot_names.get(name, names[0])].matrix_world.copy()
+pivots = {name: centred(bpy.data.objects[names[0]]) if name in terminal_names
+          else bpy.data.objects[pivot_names.get(name, names[0])].matrix_world.copy()
           for name, names in part_names.items()}
-screen_objects = groups['MainScreenGlass'] + groups['DetailScreenGlass']
+screen_objects = [o for name in glass_parts for o in groups[name]]
 paint_objects = [o for o in hardware if o not in screen_objects]
 
 for name, material_name in [('MainScreenReference', '19 | Main rectangular display'),
@@ -156,6 +176,16 @@ for index, obj in enumerate(hardware):
     bpy.ops.object.convert(target='MESH')
     if index % 20 == 0:
         print('Converted', index, flush=True)
+
+# The terminal glasses carry no authored display UVs; map each face-on rectangle to 0..1, upright.
+for name in ('PrimaryScreenGlass', 'OrdnanceScreenGlass'):
+    mesh = groups[name][0].data
+    minimum = [min(v.co[axis] for v in mesh.vertices) for axis in range(2)]
+    size = [max(v.co[axis] for v in mesh.vertices) - minimum[axis] for axis in range(2)]
+    display = mesh.uv_layers.new(name='DisplayUV')
+    for loop in mesh.loops:
+        co = mesh.vertices[loop.vertex_index].co
+        display.data[loop.index].uv = tuple((co[axis] - minimum[axis]) / size[axis] for axis in range(2))
 
 # Keep original generated paint coordinates while giving every object disjoint atlas UVs.
 bpy.ops.object.select_all(action='DESELECT')
@@ -373,13 +403,13 @@ for name, objects in groups.items():
     obj.matrix_world = rotation
     obj.name = name
     obj.data.name = name
-    if name not in {'MainScreenGlass', 'DetailScreenGlass'}:
+    if name not in glass_parts:
         atlas = obj.data.uv_layers['ConsoleAtlas']
         for uv in list(obj.data.uv_layers):
             if uv != atlas:
                 obj.data.uv_layers.remove(uv)
     obj.data.materials.clear()
-    material_name = name if name in {'MainScreenGlass', 'DetailScreenGlass'} else 'ConsolePaint'
+    material_name = name if name in glass_parts else 'ConsolePaint'
     material = bpy.data.materials.get('Export ' + material_name) or bpy.data.materials.new('Export ' + material_name)
     obj.data.materials.append(material)
     for polygon in obj.data.polygons:
@@ -405,6 +435,10 @@ manifest = {
     'parts': [{'name': obj.name, 'vertices': len(obj.data.vertices),
                'triangles': sum(len(p.vertices) - 2 for p in obj.data.polygons),
                'pivot': list(obj.matrix_world.translation)} for obj in exported],
+    'screenGlasses': [{'name': obj.name,
+                       'width': max(v.co.x for v in obj.data.vertices) - min(v.co.x for v in obj.data.vertices),
+                       'height': max(v.co.y for v in obj.data.vertices) - min(v.co.y for v in obj.data.vertices)}
+                      for obj in exported if obj.name in glass_parts],
     'paint': 'Authored color graph and fixed-camera Freestyle ink, one layer for the body and one the '
              'moving controls carry. No scene lighting, sky, ship or cone.',
     'screens': 'Static reference artwork; no live UI.',

@@ -122,14 +122,136 @@
       ]
     },
     {
+      "name": "PrimaryScreenGlass",
+      "vertices": 16,
+      "triangles": 28,
+      "pivot": [
+        7.6355719566345215,
+        0.7280664443969727,
+        3.906132459640503
+      ]
+    },
+    {
+      "name": "PrimaryPreviousButton",
+      "vertices": 124,
+      "triangles": 244,
+      "pivot": [
+        4.842748165130615,
+        1.1307687759399414,
+        4.1847357749938965
+      ]
+    },
+    {
+      "name": "PrimaryPreviousLegend",
+      "vertices": 12,
+      "triangles": 20,
+      "pivot": [
+        4.834994792938232,
+        1.0809097290039062,
+        4.195834159851074
+      ]
+    },
+    {
+      "name": "PrimaryNextButton",
+      "vertices": 124,
+      "triangles": 244,
+      "pivot": [
+        4.823861122131348,
+        1.023655652999878,
+        3.6903467178344727
+      ]
+    },
+    {
+      "name": "PrimaryNextLegend",
+      "vertices": 12,
+      "triangles": 20,
+      "pivot": [
+        4.814094543457031,
+        0.9741516709327698,
+        3.7014453411102295
+      ]
+    },
+    {
+      "name": "OrdnanceScreenGlass",
+      "vertices": 16,
+      "triangles": 28,
+      "pivot": [
+        7.56619119644165,
+        0.3345894515514374,
+        2.0900092124938965
+      ]
+    },
+    {
+      "name": "OrdnancePreviousButton",
+      "vertices": 124,
+      "triangles": 244,
+      "pivot": [
+        4.773367881774902,
+        0.7372918128967285,
+        2.368612766265869
+      ]
+    },
+    {
+      "name": "OrdnancePreviousLegend",
+      "vertices": 12,
+      "triangles": 20,
+      "pivot": [
+        4.7656145095825195,
+        0.6874328255653381,
+        2.379711389541626
+      ]
+    },
+    {
+      "name": "OrdnanceNextButton",
+      "vertices": 124,
+      "triangles": 244,
+      "pivot": [
+        4.754480838775635,
+        0.630178689956665,
+        1.8742237091064453
+      ]
+    },
+    {
+      "name": "OrdnanceNextLegend",
+      "vertices": 12,
+      "triangles": 20,
+      "pivot": [
+        4.74471378326416,
+        0.5806747078895569,
+        1.8853223323822021
+      ]
+    },
+    {
       "name": "ConsoleBody",
-      "vertices": 33373,
-      "triangles": 66006,
+      "vertices": 32797,
+      "triangles": 64894,
       "pivot": [
         0.0,
         0.0,
         0.0
       ]
+    }
+  ],
+  "screenGlasses": [
+    {
+      "name": "MainScreenGlass",
+      "width": 3.7581443786621094,
+      "height": 3.71760892868042
+    },
+    {
+      "name": "DetailScreenGlass",
+      "width": 3.7581443786621094,
+      "height": 0.9200144410133362
+    },
+    {
+      "name": "PrimaryScreenGlass",
+      "width": 4.132341623306274,
+      "height": 1.4463196396827698
+    },
+    {
+      "name": "OrdnanceScreenGlass",
+      "width": 4.132341623306274,
+      "height": 1.4463196396827698
     }
   ],
   "paint": "Authored color graph and fixed-camera Freestyle ink, one layer for the body and one the moving controls carry. No scene lighting, sky, ship or cone.",
