@@ -1,9 +1,9 @@
 {
-  "hardware_intersection_over_union": 1.0,
-  "changed_pixels": 0,
+  "hardware_intersection_over_union": 0.9967218715504684,
+  "changed_pixels": 3531,
   "image_pixels": 2073600,
-  "edge_distance_95_percentile_px": 0.0,
-  "edge_distance_max_px": 0.0,
+  "edge_distance_95_percentile_px": 2.0,
+  "edge_distance_max_px": 11.661903789690601,
   "camera_views": {
     "16x9": {
       "size": [
@@ -57,5 +57,6 @@
     }
   },
   "moving_controls_unchanged": true,
-  "screen_glasses_unchanged": true
+  "screen_glasses_unchanged": false,
+  "screen_shapes_frames_unchanged": true
 }

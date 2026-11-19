@@ -112,7 +112,8 @@ DEPARTURES = []
 def repair(obj, triangulate=False):
     bm = bmesh.new()
     bm.from_mesh(obj.data)
-    bmesh.ops.remove_doubles(bm, verts=list(bm.verts), dist=1e-7)
+    tolerance = 1e-5 if triangulate and obj.get('boolean_result') else 1e-6
+    bmesh.ops.remove_doubles(bm, verts=list(bm.verts), dist=tolerance)
     if not obj.get('boolean_result'):
         bmesh.ops.recalc_face_normals(bm, faces=list(bm.faces))
     if triangulate:
@@ -391,18 +392,51 @@ def screen_outline(width, height, hand=None):
     return D['inner_top_clip'](outline, hand, (.85, .60)) if hand else outline
 
 
+def offset_outline(outline, distance):
+    lines = []
+    for a, b in zip(outline, outline[1:] + outline[:1]):
+        a, b = Vector(a), Vector(b)
+        edge = (b - a).normalized()
+        normal = Vector((edge.y, -edge.x))
+        lines.append((normal, normal.dot(a) + distance))
+    result = []
+    for i, (normal, intercept) in enumerate(lines):
+        previous, previous_intercept = lines[i - 1]
+        p = Matrix((previous, normal)).inverted() @ Vector((previous_intercept, intercept))
+        result.append(tuple(p))
+    return result
+
+
+POD_FACE_DEPTH = -.10
+GLASS_DEPTH = POD_FACE_DEPTH - .10
+SCREEN_EDGE_CLEARANCE = .008
+POD_RECORDS = []
+SCREEN_CUTS = []
+
 for hand, label in ((-1, 'Left'), (1, 'Right')):
     basis, _, rearward = D['pod_bases'][label]
     profile = [(x, y + .68) for x, y in chamfer(5.85, 4.40, .45)]
-    profile = D['inner_top_clip'](profile, hand, (1.35, .95))
-    front = [point(basis, x, y, -.10) for x, y in profile]
-    middle = [point(basis, x + (math.copysign(.20, x) if hand * x > 0 else 0), y, -.10) + rearward * .42
+    profile = D['inner_top_clip'](profile, hand, (1.02, .72))
+    # Banking must not turn the wider corner into a taller pod.
+    top_drop = .33 * abs(basis[1].z) / basis[2].z
+    profile = [(x, y - top_drop if y > 1.9 else y) for x, y in profile]
+    front = [point(basis, x, y, POD_FACE_DEPTH) for x, y in profile]
+    middle = [point(basis, x + (math.copysign(.20, x) if hand * x > 0 else 0), y, POD_FACE_DEPTH) + rearward * .42
               for x, y in profile]
     rear = [p + rearward * .83 for p in middle]
     native_vertices, native_triangles, native_indices = POD_NATIVE[label]
-    pod = mesh('Deck | ' + label.lower() + ' deep pod shell', native_vertices,
+    pod_matrix = Matrix((basis[1], basis[2], basis[3])).transposed().to_4x4()
+    pod_matrix.translation = basis[0]
+    inverse = pod_matrix.inverted()
+    updated_vertices = [(x, y, POD_FACE_DEPTH) for x, y in profile]
+    updated_vertices += [inverse @ p for p in middle + rear]
+    pod = mesh('Deck | ' + label.lower() + ' deep pod shell', updated_vertices,
                native_triangles + [tuple(range(8))], face, ids=native_indices + [1])
+    pod.matrix_world = pod_matrix
     repair(pod, True)
+    POD_RECORDS.append({'label': label, 'profile': profile, 'face_depth': POD_FACE_DEPTH,
+                        'origin': list(basis[0]), 'u': list(basis[1]), 'v': list(basis[2]),
+                        'normal': list(basis[3]), 'front_world': [list(p) for p in front]})
     # A sealed inner cavity gives the housing walls genuine thickness.
     inside = [((x * .91), .68 + (y - .68) * .91) for x, y in profile]
     cavity = [[point(basis, x, y, -.23) + rearward * distance for x, y in inside]
@@ -416,14 +450,17 @@ for hand, label in ((-1, 'Left'), (1, 'Right')):
     for label_screen, size, v, clip, objname, role in specifications:
         sb = shifted(basis, -hand * .20, v)
         outline = screen_outline(*size, clip)
-        outer = chamfer(size[0] + .26, size[1] + .26, .26)
-        if clip:
-            outer = D['inner_top_clip'](outer, clip, (.85, .60))
-        bezel = local_mesh('Deck | ' + label_screen.lower() + ' recessed bezel', outer, .035, -.16, sb, well)
-        combine(pod, bezel)
-        cutter = local_mesh(label_screen + ' display pocket', outline, .20, -.03, sb, well)
-        subtract(pod, cutter)
-        vertices = [(x, y, -.008) for x, y in outline]
+        floor_outline = offset_outline(outline, SCREEN_EDGE_CLEARANCE)
+        mouth = offset_outline(outline, SCREEN_EDGE_CLEARANCE + .10)
+        cutter = world_loft(label_screen + ' display pocket', [
+            [(x, y, z) for x, y in loop]
+            for loop, z in [(floor_outline, GLASS_DEPTH - .015),
+                            (floor_outline, GLASS_DEPTH), (mouth, POD_FACE_DEPTH),
+                            (mouth, .20)]], well)
+        cutter.matrix_world = pod_matrix.copy()
+        cutter.matrix_world.translation = sb[0]
+        SCREEN_CUTS.append(cutter)
+        vertices = [(x, y, GLASS_DEPTH) for x, y in outline]
         glass = mesh(objname, vertices, [tuple(range(8))], screenmat, parts_collection)
         if glass.data.polygons[0].normal.z < 0:
             bm = bmesh.new()
@@ -438,7 +475,9 @@ for hand, label in ((-1, 'Left'), (1, 'Right')):
         PARTS[role] = glass
         glass['true_width'], glass['true_height'] = size
         SCREEN_RECORDS.append({'role': role, 'name': objname, 'label': label_screen, 'size': list(size),
-                               'outline': outline, 'origin': list(point(sb, d=-.008)),
+                               'outline': outline, 'origin': list(point(sb, d=GLASS_DEPTH)),
+                               'mouth': mouth, 'face_depth': POD_FACE_DEPTH,
+                               'glass_depth': GLASS_DEPTH, 'wall_angle_degrees': 45,
                                'u': list(sb[1]), 'v': list(sb[2]), 'normal': list(sb[3])})
     BODY.append(pod)
 
@@ -602,7 +641,13 @@ for i, obj in enumerate(BODY[1:], 1):
     combine(body, obj)
 for basis, mouth, floor, name in WELL_CUTS:
     cut_outline = [(x * 1.003, y * 1.003) for x, y in mouth]
-    cutter = local_mesh(name + ' final well cut', cut_outline, .40, floor, basis, well)
+    if name in {'PrimaryPrevious', 'PrimaryNext', 'OrdnancePrevious', 'OrdnanceNext'}:
+        lower = offset_outline(cut_outline, -.012)
+        cutter = world_loft(name + ' final well cut', [
+            [point(basis, x, y, z) for x, y in loop]
+            for loop, z in [(lower, floor), (cut_outline, .055), (cut_outline, .40)]], well)
+    else:
+        cutter = local_mesh(name + ' final well cut', cut_outline, .40, floor, basis, well)
     subtract(body, cutter)
 for obj in AFTER_WELLS:
     combine(body, obj)
@@ -645,6 +690,8 @@ for centre in (-8.6, 0, 8.6):
 
 
 
+for cutter in SCREEN_CUTS:
+    subtract(body, cutter)
 repair(body, True)
 bm = bmesh.new()
 bm.from_mesh(body.data)
@@ -668,7 +715,8 @@ bm.to_mesh(body.data)
 bm.free()
 body.data.update()
 DEPARTURES.extend([
-    'Pod bezel lip rises to local depth +0.035 around exact D13 glass at -0.008; exterior pod profile stays at -0.10.',
+    'Pod faces stay at -0.10; unchanged glass outlines sit at -0.20 in 45-degree charcoal recesses, without raised lips.',
+    'Mirrored upper inner housing chamfers follow the screen slope; the rear shell follows the same outline without the old notch.',
     'Hidden band undersides, pod cavity walls, joined heels and ramp returns close the open massing.',
     'Weapon keys retain their exact visible tops; their surrounding wells provide real depth.',
     'Pedestal dark riser strips omitted as surface detail reserved for slice 2.',
@@ -753,7 +801,7 @@ def audit():
                         'zero_area_faces': max(zero_area, sum(p.area == 0 for p in obj.data.polygons))})
     report = {'mesh_objects': records, 'triangles': sum(r['triangles'] for r in records),
               'parts': {role: obj.name for role, obj in PARTS.items()}, 'screens': SCREEN_RECORDS,
-              'controls': CONTROL_RECORDS, 'departures': DEPARTURES}
+              'controls': CONTROL_RECORDS, 'pods': POD_RECORDS, 'departures': DEPARTURES}
     (PREVIEWS / 'build-report.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
     failures = [r['name'] for r in records if (not r['closed'] and not r['planar_screen'])
                 or r['loose_vertices'] or r['zero_area_faces']]

@@ -9,11 +9,31 @@ build=json.loads((OUT/'build-report.json').read_text())
 rectangles=json.loads((OUT/'screen-rectangles.json').read_text())
 comparison=json.loads((OUT/'silhouette-comparison.json').read_text())
 aspect=json.loads((OUT/'aspect-comparison.json').read_text())
+recess=json.loads((OUT/'recess-audit.json').read_text())
+wall_angles=[angle for angles in recess['measured_wall_angles_degrees'].values() for angle in angles]
 def vec(values):
     return '('+', '.join(f'{v:.6f}' for v in values)+')'
 def name(value):
     return '`'+value.replace('|','\\|')+'`'
-lines=['## Measured geometry','', '### Exporter parts','',
+lines=['## Measured geometry','', '### Pod corners and recessed screens, 2026-11-19','',
+       'Both upper inner housing chamfers now use 1.02 by 0.72 setbacks, parallel to the unchanged 0.85 by 0.60 glass clips. The middle and rear shell follow that same outline, removing the old notch. The top is lowered by 0.023076 local units to compensate for banking, so the wider corner does not increase the pod height. The front housing bounds remain Z = 1.057527 to 4.738953 on both sides. The other three housing corners already follow their glass clips at 45 degrees and retain their outlines.', '',
+       'The pod face stays at local depth -0.10. Each glass moves from -0.008 to -0.20, placing it 0.10 units below the face. The raised screen lips are removed. Each charcoal tray flares outward at 45 degrees, with 0.008 units of clearance around the glass at its depth and a floor 0.015 units behind it. The mouth is an exact perpendicular offset of the clipped glass outline. The face bars between the two mouths are 0.044 units wide on the left and 0.084 on the right. Weapon step keys keep their frames and travel; their wells now taper outward toward the frame opening.', '',
+       'Recess cuts run after the structural unions. Boolean coordinates are welded within 0.000001 units during construction and within 0.00001 before final triangulation. This removes duplicate vertices from Boolean rounding without changing visible contours. The final mesh must pass the closed-manifold and zero-area checks before it is saved.', '',
+       'Corner margins below are measured at 1920 by 1080. Each value is the shortest pixel distance from the midpoint of a glass clipped corner to the projected outer perimeter of its pod face. They measure housing coverage, including the recess, rather than the dark wall alone. Large values occur beside the other display or the weapon keys. Left and right in this table mean image left and image right. The exact projected polygons and measurements are in `previews/recess-audit.json`.', '',
+       '| Screen | Corner | Previous margin, px | Updated margin, px |',
+       '|---|---|---:|---:|']
+for c in recess['corners']:
+    lines.append(f'| {c["screen"]} | {c["corner"]} | {c["before_px"]:.2f} | {c["after_px"]:.2f} |')
+lines += ['', 'The two upper inner margins increase from 9.57 to 30.79 pixels. All sixteen glass corners were checked. The smallest updated corner margin is 19.12 pixels at DETAIL\'s bottom right. Glass depth changes account for the small perspective changes at the other corners; their sizes and orientations are unchanged.', '',
+          f'The finished mesh has charcoal material on all 32 screen walls. Wall normals measured at their midpoints give angles from {min(wall_angles):.6f} to {max(wall_angles):.6f} degrees to the pod face.', '',
+          'The five camera renders use the original camera position and direction. For each view, the audit casts rays to 715 points around and inside every glass against the finished body. All rays reach the glass without a body intersection. Every glass vertex also remains inside its projected mouth. The minimum projected glass-to-mouth clearances are listed below. These margins keep Freestyle ink away from the glass boundary.', '',
+          '| View | SHIP, px | DETAIL, px | PRIMARY, px | ORDNANCE, px |',
+          '|---|---:|---:|---:|---:|']
+for view, screens in recess['views'].items():
+    margins = ' | '.join(f'{screens[label]["minimum_projected_mouth_clearance_px"]:.2f}' for label in ('SHIP', 'DETAIL', 'PRIMARY', 'ORDNANCE'))
+    lines.append(f'| {view} | {margins} |')
+lines += ['', 'The original 16:9 render is preserved in `previews/deck-recess-original.png`. `previews/deck-recess-compare.png` places it beside the updated render and includes four 3x crops of the upper inner corners. These are Blender camera renders with the existing placeholder glasses and hologram, not a new Unity capture.', '',
+          '### Exporter parts','',
        '| Exported part | Blender object |','|---|---|']
 for role,objname in build['parts'].items():
     lines.append(f'| {role} | {name(objname)} |')
@@ -29,7 +49,7 @@ for c in audit['controls']:
     axes=c['local_frame_columns']
     lines.append(f'| {c["role"]} | {vec(c["position"])} | {vec(axes[0])} | {vec(axes[1])} | {vec(axes[2])} | {"Pass" if c["passes_authored_up_after_export"] else "FAIL"} |')
 lines += ['', '### Screen planes and content rectangles','',
-          'Each glass is one planar eight-vertex polygon at local Z = -0.008, with its normal along local +Z. It triangulates to six triangles at export. Its local X and Y dimensions retain D13\'s exact sizes. Corners use the 0.20-unit clip, except SHIP\'s top inboard corner and PRIMARY\'s top inboard corner, which use 0.85 horizontal by 0.60 vertical setbacks.', '',
+          'Each glass is one planar eight-vertex polygon at local Z = -0.20, with its normal along local +Z. It triangulates to six triangles at export. Its local X and Y dimensions retain D13\'s exact sizes. Corners use the 0.20-unit clip, except SHIP\'s top inboard corner and PRIMARY\'s top inboard corner, which use 0.85 horizontal by 0.60 vertical setbacks.', '',
           'A largest plain rectangle means the maximum-area rectangle aligned with the glass\'s local X/Y axes and contained in its clipped outline. Bounds are given as left, right, bottom, top relative to the glass centre. These are geometric limits; typography may add padding inside them. The normalized bounds use the whole glass bounding rectangle as 0..1.', '',
           '| Glass | Full size | Content size | Local bounds L, R, B, T | Normalized bounds L, R, B, T |',
           '|---|---|---|---|---|']
@@ -65,7 +85,7 @@ lines += ['', 'The camera overlay is an exact 50% blend at 1920 by 1080. The com
 lines += ['### Screen-shape extension', '',
           'The header, outer pod housings and wraparound band continue to X = +/-27. Folded side walls join the header to the lower structure, leaving one additional side window on each side. These pieces are Boolean-unioned into the existing ConsoleBody object. The new lower pieces stop at the original horizontal camera span. The header continuation overlaps the existing beam behind its visible faces. The construction views are refitted to show the wider model.', '',
           f'Against the saved original deck hardware mask, the 1920 by 1080 silhouette has intersection-over-union {aspect["hardware_intersection_over_union"]*100:.4f}%. Changed pixels: {aspect["changed_pixels"]:,} of {aspect["image_pixels"]:,}. The 95th-percentile boundary displacement is {aspect["edge_distance_95_percentile_px"]:.3f} pixels; the maximum is {aspect["edge_distance_max_px"]:.3f} pixels. This comparison uses `previews/reference/deck-mask.png`, not the older D13 massing. The original rendered camera view is preserved beside it. See `previews/aspect-comparison.json` and `previews/deck-extension-difference.png`.', '',
-          f'Moving-control frames and cap geometry are unchanged: {aspect["moving_controls_unchanged"]}. Screen-glass vertices, normals and frames are unchanged: {aspect["screen_glasses_unchanged"]}. The object names, part roles, palette, ink linesets and lamp-free construction remain intact.', '',
+          f'Moving-control frames and cap geometry are unchanged: {aspect["moving_controls_unchanged"]}. Screen-glass outlines, orientations and frames are unchanged, with only local depth changed: {aspect["screen_shapes_frames_unchanged"]}. The object names, part roles, palette, ink linesets and lamp-free construction remain intact.', '',
           '| View | Resolution | Horizontal FOV | Vertical FOV |',
           '|---|---|---:|---:|']
 for view, camera in aspect['camera_views'].items():

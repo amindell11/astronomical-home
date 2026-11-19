@@ -1,6 +1,6 @@
-# Hangar deck, slice 1
+# Hangar deck
 
-The approved D13 outlines define this model. This slice adds closed construction, shallow recesses, control wells, moving-part frames and the exporter names. It uses flat dark blue-grey paint and the old console's Freestyle ink. Finish work remains for the next slice.
+The approved D13 layout defines this model. The 2026-11-19 revision widens the upper inner pod corners and replaces raised screen lips with shallow sloped recesses. It preserves the control frames, exporter names, flat dark blue-grey paint and the old console's Freestyle ink.
 
 All work was local. No exporter, builder, Unity asset or file outside `art/environments/hangar-deck/` was edited. No export into Unity was run.
 
@@ -11,16 +11,21 @@ The width extension is complete through 32:9. Height closure remains pending bec
 Run at the repository root with Blender 5.1:
 
 ```powershell
-$env:BLENDER_USER_RESOURCES = Join-Path (Get-Location) 'art/environments/hangar-deck/.blender'
-$env:TEMP = Join-Path (Get-Location) 'art/environments/hangar-deck/.temp'
+$deckRoot = Join-Path (Get-Location) 'art/environments/hangar-deck'
+New-Item -ItemType Directory -Force -Path "$deckRoot/.blender", "$deckRoot/.temp" | Out-Null
+$env:BLENDER_USER_RESOURCES = Join-Path $deckRoot '.blender'
+$env:TEMP = Join-Path $deckRoot '.temp'
 $env:TMP = $env:TEMP
 & 'C:/Program Files/Blender Foundation/Blender 5.1/blender.exe' -b --factory-startup --python-exit-code 1 --python art/environments/hangar-deck/build_deck.py
 & 'C:/Program Files/Blender Foundation/Blender 5.1/blender.exe' -b --factory-startup --python-exit-code 1 --python art/environments/hangar-deck/verify_deck.py
+& 'C:/Program Files/Blender Foundation/Blender 5.1/blender.exe' -b --factory-startup --python-exit-code 1 --python art/environments/hangar-deck/verify_recess.py
 python art/environments/hangar-deck/assemble_previews.py
 python art/environments/hangar-deck/update_notes.py
 ```
 
-`build_deck.py` reads the checked-in D13 generator for its dimensions. It executes the scene construction in memory, then replaces the massing surfaces. It does not load an existing `deck.blend`. The original D13 generator and notes are unchanged. `massing/D13.blend` and `massing/D13-camera.png` were regenerated with its `--preview` option; its own checks passed.
+`build_deck.py` reads the checked-in D13 generator for its dimensions. It executes the scene construction in memory, then replaces the massing surfaces. It does not load an existing `deck.blend`. The original D13 generator, model and camera reference remain unchanged.
+
+`verify_recess.py` compares against `previews/recess-baseline.json`, measures the housing margins and checks the finished recess walls and camera rays. Remove the scratch resource and temporary folders after Blender exits. This revision was rendered headlessly with Blender 5.1.2 at 32 samples.
 
 `verify_deck.py -- --massing` regenerates the reference hardware mask. The comparison excludes the hologram, its light fan and the backdrop. `assemble_previews.py` uses Pillow, NumPy and SciPy for labels, the exact 50% camera overlay, the silhouette measurements and the maximum-area content rectangles.
 
@@ -68,6 +73,51 @@ No changes are needed to `AuthoredUp`, `Control`, their call sites at lines 185-
 
 The existing warm emission tint at line 302, the old spill offsets at lines 138-141 and 175-178, and the separately imported viewport etching at lines 73-80 should be reviewed when finish and game integration are scoped. They do not prevent the shape and part contract from working, so this slice does not prescribe new lighting or window artwork.
 ## Measured geometry
+
+### Pod corners and recessed screens, 2026-11-19
+
+Both upper inner housing chamfers now use 1.02 by 0.72 setbacks, parallel to the unchanged 0.85 by 0.60 glass clips. The middle and rear shell follow that same outline, removing the old notch. The top is lowered by 0.023076 local units to compensate for banking, so the wider corner does not increase the pod height. The front housing bounds remain Z = 1.057527 to 4.738953 on both sides. The other three housing corners already follow their glass clips at 45 degrees and retain their outlines.
+
+The pod face stays at local depth -0.10. Each glass moves from -0.008 to -0.20, placing it 0.10 units below the face. The raised screen lips are removed. Each charcoal tray flares outward at 45 degrees, with 0.008 units of clearance around the glass at its depth and a floor 0.015 units behind it. The mouth is an exact perpendicular offset of the clipped glass outline. The face bars between the two mouths are 0.044 units wide on the left and 0.084 on the right. Weapon step keys keep their frames and travel; their wells now taper outward toward the frame opening.
+
+Recess cuts run after the structural unions. Boolean coordinates are welded within 0.000001 units during construction and within 0.00001 before final triangulation. This removes duplicate vertices from Boolean rounding without changing visible contours. The final mesh must pass the closed-manifold and zero-area checks before it is saved.
+
+Corner margins below are measured at 1920 by 1080. Each value is the shortest pixel distance from the midpoint of a glass clipped corner to the projected outer perimeter of its pod face. They measure housing coverage, including the recess, rather than the dark wall alone. Large values occur beside the other display or the weapon keys. Left and right in this table mean image left and image right. The exact projected polygons and measurements are in `previews/recess-audit.json`.
+
+| Screen | Corner | Previous margin, px | Updated margin, px |
+|---|---|---:|---:|
+| SHIP | bottom left | 128.06 | 121.82 |
+| SHIP | bottom right | 53.77 | 60.98 |
+| SHIP | top right | 9.57 | 30.79 |
+| SHIP | top left | 18.35 | 25.78 |
+| DETAIL | bottom left | 28.38 | 21.58 |
+| DETAIL | bottom right | 25.14 | 19.12 |
+| DETAIL | top right | 75.01 | 69.65 |
+| DETAIL | top left | 85.37 | 78.21 |
+| PRIMARY | bottom left | 52.42 | 59.47 |
+| PRIMARY | bottom right | 124.42 | 120.23 |
+| PRIMARY | top right | 18.35 | 25.78 |
+| PRIMARY | top left | 9.57 | 30.79 |
+| ORDNANCE | bottom left | 54.26 | 61.54 |
+| ORDNANCE | bottom right | 82.38 | 75.18 |
+| ORDNANCE | top right | 125.65 | 121.41 |
+| ORDNANCE | top left | 52.87 | 59.97 |
+
+The two upper inner margins increase from 9.57 to 30.79 pixels. All sixteen glass corners were checked. The smallest updated corner margin is 19.12 pixels at DETAIL's bottom right. Glass depth changes account for the small perspective changes at the other corners; their sizes and orientations are unchanged.
+
+The finished mesh has charcoal material on all 32 screen walls. Wall normals measured at their midpoints give angles from 44.999488 to 45.000385 degrees to the pod face.
+
+The five camera renders use the original camera position and direction. For each view, the audit casts rays to 715 points around and inside every glass against the finished body. All rays reach the glass without a body intersection. Every glass vertex also remains inside its projected mouth. The minimum projected glass-to-mouth clearances are listed below. These margins keep Freestyle ink away from the glass boundary.
+
+| View | SHIP, px | DETAIL, px | PRIMARY, px | ORDNANCE, px |
+|---|---:|---:|---:|---:|
+| 16x9 | 5.38 | 6.18 | 4.47 | 5.73 |
+| 16x10 | 5.38 | 6.18 | 4.47 | 5.73 |
+| 21x9 | 5.38 | 6.18 | 4.47 | 5.73 |
+| 32x9 | 5.38 | 6.18 | 4.47 | 5.73 |
+| 4x3 | 4.03 | 4.63 | 3.35 | 4.29 |
+
+The original 16:9 render is preserved in `previews/deck-recess-original.png`. `previews/deck-recess-compare.png` places it beside the updated render and includes four 3x crops of the upper inner corners. These are Blender camera renders with the existing placeholder glasses and hologram, not a new Unity capture.
 
 ### Exporter parts
 
@@ -121,7 +171,7 @@ Coordinates below are Blender world coordinates. Every mesh uses local X across 
 
 ### Screen planes and content rectangles
 
-Each glass is one planar eight-vertex polygon at local Z = -0.008, with its normal along local +Z. It triangulates to six triangles at export. Its local X and Y dimensions retain D13's exact sizes. Corners use the 0.20-unit clip, except SHIP's top inboard corner and PRIMARY's top inboard corner, which use 0.85 horizontal by 0.60 vertical setbacks.
+Each glass is one planar eight-vertex polygon at local Z = -0.20, with its normal along local +Z. It triangulates to six triangles at export. Its local X and Y dimensions retain D13's exact sizes. Corners use the 0.20-unit clip, except SHIP's top inboard corner and PRIMARY's top inboard corner, which use 0.85 horizontal by 0.60 vertical setbacks.
 
 A largest plain rectangle means the maximum-area rectangle aligned with the glass's local X/Y axes and contained in its clipped outline. Bounds are given as left, right, bottom, top relative to the glass centre. These are geometric limits; typography may add padding inside them. The normalized bounds use the whole glass bounding rectangle as 0..1.
 
@@ -134,10 +184,10 @@ A largest plain rectangle means the maximum-area rectangle aligned with the glas
 
 | Glass | World centre of glass plane | World local-X vector | World local-Y vector | Outward plane normal |
 |---|---|---|---|---|
-| SHIP | (-7.338260, 0.926358, 3.399378) | (0.781803, 0.621098, 0.054969) | (-0.417429, 0.455865, 0.786091) | (0.463181, -0.637514, 0.615662) |
-| DETAIL | (-6.436613, -0.058311, 1.701421) | (0.781803, 0.621098, 0.054969) | (-0.417429, 0.455865, 0.786091) | (0.463181, -0.637514, 0.615662) |
-| PRIMARY | (7.630460, 1.245464, 3.949642) | (0.781803, -0.621098, -0.054969) | (0.417429, 0.455865, 0.786091) | (-0.463181, -0.637514, 0.615662) |
-| ORDNANCE | (6.837345, 0.379320, 2.456069) | (0.781803, -0.621098, -0.054969) | (0.417429, 0.455865, 0.786091) | (-0.463181, -0.637514, 0.615662) |
+| SHIP | (-7.427191, 1.048761, 3.281171) | (0.781803, 0.621098, 0.054969) | (-0.417429, 0.455865, 0.786091) | (0.463181, -0.637514, 0.615662) |
+| DETAIL | (-6.525543, 0.064092, 1.583214) | (0.781803, 0.621098, 0.054969) | (-0.417429, 0.455865, 0.786091) | (0.463181, -0.637514, 0.615662) |
+| PRIMARY | (7.719391, 1.367867, 3.831435) | (0.781803, -0.621098, -0.054969) | (0.417429, 0.455865, 0.786091) | (-0.463181, -0.637514, 0.615662) |
+| ORDNANCE | (6.926275, 0.501722, 2.337862) | (0.781803, -0.621098, -0.054969) | (0.417429, 0.455865, 0.786091) | (-0.463181, -0.637514, 0.615662) |
 
 For a plane centre C and the listed unit vectors U, V and N, a glass point is C + xU + yV and its plane equation is N dot (P - C) = 0. The two left glasses share the left pod plane; the two right glasses share the right pod plane. Screen positions are not independently rotated.
 
@@ -145,7 +195,7 @@ For a plane centre C and the listed unit vectors U, V and N, a glass point is C 
 
 | Object | Closed | Manifold | Triangles |
 |---|---|---|---:|
-| `Deck \| joined closed structure` | Yes | Yes | 6,430 |
+| `Deck \| joined closed structure` | Yes | Yes | 6,040 |
 | `07 \| Main rectangular display` | No, planar glass | No, planar glass | 6 |
 | `07 \| Detail rectangular display` | No, planar glass | No, planar glass | 6 |
 | `30 \| Primary blank glass` | No, planar glass | No, planar glass | 6 |
@@ -174,7 +224,7 @@ For a plane centre C and the listed unit vectors U, V and N, a glass point is C 
 | `Deck \| header cyan strip 0` | Yes | Yes | 12 |
 | `Deck \| header cyan strip 8.6` | Yes | Yes | 12 |
 
-The model has 28 mesh objects: 24 closed manifold solids and four intentional planar glasses. Hardware total: **7,682 triangles**. All solid windings are consistent and signed volumes are positive. There are no loose vertices or unapplied modifiers. Zero-area faces: 0.
+The model has 28 mesh objects: 24 closed manifold solids and four intentional planar glasses. Hardware total: **7,292 triangles**. All solid windings are consistent and signed volumes are positive. There are no loose vertices or unapplied modifiers. Zero-area faces: 0.
 
 An independent Boolean-volume audit checked 30 object pairs whose world bounding boxes overlap. It found 0 intersections above 0.0000001 cubic units. All eight moving controls and their carried legends were also checked against the body at half and full travel, using the existing builder's travel fractions: 0 intersections. The report is `previews/mesh-audit.json`.
 
@@ -196,11 +246,12 @@ The inherited hologram and backdrop below are preview objects, excluded by the o
 | `11 \| Neutral projector frustum` | No, preview surface | 2 |
 | `19 \| Distant space` | Yes | 12 |
 
-The entire scene, including evaluated preview curves and the backdrop, has **8,014 triangles**, below the 70,000-triangle limit.
+The entire scene, including evaluated preview curves and the backdrop, has **7,624 triangles**, below the 70,000-triangle limit.
 
 ### D13 departures and comparison
 
-- Pod bezel lip rises to local depth +0.035 around exact D13 glass at -0.008; exterior pod profile stays at -0.10.
+- Pod faces stay at -0.10; unchanged glass outlines sit at -0.20 in 45-degree charcoal recesses, without raised lips.
+- Mirrored upper inner housing chamfers follow the screen slope; the rear shell follows the same outline without the old notch.
 - Hidden band undersides, pod cavity walls, joined heels and ramp returns close the open massing.
 - Weapon keys retain their exact visible tops; their surrounding wells provide real depth.
 - Pedestal dark riser strips omitted as surface detail reserved for slice 2.
@@ -213,15 +264,15 @@ The entire scene, including evaluated preview curves and the backdrop, has **8,0
 
 The camera overlay is an exact 50% blend at 1920 by 1080. The comparison sheet places the two native-resolution renders side by side with labels. The false-colour parts sheet includes each exporter role and its corresponding index.
 
-The unlit hardware masks have intersection-over-union 99.5663%. They differ at 4,662 of 2,073,600 image pixels. The 95th-percentile boundary distance is 2.000 pixels; the largest is 74.000 pixels. These values include filled massing gaps. They are not a claim that every pixel is identical. See `previews/silhouette-comparison.json`, `previews/silhouette-difference.png` and the overlay for the exact comparison.
+The unlit hardware masks have intersection-over-union 99.2395%. They differ at 8,193 of 2,073,600 image pixels. The 95th-percentile boundary distance is 8.062 pixels; the largest is 74.000 pixels. These values include filled massing gaps. They are not a claim that every pixel is identical. See `previews/silhouette-comparison.json`, `previews/silhouette-difference.png` and the overlay for the exact comparison.
 
 ### Screen-shape extension
 
 The header, outer pod housings and wraparound band continue to X = +/-27. Folded side walls join the header to the lower structure, leaving one additional side window on each side. These pieces are Boolean-unioned into the existing ConsoleBody object. The new lower pieces stop at the original horizontal camera span. The header continuation overlaps the existing beam behind its visible faces. The construction views are refitted to show the wider model.
 
-Against the saved original deck hardware mask, the 1920 by 1080 silhouette has intersection-over-union 100.0000%. Changed pixels: 0 of 2,073,600. The 95th-percentile boundary displacement is 0.000 pixels; the maximum is 0.000 pixels. This comparison uses `previews/reference/deck-mask.png`, not the older D13 massing. The original rendered camera view is preserved beside it. See `previews/aspect-comparison.json` and `previews/deck-extension-difference.png`.
+Against the saved original deck hardware mask, the 1920 by 1080 silhouette has intersection-over-union 99.6722%. Changed pixels: 3,531 of 2,073,600. The 95th-percentile boundary displacement is 2.000 pixels; the maximum is 11.662 pixels. This comparison uses `previews/reference/deck-mask.png`, not the older D13 massing. The original rendered camera view is preserved beside it. See `previews/aspect-comparison.json` and `previews/deck-extension-difference.png`.
 
-Moving-control frames and cap geometry are unchanged: True. Screen-glass vertices, normals and frames are unchanged: True. The object names, part roles, palette, ink linesets and lamp-free construction remain intact.
+Moving-control frames and cap geometry are unchanged: True. Screen-glass outlines, orientations and frames are unchanged, with only local depth changed: True. The object names, part roles, palette, ink linesets and lamp-free construction remain intact.
 
 | View | Resolution | Horizontal FOV | Vertical FOV |
 |---|---|---:|---:|

@@ -18,7 +18,7 @@ comparison.paste(massing,(0,60))
 comparison.paste(deck,(1920,60))
 draw = ImageDraw.Draw(comparison)
 draw.text((24,12),'D13 approved massing',font=font,fill='white')
-draw.text((1944,12),'Deck: clean construction, slice 1',font=font,fill='white')
+draw.text((1944,12),'Deck: shallow screen recesses',font=font,fill='white')
 comparison.save(OUT/'deck-vs-massing.png')
 Image.blend(massing,deck,.5).save(OUT/'deck-camera-overlay.png')
 
@@ -129,9 +129,28 @@ for suffix in ('', '-21x9', '-32x9', '-16x10', '-4x3'):
 baseline_audit = json.loads((OUT/'reference/mesh-audit.json').read_text())
 coverage['moving_controls_unchanged'] = audit['controls'] == baseline_audit['controls']
 coverage['screen_glasses_unchanged'] = audit['screens'] == baseline_audit['screens']
+preservation = json.loads((OUT/'preservation-check.json').read_text())
+coverage['screen_shapes_frames_unchanged'] = preservation['glass_changed_only_in_depth']
 (OUT/'aspect-comparison.json').write_text(json.dumps(coverage, indent=2))
 overlay = np.array(deck)
 overlay[reference & ~current] = [255, 70, 70]
 overlay[current & ~reference] = [40, 255, 220]
 Image.fromarray(overlay).save(OUT/'deck-extension-difference.png')
 print(json.dumps(coverage))
+
+previous = Image.open(OUT/'deck-recess-original.png').convert('RGB')
+comparison = Image.new('RGB', (3840, 1790), '#121c2a')
+comparison.paste(previous, (0, 60))
+comparison.paste(deck, (1920, 60))
+draw = ImageDraw.Draw(comparison)
+draw.text((24, 12), 'Previous: raised screen lips', font=font, fill='white')
+draw.text((1944, 12), 'Updated: wider pod corners and shallow recesses', font=font, fill='white')
+for column, (source, box, label) in enumerate([
+        (previous, (300, 480, 580, 660), 'Left top inner corner, previous, 3x'),
+        (deck, (300, 480, 580, 660), 'Left top inner corner, updated, 3x'),
+        (previous, (1340, 480, 1620, 660), 'Right top inner corner, previous, 3x'),
+        (deck, (1340, 480, 1620, 660), 'Right top inner corner, updated, 3x')]):
+    x = column * 960 + 60
+    draw.text((x, 1170), label, font=font, fill='white')
+    comparison.paste(source.crop(box).resize((840, 540), Image.Resampling.NEAREST), (x, 1220))
+comparison.save(OUT/'deck-recess-compare.png')
