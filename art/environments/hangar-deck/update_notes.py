@@ -10,6 +10,7 @@ rectangles=json.loads((OUT/'screen-rectangles.json').read_text())
 comparison=json.loads((OUT/'silhouette-comparison.json').read_text())
 aspect=json.loads((OUT/'aspect-comparison.json').read_text())
 recess=json.loads((OUT/'recess-audit.json').read_text())
+coverage=json.loads((OUT/'coverage.json').read_text())
 wall_angles=[angle for angles in recess['measured_wall_angles_degrees'].values() for angle in angles]
 def vec(values):
     return '('+', '.join(f'{v:.6f}' for v in values)+')'
@@ -26,7 +27,7 @@ for c in recess['corners']:
     lines.append(f'| {c["screen"]} | {c["corner"]} | {c["before_px"]:.2f} | {c["after_px"]:.2f} |')
 lines += ['', 'The two upper inner margins increase from 9.57 to 30.79 pixels. All sixteen glass corners were checked. The smallest updated corner margin is 19.12 pixels at DETAIL\'s bottom right. Glass depth changes account for the small perspective changes at the other corners; their sizes and orientations are unchanged.', '',
           f'The finished mesh has charcoal material on all 32 screen walls. Wall normals measured at their midpoints give angles from {min(wall_angles):.6f} to {max(wall_angles):.6f} degrees to the pod face.', '',
-          'The five camera renders use the original camera position and direction. For each view, the audit casts rays to 715 points around and inside every glass against the finished body. All rays reach the glass without a body intersection. Every glass vertex also remains inside its projected mouth. The minimum projected glass-to-mouth clearances are listed below. These margins keep Freestyle ink away from the glass boundary.', '',
+          'The six camera renders use the supplied game projection, position and direction. For each view, the audit casts rays to 715 points around and inside every glass against the finished body. All rays reach the glass without a body intersection. Every glass vertex also remains inside its projected mouth. The minimum projected glass-to-mouth clearances are listed below. These margins keep Freestyle ink away from the glass boundary.', '',
           '| View | SHIP, px | DETAIL, px | PRIMARY, px | ORDNANCE, px |',
           '|---|---:|---:|---:|---:|']
 for view, screens in recess['views'].items():
@@ -91,9 +92,22 @@ lines += ['### Screen-shape extension', '',
 for view, camera in aspect['camera_views'].items():
     width, height = camera['size']
     lines.append(f'| {view} | {width} x {height} | {camera["horizontal_fov_degrees"]:.6f} | {camera["vertical_fov_degrees"]:.6f} |')
-lines += ['', 'The wide views retain the 16:9 vertical FOV. The 16:10 and 4:3 views retain its horizontal FOV. All use the same camera position and direction.', '',
-          '### Pending height closure', '',
-          'The supplied 16:9 reference already exposes a 14-pixel sky strip above the header and small sky gaps along the bottom. Extending the header and apron across those rays would change that reference. The side extension is complete, but the header height and apron remain unchanged pending the owner\'s choice between exact 16:9 preservation and closing those existing edge gaps. The taller previews therefore still show sky above and below the model. This is not a completed height-coverage pass.', '']
+lines += ['', 'The table above gives effective fields of view after the 1.01 diagonal scale. All views use the same camera position and direction.', '',
+          '### Game projection and measured edge coverage', '',
+          '`deck_projection.py` applies the supplied projection to all camera previews, masks, recess checks and magenta evidence. Narrower views increase the vertical FOV by the supplied tangent ratio, then divide that tangent by 1.01. Blender uses horizontal sensor fit and `shift_y = m12 / (2 * aspect)`. A negative shift looks farther down. The 16:9 camera retains AUTO fit and its 33 mm lens.', '',
+          '| View | Initial vertical FOV | Effective vertical FOV | Unity m12 | Blender shift_y | Top magenta | Bottom magenta |',
+          '|---|---:|---:|---:|---:|---:|---:|']
+for view, record in coverage['views'].items():
+    lines.append(f'| {view} | {record["vertical_fov_degrees"]:.8f} | {record["effective_vertical_fov_degrees"]:.8f} | {record["m12"]:.8f} | {record["shift_y"]:.8f} | {record["top_magenta_pixels"]:,} | {record["bottom_magenta_pixels"]:,} |')
+match=coverage['reference_16x9']
+lines += ['', 'The magenta renders hide the hologram, projector fan and original backdrop. A saturated magenta world is visible only to camera rays, so it does not tint the hardware. Bands contain `ceil(height * 0.015)` rows. Counts use saved PNG values R > 180, G < 80 and B > 180. The JSON also records a looser chroma test for antialiasing. `previews/deck-coverage-sheet.png` labels all six full renders. Blender\'s projection matrix matches the supplied matrix within 0.000001.', '',
+          f'The comparison reference is the camera image present at the start of this task, preserved in `previews/coverage-reference/deck-camera.png`, with its hardware mask beside it. Hardware intersection-over-union is {match["hardware_intersection_over_union"]*100:.6f}%. Changed pixels: {match["changed_pixels"]:,} of {match["image_pixels"]:,}. Added: {match["added_pixels"]:,}; removed: {match["removed_pixels"]:,}. Boundary distance is {match["edge_distance_95_percentile_px"]:.3f} pixels at the 95th percentile and {match["edge_distance_max_px"]:.3f} pixels maximum.', '',
+          'The crown extends the header to Z = 15, and the lower return extends the console to Z = -5. Both span X = +/-27 and are closed solids unioned into the existing body. The reference frustum, expanded by 0.5% to keep Freestyle strokes outside the image, is subtracted from both extensions. Existing controls, recesses, pod corners, materials, names and linesets are preserved.', '',
+          'Coverage is incomplete. The approved 16:9 image already contains sky above the header and below the console. Those same rays remain open in the wider and taller projections. Filling them would change the approved hardware silhouette. The band test intentionally fails where those rays cross a tested band. Closing the reference gaps requires approval to change that silhouette.', '',
+          '### Black side bars', '',
+          'The shared exporter\'s projected Freestyle ink image causes the bars. Its `EXTEND` sampling repeats the 16:9 border texel onto geometry outside that image, turning pod outlines into horizontal black bands. The bars reproduce with assigned source materials, closed outward-facing solids and no paint bake. Missing materials and zero-thickness faces are not the cause.', '',
+          '`export_deck.py` is the deck-local export entry point. It loads the shared exporter and bounds its projected ink function. Off-image ink is white, which leaves the original paint unchanged. The shared exporter file is untouched; it still owns FBX, atlas generation and part mapping. Future integration must invoke this entry point. Calling the old exporter directly still produces the bars. No Unity export was run.', '',
+          '`verify_ink.py` compares the shared function and the bounded version in headless Blender. `previews/ink-verification.json` records unchanged pixels in the central 16:9 region and black-pixel counts at the side bars. This tests the shader graph used for paint baking. A local 512-pixel paint atlas bake, emission bake and FBX export completed with Blender exit 0. Their sizes and manifest are preserved in previews/local-export-verification.json and previews/local-export-manifest.json. Unity import remains untested.', '']
 path=ROOT/'NOTES.md'
 text=path.read_text(encoding='utf-8').split('## Measured geometry')[0]
 path.write_text(text+'\n'.join(lines),encoding='utf-8')

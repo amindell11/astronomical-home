@@ -1,0 +1,104 @@
+{
+  "16x10": {
+    "resolution": [
+      1920,
+      1200
+    ],
+    "aspect": 1.6,
+    "vertical_fov_degrees": 37.649418780457616,
+    "effective_vertical_fov_degrees": 37.302548558075735,
+    "horizontal_fov_degrees": 56.74288215176967,
+    "diagonal_scale": 1.01,
+    "m12": -0.03599999999999995,
+    "shift_y": -0.011250000447034836,
+    "lens_mm": 33.33000183105469,
+    "sensor_fit": "HORIZONTAL",
+    "matrix_max_error": 2.153803912996466e-07,
+    "image": "deck-coverage-16x10.png"
+  },
+  "3x2": {
+    "resolution": [
+      1620,
+      1080
+    ],
+    "aspect": 1.5,
+    "vertical_fov_degrees": 39.966211722989904,
+    "effective_vertical_fov_degrees": 39.60140371890603,
+    "horizontal_fov_degrees": 56.74288215176967,
+    "diagonal_scale": 1.01,
+    "m12": -0.056249999999999994,
+    "shift_y": -0.01875000074505806,
+    "lens_mm": 33.33000183105469,
+    "sensor_fit": "HORIZONTAL",
+    "matrix_max_error": 2.913260841452825e-07,
+    "image": "deck-coverage-3x2.png"
+  },
+  "4x3": {
+    "resolution": [
+      1440,
+      1080
+    ],
+    "aspect": 1.3333333333333333,
+    "vertical_fov_degrees": 44.49804587322225,
+    "effective_vertical_fov_degrees": 44.09988083049999,
+    "horizontal_fov_degrees": 56.74288215176967,
+    "diagonal_scale": 1.01,
+    "m12": -0.09,
+    "shift_y": -0.03375000134110451,
+    "lens_mm": 33.33000183105469,
+    "sensor_fit": "HORIZONTAL",
+    "matrix_max_error": 2.589565193389376e-07,
+    "image": "deck-coverage-4x3.png"
+  },
+  "16x9": {
+    "resolution": [
+      1920,
+      1080
+    ],
+    "aspect": 1.7777777777777777,
+    "vertical_fov_degrees": 34.11393,
+    "effective_vertical_fov_degrees": 34.11393,
+    "horizontal_fov_degrees": 57.22091760309944,
+    "diagonal_scale": 1,
+    "m12": 0,
+    "shift_y": 0.0,
+    "lens_mm": 33.0,
+    "sensor_fit": "AUTO",
+    "matrix_max_error": 3.9070986623812587e-07,
+    "image": "deck-coverage-16x9.png"
+  },
+  "21x9": {
+    "resolution": [
+      2560,
+      1080
+    ],
+    "aspect": 2.3703703703703702,
+    "vertical_fov_degrees": 34.11393,
+    "effective_vertical_fov_degrees": 34.11393,
+    "horizontal_fov_degrees": 72.05474481398043,
+    "diagonal_scale": 1,
+    "m12": 0,
+    "shift_y": 0.0,
+    "lens_mm": 24.75,
+    "sensor_fit": "HORIZONTAL",
+    "matrix_max_error": 3.9070986623812587e-07,
+    "image": "deck-coverage-21x9.png"
+  },
+  "32x9": {
+    "resolution": [
+      3840,
+      1080
+    ],
+    "aspect": 3.5555555555555554,
+    "vertical_fov_degrees": 34.11393,
+    "effective_vertical_fov_degrees": 34.11393,
+    "horizontal_fov_degrees": 94.97910379549666,
+    "diagonal_scale": 1,
+    "m12": 0,
+    "shift_y": 0.0,
+    "lens_mm": 16.5,
+    "sensor_fit": "HORIZONTAL",
+    "matrix_max_error": 3.9070986623812587e-07,
+    "image": "deck-coverage-32x9.png"
+  }
+}

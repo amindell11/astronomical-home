@@ -345,6 +345,7 @@ def projected_ink(material):
         links.new(subtract.outputs['Vector'], dot.inputs[0])
         dots.append(dot.outputs['Value'])
     combine = nodes.new('ShaderNodeCombineXYZ')
+    coordinates = []
     for i, scale in enumerate((camera.data.lens / camera.data.sensor_width,
                               camera.data.lens * aspect / camera.data.sensor_width)):
         divide = nodes.new('ShaderNodeMath')
@@ -357,6 +358,7 @@ def projected_ink(material):
         multiply_add.inputs[2].default_value = .5
         links.new(divide.outputs[0], multiply_add.inputs[0])
         links.new(multiply_add.outputs[0], combine.inputs[i])
+        coordinates.append(multiply_add.outputs[0])
     layers = []
     for image in (body_ink, control_ink):
         texture = nodes.new('ShaderNodeTexImage')
@@ -370,7 +372,27 @@ def projected_ink(material):
     links.new(own.outputs['Fac'], pick.inputs[0])
     links.new(layers[0], pick.inputs[1])
     links.new(layers[1], pick.inputs[2])
-    return pick.outputs[0]
+    # Outside the reference frame the clamped ink texture smears; geometry there gets none.
+    outside = None
+    for coordinate in coordinates:
+        for operation, limit in (('LESS_THAN', 0), ('GREATER_THAN', 1)):
+            compare = nodes.new('ShaderNodeMath')
+            compare.operation = operation
+            compare.inputs[1].default_value = limit
+            links.new(coordinate, compare.inputs[0])
+            if outside is None:
+                outside = compare.outputs[0]
+                continue
+            either = nodes.new('ShaderNodeMath')
+            either.operation = 'MAXIMUM'
+            links.new(outside, either.inputs[0])
+            links.new(compare.outputs[0], either.inputs[1])
+            outside = either.outputs[0]
+    bounded = nodes.new('ShaderNodeMixRGB')
+    links.new(outside, bounded.inputs[0])
+    links.new(pick.outputs[0], bounded.inputs[1])
+    bounded.inputs[2].default_value = (1, 1, 1, 1)
+    return bounded.outputs[0]
 
 
 for material in materials:

@@ -10,8 +10,9 @@
         1920,
         1080
       ],
-      "horizontal_fov_degrees": 57.22091933193043,
-      "vertical_fov_degrees": 34.11393115323412,
+      "horizontal_fov_degrees": 57.22091760309944,
+      "vertical_fov_degrees": 34.11393,
+      "shift_y": 0.0,
       "top_edge_sky_pixels": 1920,
       "bottom_edge_sky_pixels": 346
     },
@@ -20,9 +21,10 @@
         2560,
         1080
       ],
-      "horizontal_fov_degrees": 72.0547467702072,
-      "vertical_fov_degrees": 34.11393115323412,
-      "top_edge_sky_pixels": 2560,
+      "horizontal_fov_degrees": 72.05474481398043,
+      "vertical_fov_degrees": 34.11393,
+      "shift_y": 0.0,
+      "top_edge_sky_pixels": 1930,
       "bottom_edge_sky_pixels": 346
     },
     "32x9": {
@@ -30,9 +32,10 @@
         3840,
         1080
       ],
-      "horizontal_fov_degrees": 94.97910584399831,
-      "vertical_fov_degrees": 34.11393115323412,
-      "top_edge_sky_pixels": 3840,
+      "horizontal_fov_degrees": 94.97910379549666,
+      "vertical_fov_degrees": 34.11393,
+      "shift_y": 0.0,
+      "top_edge_sky_pixels": 1930,
       "bottom_edge_sky_pixels": 346
     },
     "16x10": {
@@ -40,20 +43,33 @@
         1920,
         1200
       ],
-      "horizontal_fov_degrees": 57.22091933193043,
-      "vertical_fov_degrees": 37.64942003648014,
-      "top_edge_sky_pixels": 1920,
-      "bottom_edge_sky_pixels": 1834
+      "horizontal_fov_degrees": 56.74288215176967,
+      "vertical_fov_degrees": 37.302548558075735,
+      "shift_y": -0.011250000447034836,
+      "top_edge_sky_pixels": 0,
+      "bottom_edge_sky_pixels": 0
+    },
+    "3x2": {
+      "size": [
+        1620,
+        1080
+      ],
+      "horizontal_fov_degrees": 56.74288215176967,
+      "vertical_fov_degrees": 39.60140371890603,
+      "shift_y": -0.01875000074505806,
+      "top_edge_sky_pixels": 0,
+      "bottom_edge_sky_pixels": 0
     },
     "4x3": {
       "size": [
         1440,
         1080
       ],
-      "horizontal_fov_degrees": 57.22091933193043,
-      "vertical_fov_degrees": 44.49804731442473,
-      "top_edge_sky_pixels": 1440,
-      "bottom_edge_sky_pixels": 1440
+      "horizontal_fov_degrees": 56.74288215176967,
+      "vertical_fov_degrees": 44.09988083049999,
+      "shift_y": -0.03375000134110451,
+      "top_edge_sky_pixels": 0,
+      "bottom_edge_sky_pixels": 0
     }
   },
   "moving_controls_unchanged": true,

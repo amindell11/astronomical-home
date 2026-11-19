@@ -1,4 +1,4 @@
-"""Audit deck.blend and render five hardware silhouettes without saving the scene.
+"""Audit deck.blend and render six hardware silhouettes without saving the scene.
 
 Run Blender -b --python verify_deck.py [-- --massing] from any directory.
 All evidence is written into previews. --massing renders only the D13 reference mask.
@@ -13,6 +13,8 @@ from mathutils import Vector
 from bpy_extras.object_utils import world_to_camera_view
 
 ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+from deck_projection import VIEWS, game_projection
 OUT = ROOT / 'previews'
 OUT.mkdir(exist_ok=True)
 MASSING = '--massing' in sys.argv
@@ -186,16 +188,13 @@ scene.render.image_settings.file_format = 'PNG'
 scene.render.filepath = str(OUT/('massing-mask.png' if MASSING else 'deck-mask.png'))
 bpy.ops.render.render(write_still=True)
 if not MASSING:
-    for suffix, width, height in [('21x9', 2560, 1080), ('32x9', 3840, 1080),
-                                  ('16x10', 1920, 1200), ('4x3', 1440, 1080)]:
-        scene.render.resolution_x, scene.render.resolution_y = width, height
-        scene.camera.data.sensor_fit = 'HORIZONTAL'
-        scene.camera.data.lens = 33 * min(1, (16 / 9) / (width / height))
+    for suffix, width, height in VIEWS:
+        if suffix == '16x9':
+            continue
+        game_projection(scene, scene.camera, width, height)
         scene.render.filepath = str(OUT / ('deck-mask-' + suffix + '.png'))
         bpy.ops.render.render(write_still=True)
-    scene.render.resolution_x, scene.render.resolution_y = 1920, 1080
-    scene.camera.data.sensor_fit = 'AUTO'
-    scene.camera.data.lens = 33
+    game_projection(scene, scene.camera, 1920, 1080)
     roles = ['ConsoleBody','MainScreenGlass','DetailScreenGlass','PrimaryScreenGlass','OrdnanceScreenGlass',
              'SelectorKnob','PreviousButton','PreviousLegend','NextButton','NextLegend',
              'LaunchButton','LaunchLegend','ProjectorLens','PrimaryPreviousButton','PrimaryPreviousLegend',

@@ -8,6 +8,7 @@ Exit 1 means a geometry, visibility or preservation assertion failed.
 from pathlib import Path
 import json
 import math
+import sys
 import bpy
 import bmesh
 from mathutils import Vector
@@ -15,6 +16,8 @@ from mathutils.bvhtree import BVHTree
 from bpy_extras.object_utils import world_to_camera_view
 
 ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+from deck_projection import VIEWS, game_projection
 OUT = ROOT / 'previews'
 
 
@@ -138,11 +141,8 @@ for s_index, (old, new) in enumerate(zip(old_screens, build['screens'])):
             row[label + '_px'] = boundary_distance(p, outline)
         report['corners'].append(row)
 
-for name, width, height in [('16x9', 1920, 1080), ('16x10', 1920, 1200),
-                             ('21x9', 2560, 1080), ('32x9', 3840, 1080), ('4x3', 1440, 1080)]:
-    scene.render.resolution_x, scene.render.resolution_y = width, height
-    camera.data.sensor_fit = 'HORIZONTAL'
-    camera.data.lens = 33 * min(1, (16 / 9) / (width / height))
+for name, width, height in VIEWS:
+    game_projection(scene, camera, width, height)
     view = {}
     for screen in build['screens']:
         obj = bpy.data.objects[screen['name']]
@@ -208,4 +208,4 @@ bm.free()
 (OUT / 'structure-components.json').write_text(json.dumps(sorted(groups, key=lambda g: -g['signed_volume']), indent=2))
 (OUT / 'recess-audit.json').write_text(json.dumps(report, indent=2))
 print(json.dumps({'preservation': preserved, 'corners': report['corners'],
-                  'visibility': 'all glass perimeter and interior samples visible in five camera shapes'}))
+                  'visibility': 'all glass perimeter and interior samples visible in six camera shapes'}))

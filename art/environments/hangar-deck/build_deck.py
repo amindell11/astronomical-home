@@ -1,7 +1,7 @@
-"""Build deck.blend, five camera shapes and four construction views from local D13.
+"""Build deck.blend, six camera shapes and four construction views from local D13.
 
 Run Blender with --python-exit-code 1 --python build_deck.py. Options after --:
---no-render saves geometry and its audit; --camera-only renders the five game views;
+--no-render saves geometry and its audit; --camera-only renders the six game views;
 --samples sets Cycles samples. Invalid geometry raises before saving.
 """
 from pathlib import Path
@@ -16,6 +16,8 @@ import bmesh
 from mathutils import Matrix, Vector
 
 ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+from deck_projection import VIEWS, game_projection
 PREVIEWS = ROOT / 'previews'
 PREVIEWS.mkdir(exist_ok=True)
 os.environ['OPTIX_CACHE_PATH'] = str(ROOT / '.cache' / 'optix')
@@ -633,6 +635,23 @@ for hand, label in ((-1, 'left'), (1, 'right')):
 
 remove(side_clip)
 
+reference_tangent = math.tan(math.radians(34.11393) / 2)
+reference_clip = world_loft('Construction | protected reference frustum', [
+    [camera_eye + camera_forward * depth + Vector((u * depth, 0, 0)) + camera_up * v * depth
+     for u, v in [(-reference_tangent * 16 / 9 * 1.005, -reference_tangent * 1.005),
+                  (reference_tangent * 16 / 9 * 1.005, -reference_tangent * 1.005),
+                  (reference_tangent * 16 / 9 * 1.005, reference_tangent * 1.005),
+                  (-reference_tangent * 16 / 9 * 1.005, reference_tangent * 1.005)]]
+    for depth in (1, 100)])
+for name, section, mat in [
+        ('header crown', [(3.35, 10.3), (7.65, 10.3), (7.65, 15), (3.35, 15)], face),
+        ('console lower return', [(-3.0, -5), (2.35, -5), (2.35, .85), (-3.0, .85)], paint)]:
+    extension = world_loft('Deck | ' + name,
+                           [[(x, y, z) for y, z in section] for x in (-27, 27)], mat)
+    subtract(extension, reference_clip, True)
+    BODY.append(extension)
+remove(reference_clip)
+
 # A single union removes hidden interfaces between all intersecting structure pieces.
 body = BODY[0]
 body.name = 'Deck | joined closed structure'
@@ -762,6 +781,7 @@ gamecam.data.sensor_fit = 'AUTO'
 gamecam.location = (0, -18, 6.8)
 gamecam.rotation_euler = Vector((0, .9936, -.1132)).to_track_quat('-Z', 'Y').to_euler()
 scene.camera = gamecam
+game_projection(scene, gamecam, 1920, 1080)
 bpy.context.view_layer.update()
 
 subject = [obj.matrix_world @ Vector(corner) for obj in scene.objects
@@ -819,16 +839,13 @@ scene.render.filepath = str(PREVIEWS / 'deck-camera.png')
 bpy.ops.wm.save_as_mainfile(filepath=str(ROOT / 'deck.blend'))
 if not ARGS.no_render:
     bpy.ops.render.render(write_still=True)
-    for suffix, width, height in [('21x9', 2560, 1080), ('32x9', 3840, 1080),
-                                  ('16x10', 1920, 1200), ('4x3', 1440, 1080)]:
-        scene.render.resolution_x, scene.render.resolution_y = width, height
-        gamecam.data.sensor_fit = 'HORIZONTAL'
-        gamecam.data.lens = 33 * min(1, (16 / 9) / (width / height))
+    for suffix, width, height in VIEWS:
+        if suffix == '16x9':
+            continue
+        game_projection(scene, gamecam, width, height)
         scene.render.filepath = str(PREVIEWS / ('deck-camera-' + suffix + '.png'))
         bpy.ops.render.render(write_still=True)
-    scene.render.resolution_x, scene.render.resolution_y = 1920, 1080
-    gamecam.data.sensor_fit = 'AUTO'
-    gamecam.data.lens = 33
+    game_projection(scene, gamecam, 1920, 1080)
     if not ARGS.camera_only:
         backdrop = bpy.data.objects['19 | Distant space']
         backdrop.hide_render = True
