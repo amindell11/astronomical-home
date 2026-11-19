@@ -188,17 +188,11 @@ namespace UI.Hangar.Hardware
                 coneMaterial.SetFloat("_Cone", 1f);
                 EditorUtility.SetDirty(coneMaterial);
                 var quad = Resources.GetBuiltinResource<Mesh>("Quad.fbx");
-                var lamps = manifest.lamps;
-                if (lamps == null)
-                    lamps = Array.Empty<ExportLamp>();
-                var downlights = manifest.downlights;
-                if (downlights == null)
-                    downlights = Array.Empty<ExportLamp>();
-                var lampGlows = GlowCards(glows.transform, lamps, "glow", quad, glowMaterial, camera,
+                var lampGlows = GlowCards(glows.transform, manifest.lamps, "glow", quad, glowMaterial, camera,
                     camera.transform.rotation);
-                var downlightGlows = GlowCards(glows.transform, downlights, "glow", quad, glowMaterial, camera,
+                var downlightGlows = GlowCards(glows.transform, manifest.downlights, "glow", quad, glowMaterial, camera,
                     camera.transform.rotation);
-                var downlightCones = GlowCards(glows.transform, downlights, "cone", ConeCard(), coneMaterial,
+                var downlightCones = GlowCards(glows.transform, manifest.downlights, "cone", ConeCard(), coneMaterial,
                     camera, Quaternion.LookRotation(
                         Vector3.ProjectOnPlane(camera.transform.forward, Vector3.up), Vector3.up));
 

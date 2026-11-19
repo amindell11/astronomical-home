@@ -1,8 +1,9 @@
 """Blender background export of the open scene.
 
 --assets is the Unity visuals directory; --scratch holds disposable bake intermediates.
-Writes Console.fbx, ConsolePaint.png, ConsoleEmission.png
-and console-export.json beside this script. Exit 0 means every output was written.
+Writes Console.fbx, ConsolePaint.png and ConsoleEmission.png to --assets, and
+console-export.json beside this script; the same manifest is printed on stdout as a
+CONSOLE_EXPORT=<json> trailer. Exit 0 means every output was written.
 The source scene is never saved by this exporter.
 """
 import argparse
