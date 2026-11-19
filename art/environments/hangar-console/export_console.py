@@ -35,6 +35,40 @@ excluded = ('07 reuse | Vanguard', '19 | Vanguard', '19 | Distant space',
             '11 | Neutral projector frustum', '25 | Viewport glass')
 hardware = [o for o in scene.objects if not o.hide_render and o.type in {'MESH', 'CURVE', 'FONT'}
             and not o.name.startswith(excluded)]
+
+
+def centred(obj):
+    frame = obj.matrix_world.to_quaternion().to_matrix().to_4x4()
+    frame.translation = obj.matrix_world @ (sum((Vector(c) for c in obj.bound_box), Vector()) / 8)
+    return frame
+
+
+def emission_color(obj):
+    material = obj.active_material
+    principled = None
+    if material and material.node_tree:
+        principled = next((node for node in material.node_tree.nodes if node.type == 'BSDF_PRINCIPLED'), None)
+    if principled is None:
+        raise RuntimeError(f'{obj.name} has no Principled BSDF')
+    socket = principled.inputs['Emission Color']
+    if socket.is_linked:
+        raise RuntimeError(f'{obj.name} has a linked emission colour')
+    return [socket.default_value[0], socket.default_value[1], socket.default_value[2]]
+
+
+def anchor(obj):
+    split = obj.name.split('| ', 1)
+    if len(split) != 2:
+        raise RuntimeError(f'{obj.name} has no anchor name')
+    return {'name': split[1], 'position': list(centred(obj).translation), 'color': emission_color(obj)}
+
+
+anchors = [obj for obj in hardware if obj.name.endswith(' lens') and obj.name != '09 | Projector lens']
+lamps = [anchor(obj) for obj in anchors if 'Header downlight' not in obj.name]
+downlights = [anchor(obj) for obj in anchors if 'Header downlight' in obj.name]
+if not lamps or not downlights:
+    raise RuntimeError(f'console export found {len(lamps)} lamps and {len(downlights)} downlights')
+
 for obj in scene.objects:
     if obj.type in {'MESH', 'CURVE', 'FONT'} and obj not in hardware:
         obj.hide_render = True
@@ -68,12 +102,6 @@ pivot_names = {
     'SelectorKnob': '08 | Selector faceted grip', 'PreviousButton': '08 | Previous chunky keycap',
     'NextButton': '08 | Next chunky keycap', 'LaunchButton': '08 | Launch broad beveled button',
 }
-
-
-def centred(obj):
-    frame = obj.matrix_world.to_quaternion().to_matrix().to_4x4()
-    frame.translation = obj.matrix_world @ (sum((Vector(c) for c in obj.bound_box), Vector()) / 8)
-    return frame
 
 
 groups = {name: [bpy.data.objects[n] for n in names] for name, names in part_names.items()}
@@ -352,7 +380,7 @@ def bake(name, size, glow=False):
         shader = nodes.new('ShaderNodeEmission')
         socket, strength = emission_inputs[material] if glow else (paint_inputs[material], 1)
         links.new(socket, shader.inputs['Color'])
-        shader.inputs['Strength'].default_value = strength
+        shader.inputs['Strength'].default_value = min(strength, 1)
         links.new(shader.outputs[0], original_outputs[material].inputs['Surface'])
         target = nodes.new('ShaderNodeTexImage')
         target.image = image
@@ -366,8 +394,9 @@ def bake(name, size, glow=False):
     print('Baking', name, flush=True)
     bpy.ops.object.bake(type='EMIT')
     if glow:
-        scene.view_settings.view_transform = 'AgX'
-        scene.view_settings.look = 'AgX - Medium High Contrast'
+        # Standard keeps lamp colours through the float image's display conversion.
+        scene.view_settings.view_transform = 'Standard'
+        scene.view_settings.look = 'None'
         image.save_render(image.filepath_raw, scene=scene)
     else:
         image.save()
@@ -439,6 +468,8 @@ manifest = {
                        'width': max(v.co.x for v in obj.data.vertices) - min(v.co.x for v in obj.data.vertices),
                        'height': max(v.co.y for v in obj.data.vertices) - min(v.co.y for v in obj.data.vertices)}
                       for obj in exported if obj.name in glass_parts],
+    'lamps': lamps,
+    'downlights': downlights,
     'paint': 'Authored color graph and fixed-camera Freestyle ink, one layer for the body and one the '
              'moving controls carry. No scene lighting, sky, ship or cone.',
     'screens': 'Static reference artwork; no live UI.',
