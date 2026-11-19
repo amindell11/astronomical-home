@@ -5,6 +5,7 @@ set -euo pipefail
 # compile-check runs the slot's own unity_compile_check.ps1 against the slot's Unity project and a
 # per-slot state dir under the compile-check root, prints COMPILE_CHECK=<verdict> and exits with the
 # script's code. run-tests runs it first: only a fail stops the run, before the runner starts.
+# A caller's -OutDir is refused before the runner starts.
 # Stub scripts in the slot stand in for the check and the Unity runner.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -79,6 +80,13 @@ for verdict in "pass 0" "stale 3" "error 2"; do
   run "$name" "$code" run-tests agent-1 -Mode EditMode
   [[ "$RC" -eq 0 && "$OUT" == *"COMPILE_CHECK=$name"* ]] || fail "run-tests goes on after a $name verdict (rc=$RC: $OUT)"
   [[ "$LOG" == *"runner -OutDir results/unity-tests-agent -Mode EditMode"* ]] || fail "after a $name verdict the runner gets its args (got: $LOG)"
+done
+
+for outdir in "-OutDir elsewhere" "-outdir:elsewhere"; do
+  # shellcheck disable=SC2086
+  run pass 0 run-tests agent-1 -Mode EditMode $outdir
+  [[ "$RC" -eq 2 && "$OUT" == *"the pool sets -OutDir"* ]] || fail "run-tests refuses a caller's $outdir with exit 2 (rc=$RC: $OUT)"
+  [[ "$LOG" != *runner* ]] || fail "run-tests never starts the runner with a caller's $outdir (got: $LOG)"
 done
 
 echo "PASS: compile-check verb and run-tests preflight"

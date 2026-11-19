@@ -81,6 +81,27 @@ class ShipJsonTests(unittest.TestCase):
         self.assertEqual(exempted[0]["reason"], "Owner-approved stretch.")
 
 
+class DeriveArgumentTests(unittest.TestCase):
+    PARTS = {"Fuselage": ["role.hull"], "Fin": ["role.hull"], "engine.L": ["role.sockets"]}
+
+    def test_valid_arguments_pass(self):
+        self.assertIsNone(contract.derive_refusal(None, [], (None, None), {}))
+        self.assertIsNone(contract.derive_refusal("base.json", [], (None, None), self.PARTS))
+        self.assertIsNone(contract.derive_refusal("base.json", ["Fin", "engine.L"], (None, None), self.PARTS))
+
+    def test_refusals(self):
+        cases = {
+            "omit without base": (None, ["Fin"], (None, None), {}),
+            "base with top": ("base.json", [], ("top.png", None), self.PARTS),
+            "base with side": ("base.json", [], (None, "side.png"), self.PARTS),
+            "omit not a part": ("base.json", ["Fin", "Wing"], (None, None), self.PARTS),
+        }
+        for label, arguments in cases.items():
+            with self.subTest(label):
+                self.assertIsNotNone(contract.derive_refusal(*arguments))
+        self.assertIn("Wing", contract.derive_refusal(*cases["omit not a part"]))
+
+
 class PaintSettingsTests(unittest.TestCase):
     def test_signed_space_requires_its_own_direction(self):
         signed = copy.deepcopy(VALID_PAINT)

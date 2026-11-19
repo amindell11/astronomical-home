@@ -7,6 +7,7 @@ using Game;
 using Game.Companion;
 using Game.Player;
 using Game.Preview;
+using Game.Preview.Targets;
 using NUnit.Framework;
 using Ships.Visuals.Breakup;
 using Substrate.Sectors.Elements.Elites;
