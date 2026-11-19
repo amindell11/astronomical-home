@@ -3,7 +3,7 @@ using UI.Hangar.Hardware;
 using UnityEditor;
 using UnityEngine;
 
-namespace Game.Preview
+namespace Game.Preview.Targets
 {
     internal sealed class HangarLightTarget : TuningTarget
     {
