@@ -7,13 +7,20 @@ using UnityEngine.UI;
 namespace UI.Hangar.Displays
 {
     /// <summary>
-    /// Builds the console's display rigs and authors their layouts in canvas pixels, top-left origin.
+    /// Builds the console's display rigs. Each layout is authored at a fixed design size,
+    /// top-left origin, and fitted uniformly into that glass's content rectangle.
     /// </summary>
     public static class HangarDisplayBuilder
     {
         private const string LabelFontPath = "Assets/Visuals/Ui/Fonts/Rajdhani-Medium.ttf";
         private const string TitleFontPath = "Assets/Visuals/Ui/Fonts/Orbitron-Medium.ttf";
         private const string NumberFontPath = "Assets/Visuals/Ui/Fonts/IBMPlexMono.ttf";
+        private const int MainDesignWidth = 740;
+        private const int MainDesignHeight = 638;
+        private const int DetailDesignWidth = 728;
+        private const int DetailDesignHeight = 140;
+        private const int WeaponDesignWidth = 857;
+        private const int WeaponDesignHeight = 300;
         private const int Segments = 12;
         private const float SegmentWidth = 9f;
         private const float SegmentGap = 3f;
@@ -31,19 +38,19 @@ namespace UI.Hangar.Displays
         private static readonly Color Clear = new(0f, 0f, 0f, 0f);
 
         public static HangarMainDisplayView BuildMain(Transform parent, Vector3 localPosition, Vector2Int resolution,
-            Object feature)
+            Rect content, Object feature)
         {
             var display = Rig(parent, "MainDisplay", localPosition, resolution, feature, out var canvas);
             var view = display.gameObject.AddComponent<HangarMainDisplayView>();
-            LayoutMain(canvas, resolution.x, new SerializedObject(view));
+            LayoutMain(Fit(canvas, resolution, content, MainDesignWidth, MainDesignHeight), new SerializedObject(view));
             return view;
         }
 
         public static HangarDetailDisplayView BuildDetail(Transform parent, Vector3 localPosition, Vector2Int resolution,
-            Object feature)
+            Rect content, Object feature)
         {
             var display = Rig(parent, "DetailDisplay", localPosition, resolution, feature, out var canvas);
-            LayoutDetail(canvas, resolution.x, out var title, out var body);
+            LayoutDetail(Fit(canvas, resolution, content, DetailDesignWidth, DetailDesignHeight), out var title, out var body);
             var view = display.gameObject.AddComponent<HangarDetailDisplayView>();
             var data = new SerializedObject(view);
             data.FindProperty("title").objectReferenceValue = title;
@@ -53,12 +60,35 @@ namespace UI.Hangar.Displays
         }
 
         public static HangarWeaponDisplayView BuildWeapon(Transform parent, string name, Vector3 localPosition,
-            Vector2Int resolution, Object feature, HangarSlot slot, string header)
+            Vector2Int resolution, Rect content, Object feature, HangarSlot slot, string header)
         {
             var display = Rig(parent, name, localPosition, resolution, feature, out var canvas);
             var view = display.gameObject.AddComponent<HangarWeaponDisplayView>();
-            LayoutWeapon(canvas, resolution, new SerializedObject(view), slot, header);
+            LayoutWeapon(Fit(canvas, resolution, content, WeaponDesignWidth, WeaponDesignHeight),
+                new SerializedObject(view), slot, header);
             return view;
+        }
+
+        private static RectTransform Fit(RectTransform canvas, Vector2Int resolution, Rect content,
+            int designWidth, int designHeight)
+        {
+            var frameObject = new GameObject("Content", typeof(RectTransform));
+            frameObject.transform.SetParent(canvas, false);
+            var frame = frameObject.GetComponent<RectTransform>();
+            frame.anchorMin = new Vector2(content.xMin, content.yMin);
+            frame.anchorMax = new Vector2(content.xMax, content.yMax);
+            frame.offsetMin = frame.offsetMax = Vector2.zero;
+
+            var layoutObject = new GameObject("Layout", typeof(RectTransform));
+            layoutObject.transform.SetParent(frame, false);
+            var layout = layoutObject.GetComponent<RectTransform>();
+            layout.anchorMin = layout.anchorMax = new Vector2(.5f, .5f);
+            layout.pivot = new Vector2(.5f, .5f);
+            layout.anchoredPosition = Vector2.zero;
+            layout.sizeDelta = new Vector2(designWidth, designHeight);
+            var scale = Mathf.Min(content.width * resolution.x / designWidth, content.height * resolution.y / designHeight);
+            layout.localScale = new Vector3(scale, scale, scale);
+            return layout;
         }
 
         private static HangarDisplay Rig(Transform parent, string name, Vector3 localPosition, Vector2Int resolution,
@@ -96,24 +126,25 @@ namespace UI.Hangar.Displays
             return display;
         }
 
-        private static void LayoutMain(RectTransform canvas, float width, SerializedObject view)
+        private static void LayoutMain(RectTransform layout, SerializedObject view)
         {
+            var width = (float)MainDesignWidth;
             var labels = Font(LabelFontPath);
             var titles = Font(TitleFontPath);
             var numbers = Font(NumberFontPath);
 
             var shipRect = new Rect(190f, 6f, 360f, 420f);
-            var shipObject = Box(canvas, "Ship", shipRect).gameObject;
+            var shipObject = Box(layout, "Ship", shipRect).gameObject;
             var shipFace = shipObject.AddComponent<Image>();
             shipFace.color = Clear;
             shipFace.raycastTarget = true;
             var shipButton = shipObject.AddComponent<Button>();
             shipButton.targetGraphic = shipFace;
             shipButton.transition = Selectable.Transition.None;
-            var shipBracket = Bracket(canvas, "ShipBracket", shipRect);
+            var shipBracket = Bracket(layout, "ShipBracket", shipRect);
 
-            var title = Text(canvas, "Title", titles, 40, TextAnchor.MiddleCenter, Amber, new Rect(0f, 12f, width, 52f));
-            var lockTag = Text(canvas, "LockTag", labels, 24, TextAnchor.MiddleCenter, Locked, new Rect(0f, 66f, width, 26f));
+            var title = Text(layout, "Title", titles, 40, TextAnchor.MiddleCenter, Amber, new Rect(0f, 12f, width, 52f));
+            var lockTag = Text(layout, "LockTag", labels, 24, TextAnchor.MiddleCenter, Locked, new Rect(0f, 66f, width, 26f));
             lockTag.text = "LOCKED";
             lockTag.gameObject.SetActive(false);
             var bars = new Object[HangarStats.Count];
@@ -126,7 +157,7 @@ namespace UI.Hangar.Displays
                 var y = rows[i % 3];
                 var x = right ? width - 34f - BarWidth : 34f;
                 var anchor = right ? TextAnchor.UpperRight : TextAnchor.UpperLeft;
-                var row = Box(canvas, stat.ToString(), new Rect(x, y, BarWidth, 96f));
+                var row = Box(layout, stat.ToString(), new Rect(x, y, BarWidth, 96f));
                 var label = Text(row, "Label", labels, 28, anchor, Label, new Rect(0f, -2f, BarWidth, 30f));
                 label.text = stat.ToString();
                 var number = Text(row, "Number", numbers, 36, anchor, Amber, new Rect(0f, 24f, BarWidth, 48f));
@@ -134,10 +165,10 @@ namespace UI.Hangar.Displays
                 var barEnd = right ? new Vector2(x - 10f, y + 80f) : new Vector2(x + BarWidth + 10f, y + 80f);
                 var hull = hullPoints[i % 3];
                 if (right) hull.x = width - hull.x;
-                Leader(canvas, stat + "Leader", barEnd, hull);
+                Leader(layout, stat + "Leader", barEnd, hull);
             }
 
-            var silhouette = Box(canvas, "Silhouette", new Rect(250f, 170f, 240f, 240f)).gameObject.AddComponent<RawImage>();
+            var silhouette = Box(layout, "Silhouette", new Rect(250f, 170f, 240f, 240f)).gameObject.AddComponent<RawImage>();
             silhouette.raycastTarget = false;
 
             const float ruleInset = 34f;
@@ -156,24 +187,24 @@ namespace UI.Hangar.Displays
             const float keystoneCooldownY = 480f;
             const float keystoneCooldownHeight = 48f;
             const int keystoneCooldownSize = 36;
-            Line(canvas, "KeystoneTop", new Vector2(ruleInset, ruleTop), new Vector2(width - ruleInset, ruleTop),
+            Line(layout, "KeystoneTop", new Vector2(ruleInset, ruleTop), new Vector2(width - ruleInset, ruleTop),
                 ruleThickness, LeaderInk);
-            Line(canvas, "KeystoneBottom", new Vector2(ruleInset, ruleBottom), new Vector2(width - ruleInset, ruleBottom),
+            Line(layout, "KeystoneBottom", new Vector2(ruleInset, ruleBottom), new Vector2(width - ruleInset, ruleBottom),
                 ruleThickness, LeaderInk);
-            var keystoneIcon = Box(canvas, "KeystoneIcon",
+            var keystoneIcon = Box(layout, "KeystoneIcon",
                 new Rect(keystoneIconX, keystoneIconY, keystoneIconSize, keystoneIconSize)).gameObject.AddComponent<Image>();
             keystoneIcon.color = Amber;
             keystoneIcon.raycastTarget = false;
             keystoneIcon.preserveAspect = true;
-            var keystoneName = Text(canvas, "KeystoneName", labels, keystoneNameSize, TextAnchor.MiddleLeft, Label,
+            var keystoneName = Text(layout, "KeystoneName", labels, keystoneNameSize, TextAnchor.MiddleLeft, Label,
                 new Rect(keystoneNameX, keystoneNameY, keystoneNameWidth, keystoneNameHeight));
-            var keystoneCooldown = Text(canvas, "KeystoneCooldown", numbers, keystoneCooldownSize, TextAnchor.MiddleRight,
+            var keystoneCooldown = Text(layout, "KeystoneCooldown", numbers, keystoneCooldownSize, TextAnchor.MiddleRight,
                 Amber, new Rect(width - ruleInset - keystoneCooldownWidth, keystoneCooldownY, keystoneCooldownWidth,
                     keystoneCooldownHeight));
 
             shipBracket.transform.SetAsLastSibling();
-            var previousArrow = Arrow(canvas, "ShipPrevious", new Rect(130f, 2f, ArrowWidth, ArrowHeight), -1, false);
-            var nextArrow = Arrow(canvas, "ShipNext", new Rect(width - 178f, 2f, ArrowWidth, ArrowHeight), 1, false);
+            var previousArrow = Arrow(layout, "ShipPrevious", new Rect(130f, 2f, ArrowWidth, ArrowHeight), -1, false);
+            var nextArrow = Arrow(layout, "ShipNext", new Rect(width - 178f, 2f, ArrowWidth, ArrowHeight), 1, false);
 
             view.FindProperty("title").objectReferenceValue = title;
             view.FindProperty("lockTag").objectReferenceValue = lockTag;
@@ -189,18 +220,18 @@ namespace UI.Hangar.Displays
             view.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        private static void LayoutDetail(RectTransform canvas, float width, out Text title, out Text body)
+        private static void LayoutDetail(RectTransform layout, out Text title, out Text body)
         {
-            title = Text(canvas, "Title", Font(TitleFontPath), 30, TextAnchor.MiddleLeft, Amber, new Rect(24f, 10f, width - 48f, 40f));
-            body = Text(canvas, "Body", Font(LabelFontPath), 26, TextAnchor.UpperLeft, Label, new Rect(24f, 54f, width - 48f, 80f));
+            var width = (float)DetailDesignWidth;
+            title = Text(layout, "Title", Font(TitleFontPath), 30, TextAnchor.MiddleLeft, Amber, new Rect(24f, 10f, width - 48f, 40f));
+            body = Text(layout, "Body", Font(LabelFontPath), 26, TextAnchor.UpperLeft, Label, new Rect(24f, 54f, width - 48f, 80f));
             body.lineSpacing = 1.05f;
         }
 
-        private static void LayoutWeapon(RectTransform canvas, Vector2Int resolution, SerializedObject view,
-            HangarSlot slot, string header)
+        private static void LayoutWeapon(RectTransform layout, SerializedObject view, HangarSlot slot, string header)
         {
-            var width = (float)resolution.x;
-            var height = (float)resolution.y;
+            var width = (float)WeaponDesignWidth;
+            var height = (float)WeaponDesignHeight;
             var labels = Font(LabelFontPath);
             var titles = Font(TitleFontPath);
             var numbers = Font(NumberFontPath);
@@ -255,7 +286,7 @@ namespace UI.Hangar.Displays
             const int damageLabelSize = 22;
             const float bracketInset = 8f;
 
-            var selectObject = Box(canvas, "Select", new Rect(0f, 0f, width, height)).gameObject;
+            var selectObject = Box(layout, "Select", new Rect(0f, 0f, width, height)).gameObject;
             var selectFace = selectObject.AddComponent<Image>();
             selectFace.color = Clear;
             selectFace.raycastTarget = true;
@@ -263,7 +294,7 @@ namespace UI.Hangar.Displays
             select.targetGraphic = selectFace;
             select.transition = Selectable.Transition.None;
 
-            var content = Box(canvas, "Content", new Rect(0f, 0f, width, height));
+            var content = Box(layout, "Content", new Rect(0f, 0f, width, height));
             var group = content.gameObject.AddComponent<CanvasGroup>();
 
             var headerText = Text(content, "Header", labels, headerSize, TextAnchor.UpperLeft, Label,
@@ -322,7 +353,7 @@ namespace UI.Hangar.Displays
                 new Rect(width - damageRight, height - damageFromBottom, damageWidth, damageHeight));
             var damageCaption = Text(content, "DamageCaption", labels, captionSize, TextAnchor.UpperRight, Label,
                 new Rect(width - captionRight, height - captionFromBottom, captionWidth, captionHeight));
-            var bracket = Bracket(canvas, "Bracket",
+            var bracket = Bracket(layout, "Bracket",
                 new Rect(bracketInset, bracketInset, width - bracketInset * 2f, height - bracketInset * 2f));
 
             view.FindProperty("slot").enumValueIndex = (int)slot;

@@ -20,7 +20,7 @@ namespace UI.Hangar.Hardware
         public const string VisualsPath = "Assets/Visuals/Hangar/Console";
         public const string PrefabPath = "Assets/Prefabs/UI/HangarConsole.prefab";
         private const string ProjectorPath = "Assets/Prefabs/UI/HangarProjector.prefab";
-        private const int WeaponDisplayHeight = 300;
+        private const float PixelsPerUnit = 200f;
 
         [MenuItem("Tools/Hangar/Rebuild console hardware")]
         public static void Rebuild()
@@ -29,20 +29,15 @@ namespace UI.Hangar.Hardware
             var manifestPath = Path.GetFullPath(Path.Combine(Application.dataPath,
                 "../../../art/environments/hangar-console/console-export.json"));
             var manifest = JsonUtility.FromJson<ExportManifest>(File.ReadAllText(manifestPath));
-            if (manifest.lamps == null || manifest.lamps.Length == 0)
-                throw new InvalidOperationException("The hangar console export names no lamps: " + manifestPath);
-            if (manifest.downlights == null || manifest.downlights.Length == 0)
-                throw new InvalidOperationException("The hangar console export names no downlights: " + manifestPath);
             var authored = manifest.camera;
-            foreach (var filename in new[] { "ConsolePaint", "ConsoleEmission", "MainScreenReference", "DetailScreenReference", "WindowEtching" })
+            foreach (var filename in new[] { "ConsolePaint", "ConsoleEmission" })
             {
                 var path = $"{VisualsPath}/{filename}.png";
                 AssetDatabase.ImportAsset(path);
                 var importer = (TextureImporter)AssetImporter.GetAtPath(path);
                 importer.textureType = TextureImporterType.Default;
-                importer.sRGBTexture = filename != "WindowEtching";
-                importer.alphaSource = filename.EndsWith("ScreenReference", StringComparison.Ordinal)
-                    ? TextureImporterAlphaSource.FromInput : TextureImporterAlphaSource.None;
+                importer.sRGBTexture = true;
+                importer.alphaSource = TextureImporterAlphaSource.None;
                 importer.mipmapEnabled = true;
                 importer.npotScale = TextureImporterNPOTScale.None;
                 importer.anisoLevel = 4;
@@ -70,14 +65,6 @@ namespace UI.Hangar.Hardware
                 PrefabUtility.UnpackPrefabInstance(model, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
                 model.transform.SetParent(root.transform, false);
                 model.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
-                var glassPath = VisualsPath + "/ViewportGlass.fbx";
-                AssetDatabase.ImportAsset(glassPath);
-                var glass = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(glassPath));
-                glass.transform.SetParent(root.transform, false);
-                glass.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
-                var windowMaterial = ShaderMaterial("WindowEtching", "Hangar/WindowEtching");
-                windowMaterial.SetTexture("_BaseMap", AssetDatabase.LoadAssetAtPath<Texture2D>(VisualsPath + "/WindowEtching.png"));
-                glass.GetComponentInChildren<MeshRenderer>().sharedMaterial = windowMaterial;
                 var paint = Material("ConsolePaint", "ConsolePaint", "ConsoleEmission");
                 paint.SetColor("_Starlight", new Color(.18f, .20f, .24f).gamma);
                 var main = Glass("MainScreenGlass");
@@ -163,25 +150,23 @@ namespace UI.Hangar.Hardware
 
                 var feature = CanopyFeature();
                 var mainView = HangarDisplayBuilder.BuildMain(root.transform, new Vector3(0f, -300f, 0f),
-                    ReferenceResolution("MainScreenReference"), feature);
+                    Resolution(manifest, "MainScreenGlass"), Content(manifest, "MainScreenGlass"), feature);
                 var detailView = HangarDisplayBuilder.BuildDetail(root.transform, new Vector3(200f, -300f, 0f),
-                    ReferenceResolution("DetailScreenReference"), feature);
+                    Resolution(manifest, "DetailScreenGlass"), Content(manifest, "DetailScreenGlass"), feature);
                 var primaryView = HangarDisplayBuilder.BuildWeapon(root.transform, "PrimaryDisplay",
-                    new Vector3(400f, -300f, 0f), WeaponResolution(manifest, "PrimaryScreenGlass"), feature,
-                    HangarSlot.Weapon, "PRIMARY");
+                    new Vector3(400f, -300f, 0f), Resolution(manifest, "PrimaryScreenGlass"),
+                    Content(manifest, "PrimaryScreenGlass"), feature, HangarSlot.Weapon, "PRIMARY");
                 var ordnanceView = HangarDisplayBuilder.BuildWeapon(root.transform, "OrdnanceDisplay",
-                    new Vector3(600f, -300f, 0f), WeaponResolution(manifest, "OrdnanceScreenGlass"), feature,
-                    HangarSlot.Ordnance, "ORDNANCE");
+                    new Vector3(600f, -300f, 0f), Resolution(manifest, "OrdnanceScreenGlass"),
+                    Content(manifest, "OrdnanceScreenGlass"), feature, HangarSlot.Ordnance, "ORDNANCE");
                 Spill(mainView.GetComponent<HangarDisplay>(), Light(root.transform, "MainScreenSpill",
-                    parts["MainScreenGlass"].transform.position + new Vector3(-.032f, .46f, -1.367f), 8f));
+                    SpillPosition(parts["MainScreenGlass"], camera, 1.4f), 8f));
                 Spill(detailView.GetComponent<HangarDisplay>(), Light(root.transform, "DetailScreenSpill",
-                    parts["DetailScreenGlass"].transform.position + new Vector3(.0015f, .252f, -.502f), 5f));
-                var primaryCentre = parts["PrimaryScreenGlass"].bounds.center;
+                    SpillPosition(parts["DetailScreenGlass"], camera, .5f), 5f));
                 Spill(primaryView.GetComponent<HangarDisplay>(), Light(root.transform, "PrimaryScreenSpill",
-                    primaryCentre + (camera.transform.position - primaryCentre).normalized * .5f, 4f));
-                var ordnanceCentre = parts["OrdnanceScreenGlass"].bounds.center;
+                    SpillPosition(parts["PrimaryScreenGlass"], camera, .5f), 4f));
                 Spill(ordnanceView.GetComponent<HangarDisplay>(), Light(root.transform, "OrdnanceScreenSpill",
-                    ordnanceCentre + (camera.transform.position - ordnanceCentre).normalized * .5f, 4f));
+                    SpillPosition(parts["OrdnanceScreenGlass"], camera, .5f), 4f));
                 var knobAxis = AuthoredUp(parts["SelectorKnob"]);
                 var knob = Control(parts["SelectorKnob"], knobAxis, .2f, camera);
                 var turn = parts["SelectorKnob"].gameObject.AddComponent<HangarKnob>();
@@ -203,11 +188,17 @@ namespace UI.Hangar.Hardware
                 coneMaterial.SetFloat("_Cone", 1f);
                 EditorUtility.SetDirty(coneMaterial);
                 var quad = Resources.GetBuiltinResource<Mesh>("Quad.fbx");
-                var lampGlows = GlowCards(glows.transform, manifest.lamps, "glow", quad, glowMaterial, camera,
+                var lamps = manifest.lamps;
+                if (lamps == null)
+                    lamps = Array.Empty<ExportLamp>();
+                var downlights = manifest.downlights;
+                if (downlights == null)
+                    downlights = Array.Empty<ExportLamp>();
+                var lampGlows = GlowCards(glows.transform, lamps, "glow", quad, glowMaterial, camera,
                     camera.transform.rotation);
-                var downlightGlows = GlowCards(glows.transform, manifest.downlights, "glow", quad, glowMaterial, camera,
+                var downlightGlows = GlowCards(glows.transform, downlights, "glow", quad, glowMaterial, camera,
                     camera.transform.rotation);
-                var downlightCones = GlowCards(glows.transform, manifest.downlights, "cone", ConeCard(), coneMaterial,
+                var downlightCones = GlowCards(glows.transform, downlights, "cone", ConeCard(), coneMaterial,
                     camera, Quaternion.LookRotation(
                         Vector3.ProjectOnPlane(camera.transform.forward, Vector3.up), Vector3.up));
 
@@ -272,24 +263,37 @@ namespace UI.Hangar.Hardware
             AssetDatabase.SaveAssets();
         }
 
-        private static Vector2Int WeaponResolution(ExportManifest manifest, string glassName)
+        private static Vector2Int Resolution(ExportManifest manifest, string glassName)
+        {
+            var glass = ExportedGlass(manifest, glassName);
+            return new Vector2Int(Mathf.RoundToInt(glass.width * PixelsPerUnit),
+                Mathf.RoundToInt(glass.height * PixelsPerUnit));
+        }
+
+        private static Rect Content(ExportManifest manifest, string glassName)
+        {
+            var content = ExportedGlass(manifest, glassName).content;
+            if (content == null || content.right <= content.left || content.top <= content.bottom)
+                throw new InvalidOperationException(
+                    $"The hangar console export names no content rectangle for '{glassName}'.");
+            return new Rect(content.left, content.bottom, content.right - content.left, content.top - content.bottom);
+        }
+
+        private static ExportScreenGlass ExportedGlass(ExportManifest manifest, string glassName)
         {
             if (manifest.screenGlasses != null)
                 for (var i = 0; i < manifest.screenGlasses.Length; i++)
                 {
                     var entry = manifest.screenGlasses[i];
-                    if (entry.name != glassName) continue;
-                    return new Vector2Int(Mathf.RoundToInt(WeaponDisplayHeight * entry.width / entry.height),
-                        WeaponDisplayHeight);
+                    if (entry.name == glassName) return entry;
                 }
             throw new InvalidOperationException($"The hangar console export names no screen glass '{glassName}'.");
         }
 
-        // Twice the reference picture's pixels: the grid the screen design was drawn on.
-        private static Vector2Int ReferenceResolution(string name)
+        private static Vector3 SpillPosition(MeshRenderer glass, Camera camera, float distance)
         {
-            var reference = AssetDatabase.LoadAssetAtPath<Texture2D>($"{VisualsPath}/{name}.png");
-            return new Vector2Int(reference.width * 2, reference.height * 2);
+            var centre = glass.bounds.center;
+            return centre + (camera.transform.position - centre).normalized * distance;
         }
 
         private static Material Glass(string name)
@@ -493,6 +497,13 @@ namespace UI.Hangar.Hardware
             public string name;
             public float width;
             public float height;
+            public ExportContent content;
+        }
+
+        [Serializable]
+        private sealed class ExportContent
+        {
+            public float left, right, bottom, top;
         }
 
         [Serializable]
