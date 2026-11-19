@@ -3,14 +3,14 @@
     {
       "name": "Deck | joined closed structure",
       "role": "ConsoleBody",
-      "triangles": 24380,
-      "vertices": 13036,
+      "triangles": 20252,
+      "vertices": 10788,
       "closed": true,
       "manifold": true,
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 4100.703702645785,
+      "volume": 4099.199574225751,
       "planar_screen": false,
       "zero_area_faces": 0
     },
@@ -589,7 +589,7 @@
       "zero_area_faces": 0
     }
   ],
-  "triangles": 26024,
+  "triangles": 21896,
   "lamps": [
     {
       "name": "Deck | Left status 1 green lens",
@@ -1641,7 +1641,7 @@
   "departures": [
     "Pod faces stay at -0.10; unchanged glass outlines sit at -0.20 in 45-degree charcoal recesses, without raised lips.",
     "Mirrored upper inner housing chamfers follow the screen slope; the rear shell follows the same outline without the old notch.",
-    "Hidden band undersides, pod cavity walls, joined heels and ramp returns close the open massing.",
+    "Hidden band undersides, pod cavity walls, flush pod bases and deep control surrounds close the open massing.",
     "Weapon keys retain their exact visible tops; their surrounding wells provide real depth.",
     "Thin inlaid key chevrons and launch lettering added as required moving legends.",
     "Camera uses old console AUTO sensor, 36 x 24 mm and 33 mm lens: vertical FOV 34.113931 degrees.",

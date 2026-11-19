@@ -327,20 +327,10 @@ def grown_panel(name, x, size):
     rotation = Matrix.Rotation(turn, 3, base[1])
     basis = (base[0], base[1], rotation @ base[2], rotation @ base[3])
     width, height = size
-    outline = chamfer(width, height, min(.22, width * .12, height * .15))
-    upper = [point(basis, u, v) for u, v in outline]
-    footprint = []
-    for u, v in outline:
-        p = point(basis, u * (width + .54) / width, v * (height + .54) / height)
-        py = max(p.y, D['band_origin'](p.x)[0].y - .99)
-        footprint.append(Vector((p.x, py, D['band_surface_z'](p.x, py) - .025)))
-    lower = [p - Vector((0, 0, .22)) for p in footprint]
-    support = world_loft(name + ' shoulder', [lower, footprint, upper], face, [1, 1, 2, 2, 1, 2, 2, 1])
-    housing, mouth, floor = panel(name, basis, width, height, .16, .18, -.125)
-    combine(support, housing)
-    subtract(support, under_band, True)
-    subtract(support, front_band, True)
-    BODY.append(support)
+    housing, mouth, floor = panel(name, basis, width, height, .16, 1, -.125)
+    subtract(housing, under_band, True)
+    subtract(housing, front_band, True)
+    BODY.append(housing)
     WELL_CUTS.append((basis, mouth, floor, name))
     return basis
 
@@ -386,14 +376,11 @@ for hand, label, landing in zip((-1, 1), ('Left', 'Right'), D['STRUT_LANDING_POI
                            [1, 2, 1, 2, 1, 2, 1, 2]))
 
 for hand, label in ((-1, 'Left'), (1, 'Right')):
-    pb = D['pod_bases'][label][0]
-    join_v = D['POD_PROFILE_BOTTOM'] + (.50 if hand > 0 else 0)
-    upper = [point(pb, hand * u, join_v, -.10) for u in (-2.705, 2.705)]
-    edge = [Vector((hand * x, y, z)) for x, y, z in [(4.35, -.05, 1.24), (8.6, -2.55, .74)]]
-    middle = [p * .55 + q * .45 + Vector((0, 0, .06)) for p, q in zip(upper, edge)]
-    loops = [[a, b, b - Vector((0, 0, .22)), a - Vector((0, 0, .22))]
-             for a, b in (upper, middle, edge)]
-    BODY.append(world_loft('Deck | ' + label.lower() + ' pod heel', loops, face))
+    pb, _, rearward = D['pod_bases'][label]
+    upper = [point(pb, hand * u, D['POD_PROFILE_BOTTOM'] + .08, -.14) for u in (-2.45, 2.45)]
+    cap = upper + [p + rearward * .25 for p in reversed(upper)]
+    bottom = [p - Vector((0, 0, 1)) for p in cap]
+    BODY.append(world_loft('Deck | ' + label.lower() + ' pod base', [bottom, cap], face))
 
 
 def screen_outline(width, height, hand=None):
@@ -750,7 +737,7 @@ repair(body, True)
 DEPARTURES.extend([
     'Pod faces stay at -0.10; unchanged glass outlines sit at -0.20 in 45-degree charcoal recesses, without raised lips.',
     'Mirrored upper inner housing chamfers follow the screen slope; the rear shell follows the same outline without the old notch.',
-    'Hidden band undersides, pod cavity walls, joined heels and ramp returns close the open massing.',
+    'Hidden band undersides, pod cavity walls, flush pod bases and deep control surrounds close the open massing.',
     'Weapon keys retain their exact visible tops; their surrounding wells provide real depth.',
     'Pedestal dark riser strips omitted as surface detail reserved for slice 2.',
     'Thin inlaid key chevrons and launch lettering added as required moving legends.',
@@ -927,19 +914,6 @@ for hand, label in ((-1, 'Left'), (1, 'Right')):
                .024, .45, edgepaint)
     lamp(label + ' Launch armed red', shifted(launch_basis, x=hand * 1.43, y=-.49),
          .15, .16, lamp_red, depth=.015)
-
-for hand, label in ((-1, 'Left'), (1, 'Right')):
-    basis = D['band_basis'](hand * 7.82, .016)
-    finish_solid(label + ' band utility plate reveal', basis, .98, 1.04, .008, -.022, well)
-    finish_solid(label + ' band utility plate', basis, .90, .96, .018, .006, plate)
-    vent_basis = shifted(basis, y=.06, d=.018)
-    finish_solid(label + ' vent recess', vent_basis, .59, .49, .003, -.010, well)
-    for index in range(4):
-        finish_solid(label + ' vent louvre ' + str(index), shifted(vent_basis, y=(index - 1.5) * .10),
-                     .53, .035, .024, .002, shoulder, .012)
-    for y in (-.38, .38):
-        fastener(label + ' utility plate screw', shifted(basis, x=hand * .34, y=y), .035, .025)
-    stencil(label + ' utility plate code', shifted(basis, y=-.32, d=.019), .65)
 
 for bank_index, basis in enumerate(switch_bases):
     for index in range(3):
@@ -1120,74 +1094,6 @@ for hand, label in ((-1, 'Left'), (1, 'Right')):
         stencil(label + ' lower frame code', shifted(pb, x=.78, y=-1.25, d=-.070), 1.0)
 
 
-def band_point(x, section):
-    origin, _ = D['band_origin'](x)
-    dy, dz = D['BAND_SECTION'][section]
-    return origin + Vector((0, dy, dz))
-
-
-for segment, (a, b) in enumerate(zip(D['BAND_PATH'], D['BAND_PATH'][1:])):
-    divisions = 2 if b[0] - a[0] > 3 else 1
-    for division in range(divisions):
-        x0 = a[0] + (b[0] - a[0]) * division / divisions
-        x1 = a[0] + (b[0] - a[0]) * (division + 1) / divisions
-        for lower, upper in ((1, 2), (2, 3)):
-            obj, basis = surface_plate('band ' + str((segment, division, lower)),
-                                       [band_point(x0, lower), band_point(x1, lower),
-                                        band_point(x1, upper), band_point(x0, upper)],
-                                       plate if (segment + division) % 2 else face, .023)
-            if lower == 2:
-                for wb, mouth, floor, name in WELL_CUTS:
-                    cutter = local_mesh('Construction | control frame clearance',
-                                       offset_outline(mouth, .23), .8, -.8, wb)
-                    subtract(obj, cutter)
-            if lower == 1:
-                width = min(.55, (x1 - x0) * .35)
-                rubbed_paint(obj, basis, (-width/2, width/2), (.026, .054))
-
-for hand, label in ((-1, 'Left'), (1, 'Right')):
-    pb = D['pod_bases'][label][0]
-    join_v = D['POD_PROFILE_BOTTOM'] + (.50 if hand > 0 else 0)
-    upper = [point(pb, hand * u, join_v, -.10) for u in (-2.705, 2.705)]
-    edge = [Vector((hand * x, y, z)) for x, y, z in [(4.35, -.05, 1.24), (8.6, -2.55, .74)]]
-    middle = [p * .55 + q * .45 + Vector((0, 0, .06)) for p, q in zip(upper, edge)]
-    for row, (back, front) in enumerate(((upper, middle), (middle, edge))):
-        for low, high in ((.02, .49), (.51, .98)):
-            corners = [front[0].lerp(front[1], low), front[0].lerp(front[1], high),
-                       back[0].lerp(back[1], high), back[0].lerp(back[1], low)]
-            if hand < 0:
-                corners.reverse()
-            _, basis = surface_plate(label + ' wing plate', corners,
-                                     plate if row == 0 else inset, .025)
-            if row == 0 and low > .1:
-                stencil(label + ' wing code', shifted(basis, d=.031), 1.1)
-                for x in (-.62, .62):
-                    fastener(label + ' wing captive screw', shifted(basis, x=x, d=.03), .035)
-
-    bb = D['band_basis'](hand * 5.85, 0)
-    vent_grille(label + ' under-switch intake', shifted(bb, y=-.76, d=.052), 1.90, .30, 2)
-    for y in (-.96, .81):
-        stencil(label + ' intake identifier', shifted(bb, x=hand * 1.04, y=y, d=.02), .65)
-    for a, b in ((3.95, 5.25), (5.25, 7.1), (7.1, 8.25)):
-        aa = band_point(hand * a, 3) - bb[2] * .32
-        zz = band_point(hand * b, 3) - bb[2] * .32
-        trunk_segment(label + ' rear band cable trunk', aa, zz, bb[3], .13, .065)
-
-    x = D['STRUT_LANDING_POINTS'][0 if hand < 0 else 1][0]
-    base = []
-    for u, v in chamfer(1.90, 3.49, .32):
-        px, py = x + hand * .30 + u, 1.395 + v
-        base.append(Vector((px, py, D['band_surface_z'](px, min(py, 2.35)))))
-    cap = [Vector((x + u, 2.43 + v, 1.32)) for u, v in chamfer(.88, 1.12, .17)]
-    for i in (0, 1, 7):
-        j = (i + 1) % 8
-        corners = [base[i], base[j], cap[j], cap[i]]
-        _, basis = surface_plate(label + ' strut shoulder armour', corners, plate, .025)
-        if i == 0:
-            finish_solid(label + ' shoulder keeper', shifted(basis, d=.031), .34, .17,
-                         .025, -.008, inset)
-            fastener(label + ' shoulder pin', shifted(basis, d=.057), .047)
-
 for hand in (-1, 1):
     w0, h0, z0 = D['PEDESTAL_LOOPS'][1]
     w1, h1, z1 = D['PEDESTAL_LOOPS'][2]
@@ -1278,7 +1184,7 @@ for obj in finish_solids:
     obj.select_set(True)
 bpy.context.view_layer.objects.active = body
 bpy.ops.object.join()
-body['finish_slice'] = 'Near-black cold structure; small blue-white lights; orange launch'
+body['finish_slice'] = 'Finish 5 clean faceted console; cold near-black palette; blue-white lights; orange launch'
 DEPARTURES.remove('Pedestal dark riser strips omitted as surface detail reserved for slice 2.')
 DEPARTURES.append('Finish detail uses closed shallow solids joined into ConsoleBody; original controls and glasses are unchanged.')
 DEPARTURES.append('Cool stencils and local scuffs use flat material geometry, without textures or linked colour nodes.')

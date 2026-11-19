@@ -5263,11 +5263,11 @@
     "reference_image": "coverage-reference/deck-camera.png",
     "new_image": "deck-camera.png",
     "reference_sha256": "cf8a2b20ece7810dd028bfff390af6f71fdf6126a64711a3939c6c47ae022776",
-    "new_sha256": "20ed48a4f60566d0442219e7a7b140b970e93101477d9bb48683cb497f3addc1",
+    "new_sha256": "0ab721e8843af34a26230bd0ba14093502c127a8e8f790e0c99e5fa7f3ac3c82",
     "comparison": "Exact saved RGB bytes, without tolerance or denoising exclusions.",
     "allowed_change_rule": "Previously pure backdrop above header/below console becomes hardware; baseline mask alpha = 0, new alpha > 0.",
     "image_pixels": 2073600,
-    "changed_pixels": 967521,
+    "changed_pixels": 967209,
     "changed_bounds_xy_inclusive": [
       0,
       0,
@@ -5288,10 +5288,10 @@
       1919,
       1079
     ],
-    "changed_window_pixels": 58153,
-    "changed_non_backdrop_pixels": 877673,
+    "changed_window_pixels": 58037,
+    "changed_non_backdrop_pixels": 877477,
     "changed_antialias_boundary_pixels": 0,
-    "disallowed_changed_pixels": 935821,
+    "disallowed_changed_pixels": 935509,
     "disallowed_changed_bounds_xy_inclusive": [
       0,
       13,
@@ -5300,18 +5300,18 @@
     ],
     "maximum_channel_difference": 254,
     "disallowed_maximum_channel_difference_counts": {
-      "one": 105483,
-      "two_to_five": 26183,
-      "over_five": 804155,
+      "one": 104922,
+      "two_to_five": 25729,
+      "over_five": 804858,
       "over_five_in_first_20_rows": 12383
     },
-    "mean_maximum_channel_difference_over_changed_pixels": 33.01834998930256,
+    "mean_maximum_channel_difference_over_changed_pixels": 32.33320099378728,
     "scope_pass": false,
     "changed_components": {
-      "component_count": 50576,
+      "component_count": 50522,
       "largest_regions": [
         {
-          "pixel_count": 878748,
+          "pixel_count": 878403,
           "bounds_xy_inclusive": [
             0,
             0,
@@ -5320,7 +5320,7 @@
           ]
         },
         {
-          "pixel_count": 836,
+          "pixel_count": 833,
           "bounds_xy_inclusive": [
             464,
             289,
@@ -5482,22 +5482,22 @@
           ]
         },
         {
-          "pixel_count": 187,
+          "pixel_count": 137,
           "bounds_xy_inclusive": [
-            894,
-            954,
-            925,
-            971
+            0,
+            207,
+            27,
+            222
           ]
         }
       ],
-      "remaining_component_pixels": 80207
+      "remaining_component_pixels": 80293
     },
     "disallowed_components": {
-      "component_count": 50579,
+      "component_count": 50522,
       "largest_regions": [
         {
-          "pixel_count": 847045,
+          "pixel_count": 846703,
           "bounds_xy_inclusive": [
             0,
             13,
@@ -5506,7 +5506,7 @@
           ]
         },
         {
-          "pixel_count": 836,
+          "pixel_count": 833,
           "bounds_xy_inclusive": [
             464,
             289,
@@ -5668,16 +5668,16 @@
           ]
         },
         {
-          "pixel_count": 187,
+          "pixel_count": 137,
           "bounds_xy_inclusive": [
-            894,
-            954,
-            925,
-            971
+            0,
+            207,
+            27,
+            222
           ]
         }
       ],
-      "remaining_component_pixels": 80210
+      "remaining_component_pixels": 80293
     },
     "comparison_scope": "Historical gap-closure reference; finish 4 intentionally changes hardware colours."
   },
@@ -5693,9 +5693,9 @@
   },
   "mesh_totals": {
     "hardware_objects": 42,
-    "hardware_vertices": 13960,
-    "hardware_triangles": 26024,
-    "scene_triangles": 26373
+    "hardware_vertices": 11712,
+    "hardware_triangles": 21896,
+    "scene_triangles": 22245
   },
   "all_bands_pass": true,
   "all_window_openings_pass": true,

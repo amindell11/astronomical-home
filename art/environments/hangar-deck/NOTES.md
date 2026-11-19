@@ -1,8 +1,66 @@
 # Hangar deck
 
+## Finish 5, clean console geometry
+
+The current model removes the console's cracked, overlapping linework while retaining the finish 4 palette. The owner's report was "Also the console geometry looks a bit broken now". The supplied game crops identified the right pod base, wings and front band, switch-row ledges, and the hook below the left pod.
+
+The cause was layered geometry. Inset plates copied corners from twisted surfaces, so their edges crossed the underlying faces. The pod heels fanned forward across the band. The right heel also used an obsolete half-unit height offset. The raised control surrounds combined shallow housings with skewed shoulder skirts. Small vents, cable saddles, plate margins and loose wear strokes added more nearly parallel lines.
+
+The fix uses rung 1 of the fix ladder. The conflicting layers are removed, and the four replacement supports are planar solids. It does not hide the errors with ink settings or a colour change.
+
+- The band and wings retain their broad original facets. Their overlay plates, utility covers, rear cable runs, vents and loose marks are removed.
+- The ledges lose the under-switch vent and plate stack. Each raised control surround is now one deep solid, with the existing opening, control position and top outline preserved. Both sides use the same construction.
+- Both pod bases are compact vertical supports below the housing edge. They replace the forward heel fans and bury their joins inside the band and shell. The left hook and doubled edge are gone.
+- The strut shoulders retain their original faceted solids. Their overlapping armour plates, keepers and pins are removed. The struts above them are unchanged.
+
+### Review evidence
+
+`previews/deck-finish5-crops.png` compares the lower-left and lower-right quarters of the 1920 by 1080 game-camera render before and after. Each quarter is enlarged exactly 2x, with labelled rows. The companion `deck-finish5-geometry-crops.png` uses one neutral material so dark paint cannot conceal a broken edge. `deck-finish5-compare.png` shows both full frames. The current half-size and 21:9 views are `deck-finish5-half.png` and `deck-finish5-21x9.png`.
+
+The geometry was reviewed in the neutral ink view and revised until the heel needles and short strokes below the raised surrounds disappeared. The finished console has no detached detail strokes, near-parallel plate outlines or skewed vent stacks in the reviewed areas. Remaining lines follow the facets, openings and clear steps of the form.
+
+### Preservation
+
+The construction audit records 389 unchanged inputs, 92 removed detail pieces and four replaced supports. There are no other changed inputs. This includes the protected pod shells and frames above their bases, header, upper struts, pedestal, LAUNCH housing and guards. All 65 scene objects other than the joined body match the captured scene exactly, including controls, lamps, screen glasses, window glass, camera and preview objects. Material values, ink settings and the glass shader also match exactly.
+
+`previews/finish5-construction-audit.json` records the input comparison. `previews/finish5-audit.json` checks the saved scene against `finish5-baseline.json`. The two closed inward-facing pod cavity surfaces are unchanged. New connected surfaces have positive volume; the complete hardware solids are closed and consistently wound.
+
+### Geometry checks
+
+The hardware contains 21,896 triangles in 42 meshes. All 38 hardware solids are closed, consistently wound and positive-volume; the four screen glasses remain intentionally planar. There are no loose vertices, degenerate faces or modifiers. The independent audit checked 44 potentially intersecting object pairs and found no positive-volume intersections. Control travel also remains clear.
+
+At the saved alpha threshold, all six silhouettes are identical to finish 4. Each view has zero added pixels, zero removed pixels and zero maximum edge displacement. The views are 16:10, 3:2, 4:3, 16:9, 21:9 and 32:9. `previews/finish5-silhouette.json` records the measurements.
+
+The six-aspect coverage check passes with zero alpha loss and zero magenta outside the frozen window openings. The existing dark edge-rounding pixels remain on those frozen edges. Screen-clearance and ink checks pass. Both the bounded ink view and its central 16:9 region retain the expected result.
+
+The rebaked 4096 by 2048 window-etch mask retains SHA-256 `a011b0a4b2e01b25423251c0dd2a42810a46c2309a5a4f7efdfa8a0ac0133a0d`. Its glass, UV and coverage checks pass. The bake and preview changes run in memory and never save material changes to the model.
+
+The six game-camera views, four construction views, masks, coverage views, parts sheets, ink views, glass previews and legacy review sheets are regenerated. The final file check verified 54 current PNGs. Frozen originals, massing images and reference directories retain their historical pixels. `previews/finish5-verification.json` records the final scene hash, source hash, checks and image hashes.
+
+The build and preview render both exited 0. Freestyle reported an empty stroke set in the side view, as in finish 4. That image and the other construction views were inspected; the geometry and ink audits pass.
+
+All writes stayed inside `art/environments/hangar-deck/`. No Unity assets, network calls or git write commands were used.
+
+Scratch cleanup remains blocked by execution policy. Automatic approval review rejected recursive directory cleanup and an explicit single-file deletion with "blocked by policy". The `.finish5`, `.blender`, `.temp` and `__pycache__` directories therefore remain inside this directory. They contain temporary scenes, probe scripts, logs, export files and caches. The finished model and evidence are `deck.blend` and `previews/`.
+
+### Rebuild and verify
+
+Use the directory-local Blender resource and temporary folders in the earlier recipe. Run headless Blender with `--python-exit-code 1`:
+
+1. `build_deck.py` rebuilds the scene and ten camera/construction views.
+2. `verify_finish5.py` checks preservation and solid geometry. Do not recapture its baseline.
+3. `verify_finish4.py` checks the retained palette and lamps.
+4. `verify_recess.py -- --finish4` checks the original screen and control contracts.
+5. `verify_deck.py`, `verify_coverage.py` and `verify_ink.py` regenerate mesh, silhouette, coverage and ink evidence.
+6. `render_finish5.py` makes the neutral geometry review without saving material changes.
+7. Use the glass export recipe below, then run `verify_glass.py` and `render_glass.py`.
+8. With ordinary Python, run `assemble_previews.py`, `assemble_coverage.py --require-closed --finish4`, `assemble_finish4.py` and `assemble_finish5.py`.
+
+The finish4 coverage mode still applies to the unchanged paint palette. The finish5 assembler independently compares all six silhouettes with the immediately preceding geometry and requires an edge displacement of at most four pixels.
+
 ## Finish 4, cool near-black hardware
 
-This is the current finish. The earlier sections below record prior work; their warm palette and 17-lamp schedule are historical.
+This section records the finish 4 palette, which finish 5 retains. Its geometry counts and verification results describe the model before the finish 5 cleanup. Earlier warm colours and the 17-lamp schedule are historical.
 
 The owner's colour reference is `previews/finish4-reference.png`. The structure now uses near-black blue-grey paint, with broad plates held close in value. Keys and switches use muted cool grey. Wear and service marks stay cold and subdued. LAUNCH and its two red armed lamps retain their original materials and geometry.
 

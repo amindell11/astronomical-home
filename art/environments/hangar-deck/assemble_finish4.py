@@ -1,4 +1,4 @@
-"""Assemble finish 4 review images from the regenerated camera renders.
+"""Refresh the existing finish review images from the current camera renders.
 
 Python assemble_finish4.py writes the comparison, wide view, crops and half view.
 Legacy finish1/finish2 review filenames also show the current finish with explicit labels.
@@ -28,15 +28,15 @@ def comparison(filename, panels):
 
 comparison('deck-finish4-compare.png', [
     ('Previous | finish 2 hardware', 'deck-finish4-original.png'),
-    ('Finish 4 | cool near-black hardware', 'deck-camera.png'),
+    ('Current | finish 5 geometry, finish 4 palette', 'deck-camera.png'),
     ('Owner reference | colour and light hierarchy', 'finish4-reference.png')])
 comparison('deck-finish1-compare.png', [
     ('Original | approved clean hardware', 'deck-finish1-original.png'),
-    ('Current | finish 4 palette', 'deck-camera.png')])
+    ('Current | finish 5 geometry, finish 4 palette', 'deck-camera.png')])
 comparison('deck-finish2-compare.png', [
     ('Clean model', 'deck-finish1-original.png'),
     ('Finish round 1', 'deck-finish2-original.png'),
-    ('Current | finish 4 palette', 'deck-camera.png')])
+    ('Current | finish 5 geometry, finish 4 palette', 'deck-camera.png')])
 
 crops = [
     ('Left pod | 2x', (0, 495, 700, 1015), (16, 0)),

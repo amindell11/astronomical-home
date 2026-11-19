@@ -1,0 +1,2294 @@
+{
+  "checks": {
+    "all_other_objects_exact": true,
+    "object_names_exact": true,
+    "palette_exact": true,
+    "ink_exact": true,
+    "glass_shader_exact": true,
+    "closed_solids": true,
+    "clean_meshes": true,
+    "no_modifiers": true,
+    "new_body_components_positive": true,
+    "inward_cavity_surfaces_unchanged": true
+  },
+  "preserved_objects": {
+    "Preview | header warm pool 1": true,
+    "Preview | header warm pool 2": true,
+    "Preview | header warm pool 3": true,
+    "Preview | header warm pool 4": true,
+    "Preview | header warm pool 5": true,
+    "Preview | header warm pool 6": true,
+    "25 | Viewport glass": true,
+    "19 | Vanguard preview swept wing envelope": true,
+    "19 | Vanguard preview wing perimeter": true,
+    "19 | Vanguard preview raised fuselage": true,
+    "19 | Vanguard preview fuselage ridge": true,
+    "19 | Vanguard preview fuselage ridge.001": true,
+    "19 | Vanguard preview tail fin": true,
+    "19 | Vanguard preview fin edges": true,
+    "19 | Vanguard preview tail fin.001": true,
+    "19 | Vanguard preview fin edges.001": true,
+    "11 | Neutral projector frustum": true,
+    "19 | Distant space": true,
+    "07 Camera - perspective": true,
+    "D10 | three quarter": true,
+    "D10 | TOP orthographic": true,
+    "D10 | SIDE orthographic": true,
+    "D10 | FRONT orthographic from viewer": true,
+    "Key | centred in front of all screens": true,
+    "07 | Main rectangular display": true,
+    "07 | Detail rectangular display": true,
+    "30 | Primary blank glass": true,
+    "30 | Ordnance blank glass": true,
+    "08 | Previous chunky keycap": true,
+    "08 | Previous inlaid chevron": true,
+    "08 | Next chunky keycap": true,
+    "08 | Next inlaid chevron": true,
+    "08 | Selector faceted grip": true,
+    "08 | Launch broad beveled button": true,
+    "19 | Launch legend": true,
+    "30 | Primary Previous key": true,
+    "30 | Primary Previous ivory inlay": true,
+    "30 | Primary Next key": true,
+    "30 | Primary Next ivory inlay": true,
+    "30 | Ordnance Previous key": true,
+    "30 | Ordnance Previous ivory inlay": true,
+    "30 | Ordnance Next key": true,
+    "30 | Ordnance Next ivory inlay": true,
+    "09 | Projector lens": true,
+    "Deck | left pod cyan strip": true,
+    "Deck | left strut cyan strip": true,
+    "Deck | right pod cyan strip": true,
+    "Deck | right strut cyan strip": true,
+    "Deck | header cyan strip -8.6": true,
+    "Deck | header cyan strip 0": true,
+    "Deck | header cyan strip 8.6": true,
+    "Deck | Left status 1 green lens": true,
+    "Deck | Left status 2 green lens": true,
+    "Deck | Left status 3 amber lens": true,
+    "Deck | Right status 1 green lens": true,
+    "Deck | Right status 2 green lens": true,
+    "Deck | Right status 3 amber lens": true,
+    "Deck | Left Launch armed red lens": true,
+    "Deck | Right Launch armed red lens": true,
+    "Deck | Header downlight 01 warm white lens": true,
+    "Deck | Header downlight 02 warm white lens": true,
+    "Deck | Header downlight 03 warm white lens": true,
+    "Deck | Header downlight 04 warm white lens": true,
+    "Deck | Header downlight 05 warm white lens": true,
+    "Deck | Header downlight 06 warm white lens": true
+  },
+  "meshes": [
+    {
+      "name": "Deck | joined closed structure",
+      "triangles": 20252,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 4099.199574225751,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "07 | Main rectangular display",
+      "triangles": 6,
+      "planar_screen": true,
+      "closed": false,
+      "volume": -0.8290000092933572,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "07 | Detail rectangular display",
+      "triangles": 6,
+      "planar_screen": true,
+      "closed": false,
+      "volume": -0.19520000403722126,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "30 | Primary blank glass",
+      "triangles": 6,
+      "planar_screen": true,
+      "closed": false,
+      "volume": -0.4323333450853826,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "30 | Ordnance blank glass",
+      "triangles": 6,
+      "planar_screen": true,
+      "closed": false,
+      "volume": -0.4480000124772392,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "08 | Previous chunky keycap",
+      "triangles": 56,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 0.021927951189869257,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "08 | Previous inlaid chevron",
+      "triangles": 20,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 4.879999816194167e-05,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "08 | Next chunky keycap",
+      "triangles": 56,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 0.021927951189869257,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "08 | Next inlaid chevron",
+      "triangles": 20,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 4.879999816194168e-05,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "08 | Selector faceted grip",
+      "triangles": 44,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 0.0832320034747843,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "08 | Launch broad beveled button",
+      "triangles": 300,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 0.13187254790354225,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "19 | Launch legend",
+      "triangles": 236,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 0.00013704800418954093,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "30 | Primary Previous key",
+      "triangles": 56,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 0.016431200721389937,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "30 | Primary Previous ivory inlay",
+      "triangles": 20,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 4.880000952407745e-05,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "30 | Primary Next key",
+      "triangles": 56,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 0.016431200721389937,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "30 | Primary Next ivory inlay",
+      "triangles": 20,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 4.880000952407743e-05,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "30 | Ordnance Previous key",
+      "triangles": 56,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 0.016431200721389937,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "30 | Ordnance Previous ivory inlay",
+      "triangles": 20,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 4.880000952407745e-05,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "30 | Ordnance Next key",
+      "triangles": 56,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 0.016431200721389937,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "30 | Ordnance Next ivory inlay",
+      "triangles": 20,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 4.880000952407743e-05,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "09 | Projector lens",
+      "triangles": 44,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 0.013867500521358168,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "Deck | left pod cyan strip",
+      "triangles": 28,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 0.00215280020678938,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "Deck | left strut cyan strip",
+      "triangles": 28,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 0.00017280000837296275,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "Deck | right pod cyan strip",
+      "triangles": 28,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 0.00215280020678938,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "Deck | right strut cyan strip",
+      "triangles": 28,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 0.00017280000837296275,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "Deck | header cyan strip -8.6",
+      "triangles": 12,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 0.00045499999202787845,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "Deck | header cyan strip 0",
+      "triangles": 12,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 0.00045499999202787845,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "Deck | header cyan strip 8.6",
+      "triangles": 12,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 0.00045499999202787845,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "Deck | Left status 1 green lens",
+      "triangles": 28,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 7.045833441139088e-05,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "Deck | Left status 2 green lens",
+      "triangles": 28,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 7.045833441139088e-05,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "Deck | Left status 3 amber lens",
+      "triangles": 28,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 7.045833441139088e-05,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "Deck | Right status 1 green lens",
+      "triangles": 28,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 7.045833441139088e-05,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "Deck | Right status 2 green lens",
+      "triangles": 28,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 7.045833441139088e-05,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "Deck | Right status 3 amber lens",
+      "triangles": 28,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 7.045833441139088e-05,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "Deck | Left Launch armed red lens",
+      "triangles": 28,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 0.0006465000375807293,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "Deck | Right Launch armed red lens",
+      "triangles": 28,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 0.0006465000375807293,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "Deck | Header downlight 01 warm white lens",
+      "triangles": 28,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 0.0019425000518187858,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "Deck | Header downlight 02 warm white lens",
+      "triangles": 28,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 0.0019425000518187858,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "Deck | Header downlight 03 warm white lens",
+      "triangles": 28,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 0.0019425000518187858,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "Deck | Header downlight 04 warm white lens",
+      "triangles": 28,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 0.0019425000518187858,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "Deck | Header downlight 05 warm white lens",
+      "triangles": 28,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 0.0019425000518187858,
+      "clean": true,
+      "modifiers": []
+    },
+    {
+      "name": "Deck | Header downlight 06 warm white lens",
+      "triangles": 28,
+      "planar_screen": false,
+      "closed": true,
+      "volume": 0.0019425000518187858,
+      "clean": true,
+      "modifiers": []
+    }
+  ],
+  "hardware_triangles": 21896,
+  "body_components_before": 455,
+  "body_components_after": 361,
+  "unchanged_body_components": 360,
+  "removed_components": [
+    {
+      "hash": "02a995525167f2f62e82304e874e5f73b4dd654931c542f98b82aa4013da4443",
+      "faces": 20,
+      "volume": 9.205921863516185e-05,
+      "bounds": [
+        [
+          3.946211338043213,
+          4.041415214538574
+        ],
+        [
+          0.7094422578811646,
+          0.7922611236572266
+        ],
+        [
+          1.1859198808670044,
+          1.2179917097091675
+        ]
+      ]
+    },
+    {
+      "hash": "0309b36fc98ec2ac503c79142d9abac5808104145498f2512828e532760f9c8b",
+      "faces": 28,
+      "volume": 0.030502996717890106,
+      "bounds": [
+        [
+          -8.482421875,
+          -7.155257701873779
+        ],
+        [
+          -2.5253400802612305,
+          -1.2865970134735107
+        ],
+        [
+          0.4063445031642914,
+          1.0152561664581299
+        ]
+      ]
+    },
+    {
+      "hash": "0314e50f399c2ca4f40b98a881cc68f902965c782f18104ad371b50e8a0f622f",
+      "faces": 92,
+      "volume": 0.013826188502813848,
+      "bounds": [
+        [
+          -1.597000002861023,
+          -0.023000001907348633
+        ],
+        [
+          -4.4258623123168945,
+          -4.231517314910889
+        ],
+        [
+          0.8425171375274658,
+          1.044034481048584
+        ]
+      ]
+    },
+    {
+      "hash": "032ba992ab366b68f0e35ca73dc02e22363d167ab4fe98a2ff2070bd88df2249",
+      "faces": 12,
+      "volume": 0.016276334722836794,
+      "bounds": [
+        [
+          -8.435419082641602,
+          -6.473605632781982
+        ],
+        [
+          -2.168415069580078,
+          -0.46763506531715393
+        ],
+        [
+          0.9740326404571533,
+          1.2159265279769897
+        ]
+      ]
+    },
+    {
+      "hash": "05956ab7cf641bcfa206f379d2a39ecb24d912acdbd1d46def26148bdb0a9bcb",
+      "faces": 92,
+      "volume": 0.017672834452241645,
+      "bounds": [
+        [
+          5.296560764312744,
+          7.282723426818848
+        ],
+        [
+          -2.8527183532714844,
+          -2.414381980895996
+        ],
+        [
+          0.19560210406780243,
+          0.6606839895248413
+        ]
+      ]
+    },
+    {
+      "hash": "05bf66d3875ad66ee93b8a8fd176023d9ef837f15706499edaf6e50519f1f560",
+      "faces": 12,
+      "volume": 0.06730370254566269,
+      "bounds": [
+        [
+          3.5308194160461426,
+          4.736003875732422
+        ],
+        [
+          -0.3292633593082428,
+          1.8464158773422241
+        ],
+        [
+          0.8779429793357849,
+          1.3482632637023926
+        ]
+      ]
+    },
+    {
+      "hash": "060de33daa4b9f6ae81161f6b0f5f197fe67cdf7305538c71bb3151cf2c2687e",
+      "faces": 28,
+      "volume": 0.0004044864326715466,
+      "bounds": [
+        [
+          7.536076545715332,
+          8.002232551574707
+        ],
+        [
+          -2.1353583335876465,
+          -1.8442648649215698
+        ],
+        [
+          0.6538447141647339,
+          0.7542384266853333
+        ]
+      ]
+    },
+    {
+      "hash": "13eaa643c2878213ec48146df0331968b4d5418edba3b92659f7d326b91324ce",
+      "faces": 14,
+      "volume": 0.006218906414384639,
+      "bounds": [
+        [
+          -5.25750732421875,
+          -4.438857555389404
+        ],
+        [
+          -2.7445662021636963,
+          -2.3548038005828857
+        ],
+        [
+          0.6681546568870544,
+          0.9659964442253113
+        ]
+      ]
+    },
+    {
+      "hash": "1521a32bac580085c480d15737009ab18aaac88714e9df3f77344956cb059bc6",
+      "faces": 28,
+      "volume": 0.013063814568643776,
+      "bounds": [
+        [
+          3.9618330001831055,
+          5.278228759765625
+        ],
+        [
+          -1.6601300239562988,
+          -1.3579219579696655
+        ],
+        [
+          1.250377893447876,
+          1.5425044298171997
+        ]
+      ]
+    },
+    {
+      "hash": "17bf55eb8c7b3b59b5be0a3e0f11cae9bd6748b9fc5d315512e2906fa09fe964",
+      "faces": 12,
+      "volume": 0.06731438512603441,
+      "bounds": [
+        [
+          -4.736073970794678,
+          -3.530902147293091
+        ],
+        [
+          -0.3301829993724823,
+          1.846756100654602
+        ],
+        [
+          0.8786437511444092,
+          1.3474452495574951
+        ]
+      ]
+    },
+    {
+      "hash": "1a0569b35c1124e4baa88f7f82e568a0d13c45dbeb1b6ca830bda44c1034566c",
+      "faces": 25,
+      "volume": 0.029902265027279395,
+      "bounds": [
+        [
+          -1.597000002861023,
+          -0.023000001907348633
+        ],
+        [
+          -4.213039875030518,
+          -2.717806339263916
+        ],
+        [
+          1.0450412034988403,
+          1.8263682126998901
+        ]
+      ]
+    },
+    {
+      "hash": "1e511cd8a5ae5d6c0853dbaded150faad3103ddc9f75f08d48135054905321e2",
+      "faces": 28,
+      "volume": 0.00040528830140829135,
+      "bounds": [
+        [
+          7.63560152053833,
+          8.101757049560547
+        ],
+        [
+          -1.9868828058242798,
+          -1.6957893371582031
+        ],
+        [
+          0.743565559387207,
+          0.8439592719078064
+        ]
+      ]
+    },
+    {
+      "hash": "1ea737888a653d8104739f663f467a979adf9a379553996fa81b201ac008bbb1",
+      "faces": 14,
+      "volume": 0.006218541258325164,
+      "bounds": [
+        [
+          4.4388580322265625,
+          5.25750732421875
+        ],
+        [
+          -2.7445662021636963,
+          -2.3548035621643066
+        ],
+        [
+          0.6681547164916992,
+          0.965996503829956
+        ]
+      ]
+    },
+    {
+      "hash": "2408bfbd8477e1a655e5b42521d9b3571fce200697ce61ac0c7739597b1c6d46",
+      "faces": 28,
+      "volume": 0.00040535535663366215,
+      "bounds": [
+        [
+          7.585838794708252,
+          8.051994323730469
+        ],
+        [
+          -2.0611205101013184,
+          -1.7700271606445312
+        ],
+        [
+          0.6987050771713257,
+          0.799098789691925
+        ]
+      ]
+    },
+    {
+      "hash": "29243eae3a2dc245d934b67d2dd20c99e656ff61ab83412f8581991d7d78f845",
+      "faces": 20,
+      "volume": 5.116189519564311e-05,
+      "bounds": [
+        [
+          -7.949410438537598,
+          -7.88715934753418
+        ],
+        [
+          -2.402967691421509,
+          -2.3333616256713867
+        ],
+        [
+          0.4953845739364624,
+          0.5411884784698486
+        ]
+      ]
+    },
+    {
+      "hash": "295eb10b7f2b824259e147089de7e022234cd2f436f177c39ab67c9136e17808",
+      "faces": 92,
+      "volume": 0.013593299421093736,
+      "bounds": [
+        [
+          -8.829901695251465,
+          -7.312822341918945
+        ],
+        [
+          -3.4903533458709717,
+          -2.426208734512329
+        ],
+        [
+          -0.03218768537044525,
+          0.3879603445529938
+        ]
+      ]
+    },
+    {
+      "hash": "297283895ac29bd462fcfb937ae72763904266e5046251781f4882002ac50f72",
+      "faces": 15,
+      "volume": 0.06898785630861927,
+      "bounds": [
+        [
+          1.6388063430786133,
+          3.035881757736206
+        ],
+        [
+          -4.191015720367432,
+          -1.902194619178772
+        ],
+        [
+          0.951687753200531,
+          1.820871114730835
+        ]
+      ]
+    },
+    {
+      "hash": "2a42b74bf10252bb4a9ff53e984ce3237d3121d7d2965823d6d0eb41ab467d07",
+      "faces": 25,
+      "volume": 0.02990337341907437,
+      "bounds": [
+        [
+          0.023000001907348633,
+          1.597000002861023
+        ],
+        [
+          -4.213039875030518,
+          -2.717806339263916
+        ],
+        [
+          1.0450412034988403,
+          1.8263682126998901
+        ]
+      ]
+    },
+    {
+      "hash": "3307ece9678dae860262f6e850bfe86b11b28e9d2aecc34a99f68eab09cc516e",
+      "faces": 28,
+      "volume": 0.0018661082334195582,
+      "bounds": [
+        [
+          -5.0987935066223145,
+          -4.975677967071533
+        ],
+        [
+          -1.5732060670852661,
+          -1.3483622074127197
+        ],
+        [
+          1.2546874284744263,
+          1.4395641088485718
+        ]
+      ]
+    },
+    {
+      "hash": "33874325747a5a223078c2443b931d8421ffbf4ee86dd22d35fcad3f548c9220",
+      "faces": 12,
+      "volume": 0.09015275786320368,
+      "bounds": [
+        [
+          -8.82796573638916,
+          -7.318940162658691
+        ],
+        [
+          -3.276479959487915,
+          -0.9142749309539795
+        ],
+        [
+          0.17009295523166656,
+          1.171138048171997
+        ]
+      ]
+    },
+    {
+      "hash": "36ff368a9eaa438dcfb4e961bee44c6d95748d5a69ada8d500eb3e1988958b3f",
+      "faces": 28,
+      "volume": 0.0018264716491103168,
+      "bounds": [
+        [
+          -4.16220235824585,
+          -3.8188443183898926
+        ],
+        [
+          0.6670594215393066,
+          0.8401588201522827
+        ],
+        [
+          1.1282691955566406,
+          1.2192203998565674
+        ]
+      ]
+    },
+    {
+      "hash": "388e0e394c7ff14bb953b1eea9164353df74720382d201382f7461f3370de2e3",
+      "faces": 28,
+      "volume": 0.0018667114588121585,
+      "bounds": [
+        [
+          7.240545749664307,
+          7.402379512786865
+        ],
+        [
+          -1.408177375793457,
+          -1.1829445362091064
+        ],
+        [
+          0.9575142860412598,
+          1.1242018938064575
+        ]
+      ]
+    },
+    {
+      "hash": "39cc4cc7ebda306016e4513486da66918eecd7949ad0921329cd12061a0d7752",
+      "faces": 28,
+      "volume": 0.001866571954451501,
+      "bounds": [
+        [
+          -5.6657938957214355,
+          -5.542678356170654
+        ],
+        [
+          -1.5032060146331787,
+          -1.2783622741699219
+        ],
+        [
+          1.1790874004364014,
+          1.3639640808105469
+        ]
+      ]
+    },
+    {
+      "hash": "3cf87a5552f6a864f5b70104636baa2781358e97c8386e6f07c056cce7277d33",
+      "faces": 140,
+      "volume": 7.591792382299844e-05,
+      "bounds": [
+        [
+          -7.085278511047363,
+          -6.7606682777404785
+        ],
+        [
+          -2.5736494064331055,
+          -2.452282428741455
+        ],
+        [
+          0.3699836730957031,
+          0.4566628336906433
+        ]
+      ]
+    },
+    {
+      "hash": "3d3443a65ae1e46ab145bad59a3ae5f8bea8a8a65b655591779c921f643d15c6",
+      "faces": 12,
+      "volume": 0.005341218551620851,
+      "bounds": [
+        [
+          -5.257506847381592,
+          -4.302507400512695
+        ],
+        [
+          -1.5396811962127686,
+          -1.1506685018539429
+        ],
+        [
+          1.3539334535598755,
+          1.576310396194458
+        ]
+      ]
+    },
+    {
+      "hash": "3e0a7948f12d34bd7eedf60373468d5416acc8b427df4d97ff4a2fc715309844",
+      "faces": 92,
+      "volume": 0.017672219856952626,
+      "bounds": [
+        [
+          -5.257722854614258,
+          -3.271559953689575
+        ],
+        [
+          -3.1027188301086426,
+          -2.664381504058838
+        ],
+        [
+          0.46560198068618774,
+          0.9306838512420654
+        ]
+      ]
+    },
+    {
+      "hash": "3e482d512339d98d71a22d9b61706b577ccacb23bfff358da7c39b8d9313c1d8",
+      "faces": 28,
+      "volume": 0.012610151126864361,
+      "bounds": [
+        [
+          -8.279879570007324,
+          -7.099466323852539
+        ],
+        [
+          -1.779941201210022,
+          -1.143342137336731
+        ],
+        [
+          0.8432614803314209,
+          1.1181249618530273
+        ]
+      ]
+    },
+    {
+      "hash": "3fefb21373b30bbf9ef2771119a2cf43d0698f01e3d5ef23c62e47b342ffdcde",
+      "faces": 28,
+      "volume": 0.0018664338082695993,
+      "bounds": [
+        [
+          -7.402379512786865,
+          -7.240545749664307
+        ],
+        [
+          -1.408177375793457,
+          -1.1829445362091064
+        ],
+        [
+          0.9575142860412598,
+          1.1242018938064575
+        ]
+      ]
+    },
+    {
+      "hash": "40076a7d1a889543f93e5a59068bba2de899414c3ac73650d86a0832853da984",
+      "faces": 20,
+      "volume": 5.121886109312371e-05,
+      "bounds": [
+        [
+          -8.327605247497559,
+          -8.26535415649414
+        ],
+        [
+          -1.8387609720230103,
+          -1.7691549062728882
+        ],
+        [
+          0.8363237380981445,
+          0.8821276426315308
+        ]
+      ]
+    },
+    {
+      "hash": "46ff2cec9a2cc6d6f2236088d273e8a24a76bd9afead11a616974829c67e99a4",
+      "faces": 92,
+      "volume": 0.017673461077113945,
+      "bounds": [
+        [
+          -7.282722473144531,
+          -5.296559810638428
+        ],
+        [
+          -2.8527181148529053,
+          -2.414381742477417
+        ],
+        [
+          0.1956021934747696,
+          0.6606839895248413
+        ]
+      ]
+    },
+    {
+      "hash": "4795fe25450907409a29f774ca0c5a8e0795d5e27a0f1aa12db83e9e0a4927a2",
+      "faces": 140,
+      "volume": 7.656185577313153e-05,
+      "bounds": [
+        [
+          6.675102710723877,
+          6.999713897705078
+        ],
+        [
+          -1.0033494234085083,
+          -0.8819820880889893
+        ],
+        [
+          1.1822246313095093,
+          1.2689038515090942
+        ]
+      ]
+    },
+    {
+      "hash": "48130478199c5e18bfaaafcce90a6b7be5e704c1c97065e2457db8aea647e3a1",
+      "faces": 28,
+      "volume": 0.002108555287122723,
+      "bounds": [
+        [
+          -6.7798075675964355,
+          -5.022776126861572
+        ],
+        [
+          -2.6613056659698486,
+          -2.3967106342315674
+        ],
+        [
+          0.526311457157135,
+          0.8008524775505066
+        ]
+      ]
+    },
+    {
+      "hash": "4d4683a77fe4e9961ca930635392ee9c5a27fb191b100e6a4774c30595e02ab3",
+      "faces": 28,
+      "volume": 0.0004047580684224767,
+      "bounds": [
+        [
+          -8.151519775390625,
+          -7.68536376953125
+        ],
+        [
+          -1.9126449823379517,
+          -1.621551513671875
+        ],
+        [
+          0.7884260416030884,
+          0.8888197541236877
+        ]
+      ]
+    },
+    {
+      "hash": "4e2226e3ec191bc6a9f60babbc72dabc509494358892f6ae4bec7c52d21c47f4",
+      "faces": 28,
+      "volume": 0.001866305984246234,
+      "bounds": [
+        [
+          4.975677967071533,
+          5.0987935066223145
+        ],
+        [
+          -1.5732060670852661,
+          -1.3483622074127197
+        ],
+        [
+          1.2546874284744263,
+          1.4395641088485718
+        ]
+      ]
+    },
+    {
+      "hash": "4e753b974eb7a7fb6e688b2d898d3c81f305c5cc33827d6cc926249b073f851a",
+      "faces": 28,
+      "volume": 0.003726821703215438,
+      "bounds": [
+        [
+          -8.204302787780762,
+          -7.487548351287842
+        ],
+        [
+          -2.185349464416504,
+          -1.556771993637085
+        ],
+        [
+          0.6079851388931274,
+          0.9054868221282959
+        ]
+      ]
+    },
+    {
+      "hash": "503efaa3576ec8d9cc5c5f95ace4514aed1e04a4bcf0a0c47170656bcddb5459",
+      "faces": 92,
+      "volume": 0.016265103011392074,
+      "bounds": [
+        [
+          -3.246610641479492,
+          -1.6362249851226807
+        ],
+        [
+          -4.4053473472595215,
+          -2.9293365478515625
+        ],
+        [
+          0.7359488606452942,
+          1.038036823272705
+        ]
+      ]
+    },
+    {
+      "hash": "56231d6e469b2b9c2604908959e447fbdb024e8d6771fc0e5607abfd4662b342",
+      "faces": 20,
+      "volume": 5.06173819303513e-05,
+      "bounds": [
+        [
+          8.26535415649414,
+          8.327605247497559
+        ],
+        [
+          -1.8387612104415894,
+          -1.7691551446914673
+        ],
+        [
+          0.8363236784934998,
+          0.882127583026886
+        ]
+      ]
+    },
+    {
+      "hash": "587d325a931ae1d0b41e6ccefdb1a3cc35ea86b272b9d4c8e267c655ba58e3c7",
+      "faces": 140,
+      "volume": 7.698739257951572e-05,
+      "bounds": [
+        [
+          -7.818532943725586,
+          -7.494143009185791
+        ],
+        [
+          -2.2701611518859863,
+          -2.0395729541778564
+        ],
+        [
+          0.5473834276199341,
+          0.6318724155426025
+        ]
+      ]
+    },
+    {
+      "hash": "5aa384a9a114f27748b14d2a9155570e7594fea734df0250b77c726362bd204a",
+      "faces": 28,
+      "volume": 0.018659012081722423,
+      "bounds": [
+        [
+          5.261833190917969,
+          7.128229141235352
+        ],
+        [
+          -1.499636173248291,
+          -1.1295270919799805
+        ],
+        [
+          1.003711223602295,
+          1.3691710233688354
+        ]
+      ]
+    },
+    {
+      "hash": "5bc0ab25fe0555588c53fadc910f322b94fd118e61dc74c02202a0b312fee578",
+      "faces": 20,
+      "volume": 5.020232250293089e-05,
+      "bounds": [
+        [
+          7.88715934753418,
+          7.949410438537598
+        ],
+        [
+          -2.402967929840088,
+          -2.3333616256713867
+        ],
+        [
+          0.4953845143318176,
+          0.5411884188652039
+        ]
+      ]
+    },
+    {
+      "hash": "61ff5361d18c0e0b9ed764588b754e73051e7adb30129855210aa2519042e9c0",
+      "faces": 92,
+      "volume": 0.01626397774089128,
+      "bounds": [
+        [
+          1.6362249851226807,
+          3.246610641479492
+        ],
+        [
+          -4.405348300933838,
+          -2.9293367862701416
+        ],
+        [
+          0.7359488010406494,
+          1.038036584854126
+        ]
+      ]
+    },
+    {
+      "hash": "6a0d3116a5088deec331ce58ccd8caf1c603851e9ff3f075e92ebc45ace3bb92",
+      "faces": 140,
+      "volume": 0.0002205291918168465,
+      "bounds": [
+        [
+          -7.718909740447998,
+          -7.192882537841797
+        ],
+        [
+          -1.5954936742782593,
+          -1.1335958242416382
+        ],
+        [
+          1.1031960248947144,
+          1.1447021961212158
+        ]
+      ]
+    },
+    {
+      "hash": "6cf903161039656d5ccd296cdd9ca45a0235536bc9752c42d8e15247028690bd",
+      "faces": 6642,
+      "volume": 4120.090971879938,
+      "bounds": [
+        [
+          -27.0,
+          27.0
+        ],
+        [
+          -5.5,
+          7.650000095367432
+        ],
+        [
+          -5.0,
+          15.0
+        ]
+      ]
+    },
+    {
+      "hash": "6da6fa0bcb1f388fe8ef10d87dfc26e6bbe6f683e09cb889a793eb5cd3453d46",
+      "faces": 28,
+      "volume": 0.0004049229125181827,
+      "bounds": [
+        [
+          7.68536376953125,
+          8.151519775390625
+        ],
+        [
+          -1.9126451015472412,
+          -1.6215516328811646
+        ],
+        [
+          0.7884259223937988,
+          0.8888196349143982
+        ]
+      ]
+    },
+    {
+      "hash": "6dba4c72f4a06e4c5ae91701cfbf1664c9188d5319d77731af818950e2fa28c2",
+      "faces": 28,
+      "volume": 0.0018660736580689721,
+      "bounds": [
+        [
+          -8.138379096984863,
+          -7.976545810699463
+        ],
+        [
+          -1.7454071044921875,
+          -1.520174264907837
+        ],
+        [
+          0.8502282500267029,
+          1.0169157981872559
+        ]
+      ]
+    },
+    {
+      "hash": "71a896ef9b752c215ba2db6ed27db7d0f7b0bc0794120cc93919a082d6192421",
+      "faces": 28,
+      "volume": 0.0004049306735396385,
+      "bounds": [
+        [
+          -8.002232551574707,
+          -7.536076545715332
+        ],
+        [
+          -2.1353583335876465,
+          -1.8442647457122803
+        ],
+        [
+          0.6538447141647339,
+          0.7542384266853333
+        ]
+      ]
+    },
+    {
+      "hash": "75d7a776617a42068afbdd42b2c891157a7ed474397646fde4a22eed2f66207a",
+      "faces": 12,
+      "volume": 0.021529886056669036,
+      "bounds": [
+        [
+          -5.064638614654541,
+          -4.131984710693359
+        ],
+        [
+          -0.30779555439949036,
+          1.996465802192688
+        ],
+        [
+          0.8415812849998474,
+          1.3451836109161377
+        ]
+      ]
+    },
+    {
+      "hash": "760cc14bd9f1a54082e22c73245d1b7aac8ee8f5813750c3ad8b7b8e92c28b88",
+      "faces": 92,
+      "volume": 0.01359279380024721,
+      "bounds": [
+        [
+          7.31282377243042,
+          8.829902648925781
+        ],
+        [
+          -3.4903528690338135,
+          -2.426208019256592
+        ],
+        [
+          -0.032187506556510925,
+          0.3879603147506714
+        ]
+      ]
+    },
+    {
+      "hash": "7770d2d37085fc10e79a5ab29479ae7c150e4ad4b8d335e2226d2a9409b40cac",
+      "faces": 12,
+      "volume": 0.016003164540355407,
+      "bounds": [
+        [
+          3.2086448669433594,
+          3.5415279865264893
+        ],
+        [
+          -0.29567378759384155,
+          1.9865514039993286
+        ],
+        [
+          1.022562026977539,
+          1.3455274105072021
+        ]
+      ]
+    },
+    {
+      "hash": "7a5bb3a633af46d78cf23afa9bcbbee1792e5df889272efcec560680ddbaf310",
+      "faces": 12,
+      "volume": 0.005341773115408915,
+      "bounds": [
+        [
+          4.302506923675537,
+          5.257506847381592
+        ],
+        [
+          -1.5396811962127686,
+          -1.1506683826446533
+        ],
+        [
+          1.353933334350586,
+          1.5763105154037476
+        ]
+      ]
+    },
+    {
+      "hash": "84c0a009424ba993d57b50e8e0c27174b00ebfdbca97c0958bec4e13bd270d3d",
+      "faces": 12,
+      "volume": 0.03310550190508367,
+      "bounds": [
+        [
+          6.61313009262085,
+          8.614657402038574
+        ],
+        [
+          -2.0656213760375977,
+          -0.22700347006320953
+        ],
+        [
+          1.1985949277877808,
+          1.597649097442627
+        ]
+      ]
+    },
+    {
+      "hash": "86d5b98580093868a1954317f4ce57523cbaa0b3019bdacd1f66b8fc4de118e3",
+      "faces": 140,
+      "volume": 7.691067488243168e-05,
+      "bounds": [
+        [
+          6.7606682777404785,
+          7.085278511047363
+        ],
+        [
+          -2.5736494064331055,
+          -2.452282428741455
+        ],
+        [
+          0.3699836730957031,
+          0.4566628336906433
+        ]
+      ]
+    },
+    {
+      "hash": "87a591fc09710e9471cf23b04e2321775787fe69d1511efb4fcd1937578216e1",
+      "faces": 28,
+      "volume": 0.01865894875178736,
+      "bounds": [
+        [
+          -7.128229141235352,
+          -5.261833190917969
+        ],
+        [
+          -1.499636173248291,
+          -1.1295270919799805
+        ],
+        [
+          1.003711223602295,
+          1.3691710233688354
+        ]
+      ]
+    },
+    {
+      "hash": "89a942227381ad1b3057bf720ac620cbe62569938169269aac09ff0913511ad4",
+      "faces": 12,
+      "volume": 0.029610198072380953,
+      "bounds": [
+        [
+          -6.365631103515625,
+          -4.3985772132873535
+        ],
+        [
+          -0.7129358649253845,
+          1.1807677745819092
+        ],
+        [
+          1.1612681150436401,
+          1.375835657119751
+        ]
+      ]
+    },
+    {
+      "hash": "8d18d60b7ebf373a7a0f743f6db917b35bbfbe904d652f20542a70b1b6bdd3bc",
+      "faces": 28,
+      "volume": 0.0018667040470366674,
+      "bounds": [
+        [
+          4.143678188323975,
+          4.266793727874756
+        ],
+        [
+          -1.6759220361709595,
+          -1.451078176498413
+        ],
+        [
+          1.365620732307434,
+          1.5504974126815796
+        ]
+      ]
+    },
+    {
+      "hash": "919ac82b6b8b4116637a25da62618a62bbe2bb1aa82dc2a533390eef82b357ab",
+      "faces": 12,
+      "volume": 0.024893280118703846,
+      "bounds": [
+        [
+          -8.4873685836792,
+          -6.50129508972168
+        ],
+        [
+          -2.46510910987854,
+          -0.8698481917381287
+        ],
+        [
+          0.7559292316436768,
+          1.1731914281845093
+        ]
+      ]
+    },
+    {
+      "hash": "926d202d8c32406541ac8d79713d5cf44b07a02aa836951935d3cb54d74de92e",
+      "faces": 28,
+      "volume": 0.0037268474698066733,
+      "bounds": [
+        [
+          7.487548351287842,
+          8.204302787780762
+        ],
+        [
+          -2.185349464416504,
+          -1.5567721128463745
+        ],
+        [
+          0.6079850792884827,
+          0.9054867029190063
+        ]
+      ]
+    },
+    {
+      "hash": "951e420b6b4ff5f76cd8b2b3f41957168c6e3952f56506943f5504333907c157",
+      "faces": 140,
+      "volume": 7.654532479743181e-05,
+      "bounds": [
+        [
+          -6.999713897705078,
+          -6.675102710723877
+        ],
+        [
+          -1.0033494234085083,
+          -0.8819820880889893
+        ],
+        [
+          1.1822246313095093,
+          1.2689038515090942
+        ]
+      ]
+    },
+    {
+      "hash": "9a8e105b12800fe0ebe9b690b8ee7d1bd27d96b610b839ef3ab88317248dd563",
+      "faces": 28,
+      "volume": 0.002108383147666854,
+      "bounds": [
+        [
+          5.022776126861572,
+          6.7798075675964355
+        ],
+        [
+          -2.6613056659698486,
+          -2.3967106342315674
+        ],
+        [
+          0.526311457157135,
+          0.8008524775505066
+        ]
+      ]
+    },
+    {
+      "hash": "9ab7f21008b0c4207456f520e8c2e3311cdfb244376df5be7cf6450ffb16f2fe",
+      "faces": 28,
+      "volume": 0.0018662203413744782,
+      "bounds": [
+        [
+          5.542678356170654,
+          5.6657938957214355
+        ],
+        [
+          -1.5032060146331787,
+          -1.2783622741699219
+        ],
+        [
+          1.1790874004364014,
+          1.3639640808105469
+        ]
+      ]
+    },
+    {
+      "hash": "9ec897665169ea8bd334c13c318d6445024985515e91a722cc282ea4f5b09780",
+      "faces": 15,
+      "volume": 0.068988294301865,
+      "bounds": [
+        [
+          -3.035881757736206,
+          -1.6388063430786133
+        ],
+        [
+          -4.191015720367432,
+          -1.9021947383880615
+        ],
+        [
+          0.951687753200531,
+          1.8208709955215454
+        ]
+      ]
+    },
+    {
+      "hash": "9ef40157609a197968a0c3ed99a343535d9dc2c41f3e1906cba8d40da7d96d05",
+      "faces": 20,
+      "volume": 5.115537593762072e-05,
+      "bounds": [
+        [
+          7.0720906257629395,
+          7.136853218078613
+        ],
+        [
+          -0.880338728427887,
+          -0.8098295331001282
+        ],
+        [
+          1.4621260166168213,
+          1.5028067827224731
+        ]
+      ]
+    },
+    {
+      "hash": "a04532e50a5720c2f0a9c87fd14cb15b78311f3462349c372daff53d31b8550a",
+      "faces": 28,
+      "volume": 0.002107558616747461,
+      "bounds": [
+        [
+          -6.774973392486572,
+          -5.017941951751709
+        ],
+        [
+          -2.5725882053375244,
+          -2.307993173599243
+        ],
+        [
+          0.5722008347511292,
+          0.8467418551445007
+        ]
+      ]
+    },
+    {
+      "hash": "a1f72e1e68fc0494292d7fcecff3f916bf87679254bbe3844c7aa3694239a515",
+      "faces": 28,
+      "volume": 0.001866479122933621,
+      "bounds": [
+        [
+          -4.266793727874756,
+          -4.143678188323975
+        ],
+        [
+          -1.6759220361709595,
+          -1.451078176498413
+        ],
+        [
+          1.365620732307434,
+          1.5504974126815796
+        ]
+      ]
+    },
+    {
+      "hash": "a64b95147d8cf75e0703924880258570b3bbba81fac64195911fbf4237b07e76",
+      "faces": 28,
+      "volume": 0.010338752840956042,
+      "bounds": [
+        [
+          -8.424596786499023,
+          -7.208183288574219
+        ],
+        [
+          -2.4802043437957764,
+          -1.348761796951294
+        ],
+        [
+          0.4541492760181427,
+          1.0010669231414795
+        ]
+      ]
+    },
+    {
+      "hash": "ac6e92d0700c28c8a538e232c75660abb0439128b582b87e056c3c0be75d41e6",
+      "faces": 92,
+      "volume": 0.013825717422813926,
+      "bounds": [
+        [
+          0.023000001907348633,
+          1.597000002861023
+        ],
+        [
+          -4.4258623123168945,
+          -4.231517314910889
+        ],
+        [
+          0.8425171375274658,
+          1.044034481048584
+        ]
+      ]
+    },
+    {
+      "hash": "b07cd778111124824cab96da2fc0bbc358e24bac0da67af0e297802332471d3f",
+      "faces": 28,
+      "volume": 0.0018670967159171905,
+      "bounds": [
+        [
+          7.976545810699463,
+          8.138379096984863
+        ],
+        [
+          -1.7454071044921875,
+          -1.520174264907837
+        ],
+        [
+          0.8502282500267029,
+          1.0169157981872559
+        ]
+      ]
+    },
+    {
+      "hash": "b1a4da409aa264e2404027505ced2149f384d9f2ed9cb39d708b273647e7cf1e",
+      "faces": 20,
+      "volume": 5.079883461197221e-05,
+      "bounds": [
+        [
+          -7.973340034484863,
+          -7.908055305480957
+        ],
+        [
+          -1.785596251487732,
+          -1.715330958366394
+        ],
+        [
+          1.089889407157898,
+          1.1111810207366943
+        ]
+      ]
+    },
+    {
+      "hash": "b2414b82ea3f9457d092544944c915658d0073297cc6b8c9a087566aeb3cae21",
+      "faces": 12,
+      "volume": 0.09015226860841113,
+      "bounds": [
+        [
+          7.318940162658691,
+          8.82796573638916
+        ],
+        [
+          -3.276479959487915,
+          -0.9142749905586243
+        ],
+        [
+          0.17009299993515015,
+          1.1711379289627075
+        ]
+      ]
+    },
+    {
+      "hash": "b3846e8c30d7d4a2aa6643d58f7183be7c751840f77e6ebec8aad239265818e3",
+      "faces": 28,
+      "volume": 0.0018663842153424988,
+      "bounds": [
+        [
+          -6.849793910980225,
+          -6.726678371429443
+        ],
+        [
+          -1.3570332527160645,
+          -1.1321895122528076
+        ],
+        [
+          1.0212206840515137,
+          1.2060973644256592
+        ]
+      ]
+    },
+    {
+      "hash": "b5e2c4cb77acf11b018f5e8cbb1e26f555c7966db7b80427bc73ee55050d38cb",
+      "faces": 12,
+      "volume": 0.03872947301715611,
+      "bounds": [
+        [
+          -6.404257774353027,
+          -4.426853656768799
+        ],
+        [
+          -1.2341302633285522,
+          0.5850871205329895
+        ],
+        [
+          0.9958715438842773,
+          1.3706579208374023
+        ]
+      ]
+    },
+    {
+      "hash": "b944b08fed89f75b196bff4feeb739b8f732c250e98ce9546864509e48210344",
+      "faces": 28,
+      "volume": 0.001866659304747978,
+      "bounds": [
+        [
+          6.726678371429443,
+          6.849793910980225
+        ],
+        [
+          -1.3570332527160645,
+          -1.1321895122528076
+        ],
+        [
+          1.0212206840515137,
+          1.2060973644256592
+        ]
+      ]
+    },
+    {
+      "hash": "bc32ace550500af5e67e8163032f513d700121c428c50099458ec023f82015da",
+      "faces": 20,
+      "volume": 5.210377275943763e-05,
+      "bounds": [
+        [
+          8.084421157836914,
+          8.14918327331543
+        ],
+        [
+          -1.590390920639038,
+          -1.5198817253112793
+        ],
+        [
+          1.3693273067474365,
+          1.4100080728530884
+        ]
+      ]
+    },
+    {
+      "hash": "bcab4697740bd10b4cca805f2ee21b9ec0167fcaf12dd14e8c4e0aaee662971f",
+      "faces": 28,
+      "volume": 0.012610820073556782,
+      "bounds": [
+        [
+          7.099466323852539,
+          8.279879570007324
+        ],
+        [
+          -1.779941201210022,
+          -1.143342137336731
+        ],
+        [
+          0.8432614803314209,
+          1.1181249618530273
+        ]
+      ]
+    },
+    {
+      "hash": "bdabccd7c3942a515f1f3df4a038d8fbd7639788339de1a93debfc1070b49ef6",
+      "faces": 28,
+      "volume": 0.0021078619174659204,
+      "bounds": [
+        [
+          5.017941951751709,
+          6.774973392486572
+        ],
+        [
+          -2.5725882053375244,
+          -2.307993173599243
+        ],
+        [
+          0.5722008347511292,
+          0.8467418551445007
+        ]
+      ]
+    },
+    {
+      "hash": "bfe1d9b20e34845913c48eea29553b4d329f437deb7d727c8ef4c1511fd65979",
+      "faces": 140,
+      "volume": 0.0002203409870465596,
+      "bounds": [
+        [
+          7.345073699951172,
+          7.879736423492432
+        ],
+        [
+          -1.4111088514328003,
+          -0.9814978837966919
+        ],
+        [
+          1.3747977018356323,
+          1.4776517152786255
+        ]
+      ]
+    },
+    {
+      "hash": "c4e922ee91be78fd663070209f2b7271324931d83982af3ef948311101dddab9",
+      "faces": 12,
+      "volume": 0.058051737025380155,
+      "bounds": [
+        [
+          4.458195686340332,
+          6.481249809265137
+        ],
+        [
+          -1.246607780456543,
+          0.7185177803039551
+        ],
+        [
+          1.0020924806594849,
+          1.5786495208740234
+        ]
+      ]
+    },
+    {
+      "hash": "cae77713c70031be9236c8d3fd11e606651bee2cb8675800f29fb32793c571da",
+      "faces": 26,
+      "volume": 0.03201466690128036,
+      "bounds": [
+        [
+          -7.282507419586182,
+          -5.296623706817627
+        ],
+        [
+          -2.6400156021118164,
+          -0.9006683230400085
+        ],
+        [
+          0.3981545567512512,
+          1.442935585975647
+        ]
+      ]
+    },
+    {
+      "hash": "cc0f9d5c20159e978c767e37e2a8230292266083b519c4cfbe111aee21fb1590",
+      "faces": 20,
+      "volume": 5.089941745003057e-05,
+      "bounds": [
+        [
+          -7.003904342651367,
+          -6.938619613647461
+        ],
+        [
+          -1.015434980392456,
+          -0.9451698064804077
+        ],
+        [
+          1.1580506563186646,
+          1.179342269897461
+        ]
+      ]
+    },
+    {
+      "hash": "cfdd340d88461baaba8c26de6e600414e7751094a9f1fc5cecee53d7928e2f25",
+      "faces": 28,
+      "volume": 0.009055207328250022,
+      "bounds": [
+        [
+          -6.836837291717529,
+          -4.954543590545654
+        ],
+        [
+          -2.722979784011841,
+          -2.2298481464385986
+        ],
+        [
+          0.47568321228027344,
+          0.8648562431335449
+        ]
+      ]
+    },
+    {
+      "hash": "d196295e37036f14830c41cbacf9904d3c9bf037a7526abeb61165a34a78001a",
+      "faces": 140,
+      "volume": 7.600764123102035e-05,
+      "bounds": [
+        [
+          7.494143009185791,
+          7.818532943725586
+        ],
+        [
+          -2.2701611518859863,
+          -2.0395729541778564
+        ],
+        [
+          0.5473833084106445,
+          0.631872296333313
+        ]
+      ]
+    },
+    {
+      "hash": "d2e1e2f2498cad689b45af7f8f410cc37babaab9ec3d076663de720e622687b3",
+      "faces": 28,
+      "volume": 0.03050233672062556,
+      "bounds": [
+        [
+          7.155257701873779,
+          8.482421875
+        ],
+        [
+          -2.5253403186798096,
+          -1.2865972518920898
+        ],
+        [
+          0.4063444435596466,
+          1.0152561664581299
+        ]
+      ]
+    },
+    {
+      "hash": "d45b5a6e2112b5541991cdfad8b411e97f60f1971c9b83d82a4266ee5f898c9e",
+      "faces": 28,
+      "volume": 0.0018266749878724413,
+      "bounds": [
+        [
+          3.819011926651001,
+          4.162069797515869
+        ],
+        [
+          0.6682388186454773,
+          0.8411329984664917
+        ],
+        [
+          1.1306641101837158,
+          1.2171461582183838
+        ]
+      ]
+    },
+    {
+      "hash": "d57c23dc4e99fdb5c7d460487018f4dd8dde0ee69806cbf27fbaa5a70a98e693",
+      "faces": 12,
+      "volume": 0.016003242693841454,
+      "bounds": [
+        [
+          -3.541541576385498,
+          -3.2086009979248047
+        ],
+        [
+          -0.2957187294960022,
+          1.9865665435791016
+        ],
+        [
+          1.0226099491119385,
+          1.345471739768982
+        ]
+      ]
+    },
+    {
+      "hash": "d770fdf65010d987fde292767e82270f218ce07b8df28f62088652f8d1f5ff3a",
+      "faces": 28,
+      "volume": 0.00040524980674187355,
+      "bounds": [
+        [
+          -8.051994323730469,
+          -7.585838794708252
+        ],
+        [
+          -2.0611205101013184,
+          -1.7700270414352417
+        ],
+        [
+          0.6987051963806152,
+          0.7990989089012146
+        ]
+      ]
+    },
+    {
+      "hash": "d84b6d54ab4cdd15032d5a5741beb9ca0598e0e38281bbe4c45796d0bd179610",
+      "faces": 12,
+      "volume": 0.04687126725912095,
+      "bounds": [
+        [
+          6.537692070007324,
+          8.558295249938965
+        ],
+        [
+          -2.479748010635376,
+          -0.7335676550865173
+        ],
+        [
+          0.7616628408432007,
+          1.3813328742980957
+        ]
+      ]
+    },
+    {
+      "hash": "dc77b94f2c9ad53efdafbabb704d16bad04763569a2ffed2fd0394b088ccd74b",
+      "faces": 20,
+      "volume": 9.197151909271887e-05,
+      "bounds": [
+        [
+          -4.041379928588867,
+          -3.946183681488037
+        ],
+        [
+          0.7075368165969849,
+          0.7904593348503113
+        ],
+        [
+          1.1845743656158447,
+          1.2187855243682861
+        ]
+      ]
+    },
+    {
+      "hash": "e1186cb6c6407dbf2b73c2f1d3f62bc5ca8552de70a00218a9ebbaeabaeea433",
+      "faces": 28,
+      "volume": 0.000405716088910897,
+      "bounds": [
+        [
+          -8.101757049560547,
+          -7.63560152053833
+        ],
+        [
+          -1.9868826866149902,
+          -1.6957892179489136
+        ],
+        [
+          0.743565559387207,
+          0.8439592719078064
+        ]
+      ]
+    },
+    {
+      "hash": "e561a85c1c7f575a9ef4cd107bfc4e2d84a0df5445b461f56af74e98934b9cbc",
+      "faces": 28,
+      "volume": 0.013063319260254499,
+      "bounds": [
+        [
+          -5.278228759765625,
+          -3.9618330001831055
+        ],
+        [
+          -1.6601300239562988,
+          -1.3579219579696655
+        ],
+        [
+          1.250377893447876,
+          1.5425044298171997
+        ]
+      ]
+    },
+    {
+      "hash": "e5c595128260b98c75ddf3463736fa9c2f32b693153d16ad62c695da9a3a216c",
+      "faces": 28,
+      "volume": 0.010339160449802886,
+      "bounds": [
+        [
+          7.208183288574219,
+          8.424596786499023
+        ],
+        [
+          -2.4802045822143555,
+          -1.3487619161605835
+        ],
+        [
+          0.4541492164134979,
+          1.0010669231414795
+        ]
+      ]
+    },
+    {
+      "hash": "e72b0f199df5e9032d3791a266a580648c7aa069ff71a229a482007df83792dd",
+      "faces": 26,
+      "volume": 0.03201406206547577,
+      "bounds": [
+        [
+          5.296623706817627,
+          7.282507419586182
+        ],
+        [
+          -2.640015125274658,
+          -0.9006683826446533
+        ],
+        [
+          0.3981545865535736,
+          1.4429353475570679
+        ]
+      ]
+    },
+    {
+      "hash": "e9e7b9b2436100355f9bb2ba735802ecaf0489cc16c877fcdbf0cff39e3ac1da",
+      "faces": 28,
+      "volume": 0.009055277022222695,
+      "bounds": [
+        [
+          4.954543590545654,
+          6.836837291717529
+        ],
+        [
+          -2.722979784011841,
+          -2.2298481464385986
+        ],
+        [
+          0.47568321228027344,
+          0.8648562431335449
+        ]
+      ]
+    },
+    {
+      "hash": "f3179e7188e169a0cb98c9ba5aff5784dac7b8d61faa85d75c0dcbdb91ae2346",
+      "faces": 12,
+      "volume": 0.021533144443916765,
+      "bounds": [
+        [
+          4.132076263427734,
+          5.064404010772705
+        ],
+        [
+          -0.3075791299343109,
+          1.996425747871399
+        ],
+        [
+          0.8413505554199219,
+          1.3454829454421997
+        ]
+      ]
+    },
+    {
+      "hash": "f3ec9bf6947965f17b19c943c56fbb4c12aa86f36d400754c14eb0deba797796",
+      "faces": 92,
+      "volume": 0.0176735082641244,
+      "bounds": [
+        [
+          3.2715601921081543,
+          5.257722854614258
+        ],
+        [
+          -3.1027181148529053,
+          -2.664381980895996
+        ],
+        [
+          0.46560198068618774,
+          0.930683970451355
+        ]
+      ]
+    },
+    {
+      "hash": "f8ee579666e46b39c6fd10d0de84cabaa6314e514c879c280fdb59bfda391558",
+      "faces": 12,
+      "volume": 0.04386739370723564,
+      "bounds": [
+        [
+          4.539099216461182,
+          6.542200088500977
+        ],
+        [
+          -0.601437509059906,
+          1.4157592058181763
+        ],
+        [
+          1.384796380996704,
+          1.74919593334198
+        ]
+      ]
+    }
+  ],
+  "added_components": [
+    {
+      "hash": "d0d19c7a956c59d02c77f8dbffe386ea01a7695a2511bb7869fcc91feb3f9490",
+      "faces": 6538,
+      "volume": 4119.9463281991975,
+      "bounds": [
+        [
+          -27.0,
+          27.0
+        ],
+        [
+          -5.5,
+          7.650000095367432
+        ],
+        [
+          -5.0,
+          15.0
+        ]
+      ]
+    }
+  ],
+  "scene_sha256": "48817121232dd0e74233e6bf5f324423b67c0d4ca936996806d8d1e17f3bbb89"
+}
