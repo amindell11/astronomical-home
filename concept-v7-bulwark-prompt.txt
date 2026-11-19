@@ -1,0 +1,18 @@
+Use your image generation tool. Save every generated image as a PNG file into the folder ./out (relative to the current directory), named minion_01.png, minion_02.png, and so on. Do not edit or create any other files.
+
+Task: improve the MINION version of an enemy spaceship for a top-down arcade space shooter, by EDITING the existing minion. This is a redesign pass on a finished ship, not a new ship and not a logo.
+
+The attached images:
+- Image 1 and Image 2 are the CURRENT MINION, "Bulwark minion", top view and three-quarter view. Every design starts from exactly this ship: a broad cream armoured shell with a flat ram nose and a teardrop canopy, a dark chassis under it, and two engine pods at the back that end in plum fins.
+- Image 3 and Image 4 are its RIVAL, the bigger ship it flies beside, top view and three-quarter view. The minion was made by taking the rival's side armour and side canisters off. The rival is shown only so you can see the problem; do not start from it and do not add its side armour back.
+
+The problem: when both are small on screen (the rival about 48 pixels across, the minion about 36), the current minion and the rival look like the same ship, because both are the same cream shell on the same two pods. The minion needs its own outline and proportions, while staying plainly the same family and plainly the lesser ship.
+
+Rules for every design:
+- Start from Images 1 and 2. Keep the canopy, the cream shell material, the dark chassis, the two-pod engine layout and the plum fins recognisable.
+- Keep the SAME LEVEL OF DETAIL as Images 1 and 2: the same panel lines, layered plates and small mechanical parts, the same number of colours. Do NOT simplify the ship into flat blocks, slabs or icons, and do not add new kinds of parts it does not already have.
+- Change the ship's PROPORTIONS and OUTLINE: two changes per design, chosen from: the shell made clearly shorter, so more of the chassis and pods show behind it; the shell made clearly narrower than the pods' spread; the nose re-cut (a blunt chisel, a shallow V, a stepped ram); the pods moved further apart or closer together; the pods made longer or shorter; the fins made larger and more splayed, or cut down to stubs; the whole ship made squatter or longer.
+- The result must still look heavy and blunt for its size, and must be simpler than the rival, never more elaborate.
+- Same rendering style as Images 1 and 2: flat cel-shaded hard-surface panels, the same palette, constant-width thin dark outlines, no gradients, textures, glow or background clutter.
+
+Make 6 designs that differ from each other in which two things change, from cautious to bold. Each image shows one design twice, side by side on a plain mid-gray background: a top view on the left (nose up, same framing as Image 1) and a three-quarter view on the right (same angle as Image 2). Under each, write one short line naming what changed.
