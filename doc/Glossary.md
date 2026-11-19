@@ -1077,8 +1077,8 @@ Format: **term** — definition. *(authority)*
   still to come (#1173). *(WeaponResourceHud, ReadyFlashProfile)*
 - **trauma**. The flight camera's shake level, from 0 to 1. Hits the subject
   takes and its death add to it, and it drains at a steady rate. The view shakes
-  by trauma raised to a power, so at the default power of 2, half the trauma
-  gives a quarter of the shake. The term
+  by trauma raised to a power, so at the default power of 1.5, half the trauma
+  gives about a third of the shake. The term
   comes from Squirrel Eiserloh's GDC 2016 camera talk (#1636). Only the world
   shake reads it; the canopy's damage shudder reads *hit size*.
   *(ObserverCam, FlightCameraProfile)*

@@ -115,7 +115,7 @@ Shader "Locales/Planet"
                 float3 ray = normalize(UNITY_MATRIX_V[0].xyz * view.x +
                     UNITY_MATRIX_V[1].xyz * view.y - UNITY_MATRIX_V[2].xyz);
                 float3 center = TransformObjectToWorld(float3(0, 0, 0)) + _PlanetCenter.xyz;
-                float3 toCenter = (center - GetCameraPositionWS()) / _PlanetRadius;
+                float3 toCenter = (center - UNITY_MATRIX_I_V._m03_m13_m23) / _PlanetRadius;
                 float along = dot(toCenter, ray);
                 float3 nearest = ray * along - toCenter;
                 float distanceSquared = dot(nearest, nearest);

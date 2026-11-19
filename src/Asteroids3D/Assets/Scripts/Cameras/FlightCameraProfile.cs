@@ -63,8 +63,8 @@ namespace Cameras
         [Min(0f)] public float cursorLeadSmoothTime = 0.4f;
 
         [Header("Shake")]
-        [Tooltip("Trauma a full-size hit adds, from 0 to 1; smaller hits add their share. The view shakes by trauma raised to shakeExponent.")]
-        [Range(0f, 1f)] public float traumaPerHit = .6f;
+        [Tooltip("Trauma a full-size hit adds; smaller hits add their share. Above 1, a smaller hit can fill trauma. The view shakes by trauma raised to shakeExponent.")]
+        [Range(0f, 2f)] public float traumaPerHit = .75f;
 
         [Tooltip("Trauma the subject's death adds, from 0 to 1.")]
         [Range(0f, 1f)] public float deathTrauma = 1f;
@@ -73,13 +73,13 @@ namespace Cameras
         [Min(0f)] public float traumaDecay = 1.2f;
 
         [Tooltip("Power trauma is raised to for the shake amount. Higher keeps small hits subtler.")]
-        [Range(1f, 3f)] public float shakeExponent = 2f;
+        [Range(1f, 3f)] public float shakeExponent = 1.5f;
 
         [Tooltip("Largest shake offset at full trauma, as a share of the view's half-height, so it reads the same at every zoom.")]
-        [Range(0f, .2f)] public float maxShakeOffset = .05f;
+        [Range(0f, .2f)] public float maxShakeOffset = .07f;
 
         [Tooltip("Largest shake roll at full trauma, in degrees.")]
-        [Range(0f, 10f)] public float maxShakeRoll = 2f;
+        [Range(0f, 10f)] public float maxShakeRoll = 3f;
 
         [Tooltip("How fast the shake moves, in noise cycles per second.")]
         [Min(0f)] public float shakeFrequency = 10f;
