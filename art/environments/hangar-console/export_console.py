@@ -1,8 +1,9 @@
-"""Blender background export of console.blend.
+"""Blender background export of the open scene.
 
 --assets is the Unity visuals directory; --scratch holds disposable bake intermediates.
-Writes Console.fbx, ConsolePaint.png, ConsoleEmission.png, both static screen PNGs,
-and console-export.json beside this script. Exit 0 means every output was written.
+Writes Console.fbx, ConsolePaint.png and ConsoleEmission.png to --assets, and
+console-export.json beside this script; the same manifest is printed on stdout as a
+CONSOLE_EXPORT=<json> trailer. Exit 0 means every output was written.
 The source scene is never saved by this exporter.
 """
 import argparse
@@ -63,11 +64,65 @@ def anchor(obj):
     return {'name': split[1], 'position': list(centred(obj).translation), 'color': emission_color(obj)}
 
 
+def content_rectangle(vertices):
+    # Convex outline: an interval's vertical span is the overlap of its end spans.
+    points = [(vertex.co.x, vertex.co.y) for vertex in vertices]
+    count = len(points)
+    centre = (sum(point[0] for point in points) / count, sum(point[1] for point in points) / count)
+    polygon = sorted(points, key=lambda point: math.atan2(point[1] - centre[1], point[0] - centre[0]))
+    min_x = min(point[0] for point in polygon)
+    max_x = max(point[0] for point in polygon)
+    min_y = min(point[1] for point in polygon)
+    max_y = max(point[1] for point in polygon)
+    span_x = max_x - min_x
+    span_y = max_y - min_y
+    steps = 400
+
+    def extent(x):
+        hits = []
+        for index in range(count):
+            ax, ay = polygon[index]
+            bx, by = polygon[(index + 1) % count]
+            if ax > bx:
+                ax, ay, bx, by = bx, by, ax, ay
+            if x < ax or x > bx:
+                continue
+            if bx == ax:
+                hits.append(ay)
+                hits.append(by)
+            else:
+                hits.append(ay + (x - ax) * (by - ay) / (bx - ax))
+        return min(hits), max(hits)
+
+    samples = [min_x + span_x * index / steps for index in range(steps + 1)]
+    spans = [extent(sample) for sample in samples]
+    best_area = -1.0
+    best = None
+    for left_index, left in enumerate(samples):
+        low_left, high_left = spans[left_index]
+        for right_index in range(left_index + 1, len(samples)):
+            right = samples[right_index]
+            low_right, high_right = spans[right_index]
+            bottom = max(low_left, low_right)
+            top = min(high_left, high_right)
+            height = top - bottom
+            if height <= 0:
+                continue
+            area = (right - left) * height
+            if area <= best_area:
+                continue
+            best_area = area
+            best = (left, right, bottom, top)
+    if best is None:
+        raise RuntimeError('glass outline holds no content rectangle')
+    left, right, bottom, top = best
+    return {'left': (left - min_x) / span_x, 'right': (right - min_x) / span_x,
+            'bottom': (bottom - min_y) / span_y, 'top': (top - min_y) / span_y}
+
+
 anchors = [obj for obj in hardware if obj.name.endswith(' lens') and obj.name != '09 | Projector lens']
 lamps = [anchor(obj) for obj in anchors if 'Header downlight' not in obj.name]
 downlights = [anchor(obj) for obj in anchors if 'Header downlight' in obj.name]
-if not lamps or not downlights:
-    raise RuntimeError(f'console export found {len(lamps)} lamps and {len(downlights)} downlights')
 
 for obj in scene.objects:
     if obj.type in {'MESH', 'CURVE', 'FONT'} and obj not in hardware:
@@ -76,7 +131,8 @@ for obj in scene.objects:
 part_names = {
     'MainScreenGlass': ['07 | Main rectangular display'],
     'DetailScreenGlass': ['07 | Detail rectangular display'],
-    'SelectorKnob': ['08 | Selector faceted grip', '08 | Selector pointer'],
+    'SelectorKnob': [name for name in ('08 | Selector faceted grip', '08 | Selector pointer')
+                     if name == '08 | Selector faceted grip' or name in bpy.data.objects],
     'PreviousButton': ['08 | Previous chunky keycap'],
     'PreviousLegend': ['08 | Previous inlaid chevron'],
     'NextButton': ['08 | Next chunky keycap'],
@@ -110,13 +166,6 @@ pivots = {name: centred(bpy.data.objects[names[0]]) if name in terminal_names
           for name, names in part_names.items()}
 screen_objects = [o for name in glass_parts for o in groups[name]]
 paint_objects = [o for o in hardware if o not in screen_objects]
-
-for name, material_name in [('MainScreenReference', '19 | Main rectangular display'),
-                            ('DetailScreenReference', '19 | Detail rectangular display')]:
-    image = next(n.image for n in bpy.data.materials[material_name].node_tree.nodes if n.type == 'TEX_IMAGE')
-    image.filepath_raw = str(assets / (name + '.png'))
-    image.file_format = 'PNG'
-    image.save()
 
 # Freestyle is evaluated on the authored geometry before applying the modifiers.
 white = bpy.data.materials.new('Bake white')
@@ -205,9 +254,11 @@ for index, obj in enumerate(hardware):
     if index % 20 == 0:
         print('Converted', index, flush=True)
 
-# The terminal glasses carry no authored display UVs; map each face-on rectangle to 0..1, upright.
-for name in ('PrimaryScreenGlass', 'OrdnanceScreenGlass'):
+# The whole face, corners included: the canvas maps this UV, and content sits inside it.
+for name in glass_parts:
     mesh = groups[name][0].data
+    for uv in list(mesh.uv_layers):
+        mesh.uv_layers.remove(uv)
     minimum = [min(v.co[axis] for v in mesh.vertices) for axis in range(2)]
     size = [max(v.co[axis] for v in mesh.vertices) - minimum[axis] for axis in range(2)]
     display = mesh.uv_layers.new(name='DisplayUV')
@@ -295,6 +346,7 @@ def projected_ink(material):
         links.new(subtract.outputs['Vector'], dot.inputs[0])
         dots.append(dot.outputs['Value'])
     combine = nodes.new('ShaderNodeCombineXYZ')
+    coordinates = []
     for i, scale in enumerate((camera.data.lens / camera.data.sensor_width,
                               camera.data.lens * aspect / camera.data.sensor_width)):
         divide = nodes.new('ShaderNodeMath')
@@ -307,6 +359,7 @@ def projected_ink(material):
         multiply_add.inputs[2].default_value = .5
         links.new(divide.outputs[0], multiply_add.inputs[0])
         links.new(multiply_add.outputs[0], combine.inputs[i])
+        coordinates.append(multiply_add.outputs[0])
     layers = []
     for image in (body_ink, control_ink):
         texture = nodes.new('ShaderNodeTexImage')
@@ -320,7 +373,27 @@ def projected_ink(material):
     links.new(own.outputs['Fac'], pick.inputs[0])
     links.new(layers[0], pick.inputs[1])
     links.new(layers[1], pick.inputs[2])
-    return pick.outputs[0]
+    # Outside the reference frame the clamped ink texture smears; geometry there gets none.
+    outside = None
+    for coordinate in coordinates:
+        for operation, limit in (('LESS_THAN', 0), ('GREATER_THAN', 1)):
+            compare = nodes.new('ShaderNodeMath')
+            compare.operation = operation
+            compare.inputs[1].default_value = limit
+            links.new(coordinate, compare.inputs[0])
+            if outside is None:
+                outside = compare.outputs[0]
+                continue
+            either = nodes.new('ShaderNodeMath')
+            either.operation = 'MAXIMUM'
+            links.new(outside, either.inputs[0])
+            links.new(compare.outputs[0], either.inputs[1])
+            outside = either.outputs[0]
+    bounded = nodes.new('ShaderNodeMixRGB')
+    links.new(outside, bounded.inputs[0])
+    links.new(pick.outputs[0], bounded.inputs[1])
+    bounded.inputs[2].default_value = (1, 1, 1, 1)
+    return bounded.outputs[0]
 
 
 for material in materials:
@@ -456,7 +529,7 @@ bpy.ops.export_scene.fbx(filepath=str(assets / 'Console.fbx'), use_selection=Tru
                          mesh_smooth_type='FACE', add_leaf_bones=False, bake_anim=False)
 
 manifest = {
-    'source': 'console.blend', 'sourceEvidenceCommit': '3b14f5d5a51d86463aba0922497b6377865ab38d',
+    'source': Path(bpy.data.filepath).name,
     'camera': {'position': list(source_camera.translation),
                'forward': list(-source_camera.to_3x3().col[2]),
                'up': list(source_camera.to_3x3().col[1]),
@@ -466,13 +539,14 @@ manifest = {
                'pivot': list(obj.matrix_world.translation)} for obj in exported],
     'screenGlasses': [{'name': obj.name,
                        'width': max(v.co.x for v in obj.data.vertices) - min(v.co.x for v in obj.data.vertices),
-                       'height': max(v.co.y for v in obj.data.vertices) - min(v.co.y for v in obj.data.vertices)}
+                       'height': max(v.co.y for v in obj.data.vertices) - min(v.co.y for v in obj.data.vertices),
+                       'content': content_rectangle(obj.data.vertices)}
                       for obj in exported if obj.name in glass_parts],
     'lamps': lamps,
     'downlights': downlights,
     'paint': 'Authored color graph and fixed-camera Freestyle ink, one layer for the body and one the '
              'moving controls carry. No scene lighting, sky, ship or cone.',
-    'screens': 'Static reference artwork; no live UI.',
+    'screens': 'Live UI; each glass names the plain rectangle its content is laid out in.',
 }
 (Path(__file__).parent / 'console-export.json').write_text(json.dumps(manifest, indent=2))
 print('CONSOLE_EXPORT=' + json.dumps(manifest))
