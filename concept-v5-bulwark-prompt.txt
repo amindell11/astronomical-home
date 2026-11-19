@@ -1,0 +1,20 @@
+Use your image generation tool. Save every generated image as a PNG file into the folder ./out (relative to the current directory), named minion_01.png, minion_02.png, and so on. Do not edit or create any other files.
+
+Task: design the MINION version of an existing enemy spaceship for a top-down arcade space shooter, by EDITING the existing ship. This is a redesign pass on a finished ship, not a new ship and not a logo.
+
+The attached images:
+- Image 1 and Image 2 are the RIVAL ship, "Bulwark", top view and three-quarter view. Every minion design starts from exactly this ship.
+- Image 3 is a rejected minion: the rival with parts only removed. It is too similar to the rival.
+- Image 6 is a rejected second attempt, described below.
+- Image 4 and Image 5 are an approved example from another faction: that faction's rival and its minion, top views. The minion there is the rival's own body with smaller wings and a shortened, re-cut tail. That is the size of change wanted: clearly different at a glance, clearly the same ship family, same level of detail.
+
+Bulwark's outline is dominated by its broad cream armoured shell. A minion that keeps that shell whole looks identical to the rival when small (Image 6 is an example of that mistake: only its engine pods changed, and at 36 pixels it is the rival). So in every design the SHELL itself must change, and the dark chassis and engine pods underneath must become a visibly larger share of the outline. Ways to do that: cut the shell back so it covers only the front half and the dark chassis and pods are exposed behind it; split the shell into a nose plate and two separate shoulder plates with dark gaps between; narrow the shell to a central spine plate so the pods sit outboard of it like outriggers; open a deep notch in the rear or the nose of the shell; shorten the shell so the pods are the longest part of the ship; keep the shell's width but make it a clearly different outline (stepped, forked, or tapered hard to the rear). Bulwark's character is weight and bluntness, and the minion must still look heavy for its size.
+
+Rules for every design:
+- Keep the rival's cockpit canopy, its chassis, its engine pods and its fins recognisable from Images 1 and 2; the armoured shell is the part that changes.
+- Keep the SAME LEVEL OF DETAIL as Images 1 and 2 everywhere: layered plates, panel lines, small mechanical parts, the same number of colours. Do NOT simplify the ship into flat blocks, slabs, icons or a silhouette diagram. A design with less surface detail than Image 1 is wrong.
+- Change the shell as described above, and at most one other major part, so the outline differs clearly from the rival's when both are small on screen (the rival is about 48 pixels across, the minion about 36). Everything you do not change stays as drawn in Image 1.
+- The minion is the lesser ship: a little simpler and lighter than the rival, never more elaborate.
+- Same rendering style as Images 1 and 2: flat cel-shaded hard-surface panels, the same palette, constant-width thin dark outlines, no gradients, textures, glow or background clutter.
+
+Make 6 designs that differ from each other in WHICH parts change and how. Each image shows one design twice, side by side on a plain mid-gray background: a top view on the left (nose up, same framing as Image 1) and a three-quarter view on the right (same angle as Image 2). Under each, write one short line naming what changed.
