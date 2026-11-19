@@ -25,7 +25,8 @@ OUT = ROOT / 'previews'
 def snapshot(path):
     bpy.ops.wm.open_mainfile(filepath=str(path))
     scene = bpy.context.scene
-    hardware = [o for o in scene.objects if o.type == 'MESH' and not o.get('preview_only')]
+    hardware = [o for o in scene.objects if o.type == 'MESH' and not o.get('preview_only')
+                and o.name != '25 | Viewport glass']
     objects = {}
     for obj in hardware:
         if obj.name == 'Deck | joined closed structure':

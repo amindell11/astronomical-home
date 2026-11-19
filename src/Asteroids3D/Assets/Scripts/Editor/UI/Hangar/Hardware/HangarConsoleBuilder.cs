@@ -30,13 +30,13 @@ namespace UI.Hangar.Hardware
                 "../../../art/environments/hangar-console/console-export.json"));
             var manifest = JsonUtility.FromJson<ExportManifest>(File.ReadAllText(manifestPath));
             var authored = manifest.camera;
-            foreach (var filename in new[] { "ConsolePaint", "ConsoleEmission" })
+            foreach (var filename in new[] { "ConsolePaint", "ConsoleEmission", "WindowEtching" })
             {
                 var path = $"{VisualsPath}/{filename}.png";
                 AssetDatabase.ImportAsset(path);
                 var importer = (TextureImporter)AssetImporter.GetAtPath(path);
                 importer.textureType = TextureImporterType.Default;
-                importer.sRGBTexture = true;
+                importer.sRGBTexture = filename != "WindowEtching";
                 importer.alphaSource = TextureImporterAlphaSource.None;
                 importer.mipmapEnabled = true;
                 importer.npotScale = TextureImporterNPOTScale.None;
@@ -65,6 +65,14 @@ namespace UI.Hangar.Hardware
                 PrefabUtility.UnpackPrefabInstance(model, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
                 model.transform.SetParent(root.transform, false);
                 model.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
+                var glassPath = VisualsPath + "/ViewportGlass.fbx";
+                AssetDatabase.ImportAsset(glassPath);
+                var glass = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(glassPath));
+                glass.transform.SetParent(root.transform, false);
+                glass.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
+                var windowMaterial = ShaderMaterial("WindowEtching", "Hangar/WindowEtching");
+                windowMaterial.SetTexture("_BaseMap", AssetDatabase.LoadAssetAtPath<Texture2D>(VisualsPath + "/WindowEtching.png"));
+                glass.GetComponentInChildren<MeshRenderer>().sharedMaterial = windowMaterial;
                 var paint = Material("ConsolePaint", "ConsolePaint", "ConsoleEmission");
                 paint.SetColor("_Starlight", new Color(.18f, .20f, .24f).gamma);
                 var main = Glass("MainScreenGlass");
@@ -96,7 +104,7 @@ namespace UI.Hangar.Hardware
                 legend.SetTexture("_EmissionMap", null);
                 legend.SetColor("_Starlight", Color.black);
                 legend.SetFloat("_LightResponse", 0f);
-                legend.SetColor("_ConstantEmission", new Color(1f, .88f, .70f));
+                legend.SetColor("_ConstantEmission", new Color(.82f, .90f, 1f));
                 foreach (var control in new[]
                          {
                              "Launch", "Previous", "Next", "PrimaryPrevious", "PrimaryNext", "OrdnancePrevious",
@@ -297,7 +305,7 @@ namespace UI.Hangar.Hardware
             material.SetTexture("_EmissionMap", null);
             material.SetColor("_Starlight", Color.black);
             material.SetFloat("_LightResponse", 0f);
-            material.SetColor("_EmissionTint", new Color(1f, .84f, .63f));
+            material.SetColor("_EmissionTint", new Color(.90f, .95f, 1f));
             material.SetFloat("_EmissionStrength", 1f);
             material.SetFloat("_UseEmissionAlpha", 0f);
             EditorUtility.SetDirty(material);

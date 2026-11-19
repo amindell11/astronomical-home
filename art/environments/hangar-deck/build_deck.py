@@ -1335,8 +1335,12 @@ scene.camera = gamecam
 game_projection(scene, gamecam, 1920, 1080)
 bpy.context.view_layer.update()
 
+from build_glass import add_glass
+add_glass(D, scene, gamecam, PREVIEWS)
+
 subject = [obj.matrix_world @ Vector(corner) for obj in scene.objects
-           if obj.type == 'MESH' and not obj.get('preview_only') for corner in obj.bound_box]
+           if obj.type == 'MESH' and not obj.get('preview_only') and obj.name != '25 | Viewport glass'
+           for corner in obj.bound_box]
 for camera in (D['threecam'], D['topcam'], D['sidecam'], D['frontcam']):
     inverse = camera.matrix_world.inverted()
     local = [inverse @ p for p in subject]
@@ -1350,7 +1354,7 @@ bpy.context.view_layer.update()
 def audit():
     records = []
     for obj in scene.objects:
-        if obj.type != 'MESH' or obj.get('preview_only'):
+        if obj.type != 'MESH' or obj.get('preview_only') or obj.name == '25 | Viewport glass':
             continue
         bm = bmesh.new()
         bm.from_mesh(obj.data)

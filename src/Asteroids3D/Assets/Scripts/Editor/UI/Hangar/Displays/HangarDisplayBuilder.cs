@@ -29,11 +29,12 @@ namespace UI.Hangar.Displays
         private const float ArrowHeight = 56f;
 
         private static readonly Color Amber = new(1f, .80f, .50f, 1f);
+        private static readonly Color Ink = new(.84f, .92f, 1f, 1f);
         private static readonly Color Label = new(.62f, .70f, .78f, 1f);
         private static readonly Color Description = new(.88f, .92f, .97f, 1f);
         private static readonly Color LeaderInk = new(.45f, .58f, .68f, 1f);
         private static readonly Color Locked = new(1f, .42f, .32f, 1f);
-        private static readonly Color TagFill = new(.26f, .19f, .09f, 1f);
+        private static readonly Color TagFill = new(.08f, .14f, .24f, 1f);
         private static readonly Color Clear = new(0f, 0f, 0f, 0f);
 
         public static HangarMainDisplayView BuildMain(Transform parent, Vector3 localPosition, Vector2Int resolution,
@@ -144,7 +145,7 @@ namespace UI.Hangar.Displays
             shipButton.transition = Selectable.Transition.None;
             var shipBracket = Bracket(layout, "ShipBracket", shipRect);
 
-            var title = Text(layout, "Title", titles, 40, TextAnchor.MiddleCenter, Amber, new Rect(0f, 6f, width, 52f));
+            var title = Text(layout, "Title", titles, 40, TextAnchor.MiddleCenter, Ink, new Rect(0f, 6f, width, 52f));
             var lockTag = Text(layout, "LockTag", labels, 24, TextAnchor.MiddleCenter, Locked, new Rect(0f, 56f, width, 26f));
             lockTag.text = "LOCKED";
             lockTag.gameObject.SetActive(false);
@@ -165,7 +166,7 @@ namespace UI.Hangar.Displays
                 var row = Box(layout, stat.ToString(), new Rect(x, y, BarWidth, 96f));
                 var label = Text(row, "Label", labels, 28, anchor, Label, new Rect(0f, -2f, BarWidth, 30f));
                 label.text = stat.ToString();
-                var number = Text(row, "Number", numbers, 36, anchor, Amber, new Rect(0f, 24f, BarWidth, 48f));
+                var number = Text(row, "Number", numbers, 36, anchor, Ink, new Rect(0f, 24f, BarWidth, 48f));
                 bars[i] = Bar(row, number, new Vector2(0f, 76f));
                 var barEnd = right ? new Vector2(x - 10f, y + 80f) : new Vector2(x + BarWidth + 10f, y + 80f);
                 var hull = new Vector2(silhouetteX + hullPoints[i % 3].x * silhouetteSize,
@@ -200,13 +201,13 @@ namespace UI.Hangar.Displays
                 ruleThickness, LeaderInk);
             var keystoneIcon = Box(layout, "KeystoneIcon",
                 new Rect(keystoneIconX, keystoneIconY, keystoneIconSize, keystoneIconSize)).gameObject.AddComponent<Image>();
-            keystoneIcon.color = Amber;
+            keystoneIcon.color = Ink;
             keystoneIcon.raycastTarget = false;
             keystoneIcon.preserveAspect = true;
             var keystoneName = Text(layout, "KeystoneName", labels, keystoneNameSize, TextAnchor.MiddleLeft, Label,
                 new Rect(keystoneNameX, keystoneNameY, keystoneNameWidth, keystoneNameHeight));
             var keystoneCooldown = Text(layout, "KeystoneCooldown", numbers, keystoneCooldownSize, TextAnchor.MiddleRight,
-                Amber, new Rect(width - ruleInset - keystoneCooldownWidth, keystoneCooldownY, keystoneCooldownWidth,
+                Ink, new Rect(width - ruleInset - keystoneCooldownWidth, keystoneCooldownY, keystoneCooldownWidth,
                     keystoneCooldownHeight));
 
             shipBracket.transform.SetAsLastSibling();
@@ -232,7 +233,7 @@ namespace UI.Hangar.Displays
         private static void LayoutDetail(RectTransform layout, out Text title, out Text body)
         {
             var width = (float)DetailDesignWidth;
-            title = Text(layout, "Title", Font(TitleFontPath), 30, TextAnchor.MiddleLeft, Amber, new Rect(18f, 12f, width - 36f, 40f));
+            title = Text(layout, "Title", Font(TitleFontPath), 30, TextAnchor.MiddleLeft, Ink, new Rect(18f, 12f, width - 36f, 40f));
             body = Text(layout, "Body", Font(LabelFontPath), 26, TextAnchor.UpperLeft, Label, new Rect(18f, 54f, width - 36f, 72f));
             body.lineSpacing = 1.05f;
         }
@@ -306,7 +307,7 @@ namespace UI.Hangar.Displays
             var headerText = Text(content, "Header", labels, headerSize, TextAnchor.UpperLeft, Label,
                 new Rect(headerX, headerY, headerWidth, headerHeight));
             headerText.text = header;
-            var title = Text(content, "Title", titles, titleSize, TextAnchor.MiddleCenter, Amber,
+            var title = Text(content, "Title", titles, titleSize, TextAnchor.MiddleCenter, Ink,
                 new Rect(titleLeft, titleY, titleRight - titleLeft, titleHeight));
             var previous = Arrow(content, "Previous", new Rect(dividerX, arrowY, arrowWidth, arrowHeight), -1, true);
             var next = Arrow(content, "Next", new Rect(titleRight, arrowY, arrowWidth, arrowHeight), 1, true);
@@ -343,7 +344,7 @@ namespace UI.Hangar.Displays
                 tagLayout.childControlHeight = true;
                 tagLayout.childForceExpandWidth = false;
                 tagLayout.childForceExpandHeight = false;
-                var label = Text(tag, "Label", labels, tagSize, TextAnchor.MiddleCenter, Amber, new Rect(0f, 0f, 0f, 0f));
+                var label = Text(tag, "Label", labels, tagSize, TextAnchor.MiddleCenter, Ink, new Rect(0f, 0f, 0f, 0f));
                 label.horizontalOverflow = HorizontalWrapMode.Overflow;
                 tag.gameObject.SetActive(false);
                 tags[i] = tag.gameObject;
@@ -353,7 +354,7 @@ namespace UI.Hangar.Displays
             var damageLabel = Text(content, "DamageLabel", labels, damageLabelSize, TextAnchor.MiddleRight, Label,
                 new Rect(width - margin - damageWidth, height - damageLabelFromBottom, damageWidth, damageLabelHeight));
             damageLabel.text = "DAMAGE";
-            var damage = Text(content, "Damage", numbers, damageSize, TextAnchor.MiddleRight, Amber,
+            var damage = Text(content, "Damage", numbers, damageSize, TextAnchor.MiddleRight, Ink,
                 new Rect(width - margin - damageWidth, height - damageFromBottom, damageWidth, damageHeight));
             var damageCaption = Text(content, "DamageCaption", labels, captionSize, TextAnchor.UpperRight, Label,
                 new Rect(width - margin - captionWidth, height - captionFromBottom, captionWidth, captionHeight));
@@ -418,7 +419,7 @@ namespace UI.Hangar.Displays
         {
             var root = Box(canvas, name, rect);
             var fill = root.gameObject.AddComponent<Image>();
-            fill.color = Amber;
+            fill.color = Ink;
             fill.raycastTarget = true;
             var button = root.gameObject.AddComponent<Button>();
             button.targetGraphic = fill;
@@ -435,8 +436,8 @@ namespace UI.Hangar.Displays
             };
             var tip = new Vector2(direction < 0 ? 14f : rect.width - 14f, rect.height * .5f);
             var tail = direction < 0 ? rect.width - 14f : 14f;
-            Line(root, "Arm", tip, new Vector2(tail, rect.height * .5f - 18f), 4f, Amber);
-            Line(root, "Arm", tip, new Vector2(tail, rect.height * .5f + 18f), 4f, Amber);
+            Line(root, "Arm", tip, new Vector2(tail, rect.height * .5f - 18f), 4f, Ink);
+            Line(root, "Arm", tip, new Vector2(tail, rect.height * .5f + 18f), 4f, Ink);
             root.gameObject.SetActive(shown);
             return button;
         }

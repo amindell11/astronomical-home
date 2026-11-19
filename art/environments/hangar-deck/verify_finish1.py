@@ -24,7 +24,8 @@ OUT = ROOT / 'previews'
 CAPTURE = '--capture' in sys.argv
 bpy.ops.wm.open_mainfile(filepath=str(ROOT / 'deck.blend'))
 scene = bpy.context.scene
-hardware = [o for o in scene.objects if o.type == 'MESH' and not o.get('preview_only')]
+hardware = [o for o in scene.objects if o.type == 'MESH' and not o.get('preview_only')
+            and o.name != '25 | Viewport glass']
 
 
 def snapshot():

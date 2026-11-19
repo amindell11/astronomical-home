@@ -1689,6 +1689,11 @@
   ],
   "preview_objects": [
     {
+      "name": "25 | Viewport glass",
+      "triangles": 17,
+      "closed_manifold": false
+    },
+    {
       "name": "19 | Vanguard preview swept wing envelope",
       "triangles": 60,
       "closed_manifold": true
@@ -1744,7 +1749,7 @@
       "closed_manifold": true
     }
   ],
-  "scene_total_triangles": 26840,
+  "scene_total_triangles": 26857,
   "positive_volume_intersections": [],
   "pressed_intersections": [],
   "press_travel": [

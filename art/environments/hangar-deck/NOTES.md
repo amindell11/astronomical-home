@@ -1,5 +1,34 @@
 # Hangar deck
 
+## Window etching, 2026-11-19
+
+The owner's ruling was to return the etching and re-cut it for the new canopy. `build_deck.py` now calls `build_glass.py` to add `25 | Viewport glass`. This is one mesh with five flat panes and one material. The centre pane follows the strut rake. The two side panes hinge beside those struts, and two outer panes continue behind the outer pillars into the wide-view windows. Their edges tuck under the existing header, sill and posts. The glass sits behind the visible hardware.
+
+The single `GlassUV` map packs the centre and two side panes in the lower row, with the two outer panes above. All islands fit inside 0..1 with a gutter and no overlap. The atlas represents approximately 39.98 by 19.99 physical units, matching the 4096 by 2048 bake. Both axes have the same texel density, about 102.45 texels per unit, so the layout preserves each pane's proportions.
+
+The old `console.blend` was opened without saving it. Its material constructs finite line segments from clamped nearest-point distances, softens their edges, and unions them with Maximum nodes. The new material uses the same construction. Its greyscale output feeds the first input of the Mix Shader named `Only the perimeter catches light`, exactly as the unchanged exporter expects. No external texture is needed to rebuild or bake the scene.
+
+Short corner brackets follow actual pane angles. Small hexagon clusters diminish from 0.15 to 0.075 mask strength, tick scales use 0.13, and broken lines beside the struts use 0.115. The strongest corner marks reach 0.18. The nominal stroke width is 1.75 pixels at 1920 by 1080, with a narrow feather across each stroke. Marks stay within the pane edges and corners. The projected 5 by 4 by 4 hologram box has an additional 14-pixel clear margin. There is no text or numbering.
+
+Review the current glass in `previews/deck-window-etching.png` and `previews/deck-window-etching-21x9.png`. These renders sample the exported mask as cool-white additive light at 35% strength over a procedural dark blue starfield. The existing placeholder ship and screen glasses remain. `render_glass.py` makes these preview-only material changes in memory and never saves them to `deck.blend`. Earlier finish images below remain hardware references.
+
+`previews/deck-window-etching-mask.png` is the actual 4096 by 2048 exporter bake. The exporter ran on a scratch copy of `deck.blend`, printed `WINDOW_EXPORT=complete`, and wrote both `WindowEtching.png` and `ViewportGlass.fbx`. The scratch FBX, copied scene and scratch folders were removed after verification. `previews/window-export.json` records the export outputs and hashes.
+
+The hardware, lamps, screens, controls, camera and ink settings remain unchanged. All 68 pre-existing scene objects match the captured geometry, transforms, material assignments and properties. The existing finish, mesh, recess, six-aspect coverage and ink verifiers passed, as did the preview assemblers. Hardware remains at 45 meshes and 26,508 triangles. The new glazing adds 17 triangles. The local hardware verifiers exclude the new glass by its exact name, as the shared hardware exporter already does. Their original hardware assertions are unchanged.
+
+`verify_glass.py` separately checks planar panes, UV proportions and overlap, greyscale bake, window coverage at 16:9, 21:9 and 32:9, and the clear hologram region. All 8,000 hologram-region samples are zero. Its report is `previews/window-etching-audit.json`; the authored pane and stroke coordinates are in `previews/window-etching-layout.json`. The measured stroke widths range from 1.721 to 1.779 pixels, averaging 1.750, as recorded in `previews/window-etching-widths.json`. Of 1,260 sampled mark rays, 143 overlap hardware, and all 143 meet the hardware before the glass. Those results are in `previews/window-etching-occlusion.json`.
+
+To reproduce the glass previews, use the local Blender resource and temporary folders from the rebuild instructions below. These steps name scripts relative to this directory:
+
+1. Run `build_deck.py -- --no-render` with headless Blender.
+2. Copy `deck.blend` into a temporary folder inside this directory.
+3. Open that copy with headless Blender and run `../hangar-console/export_glass.py -- --assets <scratch-output-folder>` with an existing output folder inside this directory.
+4. Copy its `WindowEtching.png` to `previews/deck-window-etching-mask.png`.
+5. Run `verify_glass.py`, then `render_glass.py`, with headless Blender.
+6. Remove the temporary scene, FBX and output folder after Blender exits.
+
+No Unity files, shared exporter files or files outside this directory were edited. No network or git write commands were used.
+
 ## Finish 2, 2026-11-19
 
 The approved D13 shape is frozen. Broad plates now divide the pod frames and caps, outer flanks, band top and front lip, wings, strut shoulders, pedestal base cheeks, header face and diagonal steps, and the wide-view side consoles. The joints are about 0.04 units across, with 0.025 to 0.032 units of relief. Existing slate, secondary blue and dark service paint separate the plates by value.

@@ -1,0 +1,125 @@
+{
+  "object": "25 | Viewport glass",
+  "panes": [
+    {
+      "vertices": 7,
+      "planarity_error": 1.9073486328125e-06,
+      "texels_per_unit": 102.45221089737937
+    },
+    {
+      "vertices": 5,
+      "planarity_error": 2.8014183044433594e-06,
+      "texels_per_unit": 102.45221890041216
+    },
+    {
+      "vertices": 5,
+      "planarity_error": 3.0994415283203125e-06,
+      "texels_per_unit": 102.45221984436401
+    },
+    {
+      "vertices": 5,
+      "planarity_error": 2.3543834686279297e-06,
+      "texels_per_unit": 102.45221413858499
+    },
+    {
+      "vertices": 5,
+      "planarity_error": 1.6242265701293945e-06,
+      "texels_per_unit": 102.45221539532402
+    }
+  ],
+  "triangles": 17,
+  "uv_map": "GlassUV",
+  "maximum_uv_overlap": 0.0,
+  "mask_size": [
+    4096,
+    2048
+  ],
+  "mask_maximum": 0.18039216101169586,
+  "nonzero_mask_fraction": 0.003188014030456543,
+  "hologram_samples": 8000,
+  "hologram_mask_maximum": 0.0,
+  "coverage": {
+    "16x9": {
+      "open_window_samples": 6654,
+      "uncovered": []
+    },
+    "21x9": {
+      "open_window_samples": 7667,
+      "uncovered": []
+    },
+    "32x9": {
+      "open_window_samples": 7666,
+      "uncovered": []
+    }
+  },
+  "original_objects_unchanged": {
+    "Preview | header warm pool 1": true,
+    "Preview | header warm pool 2": true,
+    "Preview | header warm pool 3": true,
+    "Preview | header warm pool 4": true,
+    "Preview | header warm pool 5": true,
+    "Preview | header warm pool 6": true,
+    "19 | Vanguard preview swept wing envelope": true,
+    "19 | Vanguard preview wing perimeter": true,
+    "19 | Vanguard preview raised fuselage": true,
+    "19 | Vanguard preview fuselage ridge": true,
+    "19 | Vanguard preview fuselage ridge.001": true,
+    "19 | Vanguard preview tail fin": true,
+    "19 | Vanguard preview fin edges": true,
+    "19 | Vanguard preview tail fin.001": true,
+    "19 | Vanguard preview fin edges.001": true,
+    "11 | Neutral projector frustum": true,
+    "19 | Distant space": true,
+    "07 Camera - perspective": true,
+    "D10 | three quarter": true,
+    "D10 | TOP orthographic": true,
+    "D10 | SIDE orthographic": true,
+    "D10 | FRONT orthographic from viewer": true,
+    "Key | centred in front of all screens": true,
+    "Deck | joined closed structure": true,
+    "07 | Main rectangular display": true,
+    "07 | Detail rectangular display": true,
+    "30 | Primary blank glass": true,
+    "30 | Ordnance blank glass": true,
+    "08 | Previous chunky keycap": true,
+    "08 | Previous inlaid chevron": true,
+    "08 | Next chunky keycap": true,
+    "08 | Next inlaid chevron": true,
+    "08 | Selector faceted grip": true,
+    "08 | Launch broad beveled button": true,
+    "19 | Launch legend": true,
+    "30 | Primary Previous key": true,
+    "30 | Primary Previous ivory inlay": true,
+    "30 | Primary Next key": true,
+    "30 | Primary Next ivory inlay": true,
+    "30 | Ordnance Previous key": true,
+    "30 | Ordnance Previous ivory inlay": true,
+    "30 | Ordnance Next key": true,
+    "30 | Ordnance Next ivory inlay": true,
+    "09 | Projector lens": true,
+    "Deck | left pod cyan strip": true,
+    "Deck | left strut cyan strip": true,
+    "Deck | right pod cyan strip": true,
+    "Deck | right strut cyan strip": true,
+    "Deck | header cyan strip -8.6": true,
+    "Deck | header cyan strip 0": true,
+    "Deck | header cyan strip 8.6": true,
+    "Deck | Left pod amber brow lens": true,
+    "Deck | Right pod amber brow lens": true,
+    "Deck | Left status 1 green lens": true,
+    "Deck | Left status 2 green lens": true,
+    "Deck | Left status 3 amber lens": true,
+    "Deck | Right status 1 green lens": true,
+    "Deck | Right status 2 green lens": true,
+    "Deck | Right status 3 amber lens": true,
+    "Deck | Left Launch armed red lens": true,
+    "Deck | Right Launch armed red lens": true,
+    "Deck | Header centre amber marker lens": true,
+    "Deck | Header downlight 01 warm white lens": true,
+    "Deck | Header downlight 02 warm white lens": true,
+    "Deck | Header downlight 03 warm white lens": true,
+    "Deck | Header downlight 04 warm white lens": true,
+    "Deck | Header downlight 05 warm white lens": true,
+    "Deck | Header downlight 06 warm white lens": true
+  }
+}
