@@ -41,6 +41,7 @@ namespace UI.Hangar.Hardware
         private const float LaunchLightRange = 6f;
         private const float OverheadLightRange = 14f;
         private const float LaunchDim = .1f;
+        private const float LaunchBlinkPerSecond = 6f;
 
         [SerializeField] private Camera hardwareCamera;
         [SerializeField] private float referenceVerticalFov = 34.11393f;
@@ -76,6 +77,8 @@ namespace UI.Hangar.Hardware
         [SerializeField] private Vector3 hologramLightOffset;
         [SerializeField] private Vector3 launchLightOffset;
         [SerializeField] private HangarGlow[] lampGlows;
+        [SerializeField] private MeshRenderer[] launchLamps;
+        [SerializeField] private HangarGlow[] launchLampGlows;
         [SerializeField, FormerlySerializedAs("downlightGlows")] private HangarGlow[] overheadGlows;
         [SerializeField] private HangarGlow lensGlow;
         [SerializeField] private Vector3 knobAxis;
@@ -89,10 +92,12 @@ namespace UI.Hangar.Hardware
         private readonly Vector4[] hangarLightPositions = new Vector4[LightSlots];
         private readonly Vector4[] hangarLightColors = new Vector4[LightSlots];
         private Color legendLit;
+        private Color launchArmed;
         private HangarConsoleRaycaster raycaster;
         private HangarSelection selection;
         private Action onLaunch;
         private bool launching;
+        private float launchPressedAt;
 
         public Camera HardwareCamera => hardwareCamera;
         public MeshRenderer MainScreenGlass => mainScreenGlass;
@@ -124,6 +129,11 @@ namespace UI.Hangar.Hardware
 
         private void Awake()
         {
+            var launchLampsWired = launchLamps != null && launchLampGlows != null &&
+                launchLamps.Length > 0 && launchLamps.Length == launchLampGlows.Length;
+            if (launchLampsWired)
+                for (var i = 0; i < launchLamps.Length; i++)
+                    if (!launchLamps[i] || !launchLampGlows[i].card) launchLampsWired = false;
             if (!hardwareCamera || !mainScreenGlass || !detailScreenGlass || !primaryScreenGlass ||
                 !ordnanceScreenGlass || !selectorKnob || !knob || !previousButton || !nextButton ||
                 !launchButton || !primaryPreviousButton || !primaryNextButton || !ordnancePreviousButton ||
@@ -131,9 +141,9 @@ namespace UI.Hangar.Hardware
                 !mainDisplay || !detailDisplay || !primaryDisplay || !ordnanceDisplay || !mainView ||
                 !detailView || !primaryView || !ordnanceView || !displayProfile || !lightProfile ||
                 paintedParts == null || paintedParts.Length == 0 || !launchSurface ||
-                lampGlows == null || overheadGlows == null || !lensGlow.card)
+                lampGlows == null || !launchLampsWired || overheadGlows == null || !lensGlow.card)
                 throw new InvalidOperationException(
-                    "HangarConsole needs its camera, four screen glasses, controls, weapon keys, knob, launch legend, displays, display profile, light profile, projector lens, composite image, projector, painted parts, launch surface, lamp glows, overhead glows and lens glow.");
+                    "HangarConsole needs its camera, four screen glasses, controls, weapon keys, knob, launch legend, displays, display profile, light profile, projector lens, composite image, projector, painted parts, launch surface, lamp glows, launch lamps, launch lamp glows, overhead glows and lens glow.");
             raycaster = GetComponent<HangarConsoleRaycaster>();
             if (!raycaster)
                 throw new InvalidOperationException("HangarConsole needs its raycaster on the same object.");
@@ -141,6 +151,7 @@ namespace UI.Hangar.Hardware
             legendBlock = new MaterialPropertyBlock();
             lightBlock = new MaterialPropertyBlock();
             legendLit = launchLegend.sharedMaterial.GetColor(ConstantEmissionId);
+            launchArmed = launchLamps[0].sharedMaterial.GetColor(ConstantEmissionId);
             LightLegend(true);
             mainDisplay.Initialize(hardwareCamera, mainScreenGlass, () => displayProfile.MainDisplay,
                 () => lightProfile.MainScreenSpill, () => lightProfile.DisplayBacking);
@@ -165,8 +176,8 @@ namespace UI.Hangar.Hardware
             BindWeaponScreen(primaryView, HangarSlot.Weapon, primaryPreviousButton, primaryNextButton);
             BindWeaponScreen(ordnanceView, HangarSlot.Ordnance, ordnancePreviousButton, ordnanceNextButton);
             mainView.ArrowPressed += step => (step < 0 ? previousButton : nextButton).Press();
-            previousButton.Pressed += () => selection.Step(-1);
-            nextButton.Pressed += () => selection.Step(1);
+            previousButton.Pressed += () => selection.Step(HangarSlot.Ship, -1);
+            nextButton.Pressed += () => selection.Step(HangarSlot.Ship, 1);
             selectorKnob.Pressed += () => selection.Turn(1);
             launchButton.Pressed += Launch;
             selection.Changed += ApplyKnob;
@@ -186,6 +197,7 @@ namespace UI.Hangar.Hardware
                 throw new InvalidOperationException("HangarConsole.Launch was called before Show.");
             if (!selection.CanLaunch || launching) return;
             launching = true;
+            launchPressedAt = Time.unscaledTime;
             for (var i = 0; i < actions.Count; i++) actions[i].Disable();
             raycaster.enabled = false;
             launchButton.Move();
@@ -303,14 +315,29 @@ namespace UI.Hangar.Hardware
                 var span = glow.size + Vector2.one * lightProfile.LampGlowSize;
                 ApplyGlow(glow, glow.color * lightProfile.LampGlow, new Vector3(span.x, span.y, 1f));
             }
+            var launchLampColor = launchArmed;
+            if (launching)
+            {
+                var cycle = (Time.unscaledTime - launchPressedAt) * LaunchBlinkPerSecond;
+                launchLampColor = cycle - Mathf.Floor(cycle) < .5f ? lightProfile.LaunchPressedColor : Color.black;
+            }
+            for (var i = 0; i < launchLamps.Length; i++)
+            {
+                launchLamps[i].GetPropertyBlock(lightBlock);
+                lightBlock.SetColor(ConstantEmissionId, launchLampColor);
+                launchLamps[i].SetPropertyBlock(lightBlock);
+                var glow = launchLampGlows[i];
+                var span = glow.size + Vector2.one * lightProfile.LampGlowSize;
+                ApplyGlow(glow, launchLampColor * lightProfile.LampGlow, new Vector3(span.x, span.y, 1f));
+            }
             for (var i = 0; i < overheadGlows.Length; i++)
             {
                 var glow = overheadGlows[i];
                 var span = glow.size + Vector2.one * lightProfile.OverheadGlowSize;
                 ApplyGlow(glow, glow.color * lightProfile.OverheadGlow, new Vector3(span.x, span.y, 1f));
             }
-            ApplyGlow(lensGlow, lensGlow.color * lightProfile.LensGlow * projector.Level,
-                Vector3.one * lightProfile.LensGlowSize);
+            ApplyGlow(lensGlow, projector.BeamColor * lightProfile.LensGlow * projector.Level,
+                new Vector3(lightProfile.LensGlowSize, lightProfile.LensGlowSize * .45f, 1f));
         }
 
         private int AddLight(int index, HangarLight light)

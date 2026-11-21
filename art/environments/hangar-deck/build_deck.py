@@ -90,18 +90,18 @@ shoulder = material('Deck | slate chamfers', srgb((28, 34, 43)))
 top = material('Deck | cool upper planes', srgb((30, 35, 44)))
 well = material('Deck | charcoal wells and bezels', srgb((8, 12, 18)))
 keymat = material('Deck | cool grey controls', srgb((88, 98, 112)))
-orange = material('Deck | orange launch resin', (.95, .20, .018), 1)
+launchmat = material('Deck | near-black launch resin', (.006, .008, .012))
 cyan = material('Deck | emissive cyan accents', (.035, .48, .72), 1.65)
 cold_accent = material('Deck | cold blue-white structural accents', (.45, .72, 1.0), 1.65)
 screenmat = material('Deck | placeholder emissive blue', (.023, .105, .222), .8)
 legendmat = material('Deck | ivory inlaid legends', (.49, .65, .72), .3)
-for emissive in (orange, cyan, screenmat, cold_accent):
+for emissive in (cyan, screenmat, cold_accent):
     emissive.node_tree.nodes.get('Principled BSDF').inputs['Base Color'].default_value = (0, 0, 0, 1)
-PALETTE = [paint, face, shoulder, top, well, keymat, orange, cyan, screenmat, legendmat, cold_accent]
+PALETTE = [paint, face, shoulder, top, well, keymat, launchmat, cyan, screenmat, legendmat, cold_accent]
 old_palette = {
     D['body']: paint, D['face']: face, D['shoulder']: shoulder, D['side']: face,
     D['top_mat']: top, D['dark']: well, D['cyan']: cyan, D['keytop']: keymat,
-    D['key_mat']: keymat, D['orange']: orange, D['screen_mat']: screenmat,
+    D['key_mat']: keymat, D['orange']: launchmat, D['screen_mat']: screenmat,
 }
 chamfer = D['chamfer']
 point = D['point']
@@ -514,7 +514,7 @@ knob_outline = [(math.cos(i * math.pi / 6) * .34, math.sin(i * math.pi / 6) * .3
 subtract(collar, local_mesh('Construction | selector travel bore', knob_outline, .30, -.15, knob_basis, well))
 AFTER_WELLS.append(collar)
 
-launch = control('LaunchButton', '08 | Launch broad beveled button', launch_basis, chamfer(2.08, .864, .136), .015, -.06, orange)
+launch = control('LaunchButton', '08 | Launch broad beveled button', launch_basis, chamfer(2.08, .864, .136), .015, -.06, launchmat)
 letters = [
     [(0,0),(.1,0),(.1,.018),(.018,.018),(.018,.14),(0,.14)],
     [(0,0),(.018,0),(.031,.05),(.069,.05),(.082,0),(.1,0),(.062,.14),(.038,.14)],
@@ -537,7 +537,14 @@ for letter in letter_objects[1:]:
     combine(text_obj, letter)
 text_obj.name = '19 | Launch legend'
 subtract(launch, text_obj, True)
+for poly in launch.data.polygons:
+    poly.material_index = PALETTE.index(launchmat)
+launchlegendmat = material('Deck | warm yellow launch legend emission', (1.0, .72, .18), 1.2)
+launchlegendmat.node_tree.nodes.get('Principled BSDF').inputs['Base Color'].default_value = (0, 0, 0, 1)
+text_obj.data.materials[text_obj.data.materials.find(legendmat.name)] = launchlegendmat
 register(text_obj, 'LaunchLegend', True)
+legend_ink_collection.objects.unlink(text_obj)
+ink_collection.objects.unlink(launch)
 
 right_basis = D['pod_bases']['Right'][0]
 for screen_name, centre in [('Primary', 1.35), ('Ordnance', 0)]:
@@ -559,11 +566,35 @@ for bank_index, basis in enumerate(switch_bases):
         AFTER_WELLS.append(obj)
 
 projector_basis = horizontal_basis((0, 0, 2.48))
-outline = [(math.cos(i * math.pi / 6) * .55, math.sin(i * math.pi / 6) * .55) for i in range(12)]
-rim = local_mesh('Deck | projector rim', outline, -.005, -.085, projector_basis, well)
+projector_segments = 64
+rim_profile = [(.55, -.085), (.55, .025), (.535, .045),
+               (.455, .045), (.447, .037), (.447, -.085)]
+vertices = [point(projector_basis, math.cos(i * math.tau / projector_segments) * radius,
+                  math.sin(i * math.tau / projector_segments) * radius, height)
+            for radius, height in rim_profile for i in range(projector_segments)]
+faces = [(layer * projector_segments + i, layer * projector_segments + (i + 1) % projector_segments,
+          ((layer + 1) % len(rim_profile)) * projector_segments + (i + 1) % projector_segments,
+          ((layer + 1) % len(rim_profile)) * projector_segments + i)
+         for layer in range(len(rim_profile)) for i in range(projector_segments)]
+rim = mesh('Deck | projector rim', vertices, faces, well)
+repair(rim, True)
 BODY.append(rim)
-outline = [(math.cos(i * math.pi / 6) * .43, math.sin(i * math.pi / 6) * .43) for i in range(12)]
-lens = local_mesh('09 | Projector lens', outline, .0125, -.0125, projector_basis, cyan, parts_collection)
+lens_profile = [(.43, -.0125), (.43, .0065), (.424, .0125),
+                (.365, .0125), (.365, .0055), (.350, .0055), (.350, .0125),
+                (.290, .0125), (.290, .0055), (.275, .0055), (.275, .0125),
+                (.215, .0125), (.215, .0055), (.200, .0055), (.200, .0125)]
+vertices = [(math.cos(i * math.tau / projector_segments) * radius,
+             math.sin(i * math.tau / projector_segments) * radius, height)
+            for radius, height in lens_profile for i in range(projector_segments)]
+faces = [tuple(reversed(range(projector_segments)))]
+faces += [(layer * projector_segments + i, layer * projector_segments + (i + 1) % projector_segments,
+           (layer + 1) * projector_segments + (i + 1) % projector_segments,
+           (layer + 1) * projector_segments + i)
+          for layer in range(len(lens_profile) - 1) for i in range(projector_segments)]
+faces.append(tuple(range((len(lens_profile) - 1) * projector_segments, len(vertices))))
+lens = mesh('09 | Projector lens', vertices, faces, cyan, parts_collection)
+repair(lens, True)
+lens.matrix_world = Matrix.Translation(projector_basis[0])
 register(lens, 'ProjectorLens')
 
 camera_forward = Vector((0, .9936, -.1132)).normalized()
@@ -878,8 +909,10 @@ for hand, label in ((-1, 'Left'), (1, 'Right')):
     finish_solid(label + ' launch guard rail', guard_basis, .12, .83, .095, .012, shoulder, .040)
     paint_mark(label + ' guard rubbed edge', shifted(guard_basis, y=.04, d=.095),
                .024, .45, edgepaint)
-    lamp(label + ' Launch armed red', shifted(launch_basis, x=hand * 1.43, y=-.49),
-         .15, .16, lamp_red, depth=.015)
+    launch_lamp = lamp(label + ' Launch armed red', shifted(launch_basis, x=hand * 1.43, y=-.49),
+                       .15, .16, lamp_red, depth=.015)
+    PARTS['LaunchLamp' + label] = launch_lamp
+    launch_lamp['export_role'] = 'LaunchLamp' + label
 
 for bank_index, basis in enumerate(switch_bases):
     for index in range(3):
@@ -1150,6 +1183,32 @@ for hand, label in ((-1, 'Left'), (1, 'Right')):
                                  .17, .24, .05, -.008, shoulder)
                 finish_solid(label + ' side handhold', shifted(basis, d=.031), 1.05, .12,
                              .12, .07, inset, .025)
+
+pedestal_light = material('Deck | pedestal white-cyan edge emission', (.55, .85, 1.0), .80)
+pedestal_light.node_tree.nodes.get('Principled BSDF').inputs['Base Color'].default_value = (0, 0, 0, 1)
+PALETTE.append(pedestal_light)
+for tier, start in enumerate((1, 3, 5), 1):
+    lower = [Vector(p) for p in pedestal_loops[start]]
+    upper = [Vector(p) for p in pedestal_loops[start + 1]]
+    for edge, label in ((7, 'left corner'), (1, 'right corner')):
+        following = (edge + 1) % 8
+        u = (upper[following] - upper[edge]).normalized()
+        rise = (upper[edge] + upper[following] - lower[edge] - lower[following]) / 2
+        v = (rise - u * rise.dot(u)).normalized()
+        basis = ((upper[edge] + upper[following]) / 2 - v * .0295, u, v, u.cross(v))
+        strip = finish_solid('pedestal tier ' + str(tier) + ' ' + label + ' light',
+                             basis, (upper[following] - upper[edge]).length * .82, .035,
+                             .001, -.010, pedestal_light, .004)
+        subtract(body, strip, True)
+    if tier == 1:
+        u = Vector((1, 0, 0))
+        v = ((upper[0] + upper[1] - lower[0] - lower[1]) / 2).normalized()
+        basis = ((upper[0] + upper[1]) / 2 - v * .0295, u, v, u.cross(v))
+        for hand, label in ((-1, 'left'), (1, 'right')):
+            strip = finish_solid('pedestal lower front ' + label + ' lip light',
+                                 shifted(basis, x=hand * .38), .63, .035,
+                                 .001, -.010, pedestal_light, .004)
+            subtract(body, strip, True)
 
 bpy.ops.object.select_all(action='DESELECT')
 body.select_set(True)

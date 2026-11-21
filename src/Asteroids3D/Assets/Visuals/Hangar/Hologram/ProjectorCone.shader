@@ -2,17 +2,18 @@ Shader "Astronomical/Hangar/Projector Cone"
 {
     Properties
     {
-        _ConeColor ("Cone Color", Color) = (1,0.886,0.69,1)
-        _ConeLight ("Cone Light", Range(0,1.5)) = 0.5
-        _BaseWidth ("Width At Lens (Frame Sides)", Range(0.02,0.5)) = 0.14
-        _TopWidth ("Width At Ship (Frame Sides)", Range(0.05,1)) = 0.35
-        _Reach ("Reach Toward Ship", Range(0.3,1)) = 0.85
-        _Falloff ("Fade On The Way Up", Range(0.2,4)) = 1.1
-        _EdgeSoftness ("Edge Softness", Range(0.02,1)) = 0.4
-        _Rays ("Rays", Range(0,1)) = 0.3
-        _LensGlow ("Lens Glow", Range(0,2)) = 0.7
-        [PerRendererData] _Lean ("Lean (Frame Sides)", Float) = 0
+        [PerRendererData] _ConeColor ("Beam Color", Color) = (1, 0.945098, 0.839216, 1)
+        [PerRendererData] _ConeLight ("Beam Light", Range(0, 3)) = 1.05
         [PerRendererData] _Level ("Flicker Level", Float) = 1
+        [PerRendererData] _Apex ("Lens UV", Vector) = (0.5, 0.222937, 0, 0)
+        [PerRendererData] _QuadUnits ("Quad Units", Vector) = (2.304, 1.866, 0, 0)
+        [PerRendererData] _SourceRadius ("Source Radius", Float) = 0.32
+        [PerRendererData] _Spread ("Spread", Float) = 0.2867454
+        [PerRendererData] _Length ("Length", Float) = 1.45
+        _Streaks ("Streak Contrast", Range(0, 1)) = 0.55
+        _SourceGlow ("Source Glow", Range(0, 2)) = 0.45
+        _Haze ("Haze", Range(0, 1)) = 0.16
+        _Drift ("Streak Drift", Range(0, 2)) = 0.18
     }
     SubShader
     {
@@ -23,7 +24,7 @@ Shader "Astronomical/Hangar/Projector Cone"
             Tags { "LightMode"="SRPDefaultUnlit" }
             Blend One One
             ZWrite Off
-            ZTest LEqual
+            ZTest Always
             Cull Off
             HLSLPROGRAM
             #pragma vertex ConeVertex
@@ -31,8 +32,17 @@ Shader "Astronomical/Hangar/Projector Cone"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             CBUFFER_START(UnityPerMaterial)
                 half4 _ConeColor;
-                half _ConeLight, _BaseWidth, _TopWidth, _Reach, _Falloff, _EdgeSoftness, _Rays, _LensGlow;
-                half _Lean, _Level;
+                float _ConeLight;
+                float _Level;
+                float4 _Apex;
+                float4 _QuadUnits;
+                float _SourceRadius;
+                float _Spread;
+                float _Length;
+                float _Streaks;
+                float _SourceGlow;
+                float _Haze;
+                float _Drift;
             CBUFFER_END
             struct ConeInput
             {
@@ -43,47 +53,44 @@ Shader "Astronomical/Hangar/Projector Cone"
             {
                 float4 positionCS : SV_POSITION;
                 float2 uv : TEXCOORD0;
-                float aspect : TEXCOORD1;
             };
             ConeOutput ConeVertex(ConeInput input)
             {
                 ConeOutput output;
                 output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
                 output.uv = input.uv;
-                // The quad is two frame sides wide; this is its height in frame sides.
-                float3 right = float3(UNITY_MATRIX_M[0][0], UNITY_MATRIX_M[1][0], UNITY_MATRIX_M[2][0]);
-                float3 up = float3(UNITY_MATRIX_M[0][1], UNITY_MATRIX_M[1][1], UNITY_MATRIX_M[2][1]);
-                output.aspect = length(up) / max(0.5 * length(right), 0.0001);
                 return output;
-            }
-            float Hash(float2 p)
-            {
-                return frac(sin(dot(p, float2(127.1, 311.7))) * 43758.5453);
-            }
-            float Noise(float x)
-            {
-                float cell = floor(x);
-                float blend = frac(x);
-                blend = blend * blend * (3.0 - 2.0 * blend);
-                return lerp(Hash(float2(cell, 7.0)), Hash(float2(cell + 1.0, 7.0)), blend);
             }
             half4 ConeFragment(ConeOutput input) : SV_Target
             {
-                float t = input.uv.y;
-                float across = (input.uv.x - 0.5) * 2.0;
-                float along = saturate(t / _Reach);
-                float halfWidth = lerp(_BaseWidth, _TopWidth, along) * 0.5;
-                float u = (across - _Lean * t) / halfWidth;
-                float d = abs(u);
-                float side = 1.0 - smoothstep(1.0 - _EdgeSoftness, 1.0, d);
-                float rise = pow(1.0 - along, _Falloff) * smoothstep(0.0, 0.03, t) * step(t, _Reach);
-                float clock = _Time.y;
-                float streaks = 0.55 + 0.45 * sin(u * 23.0 + Noise(u * 9.0 + clock * 0.35) * 6.0)
-                    * Noise(u * 5.0 - clock * 0.2 + 3.0);
-                float beam = _ConeLight * side * rise * lerp(1.0, streaks, _Rays) * (0.75 + 0.25 * (1.0 - saturate(d * d)));
-                float2 glow = float2(across / (_BaseWidth * 0.9), t * input.aspect / (_BaseWidth * 0.58));
-                beam += _LensGlow * 0.5 * exp(-dot(glow, glow) * 1.6);
-                return half4(_ConeColor.rgb * beam * _Level, 0.0);
+                float2 p = (input.uv - _Apex.xy) * _QuadUnits.xy;
+                float across = p.x;
+                float along = p.y;
+                float height = max(along, 0.0);
+                float width = _SourceRadius + height * _Spread;
+                float u = across / width;
+                float side = exp2(-2.2 * u * u) * (1.0 - smoothstep(0.72, 1.0, abs(u)));
+                float seat = _SourceRadius * 0.3;
+                float arc = sqrt(saturate(1.0 - (across / _SourceRadius) * (across / _SourceRadius)));
+                float foot = smoothstep(-seat, seat * 0.35, along + seat * 0.7 * arc);
+                float terminal = 1.0 - smoothstep(_Length * 0.35, _Length, height);
+                float fade = terminal * exp2(-1.35 * height / _Length);
+                float clock = _Time.y * _Drift;
+                float broad = pow(0.5 + 0.5 * sin(u * 18.0 + 0.6 * sin(u * 7.0) + clock), 2.0);
+                float fine = pow(max(sin(u * 47.0 + 1.4 * sin(u * 13.0) - clock * 0.7), 0.0), 4.0);
+                float detail = (0.28 + 0.55 * broad + 0.35 * fine)
+                    * (0.9 + 0.1 * sin(height * 7.0 - clock * 3.0 + u * 6.0));
+                float rays = (1.0 - _Streaks) + _Streaks * detail;
+                float body = side * foot * fade * rays;
+                float coreAcross = across / (_SourceRadius * 0.48);
+                float coreAlong = along / (_SourceRadius * 1.3);
+                float core = exp2(-3.0 * coreAcross * coreAcross - 2.0 * coreAlong * coreAlong) * foot * terminal;
+                float haloDistance = length(float2(across / (_SourceRadius * 1.8), along / (_SourceRadius * 0.65)));
+                float halo = exp2(-2.0 * haloDistance * haloDistance)
+                    * (1.0 - smoothstep(1.5, 2.0, haloDistance)) * terminal;
+                float haze = exp2(-3.5 * u * u) * (1.0 - smoothstep(0.7, 1.3, abs(u))) * foot * fade;
+                float energy = _ConeLight * (body + _SourceGlow * (core + 0.25 * halo) + _Haze * haze);
+                return half4(_ConeColor.rgb * energy * _Level, 0.0);
             }
             ENDHLSL
         }

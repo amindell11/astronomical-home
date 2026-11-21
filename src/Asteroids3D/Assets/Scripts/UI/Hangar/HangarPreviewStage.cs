@@ -29,6 +29,8 @@ namespace UI.Hangar
         private const float FramingMargin = 1.05f;
         private const float MinFramedRadius = 0.5f;
         private const float FramedRadius = 1f;
+        // How far below the frame's middle a hull may hang, in framed radii.
+        private const float HullFloor = .42f;
         private static readonly int ContourPixelsId = Shader.PropertyToID("_ContourPixels");
         private readonly Dictionary<Ship, HangarPreviewFlight> clones = new();
         private HangarCarousel carousel;
@@ -212,15 +214,28 @@ namespace UI.Hangar
             ScaleInk(root);
 
             // The prefab root's scale, which the visual-only clone leaves behind, fitted to the framing sphere.
-            var ownDistance = SolveFraming(MeasureFramedBounds(rigTemplate), anchor.position, CameraFovDeg).distance;
-            root.localScale = rigTemplate.transform.lossyScale
-                * (CameraDistance(FramedRadius, CameraFovDeg) / ownDistance);
+            var bounds = MeasureFramedBounds(rigTemplate);
+            var fit = CameraDistance(FramedRadius, CameraFovDeg)
+                / SolveFraming(bounds, anchor.position, CameraFovDeg).distance;
+            root.localScale = rigTemplate.transform.lossyScale * fit;
 
             var flight = root.gameObject.AddComponent<HangarPreviewFlight>();
-            flight.Initialize(FramedRadius, BaseOrientation);
+            flight.Initialize(FramedRadius, BaseOrientation, Seat(bounds, fit));
             flight.Hide();
             clones[ship] = flight;
             return flight;
+        }
+
+        // The hull's middle on the anchor, then lifted until its lowest point clears the floor above the lens.
+        private Vector3 Seat(Bounds bounds, float fit)
+        {
+            var up = stageCamera.transform.up;
+            var centre = bounds.center - anchor.position;
+            var seat = -(Vector3)(Vector2)anchor.InverseTransformVector(centre) * fit;
+            var reach = Mathf.Abs(up.x) * bounds.extents.x + Mathf.Abs(up.y) * bounds.extents.y
+                + Mathf.Abs(up.z) * bounds.extents.z;
+            var lowest = (Vector3.Dot(centre, up) - reach) * fit + Vector3.Dot(anchor.TransformVector(seat), up);
+            return seat + anchor.InverseTransformVector(up) * Mathf.Max(0f, -HullFloor - lowest);
         }
 
         private Bounds MeasureFramedBounds(ShipVisualRig rigTemplate)
@@ -278,6 +293,8 @@ namespace UI.Hangar
             foreach (var minimap in rig.GetComponentsInChildren<MinimapShipMarker>(true))
                 if (minimap && minimap.gameObject != rig.gameObject)
                     DestroyImmediate(minimap.gameObject);
+            foreach (var particles in rig.GetComponentsInChildren<ParticleSystem>(true))
+                particles.gameObject.SetActive(false);
         }
 
         private static void SetLayerRecursive(Transform root, int layer)

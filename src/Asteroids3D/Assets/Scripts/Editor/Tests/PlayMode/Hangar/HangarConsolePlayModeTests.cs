@@ -168,6 +168,36 @@ namespace Tests.PlayMode.Hangar
         }
 
         [UnityTest]
+        public IEnumerator Launch_ShowsTheLampsArmed_ThenPressedOrBlack()
+        {
+            Open(_ => true, out _);
+            yield return null;
+            var data = new SerializedObject(console);
+            var profile = (HangarLightProfile)data.FindProperty("lightProfile").objectReferenceValue;
+            var lamps = data.FindProperty("launchLamps");
+            Assert.That(lamps.arraySize, Is.GreaterThan(0), "the console wires its launch lamps");
+            var emission = Shader.PropertyToID("_ConstantEmission");
+            var block = new MaterialPropertyBlock();
+            for (var i = 0; i < lamps.arraySize; i++)
+            {
+                var lamp = (MeshRenderer)lamps.GetArrayElementAtIndex(i).objectReferenceValue;
+                lamp.GetPropertyBlock(block);
+                Assert.IsTrue(block.GetColor(emission) == lamp.sharedMaterial.GetColor(emission), lamp.name);
+            }
+
+            console.Launch();
+            yield return null;
+            var pressed = profile.LaunchPressedColor;
+            for (var i = 0; i < lamps.arraySize; i++)
+            {
+                var lamp = (MeshRenderer)lamps.GetArrayElementAtIndex(i).objectReferenceValue;
+                lamp.GetPropertyBlock(block);
+                var color = block.GetColor(emission);
+                Assert.IsTrue(color == pressed || color == Color.black, lamp.name);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator Launch_DoesNothing_WhileTheShipIsLocked()
         {
             Open(ship => ship.name == "Vanguard", out _);
@@ -216,6 +246,18 @@ namespace Tests.PlayMode.Hangar
             Press(console.OrdnancePreviousButton);
             Assert.AreSame(ordnance[0], console.Selection.Ordnance);
             Assert.AreEqual(HangarSlot.Ordnance, console.Selection.Selected);
+        }
+
+        [UnityTest]
+        public IEnumerator NextKey_StepsTheShip_WhileTheWeaponSlotIsSelected()
+        {
+            Open(_ => true, out var second);
+            yield return null;
+            console.Selection.Select(HangarSlot.Weapon);
+            Assert.AreEqual(HangarSlot.Weapon, console.Selection.Selected, "test premise: the weapon slot is selected");
+            Press(console.NextButton);
+            Assert.AreSame(second, console.Selection.Ship, "the next key steps the ship");
+            Assert.AreEqual(HangarSlot.Ship, console.Selection.Selected, "the ship slot is selected");
         }
 
         [UnityTest]
