@@ -37,7 +37,7 @@ Material:
     - _LightResponse: 0
     - _UseEmissionAlpha: 0
     m_Colors:
-    - _ConstantEmission: {r: 0.82, g: 0.9, b: 1, a: 1}
+    - _ConstantEmission: {r: 1, g: 0.74, b: 0.2, a: 1}
     - _EmissionTint: {r: 1, g: 0.88, b: 0.7, a: 1}
     - _Starlight: {r: 0, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []

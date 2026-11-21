@@ -100,19 +100,29 @@ namespace UI.Hangar.Hardware
                 launchMaterial.SetFloat("_LightResponse", 0f);
                 EditorUtility.SetDirty(launchMaterial);
                 parts["LaunchButton"].sharedMaterial = launchMaterial;
-                var legend = ShaderMaterial("LaunchLegend", "Hangar/ConsolePaint");
-                legend.SetTexture("_EmissionMap", null);
-                legend.SetColor("_Starlight", Color.black);
-                legend.SetFloat("_LightResponse", 0f);
-                legend.SetColor("_ConstantEmission", new Color(.82f, .90f, 1f));
+                var launchLegend = Legend("LaunchLegend", new Color(1f, .74f, .20f));
+                var keyLegend = Legend("KeyLegend", new Color(.82f, .90f, 1f));
                 foreach (var control in new[]
                          {
                              "Launch", "Previous", "Next", "PrimaryPrevious", "PrimaryNext", "OrdnancePrevious",
                              "OrdnanceNext"
                          })
                 {
-                    parts[control + "Legend"].sharedMaterial = legend;
+                    parts[control + "Legend"].sharedMaterial = control == "Launch" ? launchLegend : keyLegend;
                     parts[control + "Legend"].transform.SetParent(parts[control + "Button"].transform, true);
+                }
+                var launchLampNames = new[] { "LaunchLampLeft", "LaunchLampRight" };
+                var launchLampMaterial = ShaderMaterial("LaunchLamp", "Hangar/ConsolePaint");
+                launchLampMaterial.SetTexture("_EmissionMap", null);
+                launchLampMaterial.SetColor("_Starlight", Color.black);
+                launchLampMaterial.SetFloat("_LightResponse", 0f);
+                launchLampMaterial.SetColor("_ConstantEmission", new Color(1f, .06f, .03f));
+                var launchLamps = new MeshRenderer[launchLampNames.Length];
+                for (var i = 0; i < launchLampNames.Length; i++)
+                {
+                    if (!parts.TryGetValue(launchLampNames[i], out launchLamps[i]))
+                        throw new InvalidOperationException($"The hangar console model names no part '{launchLampNames[i]}'.");
+                    launchLamps[i].sharedMaterial = launchLampMaterial;
                 }
 
                 var cameraObject = new GameObject("HardwareCamera");
@@ -183,7 +193,30 @@ namespace UI.Hangar.Hardware
                 glows.transform.SetParent(root.transform, false);
                 var glowMaterial = ShaderMaterial("ConsoleGlow", "Hangar/ConsoleGlow");
                 var quad = Resources.GetBuiltinResource<Mesh>("Quad.fbx");
-                var lampGlows = GlowCards(glows.transform, manifest.lamps, quad, glowMaterial, camera);
+                var bodyLamps = new List<ExportLamp>();
+                var launchEntries = new ExportLamp[launchLampNames.Length];
+                foreach (var lamp in manifest.lamps)
+                {
+                    if (!lamp.name.Contains("Launch armed"))
+                    {
+                        bodyLamps.Add(lamp);
+                        continue;
+                    }
+                    var index = -1;
+                    if (lamp.name.Contains("Left")) index = 0;
+                    else if (lamp.name.Contains("Right")) index = 1;
+                    if (index < 0)
+                        throw new InvalidOperationException($"console-export.json lamp '{lamp.name}' matches no launch lamp part.");
+                    if (launchEntries[index] != null)
+                        throw new InvalidOperationException(
+                            $"console-export.json names '{lamp.name}' as a second lamp for '{launchLampNames[index]}'.");
+                    launchEntries[index] = lamp;
+                }
+                for (var i = 0; i < launchEntries.Length; i++)
+                    if (launchEntries[i] == null)
+                        throw new InvalidOperationException($"console-export.json names no lamp for '{launchLampNames[i]}'.");
+                var lampGlows = GlowCards(glows.transform, bodyLamps.ToArray(), quad, glowMaterial, camera);
+                var launchLampGlows = GlowCards(glows.transform, launchEntries, quad, glowMaterial, camera);
                 if (manifest.downlights == null || manifest.downlights.Length > 2)
                     throw new InvalidOperationException(
                         "console-export.json lists " +
@@ -236,6 +269,11 @@ namespace UI.Hangar.Hardware
                 data.FindProperty("hologramLightOffset").vector3Value = new Vector3(.05f, 2.774f, -.21f);
                 data.FindProperty("launchLightOffset").vector3Value = new Vector3(.026f, 2.971f, -.081f);
                 AssignGlows(data.FindProperty("lampGlows"), lampGlows);
+                var launchLampProperty = data.FindProperty("launchLamps");
+                launchLampProperty.arraySize = launchLamps.Length;
+                for (var i = 0; i < launchLamps.Length; i++)
+                    launchLampProperty.GetArrayElementAtIndex(i).objectReferenceValue = launchLamps[i];
+                AssignGlows(data.FindProperty("launchLampGlows"), launchLampGlows);
                 AssignGlows(data.FindProperty("overheadGlows"), overheadGlows);
                 AssignGlow(data.FindProperty("lensGlow"), lensGlow);
                 data.FindProperty("knobAxis").vector3Value = knobAxis;
@@ -279,6 +317,17 @@ namespace UI.Hangar.Hardware
                     if (entry.name == glassName) return entry;
                 }
             throw new InvalidOperationException($"The hangar console export names no screen glass '{glassName}'.");
+        }
+
+        private static Material Legend(string name, Color lit)
+        {
+            var material = ShaderMaterial(name, "Hangar/ConsolePaint");
+            material.SetTexture("_EmissionMap", null);
+            material.SetColor("_Starlight", Color.black);
+            material.SetFloat("_LightResponse", 0f);
+            material.SetColor("_ConstantEmission", lit);
+            EditorUtility.SetDirty(material);
+            return material;
         }
 
         private static Material Glass(string name)

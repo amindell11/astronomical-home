@@ -19,5 +19,7 @@
   "OrdnancePreviousButton": "71d66e",
   "OrdnancePreviousLegend": "deffd9",
   "OrdnanceNextButton": "3dba6a",
-  "OrdnanceNextLegend": "c1ffde"
+  "OrdnanceNextLegend": "c1ffde",
+  "LaunchLampLeft": "ff4040",
+  "LaunchLampRight": "ff8585"
 }

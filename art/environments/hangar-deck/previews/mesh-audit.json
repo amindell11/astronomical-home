@@ -446,7 +446,7 @@
       "minimum_face_area": 0.000742462114430964,
       "signed_volume": 0.0006465000375807293,
       "modifiers": [],
-      "role": "ConsoleBody"
+      "role": "LaunchLampLeft"
     },
     {
       "name": "Deck | Right Launch armed red lens",
@@ -462,7 +462,7 @@
       "minimum_face_area": 0.000742462114430964,
       "signed_volume": 0.0006465000375807293,
       "modifiers": [],
-      "role": "ConsoleBody"
+      "role": "LaunchLampRight"
     },
     {
       "name": "Deck | Header downlight 01 cold white lens",
@@ -716,7 +716,7 @@
     },
     {
       "name": "Deck | Left Launch armed red lens",
-      "role": "ConsoleBody",
+      "role": "LaunchLampLeft",
       "pixel": [
         787.9847717285156,
         1002.90244191885
@@ -724,7 +724,7 @@
     },
     {
       "name": "Deck | Right Launch armed red lens",
-      "role": "ConsoleBody",
+      "role": "LaunchLampRight",
       "pixel": [
         1132.0152282714844,
         1002.90244191885

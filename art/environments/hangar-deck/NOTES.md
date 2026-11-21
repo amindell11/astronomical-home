@@ -1,5 +1,38 @@
 # Hangar deck
 
+## Separate Launch lamp roles, 2026-11-21
+
+The owner wants the two red lamps beside LAUNCH to blink blue when pressed. `build_deck.py` now registers the existing lenses in `PARTS` as `LaunchLampLeft` and `LaunchLampRight`, with matching `export_role` properties. Their names remain `Deck | Left Launch armed red lens` and `Deck | Right Launch armed red lens`. Both remain in `finish_lamps` under those names. Their sockets and guards remain in `ConsoleBody`.
+
+Each lens is still one connected, closed, consistently wound solid. The scene comparison permits only the two role changes. All 51 objects otherwise match exactly, including geometry, transforms, material assignments, UVs and properties. Materials, preview lights, camera settings, glass shader, collection memberships and ink settings also match. Registration preserves the lamps' existing collection memberships because the usual `register()` helper would add visible ink. `previews/launch-lamps-audit.json` records the comparison.
+
+Both lenses retain `Deck | armed red emission` and linear RGB `(1.0, 0.025, 0.008)`. Their world centres remain `(-1.4300, -3.8984, 1.3203)` and `(1.4300, -3.8984, 1.3203)`. Their local sizes remain `(0.1500, 0.1600, 0.0300)`.
+
+### Export result
+
+The unmodified shared exporter completed with exit code 0 and wrote `Console.fbx`, `ConsolePaint.png` and `ConsoleEmission.png` into directory-local scratch output. Both current lamp names appear in its `lamps` list with unchanged positions, sizes and colours. The exporter reports world-axis bounding-box sizes of `(0.1500001, 0.1561806, 0.0993687)` for these tilted lenses. Its manifest has eight lamps and two separate downlights.
+
+Neither new part appears in that export. `export_console.py` ignores `export_role` and uses its hard-coded `part_names` dictionary. Unlisted lenses still join `ConsoleBody`. To export the two separate parts, that dictionary needs exactly these entries:
+
+```python
+'LaunchLampLeft': ['Deck | Left Launch armed red lens'],
+'LaunchLampRight': ['Deck | Right Launch armed red lens'],
+```
+
+The shared exporter is unchanged. Its manifest always writes beside the script, so this run used a byte-identical scratch copy inside this directory. The exporter SHA-256 was `24a060d1868e8d72b8c2fa6cf1803e2a70fb6b2d92512231ef24fc65a14b6d10`. `previews/launch-lamps-export.json` preserves the manifest, missing-part result and output hashes.
+
+### Verification
+
+The hardware remains at 24,296 triangles in 31 meshes. All solids are closed, consistently wound and clean. The mesh audit found no positive-volume intersections across 33 checked pairs or during control travel. Six-aspect coverage, ink, glass geometry and glass projection checks pass. Every checked view has zero glass-ahead-of-hardware pixels and zero tinted hardware pixels.
+
+This run rebuilt with `build_deck.py -- --no-render`, then rendered the ten saved-scene views with the unchanged baked glass mask connected in memory. It ran `verify_deck.py`, `verify_coverage.py`, `verify_ink.py`, `verify_glass.py`, `verify_glass_projection.py`, `render_finish5.py` and `render_glass.py`. The earlier finish verifiers still freeze superseded geometry or materials, so the exact scene comparison checks preservation against the scene at the start of this task.
+
+The verification runner added `LaunchLampLeft` and `LaunchLampRight` to the mesh verifier's parts-sheet palette in memory, using `ff4040` and `ff8585`. All geometry checks remained unchanged. The parts-sheet assembly likewise adds the two callouts and room for their labels in memory. Neither verifier nor assembler source was edited. The sheet distinguishes authored roles from the shared exporter's current missing mappings.
+
+The camera, construction, mask, coverage, ink, neutral geometry, glass and review previews are regenerated. Historical originals, references and the baked etch mask remain frozen. All 58 PNGs validate. `previews/launch-lamps-verification.json` records the checks and final source, scene and image hashes. All Blender processes started for this task exited. All authored writes stayed inside this directory. No network, git write commands or Unity assets were used.
+
+Automatic approval review rejected the checked, directory-local cleanup command with "blocked by policy". `.lamp-scratch`, `.temp`, `.blender` and `__pycache__` remain. They hold temporary scripts, logs, the scene-comparison snapshot, exporter outputs, render inputs, Blender resources and Python caches.
+
 ## Black Launch key and yellow lettering, 2026-11-21
 
 The owner chose a black key with the existing regular LAUNCH letters in warm yellow. The mock-up's coloured rim and altered letter shapes are not used.

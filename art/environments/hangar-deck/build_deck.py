@@ -909,8 +909,10 @@ for hand, label in ((-1, 'Left'), (1, 'Right')):
     finish_solid(label + ' launch guard rail', guard_basis, .12, .83, .095, .012, shoulder, .040)
     paint_mark(label + ' guard rubbed edge', shifted(guard_basis, y=.04, d=.095),
                .024, .45, edgepaint)
-    lamp(label + ' Launch armed red', shifted(launch_basis, x=hand * 1.43, y=-.49),
-         .15, .16, lamp_red, depth=.015)
+    launch_lamp = lamp(label + ' Launch armed red', shifted(launch_basis, x=hand * 1.43, y=-.49),
+                       .15, .16, lamp_red, depth=.015)
+    PARTS['LaunchLamp' + label] = launch_lamp
+    launch_lamp['export_role'] = 'LaunchLamp' + label
 
 for bank_index, basis in enumerate(switch_bases):
     for index in range(3):

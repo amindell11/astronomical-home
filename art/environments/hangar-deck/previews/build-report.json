@@ -380,7 +380,7 @@
     },
     {
       "name": "Deck | Left Launch armed red lens",
-      "role": "ConsoleBody",
+      "role": "LaunchLampLeft",
       "triangles": 28,
       "vertices": 16,
       "closed": true,
@@ -394,7 +394,7 @@
     },
     {
       "name": "Deck | Right Launch armed red lens",
-      "role": "ConsoleBody",
+      "role": "LaunchLampRight",
       "triangles": 28,
       "vertices": 16,
       "closed": true,
@@ -658,7 +658,9 @@
     "OrdnancePreviousLegend": "30 | Ordnance Previous ivory inlay",
     "OrdnanceNextButton": "30 | Ordnance Next key",
     "OrdnanceNextLegend": "30 | Ordnance Next ivory inlay",
-    "ProjectorLens": "09 | Projector lens"
+    "ProjectorLens": "09 | Projector lens",
+    "LaunchLampLeft": "Deck | Left Launch armed red lens",
+    "LaunchLampRight": "Deck | Right Launch armed red lens"
   },
   "screens": [
     {

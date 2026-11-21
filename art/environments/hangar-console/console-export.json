@@ -121,6 +121,26 @@
       ]
     },
     {
+      "name": "LaunchLampLeft",
+      "vertices": 16,
+      "triangles": 28,
+      "pivot": [
+        -1.4299999475479126,
+        -3.8765933513641357,
+        1.277544617652893
+      ]
+    },
+    {
+      "name": "LaunchLampRight",
+      "vertices": 16,
+      "triangles": 28,
+      "pivot": [
+        1.4299999475479126,
+        -3.8765933513641357,
+        1.277544617652893
+      ]
+    },
+    {
       "name": "PrimaryScreenGlass",
       "vertices": 8,
       "triangles": 6,
@@ -222,8 +242,8 @@
     },
     {
       "name": "ConsoleBody",
-      "vertices": 11334,
-      "triangles": 21320,
+      "vertices": 11302,
+      "triangles": 21264,
       "pivot": [
         0.0,
         0.0,

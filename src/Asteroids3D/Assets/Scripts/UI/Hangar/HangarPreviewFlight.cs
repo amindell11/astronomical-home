@@ -26,7 +26,7 @@ namespace UI.Hangar
         private float visibility = -1f;
         private Quaternion orientation;
         private float radius;
-        private Vector3 centring;
+        private Vector3 seat;
         private float entryAge = EntrySeconds;
         private float cruise;
         private float lastOffset;
@@ -41,11 +41,11 @@ namespace UI.Hangar
             block = new MaterialPropertyBlock();
         }
 
-        /// <param name="hullCentre">The posed hull's middle, in the stage anchor's space.</param>
-        public void Initialize(float framingRadius, Quaternion baseOrientation, Vector2 hullCentre)
+        /// <param name="seat">Where the settled ship rests, in the stage anchor's space.</param>
+        public void Initialize(float framingRadius, Quaternion baseOrientation, Vector3 seat)
         {
             radius = framingRadius;
-            centring = -(Vector3)hullCentre;
+            this.seat = seat;
             orientation = baseOrientation;
             foreach (var wing in wings)
                 wing.Bind(new ShipView(transform, null, () => command, null, false));
@@ -112,7 +112,7 @@ namespace UI.Hangar
                 rotation *= Quaternion.Euler(0f, -48f * mirror * t * t, 12f * mirror * t);
             }
 
-            transform.localPosition = position + centring;
+            transform.localPosition = position + seat;
             transform.localRotation = rotation;
             command.thrust = !settled || entering || turn > .92f ? 1f : 0f;
             Fade(fade);

@@ -5515,7 +5515,7 @@
     "reference_image": "coverage-reference/deck-camera.png",
     "new_image": "deck-camera.png",
     "reference_sha256": "cf8a2b20ece7810dd028bfff390af6f71fdf6126a64711a3939c6c47ae022776",
-    "new_sha256": "bd313cfb3e6e374002cf752261adc6aa34a9a1ce2ed4f2bba1831972415030b5",
+    "new_sha256": "8935a7f84d40f3d1c5fb9ad10b3be183da447f017adb7019fa1c0e69413ae6f4",
     "comparison": "Exact saved RGB bytes, without tolerance or denoising exclusions.",
     "allowed_change_rule": "Previously pure backdrop above header/below console becomes hardware; baseline mask alpha = 0, new alpha > 0.",
     "image_pixels": 2073600,
