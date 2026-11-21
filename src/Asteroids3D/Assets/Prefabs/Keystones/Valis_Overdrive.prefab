@@ -102,27 +102,3 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   keystone: {fileID: 5512903418735166201}
   profile: {fileID: 11400000, guid: 0bd1758541bf8e348841089b3c5502e5, type: 2}
-  bySpeed:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 1
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 1.5
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4

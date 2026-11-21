@@ -12,11 +12,8 @@ namespace Ships.Keystones
     {
         [SerializeField] private Keystone keystone;
 
-        [Tooltip("Shake raised when the kit activates; its strength then follows bySpeed.")]
+        [Tooltip("Shake raised when the kit activates; its strength then follows the profile's bySpeed curve.")]
         [SerializeField] private CameraShakeProfile profile;
-
-        [Tooltip("Shake strength by speed as a share of the ship's normal top speed: 1 is flat out without the kit.")]
-        [SerializeField] private AnimationCurve bySpeed = new(new Keyframe(1f, 0f), new Keyframe(1.5f, 1f));
 
         private Ship ship;
         private int seenActivations;
@@ -47,7 +44,7 @@ namespace Ships.Keystones
 
             seenActivations = keystone.Activations;
             if (!held) return;
-            var strength = Mathf.Clamp01(bySpeed.Evaluate(ship.Kinematics.Speed / ship.MaxSpeed));
+            var strength = Mathf.Clamp01(profile.bySpeed.Evaluate(ship.Kinematics.Speed / ship.MaxSpeed));
             ship.Shake.Scale(this, strength);
             if (keystone.Active || strength > 0f) return;
             ship.Shake.Release(this);

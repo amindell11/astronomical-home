@@ -23,6 +23,9 @@ namespace Cameras.Shake
         [Tooltip("Push along the source's direction at full envelope, as a share of the view's half-height. Negative pushes the other way.")]
         [Range(-.2f, .2f)] public float kick = 0f;
 
+        [Tooltip("Strength by speed as a share of the ship's normal top speed, 1 being flat out without a kit. Read only by a source that scales its shake by speed.")]
+        public AnimationCurve bySpeed = new(new Keyframe(1f, 0f), new Keyframe(1.5f, 1f));
+
         public float Length => envelope.length == 0 ? 0f : envelope[envelope.length - 1].time;
     }
 }
