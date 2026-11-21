@@ -106,10 +106,11 @@ namespace Tests.PlayMode.Hangar
             Canvas.ForceUpdateCanvases();
             var eventSystem = new GameObject("TestEventSystem").AddComponent<EventSystem>();
             eventSystemGo = eventSystem.gameObject;
-            var weapon = console.GetComponentInChildren<HangarMainDisplayView>()[HangarSlot.Weapon];
-            var weaponHit = Click(eventSystem, ScreenPoint(console, ButtonOnGlass(console, weapon)));
-            Assert.AreEqual(weapon.gameObject, weaponHit.gameObject, "the weapon slot is the top hit");
-            Assert.AreEqual(HangarSlot.Weapon, console.Selection.Selected, "clicking the slot selects it");
+            var weapon = console.PrimaryDisplay.GetComponent<HangarWeaponDisplayView>().Select;
+            var weaponHit = Click(eventSystem, ScreenPoint(console,
+                ButtonOnGlass(console, console.PrimaryDisplay, console.PrimaryScreenGlass, weapon)));
+            Assert.AreEqual(weapon.gameObject, weaponHit.gameObject, "the weapon screen is the top hit");
+            Assert.AreEqual(HangarSlot.Weapon, console.Selection.Selected, "clicking the screen selects it");
 
             var before = console.Selection.Weapon;
             var nextHit = Click(eventSystem, ScreenPoint(console, console.NextButton.GetComponent<Renderer>().bounds.center));
@@ -140,13 +141,11 @@ namespace Tests.PlayMode.Hangar
             return hits[0];
         }
 
-        private static Vector3 ButtonOnGlass(HangarConsole console, Button button)
+        private static Vector3 ButtonOnGlass(HangarConsole console, HangarDisplay display, MeshRenderer glass, Button button)
         {
-            var display = console.MainDisplay;
             var rect = (RectTransform)button.transform;
             var pixel = display.DisplayCamera.WorldToScreenPoint(rect.TransformPoint(rect.rect.center));
             var uv = new Vector2(pixel.x / display.Resolution.x, pixel.y / display.Resolution.y);
-            var glass = console.MainScreenGlass;
             var surface = new MeshSurface(glass.GetComponent<MeshFilter>().sharedMesh);
             return glass.transform.TransformPoint(surface.LocalPoint(uv));
         }

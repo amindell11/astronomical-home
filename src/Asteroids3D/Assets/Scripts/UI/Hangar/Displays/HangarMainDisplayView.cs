@@ -8,9 +8,9 @@ using UnityEngine.UI;
 namespace UI.Hangar.Displays
 {
     /// <summary>
-    /// The hull diagram: the selected ship's silhouette ringed by its six stat bars, its two
-    /// weapons and its keystone. The three slots are buttons under that diagram; the selected
-    /// one wears a bracket and a pair of arrows, which ask for a step through <see cref="ArrowPressed"/>.
+    /// The hull diagram: the selected ship's silhouette ringed by its six stat bars and its
+    /// keystone. The ship is the button under that diagram; while it is selected it wears a
+    /// bracket and a pair of arrows, which ask for a step through <see cref="ArrowPressed"/>.
     /// </summary>
     public sealed class HangarMainDisplayView : MonoBehaviour
     {
@@ -22,12 +22,10 @@ namespace UI.Hangar.Displays
         [SerializeField] private Text lockTag;
         [SerializeField] private RawImage silhouette;
         [SerializeField] private HangarStatBar[] bars;
-        [SerializeField] private Button[] buttons;
-        [SerializeField] private GameObject[] brackets;
-        [SerializeField] private Button[] previousArrows;
-        [SerializeField] private Button[] nextArrows;
-        [SerializeField] private Image[] glyphs;
-        [SerializeField] private Text[] names;
+        [SerializeField] private Button shipButton;
+        [SerializeField] private GameObject shipBracket;
+        [SerializeField] private Button previousArrow;
+        [SerializeField] private Button nextArrow;
         [SerializeField] private Image keystoneIcon;
         [SerializeField] private Text keystoneName;
         [SerializeField] private Text keystoneCooldown;
@@ -37,25 +35,20 @@ namespace UI.Hangar.Displays
 
         public event Action<int> ArrowPressed;
 
-        internal Button this[HangarSlot slot] => buttons[(int)slot];
-        internal Button Arrow(HangarSlot slot, int step) => (step < 0 ? previousArrows : nextArrows)[(int)slot];
+        internal Button ShipButton => shipButton;
+        internal Button Arrow(int step) => step < 0 ? previousArrow : nextArrow;
         internal HangarStatBar Bar(HangarStat stat) => bars[(int)stat];
         internal string Title => title.text;
         internal bool Locked => lockTag.gameObject.activeSelf;
-        internal bool Bracketed(HangarSlot slot) => brackets[(int)slot].activeSelf;
+        internal bool Bracketed => shipBracket.activeSelf;
 
         private void Awake()
         {
             if (!title || !lockTag || !silhouette || !keystoneIcon || !keystoneName || !keystoneCooldown ||
-                bars == null || bars.Length != HangarStats.Count || Array.Exists(bars, bar => !bar) ||
-                buttons == null || buttons.Length != 3 || Array.Exists(buttons, button => !button) ||
-                brackets == null || brackets.Length != 3 || Array.Exists(brackets, bracket => !bracket) ||
-                previousArrows == null || previousArrows.Length != 3 || Array.Exists(previousArrows, arrow => !arrow) ||
-                nextArrows == null || nextArrows.Length != 3 || Array.Exists(nextArrows, arrow => !arrow) ||
-                glyphs == null || glyphs.Length != 2 || Array.Exists(glyphs, glyph => !glyph) ||
-                names == null || names.Length != 2 || Array.Exists(names, text => !text))
+                !shipButton || !shipBracket || !previousArrow || !nextArrow ||
+                bars == null || bars.Length != HangarStats.Count || Array.Exists(bars, bar => !bar))
                 throw new InvalidOperationException(
-                    "HangarMainDisplayView needs its title, lock tag, silhouette, six bars, three slot buttons, brackets and arrow pairs, two weapon glyphs and names, and the keystone's icon, name and cooldown.");
+                    "HangarMainDisplayView needs its title, lock tag, silhouette, six bars, the ship button, its bracket and arrows, and the keystone's icon, name and cooldown.");
         }
 
         public void Bind(HangarSelection selection)
@@ -64,13 +57,9 @@ namespace UI.Hangar.Displays
             foreach (var ship in selection.Ships) silhouettes[ship] = Silhouette(ship);
             if (selection.Ship && !silhouettes.ContainsKey(selection.Ship))
                 silhouettes[selection.Ship] = Silhouette(selection.Ship);
-            for (var i = 0; i < 3; i++)
-            {
-                var slot = (HangarSlot)i;
-                buttons[i].onClick.AddListener(() => selection.Select(slot));
-                previousArrows[i].onClick.AddListener(() => ArrowPressed?.Invoke(-1));
-                nextArrows[i].onClick.AddListener(() => ArrowPressed?.Invoke(1));
-            }
+            shipButton.onClick.AddListener(() => selection.Select(HangarSlot.Ship));
+            previousArrow.onClick.AddListener(() => ArrowPressed?.Invoke(-1));
+            nextArrow.onClick.AddListener(() => ArrowPressed?.Invoke(1));
             selection.Changed += Refresh;
             Refresh();
         }
@@ -97,27 +86,15 @@ namespace UI.Hangar.Displays
                     bars[i].Show(Number(value, stat), HangarStats.Fill(value, HangarStats.Best(selection.Ships, stat)));
                 }
             }
-            Glyph(0, selection.Weapon ? selection.Weapon.HudIcon : null, selection.Label(HangarSlot.Weapon));
-            Glyph(1, selection.Ordnance ? selection.Ordnance.HudIcon : null, selection.Label(HangarSlot.Ordnance));
             var keystone = ship ? ship.KeystonePrefab : null;
             keystoneIcon.enabled = keystone;
             keystoneIcon.sprite = keystone ? keystone.Icon : null;
             keystoneName.text = keystone ? keystone.DisplayName : "";
             keystoneCooldown.text = keystone ? $"{keystone.Cooldown:0.#}<size=24> s</size>" : "";
-            for (var i = 0; i < 3; i++)
-            {
-                var selected = (HangarSlot)i == selection.Selected;
-                brackets[i].SetActive(selected);
-                previousArrows[i].gameObject.SetActive(selected);
-                nextArrows[i].gameObject.SetActive(selected);
-            }
-        }
-
-        private void Glyph(int index, Sprite sprite, string label)
-        {
-            glyphs[index].enabled = sprite;
-            glyphs[index].sprite = sprite;
-            names[index].text = label;
+            var shipSelected = selection.Selected == HangarSlot.Ship;
+            shipBracket.SetActive(shipSelected);
+            previousArrow.gameObject.SetActive(shipSelected);
+            nextArrow.gameObject.SetActive(shipSelected);
         }
 
         private static string Number(float value, HangarStat stat)

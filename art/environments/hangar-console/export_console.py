@@ -1,8 +1,9 @@
-"""Blender background export of console.blend.
+"""Blender background export of the open scene.
 
 --assets is the Unity visuals directory; --scratch holds disposable bake intermediates.
-Writes Console.fbx, ConsolePaint.png, ConsoleEmission.png, both static screen PNGs,
-and console-export.json beside this script. Exit 0 means every output was written.
+Writes Console.fbx, ConsolePaint.png and ConsoleEmission.png to --assets, and
+console-export.json beside this script; the same manifest is printed on stdout as a
+CONSOLE_EXPORT=<json> trailer. Exit 0 means every output was written.
 The source scene is never saved by this exporter.
 """
 import argparse
@@ -35,6 +36,94 @@ excluded = ('07 reuse | Vanguard', '19 | Vanguard', '19 | Distant space',
             '11 | Neutral projector frustum', '25 | Viewport glass')
 hardware = [o for o in scene.objects if not o.hide_render and o.type in {'MESH', 'CURVE', 'FONT'}
             and not o.name.startswith(excluded)]
+
+
+def centred(obj):
+    frame = obj.matrix_world.to_quaternion().to_matrix().to_4x4()
+    frame.translation = obj.matrix_world @ (sum((Vector(c) for c in obj.bound_box), Vector()) / 8)
+    return frame
+
+
+def emission_color(obj):
+    material = obj.active_material
+    principled = None
+    if material and material.node_tree:
+        principled = next((node for node in material.node_tree.nodes if node.type == 'BSDF_PRINCIPLED'), None)
+    if principled is None:
+        raise RuntimeError(f'{obj.name} has no Principled BSDF')
+    socket = principled.inputs['Emission Color']
+    if socket.is_linked:
+        raise RuntimeError(f'{obj.name} has a linked emission colour')
+    return [socket.default_value[0], socket.default_value[1], socket.default_value[2]]
+
+
+def anchor(obj):
+    split = obj.name.split('| ', 1)
+    if len(split) != 2:
+        raise RuntimeError(f'{obj.name} has no anchor name')
+    return {'name': split[1], 'position': list(centred(obj).translation), 'color': emission_color(obj)}
+
+
+def content_rectangle(vertices):
+    # Convex outline: an interval's vertical span is the overlap of its end spans.
+    points = [(vertex.co.x, vertex.co.y) for vertex in vertices]
+    count = len(points)
+    centre = (sum(point[0] for point in points) / count, sum(point[1] for point in points) / count)
+    polygon = sorted(points, key=lambda point: math.atan2(point[1] - centre[1], point[0] - centre[0]))
+    min_x = min(point[0] for point in polygon)
+    max_x = max(point[0] for point in polygon)
+    min_y = min(point[1] for point in polygon)
+    max_y = max(point[1] for point in polygon)
+    span_x = max_x - min_x
+    span_y = max_y - min_y
+    steps = 400
+
+    def extent(x):
+        hits = []
+        for index in range(count):
+            ax, ay = polygon[index]
+            bx, by = polygon[(index + 1) % count]
+            if ax > bx:
+                ax, ay, bx, by = bx, by, ax, ay
+            if x < ax or x > bx:
+                continue
+            if bx == ax:
+                hits.append(ay)
+                hits.append(by)
+            else:
+                hits.append(ay + (x - ax) * (by - ay) / (bx - ax))
+        return min(hits), max(hits)
+
+    samples = [min_x + span_x * index / steps for index in range(steps + 1)]
+    spans = [extent(sample) for sample in samples]
+    best_area = -1.0
+    best = None
+    for left_index, left in enumerate(samples):
+        low_left, high_left = spans[left_index]
+        for right_index in range(left_index + 1, len(samples)):
+            right = samples[right_index]
+            low_right, high_right = spans[right_index]
+            bottom = max(low_left, low_right)
+            top = min(high_left, high_right)
+            height = top - bottom
+            if height <= 0:
+                continue
+            area = (right - left) * height
+            if area <= best_area:
+                continue
+            best_area = area
+            best = (left, right, bottom, top)
+    if best is None:
+        raise RuntimeError('glass outline holds no content rectangle')
+    left, right, bottom, top = best
+    return {'left': (left - min_x) / span_x, 'right': (right - min_x) / span_x,
+            'bottom': (bottom - min_y) / span_y, 'top': (top - min_y) / span_y}
+
+
+anchors = [obj for obj in hardware if obj.name.endswith(' lens') and obj.name != '09 | Projector lens']
+lamps = [anchor(obj) for obj in anchors if 'Header downlight' not in obj.name]
+downlights = [anchor(obj) for obj in anchors if 'Header downlight' in obj.name]
+
 for obj in scene.objects:
     if obj.type in {'MESH', 'CURVE', 'FONT'} and obj not in hardware:
         obj.hide_render = True
@@ -42,7 +131,8 @@ for obj in scene.objects:
 part_names = {
     'MainScreenGlass': ['07 | Main rectangular display'],
     'DetailScreenGlass': ['07 | Detail rectangular display'],
-    'SelectorKnob': ['08 | Selector faceted grip', '08 | Selector pointer'],
+    'SelectorKnob': [name for name in ('08 | Selector faceted grip', '08 | Selector pointer')
+                     if name == '08 | Selector faceted grip' or name in bpy.data.objects],
     'PreviousButton': ['08 | Previous chunky keycap'],
     'PreviousLegend': ['08 | Previous inlaid chevron'],
     'NextButton': ['08 | Next chunky keycap'],
@@ -51,24 +141,31 @@ part_names = {
     'LaunchLegend': ['19 | Launch legend'],
     'ProjectorLens': ['09 | Projector lens'],
 }
-moving_parts = ('SelectorKnob', 'PreviousButton', 'NextButton', 'LaunchButton')
-legend_parts = ('PreviousLegend', 'NextLegend', 'LaunchLegend')
+# Terminal parts are authored in their frame's space, so each pivots on its own centre.
+terminal_names = {}
+for screen in ('Primary', 'Ordnance'):
+    terminal_names[screen + 'ScreenGlass'] = '30 | ' + screen + ' blank glass'
+    for step in ('Previous', 'Next'):
+        terminal_names[screen + step + 'Button'] = '30 | ' + screen + ' ' + step + ' key'
+        terminal_names[screen + step + 'Legend'] = '30 | ' + screen + ' ' + step + ' ivory inlay'
+part_names.update({name: [source] for name, source in terminal_names.items()})
+moving_parts = ('SelectorKnob', 'PreviousButton', 'NextButton', 'LaunchButton') + tuple(
+    name for name in terminal_names if name.endswith('Button'))
+legend_parts = ('PreviousLegend', 'NextLegend', 'LaunchLegend') + tuple(
+    name for name in terminal_names if name.endswith('Legend'))
+glass_parts = ('MainScreenGlass', 'DetailScreenGlass', 'PrimaryScreenGlass', 'OrdnanceScreenGlass')
 pivot_names = {
     'SelectorKnob': '08 | Selector faceted grip', 'PreviousButton': '08 | Previous chunky keycap',
     'NextButton': '08 | Next chunky keycap', 'LaunchButton': '08 | Launch broad beveled button',
 }
-groups = {name: [bpy.data.objects[n] for n in names] for name, names in part_names.items()}
-pivots = {name: bpy.data.objects[pivot_names.get(name, names[0])].matrix_world.copy()
-          for name, names in part_names.items()}
-screen_objects = groups['MainScreenGlass'] + groups['DetailScreenGlass']
-paint_objects = [o for o in hardware if o not in screen_objects]
 
-for name, material_name in [('MainScreenReference', '19 | Main rectangular display'),
-                            ('DetailScreenReference', '19 | Detail rectangular display')]:
-    image = next(n.image for n in bpy.data.materials[material_name].node_tree.nodes if n.type == 'TEX_IMAGE')
-    image.filepath_raw = str(assets / (name + '.png'))
-    image.file_format = 'PNG'
-    image.save()
+
+groups = {name: [bpy.data.objects[n] for n in names] for name, names in part_names.items()}
+pivots = {name: centred(bpy.data.objects[names[0]]) if name in terminal_names
+          else bpy.data.objects[pivot_names.get(name, names[0])].matrix_world.copy()
+          for name, names in part_names.items()}
+screen_objects = [o for name in glass_parts for o in groups[name]]
+paint_objects = [o for o in hardware if o not in screen_objects]
 
 # Freestyle is evaluated on the authored geometry before applying the modifiers.
 white = bpy.data.materials.new('Bake white')
@@ -157,6 +254,18 @@ for index, obj in enumerate(hardware):
     if index % 20 == 0:
         print('Converted', index, flush=True)
 
+# The whole face, corners included: the canvas maps this UV, and content sits inside it.
+for name in glass_parts:
+    mesh = groups[name][0].data
+    for uv in list(mesh.uv_layers):
+        mesh.uv_layers.remove(uv)
+    minimum = [min(v.co[axis] for v in mesh.vertices) for axis in range(2)]
+    size = [max(v.co[axis] for v in mesh.vertices) - minimum[axis] for axis in range(2)]
+    display = mesh.uv_layers.new(name='DisplayUV')
+    for loop in mesh.loops:
+        co = mesh.vertices[loop.vertex_index].co
+        display.data[loop.index].uv = tuple((co[axis] - minimum[axis]) / size[axis] for axis in range(2))
+
 # Keep original generated paint coordinates while giving every object disjoint atlas UVs.
 bpy.ops.object.select_all(action='DESELECT')
 for obj in paint_objects:
@@ -237,6 +346,7 @@ def projected_ink(material):
         links.new(subtract.outputs['Vector'], dot.inputs[0])
         dots.append(dot.outputs['Value'])
     combine = nodes.new('ShaderNodeCombineXYZ')
+    coordinates = []
     for i, scale in enumerate((camera.data.lens / camera.data.sensor_width,
                               camera.data.lens * aspect / camera.data.sensor_width)):
         divide = nodes.new('ShaderNodeMath')
@@ -249,6 +359,7 @@ def projected_ink(material):
         multiply_add.inputs[2].default_value = .5
         links.new(divide.outputs[0], multiply_add.inputs[0])
         links.new(multiply_add.outputs[0], combine.inputs[i])
+        coordinates.append(multiply_add.outputs[0])
     layers = []
     for image in (body_ink, control_ink):
         texture = nodes.new('ShaderNodeTexImage')
@@ -262,7 +373,27 @@ def projected_ink(material):
     links.new(own.outputs['Fac'], pick.inputs[0])
     links.new(layers[0], pick.inputs[1])
     links.new(layers[1], pick.inputs[2])
-    return pick.outputs[0]
+    # Outside the reference frame the clamped ink texture smears; geometry there gets none.
+    outside = None
+    for coordinate in coordinates:
+        for operation, limit in (('LESS_THAN', 0), ('GREATER_THAN', 1)):
+            compare = nodes.new('ShaderNodeMath')
+            compare.operation = operation
+            compare.inputs[1].default_value = limit
+            links.new(coordinate, compare.inputs[0])
+            if outside is None:
+                outside = compare.outputs[0]
+                continue
+            either = nodes.new('ShaderNodeMath')
+            either.operation = 'MAXIMUM'
+            links.new(outside, either.inputs[0])
+            links.new(compare.outputs[0], either.inputs[1])
+            outside = either.outputs[0]
+    bounded = nodes.new('ShaderNodeMixRGB')
+    links.new(outside, bounded.inputs[0])
+    links.new(pick.outputs[0], bounded.inputs[1])
+    bounded.inputs[2].default_value = (1, 1, 1, 1)
+    return bounded.outputs[0]
 
 
 for material in materials:
@@ -322,7 +453,7 @@ def bake(name, size, glow=False):
         shader = nodes.new('ShaderNodeEmission')
         socket, strength = emission_inputs[material] if glow else (paint_inputs[material], 1)
         links.new(socket, shader.inputs['Color'])
-        shader.inputs['Strength'].default_value = strength
+        shader.inputs['Strength'].default_value = min(strength, 1)
         links.new(shader.outputs[0], original_outputs[material].inputs['Surface'])
         target = nodes.new('ShaderNodeTexImage')
         target.image = image
@@ -336,8 +467,9 @@ def bake(name, size, glow=False):
     print('Baking', name, flush=True)
     bpy.ops.object.bake(type='EMIT')
     if glow:
-        scene.view_settings.view_transform = 'AgX'
-        scene.view_settings.look = 'AgX - Medium High Contrast'
+        # Standard keeps lamp colours through the float image's display conversion.
+        scene.view_settings.view_transform = 'Standard'
+        scene.view_settings.look = 'None'
         image.save_render(image.filepath_raw, scene=scene)
     else:
         image.save()
@@ -373,13 +505,13 @@ for name, objects in groups.items():
     obj.matrix_world = rotation
     obj.name = name
     obj.data.name = name
-    if name not in {'MainScreenGlass', 'DetailScreenGlass'}:
+    if name not in glass_parts:
         atlas = obj.data.uv_layers['ConsoleAtlas']
         for uv in list(obj.data.uv_layers):
             if uv != atlas:
                 obj.data.uv_layers.remove(uv)
     obj.data.materials.clear()
-    material_name = name if name in {'MainScreenGlass', 'DetailScreenGlass'} else 'ConsolePaint'
+    material_name = name if name in glass_parts else 'ConsolePaint'
     material = bpy.data.materials.get('Export ' + material_name) or bpy.data.materials.new('Export ' + material_name)
     obj.data.materials.append(material)
     for polygon in obj.data.polygons:
@@ -397,7 +529,7 @@ bpy.ops.export_scene.fbx(filepath=str(assets / 'Console.fbx'), use_selection=Tru
                          mesh_smooth_type='FACE', add_leaf_bones=False, bake_anim=False)
 
 manifest = {
-    'source': 'console.blend', 'sourceEvidenceCommit': '3b14f5d5a51d86463aba0922497b6377865ab38d',
+    'source': Path(bpy.data.filepath).name,
     'camera': {'position': list(source_camera.translation),
                'forward': list(-source_camera.to_3x3().col[2]),
                'up': list(source_camera.to_3x3().col[1]),
@@ -405,9 +537,16 @@ manifest = {
     'parts': [{'name': obj.name, 'vertices': len(obj.data.vertices),
                'triangles': sum(len(p.vertices) - 2 for p in obj.data.polygons),
                'pivot': list(obj.matrix_world.translation)} for obj in exported],
+    'screenGlasses': [{'name': obj.name,
+                       'width': max(v.co.x for v in obj.data.vertices) - min(v.co.x for v in obj.data.vertices),
+                       'height': max(v.co.y for v in obj.data.vertices) - min(v.co.y for v in obj.data.vertices),
+                       'content': content_rectangle(obj.data.vertices)}
+                      for obj in exported if obj.name in glass_parts],
+    'lamps': lamps,
+    'downlights': downlights,
     'paint': 'Authored color graph and fixed-camera Freestyle ink, one layer for the body and one the '
              'moving controls carry. No scene lighting, sky, ship or cone.',
-    'screens': 'Static reference artwork; no live UI.',
+    'screens': 'Live UI; each glass names the plain rectangle its content is laid out in.',
 }
 (Path(__file__).parent / 'console-export.json').write_text(json.dumps(manifest, indent=2))
 print('CONSOLE_EXPORT=' + json.dumps(manifest))

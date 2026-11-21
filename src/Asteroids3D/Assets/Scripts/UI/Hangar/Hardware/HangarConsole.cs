@@ -13,10 +13,11 @@ using UnityEngine.UI;
 namespace UI.Hangar.Hardware
 {
     /// <summary>
-    /// The hangar: its console world, the composite image, and the choices on the two displays.
-    /// The hologram projector is its part at the lens. An accepted Launch locks the keys and the
-    /// pointer, presses the button and powers both screens down before the caller is handed the
-    /// pending loadout, once.
+    /// The hangar: its console world, the composite image, and the choices on its screens.
+    /// The left pair shows the ship; the right pair shows the weapon and the ordnance. The
+    /// hologram projector is its part at the lens. An accepted Launch locks the keys and the
+    /// pointer, presses the button and powers the screens down before the caller is handed the
+    /// pending loadout, once. The console applies its light profile each frame.
     /// </summary>
     public sealed class HangarConsole : MonoBehaviour
     {
@@ -25,26 +26,50 @@ namespace UI.Hangar.Hardware
         private const float TallerViewVerticalBias = .36f;
         private const float TallerViewOverscan = 1.01f;
         private static readonly int ConstantEmissionId = Shader.PropertyToID("_ConstantEmission");
+        private static readonly int StarlightId = Shader.PropertyToID("_Starlight");
+        private static readonly int EmissionStrengthId = Shader.PropertyToID("_EmissionStrength");
+        private static readonly int EmissionTintId = Shader.PropertyToID("_EmissionTint");
+        private static readonly int GlowColorId = Shader.PropertyToID("_GlowColor");
+        private static readonly int TopShareId = Shader.PropertyToID("_TopShare");
+        private static readonly int FalloffId = Shader.PropertyToID("_Falloff");
         private const float LaunchDim = .1f;
 
         [SerializeField] private Camera hardwareCamera;
         [SerializeField] private float referenceVerticalFov = 34.11393f;
         [SerializeField] private MeshRenderer mainScreenGlass;
         [SerializeField] private MeshRenderer detailScreenGlass;
+        [SerializeField] private MeshRenderer primaryScreenGlass;
+        [SerializeField] private MeshRenderer ordnanceScreenGlass;
         [SerializeField] private HangarControl selectorKnob;
         [SerializeField] private HangarKnob knob;
         [SerializeField] private HangarControl previousButton;
         [SerializeField] private HangarControl nextButton;
         [SerializeField] private HangarControl launchButton;
+        [SerializeField] private HangarControl primaryPreviousButton;
+        [SerializeField] private HangarControl primaryNextButton;
+        [SerializeField] private HangarControl ordnancePreviousButton;
+        [SerializeField] private HangarControl ordnanceNextButton;
         [SerializeField] private MeshRenderer launchLegend;
         [SerializeField] private MeshRenderer projectorLens;
         [SerializeField] private RawImage compositeImage;
         [SerializeField] private HangarHologramProjector projector;
         [SerializeField] private HangarDisplay mainDisplay;
         [SerializeField] private HangarDisplay detailDisplay;
+        [SerializeField] private HangarDisplay primaryDisplay;
+        [SerializeField] private HangarDisplay ordnanceDisplay;
         [SerializeField] private HangarMainDisplayView mainView;
         [SerializeField] private HangarDetailDisplayView detailView;
+        [SerializeField] private HangarWeaponDisplayView primaryView;
+        [SerializeField] private HangarWeaponDisplayView ordnanceView;
         [SerializeField] private HangarDisplayProfile displayProfile;
+        [SerializeField] private HangarLightProfile lightProfile;
+        [SerializeField] private MeshRenderer[] paintedParts;
+        [SerializeField] private MeshRenderer launchSurface;
+        [SerializeField] private Light projectorSpill;
+        [SerializeField] private Light launchSpill;
+        [SerializeField] private HangarGlow[] lampGlows;
+        [SerializeField] private HangarGlow[] downlightGlows;
+        [SerializeField] private HangarGlow[] downlightCones;
         [SerializeField] private Vector3 knobAxis;
         [SerializeField] private float knobDetentDegrees = 40f;
 
@@ -52,6 +77,7 @@ namespace UI.Hangar.Hardware
         private readonly Vector3[] corners = new Vector3[4];
         private readonly List<InputAction> actions = new();
         private MaterialPropertyBlock legendBlock;
+        private MaterialPropertyBlock lightBlock;
         private Color legendLit;
         private HangarConsoleRaycaster raycaster;
         private HangarSelection selection;
@@ -61,16 +87,24 @@ namespace UI.Hangar.Hardware
         public Camera HardwareCamera => hardwareCamera;
         public MeshRenderer MainScreenGlass => mainScreenGlass;
         public MeshRenderer DetailScreenGlass => detailScreenGlass;
+        public MeshRenderer PrimaryScreenGlass => primaryScreenGlass;
+        public MeshRenderer OrdnanceScreenGlass => ordnanceScreenGlass;
         public Transform SelectorKnob => selectorKnob.transform;
         public Transform PreviousButton => previousButton.transform;
         public Transform NextButton => nextButton.transform;
         public Transform LaunchButton => launchButton.transform;
+        public Transform PrimaryPreviousButton => primaryPreviousButton.transform;
+        public Transform PrimaryNextButton => primaryNextButton.transform;
+        public Transform OrdnancePreviousButton => ordnancePreviousButton.transform;
+        public Transform OrdnanceNextButton => ordnanceNextButton.transform;
         public MeshRenderer ProjectorLens => projectorLens;
         public HangarHologramProjector Projector => projector;
         public Texture Texture => texture;
         internal RawImage CompositeImage => compositeImage;
         internal HangarDisplay MainDisplay => mainDisplay;
         internal HangarDisplay DetailDisplay => detailDisplay;
+        internal HangarDisplay PrimaryDisplay => primaryDisplay;
+        internal HangarDisplay OrdnanceDisplay => ordnanceDisplay;
         internal HangarSelection Selection => selection;
         internal Vector3 KnobAxis => knobAxis;
         internal float KnobDetentDegrees => knobDetentDegrees;
@@ -80,21 +114,32 @@ namespace UI.Hangar.Hardware
 
         private void Awake()
         {
-            if (!hardwareCamera || !mainScreenGlass || !detailScreenGlass || !selectorKnob || !knob ||
-                !previousButton || !nextButton || !launchButton || !launchLegend || !projectorLens ||
-                !compositeImage || !projector || !mainDisplay || !detailDisplay || !mainView || !detailView ||
-                !displayProfile)
+            if (!hardwareCamera || !mainScreenGlass || !detailScreenGlass || !primaryScreenGlass ||
+                !ordnanceScreenGlass || !selectorKnob || !knob || !previousButton || !nextButton ||
+                !launchButton || !primaryPreviousButton || !primaryNextButton || !ordnancePreviousButton ||
+                !ordnanceNextButton || !launchLegend || !projectorLens || !compositeImage || !projector ||
+                !mainDisplay || !detailDisplay || !primaryDisplay || !ordnanceDisplay || !mainView ||
+                !detailView || !primaryView || !ordnanceView || !displayProfile || !lightProfile ||
+                paintedParts == null || paintedParts.Length == 0 || !launchSurface || !projectorSpill ||
+                !launchSpill || lampGlows == null || downlightGlows == null || downlightCones == null)
                 throw new InvalidOperationException(
-                    "HangarConsole needs its camera, glass, controls, knob, launch legend, displays, profile, projector lens, composite image and projector.");
+                    "HangarConsole needs its camera, four screen glasses, controls, weapon keys, knob, launch legend, displays, display profile, light profile, projector lens, composite image, projector, painted parts, launch surface, projector spill, launch spill, lamp glows, downlight glows and downlight cones.");
             raycaster = GetComponent<HangarConsoleRaycaster>();
             if (!raycaster)
                 throw new InvalidOperationException("HangarConsole needs its raycaster on the same object.");
             knob.Initialize(knobAxis);
             legendBlock = new MaterialPropertyBlock();
+            lightBlock = new MaterialPropertyBlock();
             legendLit = launchLegend.sharedMaterial.GetColor(ConstantEmissionId);
             LightLegend(true);
-            mainDisplay.Initialize(hardwareCamera, mainScreenGlass, () => displayProfile.MainDisplay);
-            detailDisplay.Initialize(hardwareCamera, detailScreenGlass, () => displayProfile.DetailDisplay);
+            mainDisplay.Initialize(hardwareCamera, mainScreenGlass, () => displayProfile.MainDisplay,
+                () => lightProfile.MainScreenSpill, () => lightProfile.DisplayBacking);
+            detailDisplay.Initialize(hardwareCamera, detailScreenGlass, () => displayProfile.DetailDisplay,
+                () => lightProfile.DetailScreenSpill, () => lightProfile.DisplayBacking);
+            primaryDisplay.Initialize(hardwareCamera, primaryScreenGlass, () => displayProfile.WeaponDisplay,
+                () => lightProfile.WeaponScreenSpill, () => lightProfile.DisplayBacking);
+            ordnanceDisplay.Initialize(hardwareCamera, ordnanceScreenGlass, () => displayProfile.WeaponDisplay,
+                () => lightProfile.WeaponScreenSpill, () => lightProfile.DisplayBacking);
         }
 
         public void Show(ItemSubset offer, ShipLoadout loadout, Func<Ship, bool> earned, Action launch)
@@ -107,6 +152,8 @@ namespace UI.Hangar.Hardware
             selection.ShipChanged += projector.Select;
             mainView.Bind(selection);
             detailView.Bind(selection);
+            BindWeaponScreen(primaryView, HangarSlot.Weapon, primaryPreviousButton, primaryNextButton);
+            BindWeaponScreen(ordnanceView, HangarSlot.Ordnance, ordnancePreviousButton, ordnanceNextButton);
             mainView.ArrowPressed += step => (step < 0 ? previousButton : nextButton).Press();
             previousButton.Pressed += () => selection.Step(-1);
             nextButton.Pressed += () => selection.Step(1);
@@ -116,6 +163,8 @@ namespace UI.Hangar.Hardware
             selection.Changed += ApplyLaunch;
             selection.OptionChanged += mainDisplay.Glitch;
             selection.OptionChanged += detailDisplay.Glitch;
+            selection.OptionChanged += primaryDisplay.Glitch;
+            selection.OptionChanged += ordnanceDisplay.Glitch;
             EnableKeys();
             knob.Snap(Detent());
             ApplyLaunch();
@@ -132,7 +181,18 @@ namespace UI.Hangar.Hardware
             launchButton.Move();
             mainDisplay.PowerDown();
             detailDisplay.PowerDown();
+            primaryDisplay.PowerDown();
+            ordnanceDisplay.PowerDown();
             StartCoroutine(HandOff());
+        }
+
+        private void BindWeaponScreen(HangarWeaponDisplayView view, HangarSlot slot, HangarControl previousKey,
+            HangarControl nextKey)
+        {
+            view.Bind(selection);
+            view.ArrowPressed += step => (step < 0 ? previousKey : nextKey).Press();
+            previousKey.Pressed += () => selection.Step(slot, -1);
+            nextKey.Pressed += () => selection.Step(slot, 1);
         }
 
         private IEnumerator HandOff()
@@ -144,6 +204,7 @@ namespace UI.Hangar.Hardware
 
         private void LateUpdate()
         {
+            ApplyLight();
             compositeImage.rectTransform.GetWorldCorners(corners);
             Resize(Vector2Int.CeilToInt(corners[2] - corners[0]));
             compositeImage.texture = texture;
@@ -175,6 +236,56 @@ namespace UI.Hangar.Hardware
                 antiAliasing = 2
             };
             hardwareCamera.targetTexture = texture;
+        }
+
+        private void ApplyLight()
+        {
+            var emission = lightProfile.EmissionStrength;
+            for (var i = 0; i < paintedParts.Length; i++)
+            {
+                paintedParts[i].GetPropertyBlock(lightBlock);
+                lightBlock.SetColor(StarlightId, lightProfile.Ambient);
+                lightBlock.SetFloat(EmissionStrengthId, emission);
+                paintedParts[i].SetPropertyBlock(lightBlock);
+            }
+
+            projectorLens.GetPropertyBlock(lightBlock);
+            lightBlock.SetColor(EmissionTintId, lightProfile.LensTint);
+            projectorLens.SetPropertyBlock(lightBlock);
+            launchSurface.GetPropertyBlock(lightBlock);
+            lightBlock.SetColor(StarlightId, lightProfile.LaunchGlow);
+            lightBlock.SetFloat(EmissionStrengthId, emission);
+            launchSurface.SetPropertyBlock(lightBlock);
+            projectorSpill.color = lightProfile.HologramSpillColor;
+            projectorSpill.intensity = lightProfile.HologramSpill;
+            launchSpill.color = lightProfile.LaunchSpillColor;
+            launchSpill.intensity = lightProfile.LaunchSpill;
+
+            var lampSize = Vector3.one * lightProfile.LampGlowSize;
+            for (var i = 0; i < lampGlows.Length; i++)
+                ApplyGlow(lampGlows[i], lampGlows[i].color * lightProfile.LampGlow, lampSize);
+            var downlightSize = Vector3.one * lightProfile.DownlightGlowSize;
+            for (var i = 0; i < downlightGlows.Length; i++)
+                ApplyGlow(downlightGlows[i], downlightGlows[i].color * lightProfile.DownlightGlow, downlightSize);
+            var coneScale = new Vector3(lightProfile.ConeWidth, lightProfile.ConeLength, 1f);
+            for (var i = 0; i < downlightCones.Length; i++)
+            {
+                var glow = downlightCones[i];
+                glow.card.GetPropertyBlock(lightBlock);
+                lightBlock.SetColor(GlowColorId, glow.color * lightProfile.ConeStrength);
+                lightBlock.SetFloat(TopShareId, lightProfile.ConeTopShare);
+                lightBlock.SetFloat(FalloffId, lightProfile.ConeFalloff);
+                glow.card.SetPropertyBlock(lightBlock);
+                glow.card.transform.localScale = coneScale;
+            }
+        }
+
+        private void ApplyGlow(HangarGlow glow, Color color, Vector3 scale)
+        {
+            glow.card.GetPropertyBlock(lightBlock);
+            lightBlock.SetColor(GlowColorId, color);
+            glow.card.SetPropertyBlock(lightBlock);
+            glow.card.transform.localScale = scale;
         }
 
         private void ApplyKnob() => knob.Turn(Detent());
