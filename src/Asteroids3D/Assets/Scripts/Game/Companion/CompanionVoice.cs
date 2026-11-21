@@ -7,15 +7,16 @@ using UnityEngine;
 namespace Game.Companion
 {
     /// <summary>
-    /// Speaks for the run's moments: each raised moment picks a line from its line slot, fills in the
-    /// moment's facts, prefixes the slot's speaker when one is named, and offers it to the nag budget. A
-    /// line the budget lets through shows on the comm line. Built once per session; each run hands it that
-    /// run's moment stream. With debug labels on, an empty line slot speaks a bracketed label of its id and
-    /// the moment's facts instead of staying silent, with that speaker prefix when the slot names one.
+    /// Speaks for the run's moments: each raised moment picks a line from the line file's rows for its
+    /// line slot and faction, fills in the facts, prefixes the slot's speaker when named, and offers it
+    /// to the nag budget. A line the budget lets through shows on the comm line. Built once per session;
+    /// each run hands it the moment stream. With debug labels on, a moment with no matching line speaks a
+    /// bracketed label of its id and facts instead of staying silent, prefixed when the slot names a speaker.
     /// </summary>
     public sealed class CompanionVoice : MonoBehaviour
     {
         private CompanionLineSheet sheet;
+        private LineTable lines;
         private CompanionFeelProfile feel;
         private CommLine display;
         private Func<bool> canSpeak;
@@ -36,6 +37,7 @@ namespace Game.Companion
             go.transform.SetParent(parent, false);
             var voice = go.AddComponent<CompanionVoice>();
             voice.sheet = sheet;
+            voice.lines = sheet.LoadLines();
             voice.feel = feel;
             voice.display = display;
             voice.canSpeak = canSpeak;
@@ -55,7 +57,7 @@ namespace Game.Companion
         private void OnRaised(IRunMoment moment)
         {
             var slot = sheet.Find(moment.Slot);
-            var line = slot.Pick(n => UnityEngine.Random.Range(0, n));
+            var line = lines.Pick(moment.Slot, moment.Facts, n => UnityEngine.Random.Range(0, n));
             if (line != null)
                 foreach (var fact in moment.Facts)
                     line = line.Replace("{" + fact.Key + "}", fact.Value);

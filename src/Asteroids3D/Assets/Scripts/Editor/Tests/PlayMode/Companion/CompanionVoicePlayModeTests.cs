@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Damage;
 using Game.Companion;
 using Game.Moments;
@@ -25,6 +26,7 @@ namespace Tests.PlayMode.Companion
         private GameObject hud;
         private CompanionFeelProfile feel;
         private CompanionLineSheet sheet;
+        private TextAsset lineFile;
         private CommLine display;
         private CompanionVoice voice;
         private RunMomentStream moments;
@@ -47,6 +49,7 @@ namespace Tests.PlayMode.Companion
             DestroyTestObject(hud);
             Object.Destroy(feel);
             if (sheet) Object.Destroy(sheet);
+            if (lineFile) Object.Destroy(lineFile);
             base.TearDown();
         }
 
@@ -58,6 +61,9 @@ namespace Tests.PlayMode.Companion
         private void BuildVoice(bool debugLabels, params (string moment, bool mustSay, string[] lines)[] slots)
         {
             sheet = ScriptableObject.CreateInstance<CompanionLineSheet>();
+            var markdown = new StringBuilder("| ID | Moment | Faction | Speaker | After | Line | Status |\n");
+            markdown.Append("| --- | --- | --- | --- | --- | --- | --- |");
+            var id = 1;
             using (var serialized = new SerializedObject(sheet))
             {
                 var list = serialized.FindProperty("slots");
@@ -67,11 +73,16 @@ namespace Tests.PlayMode.Companion
                     var slot = list.GetArrayElementAtIndex(i);
                     slot.FindPropertyRelative("moment").stringValue = slots[i].moment;
                     slot.FindPropertyRelative("mustSay").boolValue = slots[i].mustSay;
-                    var lines = slot.FindPropertyRelative("lines");
-                    lines.arraySize = slots[i].lines.Length;
-                    for (var j = 0; j < slots[i].lines.Length; j++)
-                        lines.GetArrayElementAtIndex(j).stringValue = slots[i].lines[j];
+                    foreach (var line in slots[i].lines)
+                    {
+                        markdown.Append(
+                            $"\n| T{id} | {slots[i].moment} |  | {LineTable.CompanionSpeaker} |  | {line} | In game |");
+                        id++;
+                    }
                 }
+
+                lineFile = new TextAsset(markdown.ToString());
+                serialized.FindProperty("lineFile").objectReferenceValue = lineFile;
                 serialized.ApplyModifiedPropertiesWithoutUndo();
             }
 
