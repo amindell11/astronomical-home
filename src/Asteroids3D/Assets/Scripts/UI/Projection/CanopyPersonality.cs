@@ -18,6 +18,7 @@ namespace UI.Projection
         private int phaseIndex = -1;
         private string step;
         private float hitAt = float.NegativeInfinity;
+        private float hitSize;
         private float momentAt = float.NegativeInfinity;
         private float lowHullAt = float.NegativeInfinity;
 
@@ -40,6 +41,7 @@ namespace UI.Projection
             damage = source;
             if (damage != null) damage.OnDamaged += OnDamaged;
             hitAt = lowHullAt = float.NegativeInfinity;
+            hitSize = 0f;
         }
 
         public void EnterSector(PhaseSpineModule source)
@@ -67,16 +69,19 @@ namespace UI.Projection
             if (!CanDisplay)
             {
                 hitAt = momentAt = lowHullAt = float.NegativeInfinity;
+                hitSize = 0f;
                 return CanopyFrame.Idle;
             }
             var low = damage != null && damage.Health.Pct > 0f && damage.Health.Pct <= StatusBarUI.LowThreshold;
             if (!low) lowHullAt = float.NegativeInfinity;
             else if (float.IsNegativeInfinity(lowHullAt)) lowHullAt = now;
             var hitAge = now - hitAt;
-            if (low) hitAge = Mathf.Min(hitAge, LowHullHitAge(now - lowHullAt));
+            var pulse = low ? LowHullHitAge(now - lowHullAt) : float.PositiveInfinity;
+            var size = pulse < hitAge ? 1f : hitSize;
+            hitAge = Mathf.Min(hitAge, pulse);
             var transitionAge = now - momentAt;
             return new CanopyFrame(CanopyStateBlend.Select(low, transitionAge < projection.Profile.bigMomentSeconds),
-                hitAge < .7f ? hitAge : -1f, transitionAge < .35f ? transitionAge : -1f);
+                hitAge < .7f ? hitAge : -1f, size, transitionAge < .35f ? transitionAge : -1f);
         }
 
         internal static float LowHullHitAge(float elapsed)
@@ -87,7 +92,12 @@ namespace UI.Projection
             return cycle - offset;
         }
 
-        private void OnDamaged(AppliedDamage _) { if (CanDisplay) hitAt = Time.unscaledTime; }
+        private void OnDamaged(AppliedDamage hit)
+        {
+            if (!CanDisplay) return;
+            hitAt = Time.unscaledTime;
+            hitSize = hit.HitSize(damage.Health.MaxValue);
+        }
 
         private void OnStepChanged(string next)
         {
@@ -105,15 +115,17 @@ namespace UI.Projection
 
     public readonly struct CanopyFrame
     {
-        public static CanopyFrame Idle => new(CanopyState.Base, -1f, -1f);
+        public static CanopyFrame Idle => new(CanopyState.Base, -1f, 0f, -1f);
         public readonly CanopyState State;
         public readonly float HitAge;
+        public readonly float HitSize;
         public readonly float TransitionAge;
 
-        public CanopyFrame(CanopyState state, float hitAge, float transitionAge)
+        public CanopyFrame(CanopyState state, float hitAge, float hitSize, float transitionAge)
         {
             State = state;
             HitAge = hitAge;
+            HitSize = hitSize;
             TransitionAge = transitionAge;
         }
     }

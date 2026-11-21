@@ -48,6 +48,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fireRate: 0.05
+  spinUpTime: 0
+  coldFireRate: 0.2
+  spinDownTime: 0.4
 --- !u!114 &6448982411033854647
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -77,6 +80,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   firePoint: {fileID: 0}
   displayName: 
+  hangarDescription: Fast slugs from a magazine. Empty it and you wait out the reload.
+  hangarTags:
+  - Magazine
   hudIcon: {fileID: 21300000, guid: d1b87bf203c8e924a9c1373a73959eb0, type: 3}
   projectilePrefab: {fileID: 5408995189547049293, guid: 05108a6211974df09de2de019a7d23d7,
     type: 3}

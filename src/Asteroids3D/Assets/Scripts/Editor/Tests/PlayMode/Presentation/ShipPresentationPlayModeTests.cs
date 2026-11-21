@@ -58,15 +58,9 @@ namespace Tests.PlayMode.Presentation
         }
 
         [UnityTest]
-        public IEnumerator LegacyShipSmoke_HiddenAtFull_ShownWhenDamaged_HiddenAfterRespawn()
+        public IEnumerator HullSmoke_WhenEnabled_HiddenAtFull_ShownWhenDamaged_HiddenAfterRespawn()
         {
-#if UNITY_EDITOR
-            ShipTestFactory.DestroyShip(ship);
-            var prefab = TestAssets.Load<Ship>("Assets/Prefabs/Ships/Nightshade.prefab");
-            Assert.IsNotNull(prefab, "Nightshade prefab failed to load");
-            ship = Factory.CreateShip(prefab, null, 0, 0, projectiles: null, Vector3.zero, Quaternion.identity);
-            Assert.IsTrue(ship.GetComponentInChildren<HullDamageEffects>(true).enabled);
-#endif
+            ship.GetComponentInChildren<HullDamageEffects>(true).enabled = true;
             yield return null;
 
             var damage = ship.Damage;

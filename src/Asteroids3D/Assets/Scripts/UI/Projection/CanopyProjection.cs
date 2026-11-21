@@ -28,6 +28,7 @@ namespace UI.Projection
         public CanopySettings Settings => blend.Settings;
         public float TransitionAge { get; private set; } = -1f;
         public float HitAge { get; private set; } = -1f;
+        public float HitSize { get; private set; }
         internal CanopyProjectionPass Pass { get; private set; }
         RenderTexture ICanopySource.Ink => ink.rt;
         RTHandle ICanopySource.InkColor => inkColor;
@@ -76,6 +77,7 @@ namespace UI.Projection
             if (!sceneCamera) return;
             var frame = observe?.Invoke() ?? CanopyFrame.Idle;
             HitAge = frame.HitAge;
+            HitSize = frame.HitSize;
             TransitionAge = frame.TransitionAge;
             blend.Tick(frame.State, Time.unscaledDeltaTime);
             SynchronizeCamera();

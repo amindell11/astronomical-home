@@ -42,8 +42,14 @@ namespace UI.Hangar.Hardware
                 Control(console.PreviousButton),
                 Control(console.NextButton),
                 Control(console.LaunchButton),
+                Control(console.PrimaryPreviousButton),
+                Control(console.PrimaryNextButton),
+                Control(console.OrdnancePreviousButton),
+                Control(console.OrdnanceNextButton),
                 Glass(console.MainScreenGlass, console.MainDisplay, 0),
-                Glass(console.DetailScreenGlass, console.DetailDisplay, 1)
+                Glass(console.DetailScreenGlass, console.DetailDisplay, 1),
+                Glass(console.PrimaryScreenGlass, console.PrimaryDisplay, 2),
+                Glass(console.OrdnanceScreenGlass, console.OrdnanceDisplay, 3)
             };
         }
 

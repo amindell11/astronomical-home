@@ -51,6 +51,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fireRate: 1.7
+  spinUpTime: 0
+  coldFireRate: 0.2
+  spinDownTime: 0.4
 --- !u!114 &6448982411033854647
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -79,6 +82,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   firePoint: {fileID: 0}
   displayName: Railgun
+  hangarDescription: Hold to charge, release for an instant beam. Engines cut while
+    it charges.
+  hangarTags:
+  - Charge
+  - Hitscan
   hudIcon: {fileID: 21300000, guid: 6032c7af754a15f459f554ae853d29ce, type: 3}
   damage: 75
   range: 60

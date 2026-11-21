@@ -26,16 +26,16 @@ Material:
     m_Ints: []
     m_Floats:
     - _BaseWidth: 0.085
-    - _ConeLight: 0.5
+    - _ConeLight: 0.9
     - _EdgeSoftness: 0.4
     - _Falloff: 1.9
     - _Lean: 0
     - _LensGlow: 0.7
     - _Level: 1
     - _Rays: 0.3
-    - _Reach: 0.99
-    - _TopWidth: 0.35
+    - _Reach: 1
+    - _TopWidth: 0.7
     m_Colors:
-    - _ConeColor: {r: 1, g: 0.8862745, b: 0.6901961, a: 1}
+    - _ConeColor: {r: 0.78, g: 0.93, b: 1, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
