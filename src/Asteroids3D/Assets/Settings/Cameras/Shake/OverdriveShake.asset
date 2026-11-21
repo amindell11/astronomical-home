@@ -45,8 +45,8 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  sustainAt: 0.3
-  frequency: 6
-  jitter: 0.01
-  roll: 0.4
+  sustainAt: 0.1
+  frequency: 50
+  jitter: 0.0301
+  roll: 0.15
   kick: 0
