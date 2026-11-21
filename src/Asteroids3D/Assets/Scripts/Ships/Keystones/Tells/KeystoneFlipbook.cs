@@ -1,4 +1,5 @@
 using System;
+using Substrate;
 using Substrate.Presentation;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -97,7 +98,7 @@ namespace Ships.Keystones.Tells
                 startedAt = Time.time;
                 playing = true;
                 launchPosition = transform.position;
-                launchRotation = transform.rotation;
+                launchRotation = FlatPose();
             }
 
             if (!playing)
@@ -108,6 +109,9 @@ namespace Ships.Keystones.Tells
 
             var layers = feel.Layers;
             var elapsed = (Time.time - startedAt) * feel.Speed;
+            var flat = FlatPose();
+            var edgeOn = 1f - Mathf.Abs(Vector3.Dot(transform.forward, GamePlane.Normal));
+            var banked = Mathf.Max(0.1f, 1f - edgeOn * feel.BankNarrowing);
             var any = false;
             for (var i = 0; i < layers.Length; i++)
             {
@@ -125,9 +129,11 @@ namespace Ships.Keystones.Tells
                     sheetTransform.SetPositionAndRotation(
                         launchPosition + launchRotation * new Vector3(0f, offset, layer.depth), launchRotation);
                 else
-                    sheetTransform.localPosition = new Vector3(0f, offset, layer.depth);
+                    sheetTransform.SetPositionAndRotation(
+                        transform.position + flat * new Vector3(0f, offset, layer.depth), flat);
+                var across = layer.staysAtLaunch ? 1f : banked;
                 sheetTransform.localScale = new Vector3(
-                    layer.width * shipLength * k, layer.length * shipLength * k, 1f);
+                    layer.width * shipLength * k * across, layer.length * shipLength * k, 1f);
 
                 if (!visible) continue;
                 var opacity = layer.opacity;
@@ -140,6 +146,10 @@ namespace Ships.Keystones.Tells
 
             if (!any) playing = false;
         }
+
+        // The ship banks by rolling; the sheets stay flat on the game plane along its heading.
+        private Quaternion FlatPose() =>
+            GamePlane.PlanePose(GamePlane.Normal, Vector3.ProjectOnPlane(transform.up, GamePlane.Normal));
 
         private void BuildSheets()
         {

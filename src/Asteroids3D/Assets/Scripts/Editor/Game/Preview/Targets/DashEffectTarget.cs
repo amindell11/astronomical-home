@@ -30,6 +30,22 @@ namespace Game.Preview.Targets
             EditorGUI.BeginChangeCheck();
             var speed = EditorGUILayout.Slider("Game speed", Time.timeScale, 0.05f, 1f);
             if (EditorGUI.EndChangeCheck()) Time.timeScale = speed;
+            DrawCooldown();
+        }
+
+        // Writes the live kit only, so the shipped cooldown is untouched and the change ends with play.
+        private static void DrawCooldown()
+        {
+            var rig = UnityEngine.Object.FindFirstObjectByType<PlayerRig>();
+            var ship = rig ? rig.Player : null;
+            if (!ship || !ship.Keystone) return;
+            using var kit = new SerializedObject(ship.Keystone);
+            var cooldown = kit.FindProperty("cooldown");
+            EditorGUI.BeginChangeCheck();
+            var seconds = EditorGUILayout.Slider("Your keystone cooldown, this playtest", cooldown.floatValue, 0.2f, 10f);
+            if (!EditorGUI.EndChangeCheck()) return;
+            cooldown.floatValue = seconds;
+            kit.ApplyModifiedPropertiesWithoutUndo();
         }
 
         // Read through serialization, so the kit grows no member for the preview.

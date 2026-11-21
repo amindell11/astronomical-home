@@ -12,6 +12,9 @@ namespace Ships.Keystones.Tells
         [Tooltip("Playback rate of the whole effect. 1 is the baked timing.")]
         [SerializeField, Min(0.1f)] private float speed = 1f;
 
+        [Tooltip("How much the effect narrows as the ship banks. 1 matches the hull; higher exaggerates.")]
+        [SerializeField, Range(0f, 4f)] private float bankNarrowing = 1f;
+
         [Tooltip("Rate the sheets were baked at.")]
         [SerializeField] private float framesPerSecond = 60f;
 
@@ -19,6 +22,7 @@ namespace Ships.Keystones.Tells
 
         public float Scale => scale;
         public float Speed => speed;
+        public float BankNarrowing => bankNarrowing;
         public float FramesPerSecond => framesPerSecond;
         public Layer[] Layers => layers;
 
