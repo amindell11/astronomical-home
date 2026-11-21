@@ -309,8 +309,8 @@ namespace UI.Hangar.Hardware
                 var span = glow.size + Vector2.one * lightProfile.OverheadGlowSize;
                 ApplyGlow(glow, glow.color * lightProfile.OverheadGlow, new Vector3(span.x, span.y, 1f));
             }
-            ApplyGlow(lensGlow, lensGlow.color * lightProfile.LensGlow * projector.Level,
-                Vector3.one * lightProfile.LensGlowSize);
+            ApplyGlow(lensGlow, projector.BeamColor * lightProfile.LensGlow * projector.Level,
+                new Vector3(lightProfile.LensGlowSize, lightProfile.LensGlowSize * .45f, 1f));
         }
 
         private int AddLight(int index, HangarLight light)

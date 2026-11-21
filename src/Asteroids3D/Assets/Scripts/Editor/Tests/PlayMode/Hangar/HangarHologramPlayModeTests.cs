@@ -30,6 +30,10 @@ namespace Tests.PlayMode.Hangar
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
         private static readonly int OpacityId = Shader.PropertyToID("_Opacity");
         private static readonly int MainTexId = Shader.PropertyToID("_MainTex");
+        private static readonly int ReachApexId = Shader.PropertyToID("_ReachApex");
+        private static readonly int ReachAngleId = Shader.PropertyToID("_ReachAngle");
+        private static readonly int ReachLengthId = Shader.PropertyToID("_ReachLength");
+        private static readonly int ApexId = Shader.PropertyToID("_Apex");
 
         private HangarHologramProfile profile;
         private HangarHologramProfile runtimeProfile;
@@ -145,20 +149,45 @@ namespace Tests.PlayMode.Hangar
             Assert.That(coneAnchor.childCount, Is.EqualTo(1), "one cone sits under the anchor");
             var root = coneAnchor.GetChild(0);
             Assert.That(cone.Select(r => r.transform.IsChildOf(root)), Is.All.True, "every cone renderer is the cone's");
-            Assert.That(Vector3.Distance(root.position, console.ProjectorLens.transform.position), Is.LessThan(.01f));
+            Assert.That(Vector3.Distance(coneAnchor.position, console.ProjectorLens.transform.position), Is.LessThan(.01f));
 
-            var side = wiring.FindProperty("surfaceSize").vector2Value.x * projector.Frame.width;
+            var bottom = coneAnchor.InverseTransformPoint(root.TransformPoint(Vector3.zero));
+            var top = coneAnchor.InverseTransformPoint(root.TransformPoint(Vector3.up));
+            Assert.That(bottom.y, Is.LessThan(0f), "the quad's bottom edge lies below the lens");
+            Assert.That(top.y, Is.EqualTo(profile.ReachLength).Within(1e-3f),
+                "the quad's top sits reachLength above the lens");
+
+            var block = new MaterialPropertyBlock();
+            cone[0].GetPropertyBlock(block);
+            var apex = block.GetVector(ApexId);
+            var atLens = coneAnchor.InverseTransformPoint(root.TransformPoint(new Vector3(apex.x - .5f, apex.y, 0f)));
+            Assert.That(atLens.magnitude, Is.LessThan(1e-3f), "the apex maps back to the lens");
+        }
+
+        [UnityTest]
+        public IEnumerator Surface_CarriesTheReach_FromTheLens()
+        {
+            var projector = Object.Instantiate(AssetDatabase.LoadAssetAtPath<HangarHologramProjector>(ProjectorPath));
+            instance = projector.gameObject;
+            var valis = AssetDatabase.LoadAssetAtPath<Ship>(ValisPath);
+            projector.Open(new[] { valis }, valis);
+            yield return null;
+
+            using var wiring = new SerializedObject(projector);
+            var bound = (HangarHologramProfile)wiring.FindProperty("profile").objectReferenceValue;
+            var surfaceSize = wiring.FindProperty("surfaceSize").vector2Value;
             var frameOffset = wiring.FindProperty("frameOffset").vector2Value;
-            Assert.That(Vector3.Distance(root.localScale, new Vector3(2f * side, frameOffset.y + side * .5f, 1f)),
-                Is.LessThan(1e-4f), "the cone stretches from the lens to the settled ship");
-
-            var beam = cone[0].bounds;
-            foreach (var r in cone) beam.Encapsulate(r.bounds);
-            var frame = projector.Frame;
-            var frameTop = surface.transform.TransformPoint(new Vector3(frame.center.x - .5f, frame.yMax - .5f, 0f));
-            var camera = console.HardwareCamera;
-            Assert.That(camera.WorldToScreenPoint(new Vector3(beam.center.x, beam.max.y, beam.center.z)).y,
-                Is.LessThan(camera.WorldToScreenPoint(frameTop).y), "the cone's top sits below the frame's top");
+            var frameBottom = wiring.FindProperty("frameBottom").floatValue;
+            var surface = (Renderer)wiring.FindProperty("surface").objectReferenceValue;
+            var apex = new Vector2(
+                -frameOffset.x / surfaceSize.x + .5f,
+                -frameOffset.y / surfaceSize.y + frameBottom);
+            var block = new MaterialPropertyBlock();
+            surface.GetPropertyBlock(block);
+            var got = block.GetVector(ReachApexId);
+            Assert.That(Vector2.Distance(new Vector2(got.x, got.y), apex), Is.LessThan(1e-3f));
+            Assert.That(block.GetFloat(ReachAngleId), Is.EqualTo(bound.ReachHalfAngle * Mathf.Deg2Rad).Within(1e-4f));
+            Assert.That(block.GetFloat(ReachLengthId), Is.EqualTo(bound.ReachLength).Within(1e-4f));
         }
 
         [UnityTest]

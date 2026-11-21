@@ -2,17 +2,21 @@ Shader "Astronomical/Hangar/Projector Cone"
 {
     Properties
     {
-        _ConeColor ("Cone Color", Color) = (1,0.886,0.69,1)
-        _ConeLight ("Cone Light", Range(0,1.5)) = 0.5
-        _BaseWidth ("Width At Lens (Frame Sides)", Range(0.02,0.5)) = 0.14
-        _TopWidth ("Width At Ship (Frame Sides)", Range(0.05,1)) = 0.35
-        _Reach ("Reach Toward Ship", Range(0.3,1)) = 0.85
-        _Falloff ("Fade On The Way Up", Range(0.2,4)) = 1.1
-        _EdgeSoftness ("Edge Softness", Range(0.02,1)) = 0.4
-        _Rays ("Rays", Range(0,1)) = 0.3
-        _LensGlow ("Lens Glow", Range(0,2)) = 0.7
-        [PerRendererData] _Lean ("Lean (Frame Sides)", Float) = 0
+        [PerRendererData] _ConeColor ("Cone Color", Color) = (1, 0.886, 0.69, 1)
+        [PerRendererData] _ConeLight ("Cone Light", Range(0, 3)) = 0.6
         [PerRendererData] _Level ("Flicker Level", Float) = 1
+        [PerRendererData] _Apex ("Apex", Vector) = (0.5, 0, 0, 0)
+        [PerRendererData] _QuadUnits ("Quad Units", Vector) = (1, 1, 0, 0)
+        [PerRendererData] _Axis ("Axis", Vector) = (0, 1, 0, 0)
+        [PerRendererData] _Angle ("Angle", Float) = 0.96
+        [PerRendererData] _Length ("Length", Float) = 12
+        [PerRendererData] _Softness ("Softness", Range(0.01, 0.5)) = 0.18
+        _Falloff ("Fade With Distance", Range(0.2, 4)) = 1.4
+        _CentreBias ("Centre Bias", Range(0, 4)) = 1.5
+        _Rays ("Rays", Range(0, 1)) = 0.7
+        _RayCount ("Ray Count", Range(4, 120)) = 46
+        _RayDrift ("Ray Drift", Range(0, 2)) = 0.25
+        _BaseFade ("Base Fade", Range(0, 3)) = 0.6
     }
     SubShader
     {
@@ -31,8 +35,20 @@ Shader "Astronomical/Hangar/Projector Cone"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             CBUFFER_START(UnityPerMaterial)
                 half4 _ConeColor;
-                half _ConeLight, _BaseWidth, _TopWidth, _Reach, _Falloff, _EdgeSoftness, _Rays, _LensGlow;
-                half _Lean, _Level;
+                half _ConeLight;
+                half _Level;
+                float4 _Apex;
+                float4 _QuadUnits;
+                float4 _Axis;
+                float _Angle;
+                float _Length;
+                float _Softness;
+                half _Falloff;
+                half _CentreBias;
+                half _Rays;
+                half _RayCount;
+                half _RayDrift;
+                half _BaseFade;
             CBUFFER_END
             struct ConeInput
             {
@@ -43,17 +59,12 @@ Shader "Astronomical/Hangar/Projector Cone"
             {
                 float4 positionCS : SV_POSITION;
                 float2 uv : TEXCOORD0;
-                float aspect : TEXCOORD1;
             };
             ConeOutput ConeVertex(ConeInput input)
             {
                 ConeOutput output;
                 output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
                 output.uv = input.uv;
-                // The quad is two frame sides wide; this is its height in frame sides.
-                float3 right = float3(UNITY_MATRIX_M[0][0], UNITY_MATRIX_M[1][0], UNITY_MATRIX_M[2][0]);
-                float3 up = float3(UNITY_MATRIX_M[0][1], UNITY_MATRIX_M[1][1], UNITY_MATRIX_M[2][1]);
-                output.aspect = length(up) / max(0.5 * length(right), 0.0001);
                 return output;
             }
             float Hash(float2 p)
@@ -69,20 +80,22 @@ Shader "Astronomical/Hangar/Projector Cone"
             }
             half4 ConeFragment(ConeOutput input) : SV_Target
             {
-                float t = input.uv.y;
-                float across = (input.uv.x - 0.5) * 2.0;
-                float along = saturate(t / _Reach);
-                float halfWidth = lerp(_BaseWidth, _TopWidth, along) * 0.5;
-                float u = (across - _Lean * t) / halfWidth;
-                float d = abs(u);
-                float side = 1.0 - smoothstep(1.0 - _EdgeSoftness, 1.0, d);
-                float rise = pow(1.0 - along, _Falloff) * smoothstep(0.0, 0.03, t) * step(t, _Reach);
-                float clock = _Time.y;
-                float streaks = 0.55 + 0.45 * sin(u * 23.0 + Noise(u * 9.0 + clock * 0.35) * 6.0)
-                    * Noise(u * 5.0 - clock * 0.2 + 3.0);
-                float beam = _ConeLight * side * rise * lerp(1.0, streaks, _Rays) * (0.75 + 0.25 * (1.0 - saturate(d * d)));
-                float2 glow = float2(across / (_BaseWidth * 0.9), t * input.aspect / (_BaseWidth * 0.58));
-                beam += _LensGlow * 0.5 * exp(-dot(glow, glow) * 1.6);
+                float2 p = (input.uv - _Apex.xy) * _QuadUnits.xy;
+                float2 axis = _Axis.xy;
+                if (dot(p, axis) < 0.0)
+                    return half4(0.0, 0.0, 0.0, 0.0);
+                float r = length(p);
+                float a = atan2(axis.x * p.y - axis.y * p.x, dot(p, axis));
+                float edge = 1.0 - smoothstep(_Angle * (1.0 - _Softness), _Angle, abs(a));
+                float along = saturate(r / _Length);
+                float fall = pow(1.0 - along, _Falloff);
+                float centre = pow(saturate(cos(a * 1.5707963 / _Angle)), _CentreBias);
+                float n1 = Noise(a * _RayCount + _Time.y * _RayDrift);
+                float n2 = Noise(a * _RayCount * 2.7 - _Time.y * _RayDrift * 1.7 + 11.0);
+                float rays = lerp(1.0, saturate(n1 * 1.4 - 0.2) * (0.6 + 0.4 * n2), _Rays);
+                rays = lerp(1.0, rays, saturate(r / (_Length * 0.35)));
+                float base = smoothstep(0.0, _BaseFade, r);
+                float beam = _ConeLight * edge * fall * lerp(0.35, 1.0, centre) * rays * base;
                 return half4(_ConeColor.rgb * beam * _Level, 0.0);
             }
             ENDHLSL
