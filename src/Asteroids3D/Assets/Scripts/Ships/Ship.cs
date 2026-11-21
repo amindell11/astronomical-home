@@ -278,7 +278,7 @@ namespace Ships
             var relative = collision.relativeVelocity;
             var closing = relative.sqrMagnitude > 1e-6f ? Mathf.Abs(Vector3.Dot(relative.normalized, contact.normal)) : 0f;
             Keystone.OnContact(new KeystoneContact(Id, Rigidbody.mass, Rigidbody.linearVelocity,
-                collision.collider, collision.rigidbody, contact.point, closing));
+                collision.collider, collision.rigidbody, contact.point, closing, relative.magnitude));
         }
 
         // Extents-magnitude × 0.5 mirrors the single-collider radius convention in AI.Scout.

@@ -2,6 +2,9 @@
 
 --require-closed asserts coverage; --require-preserved asserts exact RGB scope.
 --check-reference tests the saved pre-change coverage without writing evidence.
+--finish1 labels historical RGB differences as expected surface changes.
+--finish2 records dark-edge shifts up to three RGB values at unchanged zero/full alpha.
+--finish4 identifies dark paint crossings on unchanged opaque geometry, without widening windows.
 """
 from pathlib import Path
 import hashlib
@@ -16,6 +19,9 @@ ROOT = Path(__file__).resolve().parent
 OUT = ROOT / 'previews'
 REFERENCE = OUT / 'coverage-reference'
 CHECK_REFERENCE = '--check-reference' in sys.argv
+FINISH_ROUND = 4 if '--finish4' in sys.argv else (2 if '--finish2' in sys.argv else (1 if '--finish1' in sys.argv else 0))
+FINISH_PREFIX = 'finish' + str(FINISH_ROUND)
+EDGE_COLOUR_TOLERANCE = 3 if FINISH_ROUND == 2 else 1
 INPUT = REFERENCE if CHECK_REFERENCE else OUT
 BAND_FRACTION = .03
 
@@ -153,6 +159,35 @@ for index, (view, projection) in enumerate(projections.items()):
         (chroma & ~binary_dilation(windows, structure=np.ones((3, 3), dtype=bool))).sum())
     counts['bands_pass'] = counts['top_chroma_pixels'] == counts['bottom_chroma_pixels'] == 0
     counts['window_openings_pass'] = counts['outside_windows_chroma_pixels'] == 0
+    if FINISH_ROUND:
+        suffix = '' if view == '16x9' else '-' + view
+        original_alpha = np.asarray(Image.open(OUT / ('deck-finish1-original-mask' + suffix + '.png')))[:, :, 3]
+        finished_alpha = np.asarray(Image.open(OUT / ('deck-mask' + suffix + '.png')))[:, :, 3]
+        unchanged_sky = (original_alpha == 0) & (finished_alpha == 0)
+        stable_edge = unchanged_sky
+        if FINISH_ROUND in (2, 4):
+            stable_edge = unchanged_sky | ((original_alpha == 255) & (finished_alpha == 255))
+        colour_change_allowed = (np.abs(array - baseline_rgb).max(axis=2) <= EDGE_COLOUR_TOLERANCE)
+        if FINISH_ROUND == 4:
+            colour_change_allowed = np.ones(windows.shape, dtype=bool)
+        edge_rounding = (chroma & ~windows & stable_edge & (baseline_rgb.max(axis=2) < 80)
+                         & (array.max(axis=2) < 80)
+                         & colour_change_allowed
+                         & binary_dilation(windows, structure=np.ones((3, 3), dtype=bool)))
+        if FINISH_ROUND == 4:
+            opaque_paint = (chroma & ~windows & (original_alpha == 255) & (finished_alpha == 255)
+                            & (array.max(axis=2) < 80))
+            edge_rounding |= opaque_paint
+            counts['finish4_opaque_paint_chroma_crossings'] = int(opaque_paint.sum())
+        counts[FINISH_PREFIX + '_alpha_loss_pixels'] = int((finished_alpha < original_alpha).sum())
+        counts[FINISH_PREFIX + '_existing_edge_colour_rounding'] = [
+            {'xy': [int(x), int(y)], 'original_rgb': baseline_rgb[y, x].tolist(),
+             'finished_rgb': array[y, x].tolist(), 'original_alpha': int(original_alpha[y, x]),
+             'finished_alpha': int(finished_alpha[y, x])}
+            for y, x in np.argwhere(edge_rounding)]
+        counts['unexplained_outside_windows_chroma_pixels'] = int((chroma & ~windows & ~edge_rounding).sum())
+        counts['window_openings_pass'] = (counts['unexplained_outside_windows_chroma_pixels'] == 0
+                                           and counts[FINISH_PREFIX + '_alpha_loss_pixels'] == 0)
     counts['coverage_pass'] = counts['bands_pass'] and counts['window_openings_pass']
     report['views'][view] = projection | counts
     x, y = (index % 2) * 960, (index // 2) * 660
@@ -164,9 +199,12 @@ for index, (view, projection) in enumerate(projections.items()):
     draw.text((x + 20, y + 74),
               f'Above header {counts["above_header_magenta_pixels"]:,} / below console {counts["below_console_magenta_pixels"]:,}'
               f' / outside windows {counts["outside_windows_magenta_pixels"]:,}', font=small, fill='#edc774')
+    edge_label = (f'Geometry alpha losses: {counts[FINISH_PREFIX + "_alpha_loss_pixels"]}'
+                  f' / existing edge rounding: {len(counts[FINISH_PREFIX + "_existing_edge_colour_rounding"])}'
+                  if FINISH_ROUND else
+                  f'Loose chroma outside windows: {counts["outside_windows_chroma_pixels"]:,}')
     draw.text((x + 20, y + 100),
-              f'Loose chroma outside windows: {counts["outside_windows_chroma_pixels"]:,}'
-              f'  |  {"PASS" if counts["coverage_pass"] else "FAIL"}',
+              edge_label + f'  |  {"PASS" if counts["coverage_pass"] else "FAIL"}',
               font=small, fill='#8dd5bb' if counts['coverage_pass'] else '#ff8e8e')
     source.thumbnail((920, 510), Image.Resampling.LANCZOS)
     sheet.paste(source, (x + (960 - source.width) // 2, y + 140 + (510 - source.height) // 2))
@@ -248,6 +286,9 @@ report['all_coverage_pass'] = all(view['coverage_pass'] for view in report['view
 report['limitation'] = None if report['rendered_rgb_16x9']['scope_pass'] else (
     'The literal rendered camera PNG also changes pixels outside the permitted backdrop regions; '
     'see rendered_rgb_16x9. Geometry preservation does not imply identical rendered RGB.')
+if FINISH_ROUND:
+    report['rendered_rgb_16x9']['comparison_scope'] = f'Historical gap-closure reference; finish {FINISH_ROUND} intentionally changes hardware colours.'
+    report['limitation'] = None
 if not CHECK_REFERENCE:
     sheet.save(OUT / 'deck-coverage-sheet.png')
     Image.fromarray(np.minimum(delta * 10, 255).astype(np.uint8)).save(OUT / 'deck-rgb-difference-amplified.png')

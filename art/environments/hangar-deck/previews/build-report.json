@@ -3,14 +3,14 @@
     {
       "name": "Deck | joined closed structure",
       "role": "ConsoleBody",
-      "triangles": 6928,
-      "vertices": 3444,
+      "triangles": 19496,
+      "vertices": 10386,
       "closed": true,
       "manifold": true,
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 4090.7027101418635,
+      "volume": 4098.849547422525,
       "planar_screen": false,
       "zero_area_faces": 0
     },
@@ -295,7 +295,7 @@
       "zero_area_faces": 0
     },
     {
-      "name": "Deck | left pod cyan strip",
+      "name": "Deck | Left status 1 green lens",
       "role": "ConsoleBody",
       "triangles": 28,
       "vertices": 16,
@@ -304,12 +304,12 @@
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 0.007327800839343698,
+      "volume": 7.045833441139088e-05,
       "planar_screen": false,
       "zero_area_faces": 0
     },
     {
-      "name": "Deck | left strut cyan strip",
+      "name": "Deck | Left status 2 green lens",
       "role": "ConsoleBody",
       "triangles": 28,
       "vertices": 16,
@@ -318,12 +318,12 @@
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 0.00046530001362562166,
+      "volume": 7.045833441139088e-05,
       "planar_screen": false,
       "zero_area_faces": 0
     },
     {
-      "name": "Deck | right pod cyan strip",
+      "name": "Deck | Left status 3 amber lens",
       "role": "ConsoleBody",
       "triangles": 28,
       "vertices": 16,
@@ -332,12 +332,12 @@
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 0.007327800839343698,
+      "volume": 7.045833441139088e-05,
       "planar_screen": false,
       "zero_area_faces": 0
     },
     {
-      "name": "Deck | right strut cyan strip",
+      "name": "Deck | Right status 1 green lens",
       "role": "ConsoleBody",
       "triangles": 28,
       "vertices": 16,
@@ -346,54 +346,298 @@
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 0.00046530001362562166,
+      "volume": 7.045833441139088e-05,
       "planar_screen": false,
       "zero_area_faces": 0
     },
     {
-      "name": "Deck | header cyan strip -8.6",
+      "name": "Deck | Right status 2 green lens",
       "role": "ConsoleBody",
-      "triangles": 12,
-      "vertices": 8,
+      "triangles": 28,
+      "vertices": 16,
       "closed": true,
       "manifold": true,
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 0.0021612499028071767,
+      "volume": 7.045833441139088e-05,
       "planar_screen": false,
       "zero_area_faces": 0
     },
     {
-      "name": "Deck | header cyan strip 0",
+      "name": "Deck | Right status 3 amber lens",
       "role": "ConsoleBody",
-      "triangles": 12,
-      "vertices": 8,
+      "triangles": 28,
+      "vertices": 16,
       "closed": true,
       "manifold": true,
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 0.0021612499028071767,
+      "volume": 7.045833441139088e-05,
       "planar_screen": false,
       "zero_area_faces": 0
     },
     {
-      "name": "Deck | header cyan strip 8.6",
+      "name": "Deck | Left Launch armed red lens",
       "role": "ConsoleBody",
-      "triangles": 12,
-      "vertices": 8,
+      "triangles": 28,
+      "vertices": 16,
       "closed": true,
       "manifold": true,
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 0.0021612499028071767,
+      "volume": 0.0006465000375807293,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Deck | Right Launch armed red lens",
+      "role": "ConsoleBody",
+      "triangles": 28,
+      "vertices": 16,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 0.0006465000375807293,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Deck | Header downlight 01 cold white lens",
+      "role": "ConsoleBody",
+      "triangles": 28,
+      "vertices": 16,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 0.018954101286216815,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Deck | Header downlight 02 cold white lens",
+      "role": "ConsoleBody",
+      "triangles": 28,
+      "vertices": 16,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 0.018954101286216815,
       "planar_screen": false,
       "zero_area_faces": 0
     }
   ],
-  "triangles": 8180,
+  "triangles": 20880,
+  "lamps": [
+    {
+      "name": "Deck | Left status 1 green lens",
+      "anchor": "Left status 1 green lens",
+      "position": [
+        -3.922534942626953,
+        -1.8565412759780884,
+        1.8196005821228027
+      ],
+      "size": [
+        0.05999999865889549,
+        0.04749999940395355,
+        0.030000001192092896
+      ],
+      "color": [
+        0.02500000037252903,
+        0.699999988079071,
+        0.054999999701976776
+      ],
+      "downlight": false
+    },
+    {
+      "name": "Deck | Left status 2 green lens",
+      "anchor": "Left status 2 green lens",
+      "position": [
+        -3.6568851470947266,
+        -1.8893375396728516,
+        1.855020523071289
+      ],
+      "size": [
+        0.05999999865889549,
+        0.04749999940395355,
+        0.030000001192092896
+      ],
+      "color": [
+        0.02500000037252903,
+        0.699999988079071,
+        0.054999999701976776
+      ],
+      "downlight": false
+    },
+    {
+      "name": "Deck | Left status 3 amber lens",
+      "anchor": "Left status 3 amber lens",
+      "position": [
+        -3.3912353515625,
+        -1.9221338033676147,
+        1.8904404640197754
+      ],
+      "size": [
+        0.05999999865889549,
+        0.04749999940395355,
+        0.030000001192092896
+      ],
+      "color": [
+        0.44999998807907104,
+        0.7200000286102295,
+        1.0
+      ],
+      "downlight": false
+    },
+    {
+      "name": "Deck | Right status 1 green lens",
+      "anchor": "Right status 1 green lens",
+      "position": [
+        3.3912353515625,
+        -1.9221338033676147,
+        1.8904404640197754
+      ],
+      "size": [
+        0.05999999865889549,
+        0.04749999940395355,
+        0.030000001192092896
+      ],
+      "color": [
+        0.02500000037252903,
+        0.699999988079071,
+        0.054999999701976776
+      ],
+      "downlight": false
+    },
+    {
+      "name": "Deck | Right status 2 green lens",
+      "anchor": "Right status 2 green lens",
+      "position": [
+        3.6568851470947266,
+        -1.8893375396728516,
+        1.855020523071289
+      ],
+      "size": [
+        0.05999999865889549,
+        0.04749999940395355,
+        0.030000001192092896
+      ],
+      "color": [
+        0.02500000037252903,
+        0.699999988079071,
+        0.054999999701976776
+      ],
+      "downlight": false
+    },
+    {
+      "name": "Deck | Right status 3 amber lens",
+      "anchor": "Right status 3 amber lens",
+      "position": [
+        3.922534942626953,
+        -1.8565412759780884,
+        1.8196005821228027
+      ],
+      "size": [
+        0.05999999865889549,
+        0.04749999940395355,
+        0.030000001192092896
+      ],
+      "color": [
+        0.44999998807907104,
+        0.7200000286102295,
+        1.0
+      ],
+      "downlight": false
+    },
+    {
+      "name": "Deck | Left Launch armed red lens",
+      "anchor": "Left Launch armed red lens",
+      "position": [
+        -1.4299999475479126,
+        -3.8983848094940186,
+        1.3203129768371582
+      ],
+      "size": [
+        0.15000000596046448,
+        0.1599999964237213,
+        0.030000001192092896
+      ],
+      "color": [
+        1.0,
+        0.02500000037252903,
+        0.00800000037997961
+      ],
+      "downlight": false
+    },
+    {
+      "name": "Deck | Right Launch armed red lens",
+      "anchor": "Right Launch armed red lens",
+      "position": [
+        1.4299999475479126,
+        -3.8983848094940186,
+        1.3203129768371582
+      ],
+      "size": [
+        0.15000000596046448,
+        0.1599999964237213,
+        0.030000001192092896
+      ],
+      "color": [
+        1.0,
+        0.02500000037252903,
+        0.00800000037997961
+      ],
+      "downlight": false
+    },
+    {
+      "name": "Deck | Header downlight 01 cold white lens",
+      "anchor": "Header downlight 01 cold white lens",
+      "position": [
+        -3.200000047683716,
+        3.6350557804107666,
+        9.968435287475586
+      ],
+      "size": [
+        5.400000095367432,
+        0.1599999964237213,
+        0.02200000174343586
+      ],
+      "color": [
+        0.2800000011920929,
+        0.36000001430511475,
+        0.47999998927116394
+      ],
+      "downlight": true
+    },
+    {
+      "name": "Deck | Header downlight 02 cold white lens",
+      "anchor": "Header downlight 02 cold white lens",
+      "position": [
+        3.200000047683716,
+        3.6350557804107666,
+        9.968435287475586
+      ],
+      "size": [
+        5.400000095367432,
+        0.1599999964237213,
+        0.02200000174343586
+      ],
+      "color": [
+        0.2800000011920929,
+        0.36000001430511475,
+        0.47999998927116394
+      ],
+      "downlight": true
+    }
+  ],
   "parts": {
     "MainScreenGlass": "07 | Main rectangular display",
     "DetailScreenGlass": "07 | Detail rectangular display",
@@ -1233,14 +1477,18 @@
   "departures": [
     "Pod faces stay at -0.10; unchanged glass outlines sit at -0.20 in 45-degree charcoal recesses, without raised lips.",
     "Mirrored upper inner housing chamfers follow the screen slope; the rear shell follows the same outline without the old notch.",
-    "Hidden band undersides, pod cavity walls, joined heels and ramp returns close the open massing.",
+    "Hidden band undersides, pod cavity walls, flush pod bases and deep control surrounds close the open massing.",
     "Weapon keys retain their exact visible tops; their surrounding wells provide real depth.",
-    "Pedestal dark riser strips omitted as surface detail reserved for slice 2.",
     "Thin inlaid key chevrons and launch lettering added as required moving legends.",
     "Camera uses old console AUTO sensor, 36 x 24 mm and 33 mm lens: vertical FOV 34.113931 degrees.",
     "Ship, selector and launch well floors are -.125 in their local frames to clear existing press travel.",
     "Raised housing skirts terminate inside the band front return; eight decorative switches extend invisibly into their well floors.",
     "Well cutter mouths expand 0.3 percent to prevent coincident edges at the bevel boundary.",
-    "Header, pod shoulders, band and canopy side walls continue to X = +/-27 for wide cameras."
+    "Header, pod shoulders, band and canopy side walls continue to X = +/-27 for wide cameras.",
+    "Finish detail uses closed shallow solids joined into ConsoleBody; original controls and glasses are unchanged.",
+    "Cool stencils and local scuffs use flat material geometry, without textures or linked colour nodes.",
+    "Two dim header strips replace the six spotlights and seven structural dashes; named lenses provide exporter lamp anchors.",
+    "Header strip troughs replace the four central underside vents and cut through the retained cassettes.",
+    "Amber brow and centre lamps with their sockets and launch caution chevrons are removed; guard rails remain."
   ]
 }

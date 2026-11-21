@@ -1,0 +1,367 @@
+{
+  "checks": {
+    "unrelated_objects_exact": true,
+    "unrelated_materials_exact": true,
+    "only_requested_object_changes": true,
+    "no_structural_dashes": true,
+    "linesets_exact": true,
+    "glass_shader_exact": true,
+    "closed_solids": true,
+    "clean_meshes": true,
+    "exactly_two_downlights": true,
+    "lens_contract": true,
+    "fully_visible_lenses": true,
+    "mirrored_lenses": true
+  },
+  "preserved_objects": {
+    "25 | Viewport glass": true,
+    "19 | Vanguard preview swept wing envelope": true,
+    "19 | Vanguard preview wing perimeter": true,
+    "19 | Vanguard preview raised fuselage": true,
+    "19 | Vanguard preview fuselage ridge": true,
+    "19 | Vanguard preview fuselage ridge.001": true,
+    "19 | Vanguard preview tail fin": true,
+    "19 | Vanguard preview fin edges": true,
+    "19 | Vanguard preview tail fin.001": true,
+    "19 | Vanguard preview fin edges.001": true,
+    "11 | Neutral projector frustum": true,
+    "19 | Distant space": true,
+    "07 Camera - perspective": true,
+    "D10 | three quarter": true,
+    "D10 | TOP orthographic": true,
+    "D10 | SIDE orthographic": true,
+    "D10 | FRONT orthographic from viewer": true,
+    "Key | centred in front of all screens": true,
+    "07 | Main rectangular display": true,
+    "07 | Detail rectangular display": true,
+    "30 | Primary blank glass": true,
+    "30 | Ordnance blank glass": true,
+    "08 | Previous chunky keycap": true,
+    "08 | Previous inlaid chevron": true,
+    "08 | Next chunky keycap": true,
+    "08 | Next inlaid chevron": true,
+    "08 | Selector faceted grip": true,
+    "08 | Launch broad beveled button": true,
+    "19 | Launch legend": true,
+    "30 | Primary Previous key": true,
+    "30 | Primary Previous ivory inlay": true,
+    "30 | Primary Next key": true,
+    "30 | Primary Next ivory inlay": true,
+    "30 | Ordnance Previous key": true,
+    "30 | Ordnance Previous ivory inlay": true,
+    "30 | Ordnance Next key": true,
+    "30 | Ordnance Next ivory inlay": true,
+    "09 | Projector lens": true,
+    "Deck | Left status 1 green lens": true,
+    "Deck | Left status 2 green lens": true,
+    "Deck | Left status 3 amber lens": true,
+    "Deck | Right status 1 green lens": true,
+    "Deck | Right status 2 green lens": true,
+    "Deck | Right status 3 amber lens": true,
+    "Deck | Left Launch armed red lens": true,
+    "Deck | Right Launch armed red lens": true
+  },
+  "preserved_materials": {
+    "Deck | armed red emission": true,
+    "Deck | blue grey front": true,
+    "Deck | charcoal wells and bezels": true,
+    "Deck | cold blue-white structural accents": true,
+    "Deck | cool grey controls": true,
+    "Deck | cool upper planes": true,
+    "Deck | darker service plate": true,
+    "Deck | deep ink blue": true,
+    "Deck | emissive cyan accents": true,
+    "Deck | ivory inlaid legends": true,
+    "Deck | lightly rubbed paint": true,
+    "Deck | muted service stencils": true,
+    "Deck | orange launch resin": true,
+    "Deck | placeholder emissive blue": true,
+    "Deck | secondary satin blue plate": true,
+    "Deck | slate chamfers": true,
+    "Deck | status amber emission": true,
+    "Deck | status green emission": true
+  },
+  "lamps": [
+    {
+      "name": "Deck | Header downlight 01 cold white lens",
+      "position": [
+        -3.200000047683716,
+        3.6350557804107666,
+        9.968435287475586
+      ],
+      "size": [
+        5.400000095367432,
+        0.1599999964237213,
+        0.02200000174343586
+      ],
+      "linear_color": [
+        0.2800000011920929,
+        0.36000001430511475,
+        0.47999998927116394
+      ],
+      "strength": 0.6499999761581421,
+      "unlinked_emission": true,
+      "pixel_bounds": [
+        [
+          469.92650985717773,
+          916.1968231201172
+        ],
+        [
+          72.393057346344,
+          77.02939510345459
+        ]
+      ],
+      "visibility_failures": []
+    },
+    {
+      "name": "Deck | Header downlight 02 cold white lens",
+      "position": [
+        3.200000047683716,
+        3.6350557804107666,
+        9.968435287475586
+      ],
+      "size": [
+        5.400000095367432,
+        0.1599999964237213,
+        0.02200000174343586
+      ],
+      "linear_color": [
+        0.2800000011920929,
+        0.36000001430511475,
+        0.47999998927116394
+      ],
+      "strength": 0.6499999761581421,
+      "unlinked_emission": true,
+      "pixel_bounds": [
+        [
+          1003.8031768798828,
+          1450.0735473632812
+        ],
+        [
+          72.393057346344,
+          77.02939510345459
+        ]
+      ],
+      "visibility_failures": []
+    }
+  ],
+  "meshes": [
+    {
+      "name": "Deck | joined closed structure",
+      "planar": false,
+      "closed": true,
+      "volume": 4098.849547422525,
+      "clean": true
+    },
+    {
+      "name": "07 | Main rectangular display",
+      "planar": true,
+      "closed": false,
+      "volume": -0.8290000092933572,
+      "clean": true
+    },
+    {
+      "name": "07 | Detail rectangular display",
+      "planar": true,
+      "closed": false,
+      "volume": -0.19520000403722126,
+      "clean": true
+    },
+    {
+      "name": "30 | Primary blank glass",
+      "planar": true,
+      "closed": false,
+      "volume": -0.4323333450853826,
+      "clean": true
+    },
+    {
+      "name": "30 | Ordnance blank glass",
+      "planar": true,
+      "closed": false,
+      "volume": -0.4480000124772392,
+      "clean": true
+    },
+    {
+      "name": "08 | Previous chunky keycap",
+      "planar": false,
+      "closed": true,
+      "volume": 0.021927951189869257,
+      "clean": true
+    },
+    {
+      "name": "08 | Previous inlaid chevron",
+      "planar": false,
+      "closed": true,
+      "volume": 4.879999816194167e-05,
+      "clean": true
+    },
+    {
+      "name": "08 | Next chunky keycap",
+      "planar": false,
+      "closed": true,
+      "volume": 0.021927951189869257,
+      "clean": true
+    },
+    {
+      "name": "08 | Next inlaid chevron",
+      "planar": false,
+      "closed": true,
+      "volume": 4.879999816194168e-05,
+      "clean": true
+    },
+    {
+      "name": "08 | Selector faceted grip",
+      "planar": false,
+      "closed": true,
+      "volume": 0.0832320034747843,
+      "clean": true
+    },
+    {
+      "name": "08 | Launch broad beveled button",
+      "planar": false,
+      "closed": true,
+      "volume": 0.13187254790354225,
+      "clean": true
+    },
+    {
+      "name": "19 | Launch legend",
+      "planar": false,
+      "closed": true,
+      "volume": 0.00013704800418954093,
+      "clean": true
+    },
+    {
+      "name": "30 | Primary Previous key",
+      "planar": false,
+      "closed": true,
+      "volume": 0.016431200721389937,
+      "clean": true
+    },
+    {
+      "name": "30 | Primary Previous ivory inlay",
+      "planar": false,
+      "closed": true,
+      "volume": 4.880000952407745e-05,
+      "clean": true
+    },
+    {
+      "name": "30 | Primary Next key",
+      "planar": false,
+      "closed": true,
+      "volume": 0.016431200721389937,
+      "clean": true
+    },
+    {
+      "name": "30 | Primary Next ivory inlay",
+      "planar": false,
+      "closed": true,
+      "volume": 4.880000952407743e-05,
+      "clean": true
+    },
+    {
+      "name": "30 | Ordnance Previous key",
+      "planar": false,
+      "closed": true,
+      "volume": 0.016431200721389937,
+      "clean": true
+    },
+    {
+      "name": "30 | Ordnance Previous ivory inlay",
+      "planar": false,
+      "closed": true,
+      "volume": 4.880000952407745e-05,
+      "clean": true
+    },
+    {
+      "name": "30 | Ordnance Next key",
+      "planar": false,
+      "closed": true,
+      "volume": 0.016431200721389937,
+      "clean": true
+    },
+    {
+      "name": "30 | Ordnance Next ivory inlay",
+      "planar": false,
+      "closed": true,
+      "volume": 4.880000952407743e-05,
+      "clean": true
+    },
+    {
+      "name": "09 | Projector lens",
+      "planar": false,
+      "closed": true,
+      "volume": 0.013867500521358168,
+      "clean": true
+    },
+    {
+      "name": "Deck | Left status 1 green lens",
+      "planar": false,
+      "closed": true,
+      "volume": 7.045833441139088e-05,
+      "clean": true
+    },
+    {
+      "name": "Deck | Left status 2 green lens",
+      "planar": false,
+      "closed": true,
+      "volume": 7.045833441139088e-05,
+      "clean": true
+    },
+    {
+      "name": "Deck | Left status 3 amber lens",
+      "planar": false,
+      "closed": true,
+      "volume": 7.045833441139088e-05,
+      "clean": true
+    },
+    {
+      "name": "Deck | Right status 1 green lens",
+      "planar": false,
+      "closed": true,
+      "volume": 7.045833441139088e-05,
+      "clean": true
+    },
+    {
+      "name": "Deck | Right status 2 green lens",
+      "planar": false,
+      "closed": true,
+      "volume": 7.045833441139088e-05,
+      "clean": true
+    },
+    {
+      "name": "Deck | Right status 3 amber lens",
+      "planar": false,
+      "closed": true,
+      "volume": 7.045833441139088e-05,
+      "clean": true
+    },
+    {
+      "name": "Deck | Left Launch armed red lens",
+      "planar": false,
+      "closed": true,
+      "volume": 0.0006465000375807293,
+      "clean": true
+    },
+    {
+      "name": "Deck | Right Launch armed red lens",
+      "planar": false,
+      "closed": true,
+      "volume": 0.0006465000375807293,
+      "clean": true
+    },
+    {
+      "name": "Deck | Header downlight 01 cold white lens",
+      "planar": false,
+      "closed": true,
+      "volume": 0.018954101286216815,
+      "clean": true
+    },
+    {
+      "name": "Deck | Header downlight 02 cold white lens",
+      "planar": false,
+      "closed": true,
+      "volume": 0.018954101286216815,
+      "clean": true
+    }
+  ]
+}

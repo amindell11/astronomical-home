@@ -1,0 +1,22 @@
+{
+  "status": "WINDOW_EXPORT=complete",
+  "scene": "deck.blend",
+  "scene_sha256": "0c797ce1ed29e137d7b76629648e276d5ceb7a4d95b49b7cc981f76d90c46e64",
+  "exporter": "../hangar-console/export_glass.py",
+  "exporter_sha256": "04da45b5859e07399ca7510c64442c10f211b187d0dcbd5f81d41123c65e4e44",
+  "exported_from_copy": false,
+  "scene_opened_without_saving": true,
+  "kept_mask": "previews/deck-window-etching-mask.png",
+  "outputs": [
+    {
+      "name": "WindowEtching.png",
+      "bytes": 180469,
+      "sha256": "a011b0a4b2e01b25423251c0dd2a42810a46c2309a5a4f7efdfa8a0ac0133a0d"
+    },
+    {
+      "name": "ViewportGlass.fbx",
+      "bytes": 12588,
+      "sha256": "e5e184c9c2cf07c235185895700425dae9b1f69fcd60cb5269ee8716b4e1e0e4"
+    }
+  ]
+}

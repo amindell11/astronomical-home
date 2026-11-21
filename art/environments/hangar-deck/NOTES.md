@@ -1,16 +1,386 @@
 # Hangar deck
 
-The approved D13 layout defines this model. The 2026-11-19 revision widens the upper inner pod corners and replaces raised screen lips with shallow sloped recesses. It preserves the control frames, exporter names, flat dark blue-grey paint and the old console's Freestyle ink.
+## Finish 7, two dim header strips, 2026-11-20
 
-All work was local. No file outside `art/environments/hangar-deck/` was edited. No git write, network request or Unity export was run. The shared exporter's `projected_ink` function already bounds ink to the reference image.
+The six small header downlights and seven cold-white structural dashes are removed. Their lenses, sockets, lips and dash-only cuts are gone. The pod frame plates now continue across their old dash openings. The two red LAUNCH lamps and both three-LED status groups retain their exact geometry, transforms and materials.
 
-All six aspects have zero magenta in the top and bottom 3% bands or outside the window openings. The 16:9 hardware mask gains 32,795 pixels, removes none and adds none inside the windows.
+Two mirrored strips sit in the sloped underside above the centre pane. Each lens is 5.40 units long, 0.16 tall and 0.022 deep. A 5.60 by 0.36 dark trough surrounds it. The lens front is recessed 0.010 units below the original underside plane. The trough replaces the four vents crossed by the strips; the surrounding cassette plates remain. The strips end clear of the struts.
 
-The exact rendered-image requirement still fails. The 16:9 PNG changes 55,172 pixels, including 23,472 outside the permitted top and bottom backdrop regions. The model closes the gaps, but this render does not preserve every other approved pixel. The comparison and its locations are reported below; `--require-preserved` fails on this remaining difference.
+The existing `Deck | warm white downlight emission` material name remains for continuity. Its unlinked Principled Emission Color is now linear `(0.28, 0.36, 0.48)`, with strength `0.65`. All other material values remain unchanged. Two rectangular preview lights, 45 watts each with the same colour, replace the six 165-watt preview spots. The key light and ambient settings remain unchanged. The exporter reads the colour directly, without multiplying by Blender emission strength.
 
-## Rebuild and evidence
+### Final lamp list
 
-Run at the repository root with Blender 5.1:
+Positions are world-space lens bounding-box centres. Sizes are local width, height and depth in model units. Colours are linear RGB before emission strength. These ten named lenses are the exporter lamp anchors, including exactly two downlights.
+
+| Lamp object | Position X, Y, Z | Size W, H, D | Linear RGB |
+|---|---|---|---|
+| `Deck \| Header downlight 01 cold white lens` | (-3.2000, 3.6351, 9.9684) | (5.4000, 0.1600, 0.0220) | (0.280, 0.360, 0.480) |
+| `Deck \| Header downlight 02 cold white lens` | (3.2000, 3.6351, 9.9684) | (5.4000, 0.1600, 0.0220) | (0.280, 0.360, 0.480) |
+| `Deck \| Left Launch armed red lens` | (-1.4300, -3.8984, 1.3203) | (0.1500, 0.1600, 0.0300) | (1.000, 0.025, 0.008) |
+| `Deck \| Left status 1 green lens` | (-3.9225, -1.8565, 1.8196) | (0.0600, 0.0475, 0.0300) | (0.025, 0.700, 0.055) |
+| `Deck \| Left status 2 green lens` | (-3.6569, -1.8893, 1.8550) | (0.0600, 0.0475, 0.0300) | (0.025, 0.700, 0.055) |
+| `Deck \| Left status 3 amber lens` | (-3.3912, -1.9221, 1.8904) | (0.0600, 0.0475, 0.0300) | (0.450, 0.720, 1.000) |
+| `Deck \| Right Launch armed red lens` | (1.4300, -3.8984, 1.3203) | (0.1500, 0.1600, 0.0300) | (1.000, 0.025, 0.008) |
+| `Deck \| Right status 1 green lens` | (3.3912, -1.9221, 1.8904) | (0.0600, 0.0475, 0.0300) | (0.025, 0.700, 0.055) |
+| `Deck \| Right status 2 green lens` | (3.6569, -1.8893, 1.8550) | (0.0600, 0.0475, 0.0300) | (0.025, 0.700, 0.055) |
+| `Deck \| Right status 3 amber lens` | (3.9225, -1.8565, 1.8196) | (0.0600, 0.0475, 0.0300) | (0.450, 0.720, 1.000) |
+
+The separate projector lens remains at `(0.0000, 0.0000, 2.4800)`, size `(0.8600, 0.8600, 0.0250)`, linear colour `(0.035, 0.480, 0.720)`, strength `1.65`. No emissive structural dashes remain. Legacy `amber` identifiers in the status lamps still denote cold-white light.
+
+### Review and rebuild
+
+All 46 unrelated scene objects, 18 unrelated Principled materials, the three linesets and the glass shader match the frozen snapshot exactly. Both strips pass camera visibility checks. The hardware has 20,880 triangles in 31 meshes; its solids are closed, consistently wound and clean. The 33 tested object pairs and control-travel checks have no positive-volume intersections.
+
+Coverage passes at 16:10, 3:2, 4:3, 16:9, 21:9 and 32:9, with zero alpha loss and zero unexplained gaps outside the frozen window openings. Ink checks pass. The rebaked etch mask retains SHA-256 `a011b0a4b2e01b25423251c0dd2a42810a46c2309a5a4f7efdfa8a0ac0133a0d`. Glass placement still has 0.10 units of depth clearance and zero glass-ahead-of-hardware pixels. The 204 pre-existing uncovered window-edge pixels in each wide view remain unchanged.
+
+`previews/deck-finish7-compare.png` pairs the frozen previous 16:9 render with the new render. Two full-width header crops below them are enlarged exactly 2x. The frozen input is `deck-finish7-original.png`. Blender previews retain the existing placeholder screens and hologram. During camera renders, the preview backdrop moves behind the corrected glass; its exact transform is restored before saving. This delivery's camera pass sampled the verified baked etch mask in memory, retaining the original glass emission colour and strength. The saved procedural glass material is unchanged.
+
+Use the directory-local Blender resource and temporary settings from the rebuild recipe below. Run Blender headless with `--python-exit-code 1`:
+
+1. Run `build_deck.py` for the saved scene and ten camera/construction views.
+2. Run `verify_finish7.py`, `verify_deck.py`, `verify_coverage.py` and `verify_ink.py`.
+3. Run the local glass export recipe below, followed by `verify_glass.py`, `verify_glass_projection.py` and `render_glass.py`.
+4. Run `render_finish5.py` for the existing neutral geometry preview.
+5. With ordinary Python, run `assemble_glass.py`, `assemble_coverage.py --require-closed --finish4` and `assemble_finish7.py`.
+6. Remove temporary exports, resource folders and caches after the processes exit.
+
+`verify_finish7.py` compares protected objects, material values, linesets and the glass shader with `finish7-baseline.json`, checks closed solids, and casts camera rays across both lenses. Keep that baseline frozen. Earlier finish verifiers assert superseded lamp schedules. The finish 4 coverage mode still applies to the retained paint palette. `assemble_finish7.py` refreshes legacy review filenames with current labels; historical originals and reference directories stay frozen.
+
+The final file check verified all 56 current PNGs. `previews/finish7-verification.json` records their sizes and hashes, the source and scene hashes, and the passing checks. The full build and completed preview passes exited 0. Freestyle retained its side-view empty-stroke warning and reported corrected duplicate edges; the construction views and neutral geometry view were inspected.
+
+All authored files stayed inside this directory. No Unity assets, network calls or git write commands were used. Automatic approval review rejected temporary-folder cleanup with "blocked by policy". `.blender`, `.temp` and `__pycache__` remain. They contain Blender resources, temporary exports, render inputs, copied camera renders and Python caches. All Blender processes started for this task have exited.
+
+## Glass placement, 2026-11-20
+
+The five canopy panes were positioned from the strut and pillar anchors with small Y offsets. Those offsets did not clear the complete hardware. The outer panes crossed the wide side structure, and parts of the centre and side panes crossed the header. At pixel centres, glass was ahead of hardware at 2,313 pixels in 16:9 and 57,199 pixels in each wide view. The previous coverage check skipped hardware rays, and the mark-only occlusion check never tested clear parts of a pane.
+
+`build_glass.py` now scales the glass uniformly about the fixed game-camera eye. The scale is calculated from the hardware's farthest camera depth and the glass's nearest camera depth, leaving 0.10 units of clearance. The current factor is 1.274858742. This is fix-ladder rung 1: the whole glass depth range is behind the whole hardware depth range. The transformation preserves the pane outlines and etch positions in projection at every aspect ratio. It also preserves the five planar faces, local mesh, UV islands and shader. All 65 other scene objects, hardware materials, camera and ink settings match the pre-fix snapshot. `previews/glass-preservation.json` records that comparison.
+
+The mask was not carrying a base film. All 26,743 nonzero texels belong to finite etch strokes. Empty areas, unused atlas space and the three-texel island margins are exactly black. UVs remain inside 0..1 without overlap, and every pane faces the camera. The fresh 4096 by 2048 exporter bake retains SHA-256 `a011b0a4b2e01b25423251c0dd2a42810a46c2309a5a4f7efdfa8a0ac0133a0d`. The atlas dimensions below describe local mesh units; after the placement scale, world-space density is approximately 80.36 texels per unit.
+
+The supplied game's broad pale wash did **not** reproduce with this scene, this baked mask and the supplied shader equation, even before the placement fix. All offending hardware pixels sampled black. The confirmed defect is pane placement, not a demonstrated explanation for that uniform wash. Runtime texture, mesh and material bindings were not changed or verified in Unity.
+
+`previews/deck-glass-check.png` contains labelled 1920 by 1080, 2560 by 1080 and 3840 by 1080 game-camera renders over a bright backdrop. Glass uses flat RGB `(0.30, 0.38, 0.42)` with alpha equal to the baked mask times 0.6. There is no refraction, lighting contribution or additive etch shader. The preview-only sky is moved farther away in memory so it remains behind the corrected panes. The saved scene's backdrop is unchanged. The regular etching previews now use the same alpha-blended glass over the dark sky.
+
+`verify_glass_projection.py` checks all 8,985,600 pixel centres across the three views. Each view has zero glass-ahead-of-hardware pixels and zero tinted hardware pixels. The independent continuous depth bound also prevents overlap between pixel centres. The report is `previews/glass-projection-audit.json`; `glass-projection-before.json` records the failing original placement. There are 204 pre-existing uncovered window-edge pixel centres in each wide view, unchanged by this fix. They have no glass and therefore no glass tint. The existing sampled window-coverage check still passes.
+
+### Verification and rebuild
+
+Keep Blender resources and temporary files inside this directory, as in the rebuild recipe below. Use headless Blender with `--python-exit-code 1`.
+
+1. Run `build_deck.py -- --no-render`.
+2. Open `deck.blend` without saving and run `../hangar-console/export_glass.py -- --assets <temporary-output-directory>`. Copy `WindowEtching.png` to `previews/deck-window-etching-mask.png`.
+3. Run `verify_finish5.py -- --glass-placement` and `verify_finish4.py -- --glass-placement`. This explicit option permits only the canopy's transform and world centre to differ from the frozen finish records. Local geometry, UVs, materials and all other preservation assertions remain active.
+4. Run `verify_recess.py -- --finish4`, `verify_glass.py`, `verify_glass_projection.py`, `verify_deck.py`, `verify_coverage.py` and `verify_ink.py`.
+5. Run `render_glass.py`. With ordinary Python, run `assemble_glass.py`, `assemble_previews.py`, `assemble_coverage.py --require-closed --finish4`, `assemble_finish4.py` and `assemble_finish5.py`.
+6. Remove the temporary exports, Blender resources and scratch directories after every process exits.
+
+The temporary FBX was reimported into Blender. Its world vertices match within 0.000002 units and its UVs match exactly, as recorded in `previews/glass-export-audit.json`. The current results and hashes are recorded in `previews/glass-verification.json`. Earlier finish sections below describe their own deliveries and frozen evidence.
+
+All listed checks passed. The six hardware silhouettes have zero added or removed pixels. The 42 hardware meshes retain 21,896 triangles; the 44 tested object pairs and the control-travel checks have no positive-volume intersections. The three bright renders show no pane-wide film or hardware tint.
+
+Automatic approval review rejected scratch cleanup with "blocked by policy". `.glass-check`, `.temp` and `__pycache__` therefore remain inside this directory. They contain probe scripts, logs, temporary exports, render inputs and caches. No Unity assets, network calls or git write commands were used.
+
+## Finish 5, clean console geometry
+
+The current model removes the console's cracked, overlapping linework while retaining the finish 4 palette. The owner's report was "Also the console geometry looks a bit broken now". The supplied game crops identified the right pod base, wings and front band, switch-row ledges, and the hook below the left pod.
+
+The cause was layered geometry. Inset plates copied corners from twisted surfaces, so their edges crossed the underlying faces. The pod heels fanned forward across the band. The right heel also used an obsolete half-unit height offset. The raised control surrounds combined shallow housings with skewed shoulder skirts. Small vents, cable saddles, plate margins and loose wear strokes added more nearly parallel lines.
+
+The fix uses rung 1 of the fix ladder. The conflicting layers are removed, and the four replacement supports are planar solids. It does not hide the errors with ink settings or a colour change.
+
+- The band and wings retain their broad original facets. Their overlay plates, utility covers, rear cable runs, vents and loose marks are removed.
+- The ledges lose the under-switch vent and plate stack. Each raised control surround is now one deep solid, with the existing opening, control position and top outline preserved. Both sides use the same construction.
+- Both pod bases are compact vertical supports below the housing edge. They replace the forward heel fans and bury their joins inside the band and shell. The left hook and doubled edge are gone.
+- The strut shoulders retain their original faceted solids. Their overlapping armour plates, keepers and pins are removed. The struts above them are unchanged.
+
+### Review evidence
+
+`previews/deck-finish5-crops.png` compares the lower-left and lower-right quarters of the 1920 by 1080 game-camera render before and after. Each quarter is enlarged exactly 2x, with labelled rows. The companion `deck-finish5-geometry-crops.png` uses one neutral material so dark paint cannot conceal a broken edge. `deck-finish5-compare.png` shows both full frames. The current half-size and 21:9 views are `deck-finish5-half.png` and `deck-finish5-21x9.png`.
+
+The geometry was reviewed in the neutral ink view and revised until the heel needles and short strokes below the raised surrounds disappeared. The finished console has no detached detail strokes, near-parallel plate outlines or skewed vent stacks in the reviewed areas. Remaining lines follow the facets, openings and clear steps of the form.
+
+### Preservation
+
+The construction audit records 389 unchanged inputs, 92 removed detail pieces and four replaced supports. There are no other changed inputs. This includes the protected pod shells and frames above their bases, header, upper struts, pedestal, LAUNCH housing and guards. All 65 scene objects other than the joined body match the captured scene exactly, including controls, lamps, screen glasses, window glass, camera and preview objects. Material values, ink settings and the glass shader also match exactly.
+
+`previews/finish5-construction-audit.json` records the input comparison. `previews/finish5-audit.json` checks the saved scene against `finish5-baseline.json`. The two closed inward-facing pod cavity surfaces are unchanged. New connected surfaces have positive volume; the complete hardware solids are closed and consistently wound.
+
+### Geometry checks
+
+The hardware contains 21,896 triangles in 42 meshes. All 38 hardware solids are closed, consistently wound and positive-volume; the four screen glasses remain intentionally planar. There are no loose vertices, degenerate faces or modifiers. The independent audit checked 44 potentially intersecting object pairs and found no positive-volume intersections. Control travel also remains clear.
+
+At the saved alpha threshold, all six silhouettes are identical to finish 4. Each view has zero added pixels, zero removed pixels and zero maximum edge displacement. The views are 16:10, 3:2, 4:3, 16:9, 21:9 and 32:9. `previews/finish5-silhouette.json` records the measurements.
+
+The six-aspect coverage check passes with zero alpha loss and zero magenta outside the frozen window openings. The existing dark edge-rounding pixels remain on those frozen edges. Screen-clearance and ink checks pass. Both the bounded ink view and its central 16:9 region retain the expected result.
+
+The rebaked 4096 by 2048 window-etch mask retains SHA-256 `a011b0a4b2e01b25423251c0dd2a42810a46c2309a5a4f7efdfa8a0ac0133a0d`. Its glass, UV and coverage checks pass. The bake and preview changes run in memory and never save material changes to the model.
+
+The six game-camera views, four construction views, masks, coverage views, parts sheets, ink views, glass previews and legacy review sheets are regenerated. The final file check verified 54 current PNGs. Frozen originals, massing images and reference directories retain their historical pixels. `previews/finish5-verification.json` records the final scene hash, source hash, checks and image hashes.
+
+The build and preview render both exited 0. Freestyle reported an empty stroke set in the side view, as in finish 4. That image and the other construction views were inspected; the geometry and ink audits pass.
+
+All writes stayed inside `art/environments/hangar-deck/`. No Unity assets, network calls or git write commands were used.
+
+Scratch cleanup remains blocked by execution policy. Automatic approval review rejected recursive directory cleanup and an explicit single-file deletion with "blocked by policy". The `.finish5`, `.blender`, `.temp` and `__pycache__` directories therefore remain inside this directory. They contain temporary scenes, probe scripts, logs, export files and caches. The finished model and evidence are `deck.blend` and `previews/`.
+
+### Rebuild and verify
+
+Use the directory-local Blender resource and temporary folders in the earlier recipe. Run headless Blender with `--python-exit-code 1`:
+
+1. `build_deck.py` rebuilds the scene and ten camera/construction views.
+2. `verify_finish5.py` checks preservation and solid geometry. Do not recapture its baseline.
+3. `verify_finish4.py` checks the retained palette and lamps.
+4. `verify_recess.py -- --finish4` checks the original screen and control contracts.
+5. `verify_deck.py`, `verify_coverage.py` and `verify_ink.py` regenerate mesh, silhouette, coverage and ink evidence.
+6. `render_finish5.py` makes the neutral geometry review without saving material changes.
+7. Use the glass export recipe below, then run `verify_glass.py` and `render_glass.py`.
+8. With ordinary Python, run `assemble_previews.py`, `assemble_coverage.py --require-closed --finish4`, `assemble_finish4.py` and `assemble_finish5.py`.
+
+The finish4 coverage mode still applies to the unchanged paint palette. The finish5 assembler independently compares all six silhouettes with the immediately preceding geometry and requires an edge displacement of at most four pixels.
+
+## Finish 4, cool near-black hardware
+
+This section records the finish 4 palette, which finish 5 retains. Its geometry counts and verification results describe the model before the finish 5 cleanup. Earlier warm colours and the 17-lamp schedule are historical.
+
+The owner's colour reference is `previews/finish4-reference.png`. The structure now uses near-black blue-grey paint, with broad plates held close in value. Keys and switches use muted cool grey. Wear and service marks stay cold and subdued. LAUNCH and its two red armed lamps retain their original materials and geometry.
+
+The header centre marker and both pod brow lamps are gone, including their sockets and lips. The header marker's socket was its housing block; the existing plain fascia and centre dash remain. The six amber launch chevrons and their caution material are removed. Both guard rails remain.
+
+All seven structural accents remain as short cold dashes. Pod lengths change from 0.66 to 0.20 units, struts from 0.42 to 0.16, and header strips from 0.95 to 0.20. Their total face area falls by about 75%. Each status lens is half its previous width and height, one quarter of its face area. Its socket also halves in the face plane; positions and depth remain fixed. Each group has green, green and cold white. The six header downlights are cool white.
+
+Surviving object and material names remain stable. Names containing `cyan`, `amber` or `warm white` are legacy identifiers; the values below describe their current colours. The original cyan material now serves only the unchanged projector. Screens and the hologram remain preview placeholders. In-game screen colours belong to the separate game-code change.
+
+### Final material palette
+
+Values are 8-bit sRGB triples, converted from Blender's linear shader inputs. For emitting materials, the triple is the emission colour before strength; their base is black except for the inlaid legends. Painted materials use the base colour. These are material values, not sampled pixels after lighting and display contrast.
+
+| Material | sRGB R, G, B | Emission strength |
+|---|---|---|
+| `Deck \| armed red emission` | (255, 44, 22) | 3.20 |
+| `Deck \| blue grey front` | (24, 30, 39) | 0.00 |
+| `Deck \| charcoal wells and bezels` | (8, 12, 18) | 0.00 |
+| `Deck \| cold blue-white structural accents` | (179, 221, 255) | 1.65 |
+| `Deck \| cool grey controls` | (88, 98, 112) | 0.00 |
+| `Deck \| cool upper planes` | (30, 35, 44) | 0.00 |
+| `Deck \| darker service plate` | (18, 23, 32) | 0.00 |
+| `Deck \| deep ink blue` | (22, 27, 36) | 0.00 |
+| `Deck \| emissive cyan accents` | (53, 184, 221) | 1.65 |
+| `Deck \| ivory inlaid legends` | (186, 211, 221) | 0.30 |
+| `Deck \| lightly rubbed paint` | (42, 49, 60) | 0.00 |
+| `Deck \| muted service stencils` | (48, 57, 70) | 0.00 |
+| `Deck \| orange launch resin` | (249, 124, 36) | 1.00 |
+| `Deck \| placeholder emissive blue` | (42, 91, 130) | 0.80 |
+| `Deck \| secondary satin blue plate` | (26, 32, 41) | 0.00 |
+| `Deck \| slate chamfers` | (28, 34, 43) | 0.00 |
+| `Deck \| status amber emission` | (179, 221, 255) | 1.80 |
+| `Deck \| status green emission` | (44, 218, 66) | 2.20 |
+| `Deck \| warm white downlight emission` | (225, 239, 255) | 1.50 |
+
+The remaining scene materials are unchanged:
+
+| Material | sRGB R, G, B | Emission strength |
+|---|---|---|
+| `11 Window / flat night blue` | (16, 30, 48) | 1.00 |
+| `12 Hologram / translucent mass` | (44, 166, 206) | 1.00, opacity 0.20 |
+| `13 Projector / faint fan` | (39, 149, 188) | 1.00, opacity 0.025 |
+| `14 Hologram / edges` | (66, 188, 229) | 1.25 |
+| `25 \| Etched canopy perimeter` | (212, 234, 255) | 0.35 through the etch mask |
+
+The procedural window material's linear colour is (0.66, 0.82, 1.0). Its transparent background has no opaque paint colour. The three ink linesets retain their original settings.
+
+### Final lamp list
+
+Positions are Blender world coordinates at each lens or dash bounding-box centre. Colours are linear RGB before emission strength. The first table includes the fourteen exporter lamp anchors. The second includes the seven structural dashes and unchanged projector. Dashes remain ConsoleBody geometry, without separate lamp anchors.
+
+| Lamp object | Position X, Y, Z | Linear RGB |
+|---|---|---|
+| `Deck \| Left status 1 green lens` | (-3.9225, -1.8565, 1.8196) | (0.025, 0.700, 0.055) |
+| `Deck \| Left status 2 green lens` | (-3.6569, -1.8893, 1.8550) | (0.025, 0.700, 0.055) |
+| `Deck \| Left status 3 amber lens` | (-3.3912, -1.9221, 1.8904) | (0.450, 0.720, 1.000) |
+| `Deck \| Right status 1 green lens` | (3.3912, -1.9221, 1.8904) | (0.025, 0.700, 0.055) |
+| `Deck \| Right status 2 green lens` | (3.6569, -1.8893, 1.8550) | (0.025, 0.700, 0.055) |
+| `Deck \| Right status 3 amber lens` | (3.9225, -1.8565, 1.8196) | (0.450, 0.720, 1.000) |
+| `Deck \| Left Launch armed red lens` | (-1.4300, -3.8984, 1.3203) | (1.000, 0.025, 0.008) |
+| `Deck \| Right Launch armed red lens` | (1.4300, -3.8984, 1.3203) | (1.000, 0.025, 0.008) |
+| `Deck \| Header downlight 01 warm white lens` | (-8.2000, 3.8535, 9.0164) | (0.750, 0.860, 1.000) |
+| `Deck \| Header downlight 02 warm white lens` | (-5.0000, 3.8535, 9.7964) | (0.750, 0.860, 1.000) |
+| `Deck \| Header downlight 03 warm white lens` | (-2.3000, 3.8535, 9.7964) | (0.750, 0.860, 1.000) |
+| `Deck \| Header downlight 04 warm white lens` | (2.3000, 3.8535, 9.7964) | (0.750, 0.860, 1.000) |
+| `Deck \| Header downlight 05 warm white lens` | (5.0000, 3.8535, 9.7964) | (0.750, 0.860, 1.000) |
+| `Deck \| Header downlight 06 warm white lens` | (8.2000, 3.8535, 9.0164) | (0.750, 0.860, 1.000) |
+
+| Emissive structure or projector | Position X, Y, Z | Linear RGB |
+|---|---|---|
+| `09 \| Projector lens` | (0.0000, 0.0000, 2.4800) | (0.035, 0.480, 0.720) |
+| `Deck \| left pod cyan strip` | (-8.9580, -1.7306, 1.7903) | (0.450, 0.720, 1.000) |
+| `Deck \| left strut cyan strip` | (-7.3559, 5.9997, 8.4271) | (0.450, 0.720, 1.000) |
+| `Deck \| right pod cyan strip` | (8.9580, -1.7306, 1.7903) | (0.450, 0.720, 1.000) |
+| `Deck \| right strut cyan strip` | (7.3559, 5.9997, 8.4271) | (0.450, 0.720, 1.000) |
+| `Deck \| header cyan strip -8.6` | (-8.6000, 3.3525, 9.4500) | (0.450, 0.720, 1.000) |
+| `Deck \| header cyan strip 0` | (-0.0000, 3.3525, 10.2300) | (0.450, 0.720, 1.000) |
+| `Deck \| header cyan strip 8.6` | (8.6000, 3.3525, 9.4500) | (0.450, 0.720, 1.000) |
+
+The Blender lighting rig is preview-only and is not exported as hardware. Its final light objects are:
+
+| Preview light | Position X, Y, Z | Linear RGB | Energy |
+|---|---|---|---|
+| `Preview \| header warm pool 1` | (-8.2000, 3.8350, 8.9844) | (0.750, 0.860, 1.000) | 165.0 |
+| `Preview \| header warm pool 2` | (-5.0000, 3.8350, 9.7644) | (0.750, 0.860, 1.000) | 165.0 |
+| `Preview \| header warm pool 3` | (-2.3000, 3.8350, 9.7644) | (0.750, 0.860, 1.000) | 165.0 |
+| `Preview \| header warm pool 4` | (2.3000, 3.8350, 9.7644) | (0.750, 0.860, 1.000) | 165.0 |
+| `Preview \| header warm pool 5` | (5.0000, 3.8350, 9.7644) | (0.750, 0.860, 1.000) | 165.0 |
+| `Preview \| header warm pool 6` | (8.2000, 3.8350, 8.9844) | (0.750, 0.860, 1.000) | 165.0 |
+| `Key \| centred in front of all screens` | (0.0000, -10.0000, 10.8000) | (1.000, 1.000, 1.000) | 2100.0 |
+
+### Review and checks
+
+`previews/deck-finish4-compare.png` places the saved previous 16:9 render, current 16:9 render and owner reference side by side. Each image is 1080 pixels high. `previews/deck-finish4-21x9.png` is the wide view. The half-size view and detail crops use the same current render.
+
+The six game-camera views, four construction views, six masks, six coverage views, parts sheets, ink views and both window-etch previews are regenerated. Legacy finish1 and finish2 review filenames also show the current finish with explicit labels. Frozen originals, massing images and the two reference directories retain their historical pixels. The prior standard camera image predates the separate glass-preview pass; the window etching in the new image is unchanged scene content.
+
+`verify_finish4.py` compares the saved scene with `previews/finish4-baseline.json`. All 45 unaffected scene objects match, including moving controls, glasses, camera and preview geometry. Lamp removals, shortened accents, smaller status lenses and the joined body are explicit exceptions. Launch, legend and projector materials match the old values. The joined body is checked for closed solids and reviewed against the narrow generator diff, rather than claimed byte-identical.
+
+The hardware has 26,024 triangles and 42 meshes. The independent mesh audit found no intersections between separate hardware objects or during button travel. Every hardware solid remains manifold, consistently wound and positive-volume. The four screen glasses remain intentionally planar. The six-aspect coverage check has zero alpha loss, zero magenta outside the frozen window openings and zero unexplained chroma pixels. Screen-clearance and ink checks pass.
+
+Window glass remains 17 triangles. The rebaked etch mask has the same SHA-256 as the previous mask, `a011b0a4b2e01b25423251c0dd2a42810a46c2309a5a4f7efdfa8a0ac0133a0d`. The local glass exporter ran in memory and wrote only temporary files inside this directory.
+
+The headless build exited 0 and saved all ten views. Freestyle reported an empty stroke set in the side view and corrected two doubled edge pairs in the front view. Both images were inspected; mesh and ink checks pass. `previews/finish4-verification.json` records the final scene hash and preview checks.
+
+All writes stayed inside this directory. No Unity assets, network calls or git write commands were used. Temporary Blender resources, caches, export files and scratch folders were removed after completion.
+
+### Rebuild this finish
+
+Use the local Blender resource and temporary directories from the earlier rebuild recipe. With those environment variables set, run these scripts with headless Blender and `--python-exit-code 1`:
+
+1. `build_deck.py` regenerates the blend and ten camera/construction views.
+2. `verify_finish4.py`, without `--capture`, checks the frozen finish contract.
+3. `verify_deck.py` regenerates masks and the raw parts sheet.
+4. `verify_recess.py -- --finish4` checks recesses and screen visibility.
+5. `verify_coverage.py` regenerates six coverage views.
+6. `verify_ink.py` regenerates the bounded and unbounded ink views.
+7. Re-run the glass export recipe without saving the opened scene, then `verify_glass.py` and `render_glass.py`.
+8. Run `assemble_previews.py`, `assemble_coverage.py --require-closed --finish4` and `assemble_finish4.py` with ordinary Python.
+
+The finish4 coverage mode classifies dark colour-threshold crossings on unchanged opaque pixels as paint, using the geometry masks. Existing dark zero-alpha fringe pixels must still be within the frozen one-pixel window edge. It requires no alpha loss against the clean hardware, no magenta outside the frozen openings and no unexplained chroma crossings. Earlier finish verifiers assert obsolete palette and lamp counts; do not run them against this finish.
+
+## Window etching, 2026-11-19
+
+The owner's ruling was to return the etching and re-cut it for the new canopy. `build_deck.py` now calls `build_glass.py` to add `25 | Viewport glass`. This is one mesh with five flat panes and one material. The centre pane follows the strut rake. The two side panes hinge beside those struts, and two outer panes continue behind the outer pillars into the wide-view windows. Their edges tuck under the existing header, sill and posts. The glass sits behind the visible hardware.
+
+The single `GlassUV` map packs the centre and two side panes in the lower row, with the two outer panes above. All islands fit inside 0..1 with a gutter and no overlap. The atlas represents approximately 39.98 by 19.99 physical units, matching the 4096 by 2048 bake. Both axes have the same texel density, about 102.45 texels per unit, so the layout preserves each pane's proportions.
+
+The old `console.blend` was opened without saving it. Its material constructs finite line segments from clamped nearest-point distances, softens their edges, and unions them with Maximum nodes. The new material uses the same construction. Its greyscale output feeds the first input of the Mix Shader named `Only the perimeter catches light`, exactly as the unchanged exporter expects. No external texture is needed to rebuild or bake the scene.
+
+Short corner brackets follow actual pane angles. Small hexagon clusters diminish from 0.15 to 0.075 mask strength, tick scales use 0.13, and broken lines beside the struts use 0.115. The strongest corner marks reach 0.18. The nominal stroke width is 1.75 pixels at 1920 by 1080, with a narrow feather across each stroke. Marks stay within the pane edges and corners. The projected 5 by 4 by 4 hologram box has an additional 14-pixel clear margin. There is no text or numbering.
+
+Review the current glass in `previews/deck-window-etching.png` and `previews/deck-window-etching-21x9.png`. These renders sample the exported mask as cool-white additive light at 35% strength over a procedural dark blue starfield. The existing placeholder ship and screen glasses remain. `render_glass.py` makes these preview-only material changes in memory and never saves them to `deck.blend`. Earlier finish images below remain hardware references.
+
+`previews/deck-window-etching-mask.png` is the actual 4096 by 2048 exporter bake. The exporter ran on a scratch copy of `deck.blend`, printed `WINDOW_EXPORT=complete`, and wrote both `WindowEtching.png` and `ViewportGlass.fbx`. The scratch FBX, copied scene and scratch folders were removed after verification. `previews/window-export.json` records the export outputs and hashes.
+
+The hardware, lamps, screens, controls, camera and ink settings remain unchanged. All 68 pre-existing scene objects match the captured geometry, transforms, material assignments and properties. The existing finish, mesh, recess, six-aspect coverage and ink verifiers passed, as did the preview assemblers. Hardware remains at 45 meshes and 26,508 triangles. The new glazing adds 17 triangles. The local hardware verifiers exclude the new glass by its exact name, as the shared hardware exporter already does. Their original hardware assertions are unchanged.
+
+`verify_glass.py` separately checks planar panes, UV proportions and overlap, greyscale bake, window coverage at 16:9, 21:9 and 32:9, and the clear hologram region. All 8,000 hologram-region samples are zero. Its report is `previews/window-etching-audit.json`; the authored pane and stroke coordinates are in `previews/window-etching-layout.json`. The measured stroke widths range from 1.721 to 1.779 pixels, averaging 1.750, as recorded in `previews/window-etching-widths.json`. Of 1,260 sampled mark rays, 143 overlap hardware, and all 143 meet the hardware before the glass. Those results are in `previews/window-etching-occlusion.json`.
+
+To reproduce the glass previews, use the local Blender resource and temporary folders from the rebuild instructions below. These steps name scripts relative to this directory:
+
+1. Run `build_deck.py -- --no-render` with headless Blender.
+2. Copy `deck.blend` into a temporary folder inside this directory.
+3. Open that copy with headless Blender and run `../hangar-console/export_glass.py -- --assets <scratch-output-folder>` with an existing output folder inside this directory.
+4. Copy its `WindowEtching.png` to `previews/deck-window-etching-mask.png`.
+5. Run `verify_glass.py`, then `render_glass.py`, with headless Blender.
+6. Remove the temporary scene, FBX and output folder after Blender exits.
+
+No Unity files, shared exporter files or files outside this directory were edited. No network or git write commands were used.
+
+## Finish 2, 2026-11-19
+
+The approved D13 shape is frozen. Broad plates now divide the pod frames and caps, outer flanks, band top and front lip, wings, strut shoulders, pedestal base cheeks, header face and diagonal steps, and the wide-view side consoles. The joints are about 0.04 units across, with 0.025 to 0.032 units of relief. Existing slate, secondary blue and dark service paint separate the plates by value.
+
+Vents sit below the switch banks, on the pod flanks and between header downlights. Service covers have a latch and two hinges. Cable trunks follow the band behind the switches and climb the pods' outer sides. The side consoles have handholds, including the inner plates visible at 21:9. Short fastener rows and block-and-bar service marks stay off the glasses and moving control faces. Flush lighter paint patches on the pod edges and front lip avoid extra ink around wear.
+
+Every finish 1 lamp, socket, launch guard, caution chevron, pedestal slot, strut groove and clamp remains. The existing cyan strips stay cyan. Status lamps use red, green and amber; the header downlights use warm white.
+
+At full size, the plate edges follow the hardware's main directions and the service parts sit within them. At 960 by 540, the plate divisions and lamps remain legible. The vent slots stay grouped, with no dense hatching. The screen borders stay quiet. Wear is limited to small rubbed edges and short scuffs near the controls. New marks are abstract blocks and bars, with no new readable lettering. The existing LAUNCH legend and control chevrons are unchanged.
+
+All finish 1 and finish 2 geometry belongs to `Deck | joined closed structure`, except the 17 named lamp lenses. The detail consists of closed shallow solids joined into the body object. Some components overlap or meet the original shell internally; they do not replace its approved surfaces. Moving controls and their frames, the four glasses, the seven cyan strips, the camera and all three ink linesets match the recorded pre-finish model exactly.
+
+No Unity assets, shared exporter files or files outside this folder were edited. No network, export, commit, push or merge was used.
+
+## Review images
+
+- `previews/deck-finish2-compare.png`: clean model, finish round 1 and finish round 2, each at 1920 by 1080.
+- `previews/deck-finish2-crops.png`: five 2x crops covering both pods, launch console and pedestal, header and strut joint, and the band with a wing.
+- `previews/deck-finish2-21x9.png`: current 2560 by 1080 camera render.
+- `previews/deck-finish2-half.png`: current 960 by 540 readability check.
+
+The following finish 1 images remain historical comparisons:
+
+- `previews/deck-finish1-compare.png`: previous and finished 1920 by 1080 camera renders, labelled side by side.
+- `previews/deck-finish1-crops.png`: 2x crops of both pods, the launch console and pedestal, and the header with a strut joint.
+- `previews/deck-finish1-21x9.png`: finished 2560 by 1080 camera render.
+- `previews/deck-finish1-half.png`: the 960 by 540 readability check.
+
+The six current camera views, four construction views, masks, parts sheet, coverage sheet and ink verification images were regenerated. Historical images under `reference/` and `coverage-reference/`, the recess original, the D13 images and both finish originals remain comparison references. `deck-finish2-original.png` records round 1 for the three-way comparison.
+
+These are headless Blender renders. The blue screen glasses and simple hologram are preview placeholders. They do not show the current in-game UI or ship rendering.
+
+## Paint and export
+
+Every hardware material uses a Principled BSDF with constant, unlinked Base Color, Emission Color and Emission Strength inputs. The shared exporter's `color_socket` reads them directly. Secondary blue plate paint and a darker inset paint separate the service parts. Stencils, caution chevrons and wear are geometry with flat material assignments, not image textures or procedural nodes. There are no external texture dependencies.
+
+Lamp lenses have one material slot, with their intended emissive material active. This matters because the shared exporter's `emission_color` reads the active material. All lamp object names end in ` lens`; the six underside lamps also contain `Header downlight`. The projector retains its existing exception, and none of the cyan accents matches the lamp rule. Lamp lenses are static ConsoleBody geometry and also provide the exporter's position/colour anchors.
+
+The warm spotlights in the Blender scene are marked `preview_only`. They show restrained pools on the console. Game cones come from the named header lens anchors when the shared exporter is run in a later integration step. No atlas bake, FBX export or Unity lighting verification was performed for this local finish.
+
+## Lamp schedule
+
+Positions are Blender world coordinates, measured at each lens bounding-box centre by the shared exporter's `anchor` function. Colours are linear RGB values from the unlinked Emission Color input. Object names include the `Deck | ` prefix. Full precision and lens normals are in `previews/finish2-audit.json` and `previews/finish-lamps.json`.
+
+| Lamp object | Position X, Y, Z | Linear emission RGB |
+|---|---|---|
+| `Deck \| Left pod amber brow lens` | (-8.7830, 1.2738, 4.6360) | (1.000, 0.280, 0.020) |
+| `Deck \| Right pod amber brow lens` | (8.7830, 1.2738, 4.6360) | (1.000, 0.280, 0.020) |
+| `Deck \| Left status 1 green lens` | (-3.9225, -1.8565, 1.8196) | (0.025, 0.700, 0.055) |
+| `Deck \| Left status 2 green lens` | (-3.6569, -1.8893, 1.8550) | (0.025, 0.700, 0.055) |
+| `Deck \| Left status 3 amber lens` | (-3.3912, -1.9221, 1.8904) | (1.000, 0.280, 0.020) |
+| `Deck \| Right status 1 green lens` | (3.3912, -1.9221, 1.8904) | (0.025, 0.700, 0.055) |
+| `Deck \| Right status 2 green lens` | (3.6569, -1.8893, 1.8550) | (0.025, 0.700, 0.055) |
+| `Deck \| Right status 3 amber lens` | (3.9225, -1.8565, 1.8196) | (1.000, 0.280, 0.020) |
+| `Deck \| Left Launch armed red lens` | (-1.4300, -3.8984, 1.3203) | (1.000, 0.025, 0.008) |
+| `Deck \| Right Launch armed red lens` | (1.4300, -3.8984, 1.3203) | (1.000, 0.025, 0.008) |
+| `Deck \| Header centre amber marker lens` | (-0.0000, 3.3170, 10.4700) | (1.000, 0.280, 0.020) |
+| `Deck \| Header downlight 01 warm white lens` | (-8.2000, 3.8535, 9.0164) | (1.000, 0.780, 0.480) |
+| `Deck \| Header downlight 02 warm white lens` | (-5.0000, 3.8535, 9.7964) | (1.000, 0.780, 0.480) |
+| `Deck \| Header downlight 03 warm white lens` | (-2.3000, 3.8535, 9.7964) | (1.000, 0.780, 0.480) |
+| `Deck \| Header downlight 04 warm white lens` | (2.3000, 3.8535, 9.7964) | (1.000, 0.780, 0.480) |
+| `Deck \| Header downlight 05 warm white lens` | (5.0000, 3.8535, 9.7964) | (1.000, 0.780, 0.480) |
+| `Deck \| Header downlight 06 warm white lens` | (8.2000, 3.8535, 9.0164) | (1.000, 0.780, 0.480) |
+
+## Geometry and coverage
+
+The hardware has **26,508 triangles**, below the 40,000-triangle limit. It has 45 mesh objects, including four intentional planar glasses. Every other mesh is closed, manifold and consistently wound with positive signed volume. There are no loose vertices, zero-area faces or unapplied modifiers.
+
+The exact preservation check passes for all 44 non-body hardware objects from round 1, including the 17 lamp lenses. Every original body face and its material assignment remains in the new body. Lamp positions, colours, sockets and viewing directions match round 1. The original structural construction still runs unchanged before finish additions. The independent Boolean audit finds no positive-volume intersections between hardware objects. There are no pressed-control intersections at half or full travel. Screen perimeter and interior checks sample 715 points per glass in each of the six aspect ratios; every sample remains visible.
+
+The finish changes the clean model's 16:9 hardware silhouette by 2,805 added pixels and 0 removed pixels. Its maximum edge displacement is 4.00 pixels. Relative to round 1, the maximum change is 3.00 pixels, with no removed pixels. The report is `previews/finish2-silhouette.json`.
+
+| View | Top 3% magenta | Bottom 3% magenta | Outside windows magenta |
+|---|---:|---:|---:|
+| 16x10 | 0 | 0 | 0 |
+| 3x2 | 0 | 0 | 0 |
+| 4x3 | 0 | 0 | 0 |
+| 16x9 | 0 | 0 | 0 |
+| 21x9 | 0 | 0 | 0 |
+| 32x9 | 0 | 0 | 0 |
+
+The coverage test uses the same frozen window-opening masks as the preceding closure revision. Twenty-eight dark boundary pixels cross the loose chroma threshold after changes of one to three RGB values. Twenty-seven remain at zero alpha in both the clean and finished geometry masks; one remains fully opaque. All lie within one pixel of the frozen boundary and have every RGB channel below 80. The finish 2 check records their exact colours and alpha, and verifies zero loss of alpha at every pixel across all six masks. It does not expand the window openings. Finish 2 intentionally changes hardware colours, so the earlier gap-only `--require-preserved` RGB test does not apply. Run `--require-closed --finish2` for this slice.
+
+`finish1-baseline.json` and `finish1-audit.json` retain the clean-model and round 1 records. `finish2-baseline.json` freezes the complete round 1 geometry. `finish2-audit.json` records current geometry, round 1 face preservation, material-reader checks, lamp positions and lens visibility. `mesh-audit.json` contains the independent mesh, intersection and press-travel checks. `recess-audit.json` retains the shallow-recess measurements and verifies current glass clearance. The earlier gap-closure and local-export reports are historical evidence, not checks of this finish.
+
+## Rebuild
+
+Run at the repository root with Blender 5.1 and Python with Pillow, NumPy and SciPy installed:
 
 ```powershell
 $deckRoot = Join-Path (Get-Location) 'art/environments/hangar-deck'
@@ -18,150 +388,27 @@ New-Item -ItemType Directory -Force -Path "$deckRoot/.blender", "$deckRoot/.temp
 $env:BLENDER_USER_RESOURCES = Join-Path $deckRoot '.blender'
 $env:TEMP = Join-Path $deckRoot '.temp'
 $env:TMP = $env:TEMP
+$env:PYTHONDONTWRITEBYTECODE = '1'
 & 'C:/Program Files/Blender Foundation/Blender 5.1/blender.exe' -b --factory-startup --python-exit-code 1 --python art/environments/hangar-deck/build_deck.py
+& 'C:/Program Files/Blender Foundation/Blender 5.1/blender.exe' -b --factory-startup --python-exit-code 1 --python art/environments/hangar-deck/verify_finish2.py
 & 'C:/Program Files/Blender Foundation/Blender 5.1/blender.exe' -b --factory-startup --python-exit-code 1 --python art/environments/hangar-deck/verify_deck.py
-& 'C:/Program Files/Blender Foundation/Blender 5.1/blender.exe' -b --factory-startup --python-exit-code 1 --python art/environments/hangar-deck/verify_recess.py
+& 'C:/Program Files/Blender Foundation/Blender 5.1/blender.exe' -b --factory-startup --python-exit-code 1 --python art/environments/hangar-deck/verify_recess.py -- --finish1
 & 'C:/Program Files/Blender Foundation/Blender 5.1/blender.exe' -b --factory-startup --python-exit-code 1 --python art/environments/hangar-deck/verify_coverage.py
 & 'C:/Program Files/Blender Foundation/Blender 5.1/blender.exe' -b --factory-startup --python-exit-code 1 --python art/environments/hangar-deck/verify_ink.py
 python art/environments/hangar-deck/assemble_previews.py
-python art/environments/hangar-deck/assemble_coverage.py --require-closed --require-preserved
-python art/environments/hangar-deck/update_notes.py
+python art/environments/hangar-deck/assemble_coverage.py --require-closed --finish2
+python art/environments/hangar-deck/assemble_finish2.py
 ```
 
-`build_deck.py` reads the checked-in D13 generator for its dimensions. It executes the scene construction in memory, then replaces the massing surfaces. It does not load an existing `deck.blend`. The original D13 generator, model and camera reference remain unchanged.
+The normal build uses 32 Cycles samples and regenerates all ten camera/construction renders. `--no-render` saves the model and build audit only. The original D13 generator is read and executed in memory; its output files remain untouched. Do not use either finish verifier with `-- --capture` during a normal rebuild. Those options replace frozen comparison records. `assemble_finish1.py` belongs to round 1 and must not be run against round 2 renders. `update_notes.py` belongs to the prior shape revision and does not generate this finish record.
 
-`verify_recess.py` compares against `previews/recess-baseline.json`, measures the housing margins and checks the finished recess walls and camera rays. Remove the scratch resource and temporary folders after Blender exits. This revision was rendered headlessly with Blender 5.1.2 at 32 samples.
+Remove local Blender resource, temporary, cache and scratch folders after Blender exits. No scratch folders remain in this delivery.
 
-To rerun `verify_gap_geometry.py`, supply the pre-edit Blender file with `-- --reference PATH`. Final scratch cleanup removes this session's temporary snapshot; `previews/gap-geometry.json` retains its SHA256 and the completed audit.
+## Frozen camera and parts
 
-`verify_deck.py -- --massing` regenerates the reference hardware mask. The comparison excludes the hologram, its light fan and the backdrop. `assemble_previews.py` uses Pillow, NumPy and SciPy for labels, the exact 50% camera overlay, the silhouette measurements and the maximum-area content rectangles.
+The game camera remains at `(0, -18, 6.8)`, pointing along normalized `(0, 0.9936, -0.1132)`. It uses the 33 mm lens, 36 by 24 mm sensor and AUTO fit. `deck_projection.py` applies the existing game projection and shift for all six views.
 
-## Camera, paint and ink
-
-The game camera is at `(0, -18, 6.8)` and points along normalized `(0, 0.9936, -0.1132)`. Its lens is 33 mm, its sensor is 36 by 24 mm and sensor fit is AUTO, matching `console.blend`. At 1920 by 1080 this gives a vertical field of view of 34.113931 degrees. D13 used VERTICAL fit with an exact 34.11 degrees. The tiny projection difference follows the explicit instruction to match the old console's sensor and lens.
-
-The palette uses Principled BSDF nodes with unlinked Base Color, Emission Color and Emission Strength values. `export_console.py:255-278` can read them directly. The four structure values are deep ink blue, blue-grey front, slate chamfers and cool upper planes. Wells and bezels use charcoal; keys and switches use cool grey; LAUNCH uses orange resin; accent strips use emissive cyan; screens use placeholder emissive blue. Legends have a pale inlay value.
-
-The old scene was opened read-only to inspect the camera and linesets. `contract-inspection.json` records that inspection. The ink settings are:
-
-| Lineset | Selection | RGB | Thickness | Position |
-|---|---|---|---:|---|
-| Outer ink contour | Visible silhouettes in hardware ink collection | 0.009, 0.004, 0.002 | 2.20 | CENTER |
-| Internal ink folds | Visible creases in hardware ink collection | 0.009, 0.004, 0.002 | 1.15 | CENTER |
-| Lit legend rim | Visible silhouettes in legend ink collection | 0.009, 0.004, 0.002 | 1.32 | OUTSIDE |
-
-Each lineset has opacity 1 and ROUND caps. Scene line thickness is 1 with ABSOLUTE mode. The exporter can find `Lit legend rim` by name and its collection is assigned. No bevel or subdivision modifiers remain in the deliverable.
-
-## Exporter changes required later
-
-These changes are documented only. Line numbers refer to `art/environments/hangar-console/export_console.py` inspected for this slice.
-
-1. Lines 66-70: keep the existing ` lens` name rule and the projector exception, but allow explicitly lamp-free source scenes to emit empty `lamps` and `downlights` arrays. This slice intentionally has neither. Do not treat the cyan strips as lamps.
-2. Line 79: map `SelectorKnob` to only `08 | Selector faceted grip`. This slice has one knob object, without the old separate `08 | Selector pointer`. All other named part maps at lines 76-104 remain valid.
-3. Lines 114-119: replace the hard requirement for image-texture nodes on the old left-screen materials. The new glasses use the placeholder blue material and contain no reference pictures. Either author new reference images for the new layouts or retire that reference-image dependency when the builder reads authored screen dimensions.
-4. Lines 208-216: apply the local-XY display mapping to all four glasses, and reuse or replace an existing `DisplayUV` layer instead of adding duplicate layers. Each glass now has an explicit plane-local frame. Map the whole bounding rectangle to 0..1; keep UI content inside the content rectangle listed below and leave all surrounding pixels as backing colour. This preserves the current UV-based input mapping without stretching content into the cut corners.
-5. Lines 467-470: export each glass's width and height plus its normalized content-rectangle bounds. Existing width and height calculations remain correct because all four glass meshes use local XY coordinates. The content rectangle is needed by the display layout builder, not by the FBX transform.
-6. Lines 458-459 and 475: stamp the actual `deck.blend` source and verified provenance, and describe placeholder screens rather than the old static artwork.
-
-The manifest stays beside the shared exporter. This task does not run the exporter or write its manifest because its output directory is outside the permitted folder.
-
-The hardware filter at lines 34-37, the rest of the part maps, pivot construction at lines 108-110 and 425-432, color graph reader, carried-control ink pass and FBX coordinate conversion need no new shape-specific rules.
-
-## Builder and display changes required later
-
-Line numbers refer to `src/Asteroids3D/Assets/Scripts/Editor/UI/Hangar/Hardware/HangarConsoleBuilder.cs`.
-
-1. Lines 29-30: keep the manifest path beside the shared exporter when integration switches to this source. The Unity visuals paths may remain unchanged if the new export replaces the old console assets in the later integration slice.
-2. Lines 32-35: accept empty lamp arrays for this explicitly lamp-free slice. Keep arrays present. The glow loops at lines 206-212 and `AssignGlows` already handle empty arrays; `HangarConsole` rejects null arrays, not empty arrays.
-3. Lines 37-52, 165-174 and 288-293: remove the mandatory old left-screen reference-image imports and resolution dependency if those pictures are retired. Size all four display targets from the new screen dimensions. If new reference pictures are retained, replace them with images authored for these planes and their content rectangles.
-4. Lines 275-285 and the `ExportScreenGlass` data class: consume the content rectangle as well as glass width and height. Pass it to the display construction calls at lines 165-174. The content rectangle is axis-aligned in glass-local coordinates; the clipped portions remain backing colour.
-5. `Displays/HangarDisplayBuilder.cs:33-62,99,192,199`: adapt the existing main, detail and weapon layouts to those content rectangles. Its current main and detail placements use the old picture's pixel grid. Keep the full-glass render target and place/scale content within the safe rectangle, so `HangarConsoleRaycaster` can continue to convert full-glass UVs into render-target pixels without a new remapping path.
-
-No changes are needed to `AuthoredUp`, `Control`, their call sites at lines 185-194, or legend parenting at lines 113-120. Blender-local +Z is the outward cap axis. Export with `bake_space_transform=True`, `axis_forward='-Z'`, `axis_up='Y'` maps it to Unity-local +Y. `AuthoredUp` verifies that this axis has the largest cap area. `Control` chooses its inward sign using the camera direction. The knob turns around that same axis. Legends are placed in their control's frame and the builder parents them while preserving world placement.
-
-The existing warm emission tint at line 302, the old spill offsets at lines 138-141 and 175-178, and the separately imported viewport etching at lines 73-80 should be reviewed when finish and game integration are scoped. They do not prevent the shape and part contract from working, so this slice does not prescribe new lighting or window artwork.
-## Measured geometry
-
-### Pod corners and recessed screens, 2026-11-19
-
-Both upper inner housing chamfers now use 1.02 by 0.72 setbacks, parallel to the unchanged 0.85 by 0.60 glass clips. The middle and rear shell follow that same outline, removing the old notch. The top is lowered by 0.023076 local units to compensate for banking, so the wider corner does not increase the pod height. The front housing bounds remain Z = 1.057527 to 4.738953 on both sides. The other three housing corners already follow their glass clips at 45 degrees and retain their outlines.
-
-The pod face stays at local depth -0.10. Each glass moves from -0.008 to -0.20, placing it 0.10 units below the face. The raised screen lips are removed. Each charcoal tray flares outward at 45 degrees, with 0.008 units of clearance around the glass at its depth and a floor 0.015 units behind it. The mouth is an exact perpendicular offset of the clipped glass outline. The face bars between the two mouths are 0.044 units wide on the left and 0.084 on the right. Weapon step keys keep their frames and travel; their wells now taper outward toward the frame opening.
-
-Recess cuts run after the structural unions. Boolean coordinates are welded within 0.000001 units during construction and within 0.00001 before final triangulation. This removes duplicate vertices from Boolean rounding without changing visible contours. The final mesh must pass the closed-manifold and zero-area checks before it is saved.
-
-Corner margins below are measured at 1920 by 1080. Each value is the shortest pixel distance from the midpoint of a glass clipped corner to the projected outer perimeter of its pod face. They measure housing coverage, including the recess, rather than the dark wall alone. Large values occur beside the other display or the weapon keys. Left and right in this table mean image left and image right. The exact projected polygons and measurements are in `previews/recess-audit.json`.
-
-| Screen | Corner | Previous margin, px | Updated margin, px |
-|---|---|---:|---:|
-| SHIP | bottom left | 128.06 | 121.82 |
-| SHIP | bottom right | 53.77 | 60.98 |
-| SHIP | top right | 9.57 | 30.79 |
-| SHIP | top left | 18.35 | 25.78 |
-| DETAIL | bottom left | 28.38 | 21.58 |
-| DETAIL | bottom right | 25.14 | 19.12 |
-| DETAIL | top right | 75.01 | 69.65 |
-| DETAIL | top left | 85.37 | 78.21 |
-| PRIMARY | bottom left | 52.42 | 59.47 |
-| PRIMARY | bottom right | 124.42 | 120.23 |
-| PRIMARY | top right | 18.35 | 25.78 |
-| PRIMARY | top left | 9.57 | 30.79 |
-| ORDNANCE | bottom left | 54.26 | 61.54 |
-| ORDNANCE | bottom right | 82.38 | 75.18 |
-| ORDNANCE | top right | 125.65 | 121.41 |
-| ORDNANCE | top left | 52.87 | 59.97 |
-
-The two upper inner margins increase from 9.57 to 30.79 pixels. All sixteen glass corners were checked. The smallest updated corner margin is 19.12 pixels at DETAIL's bottom right. Glass depth changes account for the small perspective changes at the other corners; their sizes and orientations are unchanged.
-
-The finished mesh has charcoal material on all 32 screen walls. Wall normals measured at their midpoints give angles from 44.999488 to 45.000385 degrees to the pod face.
-
-The six camera renders use the supplied game projection, position and direction. For each view, the audit casts rays to 715 points around and inside every glass against the finished body. All rays reach the glass without a body intersection. Every glass vertex also remains inside its projected mouth. The minimum projected glass-to-mouth clearances are listed below. These margins keep Freestyle ink away from the glass boundary.
-
-| View | SHIP, px | DETAIL, px | PRIMARY, px | ORDNANCE, px |
-|---|---:|---:|---:|---:|
-| 16x10 | 5.43 | 6.24 | 4.51 | 5.78 |
-| 3x2 | 4.58 | 5.26 | 3.81 | 4.88 |
-| 4x3 | 4.08 | 4.68 | 3.39 | 4.34 |
-| 16x9 | 5.38 | 6.18 | 4.47 | 5.73 |
-| 21x9 | 5.38 | 6.18 | 4.47 | 5.73 |
-| 32x9 | 5.38 | 6.18 | 4.47 | 5.73 |
-
-The original 16:9 render is preserved in `previews/deck-recess-original.png`. `previews/deck-recess-compare.png` places it beside the updated render and includes four 3x crops of the upper inner corners. These are Blender camera renders with the existing placeholder glasses and hologram, not a new Unity capture.
-
-### Exporter parts
-
-| Exported part | Blender object |
-|---|---|
-| MainScreenGlass | `07 \| Main rectangular display` |
-| DetailScreenGlass | `07 \| Detail rectangular display` |
-| PrimaryScreenGlass | `30 \| Primary blank glass` |
-| OrdnanceScreenGlass | `30 \| Ordnance blank glass` |
-| PreviousButton | `08 \| Previous chunky keycap` |
-| PreviousLegend | `08 \| Previous inlaid chevron` |
-| NextButton | `08 \| Next chunky keycap` |
-| NextLegend | `08 \| Next inlaid chevron` |
-| SelectorKnob | `08 \| Selector faceted grip` |
-| LaunchButton | `08 \| Launch broad beveled button` |
-| LaunchLegend | `19 \| Launch legend` |
-| PrimaryPreviousButton | `30 \| Primary Previous key` |
-| PrimaryPreviousLegend | `30 \| Primary Previous ivory inlay` |
-| PrimaryNextButton | `30 \| Primary Next key` |
-| PrimaryNextLegend | `30 \| Primary Next ivory inlay` |
-| OrdnancePreviousButton | `30 \| Ordnance Previous key` |
-| OrdnancePreviousLegend | `30 \| Ordnance Previous ivory inlay` |
-| OrdnanceNextButton | `30 \| Ordnance Next key` |
-| OrdnanceNextLegend | `30 \| Ordnance Next ivory inlay` |
-| ProjectorLens | `09 \| Projector lens` |
-| ConsoleBody | `Deck \| joined closed structure` |
-| ConsoleBody | `Deck \| left pod cyan strip` |
-| ConsoleBody | `Deck \| left strut cyan strip` |
-| ConsoleBody | `Deck \| right pod cyan strip` |
-| ConsoleBody | `Deck \| right strut cyan strip` |
-| ConsoleBody | `Deck \| header cyan strip -8.6` |
-| ConsoleBody | `Deck \| header cyan strip 0` |
-| ConsoleBody | `Deck \| header cyan strip 8.6` |
-
-The body includes the housings, canopy, strut shoulders, wraparound band, raked panels, pedestal, sill and eight decorative switches. The seven cyan strips are separate static solids assigned to ConsoleBody; none has a name ending in ` lens`. The projector is the only object with that suffix and uses the exporter's existing exception.
+The three linesets are unchanged: Outer ink contour at 2.20 px, Internal ink folds at 1.15 px, and Lit legend rim at 1.32 px. All use the original dark ink, opacity and caps. No detail-specific lineset was added.
 
 ### Moving control frames
 
@@ -200,135 +447,3 @@ A largest plain rectangle means the maximum-area rectangle aligned with the glas
 
 For a plane centre C and the listed unit vectors U, V and N, a glass point is C + xU + yV and its plane equation is N dot (P - C) = 0. The two left glasses share the left pod plane; the two right glasses share the right pod plane. Screen positions are not independently rotated.
 
-### Mesh report
-
-| Object | Closed | Manifold | Triangles |
-|---|---|---|---:|
-| `Deck \| joined closed structure` | Yes | Yes | 6,928 |
-| `07 \| Main rectangular display` | No, planar glass | No, planar glass | 6 |
-| `07 \| Detail rectangular display` | No, planar glass | No, planar glass | 6 |
-| `30 \| Primary blank glass` | No, planar glass | No, planar glass | 6 |
-| `30 \| Ordnance blank glass` | No, planar glass | No, planar glass | 6 |
-| `08 \| Previous chunky keycap` | Yes | Yes | 56 |
-| `08 \| Previous inlaid chevron` | Yes | Yes | 20 |
-| `08 \| Next chunky keycap` | Yes | Yes | 56 |
-| `08 \| Next inlaid chevron` | Yes | Yes | 20 |
-| `08 \| Selector faceted grip` | Yes | Yes | 44 |
-| `08 \| Launch broad beveled button` | Yes | Yes | 300 |
-| `19 \| Launch legend` | Yes | Yes | 236 |
-| `30 \| Primary Previous key` | Yes | Yes | 56 |
-| `30 \| Primary Previous ivory inlay` | Yes | Yes | 20 |
-| `30 \| Primary Next key` | Yes | Yes | 56 |
-| `30 \| Primary Next ivory inlay` | Yes | Yes | 20 |
-| `30 \| Ordnance Previous key` | Yes | Yes | 56 |
-| `30 \| Ordnance Previous ivory inlay` | Yes | Yes | 20 |
-| `30 \| Ordnance Next key` | Yes | Yes | 56 |
-| `30 \| Ordnance Next ivory inlay` | Yes | Yes | 20 |
-| `09 \| Projector lens` | Yes | Yes | 44 |
-| `Deck \| left pod cyan strip` | Yes | Yes | 28 |
-| `Deck \| left strut cyan strip` | Yes | Yes | 28 |
-| `Deck \| right pod cyan strip` | Yes | Yes | 28 |
-| `Deck \| right strut cyan strip` | Yes | Yes | 28 |
-| `Deck \| header cyan strip -8.6` | Yes | Yes | 12 |
-| `Deck \| header cyan strip 0` | Yes | Yes | 12 |
-| `Deck \| header cyan strip 8.6` | Yes | Yes | 12 |
-
-The model has 28 mesh objects: 24 closed manifold solids and four intentional planar glasses. Hardware total: **8,180 triangles** and 4,144 vertices. All solid windings are consistent and signed volumes are positive. There are no loose vertices or unapplied modifiers. Zero-area faces: 0.
-
-An independent Boolean-volume audit checked 30 object pairs whose world bounding boxes overlap. It found 0 intersections above 0.0000001 cubic units. All eight moving controls and their carried legends were also checked against the body at half and full travel, using the existing builder's travel fractions: 0 intersections. The report is `previews/mesh-audit.json`.
-
-There are 3 positive-area Boolean sliver triangles smaller than 0.0000000001 square units. They remain connected to their closed surfaces; none is a loose or zero-area face.
-
-The inherited hologram and backdrop below are preview objects, excluded by the old exporter's existing name prefixes. They are not console construction. Their open planes are intentional visual staging.
-
-| Excluded preview object | Closed/manifold | Evaluated triangles |
-|---|---|---:|
-| `19 \| Vanguard preview swept wing envelope` | Yes | 60 |
-| `19 \| Vanguard preview wing perimeter` | No, preview surface | 128 |
-| `19 \| Vanguard preview raised fuselage` | No, preview surface | 8 |
-| `19 \| Vanguard preview fuselage ridge` | No, preview surface | 24 |
-| `19 \| Vanguard preview fuselage ridge.001` | No, preview surface | 48 |
-| `19 \| Vanguard preview tail fin` | No, preview surface | 1 |
-| `19 \| Vanguard preview fin edges` | No, preview surface | 24 |
-| `19 \| Vanguard preview tail fin.001` | No, preview surface | 1 |
-| `19 \| Vanguard preview fin edges.001` | No, preview surface | 24 |
-| `11 \| Neutral projector frustum` | No, preview surface | 2 |
-| `19 \| Distant space` | Yes | 12 |
-
-The entire scene, including evaluated preview curves and the backdrop, has **8,512 triangles**, below the 70,000-triangle limit.
-
-### D13 departures and comparison
-
-- Pod faces stay at -0.10; unchanged glass outlines sit at -0.20 in 45-degree charcoal recesses, without raised lips.
-- Mirrored upper inner housing chamfers follow the screen slope; the rear shell follows the same outline without the old notch.
-- Hidden band undersides, pod cavity walls, joined heels and ramp returns close the open massing.
-- Weapon keys retain their exact visible tops; their surrounding wells provide real depth.
-- Pedestal dark riser strips omitted as surface detail reserved for slice 2.
-- Thin inlaid key chevrons and launch lettering added as required moving legends.
-- Camera uses old console AUTO sensor, 36 x 24 mm and 33 mm lens: vertical FOV 34.113931 degrees.
-- Ship, selector and launch well floors are -.125 in their local frames to clear existing press travel.
-- Raised housing skirts terminate inside the band front return; eight decorative switches extend invisibly into their well floors.
-- Well cutter mouths expand 0.3 percent to prevent coincident edges at the bevel boundary.
-- Header, pod shoulders, band and canopy side walls continue to X = +/-27 for wide cameras.
-
-The camera overlay is an exact 50% blend at 1920 by 1080. The comparison sheet places the two native-resolution renders side by side with labels. The false-colour parts sheet includes each exporter role and its corresponding index.
-
-The unlit hardware masks have intersection-over-union 96.3213%. They differ at 40,834 of 2,073,600 image pixels. The 95th-percentile boundary distance is 14.000 pixels; the largest is 74.000 pixels. These values include filled massing gaps. They are not a claim that every pixel is identical. See `previews/silhouette-comparison.json`, `previews/silhouette-difference.png` and the overlay for the exact comparison.
-
-### Screen-shape extension
-
-The header, outer pod housings and wraparound band continue to X = +/-27. Folded side walls join the header to the lower structure, leaving one additional side window on each side. These pieces are Boolean-unioned into the existing ConsoleBody object. The lower return continues down and outward behind the console and pod housings. The header continuation overlaps the existing beam behind its visible faces. The construction views are refitted to show the wider model.
-
-Against the saved original deck hardware mask, the 1920 by 1080 silhouette has intersection-over-union 96.7272%. Changed pixels: 36,326 of 2,073,600. The 95th-percentile boundary displacement is 14.000 pixels; the maximum is 65.000 pixels. This comparison uses `previews/reference/deck-mask.png`, not the older D13 massing. The original rendered camera view is preserved beside it. See `previews/aspect-comparison.json` and `previews/deck-extension-difference.png`.
-
-Moving-control frames and cap geometry are unchanged: True. Screen-glass outlines, orientations and frames are unchanged, with only local depth changed: True. The object names, part roles, palette, ink linesets and lamp-free construction remain intact.
-
-| View | Resolution | Horizontal FOV | Vertical FOV |
-|---|---|---:|---:|
-| 16x9 | 1920 x 1080 | 57.220918 | 34.113930 |
-| 21x9 | 2560 x 1080 | 72.054745 | 34.113930 |
-| 32x9 | 3840 x 1080 | 94.979104 | 34.113930 |
-| 16x10 | 1920 x 1200 | 56.742882 | 37.302549 |
-| 3x2 | 1620 x 1080 | 56.742882 | 39.601404 |
-| 4x3 | 1440 x 1080 | 56.742882 | 44.099881 |
-
-The table above gives effective fields of view after the 1.01 diagonal scale. All views use the same camera position and direction.
-
-### Game projection and measured edge coverage
-
-`deck_projection.py` applies the supplied projection to all camera previews, masks, recess checks and magenta evidence. Narrower views increase the vertical FOV by the supplied tangent ratio, then divide that tangent by 1.01. Blender uses horizontal sensor fit and `shift_y = m12 / (2 * aspect)`. A negative shift looks farther down. The 16:9 camera retains AUTO fit and its 33 mm lens.
-
-| View | Initial vertical FOV | Effective vertical FOV | Unity m12 | Blender shift_y | Top 3% magenta | Bottom 3% magenta | Above header magenta | Below console magenta | Outside windows magenta |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 16x10 | 37.64941878 | 37.30254856 | -0.03600000 | -0.01125000 | 0 | 0 | 0 | 0 | 0 |
-| 3x2 | 39.96621172 | 39.60140372 | -0.05625000 | -0.01875000 | 0 | 0 | 0 | 0 | 0 |
-| 4x3 | 44.49804587 | 44.09988083 | -0.09000000 | -0.03375000 | 0 | 0 | 0 | 0 | 0 |
-| 16x9 | 34.11393000 | 34.11393000 | 0.00000000 | 0.00000000 | 0 | 0 | 0 | 0 | 0 |
-| 21x9 | 34.11393000 | 34.11393000 | 0.00000000 | 0.00000000 | 0 | 0 | 0 | 0 | 0 |
-| 32x9 | 34.11393000 | 34.11393000 | 0.00000000 | 0.00000000 | 0 | 0 | 0 | 0 | 0 |
-
-The magenta renders hide the hologram, projector fan and original backdrop. A saturated magenta world is visible only to camera rays, so it does not tint the hardware. Bands contain `ceil(height * 0.03)` rows. Counts use saved PNG values R > 180, G < 80 and B > 180. The window-opening check tests the entire frame against the projected header lower edge, console upper surface and side-window boundaries. Its frozen baseline window mask also retains existing isolated antialias pixels within three pixels of a window, with every RGB channel below 80. Only those original pixels are included; this does not permit new pixels around the window. The JSON lists their coordinates, values and current differences, plus a looser chroma test and the raw counts before those baseline pixels are included. `previews/deck-coverage-sheet.png` labels all six full renders. Blender's projection matrix matches the supplied matrix within 0.000001.
-
-The comparison reference is the camera image present at the start of this task, preserved in `previews/coverage-reference/deck-camera.png`, with its hardware mask beside it. Hardware intersection-over-union is 97.042319%. Changed pixels: 32,795 of 2,073,600. Added: 32,795; removed: 0. Added mask pixels inside frozen windows: 0, including 0 formerly saturated magenta pixels. Mask comparisons use alpha > 127. Boundary distance is 14.000 pixels at the 95th percentile and 65.000 pixels maximum.
-
-`previews/gap-geometry.json` checks all 2,073,600 pixel-centre rays. It finds 32,795 backdrop-to-structure changes, no existing hit-position changes above 0.0001 units and no material or object changes. The maximum existing position difference is 1.1949505e-05 units. Non-body meshes, materials, ink, linesets and camera match exactly. The 3 raw normal differences come from unchanged overlapping or shared-edge triangles; exact triangle comparisons and nearby rays explain them in the report.
-
-The rendered 16:9 RGB image differs at 55,172 pixels. The changed bounds are [0, 0, 1919, 1079], inclusive X/Y pixel coordinates. Top-region changes: 25,993 at [0, 0, 1919, 13]; bottom-region changes: 5,707 at [0, 922, 1919, 1079]. Window changes: 1,037; non-backdrop changes: 22,435; antialias boundary changes: 0. Changes outside the permitted top and bottom backdrop regions: 23,472. Individual changed-region bounds are in `previews/coverage.json`.
-
-The literal rendered camera PNG also changes pixels outside the permitted backdrop regions; see rendered_rgb_16x9. Geometry preservation does not imply identical rendered RGB.
-
-Of the disallowed changes, 18,652 differ by one RGB value. The larger changes cluster around the former top outline. `previews/deck-rgb-difference-amplified.png` shows absolute RGB differences multiplied by ten, with values capped at 255.
-
-The earlier reference-frustum subtraction preserved sky already visible at 16:9 and left a seam between the cap and header. The original body, including its clipped extensions, is completed before the final unions. The new crown spans X = +/-27, Y = 3.35 to 7.65 and Z = 10.61 to 15, with 0.01 overlap at the header top. The new lower skirt spans X = +/-27 and Y = -2 to 2.35, reaching down to Z = -5. Its top rises from Z = 0.20 at the front to 0.65 at the rear, behind the console and pod housings. These closed solids join the existing body without new objects. Existing controls, recesses, pod corners, materials, names and linesets are preserved.
-
-All six aspects pass the edge-band and window-opening checks.
-
-### Black side bars
-
-The shared exporter's projected Freestyle ink image causes the bars. Its `EXTEND` sampling repeats the 16:9 border texel onto geometry outside that image, turning pod outlines into horizontal black bands. The bars reproduce with assigned source materials, closed outward-facing solids and no paint bake. Missing materials and zero-thickness faces are not the cause.
-
-The shared exporter's `projected_ink` function returns white outside the reference image, which leaves the original paint unchanged. The shared exporter owns FBX, atlas generation, part mapping and the manifest beside it. This task does not execute its top-level export code.
-
-`verify_ink.py` extracts only `projected_ink` from the shared exporter with Python's AST. It compares the returned bounded socket with the same graph's pre-bound input in headless Blender. The left/right black-pixel counts are [2484, 2454] before the bound and [0, 0] with the shared function's returned socket. Changed central 16:9 pixels: 0. `previews/ink-verification.json` records the sample boxes and threshold. This tests the shader graph used for paint baking without running an atlas bake or Unity import.
-
-`previews/local-export-verification.json` and `previews/local-export-manifest.json` record an earlier revision's local export. They do not verify this gap-closure revision. No new atlas bake, FBX export or Unity export was run.

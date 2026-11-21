@@ -8,6 +8,7 @@ using UI.Hangar.Hologram;
 using UI.Hangar.Selection;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace UI.Hangar.Hardware
@@ -17,7 +18,8 @@ namespace UI.Hangar.Hardware
     /// The left pair shows the ship; the right pair shows the weapon and the ordnance. The
     /// hologram projector is its part at the lens. An accepted Launch locks the keys and the
     /// pointer, presses the button and powers the screens down before the caller is handed the
-    /// pending loadout, once. The console applies its light profile each frame.
+    /// pending loadout, once. Each frame the console applies its light profile and hands its painted
+    /// parts the light of its screens, hologram, Launch and overheads, which their shader sums per pixel.
     /// </summary>
     public sealed class HangarConsole : MonoBehaviour
     {
@@ -28,10 +30,16 @@ namespace UI.Hangar.Hardware
         private static readonly int ConstantEmissionId = Shader.PropertyToID("_ConstantEmission");
         private static readonly int StarlightId = Shader.PropertyToID("_Starlight");
         private static readonly int EmissionStrengthId = Shader.PropertyToID("_EmissionStrength");
+        private static readonly int LightResponseId = Shader.PropertyToID("_LightResponse");
         private static readonly int EmissionTintId = Shader.PropertyToID("_EmissionTint");
         private static readonly int GlowColorId = Shader.PropertyToID("_GlowColor");
-        private static readonly int TopShareId = Shader.PropertyToID("_TopShare");
-        private static readonly int FalloffId = Shader.PropertyToID("_Falloff");
+        private static readonly int HangarLightPositionsId = Shader.PropertyToID("_HangarLightPositions");
+        private static readonly int HangarLightColorsId = Shader.PropertyToID("_HangarLightColors");
+        private static readonly int HangarLightCountId = Shader.PropertyToID("_HangarLightCount");
+        private const int LightSlots = 8;
+        private const float HologramLightRange = 12f;
+        private const float LaunchLightRange = 6f;
+        private const float OverheadLightRange = 14f;
         private const float LaunchDim = .1f;
 
         [SerializeField] private Camera hardwareCamera;
@@ -65,11 +73,11 @@ namespace UI.Hangar.Hardware
         [SerializeField] private HangarLightProfile lightProfile;
         [SerializeField] private MeshRenderer[] paintedParts;
         [SerializeField] private MeshRenderer launchSurface;
-        [SerializeField] private Light projectorSpill;
-        [SerializeField] private Light launchSpill;
+        [SerializeField] private Vector3 hologramLightOffset;
+        [SerializeField] private Vector3 launchLightOffset;
         [SerializeField] private HangarGlow[] lampGlows;
-        [SerializeField] private HangarGlow[] downlightGlows;
-        [SerializeField] private HangarGlow[] downlightCones;
+        [SerializeField, FormerlySerializedAs("downlightGlows")] private HangarGlow[] overheadGlows;
+        [SerializeField] private HangarGlow lensGlow;
         [SerializeField] private Vector3 knobAxis;
         [SerializeField] private float knobDetentDegrees = 40f;
 
@@ -78,6 +86,8 @@ namespace UI.Hangar.Hardware
         private readonly List<InputAction> actions = new();
         private MaterialPropertyBlock legendBlock;
         private MaterialPropertyBlock lightBlock;
+        private readonly Vector4[] hangarLightPositions = new Vector4[LightSlots];
+        private readonly Vector4[] hangarLightColors = new Vector4[LightSlots];
         private Color legendLit;
         private HangarConsoleRaycaster raycaster;
         private HangarSelection selection;
@@ -120,10 +130,10 @@ namespace UI.Hangar.Hardware
                 !ordnanceNextButton || !launchLegend || !projectorLens || !compositeImage || !projector ||
                 !mainDisplay || !detailDisplay || !primaryDisplay || !ordnanceDisplay || !mainView ||
                 !detailView || !primaryView || !ordnanceView || !displayProfile || !lightProfile ||
-                paintedParts == null || paintedParts.Length == 0 || !launchSurface || !projectorSpill ||
-                !launchSpill || lampGlows == null || downlightGlows == null || downlightCones == null)
+                paintedParts == null || paintedParts.Length == 0 || !launchSurface ||
+                lampGlows == null || overheadGlows == null || !lensGlow.card)
                 throw new InvalidOperationException(
-                    "HangarConsole needs its camera, four screen glasses, controls, weapon keys, knob, launch legend, displays, display profile, light profile, projector lens, composite image, projector, painted parts, launch surface, projector spill, launch spill, lamp glows, downlight glows and downlight cones.");
+                    "HangarConsole needs its camera, four screen glasses, controls, weapon keys, knob, launch legend, displays, display profile, light profile, projector lens, composite image, projector, painted parts, launch surface, lamp glows, overhead glows and lens glow.");
             raycaster = GetComponent<HangarConsoleRaycaster>();
             if (!raycaster)
                 throw new InvalidOperationException("HangarConsole needs its raycaster on the same object.");
@@ -240,12 +250,42 @@ namespace UI.Hangar.Hardware
 
         private void ApplyLight()
         {
+            var count = 0;
+            count = AddLight(count, mainDisplay.Light);
+            count = AddLight(count, detailDisplay.Light);
+            count = AddLight(count, primaryDisplay.Light);
+            count = AddLight(count, ordnanceDisplay.Light);
+            count = AddLight(count, new HangarLight(
+                projectorLens.transform.position + hologramLightOffset,
+                lightProfile.HologramSpillColor.linear * (lightProfile.HologramSpill * projector.Level),
+                HologramLightRange));
+            var launchScale = LaunchLegendLit ? 1f : LaunchDim;
+            count = AddLight(count, new HangarLight(
+                launchButton.RestPosition + launchLightOffset,
+                lightProfile.LaunchSpillColor.linear * (lightProfile.LaunchSpill * launchScale),
+                LaunchLightRange));
+            for (var i = 0; i < overheadGlows.Length; i++)
+            {
+                var glow = overheadGlows[i];
+                count = AddLight(count, new HangarLight(glow.card.transform.position,
+                    glow.color.linear * lightProfile.OverheadLight, OverheadLightRange));
+            }
+            for (var i = count; i < LightSlots; i++)
+            {
+                hangarLightPositions[i] = Vector4.zero;
+                hangarLightColors[i] = Vector4.zero;
+            }
+
             var emission = lightProfile.EmissionStrength;
             for (var i = 0; i < paintedParts.Length; i++)
             {
                 paintedParts[i].GetPropertyBlock(lightBlock);
                 lightBlock.SetColor(StarlightId, lightProfile.Ambient);
                 lightBlock.SetFloat(EmissionStrengthId, emission);
+                lightBlock.SetFloat(LightResponseId, lightProfile.LightResponse);
+                lightBlock.SetVectorArray(HangarLightPositionsId, hangarLightPositions);
+                lightBlock.SetVectorArray(HangarLightColorsId, hangarLightColors);
+                lightBlock.SetFloat(HangarLightCountId, count);
                 paintedParts[i].SetPropertyBlock(lightBlock);
             }
 
@@ -256,28 +296,29 @@ namespace UI.Hangar.Hardware
             lightBlock.SetColor(StarlightId, lightProfile.LaunchGlow);
             lightBlock.SetFloat(EmissionStrengthId, emission);
             launchSurface.SetPropertyBlock(lightBlock);
-            projectorSpill.color = lightProfile.HologramSpillColor;
-            projectorSpill.intensity = lightProfile.HologramSpill;
-            launchSpill.color = lightProfile.LaunchSpillColor;
-            launchSpill.intensity = lightProfile.LaunchSpill;
 
-            var lampSize = Vector3.one * lightProfile.LampGlowSize;
             for (var i = 0; i < lampGlows.Length; i++)
-                ApplyGlow(lampGlows[i], lampGlows[i].color * lightProfile.LampGlow, lampSize);
-            var downlightSize = Vector3.one * lightProfile.DownlightGlowSize;
-            for (var i = 0; i < downlightGlows.Length; i++)
-                ApplyGlow(downlightGlows[i], downlightGlows[i].color * lightProfile.DownlightGlow, downlightSize);
-            var coneScale = new Vector3(lightProfile.ConeWidth, lightProfile.ConeLength, 1f);
-            for (var i = 0; i < downlightCones.Length; i++)
             {
-                var glow = downlightCones[i];
-                glow.card.GetPropertyBlock(lightBlock);
-                lightBlock.SetColor(GlowColorId, glow.color * lightProfile.ConeStrength);
-                lightBlock.SetFloat(TopShareId, lightProfile.ConeTopShare);
-                lightBlock.SetFloat(FalloffId, lightProfile.ConeFalloff);
-                glow.card.SetPropertyBlock(lightBlock);
-                glow.card.transform.localScale = coneScale;
+                var glow = lampGlows[i];
+                var span = glow.size + Vector2.one * lightProfile.LampGlowSize;
+                ApplyGlow(glow, glow.color * lightProfile.LampGlow, new Vector3(span.x, span.y, 1f));
             }
+            for (var i = 0; i < overheadGlows.Length; i++)
+            {
+                var glow = overheadGlows[i];
+                var span = glow.size + Vector2.one * lightProfile.OverheadGlowSize;
+                ApplyGlow(glow, glow.color * lightProfile.OverheadGlow, new Vector3(span.x, span.y, 1f));
+            }
+            ApplyGlow(lensGlow, lensGlow.color * lightProfile.LensGlow * projector.Level,
+                Vector3.one * lightProfile.LensGlowSize);
+        }
+
+        private int AddLight(int index, HangarLight light)
+        {
+            hangarLightPositions[index] = new Vector4(
+                light.Position.x, light.Position.y, light.Position.z, light.Range);
+            hangarLightColors[index] = new Vector4(light.Color.r, light.Color.g, light.Color.b, 0f);
+            return index + 1;
         }
 
         private void ApplyGlow(HangarGlow glow, Color color, Vector3 scale)

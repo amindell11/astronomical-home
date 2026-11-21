@@ -121,7 +121,7 @@ namespace Tests.EditMode.Hangar
                      {
                          "mainDisplay", "detailDisplay", "primaryDisplay", "ordnanceDisplay",
                          "mainView", "detailView", "primaryView", "ordnanceView", "displayProfile", "lightProfile",
-                         "launchSurface", "projectorSpill", "launchSpill",
+                         "launchSurface",
                          "selectorKnob", "knob", "previousButton", "nextButton", "launchButton", "launchLegend",
                          "primaryPreviousButton", "primaryNextButton", "ordnancePreviousButton", "ordnanceNextButton"
                      })
@@ -155,7 +155,7 @@ namespace Tests.EditMode.Hangar
         }
 
         [Test]
-        public void EachSlotHasAnArrowPair_AndTheDisplaysDriveTheirSpillLights()
+        public void EachSlotHasAnArrowPair_AndEachDisplayPlacesALight()
         {
             var console = AssetDatabase.LoadAssetAtPath<HangarConsole>(PrefabPath);
             var main = console.GetComponentInChildren<HangarMainDisplayView>(true);
@@ -173,7 +173,11 @@ namespace Tests.EditMode.Hangar
                 Assert.IsTrue(arrow.targetGraphic && arrow.targetGraphic.raycastTarget, $"{view.name} {step} arrow is clickable");
             }
             foreach (var display in console.GetComponentsInChildren<HangarDisplay>(true))
-                Assert.IsTrue(new SerializedObject(display).FindProperty("spill").objectReferenceValue, display.name + " spill");
+            {
+                var data = new SerializedObject(display);
+                Assert.That(data.FindProperty("lightRange").floatValue, Is.GreaterThan(0f), display.name);
+                Assert.That(data.FindProperty("lightDistance").floatValue, Is.GreaterThan(0f), display.name);
+            }
         }
 
         [Test]
@@ -264,21 +268,21 @@ namespace Tests.EditMode.Hangar
         }
 
         [Test]
-        public void GlowCardsMatchTheLampsAndDownlights()
+        public void GlowCardsMatchTheLampsAndOverheads()
         {
             var console = AssetDatabase.LoadAssetAtPath<HangarConsole>(PrefabPath);
             var data = new SerializedObject(console);
             var lamps = data.FindProperty("lampGlows");
-            var downlights = data.FindProperty("downlightGlows");
-            var cones = data.FindProperty("downlightCones");
-            Assert.That(cones.arraySize, Is.EqualTo(downlights.arraySize));
-            foreach (var cards in new[] { lamps, downlights, cones })
+            var overheads = data.FindProperty("overheadGlows");
+            Assert.That(overheads.arraySize, Is.LessThanOrEqualTo(2));
+            foreach (var cards in new[] { lamps, overheads })
                 for (var i = 0; i < cards.arraySize; i++)
                     Assert.IsTrue(cards.GetArrayElementAtIndex(i).FindPropertyRelative("card").objectReferenceValue,
                         cards.name);
             for (var i = 0; i < lamps.arraySize; i++)
                 Assert.That(lamps.GetArrayElementAtIndex(i).FindPropertyRelative("color").colorValue,
                     Is.Not.EqualTo(Color.black), "lamp " + i);
+            Assert.IsTrue(data.FindProperty("lensGlow").FindPropertyRelative("card").objectReferenceValue, "lens glow");
         }
 
         [Test]

@@ -56,11 +56,13 @@ namespace UI.Hangar.Hologram
         private Camera host;
         private bool fitted;
         private float switchedAt = float.NegativeInfinity;
+        private float level = 1f;
         private Vector2 apparent;
         // Normalized on the surface; square on screen, as the stage's off-axis framing requires.
         private Rect frame;
 
         public Rect Frame => frame;
+        internal float Level => level;
         internal HangarPreviewStage Stage => stage;
 
         private void Awake()
@@ -127,7 +129,7 @@ namespace UI.Hangar.Hologram
         private void LateUpdate()
         {
             if (!stage) return;
-            var level = 1f - profile.FlickerDepth * Mathf.PerlinNoise(Time.unscaledTime * profile.FlickerRate, 0f);
+            level = 1f - profile.FlickerDepth * Mathf.PerlinNoise(Time.unscaledTime * profile.FlickerRate, 0f);
             surface.GetPropertyBlock(block);
             block.SetTexture(MainTexId, image.Output);
             block.SetFloat(OpacityId, profile.LayerOpacity * level);

@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: ConsoleCone
-  m_Shader: {fileID: 4800000, guid: bdfe729be4c14064e8359bf7bc82584b, type: 3}
+  m_Name: VanguardDash_Over
+  m_Shader: {fileID: 4800000, guid: 0189bc22a9b593a4884009edc73d974b, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -22,14 +22,16 @@ Material:
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
-    m_TexEnvs: []
+    m_TexEnvs:
+    - _BaseMap:
+        m_Texture: {fileID: 2800000, guid: 5c249d01b9c060249b4b63e98389b1c3, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Cone: 1
-    - _EdgeSoftness: 0.6
-    - _Falloff: 1.4
-    - _TopShare: 0.18
-    m_Colors:
-    - _GlowColor: {r: 1, g: 1, b: 1, a: 1}
+    - _Columns: 13
+    - _Frame: 0
+    - _Rows: 3
+    m_Colors: []
   m_BuildTextureStacks: []
   m_AllowLocking: 1

@@ -45,16 +45,17 @@ namespace Ships.Keystones.Kits
             return new KeystoneEffect(Vector2.zero, ClearJump(kinematics.pos, Vector2.ClampMagnitude(aim - kinematics.pos, range)));
         }
 
-        protected override void Sustain(in Kinematics kinematics, float baseMaxSpeed)
+        protected override KeystoneEffect Sustain(in Kinematics kinematics, float dt, float baseMaxSpeed)
         {
-            if (trackedAtJump.Count == 0 || SinceActivation > PaidSeconds) return;
+            if (trackedAtJump.Count == 0 || SinceActivation > PaidSeconds) return default;
             foreach (var missile in trackedAtJump)
             {
                 if (!LostTrack(missile)) continue;
                 CreditActivation();
                 trackedAtJump.Clear();
-                return;
+                return default;
             }
+            return default;
         }
 
         // Still flying but no longer tracking this ship; a missile that hit or expired has despawned.

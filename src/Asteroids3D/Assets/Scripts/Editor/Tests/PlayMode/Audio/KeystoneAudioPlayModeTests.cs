@@ -19,7 +19,9 @@ namespace Tests.PlayMode.Audio
     public class KeystoneAudioPlayModeTests : FmodEvidenceFixture
     {
         private const string KitPrefabPath = "Assets/Prefabs/Keystones/Valis_Overdrive.prefab";
+        private const string RamPrefabPath = "Assets/Prefabs/Keystones/Bulwark_Dash.prefab";
         private const string OverdriveEvent = "event:/Ships/Keystones/Overdrive";
+        private const string RamEvent = "event:/Ships/Keystones/Ram";
         private const float HeldSeconds = 0.5f;
         private const float FadeSeconds = 1f;
 
@@ -47,10 +49,10 @@ namespace Tests.PlayMode.Audio
             base.TearDown();
         }
 
-        private Keystone Kit()
+        private Keystone Kit(string prefabPath)
         {
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(KitPrefabPath);
-            Assert.IsNotNull(prefab, "the overdrive kit prefab loads");
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            Assert.IsNotNull(prefab, prefabPath);
             kitHost = Object.Instantiate(prefab);
             var kit = kitHost.GetComponent<Keystone>();
             Assert.IsNotNull(kit, "the kit prefab carries a Keystone");
@@ -67,7 +69,7 @@ namespace Tests.PlayMode.Audio
         public IEnumerator Activation_StartsOneInstance()
         {
             var description = Fresh(OverdriveEvent);
-            var kit = Kit();
+            var kit = Kit(KitPrefabPath);
             yield return Flush();
             Assert.AreEqual(0, Instances(description).Length, "a ready kit starts nothing");
 
@@ -82,10 +84,30 @@ namespace Tests.PlayMode.Audio
         }
 
         [UnityTest]
+        public IEnumerator Ram_SoundsAtTheLaunch_NotThePress()
+        {
+            var description = Fresh(RamEvent);
+            var kit = Kit(RamPrefabPath);
+            Activate(kit);
+            yield return null;
+            yield return Flush();
+            Assert.AreEqual(0, Instances(description).Length, "the brake is silent of the launch sound");
+
+            for (var step = 0; ((RamDash)kit).Braking && step < 200; step++)
+                kit.Step(Still, 0f, Time.fixedDeltaTime, out _);
+
+            yield return null;
+            yield return Flush();
+            var instances = Instances(description);
+            Assert.AreEqual(1, instances.Length, "the launch sounds");
+            AssertPlaying(instances[0], "the launch sounds");
+        }
+
+        [UnityTest]
         public IEnumerator WindowEnd_FadesTheHeldSound()
         {
             var description = Fresh(OverdriveEvent);
-            var kit = Kit();
+            var kit = Kit(KitPrefabPath);
             Activate(kit);
             yield return null;
             yield return Flush();
@@ -112,7 +134,7 @@ namespace Tests.PlayMode.Audio
         public IEnumerator ReadyKit_StaysSilent()
         {
             var description = Fresh(OverdriveEvent);
-            Kit();
+            Kit(KitPrefabPath);
             yield return Flush();
             yield return Flush();
             Assert.AreEqual(0, Instances(description).Length, "a kit that never activates stays silent");
@@ -128,7 +150,7 @@ namespace Tests.PlayMode.Audio
             body.useGravity = false;
             body.linearVelocity = ShipVelocity;
 
-            var kit = Kit();
+            var kit = Kit(KitPrefabPath);
             kit.Initialize(new KeystoneHost(body, 1f, new LockChannel()));
             Activate(kit);
             yield return null;
@@ -147,7 +169,7 @@ namespace Tests.PlayMode.Audio
         public IEnumerator PresentationOff_StaysSilent()
         {
             var description = Fresh(OverdriveEvent);
-            var kit = Kit();
+            var kit = Kit(KitPrefabPath);
             PresentationApplier.Apply(kit.gameObject, false);
             Activate(kit);
             yield return null;

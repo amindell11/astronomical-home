@@ -19,7 +19,7 @@ from deck_projection import game_projection
 bpy.ops.wm.open_mainfile(filepath=str(ROOT / 'deck.blend'))
 scene, camera = bpy.context.scene, bpy.context.scene.camera
 for obj in scene.objects:
-    if obj.get('preview_only') or obj.get('export_role', '').endswith(('Button', 'Legend')) or obj.get('export_role') == 'SelectorKnob':
+    if obj.name == '25 | Viewport glass' or obj.get('preview_only') or obj.get('export_role', '').endswith(('Button', 'Legend')) or obj.get('export_role') == 'SelectorKnob':
         obj.hide_render = True
 white = bpy.data.materials.new('Ink evidence white')
 white.use_nodes = True
