@@ -23,6 +23,7 @@ namespace Tests.PlayMode.Keystones
         private GameObject kitHost;
         private Ship ship;
         private Overdrive kit;
+        private CameraShakeProfile profileCopy;
         private Kinematics motion;
         private int raises;
         private int scales;
@@ -40,7 +41,7 @@ namespace Tests.PlayMode.Keystones
             (raises, scales, scaledStrength, releases) = (0, 0, 0f, 0);
             ship.Movement.Initialize(ship.Stats, () => motion, kit, null);
             Assert.Greater(ship.MaxSpeed, 0f);
-            ReadProfile(kit);
+            UseFixedCurveProfile(kit);
 
             ship.Shake.Raised += (_, _, _) => raises++;
             ship.Shake.Scaled += (_, strength) =>
@@ -56,6 +57,7 @@ namespace Tests.PlayMode.Keystones
         {
             if (kitHost) Object.DestroyImmediate(kitHost);
             if (ship) Object.DestroyImmediate(ship.gameObject);
+            if (profileCopy) Object.DestroyImmediate(profileCopy);
             base.TearDown();
         }
 
@@ -105,13 +107,20 @@ namespace Tests.PlayMode.Keystones
             return spawned;
         }
 
-        private static void ReadProfile(Keystone keystone)
+        private void UseFixedCurveProfile(Keystone keystone)
         {
             var shake = keystone.GetComponent<KeystoneSpeedShake>();
             Assert.IsNotNull(shake, "the overdrive kit prefab carries its speed shake");
             using var serialized = new SerializedObject(shake);
-            var profile = (CameraShakeProfile)serialized.FindProperty("profile").objectReferenceValue;
-            Assert.IsNotNull(profile, "the kit's speed shake references a profile");
+            var property = serialized.FindProperty("profile");
+            var realProfile = (CameraShakeProfile)property.objectReferenceValue;
+            Assert.IsNotNull(realProfile, "the kit's speed shake references a profile");
+
+            // Assertions use a fixed curve so tuning the real profile cannot break them.
+            profileCopy = Object.Instantiate(realProfile);
+            profileCopy.bySpeed = new AnimationCurve(new Keyframe(1f, 0f), new Keyframe(1.5f, 1f));
+            property.objectReferenceValue = profileCopy;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
         private static void Activate(Keystone keystone)
