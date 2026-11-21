@@ -115,7 +115,7 @@ namespace Game.Companion
             var split = markdown.Split('\n');
             var lines = new string[split.Length];
             for (var i = 0; i < split.Length; i++)
-                lines[i] = split[i].TrimEnd('\r').Trim();
+                lines[i] = split[i].Trim();
 
             var start = -1;
             for (var i = 0; i < lines.Length; i++)
@@ -149,8 +149,8 @@ namespace Game.Companion
             }
 
             parts.Add(line.Substring(start));
-            if (parts.Count > 0) parts.RemoveAt(parts.Count - 1);
-            if (parts.Count > 0) parts.RemoveAt(0);
+            parts.RemoveAt(parts.Count - 1);
+            parts.RemoveAt(0);
 
             for (var i = 0; i < parts.Count; i++)
                 parts[i] = Unescape(parts[i].Trim());
