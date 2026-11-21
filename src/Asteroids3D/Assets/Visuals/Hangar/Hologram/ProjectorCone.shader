@@ -24,7 +24,7 @@ Shader "Astronomical/Hangar/Projector Cone"
             Tags { "LightMode"="SRPDefaultUnlit" }
             Blend One One
             ZWrite Off
-            ZTest LEqual
+            ZTest Always
             Cull Off
             HLSLPROGRAM
             #pragma vertex ConeVertex
