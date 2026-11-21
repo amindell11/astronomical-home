@@ -6,9 +6,6 @@ using UnityEngine;
 
 namespace Combat.Weapons
 {
-    /// <summary>
-    /// Each shot raises the weapon's shake on its ship's shake channel, kicking against the shot.
-    /// </summary>
     public sealed class WeaponShake : MonoBehaviour, IPresentationPart
     {
         [Tooltip("Shake played on the ship at each shot, kicking against the shot.")]

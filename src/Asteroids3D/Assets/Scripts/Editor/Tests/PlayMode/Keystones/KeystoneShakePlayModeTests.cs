@@ -29,7 +29,6 @@ namespace Tests.PlayMode.Keystones
         {
             if (kitHost) Object.DestroyImmediate(kitHost);
             if (ship) Object.DestroyImmediate(ship.gameObject);
-            if (profile) Object.DestroyImmediate(profile);
             base.TearDown();
         }
 
@@ -40,7 +39,7 @@ namespace Tests.PlayMode.Keystones
             var kit = SpawnKit(ship.transform);
             kit.Initialize(new KeystoneHost(ship.Rigidbody, 1f, ship.Lock));
             ship.Movement.Initialize(ship.Stats, () => Still, kit, null);
-            Wire(kit);
+            ReadProfile(kit);
 
             var raises = 0;
             CameraShakeProfile raised = null;
@@ -72,7 +71,7 @@ namespace Tests.PlayMode.Keystones
         public IEnumerator Activation_WithoutAShip_RaisesNothing()
         {
             var kit = SpawnKit(null);
-            Wire(kit);
+            ReadProfile(kit);
             Activate(kit);
             yield return null;
             kit.Step(Still, 0f, kit.Window, out _);
@@ -91,17 +90,13 @@ namespace Tests.PlayMode.Keystones
             return kit;
         }
 
-        private void Wire(Keystone kit)
+        private void ReadProfile(Keystone kit)
         {
-            profile = ScriptableObject.CreateInstance<CameraShakeProfile>();
-            var host = kit.gameObject;
-            host.SetActive(false);
-            var shake = host.AddComponent<KeystoneShake>();
+            var shake = kit.GetComponent<KeystoneShake>();
+            Assert.IsNotNull(shake, "the overdrive kit prefab carries its shake part");
             using var serialized = new SerializedObject(shake);
-            serialized.FindProperty("keystone").objectReferenceValue = kit;
-            serialized.FindProperty("profile").objectReferenceValue = profile;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-            host.SetActive(true);
+            profile = (CameraShakeProfile)serialized.FindProperty("profile").objectReferenceValue;
+            Assert.IsNotNull(profile, "the kit's shake part references a profile");
         }
 
         private static void Activate(Keystone kit)

@@ -108,25 +108,18 @@ namespace Cameras
             trauma = Mathf.Max(0f, trauma - feel.traumaDecay * Time.unscaledDeltaTime);
             Cam.ResetWorldToCameraMatrix();
             var time = Time.unscaledTime;
-            Vector2 offset;
-            float roll;
-            if (trauma <= 0f)
-            {
-                offset = Vector2.zero;
-                roll = 0f;
-            }
-            else
-            {
-                var amount = Mathf.Pow(trauma, feel.shakeExponent);
-                var reach = amount * feel.maxShakeOffset * Cam.orthographicSize;
-                offset = new Vector2(CameraUtils.ShakeNoise(0, time, feel.shakeFrequency),
-                    CameraUtils.ShakeNoise(1, time, feel.shakeFrequency)) * reach;
-                roll = CameraUtils.ShakeNoise(2, time, feel.shakeFrequency) * amount * feel.maxShakeRoll;
-            }
-
+            var amount = Mathf.Pow(trauma, feel.shakeExponent);
+            var reach = amount * feel.maxShakeOffset * Cam.orthographicSize;
+            var offset = new Vector2(CameraUtils.ShakeNoise(0, time, feel.shakeFrequency),
+                CameraUtils.ShakeNoise(1, time, feel.shakeFrequency)) * reach;
+            var roll = CameraUtils.ShakeNoise(2, time, feel.shakeFrequency) * amount * feel.maxShakeRoll;
             layers.Sample(time, Cam.orthographicSize, out var shakeOffset, out var shakeRoll);
-            offset += shakeOffset;
-            roll += shakeRoll;
+            // A stopped clock freezes the kits holding shakes, so their layers would rumble under the pause.
+            if (Time.timeScale > 0f)
+            {
+                offset += shakeOffset;
+                roll += shakeRoll;
+            }
             CameraUtils.CapShake(ref offset, ref roll, feel.shakeOffsetCap * Cam.orthographicSize, feel.shakeRollCap);
             if (offset == Vector2.zero && roll == 0f) return;
             // The view matrix carries the shake, so follow smoothing, children and listeners never see it.

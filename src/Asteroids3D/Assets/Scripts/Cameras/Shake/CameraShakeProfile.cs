@@ -23,6 +23,6 @@ namespace Cameras.Shake
         [Tooltip("Push along the source's direction at full envelope, as a share of the view's half-height. Negative pushes the other way.")]
         [Range(-.2f, .2f)] public float kick = 0f;
 
-        public float Length => envelope.length == 0 ? 0f : envelope.keys[envelope.length - 1].time;
+        public float Length => envelope.length == 0 ? 0f : envelope[envelope.length - 1].time;
     }
 }

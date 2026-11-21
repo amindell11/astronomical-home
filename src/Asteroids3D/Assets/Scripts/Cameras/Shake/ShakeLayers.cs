@@ -25,6 +25,7 @@ namespace Cameras.Shake
             layer.direction = direction.normalized;
             layer.start = now;
             layer.released = false;
+            // Noise channels 0 to 2 belong to ObserverCam's trauma shake.
             layer.channel = issued * 3 + 3;
             issued++;
         }

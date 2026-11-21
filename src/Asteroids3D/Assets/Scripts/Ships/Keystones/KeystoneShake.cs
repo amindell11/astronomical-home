@@ -29,7 +29,6 @@ namespace Ships.Keystones
         {
             if (!held) return;
             held = false;
-            if (!ship) return;
             ship.Shake.Release(this);
         }
 

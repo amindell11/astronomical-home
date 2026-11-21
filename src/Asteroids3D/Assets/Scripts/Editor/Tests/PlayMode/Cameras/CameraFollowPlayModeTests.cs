@@ -460,6 +460,28 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
         Assert.AreEqual(0, cam.ShakeLayerCount);
     }
 
+    [UnityTest]
+    public IEnumerator StoppedClock_KeepsHeldLayers_OffTheView()
+    {
+        var channel = Listen();
+        shakeProfile.sustainAt = .5f;
+        channel.Raise(shakeProfile, shakeProfile, Vector2.up);
+        var scale = Time.timeScale;
+        Time.timeScale = 0f;
+        try
+        {
+            yield return null;
+            Assert.AreEqual(1, cam.ShakeLayerCount);
+            Assert.That(ViewDelta(cam.Cam.worldToCameraMatrix, UnshakenView()), Is.LessThanOrEqualTo(1e-4f));
+        }
+        finally
+        {
+            Time.timeScale = scale;
+        }
+        yield return null;
+        Assert.That(ViewDelta(cam.Cam.worldToCameraMatrix, UnshakenView()), Is.GreaterThan(1e-4f));
+    }
+
     private ShakeChannel Listen()
     {
         shakeProfile = ScriptableObject.CreateInstance<CameraShakeProfile>();
