@@ -6,10 +6,12 @@ using Movement;
 using NUnit.Framework;
 using Ships;
 using Ships.Keystones;
+using Ships.Damage;
 using Ships.Keystones.Kits;
 using Ships.Keystones.Tells;
 using Ships.Loadout;
 using Ships.Registry;
+using Substrate;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -25,11 +27,18 @@ namespace Tests.EditMode.Ships
         private const float Cooldown = 1f;
 
         private GameObject host;
+        private GameObject contact;
 
         [TearDown]
         public void TearDown()
         {
             if (host) Object.DestroyImmediate(host);
+            if (contact)
+            {
+                if (contact.TryGetComponent<DamageController>(out var damage))
+                    DamageableColliders.Unregister(damage);
+                Object.DestroyImmediate(contact);
+            }
         }
 
         private const float Window = 0.4f;
@@ -102,13 +111,20 @@ namespace Tests.EditMode.Ships
         [Test]
         public void RamDash_BlocksOnlyCollisions_WhileLive()
         {
-            var ram = NewKit<RamDash>();
+            var ram = NewRam();
             var kin = Facing(0f);
             var collision = new DamageInfo(10f, DamageKind.Collision, ShipId.Invalid, 0f, Vector3.zero, Vector3.zero);
             Assert.That(ram.Blocks(in collision), Is.False, "not live before activating");
 
             ram.Step(in kin, 1f, Dt, out _);
-            Assert.That(ram.Active, Is.True);
+            Assert.That(ram.Braking, Is.True);
+            Assert.That(ram.Active, Is.False);
+            Assert.That(ram.Blocks(in collision), Is.False, "no protection during the brake");
+
+            while (ram.Braking)
+                ram.Step(in kin, 0f, Dt, out _);
+
+            Assert.That(ram.RamLive, Is.True);
             Assert.That(ram.Blocks(in collision), Is.True, "collision damage is dropped while the ram is live");
             Assert.That(ram.Blocks(in AnyHit), Is.False, "a missile still lands on a charging Bulwark");
 
@@ -117,14 +133,57 @@ namespace Tests.EditMode.Ships
             Assert.That(ram.Blocks(in collision), Is.False, "an unspent ram expires after its window");
         }
 
+        [Test]
+        public void RamDash_BrakesToAFullStop_ThenLaunchesAlongTheNoseAtThatMoment()
+        {
+            var ram = NewRam();
+            var vel = new Vector2(12f, -7f);
+            var yaw = 0f;
+            var brakeSteps = 0;
+            var progress = 0f;
+            KeystoneEffect launch = default;
+            for (var n = 0; n < 20; n++)
+            {
+                if (brakeSteps == 10) yaw = 90f;
+                var kin = new Kinematics(Vector2.zero, vel, yaw, 0f, 0f);
+                var e = ram.Step(in kin, n == 0 ? 1f : 0f, Dt, out _);
+                if (brakeSteps == 15)
+                {
+                    launch = e;
+                    break;
+                }
+
+                Assert.That(e.Impulse, Is.EqualTo(Vector2.zero));
+                Assert.That(ram.HoldsThrottle, Is.True);
+                Assert.That(ram.HoldProgress, Is.InRange(progress, 1f));
+                progress = ram.HoldProgress;
+                vel += e.Acceleration * Dt;
+                brakeSteps++;
+            }
+
+            Assert.That(brakeSteps, Is.EqualTo(15));
+            Assert.That(vel.magnitude, Is.LessThan(1e-4f));
+            Assert.That(Vector2.Distance(launch.Impulse, Facing(90f).Forward * ram.Impulse), Is.LessThan(1e-3f));
+            Assert.That(ram.RamLive, Is.True);
+            Assert.That(ram.HoldsThrottle, Is.False);
+            Assert.That(ram.HoldProgress, Is.EqualTo(0f));
+        }
+
         private RamDash NewRam()
         {
             var ram = NewKit<RamDash>();
             var so = new SerializedObject(ram);
             so.FindProperty("impulse").floatValue = 13500f;
+            so.FindProperty("brake").floatValue = 0.3f;
             so.FindProperty("window").floatValue = 0.6f;
+            so.FindProperty("hitCooldown").floatValue = Cooldown;
+            so.FindProperty("missDump").floatValue = 0f;
             so.FindProperty("sightAngle").floatValue = 15f;
+            so.FindProperty("surgeSpeedScale").floatValue = 1f;
+            so.FindProperty("surgeAcceleration").floatValue = 0f;
+            so.FindProperty("massScale").floatValue = 1f;
             so.ApplyModifiedPropertiesWithoutUndo();
+            ram.Initialize(new KeystoneHost(host.AddComponent<Rigidbody>(), 1f, new LockChannel()));
             return ram;
         }
 
@@ -132,16 +191,222 @@ namespace Tests.EditMode.Ships
             new(new Kinematics(Vector2.zero, selfVel, 0f, 0f, 0f), 1200f, 21f, new Kinematics(targetPos, targetVel, 0f, 0f, 0f));
 
         [Test]
-        public void RamSight_FiresOnlyWhenAlignedNotOpeningAndInReach()
+        public void RamSight_FiresOnlyWhenAlignedAndInReachAfterTheBrake()
         {
             var ram = NewRam();
-            Assert.That(ram.ShouldActivate(Sight(new Vector2(0f, 5f))), Is.True, "on the nose, still, inside the 6.75 u a dash covers in the window");
+            Assert.That(ram.ShouldActivate(Sight(new Vector2(0f, 5f))), Is.True, "on the nose, inside the 6.75 u a launch from rest covers in the window");
             Assert.That(ram.ShouldActivate(Sight(new Vector2(5f, 5f))), Is.False, "45 degrees off the nose");
-            Assert.That(ram.ShouldActivate(Sight(new Vector2(0f, 5f), targetVel: new Vector2(0f, 10f))), Is.False, "pulling away");
+            Assert.That(ram.ShouldActivate(Sight(new Vector2(0f, 5f), targetVel: new Vector2(0f, 10f))), Is.False, "pulling away: 8 u off at launch, closing at 1.25");
             Assert.That(ram.ShouldActivate(Sight(new Vector2(0f, 10f))), Is.False, "out of reach from a standstill");
-            Assert.That(ram.ShouldActivate(Sight(new Vector2(0f, 10f), selfVel: new Vector2(0f, 10f))), Is.True, "closing speed extends the reach");
+            Assert.That(ram.ShouldActivate(Sight(new Vector2(0f, 8f), selfVel: new Vector2(0f, 10f))), Is.True, "speed into the brake carries Bulwark 1.5 u closer");
+            Assert.That(ram.ShouldActivate(Sight(new Vector2(0f, 5f), selfVel: new Vector2(0f, -6f))), Is.True, "sliding away no longer spoils the ram: the brake stops it first");
             Assert.That(ram.ShouldActivate(Sight(new Vector2(0f, 6f), targetVel: new Vector2(0f, 21f), selfVel: new Vector2(0f, 21f))), Is.False,
-                "at the speed cap the dash adds no closing speed, so a matched-speed target ahead is out of reach");
+                "a target fleeing at the cap outruns a launch from rest");
+        }
+
+        [Test]
+        public void RamSight_BurnCarriesAStandstillRamTheLaunchMisses()
+        {
+            var ram = NewRam();
+            var so = new SerializedObject(ram);
+            so.FindProperty("surgeAcceleration").floatValue = 25f;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            Assert.That(ram.ShouldActivate(Sight(new Vector2(0f, 10f))), Is.True,
+                "the burn carries the ram 11.25 u in the window");
+        }
+
+        [Test]
+        public void RamDash_SurgesHeavyAlongTheLaunchLine_WhileLive()
+        {
+            var ram = NewRam();
+            var so = new SerializedObject(ram);
+            so.FindProperty("surgeSpeedScale").floatValue = 1.5f;
+            so.FindProperty("surgeAcceleration").floatValue = 25f;
+            so.FindProperty("massScale").floatValue = 2f;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            var kin = Facing(0f);
+            KeystoneEffect launch = default;
+            for (var n = 0; n < 40 && !ram.RamLive; n++)
+                launch = ram.Step(in kin, n == 0 ? 1f : 0f, Dt, out _);
+
+            Assert.That(ram.RamLive, Is.True);
+            Assert.That(Vector2.Distance(launch.Impulse, Facing(0f).Forward * (ram.Impulse * 2f)), Is.LessThan(1e-3f));
+            Assert.That(launch.Acceleration, Is.EqualTo(Vector2.zero));
+            Assert.That(ram.MassScale, Is.EqualTo(2f));
+            Assert.That(ram.SpeedScale, Is.EqualTo(1.5f));
+            Assert.That(ram.PeakSpeedScale, Is.EqualTo(1.5f));
+
+            var turned = Facing(90f);
+            var alongLaunch = Facing(0f).Forward * 25f;
+            var step = ram.Step(in turned, 0f, Dt, out _);
+            Assert.That(ram.RamLive, Is.True);
+            Assert.That(Vector2.Distance(step.Acceleration, alongLaunch), Is.LessThan(1e-3f));
+            while (ram.RamLive)
+            {
+                step = ram.Step(in turned, 0f, Dt, out _);
+                if (ram.RamLive)
+                    Assert.That(Vector2.Distance(step.Acceleration, alongLaunch), Is.LessThan(1e-3f));
+            }
+
+            Assert.That(ram.MassScale, Is.EqualTo(1f));
+            Assert.That(ram.SpeedScale, Is.EqualTo(1f));
+            Assert.That(step.Acceleration, Is.EqualTo(Vector2.zero));
+        }
+
+        [Test]
+        public void RamDash_Hit_ShortensTheCooldown_FromThePress()
+        {
+            var ram = NewRam();
+            var so = new SerializedObject(ram);
+            so.FindProperty("cooldown").floatValue = 7f;
+            so.FindProperty("hitCooldown").floatValue = 3.5f;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            contact = new GameObject("Ram contact");
+            var collider = contact.AddComponent<BoxCollider>();
+
+            var kin = Facing(0f);
+            ram.Step(in kin, 1f, Dt, out _);
+            var steps = 0;
+            while (ram.Braking)
+            {
+                ram.Step(in kin, 0f, Dt, out _);
+                steps++;
+            }
+
+            var before = ram.CooldownRemaining;
+            ram.OnContact(new KeystoneContact(
+                ShipId.Invalid, 0f, Vector3.zero, collider, null, Vector3.zero, 1f, 0f));
+            Assert.That(ram.CooldownRemaining, Is.LessThanOrEqualTo(before), "contact never lengthens the cooldown");
+            Assert.That(ram.CooldownRemaining, Is.EqualTo(3.5f - steps * Dt).Within(Dt),
+                "contact cuts the cooldown to hitCooldown from the press");
+        }
+
+        [Test]
+        public void RamDash_Miss_ShedsSurgeSpeed_ThenKeepsTheFullCooldown()
+        {
+            var ram = NewRam();
+            var so = new SerializedObject(ram);
+            so.FindProperty("cooldown").floatValue = 7f;
+            so.FindProperty("missDump").floatValue = 0.3f;
+            so.FindProperty("window").floatValue = 0.45f;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            var rest = Facing(0f);
+            ram.Step(in rest, 1f, Dt, out _, baseMaxSpeed: 21f);
+            var steps = 0;
+            while (ram.Braking)
+            {
+                ram.Step(in rest, 0f, Dt, out _, baseMaxSpeed: 21f);
+                steps++;
+            }
+
+            var vel = new Vector2(30f, 0f);
+            var dumpLimit = Mathf.RoundToInt(0.3f / Dt);
+            var dumped = 0;
+            for (var n = 0; dumped < dumpLimit && n < 80; n++)
+            {
+                var kin = new Kinematics(Vector2.zero, vel, 0f, 0f, 0f);
+                var effect = ram.Step(in kin, 0f, Dt, out _, baseMaxSpeed: 21f);
+                steps++;
+                if (ram.RamLive)
+                    continue;
+                vel += effect.Acceleration * Dt;
+                dumped++;
+                Assert.That(vel.magnitude, Is.GreaterThanOrEqualTo(21f - 1e-3f));
+            }
+
+            Assert.That(dumped, Is.EqualTo(dumpLimit), "the miss sheds within its dump");
+            Assert.That(vel.magnitude, Is.LessThanOrEqualTo(21f + 1e-3f));
+            Assert.That(ram.CooldownRemaining, Is.EqualTo(7f - steps * Dt).Within(Dt),
+                "a miss keeps the full cooldown");
+        }
+
+        [Test]
+        public void RamDash_Brace_HalvesFrontalHits_DuringTheBrakeOnly()
+        {
+            var ram = NewRam();
+            var ahead = From(Vector2.up);
+            var beside = From(Vector2.right);
+            var behind = From(Vector2.down);
+            Assert.That(ram.DamageScale(in ahead), Is.EqualTo(1f), "before activation");
+
+            var kin = Facing(0f);
+            ram.Step(in kin, 1f, Dt, out _);
+            Assert.That(ram.Braking, Is.True);
+            Assert.That(ram.DamageScale(in ahead), Is.EqualTo(0.5f), "ahead of the nose");
+            Assert.That(ram.DamageScale(in beside), Is.EqualTo(1f), "beside the ship");
+            Assert.That(ram.DamageScale(in behind), Is.EqualTo(1f), "behind the ship");
+
+            while (ram.Braking)
+                ram.Step(in kin, 0f, Dt, out _);
+            Assert.That(ram.RamLive, Is.True);
+            Assert.That(ram.DamageScale(in ahead), Is.EqualTo(1f), "after launch");
+
+            DamageInfo From(Vector2 dir) => new(20f, DamageKind.Laser, ShipId.Invalid, 0f, Vector3.zero,
+                ram.Body.worldCenterOfMass + GamePlane.PlaneDirToWorld(dir));
+        }
+
+        [Test]
+        public void RamDash_Damage_FollowsAim_WithSpeedOnlyAdding()
+        {
+            var ram = NewRam();
+            var so = new SerializedObject(ram);
+            so.FindProperty("shipDamage").floatValue = 80f;
+            so.FindProperty("damageReferenceSpeed").floatValue = 16f;
+            so.FindProperty("maxSpeedBonus").floatValue = 1.6f;
+            so.FindProperty("aimFullAngle").floatValue = 30f;
+            so.FindProperty("aimFloorAngle").floatValue = 75f;
+            so.FindProperty("aimFloor").floatValue = 0.5f;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            contact = new GameObject("Ram target");
+            var collider = contact.AddComponent<BoxCollider>();
+            var damage = contact.AddComponent<DamageController>();
+            damage.PopulateSettings(new ResolvedShipStats
+            {
+                maxHealth = 1000f,
+                maxShield = 10000f,
+                shieldRegenRate = 0f,
+                shieldRegenDelay = 1f,
+            });
+            DamageableColliders.Register(damage, new[] { collider });
+
+            var full = ram.ShipDamage;
+            Assert.That(Dealt(Off(0f), 0f), Is.EqualTo(full).Within(1e-3f),
+                "below the reference speed, a centred ram still deals a full hit");
+            Assert.That(Dealt(Off(0f), 16f), Is.EqualTo(full).Within(1e-3f), "the reference speed is a full hit");
+            Assert.That(Dealt(Off(0f), 24f), Is.EqualTo(full * 1.5f).Within(1e-3f), "speed between the reference and the cap adds");
+            Assert.That(Dealt(Off(0f), 32f), Is.EqualTo(full * 1.6f).Within(1e-3f), "speed adds only up to the bonus");
+            Assert.That(Dealt(Off(20f), 0f), Is.EqualTo(full).Within(1e-3f), "inside the full-aim angle");
+            Assert.That(Dealt(Off(52.5f), 0f), Is.EqualTo(full * 0.75f).Within(1e-3f),
+                "aim eases from a full hit to the floor");
+            Assert.That(Dealt(Off(90f), 0f), Is.EqualTo(full * 0.5f).Within(1e-3f), "past the floor angle the clip stays at the floor");
+            Assert.That(Dealt(Off(90f), 32f), Is.EqualTo(full * 0.5f * 1.6f).Within(1e-3f), "speed still adds on a poor aim");
+            Assert.That(Dealt(Vector2.zero, 0f), Is.EqualTo(full).Within(1e-3f),
+                "a target whose centre sits on the ship counts as centred");
+
+            float Dealt(Vector2 planeOffset, float relativeSpeed)
+            {
+                contact.transform.position = ram.Body.worldCenterOfMass + GamePlane.PlaneDirToWorld(planeOffset);
+                Physics.SyncTransforms();
+                ram.ResetKeystone();
+                var kin = Facing(0f);
+                ram.Step(in kin, 1f, Dt, out _);
+                while (ram.Braking)
+                    ram.Step(in kin, 0f, Dt, out _);
+                damage.ResetDamageState();
+                var before = damage.Shield.CurrentValue + damage.Health.CurrentValue;
+                ram.OnContact(new KeystoneContact(
+                    ShipId.Invalid, 1f, Vector3.zero, collider, null, Vector3.zero, 0f, relativeSpeed));
+                return before - (damage.Shield.CurrentValue + damage.Health.CurrentValue);
+            }
+
+            static Vector2 Off(float angleDeg)
+            {
+                var rad = angleDeg * Mathf.Deg2Rad;
+                return new Vector2(Mathf.Sin(rad), Mathf.Cos(rad)) * 8f;
+            }
         }
 
         [Test]
@@ -226,8 +491,9 @@ namespace Tests.EditMode.Ships
             var catalog = AssetDatabase.LoadAssetAtPath<ItemCatalog>(ItemCatalog.AssetPath);
             var ram = catalog.Chassis.Single(c => c.name == "Bulwark").KeystonePrefab as RamDash;
             Assert.That(ram, Is.Not.Null, "Bulwark's kit is the ram");
-            Assert.That(ram.Window, Is.EqualTo(0.6f));
-            Assert.That(ram.ShipDamage, Is.EqualTo(60f));
+            Assert.That(new SerializedObject(ram).FindProperty("brake").floatValue, Is.EqualTo(0.4f));
+            Assert.That(ram.Window, Is.EqualTo(0.45f));
+            Assert.That(ram.ShipDamage, Is.EqualTo(80f));
             Assert.That(ram.GetComponent<KeystoneFlash>(), Is.Not.Null, "the kit carries its tell");
         }
 
@@ -357,7 +623,7 @@ namespace Tests.EditMode.Ships
         }
 
         [TestCase("Vanguard", 9000f, 5f)]
-        [TestCase("Bulwark", 15000f, 5f)]
+        [TestCase("Bulwark", 19500f, 7f)]
         [TestCase("Junker_1", 15000f, 5f)]
         public void Chassis_CarriesItsOwnDash(string chassis, float impulse, float cooldown)
         {

@@ -59,9 +59,11 @@ namespace Ships.Damage
                 OnBlocked?.Invoke(hit);
                 return 0f;
             }
-            var shieldAbsorbed = hit.BypassesShield ? 0f : Shield.ApplyDamage(hit.Amount);
-            var hullDamage = Health.ApplyDamage(hit.Amount - shieldAbsorbed);
-            var applied = new AppliedDamage(hit, shieldAbsorbed, hullDamage);
+
+            var taken = keystone ? hit.WithAmount(hit.Amount * keystone.DamageScale(in hit)) : hit;
+            var shieldAbsorbed = taken.BypassesShield ? 0f : Shield.ApplyDamage(taken.Amount);
+            var hullDamage = Health.ApplyDamage(taken.Amount - shieldAbsorbed);
+            var applied = new AppliedDamage(taken, shieldAbsorbed, hullDamage);
             if (applied.Info.Amount > 0)
             {
                 OnDamaged?.Invoke(applied);
@@ -70,7 +72,7 @@ namespace Ships.Damage
             if (Health.CurrentValue > 0f) return 0f;
 
             BroadcastDeath(applied.Info);
-            return hit.Amount - applied.Info.Amount;
+            return taken.Amount - applied.Info.Amount;
         }
 
         private void BroadcastDeath(in DamageInfo killingBlow)

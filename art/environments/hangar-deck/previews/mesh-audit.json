@@ -1,0 +1,1455 @@
+{
+  "objects": [
+    {
+      "name": "Deck | joined closed structure",
+      "vertices": 10386,
+      "triangles": 19496,
+      "closed_manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 3,
+      "minimum_face_area": 3.637978807091713e-12,
+      "signed_volume": 4098.849547422525,
+      "modifiers": [],
+      "role": "ConsoleBody"
+    },
+    {
+      "name": "07 | Main rectangular display",
+      "vertices": 8,
+      "triangles": 6,
+      "closed_manifold": false,
+      "boundary_edges": 8,
+      "nonmanifold_edges": 8,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 0,
+      "minimum_face_area": 12.434999465942383,
+      "signed_volume": -0.8290000092933572,
+      "modifiers": [],
+      "role": "MainScreenGlass"
+    },
+    {
+      "name": "07 | Detail rectangular display",
+      "vertices": 8,
+      "triangles": 6,
+      "closed_manifold": false,
+      "boundary_edges": 8,
+      "nonmanifold_edges": 8,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 0,
+      "minimum_face_area": 2.927999973297119,
+      "signed_volume": -0.19520000403722126,
+      "modifiers": [],
+      "role": "DetailScreenGlass"
+    },
+    {
+      "name": "30 | Primary blank glass",
+      "vertices": 8,
+      "triangles": 6,
+      "closed_manifold": false,
+      "boundary_edges": 8,
+      "nonmanifold_edges": 8,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 0,
+      "minimum_face_area": 6.485000133514404,
+      "signed_volume": -0.4323333450853826,
+      "modifiers": [],
+      "role": "PrimaryScreenGlass"
+    },
+    {
+      "name": "30 | Ordnance blank glass",
+      "vertices": 8,
+      "triangles": 6,
+      "closed_manifold": false,
+      "boundary_edges": 8,
+      "nonmanifold_edges": 8,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 0,
+      "minimum_face_area": 6.71999979019165,
+      "signed_volume": -0.4480000124772392,
+      "modifiers": [],
+      "role": "OrdnanceScreenGlass"
+    },
+    {
+      "name": "08 | Previous chunky keycap",
+      "vertices": 30,
+      "triangles": 56,
+      "closed_manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 0,
+      "minimum_face_area": 0.00010630144242895767,
+      "signed_volume": 0.021927951189869257,
+      "modifiers": [],
+      "role": "PreviousButton"
+    },
+    {
+      "name": "08 | Previous inlaid chevron",
+      "vertices": 12,
+      "triangles": 20,
+      "closed_manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 0,
+      "minimum_face_area": 0.00010630144242895767,
+      "signed_volume": 4.879999816194167e-05,
+      "modifiers": [],
+      "role": "PreviousLegend"
+    },
+    {
+      "name": "08 | Next chunky keycap",
+      "vertices": 30,
+      "triangles": 56,
+      "closed_manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 0,
+      "minimum_face_area": 0.00010630144242895767,
+      "signed_volume": 0.021927951189869257,
+      "modifiers": [],
+      "role": "NextButton"
+    },
+    {
+      "name": "08 | Next inlaid chevron",
+      "vertices": 12,
+      "triangles": 20,
+      "closed_manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 0,
+      "minimum_face_area": 0.00010630144242895767,
+      "signed_volume": 4.879999816194168e-05,
+      "modifiers": [],
+      "role": "NextLegend"
+    },
+    {
+      "name": "08 | Selector faceted grip",
+      "vertices": 24,
+      "triangles": 44,
+      "closed_manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 0,
+      "minimum_face_area": 0.007743731141090393,
+      "signed_volume": 0.0832320034747843,
+      "modifiers": [],
+      "role": "SelectorKnob"
+    },
+    {
+      "name": "08 | Launch broad beveled button",
+      "vertices": 152,
+      "triangles": 300,
+      "closed_manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 0,
+      "minimum_face_area": 3.599992487579584e-05,
+      "signed_volume": 0.13187254790354225,
+      "modifiers": [],
+      "role": "LaunchButton"
+    },
+    {
+      "name": "19 | Launch legend",
+      "vertices": 128,
+      "triangles": 236,
+      "closed_manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 0,
+      "minimum_face_area": 3.599992487579584e-05,
+      "signed_volume": 0.00013704800418954093,
+      "modifiers": [],
+      "role": "LaunchLegend"
+    },
+    {
+      "name": "30 | Primary Previous key",
+      "vertices": 30,
+      "triangles": 56,
+      "closed_manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 0,
+      "minimum_face_area": 0.0001063013551174663,
+      "signed_volume": 0.016431200721389937,
+      "modifiers": [],
+      "role": "PrimaryPreviousButton"
+    },
+    {
+      "name": "30 | Primary Previous ivory inlay",
+      "vertices": 12,
+      "triangles": 20,
+      "closed_manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 0,
+      "minimum_face_area": 0.0001063013551174663,
+      "signed_volume": 4.880000952407745e-05,
+      "modifiers": [],
+      "role": "PrimaryPreviousLegend"
+    },
+    {
+      "name": "30 | Primary Next key",
+      "vertices": 30,
+      "triangles": 56,
+      "closed_manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 0,
+      "minimum_face_area": 0.00010630137694533914,
+      "signed_volume": 0.016431200721389937,
+      "modifiers": [],
+      "role": "PrimaryNextButton"
+    },
+    {
+      "name": "30 | Primary Next ivory inlay",
+      "vertices": 12,
+      "triangles": 20,
+      "closed_manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 0,
+      "minimum_face_area": 0.0001063013551174663,
+      "signed_volume": 4.880000952407743e-05,
+      "modifiers": [],
+      "role": "PrimaryNextLegend"
+    },
+    {
+      "name": "30 | Ordnance Previous key",
+      "vertices": 30,
+      "triangles": 56,
+      "closed_manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 0,
+      "minimum_face_area": 0.0001063013551174663,
+      "signed_volume": 0.016431200721389937,
+      "modifiers": [],
+      "role": "OrdnancePreviousButton"
+    },
+    {
+      "name": "30 | Ordnance Previous ivory inlay",
+      "vertices": 12,
+      "triangles": 20,
+      "closed_manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 0,
+      "minimum_face_area": 0.0001063013551174663,
+      "signed_volume": 4.880000952407745e-05,
+      "modifiers": [],
+      "role": "OrdnancePreviousLegend"
+    },
+    {
+      "name": "30 | Ordnance Next key",
+      "vertices": 30,
+      "triangles": 56,
+      "closed_manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 0,
+      "minimum_face_area": 0.00010630137694533914,
+      "signed_volume": 0.016431200721389937,
+      "modifiers": [],
+      "role": "OrdnanceNextButton"
+    },
+    {
+      "name": "30 | Ordnance Next ivory inlay",
+      "vertices": 12,
+      "triangles": 20,
+      "closed_manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 0,
+      "minimum_face_area": 0.0001063013551174663,
+      "signed_volume": 4.880000952407743e-05,
+      "modifiers": [],
+      "role": "OrdnanceNextLegend"
+    },
+    {
+      "name": "09 | Projector lens",
+      "vertices": 24,
+      "triangles": 44,
+      "closed_manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 0,
+      "minimum_face_area": 0.0027823045384138823,
+      "signed_volume": 0.013867500521358168,
+      "modifiers": [],
+      "role": "ProjectorLens"
+    },
+    {
+      "name": "Deck | Left status 1 green lens",
+      "vertices": 16,
+      "triangles": 28,
+      "closed_manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 0,
+      "minimum_face_area": 0.00012534721463453025,
+      "signed_volume": 7.045833441139088e-05,
+      "modifiers": [],
+      "role": "ConsoleBody"
+    },
+    {
+      "name": "Deck | Left status 2 green lens",
+      "vertices": 16,
+      "triangles": 28,
+      "closed_manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 0,
+      "minimum_face_area": 0.00012534721463453025,
+      "signed_volume": 7.045833441139088e-05,
+      "modifiers": [],
+      "role": "ConsoleBody"
+    },
+    {
+      "name": "Deck | Left status 3 amber lens",
+      "vertices": 16,
+      "triangles": 28,
+      "closed_manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 0,
+      "minimum_face_area": 0.00012534721463453025,
+      "signed_volume": 7.045833441139088e-05,
+      "modifiers": [],
+      "role": "ConsoleBody"
+    },
+    {
+      "name": "Deck | Right status 1 green lens",
+      "vertices": 16,
+      "triangles": 28,
+      "closed_manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 0,
+      "minimum_face_area": 0.00012534721463453025,
+      "signed_volume": 7.045833441139088e-05,
+      "modifiers": [],
+      "role": "ConsoleBody"
+    },
+    {
+      "name": "Deck | Right status 2 green lens",
+      "vertices": 16,
+      "triangles": 28,
+      "closed_manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 0,
+      "minimum_face_area": 0.00012534721463453025,
+      "signed_volume": 7.045833441139088e-05,
+      "modifiers": [],
+      "role": "ConsoleBody"
+    },
+    {
+      "name": "Deck | Right status 3 amber lens",
+      "vertices": 16,
+      "triangles": 28,
+      "closed_manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 0,
+      "minimum_face_area": 0.00012534721463453025,
+      "signed_volume": 7.045833441139088e-05,
+      "modifiers": [],
+      "role": "ConsoleBody"
+    },
+    {
+      "name": "Deck | Left Launch armed red lens",
+      "vertices": 16,
+      "triangles": 28,
+      "closed_manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 0,
+      "minimum_face_area": 0.000742462114430964,
+      "signed_volume": 0.0006465000375807293,
+      "modifiers": [],
+      "role": "ConsoleBody"
+    },
+    {
+      "name": "Deck | Right Launch armed red lens",
+      "vertices": 16,
+      "triangles": 28,
+      "closed_manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 0,
+      "minimum_face_area": 0.000742462114430964,
+      "signed_volume": 0.0006465000375807293,
+      "modifiers": [],
+      "role": "ConsoleBody"
+    },
+    {
+      "name": "Deck | Header downlight 01 cold white lens",
+      "vertices": 16,
+      "triangles": 28,
+      "closed_manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 0,
+      "minimum_face_area": 0.0005444704438559711,
+      "signed_volume": 0.018954101286216815,
+      "modifiers": [],
+      "role": "ConsoleBody"
+    },
+    {
+      "name": "Deck | Header downlight 02 cold white lens",
+      "vertices": 16,
+      "triangles": 28,
+      "closed_manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 0,
+      "minimum_face_area": 0.0005444704438559711,
+      "signed_volume": 0.018954101286216815,
+      "modifiers": [],
+      "role": "ConsoleBody"
+    }
+  ],
+  "parts": [
+    {
+      "name": "Deck | joined closed structure",
+      "role": "ConsoleBody",
+      "pixel": [
+        960.0,
+        505.93225479125977
+      ]
+    },
+    {
+      "name": "07 | Main rectangular display",
+      "role": "MainScreenGlass",
+      "pixel": [
+        283.5656547546387,
+        662.0366907119751
+      ]
+    },
+    {
+      "name": "07 | Detail rectangular display",
+      "role": "DetailScreenGlass",
+      "pixel": [
+        340.48112869262695,
+        837.9573619365692
+      ]
+    },
+    {
+      "name": "30 | Primary blank glass",
+      "role": "PrimaryScreenGlass",
+      "pixel": [
+        1653.8985443115234,
+        608.0562794208527
+      ]
+    },
+    {
+      "name": "30 | Ordnance blank glass",
+      "role": "OrdnanceScreenGlass",
+      "pixel": [
+        1605.399513244629,
+        757.9624950885773
+      ]
+    },
+    {
+      "name": "08 | Previous chunky keycap",
+      "role": "PreviousButton",
+      "pixel": [
+        524.5628356933594,
+        928.852447271347
+      ]
+    },
+    {
+      "name": "08 | Previous inlaid chevron",
+      "role": "PreviousLegend",
+      "pixel": [
+        523.7125968933105,
+        926.8417721986771
+      ]
+    },
+    {
+      "name": "08 | Next chunky keycap",
+      "role": "NextButton",
+      "pixel": [
+        601.2406539916992,
+        921.8614250421524
+      ]
+    },
+    {
+      "name": "08 | Next inlaid chevron",
+      "role": "NextLegend",
+      "pixel": [
+        598.9717483520508,
+        919.9674582481384
+      ]
+    },
+    {
+      "name": "08 | Selector faceted grip",
+      "role": "SelectorKnob",
+      "pixel": [
+        1361.3582611083984,
+        920.1679962873459
+      ]
+    },
+    {
+      "name": "08 | Launch broad beveled button",
+      "role": "LaunchButton",
+      "pixel": [
+        960.0,
+        964.4594317674637
+      ]
+    },
+    {
+      "name": "19 | Launch legend",
+      "role": "LaunchLegend",
+      "pixel": [
+        960.0,
+        961.5519359707832
+      ]
+    },
+    {
+      "name": "30 | Primary Previous key",
+      "role": "PrimaryPreviousButton",
+      "pixel": [
+        1431.2594604492188,
+        584.8875296115875
+      ]
+    },
+    {
+      "name": "30 | Primary Previous ivory inlay",
+      "role": "PrimaryPreviousLegend",
+      "pixel": [
+        1430.7415008544922,
+        582.8532457351685
+      ]
+    },
+    {
+      "name": "30 | Primary Next key",
+      "role": "PrimaryNextButton",
+      "pixel": [
+        1415.9384536743164,
+        625.2001011371613
+      ]
+    },
+    {
+      "name": "30 | Primary Next ivory inlay",
+      "role": "PrimaryNextLegend",
+      "pixel": [
+        1414.1797256469727,
+        623.0232954025269
+      ]
+    },
+    {
+      "name": "30 | Ordnance Previous key",
+      "role": "OrdnancePreviousButton",
+      "pixel": [
+        1393.8016891479492,
+        683.4462547302246
+      ]
+    },
+    {
+      "name": "30 | Ordnance Previous ivory inlay",
+      "role": "OrdnancePreviousLegend",
+      "pixel": [
+        1393.2004165649414,
+        681.549117565155
+      ]
+    },
+    {
+      "name": "30 | Ordnance Next key",
+      "role": "OrdnanceNextButton",
+      "pixel": [
+        1377.726058959961,
+        725.7443153858185
+      ]
+    },
+    {
+      "name": "30 | Ordnance Next ivory inlay",
+      "role": "OrdnanceNextLegend",
+      "pixel": [
+        1375.8686828613281,
+        723.6603677272797
+      ]
+    },
+    {
+      "name": "09 | Projector lens",
+      "role": "ProjectorLens",
+      "pixel": [
+        960.0,
+        755.9792268276215
+      ]
+    },
+    {
+      "name": "Deck | Left status 1 green lens",
+      "role": "ConsoleBody",
+      "pixel": [
+        544.2035293579102,
+        870.8321624994278
+      ]
+    },
+    {
+      "name": "Deck | Left status 2 green lens",
+      "role": "ConsoleBody",
+      "pixel": [
+        571.5066719055176,
+        868.2186502218246
+      ]
+    },
+    {
+      "name": "Deck | Left status 3 amber lens",
+      "role": "ConsoleBody",
+      "pixel": [
+        598.930721282959,
+        865.5935668945312
+      ]
+    },
+    {
+      "name": "Deck | Right status 1 green lens",
+      "role": "ConsoleBody",
+      "pixel": [
+        1321.0693359375,
+        865.5935668945312
+      ]
+    },
+    {
+      "name": "Deck | Right status 2 green lens",
+      "role": "ConsoleBody",
+      "pixel": [
+        1348.4933853149414,
+        868.2186502218246
+      ]
+    },
+    {
+      "name": "Deck | Right status 3 amber lens",
+      "role": "ConsoleBody",
+      "pixel": [
+        1375.7964706420898,
+        870.8321624994278
+      ]
+    },
+    {
+      "name": "Deck | Left Launch armed red lens",
+      "role": "ConsoleBody",
+      "pixel": [
+        787.9847717285156,
+        1002.90244191885
+      ]
+    },
+    {
+      "name": "Deck | Right Launch armed red lens",
+      "role": "ConsoleBody",
+      "pixel": [
+        1132.0152282714844,
+        1002.90244191885
+      ]
+    },
+    {
+      "name": "Deck | Header downlight 01 cold white lens",
+      "role": "ConsoleBody",
+      "pixel": [
+        693.552074432373,
+        73.95848035812378
+      ]
+    },
+    {
+      "name": "Deck | Header downlight 02 cold white lens",
+      "role": "ConsoleBody",
+      "pixel": [
+        1226.447868347168,
+        73.95848035812378
+      ]
+    }
+  ],
+  "controls": [
+    {
+      "name": "08 | Previous chunky keycap",
+      "role": "PreviousButton",
+      "cap_area_twice_xyz": [
+        0.12919999379727848,
+        0.14619999938661846,
+        1.0342000430262552
+      ],
+      "passes_authored_up_after_export": true,
+      "position": [
+        -4.023410797119141,
+        -2.2873423099517822,
+        1.414997935295105
+      ],
+      "local_frame_columns": [
+        [
+          0.9838882088661194,
+          -0.12146764993667603,
+          0.13118509948253632
+        ],
+        [
+          -0.006988075096160173,
+          0.7070721387863159,
+          0.7071067690849304
+        ],
+        [
+          -0.1786479502916336,
+          -0.6966307759284973,
+          0.694831132888794
+        ]
+      ]
+    },
+    {
+      "name": "08 | Next chunky keycap",
+      "role": "NextButton",
+      "cap_area_twice_xyz": [
+        0.12919999379727848,
+        0.14619999938661846,
+        1.0342000435113188
+      ],
+      "passes_authored_up_after_export": true,
+      "position": [
+        -3.2953333854675293,
+        -2.3772284984588623,
+        1.5120748281478882
+      ],
+      "local_frame_columns": [
+        [
+          0.9838882088661194,
+          -0.12146764993667603,
+          0.13118509948253632
+        ],
+        [
+          -0.006988075096160173,
+          0.7070721387863159,
+          0.7071067690849304
+        ],
+        [
+          -0.1786479502916336,
+          -0.6966307759284973,
+          0.694831132888794
+        ]
+      ]
+    },
+    {
+      "name": "08 | Selector faceted grip",
+      "role": "SelectorKnob",
+      "cap_area_twice_xyz": [
+        0.0,
+        0.0,
+        1.387200058103124
+      ],
+      "passes_authored_up_after_export": true,
+      "position": [
+        3.659372091293335,
+        -2.3322854042053223,
+        1.4635363817214966
+      ],
+      "local_frame_columns": [
+        [
+          0.9686556458473206,
+          0.2484075278043747,
+          1.3125490028187414e-08
+        ],
+        [
+          -0.17260128259658813,
+          0.6730520725250244,
+          0.7191727757453918
+        ],
+        [
+          0.17864792048931122,
+          -0.6966307759284973,
+          0.694831132888794
+        ]
+      ]
+    },
+    {
+      "name": "08 | Launch broad beveled button",
+      "role": "LaunchButton",
+      "cap_area_twice_xyz": [
+        0.193743991219348,
+        0.5510559520023288,
+        7.040511905785315
+      ],
+      "passes_authored_up_after_export": true,
+      "position": [
+        0.0,
+        -3.440000057220459,
+        1.5
+      ],
+      "local_frame_columns": [
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.8910065293312073,
+          0.45399048924446106
+        ],
+        [
+          0.0,
+          -0.45399048924446106,
+          0.8910065293312073
+        ]
+      ]
+    },
+    {
+      "name": "30 | Primary Previous key",
+      "role": "PrimaryPreviousButton",
+      "cap_area_twice_xyz": [
+        0.11200000232724204,
+        0.12400000643730147,
+        0.6592000216300199
+      ],
+      "passes_authored_up_after_export": true,
+      "position": [
+        5.589367866516113,
+        2.6262195110321045,
+        3.8893096446990967
+      ],
+      "local_frame_columns": [
+        [
+          0.7818030714988708,
+          -0.6210977435112,
+          -0.05496886745095253
+        ],
+        [
+          0.4174293279647827,
+          0.45586541295051575,
+          0.7860912680625916
+        ],
+        [
+          -0.46318116784095764,
+          -0.6375142335891724,
+          0.6156614422798157
+        ]
+      ]
+    },
+    {
+      "name": "30 | Primary Next key",
+      "role": "PrimaryNextButton",
+      "cap_area_twice_xyz": [
+        0.11200000232724204,
+        0.12400000643730147,
+        0.6592000221150836
+      ],
+      "passes_authored_up_after_export": true,
+      "position": [
+        5.355607509613037,
+        2.3709347248077393,
+        3.4490983486175537
+      ],
+      "local_frame_columns": [
+        [
+          0.7818030714988708,
+          -0.6210977435112,
+          -0.05496886745095253
+        ],
+        [
+          0.4174293279647827,
+          0.45586541295051575,
+          0.7860912680625916
+        ],
+        [
+          -0.46318116784095764,
+          -0.6375142335891724,
+          0.6156614422798157
+        ]
+      ]
+    },
+    {
+      "name": "30 | Ordnance Previous key",
+      "role": "OrdnancePreviousButton",
+      "cap_area_twice_xyz": [
+        0.11200000232724204,
+        0.12400000643730147,
+        0.6592000216300199
+      ],
+      "passes_authored_up_after_export": true,
+      "position": [
+        5.025838375091553,
+        2.010801076889038,
+        2.8280863761901855
+      ],
+      "local_frame_columns": [
+        [
+          0.7818030714988708,
+          -0.6210977435112,
+          -0.05496886745095253
+        ],
+        [
+          0.4174293279647827,
+          0.45586541295051575,
+          0.7860912680625916
+        ],
+        [
+          -0.46318116784095764,
+          -0.6375142335891724,
+          0.6156614422798157
+        ]
+      ]
+    },
+    {
+      "name": "30 | Ordnance Next key",
+      "role": "OrdnanceNextButton",
+      "cap_area_twice_xyz": [
+        0.11200000232724204,
+        0.12400000643730147,
+        0.6592000221150836
+      ],
+      "passes_authored_up_after_export": true,
+      "position": [
+        4.792077541351318,
+        1.7555164098739624,
+        2.3878750801086426
+      ],
+      "local_frame_columns": [
+        [
+          0.7818030714988708,
+          -0.6210977435112,
+          -0.05496886745095253
+        ],
+        [
+          0.4174293279647827,
+          0.45586541295051575,
+          0.7860912680625916
+        ],
+        [
+          -0.46318116784095764,
+          -0.6375142335891724,
+          0.6156614422798157
+        ]
+      ]
+    }
+  ],
+  "screens": [
+    {
+      "name": "07 | Main rectangular display",
+      "role": "MainScreenGlass",
+      "vertices": [
+        [
+          -1.9249999523162842,
+          -1.5,
+          -0.20000000298023224
+        ],
+        [
+          1.9249999523162842,
+          -1.5,
+          -0.20000000298023224
+        ],
+        [
+          2.125,
+          -1.2999999523162842,
+          -0.20000000298023224
+        ],
+        [
+          2.125,
+          0.8999999761581421,
+          -0.20000000298023224
+        ],
+        [
+          1.274999976158142,
+          1.5,
+          -0.20000000298023224
+        ],
+        [
+          -1.9249999523162842,
+          1.5,
+          -0.20000000298023224
+        ],
+        [
+          -2.125,
+          1.2999999523162842,
+          -0.20000000298023224
+        ],
+        [
+          -2.125,
+          -1.2999999523162842,
+          -0.20000000298023224
+        ]
+      ],
+      "position": [
+        -7.334554672241211,
+        0.9212581515312195,
+        3.4043033123016357
+      ],
+      "local_frame_columns": [
+        [
+          0.7818030714988708,
+          0.6210977435112,
+          0.05496886745095253
+        ],
+        [
+          -0.4174293279647827,
+          0.45586541295051575,
+          0.7860912680625916
+        ],
+        [
+          0.46318116784095764,
+          -0.6375142335891724,
+          0.6156614422798157
+        ]
+      ],
+      "polygons": 1,
+      "uv_layers": [],
+      "local_normals": [
+        [
+          -4.793296870531094e-09,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "name": "07 | Detail rectangular display",
+      "role": "DetailScreenGlass",
+      "vertices": [
+        [
+          -1.6799999475479126,
+          -0.4000000059604645,
+          -0.20000000298023224
+        ],
+        [
+          1.6799999475479126,
+          -0.4000000059604645,
+          -0.20000000298023224
+        ],
+        [
+          1.8799999952316284,
+          -0.20000000298023224,
+          -0.20000000298023224
+        ],
+        [
+          1.8799999952316284,
+          0.20000000298023224,
+          -0.20000000298023224
+        ],
+        [
+          1.6799999475479126,
+          0.4000000059604645,
+          -0.20000000298023224
+        ],
+        [
+          -1.6799999475479126,
+          0.4000000059604645,
+          -0.20000000298023224
+        ],
+        [
+          -1.8799999952316284,
+          0.20000000298023224,
+          -0.20000000298023224
+        ],
+        [
+          -1.8799999952316284,
+          -0.20000000298023224,
+          -0.20000000298023224
+        ]
+      ],
+      "position": [
+        -6.4329071044921875,
+        -0.06341129541397095,
+        1.7063461542129517
+      ],
+      "local_frame_columns": [
+        [
+          0.7818030714988708,
+          0.6210977435112,
+          0.05496886745095253
+        ],
+        [
+          -0.4174293279647827,
+          0.45586541295051575,
+          0.7860912680625916
+        ],
+        [
+          0.46318116784095764,
+          -0.6375142335891724,
+          0.6156614422798157
+        ]
+      ],
+      "polygons": 1,
+      "uv_layers": [],
+      "local_normals": [
+        [
+          -2.5445971996163053e-09,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "name": "30 | Primary blank glass",
+      "role": "PrimaryScreenGlass",
+      "vertices": [
+        [
+          -1.9249999523162842,
+          -0.800000011920929,
+          -0.20000000298023224
+        ],
+        [
+          1.9249999523162842,
+          -0.800000011920929,
+          -0.20000000298023224
+        ],
+        [
+          2.125,
+          -0.6000000238418579,
+          -0.20000000298023224
+        ],
+        [
+          2.125,
+          0.6000000238418579,
+          -0.20000000298023224
+        ],
+        [
+          1.9249999523162842,
+          0.800000011920929,
+          -0.20000000298023224
+        ],
+        [
+          -1.274999976158142,
+          0.800000011920929,
+          -0.20000000298023224
+        ],
+        [
+          -2.125,
+          0.20000000298023224,
+          -0.20000000298023224
+        ],
+        [
+          -2.125,
+          -0.6000000238418579,
+          -0.20000000298023224
+        ]
+      ],
+      "position": [
+        7.6267547607421875,
+        1.2403638362884521,
+        3.9545671939849854
+      ],
+      "local_frame_columns": [
+        [
+          0.7818030714988708,
+          -0.6210977435112,
+          -0.05496886745095253
+        ],
+        [
+          0.4174293279647827,
+          0.45586541295051575,
+          0.7860912680625916
+        ],
+        [
+          -0.46318116784095764,
+          -0.6375142335891724,
+          0.6156614422798157
+        ]
+      ],
+      "polygons": 1,
+      "uv_layers": [],
+      "local_normals": [
+        [
+          -2.2977886260378e-09,
+          0.0,
+          0.9999999403953552
+        ]
+      ]
+    },
+    {
+      "name": "30 | Ordnance blank glass",
+      "role": "OrdnanceScreenGlass",
+      "vertices": [
+        [
+          -1.9249999523162842,
+          -0.800000011920929,
+          -0.20000000298023224
+        ],
+        [
+          1.9249999523162842,
+          -0.800000011920929,
+          -0.20000000298023224
+        ],
+        [
+          2.125,
+          -0.6000000238418579,
+          -0.20000000298023224
+        ],
+        [
+          2.125,
+          0.6000000238418579,
+          -0.20000000298023224
+        ],
+        [
+          1.9249999523162842,
+          0.800000011920929,
+          -0.20000000298023224
+        ],
+        [
+          -1.9249999523162842,
+          0.800000011920929,
+          -0.20000000298023224
+        ],
+        [
+          -2.125,
+          0.6000000238418579,
+          -0.20000000298023224
+        ],
+        [
+          -2.125,
+          -0.6000000238418579,
+          -0.20000000298023224
+        ]
+      ],
+      "position": [
+        6.833639144897461,
+        0.37421953678131104,
+        2.460993766784668
+      ],
+      "local_frame_columns": [
+        [
+          0.7818030714988708,
+          -0.6210977435112,
+          -0.05496886745095253
+        ],
+        [
+          0.4174293279647827,
+          0.45586541295051575,
+          0.7860912680625916
+        ],
+        [
+          -0.46318116784095764,
+          -0.6375142335891724,
+          0.6156614422798157
+        ]
+      ],
+      "polygons": 1,
+      "uv_layers": [],
+      "local_normals": [
+        [
+          0.0,
+          0.0,
+          0.9999999403953552
+        ]
+      ]
+    }
+  ],
+  "total_triangles": 20880,
+  "camera": {
+    "position": [
+      0.0,
+      -18.0,
+      6.800000190734863
+    ],
+    "lens": 33.0,
+    "sensor_width": 36.0,
+    "sensor_height": 24.0,
+    "sensor_fit": "AUTO",
+    "forward": [
+      -0.0,
+      0.9935725927352905,
+      -0.11319684982299805
+    ]
+  },
+  "lamp_names": [
+    "Deck | Left status 1 green lens",
+    "Deck | Left status 2 green lens",
+    "Deck | Left status 3 amber lens",
+    "Deck | Right status 1 green lens",
+    "Deck | Right status 2 green lens",
+    "Deck | Right status 3 amber lens",
+    "Deck | Left Launch armed red lens",
+    "Deck | Right Launch armed red lens",
+    "Deck | Header downlight 01 cold white lens",
+    "Deck | Header downlight 02 cold white lens"
+  ],
+  "preview_objects": [
+    {
+      "name": "25 | Viewport glass",
+      "triangles": 17,
+      "closed_manifold": false
+    },
+    {
+      "name": "19 | Vanguard preview swept wing envelope",
+      "triangles": 60,
+      "closed_manifold": true
+    },
+    {
+      "name": "19 | Vanguard preview wing perimeter",
+      "triangles": 128,
+      "closed_manifold": false
+    },
+    {
+      "name": "19 | Vanguard preview raised fuselage",
+      "triangles": 8,
+      "closed_manifold": false
+    },
+    {
+      "name": "19 | Vanguard preview fuselage ridge",
+      "triangles": 24,
+      "closed_manifold": false
+    },
+    {
+      "name": "19 | Vanguard preview fuselage ridge.001",
+      "triangles": 48,
+      "closed_manifold": false
+    },
+    {
+      "name": "19 | Vanguard preview tail fin",
+      "triangles": 1,
+      "closed_manifold": false
+    },
+    {
+      "name": "19 | Vanguard preview fin edges",
+      "triangles": 24,
+      "closed_manifold": false
+    },
+    {
+      "name": "19 | Vanguard preview tail fin.001",
+      "triangles": 1,
+      "closed_manifold": false
+    },
+    {
+      "name": "19 | Vanguard preview fin edges.001",
+      "triangles": 24,
+      "closed_manifold": false
+    },
+    {
+      "name": "11 | Neutral projector frustum",
+      "triangles": 2,
+      "closed_manifold": false
+    },
+    {
+      "name": "19 | Distant space",
+      "triangles": 12,
+      "closed_manifold": true
+    }
+  ],
+  "scene_total_triangles": 21229,
+  "positive_volume_intersections": [],
+  "pressed_intersections": [],
+  "press_travel": [
+    {
+      "role": "PreviousButton",
+      "travel": 0.02379999998956919,
+      "share": 0.28
+    },
+    {
+      "role": "NextButton",
+      "travel": 0.02379999998956919,
+      "share": 0.28
+    },
+    {
+      "role": "SelectorKnob",
+      "travel": 0.04800000041723251,
+      "share": 0.2
+    },
+    {
+      "role": "LaunchButton",
+      "travel": 0.026249999413266778,
+      "share": 0.35
+    },
+    {
+      "role": "PrimaryPreviousButton",
+      "travel": 0.028000000417232516,
+      "share": 0.28
+    },
+    {
+      "role": "PrimaryNextButton",
+      "travel": 0.028000000417232516,
+      "share": 0.28
+    },
+    {
+      "role": "OrdnancePreviousButton",
+      "travel": 0.028000000417232516,
+      "share": 0.28
+    },
+    {
+      "role": "OrdnanceNextButton",
+      "travel": 0.028000000417232516,
+      "share": 0.28
+    }
+  ],
+  "intersection_pairs_checked": 33
+}

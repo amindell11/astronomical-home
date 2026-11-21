@@ -20,10 +20,7 @@ Shader "Hangar/ConsolePaint"
             HLSLPROGRAM
             #pragma vertex Vert
             #pragma fragment Frag
-            #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
-            #pragma multi_compile _ _FORWARD_PLUS
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
             TEXTURE2D(_BaseMap);
             SAMPLER(sampler_BaseMap);
@@ -38,6 +35,9 @@ Shader "Hangar/ConsolePaint"
                 half4 _ConstantEmission;
                 half _UseEmissionAlpha;
             CBUFFER_END
+            float4 _HangarLightPositions[8];
+            float4 _HangarLightColors[8];
+            float _HangarLightCount;
 
             struct Attributes
             {
@@ -52,7 +52,6 @@ Shader "Hangar/ConsolePaint"
                 float3 positionWS : TEXCOORD0;
                 half3 normalWS : TEXCOORD1;
                 float2 uv : TEXCOORD2;
-                half3 vertexLight : TEXCOORD3;
             };
 
             Varyings Vert(Attributes input)
@@ -63,7 +62,6 @@ Shader "Hangar/ConsolePaint"
                 output.positionWS = position.positionWS;
                 output.normalWS = TransformObjectToWorldNormal(input.normalOS);
                 output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
-                output.vertexLight = VertexLighting(output.positionWS, output.normalWS);
                 return output;
             }
 
@@ -71,20 +69,20 @@ Shader "Hangar/ConsolePaint"
             {
                 half3 normal = normalize(input.normalWS);
                 half3 illumination = _Starlight.rgb;
-                #if defined(_ADDITIONAL_LIGHTS_VERTEX)
-                    illumination += input.vertexLight * _LightResponse;
-                #endif
-                #if defined(_ADDITIONAL_LIGHTS)
-                    InputData inputData = (InputData)0;
-                    inputData.positionWS = input.positionWS;
-                    inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
-                    uint count = GetAdditionalLightsCount();
-                    LIGHT_LOOP_BEGIN(count)
-                        Light light = GetAdditionalLight(lightIndex, input.positionWS);
-                        illumination += light.color * light.distanceAttenuation *
-                            saturate(dot(normal, light.direction)) * _LightResponse;
-                    LIGHT_LOOP_END
-                #endif
+                int count = (int)_HangarLightCount;
+                for (int i = 0; i < 8; i++)
+                {
+                    if (i >= count)
+                        break;
+                    float4 pos = _HangarLightPositions[i];
+                    float4 color = _HangarLightColors[i];
+                    float3 L = pos.xyz - input.positionWS;
+                    float d2 = dot(L, L);
+                    float range = pos.w;
+                    float falloff = saturate(1.0 - d2 / (range * range));
+                    falloff *= falloff;
+                    illumination += color.rgb * saturate(dot(normal, L * rsqrt(max(d2, 1e-4)))) * falloff / (1.0 + d2) * _LightResponse;
+                }
                 half3 paint = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv).rgb;
                 half4 sampledEmission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, input.uv);
                 half3 emission = sampledEmission.rgb * lerp(1, sampledEmission.a, _UseEmissionAlpha);

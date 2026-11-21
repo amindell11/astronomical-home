@@ -30,7 +30,7 @@ Material:
     - _EdgeSoftness: 0.4
     - _Falloff: 1.9
     - _Lean: 0
-    - _LensGlow: 0.7
+    - _LensGlow: 0
     - _Level: 1
     - _Rays: 0.3
     - _Reach: 1

@@ -66,6 +66,7 @@ namespace Tests.PlayMode.Rendering.Projection
             properties.SetFloat("_AppearAge", .12f);
             properties.SetFloat("_TransitionAge", .15f);
             properties.SetFloat("_HitAge", .08f);
+            properties.SetFloat("_HitSize", 1f);
             properties.SetFloat("_Clock", 12.3f);
             var empty = Render(1);
             for (var i = 0; i < pixels.Length; i++) AssertColor(pixels[i], empty[i]);
@@ -164,6 +165,7 @@ namespace Tests.PlayMode.Rendering.Projection
             properties.SetFloat("_AppearAge", .12f);
             properties.SetFloat("_TransitionAge", .15f);
             properties.SetFloat("_HitAge", .08f);
+            properties.SetFloat("_HitSize", 1f);
             properties.SetFloat("_Clock", 12.3f);
             properties.SetVector("_Halo", new Vector4(32f, 2f, 1f, 1f));
             properties.SetVector("_Bleed", new Vector4(2f, 24f, 0f, 0f));

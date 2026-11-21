@@ -256,6 +256,22 @@ namespace Tests.PlayMode.Hangar
             Assert.IsFalse(primary.Dimmed || ordnanceView.Dimmed, "the starter leaves both weapon screens lit");
         }
 
+        [UnityTest]
+        public IEnumerator Show_PaintsAtLeastSixLightsOnEveryPart()
+        {
+            Open(_ => true, out _);
+            yield return null;
+            var painted = new SerializedObject(console).FindProperty("paintedParts");
+            var block = new MaterialPropertyBlock();
+            var countId = Shader.PropertyToID("_HangarLightCount");
+            for (var i = 0; i < painted.arraySize; i++)
+            {
+                var part = (MeshRenderer)painted.GetArrayElementAtIndex(i).objectReferenceValue;
+                part.GetPropertyBlock(block);
+                Assert.That(block.GetFloat(countId), Is.GreaterThanOrEqualTo(6f), part.name);
+            }
+        }
+
         private Ship Open(System.Func<Ship, bool> earned, out Ship second)
         {
             var vanguard = AssetDatabase.LoadAssetAtPath<Ship>(VanguardPath);
