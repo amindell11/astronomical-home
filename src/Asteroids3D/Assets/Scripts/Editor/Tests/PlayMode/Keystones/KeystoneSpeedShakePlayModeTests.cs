@@ -37,6 +37,7 @@ namespace Tests.PlayMode.Keystones
             kit = SpawnKit(ship.transform);
             kit.Initialize(new KeystoneHost(ship.Rigidbody, 1f, ship.Lock));
             motion = Still;
+            (raises, scales, scaledStrength, releases) = (0, 0, 0f, 0);
             ship.Movement.Initialize(ship.Stats, () => motion, kit, null);
             Assert.Greater(ship.MaxSpeed, 0f);
             ReadProfile(kit);
