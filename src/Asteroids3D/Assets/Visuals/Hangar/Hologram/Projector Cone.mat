@@ -25,17 +25,28 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
+    - _Angle: 0.96
+    - _BaseFade: 0.5
     - _BaseWidth: 0.085
+    - _CentreBias: 1.2
     - _ConeLight: 0.9
     - _EdgeSoftness: 0.4
-    - _Falloff: 1.9
+    - _Falloff: 1.4
     - _Lean: 0
+    - _Length: 12
     - _LensGlow: 0
     - _Level: 1
-    - _Rays: 0.3
+    - _RayCount: 40
+    - _RayDrift: 0.2
+    - _Rays: 0.8
     - _Reach: 1
+    - _Softness: 0.18
     - _TopWidth: 0.7
+    - _Width: 4.5
     m_Colors:
+    - _Apex: {r: 0.5, g: 0, b: 0, a: 0}
+    - _Axis: {r: 0, g: 1, b: 0, a: 0}
     - _ConeColor: {r: 0.78, g: 0.93, b: 1, a: 1}
+    - _QuadUnits: {r: 1, g: 1, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

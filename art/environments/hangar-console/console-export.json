@@ -112,8 +112,8 @@
     },
     {
       "name": "ProjectorLens",
-      "vertices": 24,
-      "triangles": 44,
+      "vertices": 960,
+      "triangles": 1916,
       "pivot": [
         0.0,
         0.0,
@@ -222,8 +222,8 @@
     },
     {
       "name": "ConsoleBody",
-      "vertices": 10546,
-      "triangles": 19776,
+      "vertices": 11334,
+      "triangles": 21320,
       "pivot": [
         0.0,
         0.0,

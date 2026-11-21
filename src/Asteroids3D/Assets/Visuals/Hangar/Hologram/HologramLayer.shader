@@ -10,6 +10,7 @@ Shader "Astronomical/Hangar/Hologram Layer"
         [PerRendererData] _ReachAxis ("Reach Axis", Vector) = (0, 1, 0, 0)
         [PerRendererData] _ReachAngle ("Reach Angle", Float) = 0.96
         [PerRendererData] _ReachLength ("Reach Length", Float) = 12
+        [PerRendererData] _ReachWidth ("Reach Width", Float) = 4.5
         [PerRendererData] _ReachSoftness ("Reach Softness", Range(0.01, 0.5)) = 0.18
         [PerRendererData] _Sputter ("Sputter", Range(0, 1)) = 0.7
         [PerRendererData] _SputterLines ("Sputter Lines", Range(20, 600)) = 220
@@ -41,6 +42,7 @@ Shader "Astronomical/Hangar/Hologram Layer"
                 float4 _ReachAxis;
                 float _ReachAngle;
                 float _ReachLength;
+                float _ReachWidth;
                 float _ReachSoftness;
                 float _Sputter;
                 float _SputterLines;
@@ -74,19 +76,20 @@ Shader "Astronomical/Hangar/Hologram Layer"
                 float2 p = (uv - _ReachApex.xy) * _ReachUnits.xy;
                 float r = length(p);
                 float ang = acos(saturate(dot(p / max(r, 1e-4), _ReachAxis.xy)));
-                float band = _ReachAngle * _ReachSoftness;
-                float inside = saturate((_ReachAngle - ang) / band)
-                    * saturate((_ReachLength - r) / (_ReachLength * _ReachSoftness));
-                float sputterOn = (inside > 0.0 && inside < 1.0) ? 1.0 : 0.0;
                 float row = floor(uv.y * _SputterLines);
                 float t = floor(_Time.y * 24.0);
-                float keep = Hash(float2(row, t)) < lerp(1.0 - _Sputter, 1.0, inside) ? 1.0 : 0.0;
-                float shift = (Hash(float2(row, t + 17.0)) - 0.5) * 0.02 * _Sputter * (1.0 - inside)
-                    * sputterOn * keep;
+                float ragged = (Hash(float2(floor(row / 5.0), t)) + Hash(float2(row, t + 3.0)) - 1.0)
+                    * 0.5 * _ReachSoftness * _Sputter;
+                float across = max(ang / _ReachAngle, abs(p.x * _ReachAxis.y - p.y * _ReachAxis.x) / _ReachWidth)
+                    + ragged;
+                float inside = saturate((1.0 - across) / _ReachSoftness)
+                    * saturate((_ReachLength - r) / (_ReachLength * _ReachSoftness));
+                float breakUp = 1.0 - smoothstep(0.0, 0.45, inside);
+                float keep = Hash(float2(row, t)) < 1.0 - _Sputter * breakUp ? 1.0 : 0.0;
+                float shift = (Hash(float2(row, t + 17.0)) - 0.5) * 0.012 * _Sputter * breakUp * keep;
                 half4 c = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + float2(shift, 0.0));
-                c *= 1.0 - sputterOn * (1.0 - keep);
-                c.rgb += _FringeColor.rgb * (_EdgeFringe * c.a * (1.0 - inside) * inside * 4.0);
-                c *= step(1e-3, inside);
+                c *= keep * smoothstep(0.0, 1.0, inside);
+                c.rgb += _FringeColor.rgb * (_EdgeFringe * c.a * breakUp);
                 half edge = min(min(uv.x, 1 - uv.x), min(uv.y, 1 - uv.y));
                 half fade = _Opacity * smoothstep(0, _EdgeFeather, edge);
                 return c * fade;

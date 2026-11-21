@@ -10,6 +10,7 @@ Shader "Astronomical/Hangar/Projector Cone"
         [PerRendererData] _Axis ("Axis", Vector) = (0, 1, 0, 0)
         [PerRendererData] _Angle ("Angle", Float) = 0.96
         [PerRendererData] _Length ("Length", Float) = 12
+        [PerRendererData] _Width ("Width", Float) = 4.5
         [PerRendererData] _Softness ("Softness", Range(0.01, 0.5)) = 0.18
         _Falloff ("Fade With Distance", Range(0.2, 4)) = 1.4
         _CentreBias ("Centre Bias", Range(0, 4)) = 1.5
@@ -42,6 +43,7 @@ Shader "Astronomical/Hangar/Projector Cone"
                 float4 _Axis;
                 float _Angle;
                 float _Length;
+                float _Width;
                 float _Softness;
                 half _Falloff;
                 half _CentreBias;
@@ -86,10 +88,11 @@ Shader "Astronomical/Hangar/Projector Cone"
                     return half4(0.0, 0.0, 0.0, 0.0);
                 float r = length(p);
                 float a = atan2(axis.x * p.y - axis.y * p.x, dot(p, axis));
-                float edge = 1.0 - smoothstep(_Angle * (1.0 - _Softness), _Angle, abs(a));
+                float across = max(abs(a) / _Angle, abs(p.x * axis.y - p.y * axis.x) / _Width);
+                float edge = 1.0 - smoothstep(1.0 - _Softness, 1.0, across);
                 float along = saturate(r / _Length);
                 float fall = pow(1.0 - along, _Falloff);
-                float centre = pow(saturate(cos(a * 1.5707963 / _Angle)), _CentreBias);
+                float centre = pow(saturate(cos(across * 1.5707963)), _CentreBias);
                 float n1 = Noise(a * _RayCount + _Time.y * _RayDrift);
                 float n2 = Noise(a * _RayCount * 2.7 - _Time.y * _RayDrift * 1.7 + 11.0);
                 float rays = lerp(1.0, saturate(n1 * 1.4 - 0.2) * (0.6 + 0.4 * n2), _Rays);

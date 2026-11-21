@@ -26,6 +26,7 @@ namespace UI.Hangar.Hologram
         private static readonly int ReachAxisId = Shader.PropertyToID("_ReachAxis");
         private static readonly int ReachAngleId = Shader.PropertyToID("_ReachAngle");
         private static readonly int ReachLengthId = Shader.PropertyToID("_ReachLength");
+        private static readonly int ReachWidthId = Shader.PropertyToID("_ReachWidth");
         private static readonly int ReachSoftnessId = Shader.PropertyToID("_ReachSoftness");
         private static readonly int SputterId = Shader.PropertyToID("_Sputter");
         private static readonly int SputterLinesId = Shader.PropertyToID("_SputterLines");
@@ -36,6 +37,7 @@ namespace UI.Hangar.Hologram
         private static readonly int AxisId = Shader.PropertyToID("_Axis");
         private static readonly int AngleId = Shader.PropertyToID("_Angle");
         private static readonly int LengthId = Shader.PropertyToID("_Length");
+        private static readonly int WidthId = Shader.PropertyToID("_Width");
         private static readonly int SoftnessId = Shader.PropertyToID("_Softness");
         private static readonly int ConeColorId = Shader.PropertyToID("_ConeColor");
         private static readonly int ConeLightId = Shader.PropertyToID("_ConeLight");
@@ -152,7 +154,8 @@ namespace UI.Hangar.Hologram
         {
             var centre = new Vector2(frameOffset.x, frameOffset.y + frameSide * .5f);
             var halfAngle = profile.ReachHalfAngle * Mathf.Deg2Rad;
-            return new HangarReach(centre.normalized, halfAngle, profile.ReachLength, profile.ReachSoftness);
+            return new HangarReach(centre.normalized, halfAngle, profile.ReachLength, profile.ReachWidth,
+                profile.ReachSoftness);
         }
 
         private void PlaceCone(HangarReach reach)
@@ -197,6 +200,7 @@ namespace UI.Hangar.Hologram
             block.SetVector(ReachAxisId, new Vector4(reach.Axis.x, reach.Axis.y, 0f, 0f));
             block.SetFloat(ReachAngleId, reach.HalfAngle);
             block.SetFloat(ReachLengthId, reach.Length);
+            block.SetFloat(ReachWidthId, reach.Width);
             block.SetFloat(ReachSoftnessId, reach.Softness);
             block.SetFloat(SputterId, profile.Sputter);
             block.SetFloat(SputterLinesId, profile.SputterLines);
@@ -211,8 +215,9 @@ namespace UI.Hangar.Hologram
                 block.SetVector(ApexId, new Vector4(coneApex.x, coneApex.y, 0f, 0f));
                 block.SetVector(QuadUnitsId, new Vector4(coneUnits.x, coneUnits.y, 0f, 0f));
                 block.SetVector(AxisId, new Vector4(reach.Axis.x, reach.Axis.y, 0f, 0f));
-                block.SetFloat(AngleId, reach.HalfAngle);
-                block.SetFloat(LengthId, reach.Length);
+                block.SetFloat(AngleId, profile.BeamHalfAngle * Mathf.Deg2Rad);
+                block.SetFloat(LengthId, profile.BeamLength);
+                block.SetFloat(WidthId, reach.Width);
                 block.SetFloat(SoftnessId, reach.Softness);
                 block.SetColor(ConeColorId, beam);
                 block.SetFloat(ConeLightId, profile.BeamLight);

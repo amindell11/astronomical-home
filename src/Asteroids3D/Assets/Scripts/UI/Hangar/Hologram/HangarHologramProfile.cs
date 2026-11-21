@@ -33,6 +33,9 @@ namespace UI.Hangar.Hologram
         [Tooltip("How far the beam reaches above the lens.")]
         [SerializeField, Range(1f, 30f)] private float reachLength = 12f;
 
+        [Tooltip("The widest the beam gets, in units either side of its middle. Above that it rises as a column.")]
+        [SerializeField, Range(1f, 20f)] private float reachWidth = 4.5f;
+
         [Tooltip("Share of the half-angle that is the soft edge band.")]
         [SerializeField, Range(.01f, .5f)] private float reachSoftness = .18f;
 
@@ -44,6 +47,12 @@ namespace UI.Hangar.Hologram
 
         [Tooltip("Brightness of the fringe at the cone's edge.")]
         [SerializeField, Range(0f, 4f)] private float edgeFringe = 1.2f;
+
+        [Tooltip("Half the visible beam's spread at the lens, in degrees.")]
+        [SerializeField, Range(5f, 80f)] private float beamHalfAngle = 26f;
+
+        [Tooltip("How far above the lens the visible beam's light carries, in units.")]
+        [SerializeField, Range(.5f, 30f)] private float beamLength = 3.5f;
 
         [Tooltip("Brightness of the beam.")]
         [SerializeField, Range(0f, 3f)] private float beamLight = .6f;
@@ -64,10 +73,13 @@ namespace UI.Hangar.Hologram
         public float FlickerRate => flickerRate;
         public float ReachHalfAngle => reachHalfAngle;
         public float ReachLength => reachLength;
+        public float ReachWidth => reachWidth;
         public float ReachSoftness => reachSoftness;
         public float Sputter => sputter;
         public float SputterLines => sputterLines;
         public float EdgeFringe => edgeFringe;
+        public float BeamHalfAngle => beamHalfAngle;
+        public float BeamLength => beamLength;
         public float BeamLight => beamLight;
         public float SwitchFlicker => switchFlicker;
         public CanopySettings Canopy => canopy;

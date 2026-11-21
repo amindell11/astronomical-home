@@ -1,5 +1,39 @@
 # Hangar deck
 
+## Pedestal edge lights and ringed lens, 2026-11-21
+
+The owner's two projector references show a cleaner transition from the lens to the pedestal. This pass changes that hardware only. The beam and hologram remain preview placeholders.
+
+Eight inlaid white-cyan strips follow the upper front lips. Each tier has one short strip at each front chamfer. The lowest tier also has two mirrored 0.63-unit front strips. All strips are 0.035 units tall, recessed 0.010 into matching cuts, with their faces 0.001 above the riser. Their new material has constant, unlinked linear emission `(0.55, 0.85, 1.0)`, strength `0.80`, and black base colour. They belong to `ConsoleBody`; no new object ends in ` lens`, and the ten exporter lamps are unchanged.
+
+The top now has a closed dark annulus with 64 segments, an outer radius of 0.55 and an opening radius of 0.447. Its bevelled lip reaches Z 2.525. The lens face is recessed 0.0325 below that lip. `09 | Projector lens` retains its exact name, `ProjectorLens` role, transform, 0.43 radius and original cyan emission. Its three concentric grooves are 0.015 wide and 0.007 deep, at outer radii 0.365, 0.290 and 0.215. The centre remains bright, and the entire lens is one connected closed solid. Its bounding-box centre is `(0.0000, 0.0000, 2.4800)` both before and after.
+
+The three stepped tiers, dark slots and fasteners remain. All 49 other scene objects, every existing Principled material, the glass shader and all three linesets match the captured scene exactly. The body retains 344 unchanged connected components. Boolean reconstruction changes some triangle splits and floating-point coordinates elsewhere in the joined structure. A bidirectional, material-aware comparison of the protected surfaces measures a maximum difference of 0.00000583 units. No protected shape or paint was intentionally changed.
+
+### Review and checks
+
+`previews/deck-pedestal-compare.png` places labelled before and after crops from the 1920 by 1080 game camera beside both owner references. Camera crops are enlarged exactly 3x with nearest-neighbour sampling. Both use identical preview lighting and placeholders. `deck-pedestal-original.png` and `pedestal-reference-1.png` / `pedestal-reference-2.png` are frozen inputs.
+
+The hardware has 24,296 triangles in 31 meshes. All solid meshes are closed and consistently wound, with no loose vertices, zero-area faces or modifiers. The separate-object intersection and control-travel checks pass. The lens is one connected positive-volume solid. The edge-strip audit verifies eight mirrored closed inlays, their colour, restrained strength and thickness.
+
+Coverage passes at 16:10, 3:2, 4:3, 16:9, 21:9 and 32:9, with zero alpha loss and zero unexplained gaps outside the frozen openings. Ink, glass geometry and glass projection checks pass. The unchanged baked etch mask remains in use. The six camera views, four construction views, masks, coverage views, parts sheet, ink views, neutral geometry view, glass previews and existing review sheets are regenerated. Historical originals and reference directories remain frozen.
+
+`previews/pedestal-audit.json` records preservation, lens and edge-strip checks. `previews/pedestal-verification.json` records the completed checks and final artifact hashes. `pedestal-baseline.json` is the frozen pre-edit scene snapshot and protected body surface; do not recapture it during a rebuild. Earlier finish verifiers freeze the old lens geometry, so `verify_pedestal.py` now checks this pass against its immediate predecessor using their existing snapshot and component routines.
+
+### Rebuild
+
+Use the directory-local resource and temporary settings from the recipe below, Blender 5.1 headlessly, and `--python-exit-code 1`.
+
+1. Run `build_deck.py` to save the scene and regenerate ten views. `--no-render` saves geometry only.
+2. Run `verify_pedestal.py`, `verify_deck.py`, `verify_coverage.py` and `verify_ink.py`.
+3. Run `verify_glass.py`, `verify_glass_projection.py`, `render_finish5.py` and `render_glass.py`.
+4. With ordinary Python, run `assemble_coverage.py --require-closed --finish4`, `assemble_glass.py` and `assemble_pedestal.py`.
+5. Remove local Blender resource, temporary and Python cache folders after those processes exit.
+
+This delivery rendered camera and construction views from the saved scene with the existing baked etch mask connected in memory. Glass emission, preview lights, camera and ink settings were unchanged; no preview-only material changes were saved. The procedural glass shader remains in `deck.blend`.
+
+All authored writes stayed inside this directory. No network, Unity edits or git write commands were used. All Blender processes launched for this task exited. Automatic approval review rejected the checked, directory-local cleanup command with "blocked by policy". `.temp`, `.blender` and `__pycache__` remain. They contain the original scene used for comparison, render inputs, logs, temporary scripts, Blender resources and Python caches. The completed deliverables are the source files, `deck.blend` and `previews/`.
+
 ## Finish 7, two dim header strips, 2026-11-20
 
 The six small header downlights and seven cold-white structural dashes are removed. Their lenses, sockets, lips and dash-only cuts are gone. The pod frame plates now continue across their old dash openings. The two red LAUNCH lamps and both three-LED status groups retain their exact geometry, transforms and materials.

@@ -22,6 +22,17 @@ MonoBehaviour:
   layerOpacity: 0.9
   flickerDepth: 0.125
   flickerRate: 9
+  reachHalfAngle: 74
+  reachLength: 8.5
+  reachWidth: 6
+  reachSoftness: 0.3
+  sputter: 0.75
+  sputterLines: 260
+  edgeFringe: 0.25
+  beamHalfAngle: 26
+  beamLength: 3.4
+  beamLight: 0.75
+  switchFlicker: 0.4
   canopy:
     glow: 0.38
     aberration: 1.3
