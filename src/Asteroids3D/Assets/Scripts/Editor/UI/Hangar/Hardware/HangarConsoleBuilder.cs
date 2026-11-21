@@ -191,7 +191,7 @@ namespace UI.Hangar.Hardware
                         "; the console lights two overheads.");
                 var overheadGlows = GlowCards(glows.transform, manifest.downlights, quad, glowMaterial, camera);
                 var lensGlow = GlowCard(glows.transform, "ProjectorLens glow", lens.position,
-                    new Color(.45f, .9f, 1f), Vector2.zero, quad, glowMaterial, camera, .06f);
+                    new Color(.45f, .9f, 1f), Vector2.zero, quad, glowMaterial, camera, 1.6f);
 
                 foreach (var child in root.GetComponentsInChildren<Transform>(true))
                     child.gameObject.layer = 5;
