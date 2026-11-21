@@ -1,4 +1,9 @@
-"""Bake the authored window etch/cloud mask and export its real pane. --assets names the Unity visuals directory."""
+"""Bake the authored window etch/cloud mask and export its real pane.
+
+--assets names the Unity visuals directory. Writes WindowEtching.png and ViewportGlass.fbx there,
+the pane's world placement baked into its mesh, then prints a WINDOW_EXPORT=complete trailer.
+The source scene is never saved by this exporter.
+"""
 import argparse
 import sys
 from pathlib import Path

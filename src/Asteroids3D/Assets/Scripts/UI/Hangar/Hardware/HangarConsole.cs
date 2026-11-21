@@ -18,7 +18,8 @@ namespace UI.Hangar.Hardware
     /// The left pair shows the ship; the right pair shows the weapon and the ordnance. The
     /// hologram projector is its part at the lens. An accepted Launch locks the keys and the
     /// pointer, presses the button and powers the screens down before the caller is handed the
-    /// pending loadout, once. The console applies its light profile each frame.
+    /// pending loadout, once. Each frame the console applies its light profile and hands its painted
+    /// parts the light of its screens, hologram, Launch and overheads, which their shader sums per pixel.
     /// </summary>
     public sealed class HangarConsole : MonoBehaviour
     {
