@@ -212,12 +212,13 @@ namespace UI.Hangar
             ScaleInk(root);
 
             // The prefab root's scale, which the visual-only clone leaves behind, fitted to the framing sphere.
-            var ownDistance = SolveFraming(MeasureFramedBounds(rigTemplate), anchor.position, CameraFovDeg).distance;
-            root.localScale = rigTemplate.transform.lossyScale
-                * (CameraDistance(FramedRadius, CameraFovDeg) / ownDistance);
+            var bounds = MeasureFramedBounds(rigTemplate);
+            var fit = CameraDistance(FramedRadius, CameraFovDeg)
+                / SolveFraming(bounds, anchor.position, CameraFovDeg).distance;
+            root.localScale = rigTemplate.transform.lossyScale * fit;
 
             var flight = root.gameObject.AddComponent<HangarPreviewFlight>();
-            flight.Initialize(FramedRadius, BaseOrientation);
+            flight.Initialize(FramedRadius, BaseOrientation, anchor.InverseTransformPoint(bounds.center) * fit);
             flight.Hide();
             clones[ship] = flight;
             return flight;
