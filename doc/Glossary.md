@@ -1075,6 +1075,16 @@ Format: **term** — definition. *(authority)*
   back, the railgun's cooldown ends. The HUD flashes on the domain's
   `IRecoveryReadout.Recovered` and never reads thresholds itself. Its sound is
   still to come (#1173). *(WeaponResourceHud, ReadyFlashProfile)*
+- **trauma**. The flight camera's shake level, from 0 to 1. Hits the subject
+  takes and its death add to it, and it drains at a steady rate. The view shakes
+  by trauma raised to a power, so at the default power of 1.5, half the trauma
+  gives about a third of the shake. The term
+  comes from Squirrel Eiserloh's GDC 2016 camera talk (#1636). Only the world
+  shake reads it; the canopy's damage shudder reads *hit size*.
+  *(ObserverCam, FlightCameraProfile)*
+- **hit size**. How hard one hit lands on its ship, from 0 to 1. It is the one
+  value the world shake and the canopy's damage shudder both scale by, so a
+  graze moves both less than a big hit. *(AppliedDamage.HitSize)*
 - **item** — anything that fills a loadout slot: a chassis (a prefab with a root
   `Ship`) or a weapon (a prefab with a root `WeaponComponent`). Engine and shield
   modules come with the chassis and fill no slot (#1073, #1254); projectiles,

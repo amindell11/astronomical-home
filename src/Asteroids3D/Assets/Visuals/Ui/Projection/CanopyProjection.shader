@@ -16,7 +16,7 @@ Shader "Hidden/UI/CanopyProjection"
         float2 _Resolution;
         // xy: the pixels the image shows at on screen; zw: that screen's size.
         float4 _Screen;
-        float _Decay, _Clock, _PersonalityEnabled, _AppearAge, _TransitionAge, _HitAge;
+        float _Decay, _Clock, _PersonalityEnabled, _AppearAge, _TransitionAge, _HitAge, _HitSize;
         float4 _Beam, _Phosphor, _Glass;
         float4 _Halo, _Bleed, _CoolTint, _HaloTexel;
 
@@ -127,7 +127,7 @@ Shader "Hidden/UI/CanopyProjection"
                 p += CanopyOffset(p, glassDistortion);
                 float band = floor(p.y * _Screen.y / 3.0);
                 p.x += (Hash(float2(band, floor(_Clock * 11.0))) - .5) * beamJitter / _Screen.x;
-                float kick = _HitAge >= 0.0 && _HitAge < .7 ? damageShudder * exp(-_HitAge * 7.0) : 0.0;
+                float kick = _HitAge >= 0.0 && _HitAge < .7 ? damageShudder * _HitSize * exp(-_HitAge * 7.0) : 0.0;
                 float2 shudder = float2(sin(_HitAge * 71.0), sin(_HitAge * 53.0) * .65) * kick;
                 p -= shudder / _Screen.xy;
                 if (_TransitionAge >= 0.0 && _TransitionAge < .35)

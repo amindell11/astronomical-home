@@ -41,7 +41,8 @@ SkyCoordinates GetSkyCoordinates(float4 projectedPosition, float zoomReferenceSi
     // The frozen Z game plane, seen by a flight camera looking down +Z.
     float3 planeRight = float3(1, 0, 0);
     float3 planeUp = float3(0, 1, 0);
-    float3 cameraPositionWS = GetCameraPositionWS();
+    // The view matrix carries the camera shake; the transform-fed camera position does not.
+    float3 cameraPositionWS = UNITY_MATRIX_I_V._m03_m13_m23;
     float2 cameraPosition = float2(
         dot(cameraPositionWS, planeRight),
         dot(cameraPositionWS, planeUp));
