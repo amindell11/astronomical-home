@@ -100,7 +100,7 @@ namespace UI.Hangar.Hardware
                 launchMaterial.SetFloat("_LightResponse", 0f);
                 EditorUtility.SetDirty(launchMaterial);
                 parts["LaunchButton"].sharedMaterial = launchMaterial;
-                var legend = Legend("LaunchLegend", new Color(.82f, .90f, 1f));
+                var legend = SelfLit("LaunchLegend", new Color(.82f, .90f, 1f));
                 foreach (var control in new[]
                          {
                              "Launch", "Previous", "Next", "PrimaryPrevious", "PrimaryNext", "OrdnancePrevious",
@@ -111,11 +111,7 @@ namespace UI.Hangar.Hardware
                     parts[control + "Legend"].transform.SetParent(parts[control + "Button"].transform, true);
                 }
                 var launchLampNames = new[] { "LaunchLampLeft", "LaunchLampRight" };
-                var launchLampMaterial = ShaderMaterial("LaunchLamp", "Hangar/ConsolePaint");
-                launchLampMaterial.SetTexture("_EmissionMap", null);
-                launchLampMaterial.SetColor("_Starlight", Color.black);
-                launchLampMaterial.SetFloat("_LightResponse", 0f);
-                launchLampMaterial.SetColor("_ConstantEmission", new Color(1f, .06f, .03f));
+                var launchLampMaterial = SelfLit("LaunchLamp", new Color(1f, .06f, .03f));
                 var launchLamps = new MeshRenderer[launchLampNames.Length];
                 for (var i = 0; i < launchLampNames.Length; i++)
                 {
@@ -318,7 +314,7 @@ namespace UI.Hangar.Hardware
             throw new InvalidOperationException($"The hangar console export names no screen glass '{glassName}'.");
         }
 
-        private static Material Legend(string name, Color lit)
+        private static Material SelfLit(string name, Color lit)
         {
             var material = ShaderMaterial(name, "Hangar/ConsolePaint");
             material.SetTexture("_EmissionMap", null);

@@ -166,7 +166,6 @@ namespace UI.Hangar.Hologram
             var height = profile.BeamLength + below;
             coneUnits = new Vector2(width, height);
             coneApex = new Vector2(.5f, below / height);
-            if (!coneRoot) return;
             coneRoot.localScale = new Vector3(width, height, 1f);
             coneRoot.localPosition = new Vector3(-axis.x * below, -axis.y * below, 0f);
             coneRoot.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(-axis.x, axis.y) * Mathf.Rad2Deg);
