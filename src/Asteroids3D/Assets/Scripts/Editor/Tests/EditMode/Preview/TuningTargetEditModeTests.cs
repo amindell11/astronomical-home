@@ -9,6 +9,7 @@ using Game.Player;
 using Game.Preview;
 using Game.Preview.Targets;
 using NUnit.Framework;
+using Ships.Keystones.Tells;
 using Ships.Visuals.Breakup;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Hunt;
@@ -80,6 +81,8 @@ namespace Tests.EditMode.Preview
                     .ToArray());
             AssertTarget(Target<StationsTarget>(), new[] { PreviewEntry.Combat },
                 AssetDatabase.LoadAssetAtPath<StationMotionFeelProfile>("Assets/Settings/Game/StationMotionFeel.asset"));
+            AssertTarget(Target<DashEffectTarget>(), new[] { PreviewEntry.Combat },
+                AssetDatabase.LoadAssetAtPath<KeystoneFlipbookFeel>("Assets/Settings/Ships/Keystones/VanguardDashFeel.asset"));
         }
 
         [Test]
