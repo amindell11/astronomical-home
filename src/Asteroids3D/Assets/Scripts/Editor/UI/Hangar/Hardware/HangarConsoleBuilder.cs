@@ -130,10 +130,6 @@ namespace UI.Hangar.Hardware
                 camera.allowMSAA = true;
                 camera.useOcclusionCulling = false;
                 camera.enabled = true;
-                var projectorSpill = Light(root.transform, "ProjectorSpill",
-                    parts["ProjectorLens"].transform.position + new Vector3(.05f, 2.774f, -.21f), 12f);
-                var launchSpill = Light(root.transform, "LaunchSpill",
-                    parts["LaunchButton"].transform.position + new Vector3(.026f, 2.971f, -.081f), 6f);
                 var composite = new GameObject("Composite", typeof(RectTransform), typeof(Canvas));
                 composite.transform.SetParent(root.transform, false);
                 var canvas = composite.GetComponent<Canvas>();
@@ -167,14 +163,10 @@ namespace UI.Hangar.Hardware
                 var ordnanceView = HangarDisplayBuilder.BuildWeapon(root.transform, "OrdnanceDisplay",
                     new Vector3(600f, -300f, 0f), Resolution(manifest, "OrdnanceScreenGlass"),
                     Content(manifest, "OrdnanceScreenGlass"), feature, HangarSlot.Ordnance, "ORDNANCE");
-                Spill(mainView.GetComponent<HangarDisplay>(), Light(root.transform, "MainScreenSpill",
-                    SpillPosition(parts["MainScreenGlass"], camera, 1.4f), 8f));
-                Spill(detailView.GetComponent<HangarDisplay>(), Light(root.transform, "DetailScreenSpill",
-                    SpillPosition(parts["DetailScreenGlass"], camera, .5f), 5f));
-                Spill(primaryView.GetComponent<HangarDisplay>(), Light(root.transform, "PrimaryScreenSpill",
-                    SpillPosition(parts["PrimaryScreenGlass"], camera, .5f), 4f));
-                Spill(ordnanceView.GetComponent<HangarDisplay>(), Light(root.transform, "OrdnanceScreenSpill",
-                    SpillPosition(parts["OrdnanceScreenGlass"], camera, .5f), 4f));
+                PlaceLight(mainView.GetComponent<HangarDisplay>(), 1.4f, 8f);
+                PlaceLight(detailView.GetComponent<HangarDisplay>(), .5f, 5f);
+                PlaceLight(primaryView.GetComponent<HangarDisplay>(), .5f, 4f);
+                PlaceLight(ordnanceView.GetComponent<HangarDisplay>(), .5f, 4f);
                 var knobAxis = AuthoredUp(parts["SelectorKnob"]);
                 var knob = Control(parts["SelectorKnob"], knobAxis, .2f, camera);
                 var turn = parts["SelectorKnob"].gameObject.AddComponent<HangarKnob>();
@@ -190,19 +182,16 @@ namespace UI.Hangar.Hardware
                 var glows = new GameObject("Glows");
                 glows.transform.SetParent(root.transform, false);
                 var glowMaterial = ShaderMaterial("ConsoleGlow", "Hangar/ConsoleGlow");
-                glowMaterial.SetFloat("_Cone", 0f);
-                EditorUtility.SetDirty(glowMaterial);
-                var coneMaterial = ShaderMaterial("ConsoleCone", "Hangar/ConsoleGlow");
-                coneMaterial.SetFloat("_Cone", 1f);
-                EditorUtility.SetDirty(coneMaterial);
                 var quad = Resources.GetBuiltinResource<Mesh>("Quad.fbx");
-                var lampGlows = GlowCards(glows.transform, manifest.lamps, "glow", quad, glowMaterial, camera,
-                    camera.transform.rotation);
-                var downlightGlows = GlowCards(glows.transform, manifest.downlights, "glow", quad, glowMaterial, camera,
-                    camera.transform.rotation);
-                var downlightCones = GlowCards(glows.transform, manifest.downlights, "cone", ConeCard(), coneMaterial,
-                    camera, Quaternion.LookRotation(
-                        Vector3.ProjectOnPlane(camera.transform.forward, Vector3.up), Vector3.up));
+                var lampGlows = GlowCards(glows.transform, manifest.lamps, quad, glowMaterial, camera);
+                if (manifest.downlights == null || manifest.downlights.Length > 2)
+                    throw new InvalidOperationException(
+                        "console-export.json lists " +
+                        (manifest.downlights == null ? "no downlights" : manifest.downlights.Length + " downlights") +
+                        "; the console lights two overheads.");
+                var overheadGlows = GlowCards(glows.transform, manifest.downlights, quad, glowMaterial, camera);
+                var lensGlow = GlowCard(glows.transform, "ProjectorLens glow", lens.position,
+                    new Color(.45f, .9f, 1f), Vector2.zero, quad, glowMaterial, camera, .06f);
 
                 foreach (var child in root.GetComponentsInChildren<Transform>(true))
                     child.gameObject.layer = 5;
@@ -244,11 +233,11 @@ namespace UI.Hangar.Hardware
                 for (var i = 0; i < painted.Length; i++)
                     paintedProperty.GetArrayElementAtIndex(i).objectReferenceValue = painted[i];
                 data.FindProperty("launchSurface").objectReferenceValue = parts["LaunchButton"];
-                data.FindProperty("projectorSpill").objectReferenceValue = projectorSpill;
-                data.FindProperty("launchSpill").objectReferenceValue = launchSpill;
+                data.FindProperty("hologramLightOffset").vector3Value = new Vector3(.05f, 2.774f, -.21f);
+                data.FindProperty("launchLightOffset").vector3Value = new Vector3(.026f, 2.971f, -.081f);
                 AssignGlows(data.FindProperty("lampGlows"), lampGlows);
-                AssignGlows(data.FindProperty("downlightGlows"), downlightGlows);
-                AssignGlows(data.FindProperty("downlightCones"), downlightCones);
+                AssignGlows(data.FindProperty("overheadGlows"), overheadGlows);
+                AssignGlow(data.FindProperty("lensGlow"), lensGlow);
                 data.FindProperty("knobAxis").vector3Value = knobAxis;
                 data.FindProperty("knobDetentDegrees").floatValue = 40f;
                 data.ApplyModifiedPropertiesWithoutUndo();
@@ -290,12 +279,6 @@ namespace UI.Hangar.Hardware
                     if (entry.name == glassName) return entry;
                 }
             throw new InvalidOperationException($"The hangar console export names no screen glass '{glassName}'.");
-        }
-
-        private static Vector3 SpillPosition(MeshRenderer glass, Camera camera, float distance)
-        {
-            var centre = glass.bounds.center;
-            return centre + (camera.transform.position - centre).normalized * distance;
         }
 
         private static Material Glass(string name)
@@ -377,10 +360,11 @@ namespace UI.Hangar.Hardware
             return Vector3.up;
         }
 
-        private static void Spill(HangarDisplay display, Light light)
+        private static void PlaceLight(HangarDisplay display, float distance, float range)
         {
             var data = new SerializedObject(display);
-            data.FindProperty("spill").objectReferenceValue = light;
+            data.FindProperty("lightDistance").floatValue = distance;
+            data.FindProperty("lightRange").floatValue = range;
             data.ApplyModifiedPropertiesWithoutUndo();
         }
 
@@ -403,75 +387,57 @@ namespace UI.Hangar.Hardware
             return material;
         }
 
-        private static Light Light(Transform parent, string name, Vector3 position, float range)
-        {
-            var lightObject = new GameObject(name);
-            lightObject.transform.SetParent(parent, false);
-            lightObject.transform.localPosition = position;
-            var light = lightObject.AddComponent<Light>();
-            light.type = LightType.Point;
-            light.range = range;
-            light.cullingMask = 1 << 5;
-            light.shadows = LightShadows.None;
-            return light;
-        }
-
-        private static HangarGlow[] GlowCards(Transform parent, ExportLamp[] entries, string kind, Mesh mesh,
-            Material material, Camera camera, Quaternion rotation)
+        private static HangarGlow[] GlowCards(Transform parent, ExportLamp[] entries, Mesh mesh,
+            Material material, Camera camera)
         {
             var cards = new HangarGlow[entries.Length];
             for (var i = 0; i < entries.Length; i++)
             {
                 var entry = entries[i];
-                var card = new GameObject(entry.name + " " + kind);
-                card.transform.SetParent(parent, false);
-                card.AddComponent<MeshFilter>().sharedMesh = mesh;
-                var renderer = card.AddComponent<MeshRenderer>();
-                renderer.sharedMaterial = material;
-                renderer.shadowCastingMode = ShadowCastingMode.Off;
-                renderer.receiveShadows = false;
-                var position = ToUnity(entry.position);
-                card.transform.localPosition = position + (camera.transform.localPosition - position).normalized * .04f;
-                card.transform.rotation = rotation;
                 var rgb = entry.color;
-                cards[i] = new HangarGlow { card = renderer, color = new Color(rgb[0], rgb[1], rgb[2]) };
+                cards[i] = GlowCard(parent, entry.name + " glow", ToUnity(entry.position),
+                    new Color(rgb[0], rgb[1], rgb[2]), FaceSize(entry), mesh, material, camera, .04f);
             }
             return cards;
         }
 
-        // Top edge on the pivot, so a length scale stays at the lens.
-        private static Mesh ConeCard()
+        private static HangarGlow GlowCard(Transform parent, string name, Vector3 position, Color color, Vector2 size,
+            Mesh mesh, Material material, Camera camera, float push)
         {
-            const string path = VisualsPath + "/ConeCard.asset";
-            var mesh = AssetDatabase.LoadAssetAtPath<Mesh>(path);
-            if (mesh) return mesh;
-            mesh = new Mesh { name = "ConeCard" };
-            mesh.vertices = new[]
-            {
-                new Vector3(-.5f, -1f, 0f), new Vector3(.5f, -1f, 0f),
-                new Vector3(-.5f, 0f, 0f), new Vector3(.5f, 0f, 0f)
-            };
-            mesh.uv = new[]
-            {
-                new Vector2(0f, 0f), new Vector2(1f, 0f),
-                new Vector2(0f, 1f), new Vector2(1f, 1f)
-            };
-            mesh.triangles = new[] { 0, 2, 1, 2, 3, 1 };
-            mesh.RecalculateNormals();
-            mesh.RecalculateBounds();
-            AssetDatabase.CreateAsset(mesh, path);
-            return mesh;
+            var card = new GameObject(name);
+            card.transform.SetParent(parent, false);
+            card.AddComponent<MeshFilter>().sharedMesh = mesh;
+            var renderer = card.AddComponent<MeshRenderer>();
+            renderer.sharedMaterial = material;
+            renderer.shadowCastingMode = ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
+            card.transform.localPosition = position + (camera.transform.localPosition - position).normalized * push;
+            card.transform.rotation = camera.transform.rotation;
+            return new HangarGlow { card = renderer, color = color, size = size };
+        }
+
+        private static Vector2 FaceSize(ExportLamp entry)
+        {
+            var size = entry.size;
+            if (size == null || size.Length != 3)
+                throw new InvalidOperationException($"console-export.json names no size for '{entry.name}'.");
+            var span = new[] { size[0], size[1], size[2] };
+            Array.Sort(span);
+            return new Vector2(span[2], span[1]);
         }
 
         private static void AssignGlows(SerializedProperty property, HangarGlow[] cards)
         {
             property.arraySize = cards.Length;
             for (var i = 0; i < cards.Length; i++)
-            {
-                var element = property.GetArrayElementAtIndex(i);
-                element.FindPropertyRelative("card").objectReferenceValue = cards[i].card;
-                element.FindPropertyRelative("color").colorValue = cards[i].color;
-            }
+                AssignGlow(property.GetArrayElementAtIndex(i), cards[i]);
+        }
+
+        private static void AssignGlow(SerializedProperty element, HangarGlow glow)
+        {
+            element.FindPropertyRelative("card").objectReferenceValue = glow.card;
+            element.FindPropertyRelative("color").colorValue = glow.color;
+            element.FindPropertyRelative("size").vector2Value = glow.size;
         }
 
         private static Vector3 ToUnity(float[] value) => new(value[0], value[2], value[1]);
@@ -491,6 +457,7 @@ namespace UI.Hangar.Hardware
             public string name;
             public float[] position;
             public float[] color;
+            public float[] size;
         }
 
         [Serializable]

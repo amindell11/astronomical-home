@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace UI.Hangar.Hardware
 {
@@ -18,25 +19,25 @@ namespace UI.Hangar.Hardware
         [SerializeField] private Color hologramSpillColor = new(1f, .87f, .70f);
 
         [Tooltip("Intensity of the light at the projector lens.")]
-        [SerializeField, Range(0f, 30f)] private float hologramSpill = 8.45f;
+        [SerializeField, Range(0f, 200f)] private float hologramSpill = 8.45f;
 
         [Tooltip("Color of the light at the launch button.")]
         [SerializeField] private Color launchSpillColor = new(1f, .87f, .70f);
 
         [Tooltip("Intensity of the light at the launch button.")]
-        [SerializeField, Range(0f, 30f)] private float launchSpill = 2.5f;
+        [SerializeField, Range(0f, 200f)] private float launchSpill = 2.5f;
 
         [Tooltip("Self-glow of the launch button.")]
         [SerializeField, ColorUsage(false, true)] private Color launchGlow = new(.9f, .6f, .3f);
 
         [Tooltip("Intensity of the main screen's spill light.")]
-        [SerializeField, Range(0f, 30f)] private float mainScreenSpill = 4.55f;
+        [SerializeField, Range(0f, 200f)] private float mainScreenSpill = 4.55f;
 
         [Tooltip("Intensity of the detail screen's spill light.")]
-        [SerializeField, Range(0f, 30f)] private float detailScreenSpill = 1.3f;
+        [SerializeField, Range(0f, 200f)] private float detailScreenSpill = 1.3f;
 
         [Tooltip("Intensity of each weapon screen's spill light.")]
-        [SerializeField, Range(0f, 30f)] private float weaponScreenSpill = 1.3f;
+        [SerializeField, Range(0f, 200f)] private float weaponScreenSpill = 1.3f;
 
         [Tooltip("Color behind the picture on every screen.")]
         [SerializeField] private Color displayBacking = Color.black;
@@ -44,29 +45,23 @@ namespace UI.Hangar.Hardware
         [Tooltip("Brightness of each lamp's glow card.")]
         [SerializeField, Range(0f, 4f)] private float lampGlow = 1f;
 
-        [Tooltip("Width and height of each lamp's glow card.")]
+        [Tooltip("Extra width and height around each lamp's lens.")]
         [SerializeField, Range(.05f, 3f)] private float lampGlowSize = .5f;
 
-        [Tooltip("Brightness of each downlight's glow card.")]
-        [SerializeField, Range(0f, 4f)] private float downlightGlow = 1f;
+        [Tooltip("Brightness of each overhead light's glow card.")]
+        [SerializeField, Range(0f, 4f), FormerlySerializedAs("downlightGlow")] private float overheadGlow = 1f;
 
-        [Tooltip("Width and height of each downlight's glow card.")]
-        [SerializeField, Range(.05f, 4f)] private float downlightGlowSize = .9f;
+        [Tooltip("Extra width and height around each overhead light's lens.")]
+        [SerializeField, Range(.05f, 4f), FormerlySerializedAs("downlightGlowSize")] private float overheadGlowSize = .9f;
 
-        [Tooltip("Brightness of each downlight's cone.")]
-        [SerializeField, Range(0f, 2f)] private float coneStrength = .3f;
+        [Tooltip("How strongly the overhead lights shine on the console.")]
+        [SerializeField, Range(0f, 60f)] private float overheadLight = 6f;
 
-        [Tooltip("How far each downlight cone reaches.")]
-        [SerializeField, Range(.5f, 14f)] private float coneLength = 6f;
+        [Tooltip("Brightness of the soft glow on the projector lens.")]
+        [SerializeField, Range(0f, 4f)] private float lensGlow = 1f;
 
-        [Tooltip("Width of each downlight cone at its far end.")]
-        [SerializeField, Range(.2f, 8f)] private float coneWidth = 3f;
-
-        [Tooltip("Width of each downlight cone at the lens, as a fraction of its far-end width.")]
-        [SerializeField, Range(.02f, 1f)] private float coneTopShare = .18f;
-
-        [Tooltip("How quickly each downlight cone fades along its length.")]
-        [SerializeField, Range(.2f, 4f)] private float coneFalloff = 1.4f;
+        [Tooltip("Width and height of the projector lens glow.")]
+        [SerializeField, Range(.2f, 6f)] private float lensGlowSize = 2f;
 
         public Color Ambient => ambient;
         public float EmissionStrength => emissionStrength;
@@ -82,12 +77,10 @@ namespace UI.Hangar.Hardware
         public Color DisplayBacking => displayBacking;
         public float LampGlow => lampGlow;
         public float LampGlowSize => lampGlowSize;
-        public float DownlightGlow => downlightGlow;
-        public float DownlightGlowSize => downlightGlowSize;
-        public float ConeStrength => coneStrength;
-        public float ConeLength => coneLength;
-        public float ConeWidth => coneWidth;
-        public float ConeTopShare => coneTopShare;
-        public float ConeFalloff => coneFalloff;
+        public float OverheadGlow => overheadGlow;
+        public float OverheadGlowSize => overheadGlowSize;
+        public float OverheadLight => overheadLight;
+        public float LensGlow => lensGlow;
+        public float LensGlowSize => lensGlowSize;
     }
 }

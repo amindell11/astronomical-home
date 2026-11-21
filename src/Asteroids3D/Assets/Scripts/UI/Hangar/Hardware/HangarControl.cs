@@ -27,6 +27,7 @@ namespace UI.Hangar.Hardware
         public event Action Pressed;
 
         public float Travel => travel;
+        internal Vector3 RestPosition => transform.parent.TransformPoint(rest);
         internal bool Moving => since < float.PositiveInfinity;
 
         private void Awake()

@@ -61,7 +61,11 @@ def anchor(obj):
     split = obj.name.split('| ', 1)
     if len(split) != 2:
         raise RuntimeError(f'{obj.name} has no anchor name')
-    return {'name': split[1], 'position': list(centred(obj).translation), 'color': emission_color(obj)}
+    corners = [obj.matrix_world @ Vector(corner) for corner in obj.bound_box]
+    size = [max(corner[axis] for corner in corners) - min(corner[axis] for corner in corners)
+            for axis in range(3)]
+    return {'name': split[1], 'position': list(centred(obj).translation), 'color': emission_color(obj),
+            'size': size}
 
 
 def content_rectangle(vertices):

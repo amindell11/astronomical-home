@@ -8,5 +8,6 @@ namespace UI.Hangar.Hardware
     {
         public MeshRenderer card;
         public Color color;
+        public Vector2 size;
     }
 }
