@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 5512903418735166201}
   - component: {fileID: 3361187402269917645}
   - component: {fileID: 7820964930999108482}
+  - component: {fileID: 5568463764258899016}
   m_Layer: 0
   m_Name: Crimson_Blink
   m_TagString: Untagged
@@ -84,3 +85,17 @@ MonoBehaviour:
       Data3: 1364300423
       Data4: -100230423
     Path: event:/Ships/Keystones/Blink
+--- !u!114 &5568463764258899016
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7781260934417810432}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bcbd48d4c6a00914294dcd3aa986d03a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  keystone: {fileID: 5512903418735166201}
+  profile: {fileID: 11400000, guid: fbe01443561d46a4d8d79ede20722080, type: 2}

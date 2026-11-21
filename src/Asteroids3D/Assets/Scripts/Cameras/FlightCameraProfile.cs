@@ -83,5 +83,11 @@ namespace Cameras
 
         [Tooltip("How fast the shake moves, in noise cycles per second.")]
         [Min(0f)] public float shakeFrequency = 10f;
+
+        [Tooltip("Largest summed shake offset from every source together, as a share of the view's half-height.")]
+        [Range(0f, .3f)] public float shakeOffsetCap = .12f;
+
+        [Tooltip("Largest summed shake roll from every source together, in degrees.")]
+        [Range(0f, 15f)] public float shakeRollCap = 4f;
     }
 }
