@@ -136,6 +136,8 @@ namespace Cameras
 
         private void OnShakeReleased(Object source) => layers.Release(source, Time.unscaledTime);
 
+        private void OnShakeScaled(Object source, float strength) => layers.Scale(source, strength);
+
         protected override void ComputeDesiredCameraState(out Vector2? desiredCenter, out float? desiredSize)
         {
             if (manualCenter.HasValue)
@@ -365,12 +367,14 @@ namespace Cameras
             {
                 shake.Raised -= OnShakeRaised;
                 shake.Released -= OnShakeReleased;
+                shake.Scaled -= OnShakeScaled;
             }
             shake = newShake;
             if (shake != null)
             {
                 shake.Raised += OnShakeRaised;
                 shake.Released += OnShakeReleased;
+                shake.Scaled += OnShakeScaled;
             }
         }
 

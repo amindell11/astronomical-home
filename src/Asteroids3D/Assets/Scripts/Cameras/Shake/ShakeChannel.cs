@@ -12,6 +12,7 @@ namespace Cameras.Shake
     {
         public event Action<Object, CameraShakeProfile, Vector2> Raised;
         public event Action<Object> Released;
+        public event Action<Object, float> Scaled;
 
         public void Raise(Object source, CameraShakeProfile profile, Vector2 direction)
         {
@@ -21,5 +22,7 @@ namespace Cameras.Shake
         }
 
         public void Release(Object source) => Released?.Invoke(source);
+
+        public void Scale(Object source, float strength) => Scaled?.Invoke(source, strength);
     }
 }

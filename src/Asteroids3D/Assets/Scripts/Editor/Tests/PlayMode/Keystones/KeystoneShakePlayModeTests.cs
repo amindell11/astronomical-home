@@ -16,7 +16,7 @@ namespace Tests.PlayMode.Keystones
     [Category("Ships")]
     public class KeystoneShakePlayModeTests : PlayModeWorldFixture
     {
-        private const string KitPrefabPath = "Assets/Prefabs/Keystones/Valis_Overdrive.prefab";
+        private const string KitPrefabPath = "Assets/Prefabs/Keystones/Junker_Dash.prefab";
 
         private static readonly Kinematics Still = new(Vector2.zero, Vector2.zero, 0f, 0f, 0f);
 
@@ -33,7 +33,7 @@ namespace Tests.PlayMode.Keystones
         }
 
         [UnityTest]
-        public IEnumerator Activation_RaisesTheProfile_AndTheWindowEndReleases()
+        public IEnumerator Activation_RaisesTheProfile_AndReleasesTheSameFrame()
         {
             ship = ShipTestFactory.CreateKinematicPrimitiveShipAt(Vector2.zero);
             var kit = SpawnKit(ship.transform);
@@ -58,12 +58,6 @@ namespace Tests.PlayMode.Keystones
             Assert.AreEqual(1, raises);
             Assert.AreSame(profile, raised);
             Assert.That(Vector2.Distance(direction, ship.Kinematics.Forward), Is.LessThan(1e-4f));
-            Assert.AreEqual(0, releases);
-
-            kit.Step(Still, 0f, kit.Window, out _);
-            Assert.IsFalse(kit.Active);
-            yield return null;
-            Assert.AreEqual(1, raises);
             Assert.AreEqual(1, releases);
         }
 
@@ -74,26 +68,24 @@ namespace Tests.PlayMode.Keystones
             ReadProfile(kit);
             Activate(kit);
             yield return null;
-            kit.Step(Still, 0f, kit.Window, out _);
-            yield return null;
             Assert.AreEqual(1, kit.Activations);
             Assert.IsNull(kit.GetComponentInParent<Ship>());
         }
 
-        private Overdrive SpawnKit(Transform parent)
+        private Dash SpawnKit(Transform parent)
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(KitPrefabPath);
-            Assert.IsNotNull(prefab, "the overdrive kit prefab loads");
+            Assert.IsNotNull(prefab, "the dash kit prefab loads");
             kitHost = parent ? Object.Instantiate(prefab, parent) : Object.Instantiate(prefab);
-            var kit = kitHost.GetComponent<Overdrive>();
-            Assert.IsNotNull(kit, "the kit prefab carries Overdrive");
+            var kit = kitHost.GetComponent<Dash>();
+            Assert.IsNotNull(kit, "the kit prefab carries Dash");
             return kit;
         }
 
         private void ReadProfile(Keystone kit)
         {
             var shake = kit.GetComponent<KeystoneShake>();
-            Assert.IsNotNull(shake, "the overdrive kit prefab carries its shake part");
+            Assert.IsNotNull(shake, "the dash kit prefab carries its shake part");
             using var serialized = new SerializedObject(shake);
             profile = (CameraShakeProfile)serialized.FindProperty("profile").objectReferenceValue;
             Assert.IsNotNull(profile, "the kit's shake part references a profile");

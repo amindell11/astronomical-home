@@ -25,6 +25,7 @@ namespace Cameras.Shake
             layer.direction = direction.normalized;
             layer.start = now;
             layer.released = false;
+            layer.scale = 1f;
             // Noise channels 0 to 2 belong to ObserverCam's trauma shake.
             layer.channel = issued * 3 + 3;
             issued++;
@@ -36,6 +37,13 @@ namespace Cameras.Shake
             if (layer == null || layer.released) return;
             layer.released = true;
             layer.releaseAt = now;
+        }
+
+        public void Scale(Object source, float strength)
+        {
+            var layer = Find(source);
+            if (layer == null) return;
+            layer.scale = Mathf.Clamp01(strength);
         }
 
         public void Clear() => layers.Clear();
@@ -54,7 +62,7 @@ namespace Cameras.Shake
                     continue;
                 }
 
-                var e = Mathf.Clamp01(layer.profile.envelope.Evaluate(t));
+                var e = Mathf.Clamp01(layer.profile.envelope.Evaluate(t)) * layer.scale;
                 var frequency = layer.profile.frequency;
                 var channel = layer.channel;
                 offset += new Vector2(CameraUtils.ShakeNoise(channel, now, frequency),
@@ -81,6 +89,7 @@ namespace Cameras.Shake
             public bool released;
             public float releaseAt;
             public int channel;
+            public float scale = 1f;
 
             public float EnvelopeTime(float now)
             {

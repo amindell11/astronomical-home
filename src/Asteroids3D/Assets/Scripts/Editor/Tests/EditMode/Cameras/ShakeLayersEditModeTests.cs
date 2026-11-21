@@ -134,6 +134,58 @@ namespace Tests.EditMode.Cameras
         }
 
         [Test]
+        public void Scale_HalvesAKickOnlyLayer()
+        {
+            const float kick = .1f;
+            profile.envelope = AnimationCurve.Constant(0f, .4f, 1f);
+            profile.sustainAt = -1f;
+            profile.jitter = 0f;
+            profile.roll = 0f;
+            profile.kick = kick;
+            layers.Start(profile, profile, Vector2.up, 0f);
+
+            layers.Sample(.1f, HalfHeight, out var full, out _);
+            layers.Scale(profile, .5f);
+            layers.Sample(.1f, HalfHeight, out var halved, out _);
+            Assert.AreEqual(full.y * .5f, halved.y, 1e-4f);
+            Assert.AreEqual(0f, halved.x, 1e-4f);
+        }
+
+        [Test]
+        public void Scale_ZeroesTheOffset_WhileTheLayerStays()
+        {
+            profile.envelope = AnimationCurve.Constant(0f, .4f, 1f);
+            profile.sustainAt = -1f;
+            profile.jitter = 0f;
+            profile.roll = 0f;
+            profile.kick = .1f;
+            layers.Start(profile, profile, Vector2.up, 0f);
+
+            layers.Scale(profile, 0f);
+            layers.Sample(.1f, HalfHeight, out var offset, out _);
+            Assert.AreEqual(Vector2.zero, offset);
+            Assert.AreEqual(1, layers.Count);
+        }
+
+        [Test]
+        public void Start_AfterScale_RestoresFullStrength()
+        {
+            const float kick = .1f;
+            profile.envelope = AnimationCurve.Constant(0f, .4f, 1f);
+            profile.sustainAt = -1f;
+            profile.jitter = 0f;
+            profile.roll = 0f;
+            profile.kick = kick;
+            layers.Start(profile, profile, Vector2.up, 0f);
+            layers.Scale(profile, .5f);
+
+            layers.Start(profile, profile, Vector2.up, 0f);
+            layers.Sample(.1f, HalfHeight, out var offset, out _);
+            Assert.AreEqual(kick * HalfHeight, offset.y, 1e-4f);
+            Assert.AreEqual(0f, offset.x, 1e-4f);
+        }
+
+        [Test]
         public void CapShake_ClampsOffsetAndRoll()
         {
             var inside = new Vector2(.2f, 0f);

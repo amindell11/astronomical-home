@@ -32,7 +32,10 @@ namespace Game.Preview.Targets
             var seen = new HashSet<CameraShakeProfile>();
             foreach (var ship in game.hangarOffer.ships)
             {
-                var profile = Read(ship.KeystonePrefab.GetComponentInChildren<KeystoneShake>(true), seen);
+                Component part = ship.KeystonePrefab.GetComponentInChildren<KeystoneShake>(true);
+                if (!part)
+                    part = ship.KeystonePrefab.GetComponentInChildren<KeystoneSpeedShake>(true);
+                var profile = Read(part, seen);
                 if (profile)
                     yield return profile;
             }

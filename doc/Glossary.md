@@ -1091,7 +1091,8 @@ Format: **term** — definition. *(authority)*
 - **shake envelope**. A shake profile's strength over seconds, from 0 to 1. One
   shake envelope scales the jitter, the roll and the kick together. A *sustain
   point* on it holds the strength until the source releases the shake, then
-  plays the rest, as Overdrive's rumble does for its window. Always "shake
+  plays the rest. Overdrive's buzz holds this way while its part scales the
+  strength by the ship's speed (`KeystoneSpeedShake`). Always "shake
   envelope": bare "envelope" is the firing envelope.
   *(CameraShakeProfile.envelope, sustainAt)*
 - **shake layer**. One running shake on the flight camera, one per source; a
