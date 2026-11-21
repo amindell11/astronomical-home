@@ -113,6 +113,9 @@ namespace Ships.Keystones
 
         public virtual bool Blocks(in DamageInfo hit) => false;
 
+        /// <summary>Multiplier the kit puts on a hit it doesn't block.</summary>
+        public virtual float DamageScale(in DamageInfo hit) => 1f;
+
         /// <summary>The kit's sight: whether an engaged AI should fire it now, beside any brain request.</summary>
         public virtual bool ShouldActivate(in KeystoneContext context) => false;
 

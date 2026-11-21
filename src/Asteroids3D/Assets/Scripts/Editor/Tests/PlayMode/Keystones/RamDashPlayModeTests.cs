@@ -10,6 +10,7 @@ using Ships;
 using Ships.Command;
 using Ships.Keystones;
 using Ships.Keystones.Kits;
+using Ships.Registry;
 using Substrate;
 using Tests.PlayMode.Common;
 using UnityEditor;
@@ -100,11 +101,32 @@ namespace Tests.PlayMode.Keystones
             Assert.That(hits, Has.Count.EqualTo(1), "one ram, one hit");
             Assert.That(hits[0].Info.Kind, Is.EqualTo(DamageKind.Collision));
             Assert.That(hits[0].Info.AttackerId, Is.EqualTo(bulwark.Id), "the ram carries the Bulwark's id");
-            Assert.That(hits[0].Info.Amount, Is.InRange(ram.ShipDamage * 0.8f, ram.ShipDamage * 2f),
-                "a near head-on ram at surge speed deals at least full damage");
+            Assert.That(hits[0].Info.Amount, Is.InRange(ram.ShipDamage, ram.ShipDamage * 1.6f),
+                "a centred ram deals at least a full hit");
             Assert.That(Vector3.Dot(target.Rigidbody.linearVelocity, Nose), Is.GreaterThan(5f),
                 "the ram knocks the target back");
             Assert.That(ram.PaidActivations, Is.EqualTo(1), "landing on a ship pays");
+        }
+
+        [UnityTest]
+        public IEnumerator Brace_HalvesAFrontalHit_DuringTheBrake()
+        {
+            yield return SpawnBulwark();
+            bulwark.Movement.Drive(new PilotCommand { boost = 1f });
+            yield return new WaitForFixedUpdate();
+            Assert.That(ram.Braking, Is.True, "the ram is braking");
+
+            var centre = bulwark.Rigidbody.worldCenterOfMass;
+            Assert.That(Lost(centre + Nose * 5f), Is.EqualTo(10f).Within(1e-3f), "a hit ahead of the nose is braced");
+            Assert.That(Lost(centre - Nose * 5f), Is.EqualTo(20f).Within(1e-3f), "a hit from behind is not");
+
+            float Lost(Vector3 point)
+            {
+                var shield = bulwark.Damage.Shield.CurrentValue;
+                var hull = bulwark.Damage.Health.CurrentValue;
+                bulwark.Damage.TakeDamage(new DamageInfo(20f, DamageKind.Laser, ShipId.Invalid, 0f, Vector3.zero, point));
+                return (shield - bulwark.Damage.Shield.CurrentValue) + (hull - bulwark.Damage.Health.CurrentValue);
+            }
         }
 
         [UnityTest]

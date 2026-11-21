@@ -6,9 +6,11 @@ using Movement;
 using NUnit.Framework;
 using Ships;
 using Ships.Keystones;
+using Ships.Damage;
 using Ships.Keystones.Kits;
 using Ships.Loadout;
 using Ships.Registry;
+using Substrate;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -30,7 +32,12 @@ namespace Tests.EditMode.Ships
         public void TearDown()
         {
             if (host) Object.DestroyImmediate(host);
-            if (contact) Object.DestroyImmediate(contact);
+            if (contact)
+            {
+                if (contact.TryGetComponent<DamageController>(out var damage))
+                    DamageableColliders.Unregister(damage);
+                Object.DestroyImmediate(contact);
+            }
         }
 
         private const float Window = 0.4f;
@@ -175,6 +182,7 @@ namespace Tests.EditMode.Ships
             so.FindProperty("surgeAcceleration").floatValue = 0f;
             so.FindProperty("massScale").floatValue = 1f;
             so.ApplyModifiedPropertiesWithoutUndo();
+            ram.Initialize(new KeystoneHost(host.AddComponent<Rigidbody>(), 1f, new LockChannel()));
             return ram;
         }
 
@@ -314,6 +322,93 @@ namespace Tests.EditMode.Ships
         }
 
         [Test]
+        public void RamDash_Brace_HalvesFrontalHits_DuringTheBrakeOnly()
+        {
+            var ram = NewRam();
+            var ahead = From(Vector2.up);
+            var beside = From(Vector2.right);
+            var behind = From(Vector2.down);
+            Assert.That(ram.DamageScale(in ahead), Is.EqualTo(1f), "before activation");
+
+            var kin = Facing(0f);
+            ram.Step(in kin, 1f, Dt, out _);
+            Assert.That(ram.Braking, Is.True);
+            Assert.That(ram.DamageScale(in ahead), Is.EqualTo(0.5f), "ahead of the nose");
+            Assert.That(ram.DamageScale(in beside), Is.EqualTo(1f), "beside the ship");
+            Assert.That(ram.DamageScale(in behind), Is.EqualTo(1f), "behind the ship");
+
+            while (ram.Braking)
+                ram.Step(in kin, 0f, Dt, out _);
+            Assert.That(ram.RamLive, Is.True);
+            Assert.That(ram.DamageScale(in ahead), Is.EqualTo(1f), "after launch");
+
+            DamageInfo From(Vector2 dir) => new(20f, DamageKind.Laser, ShipId.Invalid, 0f, Vector3.zero,
+                ram.Body.worldCenterOfMass + GamePlane.PlaneDirToWorld(dir));
+        }
+
+        [Test]
+        public void RamDash_Damage_FollowsAim_WithSpeedOnlyAdding()
+        {
+            var ram = NewRam();
+            var so = new SerializedObject(ram);
+            so.FindProperty("shipDamage").floatValue = 80f;
+            so.FindProperty("damageReferenceSpeed").floatValue = 16f;
+            so.FindProperty("maxSpeedBonus").floatValue = 1.6f;
+            so.FindProperty("aimFullAngle").floatValue = 30f;
+            so.FindProperty("aimFloorAngle").floatValue = 75f;
+            so.FindProperty("aimFloor").floatValue = 0.5f;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            contact = new GameObject("Ram target");
+            var collider = contact.AddComponent<BoxCollider>();
+            var damage = contact.AddComponent<DamageController>();
+            damage.PopulateSettings(new ResolvedShipStats
+            {
+                maxHealth = 1000f,
+                maxShield = 10000f,
+                shieldRegenRate = 0f,
+                shieldRegenDelay = 1f,
+            });
+            DamageableColliders.Register(damage, new[] { collider });
+
+            var full = ram.ShipDamage;
+            Assert.That(Dealt(Off(0f), 0f), Is.EqualTo(full).Within(1e-3f),
+                "below the reference speed, a centred ram still deals a full hit");
+            Assert.That(Dealt(Off(0f), 16f), Is.EqualTo(full).Within(1e-3f), "the reference speed is a full hit");
+            Assert.That(Dealt(Off(0f), 24f), Is.EqualTo(full * 1.5f).Within(1e-3f), "speed between the reference and the cap adds");
+            Assert.That(Dealt(Off(0f), 32f), Is.EqualTo(full * 1.6f).Within(1e-3f), "speed adds only up to the bonus");
+            Assert.That(Dealt(Off(20f), 0f), Is.EqualTo(full).Within(1e-3f), "inside the full-aim angle");
+            Assert.That(Dealt(Off(52.5f), 0f), Is.EqualTo(full * 0.75f).Within(1e-3f),
+                "aim eases from a full hit to the floor");
+            Assert.That(Dealt(Off(90f), 0f), Is.EqualTo(full * 0.5f).Within(1e-3f), "past the floor angle the clip stays at the floor");
+            Assert.That(Dealt(Off(90f), 32f), Is.EqualTo(full * 0.5f * 1.6f).Within(1e-3f), "speed still adds on a poor aim");
+            Assert.That(Dealt(Vector2.zero, 0f), Is.EqualTo(full).Within(1e-3f),
+                "a target whose centre sits on the ship counts as centred");
+
+            float Dealt(Vector2 planeOffset, float relativeSpeed)
+            {
+                contact.transform.position = ram.Body.worldCenterOfMass + GamePlane.PlaneDirToWorld(planeOffset);
+                Physics.SyncTransforms();
+                ram.ResetKeystone();
+                var kin = Facing(0f);
+                ram.Step(in kin, 1f, Dt, out _);
+                while (ram.Braking)
+                    ram.Step(in kin, 0f, Dt, out _);
+                damage.ResetDamageState();
+                var before = damage.Shield.CurrentValue + damage.Health.CurrentValue;
+                ram.OnContact(new KeystoneContact(
+                    ShipId.Invalid, 1f, Vector3.zero, collider, null, Vector3.zero, 0f, relativeSpeed));
+                return before - (damage.Shield.CurrentValue + damage.Health.CurrentValue);
+            }
+
+            static Vector2 Off(float angleDeg)
+            {
+                var rad = angleDeg * Mathf.Deg2Rad;
+                return new Vector2(Mathf.Sin(rad), Mathf.Cos(rad)) * 8f;
+            }
+        }
+
+        [Test]
         public void OtherKits_HaveNoSight()
         {
             Assert.That(NewDash().ShouldActivate(Sight(new Vector2(0f, 2f))), Is.False);
@@ -395,9 +490,9 @@ namespace Tests.EditMode.Ships
             var catalog = AssetDatabase.LoadAssetAtPath<ItemCatalog>(ItemCatalog.AssetPath);
             var ram = catalog.Chassis.Single(c => c.name == "Bulwark").KeystonePrefab as RamDash;
             Assert.That(ram, Is.Not.Null, "Bulwark's kit is the ram");
-            Assert.That(new SerializedObject(ram).FindProperty("brake").floatValue, Is.EqualTo(0.5f));
+            Assert.That(new SerializedObject(ram).FindProperty("brake").floatValue, Is.EqualTo(0.4f));
             Assert.That(ram.Window, Is.EqualTo(0.45f));
-            Assert.That(ram.ShipDamage, Is.EqualTo(60f));
+            Assert.That(ram.ShipDamage, Is.EqualTo(80f));
             Assert.That(ram.GetComponent<KeystoneFlash>(), Is.Not.Null, "the kit carries its tell");
         }
 

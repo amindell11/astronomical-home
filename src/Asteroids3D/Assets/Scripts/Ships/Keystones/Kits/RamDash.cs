@@ -8,18 +8,23 @@ using UnityEngine;
 namespace Ships.Keystones.Kits
 {
     /// <summary>
-    /// Bulwark's kit brakes to a full stop on positioning thrusters, unprotected, while the pilot
-    /// keeps yaw, then dashes along the nose. While the ram is live the speed cap lifts, a burn
-    /// drives along the launch line, and the ship is heavier. The first contact knocks the target
-    /// back; a ship takes damage that grows with impact speed and how square the hit is, a lighter
-    /// rock shatters, a heavier one stops the ship. That contact's own step stays immune. A ram that
-    /// makes contact refunds part of its cooldown; one that hits nothing keeps the full cooldown and
-    /// sheds its surge speed.
+    /// Bulwark's kit brakes to a full stop on positioning thrusters, bracing hits from ahead, while
+    /// the pilot keeps yaw, then dashes along the nose. While the ram is live the speed cap lifts, a
+    /// burn drives along the launch line, and the ship is heavier. Damage and knockback follow how
+    /// centred the ram's aim is, and speed only adds damage; a lighter rock shatters, a heavier one
+    /// stops the ship. That contact's own step stays immune. A ram that makes contact refunds part of
+    /// its cooldown; one that hits nothing keeps the full cooldown and sheds its surge speed.
     /// </summary>
     public sealed class RamDash : Dash
     {
         [Tooltip("Seconds the positioning thrusters brake the ship to a full stop before the ram launches.")]
-        [Stat, SerializeField] private float brake = 0.5f;
+        [Stat, SerializeField] private float brake = 0.4f;
+
+        [Tooltip("Degrees off the nose, seen from the ship's centre, inside which a hit is braced.")]
+        [Stat, SerializeField] private float braceAngle = 60f;
+
+        [Tooltip("Multiplier on a hit inside the brace.")]
+        [Stat, SerializeField] private float braceScale = 0.5f;
 
         [Tooltip("Seconds after the launch during which the dash is a live ram, until its first contact.")]
         [Stat, SerializeField] private float window = 0.45f;
@@ -30,8 +35,17 @@ namespace Ships.Keystones.Kits
         [Tooltip("Seconds an unspent ram takes to shed its surge speed back to normal top speed.")]
         [Stat, SerializeField] private float missDump = 0.3f;
 
-        [Tooltip("Damage a head-on ram deals a ship at the reference impact speed; a faster hit deals more, a glancing hit less.")]
-        [Stat, SerializeField] private float shipDamage = 60f;
+        [Tooltip("Damage a centred ram deals a ship. Impact speed can only raise it, and a less centred aim deals less.")]
+        [Stat, SerializeField] private float shipDamage = 80f;
+
+        [Tooltip("Degrees off the target's centre still dealing a full hit.")]
+        [Stat, SerializeField] private float aimFullAngle = 30f;
+
+        [Tooltip("Degrees off the target's centre at which a hit has fallen to the aim floor.")]
+        [Stat, SerializeField] private float aimFloorAngle = 75f;
+
+        [Tooltip("Share of a full hit the worst clip still deals.")]
+        [Stat, SerializeField] private float aimFloor = 0.5f;
 
         [Tooltip("How far off the nose, in degrees, an enemy may sit for an AI to fire the ram at it.")]
         [Stat, SerializeField] private float sightAngle = 15f;
@@ -45,14 +59,17 @@ namespace Ships.Keystones.Kits
         [Tooltip("Multiplier on the ship's mass while the ram is live.")]
         [Stat, SerializeField] private float massScale = 2f;
 
-        [Tooltip("Impulse (N·s) a head-on ram gives its target along the launch line; a glancing hit gives less.")]
+        [Tooltip("Impulse (N·s) a centred ram gives its target along the launch line; a less centred aim gives less.")]
         [Stat, SerializeField] private float knockback = 12000f;
 
         [Tooltip("Most speed, in units per second, the knockback adds to its target.")]
         [Stat, SerializeField] private float maxKnockbackSpeed = 15f;
 
-        [Tooltip("Impact speed, in units per second, at which a head-on ram deals its ship damage.")]
+        [Tooltip("Impact speed, in units per second, from which hits start dealing more than a full hit.")]
         [Stat, SerializeField] private float damageReferenceSpeed = 16f;
+
+        [Tooltip("Largest damage multiplier impact speed gives; slower hits never deal less than a full hit.")]
+        [Stat, SerializeField] private float maxSpeedBonus = 1.6f;
 
         // -1 idle, -2 not yet counted, 0 launches this step.
         private int brakeStepsLeft = -1;
@@ -62,6 +79,7 @@ namespace Ships.Keystones.Kits
         private bool resolved;
         private float resolvedAt;
         private Vector2 launchDirection;
+        private Vector2 nose;
         private int dumpStepsLeft;
         private bool missed;
 
@@ -82,6 +100,13 @@ namespace Ships.Keystones.Kits
         public override float MassScale => RamLive ? massScale : 1f;
 
         public override bool Blocks(in DamageInfo hit) => hit.Kind == DamageKind.Collision && RamLive;
+
+        public override float DamageScale(in DamageInfo hit)
+        {
+            if (!Braking) return 1f;
+            var toHit = GamePlane.WorldPointToPlane(hit.HitPoint) - GamePlane.WorldPointToPlane(Body.worldCenterOfMass);
+            return Vector2.Angle(nose, toHit) <= braceAngle ? braceScale : 1f;
+        }
 
         public override bool ShouldActivate(in KeystoneContext context)
         {
@@ -109,10 +134,11 @@ namespace Ships.Keystones.Kits
             ShortenCooldown(hitCooldown);
 
             if (!DamageableColliders.TryGet(contact.Other, out var target)) return;
+            var aim = Aim(in contact);
             if (contact.OtherBody && !contact.OtherBody.isKinematic)
                 contact.OtherBody.AddForceAtPosition(
                     GamePlane.PlaneDirToWorld(launchDirection) * Mathf.Min(
-                        knockback * contact.ClosingFraction, contact.OtherBody.mass * maxKnockbackSpeed),
+                        knockback * aim, contact.OtherBody.mass * maxKnockbackSpeed),
                     contact.Point, ForceMode.Impulse);
             if (target is AsteroidDamage)
             {
@@ -121,7 +147,8 @@ namespace Ships.Keystones.Kits
             }
             else
                 target.TakeDamage(Hit(
-                    shipDamage * contact.ClosingFraction * (contact.RelativeSpeed / damageReferenceSpeed), in contact));
+                    shipDamage * aim * Mathf.Clamp(contact.RelativeSpeed / damageReferenceSpeed, 1f, maxSpeedBonus),
+                    in contact));
             CreditActivation();
         }
 
@@ -139,6 +166,7 @@ namespace Ships.Keystones.Kits
 
         protected override KeystoneEffect Sustain(in Kinematics kinematics, float dt, float baseMaxSpeed)
         {
+            nose = kinematics.Forward;
             if (brakeStepsLeft != -1)
                 return BrakeOrLaunch(in kinematics, dt);
             if (RamLive)
@@ -194,8 +222,18 @@ namespace Ships.Keystones.Kits
             launched = false;
             resolved = false;
             launchDirection = Vector2.zero;
+            nose = Vector2.zero;
             missed = false;
             dumpStepsLeft = 0;
+        }
+
+        private float Aim(in KeystoneContact contact)
+        {
+            var centre = contact.OtherBody ? contact.OtherBody.worldCenterOfMass : contact.Other.bounds.center;
+            var offset = GamePlane.WorldPointToPlane(centre) - GamePlane.WorldPointToPlane(Body.worldCenterOfMass);
+            var angle = offset.sqrMagnitude < 1e-6f ? 0f : Vector2.Angle(launchDirection, offset);
+            if (angle <= aimFullAngle) return 1f;
+            return Mathf.Lerp(1f, aimFloor, Mathf.InverseLerp(aimFullAngle, aimFloorAngle, angle));
         }
 
         private static DamageInfo Hit(float amount, in KeystoneContact contact) =>
