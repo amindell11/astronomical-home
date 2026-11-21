@@ -55,9 +55,10 @@ namespace Ships.Keystones.Kits
             return default;
         }
 
-        protected override void Sustain(in Kinematics kinematics, float baseMaxSpeed)
+        protected override KeystoneEffect Sustain(in Kinematics kinematics, float dt, float baseMaxSpeed)
         {
             if (concealed && SinceActivation >= window) Reveal();
+            return default;
         }
 
         protected override void OnReset()
