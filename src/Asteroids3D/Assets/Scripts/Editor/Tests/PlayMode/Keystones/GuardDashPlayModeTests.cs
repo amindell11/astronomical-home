@@ -128,6 +128,8 @@ namespace Tests.PlayMode.Keystones
             var guard = (GuardDash)ship.Keystone;
             while (guard.Guarding)
                 yield return new WaitForFixedUpdate();
+            var release = ship.Keystone.GetComponent<KeystoneFlash>().Release;
+            yield return new WaitForSeconds(release);
             yield return null;
 
             for (var i = 0; i < surfaces.Count; i++)

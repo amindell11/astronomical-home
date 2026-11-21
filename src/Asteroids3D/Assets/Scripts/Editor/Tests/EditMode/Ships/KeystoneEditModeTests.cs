@@ -7,6 +7,7 @@ using NUnit.Framework;
 using Ships;
 using Ships.Keystones;
 using Ships.Keystones.Kits;
+using Ships.Keystones.Tells;
 using Ships.Loadout;
 using Ships.Registry;
 using UnityEditor;
@@ -352,6 +353,7 @@ namespace Tests.EditMode.Ships
             Assert.That(guard.DisplayName, Is.EqualTo("Dash"));
             Assert.That(guard.Window, Is.EqualTo(0.4f));
             Assert.That(guard.GetComponent<KeystoneFlash>(), Is.Not.Null, "the kit carries its tell");
+            Assert.That(guard.GetComponent<KeystoneFlipbook>(), Is.Not.Null, "the kit carries its dash flipbook");
         }
 
         [TestCase("Vanguard", 9000f, 5f)]
