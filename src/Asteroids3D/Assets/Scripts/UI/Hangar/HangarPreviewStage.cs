@@ -30,7 +30,7 @@ namespace UI.Hangar
         private const float MinFramedRadius = 0.5f;
         private const float FramedRadius = 1f;
         // How far below the frame's middle a hull may hang, in framed radii.
-        private const float HullFloor = .55f;
+        private const float HullFloor = .42f;
         private static readonly int ContourPixelsId = Shader.PropertyToID("_ContourPixels");
         private readonly Dictionary<Ship, HangarPreviewFlight> clones = new();
         private HangarCarousel carousel;

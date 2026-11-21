@@ -100,15 +100,14 @@ namespace UI.Hangar.Hardware
                 launchMaterial.SetFloat("_LightResponse", 0f);
                 EditorUtility.SetDirty(launchMaterial);
                 parts["LaunchButton"].sharedMaterial = launchMaterial;
-                var launchLegend = Legend("LaunchLegend", new Color(1f, .74f, .20f));
-                var keyLegend = Legend("KeyLegend", new Color(.82f, .90f, 1f));
+                var legend = Legend("LaunchLegend", new Color(.82f, .90f, 1f));
                 foreach (var control in new[]
                          {
                              "Launch", "Previous", "Next", "PrimaryPrevious", "PrimaryNext", "OrdnancePrevious",
                              "OrdnanceNext"
                          })
                 {
-                    parts[control + "Legend"].sharedMaterial = control == "Launch" ? launchLegend : keyLegend;
+                    parts[control + "Legend"].sharedMaterial = legend;
                     parts[control + "Legend"].transform.SetParent(parts[control + "Button"].transform, true);
                 }
                 var launchLampNames = new[] { "LaunchLampLeft", "LaunchLampRight" };
