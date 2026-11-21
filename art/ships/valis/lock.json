@@ -2,7 +2,7 @@
   "schema_version": 1,
   "recipe": "ship-fp-1",
   "blender_version": "5.1.2",
-  "source_sha256": "b188eeddfcea25d75ac9746bddf6ac4a28fb230251daaa0597f8da5cd37649d3",
+  "source_sha256": "9d80e820b74feaee3a5b5a8dc0e9333b79b10a821ec46ba7da5b4398274293c4",
   "name": "Valis",
   "geometry": "53ff04749c26066ad6b8b0e03064d05d2f8cf31d1fc3fd8cb5728e767034431c",
   "parts": {

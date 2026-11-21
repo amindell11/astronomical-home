@@ -2,7 +2,7 @@
   "schema_version": 1,
   "recipe": "ship-fp-1",
   "blender_version": "5.1.2",
-  "source_sha256": "f7ae4f213cda9b4b2d3e03ec92e95901f702d10dd3e41a8eb619b2a0ab60227b",
+  "source_sha256": "866bef401f7d96ff9f8ae00a6f8e31da5be7b0e6260b0abf360c40bd7806c44c",
   "name": "Bulwark",
   "geometry": "55ffd4ed933121b0a2b11f18c330e80bf427505d3d70e5034de1fa19235ee921",
   "parts": {
