@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 3361187402269917645}
   - component: {fileID: 5378122824769726393}
   - component: {fileID: 4220478324612565434}
+  - component: {fileID: 5397287252770745610}
   m_Layer: 0
   m_Name: Vanguard_Dash
   m_TagString: Untagged
@@ -87,6 +88,13 @@ MonoBehaviour:
       Data3: -310434416
       Data4: 1108904726
     Path: event:/Ships/Keystones/Dash
+  holdEvent:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
 --- !u!114 &4220478324612565434
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -102,3 +110,17 @@ MonoBehaviour:
   keystone: {fileID: 5512903418735166201}
   shipLength: 2.7
   feel: {fileID: 11400000, guid: 54a8e2916cad72546894bf1042f1c80d, type: 2}
+--- !u!114 &5397287252770745610
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7781260934417810432}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bcbd48d4c6a00914294dcd3aa986d03a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  keystone: {fileID: 5512903418735166201}
+  profile: {fileID: 11400000, guid: a85f204728ee24c44bda1e6fe03dd98a, type: 2}

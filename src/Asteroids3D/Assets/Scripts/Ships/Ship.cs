@@ -18,6 +18,7 @@ using Movement;
 using UnityEngine;
 using Ships.Registry;
 using Substrate.Services.Projectiles;
+using Cameras.Shake;
 
 namespace Ships
 {
@@ -99,6 +100,7 @@ namespace Ships
         private Dynamics baseDynamics;
         public Transform TargetPoint => transform;
         public LockChannel Lock { get; } = new LockChannel();
+        public ShakeChannel Shake { get; } = new ShakeChannel();
         public event Action JumpRequested;
         public Vector3 Velocity => Movement ? Movement.Kinematics.WorldVel : Vector3.zero;
         public Rigidbody Body => Rigidbody;

@@ -3,6 +3,7 @@ using System.Linq;
 using AI.Tactics;
 using Asteroids.Fields;
 using Cameras;
+using Cameras.Shake;
 using Game;
 using Game.Companion;
 using Game.Player;
@@ -46,8 +47,14 @@ namespace Tests.EditMode.Preview
             }, canopy, AssetDatabase.LoadAssetAtPath<ReadyFlashProfile>("Assets/Settings/UI/ReadyFlash.asset"));
             AssertTarget(Target<ShipDeathTarget>(), new[] { PreviewEntry.EnemyDeath, PreviewEntry.RunRecap, PreviewEntry.Combat },
                 AssetDatabase.LoadAssetAtPath<DeathFeelProfile>("Assets/Settings/Ships/DeathFeel.asset"), game.recapFeel);
-            AssertTarget(Target<FlightCameraTarget>(), new[] { PreviewEntry.Combat },
-                AssetDatabase.LoadAssetAtPath<FlightCameraProfile>("Assets/Settings/Cameras/FlightCamera.asset"));
+            var flightCamera = Target<FlightCameraTarget>();
+            var shakes = new[] { "DashShake", "RamShake", "BlinkShake", "OverdriveShake", "RailgunShake" }.Select(shake =>
+                (UnityEngine.Object)AssetDatabase.LoadAssetAtPath<CameraShakeProfile>($"Assets/Settings/Cameras/Shake/{shake}.asset"));
+            var flightProfiles = flightCamera.Profiles(game).ToArray();
+            Assert.That(flightCamera.Entries, Is.EqualTo(new[] { PreviewEntry.Combat }), flightCamera.Name);
+            Assert.That(flightProfiles[0],
+                Is.EqualTo(AssetDatabase.LoadAssetAtPath<FlightCameraProfile>("Assets/Settings/Cameras/FlightCamera.asset")));
+            Assert.That(flightProfiles.Skip(1), Is.EquivalentTo(shakes), "every hangar kit's and weapon's shake profile");
             var fields = new[] { "SparseField", "MediumField", "DenseField" }.Select(field =>
                 AssetDatabase.LoadAssetAtPath<AsteroidFieldSettings>($"Assets/Settings/Asteroids/{field}.asset"));
             AssertTarget(Target<AsteroidsTarget>(), new[] { PreviewEntry.Combat }, fields.ToArray());

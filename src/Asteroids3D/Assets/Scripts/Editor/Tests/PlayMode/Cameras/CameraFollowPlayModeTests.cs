@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Cameras;
+using Cameras.Shake;
 using Combat.Targeting;
 using Damage;
 using Movement;
@@ -24,6 +25,7 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
 {
     private ObserverCam cam;
     private FlightCameraProfile feel;
+    private CameraShakeProfile shakeProfile;
     private HashSet<GameObject> secondarySubjects;
     private GameObject subject;
     private SimulationMode simulationMode;
@@ -69,6 +71,8 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
     [TearDown]
     public override void TearDown()
     {
+        if (shakeProfile)
+            UnityEngine.Object.DestroyImmediate(shakeProfile);
         DestroyTestObject(cam);
         DestroyTestObject(subject);
         foreach (var s in secondarySubjects) 
@@ -422,6 +426,72 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
         first.Hit(100f);
         yield return null;
         Assert.That(cam.Trauma, Is.EqualTo(0f));
+    }
+
+    [UnityTest]
+    public IEnumerator SubjectChannel_KickShakesTheView()
+    {
+        var channel = Listen();
+        channel.Raise(shakeProfile, shakeProfile, Vector2.up);
+        yield return null;
+        Assert.AreEqual(1, cam.ShakeLayerCount);
+        Assert.That(ViewDelta(cam.Cam.worldToCameraMatrix, UnshakenView()), Is.GreaterThan(1e-4f));
+    }
+
+    [UnityTest]
+    public IEnumerator OtherChannel_LeavesTheViewUnshaken()
+    {
+        Listen();
+        var other = new ShakeChannel();
+        other.Raise(shakeProfile, shakeProfile, Vector2.up);
+        yield return null;
+        Assert.AreEqual(0, cam.ShakeLayerCount);
+        Assert.That(ViewDelta(cam.Cam.worldToCameraMatrix, UnshakenView()), Is.LessThanOrEqualTo(1e-4f));
+    }
+
+    [UnityTest]
+    public IEnumerator Disabling_ClearsShakeLayers()
+    {
+        var channel = Listen();
+        channel.Raise(shakeProfile, shakeProfile, Vector2.up);
+        yield return null;
+        Assert.AreEqual(1, cam.ShakeLayerCount);
+        cam.enabled = false;
+        Assert.AreEqual(0, cam.ShakeLayerCount);
+    }
+
+    [UnityTest]
+    public IEnumerator StoppedClock_KeepsHeldLayers_OffTheView()
+    {
+        var channel = Listen();
+        shakeProfile.sustainAt = .5f;
+        channel.Raise(shakeProfile, shakeProfile, Vector2.up);
+        var scale = Time.timeScale;
+        Time.timeScale = 0f;
+        try
+        {
+            yield return null;
+            Assert.AreEqual(1, cam.ShakeLayerCount);
+            Assert.That(ViewDelta(cam.Cam.worldToCameraMatrix, UnshakenView()), Is.LessThanOrEqualTo(1e-4f));
+        }
+        finally
+        {
+            Time.timeScale = scale;
+        }
+        yield return null;
+        Assert.That(ViewDelta(cam.Cam.worldToCameraMatrix, UnshakenView()), Is.GreaterThan(1e-4f));
+    }
+
+    private ShakeChannel Listen()
+    {
+        shakeProfile = ScriptableObject.CreateInstance<CameraShakeProfile>();
+        shakeProfile.envelope = AnimationCurve.Constant(0f, 1f, 1f);
+        shakeProfile.jitter = 0f;
+        shakeProfile.roll = 0f;
+        shakeProfile.kick = .1f;
+        var channel = new ShakeChannel();
+        cam.SetSubject(subject.transform, newShake: channel);
+        return channel;
     }
 
     private float FightCap => feel.maxZoomOut;
