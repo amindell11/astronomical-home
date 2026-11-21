@@ -3,28 +3,28 @@
   "panes": [
     {
       "vertices": 7,
-      "planarity_error": 1.9073486328125e-06,
-      "texels_per_unit": 102.45221089737937
+      "planarity_error": 2.384185791015625e-06,
+      "texels_per_unit": 80.36357979584088
     },
     {
       "vertices": 5,
-      "planarity_error": 2.8014183044433594e-06,
-      "texels_per_unit": 102.45221890041216
+      "planarity_error": 3.6209821701049805e-06,
+      "texels_per_unit": 80.36358813185919
     },
     {
       "vertices": 5,
-      "planarity_error": 3.0994415283203125e-06,
-      "texels_per_unit": 102.45221984436401
+      "planarity_error": 3.904104232788086e-06,
+      "texels_per_unit": 80.36359174496899
     },
     {
       "vertices": 5,
-      "planarity_error": 2.3543834686279297e-06,
-      "texels_per_unit": 102.45221413858499
+      "planarity_error": 3.606081008911133e-06,
+      "texels_per_unit": 80.36358418254272
     },
     {
       "vertices": 5,
-      "planarity_error": 1.6242265701293945e-06,
-      "texels_per_unit": 102.45221539532402
+      "planarity_error": 2.0228326320648193e-06,
+      "texels_per_unit": 80.36357440114804
     }
   ],
   "triangles": 17,

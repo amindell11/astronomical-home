@@ -78,6 +78,7 @@
     "Deck | Header downlight 05 warm white lens": true,
     "Deck | Header downlight 06 warm white lens": true
   },
+  "glass_placement_allowed": true,
   "meshes": [
     {
       "name": "Deck | joined closed structure",
@@ -2290,5 +2291,5 @@
       ]
     }
   ],
-  "scene_sha256": "48817121232dd0e74233e6bf5f324423b67c0d4ca936996806d8d1e17f3bbb89"
+  "scene_sha256": "0c797ce1ed29e137d7b76629648e276d5ceb7a4d95b49b7cc981f76d90c46e64"
 }

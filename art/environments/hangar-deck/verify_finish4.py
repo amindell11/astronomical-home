@@ -1,6 +1,7 @@
 """Check the cool finish against its frozen predecessor without saving the scene.
 
 Blender --python verify_finish4.py -- --capture freezes the previous scene.
+--glass-placement allows only the canopy transform and its world-space centre to change.
 The default writes previews/finish4-audit.json and finish4-palette.json.
 Exit 1 means a preserved object, lamp, material or geometry contract failed.
 """
@@ -26,6 +27,13 @@ def digest(value):
 def srgb(rgb):
     return [round(255 * (12.92 * c if c <= .0031308 else 1.055 * c ** (1 / 2.4) - .055))
             for c in rgb]
+
+
+def object_matches(name, before, after):
+    if name == '25 | Viewport glass' and '--glass-placement' in sys.argv:
+        before = {k: v for k, v in before.items() if k not in {'matrix', 'centre'}}
+        after = {k: v for k, v in after.items() if k not in {'matrix', 'centre'}}
+    return before == after
 
 
 def snapshot():
@@ -84,7 +92,7 @@ removed = {'Deck | Left pod amber brow lens', 'Deck | Right pod amber brow lens'
            'Deck | Header centre amber marker lens'}
 modified = {'Deck | joined closed structure'} | {
     n for n in baseline['objects'] if 'cyan strip' in n or (' status ' in n and n.endswith(' lens'))}
-preserved = {n: current['objects'].get(n) == v for n, v in baseline['objects'].items()
+preserved = {n: object_matches(n, v, current['objects'].get(n)) for n, v in baseline['objects'].items()
              if n not in modified | removed and v['type'] != 'LIGHT'}
 checks = {'preserved_objects': all(preserved.values()),
           'removed_only_requested_objects': set(baseline['objects']) - set(current['objects']) == removed,
@@ -143,6 +151,7 @@ report = {'checks': checks, 'preserved_objects': preserved, 'meshes': meshes, 'l
           'preview_lights': [{'name': obj.name, 'position': list(obj.matrix_world.translation),
                               'linear': list(obj.data.color), 'energy': obj.data.energy}
                              for obj in scene.objects if obj.type == 'LIGHT']}
+report['glass_placement_allowed'] = '--glass-placement' in sys.argv
 report['other_materials'] = []
 for mat in sorted(bpy.data.materials, key=lambda m: m.name):
     if mat in used:

@@ -1,5 +1,36 @@
 # Hangar deck
 
+## Glass placement, 2026-11-20
+
+The five canopy panes were positioned from the strut and pillar anchors with small Y offsets. Those offsets did not clear the complete hardware. The outer panes crossed the wide side structure, and parts of the centre and side panes crossed the header. At pixel centres, glass was ahead of hardware at 2,313 pixels in 16:9 and 57,199 pixels in each wide view. The previous coverage check skipped hardware rays, and the mark-only occlusion check never tested clear parts of a pane.
+
+`build_glass.py` now scales the glass uniformly about the fixed game-camera eye. The scale is calculated from the hardware's farthest camera depth and the glass's nearest camera depth, leaving 0.10 units of clearance. The current factor is 1.274858742. This is fix-ladder rung 1: the whole glass depth range is behind the whole hardware depth range. The transformation preserves the pane outlines and etch positions in projection at every aspect ratio. It also preserves the five planar faces, local mesh, UV islands and shader. All 65 other scene objects, hardware materials, camera and ink settings match the pre-fix snapshot. `previews/glass-preservation.json` records that comparison.
+
+The mask was not carrying a base film. All 26,743 nonzero texels belong to finite etch strokes. Empty areas, unused atlas space and the three-texel island margins are exactly black. UVs remain inside 0..1 without overlap, and every pane faces the camera. The fresh 4096 by 2048 exporter bake retains SHA-256 `a011b0a4b2e01b25423251c0dd2a42810a46c2309a5a4f7efdfa8a0ac0133a0d`. The atlas dimensions below describe local mesh units; after the placement scale, world-space density is approximately 80.36 texels per unit.
+
+The supplied game's broad pale wash did **not** reproduce with this scene, this baked mask and the supplied shader equation, even before the placement fix. All offending hardware pixels sampled black. The confirmed defect is pane placement, not a demonstrated explanation for that uniform wash. Runtime texture, mesh and material bindings were not changed or verified in Unity.
+
+`previews/deck-glass-check.png` contains labelled 1920 by 1080, 2560 by 1080 and 3840 by 1080 game-camera renders over a bright backdrop. Glass uses flat RGB `(0.30, 0.38, 0.42)` with alpha equal to the baked mask times 0.6. There is no refraction, lighting contribution or additive etch shader. The preview-only sky is moved farther away in memory so it remains behind the corrected panes. The saved scene's backdrop is unchanged. The regular etching previews now use the same alpha-blended glass over the dark sky.
+
+`verify_glass_projection.py` checks all 8,985,600 pixel centres across the three views. Each view has zero glass-ahead-of-hardware pixels and zero tinted hardware pixels. The independent continuous depth bound also prevents overlap between pixel centres. The report is `previews/glass-projection-audit.json`; `glass-projection-before.json` records the failing original placement. There are 204 pre-existing uncovered window-edge pixel centres in each wide view, unchanged by this fix. They have no glass and therefore no glass tint. The existing sampled window-coverage check still passes.
+
+### Verification and rebuild
+
+Keep Blender resources and temporary files inside this directory, as in the rebuild recipe below. Use headless Blender with `--python-exit-code 1`.
+
+1. Run `build_deck.py -- --no-render`.
+2. Open `deck.blend` without saving and run `../hangar-console/export_glass.py -- --assets <temporary-output-directory>`. Copy `WindowEtching.png` to `previews/deck-window-etching-mask.png`.
+3. Run `verify_finish5.py -- --glass-placement` and `verify_finish4.py -- --glass-placement`. This explicit option permits only the canopy's transform and world centre to differ from the frozen finish records. Local geometry, UVs, materials and all other preservation assertions remain active.
+4. Run `verify_recess.py -- --finish4`, `verify_glass.py`, `verify_glass_projection.py`, `verify_deck.py`, `verify_coverage.py` and `verify_ink.py`.
+5. Run `render_glass.py`. With ordinary Python, run `assemble_glass.py`, `assemble_previews.py`, `assemble_coverage.py --require-closed --finish4`, `assemble_finish4.py` and `assemble_finish5.py`.
+6. Remove the temporary exports, Blender resources and scratch directories after every process exits.
+
+The temporary FBX was reimported into Blender. Its world vertices match within 0.000002 units and its UVs match exactly, as recorded in `previews/glass-export-audit.json`. The current results and hashes are recorded in `previews/glass-verification.json`. Earlier finish sections below describe their own deliveries and frozen evidence.
+
+All listed checks passed. The six hardware silhouettes have zero added or removed pixels. The 42 hardware meshes retain 21,896 triangles; the 44 tested object pairs and the control-travel checks have no positive-volume intersections. The three bright renders show no pane-wide film or hardware tint.
+
+Automatic approval review rejected scratch cleanup with "blocked by policy". `.glass-check`, `.temp` and `__pycache__` therefore remain inside this directory. They contain probe scripts, logs, temporary exports, render inputs and caches. No Unity assets, network calls or git write commands were used.
+
 ## Finish 5, clean console geometry
 
 The current model removes the console's cracked, overlapping linework while retaining the finish 4 palette. The owner's report was "Also the console geometry looks a bit broken now". The supplied game crops identified the right pod base, wings and front band, switch-row ledges, and the hook below the left pod.

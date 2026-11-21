@@ -3,7 +3,7 @@ import json
 import math
 
 import bpy
-from mathutils import Vector
+from mathutils import Matrix, Vector
 from bpy_extras.object_utils import world_to_camera_view
 
 
@@ -266,9 +266,21 @@ def add_glass(dimensions, scene, camera, out_dir):
     links.new(mix.outputs[0], output.inputs['Surface'])
     mesh.materials.append(material)
 
+    forward = rotation @ Vector((0, 0, -1))
+    rear_depth = max((other.matrix_world @ vertex.co - eye).dot(forward)
+                     for other in scene.objects
+                     if other.type == 'MESH' and not other.get('preview_only') and other != obj
+                     for vertex in other.data.vertices)
+    near_depth = min((point - eye).dot(forward) for pane in panes for point in pane['world'])
+    radial_scale = (rear_depth + .1) / near_depth
+    # Scaling about the eye preserves every pane outline and etch position in projection.
+    obj.matrix_world = Matrix.Translation(eye) @ Matrix.Scale(radial_scale, 4) @ Matrix.Translation(-eye)
+
     report = {'object': obj.name, 'uv_map': 'GlassUV', 'atlas_physical_size': [atlas_width, atlas_height],
+              'camera_radial_scale': radial_scale, 'hardware_rear_depth': rear_depth,
+              'glass_near_depth': near_depth * radial_scale,
               'protected_screen_bounds_l_r_b_t': protected_bounds, 'stroke_width_pixels': 1.75,
-              'panes': [{'name': p['name'], 'world': [list(v) for v in p['world']],
+              'panes': [{'name': p['name'], 'world': [list(obj.matrix_world @ v) for v in p['world']],
                          'uv': [list(v) for v in p['uv']], 'screen': [list(v) for v in p['screen']]}
                         for p in panes], 'strokes': strokes}
     obj['glazing_layout'] = json.dumps({k: report[k] for k in ('atlas_physical_size', 'protected_screen_bounds_l_r_b_t', 'stroke_width_pixels')})

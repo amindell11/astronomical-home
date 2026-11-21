@@ -2,6 +2,7 @@
 
 Run headless Blender with -- --capture before editing to freeze the snapshot and
 six existing masks. The default writes finish5-audit.json; failed checks exit 1.
+--glass-placement allows only the canopy transform and its world-space centre to change.
 """
 from pathlib import Path
 import hashlib
@@ -61,7 +62,8 @@ if '--capture' in sys.argv:
     sys.exit(0)
 
 baseline = json.loads(baseline_path.read_text(encoding='utf-8'))
-preserved = {n: snapshot['objects'].get(n) == value for n, value in baseline['objects'].items() if n != BODY}
+preserved = {n: scope['object_matches'](n, value, snapshot['objects'].get(n))
+             for n, value in baseline['objects'].items() if n != BODY}
 checks = {'all_other_objects_exact': all(preserved.values()),
           'object_names_exact': set(snapshot['objects']) == set(baseline['objects']),
           'palette_exact': snapshot['materials'] == baseline['materials'],
@@ -92,6 +94,7 @@ checks['new_body_components_positive'] = all(c['volume'] > 0 for c in snapshot['
 checks['inward_cavity_surfaces_unchanged'] = {c['hash'] for c in snapshot['body_components'] if c['volume'] < 0} == {
     c['hash'] for c in baseline['body_components'] if c['volume'] < 0}
 report = {'checks': checks, 'preserved_objects': preserved,
+          'glass_placement_allowed': '--glass-placement' in sys.argv,
           'meshes': meshes, 'hardware_triangles': sum(m['triangles'] for m in meshes),
           'body_components_before': len(old_hashes), 'body_components_after': len(new_hashes),
           'unchanged_body_components': len(old_hashes & new_hashes),
