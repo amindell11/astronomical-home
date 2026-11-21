@@ -33,7 +33,7 @@ Shader "Locales/Flat Background"
             {
                 Varyings output;
                 output.position = float4(position.xy, UNITY_RAW_FAR_CLIP_VALUE, 1);
-                float2 offset = frac(GetCameraPositionWS().xy / _RepeatDistance);
+                float2 offset = frac(UNITY_MATRIX_I_V._m03_m13 / _RepeatDistance);
                 float aspect = abs(UNITY_MATRIX_P._m11 / UNITY_MATRIX_P._m00);
                 output.uv = position.xy * 0.5 * float2(_ViewHeightInTiles * aspect, _ViewHeightInTiles) + offset;
                 return output;

@@ -99,5 +99,14 @@ namespace Cameras
         /// </summary>
         public static bool AreBoundsValid(Vector2 min, Vector2 max) =>
             min.x <= max.x && min.y <= max.y;
+
+        // Non-integer seeds: Perlin noise is flat at lattice points.
+        public static float ShakeNoise(int channel, float time, float frequency) =>
+            Mathf.Clamp(Mathf.PerlinNoise(channel * 17.31f + .5f, time * frequency) * 2f - 1f, -1f, 1f);
+
+        public static Matrix4x4 ShakenView(Matrix4x4 view, Vector2 offset, float rollDegrees) =>
+            Matrix4x4.Rotate(Quaternion.Euler(0f, 0f, -rollDegrees))
+            * Matrix4x4.Translate(new Vector3(-offset.x, -offset.y, 0f))
+            * view;
     }
 }

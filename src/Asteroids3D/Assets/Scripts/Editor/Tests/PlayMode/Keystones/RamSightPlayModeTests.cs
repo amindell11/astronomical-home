@@ -58,17 +58,17 @@ namespace Tests.PlayMode.Keystones
             for (var i = 0; i < steps && rammed.Count == 0; i++)
             {
                 yield return new WaitForFixedUpdate();
-                // The commander steers before the kit activates, so it first sees a live ram one tick later.
+                // The commander steers before the kit activates, so it first sees the ram seeking one tick later.
                 var activatedThisTick = ram.Activations != seenActivations;
                 seenActivations = ram.Activations;
-                if (ram.RamLive && !activatedThisTick && commander.Navigator.AvoidanceExempt != target.Id) exemptWhileLive = false;
+                if (ram.SeeksContact && !activatedThisTick && commander.Navigator.AvoidanceExempt != target.Id) exemptWhileLive = false;
             }
 
             Assert.That(ram.Activations, Is.GreaterThan(0), "the sight fired the ram with no brain request (no missile threat)");
             Assert.That(rammed, Is.Not.Empty, "a ram landed on the target");
             Assert.That(rammed[0].Info.AttackerId, Is.EqualTo(bulwark.Id));
             Assert.That(ram.PaidActivations, Is.GreaterThan(0));
-            Assert.That(exemptWhileLive, Is.True, "the navigator left the target out of its obstacles while the ram was live");
+            Assert.That(exemptWhileLive, Is.True, "the navigator left the target out of its obstacles while the ram was seeking");
         }
     }
 }

@@ -179,6 +179,7 @@ namespace UI.Projection
             data.appearanceAge = -1f;
             data.transitionAge = source.TransitionAge;
             data.hitAge = source.HitAge;
+            data.hitSize = source.HitSize;
         }
 
         private static void Draw(PassData data, RasterGraphContext context, int passIndex)
@@ -202,6 +203,7 @@ namespace UI.Projection
             properties.SetFloat("_AppearAge", data.appearanceAge);
             properties.SetFloat("_TransitionAge", data.transitionAge);
             properties.SetFloat("_HitAge", data.hitAge);
+            properties.SetFloat("_HitSize", data.hitSize);
             properties.SetVector("_Beam", new Vector4(data.settings.glow, data.settings.aberration,
                 data.settings.beamJitter, 0f));
             properties.SetVector("_Phosphor", new Vector4(data.settings.scanlines, data.settings.flicker,
@@ -237,6 +239,7 @@ namespace UI.Projection
             public float appearanceAge;
             public float transitionAge;
             public float hitAge;
+            public float hitSize;
         }
     }
 }

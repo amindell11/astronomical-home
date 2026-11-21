@@ -30,6 +30,7 @@ namespace Tests.PlayMode.Rendering.Projection
             public Resource Health { get; } = new(100f);
             public RegenResource Shield { get; } = new(100f, 0f, 999f);
             public void Hit() => OnDamaged?.Invoke(default);
+            public void Hit(float hull) => OnDamaged?.Invoke(new AppliedDamage(default, 0f, hull));
         }
 
         private sealed class Step : ObjectiveState
@@ -230,6 +231,16 @@ namespace Tests.PlayMode.Rendering.Projection
             yield return null;
             Assert.That(appearance.alpha, Is.EqualTo(1f));
             Assert.That(announcement.color.a, Is.EqualTo(1f));
+        }
+
+        [UnityTest]
+        public IEnumerator HitSize_IsHalfForAnEighthOfHull_AndFullWhenTheHeartbeatIsYounger()
+        {
+            damage.Hit(12.5f);
+            Assert.That(personality.Observe().HitSize, Is.EqualTo(.5f).Within(.001f));
+            yield return new WaitForSecondsRealtime(.05f);
+            damage.Health.SetFraction(StatusBarUI.LowThreshold);
+            Assert.That(personality.Observe().HitSize, Is.EqualTo(1f));
         }
     }
 }

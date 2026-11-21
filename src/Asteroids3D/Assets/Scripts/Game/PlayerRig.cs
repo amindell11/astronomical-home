@@ -305,7 +305,7 @@ namespace Game
 
             if (!observer) return;
 
-            observer.SetSubject(Player.transform, Player.Rigidbody, newHull: Player);
+            observer.SetSubject(Player.transform, Player.Rigidbody, newHull: Player, newDamage: Player.Damage);
             var screenCommander = Player.Commander as PlayerCommander;
             if (screenCommander)
                 screenCommander.SetScreenToGamePlane(pos =>
