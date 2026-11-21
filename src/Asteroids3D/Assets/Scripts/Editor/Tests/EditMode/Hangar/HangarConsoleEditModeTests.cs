@@ -155,7 +155,7 @@ namespace Tests.EditMode.Hangar
         }
 
         [Test]
-        public void EachSlotHasAnArrowPair_AndEachDisplayReportsALight()
+        public void EachSlotHasAnArrowPair_AndEachDisplayPlacesALight()
         {
             var console = AssetDatabase.LoadAssetAtPath<HangarConsole>(PrefabPath);
             var main = console.GetComponentInChildren<HangarMainDisplayView>(true);
@@ -172,18 +172,11 @@ namespace Tests.EditMode.Hangar
                 Assert.IsTrue(arrow, $"{view.name} {step}");
                 Assert.IsTrue(arrow.targetGraphic && arrow.targetGraphic.raycastTarget, $"{view.name} {step} arrow is clickable");
             }
-            var instance = Object.Instantiate(console);
-            try
+            foreach (var display in console.GetComponentsInChildren<HangarDisplay>(true))
             {
-                foreach (var display in instance.GetComponentsInChildren<HangarDisplay>(true))
-                {
-                    Assert.That(display.Light.Range, Is.GreaterThan(0f), display.name);
-                    Assert.That(display.Light.Color, Is.Not.EqualTo(Color.black), display.name);
-                }
-            }
-            finally
-            {
-                Object.DestroyImmediate(instance.gameObject);
+                var data = new SerializedObject(display);
+                Assert.That(data.FindProperty("lightRange").floatValue, Is.GreaterThan(0f), display.name);
+                Assert.That(data.FindProperty("lightDistance").floatValue, Is.GreaterThan(0f), display.name);
             }
         }
 
