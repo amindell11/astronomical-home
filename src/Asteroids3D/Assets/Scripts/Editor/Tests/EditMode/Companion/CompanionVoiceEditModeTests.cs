@@ -1,3 +1,4 @@
+using System.Text;
 using Game.Companion;
 using Game.Moments;
 using NUnit.Framework;
@@ -15,6 +16,7 @@ namespace Tests.EditMode.Companion
         private GameObject hud;
         private CompanionFeelProfile feel;
         private CompanionLineSheet sheet;
+        private TextAsset lineFile;
         private CommLine display;
         private CompanionVoice voice;
         private RunMomentStream moments;
@@ -34,11 +36,18 @@ namespace Tests.EditMode.Companion
             if (hud) Object.DestroyImmediate(hud);
             if (feel) Object.DestroyImmediate(feel);
             if (sheet) Object.DestroyImmediate(sheet);
+            if (lineFile) Object.DestroyImmediate(lineFile);
         }
 
         private void BuildVoice(bool debugLabels, string speaker, string moment, bool mustSay, params string[] lines)
         {
             sheet = ScriptableObject.CreateInstance<CompanionLineSheet>();
+            var spokenAs = string.IsNullOrWhiteSpace(speaker) ? LineTable.CompanionSpeaker : speaker;
+            var markdown = new StringBuilder("| ID | Moment | Faction | Speaker | After | Line | Status |\n");
+            markdown.Append("| --- | --- | --- | --- | --- | --- | --- |");
+            for (var i = 0; i < lines.Length; i++)
+                markdown.Append($"\n| T{i + 1} | {moment} |  | {spokenAs} |  | {lines[i]} | In game |");
+            lineFile = new TextAsset(markdown.ToString());
             using (var serialized = new SerializedObject(sheet))
             {
                 var list = serialized.FindProperty("slots");
@@ -47,10 +56,7 @@ namespace Tests.EditMode.Companion
                 slot.FindPropertyRelative("moment").stringValue = moment;
                 slot.FindPropertyRelative("speaker").stringValue = speaker;
                 slot.FindPropertyRelative("mustSay").boolValue = mustSay;
-                var spoken = slot.FindPropertyRelative("lines");
-                spoken.arraySize = lines.Length;
-                for (var i = 0; i < lines.Length; i++)
-                    spoken.GetArrayElementAtIndex(i).stringValue = lines[i];
+                serialized.FindProperty("lineFile").objectReferenceValue = lineFile;
                 serialized.ApplyModifiedPropertiesWithoutUndo();
             }
 
