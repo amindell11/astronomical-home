@@ -1085,6 +1085,22 @@ Format: **term** — definition. *(authority)*
 - **hit size**. How hard one hit lands on its ship, from 0 to 1. It is the one
   value the world shake and the canopy's damage shudder both scale by, so a
   graze moves both less than a big hit. *(AppliedDamage.HitSize)*
+- **shake profile**. One source's shake: an envelope, a frequency, and how
+  far it jitters, rolls and kicks. The source's prefab references it, so a new
+  source never touches the camera. *(CameraShakeProfile)*
+- **envelope**. A shake profile's strength over seconds, from 0 to 1. One
+  envelope scales the jitter, the roll and the kick together. A *sustain
+  point* on it holds the strength while its source is held, then the rest
+  plays when the source lets go, as Overdrive's rumble does for its window.
+  *(CameraShakeProfile.envelope, sustainAt)*
+- **shake layer**. One running shake on the flight camera, one per source; a
+  new raise from the same source restarts it. Layers add to the trauma shake
+  and two cap knobs clamp the total. Always "shake layer": bare "layer" means
+  a sky layer or a Unity layer. *(ShakeLayers)*
+- **shake channel**. A ship's outlet for its own shakes. Parts on its kit and
+  weapons raise on it, and the flight camera listens only to its subject's, so
+  an enemy's keystone never shakes your view. Always "shake channel": bare
+  "channel" is the lock channel. *(Ship.Shake, ShakeChannel)*
 - **item** — anything that fills a loadout slot: a chassis (a prefab with a root
   `Ship`) or a weapon (a prefab with a root `WeaponComponent`). Engine and shield
   modules come with the chassis and fill no slot (#1073, #1254); projectiles,
