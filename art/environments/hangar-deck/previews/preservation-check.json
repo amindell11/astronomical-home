@@ -1,9 +1,9 @@
 {
-  "palette_unchanged": true,
   "linesets_unchanged": true,
   "camera_unchanged": true,
-  "names_unchanged": true,
   "modifiers_unchanged": true,
-  "controls_and_accents_unchanged": true,
+  "original_names_retained": true,
+  "only_lamp_names_added": true,
+  "controls_unchanged": true,
   "glass_changed_only_in_depth": true
 }

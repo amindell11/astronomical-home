@@ -1,4 +1,5 @@
 using System;
+using UI.Hangar.Hardware;
 using UI.Projection;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,7 +9,7 @@ namespace UI.Hangar.Displays
     /// <summary>
     /// One console screen. Its camera draws a canvas into a texture, the shared canopy effect
     /// processes that texture at the size the glass shows on the host camera, and the result is the
-    /// glass emission. One brightness level drives the glass and its spill light together: a
+    /// glass emission. One brightness level drives the glass and the light it hands the console: a
     /// phosphor flicker, a flare on each glitch, and the collapse to black of a power-down.
     /// </summary>
     public sealed class HangarDisplay : MonoBehaviour
@@ -24,8 +25,9 @@ namespace UI.Hangar.Displays
         [SerializeField] private Camera displayCamera;
         [SerializeField] private Canvas canvas;
         [SerializeField] private CanopyImage image;
-        [SerializeField] private Light spill;
         [SerializeField] private Vector2Int resolution;
+        [SerializeField] private float lightDistance;
+        [SerializeField] private float lightRange;
 
         private RenderTexture texture;
         private MaterialPropertyBlock block;
@@ -34,6 +36,8 @@ namespace UI.Hangar.Displays
         private Func<CanopySettings> settings;
         private Func<float> spillIntensity;
         private Func<Color> backing;
+        private Vector3 lightPosition;
+        private Color lightColor;
         private float glitchAt = float.NegativeInfinity;
         private float powerDownAt = float.NegativeInfinity;
         private bool started;
@@ -44,14 +48,16 @@ namespace UI.Hangar.Displays
         public Vector2Int Resolution => resolution;
         public RenderTexture Texture => texture;
         internal float Level { get; private set; } = 1f;
+        internal HangarLight Light => new(glass.transform.TransformPoint(lightPosition),
+            lightColor * (spillIntensity() * Level), lightRange);
         internal bool PoweringDown => !float.IsNegativeInfinity(powerDownAt);
 
         private void Awake()
         {
             var scaler = canvas ? canvas.GetComponent<CanvasScaler>() : null;
-            if (!displayCamera || !canvas || !scaler || !image || !spill || resolution.x < 1 || resolution.y < 1)
+            if (!displayCamera || !canvas || !scaler || !image || resolution.x < 1 || resolution.y < 1)
                 throw new InvalidOperationException(
-                    $"HangarDisplay on '{name}' needs a camera, canvas, scaler, canopy image, spill light and resolution.");
+                    $"HangarDisplay on '{name}' needs a camera, canvas, scaler, canopy image and resolution.");
             if (canvas.GetComponent<GraphicRaycaster>())
                 throw new InvalidOperationException($"HangarDisplay on '{name}' must not raycast on its own.");
             Configure(displayCamera, canvas, scaler, resolution);
@@ -78,7 +84,11 @@ namespace UI.Hangar.Displays
             this.settings = settings;
             this.spillIntensity = spillIntensity;
             this.backing = backing;
-            spill.color = glass.sharedMaterial.GetColor(EmissionTintId);
+            var centre = glass.bounds.center;
+            var placed = centre + (host.transform.position - centre).normalized * lightDistance;
+            // Glass-local so the light follows the console's later move.
+            lightPosition = glass.transform.InverseTransformPoint(placed);
+            lightColor = glass.sharedMaterial.GetColor(EmissionTintId).linear;
             if (started) WireImage();
         }
 
@@ -111,7 +121,6 @@ namespace UI.Hangar.Displays
             block.SetTexture(EmissionMapId, image.Output);
             block.SetFloat(EmissionStrengthId, Level);
             glass.SetPropertyBlock(block);
-            spill.intensity = spillIntensity() * Level;
             displayCamera.backgroundColor = backing();
         }
 

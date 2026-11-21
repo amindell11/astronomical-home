@@ -7,7 +7,7 @@ namespace UI.Hangar.Displays
     public sealed class HangarStatBar : MonoBehaviour
     {
         private const float EaseSeconds = .33f;
-        private static readonly Color Lit = new(1f, .80f, .50f, 1f);
+        private static readonly Color Lit = new(.84f, .92f, 1f, 1f);
         internal static readonly Color Unlit = new(.26f, .31f, .37f, 1f);
 
         [SerializeField] private Text number;

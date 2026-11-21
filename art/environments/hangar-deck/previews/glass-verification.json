@@ -1,0 +1,82 @@
+{
+  "scene_sha256": "0c797ce1ed29e137d7b76629648e276d5ceb7a4d95b49b7cc981f76d90c46e64",
+  "source_sha256": {
+    "build_glass.py": "2eb70e41e7ded49db8c3d322e2c89fc4e34d114cbb0762085b3e33a1960a2e44",
+    "render_glass.py": "3f0cb5389ffdcf37832c41156d47db9f51d623f246a63c16f29a75903366bb85",
+    "assemble_glass.py": "8e85e4976b41b5784399f1ec1ab4f175b8d131f01f8c323e8e1813d62637c6dc",
+    "verify_glass_projection.py": "2665e3e7515fc17f6fec9f953fc65fc136f711d7089bb4db0bb2477d2f6530c7",
+    "verify_glass.py": "4c2b0028198dec07d9859cb645e9169a7ad65bc6b491bed5ae3b6a1b4dfc8f04",
+    "verify_finish4.py": "b58b27eb2ee500713df82adfe815b9f5f3060a456561dffb38ec403101edef84",
+    "verify_finish5.py": "eae3d21015aa7ac90a02603e21b51fbbf47cd46c59bb6c7fa9bac6c9889adeaa"
+  },
+  "commands_exit_codes": {
+    "build_deck.py -- --no-render": 0,
+    "../hangar-console/export_glass.py -- --assets <local-temporary-directory>": 0,
+    "verify_finish4.py -- --glass-placement": 0,
+    "verify_finish5.py -- --glass-placement": 0,
+    "verify_recess.py -- --finish4": 0,
+    "verify_glass.py": 0,
+    "verify_glass_projection.py": 0,
+    "verify_deck.py": 0,
+    "verify_coverage.py": 0,
+    "verify_ink.py": 0,
+    "render_glass.py": 0,
+    "assemble_glass.py": 0,
+    "assemble_previews.py": 0,
+    "assemble_coverage.py --require-closed --finish4": 0,
+    "assemble_finish4.py": 0,
+    "assemble_finish5.py": 0
+  },
+  "pixels_checked": 8985600,
+  "glass_in_front_of_hardware_pixels": 0,
+  "tinted_hardware_pixels": 0,
+  "island_margins_and_unused_atlas_maximum": 0.0,
+  "mask_sha256_unchanged": true,
+  "hardware_meshes": 42,
+  "hardware_triangles": 21896,
+  "positive_volume_intersections": 0,
+  "pressed_intersections": 0,
+  "hardware_intersection_pairs": 44,
+  "six_hardware_silhouettes_unchanged": true,
+  "images": {
+    "deck-glass-check.png": {
+      "sha256": "3646e16279a11c68d0a5eef4c5074d757788451e106fe30183d751c3aa132bcf",
+      "size": [
+        3840,
+        3420
+      ]
+    },
+    "deck-window-etching.png": {
+      "sha256": "5fd1b0ba61955938580006b8a07bd9032c6068bc9557683ed9c22a3447057571",
+      "size": [
+        1920,
+        1080
+      ]
+    },
+    "deck-window-etching-21x9.png": {
+      "sha256": "56732900201df0a8470d00b73efd67fc6bf72ac9b31d38527615f3ece1a894c6",
+      "size": [
+        2560,
+        1080
+      ]
+    },
+    "deck-window-etching-mask.png": {
+      "sha256": "a011b0a4b2e01b25423251c0dd2a42810a46c2309a5a4f7efdfa8a0ac0133a0d",
+      "size": [
+        4096,
+        2048
+      ]
+    }
+  },
+  "uniform_game_wash_reproduced": false,
+  "limitation": "Original placement also has zero tinted hardware pixels with the supplied shader and local mask. The reported broad game film is not explained by the confirmed geometry defect. Unity was not changed or run.",
+  "scratch_cleanup": {
+    "status": "blocked_by_automatic_approval_review",
+    "reason": "blocked by policy",
+    "remaining_directories": [
+      ".glass-check",
+      ".temp",
+      "__pycache__"
+    ]
+  }
+}
