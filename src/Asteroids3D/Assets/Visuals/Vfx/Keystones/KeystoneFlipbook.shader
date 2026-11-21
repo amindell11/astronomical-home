@@ -6,6 +6,7 @@ Shader "Astronomical/Vfx/Keystone Flipbook"
         _Columns ("Columns", Float) = 1
         _Rows ("Rows", Float) = 1
         [HideInInspector] _Frame ("Frame", Float) = 0
+        [HideInInspector] _Opacity ("Opacity", Float) = 1
     }
     SubShader
     {
@@ -26,6 +27,7 @@ Shader "Astronomical/Vfx/Keystone Flipbook"
                 float _Columns;
                 float _Rows;
                 float _Frame;
+                float _Opacity;
             CBUFFER_END
             struct Input { float4 vertex:POSITION; float2 uv:TEXCOORD0; };
             struct Varying { float4 position:SV_POSITION; float2 uv:TEXCOORD0; };
@@ -35,7 +37,7 @@ Shader "Astronomical/Vfx/Keystone Flipbook"
                 float col=fmod(_Frame,_Columns);
                 float row=floor(_Frame/_Columns);
                 float2 uv=float2((col+i.uv.x)/_Columns, 1-(row+1-i.uv.y)/_Rows);
-                return SAMPLE_TEXTURE2D(_BaseMap,sampler_BaseMap,uv);
+                return SAMPLE_TEXTURE2D(_BaseMap,sampler_BaseMap,uv) * _Opacity;
             }
             ENDHLSL
         }

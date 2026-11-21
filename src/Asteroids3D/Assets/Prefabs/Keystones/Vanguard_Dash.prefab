@@ -101,32 +101,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   keystone: {fileID: 5512903418735166201}
   shipLength: 2.7
-  framesPerSecond: 60
-  sheets:
-  - material: {fileID: 2100000, guid: dadd063d95e6d4f4d80f30ed415044dc, type: 2}
-    columns: 32
-    rows: 2
-    frames: 36
-    width: 0.6667
-    length: 1.7083
-    centreAhead: -1.1242
-    depth: 0.4
-    staysAtLaunch: 0
-  - material: {fileID: 2100000, guid: e3b48c9d457663d4fb77bb9515d155e5, type: 2}
-    columns: 5
-    rows: 1
-    frames: 5
-    width: 2.3125
-    length: 1.5938
-    centreAhead: -0.4223
-    depth: 0.45
-    staysAtLaunch: 1
-  - material: {fileID: 2100000, guid: 76d6c79449221f343b6732ddde07da0f, type: 2}
-    columns: 13
-    rows: 3
-    frames: 36
-    width: 1.5312
-    length: 5.4271
-    centreAhead: -1.9264
-    depth: -0.5
-    staysAtLaunch: 0
+  feel: {fileID: 11400000, guid: 54a8e2916cad72546894bf1042f1c80d, type: 2}

@@ -1,0 +1,86 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e86854eb93f45c3439d15c17a135812b, type: 3}
+  m_Name: VanguardDashFeel
+  m_EditorClassIdentifier: 
+  scale: 1
+  speed: 1
+  framesPerSecond: 60
+  layers:
+  - name: Flares
+    show: 1
+    size: 1
+    opacity: 1
+    speed: 1
+    endsAt: 0
+    fadeOut: 0
+    material: {fileID: 2100000, guid: dadd063d95e6d4f4d80f30ed415044dc, type: 2}
+    columns: 32
+    rows: 2
+    frames: 36
+    width: 0.6667
+    length: 1.7083
+    centreAhead: -1.1242
+    anchorAhead: -0.3
+    depth: 0.4
+    staysAtLaunch: 0
+  - name: Burst
+    show: 1
+    size: 1
+    opacity: 1
+    speed: 1
+    endsAt: 0
+    fadeOut: 0
+    material: {fileID: 2100000, guid: e3b48c9d457663d4fb77bb9515d155e5, type: 2}
+    columns: 5
+    rows: 1
+    frames: 5
+    width: 2.3125
+    length: 1.5938
+    centreAhead: -0.4223
+    anchorAhead: 0
+    depth: 0.45
+    staysAtLaunch: 1
+  - name: Glow
+    show: 1
+    size: 1
+    opacity: 1
+    speed: 1
+    endsAt: 0
+    fadeOut: 0
+    material: {fileID: 2100000, guid: ba530733c8966254e846c111714df173, type: 2}
+    columns: 13
+    rows: 3
+    frames: 36
+    width: 1.5312
+    length: 5.4271
+    centreAhead: -1.9264
+    anchorAhead: 0.5
+    depth: -0.45
+    staysAtLaunch: 0
+  - name: Smear
+    show: 1
+    size: 1
+    opacity: 1
+    speed: 1
+    endsAt: 0
+    fadeOut: 0
+    material: {fileID: 2100000, guid: 76d6c79449221f343b6732ddde07da0f, type: 2}
+    columns: 13
+    rows: 3
+    frames: 36
+    width: 1.5312
+    length: 5.4271
+    centreAhead: -1.9264
+    anchorAhead: 0.5
+    depth: -0.5
+    staysAtLaunch: 0
