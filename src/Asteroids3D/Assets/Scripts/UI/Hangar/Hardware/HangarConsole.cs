@@ -29,6 +29,7 @@ namespace UI.Hangar.Hardware
         private static readonly int ConstantEmissionId = Shader.PropertyToID("_ConstantEmission");
         private static readonly int StarlightId = Shader.PropertyToID("_Starlight");
         private static readonly int EmissionStrengthId = Shader.PropertyToID("_EmissionStrength");
+        private static readonly int LightResponseId = Shader.PropertyToID("_LightResponse");
         private static readonly int EmissionTintId = Shader.PropertyToID("_EmissionTint");
         private static readonly int GlowColorId = Shader.PropertyToID("_GlowColor");
         private static readonly int HangarLightPositionsId = Shader.PropertyToID("_HangarLightPositions");
@@ -280,6 +281,7 @@ namespace UI.Hangar.Hardware
                 paintedParts[i].GetPropertyBlock(lightBlock);
                 lightBlock.SetColor(StarlightId, lightProfile.Ambient);
                 lightBlock.SetFloat(EmissionStrengthId, emission);
+                lightBlock.SetFloat(LightResponseId, lightProfile.LightResponse);
                 lightBlock.SetVectorArray(HangarLightPositionsId, hangarLightPositions);
                 lightBlock.SetVectorArray(HangarLightColorsId, hangarLightColors);
                 lightBlock.SetFloat(HangarLightCountId, count);

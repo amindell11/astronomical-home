@@ -12,6 +12,9 @@ namespace UI.Hangar.Hardware
         [Tooltip("Brightness of the baked emission on the painted console.")]
         [SerializeField, Range(0f, 4f)] private float emissionStrength = 1f;
 
+        [Tooltip("How strongly the painted console answers the lights in the room. Dark paint needs more.")]
+        [SerializeField, Range(0f, 40f)] private float lightResponse = 1f;
+
         [Tooltip("Tint on the projector lens's own glow.")]
         [SerializeField, ColorUsage(false, true)] private Color lensTint = Color.white;
 
@@ -65,6 +68,7 @@ namespace UI.Hangar.Hardware
 
         public Color Ambient => ambient;
         public float EmissionStrength => emissionStrength;
+        public float LightResponse => lightResponse;
         public Color LensTint => lensTint;
         public Color HologramSpillColor => hologramSpillColor;
         public float HologramSpill => hologramSpill;
