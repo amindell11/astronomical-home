@@ -45,8 +45,39 @@ The knobs are material and profile values. The preview panel's hangar hologram t
 | `edgeFeather` | `Hologram Layer.mat`, `_EdgeFeather` |
 | `layerOpacity`, `flickerDepth`, `flickerRate` | `Assets/Settings/UI/HangarHologram.asset` |
 | `scanlines`, `glow`, `haloStrength`, `haloReach`, `halation`, `textGlow`, `aberration`, `beamJitter`, `wear`, `signalBleed`, `bleedLength`, `warmth`, `coolTint` | the same asset's canopy settings |
-| `coneLight`, `coneBase`, `coneTop`, `coneReach`, `coneFalloff`, `coneSoft`, `coneRays`, `lensGlow`, `coneColor` | `Projector Cone.mat`: `_ConeLight`, `_BaseWidth`, `_TopWidth`, `_Reach`, `_Falloff`, `_EdgeSoftness`, `_Rays`, `_LensGlow`, `_ConeColor` |
+| `beamSourceRadius`, `beamHalfAngle`, `beamLength`, `beamLight` | `Assets/Settings/UI/HangarHologram.asset` |
+| `streaks`, `sourceGlow`, `haze`, `drift` | `Projector Cone.mat`: `_Streaks`, `_SourceGlow`, `_Haze`, `_Drift` |
+| `beamPixelsPerUnit` | Capture calibration only. Pixels per world unit at the lens, 96 for the supplied 1920x1080 plate. |
 
-The page differs from the game in two places. Its inner lines come from buffers read offline, so they
+The beam uses the resolve material's `_LineColor`, shared with the hologram. Its light follows the
+projector's flicker level. A finite source inside the lens feeds a narrow spread of fine streaks,
+with a rounded fade at the lens and a soft end beneath the ship. The quad includes the glow below
+the lens and rotates toward the settled frame's centre. Its dimensions depend only on the visible
+beam settings; the ship's reach and cut-off stay separate.
+
+Apply these values in the Editor to the existing material and profile. Changing source defaults
+does not replace values already serialized in those assets.
+
+| Profile field | Value |
+|---|---|
+| `beamSourceRadius` | 0.32 world units |
+| `beamHalfAngle` | 16 degrees |
+| `beamLength` | 1.45 world units |
+| `beamLight` | 1.05 |
+
+| Projector Cone material property | Value |
+|---|---|
+| `_Streaks` | 0.55 |
+| `_SourceGlow` | 0.45 |
+| `_Haze` | 0.16 |
+| `_Drift` | 0.18 |
+
+The existing quad prefab and material shader binding need no changes. The projector supplies
+`_ConeColor`, `_ConeLight`, `_Level`, `_Apex`, `_QuadUnits`, `_SourceRadius`, `_Spread` and `_Length`
+per renderer. The console's existing lens glow stays unchanged and is already part of the captured
+plate. The tuner therefore adds only the beam. Changing `lineColor` in the tuner recolours the beam
+and ship lines, but cannot recolour that baked lens glow. A fresh plate is needed to judge that change.
+
+The page's inner lines come from buffers read offline, so they
 sit a little differently from the pass's own edge finding. Its afterglow and ship-switch glitch are
 not drawn, because both need motion.

@@ -29,9 +29,10 @@ MonoBehaviour:
   sputter: 0.75
   sputterLines: 260
   edgeFringe: 0.25
-  beamHalfAngle: 26
-  beamLength: 3.4
-  beamLight: 0.75
+  beamSourceRadius: 0.32
+  beamHalfAngle: 16
+  beamLength: 1.45
+  beamLight: 1.05
   switchFlicker: 0.4
   canopy:
     glow: 0.38

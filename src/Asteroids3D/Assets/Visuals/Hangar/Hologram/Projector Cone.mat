@@ -29,11 +29,13 @@ Material:
     - _BaseFade: 0.5
     - _BaseWidth: 0.085
     - _CentreBias: 1.2
-    - _ConeLight: 0.9
+    - _ConeLight: 1.05
+    - _Drift: 0.18
     - _EdgeSoftness: 0.4
     - _Falloff: 1.4
+    - _Haze: 0.16
     - _Lean: 0
-    - _Length: 12
+    - _Length: 1.45
     - _LensGlow: 0
     - _Level: 1
     - _RayCount: 40
@@ -41,6 +43,10 @@ Material:
     - _Rays: 0.8
     - _Reach: 1
     - _Softness: 0.18
+    - _SourceGlow: 0.45
+    - _SourceRadius: 0.32
+    - _Spread: 0.2867454
+    - _Streaks: 0.55
     - _TopWidth: 0.7
     - _Width: 4.5
     m_Colors:

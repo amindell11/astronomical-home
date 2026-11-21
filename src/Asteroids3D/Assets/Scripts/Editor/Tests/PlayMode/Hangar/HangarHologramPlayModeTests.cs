@@ -128,40 +128,71 @@ namespace Tests.PlayMode.Hangar
         }
 
         [UnityTest]
-        public IEnumerator Cone_SitsAtTheLens_UnderTheSettledFrame()
+        public IEnumerator Beam_SitsInTheLens_AndSizesIndependentlyOfTheShipReach()
         {
             var console = Object.Instantiate(AssetDatabase.LoadAssetAtPath<HangarConsole>(ConsolePath));
             instance = console.gameObject;
             console.transform.position = new Vector3(0f, -2000f, 0f);
             var valis = AssetDatabase.LoadAssetAtPath<Ship>(ValisPath);
             var projector = console.Projector;
+            runtimeProfile = Object.Instantiate(profile);
             using var wiring = new SerializedObject(projector);
-            wiring.FindProperty("profile").objectReferenceValue = profile;
+            wiring.FindProperty("profile").objectReferenceValue = runtimeProfile;
             wiring.ApplyModifiedPropertiesWithoutUndo();
             projector.Open(new[] { valis }, valis);
-            yield return new WaitForSeconds(EntrySeconds);
 
             var surface = (Renderer)wiring.FindProperty("surface").objectReferenceValue;
             var cone = projector.GetComponentsInChildren<Renderer>(true)
                 .Where(r => r != surface && !r.GetComponentInParent<HangarPreviewFlight>(true)).ToArray();
-            Assert.That(cone, Is.Not.Empty, "the projector places a cone");
+            Assert.That(cone, Has.Length.EqualTo(1), "one renderer draws the beam");
             var coneAnchor = (Transform)wiring.FindProperty("coneAnchor").objectReferenceValue;
-            Assert.That(coneAnchor.childCount, Is.EqualTo(1), "one cone sits under the anchor");
+            Assert.That(coneAnchor.childCount, Is.EqualTo(1));
             var root = coneAnchor.GetChild(0);
-            Assert.That(cone.Select(r => r.transform.IsChildOf(root)), Is.All.True, "every cone renderer is the cone's");
+            Assert.That(cone[0].transform.IsChildOf(root), Is.True);
             Assert.That(Vector3.Distance(coneAnchor.position, console.ProjectorLens.transform.position), Is.LessThan(.01f));
 
-            var bottom = coneAnchor.InverseTransformPoint(root.TransformPoint(Vector3.zero));
-            var top = coneAnchor.InverseTransformPoint(root.TransformPoint(Vector3.up));
-            Assert.That(bottom.y, Is.LessThan(0f), "the quad's bottom edge lies below the lens");
-            Assert.That(top.y, Is.EqualTo(profile.ReachLength).Within(1e-3f),
-                "the quad's top sits reachLength above the lens");
-
+            var offset = wiring.FindProperty("frameOffset").vector2Value;
+            var axis = new Vector2(offset.x, offset.y + wiring.FindProperty("frameSide").floatValue * .5f).normalized;
+            using var knobs = new SerializedObject(runtimeProfile);
+            knobs.FindProperty("beamSourceRadius").floatValue = .32f;
+            knobs.FindProperty("beamHalfAngle").floatValue = 16f;
+            knobs.FindProperty("beamLight").floatValue = 1.05f;
             var block = new MaterialPropertyBlock();
-            cone[0].GetPropertyBlock(block);
-            var apex = block.GetVector(ApexId);
-            var atLens = coneAnchor.InverseTransformPoint(root.TransformPoint(new Vector3(apex.x - .5f, apex.y, 0f)));
-            Assert.That(atLens.magnitude, Is.LessThan(1e-3f), "the apex maps back to the lens");
+            foreach (var beamLength in new[] { 1.45f, 2.2f })
+            {
+                knobs.FindProperty("beamLength").floatValue = beamLength;
+                Vector3? sizeBeforeReachChange = null;
+                foreach (var reachLength in new[] { 12f, 5f })
+                {
+                    knobs.FindProperty("reachLength").floatValue = reachLength;
+                    knobs.ApplyModifiedPropertiesWithoutUndo();
+                    yield return null;
+
+                    var bottom = coneAnchor.InverseTransformPoint(root.TransformPoint(Vector3.zero));
+                    var top = coneAnchor.InverseTransformPoint(root.TransformPoint(Vector3.up));
+                    Assert.That(Vector2.Dot(bottom, axis), Is.EqualTo(-.416f).Within(1e-3f),
+                        "the source glow has space below the lens");
+                    Assert.That(Vector2.Distance(top, axis * beamLength), Is.LessThan(1e-3f),
+                        "the beam ends at its own length along the frame axis");
+                    Assert.That(root.localScale.x, Is.InRange(2.3f, 2.5f), "the quad stays close to the visible light");
+                    if (sizeBeforeReachChange.HasValue)
+                        Assert.That(root.localScale, Is.EqualTo(sizeBeforeReachChange.Value), "ship reach cannot resize the beam");
+                    sizeBeforeReachChange = root.localScale;
+
+                    cone[0].GetPropertyBlock(block);
+                    var apex = block.GetVector(ApexId);
+                    var atLens = coneAnchor.InverseTransformPoint(root.TransformPoint(new Vector3(apex.x - .5f, apex.y, 0f)));
+                    Assert.That(atLens.magnitude, Is.LessThan(1e-3f), "the shader's source maps to the lens");
+                    var units = block.GetVector("_QuadUnits");
+                    Assert.That(Vector2.Distance(units, root.localScale), Is.LessThan(1e-4f));
+                    Assert.That(block.GetFloat("_SourceRadius"), Is.EqualTo(.32f).Within(1e-4f));
+                    Assert.That(block.GetFloat("_Spread"), Is.EqualTo(Mathf.Tan(16f * Mathf.Deg2Rad)).Within(1e-4f));
+                    Assert.That(block.GetFloat("_Length"), Is.EqualTo(beamLength).Within(1e-4f));
+                    Assert.That(block.GetFloat("_ConeLight"), Is.EqualTo(1.05f).Within(1e-4f));
+                    Assert.That(block.GetFloat("_Level"), Is.EqualTo(projector.Level).Within(1e-4f));
+                    AssertColor(block.GetColor("_ConeColor"), runtimeProfile.Resolve.GetColor("_LineColor"), "shared beam colour");
+                }
+            }
         }
 
         [UnityTest]

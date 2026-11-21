@@ -48,14 +48,17 @@ namespace UI.Hangar.Hologram
         [Tooltip("Brightness of the fringe at the cone's edge.")]
         [SerializeField, Range(0f, 4f)] private float edgeFringe = 1.2f;
 
-        [Tooltip("Half the visible beam's spread at the lens, in degrees.")]
-        [SerializeField, Range(5f, 80f)] private float beamHalfAngle = 26f;
+        [Tooltip("Half-width of the emitting patch inside the lens, in world units.")]
+        [SerializeField, Range(.05f, 1f)] private float beamSourceRadius = .32f;
 
-        [Tooltip("How far above the lens the visible beam's light carries, in units.")]
-        [SerializeField, Range(.5f, 30f)] private float beamLength = 3.5f;
+        [Tooltip("Half-angle of the visible light spreading from the lens, in degrees.")]
+        [SerializeField, Range(5f, 80f)] private float beamHalfAngle = 16f;
+
+        [Tooltip("Distance along the visible beam where its light ends, in world units.")]
+        [SerializeField, Range(.5f, 30f)] private float beamLength = 1.45f;
 
         [Tooltip("Brightness of the beam.")]
-        [SerializeField, Range(0f, 3f)] private float beamLight = .6f;
+        [SerializeField, Range(0f, 3f)] private float beamLight = 1.05f;
 
         [Tooltip("How far the beam and hologram dip while a ship switch is under way.")]
         [SerializeField, Range(0f, 1f)] private float switchFlicker = .35f;
@@ -63,7 +66,7 @@ namespace UI.Hangar.Hologram
         [Tooltip("Canopy effect strengths on the hologram image.")]
         [SerializeField] private CanopySettings canopy = CanopySettings.Combat;
 
-        [Tooltip("Cone placed at the lens; none leaves the lens bare. A unit quad with its base at the origin, which the projector scales over the reach.")]
+        [Tooltip("Beam placed at the lens; none leaves the lens bare. A unit quad with its base at the origin, scaled to contain the visible light and its source glow.")]
         [SerializeField] private GameObject projectorCone;
 
         public MaterialRestyle Restyle => restyle;
@@ -78,6 +81,7 @@ namespace UI.Hangar.Hologram
         public float Sputter => sputter;
         public float SputterLines => sputterLines;
         public float EdgeFringe => edgeFringe;
+        public float BeamSourceRadius => beamSourceRadius;
         public float BeamHalfAngle => beamHalfAngle;
         public float BeamLength => beamLength;
         public float BeamLight => beamLight;

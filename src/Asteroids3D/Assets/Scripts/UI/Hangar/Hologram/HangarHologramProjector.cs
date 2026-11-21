@@ -34,11 +34,9 @@ namespace UI.Hangar.Hologram
         private static readonly int FringeColorId = Shader.PropertyToID("_FringeColor");
         private static readonly int ApexId = Shader.PropertyToID("_Apex");
         private static readonly int QuadUnitsId = Shader.PropertyToID("_QuadUnits");
-        private static readonly int AxisId = Shader.PropertyToID("_Axis");
-        private static readonly int AngleId = Shader.PropertyToID("_Angle");
+        private static readonly int SourceRadiusId = Shader.PropertyToID("_SourceRadius");
+        private static readonly int SpreadId = Shader.PropertyToID("_Spread");
         private static readonly int LengthId = Shader.PropertyToID("_Length");
-        private static readonly int WidthId = Shader.PropertyToID("_Width");
-        private static readonly int SoftnessId = Shader.PropertyToID("_Softness");
         private static readonly int ConeColorId = Shader.PropertyToID("_ConeColor");
         private static readonly int ConeLightId = Shader.PropertyToID("_ConeLight");
         private static readonly Vector3[] QuadCorners =
@@ -104,7 +102,7 @@ namespace UI.Hangar.Hologram
             var cone = Instantiate(profile.ProjectorCone, coneAnchor);
             coneRoot = cone.transform;
             coneRenderers = cone.GetComponentsInChildren<Renderer>(true);
-            PlaceCone(Reach());
+            PlaceCone(Reach().Axis);
         }
 
         public void Open(IEnumerable<Ship> offered, Ship selected)
@@ -158,17 +156,20 @@ namespace UI.Hangar.Hologram
                 profile.ReachSoftness);
         }
 
-        private void PlaceCone(HangarReach reach)
+        private void PlaceCone(Vector2 axis)
         {
-            const float below = 1f;
-            var width = 2f * reach.Length * Mathf.Sin(reach.HalfAngle) + 2f;
-            var height = reach.Length + below;
-            var lean = reach.Length * .5f * reach.Axis.x;
+            var radius = profile.BeamSourceRadius;
+            var below = 1.3f * radius;
+            var halfWidth = Mathf.Max(1.3f * (radius + profile.BeamLength * Mathf.Tan(profile.BeamHalfAngle * Mathf.Deg2Rad)),
+                3.6f * radius);
+            var width = 2f * halfWidth;
+            var height = profile.BeamLength + below;
             coneUnits = new Vector2(width, height);
-            coneApex = new Vector2(.5f - lean / width, below / height);
+            coneApex = new Vector2(.5f, below / height);
             if (!coneRoot) return;
             coneRoot.localScale = new Vector3(width, height, 1f);
-            coneRoot.localPosition = new Vector3(lean, -below, 0f);
+            coneRoot.localPosition = new Vector3(-axis.x * below, -axis.y * below, 0f);
+            coneRoot.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(-axis.x, axis.y) * Mathf.Rad2Deg);
         }
 
         private float SwitchDip(float time)
@@ -208,17 +209,15 @@ namespace UI.Hangar.Hologram
             block.SetColor(FringeColorId, beam);
             surface.SetPropertyBlock(block);
             if (!coneRoot) return;
-            PlaceCone(reach);
+            PlaceCone(reach.Axis);
             foreach (var renderer in coneRenderers)
             {
                 renderer.GetPropertyBlock(block);
                 block.SetVector(ApexId, new Vector4(coneApex.x, coneApex.y, 0f, 0f));
                 block.SetVector(QuadUnitsId, new Vector4(coneUnits.x, coneUnits.y, 0f, 0f));
-                block.SetVector(AxisId, new Vector4(reach.Axis.x, reach.Axis.y, 0f, 0f));
-                block.SetFloat(AngleId, profile.BeamHalfAngle * Mathf.Deg2Rad);
+                block.SetFloat(SourceRadiusId, profile.BeamSourceRadius);
+                block.SetFloat(SpreadId, Mathf.Tan(profile.BeamHalfAngle * Mathf.Deg2Rad));
                 block.SetFloat(LengthId, profile.BeamLength);
-                block.SetFloat(WidthId, reach.Width);
-                block.SetFloat(SoftnessId, reach.Softness);
                 block.SetColor(ConeColorId, beam);
                 block.SetFloat(ConeLightId, profile.BeamLight);
                 block.SetFloat(LevelId, level);
