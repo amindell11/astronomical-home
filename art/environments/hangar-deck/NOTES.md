@@ -1,5 +1,25 @@
 # Hangar deck
 
+## Black Launch key and yellow lettering, 2026-11-21
+
+The owner chose a black key with the existing regular LAUNCH letters in warm yellow. The mock-up's coloured rim and altered letter shapes are not used.
+
+`08 | Launch broad beveled button` now uses `Deck | near-black launch resin`, with linear base colour `(0.006, 0.008, 0.012)` and emission strength `0`. Its letter recess walls use the same resin. `19 | Launch legend` uses its own new material, `Deck | warm yellow launch legend emission`, with linear emission `(1.0, 0.72, 0.18)`, strength `1.20`, and black base colour. The shared ivory legend material is unchanged.
+
+The lettering retains its exact vertices, faces, size, spacing and transform. Both Launch objects are excluded from their ink collections. The key's letter-shaped recesses otherwise draw ink across the emissive letters, even when the legend itself has no ink. Removing those two collection memberships prevents that outline, fix-ladder rung 1. No outline geometry, coloured rim or border was added. The three linesets and all other collection memberships are unchanged.
+
+The scene comparison in `previews/launch-audit.json` verifies all 51 objects' geometry, transforms, names, roles and properties against `previews/launch-baseline.json`. All 19 other Principled materials, the glass shader and preview lights match exactly. The two red armed lamps, guards, housing and pedestal are unchanged. The baseline is the frozen scene before this colour pass.
+
+`previews/deck-launch-compare.png` contains labelled before and after crops from the 1920 by 1080 game camera. Each crop uses pixels `(750, 885)` through `(1170, 1040)` and exactly 3x nearest-neighbour enlargement. `deck-launch-original.png` preserves the previous camera image.
+
+The mesh, control-travel, six-aspect coverage, ink, glass geometry and glass projection checks pass. The hardware remains at 24,296 triangles in 31 meshes, with no positive-volume intersections across the 33 checked pairs or during control travel. Coverage has zero alpha loss and zero unexplained gaps. Glass remains behind the hardware, with zero tinted hardware pixels.
+
+The six camera views, four construction views, masks, parts sheets, coverage and ink views, neutral geometry view, glass previews and review sheets are regenerated. The baked etch mask and historical originals remain frozen. The current camera renders use that mask in memory with the existing glass emission and preview lighting. No preview-only changes were saved. `previews/launch-verification.json` records all checks, 58 verified PNGs and final source and scene hashes.
+
+For this finish, run `build_deck.py`, then `verify_deck.py`, `verify_coverage.py`, `verify_ink.py`, `verify_glass.py` and `verify_glass_projection.py`. Run `render_finish5.py` and `render_glass.py`, then assemble with `assemble_coverage.py --require-closed --finish4`, `assemble_glass.py` and `assemble_pedestal.py`. Use the directory-local Blender resources and temporary settings below. The older finish and pedestal snapshot verifiers freeze the orange Launch material. The pedestal verifier passed before this edit; `launch-audit.json` records exact preservation against that verified scene after the material change.
+
+All authored writes stayed inside this directory. No network, git write commands or Unity assets were used. All Blender processes started for this task exited. Automatic approval review rejected the checked, directory-local cleanup command with "blocked by policy". `.temp` and `.blender` remain, containing temporary scripts, logs, render inputs and Blender resources. No `__pycache__` folders remain.
+
 ## Pedestal edge lights and ringed lens, 2026-11-21
 
 The owner's two projector references show a cleaner transition from the lens to the pedestal. This pass changes that hardware only. The beam and hologram remain preview placeholders.

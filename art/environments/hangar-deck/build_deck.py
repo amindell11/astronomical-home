@@ -90,18 +90,18 @@ shoulder = material('Deck | slate chamfers', srgb((28, 34, 43)))
 top = material('Deck | cool upper planes', srgb((30, 35, 44)))
 well = material('Deck | charcoal wells and bezels', srgb((8, 12, 18)))
 keymat = material('Deck | cool grey controls', srgb((88, 98, 112)))
-orange = material('Deck | orange launch resin', (.95, .20, .018), 1)
+launchmat = material('Deck | near-black launch resin', (.006, .008, .012))
 cyan = material('Deck | emissive cyan accents', (.035, .48, .72), 1.65)
 cold_accent = material('Deck | cold blue-white structural accents', (.45, .72, 1.0), 1.65)
 screenmat = material('Deck | placeholder emissive blue', (.023, .105, .222), .8)
 legendmat = material('Deck | ivory inlaid legends', (.49, .65, .72), .3)
-for emissive in (orange, cyan, screenmat, cold_accent):
+for emissive in (cyan, screenmat, cold_accent):
     emissive.node_tree.nodes.get('Principled BSDF').inputs['Base Color'].default_value = (0, 0, 0, 1)
-PALETTE = [paint, face, shoulder, top, well, keymat, orange, cyan, screenmat, legendmat, cold_accent]
+PALETTE = [paint, face, shoulder, top, well, keymat, launchmat, cyan, screenmat, legendmat, cold_accent]
 old_palette = {
     D['body']: paint, D['face']: face, D['shoulder']: shoulder, D['side']: face,
     D['top_mat']: top, D['dark']: well, D['cyan']: cyan, D['keytop']: keymat,
-    D['key_mat']: keymat, D['orange']: orange, D['screen_mat']: screenmat,
+    D['key_mat']: keymat, D['orange']: launchmat, D['screen_mat']: screenmat,
 }
 chamfer = D['chamfer']
 point = D['point']
@@ -514,7 +514,7 @@ knob_outline = [(math.cos(i * math.pi / 6) * .34, math.sin(i * math.pi / 6) * .3
 subtract(collar, local_mesh('Construction | selector travel bore', knob_outline, .30, -.15, knob_basis, well))
 AFTER_WELLS.append(collar)
 
-launch = control('LaunchButton', '08 | Launch broad beveled button', launch_basis, chamfer(2.08, .864, .136), .015, -.06, orange)
+launch = control('LaunchButton', '08 | Launch broad beveled button', launch_basis, chamfer(2.08, .864, .136), .015, -.06, launchmat)
 letters = [
     [(0,0),(.1,0),(.1,.018),(.018,.018),(.018,.14),(0,.14)],
     [(0,0),(.018,0),(.031,.05),(.069,.05),(.082,0),(.1,0),(.062,.14),(.038,.14)],
@@ -537,7 +537,14 @@ for letter in letter_objects[1:]:
     combine(text_obj, letter)
 text_obj.name = '19 | Launch legend'
 subtract(launch, text_obj, True)
+for poly in launch.data.polygons:
+    poly.material_index = PALETTE.index(launchmat)
+launchlegendmat = material('Deck | warm yellow launch legend emission', (1.0, .72, .18), 1.2)
+launchlegendmat.node_tree.nodes.get('Principled BSDF').inputs['Base Color'].default_value = (0, 0, 0, 1)
+text_obj.data.materials[text_obj.data.materials.find(legendmat.name)] = launchlegendmat
 register(text_obj, 'LaunchLegend', True)
+legend_ink_collection.objects.unlink(text_obj)
+ink_collection.objects.unlink(launch)
 
 right_basis = D['pod_bases']['Right'][0]
 for screen_name, centre in [('Primary', 1.35), ('Ordnance', 0)]:
