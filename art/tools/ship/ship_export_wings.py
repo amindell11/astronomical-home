@@ -1,6 +1,6 @@
 """Export a Valis-family ship, whose wings swing, through the unmodified ship_export.
 
-CLI: python export_wings.py --ship SHIP_JSON --out DIR [--blender EXE]
+CLI: python ship_export_wings.py --ship SHIP_JSON --out DIR [--blender EXE]
 ship_export refuses role.move.*, so this builds temporary copies of the source, one per output,
 and exports each with the standard tools:
   <Name>.fbx         intact export with every role.move part left out: Hull, Collider, Sockets.
@@ -20,7 +20,7 @@ import shutil
 import subprocess
 import sys
 
-TOOLS = Path(__file__).resolve().parents[2] / "tools" / "ship"
+TOOLS = Path(__file__).resolve().parent
 DEFAULT_BLENDER = r"C:\Program Files\Blender Foundation\Blender 5.1\blender.exe"
 
 
