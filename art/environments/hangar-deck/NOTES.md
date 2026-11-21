@@ -1,5 +1,55 @@
 # Hangar deck
 
+## Finish 7, two dim header strips, 2026-11-20
+
+The six small header downlights and seven cold-white structural dashes are removed. Their lenses, sockets, lips and dash-only cuts are gone. The pod frame plates now continue across their old dash openings. The two red LAUNCH lamps and both three-LED status groups retain their exact geometry, transforms and materials.
+
+Two mirrored strips sit in the sloped underside above the centre pane. Each lens is 5.40 units long, 0.16 tall and 0.022 deep. A 5.60 by 0.36 dark trough surrounds it. The lens front is recessed 0.010 units below the original underside plane. The trough replaces the four vents crossed by the strips; the surrounding cassette plates remain. The strips end clear of the struts.
+
+The existing `Deck | warm white downlight emission` material name remains for continuity. Its unlinked Principled Emission Color is now linear `(0.28, 0.36, 0.48)`, with strength `0.65`. All other material values remain unchanged. Two rectangular preview lights, 45 watts each with the same colour, replace the six 165-watt preview spots. The key light and ambient settings remain unchanged. The exporter reads the colour directly, without multiplying by Blender emission strength.
+
+### Final lamp list
+
+Positions are world-space lens bounding-box centres. Sizes are local width, height and depth in model units. Colours are linear RGB before emission strength. These ten named lenses are the exporter lamp anchors, including exactly two downlights.
+
+| Lamp object | Position X, Y, Z | Size W, H, D | Linear RGB |
+|---|---|---|---|
+| `Deck \| Header downlight 01 cold white lens` | (-3.2000, 3.6351, 9.9684) | (5.4000, 0.1600, 0.0220) | (0.280, 0.360, 0.480) |
+| `Deck \| Header downlight 02 cold white lens` | (3.2000, 3.6351, 9.9684) | (5.4000, 0.1600, 0.0220) | (0.280, 0.360, 0.480) |
+| `Deck \| Left Launch armed red lens` | (-1.4300, -3.8984, 1.3203) | (0.1500, 0.1600, 0.0300) | (1.000, 0.025, 0.008) |
+| `Deck \| Left status 1 green lens` | (-3.9225, -1.8565, 1.8196) | (0.0600, 0.0475, 0.0300) | (0.025, 0.700, 0.055) |
+| `Deck \| Left status 2 green lens` | (-3.6569, -1.8893, 1.8550) | (0.0600, 0.0475, 0.0300) | (0.025, 0.700, 0.055) |
+| `Deck \| Left status 3 amber lens` | (-3.3912, -1.9221, 1.8904) | (0.0600, 0.0475, 0.0300) | (0.450, 0.720, 1.000) |
+| `Deck \| Right Launch armed red lens` | (1.4300, -3.8984, 1.3203) | (0.1500, 0.1600, 0.0300) | (1.000, 0.025, 0.008) |
+| `Deck \| Right status 1 green lens` | (3.3912, -1.9221, 1.8904) | (0.0600, 0.0475, 0.0300) | (0.025, 0.700, 0.055) |
+| `Deck \| Right status 2 green lens` | (3.6569, -1.8893, 1.8550) | (0.0600, 0.0475, 0.0300) | (0.025, 0.700, 0.055) |
+| `Deck \| Right status 3 amber lens` | (3.9225, -1.8565, 1.8196) | (0.0600, 0.0475, 0.0300) | (0.450, 0.720, 1.000) |
+
+The separate projector lens remains at `(0.0000, 0.0000, 2.4800)`, size `(0.8600, 0.8600, 0.0250)`, linear colour `(0.035, 0.480, 0.720)`, strength `1.65`. No emissive structural dashes remain. Legacy `amber` identifiers in the status lamps still denote cold-white light.
+
+### Review and rebuild
+
+All 46 unrelated scene objects, 18 unrelated Principled materials, the three linesets and the glass shader match the frozen snapshot exactly. Both strips pass camera visibility checks. The hardware has 20,880 triangles in 31 meshes; its solids are closed, consistently wound and clean. The 33 tested object pairs and control-travel checks have no positive-volume intersections.
+
+Coverage passes at 16:10, 3:2, 4:3, 16:9, 21:9 and 32:9, with zero alpha loss and zero unexplained gaps outside the frozen window openings. Ink checks pass. The rebaked etch mask retains SHA-256 `a011b0a4b2e01b25423251c0dd2a42810a46c2309a5a4f7efdfa8a0ac0133a0d`. Glass placement still has 0.10 units of depth clearance and zero glass-ahead-of-hardware pixels. The 204 pre-existing uncovered window-edge pixels in each wide view remain unchanged.
+
+`previews/deck-finish7-compare.png` pairs the frozen previous 16:9 render with the new render. Two full-width header crops below them are enlarged exactly 2x. The frozen input is `deck-finish7-original.png`. Blender previews retain the existing placeholder screens and hologram. During camera renders, the preview backdrop moves behind the corrected glass; its exact transform is restored before saving. This delivery's camera pass sampled the verified baked etch mask in memory, retaining the original glass emission colour and strength. The saved procedural glass material is unchanged.
+
+Use the directory-local Blender resource and temporary settings from the rebuild recipe below. Run Blender headless with `--python-exit-code 1`:
+
+1. Run `build_deck.py` for the saved scene and ten camera/construction views.
+2. Run `verify_finish7.py`, `verify_deck.py`, `verify_coverage.py` and `verify_ink.py`.
+3. Run the local glass export recipe below, followed by `verify_glass.py`, `verify_glass_projection.py` and `render_glass.py`.
+4. Run `render_finish5.py` for the existing neutral geometry preview.
+5. With ordinary Python, run `assemble_glass.py`, `assemble_coverage.py --require-closed --finish4` and `assemble_finish7.py`.
+6. Remove temporary exports, resource folders and caches after the processes exit.
+
+`verify_finish7.py` compares protected objects, material values, linesets and the glass shader with `finish7-baseline.json`, checks closed solids, and casts camera rays across both lenses. Keep that baseline frozen. Earlier finish verifiers assert superseded lamp schedules. The finish 4 coverage mode still applies to the retained paint palette. `assemble_finish7.py` refreshes legacy review filenames with current labels; historical originals and reference directories stay frozen.
+
+The final file check verified all 56 current PNGs. `previews/finish7-verification.json` records their sizes and hashes, the source and scene hashes, and the passing checks. The full build and completed preview passes exited 0. Freestyle retained its side-view empty-stroke warning and reported corrected duplicate edges; the construction views and neutral geometry view were inspected.
+
+All authored files stayed inside this directory. No Unity assets, network calls or git write commands were used. Automatic approval review rejected temporary-folder cleanup with "blocked by policy". `.blender`, `.temp` and `__pycache__` remain. They contain Blender resources, temporary exports, render inputs, copied camera renders and Python caches. All Blender processes started for this task have exited.
+
 ## Glass placement, 2026-11-20
 
 The five canopy panes were positioned from the strut and pillar anchors with small Y offsets. Those offsets did not clear the complete hardware. The outer panes crossed the wide side structure, and parts of the centre and side panes crossed the header. At pixel centres, glass was ahead of hardware at 2,313 pixels in 16:9 and 57,199 pixels in each wide view. The previous coverage check skipped hardware rays, and the mark-only occlusion check never tested clear parts of a pane.

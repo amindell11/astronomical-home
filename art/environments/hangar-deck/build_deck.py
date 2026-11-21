@@ -62,7 +62,6 @@ def collection(name):
 
 body_collection = collection('01 | Deck closed construction')
 parts_collection = collection('02 | Exporter parts')
-accent_collection = collection('03 | Cyan structural accents')
 ink_collection = collection('21 - Console hardware ink')
 legend_ink_collection = collection('22 - Lit legends ink')
 
@@ -111,7 +110,6 @@ horizontal_basis = D['horizontal_basis']
 BODY = []
 AFTER_WELLS = []
 POD_NATIVE = {}
-ACCENTS = []
 PARTS = {}
 SCREEN_RECORDS = []
 CONTROL_RECORDS = []
@@ -671,38 +669,6 @@ body['export_role'] = 'ConsoleBody'
 ink_collection.objects.link(body)
 
 
-def accent(name, outline, front, back, basis):
-    obj = local_mesh(name, outline, front, back, basis, cold_accent, accent_collection)
-    subtract(body, obj, True)
-    obj['export_role'] = 'ConsoleBody'
-    ACCENTS.append(obj)
-    return obj
-
-
-for hand, label in ((-1, 'Left'), (1, 'Right')):
-    basis = shifted(D['pod_bases'][label][0], hand * (5.85 / 2 - .12), -.60, .02)
-    accent('Deck | ' + label.lower() + ' pod cyan strip', chamfer(.075, .20, .018), 0, -.15, basis)
-    lo = Vector(D['STRUT_LANDING_POINTS'][0 if hand < 0 else 1])
-    hi = Vector(D['STRUT_TOP_POINTS'][0 if hand < 0 else 1])
-    along = (hi - lo).normalized()
-    u = Vector((1, 0, 0))
-    u = (u - along * u.dot(along)).normalized()
-    normal = u.cross(along)
-    basis = (hi - along * 2.05 + normal * (.15 + .008), u, along, normal)
-    accent('Deck | ' + label.lower() + ' strut cyan strip', chamfer(.045, .16, .012), 0, -.025, basis)
-
-for centre in (-8.6, 0, 8.6):
-    lo, hi = centre - .475, centre + .475
-    z0, z1 = D['brow_z'](lo) + .43, D['brow_z'](hi) + .43
-    u = Vector((hi - lo, 0, z1 - z0)).normalized()
-    v = Vector((0, 0, 1))
-    normal = Vector((0, -1, 0))
-    basis = (Vector(((lo + hi) / 2, 3.335, (z0 + z1) / 2)), u, v, normal)
-    accent('Deck | header cyan strip ' + str(centre), [(-.10, -.0325), (.10, -.0325), (.10, .0325), (-.10, .0325)],
-           0, -.035, basis)
-
-
-
 for cutter in SCREEN_CUTS:
     subtract(body, cutter)
 repair(body, True)
@@ -755,7 +721,7 @@ stencilpaint = material('Deck | muted service stencils', srgb((48, 57, 70)))
 lamp_red = material('Deck | armed red emission', (1.0, .025, .008), 3.2)
 lamp_green = material('Deck | status green emission', (.025, .70, .055), 2.2)
 lamp_amber = material('Deck | status amber emission', (.45, .72, 1.0), 1.8)
-lamp_white = material('Deck | warm white downlight emission', (.75, .86, 1.0), 1.5)
+lamp_white = material('Deck | warm white downlight emission', (.28, .36, .48), .65)
 PALETTE.extend([plate, inset, edgepaint, stencilpaint,
                 lamp_red, lamp_green, lamp_amber, lamp_white])
 for lamp_material in (lamp_red, lamp_green, lamp_amber, lamp_white):
@@ -931,28 +897,6 @@ for hand, label in ((-1, 'Left'), (1, 'Right')):
         fastener(label + ' header plate screw', shifted(basis, x=x), .030, .021)
     stencil(label + ' header code', shifted(basis, x=hand * 1.03, y=-.14, d=.003), .80)
 
-for index, x in enumerate((-8.2, -5.0, -2.3, 2.3, 5.0, 8.2), 1):
-    y = 3.87
-    z = D['brow_z'](x) + .025
-    u = Vector((1, 0, 0))
-    v = Vector((0, -math.sqrt(.75), .5))
-    basis = (Vector((x, y, z)), u, v, u.cross(v))
-    obj = lamp('Header downlight ' + str(index).zfill(2) + ' warm white',
-               basis, .56, .12, lamp_white, socket_padding=.035)
-    light_data = bpy.data.lights.new('Preview | header warm pool ' + str(index), 'SPOT')
-    light_data.energy = 165
-    light_data.color = (.75, .86, 1.0)
-    light_data.spot_size = math.radians(66)
-    light_data.spot_blend = .65
-    light_data.shadow_soft_size = .22
-    light_obj = bpy.data.objects.new(light_data.name, light_data)
-    scene.collection.objects.link(light_obj)
-    light_obj.location = point(basis, d=.07)
-    target = Vector((x * .75, -1.0, 1.25))
-    light_obj.rotation_euler = (target - light_obj.location).to_track_quat('-Z', 'Y').to_euler()
-    light_obj['preview_only'] = True
-
-
 def clip_plate(outline, axis, limit, keep_less):
     result = []
     for a, b in zip(outline, outline[1:] + outline[:1]):
@@ -1057,8 +1001,7 @@ for hand, label in ((-1, 'Left'), (1, 'Right')):
                 cutter = local_mesh('Construction | quiet screen border',
                                    offset_outline(screen['mouth'], .035), .5, -.2, sb)
                 subtract(skin, cutter)
-            exclusions = [(hand * 2.55, .80, .53, 2.77),
-                          (hand * 2.805, -.60, .15, .74)]
+            exclusions = [(hand * 2.55, .80, .53, 2.77)]
             if hand > 0:
                 exclusions.append((-2.65, .675, .64, 2.67))
             for x, y, width, height in exclusions:
@@ -1105,6 +1048,7 @@ for hand in (-1, 1):
     finish_solid('pedestal base latch', shifted(basis, d=.031), .23, .12, .028, -.008, inset)
 
 header_basis = (Vector((0, 3.35, 0)), Vector((1, 0, 0)), Vector((0, 0, 1)), Vector((0, -1, 0)))
+header_underside_plates = []
 for i, ((x0, z0), (x1, z1)) in enumerate(zip(D['HEADER_STATIONS'], D['HEADER_STATIONS'][1:])):
     if abs(z1-z0) > .1:
         hv = D['hv']
@@ -1138,9 +1082,38 @@ for hand in (-1, 1):
                    Vector((b, 3.35, D['brow_z'](b)+.30)), Vector((a, 3.35, D['brow_z'](a)+.30))]
         if hand < 0:
             corners.reverse()
-        _, basis = surface_plate('header underside cassette', corners, inset, .055, .025)
-        if x1-x0 > 1.8:
-            vent_grille('header underside cooling', shifted(basis, d=.026), .95, .26, 2)
+        obj, basis = surface_plate('header underside cassette', corners, inset, .055, .025)
+        if x1 <= 6:
+            header_underside_plates.append((hand, obj))
+
+for index, x in enumerate((-3.20, 3.20), 1):
+    u = Vector((1, 0, 0))
+    v = Vector((0, -.55, .30)).normalized()
+    basis = (Vector((x, 3.625, D['brow_z'](x) + .15)), u, v, u.cross(v))
+    outer, inner = chamfer(5.60, .36, .035), chamfer(5.48, .30, .025)
+    cutter = local_mesh('Construction | header strip trough', outer, .08, -.09, basis)
+    subtract(body, cutter, True)
+    for hand, cassette in header_underside_plates:
+        if hand * x > 0:
+            subtract(cassette, cutter, True)
+    remove(cutter)
+    finish_ring('Header downlight ' + str(index).zfill(2) + ' trough walls',
+                basis, outer, inner, .026, -.09, well)
+    finish_solid('Header downlight ' + str(index).zfill(2) + ' trough floor',
+                 basis, 5.48, .30, -.07, -.09, well, .025)
+    lamp('Header downlight ' + str(index).zfill(2) + ' cold white',
+         basis, 5.40, .16, lamp_white, depth=-.050, socket=False, cap=.040)
+    light_data = bpy.data.lights.new('Preview | header strip pool ' + str(index), 'AREA')
+    light_data.energy = 45
+    light_data.color = (.28, .36, .48)
+    light_data.shape = 'RECTANGLE'
+    light_data.size = 5.40
+    light_data.size_y = .16
+    light_obj = bpy.data.objects.new(light_data.name, light_data)
+    scene.collection.objects.link(light_obj)
+    light_obj.location = point(basis, d=.03)
+    light_obj.rotation_euler = basis[3].to_track_quat('-Z', 'Y').to_euler()
+    light_obj['preview_only'] = True
 
 for hand, label in ((-1, 'Left'), (1, 'Right')):
     for x0, x1, y0, y1, z0, z1, top0, top1 in (
@@ -1184,11 +1157,12 @@ for obj in finish_solids:
     obj.select_set(True)
 bpy.context.view_layer.objects.active = body
 bpy.ops.object.join()
-body['finish_slice'] = 'Finish 5 clean faceted console; cold near-black palette; blue-white lights; orange launch'
+body['finish_slice'] = 'Finish 7 recessed header strips; cold near-black palette; orange launch'
 DEPARTURES.remove('Pedestal dark riser strips omitted as surface detail reserved for slice 2.')
 DEPARTURES.append('Finish detail uses closed shallow solids joined into ConsoleBody; original controls and glasses are unchanged.')
 DEPARTURES.append('Cool stencils and local scuffs use flat material geometry, without textures or linked colour nodes.')
-DEPARTURES.append('Cool header spotlights are preview-only; named lamp lenses provide the exporter anchors and emission colours.')
+DEPARTURES.append('Two dim header strips replace the six spotlights and seven structural dashes; named lenses provide exporter lamp anchors.')
+DEPARTURES.append('Header strip troughs replace the four central underside vents and cut through the retained cassettes.')
 DEPARTURES.append('Amber brow and centre lamps with their sockets and launch caution chevrons are removed; guard rails remain.')
 
 freestyle = bpy.context.view_layer.freestyle_settings
@@ -1273,6 +1247,8 @@ def audit():
         shader = obj.active_material.node_tree.nodes.get('Principled BSDF')
         lamp_records.append({'name': obj.name, 'anchor': obj.name.split('| ', 1)[1],
                              'position': list(centre),
+                             'size': [max(corner[axis] for corner in obj.bound_box)
+                                      - min(corner[axis] for corner in obj.bound_box) for axis in range(3)],
                              'color': list(shader.inputs['Emission Color'].default_value[:3]),
                              'downlight': 'Header downlight' in obj.name})
     (PREVIEWS / 'finish-lamps.json').write_text(json.dumps(lamp_records, indent=2), encoding='utf-8')
@@ -1295,6 +1271,10 @@ bpy.data.orphans_purge(do_recursive=True)
 scene.render.filepath = str(PREVIEWS / 'deck-camera.png')
 bpy.ops.wm.save_as_mainfile(filepath=str(ROOT / 'deck.blend'))
 if not ARGS.no_render:
+    backdrop = bpy.data.objects['19 | Distant space']
+    backdrop_matrix = backdrop.matrix_world.copy()
+    eye = gamecam.matrix_world.translation.copy()
+    backdrop.matrix_world = Matrix.Translation(eye) @ Matrix.Scale(4, 4) @ Matrix.Translation(-eye) @ backdrop_matrix
     bpy.ops.render.render(write_still=True)
     for suffix, width, height in VIEWS:
         if suffix == '16x9':
@@ -1304,7 +1284,6 @@ if not ARGS.no_render:
         bpy.ops.render.render(write_still=True)
     game_projection(scene, gamecam, 1920, 1080)
     if not ARGS.camera_only:
-        backdrop = bpy.data.objects['19 | Distant space']
         backdrop.hide_render = True
         background = scene.world.node_tree.nodes.get('Background')
         background.inputs['Color'].default_value = (.19, .22, .27, 1)
@@ -1317,6 +1296,7 @@ if not ARGS.no_render:
         backdrop.hide_render = False
         background.inputs['Color'].default_value = (.09, .12, .17, 1)
         background.inputs['Strength'].default_value = .30
+    backdrop.matrix_world = backdrop_matrix
     scene.camera = gamecam
     scene.render.filepath = str(PREVIEWS / 'deck-camera.png')
     bpy.ops.wm.save_as_mainfile(filepath=str(ROOT / 'deck.blend'))

@@ -3,14 +3,14 @@
     {
       "name": "Deck | joined closed structure",
       "role": "ConsoleBody",
-      "triangles": 20252,
-      "vertices": 10788,
+      "triangles": 19496,
+      "vertices": 10386,
       "closed": true,
       "manifold": true,
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 4099.199574225751,
+      "volume": 4098.849547422525,
       "planar_screen": false,
       "zero_area_faces": 0
     },
@@ -295,104 +295,6 @@
       "zero_area_faces": 0
     },
     {
-      "name": "Deck | left pod cyan strip",
-      "role": "ConsoleBody",
-      "triangles": 28,
-      "vertices": 16,
-      "closed": true,
-      "manifold": true,
-      "boundary_edges": 0,
-      "nonmanifold_edges": 0,
-      "loose_vertices": 0,
-      "volume": 0.00215280020678938,
-      "planar_screen": false,
-      "zero_area_faces": 0
-    },
-    {
-      "name": "Deck | left strut cyan strip",
-      "role": "ConsoleBody",
-      "triangles": 28,
-      "vertices": 16,
-      "closed": true,
-      "manifold": true,
-      "boundary_edges": 0,
-      "nonmanifold_edges": 0,
-      "loose_vertices": 0,
-      "volume": 0.00017280000837296275,
-      "planar_screen": false,
-      "zero_area_faces": 0
-    },
-    {
-      "name": "Deck | right pod cyan strip",
-      "role": "ConsoleBody",
-      "triangles": 28,
-      "vertices": 16,
-      "closed": true,
-      "manifold": true,
-      "boundary_edges": 0,
-      "nonmanifold_edges": 0,
-      "loose_vertices": 0,
-      "volume": 0.00215280020678938,
-      "planar_screen": false,
-      "zero_area_faces": 0
-    },
-    {
-      "name": "Deck | right strut cyan strip",
-      "role": "ConsoleBody",
-      "triangles": 28,
-      "vertices": 16,
-      "closed": true,
-      "manifold": true,
-      "boundary_edges": 0,
-      "nonmanifold_edges": 0,
-      "loose_vertices": 0,
-      "volume": 0.00017280000837296275,
-      "planar_screen": false,
-      "zero_area_faces": 0
-    },
-    {
-      "name": "Deck | header cyan strip -8.6",
-      "role": "ConsoleBody",
-      "triangles": 12,
-      "vertices": 8,
-      "closed": true,
-      "manifold": true,
-      "boundary_edges": 0,
-      "nonmanifold_edges": 0,
-      "loose_vertices": 0,
-      "volume": 0.00045499999202787845,
-      "planar_screen": false,
-      "zero_area_faces": 0
-    },
-    {
-      "name": "Deck | header cyan strip 0",
-      "role": "ConsoleBody",
-      "triangles": 12,
-      "vertices": 8,
-      "closed": true,
-      "manifold": true,
-      "boundary_edges": 0,
-      "nonmanifold_edges": 0,
-      "loose_vertices": 0,
-      "volume": 0.00045499999202787845,
-      "planar_screen": false,
-      "zero_area_faces": 0
-    },
-    {
-      "name": "Deck | header cyan strip 8.6",
-      "role": "ConsoleBody",
-      "triangles": 12,
-      "vertices": 8,
-      "closed": true,
-      "manifold": true,
-      "boundary_edges": 0,
-      "nonmanifold_edges": 0,
-      "loose_vertices": 0,
-      "volume": 0.00045499999202787845,
-      "planar_screen": false,
-      "zero_area_faces": 0
-    },
-    {
       "name": "Deck | Left status 1 green lens",
       "role": "ConsoleBody",
       "triangles": 28,
@@ -505,7 +407,7 @@
       "zero_area_faces": 0
     },
     {
-      "name": "Deck | Header downlight 01 warm white lens",
+      "name": "Deck | Header downlight 01 cold white lens",
       "role": "ConsoleBody",
       "triangles": 28,
       "vertices": 16,
@@ -514,12 +416,12 @@
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 0.0019425000518187858,
+      "volume": 0.018954101286216815,
       "planar_screen": false,
       "zero_area_faces": 0
     },
     {
-      "name": "Deck | Header downlight 02 warm white lens",
+      "name": "Deck | Header downlight 02 cold white lens",
       "role": "ConsoleBody",
       "triangles": 28,
       "vertices": 16,
@@ -528,68 +430,12 @@
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 0.0019425000518187858,
-      "planar_screen": false,
-      "zero_area_faces": 0
-    },
-    {
-      "name": "Deck | Header downlight 03 warm white lens",
-      "role": "ConsoleBody",
-      "triangles": 28,
-      "vertices": 16,
-      "closed": true,
-      "manifold": true,
-      "boundary_edges": 0,
-      "nonmanifold_edges": 0,
-      "loose_vertices": 0,
-      "volume": 0.0019425000518187858,
-      "planar_screen": false,
-      "zero_area_faces": 0
-    },
-    {
-      "name": "Deck | Header downlight 04 warm white lens",
-      "role": "ConsoleBody",
-      "triangles": 28,
-      "vertices": 16,
-      "closed": true,
-      "manifold": true,
-      "boundary_edges": 0,
-      "nonmanifold_edges": 0,
-      "loose_vertices": 0,
-      "volume": 0.0019425000518187858,
-      "planar_screen": false,
-      "zero_area_faces": 0
-    },
-    {
-      "name": "Deck | Header downlight 05 warm white lens",
-      "role": "ConsoleBody",
-      "triangles": 28,
-      "vertices": 16,
-      "closed": true,
-      "manifold": true,
-      "boundary_edges": 0,
-      "nonmanifold_edges": 0,
-      "loose_vertices": 0,
-      "volume": 0.0019425000518187858,
-      "planar_screen": false,
-      "zero_area_faces": 0
-    },
-    {
-      "name": "Deck | Header downlight 06 warm white lens",
-      "role": "ConsoleBody",
-      "triangles": 28,
-      "vertices": 16,
-      "closed": true,
-      "manifold": true,
-      "boundary_edges": 0,
-      "nonmanifold_edges": 0,
-      "loose_vertices": 0,
-      "volume": 0.0019425000518187858,
+      "volume": 0.018954101286216815,
       "planar_screen": false,
       "zero_area_faces": 0
     }
   ],
-  "triangles": 21896,
+  "triangles": 20880,
   "lamps": [
     {
       "name": "Deck | Left status 1 green lens",
@@ -598,6 +444,11 @@
         -3.922534942626953,
         -1.8565412759780884,
         1.8196005821228027
+      ],
+      "size": [
+        0.05999999865889549,
+        0.04749999940395355,
+        0.030000001192092896
       ],
       "color": [
         0.02500000037252903,
@@ -614,6 +465,11 @@
         -1.8893375396728516,
         1.855020523071289
       ],
+      "size": [
+        0.05999999865889549,
+        0.04749999940395355,
+        0.030000001192092896
+      ],
       "color": [
         0.02500000037252903,
         0.699999988079071,
@@ -628,6 +484,11 @@
         -3.3912353515625,
         -1.9221338033676147,
         1.8904404640197754
+      ],
+      "size": [
+        0.05999999865889549,
+        0.04749999940395355,
+        0.030000001192092896
       ],
       "color": [
         0.44999998807907104,
@@ -644,6 +505,11 @@
         -1.9221338033676147,
         1.8904404640197754
       ],
+      "size": [
+        0.05999999865889549,
+        0.04749999940395355,
+        0.030000001192092896
+      ],
       "color": [
         0.02500000037252903,
         0.699999988079071,
@@ -658,6 +524,11 @@
         3.6568851470947266,
         -1.8893375396728516,
         1.855020523071289
+      ],
+      "size": [
+        0.05999999865889549,
+        0.04749999940395355,
+        0.030000001192092896
       ],
       "color": [
         0.02500000037252903,
@@ -674,6 +545,11 @@
         -1.8565412759780884,
         1.8196005821228027
       ],
+      "size": [
+        0.05999999865889549,
+        0.04749999940395355,
+        0.030000001192092896
+      ],
       "color": [
         0.44999998807907104,
         0.7200000286102295,
@@ -688,6 +564,11 @@
         -1.4299999475479126,
         -3.8983848094940186,
         1.3203129768371582
+      ],
+      "size": [
+        0.15000000596046448,
+        0.1599999964237213,
+        0.030000001192092896
       ],
       "color": [
         1.0,
@@ -704,6 +585,11 @@
         -3.8983848094940186,
         1.3203129768371582
       ],
+      "size": [
+        0.15000000596046448,
+        0.1599999964237213,
+        0.030000001192092896
+      ],
       "color": [
         1.0,
         0.02500000037252903,
@@ -712,92 +598,42 @@
       "downlight": false
     },
     {
-      "name": "Deck | Header downlight 01 warm white lens",
-      "anchor": "Header downlight 01 warm white lens",
+      "name": "Deck | Header downlight 01 cold white lens",
+      "anchor": "Header downlight 01 cold white lens",
       "position": [
-        -8.199999809265137,
-        3.8534998893737793,
-        9.0164213180542
+        -3.200000047683716,
+        3.6350557804107666,
+        9.968435287475586
+      ],
+      "size": [
+        5.400000095367432,
+        0.1599999964237213,
+        0.02200000174343586
       ],
       "color": [
-        0.75,
-        0.8600000143051147,
-        1.0
+        0.2800000011920929,
+        0.36000001430511475,
+        0.47999998927116394
       ],
       "downlight": true
     },
     {
-      "name": "Deck | Header downlight 02 warm white lens",
-      "anchor": "Header downlight 02 warm white lens",
+      "name": "Deck | Header downlight 02 cold white lens",
+      "anchor": "Header downlight 02 cold white lens",
       "position": [
-        -5.0,
-        3.8534998893737793,
-        9.79642105102539
+        3.200000047683716,
+        3.6350557804107666,
+        9.968435287475586
+      ],
+      "size": [
+        5.400000095367432,
+        0.1599999964237213,
+        0.02200000174343586
       ],
       "color": [
-        0.75,
-        0.8600000143051147,
-        1.0
-      ],
-      "downlight": true
-    },
-    {
-      "name": "Deck | Header downlight 03 warm white lens",
-      "anchor": "Header downlight 03 warm white lens",
-      "position": [
-        -2.299999952316284,
-        3.8534998893737793,
-        9.79642105102539
-      ],
-      "color": [
-        0.75,
-        0.8600000143051147,
-        1.0
-      ],
-      "downlight": true
-    },
-    {
-      "name": "Deck | Header downlight 04 warm white lens",
-      "anchor": "Header downlight 04 warm white lens",
-      "position": [
-        2.299999952316284,
-        3.8534998893737793,
-        9.79642105102539
-      ],
-      "color": [
-        0.75,
-        0.8600000143051147,
-        1.0
-      ],
-      "downlight": true
-    },
-    {
-      "name": "Deck | Header downlight 05 warm white lens",
-      "anchor": "Header downlight 05 warm white lens",
-      "position": [
-        5.0,
-        3.8534998893737793,
-        9.79642105102539
-      ],
-      "color": [
-        0.75,
-        0.8600000143051147,
-        1.0
-      ],
-      "downlight": true
-    },
-    {
-      "name": "Deck | Header downlight 06 warm white lens",
-      "anchor": "Header downlight 06 warm white lens",
-      "position": [
-        8.199999809265137,
-        3.8534998893737793,
-        9.0164213180542
-      ],
-      "color": [
-        0.75,
-        0.8600000143051147,
-        1.0
+        0.2800000011920929,
+        0.36000001430511475,
+        0.47999998927116394
       ],
       "downlight": true
     }
@@ -1651,7 +1487,8 @@
     "Header, pod shoulders, band and canopy side walls continue to X = +/-27 for wide cameras.",
     "Finish detail uses closed shallow solids joined into ConsoleBody; original controls and glasses are unchanged.",
     "Cool stencils and local scuffs use flat material geometry, without textures or linked colour nodes.",
-    "Cool header spotlights are preview-only; named lamp lenses provide the exporter anchors and emission colours.",
+    "Two dim header strips replace the six spotlights and seven structural dashes; named lenses provide exporter lamp anchors.",
+    "Header strip troughs replace the four central underside vents and cut through the retained cassettes.",
     "Amber brow and centre lamps with their sockets and launch caution chevrons are removed; guard rails remain."
   ]
 }
