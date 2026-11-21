@@ -1,6 +1,6 @@
 # Line sheet
 
-The game's companion and enemy lines. This tab exports to one markdown file in the repo, and the game reads its lines from that file. Edit here, then export.
+The game's companion and enemy lines. This tab exports to LineSheet.txt in the repo, and the game reads its lines from that file. Edit here, then export. The export is markdown, but the repo copy is named .txt so that every line change runs the game's tests before it lands.
 
 - Only rows whose Status is "In game" load. "Later" rows wait for a feature the game doesn't have yet, and the Notes cell says which.
 - A blank Faction means any sector.

@@ -1243,6 +1243,9 @@ Format: **term** — definition. *(authority)*
   (owner ruling 2026-11-21, replacing the 2026-11-03 ruling that agents write no
   lines). Edits flow one way, from the doc to the file, so a hand edit to the
   file is lost at the next export. Only rows whose Status is "In game" load.
+  The repo copy is named `.txt`, not `.md`: the merge gate treats every `.md`
+  change as unable to change behavior and lands it with no test run, and a bad
+  row here stops the game at boot (owner ruling 2026-11-21).
   *(LineTable, CompanionLineSheet.LoadLines)*
 - **nag budget** — the companion speaks at most one line per interval; must-say
   line slots skip the wait, and a line that cannot show before it goes stale is
