@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Cameras;
 using Cameras.Shake;
 using Damage;
 using Ships.Damage;
@@ -104,8 +105,9 @@ namespace UI.Projection
             var transitionAge = now - momentAt;
             var glitchAge = now - glitchAt;
             return new CanopyFrame(CanopyStateBlend.Select(low, transitionAge < projection.Profile.bigMomentSeconds),
-                hitAge < .7f ? hitAge : -1f, size, transitionAge < .35f ? transitionAge : -1f,
-                glitchAge < .35f ? glitchAge : -1f, glitchStrength);
+                hitAge < .7f ? hitAge : -1f, size * CameraSettings.ShakeScale,
+                transitionAge < .35f ? transitionAge : -1f,
+                glitchAge < .35f ? glitchAge : -1f, glitchStrength * CameraSettings.ShakeScale);
         }
 
         internal static float LowHullHitAge(float elapsed)
