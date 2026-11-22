@@ -9,10 +9,12 @@ using UnityEditor;
 
 namespace Tests.EditMode.Runs
 {
-    /// <summary>Ship unlocks over a temp run-record file: only an elite the player killed earns its chassis, unreadable lines and a missing file earn nothing, a claim raises one unlock per chassis ever, and the editor switch earns every ship.</summary>
+    /// <summary>Ship unlocks over a temp run-record file: only an elite the player killed earns the ship that chassis maps to, unreadable lines and a missing file earn nothing, a claim raises one unlock per ship ever, and the editor switch earns every ship.</summary>
     [Category("Bootstrap")]
     public class ShipUnlocksEditModeTests
     {
+        private static readonly IReadOnlyDictionary<string, string> EmptyMap = new Dictionary<string, string>();
+
         private string dir;
         private string path;
         private bool hadUnlockAll;
@@ -54,10 +56,10 @@ namespace Tests.EditMode.Runs
         private static string Line(string schema, params SpawnRow[] spawns) =>
             new RunRecord { schema = schema, spawns = new List<SpawnRow>(spawns) }.ToJsonLine();
 
-        private ShipUnlocks Read(params string[] lines)
+        private ShipUnlocks Read(IReadOnlyDictionary<string, string> unlockedByElite, params string[] lines)
         {
             File.WriteAllLines(path, lines);
-            var unlocks = new ShipUnlocks(path);
+            var unlocks = new ShipUnlocks(path, unlockedByElite);
             unlocks.Read();
             return unlocks;
         }
@@ -65,7 +67,7 @@ namespace Tests.EditMode.Runs
         [Test]
         public void Read_EarnsOnlyTheEliteChassisThePlayerKilled()
         {
-            var unlocks = Read(
+            var unlocks = Read(EmptyMap,
                 Line(RunRecord.SchemaId,
                     Spawn("Valis", elite: true, killedByPlayer: true),
                     Spawn("Nightshade", elite: true, killedByPlayer: false),
@@ -79,7 +81,7 @@ namespace Tests.EditMode.Runs
         [Test]
         public void Read_SkipsBlankMalformedAndOtherSchemaLines()
         {
-            var unlocks = Read(
+            var unlocks = Read(EmptyMap,
                 "",
                 "not json",
                 Line("run-record-v1", Spawn("Nightshade", elite: true, killedByPlayer: true)),
@@ -99,7 +101,7 @@ namespace Tests.EditMode.Runs
                 outcome = RunRecord.Abandoned,
                 spawns = new List<SpawnRow> { Spawn("Bulwark", elite: true, killedByPlayer: true) },
             };
-            var unlocks = Read(
+            var unlocks = Read(EmptyMap,
                 Line(RunRecord.SchemaV2, Spawn("Valis", elite: true, killedByPlayer: true)),
                 Line(RunRecord.SchemaId, Spawn("Nightshade", elite: true, killedByPlayer: true)),
                 abandoned.ToJsonLine());
@@ -112,7 +114,7 @@ namespace Tests.EditMode.Runs
         [Test]
         public void Read_MissingFile_EarnsNothing()
         {
-            var unlocks = new ShipUnlocks(path);
+            var unlocks = new ShipUnlocks(path, EmptyMap);
             unlocks.Read();
 
             Assert.IsFalse(unlocks.Earned(ShipAsset("Valis")));
@@ -121,7 +123,7 @@ namespace Tests.EditMode.Runs
         [Test]
         public void Claim_RaisesOneUnlockPerChassis_FirstOfAnyOnlyForTheFirst()
         {
-            var unlocks = new ShipUnlocks(path);
+            var unlocks = new ShipUnlocks(path, EmptyMap);
             unlocks.Read();
             var raised = new List<ShipUnlocked>();
             unlocks.Unlocked += raised.Add;
@@ -145,7 +147,7 @@ namespace Tests.EditMode.Runs
         [Test]
         public void Claim_OfAChassisEarnedFromTheStore_RaisesNothing()
         {
-            var unlocks = Read(Line(RunRecord.SchemaId, Spawn("Valis", elite: true, killedByPlayer: true)));
+            var unlocks = Read(EmptyMap, Line(RunRecord.SchemaId, Spawn("Valis", elite: true, killedByPlayer: true)));
             var raised = new List<ShipUnlocked>();
             unlocks.Unlocked += raised.Add;
 
@@ -155,9 +157,28 @@ namespace Tests.EditMode.Runs
         }
 
         [Test]
+        public void MappedElite_EarnsTheUnlockedShip_AndClaimRaisesIt()
+        {
+            var map = new Dictionary<string, string> { ["ValisElite"] = "Valis" };
+            var fromRecord = Read(map,
+                Line(RunRecord.SchemaId, Spawn("ValisElite", elite: true, killedByPlayer: true)));
+
+            Assert.IsTrue(fromRecord.Earned(ShipAsset("Valis")), "a mapped elite earns the unlocked ship");
+            Assert.IsFalse(fromRecord.Earned(ShipAsset("ValisElite")), "the elite chassis is not the unlock");
+
+            var claimed = new ShipUnlocks(Path.Combine(dir, "claim.jsonl"), map);
+            var raised = new List<ShipUnlocked>();
+            claimed.Unlocked += raised.Add;
+            claimed.Claim(new SpawnLog.EliteKill(0, "shoal", "ValisElite"));
+
+            Assert.AreEqual(1, raised.Count, "the claim raises one unlock");
+            Assert.AreEqual("Valis", raised[0].Chassis);
+        }
+
+        [Test]
         public void UnlockAll_EarnsAShipNoRecordEarned()
         {
-            var unlocks = new ShipUnlocks(path);
+            var unlocks = new ShipUnlocks(path, EmptyMap);
             unlocks.Read();
             Assert.IsFalse(unlocks.Earned(ShipAsset("Valis")), "test premise: nothing earned");
 

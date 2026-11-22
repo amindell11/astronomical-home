@@ -36,6 +36,8 @@ namespace Substrate.Sectors.Factions
 
         [Stat] public FactionElite elite;
 
+        [Tooltip("The player ship killing this faction's elite unlocks.")] public Ship unlocks;
+
         [Header("Skin")]
         [Tooltip("Thrust flame every faction ship wears. Unset → today's flame.")]
         public Material flame;
@@ -56,6 +58,15 @@ namespace Substrate.Sectors.Factions
             {
                 Require(elite.ship, "elite ship");
                 return elite.ship;
+            }
+        }
+
+        public Ship Unlocks
+        {
+            get
+            {
+                Require(unlocks, "unlocked ship");
+                return unlocks;
             }
         }
 

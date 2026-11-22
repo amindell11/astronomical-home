@@ -135,6 +135,27 @@ namespace Tests.EditMode.Factions
             }
         }
 
+        [Test]
+        public void EachFaction_UnlocksAShipThePlayerLoadoutOffers_AndShoalUnlocksValis()
+        {
+            const string offerPath = "Assets/Settings/Ships/PlayerLoadout.asset";
+            var offer = AssetDatabase.LoadAssetAtPath<ItemSubset>(offerPath);
+            Assert.IsNotNull(offer, $"player loadout missing at {offerPath}");
+            var valis = AssetDatabase.LoadAssetAtPath<Ship>("Assets/Prefabs/Ships/Valis.prefab");
+            Assert.IsNotNull(valis, "Valis prefab loads");
+
+            foreach (var name in new[] { "Shoal", "Bastion", "Veil" })
+            {
+                var path = $"Assets/Settings/Factions/{name}.asset";
+                var faction = AssetDatabase.LoadAssetAtPath<Faction>(path);
+                Assert.IsNotNull(faction, $"faction missing at {path}");
+                var unlocked = faction.Unlocks;
+                CollectionAssert.Contains(offer.ships, unlocked, $"{name} unlocks an offered ship");
+                if (name == "Shoal")
+                    Assert.AreSame(valis, unlocked);
+            }
+        }
+
         private static SectorEntry[] Rows()
         {
             var run = AssetDatabase.LoadAssetAtPath<SectorRun>(RunPath);

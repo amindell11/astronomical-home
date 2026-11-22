@@ -599,9 +599,10 @@ Format: **term** — definition. *(authority)*
   director owns it and drives it. *(EliteEncounter, EliteProfile,
   PhaseSpineModule.StepElite)*
 - **unlocked ship** — a ship the hangar lets the player fly: the starter plus
-  every elite chassis the player killed in a died or extracted run record. No save
+  the ship each faction names as its elite's unlock, once a died or extracted run
+  record shows the player killing that elite (ruled on #868, 2026-11-21). No save
   file; a kill counts once that record is written. An abandoned run earns nothing
-  from the file. *(ShipUnlocks, ItemSubset.starter)*
+  from the file. *(ShipUnlocks, Faction.unlocks, ItemSubset.starter)*
 - **station** — a *find* the player flies into. Every kind shares one core:
   the placement, the clearing in the field, the find marker and the arrival
   events. Going dark at the hunt's release is the default. A kind may keep its
