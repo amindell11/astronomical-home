@@ -283,6 +283,31 @@ namespace Tests.EditMode.Ships
         }
 
         [Test]
+        public void RamDash_Hit_RecordsTheContact_OncePerRam()
+        {
+            var ram = NewRam();
+            contact = new GameObject("Ram contact");
+            var collider = contact.AddComponent<BoxCollider>();
+            var kin = Facing(0f);
+            ram.Step(in kin, 1f, Dt, out _);
+            while (ram.Braking)
+                ram.Step(in kin, 0f, Dt, out _);
+
+            var point = new Vector3(3f, 0f, 5f);
+            Assert.That(ram.RamLive, Is.True);
+            Assert.That(ram.Hits, Is.EqualTo(0));
+            ram.OnContact(new KeystoneContact(
+                ShipId.Invalid, 0f, Vector3.zero, collider, null, point, 1f, 0f));
+            Assert.That(ram.Hits, Is.EqualTo(1));
+            Assert.That(ram.LastHitPoint, Is.EqualTo(point));
+
+            ram.OnContact(new KeystoneContact(
+                ShipId.Invalid, 0f, Vector3.zero, collider, null, new Vector3(1f, 2f, 4f), 1f, 0f));
+            Assert.That(ram.Hits, Is.EqualTo(1), "a second contact in the same ram does not count");
+            Assert.That(ram.LastHitPoint, Is.EqualTo(point));
+        }
+
+        [Test]
         public void RamDash_Miss_ShedsSurgeSpeed_ThenKeepsTheFullCooldown()
         {
             var ram = NewRam();
@@ -620,6 +645,15 @@ namespace Tests.EditMode.Ships
             Assert.That(guard.Window, Is.EqualTo(0.4f));
             Assert.That(guard.GetComponent<KeystoneFlash>(), Is.Not.Null, "the kit carries its tell");
             Assert.That(guard.GetComponent<KeystoneFlipbook>(), Is.Not.Null, "the kit carries its dash flipbook");
+        }
+
+        [Test]
+        public void Bulwark_CarriesItsRamFlipbook()
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<ItemCatalog>(ItemCatalog.AssetPath);
+            var ram = catalog.Chassis.Single(c => c.name == "Bulwark").KeystonePrefab as RamDash;
+            Assert.That(ram, Is.Not.Null, "Bulwark's kit is the ram");
+            Assert.That(ram.GetComponent<KeystoneFlipbook>(), Is.Not.Null, "the kit carries its ram flipbook");
         }
 
         [TestCase("Vanguard", 9000f, 5f)]
