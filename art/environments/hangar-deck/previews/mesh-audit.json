@@ -2,17 +2,17 @@
   "objects": [
     {
       "name": "Deck | joined closed structure",
-      "vertices": 10386,
-      "triangles": 19496,
+      "vertices": 11174,
+      "triangles": 21040,
       "closed_manifold": true,
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
       "consistent_winding": true,
       "degenerate_faces": 0,
-      "tiny_faces_below_1e10": 3,
+      "tiny_faces_below_1e10": 4,
       "minimum_face_area": 3.637978807091713e-12,
-      "signed_volume": 4098.849547422525,
+      "signed_volume": 4098.837449988888,
       "modifiers": [],
       "role": "ConsoleBody"
     },
@@ -322,8 +322,8 @@
     },
     {
       "name": "09 | Projector lens",
-      "vertices": 24,
-      "triangles": 44,
+      "vertices": 960,
+      "triangles": 1916,
       "closed_manifold": true,
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
@@ -331,8 +331,8 @@
       "consistent_winding": true,
       "degenerate_faces": 0,
       "tiny_faces_below_1e10": 0,
-      "minimum_face_area": 0.0027823045384138823,
-      "signed_volume": 0.013867500521358168,
+      "minimum_face_area": 1.8878374248743057e-05,
+      "signed_volume": 0.013892140591462186,
       "modifiers": [],
       "role": "ProjectorLens"
     },
@@ -446,7 +446,7 @@
       "minimum_face_area": 0.000742462114430964,
       "signed_volume": 0.0006465000375807293,
       "modifiers": [],
-      "role": "ConsoleBody"
+      "role": "LaunchLampLeft"
     },
     {
       "name": "Deck | Right Launch armed red lens",
@@ -462,7 +462,7 @@
       "minimum_face_area": 0.000742462114430964,
       "signed_volume": 0.0006465000375807293,
       "modifiers": [],
-      "role": "ConsoleBody"
+      "role": "LaunchLampRight"
     },
     {
       "name": "Deck | Header downlight 01 cold white lens",
@@ -716,7 +716,7 @@
     },
     {
       "name": "Deck | Left Launch armed red lens",
-      "role": "ConsoleBody",
+      "role": "LaunchLampLeft",
       "pixel": [
         787.9847717285156,
         1002.90244191885
@@ -724,7 +724,7 @@
     },
     {
       "name": "Deck | Right Launch armed red lens",
-      "role": "ConsoleBody",
+      "role": "LaunchLampRight",
       "pixel": [
         1132.0152282714844,
         1002.90244191885
@@ -1315,7 +1315,7 @@
       ]
     }
   ],
-  "total_triangles": 20880,
+  "total_triangles": 24296,
   "camera": {
     "position": [
       0.0,
@@ -1406,7 +1406,7 @@
       "closed_manifold": true
     }
   ],
-  "scene_total_triangles": 21229,
+  "scene_total_triangles": 24645,
   "positive_volume_intersections": [],
   "pressed_intersections": [],
   "press_travel": [

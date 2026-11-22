@@ -16,7 +16,7 @@ Shader "Hidden/UI/CanopyProjection"
         float2 _Resolution;
         // xy: the pixels the image shows at on screen; zw: that screen's size.
         float4 _Screen;
-        float _Decay, _Clock, _PersonalityEnabled, _AppearAge, _TransitionAge, _HitAge, _HitSize;
+        float _Decay, _Clock, _PersonalityEnabled, _AppearAge, _TransitionAge, _HitAge, _HitSize, _GlitchAge, _GlitchStrength;
         float4 _Beam, _Phosphor, _Glass;
         float4 _Halo, _Bleed, _CoolTint, _HaloTexel;
 
@@ -130,10 +130,13 @@ Shader "Hidden/UI/CanopyProjection"
                 float kick = _HitAge >= 0.0 && _HitAge < .7 ? damageShudder * _HitSize * exp(-_HitAge * 7.0) : 0.0;
                 float2 shudder = float2(sin(_HitAge * 71.0), sin(_HitAge * 53.0) * .65) * kick;
                 p -= shudder / _Screen.xy;
-                if (_TransitionAge >= 0.0 && _TransitionAge < .35)
+                bool transitionTear = _TransitionAge >= 0.0 && _TransitionAge < .35;
+                float tearAge = transitionTear ? _TransitionAge : _GlitchAge;
+                float tearStrength = transitionTear ? 1.0 : _GlitchStrength;
+                if (tearAge >= 0.0 && tearAge < .35)
                 {
-                    float tear = step(.75, Hash(float2(floor(p.y * 18.0), floor(_TransitionAge * 9.0))));
-                    p.x += tear * sin(_TransitionAge * 39.0) * transitionGlitch * .025 * (1.0 - _TransitionAge / .35);
+                    float tear = step(.75, Hash(float2(floor(p.y * 18.0), floor(tearAge * 9.0))));
+                    p.x += tear * sin(tearAge * 39.0) * transitionGlitch * .025 * (1.0 - tearAge / .35) * tearStrength;
                 }
             }
             float3 light = Ink(p);

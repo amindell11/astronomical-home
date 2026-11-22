@@ -1,0 +1,142 @@
+using System.Collections.Generic;
+using UnityEngine;
+using Object = UnityEngine.Object;
+
+namespace Cameras.Shake
+{
+    public sealed class ShakeLayers
+    {
+        private readonly List<Layer> layers = new();
+        private int issued;
+
+        public int Count => layers.Count;
+
+        public void Start(Object source, CameraShakeProfile profile, Vector2 direction, float now)
+        {
+            var layer = Find(source);
+            if (layer == null)
+            {
+                layer = new Layer();
+                layers.Add(layer);
+            }
+
+            layer.source = source;
+            layer.profile = profile;
+            layer.direction = direction.normalized;
+            layer.start = now;
+            layer.released = false;
+            layer.scale = 1f;
+            // Noise channels 0 to 2 belong to ObserverCam's trauma shake.
+            layer.channel = issued * 3 + 3;
+            issued++;
+        }
+
+        // Restarts only when this shake is at least as strong as the running one.
+        public void StartStronger(Object source, CameraShakeProfile profile, Vector2 direction, float strength, float now)
+        {
+            var layer = Find(source);
+            if (layer != null)
+            {
+                var t = layer.EnvelopeTime(now);
+                // A layer still rising is judged by the peak it is about to reach.
+                var judgedAt = Mathf.Max(t, PeakTime(layer.profile.envelope));
+                if (!Ended(layer, t) && strength < Amplitude(layer, judgedAt))
+                    return;
+            }
+
+            Start(source, profile, direction, now);
+            Scale(source, strength);
+        }
+
+        public void Release(Object source, float now)
+        {
+            var layer = Find(source);
+            if (layer == null || layer.released) return;
+            layer.released = true;
+            layer.releaseAt = now;
+        }
+
+        public void Scale(Object source, float strength)
+        {
+            var layer = Find(source);
+            if (layer == null) return;
+            layer.scale = Mathf.Clamp01(strength);
+        }
+
+        public void Clear() => layers.Clear();
+
+        public void Sample(float now, float halfHeight, out Vector2 offset, out float roll)
+        {
+            offset = Vector2.zero;
+            roll = 0f;
+            for (var i = layers.Count - 1; i >= 0; i--)
+            {
+                var layer = layers[i];
+                var t = layer.EnvelopeTime(now);
+                if (Ended(layer, t))
+                {
+                    layers.RemoveAt(i);
+                    continue;
+                }
+
+                var e = Amplitude(layer, t);
+                var frequency = layer.profile.frequency;
+                var channel = layer.channel;
+                offset += new Vector2(CameraUtils.ShakeNoise(channel, now, frequency),
+                    CameraUtils.ShakeNoise(channel + 1, now, frequency)) * (e * layer.profile.jitter * halfHeight);
+                offset += layer.direction * (e * layer.profile.kick * halfHeight);
+                roll += CameraUtils.ShakeNoise(channel + 2, now, frequency) * e * layer.profile.roll;
+            }
+        }
+
+        private Layer Find(Object source)
+        {
+            foreach (var layer in layers)
+                if (ReferenceEquals(layer.source, source))
+                    return layer;
+            return null;
+        }
+
+        private static bool Ended(Layer layer, float envelopeTime) =>
+            envelopeTime > layer.profile.Length && (layer.profile.sustainAt < 0f || layer.released);
+
+        private static float Amplitude(Layer layer, float envelopeTime) =>
+            Mathf.Clamp01(layer.profile.envelope.Evaluate(envelopeTime)) * layer.scale;
+
+        private static float PeakTime(AnimationCurve envelope)
+        {
+            var peakTime = 0f;
+            var peak = float.NegativeInfinity;
+            for (var i = 0; i < envelope.length; i++)
+            {
+                var key = envelope[i];
+                if (key.value <= peak) continue;
+                peak = key.value;
+                peakTime = key.time;
+            }
+            return peakTime;
+        }
+
+        private sealed class Layer
+        {
+            public Object source;
+            public CameraShakeProfile profile;
+            public Vector2 direction;
+            public float start;
+            public bool released;
+            public float releaseAt;
+            public int channel;
+            public float scale = 1f;
+
+            public float EnvelopeTime(float now)
+            {
+                var elapsed = now - start;
+                if (profile.sustainAt < 0f)
+                    return elapsed;
+                if (!released)
+                    return Mathf.Min(elapsed, profile.sustainAt);
+                return Mathf.Min(releaseAt - start, profile.sustainAt) + (now - releaseAt);
+            }
+        }
+    }
+}

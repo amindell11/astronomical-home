@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using Cameras.Shake;
 using Damage;
 using Ships.Command;
 using Ships.Damage;
 using Ships.Registry;
 using UnityEngine;
 using Substrate;
+using Object = UnityEngine.Object;
 
 namespace Cameras
 {
@@ -14,7 +16,7 @@ namespace Cameras
     /// unless the player chose the manual camera (<see cref="CameraSettings"/>).
     /// Fits all active ships when unlocked or without a subject.
     /// Manual framing remains available after the last ship deactivates.
-    /// Shakes its view on the subject's hits and death without moving its transform.
+    /// Shakes its view on the subject's hits, death, own shakes and nearby blasts without moving its transform.
     /// </summary>
     public class ObserverCam : SmoothCamera
     {
@@ -41,6 +43,8 @@ namespace Cameras
         private Rigidbody leadBody;
         private IShipStatus hull;
         private IDamageEvents damage;
+        private ShakeChannel shake;
+        private readonly ShakeLayers layers = new();
         private float trauma;
         private Vector2 lead;
         private Vector2 leadVelocity;
@@ -79,18 +83,21 @@ namespace Cameras
             byDistanceFromSubject = CompareDistanceFromSubject;
         }
 
+        private void OnEnable() => ShakeListener.Register(this);
+
         // A disabled camera must neither freeze a shaken frame nor resume a stale shake.
         private void OnDisable()
         {
+            ShakeListener.Unregister(this);
             trauma = 0f;
+            layers.Clear();
             Cam.ResetWorldToCameraMatrix();
         }
 
         private void OnDestroy()
         {
-            if (damage == null) return;
-            damage.OnDamaged -= OnSubjectDamaged;
-            damage.OnDeath -= OnSubjectDeath;
+            BindDamage(null);
+            BindShake(null);
         }
 
         protected override void Update()
@@ -103,13 +110,23 @@ namespace Cameras
         {
             trauma = Mathf.Max(0f, trauma - feel.traumaDecay * Time.unscaledDeltaTime);
             Cam.ResetWorldToCameraMatrix();
-            if (trauma <= 0f) return;
-            var amount = Mathf.Pow(trauma, feel.shakeExponent);
             var time = Time.unscaledTime;
+            var amount = Mathf.Pow(trauma, feel.shakeExponent);
             var reach = amount * feel.maxShakeOffset * Cam.orthographicSize;
             var offset = new Vector2(CameraUtils.ShakeNoise(0, time, feel.shakeFrequency),
                 CameraUtils.ShakeNoise(1, time, feel.shakeFrequency)) * reach;
             var roll = CameraUtils.ShakeNoise(2, time, feel.shakeFrequency) * amount * feel.maxShakeRoll;
+            layers.Sample(time, Cam.orthographicSize, out var shakeOffset, out var shakeRoll);
+            // A stopped clock freezes the kits holding shakes, so their layers would rumble under the pause.
+            if (Time.timeScale > 0f)
+            {
+                offset += shakeOffset;
+                roll += shakeRoll;
+            }
+            CameraUtils.CapShake(ref offset, ref roll, feel.shakeOffsetCap * Cam.orthographicSize, feel.shakeRollCap);
+            offset *= CameraSettings.ShakeScale;
+            roll *= CameraSettings.ShakeScale;
+            if (offset == Vector2.zero && roll == 0f) return;
             // The view matrix carries the shake, so follow smoothing, children and listeners never see it.
             Cam.worldToCameraMatrix = CameraUtils.ShakenView(Cam.worldToCameraMatrix, offset, roll);
         }
@@ -118,6 +135,26 @@ namespace Cameras
             trauma = Mathf.Clamp01(trauma + hit.HitSize(damage.Health.MaxValue) * feel.traumaPerHit);
 
         private void OnSubjectDeath(ShipId victim, DamageInfo blow) => trauma = Mathf.Clamp01(trauma + feel.deathTrauma);
+
+        private void OnShakeRaised(Object source, CameraShakeProfile profile, Vector2 direction) =>
+            layers.Start(source, profile, direction, Time.unscaledTime);
+
+        private void OnShakeReleased(Object source) => layers.Release(source, Time.unscaledTime);
+
+        private void OnShakeScaled(Object source, float strength) => layers.Scale(source, strength);
+
+        public void Hear(Vector3 position, CameraShakeProfile profile, float size)
+        {
+            var reference = GamePlane.WorldPointToPlane(subject ? subject.position : transform.position);
+            var blast = GamePlane.WorldPointToPlane(position);
+            var distance = Vector2.Distance(reference, blast);
+            var strength = CameraUtils.BlastStrength(
+                distance, profile.innerRadius, profile.outerRadius, size, profile.fullSize);
+            if (strength <= 0f)
+                return;
+            var direction = reference - blast;
+            layers.StartStronger(profile, profile, direction, strength, Time.unscaledTime);
+        }
 
         protected override void ComputeDesiredCameraState(out Vector2? desiredCenter, out float? desiredSize)
         {
@@ -278,6 +315,7 @@ namespace Cameras
 
         internal FlightCameraProfile Feel => feel;
         internal float Trauma => trauma;
+        internal int ShakeLayerCount => layers.Count;
         internal Vector2 VelocityLead => lead;
         internal Vector2 CursorLead => cursorLead;
         internal Vector2 FightShift => fightShift;
@@ -307,18 +345,25 @@ namespace Cameras
 
         public void SetLockCameraToSubject(bool value) => lockCameraToSubject = value;
         public void SetLockZoomToSubject(bool value) => lockZoomToSubject = value;
-        public void SetSubject(Transform newSubject, Rigidbody newLeadBody = null, bool removeOldSubject = true, IShipStatus newHull = null, IDamageEvents newDamage = null)
+        public void SetSubject(Transform newSubject, Rigidbody newLeadBody = null, bool removeOldSubject = true,
+            IShipStatus newHull = null, IDamageEvents newDamage = null, ShakeChannel newShake = null)
         {
             if (subject && removeOldSubject)
                 secondarySubjects.Remove(subject);
-            
+
             subject = newSubject;
             leadBody = newLeadBody;
             hull = newHull;
-            
+
             if (newSubject)
                 secondarySubjects.Add(newSubject);
 
+            BindDamage(newDamage);
+            BindShake(newShake);
+        }
+
+        private void BindDamage(IDamageEvents newDamage)
+        {
             if (ReferenceEquals(damage, newDamage)) return;
             if (damage != null)
             {
@@ -332,6 +377,25 @@ namespace Cameras
                 damage.OnDeath += OnSubjectDeath;
             }
         }
+
+        private void BindShake(ShakeChannel newShake)
+        {
+            if (ReferenceEquals(shake, newShake)) return;
+            if (shake != null)
+            {
+                shake.Raised -= OnShakeRaised;
+                shake.Released -= OnShakeReleased;
+                shake.Scaled -= OnShakeScaled;
+            }
+            shake = newShake;
+            if (shake != null)
+            {
+                shake.Raised += OnShakeRaised;
+                shake.Released += OnShakeReleased;
+                shake.Scaled += OnShakeScaled;
+            }
+        }
+
         public void AddSecondarySubject(Transform target)
         {
             if (target) secondarySubjects.Add(target);

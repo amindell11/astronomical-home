@@ -17,7 +17,7 @@ MonoBehaviour:
   color: {r: 0.659, g: 0.965, b: 0.231, a: 1}
   signature:
     ship: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637, type: 3}
-    kit: {fileID: -8301958025146036882, guid: a8d8040d4d414a15a9db015021e2bed2, type: 3}
+    kit: {fileID: 1432079758992853230, guid: 2dd56855a044420b811fc73ba1ea2191, type: 3}
     pilot: {fileID: 8419346158697591979, guid: 6e675e9e307831549aeef872be12f6ac, type: 3}
     hull:
     - {fileID: 2100000, guid: 62edce561b5043bd9598564fdc1aac23, type: 2}

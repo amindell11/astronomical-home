@@ -108,5 +108,21 @@ namespace Cameras
             Matrix4x4.Rotate(Quaternion.Euler(0f, 0f, -rollDegrees))
             * Matrix4x4.Translate(new Vector3(-offset.x, -offset.y, 0f))
             * view;
+
+        public static void CapShake(ref Vector2 offset, ref float roll, float maxOffset, float maxRoll)
+        {
+            offset = Vector2.ClampMagnitude(offset, maxOffset);
+            roll = Mathf.Clamp(roll, -maxRoll, maxRoll);
+        }
+
+        public static float BlastStrength(float distance, float innerRadius, float outerRadius, float size, float fullSize)
+        {
+            var scale = fullSize > 0f ? Mathf.Clamp01(size / fullSize) : 1f;
+            var inner = innerRadius * scale;
+            var outer = outerRadius * scale;
+            if (distance <= inner) return scale;
+            if (distance >= outer) return 0f;
+            return scale * (1f - Mathf.InverseLerp(inner, outer, distance));
+        }
     }
 }

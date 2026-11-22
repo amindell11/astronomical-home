@@ -112,12 +112,32 @@
     },
     {
       "name": "ProjectorLens",
-      "vertices": 24,
-      "triangles": 44,
+      "vertices": 960,
+      "triangles": 1916,
       "pivot": [
         0.0,
         0.0,
         2.4800000190734863
+      ]
+    },
+    {
+      "name": "LaunchLampLeft",
+      "vertices": 16,
+      "triangles": 28,
+      "pivot": [
+        -1.4299999475479126,
+        -3.8765933513641357,
+        1.277544617652893
+      ]
+    },
+    {
+      "name": "LaunchLampRight",
+      "vertices": 16,
+      "triangles": 28,
+      "pivot": [
+        1.4299999475479126,
+        -3.8765933513641357,
+        1.277544617652893
       ]
     },
     {
@@ -222,8 +242,8 @@
     },
     {
       "name": "ConsoleBody",
-      "vertices": 10546,
-      "triangles": 19776,
+      "vertices": 11302,
+      "triangles": 21264,
       "pivot": [
         0.0,
         0.0,

@@ -141,7 +141,7 @@ namespace Game
 
                 Overlay = Instantiate(overlayPrefab, uiRoot);
                 personality = CanopyPersonality.Create(gameObject, objectives, projection, () => Overlay.IsVisible);
-                personality.Initialize(Player.Damage);
+                personality.Initialize(Player.Damage, Player.Shake);
                 projection.Initialize(observer.Cam, personality.Observe);
                 Overlay.ConfigureCameras(uiCam, observer.Cam, projection);
                 Overlay.Initialize(BuildHudBinding());
@@ -305,7 +305,7 @@ namespace Game
 
             if (!observer) return;
 
-            observer.SetSubject(Player.transform, Player.Rigidbody, newHull: Player, newDamage: Player.Damage);
+            observer.SetSubject(Player.transform, Player.Rigidbody, newHull: Player, newDamage: Player.Damage, newShake: Player.Shake);
             var screenCommander = Player.Commander as PlayerCommander;
             if (screenCommander)
                 screenCommander.SetScreenToGamePlane(pos =>
@@ -318,7 +318,7 @@ namespace Game
         // their old source).
         private void RebindHud()
         {
-            if (personality) personality.Initialize(Player.Damage);
+            if (personality) personality.Initialize(Player.Damage, Player.Shake);
             if (Overlay)
                 Overlay.Initialize(BuildHudBinding());
         }
