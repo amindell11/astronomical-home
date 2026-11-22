@@ -82,17 +82,17 @@ namespace Tests.EditMode.Companion
 
             moments.Raise(new SectorEntered(2, "veil"));
 
-            Assert.AreEqual("veil space", display.Line);
+            Assert.AreEqual("Companion: veil space", display.Line);
         }
 
         [Test]
-        public void BlankSpeaker_LeavesTheLineUnchanged()
+        public void BlankSpeaker_TagsTheLineAsTheCompanion()
         {
             BuildVoice(false, "", SectorEntered.SectorSlot, true, "in sector {sector}");
 
             moments.Raise(new SectorEntered(3, ""));
 
-            Assert.AreEqual("in sector 3", display.Line);
+            Assert.AreEqual("Companion: in sector 3", display.Line);
         }
 
         [Test]

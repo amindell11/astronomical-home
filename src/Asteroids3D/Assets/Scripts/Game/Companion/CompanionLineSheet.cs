@@ -42,6 +42,7 @@ namespace Game.Companion
 
         public string Moment => moment;
         public string Speaker => speaker;
+        public string SpokenBy => string.IsNullOrWhiteSpace(speaker) ? LineTable.CompanionSpeaker : speaker;
         public bool MustSay => mustSay;
     }
 }

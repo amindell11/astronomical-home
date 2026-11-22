@@ -113,11 +113,11 @@ namespace Tests.PlayMode.Companion
 
             moments.Raise(FirstRun());
             Assert.IsTrue(display.Speaking, "the debug label shows like a line");
-            Assert.AreEqual("[run-start.first-launch] clone 1", display.Line);
+            Assert.AreEqual("Companion: [run-start.first-launch] clone 1", display.Line);
 
             moments.Raise(new PlayerDied(2, DamageKind.Missile));
             yield return null;
-            Assert.AreEqual("[run-start.first-launch] clone 1", display.Line,
+            Assert.AreEqual("Companion: [run-start.first-launch] clone 1", display.Line,
                 "a plain slot's label waits out the nag budget like a plain line");
         }
 
@@ -129,7 +129,7 @@ namespace Tests.PlayMode.Companion
             moments.Raise(FirstRun());
 
             Assert.IsTrue(display.Speaking, "the line shows in the frame the moment is raised");
-            Assert.AreEqual("clone 1", display.Line);
+            Assert.AreEqual("Companion: clone 1", display.Line);
             yield return null;
             Assert.IsTrue(display.Speaking, "the line holds");
         }
@@ -142,11 +142,11 @@ namespace Tests.PlayMode.Companion
 
             moments.Raise(FirstRun());
             moments.Raise(new PlayerDied(1, DamageKind.Laser));
-            Assert.AreEqual("clone 1", display.Line, "the plain line does not replace the spoken one");
+            Assert.AreEqual("Companion: clone 1", display.Line, "the plain line does not replace the spoken one");
 
             for (var i = 0; i < 5; i++)
                 yield return null;
-            Assert.AreEqual("clone 1", display.Line, "the dropped line never shows");
+            Assert.AreEqual("Companion: clone 1", display.Line, "the dropped line never shows");
         }
 
         [UnityTest]

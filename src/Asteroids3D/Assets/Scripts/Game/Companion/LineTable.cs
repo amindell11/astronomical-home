@@ -75,7 +75,7 @@ namespace Game.Companion
                     throw new FormatException($"Line '{id}' names moment '{moment}', which has no line slot.");
 
                 var speaker = cells[speakerColumn];
-                var slotSpeaker = string.IsNullOrWhiteSpace(slot.Speaker) ? CompanionSpeaker : slot.Speaker;
+                var slotSpeaker = slot.SpokenBy;
                 if (speaker != slotSpeaker)
                     throw new FormatException(
                         $"Line '{id}' is spoken by '{speaker}', but the '{moment}' line slot speaks as '{slotSpeaker}'.");
