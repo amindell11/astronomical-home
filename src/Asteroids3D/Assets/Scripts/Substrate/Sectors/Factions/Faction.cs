@@ -36,7 +36,8 @@ namespace Substrate.Sectors.Factions
 
         [Stat] public FactionElite elite;
 
-        [Tooltip("The player ship killing this faction's elite unlocks.")] public Ship unlocks;
+        [Tooltip("The player ship killing this faction's elite unlocks.")]
+        public Ship unlocks;
 
         [Header("Skin")]
         [Tooltip("Thrust flame every faction ship wears. Unset → today's flame.")]

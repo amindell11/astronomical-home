@@ -205,10 +205,7 @@ namespace Game
             foreach (var row in sessionProfile.run.Sectors)
             {
                 var faction = row.faction;
-                if (!faction) continue;
-                var elite = faction.EliteShip.name;
-                if (unlockedByElite.ContainsKey(elite)) continue;
-                unlockedByElite.Add(elite, faction.Unlocks.name);
+                if (faction) unlockedByElite.TryAdd(faction.EliteShip.name, faction.Unlocks.name);
             }
             unlocks = new ShipUnlocks(runRecords.Path, unlockedByElite);
 

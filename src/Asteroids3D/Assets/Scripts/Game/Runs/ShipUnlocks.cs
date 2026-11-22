@@ -8,7 +8,7 @@ namespace Game.Runs
     /// <summary>
     /// Which ships the player has earned: every faction ship a record shows the player killing as an
     /// elite earns that faction's unlocked ship. There is no save file; the store is the record. An
-    /// abandoned record earns nothing. <see cref="Unlocked"/> fires at the kill itself, once per chassis
+    /// abandoned record earns nothing. <see cref="Unlocked"/> fires at the kill itself, once per ship
     /// ever. In the editor, <see cref="UnlockAllPref"/> earns every ship without touching the store.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1318
     /// </summary>
