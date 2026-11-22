@@ -20,11 +20,12 @@ using UnityEngine;
 namespace Substrate.Sectors.Elements
 {
     /// <summary>
-    /// Sends a rival leading minions on each sector phase's wave-every beat, trimmed to the wave cap,
-    /// which counts the hunt's live patrols. The rival takes the arc's centre slot, or arrives concealed
-    /// ahead of the hero when its temper ambushes and that point is clear, and the minions take the
-    /// slots either side, each following the rival at its place. Every wave ship hunts the hero by sight.
-    /// A wave with no room is dropped. A phase opens with one.
+    /// Sends a rival leading minions on each sector phase's wave-every beat. The rival comes while live
+    /// rivals sit under the row's rival cap; the minions are trimmed to the minion cap, which counts the
+    /// hunt's live patrols. The rival takes the arc's centre slot, or arrives concealed ahead of the hero
+    /// when its temper ambushes and that point is clear, and the minions take the slots either side, each
+    /// following the rival at its place; with no room for a rival, the minions come alone.
+    /// Every wave ship hunts the hero by sight. A wave with no room is dropped. A phase opens with one.
     /// Nothing arrives in a lull, or once the table is done when an elite follows it. With an elite, a
     /// closing lull follows the last phase; without one, the done table keeps the last phase's waves.
     /// It begins its elite, summons it on the tick the table is done, and ends it at teardown.
@@ -63,10 +64,12 @@ namespace Substrate.Sectors.Elements
         [SerializeField] private float ambushSpawnAhead = 25f;
 
         private readonly List<Ship> products = new();
+        private readonly HashSet<Ship> rivals = new();
         private readonly HashSet<Ship> jumped = new();
         private readonly List<Action> jumpHandlers = new();
         private SectorPhase[] phases = Array.Empty<SectorPhase>();
-        private int waveCap;
+        private int rivalCap;
+        private int minionCap;
         private IUnitService units;
         private IObstacleField field;
         private Ship hero;
@@ -111,9 +114,12 @@ namespace Substrate.Sectors.Elements
             if (row.phases.Length == 0)
                 throw new InvalidOperationException(
                     $"WaveDirector on '{name}' reads the row's phases, and the row has none.");
-            if (row.waveCap < 1)
+            if (row.rivalCap < 1)
                 throw new InvalidOperationException(
-                    $"WaveDirector on '{name}' reads the row's wave cap, and the row asks for {row.waveCap}.");
+                    $"WaveDirector on '{name}' reads the row's rival cap, and the row asks for {row.rivalCap}.");
+            if (row.minionCap < 0)
+                throw new InvalidOperationException(
+                    $"WaveDirector on '{name}' reads the row's minion cap, and the row asks for {row.minionCap}.");
             for (var i = 0; i < row.phases.Length; i++)
             {
                 var phase = row.phases[i];
@@ -140,9 +146,11 @@ namespace Substrate.Sectors.Elements
             products.Clear();
             jumped.Clear();
             jumpHandlers.Clear();
+            rivals.Clear();
             Spawned = products;
             phases = ctx.Row.phases;
-            waveCap = ctx.Row.waveCap;
+            rivalCap = ctx.Row.rivalCap;
+            minionCap = ctx.Row.minionCap;
 
             if (!ctx.Hero)
             {
@@ -170,6 +178,7 @@ namespace Substrate.Sectors.Elements
             var teardown = base.OnTeardown(ctx);
             while (teardown.MoveNext()) yield return teardown.Current;
             products.Clear();
+            rivals.Clear();
             units = null;
             field = null;
         }
@@ -195,15 +204,20 @@ namespace Substrate.Sectors.Elements
             var minions = WaveDue(now);
             if (minions != null)
             {
-                var count = Room(1 + minions.Value, Alive);
-                if (count == 0 || TrySend(count)) Arrived(now);
+                var rival = RivalRoom(rivals.Count);
+                var count = MinionRoom(minions.Value, AliveMinions);
+                if ((!rival && count == 0) || TrySend(rival, count)) Arrived(now);
             }
             Observe(now, Alive);
         }
 
         internal int Alive => products.Count + (hunt ? hunt.LivePatrols : 0);
 
-        internal int Room(int waveSize, int alive) => Mathf.Clamp(waveCap - alive, 0, waveSize);
+        private int AliveMinions => Alive - rivals.Count;
+
+        internal bool RivalRoom(int aliveRivals) => aliveRivals < rivalCap;
+
+        internal int MinionRoom(int minions, int aliveMinions) => Mathf.Clamp(minionCap - aliveMinions, 0, minions);
 
         private void BuildSchedule()
         {
@@ -329,6 +343,7 @@ namespace Substrate.Sectors.Elements
                 if (ship) ship.JumpRequested -= jumpHandlers[i];
                 jumpHandlers.RemoveAt(i);
                 jumped.Remove(ship);
+                rivals.Remove(ship);
                 if (ship) units.DespawnShip(ship);
                 products.RemoveAt(i);
             }
@@ -342,9 +357,10 @@ namespace Substrate.Sectors.Elements
             products.Add(ship);
         }
 
-        private bool TrySend(int count)
+        private bool TrySend(bool withRival, int minions)
         {
             var center = GamePlane.WorldPointToPlane(hero.transform.position);
+            var count = minions + (withRival ? 1 : 0);
             for (var attempt = 0; attempt < placementAttempts; attempt++)
             {
                 var bearing = UnityEngine.Random.Range(0f, 2f * Mathf.PI);
@@ -352,11 +368,11 @@ namespace Substrate.Sectors.Elements
                 if (Array.Exists(slots, slot => !ClearPoint.IsClear(field, slot, clearanceRadius)))
                     continue;
 
-                var centreIndex = (count - 1) / 2;
+                var centreIndex = withRival ? (count - 1) / 2 : -1;
                 var rivalRank = faction.Faction.Rival;
                 var minionRank = faction.Faction.Minion;
                 Ship rival = null;
-                if (rivalAmbushes)
+                if (withRival && rivalAmbushes)
                 {
                     var ahead = center + hero.Kinematics.Forward * ambushSpawnAhead;
                     if (ClearPoint.IsClear(field, ahead, clearanceRadius))
@@ -372,12 +388,16 @@ namespace Substrate.Sectors.Elements
                     if (i != centreIndex) spawned[i] = Spawn(minionRank, slots[i], center);
                     else spawned[i] = rival ? rival : Spawn(rivalRank, slots[i], center);
                 }
-                rival = spawned[centreIndex];
+                if (withRival)
+                {
+                    rival = spawned[centreIndex];
+                    rivals.Add(rival);
+                }
 
                 for (var i = 0; i < count; i++)
                 {
                     var commander = (AICommander)spawned[i].Commander;
-                    if (i != centreIndex)
+                    if (rival && i != centreIndex)
                         commander.FollowLeader(rival, i - centreIndex);
                     commander.HuntBySight(hero);
                 }
@@ -418,13 +438,14 @@ namespace Substrate.Sectors.Elements
 #if UNITY_EDITOR
         internal void Configure(SectorPhase[] phases, float lullSeconds = 5f, float spawnRadius = 55f,
             SectorFaction faction = null, float openingLullSeconds = 0f, SectorHunt hunt = null,
-            EliteEncounter elite = null, float groupSpread = 8f, int waveCap = 5)
+            EliteEncounter elite = null, float groupSpread = 8f, int rivalCap = 1, int minionCap = 4)
         {
             this.hunt = hunt;
             this.elite = elite;
             this.faction = faction;
             this.phases = phases;
-            this.waveCap = waveCap;
+            this.rivalCap = rivalCap;
+            this.minionCap = minionCap;
             this.lullSeconds = lullSeconds;
             this.openingLullSeconds = openingLullSeconds;
             this.spawnRadius = spawnRadius;

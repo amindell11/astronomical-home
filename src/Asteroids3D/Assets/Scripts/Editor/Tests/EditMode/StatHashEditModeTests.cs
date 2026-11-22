@@ -198,9 +198,13 @@ namespace Tests.EditMode
                 StatHash.OfSetting(offer, null, new[] { ScratchRow(PhaseWaveEvery + 1f) }, KillHullRestore),
                 "A pacing number on the row must move the fingerprint.");
             var capped = ScratchRow(PhaseWaveEvery);
-            capped.waveCap = sector.waveCap + 1;
+            capped.minionCap = sector.minionCap + 1;
             Assert.AreNotEqual(baseline, StatHash.OfSetting(offer, null, new[] { capped }, KillHullRestore),
-                "The wave cap must move the fingerprint.");
+                "The minion cap must move the fingerprint.");
+            var rivalCapped = ScratchRow(PhaseWaveEvery);
+            rivalCapped.rivalCap = sector.rivalCap + 1;
+            Assert.AreNotEqual(baseline, StatHash.OfSetting(offer, null, new[] { rivalCapped }, KillHullRestore),
+                "The rival cap must move the fingerprint.");
             Assert.AreNotEqual(baseline, StatHash.OfSetting(offer, null, new[] { sector }, KillHullRestore + 0.05f),
                 "The kill refill must move the fingerprint.");
             Assert.AreNotEqual(baseline,
@@ -281,7 +285,8 @@ namespace Tests.EditMode
             Assert.That(phase, Does.Contain("sendsWaves="));
             Assert.That(phase, Does.Contain("fewestMinions="));
             Assert.That(lines, Has.Member($"sector[0]/row/SectorEntry.patrols={row.patrols}"));
-            Assert.That(lines, Has.Member($"sector[0]/row/SectorEntry.waveCap={row.waveCap}"));
+            Assert.That(lines, Has.Member($"sector[0]/row/SectorEntry.rivalCap={row.rivalCap}"));
+            Assert.That(lines, Has.Member($"sector[0]/row/SectorEntry.minionCap={row.minionCap}"));
             Assert.That(lines, Has.Some.StartsWith($"sector[0]/{director.name}/WaveDirector.lullSeconds="));
             Assert.That(lines, Has.Some.StartsWith(
                 "sector[0]/RepairStationFeel/RepairStationFeelProfile.lullGraceSeconds="));

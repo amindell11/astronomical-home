@@ -93,7 +93,7 @@ namespace Tests.PlayMode
         }
 
         private WaveDirector NewTrial(Ship template, Ship player, out Sector sector, bool sendsWaves = true,
-            int fewest = 0, int most = 0, int waveCap = 5, Commander rivalPilot = null, Commander minionPilot = null,
+            int fewest = 0, int most = 0, int rivalCap = 1, int minionCap = 4, Commander rivalPilot = null, Commander minionPilot = null,
             float? spawnRadius = null, float? groupSpread = null)
         {
             var sectorGO = TrackGO(new GameObject("TrialSector"));
@@ -120,7 +120,8 @@ namespace Tests.PlayMode
             var row = new SectorEntry
             {
                 faction = faction,
-                waveCap = waveCap,
+                rivalCap = rivalCap,
+                minionCap = minionCap,
                 phases = new[]
                 {
                     new SectorPhase
@@ -134,7 +135,7 @@ namespace Tests.PlayMode
                 },
             };
             director.Configure(row.phases, spawnRadius: spawnRadius ?? SpawnRadius, faction: sectorFaction,
-                waveCap: waveCap, groupSpread: groupSpread ?? 8f);
+                rivalCap: rivalCap, minionCap: minionCap, groupSpread: groupSpread ?? 8f);
             sector.SetManifest(null, new SectorSpawner[] { director }, new SectorModule[] { sectorFaction });
             sector.Initialize(_unitService, _objectives, true, default, player, row);
             return director;
@@ -271,21 +272,21 @@ namespace Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator TrimmedToOneShip_SendsOnlyTheRival()
+        public IEnumerator NoMinionRoom_SendsOnlyTheRival()
         {
             var template = NewTemplate();
             var player = _unitService.SpawnShip(template, null, 0, GamePlane.PlanePointToWorld(Vector2.zero),
                 GamePlane.Rotation, null);
             var rivalPilot = TestAssets.LoadTestPilotMpc();
             var minionPilot = TestAssets.Load<AICommander>("Assets/Prefabs/Pilots/AggressorPilot.prefab");
-            var director = NewTrial(template, player, out var sector, fewest: 4, most: 4, waveCap: 1,
+            var director = NewTrial(template, player, out var sector, fewest: 4, most: 4, minionCap: 0,
                 rivalPilot: rivalPilot, minionPilot: minionPilot);
 
             yield return sector.Setup();
             for (var i = 0; i < 10 && director.Spawned.Count == 0; i++)
                 yield return null;
 
-            Assert.AreEqual(1, director.Spawned.Count, "A trim to one ship keeps the rival.");
+            Assert.AreEqual(1, director.Spawned.Count, "With no minion room, the wave is its rival alone.");
             Assert.That(director.Spawned[0].Commander.name, Does.StartWith(rivalPilot.name));
 
             yield return sector.Teardown();
