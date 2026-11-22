@@ -239,7 +239,7 @@ namespace Tests.PlayMode.Presentation.Breakup
         {
             var ship = Spawn("Valis");
             yield return null;
-            var hull = ship.GetComponentInChildren<SkinnedMeshRenderer>();
+            var hull = BreakupHull(ship);
             Kill(ship);
             yield return new WaitForSeconds(1.6f);
             ship.ResetShip();
@@ -267,6 +267,19 @@ namespace Tests.PlayMode.Presentation.Breakup
             Assert.That(Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None), Is.Empty);
         }
 
+        private static (Vector3[] points, Vector2[] uv) Read(MeshFilter filter)
+        {
+            using var data = MeshUtility.AcquireReadOnlyMeshData(filter.sharedMesh);
+            using var positions = new NativeArray<Vector3>(data[0].vertexCount, Allocator.Temp);
+            using var uv = new NativeArray<Vector2>(data[0].vertexCount, Allocator.Temp);
+            data[0].GetVertices(positions);
+            data[0].GetUVs(0, uv);
+            return (positions.Select(filter.transform.TransformPoint).ToArray(), uv.ToArray());
+        }
+
+        private static Transform BreakupHull(Ship ship) =>
+            (Transform)new SerializedObject(ship.GetComponentInChildren<ShipBreakupVisual>()).FindProperty("hull").objectReferenceValue;
+
         private Ship Spawn(string name)
         {
             var prefab = AssetDatabase.LoadAssetAtPath<Ship>("Assets/Prefabs/Ships/" + name + ".prefab");
@@ -282,16 +295,15 @@ namespace Tests.PlayMode.Presentation.Breakup
                 ship.Movement.Drive(new Ships.Command.PilotCommand { thrust = 1f });
                 yield return new WaitForSeconds(sweepSeconds);
             }
-            var hull = ship.GetComponentInChildren<SkinnedMeshRenderer>();
-            var angle = Quaternion.Angle(Quaternion.identity, hull.bones[1].localRotation);
+            var hull = BreakupHull(ship);
+            var wing = hull.GetComponentsInChildren<Transform>().Single(t => t.name == "Upper wing right");
+            var angle = Quaternion.Angle(Quaternion.identity, wing.localRotation);
             if (sweepSeconds == 0f) Assert.That(angle, Is.EqualTo(20f).Within(.05f));
             else if (sweepSeconds >= .5f) Assert.That(angle, Is.LessThan(.05f));
             else Assert.That(angle, Is.InRange(2f, 18f));
-            var baked = new Mesh();
-            hull.BakeMesh(baked, true);
-            var before = baked.vertices.Select(hull.transform.TransformPoint).ToArray();
-            Object.DestroyImmediate(baked);
-            var materials = hull.sharedMaterials;
+            var surfaces = hull.GetComponentsInChildren<MeshFilter>();
+            var before = surfaces.SelectMany(s => Read(s).points).ToArray();
+            var materials = surfaces.SelectMany(s => s.GetComponent<Renderer>().sharedMaterials).Distinct().ToArray();
             var velocity = new Vector3(.7f, -.3f, 0f);
             ship.Rigidbody.linearVelocity = velocity;
             Kill(ship);
@@ -303,18 +315,20 @@ namespace Tests.PlayMode.Presentation.Breakup
             Assert.That(effects[0].name, Does.StartWith("LayeredAsteroidExplosion"));
             var pieces = debris.GetComponentsInChildren<MeshFilter>();
             Assert.That(pieces, Has.Length.EqualTo(14));
-            var after = pieces.SelectMany(p => p.sharedMesh.vertices.Select(p.transform.TransformPoint)).ToArray();
+            var after = pieces.SelectMany(p => Read(p).points).ToArray();
             AssertGeometry(before, after);
-            var fuselageMaterials = (Material[])materials.Clone();
             var canopy = AssetDatabase.LoadAssetAtPath<Material>(
                 "Assets/Visuals/Ships/Valis/Canopy/jade-iris debris.mat");
-            Assert.That(canopy.parent, Is.EqualTo(materials[5]));
-            fuselageMaterials[5] = canopy;
+            var glass = materials.Single(m => m.shader.name == "Astronomical/Drawn/Canopy");
+            Assert.That(canopy.parent, Is.EqualTo(glass));
             foreach (var piece in pieces)
-                Assert.That(piece.GetComponent<Renderer>().sharedMaterials,
-                    Is.EqualTo(piece.name == "Fuselage and canopy" ? fuselageMaterials : materials));
-            var sourceUv = hull.sharedMesh.uv.OrderBy(v => v.x).ThenBy(v => v.y).ToArray();
-            var debrisUv = pieces.SelectMany(p => p.sharedMesh.uv).OrderBy(v => v.x).ThenBy(v => v.y).ToArray();
+            {
+                var worn = piece.GetComponent<Renderer>().sharedMaterials;
+                Assert.That(worn.Contains(canopy), Is.EqualTo(piece.transform.parent.name == "Fuselage and canopy"), piece.transform.parent.name);
+                Assert.That(worn.Select(m => m == canopy ? glass : m), Is.SubsetOf(materials), piece.transform.parent.name);
+            }
+            var sourceUv = surfaces.SelectMany(s => Read(s).uv).OrderBy(v => v.x).ThenBy(v => v.y).ToArray();
+            var debrisUv = pieces.SelectMany(p => Read(p).uv).OrderBy(v => v.x).ThenBy(v => v.y).ToArray();
             Assert.That(debrisUv, Is.EqualTo(sourceUv));
             yield return VerifyMotionFadeAndCleanup(debris, velocity);
         }

@@ -50,47 +50,34 @@ namespace Tests.PlayMode.Presentation.Wings
         public IEnumerator ThrustCommands_SweepCompleteWings_AndBrakeAtIdlePose()
         {
             wings.Bind(new ShipView(rig.transform, null, () => command, null, false));
-            var renderer = rig.GetComponentInChildren<SkinnedMeshRenderer>(true);
-            var baked = new Mesh();
-            try
-            {
-                renderer.BakeMesh(baked);
-                var idle = baked.vertices;
-                command = new PilotCommand { thrust = 1f };
-                yield return new WaitForSeconds(.2f);
-                Assert.That(Quaternion.Angle(Quaternion.identity, main.localRotation), Is.InRange(2f, 18f));
-                yield return new WaitForSeconds(.4f);
-                AssertAngle(main, 0f);
-                AssertAngle(lower, 0f);
-                renderer.BakeMesh(baked);
-                var forward = baked.vertices;
-                var weights = renderer.sharedMesh.boneWeights;
-                var moving = Enumerable.Range(0, weights.Length).First(i => weights[i].boneIndex0 != 0);
-                Assert.That(Vector3.Distance(idle[moving], forward[moving]), Is.GreaterThan(.01f));
-                Assert.That(renderer.bones, Has.Length.EqualTo(5));
-                var rest = renderer.sharedMesh.vertices;
-                for (var i = 0; i < rest.Length; i++)
-                    if (weights[i].boneIndex0 == 0)
-                        Assert.That(Vector3.Distance(rest[i], forward[i]), Is.LessThan(.00001f));
+            var surface = main.GetComponentInChildren<MeshFilter>(true);
+            var hull = rig.GetComponentsInChildren<MeshFilter>(true).Single(f => f.name == "Hull");
+            Vector3 Tip() => surface.transform.TransformPoint(surface.sharedMesh.bounds.max);
+            Vector3 Body() => hull.transform.TransformPoint(hull.sharedMesh.bounds.max);
+            var idle = Tip();
+            var body = Body();
+            command = new PilotCommand { thrust = 1f };
+            yield return new WaitForSeconds(.2f);
+            Assert.That(Quaternion.Angle(Quaternion.identity, main.localRotation), Is.InRange(2f, 18f));
+            yield return new WaitForSeconds(.4f);
+            AssertAngle(main, 0f);
+            AssertAngle(lower, 0f);
+            Assert.That(Vector3.Distance(idle, Tip()), Is.GreaterThan(.01f));
+            Assert.That(Vector3.Distance(body, Body()), Is.LessThan(.00001f));
 
-                command.thrust = -1f;
-                yield return new WaitForSeconds(.2f);
-                Assert.That(Quaternion.Angle(Quaternion.identity, main.localRotation), Is.InRange(1f, 18f));
-                yield return new WaitForSeconds(.4f);
-                AssertAngle(main, 20f);
-                AssertAngle(lower, 20f);
-                renderer.BakeMesh(baked);
-                var reverse = baked.vertices;
-                for (var i = 0; i < rest.Length; i++)
-                    Assert.That(Vector3.Distance(idle[i], reverse[i]), Is.LessThan(.00001f));
+            command.thrust = -1f;
+            yield return new WaitForSeconds(.2f);
+            Assert.That(Quaternion.Angle(Quaternion.identity, main.localRotation), Is.InRange(1f, 18f));
+            yield return new WaitForSeconds(.4f);
+            AssertAngle(main, 20f);
+            AssertAngle(lower, 20f);
+            Assert.That(Vector3.Distance(idle, Tip()), Is.LessThan(.00001f));
 
-                command = new PilotCommand { strafe = 1f, yawTorque = 1f };
-                yield return new WaitForSeconds(.6f);
-                AssertAngle(main, 20f);
-                AssertAngle(lower, 20f);
-                Assert.That(renderer.sharedMaterials, Has.Length.EqualTo(8));
-            }
-            finally { Object.DestroyImmediate(baked); }
+            command = new PilotCommand { strafe = 1f, yawTorque = 1f };
+            yield return new WaitForSeconds(.6f);
+            AssertAngle(main, 20f);
+            AssertAngle(lower, 20f);
+            Assert.That(hull.GetComponent<Renderer>().sharedMaterials, Has.Length.EqualTo(8));
         }
 
         private static void AssertAngle(Transform bone, float degrees) =>

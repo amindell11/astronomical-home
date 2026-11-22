@@ -43,7 +43,7 @@ Material:
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _GlassColor: {r: 0.078431316, g: 0.14117643, b: 0.19215682, a: 1}
-    - _ReflectionBounds: {r: 0.000000014901161, g: 0.8727733, b: 2.036666, a: 1.5545381}
+    - _ReflectionBounds: {r: 0, g: 0.56982, b: -2.7495, a: 2.09863}
     - _ReflectionColor: {r: 0.078431316, g: 0.14117643, b: 0.19215682, a: 1}
     - _ReflectionEdgeColor: {r: 0.9162735, g: 0.9685765, b: 0.9452768, a: 1}
     - _ReflectionInkColor: {r: 0.07016473, g: 0.11207489, b: 0.14282563, a: 1}
