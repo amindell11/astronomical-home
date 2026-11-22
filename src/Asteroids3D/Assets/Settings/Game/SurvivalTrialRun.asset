@@ -35,7 +35,7 @@ MonoBehaviour:
       fewestMinions: 3
       mostMinions: 4
       waveEvery: 12
-    waveCap: 5
+    waveCap: 4
     patrols: 1
     searchSeconds: 30
     repairStations: 1
@@ -64,7 +64,7 @@ MonoBehaviour:
       fewestMinions: 2
       mostMinions: 3
       waveEvery: 12
-    waveCap: 6
+    waveCap: 4
     patrols: 2
     searchSeconds: 45
     repairStations: 2
@@ -93,7 +93,7 @@ MonoBehaviour:
       fewestMinions: 3
       mostMinions: 4
       waveEvery: 12
-    waveCap: 8
+    waveCap: 4
     patrols: 2
     searchSeconds: 45
     repairStations: 2
