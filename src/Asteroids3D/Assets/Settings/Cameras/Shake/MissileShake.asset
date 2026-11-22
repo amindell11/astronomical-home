@@ -77,3 +77,5 @@ MonoBehaviour:
   innerRadius: 4
   outerRadius: 24
   fullSize: 0
+  glitch: 0
+  releaseGlitch: 0

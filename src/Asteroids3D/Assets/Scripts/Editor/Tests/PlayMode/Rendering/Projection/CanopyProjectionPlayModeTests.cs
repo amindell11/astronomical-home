@@ -36,6 +36,7 @@ namespace Tests.PlayMode.Rendering.Projection
             properties.SetFloat("_AppearAge", -1f);
             properties.SetFloat("_TransitionAge", -1f);
             properties.SetFloat("_HitAge", -1f);
+            properties.SetFloat("_GlitchAge", -1f);
             properties.SetTexture("_SceneImage", Texture(Color.black));
             properties.SetTexture("_HudInk", Texture(Color.clear));
             properties.SetTexture("_PreviousInk", Texture(Color.black));
