@@ -11,7 +11,7 @@ namespace Combat.Projectiles.Visual
     /// </summary>
     public static class ShotDepth
     {
-        public const float BelowPlane = 0.35f;
+        public const float BelowPlane = 0.6f;
 
         public static Vector3 Offset => GamePlane.Normal * BelowPlane;
     }

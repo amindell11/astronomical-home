@@ -31,6 +31,23 @@ namespace Cameras.Shake
             issued++;
         }
 
+        // Restarts only when this shake is at least as strong as the running one.
+        public void StartStronger(Object source, CameraShakeProfile profile, Vector2 direction, float strength, float now)
+        {
+            var layer = Find(source);
+            if (layer != null)
+            {
+                var t = layer.EnvelopeTime(now);
+                // A layer still rising is judged by the peak it is about to reach.
+                var judgedAt = Mathf.Max(t, PeakTime(layer.profile.envelope));
+                if (!Ended(layer, t) && strength < Amplitude(layer, judgedAt))
+                    return;
+            }
+
+            Start(source, profile, direction, now);
+            Scale(source, strength);
+        }
+
         public void Release(Object source, float now)
         {
             var layer = Find(source);
@@ -56,13 +73,13 @@ namespace Cameras.Shake
             {
                 var layer = layers[i];
                 var t = layer.EnvelopeTime(now);
-                if (t > layer.profile.Length && (layer.profile.sustainAt < 0f || layer.released))
+                if (Ended(layer, t))
                 {
                     layers.RemoveAt(i);
                     continue;
                 }
 
-                var e = Mathf.Clamp01(layer.profile.envelope.Evaluate(t)) * layer.scale;
+                var e = Amplitude(layer, t);
                 var frequency = layer.profile.frequency;
                 var channel = layer.channel;
                 offset += new Vector2(CameraUtils.ShakeNoise(channel, now, frequency),
@@ -78,6 +95,26 @@ namespace Cameras.Shake
                 if (ReferenceEquals(layer.source, source))
                     return layer;
             return null;
+        }
+
+        private static bool Ended(Layer layer, float envelopeTime) =>
+            envelopeTime > layer.profile.Length && (layer.profile.sustainAt < 0f || layer.released);
+
+        private static float Amplitude(Layer layer, float envelopeTime) =>
+            Mathf.Clamp01(layer.profile.envelope.Evaluate(envelopeTime)) * layer.scale;
+
+        private static float PeakTime(AnimationCurve envelope)
+        {
+            var peakTime = 0f;
+            var peak = float.NegativeInfinity;
+            for (var i = 0; i < envelope.length; i++)
+            {
+                var key = envelope[i];
+                if (key.value <= peak) continue;
+                peak = key.value;
+                peakTime = key.time;
+            }
+            return peakTime;
         }
 
         private sealed class Layer

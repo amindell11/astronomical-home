@@ -132,6 +132,7 @@ namespace Ships.Keystones.Kits
             resolved = true;
             resolvedAt = SinceLaunch;
             ShortenCooldown(hitCooldown);
+            RecordHit(contact.Point);
 
             if (!DamageableColliders.TryGet(contact.Other, out var target)) return;
             var aim = Aim(in contact);

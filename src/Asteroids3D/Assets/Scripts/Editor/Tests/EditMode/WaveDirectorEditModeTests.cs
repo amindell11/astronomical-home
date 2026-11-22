@@ -15,7 +15,7 @@ using Substrate.Sessions;
 
 namespace Tests.EditMode
 {
-    /// <summary>Wave director pacing over a sector phase table with injected time: a phase opens with a wave, and another comes on its wave-every beat. A wave that fits under the wave cap arrives whole, one that only partly fits is trimmed to the room left, and one with no room is dropped so the next waits for the beat. A lull, the opening one too, sends nothing, a finished table with an elite sends nothing, and the done table keeps the last phase's waves. A closing lull before the elite sends nothing. A lull window covers a following lull, its grace, and an earned lull, and stays shut for the opening lull and the first phase's first seconds. An earned lull, once the phase's last wave is out and nothing is alive, moves no phase boundary. The threat read lists the signature ship once and the rival's and minion's kits, off a prefab asset too. A bad row fails CheckRow.</summary>
+    /// <summary>Wave director pacing over a sector phase table with injected time: a phase opens with a wave, and another comes on its wave-every beat. A wave that fits under the wave cap arrives whole, one that only partly fits is trimmed to the room left, and one with no room is dropped so the next waits for the beat. A lull, the opening one too, sends nothing, a finished table with an elite sends nothing, and the done table keeps the last phase's waves. A closing lull before the elite sends nothing. A lull window covers a following lull, its grace, and an earned lull, and stays shut for the opening lull and the first phase's first seconds. An earned lull, once the phase's last wave is out and nothing is alive, moves no phase boundary. The threat read lists a chassis every rank shares once and the rival's and minion's kits, off a prefab asset too. A bad row fails CheckRow.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class WaveDirectorEditModeTests
@@ -458,7 +458,7 @@ namespace Tests.EditMode
             var kit = _go.AddComponent<PoolWeapon>();
             var pilot = new GameObject("Rival").AddComponent<StubCommander>();
             faction.signature = new FactionShip { ship = ship, kit = kit, pilot = pilot };
-            faction.minion = new FactionMinion { kit = kit, scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f) };
+            faction.minion = new FactionMinion { ship = ship, kit = kit, scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f) };
             var sectorFaction = _go.AddComponent<SectorFaction>();
             _director.Configure(_phases, Lull, faction: sectorFaction);
             var row = Row(new SectorPhase { sendsWaves = true, fewestMinions = 0, mostMinions = 1 });
@@ -474,7 +474,7 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void Threat_ListsTheSignatureShipOnce_AndEachRanksKitOnce()
+        public void Threat_ListsASharedChassisOnce_AndEachRanksKitOnce()
         {
             var valis = new GameObject("Valis").AddComponent<Ship>();
             var lasers = _go.AddComponent<PoolWeapon>();
@@ -485,15 +485,16 @@ namespace Tests.EditMode
             faction.signature = new FactionShip { ship = valis, kit = rippers, pilot = rivalPilot };
             faction.minion = new FactionMinion
             {
-                kit = lasers, pilot = minionPilot, scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f),
+                ship = valis, kit = lasers, pilot = minionPilot, scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f),
             };
+            faction.elite = new FactionElite { ship = valis };
             var sectorFaction = _go.AddComponent<SectorFaction>();
             var row = new SectorEntry { faction = faction, phases = new[] { new SectorPhase { sendsWaves = true } } };
             _director.Configure(_phases, Lull, faction: sectorFaction);
 
             var threat = _director.Threat(row);
 
-            CollectionAssert.AreEqual(new[] { valis }, threat.Ships, "every rank flies the signature ship");
+            CollectionAssert.AreEqual(new[] { valis }, threat.Ships, "a chassis every rank flies is listed once");
             CollectionAssert.AreEqual(new WeaponComponent[] { rippers, lasers }, threat.Weapons,
                 "the rival's kit, then the minion's");
 
@@ -534,8 +535,9 @@ namespace Tests.EditMode
             faction.signature = new FactionShip { ship = ship, kit = kit, pilot = pilot };
             faction.minion = new FactionMinion
             {
-                kit = kit, pilot = pilot, scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f),
+                ship = ship, kit = kit, pilot = pilot, scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f),
             };
+            faction.elite = new FactionElite { ship = ship };
             return faction;
         }
 

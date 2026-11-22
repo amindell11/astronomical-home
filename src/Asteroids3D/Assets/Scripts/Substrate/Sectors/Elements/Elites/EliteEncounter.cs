@@ -19,8 +19,8 @@ namespace Substrate.Sectors.Elements.Elites
     /// death opens extraction. The sector's wave director (<see cref="WaveDirector"/>) owns it and drives
     /// it (Begin, Summon, End), so it is neither a spawner nor a module in the sector's manifest. As the
     /// elite's hull falls through its profile's escalation steps, it calls escorts and stacks heavier
-    /// fire. Its ships come from the sector's faction: the elite flies the signature ship in the elite
-    /// skin, escorts the minion rank with this encounter's escort pilot. Its profile is the run row's
+    /// fire. Its ships come from the sector's faction: the elite flies that faction's elite chassis in
+    /// its hull paint, escorts the minion rank with this encounter's escort pilot. Its profile is the run row's
     /// elite, read at <see cref="Begin"/>.
     /// <see cref="Announced"/> and <see cref="Beaten"/> carry data only, with no display strings.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1318
@@ -30,7 +30,7 @@ namespace Substrate.Sectors.Elements.Elites
         private const float EscortDistanceInEliteRadii = 3f;
 
         [Header("Ships")]
-        [Tooltip("The sector's faction. The elite flies its signature ship in the elite skin. Escorts fly the " +
+        [Tooltip("The sector's faction. The elite flies its elite chassis in its hull paint. Escorts fly the " +
                  "minion rank, with this encounter's escort pilot.")]
         [SerializeField] private SectorFaction faction;
         [Tooltip("The elite's pilot.")]
@@ -111,10 +111,10 @@ namespace Substrate.Sectors.Elements.Elites
             var position = ClearPoint(center, spawnRadius, clearanceRadius * profile.Scale.Size);
             stack = new LullModStack();
             foreach (var mod in profile.Mods) stack.Add(mod);
-            var ship = faction.Faction.Ship;
+            var ship = faction.Faction.EliteShip;
             elite = units.SpawnShip(ship, pilot, team, position, FacingHero(position), field,
                 new ShipLoadout(ship, profile.Primary, profile.Secondary), profile.Scale, stack);
-            faction.Faction.Dress(elite, elite: true);
+            faction.Faction.DressElite(elite);
             elite.Damage.OnDeath += OnEliteDeath;
             moment = new EliteMoment(sectorIndex, faction.Faction.id, elite.Id);
             Announced?.Invoke(moment);
@@ -162,7 +162,7 @@ namespace Substrate.Sectors.Elements.Elites
                 var position = ClearPoint(center, distance, clearanceRadius);
                 var escort = units.SpawnShip(minion.ship, escortPilot, team, position, FacingHero(position), field,
                     minion.Loadout, minion.scale);
-                faction.Faction.Dress(escort, elite: false);
+                faction.Faction.Dress(escort, minion);
                 escorts.Add(escort);
             }
             if (step.fireMods == null) return;
