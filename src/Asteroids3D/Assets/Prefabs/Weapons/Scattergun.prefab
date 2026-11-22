@@ -48,6 +48,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fireRate: 0.5
+  spinUpTime: 0
+  coldFireRate: 0.2
+  spinDownTime: 0.4
 --- !u!114 &7617100545363093338
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -77,6 +80,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   firePoint: {fileID: 0}
   displayName: 
+  hangarDescription: A cone of pellets. Brutal up close, and it shoves the target
+    back.
+  hangarTags:
+  - Magazine
+  - Knockback
   hudIcon: {fileID: 21300000, guid: f4237c4fe83c49f3ac9147dac71cc7e1, type: 3}
   projectilePrefab: {fileID: 5408995189547049293, guid: 1c67325f5d64b01428639f9c79b05139,
     type: 3}

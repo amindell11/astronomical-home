@@ -10,6 +10,7 @@ using Substrate.Sectors;
 using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sectors.Elements.Stations;
+using Substrate.Sectors.Factions;
 using Substrate.Services.Objectives;
 using Substrate.Sessions;
 using Tests.PlayMode.Common;
@@ -62,7 +63,11 @@ namespace Tests.PlayMode.Sectors
         public void AOneRowRun_AtSectorIndexZero_PlacesTheOneArmoryItsRowAsksFor()
         {
             var hero = SpawnHero();
-            var run = Track(SectorRun.Create(new SectorEntry { armories = 1 }));
+            var run = Track(SectorRun.Create(new SectorEntry
+            {
+                armories = 1,
+                faction = AssetDatabase.LoadAssetAtPath<Faction>("Assets/Settings/Factions/Shoal.asset")
+            }));
             var armory = NewArmory();
             Drive(armory.Setup(Context(hero, 0, run.Sectors[0])));
             Assert.AreEqual(1, run.Sectors.Count);
@@ -172,7 +177,7 @@ namespace Tests.PlayMode.Sectors
             var feel = Track(ScriptableObject.CreateInstance<HuntFeelProfile>());
             feel.alarmGraceSeconds = AlarmGrace;
             var hunt = Track(new GameObject("Hunt")).AddComponent<SectorHunt>();
-            hunt.Configure(feel, null, null, 0f);
+            hunt.Configure(feel, null, 0f);
             Drive(hunt.Build(Context(hero, 1)));
             return hunt;
         }
@@ -211,7 +216,8 @@ namespace Tests.PlayMode.Sectors
                     armories = 1,
                     searchSeconds = 1000f,
                     repairStations = 2,
-                    modStations = 2
+                    modStations = 2,
+                    faction = AssetDatabase.LoadAssetAtPath<Faction>("Assets/Settings/Factions/Shoal.asset")
                 });
 
         // Exactly the live armories are finds, in the armory colour, with the armory's own icon.

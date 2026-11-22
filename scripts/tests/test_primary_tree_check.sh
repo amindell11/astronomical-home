@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# covers: scripts/primary_tree_check.sh
+# covers: scripts/primary_tree_check.sh .githooks/post-merge
 
 # Hermetic regression for the session-start check's pull report and sound-work split. A bare repo
 # stands in for origin and a clone for the primary tree, with an app worktree under its

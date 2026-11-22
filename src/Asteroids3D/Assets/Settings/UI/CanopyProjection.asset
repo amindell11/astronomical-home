@@ -18,7 +18,7 @@ MonoBehaviour:
     aberration: 4.64
     beamJitter: 0.267
     afterglow: 0.009
-    scanlines: 0.915
+    scanlines: 0.805
     flicker: 0.594
     warmth: 0.878
     wear: 0.294

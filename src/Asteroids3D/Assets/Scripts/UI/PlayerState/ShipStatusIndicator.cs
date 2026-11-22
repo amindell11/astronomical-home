@@ -1,6 +1,5 @@
 using Damage;
 using Ships;
-using Substrate;
 using System.Collections.Generic;
 using UnityEngine;
 using UI.Placement;
@@ -11,20 +10,19 @@ namespace UI.PlayerState
 {
     public sealed class ShipStatusIndicator : MonoBehaviour
     {
+        private static readonly Vector2 BarSize = new(160f, 16f);
+
         private Ship ship;
         private Camera worldCamera;
         private Canvas canvas;
         private RectTransform rect;
         private CanvasGroup visibility;
         private IReadOnlyList<Renderer> silhouette;
-        private StatusBarUI shieldBar;
-        private StatusBarUI healthBar;
         private Ship player;
-        private bool numbersShown = true;
         private float playerHitAt = float.NegativeInfinity;
         private float focus;
 
-        public static ShipStatusIndicator Create(Canvas canvas, Camera worldCamera, Ship ship, Font font, Material textMaterial,
+        public static ShipStatusIndicator Create(Canvas canvas, Camera worldCamera, Ship ship,
             CanopyProjection projection = null, Func<bool> isVisible = null)
         {
             var root = new GameObject("Ship status", typeof(RectTransform), typeof(CanvasGroup));
@@ -37,8 +35,8 @@ namespace UI.PlayerState
             indicator.canvas = canvas;
             var appearance = InstrumentAppear.Create(root.transform, projection,
                 () => indicator.visibility.alpha > 0f && (isVisible?.Invoke() ?? true));
-            indicator.shieldBar = StatusBarUI.Create(appearance.transform, ship.Damage.Shield, font, new Color(0f, .8f, 1f), 18f, textMaterial);
-            indicator.healthBar = StatusBarUI.Create(appearance.transform, ship.Damage.Health, font, new Color(.22f, 1f, .15f), 0f, textMaterial, pulsesWhenLow: true);
+            StatusBarUI.Create(appearance.transform, ship.Damage.Shield, StatusBarUI.ShieldTint, new Vector2(0f, 36f), BarSize);
+            StatusBarUI.Create(appearance.transform, ship.Damage.Health, StatusBarUI.HullTint, Vector2.zero, BarSize, pulsesWhenLow: true);
             root.SetActive(true);
             return indicator;
         }
@@ -64,14 +62,9 @@ namespace UI.PlayerState
         {
             this.player = player;
             var own = ship == player;
-            var shown = own || targeted || Time.time - playerHitAt < feel.hitBarsSeconds;
+            var shown = targeted || Time.time - playerHitAt < feel.hitBarsSeconds;
             var fade = shown ? feel.barsFadeInSeconds : feel.barsFadeOutSeconds;
-            focus = own ? 1f : Mathf.MoveTowards(focus, shown ? 1f : 0f, fade > 0f ? Time.deltaTime / fade : 1f);
-            var numbers = own || targeted;
-            if (numbers == numbersShown) return;
-            numbersShown = numbers;
-            shieldBar.ShowNumbers(numbers);
-            healthBar.ShowNumbers(numbers);
+            focus = own ? 0f : Mathf.MoveTowards(focus, shown ? 1f : 0f, fade > 0f ? Time.deltaTime / fade : 1f);
         }
 
         private void RecordHit(AppliedDamage hit)
@@ -83,7 +76,7 @@ namespace UI.PlayerState
         {
             var visible = ship && ship.gameObject.activeInHierarchy &&
                 (!ship.VisualRig || ship.VisualRig.gameObject.activeInHierarchy) &&
-                (ship.CompareTag(TagNames.Player) || !ship.Lock.IsConcealed);
+                !ship.Lock.IsConcealed;
             visibility.alpha = visible ? focus : 0f;
             if (visibility.alpha <= 0f) return;
 
@@ -101,7 +94,7 @@ namespace UI.PlayerState
                 top = Mathf.Max(top, worldCamera.WorldToScreenPoint(
                     new Vector3(bounds.center.x, bounds.max.y, bounds.center.z)).y);
             }
-            point.y = top + 12f;
+            point.y = top + 24f * canvas.scaleFactor;
             ScreenPin.Place(rect, canvas, point);
             rect.localScale = Vector3.one * Mathf.Clamp(17f / worldCamera.orthographicSize, .8f, 1.15f);
         }

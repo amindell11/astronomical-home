@@ -8,6 +8,7 @@ using System.Reflection;
 using Cameras;
 using Game;
 using Game.Moments;
+using Game.Moments.Finds;
 using Game.Runs;
 using Loot;
 using NUnit.Framework;

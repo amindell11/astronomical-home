@@ -6,7 +6,7 @@ using NUnit.Framework;
 using Ships;
 using UnityEngine;
 using Ships.Registry;
-using RL.Opponents;
+using AI.Pilots;
 
 namespace Tests.PlayMode.Common
 {

@@ -31,3 +31,12 @@ MonoBehaviour:
   cursorLead: 6
   cursorDeadZone: 0.4
   cursorLeadSmoothTime: 0.4
+  traumaPerHit: 0.75
+  deathTrauma: 1
+  traumaDecay: 1.2
+  shakeExponent: 1.5
+  maxShakeOffset: 0.07
+  maxShakeRoll: 3
+  shakeFrequency: 11
+  shakeOffsetCap: 0.12
+  shakeRollCap: 4

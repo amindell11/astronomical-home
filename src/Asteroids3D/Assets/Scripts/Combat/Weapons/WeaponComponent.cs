@@ -46,9 +46,15 @@ namespace Combat.Weapons
 
         [Tooltip("Name shown on this weapon's HUD readout panel. Empty = the prefab name.")]
         [SerializeField] private string displayName;
+        [Tooltip("One or two short lines shown on the hangar's weapon screen.")]
+        [SerializeField, TextArea(2, 3)] private string hangarDescription;
+        [Tooltip("One or two keywords shown as tags under the hangar description.")]
+        [SerializeField] private string[] hangarTags;
         [SerializeField] private Sprite hudIcon;
 
         public Sprite HudIcon => hudIcon;
+        public string HangarDescription => hangarDescription;
+        public IReadOnlyList<string> HangarTags => hangarTags ?? Array.Empty<string>();
         protected IShooter shooter;
         protected WeaponCondition[] conditions;
         private List<IWeaponReadout> readouts;

@@ -1,0 +1,451 @@
+{
+  "checks": {
+    "unrelated_objects_exact": true,
+    "unrelated_materials_exact": true,
+    "only_requested_object_changes": true,
+    "no_structural_dashes": true,
+    "linesets_exact": true,
+    "glass_shader_exact": true,
+    "closed_solids": true,
+    "clean_meshes": true,
+    "exactly_two_downlights": true,
+    "lens_contract": true,
+    "fully_visible_lenses": true,
+    "mirrored_lenses": true
+  },
+  "hardware_triangles": 20880,
+  "intersection_pairs_checked": 33,
+  "coverage": {
+    "16x10": {
+      "coverage_pass": true,
+      "finish4_alpha_loss_pixels": 0,
+      "unexplained_outside_windows_chroma_pixels": 0
+    },
+    "3x2": {
+      "coverage_pass": true,
+      "finish4_alpha_loss_pixels": 0,
+      "unexplained_outside_windows_chroma_pixels": 0
+    },
+    "4x3": {
+      "coverage_pass": true,
+      "finish4_alpha_loss_pixels": 0,
+      "unexplained_outside_windows_chroma_pixels": 0
+    },
+    "16x9": {
+      "coverage_pass": true,
+      "finish4_alpha_loss_pixels": 0,
+      "unexplained_outside_windows_chroma_pixels": 0
+    },
+    "21x9": {
+      "coverage_pass": true,
+      "finish4_alpha_loss_pixels": 0,
+      "unexplained_outside_windows_chroma_pixels": 0
+    },
+    "32x9": {
+      "coverage_pass": true,
+      "finish4_alpha_loss_pixels": 0,
+      "unexplained_outside_windows_chroma_pixels": 0
+    }
+  },
+  "files": {
+    "build_deck.py": "08b3393168d91632b1c653ab2b77b6976417dd93c81b87329fad7aa637a6ec6c",
+    "deck.blend": "7b5ef5c8a650b9dc625ff0abd835398152ebfc47062d519c9a58627e8dca5687",
+    "NOTES.md": "5553e73fbdb84c69d7869dda51cf1d9f1236b3d8f9aa2edbf0f844c18e8ebc0a",
+    "verify_finish7.py": "d4d106c38f05f2c9e986c264e100256ba3069025255ae1d01bcfdea65854dd76",
+    "assemble_finish7.py": "fb834314b76cdccb599e2783d5a5550f4724c5b1b3682e2f03bd9fa5c3d83725"
+  },
+  "preview_images": {
+    "deck-camera-16x10.png": {
+      "size": [
+        1920,
+        1200
+      ],
+      "sha256": "4847cf0ead75f6c4f67804693cc4f345e4eb306e459d9eb1a2bbbe77112eb5b0"
+    },
+    "deck-camera-21x9.png": {
+      "size": [
+        2560,
+        1080
+      ],
+      "sha256": "64919ec74e95e07e8e151bdaa06d259351f96250fe8208300baa11d15890af46"
+    },
+    "deck-camera-32x9.png": {
+      "size": [
+        3840,
+        1080
+      ],
+      "sha256": "17b02468e60e2ff9c537fd6f76211ae47d34ee97255d012a40b654f5b1e8bafd"
+    },
+    "deck-camera-3x2.png": {
+      "size": [
+        1620,
+        1080
+      ],
+      "sha256": "ba22d93ea55a2f8ec8c405962d894f6ce349a813566ce003f86e2f6d1b2753ac"
+    },
+    "deck-camera-4x3.png": {
+      "size": [
+        1440,
+        1080
+      ],
+      "sha256": "13015f78d4589de3b423ed8b098b2758cf1de1c143bf28d5e6cb3e593a1349ad"
+    },
+    "deck-camera-overlay.png": {
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "464d834255a8fd6aaa1aff659b06b17d09807b80734df080f69d231737e46008"
+    },
+    "deck-camera.png": {
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "465c088bcd6b291b2954dbde1b2464bac2390c4d197503824ba37e239c8003aa"
+    },
+    "deck-coverage-16x10.png": {
+      "size": [
+        1920,
+        1200
+      ],
+      "sha256": "75169c845ba8d75f1f89351aa9a83a9e1f07bd962716638812d6c55aa4034c0e"
+    },
+    "deck-coverage-16x9.png": {
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "68f082f2ee0f5a6ad7d93f643aefc3b653ab5e5248ba24d720afccacee242b6c"
+    },
+    "deck-coverage-21x9.png": {
+      "size": [
+        2560,
+        1080
+      ],
+      "sha256": "fe637a6795f8ba2fc9e195a94503f60064f315d53859fb16771c33ff2f4eace0"
+    },
+    "deck-coverage-32x9.png": {
+      "size": [
+        3840,
+        1080
+      ],
+      "sha256": "223c7bf8d1e5ff389725131c760a0206b2b9d11d767a55fa2765fe73205c41c6"
+    },
+    "deck-coverage-3x2.png": {
+      "size": [
+        1620,
+        1080
+      ],
+      "sha256": "87b21458f05d73bb362b05246f802f14b0e8f55fffdc1fd8dc9fcc2ec11082c9"
+    },
+    "deck-coverage-4x3.png": {
+      "size": [
+        1440,
+        1080
+      ],
+      "sha256": "ba6da0fbb36b2cc0b57081e0937d25a0649d91d4865f6659ca50f51ec15341c4"
+    },
+    "deck-coverage-sheet.png": {
+      "size": [
+        1920,
+        1980
+      ],
+      "sha256": "ac22f387084f11bcfaf052fb54037c56015791ff8cade44d0082a3c7b9645f22"
+    },
+    "deck-extension-difference.png": {
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "6e7b8c94b813e234788309e55dc50f63f9005d03d10e749a7adad9a7cf08979f"
+    },
+    "deck-finish1-21x9.png": {
+      "size": [
+        2560,
+        1080
+      ],
+      "sha256": "64919ec74e95e07e8e151bdaa06d259351f96250fe8208300baa11d15890af46"
+    },
+    "deck-finish1-compare.png": {
+      "size": [
+        3840,
+        1150
+      ],
+      "sha256": "d15da646b850ae5f0b63ee23c314ab58820095dbf80717e340f4d8d671448cbf"
+    },
+    "deck-finish1-crops.png": {
+      "size": [
+        2848,
+        2660
+      ],
+      "sha256": "ec309be75bc9d9395502a04d76ff01d40bbfc1844a5a949454371553fee3e446"
+    },
+    "deck-finish1-half.png": {
+      "size": [
+        960,
+        540
+      ],
+      "sha256": "fb873a2f6aa80a256bf8dd7f065fa8933eba5c24834bfa04bbc535ce881a5a09"
+    },
+    "deck-finish2-21x9.png": {
+      "size": [
+        2560,
+        1080
+      ],
+      "sha256": "64919ec74e95e07e8e151bdaa06d259351f96250fe8208300baa11d15890af46"
+    },
+    "deck-finish2-compare.png": {
+      "size": [
+        5760,
+        1150
+      ],
+      "sha256": "68fc41e59a8d1e25e3aa86234e679b3957f31467320e49e1c5c11f123f32a810"
+    },
+    "deck-finish2-crops.png": {
+      "size": [
+        2848,
+        2660
+      ],
+      "sha256": "ec309be75bc9d9395502a04d76ff01d40bbfc1844a5a949454371553fee3e446"
+    },
+    "deck-finish2-half.png": {
+      "size": [
+        960,
+        540
+      ],
+      "sha256": "fb873a2f6aa80a256bf8dd7f065fa8933eba5c24834bfa04bbc535ce881a5a09"
+    },
+    "deck-finish4-21x9.png": {
+      "size": [
+        2560,
+        1080
+      ],
+      "sha256": "64919ec74e95e07e8e151bdaa06d259351f96250fe8208300baa11d15890af46"
+    },
+    "deck-finish4-compare.png": {
+      "size": [
+        5760,
+        1150
+      ],
+      "sha256": "57388d04bc8860222a6450877db92d8f8ce28645994d581bd47e74678f193dbc"
+    },
+    "deck-finish4-crops.png": {
+      "size": [
+        2848,
+        2660
+      ],
+      "sha256": "ec309be75bc9d9395502a04d76ff01d40bbfc1844a5a949454371553fee3e446"
+    },
+    "deck-finish4-half.png": {
+      "size": [
+        960,
+        540
+      ],
+      "sha256": "fb873a2f6aa80a256bf8dd7f065fa8933eba5c24834bfa04bbc535ce881a5a09"
+    },
+    "deck-finish5-21x9.png": {
+      "size": [
+        2560,
+        1080
+      ],
+      "sha256": "64919ec74e95e07e8e151bdaa06d259351f96250fe8208300baa11d15890af46"
+    },
+    "deck-finish5-compare.png": {
+      "size": [
+        3840,
+        1140
+      ],
+      "sha256": "6e54b2509ea13dd1e590205b0b6c8f8f52c242eb625adc549001ac4b1ac2e26a"
+    },
+    "deck-finish5-crops.png": {
+      "size": [
+        3840,
+        2280
+      ],
+      "sha256": "c7caf1aee22a88e3758d9658a06eeab21bd8040279e4979edeb731ee49bc59d2"
+    },
+    "deck-finish5-geometry-crops.png": {
+      "size": [
+        3840,
+        2280
+      ],
+      "sha256": "1fef2d00572b0fc0401fd5123596aa0dad4dde3f26f7fcd1e28578a9605a7d96"
+    },
+    "deck-finish5-geometry.png": {
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "6c2e07934ac3983560f16a87224e8e36820ba361b9c5894df1edca68523b607a"
+    },
+    "deck-finish5-half.png": {
+      "size": [
+        960,
+        540
+      ],
+      "sha256": "fb873a2f6aa80a256bf8dd7f065fa8933eba5c24834bfa04bbc535ce881a5a09"
+    },
+    "deck-finish7-compare.png": {
+      "size": [
+        3840,
+        2100
+      ],
+      "sha256": "a0e0162512cc9c9cceb6ac6f43499e36518b685551a3ffbc9f6d50a23565054f"
+    },
+    "deck-front.png": {
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "b371cca3a66f1f9863ece5986bfeae8a5eebf55fb1e7f1ca6e09b8e75f7123e8"
+    },
+    "deck-glass-check.png": {
+      "size": [
+        3840,
+        3420
+      ],
+      "sha256": "75323779a3f0915c7bdfdb525ec094c6bf7212571c32b6f04ee9fad09b69dafd"
+    },
+    "deck-ink-bounded-21x9.png": {
+      "size": [
+        2560,
+        1080
+      ],
+      "sha256": "e94a52c94f230565e7da85854d1b2fbc97654ea4d0751c841ec403c2b1cc067e"
+    },
+    "deck-ink-unbounded-21x9.png": {
+      "size": [
+        2560,
+        1080
+      ],
+      "sha256": "18bc80f8a637b733f9f764e1f2788227eb56e9cd787130d60f96f1bce8784890"
+    },
+    "deck-mask-16x10.png": {
+      "size": [
+        1920,
+        1200
+      ],
+      "sha256": "76423e76ecaa59a81ba8dcc87ca3131590f194560162ccd83e9d92830207cd47"
+    },
+    "deck-mask-21x9.png": {
+      "size": [
+        2560,
+        1080
+      ],
+      "sha256": "9375fc115fe8c3866525b6ccf73a8c11c88244c0ed266bde24dc95d9322c948e"
+    },
+    "deck-mask-32x9.png": {
+      "size": [
+        3840,
+        1080
+      ],
+      "sha256": "54b74609d76ab25f87871438949fe9f2247c4c6f6f9393dce66e015151874a03"
+    },
+    "deck-mask-3x2.png": {
+      "size": [
+        1620,
+        1080
+      ],
+      "sha256": "93a210d7c2a80e31b569451baddd54439dd81f0499ed2149028ea20c57c423d4"
+    },
+    "deck-mask-4x3.png": {
+      "size": [
+        1440,
+        1080
+      ],
+      "sha256": "b2b359b4d8055937fcf06f2676f97338d5690f8ee6e76c372c2a22172de58a48"
+    },
+    "deck-mask.png": {
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "a36b0eb3569e76eccd675936dea4189c865510af7e2a3d63e72b5854c2458617"
+    },
+    "deck-parts-raw.png": {
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "43b2029ed6eef7ec2566bde0766c1eb702471f9da1e0732ccb2ccb5ca8bdc485"
+    },
+    "deck-parts.png": {
+      "size": [
+        2500,
+        1140
+      ],
+      "sha256": "014fff72b2b5ff8101c36e2b10964dd232afc2152a848b497c17b318da2e3b14"
+    },
+    "deck-recess-compare.png": {
+      "size": [
+        3840,
+        1790
+      ],
+      "sha256": "6f9aa88ccc56bddb42b655d22ed273d519f3869d2946f4ce09cc4745d69bbe7b"
+    },
+    "deck-rgb-difference-amplified.png": {
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "84e9058c2f30d1b5070ddfcc67dd75dce38adb996c32508fa1f2f5d8ed533507"
+    },
+    "deck-side.png": {
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "c2b4016e221da5301bb347de9fe5869b74acdc8b653c0c8252dbd8a55bc0de62"
+    },
+    "deck-three-quarter.png": {
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "40555f27194ea88f7486569007a3da126f574ea2cef4dc3cd5966a6f79ae6799"
+    },
+    "deck-top.png": {
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "bcf24516b2d30d4027583a93b96ff57ebfc09883d82733adf7f85d5161547614"
+    },
+    "deck-vs-massing.png": {
+      "size": [
+        3840,
+        1140
+      ],
+      "sha256": "3845c6bcd88b38a8424c45c4e3c64dd2de465145f0d5c7097e150b1a2f48a8d8"
+    },
+    "deck-window-etching-21x9.png": {
+      "size": [
+        2560,
+        1080
+      ],
+      "sha256": "e76ea5070327a098a619c5106f15464b232f7e5bcb3289cee5b2491d74b0c3b0"
+    },
+    "deck-window-etching-mask.png": {
+      "size": [
+        4096,
+        2048
+      ],
+      "sha256": "a011b0a4b2e01b25423251c0dd2a42810a46c2309a5a4f7efdfa8a0ac0133a0d"
+    },
+    "deck-window-etching.png": {
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "f29237052509175d4c2a6077c244002641735fb9527a1c508c2982576d088dfb"
+    },
+    "silhouette-difference.png": {
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "4ce9d61a835f2b9431fb051e170c63c90b5480941f623017b682783b29ceda19"
+    }
+  }
+}

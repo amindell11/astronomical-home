@@ -10,5 +10,10 @@ namespace FMODUnity
 #if UNITY_EDITOR
         public string Path;
 #endif
+
+        public bool IsNull
+        {
+            get { return Guid.IsNull; }
+        }
     }
 }

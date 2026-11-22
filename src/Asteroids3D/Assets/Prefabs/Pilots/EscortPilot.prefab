@@ -13,6 +13,17 @@ PrefabInstance:
       propertyPath: m_Name
       value: EscortPilot
       objectReference: {fileID: 0}
+    - target: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
+        type: 3}
+      propertyPath: aimSettings
+      value: 
+      objectReference: {fileID: 11400000, guid: 6a5607888005d764e88b0af05c43c9d7,
+        type: 2}
+    - target: {fileID: 6084530539891404298, guid: a08154a041195b2419d2fcf936851764,
+        type: 3}
+      propertyPath: suppressKeystone
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6143560919186111444, guid: a08154a041195b2419d2fcf936851764,
         type: 3}
       propertyPath: m_LocalPosition.x

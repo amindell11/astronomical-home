@@ -44,9 +44,10 @@ namespace Ships.Keystones.Kits
 
         protected override KeystoneEffect Activate(in Kinematics kinematics, Vector2? target) => default;
 
-        protected override void Sustain(in Kinematics kinematics, float baseMaxSpeed)
+        protected override KeystoneEffect Sustain(in Kinematics kinematics, float dt, float baseMaxSpeed)
         {
             if (Active && kinematics.Speed > baseMaxSpeed) CreditActivation();
+            return default;
         }
     }
 }

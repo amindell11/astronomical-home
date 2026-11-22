@@ -1,6 +1,7 @@
 using System;
 using Balance;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Substrate.Sectors.Elements.Phases
 {
@@ -10,27 +11,16 @@ namespace Substrate.Sectors.Elements.Phases
         [Tooltip("How long this phase runs before the lull that leads into the next one.")]
         [Stat, Min(1f)] public float seconds;
 
-        [Tooltip("Most enemies alive at once, hunt patrols included. A wave that would pass it waits until it fits.")]
-        [Stat, Min(0)] public int cap;
+        [Tooltip("This phase sends waves, each a rival leading minions. Off, the phase sends none.")]
+        [Stat] public bool sendsWaves;
 
-        [Tooltip("The groups this phase's waves draw from, one per wave, picked uniformly. A phase with a cap of 0 lists none.")]
-        [Stat] public WaveGroup[] groups;
+        [Tooltip("Fewest minions flying with each wave's rival.")]
+        [Stat, Min(0)] public int fewestMinions;
 
-        [Tooltip("Enemies alive, in whole ships, at or below which the next wave comes after the breather.")]
-        [Stat, Min(0)] public int endsAt;
+        [Tooltip("Most minions flying with each wave's rival.")]
+        [Stat, Min(0)] public int mostMinions;
 
-        [Tooltip("Seconds between enemies alive falling to Ends At and the next wave arriving.")]
-        [Stat, Min(0f)] public float breather;
-
-        [Tooltip("Most seconds after a wave arrives before the next one comes, however many enemies are still alive.")]
-        [Stat, Min(1f)] public float longestWait;
-    }
-
-    /// <summary>Exists because Unity cannot serialize a jagged array of ships.</summary>
-    [Serializable]
-    public struct WaveGroup
-    {
-        [Tooltip("Ships that arrive together from one bearing, each flying its own pilot.")]
-        [Stat] public WaveDirector.RosterEntry[] ships;
+        [Tooltip("Seconds between this phase's waves. The phase opens with one, and another comes on this beat while the phase has time left.")]
+        [Stat, Min(1f), FormerlySerializedAs("longestWait")] public float waveEvery;
     }
 }

@@ -442,6 +442,7 @@ namespace Asteroids.Fields
         // Reused gather buffer: all in-range asteroids, before the nearest-N cull. Grows as
         // needed, never shrinks; no per-query allocation once warm.
         private readonly List<AI.Scanning.DetectedObstacle> queryScratch = new(128);
+        private readonly List<FieldAsteroidSpec> clearanceSpecScratch = new();
 
         /// <summary>
         /// Fills <paramref name="buffer"/> with the live asteroids nearest to
@@ -483,6 +484,7 @@ namespace Asteroids.Fields
 
         public bool AnyObstacleWithin(Vector2 centerPlane, float radius)
         {
+            if (!initialized) return false;
             // Rocks drift off the home chunk, so this scans the live set.
             foreach (var ast in homeChunkOf.Keys)
             {
@@ -490,6 +492,42 @@ namespace Asteroids.Fields
                 var delta = GamePlane.WorldPointToPlane(ast.transform.position) - centerPlane;
                 var reach = radius + ast.Radius;
                 if (delta.sqrMagnitude < reach * reach) return true;
+            }
+            return AnyUnspawnedSpecWithin(centerPlane - fieldOriginPlane, radius);
+        }
+
+        // Spawned rocks are left to the live scan; a spawned rock's spec position goes stale once it drifts.
+        private bool AnyUnspawnedSpecWithin(Vector2 relCenter, float radius)
+        {
+            var spawnSettings = AsteroidSpawner.Settings;
+            var sweep = radius + spawnSettings.MaxSpawnRadius;
+            var cellMin = Model.Layout.CellOf(relCenter - new Vector2(sweep, sweep));
+            var cellMax = Model.Layout.CellOf(relCenter + new Vector2(sweep, sweep));
+            for (var cx = cellMin.x; cx <= cellMax.x; cx++)
+            for (var cy = cellMin.y; cy <= cellMax.y; cy++)
+            {
+                var chunk = new Vector2Int(cx, cy);
+                if (hasInProgressChunk && chunk == inProgressChunk)
+                {
+                    if (AnySpecWithin(chunkSpecBuffer, chunkSpecCursor, relCenter, radius, spawnSettings.meshInfos)) return true;
+                    continue;
+                }
+                if (streamer.IsLoaded(chunk) && !queuedChunks.Contains(chunk)) continue;
+                clearanceSpecScratch.Clear();
+                Model.GetChunkContents(chunk, clearanceSpecScratch);
+                if (AnySpecWithin(clearanceSpecScratch, 0, relCenter, radius, spawnSettings.meshInfos)) return true;
+            }
+            return false;
+        }
+
+        private static bool AnySpecWithin(List<FieldAsteroidSpec> specs, int from, Vector2 relCenter, float radius,
+            AsteroidSpawnSettings.MeshInfo[] meshInfos)
+        {
+            for (var i = from; i < specs.Count; i++)
+            {
+                var spec = specs[i];
+                var reach = radius + AsteroidGeometry.RadiusFromVolume(meshInfos[spec.MeshIndex].cachedVolume) * spec.Scale;
+                if ((spec.PlanePosition - relCenter).sqrMagnitude < reach * reach) return true;
             }
             return false;
         }

@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 1200000000000000002}
   - component: {fileID: 3893981710489989632}
   - component: {fileID: 3001220098395657947}
+  - component: {fileID: 492847215316922850}
   m_Layer: 0
   m_Name: Railgun
   m_TagString: Untagged
@@ -51,6 +52,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fireRate: 1.7
+  spinUpTime: 0
+  coldFireRate: 0.2
+  spinDownTime: 0.4
 --- !u!114 &6448982411033854647
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -79,6 +83,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   firePoint: {fileID: 0}
   displayName: Railgun
+  hangarDescription: Hold to charge, release for an instant beam. Engines cut while
+    it charges.
+  hangarTags:
+  - Charge
+  - Hitscan
   hudIcon: {fileID: 21300000, guid: 6032c7af754a15f459f554ae853d29ce, type: 3}
   damage: 75
   range: 60
@@ -262,3 +271,16 @@ MonoBehaviour:
       Data3: 1133068449
       Data4: 2081378045
     Path: event:/Weapons/Railgun/Impact
+--- !u!114 &492847215316922850
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 345203746417710078}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5688278ef6982974ca1f33256f9b1cdb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  profile: {fileID: 11400000, guid: 4e10223f0b04f9e4f94cdd165c27daf2, type: 2}

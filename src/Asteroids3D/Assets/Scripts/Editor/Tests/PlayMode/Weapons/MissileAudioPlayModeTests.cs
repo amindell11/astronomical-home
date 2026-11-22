@@ -105,12 +105,6 @@ namespace Tests.PlayMode.Weapons
             RuntimeManager.StudioSystem.flushCommands();
         }
 
-        private static Vector3 Velocity(EventInstance instance)
-        {
-            instance.get3DAttributes(out var attributes);
-            return new Vector3(attributes.velocity.x, attributes.velocity.y, attributes.velocity.z);
-        }
-
         private static void AssertOneFlying(EventDescription description, string why)
         {
             var instances = Instances(description);

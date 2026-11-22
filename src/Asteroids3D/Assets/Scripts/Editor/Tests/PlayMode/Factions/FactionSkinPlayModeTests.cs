@@ -2,14 +2,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Damage;
 using NUnit.Framework;
 using Ships;
+using Ships.Registry;
+using Ships.Visuals.Breakup;
 using Substrate;
 using Substrate.Sectors.Factions;
 using Substrate.Services;
 using Substrate.Services.Units;
 using Tests.PlayMode.Common;
 using UI.PlayerState;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
@@ -49,13 +53,13 @@ namespace Tests.PlayMode.Factions
         [UnityTest]
         public IEnumerator Dress_PutsTheFactionSetOnTheHull_TheFlameOnTheThrust_AndTheColourOnTheRing()
         {
-            var (faction, chassis) = NewFaction();
+            var (faction, chassis) = NewFaction(TestAssets.LoadCrimsonPrefab());
             var ship = Spawn(chassis);
 
-            faction.Dress(chassis, ship, elite: false);
+            faction.Dress(ship, elite: false);
             yield return null;
 
-            CollectionAssert.AreEqual(faction.common.hull, HullSlots(ship));
+            CollectionAssert.AreEqual(faction.signature.hull, HullSlots(ship));
             AssertFlame(ship, faction.flame);
             Assert.AreEqual(faction.shieldRing, ship.VisualRig.GetComponentInChildren<ShieldUI>(true)
                 .GetComponent<Image>().material.GetColor(RingColor));
@@ -64,22 +68,83 @@ namespace Tests.PlayMode.Factions
         [UnityTest]
         public IEnumerator Dress_TheEliteWearsItsWholeSetAndFlame()
         {
-            var (faction, chassis) = NewFaction();
+            var (faction, chassis) = NewFaction(TestAssets.LoadCrimsonPrefab());
             var ship = Spawn(chassis);
 
-            faction.Dress(chassis, ship, elite: true);
+            faction.Dress(ship, elite: true);
             yield return null;
 
-            CollectionAssert.AreEqual(faction.common.eliteHull, HullSlots(ship));
+            CollectionAssert.AreEqual(faction.signature.eliteHull, HullSlots(ship));
             AssertFlame(ship, faction.eliteFlame);
         }
 
-        private (Faction faction, Ship chassis) NewFaction()
+        [UnityTest]
+        public IEnumerator Death_ACrimsonWreckWearsTheSkin_AndTakesItsScorchedCopiesWithIt([Values(false, true)] bool elite)
         {
-            var chassis = TestAssets.LoadCrimsonPrefab();
+            var (faction, chassis) = NewFaction(TestAssets.LoadCrimsonPrefab());
+            foreach (var material in faction.signature.hull)
+                if (material.HasColor("_PaintRegionColor3"))
+                    material.SetColor("_PaintRegionColor3", Color.magenta);
+            foreach (var material in faction.signature.eliteHull)
+                if (material.HasColor("_PaintRegionColor3"))
+                    material.SetColor("_PaintRegionColor3", Color.cyan);
+
+            var ship = Spawn(chassis);
+            faction.Dress(ship, elite);
+            yield return null;
+            ship.Damage.TakeDamage(new DamageInfo(
+                100000f, DamageKind.Collision, ShipId.Invalid, 0f, Vector3.zero, ship.transform.position));
+
+            var debris = Object.FindObjectsByType<ShipBreakupDebris>(FindObjectsSortMode.None).Single();
+            var marker = elite ? Color.cyan : Color.magenta;
+            Material skin = null;
+            var seen = 0;
+            foreach (var renderer in debris.GetComponentsInChildren<Renderer>(true))
+                foreach (var material in renderer.sharedMaterials)
+                {
+                    if (!material.HasColor("_PaintRegionColor3")) continue;
+                    Assert.AreEqual(marker, material.GetColor("_PaintRegionColor3"));
+                    skin = material;
+                    seen++;
+                }
+            Assert.Greater(seen, 0);
+
+            yield return new WaitForSeconds(2f);
+            Assert.That(debris == null, Is.True);
+            Assert.That(skin == null, Is.True);
+        }
+
+        [UnityTest]
+        public IEnumerator Death_AValisWreckWearsTheSkinItself()
+        {
+            var chassis = AssetDatabase.LoadAssetAtPath<Ship>("Assets/Prefabs/Ships/Valis.prefab");
+            var (faction, _) = NewFaction(chassis);
+            var ship = Spawn(chassis);
+            faction.Dress(ship, elite: false);
+            yield return null;
+            ship.Damage.TakeDamage(new DamageInfo(
+                100000f, DamageKind.Collision, ShipId.Invalid, 0f, Vector3.zero, ship.transform.position));
+
+            var authored = HullSlots(chassis);
+            var worn = faction.signature.hull;
+            var debris = Object.FindObjectsByType<ShipBreakupDebris>(FindObjectsSortMode.None).Single();
+            var woreSkin = false;
+            foreach (var renderer in debris.GetComponentsInChildren<Renderer>(true))
+                foreach (var material in renderer.sharedMaterials)
+                {
+                    foreach (var slot in authored)
+                        Assert.AreNotSame(slot, material);
+                    foreach (var slot in worn)
+                        if (ReferenceEquals(slot, material)) woreSkin = true;
+                }
+            Assert.IsTrue(woreSkin);
+        }
+
+        private (Faction faction, Ship chassis) NewFaction(Ship chassis)
+        {
             var slots = chassis.VisualRig.Silhouette.SelectMany(surface => surface.sharedMaterials).ToArray();
             var faction = Track(ScriptableObject.CreateInstance<Faction>());
-            faction.common = new FactionShip
+            faction.signature = new FactionShip
             {
                 ship = chassis,
                 hull = slots.Select(slot => Track(new Material(slot))).ToArray(),

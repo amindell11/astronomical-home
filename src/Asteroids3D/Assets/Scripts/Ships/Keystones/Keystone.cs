@@ -1,3 +1,4 @@
+using System;
 using Balance;
 using Damage;
 using Movement;
@@ -10,9 +11,10 @@ namespace Ships.Keystones
     /// prefab and hands the instance to <see cref="Ships.Movement.MovementController"/>, which steps it
     /// every fixed step with the activation bit. The cooldown runs on the kit's own fixed-step clock,
     /// never <c>Time.time</c>, so pacing replays identically across respawns and arenas. A kit's
-    /// effects beyond the activation impulse are state on the kit that other systems observe; the
+    /// effects beyond what its steps push on the ship are state on the kit that other systems observe; the
     /// ship hands it what it owns (contacts, blocked hits, its own shots), and the kit decides what pays. An AI
-    /// commander also reads the kit's sight, which can fire it beside the brain's own request.
+    /// commander also reads the kit's sight, which can fire it beside the brain's own request. A ship that
+    /// should arrive with the kit already running calls <see cref="ActivateOnArrival"/> before its first step.
     /// Design: https://github.com/amindell11/astronomical-home/issues/1028
     /// </summary>
     public abstract class Keystone : MonoBehaviour
@@ -36,6 +38,7 @@ namespace Ships.Keystones
         public float CooldownPct => cooldown > 0f ? CooldownRemaining / cooldown : 0f;
         public int Activations { get; private set; }
         public int PaidActivations { get; private set; }
+        public Rigidbody Body => Host.Body;
 
         /// <summary>The kit's active state, which its tell shows.</summary>
         public virtual bool Active => false;
@@ -46,9 +49,18 @@ namespace Ships.Keystones
         /// <summary>The kit attacks along the heading the navigator flies, so an aim servo must not yaw the ship.</summary>
         public virtual bool FliesNavigatorHeading => false;
 
+        /// <summary>The kit's autopilot has the throttle: the ship drops the pilot's thrust and strafe, keeping yaw.</summary>
+        public virtual bool HoldsThrottle => false;
+
+        /// <summary>How far through its throttle hold the kit is, 0 to 1; 0 while it holds none.</summary>
+        public virtual float HoldProgress => 0f;
+
         public virtual float SpeedScale => 1f;
         public virtual float ThrustScale => 1f;
         public virtual float ManeuverabilityScale => 1f;
+
+        /// <summary>Multiplier on the ship's mass, applied every step.</summary>
+        public virtual float MassScale => 1f;
 
         /// <summary>The largest scales the kit ever reports, so anything sized once at spawn covers them.</summary>
         public virtual float PeakSpeedScale => 1f;
@@ -65,16 +77,27 @@ namespace Ships.Keystones
         {
             clock += dt;
             activated = Ready && input != 0f;
-            var effect = default(KeystoneEffect);
-            if (activated)
-            {
-                readyAt = clock + cooldown;
-                activatedAt = clock;
-                Activations++;
-                effect = Activate(in kinematics, target);
-            }
-            Sustain(in kinematics, baseMaxSpeed);
-            return effect;
+            var effect = activated ? Commit(in kinematics, target) : default;
+            return effect + Sustain(in kinematics, dt, baseMaxSpeed);
+        }
+
+        public void ActivateOnArrival(in Kinematics kinematics)
+        {
+            if (!Ready)
+                throw new InvalidOperationException($"{name} is not ready to arrive already running.");
+            var effect = Commit(in kinematics, null);
+            // A brake takes the throttle on the press and moves the ship on later steps.
+            if (effect.Impulse != Vector2.zero || effect.Displacement != Vector2.zero || HoldsThrottle)
+                throw new InvalidOperationException(
+                    $"{name} cannot arrive already running: its activation moves the ship.");
+        }
+
+        private KeystoneEffect Commit(in Kinematics kinematics, Vector2? target)
+        {
+            readyAt = clock + cooldown;
+            activatedAt = clock;
+            Activations++;
+            return Activate(in kinematics, target);
         }
 
         public void ResetKeystone()
@@ -90,6 +113,9 @@ namespace Ships.Keystones
 
         public virtual bool Blocks(in DamageInfo hit) => false;
 
+        /// <summary>Multiplier the kit puts on a hit it doesn't block.</summary>
+        public virtual float DamageScale(in DamageInfo hit) => 1f;
+
         /// <summary>The kit's sight: whether an engaged AI should fire it now, beside any brain request.</summary>
         public virtual bool ShouldActivate(in KeystoneContext context) => false;
 
@@ -101,9 +127,12 @@ namespace Ships.Keystones
 
         protected abstract KeystoneEffect Activate(in Kinematics kinematics, Vector2? target);
 
-        protected virtual void Sustain(in Kinematics kinematics, float baseMaxSpeed) { }
+        protected virtual KeystoneEffect Sustain(in Kinematics kinematics, float dt, float baseMaxSpeed) => default;
 
         protected virtual void OnReset() { }
+
+        protected void ShortenCooldown(float secondsFromActivation) =>
+            readyAt = Mathf.Min(readyAt, activatedAt + secondsFromActivation);
 
         protected void CreditActivation()
         {

@@ -120,12 +120,13 @@ namespace Ships.Visuals
             ApplyDamageFlash(attack * decay);
         }
 
-        public void HoldFlash(Color color)
+        public void HoldFlash(Color color, float strength = 1f)
         {
             flashHeld = true;
             elapsed = float.PositiveInfinity;
             ApplyDamageFlash(0f);
-            for (var i = 0; i < surfaces.Count; i++) SetSurface(i, color, 1f);
+            for (var i = 0; i < surfaces.Count; i++)
+                SetSurface(i, Color.Lerp(surfaceColors[i], color, strength), strength);
         }
 
         public void ReleaseFlash()

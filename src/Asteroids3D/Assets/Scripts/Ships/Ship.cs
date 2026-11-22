@@ -18,6 +18,7 @@ using Movement;
 using UnityEngine;
 using Ships.Registry;
 using Substrate.Services.Projectiles;
+using Cameras.Shake;
 
 namespace Ships
 {
@@ -99,6 +100,7 @@ namespace Ships
         private Dynamics baseDynamics;
         public Transform TargetPoint => transform;
         public LockChannel Lock { get; } = new LockChannel();
+        public ShakeChannel Shake { get; } = new ShakeChannel();
         public event Action JumpRequested;
         public Vector3 Velocity => Movement ? Movement.Kinematics.WorldVel : Vector3.zero;
         public Rigidbody Body => Rigidbody;
@@ -149,8 +151,13 @@ namespace Ships
             Subscribe();
         }
 
-        private void Resolve() =>
+        // Only Initialize derives the radius from geometry, so every resolve carries it forward.
+        private void Resolve()
+        {
+            var radius = Stats?.shipRadius ?? 1f;
             Stats = ResolvedShipStats.Resolve(this, engine, shield, mods?.ForShip() ?? ShipMods.None, scale);
+            Stats.shipRadius = radius;
+        }
 
         /// <summary>Authored stats, without run mods or instantiating; shipRadius stays default until <see cref="Initialize"/> derives it from live colliders.</summary>
         public ResolvedShipStats ResolveStats() => ResolvedShipStats.Resolve(this, engine, shield);
@@ -193,12 +200,9 @@ namespace Ships
         // Keep for live inspector tuning, Rescale for a lull pick, Refill for a hangar equip.
         private enum Vitals { Keep, Rescale, Refill }
 
-        // Module swaps don't change geometry, so the derived radius carries forward.
         private void ReResolve(Vitals vitals)
         {
-            var radius = Stats?.shipRadius ?? 1f;
             Resolve();
-            Stats.shipRadius = radius;
             if (Movement) Movement.PopulateSettings(Stats);
             if (Damage && vitals == Vitals.Refill) Damage.PopulateSettings(Stats);
             if (Damage && vitals == Vitals.Rescale) Damage.Rescale(Stats);
@@ -274,7 +278,7 @@ namespace Ships
             var relative = collision.relativeVelocity;
             var closing = relative.sqrMagnitude > 1e-6f ? Mathf.Abs(Vector3.Dot(relative.normalized, contact.normal)) : 0f;
             Keystone.OnContact(new KeystoneContact(Id, Rigidbody.mass, Rigidbody.linearVelocity,
-                collision.collider, collision.rigidbody, contact.point, closing));
+                collision.collider, collision.rigidbody, contact.point, closing, relative.magnitude));
         }
 
         // Extents-magnitude × 0.5 mirrors the single-collider radius convention in AI.Scout.

@@ -16,6 +16,13 @@ namespace AI
     {
         [Header("Ship Scanning")]
         public float nearbyShipRadius = 30f;
+
+        [Tooltip("Units within which a ship limited to sight sees its enemy, when no rock blocks the line.")]
+        public float sightRange = 70f;
+
+        [Tooltip("Seconds out of sight after which a ship limited to sight loses its enemy.")]
+        public float loseSightAfter = 3f;
+
         public float asteroidCoverRadius = 15f;
 
         [Header("Obstacle Detection")]
@@ -30,6 +37,7 @@ namespace AI
         private Transform origin;
         private ShipId shipId;
         public ShipId ShipId => shipId;
+        internal Vector3 Origin => origin.position;
 
         /// <summary>Scans still feed avoidance, but no contacts are reported, so the pilot acquires no enemy.</summary>
         public bool Unaware { get; set; }

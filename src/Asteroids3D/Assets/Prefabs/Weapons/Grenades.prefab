@@ -49,6 +49,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   firePoint: {fileID: 0}
   displayName: CONCUSSION
+  hangarDescription: A lobbed charge with a wide blast. It hurts friend and foe alike.
+  hangarTags:
+  - Blast
+  - Friendly fire
   hudIcon: {fileID: 21300000, guid: 87385cf094ca7ce41b87ed1dfff9e060, type: 3}
   projectilePrefab: {fileID: 1100000000000000005, guid: 219de1e2c5fa437b915e10f477114d2c,
     type: 3}
@@ -84,6 +88,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fireRate: 1
+  spinUpTime: 0
+  coldFireRate: 0.2
+  spinDownTime: 0.4
 --- !u!114 &4166343123574894590
 MonoBehaviour:
   m_ObjectHideFlags: 0

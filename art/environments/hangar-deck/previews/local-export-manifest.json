@@ -1,0 +1,284 @@
+{
+  "source": "deck.blend",
+  "camera": {
+    "position": [
+      0.0,
+      -18.0,
+      6.800000190734863
+    ],
+    "forward": [
+      -0.0,
+      0.9935725927352905,
+      -0.11319684982299805
+    ],
+    "up": [
+      0.0,
+      0.11319684982299805,
+      0.9935725927352905
+    ],
+    "verticalFieldOfView": 34.11393115323413,
+    "referenceAspect": 1.7777777777777777
+  },
+  "parts": [
+    {
+      "name": "MainScreenGlass",
+      "vertices": 8,
+      "triangles": 6,
+      "pivot": [
+        -7.334554672241211,
+        0.9212581515312195,
+        3.4043033123016357
+      ]
+    },
+    {
+      "name": "DetailScreenGlass",
+      "vertices": 8,
+      "triangles": 6,
+      "pivot": [
+        -6.4329071044921875,
+        -0.06341129541397095,
+        1.7063461542129517
+      ]
+    },
+    {
+      "name": "SelectorKnob",
+      "vertices": 24,
+      "triangles": 44,
+      "pivot": [
+        3.659372091293335,
+        -2.3322854042053223,
+        1.4635363817214966
+      ]
+    },
+    {
+      "name": "PreviousButton",
+      "vertices": 30,
+      "triangles": 56,
+      "pivot": [
+        -4.023410797119141,
+        -2.2873423099517822,
+        1.414997935295105
+      ]
+    },
+    {
+      "name": "PreviousLegend",
+      "vertices": 12,
+      "triangles": 20,
+      "pivot": [
+        -4.023410797119141,
+        -2.2873423099517822,
+        1.414997935295105
+      ]
+    },
+    {
+      "name": "NextButton",
+      "vertices": 30,
+      "triangles": 56,
+      "pivot": [
+        -3.2953333854675293,
+        -2.3772284984588623,
+        1.5120748281478882
+      ]
+    },
+    {
+      "name": "NextLegend",
+      "vertices": 12,
+      "triangles": 20,
+      "pivot": [
+        -3.2953333854675293,
+        -2.3772284984588623,
+        1.5120748281478882
+      ]
+    },
+    {
+      "name": "LaunchButton",
+      "vertices": 152,
+      "triangles": 300,
+      "pivot": [
+        0.0,
+        -3.440000057220459,
+        1.5
+      ]
+    },
+    {
+      "name": "LaunchLegend",
+      "vertices": 128,
+      "triangles": 236,
+      "pivot": [
+        0.0,
+        -3.440000057220459,
+        1.5
+      ]
+    },
+    {
+      "name": "ProjectorLens",
+      "vertices": 24,
+      "triangles": 44,
+      "pivot": [
+        0.0,
+        0.0,
+        2.4800000190734863
+      ]
+    },
+    {
+      "name": "PrimaryScreenGlass",
+      "vertices": 8,
+      "triangles": 6,
+      "pivot": [
+        7.719390869140625,
+        1.3678667545318604,
+        3.831434965133667
+      ]
+    },
+    {
+      "name": "PrimaryPreviousButton",
+      "vertices": 30,
+      "triangles": 56,
+      "pivot": [
+        5.566208839416504,
+        2.594343900680542,
+        3.920092821121216
+      ]
+    },
+    {
+      "name": "PrimaryPreviousLegend",
+      "vertices": 12,
+      "triangles": 20,
+      "pivot": [
+        5.549839496612549,
+        2.559084892272949,
+        3.9492321014404297
+      ]
+    },
+    {
+      "name": "PrimaryNextButton",
+      "vertices": 30,
+      "triangles": 56,
+      "pivot": [
+        5.332448482513428,
+        2.3390591144561768,
+        3.479881525039673
+      ]
+    },
+    {
+      "name": "PrimaryNextLegend",
+      "vertices": 12,
+      "triangles": 20,
+      "pivot": [
+        5.304352283477783,
+        2.3131165504455566,
+        3.509845495223999
+      ]
+    },
+    {
+      "name": "OrdnanceScreenGlass",
+      "vertices": 8,
+      "triangles": 6,
+      "pivot": [
+        6.926275253295898,
+        0.5017223954200745,
+        2.3378615379333496
+      ]
+    },
+    {
+      "name": "OrdnancePreviousButton",
+      "vertices": 30,
+      "triangles": 56,
+      "pivot": [
+        5.002679347991943,
+        1.978925347328186,
+        2.8588695526123047
+      ]
+    },
+    {
+      "name": "OrdnancePreviousLegend",
+      "vertices": 12,
+      "triangles": 20,
+      "pivot": [
+        4.986310005187988,
+        1.9436664581298828,
+        2.8880088329315186
+      ]
+    },
+    {
+      "name": "OrdnanceNextButton",
+      "vertices": 30,
+      "triangles": 56,
+      "pivot": [
+        4.768918514251709,
+        1.7236406803131104,
+        2.4186582565307617
+      ]
+    },
+    {
+      "name": "OrdnanceNextLegend",
+      "vertices": 12,
+      "triangles": 20,
+      "pivot": [
+        4.7408223152160645,
+        1.6976982355117798,
+        2.448622226715088
+      ]
+    },
+    {
+      "name": "ConsoleBody",
+      "vertices": 3276,
+      "triangles": 6572,
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  ],
+  "screenGlasses": [
+    {
+      "name": "MainScreenGlass",
+      "width": 4.25,
+      "height": 3.0,
+      "content": {
+        "left": 0.04750000000000001,
+        "right": 0.9225,
+        "bottom": 0.0,
+        "top": 0.8774999929584709
+      }
+    },
+    {
+      "name": "DetailScreenGlass",
+      "width": 3.759999990463257,
+      "height": 0.800000011920929,
+      "content": {
+        "left": 0.054999999999999966,
+        "right": 0.9450000000000001,
+        "bottom": 0.0,
+        "top": 1.0
+      }
+    },
+    {
+      "name": "PrimaryScreenGlass",
+      "width": 4.25,
+      "height": 1.600000023841858,
+      "content": {
+        "left": 0.2,
+        "right": 0.9524999999999999,
+        "bottom": 0.0,
+        "top": 0.9999999894815332
+      }
+    },
+    {
+      "name": "OrdnanceScreenGlass",
+      "width": 4.25,
+      "height": 1.600000023841858,
+      "content": {
+        "left": 0.04750000000000001,
+        "right": 0.9524999999999999,
+        "bottom": 0.0,
+        "top": 1.0
+      }
+    }
+  ],
+  "lamps": [],
+  "downlights": [],
+  "paint": "Authored color graph and fixed-camera Freestyle ink, one layer for the body and one the moving controls carry. No scene lighting, sky, ship or cone.",
+  "screens": "Live UI; each glass names the plain rectangle its content is laid out in."
+}

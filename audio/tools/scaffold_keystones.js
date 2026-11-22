@@ -1,11 +1,14 @@
-// Pre-creates the keystone-audio contract KeystoneAudio consumes: one 3D event per kit in bank:/Ships,
-// routed to bus:/World/Ships, each with the owner's clip from Assets/Sfx/Keystones/, imported in place.
+// Pre-creates the keystone-audio contract KeystoneAudio consumes: 3D events in bank:/Ships,
+// routed to bus:/World/Ships. A kit event takes the owner's clip from Assets/Sfx/Keystones/, imported in place.
 //   event:/Ships/Keystones/Dash       Junker, Vanguard  boost.wav       plays through
 //   event:/Ships/Keystones/Ram        Bulwark           ram_boost.wav   plays through
+//   event:/Ships/Keystones/RamBrake   Bulwark           (owner designs)  played while the ram brakes, keyed off at launch
 //   event:/Ships/Keystones/Blink      Crimson           blink.wav       plays through
 //   event:/Ships/Keystones/Overdrive  Valis             overdrive.wav   held for the kit's window
 //   event:/Ships/Keystones/Stealth    Nightshade        stealth_2.wav   held for the kit's window
-// KeystoneAudio starts the event at each activation and keys it off when the kit's active window ends.
+// KeystoneAudio starts the event at activation, or at launch for a kit that holds the throttle first,
+// and keys it off when the kit's active window ends.
+// event:/Ships/Keystones/RamBrake is created empty for the owner to design.
 // A plays-through event has no sustain point, so the key-off changes nothing. A held event plays its
 // clip async from a short cut-off region with a sustain point inside, as Missile/Flight does: the clip
 // runs while the cursor holds, and the key-off moves the cursor out of the region, which cuts the clip
@@ -113,6 +116,7 @@ function ensureHeld(event, assetPath) {
 
 dashFromBoost();
 ensurePlaysThrough(kitEvent("Ram"), "Sfx/Keystones/ram_boost.wav");
+kitEvent("RamBrake");
 ensurePlaysThrough(kitEvent("Blink"), "Sfx/Keystones/blink.wav");
 ensureHeld(kitEvent("Overdrive"), "Sfx/Keystones/overdrive.wav");
 ensureHeld(kitEvent("Stealth"), "Sfx/Keystones/stealth_2.wav");

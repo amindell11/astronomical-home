@@ -62,6 +62,12 @@ namespace UI.Hangar.Selection
             Changed?.Invoke();
         }
 
+        public void Step(HangarSlot slot, int step)
+        {
+            Select(slot);
+            Step(step);
+        }
+
         public void Turn(int step)
         {
             if (step == 0) return;

@@ -121,5 +121,6 @@ namespace UI.Projection
         bool ICanopySource.EffectsEnabled => true;
         float ICanopySource.TransitionAge => transitionAge();
         float ICanopySource.HitAge => -1f;
+        float ICanopySource.HitSize => 0f;
     }
 }

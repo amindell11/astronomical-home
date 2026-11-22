@@ -152,9 +152,11 @@ def assemble_mp4(frame_dir, frames, out_fps, scale, crf, durations=None):
         sys.exit(f"read-back of {out_path} decoded {decoded} frames, expected at least {expected}; "
                  f"clip and frames kept in {frame_dir}")
     if durations:
-        probe = subprocess.run([ffmpeg_exe, "-i", out_path, "-f", "null", "-"], capture_output=True)
-        reported = re.findall(r"time=(\d+):(\d+):([\d.]+)", probe.stderr.decode(errors="replace"))
-        actual = sum(float(part) * factor for part, factor in zip(reported[-1], (3600, 60, 1))) if reported else None
+        # time= ticks at an inferred rate; showinfo prints the clip's own timestamps.
+        probe = subprocess.run([ffmpeg_exe, "-hide_banner", "-nostats", "-i", out_path, "-map", "0:v:0",
+                                "-vf", "showinfo", "-f", "null", "-"], capture_output=True)
+        shown = re.findall(r"pts_time:\s*(\S+).*?duration_time:\s*(\S+)", probe.stderr.decode(errors="replace"))
+        actual = float(shown[-1][0]) + float(shown[-1][1]) if shown else None
         if probe.returncode or actual is None or abs(actual - sum(durations)) > 0.02:
             sys.exit(f"read-back of {out_path} duration {actual} differs from {sum(durations):.6f}s; "
                      f"clip and frames kept in {frame_dir}")

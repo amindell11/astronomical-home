@@ -81,20 +81,6 @@ Dispatch is `scripts/remote_gate.sh`; the lane is proven at local parity
   either direction; suspect AP client isolation) — this blocks #463. Fix candidates:
   Ethernet, or Tailscale.
 
-## The committed Sentis defines
-
-`com.unity.ai.inference` (pulled in by `com.unity.ml-agents`) runs
-`AnalyticsDefineManager` on every editor load. It adds `SENTIS_ANALYTICS_ENABLED`
-to the Standalone defines when `EditorAnalytics.enabled` and strips it otherwise,
-and batch and interactive editors disagree on that flag. With
-`FORCE_SENTIS_ANALYTICS` also present it writes nothing, so the Standalone define
-line in `ProjectSettings.asset` and the `Main` build profile commits both: the
-line stays as committed in every mode. Keep the pair whole when editing that line.
-Telemetry still follows the editor-analytics pref, because
-`EditorAnalytics.SendAnalytic` returns `AnalyticsDisabled` before sending when it
-is off (ruling and source on #1237). A test run or solution sync that fails on a
-diff in that line means a package upgrade changed the manager.
-
 ## git-lfs owns hooks in `core.hooksPath`
 
 git-lfs auto-installs its four hooks into whatever `core.hooksPath` names, on the

@@ -1,9 +1,15 @@
-"""Bake the authored window etch/cloud mask and export its real pane. --assets names the Unity visuals directory."""
+"""Bake the authored window etch/cloud mask and export its real pane.
+
+--assets names the Unity visuals directory. Writes WindowEtching.png and ViewportGlass.fbx there,
+the pane's world placement baked into its mesh, then prints a WINDOW_EXPORT=complete trailer.
+The source scene is never saved by this exporter.
+"""
 import argparse
 import sys
 from pathlib import Path
 
 import bpy
+from mathutils import Matrix
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--assets', required=True)
@@ -34,9 +40,11 @@ bpy.context.scene.render.bake.margin = 2
 bpy.context.scene.render.bake.use_selected_to_active = False
 bpy.ops.object.bake(type='EMIT')
 image.save()
+# The game places the pane by rotation alone, so its placement lives in the mesh.
 world = glass.matrix_world.copy()
 glass.parent = None
-glass.matrix_world = world
+glass.data.transform(world)
+glass.matrix_world = Matrix.Identity(4)
 glass.name = 'ViewportGlass'
 glass.data.materials.clear()
 bpy.ops.export_scene.fbx(filepath=str(assets / 'ViewportGlass.fbx'), use_selection=True,

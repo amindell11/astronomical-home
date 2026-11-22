@@ -12,7 +12,9 @@ using Game.Companion;
 using Game.Display;
 using Game.Moments;
 using Game.Moments.Encounters;
+using Game.Moments.Finds;
 using Game.Player;
+using Game.Player.Recorders;
 using Game.Runs;
 using Game.Travel;
 using Loot;
@@ -868,6 +870,7 @@ namespace Game
             if (course == null) return;
             var damage = rigInstance.Player.Damage;
             course.Enter(index + 1, Time.time, damage.Health.Pct, damage.Shield.Pct);
+            rigInstance.Recovery.Open();
         }
 
         private void CloseOpenSector()
@@ -877,7 +880,7 @@ namespace Game
             var damage = rigInstance.Player.Damage;
             course.End(sectorEnded ? sectorEndTime : Time.time, rigInstance.Spawns.KillsSinceSectorStart(),
                 damage.Health.Pct, damage.Shield.Pct, rigInstance.Spawns.EliteMet(activeSectorIndex),
-                rigInstance.Spawns.EliteBeaten(activeSectorIndex));
+                rigInstance.Spawns.EliteBeaten(activeSectorIndex), rigInstance.Recovery.Close());
         }
 
         // An unreadable build identity leaves the run unrecorded, like a failed write.
@@ -892,7 +895,7 @@ namespace Game
 
             var sectorsCleared = abandoned ? clearedSectors : killingBlow.HasValue ? endedIn : endedIn + 1;
             var record = RunRecord.Compose(DateTime.UtcNow, sectorsCleared, endedIn, locales, identity,
-                StatHash.OfSetting(hangarOffer, sessionProfile.run.Sectors, killHullRestore), rigInstance.Loadout,
+                StatHash.OfSetting(hangarOffer, lullMods, sessionProfile.run.Sectors, killHullRestore), rigInstance.Loadout,
                 playerLoadoutStatHash, rigInstance.Tally, rigInstance.Ledger, rigInstance.Spawns, killingBlow,
                 course, MountedLoadout(rigInstance.Player), rigInstance.Mods.PickedNames(), ReadEndPhase(),
                 Application.isEditor ? RunRecord.OriginEditor : RunRecord.OriginBuild, DealtRows(rigInstance.Dealt),
@@ -912,14 +915,8 @@ namespace Game
             var sector = session != null ? session.ActiveSector : null;
             var spine = sector ? sector.Module<PhaseSpineModule>() : null;
             if (!spine) return default;
-            var mark = spine.Phase;
-            return new EndPhaseRow
-            {
-                index = mark.Index,
-                inLull = mark.InLull,
-                done = mark.Done,
-                elapsedSeconds = mark.ElapsedSeconds,
-            };
+            return EndPhaseRow.Of(spine.Phase,
+                rigInstance.Spawns.EliteMet(activeSectorIndex) && !rigInstance.Spawns.EliteBeaten(activeSectorIndex));
         }
 
         private static LoadoutRow MountedLoadout(Ship ship)
@@ -927,11 +924,11 @@ namespace Game
             var weapons = ship.Weapons;
             return new LoadoutRow
             {
-                chassis = ship.name.Replace("(Clone)", string.Empty),
-                engine = ship.Engine ? ship.Engine.name : string.Empty,
-                shield = ship.Shield ? ship.Shield.name : string.Empty,
-                primary = weapons && weapons.PrimaryMountPrefab ? weapons.PrimaryMountPrefab.name : string.Empty,
-                secondary = weapons && weapons.SecondaryMountPrefab ? weapons.SecondaryMountPrefab.name : string.Empty,
+                chassis = SpawnLog.NameOf(ship),
+                engine = SpawnLog.NameOf(ship.Engine),
+                shield = SpawnLog.NameOf(ship.Shield),
+                primary = SpawnLog.NameOf(weapons ? weapons.PrimaryMountPrefab : null),
+                secondary = SpawnLog.NameOf(weapons ? weapons.SecondaryMountPrefab : null),
                 statHash = StatHash.OfLoadout(ship),
             };
         }

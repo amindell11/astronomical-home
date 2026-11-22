@@ -224,6 +224,7 @@ namespace Combat.Targeting
             for (var i = 0; i < colliderCount; i++)
             {
                 if (!registry.TryGetShip(fanHits[i], out var ship, selfShipId)) continue;
+                if (!registry.IsHostile(selfShipId, ship.Id)) continue;
                 if (!IsValid(ship) || ship.Lock.IsConcealed) continue;
 
                 var angle = TargetingMath.AngleTo(pose, PlanePoint(ship));

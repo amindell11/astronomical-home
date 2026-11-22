@@ -291,6 +291,36 @@ bpy.ops.wm.save_as_mainfile(filepath=str(grouped_source))
 tool("export", grouped, "--debris", expect=3)
 results["debris_painted_triangles"] = sum(intact_triangles.values())
 
+# ship_new --base: a derived ship links the parent's parts except Fin; the read-only tools run on it,
+# and its lock covers the linked parts, so an edit to the parent fails its verify.
+parent = ship("parent")
+derived = ship("derived", variant=False, source="Minion.blend")
+derived_source = derived.parent / "Minion.blend"
+tool("new", derived, "--base", parent, "--omit", "Fin", "Unknown part", expect=3)
+assert not derived_source.exists()
+created = tool("new", derived, "--base", parent, "--omit", "Fin")[1]
+assert len(created["libraries"]) == 1 and created["libraries"][0].startswith("//"), created["libraries"]
+assert set(created["linked"]) == {"Fuselage", "Wing", "Spine", "Canopy", "Core", "engine.L", "engine.R"}, created["linked"]
+assert set(created["supports"]) == {contract.SYMMETRY_ORIGIN, "Body", "Wings"}, created["supports"]
+tool("new", derived, "--base", parent, expect=3)
+assert tool("check", derived)[1]["findings"] == []
+tool("lock", derived, "--mode", "lock")
+tool("lock", derived, "--mode", "verify")
+for render_set in ("ortho", "scale"):
+    images = tool("render", derived, "--set", render_set, "--size", "128")[1]["images"]
+    assert images and all(Path(path).is_file() for path in images.values()), images
+derived_fbx = tool("export", derived)[0]["SHIP_FBX"]
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.wm.fbx_import(filepath=derived_fbx)
+objects = {obj.name: obj for obj in bpy.context.scene.objects}
+assert {n for n, o in objects.items() if o.type == "MESH"} == {"Hull", "Canopy", "Cores"}, set(objects)
+assert np.array([v.co for v in objects["Hull"].data.vertices])[:, 2].max() < 0.5, "omitted Fin exported"
+bpy.ops.wm.open_mainfile(filepath=str(parent.parent / "Fixture.blend"))
+bpy.data.objects["Wing"].data.vertices[0].co.z += 0.01
+bpy.context.preferences.filepaths.save_version = 0
+bpy.ops.wm.save_mainfile()
+assert tool("lock", derived, "--mode", "verify", expect=3)[1]["changed"] == ["Wing"]
+
 # One failure case per tool.
 unpainted = ship("missing_region")
 shutil.copy(lock, unpainted.parent / "lock.json")

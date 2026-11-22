@@ -1,68 +1,107 @@
-using System.Linq;
+using AI.Pilots;
 using AI.Tactics;
-using Game;
-using Game.Preview;
 using NUnit.Framework;
-using RL.Opponents;
-using Substrate.Sectors.Elements.Elites;
+using Ships.Command;
 using Substrate.Sectors.Elements.Hunt;
+using Substrate.Sectors.Factions;
 using UnityEditor;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace Tests.EditMode.Sectors
 {
+    /// <summary>
+    /// Each shipped faction's rival and minion fly pilots whose tempers are set, and the two ranks fly
+    /// different pilots. The minion is the signature ship at 0.75 size and 0.7 hull, and its pilot never
+    /// fires the keystone. Both tempers of a faction share one wounded response: Veil never, Shoal jump
+    /// out, Bastion last stand. No sector prefab names a patrol pilot of its own.
+    /// </summary>
     [TestFixture]
     [Category("Sectors")]
     public class SectorTempersEditModeTests
     {
         [Test]
-        public void EveryShippedRow_AndTheCrowdedFightRow_FlyEachKindOfShipOnItsTemper()
+        public void EachFactionsRivalAndMinion_HasAPilotWhoseBrainCarriesATemper()
         {
-            var rows = Load<GameHost>(PreviewHostBootstrap.GameHostPath).sessionProfile.run.Sectors
-                .Append(PreviewHostBootstrap.FixtureRow("CrowdedFightSector"))
-                .ToArray();
-            Assert.That(rows, Has.Length.GreaterThan(1), "the run ships sectors");
-
-            foreach (var (row, index) in rows.Select((row, index) => (row, index)))
+            foreach (var id in new[] { "Shoal", "Veil", "Bastion" })
             {
-                var sector = row.prefab;
-                var label = $"row {index} ({sector.name})";
-                var ships = row.phases.SelectMany(phase => phase.groups).SelectMany(group => group.ships).ToArray();
-                Assert.That(ships, Is.Not.Empty, $"{label} has a wave ship");
-                for (var i = 0; i < ships.Length; i++)
-                    AssertTemper("Wave", ships[i].pilot, $"{label}'s wave ship {i}");
-
-                AssertTemper("Wave", Field(sector.GetComponentInChildren<SectorHunt>(true), "patrolPilot"),
-                    $"{label}'s patrols");
-                var elite = sector.GetComponentInChildren<EliteEncounter>(true);
-                AssertTemper("Elite", Field(elite, "pilot"), $"{label}'s elite");
-                AssertTemper("Escort", Field(elite, "escortPilot"), $"{label}'s escorts");
+                var faction = Load(id);
+                AssertTemper(faction.Rival.pilot, $"{id} rival");
+                AssertTemper(faction.Minion.pilot, $"{id} minion");
+                Assert.AreEqual(0.75f, faction.Minion.scale.Size, 1e-4f, $"{id} minion size");
+                Assert.AreEqual(0.7f, faction.Minion.scale.Hull, 1e-4f, $"{id} minion hull");
+                Assert.AreEqual($"Assets/Prefabs/Pilots/Factions/{id}MinionPilot.prefab",
+                    AssetDatabase.GetAssetPath(faction.Minion.pilot), id);
+                Assert.AreEqual($"Assets/Settings/AI/Tactics/Factions/{id}MinionTemper.asset",
+                    AssetDatabase.GetAssetPath(Temper(faction.Minion.pilot)), id);
+                Assert.IsTrue(new SerializedObject(faction.Minion.pilot).FindProperty("suppressKeystone").boolValue,
+                    $"{id} minion holds its keystone");
             }
         }
 
-        private static void AssertTemper(string kind, Object pilot, string ships)
+        [Test]
+        public void OneFactionsTwoRanks_FlyDifferentPilotPrefabs()
         {
-            Assert.IsNotNull(pilot, $"{ships} have a pilot");
-            var brain = ((Component)pilot).GetComponent<ArchetypeBrain>();
-            Assert.IsNotNull(brain, $"{ships} fly an archetype brain");
-            Assert.AreSame(Load<TacticsSettings>($"Assets/Settings/AI/Tactics/{kind}Temper.asset"), Field(brain, "tactics"),
-                $"{ships} fly the {kind.ToLowerInvariant()} temper");
+            var faction = Load("Shoal");
+
+            Assert.AreNotSame(faction.Rival.pilot, faction.Minion.pilot);
+            Assert.AreSame(faction.Ship, faction.Minion.ship);
         }
 
-        private static T Load<T>(string path) where T : Object
+        [Test]
+        public void BothTempersOfAFaction_ShareOneWoundedResponse()
         {
-            var asset = AssetDatabase.LoadAssetAtPath<T>(path);
-            Assert.IsNotNull(asset, $"asset missing at {path}");
-            return asset;
+            AssertResponse("Veil", WoundedResponse.Never);
+            AssertResponse("Shoal", WoundedResponse.JumpOut);
+            AssertResponse("Bastion", WoundedResponse.LastStand);
         }
 
-        private static Object Field(Object owner, string field)
+        [Test]
+        public void NoShippedSectorPrefab_SerializesAPatrolPilot()
         {
-            Assert.IsNotNull(owner, $"no component to read '{field}' from");
-            using var serialized = new SerializedObject(owner);
-            var value = serialized.FindProperty(field).objectReferenceValue;
-            return value ? value : null;
+            var guids = AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/Prefabs/Sectors" });
+            Assert.IsNotEmpty(guids, "the sector prefabs are in the tree");
+            foreach (var guid in guids)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guid);
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                Assert.IsTrue(prefab, path);
+                foreach (var hunt in prefab.GetComponentsInChildren<SectorHunt>(true))
+                {
+                    using var serialized = new SerializedObject(hunt);
+                    Assert.IsNull(serialized.FindProperty("patrolPilot"), $"{path} serializes a patrol pilot");
+                }
+            }
+        }
+
+        private static void AssertTemper(Commander pilot, string label)
+        {
+            var brain = pilot.GetComponent<ArchetypeBrain>();
+            Assert.IsTrue(brain, $"{label} flies an archetype brain");
+            Assert.IsTrue(Temper(pilot), $"{label}'s pilot carries a temper");
+        }
+
+        private static void AssertResponse(string id, WoundedResponse response)
+        {
+            var faction = Load(id);
+            Assert.AreEqual(response, Temper(faction.Rival.pilot).wounded, $"{id} rival");
+            Assert.AreEqual(response, Temper(faction.Minion.pilot).wounded, $"{id} minion");
+        }
+
+        private static TacticsSettings Temper(Commander pilot)
+        {
+            var brain = pilot.GetComponent<ArchetypeBrain>();
+            Assert.IsTrue(brain, $"{pilot.name} flies an archetype brain");
+            var temper = new SerializedObject(brain).FindProperty("tactics").objectReferenceValue as TacticsSettings;
+            Assert.IsTrue(temper, $"{pilot.name} carries a temper");
+            return temper;
+        }
+
+        private static Faction Load(string id)
+        {
+            var path = $"Assets/Settings/Factions/{id}.asset";
+            var faction = AssetDatabase.LoadAssetAtPath<Faction>(path);
+            Assert.IsNotNull(faction, $"asset missing at {path}");
+            return faction;
         }
     }
 }

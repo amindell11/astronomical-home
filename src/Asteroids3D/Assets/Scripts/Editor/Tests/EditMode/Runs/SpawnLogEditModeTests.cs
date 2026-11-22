@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Balance;
 using Damage;
-using Game.Player;
+using Game.Player.Recorders;
 using NUnit.Framework;
 using Ships;
 using Ships.Loadout;
@@ -268,6 +268,24 @@ namespace Tests.EditMode.Runs
             Assert.IsTrue(log.EliteMet(1));
             Assert.IsFalse(log.EliteBeaten(1));
             Assert.IsTrue(log.EliteBeaten(0));
+        }
+
+        [Test]
+        public void AnyOtherAlive_IgnoresThePlayerAndIsTrueUntilTheSpawnIsDeadOrHasLeft()
+        {
+            log.Begin(0f);
+            log.Log(Player, NewHull(), 0f);
+            Assert.IsFalse(log.AnyOtherAlive());
+
+            log.Log(Enemy, NewHull(), 0f);
+            Assert.IsTrue(log.AnyOtherAlive());
+            log.MarkDead(Enemy, BlowFrom(Player), 1f);
+            Assert.IsFalse(log.AnyOtherAlive());
+
+            log.Log(OtherEnemy, NewHull(), 2f);
+            Assert.IsTrue(log.AnyOtherAlive());
+            log.EndSector(3f);
+            Assert.IsFalse(log.AnyOtherAlive());
         }
 
         [Test]

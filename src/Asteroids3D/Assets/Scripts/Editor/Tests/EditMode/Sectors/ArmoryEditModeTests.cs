@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Tests.EditMode.Sectors
 {
-    /// <summary>The trial sector, which every survival trial row flies, carries one armory module, set up after its repair and mod stations, reading the sector's own hunt and spaced from both, with its own find icon and a find-layer minimap marker that goes dark with its glow. The trial run's rows place no armory, then one, then one.</summary>
+    /// <summary>The trial sector, which every survival trial row flies, carries one armory module, set up after its repair and mod stations, reading the sector's own hunt and spaced from both, with its own find icon and a find-layer minimap marker among the parts that go dark. The trial run's rows place no armory, then one, then one.</summary>
     [TestFixture]
     [Category("Sectors")]
     [Category("RequiresLfsPng")]
@@ -38,7 +38,7 @@ namespace Tests.EditMode.Sectors
 
             var lit = ((FindStationBody)serialized.FindProperty("body").objectReferenceValue).Lit;
             Assert.That(lit.GetComponentsInChildren<Renderer>(true).Select(r => r.gameObject.layer),
-                Has.Member(LayerMask.NameToLayer("Minimap_Find")), "The find marker goes dark with the glow.");
+                Has.Member(LayerMask.NameToLayer("Minimap_Find")), "The find marker goes dark with the station.");
 
             var icon = serialized.FindProperty("icon").objectReferenceValue as Sprite;
             Assert.IsTrue(icon, "The armory carries its find icon.");

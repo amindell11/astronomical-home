@@ -1,31 +1,30 @@
 using System.Linq;
-using System.Text.RegularExpressions;
 using Combat.Weapons;
 using NUnit.Framework;
 using Ships;
+using Ships.Command;
+using Ships.Loadout;
 using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Factions;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.TestTools;
+using Object = UnityEngine.Object;
 using Substrate.Sessions;
 
 namespace Tests.EditMode
 {
-    /// <summary>Wave director pacing over a sector phase table with injected time: a phase opens with a wave, the next comes at ends at after the breather or at the longest wait, the cap holds that drawn group until it fits, a lull (the opening one too) sends nothing, and the done table keeps the last phase's waves. The threat read lists each group ship once and the weapons they fly, their faction kits in group order, off a prefab asset too. A bad row fails CheckRow, and validation refuses a director that misses its spine's elite.</summary>
+    /// <summary>Wave director pacing over a sector phase table with injected time: a phase opens with a wave, and another comes on its wave-every beat. A wave that fits under the wave cap arrives whole, one that only partly fits is trimmed to the room left, and one with no room is dropped so the next waits for the beat. A lull, the opening one too, sends nothing, a finished table with an elite sends nothing, and the done table keeps the last phase's waves. A closing lull before the elite sends nothing. A lull window covers a following lull, its grace, and an earned lull, and stays shut for the opening lull and the first phase's first seconds. An earned lull, once the phase's last wave is out and nothing is alive, moves no phase boundary. The threat read lists the signature ship once and the rival's and minion's kits, off a prefab asset too. A bad row fails CheckRow.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class WaveDirectorEditModeTests
     {
         private const float Lull = 5f;
-        private const float Breather = 4f;
-        private const float LongestWait = 20f;
+        private const float WaveEvery = 20f;
+        private const int OpenMinions = 2;
+        private const int LateMinions = 5;
 
-        private WaveDirector.RosterEntry[] _openA;
-        private WaveDirector.RosterEntry[] _openB;
-        private WaveDirector.RosterEntry[] _late;
         private SectorPhase[] _phases;
 
         private GameObject _go;
@@ -34,20 +33,17 @@ namespace Tests.EditMode
         [SetUp]
         public void SetUp()
         {
-            _openA = new[] { new WaveDirector.RosterEntry() };
-            _openB = new[] { new WaveDirector.RosterEntry() };
-            _late = new[] { new WaveDirector.RosterEntry() };
             _phases = new[]
             {
                 new SectorPhase
                 {
-                    seconds = 40f, cap = 3, endsAt = 1, breather = Breather, longestWait = LongestWait,
-                    groups = new[] { new WaveGroup { ships = _openA }, new WaveGroup { ships = _openB } },
+                    seconds = 40f, waveEvery = WaveEvery, sendsWaves = true,
+                    fewestMinions = OpenMinions, mostMinions = OpenMinions,
                 },
                 new SectorPhase
                 {
-                    seconds = 40f, cap = 4, endsAt = 1, breather = Breather, longestWait = LongestWait,
-                    groups = new[] { new WaveGroup { ships = _late } },
+                    seconds = 40f, waveEvery = WaveEvery, sendsWaves = true,
+                    fewestMinions = LateMinions, mostMinions = LateMinions,
                 },
             };
 
@@ -90,93 +86,168 @@ namespace Tests.EditMode
             _director.BeginSchedule(0f);
 
             _director.Advance(4f);
-            Assert.IsNull(_director.WaveDue(4f, 0), "The opening lull sends nothing.");
+            Assert.IsNull(_director.WaveDue(4f), "The opening lull sends nothing.");
 
             _director.Advance(5f);
-            var wave = _director.WaveDue(5f, 0);
-            Assert.IsTrue(wave == _openA || wave == _openB, "Phase one draws a whole group from its list.");
-            Assert.AreSame(wave, _director.WaveDue(5f, 0));
+            var wave = _director.WaveDue(5f);
+            Assert.AreEqual(OpenMinions, wave, "Phase one draws its minion count.");
+            Assert.AreEqual(wave, _director.WaveDue(5f));
         }
 
         [Test]
-        public void EndsAt_SendsTheNextWaveAfterTheBreather_AndAClimbResetsIt()
+        public void WaveEvery_SendsOnItsBeat()
         {
             OpenAndArrive(0f);
 
-            Assert.IsNull(_director.WaveDue(10f, 2), "Above ends at, time alone does not send a wave.");
-            Assert.IsNull(_director.WaveDue(10f, 1), "The breather starts when alive falls to ends at.");
-            Assert.IsNull(_director.WaveDue(13.9f, 1));
-            Assert.IsTrue(IsOpenGroup(_director.WaveDue(14f, 1)), "The next wave comes at ends at plus the breather.");
+            Assert.IsNull(_director.WaveDue(WaveEvery - .1f), "The beat has not arrived.");
+            Assert.AreEqual(OpenMinions, _director.WaveDue(WaveEvery), "The next wave comes on the beat.");
+        }
+
+        [Test]
+        public void Wave_ArrivesWhole_WhileItFitsUnderTheWaveCap()
+        {
+            _director.Configure(_phases, Lull, waveCap: 8);
+            Assert.AreEqual(4, _director.Room(4, 2), "A wave that fits under the wave cap arrives whole.");
+        }
+
+        [Test]
+        public void Wave_TrimsToTheRoomLeft_WhenOnlySomeFit()
+        {
+            _director.Configure(_phases, Lull, waveCap: 6);
+            Assert.AreEqual(2, _director.Room(4, 4),
+                "Four alive under a wave cap of 6 leave room for two.");
+        }
+
+        [Test]
+        public void DroppedWave_IsNotHeld_AndTheNextComesOnTheBeat()
+        {
+            _director.Configure(_phases, Lull, waveCap: 3);
+            _director.BeginSchedule(0f);
+            _director.Advance(0f);
+            var minions = _director.WaveDue(0f);
+            Assert.AreEqual(0, _director.Room(1 + minions.Value, 3), "With no room under the wave cap, Room is 0.");
 
             _director.Arrived(0f);
-            Assert.IsNull(_director.WaveDue(10f, 1));
-            Assert.IsNull(_director.WaveDue(12f, 2), "Climbing back above ends at resets the breather.");
-            Assert.IsNull(_director.WaveDue(14f, 1), "The reset breather has not run out.");
-            Assert.IsNull(_director.WaveDue(17.9f, 1));
-            Assert.IsTrue(IsOpenGroup(_director.WaveDue(18f, 1)));
+            Assert.IsNull(_director.WaveDue(0f), "A dropped wave is not held.");
+            Assert.IsNull(_director.WaveDue(WaveEvery - .1f), "Nothing is due again until the next beat.");
+            Assert.AreEqual(OpenMinions, _director.WaveDue(WaveEvery), "The next wave comes on the beat.");
         }
 
         [Test]
-        public void LongestWait_SendsTheNextWaveWhileEnemiesStayUp()
+        public void EarnedLull_IsFalseWhileAWaveFitsOrAnythingIsAlive()
         {
             OpenAndArrive(0f);
+            _director.Advance(10f);
+            Assert.IsNull(_director.WaveDue(10f));
+            _director.Observe(10f, 0);
+            Assert.IsFalse(_director.EarnedLull, "A further wave still fits.");
 
-            Assert.IsNull(_director.WaveDue(19.9f, 2), "Alive stays above ends at and under the ceiling.");
-            Assert.IsTrue(IsOpenGroup(_director.WaveDue(20f, 2)), "The longest wait sends the next wave.");
+            _director.Advance(WaveEvery);
+            Assert.IsNotNull(_director.WaveDue(WaveEvery));
+            _director.Arrived(WaveEvery);
+            _director.Observe(WaveEvery, 0);
+            Assert.IsTrue(_director.EarnedLull, "The last wave is sent and nothing is alive.");
+
+            _director.Advance(WaveEvery);
+            _director.Observe(WaveEvery, 1);
+            Assert.IsFalse(_director.EarnedLull, "Any alive count above zero holds the lull.");
+
+            _director.Advance(WaveEvery);
+            _director.Observe(WaveEvery, 0);
+            Assert.IsTrue(_director.EarnedLull);
+
+            _director.Configure(new[]
+            {
+                new SectorPhase
+                {
+                    seconds = 40f, waveEvery = WaveEvery, sendsWaves = false,
+                },
+            }, Lull);
+            _director.BeginSchedule(0f);
+            _director.Advance(0f);
+            Assert.IsNull(_director.WaveDue(0f));
+            _director.Observe(0f, 0);
+            Assert.IsTrue(_director.EarnedLull, "A phase that sends no waves earns the lull while nothing is alive.");
         }
 
         [Test]
-        public void Cap_HoldsTheSameGroupUntilAliveFits_AndAliveCountsTheHuntsPatrols()
+        public void EarnedLull_DoesNotMoveThePhaseBoundary()
         {
-            _director.Advance(0f);
-            Assert.IsNull(_director.WaveDue(0f, _phases[0].cap),
-                "Alive, which counts the hunt's patrols, leaves no room for the drawn group.");
+            OpenAndArrive(0f);
+            _director.Advance(WaveEvery);
+            Assert.IsNotNull(_director.WaveDue(WaveEvery));
+            _director.Arrived(WaveEvery);
+            _director.Observe(WaveEvery, 0);
+            Assert.IsTrue(_director.EarnedLull);
 
-            var held = _director.WaveDue(0f, 0);
-            Assert.IsTrue(held == _openA || held == _openB);
-            for (var i = 0; i < 12; i++)
-                Assert.AreSame(held, _director.WaveDue(i, 0), "The waiting group is not redrawn.");
+            var earned = _director.Phase;
+            var clock = new GameObject("Clock");
+            clock.transform.SetParent(_go.transform);
+            var other = clock.AddComponent<WaveDirector>();
+            other.Configure(_phases, Lull);
+            other.BeginSchedule(0f);
+            other.Advance(WaveEvery);
+            other.Observe(WaveEvery, 0);
+
+            Assert.IsFalse(other.EarnedLull);
+            Assert.AreEqual(earned.Index, other.Phase.Index);
+            Assert.AreEqual(earned.InLull, other.Phase.InLull);
+            Assert.AreEqual(earned.SecondsLeft, other.Phase.SecondsLeft, 1e-4f);
+            Assert.AreEqual(earned.CountdownSeconds, other.Phase.CountdownSeconds, 1e-4f);
+            Assert.AreEqual(earned.Done, other.Phase.Done);
+
+            _director.Advance(40f);
+            other.Advance(40f);
+            Assert.IsTrue(_director.Phase.InLull, "The scheduled lull starts when the phase's seconds run out.");
+            Assert.AreEqual(other.Phase.Index, _director.Phase.Index);
+            Assert.AreEqual(other.Phase.InLull, _director.Phase.InLull);
+            Assert.AreEqual(other.Phase.SecondsLeft, _director.Phase.SecondsLeft, 1e-4f);
+
+            _director.Advance(45f);
+            other.Advance(45f);
+            Assert.AreEqual(1, _director.Phase.Index);
+            Assert.IsFalse(_director.Phase.InLull);
+            Assert.AreEqual(other.Phase.Index, _director.Phase.Index);
+            Assert.AreEqual(other.Phase.InLull, _director.Phase.InLull);
         }
 
         [Test]
         public void Alive_WithNoHunt_CountsOnlyTheDirectorsShips()
         {
-            Assert.AreEqual(0, _director.Alive, "With no hunt, no patrol takes a slot.");
+            Assert.AreEqual(0, _director.Alive, "With no hunt, only the director's ships count.");
         }
 
         [Test]
-        public void WaveDue_ReturnsTheWholeGroup_AndSlotsSpreadItAlongTheRing()
+        public void WaveDue_DrawsTheMinionCount_AndSlotsSpreadTheWaveAlongTheRing()
         {
             const float radius = 55f;
             const float spread = 8f;
-            var ships = new[]
-            {
-                new WaveDirector.RosterEntry(), new WaveDirector.RosterEntry(), new WaveDirector.RosterEntry(),
-            };
+            const int minions = 2;
             _director.Configure(new[]
             {
                 new SectorPhase
                 {
-                    seconds = 40f, cap = 3, endsAt = 1, breather = Breather, longestWait = LongestWait,
-                    groups = new[] { new WaveGroup { ships = ships } },
+                    seconds = 40f, waveEvery = WaveEvery, sendsWaves = true,
+                    fewestMinions = minions, mostMinions = minions,
                 },
             }, Lull, spawnRadius: radius, groupSpread: spread);
             _director.BeginSchedule(0f);
             _director.Advance(0f);
 
-            Assert.AreSame(ships, _director.WaveDue(0f, 0), "A wave is the whole group at once.");
+            Assert.AreEqual(minions, _director.WaveDue(0f), "A wave draws its minion count.");
 
             var center = new Vector2(3f, 4f);
             const float bearing = 0.4f;
-            var slots = _director.Slots(center, bearing, ships.Length);
-            Assert.AreEqual(ships.Length, slots.Length);
+            var count = 1 + minions;
+            var slots = _director.Slots(center, bearing, count);
+            Assert.AreEqual(count, slots.Length);
             foreach (var slot in slots)
                 Assert.AreEqual(radius, Vector2.Distance(slot, center), 1e-3f);
 
             var bearingDeg = bearing * Mathf.Rad2Deg;
             var deltas = slots.Select(slot => Mathf.Abs(Mathf.DeltaAngle(bearingDeg, Degrees(center, slot)))).ToArray();
-            Assert.That(deltas, Has.Some.LessThan(0.05f), "An odd group puts one ship on the bearing.");
-            Assert.That(deltas, Has.All.LessThan(20f), "The group stays in a small arc of the bearing.");
+            Assert.That(deltas, Has.Some.LessThan(0.05f), "An odd wave puts the centre slot, the rival's, on the bearing.");
+            Assert.That(deltas, Has.All.LessThan(20f), "The wave stays in a small arc of the bearing.");
             for (var i = 1; i < slots.Length; i++)
             {
                 var step = Mathf.Abs(Mathf.DeltaAngle(Degrees(center, slots[i - 1]), Degrees(center, slots[i])));
@@ -185,15 +256,15 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void Lull_SendsNothing_AndTheNextPhaseDrawsFromItsOwnGroups()
+        public void Lull_SendsNothing_AndTheNextPhaseDrawsItsOwnMinionCount()
         {
             OpenAndArrive(0f);
             _director.Advance(41f);
             Assert.IsTrue(_director.Phase.InLull);
-            Assert.IsNull(_director.WaveDue(1000f, 0), "A lull sends nothing, however long the breather and the wait.");
+            Assert.IsNull(_director.WaveDue(1000f), "A scheduled lull sends nothing.");
 
             _director.Advance(45f);
-            Assert.AreSame(_late, _director.WaveDue(45f, 0), "The next phase opens with a group from its own list.");
+            Assert.AreEqual(LateMinions, _director.WaveDue(45f), "The next phase opens with its own minion count.");
         }
 
         [Test]
@@ -207,7 +278,7 @@ namespace Tests.EditMode
             Assert.IsFalse(_director.OpensPhase(), "The opening lull opens nothing.");
             _director.Advance(4.9f);
             Assert.IsFalse(_director.OpensPhase());
-            Assert.IsNull(_director.WaveDue(4.9f, 0), "The opening lull sends nothing, whatever is due.");
+            Assert.IsNull(_director.WaveDue(4.9f), "The opening lull sends nothing, whatever is due.");
 
             _director.Advance(5f);
             Assert.AreEqual(0, _director.Phase.Index);
@@ -215,12 +286,96 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void EliteArrival_StopsWaves()
+        public void InLullWindow_CoversAFollowingLullItsGraceAndAnEarnedLull()
         {
-            _director.Advance(0f);
-            _director.OnEliteArrived(default);
-            Assert.IsNull(_director.WaveDue(0f, 0), "The elite stops waves even when one is due.");
-            Assert.IsNull(_director.WaveDue(100f, 0));
+            _director.Configure(_phases, Lull, openingLullSeconds: 5f);
+            _director.BeginSchedule(0f);
+            Assert.IsFalse(_director.ClosingLull);
+
+            _director.Advance(1f);
+            _director.Observe(1f, 0);
+            Assert.IsTrue(_director.Phase.InOpeningLull);
+            Assert.IsFalse(_director.InLullWindow(10f), "The opening lull stays dark.");
+
+            _director.Advance(5f);
+            _director.Observe(5f, 1);
+            Assert.AreEqual(0, _director.Phase.Index);
+            Assert.IsFalse(_director.Phase.InLull);
+            Assert.IsFalse(_director.InLullWindow(10f), "The first phase's first seconds stay dark.");
+
+            _director.Advance(46f);
+            _director.Observe(46f, 1);
+            Assert.IsTrue(_director.Phase.InLull);
+            Assert.IsFalse(_director.Phase.InOpeningLull);
+            Assert.IsTrue(_director.InLullWindow(10f), "A lull after a phase is a lull window.");
+
+            _director.Advance(50f);
+            _director.Observe(50f, 1);
+            Assert.IsFalse(_director.Phase.InLull);
+            Assert.AreEqual(1, _director.Phase.Index);
+            Assert.IsTrue(_director.InLullWindow(10f), "The grace into the next phase.");
+
+            _director.Advance(60f);
+            _director.Observe(60f, 1);
+            Assert.AreEqual(10f, _director.Phase.ElapsedSeconds, 1e-4f);
+            Assert.IsFalse(_director.InLullWindow(10f), "The grace has run out.");
+
+            _director.Configure(new[]
+            {
+                new SectorPhase
+                {
+                    seconds = 40f, waveEvery = WaveEvery, sendsWaves = false,
+                },
+            }, Lull);
+            _director.BeginSchedule(0f);
+            _director.Advance(1f);
+            Assert.IsNull(_director.WaveDue(1f));
+            _director.Observe(1f, 0);
+            Assert.IsTrue(_director.EarnedLull);
+            Assert.IsTrue(_director.InLullWindow(10f), "An earned lull is a lull window.");
+        }
+
+        [Test]
+        public void ClosingLull_SendsNothing_AndItsGraceRunsIntoTheElite()
+        {
+            var elite = _go.AddComponent<EliteEncounter>();
+            _director.Configure(_phases, Lull, elite: elite);
+            _director.BeginSchedule(0f);
+            Assert.IsTrue(_director.ClosingLull);
+
+            _director.Advance(86f);
+            Assert.IsTrue(_director.Phase.Closing);
+            Assert.IsTrue(_director.Phase.InLull);
+            Assert.AreEqual(1, _director.Phase.Index);
+            Assert.IsNull(_director.WaveDue(86f), "The closing lull sends nothing.");
+            _director.Observe(86f, 0);
+            Assert.IsFalse(_director.EarnedLull);
+            Assert.IsFalse(_director.WaveAhead, "No wave follows the closing lull.");
+            Assert.AreEqual(0f, _director.NextWaveSeconds, 1e-4f);
+            Assert.IsTrue(_director.InLullWindow(10f));
+
+            _director.Advance(90f);
+            Assert.IsTrue(_director.Phase.Done);
+            _director.Observe(90f, 0);
+            Assert.IsTrue(_director.InLullWindow(10f), "The grace after the closing lull.");
+
+            _director.Advance(100f);
+            _director.Observe(100f, 0);
+            Assert.AreEqual(10f, _director.Phase.ElapsedSeconds, 1e-4f);
+            Assert.IsFalse(_director.InLullWindow(10f));
+        }
+
+        [Test]
+        public void FinishedTable_SendsNothing_WhenAnEliteFollows()
+        {
+            var elite = _go.AddComponent<EliteEncounter>();
+            _director.Configure(_phases, Lull, elite: elite);
+            _director.BeginSchedule(0f);
+
+            _director.Advance(90f);
+            Assert.IsTrue(_director.Phase.Done);
+            Assert.IsNull(_director.WaveDue(90f), "A finished table with an elite sends nothing.");
+            Assert.IsNull(_director.WaveDue(500f));
         }
 
         [Test]
@@ -230,133 +385,122 @@ namespace Tests.EditMode
             Assert.IsTrue(_director.Phase.Done);
             _director.Arrived(500f);
 
-            Assert.IsNull(_director.WaveDue(519f, 2));
-            Assert.IsNull(_director.WaveDue(520f, _phases[1].cap), "The last phase's cap still holds the wave.");
-            Assert.AreSame(_late, _director.WaveDue(520f, 2), "Pursuit keeps the last phase's groups and longest wait.");
+            Assert.IsNull(_director.WaveDue(519f));
+            Assert.AreEqual(LateMinions, _director.WaveDue(520f), "The done table keeps the last phase's waves and wave every.");
         }
 
         [Test]
-        public void CheckRow_RefusesACappedPhaseWithNoGroups()
+        public void WaveDue_DrawsAMinionCountInsideThePhasesRange()
+        {
+            _director.Configure(new[]
+            {
+                new SectorPhase
+                {
+                    seconds = 40f, waveEvery = WaveEvery, sendsWaves = true,
+                    fewestMinions = 1, mostMinions = 3,
+                },
+            }, Lull);
+            _director.BeginSchedule(0f);
+            _director.Advance(0f);
+
+            Assert.That(_director.WaveDue(0f), Is.GreaterThanOrEqualTo(1).And.LessThanOrEqualTo(3));
+        }
+
+        [Test]
+        public void CheckRow_RefusesAMinionRangeThatRunsBackwards()
+        {
+            var ex = Assert.Throws<System.InvalidOperationException>(() => _director.CheckRow(Row(new SectorPhase
+            {
+                sendsWaves = true, fewestMinions = 3, mostMinions = 1,
+            })));
+            StringAssert.Contains("WaveDirector", ex.Message);
+            StringAssert.Contains("phase 0", ex.Message);
+        }
+
+        [Test]
+        public void CheckRow_RefusesAWaveCapOfZero()
+        {
+            var row = Row(new SectorPhase());
+            row.waveCap = 0;
+            var ex = Assert.Throws<System.InvalidOperationException>(() => _director.CheckRow(row));
+            StringAssert.Contains("WaveDirector", ex.Message);
+            StringAssert.Contains("0", ex.Message);
+        }
+
+        [Test]
+        public void CheckRow_RefusesAnUnsetFaction()
         {
             var ex = Assert.Throws<System.InvalidOperationException>(() =>
-                _director.CheckRow(Row(new SectorPhase { cap = 1, groups = System.Array.Empty<WaveGroup>() })));
-            StringAssert.Contains("WaveDirector", ex.Message);
+                _director.CheckRow(Row(new SectorPhase())));
+            StringAssert.Contains(_director.name, ex.Message);
         }
 
         [Test]
-        public void CheckRow_RefusesAnEmptyGroup()
+        public void CheckRow_AllowsAPhaseThatSendsNoWaves()
         {
-            var ex = Assert.Throws<System.InvalidOperationException>(() => _director.CheckRow(Row(new SectorPhase
-            {
-                cap = 1,
-                groups = new[] { new WaveGroup { ships = System.Array.Empty<WaveDirector.RosterEntry>() } },
-            })));
-            StringAssert.Contains("WaveDirector", ex.Message);
+            var faction = CompleteFaction("Shoal");
+            var sectorFaction = _go.AddComponent<SectorFaction>();
+            _director.Configure(_phases, Lull, faction: sectorFaction);
+            var row = Row(new SectorPhase { sendsWaves = false });
+            row.faction = faction;
+
+            Assert.DoesNotThrow(() => _director.CheckRow(row));
+
+            Object.DestroyImmediate(faction);
         }
 
         [Test]
-        public void CheckRow_RefusesAGroupBiggerThanItsCap()
+        public void CheckRow_RefusesAMinionWithNoPilot()
         {
-            var ex = Assert.Throws<System.InvalidOperationException>(() => _director.CheckRow(Row(new SectorPhase
-            {
-                cap = 1,
-                groups = new[]
-                {
-                    new WaveGroup { ships = new[] { new WaveDirector.RosterEntry(), new WaveDirector.RosterEntry() } },
-                },
-            })));
-            StringAssert.Contains("WaveDirector", ex.Message);
+            var faction = ScriptableObject.CreateInstance<Faction>();
+            faction.name = "Veil";
+            var ship = new GameObject("Valis").AddComponent<Ship>();
+            var kit = _go.AddComponent<PoolWeapon>();
+            var pilot = new GameObject("Rival").AddComponent<StubCommander>();
+            faction.signature = new FactionShip { ship = ship, kit = kit, pilot = pilot };
+            faction.minion = new FactionMinion { kit = kit, scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f) };
+            var sectorFaction = _go.AddComponent<SectorFaction>();
+            _director.Configure(_phases, Lull, faction: sectorFaction);
+            var row = Row(new SectorPhase { sendsWaves = true, fewestMinions = 0, mostMinions = 1 });
+            row.faction = faction;
+
+            var ex = Assert.Throws<System.InvalidOperationException>(() => _director.CheckRow(row));
+
+            StringAssert.Contains("Veil", ex.Message);
+            StringAssert.Contains("minion pilot", ex.Message);
+            Object.DestroyImmediate(faction);
+            Object.DestroyImmediate(ship.gameObject);
+            Object.DestroyImmediate(pilot.gameObject);
         }
 
         [Test]
-        public void CheckRow_RefusesAnUnsetTemplate()
-        {
-            var ex = Assert.Throws<System.InvalidOperationException>(() => _director.CheckRow(Row(new SectorPhase
-            {
-                cap = 1,
-                groups = new[] { new WaveGroup { ships = new[] { new WaveDirector.RosterEntry() } } },
-            })));
-            StringAssert.Contains("WaveDirector", ex.Message);
-        }
-
-        [Test]
-        public void CheckRow_AllowsACapOfZeroWithNoGroups()
-        {
-            Assert.DoesNotThrow(() =>
-                _director.CheckRow(Row(new SectorPhase { cap = 0, groups = System.Array.Empty<WaveGroup>() })));
-        }
-
-        [Test]
-        public void Threat_ListsEachGroupShipOnce_AndTheFactionKitEachFlies()
+        public void Threat_ListsTheSignatureShipOnce_AndEachRanksKitOnce()
         {
             var valis = new GameObject("Valis").AddComponent<Ship>();
-            var crimson = new GameObject("Crimson").AddComponent<Ship>();
             var lasers = _go.AddComponent<PoolWeapon>();
             var rippers = _go.AddComponent<PoolWeapon>();
+            var rivalPilot = new GameObject("RivalPilot").AddComponent<StubCommander>();
+            var minionPilot = new GameObject("MinionPilot").AddComponent<StubCommander>();
             var faction = ScriptableObject.CreateInstance<Faction>();
-            faction.signature = new FactionShip { ship = valis, kit = rippers };
-            faction.common = new FactionShip { ship = crimson, kit = lasers };
-            var sectorFaction = _go.AddComponent<SectorFaction>();
-            var row = new SectorEntry
+            faction.signature = new FactionShip { ship = valis, kit = rippers, pilot = rivalPilot };
+            faction.minion = new FactionMinion
             {
-                faction = faction,
-                phases = new[]
-                {
-                    new SectorPhase
-                    {
-                        groups = new[]
-                        {
-                            new WaveGroup
-                            {
-                                ships = new[]
-                                {
-                                    new WaveDirector.RosterEntry { template = crimson },
-                                    new WaveDirector.RosterEntry { template = valis },
-                                    new WaveDirector.RosterEntry { template = crimson },
-                                },
-                            },
-                        },
-                    },
-                },
+                kit = lasers, pilot = minionPilot, scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f),
             };
+            var sectorFaction = _go.AddComponent<SectorFaction>();
+            var row = new SectorEntry { faction = faction, phases = new[] { new SectorPhase { sendsWaves = true } } };
             _director.Configure(_phases, Lull, faction: sectorFaction);
 
             var threat = _director.Threat(row);
 
-            CollectionAssert.AreEqual(new[] { crimson, valis }, threat.Ships, "a ship two groups share is listed once");
-            CollectionAssert.AreEqual(new WeaponComponent[] { lasers, rippers }, threat.Weapons,
-                "each group ship once, faction kits in group order");
+            CollectionAssert.AreEqual(new[] { valis }, threat.Ships, "every rank flies the signature ship");
+            CollectionAssert.AreEqual(new WeaponComponent[] { rippers, lasers }, threat.Weapons,
+                "the rival's kit, then the minion's");
 
             Object.DestroyImmediate(faction);
             Object.DestroyImmediate(valis.gameObject);
-            Object.DestroyImmediate(crimson.gameObject);
-        }
-
-        [Test]
-        public void Threat_WithNoFaction_ListsTheGroupShipsAuthoredWeapons()
-        {
-            var ship = AssetDatabase.LoadAssetAtPath<Ship>("Assets/Prefabs/Ships/Vanguard.prefab");
-            var row = new SectorEntry
-            {
-                phases = new[]
-                {
-                    new SectorPhase
-                    {
-                        groups = new[]
-                        {
-                            new WaveGroup { ships = new[] { new WaveDirector.RosterEntry { template = ship } } },
-                        },
-                    },
-                },
-            };
-
-            var threat = _director.Threat(row);
-
-            CollectionAssert.AreEqual(new[] { ship }, threat.Ships);
-            CollectionAssert.AreEqual(
-                new[] { ship.Weapons.PrimaryMountPrefab, ship.Weapons.SecondaryMountPrefab }.Where(weapon => weapon),
-                threat.Weapons, "products fly their template's authored build");
-            Assert.IsNotEmpty(threat.Weapons);
+            Object.DestroyImmediate(rivalPilot.gameObject);
+            Object.DestroyImmediate(minionPilot.gameObject);
         }
 
         [Test]
@@ -371,35 +515,29 @@ namespace Tests.EditMode
             CollectionAssert.AllItemsAreUnique(threat.Weapons);
         }
 
-        [Test]
-        public void Validation_RefusesADirectorThatMissesItsSpinesElite()
-        {
-            var sector = new GameObject("Sector");
-            _go.transform.SetParent(sector.transform, false);
-            var encounter = new GameObject("Elite").AddComponent<EliteEncounter>();
-            encounter.transform.SetParent(sector.transform, false);
-            sector.AddComponent<PhaseSpineModule>().Bind(_director, null, null, elite: encounter);
-            using var serialized = new SerializedObject(_director);
-
-            LogAssert.Expect(LogType.Exception, new Regex("must watch its spine's elite"));
-            serialized.FindProperty("team").intValue = 2;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-
-            serialized.FindProperty("elite").objectReferenceValue = encounter;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-            LogAssert.NoUnexpectedReceived();
-
-            Object.DestroyImmediate(sector);
-        }
-
         private void OpenAndArrive(float now)
         {
             _director.Advance(now);
-            Assert.IsNotNull(_director.WaveDue(now, 0));
+            Assert.IsNotNull(_director.WaveDue(now));
             _director.Arrived(now);
         }
 
-        private bool IsOpenGroup(WaveDirector.RosterEntry[] wave) => wave == _openA || wave == _openB;
+        private Faction CompleteFaction(string factionName)
+        {
+            var faction = ScriptableObject.CreateInstance<Faction>();
+            faction.name = factionName;
+            var ship = new GameObject("Valis").AddComponent<Ship>();
+            ship.transform.SetParent(_go.transform);
+            var kit = _go.AddComponent<PoolWeapon>();
+            var pilot = new GameObject("Pilot").AddComponent<StubCommander>();
+            pilot.transform.SetParent(_go.transform);
+            faction.signature = new FactionShip { ship = ship, kit = kit, pilot = pilot };
+            faction.minion = new FactionMinion
+            {
+                kit = kit, pilot = pilot, scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f),
+            };
+            return faction;
+        }
 
         private static SectorEntry Row(SectorPhase phase) => new() { phases = new[] { phase } };
 
@@ -412,6 +550,11 @@ namespace Tests.EditMode
         private sealed class PoolWeapon : WeaponComponent
         {
             public override Combat.Projectiles.ProjectileBase Fire(UnityEngine.Vector3 targetPoint, Substrate.Services.Projectiles.IProjectileService projectiles) => null;
+        }
+
+        private sealed class StubCommander : Commander
+        {
+            public override void Initialize(in ShipControl control) { }
         }
     }
 }

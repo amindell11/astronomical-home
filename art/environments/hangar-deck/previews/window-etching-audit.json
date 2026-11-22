@@ -1,0 +1,56 @@
+{
+  "object": "25 | Viewport glass",
+  "panes": [
+    {
+      "vertices": 7,
+      "planarity_error": 2.384185791015625e-06,
+      "texels_per_unit": 80.36357979584088
+    },
+    {
+      "vertices": 5,
+      "planarity_error": 3.6209821701049805e-06,
+      "texels_per_unit": 80.36358813185919
+    },
+    {
+      "vertices": 5,
+      "planarity_error": 3.904104232788086e-06,
+      "texels_per_unit": 80.36359174496899
+    },
+    {
+      "vertices": 5,
+      "planarity_error": 3.606081008911133e-06,
+      "texels_per_unit": 80.36358418254272
+    },
+    {
+      "vertices": 5,
+      "planarity_error": 2.0228326320648193e-06,
+      "texels_per_unit": 80.36357440114804
+    }
+  ],
+  "triangles": 17,
+  "uv_map": "GlassUV",
+  "maximum_uv_overlap": 0.0,
+  "mask_size": [
+    4096,
+    2048
+  ],
+  "mask_maximum": 0.18039216101169586,
+  "nonzero_mask_fraction": 0.003188014030456543,
+  "hologram_samples": 8000,
+  "hologram_mask_maximum": 0.0,
+  "coverage": {
+    "16x9": {
+      "open_window_samples": 6654,
+      "uncovered": []
+    },
+    "21x9": {
+      "open_window_samples": 7665,
+      "uncovered": []
+    },
+    "32x9": {
+      "open_window_samples": 7666,
+      "uncovered": []
+    }
+  },
+  "original_objects_unchanged": null
+}
