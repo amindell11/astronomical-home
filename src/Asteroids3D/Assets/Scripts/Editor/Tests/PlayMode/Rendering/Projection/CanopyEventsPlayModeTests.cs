@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Cameras.Shake;
 using Damage;
 using NUnit.Framework;
 using Objectives;
@@ -49,6 +50,8 @@ namespace Tests.PlayMode.Rendering.Projection
         private CanopyPersonality personality;
         private ObjectiveService objectives;
         private DamageSource damage;
+        private ShakeChannel channel;
+        private CameraShakeProfile shakeProfile;
         private bool visible;
 
         [SetUp]
@@ -70,7 +73,9 @@ namespace Tests.PlayMode.Rendering.Projection
             visible = true;
             personality = CanopyPersonality.Create(root, objectives, projection, () => visible);
             damage = new DamageSource();
-            personality.Initialize(damage);
+            channel = new ShakeChannel();
+            shakeProfile = ScriptableObject.CreateInstance<CameraShakeProfile>();
+            personality.Initialize(damage, channel);
             projection.Initialize(camera, personality.Observe);
         }
 
@@ -79,6 +84,7 @@ namespace Tests.PlayMode.Rendering.Projection
         {
             Object.DestroyImmediate(root);
             Object.DestroyImmediate(profile);
+            if (shakeProfile) Object.DestroyImmediate(shakeProfile);
             Time.timeScale = 1f;
         }
 
@@ -120,7 +126,7 @@ namespace Tests.PlayMode.Rendering.Projection
             Assert.That(personality.Observe().HitAge, Is.EqualTo(0f).Within(.001f));
             yield return new WaitForSecondsRealtime(.08f);
             var age = personality.Observe().HitAge;
-            personality.Initialize(damage);
+            personality.Initialize(damage, channel);
             Assert.That(personality.Observe().HitAge, Is.GreaterThanOrEqualTo(age));
             damage.Hit();
             Assert.That(personality.Observe().HitAge, Is.EqualTo(0f).Within(.001f));
@@ -130,7 +136,7 @@ namespace Tests.PlayMode.Rendering.Projection
             Assert.That(personality.Observe().State, Is.EqualTo(CanopyState.Base));
             var previous = damage;
             damage = new DamageSource();
-            personality.Initialize(damage);
+            personality.Initialize(damage, channel);
             previous.Hit();
             Assert.That(personality.Observe().HitAge, Is.EqualTo(-1f));
             damage.Hit();
@@ -157,7 +163,7 @@ namespace Tests.PlayMode.Rendering.Projection
             personality.EnterSector(phase);
             Assert.That(personality.Observe().State, Is.EqualTo(CanopyState.BigMoment));
             yield return new WaitForSecondsRealtime(.17f);
-            personality.Initialize(damage);
+            personality.Initialize(damage, channel);
             personality.EnterSector(phase);
             Assert.That(personality.Observe().State, Is.EqualTo(CanopyState.LowHull));
             director.Advance(41f);
@@ -182,7 +188,7 @@ namespace Tests.PlayMode.Rendering.Projection
             objectives.Tick(0f);
             Assert.That(personality.Observe().State, Is.EqualTo(CanopyState.BigMoment));
             yield return new WaitForSecondsRealtime(.17f);
-            personality.Initialize(damage);
+            personality.Initialize(damage, channel);
             Assert.That(personality.Observe().State, Is.EqualTo(CanopyState.LowHull));
             visible = false;
             survive = InstallSpine();
@@ -241,6 +247,35 @@ namespace Tests.PlayMode.Rendering.Projection
             yield return new WaitForSecondsRealtime(.05f);
             damage.Health.SetFraction(StatusBarUI.LowThreshold);
             Assert.That(personality.Observe().HitSize, Is.EqualTo(1f));
+        }
+
+        [Test]
+        public void ShakeGlitch_FiresOnRaiseAndRelease_AndDropsForAnotherChannelOrAHiddenHud()
+        {
+            shakeProfile.glitch = 0f;
+            shakeProfile.releaseGlitch = 0f;
+            channel.Raise(shakeProfile, shakeProfile, Vector2.up);
+            channel.Release(shakeProfile);
+            Assert.That(personality.Observe().GlitchAge, Is.EqualTo(-1f));
+
+            shakeProfile.glitch = .5f;
+            new ShakeChannel().Raise(shakeProfile, shakeProfile, Vector2.up);
+            Assert.That(personality.Observe().GlitchAge, Is.EqualTo(-1f));
+
+            visible = false;
+            channel.Raise(shakeProfile, shakeProfile, Vector2.up);
+            visible = true;
+            Assert.That(personality.Observe().GlitchAge, Is.EqualTo(-1f));
+
+            channel.Raise(shakeProfile, shakeProfile, Vector2.up);
+            var raisedFrame = personality.Observe();
+            Assert.That(raisedFrame.GlitchAge, Is.EqualTo(0f).Within(.001f));
+            Assert.That(raisedFrame.GlitchStrength, Is.EqualTo(.5f));
+            Assert.That(raisedFrame.State, Is.EqualTo(CanopyState.Base));
+
+            shakeProfile.releaseGlitch = .8f;
+            channel.Release(shakeProfile);
+            Assert.That(personality.Observe().GlitchStrength, Is.EqualTo(.8f));
         }
     }
 }

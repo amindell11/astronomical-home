@@ -122,5 +122,7 @@ namespace UI.Projection
         float ICanopySource.TransitionAge => transitionAge();
         float ICanopySource.HitAge => -1f;
         float ICanopySource.HitSize => 0f;
+        float ICanopySource.GlitchAge => -1f;
+        float ICanopySource.GlitchStrength => 0f;
     }
 }
