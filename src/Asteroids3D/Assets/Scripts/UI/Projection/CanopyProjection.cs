@@ -29,6 +29,8 @@ namespace UI.Projection
         public float TransitionAge { get; private set; } = -1f;
         public float HitAge { get; private set; } = -1f;
         public float HitSize { get; private set; }
+        public float GlitchAge { get; private set; } = -1f;
+        public float GlitchStrength { get; private set; }
         internal CanopyProjectionPass Pass { get; private set; }
         RenderTexture ICanopySource.Ink => ink.rt;
         RTHandle ICanopySource.InkColor => inkColor;
@@ -78,6 +80,8 @@ namespace UI.Projection
             var frame = observe?.Invoke() ?? CanopyFrame.Idle;
             HitAge = frame.HitAge;
             HitSize = frame.HitSize;
+            GlitchAge = frame.GlitchAge;
+            GlitchStrength = frame.GlitchStrength;
             TransitionAge = frame.TransitionAge;
             blend.Tick(frame.State, Time.unscaledDeltaTime);
             SynchronizeCamera();

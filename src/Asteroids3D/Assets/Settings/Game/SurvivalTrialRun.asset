@@ -39,7 +39,7 @@ MonoBehaviour:
     patrols: 1
     searchSeconds: 30
     repairStations: 1
-    modStations: 1
+    modStations: 2
     armories: 0
     field: {fileID: 11400000, guid: 65c274c56b444d04a85ecd6e8e524e72, type: 2}
   - prefab: {fileID: 9090061438643016835, guid: 35f72eeaa8adb4c43832be646409d034,
@@ -61,10 +61,10 @@ MonoBehaviour:
       waveEvery: 16
     - seconds: 20
       sendsWaves: 1
-      fewestMinions: 3
-      mostMinions: 4
+      fewestMinions: 2
+      mostMinions: 3
       waveEvery: 12
-    waveCap: 7
+    waveCap: 6
     patrols: 2
     searchSeconds: 45
     repairStations: 2

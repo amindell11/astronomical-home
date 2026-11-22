@@ -124,6 +124,8 @@ namespace Cameras
                 roll += shakeRoll;
             }
             CameraUtils.CapShake(ref offset, ref roll, feel.shakeOffsetCap * Cam.orthographicSize, feel.shakeRollCap);
+            offset *= CameraSettings.ShakeScale;
+            roll *= CameraSettings.ShakeScale;
             if (offset == Vector2.zero && roll == 0f) return;
             // The view matrix carries the shake, so follow smoothing, children and listeners never see it.
             Cam.worldToCameraMatrix = CameraUtils.ShakenView(Cam.worldToCameraMatrix, offset, roll);

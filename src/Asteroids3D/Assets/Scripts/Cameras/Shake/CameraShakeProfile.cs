@@ -35,6 +35,12 @@ namespace Cameras.Shake
         [Tooltip("A blast this big shakes at full strength and radius; smaller ones scale down. 0 ignores size.")]
         [Min(0f)] public float fullSize = 0f;
 
+        [Tooltip("HUD glitch fired when the source raises this shake, from 0 to 1. Stress on the ship's systems, not the world.")]
+        [Range(0f, 1f)] public float glitch = 0f;
+
+        [Tooltip("HUD glitch fired when the source releases this shake, from 0 to 1.")]
+        [Range(0f, 1f)] public float releaseGlitch = 0f;
+
         public float Length => envelope.length == 0 ? 0f : envelope[envelope.length - 1].time;
     }
 }

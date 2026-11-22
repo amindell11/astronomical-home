@@ -23,7 +23,7 @@ namespace Game.Preview.Targets
 
         public override void DrawControls(PreviewHost host)
         {
-            EditorGUILayout.HelpBox("Pick Vanguard in the hangar and dash. Knobs apply to the next frame drawn.",
+            EditorGUILayout.HelpBox("Pick a ship in the hangar and use its keystone. Knobs apply to the next frame drawn.",
                 MessageType.None);
             if (!Application.isPlaying) return;
             // Write timeScale only when the slider moves, so a pause stays paused.
