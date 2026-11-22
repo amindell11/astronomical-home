@@ -206,6 +206,21 @@ namespace Tests.EditMode.Companion
                 LineSlots((SectorEntered.SectorSlot, "")), "Aft");
 
         [Test]
+        public void Parse_AfterNamesARowThatNeverOpens_NamesTheId() =>
+            AssertFormat(Table(
+                Row("Op", SectorEntered.SectorSlot, "", "Enemy", "", "opened", "In game"),
+                Row("Mid", SectorEntered.SectorSlot, "", LineTable.CompanionSpeaker, "any", "answered", "In game"),
+                Row("Aft", SectorEntered.SectorSlot, "", "Enemy", "Mid", "never", "In game")),
+                LineSlots((SectorEntered.SectorSlot, "")), "Aft");
+
+        [Test]
+        public void Parse_AfterNamesARowOfAnotherFaction_NamesTheId() =>
+            AssertFormat(Table(
+                Row("Op", SectorEntered.SectorSlot, "shoal", "Enemy", "", "opened", "In game"),
+                Row("Aft", SectorEntered.SectorSlot, "veil", LineTable.CompanionSpeaker, "Op", "never", "In game")),
+                LineSlots((SectorEntered.SectorSlot, "")), "Aft");
+
+        [Test]
         public void Parse_AnyWithoutAnOpener_NamesTheId() =>
             AssertFormat(Table(
                 Row("Aft", SectorEntered.SectorSlot, "", LineTable.CompanionSpeaker, "any", "answered", "In game")),

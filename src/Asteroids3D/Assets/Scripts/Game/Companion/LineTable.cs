@@ -145,6 +145,9 @@ namespace Game.Companion
                     if (target.Speaker == row.Speaker)
                         throw new FormatException(
                             $"Line '{row.Id}' follows '{row.After}', which has the same speaker.");
+                    if (!target.CanOpen || !row.CanFollow(target))
+                        throw new FormatException(
+                            $"Line '{row.Id}' follows '{row.After}', which can never open for it.");
                 }
 
                 if (row.After != AfterAny || HasOpener(kept, row)) continue;
