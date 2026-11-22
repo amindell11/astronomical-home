@@ -243,10 +243,14 @@ Format: **term** — definition. *(authority)*
   *auto-merge class*. Always
   in code font: the plain word keeps its everyday sense ("land it" is
   consent). *(agent_worktree_pool.sh `land`; #830)*
+- **balance-only landing** — merging a PR that only edits existing Settings
+  assets or prefabs with no merge gate: no tests, review or recorded
+  instruction, only the user's merge instruction. A change that adds a file
+  or edits a test is not one. *(agent_worktree_pool.sh `land-balance`)*
 - **merge turn** — the pool-wide right to run a merge gate, held by one gate at
   a time from before its fetch through `gh pr merge`. Waiting gates take it in
   arrival order (**turn ticket**). Any other push to main takes it with no
-  ticket, whenever it is free: `land-docs`, or a command run under
+  ticket, whenever it is free: `land-docs`, `land-balance`, or a command run under
   `lock merge-turn`. A waiter gives up only after watching one holder keep the
   turn for the cap; a line that keeps moving times nobody out. Machine-local:
   a base move from any other clone is caught only by the gate's base re-check.
