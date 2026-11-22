@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Cameras
 {
     /// <summary>
-    /// The player's camera preference and shake strength, persisted in PlayerPrefs.
+    /// The player's camera mode and screen-shake scale, persisted in PlayerPrefs; the canopy's shudder and glitch read the scale too.
     /// Manual is wheel-controlled zoom and no enemy framing; off (the default) is the auto flight camera.
     /// </summary>
     public static class CameraSettings
@@ -32,7 +32,6 @@ namespace Cameras
             {
                 shakeScale = Mathf.Clamp01(value);
                 PlayerPrefs.SetFloat(ShakeScaleKey, shakeScale.Value);
-                PlayerPrefs.Save();
             }
         }
     }
