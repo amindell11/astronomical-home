@@ -3,11 +3,12 @@ using Ships;
 using Ships.Registry;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Hunt;
+using Substrate.Sectors.Elements.Phases;
 
 namespace Game.Moments.Encounters
 {
     /// <summary>
-    /// Bridges one sector's hunt and elite events onto the run's moment stream.
+    /// Bridges one sector's hunt, elite and first wave onto the run's moment stream.
     /// The host disposes it when the sector closes, so a dead sector's events
     /// never reach the next one's stream.
     /// </summary>
@@ -17,13 +18,17 @@ namespace Game.Moments.Encounters
         private readonly string faction;
         private readonly SectorHunt hunt;
         private readonly IEliteStatus elite;
+        private readonly IWaveSignal waves;
+        private bool combatStarted;
 
-        public SectorMoments(RunMomentStream moments, string faction, SectorHunt hunt, IEliteStatus elite)
+        public SectorMoments(RunMomentStream moments, string faction, SectorHunt hunt, IEliteStatus elite,
+            IWaveSignal waves)
         {
             this.moments = moments ?? throw new ArgumentNullException(nameof(moments));
             this.faction = faction ?? throw new ArgumentNullException(nameof(faction));
             this.hunt = hunt;
             this.elite = elite;
+            this.waves = waves;
             if (hunt)
             {
                 hunt.PatrolSpotted += OnPatrolSpotted;
@@ -36,6 +41,9 @@ namespace Game.Moments.Encounters
                 elite.Announced += OnEliteAnnounced;
                 elite.Beaten += OnEliteBeaten;
             }
+
+            if (waves != null)
+                waves.WaveSent += OnWaveSent;
         }
 
         public void Dispose()
@@ -52,6 +60,9 @@ namespace Game.Moments.Encounters
                 elite.Announced -= OnEliteAnnounced;
                 elite.Beaten -= OnEliteBeaten;
             }
+
+            if (waves != null)
+                waves.WaveSent -= OnWaveSent;
         }
 
         private void OnPatrolSpotted(int sectorIndex, Ship ship) =>
@@ -70,5 +81,12 @@ namespace Game.Moments.Encounters
         private void OnEliteAnnounced(EliteMoment moment) => moments.Raise(new EliteAnnounced(moment));
 
         private void OnEliteBeaten(EliteMoment moment) => moments.Raise(new EliteBeaten(moment));
+
+        private void OnWaveSent(int sectorIndex)
+        {
+            if (combatStarted) return;
+            combatStarted = true;
+            moments.Raise(new CombatStarted(sectorIndex + 1, faction));
+        }
     }
 }

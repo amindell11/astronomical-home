@@ -21,9 +21,13 @@ namespace Game.Companion
         [Tooltip("Seconds a line takes to fade out after its hold.")]
         [SerializeField, Min(0f)] private float fadeSeconds = .4f;
 
+        [Tooltip("Chance that an opening line with a possible reply is followed by one.")]
+        [SerializeField, Range(0f, 1f)] private float replyChance = .6f;
+
         public float MinLineIntervalSeconds => minLineIntervalSeconds;
         public float StaleSeconds => staleSeconds;
         public float HoldSeconds => holdSeconds;
         public float FadeSeconds => fadeSeconds;
+        public float ReplyChance => replyChance;
     }
 }

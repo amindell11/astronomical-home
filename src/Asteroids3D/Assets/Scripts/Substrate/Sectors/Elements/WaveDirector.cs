@@ -34,7 +34,7 @@ namespace Substrate.Sectors.Elements
     /// the asteroid field lays out at its Start. The base class's "produce exactly once" is about the
     /// activation token, not lifetime.
     /// </summary>
-    public class WaveDirector : SectorSpawner, ISectorRowReader
+    public class WaveDirector : SectorSpawner, ISectorRowReader, IWaveSignal
     {
         [Tooltip("The sector's faction. Each wave is its rival leading minions, on that rank's kit, pilot and scale.")]
         [SerializeField] private SectorFaction faction;
@@ -76,8 +76,11 @@ namespace Substrate.Sectors.Elements
         private bool huntReleased;
         private bool rivalAmbushes;
         private int openedPhase;
+        private int sectorIndex;
         private int? pending;
         private float lastWave;
+
+        public event Action<int> WaveSent;
 
         /// <summary>Where the phase table stands as of the last tick.</summary>
         public SectorPhaseMark Phase { get; private set; }
@@ -135,6 +138,7 @@ namespace Substrate.Sectors.Elements
         protected override IEnumerator Produce(SectorBuildContext ctx)
         {
             CheckRow(ctx.Row);
+            sectorIndex = ctx.SectorIndex;
             rivalAmbushes = Ambushes(ctx.Row.faction.Rival.pilot);
             if (elite) elite.Begin(ctx);
             products.Clear();
@@ -196,7 +200,12 @@ namespace Substrate.Sectors.Elements
             if (minions != null)
             {
                 var count = Room(1 + minions.Value, Alive);
-                if (count == 0 || TrySend(count)) Arrived(now);
+                if (count == 0 || TrySend(count))
+                {
+                    if (count > 0)
+                        WaveSent?.Invoke(sectorIndex);
+                    Arrived(now);
+                }
             }
             Observe(now, Alive);
         }

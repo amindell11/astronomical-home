@@ -1252,9 +1252,13 @@ Format: **term** — definition. *(authority)*
   change as unable to change behavior and lands it with no test run, and a bad
   row here stops the game at boot (owner ruling 2026-11-21).
   *(LineTable, CompanionLineSheet.LoadLines)*
-- **nag budget** — the companion speaks at most one line per interval; must-say
-  line slots skip the wait, and a line that cannot show before it goes stale is
-  dropped, never queued. *(NagBudget, CompanionFeelProfile)*
+- **exchange** — what one moment speaks: an opening line and, some of the time,
+  a reply from another speaker when the opener's hold ends. The two are one
+  turn against the *nag budget* (owner ruling 2026-11-21): the reply skips the
+  gap, and the gap then counts from the reply. *(LineTable.Pick, NagBudget)*
+- **nag budget** — the companion speaks at most one *exchange* per interval;
+  must-say line slots skip the wait, and a line that cannot show before it goes
+  stale is dropped, never queued. *(NagBudget, CompanionFeelProfile)*
 - **presentation module** — a presentation (the recap outcome sequence first)
   exposed as a pure function of a *feel profile*, an immutable *context* and a
   time, rendered by one renderer whichever host drives the time; a
