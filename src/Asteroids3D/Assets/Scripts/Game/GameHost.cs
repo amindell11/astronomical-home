@@ -380,7 +380,7 @@ namespace Game
                     foreach (var station in findStations)
                         if (station) station.Arrived += onStationArrived;
                     var sectorMoments = new SectorMoments(moments, faction, spine ? spine.Hunt : null,
-                        spine ? spine.Elite : null);
+                        spine ? spine.Elite : null, spine ? spine.Waves : null);
 
                     pauseRequested = false;
                     while (!playerDied && !sectorEnded && !shutdownRequested && !quitRun)

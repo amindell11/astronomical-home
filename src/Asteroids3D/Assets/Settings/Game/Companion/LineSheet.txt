@@ -23,22 +23,22 @@ The game's companion and enemy lines. This tab exports to LineSheet.txt in the r
 | B2a | sector-entered | bastion | Companion |  | Welcome to the wall. Whoever we meet, they're the toughest clan out here. They all are. | In game |  |
 | B2b | sector-entered | bastion | Companion |  | Welcome to the wall. Don't ask who the toughest clan is. They'll all answer. | In game |  |
 | B0 | sector-entered | bastion | Companion |  | Bastion territory. Keep an eye out for a bunch of meatheads with sticks up their butts. | In game |  |
-| SR1a | combat-start | shoal | Rival |  | Well, lookey here! Form up, boys, and shoot careful. That engine's worth more running. | Later | Needs the combat-start moment |
+| SR1a | combat-start | shoal | Rival |  | Well, lookey here! Form up, boys, and shoot careful. That engine's worth more running. | In game |  |
 | SR1b | combat-start | shoal | Rival |  | Are you | Draft | Unfinished |
-| SE2 | combat-start | shoal | Rival |  | Easy now, friend. Set her down gentle and nobody's gotta scratch the paint. | Later | Needs the combat-start moment |
-| SE1 | combat-start | shoal | Rival |  | Nothing personal stranger, just reckon I need those parts more than you do. | Later | Needs the combat-start moment |
-| SR2a | combat-start | shoal | Companion | any | They might seem friendly but theyre still after the ship. | Later | Needs the combat-start moment |
-| SR2b | combat-start | shoal | Companion | any | Hear that? He's already spent the money. | Later | Needs the combat-start moment |
-| S6b | combat-start | shoal | Companion | any | Poor scrappers think they just hit the jackpot. Almost hate to ruin their day. | Later | Needs the combat-start moment |
-| VR1 | combat-start | veil | Rival |  | Human pilot. Eccentric flightpath. Mandate radical normalization. | Later | Needs the combat-start moment |
-| VR3a | combat-start | veil | Rival |  | Pilot and machine, housed apart. Each incomplete. Joining is offered. | Later | Needs the combat-start moment |
-| VR2a | combat-start | veil | Companion | any | I can never tell if that's a pilot talking or just the ship. | Later | Needs the combat-start moment |
-| VR2b | combat-start | veil | Companion | VR1 | "Radical normalization." No clue what that is, but I don't want any. | Later | Needs the combat-start moment |
-| V5 | combat-start | veil | Companion | any | Ugh. Just don't let them near my wiring. | Later | Needs the combat-start moment |
-| BR1a | combat-start | bastion | Rival |  | I don't know who you think you are, flying through our space, but I can't wait to find out. | Later | Needs the combat-start moment |
-| BR1b | combat-start | bastion | Rival |  | I don't know who you think you are, flying through our space, but I can't have the other clans hear I let you. | Later | Needs the combat-start moment |
-| BR2a | combat-start | bastion | Companion | any | Oh good. He's excited. | Later | Needs the combat-start moment |
-| BR2b | combat-start | bastion | Companion | any | "Our space." They own the vaccum now huh | Later | Needs the combat-start moment |
+| SE2 | combat-start | shoal | Rival |  | Easy now, friend. Set her down gentle and nobody's gotta scratch the paint. | In game |  |
+| SE1 | combat-start | shoal | Rival |  | Nothing personal stranger, just reckon I need those parts more than you do. | In game |  |
+| SR2a | combat-start | shoal | Companion | any | They might seem friendly but theyre still after the ship. | In game |  |
+| SR2b | combat-start | shoal | Companion | any | Hear that? He's already spent the money. | In game |  |
+| S6b | combat-start | shoal | Companion | any | Poor scrappers think they just hit the jackpot. Almost hate to ruin their day. | In game |  |
+| VR1 | combat-start | veil | Rival |  | Human pilot. Eccentric flightpath. Mandate radical normalization. | In game |  |
+| VR3a | combat-start | veil | Rival |  | Pilot and machine, housed apart. Each incomplete. Joining is offered. | In game |  |
+| VR2a | combat-start | veil | Companion | any | I can never tell if that's a pilot talking or just the ship. | In game |  |
+| VR2b | combat-start | veil | Companion | VR1 | "Radical normalization." No clue what that is, but I don't want any. | In game |  |
+| V5 | combat-start | veil | Companion | any | Ugh. Just don't let them near my wiring. | In game |  |
+| BR1a | combat-start | bastion | Rival |  | I don't know who you think you are, flying through our space, but I can't wait to find out. | In game |  |
+| BR1b | combat-start | bastion | Rival |  | I don't know who you think you are, flying through our space, but I can't have the other clans hear I let you. | In game |  |
+| BR2a | combat-start | bastion | Companion | any | Oh good. He's excited. | In game |  |
+| BR2b | combat-start | bastion | Companion | any | "Our space." They own the vaccum now huh | In game |  |
 | S4a | death | shoal | Companion |  | Well, that piece of junk is probably better off in their hands anyway. | In game |  |
 | S4b | death | shoal | Companion |  | Honestly? They probably did need the ship more than us. | In game |  |
 | S5a | death | shoal | Companion |  | Hmph. Well, looks like they're gonna strip us for parts. But did you see the cat in his cockpit? So darn cute! | In game |  |

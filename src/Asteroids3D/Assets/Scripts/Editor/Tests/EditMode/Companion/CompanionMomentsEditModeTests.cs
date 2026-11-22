@@ -13,6 +13,7 @@ using NUnit.Framework;
 using Ships.Registry;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Hunt;
+using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Elements.Stations;
 using UnityEditor;
 
@@ -270,16 +271,64 @@ namespace Tests.EditMode.Companion
         }
 
         [Test]
+        public void CombatStarted_CarriesTheSectorAndFaction()
+        {
+            var moment = new CombatStarted(3, "veil");
+
+            Assert.AreEqual("combat-start", CombatStarted.StartedSlot);
+            Assert.AreEqual(CombatStarted.StartedSlot, moment.Slot);
+            Assert.AreEqual(3, moment.Sector);
+            Assert.AreEqual("veil", moment.Faction);
+            Assert.AreEqual("3", moment.Facts["sector"]);
+            Assert.AreEqual("veil", moment.Facts["faction"]);
+
+            var missingFaction = Assert.Throws<ArgumentNullException>(() => new CombatStarted(1, null));
+            Assert.AreEqual("faction", missingFaction.ParamName);
+        }
+
+        [Test]
         public void SectorMoments_RejectsANullStreamOrFaction_AndAllowsNeitherHuntNorElite()
         {
             var stream = new RunMomentStream();
-            var missingStream = Assert.Throws<ArgumentNullException>(() => new SectorMoments(null, "", null, null));
+            var missingStream = Assert.Throws<ArgumentNullException>(() => new SectorMoments(null, "", null, null, null));
             Assert.AreEqual("moments", missingStream.ParamName);
-            var missingFaction = Assert.Throws<ArgumentNullException>(() => new SectorMoments(stream, null, null, null));
+            var missingFaction = Assert.Throws<ArgumentNullException>(() => new SectorMoments(stream, null, null, null, null));
             Assert.AreEqual("faction", missingFaction.ParamName);
 
-            var wired = new SectorMoments(stream, "", null, null);
+            var wired = new SectorMoments(stream, "", null, null, null);
             Assert.DoesNotThrow(wired.Dispose);
+        }
+
+        [Test]
+        public void SectorMoments_FirstWave_RaisesCombatStartedOnce()
+        {
+            var stream = new RunMomentStream();
+            var waves = new WaveSignal();
+            var moments = new SectorMoments(stream, "veil", null, null, waves);
+
+            waves.Raise(2);
+            waves.Raise(2);
+
+            Assert.AreEqual(1, stream.Moments.Count);
+            var started = (CombatStarted)stream.Moments[0];
+            Assert.AreEqual(3, started.Sector);
+            Assert.AreEqual("veil", started.Faction);
+            moments.Dispose();
+        }
+
+        [Test]
+        public void SectorMoments_Disposed_IgnoresTheWaveSignal()
+        {
+            var stream = new RunMomentStream();
+            var waves = new WaveSignal();
+            var moments = new SectorMoments(stream, "veil", null, null, waves);
+            Assert.AreEqual(1, waves.SubscriberCount, "the bridge subscribed");
+
+            moments.Dispose();
+            waves.Raise(2);
+
+            Assert.AreEqual(0, stream.Moments.Count);
+            Assert.AreEqual(0, waves.SubscriberCount);
         }
 
         [Test]
@@ -302,8 +351,8 @@ namespace Tests.EditMode.Companion
                          SectorEntered.SectorSlot, CacheClaimed.CacheSlot, ModPicked.PickSlot, ArmoryPicked.PickSlot,
                          CloseCall.CloseCallSlot, StationArrived.RepairSlot, StationArrived.ModSlot,
                          StationArrived.ArmorySlot, PatrolSpotted.SpottedSlot, AlarmRaised.AlarmSlot,
-                         PatrolSilenced.SilencedSlot, EliteAnnounced.AnnouncedSlot, EliteBeaten.BeatenSlot,
-                         ShipEarned.EarnedSlot,
+                         PatrolSilenced.SilencedSlot, CombatStarted.StartedSlot, EliteAnnounced.AnnouncedSlot,
+                         EliteBeaten.BeatenSlot, ShipEarned.EarnedSlot,
                      })
                 Assert.DoesNotThrow(() => sheet.Find(moment), $"{moment} has a line slot");
         }
@@ -316,7 +365,8 @@ namespace Tests.EditMode.Companion
             foreach (var slot in new[]
                      {
                          PatrolSpotted.SpottedSlot, AlarmRaised.AlarmSlot, PatrolSilenced.SilencedSlot,
-                         EliteAnnounced.AnnouncedSlot, EliteBeaten.BeatenSlot, ShipEarned.EarnedSlot,
+                         CombatStarted.StartedSlot, EliteAnnounced.AnnouncedSlot, EliteBeaten.BeatenSlot,
+                         ShipEarned.EarnedSlot,
                      })
                 Assert.IsFalse(lines.Find(slot).MustSay, $"{slot} is not must-say");
         }
@@ -329,6 +379,15 @@ namespace Tests.EditMode.Companion
             Assert.AreEqual(AssetDatabase.LoadAssetAtPath<CompanionLineSheet>(SheetPath), host.companionLines);
             Assert.AreEqual(AssetDatabase.LoadAssetAtPath<CompanionFeelProfile>(FeelPath), host.companionFeel);
             Assert.IsTrue(host.companionLines && host.companionFeel, "test premise: both assets load");
+        }
+
+        private sealed class WaveSignal : IWaveSignal
+        {
+            public event Action<int> WaveSent;
+
+            public void Raise(int sectorIndex) => WaveSent?.Invoke(sectorIndex);
+
+            public int SubscriberCount => WaveSent == null ? 0 : WaveSent.GetInvocationList().Length;
         }
     }
 }
