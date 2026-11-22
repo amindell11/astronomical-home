@@ -1104,6 +1104,16 @@ Format: **term** — definition. *(authority)*
   subject's, so an enemy's keystone never shakes your view. Always "shake
   channel": the lock channel and the shake noise channels share the word.
   *(Ship.Shake, ShakeChannel)*
+- **shake listener**. The one flight camera registered to hear nearby blasts.
+  It measures each blast's distance from its subject and turns it into a shake
+  layer. It is a process-wide registry, which wiring rule 3 calls suspect,
+  accepted for presentation only (#1643). A second one registering throws.
+  Always "shake listener": the audio side has its own listener.
+  *(ShakeListener, ObserverCam)*
+- **shake emitter**. A blast prefab's part that tells the shake listener a
+  blast happened, beside the prefab's sound part. Always "shake emitter":
+  particle systems have emitters. *(GrenadeShake, MissileShake,
+  RailgunImpactShake, AsteroidShake)*
 - **item** — anything that fills a loadout slot: a chassis (a prefab with a root
   `Ship`) or a weapon (a prefab with a root `WeaponComponent`). Engine and shield
   modules come with the chassis and fill no slot (#1073, #1254); projectiles,

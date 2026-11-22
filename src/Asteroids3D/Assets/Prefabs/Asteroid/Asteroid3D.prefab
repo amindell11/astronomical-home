@@ -116,6 +116,7 @@ GameObject:
   - component: {fileID: 1444230777461953402}
   - component: {fileID: 6900563035713500292}
   - component: {fileID: 6685439425489970429}
+  - component: {fileID: 5732600041246163267}
   m_Layer: 8
   m_Name: Asteroid3D
   m_TagString: Asteroid
@@ -204,8 +205,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7e58c68fc82d477b854680a18f917fa9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damagePerDeltaV: 3
-  graceDeltaV: 2
   healthPerUnitVolume: 0.5
 --- !u!33 &503848992582056525
 MeshFilter:
@@ -309,3 +308,16 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 0}
+--- !u!114 &5732600041246163267
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1706132292860893391}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a1d6053c118a7c4e8c86911819e4db3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  profile: {fileID: 11400000, guid: eb3a565661101c34aadd55ec282289df, type: 2}

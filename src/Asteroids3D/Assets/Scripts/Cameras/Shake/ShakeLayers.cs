@@ -31,6 +31,21 @@ namespace Cameras.Shake
             issued++;
         }
 
+        // Restarts only when this shake is at least as strong as the running one.
+        public void StartStronger(Object source, CameraShakeProfile profile, Vector2 direction, float strength, float now)
+        {
+            var layer = Find(source);
+            if (layer != null)
+            {
+                var t = layer.EnvelopeTime(now);
+                if (!Ended(layer, t) && strength < Amplitude(layer, t))
+                    return;
+            }
+
+            Start(source, profile, direction, now);
+            Scale(source, strength);
+        }
+
         public void Release(Object source, float now)
         {
             var layer = Find(source);
@@ -56,13 +71,13 @@ namespace Cameras.Shake
             {
                 var layer = layers[i];
                 var t = layer.EnvelopeTime(now);
-                if (t > layer.profile.Length && (layer.profile.sustainAt < 0f || layer.released))
+                if (Ended(layer, t))
                 {
                     layers.RemoveAt(i);
                     continue;
                 }
 
-                var e = Mathf.Clamp01(layer.profile.envelope.Evaluate(t)) * layer.scale;
+                var e = Amplitude(layer, t);
                 var frequency = layer.profile.frequency;
                 var channel = layer.channel;
                 offset += new Vector2(CameraUtils.ShakeNoise(channel, now, frequency),
@@ -79,6 +94,12 @@ namespace Cameras.Shake
                     return layer;
             return null;
         }
+
+        private static bool Ended(Layer layer, float envelopeTime) =>
+            envelopeTime > layer.profile.Length && (layer.profile.sustainAt < 0f || layer.released);
+
+        private static float Amplitude(Layer layer, float envelopeTime) =>
+            Mathf.Clamp01(layer.profile.envelope.Evaluate(envelopeTime)) * layer.scale;
 
         private sealed class Layer
         {

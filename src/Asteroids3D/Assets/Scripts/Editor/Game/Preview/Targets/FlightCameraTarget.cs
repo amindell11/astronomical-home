@@ -1,8 +1,7 @@
+using System;
 using System.Collections.Generic;
 using Cameras;
 using Cameras.Shake;
-using Combat.Weapons;
-using Ships.Keystones;
 using UnityEditor;
 using UnityEngine;
 
@@ -16,7 +15,7 @@ namespace Game.Preview.Targets
         public override IEnumerable<ScriptableObject> Profiles(GameHost game)
         {
             yield return Feel(game);
-            foreach (var profile in ShakeProfiles(game))
+            foreach (var profile in ShakeProfiles())
                 yield return profile;
         }
 
@@ -27,36 +26,15 @@ namespace Game.Preview.Targets
             return (FlightCameraProfile)camera.FindProperty("feel").objectReferenceValue;
         }
 
-        private static IEnumerable<CameraShakeProfile> ShakeProfiles(GameHost game)
+        private static IEnumerable<CameraShakeProfile> ShakeProfiles()
         {
-            var seen = new HashSet<CameraShakeProfile>();
-            foreach (var ship in game.hangarOffer.ships)
-            {
-                Component part = ship.KeystonePrefab.GetComponentInChildren<KeystoneShake>(true);
-                if (!part)
-                    part = ship.KeystonePrefab.GetComponentInChildren<KeystoneSpeedShake>(true);
-                var profile = Read(part, seen);
-                if (profile)
-                    yield return profile;
-            }
-
-            foreach (var weapon in game.hangarOffer.weapons)
-            {
-                var profile = Read(weapon.GetComponentInChildren<WeaponShake>(true), seen);
-                if (profile)
-                    yield return profile;
-            }
-        }
-
-        private static CameraShakeProfile Read(Component part, HashSet<CameraShakeProfile> seen)
-        {
-            if (!part)
-                return null;
-            using var serialized = new SerializedObject(part);
-            var profile = serialized.FindProperty("profile").objectReferenceValue as CameraShakeProfile;
-            if (!profile || !seen.Add(profile))
-                return null;
-            return profile;
+            var guids = AssetDatabase.FindAssets("t:CameraShakeProfile");
+            var paths = new string[guids.Length];
+            for (var i = 0; i < guids.Length; i++)
+                paths[i] = AssetDatabase.GUIDToAssetPath(guids[i]);
+            Array.Sort(paths, StringComparer.Ordinal);
+            foreach (var path in paths)
+                yield return AssetDatabase.LoadAssetAtPath<CameraShakeProfile>(path);
         }
     }
 }

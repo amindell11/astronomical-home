@@ -26,6 +26,15 @@ namespace Cameras.Shake
         [Tooltip("Strength by speed as a share of the ship's normal top speed, 1 being flat out without a kit. Read only by a source that scales its shake by speed.")]
         public AnimationCurve bySpeed = new(new Keyframe(1f, 0f), new Keyframe(1.5f, 1f));
 
+        [Tooltip("Within this distance, in world units, a nearby blast shakes at full strength.")]
+        [Min(0f)] public float innerRadius = 4f;
+
+        [Tooltip("Beyond this distance, in world units, a nearby blast does not shake at all.")]
+        [Min(0f)] public float outerRadius = 20f;
+
+        [Tooltip("A blast this big shakes at full strength and radius; smaller ones scale down. 0 ignores size.")]
+        [Min(0f)] public float fullSize = 0f;
+
         public float Length => envelope.length == 0 ? 0f : envelope[envelope.length - 1].time;
     }
 }

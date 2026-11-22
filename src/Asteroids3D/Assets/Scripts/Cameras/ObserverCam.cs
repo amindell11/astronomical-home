@@ -16,9 +16,9 @@ namespace Cameras
     /// unless the player chose the manual camera (<see cref="CameraSettings"/>).
     /// Fits all active ships when unlocked or without a subject.
     /// Manual framing remains available after the last ship deactivates.
-    /// Shakes its view on the subject's hits, death and own shakes without moving its transform.
+    /// Shakes its view on the subject's hits, death, own shakes and nearby blasts without moving its transform.
     /// </summary>
-    public class ObserverCam : SmoothCamera
+    public class ObserverCam : SmoothCamera, IShakeListener
     {
         [Header("Focus Behavior")]
         [SerializeField] private bool lockCameraToSubject;
@@ -83,9 +83,12 @@ namespace Cameras
             byDistanceFromSubject = CompareDistanceFromSubject;
         }
 
+        private void OnEnable() => ShakeListener.Register(this);
+
         // A disabled camera must neither freeze a shaken frame nor resume a stale shake.
         private void OnDisable()
         {
+            ShakeListener.Unregister(this);
             trauma = 0f;
             layers.Clear();
             Cam.ResetWorldToCameraMatrix();
@@ -137,6 +140,21 @@ namespace Cameras
         private void OnShakeReleased(Object source) => layers.Release(source, Time.unscaledTime);
 
         private void OnShakeScaled(Object source, float strength) => layers.Scale(source, strength);
+
+        public void Hear(Vector3 position, CameraShakeProfile profile, float size)
+        {
+            var reference = subject
+                ? GamePlane.WorldPointToPlane(subject.position)
+                : GamePlane.WorldPointToPlane(transform.position);
+            var blast = GamePlane.WorldPointToPlane(position);
+            var distance = Vector2.Distance(reference, blast);
+            var strength = CameraUtils.BlastStrength(
+                distance, profile.innerRadius, profile.outerRadius, size, profile.fullSize);
+            if (strength <= 0f)
+                return;
+            var direction = reference - blast;
+            layers.StartStronger(profile, profile, direction, strength, Time.unscaledTime);
+        }
 
         protected override void ComputeDesiredCameraState(out Vector2? desiredCenter, out float? desiredSize)
         {
