@@ -15,7 +15,7 @@ using Object = UnityEngine.Object;
 
 namespace Tests.EditMode.Factions
 {
-    /// <summary>The shipped run's three rows, read as assets: each names its own faction in run order, its waves fly that faction's signature ship on the rival's and minion's kits, and each phase that sends waves draws its minions from an ordered range. Rival and minion resolve the signature ship with each rank's kit, pilot and scale, and each throws naming the faction when its kit or pilot is missing.</summary>
+    /// <summary>The shipped run's three rows, read as assets: each names its own faction in run order, its waves fly each rank's chassis on the rival's and minion's kits, and each phase that sends waves draws its minions from an ordered range. Rival and minion resolve their own chassis with that rank's kit, pilot, scale and hull, and each throws naming the faction when its kit or pilot is missing.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class FactionSectorsEditModeTests
@@ -33,7 +33,7 @@ namespace Tests.EditMode.Factions
         }
 
         [Test]
-        public void RivalAndMinion_ResolveTheSignatureShip_WithEachRanksKitPilotAndScale()
+        public void RivalAndMinion_ResolveTheirChassis_WithEachRanksKitPilotScaleAndHull()
         {
             var ship = Hull("Valis");
             var rivalKit = Kit();
@@ -41,19 +41,23 @@ namespace Tests.EditMode.Factions
             var rivalPilot = Pilot("RivalPilot");
             var minionPilot = Pilot("MinionPilot");
             var scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f);
-            var faction = FactionOf(ship, rivalKit, rivalPilot, minionKit, minionPilot, scale);
+            var rivalHull = new Material[1];
+            var minionHull = new Material[1];
+            var faction = FactionOf(ship, rivalKit, rivalPilot, minionKit, minionPilot, scale, rivalHull, minionHull);
 
             var rival = faction.Rival;
             Assert.AreSame(ship, rival.ship);
             Assert.AreSame(rivalKit, rival.kit);
             Assert.AreSame(rivalPilot, rival.pilot);
             Assert.AreSame(ShipScale.One, rival.scale);
+            Assert.AreSame(rivalHull, rival.hull);
 
             var minion = faction.Minion;
             Assert.AreSame(ship, minion.ship);
             Assert.AreSame(minionKit, minion.kit);
             Assert.AreSame(minionPilot, minion.pilot);
             Assert.AreSame(scale, minion.scale);
+            Assert.AreSame(minionHull, minion.hull);
         }
 
         [Test]
@@ -83,13 +87,13 @@ namespace Tests.EditMode.Factions
             var faction = Track(ScriptableObject.CreateInstance<Faction>());
             faction.name = "Veil";
             faction.signature = new FactionShip { ship = ship };
-            faction.minion = new FactionMinion { pilot = Pilot("MinionPilot"), scale = scale };
+            faction.minion = new FactionMinion { ship = ship, pilot = Pilot("MinionPilot"), scale = scale };
 
             var missingKit = Assert.Throws<InvalidOperationException>(() => _ = faction.Minion);
             StringAssert.Contains("Veil", missingKit.Message);
             StringAssert.Contains("minion kit", missingKit.Message);
 
-            faction.minion = new FactionMinion { kit = Kit(), scale = scale };
+            faction.minion = new FactionMinion { ship = ship, kit = Kit(), scale = scale };
             var missingPilot = Assert.Throws<InvalidOperationException>(() => _ = faction.Minion);
             StringAssert.Contains("Veil", missingPilot.Message);
             StringAssert.Contains("minion pilot", missingPilot.Message);
@@ -104,14 +108,16 @@ namespace Tests.EditMode.Factions
         }
 
         [Test]
-        public void EachTrialRoster_FliesItsSignatureShip_OnTheRivalsAndMinionsKits()
+        public void EachTrialRoster_FliesEachRanksChassis_OnTheRivalsAndMinionsKits()
         {
             foreach (var (row, i) in Rows().Select((row, i) => (row, i)))
             {
                 var faction = FactionOf(row);
                 var threat = row.prefab.Module<PhaseSpineModule>().Threat(row);
 
-                CollectionAssert.AreEquivalent(new[] { faction.Ship }, threat.Ships, $"row {i}");
+                CollectionAssert.AreEquivalent(
+                    new[] { faction.Rival.ship, faction.Minion.ship, faction.EliteShip }.Distinct().ToArray(),
+                    threat.Ships, $"row {i}");
                 CollectionAssert.AreEquivalent(new[] { faction.Rival.kit, faction.Minion.kit }.Distinct(),
                     threat.Weapons, $"row {i}");
             }
@@ -126,7 +132,6 @@ namespace Tests.EditMode.Factions
                 Assert.IsNotEmpty(sending, $"row {i} sends waves");
                 foreach (var phase in sending)
                     Assert.That(phase.fewestMinions, Is.InRange(0, phase.mostMinions), $"row {i}");
-                Assert.AreSame(FactionOf(row).Ship, FactionOf(row).Minion.ship, $"row {i}");
             }
         }
 
@@ -138,11 +143,16 @@ namespace Tests.EditMode.Factions
         }
 
         private Faction FactionOf(Ship ship, WeaponComponent rivalKit, Commander rivalPilot,
-            WeaponComponent minionKit, Commander minionPilot, ShipScale scale)
+            WeaponComponent minionKit, Commander minionPilot, ShipScale scale, Material[] rivalHull,
+            Material[] minionHull)
         {
             var faction = Track(ScriptableObject.CreateInstance<Faction>());
-            faction.signature = new FactionShip { ship = ship, kit = rivalKit, pilot = rivalPilot };
-            faction.minion = new FactionMinion { kit = minionKit, pilot = minionPilot, scale = scale };
+            faction.signature = new FactionShip { ship = ship, kit = rivalKit, pilot = rivalPilot, hull = rivalHull };
+            faction.minion = new FactionMinion
+            {
+                ship = ship, kit = minionKit, pilot = minionPilot, scale = scale, hull = minionHull,
+            };
+            faction.elite = new FactionElite { ship = ship };
             return faction;
         }
 

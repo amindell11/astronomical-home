@@ -582,15 +582,15 @@ Format: **term** — definition. *(authority)*
   *(EnemyTracker.LimitToSight, Scout.sightRange, Scout.loseSightAfter)*
 - **faction** — the side a sector's enemies belong to; each survival trial
   names one, and its wave director and hunt field only that faction's ships. It
-  flies one signature ship at three ranks. The **minion** is smaller, at 70% hull,
+  flies three ranks, each its own chassis in its own hull paint; the mesh carries
+  the rank's size (ruled on #868, 2026-11-21). The **minion** has 70% hull,
   never fires its keystone, and aims worse than the other ranks (ruled on #1589,
-  2026-11-17). Hunt patrols and elite escorts fly it. The
-  **rival** is the signature ship as the player flies it, and it leads every wave.
-  The **elite** is the third rank. Every rank wears the faction's paint. The ranks
-  are ruled on #1589. The sector-to-faction mapping is ruled on #1320.
-  *(Faction.Rival, Faction.Minion, FactionRank, SectorFaction)*
-- **elite** — a sector's end-of-sector enemy: its faction's signature ship made
-  larger, with a heavy weapon pair and stacked run mods. A lull follows the
+  2026-11-17). Hunt patrols and elite escorts fly it. The **rival** leads every
+  wave. The **elite** is the third rank. The ranks are ruled on #1589. The
+  sector-to-faction mapping is ruled on #1320.
+  *(Faction.Rival, Faction.Minion, Faction.EliteShip, FactionRank, SectorFaction)*
+- **elite** — a sector's end-of-sector enemy: its faction's elite chassis, with
+  a heavy weapon pair and stacked run mods. A lull follows the
   last phase, and the elite is summoned when that lull ends. Extraction opens
   on its death. Sector 3's elite is the boss, which escalates at hull
   thresholds (escorts, heavier fire).

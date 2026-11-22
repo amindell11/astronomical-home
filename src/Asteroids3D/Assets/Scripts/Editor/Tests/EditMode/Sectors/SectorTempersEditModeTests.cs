@@ -11,7 +11,8 @@ namespace Tests.EditMode.Sectors
 {
     /// <summary>
     /// Each shipped faction's rival and minion fly pilots whose tempers are set, and the two ranks fly
-    /// different pilots. The minion is the signature ship at 0.75 size and 0.7 hull, and its pilot never
+    /// different pilots. The minion has 0.7 hull, flies at 0.75 size only while it shares the rival's
+    /// chassis (its own chassis carries its size), and its pilot never
     /// fires the keystone. Both tempers of a faction share one wounded response: Veil never, Shoal jump
     /// out, Bastion last stand. No sector prefab names a patrol pilot of its own.
     /// </summary>
@@ -27,7 +28,8 @@ namespace Tests.EditMode.Sectors
                 var faction = Load(id);
                 AssertTemper(faction.Rival.pilot, $"{id} rival");
                 AssertTemper(faction.Minion.pilot, $"{id} minion");
-                Assert.AreEqual(0.75f, faction.Minion.scale.Size, 1e-4f, $"{id} minion size");
+                var ownChassis = faction.Minion.ship != faction.Rival.ship;
+                Assert.AreEqual(ownChassis ? 1f : 0.75f, faction.Minion.scale.Size, 1e-4f, $"{id} minion size");
                 Assert.AreEqual(0.7f, faction.Minion.scale.Hull, 1e-4f, $"{id} minion hull");
                 Assert.AreEqual($"Assets/Prefabs/Pilots/Factions/{id}MinionPilot.prefab",
                     AssetDatabase.GetAssetPath(faction.Minion.pilot), id);
@@ -44,7 +46,7 @@ namespace Tests.EditMode.Sectors
             var faction = Load("Shoal");
 
             Assert.AreNotSame(faction.Rival.pilot, faction.Minion.pilot);
-            Assert.AreSame(faction.Ship, faction.Minion.ship);
+            Assert.IsTrue(faction.Minion.ship, "the minion names its chassis");
         }
 
         [Test]
