@@ -84,7 +84,7 @@ namespace Tests.PlayMode.Rendering.Projection
         {
             Object.DestroyImmediate(root);
             Object.DestroyImmediate(profile);
-            if (shakeProfile) Object.DestroyImmediate(shakeProfile);
+            Object.DestroyImmediate(shakeProfile);
             Time.timeScale = 1f;
         }
 

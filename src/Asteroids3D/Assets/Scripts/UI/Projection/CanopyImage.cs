@@ -9,7 +9,7 @@ namespace UI.Projection
     /// The image-output counterpart of <see cref="CanopyProjection"/>. Its pass runs on the host
     /// camera before that camera draws, writes the processed input premultiplied, and
     /// <see cref="Output"/> keeps its identity across input resizes. The owner may tell it where
-    /// the image shows and when it glitches; left untold, the image is its own screen and never glitches.
+    /// the image shows and when it tears for a transition; left untold, the image is its own screen and never tears.
     /// </summary>
     public sealed class CanopyImage : MonoBehaviour, ICanopySource
     {

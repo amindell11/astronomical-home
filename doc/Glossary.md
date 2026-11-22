@@ -1085,9 +1085,11 @@ Format: **term** — definition. *(authority)*
 - **hit size**. How hard one hit lands on its ship, from 0 to 1. It is the one
   value the world shake and the canopy's damage shudder both scale by, so a
   graze moves both less than a big hit. *(AppliedDamage.HitSize)*
-- **shake profile**. One source's shake: an envelope, a frequency, and how
-  far it jitters, rolls and kicks. The source's prefab references it, so
-  adding a source changes no camera code. *(CameraShakeProfile)*
+- **shake profile**. One source's shake: an envelope, a frequency, how far it
+  jitters, rolls and kicks, and how hard it glitches the HUD on raise and on
+  release. The source's prefab references it, so adding a source changes no
+  camera or HUD code. Only shakes on your ship's shake channel glitch the HUD;
+  a nearby blast ignores its profile's glitch amounts. *(CameraShakeProfile)*
 - **shake envelope**. A shake profile's strength over seconds, from 0 to 1. One
   shake envelope scales the jitter, the roll and the kick together. A *sustain
   point* on it holds the strength until the source releases the shake, then
@@ -1100,8 +1102,9 @@ Format: **term** — definition. *(authority)*
   shake, and `shakeOffsetCap` and `shakeRollCap` clamp the total. While the
   game clock is stopped they leave the view alone. *(ShakeLayers)*
 - **shake channel**. The events a ship raises its own shakes on. Its kit and
-  weapon parts raise them, and the flight camera subscribes only to its
-  subject's, so an enemy's keystone never shakes your view. Always "shake
+  weapon parts raise them. The flight camera subscribes only to its subject's
+  and the canopy only to your ship's, so an enemy's keystone never shakes your
+  view or glitches your HUD. Always "shake
   channel": the lock channel and the shake noise channels share the word.
   *(Ship.Shake, ShakeChannel)*
 - **shake listener**. The one flight camera registered to hear nearby blasts.

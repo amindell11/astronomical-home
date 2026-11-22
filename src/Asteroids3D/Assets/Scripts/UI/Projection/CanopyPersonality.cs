@@ -43,27 +43,27 @@ namespace UI.Projection
 
         public void Initialize(IDamageEvents source, ShakeChannel shake)
         {
-            if (!ReferenceEquals(this.shake, shake))
-            {
-                if (this.shake != null)
-                {
-                    this.shake.Raised -= OnShakeRaised;
-                    this.shake.Released -= OnShakeReleased;
-                }
-                this.shake = shake;
-                if (this.shake != null)
-                {
-                    this.shake.Raised += OnShakeRaised;
-                    this.shake.Released += OnShakeReleased;
-                }
-                raised.Clear();
-            }
+            BindShake(shake);
             if (ReferenceEquals(damage, source)) return;
             if (damage != null) damage.OnDamaged -= OnDamaged;
             damage = source;
             if (damage != null) damage.OnDamaged += OnDamaged;
             hitAt = lowHullAt = glitchAt = float.NegativeInfinity;
             hitSize = glitchStrength = 0f;
+        }
+
+        private void BindShake(ShakeChannel next)
+        {
+            if (ReferenceEquals(shake, next)) return;
+            if (shake != null)
+            {
+                shake.Raised -= OnShakeRaised;
+                shake.Released -= OnShakeReleased;
+            }
+            shake = next;
+            shake.Raised += OnShakeRaised;
+            shake.Released += OnShakeReleased;
+            raised.Clear();
         }
 
         public void EnterSector(PhaseSpineModule source)
