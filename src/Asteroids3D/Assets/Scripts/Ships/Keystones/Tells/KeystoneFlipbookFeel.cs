@@ -46,7 +46,7 @@ namespace Ships.Keystones.Tells
             [Tooltip("Seconds after this layer starts when it is gone. 0 plays every frame.")]
             public float endsAt;
 
-            [Tooltip("Seconds of fade before Ends At.")]
+            [Tooltip("Seconds of fade before Ends At, or after the live window ends when Ends With Live is set.")]
             public float fadeOut;
 
             [Tooltip("What starts this layer: the kit's press, the kit going live, or the kit's hit.")]

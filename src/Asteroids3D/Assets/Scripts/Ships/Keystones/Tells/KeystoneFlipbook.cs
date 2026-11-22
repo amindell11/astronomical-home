@@ -111,10 +111,11 @@ namespace Ships.Keystones.Tells
         {
             var press = keystone.Activations > seenActivations;
             seenActivations = keystone.Activations;
-            var live = keystone.Active && !seenActive;
-            seenActive = keystone.Active;
             var hit = keystone.Hits > seenHits;
             seenHits = keystone.Hits;
+            // A hit proves the kit went live, even when both fell between two frames.
+            var live = (keystone.Active || hit) && !seenActive;
+            seenActive = keystone.Active;
 
             var layers = feel.Layers;
             var pose = FlatPose();
@@ -196,8 +197,7 @@ namespace Ships.Keystones.Tells
                 var opacity = layer.opacity;
                 if (layer.endsAt > 0f && layer.fadeOut > 0f)
                     opacity *= Mathf.Clamp01((layer.endsAt - elapsed) / layer.fadeOut);
-                if (play[i].liveEnded)
-                    opacity *= liveFade;
+                opacity *= liveFade;
                 block.SetFloat(FrameId, frame);
                 block.SetFloat(OpacityId, opacity);
                 renderers[i].SetPropertyBlock(block);
