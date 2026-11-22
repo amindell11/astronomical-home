@@ -106,11 +106,20 @@ namespace Tests.EditMode.Companion
         [Test]
         public void PlayerDied_QuotesItsSectorAndKiller()
         {
-            var moment = new PlayerDied(2, DamageKind.Missile);
+            var moment = new PlayerDied(2, DamageKind.Missile, "");
 
             Assert.AreEqual(PlayerDied.DeathSlot, moment.Slot);
             Assert.AreEqual("2", moment.Facts["sector"]);
             Assert.AreEqual("Missile", moment.Facts["killed_by"]);
+        }
+
+        [Test]
+        public void PlayerDied_CarriesTheFaction()
+        {
+            var moment = new PlayerDied(2, DamageKind.Missile, "veil");
+
+            Assert.AreEqual("veil", moment.Faction);
+            Assert.AreEqual("veil", moment.Facts["faction"]);
         }
 
         [Test]

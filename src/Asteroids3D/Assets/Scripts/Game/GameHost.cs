@@ -169,6 +169,7 @@ namespace Game
         private LocaleSky[] runLocales;
         private bool shutdownComplete;
         private int activeSectorIndex;
+        private string activeSectorFaction = string.Empty;
         private SectorJumpFlight jump;
         private ExceptionDispatchInfo fault;
 
@@ -350,6 +351,7 @@ namespace Game
                         rigInstance.Player.Damage.Health.SetFraction(hull);
                     var factionModule = session.ActiveSector.Module<SectorFaction>();
                     var faction = factionModule ? factionModule.Faction.id : string.Empty;
+                    activeSectorFaction = faction;
                     moments.Raise(new SectorEntered(index + 1, faction));
                     SetSplashVisible(false);
                     if (music) music.EnterSector(session.ActiveSector, session.ActiveLocale);
@@ -822,7 +824,9 @@ namespace Game
                         lastKillingBlow = killingBlow;
                         deathPosition = GamePlane.WorldPointToPlane(rigInstance.Player.transform.position);
                         playerDied = true;
-                        moments.Raise(new PlayerDied(activeSectorIndex + 1, killingBlow.Kind));
+                        var byEnemy = killingBlow.AttackerId != ShipId.Invalid && killingBlow.AttackerId != rigInstance.Player.Id;
+                        var faction = byEnemy ? activeSectorFaction : string.Empty;
+                        moments.Raise(new PlayerDied(activeSectorIndex + 1, killingBlow.Kind, faction));
                     };
                 case PlayerDeathBehavior.None:
                 default:
