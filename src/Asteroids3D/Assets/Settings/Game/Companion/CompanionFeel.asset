@@ -16,3 +16,4 @@ MonoBehaviour:
   staleSeconds: 3
   holdSeconds: 4
   fadeSeconds: 0.4
+  replyChance: 0.6
