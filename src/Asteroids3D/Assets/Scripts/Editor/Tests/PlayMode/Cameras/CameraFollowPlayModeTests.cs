@@ -30,6 +30,7 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
     private GameObject subject;
     private SimulationMode simulationMode;
     private bool previousManual;
+    private float previousShakeScale;
 
     // Deterministic timeout — camera follow should settle well within this.
     private const float FollowTimeoutSec = 3f;
@@ -47,7 +48,9 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
     {
         base.SetUp();
         previousManual = CameraSettings.ManualCamera;
+        previousShakeScale = CameraSettings.ShakeScale;
         CameraSettings.ManualCamera = false;
+        CameraSettings.ShakeScale = 1f;
         simulationMode = Physics.simulationMode;
         
         cam = TestAssets.NewObserverCam();
@@ -79,6 +82,7 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
             DestroyTestObject(s);
         Physics.simulationMode = simulationMode;
         CameraSettings.ManualCamera = previousManual;
+        CameraSettings.ShakeScale = previousShakeScale;
         base.TearDown();
     }
 
@@ -379,6 +383,19 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
         // The follow's residual drift is far below the shake's reach.
         Assert.That(Vector3.Distance(cam.transform.position, held), Is.LessThan(.01f), "the shake moved the transform");
         Assert.That(subject.transform.position, Is.EqualTo(subjectAt));
+    }
+
+    [UnityTest]
+    public IEnumerator ShakeScaleZero_RaisesTrauma_AndLeavesTheViewUnshaken()
+    {
+        Assume.That(feel.traumaPerHit, Is.GreaterThan(0f), "this tuning turns hit shake off");
+        CameraSettings.ShakeScale = 0f;
+        var damage = new DamageEventsStub();
+        cam.SetSubject(subject.transform, newDamage: damage);
+        damage.Hit(100f);
+        yield return null;
+        Assert.That(cam.Trauma, Is.GreaterThan(0f));
+        Assert.That(ViewDelta(cam.Cam.worldToCameraMatrix, UnshakenView()), Is.LessThanOrEqualTo(1e-4f));
     }
 
     [UnityTest]

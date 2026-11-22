@@ -1082,9 +1082,9 @@ Format: **term** — definition. *(authority)*
   comes from Squirrel Eiserloh's GDC 2016 camera talk (#1636). Only the world
   shake reads it; the canopy's damage shudder reads *hit size*.
   *(ObserverCam, FlightCameraProfile)*
-- **hit size**. How hard one hit lands on its ship, from 0 to 1. It is the one
-  value the world shake and the canopy's damage shudder both scale by, so a
-  graze moves both less than a big hit. *(AppliedDamage.HitSize)*
+- **hit size**. How hard one hit lands on its ship, from 0 to 1. The world
+  shake and the canopy's damage shudder both scale by it, so a graze moves
+  both less than a big hit. *(AppliedDamage.HitSize)*
 - **shake profile**. One source's shake: an envelope, a frequency, how far it
   jitters, rolls and kicks, and how hard it glitches the HUD on raise and on
   release. The source's prefab references it, so adding a source changes no
