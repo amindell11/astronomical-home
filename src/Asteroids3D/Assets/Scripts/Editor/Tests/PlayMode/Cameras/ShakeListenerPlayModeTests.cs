@@ -23,7 +23,7 @@ namespace Tests.PlayMode.Cameras
         {
             base.SetUp();
             cam = TestAssets.NewObserverCam();
-            // The cursor comes from SetCursor alone; the editor's live mouse would move the lead.
+            // The editor's live mouse would move the lead.
             cam.GetComponent<ObserverCamInputHandler>().enabled = false;
             cam.transform.position = Vector3.zero;
 

@@ -5,7 +5,6 @@ using UnityEngine;
 namespace Asteroids
 {
     [RequireComponent(typeof(AsteroidController))]
-    [RequireComponent(typeof(AsteroidDamage))]
     public sealed class AsteroidShake : MonoBehaviour, IPresentationPart
     {
         [Tooltip("Camera shake played where the asteroid breaks. Its radius is the blast size.")]
@@ -18,17 +17,9 @@ namespace Asteroids
             asteroid = GetComponent<AsteroidController>();
         }
 
-        private void OnEnable()
-        {
-            if (!asteroid) return;
-            asteroid.OnDestroyed += HandleDestroyed;
-        }
+        private void OnEnable() => asteroid.OnDestroyed += HandleDestroyed;
 
-        private void OnDisable()
-        {
-            if (!asteroid) return;
-            asteroid.OnDestroyed -= HandleDestroyed;
-        }
+        private void OnDisable() => asteroid.OnDestroyed -= HandleDestroyed;
 
         public void ApplyPresentation(bool visible) => enabled = visible;
 

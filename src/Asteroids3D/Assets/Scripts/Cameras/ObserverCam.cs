@@ -18,7 +18,7 @@ namespace Cameras
     /// Manual framing remains available after the last ship deactivates.
     /// Shakes its view on the subject's hits, death, own shakes and nearby blasts without moving its transform.
     /// </summary>
-    public class ObserverCam : SmoothCamera, IShakeListener
+    public class ObserverCam : SmoothCamera
     {
         [Header("Focus Behavior")]
         [SerializeField] private bool lockCameraToSubject;
@@ -143,9 +143,7 @@ namespace Cameras
 
         public void Hear(Vector3 position, CameraShakeProfile profile, float size)
         {
-            var reference = subject
-                ? GamePlane.WorldPointToPlane(subject.position)
-                : GamePlane.WorldPointToPlane(transform.position);
+            var reference = GamePlane.WorldPointToPlane(subject ? subject.position : transform.position);
             var blast = GamePlane.WorldPointToPlane(position);
             var distance = Vector2.Distance(reference, blast);
             var strength = CameraUtils.BlastStrength(
