@@ -43,11 +43,17 @@ namespace Ships.Keystones.Tells
             [Tooltip("Playback rate of this layer.")]
             public float speed;
 
-            [Tooltip("Seconds after the kit fires when this layer is gone. 0 plays every frame.")]
+            [Tooltip("Seconds after this layer starts when it is gone. 0 plays every frame.")]
             public float endsAt;
 
             [Tooltip("Seconds of fade before Ends At.")]
             public float fadeOut;
+
+            [Tooltip("What starts this layer: the kit's press, the kit going live, or the kit's hit.")]
+            public KeystoneFlipbookStart startsOn;
+
+            [Tooltip("Ends when the kit stops being live, fading over Fade Out.")]
+            public bool endsWithLive;
 
             [Header("Baked with the sheet")]
             public Material material;
@@ -70,7 +76,7 @@ namespace Ships.Keystones.Tells
             [Tooltip("Local Z offset in world units.")]
             public float depth;
 
-            [Tooltip("Left in the world where the kit fired, instead of following the ship.")]
+            [Tooltip("Left in the world where it started, instead of following the ship.")]
             public bool staysAtLaunch;
         }
     }

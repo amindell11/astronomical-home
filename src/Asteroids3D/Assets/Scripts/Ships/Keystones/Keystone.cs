@@ -43,6 +43,11 @@ namespace Ships.Keystones
         /// <summary>The kit's active state, which its tell shows.</summary>
         public virtual bool Active => false;
 
+        /// <summary>Contacts the kit has spent itself on, which its tell shows.</summary>
+        public int Hits { get; private set; }
+
+        public Vector3 LastHitPoint { get; private set; }
+
         /// <summary>True while the kit wants to touch its target, so the navigator must not steer around it.</summary>
         public virtual bool SeeksContact => false;
 
@@ -107,6 +112,7 @@ namespace Ships.Keystones
             activatedAt = float.NegativeInfinity;
             Activations = 0;
             PaidActivations = 0;
+            Hits = 0;
             creditedActivation = 0;
             OnReset();
         }
@@ -133,6 +139,12 @@ namespace Ships.Keystones
 
         protected void ShortenCooldown(float secondsFromActivation) =>
             readyAt = Mathf.Min(readyAt, activatedAt + secondsFromActivation);
+
+        protected void RecordHit(Vector3 point)
+        {
+            Hits++;
+            LastHitPoint = point;
+        }
 
         protected void CreditActivation()
         {
