@@ -4,7 +4,7 @@ set -euo pipefail
 
 # A fixture record file through the summary script: the Runs rows and spreads per stat
 # fingerprint, each run's outcome, the mixed flag, the three pooled tables, and the
-# unknown-schema refusal. A second file mixes v2 and v3, including an abandoned run.
+# unknown-schema refusal. A second file mixes v2 through v5, including an abandoned run.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SUMMARY="$SCRIPT_DIR/../balance/run_summary.py"
@@ -69,17 +69,22 @@ has "| 3333333333333333 | $LASERS_CELL | 1 | 1 | 0 | 8 |" "spawned row of the se
 [[ "$out" != *"## Picks"* ]] || fail "records without picks print no picks table"$'\n'"$out"
 [[ "$out" != *"## Sectors"* ]] || fail "records without sectors print no sectors table"$'\n'"$out"
 [[ "$out" != *"## Damage dealt"* ]] || fail "records without dealt damage print no dealt table"$'\n'"$out"
+[[ "$out" != *"## Shield recovery"* ]] || fail "records without shield recovery print no shield recovery table"$'\n'"$out"
 
-# One v3 death carrying the new fields, one v3 abandon, and one v2 line that lacks them.
+# One v3 death carrying the v3 fields, one v3 abandon, one v2 line that lacks them, one v4
+# line whose sector row carries shield recovery, and one v5 death in the closing lull.
+# The v3 and v5 sector rows carry no regenSeconds, so the shield recovery row is the v4 one.
 cat > "$TMP/mixed.jsonl" <<EOF
 {"schema":"run-record-v2","endedUtc":"2026-11-01T10:00:00Z","outcome":"extracted","sectorsCleared":1,"sector":"Sector 1","buildIdentity":{"commit":"abc123de4567890f","dirty":false},"statFingerprint":"aaaaaaaaaaaaaaaa","player":$PLAYER,"kills":2,"secondsSurvived":10.0,"damage":[],"killingBlow":{"kind":"","spawn":-1},"spawns":[]}
 {"schema":"run-record-v3","endedUtc":"2026-11-01T11:00:00Z","outcome":"died","sectorsCleared":0,"sector":"Sector 1","buildIdentity":{"commit":"abc123de4567890f","dirty":false},"statFingerprint":"aaaaaaaaaaaaaaaa","player":$PLAYER,"kills":4,"secondsSurvived":20.0,"damage":[],"killingBlow":{"kind":"Missile","spawn":-1},"spawns":[],"picks":[{"kind":"mod","sector":1,"seconds":4.0,"offered":["Overcharge","Cooling"],"taken":"Overcharge","replaced":""},{"kind":"weapon","sector":1,"seconds":9.0,"offered":["Rippers","Missiles"],"taken":"","replaced":""}],"sectors":[{"sector":1,"seconds":12.5,"kills":2,"hullIn":1.0,"shieldIn":1.0,"hullOut":0.5,"shieldOut":0.0,"eliteMet":true,"eliteBeaten":false}],"dealt":[{"sector":1,"kind":"Laser","total":40.0,"shield":10.0,"hull":30.0,"hits":4}],"endPhase":{"index":2,"inLull":false,"done":true,"elapsedSeconds":3.0}}
 {"schema":"run-record-v3","endedUtc":"2026-11-01T12:00:00Z","outcome":"abandoned","sectorsCleared":0,"sector":"Sector 1","buildIdentity":{"commit":"abc123de4567890f","dirty":false},"statFingerprint":"aaaaaaaaaaaaaaaa","player":$PLAYER,"kills":1,"secondsSurvived":5.0,"damage":[],"killingBlow":{"kind":"Ram","spawn":-1},"spawns":[]}
+{"schema":"run-record-v4","endedUtc":"2026-11-01T13:00:00Z","outcome":"extracted","sectorsCleared":1,"sector":"Sector 1","buildIdentity":{"commit":"abc123de4567890f","dirty":false},"statFingerprint":"aaaaaaaaaaaaaaaa","player":$PLAYER,"kills":2,"secondsSurvived":10.0,"damage":[],"killingBlow":{"kind":"","spawn":-1},"spawns":[],"sectors":[{"sector":1,"seconds":12.5,"kills":1,"hullIn":1.0,"shieldIn":0.4,"hullOut":0.5,"shieldOut":1.0,"eliteMet":false,"eliteBeaten":false,"regenSeconds":4.5,"contestedRegenSeconds":1.5,"regenStarts":2,"shieldRefills":1,"shieldRestored":30.0,"contestedShieldRestored":10.0,"shieldDownSeconds":3.0}]}
+{"schema":"run-record-v5","endedUtc":"2026-11-01T14:00:00Z","outcome":"died","sectorsCleared":0,"sector":"Sector 1","buildIdentity":{"commit":"abc123de4567890f","dirty":false},"statFingerprint":"aaaaaaaaaaaaaaaa","player":$PLAYER,"kills":2,"secondsSurvived":10.0,"damage":[],"killingBlow":{"kind":"Laser","spawn":-1},"spawns":[],"sectors":[{"sector":1,"seconds":12.5,"kills":1,"hullIn":1.0,"shieldIn":1.0,"hullOut":0.5,"shieldOut":0.0,"eliteMet":false,"eliteBeaten":false}],"endPhase":{"index":2,"inLull":true,"done":false,"elapsedSeconds":3.0,"phase":"closing lull"}}
 EOF
 
 rc=0
 mixed="$("$PY" "$SUMMARY" "$TMP/mixed.jsonl" 2>"$TMP/stderr" | tr -s ' ')" || rc=$?
-[[ "$rc" -eq 0 ]] || fail "a mix of v2 and v3 must exit 0 (got $rc: $(cat "$TMP/stderr"))"
+[[ "$rc" -eq 0 ]] || fail "a mix of v2 through v5 must exit 0 (got $rc: $(cat "$TMP/stderr"))"
 mix() { [[ "$mixed" == *"$1"* ]] || fail "$2 — missing: $1"$'\n'"$mixed"; }
 mix "| 2026-11-01T12:00:00Z | abc123de | $PLAYER_CELL | abandoned (0 cleared) | 1 | 5 | - | |" "an abandoned run is a Runs row"
 mix "kills: min 1 / median 2 / max 4" "an abandoned run stays in the Runs spread"
@@ -87,9 +92,12 @@ mix "| Overcharge | mod | 1 | 1 |" "a taken mod"
 mix "| Cooling | mod | 1 | 0 |" "an offered mod that was not taken"
 mix "| Missiles | weapon | 1 | 0 |" "a skipped weapon offer"
 mix "| Rippers | weapon | 1 | 0 |" "a skipped weapon offer"
-mix "| 1 | 1 | 12.5 | 0.5 | 1 | 0 |" "sector row from the v3 record only"
+mix "| 1 | 3 | 12.5 | 0.5 | 1 | 0 |" "sector rows from the v3, v4 and v5 records, same shape"
+mix "## Shield recovery" "shield recovery table"
+mix "| 1 | 1 | 4.5 | 1.5 | 2 | 1 | 30 | 10 | 15 | 3 |" "shield recovery from the v4 row only; the v3 and v5 rows have no regenSeconds"
 mix "| Laser | 40 | 4 | 1 |" "damage dealt"
 mix "| 1 | elite | died | 1 |" "a death during the elite fight, named from the phase mark and the elite flags"
+mix "| 1 | closing lull | died | 1 |" "a v5 death in the closing lull keeps the stamped name"
 [[ "$mixed" != *"Ram"* ]] || fail "an abandoned run stays out of the killing blows"$'\n'"$mixed"
 blows="${mixed#*## Killing blows}"
 [[ "$blows" == *"Missile"* ]] || fail "a death's killing blow is pooled"$'\n'"$mixed"

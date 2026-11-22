@@ -1,0 +1,9 @@
+{
+  "unchanged_scene_objects": 65,
+  "changed_object": "25 | Viewport glass",
+  "changed_fields": [
+    "matrix",
+    "centre"
+  ],
+  "materials_ink_and_glass_shader_exact": true
+}

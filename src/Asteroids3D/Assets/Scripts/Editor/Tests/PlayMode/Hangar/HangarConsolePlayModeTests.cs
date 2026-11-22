@@ -1,5 +1,7 @@
 #if UNITY_EDITOR
 using System.Collections;
+using System.Collections.Generic;
+using Combat.Weapons;
 using NUnit.Framework;
 using Ships;
 using Ships.Loadout;
@@ -40,9 +42,13 @@ namespace Tests.PlayMode.Hangar
             yield return null;
 
             var main = console.GetComponentInChildren<HangarMainDisplayView>();
+            var primary = console.PrimaryDisplay.GetComponent<HangarWeaponDisplayView>();
+            var ordnance = console.OrdnanceDisplay.GetComponent<HangarWeaponDisplayView>();
             Assert.AreEqual(ship.name, main.Title);
             Assert.IsFalse(main.Locked);
-            Assert.IsTrue(main.Bracketed(HangarSlot.Ship), "the ship slot opens bracketed");
+            Assert.IsTrue(main.Bracketed, "the ship slot opens bracketed");
+            Assert.IsFalse(primary.Bracketed);
+            Assert.IsFalse(ordnance.Bracketed);
             var detail = console.GetComponentInChildren<HangarDetailDisplayView>();
             Assert.AreEqual(ship.name, detail.Title);
             Assert.AreEqual(HangarDescriptions.Describe(ship), detail.Body);
@@ -52,12 +58,20 @@ namespace Tests.PlayMode.Hangar
             Assert.IsFalse(console.KnobSettled, "a new slot sends the knob on its way");
             yield return Settled(() => console.KnobSettled);
             AssertDetent(HangarSlot.Weapon);
-            Assert.IsTrue(main.Bracketed(HangarSlot.Weapon));
-            Assert.IsFalse(main.Bracketed(HangarSlot.Ship));
+            Assert.IsTrue(primary.Bracketed);
+            Assert.IsFalse(main.Bracketed);
+            Assert.IsFalse(ordnance.Bracketed);
+            Assert.AreEqual(ship.name, detail.Title, "the detail display stays on the ship");
+            Assert.AreEqual(HangarDescriptions.Describe(ship), detail.Body);
 
             console.Selection.Select(HangarSlot.Ordnance);
             yield return Settled(() => console.KnobSettled);
             AssertDetent(HangarSlot.Ordnance);
+            Assert.IsTrue(ordnance.Bracketed);
+            Assert.IsFalse(main.Bracketed);
+            Assert.IsFalse(primary.Bracketed);
+            Assert.AreEqual(ship.name, detail.Title, "the detail display stays on the ship");
+            Assert.AreEqual(HangarDescriptions.Describe(ship), detail.Body);
         }
 
         [UnityTest]
@@ -129,7 +143,9 @@ namespace Tests.PlayMode.Hangar
             Assert.IsTrue(console.InputLocked, "an accepted launch locks the keys and the pointer");
             Assert.IsFalse(console.GetComponent<HangarConsoleRaycaster>().enabled, "the pointer no longer reaches the console");
             Assert.IsTrue(console.LaunchButton.GetComponent<HangarControl>().Moving, "the launch button plays its press");
-            Assert.IsTrue(console.MainDisplay.PoweringDown && console.DetailDisplay.PoweringDown, "both screens power down");
+            Assert.IsTrue(console.MainDisplay.PoweringDown && console.DetailDisplay.PoweringDown
+                && console.PrimaryDisplay.PoweringDown && console.OrdnanceDisplay.PoweringDown,
+                "the screens power down");
             Assert.AreEqual(0, launches, "the hand-off waits for the power-down");
             console.Launch();
 
@@ -144,9 +160,41 @@ namespace Tests.PlayMode.Hangar
             Assert.That(Time.unscaledTime - start, Is.GreaterThanOrEqualTo(HangarDisplay.PowerDownSeconds * .8f), "not before the screens are dark");
             Assert.That(console.MainDisplay.Level, Is.LessThan(.01f), "the main screen ends dark");
             Assert.That(console.DetailDisplay.Level, Is.LessThan(.01f), "the detail screen ends dark");
+            Assert.That(console.PrimaryDisplay.Level, Is.LessThan(.01f), "the primary screen ends dark");
+            Assert.That(console.OrdnanceDisplay.Level, Is.LessThan(.01f), "the ordnance screen ends dark");
             console.Launch();
             yield return new WaitForSecondsRealtime(HangarDisplay.PowerDownSeconds + .2f);
             Assert.AreEqual(1, launches, "later launches do nothing");
+        }
+
+        [UnityTest]
+        public IEnumerator Launch_ShowsTheLampsArmed_ThenPressedOrBlack()
+        {
+            Open(_ => true, out _);
+            yield return null;
+            var data = new SerializedObject(console);
+            var profile = (HangarLightProfile)data.FindProperty("lightProfile").objectReferenceValue;
+            var lamps = data.FindProperty("launchLamps");
+            Assert.That(lamps.arraySize, Is.GreaterThan(0), "the console wires its launch lamps");
+            var emission = Shader.PropertyToID("_ConstantEmission");
+            var block = new MaterialPropertyBlock();
+            for (var i = 0; i < lamps.arraySize; i++)
+            {
+                var lamp = (MeshRenderer)lamps.GetArrayElementAtIndex(i).objectReferenceValue;
+                lamp.GetPropertyBlock(block);
+                Assert.IsTrue(block.GetColor(emission) == lamp.sharedMaterial.GetColor(emission), lamp.name);
+            }
+
+            console.Launch();
+            yield return null;
+            var pressed = profile.LaunchPressedColor;
+            for (var i = 0; i < lamps.arraySize; i++)
+            {
+                var lamp = (MeshRenderer)lamps.GetArrayElementAtIndex(i).objectReferenceValue;
+                lamp.GetPropertyBlock(block);
+                var color = block.GetColor(emission);
+                Assert.IsTrue(color == pressed || color == Color.black, lamp.name);
+            }
         }
 
         [UnityTest]
@@ -160,9 +208,110 @@ namespace Tests.PlayMode.Hangar
             console.Launch();
             Assert.IsFalse(console.InputLocked, "a refused launch leaves the console live");
             Assert.IsFalse(console.MainDisplay.PoweringDown);
+            Assert.IsFalse(console.PrimaryDisplay.PoweringDown);
+            Assert.IsFalse(console.OrdnanceDisplay.PoweringDown);
             yield return new WaitForSecondsRealtime(HangarDisplay.PowerDownSeconds + .2f);
             Assert.AreEqual(0, launches);
             Assert.That(console.MainDisplay.Level, Is.GreaterThan(.8f), "the screen stays lit");
+            Assert.That(console.PrimaryDisplay.Level, Is.GreaterThan(.8f), "the primary screen stays lit");
+            Assert.That(console.OrdnanceDisplay.Level, Is.GreaterThan(.8f), "the ordnance screen stays lit");
+        }
+
+        [UnityTest]
+        public IEnumerator SideKeys_StepTheirOwnSlot_AndSelectIt()
+        {
+            var catalog = ShowCatalog(onlyStarter: false);
+            yield return null;
+            var primaries = Kind(catalog, ordnance: false);
+            var ordnance = Kind(catalog, ordnance: true);
+            Assert.That(primaries.Length, Is.GreaterThan(1), "test premise: the weapon offer has a step");
+            Assert.That(ordnance.Length, Is.GreaterThan(1), "test premise: the ordnance offer has a step");
+
+            Press(console.PrimaryNextButton);
+            Assert.AreEqual(HangarSlot.Weapon, console.Selection.Selected);
+            Assert.AreSame(primaries[0], console.Selection.Weapon);
+            Press(console.PrimaryNextButton);
+            Assert.AreSame(primaries[1], console.Selection.Weapon);
+            Assert.AreEqual(HangarSlot.Weapon, console.Selection.Selected);
+            Press(console.PrimaryPreviousButton);
+            Assert.AreSame(primaries[0], console.Selection.Weapon);
+            Assert.AreEqual(HangarSlot.Weapon, console.Selection.Selected);
+
+            Press(console.OrdnanceNextButton);
+            Assert.AreEqual(HangarSlot.Ordnance, console.Selection.Selected);
+            Assert.AreSame(ordnance[0], console.Selection.Ordnance);
+            Assert.AreSame(primaries[0], console.Selection.Weapon);
+            Press(console.OrdnanceNextButton);
+            Assert.AreSame(ordnance[1], console.Selection.Ordnance);
+            Press(console.OrdnancePreviousButton);
+            Assert.AreSame(ordnance[0], console.Selection.Ordnance);
+            Assert.AreEqual(HangarSlot.Ordnance, console.Selection.Selected);
+        }
+
+        [UnityTest]
+        public IEnumerator NextKey_StepsTheShip_WhileTheWeaponSlotIsSelected()
+        {
+            Open(_ => true, out var second);
+            yield return null;
+            console.Selection.Select(HangarSlot.Weapon);
+            Assert.AreEqual(HangarSlot.Weapon, console.Selection.Selected, "test premise: the weapon slot is selected");
+            Press(console.NextButton);
+            Assert.AreSame(second, console.Selection.Ship, "the next key steps the ship");
+            Assert.AreEqual(HangarSlot.Ship, console.Selection.Selected, "the ship slot is selected");
+        }
+
+        [UnityTest]
+        public IEnumerator LockedShip_DimsBothWeaponScreens_AndThePrimaryScreenReadsEachWeapon()
+        {
+            var catalog = ShowCatalog(onlyStarter: true);
+            yield return null;
+            var primary = console.PrimaryDisplay.GetComponent<HangarWeaponDisplayView>();
+            var ordnanceView = console.OrdnanceDisplay.GetComponent<HangarWeaponDisplayView>();
+            Assert.IsFalse(primary.Dimmed, "the starter leaves the weapon screens lit");
+            Assert.IsFalse(ordnanceView.Dimmed);
+
+            var primaries = Kind(catalog, ordnance: false);
+            Assert.That(primaries.Length, Is.GreaterThan(0), "test premise: the offer holds weapons");
+            console.Selection.Select(HangarSlot.Weapon);
+            for (var i = 0; i < primaries.Length; i++)
+            {
+                console.Selection.Step(1);
+                var weapon = primaries[i];
+                Assert.AreSame(weapon, console.Selection.Weapon, weapon.name);
+                Assert.AreEqual(weapon.DisplayName, primary.Title, weapon.name);
+                Assert.AreEqual(weapon.HangarDescription, primary.Description, weapon.name);
+                var (number, caption) = HangarDescriptions.Damage(weapon);
+                Assert.AreEqual(number, primary.Damage, weapon.name);
+                Assert.AreEqual(caption, primary.DamageCaption, weapon.name);
+                Assert.AreEqual(weapon.HangarTags.Count, primary.TagCount, weapon.name);
+                for (var tag = 0; tag < weapon.HangarTags.Count; tag++)
+                    Assert.AreEqual(weapon.HangarTags[tag].ToUpperInvariant(), primary.Tag(tag), weapon.name);
+            }
+
+            Assert.That(catalog.ships.Length, Is.GreaterThan(1), "test premise: a second ship exists to lock");
+            console.Selection.Select(HangarSlot.Ship);
+            console.Selection.Step(1);
+            Assert.IsTrue(console.Selection.ShipLocked, "test premise: the other ship is locked");
+            Assert.IsTrue(primary.Dimmed && ordnanceView.Dimmed, "a locked ship dims both weapon screens");
+            console.Selection.Step(-1);
+            Assert.IsFalse(console.Selection.ShipLocked);
+            Assert.IsFalse(primary.Dimmed || ordnanceView.Dimmed, "the starter leaves both weapon screens lit");
+        }
+
+        [UnityTest]
+        public IEnumerator Show_PaintsAtLeastSixLightsOnEveryPart()
+        {
+            Open(_ => true, out _);
+            yield return null;
+            var painted = new SerializedObject(console).FindProperty("paintedParts");
+            var block = new MaterialPropertyBlock();
+            var countId = Shader.PropertyToID("_HangarLightCount");
+            for (var i = 0; i < painted.arraySize; i++)
+            {
+                var part = (MeshRenderer)painted.GetArrayElementAtIndex(i).objectReferenceValue;
+                part.GetPropertyBlock(block);
+                Assert.That(block.GetFloat(countId), Is.GreaterThanOrEqualTo(6f), part.name);
+            }
         }
 
         private Ship Open(System.Func<Ship, bool> earned, out Ship second)
@@ -177,6 +326,27 @@ namespace Tests.PlayMode.Hangar
             launches = 0;
             console.Show(offer, new ShipLoadout(vanguard, null, null), earned, () => launches++);
             return vanguard;
+        }
+
+        private ItemSubset ShowCatalog(bool onlyStarter)
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<Game.GameHost>("Assets/Prefabs/Game/GameHost.prefab").hangarOffer;
+            console = Object.Instantiate(AssetDatabase.LoadAssetAtPath<HangarConsole>(ConsolePath));
+            launches = 0;
+            System.Func<Ship, bool> earned = _ => true;
+            if (onlyStarter) earned = ship => ship == catalog.starter;
+            console.Show(catalog, new ShipLoadout(catalog.starter, null, null), earned, () => launches++);
+            return catalog;
+        }
+
+        private static void Press(Transform part) => part.GetComponent<HangarControl>().Press();
+
+        private static WeaponComponent[] Kind(ItemSubset catalog, bool ordnance)
+        {
+            var list = new List<WeaponComponent>();
+            foreach (var weapon in catalog.weapons)
+                if (weapon && weapon.IsOrdnance == ordnance) list.Add(weapon);
+            return list.ToArray();
         }
 
         private static bool BarsSettled(HangarMainDisplayView main)

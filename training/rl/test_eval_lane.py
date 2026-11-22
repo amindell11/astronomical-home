@@ -3,7 +3,10 @@
     cd training/rl
     .venv\\Scripts\\python -m unittest test_eval_lane -v
 """
+import contextlib
+import io
 import json
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -32,10 +35,10 @@ class LauncherEnvComposition(unittest.TestCase):
                                            lease="test-lease", out_dir=self.out_dir, **kwargs)
 
     def test_passed_params_become_harness_env_as_strings(self):
-        self.launch(onnx="ckpt/ShipCombat-42.onnx", seeds="2001,2002", episodes_per_seed=3)
+        self.launch(matrix="Lasers", seeds="2001,2002", episodes_per_seed=3)
 
         env = self.captured["env"]
-        self.assertEqual("ckpt/ShipCombat-42.onnx", env["RL_HARNESS_ONNX"])
+        self.assertEqual("Lasers", env["RL_HARNESS_MATRIX"])
         self.assertEqual("2001,2002", env["RL_HARNESS_SEEDS"])
         self.assertEqual("3", env["RL_HARNESS_EPISODES_PER_SEED"])
         self.assertEqual(str(self.out_dir), env["RL_HARNESS_OUT_DIR"])
@@ -47,25 +50,49 @@ class LauncherEnvComposition(unittest.TestCase):
         self.launch(seeds="2001,2002")
 
         env = self.captured["env"]
-        for absent in ("RL_HARNESS_ONNX", "RL_HARNESS_EPISODES_PER_SEED", "RL_HARNESS_DENSITY",
-                       "RL_HARNESS_OPPONENT", "RL_HARNESS_PROBES", "RL_HARNESS_SENTENCE",
-                       "RL_HARNESS_DUEL", "RL_HARNESS_MATRIX"):
+        for absent in ("RL_HARNESS_EPISODES_PER_SEED", "RL_HARNESS_PROBES", "RL_HARNESS_MATRIX",
+                       "RL_HARNESS_MATRIX_REFERENCE", "RL_HARNESS_MATRIX_ROSTER",
+                       "RL_HARNESS_MATRIX_KITS", "RL_HARNESS_MATRIX_ENEMIES",
+                       "RL_HARNESS_MATRIX_REFERENCE_BREAKOFF"):
             self.assertNotIn(absent, env)
-
-    def test_sentence_param_becomes_harness_env(self):
-        self.launch(seeds="2001", sentence="orbit,drift-hold")
-
-        self.assertEqual("orbit,drift-hold", self.captured["env"]["RL_HARNESS_SENTENCE"])
-
-    def test_duel_param_becomes_harness_env(self):
-        self.launch(seeds="3001", duel="Lasers,Missiles")
-
-        self.assertEqual("Lasers,Missiles", self.captured["env"]["RL_HARNESS_DUEL"])
 
     def test_matrix_param_becomes_harness_env(self):
         self.launch(seeds="3001", matrix="Lasers,Missiles")
 
         self.assertEqual("Lasers,Missiles", self.captured["env"]["RL_HARNESS_MATRIX"])
+
+    def test_matrix_roster_params_become_harness_env(self):
+        self.launch(seeds="3001", matrix_reference="Crimson:KiterPilot:Lasers",
+                    matrix_roster="Vanguard:AggressorPilot:Lasers,Nightshade:OrbiterPilot:TurboLasers")
+
+        env = self.captured["env"]
+        self.assertEqual("Crimson:KiterPilot:Lasers", env["RL_HARNESS_MATRIX_REFERENCE"])
+        self.assertEqual("Vanguard:AggressorPilot:Lasers,Nightshade:OrbiterPilot:TurboLasers",
+                         env["RL_HARNESS_MATRIX_ROSTER"])
+        self.assertNotIn("RL_HARNESS_MATRIX", env)
+
+    def test_numeric_shield_token_passes_through_unchanged(self):
+        self.launch(seeds="3001", matrix_reference="Crimson:AggressorPilot:Lasers:32/2/10",
+                    matrix_roster="Vanguard:AggressorPilot:Lasers:28/3.5/12")
+
+        env = self.captured["env"]
+        self.assertEqual("Crimson:AggressorPilot:Lasers:32/2/10", env["RL_HARNESS_MATRIX_REFERENCE"])
+        self.assertEqual("Vanguard:AggressorPilot:Lasers:28/3.5/12", env["RL_HARNESS_MATRIX_ROSTER"])
+
+    def test_matrix_kits_param_becomes_harness_env(self):
+        self.launch(seeds="3001", matrix_reference="Crimson:KiterPilot:Lasers",
+                    matrix_roster="Vanguard:AggressorPilot:Lasers", matrix_kits="off")
+
+        self.assertEqual("off", self.captured["env"]["RL_HARNESS_MATRIX_KITS"])
+
+    def test_matrix_enemies_and_breakoff_pass_through(self):
+        self.launch(seeds="3001", matrix_reference="Crimson:KiterPilot:Lasers",
+                    matrix_roster="Vanguard:AggressorPilot:Lasers",
+                    matrix_enemies=3, matrix_reference_breakoff="0")
+
+        env = self.captured["env"]
+        self.assertEqual("3", env["RL_HARNESS_MATRIX_ENEMIES"])
+        self.assertEqual("0", env["RL_HARNESS_MATRIX_REFERENCE_BREAKOFF"])
 
     def test_inherited_harness_and_retired_eval_names_are_stripped(self):
         inherited = {
@@ -102,61 +129,60 @@ class LauncherEnvComposition(unittest.TestCase):
                                         lease="test-lease", out_dir=self.out_dir, seeds="2001")
 
 
-class PlayerLaneComposition(unittest.TestCase):
-    """Player mode leases conversion, then runs the simulation lease-free."""
+class MatrixKitsCli(unittest.TestCase):
+    def _main(self, argv):
+        stderr = io.StringIO()
+        with mock.patch.object(sys, "argv", argv):
+            with self.assertRaises(SystemExit) as caught:
+                with contextlib.redirect_stderr(stderr):
+                    eval_lane.main()
+        self.assertEqual(2, caught.exception.code)
+        return stderr.getvalue()
 
-    def setUp(self):
-        self.out_dir = Path(tempfile.mkdtemp())
-        self.captured = {}
+    def test_refused_without_matrix_roster(self):
+        message = self._main(["eval_lane.py", "--seeds", "3001", "--matrix-kits", "off"])
+        self.assertIn("--matrix-kits requires --matrix-roster", message)
 
-    def fake_run_batch(self, lease, project, batch_script, env, wait_seconds, log_path):
-        self.captured.update(batch_script=batch_script, env=env)
-        return 0
+    def test_refused_without_a_matrix_selection(self):
+        message = self._main(["eval_lane.py", "--seeds", "3001"])
+        self.assertIn("select a matrix", message)
 
-    def test_convert_step_runs_the_convert_child_with_bundle_inputs(self):
-        with mock.patch.object(eval_lane, "run_batch", self.fake_run_batch):
-            bundle = eval_lane.run_convert_step(project=Path("proj"), unity=Path("unity.exe"),
-                                                lease="test-lease", out_dir=self.out_dir,
-                                                onnx="ckpt/ShipCombat-42.onnx", opponent="mirror")
+    def test_enemies_refused_without_matrix_roster(self):
+        message = self._main(["eval_lane.py", "--seeds", "3001", "--matrix-enemies", "3"])
+        self.assertIn("--matrix-enemies requires --matrix-roster", message)
 
-        self.assertEqual(eval_lane.CONVERT_CHILD, self.captured["batch_script"])
-        env = self.captured["env"]
-        self.assertEqual("ckpt/ShipCombat-42.onnx", env["RL_HARNESS_ONNX"])
-        self.assertEqual("mirror", env["RL_HARNESS_OPPONENT"])
-        expected = self.out_dir / "eval-models.bundle"
-        self.assertEqual(str(expected), env["RL_HARNESS_BUNDLE"])
-        self.assertEqual(expected, bundle)
+    def test_breakoff_refused_without_matrix_roster(self):
+        message = self._main(["eval_lane.py", "--seeds", "3001", "--matrix-reference-breakoff", "0"])
+        self.assertIn("--matrix-reference-breakoff requires --matrix-roster", message)
 
-    def test_player_launch_is_lease_free_and_carries_the_bundle_var(self):
-        def fake_run(cmd, env):
-            self.captured.update(cmd=cmd, env=env)
-            (self.out_dir / "20260731-120000-heldout-summary.json").write_text("{}")
-            return mock.Mock(returncode=0)
 
-        with mock.patch.object(eval_lane.subprocess, "run", fake_run):
-            summary = eval_lane.run_player_eval(exe=Path("RLHarnessEval.exe"),
-                                                bundle=self.out_dir / "eval-models.bundle",
-                                                out_dir=self.out_dir, onnx="ckpt/ShipCombat-42.onnx",
-                                                seeds="2001,2002")
+class NumericShieldStem(unittest.TestCase):
+    def _run(self, reference, roster):
+        project = Path(tempfile.mkdtemp())
+        self.addCleanup(project.rmdir)
+        captured = {}
 
-        self.assertEqual(["RLHarnessEval.exe", "-batchmode", "-nographics",
-                          "-logFile", str(self.out_dir / "player.log")], self.captured["cmd"])
-        env = self.captured["env"]
-        self.assertEqual(str(self.out_dir / "eval-models.bundle"), env["RL_HARNESS_BUNDLE"])
-        self.assertEqual("ckpt/ShipCombat-42.onnx", env["RL_HARNESS_ONNX"])
-        self.assertEqual("2001,2002", env["RL_HARNESS_SEEDS"])
-        self.assertEqual(str(self.out_dir), env["RL_HARNESS_OUT_DIR"])
-        self.assertNotIn("HARNESS_UNITY", env, "editor-child plumbing must not reach the player")
-        self.assertEqual(self.out_dir / "20260731-120000-heldout-summary.json", summary)
+        def fake_run_eval_lane(**kwargs):
+            captured.update(kwargs)
+            return project / "summary.json"
 
-    def test_player_nonzero_exit_fails_loud(self):
-        with mock.patch.object(eval_lane.subprocess, "run",
-                               lambda cmd, env: mock.Mock(returncode=1)):
-            with self.assertRaises(SystemExit):
-                eval_lane.run_player_eval(exe=Path("RLHarnessEval.exe"),
-                                          bundle=self.out_dir / "eval-models.bundle",
-                                          out_dir=self.out_dir, onnx="ckpt/ShipCombat-42.onnx",
-                                          seeds="2001")
+        argv = [
+            "eval_lane.py", "--seeds", "3001", "--project", str(project), "--unity", "Unity.exe",
+            "--matrix-reference", reference, "--matrix-roster", roster,
+        ]
+        with mock.patch.object(sys, "argv", argv), \
+                mock.patch.object(eval_lane, "HARNESS_CHILD", Path(__file__)), \
+                mock.patch.object(eval_lane, "run_eval_lane", fake_run_eval_lane):
+            eval_lane.main()
+        return captured
+
+    def test_slash_in_the_reference_does_not_split_the_out_dir(self):
+        captured = self._run("Crimson:AggressorPilot:Lasers:32/2/10", "Vanguard:AggressorPilot:Lasers")
+
+        out_dir = captured["out_dir"]
+        self.assertEqual(eval_lane.MANUAL_ROOT, out_dir.parent)
+        self.assertTrue(out_dir.name.startswith("matrix-roster-crimson-aggressorpilot-lasers-32-2-10-"))
+        self.assertEqual("Crimson:AggressorPilot:Lasers:32/2/10", captured["matrix_reference"])
 
 
 if __name__ == "__main__":

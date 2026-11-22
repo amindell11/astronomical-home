@@ -3,17 +3,22 @@ using System.Linq;
 using AI.Tactics;
 using Asteroids.Fields;
 using Cameras;
+using Cameras.Shake;
 using Game;
 using Game.Companion;
 using Game.Player;
 using Game.Preview;
+using Game.Preview.Targets;
 using NUnit.Framework;
+using Ships.Keystones.Tells;
 using Ships.Visuals.Breakup;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Elements.Stations;
+using Substrate.Sectors.Elements.Stations.Visual;
 using UI.Hangar.Displays;
+using UI.Hangar.Hardware;
 using UI.Hangar.Hologram;
 using UI.Projection;
 using UI.Weapons;
@@ -42,8 +47,14 @@ namespace Tests.EditMode.Preview
             }, canopy, AssetDatabase.LoadAssetAtPath<ReadyFlashProfile>("Assets/Settings/UI/ReadyFlash.asset"));
             AssertTarget(Target<ShipDeathTarget>(), new[] { PreviewEntry.EnemyDeath, PreviewEntry.RunRecap, PreviewEntry.Combat },
                 AssetDatabase.LoadAssetAtPath<DeathFeelProfile>("Assets/Settings/Ships/DeathFeel.asset"), game.recapFeel);
-            AssertTarget(Target<FlightCameraTarget>(), new[] { PreviewEntry.Combat },
-                AssetDatabase.LoadAssetAtPath<FlightCameraProfile>("Assets/Settings/Cameras/FlightCamera.asset"));
+            var flightCamera = Target<FlightCameraTarget>();
+            var shakes = new[] { "DashShake", "RamShake", "BlinkShake", "OverdriveShake", "RailgunShake" }.Select(shake =>
+                (UnityEngine.Object)AssetDatabase.LoadAssetAtPath<CameraShakeProfile>($"Assets/Settings/Cameras/Shake/{shake}.asset"));
+            var flightProfiles = flightCamera.Profiles(game).ToArray();
+            Assert.That(flightCamera.Entries, Is.EqualTo(new[] { PreviewEntry.Combat }), flightCamera.Name);
+            Assert.That(flightProfiles[0],
+                Is.EqualTo(AssetDatabase.LoadAssetAtPath<FlightCameraProfile>("Assets/Settings/Cameras/FlightCamera.asset")));
+            Assert.That(flightProfiles.Skip(1), Is.EquivalentTo(shakes), "every hangar kit's and weapon's shake profile");
             var fields = new[] { "SparseField", "MediumField", "DenseField" }.Select(field =>
                 AssetDatabase.LoadAssetAtPath<AsteroidFieldSettings>($"Assets/Settings/Asteroids/{field}.asset"));
             AssertTarget(Target<AsteroidsTarget>(), new[] { PreviewEntry.Combat }, fields.ToArray());
@@ -66,13 +77,19 @@ namespace Tests.EditMode.Preview
                 AssetDatabase.LoadAssetAtPath<CompanionFeelProfile>("Assets/Settings/Game/Companion/CompanionFeel.asset"),
                 AssetDatabase.LoadAssetAtPath<CompanionLineSheet>("Assets/Settings/Game/Companion/CompanionLines.asset"));
             AssertTarget(Target<HangarHologramTarget>(), new[] { PreviewEntry.Combat },
-                AssetDatabase.LoadAssetAtPath<HangarHologramProfile>("Assets/Settings/UI/HangarHologramPlain.asset"));
+                AssetDatabase.LoadAssetAtPath<HangarHologramProfile>("Assets/Settings/UI/HangarHologram.asset"));
             AssertTarget(Target<HangarDisplayTarget>(), new[] { PreviewEntry.Combat },
                 AssetDatabase.LoadAssetAtPath<HangarDisplayProfile>("Assets/Settings/UI/HangarDisplayProfile.asset"));
+            AssertTarget(Target<HangarLightTarget>(), new[] { PreviewEntry.Combat },
+                AssetDatabase.LoadAssetAtPath<HangarLightProfile>("Assets/Settings/UI/HangarLightProfile.asset"));
             AssertTarget(Target<TacticsTarget>(), new[] { PreviewEntry.CrowdedFight },
-                new[] { "Wave", "Elite", "Escort" }.Select(kind =>
+                new[] { "Aggressor", "Orbiter", "Kiter", "Lurker", "Elite", "Escort" }.Select(kind =>
                     AssetDatabase.LoadAssetAtPath<TacticsSettings>($"Assets/Settings/AI/Tactics/{kind}Temper.asset"))
                     .ToArray());
+            AssertTarget(Target<StationsTarget>(), new[] { PreviewEntry.Combat },
+                AssetDatabase.LoadAssetAtPath<StationMotionFeelProfile>("Assets/Settings/Game/StationMotionFeel.asset"));
+            AssertTarget(Target<DashEffectTarget>(), new[] { PreviewEntry.Combat },
+                AssetDatabase.LoadAssetAtPath<KeystoneFlipbookFeel>("Assets/Settings/Ships/Keystones/VanguardDashFeel.asset"));
         }
 
         [Test]

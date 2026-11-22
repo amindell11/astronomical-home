@@ -12,7 +12,7 @@ using Object = UnityEngine.Object;
 
 namespace Tests.EditMode.Sectors
 {
-    /// <summary>Each trial sector carries one beacon cache, set up after its spine and reading it, on the shared feel: 20 s bonuses from damage +100%, fire rate +60% and shield regen +100%, none of them a lull pick, or a 30% hull patch, all weighted alike unless the low-hull lean (off by default) favours the patch; the roll maps a uniform draw onto those weights.</summary>
+    /// <summary>Each trial sector carries one beacon cache, set up after its spine and reading it, on the shared feel: 20 s bonuses from damage +100%, fire rate +60% and shield regen +100%, none of them a lull pick, and a 30% hull patch that ships with a roll weight of 0; the roll maps a uniform draw onto those weights.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class BeaconCacheEditModeTests
@@ -49,7 +49,7 @@ namespace Tests.EditMode.Sectors
             var shield = (ShipMod)feel.bonuses[2];
             Assert.AreEqual((ShipModField.ShieldRegen, 1f), (shield.Field, shield.Amount));
             Assert.AreEqual(.3f, feel.hullRestore, 1e-6f, "The hull patch restores 30% of a full hull.");
-            Assert.AreEqual(1f, feel.hullWeight, "The hull patch weighs the same as each bonus.");
+            Assert.AreEqual(0f, feel.hullWeight, "The hull patch ships off the roll.");
             Assert.IsFalse(feel.leanToHull, "The low-hull lean ships off.");
             Assert.AreEqual((.35f, 3f), (feel.lowHullThreshold, feel.lowHullWeightMultiplier));
 

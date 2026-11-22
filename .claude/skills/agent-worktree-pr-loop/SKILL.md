@@ -104,7 +104,7 @@ git -C <slot-path> log --oneline origin/main..HEAD
 | `STATUS=infra_error total=0` | Compile failure — no tests ran | The runner prints the `error CS…` lines inline; fix and re-run. After a main-fold, suspect a dropped source file. |
 | runner: `parameter name '' is ambiguous` | A stray `--` reached `run-tests` | Drop it — `run-tests` takes args directly. |
 | runner: `Cannot validate argument on parameter 'Mode' … "Smoke"` | `-Mode Smoke` | Smoke is a `-ScopeType`; use `-Mode EditMode -ScopeType Smoke`. |
-| `REFUSING to prepare … uncommitted change(s)` on a lone `ProjectSettings.asset` / editor noise | Not real work — unless the diff is the Standalone define line (`doc/agents/environment.md` → The committed Sentis defines) | `git -C <slot> checkout -- <file>`, then re-`prepare` — don't push+`--force`. |
+| `REFUSING to prepare … uncommitted change(s)` on a lone `ProjectSettings.asset` / editor noise | Not real work | `git -C <slot> checkout -- <file>`, then re-`prepare` — don't push+`--force`. |
 | `revise`/`prepare` trips on `Assets/InitTestScene*.unity` | Scaffold from a killed run | `rm` the `InitTestScene*.unity*` and re-run — never real work. |
 | merge: `CONFLICT (content) … .unity`/`.prefab` | Gate merged main; Unity YAML doesn't auto-merge | Resolve in the slot, `revise` (re-test+push), re-`merge`. |
 | merge: `base moved during the merge gate` | Main moved from outside the merge turn: a push from another clone, or one that skipped `lock merge-turn` | Re-run `merge <slot>`. |
@@ -237,6 +237,11 @@ the edits after the round. Split the slice around that:
   editor, never as hand-written YAML.
 - Grok gets the C# and text edits.
 
+Grok follows a brief nearly word for word, so the brief's defects ship. Before
+sending one, read it against AGENTS.md and, for a script change,
+`doc/agents/script-contracts.md`. Where it says to model on a file, check that
+seam's other callers first and model on the strictest.
+
 Run Grok with
 `python scripts/grok_worker.py --slot <slot> --brief <file> --verify "<cmd>"`
 with `run_in_background: true` and wait for its notification; never poll its
@@ -255,6 +260,9 @@ partial edits for it to keep or redo (exit 3 means the tree is untouched). Go
 straight to the Opus subagent when the slice needs judgment mid-build. Small
 fixes stay inline; `scripts/build_delegation_guard.py` denies inline slot source
 edits past its context and line budgets.
+
+Clear every NOTICED line the worker reports: fix it here or defer it to an
+issue, and record each outcome under the PR body's `## Scope check`.
 
 Clear `src/Asteroids3D/Library/BurstCache/` before test runs. Iterate
 with scoped runs (`-ScopeType Auto`, or Feature/Module scopes).

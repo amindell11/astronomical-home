@@ -30,6 +30,10 @@ namespace Tests.PlayMode.Hangar
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
         private static readonly int OpacityId = Shader.PropertyToID("_Opacity");
         private static readonly int MainTexId = Shader.PropertyToID("_MainTex");
+        private static readonly int ReachApexId = Shader.PropertyToID("_ReachApex");
+        private static readonly int ReachAngleId = Shader.PropertyToID("_ReachAngle");
+        private static readonly int ReachLengthId = Shader.PropertyToID("_ReachLength");
+        private static readonly int ApexId = Shader.PropertyToID("_Apex");
 
         private HangarHologramProfile profile;
         private HangarHologramProfile runtimeProfile;
@@ -111,6 +115,7 @@ namespace Tests.PlayMode.Hangar
             projector.Open(new[] { valis }, valis);
 
             using var knobs = new SerializedObject(runtimeProfile);
+            knobs.FindProperty("flickerDepth").floatValue = 0f;
             var block = new MaterialPropertyBlock();
             foreach (var opacity in new[] { .3f, .9f })
             {
@@ -123,41 +128,130 @@ namespace Tests.PlayMode.Hangar
         }
 
         [UnityTest]
-        public IEnumerator Cone_SitsAtTheLens_UnderTheSettledFrame()
+        public IEnumerator Beam_SitsInTheLens_AndSizesIndependentlyOfTheShipReach()
         {
             var console = Object.Instantiate(AssetDatabase.LoadAssetAtPath<HangarConsole>(ConsolePath));
             instance = console.gameObject;
             console.transform.position = new Vector3(0f, -2000f, 0f);
             var valis = AssetDatabase.LoadAssetAtPath<Ship>(ValisPath);
             var projector = console.Projector;
+            runtimeProfile = Object.Instantiate(profile);
             using var wiring = new SerializedObject(projector);
-            wiring.FindProperty("profile").objectReferenceValue = profile;
+            wiring.FindProperty("profile").objectReferenceValue = runtimeProfile;
             wiring.ApplyModifiedPropertiesWithoutUndo();
             projector.Open(new[] { valis }, valis);
-            yield return new WaitForSeconds(EntrySeconds);
 
             var surface = (Renderer)wiring.FindProperty("surface").objectReferenceValue;
             var cone = projector.GetComponentsInChildren<Renderer>(true)
                 .Where(r => r != surface && !r.GetComponentInParent<HangarPreviewFlight>(true)).ToArray();
-            Assert.That(cone, Is.Not.Empty, "the projector places a cone");
+            Assert.That(cone, Has.Length.EqualTo(1), "one renderer draws the beam");
             var coneAnchor = (Transform)wiring.FindProperty("coneAnchor").objectReferenceValue;
-            Assert.That(coneAnchor.childCount, Is.EqualTo(1), "one cone sits under the anchor");
+            Assert.That(coneAnchor.childCount, Is.EqualTo(1));
             var root = coneAnchor.GetChild(0);
-            Assert.That(cone.Select(r => r.transform.IsChildOf(root)), Is.All.True, "every cone renderer is the cone's");
-            Assert.That(Vector3.Distance(root.position, console.ProjectorLens.transform.position), Is.LessThan(.01f));
+            Assert.That(cone[0].transform.IsChildOf(root), Is.True);
+            Assert.That(Vector3.Distance(coneAnchor.position, console.ProjectorLens.transform.position), Is.LessThan(.01f));
 
-            var side = wiring.FindProperty("surfaceSize").vector2Value.x * projector.Frame.width;
-            Assert.That(Vector3.Distance(root.localScale,
-                    profile.ProjectorCone.transform.localScale * (side / HangarPreviewStage.FrameSideInRadii)),
-                Is.LessThan(1e-4f), "the cone is authored in framing radii");
+            var offset = wiring.FindProperty("frameOffset").vector2Value;
+            var axis = new Vector2(offset.x, offset.y + wiring.FindProperty("frameSide").floatValue * .5f).normalized;
+            using var knobs = new SerializedObject(runtimeProfile);
+            knobs.FindProperty("beamSourceRadius").floatValue = .32f;
+            knobs.FindProperty("beamHalfAngle").floatValue = 16f;
+            knobs.FindProperty("beamLight").floatValue = 1.05f;
+            var block = new MaterialPropertyBlock();
+            foreach (var beamLength in new[] { 1.45f, 2.2f })
+            {
+                knobs.FindProperty("beamLength").floatValue = beamLength;
+                Vector3? sizeBeforeReachChange = null;
+                foreach (var reachLength in new[] { 12f, 5f })
+                {
+                    knobs.FindProperty("reachLength").floatValue = reachLength;
+                    knobs.ApplyModifiedPropertiesWithoutUndo();
+                    yield return null;
 
-            var beam = cone[0].bounds;
-            foreach (var r in cone) beam.Encapsulate(r.bounds);
-            var frame = projector.Frame;
-            var frameTop = surface.transform.TransformPoint(new Vector3(frame.center.x - .5f, frame.yMax - .5f, 0f));
-            var camera = console.HardwareCamera;
-            Assert.That(camera.WorldToScreenPoint(new Vector3(beam.center.x, beam.max.y, beam.center.z)).y,
-                Is.LessThan(camera.WorldToScreenPoint(frameTop).y), "the cone's top sits below the frame's top");
+                    var bottom = coneAnchor.InverseTransformPoint(root.TransformPoint(Vector3.zero));
+                    var top = coneAnchor.InverseTransformPoint(root.TransformPoint(Vector3.up));
+                    Assert.That(Vector2.Dot(bottom, axis), Is.EqualTo(-.416f).Within(1e-3f),
+                        "the source glow has space below the lens");
+                    Assert.That(Vector2.Distance(top, axis * beamLength), Is.LessThan(1e-3f),
+                        "the beam ends at its own length along the frame axis");
+                    Assert.That(root.localScale.x, Is.InRange(2.3f, 2.5f), "the quad stays close to the visible light");
+                    if (sizeBeforeReachChange.HasValue)
+                        Assert.That(root.localScale, Is.EqualTo(sizeBeforeReachChange.Value), "ship reach cannot resize the beam");
+                    sizeBeforeReachChange = root.localScale;
+
+                    cone[0].GetPropertyBlock(block);
+                    var apex = block.GetVector(ApexId);
+                    var atLens = coneAnchor.InverseTransformPoint(root.TransformPoint(new Vector3(apex.x - .5f, apex.y, 0f)));
+                    Assert.That(atLens.magnitude, Is.LessThan(1e-3f), "the shader's source maps to the lens");
+                    var units = block.GetVector("_QuadUnits");
+                    Assert.That(Vector2.Distance(units, root.localScale), Is.LessThan(1e-4f));
+                    Assert.That(block.GetFloat("_SourceRadius"), Is.EqualTo(.32f).Within(1e-4f));
+                    Assert.That(block.GetFloat("_Spread"), Is.EqualTo(Mathf.Tan(16f * Mathf.Deg2Rad)).Within(1e-4f));
+                    Assert.That(block.GetFloat("_Length"), Is.EqualTo(beamLength).Within(1e-4f));
+                    Assert.That(block.GetFloat("_ConeLight"), Is.EqualTo(1.05f).Within(1e-4f));
+                    Assert.That(block.GetFloat("_Level"), Is.EqualTo(projector.Level).Within(1e-4f));
+                    AssertColor(block.GetColor("_ConeColor"), runtimeProfile.Resolve.GetColor("_LineColor"), "shared beam colour");
+                }
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator Surface_CarriesTheReach_FromTheLens()
+        {
+            var projector = Object.Instantiate(AssetDatabase.LoadAssetAtPath<HangarHologramProjector>(ProjectorPath));
+            instance = projector.gameObject;
+            var valis = AssetDatabase.LoadAssetAtPath<Ship>(ValisPath);
+            projector.Open(new[] { valis }, valis);
+            yield return null;
+
+            using var wiring = new SerializedObject(projector);
+            var bound = (HangarHologramProfile)wiring.FindProperty("profile").objectReferenceValue;
+            var surfaceSize = wiring.FindProperty("surfaceSize").vector2Value;
+            var frameOffset = wiring.FindProperty("frameOffset").vector2Value;
+            var frameBottom = wiring.FindProperty("frameBottom").floatValue;
+            var surface = (Renderer)wiring.FindProperty("surface").objectReferenceValue;
+            var apex = new Vector2(
+                -frameOffset.x / surfaceSize.x + .5f,
+                -frameOffset.y / surfaceSize.y + frameBottom);
+            var block = new MaterialPropertyBlock();
+            surface.GetPropertyBlock(block);
+            var got = block.GetVector(ReachApexId);
+            Assert.That(Vector2.Distance(new Vector2(got.x, got.y), apex), Is.LessThan(1e-3f));
+            Assert.That(block.GetFloat(ReachAngleId), Is.EqualTo(bound.ReachHalfAngle * Mathf.Deg2Rad).Within(1e-4f));
+            Assert.That(block.GetFloat(ReachLengthId), Is.EqualTo(bound.ReachLength).Within(1e-4f));
+        }
+
+        [UnityTest]
+        public IEnumerator Stage_ResolvesTheShipToASeeThroughImage()
+        {
+            var valis = AssetDatabase.LoadAssetAtPath<Ship>(ValisPath);
+            stage = HangarPreviewStage.Create(null, new Vector2Int(256, 256), new Rect(0f, 0f, 1f, 1f),
+                new[] { valis }, profile.Restyle, profile.Resolve);
+            stage.Show(valis, backwards: false);
+            yield return new WaitForSeconds(EntrySeconds);
+
+            var previous = RenderTexture.active;
+            RenderTexture.active = stage.Texture;
+            var read = new Texture2D(stage.Texture.width, stage.Texture.height, TextureFormat.RGBAFloat, false, true);
+            try
+            {
+                read.ReadPixels(new Rect(0, 0, stage.Texture.width, stage.Texture.height), 0, 0);
+                read.Apply();
+                var seeThrough = false;
+                var peak = 0f;
+                foreach (var pixel in read.GetPixels())
+                {
+                    peak = Mathf.Max(peak, pixel.a);
+                    if (pixel.a > .3f && pixel.a < .95f) seeThrough = true;
+                }
+                Assert.That(seeThrough, Is.True, "the fill is see-through");
+                Assert.That(peak, Is.GreaterThan(.5f));
+            }
+            finally
+            {
+                RenderTexture.active = previous;
+                Object.DestroyImmediate(read);
+            }
         }
 
         [Test]

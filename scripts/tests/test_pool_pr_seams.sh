@@ -3,8 +3,8 @@ set -euo pipefail
 # covers: scripts/agent_worktree_pool.sh
 
 # Regression for the shared PR seams (#456): one flag grammar for create-pr/submit and a PR lookup
-# that refuses a missing head branch. Every case here fails before any network or gh call, so the
-# suite stays hermetic.
+# that refuses a missing head branch. Every case pushes only to a temp bare repo and reaches only a
+# stubbed gh, so the suite stays hermetic.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 POOL="$SCRIPT_DIR/../agent_worktree_pool.sh"
@@ -93,6 +93,26 @@ for body in "Closes #617." "Closes octo-org/octo-repo#100" $'Summary.\n  Closes 
   rc=0; out="$(PATH="$TMP/bin:$PATH" pool create-pr agent-1 --title t --body "$body" 2>&1)" || rc=$?
   [[ "$rc" -eq 0 && "$out" == *"no commits ahead"* ]] || fail "create-pr should accept '$body' (rc=$rc, got: $out)"
 done
+
+# --- a stacked base: counted against origin/<base> when no local branch exists; absent fails --
+rc=0; out="$(PATH="$TMP/bin:$PATH" pool create-pr agent-1 task/nowhere --title t --body b 2>&1)" || rc=$?
+[[ "$rc" -ne 0 && "$out" == *"base 'task/nowhere' exists neither"* && "$out" != *"Skipping"* ]] \
+  || fail "create-pr should fail loudly on a base that exists nowhere (rc=$rc, got: $out)"
+
+git -C "$TMP/primary" branch -q task/stack-base main
+git -C "$TMP/primary" push -q origin task/stack-base
+git -C "$TMP/primary" branch -q -D task/stack-base
+git -C "$TMP/primary" update-ref -d refs/remotes/origin/task/stack-base
+printf 'stacked\n' > "$TMP/agent-1/file.txt"
+git -C "$TMP/agent-1" commit -qam stacked
+mkdir -p "$TMP/bin-pr"
+printf '#!/usr/bin/env bash\n[[ "$1 $2" == "pr create" ]] && { printf "%%s\\n" "$@" > "%s"; echo https://example.test/pr/2; }\nexit 0\n' \
+  "$TMP/gh-stacked-args" > "$TMP/bin-pr/gh"
+chmod +x "$TMP/bin-pr/gh"
+rc=0; out="$(PATH="$TMP/bin-pr:$PATH" pool create-pr agent-1 task/stack-base --title t --body b 2>&1)" || rc=$?
+[[ "$rc" -eq 0 && "$out" == *"PR created: https://example.test/pr/2"* ]] \
+  || fail "create-pr should open a PR against an origin-only base (rc=$rc, got: $out)"
+grep -qxF -- "task/stack-base" "$TMP/gh-stacked-args" || fail "gh pr create should receive the origin-only base"
 
 # --- PR lookup refuses a missing head branch ---------------------------------------------
 # Sourced, not executed: the guard at the foot of the pool script leaves the functions defined.

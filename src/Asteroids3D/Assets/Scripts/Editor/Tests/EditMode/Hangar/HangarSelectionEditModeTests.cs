@@ -1,6 +1,6 @@
 using System.Linq;
-using System.Text.RegularExpressions;
 using Combat.Weapons;
+using Combat.Weapons.Arsenal;
 using NUnit.Framework;
 using Ships;
 using Ships.Loadout;
@@ -177,6 +177,26 @@ namespace Tests.EditMode.Hangar
         }
 
         [Test]
+        public void Step_FromTheShip_SelectsTheNamedSlotAndAdvancesOnlyIt()
+        {
+            var selection = WeaponOffer(out _, out _);
+            var weapons = OfKind(offer.weapons, ordnance: false);
+            var ordnance = OfKind(offer.weapons, ordnance: true);
+            Assert.AreEqual(HangarSlot.Ship, selection.Selected);
+
+            selection.Step(HangarSlot.Ordnance, 1);
+            Assert.AreEqual(HangarSlot.Ordnance, selection.Selected);
+            Assert.AreSame(ordnance[0], selection.Ordnance);
+            Assert.IsNull(selection.Weapon);
+
+            selection.Select(HangarSlot.Ship);
+            selection.Step(HangarSlot.Weapon, 1);
+            Assert.AreEqual(HangarSlot.Weapon, selection.Selected);
+            Assert.AreSame(weapons[0], selection.Weapon);
+            Assert.AreSame(ordnance[0], selection.Ordnance);
+        }
+
+        [Test]
         public void RealCatalog_FiltersEachWeaponSlot()
         {
             offer = Load<ItemSubset>(RealCatalogPath);
@@ -274,27 +294,32 @@ namespace Tests.EditMode.Hangar
         }
 
         // Read off the prefab asset, where Awake never runs: passes only if every stat source is serialized.
-        // Patterns, not values, so balance tuning never breaks it.
-        [TestCase("Assets/Prefabs/Weapons/Lasers.prefab",
-            @"Damage \d+", @"Rate [\d.]+/s", @"Speed \d+", @"Overheats after \d+ shots")]
-        [TestCase("Assets/Prefabs/Weapons/TurboLasers.prefab",
-            @"Damage \d+ per bolt", "2 bolts per shot", @"Rate [\d.]+/s", @"Speed \d+", @"Overheats after \d+ shots")]
-        [TestCase("Assets/Prefabs/Weapons/Railgun.prefab",
-            @"Damage \d+", @"Range \d+", @"Full charge [\d.]+s", "Hitscan")]
-        [TestCase("Assets/Prefabs/Weapons/Rippers.prefab",
-            @"Damage \d+ per slug", @"Rate [\d.]+/s", @"Mag \d+ \(reload [\d.]+s\)", @"Speed \d+")]
-        [TestCase("Assets/Prefabs/Weapons/Missiles.prefab",
-            @"Damage \d+ \+ \d+ splash", @"\d+ rounds \(shared recharge [\d.]+s/round\)", "Lock-on homing",
-            "Direct hit skips shields")]
-        [TestCase("Assets/Prefabs/Weapons/Grenades.prefab",
-            @"Blast \d+ to \d+u, hits friend and foe", @"\d+ charges \(shared recharge [\d.]+s/round\)", @"Range \d+u")]
-        public void Describe_ShowsEveryStatOfCatalogWeaponAsset(string path, params string[] segmentPatterns)
+        [TestCase("Assets/Prefabs/Weapons/Lasers.prefab")]
+        [TestCase("Assets/Prefabs/Weapons/TurboLasers.prefab")]
+        [TestCase("Assets/Prefabs/Weapons/Railgun.prefab")]
+        [TestCase("Assets/Prefabs/Weapons/Rippers.prefab")]
+        [TestCase("Assets/Prefabs/Weapons/Missiles.prefab")]
+        [TestCase("Assets/Prefabs/Weapons/Grenades.prefab")]
+        public void Damage_ReadsTheWeaponsOwnValue(string path)
         {
-            var description = HangarDescriptions.Describe(Load<WeaponComponent>(path));
-            var segments = description.Split(new[] { HangarDescriptions.Separator }, System.StringSplitOptions.None);
-            foreach (var pattern in segmentPatterns)
-                Assert.IsTrue(System.Array.Exists(segments, segment => Regex.IsMatch(segment, $"^{pattern}$")),
-                    $"shows a segment matching `{pattern}` in: {description}");
+            var weapon = Load<WeaponComponent>(path);
+            var (number, caption) = HangarDescriptions.Damage(weapon);
+            Assert.AreEqual(DamageNumber(weapon), number, path);
+            Assert.That(caption, Is.Not.Empty, path);
+        }
+
+        [Test]
+        public void RealCatalog_EveryWeaponHasHangarCopyAndADamageReadout()
+        {
+            offer = Load<ItemSubset>(RealCatalogPath);
+            Assert.IsNotEmpty(offer.weapons, "test premise: the offer holds weapons");
+            foreach (var weapon in offer.weapons)
+            {
+                Assert.IsTrue(weapon, "the offer's weapon entries are assigned");
+                Assert.That(weapon.HangarDescription, Is.Not.Null.And.Not.Empty, weapon.name);
+                Assert.That(weapon.HangarTags.Count, Is.InRange(1, 3), weapon.name);
+                Assert.DoesNotThrow(() => HangarDescriptions.Damage(weapon), weapon.name);
+            }
         }
 
         [Test]
@@ -376,6 +401,23 @@ namespace Tests.EditMode.Hangar
 
         private static WeaponComponent[] OfKind(WeaponComponent[] pool, bool ordnance) =>
             System.Array.FindAll(pool, weapon => weapon.IsOrdnance == ordnance);
+
+        private static string DamageNumber(WeaponComponent weapon)
+        {
+            var grenades = weapon as Grenades;
+            if (grenades) return grenades.BlastDamage.ToString("0");
+            var railguns = weapon as Railguns;
+            if (railguns) return railguns.Damage.ToString("0");
+            var rippers = weapon as Rippers;
+            if (rippers) return rippers.Damage.ToString("0");
+            var scatterguns = weapon as Scatterguns;
+            if (scatterguns) return scatterguns.Damage.ToString("0");
+            var missiles = weapon as Missiles;
+            if (missiles) return missiles.Damage.ToString("0");
+            var lasers = weapon as Lasers;
+            if (lasers) return lasers.Damage.ToString("0");
+            throw new System.InvalidOperationException(weapon.GetType().Name);
+        }
 
         private static T Load<T>(string path) where T : Object
         {

@@ -512,7 +512,7 @@ namespace Tests.PlayMode.Preview
         private static bool FliesATactic(Ship ship)
         {
             var commander = ship.Commander as AI.AICommander;
-            return commander && commander.Brain as RL.Opponents.ArchetypeBrain && commander.Brain.CurrentTactic.HasValue;
+            return commander && commander.Brain as AI.Pilots.ArchetypeBrain && commander.Brain.CurrentTactic.HasValue;
         }
 
         [UnityTest]

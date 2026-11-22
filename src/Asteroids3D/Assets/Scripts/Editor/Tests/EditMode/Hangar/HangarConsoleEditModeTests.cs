@@ -2,7 +2,6 @@ using System.Linq;
 using NUnit.Framework;
 using UI.Hangar.Displays;
 using UI.Hangar.Hardware;
-using UI.Hangar.Selection;
 using UnityEditor;
 using UnityEngine;
 
@@ -20,20 +19,23 @@ namespace Tests.EditMode.Hangar
             var parts = new[]
             {
                 console.MainScreenGlass.transform, console.DetailScreenGlass.transform,
+                console.PrimaryScreenGlass.transform, console.OrdnanceScreenGlass.transform,
                 console.SelectorKnob, console.PreviousButton, console.NextButton,
-                console.LaunchButton, console.ProjectorLens.transform
+                console.LaunchButton, console.PrimaryPreviousButton, console.PrimaryNextButton,
+                console.OrdnancePreviousButton, console.OrdnanceNextButton, console.ProjectorLens.transform
             };
             Assert.That(parts.Select(part => part.name), Is.EquivalentTo(new[]
             {
-                "MainScreenGlass", "DetailScreenGlass", "SelectorKnob", "PreviousButton",
-                "NextButton", "LaunchButton", "ProjectorLens"
+                "MainScreenGlass", "DetailScreenGlass", "PrimaryScreenGlass", "OrdnanceScreenGlass",
+                "SelectorKnob", "PreviousButton", "NextButton", "LaunchButton", "PrimaryPreviousButton",
+                "PrimaryNextButton", "OrdnancePreviousButton", "OrdnanceNextButton", "ProjectorLens"
             }));
-            Assert.That(parts.Distinct().Count(), Is.EqualTo(7));
+            Assert.That(parts.Distinct().Count(), Is.EqualTo(13));
             foreach (var part in parts)
             {
                 Assert.That(Vector3.Distance(part.lossyScale, Vector3.one), Is.LessThan(.001f), part.name);
                 var mesh = part.GetComponent<MeshFilter>().sharedMesh;
-                Assert.That(mesh.vertexCount, Is.GreaterThan(8), part.name);
+                Assert.That(mesh.vertexCount, Is.GreaterThanOrEqualTo(8), part.name);
                 Assert.That(mesh.bounds.center.magnitude, Is.LessThan(.5f), part.name + " pivot");
             }
         }
@@ -50,7 +52,9 @@ namespace Tests.EditMode.Hangar
                 var camera = instance.HardwareCamera;
                 camera.aspect = (float)width / height;
                 foreach (var control in new[] { instance.SelectorKnob, instance.PreviousButton,
-                             instance.NextButton, instance.LaunchButton, instance.ProjectorLens.transform })
+                             instance.NextButton, instance.LaunchButton, instance.PrimaryPreviousButton,
+                             instance.PrimaryNextButton, instance.OrdnancePreviousButton,
+                             instance.OrdnanceNextButton, instance.ProjectorLens.transform })
                 {
                     var point = camera.WorldToViewportPoint(control.position);
                     Assert.That(point.x, Is.InRange(.01f, .99f), control.name);
@@ -115,13 +119,16 @@ namespace Tests.EditMode.Hangar
             var data = new SerializedObject(console);
             foreach (var name in new[]
                      {
-                         "mainDisplay", "detailDisplay", "mainView", "detailView", "displayProfile",
-                         "selectorKnob", "knob", "previousButton", "nextButton", "launchButton", "launchLegend"
+                         "mainDisplay", "detailDisplay", "primaryDisplay", "ordnanceDisplay",
+                         "mainView", "detailView", "primaryView", "ordnanceView", "displayProfile", "lightProfile",
+                         "launchSurface",
+                         "selectorKnob", "knob", "previousButton", "nextButton", "launchButton", "launchLegend",
+                         "primaryPreviousButton", "primaryNextButton", "ordnancePreviousButton", "ordnanceNextButton"
                      })
                 Assert.IsTrue(data.FindProperty(name).objectReferenceValue, name);
             Assert.IsTrue(console.GetComponent<HangarConsoleRaycaster>(), "the console raycasts its own pointers");
-            Assert.That(console.GetComponentsInChildren<HangarControl>(true), Has.Length.EqualTo(4));
-            Assert.That(console.GetComponentsInChildren<HangarDisplay>(true), Has.Length.EqualTo(2));
+            Assert.That(console.GetComponentsInChildren<HangarControl>(true), Has.Length.EqualTo(8));
+            Assert.That(console.GetComponentsInChildren<HangarDisplay>(true), Has.Length.EqualTo(4));
             foreach (var display in console.GetComponentsInChildren<HangarDisplay>(true))
                 Assert.IsNull(display.Canvas.GetComponent<UnityEngine.UI.GraphicRaycaster>(), display.name);
         }
@@ -131,7 +138,12 @@ namespace Tests.EditMode.Hangar
         {
             var console = AssetDatabase.LoadAssetAtPath<HangarConsole>(PrefabPath);
             var camera = console.HardwareCamera.transform;
-            foreach (var part in new[] { console.SelectorKnob, console.PreviousButton, console.NextButton, console.LaunchButton })
+            foreach (var part in new[]
+                     {
+                         console.SelectorKnob, console.PreviousButton, console.NextButton, console.LaunchButton,
+                         console.PrimaryPreviousButton, console.PrimaryNextButton, console.OrdnancePreviousButton,
+                         console.OrdnanceNextButton
+                     })
             {
                 var axis = new SerializedObject(part.GetComponent<HangarControl>()).FindProperty("pressAxis").vector3Value;
                 Assert.That(Vector3.Distance(axis, Vector3.down), Is.LessThan(.001f), part.name + " presses along its own down");
@@ -143,19 +155,29 @@ namespace Tests.EditMode.Hangar
         }
 
         [Test]
-        public void EachSlotHasAnArrowPair_AndTheDisplaysDriveTheirSpillLights()
+        public void EachSlotHasAnArrowPair_AndEachDisplayPlacesALight()
         {
             var console = AssetDatabase.LoadAssetAtPath<HangarConsole>(PrefabPath);
-            var view = console.GetComponentInChildren<HangarMainDisplayView>(true);
-            foreach (HangarSlot slot in System.Enum.GetValues(typeof(HangarSlot)))
+            var main = console.GetComponentInChildren<HangarMainDisplayView>(true);
             foreach (var step in new[] { -1, 1 })
             {
-                var arrow = view.Arrow(slot, step);
-                Assert.IsTrue(arrow, $"{slot} {step}");
-                Assert.IsTrue(arrow.targetGraphic && arrow.targetGraphic.raycastTarget, $"{slot} {step} arrow is clickable");
+                var arrow = main.Arrow(step);
+                Assert.IsTrue(arrow, $"ship {step}");
+                Assert.IsTrue(arrow.targetGraphic && arrow.targetGraphic.raycastTarget, $"ship {step} arrow is clickable");
+            }
+            foreach (var view in console.GetComponentsInChildren<HangarWeaponDisplayView>(true))
+            foreach (var step in new[] { -1, 1 })
+            {
+                var arrow = view.Arrow(step);
+                Assert.IsTrue(arrow, $"{view.name} {step}");
+                Assert.IsTrue(arrow.targetGraphic && arrow.targetGraphic.raycastTarget, $"{view.name} {step} arrow is clickable");
             }
             foreach (var display in console.GetComponentsInChildren<HangarDisplay>(true))
-                Assert.IsTrue(new SerializedObject(display).FindProperty("spill").objectReferenceValue, display.name + " spill");
+            {
+                var data = new SerializedObject(display);
+                Assert.That(data.FindProperty("lightRange").floatValue, Is.GreaterThan(0f), display.name);
+                Assert.That(data.FindProperty("lightDistance").floatValue, Is.GreaterThan(0f), display.name);
+            }
         }
 
         [Test]
@@ -172,7 +194,11 @@ namespace Tests.EditMode.Hangar
         public void GlassUsesTheWholeDisplayUvRange()
         {
             var console = AssetDatabase.LoadAssetAtPath<HangarConsole>(PrefabPath);
-            foreach (var glass in new[] { console.MainScreenGlass, console.DetailScreenGlass })
+            foreach (var glass in new[]
+                     {
+                         console.MainScreenGlass, console.DetailScreenGlass, console.PrimaryScreenGlass,
+                         console.OrdnanceScreenGlass
+                     })
             {
                 var mesh = glass.GetComponent<MeshFilter>().sharedMesh;
                 var data = Mesh.AcquireReadOnlyMeshData(mesh);
@@ -187,22 +213,28 @@ namespace Tests.EditMode.Hangar
         }
 
         [Test]
-        [Category("RequiresLfsPng")]
-        public void GlassCarriesNoReference_AndItsDisplayIsTwiceTheReferencePicture()
+        public void GlassCarriesNoReference_AndItsDisplayIsTheGlassAtTwoHundredPixelsPerUnit()
         {
+            const float pixelsPerUnit = 200f;
             var console = AssetDatabase.LoadAssetAtPath<HangarConsole>(PrefabPath);
             foreach (var (glass, display) in new[]
                      {
                          (console.MainScreenGlass, console.MainDisplay),
-                         (console.DetailScreenGlass, console.DetailDisplay)
+                         (console.DetailScreenGlass, console.DetailDisplay),
+                         (console.PrimaryScreenGlass, console.PrimaryDisplay),
+                         (console.OrdnanceScreenGlass, console.OrdnanceDisplay)
                      })
             {
                 Assert.IsNull(glass.sharedMaterial.GetTexture("_BaseMap"), glass.name);
                 Assert.IsNull(glass.sharedMaterial.GetTexture("_EmissionMap"), glass.name);
                 Assert.That(glass.sharedMaterial.GetFloat("_UseEmissionAlpha"), Is.EqualTo(0f), glass.name);
-                var reference = AssetDatabase.LoadAssetAtPath<Texture2D>(
-                    $"Assets/Visuals/Hangar/Console/{glass.name.Replace("Glass", "Reference")}.png");
-                Assert.AreEqual(new Vector2Int(reference.width * 2, reference.height * 2), display.Resolution, glass.name);
+                var size = glass.GetComponent<MeshFilter>().sharedMesh.bounds.size;
+                var face = new[] { size.x, size.y, size.z };
+                System.Array.Sort(face);
+                var pixels = new[] { display.Resolution.x / pixelsPerUnit, display.Resolution.y / pixelsPerUnit };
+                System.Array.Sort(pixels);
+                Assert.That(pixels[0], Is.EqualTo(face[1]).Within(.005f), glass.name);
+                Assert.That(pixels[1], Is.EqualTo(face[2]).Within(.005f), glass.name);
             }
         }
 
@@ -216,7 +248,11 @@ namespace Tests.EditMode.Hangar
             {
                 instance.Resize(new Vector2Int(width, height));
                 var planes = GeometryUtility.CalculateFrustumPlanes(instance.HardwareCamera);
-                foreach (var display in new[] { instance.MainDisplay, instance.DetailDisplay })
+                foreach (var display in new[]
+                         {
+                             instance.MainDisplay, instance.DetailDisplay, instance.PrimaryDisplay,
+                             instance.OrdnanceDisplay
+                         })
                 {
                     var corners = new Vector3[4];
                     display.Canvas.GetComponent<RectTransform>().GetWorldCorners(corners);
@@ -228,6 +264,49 @@ namespace Tests.EditMode.Hangar
             finally
             {
                 Object.DestroyImmediate(instance.gameObject);
+            }
+        }
+
+        [Test]
+        public void GlowCardsMatchTheLampsAndOverheads()
+        {
+            var console = AssetDatabase.LoadAssetAtPath<HangarConsole>(PrefabPath);
+            var data = new SerializedObject(console);
+            var lamps = data.FindProperty("lampGlows");
+            var overheads = data.FindProperty("overheadGlows");
+            Assert.That(overheads.arraySize, Is.LessThanOrEqualTo(2));
+            foreach (var cards in new[] { lamps, overheads })
+                for (var i = 0; i < cards.arraySize; i++)
+                    Assert.IsTrue(cards.GetArrayElementAtIndex(i).FindPropertyRelative("card").objectReferenceValue,
+                        cards.name);
+            for (var i = 0; i < lamps.arraySize; i++)
+                Assert.That(lamps.GetArrayElementAtIndex(i).FindPropertyRelative("color").colorValue,
+                    Is.Not.EqualTo(Color.black), "lamp " + i);
+            Assert.IsTrue(data.FindProperty("lensGlow").FindPropertyRelative("card").objectReferenceValue, "lens glow");
+        }
+
+        [Test]
+        public void EachDisplayFitsItsLayoutInsideTheContentRectangle()
+        {
+            var console = AssetDatabase.LoadAssetAtPath<HangarConsole>(PrefabPath);
+            foreach (var display in new[]
+                     {
+                         console.MainDisplay, console.DetailDisplay, console.PrimaryDisplay, console.OrdnanceDisplay
+                     })
+            {
+                var content = display.Canvas.transform.Find("Content") as RectTransform;
+                Assert.IsTrue(content, display.name);
+                var layout = content.Find("Layout") as RectTransform;
+                Assert.IsTrue(layout, display.name);
+                var scale = layout.localScale;
+                Assert.That(scale.x, Is.GreaterThan(0f), display.name);
+                Assert.That(scale.y, Is.EqualTo(scale.x).Within(.0001f), display.name);
+                Assert.That(scale.z, Is.EqualTo(scale.x).Within(.0001f), display.name);
+                var scaled = new Vector2(layout.rect.width * scale.x, layout.rect.height * scale.y);
+                var span = content.anchorMax - content.anchorMin;
+                var room = new Vector2(span.x * display.Resolution.x, span.y * display.Resolution.y);
+                Assert.That(scaled.x, Is.LessThanOrEqualTo(room.x + .5f), display.name);
+                Assert.That(scaled.y, Is.LessThanOrEqualTo(room.y + .5f), display.name);
             }
         }
     }

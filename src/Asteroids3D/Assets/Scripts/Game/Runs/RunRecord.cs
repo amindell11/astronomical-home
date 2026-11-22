@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Damage;
-using Game.Player;
+using Game.Player.Recorders;
 using Ships.Loadout;
 using Ships.Registry;
+using Substrate.Sectors.Elements.Phases;
 using Substrate.Services.Locales;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -66,6 +67,13 @@ namespace Game.Runs
         public float shieldOut;
         public bool eliteMet;
         public bool eliteBeaten;
+        public float regenSeconds;
+        public int regenStarts;
+        public int shieldRefills;
+        public float shieldRestored;
+        public float shieldDownSeconds;
+        public float contestedRegenSeconds;
+        public float contestedShieldRestored;
     }
 
     [Serializable]
@@ -86,6 +94,30 @@ namespace Game.Runs
         public bool inLull;
         public bool done;
         public float elapsedSeconds;
+        public string phase;
+
+        public static EndPhaseRow Of(SectorPhaseMark mark, bool eliteUnbeaten)
+        {
+            string name;
+            if (mark.Done)
+                name = eliteUnbeaten ? "elite" : "extraction";
+            else if (mark.InOpeningLull)
+                name = "hunt";
+            else if (mark.Closing)
+                name = "closing lull";
+            else if (mark.InLull)
+                name = $"lull before phase {mark.Index + 1}";
+            else
+                name = $"phase {mark.Index + 1}";
+            return new EndPhaseRow
+            {
+                index = mark.Index,
+                inLull = mark.InLull,
+                done = mark.Done,
+                elapsedSeconds = mark.ElapsedSeconds,
+                phase = name,
+            };
+        }
     }
 
     [Serializable]
@@ -102,9 +134,9 @@ namespace Game.Runs
     /// <summary>
     /// One finished run as one JSON line. <see cref="player"/> is the hangar loadout at run start;
     /// <see cref="playerEnd"/> is the loadout mounted when the run ended. The line also holds what
-    /// the run was played on, how it went, the picks and the sectors, what hurt the player and what
-    /// the player dealt, and every ship that spawned. A run ends extracted, dead, or abandoned; only
-    /// a death carries a killing blow.
+    /// the run was played on, how it went, the picks and the sectors with their shield recovery,
+    /// what hurt the player and what the player dealt, and every ship that spawned. A run ends
+    /// extracted, dead, or abandoned; only a death carries a killing blow.
     /// A damage row and the killing blow name their attacker as an index into <see cref="spawns"/>,
     /// <see cref="NoSpawn"/> when no logged ship dealt it, so no Unity instance id reaches the file.
     /// Older v2 rows lack a measured shield/hull split; hasDamageSplit distinguishes those from zero.
@@ -138,7 +170,9 @@ namespace Game.Runs
         public EndPhaseRow endPhase;
         public string origin;
 
-        public const string SchemaId = "run-record-v3";
+        public const string SchemaId = "run-record-v5";
+        public const string SchemaV4 = "run-record-v4";
+        public const string SchemaV3 = "run-record-v3";
         public const string SchemaV2 = "run-record-v2";
         public const string Died = "died";
         public const string Extracted = "extracted";
@@ -152,7 +186,8 @@ namespace Game.Runs
 
         /// <summary>Abandoned lines stay in the file but off every reader.</summary>
         public static bool Counts(string schema, string outcome) =>
-            (schema == SchemaId || schema == SchemaV2) && outcome != Abandoned;
+            (schema == SchemaId || schema == SchemaV4 || schema == SchemaV3 || schema == SchemaV2)
+            && outcome != Abandoned;
 
         public string ToJsonLine() => JsonUtility.ToJson(this);
 
@@ -160,9 +195,9 @@ namespace Game.Runs
         public static RunRecord Compose(DateTime endedUtc, int sectorsCleared, int endedInSector,
             IReadOnlyList<LocaleSky> locales, BuildIdentity buildIdentity, string statFingerprint,
             ShipLoadout playerLoadout, string playerLoadoutStatHash, IRunTally tally, DamageLedger ledger,
-            SpawnLog spawnLog, DamageInfo? killingBlow, RunCourse course = null, LoadoutRow playerEnd = default,
-            IReadOnlyList<string> mods = null, EndPhaseRow endPhase = default, string origin = null,
-            IReadOnlyList<DealtRow> dealt = null, bool abandoned = false)
+            SpawnLog spawnLog, DamageInfo? killingBlow, RunCourse course, LoadoutRow playerEnd,
+            IReadOnlyList<string> mods, EndPhaseRow endPhase, string origin,
+            IReadOnlyList<DealtRow> dealt, bool abandoned)
         {
             var entries = spawnLog.Entries();
             int SpawnOf(ShipId attacker) => entries.FindLastIndex(entry => entry.Id == attacker);
@@ -195,12 +230,12 @@ namespace Game.Runs
                     : new KillingBlowRow { kind = string.Empty, spawn = NoSpawn },
                 spawns = new List<SpawnRow>(entries.Count),
                 playerEnd = playerEnd,
-                mods = mods == null ? new List<string>() : new List<string>(mods),
-                picks = course == null ? new List<PickRow>() : new List<PickRow>(course.Picks),
-                sectors = course == null ? new List<SectorRow>() : new List<SectorRow>(course.Sectors),
-                dealt = dealt == null ? new List<DealtRow>() : new List<DealtRow>(dealt),
+                mods = new List<string>(mods),
+                picks = new List<PickRow>(course.Picks),
+                sectors = new List<SectorRow>(course.Sectors),
+                dealt = new List<DealtRow>(dealt),
                 endPhase = endPhase,
-                origin = origin ?? string.Empty,
+                origin = origin,
             };
 
             // Re-aggregated from the hits, because a ledger row spans every life of its attacker.

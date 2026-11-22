@@ -12,6 +12,7 @@ namespace UI.Projection
         bool EffectsEnabled { get; }
         float TransitionAge { get; }
         float HitAge { get; }
+        float HitSize { get; }
     }
 
     /// <summary>

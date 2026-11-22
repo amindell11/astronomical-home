@@ -35,16 +35,8 @@ namespace UI.Hangar.Displays
 
         private void Refresh()
         {
-            title.text = selection.Label(selection.Selected);
-            body.text = Describe();
+            title.text = selection.Label(HangarSlot.Ship);
+            body.text = selection.Ship ? HangarDescriptions.Describe(selection.Ship) : "";
         }
-
-        private string Describe() => selection.Selected switch
-        {
-            HangarSlot.Ship => selection.Ship ? HangarDescriptions.Describe(selection.Ship) : "",
-            HangarSlot.Weapon => selection.Weapon ? HangarDescriptions.Describe(selection.Weapon) : "",
-            HangarSlot.Ordnance => selection.Ordnance ? HangarDescriptions.Describe(selection.Ordnance) : "",
-            _ => throw new ArgumentOutOfRangeException(nameof(selection.Selected), selection.Selected, null)
-        };
     }
 }

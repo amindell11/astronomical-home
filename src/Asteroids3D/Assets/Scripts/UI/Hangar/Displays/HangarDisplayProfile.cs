@@ -8,8 +8,10 @@ namespace UI.Hangar.Displays
     {
         [SerializeField] private CanopySettings mainDisplay = CanopySettings.Combat;
         [SerializeField] private CanopySettings detailDisplay = CanopySettings.Combat;
+        [SerializeField] private CanopySettings weaponDisplay = CanopySettings.Combat;
 
         public CanopySettings MainDisplay => mainDisplay;
         public CanopySettings DetailDisplay => detailDisplay;
+        public CanopySettings WeaponDisplay => weaponDisplay;
     }
 }

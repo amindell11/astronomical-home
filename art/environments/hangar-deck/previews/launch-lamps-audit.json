@@ -1,0 +1,60 @@
+{
+  "checks": {
+    "LaunchLampLeft": true,
+    "LaunchLampLeft_one_closed_solid": true,
+    "LaunchLampRight": true,
+    "LaunchLampRight_one_closed_solid": true,
+    "exact_preservation_except_two_roles": true
+  },
+  "lamps": [
+    {
+      "name": "Deck | Left Launch armed red lens",
+      "role": "LaunchLampLeft",
+      "components": 1,
+      "closed": true,
+      "volume": 0.0006465000375807293,
+      "material": "Deck | armed red emission",
+      "position": [
+        -1.4299999475479126,
+        -3.8983848094940186,
+        1.3203129768371582
+      ],
+      "local_size": [
+        0.15000000596046448,
+        0.1599999964237213,
+        0.030000001192092896
+      ],
+      "color": [
+        1.0,
+        0.02500000037252903,
+        0.00800000037997961
+      ]
+    },
+    {
+      "name": "Deck | Right Launch armed red lens",
+      "role": "LaunchLampRight",
+      "components": 1,
+      "closed": true,
+      "volume": 0.0006465000375807293,
+      "material": "Deck | armed red emission",
+      "position": [
+        1.4299999475479126,
+        -3.8983848094940186,
+        1.3203129768371582
+      ],
+      "local_size": [
+        0.15000000596046448,
+        0.1599999964237213,
+        0.030000001192092896
+      ],
+      "color": [
+        1.0,
+        0.02500000037252903,
+        0.00800000037997961
+      ]
+    }
+  ],
+  "scene_objects": 51,
+  "object_differences": [],
+  "section_differences": []
+}

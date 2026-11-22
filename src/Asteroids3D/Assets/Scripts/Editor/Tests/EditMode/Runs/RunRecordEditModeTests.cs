@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Balance;
 using Combat.Weapons.Mods;
 using Damage;
-using Game.Player;
+using Game.Player.Recorders;
 using Game.Runs;
 using Loot;
 using NUnit.Framework;
@@ -11,6 +11,7 @@ using Ships;
 using Ships.Loadout;
 using Ships.Registry;
 using Substrate.Sectors.Elements.Elites;
+using Substrate.Sectors.Elements.Phases;
 using Substrate.Services.Locales;
 using UnityEditor;
 using UnityEngine;
@@ -76,7 +77,9 @@ namespace Tests.EditMode.Runs
                     name => AssetDatabase.LoadAssetAtPath<LocaleSky>($"Assets/Prefabs/Locales/{name}.prefab")),
                 new BuildIdentity { commit = "abc123", dirty = true }, Fingerprint,
                 new ShipLoadout(offer.ships[0], offer.weapons[0], null), PlayerHash,
-                new FixedTally(), ledger, spawns, killingBlow);
+                new FixedTally(), ledger, spawns, killingBlow,
+                new RunCourse(), default, new List<string>(), default, RunRecord.OriginEditor,
+                new List<DealtRow>(), false);
 
         [TearDown]
         public void TearDown()
@@ -263,7 +266,8 @@ namespace Tests.EditMode.Runs
             course.NotePick(RunRecord.PickMod, 1, 4f, new[] { "Overcharge", "Cooling" }, "Overcharge", "");
             course.NotePick(RunRecord.PickWeapon, 2, 9f, new[] { "Missiles", "Rippers" }, "Missiles", "Lasers");
             course.Enter(1, 0f, 1f, 0.8f);
-            course.End(12f, 2, 0.5f, 0.25f, true, false);
+            var tally = new ShieldRecovery.Tally(4.5f, 2, 1, 30f, 3f, 1.5f, 10f);
+            course.End(12f, 2, 0.5f, 0.25f, true, false, tally);
             var end = new LoadoutRow { chassis = "Bulwark", primary = "Missiles", statHash = "end-hash" };
             var phase = new EndPhaseRow { index = 1, inLull = true, done = false, elapsedSeconds = 3.5f };
             var dealt = new List<DealtRow>
@@ -276,7 +280,7 @@ namespace Tests.EditMode.Runs
                 new BuildIdentity { commit = "abc123" }, Fingerprint,
                 new ShipLoadout(offer.ships[0], offer.weapons[0], null), PlayerHash,
                 new FixedTally(), new DamageLedger(), EmptySpawns(), null,
-                course, end, stack.PickedNames(), phase, RunRecord.OriginEditor, dealt);
+                course, end, stack.PickedNames(), phase, RunRecord.OriginEditor, dealt, false);
             var read = JsonUtility.FromJson<RunRecord>(composed.ToJsonLine());
 
             Assert.AreEqual(RunRecord.SchemaId, read.schema);
@@ -306,6 +310,13 @@ namespace Tests.EditMode.Runs
             Assert.AreEqual(0.25f, read.sectors[0].shieldOut, 1e-4f);
             Assert.IsTrue(read.sectors[0].eliteMet);
             Assert.IsFalse(read.sectors[0].eliteBeaten);
+            Assert.AreEqual(4.5f, read.sectors[0].regenSeconds, 1e-4f);
+            Assert.AreEqual(2, read.sectors[0].regenStarts);
+            Assert.AreEqual(1, read.sectors[0].shieldRefills);
+            Assert.AreEqual(30f, read.sectors[0].shieldRestored, 1e-4f);
+            Assert.AreEqual(3f, read.sectors[0].shieldDownSeconds, 1e-4f);
+            Assert.AreEqual(1.5f, read.sectors[0].contestedRegenSeconds, 1e-4f);
+            Assert.AreEqual(10f, read.sectors[0].contestedShieldRestored, 1e-4f);
             Assert.AreEqual(1, read.endPhase.index);
             Assert.IsTrue(read.endPhase.inLull);
             Assert.IsFalse(read.endPhase.done);
@@ -328,11 +339,41 @@ namespace Tests.EditMode.Runs
                 new BuildIdentity { commit = "abc123" }, Fingerprint,
                 new ShipLoadout(offer.ships[0], offer.weapons[0], null), PlayerHash,
                 new FixedTally(), new DamageLedger(), EmptySpawns(), null,
-                abandoned: true).ToJsonLine());
+                new RunCourse(), default, new List<string>(), default, RunRecord.OriginEditor,
+                new List<DealtRow>(), true).ToJsonLine());
 
             Assert.AreEqual(RunRecord.Abandoned, read.outcome);
             Assert.AreEqual(string.Empty, read.killingBlow.kind);
             Assert.AreEqual(RunRecord.NoSpawn, read.killingBlow.spawn);
+        }
+
+        [TestCase(0, true, false, false, 2f, false, "hunt")]
+        [TestCase(0, false, false, false, 4f, false, "phase 1")]
+        [TestCase(1, true, false, false, 5f, false, "lull before phase 2")]
+        [TestCase(2, true, true, false, 3f, false, "closing lull")]
+        [TestCase(2, false, false, true, 6f, true, "elite")]
+        [TestCase(2, false, false, true, 6f, false, "extraction")]
+        public void EndPhaseRow_NamesTheMark(int index, bool inLull, bool closing, bool done,
+            float elapsed, bool eliteUnbeaten, string phase)
+        {
+            var mark = new SectorPhaseMark(index, inLull, closing, done, 0f, 0f, elapsed, 0f);
+            var row = EndPhaseRow.Of(mark, eliteUnbeaten);
+            Assert.AreEqual(phase, row.phase);
+            Assert.AreEqual(index, row.index);
+            Assert.AreEqual(inLull, row.inLull);
+            Assert.AreEqual(done, row.done);
+            Assert.AreEqual(elapsed, row.elapsedSeconds, 1e-4f);
+        }
+
+        [Test]
+        public void Counts_AcceptsV2ThroughV5_AndSkipsAbandoned()
+        {
+            Assert.IsTrue(RunRecord.Counts(RunRecord.SchemaV2, RunRecord.Died));
+            Assert.IsTrue(RunRecord.Counts(RunRecord.SchemaV3, RunRecord.Extracted));
+            Assert.IsTrue(RunRecord.Counts(RunRecord.SchemaV4, RunRecord.Extracted));
+            Assert.IsTrue(RunRecord.Counts(RunRecord.SchemaId, RunRecord.Died));
+            Assert.IsFalse(RunRecord.Counts(RunRecord.SchemaV3, RunRecord.Abandoned));
+            Assert.IsFalse(RunRecord.Counts("run-record-v1", RunRecord.Died));
         }
 
         private SpawnLog EmptySpawns()

@@ -37,13 +37,13 @@ namespace Tests.EditMode.Weapons
             {
                 Assert.DoesNotThrow(() => WeaponsController.RequireKinds(faction.name, faction.signature.kit, null),
                     $"{faction.name}'s signature kit");
-                Assert.DoesNotThrow(() => WeaponsController.RequireKinds(faction.name, faction.common.kit, null),
-                    $"{faction.name}'s common kit");
+                Assert.DoesNotThrow(() => WeaponsController.RequireKinds(faction.name, faction.minion.kit, null),
+                    $"{faction.name}'s minion kit");
             }
         }
 
-        [TestCase("ShoalElite", "TurboLasers", "Missiles")]
-        [TestCase("VeilElite", "TurboLasers", "Missiles")]
+        [TestCase("ShoalElite", "TurboLasers", "EliteMissiles")]
+        [TestCase("VeilElite", "TurboLasers", "EliteMissiles")]
         [TestCase("BastionBoss", "TurboLasers", "Grenades")]
         public void EachTrialElite_FliesItsRuledKit(string profile, string weapon, string ordnance)
         {

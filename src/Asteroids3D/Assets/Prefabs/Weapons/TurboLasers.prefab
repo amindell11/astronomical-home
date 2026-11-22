@@ -30,6 +30,21 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1964027203911021930, guid: 37a353b1f4bb0aa44bfa1ac7236f26f3,
         type: 3}
+    - target: {fileID: -8301958025146036882, guid: a17b4473baa216a4eba58800a76acfc3,
+        type: 3}
+      propertyPath: hangarDescription
+      value: Twin-linked lasers. Two bolts leave the guns on every shot.
+      objectReference: {fileID: 0}
+    - target: {fileID: -8301958025146036882, guid: a17b4473baa216a4eba58800a76acfc3,
+        type: 3}
+      propertyPath: hangarTags.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: -8301958025146036882, guid: a17b4473baa216a4eba58800a76acfc3,
+        type: 3}
+      propertyPath: 'hangarTags.Array.data[1]'
+      value: Twin
+      objectReference: {fileID: 0}
     - target: {fileID: 345203746417710078, guid: a17b4473baa216a4eba58800a76acfc3,
         type: 3}
       propertyPath: m_Name

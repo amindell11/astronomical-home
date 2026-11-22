@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using Loot;
 using Ships;
 using Ships.Loadout;
 using Substrate.Sessions;
@@ -38,9 +39,10 @@ namespace Balance
         /// <summary>The loadout stat hash; the same on a spawned instance and on its prefab asset.</summary>
         public static string OfLoadout(Ship ship) => Of(ship);
 
-        /// <summary>The stat fingerprint: the hangar's offer, each run row and its layout in order, and the kill refill.</summary>
-        public static string OfSetting(ItemSubset hangarOffer, IEnumerable<SectorEntry> rows, float killHullRestore) =>
-            Digest(SettingLines(hangarOffer, rows, killHullRestore));
+        /// <summary>The stat fingerprint: the hangar's offer, the lull mod pool, each run row and its layout in order, and the kill refill.</summary>
+        public static string OfSetting(ItemSubset hangarOffer, LullModPool lullMods, IEnumerable<SectorEntry> rows,
+            float killHullRestore) =>
+            Digest(SettingLines(hangarOffer, lullMods, rows, killHullRestore));
 
         internal static SortedSet<string> Lines(Object item)
         {
@@ -49,11 +51,12 @@ namespace Balance
             return lines;
         }
 
-        internal static SortedSet<string> SettingLines(ItemSubset hangarOffer, IEnumerable<SectorEntry> rows,
-            float killHullRestore)
+        internal static SortedSet<string> SettingLines(ItemSubset hangarOffer, LullModPool lullMods,
+            IEnumerable<SectorEntry> rows, float killHullRestore)
         {
             var lines = NewLines();
             Visit(hangarOffer, lines, new HashSet<Object>());
+            Visit(lullMods, lines, new HashSet<Object>());
 
             // Keyed by position, so the run's order and its repeats are part of the setting.
             var index = 0;
@@ -139,6 +142,7 @@ namespace Balance
         {
             float number => number.ToString("R", CultureInfo.InvariantCulture),
             int number => number.ToString(CultureInfo.InvariantCulture),
+            bool flag => flag ? "true" : "false",
             Enum choice => choice.ToString(),
             _ => null,
         };

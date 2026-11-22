@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "name": "NightshadeMinion",
+  "source": "NightshadeMinion.blend",
+  "texture_size": 4096,
+  "uv_density_max_ratio": 2.0,
+  "contour_roles": [
+    "hull"
+  ],
+  "exemptions": [
+    {
+      "rule": "scale",
+      "parts": [
+        "Lower canopy glazing",
+        "Lower small swept fins",
+        "Rebuilt main wing blades",
+        "Rebuilt pitched hull",
+        "Upper small swept fins.001",
+        "Ventral central blade",
+        "Ventral shield cap"
+      ],
+      "reason": "Owner approved preserving these hand-edited object scales on 2026-10-06. Keep the approved silhouette and live modifiers editable; do not apply transforms."
+    },
+    {
+      "rule": "scale",
+      "parts": [
+        "Main exhaust core",
+        "Main exhaust throat"
+      ],
+      "reason": "Preserve owner-authored engine and tail proportions approved for game integration on 2026-10-08; keep the source transforms and live mirrors editable."
+    }
+  ]
+}

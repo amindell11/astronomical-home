@@ -10,6 +10,7 @@ using NUnit.Framework;
 using Objectives;
 using Objectives.Presentation;
 using Ships;
+using Ships.Loadout;
 using Ships.Visuals;
 using Substrate;
 using Substrate.Sectors;
@@ -28,7 +29,7 @@ using Substrate.Sessions;
 
 namespace Tests.PlayMode.Sectors
 {
-    /// <summary>A sector's hunt with real patrols: unaware, flying a route that brings one into sight of a still hero. Sight fills one meter, the marker pulses and the wedge turns while a patrol sees the hero, and the alarm waits until the meter is full. A patrol that sees the hero leaves its route to chase while the others keep theirs. Blind, it steers to the last-seen point past asteroids, follows the last heading and circles there, chases again on sight, and returns to its nearest waypoint when the meter empties. It holds fire until the alarm. A hit adds its share. The gap after the alarm holds the opening lull, then phase one opens. Asteroids and the cone hide the hero, breaking sight drains the meter, and killing a patrol leaves the meter to drain so the search clock ends the hunt.</summary>
+    /// <summary>A sector's hunt with real patrols: unaware, flying a route that brings one into sight of a still hero. Sight fills one meter, the marker pulses and the wedge turns while a patrol sees the hero, and the alarm waits until the meter is full. A patrol that sees the hero leaves its route to chase while the others keep theirs. Blind, it steers to the last-seen point past asteroids, follows the last heading and circles there, chases again on sight, and returns to its nearest waypoint when the meter empties. It holds fire until the alarm. The alarm limits each live patrol to sight and hands it the hero. A hit adds its share. The gap after the alarm holds the opening lull, then phase one opens. Asteroids and the cone hide the hero, breaking sight drains the meter, and killing a patrol leaves the meter to drain so the search clock ends the hunt.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class SectorHuntPlayModeTests : PlayModeWorldFixture
@@ -44,6 +45,7 @@ namespace Tests.PlayMode.Sectors
         private readonly List<string> _beats = new();
         private int _patrols;
         private float _searchSeconds;
+        private Faction _faction;
 
         [SetUp]
         public override void SetUp()
@@ -76,8 +78,10 @@ namespace Tests.PlayMode.Sectors
             var sectorGO = Track(new GameObject("HuntedSector"));
             hunt.transform.SetParent(sectorGO.transform, false);
             var director = Child(sectorGO, "WaveDirector").AddComponent<WaveDirector>();
-            var row = HuntRow(new SectorPhase { seconds = 30f, cap = 0, groups = System.Array.Empty<WaveGroup>() });
-            director.Configure(row.phases, openingLullSeconds: 5f, hunt: hunt);
+            var row = HuntRow(new SectorPhase { seconds = 30f });
+            row.faction = _faction;
+            director.Configure(row.phases, openingLullSeconds: 5f, hunt: hunt,
+                faction: sectorGO.AddComponent<SectorFaction>());
             var spine = sectorGO.AddComponent<PhaseSpineModule>();
             spine.Bind(director, NewZone(sectorGO, "Zone"), NewZone(sectorGO, "Beacon"), hunt: hunt);
             var sector = sectorGO.AddComponent<Sector>();
@@ -88,9 +92,18 @@ namespace Tests.PlayMode.Sectors
             yield return null;
             yield return null;
             var patrol = Patrol(hunt);
+            var reference = _unitService.SpawnShip(TestAssets.LoadCrimsonPrefab(), null, 0,
+                GamePlane.PlanePointToWorld(new Vector2(900f, 900f)), GamePlane.Rotation, null);
+            Assert.AreEqual(reference.transform.localScale.x * 0.75f, patrol.transform.localScale.x, 1e-3f,
+                "A patrol spawns at the minion's size.");
+            Assert.AreEqual(reference.Damage.maxHealth * 0.7f, patrol.Damage.maxHealth, 1e-2f,
+                "A patrol spawns at the minion's hull.");
+            _unitService.DespawnShip(reference);
             var wedge = patrol.GetComponentInChildren<PatrolSightWedge>();
             Assert.AreEqual(SpawnDistance, PlaneDistance(patrol, hero), 2f, "The patrol spawns its distance from the start.");
             Assert.IsTrue(Scout(patrol).Unaware, "A patrol flies unaware of the hero.");
+            Assert.IsFalse(Commander(patrol).context.Combat.SightLimited,
+                "Before the alarm a patrol is not limited to sight.");
             Assert.IsTrue(Commander(patrol).Steered, "An unaware patrol flies its route.");
             Assert.AreEqual(HuntReading.Searching, Progress().Hunt, "The countdown reads the search.");
             Assert.IsTrue(director.Phase.InOpeningLull);
@@ -118,6 +131,8 @@ namespace Tests.PlayMode.Sectors
             Assert.AreEqual(HuntReading.Coming, Progress().Hunt);
             Assert.That(Progress().SecondsLeft, Is.GreaterThan(0f).And.LessThanOrEqualTo(.5f));
             Assert.IsFalse(Scout(patrol).Unaware, "The alarm wakes the patrol.");
+            Assert.IsTrue(Commander(patrol).context.Combat.SightLimited, "The alarm limits the patrol to sight.");
+            Assert.AreSame(hero, Commander(patrol).context.Combat.Enemy, "The alarm hands the patrol the hero.");
             Assert.IsFalse(Commander(patrol).Steered, "The alarm hands the patrol back to its brain.");
             Assert.IsFalse(Marker(patrol).Pulsing, "The alarm stops the pulse.");
 
@@ -312,53 +327,6 @@ namespace Tests.PlayMode.Sectors
             yield return WaitSeconds(() => PlaneDistance(patrol, hero) < gap - 4f, 8f);
             Assert.Less(PlaneDistance(patrol, hero), gap, "Seeing the hero pulls the patrol off its route.");
             Assert.IsTrue(Commander(patrol).Steered);
-        }
-
-        [UnityTest]
-        [Timeout(600000)]
-        public IEnumerator LivePatrols_TakeTheDirectorsSlots_AndADeadOneFreesItsSlot()
-        {
-            const int cap = 3;
-            var hero = SpawnHero();
-            var hunt = NewHunt(sightRadius: 5f, searchSeconds: .5f, patrols: 2);
-            var template = ShipTestFactory.CreateKinematicPrimitiveShipAt(new Vector2(500f, 500f));
-            Track(template.gameObject);
-            var sectorGO = Track(new GameObject("HuntedSector"));
-            hunt.transform.SetParent(sectorGO.transform, false);
-            var director = Child(sectorGO, "WaveDirector").AddComponent<WaveDirector>();
-            var row = HuntRow(new SectorPhase
-            {
-                seconds = 60f,
-                cap = cap,
-                endsAt = 0,
-                breather = 0f,
-                longestWait = 0.25f,
-                groups = new[]
-                {
-                    new WaveGroup { ships = new[] { new WaveDirector.RosterEntry { template = template } } },
-                },
-            });
-            director.Configure(row.phases, openingLullSeconds: 5f, hunt: hunt);
-            var sector = sectorGO.AddComponent<Sector>();
-            sector.SetManifest(null, new SectorSpawner[] { director, hunt }, null);
-            sector.Initialize(_unitService, _objectives, true, default, hero, row, SectorIndex);
-
-            yield return sector.Setup();
-            yield return WaitSeconds(() => director.Spawned.Count > 0, 3f);
-            Assert.IsTrue(hunt.Alarmed);
-            Assert.AreEqual(2, hunt.LivePatrols);
-            Assert.AreEqual(cap - 2, director.Spawned.Count, "The opening wave takes the one slot the patrols leave.");
-
-            yield return WaitSeconds(() => false, 1f);
-            Assert.AreEqual(cap - 2, director.Spawned.Count, "No wave passes the ceiling while both patrols live.");
-
-            var patrol = hunt.Spawned[0];
-            patrol.Damage.TakeDamage(new DamageInfo(1e6f, DamageKind.Laser, hero.Id, 0f, Vector3.zero, patrol.transform.position));
-            yield return WaitSeconds(() => director.Spawned.Count > cap - 2, 2f);
-            Assert.AreEqual(1, hunt.LivePatrols, "The dead patrol stops counting.");
-            Assert.AreEqual(cap - 1, director.Spawned.Count, "The dead patrol's slot goes to the next wave.");
-
-            yield return sector.Teardown();
         }
 
         [UnityTest]
@@ -611,7 +579,13 @@ namespace Tests.PlayMode.Sectors
             Assert.IsFalse(hunt.Alarmed);
         }
 
-        private Ship SpawnHero() => Track(ShipTestFactory.CreateKinematicPrimitiveShipAt(Vector2.zero).gameObject).GetComponent<Ship>();
+        private Ship SpawnHero()
+        {
+            var hero = Track(ShipTestFactory.CreateKinematicPrimitiveShipAt(Vector2.zero).gameObject).GetComponent<Ship>();
+            // After the alarm the patrols hunt this hero by sight, so its kinematics must read.
+            hero.Movement.Initialize(null, () => hero.KinematicsPoller.Kinematics, null, null);
+            return hero;
+        }
 
         [UnityTest]
         public IEnumerator Produce_WithoutASightWedge_NamesTheMissingRef()
@@ -658,16 +632,23 @@ namespace Tests.PlayMode.Sectors
             _searchSeconds = searchSeconds;
             var hunt = Track(new GameObject("Hunt")).AddComponent<SectorHunt>();
             var faction = Track(ScriptableObject.CreateInstance<Faction>());
-            faction.common = new FactionShip
+            var ship = TestAssets.LoadCrimsonPrefab();
+            var kit = TestAssets.Load<WeaponComponent>(PatrolKitPath);
+            var pilot = TestAssets.Load<AICommander>(PatrolPilotPath);
+            faction.signature = new FactionShip { ship = ship, kit = kit, pilot = pilot };
+            faction.minion = new FactionMinion
             {
-                ship = TestAssets.LoadCrimsonPrefab(), kit = TestAssets.Load<WeaponComponent>(PatrolKitPath),
+                kit = kit,
+                pilot = pilot,
+                scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f),
             };
+            _faction = faction;
             var sectorFaction = Track(new GameObject("Faction")).AddComponent<SectorFaction>();
             sectorFaction.Bind(faction);
             var wedge = sightWedge
                 ? TestAssets.Load<Material>("Assets/Visuals/Ui/Minimap/UI_Minimap_Enemy.mat")
                 : null;
-            hunt.Configure(feel, sectorFaction, TestAssets.Load<AICommander>(PatrolPilotPath), spawnDistance, wedge);
+            hunt.Configure(feel, sectorFaction, spawnDistance, wedge);
             hunt.PatrolSpotted += (sector, patrol) => _beats.Add($"spotted {sector} {patrol.name}");
             hunt.PatrolSilenced += (sector, patrol) => _beats.Add($"silenced {sector} {patrol.name}");
             hunt.AlarmRaised += (sector, reason, caller) =>

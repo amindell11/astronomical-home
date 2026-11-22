@@ -20,7 +20,8 @@ MonoBehaviour:
     torque: 2.5
     hull: 3
   primary: {fileID: 918213022752191143, guid: b0f5486eb29ea024da3b9a9978de5236, type: 3}
-  secondary: {fileID: 2094418735087310904, guid: 175e0fad8ede2484082130e20c00cc0a, type: 3}
+  secondary: {fileID: 650599841245080358, guid: 3436fd29ae3714a4c9015cdc905126a8,
+    type: 3}
   mods:
   - {fileID: 11400000, guid: de1bcf784de74a1780b063dfcb4e56c9, type: 2}
   escalation: []

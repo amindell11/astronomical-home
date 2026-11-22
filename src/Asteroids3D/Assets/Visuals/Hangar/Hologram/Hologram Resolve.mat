@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Hologram Resolve
+  m_Shader: {fileID: 4800000, guid: 07327a0e23af0484d8c7265fbb17461d, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs: []
+    m_Ints: []
+    m_Floats:
+    - _CreaseLight: 0.27
+    - _FillBody: 0.75
+    - _FillLight: 0.78
+    - _Lift: 0.12
+    - _LineBody: 0.95
+    - _LineLight: 1
+    - _PaintEdgeLight: 1.22
+    - _PigmentKeep: 0.67
+    - _RimLight: 0.18
+    - _RimPower: 3.9
+    - _Saturation: 1.08
+    m_Colors:
+    - _LineColor: {r: 1, g: 0.94509804, b: 0.8392157, a: 1}
+    - _Tint: {r: 0.9098039, g: 0.93333334, b: 0.972549, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

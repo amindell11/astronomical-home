@@ -1,0 +1,47 @@
+{
+  "hardware_rear_depth": 25.236102983355522,
+  "glass_near_depth": 19.873655140399933,
+  "depth_clearance": -5.362447842955589,
+  "face_toward_eye": [
+    21.09294131398201,
+    21.175335347652435,
+    20.864867240190506,
+    21.175333738327026,
+    20.864865213632584
+  ],
+  "nonzero_texels": 26743,
+  "nonzero_texels_outside_strokes": 0,
+  "island_margins_and_unused_atlas_maximum": 0.0,
+  "views": {
+    "16x9": {
+      "resolution": [
+        1920,
+        1080
+      ],
+      "pixels_checked": 2073600,
+      "glass_ahead_of_hardware_pixels": 2313,
+      "tinted_hardware_pixels": 0,
+      "uncovered_window_pixels": 0
+    },
+    "21x9": {
+      "resolution": [
+        2560,
+        1080
+      ],
+      "pixels_checked": 2764800,
+      "glass_ahead_of_hardware_pixels": 57199,
+      "tinted_hardware_pixels": 0,
+      "uncovered_window_pixels": 204
+    },
+    "32x9": {
+      "resolution": [
+        3840,
+        1080
+      ],
+      "pixels_checked": 4147200,
+      "glass_ahead_of_hardware_pixels": 57199,
+      "tinted_hardware_pixels": 0,
+      "uncovered_window_pixels": 204
+    }
+  }
+}

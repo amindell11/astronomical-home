@@ -23,6 +23,8 @@ namespace UI.PlayerState
         private Text clock;
         private int clockSeconds = -1;
         private Text caption;
+        private PhaseCaption shownCaption;
+        private int shownCaptionSeconds = -1;
         private Text announcement;
         private KeyPrompt keyPrompt;
         private RectTransform display;
@@ -243,13 +245,33 @@ namespace UI.PlayerState
                 clockSeconds = seconds;
                 clock.text = Clock(phase.SecondsLeft);
             }
-            caption.text = phase.ExtractionOpen ? instruction : phase.Hunt switch
+            if (phase.ExtractionOpen || phase.Hunt != HuntReading.None)
             {
-                HuntReading.Searching => "SEARCHING",
-                HuntReading.Spotted => "SPOTTED",
-                HuntReading.Coming => "INCOMING",
-                _ => phase.Index == phase.Count - 1 ? "EXTRACTION" : "NEXT PHASE"
-            };
+                shownCaptionSeconds = -1;
+                caption.text = phase.ExtractionOpen ? instruction : phase.Hunt switch
+                {
+                    HuntReading.Searching => "SEARCHING",
+                    HuntReading.Spotted => "SPOTTED",
+                    HuntReading.Coming => "INCOMING",
+                    _ => string.Empty,
+                };
+            }
+            else
+            {
+                var whole = Mathf.CeilToInt(phase.CaptionSeconds);
+                if (whole != shownCaptionSeconds || phase.Caption != shownCaption)
+                {
+                    shownCaption = phase.Caption;
+                    shownCaptionSeconds = whole;
+                    caption.text = phase.Caption switch
+                    {
+                        PhaseCaption.NextWave => $"NEXT WAVE {Clock(phase.CaptionSeconds)}",
+                        PhaseCaption.Lull => $"LULL {Clock(phase.CaptionSeconds)}",
+                        PhaseCaption.Elite => "ELITE",
+                        _ => "EXTRACTION",
+                    };
+                }
+            }
             caption.fontSize = phase.ExtractionOpen ? 10 : 5;
             caption.rectTransform.anchoredPosition = new Vector2(0f, phase.ExtractionOpen ? -36f : -41f);
             ShowPrompt(phase.ExtractionOpen ? prompt : null, caption);

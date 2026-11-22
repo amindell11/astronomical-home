@@ -1,20 +1,29 @@
 #if UNITY_EDITOR
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using AI;
+using AI.Pilots;
+using AI.Tactics;
+using Combat.Weapons;
 using Damage;
-using Game.Player;
+using Game.Player.Recorders;
 using NUnit.Framework;
 using Ships;
+using Ships.Command;
+using Ships.Keystones;
 using Ships.Loadout;
+using Ships.Presentation;
 using Substrate;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements;
 using Substrate.Sectors.Elements.Phases;
+using Substrate.Sectors.Factions;
 using Substrate.Services;
 using Substrate.Services.Objectives;
 using Substrate.Services.Units;
 using Tests.PlayMode.Common;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
@@ -22,7 +31,7 @@ using Substrate.Sessions;
 
 namespace Tests.PlayMode
 {
-    /// <summary>Survival trial end to end on primitives: the wave director's first-tick opening spawn rings the hero on the chassis's own engine, the player's killing blow lands on the run tally, and the director despawns its dead product.</summary>
+    /// <summary>Survival trial end to end on primitives: the wave director's first-tick opening spawn rings the hero on the chassis's own engine, the player's killing blow lands on the run tally, and the director despawns its dead product. A product that requests a jump is despawned over the next frames, counts as nothing alive, and records no kill.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class SurvivalTrialPlayModeTests : PlayModeWorldFixture
@@ -34,6 +43,7 @@ namespace Tests.PlayMode
         private EngineModule _chassisEngine;
         private ShieldModule _chassisShield;
         private readonly List<GameObject> _created = new();
+        private readonly List<Object> _assets = new();
 
         [SetUp]
         public override void SetUp()
@@ -59,6 +69,9 @@ namespace Tests.PlayMode
 
             if (_chassisEngine != null) { Object.DestroyImmediate(_chassisEngine); _chassisEngine = null; }
             if (_chassisShield != null) { Object.DestroyImmediate(_chassisShield); _chassisShield = null; }
+            foreach (var asset in _assets)
+                if (asset) Object.DestroyImmediate(asset);
+            _assets.Clear();
 
             base.TearDown();
         }
@@ -72,35 +85,55 @@ namespace Tests.PlayMode
                 .GetComponent<Ship>();
             template.engine = _chassisEngine;
             template.shield = _chassisShield;
+            var rig = template.gameObject.AddComponent<ShipVisualRig>();
+            var serialized = new SerializedObject(template);
+            serialized.FindProperty("visualRig").objectReferenceValue = rig;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
             return template;
         }
 
-        private WaveDirector NewTrial(Ship template, Ship player, out Sector sector)
+        private WaveDirector NewTrial(Ship template, Ship player, out Sector sector, bool sendsWaves = true,
+            int fewest = 0, int most = 0, int waveCap = 5, Commander rivalPilot = null, Commander minionPilot = null,
+            float? spawnRadius = null, float? groupSpread = null)
         {
             var sectorGO = TrackGO(new GameObject("TrialSector"));
             sector = sectorGO.AddComponent<Sector>();
             var directorGO = new GameObject("WaveDirector");
             directorGO.transform.SetParent(sectorGO.transform, false);
             var director = directorGO.AddComponent<WaveDirector>();
+            var faction = ScriptableObject.CreateInstance<Faction>();
+            _assets.Add(faction);
+            var kit = TestAssets.Load<WeaponComponent>("Assets/Prefabs/Weapons/Lasers.prefab");
+            if (!rivalPilot) rivalPilot = TestAssets.LoadTestPilotMpc();
+            if (!minionPilot) minionPilot = rivalPilot;
+            faction.signature = new FactionShip { ship = template, kit = kit, pilot = rivalPilot };
+            faction.minion = new FactionMinion
+            {
+                kit = kit,
+                pilot = minionPilot,
+                scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f),
+            };
+            var sectorFaction = sectorGO.AddComponent<SectorFaction>();
+            sectorFaction.Bind(faction);
             var row = new SectorEntry
             {
+                faction = faction,
+                waveCap = waveCap,
                 phases = new[]
                 {
                     new SectorPhase
                     {
                         seconds = 100f,
-                        cap = 1,
-                        breather = 100f,
-                        longestWait = 100f,
-                        groups = new[]
-                        {
-                            new WaveGroup { ships = new[] { new WaveDirector.RosterEntry { template = template } } },
-                        },
+                        waveEvery = 100f,
+                        sendsWaves = sendsWaves,
+                        fewestMinions = fewest,
+                        mostMinions = most,
                     },
                 },
             };
-            director.Configure(row.phases, spawnRadius: SpawnRadius);
-            sector.SetManifest(null, new SectorSpawner[] { director }, null);
+            director.Configure(row.phases, spawnRadius: spawnRadius ?? SpawnRadius, faction: sectorFaction,
+                waveCap: waveCap, groupSpread: groupSpread ?? 8f);
+            sector.SetManifest(null, new SectorSpawner[] { director }, new SectorModule[] { sectorFaction });
             sector.Initialize(_unitService, _objectives, true, default, player, row);
             return director;
         }
@@ -163,6 +196,117 @@ namespace Tests.PlayMode
         }
 
         [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator JumpRequested_DespawnsOnTheNextPass_CountsAsNothingAlive_AndFiresNoDeath()
+        {
+            var template = NewTemplate();
+            var tally = new RunTally();
+            Ship player = null;
+            tally.Bind(_unitService, () => player.Id);
+            player = _unitService.SpawnShip(template, null, 0, GamePlane.PlanePointToWorld(Vector2.zero),
+                GamePlane.Rotation, null);
+            var director = NewTrial(template, player, out var sector);
+
+            yield return sector.Setup();
+            tally.Begin(Time.time);
+            for (var i = 0; i < 10 && director.Spawned.Count == 0; i++)
+                yield return null;
+            Assert.AreEqual(1, director.Spawned.Count, "test premise: the opening wave spawned one product");
+            var product = director.Spawned[0];
+
+            ((IJumpDrive)product).RequestJump();
+            for (var i = 0; i < 10 && director.Spawned.Contains(product); i++)
+                yield return null;
+            // Object.Destroy lands at end of frame.
+            yield return null;
+
+            Assert.IsFalse(director.Spawned.Contains(product), "The director drops a product that requested a jump.");
+            Assert.AreEqual(0, director.Alive, "A jumped product counts as nothing alive.");
+            Assert.AreEqual(0, tally.Kills, "A jump records no kill.");
+            Assert.IsFalse(product, "The despawned product is destroyed.");
+
+            yield return sector.Teardown();
+        }
+
+        [UnityTest]
+        public IEnumerator Wave_SendsOneRivalAtTheCentre_AndMinionsAtMinionScale()
+        {
+            var template = NewTemplate();
+            var player = _unitService.SpawnShip(template, null, 0, GamePlane.PlanePointToWorld(Vector2.zero),
+                GamePlane.Rotation, null);
+            var rivalPilot = TestAssets.LoadTestPilotMpc();
+            var minionPilot = TestAssets.Load<AICommander>("Assets/Prefabs/Pilots/AggressorPilot.prefab");
+            var director = NewTrial(template, player, out var sector, fewest: 2, most: 2,
+                rivalPilot: rivalPilot, minionPilot: minionPilot);
+
+            yield return sector.Setup();
+            for (var i = 0; i < 10 && director.Spawned.Count == 0; i++)
+                yield return null;
+
+            Assert.AreEqual(3, director.Spawned.Count, "The wave is one rival plus the phase's two minions.");
+            Assert.That(director.Spawned[1].Commander.name, Does.StartWith(rivalPilot.name),
+                "The rival takes the arc's centre slot.");
+            Assert.That(director.Spawned[0].Commander.name, Does.StartWith(minionPilot.name));
+            Assert.That(director.Spawned[2].Commander.name, Does.StartWith(minionPilot.name));
+            var rival = director.Spawned[1];
+            foreach (var minion in new[] { director.Spawned[0], director.Spawned[2] })
+            {
+                Assert.AreEqual(rival.transform.localScale.x * 0.75f, minion.transform.localScale.x, 1e-3f,
+                    "A minion is 0.75 of the rival's root scale.");
+                Assert.AreEqual(rival.Damage.maxHealth * 0.7f, minion.Damage.maxHealth, 1e-2f,
+                    "A minion has 0.7 of the rival's hull.");
+            }
+
+            foreach (var ship in director.Spawned)
+            {
+                var commander = (AICommander)ship.Commander;
+                Assert.IsTrue(commander.context.Combat.SightLimited, $"{ship.Commander.name} hunts by sight.");
+                Assert.AreSame(player, commander.context.Combat.Enemy,
+                    $"{ship.Commander.name} starts holding the hero.");
+            }
+
+            yield return sector.Teardown();
+        }
+
+        [UnityTest]
+        public IEnumerator TrimmedToOneShip_SendsOnlyTheRival()
+        {
+            var template = NewTemplate();
+            var player = _unitService.SpawnShip(template, null, 0, GamePlane.PlanePointToWorld(Vector2.zero),
+                GamePlane.Rotation, null);
+            var rivalPilot = TestAssets.LoadTestPilotMpc();
+            var minionPilot = TestAssets.Load<AICommander>("Assets/Prefabs/Pilots/AggressorPilot.prefab");
+            var director = NewTrial(template, player, out var sector, fewest: 4, most: 4, waveCap: 1,
+                rivalPilot: rivalPilot, minionPilot: minionPilot);
+
+            yield return sector.Setup();
+            for (var i = 0; i < 10 && director.Spawned.Count == 0; i++)
+                yield return null;
+
+            Assert.AreEqual(1, director.Spawned.Count, "A trim to one ship keeps the rival.");
+            Assert.That(director.Spawned[0].Commander.name, Does.StartWith(rivalPilot.name));
+
+            yield return sector.Teardown();
+        }
+
+        [UnityTest]
+        public IEnumerator PhaseThatSendsNoWaves_SpawnsNothing()
+        {
+            var template = NewTemplate();
+            var player = _unitService.SpawnShip(template, null, 0, GamePlane.PlanePointToWorld(Vector2.zero),
+                GamePlane.Rotation, null);
+            var director = NewTrial(template, player, out var sector, sendsWaves: false);
+
+            yield return sector.Setup();
+            for (var i = 0; i < 5; i++)
+                yield return null;
+
+            Assert.AreEqual(0, director.Spawned.Count, "A phase with waves off sends nothing.");
+
+            yield return sector.Teardown();
+        }
+
+        [UnityTest]
         public IEnumerator SpawnWithLoadout_AiCommanderInitialisesAgainstTheChassisEngine()
         {
             _chassisEngine.maxSpeed = 7f;
@@ -175,6 +319,109 @@ namespace Tests.PlayMode
             Assert.AreEqual(7f, ((AICommander)enemy.Commander).Navigator.dynamics.maxSpeed,
                 "The AI plans against the chassis's engine.");
             yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator Wave_MinionsFollowTheRival_AtTheirPlace()
+        {
+            var template = NewTemplate();
+            var player = _unitService.SpawnShip(template, null, 0, GamePlane.PlanePointToWorld(Vector2.zero),
+                GamePlane.Rotation, null);
+            var rivalPilot = TestAssets.LoadTestPilotMpc();
+            var minionPilot = TestAssets.Load<AICommander>("Assets/Prefabs/Pilots/AggressorPilot.prefab");
+            var spacing = minionPilot.GetComponent<ArchetypeBrain>().AuthoredTactics.lineSpacing;
+            Assert.Greater(spacing, 0f, "the minion temper's line spacing");
+            const float radius = 120f;
+            var director = NewTrial(template, player, out var sector, fewest: 2, most: 2,
+                rivalPilot: rivalPilot, minionPilot: minionPilot, spawnRadius: radius, groupSpread: spacing);
+
+            yield return sector.Setup();
+            for (var i = 0; i < 10 && director.Spawned.Count == 0; i++)
+                yield return null;
+
+            Assert.AreEqual(3, director.Spawned.Count);
+            var rival = director.Spawned[1];
+            Assert.That(rival.Commander.name, Does.StartWith(rivalPilot.name));
+            Assert.AreEqual(radius, Vector2.Distance(rival.Kinematics.pos, player.Kinematics.pos), 0.5f,
+                "A rival that does not ambush takes the arc's centre.");
+            Assert.IsNull(((AICommander)rival.Commander).context.Leader);
+
+            var plus = (AICommander)director.Spawned[2].Commander;
+            var minus = (AICommander)director.Spawned[0].Commander;
+            Assert.AreSame(rival, plus.context.Leader);
+            Assert.AreSame(rival, minus.context.Leader);
+            Assert.AreEqual(1, plus.context.Place);
+            Assert.AreEqual(-1, minus.context.Place);
+
+            var toTarget = (player.Kinematics.pos - rival.Kinematics.pos).normalized;
+            var point = rival.Kinematics.pos - Vector2.Perpendicular(toTarget) * plus.context.Place * spacing;
+            Assert.That(Vector2.Distance(director.Spawned[2].Kinematics.pos, point), Is.LessThan(1f),
+                "place +1 spawns on -Perpendicular(rival to hero)");
+
+            yield return sector.Teardown();
+        }
+
+        [UnityTest]
+        public IEnumerator AmbushingRival_ArrivesAhead_Concealed_AndMinionsKeepTheirPlaces()
+        {
+            var template = NewTemplate();
+            var player = _unitService.SpawnShip(template, null, 0, GamePlane.PlanePointToWorld(Vector2.zero),
+                GamePlane.Rotation, null);
+            CarryStealth(template);
+            var rivalPilot = AmbushPilot();
+            var minionPilot = TestAssets.Load<AICommander>("Assets/Prefabs/Pilots/AggressorPilot.prefab");
+            var director = NewTrial(template, player, out var sector, fewest: 2, most: 2,
+                rivalPilot: rivalPilot, minionPilot: minionPilot);
+
+            yield return sector.Setup();
+            for (var i = 0; i < 10 && director.Spawned.Count == 0; i++)
+                yield return null;
+
+            var rival = director.Spawned.Single(ship => ship.Commander.name.StartsWith(rivalPilot.name));
+            var ahead = new SerializedObject(director).FindProperty("ambushSpawnAhead").floatValue;
+            var expected = player.Kinematics.pos + player.Kinematics.Forward * ahead;
+            Assert.That(Vector2.Distance(rival.Kinematics.pos, expected), Is.LessThan(0.5f),
+                "an ambushing rival arrives ahead of the hero's nose");
+            Assert.IsTrue(rival.Lock.IsConcealed, "it is concealed on the spawn frame");
+            Assert.IsFalse(rival.Keystone.Ready, "arrival starts the kit's cooldown");
+
+            var places = director.Spawned.Where(ship => ship != rival)
+                .Select(ship => ((AICommander)ship.Commander).context)
+                .OrderBy(context => context.Place)
+                .ToArray();
+            Assert.AreEqual(2, places.Length, "minions still take the arc");
+            Assert.AreEqual(-1, places[0].Place);
+            Assert.AreEqual(1, places[1].Place);
+            Assert.AreSame(rival, places[0].Leader);
+            Assert.AreSame(rival, places[1].Leader);
+            foreach (var minion in director.Spawned.Where(ship => ship != rival))
+                Assert.AreEqual(SpawnRadius, Vector2.Distance(minion.Kinematics.pos, player.Kinematics.pos), 1f);
+
+            yield return sector.Teardown();
+        }
+
+        private Commander AmbushPilot()
+        {
+            var source = TestAssets.Load<AICommander>("Assets/Prefabs/Pilots/AggressorPilot.prefab");
+            var go = TrackGO(Object.Instantiate(source).gameObject);
+            go.name = "AmbushPilot";
+            var temper = ScriptableObject.CreateInstance<TacticsSettings>();
+            _assets.Add(temper);
+            temper.ambushes = true;
+            var serialized = new SerializedObject(go.GetComponent<ArchetypeBrain>());
+            serialized.FindProperty("tactics").objectReferenceValue = temper;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            return go.GetComponent<AICommander>();
+        }
+
+        private static void CarryStealth(Ship template)
+        {
+            var root = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Keystones/Nightshade_Stealth.prefab");
+            var stealth = root.GetComponent<Keystone>();
+            Assert.IsTrue(stealth, "Nightshade's kit prefab");
+            var serialized = new SerializedObject(template);
+            serialized.FindProperty("keystone").objectReferenceValue = stealth;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
         }
     }
 }
