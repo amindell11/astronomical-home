@@ -18,8 +18,8 @@ namespace Ships.Loadout
         [SerializeField, Min(.01f)] private float torque = 1f;
         [Tooltip("Factor on the hull's hit points.")]
         [SerializeField, Min(.01f)] private float hull = 1f;
-        [Tooltip("Factor on the shield's capacity.")]
-        [SerializeField, Min(.01f)] private float shield = 1f;
+        [Tooltip("Factor on the shield's capacity. 0 flies the ship with no shield.")]
+        [SerializeField, Min(0f)] private float shield = 1f;
 
         public float Size => size;
         public float Mass => mass;

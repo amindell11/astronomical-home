@@ -51,7 +51,7 @@ MonoBehaviour:
       thrust: 1
       torque: 1
       hull: 0.24
-      shield: 0.01
+      shield: 0
   elite:
     ship: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd, type: 3}
     hull:
