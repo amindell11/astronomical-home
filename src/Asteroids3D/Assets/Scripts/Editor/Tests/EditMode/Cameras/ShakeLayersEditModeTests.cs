@@ -10,6 +10,7 @@ namespace Tests.EditMode.Cameras
     public class ShakeLayersEditModeTests
     {
         private const float HalfHeight = 10f;
+        private const float Kick = .1f;
 
         private ShakeLayers layers;
         private CameraShakeProfile profile;
@@ -203,6 +204,82 @@ namespace Tests.EditMode.Cameras
             roll = -9f;
             CameraUtils.CapShake(ref offset, ref roll, 2f, 4f);
             Assert.AreEqual(-4f, roll);
+        }
+
+        [Test]
+        public void StartStronger_DropsAWeakerBlast()
+        {
+            KickOnly(.4f);
+            layers.StartStronger(profile, profile, Vector2.up, .8f, 0f);
+
+            layers.StartStronger(profile, profile, Vector2.right, .3f, .1f);
+            layers.Sample(.1f, HalfHeight, out var offset, out _);
+            Assert.AreEqual(1, layers.Count);
+            Assert.AreEqual(.8f * Kick * HalfHeight, offset.y, 1e-4f);
+            Assert.AreEqual(0f, offset.x, 1e-4f);
+        }
+
+        [Test]
+        public void StartStronger_RestartsAnEqualOrStrongerBlast()
+        {
+            KickOnly(.4f);
+            layers.StartStronger(profile, profile, Vector2.up, .5f, 0f);
+
+            layers.StartStronger(profile, profile, Vector2.right, .5f, .2f);
+            layers.Sample(.2f, HalfHeight, out var equal, out _);
+            Assert.AreEqual(1, layers.Count);
+            Assert.AreEqual(.5f * Kick * HalfHeight, equal.x, 1e-4f);
+            Assert.AreEqual(0f, equal.y, 1e-4f);
+
+            layers.StartStronger(profile, profile, Vector2.up, .9f, .2f);
+            layers.Sample(.2f, HalfHeight, out var stronger, out _);
+            Assert.AreEqual(1, layers.Count);
+            Assert.AreEqual(.9f * Kick * HalfHeight, stronger.y, 1e-4f);
+            Assert.AreEqual(0f, stronger.x, 1e-4f);
+        }
+
+        [Test]
+        public void StartStronger_AfterTheLayerEnds_StartsAnyStrength()
+        {
+            const float length = .2f;
+            KickOnly(length);
+            layers.StartStronger(profile, profile, Vector2.up, 1f, 0f);
+
+            var at = length + .1f;
+            layers.StartStronger(profile, profile, Vector2.right, .2f, at);
+            layers.Sample(at, HalfHeight, out var offset, out _);
+            Assert.AreEqual(1, layers.Count);
+            Assert.AreEqual(.2f * Kick * HalfHeight, offset.x, 1e-4f);
+            Assert.AreEqual(0f, offset.y, 1e-4f);
+        }
+
+        [Test]
+        public void StartStronger_InTheSameFrame_JudgesARisingBlastByItsPeak()
+        {
+            KickOnly(.4f);
+            profile.envelope = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(.05f, 1f), new Keyframe(.4f, 0f));
+            layers.StartStronger(profile, profile, Vector2.up, .6f, 0f);
+
+            layers.StartStronger(profile, profile, Vector2.right, .3f, 0f);
+            layers.Sample(.05f, HalfHeight, out var kept, out _);
+            Assert.AreEqual(1, layers.Count);
+            Assert.AreEqual(.6f * Kick * HalfHeight, kept.y, 1e-4f, "a weaker blast in the same frame leaves the rising one");
+            Assert.AreEqual(0f, kept.x, 1e-4f);
+
+            layers.StartStronger(profile, profile, Vector2.right, .9f, 0f);
+            layers.Sample(.05f, HalfHeight, out var replaced, out _);
+            Assert.AreEqual(1, layers.Count);
+            Assert.AreEqual(.9f * Kick * HalfHeight, replaced.x, 1e-4f);
+            Assert.AreEqual(0f, replaced.y, 1e-4f);
+        }
+
+        private void KickOnly(float length)
+        {
+            profile.envelope = AnimationCurve.Constant(0f, length, 1f);
+            profile.sustainAt = -1f;
+            profile.jitter = 0f;
+            profile.roll = 0f;
+            profile.kick = Kick;
         }
     }
 }

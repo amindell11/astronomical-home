@@ -13,6 +13,8 @@ namespace UI.Projection
         float TransitionAge { get; }
         float HitAge { get; }
         float HitSize { get; }
+        float GlitchAge { get; }
+        float GlitchStrength { get; }
     }
 
     /// <summary>
