@@ -61,6 +61,7 @@ MonoBehaviour:
     - {fileID: 2100000, guid: bfd639f9701aedb4595e5236e4c87018, type: 2}
     - {fileID: 2100000, guid: effa8fccffdd9f445b04fd273029a15c, type: 2}
     - {fileID: 2100000, guid: dafee05ff9274d3088c72fe408bf0abe, type: 2}
+  unlocks: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637, type: 3}
   flame: {fileID: 2100000, guid: dc73442ac6bb43f6a5846835e6252b1f, type: 2}
   eliteFlame: {fileID: 2100000, guid: 361c2fabb726455cb13b67b0c6af7406, type: 2}
   shieldRing: {r: 0.65882355, g: 0.9647059, b: 0.23137255, a: 1}

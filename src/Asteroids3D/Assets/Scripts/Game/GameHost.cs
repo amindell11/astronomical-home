@@ -202,7 +202,13 @@ namespace Game
 
             buildIdentity ??= BuildIdentity.Source();
             runRecords = new RunRecordStore(runRecordPath);
-            unlocks = new ShipUnlocks(runRecords.Path);
+            var unlockedByElite = new Dictionary<string, string>();
+            foreach (var row in sessionProfile.run.Sectors)
+            {
+                var faction = row.faction;
+                if (faction) unlockedByElite.TryAdd(faction.EliteShip.name, faction.Unlocks.name);
+            }
+            unlocks = new ShipUnlocks(runRecords.Path, unlockedByElite);
 
             DontDestroyOnLoad(gameObject);
             StartCoroutine(CatchingRoutine.Run(Run(), exception =>
