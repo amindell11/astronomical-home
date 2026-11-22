@@ -11,6 +11,7 @@ using Game.Audio;
 using Game.Companion;
 using Game.Display;
 using Game.Moments;
+using Game.Moments.Encounters;
 using Game.Moments.Finds;
 using Game.Player;
 using Game.Player.Recorders;
@@ -22,6 +23,7 @@ using Substrate.Presentation;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Elements.Stations;
+using Substrate.Sectors.Factions;
 using Substrate.Sessions;
 using Ships;
 using Ships.Command;
@@ -253,6 +255,7 @@ namespace Game
                     observer, ui, session.Frame, BuildDeathCallback());
                 rigInstance.Tally.Killed += RefillPlayerHull;
                 rigInstance.Spawns.EliteKilled += unlocks.Claim;
+                unlocks.Unlocked += OnShipUnlocked;
             }
             if (presentation && rigInstance)
             {
@@ -284,6 +287,7 @@ namespace Game
             if (rigInstance)
             {
                 rigInstance.Tally.Killed -= RefillPlayerHull;
+                unlocks.Unlocked -= OnShipUnlocked;
                 rigInstance.Teardown();
             }
             clock.ReleaseAll();
@@ -344,10 +348,13 @@ namespace Game
                         runLoadoutHash = rigInstance ? BeginRun() : null;
                     else if (rigInstance)
                         rigInstance.Player.Damage.Health.SetFraction(hull);
-                    moments.Raise(new SectorEntered(index + 1));
+                    var factionModule = session.ActiveSector.Module<SectorFaction>();
+                    var faction = factionModule ? factionModule.Faction.id : string.Empty;
+                    moments.Raise(new SectorEntered(index + 1, faction));
                     SetSplashVisible(false);
                     if (music) music.EnterSector(session.ActiveSector, session.ActiveLocale);
-                    if (rigInstance) rigInstance.EnterSector(session.ActiveSector.Module<PhaseSpineModule>());
+                    var spine = session.ActiveSector.Module<PhaseSpineModule>();
+                    if (rigInstance) rigInstance.EnterSector(spine);
                     var sectorStartTime = Time.time;
                     OpenSector(index);
                     var modStations = presentation && lullMods && rigInstance
@@ -370,6 +377,8 @@ namespace Game
                     };
                     foreach (var station in findStations)
                         if (station) station.Arrived += onStationArrived;
+                    var sectorMoments = new SectorMoments(moments, faction, spine ? spine.Hunt : null,
+                        spine ? spine.Elite : null);
 
                     pauseRequested = false;
                     while (!playerDied && !sectorEnded && !shutdownRequested && !quitRun)
@@ -400,6 +409,7 @@ namespace Game
                     }
                     foreach (var station in findStations)
                         if (station) station.Arrived -= onStationArrived;
+                    sectorMoments.Dispose();
                     closeCalls?.Dispose();
                     if (shutdownRequested) yield break;
                     CloseOpenSector();
@@ -949,6 +959,8 @@ namespace Game
         }
 
         private void RefillPlayerHull() => rigInstance.Player.Damage.Health.RestoreFraction(killHullRestore);
+
+        private void OnShipUnlocked(ShipUnlocked unlocked) => moments.Raise(new ShipEarned(unlocked));
 
         /// <summary>Never blocks on a click when not presenting; callable without a session for tests.</summary>
         internal IEnumerator RunHangar(PlayerRig rig, bool presentationEnabled, Transform uiRoot)
