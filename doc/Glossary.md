@@ -582,15 +582,15 @@ Format: **term** — definition. *(authority)*
   *(EnemyTracker.LimitToSight, Scout.sightRange, Scout.loseSightAfter)*
 - **faction** — the side a sector's enemies belong to; each survival trial
   names one, and its wave director and hunt field only that faction's ships. It
-  flies one signature ship at three ranks. The **minion** is smaller, at 70% hull,
+  flies three ranks, each its own chassis in its own hull paint; the mesh carries
+  the rank's size (ruled on #868, 2026-11-21). The **minion** has 70% hull,
   never fires its keystone, and aims worse than the other ranks (ruled on #1589,
-  2026-11-17). Hunt patrols and elite escorts fly it. The
-  **rival** is the signature ship as the player flies it, and it leads every wave.
-  The **elite** is the third rank. Every rank wears the faction's paint. The ranks
-  are ruled on #1589. The sector-to-faction mapping is ruled on #1320.
-  *(Faction.Rival, Faction.Minion, FactionRank, SectorFaction)*
-- **elite** — a sector's end-of-sector enemy: its faction's signature ship made
-  larger, with a heavy weapon pair and stacked run mods. A lull follows the
+  2026-11-17). Hunt patrols and elite escorts fly it. The **rival** leads every
+  wave. The **elite** is the third rank. The ranks are ruled on #1589. The
+  sector-to-faction mapping is ruled on #1320.
+  *(Faction.Rival, Faction.Minion, Faction.EliteShip, FactionRank, SectorFaction)*
+- **elite** — a sector's end-of-sector enemy: its faction's elite chassis, with
+  a heavy weapon pair and stacked run mods. A lull follows the
   last phase, and the elite is summoned when that lull ends. Extraction opens
   on its death. Sector 3's elite is the boss, which escalates at hull
   thresholds (escorts, heavier fire).
@@ -1082,12 +1082,14 @@ Format: **term** — definition. *(authority)*
   comes from Squirrel Eiserloh's GDC 2016 camera talk (#1636). Only the world
   shake reads it; the canopy's damage shudder reads *hit size*.
   *(ObserverCam, FlightCameraProfile)*
-- **hit size**. How hard one hit lands on its ship, from 0 to 1. It is the one
-  value the world shake and the canopy's damage shudder both scale by, so a
-  graze moves both less than a big hit. *(AppliedDamage.HitSize)*
-- **shake profile**. One source's shake: an envelope, a frequency, and how
-  far it jitters, rolls and kicks. The source's prefab references it, so
-  adding a source changes no camera code. *(CameraShakeProfile)*
+- **hit size**. How hard one hit lands on its ship, from 0 to 1. The world
+  shake and the canopy's damage shudder both scale by it, so a graze moves
+  both less than a big hit. *(AppliedDamage.HitSize)*
+- **shake profile**. One source's shake: an envelope, a frequency, how far it
+  jitters, rolls and kicks, and how hard it glitches the HUD on raise and on
+  release. The source's prefab references it, so adding a source changes no
+  camera or HUD code. Only shakes on your ship's shake channel glitch the HUD;
+  a nearby blast ignores its profile's glitch amounts. *(CameraShakeProfile)*
 - **shake envelope**. A shake profile's strength over seconds, from 0 to 1. One
   shake envelope scales the jitter, the roll and the kick together. A *sustain
   point* on it holds the strength until the source releases the shake, then
@@ -1100,10 +1102,22 @@ Format: **term** — definition. *(authority)*
   shake, and `shakeOffsetCap` and `shakeRollCap` clamp the total. While the
   game clock is stopped they leave the view alone. *(ShakeLayers)*
 - **shake channel**. The events a ship raises its own shakes on. Its kit and
-  weapon parts raise them, and the flight camera subscribes only to its
-  subject's, so an enemy's keystone never shakes your view. Always "shake
+  weapon parts raise them. The flight camera subscribes only to its subject's
+  and the canopy only to your ship's, so an enemy's keystone never shakes your
+  view or glitches your HUD. Always "shake
   channel": the lock channel and the shake noise channels share the word.
   *(Ship.Shake, ShakeChannel)*
+- **shake listener**. The one flight camera registered to hear nearby blasts.
+  It measures each blast's distance from its subject and starts a shake layer
+  scaled by that distance. A process-wide registry holds it. Wiring rule 3
+  calls that suspect, and the owner accepted it for presentation only (#1643).
+  Registering a second one throws. Always "shake listener": the audio side
+  has `CameraListener`. *(ShakeListener, ObserverCam)*
+- **shake emitter**. A blast prefab's part that passes each blast's position
+  to the shake listener. It sits beside the prefab's audio part and subscribes
+  to the same event. Always "shake emitter": particle systems have emitters.
+  *(GrenadeShake, MissileShake,
+  RailgunImpactShake, AsteroidShake)*
 - **item** — anything that fills a loadout slot: a chassis (a prefab with a root
   `Ship`) or a weapon (a prefab with a root `WeaponComponent`). Engine and shield
   modules come with the chassis and fill no slot (#1073, #1254); projectiles,

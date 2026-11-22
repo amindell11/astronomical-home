@@ -20,7 +20,7 @@ fails loudly if it changed.
 | `role.hull`, `role.canopy`, `role.cores`, `role.ink` | one joined mesh each: `Hull`, `Canopy`, `Cores`, `Ink` |
 | `role.collider` | `Collider`, no materials, no contour (optional) |
 | `role.sockets` | empties under `Sockets`, names verbatim |
-| `role.move.<id>` | reserved: parsed; the exporter refuses it |
+| `role.move.<id>` | reserved: parsed; `ship_export` refuses it, `ship_export_wings` exports it |
 | `role.debris.<id>` | one breakup section; exported by `ship_export --debris` |
 
 Only `role.hull` is required. Any other `role.*` name is an error. Visual roles exclude each
@@ -189,6 +189,7 @@ blender -b --factory-startup --python-exit-code 1 -P art/tools/ship/ship_X.py --
 | `ship_lock` | `--mode lock\|verify\|reopen` | Writes `lock.json` beside the source; `verify` fails on changed geometry; `reopen` reports changed parts and the stages they invalidate (`uv`, `masks`, `breakup`) and rewrites the lock. |
 | `ship_render` | `--set ortho\|turnaround\|sheet\|scale\|compare`, `--size N`, `--before BLEND`, `--textured` | Workbench review renders of the visual roles; `compare` renders `--before` beside the source and counts changed pixels; `--textured` shows each material's active image texture instead of its flat colour. |
 | `ship_export` | `--debris` | Intact: `<Name>.fbx` and `<Name>.export.json`. Debris: `<Name>Breakup.fbx` and `<Name>Breakup.export.json`. |
+| `ship_export_wings` | plain `python`, `--blender EXE` | For a ship with `role.move.<id>` groups (Valis): exports temporary copies with the unmodified `ship_lock` and `ship_export`. `<Name>.fbx` leaves the move parts out, `<Name>Wings.fbx` holds one mesh per move group in the source (thrust) pose, `<Name>Breakup.fbx` when the source has debris groups. Each group needs a `Hinge.<id>` socket: the pivot, rotated to the idle pose. |
 | `ship_uv` | | Texel density per part on `PaintUV`; fails when max/min exceeds `uv_density_max_ratio`. |
 | `ship_paint` | `--palette NAME`, `--unity DIR` | Bakes the paint masks beside the source from `paint.json` and `palettes.json` (Paint settings above), keeps owner edits through `layers/baseline/`, and writes `preview/Composite.png` and the Unity bundle `unity/<Name>/` under `--out`. Needs the geometry lock. |
 

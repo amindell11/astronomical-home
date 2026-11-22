@@ -654,6 +654,7 @@ namespace Game
                 AssistSetting.Set(on);
                 if (rigInstance) rigInstance.SetAssist(on);
             }));
+            rows.Add(SettingsRow.Slider("SCREEN SHAKE", CameraSettings.ShakeScale, v => CameraSettings.ShakeScale = v));
             rows.Add(SettingsRow.Toggle("FULLSCREEN", DisplaySettings.Fullscreen,
                 on => DisplaySettings.Set(DisplaySettings.Resolution, on)));
             rows.Add(SettingsRow.Choice("RESOLUTION", resolutions.Select(DisplaySettings.Label).ToList(),

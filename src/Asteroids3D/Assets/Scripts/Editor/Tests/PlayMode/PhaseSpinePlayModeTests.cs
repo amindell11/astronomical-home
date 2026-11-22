@@ -226,10 +226,12 @@ namespace Tests.PlayMode
             faction.signature = new FactionShip { ship = crimson, kit = crimson.Weapons.PrimaryMountPrefab, pilot = pilot };
             faction.minion = new FactionMinion
             {
+                ship = crimson,
                 kit = crimson.Weapons.PrimaryMountPrefab,
                 pilot = pilot,
                 scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f),
             };
+            faction.elite = new FactionElite { ship = crimson };
             var profile = TrackAsset(ScriptableObject.CreateInstance<EliteProfile>());
             profile.name = "TestElite";
             profile.Configure("Test elite", new ShipScale(1.5f, 1f, 1f, 1f, 1f), crimson.Weapons.PrimaryMountPrefab);
@@ -278,10 +280,12 @@ namespace Tests.PlayMode
             faction.signature = new FactionShip { ship = ship, kit = kit, pilot = pilot };
             faction.minion = new FactionMinion
             {
+                ship = ship,
                 kit = kit,
                 pilot = pilot,
                 scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f),
             };
+            faction.elite = new FactionElite { ship = ship };
         }
     }
 }
