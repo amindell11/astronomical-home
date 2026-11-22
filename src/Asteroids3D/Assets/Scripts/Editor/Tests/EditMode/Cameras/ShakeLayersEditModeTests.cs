@@ -253,6 +253,26 @@ namespace Tests.EditMode.Cameras
             Assert.AreEqual(0f, offset.y, 1e-4f);
         }
 
+        [Test]
+        public void StartStronger_InTheSameFrame_JudgesARisingBlastByItsPeak()
+        {
+            KickOnly(.4f);
+            profile.envelope = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(.05f, 1f), new Keyframe(.4f, 0f));
+            layers.StartStronger(profile, profile, Vector2.up, .6f, 0f);
+
+            layers.StartStronger(profile, profile, Vector2.right, .3f, 0f);
+            layers.Sample(.05f, HalfHeight, out var kept, out _);
+            Assert.AreEqual(1, layers.Count);
+            Assert.AreEqual(.6f * Kick * HalfHeight, kept.y, 1e-4f, "a weaker blast in the same frame leaves the rising one");
+            Assert.AreEqual(0f, kept.x, 1e-4f);
+
+            layers.StartStronger(profile, profile, Vector2.right, .9f, 0f);
+            layers.Sample(.05f, HalfHeight, out var replaced, out _);
+            Assert.AreEqual(1, layers.Count);
+            Assert.AreEqual(.9f * Kick * HalfHeight, replaced.x, 1e-4f);
+            Assert.AreEqual(0f, replaced.y, 1e-4f);
+        }
+
         private void KickOnly(float length)
         {
             profile.envelope = AnimationCurve.Constant(0f, length, 1f);

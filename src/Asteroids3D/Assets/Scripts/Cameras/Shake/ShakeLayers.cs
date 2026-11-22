@@ -38,7 +38,9 @@ namespace Cameras.Shake
             if (layer != null)
             {
                 var t = layer.EnvelopeTime(now);
-                if (!Ended(layer, t) && strength < Amplitude(layer, t))
+                // A layer still rising is judged by the peak it is about to reach.
+                var judgedAt = Mathf.Max(t, PeakTime(layer.profile.envelope));
+                if (!Ended(layer, t) && strength < Amplitude(layer, judgedAt))
                     return;
             }
 
@@ -100,6 +102,20 @@ namespace Cameras.Shake
 
         private static float Amplitude(Layer layer, float envelopeTime) =>
             Mathf.Clamp01(layer.profile.envelope.Evaluate(envelopeTime)) * layer.scale;
+
+        private static float PeakTime(AnimationCurve envelope)
+        {
+            var peakTime = 0f;
+            var peak = float.NegativeInfinity;
+            for (var i = 0; i < envelope.length; i++)
+            {
+                var key = envelope[i];
+                if (key.value <= peak) continue;
+                peak = key.value;
+                peakTime = key.time;
+            }
+            return peakTime;
+        }
 
         private sealed class Layer
         {
