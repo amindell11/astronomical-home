@@ -80,13 +80,13 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **arc** | multi-PR work arc · enemy arc exposure (retired with `ExposureCost`; prose only) | The work sense dominates; combat docs say "exposure arc". |
 | **stage / phase** | see §2 → *stage*, *phase*, *tier*, *batch*, *ship art stage*, *sector phase* — six schemes, each naming a different **kind** of sequence | Never a bare number: "stage (iii)", not "stage 3" or "phase 3". Bare "stage" = ship art stage inside the `ship-art-pipeline` skill and `doc/agents/art-pipeline.md` only. Bare "phase" = sector phase inside `WaveDirector` and `Substrate/Sectors/Elements/Phases/` only. |
 | **composition** | `IEpisodeComposition` · composition root (DI) · prefab-vs-runtime composition · capture-scene composition | Always qualified. |
-| **envelope** | firing envelope · kinematic envelope · scan envelope · MPC travel envelope | Bare "envelope" = firing envelope; qualify the others. |
+| **envelope** | firing envelope · kinematic envelope · scan envelope · MPC travel envelope · shake envelope (§2) | Bare "envelope" = firing envelope; qualify the others. |
 | **guard** | the prohibited runtime check (fix-ladder rung 5, pejorative) · a benign regression/test guard · infra guard | The pejorative sense wins in fix-ladder context. Tests say "regression test", not "guard". |
 | **anchor** | field anchor / subject (the transform an asteroid field streams and LODs against) / null anchor · archive anchors (file locations) · arena root · anchored intent / enemy anchor (the MPC-resolved frame reference) | Always qualified. |
 | **module** | deep module (design vocabulary, §2 → *design vocabulary*) · ship module (chassis/module/loadout) · `-ScopeType Module` (test scope) | Qualify: "deep module" / "ship module" / "Module scope". |
 | **mod** | lull mod (§2 → *lull mod*): a weapon mod or a ship mod · the colloquial short form of ship module | Bare "mod" = a lull mod of either kind inside the loot code (`Loot/`, the lull pick); prose names the kind ("weapon mod", "ship mod") wherever the kind matters; a ship module is never shortened to "mod". In a title, qualify regardless. |
 | **bench** | benchmark run (bench run, bench config, ram-bench harness) · benched work (`bench/<topic>`, §2 → *benched*) | Bare "bench" = benchmark run. Set-aside work is always "benched". |
-| **layer** | sky layer (one drawn backdrop layer — background, far nebula, starfield, close nebula — a renderer under a locale's `LocaleSky` root) · Unity layer (`LayerIds`; notably `Sky`, the render layer every sky layer sits on, which only the flight and hangar cameras' culling masks include) · starfield depth layer (inside `StarField.shader`) · paint mask (§2 → *Art pipeline*; never "paint layer") | Always qualified: "sky layer" vs "the `Sky` layer". |
+| **layer** | sky layer (one drawn backdrop layer — background, far nebula, starfield, close nebula — a renderer under a locale's `LocaleSky` root) · Unity layer (`LayerIds`; notably `Sky`, the render layer every sky layer sits on, which only the flight and hangar cameras' culling masks include) · starfield depth layer (inside `StarField.shader`) · paint mask (§2 → *Art pipeline*; never "paint layer") · shake layer (§2) | Always qualified: "sky layer" vs "the `Sky` layer". |
 | **charge** | charge-up / spent charge (`ChargeTime`, the `Charge` parameter) · concussion charge (`Grenade`, `IChargeFlight`, the target marker) | Always qualified in prose: "charge-up", "spent charge", "concussion charge". |
 | **environment** | Unity Lighting "Environment" settings (skybox, ambient) · Gizmo View "Environment" category · environment art (`Visuals/Environment/`: asteroids, stations, props) | Never for the locale in new prose — say "locale". Qualify the rest. |
 
@@ -1085,6 +1085,25 @@ Format: **term** — definition. *(authority)*
 - **hit size**. How hard one hit lands on its ship, from 0 to 1. It is the one
   value the world shake and the canopy's damage shudder both scale by, so a
   graze moves both less than a big hit. *(AppliedDamage.HitSize)*
+- **shake profile**. One source's shake: an envelope, a frequency, and how
+  far it jitters, rolls and kicks. The source's prefab references it, so
+  adding a source changes no camera code. *(CameraShakeProfile)*
+- **shake envelope**. A shake profile's strength over seconds, from 0 to 1. One
+  shake envelope scales the jitter, the roll and the kick together. A *sustain
+  point* on it holds the strength until the source releases the shake, then
+  plays the rest. Overdrive's buzz holds this way while its part scales the
+  strength by the ship's speed (`KeystoneSpeedShake`). Always "shake
+  envelope": bare "envelope" is the firing envelope.
+  *(CameraShakeProfile.envelope, sustainAt)*
+- **shake layer**. One running shake on the flight camera, one per source; a
+  new raise from the same source restarts it. Shake layers add to the trauma
+  shake, and `shakeOffsetCap` and `shakeRollCap` clamp the total. While the
+  game clock is stopped they leave the view alone. *(ShakeLayers)*
+- **shake channel**. The events a ship raises its own shakes on. Its kit and
+  weapon parts raise them, and the flight camera subscribes only to its
+  subject's, so an enemy's keystone never shakes your view. Always "shake
+  channel": the lock channel and the shake noise channels share the word.
+  *(Ship.Shake, ShakeChannel)*
 - **item** — anything that fills a loadout slot: a chassis (a prefab with a root
   `Ship`) or a weapon (a prefab with a root `WeaponComponent`). Engine and shield
   modules come with the chassis and fill no slot (#1073, #1254); projectiles,

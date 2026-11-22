@@ -33,6 +33,9 @@ namespace UI.Hangar.Hardware
         [Tooltip("Self-glow of the launch button.")]
         [SerializeField, ColorUsage(false, true)] private Color launchGlow = new(.9f, .6f, .3f);
 
+        [Tooltip("Color the launch lamps blink after the button is pressed.")]
+        [SerializeField, ColorUsage(false, true)] private Color launchPressedColor = new(.25f, .55f, 1f);
+
         [Tooltip("Intensity of the main screen's spill light.")]
         [SerializeField, Range(0f, 200f)] private float mainScreenSpill = 4.55f;
 
@@ -75,6 +78,7 @@ namespace UI.Hangar.Hardware
         public Color LaunchSpillColor => launchSpillColor;
         public float LaunchSpill => launchSpill;
         public Color LaunchGlow => launchGlow;
+        public Color LaunchPressedColor => launchPressedColor;
         public float MainScreenSpill => mainScreenSpill;
         public float DetailScreenSpill => detailScreenSpill;
         public float WeaponScreenSpill => weaponScreenSpill;

@@ -38,3 +38,5 @@ MonoBehaviour:
   maxShakeOffset: 0.07
   maxShakeRoll: 3
   shakeFrequency: 11
+  shakeOffsetCap: 0.12
+  shakeRollCap: 4

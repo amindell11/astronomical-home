@@ -1,6 +1,6 @@
 {
-  "hardware_intersection_over_union": 0.9677602360035011,
-  "changed_pixels": 35802,
+  "hardware_intersection_over_union": 0.9673455941125217,
+  "changed_pixels": 36278,
   "image_pixels": 2073600,
   "edge_distance_95_percentile_px": 14.0,
   "edge_distance_max_px": 65.0,

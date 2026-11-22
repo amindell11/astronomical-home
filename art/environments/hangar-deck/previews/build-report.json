@@ -3,14 +3,14 @@
     {
       "name": "Deck | joined closed structure",
       "role": "ConsoleBody",
-      "triangles": 19496,
-      "vertices": 10386,
+      "triangles": 21040,
+      "vertices": 11174,
       "closed": true,
       "manifold": true,
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 4098.849547422525,
+      "volume": 4098.837449988888,
       "planar_screen": false,
       "zero_area_faces": 0
     },
@@ -283,14 +283,14 @@
     {
       "name": "09 | Projector lens",
       "role": "ProjectorLens",
-      "triangles": 44,
-      "vertices": 24,
+      "triangles": 1916,
+      "vertices": 960,
       "closed": true,
       "manifold": true,
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 0.013867500521358168,
+      "volume": 0.013892140591462186,
       "planar_screen": false,
       "zero_area_faces": 0
     },
@@ -380,7 +380,7 @@
     },
     {
       "name": "Deck | Left Launch armed red lens",
-      "role": "ConsoleBody",
+      "role": "LaunchLampLeft",
       "triangles": 28,
       "vertices": 16,
       "closed": true,
@@ -394,7 +394,7 @@
     },
     {
       "name": "Deck | Right Launch armed red lens",
-      "role": "ConsoleBody",
+      "role": "LaunchLampRight",
       "triangles": 28,
       "vertices": 16,
       "closed": true,
@@ -435,7 +435,7 @@
       "zero_area_faces": 0
     }
   ],
-  "triangles": 20880,
+  "triangles": 24296,
   "lamps": [
     {
       "name": "Deck | Left status 1 green lens",
@@ -658,7 +658,9 @@
     "OrdnancePreviousLegend": "30 | Ordnance Previous ivory inlay",
     "OrdnanceNextButton": "30 | Ordnance Next key",
     "OrdnanceNextLegend": "30 | Ordnance Next ivory inlay",
-    "ProjectorLens": "09 | Projector lens"
+    "ProjectorLens": "09 | Projector lens",
+    "LaunchLampLeft": "Deck | Left Launch armed red lens",
+    "LaunchLampRight": "Deck | Right Launch armed red lens"
   },
   "screens": [
     {

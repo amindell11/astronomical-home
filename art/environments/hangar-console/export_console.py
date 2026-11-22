@@ -144,6 +144,8 @@ part_names = {
     'LaunchButton': ['08 | Launch broad beveled button'],
     'LaunchLegend': ['19 | Launch legend'],
     'ProjectorLens': ['09 | Projector lens'],
+    'LaunchLampLeft': ['Deck | Left Launch armed red lens'],
+    'LaunchLampRight': ['Deck | Right Launch armed red lens'],
 }
 # Terminal parts are authored in their frame's space, so each pivots on its own centre.
 terminal_names = {}

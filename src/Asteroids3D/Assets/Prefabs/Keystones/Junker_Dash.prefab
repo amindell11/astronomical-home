@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 2984417602718356061}
   - component: {fileID: 5512903418735166201}
   - component: {fileID: 2595369662424559093}
+  - component: {fileID: 6855930157519924350}
   m_Layer: 0
   m_Name: Junker_Dash
   m_TagString: Untagged
@@ -68,3 +69,17 @@ MonoBehaviour:
       Data3: -310434416
       Data4: 1108904726
     Path: event:/Ships/Keystones/Dash
+--- !u!114 &6855930157519924350
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7781260934417810432}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bcbd48d4c6a00914294dcd3aa986d03a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  keystone: {fileID: 5512903418735166201}
+  profile: {fileID: 11400000, guid: a85f204728ee24c44bda1e6fe03dd98a, type: 2}
