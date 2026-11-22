@@ -180,6 +180,8 @@ namespace UI.Projection
             data.transitionAge = source.TransitionAge;
             data.hitAge = source.HitAge;
             data.hitSize = source.HitSize;
+            data.glitchAge = source.GlitchAge;
+            data.glitchStrength = source.GlitchStrength;
         }
 
         private static void Draw(PassData data, RasterGraphContext context, int passIndex)
@@ -204,6 +206,8 @@ namespace UI.Projection
             properties.SetFloat("_TransitionAge", data.transitionAge);
             properties.SetFloat("_HitAge", data.hitAge);
             properties.SetFloat("_HitSize", data.hitSize);
+            properties.SetFloat("_GlitchAge", data.glitchAge);
+            properties.SetFloat("_GlitchStrength", data.glitchStrength);
             properties.SetVector("_Beam", new Vector4(data.settings.glow, data.settings.aberration,
                 data.settings.beamJitter, 0f));
             properties.SetVector("_Phosphor", new Vector4(data.settings.scanlines, data.settings.flicker,
@@ -240,6 +244,8 @@ namespace UI.Projection
             public float transitionAge;
             public float hitAge;
             public float hitSize;
+            public float glitchAge;
+            public float glitchStrength;
         }
     }
 }

@@ -1085,9 +1085,11 @@ Format: **term** — definition. *(authority)*
 - **hit size**. How hard one hit lands on its ship, from 0 to 1. It is the one
   value the world shake and the canopy's damage shudder both scale by, so a
   graze moves both less than a big hit. *(AppliedDamage.HitSize)*
-- **shake profile**. One source's shake: an envelope, a frequency, and how
-  far it jitters, rolls and kicks. The source's prefab references it, so
-  adding a source changes no camera code. *(CameraShakeProfile)*
+- **shake profile**. One source's shake: an envelope, a frequency, how far it
+  jitters, rolls and kicks, and how hard it glitches the HUD on raise and on
+  release. The source's prefab references it, so adding a source changes no
+  camera or HUD code. Only shakes on your ship's shake channel glitch the HUD;
+  a nearby blast ignores its profile's glitch amounts. *(CameraShakeProfile)*
 - **shake envelope**. A shake profile's strength over seconds, from 0 to 1. One
   shake envelope scales the jitter, the roll and the kick together. A *sustain
   point* on it holds the strength until the source releases the shake, then
@@ -1100,10 +1102,22 @@ Format: **term** — definition. *(authority)*
   shake, and `shakeOffsetCap` and `shakeRollCap` clamp the total. While the
   game clock is stopped they leave the view alone. *(ShakeLayers)*
 - **shake channel**. The events a ship raises its own shakes on. Its kit and
-  weapon parts raise them, and the flight camera subscribes only to its
-  subject's, so an enemy's keystone never shakes your view. Always "shake
+  weapon parts raise them. The flight camera subscribes only to its subject's
+  and the canopy only to your ship's, so an enemy's keystone never shakes your
+  view or glitches your HUD. Always "shake
   channel": the lock channel and the shake noise channels share the word.
   *(Ship.Shake, ShakeChannel)*
+- **shake listener**. The one flight camera registered to hear nearby blasts.
+  It measures each blast's distance from its subject and starts a shake layer
+  scaled by that distance. A process-wide registry holds it. Wiring rule 3
+  calls that suspect, and the owner accepted it for presentation only (#1643).
+  Registering a second one throws. Always "shake listener": the audio side
+  has `CameraListener`. *(ShakeListener, ObserverCam)*
+- **shake emitter**. A blast prefab's part that passes each blast's position
+  to the shake listener. It sits beside the prefab's audio part and subscribes
+  to the same event. Always "shake emitter": particle systems have emitters.
+  *(GrenadeShake, MissileShake,
+  RailgunImpactShake, AsteroidShake)*
 - **item** — anything that fills a loadout slot: a chassis (a prefab with a root
   `Ship`) or a weapon (a prefab with a root `WeaponComponent`). Engine and shield
   modules come with the chassis and fill no slot (#1073, #1254); projectiles,
