@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Cameras;
 using Cameras.Shake;
 using Damage;
 using NUnit.Framework;
@@ -53,10 +54,13 @@ namespace Tests.PlayMode.Rendering.Projection
         private ShakeChannel channel;
         private CameraShakeProfile shakeProfile;
         private bool visible;
+        private float previousShakeScale;
 
         [SetUp]
         public void SetUp()
         {
+            previousShakeScale = CameraSettings.ShakeScale;
+            CameraSettings.ShakeScale = 1f;
             root = new GameObject("Canopy events");
             var camera = Child("Scene camera").AddComponent<Camera>();
             camera.gameObject.AddComponent<UniversalAdditionalCameraData>();
@@ -86,6 +90,7 @@ namespace Tests.PlayMode.Rendering.Projection
             Object.DestroyImmediate(profile);
             Object.DestroyImmediate(shakeProfile);
             Time.timeScale = 1f;
+            CameraSettings.ShakeScale = previousShakeScale;
         }
 
         private GameObject Child(string name)
@@ -276,6 +281,18 @@ namespace Tests.PlayMode.Rendering.Projection
             shakeProfile.releaseGlitch = .8f;
             channel.Release(shakeProfile);
             Assert.That(personality.Observe().GlitchStrength, Is.EqualTo(.8f));
+        }
+
+        [Test]
+        public void ShakeScale_HalvesHitSizeAndGlitchStrength()
+        {
+            CameraSettings.ShakeScale = .5f;
+            damage.Hit(12.5f);
+            Assert.That(personality.Observe().HitSize, Is.EqualTo(.25f).Within(.001f));
+
+            shakeProfile.glitch = .8f;
+            channel.Raise(shakeProfile, shakeProfile, Vector2.up);
+            Assert.That(personality.Observe().GlitchStrength, Is.EqualTo(.4f).Within(.001f));
         }
     }
 }

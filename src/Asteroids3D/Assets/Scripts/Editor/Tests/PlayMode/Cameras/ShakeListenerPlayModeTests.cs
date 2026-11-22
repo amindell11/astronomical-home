@@ -17,11 +17,14 @@ namespace Tests.PlayMode.Cameras
         private ObserverCam second;
         private GameObject subject;
         private CameraShakeProfile profile;
+        private float previousShakeScale;
 
         [SetUp]
         public override void SetUp()
         {
             base.SetUp();
+            previousShakeScale = CameraSettings.ShakeScale;
+            CameraSettings.ShakeScale = 1f;
             cam = TestAssets.NewObserverCam();
             // The editor's live mouse would move the lead.
             cam.GetComponent<ObserverCamInputHandler>().enabled = false;
@@ -49,6 +52,7 @@ namespace Tests.PlayMode.Cameras
             DestroyTestObject(second);
             DestroyTestObject(cam);
             DestroyTestObject(subject);
+            CameraSettings.ShakeScale = previousShakeScale;
             base.TearDown();
         }
 
