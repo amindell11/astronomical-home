@@ -8,11 +8,15 @@ namespace Game.Companion
     /// <summary>
     /// The parsed line file, the export of the lines doc's Line sheet tab.
     /// Only In game rows are kept. A bad row fails the parse by name.
+    /// A pick is an exchange: an opening line and sometimes a reply.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1321
     /// </summary>
     public sealed class LineTable
     {
         public const string CompanionSpeaker = "Companion";
+
+        private const string AfterAny = "any";
+        private const string AfterEither = "either";
 
         private readonly List<Row> rows;
         private readonly string[] factions;
@@ -63,52 +67,107 @@ namespace Game.Companion
                         $"Line '{id}' has status '{status}'; expected In game, Later, Draft or Cut.");
 
                 var moment = cells[momentColumn];
-                LineSlot slot = null;
+                var knownMoment = false;
                 for (var s = 0; s < slots.Count; s++)
                 {
                     if (slots[s].Moment != moment) continue;
-                    slot = slots[s];
+                    knownMoment = true;
                     break;
                 }
 
-                if (slot == null)
+                if (!knownMoment)
                     throw new FormatException($"Line '{id}' names moment '{moment}', which has no line slot.");
 
                 var speaker = cells[speakerColumn];
-                var slotSpeaker = slot.SpokenBy;
-                if (speaker != slotSpeaker)
-                    throw new FormatException(
-                        $"Line '{id}' is spoken by '{speaker}', but the '{moment}' line slot speaks as '{slotSpeaker}'.");
-
-                var after = cells[afterColumn];
-                if (after.Length > 0)
-                    throw new FormatException(
-                        $"Line '{id}' follows '{after}'; a line that follows another cannot play yet.");
+                if (string.IsNullOrWhiteSpace(speaker))
+                    throw new FormatException($"Line '{id}' has no speaker.");
 
                 var text = cells[lineColumn];
                 if (string.IsNullOrWhiteSpace(text))
                     throw new FormatException($"Line '{id}' has no text.");
 
-                kept.Add(new Row(moment, cells[factionColumn], text));
+                kept.Add(new Row(id, moment, cells[factionColumn], speaker, cells[afterColumn], text));
             }
 
+            Validate(kept);
             return new LineTable(kept);
         }
 
-        public string Pick(string moment, IReadOnlyDictionary<string, string> facts, Func<int, int> range)
+        public IReadOnlyList<SpokenLine> Pick(string moment, IReadOnlyDictionary<string, string> facts,
+            Func<int, int> range, bool withReply)
         {
             facts.TryGetValue("faction", out var faction);
-            var matches = new List<string>();
+            var openers = new List<Row>();
             foreach (var row in rows)
             {
-                if (row.Moment != moment) continue;
-                if (row.Faction.Length != 0 && row.Faction != faction) continue;
-                matches.Add(row.Text);
+                if (row.Moment != moment || !row.CanOpen || !MatchesFaction(row, faction)) continue;
+                openers.Add(row);
             }
 
-            if (matches.Count == 0) return null;
-            return matches[range(matches.Count)];
+            if (openers.Count == 0) return Array.Empty<SpokenLine>();
+
+            var opener = openers[range(openers.Count)];
+            if (!withReply) return new[] { Spoken(opener) };
+
+            var followers = new List<Row>();
+            foreach (var row in rows)
+            {
+                if (!row.CanFollow(opener) || !MatchesFaction(row, faction)) continue;
+                followers.Add(row);
+            }
+
+            if (followers.Count == 0) return new[] { Spoken(opener) };
+            return new[] { Spoken(opener), Spoken(followers[range(followers.Count)]) };
         }
+
+        private static void Validate(List<Row> kept)
+        {
+            foreach (var row in kept)
+            {
+                if (NamesRow(row.After))
+                {
+                    var found = false;
+                    var target = default(Row);
+                    foreach (var other in kept)
+                    {
+                        if (other.Id != row.After) continue;
+                        target = other;
+                        found = true;
+                        break;
+                    }
+
+                    if (!found)
+                        throw new FormatException(
+                            $"Line '{row.Id}' follows '{row.After}', which is not an In game line.");
+                    if (target.Moment != row.Moment)
+                        throw new FormatException(
+                            $"Line '{row.Id}' follows '{row.After}', which speaks for another moment.");
+                    if (target.Speaker == row.Speaker)
+                        throw new FormatException(
+                            $"Line '{row.Id}' follows '{row.After}', which has the same speaker.");
+                }
+
+                if (row.After != AfterAny || HasOpener(kept, row)) continue;
+                throw new FormatException(
+                    $"Line '{row.Id}' follows an opening line from another speaker, and its moment has none.");
+            }
+        }
+
+        private static bool HasOpener(List<Row> kept, Row follower)
+        {
+            foreach (var row in kept)
+                if (row.CanOpen && follower.CanFollow(row))
+                    return true;
+            return false;
+        }
+
+        private static bool NamesRow(string after) =>
+            after.Length != 0 && after != AfterAny && after != AfterEither;
+
+        private static bool MatchesFaction(Row row, string faction) =>
+            row.Faction.Length == 0 || row.Faction == faction;
+
+        private static SpokenLine Spoken(Row row) => new SpokenLine(row.Speaker, row.Text);
 
         private static List<string> TableLines(string markdown)
         {
@@ -196,16 +255,30 @@ namespace Game.Companion
 
         private readonly struct Row
         {
-            public Row(string moment, string faction, string text)
+            public Row(string id, string moment, string faction, string speaker, string after, string text)
             {
+                Id = id;
                 Moment = moment;
                 Faction = faction;
+                Speaker = speaker;
+                After = after;
                 Text = text;
             }
 
+            public string Id { get; }
             public string Moment { get; }
             public string Faction { get; }
+            public string Speaker { get; }
+            public string After { get; }
             public string Text { get; }
+
+            public bool CanOpen => After.Length == 0 || After == AfterEither;
+
+            public bool CanFollow(Row opener) =>
+                Moment == opener.Moment
+                && Speaker != opener.Speaker
+                && (Faction.Length == 0 || opener.Faction.Length == 0 || Faction == opener.Faction)
+                && (After == AfterAny || After == AfterEither || After == opener.Id);
         }
     }
 }

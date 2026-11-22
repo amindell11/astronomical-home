@@ -7,11 +7,12 @@ using UnityEngine;
 namespace Game.Companion
 {
     /// <summary>
-    /// Speaks for the run's moments: each raised moment picks a line from the line file's rows for its
-    /// line slot and faction, fills in the facts, prefixes who speaks it, and offers it
-    /// to the nag budget. A line the budget lets through shows on the comm line. Built once per session;
-    /// each run hands it the moment stream. With debug labels on, a moment with no matching line speaks a
-    /// bracketed label of its id and facts instead of staying silent, prefixed the same way.
+    /// Speaks for the run's moments. A moment picks an exchange, and the reply shows when the opener's
+    /// hold ends. The exchange comes from the line file's rows for the moment's line slot and faction;
+    /// each line is filled from the facts, prefixed with who speaks it, and offered to the nag budget.
+    /// A line the budget lets through shows on the comm line. Built once per session; each run hands it
+    /// the moment stream. With debug labels on, a moment with no matching line speaks a bracketed label
+    /// of its id and facts instead of staying silent, prefixed the same way.
     /// </summary>
     public sealed class CompanionVoice : MonoBehaviour
     {
@@ -57,17 +58,28 @@ namespace Game.Companion
         private void OnRaised(IRunMoment moment)
         {
             var slot = sheet.Find(moment.Slot);
-            var line = lines.Pick(moment.Slot, moment.Facts, n => UnityEngine.Random.Range(0, n));
-            if (line != null)
-                foreach (var fact in moment.Facts)
-                    line = line.Replace("{" + fact.Key + "}", fact.Value);
-            else if (debugLabels)
-                line = DebugLabel(moment);
-            else
+            var picked = lines.Pick(moment.Slot, moment.Facts, n => UnityEngine.Random.Range(0, n),
+                UnityEngine.Random.value < feel.ReplyChance);
+            if (picked.Count == 0)
+            {
+                if (!debugLabels) return;
+                budget.Offer(slot.SpokenBy + ": " + DebugLabel(moment), slot.MustSay, Time.unscaledTime, null);
+                TrySpeak();
                 return;
-            line = slot.SpokenBy + ": " + line;
-            budget.Offer(line, slot.MustSay, Time.unscaledTime);
+            }
+
+            var first = Spoken(picked[0], moment);
+            var second = picked.Count > 1 ? Spoken(picked[1], moment) : null;
+            budget.Offer(first, slot.MustSay, Time.unscaledTime, second);
             TrySpeak();
+        }
+
+        private static string Spoken(SpokenLine line, IRunMoment moment)
+        {
+            var text = line.Text;
+            foreach (var fact in moment.Facts)
+                text = text.Replace("{" + fact.Key + "}", fact.Value);
+            return line.Speaker + ": " + text;
         }
 
         private static string DebugLabel(IRunMoment moment) =>
