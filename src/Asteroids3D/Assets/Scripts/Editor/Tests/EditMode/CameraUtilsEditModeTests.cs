@@ -197,5 +197,41 @@ namespace Tests.EditMode
             var mapped = CameraUtils.ShakenView(Matrix4x4.identity, new Vector2(1f, 2f), 0f).MultiplyPoint(point);
             Assert.That(Vector3.Distance(mapped, point - new Vector3(1f, 2f, 0f)), Is.LessThan(1e-5f));
         }
+
+        [Test]
+        public void BlastStrength_InsideTheInnerRadius_IsFull()
+        {
+            Assert.That(CameraUtils.BlastStrength(0f, 4f, 20f, 0f, 0f), Is.EqualTo(1f));
+            Assert.That(CameraUtils.BlastStrength(4f, 4f, 20f, 3f, 0f), Is.EqualTo(1f));
+        }
+
+        [Test]
+        public void BlastStrength_AtOrBeyondTheOuterRadius_IsZero()
+        {
+            Assert.That(CameraUtils.BlastStrength(20f, 4f, 20f, 0f, 0f), Is.EqualTo(0f));
+            Assert.That(CameraUtils.BlastStrength(21f, 4f, 20f, 0f, 0f), Is.EqualTo(0f));
+        }
+
+        [Test]
+        public void BlastStrength_HalfwayBetweenTheRadii_IsHalf() =>
+            Assert.That(CameraUtils.BlastStrength(12f, 4f, 20f, 0f, 0f), Is.EqualTo(.5f).Within(1e-4f));
+
+        [Test]
+        public void BlastStrength_HalfOfFullSize_HalvesStrengthAndBothRadii()
+        {
+            const float inner = 4f, outer = 20f;
+            Assert.That(CameraUtils.BlastStrength(0f, inner, outer, 5f, 10f), Is.EqualTo(.5f).Within(1e-4f));
+            Assert.That(CameraUtils.BlastStrength(inner * .5f, inner, outer, 5f, 10f), Is.EqualTo(.5f).Within(1e-4f));
+            Assert.That(CameraUtils.BlastStrength(outer * .5f, inner, outer, 5f, 10f), Is.EqualTo(0f).Within(1e-4f));
+            Assert.That(CameraUtils.BlastStrength((inner + outer) * .25f, inner, outer, 5f, 10f), Is.EqualTo(.25f).Within(1e-4f));
+        }
+
+        [Test]
+        public void BlastStrength_ZeroFullSize_IgnoresSize()
+        {
+            Assert.That(CameraUtils.BlastStrength(4f, 4f, 20f, 100f, 0f), Is.EqualTo(1f));
+            Assert.That(CameraUtils.BlastStrength(12f, 4f, 20f, 100f, 0f), Is.EqualTo(.5f).Within(1e-4f));
+            Assert.That(CameraUtils.BlastStrength(20f, 4f, 20f, 100f, 0f), Is.EqualTo(0f));
+        }
     }
 }
