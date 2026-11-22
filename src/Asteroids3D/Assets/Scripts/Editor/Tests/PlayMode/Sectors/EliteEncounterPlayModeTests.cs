@@ -25,7 +25,7 @@ using Substrate.Sessions;
 
 namespace Tests.PlayMode.Sectors
 {
-    /// <summary>A phased sector that ends at its elite: the phases' end summons a scaled elite on its faction's signature ship and announces it with the sector's index and faction id, its hull falling past the first escalation step calls that step's escorts on the minion rank at the minion's scale with this encounter's escort pilot, its death extracts, and teardown clears it and its escorts. Once the elite arrives the wave director sends no more ships and those already out fly on, while a sector with no elite keeps refilling. A spawn log watching the encounter marks the elite's life and raises the player's kill of it.</summary>
+    /// <summary>A phased sector that ends at its elite: the phases' end summons a scaled elite on its faction's elite chassis and announces it with the sector's index and faction id, its hull falling past the first escalation step calls that step's escorts on the minion rank at the minion's scale with this encounter's escort pilot, its death extracts, and teardown clears it and its escorts. Once the elite arrives the wave director sends no more ships and those already out fly on, while a sector with no elite keeps refilling. A spawn log watching the encounter marks the elite's life and raises the player's kill of it.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class EliteEncounterPlayModeTests : PlayModeWorldFixture
@@ -74,7 +74,7 @@ namespace Tests.PlayMode.Sectors
 
         private const string EscortPilotPath = "Assets/Prefabs/Pilots/AggressorPilot.prefab";
 
-        // The elite flies Crimson, the faction's signature ship. Escorts fly that ship at minion scale.
+        // The elite and the escorts fly Crimson; escorts at minion scale.
         private (Sector sector, PhaseSpineModule spine, EliteEncounter encounter, ExtractionZone zone) EliteSector(
             Ship hero, EliteProfile profile, string factionId, int sectorIndex, int waveShips = 0,
             bool withElite = true, float waveEvery = 30f)
@@ -95,10 +95,12 @@ namespace Tests.PlayMode.Sectors
             };
             faction.minion = new FactionMinion
             {
+                ship = crimson,
                 kit = vanguard.Weapons.PrimaryMountPrefab,
                 pilot = pilot,
                 scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f),
             };
+            faction.elite = new FactionElite { ship = crimson };
 
             var sectorGO = Track(new GameObject("EliteSector"));
             var sector = sectorGO.AddComponent<Sector>();
@@ -193,7 +195,7 @@ namespace Tests.PlayMode.Sectors
             var escorts = Escorts();
             Assert.AreEqual(2, escorts.Length, "Falling past two thirds calls the first step's escorts, and only those.");
             var escortPilot = TestAssets.Load<AI.AICommander>(EscortPilotPath);
-            Assert.IsTrue(escorts.All(ship => ship.name.StartsWith(crimson.name)), "Escorts fly the signature ship.");
+            Assert.IsTrue(escorts.All(ship => ship.name.StartsWith(crimson.name)), "Escorts fly the minion chassis.");
             Assert.IsTrue(escorts.All(ship => ship.Commander.name.StartsWith(escortPilot.name)),
                 "Escorts fly this encounter's escort pilot.");
             Assert.IsTrue(escorts.All(ship =>
