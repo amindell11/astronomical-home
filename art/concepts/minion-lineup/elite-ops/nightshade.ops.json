@@ -1,0 +1,11 @@
+[
+ {"op": "dup", "part": "Rear swept wing pair", "as": "Field array blade"},
+ {"op": "remap", "parts": ["Field array blade"], "fit": 0, "bins": 36,
+  "target": {"top": 0.9, "length": 1.86, "z": 0.03, "z_scale": 0.6,
+   "outer": [[0,0.42],[0.12,0.66],[0.3,0.88],[0.5,0.97],[0.68,0.95],[0.86,0.82],[1,0.63]],
+   "inner": [[0,0.40],[0.12,0.59],[0.3,0.76],[0.5,0.83],[0.68,0.815],[0.86,0.72],[1,0.605]]}},
+ {"op": "poly", "name": "Field array forward strut", "pts": [[0.44,0.42],[0.82,0.37],[0.82,0.29],[0.44,0.27]], "z": [0.0, 0.045], "top_inset": 0.012, "mat": "Nightshade Midnight"},
+ {"op": "poly", "name": "Field array aft strut", "pts": [[0.6,-0.36],[0.9,-0.44],[0.9,-0.52],[0.6,-0.5]], "z": [0.02, 0.065], "top_inset": 0.012, "mat": "Nightshade Midnight"},
+ {"op": "poly", "name": "Field array forward emitter", "pts": [[0.6,0.375],[0.72,0.36],[0.72,0.32],[0.6,0.325]], "z": [0.04, 0.055], "mat": "Nightshade Plum"},
+ {"op": "poly", "name": "Field array aft emitter", "pts": [[0.72,-0.415],[0.82,-0.44],[0.82,-0.48],[0.72,-0.465]], "z": [0.06, 0.075], "mat": "Nightshade Plum"}
+]

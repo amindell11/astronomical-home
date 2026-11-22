@@ -5,8 +5,8 @@ using Object = UnityEngine.Object;
 namespace Cameras.Shake
 {
     /// <summary>
-    /// A ship's outlet for its own shakes. Parts on the ship raise and release, and the flight camera
-    /// listens only to its subject's channel.
+    /// A ship's outlet for its own shakes. Parts on the ship raise and release; the flight camera
+    /// listens only to its subject's channel, and the canopy only to the player's.
     /// </summary>
     public sealed class ShakeChannel
     {

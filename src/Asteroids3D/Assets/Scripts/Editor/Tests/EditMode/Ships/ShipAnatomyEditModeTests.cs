@@ -18,7 +18,7 @@ namespace Tests.EditMode.Ships
     /// <summary>
     /// The anatomy law, enforced on every chassis the catalog lists except the legacy
     /// names: a depth-1 variant of ShipBase, the fixed slot set, overrides confined to declared
-    /// slots, sockets placed by the hull, and hull meshes that come from the ship's own FBX.
+    /// slots, sockets placed by the hull, and hull meshes that come from the ship's own hull or wings FBX.
     /// </summary>
     [Category("Ships")]
     public sealed class ShipAnatomyEditModeTests
@@ -168,7 +168,8 @@ namespace Tests.EditMode.Ships
         public void Chassis_HullSlotHoldsItsOwnRoleMeshes(string path)
         {
             var root = Load(path);
-            var fbx = $"Assets/Visuals/Ships/{root.name}/{root.name}.fbx";
+            var hullFbx = $"Assets/Visuals/Ships/{root.name}/{root.name}.fbx";
+            var wingsFbx = $"Assets/Visuals/Ships/{root.name}/{root.name}Wings.fbx";
             var renderers = root.transform.Find(HullSlot).GetComponentsInChildren<Renderer>(true);
             Assert.That(renderers, Is.Not.Empty, "The hull slot carries the painted geometry.");
             foreach (var renderer in renderers)
@@ -179,13 +180,14 @@ namespace Tests.EditMode.Ships
                 var mesh = skinned ? skinned.sharedMesh : renderer.GetComponent<MeshFilter>().sharedMesh;
                 Assert.That(mesh, Is.Not.Null, renderer.name);
                 if (!ShipLegacyList.HullModels.Contains(root.name))
-                    Assert.That(AssetDatabase.GetAssetPath(mesh), Is.EqualTo(fbx), $"{renderer.name}: hull meshes come from the ship's own role export.");
+                    Assert.That(AssetDatabase.GetAssetPath(mesh), Is.EqualTo(hullFbx).Or.EqualTo(wingsFbx),
+                        $"{renderer.name}: hull meshes come from the ship's own role export.");
                 Assert.That(renderer.sharedMaterials.All(AssetDatabase.Contains), Is.True, renderer.name);
             }
             var collider = root.transform.Find("Mesh").GetComponent<MeshCollider>();
             Assert.That(collider.sharedMesh, Is.Not.Null, "The collider slot is filled.");
             if (!ShipLegacyList.SavedColliderMeshes.Contains(root.name))
-                Assert.That(AssetDatabase.GetAssetPath(collider.sharedMesh), Is.EqualTo(fbx), "The collider comes from the Collider role.");
+                Assert.That(AssetDatabase.GetAssetPath(collider.sharedMesh), Is.EqualTo(hullFbx), "The collider comes from the Collider role.");
             var breakup = new SerializedObject(root.transform.Find(Rig).GetComponent<ShipBreakupVisual>());
             Assert.That(breakup.FindProperty("debrisPrefab").objectReferenceValue, Is.Not.Null, "The breakup slot is filled.");
             var breakupHull = (Transform)breakup.FindProperty("hull").objectReferenceValue;

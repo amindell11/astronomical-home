@@ -305,7 +305,9 @@ namespace Substrate.Sectors.Elements
         public SectorThreat Threat(SectorEntry row)
         {
             var ships = new List<Ship>();
-            AddDistinct(ships, row.faction.Ship);
+            AddDistinct(ships, row.faction.Rival.ship);
+            AddDistinct(ships, row.faction.Minion.ship);
+            AddDistinct(ships, row.faction.EliteShip);
 
             var weapons = new List<WeaponComponent>();
             AddDistinct(weapons, row.faction.Rival.kit);
@@ -390,7 +392,7 @@ namespace Substrate.Sectors.Elements
             var facingHero = GamePlane.PlanePose(GamePlane.Normal, GamePlane.PlaneDirToWorld(-outward));
             var ship = units.SpawnShip(rank.ship, rank.pilot, team, GamePlane.PlanePointToWorld(planePoint),
                 facingHero, field, rank.Loadout, rank.scale);
-            faction.Faction.Dress(ship, elite: false);
+            faction.Faction.Dress(ship, rank);
             Track(ship);
             return ship;
         }

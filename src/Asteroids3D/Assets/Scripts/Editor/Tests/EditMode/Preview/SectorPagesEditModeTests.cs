@@ -123,8 +123,9 @@ namespace Tests.EditMode.Preview
             faction.signature = new FactionShip { ship = ship, kit = kit, pilot = rival };
             faction.minion = new FactionMinion
             {
-                kit = kit, pilot = minion, scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f),
+                ship = ship, kit = kit, pilot = minion, scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f),
             };
+            faction.elite = new FactionElite { ship = ship };
             return faction;
         }
 
