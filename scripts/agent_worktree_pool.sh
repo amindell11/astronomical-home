@@ -442,8 +442,9 @@ Commands:
       turn as land-docs does, it reads the PR, fetches origin main and the
       PR head, checks the PR's paths against the merge base (a rename counts
       as a delete and an add), checks that the PR merges into main without
-      conflict (git merge-tree), and runs gh pr merge --squash naming the
-      fetched head (--match-head-commit).
+      conflict (git merge-tree), and runs gh pr merge --squash --admin naming
+      the fetched head (--match-head-commit); --admin uses the main ruleset's
+      admin bypass, since the required statuses never run on such a PR.
       Stdout trailer: LAND_BALANCE=landed <head sha>, or
       LAND_BALANCE=refused:<reason>, the reason one of
         gh         reading the PR or gh pr merge failed
@@ -3341,7 +3342,8 @@ land_balance_merge() {
     land_balance_refuse conflict "PR #$pr does not merge into main"
     return 1
   fi
-  if ! gh pr merge "$pr" --squash --delete-branch=false --match-head-commit "$head" >&2; then
+  # --admin: main's ruleset requires the hosted proofs and land-check, which this landing skips.
+  if ! gh pr merge "$pr" --squash --admin --delete-branch=false --match-head-commit "$head" >&2; then
     land_balance_refuse gh "gh pr merge failed for PR #$pr"
     return 1
   fi

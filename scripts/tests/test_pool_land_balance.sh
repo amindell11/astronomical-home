@@ -31,6 +31,7 @@ case "$1 $2" in
     cat "$FIX/view-$3" 2>/dev/null || printf 'OPEN\tmain\tfalse\tfalse\t%s\n' "$tip" ;;
   "pr merge")
     echo "$args" >> "$FIX/merge-log"
+    [[ "$args" == *--admin* ]] || { echo "gh stub: the ruleset refuses a merge without --admin" >&2; exit 1; }
     want="${args##*--match-head-commit }"; want="${want%% *}"
     tip="$(git --git-dir="$ORIGIN" rev-parse "refs/pull/$3/head")"
     [[ "$tip" == "$want" ]] || { echo "gh stub: head is $tip, not $want" >&2; exit 1; }
