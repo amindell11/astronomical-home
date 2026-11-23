@@ -123,15 +123,15 @@ namespace Tests.PlayMode.PlayerState
             readout.ShowGain(0f);
             Assert.IsNull(GainLabel(), "A refill at full hull gains nothing, so nothing shows.");
 
-            readout.ShowGain(.25f);
-            Assert.AreEqual("+25% HULL", GainLabel().text);
-            readout.ShowGain(.1f);
-            Assert.AreEqual("+35% HULL", GainLabel().text, "A kill while the flash is up adds to it.");
+            readout.ShowGain(10f);
+            Assert.AreEqual("+10 HULL", GainLabel().text);
+            readout.ShowGain(40f);
+            Assert.AreEqual("+50 HULL", GainLabel().text, "A kill while the flash is up adds to it.");
 
             yield return new WaitForSeconds(2f);
             Assert.IsNull(GainLabel(), "The flash fades out.");
-            readout.ShowGain(.004f);
-            Assert.AreEqual("+1% HULL", GainLabel().text, "A fresh flash starts over and never reads +0%.");
+            readout.ShowGain(.4f);
+            Assert.AreEqual("+1 HULL", GainLabel().text, "A fresh flash starts over and never reads +0.");
         }
 
         private Text GainLabel()

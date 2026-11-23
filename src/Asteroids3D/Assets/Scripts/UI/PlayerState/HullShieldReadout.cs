@@ -91,12 +91,12 @@ namespace UI.PlayerState
                 pulsesWhenLow: true);
         }
 
-        public void ShowGain(float fraction)
+        public void ShowGain(float amount)
         {
-            if (fraction <= 0f) return;
-            gainShown = gain.gameObject.activeSelf ? gainShown + fraction : fraction;
+            if (amount <= 0f) return;
+            gainShown = gain.gameObject.activeSelf ? gainShown + amount : amount;
             gainUntil = Time.time + GainHoldSeconds;
-            gain.text = $"+{Mathf.Max(1, Mathf.RoundToInt(gainShown * 100f))}% HULL";
+            gain.text = $"+{Mathf.Max(1, Mathf.RoundToInt(gainShown))} HULL";
             gain.gameObject.SetActive(true);
         }
 

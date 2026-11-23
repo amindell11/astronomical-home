@@ -971,9 +971,9 @@ namespace Game
         private void RefillPlayerHull()
         {
             var hull = rigInstance.Player.Damage.Health;
-            var before = hull.Pct;
+            var before = hull.CurrentValue;
             hull.RestoreFraction(killHullRestore);
-            if (rigInstance.Overlay) rigInstance.Overlay.ShowHullGain(hull.Pct - before);
+            if (rigInstance.Overlay) rigInstance.Overlay.ShowHullGain(hull.CurrentValue - before);
         }
 
         private void OnShipUnlocked(ShipUnlocked unlocked) => moments.Raise(new ShipEarned(unlocked));
