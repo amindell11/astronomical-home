@@ -68,6 +68,7 @@ namespace Substrate.Sectors.Elements.Elites
 
         public string Name => profile.DisplayName;
         public bool Present => elite && elite.gameObject.activeInHierarchy;
+        internal Ship Ship => elite;
         public float HullPct => Present ? elite.HealthPct : 0f;
         public float ShieldPct => Present ? elite.ShieldPct : 0f;
 

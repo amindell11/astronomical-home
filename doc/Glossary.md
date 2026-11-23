@@ -547,8 +547,11 @@ Format: **term** — definition. *(authority)*
   they arrive), each at the free place nearest it. A reinforcement is not a wave
   and raises no `WaveSent`. With no minion room, the beat is dropped. Entourage,
   ruled by the game lead on 2026-11-23: a full rival slot no longer drops the
-  beat, so clearing minions buys only a window until the next beat.
-  *(WaveDirector.TryReinforce, WaveDirector.FreePlace)*
+  beat, so clearing minions buys only a window until the next beat. Once an elite
+  has fought for 30 s (its grace), each beat of the last sector phase sends a
+  reinforcement to the elite instead, until the elite dies (ruled by the game
+  lead on 2026-11-23, so a kited elite fight brings minions).
+  *(WaveDirector.TryReinforce, WaveDirector.FreePlace, WaveDirector.eliteGraceSeconds)*
 - **wave every** — the beat a sector phase sends its waves on.
   *(SectorPhase.waveEvery)*
 - **wave cap** — a sector's two limits on what its waves fill to: the rival cap
@@ -609,7 +612,8 @@ Format: **term** — definition. *(authority)*
   a heavy weapon pair and stacked run mods. A lull follows the
   last phase, and the elite is summoned when that lull ends. Extraction opens
   on its death. Sector 3's elite is the boss, which escalates at hull
-  thresholds (escorts, heavier fire).
+  thresholds (escorts, heavier fire). Past its grace, every elite draws
+  reinforcements on the last sector phase's beat.
   An escalation step stacks weapon mods only, so the dynamics the AI captured at
   spawn stay true. Not an *encounter*: no activation rule arms it; the wave
   director owns it and drives it. *(EliteEncounter, EliteProfile,
@@ -994,7 +998,7 @@ Format: **term** — definition. *(authority)*
   hold at every shield level. The temper also records whether the ship circles
   the wreck before it wanders. A pilot with a temper never reads `archetype`.
   *(Faction.Rival, Faction.Minion; Settings/AI/Tactics/Factions; EliteTemper, EscortTemper)*
-- **leader**. The rival a minion flies with: its wave's, or the one its reinforcement joined. The minion observes that
+- **leader**. The ship a minion flies with: its wave's rival, or the rival or elite its reinforcement joined. The minion observes that
   ship's position and velocity and nothing of its brain, and the leader never commands it.
   When the leader is gone, the minion flies its wounded response, or regroups.
   *(AIContext.Leader, AICommander.FollowLeader)*
