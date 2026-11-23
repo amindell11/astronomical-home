@@ -10,14 +10,14 @@ The game's companion and enemy lines. This tab exports to LineSheet.txt in the r
 
 | ID | Moment | Faction | Speaker | After | Line | Status | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| S1a | sector-entered | shoal | Companion |  | The Shoal are a friendly bunch. They'll say sorry the whole time they're stripping the ship. | In game |  |
+| S1a | sector-entered | shoal | Companion |  | Shoal space. Friendly bunch. They'll chat you up the whole time they're stripping your ship. | In game |  |
 | S1b | sector-entered | shoal | Companion |  | See those wrecks? Some of these scrappers are the ones who shot them down. | Later | Needs wrecks in game |
 | S3a | sector-entered | shoal | Companion |  | Keep moving. Anything that sits still out here gets a salvage tag, and that includes me. | In game |  |
 | VE0a | sector-entered | veil | Enemy |  | Arrival unscheduled. Human aboard. Hold course for intake. | In game |  |
 | VE0b | sector-entered | veil | Enemy |  | Foreign hull. Solitary operator. Recommend prompt inclusion. | In game |  |
 | V1 | sector-entered | veil | Companion | any | If anyone is flying those things, they don't seem much for small talk. | In game |  |
 | V2a | sector-entered | veil | Companion |  | Keep your head up. These Veil creeps love a jump scare. They just never laugh after. | In game |  |
-| V2b | sector-entered | veil | Companion |  | Don't trust a clear scanner out here. The Veil are never as far off as it says. | In game |  |
+| V2b | sector-entered | veil | Companion |  | A clear scanner doesn't mean much in unknown space. Watch your back. | In game |  |
 | B1a | sector-entered | bastion | Companion |  | Fair warning: the Bastion don't much like my kind. | In game |  |
 | B1b | sector-entered | bastion | Companion |  | Around here they call my kind clinks. It's not a compliment. | In game |  |
 | B2a | sector-entered | bastion | Companion |  | Welcome to the wall. Whoever we meet, they're the toughest clan out here. They all are. | In game |  |
