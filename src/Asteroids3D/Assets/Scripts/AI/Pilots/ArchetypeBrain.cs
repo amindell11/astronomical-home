@@ -282,7 +282,8 @@ namespace AI.Pilots
 
             var held = CurrentTactic.HasValue ? (tickCounter - tacticTick) * Time.fixedDeltaTime : float.PositiveInfinity;
             var tactic = TacticRules.Next(CurrentTactic ?? tactics.home, held, in situation, tactics, wounded);
-            if (tactic != CurrentTactic)
+            // An ambush holds for its strike, so its clock starts when the ship shows.
+            if (tactic != CurrentTactic || (tactic == Tactic.Ambush && situation.selfConcealed))
             {
                 CurrentTactic = tactic;
                 tacticTick = tickCounter;
