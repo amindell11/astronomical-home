@@ -39,10 +39,10 @@ namespace Balance
         /// <summary>The loadout stat hash; the same on a spawned instance and on its prefab asset.</summary>
         public static string OfLoadout(Ship ship) => Of(ship);
 
-        /// <summary>The stat fingerprint: the hangar's offer, the lull mod pool, each run row and its layout in order, and the kill refill.</summary>
+        /// <summary>The stat fingerprint: the hangar's offer, the lull mod pool, each run row and its layout in order, and the kill refills.</summary>
         public static string OfSetting(ItemSubset hangarOffer, LullModPool lullMods, IEnumerable<SectorEntry> rows,
-            float killHullRestore) =>
-            Digest(SettingLines(hangarOffer, lullMods, rows, killHullRestore));
+            float minionKillHeal, float rivalKillHeal) =>
+            Digest(SettingLines(hangarOffer, lullMods, rows, minionKillHeal, rivalKillHeal));
 
         internal static SortedSet<string> Lines(Object item)
         {
@@ -52,7 +52,7 @@ namespace Balance
         }
 
         internal static SortedSet<string> SettingLines(ItemSubset hangarOffer, LullModPool lullMods,
-            IEnumerable<SectorEntry> rows, float killHullRestore)
+            IEnumerable<SectorEntry> rows, float minionKillHeal, float rivalKillHeal)
         {
             var lines = NewLines();
             Visit(hangarOffer, lines, new HashSet<Object>());
@@ -72,7 +72,8 @@ namespace Balance
                     lines.Add($"sector[{index}]/{line}");
                 index++;
             }
-            lines.Add($"setting/killHullRestore={Format(killHullRestore)}");
+            lines.Add($"setting/minionKillHeal={Format(minionKillHeal)}");
+            lines.Add($"setting/rivalKillHeal={Format(rivalKillHeal)}");
             return lines;
         }
 

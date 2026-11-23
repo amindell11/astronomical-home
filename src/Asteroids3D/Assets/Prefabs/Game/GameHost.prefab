@@ -72,7 +72,8 @@ MonoBehaviour:
   jumpFeel: {fileID: 11400000, guid: 6377cb25349f79540a7c1a7ef65df3db, type: 2}
   jumpFeature: {fileID: 11400000, guid: 902cdeeb618947ab9cfa2fe07a0b9332, type: 2}
   deathBehavior: 2
-  killHullRestore: 0.25
+  minionKillHeal: 10
+  rivalKillHeal: 40
   lullMods: {fileID: 11400000, guid: 39cc47f84df34c5589e2267bff2200d2, type: 2}
   companionLines: {fileID: 11400000, guid: c5fa908d79cd4ebea0dc1d1d998e41f0, type: 2}
   companionFeel: {fileID: 11400000, guid: 1429d475f64d411c84eb4b31ec6d6256, type: 2}
