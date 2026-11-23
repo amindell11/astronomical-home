@@ -44,18 +44,18 @@ namespace Combat.Projectiles.Audio
                 flight.setParameterByName(SpeedParameter, NormalizedSpeed);
 
             if (charge.Burning && !thruster.isValid())
-                thruster = Start(thrusterEvent);
+                thruster = Play(thrusterEvent);
             else if (!charge.Burning)
                 Stop(ref thruster);
         }
 
         private void BeginFlight()
         {
-            flight = Start(flightEvent);
+            flight = Play(flightEvent);
             flight.setParameterByName(SpeedParameter, NormalizedSpeed);
         }
 
-        private EventInstance Start(EventReference reference)
+        private EventInstance Play(EventReference reference)
         {
             var instance = RuntimeManager.CreateInstance(reference);
             // Only the Rigidbody overload sends FMOD the body's velocity, which Doppler needs.

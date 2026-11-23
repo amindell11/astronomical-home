@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 4296478870442968351}
   - component: {fileID: 1732095857393786164}
   - component: {fileID: 5471273315337776853}
+  - component: {fileID: 6203851094215837415}
   m_Layer: 6
   m_Name: GrenadeCharge
   m_TagString: Untagged
@@ -152,6 +153,32 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   modelPivot: {fileID: 4972811247819999624}
   brakeExhaust: {fileID: 7790057659596828238}
+--- !u!114 &6203851094215837415
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1100000000000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a75b3ff91484827979435ae5e068d87, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  flightEvent:
+    Guid:
+      Data1: 919847036
+      Data2: 1332909150
+      Data3: -560938310
+      Data4: 557269639
+    Path: event:/Weapons/Grenade/Flight
+  thrusterEvent:
+    Guid:
+      Data1: -2067692196
+      Data2: 1320209802
+      Data3: -2034770276
+      Data4: 582588103
+    Path: event:/Weapons/Grenade/Thruster
 --- !u!1 &1997650279519653389
 GameObject:
   m_ObjectHideFlags: 0
