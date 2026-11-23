@@ -31,22 +31,15 @@ permissions:
   issues: write
   statuses: write
 
-concurrency:
-  group: land-check-${{ github.event.pull_request.number || github.event.issue.number || inputs.pr || github.event.workflow_run.head_branch }}
-  cancel-in-progress: true
-
 jobs:
-  land-check:
+  # Every trigger resolves to the PR number first, so one concurrency group per PR serializes the verdicts.
+  resolve:
     if: github.event_name != 'issue_comment' || github.event.issue.pull_request
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
+    outputs:
+      number: ${{ steps.pr.outputs.number }}
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
-          lfs: false
-
       - name: Resolve PR
         id: pr
         env:
@@ -60,11 +53,25 @@ jobs:
           fi
           echo "number=$PR" >> "$GITHUB_OUTPUT"
 
+  land-check:
+    needs: resolve
+    if: needs.resolve.outputs.number != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: land-check-${{ needs.resolve.outputs.number }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          lfs: false
+
       - name: Check and post
-        if: steps.pr.outputs.number != ''
         env:
           GH_TOKEN: ${{ github.token }}
-          PR: ${{ steps.pr.outputs.number }}
+          PR: ${{ needs.resolve.outputs.number }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           # inert_diff.ps1 is called as powershell.exe; without it a C# comment-only delta reads as code.
