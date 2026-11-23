@@ -317,15 +317,48 @@ namespace Tests.EditMode.Companion
         }
 
         [Test]
+        public void SectorMoments_EachFallenRival_RaisesRivalFell()
+        {
+            var stream = new RunMomentStream();
+            var waves = new WaveSignal();
+            var moments = new SectorMoments(stream, "veil", null, null, waves);
+
+            waves.Fell(1);
+            waves.Fell(1);
+
+            Assert.AreEqual(2, stream.Moments.Count);
+            var fell = (RivalFell)stream.Moments[1];
+            Assert.AreEqual(RivalFell.FellSlot, fell.Slot);
+            Assert.AreEqual(2, fell.Sector);
+            Assert.AreEqual("veil", fell.Facts["faction"]);
+            moments.Dispose();
+        }
+
+        [Test]
+        public void ShippedSheet_RivalFellIsMustSay_AndEachFactionHasALine()
+        {
+            var sheet = AssetDatabase.LoadAssetAtPath<CompanionLineSheet>(SheetPath);
+            Assert.IsTrue(sheet.Find(RivalFell.FellSlot).MustSay, "the fallen rival's line always plays");
+
+            var lines = sheet.LoadLines();
+            foreach (var faction in new[] { "shoal", "veil", "bastion" })
+            {
+                var moment = new RivalFell(1, faction);
+                Assert.IsNotEmpty(lines.Pick(moment.Slot, moment.Facts, _ => 0, withReply: false), faction);
+            }
+        }
+
+        [Test]
         public void SectorMoments_Disposed_IgnoresTheWaveSignal()
         {
             var stream = new RunMomentStream();
             var waves = new WaveSignal();
             var moments = new SectorMoments(stream, "veil", null, null, waves);
-            Assert.AreEqual(1, waves.SubscriberCount, "the bridge subscribed");
+            Assert.AreEqual(2, waves.SubscriberCount, "the bridge subscribed to both signals");
 
             moments.Dispose();
             waves.Raise(2);
+            waves.Fell(2);
 
             Assert.AreEqual(0, stream.Moments.Count);
             Assert.AreEqual(0, waves.SubscriberCount);
@@ -384,10 +417,14 @@ namespace Tests.EditMode.Companion
         private sealed class WaveSignal : IWaveSignal
         {
             public event Action<int> WaveSent;
+            public event Action<int> RivalFell;
 
             public void Raise(int sectorIndex) => WaveSent?.Invoke(sectorIndex);
 
-            public int SubscriberCount => WaveSent == null ? 0 : WaveSent.GetInvocationList().Length;
+            public void Fell(int sectorIndex) => RivalFell?.Invoke(sectorIndex);
+
+            public int SubscriberCount => (WaveSent == null ? 0 : WaveSent.GetInvocationList().Length)
+                + (RivalFell == null ? 0 : RivalFell.GetInvocationList().Length);
         }
     }
 }

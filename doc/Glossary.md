@@ -244,6 +244,10 @@ Format: **term** — definition. *(authority)*
   *auto-merge class*. Always
   in code font: the plain word keeps its everyday sense ("land it" is
   consent). *(agent_worktree_pool.sh `land`; #830)*
+- **balance-only landing** — merging a PR that only edits existing Settings
+  assets or prefabs with no merge gate: no tests, review or recorded
+  instruction, only the user's merge instruction. A change that adds a file
+  or edits a test is not one. *(agent_worktree_pool.sh `land-balance`)*
 - **`land-check`** — the commit status GitHub auto-merge waits on: `land`'s
   preflight and authorize rules applied to a PR head that contains main, posted
   by `.github/workflows/land-check.yml` from main's copy. Always in code font:
@@ -252,7 +256,7 @@ Format: **term** — definition. *(authority)*
 - **merge turn** — the pool-wide right to run a merge gate, held by one gate at
   a time from before its fetch through `gh pr merge`. Waiting gates take it in
   arrival order (**turn ticket**). Any other push to main takes it with no
-  ticket, whenever it is free: `land-docs`, or a command run under
+  ticket, whenever it is free: `land-docs`, `land-balance`, or a command run under
   `lock merge-turn`. A waiter gives up only after watching one holder keep the
   turn for the cap; a line that keeps moving times nobody out. Machine-local:
   a base move from any other clone is caught only by the gate's base re-check.
@@ -547,8 +551,11 @@ Format: **term** — definition. *(authority)*
   they arrive), each at the free place nearest it. A reinforcement is not a wave
   and raises no `WaveSent`. With no minion room, the beat is dropped. Entourage,
   ruled by the game lead on 2026-11-23: a full rival slot no longer drops the
-  beat, so clearing minions buys only a window until the next beat.
-  *(WaveDirector.TryReinforce, WaveDirector.FreePlace)*
+  beat, so clearing minions buys only a window until the next beat. Once an elite
+  has fought for 30 s (its grace), each beat of the last sector phase sends a
+  reinforcement to the elite instead, until the elite dies (ruled by the game
+  lead on 2026-11-23, so a kited elite fight brings minions).
+  *(WaveDirector.TryReinforce, WaveDirector.FreePlace, WaveDirector.eliteGraceSeconds)*
 - **wave every** — the beat a sector phase sends its waves on.
   *(SectorPhase.waveEvery)*
 - **wave cap** — a sector's two limits on what its waves fill to: the rival cap
@@ -602,14 +609,18 @@ Format: **term** — definition. *(authority)*
   the rank's size (ruled on #868, 2026-11-21). The **minion** has 70% hull,
   never fires its keystone, and aims worse than the other ranks (ruled on #1589,
   2026-11-17). Hunt patrols and elite escorts fly it. The **rival** leads every
-  wave. The **elite** is the third rank. The ranks are ruled on #1589. The
-  sector-to-faction mapping is ruled on #1320.
+  wave. The **elite** is the third rank. The ranks are ruled on #1589. A
+  presented run deals the factions to its sectors in a fresh order at its
+  start, so any faction can come first or last; a sector's pacing and elite
+  strength stay with its place in the run, and sector 3 always ends at the boss
+  (arye, 2026-11-23, replacing #1320's fixed mapping).
   *(Faction.Rival, Faction.Minion, Faction.EliteShip, FactionRank, SectorFaction)*
 - **elite** — a sector's end-of-sector enemy: its faction's elite chassis, with
   a heavy weapon pair and stacked run mods. A lull follows the
   last phase, and the elite is summoned when that lull ends. Extraction opens
   on its death. Sector 3's elite is the boss, which escalates at hull
-  thresholds (escorts, heavier fire).
+  thresholds (escorts, heavier fire). Past its grace, every elite draws
+  reinforcements on the last sector phase's beat.
   An escalation step stacks weapon mods only, so the dynamics the AI captured at
   spawn stay true. Not an *encounter*: no activation rule arms it; the wave
   director owns it and drives it. *(EliteEncounter, EliteProfile,
@@ -984,7 +995,8 @@ Format: **term** — definition. *(authority)*
   tempers carry the faction's wounded response, ruled on #1589, 2026-11-16:
   Veil never breaks, Shoal jumps out, and Bastion makes a last stand. On the
   same ruling the Veil rival ambushes and Bastion minions hold the line, and a
-  minion whose leader is lost flies its wounded response. The
+  minion whose leader is lost flies its wounded response. Veil minions *regroup*
+  instead (arye, 2026-11-23). The
   elite and its escorts keep their own pilots. The owner ruled on #1349,
   2026-11-09, that the elite never breaks off and always presses (never
   wounded, nerve 0%) and escorts never fly into the target's guns (nerve
@@ -993,10 +1005,18 @@ Format: **term** — definition. *(authority)*
   hold at every shield level. The temper also records whether the ship circles
   the wreck before it wanders. A pilot with a temper never reads `archetype`.
   *(Faction.Rival, Faction.Minion; Settings/AI/Tactics/Factions; EliteTemper, EscortTemper)*
-- **leader**. The rival a minion flies with: its wave's, or the one its reinforcement joined. The minion observes that
+- **leader**. The ship a minion flies with: its wave's rival, or the rival or elite its reinforcement joined. The minion observes that
   ship's position and velocity and nothing of its brain, and the leader never commands it.
-  When the leader is gone, the minion flies its wounded response.
+  When the leader is gone, the minion flies its wounded response, or regroups.
   *(AIContext.Leader, AICommander.FollowLeader)*
+- **regroup**. What a minion whose temper says so does when its leader dies: it
+  flees with guns cold and leaves past the temper's jump distance, and the wave
+  director sends it again with the sector's next rival's wave (never with a
+  reinforcement), on top of that wave's drawn minions and still under the minion
+  cap. Unlike a jump out it comes back. Held
+  minions are lost when the sector ends. Only Veil minions regroup: the Veil
+  can't cloak a minion, so they withdraw in plain sight.
+  *(TacticsSettings.regroupsWithoutLeader, WaveDirector.Rejoined)*
 - **place**. A minion's signed position along its leader's line, counted in
   line spacings (..., -2, -1, +1, +2, ...). *(AIContext.Place, AICommander.FollowLeader)*
 - **wounded response**. What a temper says its ships do when hurt: never
