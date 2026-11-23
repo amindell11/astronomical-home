@@ -91,7 +91,7 @@ namespace Game.Companion
         private void TrySpeak()
         {
             if (budget.TryTake(Time.unscaledTime, canSpeak(), out var line))
-                display.Show(line, feel.HoldSeconds, feel.FadeSeconds);
+                display.Show(line, feel.HoldFor(line), feel.FadeSeconds);
         }
 
         private void OnDestroy()

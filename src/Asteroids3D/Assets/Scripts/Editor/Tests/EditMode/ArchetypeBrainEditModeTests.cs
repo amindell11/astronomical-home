@@ -666,6 +666,65 @@ namespace Tests.EditMode
             FlyLostLeader(WoundedResponse.Never, Tactic.AttackRun, engages: true);
         }
 
+        [TestCase(10f, false)]
+        [TestCase(80f, true)]
+        public void LeaderLost_ARegroupingTemperFleesColdAndJumpsOnlyPastItsDistance(float range, bool jumps)
+        {
+            var temper = ScriptableObject.CreateInstance<TacticsSettings>();
+            temper.wounded = WoundedResponse.Never;
+            temper.regroupsWithoutLeader = true;
+            temper.jumpsBeyond = 70f;
+            var (brain, status, ctx) = WoundedPilot(temper);
+            var ships = targetHost.GetComponents<Ship>();
+            PinPose(ships[ships.Length - 1], Vector2.zero);
+            status.Kinematics = new Kinematics(new Vector2(range, 0f), Vector2.zero, 0f, 0f, 0f);
+            var leader = new GameObject("Leader").AddComponent<Ship>();
+            leader.transform.SetParent(brainHost.transform);
+            ctx.FollowLeader(leader, 1);
+            leader.gameObject.SetActive(false);
+
+            var decision = brain.Decide(ctx);
+
+            Assert.AreEqual(Tactic.BreakOff, brain.CurrentTactic);
+            Assert.IsTrue(decision.HasValue);
+            Assert.IsFalse(decision.Value.engagePrimary, "a regrouping minion holds its fire");
+            Assert.AreEqual(jumps, decision.Value.jump);
+        }
+
+        [Test]
+        public void LeaderLost_ALeavingMinionThatLosesSight_KeepsFleeingItsLastSeenTarget()
+        {
+            var target = targetHost.AddComponent<Ship>();
+            PinPose(target, Vector2.zero);
+            var brain = NewBrain(OpponentArchetype.Aggressor, target, liveTargeting: true);
+            var temper = TemperOf(brain);
+            temper.wounded = WoundedResponse.Never;
+            temper.regroupsWithoutLeader = true;
+            temper.jumpsBeyond = 70f;
+            var self = new GameObject("Self").AddComponent<Ship>();
+            self.transform.SetParent(brainHost.transform);
+            var status = new StubStatus { Kinematics = new Kinematics(new Vector2(10f, 0f), Vector2.zero, 0f, 0f, 0f) };
+            var ctx = Fighting(status, self, target);
+            var leader = new GameObject("Leader").AddComponent<Ship>();
+            leader.transform.SetParent(brainHost.transform);
+            ctx.FollowLeader(leader, 1);
+            leader.gameObject.SetActive(false);
+            brain.Decide(ctx);
+
+            typeof(EnemyTracker).GetField("cachedEnemy", BindingFlags.Instance | BindingFlags.NonPublic)
+                .SetValue(ctx.Combat, null);
+            var near = brain.Decide(ctx);
+            status.Kinematics = new Kinematics(new Vector2(80f, 0f), Vector2.zero, 0f, 0f, 0f);
+            var far = brain.Decide(ctx);
+
+            Assert.IsTrue(near.HasValue && far.HasValue, "an out-of-sight target does not stop the withdrawal");
+            Assert.AreEqual(Tactic.BreakOff, brain.CurrentTactic);
+            Assert.Greater(near.Value.nav.planarVelocity.x, 0f, "it flees away from where it last saw the target");
+            Assert.IsFalse(near.Value.engagePrimary);
+            Assert.IsFalse(near.Value.jump);
+            Assert.IsTrue(far.Value.jump, "past its distance from the last sighting it leaves");
+        }
+
         [Test]
         public void Ambush_BoostsWhileTheKitIsReady_AndHoldsFireWhileConcealed()
         {
@@ -692,6 +751,25 @@ namespace Tests.EditMode
             Assert.IsFalse(hidden.decision.boost);
             Assert.IsFalse(hidden.decision.engagePrimary, "a concealed ship holds its fire");
             Assert.IsFalse(hidden.decision.engageSecondary);
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void AttackRun_OutOfGunRange_ChasesFlatOutOnlyWhenTheTemperSaysSo(bool chasesFlatOut)
+        {
+            var temper = ScriptableObject.CreateInstance<TacticsSettings>();
+            temper.chasesFlatOut = chasesFlatOut;
+            temper.minimumHold = 0f;
+            createdTempers.Add(temper);
+            var target = targetHost.AddComponent<Ship>();
+            PinPose(target, new Vector2(40f, 0f));
+
+            var flown = DecideFight(temper, target, concealed: false, kitReady: false);
+
+            Assert.AreEqual(Tactic.AttackRun, flown.brain.CurrentTactic);
+            var speed = chasesFlatOut ? Dynamics.Default.maxSpeed : Shape().speedFraction * Dynamics.Default.maxSpeed;
+            Assert.AreEqual(RangerBrain.HoldRangeVelocity(new Kinematics(Vector2.zero, Vector2.zero, 0f, 0f, 0f), target.Kinematics, Shape().desiredRange, speed),
+                flown.decision.nav.planarVelocity);
         }
 
         [Test]

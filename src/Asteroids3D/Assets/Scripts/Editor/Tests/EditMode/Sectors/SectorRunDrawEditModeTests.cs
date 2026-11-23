@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+using Substrate.Sectors.Factions;
 using Substrate.Services.Locales;
 using Substrate.Sessions;
 using UnityEditor;
@@ -64,6 +66,23 @@ namespace Tests.EditMode.Sectors
             run = SectorRun.Create(new[] { pool[1], pool[1], pool[2] }, RandomRow(), RandomRow());
             for (var seed = 0; seed < Seeds; seed++)
                 Assert.That(run.DrawLocales(new System.Random(seed)), Is.EquivalentTo(new[] { pool[1], pool[2] }));
+        }
+
+        [Test]
+        public void TheDeal_GivesEachRowsFactionOnce_InEveryOrderAcrossRuns()
+        {
+            var factions = new[] { "Shoal", "Veil", "Bastion" }
+                .Select(name => AssetDatabase.LoadAssetAtPath<Faction>($"Assets/Settings/Factions/{name}.asset"))
+                .ToArray();
+            run = SectorRun.Create(factions.Select(faction => new SectorEntry { faction = faction }).ToArray());
+            var orders = new HashSet<string>();
+            for (var seed = 0; seed < Seeds; seed++)
+            {
+                var dealt = run.DealFactions(new System.Random(seed));
+                Assert.That(dealt, Is.EquivalentTo(factions));
+                orders.Add(string.Join(",", dealt.Select(faction => faction.id)));
+            }
+            Assert.That(orders, Has.Count.EqualTo(6), "every order of three factions turns up");
         }
 
         [Test]

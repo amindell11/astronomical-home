@@ -6,11 +6,14 @@
 //   event:/Weapons/Ripper/Fire       (FirstShot)  one-shot
 //   event:/Weapons/Grenade/Fire                   one-shot
 //   event:/Weapons/Grenade/Detonate               one-shot
+//   event:/Weapons/Grenade/Flight    (Speed)      sustain point, launch to detonation, stopped with fade-out
+//   event:/Weapons/Grenade/Thruster               sustain point, stopped with fade-out when the braking burn ends
 //   event:/Weapons/Missile/Flight    (Speed)      sustain point, stopped with fade-out, never keyed off
 //   event:/Weapons/Missile/Detonate               one-shot
 // Heat is the existing preset; Charge is one preset in [0, 1] shared by both charge events.
 // FirstShot is discrete in [0, 1]: the game sends 1 on the first shot after any firing gap.
-// Speed is a preset in [0, 1]: the missile's speed as a fraction of its homing speed.
+// Speed is a preset in [0, 1]: the missile's speed as a fraction of its homing speed, the
+// concussion charge's as a fraction of its launch speed.
 // Every event gets a placeholder instrument from the tracked Unity clips, because an empty event
 // stops on its first update. Idempotent: anything already present is left as the designer has it.
 //
@@ -35,6 +38,7 @@ var clipDir = __dirname + "/../../src/Asteroids3D/Assets/Audio/Sfx/Fx/";
 var chargeLoopSeconds = 0.25;
 var sustainLeadSeconds = 0.01;
 var flightHoldSeconds = 0.05;
+var maxDistance = 115;
 
 function childFolder(parent, name) {
     var existing = parent.items.filter(function (item) {
@@ -126,11 +130,7 @@ function ensureChargePlaceholder(event) {
     console.log("placed charge loop, sustain point and release on " + event.getPath());
 }
 
-function ensureFlightPlaceholder(event) {
-    if (event.groupTracks.length > 0) return;
-    var launchClip = audioFile("laserBolt.wav");
-    var launch = placeSound(event, "Launch", launchClip, 0, launchClip.length);
-    launch.isAsync = true;
+function placeHeldThruster(event) {
     var thruster = placeSound(event, "Thruster", audioFile("engineRumbleLow.wav"), 0, flightHoldSeconds);
     thruster.isAsync = true;
     thruster.isCutoff = true;
@@ -143,7 +143,22 @@ function ensureFlightPlaceholder(event) {
     var markers = event.markerTracks.length > 0 ? event.markerTracks[0] : event.addMarkerTrack();
     markers.addSustainPoint(flightHoldSeconds - sustainLeadSeconds);
     event.automatableProperties.dopplerEnabled = true;
+}
+
+function ensureFlightPlaceholder(event) {
+    if (event.groupTracks.length > 0) return;
+    var launchClip = audioFile("laserBolt.wav");
+    var launch = placeSound(event, "Launch", launchClip, 0, launchClip.length);
+    launch.isAsync = true;
+    placeHeldThruster(event);
     console.log("placed launch, held thruster loop and sustain point on " + event.getPath());
+}
+
+function ensureHeldLoopPlaceholder(event) {
+    if (event.groupTracks.length > 0) return;
+    placeHeldThruster(event);
+    event.automatableProperties.maximumDistance = maxDistance;
+    console.log("placed held loop and sustain point on " + event.getPath());
 }
 
 var weaponsFolder = childFolder(workspace.masterEventFolder, "Weapons");
@@ -173,6 +188,11 @@ var grenade = event(grenadeFolder, "Grenade", "Fire");
 ensureOneShotPlaceholder(grenade, "laserBolt.wav");
 var detonate = event(grenadeFolder, "Grenade", "Detonate");
 ensureOneShotPlaceholder(detonate, "rockExplosion1.wav");
+var grenadeFlight = event(grenadeFolder, "Grenade", "Flight");
+ensureParameter(grenadeFlight, "Speed", project.parameterType.User);
+ensureHeldLoopPlaceholder(grenadeFlight);
+var grenadeThruster = event(grenadeFolder, "Grenade", "Thruster");
+ensureHeldLoopPlaceholder(grenadeThruster);
 
 var missileFolder = childFolder(weaponsFolder, "Missile");
 var missileFlight = event(missileFolder, "Missile", "Flight");
@@ -181,7 +201,7 @@ ensureFlightPlaceholder(missileFlight);
 var missileDetonate = event(missileFolder, "Missile", "Detonate");
 ensureOneShotPlaceholder(missileDetonate, "rockExplosion1.wav");
 
-[turboLaser, chargeLaser, railgun, railgunImpact, ripper, grenade, detonate, missileFlight, missileDetonate].forEach(function (each) {
+[turboLaser, chargeLaser, railgun, railgunImpact, ripper, grenade, detonate, grenadeFlight, grenadeThruster, missileFlight, missileDetonate].forEach(function (each) {
     ensureBank(each, weaponsBank);
 });
 
