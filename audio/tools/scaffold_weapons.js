@@ -6,12 +6,14 @@
 //   event:/Weapons/Ripper/Fire       (FirstShot)  one-shot
 //   event:/Weapons/Grenade/Fire                   one-shot
 //   event:/Weapons/Grenade/Detonate               one-shot
+//   event:/Weapons/Grenade/Flight    (Speed)      sustain point, launch to detonation, stopped with fade-out
 //   event:/Weapons/Grenade/Thruster               sustain point, stopped with fade-out when the braking burn ends
 //   event:/Weapons/Missile/Flight    (Speed)      sustain point, stopped with fade-out, never keyed off
 //   event:/Weapons/Missile/Detonate               one-shot
 // Heat is the existing preset; Charge is one preset in [0, 1] shared by both charge events.
 // FirstShot is discrete in [0, 1]: the game sends 1 on the first shot after any firing gap.
-// Speed is a preset in [0, 1]: the missile's speed as a fraction of its homing speed.
+// Speed is a preset in [0, 1]: the missile's speed as a fraction of its homing speed, the
+// concussion charge's as a fraction of its launch speed.
 // Every event gets a placeholder instrument from the tracked Unity clips, because an empty event
 // stops on its first update. Idempotent: anything already present is left as the designer has it.
 //
@@ -184,6 +186,9 @@ var grenade = event(grenadeFolder, "Grenade", "Fire");
 ensureOneShotPlaceholder(grenade, "laserBolt.wav");
 var detonate = event(grenadeFolder, "Grenade", "Detonate");
 ensureOneShotPlaceholder(detonate, "rockExplosion1.wav");
+var grenadeFlight = event(grenadeFolder, "Grenade", "Flight");
+ensureParameter(grenadeFlight, "Speed", project.parameterType.User);
+ensureThrusterPlaceholder(grenadeFlight);
 var grenadeThruster = event(grenadeFolder, "Grenade", "Thruster");
 ensureThrusterPlaceholder(grenadeThruster);
 
@@ -194,7 +199,7 @@ ensureFlightPlaceholder(missileFlight);
 var missileDetonate = event(missileFolder, "Missile", "Detonate");
 ensureOneShotPlaceholder(missileDetonate, "rockExplosion1.wav");
 
-[turboLaser, chargeLaser, railgun, railgunImpact, ripper, grenade, detonate, grenadeThruster, missileFlight, missileDetonate].forEach(function (each) {
+[turboLaser, chargeLaser, railgun, railgunImpact, ripper, grenade, detonate, grenadeFlight, grenadeThruster, missileFlight, missileDetonate].forEach(function (each) {
     ensureBank(each, weaponsBank);
 });
 
