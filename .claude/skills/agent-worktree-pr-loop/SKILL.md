@@ -506,12 +506,17 @@ Claude Code auto-merge toggle, or `gh pr merge --auto --squash`), which waits
 on the main ruleset's required statuses: `merge-proof/headless`,
 `merge-proof/resharper` and `land-check`, on a head that contains main. The
 `land-check` workflow runs `land-check <pr>` (its `--help` entry has the
-verdicts) from main's copy, so the same instruction-or-class rule decides, and
-consent still means a recorded instruction: turn auto-merge on only after
-`instruct`, or for a PR the class admits. When main moves, the PR waits until
-its branch is updated (GitHub's Update branch, or `revise`), and that push
-reruns the hosted suite. A landing diff touching `.github/`, `scripts/` or
-`.githooks/` never passes `land-check`; land it with `land` or `merge <slot>`.
+verdicts) from main's copy, so the same instruction-or-class rule decides.
+Turn auto-merge on yourself (`gh pr merge --auto --squash`, or the GitHub MCP)
+once the hosted suite is green, Codex's review covers the head, no review
+thread is open and the owed-local checklist holds nothing but `eyes:` items:
+the class admits it once arye ticks those (#1713). The PR is then in the
+*landing queue* (`doc/Glossary.md`) and your thread is done. When main moves,
+the queue updates the branch from main and re-runs the suite on one PR at a
+time; a conflict gets the label `queue:conflict`, and a red suite or land-check
+after an update gets `queue:stuck`, and a push to the branch takes either off.
+A landing diff touching `.github/`, `scripts/` or `.githooks/` never passes
+`land-check`; land it with `land` or `merge <slot>`.
 
 After the merge, the merge reconcile (`scripts/merge_reconcile.sh`, on the
 landing push) posts the Shipped note on the PR-closed issues, so the merging

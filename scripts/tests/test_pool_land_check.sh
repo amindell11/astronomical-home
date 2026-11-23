@@ -5,7 +5,7 @@ set -euo pipefail
 # Regression for 'land-check <pr>': the verdict GitHub auto-merge waits on. A covered or in-class
 # head passes (the class one labelled auto-merged); a head behind main, a hosted proof not green,
 # an uncovered head outside the class, a draft, and a landing diff touching .github/ or scripts/
-# each get the right STATE and CHECK; a head that moved under the check gives no verdict. The
+# each get the right STATE and CHECK; a behind head is judged against its merge base; a head that moved under the check gives no verdict. The
 # real drain_pick.sh reads the PR's facts; gh is a stub that fails closed on any call it does not
 # model and never merges.
 
@@ -182,6 +182,17 @@ facts 9 "$(head_of 9)" - "$NONE"
 move_main
 check 9
 expect pending behind "a head that does not contain main"
+
+n=11; pr_branch 11 'k.txt=eleven\n'
+facts 11 - - "$NONE"
+move_main
+check 11
+expect pending unauthorized "a head behind main is still judged, against its merge base"
+
+n=12; pr_branch 12 'l.txt=twelve\n'
+facts 12 - "$(head_of 12)" $'## Test status\n\n### Owed local\n\n- [x] unity: boot\n  Run at `0000000`: passed\n- [x] eyes: looks right\n'
+check 12
+expect success class "a discharged checklist, eyes item ticked, is in the class"
 
 n=10; pr_branch 10 'j.txt=ten\n'
 facts 10 "$(head_of 10)" - "$NONE"

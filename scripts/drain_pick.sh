@@ -167,7 +167,7 @@ set -euo pipefail
 #            behind head) · draft · scripts (a changed path under scripts/, or more than 100
 #            changed files) · github (a changed path under .github/) · instructed (a recorded
 #            instruction names one of its commits, as land-facts reads it) · class (never under
-#            --no-class; the auto-merge class as GitHub shows it: owed:none, neither scripts nor
+#            --no-class; the auto-merge class as GitHub shows it: owed:none or discharged, neither scripts nor
 #            github, merge-proof/headless and merge-proof/resharper SUCCESS on the head, Codex's
 #            completed review on the head, no unresolved review thread).
 #            scripts and github come from GitHub's changed-file list and only set landing order.
@@ -581,7 +581,7 @@ def merge_queue():
         paths, states = pr["paths"], pr["states"]
         scripts = len(paths) > 100 or any(p.startswith("scripts/") for p in paths)
         github = any(p.startswith(".github/") for p in paths)
-        in_class = ("reviewThreads" in pr and pr["verdict"] == "none" and not scripts and not github
+        in_class = ("reviewThreads" in pr and pr["verdict"] in ("none", "discharged") and not scripts and not github
                     and all(states.get(c) == "SUCCESS" for c in PROOF)
                     and review(pr) == ("completed", pr["headRefOid"]) and not unresolved(pr))
         facts[n] = [fact for fact, holds in (

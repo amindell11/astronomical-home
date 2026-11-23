@@ -376,7 +376,8 @@ Commands:
       (gh); the pipeline digest lists merged PRs still carrying the label.
       WORKTREE_POOL_AUTO_MERGE_CLASS=0 puts the class in shadow: it is
       reported and authorizes nothing. The class holds when the owed
-      verdict is none, the landing diff touches neither scripts/ nor
+      verdict is none or discharged (every item ticked, eyes items
+      included), the landing diff touches neither scripts/ nor
       .github/, both merge-proof statuses were accepted on the landing
       commit, and Codex's completed review covers the landing tree with no
       unresolved review thread.
@@ -396,8 +397,11 @@ Commands:
       no slot, no merge turn and no merge. Run by
       .github/workflows/land-check.yml from main's copy of this script,
       which posts the verdict as the land-check commit status on that head.
-      The head must already contain origin/main (GitHub's up-to-date rule
-      then makes it the landing tree). A landing diff touching .github/,
+      A head that does not contain origin/main is judged against its
+      merge base with main instead, without the resharper proof (it stamps
+      main's tree), and at best gets pending behind: the landing queue
+      (scripts/landing_queue.sh) updates only a head whose land-check is
+      success or pending behind. A landing diff touching .github/,
       scripts/ or .githooks/ always fails: land those with 'land' or
       'merge <slot>', which run the script suite. Passing via the auto-merge
       class writes the auto-merged label, as land does before its merge.
@@ -2947,7 +2951,7 @@ gate_authorize() {
 # Conditions in a fixed order, so out:<condition> names the first that fails.
 class_verdict() {
   local owed="$1" scripts_rc="$2" github_rc="$3" hosted="$4" review="$5"
-  if [[ "$owed" != none ]]; then
+  if [[ "$owed" != none && "$owed" != discharged ]]; then
     echo out:owed
   elif [[ "$scripts_rc" -eq 0 || "$github_rc" -eq 0 ]]; then
     echo out:paths
@@ -3154,7 +3158,7 @@ cmd_land_check() {
   local pr="${1:-}"
   [[ $# -eq 1 && "$pr" =~ ^[1-9][0-9]*$ ]] || { echo "land-check requires <pr>" >&2; return 1; }
   require_gh || return 1
-  local sha tree base_tree rule rc proof_rc=0 class
+  local sha tree base_tree base rule rc proof_rc=0 class behind=0
   sha="$(gh pr view "$pr" --json headRefOid --jq .headRefOid)" && [[ "$sha" =~ ^[0-9a-f]{40}$ ]] \
     || { echo "land-check: could not read PR #$pr's head from GitHub." >&2; return 1; }
   echo "SHA=$sha"
@@ -3174,31 +3178,37 @@ cmd_land_check() {
     echo "land-check: $LAND_BRANCH moved past ${sha:0:7}; its push starts a fresh check." >&2
     return 1
   fi
+  base=origin/main
   if ! git -C "$ROOT" merge-base --is-ancestor origin/main "$sha"; then
-    land_check_verdict pending behind
-    return 1
+    behind=1
+    base="$(git -C "$ROOT" merge-base origin/main "$sha")" || return 1
   fi
   for rule in github:.github/ scripts:scripts/ scripts:.githooks/; do
-    landing_diff_touches "$ROOT" origin/main "$sha" "${rule#*:}" && rc=0 || rc=$?
+    landing_diff_touches "$ROOT" "$base" "$sha" "${rule#*:}" && rc=0 || rc=$?
     [[ "$rc" -ne 0 ]] || { land_check_verdict failure "${rule%%:*}"; return 1; }
     [[ "$rc" -eq 1 ]] || return 1
   done
   tree="$(git -C "$ROOT" rev-parse "$sha^{tree}")"
   base_tree="$(git -C "$ROOT" rev-parse 'origin/main^{tree}')"
   verified_remote_status "$sha" "$REMOTE_PROOF_CONTEXT" "tree=$tree" >&2 || proof_rc=1
-  verified_remote_status "$sha" "$REMOTE_RESHARPER_CONTEXT" "tree=$tree" "baseTree=$base_tree" >&2 || proof_rc=1
+  if [[ "$behind" -eq 0 ]]; then
+    verified_remote_status "$sha" "$REMOTE_RESHARPER_CONTEXT" "tree=$tree" "baseTree=$base_tree" >&2 || proof_rc=1
+  fi
   if [[ "$proof_rc" -ne 0 ]]; then
     land_check_verdict pending hosted
     return 1
   fi
-  if ! gate_authorize "$ROOT" "$sha" "$pr" origin/main >&2; then
+  if ! gate_authorize "$ROOT" "$sha" "$pr" "$base" >&2; then
     land_check_verdict pending "$GATE_REASON"
     return 1
   fi
+  if [[ "$AUTHORIZED_BY" == class ]]; then
+    class="$(class_verdict "$CLASS_OWED" 1 1 1 "$CLASS_REVIEW")"
+    echo "CLASS=$class"
+    [[ "$class" == in ]] || { land_check_verdict pending unauthorized; return 1; }
+  fi
+  [[ "$behind" -eq 0 ]] || { land_check_verdict pending behind; return 1; }
   [[ "$AUTHORIZED_BY" == class ]] || { land_check_verdict success instruction; return; }
-  class="$(class_verdict "$CLASS_OWED" 1 1 1 "$CLASS_REVIEW")"
-  echo "CLASS=$class"
-  [[ "$class" == in ]] || { land_check_verdict pending unauthorized; return 1; }
   if ! gh pr edit "$pr" --add-label "$AUTO_MERGED_LABEL" >/dev/null; then
     echo "land-check: could not label PR #$pr $AUTO_MERGED_LABEL, which a class merge needs." >&2
     land_check_verdict pending gh

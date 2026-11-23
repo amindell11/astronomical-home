@@ -1,0 +1,60 @@
+name: landing-queue
+
+# Runs scripts/landing_queue.sh from main's copy: brings auto-merge PRs up to date with main one at
+# a time. Never checks out or runs a PR's code; PR text is data. GitHub auto-merge does the merges.
+on:
+  # A merge moved main: the next PR may be behind now.
+  push:
+    branches: [main]
+  pull_request_target:
+    types: [auto_merge_enabled, synchronize]
+    branches: [main]
+  # The suite and land-check post their statuses under GITHUB_TOKEN, which triggers no status event.
+  workflow_run:
+    workflows: [headless-suite, land-check]
+    types: [completed]
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  actions: write
+  statuses: read
+
+# One pass at a time; a pass queued behind a running one replaces any older queued pass.
+concurrency:
+  group: landing-queue
+  cancel-in-progress: false
+
+jobs:
+  # A push to a PR's branch is a fix: it re-enters the queue.
+  reset:
+    if: github.event_name == 'pull_request_target' && github.event.action == 'synchronize'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          lfs: false
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: bash scripts/landing_queue.sh reset "$PR"
+
+  step:
+    needs: reset
+    if: always() && (needs.reset.result == 'success' || needs.reset.result == 'skipped')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          lfs: false
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/landing_queue.sh step | tee -a "$GITHUB_STEP_SUMMARY"

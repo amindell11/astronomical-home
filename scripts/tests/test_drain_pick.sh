@@ -577,15 +577,15 @@ want="MERGE=501 @ owed:none,instructed,class
 MERGE=502 @ owed:none
 MERGE=503 @ owed:none
 MERGE=504 @ owed:none
-MERGE=506 @ owed:discharged
+MERGE=506 @ owed:discharged,class
 MERGE=507 @ owed:none
 MERGE=505 @ owed:none,scripts"
-[[ "$out" == "$(heads "$want")" ]] || fail "instructed names a record on any commit; class needs nothing owed, no scripts, both statuses green, Codex done on the head and no open thread (got: $out)"
+[[ "$out" == "$(heads "$want")" ]] || fail "instructed names a record on any commit; class needs nothing owed or a discharged checklist, no scripts, both statuses green, Codex done on the head and no open thread (got: $out)"
 
 # --- merge-queue and digest without GraphQL: --no-class, else exit 1 ------------------------------------
 touch "$FIX/no-graphql"
 view merge-queue --no-class
-[[ "$out" == "$(heads "${want/,class/}")" ]] || fail "--no-class prints every fact but class, with no GraphQL call (got: $out)"
+[[ "$out" == "$(heads "${want//,class/}")" ]] || fail "--no-class prints every fact but class, with no GraphQL call (got: $out)"
 for verb in merge-queue digest; do
   rc=0; bash "$DRAIN" "$verb" > /dev/null 2>"$TMP/err" || rc=$?
   [[ "$rc" -eq 1 ]] && grep -q -- --no-class "$TMP/err" || fail "$verb without --no-class exits 1 when GraphQL is refused (rc=$rc: $(cat "$TMP/err"))"
@@ -596,7 +596,7 @@ classed="$out"
 grep -q "owed:none, instructed, class$" <<<"$classed" || fail "digest lists the class fact (got: $classed)"
 touch "$FIX/no-graphql"
 view digest --no-class
-[[ "$out" == "${classed/, class/}" ]] || fail "digest --no-class drops only the class fact (got: $out)"
+[[ "$out" == "${classed//, class/}" ]] || fail "digest --no-class drops only the class fact (got: $out)"
 
 # --- the typeable record: instruction() through merge-queue's instructed fact ----------------------
 reset

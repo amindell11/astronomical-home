@@ -399,9 +399,15 @@ Format: **term** — definition. *(authority)*
 - **auto-merge class** — the PRs `land` merges with no *recorded
   instruction*; its conditions are in `land`'s `--help`. Each such merge is
   labelled `auto-merged`, and the *pipeline digest* lists it until the user
-  removes the label on review: the user's review comes after the merge. It
-  means "nothing owed", so discharged PRs stay out; it widens only on
-  evidence. *(agent_worktree_pool.sh `gate_class`; #830)*
+  removes the label on review: the user's review comes after the merge. Its
+  owed verdict is none or discharged (#1713: an unticked eyes item holds a
+  PR until the user ticks it); it widens only on a ruling.
+  *(agent_worktree_pool.sh `class_verdict`; #830)*
+- **landing queue** — the open task/* PRs with GitHub auto-merge on. A
+  GitHub Action updates the behind ones from main one at a time, so a main
+  move re-runs the hosted suite on one PR, not all of them; it never merges or
+  decides who may. Not the pipeline's merge queue or GitHub's merge-queue
+  feature. *(scripts/landing_queue.sh; #1713)*
 - **merge task** — the desktop scheduled task `merge`, started by hand: one
   pass over the pipeline's merge queue, landing each instructed or class PR
   through `land`. *(agent-worktree-pr-loop → Merge task)*
