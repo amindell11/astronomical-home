@@ -46,7 +46,7 @@ The game's companion and enemy lines. This tab exports to LineSheet.txt in the r
 | SM1a | rival-fell | shoal | Enemy |  | Boss is down! That's it, everybody jump! | In game |  |
 | SM1b | rival-fell | shoal | Enemy |  | That's the boss gone. No cut's worth this. We're jumping out! | In game |  |
 | SM2a | rival-fell | shoal | Companion | any | No boss, no payday. They're jumping out of here. | In game |  |
-| BM1a | rival-fell | bastion | Enemy |  | He's fallen! No retreat. Close in and take the stranger with us! | In game |  |
+| BM1a | rival-fell | bastion | Enemy |  | He's fallen! No retreat. Close in and take the outsider with us! | In game |  |
 | BM1b | rival-fell | bastion | Enemy |  | For the clan! Get in close and don't stop till one of us is done! | In game |  |
 | BM2a | rival-fell | bastion | Companion | any | Bastion don't retreat. They're coming in close, so keep moving! | In game |  |
 | S4a | death | shoal | Companion |  | Well, that piece of junk is probably better off in their hands anyway. | In game |  |
