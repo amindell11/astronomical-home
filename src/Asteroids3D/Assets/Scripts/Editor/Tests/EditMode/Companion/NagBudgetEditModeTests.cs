@@ -37,7 +37,7 @@ namespace Tests.EditMode.Companion
         [Test]
         public void LinePastTheIntervalButInsideALongHold_IsDropped()
         {
-            var longLine = new string('x', 200);
+            var longLine = new string('x', 1000);
             Assert.Greater(feel.HoldFor(longLine), feel.MinLineIntervalSeconds + 1f, "test premise: the hold outlasts the gap");
             budget.Offer(longLine, mustSay: false, now: 0f, null);
             Assert.AreEqual(longLine, Speak(0f));
