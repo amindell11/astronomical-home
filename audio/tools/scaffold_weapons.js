@@ -38,6 +38,7 @@ var clipDir = __dirname + "/../../src/Asteroids3D/Assets/Audio/Sfx/Fx/";
 var chargeLoopSeconds = 0.25;
 var sustainLeadSeconds = 0.01;
 var flightHoldSeconds = 0.05;
+var maxDistance = 115;
 
 function childFolder(parent, name) {
     var existing = parent.items.filter(function (item) {
@@ -156,6 +157,7 @@ function ensureFlightPlaceholder(event) {
 function ensureHeldLoopPlaceholder(event) {
     if (event.groupTracks.length > 0) return;
     placeHeldThruster(event);
+    event.automatableProperties.maximumDistance = maxDistance;
     console.log("placed held loop and sustain point on " + event.getPath());
 }
 
