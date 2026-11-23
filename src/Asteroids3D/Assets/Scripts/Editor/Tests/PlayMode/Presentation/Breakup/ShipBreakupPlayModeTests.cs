@@ -77,6 +77,15 @@ namespace Tests.PlayMode.Presentation.Breakup
         public IEnumerator BulwarkEliteDeath_RetainsAuthoredBreakup() => FixedHullDeath("BulwarkElite");
 
         [UnityTest]
+        public IEnumerator NightshadeRivalDeath_RetainsAuthoredBreakup() => FixedHullDeath("NightshadeRival");
+
+        [UnityTest]
+        public IEnumerator NightshadeMinionDeath_RetainsAuthoredBreakup() => FixedHullDeath("NightshadeMinion");
+
+        [UnityTest]
+        public IEnumerator NightshadeEliteDeath_RetainsAuthoredBreakup() => FixedHullDeath("NightshadeElite");
+
+        [UnityTest]
         public IEnumerator NightshadeDeath_PreservesPaintAndBreaksIntoLargeSections() => PaintedHullDeath("Nightshade", 13);
 
         [UnityTest]
