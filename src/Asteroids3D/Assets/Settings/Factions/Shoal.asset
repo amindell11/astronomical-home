@@ -99,6 +99,7 @@ MonoBehaviour:
     - {fileID: 2100000, guid: 1e09fac8d42c41eb85b1c6c4c54b4200, type: 2}
     - {fileID: 2100000, guid: 1a56c0e5aaca496da9fd66c4bc9f0c12, type: 2}
     - {fileID: 2100000, guid: cd3c4da19d3ac8b4b83601d0d87c7659, type: 2}
+    displayName: Shoal Valis
   unlocks: {fileID: 1448741880885153620, guid: 2198c10e93bde5f42b7b9a44dbff3e6a, type: 3}
   flame: {fileID: 2100000, guid: 2eb3caeab93746ce83e028188297baec, type: 2}
   eliteFlame: {fileID: 2100000, guid: 361c2fabb726455cb13b67b0c6af7406, type: 2}

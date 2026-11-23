@@ -9,8 +9,8 @@ namespace Combat.Projectiles
 {
     /// <summary>
     /// Concussion charge flown as a reverse missile: launched at a fixed speed straight at its
-    /// target point (clamped to <see cref="ProjectileBase.MaxDistance"/>), it brakes by its own
-    /// thrust to rest on that point. Being shot detonates it at once — the owner's fire included.
+    /// target point (clamped to <see cref="ProjectileBase.MaxDistance"/>), it coasts until stopping
+    /// there takes <see cref="brakingThrust"/>, then burns to rest on that point. Being shot detonates it at once — the owner's fire included.
     /// Every other fuse waits for <see cref="armingTime"/> after launch: then it detonates on
     /// arrival (holding on the point if it got there first), on contact, or when a ship comes
     /// within <see cref="proximityRadius"/> — never the owner's hull. Detonation spawns a
@@ -20,6 +20,8 @@ namespace Combat.Projectiles
     {
         [Header("Charge")]
         [Stat, SerializeField, Min(0.01f)] private float launchSpeed = 40f;
+        [Tooltip("Deceleration of the braking burn. The charge coasts until stopping on its point needs this much; a shorter throw burns from launch.")]
+        [Stat, SerializeField, Min(0.01f)] internal float brakingThrust = 64f;
 
         [Header("Fuse")]
         [Tooltip("Seconds after launch before arrival, contact or proximity can detonate the charge; being shot always does.")]
@@ -32,6 +34,7 @@ namespace Combat.Projectiles
 
         private Vector3 targetPoint;
         private Vector3 heading;
+        private float coastDistance;
         private bool detonated;
         private float sinceLaunch;
         private int shipLayers;
@@ -51,6 +54,22 @@ namespace Combat.Projectiles
         public Vector3 TargetPoint => targetPoint;
 
         public float LaunchSpeed => launchSpeed;
+
+        /// <summary>True while the braking thrust is pushing on the charge.</summary>
+        public bool Burning { get; private set; }
+
+        /// <summary>Remaining distance at which the braking burn lights.</summary>
+        public float BurnDistance => launchSpeed * launchSpeed / (2f * brakingThrust);
+
+        /// <summary>0 at launch, 1 once the braking burn lights.</summary>
+        public float CoastProgress => Burning || coastDistance <= 0f
+            ? 1f
+            : Mathf.Clamp01(1f - (Vector3.Dot(targetPoint - transform.position, heading) - BurnDistance) / coastDistance);
+
+        /// <summary>Seconds from launch to rest <paramref name="distance"/> away: a coast, then the burn.</summary>
+        public float FlightTime(float distance) => distance <= BurnDistance
+            ? 2f * distance / launchSpeed
+            : (distance + BurnDistance) / launchSpeed;
 
         /// <summary>Serialized-state read for hangar stat lines (evaluated on the prefab asset).</summary>
         public ConcussionWave WavePrefab => wavePrefab;
@@ -83,8 +102,10 @@ namespace Combat.Projectiles
             var offset = GamePlane.WorldPointToPlane(targetPoint) - origin;
             var planarHeading = offset.sqrMagnitude > 0.0001f ? offset.normalized : GamePlane.WorldDirToPlane(direction).normalized;
 
+            var flightDistance = Mathf.Min(offset.magnitude, maxDistance);
             heading = GamePlane.PlaneDirToWorld(planarHeading);
-            this.targetPoint = GamePlane.PlanePointToWorld(origin + planarHeading * Mathf.Min(offset.magnitude, maxDistance));
+            this.targetPoint = GamePlane.PlanePointToWorld(origin + planarHeading * flightDistance);
+            coastDistance = Mathf.Max(0f, flightDistance - BurnDistance);
             rb.linearVelocity = heading * launchSpeed;
             base.Launch(direction, targetPoint);
         }
@@ -102,9 +123,17 @@ namespace Combat.Projectiles
             }
 
             if (arrived)
+            {
+                Burning = false;
                 rb.linearVelocity = Vector3.zero;
+            }
             else
-                rb.AddForce(-heading * BrakingDeceleration(closingSpeed, remaining, Time.fixedDeltaTime), ForceMode.Acceleration);
+            {
+                var deceleration = BrakingDeceleration(closingSpeed, remaining, Time.fixedDeltaTime);
+                Burning |= deceleration >= brakingThrust;
+                if (Burning)
+                    rb.AddForce(-heading * deceleration, ForceMode.Acceleration);
+            }
             base.FixedUpdate();
         }
 
@@ -150,6 +179,7 @@ namespace Combat.Projectiles
         protected override void OnReturnToPool()
         {
             detonated = false;
+            Burning = false;
             sinceLaunch = 0f;
             blastRadiusScale = 1f;
         }

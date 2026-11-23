@@ -40,6 +40,8 @@ namespace AI.Tactics
         public bool holdsLine;
         [Tooltip("Units between neighbouring places on the line.")]
         [Min(0f)] public float lineSpacing = 8f;
+        [Tooltip("With its leader dead, flies straight away guns cold and leaves past 'jumps beyond', to arrive again with the sector's next wave. Off, it flies its wounded response.")]
+        public bool regroupsWithoutLeader;
 
         [Header("Ambush")]
         [Tooltip("Each time its keystone is ready it fires it, flies hidden with guns cold to a point ahead of the target's nose, and fires once it shows.")]
@@ -70,7 +72,7 @@ namespace AI.Tactics
         [Min(0f)] public float fallBackMargin = 1f;
         [Tooltip("Units from its target at which a ship making its last stand holds and fires.")]
         [Min(0f)] public float chargeRange = 6f;
-        [Tooltip("Units from its target beyond which a ship that jumps out leaves the sector.")]
+        [Tooltip("Units from its target beyond which a ship that jumps out, or regroups, leaves the sector.")]
         [Min(0f)] public float jumpsBeyond = 70f;
 
         private void OnValidate()
