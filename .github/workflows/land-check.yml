@@ -53,7 +53,8 @@ jobs:
           fi
           echo "number=$PR" >> "$GITHUB_OUTPUT"
 
-  land-check:
+  # Not named land-check: a check run of that name would satisfy the required land-check status.
+  post-verdict:
     needs: resolve
     if: needs.resolve.outputs.number != ''
     runs-on: ubuntu-latest
