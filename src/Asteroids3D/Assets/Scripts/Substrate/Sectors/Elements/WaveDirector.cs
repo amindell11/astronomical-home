@@ -20,11 +20,11 @@ using UnityEngine;
 namespace Substrate.Sectors.Elements
 {
     /// <summary>
-    /// Sends a rival leading minions on each sector phase's wave-every beat. The rival comes while live
-    /// rivals sit under the row's rival cap; the minions are trimmed to the minion cap, which counts the
-    /// hunt's live patrols. The rival takes the arc's centre slot, or arrives concealed ahead of the hero
-    /// when its temper ambushes and that point is clear, and the minions take the slots either side, each
-    /// following the rival at its place; with no room for a rival, the minions come alone.
+    /// Sends a rival leading minions on each sector phase's wave-every beat. A wave comes only while live
+    /// rivals sit under the row's rival cap, so minions never arrive without a rival; its minions are
+    /// trimmed to the minion cap, which counts the hunt's live patrols. The rival takes the arc's centre
+    /// slot, or arrives concealed ahead of the hero when its temper ambushes and that point is clear, and
+    /// the minions take the slots either side, each following the rival at its place.
     /// Every wave ship hunts the hero by sight. A wave with no room is dropped. A phase opens with one.
     /// Nothing arrives in a lull, or once the table is done when an elite follows it. With an elite, a
     /// closing lull follows the last phase; without one, the done table keeps the last phase's waves.
@@ -204,9 +204,7 @@ namespace Substrate.Sectors.Elements
             var minions = WaveDue(now);
             if (minions != null)
             {
-                var rival = RivalRoom(rivals.Count);
-                var count = MinionRoom(minions.Value, AliveMinions);
-                if ((!rival && count == 0) || TrySend(rival, count)) Arrived(now);
+                if (!RivalRoom(rivals.Count) || TrySend(MinionRoom(minions.Value, AliveMinions))) Arrived(now);
             }
             Observe(now, Alive);
         }
@@ -357,10 +355,10 @@ namespace Substrate.Sectors.Elements
             products.Add(ship);
         }
 
-        private bool TrySend(bool withRival, int minions)
+        private bool TrySend(int minions)
         {
             var center = GamePlane.WorldPointToPlane(hero.transform.position);
-            var count = minions + (withRival ? 1 : 0);
+            var count = 1 + minions;
             for (var attempt = 0; attempt < placementAttempts; attempt++)
             {
                 var bearing = UnityEngine.Random.Range(0f, 2f * Mathf.PI);
@@ -368,11 +366,11 @@ namespace Substrate.Sectors.Elements
                 if (Array.Exists(slots, slot => !ClearPoint.IsClear(field, slot, clearanceRadius)))
                     continue;
 
-                var centreIndex = withRival ? (count - 1) / 2 : -1;
+                var centreIndex = (count - 1) / 2;
                 var rivalRank = faction.Faction.Rival;
                 var minionRank = faction.Faction.Minion;
                 Ship rival = null;
-                if (withRival && rivalAmbushes)
+                if (rivalAmbushes)
                 {
                     var ahead = center + hero.Kinematics.Forward * ambushSpawnAhead;
                     if (ClearPoint.IsClear(field, ahead, clearanceRadius))
@@ -388,16 +386,13 @@ namespace Substrate.Sectors.Elements
                     if (i != centreIndex) spawned[i] = Spawn(minionRank, slots[i], center);
                     else spawned[i] = rival ? rival : Spawn(rivalRank, slots[i], center);
                 }
-                if (withRival)
-                {
-                    rival = spawned[centreIndex];
-                    rivals.Add(rival);
-                }
+                rival = spawned[centreIndex];
+                rivals.Add(rival);
 
                 for (var i = 0; i < count; i++)
                 {
                     var commander = (AICommander)spawned[i].Commander;
-                    if (rival && i != centreIndex)
+                    if (i != centreIndex)
                         commander.FollowLeader(rival, i - centreIndex);
                     commander.HuntBySight(hero);
                 }

@@ -533,14 +533,15 @@ Format: **term** — definition. *(authority)*
   A rival whose temper ambushes arrives concealed ahead of the player instead, when
   that point is clear. A phase that sends waves draws how many minions fly with the
   rival uniformly from fewest to most, inclusive. Waves arrive on the phase's wave-every beat, trimmed to
-  the wave caps; with no room for a rival, the minions come alone. Nothing arrives in a lull, and survivors stay.
+  the wave caps; with no room for a rival, the whole wave is dropped. Nothing arrives in a lull, and survivors stay.
   *(WaveDirector.WaveDue)*
 - **wave every** — the beat a sector phase sends its waves on.
   *(SectorPhase.waveEvery)*
 - **wave cap** — a sector's two limits on what its waves fill to: the rival cap
-  (live rivals) and the minion cap (live minions, hunt patrols included). Each
-  trims its own rank, so a wave can arrive without its rival. Nothing is held or
-  owed: a trimmed or dropped wave is not made up later.
+  (live rivals) and the minion cap (live minions, hunt patrols included). A full
+  rival cap drops the whole wave, so minions never arrive without a rival; a full
+  minion cap sends the rival alone. Nothing is held or owed: a trimmed or dropped
+  wave is not made up later.
   *(SectorEntry.rivalCap, SectorEntry.minionCap, WaveDirector.RivalRoom, WaveDirector.MinionRoom)*
 - **earned lull** — the rest of a sector phase once its last wave has arrived and
   nothing is alive, patrols included. A dropped wave counts as arrived. It moves
