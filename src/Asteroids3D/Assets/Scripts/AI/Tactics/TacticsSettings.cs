@@ -21,6 +21,8 @@ namespace AI.Tactics
         public Tactic home = Tactic.AttackRun;
         [Tooltip("Units beyond its gun hold range at which the ship flies its attack run (0 = at the hold range).")]
         [Min(0f)] public float attackRunMargin;
+        [Tooltip("With the target beyond its primary gun range, flies at full speed instead of its cruising fraction.")]
+        public bool chasesFlatOut;
         [Tooltip("With a dead target, circle the wreck for a few laps before wandering. Off, a dead target wanders from the start. A lost target is circled either way.")]
         public bool circlesWreck = true;
         [Tooltip("Seconds since the ship was last hit within which a gauge under its breaking point makes it hurt.")]
@@ -38,6 +40,8 @@ namespace AI.Tactics
         public bool holdsLine;
         [Tooltip("Units between neighbouring places on the line.")]
         [Min(0f)] public float lineSpacing = 8f;
+        [Tooltip("With its leader dead, flies straight away guns cold and leaves past 'jumps beyond', to arrive again with the sector's next wave. Off, it flies its wounded response.")]
+        public bool regroupsWithoutLeader;
 
         [Header("Ambush")]
         [Tooltip("Each time its keystone is ready it fires it, flies hidden with guns cold to a point ahead of the target's nose, and fires once it shows.")]
@@ -68,7 +72,7 @@ namespace AI.Tactics
         [Min(0f)] public float fallBackMargin = 1f;
         [Tooltip("Units from its target at which a ship making its last stand holds and fires.")]
         [Min(0f)] public float chargeRange = 6f;
-        [Tooltip("Units from its target beyond which a ship that jumps out leaves the sector.")]
+        [Tooltip("Units from its target beyond which a ship that jumps out, or regroups, leaves the sector.")]
         [Min(0f)] public float jumpsBeyond = 70f;
 
         private void OnValidate()

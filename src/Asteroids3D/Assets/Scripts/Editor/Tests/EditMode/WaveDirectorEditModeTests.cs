@@ -120,6 +120,14 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void RegroupedMinions_FillTheSentWavesPlacesFirst_AndTheRestWait()
+        {
+            Assert.AreEqual(0, WaveDirector.Rejoined(2, 3), "Two held minions both fit a wave of three.");
+            Assert.AreEqual(1, WaveDirector.Rejoined(3, 2), "A wave of two takes two of three held minions.");
+            Assert.AreEqual(2, WaveDirector.Rejoined(2, 0), "A wave with no minion room takes none.");
+        }
+
+        [Test]
         public void Rival_Comes_OnlyWhileLiveRivalsSitUnderTheRivalCap()
         {
             _director.Configure(_phases, Lull, rivalCap: 2);
