@@ -35,6 +35,8 @@
 {e6607cac-8c37-4cd3-9cc3-4c573c3cdbae} event:/Weapons/ChargeLaser/Impact
 {7c08ffa3-bf3c-4e03-ad3c-00e493d15ca3} event:/Weapons/Grenade/Detonate
 {62593044-5f9e-4bae-8319-e2a92c98f95f} event:/Weapons/Grenade/Fire
+{36d3c07c-945e-4f72-bac2-90de87423721} event:/Weapons/Grenade/Flight
+{84c1855c-cd8a-4eb0-9cde-b786c796b922} event:/Weapons/Grenade/Thruster
 {85adae07-467f-4762-912e-f9fb33647da8} event:/Weapons/Laser/Fire
 {5da4e649-247b-48f4-8ff8-a70c18d6b4a3} event:/Weapons/Laser/Impact
 {90af8251-d067-411a-9b10-388135b95bdd} event:/Weapons/Missile/Detonate
