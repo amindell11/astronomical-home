@@ -45,6 +45,7 @@ EOF
 # The answers landing_queue.sh's --jq filters give; a filter it no longer sends fails closed.
 cat > "$TMP/bin/shape.py" <<'EOF'
 import json, re, sys
+sys.stdout.reconfigure(newline="\n")  # Windows Python would end lines in CRLF, unlike gh.
 kind, path, jqf = sys.argv[1:4]
 data = json.load(open(path))
 if kind == "members":
