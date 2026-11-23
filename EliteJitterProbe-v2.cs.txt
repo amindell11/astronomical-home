@@ -1,0 +1,243 @@
+#if UNITY_EDITOR
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Reflection;
+using System.Text;
+using AI;
+using Capture.Views;
+using Loot;
+using Ships;
+using Ships.Command;
+using Ships.Loadout;
+using Substrate;
+using Substrate.Sectors.Elements.Elites;
+using Substrate.Sectors.Factions;
+using Tests.PlayMode.Common;
+using Tests.PlayMode.Recording;
+using UnityEditor;
+using UnityEngine;
+
+public sealed class EliteJitterProbe : CaptureScenario
+{
+    public override GizmoCaptureProfile Profile => GizmoCaptureProfile.None;
+
+    protected override DiagnosticViewConfig View => string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ELITE_FILM_FACTION"))
+        ? new DiagnosticViewConfig()
+        : new DiagnosticViewConfig { minHalfHeight = 9f, padding = 4f };
+
+    internal static string OutDir
+    {
+        get
+        {
+            var tag = Environment.GetEnvironmentVariable("ELITE_PROBE_TAG");
+            if (string.IsNullOrEmpty(tag)) tag = "main";
+            var dir = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "..", "results", "elite-probe", tag));
+            Directory.CreateDirectory(dir);
+            return dir;
+        }
+    }
+
+    internal struct Variant
+    {
+        public string label;
+        public Ship ship;
+        public Commander pilot;
+        public ShipLoadout loadout;
+        public ShipScale scale;
+        public LullModStack mods;
+        public bool bankFix;
+        public float torque;
+        public float inertiaScale;
+    }
+
+    internal static IEnumerable<Variant> Variants(string onlyFaction = null, bool eliteOnly = false)
+    {
+        var elitePilot = TestAssets.Load<Commander>("Assets/Prefabs/Pilots/ElitePilot.prefab");
+        var rows = new[] { ("Shoal", "ShoalElite"), ("Bastion", "BastionBoss"), ("Veil", "VeilElite") };
+        foreach (var (factionName, profileName) in rows)
+        {
+            if (onlyFaction != null && onlyFaction != factionName) continue;
+            var faction = AssetDatabase.LoadAssetAtPath<Faction>($"Assets/Settings/Factions/{factionName}.asset");
+            var profile = AssetDatabase.LoadAssetAtPath<EliteProfile>($"Assets/Settings/Ships/Elites/{profileName}.asset");
+            if (!faction || !profile) throw new InvalidOperationException($"missing {factionName}/{profileName}");
+            var s = profile.Scale;
+            var tough = new ShipScale(s.Size, s.Mass, s.Thrust, s.Torque, s.Hull * 20f);
+            LullModStack Mods() { var m = new LullModStack(); foreach (var mod in profile.Mods) m.Add(mod); return m; }
+
+            var elite = faction.EliteShip;
+            yield return new Variant { label = $"{factionName}-elite", ship = elite, pilot = elitePilot,
+                loadout = new ShipLoadout(elite, profile.Primary, profile.Secondary), scale = tough, mods = Mods(), torque = s.Torque };
+            if (eliteOnly) continue;
+            yield return new Variant { label = $"{factionName}-elite-torque1", ship = elite, pilot = elitePilot,
+                loadout = new ShipLoadout(elite, profile.Primary, profile.Secondary),
+                scale = new ShipScale(s.Size, s.Mass, s.Thrust, 1f, s.Hull * 20f), mods = Mods(), torque = 1f };
+            yield return new Variant { label = $"{factionName}-elite-bankfix", ship = elite, pilot = elitePilot,
+                loadout = new ShipLoadout(elite, profile.Primary, profile.Secondary), scale = tough, mods = Mods(),
+                bankFix = true, torque = s.Torque };
+            // Physical inertia scaling: mass factor x (mesh size ratio ~1.13)^2.
+            yield return new Variant { label = $"{factionName}-elite-inertiaScaled", ship = elite, pilot = elitePilot,
+                loadout = new ShipLoadout(elite, profile.Primary, profile.Secondary), scale = tough, mods = Mods(),
+                torque = s.Torque, inertiaScale = s.Mass * 1.13f * 1.13f };
+            if (factionName == "Shoal")
+                yield return new Variant { label = $"{factionName}-elite-size1.5-preD9", ship = elite, pilot = elitePilot,
+                    loadout = new ShipLoadout(elite, profile.Primary, profile.Secondary),
+                    scale = new ShipScale(1.5f, s.Mass, s.Thrust, s.Torque, s.Hull * 20f), mods = Mods(), torque = s.Torque };
+            var minion = faction.Minion;
+            yield return new Variant { label = $"{factionName}-minion", ship = minion.ship, pilot = minion.pilot,
+                loadout = minion.Loadout, scale = new ShipScale(minion.scale.Size, minion.scale.Mass, minion.scale.Thrust,
+                    minion.scale.Torque, 20f), torque = minion.scale.Torque };
+            var chassis = faction.Unlocks;
+            yield return new Variant { label = $"{factionName}-chassis-eliteScale", ship = chassis, pilot = elitePilot,
+                loadout = new ShipLoadout(chassis, profile.Primary, profile.Secondary), scale = tough, mods = Mods(), torque = s.Torque };
+            yield return new Variant { label = $"{factionName}-chassis-scale1", ship = chassis, pilot = elitePilot,
+                loadout = new ShipLoadout(chassis, profile.Primary, profile.Secondary), scale = new ShipScale(1, 1, 1, 1, 20f),
+                torque = 1f };
+        }
+    }
+
+    internal (Ship subject, Ship target) SpawnPair(in Variant v, Vector2 center)
+    {
+        var aggressor = TestAssets.Load<AICommander>("Assets/Prefabs/Pilots/AggressorPilot.prefab");
+        var target = Session.Units.SpawnShip(TestAssets.LoadCrimsonPrefab(), aggressor, 0,
+            Session.Frame.Place(center + new Vector2(20f, 0f)), GamePlane.Rotation * Quaternion.AngleAxis(90f, Vector3.forward),
+            null, scale: new ShipScale(1, 1, 1, 1, 50f));
+        // Inertia is scaled on the template in memory (restored right after) so Initialize and the AI's captured dynamics see it.
+        var templateRb = v.ship.GetComponent<Rigidbody>();
+        var authored = templateRb.inertiaTensor;
+        if (v.inertiaScale > 0f) templateRb.inertiaTensor = authored * v.inertiaScale;
+        Ship subject;
+        try
+        {
+            subject = Session.Units.SpawnShip(v.ship, v.pilot, 1,
+                Session.Frame.Place(center + new Vector2(-20f, 0f)), GamePlane.Rotation * Quaternion.AngleAxis(-90f, Vector3.forward),
+                null, v.loadout, v.scale, v.mods);
+        }
+        finally { templateRb.inertiaTensor = authored; }
+        if (v.bankFix)
+        {
+            subject.Stats.bankTorque /= v.torque;
+            subject.Stats.bankDamping /= v.torque;
+        }
+        var probe = subject.gameObject.AddComponent<EliteJitterLogger>();
+        probe.Begin(v.label, OutDir, v.scale);
+        probe.target = target;
+        return (subject, target);
+    }
+
+    public override IEnumerator Run()
+    {
+        var subjects = new List<Ship>();
+        Ship firstTarget = null;
+        var i = 0;
+        var filmFaction = Environment.GetEnvironmentVariable("ELITE_FILM_FACTION");
+        foreach (var v in Variants(string.IsNullOrEmpty(filmFaction) ? null : filmFaction, !string.IsNullOrEmpty(filmFaction)))
+        {
+            var (s, t) = SpawnPair(v, new Vector2(i * 1000f, 0f));
+            subjects.Add(s);
+            if (i == 0) firstTarget = t;
+            i++;
+        }
+        yield return Film(subjects[0], firstTarget);
+        for (var k = 0; k < (string.IsNullOrEmpty(filmFaction) ? 600 : 1000); k++) yield return new WaitForFixedUpdate();
+        foreach (var s in subjects) if (s) s.GetComponent<EliteJitterLogger>().Flush();
+    }
+}
+
+[DefaultExecutionOrder(60)]
+public sealed class EliteJitterLogger : MonoBehaviour
+{
+    private readonly StringBuilder rows = new();
+    private string label, dir;
+    private Ship ship;
+    public Ship target;
+    private Rigidbody rb;
+    private Navigator nav;
+    private FieldInfo aimRefField;
+    private int tick;
+    private bool flushed;
+
+    public void Begin(string label, string dir, ShipScale scale)
+    {
+        this.label = label;
+        this.dir = dir;
+        ship = GetComponent<Ship>();
+        rb = ship.Rigidbody;
+        nav = GetComponentInChildren<Navigator>();
+        aimRefField = typeof(Navigator).GetField("costAimReference", BindingFlags.Instance | BindingFlags.NonPublic);
+        rows.AppendLine("tick,t,yaw,yawRate,cmdYaw,servo,thrust,strafe,bank,bankRateDeg,angVelDeg,maxAngVelDeg,yawRateWorldDeg,px,py,tx,ty");
+
+        var dyn = (Movement.Dynamics)typeof(Ship).GetField("baseDynamics", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(ship);
+        var meta = new StringBuilder();
+        var inv = Quaternion.Inverse(rb.inertiaTensorRotation);
+        float Moment(Vector3 localAxis)
+        {
+            var a = inv * localAxis.normalized;
+            var I = rb.inertiaTensor;
+            return I.x * a.x * a.x + I.y * a.y * a.y + I.z * a.z * a.z;
+        }
+        var yawAxisLocal = Quaternion.Inverse(rb.rotation) * GamePlane.Normal;
+        var Iyaw = Moment(yawAxisLocal);
+        var Ibank = Moment(Vector3.up);
+        var st = ship.Stats;
+        var dt = Time.fixedDeltaTime;
+        meta.AppendLine($"label={label}");
+        meta.AppendLine($"prefab={ship.name}");
+        meta.AppendLine($"scale size={scale.Size} mass={scale.Mass} thrust={scale.Thrust} torque={scale.Torque}");
+        meta.AppendLine($"localScale={transform.localScale}");
+        meta.AppendLine($"rb.mass={rb.mass} automaticInertiaTensor={rb.automaticInertiaTensor} interpolation={rb.interpolation}");
+        meta.AppendLine($"rb.inertiaTensor={rb.inertiaTensor.ToString("F3")} inertiaTensorRotation.euler={rb.inertiaTensorRotation.eulerAngles.ToString("F3")}");
+        meta.AppendLine($"yawAxisLocal={yawAxisLocal.ToString("F3")} trueYawInertia={Iyaw:F3} modelYawInertia(baseDynamics)={dyn.yawInertia:F3} ratio model/true={dyn.yawInertia / Iyaw:F3}");
+        meta.AppendLine($"trueBankInertia(local up)={Ibank:F3}");
+        meta.AppendLine($"stats yawTorque={st.yawTorque} bankTorque={st.bankTorque} bankDamping={st.bankDamping} maxYawRate={st.maxYawRate} angularDrag={st.angularDrag} maxBankAngle={st.maxBankAngle}");
+        meta.AppendLine($"bank c*dt/I={st.bankDamping * dt / Ibank:F3} k*dt^2/I={st.bankTorque * dt * dt / Ibank:F3} (explicit damping unstable if c*dt/I > ~2)");
+        meta.AppendLine($"yaw accel max = yawTorque/Iyaw = {st.yawTorque / Iyaw * Mathf.Rad2Deg:F0} deg/s^2");
+        meta.AppendLine($"fixedDeltaTime={dt} solverIterations={rb.solverIterations}");
+        File.WriteAllText(Path.Combine(dir, label + "_meta.txt"), meta.ToString());
+    }
+
+    private void FixedUpdate()
+    {
+        if (!ship || flushed) return;
+        var k = ship.Movement.Kinematics;
+        var cmd = ship.Movement.CurrentCommand;
+        var servo = 0;
+        if (nav && aimRefField != null)
+        {
+            var aref = (AI.Navigation.MPC.AimReference)aimRefField.GetValue(nav);
+            servo = aref.live ? 1 : 0;
+        }
+        var w = rb.angularVelocity;
+        var bankRate = Vector3.Dot(w, transform.up) * Mathf.Rad2Deg;
+        var yawW = Vector3.Dot(w, GamePlane.Normal) * Mathf.Rad2Deg;
+        var c = CultureInfo.InvariantCulture;
+        rows.Append(tick++).Append(',')
+            .Append(Time.fixedTimeAsDouble.ToString("F3", c)).Append(',')
+            .Append(k.yaw.ToString("F3", c)).Append(',')
+            .Append(k.yawRate.ToString("F3", c)).Append(',')
+            .Append(cmd.yawTorque.ToString("F4", c)).Append(',')
+            .Append(servo).Append(',')
+            .Append(cmd.thrust.ToString("F3", c)).Append(',')
+            .Append(cmd.strafe.ToString("F3", c)).Append(',')
+            .Append(k.bank.ToString("F3", c)).Append(',')
+            .Append(bankRate.ToString("F3", c)).Append(',')
+            .Append((w.magnitude * Mathf.Rad2Deg).ToString("F3", c)).Append(',')
+            .Append((rb.maxAngularVelocity * Mathf.Rad2Deg).ToString("F3", c)).Append(',')
+            .Append(yawW.ToString("F3", c)).Append(',')
+            .Append(k.pos.x.ToString("F2", c)).Append(',').Append(k.pos.y.ToString("F2", c)).Append(',')
+            .Append(target ? target.Movement.Kinematics.pos.x.ToString("F2", c) : "nan").Append(',')
+            .Append(target ? target.Movement.Kinematics.pos.y.ToString("F2", c) : "nan").AppendLine();
+    }
+
+    public void Flush()
+    {
+        if (flushed) return;
+        flushed = true;
+        File.WriteAllText(Path.Combine(dir, label + ".csv"), rows.ToString());
+    }
+
+    private void OnDestroy() => Flush();
+}
+#endif
