@@ -162,7 +162,8 @@ namespace Game.Preview.Sectors
                     DrawStripField(row, nameof(SectorEntry.faction), "Faction", ObjectFieldWidth);
                     DrawStripField(row, nameof(SectorEntry.elite), "Elite", ObjectFieldWidth);
                     DrawStripField(row, nameof(SectorEntry.patrols), "Patrols", NumberFieldWidth);
-                    DrawStripField(row, nameof(SectorEntry.waveCap), "Wave cap", NumberFieldWidth);
+                    DrawStripField(row, nameof(SectorEntry.rivalCap), "Rival cap", NumberFieldWidth);
+                    DrawStripField(row, nameof(SectorEntry.minionCap), "Minion cap", NumberFieldWidth);
                     DrawStripField(row, nameof(SectorEntry.armories), "Armories", NumberFieldWidth);
                     DrawStripField(row, nameof(SectorEntry.field), "Field", ObjectFieldWidth);
                 }
