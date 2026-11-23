@@ -78,6 +78,9 @@ namespace Ships.Keystones.Tells
 
             [Tooltip("Left in the world where it started, instead of following the ship.")]
             public bool staysAtLaunch;
+
+            [Tooltip("Left where the ship was on the frame before this layer started. Needs Stays At Launch.")]
+            public bool startsBehind;
         }
     }
 }

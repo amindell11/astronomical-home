@@ -7,15 +7,17 @@ using UnityEngine;
 namespace Game.Companion
 {
     /// <summary>
-    /// Speaks for the run's moments: each raised moment picks a line from its line slot, fills in the
-    /// moment's facts, prefixes the slot's speaker when one is named, and offers it to the nag budget. A
-    /// line the budget lets through shows on the comm line. Built once per session; each run hands it that
-    /// run's moment stream. With debug labels on, an empty line slot speaks a bracketed label of its id and
-    /// the moment's facts instead of staying silent, with that speaker prefix when the slot names one.
+    /// Speaks for the run's moments. A moment picks an exchange, and the reply shows when the opener's
+    /// hold ends. The exchange comes from the line file's rows for the moment's line slot and faction;
+    /// each line is filled from the facts, prefixed with who speaks it, and offered to the nag budget.
+    /// A line the budget lets through shows on the comm line. Built once per session; each run hands it
+    /// the moment stream. With debug labels on, a moment with no matching line speaks a bracketed label
+    /// of its id and facts instead of staying silent, prefixed the same way.
     /// </summary>
     public sealed class CompanionVoice : MonoBehaviour
     {
         private CompanionLineSheet sheet;
+        private LineTable lines;
         private CompanionFeelProfile feel;
         private CommLine display;
         private Func<bool> canSpeak;
@@ -36,6 +38,7 @@ namespace Game.Companion
             go.transform.SetParent(parent, false);
             var voice = go.AddComponent<CompanionVoice>();
             voice.sheet = sheet;
+            voice.lines = sheet.LoadLines();
             voice.feel = feel;
             voice.display = display;
             voice.canSpeak = canSpeak;
@@ -55,18 +58,28 @@ namespace Game.Companion
         private void OnRaised(IRunMoment moment)
         {
             var slot = sheet.Find(moment.Slot);
-            var line = slot.Pick(n => UnityEngine.Random.Range(0, n));
-            if (line != null)
-                foreach (var fact in moment.Facts)
-                    line = line.Replace("{" + fact.Key + "}", fact.Value);
-            else if (debugLabels)
-                line = DebugLabel(moment);
-            else
+            var picked = lines.Pick(moment.Slot, moment.Facts, n => UnityEngine.Random.Range(0, n),
+                UnityEngine.Random.value < feel.ReplyChance);
+            if (picked.Count == 0)
+            {
+                if (!debugLabels) return;
+                budget.Offer(slot.SpokenBy + ": " + DebugLabel(moment), slot.MustSay, Time.unscaledTime, null);
+                TrySpeak();
                 return;
-            if (!string.IsNullOrWhiteSpace(slot.Speaker))
-                line = slot.Speaker + ": " + line;
-            budget.Offer(line, slot.MustSay, Time.unscaledTime);
+            }
+
+            var first = Spoken(picked[0], moment);
+            var second = picked.Count > 1 ? Spoken(picked[1], moment) : null;
+            budget.Offer(first, slot.MustSay, Time.unscaledTime, second);
             TrySpeak();
+        }
+
+        private static string Spoken(SpokenLine line, IRunMoment moment)
+        {
+            var text = line.Text;
+            foreach (var fact in moment.Facts)
+                text = text.Replace("{" + fact.Key + "}", fact.Value);
+            return line.Speaker + ": " + text;
         }
 
         private static string DebugLabel(IRunMoment moment) =>

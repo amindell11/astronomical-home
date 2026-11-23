@@ -338,7 +338,8 @@ namespace Tests.EditMode
             var faction = ScriptableObject.CreateInstance<Faction>();
             scratch.Add(faction);
             faction.signature = new FactionShip { ship = ship, pilot = rivalPilot };
-            faction.minion = new FactionMinion { pilot = minionPilot };
+            faction.minion = new FactionMinion { ship = ship, pilot = minionPilot };
+            faction.elite = new FactionElite { ship = ship };
             return faction;
         }
 

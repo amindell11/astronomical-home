@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Shoal Valis
   scale:
-    size: 1.5
+    size: 1
     mass: 1.5
     thrust: 1.5
     torque: 2.5

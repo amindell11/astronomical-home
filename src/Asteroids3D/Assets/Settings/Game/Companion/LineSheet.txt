@@ -1,0 +1,76 @@
+# Line sheet
+
+The game's companion and enemy lines. This tab exports to LineSheet.txt in the repo, and the game reads its lines from that file. Edit here, then export. The export is markdown, but the repo copy is named .txt so that every line change runs the game's tests before it lands.
+
+- Only rows whose Status is "In game" load. "Later" rows wait for a feature the game doesn't have yet, and the Notes cell says which.
+- A blank Faction means any sector.
+- A blank After opens the exchange. "any" follows any opening line from another speaker in the same moment and faction. An ID follows only that line. "either" can open, or follow an opening line from another speaker.
+- Rows that share a moment, faction and speaker are interchangeable, and the game picks one at random.
+- An ID is never reused, even after its row is cut.
+
+| ID | Moment | Faction | Speaker | After | Line | Status | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| S1a | sector-entered | shoal | Companion |  | Shoal space. Friendly bunch. They'll say sorry the whole time they're stripping the ship. | In game |  |
+| S1b | sector-entered | shoal | Companion |  | See those wrecks? Some of these scrappers are the ones who shot them down. | In game |  |
+| S3a | sector-entered | shoal | Companion |  | Keep moving. Anything that sits still out here gets a salvage tag, and that includes me. | In game |  |
+| VE0a | sector-entered | veil | Enemy |  | Arrival unscheduled. Human aboard. Hold course for intake. | In game |  |
+| VE0b | sector-entered | veil | Enemy |  | Foreign hull. Solitary operator. Recommend prompt inclusion. | In game |  |
+| V1 | sector-entered | veil | Companion | any | If anyone is flying those things, they don't seem much for small talk. | In game |  |
+| V2a | sector-entered | veil | Companion |  | Keep your head up. These Veil creeps love a jump scare. They just never laugh after. | In game |  |
+| V2b | sector-entered | veil | Companion |  | Veil space. A clear scanner doesn't mean much out here. | In game |  |
+| B1a | sector-entered | bastion | Companion |  | Bastion territory. Fair warning: they don't like my kind around here. | In game |  |
+| B1b | sector-entered | bastion | Companion |  | Bastion territory. Fair warning: they call my kind clinks around here. It's not a compliment. | In game |  |
+| B2a | sector-entered | bastion | Companion |  | Welcome to the wall. Whoever we meet, they're the toughest clan out here. They all are. | In game |  |
+| B2b | sector-entered | bastion | Companion |  | Welcome to the wall. Don't ask who the toughest clan is. They'll all answer. | In game |  |
+| B0 | sector-entered | bastion | Companion |  | Bastion territory. Keep an eye out for a bunch of meatheads with sticks up their butts. | In game |  |
+| SR1a | combat-start | shoal | Rival |  | Well, lookey here! Form up, boys, and shoot careful. That engine's worth more running. | In game |  |
+| SR1b | combat-start | shoal | Rival |  | Are you | Draft | Unfinished |
+| SE2 | combat-start | shoal | Rival |  | Easy now, friend. Set her down gentle and nobody's gotta scratch the paint. | In game |  |
+| SE1 | combat-start | shoal | Rival |  | Nothing personal stranger, just reckon I need those parts more than you do. | In game |  |
+| SR2a | combat-start | shoal | Companion | any | They might seem friendly but theyre still after the ship. | In game |  |
+| SR2b | combat-start | shoal | Companion | any | Hear that? He's already spent the money. | In game |  |
+| S6b | combat-start | shoal | Companion | any | Poor scrappers think they just hit the jackpot. Almost hate to ruin their day. | In game |  |
+| VR1 | combat-start | veil | Rival |  | Human pilot. Eccentric flightpath. Mandate radical normalization. | In game |  |
+| VR3a | combat-start | veil | Rival |  | Pilot and machine, housed apart. Each incomplete. Joining is offered. | In game |  |
+| VR2a | combat-start | veil | Companion | any | I can never tell if that's a pilot talking or just the ship. | In game |  |
+| VR2b | combat-start | veil | Companion | VR1 | "Radical normalization." No clue what that is, but I don't want any. | In game |  |
+| V5 | combat-start | veil | Companion | any | Ugh. Just don't let them near my wiring. | In game |  |
+| BR1a | combat-start | bastion | Rival |  | I don't know who you think you are, flying through our space, but I can't wait to find out. | In game |  |
+| BR1b | combat-start | bastion | Rival |  | I don't know who you think you are, flying through our space, but I can't have the other clans hear I let you. | In game |  |
+| BR2a | combat-start | bastion | Companion | any | Oh good. He's excited. | In game |  |
+| BR2b | combat-start | bastion | Companion | any | "Our space." They own the vaccum now huh | In game |  |
+| S4a | death | shoal | Companion |  | Well, that piece of junk is probably better off in their hands anyway. | In game |  |
+| S4b | death | shoal | Companion |  | Honestly? They probably did need the ship more than us. | In game |  |
+| S5a | death | shoal | Companion |  | Hmph. Well, looks like they're gonna strip us for parts. But did you see the cat in his cockpit? So darn cute! | In game |  |
+| VE1a | death | veil | Enemy |  | Vessel: discard. Pilot: retain. | In game |  |
+| VE1b | death | veil | Enemy |  | Resistance concluded. Pilot recoverable. Schedule joining. | In game |  |
+| V3 | death | veil | Companion | any | That's why I hate those guys. They'd bolt you into a ship and call it an upgrade. | In game |  |
+| V4 | death | veil | Companion |  | Didn't see it coming. Nobody does. That's their whole thing. | In game |  |
+| V0 | death | veil | Companion |  | \*shudders in robot\* I hate those guys... | In game |  |
+| B3a | death | bastion | Companion |  | We just lost to a guy who polishes his guns for fun. That's embarrassing for both of us. | In game |  |
+| B4 | death | bastion | Companion |  | He's gonna brag about this to the clan tonight. Loudly. | In game |  |
+| B8 | death | bastion | Companion |  | Weird when the wall runs face first into you... | Later | Ram deaths only |
+| BE1a | death | bastion | Enemy |  | That's how the wall fights. Next time, show some respect. | In game |  |
+| BE1b | death | bastion | Enemy |  | Now you know whose space this is. Next time, show some respect. | In game |  |
+| S7c | elite-announced | shoal | Companion |  | That's the clan boss. Every piece of that ship used to be somebody else's. | In game |  |
+| SE4a | elite-announced | shoal | Elite | either | You've cost this clan a lot of ships today, stranger. I figure yours about covers it. | In game |  |
+| SE4b | elite-announced | shoal | Elite | either | Afternoon, stranger. I hear you're the reason half my clan is floating loose. | In game |  |
+| V6a | elite-announced | veil | Companion |  | Big one on the scope. I think it's been sitting there the whole time. | In game |  |
+| V6b | elite-announced | veil | Companion |  | There's the big one. Every other ship just went quiet at the same second. | In game |  |
+| VE2a | elite-announced | veil | Elite | either | Evaluation complete. Pilot exceeds projection. Senior instance will conduct the joining. | In game |  |
+| VE2b | elite-announced | veil | Elite | either | Many instances spent on you. Value confirmed. This instance attends personally. | In game |  |
+| B5a | elite-announced | bastion | Companion |  | That's the clan champion. 99.9% chance they charge us. The other 0.1%, they yell something first and then charge us. | In game |  |
+| BE2a | elite-announced | bastion | Elite | either | I'm champion of this clan. You fly well, stranger. Now show me it's you flying and not your clink. | In game |  |
+| BE2b | elite-announced | bastion | Elite | either | You beat my clan with a clink whispering in your ear. Now beat their champion without it. | In game |  |
+| SE3 | elite-beaten | shoal | Elite |  | Aw, hell. She was nearly paid off. | In game |  |
+| S8a | elite-beaten | shoal | Companion | either | Hard to feel proud of this one. He was just trying to keep his people fed. | In game |  |
+| VE3 | elite-beaten | veil | Elite |  | Loss logged. Instance replaceable. | In game |  |
+| V7 | elite-beaten | veil | Companion | either | It's down. I'd check the cockpit, but I really don't want to know. | In game |  |
+| BE3a | elite-beaten | bastion | Elite |  | Ha! Good fight. Best one I've had in years. | In game |  |
+| BE3b | elite-beaten | bastion | Elite |  | Ha! Good fight. Shame about your clink. You'd have made a fine clansman. | In game |  |
+| B6a | elite-beaten | bastion | Companion | either | Got the champion. Say what you want about them, he never once let us see his back. | In game |  |
+| B6b | elite-beaten | bastion | Companion | either | Got the champion. He'd want it said he went down swinging. He did. | In game |  |
+| S9 | ship-unlocked | shoal | Companion |  | Valis. No two panels match, but she'll outrun anything in the sector. It's all yours. | In game |  |
+| V8 | ship-unlocked | veil | Companion |  | Nightshade. No wear on the seat. Either it was kept immaculately, or no one ever sat here. | In game |  |
+| B7a | ship-unlocked | bastion | Companion |  | Bulwark. Bastion steel. They'd hate seeing you fly it, which is half the fun. | In game |  |
+| B7b | ship-unlocked | bastion | Companion |  | Bulwark. Pretty sure I'm the first robot to ever ride in one. They'd melt it down if they knew. | In game |  |

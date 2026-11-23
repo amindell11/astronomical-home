@@ -582,15 +582,15 @@ Format: **term** — definition. *(authority)*
   *(EnemyTracker.LimitToSight, Scout.sightRange, Scout.loseSightAfter)*
 - **faction** — the side a sector's enemies belong to; each survival trial
   names one, and its wave director and hunt field only that faction's ships. It
-  flies one signature ship at three ranks. The **minion** is smaller, at 70% hull,
+  flies three ranks, each its own chassis in its own hull paint; the mesh carries
+  the rank's size (ruled on #868, 2026-11-21). The **minion** has 70% hull,
   never fires its keystone, and aims worse than the other ranks (ruled on #1589,
-  2026-11-17). Hunt patrols and elite escorts fly it. The
-  **rival** is the signature ship as the player flies it, and it leads every wave.
-  The **elite** is the third rank. Every rank wears the faction's paint. The ranks
-  are ruled on #1589. The sector-to-faction mapping is ruled on #1320.
-  *(Faction.Rival, Faction.Minion, FactionRank, SectorFaction)*
-- **elite** — a sector's end-of-sector enemy: its faction's signature ship made
-  larger, with a heavy weapon pair and stacked run mods. A lull follows the
+  2026-11-17). Hunt patrols and elite escorts fly it. The **rival** leads every
+  wave. The **elite** is the third rank. The ranks are ruled on #1589. The
+  sector-to-faction mapping is ruled on #1320.
+  *(Faction.Rival, Faction.Minion, Faction.EliteShip, FactionRank, SectorFaction)*
+- **elite** — a sector's end-of-sector enemy: its faction's elite chassis, with
+  a heavy weapon pair and stacked run mods. A lull follows the
   last phase, and the elite is summoned when that lull ends. Extraction opens
   on its death. Sector 3's elite is the boss, which escalates at hull
   thresholds (escorts, heavier fire).
@@ -599,9 +599,10 @@ Format: **term** — definition. *(authority)*
   director owns it and drives it. *(EliteEncounter, EliteProfile,
   PhaseSpineModule.StepElite)*
 - **unlocked ship** — a ship the hangar lets the player fly: the starter plus
-  every elite chassis the player killed in a died or extracted run record. No save
+  the ship each faction names as its elite's unlock, once a died or extracted run
+  record shows the player killing that elite (ruled on #868, 2026-11-21). No save
   file; a kill counts once that record is written. An abandoned run earns nothing
-  from the file. *(ShipUnlocks, ItemSubset.starter)*
+  from the file. *(ShipUnlocks, Faction.unlocks, ItemSubset.starter)*
 - **station** — a *find* the player flies into. Every kind shares one core:
   the placement, the clearing in the field, the find marker and the arrival
   events. Going dark at the hunt's release is the default. A kind may keep its
@@ -1237,14 +1238,27 @@ Format: **term** — definition. *(authority)*
   sector loads and handed down through Initialize or a build context, never a
   static (owner ruling 2026-11-03 on #1321). Moments are data; the companion owns
   every line of text. *(RunMomentStream, IRunMoment)*
-- **line sheet** — the companion's lines, one line slot per moment. The owner
-  writes every line and agents write none (owner ruling 2026-11-03); an empty
-  line slot shows nothing in player builds; the editor and development builds show
-  a bracketed debug label of its id and facts instead (owner ruling 2026-11-04).
+- **line sheet** — the companion's line slots, one per moment, and the *line file*
+  its lines come from. A line slot with no matching line shows nothing in player
+  builds; the editor and development builds show a bracketed debug label of its id
+  and facts instead (owner ruling 2026-11-04).
   *(CompanionLineSheet, CompanionVoice.DebugLabel)*
-- **nag budget** — the companion speaks at most one line per interval; must-say
-  line slots skip the wait, and a line that cannot show before it goes stale is
-  dropped, never queued. *(NagBudget, CompanionFeelProfile)*
+- **line file** — the markdown file that holds every line: the Line sheet tab of
+  the owner's lines doc, exported. The owner and an agent edit the doc together
+  (owner ruling 2026-11-21, replacing the 2026-11-03 ruling that agents write no
+  lines). Edits flow one way, from the doc to the file, so a hand edit to the
+  file is lost at the next export. Only rows whose Status is "In game" load.
+  The repo copy is named `.txt`, not `.md`: the merge gate treats every `.md`
+  change as unable to change behavior and lands it with no test run, and a bad
+  row here stops the game at boot (owner ruling 2026-11-21).
+  *(LineTable, CompanionLineSheet.LoadLines)*
+- **exchange** — what one moment speaks: an opening line and, some of the time,
+  a reply from another speaker when the opener's hold ends. The two are one
+  turn against the *nag budget* (owner ruling 2026-11-21): the reply skips the
+  gap, and the gap then counts from the reply. *(LineTable.Pick, NagBudget)*
+- **nag budget** — the companion speaks at most one *exchange* per interval;
+  must-say line slots skip the wait, and a line that cannot show before it goes
+  stale is dropped, never queued. *(NagBudget, CompanionFeelProfile)*
 - **presentation module** — a presentation (the recap outcome sequence first)
   exposed as a pure function of a *feel profile*, an immutable *context* and a
   time, rendered by one renderer whichever host drives the time; a

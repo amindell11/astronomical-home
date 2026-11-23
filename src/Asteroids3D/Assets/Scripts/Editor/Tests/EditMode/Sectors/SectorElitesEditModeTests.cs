@@ -13,7 +13,7 @@ using Substrate.Sessions;
 
 namespace Tests.EditMode.Sectors
 {
-    /// <summary>The shipped run and hangar offer, read as assets: each trial row ends at an elite flown from its own faction and owned by its layout's wave director, sectors 1 and 2 at a 1.5x elite with no escalation, the HUD fixtures at none, and the hangar offers Vanguard as its starter and Crimson locked, since no trial row's elite flies it.</summary>
+    /// <summary>The shipped run and hangar offer, read as assets: each trial row ends at an elite flown from its own faction and owned by its layout's wave director, only the last row's elite escalating, the HUD fixtures at none, and the hangar offers Vanguard as its starter and Crimson locked, since no trial row's elite flies it.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class SectorElitesEditModeTests
@@ -21,9 +21,9 @@ namespace Tests.EditMode.Sectors
         private const string HangarOfferPath = "Assets/Settings/Ships/PlayerLoadout.asset";
         private const string RunPath = "Assets/Settings/Game/SurvivalTrialRun.asset";
 
-        [TestCase(0, "shoal", 1.5f, false)]
+        [TestCase(0, "shoal", 1f, false)]
         [TestCase(1, "veil", 1.5f, false)]
-        [TestCase(2, "bastion", 2f, true)]
+        [TestCase(2, "bastion", 1f, true)]
         public void TrialRow_EndsAtAnEliteOfItsOwnFaction(int index, string factionId, float size, bool escalates)
         {
             var row = Load<SectorRun>(RunPath).Sectors[index];
@@ -60,7 +60,7 @@ namespace Tests.EditMode.Sectors
             CollectionAssert.Contains(offer.ships, offer.starter, "the starter is an offered ship");
             CollectionAssert.Contains(offer.ships, crimson, "Crimson is offered, shown locked");
             foreach (var (row, i) in Load<SectorRun>(RunPath).Sectors.Select((row, i) => (row, i)))
-                Assert.AreNotSame(crimson, row.faction.Ship, $"row {i}'s elite would unlock Crimson");
+                Assert.AreNotSame(crimson, row.faction.Unlocks, $"row {i}'s elite would unlock Crimson");
         }
 
         private static T Load<T>(string path) where T : Object

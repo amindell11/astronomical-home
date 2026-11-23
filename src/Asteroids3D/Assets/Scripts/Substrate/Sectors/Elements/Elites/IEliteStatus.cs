@@ -5,6 +5,7 @@ namespace Substrate.Sectors.Elements.Elites
     public interface IEliteStatus
     {
         event Action<EliteMoment> Announced;
+        event Action<EliteMoment> Beaten;
 
         string Name { get; }
 
