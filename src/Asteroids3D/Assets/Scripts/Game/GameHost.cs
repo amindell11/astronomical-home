@@ -830,9 +830,11 @@ namespace Game
                         lastKillingBlow = killingBlow;
                         deathPosition = GamePlane.WorldPointToPlane(rigInstance.Player.transform.position);
                         playerDied = true;
-                        var byEnemy = killingBlow.AttackerId != ShipId.Invalid && killingBlow.AttackerId != rigInstance.Player.Id;
-                        var faction = byEnemy ? activeSectorFaction : string.Empty;
-                        moments.Raise(new PlayerDied(activeSectorIndex + 1, killingBlow.Kind, faction));
+                        var cause = killingBlow.AttackerId == ShipId.Invalid ? DeathCause.Crash
+                            : killingBlow.AttackerId == rigInstance.Player.Id ? DeathCause.Self
+                            : DeathCause.Enemy;
+                        var faction = cause == DeathCause.Enemy ? activeSectorFaction : string.Empty;
+                        moments.Raise(new PlayerDied(activeSectorIndex + 1, killingBlow.Kind, cause, faction));
                     };
                 case PlayerDeathBehavior.None:
                 default:

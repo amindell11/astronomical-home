@@ -52,6 +52,12 @@ The game's companion and enemy lines. This tab exports to LineSheet.txt in the r
 | B8 | death | bastion | Companion |  | Weird when the wall runs face first into you... | Later | Ram deaths only |
 | BE1a | death | bastion | Enemy |  | That's how the wall fights. Next time, show some respect. | In game |  |
 | BE1b | death | bastion | Enemy |  | Now you know whose space this is. Next time, show some respect. | In game |  |
+| DC1a | death.crash |  | Companion |  | That rock was there the whole time. I want that on the record. | In game |  |
+| DC1b | death.crash |  | Companion |  | We made it through all of that and lost to a rock. Let's not tell anyone. | In game |  |
+| DC1c | death.crash |  | Companion |  | Asteroid one, us zero. | In game |  |
+| DS1a | death.self |  | Companion |  | Did we just shoot ourselves? We just shot ourselves. | In game |  |
+| DS1b | death.self |  | Companion |  | Good news, you hit something. Bad news, it was us. | In game |  |
+| DS1c | death.self |  | Companion |  | I'm putting this down as friendly fire. Very friendly. | In game |  |
 | S7c | elite-announced | shoal | Companion |  | That's the clan boss. Every piece of that ship used to be somebody else's. | In game |  |
 | SE4a | elite-announced | shoal | Elite | either | You've cost this clan a lot of ships today, stranger. I figure yours about covers it. | In game |  |
 | SE4b | elite-announced | shoal | Elite | either | Afternoon, stranger. I hear you're the reason half my clan is floating loose. | In game |  |
