@@ -191,6 +191,20 @@ namespace Tests.EditMode.Runs
         }
 
         [Test]
+        public void IsElite_ReadsTheAnnouncedLife_AfterItsDeathToo()
+        {
+            log.Begin(0f);
+            log.Log(Enemy, NewHull(), 0f);
+            log.Log(OtherEnemy, NewHull(), 0f);
+            log.MarkElite(EliteMomentOf(Enemy));
+            log.MarkDead(Enemy, BlowFrom(Player), 2f);
+
+            Assert.IsTrue(log.IsElite(Enemy), "The elite's life stays elite once it is dead.");
+            Assert.IsFalse(log.IsElite(OtherEnemy));
+            Assert.IsFalse(log.IsElite(new ShipId(99)), "A ship never logged is not the elite.");
+        }
+
+        [Test]
         public void PlayersKillOfTheElite_RaisesEliteKilled_WithTheMomentsSectorAndFactionAndTheChassis()
         {
             var hull = NewHull();

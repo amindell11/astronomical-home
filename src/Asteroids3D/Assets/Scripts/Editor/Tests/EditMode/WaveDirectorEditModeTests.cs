@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Combat.Weapons;
 using NUnit.Framework;
@@ -15,7 +16,7 @@ using Substrate.Sessions;
 
 namespace Tests.EditMode
 {
-    /// <summary>Wave director pacing over a sector phase table with injected time: a phase opens with a wave, and another comes on its wave-every beat. Minions that fit under the minion cap arrive whole, ones that only partly fit are trimmed to the room left, a rival comes only under the rival cap, and a wave with no room is dropped so the next waits for the beat. A lull, the opening one too, sends nothing, a finished table with an elite sends nothing, and the done table keeps the last phase's waves. A closing lull before the elite sends nothing. A lull window covers a following lull, its grace, and an earned lull, and stays shut for the opening lull and the first phase's first seconds. An earned lull, once the phase's last wave is out and nothing is alive, moves no phase boundary. The threat read lists a chassis every rank shares once and the rival's and minion's kits, off a prefab asset too. A bad row fails CheckRow.</summary>
+    /// <summary>Wave director pacing over a sector phase table with injected time: a phase opens with a wave, and another comes on its wave-every beat. Minions that fit under the minion cap arrive whole, ones that only partly fit are trimmed to the room left, a rival comes only under the rival cap, a reinforcing minion takes the free place nearest its leader, and a beat with no room is dropped so the next waits for the beat. A lull, the opening one too, sends nothing, a finished table with an elite sends nothing, and the done table keeps the last phase's waves. A closing lull before the elite sends nothing. A lull window covers a following lull, its grace, and an earned lull, and stays shut for the opening lull and the first phase's first seconds. An earned lull, once the phase's last wave is out and nothing is alive, moves no phase boundary. The threat read lists a chassis every rank shares once and the rival's and minion's kits, off a prefab asset too. A bad row fails CheckRow.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class WaveDirectorEditModeTests
@@ -124,6 +125,16 @@ namespace Tests.EditMode
             _director.Configure(_phases, Lull, rivalCap: 2);
             Assert.IsTrue(_director.RivalRoom(1), "One rival alive under a rival cap of 2 leaves room.");
             Assert.IsFalse(_director.RivalRoom(2), "Two rivals alive fill a rival cap of 2.");
+        }
+
+        [Test]
+        public void Reinforcement_TakesTheFreePlaceNearestTheLeader_LeftSideFirst()
+        {
+            Assert.AreEqual(-1, WaveDirector.FreePlace(new List<int>()));
+            Assert.AreEqual(1, WaveDirector.FreePlace(new List<int> { -1 }));
+            Assert.AreEqual(-1, WaveDirector.FreePlace(new List<int> { 1, 2 }), "A gap nearer the leader fills first.");
+            Assert.AreEqual(-2, WaveDirector.FreePlace(new List<int> { -1, 1 }));
+            Assert.AreEqual(2, WaveDirector.FreePlace(new List<int> { -1, 1, -2 }));
         }
 
         [Test]

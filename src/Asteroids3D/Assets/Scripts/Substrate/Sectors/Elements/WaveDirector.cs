@@ -8,6 +8,7 @@ using AI.Scanning;
 using Combat.Weapons;
 using Ships;
 using Ships.Command;
+using Ships.Registry;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sectors.Elements.Phases;
@@ -20,12 +21,13 @@ using UnityEngine;
 namespace Substrate.Sectors.Elements
 {
     /// <summary>
-    /// Sends a rival leading minions on each sector phase's wave-every beat. A wave comes only while live
-    /// rivals sit under the row's rival cap, so minions never arrive without a rival; its minions are
-    /// trimmed to the minion cap, which counts the hunt's live patrols. The rival takes the arc's centre
-    /// slot, or arrives concealed ahead of the hero when its temper ambushes and that point is clear, and
-    /// the minions take the slots either side, each following the rival at its place.
-    /// Every wave ship hunts the hero by sight. A wave with no room is dropped. A phase opens with one.
+    /// Sends a rival leading minions on each sector phase's wave-every beat while live rivals sit under the
+    /// row's rival cap. With the rival cap full, the beat's minions reinforce the live rival with the fewest
+    /// followers instead, nearest first on a tie, at its free places, so minions never arrive without a
+    /// rival. Minions are trimmed to the minion cap, which counts the hunt's live patrols. The rival takes
+    /// the arc's centre slot, or arrives concealed ahead of the hero when its temper ambushes and that point
+    /// is clear, and the minions take the slots either side, each following the rival at its place.
+    /// Every wave ship hunts the hero by sight. A beat with no room is dropped. A phase opens with one.
     /// Nothing arrives in a lull, or once the table is done when an elite follows it. With an elite, a
     /// closing lull follows the last phase; without one, the done table keeps the last phase's waves.
     /// It begins its elite, summons it on the tick the table is done, and ends it at teardown.
@@ -67,6 +69,8 @@ namespace Substrate.Sectors.Elements
         private readonly HashSet<Ship> rivals = new();
         private readonly HashSet<Ship> jumped = new();
         private readonly List<Action> jumpHandlers = new();
+        private readonly List<Ship> leaders = new();
+        private readonly List<int> places = new();
         private SectorPhase[] phases = Array.Empty<SectorPhase>();
         private int rivalCap;
         private int minionCap;
@@ -150,6 +154,8 @@ namespace Substrate.Sectors.Elements
             products.Clear();
             jumped.Clear();
             jumpHandlers.Clear();
+            leaders.Clear();
+            places.Clear();
             rivals.Clear();
             Spawned = products;
             phases = ctx.Row.phases;
@@ -178,6 +184,8 @@ namespace Substrate.Sectors.Elements
             for (var i = 0; i < products.Count; i++)
                 if (products[i]) products[i].JumpRequested -= jumpHandlers[i];
             jumpHandlers.Clear();
+            leaders.Clear();
+            places.Clear();
             jumped.Clear();
             var teardown = base.OnTeardown(ctx);
             while (teardown.MoveNext()) yield return teardown.Current;
@@ -209,7 +217,8 @@ namespace Substrate.Sectors.Elements
             if (minions != null)
             {
                 var room = RivalRoom(rivals.Count);
-                if (!room || TrySend(MinionRoom(minions.Value, AliveMinions)))
+                var sent = MinionRoom(minions.Value, AliveMinions);
+                if (room ? TrySend(sent) : TryReinforce(sent))
                 {
                     if (room)
                         WaveSent?.Invoke(sectorIndex);
@@ -226,6 +235,24 @@ namespace Substrate.Sectors.Elements
         internal bool RivalRoom(int aliveRivals) => aliveRivals < rivalCap;
 
         internal int MinionRoom(int minions, int aliveMinions) => Mathf.Clamp(minionCap - aliveMinions, 0, minions);
+
+        /// <summary>True for a rival of this director's waves until the tick after its death despawns it.</summary>
+        public bool IsRival(ShipId ship)
+        {
+            foreach (var rival in rivals)
+                if (rival.Id == ship) return true;
+            return false;
+        }
+
+        /// <summary>The free place nearest the leader: -1, +1, -2, +2 and on.</summary>
+        internal static int FreePlace(ICollection<int> taken)
+        {
+            for (var step = 1; ; step++)
+            {
+                if (!taken.Contains(-step)) return -step;
+                if (!taken.Contains(step)) return step;
+            }
+        }
 
         private void BuildSchedule()
         {
@@ -350,6 +377,8 @@ namespace Substrate.Sectors.Elements
                 if (ship && ship.gameObject.activeInHierarchy && !jumped.Contains(ship)) continue;
                 if (ship) ship.JumpRequested -= jumpHandlers[i];
                 jumpHandlers.RemoveAt(i);
+                leaders.RemoveAt(i);
+                places.RemoveAt(i);
                 jumped.Remove(ship);
                 rivals.Remove(ship);
                 if (ship) units.DespawnShip(ship);
@@ -362,6 +391,8 @@ namespace Substrate.Sectors.Elements
             Action handler = () => jumped.Add(ship);
             ship.JumpRequested += handler;
             jumpHandlers.Add(handler);
+            leaders.Add(null);
+            places.Add(0);
             products.Add(ship);
         }
 
@@ -369,46 +400,100 @@ namespace Substrate.Sectors.Elements
         {
             var center = GamePlane.WorldPointToPlane(hero.transform.position);
             var count = 1 + minions;
+            var slots = ClearSlots(center, count);
+            if (slots == null) return false;
+
+            var centreIndex = (count - 1) / 2;
+            var rivalRank = faction.Faction.Rival;
+            var minionRank = faction.Faction.Minion;
+            Ship rival = null;
+            if (rivalAmbushes)
+            {
+                var ahead = center + hero.Kinematics.Forward * ambushSpawnAhead;
+                if (ClearPoint.IsClear(field, ahead, clearanceRadius))
+                {
+                    rival = Spawn(rivalRank, ahead, center);
+                    rival.Keystone.ActivateOnArrival(rival.Kinematics);
+                }
+            }
+
+            var spawned = new Ship[count];
+            for (var i = 0; i < count; i++)
+            {
+                if (i != centreIndex) spawned[i] = Spawn(minionRank, slots[i], center);
+                else spawned[i] = rival ? rival : Spawn(rivalRank, slots[i], center);
+            }
+            rival = spawned[centreIndex];
+            rivals.Add(rival);
+
+            for (var i = 0; i < count; i++)
+            {
+                if (i != centreIndex)
+                    Follow(spawned[i], rival, i - centreIndex);
+                ((AICommander)spawned[i].Commander).HuntBySight(hero);
+            }
+            return true;
+        }
+
+        private bool TryReinforce(int minions)
+        {
+            if (minions == 0) return true;
+            var center = GamePlane.WorldPointToPlane(hero.transform.position);
+            var slots = ClearSlots(center, minions);
+            if (slots == null) return false;
+
+            var rival = LeastEscorted(slots[(minions - 1) / 2]);
+            foreach (var slot in slots)
+            {
+                var minion = Spawn(faction.Faction.Minion, slot, center);
+                Follow(minion, rival, FreePlace(PlacesAround(rival)));
+                ((AICommander)minion.Commander).HuntBySight(hero);
+            }
+            return true;
+        }
+
+        private Vector2[] ClearSlots(Vector2 center, int count)
+        {
             for (var attempt = 0; attempt < placementAttempts; attempt++)
             {
-                var bearing = UnityEngine.Random.Range(0f, 2f * Mathf.PI);
-                var slots = Slots(center, bearing, count);
-                if (Array.Exists(slots, slot => !ClearPoint.IsClear(field, slot, clearanceRadius)))
-                    continue;
-
-                var centreIndex = (count - 1) / 2;
-                var rivalRank = faction.Faction.Rival;
-                var minionRank = faction.Faction.Minion;
-                Ship rival = null;
-                if (rivalAmbushes)
-                {
-                    var ahead = center + hero.Kinematics.Forward * ambushSpawnAhead;
-                    if (ClearPoint.IsClear(field, ahead, clearanceRadius))
-                    {
-                        rival = Spawn(rivalRank, ahead, center);
-                        rival.Keystone.ActivateOnArrival(rival.Kinematics);
-                    }
-                }
-
-                var spawned = new Ship[count];
-                for (var i = 0; i < count; i++)
-                {
-                    if (i != centreIndex) spawned[i] = Spawn(minionRank, slots[i], center);
-                    else spawned[i] = rival ? rival : Spawn(rivalRank, slots[i], center);
-                }
-                rival = spawned[centreIndex];
-                rivals.Add(rival);
-
-                for (var i = 0; i < count; i++)
-                {
-                    var commander = (AICommander)spawned[i].Commander;
-                    if (i != centreIndex)
-                        commander.FollowLeader(rival, i - centreIndex);
-                    commander.HuntBySight(hero);
-                }
-                return true;
+                var slots = Slots(center, UnityEngine.Random.Range(0f, 2f * Mathf.PI), count);
+                if (!Array.Exists(slots, slot => !ClearPoint.IsClear(field, slot, clearanceRadius)))
+                    return slots;
             }
-            return false;
+            return null;
+        }
+
+        private Ship LeastEscorted(Vector2 arrival)
+        {
+            Ship least = null;
+            var fewest = int.MaxValue;
+            var nearest = float.PositiveInfinity;
+            foreach (var rival in rivals)
+            {
+                var followers = PlacesAround(rival).Count;
+                var distance = Vector2.Distance(rival.Kinematics.pos, arrival);
+                if (followers > fewest || (followers == fewest && distance >= nearest)) continue;
+                least = rival;
+                fewest = followers;
+                nearest = distance;
+            }
+            return least;
+        }
+
+        private List<int> PlacesAround(Ship rival)
+        {
+            var taken = new List<int>();
+            for (var i = 0; i < products.Count; i++)
+                if (ReferenceEquals(leaders[i], rival)) taken.Add(places[i]);
+            return taken;
+        }
+
+        private void Follow(Ship minion, Ship rival, int place)
+        {
+            var index = products.IndexOf(minion);
+            leaders[index] = rival;
+            places[index] = place;
+            ((AICommander)minion.Commander).FollowLeader(rival, place);
         }
 
         private Ship Spawn(FactionRank rank, Vector2 planePoint, Vector2 center)
