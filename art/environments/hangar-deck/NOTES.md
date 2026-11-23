@@ -1,5 +1,13 @@
 # Hangar deck
 
+## Orange Launch key again, 2026-11-22
+
+The owner chose to go back to the orange key. `08 | Launch broad beveled button` uses `Deck | orange launch resin` again, linear `(0.95, 0.20, 0.018)` with emission strength 1 and black base colour, as it did before the black-key pass. `19 | Launch legend` is back on the shared `Deck | ivory inlaid legends` material, and both objects are back in their ink collections. The black resin and yellow legend materials are no longer built. Everything else stays: the `LaunchLampLeft` / `LaunchLampRight` roles and lamps, the pedestal strips and ringed lens, and the projector.
+
+The rebuild ran `build_deck.py`, the pedestal-recipe verifiers and the three assemblers. `verify_coverage.py`, `verify_ink.py`, `verify_glass.py` and `verify_glass_projection.py` pass. Two verifiers fail for reasons older than this pass. `verify_pedestal.py` reports `protected_objects_exact` for only the two Launch lamp lenses, because their `export_role` properties postdate `pedestal-baseline.json`; every material in that baseline matches, the orange resin included. `verify_deck.py` stops with `KeyError: 'LaunchLampLeft'` because its parts-sheet palette has no entry for the lamp roles; the lamp-role pass added one only in memory. Neither verifier was edited.
+
+The shared exporter wrote `Console.fbx`, `ConsolePaint.png` and `ConsoleEmission.png`. `console-export.json` is unchanged. Unity's `HangarConsoleBuilder` then rebuilt the prefab.
+
 ## Separate Launch lamp roles, 2026-11-21
 
 The owner wants the two red lamps beside LAUNCH to blink blue when pressed. `build_deck.py` now registers the existing lenses in `PARTS` as `LaunchLampLeft` and `LaunchLampRight`, with matching `export_role` properties. Their names remain `Deck | Left Launch armed red lens` and `Deck | Right Launch armed red lens`. Both remain in `finish_lamps` under those names. Their sockets and guards remain in `ConsoleBody`.

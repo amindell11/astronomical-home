@@ -259,7 +259,7 @@
           ],
           "finished_rgb": [
             60,
-            18,
+            19,
             61
           ],
           "original_alpha": 255,
@@ -1428,7 +1428,7 @@
           ],
           "finished_rgb": [
             62,
-            15,
+            16,
             63
           ],
           "original_alpha": 255,
@@ -1698,7 +1698,7 @@
           ],
           "finished_rgb": [
             65,
-            17,
+            18,
             66
           ],
           "original_alpha": 255,
@@ -1848,7 +1848,7 @@
         844
       ],
       "outside_windows_magenta_pixels": 0,
-      "outside_windows_chroma_pixels": 58,
+      "outside_windows_chroma_pixels": 59,
       "outside_windows_chroma_bounds_xy_inclusive": [
         249,
         91,
@@ -1858,7 +1858,7 @@
       "raw_connected_window_counts": {
         "above_header_chroma_pixels": 26,
         "below_console_chroma_pixels": 19,
-        "outside_windows_chroma_pixels": 61
+        "outside_windows_chroma_pixels": 62
       },
       "frozen_antialias_fringe": {
         "baseline_pixels": 3,
@@ -1866,10 +1866,10 @@
         "byte_identical_pixels": 0,
         "maximum_channel_difference": 12
       },
-      "outside_windows_chroma_beyond_1px_reference_boundary_pixels": 26,
+      "outside_windows_chroma_beyond_1px_reference_boundary_pixels": 27,
       "bands_pass": true,
       "window_openings_pass": true,
-      "finish4_opaque_paint_chroma_crossings": 29,
+      "finish4_opaque_paint_chroma_crossings": 30,
       "finish4_alpha_loss_pixels": 0,
       "finish4_existing_edge_colour_rounding": [
         {
@@ -2046,7 +2046,7 @@
           ],
           "finished_rgb": [
             59,
-            13,
+            12,
             54
           ],
           "original_alpha": 0,
@@ -2540,6 +2540,24 @@
         },
         {
           "xy": [
+            560,
+            559
+          ],
+          "original_rgb": [
+            78,
+            58,
+            88
+          ],
+          "finished_rgb": [
+            64,
+            23,
+            66
+          ],
+          "original_alpha": 255,
+          "finished_alpha": 255
+        },
+        {
+          "xy": [
             1386,
             569
           ],
@@ -2784,7 +2802,7 @@
           ],
           "finished_rgb": [
             63,
-            16,
+            17,
             63
           ],
           "original_alpha": 255,
@@ -2892,8 +2910,8 @@
           ],
           "finished_rgb": [
             65,
-            19,
-            67
+            18,
+            66
           ],
           "original_alpha": 255,
           "finished_alpha": 255
@@ -3325,7 +3343,7 @@
           "finished_rgb": [
             57,
             12,
-            55
+            56
           ],
           "original_alpha": 255,
           "finished_alpha": 255
@@ -3594,7 +3612,7 @@
           ],
           "finished_rgb": [
             60,
-            19,
+            18,
             61
           ],
           "original_alpha": 255,
@@ -4080,7 +4098,7 @@
           ],
           "finished_rgb": [
             66,
-            23,
+            24,
             69
           ],
           "original_alpha": 255,
@@ -4187,7 +4205,7 @@
             78
           ],
           "finished_rgb": [
-            65,
+            66,
             19,
             67
           ],
@@ -4765,7 +4783,7 @@
           "finished_rgb": [
             63,
             17,
-            63
+            64
           ],
           "original_alpha": 255,
           "finished_alpha": 255
@@ -4782,7 +4800,7 @@
           ],
           "finished_rgb": [
             59,
-            12,
+            11,
             58
           ],
           "original_alpha": 255,
@@ -5466,7 +5484,7 @@
           ],
           "finished_rgb": [
             65,
-            19,
+            20,
             67
           ],
           "original_alpha": 255,
@@ -5515,11 +5533,11 @@
     "reference_image": "coverage-reference/deck-camera.png",
     "new_image": "deck-camera.png",
     "reference_sha256": "cf8a2b20ece7810dd028bfff390af6f71fdf6126a64711a3939c6c47ae022776",
-    "new_sha256": "8935a7f84d40f3d1c5fb9ad10b3be183da447f017adb7019fa1c0e69413ae6f4",
+    "new_sha256": "66b9cb514269e0b170203266e17f1694863fea39b726d92c18bf8ff23bafb190",
     "comparison": "Exact saved RGB bytes, without tolerance or denoising exclusions.",
     "allowed_change_rule": "Previously pure backdrop above header/below console becomes hardware; baseline mask alpha = 0, new alpha > 0.",
     "image_pixels": 2073600,
-    "changed_pixels": 955045,
+    "changed_pixels": 937154,
     "changed_bounds_xy_inclusive": [
       0,
       0,
@@ -5540,10 +5558,10 @@
       1919,
       1079
     ],
-    "changed_window_pixels": 57737,
-    "changed_non_backdrop_pixels": 865613,
+    "changed_window_pixels": 55198,
+    "changed_non_backdrop_pixels": 850261,
     "changed_antialias_boundary_pixels": 0,
-    "disallowed_changed_pixels": 923345,
+    "disallowed_changed_pixels": 905454,
     "disallowed_changed_bounds_xy_inclusive": [
       0,
       13,
@@ -5552,18 +5570,18 @@
     ],
     "maximum_channel_difference": 254,
     "disallowed_maximum_channel_difference_counts": {
-      "one": 75052,
-      "two_to_five": 25293,
-      "over_five": 823000,
+      "one": 76773,
+      "two_to_five": 25050,
+      "over_five": 803631,
       "over_five_in_first_20_rows": 12384
     },
-    "mean_maximum_channel_difference_over_changed_pixels": 37.42224397803245,
+    "mean_maximum_channel_difference_over_changed_pixels": 33.76027739304319,
     "scope_pass": false,
     "changed_components": {
-      "component_count": 39050,
+      "component_count": 40006,
       "largest_regions": [
         {
-          "pixel_count": 894955,
+          "pixel_count": 874617,
           "bounds_xy_inclusive": [
             0,
             0,
@@ -5572,115 +5590,97 @@
           ]
         },
         {
-          "pixel_count": 939,
+          "pixel_count": 818,
           "bounds_xy_inclusive": [
-            1426,
-            302,
-            1498,
-            481
+            1276,
+            570,
+            1348,
+            752
           ]
         },
         {
-          "pixel_count": 924,
+          "pixel_count": 812,
           "bounds_xy_inclusive": [
             424,
-            310,
+            309,
             495,
             488
           ]
         },
         {
-          "pixel_count": 718,
+          "pixel_count": 806,
+          "bounds_xy_inclusive": [
+            1426,
+            303,
+            1498,
+            481
+          ]
+        },
+        {
+          "pixel_count": 640,
           "bounds_xy_inclusive": [
             1665,
-            191,
+            192,
             1720,
             233
           ]
         },
         {
-          "pixel_count": 701,
+          "pixel_count": 581,
           "bounds_xy_inclusive": [
-            1266,
-            126,
-            1321,
-            168
+            0,
+            358,
+            9,
+            505
           ]
         },
         {
-          "pixel_count": 655,
+          "pixel_count": 562,
           "bounds_xy_inclusive": [
             1909,
-            355,
+            360,
             1919,
             511
           ]
         },
         {
-          "pixel_count": 498,
+          "pixel_count": 442,
           "bounds_xy_inclusive": [
-            324,
-            175,
+            325,
+            176,
             394,
-            227
+            226
           ]
         },
         {
-          "pixel_count": 493,
+          "pixel_count": 425,
           "bounds_xy_inclusive": [
             1525,
             176,
-            1596,
+            1594,
             225
           ]
         },
         {
-          "pixel_count": 422,
+          "pixel_count": 386,
           "bounds_xy_inclusive": [
-            104,
+            103,
             175,
             190,
             189
           ]
         },
         {
-          "pixel_count": 420,
+          "pixel_count": 374,
           "bounds_xy_inclusive": [
             1728,
-            175,
-            1816,
+            176,
+            1815,
             190
           ]
         },
         {
-          "pixel_count": 385,
-          "bounds_xy_inclusive": [
-            1317,
-            126,
-            1348,
-            155
-          ]
-        },
-        {
-          "pixel_count": 380,
-          "bounds_xy_inclusive": [
-            233,
-            191,
-            265,
-            220
-          ]
-        },
-        {
-          "pixel_count": 380,
-          "bounds_xy_inclusive": [
-            1637,
-            191,
-            1669,
-            221
-          ]
-        },
-        {
-          "pixel_count": 375,
+          "pixel_count": 342,
           "bounds_xy_inclusive": [
             413,
             150,
@@ -5689,7 +5689,7 @@
           ]
         },
         {
-          "pixel_count": 375,
+          "pixel_count": 339,
           "bounds_xy_inclusive": [
             284,
             192,
@@ -5698,7 +5698,34 @@
           ]
         },
         {
-          "pixel_count": 368,
+          "pixel_count": 336,
+          "bounds_xy_inclusive": [
+            1317,
+            126,
+            1348,
+            155
+          ]
+        },
+        {
+          "pixel_count": 335,
+          "bounds_xy_inclusive": [
+            233,
+            192,
+            265,
+            220
+          ]
+        },
+        {
+          "pixel_count": 333,
+          "bounds_xy_inclusive": [
+            1266,
+            126,
+            1298,
+            155
+          ]
+        },
+        {
+          "pixel_count": 332,
           "bounds_xy_inclusive": [
             1483,
             150,
@@ -5707,7 +5734,16 @@
           ]
         },
         {
-          "pixel_count": 366,
+          "pixel_count": 331,
+          "bounds_xy_inclusive": [
+            1637,
+            192,
+            1669,
+            221
+          ]
+        },
+        {
+          "pixel_count": 301,
           "bounds_xy_inclusive": [
             465,
             110,
@@ -5716,40 +5752,22 @@
           ]
         },
         {
-          "pixel_count": 330,
+          "pixel_count": 299,
           "bounds_xy_inclusive": [
-            261,
-            208,
-            289,
-            233
-          ]
-        },
-        {
-          "pixel_count": 150,
-          "bounds_xy_inclusive": [
-            0,
-            206,
-            27,
-            222
-          ]
-        },
-        {
-          "pixel_count": 134,
-          "bounds_xy_inclusive": [
-            1893,
-            207,
-            1919,
-            220
+            1294,
+            141,
+            1321,
+            168
           ]
         }
       ],
-      "remaining_component_pixels": 51077
+      "remaining_component_pixels": 53743
     },
     "disallowed_components": {
-      "component_count": 39051,
+      "component_count": 40007,
       "largest_regions": [
         {
-          "pixel_count": 863254,
+          "pixel_count": 842916,
           "bounds_xy_inclusive": [
             0,
             13,
@@ -5758,115 +5776,97 @@
           ]
         },
         {
-          "pixel_count": 939,
+          "pixel_count": 818,
           "bounds_xy_inclusive": [
-            1426,
-            302,
-            1498,
-            481
+            1276,
+            570,
+            1348,
+            752
           ]
         },
         {
-          "pixel_count": 924,
+          "pixel_count": 812,
           "bounds_xy_inclusive": [
             424,
-            310,
+            309,
             495,
             488
           ]
         },
         {
-          "pixel_count": 718,
+          "pixel_count": 806,
+          "bounds_xy_inclusive": [
+            1426,
+            303,
+            1498,
+            481
+          ]
+        },
+        {
+          "pixel_count": 640,
           "bounds_xy_inclusive": [
             1665,
-            191,
+            192,
             1720,
             233
           ]
         },
         {
-          "pixel_count": 701,
+          "pixel_count": 581,
           "bounds_xy_inclusive": [
-            1266,
-            126,
-            1321,
-            168
+            0,
+            358,
+            9,
+            505
           ]
         },
         {
-          "pixel_count": 655,
+          "pixel_count": 562,
           "bounds_xy_inclusive": [
             1909,
-            355,
+            360,
             1919,
             511
           ]
         },
         {
-          "pixel_count": 498,
+          "pixel_count": 442,
           "bounds_xy_inclusive": [
-            324,
-            175,
+            325,
+            176,
             394,
-            227
+            226
           ]
         },
         {
-          "pixel_count": 493,
+          "pixel_count": 425,
           "bounds_xy_inclusive": [
             1525,
             176,
-            1596,
+            1594,
             225
           ]
         },
         {
-          "pixel_count": 422,
+          "pixel_count": 386,
           "bounds_xy_inclusive": [
-            104,
+            103,
             175,
             190,
             189
           ]
         },
         {
-          "pixel_count": 420,
+          "pixel_count": 374,
           "bounds_xy_inclusive": [
             1728,
-            175,
-            1816,
+            176,
+            1815,
             190
           ]
         },
         {
-          "pixel_count": 385,
-          "bounds_xy_inclusive": [
-            1317,
-            126,
-            1348,
-            155
-          ]
-        },
-        {
-          "pixel_count": 380,
-          "bounds_xy_inclusive": [
-            233,
-            191,
-            265,
-            220
-          ]
-        },
-        {
-          "pixel_count": 380,
-          "bounds_xy_inclusive": [
-            1637,
-            191,
-            1669,
-            221
-          ]
-        },
-        {
-          "pixel_count": 375,
+          "pixel_count": 342,
           "bounds_xy_inclusive": [
             413,
             150,
@@ -5875,7 +5875,7 @@
           ]
         },
         {
-          "pixel_count": 375,
+          "pixel_count": 339,
           "bounds_xy_inclusive": [
             284,
             192,
@@ -5884,7 +5884,34 @@
           ]
         },
         {
-          "pixel_count": 368,
+          "pixel_count": 336,
+          "bounds_xy_inclusive": [
+            1317,
+            126,
+            1348,
+            155
+          ]
+        },
+        {
+          "pixel_count": 335,
+          "bounds_xy_inclusive": [
+            233,
+            192,
+            265,
+            220
+          ]
+        },
+        {
+          "pixel_count": 333,
+          "bounds_xy_inclusive": [
+            1266,
+            126,
+            1298,
+            155
+          ]
+        },
+        {
+          "pixel_count": 332,
           "bounds_xy_inclusive": [
             1483,
             150,
@@ -5893,7 +5920,16 @@
           ]
         },
         {
-          "pixel_count": 366,
+          "pixel_count": 331,
+          "bounds_xy_inclusive": [
+            1637,
+            192,
+            1669,
+            221
+          ]
+        },
+        {
+          "pixel_count": 301,
           "bounds_xy_inclusive": [
             465,
             110,
@@ -5902,34 +5938,16 @@
           ]
         },
         {
-          "pixel_count": 330,
+          "pixel_count": 299,
           "bounds_xy_inclusive": [
-            261,
-            208,
-            289,
-            233
-          ]
-        },
-        {
-          "pixel_count": 150,
-          "bounds_xy_inclusive": [
-            0,
-            206,
-            27,
-            222
-          ]
-        },
-        {
-          "pixel_count": 134,
-          "bounds_xy_inclusive": [
-            1893,
-            207,
-            1919,
-            220
+            1294,
+            141,
+            1321,
+            168
           ]
         }
       ],
-      "remaining_component_pixels": 51078
+      "remaining_component_pixels": 53744
     },
     "comparison_scope": "Historical gap-closure reference; finish 4 intentionally changes hardware colours."
   },
