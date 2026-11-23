@@ -27,6 +27,6 @@ Material:
     m_Ints: []
     m_Floats: []
     m_Colors:
-    - _ReflectionBounds: {r: -0.00005311519, g: 0.3039818, b: 2.7494993, a: 2.0986266}
+    - _ReflectionBounds: {r: 0, g: 0.56982, b: -2.7495, a: 2.09863}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

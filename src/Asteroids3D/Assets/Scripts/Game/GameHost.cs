@@ -128,8 +128,10 @@ namespace Game
         [SerializeField] private PlayerDeathBehavior deathBehavior = PlayerDeathBehavior.RestartSector;
 
         [Header("Kill Refill")]
-        [Tooltip("Fraction of max hull restored to the player on each kill the run tally counts.")]
-        [SerializeField, Range(0f, 1f)] private float killHullRestore = 0.25f;
+        [Tooltip("Fraction of max hull restored to the player on each counted kill that is neither a rival nor the elite: minions, hunt patrols and elite escorts.")]
+        [SerializeField, Range(0f, 1f)] private float minionKillHeal = 0.1f;
+        [Tooltip("Fraction of max hull restored to the player on each counted kill of a wave's rival or the sector's elite.")]
+        [SerializeField, Range(0f, 1f)] private float rivalKillHeal = 0.4f;
 
         [Header("Lull pick")]
         [Tooltip("Lull mods offered when the player claims a mod station, three at a time with time stopped. " +
@@ -906,7 +908,7 @@ namespace Game
 
             var sectorsCleared = abandoned ? clearedSectors : killingBlow.HasValue ? endedIn : endedIn + 1;
             var record = RunRecord.Compose(DateTime.UtcNow, sectorsCleared, endedIn, locales, identity,
-                StatHash.OfSetting(hangarOffer, lullMods, sessionProfile.run.Sectors, killHullRestore), rigInstance.Loadout,
+                StatHash.OfSetting(hangarOffer, lullMods, sessionProfile.run.Sectors, minionKillHeal, rivalKillHeal), rigInstance.Loadout,
                 playerLoadoutStatHash, rigInstance.Tally, rigInstance.Ledger, rigInstance.Spawns, killingBlow,
                 course, MountedLoadout(rigInstance.Player), rigInstance.Mods.PickedNames(), ReadEndPhase(),
                 Application.isEditor ? RunRecord.OriginEditor : RunRecord.OriginBuild, DealtRows(rigInstance.Dealt),
@@ -968,7 +970,15 @@ namespace Game
             return names;
         }
 
-        private void RefillPlayerHull() => rigInstance.Player.Damage.Health.RestoreFraction(killHullRestore);
+        private void RefillPlayerHull(ShipId victim) =>
+            rigInstance.Player.Damage.Health.RestoreFraction(PaysRivalHeal(victim) ? rivalKillHeal : minionKillHeal);
+
+        private bool PaysRivalHeal(ShipId victim)
+        {
+            var sector = session != null ? session.ActiveSector : null;
+            var spine = sector ? sector.Module<PhaseSpineModule>() : null;
+            return (spine && spine.IsRival(victim)) || rigInstance.Spawns.IsElite(victim);
+        }
 
         private void OnShipUnlocked(ShipUnlocked unlocked) => moments.Raise(new ShipEarned(unlocked));
 

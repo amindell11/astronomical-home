@@ -34,7 +34,7 @@ MonoBehaviour:
       sendsWaves: 1
       fewestMinions: 3
       mostMinions: 4
-      waveEvery: 12
+      waveEvery: 14
     rivalCap: 1
     minionCap: 3
     patrols: 1
@@ -64,7 +64,7 @@ MonoBehaviour:
       sendsWaves: 1
       fewestMinions: 2
       mostMinions: 3
-      waveEvery: 12
+      waveEvery: 14
     rivalCap: 1
     minionCap: 3
     patrols: 2
@@ -94,7 +94,7 @@ MonoBehaviour:
       sendsWaves: 1
       fewestMinions: 3
       mostMinions: 4
-      waveEvery: 12
+      waveEvery: 14
     rivalCap: 2
     minionCap: 2
     patrols: 2

@@ -74,31 +74,23 @@ namespace Tests.EditMode.Rendering.Illustrated
 
         [TestCase("Crimson", "Hull", 0, false)]
         [TestCase("Nightshade", "Canopy", 0, false)]
-        [TestCase("Valis", "Valis", 5, false)]
+        [TestCase("Valis", "Hull", 1, false)]
         [TestCase("Vanguard", "Canopy", 0, false)]
         [TestCase("Bulwark", "Canopy", 0, false)]
         [TestCase("Bulwark", "Cockpit", 0, true)]
-        [TestCase("Valis", "Fuselage and canopy", 5, true)]
+        [TestCase("Valis", "Fuselage and canopy", 1, true)]
         public void Prefab_GlassProjectionMatchesItsMaterialSubmesh(string ship, string rendererName, int index, bool debris)
         {
             string path = debris ? "Assets/Visuals/Ships/" + ship + "/Breakup/" + ship + "Breakup.prefab"
                 : "Assets/Prefabs/Ships/" + ship + ".prefab";
             var prefab = PrefabUtility.LoadPrefabContents(path);
-            Mesh baked = null;
             try
             {
-                var renderer = prefab.GetComponentsInChildren<Renderer>(true).Single(r => r.name == rendererName);
+                var renderer = prefab.GetComponentsInChildren<Renderer>(true)
+                    .Single(r => r.name == rendererName || r.name == "Surface" && r.transform.parent.name == rendererName);
                 var glass = renderer.sharedMaterials[index];
                 Assert.That(glass.shader.name, Is.EqualTo("Astronomical/Drawn/Canopy"));
-                Mesh mesh;
-                var skin = renderer as SkinnedMeshRenderer;
-                if (skin)
-                {
-                    baked = new Mesh();
-                    skin.BakeMesh(baked);
-                    mesh = baked;
-                }
-                else mesh = renderer.GetComponent<MeshFilter>().sharedMesh;
+                var mesh = renderer.GetComponent<MeshFilter>().sharedMesh;
                 var vertices = mesh.vertices;
                 var triangles = mesh.GetTriangles(index);
                 var bounds = new Bounds(vertices[triangles[0]], Vector3.zero);
@@ -106,12 +98,12 @@ namespace Tests.EditMode.Rendering.Illustrated
                 var projection = glass.GetVector("_ReflectionBounds");
                 Assert.That((bounds.center.x - projection.x) * projection.z, Is.EqualTo(0).Within(.001f));
                 Assert.That((bounds.center.y - projection.y) * projection.w, Is.EqualTo(0).Within(.001f));
-                Assert.That(bounds.size.x * projection.z, Is.EqualTo(1).Within(.001f));
+                // A negative inverse width mirrors the art for meshes exported facing the other way.
+                Assert.That(Mathf.Abs(bounds.size.x * projection.z), Is.EqualTo(1).Within(.001f));
                 Assert.That(bounds.size.y * projection.w, Is.EqualTo(1).Within(.001f));
             }
             finally
             {
-                Object.DestroyImmediate(baked);
                 PrefabUtility.UnloadPrefabContents(prefab);
             }
         }
