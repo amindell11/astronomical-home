@@ -13,7 +13,7 @@ namespace AI.Pilots
 {
     /// <summary>The one scripted opponent component: target validity, the 5 Hz recompute cache, the missile evasion blended over the law, and the border tangent-steer world-velocity pack. The matrix lane Configures a pinned target and flies <see cref="OpponentArchetype"/>; an authored pilot serializes the same fields and can instead track the context's enemy.
     /// With that enemy gone, a live-targeting pilot roams around its last live position (the wreck) through held waypoints. A lost enemy, still alive and not concealed, is circled for its laps and then recalled once. A dead one is circled only when the temper circles the wreck, then wanders, and otherwise wanders from the start.
-    /// A pilot with tactics settings never reads <c>archetype</c>. Its temper names its home tactic, how it roams, and what it does when hurt. <see cref="TacticRules"/> picks the tactic from the ship's situation, and the ship flies one of the same laws through the same evasion and border pack. A ship that jumps out flees past the border and asks to jump beyond its temper's distance. A temper that ambushes cloaks and strikes when its keystone is ready, and one that holds the line keeps its place beside its leader. A minion whose leader is gone flies its wounded response.</summary>
+    /// A pilot with tactics settings never reads <c>archetype</c>. Its temper names its home tactic, how it roams, and what it does when hurt. <see cref="TacticRules"/> picks the tactic from the ship's situation, and the ship flies one of the same laws through the same evasion and border pack. A ship that jumps out flees past the border and asks to jump beyond its temper's distance. A temper that ambushes cloaks and strikes when its keystone is ready, and one that holds the line keeps its place beside its leader. A minion whose leader is gone flies its wounded response, or regroups when its temper says so: it flees guns cold and asks to jump past its temper's distance. A minion that regroups or jumps out keeps fleeing the target's last live position while the target is out of sight.</summary>
     public sealed class ArchetypeBrain : Brain
     {
         private const int RecomputeIntervalTicks = 10;
@@ -189,6 +189,10 @@ namespace AI.Pilots
 
             if (liveTargeting && !IsGone(target)) wreck = target.Kinematics.pos;
 
+            // A minion leaving after its leader died keeps leaving with its target out of sight.
+            if (IsGone(target) && LeavesWithoutLeader() && wreck.HasValue)
+                return Leave(ctx.Self, wreck.Value);
+
             // Null on a concealed target lets the commander hunt its last-seen point.
             if (archetype != OpponentArchetype.Dummy && IsGone(target))
                 return liveTargeting && !IsConcealed(droppedTarget) ? Roam(ctx.Self) : null;
@@ -197,6 +201,18 @@ namespace AI.Pilots
                 cachedDecision = BuildDecision(ctx);
             tickCounter++;
             return cachedDecision;
+        }
+
+        private bool LeavesWithoutLeader() => leaderLost && tactics
+            && (tactics.regroupsWithoutLeader || tactics.wounded == WoundedResponse.JumpOut);
+
+        private BrainDecision Leave(IShipStatus status, Vector2 from)
+        {
+            var self = status.Kinematics;
+            CurrentTactic = Tactic.BreakOff;
+            var flee = FleeVelocity(self.pos, from, shape.speedFraction * status.Dynamics.maxSpeed);
+            return new BrainDecision(NavObjective.Planar(flee),
+                jump: Vector2.Distance(self.pos, from) > tactics.jumpsBeyond);
         }
 
         private static bool IsGone(Ship ship) => !ship || !ship.gameObject.activeInHierarchy;
@@ -274,6 +290,14 @@ namespace AI.Pilots
 
         private BrainDecision FlyTactic(AIContext ctx, in Kinematics self, float maxSpeed)
         {
+            if (leaderLost && tactics.regroupsWithoutLeader)
+            {
+                CurrentTactic = Tactic.BreakOff;
+                return Pack(ctx.Self, FleeVelocity(self.pos, target.Kinematics.pos, shape.speedFraction * maxSpeed),
+                    engages: false, keepBorder: false,
+                    jump: Vector2.Distance(self.pos, target.Kinematics.pos) > tactics.jumpsBeyond);
+            }
+
             var situation = Situation.Read(ctx, tactics);
             var respondingSeconds = RespondingSeconds ?? 0f;
             wounded = leaderLost || WoundedRules.Next(wounded, respondingSeconds, in situation, tactics, retreatsTaken);
@@ -312,7 +336,7 @@ namespace AI.Pilots
                 Tactic.StandOff => Pack(ctx.Self, RangerBrain.HoldRangeVelocity(in self, them,
                     situation.targetRange + tactics.standOffMargin, speed),
                     engages: !situation.inTargetsCone && situation.alliesInLane == 0),
-                Tactic.BreakOff => Pack(ctx.Self, FleeVelocity(self.pos, speed), engages: false,
+                Tactic.BreakOff => Pack(ctx.Self, FleeVelocity(self.pos, them.pos, speed), engages: false,
                     keepBorder: tactics.wounded != WoundedResponse.JumpOut,
                     jump: wounded && tactics.wounded == WoundedResponse.JumpOut
                         && Vector2.Distance(self.pos, them.pos) > tactics.jumpsBeyond),
@@ -346,11 +370,11 @@ namespace AI.Pilots
             return Pack(status, RangerBrain.HoldRangeVelocity(in self, them, gunRange, speed), engages: true);
         }
 
-        private Vector2 FleeVelocity(Vector2 selfPos, float speed)
+        private Vector2 FleeVelocity(Vector2 selfPos, Vector2 threatPos, float speed)
         {
             if (recomputes++ % jukeEveryRecomputes == 0)
                 jukeSign = rng.Next(2) == 0 ? -1 : 1;
-            return ArchetypeLaws.FleeVelocity(selfPos, target.Kinematics.pos, jukeSign, speed);
+            return ArchetypeLaws.FleeVelocity(selfPos, threatPos, jukeSign, speed);
         }
 
         private BrainDecision Pack(IShipStatus status, Vector2 lawVelocity, bool engages, bool keepBorder = true,
