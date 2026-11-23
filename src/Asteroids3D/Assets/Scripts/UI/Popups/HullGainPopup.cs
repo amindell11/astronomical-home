@@ -6,14 +6,16 @@ using UnityEngine.UI;
 namespace UI.Popups
 {
     /// <summary>
-    /// "+N HULL" over a kill: pinned to where the ship died, rising clear of its explosion
-    /// while it fades, then destroyed. Each kill shows its own.
+    /// "+N HULL" over a kill: pinned to where the ship died, starting above its fireball and
+    /// rising while it fades, then destroyed. The dark edge keeps it legible over fire. Each kill shows its own.
     /// </summary>
     public sealed class HullGainPopup : MonoBehaviour
     {
         public const float Seconds = 1.5f;
         private const float FadeSeconds = .6f;
+        public const float StartLiftPixels = 60f;
         private const float RisePixels = 90f;
+        private static readonly Color Edge = new(0f, 0f, 0f, .85f);
 
         private Canvas canvas;
         private Camera worldCamera;
@@ -38,6 +40,9 @@ namespace UI.Popups
             text.verticalOverflow = VerticalWrapMode.Overflow;
             text.raycastTarget = false;
             text.text = $"+{Mathf.Max(1, Mathf.RoundToInt(amount))} HULL";
+            var edge = go.AddComponent<Outline>();
+            edge.effectColor = Edge;
+            edge.effectDistance = new Vector2(2f, -2f);
             var popup = go.AddComponent<HullGainPopup>();
             popup.canvas = canvas;
             popup.worldCamera = worldCamera;
@@ -68,7 +73,7 @@ namespace UI.Popups
         {
             Vector2 point = worldCamera.WorldToScreenPoint(origin);
             var eased = 1f - (1f - progress) * (1f - progress);
-            point.y += RisePixels * eased * canvas.scaleFactor;
+            point.y += (StartLiftPixels + RisePixels * eased) * canvas.scaleFactor;
             ScreenPin.Place(rect, canvas, point);
         }
     }

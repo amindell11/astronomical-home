@@ -8,7 +8,7 @@ using Object = UnityEngine.Object;
 
 namespace Tests.PlayMode.Popups
 {
-    /// <summary>A kill's hull gain shows at the wreck's screen point, rises and fades out, then removes itself.</summary>
+    /// <summary>A kill's hull gain shows just above the wreck's screen point, rises and fades out, then removes itself.</summary>
     [Category("UI")]
     public class HullGainPopupPlayModeTests
     {
@@ -44,10 +44,11 @@ namespace Tests.PlayMode.Popups
 
             Assert.AreEqual("+10 HULL", text.text);
             Assert.AreEqual(wreckOnScreen.x, rect.anchoredPosition.x * canvas.scaleFactor, .5f);
-            Assert.AreEqual(wreckOnScreen.y, rect.anchoredPosition.y * canvas.scaleFactor, .5f, "It starts on the wreck.");
+            Assert.AreEqual(wreckOnScreen.y + HullGainPopup.StartLiftPixels * canvas.scaleFactor,
+                rect.anchoredPosition.y * canvas.scaleFactor, .5f, "It starts just above the wreck, clear of the fireball.");
 
             yield return new WaitForSeconds(HullGainPopup.Seconds * .8f);
-            Assert.Greater(rect.anchoredPosition.y * canvas.scaleFactor, wreckOnScreen.y + 20f, "It rises off the wreck.");
+            Assert.Greater(rect.anchoredPosition.y * canvas.scaleFactor, wreckOnScreen.y + (HullGainPopup.StartLiftPixels + 20f) * canvas.scaleFactor, "It keeps rising.");
             Assert.Less(text.color.a, 1f, "It fades near the end.");
 
             yield return new WaitForSeconds(HullGainPopup.Seconds * .4f);
