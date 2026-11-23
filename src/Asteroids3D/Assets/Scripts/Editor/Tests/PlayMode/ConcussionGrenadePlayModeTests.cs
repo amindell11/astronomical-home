@@ -233,6 +233,28 @@ namespace Tests.PlayMode
             Assert.IsNotNull(FindActiveWave(), "Arrival spawns the wave.");
         }
 
+        [UnityTest]
+        public IEnumerator Charge_CoastsAtLaunchSpeed_ThenBurnsToRest()
+        {
+            var weapon = MountWeapon(out _);
+            var grenade = weapon.Fire(weapon.firePoint.position + Plane(0f, 1f) * 100f, Projectiles) as Grenade;
+            var body = grenade.GetComponent<Rigidbody>();
+            var coastSteps = Mathf.FloorToInt((grenade.MaxDistance - grenade.BurnDistance) / grenade.LaunchSpeed / Time.fixedDeltaTime) - 1;
+
+            for (var i = 0; i < coastSteps; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                Assert.IsFalse(grenade.Burning, $"Still coasting at step {i}.");
+                Assert.AreEqual(grenade.LaunchSpeed, body.linearVelocity.magnitude, 0.01f, "A coasting charge keeps its launch speed.");
+            }
+
+            for (var i = 0; i < 4 && !grenade.Burning; i++)
+                yield return new WaitForFixedUpdate();
+            Assert.IsTrue(grenade.Burning, "The burn lights at the burn distance.");
+            yield return new WaitForFixedUpdate();
+            Assert.Less(body.linearVelocity.magnitude, grenade.LaunchSpeed, "The burn slows the charge.");
+        }
+
         [Test]
         public void TargetPointPastMaxRange_IsClampedAlongTheLine_AndStillFires()
         {
