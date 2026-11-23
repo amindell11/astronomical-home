@@ -237,12 +237,18 @@ Format: **term** — definition. *(authority)*
   work happens in one; `scripts/app_worktree_guard.py` refuses session starts
   that would make one. *(#1058)*
 - **merge gate** — the full-suite test gate inside `merge <slot>` and `land`;
-  the only sanctioned merge path.
+  the only sanctioned merge path besides GitHub auto-merge on a green
+  `land-check`.
 - **`land`** — the pool command that lands a PR no slot holds: the merge gate
   on the hosted path, in a borrowed slot, on a *recorded instruction* or the
   *auto-merge class*. Always
   in code font: the plain word keeps its everyday sense ("land it" is
   consent). *(agent_worktree_pool.sh `land`; #830)*
+- **`land-check`** — the commit status GitHub auto-merge waits on: `land`'s
+  preflight and authorize rules applied to a PR head that contains main, posted
+  by `.github/workflows/land-check.yml` from main's copy. Always in code font:
+  the plain phrase means checking anything before landing.
+  *(agent_worktree_pool.sh `land-check`)*
 - **merge turn** — the pool-wide right to run a merge gate, held by one gate at
   a time from before its fetch through `gh pr merge`. Waiting gates take it in
   arrival order (**turn ticket**). Any other push to main takes it with no

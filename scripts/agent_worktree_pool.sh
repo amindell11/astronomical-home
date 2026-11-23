@@ -390,6 +390,25 @@ Commands:
       this PR holds its slot), checkout, or error (the gate printed no
       trailer). Exit: 0 merged; 1 refused, or a usage error.
 
+  land-check <pr>
+      The check GitHub auto-merge waits on: land's preflight, proof and
+      authorize rules applied to PR <pr>'s head as the landing commit, with
+      no slot, no merge turn and no merge. Run by
+      .github/workflows/land-check.yml from main's copy of this script,
+      which posts the verdict as the land-check commit status on that head.
+      The head must already contain origin/main (GitHub's up-to-date rule
+      then makes it the landing tree). A landing diff touching .github/,
+      scripts/ or .githooks/ always fails: land those with 'land' or
+      'merge <slot>', which run the script suite. Passing via the auto-merge
+      class writes the auto-merged label, as land does before its merge.
+      Trailers: SHA=<head> first, CLASS= when the class
+      decided, then STATE=success|pending|failure (the commit status to
+      post; pending means a later event can still pass it) and
+      CHECK=<instruction|class|reason>, the reason one of land's preflight
+      reasons, behind, github, scripts, hosted (a merge-proof status is
+      not green on the head or stamps another tree), unauthorized, or gh.
+      No STATE line means no verdict: post nothing. Exit: 0 pass; 1 not.
+
   land-docs
       The docs-only landing (agent-worktree-pr-loop skill): push the HEAD
       of the worktree it runs in straight to main, with no PR, when every
@@ -2925,19 +2944,26 @@ gate_authorize() {
   return 1
 }
 
-# Conditions in a fixed order, so CLASS=out names the first that fails.
-gate_class() {
-  local slot="$1" scripts_rc="$2" github_rc="$3" hosted_ratchet="$4" class=in kind
-  kind="$(tested_scope_field "$slot" kind || true)"
-  if [[ "$CLASS_OWED" != none ]]; then
-    class=out:owed
+# Conditions in a fixed order, so out:<condition> names the first that fails.
+class_verdict() {
+  local owed="$1" scripts_rc="$2" github_rc="$3" hosted="$4" review="$5"
+  if [[ "$owed" != none ]]; then
+    echo out:owed
   elif [[ "$scripts_rc" -eq 0 || "$github_rc" -eq 0 ]]; then
-    class=out:paths
-  elif [[ "$kind" != remote-run || "$hosted_ratchet" -ne 1 ]]; then
-    class=out:hosted
-  elif [[ "$CLASS_REVIEW" -ne 1 ]]; then
-    class=out:review
+    echo out:paths
+  elif [[ "$hosted" -ne 1 ]]; then
+    echo out:hosted
+  elif [[ "$review" -ne 1 ]]; then
+    echo out:review
+  else
+    echo in
   fi
+}
+
+gate_class() {
+  local slot="$1" scripts_rc="$2" github_rc="$3" hosted_ratchet="$4" hosted=0 class
+  [[ "$(tested_scope_field "$slot" kind || true)" == remote-run && "$hosted_ratchet" -eq 1 ]] && hosted=1
+  class="$(class_verdict "$CLASS_OWED" "$scripts_rc" "$github_rc" "$hosted" "$CLASS_REVIEW")"
   echo "CLASS=$class"
   merge_journal_note "class $class"
   [[ "$AUTHORIZED_BY" == class && "$class" != in ]] || return 0
@@ -3113,6 +3139,72 @@ cmd_land() {
   [[ -z "$class" ]] || echo "CLASS=$class"
   echo "GATE=refused:$reason"
   return 1
+}
+
+# ---- Land check -------------------------------------------------------------
+# The land-check verdict GitHub requires before auto-merge. Fail closed: no STATE line posts no status.
+land_check_verdict() {
+  local state="$1" reason="$2"
+  echo "STATE=$state"
+  echo "CHECK=$reason"
+  [[ "$state" == success ]]
+}
+
+cmd_land_check() {
+  local pr="${1:-}"
+  [[ $# -eq 1 && "$pr" =~ ^[1-9][0-9]*$ ]] || { echo "land-check requires <pr>" >&2; return 1; }
+  require_gh || return 1
+  local sha tree base_tree rule rc proof_rc=0 class
+  sha="$(gh pr view "$pr" --json headRefOid --jq .headRefOid)" && [[ "$sha" =~ ^[0-9a-f]{40}$ ]] \
+    || { echo "land-check: could not read PR #$pr's head from GitHub." >&2; return 1; }
+  echo "SHA=$sha"
+  if ! land_preflight "$pr"; then
+    case "$LAND_REASON" in
+      gh|facts|unresolved|after:*|slot:*) land_check_verdict pending "$LAND_REASON" ;;
+      *) land_check_verdict failure "$LAND_REASON" ;;
+    esac
+    return 1
+  fi
+  if ! git -C "$ROOT" fetch -q origin "+refs/heads/main:refs/remotes/origin/main" \
+    "+refs/heads/$LAND_BRANCH:refs/land-check/head"; then
+    echo "land-check: could not fetch main and $LAND_BRANCH." >&2
+    return 1
+  fi
+  if [[ "$(git -C "$ROOT" rev-parse refs/land-check/head)" != "$sha" ]]; then
+    echo "land-check: $LAND_BRANCH moved past ${sha:0:7}; its push starts a fresh check." >&2
+    return 1
+  fi
+  if ! git -C "$ROOT" merge-base --is-ancestor origin/main "$sha"; then
+    land_check_verdict pending behind
+    return 1
+  fi
+  for rule in github:.github/ scripts:scripts/ scripts:.githooks/; do
+    landing_diff_touches "$ROOT" origin/main "$sha" "${rule#*:}" && rc=0 || rc=$?
+    [[ "$rc" -ne 0 ]] || { land_check_verdict failure "${rule%%:*}"; return 1; }
+    [[ "$rc" -eq 1 ]] || return 1
+  done
+  tree="$(git -C "$ROOT" rev-parse "$sha^{tree}")"
+  base_tree="$(git -C "$ROOT" rev-parse 'origin/main^{tree}')"
+  verified_remote_status "$sha" "$REMOTE_PROOF_CONTEXT" "tree=$tree" >&2 || proof_rc=1
+  verified_remote_status "$sha" "$REMOTE_RESHARPER_CONTEXT" "tree=$tree" "baseTree=$base_tree" >&2 || proof_rc=1
+  if [[ "$proof_rc" -ne 0 ]]; then
+    land_check_verdict pending hosted
+    return 1
+  fi
+  if ! gate_authorize "$ROOT" "$sha" "$pr" origin/main >&2; then
+    land_check_verdict pending "$GATE_REASON"
+    return 1
+  fi
+  [[ "$AUTHORIZED_BY" == class ]] || { land_check_verdict success instruction; return; }
+  class="$(class_verdict "$CLASS_OWED" 1 1 1 "$CLASS_REVIEW")"
+  echo "CLASS=$class"
+  [[ "$class" == in ]] || { land_check_verdict pending unauthorized; return 1; }
+  if ! gh pr edit "$pr" --add-label "$AUTO_MERGED_LABEL" >/dev/null; then
+    echo "land-check: could not label PR #$pr $AUTO_MERGED_LABEL, which a class merge needs." >&2
+    land_check_verdict pending gh
+    return 1
+  fi
+  land_check_verdict success class
 }
 
 # ---- Docs-only landing -----------------------------------------------------
@@ -3536,6 +3628,7 @@ main() {
         cmd_merge "$@"
       ;;
     land) cmd_land "$@" ;;
+    land-check) cmd_land_check "$@" ;;
     borrow) cmd_borrow "$@" ;;
     return)
       [[ $# -eq 2 && "$1" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "return requires <slot> <lease>" >&2; exit 1; }
