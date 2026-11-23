@@ -1,0 +1,92 @@
+name: land-check
+
+# Posts the land-check commit status that GitHub auto-merge waits on (agent_worktree_pool.sh
+# land-check). The repo is public and pull_request_target runs main's copy of this workflow, so:
+# the job checks out main only, takes only the PR number from the payload, fetches the PR head as
+# data, never runs a PR's code, and treats all PR text as data.
+on:
+  pull_request_target:
+    types: [opened, edited, synchronize, reopened, ready_for_review, converted_to_draft]
+    branches: [main]
+  # A recorded instruction or a ticked owed item arrives as a comment or a body edit.
+  issue_comment:
+    types: [created, edited, deleted]
+  # Codex's review.
+  pull_request_review:
+    types: [submitted, dismissed]
+  # The headless suite's statuses are posted under GITHUB_TOKEN, which triggers no status event.
+  workflow_run:
+    workflows: [headless-suite]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: PR number
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  statuses: write
+
+jobs:
+  # Every trigger resolves to the PR number first, so one concurrency group per PR serializes the verdicts.
+  resolve:
+    if: github.event_name != 'issue_comment' || github.event.issue.pull_request
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      number: ${{ steps.pr.outputs.number }}
+    steps:
+      - name: Resolve PR
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number || github.event.issue.number || inputs.pr }}
+          RUN_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          RUN_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
+        run: |
+          if [ -z "$PR" ] && [ "$RUN_REPO" = "$GITHUB_REPOSITORY" ]; then
+            PR="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$RUN_BRANCH" --base main --state open --json number --jq '.[0].number // empty')"
+          fi
+          echo "number=$PR" >> "$GITHUB_OUTPUT"
+
+  # Not named land-check: a check run of that name would satisfy the required land-check status.
+  post-verdict:
+    needs: resolve
+    if: needs.resolve.outputs.number != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: land-check-${{ needs.resolve.outputs.number }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          lfs: false
+
+      - name: Check and post
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ needs.resolve.outputs.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          # inert_diff.ps1 is called as powershell.exe; without it a C# comment-only delta reads as code.
+          sudo ln -sf "$(command -v pwsh)" /usr/local/bin/powershell.exe
+          rc=0
+          bash scripts/agent_worktree_pool.sh land-check "$PR" > out.txt || rc=$?
+          cat out.txt
+          sha="$(sed -n 's/^SHA=//p' out.txt | head -n 1)"
+          state="$(sed -n 's/^STATE=//p' out.txt | head -n 1)"
+          check="$(sed -n 's/^CHECK=//p' out.txt | head -n 1)"
+          if [ -z "$sha" ] || [ -z "$state" ]; then
+            echo "land-check gave no verdict (exit $rc): no status posted."
+            exit 1
+          fi
+          gh api --silent "repos/$GITHUB_REPOSITORY/statuses/$sha" -f state="$state" -f context=land-check \
+            -f target_url="$RUN_URL" -f description="$check"
+          echo "land-check on ${sha:0:7}: $state ($check)" >> "$GITHUB_STEP_SUMMARY"
