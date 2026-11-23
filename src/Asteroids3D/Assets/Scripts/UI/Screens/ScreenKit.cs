@@ -92,7 +92,7 @@ namespace UI.Screens
             image.raycastTarget = true;
         }
 
-        internal static void Button(RectTransform rect, Action onClick)
+        internal static UnityEngine.UI.Button Button(RectTransform rect, Action onClick)
         {
             var overlay = Box(rect, "Hover", 0, 0, rect.sizeDelta.x, rect.sizeDelta.y);
             var image = overlay.gameObject.AddComponent<Image>();
@@ -109,6 +109,7 @@ namespace UI.Screens
             colors.fadeDuration = 0f;
             button.colors = colors;
             button.onClick.AddListener(() => onClick());
+            return button;
         }
     }
 }
