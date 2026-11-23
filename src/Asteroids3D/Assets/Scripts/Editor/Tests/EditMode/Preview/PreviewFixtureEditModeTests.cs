@@ -163,22 +163,26 @@ namespace Tests.EditMode.Preview
         }
 
         [Test]
-        public void WaveCap_FollowsTheLinkedRowUntilTicked()
+        public void Caps_FollowTheLinkedRowUntilTicked()
         {
-            row.waveCap = 3;
-            var fixture = Linked(new SectorEntry { waveCap = 9 });
+            row.rivalCap = 2;
+            row.minionCap = 3;
+            var fixture = Linked(new SectorEntry { rivalCap = 7, minionCap = 9 });
 
             var resolved = fixture.Resolve(run);
-            Assert.AreEqual(3, resolved.waveCap);
+            Assert.AreEqual(2, resolved.rivalCap);
+            Assert.AreEqual(3, resolved.minionCap);
 
-            row.waveCap = 1;
+            row.minionCap = 1;
             resolved = fixture.Resolve(run);
-            Assert.AreEqual(1, resolved.waveCap);
+            Assert.AreEqual(1, resolved.minionCap);
 
-            fixture = Linked(new SectorEntry { waveCap = 9 }, PreviewFixtureOwn.WaveCap);
-            row.waveCap = 4;
+            fixture = Linked(new SectorEntry { rivalCap = 7, minionCap = 9 }, PreviewFixtureOwn.WaveCap);
+            row.rivalCap = 1;
+            row.minionCap = 4;
             resolved = fixture.Resolve(run);
-            Assert.AreEqual(9, resolved.waveCap);
+            Assert.AreEqual(7, resolved.rivalCap);
+            Assert.AreEqual(9, resolved.minionCap);
         }
 
         [Test]

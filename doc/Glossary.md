@@ -539,14 +539,24 @@ Format: **term** — definition. *(authority)*
   A rival whose temper ambushes arrives concealed ahead of the player instead, when
   that point is clear. A phase that sends waves draws how many minions fly with the
   rival uniformly from fewest to most, inclusive. Waves arrive on the phase's wave-every beat, trimmed to
-  the wave cap, and the trim keeps the rival. Nothing arrives in a lull, and survivors stay.
+  the wave caps; with no room for a rival, the beat sends a reinforcement instead. Nothing arrives in a lull, and survivors stay.
   *(WaveDirector.WaveDue)*
+- **reinforcement** — what a beat sends when the rival cap is full: the beat's
+  drawn minions, trimmed to the minion cap, arriving together from one bearing to
+  join the live rival with the fewest followers (on a tie, the one nearest where
+  they arrive), each at the free place nearest it. A reinforcement is not a wave
+  and raises no `WaveSent`. With no minion room, the beat is dropped. Entourage,
+  ruled by the game lead on 2026-11-23: a full rival slot no longer drops the
+  beat, so clearing minions buys only a window until the next beat.
+  *(WaveDirector.TryReinforce, WaveDirector.FreePlace)*
 - **wave every** — the beat a sector phase sends its waves on.
   *(SectorPhase.waveEvery)*
-- **wave cap** — the most enemies alive, hunt patrols included, that a
-  sector's waves fill to. The trim keeps the rival. Nothing is held or owed:
-  a trimmed or dropped wave is not made up later.
-  *(SectorEntry.waveCap, WaveDirector.Room)*
+- **wave cap** — a sector's two limits on what its waves fill to: the rival cap
+  (live rivals) and the minion cap (live minions, hunt patrols included). A full
+  rival cap turns the beat into a reinforcement for a live rival, so minions never
+  arrive without a rival; a full minion cap sends the rival alone. Nothing is held
+  or owed: a trimmed or dropped beat is not made up later.
+  *(SectorEntry.rivalCap, SectorEntry.minionCap, WaveDirector.RivalRoom, WaveDirector.MinionRoom)*
 - **earned lull** — the rest of a sector phase once its last wave has arrived and
   nothing is alive, patrols included. A dropped wave counts as arrived. It moves
   no phase boundary. *(WaveDirector.EarnedLull)*
@@ -983,7 +993,7 @@ Format: **term** — definition. *(authority)*
   hold at every shield level. The temper also records whether the ship circles
   the wreck before it wanders. A pilot with a temper never reads `archetype`.
   *(Faction.Rival, Faction.Minion; Settings/AI/Tactics/Factions; EliteTemper, EscortTemper)*
-- **leader**. The rival a minion's wave flies with. The minion observes that
+- **leader**. The rival a minion flies with: its wave's, or the one its reinforcement joined. The minion observes that
   ship's position and velocity and nothing of its brain, and the leader never commands it.
   When the leader is gone, the minion flies its wounded response.
   *(AIContext.Leader, AICommander.FollowLeader)*
@@ -1128,7 +1138,7 @@ Format: **term** — definition. *(authority)*
 - **item** — anything that fills a loadout slot: a chassis (a prefab with a root
   `Ship`) or a weapon (a prefab with a root `WeaponComponent`). Engine and shield
   modules come with the chassis and fill no slot (#1073, #1254); projectiles,
-  trial pacing and `killHullRestore` are tuned but fill no slot either. None of
+  trial pacing and the kill refills are tuned but fill no slot either. None of
   those are items.
 - **item catalog** — the one asset listing every item in the project, grouped
   by item type. An index only: each item's stats stay on its own asset. Listing
@@ -1180,11 +1190,18 @@ Format: **term** — definition. *(authority)*
   hangar can rebuild the player); only deaths between the game host's clock
   stamps count (begin after the run's first sector load, end at player death or
   the last extraction). Raises
-  `Killed` on each counted kill. Reset at each run's loadout step. *(RunTally)*
-- **kill refill** — the fraction of max hull the game host restores to the
-  player each time the run tally counts a kill; hull only (ammo or heat on a kill
-  would be a reset button, and the shield already regens). Interactive sessions
-  only — the harness has no game host. *(GameHost.killHullRestore, Resource.RestoreFraction)*
+  `Killed` with the victim on each counted kill. Reset at each run's loadout step. *(RunTally)*
+- **kill refill** — the hull points the game host restores to the player each
+  time the run tally counts a kill, set by the victim's rank: the rival refill for
+  a wave's rival or the elite, the minion refill for every other kill, hunt
+  patrols and elite escorts included. Hull only (ammo or heat on a kill would be
+  a reset button, and the shield already regens). Ranked by the game lead on
+  2026-11-23: minions come back on every beat, so a large minion refill would
+  make farming them beat fighting the rival. Flat points, not a share of max
+  hull (same day), so a kill pays the same on every chassis. Repair stations and
+  beacon caches still restore a share. Interactive sessions only — the harness
+  has no game host.
+  *(GameHost.minionKillHeal, GameHost.rivalKillHeal, WaveDirector.IsRival, SpawnLog.IsElite, Resource.Restore)*
 - **loadout stat hash** — a short hash of the balance numbers one ship flies with:
   its hull, its engine, its shield and the weapon on each mount. Only fields marked
   `[Stat]` count. The same parts with the same numbers give the same hash on any
@@ -1196,7 +1213,7 @@ Format: **term** — definition. *(authority)*
   up and an edit to a live weapon instance does not. *(StatHash.OfLoadout, StatAttribute)*
 - **stat fingerprint** — a short hash of every balance number a run can draw from:
   what the hangar offers, the lull mod pool, each run sector's wave director in run order (its pacing and minion counts, and
-  the parts its enemies draw from) and the kill refill. Runs played against the
+  the parts its enemies draw from) and the kill refills. Runs played against the
   same numbers share a fingerprint, so results are grouped by it. A number no run
   can reach does not move it, and neither does list order or listing a part twice,
   except in a list marked `[Stat(Ordered = true)]` such as the sector phase table.
