@@ -33,9 +33,10 @@ namespace Substrate.Sectors.Elements
     /// regroups, each minion that jumps out is held and arrives with the next rival's wave, on top of its
     /// drawn minions and still under the minion cap; a reinforcement never brings one, and the held count
     /// ends with the sector.
-    /// Nothing arrives in a lull, or once the table is done when an elite follows it. With an elite, a
-    /// closing lull follows the last phase; without one, the done table keeps the last phase's waves.
-    /// It begins its elite, summons it on the tick the table is done, and ends it at teardown.
+    /// Nothing arrives in a lull. With an elite, a closing lull follows the last phase; without one, the
+    /// done table keeps the last phase's waves. It begins its elite, summons it on the tick the table is
+    /// done, and ends it at teardown. Nothing arrives for the elite's grace; after it, while the elite
+    /// lives, each beat of the last phase reinforces the elite instead of a rival.
     /// The opening lull is held for the hunt. Ships arrive facing the hero,
     /// each on its rank's kit, pilot, scale and the faction skin. Dead products and products that ask to
     /// jump despawn on the tick, which idles while the hero is inactive. Nothing spawns in Build, since
@@ -57,6 +58,8 @@ namespace Substrate.Sectors.Elements
         [SerializeField] private SectorHunt hunt;
         [Tooltip("The sector's elite; set, a lull follows the last phase, and when the table is done the director summons it and sends no more waves.")]
         [SerializeField] private EliteEncounter elite;
+        [Tooltip("Seconds into the elite's fight before the last phase's beat starts sending it minions, up to the minion cap.")]
+        [Stat, SerializeField, Min(0f)] private float eliteGraceSeconds = 30f;
 
         [Header("Placement")]
         [Tooltip("Plane distance from the hero; author it past the camera's widest view so ships arrive off screen.")]
@@ -93,6 +96,7 @@ namespace Substrate.Sectors.Elements
         private int sectorIndex;
         private int? pending;
         private float lastWave;
+        private float eliteSince;
 
         public event Action<int> WaveSent;
 
@@ -226,23 +230,22 @@ namespace Substrate.Sectors.Elements
             DespawnDead();
             HoldForHunt(now);
             Advance(now);
-            SummonElite();
+            SummonElite(now);
             var minions = WaveDue(now);
-            if (minions != null)
-            {
-                var room = RivalRoom(rivals.Count);
-                var sent = MinionRoom(minions.Value + (room ? regrouping : 0), AliveMinions);
-                if (room ? TrySend(sent) : TryReinforce(sent))
-                {
-                    if (room)
-                    {
-                        regrouping = Rejoined(regrouping, sent);
-                        WaveSent?.Invoke(sectorIndex);
-                    }
-                    Arrived(now);
-                }
-            }
+            if (minions != null && Send(minions.Value))
+                Arrived(now);
             Observe(now, Alive);
+        }
+
+        private bool Send(int drawn)
+        {
+            if (WavesOver) return TryReinforce(MinionRoom(drawn, AliveMinions), _ => elite.Ship);
+            if (!RivalRoom(rivals.Count)) return TryReinforce(MinionRoom(drawn, AliveMinions), LeastEscorted);
+            var sent = MinionRoom(drawn + regrouping, AliveMinions);
+            if (!TrySend(sent)) return false;
+            regrouping = Rejoined(regrouping, sent);
+            WaveSent?.Invoke(sectorIndex);
+            return true;
         }
 
         internal int Alive => products.Count + (hunt ? hunt.LivePatrols : 0);
@@ -304,9 +307,11 @@ namespace Substrate.Sectors.Elements
 
         internal void Advance(float now) => Phase = schedule.At(now - startTime);
 
-        private void SummonElite()
+        private void SummonElite(float now)
         {
-            if (WavesOver && !elite.Summoned) elite.Summon();
+            if (!WavesOver || elite.Summoned) return;
+            elite.Summon();
+            eliteSince = now;
         }
 
         /// <summary>True once, on the first tick of each phase; a lull or the done table opens nothing.</summary>
@@ -319,9 +324,11 @@ namespace Substrate.Sectors.Elements
 
         private bool WavesOver => elite && Phase.Done;
 
+        private bool EliteCallsMinions(float now) => elite.Present && now >= eliteSince + eliteGraceSeconds;
+
         internal int? WaveDue(float now)
         {
-            if (Phase.InLull || WavesOver)
+            if (Phase.InLull || (WavesOver && !EliteCallsMinions(now)))
                 return null;
 
             var phase = phases[Phase.Index];
@@ -471,18 +478,18 @@ namespace Substrate.Sectors.Elements
             return true;
         }
 
-        private bool TryReinforce(int minions)
+        private bool TryReinforce(int minions, Func<Vector2, Ship> leaderFor)
         {
             if (minions == 0) return true;
             var center = GamePlane.WorldPointToPlane(hero.transform.position);
             var slots = ClearSlots(center, minions);
             if (slots == null) return false;
 
-            var rival = LeastEscorted(slots[(minions - 1) / 2]);
+            var leader = leaderFor(slots[(minions - 1) / 2]);
             foreach (var slot in slots)
             {
                 var minion = Spawn(faction.Faction.Minion, slot, center);
-                Follow(minion, rival, FreePlace(PlacesAround(rival)));
+                Follow(minion, leader, FreePlace(PlacesAround(leader)));
                 ((AICommander)minion.Commander).HuntBySight(hero);
             }
             return true;
@@ -564,10 +571,12 @@ namespace Substrate.Sectors.Elements
 #if UNITY_EDITOR
         internal void Configure(SectorPhase[] phases, float lullSeconds = 5f, float spawnRadius = 55f,
             SectorFaction faction = null, float openingLullSeconds = 0f, SectorHunt hunt = null,
-            EliteEncounter elite = null, float groupSpread = 8f, int rivalCap = 1, int minionCap = 4)
+            EliteEncounter elite = null, float groupSpread = 8f, int rivalCap = 1, int minionCap = 4,
+            float eliteGraceSeconds = 30f)
         {
             this.hunt = hunt;
             this.elite = elite;
+            this.eliteGraceSeconds = eliteGraceSeconds;
             this.faction = faction;
             this.phases = phases;
             this.rivalCap = rivalCap;
