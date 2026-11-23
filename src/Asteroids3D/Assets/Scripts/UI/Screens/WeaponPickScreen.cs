@@ -120,23 +120,23 @@ namespace UI.Screens
             WindowKit.Rule(body, Inset, 91f, width);
 
             WindowKit.Label(body, "UsesLabel", "USES MODS", Inset, 100f, width, 20f, 14, WindowKit.Dim, fonts.Label);
-            Chips(body, "Uses", 123f, width, mods.Using(weapon), "+", "NONE", true);
-            WindowKit.Label(body, "IdleLabel", "GOES IDLE", Inset, 157f, width, 20f, 14, WindowKit.Dim, fonts.Label);
-            Chips(body, "Idles", 180f, width, mods.IdledBy(replaced, weapon, kept), "−", "NOTHING", false);
+            var idleY = 123f + Chips(body, "Uses", 123f, width, mods.Using(weapon), "+", "NONE", true) + 14f;
+            WindowKit.Label(body, "IdleLabel", "GOES IDLE", Inset, idleY, width, 20f, 14, WindowKit.Dim, fonts.Label);
+            Chips(body, "Idles", idleY + 23f, width, mods.IdledBy(replaced, weapon, kept), "−", "NOTHING", false);
 
             ScreenKit.Button((RectTransform)window.transform, () => ChooseOffer(index));
             window.Play();
         }
 
-        // One outlined chip per held mod, wrapping to a second line; lit for a gain, dim for a loss.
-        private void Chips(RectTransform body, string name, float y, float width, IReadOnlyList<HeldMod> held,
+        // One outlined chip per held mod, wrapping onto further lines; returns the height they take.
+        private float Chips(RectTransform body, string name, float y, float width, IReadOnlyList<HeldMod> held,
             string sign, string none, bool lit)
         {
             var row = ScreenKit.Box(body, name, Inset, y, width, ChipHeight);
             if (held.Count == 0)
             {
                 WindowKit.Label(row, "None", none, 0f, 0f, width, ChipHeight, 14, WindowKit.Dim, fonts.Label);
-                return;
+                return ChipHeight;
             }
 
             var x = 0f;
@@ -160,6 +160,8 @@ namespace UI.Screens
                 label.transform.SetAsLastSibling();
                 x += chipWidth + 6f;
             }
+
+            return line + ChipHeight;
         }
 
         private void BindKeys()
