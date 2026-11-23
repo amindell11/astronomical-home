@@ -383,7 +383,7 @@ namespace Tests.PlayMode.Screens
                 var secondary = (RectTransform)row.Find("Secondary");
                 Assert.LessOrEqual(secondary.anchoredPosition.x + secondary.rect.width,
                     ((RectTransform)row.Find("Sectors")).anchoredPosition.x);
-                if (i % 4 != 0)
+                if (i < RunRecapScreen.PageSize)
                     Assert.GreaterOrEqual(row.anchoredPosition.y - row.rect.height,
                         ((RectTransform)scoreboard.Find("Row" + (i + 1))).anchoredPosition.y);
             }
