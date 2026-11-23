@@ -31,7 +31,7 @@ namespace Tests.EditMode
             _killedRaised = 0;
             _tally = new RunTally();
             _tally.Bind(null, () => _playerId);
-            _tally.Killed += () => _killedRaised++;
+            _tally.Killed += _ => _killedRaised++;
             _tally.Begin(0f);
             _tally.Watch(_victim);
         }
