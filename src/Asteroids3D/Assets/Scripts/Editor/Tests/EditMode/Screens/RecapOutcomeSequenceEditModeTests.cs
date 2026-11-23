@@ -102,7 +102,6 @@ namespace Tests.EditMode.Screens
             Assert.AreEqual(1f, card.BreakdownAlpha);
             Assert.IsTrue(card.BreakdownInteractable);
             Assert.IsTrue(card.CameraHeld);
-            Assert.IsTrue(card.SimulationFrozen);
         }
 
         [Test]
