@@ -84,7 +84,8 @@ namespace Ships.Presentation
                 () => ship.Movement.CurrentCommand,
                 ship.Lock,
                 ship.CompareTag(TagNames.Player),
-                ship.Body));
+                ship.Body,
+                () => ship.Keystone.Active));
         }
 
         public void Bind(in ShipView view)

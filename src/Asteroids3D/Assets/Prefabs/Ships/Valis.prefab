@@ -69,6 +69,7 @@ MonoBehaviour:
   - bone: {fileID: 3183962867891939396}
     restRotation: {x: 0.00000004086624, y: 0.014190067, z: 0.1730674, w: -0.9848077}
   transitionSeconds: 0.5
+  liveSweepDegrees: 8
 --- !u!1 &3644377650421588892
 GameObject:
   m_ObjectHideFlags: 0
