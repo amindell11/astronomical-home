@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Veil
   color: {r: 0.659, g: 0.965, b: 0.231, a: 1}
   signature:
-    ship: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637, type: 3}
+    ship: {fileID: 3274392229469629848, guid: ba75a4bb3879bb548a11f784a61fe2fc, type: 3}
     kit: {fileID: 1432079758992853230, guid: 2dd56855a044420b811fc73ba1ea2191, type: 3}
     pilot: {fileID: 8419346158697591979, guid: 6e675e9e307831549aeef872be12f6ac, type: 3}
     hull:
@@ -30,34 +30,34 @@ MonoBehaviour:
     - {fileID: 2100000, guid: effa8fccffdd9f445b04fd273029a15c, type: 2}
     - {fileID: 2100000, guid: 12469696e2e8443490d1d2acfc5e4005, type: 2}
   minion:
-    ship: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637, type: 3}
+    ship: {fileID: 3274392229469629848, guid: 0c5b8f16f6c30244ea2467e60e74ba44, type: 3}
     kit: {fileID: -8301958025146036882, guid: a17b4473baa216a4eba58800a76acfc3, type: 3}
     pilot: {fileID: 5985986810003856104, guid: 84c0f94b772df0748bcf796dafb39502, type: 3}
     hull:
     - {fileID: 2100000, guid: 62edce561b5043bd9598564fdc1aac23, type: 2}
     - {fileID: 2100000, guid: 3df8dd70ef6c43e0975c343017ca6dfa, type: 2}
     - {fileID: 2100000, guid: 12469696e2e8443490d1d2acfc5e4005, type: 2}
-    - {fileID: 2100000, guid: 07a1dd73082542e3a2e35b86b00c894c, type: 2}
     - {fileID: 2100000, guid: 2e564927438942f891629c2a25c2a3cf, type: 2}
     - {fileID: 2100000, guid: fffb0bc813ec4b37b1b8514924d37a17, type: 2}
+    - {fileID: 2100000, guid: 07a1dd73082542e3a2e35b86b00c894c, type: 2}
     - {fileID: 2100000, guid: bfd639f9701aedb4595e5236e4c87018, type: 2}
     - {fileID: 2100000, guid: effa8fccffdd9f445b04fd273029a15c, type: 2}
     - {fileID: 2100000, guid: 12469696e2e8443490d1d2acfc5e4005, type: 2}
     scale:
-      size: 0.75
+      size: 1
       mass: 1
       thrust: 1
       torque: 1
       hull: 0.7
   elite:
-    ship: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637, type: 3}
+    ship: {fileID: 3274392229469629848, guid: e4493db6babe94445b8480a6df2b9201, type: 3}
     hull:
     - {fileID: 2100000, guid: 33ac302c0b024cc7ba8fd8c502c62b3e, type: 2}
     - {fileID: 2100000, guid: 3926a720ad1c4fce8fd8530caf0f09b4, type: 2}
     - {fileID: 2100000, guid: dafee05ff9274d3088c72fe408bf0abe, type: 2}
+    - {fileID: 2100000, guid: aed55f3a0f4945b8b756d8f65dc0dfcb, type: 2}
     - {fileID: 2100000, guid: e5c32019abc34522be5748efb4b35848, type: 2}
     - {fileID: 2100000, guid: f2221fabff61486c8c8b2d8ca801f561, type: 2}
-    - {fileID: 2100000, guid: aed55f3a0f4945b8b756d8f65dc0dfcb, type: 2}
     - {fileID: 2100000, guid: bfd639f9701aedb4595e5236e4c87018, type: 2}
     - {fileID: 2100000, guid: effa8fccffdd9f445b04fd273029a15c, type: 2}
     - {fileID: 2100000, guid: dafee05ff9274d3088c72fe408bf0abe, type: 2}
