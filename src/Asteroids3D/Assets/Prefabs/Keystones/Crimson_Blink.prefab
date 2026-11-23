@@ -10,9 +10,10 @@ GameObject:
   m_Component:
   - component: {fileID: 2984417602718356061}
   - component: {fileID: 5512903418735166201}
-  - component: {fileID: 3361187402269917645}
   - component: {fileID: 7820964930999108482}
   - component: {fileID: 5568463764258899016}
+  - component: {fileID: 278763608219706315}
+  - component: {fileID: 3537102962893243539}
   m_Layer: 0
   m_Name: Crimson_Blink
   m_TagString: Untagged
@@ -51,20 +52,6 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: 476d89b5e7c3d8265b40f68708094ecb, type: 3}
   range: 12
   sightMinimum: 6
---- !u!114 &3361187402269917645
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7781260934417810432}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 46f18e88eeca4b609d49135ae0f732bf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  keystone: {fileID: 5512903418735166201}
-  color: {r: 1, g: 0.2, b: 0.9, a: 1}
 --- !u!114 &7820964930999108482
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -85,6 +72,13 @@ MonoBehaviour:
       Data3: 1364300423
       Data4: -100230423
     Path: event:/Ships/Keystones/Blink
+  holdEvent:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
 --- !u!114 &5568463764258899016
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -99,3 +93,36 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   keystone: {fileID: 5512903418735166201}
   profile: {fileID: 11400000, guid: fbe01443561d46a4d8d79ede20722080, type: 2}
+--- !u!114 &278763608219706315
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7781260934417810432}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1cc46f96cf85bc34dafeba860244fd1d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  keystone: {fileID: 5512903418735166201}
+  shipLength: 2.4
+  feel: {fileID: 11400000, guid: 435b788d6a1b53b42ba8d661881a4313, type: 2}
+--- !u!114 &3537102962893243539
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7781260934417810432}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe36395315fb6c84e866c01e39773787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  keystone: {fileID: 5512903418735166201}
+  opening: 0.2
+  startScale: 0.15
+  dark: {r: 0, g: 0, b: 0, a: 1}
+  flash: {r: 0.89, g: 0.82, b: 1, a: 1}
+  flashTime: 0.15

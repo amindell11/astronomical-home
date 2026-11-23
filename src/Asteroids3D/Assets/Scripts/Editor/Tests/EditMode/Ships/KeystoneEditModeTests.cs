@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Reflection;
 using Combat.Targeting;
 using Damage;
 using Movement;
@@ -597,7 +598,9 @@ namespace Tests.EditMode.Ships
             Assert.That(blink.name, Is.EqualTo("Crimson_Blink"));
             Assert.That(blink.Range, Is.EqualTo(12f));
             Assert.That(blink.Cooldown, Is.EqualTo(4f));
-            Assert.That(blink.GetComponent<KeystoneFlash>(), Is.Not.Null, "the kit carries its tell");
+            Assert.That(blink.GetComponent<KeystoneEmergence>(), Is.Not.Null, "the kit carries its tell");
+            Assert.That(blink.GetComponent<KeystoneFlipbook>(), Is.Not.Null, "the kit carries its blink flipbook");
+            Assert.That(blink.GetComponent<KeystoneFlash>(), Is.Null, "the kit carries no flash");
         }
 
         [Test]
@@ -654,6 +657,49 @@ namespace Tests.EditMode.Ships
             var ram = catalog.Chassis.Single(c => c.name == "Bulwark").KeystonePrefab as RamDash;
             Assert.That(ram, Is.Not.Null, "Bulwark's kit is the ram");
             Assert.That(ram.GetComponent<KeystoneFlipbook>(), Is.Not.Null, "the kit carries its ram flipbook");
+        }
+
+        [Test]
+        public void StartsBehind_WithoutStayingAtLaunch_ThrowsOnAwake()
+        {
+            var feel = ScriptableObject.CreateInstance<KeystoneFlipbookFeel>();
+            var material = AssetDatabase.LoadAssetAtPath<Material>(
+                "Assets/Visuals/Vfx/Keystones/VanguardDash/VanguardDash_Under.mat");
+            host = new GameObject("Flipbook");
+            host.SetActive(false);
+            try
+            {
+                Assert.That(material, Is.Not.Null, "a sheet material to build the layer");
+                var feelObject = new SerializedObject(feel);
+                var layers = feelObject.FindProperty("layers");
+                layers.arraySize = 1;
+                var layer = layers.GetArrayElementAtIndex(0);
+                layer.FindPropertyRelative("material").objectReferenceValue = material;
+                layer.FindPropertyRelative("columns").intValue = 1;
+                layer.FindPropertyRelative("rows").intValue = 1;
+                layer.FindPropertyRelative("frames").intValue = 1;
+                layer.FindPropertyRelative("startsBehind").boolValue = true;
+                layer.FindPropertyRelative("staysAtLaunch").boolValue = false;
+                feelObject.ApplyModifiedPropertiesWithoutUndo();
+
+                var kit = host.AddComponent<Blink>();
+                var flipbook = host.AddComponent<KeystoneFlipbook>();
+                var part = new SerializedObject(flipbook);
+                part.FindProperty("keystone").objectReferenceValue = kit;
+                part.FindProperty("shipLength").floatValue = 1f;
+                part.FindProperty("feel").objectReferenceValue = feel;
+                part.ApplyModifiedPropertiesWithoutUndo();
+
+                // Edit mode never wakes a part, so the test calls Awake itself.
+                var awake = typeof(KeystoneFlipbook).GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic);
+                var thrown = Assert.Throws<TargetInvocationException>(() => awake.Invoke(flipbook, null));
+                Assert.That(thrown.InnerException, Is.TypeOf<InvalidOperationException>());
+                Assert.That(thrown.InnerException.Message, Does.Contain("starts behind only when it stays at launch"));
+            }
+            finally
+            {
+                Object.DestroyImmediate(feel);
+            }
         }
 
         [TestCase("Vanguard", 9000f, 5f)]
