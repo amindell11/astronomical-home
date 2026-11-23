@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using AI;
 using AI.Pilots;
 using AI.Scanning;
+using AI.Tactics;
 using Combat.Weapons;
 using Ships;
 using Ships.Command;
@@ -28,6 +29,10 @@ namespace Substrate.Sectors.Elements
     /// the arc's centre slot, or arrives concealed ahead of the hero when its temper ambushes and that point
     /// is clear, and the minions take the slots either side, each following the rival at its place.
     /// Every wave ship hunts the hero by sight. A beat with no room is dropped. A phase opens with one.
+    /// A rival that dies with its minions still flying raises RivalFell. When the faction's minion temper
+    /// regroups, each minion that jumps out is held and arrives with the next rival's wave, on top of its
+    /// drawn minions and still under the minion cap; a reinforcement never brings one, and the held count
+    /// ends with the sector.
     /// Nothing arrives in a lull. With an elite, a closing lull follows the last phase; without one, the
     /// done table keeps the last phase's waves. It begins its elite, summons it on the tick the table is
     /// done, and ends it at teardown. Nothing arrives for the elite's grace; after it, while the elite
@@ -85,6 +90,8 @@ namespace Substrate.Sectors.Elements
         private bool started;
         private bool huntReleased;
         private bool rivalAmbushes;
+        private bool minionsRegroup;
+        private int regrouping;
         private int openedPhase;
         private int sectorIndex;
         private int? pending;
@@ -92,6 +99,8 @@ namespace Substrate.Sectors.Elements
         private float eliteSince;
 
         public event Action<int> WaveSent;
+
+        public event Action<int> RivalFell;
 
         /// <summary>Where the phase table stands as of the last tick.</summary>
         public SectorPhaseMark Phase { get; private set; }
@@ -153,7 +162,11 @@ namespace Substrate.Sectors.Elements
         {
             CheckRow(ctx.Row);
             sectorIndex = ctx.SectorIndex;
-            rivalAmbushes = Ambushes(ctx.Row.faction.Rival.pilot);
+            var rivalTemper = Temper(ctx.Row.faction.Rival.pilot);
+            rivalAmbushes = rivalTemper && rivalTemper.ambushes;
+            var minionTemper = Temper(ctx.Row.faction.Minion.pilot);
+            minionsRegroup = minionTemper && minionTemper.regroupsWithoutLeader;
+            regrouping = 0;
             if (elite) elite.Begin(ctx);
             products.Clear();
             jumped.Clear();
@@ -191,6 +204,7 @@ namespace Substrate.Sectors.Elements
             leaders.Clear();
             places.Clear();
             jumped.Clear();
+            regrouping = 0;
             var teardown = base.OnTeardown(ctx);
             while (teardown.MoveNext()) yield return teardown.Current;
             products.Clear();
@@ -218,16 +232,18 @@ namespace Substrate.Sectors.Elements
             Advance(now);
             SummonElite(now);
             var minions = WaveDue(now);
-            if (minions != null && Send(MinionRoom(minions.Value, AliveMinions)))
+            if (minions != null && Send(minions.Value))
                 Arrived(now);
             Observe(now, Alive);
         }
 
-        private bool Send(int minions)
+        private bool Send(int drawn)
         {
-            if (WavesOver) return TryReinforce(minions, _ => elite.Ship);
-            if (!RivalRoom(rivals.Count)) return TryReinforce(minions, LeastEscorted);
-            if (!TrySend(minions)) return false;
+            if (WavesOver) return TryReinforce(MinionRoom(drawn, AliveMinions), _ => elite.Ship);
+            if (!RivalRoom(rivals.Count)) return TryReinforce(MinionRoom(drawn, AliveMinions), LeastEscorted);
+            var sent = MinionRoom(drawn + regrouping, AliveMinions);
+            if (!TrySend(sent)) return false;
+            regrouping = Rejoined(regrouping, sent);
             WaveSent?.Invoke(sectorIndex);
             return true;
         }
@@ -239,6 +255,9 @@ namespace Substrate.Sectors.Elements
         internal bool RivalRoom(int aliveRivals) => aliveRivals < rivalCap;
 
         internal int MinionRoom(int minions, int aliveMinions) => Mathf.Clamp(minionCap - aliveMinions, 0, minions);
+
+        /// <summary>Held minions fill a sent wave's minion places first; the rest wait for a later wave.</summary>
+        internal static int Rejoined(int regrouping, int sent) => regrouping - Mathf.Min(regrouping, sent);
 
         /// <summary>True for a rival of this director's waves until the tick after its death despawns it.</summary>
         public bool IsRival(ShipId ship)
@@ -379,10 +398,14 @@ namespace Substrate.Sectors.Elements
 
         private void DespawnDead()
         {
+            var rivalFell = false;
             for (var i = products.Count - 1; i >= 0; i--)
             {
                 var ship = products[i];
-                if (ship && ship.gameObject.activeInHierarchy && !jumped.Contains(ship)) continue;
+                var flying = Flying(ship);
+                if (flying && !jumped.Contains(ship)) continue;
+                if (flying && minionsRegroup && !rivals.Contains(ship)) regrouping++;
+                if (!flying && rivals.Contains(ship) && HasFlyingMinions(ship)) rivalFell = true;
                 if (ship) ship.JumpRequested -= jumpHandlers[i];
                 jumpHandlers.RemoveAt(i);
                 leaders.RemoveAt(i);
@@ -392,6 +415,18 @@ namespace Substrate.Sectors.Elements
                 if (ship) units.DespawnShip(ship);
                 products.RemoveAt(i);
             }
+
+            if (rivalFell) RivalFell?.Invoke(sectorIndex);
+        }
+
+        private static bool Flying(Ship ship) => ship && ship.gameObject.activeInHierarchy;
+
+        private bool HasFlyingMinions(Ship rival)
+        {
+            for (var i = 0; i < products.Count; i++)
+                if (ReferenceEquals(leaders[i], rival) && Flying(products[i]) && !jumped.Contains(products[i]))
+                    return true;
+            return false;
         }
 
         private void Track(Ship ship)
@@ -515,10 +550,10 @@ namespace Substrate.Sectors.Elements
             return ship;
         }
 
-        private static bool Ambushes(Commander pilot)
+        private static TacticsSettings Temper(Commander pilot)
         {
             var brain = pilot.GetComponent<ArchetypeBrain>();
-            return brain && brain.AuthoredTactics && brain.AuthoredTactics.ambushes;
+            return brain && brain.AuthoredTactics ? brain.AuthoredTactics : null;
         }
 
         internal Vector2[] Slots(Vector2 center, float bearing, int count)

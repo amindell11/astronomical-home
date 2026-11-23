@@ -988,7 +988,8 @@ Format: **term** — definition. *(authority)*
   tempers carry the faction's wounded response, ruled on #1589, 2026-11-16:
   Veil never breaks, Shoal jumps out, and Bastion makes a last stand. On the
   same ruling the Veil rival ambushes and Bastion minions hold the line, and a
-  minion whose leader is lost flies its wounded response. The
+  minion whose leader is lost flies its wounded response. Veil minions *regroup*
+  instead (arye, 2026-11-23). The
   elite and its escorts keep their own pilots. The owner ruled on #1349,
   2026-11-09, that the elite never breaks off and always presses (never
   wounded, nerve 0%) and escorts never fly into the target's guns (nerve
@@ -999,8 +1000,16 @@ Format: **term** — definition. *(authority)*
   *(Faction.Rival, Faction.Minion; Settings/AI/Tactics/Factions; EliteTemper, EscortTemper)*
 - **leader**. The ship a minion flies with: its wave's rival, or the rival or elite its reinforcement joined. The minion observes that
   ship's position and velocity and nothing of its brain, and the leader never commands it.
-  When the leader is gone, the minion flies its wounded response.
+  When the leader is gone, the minion flies its wounded response, or regroups.
   *(AIContext.Leader, AICommander.FollowLeader)*
+- **regroup**. What a minion whose temper says so does when its leader dies: it
+  flees with guns cold and leaves past the temper's jump distance, and the wave
+  director sends it again with the sector's next rival's wave (never with a
+  reinforcement), on top of that wave's drawn minions and still under the minion
+  cap. Unlike a jump out it comes back. Held
+  minions are lost when the sector ends. Only Veil minions regroup: the Veil
+  can't cloak a minion, so they withdraw in plain sight.
+  *(TacticsSettings.regroupsWithoutLeader, WaveDirector.Rejoined)*
 - **place**. A minion's signed position along its leader's line, counted in
   line spacings (..., -2, -1, +1, +2, ...). *(AIContext.Place, AICommander.FollowLeader)*
 - **wounded response**. What a temper says its ships do when hurt: never
