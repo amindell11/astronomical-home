@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 #
 # Run this project's Unity tests inside a Claude cloud session (Linux, Docker, no GPU).
-# Syncs a copy of the checkout into a work dir, applies the FMOD stub to the copy, claims the
+# Syncs src/, training/ and audio/ into a work dir, applies the FMOD stub to that copy, claims the
 # account's Personal seat, runs the suite in the unityci editor image and returns the seat.
 # The container reports the same machine id as the hosted suite's runner, so both share one
 # seat: a hosted run that returns it mid-run here ends this run with no_results.
-# The checkout's tracked files are never written; only the light LFS set is pulled, so
-# RequiresLfsPng tests cannot run here.
+# The checkout is edited nowhere, but git-lfs fills in the light LFS set there (and only that
+# set, so RequiresLfsPng tests cannot run here).
 #
 # Usage: cloud_unity.sh pull
 #            Start dockerd if it is down (detached; log in the work dir), pull the editor image.

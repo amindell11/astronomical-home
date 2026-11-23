@@ -44,9 +44,10 @@
   environment there is no pool or Windows editor; run
   `scripts/cloud_unity.sh test --mode EditMode` (or `PlayMode`). It runs the
   editor in Docker against a synced copy outside the checkout, with the FMOD
-  stub and only the light LFS set, so `RequiresLfsPng` tests and most
-  `RequiresGraphics` tests are not covered. Flags, env, exit codes and
-  trailers: the script's header.
+  stub and only the light LFS set. The default selection skips
+  `RequiresGraphics` and `RequiresLfsPng`; `--graphics` runs on software GL,
+  where most graphics tests still fail for missing LFS art. Flags, env, exit
+  codes and trailers: the script's header.
 - **Performance/benchmark sweeps run SOLO** — a parallel Unity on the machine
   contaminates timing metrics (solve-ms in particular).
 - **Never leave eval or benchmark artifacts only in a pool slot** — slot
