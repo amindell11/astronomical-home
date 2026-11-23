@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Bastion
   color: {r: 0.169, g: 0.824, b: 0.969, a: 1}
   signature:
-    ship: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd, type: 3}
+    ship: {fileID: 8715764876294517832, guid: 7e0c7c7482e59fe469b81ac419784fa0, type: 3}
     kit: {fileID: 918213022752191143, guid: b0f5486eb29ea024da3b9a9978de5236, type: 3}
     pilot: {fileID: 2192947864415885685, guid: 206554d511c77e94bb28a5ff32fbd6d4, type: 3}
     hull:
@@ -25,35 +25,31 @@ MonoBehaviour:
     - {fileID: 2100000, guid: e6a8119c81514c78802ad3ae6998ecef, type: 2}
     - {fileID: 2100000, guid: f663740afecd4f32a91115568ee8c4bb, type: 2}
     - {fileID: 2100000, guid: 0833b70d54a2465cb314ab75227f2415, type: 2}
-    - {fileID: 2100000, guid: ec751c7a922d49a09397a87d9c7bf792, type: 2}
-    - {fileID: 2100000, guid: 398261779d4146eb85fb5c1faedb4669, type: 2}
     - {fileID: 2100000, guid: c36348f426114ba3826b3096f3ece94a, type: 2}
+    - {fileID: 2100000, guid: 398261779d4146eb85fb5c1faedb4669, type: 2}
     - {fileID: 2100000, guid: 3036dc8f770341c4be0c002d5764906d, type: 2}
     - {fileID: 2100000, guid: 8fe8bb73a83938740bdf04942014f662, type: 2}
   minion:
-    ship: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd, type: 3}
+    ship: {fileID: 8715764876294517832, guid: 2337aeffb200b9847b977efe36c79ec7, type: 3}
     kit: {fileID: -8301958025146036882, guid: a17b4473baa216a4eba58800a76acfc3, type: 3}
     pilot: {fileID: 3896597625443593707, guid: 0199e1b0cb12a294c9973652e150124d, type: 3}
     hull:
     - {fileID: 2100000, guid: 036d1ae86d4257c7878f8dc6748bc865, type: 2}
     - {fileID: 2100000, guid: 0833b70d54a2465cb314ab75227f2415, type: 2}
-    - {fileID: 2100000, guid: e6a8119c81514c78802ad3ae6998ecef, type: 2}
-    - {fileID: 2100000, guid: f663740afecd4f32a91115568ee8c4bb, type: 2}
     - {fileID: 2100000, guid: 0833b70d54a2465cb314ab75227f2415, type: 2}
-    - {fileID: 2100000, guid: ec751c7a922d49a09397a87d9c7bf792, type: 2}
     - {fileID: 2100000, guid: 398261779d4146eb85fb5c1faedb4669, type: 2}
     - {fileID: 2100000, guid: c36348f426114ba3826b3096f3ece94a, type: 2}
     - {fileID: 2100000, guid: 3036dc8f770341c4be0c002d5764906d, type: 2}
     - {fileID: 2100000, guid: 8fe8bb73a83938740bdf04942014f662, type: 2}
     scale:
-      size: 0.75
+      size: 1
       mass: 1
       thrust: 1
       torque: 1
       hull: 0.24
       shield: 0
   elite:
-    ship: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd, type: 3}
+    ship: {fileID: 8715764876294517832, guid: 15aa9b6efa76b684fa06068f028e4eea, type: 3}
     hull:
     - {fileID: 2100000, guid: 036d1ae86d4257c7878f8dc6748bc865, type: 2}
     - {fileID: 2100000, guid: e66fa1e1db054eac99b7af984f01278f, type: 2}
@@ -62,6 +58,7 @@ MonoBehaviour:
     - {fileID: 2100000, guid: e66fa1e1db054eac99b7af984f01278f, type: 2}
     - {fileID: 2100000, guid: 2d32dff68c2b4b4bb5566b14f3908d96, type: 2}
     - {fileID: 2100000, guid: 4ebbd480c5c846e886d8949012dd10ea, type: 2}
+    - {fileID: 2100000, guid: 2a2838390de542ff9f740a198c66d5bc, type: 2}
     - {fileID: 2100000, guid: 526dcca0013b4f10b9c5aac5d2a55f45, type: 2}
     - {fileID: 2100000, guid: e3b33775e923445e887210ce1c1e0649, type: 2}
     - {fileID: 2100000, guid: 8fe8bb73a83938740bdf04942014f662, type: 2}
