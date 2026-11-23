@@ -52,6 +52,9 @@ namespace Combat.Projectiles
 
         public float LaunchSpeed => launchSpeed;
 
+        /// <summary>True while the braking thrust is pushing on the charge.</summary>
+        public bool Burning { get; private set; }
+
         /// <summary>Serialized-state read for hangar stat lines (evaluated on the prefab asset).</summary>
         public ConcussionWave WavePrefab => wavePrefab;
 
@@ -101,6 +104,7 @@ namespace Combat.Projectiles
                 return;
             }
 
+            Burning = !arrived;
             if (arrived)
                 rb.linearVelocity = Vector3.zero;
             else
@@ -150,6 +154,7 @@ namespace Combat.Projectiles
         protected override void OnReturnToPool()
         {
             detonated = false;
+            Burning = false;
             sinceLaunch = 0f;
             blastRadiusScale = 1f;
         }

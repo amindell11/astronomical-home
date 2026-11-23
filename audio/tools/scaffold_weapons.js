@@ -6,6 +6,7 @@
 //   event:/Weapons/Ripper/Fire       (FirstShot)  one-shot
 //   event:/Weapons/Grenade/Fire                   one-shot
 //   event:/Weapons/Grenade/Detonate               one-shot
+//   event:/Weapons/Grenade/Thruster               sustain point, stopped with fade-out when the braking burn ends
 //   event:/Weapons/Missile/Flight    (Speed)      sustain point, stopped with fade-out, never keyed off
 //   event:/Weapons/Missile/Detonate               one-shot
 // Heat is the existing preset; Charge is one preset in [0, 1] shared by both charge events.
@@ -126,11 +127,7 @@ function ensureChargePlaceholder(event) {
     console.log("placed charge loop, sustain point and release on " + event.getPath());
 }
 
-function ensureFlightPlaceholder(event) {
-    if (event.groupTracks.length > 0) return;
-    var launchClip = audioFile("laserBolt.wav");
-    var launch = placeSound(event, "Launch", launchClip, 0, launchClip.length);
-    launch.isAsync = true;
+function placeHeldThruster(event) {
     var thruster = placeSound(event, "Thruster", audioFile("engineRumbleLow.wav"), 0, flightHoldSeconds);
     thruster.isAsync = true;
     thruster.isCutoff = true;
@@ -143,7 +140,21 @@ function ensureFlightPlaceholder(event) {
     var markers = event.markerTracks.length > 0 ? event.markerTracks[0] : event.addMarkerTrack();
     markers.addSustainPoint(flightHoldSeconds - sustainLeadSeconds);
     event.automatableProperties.dopplerEnabled = true;
+}
+
+function ensureFlightPlaceholder(event) {
+    if (event.groupTracks.length > 0) return;
+    var launchClip = audioFile("laserBolt.wav");
+    var launch = placeSound(event, "Launch", launchClip, 0, launchClip.length);
+    launch.isAsync = true;
+    placeHeldThruster(event);
     console.log("placed launch, held thruster loop and sustain point on " + event.getPath());
+}
+
+function ensureThrusterPlaceholder(event) {
+    if (event.groupTracks.length > 0) return;
+    placeHeldThruster(event);
+    console.log("placed held thruster loop and sustain point on " + event.getPath());
 }
 
 var weaponsFolder = childFolder(workspace.masterEventFolder, "Weapons");
@@ -173,6 +184,8 @@ var grenade = event(grenadeFolder, "Grenade", "Fire");
 ensureOneShotPlaceholder(grenade, "laserBolt.wav");
 var detonate = event(grenadeFolder, "Grenade", "Detonate");
 ensureOneShotPlaceholder(detonate, "rockExplosion1.wav");
+var grenadeThruster = event(grenadeFolder, "Grenade", "Thruster");
+ensureThrusterPlaceholder(grenadeThruster);
 
 var missileFolder = childFolder(weaponsFolder, "Missile");
 var missileFlight = event(missileFolder, "Missile", "Flight");
@@ -181,7 +194,7 @@ ensureFlightPlaceholder(missileFlight);
 var missileDetonate = event(missileFolder, "Missile", "Detonate");
 ensureOneShotPlaceholder(missileDetonate, "rockExplosion1.wav");
 
-[turboLaser, chargeLaser, railgun, railgunImpact, ripper, grenade, detonate, missileFlight, missileDetonate].forEach(function (each) {
+[turboLaser, chargeLaser, railgun, railgunImpact, ripper, grenade, detonate, grenadeThruster, missileFlight, missileDetonate].forEach(function (each) {
     ensureBank(each, weaponsBank);
 });
 
