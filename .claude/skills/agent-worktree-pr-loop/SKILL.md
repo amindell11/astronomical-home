@@ -501,6 +501,18 @@ one. `land` refuses a PR with an unresolved review thread, so it takes no
 pre-merge comment check; its `--help` entry lists every refusal. Then run
 `land <pr>` yourself, or leave it to the merge task (§ Merge task).
 
+**GitHub auto-merge.** A PR may also land through GitHub's auto-merge (the
+Claude Code auto-merge toggle, or `gh pr merge --auto --squash`), which waits
+on the main ruleset's required statuses: `merge-proof/headless`,
+`merge-proof/resharper` and `land-check`, on a head that contains main. The
+`land-check` workflow runs `land-check <pr>` (its `--help` entry has the
+verdicts) from main's copy, so the same instruction-or-class rule decides, and
+consent still means a recorded instruction: turn auto-merge on only after
+`instruct`, or for a PR the class admits. When main moves, the PR waits until
+its branch is updated (GitHub's Update branch, or `revise`), and that push
+reruns the hosted suite. A landing diff touching `.github/`, `scripts/` or
+`.githooks/` never passes `land-check`; land it with `land` or `merge <slot>`.
+
 After the merge, the merge reconcile (`scripts/merge_reconcile.sh`, on the
 landing push) posts the Shipped note on the PR-closed issues, so the merging
 session does not.

@@ -18,22 +18,26 @@ namespace Ships.Loadout
         [SerializeField, Min(.01f)] private float torque = 1f;
         [Tooltip("Factor on the hull's hit points.")]
         [SerializeField, Min(.01f)] private float hull = 1f;
+        [Tooltip("Factor on the shield's capacity. 0 flies the ship with no shield.")]
+        [SerializeField, Min(0f)] private float shield = 1f;
 
         public float Size => size;
         public float Mass => mass;
         public float Thrust => thrust;
         public float Torque => torque;
         public float Hull => hull;
+        public float Shield => shield;
 
         public ShipScale() { }
 
-        public ShipScale(float size, float mass, float thrust, float torque, float hull)
+        public ShipScale(float size, float mass, float thrust, float torque, float hull, float shield = 1f)
         {
             this.size = size;
             this.mass = mass;
             this.thrust = thrust;
             this.torque = torque;
             this.hull = hull;
+            this.shield = shield;
         }
 
         public void Apply(ResolvedShipStats stats)
@@ -47,6 +51,7 @@ namespace Ships.Loadout
             stats.bankTorque *= torque;
             stats.bankDamping *= torque;
             stats.maxHealth *= hull;
+            stats.maxShield *= shield;
         }
     }
 }
