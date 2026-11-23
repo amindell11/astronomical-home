@@ -185,6 +185,10 @@ namespace Tests.PlayMode.Sectors
                 "The elite's root is the template's scaled by its size.");
             Assert.AreEqual(Size * reference.ShipRadius, elite.ShipRadius, .01f * Size * reference.ShipRadius,
                 "The clearance radius follows the size.");
+            var inertiaScale = 4f * Size * Size;
+            Assert.That(Vector3.Distance(reference.Rigidbody.inertiaTensor * inertiaScale, elite.Rigidbody.inertiaTensor),
+                Is.LessThan(1e-3f * inertiaScale * reference.Rigidbody.inertiaTensor.magnitude),
+                "The inertia follows the mass and the size squared.");
 
             Ship[] Escorts() => _unitService.ActiveRegistry.ActiveShips
                 .Where(ship => ship && ship != elite && ship != reference).ToArray();
