@@ -158,8 +158,10 @@ namespace Substrate.Sectors.Elements
         {
             CheckRow(ctx.Row);
             sectorIndex = ctx.SectorIndex;
-            rivalAmbushes = Temper(ctx.Row.faction.Rival.pilot) is { ambushes: true };
-            minionsRegroup = Temper(ctx.Row.faction.Minion.pilot) is { regroupsWithoutLeader: true };
+            var rivalTemper = Temper(ctx.Row.faction.Rival.pilot);
+            rivalAmbushes = rivalTemper && rivalTemper.ambushes;
+            var minionTemper = Temper(ctx.Row.faction.Minion.pilot);
+            minionsRegroup = minionTemper && minionTemper.regroupsWithoutLeader;
             regrouping = 0;
             if (elite) elite.Begin(ctx);
             products.Clear();
