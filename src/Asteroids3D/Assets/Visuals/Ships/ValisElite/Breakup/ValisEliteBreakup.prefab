@@ -536,9 +536,9 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2192536964358205148}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.17306744, y: 0.9848078, z: 0.000000048466603, w: 0.014190198}
-  m_LocalPosition: {x: -0.58696175, y: -0.17393099, z: -0.02538525}
-  m_LocalScale: {x: 1, y: 0.99999994, z: 0.99999994}
+  m_LocalRotation: {x: 0, y: 1, z: -2.3283064e-10, w: -0.00000004377216}
+  m_LocalPosition: {x: -0.48196033, y: -0.29847783, z: -0.015173309}
+  m_LocalScale: {x: 1.0000001, y: 0.9999999, z: 1.0000001}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3056596186884571117}
@@ -776,9 +776,9 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3722762551114498753}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.17306744, y: 0.9848078, z: 0.000000033335567, w: -0.014190111}
-  m_LocalPosition: {x: 0.5869617, y: -0.17393099, z: -0.025385195}
-  m_LocalScale: {x: 1, y: 0.99999994, z: 0.99999994}
+  m_LocalRotation: {x: 0, y: 1, z: -2.3283064e-10, w: -0.00000004377216}
+  m_LocalPosition: {x: 0.4819603, y: -0.2984778, z: -0.015173379}
+  m_LocalScale: {x: 1.0000001, y: 0.9999999, z: 1.0000001}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 468169903921575804}
@@ -1148,9 +1148,9 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5698166802477159827}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.17306744, y: 0.9848078, z: 0.000000033335567, w: -0.014190111}
-  m_LocalPosition: {x: 0.83893573, y: 0.11332524, z: -0.08277841}
-  m_LocalScale: {x: 1, y: 0.99999994, z: 0.99999994}
+  m_LocalRotation: {x: 0, y: 1, z: -2.3283064e-10, w: -0.00000004377216}
+  m_LocalPosition: {x: 0.7339344, y: -0.011221588, z: -0.0725666}
+  m_LocalScale: {x: 1.0000001, y: 0.9999999, z: 1.0000001}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 8098471106430059912}
@@ -1518,9 +1518,9 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7503915664429096268}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.17306744, y: 0.9848078, z: 0.000000048466603, w: 0.014190198}
-  m_LocalPosition: {x: -0.838936, y: 0.11332524, z: -0.082778476}
-  m_LocalScale: {x: 1, y: 0.99999994, z: 0.99999994}
+  m_LocalRotation: {x: 0, y: 1, z: -2.3283064e-10, w: -0.00000004377216}
+  m_LocalPosition: {x: -0.7339345, y: -0.011221588, z: -0.07256653}
+  m_LocalScale: {x: 1.0000001, y: 0.9999999, z: 1.0000001}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3532229835753669453}
@@ -1606,9 +1606,9 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7591871919837377559}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.17306744, y: 0.9848078, z: 0.000000048466603, w: 0.014190198}
-  m_LocalPosition: {x: -0.5714545, y: -0.059742693, z: 0.025329564}
-  m_LocalScale: {x: 1, y: 0.99999994, z: 0.99999994}
+  m_LocalRotation: {x: 0, y: 1, z: -2.3283064e-10, w: -0.00000004377216}
+  m_LocalPosition: {x: -0.50220644, y: -0.1532647, z: 0.032997686}
+  m_LocalScale: {x: 1.0000001, y: 0.9999999, z: 1.0000001}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 597036041499118501}
@@ -1693,9 +1693,9 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9071863843461599207}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.17306744, y: 0.9848078, z: 0.000000033335567, w: -0.014190111}
-  m_LocalPosition: {x: 0.64578587, y: 0.4086068, z: 0.07981039}
-  m_LocalScale: {x: 1, y: 0.99999994, z: 0.99999994}
+  m_LocalRotation: {x: 0, y: 1, z: -2.3283064e-10, w: -0.00000004377216}
+  m_LocalPosition: {x: 0.57653785, y: 0.3150848, z: 0.08747842}
+  m_LocalScale: {x: 1.0000001, y: 0.9999999, z: 1.0000001}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5297667068570370232}
@@ -1734,7 +1734,6 @@ MeshRenderer:
   - {fileID: 2100000, guid: d246c783a0925e44489be3a453628ad6, type: 2}
   - {fileID: 2100000, guid: f9fc914589e328a43bac2786c90caecb, type: 2}
   - {fileID: 2100000, guid: c8010d94b8af87f4aaf88a30f5857016, type: 2}
-  - {fileID: 2100000, guid: fa4893dbe59b98242b30e418952fe854, type: 2}
   - {fileID: 2100000, guid: fa4893dbe59b98242b30e418952fe854, type: 2}
   - {fileID: 2100000, guid: c8010d94b8af87f4aaf88a30f5857016, type: 2}
   - {fileID: 2100000, guid: cd3c4da19d3ac8b4b83601d0d87c7659, type: 2}
@@ -1785,9 +1784,9 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9077185590680558357}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.17306744, y: 0.9848078, z: 0.000000048466603, w: 0.014190198}
-  m_LocalPosition: {x: -0.6457858, y: 0.40860656, z: 0.07981033}
-  m_LocalScale: {x: 1, y: 0.99999994, z: 0.99999994}
+  m_LocalRotation: {x: 0, y: 1, z: -2.3283064e-10, w: -0.00000004377216}
+  m_LocalPosition: {x: -0.5765377, y: 0.31508458, z: 0.087478444}
+  m_LocalScale: {x: 1.0000001, y: 0.9999999, z: 1.0000001}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5059126887853698990}
@@ -1826,7 +1825,6 @@ MeshRenderer:
   - {fileID: 2100000, guid: d246c783a0925e44489be3a453628ad6, type: 2}
   - {fileID: 2100000, guid: f9fc914589e328a43bac2786c90caecb, type: 2}
   - {fileID: 2100000, guid: c8010d94b8af87f4aaf88a30f5857016, type: 2}
-  - {fileID: 2100000, guid: fa4893dbe59b98242b30e418952fe854, type: 2}
   - {fileID: 2100000, guid: fa4893dbe59b98242b30e418952fe854, type: 2}
   - {fileID: 2100000, guid: c8010d94b8af87f4aaf88a30f5857016, type: 2}
   - {fileID: 2100000, guid: cd3c4da19d3ac8b4b83601d0d87c7659, type: 2}
@@ -1877,9 +1875,9 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9210621844212748506}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.17306744, y: 0.9848078, z: 0.000000033335567, w: -0.014190111}
-  m_LocalPosition: {x: 0.5714545, y: -0.059742693, z: 0.0253296}
-  m_LocalScale: {x: 1, y: 0.99999994, z: 0.99999994}
+  m_LocalRotation: {x: 0, y: 1, z: -2.3283064e-10, w: -0.00000004377216}
+  m_LocalPosition: {x: 0.50220644, y: -0.1532647, z: 0.03299763}
+  m_LocalScale: {x: 1.0000001, y: 0.9999999, z: 1.0000001}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1538285657779513846}

@@ -47,13 +47,19 @@ namespace Tests.PlayMode.Presentation.Breakup
         }
 
         [UnityTest]
-        public IEnumerator ValisDeath_RestPoseIsContinuous() => ValisDeath(0f);
+        public IEnumerator ValisDeath_RestPoseIsContinuous() => ValisDeath("Valis", 14, 0f);
 
         [UnityTest]
-        public IEnumerator ValisDeath_SweptPoseIsContinuous() => ValisDeath(.6f);
+        public IEnumerator ValisDeath_SweptPoseIsContinuous() => ValisDeath("Valis", 14, .6f);
 
         [UnityTest]
-        public IEnumerator ValisDeath_IntermediatePoseIsContinuous() => ValisDeath(.2f);
+        public IEnumerator ValisDeath_IntermediatePoseIsContinuous() => ValisDeath("Valis", 14, .2f);
+
+        [UnityTest]
+        public IEnumerator ValisRivalDeath_RestPoseIsContinuous() => ValisDeath("ValisRival", 12, 0f);
+
+        [UnityTest]
+        public IEnumerator ValisEliteDeath_RestPoseIsContinuous() => ValisDeath("ValisElite", 14, 0f);
 
         [UnityTest]
         public IEnumerator CrimsonDeath_RetainsAuthoredBreakup() => FixedHullDeath("Crimson");
@@ -286,9 +292,9 @@ namespace Tests.PlayMode.Presentation.Breakup
             return units.SpawnShip(prefab, null, 0, new Vector3(3f, -2f), Quaternion.Euler(0f, 0f, 31f), Field);
         }
 
-        private IEnumerator ValisDeath(float sweepSeconds)
+        private IEnumerator ValisDeath(string name, int pieceCount, float sweepSeconds)
         {
-            var ship = Spawn("Valis");
+            var ship = Spawn(name);
             yield return null;
             if (sweepSeconds > 0f)
             {
@@ -314,7 +320,7 @@ namespace Tests.PlayMode.Presentation.Breakup
             Assert.That(effects, Has.Length.EqualTo(1));
             Assert.That(effects[0].name, Does.StartWith("LayeredAsteroidExplosion"));
             var pieces = debris.GetComponentsInChildren<MeshFilter>();
-            Assert.That(pieces, Has.Length.EqualTo(14));
+            Assert.That(pieces, Has.Length.EqualTo(pieceCount));
             var after = pieces.SelectMany(p => Read(p).points).ToArray();
             AssertGeometry(before, after);
             var canopy = AssetDatabase.LoadAssetAtPath<Material>(
@@ -325,7 +331,7 @@ namespace Tests.PlayMode.Presentation.Breakup
             {
                 var worn = piece.GetComponent<Renderer>().sharedMaterials;
                 Assert.That(worn.Contains(canopy), Is.EqualTo(piece.transform.parent.name == "Fuselage and canopy"), piece.transform.parent.name);
-                Assert.That(worn.Select(m => m == canopy ? glass : m), Is.SubsetOf(materials), piece.transform.parent.name);
+                Assert.That(worn.Select(m => m == canopy ? glass : m).Except(materials), Is.Empty, piece.transform.parent.name);
             }
             var sourceUv = surfaces.SelectMany(s => Read(s).uv).OrderBy(v => v.x).ThenBy(v => v.y).ToArray();
             var debrisUv = pieces.SelectMany(p => Read(p).uv).OrderBy(v => v.x).ThenBy(v => v.y).ToArray();
