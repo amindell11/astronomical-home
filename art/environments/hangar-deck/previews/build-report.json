@@ -3,14 +3,14 @@
     {
       "name": "Deck | joined closed structure",
       "role": "ConsoleBody",
-      "triangles": 21040,
-      "vertices": 11174,
+      "triangles": 21448,
+      "vertices": 11398,
       "closed": true,
       "manifold": true,
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
       "loose_vertices": 0,
-      "volume": 4098.837449988888,
+      "volume": 4098.84693581533,
       "planar_screen": false,
       "zero_area_faces": 0
     },
@@ -433,9 +433,37 @@
       "volume": 0.018954101286216815,
       "planar_screen": false,
       "zero_area_faces": 0
+    },
+    {
+      "name": "Deck | Left header corner cold strip lens",
+      "role": "ConsoleBody",
+      "triangles": 28,
+      "vertices": 16,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 0.001872811035431674,
+      "planar_screen": false,
+      "zero_area_faces": 0
+    },
+    {
+      "name": "Deck | Right header corner cold strip lens",
+      "role": "ConsoleBody",
+      "triangles": 28,
+      "vertices": 16,
+      "closed": true,
+      "manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "volume": 0.001872811035431674,
+      "planar_screen": false,
+      "zero_area_faces": 0
     }
   ],
-  "triangles": 24296,
+  "triangles": 24760,
   "lamps": [
     {
       "name": "Deck | Left status 1 green lens",
@@ -636,6 +664,46 @@
         0.47999998927116394
       ],
       "downlight": true
+    },
+    {
+      "name": "Deck | Left header corner cold strip lens",
+      "anchor": "Left header corner cold strip lens",
+      "position": [
+        -11.1899995803833,
+        3.318999767303467,
+        9.409234046936035
+      ],
+      "size": [
+        1.559999942779541,
+        0.054999999701976776,
+        0.02199999988079071
+      ],
+      "color": [
+        0.2800000011920929,
+        0.36000001430511475,
+        0.47999998927116394
+      ],
+      "downlight": false
+    },
+    {
+      "name": "Deck | Right header corner cold strip lens",
+      "anchor": "Right header corner cold strip lens",
+      "position": [
+        11.1899995803833,
+        3.318999767303467,
+        9.409234046936035
+      ],
+      "size": [
+        1.559999942779541,
+        0.054999999701976776,
+        0.02199999988079071
+      ],
+      "color": [
+        0.2800000011920929,
+        0.36000001430511475,
+        0.47999998927116394
+      ],
+      "downlight": false
     }
   ],
   "parts": {

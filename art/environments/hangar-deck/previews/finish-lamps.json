@@ -198,5 +198,45 @@
       0.47999998927116394
     ],
     "downlight": true
+  },
+  {
+    "name": "Deck | Left header corner cold strip lens",
+    "anchor": "Left header corner cold strip lens",
+    "position": [
+      -11.1899995803833,
+      3.318999767303467,
+      9.409234046936035
+    ],
+    "size": [
+      1.559999942779541,
+      0.054999999701976776,
+      0.02199999988079071
+    ],
+    "color": [
+      0.2800000011920929,
+      0.36000001430511475,
+      0.47999998927116394
+    ],
+    "downlight": false
+  },
+  {
+    "name": "Deck | Right header corner cold strip lens",
+    "anchor": "Right header corner cold strip lens",
+    "position": [
+      11.1899995803833,
+      3.318999767303467,
+      9.409234046936035
+    ],
+    "size": [
+      1.559999942779541,
+      0.054999999701976776,
+      0.02199999988079071
+    ],
+    "color": [
+      0.2800000011920929,
+      0.36000001430511475,
+      0.47999998927116394
+    ],
+    "downlight": false
   }
 ]

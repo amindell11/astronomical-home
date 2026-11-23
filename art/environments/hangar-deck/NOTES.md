@@ -1,5 +1,13 @@
 # Hangar deck
 
+## Header corner strips and indicators, 2026-11-22
+
+The owner found the two upper corners of the 16:9 view too dark and chose this detail from two options. Each outboard header cassette gets a short cold-white strip under its service hatch, centred at x ±11.19, 0.16 above the cassette's lower edge. The lens is 1.56 by 0.055 with `Deck | corner cold strip emission`, linear `(0.28, 0.36, 0.48)` at strength 0.65, the header strips' colour. It sits in a dark bezel 1.70 by 0.13. The lens name ends in ` lens`, so the exporter lists it as a lamp and Unity gives it a glow card. The manifest now has ten lamps and two downlights.
+
+Beside the inner cassette's hatch, at x ±9.75 and mid-height, a small seat holds three indicator pips: one green and two cold white, linear `(0.025, 0.70, 0.055)` and `(0.45, 0.72, 1.0)` at strength 0.9. They are body finish solids, painted into the emission map, with no glow cards. Nothing adds a real light, because the console's eight light slots are full.
+
+The rebuild ran the same verifiers as the orange-key pass. Coverage, ink, glass and glass projection pass. `verify_deck.py` still stops on `KeyError: 'LaunchLampLeft'`. `verify_pedestal.py` now stops earlier, with `KeyError: 'Deck | corner indicator green emission'`: the pips join the body, and its protected-surface comparison has no entry for a material added after `pedestal-baseline.json`. Neither verifier was edited.
+
 ## Orange Launch key again, 2026-11-22
 
 The owner chose to go back to the orange key. `08 | Launch broad beveled button` uses `Deck | orange launch resin` again, linear `(0.95, 0.20, 0.018)` with emission strength 1 and black base colour, as it did before the black-key pass. `19 | Launch legend` is back on the shared `Deck | ivory inlaid legends` material, and both objects are back in their ink collections. The black resin and yellow legend materials are no longer built. Everything else stays: the `LaunchLampLeft` / `LaunchLampRight` roles and lamps, the pedestal strips and ringed lens, and the projector.

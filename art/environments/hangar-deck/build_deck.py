@@ -1141,6 +1141,26 @@ for index, x in enumerate((-3.20, 3.20), 1):
     light_obj.rotation_euler = basis[3].to_track_quat('-Z', 'Y').to_euler()
     light_obj['preview_only'] = True
 
+corner_cold = material('Deck | corner cold strip emission', (.28, .36, .48), .65)
+pip_cold = material('Deck | corner indicator emission', (.45, .72, 1.0), .9)
+pip_green = material('Deck | corner indicator green emission', (.025, .70, .055), .9)
+for mat in (corner_cold, pip_cold, pip_green):
+    mat.node_tree.nodes.get('Principled BSDF').inputs['Base Color'].default_value = (0, 0, 0, 1)
+PALETTE.extend([corner_cold, pip_cold, pip_green])
+for hand, label in ((-1, 'Left'), (1, 'Right')):
+    x = hand * 11.19
+    strip_basis = shifted(header_basis, x=x, y=D['brow_z'](x) + .53 + .16, d=.032)
+    finish_ring(label + ' header corner strip bezel', strip_basis,
+                chamfer(1.70, .13, .03), chamfer(1.58, .07, .02), .022, -.004, well)
+    finish_solid(label + ' header corner strip floor', strip_basis, 1.58, .07, .004, -.004, well, .02)
+    lamp(label + ' header corner cold strip', shifted(strip_basis, d=-.030), 1.56, .055, corner_cold,
+         socket=False, cap=.040)
+    cluster = shifted(header_basis, x=hand * 9.75, y=(D['brow_z'](hand * 9.75) + .53 + 10.59) / 2, d=.032)
+    finish_solid(label + ' header corner indicator seat', cluster, .14, .42, .012, -.004, inset, .03)
+    for index, (y, mat) in enumerate(((.12, pip_green), (0, pip_cold), (-.12, pip_cold)), 1):
+        finish_solid(label + ' header corner indicator ' + str(index), shifted(cluster, y=y),
+                     .055, .045, .026, .010, mat, .012)
+
 for hand, label in ((-1, 'Left'), (1, 'Right')):
     for x0, x1, y0, y1, z0, z1, top0, top1 in (
             (10.30, 11.3, -2.05, -3.0, 1.0, 1.0, .195, .30),
