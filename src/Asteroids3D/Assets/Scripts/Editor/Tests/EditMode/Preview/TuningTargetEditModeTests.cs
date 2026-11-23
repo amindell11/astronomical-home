@@ -91,6 +91,7 @@ namespace Tests.EditMode.Preview
                 AssetDatabase.LoadAssetAtPath<StationMotionFeelProfile>("Assets/Settings/Game/StationMotionFeel.asset"));
             AssertTarget(Target<DashEffectTarget>(), new[] { PreviewEntry.Combat },
                 AssetDatabase.LoadAssetAtPath<KeystoneFlipbookFeel>("Assets/Settings/Ships/Keystones/VanguardDashFeel.asset"),
+                AssetDatabase.LoadAssetAtPath<KeystoneFlipbookFeel>("Assets/Settings/Ships/Keystones/CrimsonBlinkFeel.asset"),
                 AssetDatabase.LoadAssetAtPath<KeystoneFlipbookFeel>("Assets/Settings/Ships/Keystones/BulwarkRamFeel.asset"));
         }
 
