@@ -298,7 +298,7 @@ namespace AI.Pilots
             if (situation.openSide != Vector2.zero)
                 flankSign = Vector2.Dot(Vector2.Perpendicular(them.pos - self.pos), situation.openSide) >= 0f ? 1 : -1;
 
-            var speed = shape.speedFraction * maxSpeed;
+            var speed = tactics.chasesFlatOut && !situation.inMyRange ? maxSpeed : shape.speedFraction * maxSpeed;
             var gunRange = ctx.HoldRange ?? shape.desiredRange;
             var fallBackRange = Mathf.Max(situation.myRange - tactics.fallBackMargin,
                 gunRange + tactics.attackRunMargin);

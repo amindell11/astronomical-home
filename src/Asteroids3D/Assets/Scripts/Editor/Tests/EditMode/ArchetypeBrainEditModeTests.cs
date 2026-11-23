@@ -694,6 +694,25 @@ namespace Tests.EditMode
             Assert.IsFalse(hidden.decision.engageSecondary);
         }
 
+        [TestCase(true)]
+        [TestCase(false)]
+        public void AttackRun_OutOfGunRange_ChasesFlatOutOnlyWhenTheTemperSaysSo(bool chasesFlatOut)
+        {
+            var temper = ScriptableObject.CreateInstance<TacticsSettings>();
+            temper.chasesFlatOut = chasesFlatOut;
+            temper.minimumHold = 0f;
+            createdTempers.Add(temper);
+            var target = targetHost.AddComponent<Ship>();
+            PinPose(target, new Vector2(40f, 0f));
+
+            var flown = DecideFight(temper, target, concealed: false, kitReady: false);
+
+            Assert.AreEqual(Tactic.AttackRun, flown.brain.CurrentTactic);
+            var speed = chasesFlatOut ? Dynamics.Default.maxSpeed : Shape().speedFraction * Dynamics.Default.maxSpeed;
+            Assert.AreEqual(RangerBrain.HoldRangeVelocity(new Kinematics(Vector2.zero, Vector2.zero, 0f, 0f, 0f), target.Kinematics, Shape().desiredRange, speed),
+                flown.decision.nav.planarVelocity);
+        }
+
         [Test]
         public void HoldLine_SteersTowardThePlace_OnTheMinusPerpendicularSide()
         {
