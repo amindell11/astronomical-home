@@ -166,6 +166,8 @@ namespace UI
             heldMods.Initialize(binding.Mods);
         }
 
+        public void ShowHullGain(float fraction) => hullShield.ShowGain(fraction);
+
         public void BindObjectives(IObjectiveService objectives, Camera worldCamera, Camera minimapCamera,
             SubscribedSet<Ship> ships)
         {

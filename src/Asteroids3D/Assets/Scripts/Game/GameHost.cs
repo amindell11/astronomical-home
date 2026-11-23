@@ -968,7 +968,13 @@ namespace Game
             return names;
         }
 
-        private void RefillPlayerHull() => rigInstance.Player.Damage.Health.RestoreFraction(killHullRestore);
+        private void RefillPlayerHull()
+        {
+            var hull = rigInstance.Player.Damage.Health;
+            var before = hull.Pct;
+            hull.RestoreFraction(killHullRestore);
+            if (rigInstance.Overlay) rigInstance.Overlay.ShowHullGain(hull.Pct - before);
+        }
 
         private void OnShipUnlocked(ShipUnlocked unlocked) => moments.Raise(new ShipEarned(unlocked));
 
