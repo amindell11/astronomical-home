@@ -100,7 +100,7 @@ namespace Tests.PlayMode.Sectors
                 pilot = pilot,
                 scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f),
             };
-            faction.elite = new FactionElite { ship = crimson };
+            faction.elite = new FactionElite { ship = crimson, displayName = "Test elite" };
 
             var sectorGO = Track(new GameObject("EliteSector"));
             var sector = sectorGO.AddComponent<Sector>();
@@ -151,7 +151,7 @@ namespace Tests.PlayMode.Sectors
 
             var profile = Track(ScriptableObject.CreateInstance<EliteProfile>());
             profile.name = "TestElite";
-            profile.Configure("Test elite", new ShipScale(Size, 4f, 4f, 8f, 3f),
+            profile.Configure(new ShipScale(Size, 4f, 4f, 8f, 3f),
                 crimson.Weapons.PrimaryMountPrefab, crimson.Weapons.SecondaryMountPrefab, escalation: new[]
                 {
                     new EscalationStep { hull = 2f / 3f, escorts = 2 },
@@ -227,7 +227,7 @@ namespace Tests.PlayMode.Sectors
             var crimson = TestAssets.LoadCrimsonPrefab();
             var profile = Track(ScriptableObject.CreateInstance<EliteProfile>());
             profile.name = "TestElite";
-            profile.Configure("Test elite", new ShipScale(1.5f, 1f, 1f, 1f, 1f), crimson.Weapons.PrimaryMountPrefab);
+            profile.Configure(new ShipScale(1.5f, 1f, 1f, 1f, 1f), crimson.Weapons.PrimaryMountPrefab);
             var (sector, _, encounter, _) = EliteSector(hero, profile, "veil", sectorIndex: 1);
 
             var log = new SpawnLog();
@@ -316,7 +316,7 @@ namespace Tests.PlayMode.Sectors
             var crimson = TestAssets.LoadCrimsonPrefab();
             var profile = Track(ScriptableObject.CreateInstance<EliteProfile>());
             profile.name = "TestElite";
-            profile.Configure("Test elite", new ShipScale(1.5f, 1f, 1f, 1f, 1f), crimson.Weapons.PrimaryMountPrefab);
+            profile.Configure(new ShipScale(1.5f, 1f, 1f, 1f, 1f), crimson.Weapons.PrimaryMountPrefab);
             return profile;
         }
     }

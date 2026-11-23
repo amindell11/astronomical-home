@@ -167,6 +167,7 @@ namespace Game
         private RunCourse course;
         private string runLoadoutHash;
         private LocaleSky[] runLocales;
+        private Faction[] runFactions;
         private bool shutdownComplete;
         private int activeSectorIndex;
         private string activeSectorFaction = string.Empty;
@@ -337,7 +338,9 @@ namespace Game
                 var hull = 1f;
                 var index = 0;
                 var transferred = false;
-                runLocales = presentation ? sessionProfile.run.DrawLocales(new System.Random()) : null;
+                var draw = new System.Random();
+                runLocales = presentation ? sessionProfile.run.DrawLocales(draw) : null;
+                runFactions = presentation ? sessionProfile.run.DealFactions(draw) : null;
                 while (true)
                 {
                     if (!transferred)
@@ -347,7 +350,7 @@ namespace Game
                         activeSectorIndex = index;
                         if (rigInstance) rigInstance.BeginSector(index + 1);
                         yield return session.LoadSector(index, rigInstance ? rigInstance.Player : null, OnSectorComplete,
-                            runLocales?[index]);
+                            runLocales?[index], runFactions?[index]);
                     }
                     transferred = false;
                     if (shutdownRequested) yield break;
@@ -434,7 +437,7 @@ namespace Game
                     if (jump)
                     {
                         yield return RunJump(ExtractionContext(index, sectorStartTime), index + 1, runLocales[index + 1],
-                            hull);
+                            runFactions[index + 1], hull);
                         transferred = true;
                     }
                     else
@@ -487,7 +490,8 @@ namespace Game
                 jumpFeature, result.DepartureHeading.Value);
         }
 
-        private IEnumerator RunJump(RecapOutcomeContext context, int destination, LocaleSky destinationLocale, float hull)
+        private IEnumerator RunJump(RecapOutcomeContext context, int destination, LocaleSky destinationLocale,
+            Faction destinationFaction, float hull)
         {
             LocaleBackdropPair backdrop = null;
             var arrived = false;
@@ -519,7 +523,7 @@ namespace Game
                     rigInstance.BeginSector(destination + 1);
                     rigInstance.EnterSector(null);
                     yield return session.TransferSector(destination, rigInstance.Player, OnSectorComplete,
-                        destinationLocale);
+                        destinationLocale, destinationFaction);
                     rigInstance.EnterSector(session.ActiveSector.Module<PhaseSpineModule>());
                     rigInstance.Player.Damage.Health.SetFraction(hull);
                     destinationReady = true;
@@ -703,7 +707,7 @@ namespace Game
             rigInstance.SetInputEnabled(false);
             var spine = session.ActiveSector.Module<PhaseSpineModule>();
             var screen = WeaponPickScreen.Create(ui, index + 1,
-                spine ? spine.Threat(sessionProfile.run.Sectors[index]) : null, offers,
+                spine ? spine.Threat(sessionProfile.run.Sectors[index].WithFaction(runFactions[index])) : null, offers,
                 primary, secondary, rigInstance.Mods);
             try
             {

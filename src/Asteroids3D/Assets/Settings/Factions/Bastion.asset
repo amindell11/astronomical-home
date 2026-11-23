@@ -61,6 +61,7 @@ MonoBehaviour:
     - {fileID: 2100000, guid: 526dcca0013b4f10b9c5aac5d2a55f45, type: 2}
     - {fileID: 2100000, guid: e3b33775e923445e887210ce1c1e0649, type: 2}
     - {fileID: 2100000, guid: 8fe8bb73a83938740bdf04942014f662, type: 2}
+    displayName: Bastion Bulwark
   unlocks: {fileID: 8715764876294517832, guid: ec7aba0119c19c541967d84406ac90fd, type: 3}
   flame: {fileID: 2100000, guid: 8b59b8dceb3942a38da30f0cc1084eae, type: 2}
   eliteFlame: {fileID: 2100000, guid: 361c2fabb726455cb13b67b0c6af7406, type: 2}
