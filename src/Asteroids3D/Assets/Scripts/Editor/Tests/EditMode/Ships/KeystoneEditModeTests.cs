@@ -702,6 +702,72 @@ namespace Tests.EditMode.Ships
             }
         }
 
+        [Test]
+        public void Loops_WithoutEndingWithLive_ThrowsOnAwake()
+        {
+            var error = FlipbookAwakeError(layer =>
+            {
+                layer.FindPropertyRelative("frames").intValue = 4;
+                layer.FindPropertyRelative("loops").boolValue = true;
+                layer.FindPropertyRelative("endsWithLive").boolValue = false;
+            });
+            Assert.That(error.Message, Does.Contain("loops only when it ends with live"));
+        }
+
+        [TestCase(-1)]
+        [TestCase(4)]
+        public void LoopFrom_OutsideTheSheetsFrames_ThrowsOnAwake(int loopFrom)
+        {
+            var error = FlipbookAwakeError(layer =>
+            {
+                layer.FindPropertyRelative("frames").intValue = 4;
+                layer.FindPropertyRelative("loops").boolValue = true;
+                layer.FindPropertyRelative("endsWithLive").boolValue = true;
+                layer.FindPropertyRelative("loopFrom").intValue = loopFrom;
+            });
+            Assert.That(error.Message, Does.Contain("needs loopFrom from 0 to 3"));
+        }
+
+        private InvalidOperationException FlipbookAwakeError(Action<SerializedProperty> authorLayer)
+        {
+            var feel = ScriptableObject.CreateInstance<KeystoneFlipbookFeel>();
+            var material = AssetDatabase.LoadAssetAtPath<Material>(
+                "Assets/Visuals/Vfx/Keystones/VanguardDash/VanguardDash_Under.mat");
+            host = new GameObject("Flipbook");
+            host.SetActive(false);
+            try
+            {
+                Assert.That(material, Is.Not.Null, "a sheet material to build the layer");
+                var feelObject = new SerializedObject(feel);
+                var layers = feelObject.FindProperty("layers");
+                layers.arraySize = 1;
+                var layer = layers.GetArrayElementAtIndex(0);
+                layer.FindPropertyRelative("material").objectReferenceValue = material;
+                layer.FindPropertyRelative("columns").intValue = 2;
+                layer.FindPropertyRelative("rows").intValue = 2;
+                authorLayer(layer);
+                feelObject.ApplyModifiedPropertiesWithoutUndo();
+
+                var kit = host.AddComponent<Blink>();
+                var flipbook = host.AddComponent<KeystoneFlipbook>();
+                var part = new SerializedObject(flipbook);
+                part.FindProperty("keystone").objectReferenceValue = kit;
+                part.FindProperty("shipLength").floatValue = 1f;
+                part.FindProperty("feel").objectReferenceValue = feel;
+                part.ApplyModifiedPropertiesWithoutUndo();
+
+                // Edit mode never wakes a part, so the test calls Awake itself.
+                var awake = typeof(KeystoneFlipbook).GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic);
+                var thrown = Assert.Throws<TargetInvocationException>(() => awake.Invoke(flipbook, null));
+                Assert.That(thrown.InnerException, Is.TypeOf<InvalidOperationException>());
+                return (InvalidOperationException)thrown.InnerException;
+            }
+            finally
+            {
+                Object.DestroyImmediate(feel);
+            }
+        }
+
         [TestCase("Vanguard", 9000f, 5f)]
         [TestCase("Bulwark", 19500f, 7f)]
         [TestCase("Junker_1", 15000f, 5f)]

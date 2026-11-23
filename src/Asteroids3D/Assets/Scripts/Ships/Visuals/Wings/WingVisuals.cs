@@ -16,10 +16,16 @@ namespace Ships.Visuals.Wings
 
         [SerializeField] private Joint[] joints;
         [SerializeField, Min(.01f)] private float transitionSeconds = .5f;
+
+        [Tooltip("Degrees the wings sweep past the thrust pose while the keystone kit is live. 0 leaves them alone.")]
+        [SerializeField] private float liveSweepDegrees;
+
         private Func<PilotCommand> command;
-        private float current;
-        private float from;
-        private float target;
+        private Func<bool> keystoneLive;
+        // x: share of the rest-to-thrust arc. y: share of the live sweep past it.
+        private Vector2 current;
+        private Vector2 from;
+        private Vector2 target;
         private float elapsed;
 
         private void Awake()
@@ -29,7 +35,7 @@ namespace Ships.Visuals.Wings
             foreach (var joint in joints)
                 if (!joint.bone)
                     throw new InvalidOperationException("Wing motion requires every authored bone reference.");
-            Apply(0f);
+            Apply(Vector2.zero);
             // Hangar rigs remain idle until a flight view binds them.
             enabled = false;
         }
@@ -37,20 +43,22 @@ namespace Ships.Visuals.Wings
         public void Bind(in ShipView view)
         {
             command = view.Command ?? throw new ArgumentException("Wing motion requires the live pilot command.");
+            keystoneLive = view.KeystoneLive;
             enabled = true;
         }
 
         private void OnEnable()
         {
-            current = from = target = 0f;
+            current = from = target = Vector2.zero;
             elapsed = transitionSeconds;
-            Apply(0f);
+            Apply(Vector2.zero);
         }
 
         private void Update()
         {
             var thrust = command().thrust;
-            var next = thrust > .05f ? 1f : 0f;
+            var next = keystoneLive != null && keystoneLive() ? Vector2.one
+                : new Vector2(thrust > .05f ? 1f : 0f, 0f);
             if (next != target)
             {
                 from = current;
@@ -59,14 +67,19 @@ namespace Ships.Visuals.Wings
             }
             elapsed = Mathf.Min(elapsed + Time.deltaTime, transitionSeconds);
             var t = elapsed / transitionSeconds;
-            current = Mathf.Lerp(from, target, t * t * (3f - 2f * t));
+            current = Vector2.Lerp(from, target, t * t * (3f - 2f * t));
             Apply(current);
         }
 
-        private void Apply(float demand)
+        private void Apply(Vector2 demand)
         {
+            var sweep = demand.y * liveSweepDegrees;
             foreach (var joint in joints)
-                joint.bone.localRotation = Quaternion.Slerp(joint.restRotation, Quaternion.identity, demand);
+            {
+                var along = demand.x;
+                if (sweep != 0f) along += sweep / Quaternion.Angle(joint.restRotation, Quaternion.identity);
+                joint.bone.localRotation = Quaternion.SlerpUnclamped(joint.restRotation, Quaternion.identity, along);
+            }
         }
     }
 }
