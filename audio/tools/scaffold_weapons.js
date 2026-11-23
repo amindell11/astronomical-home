@@ -153,10 +153,10 @@ function ensureFlightPlaceholder(event) {
     console.log("placed launch, held thruster loop and sustain point on " + event.getPath());
 }
 
-function ensureThrusterPlaceholder(event) {
+function ensureHeldLoopPlaceholder(event) {
     if (event.groupTracks.length > 0) return;
     placeHeldThruster(event);
-    console.log("placed held thruster loop and sustain point on " + event.getPath());
+    console.log("placed held loop and sustain point on " + event.getPath());
 }
 
 var weaponsFolder = childFolder(workspace.masterEventFolder, "Weapons");
@@ -188,9 +188,9 @@ var detonate = event(grenadeFolder, "Grenade", "Detonate");
 ensureOneShotPlaceholder(detonate, "rockExplosion1.wav");
 var grenadeFlight = event(grenadeFolder, "Grenade", "Flight");
 ensureParameter(grenadeFlight, "Speed", project.parameterType.User);
-ensureThrusterPlaceholder(grenadeFlight);
+ensureHeldLoopPlaceholder(grenadeFlight);
 var grenadeThruster = event(grenadeFolder, "Grenade", "Thruster");
-ensureThrusterPlaceholder(grenadeThruster);
+ensureHeldLoopPlaceholder(grenadeThruster);
 
 var missileFolder = childFolder(weaponsFolder, "Missile");
 var missileFlight = event(missileFolder, "Missile", "Flight");
