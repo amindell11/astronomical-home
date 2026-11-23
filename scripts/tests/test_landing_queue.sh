@@ -3,8 +3,8 @@ set -euo pipefail
 # covers: scripts/landing_queue.sh
 
 # Regression for the landing queue: which PR it updates, what it does to the front PR, and reset.
-# gh is a stub over fixture JSON that applies the script's own --jq filters with jq, logs every
-# write, and fails closed on any call it does not model.
+# gh is a stub over fixture JSON that answers each read in the shape the script's --jq asks for,
+# logs every write, and fails closed on any call it does not model.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 QUEUE="$SCRIPT_DIR/../landing_queue.sh"
@@ -23,14 +23,14 @@ while [[ $# -gt 0 ]]; do
   case "$1" in --jq) jqf="$2"; shift 2 ;; --paginate) shift ;; *) args+=("$1"); shift ;; esac
 done
 set -- "${args[@]}"
-out() { if [[ -n "$jqf" ]]; then jq -r "$jqf" "$1"; else cat "$1"; fi; }
+out() { python3 "$(dirname "$0")/shape.py" "$1" "$2" "$jqf"; }
 case "$1 $2" in
   "label create") echo "$*" >> "$GH_LOG" ;;
-  "pr list") out "$FIX/prs.json" ;;
-  "pr view") out "$FIX/view-$3.json" ;;
+  "pr list") out members "$FIX/prs.json" ;;
+  "pr view") out labels "$FIX/view-$3.json" ;;
   "pr edit"|"pr comment"|"workflow run") echo "$*" >> "$GH_LOG" ;;
-  "api repos/o/r/commits/"*) sha="${2#repos/o/r/commits/}"; out "$FIX/status-${sha%%/*}.json" ;;
-  "api repos/o/r/issues/"*) out "$FIX/events.json" ;;
+  "api repos/o/r/commits/"*) sha="${2#repos/o/r/commits/}"; out status "$FIX/status-${sha%%/*}.json" ;;
+  "api repos/o/r/issues/"*) out events "$FIX/events.json" ;;
   "api -X")
     echo "$*" >> "$GH_LOG"
     n="${4#repos/o/r/pulls/}"; n="${n%%/*}"
@@ -41,6 +41,31 @@ case "$1 $2" in
     if [[ -f "$FIX/moved-$n" ]]; then echo "new$n"; else echo "sha$n"; fi ;;
   *) echo "gh stub: unmodelled call: $*" >&2; exit 97 ;;
 esac
+EOF
+# The answers landing_queue.sh's --jq filters give; a filter it no longer sends fails closed.
+cat > "$TMP/bin/shape.py" <<'EOF'
+import json, re, sys
+kind, path, jqf = sys.argv[1:4]
+data = json.load(open(path))
+if kind == "members":
+    assert "autoMergeRequest != null" in jqf, jqf
+    for pr in sorted(data, key=lambda p: p["number"]):
+        if pr["autoMergeRequest"] and not pr["isDraft"] and not pr["isCrossRepository"] and pr["headRefName"].startswith("task/"):
+            print("\t".join([str(pr["number"]), pr["headRefName"], pr["headRefOid"], pr["mergeStateStatus"],
+                             ",".join(l["name"] for l in pr["labels"])]))
+elif kind == "labels":
+    assert "join" in jqf, jqf
+    print(",".join(l["name"] for l in data["labels"]))
+elif kind == "status":
+    context = re.fullmatch(r'\.statuses\[\] \| select\(\.context == "([^"]+)"\) \| \[\.state, \.description\] \| @tsv', jqf).group(1)
+    for st in data["statuses"]:
+        if st["context"] == context:
+            print(f'{st["state"]}\t{st["description"]}')
+elif kind == "events":
+    label = re.search(r'\.label\.name == "([^"]+)"', jqf).group(1)
+    for ev in data:
+        if ev["event"] == "labeled" and ev["label"]["name"] == label:
+            print(ev["created_at"])
 EOF
 chmod +x "$TMP/bin/gh"
 export PATH="$TMP/bin:$PATH"
