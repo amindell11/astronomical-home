@@ -11,7 +11,7 @@ The game's companion and enemy lines. This tab exports to LineSheet.txt in the r
 | ID | Moment | Faction | Speaker | After | Line | Status | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | S1a | sector-entered | shoal | Companion |  | Shoal space. Friendly bunch. They'll say sorry the whole time they're stripping the ship. | In game |  |
-| S1b | sector-entered | shoal | Companion |  | See those wrecks? Some of these scrappers are the ones who shot them down. | In game |  |
+| S1b | sector-entered | shoal | Companion |  | See those wrecks? Some of these scrappers are the ones who shot them down. | Later | Needs wrecks in game |
 | S3a | sector-entered | shoal | Companion |  | Keep moving. Anything that sits still out here gets a salvage tag, and that includes me. | In game |  |
 | VE0a | sector-entered | veil | Enemy |  | Arrival unscheduled. Human aboard. Hold course for intake. | In game |  |
 | VE0b | sector-entered | veil | Enemy |  | Foreign hull. Solitary operator. Recommend prompt inclusion. | In game |  |
