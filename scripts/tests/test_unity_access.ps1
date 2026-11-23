@@ -356,10 +356,25 @@ try {
     Assert-Equal $userBlocked.value.blockers[0].processId 41001 "user editor pid"
     [void](Invoke-Coordinator -Action Cancel -Lease user-blocked)
 
-    $editorStrict = Invoke-Coordinator -Action Acquire -Lease editor-strict -Mode editor -ProjectPath $agentProject
-    Assert-Equal $editorStrict.code 20 "editor-mode request keeps machine-wide block"
-    Assert-Equal $editorStrict.value.status "blocked_user_editor" "editor-mode block classification"
-    [void](Invoke-Coordinator -Action Cancel -Lease editor-strict)
+    $editorWindowless = Invoke-Coordinator -Action Acquire -Lease editor-windowless -Mode editor -ProjectPath $agentProject
+    Assert-Equal $editorWindowless.code 20 "editor-mode request waits on a cross-project editor that may be booting"
+    Assert-Equal $editorWindowless.value.status "blocked_user_editor" "editor-mode block classification"
+    [void](Invoke-Coordinator -Action Cancel -Lease editor-windowless)
+
+    $settled = [datetime]::UtcNow.AddSeconds(-600).ToString("o")
+    Write-Snapshot @([ordered]@{ processId = 41001; commandLine = "Unity.exe -projectPath `"$mainProject`""; mainWindowHandle = 12345; startTime = $settled })
+    $editorBeside = Invoke-Coordinator -Action Acquire -Lease editor-beside -Mode editor -ProjectPath $agentProject
+    Assert-Equal $editorBeside.value.status "acquired" "a settled windowed cross-project editor does not block an editor boot"
+    [void](Invoke-Coordinator -Action Release -Lease editor-beside)
+
+    $editorSame = Invoke-Coordinator -Action Acquire -Lease editor-same -Mode editor -ProjectPath $mainProject
+    Assert-Equal $editorSame.value.status "blocked_user_editor" "a settled editor still blocks an editor boot on its own project"
+    [void](Invoke-Coordinator -Action Cancel -Lease editor-same)
+
+    Write-Snapshot @([ordered]@{ processId = 41001; commandLine = "Unity.exe -projectPath `"$mainProject`""; mainWindowHandle = 12345; startTime = [datetime]::UtcNow.AddSeconds(-30).ToString("o") })
+    $editorYoung = Invoke-Coordinator -Action Acquire -Lease editor-young -Mode editor -ProjectPath $agentProject
+    Assert-Equal $editorYoung.value.status "blocked_user_editor" "a windowed editor inside its boot window still blocks an editor boot"
+    [void](Invoke-Coordinator -Action Cancel -Lease editor-young)
 
     Write-Snapshot @([ordered]@{ processId = 41002; commandLine = "Unity.exe -batchMode -projectPath `"$mainProject`"" })
     $unmanaged = Invoke-Coordinator -Action Acquire -Lease unmanaged -ProjectPath $agentProject
