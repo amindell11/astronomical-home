@@ -666,6 +666,31 @@ namespace Tests.EditMode
             FlyLostLeader(WoundedResponse.Never, Tactic.AttackRun, engages: true);
         }
 
+        [TestCase(10f, false)]
+        [TestCase(80f, true)]
+        public void LeaderLost_ARegroupingTemperFleesColdAndJumpsOnlyPastItsDistance(float range, bool jumps)
+        {
+            var temper = ScriptableObject.CreateInstance<TacticsSettings>();
+            temper.wounded = WoundedResponse.Never;
+            temper.regroupsWithoutLeader = true;
+            temper.jumpsBeyond = 70f;
+            var (brain, status, ctx) = WoundedPilot(temper);
+            var ships = targetHost.GetComponents<Ship>();
+            PinPose(ships[ships.Length - 1], Vector2.zero);
+            status.Kinematics = new Kinematics(new Vector2(range, 0f), Vector2.zero, 0f, 0f, 0f);
+            var leader = new GameObject("Leader").AddComponent<Ship>();
+            leader.transform.SetParent(brainHost.transform);
+            ctx.FollowLeader(leader, 1);
+            leader.gameObject.SetActive(false);
+
+            var decision = brain.Decide(ctx);
+
+            Assert.AreEqual(Tactic.BreakOff, brain.CurrentTactic);
+            Assert.IsTrue(decision.HasValue);
+            Assert.IsFalse(decision.Value.engagePrimary, "a regrouping minion holds its fire");
+            Assert.AreEqual(jumps, decision.Value.jump);
+        }
+
         [Test]
         public void Ambush_BoostsWhileTheKitIsReady_AndHoldsFireWhileConcealed()
         {

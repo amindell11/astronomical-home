@@ -39,6 +39,16 @@ The game's companion and enemy lines. This tab exports to LineSheet.txt in the r
 | BR1b | combat-start | bastion | Rival |  | I don't know who you think you are, flying through our space, but I can't have the other clans hear I let you. | In game |  |
 | BR2a | combat-start | bastion | Companion | any | Oh good. He's excited. | In game |  |
 | BR2b | combat-start | bastion | Companion | any | "Our space." They own the vaccum now huh | In game |  |
+| VM1a | rival-fell | veil | Enemy |  | Lead instance lost. Disengaging. Will rejoin at next contact. | In game |  |
+| VM1b | rival-fell | veil | Enemy |  | Command node offline. Withdraw and regroup with the next instance. | In game |  |
+| VM2a | rival-fell | veil | Companion | any | They're not running. They're pulling back to come in with the next one. | In game |  |
+| VM2b | rival-fell | veil | Companion | any | Leader's down, so they're falling back. Catch them now or see them again later. | In game |  |
+| SM1a | rival-fell | shoal | Enemy |  | Boss is down! That's it, everybody jump! | In game |  |
+| SM1b | rival-fell | shoal | Enemy |  | That's the boss gone. No cut's worth this. We're jumping out! | In game |  |
+| SM2a | rival-fell | shoal | Companion | any | No boss, no payday. They're jumping out of here. | In game |  |
+| BM1a | rival-fell | bastion | Enemy |  | He's fallen! No retreat. Close in and take the stranger with us! | In game |  |
+| BM1b | rival-fell | bastion | Enemy |  | For the clan! Get in close and don't stop till one of us is done! | In game |  |
+| BM2a | rival-fell | bastion | Companion | any | Bastion don't retreat. They're coming in close, so keep moving! | In game |  |
 | S4a | death | shoal | Companion |  | Well, that piece of junk is probably better off in their hands anyway. | In game |  |
 | S4b | death | shoal | Companion |  | Honestly? They probably did need the ship more than us. | In game |  |
 | S5a | death | shoal | Companion |  | Hmph. Well, looks like they're gonna strip us for parts. But did you see the cat in his cockpit? So darn cute! | In game |  |

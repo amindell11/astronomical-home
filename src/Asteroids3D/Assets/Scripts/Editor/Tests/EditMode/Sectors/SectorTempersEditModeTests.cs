@@ -14,7 +14,8 @@ namespace Tests.EditMode.Sectors
     /// different pilots. The minion has 0.7 hull, flies at 0.75 size only while it shares the rival's
     /// chassis (its own chassis carries its size), and its pilot never
     /// fires the keystone. Both tempers of a faction share one wounded response: Veil never, Shoal jump
-    /// out, Bastion last stand. No sector prefab names a patrol pilot of its own.
+    /// out, Bastion last stand. Only Veil's minion regroups when its leader dies. No sector prefab names a
+    /// patrol pilot of its own.
     /// </summary>
     [TestFixture]
     [Category("Sectors")]
@@ -55,6 +56,17 @@ namespace Tests.EditMode.Sectors
             AssertResponse("Veil", WoundedResponse.Never);
             AssertResponse("Shoal", WoundedResponse.JumpOut);
             AssertResponse("Bastion", WoundedResponse.LastStand);
+        }
+
+        [Test]
+        public void OnlyVeilsMinion_RegroupsWithoutItsLeader()
+        {
+            foreach (var id in new[] { "Shoal", "Veil", "Bastion" })
+            {
+                var faction = Load(id);
+                Assert.AreEqual(id == "Veil", Temper(faction.Minion.pilot).regroupsWithoutLeader, $"{id} minion");
+                Assert.IsFalse(Temper(faction.Rival.pilot).regroupsWithoutLeader, $"{id} rival");
+            }
         }
 
         [Test]
