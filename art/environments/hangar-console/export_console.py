@@ -146,7 +146,11 @@ part_names = {
     'ProjectorLens': ['09 | Projector lens'],
     'LaunchLampLeft': ['Deck | Left Launch armed red lens'],
     'LaunchLampRight': ['Deck | Right Launch armed red lens'],
+    'SlotLamp1': ['Deck | Right status 1 green lens'],
+    'SlotLamp2': ['Deck | Right status 2 green lens'],
+    'SlotLamp3': ['Deck | Right status 3 amber lens'],
 }
+part_names.update({'ShipLamp' + str(i): ['Deck | Left ship ' + str(i) + ' lens'] for i in range(1, 6)})
 # Terminal parts are authored in their frame's space, so each pivots on its own centre.
 terminal_names = {}
 for screen in ('Primary', 'Ordnance'):

@@ -1,5 +1,13 @@
 # Hangar deck
 
+## Ship and screen status lamps, 2026-11-23
+
+The owner turned the two pod status groups into indicators. The left group now has five lenses, one per offered ship, named `Deck | Left ship 1 lens` to `Deck | Left ship 5 lens` from left to right. They keep the old lens size, socket scale and 0.27 pitch, at x -0.54 to 0.54 on a status seat widened from 0.92 to 1.29. The seat still clears the ramp screws at x ±0.73. The right group keeps its geometry: its three lenses stand for the ship, primary and ordnance screens.
+
+Each lens carries an `export_role` (`ShipLamp1`–`ShipLamp5`, `SlotLamp1`–`SlotLamp3`). The exporter's `part_names` lists them, so each exports as its own part and also as a manifest lamp with a glow card, like the Launch lamps. Unity colours them at runtime, so their Blender material is only a placeholder. The manifest now lists fourteen lamps.
+
+Verifier results are unchanged in kind. `verify_deck.py` now stops on `KeyError: 'ShipLamp1'`, its parts palette having no entry for the new roles. `verify_pedestal.py` still stops on the corner indicator material. Neither verifier was edited.
+
 ## Trial warm gusset lamps, 2026-11-22
 
 A trial the owner asked for on top of the corner strips, kept in its own commit so it can be dropped. One small warm-white lamp per side sits on the flat header face just outboard of each overhead strip's outer end, where the strut top meets the header, centred at `(±6.54, 3.325, 10.24)`. It uses the console's usual lamp style: a 0.30 by 0.075 lens in a socket with a lip at 0.7 scale. Its material is `Deck | gusset warm white lamp emission`, linear `(1.0, 0.82, 0.62)` at strength 0.7, dimmer than the orange Launch key. The lens name ends in ` lens`, so it exports as a lamp with a glow card; the manifest now has twelve lamps and two downlights. Verifier results match the corner-strip pass.

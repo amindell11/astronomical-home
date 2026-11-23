@@ -21,6 +21,7 @@ namespace UI.Hangar.Hardware
         public const string PrefabPath = "Assets/Prefabs/UI/HangarConsole.prefab";
         private const string ProjectorPath = "Assets/Prefabs/UI/HangarProjector.prefab";
         private const float PixelsPerUnit = 200f;
+        private const int ShipLampCount = 5;
 
         [MenuItem("Tools/Hangar/Rebuild console hardware")]
         public static void Rebuild()
@@ -110,15 +111,12 @@ namespace UI.Hangar.Hardware
                     parts[control + "Legend"].sharedMaterial = legend;
                     parts[control + "Legend"].transform.SetParent(parts[control + "Button"].transform, true);
                 }
-                var launchLampNames = new[] { "LaunchLampLeft", "LaunchLampRight" };
-                var launchLampMaterial = SelfLit("LaunchLamp", new Color(1f, .06f, .03f));
-                var launchLamps = new MeshRenderer[launchLampNames.Length];
-                for (var i = 0; i < launchLampNames.Length; i++)
-                {
-                    if (!parts.TryGetValue(launchLampNames[i], out launchLamps[i]))
-                        throw new InvalidOperationException($"The hangar console model names no part '{launchLampNames[i]}'.");
-                    launchLamps[i].sharedMaterial = launchLampMaterial;
-                }
+                var launchLamps = LampParts(parts, new[] { "LaunchLampLeft", "LaunchLampRight" },
+                    SelfLit("LaunchLamp", new Color(1f, .06f, .03f)));
+                var statusLampMaterial = SelfLit("StatusLamp", Color.black);
+                var shipLamps = LampParts(parts, Enumerable.Range(1, ShipLampCount).Select(i => "ShipLamp" + i).ToArray(),
+                    statusLampMaterial);
+                var slotLamps = LampParts(parts, new[] { "SlotLamp1", "SlotLamp2", "SlotLamp3" }, statusLampMaterial);
 
                 var cameraObject = new GameObject("HardwareCamera");
                 cameraObject.transform.SetParent(root.transform, false);
@@ -188,30 +186,16 @@ namespace UI.Hangar.Hardware
                 glows.transform.SetParent(root.transform, false);
                 var glowMaterial = ShaderMaterial("ConsoleGlow", "Hangar/ConsoleGlow");
                 var quad = Resources.GetBuiltinResource<Mesh>("Quad.fbx");
-                var bodyLamps = new List<ExportLamp>();
-                var launchEntries = new ExportLamp[launchLampNames.Length];
-                foreach (var lamp in manifest.lamps)
-                {
-                    if (!lamp.name.Contains("Launch armed"))
-                    {
-                        bodyLamps.Add(lamp);
-                        continue;
-                    }
-                    var index = -1;
-                    if (lamp.name.Contains("Left")) index = 0;
-                    else if (lamp.name.Contains("Right")) index = 1;
-                    if (index < 0)
-                        throw new InvalidOperationException($"console-export.json lamp '{lamp.name}' matches no launch lamp part.");
-                    if (launchEntries[index] != null)
-                        throw new InvalidOperationException(
-                            $"console-export.json names '{lamp.name}' as a second lamp for '{launchLampNames[index]}'.");
-                    launchEntries[index] = lamp;
-                }
-                for (var i = 0; i < launchEntries.Length; i++)
-                    if (launchEntries[i] == null)
-                        throw new InvalidOperationException($"console-export.json names no lamp for '{launchLampNames[i]}'.");
+                var bodyLamps = new List<ExportLamp>(manifest.lamps);
+                var launchEntries = TakeLamps(bodyLamps, "Left Launch armed red lens", "Right Launch armed red lens");
+                var shipEntries = TakeLamps(bodyLamps,
+                    Enumerable.Range(1, ShipLampCount).Select(i => $"Left ship {i} lens").ToArray());
+                var slotEntries = TakeLamps(bodyLamps,
+                    "Right status 1 green lens", "Right status 2 green lens", "Right status 3 amber lens");
                 var lampGlows = GlowCards(glows.transform, bodyLamps.ToArray(), quad, glowMaterial, camera);
                 var launchLampGlows = GlowCards(glows.transform, launchEntries, quad, glowMaterial, camera);
+                var shipLampGlows = GlowCards(glows.transform, shipEntries, quad, glowMaterial, camera);
+                var slotLampGlows = GlowCards(glows.transform, slotEntries, quad, glowMaterial, camera);
                 if (manifest.downlights == null || manifest.downlights.Length > 2)
                     throw new InvalidOperationException(
                         "console-export.json lists " +
@@ -264,11 +248,12 @@ namespace UI.Hangar.Hardware
                 data.FindProperty("hologramLightOffset").vector3Value = new Vector3(.05f, 2.774f, -.21f);
                 data.FindProperty("launchLightOffset").vector3Value = new Vector3(.026f, 2.971f, -.081f);
                 AssignGlows(data.FindProperty("lampGlows"), lampGlows);
-                var launchLampProperty = data.FindProperty("launchLamps");
-                launchLampProperty.arraySize = launchLamps.Length;
-                for (var i = 0; i < launchLamps.Length; i++)
-                    launchLampProperty.GetArrayElementAtIndex(i).objectReferenceValue = launchLamps[i];
+                AssignRenderers(data.FindProperty("launchLamps"), launchLamps);
                 AssignGlows(data.FindProperty("launchLampGlows"), launchLampGlows);
+                AssignRenderers(data.FindProperty("shipLamps"), shipLamps);
+                AssignGlows(data.FindProperty("shipLampGlows"), shipLampGlows);
+                AssignRenderers(data.FindProperty("slotLamps"), slotLamps);
+                AssignGlows(data.FindProperty("slotLampGlows"), slotLampGlows);
                 AssignGlows(data.FindProperty("overheadGlows"), overheadGlows);
                 AssignGlow(data.FindProperty("lensGlow"), lensGlow);
                 data.FindProperty("knobAxis").vector3Value = knobAxis;
@@ -312,6 +297,40 @@ namespace UI.Hangar.Hardware
                     if (entry.name == glassName) return entry;
                 }
             throw new InvalidOperationException($"The hangar console export names no screen glass '{glassName}'.");
+        }
+
+        private static MeshRenderer[] LampParts(Dictionary<string, MeshRenderer> parts, string[] names, Material material)
+        {
+            var lamps = new MeshRenderer[names.Length];
+            for (var i = 0; i < names.Length; i++)
+            {
+                if (!parts.TryGetValue(names[i], out lamps[i]))
+                    throw new InvalidOperationException($"The hangar console model names no part '{names[i]}'.");
+                lamps[i].sharedMaterial = material;
+            }
+            return lamps;
+        }
+
+        // Removes the named lamps from the pool, in the order given.
+        private static ExportLamp[] TakeLamps(List<ExportLamp> pool, params string[] names)
+        {
+            var taken = new ExportLamp[names.Length];
+            for (var i = 0; i < names.Length; i++)
+            {
+                var index = pool.FindIndex(lamp => lamp.name == names[i]);
+                if (index < 0)
+                    throw new InvalidOperationException($"console-export.json names no lamp '{names[i]}'.");
+                taken[i] = pool[index];
+                pool.RemoveAt(index);
+            }
+            return taken;
+        }
+
+        private static void AssignRenderers(SerializedProperty property, MeshRenderer[] renderers)
+        {
+            property.arraySize = renderers.Length;
+            for (var i = 0; i < renderers.Length; i++)
+                property.GetArrayElementAtIndex(i).objectReferenceValue = renderers[i];
         }
 
         private static Material SelfLit(string name, Color lit)

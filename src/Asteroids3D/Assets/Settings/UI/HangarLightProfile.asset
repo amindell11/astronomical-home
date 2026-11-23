@@ -21,6 +21,9 @@ MonoBehaviour:
   launchSpillColor: {r: 1, g: 0.72, b: 0.45, a: 1}
   launchSpill: 45
   launchGlow: {r: 1.25, g: 1, b: 0.8, a: 1}
+  launchPressedColor: {r: 0.25, g: 0.55, b: 1, a: 1}
+  lampSelectedColor: {r: 0.85, g: 0.92, b: 1, a: 1}
+  lampAvailableColor: {r: 0.05, g: 0.75, b: 0.1, a: 1}
   mainScreenSpill: 26
   detailScreenSpill: 14
   weaponScreenSpill: 20

@@ -20,6 +20,8 @@ namespace UI.Hangar.Hardware
     /// pointer, presses the button and powers the screens down before the caller is handed the
     /// pending loadout, once. Each frame the console applies its light profile and hands its painted
     /// parts the light of its screens, hologram, Launch and overheads, which their shader sums per pixel.
+    /// The left status lamps stand for the offered ships and the right ones for the three screens:
+    /// white for the selected one, green for one the player can pick, dark for a locked ship.
     /// </summary>
     public sealed class HangarConsole : MonoBehaviour
     {
@@ -42,6 +44,7 @@ namespace UI.Hangar.Hardware
         private const float OverheadLightRange = 14f;
         private const float LaunchDim = .1f;
         private const float LaunchBlinkPerSecond = 6f;
+        private const int SlotCount = 3;
 
         [SerializeField] private Camera hardwareCamera;
         [SerializeField] private float referenceVerticalFov = 34.11393f;
@@ -79,6 +82,10 @@ namespace UI.Hangar.Hardware
         [SerializeField] private HangarGlow[] lampGlows;
         [SerializeField] private MeshRenderer[] launchLamps;
         [SerializeField] private HangarGlow[] launchLampGlows;
+        [SerializeField] private MeshRenderer[] shipLamps;
+        [SerializeField] private HangarGlow[] shipLampGlows;
+        [SerializeField] private MeshRenderer[] slotLamps;
+        [SerializeField] private HangarGlow[] slotLampGlows;
         [SerializeField, FormerlySerializedAs("downlightGlows")] private HangarGlow[] overheadGlows;
         [SerializeField] private HangarGlow lensGlow;
         [SerializeField] private Vector3 knobAxis;
@@ -129,11 +136,9 @@ namespace UI.Hangar.Hardware
 
         private void Awake()
         {
-            var launchLampsWired = launchLamps != null && launchLampGlows != null &&
-                launchLamps.Length > 0 && launchLamps.Length == launchLampGlows.Length;
-            if (launchLampsWired)
-                for (var i = 0; i < launchLamps.Length; i++)
-                    if (!launchLamps[i] || !launchLampGlows[i].card) launchLampsWired = false;
+            if (!Wired(shipLamps, shipLampGlows) || !Wired(slotLamps, slotLampGlows) || slotLamps.Length != SlotCount)
+                throw new InvalidOperationException(
+                    $"HangarConsole needs ship lamps with glows, and {SlotCount} slot lamps with glows.");
             if (!hardwareCamera || !mainScreenGlass || !detailScreenGlass || !primaryScreenGlass ||
                 !ordnanceScreenGlass || !selectorKnob || !knob || !previousButton || !nextButton ||
                 !launchButton || !primaryPreviousButton || !primaryNextButton || !ordnancePreviousButton ||
@@ -141,7 +146,7 @@ namespace UI.Hangar.Hardware
                 !mainDisplay || !detailDisplay || !primaryDisplay || !ordnanceDisplay || !mainView ||
                 !detailView || !primaryView || !ordnanceView || !displayProfile || !lightProfile ||
                 paintedParts == null || paintedParts.Length == 0 || !launchSurface ||
-                lampGlows == null || !launchLampsWired || overheadGlows == null || !lensGlow.card)
+                lampGlows == null || !Wired(launchLamps, launchLampGlows) || overheadGlows == null || !lensGlow.card)
                 throw new InvalidOperationException(
                     "HangarConsole needs its camera, four screen glasses, controls, weapon keys, knob, launch legend, displays, display profile, light profile, projector lens, composite image, projector, painted parts, launch surface, lamp glows, launch lamps, launch lamp glows, overhead glows and lens glow.");
             raycaster = GetComponent<HangarConsoleRaycaster>();
@@ -169,6 +174,9 @@ namespace UI.Hangar.Hardware
                 throw new InvalidOperationException("HangarConsole.Show was called twice.");
             onLaunch = launch;
             selection = new HangarSelection(offer, loadout, earned);
+            if (selection.Ships.Count > shipLamps.Length)
+                throw new InvalidOperationException(
+                    $"The hangar offers {selection.Ships.Count} ships but the console has {shipLamps.Length} ship lamps.");
             projector.Open(offer ? offer.ships : Array.Empty<Ship>(), loadout.Ship);
             selection.ShipChanged += projector.Select;
             mainView.Bind(selection);
@@ -322,13 +330,17 @@ namespace UI.Hangar.Hardware
                 launchLampColor = cycle - Mathf.Floor(cycle) < .5f ? lightProfile.LaunchPressedColor : Color.black;
             }
             for (var i = 0; i < launchLamps.Length; i++)
+                ApplyLamp(launchLamps[i], launchLampGlows[i], launchLampColor);
+            for (var i = 0; i < shipLamps.Length; i++)
             {
-                launchLamps[i].GetPropertyBlock(lightBlock);
-                lightBlock.SetColor(ConstantEmissionId, launchLampColor);
-                launchLamps[i].SetPropertyBlock(lightBlock);
-                var glow = launchLampGlows[i];
-                var span = glow.size + Vector2.one * lightProfile.LampGlowSize;
-                ApplyGlow(glow, launchLampColor * lightProfile.LampGlow, new Vector3(span.x, span.y, 1f));
+                var ship = selection != null && i < selection.Ships.Count ? selection.Ships[i] : null;
+                ApplyLamp(shipLamps[i], shipLampGlows[i], ShipLampColor(ship));
+            }
+            for (var i = 0; i < slotLamps.Length; i++)
+            {
+                var color = selection == null ? Color.black
+                    : (int)selection.Selected == i ? lightProfile.LampSelectedColor : lightProfile.LampAvailableColor;
+                ApplyLamp(slotLamps[i], slotLampGlows[i], color);
             }
             for (var i = 0; i < overheadGlows.Length; i++)
             {
@@ -346,6 +358,31 @@ namespace UI.Hangar.Hardware
                 light.Position.x, light.Position.y, light.Position.z, light.Range);
             hangarLightColors[index] = new Vector4(light.Color.r, light.Color.g, light.Color.b, 0f);
             return index + 1;
+        }
+
+        private void ApplyLamp(MeshRenderer lamp, HangarGlow glow, Color color)
+        {
+            lamp.GetPropertyBlock(lightBlock);
+            lightBlock.SetColor(ConstantEmissionId, color);
+            lamp.SetPropertyBlock(lightBlock);
+            var span = glow.size + Vector2.one * lightProfile.LampGlowSize;
+            ApplyGlow(glow, color * lightProfile.LampGlow, new Vector3(span.x, span.y, 1f));
+        }
+
+        // A selected ship lights white even when locked; the screens already say it is locked.
+        private Color ShipLampColor(Ship ship)
+        {
+            if (!ship) return Color.black;
+            if (ship == selection.Ship) return lightProfile.LampSelectedColor;
+            return selection.IsLocked(ship) ? Color.black : lightProfile.LampAvailableColor;
+        }
+
+        private static bool Wired(MeshRenderer[] lamps, HangarGlow[] glows)
+        {
+            if (lamps == null || glows == null || lamps.Length == 0 || lamps.Length != glows.Length) return false;
+            for (var i = 0; i < lamps.Length; i++)
+                if (!lamps[i] || !glows[i].card) return false;
+            return true;
         }
 
         private void ApplyGlow(HangarGlow glow, Color color, Vector3 scale)

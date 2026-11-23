@@ -35,6 +35,10 @@ namespace UI.Hangar.Hardware
 
         [Tooltip("Color the launch lamps blink after the button is pressed.")]
         [SerializeField, ColorUsage(false, true)] private Color launchPressedColor = new(.25f, .55f, 1f);
+        [Tooltip("Color of a status lamp whose ship or screen is selected.")]
+        [SerializeField, ColorUsage(false, true)] private Color lampSelectedColor = new(.85f, .92f, 1f);
+        [Tooltip("Color of a status lamp whose ship or screen can be picked.")]
+        [SerializeField, ColorUsage(false, true)] private Color lampAvailableColor = new(.05f, .75f, .10f);
 
         [Tooltip("Intensity of the main screen's spill light.")]
         [SerializeField, Range(0f, 200f)] private float mainScreenSpill = 4.55f;
@@ -79,6 +83,8 @@ namespace UI.Hangar.Hardware
         public float LaunchSpill => launchSpill;
         public Color LaunchGlow => launchGlow;
         public Color LaunchPressedColor => launchPressedColor;
+        public Color LampSelectedColor => lampSelectedColor;
+        public Color LampAvailableColor => lampAvailableColor;
         public float MainScreenSpill => mainScreenSpill;
         public float DetailScreenSpill => detailScreenSpill;
         public float WeaponScreenSpill => weaponScreenSpill;

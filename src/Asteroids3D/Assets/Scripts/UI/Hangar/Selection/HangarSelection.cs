@@ -47,7 +47,7 @@ namespace UI.Hangar.Selection
         public Ship Ship => loadout.Ship;
         public WeaponComponent Weapon => loadout.PrimaryWeapon;
         public WeaponComponent Ordnance => loadout.SecondaryWeapon;
-        public bool ShipLocked => gated && !Selectable(loadout.Ship);
+        public bool ShipLocked => IsLocked(loadout.Ship);
         public bool CanLaunch => !ShipLocked;
 
         public event Action Changed;
@@ -115,6 +115,8 @@ namespace UI.Hangar.Selection
                     throw new ArgumentOutOfRangeException(nameof(slot), slot, null);
             }
         }
+
+        public bool IsLocked(Ship ship) => gated && !Selectable(ship);
 
         private bool Selectable(Ship ship) => ship == starter || earned(ship);
 
