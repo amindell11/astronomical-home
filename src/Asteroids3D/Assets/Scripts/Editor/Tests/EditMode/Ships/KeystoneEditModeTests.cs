@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Reflection;
 using Combat.Targeting;
 using Damage;
 using Movement;
@@ -280,6 +281,31 @@ namespace Tests.EditMode.Ships
             Assert.That(ram.CooldownRemaining, Is.LessThanOrEqualTo(before), "contact never lengthens the cooldown");
             Assert.That(ram.CooldownRemaining, Is.EqualTo(3.5f - steps * Dt).Within(Dt),
                 "contact cuts the cooldown to hitCooldown from the press");
+        }
+
+        [Test]
+        public void RamDash_Hit_RecordsTheContact_OncePerRam()
+        {
+            var ram = NewRam();
+            contact = new GameObject("Ram contact");
+            var collider = contact.AddComponent<BoxCollider>();
+            var kin = Facing(0f);
+            ram.Step(in kin, 1f, Dt, out _);
+            while (ram.Braking)
+                ram.Step(in kin, 0f, Dt, out _);
+
+            var point = new Vector3(3f, 0f, 5f);
+            Assert.That(ram.RamLive, Is.True);
+            Assert.That(ram.Hits, Is.EqualTo(0));
+            ram.OnContact(new KeystoneContact(
+                ShipId.Invalid, 0f, Vector3.zero, collider, null, point, 1f, 0f));
+            Assert.That(ram.Hits, Is.EqualTo(1));
+            Assert.That(ram.LastHitPoint, Is.EqualTo(point));
+
+            ram.OnContact(new KeystoneContact(
+                ShipId.Invalid, 0f, Vector3.zero, collider, null, new Vector3(1f, 2f, 4f), 1f, 0f));
+            Assert.That(ram.Hits, Is.EqualTo(1), "a second contact in the same ram does not count");
+            Assert.That(ram.LastHitPoint, Is.EqualTo(point));
         }
 
         [Test]
@@ -572,7 +598,9 @@ namespace Tests.EditMode.Ships
             Assert.That(blink.name, Is.EqualTo("Crimson_Blink"));
             Assert.That(blink.Range, Is.EqualTo(12f));
             Assert.That(blink.Cooldown, Is.EqualTo(4f));
-            Assert.That(blink.GetComponent<KeystoneFlash>(), Is.Not.Null, "the kit carries its tell");
+            Assert.That(blink.GetComponent<KeystoneEmergence>(), Is.Not.Null, "the kit carries its tell");
+            Assert.That(blink.GetComponent<KeystoneFlipbook>(), Is.Not.Null, "the kit carries its blink flipbook");
+            Assert.That(blink.GetComponent<KeystoneFlash>(), Is.Null, "the kit carries no flash");
         }
 
         [Test]
@@ -620,6 +648,58 @@ namespace Tests.EditMode.Ships
             Assert.That(guard.Window, Is.EqualTo(0.4f));
             Assert.That(guard.GetComponent<KeystoneFlash>(), Is.Not.Null, "the kit carries its tell");
             Assert.That(guard.GetComponent<KeystoneFlipbook>(), Is.Not.Null, "the kit carries its dash flipbook");
+        }
+
+        [Test]
+        public void Bulwark_CarriesItsRamFlipbook()
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<ItemCatalog>(ItemCatalog.AssetPath);
+            var ram = catalog.Chassis.Single(c => c.name == "Bulwark").KeystonePrefab as RamDash;
+            Assert.That(ram, Is.Not.Null, "Bulwark's kit is the ram");
+            Assert.That(ram.GetComponent<KeystoneFlipbook>(), Is.Not.Null, "the kit carries its ram flipbook");
+        }
+
+        [Test]
+        public void StartsBehind_WithoutStayingAtLaunch_ThrowsOnAwake()
+        {
+            var feel = ScriptableObject.CreateInstance<KeystoneFlipbookFeel>();
+            var material = AssetDatabase.LoadAssetAtPath<Material>(
+                "Assets/Visuals/Vfx/Keystones/VanguardDash/VanguardDash_Under.mat");
+            host = new GameObject("Flipbook");
+            host.SetActive(false);
+            try
+            {
+                Assert.That(material, Is.Not.Null, "a sheet material to build the layer");
+                var feelObject = new SerializedObject(feel);
+                var layers = feelObject.FindProperty("layers");
+                layers.arraySize = 1;
+                var layer = layers.GetArrayElementAtIndex(0);
+                layer.FindPropertyRelative("material").objectReferenceValue = material;
+                layer.FindPropertyRelative("columns").intValue = 1;
+                layer.FindPropertyRelative("rows").intValue = 1;
+                layer.FindPropertyRelative("frames").intValue = 1;
+                layer.FindPropertyRelative("startsBehind").boolValue = true;
+                layer.FindPropertyRelative("staysAtLaunch").boolValue = false;
+                feelObject.ApplyModifiedPropertiesWithoutUndo();
+
+                var kit = host.AddComponent<Blink>();
+                var flipbook = host.AddComponent<KeystoneFlipbook>();
+                var part = new SerializedObject(flipbook);
+                part.FindProperty("keystone").objectReferenceValue = kit;
+                part.FindProperty("shipLength").floatValue = 1f;
+                part.FindProperty("feel").objectReferenceValue = feel;
+                part.ApplyModifiedPropertiesWithoutUndo();
+
+                // Edit mode never wakes a part, so the test calls Awake itself.
+                var awake = typeof(KeystoneFlipbook).GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic);
+                var thrown = Assert.Throws<TargetInvocationException>(() => awake.Invoke(flipbook, null));
+                Assert.That(thrown.InnerException, Is.TypeOf<InvalidOperationException>());
+                Assert.That(thrown.InnerException.Message, Does.Contain("starts behind only when it stays at launch"));
+            }
+            finally
+            {
+                Object.DestroyImmediate(feel);
+            }
         }
 
         [TestCase("Vanguard", 9000f, 5f)]

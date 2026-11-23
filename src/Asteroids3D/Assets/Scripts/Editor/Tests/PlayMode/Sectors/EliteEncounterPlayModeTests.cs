@@ -25,12 +25,13 @@ using Substrate.Sessions;
 
 namespace Tests.PlayMode.Sectors
 {
-    /// <summary>A phased sector that ends at its elite: the phases' end summons a scaled elite on its faction's signature ship and announces it with the sector's index and faction id, its hull falling past the first escalation step calls that step's escorts on the minion rank at the minion's scale with this encounter's escort pilot, its death extracts, and teardown clears it and its escorts. Once the elite arrives the wave director sends no more ships and those already out fly on, while a sector with no elite keeps refilling. A spawn log watching the encounter marks the elite's life and raises the player's kill of it.</summary>
+    /// <summary>A phased sector that ends at its elite: the phases' end summons a scaled elite on its faction's elite chassis and announces it with the sector's index and faction id, its hull falling past the first escalation step calls that step's escorts on the minion rank at the minion's scale with this encounter's escort pilot, its death extracts, and teardown clears it and its escorts. For the elite's grace the wave director sends no ships and those already out fly on; past it, each beat sends minions to follow the elite, up to the minion cap, until the elite dies. A sector with no elite keeps refilling. A spawn log watching the encounter marks the elite's life and raises the player's kill of it.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class EliteEncounterPlayModeTests : PlayModeWorldFixture
     {
         private const float Size = 2f;
+        private const float Grace = 30f;
 
         private UnitService _unitService;
         private ObjectiveService _objectives;
@@ -74,7 +75,7 @@ namespace Tests.PlayMode.Sectors
 
         private const string EscortPilotPath = "Assets/Prefabs/Pilots/AggressorPilot.prefab";
 
-        // The elite flies Crimson, the faction's signature ship. Escorts fly that ship at minion scale.
+        // The elite and the escorts fly Crimson; escorts at minion scale.
         private (Sector sector, PhaseSpineModule spine, EliteEncounter encounter, ExtractionZone zone) EliteSector(
             Ship hero, EliteProfile profile, string factionId, int sectorIndex, int waveShips = 0,
             bool withElite = true, float waveEvery = 30f)
@@ -95,10 +96,12 @@ namespace Tests.PlayMode.Sectors
             };
             faction.minion = new FactionMinion
             {
+                ship = crimson,
                 kit = vanguard.Weapons.PrimaryMountPrefab,
                 pilot = pilot,
                 scale = new ShipScale(0.75f, 1f, 1f, 1f, 0.7f),
             };
+            faction.elite = new FactionElite { ship = crimson };
 
             var sectorGO = Track(new GameObject("EliteSector"));
             var sector = sectorGO.AddComponent<Sector>();
@@ -128,7 +131,7 @@ namespace Tests.PlayMode.Sectors
                 },
             };
             director.Configure(row.phases, lullSeconds: 0f, faction: sectorFaction,
-                elite: withElite ? encounter : null);
+                elite: withElite ? encounter : null, eliteGraceSeconds: Grace);
 
             var zone = NewZone(sectorGO.transform, "Zone");
             var spine = sectorGO.AddComponent<PhaseSpineModule>();
@@ -193,7 +196,7 @@ namespace Tests.PlayMode.Sectors
             var escorts = Escorts();
             Assert.AreEqual(2, escorts.Length, "Falling past two thirds calls the first step's escorts, and only those.");
             var escortPilot = TestAssets.Load<AI.AICommander>(EscortPilotPath);
-            Assert.IsTrue(escorts.All(ship => ship.name.StartsWith(crimson.name)), "Escorts fly the signature ship.");
+            Assert.IsTrue(escorts.All(ship => ship.name.StartsWith(crimson.name)), "Escorts fly the minion chassis.");
             Assert.IsTrue(escorts.All(ship => ship.Commander.name.StartsWith(escortPilot.name)),
                 "Escorts fly this encounter's escort pilot.");
             Assert.IsTrue(escorts.All(ship =>
@@ -257,7 +260,7 @@ namespace Tests.PlayMode.Sectors
 
         [UnityTest]
         [Timeout(600000)]
-        public IEnumerator EliteArrival_StopsTheWaves_AndTheShipsAlreadyOutFlyOn()
+        public IEnumerator EliteArrival_SendsNoShipsThroughItsGrace_AndTheShipsAlreadyOutFlyOn()
         {
             var hero = Track(ShipTestFactory.CreateKinematicPrimitiveShipAt(Vector2.zero).gameObject).GetComponent<Ship>();
             var (sector, _, _, _) = EliteSector(hero, PlainProfile(), "shoal", sectorIndex: 0, waveShips: 2);
@@ -279,6 +282,53 @@ namespace Tests.PlayMode.Sectors
             CollectionAssert.AreEqual(new[] { survivor }, director.Spawned, "No wave ship replaces the downed one.");
             Assert.IsTrue(survivor.gameObject.activeInHierarchy, "A wave ship already out flies on.");
             Assert.IsTrue(hero.gameObject.activeInHierarchy, "test premise: the hero lives, so the director ticks");
+
+            yield return sector.Teardown();
+        }
+
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator EliteFight_PastItsGrace_BeatsSendMinionsToTheElite_UpToTheMinionCap_UntilItDies()
+        {
+            var hero = Track(ShipTestFactory.CreateKinematicPrimitiveShipAt(Vector2.zero).gameObject).GetComponent<Ship>();
+            const float beat = 10f;
+            var (sector, _, encounter, _) = EliteSector(hero, PlainProfile(), "shoal", sectorIndex: 0, waveShips: 2,
+                waveEvery: beat);
+            var director = sector.Spawners.OfType<WaveDirector>().Single();
+            var waves = 0;
+            director.WaveSent += _ => waves++;
+
+            yield return sector.Setup();
+            yield return AsyncAssert.WaitUntil(() => _objectives.SpineStep == PhaseSpineModule.StepElite, 5f,
+                "the phases' end summons the elite");
+            var summoned = Time.time;
+            var elite = encounter.Ship;
+            Assert.AreEqual(2, director.Spawned.Count, "test premise: the opening wave, a rival and a minion, is out");
+            var opening = director.Spawned.ToArray();
+
+            director.Tick(summoned + Grace - 1f);
+            Assert.AreEqual(2, director.Spawned.Count, "Nothing arrives inside the grace.");
+
+            var at = summoned + Grace;
+            for (var i = 0; i < 4; i++)
+                director.Tick(at += beat);
+            var reinforcements = director.Spawned.Except(opening).ToArray();
+            Assert.AreEqual(3, reinforcements.Length, "Three beats add a minion each; the fourth finds the minion cap of 4 full.");
+            Assert.AreEqual(1, waves, "Only the opening wave was a wave.");
+            var contexts = reinforcements.Select(ship => ((AI.AICommander)ship.Commander).context).ToArray();
+            Assert.IsTrue(contexts.All(context => context.Leader == elite), "Every reinforcement follows the elite.");
+            CollectionAssert.AreEquivalent(new[] { -2, -1, 1 }, contexts.Select(context => context.Place),
+                "Reinforcements take the elite's free places, -1, +1, then -2.");
+
+            StagedMoments.Kill(elite);
+            var downed = reinforcements[0];
+            StagedMoments.Kill(downed);
+            for (var i = 0; i < 10 && director.Spawned.Contains(downed); i++)
+                yield return null;
+            Assert.IsFalse(director.Spawned.Contains(downed), "test premise: a reinforcement is gone, so the minion cap has room");
+            var before = director.Spawned.ToArray();
+            director.Tick(at += beat);
+            CollectionAssert.IsSubsetOf(director.Spawned, before, "A dead elite calls no more minions.");
 
             yield return sector.Teardown();
         }

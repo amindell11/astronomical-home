@@ -85,7 +85,8 @@ namespace Tests.PlayMode.Hangar
             var host = hostGo.AddComponent<GameHost>();
             host.hangarConsolePrefab = AssetDatabase.LoadAssetAtPath<HangarConsole>(HangarConsolePath);
             host.hangarOffer = AssetDatabase.LoadAssetAtPath<ItemSubset>(OfferPath);
-            host.unlocks = new ShipUnlocks(Path.Combine(Application.temporaryCachePath, "no-run-records.jsonl"));
+            host.unlocks = new ShipUnlocks(Path.Combine(Application.temporaryCachePath, "no-run-records.jsonl"),
+                new Dictionary<string, string>());
 
             var finished = false;
             IEnumerator Run()

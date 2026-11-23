@@ -7,8 +7,9 @@ using UnityEngine.Rendering;
 namespace Ships.Keystones.Tells
 {
     /// <summary>
-    /// Plays a kit's baked flipbook sheets from the kit's activation. The drawing and the baked
-    /// timing live in the sheets; the playback knobs live in the feel profile.
+    /// Plays a kit's baked flipbook sheets, each layer from its own start: the kit's press, its
+    /// going live, or its hit. The drawing and the baked timing live in the sheets; the playback
+    /// knobs live in the feel profile.
     /// Design: https://github.com/amindell11/astronomical-home/issues/1574
     /// </summary>
     public sealed class KeystoneFlipbook : MonoBehaviour, IPresentationPart
@@ -28,10 +29,21 @@ namespace Ships.Keystones.Tells
         private Transform[] sheetTransforms;
         private MaterialPropertyBlock block;
         private int seenActivations;
-        private float startedAt;
-        private bool playing;
-        private Vector3 launchPosition;
-        private Quaternion launchRotation;
+        private bool seenActive;
+        private int seenHits;
+        private LayerPlay[] play;
+        private Vector3 previousPosition;
+        private Quaternion previousPose;
+
+        private struct LayerPlay
+        {
+            public bool playing;
+            public float startedAt;
+            public bool liveEnded;
+            public float liveEndedAt;
+            public Vector3 position;
+            public Quaternion rotation;
+        }
 
         private void Awake()
         {
@@ -60,20 +72,36 @@ namespace Ships.Keystones.Tells
                 if (layer.frames < 1 || layer.frames > cells)
                     throw new InvalidOperationException(
                         $"KeystoneFlipbook on '{name}' layer {i} needs frames from 1 to {cells}.");
+                if (layer.startsBehind && !layer.staysAtLaunch)
+                    throw new InvalidOperationException(
+                        $"KeystoneFlipbook on '{name}' layer {i} starts behind only when it stays at launch.");
             }
 
             block = new MaterialPropertyBlock();
             BuildSheets();
+            play = new LayerPlay[layers.Length];
             seenActivations = keystone.Activations;
+            seenActive = keystone.Active;
+            seenHits = keystone.Hits;
         }
 
         public void ApplyPresentation(bool visible) => enabled = visible;
 
-        private void OnEnable() => HideSheets();
+        private void OnEnable()
+        {
+            // A dark part misses LateUpdate, so enable refreshes the remembered point.
+            RememberShip();
+            HideSheets();
+        }
 
         private void OnDisable()
         {
-            playing = false;
+            if (play != null)
+            {
+                for (var i = 0; i < play.Length; i++)
+                    play[i].playing = false;
+            }
+
             HideSheets();
         }
 
@@ -91,35 +119,76 @@ namespace Ships.Keystones.Tells
 
         private void LateUpdate()
         {
-            var fired = keystone.Activations > seenActivations;
+            var press = keystone.Activations > seenActivations;
             seenActivations = keystone.Activations;
-            if (fired)
+            var hit = keystone.Hits > seenHits;
+            seenHits = keystone.Hits;
+            // A hit proves the kit went live, even when both fell between two frames.
+            var live = (keystone.Active || hit) && !seenActive;
+            seenActive = keystone.Active;
+
+            var layers = feel.Layers;
+            var pose = FlatPose();
+            var anyPlaying = false;
+            for (var i = 0; i < layers.Length; i++)
             {
-                startedAt = Time.time;
-                playing = true;
-                launchPosition = transform.position;
-                launchRotation = FlatPose();
+                var startsOn = layers[i].startsOn;
+                var started = false;
+                if (startsOn == KeystoneFlipbookStart.Press) started = press;
+                else if (startsOn == KeystoneFlipbookStart.Live) started = live;
+                else if (startsOn == KeystoneFlipbookStart.Hit) started = hit;
+                if (started)
+                {
+                    play[i].playing = true;
+                    play[i].startedAt = Time.time;
+                    play[i].liveEnded = false;
+                    var behind = layers[i].startsBehind;
+                    play[i].position = startsOn == KeystoneFlipbookStart.Hit ? keystone.LastHitPoint
+                        : behind ? previousPosition
+                        : transform.position;
+                    play[i].rotation = behind ? previousPose : pose;
+                }
+
+                if (play[i].playing) anyPlaying = true;
             }
 
-            if (!playing)
+            if (!anyPlaying)
             {
                 HideSheets();
+                RememberShip();
                 return;
             }
 
-            var layers = feel.Layers;
-            var elapsed = (Time.time - startedAt) * feel.Speed;
-            var flat = FlatPose();
             var edgeOn = 1f - Mathf.Abs(Vector3.Dot(transform.forward, GamePlane.Normal));
             var banked = Mathf.Max(0.1f, 1f - edgeOn * feel.BankNarrowing);
-            var any = false;
             for (var i = 0; i < layers.Length; i++)
             {
-                var layer = layers[i];
-                var frame = Mathf.FloorToInt(elapsed * layer.speed * feel.FramesPerSecond);
-                if (frame < layer.frames) any = true;
+                if (!play[i].playing)
+                {
+                    renderers[i].enabled = false;
+                    continue;
+                }
 
-                var visible = layer.show && frame < layer.frames && (layer.endsAt <= 0f || elapsed < layer.endsAt);
+                var layer = layers[i];
+                var elapsed = (Time.time - play[i].startedAt) * feel.Speed;
+                if (layer.endsWithLive && !keystone.Active && !play[i].liveEnded)
+                {
+                    play[i].liveEnded = true;
+                    play[i].liveEndedAt = Time.time;
+                }
+
+                var liveFade = 1f;
+                if (play[i].liveEnded)
+                    liveFade = layer.fadeOut > 0f
+                        ? Mathf.Clamp01(1f - (Time.time - play[i].liveEndedAt) * feel.Speed / layer.fadeOut)
+                        : 0f;
+
+                var frame = Mathf.FloorToInt(elapsed * layer.speed * feel.FramesPerSecond);
+                if (frame >= layer.frames || liveFade <= 0f)
+                    play[i].playing = false;
+
+                var visible = layer.show && frame < layer.frames && liveFade > 0f
+                    && (layer.endsAt <= 0f || elapsed < layer.endsAt);
                 renderers[i].enabled = visible;
 
                 var k = feel.Scale * layer.size;
@@ -127,10 +196,11 @@ namespace Ships.Keystones.Tells
                 var sheetTransform = sheetTransforms[i];
                 if (layer.staysAtLaunch)
                     sheetTransform.SetPositionAndRotation(
-                        launchPosition + launchRotation * new Vector3(0f, offset, layer.depth), launchRotation);
+                        play[i].position + play[i].rotation * new Vector3(0f, offset, layer.depth),
+                        play[i].rotation);
                 else
                     sheetTransform.SetPositionAndRotation(
-                        transform.position + flat * new Vector3(0f, offset, layer.depth), flat);
+                        transform.position + pose * new Vector3(0f, offset, layer.depth), pose);
                 var across = layer.staysAtLaunch ? 1f : banked;
                 sheetTransform.localScale = new Vector3(
                     layer.width * shipLength * k * across, layer.length * shipLength * k, 1f);
@@ -139,12 +209,19 @@ namespace Ships.Keystones.Tells
                 var opacity = layer.opacity;
                 if (layer.endsAt > 0f && layer.fadeOut > 0f)
                     opacity *= Mathf.Clamp01((layer.endsAt - elapsed) / layer.fadeOut);
+                opacity *= liveFade;
                 block.SetFloat(FrameId, frame);
                 block.SetFloat(OpacityId, opacity);
                 renderers[i].SetPropertyBlock(block);
             }
 
-            if (!any) playing = false;
+            RememberShip();
+        }
+
+        private void RememberShip()
+        {
+            previousPosition = transform.position;
+            previousPose = FlatPose();
         }
 
         // The ship banks by rolling; the sheets stay flat on the game plane along its heading.

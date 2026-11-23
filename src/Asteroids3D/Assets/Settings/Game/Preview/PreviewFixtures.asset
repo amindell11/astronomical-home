@@ -25,7 +25,8 @@ MonoBehaviour:
       faction: {fileID: 0}
       elite: {fileID: 0}
       phases: []
-      waveCap: 5
+      rivalCap: 1
+      minionCap: 4
       patrols: 0
       searchSeconds: 0
       repairStations: 0
@@ -49,7 +50,8 @@ MonoBehaviour:
         fewestMinions: 0
         mostMinions: 0
         waveEvery: 20
-      waveCap: 5
+      rivalCap: 1
+      minionCap: 4
       patrols: 0
       searchSeconds: 0
       repairStations: 0
@@ -73,7 +75,8 @@ MonoBehaviour:
         fewestMinions: 0
         mostMinions: 0
         waveEvery: 20
-      waveCap: 5
+      rivalCap: 1
+      minionCap: 4
       patrols: 0
       searchSeconds: 0
       repairStations: 0
@@ -97,7 +100,8 @@ MonoBehaviour:
         fewestMinions: 0
         mostMinions: 0
         waveEvery: 20
-      waveCap: 5
+      rivalCap: 1
+      minionCap: 4
       patrols: 0
       searchSeconds: 0
       repairStations: 0
@@ -121,7 +125,8 @@ MonoBehaviour:
         fewestMinions: 0
         mostMinions: 0
         waveEvery: 20
-      waveCap: 5
+      rivalCap: 1
+      minionCap: 4
       patrols: 0
       searchSeconds: 0
       repairStations: 0
@@ -140,7 +145,8 @@ MonoBehaviour:
       faction: {fileID: 0}
       elite: {fileID: 0}
       phases: []
-      waveCap: 5
+      rivalCap: 1
+      minionCap: 4
       patrols: 0
       searchSeconds: 0
       repairStations: 0
@@ -159,7 +165,8 @@ MonoBehaviour:
       faction: {fileID: 0}
       elite: {fileID: 0}
       phases: []
-      waveCap: 5
+      rivalCap: 1
+      minionCap: 4
       patrols: 0
       searchSeconds: 0
       repairStations: 0
@@ -182,7 +189,8 @@ MonoBehaviour:
         fewestMinions: 2
         mostMinions: 2
         waveEvery: 5
-      waveCap: 6
+      rivalCap: 1
+      minionCap: 5
       patrols: 0
       searchSeconds: 0
       repairStations: 0

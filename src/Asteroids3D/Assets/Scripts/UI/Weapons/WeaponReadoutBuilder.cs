@@ -75,7 +75,6 @@ namespace UI.Weapons
                 if (!panel)
                 {
                     panel = Instantiate(panelPrefab, transform);
-                    panel.Initialize(weapons.DisplayName(slot));
                     panels.Add(panel);
                 }
                 var widget = Instantiate(lockWidgetPrefab, panel.Container);

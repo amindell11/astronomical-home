@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using Game;
 using Game.Runs;
@@ -112,7 +113,8 @@ namespace Tests.PlayMode
 
         // The inactive host never runs Awake, so the test hands it the unlocks.
         private static ShipUnlocks NoUnlocks() =>
-            new(Path.Combine(Application.temporaryCachePath, "no-run-records.jsonl"));
+            new(Path.Combine(Application.temporaryCachePath, "no-run-records.jsonl"),
+                new Dictionary<string, string>());
     }
 }
 #endif

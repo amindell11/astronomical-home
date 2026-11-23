@@ -11,8 +11,10 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4a8696b138ba48e89cd03d131b6cdc2d, type: 3}
   m_Name: CompanionFeel
-  m_EditorClassIdentifier:
-  minLineIntervalSeconds: 25
+  m_EditorClassIdentifier: 
+  minLineIntervalSeconds: 10
   staleSeconds: 3
   holdSeconds: 4
+  readingCharactersPerSecond: 12
   fadeSeconds: 0.4
+  replyChance: 0.6

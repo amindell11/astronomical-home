@@ -11,6 +11,7 @@ using Game.Audio;
 using Game.Companion;
 using Game.Display;
 using Game.Moments;
+using Game.Moments.Encounters;
 using Game.Moments.Finds;
 using Game.Player;
 using Game.Player.Recorders;
@@ -22,6 +23,7 @@ using Substrate.Presentation;
 using Substrate.Sectors;
 using Substrate.Sectors.Elements.Phases;
 using Substrate.Sectors.Elements.Stations;
+using Substrate.Sectors.Factions;
 using Substrate.Sessions;
 using Ships;
 using Ships.Command;
@@ -126,8 +128,10 @@ namespace Game
         [SerializeField] private PlayerDeathBehavior deathBehavior = PlayerDeathBehavior.RestartSector;
 
         [Header("Kill Refill")]
-        [Tooltip("Fraction of max hull restored to the player on each kill the run tally counts.")]
-        [SerializeField, Range(0f, 1f)] private float killHullRestore = 0.25f;
+        [Tooltip("Hull points restored to the player on each counted kill that is neither a rival nor the elite: minions, hunt patrols and elite escorts.")]
+        [SerializeField, Min(0f)] private float minionKillHeal = 10f;
+        [Tooltip("Hull points restored to the player on each counted kill of a wave's rival or the sector's elite.")]
+        [SerializeField, Min(0f)] private float rivalKillHeal = 40f;
 
         [Header("Lull pick")]
         [Tooltip("Lull mods offered when the player claims a mod station, three at a time with time stopped. " +
@@ -167,6 +171,7 @@ namespace Game
         private LocaleSky[] runLocales;
         private bool shutdownComplete;
         private int activeSectorIndex;
+        private string activeSectorFaction = string.Empty;
         private SectorJumpFlight jump;
         private ExceptionDispatchInfo fault;
 
@@ -199,7 +204,13 @@ namespace Game
 
             buildIdentity ??= BuildIdentity.Source();
             runRecords = new RunRecordStore(runRecordPath);
-            unlocks = new ShipUnlocks(runRecords.Path);
+            var unlockedByElite = new Dictionary<string, string>();
+            foreach (var row in sessionProfile.run.Sectors)
+            {
+                var faction = row.faction;
+                if (faction) unlockedByElite.TryAdd(faction.EliteShip.name, faction.Unlocks.name);
+            }
+            unlocks = new ShipUnlocks(runRecords.Path, unlockedByElite);
 
             DontDestroyOnLoad(gameObject);
             StartCoroutine(CatchingRoutine.Run(Run(), exception =>
@@ -253,6 +264,7 @@ namespace Game
                     observer, ui, session.Frame, BuildDeathCallback());
                 rigInstance.Tally.Killed += RefillPlayerHull;
                 rigInstance.Spawns.EliteKilled += unlocks.Claim;
+                unlocks.Unlocked += OnShipUnlocked;
             }
             if (presentation && rigInstance)
             {
@@ -284,6 +296,7 @@ namespace Game
             if (rigInstance)
             {
                 rigInstance.Tally.Killed -= RefillPlayerHull;
+                unlocks.Unlocked -= OnShipUnlocked;
                 rigInstance.Teardown();
             }
             clock.ReleaseAll();
@@ -344,10 +357,14 @@ namespace Game
                         runLoadoutHash = rigInstance ? BeginRun() : null;
                     else if (rigInstance)
                         rigInstance.Player.Damage.Health.SetFraction(hull);
-                    moments.Raise(new SectorEntered(index + 1));
+                    var factionModule = session.ActiveSector.Module<SectorFaction>();
+                    var faction = factionModule ? factionModule.Faction.id : string.Empty;
+                    activeSectorFaction = faction;
+                    moments.Raise(new SectorEntered(index + 1, faction));
                     SetSplashVisible(false);
                     if (music) music.EnterSector(session.ActiveSector, session.ActiveLocale);
-                    if (rigInstance) rigInstance.EnterSector(session.ActiveSector.Module<PhaseSpineModule>());
+                    var spine = session.ActiveSector.Module<PhaseSpineModule>();
+                    if (rigInstance) rigInstance.EnterSector(spine);
                     var sectorStartTime = Time.time;
                     OpenSector(index);
                     var modStations = presentation && lullMods && rigInstance
@@ -370,6 +387,8 @@ namespace Game
                     };
                     foreach (var station in findStations)
                         if (station) station.Arrived += onStationArrived;
+                    var sectorMoments = new SectorMoments(moments, faction, spine ? spine.Hunt : null,
+                        spine ? spine.Elite : null, spine ? spine.Waves : null);
 
                     pauseRequested = false;
                     while (!playerDied && !sectorEnded && !shutdownRequested && !quitRun)
@@ -400,6 +419,7 @@ namespace Game
                     }
                     foreach (var station in findStations)
                         if (station) station.Arrived -= onStationArrived;
+                    sectorMoments.Dispose();
                     closeCalls?.Dispose();
                     if (shutdownRequested) yield break;
                     CloseOpenSector();
@@ -812,7 +832,9 @@ namespace Game
                         lastKillingBlow = killingBlow;
                         deathPosition = GamePlane.WorldPointToPlane(rigInstance.Player.transform.position);
                         playerDied = true;
-                        moments.Raise(new PlayerDied(activeSectorIndex + 1, killingBlow.Kind));
+                        var byEnemy = killingBlow.AttackerId != ShipId.Invalid && killingBlow.AttackerId != rigInstance.Player.Id;
+                        var faction = byEnemy ? activeSectorFaction : string.Empty;
+                        moments.Raise(new PlayerDied(activeSectorIndex + 1, killingBlow.Kind, faction));
                     };
                 case PlayerDeathBehavior.None:
                 default:
@@ -886,7 +908,7 @@ namespace Game
 
             var sectorsCleared = abandoned ? clearedSectors : killingBlow.HasValue ? endedIn : endedIn + 1;
             var record = RunRecord.Compose(DateTime.UtcNow, sectorsCleared, endedIn, locales, identity,
-                StatHash.OfSetting(hangarOffer, lullMods, sessionProfile.run.Sectors, killHullRestore), rigInstance.Loadout,
+                StatHash.OfSetting(hangarOffer, lullMods, sessionProfile.run.Sectors, minionKillHeal, rivalKillHeal), rigInstance.Loadout,
                 playerLoadoutStatHash, rigInstance.Tally, rigInstance.Ledger, rigInstance.Spawns, killingBlow,
                 course, MountedLoadout(rigInstance.Player), rigInstance.Mods.PickedNames(), ReadEndPhase(),
                 Application.isEditor ? RunRecord.OriginEditor : RunRecord.OriginBuild, DealtRows(rigInstance.Dealt),
@@ -948,7 +970,17 @@ namespace Game
             return names;
         }
 
-        private void RefillPlayerHull() => rigInstance.Player.Damage.Health.RestoreFraction(killHullRestore);
+        private void RefillPlayerHull(ShipId victim) =>
+            rigInstance.Player.Damage.Health.Restore(PaysRivalHeal(victim) ? rivalKillHeal : minionKillHeal);
+
+        private bool PaysRivalHeal(ShipId victim)
+        {
+            var sector = session != null ? session.ActiveSector : null;
+            var spine = sector ? sector.Module<PhaseSpineModule>() : null;
+            return (spine && spine.IsRival(victim)) || rigInstance.Spawns.IsElite(victim);
+        }
+
+        private void OnShipUnlocked(ShipUnlocked unlocked) => moments.Raise(new ShipEarned(unlocked));
 
         /// <summary>Never blocks on a click when not presenting; callable without a session for tests.</summary>
         internal IEnumerator RunHangar(PlayerRig rig, bool presentationEnabled, Transform uiRoot)

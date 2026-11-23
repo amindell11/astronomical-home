@@ -6,6 +6,7 @@ using Objectives;
 using Objectives.Presentation;
 using Objectives.States;
 using Ships;
+using Ships.Registry;
 using Substrate.Sectors.Elements.Elites;
 using Substrate.Sectors.Elements.Hunt;
 using Substrate.Sectors.Elements.Placement;
@@ -70,6 +71,12 @@ namespace Substrate.Sectors.Elements.Phases
         public SectorPhaseMark Phase => director.Phase;
 
         public IEliteStatus Elite => director.Elite;
+
+        public SectorHunt Hunt => hunt ? hunt : null;
+
+        public IWaveSignal Waves => director;
+
+        public bool IsRival(ShipId ship) => director.IsRival(ship);
 
         /// <summary>True from a lull beacon's claim until the next opens.</summary>
         public bool BeaconClaimed { get; private set; }
