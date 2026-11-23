@@ -515,7 +515,8 @@ namespace Tests.PlayMode.Preview
             yield return AsyncAssert.WaitUntil(button.IsInteractable, 10f, "the faded-in card is ready for Continue");
             var rect = (RectTransform)button.transform;
             Canvas.ForceUpdateCanvases();
-            input.Set(mouse.position, RectTransformUtility.WorldToScreenPoint(null, rect.TransformPoint(rect.rect.center)));
+            input.Set(mouse.position, RectTransformUtility.WorldToScreenPoint(rect.GetComponentInParent<Canvas>().rootCanvas.worldCamera,
+                rect.TransformPoint(rect.rect.center)));
             yield return null;
             input.Press(mouse.leftButton);
             yield return null;

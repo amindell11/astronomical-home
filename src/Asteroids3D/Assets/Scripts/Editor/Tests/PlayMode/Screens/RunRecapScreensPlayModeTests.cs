@@ -55,7 +55,7 @@ namespace Tests.PlayMode.Screens
 
         private void Play(RecapOutcomeContext context, RecapFeelProfile profile = null)
         {
-            screen = RunRecapScreen.Create(null, context);
+            screen = RunRecapScreen.Create(null, context, null);
             screen.StartCoroutine(RecapPlayback.Run(new RecapOutcomeSequence(profile ? profile : feel, context),
                 screen.Apply, () => screen.Continued));
         }
@@ -279,7 +279,7 @@ namespace Tests.PlayMode.Screens
             Time.timeScale = .65f;
             IEnumerator ShowCard()
             {
-                yield return RecapPlayback.RunScreen(new RecapOutcomeSequence(feel, context), playbackOwner.transform);
+                yield return RecapPlayback.RunScreen(new RecapOutcomeSequence(feel, context), playbackOwner.transform, null);
                 completed++;
             }
             runner.StartCoroutine(ShowCard());
@@ -307,7 +307,7 @@ namespace Tests.PlayMode.Screens
             var completed = false;
             IEnumerator ShowCard()
             {
-                yield return RecapPlayback.RunScreen(new RecapOutcomeSequence(feel, context), playbackOwner.transform,
+                yield return RecapPlayback.RunScreen(new RecapOutcomeSequence(feel, context), playbackOwner.transform, null,
                     cancelled: () => cancelled);
                 completed = true;
             }
@@ -388,6 +388,20 @@ namespace Tests.PlayMode.Screens
                         ((RectTransform)scoreboard.Find("Row" + (i + 1))).anchoredPosition.y);
             }
             Assert.AreEqual("5", TextAt("Scoreboard/Body/Row5/Rank").text);
+        }
+
+        [UnityTest]
+        public IEnumerator Scoreboard_HasAnOpaqueBody_AndItsHeadingsShareOneBaseline()
+        {
+            var board = new Scoreboard(Array.Empty<Scoreboard.Row>(), new Scoreboard.Row(2, 1, 600, DateTime.UtcNow));
+            Play(RecapOutcomeContext.Defeat(Array.Empty<string>(), 2, 3, board, Vector2.zero));
+            yield return null;
+            Assert.AreEqual(1f, screen.transform.Find("Panels/Scoreboard/Back").GetComponent<ChamferedShape>().color.a,
+                "the Flight Recorder behind does not show through");
+            var columns = screen.transform.Find("Panels/Scoreboard/Body/Columns");
+            var baselines = new[] { "Rank", "ShipHeading", "LoadoutHeading", "Sectors", "Kills", "Time" }
+                .Select(heading => ((RectTransform)columns.Find(heading)).anchoredPosition.y).ToArray();
+            Assert.That(baselines, Is.All.EqualTo(baselines[0]));
         }
     }
 }

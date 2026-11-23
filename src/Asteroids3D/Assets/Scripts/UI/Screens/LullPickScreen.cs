@@ -28,20 +28,22 @@ namespace UI.Screens
 
         private readonly List<InputAction> actions = new();
         private ScreenFonts fonts;
+        private ScreenLayers layers;
         private int offerCount;
 
         /// <summary>Null until answered; then the picked offer's index, or <see cref="Skip"/>.</summary>
         public int? Choice { get; private set; }
 
         public static LullPickScreen Create(Transform parent, IReadOnlyList<LullMod> offers,
-            Func<LullMod, string> landing)
+            Func<LullMod, string> landing, ScreenCameras cameras)
         {
             if (offers == null || offers.Count == 0 || offers.Count > MaxOffers)
                 throw new ArgumentException($"A lull pick offers one to {MaxOffers} mods.", nameof(offers));
             var go = new GameObject("LullPickScreen", typeof(RectTransform));
             go.transform.SetParent(parent, false);
-            ScreenKit.Canvas(go);
+            var layers = ScreenLayers.Create(go, cameras);
             var screen = go.AddComponent<LullPickScreen>();
+            screen.layers = layers;
             screen.offerCount = offers.Count;
             screen.Build(offers, landing);
             screen.BindKeys();
@@ -67,7 +69,7 @@ namespace UI.Screens
 
         private void Build(IReadOnlyList<LullMod> offers, Func<LullMod, string> landing)
         {
-            WindowKit.Fade(transform, WindowKit.StrongFade);
+            WindowKit.Fade(layers.Under, WindowKit.StrongFade);
             ScreenKit.Label(ScreenKit.Centered(transform, "Title", 800f, 44f, 207f), "MOD PICK", 32, WindowKit.Ink,
                 fonts.Title, TextAnchor.MiddleCenter);
             ScreenKit.Label(ScreenKit.Centered(transform, "Hint", 800f, 20f, 169f),
@@ -80,14 +82,14 @@ namespace UI.Screens
             for (var i = 0; i < count; i++)
                 BuildCard(cards, i, offers[i], landing(offers[i]));
 
-            WindowKit.KeyButton(ScreenKit.Centered(transform, "Skip", 200f, 36f, -CardHeight / 2f - 41f), "SKIP",
-                "ESC", fonts.Label, () => Choose(Skip));
+            WindowKit.KeyButton(layers, ScreenKit.Centered(transform, "Skip", 200f, 36f, -CardHeight / 2f - 41f),
+                "SKIP", "ESC", fonts.Label, () => Choose(Skip));
         }
 
         private void BuildCard(RectTransform cards, int index, LullMod mod, string landing)
         {
-            var window = ScreenWindow.Create(cards, $"Card{index + 1}", index * (CardWidth + CardGap), 0f, CardWidth,
-                CardHeight, $"MOD {index + 1:00}", fonts.Label);
+            var window = ScreenWindow.Create(cards, layers, $"Card{index + 1}", index * (CardWidth + CardGap), 0f,
+                CardWidth, CardHeight, $"MOD {index + 1:00}", fonts.Label);
             var body = window.Body;
             var width = CardWidth - 2f * Inset;
             WindowKit.Label(body, "Name", mod.DisplayName, Inset, 13f, width, 30f, 24, WindowKit.Ink, fonts.Heading);

@@ -67,7 +67,7 @@ namespace Tests.PlayMode.Screens
             stack.Add(Mod("Coolant", WeaponModField.Cooling));
             stack.Add(Mod("Deep magazine", WeaponModField.Magazine, rippers));
             stack.Add(Mod("Extra missile", WeaponModField.Magazine, missiles));
-            return WeaponPickScreen.Create(root.transform, new[] { lasers, grenades }, rippers, ordnance, stack);
+            return WeaponPickScreen.Create(root.transform, new[] { lasers, grenades }, rippers, ordnance, stack, null);
         }
 
         private string Text(string path)

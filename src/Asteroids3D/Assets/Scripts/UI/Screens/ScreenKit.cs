@@ -17,20 +17,28 @@ namespace UI.Screens
 
         internal static void Canvas(GameObject go)
         {
+            ScaledCanvas(go, CanvasScaler.ScreenMatchMode.MatchWidthOrHeight);
+            go.AddComponent<GraphicRaycaster>();
+        }
+
+        internal static Canvas ScaledCanvas(GameObject go, CanvasScaler.ScreenMatchMode match)
+        {
             var canvas = go.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.sortingOrder = 100;
             var scaler = go.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1280f, 720f);
+            scaler.screenMatchMode = match;
             scaler.matchWidthOrHeight = .5f;
-            go.AddComponent<GraphicRaycaster>();
+            return canvas;
         }
 
         internal static RectTransform Centered(Transform parent, string name, float width, float height, float y)
         {
             var rect = (RectTransform)new GameObject(name, typeof(RectTransform)).transform;
             rect.SetParent(parent, false);
+            rect.gameObject.layer = parent.gameObject.layer;
             rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(.5f, .5f);
             rect.anchoredPosition = new Vector2(0f, y);
             rect.sizeDelta = new Vector2(width, height);
@@ -41,6 +49,7 @@ namespace UI.Screens
         {
             var rect = (RectTransform)new GameObject(name, typeof(RectTransform)).transform;
             rect.SetParent(parent, false);
+            rect.gameObject.layer = parent.gameObject.layer;
             rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0, 1);
             rect.anchoredPosition = new Vector2(x, -y);
             rect.sizeDelta = new Vector2(width, height);

@@ -36,6 +36,7 @@ namespace UI.Screens
 
         private readonly List<GameObject> rows = new();
         private ScreenFonts fonts;
+        private ScreenLayers layers;
         private bool sector;
         private Image fade;
         private float fadeStrength;
@@ -45,7 +46,6 @@ namespace UI.Screens
         private ScreenWindow board;
         private Button continueButton;
         private ScreenWindow banner;
-        private CanvasGroup bannerGroup;
         private GameObject prompt;
         private bool interactable;
         private InputAction boardKey;
@@ -67,21 +67,14 @@ namespace UI.Screens
 
         private void OnDestroy() => boardKey?.Dispose();
 
-        public static RunRecapScreen Create(Transform parent, RecapOutcomeContext context)
+        public static RunRecapScreen Create(Transform parent, RecapOutcomeContext context, ScreenCameras cameras)
         {
             var go = new GameObject("RunRecapScreen", typeof(RectTransform));
             go.transform.SetParent(parent, false);
-            var canvas = go.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 100;
-            var scaler = go.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1280f, 720f);
-            scaler.screenMatchMode = context.Outcome == RecapOutcome.Extraction
-                ? CanvasScaler.ScreenMatchMode.MatchWidthOrHeight : CanvasScaler.ScreenMatchMode.Expand;
-            scaler.matchWidthOrHeight = .5f;
-            go.AddComponent<GraphicRaycaster>();
+            var layers = ScreenLayers.Create(go, cameras, context.Outcome == RecapOutcome.Extraction
+                ? CanvasScaler.ScreenMatchMode.MatchWidthOrHeight : CanvasScaler.ScreenMatchMode.Expand);
             var screen = go.AddComponent<RunRecapScreen>();
+            screen.layers = layers;
             screen.sector = context.Outcome == RecapOutcome.Extraction;
             if (screen.sector) screen.BuildSector(context);
             else screen.BuildRun(context);
@@ -98,7 +91,7 @@ namespace UI.Screens
             if (state.BreakdownInteractable && !interactable) continueButton.Select();
             interactable = state.BreakdownInteractable;
             if (!banner) return;
-            bannerGroup.alpha = state.BannerAlpha > 0f ? 1f : 0f;
+            banner.Alpha = state.BannerAlpha > 0f ? 1f : 0f;
             banner.Open = state.BannerAlpha;
             prompt.SetActive(state.BannerPrompt);
             banner.gameObject.SetActive(state.BannerAlpha > 0f || state.BannerPrompt);
@@ -116,7 +109,7 @@ namespace UI.Screens
         {
             if (!board) return;
             var target = ScoreboardShown ? 1f : 0f;
-            if (Mathf.Approximately(boardProgress, target)) return;
+            if (boardProgress == target) return;
             boardProgress = Mathf.MoveTowards(boardProgress, target, Time.unscaledDeltaTime / BoardSeconds);
             PlaceBoard();
         }
@@ -144,7 +137,7 @@ namespace UI.Screens
             const float height = 293f;
             var group = BuildStage(WindowKit.LightFade, width, height + 58f, new Vector2(.07f, .5f),
                 new Vector2(0f, .5f));
-            recap = ScreenWindow.Create(group, "Recap", 0f, 0f, width, height, $"SECTOR {context.Sector:00}",
+            recap = ScreenWindow.Create(group, layers, "Recap", 0f, 0f, width, height, $"SECTOR {context.Sector:00}",
                 fonts.Label);
             var body = recap.Body;
             WindowKit.Label(body, "Outcome", "EXTRACTED", 20f, 12f, width - 40f, 50f, 40, WindowKit.Good,
@@ -166,7 +159,7 @@ namespace UI.Screens
             var centre = new Vector2(.5f, .5f);
             var group = BuildStage(WindowKit.StrongFade, 1280f, 720f, centre, centre);
 
-            recap = ScreenWindow.Create(group, "Recap", RecorderCentred.x, -RecorderCentred.y, 600f, 240f,
+            recap = ScreenWindow.Create(group, layers, "Recap", RecorderCentred.x, -RecorderCentred.y, 600f, 240f,
                 "FLIGHT RECORDER", fonts.Label);
             var body = recap.Body;
             WindowKit.Label(body, "Outcome", title, 20f, 10f, 560f, 56f, 47, outcomeColor, fonts.Heading);
@@ -179,7 +172,7 @@ namespace UI.Screens
 
             BuildScoreboard(group, context.Board, outcomeColor);
             actions = Actions(group);
-            WindowKit.KeyButton(ScreenKit.Box(actions.transform, "ScoreboardButton", 340f, 593f, 260f, 41f),
+            WindowKit.KeyButton(layers, ScreenKit.Box(actions.transform, "ScoreboardButton", 340f, 593f, 260f, 41f),
                 "SCOREBOARD", "TAB", fonts.Label, ToggleScoreboard);
             continueButton = Continue(ScreenKit.Box(actions.transform, "Continue", 620f, 593f, 320f, 41f),
                 "RETURN TO HANGAR");
@@ -193,7 +186,7 @@ namespace UI.Screens
         private RectTransform BuildStage(float strength, float width, float height, Vector2 anchor, Vector2 pivot)
         {
             fadeStrength = strength;
-            fade = WindowKit.Fade(transform, 0f);
+            fade = WindowKit.Fade(layers.Under, 0f);
             var group = ScreenKit.Box(transform, "Panels", 0f, 0f, width, height);
             group.anchorMin = group.anchorMax = anchor;
             group.pivot = pivot;
@@ -216,8 +209,8 @@ namespace UI.Screens
         {
             const float width = 760f;
             const float height = 190f;
-            banner = ScreenWindow.Create(transform, "OutcomeIntro", 0f, 0f, width, height, "FLIGHT RECORDER",
-                fonts.Label);
+            banner = ScreenWindow.Create(transform, layers, "OutcomeIntro", 0f, 0f, width, height,
+                "FLIGHT RECORDER", fonts.Label);
             var intro = (RectTransform)banner.transform;
             intro.anchorMin = intro.anchorMax = intro.pivot = new Vector2(.5f, .5f);
             intro.anchoredPosition = Vector2.zero;
@@ -226,8 +219,7 @@ namespace UI.Screens
             prompt = WindowKit.Label(banner.Body, "ContinueHint", "PRESS ANY KEY", 0f, 130f, width, 20f, 14,
                 WindowKit.Dim, fonts.Label, TextAnchor.MiddleCenter).gameObject;
             prompt.SetActive(false);
-            bannerGroup = banner.gameObject.AddComponent<CanvasGroup>();
-            bannerGroup.alpha = 0f;
+            banner.Alpha = 0f;
             banner.Open = 0f;
         }
 
@@ -303,10 +295,10 @@ namespace UI.Screens
             const float height = 307f;
             var weaponIcons = RecapWeaponIcons.Load();
             var rank = scores.Rank.HasValue ? $"{scores.Rank} OF {scores.Rows.Count}" : "";
-            board = ScreenWindow.Create(group, "Scoreboard", 313f, 253f, width, height, "SCOREBOARD", fonts.Label,
-                rank);
+            board = ScreenWindow.Create(group, layers, "Scoreboard", 313f, 253f, width, height, "SCOREBOARD",
+                fonts.Label, rank);
             var body = board.Body;
-            var columns = ScoreCells(body, "Columns", 9f, "RANK", "SECTORS", "KILLS", "TIME", WindowKit.Dim,
+            var columns = ScoreCells(body, "Columns", 9f, 0f, "RANK", "SECTORS", "KILLS", "TIME", WindowKit.Dim,
                 WindowKit.Dim, 14);
             WindowKit.Label(columns, "ShipHeading", "SHIP", 75f, 0f, 200f, 26f, 14, WindowKit.Dim, fonts.Label);
             WindowKit.Label(columns, "LoadoutHeading", "LOADOUT", 440f, 0f, 70f, 26f, 14, WindowKit.Dim,
@@ -315,7 +307,7 @@ namespace UI.Screens
             {
                 var row = scores.Rows[i];
                 var current = scores.Rank == i + 1;
-                var cells = ScoreCells(body, "Row" + (i + 1), 32f + i % PageSize * RowHeight, (i + 1).ToString(),
+                var cells = ScoreCells(body, "Row" + (i + 1), 32f + i % PageSize * RowHeight, 7f, (i + 1).ToString(),
                     row.SectorsCleared.ToString(), row.Kills.ToString(), RunTally.FormatSeconds(row.SecondsSurvived),
                     current ? outcomeColor : WindowKit.Ink, WindowKit.Ink, 17);
                 ScreenKit.Fill(ScreenKit.Box(cells, "Divider", 0f, 0f, cells.sizeDelta.x, 1f), WindowKit.Line);
@@ -399,22 +391,24 @@ namespace UI.Screens
                 text.text = fullName.Substring(0, --length) + "…";
         }
 
-        private RectTransform ScoreCells(RectTransform body, string name, float y, string rank, string sectors,
-            string kills, string time, Color rankColor, Color color, int size)
+        private RectTransform ScoreCells(RectTransform body, string name, float y, float labelY, string rank,
+            string sectors, string kills, string time, Color rankColor, Color color, int size)
         {
             var row = ScreenKit.Box(body, name, 12f, y, 776f, RowHeight);
-            WindowKit.Label(row, "Rank", rank, 8f, 7f, 33f, 26f, size, rankColor, fonts.Label);
-            WindowKit.Label(row, "Sectors", sectors, 520f, 7f, 60f, 26f, size, color, fonts.Label,
+            WindowKit.Label(row, "Rank", rank, 8f, labelY, 33f, 26f, size, rankColor, fonts.Label);
+            WindowKit.Label(row, "Sectors", sectors, 520f, labelY, 60f, 26f, size, color, fonts.Label,
                 TextAnchor.MiddleRight);
-            WindowKit.Label(row, "Kills", kills, 600f, 7f, 60f, 26f, size, color, fonts.Label, TextAnchor.MiddleRight);
-            WindowKit.Label(row, "Time", time, 680f, 7f, 84f, 26f, size, color, fonts.Label, TextAnchor.MiddleRight);
+            WindowKit.Label(row, "Kills", kills, 600f, labelY, 60f, 26f, size, color, fonts.Label,
+                TextAnchor.MiddleRight);
+            WindowKit.Label(row, "Time", time, 680f, labelY, 84f, 26f, size, color, fonts.Label,
+                TextAnchor.MiddleRight);
             return row;
         }
 
         private Button Continue(RectTransform rect, string caption)
         {
             Button button = null;
-            button = WindowKit.KeyButton(rect, caption, "ENTER ›", fonts.Label, () =>
+            button = WindowKit.KeyButton(layers, rect, caption, "ENTER ›", fonts.Label, () =>
             {
                 button.interactable = false;
                 Continued = true;

@@ -30,6 +30,10 @@ namespace UI.Screens.Windows
             return image;
         }
 
+        // Opaque to hide window ink behind it; black through the canopy, where its shade does the darkening.
+        internal static Color OpaqueBody(ScreenLayers layers) =>
+            layers.Canopy ? Color.black : new Color(Body.r, Body.g, Body.b, 1f);
+
         internal static ChamferedShape Shape(RectTransform rect, Color color, float chamfer, float stroke,
             bool squareBottom = false)
         {
@@ -64,11 +68,13 @@ namespace UI.Screens.Windows
             ScreenKit.Fill(ScreenKit.Box(parent, "Rule", x, y, width, 1f), Line);
 
         /// <summary>An outlined button with its caption on the left and its key on the right.</summary>
-        internal static Button KeyButton(RectTransform rect, string caption, string key, Font font, Action press)
+        internal static Button KeyButton(ScreenLayers layers, RectTransform rect, string caption, string key, Font font,
+            Action press)
         {
             var width = rect.sizeDelta.x;
             var height = rect.sizeDelta.y;
-            ScreenKit.Fill(ScreenKit.Box(rect, "Back", 0f, 0f, width, height), Body);
+            ScreenKit.Fill(ScreenKit.Box(rect, "Back", 0f, 0f, width, height), layers.Canopy ? Color.black : Body);
+            if (layers.Canopy) WindowShade.Create(layers, rect, null, 0f);
             Shape(ScreenKit.Box(rect, "Frame", 0f, 0f, width, height), Ink, 0f, 1.5f);
             Label(rect, "Label", caption, 14f, 0f, width - 28f, height, 15, Ink, font);
             Label(rect, "Key", key, 14f, 0f, width - 28f, height, 15, Dim, font, TextAnchor.MiddleRight);

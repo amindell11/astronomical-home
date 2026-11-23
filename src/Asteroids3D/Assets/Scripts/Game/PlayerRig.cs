@@ -16,6 +16,7 @@ using Ships.Command;
 using Ships.Weapons;
 using UI;
 using UI.Projection;
+using UI.Screens.Windows;
 using UnityEngine;
 using Ships.Registry;
 using Substrate;
@@ -82,6 +83,9 @@ namespace Game
         /// <summary>The live HUD overlay this rig owns; null headless or before <see cref="Build"/>.</summary>
         public Overlay Overlay { get; private set; }
 
+        /// <summary>The cameras screens draw through the canopy with; null headless or before Build.</summary>
+        public ScreenCameras Screens { get; private set; }
+
         // The session's unit service, captured at Build so the hangar can rebuild the player between runs.
         private IUnitService units;
 
@@ -143,6 +147,7 @@ namespace Game
                 personality = CanopyPersonality.Create(gameObject, objectives, projection, () => Overlay.IsVisible);
                 personality.Initialize(Player.Damage, Player.Shake);
                 projection.Initialize(observer.Cam, personality.Observe);
+                Screens = new ScreenCameras(uiCam, observer.Cam, projection);
                 Overlay.ConfigureCameras(uiCam, observer.Cam, projection);
                 Overlay.Initialize(BuildHudBinding());
                 var minimapCam = Instantiate(minimapCamPrefab, observer.transform);
@@ -171,6 +176,7 @@ namespace Game
                 Destroy(personality);
             personality = null;
             projection = null;
+            Screens = null;
             Overlay = null;
             Player = null;
             observer = null;
