@@ -187,6 +187,7 @@ expect_merged "an exact instruction on a green PR"
 [[ "$(class)" == CLASS=in ]] || { show; fail "nothing owed, no scripts/ or .github/, both statuses accepted and a covering review is in the class"; }
 [[ "$(grep -c '^GATE=' "$TMP/out")" -eq 1 && "$(grep -c '^CLASS=' "$TMP/out")" -eq 1 ]] || { show; fail "land prints each trailer once"; }
 grep -q -- "--match-head-commit $(head_of 1)" "$GH_MERGE_LOG" || fail "gh pr merge names the landing commit (got: $(cat "$GH_MERGE_LOG"))"
+grep -q -- "--admin" "$GH_MERGE_LOG" || fail "gh pr merge uses the ruleset's admin bypass (got: $(cat "$GH_MERGE_LOG"))"
 labels() { grep -c "^pr edit $1 --add-label auto-merged$" "$GH_MERGE_LOG" || true; }
 [[ "$(labels 1)" -eq 0 ]] || fail "an instructed merge is not labelled auto-merged, even in the class"
 [[ "$(phases agent-1)" == "turn-wait preflight fetch base-merge authorize proof-check tests resharper push base-recheck gh-merge " ]] \
