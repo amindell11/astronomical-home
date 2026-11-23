@@ -41,13 +41,18 @@ namespace Tests.EditMode.Companion
 
         private void BuildVoice(bool debugLabels, string speaker, string moment, bool mustSay, params string[] lines)
         {
-            sheet = ScriptableObject.CreateInstance<CompanionLineSheet>();
             var spokenAs = string.IsNullOrWhiteSpace(speaker) ? LineTable.CompanionSpeaker : speaker;
             var markdown = new StringBuilder("| ID | Moment | Faction | Speaker | After | Line | Status |\n");
             markdown.Append("| --- | --- | --- | --- | --- | --- | --- |");
             for (var i = 0; i < lines.Length; i++)
                 markdown.Append($"\n| T{i + 1} | {moment} |  | {spokenAs} |  | {lines[i]} | In game |");
-            lineFile = new TextAsset(markdown.ToString());
+            BuildVoice(markdown.ToString(), debugLabels, speaker, moment, mustSay);
+        }
+
+        private void BuildVoice(string markdown, bool debugLabels, string speaker, string moment, bool mustSay)
+        {
+            sheet = ScriptableObject.CreateInstance<CompanionLineSheet>();
+            lineFile = new TextAsset(markdown);
             using (var serialized = new SerializedObject(sheet))
             {
                 var list = serialized.FindProperty("slots");
@@ -103,6 +108,21 @@ namespace Tests.EditMode.Companion
             moments.Raise(new SectorEntered(3, ""));
 
             Assert.AreEqual("Quartermaster: [sector-entered] sector 3", display.Line);
+        }
+
+        [Test]
+        public void Exchange_ShowsTheOpenerWithItsSpeaker()
+        {
+            var moment = SectorEntered.SectorSlot;
+            var markdown = new StringBuilder("| ID | Moment | Faction | Speaker | After | Line | Status |\n");
+            markdown.Append("| --- | --- | --- | --- | --- | --- | --- |\n");
+            markdown.Append($"| E1 | {moment} |  | Enemy |  | enemy line | In game |\n");
+            markdown.Append($"| C1 | {moment} |  | {LineTable.CompanionSpeaker} | any | companion line | In game |");
+            BuildVoice(markdown.ToString(), false, "", moment, true);
+
+            moments.Raise(new SectorEntered(3, ""));
+
+            Assert.AreEqual("Enemy: enemy line", display.Line);
         }
     }
 }

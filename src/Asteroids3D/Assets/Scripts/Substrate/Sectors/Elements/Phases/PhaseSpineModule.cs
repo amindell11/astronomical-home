@@ -73,6 +73,8 @@ namespace Substrate.Sectors.Elements.Phases
 
         public SectorHunt Hunt => hunt ? hunt : null;
 
+        public IWaveSignal Waves => director;
+
         /// <summary>True from a lull beacon's claim until the next opens.</summary>
         public bool BeaconClaimed { get; private set; }
 

@@ -34,7 +34,8 @@ namespace Tests.EditMode.Companion
                 Row("V1", SectorEntered.SectorSlot, "veil", LineTable.CompanionSpeaker, "", "veil line", "In game")),
                 LineSlots((SectorEntered.SectorSlot, "")));
 
-            Assert.AreEqual("veil line", table.Pick(SectorEntered.SectorSlot, WithFaction("veil"), n => 0));
+            Assert.AreEqual("veil line",
+                table.Pick(SectorEntered.SectorSlot, WithFaction("veil"), n => 0, false)[0].Text);
         }
 
         [Test]
@@ -44,8 +45,9 @@ namespace Tests.EditMode.Companion
                 Row("B1", SectorEntered.SectorSlot, "", LineTable.CompanionSpeaker, "", "open", "In game")),
                 LineSlots((SectorEntered.SectorSlot, "")));
 
-            Assert.AreEqual("open", table.Pick(SectorEntered.SectorSlot, WithFaction("veil"), n => 0));
-            Assert.AreEqual("open", table.Pick(SectorEntered.SectorSlot, WithFaction("bastion"), n => 0));
+            Assert.AreEqual("open", table.Pick(SectorEntered.SectorSlot, WithFaction("veil"), n => 0, false)[0].Text);
+            Assert.AreEqual("open",
+                table.Pick(SectorEntered.SectorSlot, WithFaction("bastion"), n => 0, false)[0].Text);
         }
 
         [Test]
@@ -57,22 +59,22 @@ namespace Tests.EditMode.Companion
                 LineSlots((SectorEntered.SectorSlot, "")));
 
             var facts = new Dictionary<string, string> { ["sector"] = "2" };
-            Assert.AreEqual("open line", table.Pick(SectorEntered.SectorSlot, facts, n => 0));
+            Assert.AreEqual("open line", table.Pick(SectorEntered.SectorSlot, facts, n => 0, false)[0].Text);
         }
 
         [Test]
-        public void Pick_NoMatchingRow_ReturnsNull()
+        public void Pick_NoMatchingRow_ReturnsEmpty()
         {
             var table = LineTable.Parse(Table(
                 Row("V1", SectorEntered.SectorSlot, "veil", LineTable.CompanionSpeaker, "", "veil line", "In game")),
                 LineSlots((SectorEntered.SectorSlot, "")));
 
             var called = false;
-            Assert.IsNull(table.Pick(SectorEntered.SectorSlot, WithFaction("shoal"), n =>
+            Assert.IsEmpty(table.Pick(SectorEntered.SectorSlot, WithFaction("shoal"), n =>
             {
                 called = true;
                 return 0;
-            }));
+            }, false));
             Assert.IsFalse(called);
         }
 
@@ -90,8 +92,8 @@ namespace Tests.EditMode.Companion
             {
                 count = n;
                 return 2;
-            });
-            Assert.AreEqual("three", text);
+            }, false);
+            Assert.AreEqual("three", text[0].Text);
             Assert.AreEqual(3, count);
         }
 
@@ -105,7 +107,7 @@ namespace Tests.EditMode.Companion
                 Row("G1", SectorEntered.SectorSlot, "veil", LineTable.CompanionSpeaker, "", "plays", "In game")),
                 LineSlots((SectorEntered.SectorSlot, "")));
 
-            Assert.AreEqual("plays", table.Pick(SectorEntered.SectorSlot, WithFaction("veil"), n => 0));
+            Assert.AreEqual("plays", table.Pick(SectorEntered.SectorSlot, WithFaction("veil"), n => 0, false)[0].Text);
         }
 
         [Test]
@@ -118,7 +120,7 @@ namespace Tests.EditMode.Companion
                 + "\nEdit here, then export.\n";
             var table = LineTable.Parse(markdown, LineSlots((SectorEntered.SectorSlot, "")));
 
-            Assert.AreEqual("noted", table.Pick(SectorEntered.SectorSlot, WithFaction("veil"), n => 0));
+            Assert.AreEqual("noted", table.Pick(SectorEntered.SectorSlot, WithFaction("veil"), n => 0, false)[0].Text);
         }
 
         [Test]
@@ -129,7 +131,8 @@ namespace Tests.EditMode.Companion
                     "\\*shudders\\* a \\| b&#32;", "In game")),
                 LineSlots((SectorEntered.SectorSlot, "")));
 
-            Assert.AreEqual("*shudders* a | b ", table.Pick(SectorEntered.SectorSlot, WithFaction("veil"), n => 0));
+            Assert.AreEqual("*shudders* a | b ",
+                table.Pick(SectorEntered.SectorSlot, WithFaction("veil"), n => 0, false)[0].Text);
         }
 
         [Test]
@@ -167,18 +170,6 @@ namespace Tests.EditMode.Companion
                 LineSlots((SectorEntered.SectorSlot, "")), "M9");
 
         [Test]
-        public void Parse_SpeakerMismatch_NamesTheId() =>
-            AssertFormat(Table(
-                Row("Spk", SectorEntered.SectorSlot, "", "Enemy", "", "hi", "In game")),
-                LineSlots((SectorEntered.SectorSlot, "")), "Spk");
-
-        [Test]
-        public void Parse_FilledAfter_NamesTheId() =>
-            AssertFormat(Table(
-                Row("Aft", SectorEntered.SectorSlot, "", LineTable.CompanionSpeaker, "Spk", "hi", "In game")),
-                LineSlots((SectorEntered.SectorSlot, "")), "Aft");
-
-        [Test]
         public void Parse_EmptyLine_NamesTheId() =>
             AssertFormat(Table(
                 Row("Txt", SectorEntered.SectorSlot, "", LineTable.CompanionSpeaker, "", "", "In game")),
@@ -189,16 +180,212 @@ namespace Tests.EditMode.Companion
             AssertFormat("The line sheet\n\nEdit here, then export.\n", LineSlots(), "no table");
 
         [Test]
-        public void Parse_SlotSpeakerMatchesItsRows()
-        {
-            var slots = LineSlots((SectorEntered.SectorSlot, "Repair crew"));
-            var kept = LineTable.Parse(Table(
-                Row("R1", SectorEntered.SectorSlot, "", "Repair crew", "", "crew line", "In game")), slots);
-            Assert.AreEqual("crew line", kept.Pick(SectorEntered.SectorSlot, WithFaction("veil"), n => 0));
-
+        public void Parse_EmptySpeaker_NamesTheId() =>
             AssertFormat(Table(
-                Row("C1", SectorEntered.SectorSlot, "", LineTable.CompanionSpeaker, "", "nope", "In game")),
-                slots, "C1");
+                Row("Spk", SectorEntered.SectorSlot, "", "", "", "hi", "In game")),
+                LineSlots((SectorEntered.SectorSlot, "")), "Spk");
+
+        [Test]
+        public void Parse_AfterNamesAMissingId_NamesTheId() =>
+            AssertFormat(Table(
+                Row("Aft", SectorEntered.SectorSlot, "", LineTable.CompanionSpeaker, "Nope", "hi", "In game")),
+                LineSlots((SectorEntered.SectorSlot, "")), "Aft");
+
+        [Test]
+        public void Parse_AfterNamesAnotherMoment_NamesTheId() =>
+            AssertFormat(Table(
+                Row("Op", PlayerDied.DeathSlot, "", "Enemy", "", "opened", "In game"),
+                Row("Aft", SectorEntered.SectorSlot, "", LineTable.CompanionSpeaker, "Op", "answered", "In game")),
+                LineSlots((SectorEntered.SectorSlot, ""), (PlayerDied.DeathSlot, "")), "Aft");
+
+        [Test]
+        public void Parse_AfterNamesTheSameSpeaker_NamesTheId() =>
+            AssertFormat(Table(
+                Row("Op", SectorEntered.SectorSlot, "", LineTable.CompanionSpeaker, "", "opened", "In game"),
+                Row("Aft", SectorEntered.SectorSlot, "", LineTable.CompanionSpeaker, "Op", "answered", "In game")),
+                LineSlots((SectorEntered.SectorSlot, "")), "Aft");
+
+        [Test]
+        public void Parse_AfterNamesARowThatNeverOpens_NamesTheId() =>
+            AssertFormat(Table(
+                Row("Op", SectorEntered.SectorSlot, "", "Enemy", "", "opened", "In game"),
+                Row("Mid", SectorEntered.SectorSlot, "", LineTable.CompanionSpeaker, "any", "answered", "In game"),
+                Row("Aft", SectorEntered.SectorSlot, "", "Enemy", "Mid", "never", "In game")),
+                LineSlots((SectorEntered.SectorSlot, "")), "Aft");
+
+        [Test]
+        public void Parse_AfterNamesARowOfAnotherFaction_NamesTheId() =>
+            AssertFormat(Table(
+                Row("Op", SectorEntered.SectorSlot, "shoal", "Enemy", "", "opened", "In game"),
+                Row("Aft", SectorEntered.SectorSlot, "veil", LineTable.CompanionSpeaker, "Op", "never", "In game")),
+                LineSlots((SectorEntered.SectorSlot, "")), "Aft");
+
+        [Test]
+        public void Parse_AnyWithoutAnOpener_NamesTheId() =>
+            AssertFormat(Table(
+                Row("Aft", SectorEntered.SectorSlot, "", LineTable.CompanionSpeaker, "any", "answered", "In game")),
+                LineSlots((SectorEntered.SectorSlot, "")), "Aft");
+
+        [Test]
+        public void Parse_LaterRowIsNotAValidAfterTarget() =>
+            AssertFormat(Table(
+                Row("Later", SectorEntered.SectorSlot, "", "Enemy", "", "later", "Later"),
+                Row("Aft", SectorEntered.SectorSlot, "", LineTable.CompanionSpeaker, "Later", "answered", "In game")),
+                LineSlots((SectorEntered.SectorSlot, "")), "Aft");
+
+        [Test]
+        public void Pick_OpenerCarriesItsSpeaker()
+        {
+            var table = LineTable.Parse(Table(
+                Row("E1", SectorEntered.SectorSlot, "veil", "Enemy", "", "enemy line", "In game")),
+                LineSlots((SectorEntered.SectorSlot, "")));
+
+            var picked = table.Pick(SectorEntered.SectorSlot, WithFaction("veil"), n => 0, false);
+            Assert.AreEqual(1, picked.Count);
+            Assert.AreEqual("Enemy", picked[0].Speaker);
+            Assert.AreEqual("enemy line", picked[0].Text);
+        }
+
+        [Test]
+        public void Pick_WithReply_ReturnsTheOpenerThenAFollower()
+        {
+            var picked = Exchange().Pick(SectorEntered.SectorSlot, WithFaction("veil"), n => 0, true);
+            Assert.AreEqual(2, picked.Count);
+            Assert.AreEqual("Enemy", picked[0].Speaker);
+            Assert.AreEqual("opened", picked[0].Text);
+            Assert.AreEqual(LineTable.CompanionSpeaker, picked[1].Speaker);
+            Assert.AreEqual("answered", picked[1].Text);
+        }
+
+        [Test]
+        public void Pick_WithoutReply_ReturnsOnlyTheOpener()
+        {
+            var calls = 0;
+            var picked = Exchange().Pick(SectorEntered.SectorSlot, WithFaction("veil"), n =>
+            {
+                calls++;
+                return 0;
+            }, false);
+            Assert.AreEqual(1, calls);
+            Assert.AreEqual(1, picked.Count);
+            Assert.AreEqual("Enemy", picked[0].Speaker);
+            Assert.AreEqual("opened", picked[0].Text);
+        }
+
+        [Test]
+        public void Pick_FollowerNeverOpens()
+        {
+            var table = LineTable.Parse(Table(
+                Row("E1", SectorEntered.SectorSlot, "shoal", "Enemy", "", "shoal open", "In game"),
+                Row("C1", SectorEntered.SectorSlot, "", LineTable.CompanionSpeaker, "any", "any reply", "In game")),
+                LineSlots((SectorEntered.SectorSlot, "")));
+
+            var called = false;
+            var picked = table.Pick(SectorEntered.SectorSlot, WithFaction("veil"), n =>
+            {
+                called = true;
+                return 0;
+            }, true);
+            Assert.IsEmpty(picked);
+            Assert.IsFalse(called);
+        }
+
+        [Test]
+        public void Pick_IdFollower_FollowsOnlyItsOpener()
+        {
+            var table = LineTable.Parse(Table(
+                Row("A", SectorEntered.SectorSlot, "", "Enemy", "", "a", "In game"),
+                Row("B", SectorEntered.SectorSlot, "", "Enemy", "", "b", "In game"),
+                Row("C", SectorEntered.SectorSlot, "", LineTable.CompanionSpeaker, "A", "after a", "In game")),
+                LineSlots((SectorEntered.SectorSlot, "")));
+
+            var calls = 0;
+            var pickedB = table.Pick(SectorEntered.SectorSlot, WithFaction("veil"), n =>
+            {
+                calls++;
+                return 1;
+            }, true);
+            Assert.AreEqual(1, calls);
+            Assert.AreEqual(1, pickedB.Count);
+            Assert.AreEqual("b", pickedB[0].Text);
+            Assert.AreEqual("Enemy", pickedB[0].Speaker);
+
+            calls = 0;
+            var pickedA = table.Pick(SectorEntered.SectorSlot, WithFaction("veil"), n =>
+            {
+                calls++;
+                return 0;
+            }, true);
+            Assert.AreEqual(2, calls);
+            Assert.AreEqual("a", pickedA[0].Text);
+            Assert.AreEqual("Enemy", pickedA[0].Speaker);
+            Assert.AreEqual("after a", pickedA[1].Text);
+            Assert.AreEqual(LineTable.CompanionSpeaker, pickedA[1].Speaker);
+        }
+
+        [Test]
+        public void Pick_EitherRow_OpensOrFollows()
+        {
+            var table = LineTable.Parse(Table(
+                Row("C", SectorEntered.SectorSlot, "", LineTable.CompanionSpeaker, "", "companion", "In game"),
+                Row("E", SectorEntered.SectorSlot, "", "Elite", "either", "elite", "In game")),
+                LineSlots((SectorEntered.SectorSlot, "")));
+
+            var calls = 0;
+            var withReply = table.Pick(SectorEntered.SectorSlot, WithFaction("veil"), n =>
+            {
+                calls++;
+                return 0;
+            }, true);
+            Assert.AreEqual(2, calls);
+            Assert.AreEqual(LineTable.CompanionSpeaker, withReply[0].Speaker);
+            Assert.AreEqual("companion", withReply[0].Text);
+            Assert.AreEqual("Elite", withReply[1].Speaker);
+            Assert.AreEqual("elite", withReply[1].Text);
+
+            calls = 0;
+            var eliteOpens = table.Pick(SectorEntered.SectorSlot, WithFaction("veil"), n =>
+            {
+                calls++;
+                return calls == 1 ? 1 : 0;
+            }, true);
+            Assert.AreEqual(1, calls);
+            Assert.AreEqual(1, eliteOpens.Count);
+            Assert.AreEqual("Elite", eliteOpens[0].Speaker);
+            Assert.AreEqual("elite", eliteOpens[0].Text);
+        }
+
+        [Test]
+        public void Pick_FollowerNeedsADifferentSpeaker()
+        {
+            var table = LineTable.Parse(Table(
+                Row("C", SectorEntered.SectorSlot, "", LineTable.CompanionSpeaker, "", "open", "In game"),
+                Row("S", SectorEntered.SectorSlot, "", LineTable.CompanionSpeaker, "either", "same", "In game"),
+                Row("E", SectorEntered.SectorSlot, "", "Enemy", "any", "other", "In game")),
+                LineSlots((SectorEntered.SectorSlot, "")));
+
+            var picked = table.Pick(SectorEntered.SectorSlot, WithFaction("veil"), n => 0, true);
+            Assert.AreEqual(2, picked.Count);
+            Assert.AreEqual("open", picked[0].Text);
+            Assert.AreEqual(LineTable.CompanionSpeaker, picked[0].Speaker);
+            Assert.AreEqual("other", picked[1].Text);
+            Assert.AreEqual("Enemy", picked[1].Speaker);
+        }
+
+        [Test]
+        public void Pick_FollowerMatchesTheFaction()
+        {
+            var table = LineTable.Parse(Table(
+                Row("E", SectorEntered.SectorSlot, "", "Enemy", "", "open", "In game"),
+                Row("V", SectorEntered.SectorSlot, "veil", LineTable.CompanionSpeaker, "any", "veil reply", "In game"),
+                Row("S", SectorEntered.SectorSlot, "shoal", LineTable.CompanionSpeaker, "any", "shoal reply", "In game")),
+                LineSlots((SectorEntered.SectorSlot, "")));
+
+            var picked = table.Pick(SectorEntered.SectorSlot, WithFaction("shoal"), n => 0, true);
+            Assert.AreEqual(2, picked.Count);
+            Assert.AreEqual("open", picked[0].Text);
+            Assert.AreEqual("shoal reply", picked[1].Text);
+            Assert.AreEqual(LineTable.CompanionSpeaker, picked[1].Speaker);
         }
 
         [Test]
@@ -223,7 +410,7 @@ namespace Tests.EditMode.Companion
 
             var lines = shipped.LoadLines();
             foreach (var faction in new[] { "shoal", "veil", "bastion" })
-                Assert.IsNotNull(lines.Pick(SectorEntered.SectorSlot, WithFaction(faction), n => 0), faction);
+                Assert.IsNotEmpty(lines.Pick(SectorEntered.SectorSlot, WithFaction(faction), n => 0, false), faction);
         }
 
         [Test]
@@ -258,6 +445,12 @@ namespace Tests.EditMode.Companion
 
         private static IReadOnlyDictionary<string, string> WithFaction(string faction) =>
             new Dictionary<string, string> { ["faction"] = faction };
+
+        private LineTable Exchange() =>
+            LineTable.Parse(Table(
+                Row("E1", SectorEntered.SectorSlot, "veil", "Enemy", "", "opened", "In game"),
+                Row("C1", SectorEntered.SectorSlot, "veil", LineTable.CompanionSpeaker, "any", "answered", "In game")),
+                LineSlots((SectorEntered.SectorSlot, "")));
 
         private IReadOnlyList<LineSlot> LineSlots(params (string moment, string speaker)[] defined)
         {

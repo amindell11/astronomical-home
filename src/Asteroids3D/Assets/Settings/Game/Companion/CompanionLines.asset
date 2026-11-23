@@ -71,3 +71,6 @@ MonoBehaviour:
   - moment: ship-unlocked
     speaker: 
     mustSay: 0
+  - moment: combat-start
+    speaker: 
+    mustSay: 0

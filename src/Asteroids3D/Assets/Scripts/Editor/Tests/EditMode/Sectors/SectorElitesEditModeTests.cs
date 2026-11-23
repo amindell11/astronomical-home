@@ -60,7 +60,7 @@ namespace Tests.EditMode.Sectors
             CollectionAssert.Contains(offer.ships, offer.starter, "the starter is an offered ship");
             CollectionAssert.Contains(offer.ships, crimson, "Crimson is offered, shown locked");
             foreach (var (row, i) in Load<SectorRun>(RunPath).Sectors.Select((row, i) => (row, i)))
-                Assert.AreNotSame(crimson, row.faction.EliteShip, $"row {i}'s elite would unlock Crimson");
+                Assert.AreNotSame(crimson, row.faction.Unlocks, $"row {i}'s elite would unlock Crimson");
         }
 
         private static T Load<T>(string path) where T : Object

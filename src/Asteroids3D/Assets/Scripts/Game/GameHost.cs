@@ -169,6 +169,7 @@ namespace Game
         private LocaleSky[] runLocales;
         private bool shutdownComplete;
         private int activeSectorIndex;
+        private string activeSectorFaction = string.Empty;
         private SectorJumpFlight jump;
         private ExceptionDispatchInfo fault;
 
@@ -201,7 +202,13 @@ namespace Game
 
             buildIdentity ??= BuildIdentity.Source();
             runRecords = new RunRecordStore(runRecordPath);
-            unlocks = new ShipUnlocks(runRecords.Path);
+            var unlockedByElite = new Dictionary<string, string>();
+            foreach (var row in sessionProfile.run.Sectors)
+            {
+                var faction = row.faction;
+                if (faction) unlockedByElite.TryAdd(faction.EliteShip.name, faction.Unlocks.name);
+            }
+            unlocks = new ShipUnlocks(runRecords.Path, unlockedByElite);
 
             DontDestroyOnLoad(gameObject);
             StartCoroutine(CatchingRoutine.Run(Run(), exception =>
@@ -350,6 +357,7 @@ namespace Game
                         rigInstance.Player.Damage.Health.SetFraction(hull);
                     var factionModule = session.ActiveSector.Module<SectorFaction>();
                     var faction = factionModule ? factionModule.Faction.id : string.Empty;
+                    activeSectorFaction = faction;
                     moments.Raise(new SectorEntered(index + 1, faction));
                     SetSplashVisible(false);
                     if (music) music.EnterSector(session.ActiveSector, session.ActiveLocale);
@@ -378,7 +386,7 @@ namespace Game
                     foreach (var station in findStations)
                         if (station) station.Arrived += onStationArrived;
                     var sectorMoments = new SectorMoments(moments, faction, spine ? spine.Hunt : null,
-                        spine ? spine.Elite : null);
+                        spine ? spine.Elite : null, spine ? spine.Waves : null);
 
                     pauseRequested = false;
                     while (!playerDied && !sectorEnded && !shutdownRequested && !quitRun)
@@ -822,7 +830,9 @@ namespace Game
                         lastKillingBlow = killingBlow;
                         deathPosition = GamePlane.WorldPointToPlane(rigInstance.Player.transform.position);
                         playerDied = true;
-                        moments.Raise(new PlayerDied(activeSectorIndex + 1, killingBlow.Kind));
+                        var byEnemy = killingBlow.AttackerId != ShipId.Invalid && killingBlow.AttackerId != rigInstance.Player.Id;
+                        var faction = byEnemy ? activeSectorFaction : string.Empty;
+                        moments.Raise(new PlayerDied(activeSectorIndex + 1, killingBlow.Kind, faction));
                     };
                 case PlayerDeathBehavior.None:
                 default:
