@@ -21,7 +21,6 @@ namespace UI.Hangar.Hardware
         public const string PrefabPath = "Assets/Prefabs/UI/HangarConsole.prefab";
         private const string ProjectorPath = "Assets/Prefabs/UI/HangarProjector.prefab";
         private const float PixelsPerUnit = 200f;
-        private const int ShipLampCount = 5;
 
         [MenuItem("Tools/Hangar/Rebuild console hardware")]
         public static void Rebuild()
@@ -113,10 +112,8 @@ namespace UI.Hangar.Hardware
                 }
                 var launchLamps = LampParts(parts, new[] { "LaunchLampLeft", "LaunchLampRight" },
                     SelfLit("LaunchLamp", new Color(1f, .06f, .03f)));
-                var statusLampMaterial = SelfLit("StatusLamp", Color.black);
-                var shipLamps = LampParts(parts, Enumerable.Range(1, ShipLampCount).Select(i => "ShipLamp" + i).ToArray(),
-                    statusLampMaterial);
-                var slotLamps = LampParts(parts, new[] { "SlotLamp1", "SlotLamp2", "SlotLamp3" }, statusLampMaterial);
+                var statusLamps = LampParts(parts, Enumerable.Range(1, 6).Select(i => "StatusLamp" + i).ToArray(),
+                    SelfLit("StatusLamp", Color.black));
 
                 var cameraObject = new GameObject("HardwareCamera");
                 cameraObject.transform.SetParent(root.transform, false);
@@ -188,14 +185,12 @@ namespace UI.Hangar.Hardware
                 var quad = Resources.GetBuiltinResource<Mesh>("Quad.fbx");
                 var bodyLamps = new List<ExportLamp>(manifest.lamps);
                 var launchEntries = TakeLamps(bodyLamps, "Left Launch armed red lens", "Right Launch armed red lens");
-                var shipEntries = TakeLamps(bodyLamps,
-                    Enumerable.Range(1, ShipLampCount).Select(i => $"Left ship {i} lens").ToArray());
-                var slotEntries = TakeLamps(bodyLamps,
+                var statusEntries = TakeLamps(bodyLamps,
+                    "Left status 1 green lens", "Left status 2 green lens", "Left status 3 amber lens",
                     "Right status 1 green lens", "Right status 2 green lens", "Right status 3 amber lens");
                 var lampGlows = GlowCards(glows.transform, bodyLamps.ToArray(), quad, glowMaterial, camera);
                 var launchLampGlows = GlowCards(glows.transform, launchEntries, quad, glowMaterial, camera);
-                var shipLampGlows = GlowCards(glows.transform, shipEntries, quad, glowMaterial, camera);
-                var slotLampGlows = GlowCards(glows.transform, slotEntries, quad, glowMaterial, camera);
+                var statusLampGlows = GlowCards(glows.transform, statusEntries, quad, glowMaterial, camera);
                 if (manifest.downlights == null || manifest.downlights.Length > 2)
                     throw new InvalidOperationException(
                         "console-export.json lists " +
@@ -250,10 +245,8 @@ namespace UI.Hangar.Hardware
                 AssignGlows(data.FindProperty("lampGlows"), lampGlows);
                 AssignRenderers(data.FindProperty("launchLamps"), launchLamps);
                 AssignGlows(data.FindProperty("launchLampGlows"), launchLampGlows);
-                AssignRenderers(data.FindProperty("shipLamps"), shipLamps);
-                AssignGlows(data.FindProperty("shipLampGlows"), shipLampGlows);
-                AssignRenderers(data.FindProperty("slotLamps"), slotLamps);
-                AssignGlows(data.FindProperty("slotLampGlows"), slotLampGlows);
+                AssignRenderers(data.FindProperty("statusLamps"), statusLamps);
+                AssignGlows(data.FindProperty("statusLampGlows"), statusLampGlows);
                 AssignGlows(data.FindProperty("overheadGlows"), overheadGlows);
                 AssignGlow(data.FindProperty("lensGlow"), lensGlow);
                 data.FindProperty("knobAxis").vector3Value = knobAxis;

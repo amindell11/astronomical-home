@@ -2,8 +2,8 @@
   "objects": [
     {
       "name": "Deck | joined closed structure",
-      "vertices": 11590,
-      "triangles": 21816,
+      "vertices": 11494,
+      "triangles": 21632,
       "closed_manifold": true,
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
@@ -12,7 +12,7 @@
       "degenerate_faces": 0,
       "tiny_faces_below_1e10": 4,
       "minimum_face_area": 3.637978807091713e-12,
-      "signed_volume": 4098.859869726269,
+      "signed_volume": 4098.852795176915,
       "modifiers": [],
       "role": "ConsoleBody"
     },
@@ -337,7 +337,7 @@
       "role": "ProjectorLens"
     },
     {
-      "name": "Deck | Left ship 1 lens",
+      "name": "Deck | Left status 1 green lens",
       "vertices": 16,
       "triangles": 28,
       "closed_manifold": true,
@@ -350,10 +350,10 @@
       "minimum_face_area": 0.00012534721463453025,
       "signed_volume": 7.045833441139088e-05,
       "modifiers": [],
-      "role": "ShipLamp1"
+      "role": "StatusLamp1"
     },
     {
-      "name": "Deck | Left ship 2 lens",
+      "name": "Deck | Left status 2 green lens",
       "vertices": 16,
       "triangles": 28,
       "closed_manifold": true,
@@ -366,10 +366,10 @@
       "minimum_face_area": 0.00012534721463453025,
       "signed_volume": 7.045833441139088e-05,
       "modifiers": [],
-      "role": "ShipLamp2"
+      "role": "StatusLamp2"
     },
     {
-      "name": "Deck | Left ship 3 lens",
+      "name": "Deck | Left status 3 amber lens",
       "vertices": 16,
       "triangles": 28,
       "closed_manifold": true,
@@ -382,39 +382,7 @@
       "minimum_face_area": 0.00012534721463453025,
       "signed_volume": 7.045833441139088e-05,
       "modifiers": [],
-      "role": "ShipLamp3"
-    },
-    {
-      "name": "Deck | Left ship 4 lens",
-      "vertices": 16,
-      "triangles": 28,
-      "closed_manifold": true,
-      "boundary_edges": 0,
-      "nonmanifold_edges": 0,
-      "loose_vertices": 0,
-      "consistent_winding": true,
-      "degenerate_faces": 0,
-      "tiny_faces_below_1e10": 0,
-      "minimum_face_area": 0.00012534721463453025,
-      "signed_volume": 7.045833441139088e-05,
-      "modifiers": [],
-      "role": "ShipLamp4"
-    },
-    {
-      "name": "Deck | Left ship 5 lens",
-      "vertices": 16,
-      "triangles": 28,
-      "closed_manifold": true,
-      "boundary_edges": 0,
-      "nonmanifold_edges": 0,
-      "loose_vertices": 0,
-      "consistent_winding": true,
-      "degenerate_faces": 0,
-      "tiny_faces_below_1e10": 0,
-      "minimum_face_area": 0.00012534721463453025,
-      "signed_volume": 7.045833441139088e-05,
-      "modifiers": [],
-      "role": "ShipLamp5"
+      "role": "StatusLamp3"
     },
     {
       "name": "Deck | Right status 1 green lens",
@@ -430,7 +398,7 @@
       "minimum_face_area": 0.00012534721463453025,
       "signed_volume": 7.045833441139088e-05,
       "modifiers": [],
-      "role": "SlotLamp1"
+      "role": "StatusLamp4"
     },
     {
       "name": "Deck | Right status 2 green lens",
@@ -446,7 +414,7 @@
       "minimum_face_area": 0.00012534721463453025,
       "signed_volume": 7.045833441139088e-05,
       "modifiers": [],
-      "role": "SlotLamp2"
+      "role": "StatusLamp5"
     },
     {
       "name": "Deck | Right status 3 amber lens",
@@ -462,7 +430,7 @@
       "minimum_face_area": 0.00012534721463453025,
       "signed_volume": 7.045833441139088e-05,
       "modifiers": [],
-      "role": "SlotLamp3"
+      "role": "StatusLamp6"
     },
     {
       "name": "Deck | Left Launch armed red lens",
@@ -763,48 +731,32 @@
       ]
     },
     {
-      "name": "Deck | Left ship 1 lens",
-      "role": "ShipLamp1",
-      "pixel": [
-        517.020378112793,
-        873.4342324733734
-      ]
-    },
-    {
-      "name": "Deck | Left ship 2 lens",
-      "role": "ShipLamp2",
+      "name": "Deck | Left status 1 green lens",
+      "role": "StatusLamp1",
       "pixel": [
         544.2035293579102,
         870.8321624994278
       ]
     },
     {
-      "name": "Deck | Left ship 3 lens",
-      "role": "ShipLamp3",
+      "name": "Deck | Left status 2 green lens",
+      "role": "StatusLamp2",
       "pixel": [
         571.5066719055176,
         868.2186502218246
       ]
     },
     {
-      "name": "Deck | Left ship 4 lens",
-      "role": "ShipLamp4",
+      "name": "Deck | Left status 3 amber lens",
+      "role": "StatusLamp3",
       "pixel": [
         598.930721282959,
         865.5935668945312
       ]
     },
     {
-      "name": "Deck | Left ship 5 lens",
-      "role": "ShipLamp5",
-      "pixel": [
-        626.4764213562012,
-        862.9568159580231
-      ]
-    },
-    {
       "name": "Deck | Right status 1 green lens",
-      "role": "SlotLamp1",
+      "role": "StatusLamp4",
       "pixel": [
         1321.0693359375,
         865.5935668945312
@@ -812,7 +764,7 @@
     },
     {
       "name": "Deck | Right status 2 green lens",
-      "role": "SlotLamp2",
+      "role": "StatusLamp5",
       "pixel": [
         1348.4933853149414,
         868.2186502218246
@@ -820,7 +772,7 @@
     },
     {
       "name": "Deck | Right status 3 amber lens",
-      "role": "SlotLamp3",
+      "role": "StatusLamp6",
       "pixel": [
         1375.7964706420898,
         870.8321624994278
@@ -1459,7 +1411,7 @@
       ]
     }
   ],
-  "total_triangles": 25240,
+  "total_triangles": 25000,
   "camera": {
     "position": [
       0.0,
@@ -1477,11 +1429,9 @@
     ]
   },
   "lamp_names": [
-    "Deck | Left ship 1 lens",
-    "Deck | Left ship 2 lens",
-    "Deck | Left ship 3 lens",
-    "Deck | Left ship 4 lens",
-    "Deck | Left ship 5 lens",
+    "Deck | Left status 1 green lens",
+    "Deck | Left status 2 green lens",
+    "Deck | Left status 3 amber lens",
     "Deck | Right status 1 green lens",
     "Deck | Right status 2 green lens",
     "Deck | Right status 3 amber lens",
@@ -1556,7 +1506,7 @@
       "closed_manifold": true
     }
   ],
-  "scene_total_triangles": 25589,
+  "scene_total_triangles": 25349,
   "positive_volume_intersections": [],
   "pressed_intersections": [],
   "press_travel": [
@@ -1601,5 +1551,5 @@
       "share": 0.28
     }
   ],
-  "intersection_pairs_checked": 39
+  "intersection_pairs_checked": 37
 }

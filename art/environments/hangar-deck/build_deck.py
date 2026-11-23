@@ -884,21 +884,14 @@ for index, start in enumerate((1, 3, 5), 1):
 
 for hand, label, basis in ((-1, 'Left', ship_basis), (1, 'Right', selector_basis)):
     status_basis = shifted(basis, y=.59, d=-.07)
-    if hand < 0:
-        finish_solid(label + ' status strip seat', status_basis, 1.29, .23, .010, -.060, inset)
-        for index, x in enumerate((-.54, -.27, 0, .27, .54), 1):
-            ship_lamp = lamp(label + ' ship ' + str(index), shifted(status_basis, x=x), .06, .0475,
-                             lamp_green, socket_scale=.5)
-            PARTS['ShipLamp' + str(index)] = ship_lamp
-            ship_lamp['export_role'] = 'ShipLamp' + str(index)
-    else:
-        finish_solid(label + ' status strip seat', status_basis, .92, .23, .010, -.060, inset)
-        for index, (x, mat, colour) in enumerate(((-.27, lamp_green, 'green'),
-                                                 (0, lamp_green, 'green'), (.27, lamp_amber, 'amber')), 1):
-            slot_lamp = lamp(label + ' status ' + str(index) + ' ' + colour,
-                             shifted(status_basis, x=x), .06, .0475, mat, socket_scale=.5)
-            PARTS['SlotLamp' + str(index)] = slot_lamp
-            slot_lamp['export_role'] = 'SlotLamp' + str(index)
+    finish_solid(label + ' status strip seat', status_basis, .92, .23, .010, -.060, inset)
+    for index, (x, mat, colour) in enumerate(((-.27, lamp_green, 'green'),
+                                             (0, lamp_green, 'green'), (.27, lamp_amber, 'amber')), 1):
+        status_lamp = lamp(label + ' status ' + str(index) + ' ' + colour,
+                           shifted(status_basis, x=x), .06, .0475, mat, socket_scale=.5)
+        role = 'StatusLamp' + str(index + (0 if hand < 0 else 3))
+        PARTS[role] = status_lamp
+        status_lamp['export_role'] = role
     for x in (-.73, .73):
         fastener(label + ' ramp upper screw', shifted(basis, x=x, y=.61), .041, .017)
     for x, y, width in ((-.52, -.62, .23), (-.21, -.65, .10), (.47, -.63, .17)):

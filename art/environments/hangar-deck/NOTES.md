@@ -1,5 +1,9 @@
 # Hangar deck
 
+## Blinking status lamps, 2026-11-23
+
+After flying the indicator build the owner found it too many lamps and too bright, so the status lamps lose their meaning. The left group is back to three lenses on its 0.92 seat, at x -0.27, 0 and 0.27, with the original names and materials; the geometry matches the pass before the indicators. All six status lenses carry an `export_role` (`StatusLamp1`–`StatusLamp3` for the left group and `StatusLamp4`–`StatusLamp6` for the right, each left to right), so each exports as its own part and as a manifest lamp with a glow card. Unity blinks them on Perlin noise in their exported colours. The manifest is back to twelve lamps. The "Ship and screen status lamps" section below is superseded.
+
 ## Window etching follows the visible frame, 2026-11-23
 
 The owner asked for the window etchings to follow the edge of the window. Before this pass, `build_glass.py` laid the marks out against each pane's glass outline. That outline is hidden under the strut centre lines, the header and the sill. The marks therefore sat at an inset from edges nobody can see, and about a third of the stroke area was on glass behind hardware.
@@ -19,7 +23,7 @@ Stroke strengths, widths, feather, hexagon sizes and the hologram keep-out are u
 
 ## Ship and screen status lamps, 2026-11-23
 
-The owner turned the two pod status groups into indicators. The left group now has five lenses, one per offered ship, named `Deck | Left ship 1 lens` to `Deck | Left ship 5 lens` from left to right. They keep the old lens size, socket scale and 0.27 pitch, at x -0.54 to 0.54 on a status seat widened from 0.92 to 1.29. The seat still clears the ramp screws at x ±0.73. The right group keeps its geometry: its three lenses stand for the ship, primary and ordnance screens.
+Superseded by "Blinking status lamps" above. The owner turned the two pod status groups into indicators. The left group now has five lenses, one per offered ship, named `Deck | Left ship 1 lens` to `Deck | Left ship 5 lens` from left to right. They keep the old lens size, socket scale and 0.27 pitch, at x -0.54 to 0.54 on a status seat widened from 0.92 to 1.29. The seat still clears the ramp screws at x ±0.73. The right group keeps its geometry: its three lenses stand for the ship, primary and ordnance screens.
 
 Each lens carries an `export_role` (`ShipLamp1`–`ShipLamp5`, `SlotLamp1`–`SlotLamp3`). The exporter's `part_names` lists them, so each exports as its own part and also as a manifest lamp with a glow card, like the Launch lamps. Unity colours them at runtime, so their Blender material is only a placeholder. The manifest now lists fourteen lamps.
 

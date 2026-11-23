@@ -223,7 +223,7 @@
           ],
           "finished_rgb": [
             56,
-            12,
+            11,
             55
           ],
           "original_alpha": 255,
@@ -2226,8 +2226,8 @@
           ],
           "finished_rgb": [
             57,
-            14,
-            57
+            13,
+            56
           ],
           "original_alpha": 255,
           "finished_alpha": 255
@@ -4097,8 +4097,8 @@
             84
           ],
           "finished_rgb": [
-            66,
-            23,
+            67,
+            24,
             69
           ],
           "original_alpha": 255,
@@ -5533,11 +5533,11 @@
     "reference_image": "coverage-reference/deck-camera.png",
     "new_image": "deck-camera.png",
     "reference_sha256": "cf8a2b20ece7810dd028bfff390af6f71fdf6126a64711a3939c6c47ae022776",
-    "new_sha256": "bac028f45f61b61c411de54a34554e6e491f73516ed82cc6ac9835ca1d31c917",
+    "new_sha256": "e112b7565886cbcdcde302d559ab14dbd384731e6c1836e3f3897c5e10393c0c",
     "comparison": "Exact saved RGB bytes, without tolerance or denoising exclusions.",
     "allowed_change_rule": "Previously pure backdrop above header/below console becomes hardware; baseline mask alpha = 0, new alpha > 0.",
     "image_pixels": 2073600,
-    "changed_pixels": 938305,
+    "changed_pixels": 938250,
     "changed_bounds_xy_inclusive": [
       0,
       0,
@@ -5558,10 +5558,10 @@
       1919,
       1079
     ],
-    "changed_window_pixels": 56740,
-    "changed_non_backdrop_pixels": 849870,
+    "changed_window_pixels": 56733,
+    "changed_non_backdrop_pixels": 849822,
     "changed_antialias_boundary_pixels": 0,
-    "disallowed_changed_pixels": 906605,
+    "disallowed_changed_pixels": 906550,
     "disallowed_changed_bounds_xy_inclusive": [
       0,
       13,
@@ -5570,18 +5570,18 @@
     ],
     "maximum_channel_difference": 254,
     "disallowed_maximum_channel_difference_counts": {
-      "one": 77628,
-      "two_to_five": 25129,
-      "over_five": 803848,
+      "one": 77773,
+      "two_to_five": 25000,
+      "over_five": 803777,
       "over_five_in_first_20_rows": 12384
     },
-    "mean_maximum_channel_difference_over_changed_pixels": 33.87918640527334,
+    "mean_maximum_channel_difference_over_changed_pixels": 33.86334559019451,
     "scope_pass": false,
     "changed_components": {
-      "component_count": 41005,
+      "component_count": 40976,
       "largest_regions": [
         {
-          "pixel_count": 871033,
+          "pixel_count": 870994,
           "bounds_xy_inclusive": [
             0,
             0,
@@ -5590,7 +5590,7 @@
           ]
         },
         {
-          "pixel_count": 749,
+          "pixel_count": 754,
           "bounds_xy_inclusive": [
             1380,
             278,
@@ -5599,7 +5599,7 @@
           ]
         },
         {
-          "pixel_count": 736,
+          "pixel_count": 735,
           "bounds_xy_inclusive": [
             1455,
             290,
@@ -5608,16 +5608,7 @@
           ]
         },
         {
-          "pixel_count": 727,
-          "bounds_xy_inclusive": [
-            491,
-            530,
-            555,
-            689
-          ]
-        },
-        {
-          "pixel_count": 725,
+          "pixel_count": 726,
           "bounds_xy_inclusive": [
             565,
             507,
@@ -5626,7 +5617,16 @@
           ]
         },
         {
-          "pixel_count": 715,
+          "pixel_count": 724,
+          "bounds_xy_inclusive": [
+            491,
+            530,
+            555,
+            689
+          ]
+        },
+        {
+          "pixel_count": 716,
           "bounds_xy_inclusive": [
             474,
             272,
@@ -5653,7 +5653,7 @@
           ]
         },
         {
-          "pixel_count": 386,
+          "pixel_count": 384,
           "bounds_xy_inclusive": [
             1541,
             176,
@@ -5671,10 +5671,10 @@
           ]
         },
         {
-          "pixel_count": 347,
+          "pixel_count": 348,
           "bounds_xy_inclusive": [
             1461,
-            150,
+            149,
             1489,
             208
           ]
@@ -5709,15 +5709,6 @@
         {
           "pixel_count": 341,
           "bounds_xy_inclusive": [
-            430,
-            149,
-            458,
-            208
-          ]
-        },
-        {
-          "pixel_count": 340,
-          "bounds_xy_inclusive": [
             1646,
             194,
             1677,
@@ -5725,7 +5716,16 @@
           ]
         },
         {
-          "pixel_count": 338,
+          "pixel_count": 340,
+          "bounds_xy_inclusive": [
+            430,
+            149,
+            458,
+            208
+          ]
+        },
+        {
+          "pixel_count": 339,
           "bounds_xy_inclusive": [
             1596,
             194,
@@ -5734,7 +5734,7 @@
           ]
         },
         {
-          "pixel_count": 337,
+          "pixel_count": 338,
           "bounds_xy_inclusive": [
             292,
             194,
@@ -5761,13 +5761,13 @@
           ]
         }
       ],
-      "remaining_component_pixels": 58040
+      "remaining_component_pixels": 58020
     },
     "disallowed_components": {
-      "component_count": 41006,
+      "component_count": 40977,
       "largest_regions": [
         {
-          "pixel_count": 839332,
+          "pixel_count": 839293,
           "bounds_xy_inclusive": [
             0,
             13,
@@ -5776,7 +5776,7 @@
           ]
         },
         {
-          "pixel_count": 749,
+          "pixel_count": 754,
           "bounds_xy_inclusive": [
             1380,
             278,
@@ -5785,7 +5785,7 @@
           ]
         },
         {
-          "pixel_count": 736,
+          "pixel_count": 735,
           "bounds_xy_inclusive": [
             1455,
             290,
@@ -5794,16 +5794,7 @@
           ]
         },
         {
-          "pixel_count": 727,
-          "bounds_xy_inclusive": [
-            491,
-            530,
-            555,
-            689
-          ]
-        },
-        {
-          "pixel_count": 725,
+          "pixel_count": 726,
           "bounds_xy_inclusive": [
             565,
             507,
@@ -5812,7 +5803,16 @@
           ]
         },
         {
-          "pixel_count": 715,
+          "pixel_count": 724,
+          "bounds_xy_inclusive": [
+            491,
+            530,
+            555,
+            689
+          ]
+        },
+        {
+          "pixel_count": 716,
           "bounds_xy_inclusive": [
             474,
             272,
@@ -5839,7 +5839,7 @@
           ]
         },
         {
-          "pixel_count": 386,
+          "pixel_count": 384,
           "bounds_xy_inclusive": [
             1541,
             176,
@@ -5857,10 +5857,10 @@
           ]
         },
         {
-          "pixel_count": 347,
+          "pixel_count": 348,
           "bounds_xy_inclusive": [
             1461,
-            150,
+            149,
             1489,
             208
           ]
@@ -5895,15 +5895,6 @@
         {
           "pixel_count": 341,
           "bounds_xy_inclusive": [
-            430,
-            149,
-            458,
-            208
-          ]
-        },
-        {
-          "pixel_count": 340,
-          "bounds_xy_inclusive": [
             1646,
             194,
             1677,
@@ -5911,7 +5902,16 @@
           ]
         },
         {
-          "pixel_count": 338,
+          "pixel_count": 340,
+          "bounds_xy_inclusive": [
+            430,
+            149,
+            458,
+            208
+          ]
+        },
+        {
+          "pixel_count": 339,
           "bounds_xy_inclusive": [
             1596,
             194,
@@ -5920,7 +5920,7 @@
           ]
         },
         {
-          "pixel_count": 337,
+          "pixel_count": 338,
           "bounds_xy_inclusive": [
             292,
             194,
@@ -5947,7 +5947,7 @@
           ]
         }
       ],
-      "remaining_component_pixels": 58041
+      "remaining_component_pixels": 58021
     },
     "comparison_scope": "Historical gap-closure reference; finish 4 intentionally changes hardware colours."
   },
@@ -5962,10 +5962,10 @@
     "glass_changed_only_in_depth": true
   },
   "mesh_totals": {
-    "hardware_objects": 37,
-    "hardware_vertices": 13394,
-    "hardware_triangles": 25240,
-    "scene_triangles": 25589
+    "hardware_objects": 35,
+    "hardware_vertices": 13266,
+    "hardware_triangles": 25000,
+    "scene_triangles": 25349
   },
   "all_bands_pass": true,
   "all_window_openings_pass": true,

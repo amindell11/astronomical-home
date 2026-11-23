@@ -198,50 +198,42 @@ namespace Tests.PlayMode.Hangar
         }
 
         [UnityTest]
-        public IEnumerator StatusLamps_ShowTheSelectedShipAndScreenWhite_PickableGreen_AndLockedDark()
+        public IEnumerator StatusLamps_EachBlinkOnItsOwn()
         {
-            var catalog = AssetDatabase.LoadAssetAtPath<Game.GameHost>("Assets/Prefabs/Game/GameHost.prefab").hangarOffer;
-            var ships = catalog.ships;
-            Assert.That(ships.Length, Is.GreaterThan(2), "test premise: the offer holds a locked ship beside two pickable ones");
-            var available = System.Array.Find(ships, ship => ship != catalog.starter);
-            console = Object.Instantiate(AssetDatabase.LoadAssetAtPath<HangarConsole>(ConsolePath));
-            launches = 0;
-            console.Show(catalog, new ShipLoadout(catalog.starter, null, null), ship => ship == available, () => launches++);
+            Open(_ => true, out _);
             yield return null;
-
             var data = new SerializedObject(console);
-            var profile = (HangarLightProfile)data.FindProperty("lightProfile").objectReferenceValue;
-            var shipLamps = data.FindProperty("shipLamps");
-            var slotLamps = data.FindProperty("slotLamps");
-            Assert.AreEqual(ships.Length, shipLamps.arraySize, "one lamp per offered ship");
-            void CheckShipLamps()
-            {
-                for (var i = 0; i < ships.Length; i++)
-                {
-                    var expected = Color.black;
-                    if (ships[i] == console.Selection.Ship) expected = profile.LampSelectedColor;
-                    else if (ships[i] == catalog.starter || ships[i] == available) expected = profile.LampAvailableColor;
-                    AssertColor(expected, LampColor(shipLamps, i), ships[i].name);
-                }
-            }
+            var lamps = data.FindProperty("statusLamps");
+            var glows = data.FindProperty("statusLampGlows");
+            Assert.AreEqual(6, lamps.arraySize, "six status lamps");
+            Assert.AreEqual(6, glows.arraySize, "one glow per status lamp");
 
-            CheckShipLamps();
-            while (console.Selection.Ship == catalog.starter || console.Selection.Ship == available)
-                console.Selection.Step(HangarSlot.Ship, 1);
-            Assert.IsTrue(console.Selection.ShipLocked, "test premise: a locked ship is selected");
-            yield return null;
-            CheckShipLamps();
+            for (var i = 0; i < glows.arraySize; i++)
+                Assert.IsTrue(glows.GetArrayElementAtIndex(i).FindPropertyRelative("card").objectReferenceValue,
+                    $"status lamp {i + 1} has a glow card");
 
-            for (var turn = 0; turn < 3; turn++)
+            // Noise can hold a lamp steady for a while, so sample until each has changed, within a bound.
+            var seen = new HashSet<Color>[lamps.arraySize];
+            for (var i = 0; i < seen.Length; i++) seen[i] = new HashSet<Color>();
+            var differed = false;
+            var start = Time.unscaledTime;
+            while (Time.unscaledTime - start < 1.5f ||
+                   (Time.unscaledTime - start < 6f && (!differed || System.Array.Exists(seen, values => values.Count < 2))))
             {
-                for (var i = 0; i < slotLamps.arraySize; i++)
-                {
-                    var expected = (int)console.Selection.Selected == i ? profile.LampSelectedColor : profile.LampAvailableColor;
-                    AssertColor(expected, LampColor(slotLamps, i), $"{console.Selection.Selected} selected, slot lamp {i}");
-                }
-                console.Selection.Turn(1);
                 yield return null;
+                var levels = new float[seen.Length];
+                for (var i = 0; i < seen.Length; i++)
+                {
+                    var color = LampColor(lamps, i);
+                    seen[i].Add(color);
+                    levels[i] = color.maxColorComponent /
+                                glows.GetArrayElementAtIndex(i).FindPropertyRelative("color").colorValue.maxColorComponent;
+                    if (Mathf.Abs(levels[i] - levels[0]) > .01f) differed = true;
+                }
             }
+            for (var i = 0; i < seen.Length; i++)
+                Assert.That(seen[i].Count, Is.GreaterThan(1), $"status lamp {i + 1} blinks");
+            Assert.IsTrue(differed, "the status lamps are not all alike in some frame");
         }
 
         [UnityTest]
@@ -395,9 +387,6 @@ namespace Tests.PlayMode.Hangar
             lamp.GetPropertyBlock(block);
             return block.GetColor(Shader.PropertyToID("_ConstantEmission"));
         }
-
-        private static void AssertColor(Color expected, Color actual, string message) =>
-            Assert.That(((Vector4)(expected - actual)).magnitude, Is.LessThan(1e-3f), $"{message}: expected {expected}, was {actual}");
 
         private static WeaponComponent[] Kind(ItemSubset catalog, bool ordnance)
         {
