@@ -237,12 +237,18 @@ Format: **term** — definition. *(authority)*
   work happens in one; `scripts/app_worktree_guard.py` refuses session starts
   that would make one. *(#1058)*
 - **merge gate** — the full-suite test gate inside `merge <slot>` and `land`;
-  the only sanctioned merge path.
+  the only sanctioned merge path besides GitHub auto-merge on a green
+  `land-check`.
 - **`land`** — the pool command that lands a PR no slot holds: the merge gate
   on the hosted path, in a borrowed slot, on a *recorded instruction* or the
   *auto-merge class*. Always
   in code font: the plain word keeps its everyday sense ("land it" is
   consent). *(agent_worktree_pool.sh `land`; #830)*
+- **`land-check`** — the commit status GitHub auto-merge waits on: `land`'s
+  preflight and authorize rules applied to a PR head that contains main, posted
+  by `.github/workflows/land-check.yml` from main's copy. Always in code font:
+  the plain phrase means checking anything before landing.
+  *(agent_worktree_pool.sh `land-check`)*
 - **merge turn** — the pool-wide right to run a merge gate, held by one gate at
   a time from before its fetch through `gh pr merge`. Waiting gates take it in
   arrival order (**turn ticket**). Any other push to main takes it with no
@@ -1194,15 +1200,17 @@ Format: **term** — definition. *(authority)*
   stamps count (begin after the run's first sector load, end at player death or
   the last extraction). Raises
   `Killed` with the victim on each counted kill. Reset at each run's loadout step. *(RunTally)*
-- **kill refill** — the fraction of max hull the game host restores to the
-  player each time the run tally counts a kill, set by the victim's rank: the
-  rival refill for a wave's rival or the elite, the minion refill for every other
-  kill, hunt patrols and elite escorts included. Hull only (ammo or heat on a kill
-  would be a reset button, and the shield already regens). Ranked by the game lead
-  on 2026-11-23 (about 10% and 40%): minions come back on every beat, so a large
-  minion refill would make farming them beat fighting the rival. Interactive
-  sessions only — the harness has no game host.
-  *(GameHost.minionKillHeal, GameHost.rivalKillHeal, WaveDirector.IsRival, SpawnLog.IsElite)*
+- **kill refill** — the hull points the game host restores to the player each
+  time the run tally counts a kill, set by the victim's rank: the rival refill for
+  a wave's rival or the elite, the minion refill for every other kill, hunt
+  patrols and elite escorts included. Hull only (ammo or heat on a kill would be
+  a reset button, and the shield already regens). Ranked by the game lead on
+  2026-11-23: minions come back on every beat, so a large minion refill would
+  make farming them beat fighting the rival. Flat points, not a share of max
+  hull (same day), so a kill pays the same on every chassis. Repair stations and
+  beacon caches still restore a share. Interactive sessions only — the harness
+  has no game host.
+  *(GameHost.minionKillHeal, GameHost.rivalKillHeal, WaveDirector.IsRival, SpawnLog.IsElite, Resource.Restore)*
 - **loadout stat hash** — a short hash of the balance numbers one ship flies with:
   its hull, its engine, its shield and the weapon on each mount. Only fields marked
   `[Stat]` count. The same parts with the same numbers give the same hash on any

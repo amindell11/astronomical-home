@@ -128,10 +128,10 @@ namespace Game
         [SerializeField] private PlayerDeathBehavior deathBehavior = PlayerDeathBehavior.RestartSector;
 
         [Header("Kill Refill")]
-        [Tooltip("Fraction of max hull restored to the player on each counted kill that is neither a rival nor the elite: minions, hunt patrols and elite escorts.")]
-        [SerializeField, Range(0f, 1f)] private float minionKillHeal = 0.1f;
-        [Tooltip("Fraction of max hull restored to the player on each counted kill of a wave's rival or the sector's elite.")]
-        [SerializeField, Range(0f, 1f)] private float rivalKillHeal = 0.4f;
+        [Tooltip("Hull points restored to the player on each counted kill that is neither a rival nor the elite: minions, hunt patrols and elite escorts.")]
+        [SerializeField, Min(0f)] private float minionKillHeal = 10f;
+        [Tooltip("Hull points restored to the player on each counted kill of a wave's rival or the sector's elite.")]
+        [SerializeField, Min(0f)] private float rivalKillHeal = 40f;
 
         [Header("Lull pick")]
         [Tooltip("Lull mods offered when the player claims a mod station, three at a time with time stopped. " +
@@ -971,7 +971,7 @@ namespace Game
         }
 
         private void RefillPlayerHull(ShipId victim) =>
-            rigInstance.Player.Damage.Health.RestoreFraction(PaysRivalHeal(victim) ? rivalKillHeal : minionKillHeal);
+            rigInstance.Player.Damage.Health.Restore(PaysRivalHeal(victim) ? rivalKillHeal : minionKillHeal);
 
         private bool PaysRivalHeal(ShipId victim)
         {

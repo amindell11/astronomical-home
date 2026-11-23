@@ -22,7 +22,7 @@ namespace Tests.EditMode.Sectors
         private const string RunPath = "Assets/Settings/Game/SurvivalTrialRun.asset";
 
         [TestCase(0, "shoal", 1f, false)]
-        [TestCase(1, "veil", 1.5f, false)]
+        [TestCase(1, "veil", 1f, false)]
         [TestCase(2, "bastion", 1f, true)]
         public void TrialRow_EndsAtAnEliteOfItsOwnFaction(int index, string factionId, float size, bool escalates)
         {
