@@ -228,10 +228,10 @@ namespace Tests.PlayMode.Bootstrap
         private static Ships.Command.WeaponSlot WeaponsSlot(WeaponComponent weapon) =>
             Ships.Weapons.WeaponsController.SlotFor(weapon);
 
-        private static string Name(WeaponComponent weapon) => weapon.DisplayName.ToUpperInvariant();
+        private static string Name(WeaponComponent weapon) => weapon.DisplayName;
 
         private string[] Offered() => Pick().transform.Find("Offers/Cards").Cast<Transform>()
-            .Select(card => card.Find("Name").GetComponent<Text>().text).ToArray();
+            .Select(card => card.Find("Body/Name").GetComponent<Text>().text).ToArray();
 
         private IReadOnlyList<IRunMoment> Moments() =>
             ((RunMomentStream)MomentsField.GetValue(hostGo.GetComponent<GameHost>())).Moments;

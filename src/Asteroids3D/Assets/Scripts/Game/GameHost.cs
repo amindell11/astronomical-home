@@ -701,10 +701,7 @@ namespace Game
 
             var stop = clock.Hold();
             rigInstance.SetInputEnabled(false);
-            var spine = session.ActiveSector.Module<PhaseSpineModule>();
-            var screen = WeaponPickScreen.Create(ui, index + 1,
-                spine ? spine.Threat(sessionProfile.run.Sectors[index]) : null, offers,
-                primary, secondary, rigInstance.Mods);
+            var screen = WeaponPickScreen.Create(ui, offers, primary, secondary, rigInstance.Mods);
             try
             {
                 while (!screen.Choice.HasValue && !shutdownRequested) yield return null;
