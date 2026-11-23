@@ -1,5 +1,9 @@
 # Hangar deck
 
+## Trial warm gusset lamps, 2026-11-22
+
+A trial the owner asked for on top of the corner strips, kept in its own commit so it can be dropped. One small warm-white lamp per side sits on the flat header face just outboard of each overhead strip's outer end, where the strut top meets the header, centred at `(±6.54, 3.325, 10.24)`. It uses the console's usual lamp style: a 0.30 by 0.075 lens in a socket with a lip at 0.7 scale. Its material is `Deck | gusset warm white lamp emission`, linear `(1.0, 0.82, 0.62)` at strength 0.7, dimmer than the orange Launch key. The lens name ends in ` lens`, so it exports as a lamp with a glow card; the manifest now has twelve lamps and two downlights. Verifier results match the corner-strip pass.
+
 ## Header corner strips and indicators, 2026-11-22
 
 The owner found the two upper corners of the 16:9 view too dark and chose this detail from two options. Each outboard header cassette gets a short cold-white strip under its service hatch, centred at x ±11.19, 0.16 above the cassette's lower edge. The lens is 1.56 by 0.055 with `Deck | corner cold strip emission`, linear `(0.28, 0.36, 0.48)` at strength 0.65, the header strips' colour. It sits in a dark bezel 1.70 by 0.13. The lens name ends in ` lens`, so the exporter lists it as a lamp and Unity gives it a glow card. The manifest now has ten lamps and two downlights.

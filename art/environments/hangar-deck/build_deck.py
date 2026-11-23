@@ -1161,6 +1161,13 @@ for hand, label in ((-1, 'Left'), (1, 'Right')):
         finish_solid(label + ' header corner indicator ' + str(index), shifted(cluster, y=y),
                      .055, .045, .026, .010, mat, .012)
 
+corner_warm = material('Deck | gusset warm white lamp emission', (1.0, .82, .62), .7)
+corner_warm.node_tree.nodes.get('Principled BSDF').inputs['Base Color'].default_value = (0, 0, 0, 1)
+PALETTE.append(corner_warm)
+for hand, label in ((-1, 'Left'), (1, 'Right')):
+    lamp(label + ' header gusset warm', shifted(header_basis, x=hand * 6.54, y=10.24, d=.025),
+         .30, .075, corner_warm, socket_scale=.7)
+
 for hand, label in ((-1, 'Left'), (1, 'Right')):
     for x0, x1, y0, y1, z0, z1, top0, top1 in (
             (10.30, 11.3, -2.05, -3.0, 1.0, 1.0, .195, .30),

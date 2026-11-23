@@ -2,8 +2,8 @@
   "objects": [
     {
       "name": "Deck | joined closed structure",
-      "vertices": 11398,
-      "triangles": 21448,
+      "vertices": 11494,
+      "triangles": 21632,
       "closed_manifold": true,
       "boundary_edges": 0,
       "nonmanifold_edges": 0,
@@ -12,7 +12,7 @@
       "degenerate_faces": 0,
       "tiny_faces_below_1e10": 4,
       "minimum_face_area": 3.637978807091713e-12,
-      "signed_volume": 4098.84693581533,
+      "signed_volume": 4098.852795176915,
       "modifiers": [],
       "role": "ConsoleBody"
     },
@@ -527,6 +527,38 @@
       "signed_volume": 0.001872811035431674,
       "modifiers": [],
       "role": "ConsoleBody"
+    },
+    {
+      "name": "Deck | Left header gusset warm lens",
+      "vertices": 16,
+      "triangles": 28,
+      "closed_manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 0,
+      "minimum_face_area": 0.0003125000512227416,
+      "signed_volume": 0.0006375000680796826,
+      "modifiers": [],
+      "role": "ConsoleBody"
+    },
+    {
+      "name": "Deck | Right header gusset warm lens",
+      "vertices": 16,
+      "triangles": 28,
+      "closed_manifold": true,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "loose_vertices": 0,
+      "consistent_winding": true,
+      "degenerate_faces": 0,
+      "tiny_faces_below_1e10": 0,
+      "minimum_face_area": 0.0003125000512227416,
+      "signed_volume": 0.0006375000680796826,
+      "modifiers": [],
+      "role": "ConsoleBody"
     }
   ],
   "parts": [
@@ -792,6 +824,22 @@
       "pixel": [
         1902.919578552246,
         118.19664716720581
+      ]
+    },
+    {
+      "name": "Deck | Left header gusset warm lens",
+      "role": "ConsoleBody",
+      "pixel": [
+        405.7026672363281,
+        46.04170560836792
+      ]
+    },
+    {
+      "name": "Deck | Right header gusset warm lens",
+      "role": "ConsoleBody",
+      "pixel": [
+        1514.2973327636719,
+        46.04170560836792
       ]
     }
   ],
@@ -1363,7 +1411,7 @@
       ]
     }
   ],
-  "total_triangles": 24760,
+  "total_triangles": 25000,
   "camera": {
     "position": [
       0.0,
@@ -1392,7 +1440,9 @@
     "Deck | Header downlight 01 cold white lens",
     "Deck | Header downlight 02 cold white lens",
     "Deck | Left header corner cold strip lens",
-    "Deck | Right header corner cold strip lens"
+    "Deck | Right header corner cold strip lens",
+    "Deck | Left header gusset warm lens",
+    "Deck | Right header gusset warm lens"
   ],
   "preview_objects": [
     {
@@ -1456,7 +1506,7 @@
       "closed_manifold": true
     }
   ],
-  "scene_total_triangles": 25109,
+  "scene_total_triangles": 25349,
   "positive_volume_intersections": [],
   "pressed_intersections": [],
   "press_travel": [
@@ -1501,5 +1551,5 @@
       "share": 0.28
     }
   ],
-  "intersection_pairs_checked": 35
+  "intersection_pairs_checked": 37
 }
