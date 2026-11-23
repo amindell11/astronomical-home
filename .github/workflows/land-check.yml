@@ -34,10 +34,11 @@ permissions:
 jobs:
   # Every trigger resolves to the PR number first, so one concurrency group per PR orders the verdicts.
   resolve:
-    # Only a recorded instruction among comments changes the verdict; bot comments would flood the queue.
+    # Among comments only a recorded instruction or Codex's review summary changes the verdict.
     if: >-
       github.event_name != 'issue_comment' ||
-      (github.event.issue.pull_request && contains(github.event.comment.body, 'Merge instruction'))
+      (github.event.issue.pull_request && (contains(github.event.comment.body, 'Merge instruction') ||
+      contains(github.event.comment.body, 'codex-pull-request-review-summary')))
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
