@@ -35,6 +35,19 @@ namespace Tests.EditMode.Companion
         }
 
         [Test]
+        public void LinePastTheIntervalButInsideALongHold_IsDropped()
+        {
+            var longLine = new string('x', 200);
+            Assert.Greater(feel.HoldFor(longLine), feel.MinLineIntervalSeconds + 1f, "test premise: the hold outlasts the gap");
+            budget.Offer(longLine, mustSay: false, now: 0f, null);
+            Assert.AreEqual(longLine, Speak(0f));
+
+            var pastTheGap = feel.MinLineIntervalSeconds + .5f;
+            budget.Offer("second", mustSay: false, now: pastTheGap, null);
+            Assert.IsNull(Speak(pastTheGap), "a plain line never cuts one still held");
+        }
+
+        [Test]
         public void MustSayLineInsideTheInterval_Speaks()
         {
             budget.Offer("first", mustSay: false, now: 0f, null);
@@ -75,12 +88,24 @@ namespace Tests.EditMode.Companion
         [Test]
         public void FollowUp_IsTakenWhenTheOpenersHoldEnds_ThoughTheGapHasNotPassed()
         {
-            Assert.Less(feel.HoldSeconds, feel.MinLineIntervalSeconds, "test premise: the hold ends inside the gap");
+            Assert.Less(feel.HoldFor("open"), feel.MinLineIntervalSeconds, "test premise: the hold ends inside the gap");
             budget.Offer("open", mustSay: false, now: 0f, "reply");
             Assert.AreEqual("open", Speak(0f));
 
-            Assert.IsNull(Speak(feel.HoldSeconds - .1f), "the follow-up waits out the hold");
-            Assert.AreEqual("reply", Speak(feel.HoldSeconds));
+            Assert.IsNull(Speak(feel.HoldFor("open") - .1f), "the follow-up waits out the hold");
+            Assert.AreEqual("reply", Speak(feel.HoldFor("open")));
+        }
+
+        [Test]
+        public void FollowUp_OfALongOpener_WaitsUntilTheOpenerCanBeRead()
+        {
+            var longOpener = new string('x', 120);
+            Assert.Greater(feel.HoldFor(longOpener), feel.HoldFor("open"), "test premise: a long line holds longer");
+            budget.Offer(longOpener, mustSay: false, now: 0f, "reply");
+            Assert.AreEqual(longOpener, Speak(0f));
+
+            Assert.IsNull(Speak(feel.HoldFor(longOpener) - .1f), "the follow-up waits out the long hold");
+            Assert.AreEqual("reply", Speak(feel.HoldFor(longOpener)));
         }
 
         [Test]
@@ -89,7 +114,7 @@ namespace Tests.EditMode.Companion
             budget.Offer("open", mustSay: false, now: 0f, "reply");
             Assert.AreEqual("open", Speak(0f));
 
-            Assert.AreEqual("reply", Speak(feel.HoldSeconds, canSpeak: false));
+            Assert.AreEqual("reply", Speak(feel.HoldFor("open"), canSpeak: false));
         }
 
         [Test]
@@ -97,9 +122,9 @@ namespace Tests.EditMode.Companion
         {
             budget.Offer("open", mustSay: false, now: 0f, "reply");
             Assert.AreEqual("open", Speak(0f));
-            Assert.AreEqual("reply", Speak(feel.HoldSeconds));
+            Assert.AreEqual("reply", Speak(feel.HoldFor("open")));
 
-            var stillInsideTheReplyGap = feel.HoldSeconds + feel.MinLineIntervalSeconds - 1f;
+            var stillInsideTheReplyGap = feel.HoldFor("open") + feel.MinLineIntervalSeconds - 1f;
             budget.Offer("plain", mustSay: false, now: stillInsideTheReplyGap, null);
             Assert.IsNull(Speak(stillInsideTheReplyGap), "the gap counts from the reply");
         }
@@ -112,7 +137,7 @@ namespace Tests.EditMode.Companion
 
             budget.Offer("second", mustSay: false, now: 1f, "reply");
             Assert.IsNull(Speak(1f), "the offer is refused inside the gap");
-            Assert.IsNull(Speak(1f + feel.HoldSeconds));
+            Assert.IsNull(Speak(1f + feel.HoldFor("open")));
             Assert.IsNull(Speak(feel.MinLineIntervalSeconds + 1f));
         }
 
@@ -123,7 +148,7 @@ namespace Tests.EditMode.Companion
             Assert.IsNull(Speak(1f, canSpeak: false), "test premise: it cannot speak yet");
 
             Assert.IsNull(Speak(feel.StaleSeconds + .1f), "a line that waited past stale is gone");
-            Assert.IsNull(Speak(feel.StaleSeconds + feel.HoldSeconds + 1f), "its follow-up never speaks");
+            Assert.IsNull(Speak(feel.StaleSeconds + feel.HoldFor("open") + 1f), "its follow-up never speaks");
         }
 
         [Test]
@@ -134,7 +159,7 @@ namespace Tests.EditMode.Companion
 
             budget.Offer("must", mustSay: true, now: 1f, null);
             Assert.AreEqual("must", Speak(1f));
-            Assert.IsNull(Speak(feel.HoldSeconds), "taking the must-say drops the armed follow-up");
+            Assert.IsNull(Speak(feel.HoldFor("open")), "taking the must-say drops the armed follow-up");
         }
     }
 }
