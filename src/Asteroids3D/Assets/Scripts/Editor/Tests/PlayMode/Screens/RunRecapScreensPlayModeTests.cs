@@ -212,15 +212,15 @@ namespace Tests.PlayMode.Screens
             }
             var recorder = (RectTransform)screen.transform.Find("Panels/Recap");
             var scoreboard = (RectTransform)screen.transform.Find("Panels/Scoreboard");
-            var board = scoreboard.GetComponent<ScreenWindow>();
-            Assert.AreEqual(0f, board.Open, "the scoreboard waits for its button");
+            var boardWindow = scoreboard.GetComponent<ScreenWindow>();
+            Assert.AreEqual(0f, boardWindow.Open,"the scoreboard waits for its button");
             Assert.IsNull(scoreboard.GetComponentInChildren<ScrollRect>());
             Assert.IsNull(screen.transform.Find("Panels/Recap/Body/Time"));
             var centred = recorder.anchoredPosition;
             screen.transform.Find("Panels/Actions/ScoreboardButton").GetComponent<Button>().onClick.Invoke();
             Assert.IsTrue(screen.ScoreboardShown);
             yield return new WaitForSecondsRealtime(1.2f);
-            Assert.AreEqual(1f, board.Open, "the scoreboard opens while gameplay is paused");
+            Assert.AreEqual(1f, boardWindow.Open, "the scoreboard opens while gameplay is paused");
             Assert.Less(recorder.anchoredPosition.x, centred.x, "the flight recorder slides aside");
             Assert.Greater(recorder.anchoredPosition.y, centred.y);
             var canvasBounds = ((RectTransform)screen.transform).rect;
@@ -238,7 +238,7 @@ namespace Tests.PlayMode.Screens
             Assert.Greater(scoreboard.GetSiblingIndex(), recorder.GetSiblingIndex(), "the scoreboard draws in front");
             screen.ToggleScoreboard();
             yield return new WaitForSecondsRealtime(1.2f);
-            Assert.AreEqual(0f, board.Open);
+            Assert.AreEqual(0f, boardWindow.Open);
             Assert.AreEqual(centred, recorder.anchoredPosition);
             button.OnSubmit(null);
             Assert.IsTrue(screen.Continued);
