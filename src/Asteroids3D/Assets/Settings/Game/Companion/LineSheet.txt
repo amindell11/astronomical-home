@@ -66,7 +66,7 @@ The game's companion and enemy lines. This tab exports to LineSheet.txt in the r
 | VE2a | elite-announced | veil | Elite | either | Evaluation complete. Pilot exceeds projection. Senior instance will conduct the joining. | In game |  |
 | VE2b | elite-announced | veil | Elite | either | Many instances spent on you. Value confirmed. This instance attends personally. | In game |  |
 | B5a | elite-announced | bastion | Companion |  | That's the clan champion. 99.9% chance they charge us. The other 0.1%, they yell something first and then charge us. | In game |  |
-| BE2a | elite-announced | bastion | Elite | either | I'm champion of this clan. You fly well, stranger. Now show me it's you flying and not your clink. | In game |  |
+| BE2a | elite-announced | bastion | Elite | either | I'm champion of this clan. You fly well, outsider. Now show me it's you flying and not your clink. | In game |  |
 | BE2b | elite-announced | bastion | Elite | either | You beat my clan with a clink whispering in your ear. Now beat their champion without it. | In game |  |
 | SE3 | elite-beaten | shoal | Elite |  | Aw, hell. She was nearly paid off. | In game |  |
 | S8a | elite-beaten | shoal | Companion | either | Hard to feel proud of this one. He was just trying to keep his people fed. | In game |  |
