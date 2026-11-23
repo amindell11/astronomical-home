@@ -18,7 +18,7 @@ MonoBehaviour:
   attackRunMargin: 5
   circlesWreck: 0
   hitWithin: 2
-  nerveShield: 50
+  nerveShield: 0
   standOffMargin: 5
   minimumHold: 2
   wounded: 5

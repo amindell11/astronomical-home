@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: AimSettings_Minion
   m_EditorClassIdentifier: 
   reactionDelay: 0.6
-  wanderSize: 10
+  wanderSize: 14
   wanderCorrelationTime: 0.5
-  startingError: 20
+  startingError: 30
   timeToTighten: 10
   cone: 30
   range: 25

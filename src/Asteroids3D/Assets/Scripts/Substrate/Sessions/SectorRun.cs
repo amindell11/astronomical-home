@@ -96,8 +96,11 @@ namespace Substrate.Sessions
         [Tooltip("The wave director's sector phases, in run order: each one's waves and timing.")]
         [Stat(Ordered = true)] public SectorPhase[] phases = Array.Empty<SectorPhase>();
 
-        [Tooltip("Most enemies alive, hunt patrols included, that this sector's waves fill to. A wave arrives trimmed to the room left; with none, it is dropped.")]
-        [Stat, Min(1)] public int waveCap = 5;
+        [Tooltip("Most rivals alive that this sector's waves fill to. A wave comes only while there is room for its rival; with none, it is dropped, minions too.")]
+        [Stat, Min(1)] public int rivalCap = 1;
+
+        [Tooltip("Most minions alive, hunt patrols included, that this sector's waves fill to. A wave's minions arrive trimmed to the room left.")]
+        [Stat, Min(0)] public int minionCap = 4;
 
         [Tooltip("Patrols the sector's opening hunt spawns.")]
         [Stat, Min(0)] public int patrols;
