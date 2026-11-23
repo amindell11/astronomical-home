@@ -1,0 +1,119 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e86854eb93f45c3439d15c17a135812b, type: 3}
+  m_Name: CrimsonBlinkFeel
+  m_EditorClassIdentifier: 
+  scale: 1
+  speed: 1
+  bankNarrowing: 1.74
+  framesPerSecond: 60
+  layers:
+  - name: Departure glow
+    show: 1
+    size: 1
+    opacity: 1
+    speed: 0.25
+    endsAt: 0
+    fadeOut: 0
+    startsOn: 0
+    endsWithLive: 0
+    material: {fileID: 2100000, guid: f733efe1319af754296db3e5f995f1c3, type: 2}
+    columns: 4
+    rows: 1
+    frames: 4
+    width: 3.4167
+    length: 3.4167
+    centreAhead: 0
+    anchorAhead: 0
+    depth: 0.5
+    staysAtLaunch: 1
+    startsBehind: 1
+  - name: Departure
+    show: 1
+    size: 1
+    opacity: 1
+    speed: 0.25
+    endsAt: 0
+    fadeOut: 0
+    startsOn: 0
+    endsWithLive: 0
+    material: {fileID: 2100000, guid: 35e84c51f1f427546af70c98abf1d0a2, type: 2}
+    columns: 4
+    rows: 1
+    frames: 4
+    width: 3.4167
+    length: 3.4167
+    centreAhead: 0
+    anchorAhead: 0
+    depth: 0.45
+    staysAtLaunch: 1
+    startsBehind: 1
+  - name: Arrival glow
+    show: 1
+    size: 1
+    opacity: 1
+    speed: 0.25
+    endsAt: 0
+    fadeOut: 0
+    startsOn: 0
+    endsWithLive: 0
+    material: {fileID: 2100000, guid: 5bca8545c2a6d714c843a4b1627a82d2, type: 2}
+    columns: 6
+    rows: 1
+    frames: 6
+    width: 2.6667
+    length: 2.6667
+    centreAhead: 0
+    anchorAhead: 0
+    depth: 0.5
+    staysAtLaunch: 1
+    startsBehind: 0
+  - name: Arrival hole
+    show: 1
+    size: 1
+    opacity: 1
+    speed: 0.25
+    endsAt: 0
+    fadeOut: 0
+    startsOn: 0
+    endsWithLive: 0
+    material: {fileID: 2100000, guid: 0937858a74cdb894885022a5889c0d23, type: 2}
+    columns: 6
+    rows: 1
+    frames: 6
+    width: 2.6667
+    length: 2.6667
+    centreAhead: 0
+    anchorAhead: 0
+    depth: 0.45
+    staysAtLaunch: 1
+    startsBehind: 0
+  - name: Arrival ring
+    show: 1
+    size: 1
+    opacity: 1
+    speed: 0.25
+    endsAt: 0
+    fadeOut: 0
+    startsOn: 0
+    endsWithLive: 0
+    material: {fileID: 2100000, guid: eaba27babfaa7e7458a66c9b41702d1e, type: 2}
+    columns: 6
+    rows: 1
+    frames: 6
+    width: 2.6667
+    length: 2.6667
+    centreAhead: 0
+    anchorAhead: 0
+    depth: -0.5
+    staysAtLaunch: 1
+    startsBehind: 0
