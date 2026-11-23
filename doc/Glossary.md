@@ -609,8 +609,11 @@ Format: **term** — definition. *(authority)*
   the rank's size (ruled on #868, 2026-11-21). The **minion** has 70% hull,
   never fires its keystone, and aims worse than the other ranks (ruled on #1589,
   2026-11-17). Hunt patrols and elite escorts fly it. The **rival** leads every
-  wave. The **elite** is the third rank. The ranks are ruled on #1589. The
-  sector-to-faction mapping is ruled on #1320.
+  wave. The **elite** is the third rank. The ranks are ruled on #1589. A
+  presented run deals the factions to its sectors in a fresh order at its
+  start, so any faction can come first or last; a sector's pacing and elite
+  strength stay with its place in the run, and sector 3 always ends at the boss
+  (arye, 2026-11-23, replacing #1320's fixed mapping).
   *(Faction.Rival, Faction.Minion, Faction.EliteShip, FactionRank, SectorFaction)*
 - **elite** — a sector's end-of-sector enemy: its faction's elite chassis, with
   a heavy weapon pair and stacked run mods. A lull follows the
