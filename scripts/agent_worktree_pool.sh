@@ -2974,7 +2974,7 @@ gate_authorize() {
   fi
   GATE_REASON=unauthorized
   echo "merge: no recorded instruction covers landing tree $tree (instruction: ${instruction:-unread}) — not merging." >&2
-  echo "  Show the user the PR at its head; on their word, 'drain_pick.sh instruct $pr@<head>', then re-run 'land $pr'." >&2
+  echo "  On the user's word (a bare 'merge' is enough), 'drain_pick.sh instruct $pr', then re-run 'land $pr'." >&2
   return 1
 }
 
@@ -3055,7 +3055,7 @@ land_preflight() {
     *) land_refuse facts "land-facts gave no owed verdict for PR #$pr"; return 1 ;;
   esac
   if [[ "$instruction" == none && "$AUTO_MERGE_CLASS" -eq 0 ]]; then
-    land_refuse no-instruction "PR #$pr has no recorded instruction ('drain_pick.sh instruct $pr@<sha>' records the user's)"
+    land_refuse no-instruction "PR #$pr has no recorded instruction ('drain_pick.sh instruct $pr' records the user's)"
     return 1
   elif [[ "$instruction" != none && ! "$instruction" =~ ^[0-9a-f]{40}$ ]]; then
     land_refuse facts "land-facts gave no instruction verdict for PR #$pr"
