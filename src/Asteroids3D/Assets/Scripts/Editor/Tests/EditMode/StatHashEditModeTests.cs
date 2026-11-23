@@ -31,8 +31,8 @@ namespace Tests.EditMode
         private const string HangarOfferPath = "Assets/Settings/Ships/PlayerLoadout.asset";
         private const string RunPath = "Assets/Settings/Game/SurvivalTrialRun.asset";
         private const string LullModsPath = "Assets/Settings/Weapons/Mods/LullMods.asset";
-        private const float MinionKillHeal = 0.1f;
-        private const float RivalKillHeal = 0.4f;
+        private const float MinionKillHeal = 10f;
+        private const float RivalKillHeal = 40f;
         private const float PhaseWaveEvery = 6f;
 
         private sealed class ScratchCommander : Commander
@@ -207,10 +207,10 @@ namespace Tests.EditMode
             Assert.AreNotEqual(baseline, StatHash.OfSetting(offer, null, new[] { rivalCapped }, MinionKillHeal, RivalKillHeal),
                 "The rival cap must move the fingerprint.");
             Assert.AreNotEqual(baseline,
-                StatHash.OfSetting(offer, null, new[] { sector }, MinionKillHeal + 0.05f, RivalKillHeal),
+                StatHash.OfSetting(offer, null, new[] { sector }, MinionKillHeal + 1f, RivalKillHeal),
                 "The minion kill refill must move the fingerprint.");
             Assert.AreNotEqual(baseline,
-                StatHash.OfSetting(offer, null, new[] { sector }, MinionKillHeal, RivalKillHeal + 0.05f),
+                StatHash.OfSetting(offer, null, new[] { sector }, MinionKillHeal, RivalKillHeal + 1f),
                 "The rival kill refill must move the fingerprint.");
             Assert.AreNotEqual(baseline,
                 StatHash.OfSetting(offer, null, new[] { sector, ScratchRow(PhaseWaveEvery + 1f) }, MinionKillHeal, RivalKillHeal),
@@ -298,8 +298,8 @@ namespace Tests.EditMode
             Assert.That(lines, Has.Some.StartsWith("sector[0]/Shoal/Faction.signature={"));
             Assert.That(lines, Has.Some.StartsWith("sector[0]/Shoal/Faction.minion={"));
             Assert.That(lines, Has.Some.StartsWith("PlayerLoadout/ItemSubset.ships="));
-            Assert.That(lines, Has.Member("setting/minionKillHeal=0.1"));
-            Assert.That(lines, Has.Member("setting/rivalKillHeal=0.4"));
+            Assert.That(lines, Has.Member("setting/minionKillHeal=10"));
+            Assert.That(lines, Has.Member("setting/rivalKillHeal=40"));
         }
 
         [Test]

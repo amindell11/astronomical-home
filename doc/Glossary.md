@@ -1185,15 +1185,17 @@ Format: **term** — definition. *(authority)*
   stamps count (begin after the run's first sector load, end at player death or
   the last extraction). Raises
   `Killed` with the victim on each counted kill. Reset at each run's loadout step. *(RunTally)*
-- **kill refill** — the fraction of max hull the game host restores to the
-  player each time the run tally counts a kill, set by the victim's rank: the
-  rival refill for a wave's rival or the elite, the minion refill for every other
-  kill, hunt patrols and elite escorts included. Hull only (ammo or heat on a kill
-  would be a reset button, and the shield already regens). Ranked by the game lead
-  on 2026-11-23 (about 10% and 40%): minions come back on every beat, so a large
-  minion refill would make farming them beat fighting the rival. Interactive
-  sessions only — the harness has no game host.
-  *(GameHost.minionKillHeal, GameHost.rivalKillHeal, WaveDirector.IsRival, SpawnLog.IsElite)*
+- **kill refill** — the hull points the game host restores to the player each
+  time the run tally counts a kill, set by the victim's rank: the rival refill for
+  a wave's rival or the elite, the minion refill for every other kill, hunt
+  patrols and elite escorts included. Hull only (ammo or heat on a kill would be
+  a reset button, and the shield already regens). Ranked by the game lead on
+  2026-11-23: minions come back on every beat, so a large minion refill would
+  make farming them beat fighting the rival. Flat points, not a share of max
+  hull (same day), so a kill pays the same on every chassis. Repair stations and
+  beacon caches still restore a share. Interactive sessions only — the harness
+  has no game host.
+  *(GameHost.minionKillHeal, GameHost.rivalKillHeal, WaveDirector.IsRival, SpawnLog.IsElite, Resource.Restore)*
 - **loadout stat hash** — a short hash of the balance numbers one ship flies with:
   its hull, its engine, its shield and the weapon on each mount. Only fields marked
   `[Stat]` count. The same parts with the same numbers give the same hash on any
