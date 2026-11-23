@@ -116,31 +116,6 @@ namespace Tests.PlayMode.PlayerState
             Assert.AreEqual(-44f + 88f * .55f, FillEdge(hull).position.x, .001f);
         }
 
-        [UnityTest]
-        public IEnumerator KillRefill_FlashesTheHullGained_SummingUntilItFades()
-        {
-            readout.Initialize(new FakeDamage());
-            readout.ShowGain(0f);
-            Assert.IsNull(GainLabel(), "A refill at full hull gains nothing, so nothing shows.");
-
-            readout.ShowGain(10f);
-            Assert.AreEqual("+10 HULL", GainLabel().text);
-            readout.ShowGain(40f);
-            Assert.AreEqual("+50 HULL", GainLabel().text, "A kill while the flash is up adds to it.");
-
-            yield return new WaitForSeconds(2f);
-            Assert.IsNull(GainLabel(), "The flash fades out.");
-            readout.ShowGain(.4f);
-            Assert.AreEqual("+1 HULL", GainLabel().text, "A fresh flash starts over and never reads +0.");
-        }
-
-        private Text GainLabel()
-        {
-            foreach (var label in readout.GetComponentsInChildren<Text>())
-                if (label.text.StartsWith("+")) return label;
-            return null;
-        }
-
         private static UIVertex FillEdge(StatusBarUI bar)
         {
             using var mesh = new VertexHelper();
