@@ -54,7 +54,7 @@ namespace Tests.EditMode.Screens
         }
 
         [Test]
-        public void TheHudFades_WithTheCameraHeld_AndOnlyVictoryFreezesPlayAtOnce()
+        public void TheHudFades_WithTheCameraHeld_AndPlayRunsOnBehindEitherOutcome()
         {
             var defeat = new RecapOutcomeSequence(feel, RecapOutcomeContext.Defeat(Array.Empty<string>(), 1, 3, Board, Vector2.zero));
             var victory = new RecapOutcomeSequence(feel, RecapOutcomeContext.Victory(Array.Empty<string>(), 3, 3, Board));
@@ -64,7 +64,6 @@ namespace Tests.EditMode.Screens
             Assert.AreEqual(1f, start.ShipHudAlpha);
             Assert.IsTrue(start.CameraHeld);
             Assert.IsFalse(start.SimulationFrozen, "the explosion keeps simulating");
-            Assert.IsTrue(victory.StateAt(0, 0f).SimulationFrozen, "victory freezes combat before fading the HUD");
 
             var half = defeat.StateAt(0, .15f);
             Assert.AreEqual(.5f, half.HudAlpha, 1e-5f, "smootherstep's midpoint");
@@ -73,6 +72,8 @@ namespace Tests.EditMode.Screens
             Assert.AreEqual(0f, defeat.StateAt(0, 5f).HudAlpha, "the hold keeps the faded state");
             for (var i = 0; i < defeat.SpanCount; i++)
                 Assert.IsFalse(defeat.StateAt(i, 0f).SimulationFrozen, "survivors keep flying in every defeat phase");
+            for (var i = 0; i < victory.SpanCount; i++)
+                Assert.IsFalse(victory.StateAt(i, 0f).SimulationFrozen, "the fight plays on in every victory phase");
         }
 
         [Test]

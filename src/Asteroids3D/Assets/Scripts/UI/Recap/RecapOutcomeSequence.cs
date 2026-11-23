@@ -91,16 +91,15 @@ namespace UI.Recap
 
             var hud = span.Phase == RecapPhase.HudFade
                 ? 1f - Smoother(Progress(seconds, feel.HudFadeSeconds)) : 0f;
-            var frozen = Context.Outcome == RecapOutcome.Victory;
             return span.Phase switch
             {
-                RecapPhase.HudFade => new RecapState(span.Phase, hud, hud, true, frozen, 0f, false, 0f, false),
-                RecapPhase.BannerIn => new RecapState(span.Phase, 0f, 0f, true, frozen, Mathf.SmoothStep(0f, 1f, t), false, 0f, false),
-                RecapPhase.BannerHold => new RecapState(span.Phase, 0f, 0f, true, frozen, 1f, true, 0f, false),
-                RecapPhase.BannerOut => new RecapState(span.Phase, 0f, 0f, true, frozen, 1f - Mathf.SmoothStep(0f, 1f, t), false, 0f, false),
-                RecapPhase.Gap => new RecapState(span.Phase, 0f, 0f, true, frozen, 0f, false, 0f, false),
-                RecapPhase.BreakdownIn => new RecapState(span.Phase, 0f, 0f, true, frozen, 0f, false, Mathf.SmoothStep(0f, 1f, t), false),
-                RecapPhase.Breakdown => new RecapState(span.Phase, 0f, 0f, true, frozen, 0f, false, 1f, true),
+                RecapPhase.HudFade => new RecapState(span.Phase, hud, hud, true, false, 0f, false, 0f, false),
+                RecapPhase.BannerIn => new RecapState(span.Phase, 0f, 0f, true, false, Mathf.SmoothStep(0f, 1f, t), false, 0f, false),
+                RecapPhase.BannerHold => new RecapState(span.Phase, 0f, 0f, true, false, 1f, true, 0f, false),
+                RecapPhase.BannerOut => new RecapState(span.Phase, 0f, 0f, true, false, 1f - Mathf.SmoothStep(0f, 1f, t), false, 0f, false),
+                RecapPhase.Gap => new RecapState(span.Phase, 0f, 0f, true, false, 0f, false, 0f, false),
+                RecapPhase.BreakdownIn => new RecapState(span.Phase, 0f, 0f, true, false, 0f, false, Mathf.SmoothStep(0f, 1f, t), false),
+                RecapPhase.Breakdown => new RecapState(span.Phase, 0f, 0f, true, false, 0f, false, 1f, true),
                 _ => throw new ArgumentOutOfRangeException(nameof(index), span.Phase, "Unknown recap phase."),
             };
         }
