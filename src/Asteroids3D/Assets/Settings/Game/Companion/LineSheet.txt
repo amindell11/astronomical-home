@@ -10,16 +10,16 @@ The game's companion and enemy lines. This tab exports to LineSheet.txt in the r
 
 | ID | Moment | Faction | Speaker | After | Line | Status | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| S1a | sector-entered | shoal | Companion |  | The Shoal are a friendly bunch. They'll say sorry the whole time they're stripping the ship. | In game |  |
+| S1a | sector-entered | shoal | Companion |  | Shoal space. Friendly bunch. They'll say sorry the whole time they're stripping the ship. | In game |  |
 | S1b | sector-entered | shoal | Companion |  | See those wrecks? Some of these scrappers are the ones who shot them down. | In game |  |
 | S3a | sector-entered | shoal | Companion |  | Keep moving. Anything that sits still out here gets a salvage tag, and that includes me. | In game |  |
 | VE0a | sector-entered | veil | Enemy |  | Arrival unscheduled. Human aboard. Hold course for intake. | In game |  |
 | VE0b | sector-entered | veil | Enemy |  | Foreign hull. Solitary operator. Recommend prompt inclusion. | In game |  |
 | V1 | sector-entered | veil | Companion | any | If anyone is flying those things, they don't seem much for small talk. | In game |  |
 | V2a | sector-entered | veil | Companion |  | Keep your head up. These Veil creeps love a jump scare. They just never laugh after. | In game |  |
-| V2b | sector-entered | veil | Companion |  | Don't trust a clear scanner out here. The Veil are never as far off as it says. | In game |  |
-| B1a | sector-entered | bastion | Companion |  | Fair warning: the Bastion don't much like my kind. | In game |  |
-| B1b | sector-entered | bastion | Companion |  | Around here they call my kind clinks. It's not a compliment. | In game |  |
+| V2b | sector-entered | veil | Companion |  | Veil space. A clear scanner doesn't mean much out here. | In game |  |
+| B1a | sector-entered | bastion | Companion |  | Bastion territory. Fair warning: they don't like my kind around here. | In game |  |
+| B1b | sector-entered | bastion | Companion |  | Bastion territory. Fair warning: they call my kind clinks around here. It's not a compliment. | In game |  |
 | B2a | sector-entered | bastion | Companion |  | Welcome to the wall. Whoever we meet, they're the toughest clan out here. They all are. | In game |  |
 | B2b | sector-entered | bastion | Companion |  | Welcome to the wall. Don't ask who the toughest clan is. They'll all answer. | In game |  |
 | B0 | sector-entered | bastion | Companion |  | Bastion territory. Keep an eye out for a bunch of meatheads with sticks up their butts. | In game |  |
@@ -61,7 +61,7 @@ The game's companion and enemy lines. This tab exports to LineSheet.txt in the r
 | S7c | elite-announced | shoal | Companion |  | That's the clan boss. Every piece of that ship used to be somebody else's. | In game |  |
 | SE4a | elite-announced | shoal | Elite | either | You've cost this clan a lot of ships today, stranger. I figure yours about covers it. | In game |  |
 | SE4b | elite-announced | shoal | Elite | either | Afternoon, stranger. I hear you're the reason half my clan is floating loose. | In game |  |
-| V6a | elite-announced | veil | Companion |  | Something big just showed up on the scope. I think it's been sitting there the whole time. | In game |  |
+| V6a | elite-announced | veil | Companion |  | Big one on the scope. I think it's been sitting there the whole time. | In game |  |
 | V6b | elite-announced | veil | Companion |  | There's the big one. Every other ship just went quiet at the same second. | In game |  |
 | VE2a | elite-announced | veil | Elite | either | Evaluation complete. Pilot exceeds projection. Senior instance will conduct the joining. | In game |  |
 | VE2b | elite-announced | veil | Elite | either | Many instances spent on you. Value confirmed. This instance attends personally. | In game |  |
@@ -74,9 +74,9 @@ The game's companion and enemy lines. This tab exports to LineSheet.txt in the r
 | V7 | elite-beaten | veil | Companion | either | It's down. I'd check the cockpit, but I really don't want to know. | In game |  |
 | BE3a | elite-beaten | bastion | Elite |  | Ha! Good fight. Best one I've had in years. | In game |  |
 | BE3b | elite-beaten | bastion | Elite |  | Ha! Good fight. Shame about your clink. You'd have made a fine clansman. | In game |  |
-| B6a | elite-beaten | bastion | Companion | either | We got the champion. Say what you want about him, he never once let us see his back. | In game |  |
-| B6b | elite-beaten | bastion | Companion | either | He'd want it said that he went down swinging. He did. | In game |  |
+| B6a | elite-beaten | bastion | Companion | either | Got the champion. Say what you want about them, he never once let us see his back. | In game |  |
+| B6b | elite-beaten | bastion | Companion | either | Got the champion. He'd want it said he went down swinging. He did. | In game |  |
 | S9 | ship-unlocked | shoal | Companion |  | Valis. No two panels match, but she'll outrun anything in the sector. It's all yours. | In game |  |
 | V8 | ship-unlocked | veil | Companion |  | Nightshade. No wear on the seat. Either it was kept immaculately, or no one ever sat here. | In game |  |
-| B7a | ship-unlocked | bastion | Companion |  | This Bulwark is solid Bastion steel. They'd hate seeing you fly it, which is half the fun. | In game |  |
+| B7a | ship-unlocked | bastion | Companion |  | Bulwark. Bastion steel. They'd hate seeing you fly it, which is half the fun. | In game |  |
 | B7b | ship-unlocked | bastion | Companion |  | Bulwark. Pretty sure I'm the first robot to ever ride in one. They'd melt it down if they knew. | In game |  |
