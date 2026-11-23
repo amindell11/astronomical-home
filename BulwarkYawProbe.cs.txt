@@ -1,0 +1,98 @@
+#if UNITY_EDITOR
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using AI;
+using Capture.Views;
+using Loot;
+using Ships;
+using Ships.Command;
+using Ships.Loadout;
+using Substrate;
+using Substrate.Sectors.Elements.Elites;
+using Substrate.Sectors.Factions;
+using Tests.PlayMode.Common;
+using Tests.PlayMode.Recording;
+using Tests.PlayMode.Sectors;
+using UnityEditor;
+using UnityEngine;
+
+// SCRATCH: per-tick yaw-ownership probe for Bastion (Bulwark) ranks vs a Crimson aggressor.
+public sealed class BulwarkYawProbe : CaptureScenario
+{
+    public override GizmoCaptureProfile Profile => GizmoCaptureProfile.None;
+    protected override DiagnosticViewConfig View => new DiagnosticViewConfig();
+
+    private static string OutDir
+    {
+        get
+        {
+            var tag = Environment.GetEnvironmentVariable("ELITE_PROBE_TAG");
+            if (string.IsNullOrEmpty(tag)) tag = "yaw";
+            return Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "..", "results", "elite-probe", tag));
+        }
+    }
+
+    private struct Variant
+    {
+        public string label;
+        public Ship ship;
+        public Commander pilot;
+        public ShipLoadout loadout;
+        public ShipScale scale;
+        public LullModStack mods;
+    }
+
+    private static IEnumerable<Variant> Variants()
+    {
+        var elitePilot = TestAssets.Load<Commander>("Assets/Prefabs/Pilots/ElitePilot.prefab");
+        foreach (var (factionName, profileName, all) in new[] { ("Bastion", "BastionBoss", true), ("Shoal", "ShoalElite", false), ("Veil", "VeilElite", false) })
+        {
+            var faction = AssetDatabase.LoadAssetAtPath<Faction>($"Assets/Settings/Factions/{factionName}.asset");
+            var profile = AssetDatabase.LoadAssetAtPath<EliteProfile>($"Assets/Settings/Ships/Elites/{profileName}.asset");
+            if (!faction || !profile) throw new InvalidOperationException($"missing {factionName}/{profileName}");
+            var s = profile.Scale;
+            var mods = new LullModStack();
+            foreach (var mod in profile.Mods) mods.Add(mod);
+            var elite = faction.EliteShip;
+            yield return new Variant { label = $"{factionName}-elite", ship = elite, pilot = elitePilot,
+                loadout = new ShipLoadout(elite, profile.Primary, profile.Secondary),
+                scale = new ShipScale(s.Size, s.Mass, s.Thrust, s.Torque, s.Hull * 20f), mods = mods };
+            if (!all) continue;
+            var minion = faction.Minion;
+            yield return new Variant { label = $"{factionName}-minion", ship = minion.ship, pilot = minion.pilot,
+                loadout = minion.Loadout,
+                scale = new ShipScale(minion.scale.Size, minion.scale.Mass, minion.scale.Thrust, minion.scale.Torque, 20f) };
+            var rival = faction.Rival;
+            yield return new Variant { label = $"{factionName}-rival", ship = rival.ship, pilot = rival.pilot,
+                loadout = rival.Loadout, scale = new ShipScale(1f, 1f, 1f, 1f, 20f) };
+        }
+    }
+
+    public override IEnumerator Run()
+    {
+        var aggressor = TestAssets.Load<AICommander>("Assets/Prefabs/Pilots/AggressorPilot.prefab");
+        var subjects = new List<Ship>();
+        var loggers = new List<NavProbeLogger>();
+        var i = 0;
+        foreach (var v in Variants())
+        {
+            var center = new Vector2(i * 1000f, 0f);
+            var target = Session.Units.SpawnShip(TestAssets.LoadCrimsonPrefab(), aggressor, 0,
+                Session.Frame.Place(center + new Vector2(20f, 0f)), GamePlane.Rotation * Quaternion.AngleAxis(90f, Vector3.forward),
+                null, scale: new ShipScale(1, 1, 1, 1, 50f));
+            var subject = Session.Units.SpawnShip(v.ship, v.pilot, 1,
+                Session.Frame.Place(center + new Vector2(-20f, 0f)), GamePlane.Rotation * Quaternion.AngleAxis(-90f, Vector3.forward),
+                null, v.loadout, v.scale, v.mods);
+            var t = target;
+            loggers.Add(NavProbeLogger.AttachTo(subject, () => t ? t.Movement.Kinematics.pos : (Vector2?)null, OutDir, v.label + ".csv"));
+            subjects.Add(subject);
+            i++;
+        }
+        yield return Film(subjects[0]);
+        for (var k = 0; k < 1500; k++) yield return new WaitForFixedUpdate();
+        foreach (var l in loggers) if (l) l.Flush();
+    }
+}
+#endif
