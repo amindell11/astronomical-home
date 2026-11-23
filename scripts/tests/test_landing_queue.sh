@@ -108,12 +108,28 @@ st sha9 "merge-proof/headless=pending:running"; st sha10 "land-check=success:cla
 run step
 [[ "$(last)" == QUEUE=wait:9 && -z "$(writes)" ]] || { show; fail "a front with its suite running waits"; }
 
-# Suite green, no land-check pass yet: land-check is dispatched for it.
+# Suite green, no land-check verdict on the head: land-check is dispatched for it, once.
 reset_fix; pr 9 BLOCKED queue:updating; write_prs
-st sha9 "merge-proof/headless=success:tree=x" "land-check=pending:behind"
+st sha9 "merge-proof/headless=success:tree=x"
 run step
 [[ "$(last)" == QUEUE=landcheck:9 && "$(writes)" == "workflow run land-check.yml --repo o/r --ref main -f pr=9" ]] \
-  || { show; fail "a green front without a land-check pass gets land-check dispatched"; }
+  || { show; fail "a green front without a land-check verdict gets land-check dispatched"; }
+st sha9 "merge-proof/headless=success:tree=x" "land-check=pending:unauthorized"
+: > "$GH_LOG"; run step
+[[ "$(last)" == QUEUE=wait:9 && -z "$(writes)" ]] || { show; fail "a front with a land-check verdict waits, no redispatch"; }
+
+# A red ratchet after the update sticks the front.
+reset_fix; pr 9 BLOCKED queue:updating; write_prs
+st sha9 "merge-proof/headless=success:tree=x" "merge-proof/resharper=failure:blocking" "land-check=pending:hosted"
+run step
+[[ "$(last)" == QUEUE=stuck:9 ]] || { show; fail "a red ratchet on the front sticks it"; }
+
+# A DIRTY member gets the conflict label without an update attempt; the next is updated.
+reset_fix; pr 8 DIRTY; pr 9 BEHIND; write_prs
+st sha8 "land-check=pending:behind"; st sha9 "land-check=success:class"
+run step
+[[ "$(head -n 1 "$TMP/out")" == QUEUE=conflict:8 && "$(last)" == QUEUE=updated:9 ]] || { show; fail "a DIRTY PR is labelled conflict and skipped"; }
+! grep -q "pulls/8/update-branch" "$GH_LOG" || { show; fail "a DIRTY PR gets no update-branch call"; }
 
 # A red suite sticks the front, and the next PR is not touched this pass.
 reset_fix; pr 9 BLOCKED queue:updating; pr 10 BEHIND; write_prs

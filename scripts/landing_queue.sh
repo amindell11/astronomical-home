@@ -13,11 +13,13 @@ set -euo pipefail
 #   step   one pass. While a PR carries queue:updating (its branch was updated and its suite
 #          dispatched), it is the front and nothing else moves:
 #            - BEHIND or DIRTY again: the label comes off and the pass picks afresh;
-#            - merge-proof/headless or land-check failure on its head, or the label older than
-#              UPDATE_TIMEOUT_MIN: queue:updating → queue:stuck, with a PR comment;
-#            - headless success with no land-check success yet: dispatches land-check;
+#            - merge-proof/headless, merge-proof/resharper or land-check failure on its head, or
+#              the label older than UPDATE_TIMEOUT_MIN: queue:updating → queue:stuck, with a PR
+#              comment;
+#            - headless success and no land-check status on its head: dispatches land-check once;
 #            - otherwise it waits.
-#          With no front, the first BEHIND member without queue:stuck or queue:conflict whose
+#          With no front, a DIRTY member that would be picked gets queue:conflict and a comment,
+#          and the first BEHIND member without queue:stuck or queue:conflict whose
 #          land-check on its head is success, or pending with description `behind` (ready but for
 #          main), gets GitHub's update-branch, then the headless suite dispatched on its branch
 #          (pushes under GITHUB_TOKEN start no workflow) and queue:updating. An update GitHub
@@ -79,7 +81,7 @@ stick() {
 
 # Returns 0 when the pass is over (the front is waiting or was handled), 1 when there is no front.
 tend_front() {
-  local pr branch sha state labels headless land
+  local pr branch sha state labels headless ratchet land
   while IFS=$'\t' read -r pr branch sha state labels; do
     [[ -n "$pr" ]] || continue
     has_label "$labels" "$UPDATING" || continue
@@ -90,8 +92,12 @@ tend_front() {
     fi
     headless="$(status "$sha" merge-proof/headless)" || infra "could not read #$pr's statuses"
     land="$(status "$sha" land-check)" || infra "could not read #$pr's statuses"
+    ratchet="$(status "$sha" merge-proof/resharper)" || infra "could not read #$pr's statuses"
     case "${headless%%$'\t'*}" in
       failure|error) stick "$pr" "the headless suite failed on \`${sha:0:7}\` after the branch update"; return 0 ;;
+    esac
+    case "${ratchet%%$'\t'*}" in
+      failure|error) stick "$pr" "the hosted resharper ratchet failed on \`${sha:0:7}\` after the branch update"; return 0 ;;
     esac
     if [[ "${land%%$'\t'*}" == failure ]]; then
       stick "$pr" "land-check failed on \`${sha:0:7}\` (${land#*$'\t'})"
@@ -101,7 +107,7 @@ tend_front() {
       stick "$pr" "it has not landed ${UPDATE_TIMEOUT_MIN} minutes after its branch update (land-check: ${land:-none})"
       return 0
     fi
-    if [[ "${headless%%$'\t'*}" == success && "${land%%$'\t'*}" != success ]]; then
+    if [[ "${headless%%$'\t'*}" == success && -z "$land" ]]; then
       gh workflow run land-check.yml --repo "$REPO" --ref main -f pr="$pr" >/dev/null \
         || infra "could not dispatch land-check for #$pr"
       echo "QUEUE=landcheck:$pr"
@@ -113,14 +119,18 @@ tend_front() {
   return 1
 }
 
+conflict() {
+  label "$1" "$CONFLICT"
+  comment "$1" "Landing queue: \`$2\` conflicts with main, so the queue cannot update it. Merge main into it and push; the queue picks it up again."
+  echo "QUEUE=conflict:$1"
+}
+
 # update <pr> <branch> <sha>: 0 updated, 1 conflict.
 update() {
   local pr="$1" branch="$2" sha="$3" err head i
   if ! err="$(gh api -X PUT "repos/$REPO/pulls/$pr/update-branch" -f expected_head_sha="$sha" 2>&1)"; then
     [[ "$err" == *conflict* ]] || infra "update-branch on #$pr failed: $err"
-    label "$pr" "$CONFLICT"
-    comment "$pr" "Landing queue: \`$branch\` conflicts with main, so the queue cannot update it. Merge main into it and push; the queue picks it up again."
-    echo "QUEUE=conflict:$pr"
+    conflict "$pr" "$branch"
     return 1
   fi
   for i in $(seq 1 24); do
@@ -144,10 +154,11 @@ cmd_step() {
   QUEUE_ROWS="$(members)" || infra "could not list the queue"
   tend_front && return 0
   while IFS=$'\t' read -r pr branch sha state labels; do
-    [[ -n "$pr" && "$state" == BEHIND ]] || continue
+    [[ -n "$pr" ]] && [[ "$state" == BEHIND || "$state" == DIRTY ]] || continue
     if has_label "$labels" "$STUCK" || has_label "$labels" "$CONFLICT"; then continue; fi
     land="$(status "$sha" land-check)" || infra "could not read #$pr's statuses"
     [[ "$land" == success$'\t'* || "$land" == $'pending\tbehind' ]] || continue
+    if [[ "$state" == DIRTY ]]; then conflict "$pr" "$branch"; continue; fi
     update "$pr" "$branch" "$sha" && return 0
   done <<< "$QUEUE_ROWS"
   echo "QUEUE=idle"
