@@ -1,0 +1,264 @@
+label=Bastion-chassis-eliteScale
+prefab=Bulwark(Clone)
+scale size=1 mass=2 thrust=2 torque=5
+localScale=(1.00, 1.00, 1.00)
+rb.mass=2400 automaticInertiaTensor=False interpolation=Extrapolate
+rb.inertiaTensor=(472.500, 315.000, 540.000) inertiaTensorRotation.euler=(0.000, 0.000, 0.000)
+yawAxisLocal=(0.000, 0.000, 1.000) trueYawInertia=540.000 modelYawInertia(baseDynamics)=540.000 ratio model/true=1.000
+trueBankInertia(local up)=315.000
+stats yawTorque=90000 bankTorque=140000 bankDamping=14000 maxYawRate=140 angularDrag=3 maxBankAngle=35
+bank c*dt/I=0.889 k*dt^2/I=0.178 (explicit damping unstable if c*dt/I > ~2)
+yaw accel max = yawTorque/Iyaw = 9549 deg/s^2
+fixedDeltaTime=0.01999999 solverIterations=6
+label=Bastion-chassis-scale1
+prefab=Bulwark(Clone)
+scale size=1 mass=1 thrust=1 torque=1
+localScale=(1.00, 1.00, 1.00)
+rb.mass=1200 automaticInertiaTensor=False interpolation=Extrapolate
+rb.inertiaTensor=(472.500, 315.000, 540.000) inertiaTensorRotation.euler=(0.000, 0.000, 0.000)
+yawAxisLocal=(0.000, 0.000, 1.000) trueYawInertia=540.000 modelYawInertia(baseDynamics)=540.000 ratio model/true=1.000
+trueBankInertia(local up)=315.000
+stats yawTorque=18000 bankTorque=28000 bankDamping=2800 maxYawRate=140 angularDrag=3 maxBankAngle=35
+bank c*dt/I=0.178 k*dt^2/I=0.036 (explicit damping unstable if c*dt/I > ~2)
+yaw accel max = yawTorque/Iyaw = 1910 deg/s^2
+fixedDeltaTime=0.01999999 solverIterations=6
+label=Bastion-elite-bankfix
+prefab=BulwarkElite(Clone)
+scale size=1 mass=2 thrust=2 torque=5
+localScale=(1.00, 1.00, 1.00)
+rb.mass=2400 automaticInertiaTensor=False interpolation=Extrapolate
+rb.inertiaTensor=(472.500, 315.000, 540.000) inertiaTensorRotation.euler=(0.000, 0.000, 0.000)
+yawAxisLocal=(0.000, 0.000, 1.000) trueYawInertia=540.000 modelYawInertia(baseDynamics)=540.000 ratio model/true=1.000
+trueBankInertia(local up)=315.000
+stats yawTorque=90000 bankTorque=28000 bankDamping=2800 maxYawRate=140 angularDrag=3 maxBankAngle=35
+bank c*dt/I=0.178 k*dt^2/I=0.036 (explicit damping unstable if c*dt/I > ~2)
+yaw accel max = yawTorque/Iyaw = 9549 deg/s^2
+fixedDeltaTime=0.01999999 solverIterations=6
+label=Bastion-elite-torque1
+prefab=BulwarkElite(Clone)
+scale size=1 mass=2 thrust=2 torque=1
+localScale=(1.00, 1.00, 1.00)
+rb.mass=2400 automaticInertiaTensor=False interpolation=Extrapolate
+rb.inertiaTensor=(472.500, 315.000, 540.000) inertiaTensorRotation.euler=(0.000, 0.000, 0.000)
+yawAxisLocal=(0.000, 0.000, 1.000) trueYawInertia=540.000 modelYawInertia(baseDynamics)=540.000 ratio model/true=1.000
+trueBankInertia(local up)=315.000
+stats yawTorque=18000 bankTorque=28000 bankDamping=2800 maxYawRate=140 angularDrag=3 maxBankAngle=35
+bank c*dt/I=0.178 k*dt^2/I=0.036 (explicit damping unstable if c*dt/I > ~2)
+yaw accel max = yawTorque/Iyaw = 1910 deg/s^2
+fixedDeltaTime=0.01999999 solverIterations=6
+label=Bastion-elite
+prefab=BulwarkElite(Clone)
+scale size=1 mass=2 thrust=2 torque=5
+localScale=(1.00, 1.00, 1.00)
+rb.mass=2400 automaticInertiaTensor=False interpolation=Extrapolate
+rb.inertiaTensor=(472.500, 315.000, 540.000) inertiaTensorRotation.euler=(0.000, 0.000, 0.000)
+yawAxisLocal=(0.000, 0.000, 1.000) trueYawInertia=540.000 modelYawInertia(baseDynamics)=540.000 ratio model/true=1.000
+trueBankInertia(local up)=315.000
+stats yawTorque=90000 bankTorque=140000 bankDamping=14000 maxYawRate=140 angularDrag=3 maxBankAngle=35
+bank c*dt/I=0.889 k*dt^2/I=0.178 (explicit damping unstable if c*dt/I > ~2)
+yaw accel max = yawTorque/Iyaw = 9549 deg/s^2
+fixedDeltaTime=0.01999999 solverIterations=6
+label=Bastion-minion
+prefab=BulwarkMinion(Clone)
+scale size=1 mass=1 thrust=1 torque=1
+localScale=(1.00, 1.00, 1.00)
+rb.mass=1200 automaticInertiaTensor=False interpolation=Extrapolate
+rb.inertiaTensor=(472.500, 315.000, 540.000) inertiaTensorRotation.euler=(0.000, 0.000, 0.000)
+yawAxisLocal=(0.000, 0.000, 1.000) trueYawInertia=540.000 modelYawInertia(baseDynamics)=540.000 ratio model/true=1.000
+trueBankInertia(local up)=315.000
+stats yawTorque=18000 bankTorque=28000 bankDamping=2800 maxYawRate=140 angularDrag=3 maxBankAngle=35
+bank c*dt/I=0.178 k*dt^2/I=0.036 (explicit damping unstable if c*dt/I > ~2)
+yaw accel max = yawTorque/Iyaw = 1910 deg/s^2
+fixedDeltaTime=0.01999999 solverIterations=6
+label=Shoal-chassis-eliteScale
+prefab=Valis(Clone)
+scale size=1 mass=1.5 thrust=1.5 torque=2.5
+localScale=(1.35, 1.35, 1.35)
+rb.mass=975 automaticInertiaTensor=False interpolation=Extrapolate
+rb.inertiaTensor=(226.688, 30.875, 239.688) inertiaTensorRotation.euler=(0.000, 0.000, 0.000)
+yawAxisLocal=(0.000, 0.000, 1.000) trueYawInertia=239.688 modelYawInertia(baseDynamics)=239.688 ratio model/true=1.000
+trueBankInertia(local up)=30.875
+stats yawTorque=30000 bankTorque=41250 bankDamping=4125 maxYawRate=220 angularDrag=3 maxBankAngle=35
+bank c*dt/I=2.672 k*dt^2/I=0.534 (explicit damping unstable if c*dt/I > ~2)
+yaw accel max = yawTorque/Iyaw = 7171 deg/s^2
+fixedDeltaTime=0.01999999 solverIterations=6
+label=Shoal-chassis-scale1
+prefab=Valis(Clone)
+scale size=1 mass=1 thrust=1 torque=1
+localScale=(1.35, 1.35, 1.35)
+rb.mass=650 automaticInertiaTensor=False interpolation=Extrapolate
+rb.inertiaTensor=(226.688, 30.875, 239.688) inertiaTensorRotation.euler=(0.000, 0.000, 0.000)
+yawAxisLocal=(0.000, 0.000, 1.000) trueYawInertia=239.688 modelYawInertia(baseDynamics)=239.688 ratio model/true=1.000
+trueBankInertia(local up)=30.875
+stats yawTorque=12000 bankTorque=16500 bankDamping=1650 maxYawRate=220 angularDrag=3 maxBankAngle=35
+bank c*dt/I=1.069 k*dt^2/I=0.214 (explicit damping unstable if c*dt/I > ~2)
+yaw accel max = yawTorque/Iyaw = 2869 deg/s^2
+fixedDeltaTime=0.01999999 solverIterations=6
+label=Shoal-elite-bankfix
+prefab=ValisElite(Clone)
+scale size=1 mass=1.5 thrust=1.5 torque=2.5
+localScale=(1.35, 1.35, 1.35)
+rb.mass=975 automaticInertiaTensor=False interpolation=Extrapolate
+rb.inertiaTensor=(226.688, 30.875, 239.688) inertiaTensorRotation.euler=(0.000, 0.000, 0.000)
+yawAxisLocal=(0.000, 0.000, 1.000) trueYawInertia=239.688 modelYawInertia(baseDynamics)=239.688 ratio model/true=1.000
+trueBankInertia(local up)=30.875
+stats yawTorque=30000 bankTorque=16500 bankDamping=1650 maxYawRate=220 angularDrag=3 maxBankAngle=35
+bank c*dt/I=1.069 k*dt^2/I=0.214 (explicit damping unstable if c*dt/I > ~2)
+yaw accel max = yawTorque/Iyaw = 7171 deg/s^2
+fixedDeltaTime=0.01999999 solverIterations=6
+label=Shoal-elite-torque1
+prefab=ValisElite(Clone)
+scale size=1 mass=1.5 thrust=1.5 torque=1
+localScale=(1.35, 1.35, 1.35)
+rb.mass=975 automaticInertiaTensor=False interpolation=Extrapolate
+rb.inertiaTensor=(226.688, 30.875, 239.688) inertiaTensorRotation.euler=(0.000, 0.000, 0.000)
+yawAxisLocal=(0.000, 0.000, 1.000) trueYawInertia=239.688 modelYawInertia(baseDynamics)=239.688 ratio model/true=1.000
+trueBankInertia(local up)=30.875
+stats yawTorque=12000 bankTorque=16500 bankDamping=1650 maxYawRate=220 angularDrag=3 maxBankAngle=35
+bank c*dt/I=1.069 k*dt^2/I=0.214 (explicit damping unstable if c*dt/I > ~2)
+yaw accel max = yawTorque/Iyaw = 2869 deg/s^2
+fixedDeltaTime=0.01999999 solverIterations=6
+label=Shoal-elite
+prefab=ValisElite(Clone)
+scale size=1 mass=1.5 thrust=1.5 torque=2.5
+localScale=(1.35, 1.35, 1.35)
+rb.mass=975 automaticInertiaTensor=False interpolation=Extrapolate
+rb.inertiaTensor=(226.688, 30.875, 239.688) inertiaTensorRotation.euler=(0.000, 0.000, 0.000)
+yawAxisLocal=(0.000, 0.000, 1.000) trueYawInertia=239.688 modelYawInertia(baseDynamics)=239.688 ratio model/true=1.000
+trueBankInertia(local up)=30.875
+stats yawTorque=30000 bankTorque=41250 bankDamping=4125 maxYawRate=220 angularDrag=3 maxBankAngle=35
+bank c*dt/I=2.672 k*dt^2/I=0.534 (explicit damping unstable if c*dt/I > ~2)
+yaw accel max = yawTorque/Iyaw = 7171 deg/s^2
+fixedDeltaTime=0.01999999 solverIterations=6
+label=Shoal-minion
+prefab=ValisMinion(Clone)
+scale size=1 mass=1 thrust=1 torque=1
+localScale=(1.35, 1.35, 1.35)
+rb.mass=650 automaticInertiaTensor=False interpolation=Extrapolate
+rb.inertiaTensor=(226.688, 30.875, 239.688) inertiaTensorRotation.euler=(0.000, 0.000, 0.000)
+yawAxisLocal=(0.000, 0.000, 1.000) trueYawInertia=239.688 modelYawInertia(baseDynamics)=239.688 ratio model/true=1.000
+trueBankInertia(local up)=30.875
+stats yawTorque=12000 bankTorque=16500 bankDamping=1650 maxYawRate=220 angularDrag=3 maxBankAngle=35
+bank c*dt/I=1.069 k*dt^2/I=0.214 (explicit damping unstable if c*dt/I > ~2)
+yaw accel max = yawTorque/Iyaw = 2869 deg/s^2
+fixedDeltaTime=0.01999999 solverIterations=6
+label=Veil-chassis-eliteScale
+prefab=Nightshade(Clone)
+scale size=1 mass=1.5 thrust=1.5 torque=2.5
+localScale=(1.35, 1.35, 1.35)
+rb.mass=1050 automaticInertiaTensor=False interpolation=Extrapolate
+rb.inertiaTensor=(223.919, 203.265, 281.345) inertiaTensorRotation.euler=(6.636, 1.319, 354.218)
+yawAxisLocal=(0.000, 0.000, 1.000) trueYawInertia=280.286 modelYawInertia(baseDynamics)=281.345 ratio model/true=1.004
+trueBankInertia(local up)=204.515
+stats yawTorque=32500 bankTorque=43750 bankDamping=4375 maxYawRate=210 angularDrag=3 maxBankAngle=35
+bank c*dt/I=0.428 k*dt^2/I=0.086 (explicit damping unstable if c*dt/I > ~2)
+yaw accel max = yawTorque/Iyaw = 6644 deg/s^2
+fixedDeltaTime=0.01999999 solverIterations=6
+label=Veil-chassis-scale1
+prefab=Nightshade(Clone)
+scale size=1 mass=1 thrust=1 torque=1
+localScale=(1.35, 1.35, 1.35)
+rb.mass=700 automaticInertiaTensor=False interpolation=Extrapolate
+rb.inertiaTensor=(223.919, 203.265, 281.345) inertiaTensorRotation.euler=(6.636, 1.319, 354.218)
+yawAxisLocal=(0.000, 0.000, 1.000) trueYawInertia=280.286 modelYawInertia(baseDynamics)=281.345 ratio model/true=1.004
+trueBankInertia(local up)=204.515
+stats yawTorque=13000 bankTorque=17500 bankDamping=1750 maxYawRate=210 angularDrag=3 maxBankAngle=35
+bank c*dt/I=0.171 k*dt^2/I=0.034 (explicit damping unstable if c*dt/I > ~2)
+yaw accel max = yawTorque/Iyaw = 2657 deg/s^2
+fixedDeltaTime=0.01999999 solverIterations=6
+label=Veil-elite-bankfix
+prefab=NightshadeElite(Clone)
+scale size=1 mass=1.5 thrust=1.5 torque=2.5
+localScale=(1.35, 1.35, 1.35)
+rb.mass=1050 automaticInertiaTensor=False interpolation=Extrapolate
+rb.inertiaTensor=(223.919, 203.265, 281.345) inertiaTensorRotation.euler=(6.636, 1.319, 354.218)
+yawAxisLocal=(0.000, 0.000, 1.000) trueYawInertia=280.286 modelYawInertia(baseDynamics)=281.345 ratio model/true=1.004
+trueBankInertia(local up)=204.515
+stats yawTorque=32500 bankTorque=17500 bankDamping=1750 maxYawRate=210 angularDrag=3 maxBankAngle=35
+bank c*dt/I=0.171 k*dt^2/I=0.034 (explicit damping unstable if c*dt/I > ~2)
+yaw accel max = yawTorque/Iyaw = 6644 deg/s^2
+fixedDeltaTime=0.01999999 solverIterations=6
+label=Veil-elite-torque1
+prefab=NightshadeElite(Clone)
+scale size=1 mass=1.5 thrust=1.5 torque=1
+localScale=(1.35, 1.35, 1.35)
+rb.mass=1050 automaticInertiaTensor=False interpolation=Extrapolate
+rb.inertiaTensor=(223.919, 203.265, 281.345) inertiaTensorRotation.euler=(6.636, 1.319, 354.218)
+yawAxisLocal=(0.000, 0.000, 1.000) trueYawInertia=280.286 modelYawInertia(baseDynamics)=281.345 ratio model/true=1.004
+trueBankInertia(local up)=204.515
+stats yawTorque=13000 bankTorque=17500 bankDamping=1750 maxYawRate=210 angularDrag=3 maxBankAngle=35
+bank c*dt/I=0.171 k*dt^2/I=0.034 (explicit damping unstable if c*dt/I > ~2)
+yaw accel max = yawTorque/Iyaw = 2657 deg/s^2
+fixedDeltaTime=0.01999999 solverIterations=6
+label=Veil-elite
+prefab=NightshadeElite(Clone)
+scale size=1 mass=1.5 thrust=1.5 torque=2.5
+localScale=(1.35, 1.35, 1.35)
+rb.mass=1050 automaticInertiaTensor=False interpolation=Extrapolate
+rb.inertiaTensor=(223.919, 203.265, 281.345) inertiaTensorRotation.euler=(6.636, 1.319, 354.218)
+yawAxisLocal=(0.000, 0.000, 1.000) trueYawInertia=280.286 modelYawInertia(baseDynamics)=281.345 ratio model/true=1.004
+trueBankInertia(local up)=204.515
+stats yawTorque=32500 bankTorque=43750 bankDamping=4375 maxYawRate=210 angularDrag=3 maxBankAngle=35
+bank c*dt/I=0.428 k*dt^2/I=0.086 (explicit damping unstable if c*dt/I > ~2)
+yaw accel max = yawTorque/Iyaw = 6644 deg/s^2
+fixedDeltaTime=0.01999999 solverIterations=6
+label=Veil-minion
+prefab=NightshadeMinion(Clone)
+scale size=1 mass=1 thrust=1 torque=1
+localScale=(1.35, 1.35, 1.35)
+rb.mass=700 automaticInertiaTensor=False interpolation=Extrapolate
+rb.inertiaTensor=(223.919, 203.265, 281.345) inertiaTensorRotation.euler=(6.636, 1.319, 354.218)
+yawAxisLocal=(0.000, 0.000, 1.000) trueYawInertia=280.286 modelYawInertia(baseDynamics)=281.345 ratio model/true=1.004
+trueBankInertia(local up)=204.515
+stats yawTorque=13000 bankTorque=17500 bankDamping=1750 maxYawRate=210 angularDrag=3 maxBankAngle=35
+bank c*dt/I=0.171 k*dt^2/I=0.034 (explicit damping unstable if c*dt/I > ~2)
+yaw accel max = yawTorque/Iyaw = 2657 deg/s^2
+fixedDeltaTime=0.01999999 solverIterations=6
+label=Bastion-elite-inertiaScaled
+prefab=BulwarkElite(Clone)
+scale size=1 mass=2 thrust=2 torque=5
+localScale=(1.00, 1.00, 1.00)
+rb.mass=2400 automaticInertiaTensor=False interpolation=Extrapolate
+rb.inertiaTensor=(1206.670, 804.447, 1379.052) inertiaTensorRotation.euler=(0.000, 0.000, 0.000)
+yawAxisLocal=(0.000, 0.000, 1.000) trueYawInertia=1379.052 modelYawInertia(baseDynamics)=1379.052 ratio model/true=1.000
+trueBankInertia(local up)=804.447
+stats yawTorque=90000 bankTorque=140000 bankDamping=14000 maxYawRate=140 angularDrag=3 maxBankAngle=35
+bank c*dt/I=0.348 k*dt^2/I=0.070 (explicit damping unstable if c*dt/I > ~2)
+yaw accel max = yawTorque/Iyaw = 3739 deg/s^2
+fixedDeltaTime=0.01999999 solverIterations=6
+label=Shoal-elite-inertiaScaled
+prefab=ValisElite(Clone)
+scale size=1 mass=1.5 thrust=1.5 torque=2.5
+localScale=(1.35, 1.35, 1.35)
+rb.mass=975 automaticInertiaTensor=False interpolation=Extrapolate
+rb.inertiaTensor=(434.186, 59.136, 459.085) inertiaTensorRotation.euler=(0.000, 0.000, 0.000)
+yawAxisLocal=(0.000, 0.000, 1.000) trueYawInertia=459.085 modelYawInertia(baseDynamics)=459.085 ratio model/true=1.000
+trueBankInertia(local up)=59.136
+stats yawTorque=30000 bankTorque=41250 bankDamping=4125 maxYawRate=220 angularDrag=3 maxBankAngle=35
+bank c*dt/I=1.395 k*dt^2/I=0.279 (explicit damping unstable if c*dt/I > ~2)
+yaw accel max = yawTorque/Iyaw = 3744 deg/s^2
+fixedDeltaTime=0.01999999 solverIterations=6
+label=Veil-elite-inertiaScaled
+prefab=NightshadeElite(Clone)
+scale size=1 mass=1.5 thrust=1.5 torque=2.5
+localScale=(1.35, 1.35, 1.35)
+rb.mass=1050 automaticInertiaTensor=False interpolation=Extrapolate
+rb.inertiaTensor=(428.884, 389.323, 538.874) inertiaTensorRotation.euler=(6.636, 1.319, 354.218)
+yawAxisLocal=(0.000, 0.000, 1.000) trueYawInertia=536.845 modelYawInertia(baseDynamics)=538.874 ratio model/true=1.004
+trueBankInertia(local up)=391.717
+stats yawTorque=32500 bankTorque=43750 bankDamping=4375 maxYawRate=210 angularDrag=3 maxBankAngle=35
+bank c*dt/I=0.223 k*dt^2/I=0.045 (explicit damping unstable if c*dt/I > ~2)
+yaw accel max = yawTorque/Iyaw = 3469 deg/s^2
+fixedDeltaTime=0.01999999 solverIterations=6
+label=Shoal-elite-size1.5-preD9
+prefab=ValisElite(Clone)
+scale size=1.5 mass=1.5 thrust=1.5 torque=2.5
+localScale=(2.03, 2.03, 2.03)
+rb.mass=975 automaticInertiaTensor=False interpolation=Extrapolate
+rb.inertiaTensor=(226.688, 30.875, 239.688) inertiaTensorRotation.euler=(0.000, 0.000, 0.000)
+yawAxisLocal=(0.000, 0.000, 1.000) trueYawInertia=239.688 modelYawInertia(baseDynamics)=239.688 ratio model/true=1.000
+trueBankInertia(local up)=30.875
+stats yawTorque=30000 bankTorque=41250 bankDamping=4125 maxYawRate=220 angularDrag=3 maxBankAngle=35
+bank c*dt/I=2.672 k*dt^2/I=0.534 (explicit damping unstable if c*dt/I > ~2)
+yaw accel max = yawTorque/Iyaw = 7171 deg/s^2
+fixedDeltaTime=0.01999999 solverIterations=6

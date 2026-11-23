@@ -1,0 +1,59 @@
+import csv, sys, glob, os, math
+import numpy as np
+
+def load(p):
+    with open(p) as f:
+        r = list(csv.DictReader(f))
+    return {k: np.array([float(x[k]) for x in r]) for k in r[0]} if r else None
+
+def flips(x, dead=0.0):
+    s = np.sign(np.where(np.abs(x) > dead, x, 0))
+    s = s[s != 0]
+    return int(np.sum(s[1:] != s[:-1]))
+
+def hf(x):
+    # second difference = high-pass; RMS of the tick-to-tick wobble
+    return x[2:] - 2 * x[1:-1] + x[:-2]
+
+def dom_freq(x, dt):
+    x = x - np.mean(x)
+    if len(x) < 16: return float('nan')
+    sp = np.abs(np.fft.rfft(x * np.hanning(len(x))))
+    fr = np.fft.rfftfreq(len(x), dt)
+    sp[0] = 0
+    return float(fr[np.argmax(sp)])
+
+def main(d):
+    out = []
+    hdr = ("label", "secs", "cmdFlips/s", "cmdSat%", "servo%", "handover/s", "yawRateHF_rms", "yawRateFlips/s",
+           "yawRateDomHz", "bankHF_rms", "bankRate_rms", "bankRateFlips/s", "bankDomHz", "angVelSat%")
+    for p in sorted(glob.glob(os.path.join(d, "*.csv"))):
+        D = load(p)
+        if D is None: continue
+        dt = float(np.median(np.diff(D["t"])))
+        m = D["t"] >= D["t"][0] + 1.0
+        D = {k: v[m] for k, v in D.items()}
+        secs = len(D["t"]) * dt
+        if secs <= 0: continue
+        row = (
+            os.path.basename(p)[:-4], round(secs, 1),
+            round(flips(D["cmdYaw"], 0.02) / secs, 1),
+            round(100 * np.mean(np.abs(D["cmdYaw"]) > 0.99), 1),
+            round(100 * np.mean(D["servo"]), 1),
+            round(flips(D["servo"] - 0.5) / secs, 2),
+            round(float(np.sqrt(np.mean(hf(D["yawRate"]) ** 2))), 2),
+            round(flips(np.diff(D["yawRate"]), 1.0) / secs, 1),
+            round(dom_freq(np.diff(D["yawRate"]), dt), 1),
+            round(float(np.sqrt(np.mean(hf(D["bank"]) ** 2))), 3),
+            round(float(np.sqrt(np.mean(D["bankRateDeg"] ** 2))), 1),
+            round(flips(D["bankRateDeg"], 2.0) / secs, 1),
+            round(dom_freq(D["bank"], dt), 1),
+            round(100 * np.mean(D["angVelDeg"] >= 0.98 * D["maxAngVelDeg"]), 1),
+        )
+        out.append(row)
+    w = [max(len(str(r[i])) for r in out + [hdr]) for i in range(len(hdr))]
+    lines = ["  ".join(str(r[i]).rjust(w[i]) for i in range(len(hdr))) for r in [hdr] + out]
+    print("\n".join(lines))
+
+if __name__ == "__main__":
+    main(sys.argv[1])
