@@ -1,5 +1,22 @@
 # Hangar deck
 
+## Window etching follows the visible frame, 2026-11-23
+
+The owner asked for the window etchings to follow the edge of the window. Before this pass, `build_glass.py` laid the marks out against each pane's glass outline. That outline is hidden under the strut centre lines, the header and the sill. The marks therefore sat at an inset from edges nobody can see, and about a third of the stroke area was on glass behind hardware.
+
+`add_glass` now ray-casts the hardware from the game camera on a 2-pixel grid inside each pane outline and traces the open sky. It simplifies the boundary to straight edges and fits a line to each. It keeps the frame edges: header, gussets, struts and pillars. Edges with open sky above them, meaning the sill and console tops, are dropped. Only the right-hand panes and the right half of the centre pane are traced. The left side is their mirror image, so tracing noise cannot break the deck's symmetry. Each pane's traced frame is recorded as `visible_frame` in `previews/window-etching-layout.json`.
+
+All marks sit at a constant 22-pixel inset from that visible frame:
+
+- Corner brackets mark every inset corner that turns by more than about 11.5 degrees, including both ends of each header gusset. Leg length is unchanged.
+- The broken lines run along the inset strut and pillar edges, using the existing length rule.
+- The tick row and hexagon cluster run along the longest header edge with the existing offsets. The centre cluster sits at the right end by the right strut. Side and outer clusters sit at the inboard end on both sides.
+- No marks follow the sill, which the console hides.
+
+Stroke strengths, widths, feather, hexagon sizes and the hologram keep-out are unchanged. `add_glass` asserts that each mark's ends and midpoint see open sky, so the build fails if a mark would land on hardware.
+
+`build_deck.py -- --no-render`, `export_glass.py`, `verify_glass.py` and `verify_glass_projection.py` pass. Each checked view still has zero glass-ahead-of-hardware and zero tinted hardware pixels; the 204 uncovered window-edge pixels in each wide view are unchanged. A dense ray check found 7,461 of 21,510 stroke samples behind hardware with the old layout and none of 15,021 with the new one. The 4096 by 2048 mask has 20,395 nonzero texels, all inside strokes. Its SHA-256 is `6eb7d977dfcd0330cf2ec5fb4d3eb8af45610988405c0fe0290340de57cd8136`. `WindowEtching.png` and `ViewportGlass.fbx` in the Unity console visuals were re-exported, and the console prefab was rebuilt.
+
 ## Ship and screen status lamps, 2026-11-23
 
 The owner turned the two pod status groups into indicators. The left group now has five lenses, one per offered ship, named `Deck | Left ship 1 lens` to `Deck | Left ship 5 lens` from left to right. They keep the old lens size, socket scale and 0.27 pitch, at x -0.54 to 0.54 on a status seat widened from 0.92 to 1.29. The seat still clears the ramp screws at x ±0.73. The right group keeps its geometry: its three lenses stand for the ship, primary and ordnance screens.
@@ -171,7 +188,7 @@ The five canopy panes were positioned from the strut and pillar anchors with sma
 
 `build_glass.py` now scales the glass uniformly about the fixed game-camera eye. The scale is calculated from the hardware's farthest camera depth and the glass's nearest camera depth, leaving 0.10 units of clearance. The current factor is 1.274858742. This is fix-ladder rung 1: the whole glass depth range is behind the whole hardware depth range. The transformation preserves the pane outlines and etch positions in projection at every aspect ratio. It also preserves the five planar faces, local mesh, UV islands and shader. All 65 other scene objects, hardware materials, camera and ink settings match the pre-fix snapshot. `previews/glass-preservation.json` records that comparison.
 
-The mask was not carrying a base film. All 26,743 nonzero texels belong to finite etch strokes. Empty areas, unused atlas space and the three-texel island margins are exactly black. UVs remain inside 0..1 without overlap, and every pane faces the camera. The fresh 4096 by 2048 exporter bake retains SHA-256 `a011b0a4b2e01b25423251c0dd2a42810a46c2309a5a4f7efdfa8a0ac0133a0d`. The atlas dimensions below describe local mesh units; after the placement scale, world-space density is approximately 80.36 texels per unit.
+The mask was not carrying a base film. All 26,743 nonzero texels of that pass's mask belonged to finite etch strokes. Empty areas, unused atlas space and the three-texel island margins are exactly black. UVs remain inside 0..1 without overlap, and every pane faces the camera. That pass's bake kept SHA-256 `a011b0a4b2e01b25423251c0dd2a42810a46c2309a5a4f7efdfa8a0ac0133a0d`; the current mask and its hash are in "Window etching follows the visible frame" above. The atlas dimensions below describe local mesh units; after the placement scale, world-space density is approximately 80.36 texels per unit.
 
 The supplied game's broad pale wash did **not** reproduce with this scene, this baked mask and the supplied shader equation, even before the placement fix. All offending hardware pixels sampled black. The confirmed defect is pane placement, not a demonstrated explanation for that uniform wash. Runtime texture, mesh and material bindings were not changed or verified in Unity.
 
@@ -387,7 +404,7 @@ The single `GlassUV` map packs the centre and two side panes in the lower row, w
 
 The old `console.blend` was opened without saving it. Its material constructs finite line segments from clamped nearest-point distances, softens their edges, and unions them with Maximum nodes. The new material uses the same construction. Its greyscale output feeds the first input of the Mix Shader named `Only the perimeter catches light`, exactly as the unchanged exporter expects. No external texture is needed to rebuild or bake the scene.
 
-Short corner brackets follow actual pane angles. Small hexagon clusters diminish from 0.15 to 0.075 mask strength, tick scales use 0.13, and broken lines beside the struts use 0.115. The strongest corner marks reach 0.18. The nominal stroke width is 1.75 pixels at 1920 by 1080, with a narrow feather across each stroke. Marks stay within the pane edges and corners. The projected 5 by 4 by 4 hologram box has an additional 14-pixel clear margin. There is no text or numbering.
+Mark placement now follows the visible frame, as described in "Window etching follows the visible frame" above. Small hexagon clusters diminish from 0.15 to 0.075 mask strength, tick scales use 0.13, and broken lines beside the struts use 0.115. The strongest corner marks reach 0.18. The nominal stroke width is 1.75 pixels at 1920 by 1080, with a narrow feather across each stroke. The projected 5 by 4 by 4 hologram box has an additional 14-pixel clear margin. There is no text or numbering.
 
 Review the current glass in `previews/deck-window-etching.png` and `previews/deck-window-etching-21x9.png`. These renders sample the exported mask as cool-white additive light at 35% strength over a procedural dark blue starfield. The existing placeholder ship and screen glasses remain. `render_glass.py` makes these preview-only material changes in memory and never saves them to `deck.blend`. Earlier finish images below remain hardware references.
 
@@ -395,7 +412,7 @@ Review the current glass in `previews/deck-window-etching.png` and `previews/dec
 
 The hardware, lamps, screens, controls, camera and ink settings remain unchanged. All 68 pre-existing scene objects match the captured geometry, transforms, material assignments and properties. The existing finish, mesh, recess, six-aspect coverage and ink verifiers passed, as did the preview assemblers. Hardware remains at 45 meshes and 26,508 triangles. The new glazing adds 17 triangles. The local hardware verifiers exclude the new glass by its exact name, as the shared hardware exporter already does. Their original hardware assertions are unchanged.
 
-`verify_glass.py` separately checks planar panes, UV proportions and overlap, greyscale bake, window coverage at 16:9, 21:9 and 32:9, and the clear hologram region. All 8,000 hologram-region samples are zero. Its report is `previews/window-etching-audit.json`; the authored pane and stroke coordinates are in `previews/window-etching-layout.json`. The measured stroke widths range from 1.721 to 1.779 pixels, averaging 1.750, as recorded in `previews/window-etching-widths.json`. Of 1,260 sampled mark rays, 143 overlap hardware, and all 143 meet the hardware before the glass. Those results are in `previews/window-etching-occlusion.json`.
+`verify_glass.py` separately checks planar panes, UV proportions and overlap, greyscale bake, window coverage at 16:9, 21:9 and 32:9, and the clear hologram region. All 8,000 hologram-region samples are zero. Its report is `previews/window-etching-audit.json`; the authored pane and stroke coordinates are in `previews/window-etching-layout.json`. The measured stroke widths range from 1.721 to 1.779 pixels, averaging 1.750, as recorded in `previews/window-etching-widths.json`. With that original layout, 143 of 1,260 sampled mark rays overlapped hardware, all meeting the hardware before the glass. Those results are in `previews/window-etching-occlusion.json`; the current layout places no marks on hardware.
 
 To reproduce the glass previews, use the local Blender resource and temporary folders from the rebuild instructions below. These steps name scripts relative to this directory:
 
