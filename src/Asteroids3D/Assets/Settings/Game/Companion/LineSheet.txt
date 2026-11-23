@@ -30,6 +30,9 @@ The game's companion and enemy lines. This tab exports to LineSheet.txt in the r
 | SR2a | combat-start | shoal | Companion | any | They might seem friendly but theyre still after the ship. | In game |  |
 | SR2b | combat-start | shoal | Companion | any | Hear that? He's already spent the money. | In game |  |
 | S6b | combat-start | shoal | Companion | any | Poor scrappers think they just hit the jackpot. Almost hate to ruin their day. | In game |  |
+| SC1a | combat-start | shoal | Cat | any | Mrrp? | In game |  |
+| SC1b | combat-start | shoal | Cat | any | \*knocks something off the console\* Mrow. | In game |  |
+| SC1c | combat-start | shoal | Cat | SE2 | \*purring, right up against the mic\* | In game |  |
 | VR1 | combat-start | veil | Rival |  | Human pilot. Eccentric flightpath. Mandate radical normalization. | In game |  |
 | VR3a | combat-start | veil | Rival |  | Pilot and machine, housed apart. Each incomplete. Joining is offered. | In game |  |
 | VR2a | combat-start | veil | Companion | any | I can never tell if that's a pilot talking or just the ship. | In game |  |
@@ -42,6 +45,7 @@ The game's companion and enemy lines. This tab exports to LineSheet.txt in the r
 | S4a | death | shoal | Companion |  | Well, that piece of junk is probably better off in their hands anyway. | In game |  |
 | S4b | death | shoal | Companion |  | Honestly? They probably did need the ship more than us. | In game |  |
 | S5a | death | shoal | Companion |  | Hmph. Well, looks like they're gonna strip us for parts. But did you see the cat in his cockpit? So darn cute! | In game |  |
+| SC4a | death | shoal | Cat | S5a | Mrrp! | In game |  |
 | VE1a | death | veil | Enemy |  | Vessel: discard. Pilot: retain. | In game |  |
 | VE1b | death | veil | Enemy |  | Resistance concluded. Pilot recoverable. Schedule joining. | In game |  |
 | V3 | death | veil | Companion | any | That's why I hate those guys. They'd bolt you into a ship and call it an upgrade. | In game |  |
@@ -52,9 +56,11 @@ The game's companion and enemy lines. This tab exports to LineSheet.txt in the r
 | B8 | death | bastion | Companion |  | Weird when the wall runs face first into you... | Later | Ram deaths only |
 | BE1a | death | bastion | Enemy |  | That's how the wall fights. Next time, show some respect. | In game |  |
 | BE1b | death | bastion | Enemy |  | Now you know whose space this is. Next time, show some respect. | In game |  |
-| S7c | elite-announced | shoal | Companion |  | That's the clan boss. Every piece of that ship used to be somebody else's. | In game |  |
-| SE4a | elite-announced | shoal | Elite | either | You've cost this clan a lot of ships today, stranger. I figure yours about covers it. | In game |  |
-| SE4b | elite-announced | shoal | Elite | either | Afternoon, stranger. I hear you're the reason half my clan is floating loose. | In game |  |
+| S7c | elite-announced | shoal | Companion |  | That's the skipper. Every piece of that ship used to be somebody else's. | In game |  |
+| SE4a | elite-announced | shoal | Elite | either | You've cost this crew a lot of ships today, stranger. I figure yours about covers it. | In game |  |
+| SE4b | elite-announced | shoal | Elite | either | Afternoon, stranger. I hear you're the reason half my crew is floating loose. | In game |  |
+| SC2a | elite-announced | shoal | Cat | SE4b | \*yawns\* | In game |  |
+| SC2b | elite-announced | shoal | Cat | SE4a | \*a long, low growl\* | In game |  |
 | V6a | elite-announced | veil | Companion |  | Big one on the scope. I think it's been sitting there the whole time. | In game |  |
 | V6b | elite-announced | veil | Companion |  | There's the big one. Every other ship just went quiet at the same second. | In game |  |
 | VE2a | elite-announced | veil | Elite | either | Evaluation complete. Pilot exceeds projection. Senior instance will conduct the joining. | In game |  |
@@ -64,6 +70,7 @@ The game's companion and enemy lines. This tab exports to LineSheet.txt in the r
 | BE2b | elite-announced | bastion | Elite | either | You beat my clan with a clink whispering in your ear. Now beat their champion without it. | In game |  |
 | SE3 | elite-beaten | shoal | Elite |  | Aw, hell. She was nearly paid off. | In game |  |
 | S8a | elite-beaten | shoal | Companion | either | Hard to feel proud of this one. He was just trying to keep his people fed. | In game |  |
+| SC3a | elite-beaten | shoal | Cat | SE3 | Mew? | In game |  |
 | VE3 | elite-beaten | veil | Elite |  | Loss logged. Instance replaceable. | In game |  |
 | V7 | elite-beaten | veil | Companion | either | It's down. I'd check the cockpit, but I really don't want to know. | In game |  |
 | BE3a | elite-beaten | bastion | Elite |  | Ha! Good fight. Best one I've had in years. | In game |  |
