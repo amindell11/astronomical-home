@@ -109,7 +109,7 @@ namespace UI.Screens
         {
             if (!board) return;
             var target = ScoreboardShown ? 1f : 0f;
-            if (boardProgress == target) return;
+            if (Mathf.Approximately(boardProgress, target)) return;
             boardProgress = Mathf.MoveTowards(boardProgress, target, Time.unscaledDeltaTime / BoardSeconds);
             PlaceBoard();
         }
