@@ -17,7 +17,10 @@ using Object = UnityEngine.Object;
 
 namespace Tests.PlayMode.Screens
 {
-    /// <summary>Through the canopy a screen draws its light on the ink camera and its fade and window bodies on the gameplay camera, which follow their windows; opening a window tears the canopy and dips the window's ink.</summary>
+    /// <summary>
+    /// Through the canopy a screen draws its light on the ink camera and its fade and window bodies on the
+    /// gameplay camera, which follow their windows; opening a window tears the canopy and dips the window's ink.
+    /// </summary>
     [Category("UI")]
     [Category("RequiresGraphics")]
     public sealed class ScreenCanopyPlayModeTests
