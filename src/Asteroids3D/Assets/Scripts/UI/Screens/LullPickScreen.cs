@@ -106,7 +106,7 @@ namespace UI.Screens
             WindowKit.Rule(body, Inset, 121f, width);
             WindowKit.Captioned(body, "Landing", "ON", landing.ToUpperInvariant(), Inset, 134f, width, 16,
                 fonts.Label);
-            ScreenKit.Button((RectTransform)window.transform, () => Choose(index));
+            ScreenKit.Button((RectTransform)window.transform, () => Choose(index), WindowKit.Lit(layers, ScreenKit.Hover));
             window.Play();
         }
 

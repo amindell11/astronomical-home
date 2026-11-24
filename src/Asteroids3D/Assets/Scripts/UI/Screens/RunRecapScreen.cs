@@ -314,7 +314,7 @@ namespace UI.Screens
                 if (current)
                 {
                     var highlight = ScreenKit.Box(cells, "CurrentRun", 0f, 1f, cells.sizeDelta.x, RowHeight - 1f);
-                    ScreenKit.Fill(highlight, new Color(outcomeColor.r, outcomeColor.g, outcomeColor.b, .2f));
+                    ScreenKit.Fill(highlight, WindowKit.Lit(layers, new Color(outcomeColor.r, outcomeColor.g, outcomeColor.b, .2f)));
                     highlight.SetAsFirstSibling();
                 }
                 var ship = WindowKit.Label(cells, "Ship", string.IsNullOrEmpty(row.Player.chassis)
@@ -358,7 +358,7 @@ namespace UI.Screens
             WindowKit.Shape(ScreenKit.Box(rect, "Frame", 0f, 0f, 84f, 26f), WindowKit.Line, 0f, 1.5f);
             label = WindowKit.Label(rect, "Label", caption, 0f, 0f, 84f, 26f, 15, WindowKit.Ink, fonts.Label,
                 TextAnchor.MiddleCenter);
-            return ScreenKit.Button(rect, press);
+            return ScreenKit.Button(rect, press, WindowKit.Lit(layers, ScreenKit.Hover));
         }
 
         private void ShowPage(int index)

@@ -101,11 +101,11 @@ namespace UI.Screens
             image.raycastTarget = true;
         }
 
-        internal static UnityEngine.UI.Button Button(RectTransform rect, Action onClick)
+        internal static UnityEngine.UI.Button Button(RectTransform rect, Action onClick, Color? hover = null)
         {
             var overlay = Box(rect, "Hover", 0, 0, rect.sizeDelta.x, rect.sizeDelta.y);
             var image = overlay.gameObject.AddComponent<Image>();
-            image.color = Hover;
+            image.color = hover ?? Hover;
 
             var button = rect.gameObject.AddComponent<UnityEngine.UI.Button>();
             button.targetGraphic = image;

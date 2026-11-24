@@ -71,7 +71,8 @@ namespace UI.Screens.Windows
             window.unfold = rect.gameObject.AddComponent<RectMask2D>();
             WindowKit.Shape(ScreenKit.Box(rect, "Back", 0f, 0f, width, height), WindowKit.OpaqueBody(layers),
                 Chamfer, 0f);
-            WindowKit.Shape(ScreenKit.Box(rect, "Bar", 0f, 0f, width, BarHeight), WindowKit.Bar, Chamfer, 0f, true);
+            WindowKit.Shape(ScreenKit.Box(rect, "Bar", 0f, 0f, width, BarHeight), WindowKit.Lit(layers, WindowKit.Bar),
+                Chamfer, 0f, true);
             WindowKit.Shape(ScreenKit.Box(rect, "Frame", 0f, 0f, width, height), WindowKit.Ink, Chamfer, Stroke);
             WindowKit.Label(rect, "Title", title.ToUpperInvariant(), 20f, 0f, width - 40f, BarHeight, 14,
                 WindowKit.Ink, font);

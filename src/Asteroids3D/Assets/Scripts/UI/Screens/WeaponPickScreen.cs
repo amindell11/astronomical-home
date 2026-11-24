@@ -126,7 +126,8 @@ namespace UI.Screens
             WindowKit.Label(body, "IdleLabel", "GOES IDLE", Inset, idleY, width, 20f, 14, WindowKit.Dim, fonts.Label);
             Chips(body, "Idles", idleY + 23f, width, mods.IdledBy(replaced, weapon, kept), "−", "NOTHING", false);
 
-            ScreenKit.Button((RectTransform)window.transform, () => ChooseOffer(index));
+            ScreenKit.Button((RectTransform)window.transform, () => ChooseOffer(index),
+                WindowKit.Lit(layers, ScreenKit.Hover));
             window.Play();
         }
 
@@ -156,7 +157,7 @@ namespace UI.Screens
                 }
                 chip.anchoredPosition = new Vector2(x, -line);
                 chip.sizeDelta = new Vector2(chipWidth, ChipHeight);
-                if (lit) ScreenKit.Fill(ScreenKit.Box(chip, "Fill", 0f, 0f, chipWidth, ChipHeight), ChipFill);
+                if (lit) ScreenKit.Fill(ScreenKit.Box(chip, "Fill", 0f, 0f, chipWidth, ChipHeight), WindowKit.Lit(layers, ChipFill));
                 WindowKit.Shape(ScreenKit.Box(chip, "Frame", 0f, 0f, chipWidth, ChipHeight),
                     lit ? WindowKit.Ink : WindowKit.Line, 0f, 1.5f);
                 label.transform.SetAsLastSibling();

@@ -14,6 +14,12 @@ namespace UI.Screens.Windows
         internal static readonly Color Good = new(.49f, .94f, .71f);
         internal static readonly Color Threat = new(1f, .49f, .42f);
 
+        // The canopy adds ink as light past gamma and halo, so a fill there reads several times brighter.
+        private const float CanopyFill = .2f;
+
+        internal static Color Lit(ScreenLayers layers, Color fill) =>
+            layers.Canopy ? new Color(fill.r, fill.g, fill.b, fill.a * CanopyFill) : fill;
+
         internal const float StrongFade = .58f;
         // The sector jump's streaks are part of the scene, so its card barely fades them.
         internal const float LightFade = .18f;
@@ -78,7 +84,7 @@ namespace UI.Screens.Windows
             Shape(ScreenKit.Box(rect, "Frame", 0f, 0f, width, height), Ink, 0f, 1.5f);
             Label(rect, "Label", caption, 14f, 0f, width - 28f, height, 15, Ink, font);
             Label(rect, "Key", key, 14f, 0f, width - 28f, height, 15, Dim, font, TextAnchor.MiddleRight);
-            return ScreenKit.Button(rect, press);
+            return ScreenKit.Button(rect, press, Lit(layers, ScreenKit.Hover));
         }
     }
 }
