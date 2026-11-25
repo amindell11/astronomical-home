@@ -23,11 +23,15 @@ namespace UI.Screens.Windows
         public float Stroke { get; set; }
         public bool SquareBottom { get; set; }
 
+        /// <summary>The chamfer as drawn: never so deep that two cuts on one side cross.</summary>
+        internal float DrawnChamfer => Fit(rectTransform.rect, Chamfer);
+
         protected override void OnPopulateMesh(VertexHelper mesh)
         {
             mesh.Clear();
             var rect = rectTransform.rect;
-            Trace(rect, Chamfer, outer);
+            var chamfer = DrawnChamfer;
+            Trace(rect, chamfer, outer);
             Color32 tint = color;
             if (Stroke <= 0f)
             {
@@ -37,9 +41,10 @@ namespace UI.Screens.Windows
                 return;
             }
 
-            var inset = new Rect(rect.xMin + Stroke, rect.yMin + Stroke, rect.width - 2f * Stroke,
-                rect.height - 2f * Stroke);
-            Trace(inset, Mathf.Max(0f, Chamfer - Stroke * InsetChamfer), inner);
+            var stroke = Mathf.Min(Stroke, rect.width * .5f, rect.height * .5f);
+            var inset = new Rect(rect.xMin + stroke, rect.yMin + stroke, rect.width - 2f * stroke,
+                rect.height - 2f * stroke);
+            Trace(inset, Fit(inset, Mathf.Max(0f, chamfer - stroke * InsetChamfer)), inner);
             for (var i = 0; i < Corners; i++)
             {
                 mesh.AddVert(outer[i], tint, Vector4.zero);
@@ -54,19 +59,24 @@ namespace UI.Screens.Windows
             }
         }
 
+        private float Fit(Rect rect, float chamfer) =>
+            Mathf.Max(0f, Mathf.Min(chamfer, rect.width * .5f, SquareBottom ? chamfer : rect.height * .5f / Slope));
+
         private void Trace(Rect rect, float chamfer, Vector2[] points)
         {
-            var drop = chamfer * Slope;
-            var bottomChamfer = SquareBottom ? 0f : chamfer;
+            // A square bottom shorter than the cut crops the diagonal at its bottom edge.
+            var drop = Mathf.Min(chamfer * Slope, rect.height);
+            var side = chamfer - drop / Slope;
+            var bottomChamfer = SquareBottom ? side : chamfer;
             var bottomDrop = SquareBottom ? 0f : drop;
             points[0] = new Vector2(rect.xMin + chamfer, rect.yMax);
             points[1] = new Vector2(rect.xMax - chamfer, rect.yMax);
-            points[2] = new Vector2(rect.xMax, rect.yMax - drop);
-            points[3] = new Vector2(rect.xMax, rect.yMin + bottomDrop);
+            points[2] = new Vector2(rect.xMax - side, rect.yMax - drop);
+            points[3] = new Vector2(rect.xMax - side, rect.yMin + bottomDrop);
             points[4] = new Vector2(rect.xMax - bottomChamfer, rect.yMin);
             points[5] = new Vector2(rect.xMin + bottomChamfer, rect.yMin);
-            points[6] = new Vector2(rect.xMin, rect.yMin + bottomDrop);
-            points[7] = new Vector2(rect.xMin, rect.yMax - drop);
+            points[6] = new Vector2(rect.xMin + side, rect.yMin + bottomDrop);
+            points[7] = new Vector2(rect.xMin + side, rect.yMax - drop);
         }
     }
 }

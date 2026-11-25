@@ -28,7 +28,9 @@ namespace UI.Screens.Windows
         private RectTransform root;
         private RectMask2D unfold;
         private RectMask2D fill;
-        private RectTransform seam;
+        private RectTransform back;
+        private RectTransform bar;
+        private RectTransform frame;
         private float open = 1f;
         private float playedAt = float.NegativeInfinity;
         private CanopyProjection projection;
@@ -72,25 +74,23 @@ namespace UI.Screens.Windows
             window.unfold = rect.gameObject.AddComponent<RectMask2D>();
             var back = WindowKit.Shape(ScreenKit.Box(rect, "Back", 0f, 0f, width, height), WindowKit.OpaqueBody(layers),
                 Chamfer, 0f);
-            WindowKit.Shape(ScreenKit.Box(rect, "Bar", 0f, 0f, width, BarHeight), WindowKit.Lit(layers, WindowKit.Bar),
-                Chamfer, 0f, true);
-            WindowKit.Shape(ScreenKit.Box(rect, "Frame", 0f, 0f, width, height), WindowKit.Ink, Chamfer, Stroke);
+            window.back = back.rectTransform;
+            window.bar = WindowKit.Shape(ScreenKit.Box(rect, "Bar", 0f, 0f, width, BarHeight),
+                WindowKit.Lit(layers, WindowKit.Bar), Chamfer, 0f, true).rectTransform;
+            window.frame = WindowKit.Shape(ScreenKit.Box(rect, "Frame", 0f, 0f, width, height), WindowKit.Ink, Chamfer,
+                Stroke).rectTransform;
             WindowKit.Label(rect, "Title", title.ToUpperInvariant(), 20f, 0f, width - 40f, BarHeight, 14,
                 WindowKit.Ink, font);
             WindowKit.Label(rect, "Corner", corner.ToUpperInvariant(), 20f, 0f, width - 40f, BarHeight, 14,
                 WindowKit.Ink, font, TextAnchor.MiddleRight);
             window.Body = ScreenKit.Box(rect, "Body", 0f, BarHeight, width, height - BarHeight);
             window.fill = window.Body.gameObject.AddComponent<RectMask2D>();
-            window.seam = ScreenKit.Box(rect, "Seam", 0f, 0f, 0f, 0f);
-            window.seam.anchorMin = Vector2.zero;
-            window.seam.anchorMax = Vector2.one;
-            WindowKit.Shape(window.seam, WindowKit.Ink, 0f, Stroke);
             window.Place();
             window.group = rect.gameObject.AddComponent<CanvasGroup>();
             if (!layers.Canopy) return window;
             window.projection = layers.Projection;
             window.cameras = layers.Cameras;
-            WindowShade.Create(layers, back, window.unfold, Chamfer);
+            WindowShade.Create(layers, back, Chamfer);
             return window;
         }
 
@@ -132,9 +132,17 @@ namespace UI.Screens.Windows
             var ends = open <= 0f ? size.y * .5f : (1f - unfolded) * (size.y * .5f - Stroke);
             unfold.padding = new Vector4(sides, ends, sides, ends);
             fill.padding = new Vector4(0f, (1f - filled) * Body.sizeDelta.y, 0f, 0f);
-            seam.offsetMin = new Vector2(sides, ends);
-            seam.offsetMax = new Vector2(-sides, -ends);
-            seam.gameObject.SetActive(open > 0f && open < UnfoldEnd);
+            // The shapes take the opening's size rather than its clip, so their corners stay cut throughout.
+            var width = size.x - 2f * sides;
+            Span(back, sides, ends, width, size.y - 2f * ends);
+            Span(frame, sides, ends, width, size.y - 2f * ends);
+            Span(bar, sides, ends, width, Mathf.Max(0f, BarHeight - ends));
+        }
+
+        private static void Span(RectTransform shape, float x, float y, float width, float height)
+        {
+            shape.anchoredPosition = new Vector2(x, -y);
+            shape.sizeDelta = new Vector2(width, height);
         }
 
         private static float EaseOut(float t)
