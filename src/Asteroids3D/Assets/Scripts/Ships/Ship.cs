@@ -258,6 +258,7 @@ namespace Ships
             KinematicsPoller.Poll();
 
             if (Rigidbody && Rigidbody.automaticInertiaTensor) Rigidbody.ResetInertiaTensor();
+            else if (Rigidbody) Rigidbody.inertiaTensor *= this.scale.Mass * this.scale.Size * this.scale.Size;
 
             Stats.shipRadius = DeriveShipRadius();
             Keystone.Initialize(new KeystoneHost(Rigidbody, Stats.shipRadius, Lock));

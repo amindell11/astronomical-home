@@ -574,15 +574,18 @@ function Get-Blockers {
     $blockers = @()
     foreach ($process in @(Get-RelevantUnityProcesses)) {
         if ($tracked -contains $process.processId) { continue }
-        # Untracked batch processes may be mid-boot (the D6 hazard) so they block everywhere; untracked editors are long-lived and only contend on their own project. Editor-mode requests stay machine-wide strict.
-        if ($RequestedMode -eq "batch" -and -not $process.batch -and -not [string]::IsNullOrWhiteSpace($requested) -and $process.normalizedProjectPath -ne $requested) { continue }
+        # Untracked batch processes may be mid-boot (the D6 hazard) so they block everywhere; untracked editors are long-lived and only contend on their own project.
+        $crossProjectEditor = -not $process.batch -and -not [string]::IsNullOrWhiteSpace($requested) -and $process.normalizedProjectPath -ne $requested
+        if ($RequestedMode -eq "batch" -and $crossProjectEditor) { continue }
+        $zombie = Test-ZombieUnity $process
+        # An editor boot still waits out one that may itself be booting (D6): windowless, or inside the boot window.
+        if ($crossProjectEditor -and -not $zombie.windowless -and $zombie.ageSeconds -gt $ZombieBootWindowSeconds) { continue }
         $blocker = [ordered]@{
             kind = "unmanaged_unity"
             processId = $process.processId
             projectPath = $process.projectPath
             batch = $process.batch
         }
-        $zombie = Test-ZombieUnity $process
         if ($zombie.zombie) {
             # Checked before user_editor: a corpse on the primary tree is not the user's editor.
             $blocker.kind = "zombie_unity"

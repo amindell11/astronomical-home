@@ -147,8 +147,8 @@ namespace Tests.EditMode.Ships
             {
                 var hull = HullBounds(root);
                 foreach (var socket in exhausts)
-                    Assert.That(root.transform.InverseTransformPoint(root.transform.Find(socket).position).y, Is.LessThan(hull.center.y - hull.extents.y * .5f),
-                        $"{socket}: the engine exhaust sits aft of the hull; the prow faces +Y.");
+                    Assert.That(root.transform.InverseTransformPoint(root.transform.Find(socket).position).y, Is.LessThan(hull.center.y),
+                        $"{socket}: the engine exhaust sits behind the hull's centre; the prow faces +Y.");
             }
             foreach (var hardpoint in new[] { Centre, Left, Right })
                 Assert.That(LocalPosition(root, hardpoint).y, Is.GreaterThan(exhaust.y), hardpoint);

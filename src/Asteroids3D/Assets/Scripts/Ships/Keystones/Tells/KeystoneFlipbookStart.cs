@@ -5,5 +5,6 @@ namespace Ships.Keystones.Tells
         Press = 0,
         Live,
         Hit,
+        LiveEnd,
     }
 }

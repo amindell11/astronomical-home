@@ -11,8 +11,6 @@ namespace Substrate.Sectors.Elements.Elites
     [CreateAssetMenu(fileName = "EliteProfile", menuName = "Sectors/Elite Profile")]
     public sealed class EliteProfile : ScriptableObject
     {
-        [Tooltip("The name the elite's health bar and arrival banner show.")]
-        [SerializeField] private string displayName;
         [Tooltip("Size of the elite's hull and the stat retune that size needs.")]
         [SerializeField] private ShipScale scale = new();
         [Tooltip("Heavy weapon for the weapon slot, in place of its chassis' authored one; never an ordnance. Required.")]
@@ -24,7 +22,6 @@ namespace Substrate.Sectors.Elements.Elites
         [Tooltip("Steps fired as the elite's hull falls, in descending hull order. Empty = no escalation.")]
         [SerializeField] private EscalationStep[] escalation = Array.Empty<EscalationStep>();
 
-        public string DisplayName => displayName;
         public ShipScale Scale => scale;
         public WeaponComponent Primary => primary;
         public WeaponComponent Secondary => secondary;
@@ -33,8 +30,6 @@ namespace Substrate.Sectors.Elements.Elites
 
         public void Validate()
         {
-            if (string.IsNullOrWhiteSpace(displayName))
-                throw new InvalidOperationException($"Elite profile '{name}' needs a display name.");
             if (!primary)
                 throw new InvalidOperationException($"Elite profile '{name}' needs a primary weapon.");
             WeaponsController.RequireKinds($"Elite profile '{name}'", primary, secondary);
@@ -56,10 +51,9 @@ namespace Substrate.Sectors.Elements.Elites
         }
 
 #if UNITY_EDITOR
-        internal void Configure(string displayName, ShipScale scale, WeaponComponent primary,
+        internal void Configure(ShipScale scale, WeaponComponent primary,
             WeaponComponent secondary = null, LullMod[] mods = null, EscalationStep[] escalation = null)
         {
-            this.displayName = displayName;
             this.scale = scale;
             this.primary = primary;
             this.secondary = secondary;

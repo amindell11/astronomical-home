@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Combat.Weapons;
 using NUnit.Framework;
@@ -15,7 +16,7 @@ using Substrate.Sessions;
 
 namespace Tests.EditMode
 {
-    /// <summary>Wave director pacing over a sector phase table with injected time: a phase opens with a wave, and another comes on its wave-every beat. A wave that fits under the wave cap arrives whole, one that only partly fits is trimmed to the room left, and one with no room is dropped so the next waits for the beat. A lull, the opening one too, sends nothing, a finished table with an elite sends nothing, and the done table keeps the last phase's waves. A closing lull before the elite sends nothing. A lull window covers a following lull, its grace, and an earned lull, and stays shut for the opening lull and the first phase's first seconds. An earned lull, once the phase's last wave is out and nothing is alive, moves no phase boundary. The threat read lists a chassis every rank shares once and the rival's and minion's kits, off a prefab asset too. A bad row fails CheckRow.</summary>
+    /// <summary>Wave director pacing over a sector phase table with injected time: a phase opens with a wave, and another comes on its wave-every beat. Minions that fit under the minion cap arrive whole, ones that only partly fit are trimmed to the room left, a rival comes only under the rival cap, a reinforcing minion takes the free place nearest its leader, and a beat with no room is dropped so the next waits for the beat. A lull, the opening one too, sends nothing, a finished table with an elite sends nothing, and the done table keeps the last phase's waves. A closing lull before the elite sends nothing. A lull window covers a following lull, its grace, and an earned lull, and stays shut for the opening lull and the first phase's first seconds. An earned lull, once the phase's last wave is out and nothing is alive, moves no phase boundary. The threat read lists a chassis every rank shares once and the rival's and minion's kits, off a prefab asset too. A bad row fails CheckRow.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class WaveDirectorEditModeTests
@@ -104,28 +105,55 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void Wave_ArrivesWhole_WhileItFitsUnderTheWaveCap()
+        public void Minions_ArriveWhole_WhileTheyFitUnderTheMinionCap()
         {
-            _director.Configure(_phases, Lull, waveCap: 8);
-            Assert.AreEqual(4, _director.Room(4, 2), "A wave that fits under the wave cap arrives whole.");
+            _director.Configure(_phases, Lull, minionCap: 6);
+            Assert.AreEqual(4, _director.MinionRoom(4, 2), "Minions that fit under the minion cap arrive whole.");
         }
 
         [Test]
-        public void Wave_TrimsToTheRoomLeft_WhenOnlySomeFit()
+        public void Minions_TrimToTheRoomLeft_WhenOnlySomeFit()
         {
-            _director.Configure(_phases, Lull, waveCap: 6);
-            Assert.AreEqual(2, _director.Room(4, 4),
-                "Four alive under a wave cap of 6 leave room for two.");
+            _director.Configure(_phases, Lull, minionCap: 6);
+            Assert.AreEqual(2, _director.MinionRoom(4, 4),
+                "Four minions alive under a minion cap of 6 leave room for two.");
+        }
+
+        [Test]
+        public void RegroupedMinions_FillTheSentWavesPlacesFirst_AndTheRestWait()
+        {
+            Assert.AreEqual(0, WaveDirector.Rejoined(2, 3), "Two held minions both fit a wave of three.");
+            Assert.AreEqual(1, WaveDirector.Rejoined(3, 2), "A wave of two takes two of three held minions.");
+            Assert.AreEqual(2, WaveDirector.Rejoined(2, 0), "A wave with no minion room takes none.");
+        }
+
+        [Test]
+        public void Rival_Comes_OnlyWhileLiveRivalsSitUnderTheRivalCap()
+        {
+            _director.Configure(_phases, Lull, rivalCap: 2);
+            Assert.IsTrue(_director.RivalRoom(1), "One rival alive under a rival cap of 2 leaves room.");
+            Assert.IsFalse(_director.RivalRoom(2), "Two rivals alive fill a rival cap of 2.");
+        }
+
+        [Test]
+        public void Reinforcement_TakesTheFreePlaceNearestTheLeader_LeftSideFirst()
+        {
+            Assert.AreEqual(-1, WaveDirector.FreePlace(new List<int>()));
+            Assert.AreEqual(1, WaveDirector.FreePlace(new List<int> { -1 }));
+            Assert.AreEqual(-1, WaveDirector.FreePlace(new List<int> { 1, 2 }), "A gap nearer the leader fills first.");
+            Assert.AreEqual(-2, WaveDirector.FreePlace(new List<int> { -1, 1 }));
+            Assert.AreEqual(2, WaveDirector.FreePlace(new List<int> { -1, 1, -2 }));
         }
 
         [Test]
         public void DroppedWave_IsNotHeld_AndTheNextComesOnTheBeat()
         {
-            _director.Configure(_phases, Lull, waveCap: 3);
+            _director.Configure(_phases, Lull, rivalCap: 1, minionCap: 3);
             _director.BeginSchedule(0f);
             _director.Advance(0f);
             var minions = _director.WaveDue(0f);
-            Assert.AreEqual(0, _director.Room(1 + minions.Value, 3), "With no room under the wave cap, Room is 0.");
+            Assert.IsFalse(_director.RivalRoom(1), "A live rival fills a rival cap of 1.");
+            Assert.AreEqual(0, _director.MinionRoom(minions.Value, 3), "Three live minions fill a minion cap of 3.");
 
             _director.Arrived(0f);
             Assert.IsNull(_director.WaveDue(0f), "A dropped wave is not held.");
@@ -418,13 +446,23 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void CheckRow_RefusesAWaveCapOfZero()
+        public void CheckRow_RefusesARivalCapOfZero()
         {
             var row = Row(new SectorPhase());
-            row.waveCap = 0;
+            row.rivalCap = 0;
             var ex = Assert.Throws<System.InvalidOperationException>(() => _director.CheckRow(row));
-            StringAssert.Contains("WaveDirector", ex.Message);
+            StringAssert.Contains("rival cap", ex.Message);
             StringAssert.Contains("0", ex.Message);
+        }
+
+        [Test]
+        public void CheckRow_RefusesANegativeMinionCap()
+        {
+            var row = Row(new SectorPhase());
+            row.minionCap = -1;
+            var ex = Assert.Throws<System.InvalidOperationException>(() => _director.CheckRow(row));
+            StringAssert.Contains("minion cap", ex.Message);
+            StringAssert.Contains("-1", ex.Message);
         }
 
         [Test]

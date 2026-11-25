@@ -6,6 +6,7 @@ using Substrate;
 using UnityEngine;
 using UnityEngine.UI;
 using Utils;
+using UI.Popups;
 using UI.Projection;
 using UI.Weapons;
 
@@ -99,6 +100,9 @@ namespace UI.PlayerState
         }
 
         public void SetOpacity(float opacity) => visibility.alpha = worldVisibility.alpha = opacity;
+
+        public void ShowHullGain(float amount, Vector3 worldPoint, Font font, Material material) =>
+            HullGainPopup.Show(canvas, worldCamera, font, material, amount, worldPoint);
 
         private void Add(Ship ship)
         {

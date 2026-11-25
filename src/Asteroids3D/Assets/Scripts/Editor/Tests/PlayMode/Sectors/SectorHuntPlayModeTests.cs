@@ -434,7 +434,8 @@ namespace Tests.PlayMode.Sectors
         {
             const float follow = 40f;
             var hero = SpawnHero();
-            var hunt = SeekingHunt(followDistance: follow, sightRadius: 50f);
+            // A 1 s fill alarms and releases the patrol before the chase can close.
+            var hunt = SeekingHunt(followDistance: follow, sightRadius: 50f, spotFillSeconds: 5f);
             yield return Build(hunt, hero);
             yield return null;
             var patrol = Patrol(hunt);
@@ -602,9 +603,9 @@ namespace Tests.PlayMode.Sectors
         }
 
         private SectorHunt SeekingHunt(float followDistance = 30f, float searchRadius = 25f, float arrivalRadius = 12f,
-            float sightRadius = 60f) =>
+            float sightRadius = 60f, float spotFillSeconds = 1f) =>
             NewHunt(sightRadius: sightRadius, searchSeconds: 120f, spawnDistance: 140f, coneDegrees: 360f,
-                closeSightRadius: 0f, spotFillSeconds: 1f, spotDrainSeconds: 10000f, routeSpeed: 0f, seekSpeed: 18f,
+                closeSightRadius: 0f, spotFillSeconds: spotFillSeconds, spotDrainSeconds: 10000f, routeSpeed: 0f, seekSpeed: 18f,
                 followDistance: followDistance, searchRadius: searchRadius, arrivalRadius: arrivalRadius);
 
         private SectorHunt NewHunt(float sightRadius, float searchSeconds,

@@ -1,10 +1,11 @@
 name: headless-suite
 
 # No pull_request trigger: fork PRs must never run this workflow or reach its secrets.
+# Main's own run catches two PRs that each passed alone but break main together.
 on:
   workflow_dispatch:
   push:
-    branches: ['task/**']
+    branches: ['**']
 
 permissions:
   contents: read

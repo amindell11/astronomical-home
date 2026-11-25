@@ -187,7 +187,8 @@ namespace Cameras
 
         private Vector2 StepLead()
         {
-            var target = Vector2.ClampMagnitude(LeadBodyVelocity * feel.leadSeconds, feel.maxLead);
+            var maxLead = feel.maxLead + feel.overspeedLead * Overspeed;
+            var target = Vector2.ClampMagnitude(LeadBodyVelocity * feel.leadSeconds, maxLead);
             lead = Vector2.SmoothDamp(lead, target, ref leadVelocity, feel.leadSmoothTime,
                 float.PositiveInfinity, Time.unscaledDeltaTime);
             return lead;
@@ -237,8 +238,9 @@ namespace Cameras
 
         private float StepLockedZoom(Vector2 center)
         {
-            var target = Mathf.Min(Mathf.Max(Mathf.Clamp(SpeedZoom, BaseZoom, BaseZoom + feel.maxWiden),
-                FightZoom(center)), feel.maxZoomOut);
+            var headroom = feel.overspeedZoomOut * Overspeed;
+            var target = Mathf.Min(Mathf.Max(Mathf.Clamp(SpeedZoom, BaseZoom, BaseZoom + feel.maxWiden + headroom),
+                FightZoom(center)), feel.maxZoomOut + headroom);
             lockedZoom = CameraUtils.SmoothZoom(lockedZoom, target, ref lockedZoomVelocity,
                 feel.widenTime, feel.narrowTime, Time.unscaledDeltaTime);
             return lockedZoom;
@@ -325,6 +327,11 @@ namespace Cameras
             : feel.zoom;
 
         internal float SpeedZoom => BaseZoom + feel.zoomPerSpeed * LeadBodyVelocity.magnitude;
+
+        // 0 at or below the hull's top speed, 1 once it is overspeedRange past it.
+        internal float Overspeed => hull != null && hull.MaxSpeed > 0f
+            ? Mathf.Clamp01((LeadBodyVelocity.magnitude / hull.MaxSpeed - 1f) / feel.overspeedRange)
+            : 0f;
 
         internal bool TryGetBoundaryAroundAllSubjects(out Vector2 min, out Vector2 max)
         {

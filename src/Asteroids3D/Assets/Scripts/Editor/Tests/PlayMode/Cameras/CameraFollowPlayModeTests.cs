@@ -220,6 +220,39 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
     }
 
     [UnityTest]
+    public IEnumerator Locked_PastTheHullsTopSpeed_ZoomsOutBeyondTheUsualLimit()
+    {
+        Assume.That(feel.overspeedZoomOut, Is.GreaterThan(0f), "this tuning turns the overspeed headroom off");
+        var hullSpeed = feel.referenceHullSpeed;
+        var speed = hullSpeed * (1f + feel.overspeedRange);
+        var body = GiveSubjectVelocity(GamePlane.Right * speed);
+        cam.SetSubject(subject.transform, body, newHull: new HullStub(hullSpeed));
+
+        var widened = Mathf.Min(feel.zoom + feel.zoomPerSpeed * speed,
+            feel.zoom + feel.maxWiden + feel.overspeedZoomOut, feel.maxZoomOut + feel.overspeedZoomOut);
+        Assume.That(widened, Is.GreaterThan(feel.maxZoomOut + SizeTolerance), "this tuning never reaches the usual limit");
+        yield return ZoomSettlesOn(widened);
+
+        cam.SetSubject(subject.transform, body, newHull: new HullStub(speed));
+        yield return ZoomSettlesOn(Mathf.Min(Mathf.Clamp(cam.SpeedZoom, cam.BaseZoom, cam.BaseZoom + feel.maxWiden),
+            feel.maxZoomOut));
+    }
+
+    [UnityTest]
+    public IEnumerator Locked_PastTheHullsTopSpeed_LeadsBeyondTheUsualCap()
+    {
+        Assume.That(feel.overspeedLead, Is.GreaterThan(0f), "this tuning turns the overspeed lead off");
+        var hullSpeed = feel.referenceHullSpeed;
+        var speed = hullSpeed * (1f + feel.overspeedRange);
+        var lead = Mathf.Min(speed * feel.leadSeconds, feel.maxLead + feel.overspeedLead);
+        Assume.That(lead, Is.GreaterThan(feel.maxLead + FollowThreshold), "this tuning never reaches the usual cap");
+        cam.SetSubject(subject.transform, GiveSubjectVelocity(GamePlane.Right * speed), newHull: new HullStub(hullSpeed));
+
+        var subjectCenter = GamePlane.WorldPointToPlane(subject.transform.position);
+        yield return CameraSettlesOn(subjectCenter + GamePlane.WorldDirToPlane(GamePlane.Right) * lead);
+    }
+
+    [UnityTest]
     public IEnumerator Locked_ZoomWidensToFitANearbyEnemy()
     {
         cam.SetSubject(subject.transform);

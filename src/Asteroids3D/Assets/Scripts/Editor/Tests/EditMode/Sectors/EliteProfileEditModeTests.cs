@@ -36,7 +36,7 @@ namespace Tests.EditMode.Sectors
         [Test]
         public void Validate_Throws_WhenStepsAreNotInDescendingHullOrder()
         {
-            profile.Configure("Test elite", ShipScale.One, Primary(), escalation: new[]
+            profile.Configure(ShipScale.One, Primary(), escalation: new[]
             {
                 new EscalationStep { hull = 1f / 3f, escorts = 1 },
                 new EscalationStep { hull = 2f / 3f, escorts = 2 },
@@ -49,7 +49,7 @@ namespace Tests.EditMode.Sectors
         [Test]
         public void Validate_Throws_WithoutAPrimaryWeapon()
         {
-            profile.Configure("Test elite", ShipScale.One, null);
+            profile.Configure(ShipScale.One, null);
 
             var thrown = Assert.Throws<InvalidOperationException>(() => profile.Validate());
             StringAssert.Contains("TestElite", thrown.Message);
@@ -59,7 +59,7 @@ namespace Tests.EditMode.Sectors
         [TestCase("TurboLasers", "Railgun", "ordnance slot")]
         public void Validate_Throws_OnAKitThatBreaksTheSlotRule(string primary, string secondary, string slot)
         {
-            profile.Configure("Test elite", ShipScale.One, Weapon(primary), Weapon(secondary));
+            profile.Configure(ShipScale.One, Weapon(primary), Weapon(secondary));
 
             var thrown = Assert.Throws<InvalidOperationException>(() => profile.Validate());
             StringAssert.Contains("TestElite", thrown.Message);

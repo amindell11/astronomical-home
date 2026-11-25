@@ -56,6 +56,19 @@ namespace Substrate.Sessions
             return drawn;
         }
 
+        /// <summary>The rows' factions in a fresh order; a row's pacing and elite stay with its place in the run.</summary>
+        public Faction[] DealFactions(System.Random random)
+        {
+            if (random == null) throw new ArgumentNullException(nameof(random));
+            var dealt = sectors.Select(row => row.faction).ToArray();
+            for (var i = dealt.Length - 1; i > 0; i--)
+            {
+                var pick = random.Next(i + 1);
+                (dealt[i], dealt[pick]) = (dealt[pick], dealt[i]);
+            }
+            return dealt;
+        }
+
         internal List<LocaleSky> DrawableLocales() =>
             localePool.Except(sectors.Where(row => !row.random).Select(row => row.locale)).ToList();
     }
@@ -72,17 +85,22 @@ namespace Substrate.Sessions
         [Tooltip("Draw this sector's locale from the run's pool once per run instead of naming one.")]
         public bool random;
 
-        [Tooltip("The side this sector's enemies belong to: its waves, hunt and elite fly that faction's ships.")]
+        [Tooltip("The side this sector's enemies belong to: its waves, hunt and elite fly that faction's ships. " +
+                 "A presented run deals the rows' factions out in a fresh order at its start.")]
         [Stat] public Faction faction;
 
-        [Tooltip("The elite the sector ends at. None for a layout whose spine summons no elite.")]
+        [Tooltip("How strong the elite the sector ends at is; it flies the row's faction under that faction's elite name. " +
+                 "None for a layout whose spine summons no elite.")]
         public EliteProfile elite;
 
         [Tooltip("The wave director's sector phases, in run order: each one's waves and timing.")]
         [Stat(Ordered = true)] public SectorPhase[] phases = Array.Empty<SectorPhase>();
 
-        [Tooltip("Most enemies alive, hunt patrols included, that this sector's waves fill to. A wave arrives trimmed to the room left; with none, it is dropped.")]
-        [Stat, Min(1)] public int waveCap = 5;
+        [Tooltip("Most rivals alive that this sector's waves fill to. A wave comes only while there is room for its rival; with none, it is dropped, minions too.")]
+        [Stat, Min(1)] public int rivalCap = 1;
+
+        [Tooltip("Most minions alive, hunt patrols included, that this sector's waves fill to. A wave's minions arrive trimmed to the room left.")]
+        [Stat, Min(0)] public int minionCap = 4;
 
         [Tooltip("Patrols the sector's opening hunt spawns.")]
         [Stat, Min(0)] public int patrols;
@@ -108,6 +126,13 @@ namespace Substrate.Sessions
             var copy = (SectorEntry)MemberwiseClone();
             copy.locale = shown;
             copy.random = drawn;
+            return copy;
+        }
+
+        public SectorEntry WithFaction(Faction dealt)
+        {
+            var copy = (SectorEntry)MemberwiseClone();
+            copy.faction = dealt;
             return copy;
         }
     }

@@ -236,17 +236,28 @@ Format: **term** — definition. *(authority)*
   `.claude/worktrees/` in the primary tree, on a `claude/<name>` branch. No agent
   work happens in one; `scripts/app_worktree_guard.py` refuses session starts
   that would make one. *(#1058)*
-- **merge gate** — the full-suite test gate inside `merge <slot>` and `land`;
-  the only sanctioned merge path.
+- **merge gate** — the full-suite test gate inside `merge <slot>` and `land`,
+  the pool's fallback beside GitHub auto-merge on a green `land-check`.
 - **`land`** — the pool command that lands a PR no slot holds: the merge gate
   on the hosted path, in a borrowed slot, on a *recorded instruction* or the
   *auto-merge class*. Always
   in code font: the plain word keeps its everyday sense ("land it" is
   consent). *(agent_worktree_pool.sh `land`; #830)*
+- **balance-only landing** — merging a PR that only edits existing Settings
+  assets or prefabs with no merge gate: no tests, review or recorded
+  instruction, only the user's merge instruction. A change that adds a file
+  or edits a test is not one. *(agent_worktree_pool.sh `land-balance`)*
+- **`land-check`** — the commit status GitHub auto-merge waits on: green
+  hosted proof on the PR head, no unresolved thread or open merge-order PR,
+  and nothing owed unless the user's instruction is recorded. Posted by
+  `.github/workflows/land-check.yml` from main's copy; the head need not
+  contain main. Always in code font:
+  the plain phrase means checking anything before landing.
+  *(agent_worktree_pool.sh `land-check`)*
 - **merge turn** — the pool-wide right to run a merge gate, held by one gate at
   a time from before its fetch through `gh pr merge`. Waiting gates take it in
   arrival order (**turn ticket**). Any other push to main takes it with no
-  ticket, whenever it is free: `land-docs`, or a command run under
+  ticket, whenever it is free: `land-docs`, `land-balance`, or a command run under
   `lock merge-turn`. A waiter gives up only after watching one holder keep the
   turn for the cap; a line that keeps moving times nobody out. Machine-local:
   a base move from any other clone is caught only by the gate's base re-check.
@@ -291,9 +302,10 @@ Format: **term** — definition. *(authority)*
   (`land` decides).
 - **recorded instruction** — the user's merge instruction for one PR at one
   commit, kept as a PR comment that `drain_pick.sh` parses (`land-facts`,
-  `merge-queue`, `decision`). Sessions write it only through `instruct`; the
-  user may type it on the PR, naming the commit by a prefix
-  (`Merge instruction: abc1234`, the head off its *decisions view* row). It
+  `merge-queue`, `decision`). Sessions write it through `instruct`, which
+  takes the PR's head when no commit is named, or post the same comment from
+  a cloud thread. The user never types it; the parser still accepts a typed
+  prefix (`Merge instruction: abc1234`). It
   *covers* the landing tree when merging its commit with base gives that tree,
   or one an inert diff away; `land` needs a covering one unless the PR is in
   the *auto-merge class*. Every session is the same GitHub account, so policy
@@ -533,14 +545,27 @@ Format: **term** — definition. *(authority)*
   A rival whose temper ambushes arrives concealed ahead of the player instead, when
   that point is clear. A phase that sends waves draws how many minions fly with the
   rival uniformly from fewest to most, inclusive. Waves arrive on the phase's wave-every beat, trimmed to
-  the wave cap, and the trim keeps the rival. Nothing arrives in a lull, and survivors stay.
+  the wave caps; with no room for a rival, the beat sends a reinforcement instead. Nothing arrives in a lull, and survivors stay.
   *(WaveDirector.WaveDue)*
+- **reinforcement** — what a beat sends when the rival cap is full: the beat's
+  drawn minions, trimmed to the minion cap, arriving together from one bearing to
+  join the live rival with the fewest followers (on a tie, the one nearest where
+  they arrive), each at the free place nearest it. A reinforcement is not a wave
+  and raises no `WaveSent`. With no minion room, the beat is dropped. Entourage,
+  ruled by the game lead on 2026-11-23: a full rival slot no longer drops the
+  beat, so clearing minions buys only a window until the next beat. Once an elite
+  has fought for 30 s (its grace), each beat of the last sector phase sends a
+  reinforcement to the elite instead, until the elite dies (ruled by the game
+  lead on 2026-11-23, so a kited elite fight brings minions).
+  *(WaveDirector.TryReinforce, WaveDirector.FreePlace, WaveDirector.eliteGraceSeconds)*
 - **wave every** — the beat a sector phase sends its waves on.
   *(SectorPhase.waveEvery)*
-- **wave cap** — the most enemies alive, hunt patrols included, that a
-  sector's waves fill to. The trim keeps the rival. Nothing is held or owed:
-  a trimmed or dropped wave is not made up later.
-  *(SectorEntry.waveCap, WaveDirector.Room)*
+- **wave cap** — a sector's two limits on what its waves fill to: the rival cap
+  (live rivals) and the minion cap (live minions, hunt patrols included). A full
+  rival cap turns the beat into a reinforcement for a live rival, so minions never
+  arrive without a rival; a full minion cap sends the rival alone. Nothing is held
+  or owed: a trimmed or dropped beat is not made up later.
+  *(SectorEntry.rivalCap, SectorEntry.minionCap, WaveDirector.RivalRoom, WaveDirector.MinionRoom)*
 - **earned lull** — the rest of a sector phase once its last wave has arrived and
   nothing is alive, patrols included. A dropped wave counts as arrived. It moves
   no phase boundary. *(WaveDirector.EarnedLull)*
@@ -586,14 +611,18 @@ Format: **term** — definition. *(authority)*
   the rank's size (ruled on #868, 2026-11-21). The **minion** has 70% hull,
   never fires its keystone, and aims worse than the other ranks (ruled on #1589,
   2026-11-17). Hunt patrols and elite escorts fly it. The **rival** leads every
-  wave. The **elite** is the third rank. The ranks are ruled on #1589. The
-  sector-to-faction mapping is ruled on #1320.
+  wave. The **elite** is the third rank. The ranks are ruled on #1589. A
+  presented run deals the factions to its sectors in a fresh order at its
+  start, so any faction can come first or last; a sector's pacing and elite
+  strength stay with its place in the run, and sector 3 always ends at the boss
+  (arye, 2026-11-23, replacing #1320's fixed mapping).
   *(Faction.Rival, Faction.Minion, Faction.EliteShip, FactionRank, SectorFaction)*
 - **elite** — a sector's end-of-sector enemy: its faction's elite chassis, with
   a heavy weapon pair and stacked run mods. A lull follows the
   last phase, and the elite is summoned when that lull ends. Extraction opens
   on its death. Sector 3's elite is the boss, which escalates at hull
-  thresholds (escorts, heavier fire).
+  thresholds (escorts, heavier fire). Past its grace, every elite draws
+  reinforcements on the last sector phase's beat.
   An escalation step stacks weapon mods only, so the dynamics the AI captured at
   spawn stay true. Not an *encounter*: no activation rule arms it; the wave
   director owns it and drives it. *(EliteEncounter, EliteProfile,
@@ -968,7 +997,8 @@ Format: **term** — definition. *(authority)*
   tempers carry the faction's wounded response, ruled on #1589, 2026-11-16:
   Veil never breaks, Shoal jumps out, and Bastion makes a last stand. On the
   same ruling the Veil rival ambushes and Bastion minions hold the line, and a
-  minion whose leader is lost flies its wounded response. The
+  minion whose leader is lost flies its wounded response. Veil minions *regroup*
+  instead (arye, 2026-11-23). The
   elite and its escorts keep their own pilots. The owner ruled on #1349,
   2026-11-09, that the elite never breaks off and always presses (never
   wounded, nerve 0%) and escorts never fly into the target's guns (nerve
@@ -977,10 +1007,18 @@ Format: **term** — definition. *(authority)*
   hold at every shield level. The temper also records whether the ship circles
   the wreck before it wanders. A pilot with a temper never reads `archetype`.
   *(Faction.Rival, Faction.Minion; Settings/AI/Tactics/Factions; EliteTemper, EscortTemper)*
-- **leader**. The rival a minion's wave flies with. The minion observes that
+- **leader**. The ship a minion flies with: its wave's rival, or the rival or elite its reinforcement joined. The minion observes that
   ship's position and velocity and nothing of its brain, and the leader never commands it.
-  When the leader is gone, the minion flies its wounded response.
+  When the leader is gone, the minion flies its wounded response, or regroups.
   *(AIContext.Leader, AICommander.FollowLeader)*
+- **regroup**. What a minion whose temper says so does when its leader dies: it
+  flees with guns cold and leaves past the temper's jump distance, and the wave
+  director sends it again with the sector's next rival's wave (never with a
+  reinforcement), on top of that wave's drawn minions and still under the minion
+  cap. Unlike a jump out it comes back. Held
+  minions are lost when the sector ends. Only Veil minions regroup: the Veil
+  can't cloak a minion, so they withdraw in plain sight.
+  *(TacticsSettings.regroupsWithoutLeader, WaveDirector.Rejoined)*
 - **place**. A minion's signed position along its leader's line, counted in
   line spacings (..., -2, -1, +1, +2, ...). *(AIContext.Place, AICommander.FollowLeader)*
 - **wounded response**. What a temper says its ships do when hurt: never
@@ -1122,7 +1160,7 @@ Format: **term** — definition. *(authority)*
 - **item** — anything that fills a loadout slot: a chassis (a prefab with a root
   `Ship`) or a weapon (a prefab with a root `WeaponComponent`). Engine and shield
   modules come with the chassis and fill no slot (#1073, #1254); projectiles,
-  trial pacing and `killHullRestore` are tuned but fill no slot either. None of
+  trial pacing and the kill refills are tuned but fill no slot either. None of
   those are items.
 - **item catalog** — the one asset listing every item in the project, grouped
   by item type. An index only: each item's stats stay on its own asset. Listing
@@ -1174,11 +1212,18 @@ Format: **term** — definition. *(authority)*
   hangar can rebuild the player); only deaths between the game host's clock
   stamps count (begin after the run's first sector load, end at player death or
   the last extraction). Raises
-  `Killed` on each counted kill. Reset at each run's loadout step. *(RunTally)*
-- **kill refill** — the fraction of max hull the game host restores to the
-  player each time the run tally counts a kill; hull only (ammo or heat on a kill
-  would be a reset button, and the shield already regens). Interactive sessions
-  only — the harness has no game host. *(GameHost.killHullRestore, Resource.RestoreFraction)*
+  `Killed` with the victim on each counted kill. Reset at each run's loadout step. *(RunTally)*
+- **kill refill** — the hull points the game host restores to the player each
+  time the run tally counts a kill, set by the victim's rank: the rival refill for
+  a wave's rival or the elite, the minion refill for every other kill, hunt
+  patrols and elite escorts included. Hull only (ammo or heat on a kill would be
+  a reset button, and the shield already regens). Ranked by the game lead on
+  2026-11-23: minions come back on every beat, so a large minion refill would
+  make farming them beat fighting the rival. Flat points, not a share of max
+  hull (same day), so a kill pays the same on every chassis. Repair stations and
+  beacon caches still restore a share. Interactive sessions only — the harness
+  has no game host.
+  *(GameHost.minionKillHeal, GameHost.rivalKillHeal, WaveDirector.IsRival, SpawnLog.IsElite, Resource.Restore)*
 - **loadout stat hash** — a short hash of the balance numbers one ship flies with:
   its hull, its engine, its shield and the weapon on each mount. Only fields marked
   `[Stat]` count. The same parts with the same numbers give the same hash on any
@@ -1190,7 +1235,7 @@ Format: **term** — definition. *(authority)*
   up and an edit to a live weapon instance does not. *(StatHash.OfLoadout, StatAttribute)*
 - **stat fingerprint** — a short hash of every balance number a run can draw from:
   what the hangar offers, the lull mod pool, each run sector's wave director in run order (its pacing and minion counts, and
-  the parts its enemies draw from) and the kill refill. Runs played against the
+  the parts its enemies draw from) and the kill refills. Runs played against the
   same numbers share a fingerprint, so results are grouped by it. A number no run
   can reach does not move it, and neither does list order or listing a part twice,
   except in a list marked `[Stat(Ordered = true)]` such as the sector phase table.

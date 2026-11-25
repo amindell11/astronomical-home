@@ -1,0 +1,94 @@
+name: script-suite
+
+# Posts merge-proof/scripts, which land-check requires: the scripts/tests files the PR's
+# scripts/ and .githooks/ diff selects, run under Git Bash and Windows PowerShell as on the PC.
+# No pull_request trigger: fork PRs never run it.
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore: [main]
+
+permissions:
+  contents: read
+  statuses: write
+
+concurrency:
+  group: script-suite-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  STATUS_API: repos/${{ github.repository }}/statuses/${{ github.sha }}
+  STATUS_CONTEXT: merge-proof/scripts
+  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+jobs:
+  scripts:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Status pending
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --silent "$STATUS_API" -f state=pending -f context="$STATUS_CONTEXT" \
+            -f target_url="$RUN_URL" -f description="script suite running"
+
+      # The PC's git keeps LF; the runner's default autocrlf rewrites fixtures and moves tree hashes.
+      - name: Git line endings
+        run: git config --global core.autocrlf false
+
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # The scripts call python3, which Windows Python does not ship.
+      - name: python3 on PATH
+        run: |
+          mkdir -p "$RUNNER_TEMP/bin"
+          cp "$(command -v python)" "$RUNNER_TEMP/bin/python3.exe"
+          echo "$(cygpath -w "$RUNNER_TEMP/bin")" >> "$GITHUB_PATH"
+
+      # The default temp dir sits under C:/Users/runneradmin, and tests grep their logs for "runner".
+      - name: Script suite
+        id: suite
+        run: |
+          TMPDIR="$(cygpath -u "$RUNNER_TEMP")" TMP="$(cygpath -w "$RUNNER_TEMP")" TEMP="$(cygpath -w "$RUNNER_TEMP")"
+          export TMPDIR TMP TEMP
+          git config --global user.name script-suite
+          git config --global user.email script-suite@users.noreply.github.com
+          git fetch --no-tags origin main:refs/remotes/origin/main
+          base="$(git merge-base origin/main HEAD)"
+          bash scripts/agent_worktree_pool.sh script-suite "$base" | tee suite.log
+          echo "ran=$(sed -n 's/^Script-suite selection: \([0-9]*\) of.*/\1/p' suite.log)" >> "$GITHUB_OUTPUT"
+
+      - name: Status success
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RAN: ${{ steps.suite.outputs.ran }}
+        run: |
+          gh api --silent "$STATUS_API" -f state=success -f context="$STATUS_CONTEXT" \
+            -f target_url="$RUN_URL" -f description="tree=$(git rev-parse 'HEAD^{tree}') files=$RAN"
+
+      - name: Status failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --silent "$STATUS_API" -f state=failure -f context="$STATUS_CONTEXT" \
+            -f target_url="$RUN_URL" -f description="script suite failed - see run"
+
+      - name: Status error
+        if: cancelled()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --silent "$STATUS_API" -f state=error -f context="$STATUS_CONTEXT" \
+            -f target_url="$RUN_URL" -f description="run cancelled or timed out"

@@ -1,4 +1,5 @@
 using System;
+using Cameras;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
@@ -9,6 +10,8 @@ namespace UI.Projection
     [RequireComponent(typeof(Camera), typeof(UniversalAdditionalCameraData))]
     public sealed class CanopyProjection : MonoBehaviour, ICanopySource
     {
+        private const float TearSeconds = .35f;
+
         [SerializeField] private CanopyProjectionFeature feature;
         [SerializeField] private CanopyProjectionProfile profile;
 
@@ -19,6 +22,8 @@ namespace UI.Projection
         private bool bound;
         private Func<CanopyFrame> observe;
         private CanopyStateBlend blend;
+        private float tornAt = float.NegativeInfinity;
+        private float tearStrength;
 
         public Camera Camera => inkCamera;
         public CanopyProjectionProfile Profile => profile;
@@ -61,6 +66,13 @@ namespace UI.Projection
             SynchronizeCamera();
         }
 
+        /// <summary>Tears the canopy for a moment when the frame it observes carries no glitch of its own.</summary>
+        public void Tear(float strength)
+        {
+            tornAt = Time.unscaledTime;
+            tearStrength = strength;
+        }
+
         private void Bind()
         {
             Pass = CanopyProjectionPass.ToScreen(this, feature.ProjectionShader);
@@ -82,6 +94,12 @@ namespace UI.Projection
             HitSize = frame.HitSize;
             GlitchAge = frame.GlitchAge;
             GlitchStrength = frame.GlitchStrength;
+            var tearAge = Time.unscaledTime - tornAt;
+            if (GlitchAge < 0f && tearAge < TearSeconds)
+            {
+                GlitchAge = tearAge;
+                GlitchStrength = tearStrength * CameraSettings.ShakeScale;
+            }
             TransitionAge = frame.TransitionAge;
             blend.Tick(frame.State, Time.unscaledDeltaTime);
             SynchronizeCamera();

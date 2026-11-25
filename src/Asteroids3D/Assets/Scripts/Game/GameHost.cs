@@ -128,8 +128,10 @@ namespace Game
         [SerializeField] private PlayerDeathBehavior deathBehavior = PlayerDeathBehavior.RestartSector;
 
         [Header("Kill Refill")]
-        [Tooltip("Fraction of max hull restored to the player on each kill the run tally counts.")]
-        [SerializeField, Range(0f, 1f)] private float killHullRestore = 0.25f;
+        [Tooltip("Hull points restored to the player on each counted kill that is neither a rival nor the elite: minions, hunt patrols and elite escorts.")]
+        [SerializeField, Min(0f)] private float minionKillHeal = 10f;
+        [Tooltip("Hull points restored to the player on each counted kill of a wave's rival or the sector's elite.")]
+        [SerializeField, Min(0f)] private float rivalKillHeal = 40f;
 
         [Header("Lull pick")]
         [Tooltip("Lull mods offered when the player claims a mod station, three at a time with time stopped. " +
@@ -167,6 +169,7 @@ namespace Game
         private RunCourse course;
         private string runLoadoutHash;
         private LocaleSky[] runLocales;
+        private Faction[] runFactions;
         private bool shutdownComplete;
         private int activeSectorIndex;
         private string activeSectorFaction = string.Empty;
@@ -337,7 +340,9 @@ namespace Game
                 var hull = 1f;
                 var index = 0;
                 var transferred = false;
-                runLocales = presentation ? sessionProfile.run.DrawLocales(new System.Random()) : null;
+                var draw = new System.Random();
+                runLocales = presentation ? sessionProfile.run.DrawLocales(draw) : null;
+                runFactions = presentation ? sessionProfile.run.DealFactions(draw) : null;
                 while (true)
                 {
                     if (!transferred)
@@ -347,7 +352,7 @@ namespace Game
                         activeSectorIndex = index;
                         if (rigInstance) rigInstance.BeginSector(index + 1);
                         yield return session.LoadSector(index, rigInstance ? rigInstance.Player : null, OnSectorComplete,
-                            runLocales?[index]);
+                            runLocales?[index], runFactions?[index]);
                     }
                     transferred = false;
                     if (shutdownRequested) yield break;
@@ -434,7 +439,7 @@ namespace Game
                     if (jump)
                     {
                         yield return RunJump(ExtractionContext(index, sectorStartTime), index + 1, runLocales[index + 1],
-                            hull);
+                            runFactions[index + 1], hull);
                         transferred = true;
                     }
                     else
@@ -487,7 +492,8 @@ namespace Game
                 jumpFeature, result.DepartureHeading.Value);
         }
 
-        private IEnumerator RunJump(RecapOutcomeContext context, int destination, LocaleSky destinationLocale, float hull)
+        private IEnumerator RunJump(RecapOutcomeContext context, int destination, LocaleSky destinationLocale,
+            Faction destinationFaction, float hull)
         {
             LocaleBackdropPair backdrop = null;
             var arrived = false;
@@ -508,6 +514,7 @@ namespace Game
                 {
                     stop = clock.Hold();
                     recap = StartCoroutine(RecapPlayback.RunScreen(new RecapOutcomeSequence(recapFeel, context), ui,
+                        rigInstance.Screens,
                         cancelled: () => shutdownRequested || exited,
                         ready: () => destinationReady && jump.State.LocaleBlend >= 1f,
                         onContinue: () => continued = true));
@@ -519,7 +526,7 @@ namespace Game
                     rigInstance.BeginSector(destination + 1);
                     rigInstance.EnterSector(null);
                     yield return session.TransferSector(destination, rigInstance.Player, OnSectorComplete,
-                        destinationLocale);
+                        destinationLocale, destinationFaction);
                     rigInstance.EnterSector(session.ActiveSector.Module<PhaseSpineModule>());
                     rigInstance.Player.Damage.Health.SetFraction(hull);
                     destinationReady = true;
@@ -701,10 +708,8 @@ namespace Game
 
             var stop = clock.Hold();
             rigInstance.SetInputEnabled(false);
-            var spine = session.ActiveSector.Module<PhaseSpineModule>();
-            var screen = WeaponPickScreen.Create(ui, index + 1,
-                spine ? spine.Threat(sessionProfile.run.Sectors[index]) : null, offers,
-                primary, secondary, rigInstance.Mods);
+            var screen = WeaponPickScreen.Create(ui, offers, primary, secondary, rigInstance.Mods,
+                rigInstance.Screens);
             try
             {
                 while (!screen.Choice.HasValue && !shutdownRequested) yield return null;
@@ -743,7 +748,7 @@ namespace Game
 
             var stop = clock.Hold();
             rigInstance.SetInputEnabled(false);
-            var screen = LullPickScreen.Create(ui, offers, mod => mod.Landing(player));
+            var screen = LullPickScreen.Create(ui, offers, mod => mod.Landing(player), rigInstance.Screens);
             try
             {
                 while (!screen.Choice.HasValue && !shutdownRequested) yield return null;
@@ -906,7 +911,7 @@ namespace Game
 
             var sectorsCleared = abandoned ? clearedSectors : killingBlow.HasValue ? endedIn : endedIn + 1;
             var record = RunRecord.Compose(DateTime.UtcNow, sectorsCleared, endedIn, locales, identity,
-                StatHash.OfSetting(hangarOffer, lullMods, sessionProfile.run.Sectors, killHullRestore), rigInstance.Loadout,
+                StatHash.OfSetting(hangarOffer, lullMods, sessionProfile.run.Sectors, minionKillHeal, rivalKillHeal), rigInstance.Loadout,
                 playerLoadoutStatHash, rigInstance.Tally, rigInstance.Ledger, rigInstance.Spawns, killingBlow,
                 course, MountedLoadout(rigInstance.Player), rigInstance.Mods.PickedNames(), ReadEndPhase(),
                 Application.isEditor ? RunRecord.OriginEditor : RunRecord.OriginBuild, DealtRows(rigInstance.Dealt),
@@ -968,7 +973,21 @@ namespace Game
             return names;
         }
 
-        private void RefillPlayerHull() => rigInstance.Player.Damage.Health.RestoreFraction(killHullRestore);
+        private void RefillPlayerHull(ShipId victim, Vector3 diedAt)
+        {
+            var hull = rigInstance.Player.Damage.Health;
+            var before = hull.CurrentValue;
+            hull.Restore(PaysRivalHeal(victim) ? rivalKillHeal : minionKillHeal);
+            var gained = hull.CurrentValue - before;
+            if (gained > 0f && rigInstance.Overlay) rigInstance.Overlay.ShowHullGain(gained, diedAt);
+        }
+
+        private bool PaysRivalHeal(ShipId victim)
+        {
+            var sector = session != null ? session.ActiveSector : null;
+            var spine = sector ? sector.Module<PhaseSpineModule>() : null;
+            return (spine && spine.IsRival(victim)) || rigInstance.Spawns.IsElite(victim);
+        }
 
         private void OnShipUnlocked(ShipUnlocked unlocked) => moments.Raise(new ShipEarned(unlocked));
 
@@ -1014,7 +1033,7 @@ namespace Game
                 observer);
             try
             {
-                yield return RecapPlayback.RunScreen(sequence, ui, state =>
+                yield return RecapPlayback.RunScreen(sequence, ui, rigInstance.Screens, state =>
                     {
                         presenter.Apply(state);
                         SetRecapClock(state.SimulationFrozen);

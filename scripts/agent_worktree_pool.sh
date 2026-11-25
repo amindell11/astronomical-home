@@ -29,6 +29,7 @@ mkdir -p "$LOCK_ROOT"
 #   Borrow / return           borrow_slot (land's too), cmd_borrow, return_slot
 #   Land                      cmd_land: preflight, slot borrow, bounded merge gate attempts
 #   Docs-only landing         cmd_land_docs, land_docs_push (runs under the merge turn)
+#   Balance-only landing      cmd_land_balance, land_balance_merge (runs under the merge turn)
 #   Primary sync              cmd_sync_primary, sync_primary (runs under the sync lock)
 #   Finalize / review / revise
 #   Dispatch                  main
@@ -186,6 +187,11 @@ Commands:
       Run the Unity-aware ReSharper changed-line ratchet against base_ref
       (default: origin/main).
 
+  script-suite <base_ref>
+      run-script-tests on this checkout's HEAD with no slot, selecting files
+      by the base_ref..HEAD diff. Run by .github/workflows/script-suite.yml,
+      which posts merge-proof/scripts.
+
   run-script-tests <slot>
       Run every scripts/tests/test_*.sh (bash) and test_*.ps1
       (powershell.exe) in that slot's worktree: the .sh files in one lane,
@@ -295,13 +301,16 @@ Commands:
       (default 3600) it exits 75; stderr names the lock file and the holder
       slot, or says the holder is not a merge gate. Each change of holder
       restarts that count, so a line that keeps moving times nobody out.
-      Any other push to base takes the same turn, e.g. land-docs, or:
+      Any other push to base takes the same turn, e.g. land-docs, land-balance, or:
         lock merge-turn --wait 3600 -- <sync and push cmd>
       Such a caller holds no ticket: it takes the turn whenever it is free.
       The turn is machine-local: a base move from anywhere else is still
       caught just before gh pr merge ("base moved during the merge gate").
       gh pr merge names the landing commit (--match-head-commit), so a push
-      to the PR after the gate's own push is refused, not landed.
+      to the PR after the gate's own push is refused, not landed. It passes
+      --admin (the main ruleset's admin bypass): the gate's own checks stand
+      in for the required statuses, and land-check never passes a scripts/
+      or .github/ diff.
       Stdout trailer, once per gate that started: GATE=merged, or
       GATE=refused:<reason>, the reason one of
         base-moved     base moved during the gate (re-run)
@@ -390,6 +399,25 @@ Commands:
       this PR holds its slot), checkout, or error (the gate printed no
       trailer). Exit: 0 merged; 1 refused, or a usage error.
 
+  land-check <pr>
+      The check GitHub auto-merge waits on, run by
+      .github/workflows/land-check.yml from main's copy of this script, which
+      posts the verdict as the land-check commit status on PR <pr>'s head. It
+      passes an open, non-draft PR against main from this repository's own
+      branch when: no review thread is unresolved, no '## Merge order' PR is
+      still open, merge-proof/headless, merge-proof/resharper and
+      merge-proof/scripts are green and stamp the head's tree, and the owed
+      checklist is absent, none or discharged. An unticked owed item passes
+      only on a recorded instruction for the head or an inert delta from it.
+      The head need not contain main.
+      Trailers: SHA=<head> first, then STATE=success|pending|failure (the
+      commit status to post; pending means a later event can still pass it)
+      and CHECK=<green|instruction|reason>, the reason one of not-open, base,
+      fork, draft, facts, unresolved, after:<pr>, merge-order-malformed,
+      hosted (a merge-proof status is not green on the head or stamps another
+      tree), owed-open, owed-malformed, or gh.
+      No STATE line means no verdict: post nothing. Exit: 0 pass; 1 not.
+
   land-docs
       The docs-only landing (agent-worktree-pr-loop skill): push the HEAD
       of the worktree it runs in straight to main, with no PR, when every
@@ -409,6 +437,35 @@ Commands:
                    rebase is aborted) or a dirty tree
         empty      HEAD changes nothing on origin/main
         push       the push failed, e.g. main moved from another clone
+        turn-held  the merge turn was still held after the wait
+      Exit: 0 landed; 75 turn-held; 1 any other refusal, or a usage error.
+
+  land-balance <pr>
+      The balance-only landing (agent-worktree-pr-loop skill): squash-merge an
+      open PR against main from any branch of this repository, with no slot,
+      no test run, no ReSharper ratchet, no review and no recorded
+      instruction, when every path the PR changes is a modification of an
+      existing *.asset under Assets/Settings/ or an existing *.prefab under
+      Assets/. Run it only on the user's merge instruction. Holding the merge
+      turn as land-docs does, it reads the PR, fetches origin main and the
+      PR head, checks the PR's paths against the merge base (a rename counts
+      as a delete and an add), checks that the PR merges into main without
+      conflict (git merge-tree), and runs gh pr merge --squash --admin naming
+      the fetched head (--match-head-commit); --admin uses the main ruleset's
+      admin bypass, since the required statuses never run on such a PR.
+      Stdout trailer: LAND_BALANCE=landed <head sha>, or
+      LAND_BALANCE=refused:<reason>, the reason one of
+        gh         reading the PR or gh pr merge failed
+        not-open   the PR is not open
+        base       the PR is not against main
+        draft      the PR is a draft
+        head-branch  the head is on a fork
+        fetch      the fetch from origin failed
+        head-moved the fetched head is not the head GitHub reported
+        paths      the PR adds, deletes or renames a file, or changes one
+                   that is not a Settings asset or a prefab (stderr lists them)
+        empty      the PR changes nothing
+        conflict   the PR does not merge into main
         turn-held  the merge turn was still held after the wait
       Exit: 0 landed; 75 turn-held; 1 any other refusal, or a usage error.
 
@@ -2765,7 +2822,8 @@ merge_gate() {
   fi
   local attempt merged=0
   for attempt in 1 2 3 4 5; do
-    if gh pr merge "$pr" --squash --delete-branch=false --match-head-commit "$landing_sha"; then
+    # --admin: main's ruleset requires land-check, which always fails a scripts/ or .github/ diff.
+    if gh pr merge "$pr" --squash --admin --delete-branch=false --match-head-commit "$landing_sha"; then
       merged=1
       break
     fi
@@ -2921,23 +2979,30 @@ gate_authorize() {
   fi
   GATE_REASON=unauthorized
   echo "merge: no recorded instruction covers landing tree $tree (instruction: ${instruction:-unread}) — not merging." >&2
-  echo "  Show the user the PR at its head; on their word, 'drain_pick.sh instruct $pr@<head>', then re-run 'land $pr'." >&2
+  echo "  On the user's word (a bare 'merge' is enough), 'drain_pick.sh instruct $pr', then re-run 'land $pr'." >&2
   return 1
 }
 
-# Conditions in a fixed order, so CLASS=out names the first that fails.
-gate_class() {
-  local slot="$1" scripts_rc="$2" github_rc="$3" hosted_ratchet="$4" class=in kind
-  kind="$(tested_scope_field "$slot" kind || true)"
-  if [[ "$CLASS_OWED" != none ]]; then
-    class=out:owed
+# Conditions in a fixed order, so out:<condition> names the first that fails.
+class_verdict() {
+  local owed="$1" scripts_rc="$2" github_rc="$3" hosted="$4" review="$5"
+  if [[ "$owed" != none ]]; then
+    echo out:owed
   elif [[ "$scripts_rc" -eq 0 || "$github_rc" -eq 0 ]]; then
-    class=out:paths
-  elif [[ "$kind" != remote-run || "$hosted_ratchet" -ne 1 ]]; then
-    class=out:hosted
-  elif [[ "$CLASS_REVIEW" -ne 1 ]]; then
-    class=out:review
+    echo out:paths
+  elif [[ "$hosted" -ne 1 ]]; then
+    echo out:hosted
+  elif [[ "$review" -ne 1 ]]; then
+    echo out:review
+  else
+    echo in
   fi
+}
+
+gate_class() {
+  local slot="$1" scripts_rc="$2" github_rc="$3" hosted_ratchet="$4" hosted=0 class
+  [[ "$(tested_scope_field "$slot" kind || true)" == remote-run && "$hosted_ratchet" -eq 1 ]] && hosted=1
+  class="$(class_verdict "$CLASS_OWED" "$scripts_rc" "$github_rc" "$hosted" "$CLASS_REVIEW")"
   echo "CLASS=$class"
   merge_journal_note "class $class"
   [[ "$AUTHORIZED_BY" == class && "$class" != in ]] || return 0
@@ -2995,7 +3060,7 @@ land_preflight() {
     *) land_refuse facts "land-facts gave no owed verdict for PR #$pr"; return 1 ;;
   esac
   if [[ "$instruction" == none && "$AUTO_MERGE_CLASS" -eq 0 ]]; then
-    land_refuse no-instruction "PR #$pr has no recorded instruction ('drain_pick.sh instruct $pr@<sha>' records the user's)"
+    land_refuse no-instruction "PR #$pr has no recorded instruction ('drain_pick.sh instruct $pr' records the user's)"
     return 1
   elif [[ "$instruction" != none && ! "$instruction" =~ ^[0-9a-f]{40}$ ]]; then
     land_refuse facts "land-facts gave no instruction verdict for PR #$pr"
@@ -3115,6 +3180,81 @@ cmd_land() {
   return 1
 }
 
+# ---- Land check -------------------------------------------------------------
+# The land-check verdict GitHub requires before auto-merge. Fail closed: no STATE line posts no status.
+land_check_verdict() {
+  local state="$1" reason="$2"
+  echo "STATE=$state"
+  echo "CHECK=$reason"
+  [[ "$state" == success ]]
+}
+
+REMOTE_SCRIPTS_CONTEXT="merge-proof/scripts"
+
+cmd_land_check() {
+  local pr="${1:-}"
+  [[ $# -eq 1 && "$pr" =~ ^[1-9][0-9]*$ ]] || { echo "land-check requires <pr>" >&2; return 1; }
+  require_gh || return 1
+  local sha view state base draft branch cross facts owed instruction unresolved after tree context proof_rc=0
+  sha="$(gh pr view "$pr" --json headRefOid --jq .headRefOid)" && [[ "$sha" =~ ^[0-9a-f]{40}$ ]] \
+    || { echo "land-check: could not read PR #$pr's head from GitHub." >&2; return 1; }
+  echo "SHA=$sha"
+  if ! view="$(gh pr view "$pr" --json state,baseRefName,headRefName,isDraft,isCrossRepository \
+    --jq '[.state, .baseRefName, .headRefName, .isDraft, .isCrossRepository] | @tsv')"; then
+    land_check_verdict pending gh
+    return 1
+  fi
+  IFS=$'\t' read -r state base branch draft cross <<< "$view"
+  [[ "$state" == OPEN ]] || { land_check_verdict failure not-open; return 1; }
+  [[ "$cross" == false ]] || { land_check_verdict failure fork; return 1; }
+  [[ "$base" == main ]] || { land_check_verdict failure base; return 1; }
+  [[ "$draft" == false ]] || { land_check_verdict failure draft; return 1; }
+  if ! facts="$(GITHUB_REPOSITORY="$(repo_slug)" bash "$SCRIPT_DIR/drain_pick.sh" land-facts "$pr")"; then
+    land_check_verdict pending facts
+    return 1
+  fi
+  owed="$(trailer_value OWED "$facts")"
+  instruction="$(trailer_value INSTRUCTION "$facts")"
+  unresolved="$(trailer_value UNRESOLVED "$facts")"
+  after="$(trailer_value AFTER "$facts")"
+  [[ "$unresolved" =~ ^[0-9]+$ ]] || { land_check_verdict pending facts; return 1; }
+  [[ "$unresolved" -eq 0 ]] || { land_check_verdict pending unresolved; return 1; }
+  case "$after" in
+    none) ;;
+    malformed) land_check_verdict failure merge-order-malformed; return 1 ;;
+    *[!0-9,]*|'') land_check_verdict pending facts; return 1 ;;
+    *) land_check_verdict pending "after:${after%%,*}"; return 1 ;;
+  esac
+  if ! git -C "$ROOT" fetch -q origin "+refs/heads/$branch:refs/land-check/head"; then
+    echo "land-check: could not fetch $branch." >&2
+    return 1
+  fi
+  if [[ "$(git -C "$ROOT" rev-parse refs/land-check/head)" != "$sha" ]]; then
+    echo "land-check: $branch moved past ${sha:0:7}; its push starts a fresh check." >&2
+    return 1
+  fi
+  tree="$(git -C "$ROOT" rev-parse "$sha^{tree}")"
+  for context in "$REMOTE_PROOF_CONTEXT" "$REMOTE_RESHARPER_CONTEXT" "$REMOTE_SCRIPTS_CONTEXT"; do
+    verified_remote_status "$sha" "$context" "tree=$tree" >&2 || proof_rc=1
+  done
+  [[ "$proof_rc" -eq 0 ]] || { land_check_verdict pending hosted; return 1; }
+  case "$owed" in
+    absent|none|discharged) ;;
+    open)
+      # An unticked owed item lands on the user's recorded "merge" for this head or an inert delta from it.
+      if [[ "$instruction" =~ ^[0-9a-f]{40}$ ]] && git -C "$ROOT" cat-file -e "$instruction^{commit}" 2>/dev/null \
+        && [[ "$(classify_diff_since_proof "$ROOT" "$instruction^{tree}" "$tree")" =~ ^(doc|comment)$ ]]; then
+        land_check_verdict success instruction
+        return
+      fi
+      land_check_verdict pending owed-open
+      return 1 ;;
+    malformed) land_check_verdict failure owed-malformed; return 1 ;;
+    *) land_check_verdict pending facts; return 1 ;;
+  esac
+  land_check_verdict success green
+}
+
 # ---- Docs-only landing -----------------------------------------------------
 cmd_land_docs() {
   [[ $# -eq 0 ]] || { echo "land-docs takes no arguments: run it from the worktree whose HEAD lands." >&2; return 1; }
@@ -3160,6 +3300,72 @@ land_docs_push() {
     return 1
   fi
   echo "LAND_DOCS=landed $head"
+}
+
+# ---- Balance-only landing --------------------------------------------------
+cmd_land_balance() {
+  local pr="${1:-}" rc=0
+  [[ $# -eq 1 && "$pr" =~ ^[1-9][0-9]*$ ]] || { echo "land-balance requires <pr>" >&2; return 1; }
+  require_gh || return 1
+  with_flock "$MERGE_TURN_LOCK" "$MERGE_TURN_WAIT_SECONDS" \
+    "land-balance: the merge turn is still held after ${MERGE_TURN_WAIT_SECONDS}s ($MERGE_TURN_LOCK) — not landing." \
+    land_balance_merge "$pr" || rc=$?
+  [[ "$rc" -ne "$LOCK_BUSY_EXIT" ]] || echo "LAND_BALANCE=refused:turn-held"
+  return "$rc"
+}
+
+land_balance_refuse() {
+  echo "land-balance: $2" >&2
+  echo "LAND_BALANCE=refused:$1"
+  return 1
+}
+
+# Runs under the merge turn, so main cannot move between the conflict check and the merge from this machine.
+land_balance_merge() {
+  local pr="$1" view state base draft cross head fetched changed status path off=""
+  if ! view="$(gh pr view "$pr" --json state,baseRefName,isDraft,isCrossRepository,headRefOid \
+    --jq '[.state, .baseRefName, .isDraft, .isCrossRepository, .headRefOid] | @tsv')"; then
+    land_balance_refuse gh "could not read PR #$pr from GitHub"
+    return 1
+  fi
+  IFS=$'\t' read -r state base draft cross head <<< "$view"
+  [[ "$state" == OPEN ]] || { land_balance_refuse not-open "PR #$pr is $state"; return 1; }
+  [[ "$base" == main ]] || { land_balance_refuse base "PR #$pr is against $base, not main"; return 1; }
+  [[ "$draft" == false ]] || { land_balance_refuse draft "PR #$pr is a draft"; return 1; }
+  [[ "$cross" == false ]] || { land_balance_refuse head-branch "PR #$pr's head is on a fork"; return 1; }
+  # Git writes progress to stdout; stdout carries only the trailer.
+  if ! git -C "$ROOT" fetch -q origin main "+refs/pull/$pr/head:refs/land-balance/$pr" >&2; then
+    land_balance_refuse fetch "could not fetch main and PR #$pr's head from origin"
+    return 1
+  fi
+  fetched="$(git -C "$ROOT" rev-parse "refs/land-balance/$pr")"
+  [[ "$fetched" == "$head" ]] || { land_balance_refuse head-moved "PR #$pr's head moved from $head to $fetched"; return 1; }
+  changed="$(git -C "$ROOT" diff --no-renames --name-status "origin/main...$head")"
+  [[ -n "$changed" ]] || { land_balance_refuse empty "PR #$pr changes nothing on main"; return 1; }
+  while IFS=$'\t' read -r status path; do
+    if [[ "$status" == M ]]; then
+      case "$path" in
+        Assets/Settings/*.asset|*/Assets/Settings/*.asset|Assets/*.prefab|*/Assets/*.prefab) continue ;;
+      esac
+    fi
+    off+="  $status $path"$'\n'
+  done <<< "$changed"
+  if [[ -n "$off" ]]; then
+    echo "land-balance: these changes are not edits to an existing Settings asset or prefab, so the PR takes 'land' or 'merge':" >&2
+    printf '%s' "$off" >&2
+    echo "LAND_BALANCE=refused:paths"
+    return 1
+  fi
+  if ! git -C "$ROOT" merge-tree --write-tree origin/main "$head" >/dev/null; then
+    land_balance_refuse conflict "PR #$pr does not merge into main"
+    return 1
+  fi
+  # --admin: main's ruleset requires the hosted proofs and land-check, which this landing skips.
+  if ! gh pr merge "$pr" --squash --admin --delete-branch=false --match-head-commit "$head" >&2; then
+    land_balance_refuse gh "gh pr merge failed for PR #$pr"
+    return 1
+  fi
+  echo "LAND_BALANCE=landed $head"
 }
 
 # ---- Primary sync ----------------------------------------------------------
@@ -3526,6 +3732,10 @@ main() {
       path="$(slot_path "$1")" || { echo "run-script-tests: unknown slot '$1'" >&2; exit 1; }
       cmd_run_script_tests "$path"
       ;;
+    script-suite)
+      [[ $# -eq 1 ]] || { echo "script-suite requires <base_ref>" >&2; exit 1; }
+      cmd_run_script_tests "$ROOT" "$1" HEAD
+      ;;
     create-pr) require_slot_arg "create-pr requires <slot> [base] --title \"<text>\" (--body \"<text>\" | --body-file <path>)" "$#"; cmd_create_pr "$@" ;;
     submit) require_slot_arg "submit requires <slot> [base_ref] --title \"<text>\" (--body \"<text>\" | --body-file <path>) [-- test_args...]" "$#"; cmd_submit "$@" ;;
     merge)
@@ -3536,6 +3746,7 @@ main() {
         cmd_merge "$@"
       ;;
     land) cmd_land "$@" ;;
+    land-check) cmd_land_check "$@" ;;
     borrow) cmd_borrow "$@" ;;
     return)
       [[ $# -eq 2 && "$1" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "return requires <slot> <lease>" >&2; exit 1; }
@@ -3543,6 +3754,7 @@ main() {
         return_slot "$@"
       ;;
     land-docs) cmd_land_docs "$@" ;;
+    land-balance) cmd_land_balance "$@" ;;
     sync-primary) cmd_sync_primary "$@" ;;
     merge-progress) require_slot_arg "merge-progress requires <slot> [--oneline]" "$#"; cmd_merge_progress "$@" ;;
     finalize) require_slot_arg "finalize requires <slot> [base_ref]" "$#"; cmd_finalize "$@" ;;
