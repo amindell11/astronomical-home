@@ -244,6 +244,10 @@ Format: **term** — definition. *(authority)*
   *auto-merge class*. Always
   in code font: the plain word keeps its everyday sense ("land it" is
   consent). *(agent_worktree_pool.sh `land`; #830)*
+- **balance-only landing** — merging a PR that only edits existing Settings
+  assets or prefabs with no merge gate: no tests, review or recorded
+  instruction, only the user's merge instruction. A change that adds a file
+  or edits a test is not one. *(agent_worktree_pool.sh `land-balance`)*
 - **`land-check`** — the commit status GitHub auto-merge waits on: `land`'s
   preflight and authorize rules applied to a PR head that contains main, posted
   by `.github/workflows/land-check.yml` from main's copy. Always in code font:
@@ -252,7 +256,7 @@ Format: **term** — definition. *(authority)*
 - **merge turn** — the pool-wide right to run a merge gate, held by one gate at
   a time from before its fetch through `gh pr merge`. Waiting gates take it in
   arrival order (**turn ticket**). Any other push to main takes it with no
-  ticket, whenever it is free: `land-docs`, or a command run under
+  ticket, whenever it is free: `land-docs`, `land-balance`, or a command run under
   `lock merge-turn`. A waiter gives up only after watching one holder keep the
   turn for the cap; a line that keeps moving times nobody out. Machine-local:
   a base move from any other clone is caught only by the gate's base re-check.
@@ -605,8 +609,11 @@ Format: **term** — definition. *(authority)*
   the rank's size (ruled on #868, 2026-11-21). The **minion** has 70% hull,
   never fires its keystone, and aims worse than the other ranks (ruled on #1589,
   2026-11-17). Hunt patrols and elite escorts fly it. The **rival** leads every
-  wave. The **elite** is the third rank. The ranks are ruled on #1589. The
-  sector-to-faction mapping is ruled on #1320.
+  wave. The **elite** is the third rank. The ranks are ruled on #1589. A
+  presented run deals the factions to its sectors in a fresh order at its
+  start, so any faction can come first or last; a sector's pacing and elite
+  strength stay with its place in the run, and sector 3 always ends at the boss
+  (arye, 2026-11-23, replacing #1320's fixed mapping).
   *(Faction.Rival, Faction.Minion, Faction.EliteShip, FactionRank, SectorFaction)*
 - **elite** — a sector's end-of-sector enemy: its faction's elite chassis, with
   a heavy weapon pair and stacked run mods. A lull follows the

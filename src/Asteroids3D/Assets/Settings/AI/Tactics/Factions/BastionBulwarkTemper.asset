@@ -16,6 +16,7 @@ MonoBehaviour:
   laneWidth: 4
   home: 0
   attackRunMargin: 0
+  chasesFlatOut: 1
   circlesWreck: 1
   hitWithin: 2
   nerveShield: 0

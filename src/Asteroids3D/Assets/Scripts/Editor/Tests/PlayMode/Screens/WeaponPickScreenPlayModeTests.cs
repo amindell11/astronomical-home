@@ -6,8 +6,6 @@ using Combat.Weapons;
 using Combat.Weapons.Mods;
 using Loot;
 using NUnit.Framework;
-using Ships;
-using Substrate.Sectors.Elements;
 using UI.Screens;
 using UnityEditor;
 using UnityEngine;
@@ -17,7 +15,7 @@ using Object = UnityEngine.Object;
 
 namespace Tests.PlayMode.Screens
 {
-    /// <summary>The weapon pick screen heads with the next sector's ships and weapons; each card names the mount its kind replaces, the held mods it would use and the held mods the swap would idle; one press answers, and the first answer stands.</summary>
+    /// <summary>The weapon pick screen builds a window per offer; each names the mount its kind replaces, the held mods it would use and the held mods the swap would idle; one press answers, and the first answer stands.</summary>
     [Category("UI")]
     public class WeaponPickScreenPlayModeTests
     {
@@ -60,7 +58,7 @@ namespace Tests.PlayMode.Screens
             return mod;
         }
 
-        private WeaponPickScreen Open(SectorThreat? threat = null, WeaponComponent ordnance = null)
+        private WeaponPickScreen Open(WeaponComponent ordnance = null)
         {
             var stack = new LullModStack();
             var hot = Mod("Hot rounds", WeaponModField.Damage);
@@ -69,7 +67,7 @@ namespace Tests.PlayMode.Screens
             stack.Add(Mod("Coolant", WeaponModField.Cooling));
             stack.Add(Mod("Deep magazine", WeaponModField.Magazine, rippers));
             stack.Add(Mod("Extra missile", WeaponModField.Magazine, missiles));
-            return WeaponPickScreen.Create(root.transform, 2, threat, new[] { lasers, grenades }, rippers, ordnance, stack);
+            return WeaponPickScreen.Create(root.transform, new[] { lasers, grenades }, rippers, ordnance, stack, null);
         }
 
         private string Text(string path)
@@ -79,48 +77,36 @@ namespace Tests.PlayMode.Screens
             return node.GetComponent<Text>().text;
         }
 
-        [UnityTest]
-        public IEnumerator Create_HeadsWithTheThreat_AndCardsShowTheModsEachOfferUses()
+        [UnityTest, Category("RequiresLfsPng")]
+        public IEnumerator Create_BuildsOneWindowPerOffer_ShowingTheModsEachOfferUses()
         {
-            var vanguard = AssetDatabase.LoadAssetAtPath<Ship>("Assets/Prefabs/Ships/Vanguard.prefab");
-            screen = Open(new SectorThreat(new[] { vanguard }, new[] { lasers, missiles }), missiles);
+            screen = Open(missiles);
             yield return null;
 
-            Assert.AreEqual("SECTOR 02 SENDS", Text("Next"));
-            Assert.AreEqual("SHIPS   VANGUARD", Text("Ships"));
-            Assert.AreEqual($"WEAPONS   {lasers.DisplayName.ToUpperInvariant()} · {missiles.DisplayName.ToUpperInvariant()}",
-                Text("Weapons"));
-            Assert.AreEqual("1", Text("Offers/Cards/Card1/KeyCap/Key"));
-            Assert.AreEqual(lasers.DisplayName.ToUpperInvariant(), Text("Offers/Cards/Card1/Name"));
-            Assert.AreEqual("HOT ROUNDS ×2 · COOLANT", Text("Offers/Cards/Card1/Uses"));
-            Assert.AreEqual("HOT ROUNDS ×2", Text("Offers/Cards/Card2/Uses"), "the concussion has no heat");
+            Assert.AreEqual("WEAPON 01", Text("Offers/Cards/Card1/Title"));
+            Assert.AreEqual(lasers.DisplayName, Text("Offers/Cards/Card1/Body/Name"));
+            Assert.AreSame(lasers.HudIcon, screen.transform.Find("Offers/Cards/Card1/Body/Icon").GetComponent<Image>().sprite);
+            Assert.AreEqual("+ HOT ROUNDS ×2", Text("Offers/Cards/Card1/Body/Uses/Chip1/Label"));
+            Assert.AreEqual("+ COOLANT", Text("Offers/Cards/Card1/Body/Uses/Chip2/Label"));
+            Assert.AreEqual("+ HOT ROUNDS ×2", Text("Offers/Cards/Card2/Body/Uses/Chip1/Label"));
+            Assert.IsNull(screen.transform.Find("Offers/Cards/Card2/Body/Uses/Chip2"), "the concussion has no heat");
             Assert.IsNull(screen.transform.Find("Offers/Cards/Card3"), "two offers build two cards");
+            Assert.AreEqual("Michroma", screen.transform.Find("Title").GetComponent<Text>().font.name);
             Assert.IsFalse(screen.Choice.HasValue);
-        }
-
-        [UnityTest]
-        public IEnumerator Create_WithNoThreat_ShowsNoShipsOrWeaponsLine()
-        {
-            screen = Open();
-            yield return null;
-
-            Assert.AreEqual("SECTOR 02 SENDS", Text("Next"));
-            Assert.IsNull(screen.transform.Find("Ships"));
-            Assert.IsNull(screen.transform.Find("Weapons"));
         }
 
         [UnityTest]
         public IEnumerator EachCard_NamesTheMountItsKindReplaces_AndTheModsThatSwapIdles()
         {
-            screen = Open(ordnance: missiles);
+            screen = Open(missiles);
             yield return null;
 
-            Assert.AreEqual($"REPLACES  {rippers.DisplayName.ToUpperInvariant()}", Text("Offers/Cards/Card1/Replaces"),
+            Assert.AreEqual(rippers.DisplayName.ToUpperInvariant(), Text("Offers/Cards/Card1/Body/Replaces"),
                 "a weapon replaces the weapon slot's mount");
-            Assert.AreEqual("DEEP MAGAZINE", Text("Offers/Cards/Card1/Idles"));
-            Assert.AreEqual($"REPLACES  {missiles.DisplayName.ToUpperInvariant()}", Text("Offers/Cards/Card2/Replaces"),
+            Assert.AreEqual("− DEEP MAGAZINE", Text("Offers/Cards/Card1/Body/Idles/Chip1/Label"));
+            Assert.AreEqual(missiles.DisplayName.ToUpperInvariant(), Text("Offers/Cards/Card2/Body/Replaces"),
                 "an ordnance replaces the ordnance slot's mount");
-            Assert.AreEqual("EXTRA MISSILE", Text("Offers/Cards/Card2/Idles"));
+            Assert.AreEqual("− EXTRA MISSILE", Text("Offers/Cards/Card2/Body/Idles/Chip1/Label"));
         }
 
         [UnityTest]
@@ -129,8 +115,8 @@ namespace Tests.PlayMode.Screens
             screen = Open();
             yield return null;
 
-            Assert.AreEqual("REPLACES  EMPTY", Text("Offers/Cards/Card2/Replaces"));
-            Assert.AreEqual("NOTHING", Text("Offers/Cards/Card2/Idles"));
+            Assert.AreEqual("EMPTY", Text("Offers/Cards/Card2/Body/Replaces"));
+            Assert.AreEqual("NOTHING", Text("Offers/Cards/Card2/Body/Idles/None"));
         }
 
         [UnityTest]
@@ -177,7 +163,7 @@ namespace Tests.PlayMode.Screens
         }
 
         [UnityTest]
-        public IEnumerator Click_Skip_AnswersLikeSpace()
+        public IEnumerator Click_Skip_AnswersLikeEscape()
         {
             screen = Open();
             yield return null;

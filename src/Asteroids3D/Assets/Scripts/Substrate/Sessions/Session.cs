@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Linq;
 using Substrate.Sectors;
+using Substrate.Sectors.Factions;
 using Substrate.Services;
 using Ships;
 using UnityEngine;
@@ -109,17 +110,18 @@ namespace Substrate.Sessions
         /// <paramref name="onSectorComplete"/> for the life of this load, and reset the hero to the
         /// sector's declared start. The hero is the main character the sector lays out around — the
         /// player today, possibly an AI; the sector side still names it the player. A Random row shows
-        /// <paramref name="drawnLocale"/>, the locale its run drew; a named row shows its own. Every
-        /// argument is optional: a headless session loads its first sector with none.
+        /// <paramref name="drawnLocale"/>, the locale its run drew; a named row shows its own. A
+        /// <paramref name="dealtFaction"/> replaces the row's faction. Every argument is optional: a
+        /// headless session loads its first sector with none.
         /// </summary>
         public IEnumerator LoadSector(int index = 0, Ship hero = null, Action<SectorResult> onSectorComplete = null,
-            LocaleSky drawnLocale = null)
+            LocaleSky drawnLocale = null, Faction dealtFaction = null)
         {
             Require(Phase.Composed, nameof(LoadSector));
             var sectors = profile.run ? profile.run.Sectors : Array.Empty<SectorEntry>();
             if (index < 0 || index >= sectors.Count)
                 throw new InvalidOperationException($"No sector entry {index} in the session profile's run.");
-            var entry = sectors[index];
+            var entry = dealtFaction ? sectors[index].WithFaction(dealtFaction) : sectors[index];
 
             // Show the sector's locale before content builds; skipped headless, where a row may leave it unassigned.
             if (presentation)
@@ -170,11 +172,11 @@ namespace Substrate.Sessions
         }
 
         public IEnumerator TransferSector(int index, Ship hero, Action<SectorResult> onComplete,
-            LocaleSky drawnLocale = null)
+            LocaleSky drawnLocale = null, Faction dealtFaction = null)
         {
             Require(Phase.Loaded, nameof(TransferSector));
             yield return UnloadContent();
-            yield return LoadSector(index, hero, onComplete, drawnLocale);
+            yield return LoadSector(index, hero, onComplete, drawnLocale, dealtFaction);
         }
 
         private IEnumerator UnloadContent()

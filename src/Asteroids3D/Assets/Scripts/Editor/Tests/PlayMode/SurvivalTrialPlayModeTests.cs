@@ -410,7 +410,7 @@ namespace Tests.PlayMode
             var template = NewTemplate();
             var tally = new RunTally();
             var victims = new List<ShipId>();
-            tally.Killed += victims.Add;
+            tally.Killed += (victim, _) => victims.Add(victim);
             Ship player = null;
             tally.Bind(_unitService, () => player.Id);
             player = _unitService.SpawnShip(template, null, 0, GamePlane.PlanePointToWorld(Vector2.zero),

@@ -234,7 +234,7 @@ namespace Tests.PlayMode
             faction.elite = new FactionElite { ship = crimson };
             var profile = TrackAsset(ScriptableObject.CreateInstance<EliteProfile>());
             profile.name = "TestElite";
-            profile.Configure("Test elite", new ShipScale(1.5f, 1f, 1f, 1f, 1f), crimson.Weapons.PrimaryMountPrefab);
+            profile.Configure(new ShipScale(1.5f, 1f, 1f, 1f, 1f), crimson.Weapons.PrimaryMountPrefab);
 
             var sectorFaction = sectorGO.AddComponent<SectorFaction>();
             var directorGO = new GameObject("WaveDirector");

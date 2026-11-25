@@ -70,11 +70,16 @@ namespace Combat.Weapons.Arsenal
             return charge;
         }
 
-        // Braking evenly to rest, a charge covers d in 2d/v₀: a v₀/2 shot from rest, no ship velocity.
+        // No ship velocity. Within the burn distance b a charge reaches v₀t/2, past it v₀t − b (Grenade.FlightTime).
         public override Vector2 AimPoint(in Kinematics shooterPose, Vector2 targetPos, Vector2 targetVel)
         {
-            var meanSpeed = 0.5f * projectilePrefab.LaunchSpeed;
-            var flightTime = Mathf.Min(InterceptTime(targetPos - shooterPose.pos, targetVel, meanSpeed), Range / meanSpeed);
+            var offset = targetPos - shooterPose.pos;
+            var speed = projectilePrefab.LaunchSpeed;
+            var burnDistance = projectilePrefab.BurnDistance;
+            var flightTime = InterceptTime(offset, targetVel, 0.5f * speed, 0f);
+            if (0.5f * speed * flightTime > burnDistance)
+                flightTime = InterceptTime(offset, targetVel, speed, burnDistance);
+            flightTime = Mathf.Min(flightTime, projectilePrefab.FlightTime(Range));
             return targetPos + targetVel * flightTime;
         }
 
@@ -109,20 +114,22 @@ namespace Combat.Weapons.Arsenal
             live.Clear();
         }
 
-        /// <summary>When a shot from rest at <paramref name="speed"/> first meets a coasting target; infinite if never.</summary>
-        private static float InterceptTime(Vector2 offset, Vector2 targetVel, float speed)
+        /// <summary>When a shot reaching <paramref name="speed"/>·t − <paramref name="lag"/> first meets a coasting target; infinite if never.</summary>
+        private static float InterceptTime(Vector2 offset, Vector2 targetVel, float speed, float lag)
         {
             var a = targetVel.sqrMagnitude - speed * speed;
-            var b = 2f * Vector2.Dot(offset, targetVel);
-            var c = offset.sqrMagnitude;
+            var b = 2f * (Vector2.Dot(offset, targetVel) + speed * lag);
+            var c = offset.sqrMagnitude - lag * lag;
             var discriminant = b * b - 4f * a * c;
             if (discriminant < 0f) return float.PositiveInfinity;
 
             // Roots as q/a and c/q stay precise as a nears zero; a zero divisor yields no root.
             var q = -0.5f * (b + (b < 0f ? -1f : 1f) * Mathf.Sqrt(discriminant));
+            // A root before lag/speed solves the mirrored reach, lag − speed·t.
+            var earliest = lag / speed;
             var t = float.PositiveInfinity;
-            if (q / a >= 0f) t = q / a;
-            if (c / q >= 0f) t = Mathf.Min(t, c / q);
+            if (q / a >= earliest) t = q / a;
+            if (c / q >= earliest) t = Mathf.Min(t, c / q);
             return t;
         }
 
