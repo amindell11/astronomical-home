@@ -316,7 +316,7 @@ derived_fbx = tool("export", derived)[0]["SHIP_FBX"]
 bpy.ops.wm.read_factory_settings(use_empty=True)
 bpy.ops.wm.fbx_import(filepath=derived_fbx)
 objects = {obj.name: obj for obj in bpy.context.scene.objects}
-assert {n for n, o in objects.items() if o.type == "MESH"} == {"Hull", "Canopy", "Cores"}, set(objects)
+assert {n for n, o in objects.items() if o.type == "MESH"} == {"Hull", "Canopy", "Cores", "Collider"}, set(objects)
 assert np.array([v.co for v in objects["Hull"].data.vertices])[:, 2].max() < 0.5, "omitted Fin exported"
 bpy.ops.wm.open_mainfile(filepath=str(parent.parent / "Fixture.blend"))
 bpy.data.objects["Wing"].data.vertices[0].co.z += 0.01
