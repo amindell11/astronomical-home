@@ -1,0 +1,22 @@
+{
+  "tool": "codex exec (built-in image_generation tool)",
+  "codex_version": "codex-cli 0.159.2",
+  "agent_model": "gpt-6-astra",
+  "image_model": "not exposed by codex",
+  "size": [
+    1672,
+    941
+  ],
+  "prompt_file": "prompts/r2-rival.txt",
+  "codex_wrapper": "Use your image generation tool to generate ONE image from the brief below. The attached images, in order, are image 1 (refs/rival-blocking-top.png), image 2 (refs/rival-side.png), image 3 (refs/rival-back.png), image 4 (refs/rival-front.png), image 5 (refs/rival-turn045.png), image 6 (refs/rival-turn225.png), image 7 (out/rival-codex-1.png), Wide (landscape, the widest offered) aspect, the largest size offered. Save the generated image as out/r2-rival-codex-1.png in the current folder. Do not edit any other file. Report the saved path and the image model/size used.",
+  "references": [
+    "refs/rival-blocking-top.png",
+    "refs/rival-side.png",
+    "refs/rival-back.png",
+    "refs/rival-front.png",
+    "refs/rival-turn045.png",
+    "refs/rival-turn225.png",
+    "out/rival-codex-1.png"
+  ],
+  "codex_session_id": "01a210b5-ee48-7eb1-9179-b5a007ce2236"
+}
