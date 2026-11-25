@@ -51,11 +51,18 @@ namespace Tests.PlayMode.Screens
             base.TearDown();
         }
 
+        // The board slides on capped frame time, so a slow graphics frame can stretch it past its nominal length.
+        private static IEnumerator Settle(Func<bool> done)
+        {
+            var deadline = Time.realtimeSinceStartup + 3f;
+            while (!done() && Time.realtimeSinceStartup < deadline) yield return null;
+        }
+
         private Text TextAt(string path) => screen.transform.Find("Panels/" + path).GetComponent<Text>();
 
         private void Play(RecapOutcomeContext context, RecapFeelProfile profile = null)
         {
-            screen = RunRecapScreen.Create(null, context);
+            screen = RunRecapScreen.Create(null, context, null);
             screen.StartCoroutine(RecapPlayback.Run(new RecapOutcomeSequence(profile ? profile : feel, context),
                 screen.Apply, () => screen.Continued));
         }
@@ -219,7 +226,7 @@ namespace Tests.PlayMode.Screens
             var centred = recorder.anchoredPosition;
             screen.transform.Find("Panels/Actions/ScoreboardButton").GetComponent<Button>().onClick.Invoke();
             Assert.IsTrue(screen.ScoreboardShown);
-            yield return new WaitForSecondsRealtime(1.2f);
+            yield return Settle(() => boardWindow.Open >= 1f);
             Assert.AreEqual(1f, boardWindow.Open, "the scoreboard opens while gameplay is paused");
             Assert.Less(recorder.anchoredPosition.x, centred.x, "the flight recorder slides aside");
             Assert.Greater(recorder.anchoredPosition.y, centred.y);
@@ -237,9 +244,10 @@ namespace Tests.PlayMode.Screens
             Assert.IsTrue(recorderBounds.Intersects(boardBounds), "the scoreboard overlaps the recorder's corner");
             Assert.Greater(scoreboard.GetSiblingIndex(), recorder.GetSiblingIndex(), "the scoreboard draws in front");
             screen.ToggleScoreboard();
-            yield return new WaitForSecondsRealtime(1.2f);
+            yield return Settle(() => Vector2.Distance(recorder.anchoredPosition, centred) < .01f);
             Assert.AreEqual(0f, boardWindow.Open);
-            Assert.AreEqual(centred, recorder.anchoredPosition);
+            // The getter rebuilds the position from a canvas that resized since `centred` was read.
+            Assert.That(Vector2.Distance(centred, recorder.anchoredPosition), Is.LessThan(.01f));
             button.OnSubmit(null);
             Assert.IsTrue(screen.Continued);
         }
@@ -279,7 +287,7 @@ namespace Tests.PlayMode.Screens
             Time.timeScale = .65f;
             IEnumerator ShowCard()
             {
-                yield return RecapPlayback.RunScreen(new RecapOutcomeSequence(feel, context), playbackOwner.transform);
+                yield return RecapPlayback.RunScreen(new RecapOutcomeSequence(feel, context), playbackOwner.transform, null);
                 completed++;
             }
             runner.StartCoroutine(ShowCard());
@@ -307,7 +315,7 @@ namespace Tests.PlayMode.Screens
             var completed = false;
             IEnumerator ShowCard()
             {
-                yield return RecapPlayback.RunScreen(new RecapOutcomeSequence(feel, context), playbackOwner.transform,
+                yield return RecapPlayback.RunScreen(new RecapOutcomeSequence(feel, context), playbackOwner.transform, null,
                     cancelled: () => cancelled);
                 completed = true;
             }
@@ -388,6 +396,20 @@ namespace Tests.PlayMode.Screens
                         ((RectTransform)scoreboard.Find("Row" + (i + 1))).anchoredPosition.y);
             }
             Assert.AreEqual("5", TextAt("Scoreboard/Body/Row5/Rank").text);
+        }
+
+        [UnityTest]
+        public IEnumerator Scoreboard_HasAnOpaqueBody_AndItsHeadingsShareOneBaseline()
+        {
+            var board = new Scoreboard(Array.Empty<Scoreboard.Row>(), new Scoreboard.Row(2, 1, 600, DateTime.UtcNow));
+            Play(RecapOutcomeContext.Defeat(Array.Empty<string>(), 2, 3, board, Vector2.zero));
+            yield return null;
+            Assert.AreEqual(1f, screen.transform.Find("Panels/Scoreboard/Back").GetComponent<ChamferedShape>().color.a,
+                "the Flight Recorder behind does not show through");
+            var columns = screen.transform.Find("Panels/Scoreboard/Body/Columns");
+            var baselines = new[] { "Rank", "ShipHeading", "LoadoutHeading", "Sectors", "Kills", "Time" }
+                .Select(heading => ((RectTransform)columns.Find(heading)).anchoredPosition.y).ToArray();
+            Assert.That(baselines, Is.All.EqualTo(baselines[0]));
         }
     }
 }

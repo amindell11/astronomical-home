@@ -58,7 +58,7 @@ namespace Tests.PlayMode.Screens
                 Mod("Extra missile", WeaponModField.Magazine, 1f),
             };
             screen = LullPickScreen.Create(root.transform, offers,
-                mod => ((WeaponMod)mod).Field == WeaponModField.Magazine ? "Missiles" : "Lasers · Missiles");
+                mod => ((WeaponMod)mod).Field == WeaponModField.Magazine ? "Missiles" : "Lasers · Missiles", null);
             yield return null;
 
             Assert.AreEqual("MOD 01", Text("Cards/Card1/Title"));
@@ -85,7 +85,7 @@ namespace Tests.PlayMode.Screens
                 Mod("b", WeaponModField.Damage, 0.25f),
                 Mod("c", WeaponModField.Damage, 0.25f),
             };
-            screen = LullPickScreen.Create(root.transform, offers, _ => "Lasers");
+            screen = LullPickScreen.Create(root.transform, offers, _ => "Lasers", null);
             yield return null;
 
             screen.Choose(1);
@@ -102,7 +102,7 @@ namespace Tests.PlayMode.Screens
                 Mod("a", WeaponModField.Damage, 0.25f),
                 Mod("b", WeaponModField.Damage, 0.25f),
             };
-            screen = LullPickScreen.Create(root.transform, offers, _ => "Lasers");
+            screen = LullPickScreen.Create(root.transform, offers, _ => "Lasers", null);
             yield return null;
 
             var card = screen.transform.Find("Cards/Card2").GetComponent<Button>();
@@ -113,7 +113,7 @@ namespace Tests.PlayMode.Screens
             Assert.AreEqual(1, screen.Choice, "clicking the second card picks it");
 
             Object.Destroy(screen.gameObject);
-            screen = LullPickScreen.Create(root.transform, offers, _ => "Lasers");
+            screen = LullPickScreen.Create(root.transform, offers, _ => "Lasers", null);
             yield return null;
 
             var skip = screen.transform.Find("Skip").GetComponent<Button>();
@@ -126,7 +126,7 @@ namespace Tests.PlayMode.Screens
         public IEnumerator Choose_Skip_ReadsAsSkip()
         {
             screen = LullPickScreen.Create(root.transform, new List<WeaponMod> { Mod("a", WeaponModField.Damage, 0.25f) },
-                _ => "Lasers");
+                _ => "Lasers", null);
             yield return null;
 
             screen.Choose(LullPickScreen.Skip);
@@ -136,10 +136,10 @@ namespace Tests.PlayMode.Screens
         [Test]
         public void Create_RefusesAnEmptyOrOversizedOffer()
         {
-            Assert.Throws<ArgumentException>(() => LullPickScreen.Create(root.transform, new List<WeaponMod>(), _ => ""));
+            Assert.Throws<ArgumentException>(() => LullPickScreen.Create(root.transform, new List<WeaponMod>(), _ => "", null));
             var four = new List<WeaponMod>();
             for (var i = 0; i < 4; i++) four.Add(Mod($"m{i}", WeaponModField.Damage, 0.25f));
-            Assert.Throws<ArgumentException>(() => LullPickScreen.Create(root.transform, four, _ => ""));
+            Assert.Throws<ArgumentException>(() => LullPickScreen.Create(root.transform, four, _ => "", null));
         }
     }
 }

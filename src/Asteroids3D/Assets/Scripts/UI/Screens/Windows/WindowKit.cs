@@ -14,6 +14,12 @@ namespace UI.Screens.Windows
         internal static readonly Color Good = new(.49f, .94f, .71f);
         internal static readonly Color Threat = new(1f, .49f, .42f);
 
+        // The canopy adds ink as light past gamma and halo, so a fill there reads several times brighter.
+        private const float CanopyFill = .2f;
+
+        internal static Color Lit(ScreenLayers layers, Color fill) =>
+            layers.Canopy ? new Color(fill.r, fill.g, fill.b, fill.a * CanopyFill) : fill;
+
         internal const float StrongFade = .58f;
         // The sector jump's streaks are part of the scene, so its card barely fades them.
         internal const float LightFade = .18f;
@@ -29,6 +35,10 @@ namespace UI.Screens.Windows
             image.color = new Color(.004f, .012f, .03f, strength);
             return image;
         }
+
+        // Opaque to hide window ink behind it; black through the canopy, where its shade does the darkening.
+        internal static Color OpaqueBody(ScreenLayers layers) =>
+            layers.Canopy ? Color.black : new Color(Body.r, Body.g, Body.b, 1f);
 
         internal static ChamferedShape Shape(RectTransform rect, Color color, float chamfer, float stroke,
             bool squareBottom = false)
@@ -64,15 +74,18 @@ namespace UI.Screens.Windows
             ScreenKit.Fill(ScreenKit.Box(parent, "Rule", x, y, width, 1f), Line);
 
         /// <summary>An outlined button with its caption on the left and its key on the right.</summary>
-        internal static Button KeyButton(RectTransform rect, string caption, string key, Font font, Action press)
+        internal static Button KeyButton(ScreenLayers layers, RectTransform rect, string caption, string key, Font font,
+            Action press)
         {
             var width = rect.sizeDelta.x;
             var height = rect.sizeDelta.y;
-            ScreenKit.Fill(ScreenKit.Box(rect, "Back", 0f, 0f, width, height), Body);
+            var back = ScreenKit.Fill(ScreenKit.Box(rect, "Back", 0f, 0f, width, height),
+                layers.Canopy ? Color.black : Body);
+            if (layers.Canopy) WindowShade.Create(layers, back, null, 0f);
             Shape(ScreenKit.Box(rect, "Frame", 0f, 0f, width, height), Ink, 0f, 1.5f);
             Label(rect, "Label", caption, 14f, 0f, width - 28f, height, 15, Ink, font);
             Label(rect, "Key", key, 14f, 0f, width - 28f, height, 15, Dim, font, TextAnchor.MiddleRight);
-            return ScreenKit.Button(rect, press);
+            return ScreenKit.Button(rect, press, Lit(layers, ScreenKit.Hover));
         }
     }
 }

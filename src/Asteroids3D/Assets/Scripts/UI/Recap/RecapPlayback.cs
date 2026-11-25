@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using UI.Screens;
+using UI.Screens.Windows;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -13,11 +14,11 @@ namespace UI.Recap
     /// </summary>
     public static class RecapPlayback
     {
-        public static IEnumerator RunScreen(RecapOutcomeSequence sequence, Transform parent,
+        public static IEnumerator RunScreen(RecapOutcomeSequence sequence, Transform parent, ScreenCameras cameras,
             Action<RecapState> applyWorld = null, Func<bool> cancelled = null,
             Func<bool> ready = null, Action onContinue = null)
         {
-            var screen = RunRecapScreen.Create(parent, sequence.Context);
+            var screen = RunRecapScreen.Create(parent, sequence.Context, cameras);
             try
             {
                 yield return Run(sequence, state =>

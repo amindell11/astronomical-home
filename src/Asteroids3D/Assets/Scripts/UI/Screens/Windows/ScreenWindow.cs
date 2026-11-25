@@ -1,3 +1,4 @@
+using UI.Projection;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,7 +9,9 @@ namespace UI.Screens.Windows
     /// with its content parented under <see cref="Body"/>. It opens as a drawn line that widens,
     /// unfolds to full height, then fills its content in from the top. <see cref="Open"/> places it
     /// anywhere along that opening, so a scrubbed sequence can drive it; <see cref="Play"/> runs the
-    /// opening on the unscaled clock for a screen that has no sequence.
+    /// opening on the unscaled clock for a screen that has no sequence. Through the canopy its body is
+    /// opaque black ink over a <see cref="WindowShade"/> on the under canvas, and each opening tears the
+    /// canopy and dips the window's ink the way an instrument appears.
     /// The look was settled on https://github.com/amindell11/astronomical-home/issues/1694
     /// </summary>
     public sealed class ScreenWindow : MonoBehaviour
@@ -28,8 +31,24 @@ namespace UI.Screens.Windows
         private RectTransform seam;
         private float open = 1f;
         private float playedAt = float.NegativeInfinity;
+        private CanopyProjection projection;
+        private ScreenCameras cameras;
+        private CanvasGroup group;
+        private float alpha = 1f;
+        private readonly AppearanceEnvelope envelope = new();
 
         public RectTransform Body { get; private set; }
+
+        /// <summary>The window's own opacity; the canopy's open flicker multiplies it.</summary>
+        public float Alpha
+        {
+            get => alpha;
+            set
+            {
+                alpha = value;
+                group.alpha = value;
+            }
+        }
 
         /// <summary>0 is closed, 1 fully open with its content filled in.</summary>
         public float Open
@@ -37,20 +56,24 @@ namespace UI.Screens.Windows
             get => open;
             set
             {
+                var opening = open <= 0f && value > 0f;
                 open = Mathf.Clamp01(value);
                 Place();
+                if (opening) cameras?.RaiseWindowOpened();
             }
         }
 
-        internal static ScreenWindow Create(Transform parent, string name, float x, float y, float width,
-            float height, string title, Font font, string corner = "")
+        internal static ScreenWindow Create(Transform parent, ScreenLayers layers, string name, float x, float y,
+            float width, float height, string title, Font font, string corner = "")
         {
             var rect = ScreenKit.Box(parent, name, x, y, width, height);
             var window = rect.gameObject.AddComponent<ScreenWindow>();
             window.root = rect;
             window.unfold = rect.gameObject.AddComponent<RectMask2D>();
-            WindowKit.Shape(ScreenKit.Box(rect, "Back", 0f, 0f, width, height), WindowKit.Body, Chamfer, 0f);
-            WindowKit.Shape(ScreenKit.Box(rect, "Bar", 0f, 0f, width, BarHeight), WindowKit.Bar, Chamfer, 0f, true);
+            var back = WindowKit.Shape(ScreenKit.Box(rect, "Back", 0f, 0f, width, height), WindowKit.OpaqueBody(layers),
+                Chamfer, 0f);
+            WindowKit.Shape(ScreenKit.Box(rect, "Bar", 0f, 0f, width, BarHeight), WindowKit.Lit(layers, WindowKit.Bar),
+                Chamfer, 0f, true);
             WindowKit.Shape(ScreenKit.Box(rect, "Frame", 0f, 0f, width, height), WindowKit.Ink, Chamfer, Stroke);
             WindowKit.Label(rect, "Title", title.ToUpperInvariant(), 20f, 0f, width - 40f, BarHeight, 14,
                 WindowKit.Ink, font);
@@ -63,6 +86,11 @@ namespace UI.Screens.Windows
             window.seam.anchorMax = Vector2.one;
             WindowKit.Shape(window.seam, WindowKit.Ink, 0f, Stroke);
             window.Place();
+            window.group = rect.gameObject.AddComponent<CanvasGroup>();
+            if (!layers.Canopy) return window;
+            window.projection = layers.Projection;
+            window.cameras = layers.Cameras;
+            WindowShade.Create(layers, back, window.unfold, Chamfer);
             return window;
         }
 
@@ -78,6 +106,19 @@ namespace UI.Screens.Windows
             if (float.IsNegativeInfinity(playedAt)) return;
             Open = (Time.unscaledTime - playedAt) / OpenSeconds;
             if (open >= 1f) playedAt = float.NegativeInfinity;
+        }
+
+        private void LateUpdate()
+        {
+            if (!projection) return;
+            var effects = projection.EffectsEnabled;
+            group.alpha = alpha * envelope.Sample(Time.unscaledTime, open > 0f && effects,
+                effects ? projection.Settings.flicker * projection.Profile.windowFlicker : 0f);
+        }
+
+        private void OnDisable()
+        {
+            if (projection) group.alpha = alpha * envelope.Sample(Time.unscaledTime, false, 0f);
         }
 
         private void Place()

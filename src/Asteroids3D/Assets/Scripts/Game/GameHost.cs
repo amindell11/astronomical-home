@@ -514,6 +514,7 @@ namespace Game
                 {
                     stop = clock.Hold();
                     recap = StartCoroutine(RecapPlayback.RunScreen(new RecapOutcomeSequence(recapFeel, context), ui,
+                        rigInstance.Screens,
                         cancelled: () => shutdownRequested || exited,
                         ready: () => destinationReady && jump.State.LocaleBlend >= 1f,
                         onContinue: () => continued = true));
@@ -707,7 +708,8 @@ namespace Game
 
             var stop = clock.Hold();
             rigInstance.SetInputEnabled(false);
-            var screen = WeaponPickScreen.Create(ui, offers, primary, secondary, rigInstance.Mods);
+            var screen = WeaponPickScreen.Create(ui, offers, primary, secondary, rigInstance.Mods,
+                rigInstance.Screens);
             try
             {
                 while (!screen.Choice.HasValue && !shutdownRequested) yield return null;
@@ -746,7 +748,7 @@ namespace Game
 
             var stop = clock.Hold();
             rigInstance.SetInputEnabled(false);
-            var screen = LullPickScreen.Create(ui, offers, mod => mod.Landing(player));
+            var screen = LullPickScreen.Create(ui, offers, mod => mod.Landing(player), rigInstance.Screens);
             try
             {
                 while (!screen.Choice.HasValue && !shutdownRequested) yield return null;
@@ -1031,7 +1033,7 @@ namespace Game
                 observer);
             try
             {
-                yield return RecapPlayback.RunScreen(sequence, ui, state =>
+                yield return RecapPlayback.RunScreen(sequence, ui, rigInstance.Screens, state =>
                     {
                         presenter.Apply(state);
                         SetRecapClock(state.SimulationFrozen);
