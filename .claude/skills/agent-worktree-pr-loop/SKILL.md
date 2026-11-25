@@ -518,17 +518,19 @@ one. `land` refuses a PR with an unresolved review thread, so it takes no
 pre-merge comment check; its `--help` entry lists every refusal. Then run
 `land <pr>` yourself, or leave it to the merge task (§ Merge task).
 
-**GitHub auto-merge.** A PR may also land through GitHub's auto-merge (the
-Claude Code auto-merge toggle, or `gh pr merge --auto --squash`), which waits
-on the main ruleset's required statuses: `merge-proof/headless`,
-`merge-proof/resharper` and `land-check`, on a head that contains main. The
-`land-check` workflow runs `land-check <pr>` (its `--help` entry has the
-verdicts) from main's copy, so the same instruction-or-class rule decides, and
-consent still means a recorded instruction: turn auto-merge on only after
-`instruct`, or for a PR the class admits. When main moves, the PR waits until
-its branch is updated (GitHub's Update branch, or `revise`), and that push
-reruns the hosted suite. A landing diff touching `.github/`, `scripts/` or
-`.githooks/` never passes `land-check`; land it with `land` or `merge <slot>`.
+**GitHub auto-merge** is the merge path. Turn it on (`gh pr merge --auto
+--squash`, or the Claude Code toggle) once the PR is open and not a draft. It
+waits on the main ruleset's required statuses: `merge-proof/headless`,
+`merge-proof/resharper`, `merge-proof/scripts` and `land-check`. The hosted
+suites run on every push to a branch of this repository, any name; a failed
+run gets one automatic rerun (`rerun-failed.yml`). The `land-check` workflow
+runs `land-check <pr>` (its `--help` entry has the rules) from main's copy. A
+green PR with nothing owed passes. An unticked owed-local item holds it until
+the item is ticked or the user's merge instruction is recorded with
+`instruct`. The head need not contain main, and paths under `.github/`,
+`scripts/` or `.githooks/` take no other route. The main push reruns the
+headless suite, so two PRs that broke main together show up there. The
+`merge <slot>` / `land` path above is the fallback the user names.
 
 After the merge, the merge reconcile (`scripts/merge_reconcile.sh`, on the
 landing push) posts the Shipped note on the PR-closed issues, so the merging
@@ -563,8 +565,8 @@ build*, runs in a subagent. Start prompt:
    again.
 4. **Fan out** one subagent per item, each in its own plain git worktree on
    the cloud box, on branch `task/<lease>`, the lease named from the scope
-   block (§ Pool commands → branch naming). The hosted run and the merge gate
-   see only `task/**`, never a `claude/` branch. An unfinished item continues
+   block (§ Pool commands → branch naming). The pool's `land` sees only
+   `task/**`; the hosted suites run on any branch. An unfinished item continues
    on the `task/*` branch its dead build pushed, when origin has one.
 5. **Build**, per item: restate the scope block as the Step-1 scope, build,
    run the Step-3 quality subagent (the hosted ratchet stands in for the local
