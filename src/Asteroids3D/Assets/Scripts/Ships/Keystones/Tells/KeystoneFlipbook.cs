@@ -8,8 +8,9 @@ namespace Ships.Keystones.Tells
 {
     /// <summary>
     /// Plays a kit's baked flipbook sheets, each layer from its own start: the kit's press, its
-    /// going live, or its hit. The drawing and the baked timing live in the sheets; the playback
-    /// knobs live in the feel profile.
+    /// going live, its hit, or its live window ending. A looping layer repeats until the live
+    /// window ends. The drawing and the baked timing live in the sheets; the playback knobs live
+    /// in the feel profile.
     /// Design: https://github.com/amindell11/astronomical-home/issues/1574
     /// </summary>
     public sealed class KeystoneFlipbook : MonoBehaviour, IPresentationPart
@@ -75,6 +76,12 @@ namespace Ships.Keystones.Tells
                 if (layer.startsBehind && !layer.staysAtLaunch)
                     throw new InvalidOperationException(
                         $"KeystoneFlipbook on '{name}' layer {i} starts behind only when it stays at launch.");
+                if (layer.loops && !layer.endsWithLive)
+                    throw new InvalidOperationException(
+                        $"KeystoneFlipbook on '{name}' layer {i} loops only when it ends with live.");
+                if (layer.loopFrom < 0 || layer.loopFrom >= layer.frames)
+                    throw new InvalidOperationException(
+                        $"KeystoneFlipbook on '{name}' layer {i} needs loopFrom from 0 to {layer.frames - 1}.");
             }
 
             block = new MaterialPropertyBlock();
@@ -125,6 +132,7 @@ namespace Ships.Keystones.Tells
             seenHits = keystone.Hits;
             // A hit proves the kit went live, even when both fell between two frames.
             var live = (keystone.Active || hit) && !seenActive;
+            var liveEnd = seenActive && !keystone.Active;
             seenActive = keystone.Active;
 
             var layers = feel.Layers;
@@ -137,6 +145,7 @@ namespace Ships.Keystones.Tells
                 if (startsOn == KeystoneFlipbookStart.Press) started = press;
                 else if (startsOn == KeystoneFlipbookStart.Live) started = live;
                 else if (startsOn == KeystoneFlipbookStart.Hit) started = hit;
+                else if (startsOn == KeystoneFlipbookStart.LiveEnd) started = liveEnd;
                 if (started)
                 {
                     play[i].playing = true;
@@ -184,6 +193,8 @@ namespace Ships.Keystones.Tells
                         : 0f;
 
                 var frame = Mathf.FloorToInt(elapsed * layer.speed * feel.FramesPerSecond);
+                if (layer.loops && frame >= layer.frames)
+                    frame = layer.loopFrom + (frame - layer.loopFrom) % (layer.frames - layer.loopFrom);
                 if (frame >= layer.frames || liveFade <= 0f)
                     play[i].playing = false;
 

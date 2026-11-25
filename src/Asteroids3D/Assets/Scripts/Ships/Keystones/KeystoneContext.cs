@@ -11,6 +11,7 @@ namespace Ships.Keystones
         public readonly float SelfMaxSpeed;
         public readonly float SelfShieldPct;
         public readonly Kinematics Target;
+        public readonly float TargetRadius;
 
         /// <summary>The velocity the navigator is asking for, or NaN when it asks for none.</summary>
         public readonly Vector2 DesiredVelocity;
@@ -19,8 +20,10 @@ namespace Ships.Keystones
         public readonly Vector2? Destination;
 
         public KeystoneContext(in Kinematics self, float selfMass, float selfMaxSpeed, in Kinematics target,
-            Vector2 desiredVelocity = default, Vector2? destination = null, float selfShieldPct = 1f)
+            Vector2 desiredVelocity = default, Vector2? destination = null, float selfShieldPct = 1f,
+            float targetRadius = 0f)
         {
+            TargetRadius = targetRadius;
             SelfShieldPct = selfShieldPct;
             Destination = destination;
             Self = self;

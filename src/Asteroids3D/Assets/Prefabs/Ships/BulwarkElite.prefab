@@ -505,17 +505,17 @@ PrefabInstance:
     - target: {fileID: 7604545048589130545, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_InertiaTensor.x
-      value: 472.5
+      value: 601.2014
       objectReference: {fileID: 0}
     - target: {fileID: 7604545048589130545, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_InertiaTensor.y
-      value: 315
+      value: 400.801
       objectReference: {fileID: 0}
     - target: {fileID: 7604545048589130545, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}
       propertyPath: m_InertiaTensor.z
-      value: 540
+      value: 687.0874
       objectReference: {fileID: 0}
     - target: {fileID: 7970885365621560892, guid: 6c5c44eda9b86054ba44bc3f0f758310,
         type: 3}

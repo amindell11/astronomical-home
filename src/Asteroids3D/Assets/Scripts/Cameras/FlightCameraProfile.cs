@@ -62,6 +62,16 @@ namespace Cameras
         [Tooltip("Seconds the cursor lead takes to follow the cursor.")]
         [Min(0f)] public float cursorLeadSmoothTime = 0.4f;
 
+        [Header("Overspeed")]
+        [Tooltip("Fraction past the hull's top speed at which the overspeed headroom is full. Overdrive raises the cap by about this much.")]
+        [Min(0.01f)] public float overspeedRange = 0.3f;
+
+        [Tooltip("Extra room to zoom out at full overspeed, in orthographic size units. Raises both maxWiden and maxZoomOut, so speed can widen the view further.")]
+        [Min(0f)] public float overspeedZoomOut = 6f;
+
+        [Tooltip("Extra lead distance allowed at full overspeed, added to maxLead, in world units.")]
+        [Min(0f)] public float overspeedLead = 6f;
+
         [Header("Shake")]
         [Tooltip("Trauma a full-size hit adds; smaller hits add their share. Above 1, a smaller hit can fill trauma. The view shakes by trauma raised to shakeExponent.")]
         [Range(0f, 2f)] public float traumaPerHit = .75f;

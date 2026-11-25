@@ -14,9 +14,9 @@ on:
   # Codex's review.
   pull_request_review:
     types: [submitted, dismissed]
-  # The headless suite's statuses are posted under GITHUB_TOKEN, which triggers no status event.
+  # The hosted suites' statuses are posted under GITHUB_TOKEN, which triggers no status event.
   workflow_run:
-    workflows: [headless-suite]
+    workflows: [headless-suite, script-suite]
     types: [completed]
   workflow_dispatch:
     inputs:
@@ -32,9 +32,13 @@ permissions:
   statuses: write
 
 jobs:
-  # Every trigger resolves to the PR number first, so one concurrency group per PR serializes the verdicts.
+  # Every trigger resolves to the PR number first, so one concurrency group per PR orders the verdicts.
   resolve:
-    if: github.event_name != 'issue_comment' || github.event.issue.pull_request
+    # Among comments only a recorded instruction or Codex's review summary changes the verdict.
+    if: >-
+      github.event_name != 'issue_comment' ||
+      (github.event.issue.pull_request && (contains(github.event.comment.body, 'Merge instruction') ||
+      contains(github.event.comment.body, 'codex-pull-request-review-summary')))
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
@@ -59,9 +63,10 @@ jobs:
     if: needs.resolve.outputs.number != ''
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # Queue, never cancel: a cancelled job shows on the PR as a failed check.
     concurrency:
       group: land-check-${{ needs.resolve.outputs.number }}
-      cancel-in-progress: true
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
         with:
