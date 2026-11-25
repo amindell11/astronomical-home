@@ -9,7 +9,8 @@ namespace Ships.Keystones.Tells
     /// <summary>
     /// Plays a kit's baked flipbook sheets, each layer from its own start: the kit's press, its
     /// going live, its hit, or its live window ending. A looping layer repeats until the live
-    /// window ends. The drawing and the baked timing live in the sheets; the playback knobs live
+    /// window ends. A layer can follow travel, fade with speed, shorten at rest and trail turns.
+    /// The drawing and the baked timing live in the sheets; the playback knobs live
     /// in the feel profile.
     /// Design: https://github.com/amindell11/astronomical-home/issues/1574
     /// </summary>
@@ -44,6 +45,7 @@ namespace Ships.Keystones.Tells
             public float liveEndedAt;
             public Vector3 position;
             public Quaternion rotation;
+            public Quaternion turned;
         }
 
         private void Awake()
@@ -82,6 +84,26 @@ namespace Ships.Keystones.Tells
                 if (layer.loopFrom < 0 || layer.loopFrom >= layer.frames)
                     throw new InvalidOperationException(
                         $"KeystoneFlipbook on '{name}' layer {i} needs loopFrom from 0 to {layer.frames - 1}.");
+                if (layer.goneAtSpeed < 0f)
+                    throw new InvalidOperationException(
+                        $"KeystoneFlipbook on '{name}' layer {i} needs goneAtSpeed of at least 0.");
+                if ((layer.goneAtSpeed != 0f || layer.fullAtSpeed != 0f)
+                    && layer.fullAtSpeed <= layer.goneAtSpeed)
+                    throw new InvalidOperationException(
+                        $"KeystoneFlipbook on '{name}' layer {i} needs fullAtSpeed above goneAtSpeed.");
+                if (layer.lengthAtRest < 0f || layer.lengthAtRest > 1f)
+                    throw new InvalidOperationException(
+                        $"KeystoneFlipbook on '{name}' layer {i} needs lengthAtRest from 0 to 1.");
+                if (layer.lengthAtRest > 0f && layer.lengthFullAtSpeed <= 0f)
+                    throw new InvalidOperationException(
+                        $"KeystoneFlipbook on '{name}' layer {i} needs a positive lengthFullAtSpeed with lengthAtRest.");
+                if (layer.turnLag < 0f)
+                    throw new InvalidOperationException(
+                        $"KeystoneFlipbook on '{name}' layer {i} needs turnLag of at least 0.");
+                if (layer.staysAtLaunch
+                    && (layer.followsTravel || layer.lengthAtRest > 0f || layer.turnLag > 0f))
+                    throw new InvalidOperationException(
+                        $"KeystoneFlipbook on '{name}' layer {i} follows travel, shortens or lags only when it follows the ship.");
             }
 
             block = new MaterialPropertyBlock();
@@ -137,6 +159,17 @@ namespace Ships.Keystones.Tells
 
             var layers = feel.Layers;
             var pose = FlatPose();
+            var velocity = Vector3.zero;
+            for (var i = 0; i < layers.Length; i++)
+            {
+                var layer = layers[i];
+                if (layer.followsTravel || layer.fullAtSpeed > 0f || layer.lengthAtRest > 0f)
+                {
+                    velocity = Vector3.ProjectOnPlane(keystone.Body.linearVelocity, GamePlane.Normal);
+                    break;
+                }
+            }
+
             var anyPlaying = false;
             for (var i = 0; i < layers.Length; i++)
             {
@@ -156,6 +189,7 @@ namespace Ships.Keystones.Tells
                         : behind ? previousPosition
                         : transform.position;
                     play[i].rotation = behind ? previousPose : pose;
+                    play[i].turned = TargetRotation(layers[i], pose, velocity);
                 }
 
                 if (play[i].playing) anyPlaying = true;
@@ -205,22 +239,24 @@ namespace Ships.Keystones.Tells
                 var k = feel.Scale * layer.size;
                 var offset = (layer.anchorAhead + (layer.centreAhead - layer.anchorAhead) * k) * shipLength;
                 var sheetTransform = sheetTransforms[i];
+                var lengthShare = 1f;
                 if (layer.staysAtLaunch)
                     sheetTransform.SetPositionAndRotation(
                         play[i].position + play[i].rotation * new Vector3(0f, offset, layer.depth),
                         play[i].rotation);
                 else
-                    sheetTransform.SetPositionAndRotation(
-                        transform.position + pose * new Vector3(0f, offset, layer.depth), pose);
+                    lengthShare = PoseFollowing(i, layer, k, pose, velocity);
                 var across = layer.staysAtLaunch ? 1f : banked;
                 sheetTransform.localScale = new Vector3(
-                    layer.width * shipLength * k * across, layer.length * shipLength * k, 1f);
+                    layer.width * shipLength * k * across, layer.length * shipLength * k * lengthShare, 1f);
 
                 if (!visible) continue;
                 var opacity = layer.opacity;
                 if (layer.endsAt > 0f && layer.fadeOut > 0f)
                     opacity *= Mathf.Clamp01((layer.endsAt - elapsed) / layer.fadeOut);
                 opacity *= liveFade;
+                if (layer.fullAtSpeed > 0f)
+                    opacity *= Mathf.InverseLerp(layer.goneAtSpeed, layer.fullAtSpeed, velocity.magnitude);
                 block.SetFloat(FrameId, frame);
                 block.SetFloat(OpacityId, opacity);
                 renderers[i].SetPropertyBlock(block);
@@ -238,6 +274,48 @@ namespace Ships.Keystones.Tells
         // The ship banks by rolling; the sheets stay flat on the game plane along its heading.
         private Quaternion FlatPose() =>
             GamePlane.PlanePose(GamePlane.Normal, Vector3.ProjectOnPlane(transform.up, GamePlane.Normal));
+
+        private static Quaternion TargetRotation(
+            KeystoneFlipbookFeel.Layer layer, Quaternion pose, Vector3 velocity)
+        {
+            if (layer.followsTravel && velocity.sqrMagnitude > 0.0001f)
+                return GamePlane.PlanePose(GamePlane.Normal, velocity);
+            return pose;
+        }
+
+        private float PoseFollowing(
+            int index, KeystoneFlipbookFeel.Layer layer, float k, Quaternion pose, Vector3 velocity)
+        {
+            var target = TargetRotation(layer, pose, velocity);
+            Quaternion drawn;
+            if (layer.turnLag > 0f)
+            {
+                play[index].turned = Quaternion.Slerp(
+                    play[index].turned, target, 1f - Mathf.Exp(-Time.deltaTime / layer.turnLag));
+                drawn = play[index].turned;
+            }
+            else
+            {
+                play[index].turned = target;
+                drawn = target;
+            }
+
+            var lengthShare = 1f;
+            if (layer.lengthAtRest > 0f)
+            {
+                var heading = Vector3.ProjectOnPlane(transform.up, GamePlane.Normal);
+                lengthShare = Mathf.Lerp(
+                    layer.lengthAtRest,
+                    1f,
+                    Mathf.Clamp01(Vector3.Dot(velocity, heading.normalized) / layer.lengthFullAtSpeed));
+            }
+
+            var anchor = transform.position + target * new Vector3(0f, layer.anchorAhead * shipLength, 0f);
+            var centre = anchor + drawn * new Vector3(
+                0f, (layer.centreAhead - layer.anchorAhead) * k * lengthShare * shipLength, layer.depth);
+            sheetTransforms[index].SetPositionAndRotation(centre, drawn);
+            return lengthShare;
+        }
 
         private void BuildSheets()
         {
