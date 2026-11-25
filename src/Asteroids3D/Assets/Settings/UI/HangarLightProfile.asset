@@ -33,5 +33,5 @@ MonoBehaviour:
   overheadGlow: 0.2
   overheadGlowSize: 0.25
   overheadLight: 8
-  lensGlow: 0.8
+  lensGlow: 0.4
   lensGlowSize: 2
