@@ -9,10 +9,10 @@ namespace Game.Runs
 {
     /// <summary>
     /// Stamps the build identity into every player build: git is read before the build, the build
-    /// label is taken from -gameBuildLabel when the build was given one, and both are written to
-    /// StreamingAssets, where the player finds them, then removed once the build is done so the
-    /// project tree stays as it was. A refused label fails the build. A failed build skips the
-    /// removal; the file is gitignored and the next build overwrites it.
+    /// label is taken from -gameBuildLabel when the build was given one, -gamePlaytest marks a playtest
+    /// build, and all are written to StreamingAssets, where the player finds them, then removed once the
+    /// build is done so the project tree stays as it was. A refused label fails the build. A failed build
+    /// skips the removal; the file is gitignored and the next build overwrites it.
     /// </summary>
     public class BuildIdentityStamp : IPreprocessBuildWithReport, IPostprocessBuildWithReport
     {
@@ -33,6 +33,7 @@ namespace Game.Runs
                     throw new BuildFailedException(labelFailure);
                 identity.label = label;
             }
+            identity.playtest = Array.IndexOf(Environment.GetCommandLineArgs(), "-gamePlaytest") >= 0;
 
             Directory.CreateDirectory(Application.streamingAssetsPath);
             File.WriteAllText(Path.Combine(Application.streamingAssetsPath, BuildIdentity.FileName), identity.ToJson());

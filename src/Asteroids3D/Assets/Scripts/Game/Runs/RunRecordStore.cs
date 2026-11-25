@@ -27,34 +27,47 @@ namespace Game.Runs
     /// swallowed so the run loop goes on without that record — an exception here would stop the
     /// game host's coroutine on the death frame. Export copies that file into a chosen folder and
     /// never rewrites it; no file yet is a normal state, reported apart from a failed copy.
+    /// Playtest feedback goes to its own file beside it, so no run-record reader meets a foreign line.
     /// </summary>
     public sealed class RunRecordStore
     {
         public const string Folder = "balance";
         public const string FileName = "run-records.jsonl";
+        public const string FeedbackFileName = "run-feedback.jsonl";
 
         public string Path { get; }
 
-        public RunRecordStore(string pathOverride = null) =>
+        public string FeedbackPath { get; }
+
+        public RunRecordStore(string pathOverride = null)
+        {
             Path = string.IsNullOrEmpty(pathOverride)
                 ? System.IO.Path.Combine(ResultsRoot.Folder(Folder), FileName)
                 : pathOverride;
+            FeedbackPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Path), FeedbackFileName);
+        }
 
         /// <summary>False when the record did not land; the failure is logged.</summary>
-        public bool Append(in RunRecord record)
+        public bool Append(in RunRecord record) => AppendLine(Path, record.ToJsonLine(), "Run record");
+
+        /// <summary>False when the note did not land; the failure is logged.</summary>
+        public bool AppendFeedback(in RunFeedback feedback) =>
+            AppendLine(FeedbackPath, feedback.ToJsonLine(), "Run feedback");
+
+        private static bool AppendLine(string path, string line, string what)
         {
             try
             {
-                Directory.CreateDirectory(System.IO.Path.GetDirectoryName(Path));
-                File.AppendAllText(Path, record.ToJsonLine() + "\n");
+                Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path));
+                File.AppendAllText(path, line + "\n");
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {
-                Debug.LogError($"Run record not written to '{Path}': {e.Message}");
+                Debug.LogError($"{what} not written to '{path}': {e.Message}");
                 return false;
             }
 
-            Debug.Log($"Run record appended to '{Path}'.");
+            Debug.Log($"{what} appended to '{path}'.");
             return true;
         }
 
