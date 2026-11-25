@@ -52,6 +52,7 @@ namespace Tests.PlayMode.Screens
             }
             projection.Initialize(sceneCamera);
             cameras = new ScreenCameras(projection.Camera, sceneCamera, projection);
+            cameras.WindowOpened += () => projection.Tear(profile.windowGlitch);
         }
 
         [TearDown]
@@ -137,13 +138,16 @@ namespace Tests.PlayMode.Screens
         [UnityTest]
         public IEnumerator OpeningAWindow_TearsTheCanopy_AndDipsItsInkOnlyInTheAppearanceDips()
         {
+            var openings = 0;
+            cameras.WindowOpened += () => openings++;
             var screen = Pick();
             var flicker = screen.transform.Find("Offers/Cards/Card1").GetComponent<CanvasGroup>();
             Assert.That(projection.GlitchAge, Is.LessThan(0f));
             yield return null;
             var opened = Time.unscaledTime;
             yield return null;
-            Assert.That(projection.GlitchAge, Is.GreaterThanOrEqualTo(0f), "the window's opening tears the canopy");
+            Assert.That(openings, Is.EqualTo(2), "each offer window signals its opening once");
+            Assert.That(projection.GlitchAge, Is.GreaterThanOrEqualTo(0f), "the signalled opening tears the canopy");
             Assert.That(projection.GlitchStrength, Is.EqualTo(profile.windowGlitch));
 
             var sampled = opened;

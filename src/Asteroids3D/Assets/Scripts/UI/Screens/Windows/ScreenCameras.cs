@@ -20,6 +20,9 @@ namespace UI.Screens.Windows
         public Camera Scene { get; }
         public CanopyProjection Projection { get; }
 
+        /// <summary>Raised as a window starts to open; the canopy's owner subscribes its tear.</summary>
+        public event Action WindowOpened;
+
         public ScreenCameras(Camera ink, Camera scene, CanopyProjection projection)
         {
             if (!ink) throw new ArgumentNullException(nameof(ink));
@@ -35,6 +38,8 @@ namespace UI.Screens.Windows
         }
 
         internal void ConfigureInk(Canvas canvas) => Configure(canvas, Ink, inkLayer);
+
+        internal void RaiseWindowOpened() => WindowOpened?.Invoke();
 
         internal void ConfigureUnder(Canvas canvas) => Configure(canvas, Scene, underLayer);
 

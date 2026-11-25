@@ -19,6 +19,8 @@ namespace UI.Screens.Windows
 
         public bool Canopy => Projection;
 
+        internal ScreenCameras Cameras { get; private set; }
+
         internal static ScreenLayers Create(GameObject root, ScreenCameras cameras,
             CanvasScaler.ScreenMatchMode match = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight)
         {
@@ -37,6 +39,7 @@ namespace UI.Screens.Windows
             cameras.ConfigureUnder(ScreenKit.ScaledCanvas(under, match));
             layers.Under = (RectTransform)under.transform;
             layers.Projection = cameras.Projection;
+            layers.Cameras = cameras;
             return layers;
         }
 

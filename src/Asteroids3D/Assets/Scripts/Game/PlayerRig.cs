@@ -148,6 +148,7 @@ namespace Game
                 personality.Initialize(Player.Damage, Player.Shake);
                 projection.Initialize(observer.Cam, personality.Observe);
                 Screens = new ScreenCameras(uiCam, observer.Cam, projection);
+                Screens.WindowOpened += TearForWindow;
                 Overlay.ConfigureCameras(uiCam, observer.Cam, projection);
                 Overlay.Initialize(BuildHudBinding());
                 var minimapCam = Instantiate(minimapCamPrefab, observer.transform);
@@ -158,6 +159,8 @@ namespace Game
             Park();
             yield return null;
         }
+
+        private void TearForWindow() => projection.Tear(projection.Profile.windowGlitch);
 
         public void Teardown()
         {
@@ -176,6 +179,7 @@ namespace Game
                 Destroy(personality);
             personality = null;
             projection = null;
+            if (Screens != null) Screens.WindowOpened -= TearForWindow;
             Screens = null;
             Overlay = null;
             Player = null;

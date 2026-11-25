@@ -32,6 +32,7 @@ namespace UI.Screens.Windows
         private float open = 1f;
         private float playedAt = float.NegativeInfinity;
         private CanopyProjection projection;
+        private ScreenCameras cameras;
         private CanvasGroup group;
         private float alpha = 1f;
         private readonly AppearanceEnvelope envelope = new();
@@ -58,7 +59,7 @@ namespace UI.Screens.Windows
                 var opening = open <= 0f && value > 0f;
                 open = Mathf.Clamp01(value);
                 Place();
-                if (opening && projection) projection.Tear(projection.Profile.windowGlitch);
+                if (opening) cameras?.RaiseWindowOpened();
             }
         }
 
@@ -88,6 +89,7 @@ namespace UI.Screens.Windows
             window.group = rect.gameObject.AddComponent<CanvasGroup>();
             if (!layers.Canopy) return window;
             window.projection = layers.Projection;
+            window.cameras = layers.Cameras;
             WindowShade.Create(layers, back, window.unfold, Chamfer);
             return window;
         }
