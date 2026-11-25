@@ -1,0 +1,19 @@
+{
+  "tool": "codex exec (built-in image_generation tool)",
+  "codex_version": "codex-cli 0.159.2",
+  "agent_model": "gpt-6-astra",
+  "image_model": "not exposed by codex",
+  "size": [
+    1254,
+    1254
+  ],
+  "prompt_file": "prompts/champion.txt",
+  "codex_wrapper": "Use your image generation tool to generate ONE image from the brief below. The attached images, in order, are image 1 (refs/champion-blocking-top.png), image 2 (refs/champion-side.png), image 3 (refs/champion-turn045.png), image 4 (refs/champion-turn225.png), Square aspect, the largest size offered. Save the generated image as out/champion-codex-2.png in the current folder. Do not edit any other file. Report the saved path and the image model/size used.",
+  "references": [
+    "refs/champion-blocking-top.png",
+    "refs/champion-side.png",
+    "refs/champion-turn045.png",
+    "refs/champion-turn225.png"
+  ],
+  "codex_session_id": "01a210ab-208b-7d82-89bb-9c8a957425ae"
+}

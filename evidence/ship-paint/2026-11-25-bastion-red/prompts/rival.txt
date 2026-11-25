@@ -1,0 +1,20 @@
+READABILITY AT GAME DISTANCE COMES FIRST. In play this ship is only 60 to 100 pixels across on a dark blue space background, in fast combat. The big colour shapes of image 1 must survive untouched at that size; detail is a second read that only shows up close.
+
+Image 1 is the object and colour reference: the Bastion rival (a clan officer), top-down, nose up, in flat colour blocks. Keep its exact silhouette, proportions and panel boundaries, and keep every region in the colour image 1 gives it. Where images disagree about a colour, image 1 wins. Images 2, 3 and 4 show the same ship from the side, three-quarter front and three-quarter rear. They are only there so you understand its 3D form; do not draw those views.
+
+The faction: Bastion, "the wall". Disciplined clan warships that advance slowly behind heavy armour plate and ram. Proud, maintained, heraldic, not scrappy. The palette is fixed:
+- armour plates: deep oxblood red #8a2a3c
+- second plates and recessed panels: darker oxblood #561a26
+- frame, side skirts and undercarriage: warm near-black slate #241f22
+- trim, side guards, tail fins and clan markings: bone #ebcb9e
+- engine deck and nozzles: warm steel grey #8c7f7c
+- canopy: dark glass #1c2a35, no glow
+There is no cyan, teal, blue, orange, yellow, green or magenta anywhere on this ship, and no glowing lights.
+
+This is the middle rank. Its rank marks are exactly ONE bone chevron across the top plate and exactly ONE oxblood band on each bone tail fin, as in image 1. Keep that count exactly. The bone side guards with oxblood inset panels stay as shown.
+
+Turn the flat blocks into a finished paint concept in a hand-painted illustrated style: solid colour regions, confident dark ink panel lines, one lighter brushed highlight pass and one darker shadow pass, lit softly from the top of the image. Add believable surface structure: plate seams, bolts, vents, hatches, armour overlaps, edge chipping and brushed wear.
+
+HARD RULE FOR ALL ADDED DETAIL: it is value-only. Every line, scuff, chip, shadow and highlight is a darker or lighter tone of the colour already underneath it. Detail never brings a new hue: no rust orange, no brown grime, no green or blue staining, no coloured decals. The same detail must still work if the red were swapped for navy blue. Any marking that needs its own colour is a clean flat bone shape with hard edges, like the chevrons and bands in image 1. No text, numbers, letters or logos.
+
+Output: this one ship only, top-down, nose up, centred, same orthographic framing as image 1, on a flat mid-grey background. No engine flames, no shield, no background objects.

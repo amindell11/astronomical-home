@@ -1,0 +1,11 @@
+READABILITY AT GAME DISTANCE COMES FIRST. In play each ship is only 60 to 100 pixels across on a dark blue space background.
+
+Images 1, 2 and 3 are the object and colour references for the three ranks of the Bastion faction, top-down, nose up, in flat colour blocks: image 1 the minion, image 2 the rival, image 3 the champion. Keep each ship's exact silhouette, proportions, panel boundaries and region colours.
+
+Bastion is "the wall": disciplined, proud clan warships in heavy armour. Fixed palette: plates deep oxblood red #8a2a3c, second plates #561a26, frame and side skirts near-black slate #241f22, trim, guards, fins and clan markings bone #ebcb9e, engines warm steel grey #8c7f7c, canopy dark glass #1c2a35. No cyan, blue, orange, green or magenta, and no glowing lights.
+
+Rank marks, keep the counts exactly: the minion has no chevron and no fin bands; the rival has one bone chevron and one oxblood band per tail fin; the champion has two chevrons and two bands per fin.
+
+Paint all three as one family in a hand-painted illustrated style: solid colour regions, dark ink panel lines, one lighter brushed highlight pass and one darker shadow pass, lit softly from the top. Add plate seams, bolts, vents, armour overlaps and edge wear. All added detail is value-only: darker or lighter tones of the colour underneath, never a new hue, no rust, grime colour or decals. No text or logos.
+
+Output: the three ships side by side, top-down, nose up, minion left, rival centre, champion right, at their relative sizes from the references, on a flat mid-grey background. No flames, no shields.

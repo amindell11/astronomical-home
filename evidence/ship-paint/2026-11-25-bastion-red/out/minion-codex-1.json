@@ -1,0 +1,19 @@
+{
+  "tool": "codex exec (built-in image_generation tool)",
+  "codex_version": "codex-cli 0.159.2",
+  "agent_model": "gpt-6-astra",
+  "image_model": "not exposed by codex",
+  "size": [
+    1254,
+    1254
+  ],
+  "prompt_file": "prompts/minion.txt",
+  "codex_wrapper": "Use your image generation tool to generate ONE image from the brief below. The attached images, in order, are image 1 (refs/minion-blocking-top.png), image 2 (refs/minion-side.png), image 3 (refs/minion-turn045.png), image 4 (refs/minion-turn225.png). Square aspect, the largest size offered. Save the generated image as out/minion-codex-1.png in the current folder. Do not edit any other file. Report the saved path and the image model/size used.",
+  "references": [
+    "refs/minion-blocking-top.png",
+    "refs/minion-side.png",
+    "refs/minion-turn045.png",
+    "refs/minion-turn225.png"
+  ],
+  "codex_session_id": "01a210a9-8129-7042-b45c-ca7ff89e9d2d"
+}
