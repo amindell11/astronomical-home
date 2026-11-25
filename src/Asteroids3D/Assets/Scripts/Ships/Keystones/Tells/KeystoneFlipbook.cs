@@ -46,6 +46,7 @@ namespace Ships.Keystones.Tells
             public Vector3 position;
             public Quaternion rotation;
             public Quaternion turned;
+            public bool tracking;
         }
 
         private void Awake()
@@ -128,7 +129,10 @@ namespace Ships.Keystones.Tells
             if (play != null)
             {
                 for (var i = 0; i < play.Length; i++)
+                {
                     play[i].playing = false;
+                    play[i].tracking = false;
+                }
             }
 
             HideSheets();
@@ -170,6 +174,18 @@ namespace Ships.Keystones.Tells
                 }
             }
 
+            // The lag runs while a layer is hidden, so a layer starting mid-turn joins the trail.
+            for (var i = 0; i < layers.Length; i++)
+            {
+                var layer = layers[i];
+                if (layer.turnLag <= 0f || layer.staysAtLaunch) continue;
+                var target = TargetRotation(layer, pose, velocity);
+                play[i].turned = play[i].tracking
+                    ? Quaternion.Slerp(play[i].turned, target, 1f - Mathf.Exp(-Time.deltaTime / layer.turnLag))
+                    : target;
+                play[i].tracking = true;
+            }
+
             var anyPlaying = false;
             for (var i = 0; i < layers.Length; i++)
             {
@@ -189,7 +205,6 @@ namespace Ships.Keystones.Tells
                         : behind ? previousPosition
                         : transform.position;
                     play[i].rotation = behind ? previousPose : pose;
-                    play[i].turned = TargetRotation(layers[i], pose, velocity);
                 }
 
                 if (play[i].playing) anyPlaying = true;
@@ -287,18 +302,7 @@ namespace Ships.Keystones.Tells
             int index, KeystoneFlipbookFeel.Layer layer, float k, Quaternion pose, Vector3 velocity)
         {
             var target = TargetRotation(layer, pose, velocity);
-            Quaternion drawn;
-            if (layer.turnLag > 0f)
-            {
-                play[index].turned = Quaternion.Slerp(
-                    play[index].turned, target, 1f - Mathf.Exp(-Time.deltaTime / layer.turnLag));
-                drawn = play[index].turned;
-            }
-            else
-            {
-                play[index].turned = target;
-                drawn = target;
-            }
+            var drawn = layer.turnLag > 0f ? play[index].turned : target;
 
             var lengthShare = 1f;
             if (layer.lengthAtRest > 0f)

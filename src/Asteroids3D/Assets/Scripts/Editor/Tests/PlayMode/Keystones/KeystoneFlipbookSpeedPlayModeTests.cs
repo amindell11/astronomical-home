@@ -19,10 +19,13 @@ namespace Tests.PlayMode.Keystones
         private const string ValisPath = "Assets/Prefabs/Ships/Valis.prefab";
         private const string BurnMaterialPath =
             "Assets/Visuals/Vfx/Keystones/ValisOverdrive/ValisOverdrive_Burn.mat";
+        private const string SubsideMaterialPath =
+            "Assets/Visuals/Vfx/Keystones/ValisOverdrive/ValisOverdrive_Subside.mat";
 
         private Ship valis;
         private KeystoneFlipbookFeel feel;
         private MeshRenderer sheet;
+        private MeshRenderer endSheet;
 
         public override void TearDown()
         {
@@ -74,7 +77,32 @@ namespace Tests.PlayMode.Keystones
             Assert.That(rest / fast, Is.EqualTo(0.4f).Within(0.02f));
         }
 
-        private IEnumerator GoLive(Action<SerializedProperty> authorLayer)
+        [UnityTest]
+        public IEnumerator EndSheet_PicksUpTheLaggedTurn_OfTheLayerItFollows()
+        {
+            void Lagged(SerializedProperty layer) => layer.FindPropertyRelative("turnLag").floatValue = 0.12f;
+            yield return GoLive(Lagged, Lagged);
+
+            var body = valis.GetComponent<Rigidbody>();
+            for (var frame = 0; frame < 20; frame++)
+            {
+                body.angularVelocity = GamePlane.Normal * 3f;
+                yield return null;
+            }
+
+            var burnUp = sheet.transform.up;
+            Assert.That(Vector3.Angle(burnUp, valis.transform.up), Is.GreaterThan(10f), "the burn trails the turn");
+
+            valis.Keystone.ResetKeystone();
+            body.angularVelocity = GamePlane.Normal * 3f;
+            yield return null;
+
+            Assert.That(endSheet.enabled, Is.True, "the end sheet draws once the live window ends");
+            Assert.That(Vector3.Angle(endSheet.transform.up, burnUp), Is.LessThan(8f),
+                "the end sheet carries on from the burn's trail");
+        }
+
+        private IEnumerator GoLive(Action<SerializedProperty> authorLayer, Action<SerializedProperty> authorEnd = null)
         {
             valis = Object.Instantiate(TestAssets.Load<Ship>(ValisPath), Vector3.zero, GamePlane.Rotation);
             valis.Initialize(0, 0, Projectiles);
@@ -91,35 +119,28 @@ namespace Tests.PlayMode.Keystones
             valis.Keystone.gameObject.SetActive(false);
             var flipbook = valis.Keystone.gameObject.AddComponent<KeystoneFlipbook>();
             feel = ScriptableObject.CreateInstance<KeystoneFlipbookFeel>();
-            var material = AssetDatabase.LoadAssetAtPath<Material>(BurnMaterialPath);
-            Assert.That(material, Is.Not.Null, "a sheet material to build the layer");
-
             using (var feelObject = new SerializedObject(feel))
             {
                 feelObject.FindProperty("scale").floatValue = 1f;
                 feelObject.FindProperty("speed").floatValue = 1f;
                 feelObject.FindProperty("framesPerSecond").floatValue = 60f;
                 var layers = feelObject.FindProperty("layers");
-                layers.arraySize = 1;
+                layers.arraySize = authorEnd == null ? 1 : 2;
                 var layer = layers.GetArrayElementAtIndex(0);
-                layer.FindPropertyRelative("material").objectReferenceValue = material;
-                layer.FindPropertyRelative("columns").intValue = 9;
-                layer.FindPropertyRelative("rows").intValue = 3;
-                layer.FindPropertyRelative("frames").intValue = 27;
-                layer.FindPropertyRelative("show").boolValue = true;
-                layer.FindPropertyRelative("size").floatValue = 1f;
-                layer.FindPropertyRelative("opacity").floatValue = 1f;
-                layer.FindPropertyRelative("speed").floatValue = 0.25f;
-                layer.FindPropertyRelative("width").floatValue = 0.5f;
-                layer.FindPropertyRelative("length").floatValue = 2f;
-                layer.FindPropertyRelative("centreAhead").floatValue = -1f;
-                layer.FindPropertyRelative("anchorAhead").floatValue = -0.3f;
-                layer.FindPropertyRelative("depth").floatValue = 0.4f;
+                AuthorSheet(layer, BurnMaterialPath, 9, 3, 27);
                 layer.FindPropertyRelative("startsOn").enumValueIndex = (int)KeystoneFlipbookStart.Live;
                 layer.FindPropertyRelative("endsWithLive").boolValue = true;
                 layer.FindPropertyRelative("loops").boolValue = true;
                 layer.FindPropertyRelative("loopFrom").intValue = 3;
                 authorLayer(layer);
+                if (authorEnd != null)
+                {
+                    var end = layers.GetArrayElementAtIndex(1);
+                    AuthorSheet(end, SubsideMaterialPath, 5, 1, 5);
+                    end.FindPropertyRelative("startsOn").enumValueIndex = (int)KeystoneFlipbookStart.LiveEnd;
+                    authorEnd(end);
+                }
+
                 feelObject.ApplyModifiedPropertiesWithoutUndo();
             }
 
@@ -139,16 +160,36 @@ namespace Tests.PlayMode.Keystones
             valis.Movement.Drive(default);
             Assert.That(valis.Keystone.Active, Is.True);
 
-            sheet = null;
+            sheet = endSheet = null;
             var sheets = 0;
             foreach (var renderer in valis.Keystone.GetComponentsInChildren<MeshRenderer>(true))
             {
                 if (renderer.name != "Flipbook sheet") continue;
                 sheets++;
-                sheet = renderer;
+                if (renderer.sharedMaterial.name == "ValisOverdrive_Burn") sheet = renderer;
+                else endSheet = renderer;
             }
 
-            Assert.That(sheets, Is.EqualTo(1));
+            Assert.That(sheets, Is.EqualTo(authorEnd == null ? 1 : 2));
+        }
+
+        private static void AuthorSheet(SerializedProperty layer, string materialPath, int columns, int rows, int frames)
+        {
+            var material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
+            Assert.That(material, Is.Not.Null, materialPath);
+            layer.FindPropertyRelative("material").objectReferenceValue = material;
+            layer.FindPropertyRelative("columns").intValue = columns;
+            layer.FindPropertyRelative("rows").intValue = rows;
+            layer.FindPropertyRelative("frames").intValue = frames;
+            layer.FindPropertyRelative("show").boolValue = true;
+            layer.FindPropertyRelative("size").floatValue = 1f;
+            layer.FindPropertyRelative("opacity").floatValue = 1f;
+            layer.FindPropertyRelative("speed").floatValue = 0.25f;
+            layer.FindPropertyRelative("width").floatValue = 0.5f;
+            layer.FindPropertyRelative("length").floatValue = 2f;
+            layer.FindPropertyRelative("centreAhead").floatValue = -1f;
+            layer.FindPropertyRelative("anchorAhead").floatValue = -0.3f;
+            layer.FindPropertyRelative("depth").floatValue = 0.4f;
         }
     }
 }
