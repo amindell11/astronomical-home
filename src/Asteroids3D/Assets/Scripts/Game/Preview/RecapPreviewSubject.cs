@@ -72,7 +72,7 @@ namespace Game.Preview
             freezeSimulation(false);
             if (!rig.Player.gameObject.activeInHierarchy) units.RespawnShip(rig.Player.Id, PlayerPoint(), 0f);
             sequence = new RecapOutcomeSequence(feel, context);
-            screen = RunRecapScreen.Create(uiRoot, context);
+            screen = RunRecapScreen.Create(uiRoot, context, rig.Screens);
             presenter = context.Outcome == RecapOutcome.Extraction ? null
                 : new RecapPresenter(context, rig.Overlay, units.ActiveRegistry.ActiveShips, observer);
             shownSpan = -1;

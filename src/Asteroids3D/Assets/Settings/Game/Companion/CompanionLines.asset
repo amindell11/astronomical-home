@@ -74,3 +74,6 @@ MonoBehaviour:
   - moment: combat-start
     speaker: 
     mustSay: 0
+  - moment: rival-fell
+    speaker: 
+    mustSay: 1

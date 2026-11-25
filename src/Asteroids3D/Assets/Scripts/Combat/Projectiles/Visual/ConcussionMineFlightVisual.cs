@@ -15,6 +15,9 @@ namespace Combat.Projectiles.Visual
         private Grenade charge;
         private Quaternion brakingPose = Quaternion.identity;
 
+        // Share of the pose's progress spent tumbling upright while the charge coasts.
+        private const float UprightProgress = 0.64f;
+
         private void Awake()
         {
             if (!modelPivot || !brakeExhaust)
@@ -29,22 +32,27 @@ namespace Combat.Projectiles.Visual
         private void BeginFlight()
         {
             brakingPose = GamePlane.PlanePose(GamePlane.Normal, -charge.rb.linearVelocity.normalized);
-            Pose(1f);
+            Pose(0f);
         }
 
-        private void LateUpdate() => Pose(Mathf.Clamp01(charge.rb.linearVelocity.magnitude / charge.LaunchSpeed));
-
-        private void Pose(float speedFraction)
+        private void LateUpdate()
         {
-            float braking = 1f - speedFraction;
-            float spin = 1f - speedFraction * speedFraction;
-            float tilt = Mathf.SmoothStep(96f, 0f, Mathf.InverseLerp(0.1f, 0.64f, braking));
+            var speedFraction = Mathf.Clamp01(charge.rb.linearVelocity.magnitude / charge.LaunchSpeed);
+            Pose(charge.CoastProgress < 1f
+                ? UprightProgress * charge.CoastProgress
+                : Mathf.Lerp(UprightProgress, 1f, 1f - speedFraction));
+        }
+
+        private void Pose(float progress)
+        {
+            float spin = 1f - (1f - progress) * (1f - progress);
+            float tilt = Mathf.SmoothStep(96f, 0f, Mathf.InverseLerp(0.1f, UprightProgress, progress));
 
             modelPivot.rotation = brakingPose
                 * Quaternion.AngleAxis(290f * spin, Vector3.down)
                 * Quaternion.AngleAxis(tilt, Vector3.right)
                 * Quaternion.AngleAxis(400f * spin, Vector3.down);
-            brakeExhaust.enabled = tilt < 22f && speedFraction > 0f;
+            brakeExhaust.enabled = charge.Burning;
         }
     }
 }
