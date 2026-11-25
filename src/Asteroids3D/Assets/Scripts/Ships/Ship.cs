@@ -121,6 +121,7 @@ namespace Ships
         public float ShipRadius => Stats?.shipRadius ?? 1f;
 
         private bool isInitialized = false;
+        private Collider[] hulls;
         private IProjectileService projectiles;
         private LullModStack mods;
         private ShipScale scale = ShipScale.One;
@@ -132,6 +133,7 @@ namespace Ships
             Movement         = GetComponent<MovementController>();
             Damage           = GetComponent<DamageController>();
             Colliders        = GetComponentsInChildren<Collider>();
+            hulls            = Array.FindAll(Colliders, c => !c.isTrigger && c.gameObject.layer == Substrate.LayerIds.Ship);
             Rigidbody        = GetComponent<Rigidbody>();
 
             if (!weapons) weapons = GetComponent<WeaponsController>();
@@ -280,6 +282,37 @@ namespace Ships
             var closing = relative.sqrMagnitude > 1e-6f ? Mathf.Abs(Vector3.Dot(relative.normalized, contact.normal)) : 0f;
             Keystone.OnContact(new KeystoneContact(Id, Rigidbody.mass, Rigidbody.linearVelocity,
                 collision.collider, collision.rigidbody, contact.point, closing, relative.magnitude));
+        }
+
+        private void FixedUpdate()
+        {
+            if (isInitialized && Keystone && Keystone.ContactsByHull)
+                ReportHullContacts();
+        }
+
+        // Ship-to-ship physics only meets at the ShipBody bumpers, which sit inside the hulls.
+        private void ReportHullContacts()
+        {
+            var overlaps = PhysicsBuffers.GetColliderBuffer();
+            foreach (var hull in hulls)
+            {
+                var bounds = hull.bounds;
+                var count = Physics.OverlapBoxNonAlloc(bounds.center, bounds.extents, overlaps, Quaternion.identity,
+                    1 << Substrate.LayerIds.Ship, QueryTriggerInteraction.Ignore);
+                for (var i = 0; i < count; i++)
+                {
+                    var other = overlaps[i];
+                    var body = other.attachedRigidbody;
+                    if (body == Rigidbody) continue;
+                    if (!Physics.ComputePenetration(hull, hull.transform.position, hull.transform.rotation,
+                            other, other.transform.position, other.transform.rotation, out var normal, out _))
+                        continue;
+                    var relative = (body ? body.linearVelocity : Vector3.zero) - Rigidbody.linearVelocity;
+                    var closing = relative.sqrMagnitude > 1e-6f ? Mathf.Abs(Vector3.Dot(relative.normalized, normal)) : 0f;
+                    Keystone.OnContact(new KeystoneContact(Id, Rigidbody.mass, Rigidbody.linearVelocity,
+                        other, body, other.ClosestPoint(Rigidbody.worldCenterOfMass), closing, relative.magnitude));
+                }
+            }
         }
 
         // Extents-magnitude × 0.5 mirrors the single-collider radius convention in AI.Scout.
