@@ -1,7 +1,0 @@
-{
-  "hardware_intersection_over_union": 0.9633116868505492,
-  "changed_pixels": 40762,
-  "image_pixels": 2073600,
-  "edge_distance_95_percentile_px": 14.0,
-  "edge_distance_max_px": 74.0
-}
