@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "marks": [
+    {
+      "parts": [
+        "Hull - Main deck"
+      ],
+      "region": "Rank Chevron",
+      "mirror_x": true,
+      "where": {
+        "nz": [
+          0.55,
+          null
+        ]
+      },
+      "shape": {
+        "kind": "polygon",
+        "points": [
+          [
+            0,
+            0.87
+          ],
+          [
+            2.6,
+            1.78
+          ],
+          [
+            2.6,
+            2.1
+          ],
+          [
+            0,
+            1.19
+          ]
+        ]
+      },
+      "opacity": 1
+    },
+    {
+      "parts": [
+        "Upper flaps - Fins"
+      ],
+      "region": "Rank Fin Band",
+      "mirror_x": true,
+      "where": {
+        "nz": [
+          0.45,
+          null
+        ]
+      },
+      "shape": {
+        "kind": "polygon",
+        "points": [
+          [
+            0,
+            -3.7510000000000003
+          ],
+          [
+            4,
+            -2.471
+          ],
+          [
+            4,
+            -2.2010000000000005
+          ],
+          [
+            0,
+            -3.4810000000000003
+          ]
+        ]
+      },
+      "opacity": 1
+    }
+  ]
+}
