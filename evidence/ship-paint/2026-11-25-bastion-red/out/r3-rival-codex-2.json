@@ -1,0 +1,17 @@
+{
+  "tool": "codex exec (built-in image_generation tool), edit pass",
+  "codex_version": "codex-cli 0.159.2",
+  "agent_model": "gpt-6-astra",
+  "image_model": "not exposed by codex",
+  "size": [
+    1774,
+    887
+  ],
+  "prompt_file": "prompts/r3-rival.txt",
+  "codex_wrapper": "Use your image generation tool to EDIT the single attached image (image 1, out/r2-rival-codex-2.png) according to the brief below. Keep its size and aspect. Save the result as out/r3-rival-codex-2.png in the current folder. Do not edit any other file. Report the saved path and the image model/size used.",
+  "base_image": "out/r2-rival-codex-2.png",
+  "references": [
+    "out/r2-rival-codex-2.png"
+  ],
+  "codex_session_id": "01a210bb-7d0f-7473-ae24-c6a2deb51d6d"
+}
