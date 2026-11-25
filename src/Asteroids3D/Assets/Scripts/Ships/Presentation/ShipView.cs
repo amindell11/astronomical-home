@@ -11,8 +11,9 @@ namespace Ships.Presentation
     /// <see cref="ShipControl"/>. Assembled by the game-tier presentation installer and injected into
     /// the rig; visual components read it instead of discovering the ship via GetComponentInParent.
     /// Carries only what visuals consume: the follow anchor, the damage push-surface, the live pilot
-    /// command (thruster/engine intensity), the lock channel (lock indicator), and the body (engine
-    /// audio). A binder with no ship leaves the body null.
+    /// command (thruster/engine intensity), the lock channel (lock indicator), the body (engine
+    /// audio), and whether the keystone kit is live (wing sweep). A binder with no ship leaves the
+    /// body and the kit read null.
     /// </summary>
     public readonly struct ShipView
     {
@@ -33,8 +34,11 @@ namespace Ships.Presentation
 
         public readonly Rigidbody Body;
 
+        /// <summary>Whether the ship's keystone kit is live right now. Null reads as never live.</summary>
+        public readonly Func<bool> KeystoneLive;
+
         public ShipView(Transform root, IDamageEvents damage, Func<PilotCommand> command, LockChannel @lock, bool isPlayer,
-            Rigidbody body = null)
+            Rigidbody body = null, Func<bool> keystoneLive = null)
         {
             Root = root;
             Damage = damage;
@@ -42,6 +46,7 @@ namespace Ships.Presentation
             Lock = @lock;
             IsPlayer = isPlayer;
             Body = body;
+            KeystoneLive = keystoneLive;
         }
     }
 }
