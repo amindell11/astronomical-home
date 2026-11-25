@@ -91,8 +91,8 @@ namespace Ships.Keystones.Kits
         public bool RamLive => launched && SinceLaunch < window && (!resolved || SinceLaunch == resolvedAt);
         public override bool Active => RamLive;
         public override bool SeeksContact => Braking || RamLive;
-        // The brake is the aiming beat: the aim servo turns the nose onto the target.
-        public override bool FliesNavigatorHeading => !Braking;
+        // The servo aims the nose everywhere except the live ram, which holds its launch line.
+        public override bool FliesNavigatorHeading => RamLive;
         public override bool HoldsThrottle => Braking;
         public override float HoldProgress => Braking && brakeSteps > 0 ? 1f - (float)brakeStepsLeft / brakeSteps : 0f;
         public override float SpeedScale => RamLive ? surgeSpeedScale : 1f;
