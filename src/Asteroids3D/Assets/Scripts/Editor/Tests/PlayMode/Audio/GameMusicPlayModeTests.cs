@@ -352,7 +352,7 @@ namespace Tests.PlayMode.Audio
         private void Dismiss()
         {
             var recap = hostGo.GetComponentInChildren<RunRecapScreen>();
-            recap.transform.Find("Panels/Recap/Continue").GetComponent<Button>().onClick.Invoke();
+            recap.transform.Find("Panels/Actions/Continue").GetComponent<Button>().onClick.Invoke();
         }
 
         private void Launch() => hostGo.GetComponentInChildren<HangarConsole>().Launch();

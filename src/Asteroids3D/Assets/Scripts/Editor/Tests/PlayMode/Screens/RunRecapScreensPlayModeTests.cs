@@ -8,6 +8,7 @@ using Game.Runs;
 using NUnit.Framework;
 using UI.Recap;
 using UI.Screens;
+using UI.Screens.Windows;
 using Ships;
 using Tests.PlayMode.Common;
 using Tests.PlayMode.Common.SimulatedInput;
@@ -50,11 +51,18 @@ namespace Tests.PlayMode.Screens
             base.TearDown();
         }
 
+        // The board slides on capped frame time, so a slow graphics frame can stretch it past its nominal length.
+        private static IEnumerator Settle(Func<bool> done)
+        {
+            var deadline = Time.realtimeSinceStartup + 3f;
+            while (!done() && Time.realtimeSinceStartup < deadline) yield return null;
+        }
+
         private Text TextAt(string path) => screen.transform.Find("Panels/" + path).GetComponent<Text>();
 
         private void Play(RecapOutcomeContext context, RecapFeelProfile profile = null)
         {
-            screen = RunRecapScreen.Create(null, context);
+            screen = RunRecapScreen.Create(null, context, null);
             screen.StartCoroutine(RecapPlayback.Run(new RecapOutcomeSequence(profile ? profile : feel, context),
                 screen.Apply, () => screen.Continued));
         }
@@ -98,21 +106,23 @@ namespace Tests.PlayMode.Screens
         {
             Play(RecapOutcomeContext.Extraction(new[] { "Valis", "Crimson" }, 2, 222.8f));
             yield return null;
-            Assert.AreEqual("EXTRACTED", TextAt("Recap/Outcome").text);
-            Assert.AreEqual("2 CONFIRMED KILLS", TextAt("Recap/Kills").text);
-            Assert.AreEqual("SECTOR 02 COMPLETE", TextAt("Recap/Context").text);
-            Assert.AreEqual("3:42", TextAt("Recap/Time").text);
-            Assert.IsNull(screen.transform.Find("Panels/Recap/Scoreboard"));
+            Assert.AreEqual("EXTRACTED", TextAt("Recap/Body/Outcome").text);
+            Assert.AreEqual("Orbitron-Medium", TextAt("Recap/Body/Outcome").font.name);
+            Assert.AreEqual("2", TextAt("Recap/Body/Kills").text);
+            Assert.AreEqual("SECTOR 02", TextAt("Recap/Title").text);
+            Assert.AreEqual("3:42", TextAt("Recap/Body/Time").text);
+            Assert.IsNull(screen.transform.Find("Panels/Scoreboard"));
             Assert.IsNull(screen.transform.Find("OutcomeIntro"));
-            Assert.That(screen.transform.Find("Panels/Recap").GetComponent<CanvasGroup>().alpha, Is.LessThan(1f),
-                "the sector card fades in");
+            var window = screen.transform.Find("Panels/Recap").GetComponent<ScreenWindow>();
+            Assert.That(window.Open, Is.LessThan(1f), "the sector window opens over time");
             yield return new WaitForSecondsRealtime(feel.BreakdownInSeconds + .1f);
-            screen.transform.Find("Panels/Recap/Continue").GetComponent<Button>().onClick.Invoke();
+            Assert.AreEqual(1f, window.Open);
+            screen.transform.Find("Panels/Actions/Continue").GetComponent<Button>().onClick.Invoke();
             Assert.IsTrue(screen.Continued);
         }
 
         [UnityTest]
-        public IEnumerator Victory_ShowsGreenOutcomeAndScoreboardOnSameCard()
+        public IEnumerator Victory_ShowsGreenOutcome_AndOpensTheScoreboardInFront()
         {
             yield return RunEnding(true);
         }
@@ -137,13 +147,13 @@ namespace Tests.PlayMode.Screens
             Play(victory
                 ? RecapOutcomeContext.Victory(kills, cleared, 3, board)
                 : RecapOutcomeContext.Defeat(kills, cleared, 3, board, Vector2.zero));
-            var details = screen.transform.Find("Panels/Recap").GetComponent<CanvasGroup>();
+            var details = screen.transform.Find("Panels").GetComponent<CanvasGroup>();
             var intro = screen.transform.Find("OutcomeIntro");
-            var headline = intro.Find("Outcome").GetComponent<Text>();
-            var button = screen.transform.Find("Panels/Recap/Continue").GetComponent<Button>();
+            var headline = intro.Find("Body/Outcome").GetComponent<Text>();
+            var button = screen.transform.Find("Panels/Actions/Continue").GetComponent<Button>();
             Assert.AreEqual(victory ? "VICTORY" : "SHIP LOST", headline.text);
-            Assert.That(headline.fontSize, Is.GreaterThan(TextAt("Recap/Outcome").fontSize * 2));
-            Assert.AreEqual(TextAt("Recap/Outcome").color, headline.color);
+            Assert.That(headline.fontSize, Is.GreaterThan(TextAt("Recap/Body/Outcome").fontSize * 2));
+            Assert.AreEqual(TextAt("Recap/Body/Outcome").color, headline.color);
             Assert.AreEqual(0f, details.alpha);
             Assert.IsFalse(button.IsInteractable());
             button.OnSubmit(null);
@@ -177,25 +187,28 @@ namespace Tests.PlayMode.Screens
             Assert.IsTrue(button.IsInteractable());
             Assert.AreEqual(0f, Time.timeScale);
             Canvas.ForceUpdateCanvases();
-            var outcome = TextAt("Recap/Outcome");
+            var outcome = TextAt("Recap/Body/Outcome");
             Assert.AreEqual(victory ? "VICTORY" : "SHIP LOST", outcome.text);
             Assert.That(victory ? outcome.color.g > outcome.color.r : outcome.color.r > outcome.color.g);
-            Assert.AreEqual($"{cleared} SECTORS CLEARED", TextAt("Recap/Progress").text);
-            Assert.AreEqual(17, screen.transform.Find("Panels/Recap/Trophies/Content").childCount);
+            Assert.AreEqual($"{cleared} / 3", TextAt("Recap/Body/Progress").text);
+            Assert.AreEqual("17", TextAt("Recap/Body/Kills").text);
+            Assert.AreEqual(17, screen.transform.Find("Panels/Recap/Body/Trophies/Content").childCount);
             foreach (var marker in screen.GetComponentsInChildren<RecapSectorMarker>())
                 Assert.IsNotNull(marker.canvasRenderer, "sector markers need a renderer");
-            Assert.AreEqual("2", TextAt("Recap/Scoreboard/Row2/Rank").text);
-            Assert.AreEqual(cleared.ToString(), TextAt("Recap/Scoreboard/Row2/Sectors").text);
+            Assert.AreEqual("2 OF 2", TextAt("Scoreboard/Corner").text);
+            Assert.AreEqual("2", TextAt("Scoreboard/Body/Row2/Rank").text);
+            Assert.AreEqual(cleared.ToString(), TextAt("Scoreboard/Body/Row2/Sectors").text);
+            Assert.IsNotNull(screen.transform.Find("Panels/Scoreboard/Body/Row2/CurrentRun"), "this run's row is marked");
             foreach (var (number, loadout) in new[] { (1, previous), (2, current) })
             {
-                var rowPath = $"Recap/Scoreboard/Row{number}/";
+                var rowPath = $"Scoreboard/Body/Row{number}/";
                 Assert.AreEqual(loadout.chassis, TextAt(rowPath + "Ship").text);
                 var icon = screen.transform.Find("Panels/" + rowPath + "Silhouette").GetComponent<RawImage>();
                 Assert.AreSame(Resources.Load<Texture2D>(RunRecapScreen.SilhouetteFolder + "/" + loadout.chassis), icon.texture);
                 foreach (var (mount, weaponName) in new[] { ("Primary", loadout.primary), ("Secondary", loadout.secondary) })
                 {
                     var weaponIcon = screen.transform.Find("Panels/" + rowPath + mount).GetComponent<Image>();
-                    var firstIcon = (RectTransform)screen.transform.Find("Panels/Recap/Scoreboard/Row1/" + mount);
+                    var firstIcon = (RectTransform)screen.transform.Find("Panels/Scoreboard/Body/Row1/" + mount);
                     Assert.AreEqual(firstIcon.anchoredPosition.x, weaponIcon.rectTransform.anchoredPosition.x,
                         "weapon columns align across different ship names and empty mounts");
                     Assert.AreEqual(!string.IsNullOrEmpty(weaponName), weaponIcon.enabled);
@@ -204,25 +217,37 @@ namespace Tests.PlayMode.Screens
                     Assert.AreSame(weapon ? weapon.HudIcon : null, weaponIcon.sprite);
                 }
             }
-            var recap = (RectTransform)screen.transform.Find("Panels/Recap");
-            var scoreboard = (RectTransform)recap.Find("Scoreboard");
+            var recorder = (RectTransform)screen.transform.Find("Panels/Recap");
+            var scoreboard = (RectTransform)screen.transform.Find("Panels/Scoreboard");
+            var boardWindow = scoreboard.GetComponent<ScreenWindow>();
+            Assert.AreEqual(0f, boardWindow.Open,"the scoreboard waits for its button");
+            Assert.IsNull(scoreboard.GetComponentInChildren<ScrollRect>());
+            Assert.IsNull(screen.transform.Find("Panels/Recap/Body/Time"));
+            var centred = recorder.anchoredPosition;
+            screen.transform.Find("Panels/Actions/ScoreboardButton").GetComponent<Button>().onClick.Invoke();
+            Assert.IsTrue(screen.ScoreboardShown);
+            yield return Settle(() => boardWindow.Open >= 1f);
+            Assert.AreEqual(1f, boardWindow.Open, "the scoreboard opens while gameplay is paused");
+            Assert.Less(recorder.anchoredPosition.x, centred.x, "the flight recorder slides aside");
+            Assert.Greater(recorder.anchoredPosition.y, centred.y);
             var canvasBounds = ((RectTransform)screen.transform).rect;
-            var cardBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(screen.transform, recap);
-            Assert.GreaterOrEqual(cardBounds.min.x, canvasBounds.xMin);
-            Assert.LessOrEqual(cardBounds.max.x, canvasBounds.xMax);
-            Assert.GreaterOrEqual(cardBounds.min.y, canvasBounds.yMin);
-            Assert.LessOrEqual(cardBounds.max.y, canvasBounds.yMax);
-            Assert.AreEqual(1, screen.transform.Find("Panels").childCount);
-            Assert.AreSame(recap, scoreboard.parent);
-            Assert.IsNull(scoreboard.GetComponent<Image>());
-            var scoreBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(recap, scoreboard);
-            var trophyBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(recap, recap.Find("Trophies"));
-            var buttonBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(recap, recap.Find("Continue"));
-            Assert.GreaterOrEqual(scoreBounds.min.x, recap.rect.xMin);
-            Assert.LessOrEqual(scoreBounds.max.x, recap.rect.xMax);
-            Assert.Less(scoreBounds.max.y, trophyBounds.min.y);
-            Assert.Greater(scoreBounds.min.y, buttonBounds.max.y);
-            Assert.IsNull(screen.transform.Find("Panels/Recap/Time"));
+            foreach (var window in new[] { recorder, scoreboard })
+            {
+                var bounds = RectTransformUtility.CalculateRelativeRectTransformBounds(screen.transform, window);
+                Assert.GreaterOrEqual(bounds.min.x, canvasBounds.xMin, window.name);
+                Assert.LessOrEqual(bounds.max.x, canvasBounds.xMax, window.name);
+                Assert.GreaterOrEqual(bounds.min.y, canvasBounds.yMin, window.name);
+                Assert.LessOrEqual(bounds.max.y, canvasBounds.yMax, window.name);
+            }
+            var recorderBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(screen.transform, recorder);
+            var boardBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(screen.transform, scoreboard);
+            Assert.IsTrue(recorderBounds.Intersects(boardBounds), "the scoreboard overlaps the recorder's corner");
+            Assert.Greater(scoreboard.GetSiblingIndex(), recorder.GetSiblingIndex(), "the scoreboard draws in front");
+            screen.ToggleScoreboard();
+            yield return Settle(() => Vector2.Distance(recorder.anchoredPosition, centred) < .01f);
+            Assert.AreEqual(0f, boardWindow.Open);
+            // The getter rebuilds the position from a canvas that resized since `centred` was read.
+            Assert.That(Vector2.Distance(centred, recorder.anchoredPosition), Is.LessThan(.01f));
             button.OnSubmit(null);
             Assert.IsTrue(screen.Continued);
         }
@@ -241,7 +266,7 @@ namespace Tests.PlayMode.Screens
             Press(keyboard.enterKey);
             yield return null;
             yield return null;
-            var details = screen.transform.Find("Panels/Recap").GetComponent<CanvasGroup>();
+            var details = screen.transform.Find("Panels").GetComponent<CanvasGroup>();
             Assert.AreEqual(1f, details.alpha);
             Assert.IsFalse(details.interactable);
             Assert.IsFalse(screen.Continued);
@@ -262,7 +287,7 @@ namespace Tests.PlayMode.Screens
             Time.timeScale = .65f;
             IEnumerator ShowCard()
             {
-                yield return RecapPlayback.RunScreen(new RecapOutcomeSequence(feel, context), playbackOwner.transform);
+                yield return RecapPlayback.RunScreen(new RecapOutcomeSequence(feel, context), playbackOwner.transform, null);
                 completed++;
             }
             runner.StartCoroutine(ShowCard());
@@ -271,7 +296,7 @@ namespace Tests.PlayMode.Screens
             yield return new WaitForSecondsRealtime(feel.BreakdownInSeconds + .1f);
             Assert.AreEqual(.65f, Time.timeScale);
             Assert.AreEqual(0, completed, "cruise waits for the real card's Continue");
-            screen.transform.Find("Panels/Recap/Continue").GetComponent<Button>().OnSubmit(null);
+            screen.transform.Find("Panels/Actions/Continue").GetComponent<Button>().OnSubmit(null);
             yield return new WaitForSecondsRealtime(feel.BreakdownOutSeconds + .1f);
             yield return null;
             Assert.AreEqual(1, completed);
@@ -290,7 +315,7 @@ namespace Tests.PlayMode.Screens
             var completed = false;
             IEnumerator ShowCard()
             {
-                yield return RecapPlayback.RunScreen(new RecapOutcomeSequence(feel, context), playbackOwner.transform,
+                yield return RecapPlayback.RunScreen(new RecapOutcomeSequence(feel, context), playbackOwner.transform, null,
                     cancelled: () => cancelled);
                 completed = true;
             }
@@ -309,21 +334,32 @@ namespace Tests.PlayMode.Screens
         }
 
         [UnityTest]
-        public IEnumerator LongRun_KeepsEveryTrophyAndTheCurrentRankVisible()
+        public IEnumerator LongRun_KeepsEveryTrophy_AndOpensTheScoreboardOnThisRunsPage()
         {
             var previous = Enumerable.Range(0, 8).Select(i => new Scoreboard.Row(3, 100 + i, 900, DateTime.UtcNow)).ToArray();
             var board = new Scoreboard(previous, new Scoreboard.Row(2, 57, 600, DateTime.UtcNow));
             Play(RecapOutcomeContext.Defeat(Enumerable.Repeat("Bulwark", 57).ToArray(), 2, 3, board, Vector2.zero));
             yield return null;
-            var scroll = screen.transform.Find("Panels/Recap/Trophies").GetComponent<ScrollRect>();
+            var scroll = screen.transform.Find("Panels/Recap/Body/Trophies").GetComponent<ScrollRect>();
             Assert.AreEqual(57, scroll.content.childCount);
             Assert.IsTrue(scroll.vertical);
             scroll.verticalNormalizedPosition = 0f;
             yield return null;
             Assert.Greater(scroll.content.anchoredPosition.y, 0f);
-            Assert.AreEqual("9", TextAt("Recap/Scoreboard/Row9/Rank").text);
-            Assert.AreEqual("57", TextAt("Recap/Scoreboard/Row9/Kills").text);
-            Assert.IsNull(screen.transform.Find("Panels/Recap/Scoreboard").GetComponentInChildren<ScrollRect>());
+            Assert.AreEqual("9", TextAt("Scoreboard/Body/Row9/Rank").text);
+            Assert.AreEqual("57", TextAt("Scoreboard/Body/Row9/Kills").text);
+            Assert.AreEqual("9 OF 9", TextAt("Scoreboard/Corner").text);
+            var body = screen.transform.Find("Panels/Scoreboard/Body");
+            Assert.AreEqual("3 / 3", TextAt("Scoreboard/Body/Pager/Page").text, "the board opens on this run's page");
+            Assert.IsTrue(body.Find("Row9").gameObject.activeSelf);
+            Assert.IsFalse(body.Find("Row8").gameObject.activeSelf);
+            Assert.IsFalse(body.Find("Pager/Next").GetComponent<Button>().interactable, "no page after the last");
+            body.Find("Pager/Previous").GetComponent<Button>().onClick.Invoke();
+            Assert.AreEqual("2 / 3", TextAt("Scoreboard/Body/Pager/Page").text);
+            Assert.IsTrue(body.Find("Row5").gameObject.activeSelf);
+            Assert.IsTrue(body.Find("Row8").gameObject.activeSelf);
+            Assert.IsFalse(body.Find("Row9").gameObject.activeSelf);
+            Assert.IsFalse(body.Find("Row4").gameObject.activeSelf);
         }
 
         [UnityTest]
@@ -336,7 +372,7 @@ namespace Tests.PlayMode.Screens
             Play(RecapOutcomeContext.Defeat(Array.Empty<string>(), 2, 3, board, Vector2.zero));
             yield return null;
             Canvas.ForceUpdateCanvases();
-            var scoreboard = screen.transform.Find("Panels/Recap/Scoreboard");
+            var scoreboard = screen.transform.Find("Panels/Scoreboard/Body");
             for (var i = 1; i <= 5; i++)
             {
                 var row = (RectTransform)scoreboard.Find("Row" + i);
@@ -347,19 +383,33 @@ namespace Tests.PlayMode.Screens
                 Assert.IsFalse(row.Find("Primary").GetComponent<Image>().enabled);
                 Assert.IsFalse(row.Find("Secondary").GetComponent<Image>().enabled);
                 CollectionAssert.AreEquivalent(new[] { "Rank", "Ship", "Sectors", "Kills", "Time", "UnavailableIcon" },
-                    row.GetComponentsInChildren<Text>().Select(label => label.name));
-                foreach (var label in row.GetComponentsInChildren<Text>())
+                    row.GetComponentsInChildren<Text>(true).Select(label => label.name));
+                foreach (var label in row.GetComponentsInChildren<Text>(true))
                     Assert.GreaterOrEqual(label.rectTransform.rect.height + .01f, label.preferredHeight, label.name);
                 Assert.LessOrEqual(ship.rectTransform.anchoredPosition.x + ship.preferredWidth,
                     ((RectTransform)row.Find("Primary")).anchoredPosition.x);
                 var secondary = (RectTransform)row.Find("Secondary");
                 Assert.LessOrEqual(secondary.anchoredPosition.x + secondary.rect.width,
                     ((RectTransform)row.Find("Sectors")).anchoredPosition.x);
-                if (i < 5)
+                if (i < RunRecapScreen.PageSize)
                     Assert.GreaterOrEqual(row.anchoredPosition.y - row.rect.height,
                         ((RectTransform)scoreboard.Find("Row" + (i + 1))).anchoredPosition.y);
             }
-            Assert.AreEqual("5", TextAt("Recap/Scoreboard/Row5/Rank").text);
+            Assert.AreEqual("5", TextAt("Scoreboard/Body/Row5/Rank").text);
+        }
+
+        [UnityTest]
+        public IEnumerator Scoreboard_HasAnOpaqueBody_AndItsHeadingsShareOneBaseline()
+        {
+            var board = new Scoreboard(Array.Empty<Scoreboard.Row>(), new Scoreboard.Row(2, 1, 600, DateTime.UtcNow));
+            Play(RecapOutcomeContext.Defeat(Array.Empty<string>(), 2, 3, board, Vector2.zero));
+            yield return null;
+            Assert.AreEqual(1f, screen.transform.Find("Panels/Scoreboard/Back").GetComponent<ChamferedShape>().color.a,
+                "the Flight Recorder behind does not show through");
+            var columns = screen.transform.Find("Panels/Scoreboard/Body/Columns");
+            var baselines = new[] { "Rank", "ShipHeading", "LoadoutHeading", "Sectors", "Kills", "Time" }
+                .Select(heading => ((RectTransform)columns.Find(heading)).anchoredPosition.y).ToArray();
+            Assert.That(baselines, Is.All.EqualTo(baselines[0]));
         }
     }
 }

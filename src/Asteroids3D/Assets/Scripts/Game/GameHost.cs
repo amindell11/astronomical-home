@@ -514,6 +514,7 @@ namespace Game
                 {
                     stop = clock.Hold();
                     recap = StartCoroutine(RecapPlayback.RunScreen(new RecapOutcomeSequence(recapFeel, context), ui,
+                        rigInstance.Screens,
                         cancelled: () => shutdownRequested || exited,
                         ready: () => destinationReady && jump.State.LocaleBlend >= 1f,
                         onContinue: () => continued = true));
@@ -707,10 +708,8 @@ namespace Game
 
             var stop = clock.Hold();
             rigInstance.SetInputEnabled(false);
-            var spine = session.ActiveSector.Module<PhaseSpineModule>();
-            var screen = WeaponPickScreen.Create(ui, index + 1,
-                spine ? spine.Threat(sessionProfile.run.Sectors[index].WithFaction(runFactions[index])) : null, offers,
-                primary, secondary, rigInstance.Mods);
+            var screen = WeaponPickScreen.Create(ui, offers, primary, secondary, rigInstance.Mods,
+                rigInstance.Screens);
             try
             {
                 while (!screen.Choice.HasValue && !shutdownRequested) yield return null;
@@ -749,7 +748,7 @@ namespace Game
 
             var stop = clock.Hold();
             rigInstance.SetInputEnabled(false);
-            var screen = LullPickScreen.Create(ui, offers, mod => mod.Landing(player));
+            var screen = LullPickScreen.Create(ui, offers, mod => mod.Landing(player), rigInstance.Screens);
             try
             {
                 while (!screen.Choice.HasValue && !shutdownRequested) yield return null;
@@ -974,8 +973,14 @@ namespace Game
             return names;
         }
 
-        private void RefillPlayerHull(ShipId victim) =>
-            rigInstance.Player.Damage.Health.Restore(PaysRivalHeal(victim) ? rivalKillHeal : minionKillHeal);
+        private void RefillPlayerHull(ShipId victim, Vector3 diedAt)
+        {
+            var hull = rigInstance.Player.Damage.Health;
+            var before = hull.CurrentValue;
+            hull.Restore(PaysRivalHeal(victim) ? rivalKillHeal : minionKillHeal);
+            var gained = hull.CurrentValue - before;
+            if (gained > 0f && rigInstance.Overlay) rigInstance.Overlay.ShowHullGain(gained, diedAt);
+        }
 
         private bool PaysRivalHeal(ShipId victim)
         {
@@ -1028,7 +1033,7 @@ namespace Game
                 observer);
             try
             {
-                yield return RecapPlayback.RunScreen(sequence, ui, state =>
+                yield return RecapPlayback.RunScreen(sequence, ui, rigInstance.Screens, state =>
                     {
                         presenter.Apply(state);
                         SetRecapClock(state.SimulationFrozen);
