@@ -12,12 +12,14 @@ namespace UI.Comms
 
         private CanvasGroup group;
         private Text text;
+        private CommMessage? shown;
         private float shownAt = float.NegativeInfinity;
         private float holdSeconds;
         private float fadeSeconds;
 
         public bool Speaking => group.alpha > 0f;
-        public string Line => text.text;
+        public string Line => shown?.Plain ?? string.Empty;
+        public Color SpeakerColor => shown?.SpeakerColor ?? Color.clear;
 
         public static CommLine Create(Transform parent, Font font, Material textMaterial)
         {
@@ -47,6 +49,7 @@ namespace UI.Comms
             line.text.horizontalOverflow = HorizontalWrapMode.Wrap;
             line.text.verticalOverflow = VerticalWrapMode.Overflow;
             line.text.raycastTarget = false;
+            line.text.supportRichText = true;
             line.text.text = string.Empty;
             var textRect = line.text.rectTransform;
             textRect.anchorMin = textRect.anchorMax = new Vector2(.5f, 0f);
@@ -56,9 +59,11 @@ namespace UI.Comms
             return line;
         }
 
-        public void Show(string line, float holdSeconds, float fadeSeconds)
+        public void Show(CommMessage message, float holdSeconds, float fadeSeconds)
         {
-            text.text = line;
+            shown = message;
+            text.text = "<color=#" + ColorUtility.ToHtmlStringRGB(message.SpeakerColor) + ">" + message.Speaker +
+                "</color>: " + message.Text;
             this.holdSeconds = holdSeconds;
             this.fadeSeconds = fadeSeconds;
             shownAt = Time.unscaledTime;
@@ -68,6 +73,7 @@ namespace UI.Comms
         public void Clear()
         {
             shownAt = float.NegativeInfinity;
+            shown = null;
             text.text = string.Empty;
             group.alpha = 0f;
         }

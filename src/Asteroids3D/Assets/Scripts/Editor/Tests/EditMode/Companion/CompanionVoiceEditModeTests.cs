@@ -2,6 +2,7 @@ using System.Text;
 using Game.Companion;
 using Game.Moments;
 using NUnit.Framework;
+using Substrate.Sectors.Factions;
 using UI.Comms;
 using UnityEditor;
 using UnityEngine;
@@ -20,6 +21,7 @@ namespace Tests.EditMode.Companion
         private CommLine display;
         private CompanionVoice voice;
         private RunMomentStream moments;
+        private Faction faction;
 
         [SetUp]
         public void SetUp()
@@ -27,6 +29,9 @@ namespace Tests.EditMode.Companion
             hud = new GameObject("Companion HUD", typeof(RectTransform), typeof(Canvas));
             feel = ScriptableObject.CreateInstance<CompanionFeelProfile>();
             display = CommLine.Create(hud.transform, AssetDatabase.LoadAssetAtPath<Font>(FontPath), null);
+            faction = ScriptableObject.CreateInstance<Faction>();
+            faction.id = "veil";
+            faction.color = Color.cyan;
         }
 
         [TearDown]
@@ -35,6 +40,7 @@ namespace Tests.EditMode.Companion
             if (voice) Object.DestroyImmediate(voice.gameObject);
             if (hud) Object.DestroyImmediate(hud);
             if (feel) Object.DestroyImmediate(feel);
+            if (faction) Object.DestroyImmediate(faction);
             if (sheet) Object.DestroyImmediate(sheet);
             if (lineFile) Object.DestroyImmediate(lineFile);
         }
@@ -67,7 +73,7 @@ namespace Tests.EditMode.Companion
 
             voice = CompanionVoice.Create(hud.transform, sheet, feel, display, () => true, debugLabels);
             moments = new RunMomentStream();
-            voice.Initialize(moments);
+            voice.Initialize(moments, new[] { faction });
         }
 
         [Test]
@@ -123,6 +129,30 @@ namespace Tests.EditMode.Companion
             moments.Raise(new SectorEntered(3, ""));
 
             Assert.AreEqual("Enemy: enemy line", display.Line);
+        }
+
+        [Test]
+        public void EnemySpeaker_TakesTheMomentsFactionColour()
+        {
+            var moment = SectorEntered.SectorSlot;
+            var markdown = new StringBuilder("| ID | Moment | Faction | Speaker | After | Line | Status |\n");
+            markdown.Append("| --- | --- | --- | --- | --- | --- | --- |\n");
+            markdown.Append($"| E1 | {moment} |  | Enemy |  | enemy line | In game |");
+            BuildVoice(markdown.ToString(), false, "", moment, true);
+
+            moments.Raise(new SectorEntered(3, faction.id));
+
+            Assert.AreEqual(faction.color, display.SpeakerColor);
+        }
+
+        [Test]
+        public void CompanionLine_TakesTheCompanionColour()
+        {
+            BuildVoice(false, "", SectorEntered.SectorSlot, true, "{faction} space");
+
+            moments.Raise(new SectorEntered(2, faction.id));
+
+            Assert.AreEqual(feel.CompanionColor, display.SpeakerColor);
         }
     }
 }

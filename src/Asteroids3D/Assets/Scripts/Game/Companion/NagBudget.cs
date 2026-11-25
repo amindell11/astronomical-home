@@ -1,4 +1,5 @@
 using System;
+using UI.Comms;
 
 namespace Game.Companion
 {
@@ -14,11 +15,11 @@ namespace Game.Companion
         private readonly CompanionFeelProfile feel;
         private float lastSpokenAt = float.NegativeInfinity;
         private float heldUntil = float.NegativeInfinity;
-        private string waiting;
+        private CommMessage? waiting;
         private bool waitingMustSay;
         private float offeredAt;
-        private string waitingFollowUp;
-        private string armed;
+        private CommMessage? waitingFollowUp;
+        private CommMessage? armed;
         private float armedDueAt;
 
         public NagBudget(CompanionFeelProfile feel)
@@ -27,9 +28,8 @@ namespace Game.Companion
             this.feel = feel;
         }
 
-        public void Offer(string line, bool mustSay, float now, string followUp)
+        public void Offer(CommMessage line, bool mustSay, float now, CommMessage? followUp)
         {
-            if (line == null) throw new ArgumentNullException(nameof(line));
             if (!mustSay && (now - lastSpokenAt < feel.MinLineIntervalSeconds || now < heldUntil ||
                     waiting != null && waitingMustSay))
                 return;
@@ -39,12 +39,12 @@ namespace Game.Companion
             waitingFollowUp = followUp;
         }
 
-        public bool TryTake(float now, bool canSpeak, out string line)
+        public bool TryTake(float now, bool canSpeak, out CommMessage line)
         {
-            line = null;
+            line = default;
             if (armed != null && now >= armedDueAt)
             {
-                line = armed;
+                line = armed.Value;
                 armed = null;
                 Spoke(line, now);
                 return true;
@@ -60,21 +60,21 @@ namespace Game.Companion
 
             if (!canSpeak) return false;
 
-            line = waiting;
+            line = waiting.Value;
             var followUp = waitingFollowUp;
             waiting = null;
             waitingFollowUp = null;
             armed = followUp;
             if (followUp != null)
-                armedDueAt = now + feel.HoldFor(line);
+                armedDueAt = now + feel.HoldFor(line.Plain);
             Spoke(line, now);
             return true;
         }
 
-        private void Spoke(string line, float now)
+        private void Spoke(CommMessage line, float now)
         {
             lastSpokenAt = now;
-            heldUntil = now + feel.HoldFor(line);
+            heldUntil = now + feel.HoldFor(line.Plain);
         }
     }
 }
