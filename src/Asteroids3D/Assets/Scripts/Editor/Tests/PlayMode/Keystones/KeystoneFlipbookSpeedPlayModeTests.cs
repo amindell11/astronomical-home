@@ -84,11 +84,14 @@ namespace Tests.PlayMode.Keystones
             yield return GoLive(Lagged, Lagged);
 
             var body = valis.GetComponent<Rigidbody>();
-            for (var frame = 0; frame < 20; frame++)
+            // Turn for half a second of physics, whatever the frame rate.
+            for (var step = 0; step < 25; step++)
             {
                 body.angularVelocity = GamePlane.Normal * 3f;
-                yield return null;
+                yield return new WaitForFixedUpdate();
             }
+
+            yield return null;
 
             var burnUp = sheet.transform.up;
             Assert.That(Vector3.Angle(burnUp, valis.transform.up), Is.GreaterThan(10f), "the burn trails the turn");
