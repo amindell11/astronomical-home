@@ -36,6 +36,10 @@ jobs:
           gh api --silent "$STATUS_API" -f state=pending -f context="$STATUS_CONTEXT" \
             -f target_url="$RUN_URL" -f description="script suite running"
 
+      # The PC's git keeps LF; the runner's default autocrlf rewrites fixtures and moves tree hashes.
+      - name: Git line endings
+        run: git config --global core.autocrlf false
+
       - uses: actions/checkout@v4
         with:
           lfs: false
@@ -52,9 +56,11 @@ jobs:
           cp "$(command -v python)" "$RUNNER_TEMP/bin/python3.exe"
           echo "$(cygpath -w "$RUNNER_TEMP/bin")" >> "$GITHUB_PATH"
 
+      # The default temp dir sits under C:/Users/runneradmin, and tests grep their logs for "runner".
       - name: Script suite
         id: suite
         run: |
+          export TMP="$RUNNER_TEMP" TEMP="$RUNNER_TEMP" TMPDIR="$RUNNER_TEMP"
           git config --global user.name script-suite
           git config --global user.email script-suite@users.noreply.github.com
           git fetch --no-tags origin main:refs/remotes/origin/main
