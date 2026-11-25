@@ -30,12 +30,14 @@
 # Stdout (machine channel; prose goes to stderr):
 #   pull:  IMAGE=<ref>
 #   test:  MODE= VERDICT= TOTAL= PASSED= FAILED= SKIPPED= RESULTS= LOG=   then SEAT_RETURN=ok|failed
-#          VERDICT: passed | failed | empty (results exist, total 0) | no_results (counts are empty)
+#          VERDICT: passed (editor exit 0, at least one test passed) | failed | empty (no test
+#                   passed or failed) | editor_error (nonzero editor exit with no failed test)
+#                   | no_results (counts are empty)
 #          SEAT_RETURN is printed whenever the seat was claimed; a failed return never changes the exit code.
 #
 # Exit:  0 passed (pull: image ready)  1 tests failed
 #        2 the run could not judge: bad arguments, missing credentials or tools, Docker down,
-#          a preparation step failed, the seat was refused, no results, or an empty selection
+#          a preparation step failed, the seat was refused, no results, an editor error, or an empty selection
 
 set -Eeuo pipefail
 trap 'rc=$?; echo "[cloud_unity] step failed (exit $rc): $BASH_COMMAND" >&2; exit 2' ERR
@@ -166,8 +168,9 @@ cmd_test() {
     local verdict total="" passed="" failed="" skipped="" code
     if [ -f "$results" ] && RUN_TAG="$(grep -o -m1 '<test-run [^>]*' "$results")"; then
         total=$(attr total); passed=$(attr passed); failed=$(attr failed); skipped=$(attr skipped)
-        if [ "$total" -eq 0 ]; then verdict=empty; code=2
-        elif [ "$failed" -gt 0 ]; then verdict=failed; code=1
+        if [ "$failed" -gt 0 ]; then verdict=failed; code=1
+        elif [ "$rc" -ne 0 ]; then verdict=editor_error; code=2
+        elif [ "$passed" -eq 0 ]; then verdict=empty; code=2
         else verdict=passed; code=0; fi
     else
         verdict=no_results; code=2
