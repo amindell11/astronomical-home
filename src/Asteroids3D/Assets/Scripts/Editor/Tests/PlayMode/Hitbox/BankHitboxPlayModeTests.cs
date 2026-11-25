@@ -49,8 +49,10 @@ namespace Tests.PlayMode.Hitbox
 
             var ship = units.SpawnShip(prefab, null, 0, Vector3.zero, Quaternion.Euler(0f, 0f, 31f), Field);
             var radius = ship.ShipRadius;
+            var centerOfMass = ship.Rigidbody.centerOfMass;
             yield return null;
             Assert.That(ship.ShipRadius, Is.EqualTo(radius), "the refit leaves the derived ship radius alone");
+            Assert.That(ship.Rigidbody.centerOfMass, Is.EqualTo(centerOfMass), "the refit leaves the centre of mass alone");
 
             var hitboxes = ship.GetComponentsInChildren<MeshCollider>(true)
                 .Where(c => !c.isTrigger && c.sharedMesh && c.gameObject.layer == LayerIds.Ship).ToArray();

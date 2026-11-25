@@ -39,12 +39,15 @@ namespace Ships.Hitbox
             var bankDepth = Mathf.Sin(bank) * Mathf.Cos(bank);
             if (bankDepth <= 0f)
                 throw new InvalidOperationException($"{name}: a ship that never banks needs no BankHitbox.");
+            var body = GetComponent<Ship>().Rigidbody;
+            var centerOfMass = body.centerOfMass;
             foreach (var hitbox in GetComponentsInChildren<MeshCollider>(true))
             {
                 if (hitbox.isTrigger || !hitbox.sharedMesh || hitbox.gameObject.layer != LayerIds.Ship) continue;
                 var scale = Array.IndexOf(wings, hitbox) >= 0 ? wingScale : bodyScale;
                 Fit(hitbox, feel.BankHittableShare * scale * bankDepth);
             }
+            body.centerOfMass = centerOfMass;
         }
 
         private void OnDestroy()
