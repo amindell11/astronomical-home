@@ -118,7 +118,7 @@ namespace Tests.PlayMode.Preview
             Assert.That(game.runRecordPath, Is.Not.EqualTo(normalPath));
             var recap = game.GetComponentInChildren<RunRecapScreen>();
             yield return AdvanceToBreakdown(recap);
-            var button = recap.transform.Find("Panels/Recap/Continue").GetComponent<Button>();
+            var button = recap.transform.Find("Panels/Actions/Continue").GetComponent<Button>();
             var rect = (RectTransform)button.transform;
             input.Set(mouse.position, RectTransformUtility.WorldToScreenPoint(null, rect.TransformPoint(rect.rect.center)));
             yield return null;
@@ -614,7 +614,7 @@ namespace Tests.PlayMode.Preview
         private IEnumerator WaitForBanner() => AsyncAssert.WaitUntil(() =>
         {
             var screen = host.Playtest.GetComponentInChildren<RunRecapScreen>();
-            return screen && screen.transform.Find("OutcomeIntro/ContinueHint").gameObject.activeInHierarchy;
+            return screen && screen.transform.Find("OutcomeIntro/Body/ContinueHint").gameObject.activeInHierarchy;
         }, 30f, "the recap waits for a fresh press");
 
         private IEnumerator AdvanceToBreakdown(RunRecapScreen screen)
@@ -623,7 +623,7 @@ namespace Tests.PlayMode.Preview
             input.Press(keyboard.tKey);
             yield return null;
             input.Release(keyboard.tKey);
-            yield return AsyncAssert.WaitUntil(() => screen.transform.Find("Panels/Recap").GetComponent<CanvasGroup>().interactable,
+            yield return AsyncAssert.WaitUntil(() => screen.transform.Find("Panels").GetComponent<CanvasGroup>().interactable,
                 15f, "the real recap consumes the fresh press");
         }
 
