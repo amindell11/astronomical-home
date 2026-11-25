@@ -56,11 +56,12 @@ namespace UI.Screens
             return rect;
         }
 
-        internal static void Fill(RectTransform rect, Color color)
+        internal static Image Fill(RectTransform rect, Color color)
         {
             var image = rect.gameObject.AddComponent<Image>();
             image.color = color;
             image.raycastTarget = false;
+            return image;
         }
 
         internal static Text Label(RectTransform rect, string value, int size, Color color, Font font,

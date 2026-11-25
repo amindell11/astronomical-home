@@ -69,7 +69,7 @@ namespace UI.Screens.Windows
             var window = rect.gameObject.AddComponent<ScreenWindow>();
             window.root = rect;
             window.unfold = rect.gameObject.AddComponent<RectMask2D>();
-            WindowKit.Shape(ScreenKit.Box(rect, "Back", 0f, 0f, width, height), WindowKit.OpaqueBody(layers),
+            var back = WindowKit.Shape(ScreenKit.Box(rect, "Back", 0f, 0f, width, height), WindowKit.OpaqueBody(layers),
                 Chamfer, 0f);
             WindowKit.Shape(ScreenKit.Box(rect, "Bar", 0f, 0f, width, BarHeight), WindowKit.Lit(layers, WindowKit.Bar),
                 Chamfer, 0f, true);
@@ -88,7 +88,7 @@ namespace UI.Screens.Windows
             window.group = rect.gameObject.AddComponent<CanvasGroup>();
             if (!layers.Canopy) return window;
             window.projection = layers.Projection;
-            WindowShade.Create(layers, rect, window.unfold, Chamfer);
+            WindowShade.Create(layers, back, window.unfold, Chamfer);
             return window;
         }
 
