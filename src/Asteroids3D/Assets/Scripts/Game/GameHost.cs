@@ -472,7 +472,7 @@ namespace Game
                             yield return RunRecap(OutcomeContext(board, index));
                             if (!playerDied) StandDown(false);
                             if (playerDied && record is { buildIdentity: { playtest: true } } run)
-                                yield return RunFeedback(run);
+                                yield return AskFeedback(run);
                         }
                     }
                 }
@@ -1058,7 +1058,7 @@ namespace Game
             }
         }
 
-        private IEnumerator RunFeedback(RunRecord run)
+        private IEnumerator AskFeedback(RunRecord run)
         {
             var screen = RunFeedbackScreen.Create(ui, rigInstance.Screens);
             try
