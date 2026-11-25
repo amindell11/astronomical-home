@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26c046d844c84fd38d08a5a3eb32c546, type: 3}
   m_Name: HitboxFeel
   m_EditorClassIdentifier:
-  bankHittableShare: 0.6
+  bankHittableShare: 1
