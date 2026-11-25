@@ -302,9 +302,10 @@ Format: **term** — definition. *(authority)*
   (`land` decides).
 - **recorded instruction** — the user's merge instruction for one PR at one
   commit, kept as a PR comment that `drain_pick.sh` parses (`land-facts`,
-  `merge-queue`, `decision`). Sessions write it only through `instruct`; the
-  user may type it on the PR, naming the commit by a prefix
-  (`Merge instruction: abc1234`, the head off its *decisions view* row). It
+  `merge-queue`, `decision`). Sessions write it through `instruct`, which
+  takes the PR's head when no commit is named, or post the same comment from
+  a cloud thread. The user never types it; the parser still accepts a typed
+  prefix (`Merge instruction: abc1234`). It
   *covers* the landing tree when merging its commit with base gives that tree,
   or one an inert diff away; `land` needs a covering one unless the PR is in
   the *auto-merge class*. Every session is the same GitHub account, so policy

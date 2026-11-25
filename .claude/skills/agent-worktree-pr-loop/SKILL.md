@@ -440,10 +440,11 @@ posted: `land` refuses a PR with an unresolved thread.
 Only on an explicit user merge instruction; when the PR's work is held,
 `resume <lease>` once it is given. Consent = an explicit instruction
 to merge ("merge it", "ship it", "land it"); praise of the code ("looks
-good", "LGTM") is NOT consent. Consent binds the commit the user saw: record
-the branch HEAD at the moment of consent; if ANYTHING lands on the branch
-after that (including hygiene), present the delta and re-confirm before
-`merge <slot>`.
+good", "LGTM") is NOT consent. A bare "merge" or "land" in the PR's own chat
+is a complete instruction: never ask the user to type a PR number, a commit
+SHA or a record. Consent binds the branch HEAD at the moment of the word,
+which you record yourself; if ANYTHING lands on the branch after that
+(including hygiene), present the delta and re-confirm before `merge <slot>`.
 
 Immediately before `merge <slot>`, re-check for unresolved comments (they can
 land between approval and merge). One check, not a wait: an empty result is
@@ -503,12 +504,14 @@ waiting: a re-run `merge` arrives at the back of the line.
 the *auto-merge class* (`doc/Glossary.md`): that PR lands with none, labelled
 `auto-merged`, and the pipeline digest lists it for the user to review after
 the merge. On the user's word in your chat, run
-`./scripts/drain_pick.sh instruct <pr>@<sha>`, `<sha>` being the head the user
-saw (usually the one on its `MERGE=` line). Every session acts as the same
-GitHub account, so `land` checks that a record exists and covers the landing
-tree, not who wrote it: record only an instruction the user gave you. The user
-may also type one on the PR (`Merge instruction: <sha7>`, the head off its
-*decisions view* row); a session records only through `instruct`. A
+`./scripts/drain_pick.sh instruct <pr>`, which records the PR's current head
+(`<pr>@<sha>` pins an older commit). A session with no pool script (a cloud
+thread) posts the same record itself through its GitHub tools: a PR comment
+whose first line is ``Merge instruction <YYYY-MM-DD>: `<full head sha>` ``.
+Every session acts as the same GitHub account, so `land` checks that a record
+exists and covers the landing tree, not who wrote it: record only an
+instruction the user gave you. The parser also accepts a typed
+`Merge instruction: <sha7>`, but never ask the user for one. A
 recorded instruction survives a docs-only or C#-comment-only delta (`land`
 decides, with the merge gate's inert classifier); any other delta needs a new
 one. `land` refuses a PR with an unresolved review thread, so it takes no
