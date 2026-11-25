@@ -4,37 +4,68 @@ using Game.Player.Recorders;
 using Game.Runs;
 using Ships.Presentation;
 using UI.Recap;
+using UI.Screens.Windows;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace UI.Screens
 {
     /// <summary>
-    /// The recap's uGUI: the sector or run card and, for a run outcome, its banner, built at rest for a
-    /// <see cref="RecapOutcomeContext"/>. It draws whatever <see cref="RecapState"/> it is handed and
-    /// drives no time of its own; playback or animation inspection applies its states.
+    /// The recap's uGUI, built at rest for a <see cref="RecapOutcomeContext"/>: the sector window, or for
+    /// a run outcome its banner, the Flight Recorder window and the scoreboard window that opens in
+    /// front of it on request. It draws whatever <see cref="RecapState"/> it is handed, so playback or
+    /// animation inspection drives every window but the scoreboard, whose opening is the player's own
+    /// and runs on the unscaled clock here.
+    /// The look was settled on https://github.com/amindell11/astronomical-home/issues/1694
     /// </summary>
     public sealed class RunRecapScreen : MonoBehaviour
     {
         internal const string SilhouetteFolder = ShipSilhouette.Folder;
-        private static readonly Color Ink = new(.93f, .94f, .93f);
-        private static readonly Color Muted = new(.70f, .74f, .81f);
-        private static readonly Color Line = new(.84f, .87f, .93f, .25f);
-        private static readonly Color Paint = new(.91f, .91f, .85f);
-        private static readonly Color Success = new(.56f, .83f, .67f);
-        private static readonly Color Loss = new(.91f, .58f, .58f);
-        private static readonly Color Backing = new(.047f, .078f, .153f, .9f);
-        private Font font;
+        internal const int PageSize = 4;
+
+        private const float BoardSeconds = .9f;
+        private const float SlideEnd = .3f;
+        private const float RowHeight = 41f;
+        private static readonly Vector2 RecorderCentred = new(340f, -240f);
+        private static readonly Vector2 RecorderAside = new(167f, -47f);
+        private static readonly Color Trophy = new(1f, 1f, 1f, .72f);
+        private static readonly Color Cleared = new(1f, 1f, 1f, .55f);
+        private static readonly Color Ahead = new(1f, 1f, 1f, .13f);
+        private static readonly Color OnCleared = new(.004f, .02f, .04f);
+
+        private readonly List<GameObject> rows = new();
+        private ScreenFonts fonts;
+        private bool sector;
+        private Image fade;
+        private float fadeStrength;
         private CanvasGroup breakdown;
+        private CanvasGroup actions;
+        private ScreenWindow recap;
+        private ScreenWindow board;
         private Button continueButton;
-        private GameObject banner;
+        private ScreenWindow banner;
         private CanvasGroup bannerGroup;
         private GameObject prompt;
         private bool interactable;
+        private InputAction boardKey;
+        private float boardProgress;
+        private int page;
+        private int pageCount;
+        private Text pageLabel;
+        private Button previousPage;
+        private Button nextPage;
+        private Text previousLabel;
+        private Text nextLabel;
 
         public bool Continued { get; private set; }
 
-        private void Awake() => font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        /// <summary>Whether the player has the scoreboard window open; only a run outcome has one.</summary>
+        public bool ScoreboardShown { get; private set; }
+
+        private void Awake() => fonts = ScreenFonts.Load();
+
+        private void OnDestroy() => boardKey?.Dispose();
 
         public static RunRecapScreen Create(Transform parent, RecapOutcomeContext context)
         {
@@ -51,118 +82,174 @@ namespace UI.Screens
             scaler.matchWidthOrHeight = .5f;
             go.AddComponent<GraphicRaycaster>();
             var screen = go.AddComponent<RunRecapScreen>();
-            if (context.Outcome == RecapOutcome.Extraction) screen.BuildSector(context);
+            screen.sector = context.Outcome == RecapOutcome.Extraction;
+            if (screen.sector) screen.BuildSector(context);
             else screen.BuildRun(context);
             return screen;
         }
 
         public void Apply(RecapState state)
         {
-            breakdown.alpha = state.BreakdownAlpha;
+            fade.color = new Color(fade.color.r, fade.color.g, fade.color.b, fadeStrength * FadeLevel(state));
+            breakdown.alpha = state.BreakdownAlpha > 0f ? 1f : 0f;
             breakdown.interactable = breakdown.blocksRaycasts = state.BreakdownInteractable;
+            recap.Open = state.BreakdownAlpha;
+            actions.alpha = state.BreakdownAlpha >= 1f ? 1f : 0f;
             if (state.BreakdownInteractable && !interactable) continueButton.Select();
             interactable = state.BreakdownInteractable;
             if (!banner) return;
-            bannerGroup.alpha = state.BannerAlpha;
+            bannerGroup.alpha = state.BannerAlpha > 0f ? 1f : 0f;
+            banner.Open = state.BannerAlpha;
             prompt.SetActive(state.BannerPrompt);
-            banner.SetActive(state.BannerAlpha > 0f || state.BannerPrompt);
+            banner.gameObject.SetActive(state.BannerAlpha > 0f || state.BannerPrompt);
         }
+
+        /// <summary>Opens or closes the scoreboard window; the Flight Recorder slides aside for it.</summary>
+        public void ToggleScoreboard()
+        {
+            if (!board) throw new InvalidOperationException("A sector recap has no scoreboard.");
+            if (!interactable) return;
+            ScoreboardShown = !ScoreboardShown;
+        }
+
+        private void Update()
+        {
+            if (!board) return;
+            var target = ScoreboardShown ? 1f : 0f;
+            if (Mathf.Approximately(boardProgress, target)) return;
+            boardProgress = Mathf.MoveTowards(boardProgress, target, Time.unscaledDeltaTime / BoardSeconds);
+            PlaceBoard();
+        }
+
+        private void PlaceBoard()
+        {
+            var slide = Mathf.SmoothStep(0f, 1f, boardProgress / SlideEnd);
+            ((RectTransform)recap.transform).anchoredPosition = Vector2.Lerp(RecorderCentred, RecorderAside, slide);
+            board.Open = Mathf.InverseLerp(SlideEnd * .8f, 1f, boardProgress);
+        }
+
+        // The view stays faded from the banner through the breakdown, so the gap between them does not flash.
+        private float FadeLevel(RecapState state) => state.Phase switch
+        {
+            RecapPhase.HudFade => 0f,
+            RecapPhase.BannerIn => state.BannerAlpha,
+            RecapPhase.BreakdownIn when sector => state.BreakdownAlpha,
+            RecapPhase.BreakdownOut => state.BreakdownAlpha,
+            _ => 1f,
+        };
 
         private void BuildSector(RecapOutcomeContext context)
         {
-            var panel = BuildPanel("EXTRACTED", Success, 338f, 380f);
-            Label(panel, "Context", $"SECTOR {context.Sector:00} COMPLETE", 28, 80, 282, 20, 11, Muted);
-            AddTrophies(panel, context.Kills, 110f, 86f);
-            Rule(panel, 260f);
-            Label(panel, "TimeLabel", "COMPLETION TIME", 28, 273, 190, 28, 11, Muted);
-            Label(panel, "Time", RunTally.FormatSeconds(context.CompletionSeconds), 214, 267, 96, 34, 24, Ink,
-                TextAnchor.MiddleRight);
-            continueButton = Continue(panel, "NEXT SECTOR", 324f);
-            breakdown = panel.gameObject.AddComponent<CanvasGroup>();
-            breakdown.alpha = 0f;
-            breakdown.interactable = breakdown.blocksRaycasts = false;
+            const float width = 373f;
+            const float height = 293f;
+            var group = BuildStage(WindowKit.LightFade, width, height + 58f, new Vector2(.07f, .5f),
+                new Vector2(0f, .5f));
+            recap = ScreenWindow.Create(group, "Recap", 0f, 0f, width, height, $"SECTOR {context.Sector:00}",
+                fonts.Label);
+            var body = recap.Body;
+            WindowKit.Label(body, "Outcome", "EXTRACTED", 20f, 12f, width - 40f, 50f, 40, WindowKit.Good,
+                fonts.Heading);
+            WindowKit.Rule(body, 20f, 75f, width - 40f);
+            Stat(body, "Kills", "KILLS", context.Kills.Count.ToString(), 20f, 86f);
+            Stat(body, "Time", "TIME", RunTally.FormatSeconds(context.CompletionSeconds), 120f, 86f);
+            AddTrophies(body, context.Kills, 20f, 152f, 33f, 12f);
+            actions = Actions(group);
+            continueButton = Continue(ScreenKit.Box(actions.transform, "Continue", 0f, height + 17f, 253f, 41f),
+                "NEXT SECTOR");
         }
 
         private void BuildRun(RecapOutcomeContext context)
         {
             var victory = context.Outcome == RecapOutcome.Victory;
-            var outcomeColor = victory ? Success : Loss;
+            var outcomeColor = victory ? WindowKit.Good : WindowKit.Threat;
             var title = victory ? "VICTORY" : "SHIP LOST";
-            var panel = BuildPanel(title, outcomeColor, 480f, 576f, true);
-            AddTrophies(panel, context.Kills, 82f, 58f, true);
-            Label(panel, "Progress", $"{context.SectorsCleared} SECTORS CLEARED", 28, 202, 424, 20, 11, Muted);
-            AddRoute(panel, context.SectorsCleared, context.SectorCount, 232f);
-            Rule(panel, 274f);
-            AddScoreboard(panel, context.Board, outcomeColor);
-            continueButton = Continue(panel, "RETURN TO HANGAR", 510f);
-            breakdown = panel.gameObject.AddComponent<CanvasGroup>();
-            breakdown.alpha = 0f;
-            breakdown.interactable = false;
-            breakdown.blocksRaycasts = false;
+            var centre = new Vector2(.5f, .5f);
+            var group = BuildStage(WindowKit.StrongFade, 1280f, 720f, centre, centre);
+
+            recap = ScreenWindow.Create(group, "Recap", RecorderCentred.x, -RecorderCentred.y, 600f, 240f,
+                "FLIGHT RECORDER", fonts.Label);
+            var body = recap.Body;
+            WindowKit.Label(body, "Outcome", title, 20f, 10f, 560f, 56f, 47, outcomeColor, fonts.Heading);
+            WindowKit.Captioned(body, "Kills", "KILLS", context.Kills.Count.ToString(), 20f, 83f, 271f, 14,
+                fonts.Label);
+            AddTrophies(body, context.Kills, 20f, 107f, 31f, 9f);
+            WindowKit.Captioned(body, "Progress", "SECTORS", $"{context.SectorsCleared} / {context.SectorCount}",
+                347f, 83f, 233f, 14, fonts.Label);
+            AddRoute(body, context.SectorsCleared, context.SectorCount, 347f, 118f, 233f);
+
+            BuildScoreboard(group, context.Board, outcomeColor);
+            actions = Actions(group);
+            WindowKit.KeyButton(ScreenKit.Box(actions.transform, "ScoreboardButton", 340f, 593f, 260f, 41f),
+                "SCOREBOARD", "TAB", fonts.Label, ToggleScoreboard);
+            continueButton = Continue(ScreenKit.Box(actions.transform, "Continue", 620f, 593f, 320f, 41f),
+                "RETURN TO HANGAR");
+            boardKey = new InputAction("Scoreboard", InputActionType.Button, "<Keyboard>/tab");
+            boardKey.AddBinding("<Gamepad>/buttonNorth");
+            boardKey.performed += _ => ToggleScoreboard();
+            boardKey.Enable();
             BuildBanner(title, outcomeColor);
+        }
+
+        private RectTransform BuildStage(float strength, float width, float height, Vector2 anchor, Vector2 pivot)
+        {
+            fadeStrength = strength;
+            fade = WindowKit.Fade(transform, 0f);
+            var group = ScreenKit.Box(transform, "Panels", 0f, 0f, width, height);
+            group.anchorMin = group.anchorMax = anchor;
+            group.pivot = pivot;
+            breakdown = group.gameObject.AddComponent<CanvasGroup>();
+            breakdown.alpha = 0f;
+            breakdown.interactable = breakdown.blocksRaycasts = false;
+            return group;
+        }
+
+        // Buttons sit outside the windows, so they wait for the window to finish opening.
+        private static CanvasGroup Actions(RectTransform group)
+        {
+            var holder = ScreenKit.Box(group, "Actions", 0f, 0f, group.sizeDelta.x, group.sizeDelta.y);
+            var shown = holder.gameObject.AddComponent<CanvasGroup>();
+            shown.alpha = 0f;
+            return shown;
         }
 
         private void BuildBanner(string title, Color outcomeColor)
         {
-            var intro = Box(transform, "OutcomeIntro", 0, 0, 820, 196);
+            const float width = 760f;
+            const float height = 190f;
+            banner = ScreenWindow.Create(transform, "OutcomeIntro", 0f, 0f, width, height, "FLIGHT RECORDER",
+                fonts.Label);
+            var intro = (RectTransform)banner.transform;
             intro.anchorMin = intro.anchorMax = intro.pivot = new Vector2(.5f, .5f);
-            Fill(intro, new Color(Backing.r, Backing.g, Backing.b, .72f));
-            var corners = new Color(1f, 1f, 1f, .65f);
-            Fill(Box(intro, "TopLeftHorizontal", 0, 0, 18, 1), corners);
-            Fill(Box(intro, "TopLeftVertical", 0, 0, 1, 18), corners);
-            Fill(Box(intro, "TopRightHorizontal", 802, 0, 18, 1), corners);
-            Fill(Box(intro, "TopRightVertical", 819, 0, 1, 18), corners);
-            Fill(Box(intro, "BottomLeftHorizontal", 0, 195, 18, 1), corners);
-            Fill(Box(intro, "BottomLeftVertical", 0, 178, 1, 18), corners);
-            Fill(Box(intro, "BottomRightHorizontal", 802, 195, 18, 1), corners);
-            Fill(Box(intro, "BottomRightVertical", 819, 178, 1, 18), corners);
-            var headline = Label(intro, "Outcome", title, 0, 0, 764, 160, 112, outcomeColor,
+            intro.anchoredPosition = Vector2.zero;
+            WindowKit.Label(banner.Body, "Outcome", title, 0f, 8f, width, 118f, 96, outcomeColor, fonts.Heading,
                 TextAnchor.MiddleCenter);
-            headline.rectTransform.anchorMin = headline.rectTransform.anchorMax = new Vector2(.5f, .5f);
-            headline.rectTransform.pivot = new Vector2(.5f, .5f);
-            bannerGroup = intro.gameObject.AddComponent<CanvasGroup>();
-            bannerGroup.alpha = 0f;
-            prompt = Label(intro, "ContinueHint", "PRESS ANY KEY TO CONTINUE", 28, 164, 764, 20, 11, Muted,
-                TextAnchor.MiddleCenter).gameObject;
+            prompt = WindowKit.Label(banner.Body, "ContinueHint", "PRESS ANY KEY", 0f, 130f, width, 20f, 14,
+                WindowKit.Dim, fonts.Label, TextAnchor.MiddleCenter).gameObject;
             prompt.SetActive(false);
-            banner = intro.gameObject;
+            bannerGroup = banner.gameObject.AddComponent<CanvasGroup>();
+            bannerGroup.alpha = 0f;
+            banner.Open = 0f;
         }
 
-        private RectTransform BuildPanel(string title, Color outcomeColor, float width, float height,
-            bool centered = false)
+        private void Stat(RectTransform body, string name, string caption, string value, float x, float y)
         {
-            var blocker = Box(transform, "InputBlocker", 0, 0, 0, 0);
-            blocker.anchorMin = Vector2.zero;
-            blocker.anchorMax = Vector2.one;
-            blocker.offsetMin = blocker.offsetMax = Vector2.zero;
-            blocker.gameObject.AddComponent<Image>().color = Color.clear;
-            var group = Box(transform, "Panels", 0, 0, width, height);
-            group.anchorMin = group.anchorMax = new Vector2(centered ? .5f : .07f, .5f);
-            group.pivot = new Vector2(centered ? .5f : 0f, .5f);
-            var panel = Box(group, "Recap", 0, 0, width, height);
-            Fill(panel, Backing);
-            Fill(Box(panel, "CornerTop", 0, 0, 17, 1), Line);
-            Fill(Box(panel, "CornerLeft", 0, 0, 1, 17), Line);
-            Label(panel, "Outcome", title, 28, 27, width - 56, 48, 40, outcomeColor);
-            return panel;
+            WindowKit.Label(body, name + "Label", caption, x, y, 90f, 18f, 13, WindowKit.Dim, fonts.Label);
+            WindowKit.Label(body, name, value, x, y + 20f, 90f, 30f, 23, WindowKit.Ink, fonts.Heading);
         }
 
-        private void AddTrophies(RectTransform panel, IReadOnlyList<string> kills, float top, float height,
-            bool compact = false)
+        // Seven to a row and two rows showing; a longer list scrolls.
+        private static void AddTrophies(RectTransform body, IReadOnlyList<string> kills, float x, float y,
+            float icon, float gap)
         {
-            var width = panel.rect.width - 56f;
-            var columns = compact ? 9 : 5;
-            var rowStep = compact ? 30f : 46f;
-            var cellWidth = compact ? 32f : 50f;
-            var cellHeight = compact ? 28f : 40f;
-            var iconSize = compact ? 22f : 34f;
-            var columnStep = (width - cellWidth) / (columns - 1);
-            Label(panel, "Kills", $"{kills.Count} CONFIRMED KILLS", 28, top, width, 24, 13, Muted);
-            var detail = Label(panel, "ShipName", "", 28, top + height + 38, width - 144, 18, 11, Muted);
-            var viewport = Box(panel, "Trophies", 28, top + 36, width, height);
+            const int columns = 7;
+            var step = icon + gap;
+            var width = columns * step - gap;
+            var height = 2f * step - gap;
+            var viewport = ScreenKit.Box(body, "Trophies", x, y, width, height);
+            viewport.gameObject.AddComponent<Image>().color = Color.clear;
             viewport.gameObject.AddComponent<RectMask2D>();
-            var content = Box(viewport, "Content", 0, 0, width,
-                Mathf.Max(0, Mathf.Ceil(kills.Count / (float)columns) * rowStep - rowStep + cellHeight));
+            var content = ScreenKit.Box(viewport, "Content", 0f, 0f, width,
+                Mathf.Max(0f, Mathf.Ceil(kills.Count / (float)columns) * step - gap));
             var scroll = viewport.gameObject.AddComponent<ScrollRect>();
             scroll.viewport = viewport;
             scroll.content = content;
@@ -170,9 +257,6 @@ namespace UI.Screens
             scroll.vertical = content.sizeDelta.y > height;
             scroll.movementType = ScrollRect.MovementType.Clamped;
             scroll.scrollSensitivity = 35f;
-            if (scroll.vertical)
-                Label(panel, "ScrollHint", "SCROLL TO VIEW ALL", width - 116, top + height + 38, 144, 18, 10, Muted,
-                    TextAnchor.MiddleRight);
             var textures = new Dictionary<string, Texture2D>();
             for (var i = 0; i < kills.Count; i++)
             {
@@ -183,159 +267,159 @@ namespace UI.Screens
                     if (!texture) throw new InvalidOperationException($"No recap silhouette for '{chassis}'.");
                     textures.Add(chassis, texture);
                 }
-                var trophy = Box(content, $"Kill{i + 1}_{chassis}", i % columns * columnStep,
-                    i / columns * rowStep, cellWidth, cellHeight);
-                trophy.gameObject.AddComponent<Image>().color = Color.clear;
-                var icon = Box(trophy, "Silhouette", (cellWidth - iconSize) / 2, 3, iconSize, iconSize)
-                    .gameObject.AddComponent<RawImage>();
-                icon.texture = texture;
-                icon.color = Paint;
-                icon.raycastTarget = false;
-                trophy.gameObject.AddComponent<Button>().onClick.AddListener(() => detail.text = chassis);
+                var trophy = ScreenKit.Box(content, $"Kill{i + 1}_{chassis}", i % columns * step, i / columns * step,
+                    icon, icon).gameObject.AddComponent<RawImage>();
+                trophy.texture = texture;
+                trophy.color = Trophy;
+                trophy.raycastTarget = false;
             }
         }
 
-        private void AddRoute(RectTransform panel, int cleared, int count, float top)
+        private void AddRoute(RectTransform body, int cleared, int count, float x, float y, float width)
         {
-            var spacing = count > 1 ? (panel.rect.width - 82f) / (count - 1) : 0f;
+            const float node = 35f;
+            var spacing = count > 1 ? (width - node) / (count - 1) : 0f;
             for (var i = 0; i < count; i++)
             {
-                var x = 28 + i * spacing;
+                var left = x + i * spacing;
                 var reached = i == cleared;
-                var color = reached ? new Color(.93f, .73f, .62f) : i < cleared ? Ink : Muted;
-                if (i > 0) Fill(Box(panel, "Route", x - spacing + 36, top + 13, spacing - 46, 1), Line);
-                var node = Box(panel, "Sector" + (i + 1), x, top, 26, 26);
-                var marker = node.gameObject.AddComponent<RecapSectorMarker>();
+                if (i > 0)
+                    ScreenKit.Fill(ScreenKit.Box(body, "Route", left - spacing + node + 9f, y + node / 2f,
+                        spacing - node - 18f, 1f), i <= cleared ? WindowKit.Ink : WindowKit.Line);
+                var marker = ScreenKit.Box(body, "Sector" + (i + 1), left, y, node, node).gameObject
+                    .AddComponent<RecapSectorMarker>();
                 marker.Reached = reached;
-                marker.color = reached ? new Color(.89f, .71f, .58f, .65f) : new Color(.65f, .73f, .81f, .13f);
+                marker.color = reached ? WindowKit.Threat : i < cleared ? Cleared : Ahead;
                 marker.raycastTarget = false;
-                Label(node, "Number", (i + 1).ToString("00"), 0, 0, 26, 26, 11, color, TextAnchor.MiddleCenter);
+                WindowKit.Label(marker.transform, "Number", (i + 1).ToString("00"), 0f, 0f, node, node, 12,
+                    reached ? WindowKit.Threat : i < cleared ? OnCleared : WindowKit.Dim, fonts.Heading,
+                    TextAnchor.MiddleCenter);
             }
         }
 
-        private void AddScoreboard(Transform parent, Scoreboard board, Color outcomeColor)
+        private void BuildScoreboard(RectTransform group, Scoreboard scores, Color outcomeColor)
         {
+            const float width = 800f;
+            const float height = 307f;
             var weaponIcons = RecapWeaponIcons.Load();
-            var panel = Box(parent, "Scoreboard", 28, 286, 424, 202);
-            Label(panel, "Heading", "SCOREBOARD", 0, 0, 132, 20, 13, Ink);
-            var rank = board.Rank.HasValue ? $"{board.Rank} of {board.Rows.Count}" : "Not recorded";
-            Label(panel, "Rank", "Your best runs · " + rank, 132, 0, 292, 20, 11, Muted, TextAnchor.MiddleRight);
-            ScoreCells(panel, "Columns", 26, "Rank", "Sectors", "Kills", "Time", Muted, false);
-            Label(panel, "ShipHeading", "Ship", 76, 26, 84, 24, 11, Muted);
-            Label(panel, "LoadoutHeading", "Loadout", 172, 26, 56, 24, 11, Muted);
-            var visible = Math.Min(5, board.Rows.Count);
-            for (var i = 0; i < visible; i++)
+            var rank = scores.Rank.HasValue ? $"{scores.Rank} OF {scores.Rows.Count}" : "";
+            board = ScreenWindow.Create(group, "Scoreboard", 313f, 253f, width, height, "SCOREBOARD", fonts.Label,
+                rank);
+            var body = board.Body;
+            var columns = ScoreCells(body, "Columns", 9f, "RANK", "SECTORS", "KILLS", "TIME", WindowKit.Dim,
+                WindowKit.Dim, 14);
+            WindowKit.Label(columns, "ShipHeading", "SHIP", 75f, 0f, 200f, 26f, 14, WindowKit.Dim, fonts.Label);
+            WindowKit.Label(columns, "LoadoutHeading", "LOADOUT", 440f, 0f, 70f, 26f, 14, WindowKit.Dim,
+                fonts.Label);
+            for (var i = 0; i < scores.Rows.Count; i++)
             {
-                var index = i == 4 && board.Rank > 5 ? board.Rank.Value - 1 : i;
-                var row = board.Rows[index];
-                var current = board.Rank == index + 1;
-                var y = 52 + i * 30f;
-                Fill(Box(panel, "Divider", 0, y, 424, 1), Line);
-                if (current)
-                    Fill(Box(panel, "CurrentRun", 0, y, 424, 30),
-                        new Color(outcomeColor.r, outcomeColor.g, outcomeColor.b, .07f));
-                var cells = ScoreCells(panel, "Row" + (index + 1), y + 3, (index + 1).ToString(),
+                var row = scores.Rows[i];
+                var current = scores.Rank == i + 1;
+                var cells = ScoreCells(body, "Row" + (i + 1), 32f + i % PageSize * RowHeight, (i + 1).ToString(),
                     row.SectorsCleared.ToString(), row.Kills.ToString(), RunTally.FormatSeconds(row.SecondsSurvived),
-                    current ? outcomeColor : Ink, true);
-                var ship = Label(cells, "Ship", string.IsNullOrEmpty(row.Player.chassis)
-                    ? "Ship not recorded" : row.Player.chassis, 64, 0, 84, 24, 11, current ? outcomeColor : Ink);
+                    current ? outcomeColor : WindowKit.Ink, WindowKit.Ink, 17);
+                ScreenKit.Fill(ScreenKit.Box(cells, "Divider", 0f, 0f, cells.sizeDelta.x, 1f), WindowKit.Line);
+                if (current)
+                {
+                    var highlight = ScreenKit.Box(cells, "CurrentRun", 0f, 1f, cells.sizeDelta.x, RowHeight - 1f);
+                    ScreenKit.Fill(highlight, new Color(outcomeColor.r, outcomeColor.g, outcomeColor.b, .2f));
+                    highlight.SetAsFirstSibling();
+                }
+                var ship = WindowKit.Label(cells, "Ship", string.IsNullOrEmpty(row.Player.chassis)
+                    ? "Ship not recorded" : row.Player.chassis, 75f, 7f, 340f, 26f, 17,
+                    current ? outcomeColor : WindowKit.Ink, fonts.Label);
                 Ellipsize(ship);
                 var texture = string.IsNullOrEmpty(row.Player.chassis) ? null
                     : ShipSilhouette.Load(row.Player.chassis);
                 if (texture)
                 {
-                    var icon = Box(cells, "Silhouette", 32, 0, 24, 24).gameObject.AddComponent<RawImage>();
+                    var icon = ScreenKit.Box(cells, "Silhouette", 41f, 8f, 25f, 25f).gameObject
+                        .AddComponent<RawImage>();
                     icon.texture = texture;
-                    icon.color = Paint;
+                    icon.color = WindowKit.Ink;
                     icon.raycastTarget = false;
                 }
-                else Label(cells, "UnavailableIcon", "?", 32, 0, 24, 24, 16, Muted, TextAnchor.MiddleCenter);
-                WeaponIcon(cells, "Primary", 160, weaponIcons.Find(row.Player.primary));
-                WeaponIcon(cells, "Secondary", 192, weaponIcons.Find(row.Player.secondary));
+                else
+                    WindowKit.Label(cells, "UnavailableIcon", "?", 41f, 7f, 25f, 26f, 17, WindowKit.Dim, fonts.Label,
+                        TextAnchor.MiddleCenter);
+                WeaponIcon(cells, "Primary", 440f, weaponIcons.Find(row.Player.primary));
+                WeaponIcon(cells, "Secondary", 472f, weaponIcons.Find(row.Player.secondary));
+                rows.Add(cells.gameObject);
             }
+
+            pageCount = Mathf.Max(1, Mathf.CeilToInt(scores.Rows.Count / (float)PageSize));
+            var pager = ScreenKit.Box(body, "Pager", width - 20f - 242f, height - ScreenWindow.BarHeight - 42f, 242f,
+                26f);
+            previousPage = PagerButton(pager, "Previous", 0f, "‹ PREV", () => ShowPage(page - 1), out previousLabel);
+            pageLabel = WindowKit.Label(pager, "Page", "", 84f, 0f, 74f, 26f, 15, WindowKit.Ink, fonts.Label,
+                TextAnchor.MiddleCenter);
+            nextPage = PagerButton(pager, "Next", 158f, "NEXT ›", () => ShowPage(page + 1), out nextLabel);
+            pager.gameObject.SetActive(pageCount > 1);
+            ShowPage(scores.Rank.HasValue ? (scores.Rank.Value - 1) / PageSize : 0);
+            board.Open = 0f;
+        }
+
+        private Button PagerButton(RectTransform pager, string name, float x, string caption, Action press,
+            out Text label)
+        {
+            var rect = ScreenKit.Box(pager, name, x, 0f, 84f, 26f);
+            WindowKit.Shape(ScreenKit.Box(rect, "Frame", 0f, 0f, 84f, 26f), WindowKit.Line, 0f, 1.5f);
+            label = WindowKit.Label(rect, "Label", caption, 0f, 0f, 84f, 26f, 15, WindowKit.Ink, fonts.Label,
+                TextAnchor.MiddleCenter);
+            return ScreenKit.Button(rect, press);
+        }
+
+        private void ShowPage(int index)
+        {
+            page = Mathf.Clamp(index, 0, pageCount - 1);
+            for (var i = 0; i < rows.Count; i++) rows[i].SetActive(i / PageSize == page);
+            pageLabel.text = $"{page + 1} / {pageCount}";
+            previousPage.interactable = page > 0;
+            nextPage.interactable = page < pageCount - 1;
+            previousLabel.color = previousPage.interactable ? WindowKit.Ink : WindowKit.Dim;
+            nextLabel.color = nextPage.interactable ? WindowKit.Ink : WindowKit.Dim;
         }
 
         private static void WeaponIcon(Transform parent, string name, float x, Sprite sprite)
         {
-            var icon = Box(parent, name, x, 0, 24, 24).gameObject.AddComponent<Image>();
+            var icon = ScreenKit.Box(parent, name, x, 8f, 24f, 24f).gameObject.AddComponent<Image>();
             icon.sprite = sprite;
             icon.enabled = sprite;
             icon.preserveAspect = true;
-            icon.color = Paint;
+            icon.color = WindowKit.Ink;
             icon.raycastTarget = false;
         }
 
         private static void Ellipsize(Text text)
         {
             text.supportRichText = false;
-            text.horizontalOverflow = HorizontalWrapMode.Overflow;
             var fullName = text.text;
             var length = fullName.Length;
             while (text.preferredWidth > text.rectTransform.rect.width)
                 text.text = fullName.Substring(0, --length) + "…";
         }
 
-        private RectTransform ScoreCells(RectTransform panel, string name, float y, string run, string sectors,
-            string kills, string time, Color color, bool numeric)
+        private RectTransform ScoreCells(RectTransform body, string name, float y, string rank, string sectors,
+            string kills, string time, Color rankColor, Color color, int size)
         {
-            var row = Box(panel, name, 12, y, 400, 24);
-            Label(row, "Rank", run, 0, 0, 32, 24, 11, color);
-            Label(row, "Sectors", sectors, 228, 0, 42, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);
-            Label(row, "Kills", kills, 282, 0, 42, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);
-            Label(row, "Time", time, 346, 0, 54, 24, 11, numeric ? Ink : color, TextAnchor.MiddleRight);
+            var row = ScreenKit.Box(body, name, 12f, y, 776f, RowHeight);
+            WindowKit.Label(row, "Rank", rank, 8f, 7f, 33f, 26f, size, rankColor, fonts.Label);
+            WindowKit.Label(row, "Sectors", sectors, 520f, 7f, 60f, 26f, size, color, fonts.Label,
+                TextAnchor.MiddleRight);
+            WindowKit.Label(row, "Kills", kills, 600f, 7f, 60f, 26f, size, color, fonts.Label, TextAnchor.MiddleRight);
+            WindowKit.Label(row, "Time", time, 680f, 7f, 84f, 26f, size, color, fonts.Label, TextAnchor.MiddleRight);
             return row;
         }
 
-        private Button Continue(RectTransform parent, string caption, float y)
+        private Button Continue(RectTransform rect, string caption)
         {
-            var rect = Box(parent, "Continue", 28, y, 216, 38);
-            rect.gameObject.AddComponent<Image>().color = Color.clear;
-            Fill(Box(rect, "Top", 0, 0, 216, 1), Line);
-            Fill(Box(rect, "Bottom", 0, 37, 216, 1), Line);
-            Fill(Box(rect, "Left", 0, 0, 1, 38), Line);
-            Fill(Box(rect, "Right", 215, 0, 1, 38), Line);
-            Label(rect, "Label", caption, 14, 0, 182, 38, 11, Ink);
-            Label(rect, "Arrow", "›", 190, 0, 20, 38, 20, Ink);
-            var button = rect.gameObject.AddComponent<Button>();
-            button.onClick.AddListener(() =>
+            Button button = null;
+            button = WindowKit.KeyButton(rect, caption, "ENTER ›", fonts.Label, () =>
             {
                 button.interactable = false;
                 Continued = true;
             });
             return button;
-        }
-
-        private static void Rule(RectTransform parent, float y) =>
-            Fill(Box(parent, "Divider", 28, y, parent.rect.width - 56, 1), Line);
-
-        private static void Fill(RectTransform rect, Color color)
-        {
-            var image = rect.gameObject.AddComponent<Image>();
-            image.color = color;
-            image.raycastTarget = false;
-        }
-
-        private static RectTransform Box(Transform parent, string name, float x, float y, float width, float height)
-        {
-            var rect = (RectTransform)new GameObject(name, typeof(RectTransform)).transform;
-            rect.SetParent(parent, false);
-            rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0, 1);
-            rect.anchoredPosition = new Vector2(x, -y);
-            rect.sizeDelta = new Vector2(width, height);
-            return rect;
-        }
-
-        private Text Label(Transform parent, string name, string value, float x, float y, float width,
-            float height, int size, Color color, TextAnchor alignment = TextAnchor.MiddleLeft)
-        {
-            var text = Box(parent, name, x, y, width, height).gameObject.AddComponent<Text>();
-            text.font = font;
-            text.fontSize = size;
-            text.color = color;
-            text.alignment = alignment;
-            text.raycastTarget = false;
-            text.text = value;
-            return text;
         }
     }
 }

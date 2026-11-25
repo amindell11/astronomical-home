@@ -13,8 +13,8 @@ namespace Substrate.Sectors.Factions
 {
     /// <summary>
     /// One faction's facts, and the one place sector content reads them from. Each rank (minion, rival,
-    /// elite) flies its own chassis in its own hull paint; the rest of what makes an elite lives with
-    /// the elite profile. A sector names its faction through <see cref="SectorFaction"/>.
+    /// elite) flies its own chassis in its own hull paint; the elite's strength lives with the elite
+    /// profile, which stays with the sector. A sector names its faction through <see cref="SectorFaction"/>.
     /// The arc and its rulings: https://github.com/amindell11/astronomical-home/issues/1320
     /// </summary>
     [CreateAssetMenu(fileName = "Faction", menuName = "Sector/Faction")]
@@ -59,6 +59,16 @@ namespace Substrate.Sectors.Factions
             {
                 Require(elite.ship, "elite ship");
                 return elite.ship;
+            }
+        }
+
+        public string EliteName
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(elite.displayName))
+                    throw new InvalidOperationException($"Faction '{name}' sets no elite name.");
+                return elite.displayName;
             }
         }
 
@@ -150,5 +160,8 @@ namespace Substrate.Sectors.Factions
 
         [Tooltip("Every hull material slot of that chassis, in silhouette order, in faction paint. Empty → the chassis's own paint.")]
         public Material[] hull;
+
+        [Tooltip("The name the elite's health bar and arrival banner show, whichever sector it ends.")]
+        public string displayName;
     }
 }

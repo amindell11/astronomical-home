@@ -21,6 +21,7 @@ MonoBehaviour:
   nerveShield: 0
   standOffMargin: 5
   minimumHold: 2
+  regroupsWithoutLeader: 1
   wounded: 0
   woundedBy: 1
   woundedBelow: 25

@@ -29,6 +29,20 @@ the gate in flight instead of voiding it.
 (Decided 2026-07-31: the merge gate never ran tests on docs-only deltas, so
 the PR ceremony added review the session had already performed.)
 
+**Balance-only landing (PR, no gates).** A PR whose every change is an edit
+to an existing `*.asset` under `Assets/Settings/` or an existing `*.prefab`
+under `Assets/` (no added, deleted or renamed files, no `.meta`, no code or
+tests) merges with `./scripts/agent_worktree_pool.sh land-balance <pr>` on
+the user's merge instruction. It skips the Unity suite, the ReSharper ratchet,
+Codex review, the recorded instruction, the `task/*` branch rule and the slot:
+it checks the paths, checks the PR merges into main cleanly, and squash-merges
+under the merge turn with `--admin`, through the main ruleset's admin bypass
+(the required statuses and `land-check` never pass on such a PR). The PR can come from any branch, a cloud session's
+included. A tuning change that needs a new file or a test edit is not
+balance-only and takes the full loop.
+(Decided 2026-11-22: a pure tuning PR waited hours on a crashed PlayMode run,
+the `task/*` rule and a full pool.)
+
 ## Pool commands
 
 - `./scripts/agent_worktree_pool.sh status`

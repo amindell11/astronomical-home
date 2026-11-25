@@ -190,14 +190,14 @@ namespace Tests.PlayMode.Bootstrap
             host.ActiveSector.GetComponent<ExtractOnCueModule>().Extract();
             yield return WaitFor(() => hostGo.GetComponentInChildren<RunRecapScreen>(), "sector recap appears");
             var recap = hostGo.GetComponentInChildren<RunRecapScreen>();
-            Assert.AreEqual("EXTRACTED", recap.transform.Find("Panels/Recap/Outcome").GetComponent<Text>().text);
+            Assert.AreEqual("EXTRACTED", recap.transform.Find("Panels/Recap/Body/Outcome").GetComponent<Text>().text);
             Assert.IsTrue(InSector("SectorA"));
             Assert.AreEqual(0f, Time.timeScale);
             var elapsed = rig.Tally.SecondsSurvived;
             yield return new WaitForSecondsRealtime(.15f);
             Assert.AreEqual(elapsed, rig.Tally.SecondsSurvived);
             Assert.IsFalse(File.Exists(recordPath));
-            recap.transform.Find("Panels/Recap/Continue").GetComponent<Button>().onClick.Invoke();
+            recap.transform.Find("Panels/Actions/Continue").GetComponent<Button>().onClick.Invoke();
 
             yield return WaitFor(() => InSector("SectorB") && Mathf.Abs(rig.Player.Damage.Health.Pct - .4f) < 1e-3f,
                 "next sector finishes loading after dismissal");
@@ -207,8 +207,8 @@ namespace Tests.PlayMode.Bootstrap
             Assert.AreEqual(0f, Time.timeScale, "victory freezes combat before fading the HUD");
             yield return WaitFor(() => hostGo.GetComponentInChildren<RunRecapScreen>(), "final recap appears");
             recap = hostGo.GetComponentInChildren<RunRecapScreen>();
-            Assert.AreEqual("VICTORY", recap.transform.Find("Panels/Recap/Outcome").GetComponent<Text>().text);
-            Assert.IsNotNull(recap.transform.Find("Panels/Recap/Scoreboard/CurrentRun"));
+            Assert.AreEqual("VICTORY", recap.transform.Find("Panels/Recap/Body/Outcome").GetComponent<Text>().text);
+            Assert.IsNotNull(recap.transform.Find("Panels/Scoreboard/Body/Row1/CurrentRun"));
             Assert.AreEqual(1, File.ReadAllLines(recordPath).Length);
             UnityEngine.Object.Destroy(hostGo);
             yield return null;
@@ -228,7 +228,7 @@ namespace Tests.PlayMode.Bootstrap
 
             host.ActiveSector.GetComponent<ExtractOnCueModule>().Extract();
             yield return WaitFor(() => hostGo.GetComponentInChildren<RunRecapScreen>(), "sector recap appears");
-            hostGo.GetComponentInChildren<RunRecapScreen>().transform.Find("Panels/Recap/Continue")
+            hostGo.GetComponentInChildren<RunRecapScreen>().transform.Find("Panels/Actions/Continue")
                 .GetComponent<Button>().onClick.Invoke();
             yield return WaitFor(() => InSector("SectorB"), "the next sector loads after the recap");
             Assert.AreEqual("×2", HotRoundsCount(rig));
@@ -273,8 +273,8 @@ namespace Tests.PlayMode.Bootstrap
             yield return WaitFor(() => host.Jump.Holding && hostGo.GetComponentInChildren<RunRecapScreen>(),
                 "the extracted recap appears in hyperspace");
             var recap = hostGo.GetComponentInChildren<RunRecapScreen>();
-            Assert.AreEqual("EXTRACTED", recap.transform.Find("Panels/Recap/Outcome").GetComponent<Text>().text);
-            var button = recap.transform.Find("Panels/Recap/Continue").GetComponent<Button>();
+            Assert.AreEqual("EXTRACTED", recap.transform.Find("Panels/Recap/Body/Outcome").GetComponent<Text>().text);
+            var button = recap.transform.Find("Panels/Actions/Continue").GetComponent<Button>();
             yield return WaitFor(button.IsInteractable, "Continue waits for the destination and its locale blend");
             Assert.AreNotSame(first, host.ActiveSector);
             Assert.AreEqual(1f, host.Jump.State.LocaleBlend);
@@ -294,7 +294,7 @@ namespace Tests.PlayMode.Bootstrap
             InputSystem.Update();
             yield return WaitFor(() => hostGo.GetComponentInChildren<RunRecapScreen>(), "victory appears");
             recap = hostGo.GetComponentInChildren<RunRecapScreen>();
-            Assert.AreEqual("VICTORY", recap.transform.Find("Panels/Recap/Outcome").GetComponent<Text>().text);
+            Assert.AreEqual("VICTORY", recap.transform.Find("Panels/Recap/Body/Outcome").GetComponent<Text>().text);
             var record = JsonUtility.FromJson<RunRecord>(File.ReadAllLines(recordPath)[0]);
             Assert.AreEqual(2, record.sectorsCleared);
             yield return host.Shutdown();
@@ -338,7 +338,7 @@ namespace Tests.PlayMode.Bootstrap
             InputSystem.Update();
             yield return WaitFor(() => host.Jump && host.Jump.Holding && hostGo.GetComponentInChildren<RunRecapScreen>(),
                 "the extracted recap appears in hyperspace");
-            var button = hostGo.GetComponentInChildren<RunRecapScreen>().transform.Find("Panels/Recap/Continue")
+            var button = hostGo.GetComponentInChildren<RunRecapScreen>().transform.Find("Panels/Actions/Continue")
                 .GetComponent<Button>();
             yield return WaitFor(button.IsInteractable, "the next sector is loaded");
             Assert.AreNotSame(first, host.ActiveSector);
@@ -363,7 +363,7 @@ namespace Tests.PlayMode.Bootstrap
             host.ActiveSector.GetComponent<ExtractOnCueModule>().Extract();
             yield return WaitFor(() => host.Jump && host.Jump.Holding && hostGo.GetComponentInChildren<RunRecapScreen>(),
                 "the extracted recap appears in hyperspace");
-            var button = hostGo.GetComponentInChildren<RunRecapScreen>().transform.Find("Panels/Recap/Continue")
+            var button = hostGo.GetComponentInChildren<RunRecapScreen>().transform.Find("Panels/Actions/Continue")
                 .GetComponent<Button>();
             yield return WaitFor(button.IsInteractable, "Continue waits for the destination");
             button.onClick.Invoke();
@@ -390,7 +390,7 @@ namespace Tests.PlayMode.Bootstrap
             yield return WaitFor(() => host.Jump && host.Jump.Holding && hostGo.GetComponentInChildren<RunRecapScreen>(),
                 "the extracted recap appears in hyperspace");
             Assert.IsTrue(LocaleInstances.Loaded(second), "the jump backdrop holds the next sector's drawn locale");
-            var button = hostGo.GetComponentInChildren<RunRecapScreen>().transform.Find("Panels/Recap/Continue")
+            var button = hostGo.GetComponentInChildren<RunRecapScreen>().transform.Find("Panels/Actions/Continue")
                 .GetComponent<Button>();
             yield return WaitFor(button.IsInteractable, "Continue waits for the destination and its locale blend");
             Assert.That(LocaleInstances.Shown(), Is.EqualTo(second), "the next sector shows the jump's locale");
@@ -414,7 +414,7 @@ namespace Tests.PlayMode.Bootstrap
             Assert.IsNull(host.Jump, "a failed result never starts a jump");
             Assert.IsTrue(rig.Player.Commander.enabled);
             yield return WaitFor(() => hostGo.GetComponentInChildren<RunRecapScreen>(), "the sector recap appears");
-            hostGo.GetComponentInChildren<RunRecapScreen>().transform.Find("Panels/Recap/Continue")
+            hostGo.GetComponentInChildren<RunRecapScreen>().transform.Find("Panels/Actions/Continue")
                 .GetComponent<Button>().onClick.Invoke();
             yield return WaitFor(() => InSector("SectorB"), "the next sector loads after the recap");
             Assert.IsNull(host.Jump);
@@ -510,7 +510,7 @@ namespace Tests.PlayMode.Bootstrap
             var recap = hostGo.GetComponentInChildren<RunRecapScreen>();
             if (!recap) return false;
             var banner = recap.transform.Find("OutcomeIntro");
-            return recap.transform.Find("Panels/Recap").GetComponent<CanvasGroup>().alpha > 0f
+            return recap.transform.Find("Panels").GetComponent<CanvasGroup>().alpha > 0f
                    || banner && banner.gameObject.activeSelf;
         }
 
@@ -550,7 +550,7 @@ namespace Tests.PlayMode.Bootstrap
             yield return new WaitForSecondsRealtime(.25f);
             Assert.Greater(Vector3.Distance(enemyPosition, enemy.transform.position), .5f,
                 "surviving ships keep flying behind the banner");
-            var details = recap.transform.Find("Panels/Recap").GetComponent<CanvasGroup>();
+            var details = recap.transform.Find("Panels").GetComponent<CanvasGroup>();
             Assert.AreEqual(0f, details.alpha);
             input.Press(keyboard.enterKey);
             yield return null;
@@ -568,7 +568,7 @@ namespace Tests.PlayMode.Bootstrap
             yield return new WaitForSecondsRealtime(.5f);
             Assert.Less(Vector2.Distance(GamePlane.WorldPointToPlane(observer.transform.position),
                 GamePlane.WorldPointToPlane(deathPosition)), .1f, "death framing works without active subjects");
-            recap.transform.Find("Panels/Recap/Continue").GetComponent<Button>().onClick.Invoke();
+            recap.transform.Find("Panels/Actions/Continue").GetComponent<Button>().onClick.Invoke();
             yield return WaitFor(() => rig.Player.gameObject.activeInHierarchy && rig.Tally.SecondsSurvived > 0f,
                 "the next run starts");
             Assert.AreEqual(1f, Time.timeScale);

@@ -108,6 +108,13 @@ namespace Tests.EditMode.Factions
         }
 
         [Test]
+        public void EachTrialFaction_NamesItsElite()
+        {
+            foreach (var row in Rows())
+                Assert.IsNotEmpty(FactionOf(row).EliteName, FactionOf(row).name);
+        }
+
+        [Test]
         public void EachTrialRoster_FliesEachRanksChassis_OnTheRivalsAndMinionsKits()
         {
             foreach (var (row, i) in Rows().Select((row, i) => (row, i)))

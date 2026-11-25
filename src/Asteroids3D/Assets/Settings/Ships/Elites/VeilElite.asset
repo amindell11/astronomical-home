@@ -12,7 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33424cb3ff214030b47ad2f7b3f470ea, type: 3}
   m_Name: VeilElite
   m_EditorClassIdentifier: 
-  displayName: Veil Nightshade
   scale:
     size: 1
     mass: 1.5

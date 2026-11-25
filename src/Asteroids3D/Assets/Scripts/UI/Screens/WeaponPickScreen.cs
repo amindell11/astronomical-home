@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
 using Combat.Weapons;
-using Combat.Weapons.Mods;
 using Loot;
 using Ships.Command;
 using Ships.Weapons;
-using Substrate.Sectors.Elements;
+using UI.Screens.Windows;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -13,36 +12,30 @@ using UnityEngine.UI;
 namespace UI.Screens
 {
     /// <summary>
-    /// The armory's weapon pick uGUI: up to three cards, each naming the mount it replaces (the one
+    /// The armory's weapon pick uGUI: up to three windows, each naming the mount it replaces (the one
     /// in the slot its kind fills), the held mods it would use and the held mods the swap would idle.
-    /// The sector's ships and weapons head the screen. Keyed (1, 2, 3, Space) and clickable,
-    /// answered through <see cref="Choice"/>; the host holds the clock and applies the swap.
-    /// How it was ruled to read: https://github.com/amindell11/astronomical-home/issues/1224#issuecomment-6475710068
+    /// Keyed (1, 2, 3, Escape) and clickable, answered through <see cref="Choice"/>; the host holds
+    /// the clock and applies the swap.
+    /// How it was ruled to read: https://github.com/amindell11/astronomical-home/issues/1694
     /// </summary>
     public sealed class WeaponPickScreen : MonoBehaviour
     {
         public const int MaxOffers = 3;
         public const int Skip = -1;
 
-        private static readonly Color Ink = new(.93f, .94f, .93f);
-        private static readonly Color Muted = new(.70f, .74f, .81f);
-        private static readonly Color Line = new(.84f, .87f, .93f, .25f);
-        private static readonly Color Paint = new(.91f, .91f, .85f);
-        private static readonly Color Gain = new(.56f, .83f, .67f);
-        private static readonly Color Loss = new(.91f, .62f, .52f);
-        private static readonly Color Backing = new(.047f, .078f, .153f, .9f);
-        private static readonly Color Dim = new(.047f, .078f, .153f, .55f);
-        private static readonly Color Hover = new(1f, 1f, 1f, .08f);
+        private static readonly Color ChipFill = new(1f, 1f, 1f, .2f);
         private static readonly string[] Keys = { "<Keyboard>/1", "<Keyboard>/2", "<Keyboard>/3" };
         private static readonly string[] PadButtons =
             { "<Gamepad>/buttonWest", "<Gamepad>/buttonNorth", "<Gamepad>/buttonEast" };
-        private const float CardWidth = 300f;
-        private const float CardHeight = 228f;
-        private const float CardGap = 24f;
-        private const float CardsY = -16f;
+        private const float CardWidth = 333f;
+        private const float CardHeight = 267f;
+        private const float CardGap = 29f;
+        private const float CardsY = -33f;
+        private const float Inset = 16f;
+        private const float ChipHeight = 20f;
 
         private readonly List<InputAction> actions = new();
-        private Font font;
+        private ScreenFonts fonts;
         private IReadOnlyList<WeaponComponent> offers;
         private WeaponComponent primary;
         private WeaponComponent secondary;
@@ -51,28 +44,20 @@ namespace UI.Screens
         /// <summary>Null until answered; then the picked offer's index, or <see cref="Skip"/>.</summary>
         public int? Choice { get; private set; }
 
-        public static WeaponPickScreen Create(Transform parent, int sector, SectorThreat? threat,
-            IReadOnlyList<WeaponComponent> offers, WeaponComponent primary, WeaponComponent secondary,
-            LullModStack mods)
+        public static WeaponPickScreen Create(Transform parent, IReadOnlyList<WeaponComponent> offers,
+            WeaponComponent primary, WeaponComponent secondary, LullModStack mods)
         {
             if (offers == null || offers.Count == 0 || offers.Count > MaxOffers)
                 throw new ArgumentException($"A weapon pick offers one to {MaxOffers} weapons.", nameof(offers));
             var go = new GameObject("WeaponPickScreen", typeof(RectTransform));
             go.transform.SetParent(parent, false);
-            var canvas = go.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 100;
-            var scaler = go.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1280f, 720f);
-            scaler.matchWidthOrHeight = .5f;
-            go.AddComponent<GraphicRaycaster>();
+            ScreenKit.Canvas(go);
             var screen = go.AddComponent<WeaponPickScreen>();
             screen.offers = offers;
             screen.primary = primary;
             screen.secondary = secondary;
             screen.mods = mods ?? throw new ArgumentNullException(nameof(mods));
-            screen.Build(sector, threat);
+            screen.Build();
             screen.BindKeys();
             return screen;
         }
@@ -86,7 +71,7 @@ namespace UI.Screens
 
         public void ChooseSkip() => Choice ??= Skip;
 
-        private void Awake() => font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        private void Awake() => fonts = ScreenFonts.Load();
 
         private void OnDestroy()
         {
@@ -94,33 +79,22 @@ namespace UI.Screens
             actions.Clear();
         }
 
-        private void Build(int sector, SectorThreat? threat)
+        private void Build()
         {
-            var dim = Centered(transform, "Dim", 0f, 0f, 0f);
-            dim.anchorMin = Vector2.zero;
-            dim.anchorMax = Vector2.one;
-            dim.offsetMin = dim.offsetMax = Vector2.zero;
-            dim.gameObject.AddComponent<Image>().color = Dim;
+            WindowKit.Fade(transform, WindowKit.StrongFade);
+            ScreenKit.Label(ScreenKit.Centered(transform, "Title", 800f, 44f, 227f), "WEAPON PICK", 32,
+                WindowKit.Ink, fonts.Title, TextAnchor.MiddleCenter);
+            ScreenKit.Label(ScreenKit.Centered(transform, "Hint", 800f, 20f, 189f), "CHOOSE A NEW WEAPON TO EQUIP", 15,
+                WindowKit.Dim, fonts.Label, TextAnchor.MiddleCenter);
 
-            Label(Centered(transform, "Title", 600f, 48f, 236f), "WEAPON PICK", 40, Paint, TextAnchor.MiddleCenter);
-            Label(Centered(transform, "Next", 1000f, 18f, 196f), $"SECTOR {sector:00} SENDS", 11, Muted,
-                TextAnchor.MiddleCenter);
-            if (threat is SectorThreat sends)
-            {
-                Label(Centered(transform, "Ships", 1000f, 20f, 176f),
-                    "SHIPS   " + Names(sends.Ships, ship => ship.name), 13, Ink, TextAnchor.MiddleCenter);
-                Label(Centered(transform, "Weapons", 1000f, 20f, 156f),
-                    "WEAPONS   " + Names(sends.Weapons, weapon => weapon.DisplayName), 13, Ink, TextAnchor.MiddleCenter);
-            }
-
-            var offerRow = Centered(transform, "Offers", 0f, 0f, 0f);
-            Label(Centered(offerRow, "Hint", 600f, 20f, 120f), "PICK A WEAPON: CLICK A CARD OR PRESS ITS KEY", 12,
-                Muted, TextAnchor.MiddleCenter);
+            var offerRow = ScreenKit.Centered(transform, "Offers", 0f, 0f, 0f);
             var count = offers.Count;
-            var cards = Centered(offerRow, "Cards", count * CardWidth + (count - 1) * CardGap, CardHeight, CardsY);
+            var cards = ScreenKit.Centered(offerRow, "Cards", count * CardWidth + (count - 1) * CardGap, CardHeight,
+                CardsY);
             for (var i = 0; i < count; i++)
                 BuildOfferCard(cards, i, offers[i]);
-            BuildKeyButton(Centered(offerRow, "Skip", 216f, 38f, CardsY - CardHeight / 2f - 44f), "SKIP", ChooseSkip);
+            WindowKit.KeyButton(ScreenKit.Centered(offerRow, "Skip", 200f, 36f, CardsY - CardHeight / 2f - 41f),
+                "SKIP", "ESC", fonts.Label, ChooseSkip);
         }
 
         private void BuildOfferCard(RectTransform cards, int index, WeaponComponent weapon)
@@ -128,66 +102,66 @@ namespace UI.Screens
             var fillsWeaponSlot = WeaponsController.SlotFor(weapon) == WeaponSlot.Primary;
             var replaced = fillsWeaponSlot ? primary : secondary;
             var kept = fillsWeaponSlot ? secondary : primary;
-            var card = Card(cards, $"Card{index + 1}", index, index + 1, weapon.DisplayName, () => ChooseOffer(index));
-            Label(Box(card, "Replaces", 18, 66, 264, 18),
-                "REPLACES  " + (replaced ? replaced.DisplayName.ToUpperInvariant() : "EMPTY"), 11, Muted);
-            Label(Box(card, "UsesLabel", 18, 92, 264, 18), "USES YOUR MODS", 11, Muted);
-            var uses = mods.Using(weapon);
-            Label(Box(card, "Uses", 18, 112, 264, 36), uses.Count == 0 ? "NONE" : Names(uses, held => held.Label), 14,
-                uses.Count == 0 ? Muted : Gain, TextAnchor.UpperLeft);
-            Label(Box(card, "IdleLabel", 18, 156, 264, 18), "GOES IDLE", 11, Muted);
-            var idles = mods.IdledBy(replaced, weapon, kept);
-            Label(Box(card, "Idles", 18, 176, 264, 36), idles.Count == 0 ? "NOTHING" : Names(idles, held => held.Label),
-                14, idles.Count == 0 ? Muted : Loss, TextAnchor.UpperLeft);
+            var window = ScreenWindow.Create(cards, $"Card{index + 1}", index * (CardWidth + CardGap), 0f, CardWidth,
+                CardHeight, $"WEAPON {index + 1:00}", fonts.Label);
+            var body = window.Body;
+            var width = CardWidth - 2f * Inset;
+
+            var icon = ScreenKit.Box(body, "Icon", Inset, 12f, 44f, 44f).gameObject.AddComponent<Image>();
+            icon.sprite = weapon.HudIcon;
+            icon.enabled = weapon.HudIcon;
+            icon.preserveAspect = true;
+            icon.color = WindowKit.Ink;
+            icon.raycastTarget = false;
+            WindowKit.Label(body, "Name", weapon.DisplayName, Inset + 53f, 12f, width - 53f, 44f, 24, WindowKit.Ink,
+                fonts.Heading);
+            WindowKit.Captioned(body, "Replaces", "REPLACES",
+                replaced ? replaced.DisplayName.ToUpperInvariant() : "EMPTY", Inset, 65f, width, 14, fonts.Label);
+            WindowKit.Rule(body, Inset, 91f, width);
+
+            WindowKit.Label(body, "UsesLabel", "USES MODS", Inset, 100f, width, 20f, 14, WindowKit.Dim, fonts.Label);
+            var idleY = 123f + Chips(body, "Uses", 123f, width, mods.Using(weapon), "+", "NONE", true) + 14f;
+            WindowKit.Label(body, "IdleLabel", "GOES IDLE", Inset, idleY, width, 20f, 14, WindowKit.Dim, fonts.Label);
+            Chips(body, "Idles", idleY + 23f, width, mods.IdledBy(replaced, weapon, kept), "−", "NOTHING", false);
+
+            ScreenKit.Button((RectTransform)window.transform, () => ChooseOffer(index));
+            window.Play();
         }
 
-        private RectTransform Card(RectTransform cards, string name, int column, int key, string title, Action pick)
+        // One outlined chip per held mod, wrapping onto further lines; returns the height they take.
+        private float Chips(RectTransform body, string name, float y, float width, IReadOnlyList<HeldMod> held,
+            string sign, string none, bool lit)
         {
-            var card = Box(cards, name, column * (CardWidth + CardGap), 0f, CardWidth, CardHeight);
-            Fill(card, Backing);
-            Clickable(card, pick);
-            Fill(Box(card, "CornerTop", 0, 0, 17, 1), Line);
-            Fill(Box(card, "CornerLeft", 0, 0, 1, 17), Line);
+            var row = ScreenKit.Box(body, name, Inset, y, width, ChipHeight);
+            if (held.Count == 0)
+            {
+                WindowKit.Label(row, "None", none, 0f, 0f, width, ChipHeight, 14, WindowKit.Dim, fonts.Label);
+                return ChipHeight;
+            }
 
-            var cap = Box(card, "KeyCap", 18, 18, 40, 40);
-            Fill(Box(cap, "Top", 0, 0, 40, 1), Line);
-            Fill(Box(cap, "Bottom", 0, 39, 40, 1), Line);
-            Fill(Box(cap, "Left", 0, 0, 1, 40), Line);
-            Fill(Box(cap, "Right", 39, 0, 1, 40), Line);
-            Label(Box(cap, "Key", 0, 0, 40, 40), key.ToString(), 22, Paint, TextAnchor.MiddleCenter);
-            Label(Box(card, "Name", 72, 18, 210, 40), title.ToUpperInvariant(), 18, Ink);
-            return card;
-        }
+            var x = 0f;
+            var line = 0f;
+            for (var i = 0; i < held.Count; i++)
+            {
+                var chip = ScreenKit.Box(row, $"Chip{i + 1}", 0f, 0f, 0f, ChipHeight);
+                var label = WindowKit.Label(chip, "Label", $"{sign} {held[i].Label.ToUpperInvariant()}", 8f, 0f, 0f,
+                    ChipHeight, 14, lit ? WindowKit.Ink : WindowKit.Dim, fonts.Label);
+                var chipWidth = label.preferredWidth + 16f;
+                if (x > 0f && x + chipWidth > width)
+                {
+                    x = 0f;
+                    line += ChipHeight + 4f;
+                }
+                chip.anchoredPosition = new Vector2(x, -line);
+                chip.sizeDelta = new Vector2(chipWidth, ChipHeight);
+                if (lit) ScreenKit.Fill(ScreenKit.Box(chip, "Fill", 0f, 0f, chipWidth, ChipHeight), ChipFill);
+                WindowKit.Shape(ScreenKit.Box(chip, "Frame", 0f, 0f, chipWidth, ChipHeight),
+                    lit ? WindowKit.Ink : WindowKit.Line, 0f, 1.5f);
+                label.transform.SetAsLastSibling();
+                x += chipWidth + 6f;
+            }
 
-        private void BuildKeyButton(RectTransform button, string label, Action press)
-        {
-            Clickable(button, press);
-            Fill(Box(button, "Top", 0, 0, 216, 1), Line);
-            Fill(Box(button, "Bottom", 0, 37, 216, 1), Line);
-            Fill(Box(button, "Left", 0, 0, 1, 38), Line);
-            Fill(Box(button, "Right", 215, 0, 1, 38), Line);
-            Label(Box(button, "Label", 14, 0, 140, 38), label, 11, Ink);
-            Label(Box(button, "Key", 140, 0, 62, 38), "SPACE", 11, Muted, TextAnchor.MiddleRight);
-        }
-
-        // A full-size overlay is the click target and shows only on hover, under the card's text.
-        private void Clickable(RectTransform rect, Action press)
-        {
-            var overlay = Box(rect, "Hover", 0, 0, rect.sizeDelta.x, rect.sizeDelta.y);
-            var image = overlay.gameObject.AddComponent<Image>();
-            image.color = Hover;
-
-            var button = rect.gameObject.AddComponent<Button>();
-            button.targetGraphic = image;
-            button.navigation = new Navigation { mode = Navigation.Mode.None };
-            var colors = button.colors;
-            colors.normalColor = Color.clear;
-            colors.selectedColor = Color.clear;
-            colors.highlightedColor = Color.white;
-            colors.pressedColor = Color.white;
-            colors.fadeDuration = 0f;
-            button.colors = colors;
-            button.onClick.AddListener(() => press());
+            return line + ChipHeight;
         }
 
         private void BindKeys()
@@ -202,62 +176,16 @@ namespace UI.Screens
                 actions.Add(action);
             }
 
-            var space = new InputAction("Skip", InputActionType.Button, "<Keyboard>/space");
-            space.AddBinding("<Gamepad>/buttonSouth");
-            space.performed += _ => ChooseSkip();
-            space.Enable();
-            actions.Add(space);
+            var skip = new InputAction("Skip", InputActionType.Button, "<Keyboard>/escape");
+            skip.AddBinding("<Gamepad>/buttonSouth");
+            skip.performed += _ => ChooseSkip();
+            skip.Enable();
+            actions.Add(skip);
         }
 
         private void PressKey(int index)
         {
             if (index < offers.Count) ChooseOffer(index);
-        }
-
-        private static string Names<T>(IReadOnlyList<T> items, Func<T, string> name)
-        {
-            var names = new string[items.Count];
-            for (var i = 0; i < items.Count; i++) names[i] = name(items[i]).ToUpperInvariant();
-            return string.Join(" · ", names);
-        }
-
-        private static RectTransform Centered(Transform parent, string name, float width, float height, float y)
-        {
-            var rect = (RectTransform)new GameObject(name, typeof(RectTransform)).transform;
-            rect.SetParent(parent, false);
-            rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(.5f, .5f);
-            rect.anchoredPosition = new Vector2(0f, y);
-            rect.sizeDelta = new Vector2(width, height);
-            return rect;
-        }
-
-        private static RectTransform Box(Transform parent, string name, float x, float y, float width, float height)
-        {
-            var rect = (RectTransform)new GameObject(name, typeof(RectTransform)).transform;
-            rect.SetParent(parent, false);
-            rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0, 1);
-            rect.anchoredPosition = new Vector2(x, -y);
-            rect.sizeDelta = new Vector2(width, height);
-            return rect;
-        }
-
-        private static void Fill(RectTransform rect, Color color)
-        {
-            var image = rect.gameObject.AddComponent<Image>();
-            image.color = color;
-            image.raycastTarget = false;
-        }
-
-        private void Label(RectTransform rect, string value, int size, Color color,
-            TextAnchor alignment = TextAnchor.MiddleLeft)
-        {
-            var text = rect.gameObject.AddComponent<Text>();
-            text.font = font;
-            text.fontSize = size;
-            text.color = color;
-            text.alignment = alignment;
-            text.raycastTarget = false;
-            text.text = value;
         }
     }
 }
