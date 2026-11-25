@@ -1,5 +1,54 @@
 # Hangar deck
 
+## Blinking status lamps, 2026-11-23
+
+After flying the indicator build the owner found it too many lamps and too bright, so the status lamps lose their meaning. The left group is back to three lenses on its 0.92 seat, at x -0.27, 0 and 0.27, with the original names and materials; the geometry matches the pass before the indicators. All six status lenses carry an `export_role` (`StatusLamp1`–`StatusLamp3` for the left group and `StatusLamp4`–`StatusLamp6` for the right, each left to right), so each exports as its own part and as a manifest lamp with a glow card. Unity blinks them on Perlin noise in their exported colours. The manifest is back to twelve lamps. The "Ship and screen status lamps" section below is superseded.
+
+## Window etching follows the visible frame, 2026-11-23
+
+The owner asked for the window etchings to follow the edge of the window. Before this pass, `build_glass.py` laid the marks out against each pane's glass outline. That outline is hidden under the strut centre lines, the header and the sill. The marks therefore sat at an inset from edges nobody can see, and about a third of the stroke area was on glass behind hardware.
+
+`add_glass` now ray-casts the hardware from the game camera on a 2-pixel grid inside each pane outline and traces the open sky. It simplifies the boundary to straight edges and fits a line to each. It keeps the frame edges: header, gussets, struts and pillars. Edges with open sky above them, meaning the sill and console tops, are dropped. Only the right-hand panes and the right half of the centre pane are traced. The left side is their mirror image, so tracing noise cannot break the deck's symmetry. Each pane's traced frame is recorded as `visible_frame` in `previews/window-etching-layout.json`.
+
+All marks sit at a constant 22-pixel inset from that visible frame:
+
+- Corner brackets mark every inset corner that turns by more than about 11.5 degrees, including both ends of each header gusset. Leg length is unchanged.
+- The broken lines run along the inset strut and pillar edges, using the existing length rule.
+- The tick row and hexagon cluster run along the longest header edge with the existing offsets. The centre cluster sits at the right end by the right strut. Side and outer clusters sit at the inboard end on both sides.
+- No marks follow the sill, which the console hides.
+
+Stroke strengths, widths, feather, hexagon sizes and the hologram keep-out are unchanged. `add_glass` asserts that each mark's ends and midpoint see open sky, so the build fails if a mark would land on hardware.
+
+`build_deck.py -- --no-render`, `export_glass.py`, `verify_glass.py` and `verify_glass_projection.py` pass. Each checked view still has zero glass-ahead-of-hardware and zero tinted hardware pixels; the 204 uncovered window-edge pixels in each wide view are unchanged. A dense ray check found 7,461 of 21,510 stroke samples behind hardware with the old layout and none of 15,021 with the new one. The 4096 by 2048 mask has 20,395 nonzero texels, all inside strokes. Its SHA-256 is `6eb7d977dfcd0330cf2ec5fb4d3eb8af45610988405c0fe0290340de57cd8136`. `WindowEtching.png` and `ViewportGlass.fbx` in the Unity console visuals were re-exported, and the console prefab was rebuilt.
+
+## Ship and screen status lamps, 2026-11-23
+
+Superseded by "Blinking status lamps" above. The owner turned the two pod status groups into indicators. The left group now has five lenses, one per offered ship, named `Deck | Left ship 1 lens` to `Deck | Left ship 5 lens` from left to right. They keep the old lens size, socket scale and 0.27 pitch, at x -0.54 to 0.54 on a status seat widened from 0.92 to 1.29. The seat still clears the ramp screws at x ±0.73. The right group keeps its geometry: its three lenses stand for the ship, primary and ordnance screens.
+
+Each lens carries an `export_role` (`ShipLamp1`–`ShipLamp5`, `SlotLamp1`–`SlotLamp3`). The exporter's `part_names` lists them, so each exports as its own part and also as a manifest lamp with a glow card, like the Launch lamps. Unity colours them at runtime, so their Blender material is only a placeholder. The manifest now lists fourteen lamps.
+
+Verifier results are unchanged in kind. `verify_deck.py` now stops on `KeyError: 'ShipLamp1'`, its parts palette having no entry for the new roles. `verify_pedestal.py` still stops on the corner indicator material. Neither verifier was edited.
+
+## Trial warm gusset lamps, 2026-11-22
+
+A trial the owner asked for on top of the corner strips, kept in its own commit so it can be dropped. One small warm-white lamp per side sits on the flat header face just outboard of each overhead strip's outer end, where the strut top meets the header, centred at `(±6.54, 3.325, 10.24)`. It uses the console's usual lamp style: a 0.30 by 0.075 lens in a socket with a lip at 0.7 scale. Its material is `Deck | gusset warm white lamp emission`, linear `(1.0, 0.82, 0.62)` at strength 0.7, dimmer than the orange Launch key. The lens name ends in ` lens`, so it exports as a lamp with a glow card; the manifest now has twelve lamps and two downlights. Verifier results match the corner-strip pass.
+
+## Header corner strips and indicators, 2026-11-22
+
+The owner found the two upper corners of the 16:9 view too dark and chose this detail from two options. Each outboard header cassette gets a short cold-white strip under its service hatch, centred at x ±11.19, 0.16 above the cassette's lower edge. The lens is 1.56 by 0.055 with `Deck | corner cold strip emission`, linear `(0.28, 0.36, 0.48)` at strength 0.65, the header strips' colour. It sits in a dark bezel 1.70 by 0.13. The lens name ends in ` lens`, so the exporter lists it as a lamp and Unity gives it a glow card. The manifest now has ten lamps and two downlights.
+
+Beside the inner cassette's hatch, at x ±9.75 and mid-height, a small seat holds three indicator pips: one green and two cold white, linear `(0.025, 0.70, 0.055)` and `(0.45, 0.72, 1.0)` at strength 0.9. They are body finish solids, painted into the emission map, with no glow cards. Nothing adds a real light, because the console's eight light slots are full.
+
+The rebuild ran the same verifiers as the orange-key pass. Coverage, ink, glass and glass projection pass. `verify_deck.py` still stops on `KeyError: 'LaunchLampLeft'`. `verify_pedestal.py` now stops earlier, with `KeyError: 'Deck | corner indicator green emission'`: the pips join the body, and its protected-surface comparison has no entry for a material added after `pedestal-baseline.json`. Neither verifier was edited.
+
+## Orange Launch key again, 2026-11-22
+
+The owner chose to go back to the orange key. `08 | Launch broad beveled button` uses `Deck | orange launch resin` again, linear `(0.95, 0.20, 0.018)` with emission strength 1 and black base colour, as it did before the black-key pass. `19 | Launch legend` is back on the shared `Deck | ivory inlaid legends` material, and both objects are back in their ink collections. The black resin and yellow legend materials are no longer built. Everything else stays: the `LaunchLampLeft` / `LaunchLampRight` roles and lamps, the pedestal strips and ringed lens, and the projector.
+
+The rebuild ran `build_deck.py`, the pedestal-recipe verifiers and the three assemblers. `verify_coverage.py`, `verify_ink.py`, `verify_glass.py` and `verify_glass_projection.py` pass. Two verifiers fail for reasons older than this pass. `verify_pedestal.py` reports `protected_objects_exact` for only the two Launch lamp lenses, because their `export_role` properties postdate `pedestal-baseline.json`; every material in that baseline matches, the orange resin included. `verify_deck.py` stops with `KeyError: 'LaunchLampLeft'` because its parts-sheet palette has no entry for the lamp roles; the lamp-role pass added one only in memory. Neither verifier was edited.
+
+The shared exporter wrote `Console.fbx`, `ConsolePaint.png` and `ConsoleEmission.png`. `console-export.json` is unchanged. Unity's `HangarConsoleBuilder` then rebuilt the prefab.
+
 ## Separate Launch lamp roles, 2026-11-21
 
 The owner wants the two red lamps beside LAUNCH to blink blue when pressed. `build_deck.py` now registers the existing lenses in `PARTS` as `LaunchLampLeft` and `LaunchLampRight`, with matching `export_role` properties. Their names remain `Deck | Left Launch armed red lens` and `Deck | Right Launch armed red lens`. Both remain in `finish_lamps` under those names. Their sockets and guards remain in `ConsoleBody`.
@@ -143,7 +192,7 @@ The five canopy panes were positioned from the strut and pillar anchors with sma
 
 `build_glass.py` now scales the glass uniformly about the fixed game-camera eye. The scale is calculated from the hardware's farthest camera depth and the glass's nearest camera depth, leaving 0.10 units of clearance. The current factor is 1.274858742. This is fix-ladder rung 1: the whole glass depth range is behind the whole hardware depth range. The transformation preserves the pane outlines and etch positions in projection at every aspect ratio. It also preserves the five planar faces, local mesh, UV islands and shader. All 65 other scene objects, hardware materials, camera and ink settings match the pre-fix snapshot. `previews/glass-preservation.json` records that comparison.
 
-The mask was not carrying a base film. All 26,743 nonzero texels belong to finite etch strokes. Empty areas, unused atlas space and the three-texel island margins are exactly black. UVs remain inside 0..1 without overlap, and every pane faces the camera. The fresh 4096 by 2048 exporter bake retains SHA-256 `a011b0a4b2e01b25423251c0dd2a42810a46c2309a5a4f7efdfa8a0ac0133a0d`. The atlas dimensions below describe local mesh units; after the placement scale, world-space density is approximately 80.36 texels per unit.
+The mask was not carrying a base film. All 26,743 nonzero texels of that pass's mask belonged to finite etch strokes. Empty areas, unused atlas space and the three-texel island margins are exactly black. UVs remain inside 0..1 without overlap, and every pane faces the camera. That pass's bake kept SHA-256 `a011b0a4b2e01b25423251c0dd2a42810a46c2309a5a4f7efdfa8a0ac0133a0d`; the current mask and its hash are in "Window etching follows the visible frame" above. The atlas dimensions below describe local mesh units; after the placement scale, world-space density is approximately 80.36 texels per unit.
 
 The supplied game's broad pale wash did **not** reproduce with this scene, this baked mask and the supplied shader equation, even before the placement fix. All offending hardware pixels sampled black. The confirmed defect is pane placement, not a demonstrated explanation for that uniform wash. Runtime texture, mesh and material bindings were not changed or verified in Unity.
 
@@ -359,7 +408,7 @@ The single `GlassUV` map packs the centre and two side panes in the lower row, w
 
 The old `console.blend` was opened without saving it. Its material constructs finite line segments from clamped nearest-point distances, softens their edges, and unions them with Maximum nodes. The new material uses the same construction. Its greyscale output feeds the first input of the Mix Shader named `Only the perimeter catches light`, exactly as the unchanged exporter expects. No external texture is needed to rebuild or bake the scene.
 
-Short corner brackets follow actual pane angles. Small hexagon clusters diminish from 0.15 to 0.075 mask strength, tick scales use 0.13, and broken lines beside the struts use 0.115. The strongest corner marks reach 0.18. The nominal stroke width is 1.75 pixels at 1920 by 1080, with a narrow feather across each stroke. Marks stay within the pane edges and corners. The projected 5 by 4 by 4 hologram box has an additional 14-pixel clear margin. There is no text or numbering.
+Mark placement now follows the visible frame, as described in "Window etching follows the visible frame" above. Small hexagon clusters diminish from 0.15 to 0.075 mask strength, tick scales use 0.13, and broken lines beside the struts use 0.115. The strongest corner marks reach 0.18. The nominal stroke width is 1.75 pixels at 1920 by 1080, with a narrow feather across each stroke. The projected 5 by 4 by 4 hologram box has an additional 14-pixel clear margin. There is no text or numbering.
 
 Review the current glass in `previews/deck-window-etching.png` and `previews/deck-window-etching-21x9.png`. These renders sample the exported mask as cool-white additive light at 35% strength over a procedural dark blue starfield. The existing placeholder ship and screen glasses remain. `render_glass.py` makes these preview-only material changes in memory and never saves them to `deck.blend`. Earlier finish images below remain hardware references.
 
@@ -367,7 +416,7 @@ Review the current glass in `previews/deck-window-etching.png` and `previews/dec
 
 The hardware, lamps, screens, controls, camera and ink settings remain unchanged. All 68 pre-existing scene objects match the captured geometry, transforms, material assignments and properties. The existing finish, mesh, recess, six-aspect coverage and ink verifiers passed, as did the preview assemblers. Hardware remains at 45 meshes and 26,508 triangles. The new glazing adds 17 triangles. The local hardware verifiers exclude the new glass by its exact name, as the shared hardware exporter already does. Their original hardware assertions are unchanged.
 
-`verify_glass.py` separately checks planar panes, UV proportions and overlap, greyscale bake, window coverage at 16:9, 21:9 and 32:9, and the clear hologram region. All 8,000 hologram-region samples are zero. Its report is `previews/window-etching-audit.json`; the authored pane and stroke coordinates are in `previews/window-etching-layout.json`. The measured stroke widths range from 1.721 to 1.779 pixels, averaging 1.750, as recorded in `previews/window-etching-widths.json`. Of 1,260 sampled mark rays, 143 overlap hardware, and all 143 meet the hardware before the glass. Those results are in `previews/window-etching-occlusion.json`.
+`verify_glass.py` separately checks planar panes, UV proportions and overlap, greyscale bake, window coverage at 16:9, 21:9 and 32:9, and the clear hologram region. All 8,000 hologram-region samples are zero. Its report is `previews/window-etching-audit.json`; the authored pane and stroke coordinates are in `previews/window-etching-layout.json`. The measured stroke widths range from 1.721 to 1.779 pixels, averaging 1.750, as recorded in `previews/window-etching-widths.json`. With that original layout, 143 of 1,260 sampled mark rays overlapped hardware, all meeting the hardware before the glass. Those results are in `previews/window-etching-occlusion.json`; the current layout places no marks on hardware.
 
 To reproduce the glass previews, use the local Blender resource and temporary folders from the rebuild instructions below. These steps name scripts relative to this directory:
 

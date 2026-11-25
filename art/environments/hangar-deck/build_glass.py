@@ -1,9 +1,11 @@
 """Author the five canopy panes and the UV-space strokes used by export_glass.py."""
+import itertools
 import json
 import math
 
 import bpy
 from mathutils import Matrix, Vector
+from mathutils.bvhtree import BVHTree
 from bpy_extras.object_utils import world_to_camera_view
 
 
@@ -24,22 +26,103 @@ def _clip(points, a, b, inside):
     return output
 
 
-def _inset(points, amount):
-    area = sum(p.x * q.y - q.x * p.y for p, q in zip(points, points[1:] + points[:1]))
-    edges = []
-    for p, q in zip(points, points[1:] + points[:1]):
-        d = (q - p).normalized()
-        n = Vector((-d.y, d.x)) * (1 if area > 0 else -1)
-        edges.append((p + n * amount, d))
-    result = []
-    for (p, a), (q, b) in zip(edges[-1:] + edges[:-1], edges):
+def _inside(point, polygon):
+    inside = False
+    for p, q in zip(polygon, polygon[1:] + polygon[:1]):
+        if (p.y > point.y) != (q.y > point.y) and point.x < p.x + (point.y - p.y) * (q.x - p.x) / (q.y - p.y):
+            inside = not inside
+    return inside
+
+
+def _simplify(points, i, j, tolerance, keep):
+    a, d = points[i], points[j] - points[i]
+    worst, index = 0, None
+    for k in range(i + 1, j):
+        distance = abs(d.x * (points[k].y - a.y) - d.y * (points[k].x - a.x)) / d.length
+        if distance > worst:
+            worst, index = distance, k
+    if worst > tolerance:
+        _simplify(points, i, index, tolerance, keep)
+        keep.append(index)
+        _simplify(points, index, j, tolerance, keep)
+
+
+def _frame_edges(outline, sky, step=2):
+    """Trace the open sky inside one pane outline; return its header, gusset and post edges as a polyline."""
+    left, top = min(p.x for p in outline), max(p.y for p in outline)
+    columns = int((max(p.x for p in outline) - left) / step) + 1
+    rows = int((top - min(p.y for p in outline)) / step) + 1
+
+    def pixel(cell):
+        return Vector((left + cell[0] * step, top - cell[1] * step))
+
+    remaining = {(c, r) for r in range(rows) for c in range(columns)
+                 if _inside(pixel((c, r)), outline) and sky(pixel((c, r)))}
+    region = set()
+    while remaining:
+        component, frontier = set(), [remaining.pop()]
+        while frontier:
+            c, r = frontier.pop()
+            component.add((c, r))
+            for n in ((c + dc, r + dr) for dc in (-1, 0, 1) for dr in (-1, 0, 1)):
+                if n in remaining:
+                    remaining.remove(n)
+                    frontier.append(n)
+        region = max(region, component, key=len)
+
+    # Moore-neighbour boundary trace, counterclockwise on screen.
+    directions = [(1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1), (0, 1), (1, 1)]
+    start = min(region, key=lambda cell: (cell[1], cell[0]))
+    contour, current, direction = [start], start, 7
+    while True:
+        first = (direction + 7) % 8 if direction % 2 == 0 else (direction + 6) % 8
+        for k in range(8):
+            d = (first + k) % 8
+            n = (current[0] + directions[d][0], current[1] + directions[d][1])
+            if n in region:
+                break
+        if current == start and len(contour) > 2 and n == contour[1]:
+            break
+        current, direction = n, d
+        contour.append(n)
+    points = [pixel(cell) for cell in contour[:-1]]
+
+    far = max(range(len(points)), key=lambda i: (points[i] - points[0]).length)
+    closed = points + points[:1]
+    keep = [0]
+    _simplify(closed, 0, far, step * 1.5, keep)
+    keep.append(far)
+    _simplify(closed, far, len(points), step * 1.5, keep)
+    keep.append(len(points))
+    lines = []
+    for i, j in zip(keep, keep[1:]):
+        trimmed = closed[i + 3:j - 2] if j - i > 8 else closed[i:j + 1]
+        mean = sum(trimmed, Vector((0, 0))) / len(trimmed)
+        xx = sum((p.x - mean.x) ** 2 for p in trimmed)
+        yy = sum((p.y - mean.y) ** 2 for p in trimmed)
+        xy = sum((p.x - mean.x) * (p.y - mean.y) for p in trimmed)
+        angle = .5 * math.atan2(2 * xy, xx - yy)
+        lines.append((mean, Vector((math.cos(angle), math.sin(angle))), closed[j]))
+    vertices = []
+    for (p, a, fallback), (q, b, _) in zip(lines, lines[1:] + lines[:1]):
         cross = a.x * b.y - a.y * b.x
-        if abs(cross) < 1e-7:
-            result.append(q)
-        else:
-            d = q - p
-            result.append(p + a * ((d.x * b.y - d.y * b.x) / cross))
-    return result
+        vertices.append(fallback if abs(cross) < .05 else p + a * (((q - p).x * b.y - (q - p).y * b.x) / cross))
+
+    if sum(p.x * q.y - q.x * p.y for p, q in zip(vertices, vertices[1:] + vertices[:1])) < 0:
+        vertices.reverse()
+    count = len(vertices)
+    edges = [(vertices[i], vertices[(i + 1) % count]) for i in range(count)]
+    # Open sky lies left of each counterclockwise edge; sill and console tops face up into it.
+    frame = [(b - a).length > 0 and (b - a).normalized().x < .5 for a, b in edges]
+    seed = max((i for i in range(count) if frame[i] and (edges[i][1] - edges[i][0]).length > 40),
+               key=lambda i: edges[i][0].y + edges[i][1].y)
+    first, last = seed, seed
+    while frame[(first - 1) % count] and (first - 1) % count != seed:
+        first -= 1
+    while frame[(last + 1) % count] and (last + 1) % count != first % count:
+        last += 1
+    assert last - first < count - 1, 'pane opening has no sill edge'
+    return [vertices[i % count] for i in range(first, last + 2)]
 
 
 def add_glass(dimensions, scene, camera, out_dir):
@@ -147,6 +230,7 @@ def add_glass(dimensions, scene, camera, out_dir):
         xmin, xmax, ymin, ymax = protected_bounds
         if min(a.x, b.x) <= xmax and max(a.x, b.x) >= xmin and min(a.y, b.y) <= ymax and max(a.y, b.y) >= ymin:
             return
+        assert all(sky(p) for p in (a, b, (a + b) / 2)), ('etch mark off the open window', pane['name'], list(a), list(b))
 
         def physical(pixel):
             direction = ray(pixel)
@@ -164,32 +248,62 @@ def add_glass(dimensions, scene, camera, out_dir):
                         'screen_a': list(a), 'screen_b': list(b),
                         'half_width': half_width, 'strength': strength})
 
+    hardware = [o for o in scene.objects if o.type == 'MESH' and not o.get('preview_only') and o != obj]
+    hardware_vertices, hardware_faces = [], []
+    for other in hardware:
+        offset = len(hardware_vertices)
+        hardware_vertices.extend(other.matrix_world @ v.co for v in other.data.vertices)
+        hardware_faces.extend(tuple(offset + i for i in p.vertices) for p in other.data.polygons)
+    hardware_tree = BVHTree.FromPolygons(hardware_vertices, hardware_faces)
+
+    def sky(pixel):
+        return hardware_tree.ray_cast(eye, ray(pixel).normalized())[0] is None
+
+    # Each pane's marks trace the visible frame of its opening at a constant 22-pixel inset.
+    traced = {p['name']: _frame_edges(p['screen'], sky) for p in panes if not p['name'].startswith('Left')}
+
+    def mirror(chain):
+        return [Vector((1920 - p.x, p.y)) for p in reversed(chain)]
+
+    # The deck is mirror-symmetric; mirroring the right-hand trace keeps grid noise from breaking that.
     for pane in panes:
-        inset = _inset(pane['screen'], 22)
-        for index, p in enumerate(inset):
-            before, after = inset[index - 1], inset[(index + 1) % len(inset)]
+        if pane['name'] == 'Centre':
+            right = list(itertools.takewhile(lambda p: p.x > 960, traced['Centre']))
+            frame = right + mirror(right)
+        elif pane['name'].startswith('Left'):
+            frame = mirror(traced[pane['name'].replace('Left', 'Right')])
+        else:
+            frame = traced[pane['name']]
+        pane['frame'] = frame
+        lines = [(a + Vector((a.y - b.y, b.x - a.x)).normalized() * 22, (b - a).normalized())
+                 for a, b in zip(frame, frame[1:])]
+        inset = [lines[0][0]]
+        for (p, a), (q, b) in zip(lines, lines[1:]):
+            cross = a.x * b.y - a.y * b.x
+            inset.append(q if abs(cross) < 1e-7 else p + a * (((q - p).x * b.y - (q - p).y * b.x) / cross))
+        inset.append(lines[-1][0] + lines[-1][1] * (frame[-1] - frame[-2]).length)
+        for index in range(1, len(inset) - 1):
+            p, before, after = inset[index], inset[index - 1], inset[index + 1]
             incoming, outgoing = (before - p).normalized(), (after - p).normalized()
-            if abs(incoming.x * outgoing.y - incoming.y * outgoing.x) < 1e-5:
+            if abs(incoming.x * outgoing.y - incoming.y * outgoing.x) < .2:
                 continue
             for q in (before, after):
                 distance = min(48, (q - p).length * .23)
                 stroke(pane, p, p + (q - p).normalized() * distance)
-        edges = list(zip(inset, inset[1:] + inset[:1]))
+        edges = list(zip(inset, inset[1:]))
         # The long sloping edge beside each strut carries one broken registration line.
         slopes = [(a, b) for a, b in edges if abs(b.y - a.y) > 170 and abs(b.x - a.x) < abs(b.y - a.y) * .9]
         for a, b in slopes[:2]:
             d = b - a
             stroke(pane, a + d * .18, a + d * .43, .115)
             stroke(pane, a + d * .56, a + d * .81, .115)
-        a, b = max(edges, key=lambda pair: (pair[0].y + pair[1].y) / 2)
-        if pane['name'].endswith('outer') and abs(a.x - 960) > abs(b.x - 960):
+        a, b = max((pair for pair in edges if (pair[1] - pair[0]).normalized().x < -.7),
+                   key=lambda pair: (pair[1] - pair[0]).length)
+        n = Vector((a.y - b.y, b.x - a.x)).normalized()
+        # The centre pane's cluster sits by the right strut; side and outer clusters sit inboard.
+        if pane['name'] != 'Centre' and abs(a.x - 960) > abs(b.x - 960):
             a, b = b, a
         d = (b - a).normalized()
-        midpoint = (a + b) / 2
-        interior = sum(inset, Vector((0, 0))) / len(inset) - midpoint
-        n = Vector((-d.y, d.x))
-        if n.dot(interior) < 0:
-            n = -n
         for index in range(6):
             p = a + d * (min(70, (b - a).length * .3) + index * 9)
             stroke(pane, p, p + n * (6 if index % 3 else 10), .13)
@@ -281,7 +395,8 @@ def add_glass(dimensions, scene, camera, out_dir):
               'glass_near_depth': near_depth * radial_scale,
               'protected_screen_bounds_l_r_b_t': protected_bounds, 'stroke_width_pixels': 1.75,
               'panes': [{'name': p['name'], 'world': [list(obj.matrix_world @ v) for v in p['world']],
-                         'uv': [list(v) for v in p['uv']], 'screen': [list(v) for v in p['screen']]}
+                         'uv': [list(v) for v in p['uv']], 'screen': [list(v) for v in p['screen']],
+                         'visible_frame': [list(v) for v in p['frame']]}
                         for p in panes], 'strokes': strokes}
     obj['glazing_layout'] = json.dumps({k: report[k] for k in ('atlas_physical_size', 'protected_screen_bounds_l_r_b_t', 'stroke_width_pixels')})
     (out_dir / 'window-etching-layout.json').write_text(json.dumps(report, indent=2), encoding='utf-8')

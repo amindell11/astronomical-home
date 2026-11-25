@@ -13,7 +13,7 @@ Shader "Hangar/ConsoleGlow"
             Tags { "LightMode"="SRPDefaultUnlit" }
             Blend One One
             ZWrite Off
-            ZTest LEqual
+            ZTest Always
             Cull Off
             HLSLPROGRAM
             #pragma vertex GlowVertex
