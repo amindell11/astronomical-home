@@ -177,6 +177,8 @@ namespace Game.Player.Recorders
             return false;
         }
 
+        public bool IsElite(ShipId ship) => spawns.FindLast(s => s.Id == ship) is { Elite: true };
+
         public bool AnyOtherAlive()
         {
             var player = playerId();

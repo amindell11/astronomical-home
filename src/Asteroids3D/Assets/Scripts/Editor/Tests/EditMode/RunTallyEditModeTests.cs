@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>Run tally kill attribution: a killing blow from the player counts and raises Killed; asteroid, other-ship and self kills do not, and nothing counts outside Begin/End.</summary>
+    /// <summary>Run tally kill attribution: a killing blow from the player counts and raises Killed with where the victim died; asteroid, other-ship and self kills do not, and nothing counts outside Begin/End.</summary>
     [Category("Damage")]
     public class RunTallyEditModeTests
     {
@@ -31,9 +31,9 @@ namespace Tests.EditMode
             _killedRaised = 0;
             _tally = new RunTally();
             _tally.Bind(null, () => _playerId);
-            _tally.Killed += () => _killedRaised++;
+            _tally.Killed += (_, _) => _killedRaised++;
             _tally.Begin(0f);
-            _tally.Watch(_victim);
+            _tally.Watch(_victim, _go.transform);
         }
 
         [TearDown]
@@ -57,6 +57,16 @@ namespace Tests.EditMode
             Kill(new ShipId(attackerId), kind);
             Assert.AreEqual(expectedKills, _tally.Kills);
             Assert.AreEqual(expectedKills, _killedRaised);
+        }
+
+        [Test]
+        public void Killed_CarriesWhereTheVictimDied()
+        {
+            var diedAt = Vector3.zero;
+            _tally.Killed += (_, at) => diedAt = at;
+            _go.transform.position = new Vector3(3f, -2f, 0f);
+            Kill(Player);
+            Assert.AreEqual(new Vector3(3f, -2f, 0f), diedAt);
         }
 
         [Test]

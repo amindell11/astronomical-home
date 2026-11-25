@@ -29,6 +29,20 @@ the gate in flight instead of voiding it.
 (Decided 2026-07-31: the merge gate never ran tests on docs-only deltas, so
 the PR ceremony added review the session had already performed.)
 
+**Balance-only landing (PR, no gates).** A PR whose every change is an edit
+to an existing `*.asset` under `Assets/Settings/` or an existing `*.prefab`
+under `Assets/` (no added, deleted or renamed files, no `.meta`, no code or
+tests) merges with `./scripts/agent_worktree_pool.sh land-balance <pr>` on
+the user's merge instruction. It skips the Unity suite, the ReSharper ratchet,
+Codex review, the recorded instruction, the `task/*` branch rule and the slot:
+it checks the paths, checks the PR merges into main cleanly, and squash-merges
+under the merge turn with `--admin`, through the main ruleset's admin bypass
+(the required statuses and `land-check` never pass on such a PR). The PR can come from any branch, a cloud session's
+included. A tuning change that needs a new file or a test edit is not
+balance-only and takes the full loop.
+(Decided 2026-11-22: a pure tuning PR waited hours on a crashed PlayMode run,
+the `task/*` rule and a full pool.)
+
 ## Pool commands
 
 - `./scripts/agent_worktree_pool.sh status`
@@ -500,6 +514,18 @@ decides, with the merge gate's inert classifier); any other delta needs a new
 one. `land` refuses a PR with an unresolved review thread, so it takes no
 pre-merge comment check; its `--help` entry lists every refusal. Then run
 `land <pr>` yourself, or leave it to the merge task (§ Merge task).
+
+**GitHub auto-merge.** A PR may also land through GitHub's auto-merge (the
+Claude Code auto-merge toggle, or `gh pr merge --auto --squash`), which waits
+on the main ruleset's required statuses: `merge-proof/headless`,
+`merge-proof/resharper` and `land-check`, on a head that contains main. The
+`land-check` workflow runs `land-check <pr>` (its `--help` entry has the
+verdicts) from main's copy, so the same instruction-or-class rule decides, and
+consent still means a recorded instruction: turn auto-merge on only after
+`instruct`, or for a PR the class admits. When main moves, the PR waits until
+its branch is updated (GitHub's Update branch, or `revise`), and that push
+reruns the hosted suite. A landing diff touching `.github/`, `scripts/` or
+`.githooks/` never passes `land-check`; land it with `land` or `merge <slot>`.
 
 After the merge, the merge reconcile (`scripts/merge_reconcile.sh`, on the
 landing push) posts the Shipped note on the PR-closed issues, so the merging

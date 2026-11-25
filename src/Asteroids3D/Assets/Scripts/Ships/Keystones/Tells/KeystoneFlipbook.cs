@@ -32,6 +32,8 @@ namespace Ships.Keystones.Tells
         private bool seenActive;
         private int seenHits;
         private LayerPlay[] play;
+        private Vector3 previousPosition;
+        private Quaternion previousPose;
 
         private struct LayerPlay
         {
@@ -70,6 +72,9 @@ namespace Ships.Keystones.Tells
                 if (layer.frames < 1 || layer.frames > cells)
                     throw new InvalidOperationException(
                         $"KeystoneFlipbook on '{name}' layer {i} needs frames from 1 to {cells}.");
+                if (layer.startsBehind && !layer.staysAtLaunch)
+                    throw new InvalidOperationException(
+                        $"KeystoneFlipbook on '{name}' layer {i} starts behind only when it stays at launch.");
             }
 
             block = new MaterialPropertyBlock();
@@ -82,7 +87,12 @@ namespace Ships.Keystones.Tells
 
         public void ApplyPresentation(bool visible) => enabled = visible;
 
-        private void OnEnable() => HideSheets();
+        private void OnEnable()
+        {
+            // A dark part misses LateUpdate, so enable refreshes the remembered point.
+            RememberShip();
+            HideSheets();
+        }
 
         private void OnDisable()
         {
@@ -132,10 +142,11 @@ namespace Ships.Keystones.Tells
                     play[i].playing = true;
                     play[i].startedAt = Time.time;
                     play[i].liveEnded = false;
-                    play[i].position = startsOn == KeystoneFlipbookStart.Hit
-                        ? keystone.LastHitPoint
+                    var behind = layers[i].startsBehind;
+                    play[i].position = startsOn == KeystoneFlipbookStart.Hit ? keystone.LastHitPoint
+                        : behind ? previousPosition
                         : transform.position;
-                    play[i].rotation = pose;
+                    play[i].rotation = behind ? previousPose : pose;
                 }
 
                 if (play[i].playing) anyPlaying = true;
@@ -144,6 +155,7 @@ namespace Ships.Keystones.Tells
             if (!anyPlaying)
             {
                 HideSheets();
+                RememberShip();
                 return;
             }
 
@@ -202,6 +214,14 @@ namespace Ships.Keystones.Tells
                 block.SetFloat(OpacityId, opacity);
                 renderers[i].SetPropertyBlock(block);
             }
+
+            RememberShip();
+        }
+
+        private void RememberShip()
+        {
+            previousPosition = transform.position;
+            previousPose = FlatPose();
         }
 
         // The ship banks by rolling; the sheets stay flat on the game plane along its heading.
