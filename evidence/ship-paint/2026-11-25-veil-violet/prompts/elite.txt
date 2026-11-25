@@ -1,0 +1,20 @@
+Images 1 to 6 are orthographic and turnaround renders of one spaceship model, the Veil elite, in flat colour blocks: image 1 top-down (nose up), image 2 side, image 3 back, image 4 front, image 5 three-quarter front, image 6 three-quarter rear. They are the object and colour reference: the 3D form, silhouette, proportions, panel boundaries and which region has which colour come from them and must not change. Many shapes that look flat from above are raised fins, swept wings or stacked plates: trust images 2 to 6 for the real form. Image 7 is a painted concept of a DIFFERENT faction's ship: it is only the STYLE reference for paint handling, ink line weight and wear level. Take no shapes, colours or markings from image 7.
+
+The faction: Veil. Sleek, eerie, predatory ships with organic curved hulls like insect carapace or a manta ray; a disciplined, unsettling, well-kept fleet. Nothing scrappy or rusty. The palette is fixed:
+- main hull: dusk violet #614a87
+- second panels: deep violet #3f2964
+- edge lines, tips and accent strips: acid green #acf549, flat and bright, like luminous paint
+- recesses and canopy: near-black indigo #0b081b
+No red, orange, yellow, blue, cyan or magenta anywhere.
+
+This is the top rank: the most elaborate hull, with pale lime #e4ffa3 luminous strips on the inner wings exactly where image 1 has them. Keep those strips the size and shape image 1 gives them; they are flat bright panels, not a glow effect.
+
+Keep the thin acid green lines crisp and continuous along the edges exactly where image 1 has them; do not thicken them, break them up or add more. The hull should feel smooth and grown rather than bolted: long flowing panel seams that follow the curves, subtle layered shell plates, fine vents and gill slits, very few rivets, light wear only. Canopy is dark glass with no glow.
+
+Paint a finished paint-concept sheet of this one ship in the hand-painted illustrated style of image 7: solid colour regions, confident dark ink panel lines, one lighter brushed highlight pass, one darker shadow pass. Every view must show the SAME paint job: a seam, marking or panel that appears in one view sits in the matching place in the others.
+
+READABILITY: in play this ship is 60 to 100 pixels across on a very dark space background. The big colour shapes of image 1 must survive untouched; detail is a second read.
+
+HARD RULE FOR ALL ADDED DETAIL: value-only. Every line, scuff, chip, shadow and highlight is a darker or lighter tone of the colour underneath it. No new hues, no coloured grime, no paint chips showing a different colour, no decals, text, numbers or logos. The same detail must still work if the hull colour were swapped for a different one. Do not add markings, stripes or emblems that are not in image 1.
+
+Output: one wide sheet on a flat mid-grey background with four views of the ship, no labels or text: on the left, large, the top-down view with nose up, matching image 1's framing; to its right the side view (image 2's angle), the three-quarter rear view (image 6's angle) and the back view (image 3's angle). No engine flames, no shield, no background objects.

@@ -1,0 +1,21 @@
+Images 1 to 6 are orthographic and turnaround renders of one spaceship model, the Shoal minion, in flat colour blocks: image 1 top-down (nose up), image 2 side, image 3 back, image 4 front, image 5 three-quarter front, image 6 three-quarter rear. They are the object and colour reference: the 3D form, silhouette, proportions, panel boundaries and which region has which colour come from them and must not change. Many shapes that look flat from above are raised fins, swept wings or stacked plates: trust images 2 to 6 for the real form. Image 7 is a painted concept of a DIFFERENT faction's ship: it is only the STYLE reference for paint handling, ink line weight and wear level. Take no shapes, colours or markings from image 7.
+
+The faction: Shoal. Scrappers. Small salvage crews, each led by a skipper, flying fast fragile ships patched together from wrecks and kept running by hand. Sun-baked, rusty, improvised, cheerful rather than grim. The palette is fixed:
+- main hull: rust red-brown #9a4825
+- salvaged second panels (taken from some other ship, deliberately mismatched): verdigris grey-green #5f7468
+- edge trim and small lights: orange #fd9320
+- frame, engine housing and canopy: warm near-black #261e1b
+- tips and patches: sand bone #d8c29a
+No blue, cyan, purple, magenta or bright green anywhere.
+
+This is the lowest rank, a plain crew boat: all rust hull, no verdigris panels, the simplest and most beaten-up of the three.
+
+The hull colour is already rust, so wear does not need a new colour: show age through worn edges, hammered dents, mismatched panel seams, weld lines, rivets and patch plates, all as lighter and darker tones of the colour underneath. The verdigris panels should look like a different make of plating bolted on: different seam pattern and rivet spacing from the rust hull.
+
+Paint a finished paint-concept sheet of this one ship in the hand-painted illustrated style of image 7: solid colour regions, confident dark ink panel lines, one lighter brushed highlight pass, one darker shadow pass. Every view must show the SAME paint job: a seam, marking or panel that appears in one view sits in the matching place in the others.
+
+READABILITY: in play this ship is 60 to 100 pixels across on a very dark space background. The big colour shapes of image 1 must survive untouched; detail is a second read.
+
+HARD RULE FOR ALL ADDED DETAIL: value-only. Every line, scuff, chip, shadow and highlight is a darker or lighter tone of the colour underneath it. No new hues, no coloured grime, no paint chips showing a different colour, no decals, text, numbers or logos. The same detail must still work if the hull colour were swapped for a different one. Do not add markings, stripes or emblems that are not in image 1.
+
+Output: one wide sheet on a flat mid-grey background with four views of the ship, no labels or text: on the left, large, the top-down view with nose up, matching image 1's framing; to its right the side view (image 2's angle), the three-quarter rear view (image 6's angle) and the back view (image 3's angle). No engine flames, no shield, no background objects.
