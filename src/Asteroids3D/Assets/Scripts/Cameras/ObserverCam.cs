@@ -17,6 +17,8 @@ namespace Cameras
     /// Fits all active ships when unlocked or without a subject.
     /// Manual framing remains available after the last ship deactivates.
     /// Shakes its view on the subject's hits, death, own shakes and nearby blasts without moving its transform.
+    /// While the player's kit raises their speed cap, the view pops out to the full overspeed width
+    /// and comes straight back when it ends.
     /// </summary>
     public class ObserverCam : SmoothCamera
     {
@@ -59,6 +61,8 @@ namespace Cameras
         private Comparison<Transform> byDistanceFromSubject;
         private float lockedZoom;
         private float lockedZoomVelocity;
+        private bool kitWasLive;
+        private bool kitReturning;
         private Vector2? manualCenter;
         private float? manualZoom;
         private float zoomScale = 1f;
@@ -189,7 +193,8 @@ namespace Cameras
         {
             var maxLead = feel.maxLead + feel.overspeedLead * Overspeed;
             var target = Vector2.ClampMagnitude(LeadBodyVelocity * feel.leadSeconds, maxLead);
-            lead = Vector2.SmoothDamp(lead, target, ref leadVelocity, feel.leadSmoothTime,
+            lead = Vector2.SmoothDamp(lead, target, ref leadVelocity,
+                KitLive ? feel.kitLeadSmoothTime : feel.leadSmoothTime,
                 float.PositiveInfinity, Time.unscaledDeltaTime);
             return lead;
         }
@@ -238,12 +243,54 @@ namespace Cameras
 
         private float StepLockedZoom(Vector2 center)
         {
-            var headroom = feel.overspeedZoomOut * Overspeed;
+            var live = KitLive;
+            if (live && !kitWasLive)
+            {
+                // The pop takes over from the smoothed view, so it starts where the view is.
+                lockedZoom = Cam.orthographicSize / AppliedZoomScale;
+                lockedZoomVelocity = zoomVelocity / AppliedZoomScale;
+            }
+
+            if (!live && kitWasLive) kitReturning = true;
+            kitWasLive = live;
+            // After the window, residual overspeed must not hold the view wide while it bleeds off.
+            if (kitReturning && Overspeed <= 0f) kitReturning = false;
+            var overspeed = live ? 1f : kitReturning ? 0f : Overspeed;
+            var headroom = feel.overspeedZoomOut * overspeed;
             var target = Mathf.Min(Mathf.Max(Mathf.Clamp(SpeedZoom, BaseZoom, BaseZoom + feel.maxWiden + headroom),
                 FightZoom(center)), feel.maxZoomOut + headroom);
-            lockedZoom = CameraUtils.SmoothZoom(lockedZoom, target, ref lockedZoomVelocity,
-                feel.widenTime, feel.narrowTime, Time.unscaledDeltaTime);
+            if (live)
+            {
+                target = Mathf.Max(target, Mathf.Min(BaseZoom + feel.maxWiden + headroom, feel.maxZoomOut + headroom));
+                lockedZoom = PopZoom(lockedZoom, target, Time.unscaledDeltaTime);
+            }
+            else
+            {
+                lockedZoom = CameraUtils.SmoothZoom(lockedZoom, target, ref lockedZoomVelocity,
+                    feel.widenTime, kitReturning ? feel.kitReturnTime : feel.narrowTime, Time.unscaledDeltaTime);
+            }
+
             return lockedZoom;
+        }
+
+        private const float PopStep = 1f / 240f;
+
+        // Underdamped spring: peaks kitPopOvershoot past the target kitPopTime after a step.
+        private float PopZoom(float current, float target, float deltaTime)
+        {
+            var log = Mathf.Log(feel.kitPopOvershoot);
+            var damping = -log / Mathf.Sqrt(Mathf.PI * Mathf.PI + log * log);
+            var frequency = Mathf.PI / (feel.kitPopTime * Mathf.Sqrt(1f - damping * damping));
+            // Short substeps keep the spring's shape when a frame runs long.
+            for (var left = deltaTime; left > 0f; left -= PopStep)
+            {
+                var step = Mathf.Min(left, PopStep);
+                lockedZoomVelocity += (frequency * frequency * (target - current)
+                    - 2f * damping * frequency * lockedZoomVelocity) * step;
+                current += lockedZoomVelocity * step;
+            }
+
+            return current;
         }
 
         private void StepEngaged()
@@ -333,6 +380,12 @@ namespace Cameras
             ? Mathf.Clamp01((LeadBodyVelocity.magnitude / hull.MaxSpeed - 1f) / feel.overspeedRange)
             : 0f;
 
+        internal bool KitLive => hull != null && hull.Dynamics.maxSpeed > hull.MaxSpeed * 1.001f;
+
+        // The pop's overshoot and the quick return would be blurred by a second smoothing.
+        protected override bool SizeIsShaped => lockZoomToSubject && lockCameraToSubject && !manualZoom.HasValue
+            && (kitWasLive || kitReturning);
+
         internal bool TryGetBoundaryAroundAllSubjects(out Vector2 min, out Vector2 max)
         {
             CameraUtils.InitEmptyBounds(out min, out max);
@@ -361,6 +414,8 @@ namespace Cameras
             subject = newSubject;
             leadBody = newLeadBody;
             hull = newHull;
+            kitWasLive = false;
+            kitReturning = false;
 
             if (newSubject)
                 secondarySubjects.Add(newSubject);

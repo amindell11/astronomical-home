@@ -34,6 +34,10 @@ MonoBehaviour:
   overspeedRange: 0.3
   overspeedZoomOut: 6
   overspeedLead: 6
+  kitPopTime: 0.2
+  kitPopOvershoot: 0.12
+  kitReturnTime: 0.35
+  kitLeadSmoothTime: 0.35
   traumaPerHit: 0.75
   deathTrauma: 1
   traumaDecay: 1.2

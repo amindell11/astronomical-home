@@ -72,6 +72,19 @@ namespace Cameras
         [Tooltip("Extra lead distance allowed at full overspeed, added to maxLead, in world units.")]
         [Min(0f)] public float overspeedLead = 6f;
 
+        [Header("Keystone")]
+        [Tooltip("Seconds the view takes to pop out to the full overspeed width when the player's kit raises their speed cap.")]
+        [Min(0.01f)] public float kitPopTime = 0.2f;
+
+        [Tooltip("Share of the pop the view overshoots before it settles.")]
+        [Range(0.01f, 0.5f)] public float kitPopOvershoot = 0.12f;
+
+        [Tooltip("Seconds the view takes to come back in once the kit's live window ends.")]
+        [Min(0.01f)] public float kitReturnTime = 0.35f;
+
+        [Tooltip("Seconds the velocity lead takes to follow the player's velocity while their kit is live.")]
+        [Min(0f)] public float kitLeadSmoothTime = 0.35f;
+
         [Header("Shake")]
         [Tooltip("Trauma a full-size hit adds; smaller hits add their share. Above 1, a smaller hit can fill trauma. The view shakes by trauma raised to shakeExponent.")]
         [Range(0f, 2f)] public float traumaPerHit = .75f;

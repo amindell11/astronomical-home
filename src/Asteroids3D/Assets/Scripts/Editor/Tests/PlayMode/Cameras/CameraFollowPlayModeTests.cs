@@ -239,6 +239,52 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
     }
 
     [UnityTest]
+    public IEnumerator Locked_LiveKit_WidensToTheFullOverspeedWidth_AtRest()
+    {
+        cam.SetSubject(subject.transform, newHull: LiveKitHull());
+        yield return ZoomSettlesOn(LiveKitWidth);
+    }
+
+    [UnityTest]
+    public IEnumerator Locked_LiveKitEnding_ComesBackWithinTheReturnTime_WhileStillFast()
+    {
+        var stub = LiveKitHull();
+        var body = GiveSubjectVelocity(GamePlane.Right * stub.MaxSpeed * (1f + feel.overspeedRange));
+        cam.SetSubject(subject.transform, body, newHull: stub);
+        yield return ZoomSettlesOn(LiveKitWidth);
+
+        stub.LiveCap = 0f;
+        yield return new WaitForSecondsRealtime(4f * feel.kitReturnTime);
+
+        var target = Mathf.Min(Mathf.Clamp(cam.SpeedZoom, cam.BaseZoom, cam.BaseZoom + feel.maxWiden),
+            feel.maxZoomOut);
+        Assume.That(LiveKitWidth - target, Is.GreaterThan(1f),
+            "this tuning never separates the live width from the return");
+        Assert.AreEqual(target * cam.AppliedZoomScale, cam.Cam.orthographicSize, 0.25f * cam.AppliedZoomScale);
+    }
+
+    [UnityTest]
+    public IEnumerator Locked_LiveKitPop_OvershootsThenSettles()
+    {
+        var live = LiveKitHull();
+        var stub = new HullStub(live.MaxSpeed);
+        cam.SetSubject(subject.transform, newHull: stub);
+        yield return ZoomSettlesOn(feel.zoom);
+
+        stub.LiveCap = live.LiveCap;
+        var peak = cam.Cam.orthographicSize;
+        var until = Time.realtimeSinceStartup + 3f * feel.kitPopTime;
+        while (Time.realtimeSinceStartup < until)
+        {
+            yield return null;
+            peak = Mathf.Max(peak, cam.Cam.orthographicSize);
+        }
+
+        Assert.That(peak, Is.GreaterThan(LiveKitWidth * cam.AppliedZoomScale + SizeTolerance));
+        yield return ZoomSettlesOn(LiveKitWidth);
+    }
+
+    [UnityTest]
     public IEnumerator Locked_PastTheHullsTopSpeed_LeadsBeyondTheUsualCap()
     {
         Assume.That(feel.overspeedLead, Is.GreaterThan(0f), "this tuning turns the overspeed lead off");
@@ -545,6 +591,18 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
     }
 
     private float FightCap => feel.maxZoomOut;
+
+    private float LiveKitWidth => Mathf.Min(
+        feel.zoom + feel.maxWiden + feel.overspeedZoomOut,
+        feel.maxZoomOut + feel.overspeedZoomOut);
+
+    private HullStub LiveKitHull()
+    {
+        Assume.That(feel.overspeedZoomOut, Is.GreaterThan(0f), "this tuning turns the overspeed headroom off");
+        var hullSpeed = feel.referenceHullSpeed;
+        return new HullStub(hullSpeed, hullSpeed * 1.5f);
+    }
+
     private float Padding
     {
         get
@@ -649,12 +707,22 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
     {
         private readonly float maxSpeed;
 
-        public HullStub(float maxSpeed) => this.maxSpeed = maxSpeed;
+        public HullStub(float maxSpeed, float liveCap = 0f)
+        {
+            this.maxSpeed = maxSpeed;
+            LiveCap = liveCap;
+        }
+
+        public float LiveCap { get; set; }
 
         public ShipId Id => default;
         public Transform Transform => null;
         public Kinematics Kinematics => default;
-        public Dynamics Dynamics => default;
+        public Dynamics Dynamics => LiveCap <= 0f
+            ? default
+            : new Dynamics(
+                mass: 1f, forwardAcc: 0f, reverseAcc: 0f, maxStrafeAcc: 0f, minStrafeAcc: 0f,
+                maxSpeed: LiveCap, maxYawRate: 1f, yawTorque: 1f, angularDrag: 0f, linearDrag: 0f);
         public float HealthPct => default;
         public float ShieldPct => default;
         public bool BoostAvailable => default;
