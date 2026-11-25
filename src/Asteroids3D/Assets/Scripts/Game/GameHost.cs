@@ -973,8 +973,14 @@ namespace Game
             return names;
         }
 
-        private void RefillPlayerHull(ShipId victim) =>
-            rigInstance.Player.Damage.Health.Restore(PaysRivalHeal(victim) ? rivalKillHeal : minionKillHeal);
+        private void RefillPlayerHull(ShipId victim, Vector3 diedAt)
+        {
+            var hull = rigInstance.Player.Damage.Health;
+            var before = hull.CurrentValue;
+            hull.Restore(PaysRivalHeal(victim) ? rivalKillHeal : minionKillHeal);
+            var gained = hull.CurrentValue - before;
+            if (gained > 0f && rigInstance.Overlay) rigInstance.Overlay.ShowHullGain(gained, diedAt);
+        }
 
         private bool PaysRivalHeal(ShipId victim)
         {
