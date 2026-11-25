@@ -1,0 +1,5 @@
+Image 1 is a finished paint-concept sheet of one spaceship in four views (top-down at left, side, three-quarter, back). Edit it; do not redraw it.
+
+The one change: the nose brow. This is the raised bar that wraps across the very front of the ship, ahead of the main red top plate. In the top view it is the bar across the top edge of the ship, above the main plate; in the side view it is the small block at the far front tip of the nose; in the three-quarter view it is the band wrapping around the front edge below the top plate. It is currently dark red. Repaint the nose brow near-black warm slate #241f22, exactly the same colour as the two dark shoulder blocks beside the top plate, in every view where it appears. Keep its shape, ink lines, highlights and wear, shifted to lighter and darker tones of slate.
+
+Change nothing else: the main red top plate and its red hue, the chevron, the dark shoulder blocks, the bone guards with red insets, the fins, engines, canopy, layout, framing and grey background stay exactly as they are. No new hues, no text.
