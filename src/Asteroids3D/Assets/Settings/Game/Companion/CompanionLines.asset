@@ -29,6 +29,12 @@ MonoBehaviour:
   - moment: death
     speaker: 
     mustSay: 1
+  - moment: death.crash
+    speaker: 
+    mustSay: 1
+  - moment: death.self
+    speaker: 
+    mustSay: 1
   - moment: sector-entered
     speaker: 
     mustSay: 0

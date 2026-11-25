@@ -107,7 +107,7 @@ namespace Tests.EditMode.Companion
         [Test]
         public void PlayerDied_QuotesItsSectorAndKiller()
         {
-            var moment = new PlayerDied(2, DamageKind.Missile, "");
+            var moment = new PlayerDied(2, DamageKind.Missile, DeathCause.Enemy, "");
 
             Assert.AreEqual(PlayerDied.DeathSlot, moment.Slot);
             Assert.AreEqual("2", moment.Facts["sector"]);
@@ -117,10 +117,23 @@ namespace Tests.EditMode.Companion
         [Test]
         public void PlayerDied_CarriesTheFaction()
         {
-            var moment = new PlayerDied(2, DamageKind.Missile, "veil");
+            var moment = new PlayerDied(2, DamageKind.Missile, DeathCause.Enemy, "veil");
 
             Assert.AreEqual("veil", moment.Faction);
             Assert.AreEqual("veil", moment.Facts["faction"]);
+        }
+
+        [Test]
+        public void PlayerDied_SpeaksTheSlotOfItsCause()
+        {
+            Assert.AreEqual(PlayerDied.CrashSlot, new PlayerDied(1, DamageKind.Collision, DeathCause.Crash, "").Slot);
+            Assert.AreEqual(PlayerDied.SelfSlot, new PlayerDied(1, DamageKind.Missile, DeathCause.Self, "").Slot);
+        }
+
+        [Test]
+        public void PlayerDied_WithoutAKiller_RefusesAFaction()
+        {
+            Assert.Throws<ArgumentException>(() => new PlayerDied(1, DamageKind.Collision, DeathCause.Crash, "shoal"));
         }
 
         [Test]
@@ -370,7 +383,7 @@ namespace Tests.EditMode.Companion
             var sheet = AssetDatabase.LoadAssetAtPath<CompanionLineSheet>(SheetPath);
             Assert.IsTrue(sheet, "the line sheet ships");
 
-            foreach (var moment in RunStarted.AllSlots.Append(PlayerDied.DeathSlot))
+            foreach (var moment in RunStarted.AllSlots.Concat(PlayerDied.AllSlots))
                 Assert.IsTrue(sheet.Find(moment).MustSay, $"{moment} is must-say");
         }
 

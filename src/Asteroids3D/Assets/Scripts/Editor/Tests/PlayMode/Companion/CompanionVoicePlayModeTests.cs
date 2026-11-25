@@ -94,11 +94,11 @@ namespace Tests.PlayMode.Companion
         [UnityTest]
         public IEnumerator EmptyLineSlotsWithoutDebugLabels_ShowNothing()
         {
-            BuildVoice(RunStarted.AllSlots.Append(PlayerDied.DeathSlot)
+            BuildVoice(RunStarted.AllSlots.Concat(PlayerDied.AllSlots)
                 .Select(slot => (slot, true, Array.Empty<string>())).ToArray());
 
             moments.Raise(FirstRun());
-            moments.Raise(new PlayerDied(1, DamageKind.Laser, ""));
+            moments.Raise(new PlayerDied(1, DamageKind.Laser, DeathCause.Enemy, ""));
             yield return null;
 
             Assert.IsFalse(display.Speaking, "an empty line slot stays silent");
@@ -115,7 +115,7 @@ namespace Tests.PlayMode.Companion
             Assert.IsTrue(display.Speaking, "the debug label shows like a line");
             Assert.AreEqual("Companion: [run-start.first-launch] clone 1", display.Line);
 
-            moments.Raise(new PlayerDied(2, DamageKind.Missile, ""));
+            moments.Raise(new PlayerDied(2, DamageKind.Missile, DeathCause.Enemy, ""));
             yield return null;
             Assert.AreEqual("Companion: [run-start.first-launch] clone 1", display.Line,
                 "a plain slot's label waits out the nag budget like a plain line");
@@ -141,7 +141,7 @@ namespace Tests.PlayMode.Companion
                 (PlayerDied.DeathSlot, false, new[] { "down in {sector}" }));
 
             moments.Raise(FirstRun());
-            moments.Raise(new PlayerDied(1, DamageKind.Laser, ""));
+            moments.Raise(new PlayerDied(1, DamageKind.Laser, DeathCause.Enemy, ""));
             Assert.AreEqual("Companion: clone 1", display.Line, "the plain line does not replace the spoken one");
 
             for (var i = 0; i < 5; i++)
@@ -154,7 +154,7 @@ namespace Tests.PlayMode.Companion
         {
             BuildVoice((RunStarted.FirstLaunchSlot, true, new[] { "clone {clone}" }));
 
-            Assert.Throws<InvalidOperationException>(() => moments.Raise(new PlayerDied(1, DamageKind.Laser, "")));
+            Assert.Throws<InvalidOperationException>(() => moments.Raise(new PlayerDied(1, DamageKind.Laser, DeathCause.Enemy, "")));
             yield return null;
         }
     }
