@@ -1,0 +1,5 @@
+Image 1 is a finished paint-concept sheet of one spaceship in four views (top-down at left, side, three-quarter, back). Edit it; do not redraw it.
+
+The one change: the two shoulder blocks. These are the raised armour blocks that sit either side of the main red top plate, level with the canopy, one on the left flank and one on the right. In the top view they are the two blocks sticking out at the left and right edges; in the side view it is the large block at the front of the flank; in the three-quarter view the block beside the nose; in the back view the outermost blocks at far left and far right. They are currently dark red. Repaint both shoulder blocks near-black warm slate #241f22, the same colour as the ship's dark frame, in every view where they appear. Keep their shape, ink lines, bolts, highlights and wear, shifted to the new colour as lighter and darker tones of slate.
+
+Change nothing else: the main top plate, the nose brow, the chevron, the bone guards with their red insets, the fins, engines, canopy, layout, framing and grey background all stay exactly as they are. No new hues, no text.
