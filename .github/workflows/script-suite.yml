@@ -60,7 +60,8 @@ jobs:
       - name: Script suite
         id: suite
         run: |
-          export TMP="$RUNNER_TEMP" TEMP="$RUNNER_TEMP" TMPDIR="$RUNNER_TEMP"
+          TMPDIR="$(cygpath -u "$RUNNER_TEMP")" TMP="$(cygpath -w "$RUNNER_TEMP")" TEMP="$(cygpath -w "$RUNNER_TEMP")"
+          export TMPDIR TMP TEMP
           git config --global user.name script-suite
           git config --global user.email script-suite@users.noreply.github.com
           git fetch --no-tags origin main:refs/remotes/origin/main
